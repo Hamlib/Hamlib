@@ -2,7 +2,7 @@
  * memsave.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memsave.c,v 1.3 2004-01-15 22:43:59 fillods Exp $  
+ *	$Id: memsave.c,v 1.4 2004-01-21 19:47:15 f4dwv Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -159,21 +159,14 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		sprintf(attrbuf,"%d",(int)chan.tx_width);
 		xmlNewProp(node, "tx_width", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.split) {
-		switch(chan.split) {
-		case RIG_SPLIT_OFF:
-				xmlNewProp(node, "split", "off");
-				break;
-		case RIG_SPLIT_ON:
-				xmlNewProp(node, "split", "on");
-				if (rig->state.chan_list[i].mem_caps.tx_vfo) {
-					sprintf(attrbuf,"%x",chan.tx_vfo);
-					xmlNewProp(node, "tx_vfo", attrbuf);
-				}
-				break;
+	if (rig->state.chan_list[i].mem_caps.split && chan.split!=RIG_SPLIT_OFF) {
+		xmlNewProp(node, "split", "on");
+		if (rig->state.chan_list[i].mem_caps.tx_vfo) {
+				sprintf(attrbuf,"%x",chan.tx_vfo);
+				xmlNewProp(node, "tx_vfo", attrbuf);
 		}
 	}
-	if (rig->state.chan_list[i].mem_caps.rptr_shift) {
+	if (rig->state.chan_list[i].mem_caps.rptr_shift && chan.rptr_shift!=RIG_RPT_SHIFT_NONE) {
 		switch(chan.rptr_shift) {
 		case RIG_RPT_SHIFT_NONE:
 				xmlNewProp(node, "rptr_shift", "=");
@@ -185,10 +178,10 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 				xmlNewProp(node, "rptr_shift", "-");
 				break;
 		}
-		if (rig->state.chan_list[i].mem_caps.rptr_offs && chan.rptr_shift!=RIG_RPT_SHIFT_NONE) {
-					sprintf(attrbuf,"%d",(int)chan.rptr_offs);
-					xmlNewProp(node, "rptr_offs", attrbuf);
-				}
+		if (rig->state.chan_list[i].mem_caps.rptr_offs) {
+			sprintf(attrbuf,"%d",(int)chan.rptr_offs);
+			xmlNewProp(node, "rptr_offs", attrbuf);
+		}
 	}
 	if (rig->state.chan_list[i].mem_caps.tuning_step && chan.tuning_step !=0) {
 		sprintf(attrbuf,"%d",(int)chan.tuning_step);
@@ -230,7 +223,6 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		sprintf(attrbuf,"%x",chan.flags);
 		xmlNewProp(node, "flags", attrbuf);
 	}
-
 	
   return 0;
 }
