@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: orion.c,v 1.7 2005-04-01 19:32:18 aa6e Exp $
+ *	$Id: orion.c,v 1.8 2005-04-03 15:54:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -189,9 +189,9 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 #ifdef TT565_TIME
 	  ft2 = tt565_timenow();
           if (*data_len == -RIG_ETIMEOUT)
-	    printf("Timeout %d: Elapsed = %f secs.\n", itry, ft2-ft1);
+	    rig_debug(RIG_DEBUG_ERR,"Timeout %d: Elapsed = %f secs.\n", itry, ft2-ft1);
 	  else
-	    printf("Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
+	    rig_debug(RIG_DEBUG_ERR,"Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
 		*data_len, itry, ft2-ft1);
 #endif
 	}
