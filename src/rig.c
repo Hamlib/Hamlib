@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.34 2001-06-10 22:19:07 f4cfe Exp $
+   $Id: rig.c,v 1.35 2001-06-11 00:41:28 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -196,7 +196,7 @@ static int remove_opened_rig(RIG *rig)
  *		%RIG_OK.
  */
 
-int foreach_opened_rig(int (*cfunc)(RIG *, void *),void *data)
+int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 {	
 	struct opened_rig_l *p;
 
@@ -3440,7 +3440,7 @@ int rig_save_channel(RIG *rig, channel_t *chan)
   int chan_num;
 
   chan_num = chan->channel_num;
-  memset((void*)chan, 0, sizeof(channel_t));
+  memset(chan, 0, sizeof(channel_t));
   chan->channel_num = chan_num;
 
   rig_get_vfo(rig, &chan->vfo);

@@ -1,6 +1,12 @@
+TSSRCLIST = ts870s.c
+
 lib_LTLIBRARIES = libhamlib-kenwood.la
-libhamlib_kenwood_la_SOURCES = ts870s.c kenwood.c
-libhamlib_kenwood_la_LDFLAGS = -avoid-version # -module
+libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c
+libhamlib_kenwood_la_LDFLAGS = -module -avoid-version
+libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la
+
 lib_LIBRARIES = libhamlib-kenwood.a
-libhamlib_kenwood_a_SOURCES = ts870s.c kenwood.c
+libhamlib_kenwood_a_SOURCES = $(TSSRCLIST) kenwood.c
+libhamlib_kenwood_a_LIBADD = ../src/libhamlib.la
+
 noinst_HEADERS = kenwood.h

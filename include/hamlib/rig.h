@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.36 2001-06-10 00:43:00 f4cfe Exp $
+ *	$Id: rig.h,v 1.37 2001-06-11 00:41:28 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,17 +31,68 @@
 #include <stdio.h>		/* required for FILE definition */
 #include <sys/time.h>		/* required for struct timeval */
 
-#ifdef __cplusplus
-extern "C" {
+/* At some point, cygwin will stop defining __CYGWIN32__, but b19 and
+ *  * earlier do not define __CYGWIN__.  This snippit allows us to check
+ *   * for __CYGWIN32__ reliably for both old and (probable) future releases.
+ *    */
+#ifdef __CYGWIN__
+#  ifndef __CYGWIN32__
+#    define __CYGWIN32__
+#  endif
 #endif
 
-extern const char hamlib_version[];
+/* __BEGIN_DECLS should be used at the beginning of your declarations,
+ *    so that C++ compilers don't mangle their names.  Use __END_DECLS at
+ *       the end of C declarations. */
+#undef __BEGIN_DECLS
+#undef __END_DECLS
+#ifdef __cplusplus
+# define __BEGIN_DECLS extern "C" {
+# define __END_DECLS }
+#else
+# define __BEGIN_DECLS /* empty */
+# define __END_DECLS /* empty */
+#endif
+
+/* RIG_PARAMS is a macro used to wrap function prototypes, so that compilers
+ *    that don't understand ANSI C prototypes still work, and ANSI C
+ *       compilers can issue warnings about type mismatches. */
+#undef RIG_PARAMS
+#if defined (__STDC__) || defined (_AIX) || (defined (__mips) && defined (_SYSTYPE_SVR4)) || defined(__CYGWIN32__) || defined(__cplusplus)
+# define RIG_PARAMS(protos) protos
+# define rig_ptr_t     void*
+#else
+# define RIG_PARAMS(protos) ()
+# define rig_ptr_t     char*
+#endif
+
+#ifdef __CYGWIN32__
+#  ifdef HAMLIB_DLL
+     /* need some (as yet non-existant) automake magic to tell
+	  * the object whether the libhamlib it will be linked with is
+	  * a dll or not, ie whether LIBHAMLIB_DLL is defined or not.
+	  */
+#    ifdef _LIBHAMLIB_COMPILATION_
+#      define EXTERN __declspec(dllexport)
+#    else
+#      define EXTERN extern __declspec(dllimport)
+#    endif
+#  else
+#    define EXTERN extern
+#  endif
+#else
+#  define EXTERN extern
+#endif
+
+__BEGIN_DECLS
+
+EXTERN const char hamlib_version[];
 
 typedef unsigned int tone_t;
 
-extern const tone_t full_ctcss_list[];
-extern const tone_t common_ctcss_list[];
-extern const tone_t full_dcs_list[];
+EXTERN const tone_t full_ctcss_list[];
+EXTERN const tone_t common_ctcss_list[];
+EXTERN const tone_t full_dcs_list[];
 #define CTCSS_LIST_SIZE (sizeof(full_ctcss_list)/sizeof(tone_t)-1)
 #define DCS_LIST_SIZE (sizeof(full_dcs_list)/sizeof(tone_t)-1)
 
@@ -689,7 +740,7 @@ struct rig_caps {
 
   struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
 
-  const void *priv;
+  const rig_ptr_t priv;
 
   /*
    * Rig Admin API
@@ -929,7 +980,7 @@ struct rig_state {
    * Pointer to private data
    * tuff like CI_V_address for Icom goes in this *priv 51 area
    */
-  void *priv;
+  rig_ptr_t priv;
   
   /* etc... */
 };
@@ -968,155 +1019,153 @@ struct rig {
 
 /* --------------- API function prototypes -----------------*/
 
-extern RIG *rig_init(rig_model_t rig_model);
-extern int rig_open(RIG *rig);
+extern RIG *rig_init RIG_PARAMS((rig_model_t rig_model));
+extern int rig_open RIG_PARAMS((RIG *rig));
 
   /*
    *  General API commands, from most primitive to least.. :()
    *  List Set/Get functions pairs
    */
 
-extern int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq); /* select freq */
-extern int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq); /* get freq */
+extern int rig_set_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t freq));
+extern int rig_get_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t *freq));
 
-extern int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-extern int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+extern int rig_set_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width));
+extern int rig_get_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width));
 
-extern int rig_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-extern int rig_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+extern int rig_set_vfo RIG_PARAMS((RIG *rig, vfo_t vfo));
+extern int rig_get_vfo RIG_PARAMS((RIG *rig, vfo_t *vfo));
 
-extern int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt); /* ptt on/off */
-extern int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt); /* get ptt status */
+extern int rig_set_ptt RIG_PARAMS((RIG *rig, vfo_t vfo, ptt_t ptt));
+extern int rig_get_ptt RIG_PARAMS((RIG *rig, vfo_t vfo, ptt_t *ptt));
 
-extern int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd); /* get dcd status */
+extern int rig_get_dcd RIG_PARAMS((RIG *rig, vfo_t vfo, dcd_t *dcd));
 
-extern int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift); /* set repeater shift */
-extern int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift); /* get repeater shift */
-extern int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs); /* set repeater offset */
-extern int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs); /* get repeater offset */
+extern int rig_set_rptr_shift RIG_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift));
+extern int rig_get_rptr_shift RIG_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift));
+extern int rig_set_rptr_offs RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rptr_offs));
+extern int rig_get_rptr_offs RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs));
 
-extern int rig_set_ctcss(RIG *rig, vfo_t vfo, tone_t tone);
-extern int rig_get_ctcss(RIG *rig, vfo_t vfo, tone_t *tone);
-extern int rig_set_dcs(RIG *rig, vfo_t vfo, tone_t code);
-extern int rig_get_dcs(RIG *rig, vfo_t vfo, tone_t *code);
+extern int rig_set_ctcss RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
+extern int rig_get_ctcss RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
+extern int rig_set_dcs RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
+extern int rig_get_dcs RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
-extern int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
-extern int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
-extern int rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
-extern int rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
+extern int rig_set_ctcss_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
+extern int rig_get_ctcss_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
+extern int rig_set_dcs_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
+extern int rig_get_dcs_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
-extern int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
-extern int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
-extern int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width);
-extern int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width);
-extern int rig_set_split(RIG *rig, vfo_t vfo, split_t split);
-extern int rig_get_split(RIG *rig, vfo_t vfo, split_t *split);
+extern int rig_set_split_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq));
+extern int rig_get_split_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq));
+extern int rig_set_split_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width));
+extern int rig_get_split_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width));
+extern int rig_set_split RIG_PARAMS((RIG *rig, vfo_t vfo, split_t split));
+extern int rig_get_split RIG_PARAMS((RIG *rig, vfo_t vfo, split_t *split));
 
-extern int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-extern int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-extern int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
-extern int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+extern int rig_set_rit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rit));
+extern int rig_get_rit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rit));
+extern int rig_set_xit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t xit));
+extern int rig_get_xit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *xit));
 
-extern int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts); /* set tuning step */
-extern int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts); /* get tuning step */
+extern int rig_set_ts RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t ts));
+extern int rig_get_ts RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *ts));
 
-extern int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
-extern int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
+extern int rig_power2mW RIG_PARAMS((RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode));
+extern int rig_mW2power RIG_PARAMS((RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode));
 
-extern shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode);
+extern shortfreq_t rig_get_resolution RIG_PARAMS((RIG *rig, rmode_t mode));
 
-extern int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-extern int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+extern int rig_set_level RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t level, value_t val));
+extern int rig_get_level RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t level, value_t *val));
 
 #define rig_get_strength(r,v,s) rig_get_level((r),(v),RIG_LEVEL_STRENGTH, (value_t*)(s))
 
-extern int rig_set_parm(RIG *rig, setting_t parm, value_t val);
-extern int rig_get_parm(RIG *rig, setting_t parm, value_t *val);
+extern int rig_set_parm RIG_PARAMS((RIG *rig, setting_t parm, value_t val));
+extern int rig_get_parm RIG_PARAMS((RIG *rig, setting_t parm, value_t *val));
 
-extern int rig_set_powerstat(RIG *rig, powerstat_t status);
-extern int rig_get_powerstat(RIG *rig, powerstat_t *status);
+extern int rig_set_powerstat RIG_PARAMS((RIG *rig, powerstat_t status));
+extern int rig_get_powerstat RIG_PARAMS((RIG *rig, powerstat_t *status));
 
-extern int rig_reset(RIG *rig, reset_t reset);	/* dangerous! */
+extern int rig_reset RIG_PARAMS((RIG *rig, reset_t reset));	/* dangerous! */
 
 /* more to come -- FS */
 
-extern int rig_close(RIG *rig);
-extern int rig_cleanup(RIG *rig);
+extern int rig_close RIG_PARAMS((RIG *rig));
+extern int rig_cleanup RIG_PARAMS((RIG *rig));
 
-extern rig_model_t rig_probe(port_t *p);
+extern rig_model_t rig_probe RIG_PARAMS((port_t *p));
 
-extern int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant);	/* antenna */
-extern int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
+extern int rig_set_ant RIG_PARAMS((RIG *rig, vfo_t vfo, ant_t ant));	/* antenna */
+extern int rig_get_ant RIG_PARAMS((RIG *rig, vfo_t vfo, ant_t *ant));
 
-extern setting_t rig_has_get_level(RIG *rig, setting_t level);
-extern setting_t rig_has_set_level(RIG *rig, setting_t level);
+extern setting_t rig_has_get_level RIG_PARAMS((RIG *rig, setting_t level));
+extern setting_t rig_has_set_level RIG_PARAMS((RIG *rig, setting_t level));
 
-extern setting_t rig_has_get_parm(RIG *rig, setting_t parm);
-extern setting_t rig_has_set_parm(RIG *rig, setting_t parm);
+extern setting_t rig_has_get_parm RIG_PARAMS((RIG *rig, setting_t parm));
+extern setting_t rig_has_set_parm RIG_PARAMS((RIG *rig, setting_t parm));
 
-extern setting_t rig_has_get_func(RIG *rig, setting_t func);
-extern setting_t rig_has_set_func(RIG *rig, setting_t func);
+extern setting_t rig_has_get_func RIG_PARAMS((RIG *rig, setting_t func));
+extern setting_t rig_has_set_func RIG_PARAMS((RIG *rig, setting_t func));
 
-extern int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);	/* activate the function(s) */
-extern int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status); /* get the setting from rig */
+extern int rig_set_func RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int status));
+extern int rig_get_func RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int *status));
 
-extern int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits);
-extern int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length);
-extern int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+extern int rig_send_dtmf RIG_PARAMS((RIG *rig, vfo_t vfo, const char *digits));
+extern int rig_recv_dtmf RIG_PARAMS((RIG *rig, vfo_t vfo, char *digits, int *length));
+extern int rig_send_morse RIG_PARAMS((RIG *rig, vfo_t vfo, const char *msg));
 
-extern int rig_set_bank(RIG *rig, vfo_t vfo, int bank);	/* set memory bank number */
-extern int rig_set_mem(RIG *rig, vfo_t vfo, int ch);		/* set memory channel number */
-extern int rig_get_mem(RIG *rig, vfo_t vfo, int *ch);		/* get memory channel number */
+extern int rig_set_bank RIG_PARAMS((RIG *rig, vfo_t vfo, int bank));
+extern int rig_set_mem RIG_PARAMS((RIG *rig, vfo_t vfo, int ch));
+extern int rig_get_mem RIG_PARAMS((RIG *rig, vfo_t vfo, int *ch));
 #ifdef WANT_OLD_VFO_TO_BE_REMOVED
-extern int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);	/* Mem/VFO operation */
+extern int rig_mv_ctl RIG_PARAMS((RIG *rig, vfo_t vfo, mv_op_t op));
 #else
-extern int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op); /* Mem/VFO operation */
-extern vfo_op_t rig_has_vfo_op(RIG *rig, vfo_op_t op);
+extern int rig_vfo_op RIG_PARAMS((RIG *rig, vfo_t vfo, vfo_op_t op));
+extern vfo_op_t rig_has_vfo_op RIG_PARAMS((RIG *rig, vfo_op_t op));
 #endif
 
-extern int rig_restore_channel(RIG *rig, const channel_t *chan); /* curr VFO */
-extern int rig_save_channel(RIG *rig, channel_t *chan);
-extern int rig_set_channel(RIG *rig, const channel_t *chan);	/* mem */
-extern int rig_get_channel(RIG *rig, channel_t *chan);
+extern int rig_restore_channel RIG_PARAMS((RIG *rig, const channel_t *chan)); /* curr VFO */
+extern int rig_save_channel RIG_PARAMS((RIG *rig, channel_t *chan));
+extern int rig_set_channel RIG_PARAMS((RIG *rig, const channel_t *chan));	/* mem */
+extern int rig_get_channel RIG_PARAMS((RIG *rig, channel_t *chan));
 
-extern int rig_set_trn(RIG *rig, vfo_t vfo, int trn); /* activate the transceive mode */
-extern int rig_get_trn(RIG *rig, vfo_t vfo, int *trn);
+extern int rig_set_trn RIG_PARAMS((RIG *rig, vfo_t vfo, int trn));
+extern int rig_get_trn RIG_PARAMS((RIG *rig, vfo_t vfo, int *trn));
 
 
-extern const char *rig_get_info(RIG *rig);
+extern const char *rig_get_info RIG_PARAMS((RIG *rig));
 
-extern const struct rig_caps *rig_get_caps(rig_model_t rig_model);
-const freq_range_t *rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode);
+extern const struct rig_caps *rig_get_caps RIG_PARAMS((rig_model_t rig_model));
+const freq_range_t *rig_get_range RIG_PARAMS((const freq_range_t range_list[], freq_t freq, rmode_t mode));
 
-extern pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode);
-extern pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode);
-extern pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode);
+extern pbwidth_t rig_passband_normal RIG_PARAMS((RIG *rig, rmode_t mode));
+extern pbwidth_t rig_passband_narrow RIG_PARAMS((RIG *rig, rmode_t mode));
+extern pbwidth_t rig_passband_wide RIG_PARAMS((RIG *rig, rmode_t mode));
 
-extern const char *rigerror(int errnum);
+extern const char *rigerror RIG_PARAMS((int errnum));
 
-extern int rig_setting2idx(setting_t s);
+extern int rig_setting2idx RIG_PARAMS((setting_t s));
 #define rig_idx2setting(i) (1<<(i))
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
  * Maybe "hamlib_" would have been better. Let me know. --SF
  */
-void rig_set_debug(enum rig_debug_level_e debug_level);
-int rig_need_debug(enum rig_debug_level_e debug_level);
-void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...);
+void rig_set_debug RIG_PARAMS((enum rig_debug_level_e debug_level));
+int rig_need_debug RIG_PARAMS((enum rig_debug_level_e debug_level));
+void rig_debug RIG_PARAMS((enum rig_debug_level_e debug_level, const char *fmt, ...));
 
-int rig_register(const struct rig_caps *caps);
-int rig_unregister(rig_model_t rig_model);
-int rig_list_foreach(int (*cfunc)(const struct rig_caps*,void*),void *data);
-int rig_load_backend(const char *be_name);
-int rig_check_backend(rig_model_t rig_model);
-int rig_load_all_backends();
-rig_model_t rig_probe_all(port_t *p);
+int rig_register RIG_PARAMS((const struct rig_caps *caps));
+int rig_unregister RIG_PARAMS((rig_model_t rig_model));
+int rig_list_foreach RIG_PARAMS((int (*cfunc)(const struct rig_caps*, rig_ptr_t), rig_ptr_t data));
+int rig_load_backend RIG_PARAMS((const char *be_name));
+int rig_check_backend RIG_PARAMS((rig_model_t rig_model));
+int rig_load_all_backends RIG_PARAMS(());
+rig_model_t rig_probe_all RIG_PARAMS((port_t *p));
 
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif /* _RIG_H */
 

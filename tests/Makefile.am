@@ -6,7 +6,8 @@ EXTRA_PROGRAMS = rigmatrix
 LDADD = ../src/libhamlib.la
 DEPENDENCIES = ../src/libhamlib.la
 
-BACKENDLNK = "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-yaesu.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la "-dlopen" ../alinco/libhamlib-alinco.la @WINRADIOLNK@
+## The quotes around -dlopen below fool automake into accepting it
+BACKENDLNK = "-dlopen" self "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-yaesu.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la "-dlopen" ../alinco/libhamlib-alinco.la @WINRADIOLNK@
 BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la @WINRADIODEPS@
 
 ## Linker options
@@ -43,11 +44,10 @@ listrigs_SOURCES = listrigs.c
 rigctl_SOURCES = rigctl.c
 rigmatrix_SOURCES = rigmatrix.c
 
-rigmatrix.html: rigmatrix_head.html rigmatrix
+rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	mkdir -p html
-	cd html
-	mv rigmatrix.html rigmatrix-old.html
-	( cat ../rigmatrix_head.html && ../rigmatrix ) >  rigmatrix.html
-	cd ..
+	( cd html && cat ../rigmatrix_head.html && ../rigmatrix ) > html/rigmatrix.html
+	#for f in `./listrigs | tail +2 | cut -f1` ; do ./dumpcaps $f > html/model$1.txt ; done
+	# ./listrigs | awk 'NR!=1 { system("./dumpcaps $1 > html/model$1.txt") }'
 
 noinst_DATA = rigmatrix_head.html

@@ -1,6 +1,12 @@
+ICOMSRCLIST = ic706.c icr8500.c icall.c
+
 lib_LTLIBRARIES = libhamlib-icom.la
-libhamlib_icom_la_SOURCES = ic706.c icr8500.c icall.c icom.c frame.c
-libhamlib_icom_la_LDFLAGS = -avoid-version # -module
+libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
+libhamlib_icom_la_LDFLAGS = -module -avoid-version
+libhamlib_icom_la_LIBADD = ../src/libhamlib.la
+
 lib_LIBRARIES = libhamlib-icom.a
-libhamlib_icom_a_SOURCES = ic706.c icr8500.c icall.c icom.c frame.c
+libhamlib_icom_a_SOURCES = $(ICOMSRCLIST) icom.c frame.c
+libhamlib_icom_a_LIBADD = ../src/libhamlib.la
+
 noinst_HEADERS = frame.h icom.h icom_defs.h

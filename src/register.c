@@ -2,7 +2,7 @@
    register.c  - Copyright (C) 2000 Stephane Fillod and Frank Singleton
    Provides registering for dynamically loadable backends.
 
-   $Id: register.c,v 1.5 2001-06-04 21:17:52 f4cfe Exp $
+   $Id: register.c,v 1.6 2001-06-11 00:41:28 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -205,7 +205,7 @@ int rig_unregister(rig_model_t rig_model)
  * rig_list_foreach
  * executes cfunc on all the elements stored in the rig hash list
  */
-int rig_list_foreach(int (*cfunc)(const struct rig_caps*, void *),void *data)
+int rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),rig_ptr_t data)
 {
 	struct rig_list *p;
 	int i;
@@ -262,7 +262,7 @@ int rig_load_backend(const char *be_name)
 # define PREFIX "libhamlib-"
 # define POSTFIX ".so" /* ".so.%u" */
 	lt_dlhandle be_handle;
-    int (*be_init)(void *);
+    int (*be_init)(rig_ptr_t);
 	int status;
 	char libname[PATH_MAX];
 	char initfname[MAXFUNCNAMELEN]  = "init_";
@@ -272,6 +272,9 @@ int rig_load_backend(const char *be_name)
 	/*
 	 * lt_dlinit may be called several times
 	 */
+#if 0
+	LTDL_SET_PRELOADED_SYMBOLS();
+#endif
 	status = lt_dlinit();
 	if (status) {
     		rig_debug(RIG_DEBUG_ERR, "rig_backend_load: lt_dlinit for %s "
@@ -296,7 +299,7 @@ int rig_load_backend(const char *be_name)
 
 
     strncat(initfname, be_name, MAXFUNCNAMELEN);
-    be_init = (int (*)(void *)) lt_dlsym (be_handle, initfname);
+    be_init = (int (*)(rig_ptr_t)) lt_dlsym (be_handle, initfname);
 	if (!be_init) {
 			rig_debug(RIG_DEBUG_ERR, "rig: dlsym(%s) failed (%s)\n",
 						initfname, lt_dlerror());

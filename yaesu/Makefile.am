@@ -2,7 +2,7 @@ YAESUSRC = ft747.c ft847.c
 
 lib_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = yaesu.c $(YAESUSRC)
-libhamlib_yaesu_la_LDFLAGS = -avoid-version # -module
+libhamlib_yaesu_la_LDFLAGS = -module -avoid-version
 libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-yaesu.a

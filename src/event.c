@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: event.c,v 1.5 2001-06-04 17:01:21 f4cfe Exp $
+   $Id: event.c,v 1.6 2001-06-11 00:41:28 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ static void sa_sigioaction(int signum, siginfo_t *si, void *data);
 #endif
 
 /* This one should be in an include file */
-int foreach_opened_rig(int (*cfunc)(RIG *, void *),void *data);
+int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t),rig_ptr_t data);
 
 /*
  * add_trn_rig
@@ -118,7 +118,7 @@ int remove_trn_rig(RIG *rig)
  *
  * assumes rig!=NULL, rig->state.rigport.fd>=0
  */
-static int search_rig_and_decode(RIG *rig, void *data)
+static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 {
 	fd_set rfds;
 	struct timeval tv;
@@ -176,7 +176,7 @@ static void sa_sigiohandler(int signum)
 }
 
 #else
-static void sa_sigioaction(int signum, siginfo_t *si, void *data)
+static void sa_sigioaction(int signum, siginfo_t *si, rig_ptr_t data)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigioaction: activity detected\n");
 
