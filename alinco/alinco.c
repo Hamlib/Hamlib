@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.19 2003-11-16 17:14:42 fillods Exp $
+ *	$Id: alinco.c,v 1.20 2003-12-22 07:39:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -100,12 +100,21 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 {
 	int retval;
 	struct rig_state *rs;
+	char echobuf[BUFSZ+1];
 
 	rs = &rig->state;
 
 	serial_flush(&rs->rigport);
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
+	if (retval != RIG_OK)
+			return retval;
+
+	/*
+	 * Transceiver sends an echo of cmd 
+	 * TODO: check whether cmd and echobuf match (optional)
+	 */
+	retval = read_string(&rs->rigport, echobuf, BUFSZ, EOM, strlen(EOM));
 	if (retval != RIG_OK)
 			return retval;
 
