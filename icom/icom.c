@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.15 2001-02-14 23:55:54 f4cfe Exp $  
+ * $Id: icom.c,v 1.16 2001-02-26 23:16:11 f4cfe Exp $  
  *
  *
  *
@@ -284,12 +284,12 @@ int icom_cleanup(RIG *rig)
 int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char freqbuf[16], ackbuf[16];
 		int freq_len,ack_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 
 		freq_len = priv->civ_731_mode ? 4:5;
@@ -316,12 +316,12 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char freqbuf[16];
 		int freq_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_RD_FREQ, -1, NULL, 0, freqbuf, &freq_len);
 
@@ -364,12 +364,12 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char ackbuf[16],icmode_ext[1];
 		int ack_len,icmode;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icmode = hamlib2icom_mode(mode,width);
 
@@ -393,12 +393,12 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char modebuf[16];
 		int mode_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
 
@@ -424,12 +424,12 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int icom_set_vfo(RIG *rig, vfo_t vfo)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char ackbuf[16];
 		int ack_len,icvfo;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		switch(vfo) {
 		case RIG_VFO_A: icvfo = S_VFOA; break;
@@ -451,87 +451,64 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 }
 
 /*
- * icom_get_strength
+ * icom_set_level
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-			return -RIG_ENIMPL;
-}
-
-/*
- * compensate strength using calibration
- * assume STR_CAL_LENGTH!=0
- */
-static int comp_cal_str(int str_cal_raw[], int str_cal_db[], int icom_val)
-{
-		int i;
-		int interpolation;
-
-		for (i=0; i<STR_CAL_LENGTH; i++)
-				if (icom_val < str_cal_raw[i])
-						break;
-
-		if (i==0)
-				return STR_CAL_S0;
-		if (i>=STR_CAL_LENGTH)
-				return str_cal_db[i-1];
-
-		if (str_cal_raw[i] == str_cal_raw[i-1])
-				return str_cal_db[i];
-
-		/* cheap, less accurate, but no fp involved */
-		interpolation = ((str_cal_raw[i]-icom_val)*(str_cal_db[i]-str_cal_db[i-1]))/(str_cal_raw[i]-str_cal_raw[i-1]);
-
-		return str_cal_db[i] - interpolation;
-}
-
-
-
-/*
- * icom_get_level
- * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
- */
-int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
-{
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
-		unsigned char lvlbuf[16];
-		int lvl_len;
+		struct rig_state *rs;
+		unsigned char lvlbuf[16], ackbuf[16];
+		int ack_len, lvl_len;
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
+		int i;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
+
+		if (RIG_LEVEL_IS_FLOAT(level))
+				icom_val = val.f * 255;
+		else
+				icom_val = val.i;
+
+		/*	
+		 * Most of the time, the data field is a 3 digit BCD,
+		 * but in *big endian* order: 0000..0255
+		 * (from_bcd is little endian)
+		 */
+		lvl_len = 2;
+		to_bcd_be(lvlbuf, (long long)icom_val, lvl_len*2);
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
 		 */
 		switch (level) {
-		case RIG_LEVEL_STRENGTH:
-			lvl_cn = C_RD_SQSM;
-			lvl_sc = S_SML;
-			break;
-		case RIG_LEVEL_SQLSTAT:
-			lvl_cn = C_RD_SQSM;
-			lvl_sc = S_SQL;
-			break;
-
 		case RIG_LEVEL_PREAMP:
 			lvl_cn = C_CTL_FUNC;
 			lvl_sc = S_FUNC_PAMP;
+			lvl_len = 1;
+			if (val.i == 0) {
+				lvlbuf[0] = 0;	/* 0=OFF */
+				break;
+			}
+			for (i=0; i<MAXDBLSTSIZ; i++) {
+					if (rs->preamp[i] == val.i)
+							break;
+			}
+			if (i==MAXDBLSTSIZ || rs->preamp[i] == 0) {
+				rig_debug(RIG_DEBUG_ERR,"Unsupported preamp set_level %ddB", 
+								val.i);
+				return -RIG_EINVAL;
+			}
+			lvlbuf[0] = i+1;	/* 1=P.AMP1, 2=P.AMP2 */
 			break;
 		case RIG_LEVEL_ATT:
 			lvl_cn = C_CTL_ATT;
-			lvl_sc = -1;
+			lvl_sc = val.i;
+			lvl_len = 0;
 			break;
-#if 0
-		case RIG_LEVEL_ANT:
-			lvl_cn = C_CTL_ANT;
-			lvl_sc = -1;
-			break;
-#endif
 		case RIG_LEVEL_AF:
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_AF;
@@ -600,12 +577,159 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_BALANCE;
 			break;
-#if 0
-		case RIG_LEVEL_ANN:
-			lvl_cn = C_CTL_ANN;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
+			return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, 
+						ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x),
+								len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * compensate strength using calibration
+ * assume STR_CAL_LENGTH!=0
+ */
+static int comp_cal_str(int str_cal_raw[], int str_cal_db[], int icom_val)
+{
+		int i;
+		int interpolation;
+
+		for (i=0; i<STR_CAL_LENGTH; i++)
+				if (icom_val < str_cal_raw[i])
+						break;
+
+		if (i==0)
+				return STR_CAL_S0;
+		if (i>=STR_CAL_LENGTH)
+				return str_cal_db[i-1];
+
+		if (str_cal_raw[i] == str_cal_raw[i-1])
+				return str_cal_db[i];
+
+		/* cheap, less accurate, but no fp involved */
+		interpolation = ((str_cal_raw[i]-icom_val)*(str_cal_db[i]-str_cal_db[i-1]))/(str_cal_raw[i]-str_cal_raw[i-1]);
+
+		return str_cal_db[i] - interpolation;
+}
+
+
+
+/*
+ * icom_get_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ */
+int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+		unsigned char lvlbuf[16];
+		int lvl_len;
+		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
+		int icom_val;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
+		switch (level) {
+		case RIG_LEVEL_STRENGTH:
+			lvl_cn = C_RD_SQSM;
+			lvl_sc = S_SML;
+			break;
+		case RIG_LEVEL_SQLSTAT:
+			lvl_cn = C_RD_SQSM;
+			lvl_sc = S_SQL;
+			break;
+
+		case RIG_LEVEL_PREAMP:
+			lvl_cn = C_CTL_FUNC;
+			lvl_sc = S_FUNC_PAMP;
+			break;
+		case RIG_LEVEL_ATT:
+			lvl_cn = C_CTL_ATT;
 			lvl_sc = -1;
 			break;
-#endif
+		case RIG_LEVEL_AF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_AF;
+			break;
+		case RIG_LEVEL_RF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_RF;
+			break;
+		case RIG_LEVEL_SQL:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_SQL;
+			break;
+		case RIG_LEVEL_IF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_IF;
+			break;
+		case RIG_LEVEL_APF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_APF;
+			break;
+		case RIG_LEVEL_NR:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_NR;
+			break;
+		case RIG_LEVEL_PBT_IN:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_PBTIN;
+			break;
+		case RIG_LEVEL_PBT_OUT:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_PBTOUT;
+			break;
+		case RIG_LEVEL_CWPITCH:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_CWPITCH;
+			break;
+		case RIG_LEVEL_RFPOWER:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_RFPOWER;
+			break;
+		case RIG_LEVEL_MICGAIN:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_MICGAIN;
+			break;
+		case RIG_LEVEL_KEYSPD:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_KEYSPD;
+			break;
+		case RIG_LEVEL_NOTCHF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_NOTCHF;
+			break;
+		case RIG_LEVEL_COMP:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_COMP;
+			break;
+		case RIG_LEVEL_AGC:
+			lvl_cn = C_CTL_FUNC;
+			lvl_sc = S_FUNC_AGC;
+			break;
+		case RIG_LEVEL_BKINDL:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_BKINDL;
+			break;
+		case RIG_LEVEL_BALANCE:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_BALANCE;
+			break;
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
@@ -644,17 +768,31 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_PREAMP:
+			if (icom_val == 0) {
+					val->i = 0;
+					break;
+			}
+			if (icom_val > MAXDBLSTSIZ || rs->preamp[icom_val-1]==0) {
+				rig_debug(RIG_DEBUG_ERR,"Unsupported preamp get_level %ddB", 
+								icom_val);
+				return -RIG_EPROTO;
+			}
+			val->i = rs->preamp[icom_val-1];
+			break;
 		case RIG_LEVEL_ATT:
-#if 0
-		case RIG_LEVEL_ANT:
-#endif
+			/* TODO: check lvl_len */
+			icom_val = from_bcd_be(lvlbuf+1, 1);
 			val->i = icom_val;
 			break;
 		default:
-			val->f = (float)icom_val/255;
+			if (RIG_LEVEL_IS_FLOAT(level))
+				val->f = (float)icom_val/255;
+			else
+				val->i = icom_val;
 		}
 
-		rig_debug(RIG_DEBUG_VERBOSE,"strength: %d %d %d\n",lvl_len,icom_val,val->i);
+		rig_debug(RIG_DEBUG_VERBOSE,"get_level: %d %d %d %f\n", lvl_len, 
+						icom_val, val->i, val->f);
 
 		/* this stuff is wrong, use calibrated data instead */
 #if 0
@@ -682,12 +820,12 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char ackbuf[16], ptt_sc;
 		int ack_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		ptt_sc = ptt == RIG_PTT_ON ? S_PTT_ON:S_PTT_OFF;
 
@@ -709,12 +847,12 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char pttbuf[16];
 		int ptt_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_CTL_PTT, -1, NULL, 0, pttbuf, &ptt_len);
 
@@ -740,13 +878,13 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char dcdbuf[16];
 		int dcd_len;
 		int icom_val;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0, dcdbuf, &dcd_len);
 
@@ -781,13 +919,13 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char ackbuf[16];
 		int ack_len;
 		int rptr_sc;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		switch (rptr_shift) {
 		case RIG_RPT_SHIFT_NONE:
@@ -823,12 +961,12 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char rptrbuf[16];
 		int rptr_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, rptrbuf, &rptr_len);
 
@@ -867,12 +1005,12 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char offsbuf[16],ackbuf[16];
 		int ack_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		/*
 		 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF 
@@ -898,12 +1036,12 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char offsbuf[16];
 		int offs_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_RD_OFFS, -1, NULL, 0, offsbuf, &offs_len);
 
@@ -969,13 +1107,13 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char ackbuf[16];
 		int ack_len;
 		int split_sc;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		switch (split) {
 		case RIG_SPLIT_OFF:
@@ -1008,12 +1146,12 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char splitbuf[16];
 		int split_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, splitbuf, &split_len);
 
@@ -1049,13 +1187,13 @@ int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char ackbuf[16];
 		int i, ack_len;
 		int ts_sc = 0;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		for (i=0; i<TSLSTSIZ; i++) {
 				if (priv->ts_sc_list[i].ts == ts) {
@@ -1085,12 +1223,12 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char tsbuf[16];
 		int ts_len,i;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		icom_transaction (rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
 
@@ -1200,13 +1338,13 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int icom_set_channel(RIG *rig, const channel_t *chan)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char chanbuf[24], ackbuf[16];
 		int chan_len,freq_len,ack_len;
 		int icmode;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(chanbuf,chan->channel_num,4);
 
@@ -1249,13 +1387,13 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 int icom_get_channel(RIG *rig, channel_t *chan)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char chanbuf[24];
 		int chan_len,freq_len;
 		pbwidth_t width; 	/* FIXME */
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(chanbuf,chan->channel_num,4);
 		chan_len = 2;
@@ -1341,13 +1479,13 @@ int icom_set_poweroff(RIG *rig)
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char membuf[2];
 		unsigned char ackbuf[16];
 		int ack_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(membuf, ch, CHAN_NB_LEN*2);
 		icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN, ackbuf, &ack_len);
@@ -1368,13 +1506,13 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char bankbuf[2];
 		unsigned char ackbuf[16];
 		int ack_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(bankbuf, bank, BANK_NB_LEN*2);
 		icom_transaction (rig, C_SET_MEM, S_BANK, bankbuf, CHAN_NB_LEN, ackbuf, &ack_len);
@@ -1395,14 +1533,14 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char mvbuf[16];
 		unsigned char ackbuf[16];
 		int mv_len, ack_len;
 		int mv_cn, mv_sc;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		mv_len = 0;
 
@@ -1467,7 +1605,7 @@ int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 int icom_decode_event(RIG *rig)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char buf[32];
 		int frm_len;
 		freq_t freq;
@@ -1476,10 +1614,10 @@ int icom_decode_event(RIG *rig)
 
 		rig_debug(RIG_DEBUG_VERBOSE, "icom: icom_decode called\n");
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
-		frm_len = read_icom_frame(rig_s->stream, buf, rig_s->timeout);
+		frm_len = read_icom_frame(rs->stream, buf, rs->timeout);
 		/*
 		 * the first 2 bytes must be 0xfe
 		 * the 3rd one the emitter
