@@ -8,7 +8,7 @@
  * to >= 1 or <= 6.  If two locators are given, then the qrb is also
  * calculated.
  *
- *	$Id: testloc.c,v 1.9 2003-09-12 03:15:23 n0nb Exp $
+ *	$Id: testloc.c,v 1.10 2003-10-28 01:01:06 n0nb Exp $
  *
  */
 
@@ -173,7 +173,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	dec2dms(az, &deg, &min, &sec);
-	printf("\nDistance: %.2fkm\n", distance);
+	printf("\nDistance: %.6fkm\n", distance);
 	printf("Bearing: %f, %.0f° %.0f' %.2f\"\n", az, deg, min, sec);
 
 	exit(0);

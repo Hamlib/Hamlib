@@ -14,7 +14,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.11 2003-09-12 03:15:21 n0nb Exp $
+ *	$Id: locator.c,v 1.12 2003-10-28 01:01:05 n0nb Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle,
  *	by S. R. Sampson, N5OWK.
@@ -64,6 +64,9 @@
 #ifndef DOC_HIDDEN
 
 #define RADIAN  (180.0 / M_PI)
+
+/* Approximate radius of the earth in km */
+#define RADIUS_IN_KM       6378.8
 
 /* arc length for 1 degree, 60 Nautical Miles */
 #define ARC_IN_KM 111.2
@@ -190,9 +193,10 @@ int dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
 		st = fmod(dec - 180, 360) + 180;
 
 	/* if after all of that st is negative, we want deg
-	 * to be negative as well.
+	 * to be negative as well except for 180 which we want
+	 * to be positive.
 	 */
-	if (st < 0.0)
+	if (st < 0.0 && st != -180)
 		s = 1;
 
 	/* work on st as a positive value to remove a
@@ -416,6 +420,7 @@ int longlat2locator(double longitude, double latitude,
 int qrb(double lon1, double lat1, double lon2, double lat2,
 				double *distance, double *azimuth) {
 	double delta_long, tmp, arc, cosaz, az;
+        double a, c, dlon, dlat;
 
 	/* bail if NULL pointers passed */
 	if (!distance || !azimuth)
@@ -430,14 +435,14 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 	/* Prevent ACOS() Domain Error */
 
 	if (lat1 == 90.0)
-		lat1 = 89.99;
+		lat1 = 89.999999999;
 	else if (lat1 == -90.0)
-		lat1 = -89.99;
+		lat1 = -89.999999999;
 
 	if (lat2 == 90.0)
-		lat2 = 89.99;
+		lat2 = 89.999999999;
 	else if (lat2 == -90.0)
-		lat2 = -89.99;
+		lat2 = -89.999999999;
 
 	/* Convert variables to Radians */
 	lat1	/= RADIAN;
@@ -449,11 +454,11 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 
    	tmp = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(delta_long);
 
-	if (tmp > .999999) {
+	if (tmp > .999999999999999) {
 		/* Station points coincide, use an Omni! */
 		*distance = 0.0;
 		*azimuth = 0.0;
-		return 0;
+		return RIG_OK;
 	}
 
 	if (tmp < -.999999) {
@@ -466,7 +471,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 
 		*distance = 180.0 * ARC_IN_KM;
 		*azimuth = 0.0;
-		return 0;
+		return RIG_OK;
 	}
 
 	arc = acos(tmp);
@@ -487,7 +492,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 	 * distlp = (ARC_IN_KM * 360.0) - distsp;
 	 */
 
-	cosaz = (sin(lat2) - (sin(lat1) * cos(arc))) /
+/*	cosaz = (sin(lat2) - (sin(lat1) * cos(arc))) /
                 (sin(arc) * cos(lat1));
 
 	if (cosaz > .999999)
@@ -496,15 +501,14 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 		az = 180.0;
 	else
 		az = acos(cosaz) * RADIAN;
-
+*/
 	/*
 	 * Handbook had the test ">= 0.0" which looks backwards??
 	 * must've been frontwards since the numbers seem to make sense
 	 * now.  ;-)  -N0NB
 	 */
-
 //	if (sin(delta_long) < 0.0)  {
-	if (sin(delta_long) >= 0.0)  {
+/*	if (sin(delta_long) >= 0.0)  {
 		*azimuth = az;
 	} else {
 		*azimuth = 360.0 - az;
@@ -512,6 +516,25 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 
 	if (*azimuth == 360.0)
 		*azimuth = 0;
+
+*/
+
+	/* This formula seems to work with very small distances
+	 *
+	 * I found it on the Web at:
+	 * http://williams.best.vwh.net/avform.htm#Crs
+	 *
+	 * Strangely, all the computed values were negative thus the
+         * sign reversal below.
+	 * - N0NB
+         */
+	az = RADIAN * fmod(atan2(sin(lon1 - lon2) * cos(lat2),
+				 cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon1 - lon2)), 2 * M_PI);
+	if (lon1 > lon2) {
+		az -= 360;
+		*azimuth = -az;
+	} else
+		*azimuth = -az;
 
 	return RIG_OK;
 }
