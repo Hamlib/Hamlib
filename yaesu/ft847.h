@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.1 2001-01-04 05:39:03 javabear Exp $  
+ *    $Id: ft847.h,v 1.2 2001-01-04 07:03:58 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,6 @@
 #define _FT847_H 1
 
 
-#define FT847_CMD_LENGTH                     5
 #define FT847_WRITE_DELAY                    50
 
 /* Sequential fast writes may confuse FT847 without this delay */
@@ -144,25 +143,6 @@ enum ft847_native_cmd_e {
 typedef enum ft847_native_cmd_e ft847_native_cmd_t;
 
 
-/*
- * TODO -- Move this to common yaesu.h file -- FS
- *
- */
-
-/*
- * Basic Data structure for FT847 native cmd set
- */
-
-
-
-struct ft847_cmd_set {
-  unsigned char ncomp;		/* 1 = complete, 0 = incomplete, needs extra info */
-  unsigned char nseq[5];	/* native cmd sequence */
-};
-
-typedef struct ft847_cmd_set ft847_cmd_set_t; 
-
-
 
 /*
  * ft847 instance - private data
@@ -171,8 +151,8 @@ typedef struct ft847_cmd_set ft847_cmd_set_t;
 
 struct ft847_priv_data {
   unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A, SAT_RX, SAT_TX */
-  unsigned char p_cmd[FT847_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
-  ft847_cmd_set_t pcs[FT_847_NATIVE_SIZE];		/* private cmd set */
+  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
+  yaesu_cmd_set_t pcs[FT_847_NATIVE_SIZE];		/* private cmd set */
   unsigned char rx_status;	/* tx returned data */
   unsigned char tx_status;	/* rx returned data */
   unsigned char fm_status_main; /* freq and mode ,returned data */

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.1 2001-01-04 05:39:03 javabear Exp $  
+ *    $Id: ft747.h,v 1.2 2001-01-04 07:03:58 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,6 @@
 #ifndef _FT747_H
 #define _FT747_H 1
 
-#define FT747_CMD_LENGTH                     5
 #define FT747_STATUS_UPDATE_DATA_LENGTH      345
 
 #define FT747_PACING_INTERVAL                5 
@@ -104,18 +103,6 @@ enum ft747_native_cmd_e {
 };
 
 typedef enum ft747_native_cmd_e ft747_native_cmd_t;
-
-
-/*
- * Basic Data structure for FT747 native cmd set
- */
-
-struct ft747_cmd_set {
-  unsigned char ncomp;		/* 1 = complete, 0 = incomplete, needs extra info */
-  unsigned char nseq[5];	/* native cmd sequence */
-};
-
-typedef struct ft747_cmd_set ft747_cmd_set_t; 
 
 
 
@@ -197,8 +184,8 @@ struct ft747_priv_data {
   unsigned char pacing;		/* pacing value */
   unsigned int read_update_delay;	 /* depends on pacing value */
   unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
-  unsigned char p_cmd[FT747_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
-  ft747_cmd_set_t pcs[FT_747_NATIVE_SIZE];		/* private cmd set */
+  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
+  yaesu_cmd_set_t pcs[FT_747_NATIVE_SIZE];		/* private cmd set */
   unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
 };
 
@@ -263,47 +250,6 @@ int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 25.0, 30.0 };
 
-
-/*
- * Visible functions in shared lib.
- *
- */
-
-/*
- * set commands
- */
-
-
-
-
-void cmd_set_split_yes(int fd);
-void cmd_set_split_no(int fd);
-void cmd_set_recall_memory(int fd, int mem);
-void cmd_set_vfo_to_memory(int fd, int mem);
-void cmd_set_dlock_off(int fd);
-void cmd_set_dlock_on(int fd);
-void cmd_set_select_vfo_a(int fd);
-void cmd_set_select_vfo_b(int fd);
-void cmd_set_memory_to_vfo(int fd, int mem);
-void cmd_set_up500k(int fd);
-void cmd_set_down500k(int fd);
-void cmd_set_clarify_off(int fd);
-void cmd_set_clarify_on(int fd);
-
-/*
- *void cmd_set_freq(int fd, unsigned int freq);
- */
-
-void cmd_set_mode(int fd, int mode);
-void cmd_set_pacing(int fd, int delay);
-void cmd_set_ptt_off(int fd);
-void cmd_set_ptt_on(int fd);	/* careful.. */
-
-/*
- * get commands
- */
-
-void cmd_get_update_store(int fd, unsigned char *buffer); /* data external */
 
 #endif
 

@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.1 2001-01-04 05:39:03 javabear Exp $  
+ * $Id: ft847.c,v 1.2 2001-01-04 07:03:58 javabear Exp $  
  *
  *
  *
@@ -57,6 +57,7 @@
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
 #include "serial.h"
+#include "yaesu.h"
 #include "ft847.h"
 #include "misc.h"
 
@@ -71,7 +72,7 @@ static int ft847_send_priv_cmd(RIG *rig, unsigned char ci);
 /* Incomplete sequences (0) must be completed with extra parameters */
 /* eg: mem number, or freq etc.. */
 
-static const ft847_cmd_set_t ncmd[] = { 
+static const yaesu_cmd_set_t ncmd[] = { 
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* CAT = On */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x80 } }, /* CAT = Off */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* ptt on */
@@ -374,7 +375,7 @@ static int ft847_send_priv_cmd(RIG *rig, unsigned char ci) {
   }
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
   
   return RIG_OK;
 
@@ -431,7 +432,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
-  memcpy(&p->p_cmd,&ncmd[cmd_index].nseq,FT847_CMD_LENGTH);  
+  memcpy(&p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);  
 
   to_bcd_be(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
@@ -439,7 +440,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: requested freq after conversion = %Li Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
   return RIG_OK;
 }

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.1 2001-01-04 05:39:03 javabear Exp $  
+ * $Id: ft747.c,v 1.2 2001-01-04 07:03:58 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -50,8 +50,9 @@
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
 #include "serial.h"
-#include "ft747.h"
 #include "misc.h"
+#include "yaesu.h"
+#include "ft747.h"
 
 
 /* prototypes */
@@ -64,7 +65,7 @@ static int ft747_get_update_data(RIG *rig);
 /* Incomplete sequences (0) must be completed with extra parameters */
 /* eg: mem number, or freq etc.. */
 
-static const ft747_cmd_set_t ncmd[] = { 
+static const yaesu_cmd_set_t ncmd[] = { 
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split = off */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split = on */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* recall memory*/
@@ -191,14 +192,7 @@ const struct rig_caps ft747_caps = {
 
 
 /*
- * Function definitions below
- */
-
-/*
- * setup *priv 
- * serial port is already open (rig->state->fd)
- *
- * 
+ * _init 
  *
  */
 
@@ -238,6 +232,7 @@ int ft747_init(RIG *rig) {
  * ft747_cleanup routine
  * the serial port is closed by the frontend
  */
+
 int ft747_cleanup(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
@@ -321,7 +316,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
    * Copy native cmd freq_set to private cmd storage area 
    */
 
-  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_FREQ_SET].nseq,FT747_CMD_LENGTH);  
+  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_FREQ_SET].nseq,YAESU_CMD_LENGTH);  
 
   to_bcd(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
@@ -329,7 +324,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %Li Hz \n", from_bcd(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
   return RIG_OK;
 }
@@ -454,7 +449,7 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
    */ 
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: cmd_index = %i \n", cmd_index);
 
@@ -574,7 +569,7 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
    */ 
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
   return RIG_OK;
 
@@ -645,7 +640,7 @@ int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
    */ 
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
   return RIG_OK;		/* good */
 }
@@ -737,170 +732,17 @@ static int ft747_get_update_data(RIG *rig) {
   cmd_pace[3] = p->pacing;		/* get pacing value */
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: read pacing = %i \n",p->pacing);
 
-  write_block(rig_s->fd, cmd_pace, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(rig_s->fd, cmd_pace, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: read timeout = %i \n",FT747_DEFAULT_READ_TIMEOUT);
 
-  write_block(rig_s->fd, cmd_update, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay); /* request data */
+  write_block(rig_s->fd, cmd_update, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay); /* request data */
   n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT); 
 /*    n = read_block(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
 
   return 0;
 
 }
-
-/*
- * TODO: Implement these old OPCODES -- FS
- */
-
-
-#if 0
-
-void ft747_cmd_set_split_yes(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x01 }; /* split = on */
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_split_no(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x01 }; /* split = off */
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_recall_memory(int fd, int mem) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x02 }; /* recall memory*/
-  
-  data[3] = mem;
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_vfo_to_memory(int fd, int mem) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x03 }; /* vfo to  memory*/
-  
-  data[3] = mem;
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_dlock_off(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x04 }; /* dial lock = off */
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_dlock_on(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x04 }; /* dial lock = on */
-  write_block(fd,data);
-
-}
-
-
-void ft747_cmd_set_select_vfo_a(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x05 }; /* select vfo A */
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_select_vfo_b(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x05 }; /* select vfo B */
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_memory_to_vfo(int fd, int mem) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x06 }; /* memory to vfo*/
-  
-  data[3] = mem;
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_up500k(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x07 }; /* up 500 khz */
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_down500k(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x08 }; /* down 500 khz */
-  write_block(fd,data);
-}
-
-void ft747_cmd_set_clarify_off(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x09 }; /* clarify off */
-  write_block(fd,data);
-  printf("ft747_cmd_clarify_off complete \n");
-}
-
-void ft747_cmd_set_clarify_on(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x09 }; /* clarify on */
-  write_block(fd,data);
-}
-
-
-void ft747_cmd_set_freq(int fd, unsigned int freq) {
-  printf("ft747_cmd_freq_set not implemented yet \n");
-}
-
-
-void ft747_cmd_set_mode(int fd, int mode) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0c }; /* mode set */
-
-  data[3] = mode;
-  write_block(fd,data);
-
-}
-
-void ft747_cmd_set_pacing(int fd, int delay) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0e }; /* pacing set */
-
-  data[3] = delay;
-  write_block(fd,data);
-
-}
-
-void ft747_cmd_set_ptt_off(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0f }; /* ptt off */
-  write_block(fd,data);
-
-}
-
-void ft747_cmd_set_ptt_on(int fd) {
-
-#ifdef TX_ENABLED
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x0f }; /* ptt on */
-  write_block(fd,data);
-  printf("ft747_cmd_ptt_on complete \n");
-#elsif
-  printf("ft747_cmd_ptt_on disabled \n");
-#endif
-
-}
-
-/*
- * Read data from rig and store in buffer provided
- * by the user.
- */
-
-void ft747_cmd_get_update_store(int fd, unsigned char *buffer) {
-  int n;			/* counter */
-
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
-
-  write_block(fd,data); 
-  n = read_sleep(fd,buffer,FT747_STATUS_UPDATE_SIZE);	/* wait and read for bytes to be read */
-
-  return;
-}
-
-
-
-/*
- * Private helper cmd to copy a native cmd sequence to priv
- */
-
-static void build_cmd(unsigned char *dst, int command){
-  int i;
-  for(i=0; i<FT747_CMD_LENGTH; i++) {
-    dst[i] = ncmd[command].nseq[i]; /* lookup native cmd and build sequence */
-  }
-  return;
-}
-#endif
-
 
 
 
