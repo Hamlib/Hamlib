@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rotators
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotlist.h,v 1.2 2001-12-28 20:30:58 fillods Exp $
+ *		$Id: rotlist.h,v 1.3 2002-01-16 17:03:57 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,9 +45,8 @@
 	 */
 #define ROT_EASYCOMM 2
 #define ROT_BACKEND_EASYCOMM "easycomm"
-#define ROT_MODEL_EASYCOMM1 ROT_MAKE_EASYCOMM(ROT_EASYCOMM, 1)
-#define ROT_MODEL_EASYCOMM2 ROT_MAKE_EASYCOMM(ROT_EASYCOMM, 2)
-
+#define ROT_MODEL_EASYCOMM1 ROT_MAKE_MODEL(ROT_EASYCOMM, 1)
+#define ROT_MODEL_EASYCOMM2 ROT_MAKE_MODEL(ROT_EASYCOMM, 2)
 
 typedef int rot_model_t;
 
