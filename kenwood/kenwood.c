@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.37 2002-03-25 00:12:17 pa4tu Exp $
+ *		$Id: kenwood.c,v 1.38 2002-07-05 23:22:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -74,6 +74,10 @@ struct kenwood_id_string {
  * TODO: sort this list with most frequent rigs first.
  */
 static const struct kenwood_id kenwood_id_list[] = {
+	{ RIG_MODEL_TS940, 1 },
+	{ RIG_MODEL_TS811, 2 },
+	{ RIG_MODEL_TS711, 3 },
+	{ RIG_MODEL_TS440, 4 },
 	{ RIG_MODEL_R5000, 5 },
 	{ RIG_MODEL_TS870S, 15 },
 	{ RIG_MODEL_TS570D, 17 },
@@ -1300,6 +1304,7 @@ int initrigs_kenwood(void *be_handle)
 
 		rig_register(&ts950sdx_caps);
 		rig_register(&ts50s_caps);
+		rig_register(&ts440_caps);
 		rig_register(&ts450s_caps);
 		rig_register(&ts570d_caps);
 		rig_register(&ts570s_caps);
