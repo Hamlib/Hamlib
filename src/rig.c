@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.33 2001-06-05 18:08:30 f4cfe Exp $
+   $Id: rig.c,v 1.34 2001-06-10 22:19:07 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -392,9 +392,6 @@ int rig_open(RIG *rig)
 		default:
 				return -RIG_EINVAL;
 		}
-
-		if (rig->state.rigport.fd >= 0)
-			rig->state.rigport.stream = fdopen(rig->state.rigport.fd, "r+b");
 
 		/*
 		 * FIXME: what to do if PTT open fails or PTT unsupported?

@@ -10,7 +10,7 @@
  * ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.12 2001-06-05 18:08:30 f4cfe Exp $  
+ *	$Id: serial.c,v 1.13 2001-06-10 22:19:08 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -326,6 +326,14 @@ int serial_open(port_t *rp) {
   }
 #endif
 
+  rp->stream = fdopen(fd, "r+b");
+  if (rp->stream == NULL) {
+		rig_debug(RIG_DEBUG_ERR, "open_serial: fdopen failed: %s\n", 
+					strerror(errno));
+		close(fd);
+		return -RIG_EIO;		/* arg, so close! */
+  }
+
   rp->fd = fd;
 
   return RIG_OK;
@@ -500,11 +508,15 @@ int read_block(port_t *p, char *rxbuffer, size_t count)
 		tv = tv_timeout;	/* select may have updated it */
 
 		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
-		if (!retval) {
-			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or "
-							"select error - %s!\n",
-							total_count, strerror(errno));
+		if (retval == 0) {
+			rig_debug(RIG_DEBUG_WARN, "read_block: timedout after %d chars\n",
+							total_count);
 				return -RIG_ETIMEOUT;
+		}
+		if (retval < 0) {
+			rig_debug(RIG_DEBUG_ERR,"read_block: select error after %d chars: "
+							"%s\n", total_count, strerror(errno));
+				return -RIG_EIO;
 		}
 
 		/*
@@ -546,28 +558,32 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
   tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
 
-		/*
-		 * grab bytes from the rig
-		 * The file descriptor must have been set up non blocking.
-		 */
-  		rd_count = fread(rxbuffer, 1, count, p->stream);
-		if (rd_count < 0) {
-				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
-									strerror(errno));
-				return -RIG_EIO;
-		}
-		total_count += rd_count;
-		count -= rd_count;
+	/*
+	 * grab bytes from the rig
+	 * The file descriptor must have been set up non blocking.
+	 */
+  	rd_count = fread(rxbuffer, 1, count, p->stream);
+	if (rd_count < 0) {
+			rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
+								strerror(errno));
+			return -RIG_EIO;
+	}
+	total_count += rd_count;
+	count -= rd_count;
 
   while (count > 0) {
 		tv = tv_timeout;	/* select may have updated it */
 
 		retval = select(fd+1, &rfds, NULL, NULL, &tv);
-		if (!retval) {
-			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or "
-							"select error - %s!\n",
-							total_count, strerror(errno));
+		if (retval == 0) {
+			rig_debug(RIG_DEBUG_WARN, "fread_block: timedout after %d chars\n",
+							total_count);
 				return -RIG_ETIMEOUT;
+		}
+		if (retval < 0) {
+			rig_debug(RIG_DEBUG_ERR,"fread_block: select error after %d chars: "
+							"%s\n", total_count, strerror(errno));
+				return -RIG_EIO;
 		}
 
 		/*
