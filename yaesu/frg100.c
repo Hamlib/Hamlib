@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FRG-100 using the "CAT" interface
  *
- *	$Id: frg100.c,v 1.2 2004-08-26 20:56:24 fillods Exp $
+ *	$Id: frg100.c,v 1.3 2004-11-15 15:21:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,10 +44,10 @@
 #define FRG100_ANTS 0
 
 
-/* TODO: get better measure numbers */
+/* TODO: get real measure numbers */
 #define FRG100_STR_CAL { 2, { \
 		{  0, -60 }, /* S0 -6dB */ \
-		{ 15,  60 }  /* +60 */ \
+		{ 60,  60 }  /* +60 */ \
 		} }
 
 #define FRG100_MEM_CAP { \
@@ -90,7 +90,7 @@ const struct rig_caps frg100_caps = {
   .mfg_name =           "Yaesu",
   .version =            "0.2",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_ALPHA,
+  .status =             RIG_STATUS_BETA,
   .rig_type =           RIG_TYPE_RECEIVER,
   .ptt_type =           RIG_PTT_NONE,
   .dcd_type =           RIG_DCD_NONE,
@@ -192,7 +192,7 @@ int frg100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0a};
 
-   /* store bcd format in cmd (MSB), not sure though */
+   /* store bcd format in cmd (LSB) */
   to_bcd(cmd, freq/10, 8);
 
   /* Frequency set */
