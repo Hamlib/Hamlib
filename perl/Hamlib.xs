@@ -3082,16 +3082,6 @@ rig_reset(rig, reset)
 	reset_t	reset
 
 int
-rig_restore_channel(rig, chan)
-	RIG *	rig
-	const channel_t *	chan
-
-int
-rig_save_channel(rig, chan)
-	RIG *	rig
-	channel_t *	chan
-
-int
 rig_scan(rig, vfo, scan, ch)
 	RIG *	rig
 	vfo_t	vfo
