@@ -143,4 +143,4 @@ MOSTLYCLEANFILES = hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
 		hamlibtcl_wrap.c pkgIndex.tcl \
 		hamlibpy_wrap.c Hamlib.py *.pyc
 
-noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py
+noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas

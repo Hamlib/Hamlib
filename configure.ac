@@ -418,6 +418,7 @@ rpcrot/Makefile
 src/Makefile
 c++/Makefile
 bindings/Makefile
+bindings/hamlibvb.bas
 tests/Makefile
 doc/Makefile
 rotorez/Makefile
