@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.61 2002-05-30 17:38:07 fillods Exp $
+ *		$Id: icom.c,v 1.62 2002-07-09 20:43:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2428,34 +2428,35 @@ rig_model_t probe_icom(port_t *p)
  */
 int initrigs_icom(void *be_handle)
 {
-		rig_debug(RIG_DEBUG_VERBOSE, "icom: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "icom: _init called\n");
 
-		rig_register(&ic706_caps);
-		rig_register(&ic706mkii_caps);
-		rig_register(&ic706mkiig_caps);
-		rig_register(&ic718_caps);
-		rig_register(&ic735_caps);
-		rig_register(&ic775_caps);
-		rig_register(&ic756_caps);
-		rig_register(&ic756pro_caps);
+	rig_register(&ic706_caps);
+	rig_register(&ic706mkii_caps);
+	rig_register(&ic706mkiig_caps);
+	rig_register(&ic718_caps);
+	rig_register(&ic735_caps);
+	rig_register(&ic775_caps);
+	rig_register(&ic756_caps);
+	rig_register(&ic756pro_caps);
+	rig_register(&ic756pro2_caps);
 
-		rig_register(&ic821h_caps);
-		rig_register(&ic910_caps);
-		rig_register(&ic970_caps);
+	rig_register(&ic821h_caps);
+	rig_register(&ic910_caps);
+	rig_register(&ic970_caps);
 
         rig_register(&icr7000_caps);
-		rig_register(&icr8500_caps);
+	rig_register(&icr8500_caps);
 
-		rig_register(&ic275_caps);
-		rig_register(&ic475_caps);
+	rig_register(&ic275_caps);
+	rig_register(&ic475_caps);
 
-		rig_register(&icall_caps);
+	rig_register(&icall_caps);
 
-		rig_register(&os535_caps);
-		rig_register(&os456_caps);
+	rig_register(&os535_caps);
+	rig_register(&os456_caps);
 
-		rig_register(&omnivip_caps);
+	rig_register(&omnivip_caps);
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
