@@ -1,6 +1,6 @@
 
 Status:	Being Overhauled.  Consider it broken.
-	Now compiling.
+	Still depends on new features in private rig.h.
 
 	The ts2k.[ch] are for the TS-2000.  I'm too lazy to spell it any
 	different.
