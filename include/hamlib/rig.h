@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.50 2001-08-08 06:07:20 f4cfe Exp $
+ *		$Id: rig.h,v 1.51 2001-10-16 19:19:46 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -65,12 +65,6 @@ extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
 extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
 
 typedef unsigned int tone_t;
-
-extern HAMLIB_EXPORT_VAR(const tone_t) full_ctcss_list[];
-extern HAMLIB_EXPORT_VAR(const tone_t) common_ctcss_list[];
-extern HAMLIB_EXPORT_VAR(const tone_t) full_dcs_list[];
-#define CTCSS_LIST_SIZE (sizeof(full_ctcss_list)/sizeof(tone_t)-1)
-#define DCS_LIST_SIZE (sizeof(full_dcs_list)/sizeof(tone_t)-1)
 
 /*
  * Error codes that can be returned by the Hamlib functions
@@ -179,6 +173,7 @@ enum rig_type_e {
 #define RIG_FLAG_TRUNKING		(1<<7)
 #define RIG_FLAG_APRS			(1<<8)
 #define RIG_FLAG_TNC			(1<<9)
+#define RIG_FLAG_DXCLUSTER		(1<<10)
 
 #define RIG_FLAG_TRANSCEIVER (RIG_FLAG_RECEIVER|RIG_FLAG_TRANSMITTER)
 #define RIG_TYPE_MASK (RIG_FLAG_TRANSCEIVER|RIG_FLAG_SCANNER|RIG_FLAG_MOBILE|RIG_FLAG_HANDHELD|RIG_FLAG_COMPUTER|RIG_FLAG_TRUNKING)
@@ -993,7 +988,7 @@ struct rig_state {
 
   /*
    * Pointer to private data
-   * tuff like CI_V_address for Icom goes in this *priv 51 area
+   * stuff like CI_V_address for Icom goes in this *priv 51 area
    */
   rig_ptr_t priv;
   
@@ -1030,7 +1025,7 @@ struct rig_callbacks {
  * acting as a handle for the controlled rig.
  */
 struct rig {
-	const struct rig_caps *caps;
+	struct rig_caps *caps;
 	struct rig_state state;
 	struct rig_callbacks callbacks;
 };

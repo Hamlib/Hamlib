@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.h,v 1.29 2001-09-18 00:37:39 f4cfe Exp $
+ *		$Id: icom.h,v 1.30 2001-10-16 19:19:46 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -60,6 +60,8 @@ extern const struct ts_sc_list r75_ts_sc_list[];
 extern const struct ts_sc_list r7100_ts_sc_list[];
 extern const struct ts_sc_list ic756_ts_sc_list[];
 extern const struct ts_sc_list ic706_ts_sc_list[];
+
+extern const tone_t common_ctcss_list[];
 
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);

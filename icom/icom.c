@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.40 2001-10-07 21:48:34 f4cfe Exp $
+ *		$Id: icom.c,v 1.41 2001-10-16 19:19:46 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,6 +48,8 @@
 #  include <misc.h>
 #  include <cal.h>
 #endif
+
+#include "tone_tbl.h"
 
 #include "icom.h"
 #include "icom_defs.h"
