@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.7 2000-10-29 16:29:07 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.8 2000-10-30 21:45:27 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -269,15 +269,15 @@ typedef long long freq_t;
 
 #define Hz(f)	((freq_t)(f))
 #define KHz(f)	((freq_t)((f)*1000))
-#define MHz(f)	((freq_t)((f)*1000000))
-#define GHz(f)	((freq_t)((f)*1000000000))
+#define MHz(f)	((freq_t)((f)*1000000L))
+#define GHz(f)	((freq_t)((f)*1000000000LL))
 
 /*
  * power unit macros, converts to mW
  */
 #define mW(p)	 ((int)(p))
 #define Watts(p) ((int)((p)*1000))
-#define KW(p)	 ((int)((p)*1000000))
+#define KW(p)	 ((int)((p)*1000000L))
 
 typedef unsigned int rmode_t;	/* radio mode  */
 
