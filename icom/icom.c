@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.48 2002-01-24 23:37:09 fillods Exp $
+ *		$Id: icom.c,v 1.49 2002-01-27 14:50:22 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,6 +38,7 @@
 #include <serial.h>
 #include <misc.h>
 #include <cal.h>
+#include <token.h>
 
 #include "icom.h"
 #include "icom_defs.h"
@@ -57,7 +58,8 @@ const struct ts_sc_list r8500_ts_sc_list[] = {
 		{ kHz(25), 0x10 },
 		{ kHz(100), 0x11 },
 		{ MHz(1), 0x12 },
-		{ 0, 0 },	/* programmable tuning step not supported */
+		{ 0, 0x13 },	/* programmable tuning step not supported */
+		{ 0, 0 },
 };
 
 const struct ts_sc_list ic737_ts_sc_list[] = {
@@ -103,12 +105,40 @@ const struct ts_sc_list r7100_ts_sc_list[] = {
 		{ 0, 0 },
 };
 
+const struct ts_sc_list r9000_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ 100, 0x01 },
+		{ kHz(1), 0x02 },
+		{ kHz(5), 0x03 },
+		{ kHz(9), 0x04 },
+		{ kHz(10), 0x05 },
+		{ 12500, 0x06 },
+		{ kHz(20), 0x07 },
+		{ kHz(25), 0x08 },
+		{ kHz(100), 0x09 },
+		{ 0, 0 },
+};
+
+
 const struct ts_sc_list ic756_ts_sc_list[] = {
 		{ 10, 0x00 },
 		{ kHz(1), 0x01 },
 		{ kHz(5), 0x02 },
 		{ kHz(9), 0x03 },
 		{ kHz(10), 0x04 },
+		{ 0, 0 },
+};
+
+const struct ts_sc_list ic756pro_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ 100, 0x01 },
+		{ kHz(1), 0x02 },
+		{ kHz(5), 0x03 },
+		{ kHz(9), 0x04 },
+		{ kHz(10), 0x05 },
+		{ kHz(12.5), 0x06 },
+		{ kHz(20), 0x07 },
+		{ kHz(25), 0x08 },
 		{ 0, 0 },
 };
 
@@ -134,8 +164,8 @@ struct icom_addr {
 };
 
 
-#define TOK_CIVADDR RIG_TOKEN_BACKEND(1)
-#define TOK_MODE731 RIG_TOKEN_BACKEND(2)
+#define TOK_CIVADDR TOKEN_BACKEND(1)
+#define TOK_MODE731 TOKEN_BACKEND(2)
 
 const struct confparams icom_cfg_params[] = {
 	{ TOK_CIVADDR, "civaddr", "CI-V address", "Transceiver's CI-V address", 
@@ -173,12 +203,14 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC735, 0x04 },
 		{ RIG_MODEL_IC736, 0x40 },
 		{ RIG_MODEL_IC746, 0x56 },
+		{ RIG_MODEL_IC746PRO, 0x66 },
 		{ RIG_MODEL_IC737, 0x3c },
 		{ RIG_MODEL_IC738, 0x44 },
 		{ RIG_MODEL_IC751, 0x1c },
 		{ RIG_MODEL_IC751A, 0x1c },
 		{ RIG_MODEL_IC756, 0x50 },
 		{ RIG_MODEL_IC756PRO, 0x5c },
+		{ RIG_MODEL_IC756PROII, 0x64 },
 		{ RIG_MODEL_IC761, 0x1e },
 		{ RIG_MODEL_IC765, 0x2c },
 		{ RIG_MODEL_IC775, 0x46 },
@@ -193,12 +225,13 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_ICR71, 0x1a },
 		{ RIG_MODEL_ICR72, 0x32 },
 		{ RIG_MODEL_ICR75, 0x5a },
+		{ RIG_MODEL_ICR78, 0x62 },
 		{ RIG_MODEL_ICR7000, 0x08 },
 		{ RIG_MODEL_ICR7100, 0x34 },
 		{ RIG_MODEL_ICR8500, 0x4a },
 		{ RIG_MODEL_ICR9000, 0x2a },
 		{ RIG_MODEL_MINISCOUT, 0x94 },
-		{ RIG_MODEL_IC718, 0x36 },	/* need confirmation */
+		{ RIG_MODEL_IC718, 0x5e },
 		{ RIG_MODEL_NONE, 0 },
 };
 
