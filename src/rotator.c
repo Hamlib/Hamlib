@@ -1,18 +1,8 @@
-/**
- * \file src/rotator.c
- * \ingroup rot
- * \brief Rotator interface
- * \author Stephane Fillod
- * \date 2000-2001
- *
- * Hamlib interface is a frontend implementing rotator wrapper functions.
- */
-
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotator.c,v 1.8 2002-11-04 22:37:53 fillods Exp $
+ *	$Id: rotator.c,v 1.9 2002-11-28 22:33:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +19,17 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+
+/**
+ * \file src/rotator.c
+ * \ingroup rot
+ * \brief Rotator interface
+ * \author Stephane Fillod
+ * \date 2000-2002
+ *
+ * Hamlib interface is a frontend implementing rotator wrapper functions.
+ */
+
 
 /*! \page rot Rotator interface
  *
@@ -58,6 +59,7 @@
 #ifndef DOC_HIDDEN
 
 #define DEFAULT_SERIAL_PORT "/dev/rotator"
+#define DEFAULT_PARALLEL_PORT "/dev/parport0"
 
 #define CHECK_ROT_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
@@ -189,17 +191,29 @@ ROT *rot_init(rot_model_t rot_model)
 
 		rs->comm_state = 0;
 		rs->rotport.type.rig = caps->port_type; /* default from caps */
+
+		rs->rotport.write_delay = caps->write_delay;
+		rs->rotport.post_write_delay = caps->post_write_delay;
+		rs->rotport.timeout = caps->timeout;
+		rs->rotport.retry = caps->retry;
+
+		switch (caps->port_type) {
+		case RIG_PORT_SERIAL:
 		strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
 		rs->rotport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
 		rs->rotport.parm.serial.data_bits = caps->serial_data_bits;
 		rs->rotport.parm.serial.stop_bits = caps->serial_stop_bits;
 		rs->rotport.parm.serial.parity = caps->serial_parity;
 		rs->rotport.parm.serial.handshake = caps->serial_handshake;
-		rs->rotport.write_delay = caps->write_delay;
-		rs->rotport.post_write_delay = caps->post_write_delay;
+		break;
 
-		rs->rotport.timeout = caps->timeout;
-		rs->rotport.retry = caps->retry;
+		case RIG_PORT_PARALLEL:
+		strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
+		break;
+
+		default:
+		strncpy(rs->rotport.pathname, "", FILPATHLEN);
+		}
 
 		rs->min_el = caps->min_el;
 		rs->max_el = caps->max_el;
@@ -269,6 +283,13 @@ int rot_open(ROT *rot)
 				status = serial_open(&rs->rotport);
 				if (status != 0)
 						return status;
+				break;
+
+		case RIG_PORT_PARALLEL:
+				rs->rotport.stream = NULL;
+				status = par_open(&rs->rotport);
+				if (status < 0)
+					return status;
 				break;
 
 		case RIG_PORT_DEVICE:
@@ -352,10 +373,20 @@ int rot_close(ROT *rot)
 
 
 		if (rs->rotport.fd != -1) {
-				if (!rs->rotport.stream)
-						fclose(rs->rotport.stream); /* this closes also fd */
-				else
-					close(rs->rotport.fd);
+				if (rs->rotport.stream != NULL) {
+					fclose(rs->rotport.stream); /* this closes also fd */
+				} else {
+					switch(rs->rotport.type.rig) {
+					case RIG_PORT_SERIAL:
+						ser_close(&rs->rotport);
+						break;
+					case RIG_PORT_PARALLEL:
+						par_close(&rs->rotport);
+						break;
+					default:
+						close(rs->rotport.fd);
+					}
+				}
 				rs->rotport.fd = -1;
 				rs->rotport.stream = NULL;
 		}

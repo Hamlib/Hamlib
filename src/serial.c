@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.27 2002-09-08 22:45:16 fillods Exp $
+ *		$Id: serial.c,v 1.28 2002-11-28 22:33:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -552,8 +552,16 @@ int par_open(port_t *p)
 		int fd;
 
 		fd = open(p->pathname, O_RDWR);
+		if (fd < 0) {
+			rig_debug(RIG_DEBUG_VERBOSE, "Opening device \"%s\": %s\n", p->pathname, strerror(errno));
+			return -RIG_EIO;
+		}
 #ifdef HAVE_LINUX_PPDEV_H
-		ioctl(fd, PPCLAIM);
+		if (ioctl(fd, PPCLAIM) < 0) {
+			rig_debug(RIG_DEBUG_VERBOSE, "Claiming device \"%s\": %s\n", p->pathname, strerror(errno));
+			close(fd);
+			return -RIG_EIO;
+		}
 #endif
 		p->fd = fd;
 		return fd;
