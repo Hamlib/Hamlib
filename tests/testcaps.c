@@ -4,7 +4,7 @@
  * like the passband info..
  *
  *
- *    $Id: testcaps.c,v 1.4 2001-09-20 21:21:14 f4cfe Exp $  
+ *    $Id: testcaps.c,v 1.5 2002-01-27 23:55:45 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -68,13 +68,13 @@ int main (int argc, char *argv[])
 		if (pbnorm == 0)
 				continue;
 
-		freq_sprintf(freqbuf, pbnorm);
+		sprintf_freq(freqbuf, pbnorm);
 		printf("%s normal: %s\n", mode, freqbuf);
 
-		freq_sprintf(freqbuf, rig_passband_narrow(pbrig, i));
+		sprintf_freq(freqbuf, rig_passband_narrow(pbrig, i));
 		printf("%s narrow: %s\n", mode, freqbuf);
 
-		freq_sprintf(freqbuf, rig_passband_wide(pbrig, i));
+		sprintf_freq(freqbuf, rig_passband_wide(pbrig, i));
 		printf("%s wide: %s\n", mode, freqbuf);
 	}
 

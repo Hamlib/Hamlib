@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.6 2001-09-20 21:21:14 f4cfe Exp $  
+ *    $Id: dumpmem.c,v 1.7 2002-01-27 23:55:45 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -131,35 +131,35 @@ int dump_chan(RIG *rig, int chan_num)
 
 	printf("Channel: %d\n", chan.channel_num);
 
-	freq_sprintf(freqbuf,chan.freq);
+	sprintf_freq(freqbuf,chan.freq);
 	printf("Frequency: %s\n", freqbuf);
 	printf("Mode: %s\n", decode_modes(chan.mode));
 
-	freq_sprintf(freqbuf,chan.width);
+	sprintf_freq(freqbuf,chan.width);
 	printf("Width: %s\n", freqbuf);
 	printf("VFO: %d\n", chan.vfo);
 
 	printf("Split: %d\n", chan.split);
-	freq_sprintf(freqbuf,chan.tx_freq);
+	sprintf_freq(freqbuf,chan.tx_freq);
 	printf("TXFrequency: %s\n", freqbuf);
 	printf("TXMode: %s\n", decode_modes(chan.tx_mode));
 
-	freq_sprintf(freqbuf,chan.tx_width);
+	sprintf_freq(freqbuf,chan.tx_width);
 	printf("TXWidth: %s\n", freqbuf);
 
 	printf("Shift: %d\n", chan.rptr_shift);
-	freq_sprintf(freqbuf,chan.rptr_offs);
+	sprintf_freq(freqbuf,chan.rptr_offs);
 	printf("Offset: %s%s\n", chan.rptr_offs>0?"+":"", freqbuf);
 
 	printf("Antenna: %d\n", chan.ant);
 
-	freq_sprintf(freqbuf,chan.tuning_step);
+	sprintf_freq(freqbuf,chan.tuning_step);
 	printf("Step: %s\n", freqbuf);
 
-	freq_sprintf(freqbuf,chan.rit);
+	sprintf_freq(freqbuf,chan.rit);
 	printf("RIT: %s%s\n", chan.rit>0?"+":"", freqbuf);
 
-	freq_sprintf(freqbuf,chan.xit);
+	sprintf_freq(freqbuf,chan.xit);
 	printf("XIT: %s%s\n", chan.xit>0?"+":"", freqbuf);
 	printf("CTCSS: %d.%dHz\n", chan.ctcss_tone/10, chan.ctcss_tone%10);
 	printf("CTCSSsql: %d.%dHz\n", chan.ctcss_sql/10, chan.ctcss_sql%10);
