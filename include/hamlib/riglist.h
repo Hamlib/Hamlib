@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.28 2002-07-06 09:24:25 fillods Exp $
+ *		$Id: riglist.h,v 1.29 2002-07-08 22:09:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -224,6 +224,7 @@
 #define RIG_BACKEND_DRAKE "drake"
 #define RIG_MODEL_DKR8 RIG_MAKE_MODEL(RIG_DRAKE, 1)
 #define RIG_MODEL_DKR8A RIG_MAKE_MODEL(RIG_DRAKE, 2)
+#define RIG_MODEL_DKR8B RIG_MAKE_MODEL(RIG_DRAKE, 3)
 
 	/*
 	 * Lowe
