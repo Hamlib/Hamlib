@@ -1,4 +1,4 @@
-/* $Id: rig_dll.h,v 1.7 2003-04-16 22:33:18 fillods Exp $ */
+/* $Id: rig_dll.h,v 1.8 2003-04-19 11:48:18 fillods Exp $ */
 
 
 /*
@@ -6,7 +6,7 @@
  */
 #if 0
 
-#if defined(__CYGWIN__)
+#if defined(__CYGWIN__) || defined(_WIN32)
 #  if defined(HAMLIB_DLL)
 #    if defined(HAMLIB_STATIC)
 #      undef HAMLIB_STATIC
@@ -43,7 +43,7 @@
 #endif
 
 
-#if defined(__CYGWIN__)
+#if defined(__CYGWIN__) || defined(_WIN32)
 #  undef HAMLIB_IMPEXP
 #  undef BACKEND_IMPEXP
 #  undef HAMLIB_API
