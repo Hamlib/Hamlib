@@ -6,7 +6,3 @@ EXTRA_DIST = PLAN TODO LICENSE hamlib.m4
 
 SUBDIRS = include lib libltdl src @BACKEND_LIST@ c++ tcl tests doc
 
-INCLUDES = $(INCLTDL)
-
-#hamlibdoc_DATA = THANKS LICENSE
-
