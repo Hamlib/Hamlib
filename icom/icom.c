@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.26 2001-05-15 22:06:37 f4cfe Exp $  
+ * $Id: icom.c,v 1.27 2001-06-03 19:54:05 f4cfe Exp $  
  *
  *
  *
@@ -414,6 +414,26 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 		switch(vfo) {
 		case RIG_VFO_A: icvfo = S_VFOA; break;
 		case RIG_VFO_B: icvfo = S_VFOB; break;
+#ifdef RIG_VFO_VFO
+		case RIG_VFO_VFO: 
+			icom_transaction (rig, C_SET_VFO, -1, NULL, 0, ackbuf, &ack_len);
+			if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_vfo: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+			}
+			return RIG_OK;
+#endif
+#ifdef RIG_VFO_MEM
+		case RIG_VFO_MEM: 
+			icom_transaction (rig, C_SET_MEM, -1, NULL, 0, ackbuf, &ack_len);
+			if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_vfo: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+			}
+			return RIG_OK;
+#endif
 		default:
 						rig_debug(RIG_DEBUG_ERR,"icom: Unsupported VFO %d\n",
 										vfo);
@@ -1789,6 +1809,7 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 		return RIG_OK;
 }
 
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 /*
  * icom_mv_ctl, Mem/VFO operation
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -1860,6 +1881,82 @@ int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 		return RIG_OK;
 }
 
+#else
+/*
+ * icom_vfo_op, Mem/VFO operation
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+		unsigned char mvbuf[16];
+		unsigned char ackbuf[16];
+		int mv_len, ack_len;
+		int mv_cn, mv_sc;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+		mv_len = 0;
+
+		switch(op) {
+#if 0
+			case RIG_MVOP_VFO_MODE:
+				mv_cn = C_SET_VFO;
+				mv_sc = -1;
+				break;
+			case RIG_MVOP_MEM_MODE:
+				mv_cn = C_SET_MEM;
+				mv_sc = -1;
+				break;
+#endif
+			case RIG_OP_CPY:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_BTOA;
+				break;
+			case RIG_OP_XCHG:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_XCHNG;
+				break;
+#if 0
+			case RIG_OP_DUAL_OFF:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_DUAL_OFF;
+				break;
+			case RIG_OP_DUAL_ON:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_DUAL_ON;
+				break;
+#endif
+			case RIG_OP_FROM_VFO:
+				mv_cn = C_WR_MEM;
+				mv_sc = -1;
+				break;
+			case RIG_OP_TO_VFO:
+				mv_cn = C_MEM2VFO;
+				mv_sc = -1;
+				break;
+			case RIG_OP_MCL:
+				mv_cn = C_CLR_MEM;
+				mv_sc = -1;
+				break;
+			default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported mem/vfo op %#x", op);
+				return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_vfo_op: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+#endif
 
 /*
  * icom_decode is called by sa_sigio, when some asynchronous

@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.12 2001-04-28 12:43:43 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.13 2001-06-03 19:54:05 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -84,7 +84,11 @@ declare_proto_rig(get_func);
 declare_proto_rig(set_bank);
 declare_proto_rig(set_mem);
 declare_proto_rig(get_mem);
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 declare_proto_rig(mv_ctl);
+#else
+declare_proto_rig(vfo_op);
+#endif
 declare_proto_rig(set_channel);
 declare_proto_rig(get_channel);
 declare_proto_rig(set_trn);
@@ -128,7 +132,11 @@ struct test_table test_list[] = {
 		{ 'B', "set_bank", set_bank, "Bank" },
 		{ 'E', "set_mem", set_mem, "Memory#" },
 		{ 'e', "get_mem", get_mem, "Memory#" },
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 		{ 'G', "mv_ctl", mv_ctl, "Mem/VFO op" },
+#else
+		{ 'G', "vfo_op", vfo_op, "Mem/VFO op" },
+#endif
 		{ 'H', "set_channel", set_channel /* huh! */ },
 		{ 'h', "get_channel", get_channel, "Channel" },
 		{ 'A', "set_trn", set_trn, "Transceive" },
@@ -683,6 +691,7 @@ declare_proto_rig(get_mem)
 }
 
 
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 declare_proto_rig(mv_ctl)
 {
 		mv_op_t op;
@@ -690,6 +699,15 @@ declare_proto_rig(mv_ctl)
 		sscanf(arg1, "%d", (int*)&op);
 		return rig_mv_ctl(rig, RIG_VFO_CURR, op);
 }
+#else
+declare_proto_rig(vfo_op)
+{
+		vfo_op_t op;
+
+		sscanf(arg1, "%d", (int*)&op);
+		return rig_vfo_op(rig, RIG_VFO_CURR, op);
+}
+#endif
 
 
 declare_proto_rig(set_channel)

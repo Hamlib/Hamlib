@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.21 2001-05-04 22:37:35 f4cfe Exp $  
+ * $Id: ic706.c,v 1.22 2001-06-03 19:54:05 f4cfe Exp $  
  *
  *
  *
@@ -56,6 +56,8 @@
 #define IC706_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
 
 #define IC706_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+
+#define IC706_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
 #define IC706IIG_STR_CAL { 16, \
 	{ \
@@ -366,6 +368,7 @@ max_rit: Hz(0),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
 targetable_vfo: 0,
+vfo_ops: IC706_OPS,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,
@@ -453,7 +456,11 @@ get_level: icom_get_level,
 set_func: icom_set_func,
 get_func: icom_get_func,
 set_mem: icom_set_mem,
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 mv_ctl: icom_mv_ctl,
+#else
+vfo_op: icom_vfo_op,
+#endif
 set_ptt: icom_set_ptt,
 get_ptt: icom_get_ptt,
 get_dcd: icom_get_dcd,

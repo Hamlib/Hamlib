@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.8 2001-06-02 18:10:20 f4cfe Exp $
+ *	$Id: dummy.c,v 1.9 2001-06-03 19:54:05 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -55,6 +55,14 @@ static unsigned char *decode_vfo(vfo_t vfo)
 			return "currVFO";
 	case	RIG_VFO_ALL:
 			return "VFOall";
+#ifdef RIG_VFO_MEM
+	case	RIG_VFO_MEM:
+			return "MEM";
+#endif
+#ifdef RIG_VFO_VFO
+	case	RIG_VFO_VFO:
+			return "VFO";
+#endif
 		default:
 			return "VFO?";
 	}
@@ -518,13 +526,21 @@ static int dummy_get_mem(RIG *rig, vfo_t vfo, int *ch)
 }
 
 
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 static int dummy_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
   return RIG_OK;
 }
+#else
+static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
+  return RIG_OK;
+}
+#endif
 
 static int dummy_set_channel(RIG *rig, const channel_t *chan)
 {
@@ -687,7 +703,11 @@ const struct rig_caps dummy_caps = {
   set_bank:	dummy_set_bank,
   set_mem:	dummy_set_mem,
   get_mem:	dummy_get_mem,
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
   mv_ctl:	dummy_mv_ctl,
+#else
+  vfo_op:	dummy_vfo_op,
+#endif
   send_dtmf: dummy_send_dtmf,
   recv_dtmf: dummy_recv_dtmf,
   send_morse: dummy_send_morse,

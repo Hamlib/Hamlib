@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.29 2001-06-02 18:05:14 f4cfe Exp $
+   $Id: rig.c,v 1.30 2001-06-03 19:54:05 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -850,7 +850,10 @@ pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode)
  *      @rig:	The rig handle
  *      @vfo:	The VFO to set to
  *
- *      The rig_set_vfo() function sets the current VFO.
+ *      The rig_set_vfo() function sets the current VFO. The VFO can
+ *      be %RIG_VFO_A, %RIG_VFO_B, %RIG_VFO_C for VFOA, VFOB, VFOC
+ *      respectively or %RIG_VFO_MEM for Memory mode.
+ *      Supported VFOs depends on rig capabilities.
  *
  *      RETURN VALUE: The rig_set_vfo() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -883,7 +886,10 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
  *      @rig:	The rig handle
  *      @vfo:	The location where to store the current VFO
  *
- *      The rig_get_vfo() function retrieves the current VFO.
+ *      The rig_get_vfo() function retrieves the current VFO. The VFO can
+ *      be %RIG_VFO_A, %RIG_VFO_B, %RIG_VFO_C for VFOA, VFOB, VFOC
+ *      respectively or %RIG_VFO_MEM for Memory mode.
+ *      Supported VFOs depends on rig capabilities.
  *
  *      RETURN VALUE: The rig_get_vfo() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -2670,7 +2676,7 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  *      if the operation has been sucessful, or a negative value
  *      if an error occured (in which case, cause is set appropriately).
  *
- *      SEE ALSO: rig_has_level(), rig_set_level()
+ *      SEE ALSO: rig_has_get_level(), rig_set_level()
  */
 int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
@@ -2743,7 +2749,7 @@ int rig_set_parm(RIG *rig, setting_t parm, value_t val)
  *      if the operation has been sucessful, or a negative value
  *      if an error occured (in which case, cause is set appropriately).
  *
- *      SEE ALSO: rig_has_parm(), rig_set_parm()
+ *      SEE ALSO: rig_has_get_parm(), rig_set_parm()
  */
 int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
@@ -2761,7 +2767,8 @@ int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
  *      @rig:	The rig handle
  *      @level:	The level settings
  *
- *      The rig_has_level() "macro" checks if a rig can *get* a level setting.
+ *      The rig_has_get_level() "macro" checks if a rig is capable of 
+ *      *getting* a level setting.
  *      Since the @level is a OR'ed bitwise argument, more than
  *      one level can be checked at the same time.
  *
@@ -2797,7 +2804,7 @@ setting_t rig_has_get_level(RIG *rig, setting_t level)
  *
  * 		EXAMPLE: if (rig_has_set_level(my_rig, RIG_LVL_RFPOWER)) crank_tx();
  *
- *      SEE ALSO: rig_has_level(), rig_set_level()
+ *      SEE ALSO: rig_has_get_level(), rig_set_level()
  */
 setting_t rig_has_set_level(RIG *rig, setting_t level)
 {
@@ -2812,7 +2819,8 @@ setting_t rig_has_set_level(RIG *rig, setting_t level)
  *      @rig:	The rig handle
  *      @parm:	The parameter settings
  *
- *      The rig_has_parm() "macro" checks if a rig can *get* a parm setting.
+ *      The rig_has_get_parm() "macro" checks if a rig is capable of
+ *      *getting* a parm setting.
  *      Since the @parm is a OR'ed bitwise argument, more than
  *      one parameter can be checked at the same time.
  *
@@ -2848,7 +2856,7 @@ setting_t rig_has_get_parm(RIG *rig, setting_t parm)
  *
  * 		EXAMPLE: if (rig_has_set_parm(my_rig, RIG_PARM_ANN)) announce_all();
  *
- *      SEE ALSO: rig_has_parm(), rig_set_parm()
+ *      SEE ALSO: rig_has_get_parm(), rig_set_parm()
  */
 setting_t rig_has_set_parm(RIG *rig, setting_t parm)
 {
@@ -2863,7 +2871,8 @@ setting_t rig_has_set_parm(RIG *rig, setting_t parm)
  *      @rig:	The rig handle
  *      @func:	The functions
  *
- *      The rig_has_func() "macro" checks if a rig supports a set of functions.
+ *      The rig_has_get_func() "macro" checks if a rig supports 
+ *      a set of functions.
  *      Since the @func is a OR'ed bitwise argument, more than
  *      one function can be checked at the same time.
  *
@@ -2872,7 +2881,7 @@ setting_t rig_has_set_parm(RIG *rig, setting_t parm)
  *
  * 		EXAMPLE: if (rig_has_get_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
  *
- *      SEE ALSO: rig_set_func(), rig_get_func()
+ *      SEE ALSO: rig_has_set_func(), rig_get_func()
  */
 setting_t rig_has_get_func(RIG *rig, setting_t func)
 {
@@ -2887,7 +2896,8 @@ setting_t rig_has_get_func(RIG *rig, setting_t func)
  *      @rig:	The rig handle
  *      @func:	The functions
  *
- *      The rig_has_func() "macro" checks if a rig supports a set of functions.
+ *      The rig_has_set_func() "macro" checks if a rig supports 
+ *      a set of functions.
  *      Since the @func is a OR'ed bitwise argument, more than
  *      one function can be checked at the same time.
  *
@@ -2896,7 +2906,7 @@ setting_t rig_has_get_func(RIG *rig, setting_t func)
  *
  * 		EXAMPLE: if (rig_has_set_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
  *
- *      SEE ALSO: rig_set_func(), rig_get_func()
+ *      SEE ALSO: rig_set_func(), rig_has_get_func()
  */
 setting_t rig_has_set_func(RIG *rig, setting_t func)
 {
@@ -3093,6 +3103,7 @@ int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		return retcode;
 }
 
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 /**
  *      rig_mv_ctl - perform Memory/VFO operations
  *      @rig:	The rig handle
@@ -3137,6 +3148,79 @@ int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
+#else
+
+/**
+ *      rig_has_vfo_op - check retrieval ability of VFO operations
+ *      @rig:	The rig handle
+ *      @op:	The VFO op
+ *
+ *      The rig_has_vfo_op() "macro" checks if a rig is capable of executing
+ *      a VFO operation. Since the @op is a OR'ed bitmap argument, more than
+ *      one op can be checked at the same time.
+ *
+ *      RETURN VALUE: The rig_has_vfo_op() "macro" returns a bitmap
+ *      mask of supported op settings that can be retrieve,
+ *      0 if none supported.
+ *
+ * 		EXAMPLE: if (rig_has_vfo_op(my_rig, RIG_OP_CPY)) disp_VFOcpy_btn();
+ *
+ *      SEE ALSO: rig_vfo_op()
+ */
+vfo_op_t rig_has_vfo_op(RIG *rig, vfo_op_t op)
+{
+		if (!rig || !rig->caps)
+				return 0;
+
+		return (rig->caps->vfo_ops & op);
+}
+
+/**
+ *      rig_vfo_op - perform Memory/VFO operations
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @op:	The Memory/VFO operation to perform
+ *
+ *      The rig_vfo_op() function performs Memory/VFO operation.
+ *      See &vfo_op_t for more information.
+ *
+ *      RETURN VALUE: The rig_vfo_op() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_has_vfo_op()
+ */
+
+int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->vfo_op == NULL || !rig_has_vfo_op(rig,op))
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->vfo_op(rig, vfo, op);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->vfo_op(rig, vfo, op);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+#endif	/* WANT_OLD_VFO_TO_BE_REMOVED */
 
 /**
  *      rig_send_dtmf - send DTMF digits
@@ -3409,16 +3493,8 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
   }
   rig_set_rptr_shift(rig, RIG_VFO_CURR, chan->rptr_shift);
   rig_set_rptr_offs(rig, RIG_VFO_CURR, chan->rptr_offs);
-#if 0
-   /* power in mW */
-  rig_mW2power(rig, &hfpwr, chan->power, chan->freq, chan->mode);
-  rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, hfpwr);
-  rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT, chan->att);
-  rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP, chan->preamp);
-#else
   for (i=0; i<RIG_SETTING_MAX; i++)
   	rig_set_level(rig, RIG_VFO_CURR, rig_idx2setting(i), chan->levels[i]);
-#endif
 
   rig_set_ant(rig, RIG_VFO_CURR, chan->ant);
   rig_set_ts(rig, RIG_VFO_CURR, chan->tuning_step);
@@ -3458,6 +3534,7 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 {
 		channel_t curr_chan;
 		int curr_chan_num;
+		vfo_t curr_vfo;
 
 		if (!rig || !rig->caps || !chan)
 			return -RIG_EINVAL;
@@ -3467,12 +3544,21 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 		 */
 		if (rig->caps->set_channel == NULL) {
  			rig_save_channel(rig, &curr_chan);
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
+#else
+			curr_vfo = rig->state.current_vfo;
+			rig_set_vfo(rig, RIG_VFO_MEM);
+#endif
 			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 			rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
 			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
 			rig_restore_channel(rig, chan);
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_VFO_MODE);
+#else
+			rig_set_vfo(rig, curr_vfo);
+#endif
 			rig_restore_channel(rig, &curr_chan);
  			return RIG_OK;
 		}
@@ -3497,8 +3583,10 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  */
 int rig_get_channel(RIG *rig, channel_t *chan)
 {
+#if 0
 		channel_t curr_chan;
 		int curr_chan_num;
+#endif
 
 		if (!rig || !rig->caps || !chan)
 			return -RIG_EINVAL;
@@ -3510,7 +3598,13 @@ int rig_get_channel(RIG *rig, channel_t *chan)
 #if 0
 			rig_save_channel(rig, &curr_chan);
 #endif
+
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
+#else
+			rig_set_vfo(rig, RIG_VFO_MEM);
+#endif
+
 #if 0
 			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 #endif

@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: icr8500.c,v 1.9 2001-05-04 22:37:35 f4cfe Exp $  
+ * $Id: icr8500.c,v 1.10 2001-06-03 19:54:05 f4cfe Exp $  
  *
  *
  *
@@ -47,6 +47,8 @@
 #define ICR8500_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_APF)
 
 #define ICR8500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+
+#define ICR8500_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
 static const struct icom_priv_caps icr8500_priv_caps = {
 	0x4a,   /* default address */
@@ -95,6 +97,7 @@ max_rit: Hz(9999),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
 targetable_vfo: 0,
+vfo_ops: ICR8500_OPS,
 transceive: RIG_TRN_RIG,
 bank_qty:  12,
 chan_desc_sz: 0,
@@ -159,7 +162,11 @@ set_func: icom_set_func,
 set_channel: icom_set_channel,
 get_channel: icom_get_channel,
 set_mem: icom_set_mem,
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 mv_ctl: icom_mv_ctl,
+#else
+vfo_op: icom_vfo_op,
+#endif
 set_ts: icom_set_ts,
 get_ts: icom_get_ts,
 };

@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.18 2001-05-04 22:40:37 f4cfe Exp $  
+ *    $Id: icom.h,v 1.19 2001-06-03 19:54:05 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -94,7 +94,11 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone);
 int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone);
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank);
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch);
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);
+#else
+int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+#endif
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);

@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * 		$Id: icall.c,v 1.4 2001-05-04 22:37:35 f4cfe Exp $  
+ * 		$Id: icall.c,v 1.5 2001-06-03 19:54:05 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,8 @@
 #define ICALL_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
 
 #define ICALL_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+
+#define ICALL_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
 static const struct icom_priv_caps icall_priv_caps = {
 	0x58,   /* whatever! */
@@ -101,6 +103,7 @@ max_rit: Hz(9999),
 max_xit: Hz(0),
 max_ifshift: Hz(2.1),
 targetable_vfo: 0,
+vfo_ops: ICALL_OPS,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,
@@ -187,7 +190,11 @@ get_func: icom_get_func,
 set_channel: icom_set_channel,
 get_channel: icom_get_channel,
 set_mem: icom_set_mem,
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 mv_ctl: icom_mv_ctl,
+#else
+vfo_op: icom_vfo_op,
+#endif
 set_ptt: icom_set_ptt,
 get_ptt: icom_get_ptt,
 get_dcd: icom_get_dcd,

@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.24 2001-06-02 18:11:21 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.25 2001-06-03 19:54:05 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -496,7 +496,11 @@ int main (int argc, char *argv[])
 	printf("Can get mem:\t%c\n",caps->get_mem!=NULL?'Y':'N');
 	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':'N');
 	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':'N');
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 	printf("Can ctl mem/vfo:\t%c\n",caps->mv_ctl!=NULL?'Y':'N');
+#else
+	printf("Can ctl mem/vfo:\t%c\n",caps->vfo_op!=NULL?'Y':'N');
+#endif
 	printf("Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
 	
 
