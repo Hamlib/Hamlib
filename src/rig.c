@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.15 2001-02-07 23:44:08 f4cfe Exp $
+   $Id: rig.c,v 1.16 2001-02-09 23:06:32 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -19,6 +19,10 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -32,6 +36,11 @@
 #include <hamlib/riglist.h>
 #include <serial.h>
 #include "event.h"
+
+/*
+ * Hamlib version. Should we include copyright here too?
+ */
+const char hamlib_version[] = "Hamlib version " VERSION;
 
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
@@ -279,14 +288,29 @@ int rig_open(RIG *rig)
 
 		rig->state.stream = fdopen(rig->state.fd, "r+b");
 
-		if (rig->state.ptt_type == RIG_PTT_SERIAL_DTR ||
-						rig->state.ptt_type == RIG_PTT_SERIAL_RTS ||
-						rig->state.ptt_type == RIG_PTT_PARALLEL) {
-			if ((rig->state.ptt_fd = open(rig->state.ptt_path, O_RDWR, 0)) < 0) {
-				rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+		/*
+		 * FIXME: what to do if PTT open fails or PTT unsupported?
+		 * 			fail rig_open?  remember unallocating..
+		 */
+		switch(rig->state.ptt_type) {
+		case RIG_PTT_NONE:
+				break;
+		case RIG_PTT_SERIAL_RTS:
+		case RIG_PTT_SERIAL_DTR:
+				rig->state.ptt_fd = ser_ptt_open(&rig->state);
+				if (rig->state.ptt_fd < 0)
+					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
 								rig->state.ptt_path);
-				return -1;
-			}
+				break;
+		case RIG_PTT_PARALLEL:
+				rig->state.ptt_fd = par_ptt_open(&rig->state);
+				if (rig->state.ptt_fd < 0)
+					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+								rig->state.ptt_path);
+				break;
+		default:
+				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
+								rig->state.ptt_type);
 		}
 
 		add_opened_rig(rig);
@@ -330,16 +354,33 @@ int rig_close(RIG *rig)
 		if (rig->caps->rig_close)
 				rig->caps->rig_close(rig);
 
+		/* 
+		 * FIXME: what happens if PTT and rig ports are the same?
+		 * 			(eg. ptt_type = RIG_PTT_SERIAL)
+		 */
+		switch(rig->state.ptt_type) {
+		case RIG_PTT_NONE:
+				break;
+		case RIG_PTT_SERIAL_RTS:
+		case RIG_PTT_SERIAL_DTR:
+				ser_ptt_close(&rig->state);
+				break;
+		case RIG_PTT_PARALLEL:
+				par_ptt_close(&rig->state);
+				break;
+		default:
+				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
+								rig->state.ptt_type);
+		}
+
+		rig->state.ptt_fd = -1;
+
 		if (rig->state.fd != -1) {
 				if (!rig->state.stream)
 						fclose(rig->state.stream); /* this closes also fd */
 				else
 					close(rig->state.fd);
 				rig->state.fd = -1;
-				if (rig->state.ptt_fd >= 0) {
-					close(rig->state.ptt_fd);
-					rig->state.ptt_fd = -1;
-				}
 				rig->state.stream = NULL;
 		}
 
@@ -657,16 +698,19 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 		case RIG_PTT_SERIAL_DTR:
 		case RIG_PTT_SERIAL_RTS:
+				ser_ptt_set(&rig->state, ptt);
+				break;
 		case RIG_PTT_PARALLEL:
-				return -RIG_ENIMPL;	/* not implemented(experimental) */
-
-				ptt_set(rig->state.ptt_fd, rig->state.ptt_type, ptt);
+				par_ptt_set(&rig->state, ptt);
 				break;
 
 		case RIG_PTT_NONE:
-		default:
 				return -RIG_ENAVAIL;	/* not available */
+		default:
+				return -RIG_EINVAL;
 		}
+
+		return RIG_OK;
 }
 
 /**
@@ -714,15 +758,22 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 			break;
 
-		case RIG_PTT_SERIAL_RTS:	/* DCD through CTS */
-		case RIG_PTT_SERIAL_DTR:	/* DCD through DSR */
+		case RIG_PTT_SERIAL_RTS:
+		case RIG_PTT_SERIAL_DTR:
+				ser_ptt_get(&rig->state, ptt);
+				break;
 		case RIG_PTT_PARALLEL:
-				return -RIG_ENIMPL;	/* not implemented */
+				par_ptt_get(&rig->state, ptt);
+				break;
 
 		case RIG_PTT_NONE:
-		default:
 				return -RIG_ENAVAIL;	/* not available */
+
+		default:
+				return -RIG_EINVAL;
 		}
+
+		return RIG_OK;
 }
 
 
