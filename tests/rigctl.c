@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.32 2002-07-10 21:34:53 fillods Exp $  
+ * $Id: rigctl.c,v 1.33 2002-08-19 22:17:11 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -84,6 +84,8 @@ int set_conf(RIG *my_rig, char *conf_parms);
 
 declare_proto_rig(set_freq);
 declare_proto_rig(get_freq);
+declare_proto_rig(set_rit);
+declare_proto_rig(get_rit);
 declare_proto_rig(set_mode);
 declare_proto_rig(get_mode);
 declare_proto_rig(set_vfo);
@@ -133,11 +135,13 @@ declare_proto_rig(get_info);
  * TODO: add missing rig_set_/rig_get_: [rx]it, ant, sql, dcd, etc.
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
  *
- *	Available letters: -.-------JK-----*-----W-YZ
+ *	Available letters: -.--------K-----*-----W-YZ
  */
 struct test_table test_list[] = {
 		{ 'F', "set_freq", set_freq, ARG_IN, "Frequency" },
 		{ 'f', "get_freq", get_freq, ARG_OUT, "Frequency" },
+		{ 'J', "set_rit", set_rit, ARG_IN, "Frequency" },
+		{ 'j', "get_rit", get_rit, ARG_OUT, "Frequency" },
 		{ 'M', "set_mode", set_mode, ARG_IN, "Mode", "Passband" },
 		{ 'm', "get_mode", get_mode, ARG_OUT, "Mode", "Passband" },
 		{ 'V', "set_vfo", set_vfo, ARG_IN, "VFO" },
@@ -681,6 +685,29 @@ declare_proto_rig(get_freq)
 		printf("%lld\n", freq);
 		return status;
 }
+
+declare_proto_rig(set_rit)
+{
+		shortfreq_t rit;
+
+		sscanf(arg1, "%ld", &rit);
+		return rig_set_rit(rig, RIG_VFO_CURR, rit);
+}
+
+declare_proto_rig(get_rit)
+{
+		int status;
+		shortfreq_t rit;
+
+		status = rig_get_rit(rig, RIG_VFO_CURR, &rit);
+		if (status != RIG_OK)
+				return status;
+		if (interactive)
+			printf("%s: ", cmd->arg1);
+		printf("%ld\n", rit);
+		return status;
+}
+
 
 declare_proto_rig(set_mode)
 {

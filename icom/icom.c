@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.63 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: icom.c,v 1.64 2002-08-19 22:17:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -409,6 +409,38 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 		return RIG_OK;
 }
+
+int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+		unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+		int freq_len, ack_len, retval;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+
+		freq_len = 2;
+		/*
+		 * to_bcd requires nibble len
+		 */
+		to_bcd(freqbuf, rit, freq_len*2);
+
+		retval = icom_transaction (rig, C_SET_OFFS, -1, freqbuf, freq_len,
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_rit: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
 
 /*
  * icom_set_mode

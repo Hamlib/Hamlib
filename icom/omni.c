@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the TenTenc OMNI VI
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: omni.c,v 1.3 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: omni.c,v 1.4 2002-08-19 22:17:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -46,7 +46,7 @@
 
 static const struct icom_priv_caps omnivip_priv_caps = { 
 		0x04,	/* default address */
-		1,		/* 731 mode */
+		0,		/* 731 mode */
 		NULL,
 		OMNIVIP_STR_CAL
 };
@@ -57,7 +57,7 @@ const struct rig_caps omnivip_caps = {
 .mfg_name =  "Ten-Tec", 
 .version =  "0.1", 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -82,7 +82,7 @@ const struct rig_caps omnivip_caps = {
 .parm_gran =  {},
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
-.max_rit =  Hz(0),
+.max_rit =  Hz(9999),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
@@ -145,6 +145,7 @@ const struct rig_caps omnivip_caps = {
 .set_mode =  icom_set_mode,
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
+.set_rit =  icom_set_rit,
 
 .decode_event =  icom_decode_event,
 .set_mem =  icom_set_mem,
