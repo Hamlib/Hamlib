@@ -1,0 +1,37 @@
+hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+
+General Guidelines.
+-------------------
+
+1.Every new shared lib should be created autonomously
+  within its own directory. eg ft747/ for libft747.so
+
+2. Every lib should have the following structure
+
+ft747/
+|-- Makefile
+|-- RCS
+|-- README.ft747
+|-- TODO.ft747
+|-- ft747.c
+|-- ft747.h
+|-- include
+|-- lib
+`-- test
+    |-- Makefile
+    |-- RCS
+    |-- testlibft747.c
+    `-- testlibft747.h 
+
+3. Use the ft747 tree for examples of coding style. If there
+   are any glaring problems,let me know..
+
+4. The "test" directory should contain source code of the
+   form testlibXXXX.[ch]
+
+5. The "test" directory should build a test suite that
+   excercises the API you are implementing.
+
+6. libXXXX.so should be built to allow TX (PTT) to be disabled
+   if required. See ft747.[ch] for how this is done.
+
