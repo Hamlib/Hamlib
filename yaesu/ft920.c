@@ -11,7 +11,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.1 2002-10-28 04:53:05 n0nb Exp $
+ * $Id: ft920.c,v 1.2 2002-10-29 23:47:37 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -432,7 +432,8 @@ int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
  */
 
 int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
-  struct ft920_priv_data *p;
+  struct ft920_priv_data *priv;
+  unsigned char *p;
   freq_t f;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft920:ft920_get_freq called \n");
@@ -440,27 +441,30 @@ int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   if (!rig)
     return -RIG_EINVAL;
   
-  p = (struct ft920_priv_data*)rig->state.priv;
+  priv = (struct ft920_priv_data*)rig->state.priv;
 
   ft920_get_update_data(rig);	/* get whole shebang from rig */
 
   if (vfo == RIG_VFO_CURR )
-    vfo = p->current_vfo;	/* from previous vfo cmd */
+    vfo = priv->current_vfo;	/* from previous vfo cmd */
 
   switch(vfo) {
   case RIG_VFO_A:
-    f = from_bcd_be(&(p->update_data[FT920_SUMO_VFO_A_FREQ]),8); /* grab freq and convert */
+    p = &priv->update_data[FT920_SUMO_VFO_A_FREQ];
     break;
   case RIG_VFO_B:
-    f = from_bcd_be(&(p->update_data[FT920_SUMO_VFO_B_FREQ]),8); /* grab freq and convert */
-  break;
+    p = &priv->update_data[FT920_SUMO_VFO_B_FREQ];
+    break;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
+  /* big endian integer */
+  f = (((((p[0]<<8) + p[1])<<8) + p[2])<<8) + p[3];
+
   rig_debug(RIG_DEBUG_VERBOSE,"ft920:  freq = %lli Hz  for VFO = %u \n", f, vfo);
 
-  (*freq) = f;			/* return diplayed frequency */
+  *freq = f;			/* return diplayed frequency */
 
   return RIG_OK;
 }
