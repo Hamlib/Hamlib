@@ -90,6 +90,7 @@ RIG *rig_init(rig_model_t rig_model)
 		rig->state.serial_handshake = rig->caps->serial_handshake;
 		rig->state.timeout = rig->caps->timeout;
 		rig->state.retry = rig->caps->retry;
+		rig->state.ptt_type = rig->caps->ptt_type;
 		rig->state.vfo_comp = 0.0;	/* override it with preferences */
 
 		/* 
@@ -311,6 +312,19 @@ RIG *rig_probe(const char *port_path)
 			}
 		}
 		return NULL;
+}
+
+
+/*
+ * "macro" to check if a rig has a function,
+ * example:  if (rig_has_func(my_rig, RIG_FUNC_FAGC)) disp_fagc_button();
+ */
+int rig_has_func(RIG *rig, unsigned long func)
+{
+		if (!rig || !rig->caps)
+				return -1;
+
+		return (rig->caps->has_func & func);
 }
 
 

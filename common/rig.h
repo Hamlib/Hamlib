@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.10 2000-09-19 07:01:10 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.11 2000-09-20 06:12:33 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -149,6 +149,8 @@ typedef enum ptt_e ptt_t;
 #define RIG_FUNC_TSQL    	(1<<5)		/* may require a tone field */
 #define RIG_FUNC_SBKIN    	(1<<6)		/* Semi Break-in (is it the rigth name?) */
 #define RIG_FUNC_FBKIN    	(1<<7)		/* Full Break-in, for CW mode */
+#define RIG_FUNC_ANF    	(1<<8)		/* Automatic Notch Filter (DSP) */
+#define RIG_FUNC_NR     	(1<<9)		/* Noise Reduction (DSP) */
 
 
 
@@ -216,6 +218,9 @@ struct channel {
   freq_t freq;
   rmode_t mode;
   vfo_t vfo;
+  int power;	/* in mW */
+  signed int preamp;	/* in dB, if < 0, this is attenuator */
+  unsigned int tuning_step;	/* */
   unsigned char channel_desc[MAXCHANDESC];
 };
 
@@ -229,7 +234,13 @@ typedef struct channel channel_t;
 
 /* 
  * The main idea of this struct is that it will be defined by the backend
- * rig driver, and will remain readonly for the application
+ * rig driver, and will remain readonly for the application.
+ * Fields that need to be modifiable by the application are
+ * copied into the struct rig_state, which is a kind of private
+ * of the RIG instance.
+ * This way, you can have several rigs running within the same application,
+ * sharing the struct rig_caps of the backend, while keeping their own
+ * customized data.
  */
 struct rig_caps {
   rig_model_t rig_model; /* eg. RIG_MODEL_FT847 */
@@ -249,6 +260,7 @@ struct rig_caps {
   int timeout;	/* in ms */
   int retry;		/* maximum number of retries, 0 to disable */
   unsigned long has_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
+  int chan_qty;		/* number of channels */
   struct freq_range_list rx_range_list[FRQRANGESIZ];
   struct freq_range_list tx_range_list[FRQRANGESIZ];
 
@@ -313,6 +325,7 @@ struct rig_state {
 	int write_delay;        /* delay in ms between each byte sent out */
 	int timeout;	/* in ms */
 	int retry;		/* maximum number of retries, 0 to disable */
+  	enum ptt_type_e ptt_type;	/* how we will key the rig */
 	double vfo_comp;	/* VFO compensation in PPM, 0.0 to disable */
 	char rig_path[MAXRIGPATHLEN]; /* serial port/network path(host:port) */
 	int fd;	/* serial port/socket file handle */
@@ -381,6 +394,8 @@ int rig_close(RIG *rig);
 int rig_cleanup(RIG *rig);
 
 RIG *rig_probe(const char *rig_path);
+
+int rig_has_func(RIG *rig, unsigned long func);
 
 const struct rig_caps *rig_get_caps(rig_model_t rig_model);
 
