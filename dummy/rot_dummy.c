@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: rot_dummy.c,v 1.2 2002-01-16 16:48:52 fgretief Exp $
+ *	$Id: rot_dummy.c,v 1.3 2002-07-08 22:53:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,7 +58,7 @@ static int dummy_rot_init(ROT *rot)
 		  return -RIG_ENOMEM;
   rot->state.priv = (void*)priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
   rot->state.rotport.type.rig = RIG_PORT_NONE;
 
   priv->az = priv->el = 0;
@@ -68,7 +68,7 @@ static int dummy_rot_init(ROT *rot)
 
 static int dummy_rot_cleanup(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   if (rot->state.priv)
   	free(rot->state.priv);
@@ -80,14 +80,14 @@ static int dummy_rot_cleanup(ROT *rot)
 
 static int dummy_rot_open(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   return RIG_OK;
 }
 
 static int dummy_rot_close(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   return RIG_OK;
 }
@@ -96,7 +96,7 @@ static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
   struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)rot->state.priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %f %f\n", 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %f %f\n", __FUNCTION__, 
  			az, el);
   priv->az = az;
   priv->el = el;
@@ -109,7 +109,7 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
   struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)rot->state.priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   *az = priv->az;
   *el = priv->el;
@@ -120,7 +120,7 @@ static int dummy_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 static int dummy_rot_stop(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   return RIG_OK;
 }
@@ -128,28 +128,28 @@ static int dummy_rot_stop(ROT *rot)
 
 static int dummy_rot_park(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   return RIG_OK;
 }
 
 static int dummy_rot_reset(ROT *rot, rot_reset_t reset)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   return RIG_OK;
 }
 
 static int dummy_rot_move(ROT *rot, int direction, int speed)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   return RIG_OK;
 }
 
 static const char *dummy_rot_get_info(ROT *rot)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   return "";
 }

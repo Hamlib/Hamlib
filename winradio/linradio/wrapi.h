@@ -165,6 +165,6 @@ char *GetDescr(int);
 /* Hooks called when rescheduling */
 extern void (*yield_hook)();
 extern void (*reenter_hook)();
-#endif __KERNEL__
+#endif /* __KERNEL__ */
 
 #endif 

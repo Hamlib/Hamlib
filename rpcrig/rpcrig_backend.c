@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: rpcrig_backend.c,v 1.6 2001-12-28 20:28:03 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.7 2002-07-08 22:53:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -108,7 +108,7 @@ static int rpcrig_open(RIG *rig)
 		return -RIG_EPROTO;
 	}
 	model = *mdl_res;
-	rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ ": model %d\n", model);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: model %d\n", __FUNCTION__, model);
 
 	/*
 	 * autoload if necessary
@@ -496,145 +496,145 @@ static int rpcrig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 static int rpcrig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
@@ -808,94 +808,94 @@ static int rpcrig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 static int rpcrig_set_powerstat(RIG *rig, powerstat_t status)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_powerstat(RIG *rig, powerstat_t *status)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_channel(RIG *rig, const channel_t *chan)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_channel(RIG *rig, channel_t *chan)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_set_trn(RIG *rig, int trn)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 
 static int rpcrig_get_trn(RIG *rig, int *trn)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 static const char *rpcrig_get_info(RIG *rig)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   return "";
 }
@@ -903,23 +903,23 @@ static const char *rpcrig_get_info(RIG *rig)
 
 static int rpcrig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 static int rpcrig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 static int rpcrig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  return RIG_OK;
+  return -RIG_ENIMPL;
 }
 
 

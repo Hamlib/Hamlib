@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.38 2002-07-05 23:22:11 fillods Exp $
+ *	$Id: kenwood.c,v 1.39 2002-07-08 22:53:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -171,21 +171,21 @@ transaction_read:
     if (!strchr(cmdtrm, data[strlen(data)])) {
         if (retry_read++ < MAX_RETRY_READ)
             goto transaction_read;
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Command is not correctly terminated '%s'\n", data);
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __FUNCTION__, data);
         retval = -RIG_EPROTO;
         goto transaction_quit;
     }
 
     /* Command recognised by rig but invalid data entered. */
     if (strlen(data) == 2 && data[0] == 'N') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": NegAck for '%s'\n", cmdstr);
+        rig_debug(RIG_DEBUG_ERR, "%s: NegAck for '%s'\n", __FUNCTION__, cmdstr);
         retval = -RIG_ERJCTED;
         goto transaction_quit;
     }
 
     /* Command not understood by rig */
     if (strlen(data) == 2 && data[0] == '?') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unknown command '%s'\n", cmdstr);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __FUNCTION__, cmdstr);
         retval = -RIG_ERJCTED;
         goto transaction_quit;
     }
@@ -209,7 +209,7 @@ transaction_read:
           */
         if (retry_read++ < MAX_RETRY_READ)
             goto transaction_read;
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", data);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, data);
         retval =  -RIG_EPROTO;
         goto transaction_quit;
     }
@@ -1252,7 +1252,7 @@ int kenwood_init(RIG *rig)
 {
     const struct rig_caps *caps;
     const struct kenwood_priv_caps *priv_caps;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     if (!rig || !rig->caps)
         return -RIG_EINVAL;
@@ -1283,7 +1283,7 @@ int kenwood_init(RIG *rig)
  */
 int kenwood_cleanup(RIG *rig)
 {
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     if (!rig)
         return -RIG_EINVAL;

@@ -1,8 +1,8 @@
 /*
  *  Hamlib RPC server - procedures
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: rpcrig_proc.c,v 1.4 2001-12-27 21:56:01 fillods Exp $
+ *	$Id: rpcrig_proc.c,v 1.5 2002-07-08 22:53:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +42,7 @@ model_x *getmodel_1_svc(void *arg, struct svc_req *svc)
 {
 	static model_x res;
 
-	rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
 	/* free previous result */
 	//xdr_free(xdr_model, &res);
@@ -57,7 +57,7 @@ rigstate_res *getrigstate_1_svc(void *arg, struct svc_req *svc)
 	static rigstate_res res;
 	struct rig_state *rs;
 
-	rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
 	if (!the_rpc_rig->state.comm_state) {
 		res.rigstatus = -RIG_ERJCTED;

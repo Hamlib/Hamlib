@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: iofunc.c,v 1.5 2002-06-17 20:59:51 fillods Exp $
+ *	$Id: iofunc.c,v 1.6 2002-07-08 22:53:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -315,7 +315,7 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
         rd_count = read(p->fd, &rxbuffer[total_count], 1);
 		if (rd_count < 0) {
 			dump_hex(rxbuffer, total_count);
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": read failed - %s\n",
+            rig_debug(RIG_DEBUG_ERR, "%s: read failed - %s\n",__FUNCTION__,
                             strerror(errno));
             return -RIG_EIO;
 		}
@@ -330,7 +330,8 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
   rxbuffer[total_count] = '\000';
 
   if (total_count == 0) {
-    rig_debug(RIG_DEBUG_WARN, __FUNCTION__": timedout without reading a character\n");
+    rig_debug(RIG_DEBUG_WARN, "%s: timedout without reading a character\n",
+		    __FUNCTION__);
     return -RIG_ETIMEOUT;
   }
 

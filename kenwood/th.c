@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: th.c,v 1.7 2002-03-13 23:42:43 fillods Exp $
+ *	$Id: th.c,v 1.8 2002-07-08 22:53:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -126,21 +126,21 @@ transaction_read:
     if (!strchr(cmdtrm, data[strlen(data)])) {
         if (retry_read++ < MAX_RETRY_READ)
             goto transaction_read;
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Command is not correctly terminated '%s'\n", data);
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __FUNCTION__, data);
         retval = -RIG_EPROTO;
         goto transaction_quit;
     }
 
     /* Command recognised by rig but invalid data entered. */
     if (strlen(data) == 2 && data[0] == 'N') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": NegAck for '%s'\n", cmdstr);
+        rig_debug(RIG_DEBUG_ERR, "%s: NegAck for '%s'\n", __FUNCTION__, cmdstr);
         retval = -RIG_ERJCTED;
         goto transaction_quit;
     }
 
     /* Command not understood by rig */
     if (strlen(data) == 2 && data[0] == '?') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unknown command '%s'\n", cmdstr);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __FUNCTION__, cmdstr);
         retval = -RIG_ERJCTED;
         goto transaction_quit;
     }
@@ -161,7 +161,7 @@ transaction_read:
           */
         if (retry_read++ < MAX_RETRY_READ)
             goto transaction_read;
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", data);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, data);
         retval =  -RIG_EPROTO;
         goto transaction_quit;
     }
@@ -191,13 +191,13 @@ th_decode_event (RIG *rig)
 {
     char asyncbuf[128];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = th_transaction(rig, NULL, asyncbuf, sizeof(asyncbuf));
     if (retval != RIG_OK)
         return retval;
 
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": Decoding message\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __FUNCTION__);
 
     /* --------------------------------------------------------------------- */
     if (asyncbuf[0] == 'B' && asyncbuf[1] == 'U' && asyncbuf[2] == 'F') {
@@ -211,7 +211,7 @@ th_decode_event (RIG *rig)
                                   &vfo, &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset, &mode);
         if (retval != 11) {
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected BUF message '%s'\n", asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BUF message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
@@ -219,7 +219,7 @@ th_decode_event (RIG *rig)
         vfo = (vfo == 0) ? RIG_VFO_A : RIG_VFO_B;
         mode = (mode == 0) ? RIG_MODE_FM : RIG_MODE_AM;
 
-        rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": Buffer (vfo %d, freq %lld Hz, mode %d)\n", vfo, freq, mode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (vfo %d, freq %lld Hz, mode %d)\n", __FUNCTION__, vfo, freq, mode);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
@@ -240,14 +240,14 @@ th_decode_event (RIG *rig)
         int lev;
         retval = sscanf(asyncbuf, "SM %d,%d", &vfo, &lev);
         if (retval != 2) {
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected SM message '%s'\n", asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected SM message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
         /* Calibration and conversions */
         vfo = (vfo == 0) ? RIG_VFO_A : RIG_VFO_B;
 
-        rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": Signal strength event - signal = %.3f\n", (float)(lev / 5.0));
+        rig_debug(RIG_DEBUG_TRACE, "%s: Signal strength event - signal = %.3f\n", __FUNCTION__, (float)(lev / 5.0));
 
         /* Callback execution */
 #if STILLHAVETOADDCALLBACK
@@ -264,12 +264,12 @@ th_decode_event (RIG *rig)
 
         retval = sscanf(asyncbuf, "BY %d,%d", &vfo, &busy);
         if (retval != 2) {
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected BY message '%s'\n", asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BY message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
         vfo = (vfo == 0) ? RIG_VFO_A : RIG_VFO_B;
-        rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": Busy event - status = '%s'\n",
-                                        (busy == 0) ? "OFF" : "ON" );
+        rig_debug(RIG_DEBUG_TRACE, "%s: Busy event - status = '%s'\n",
+				__FUNCTION__, (busy == 0) ? "OFF" : "ON" );
         return -RIG_ENIMPL;
         /* This event does not have a callback. */
 
@@ -279,12 +279,12 @@ th_decode_event (RIG *rig)
         vfo_t vfo;
         retval = sscanf(asyncbuf, "BC %d", &vfo);
         if (retval != 1) {
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected BC message '%s'\n", asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BC message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
         vfo = (vfo == 0) ? RIG_VFO_A : RIG_VFO_B;
 
-        rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": VFO event - vfo = %d\n", vfo);
+        rig_debug(RIG_DEBUG_TRACE, "%s: VFO event - vfo = %d\n", __FUNCTION__, vfo);
         if (rig->callbacks.vfo_event)
             rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
 
@@ -297,7 +297,7 @@ th_decode_event (RIG *rig)
 
         retval = sscanf(asyncbuf, "VMC %d,%d", &vfo, &bandmode);
         if (retval != 1) {
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected VMC message '%s'\n", asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VMC message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
@@ -309,7 +309,7 @@ th_decode_event (RIG *rig)
            //case 3:     bandmode = RIG_VFO_CALL; break;
             default:    bandmode = RIG_VFO_CURR; break; /*FIXME: what is a better value? */
         }
-        rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": Mode of Band event - vfo = %d, %d\n", vfo, bandmode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event - vfo = %d, %d\n", __FUNCTION__, vfo, bandmode);
 
         /* TODO: This event does not have a callback! */
         return -RIG_ENIMPL;
@@ -317,7 +317,7 @@ th_decode_event (RIG *rig)
     /* --------------------------------------------------------------------- */
     } else {
 
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unsupported transceive cmd '%s'\n", asyncbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported transceive cmd '%s'\n", __FUNCTION__, asyncbuf);
         return -RIG_ENIMPL;
     }
 
@@ -333,7 +333,7 @@ th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[24], ackbuf[ACKBUF_LEN];
     int retval, step;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     step = 0;
     if (step < 0 || step > 9)
@@ -345,7 +345,7 @@ th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
         return RIG_OK;
 
     if (ackbuf[0] != 'F' || ackbuf[1] != 'Q') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
 
@@ -361,7 +361,7 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char vch, freqbuf[ACKBUF_LEN];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     *freq = 0;
     vch = '0';
@@ -373,7 +373,7 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
 
     retval = sscanf(freqbuf, "FQ %lld", freq);
     if (retval != 1) {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", freqbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, freqbuf);
         return -RIG_ERJCTED;
     }
 
@@ -389,12 +389,12 @@ th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char kmode, mdbuf[24], ackbuf[ACKBUF_LEN];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	switch (vfo) {
       case RIG_VFO_CURR: break;
 	  default:
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unsupported VFO %d\n", vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
 		return -RIG_EINVAL;
 	}
 
@@ -403,7 +403,7 @@ th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_FM:   kmode = '0'; break; /* TH-D7A(G) modes */
     case RIG_MODE_AM:   kmode = '1'; break;
 	default:
-        rig_debug(RIG_DEBUG_ERR,__FUNCTION__": Unsupported Mode %d\n", mode);
+        rig_debug(RIG_DEBUG_ERR,"%s: Unsupported Mode %d\n", __FUNCTION__, mode);
 		return -RIG_EINVAL;
 	}
 
@@ -413,7 +413,7 @@ th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         return retval;
 
     if (ackbuf[0] != 'M' || ackbuf[1] != 'D') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
 
@@ -429,7 +429,7 @@ th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char vch, ackbuf[ACKBUF_LEN];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     /* TODO: What about the VFO? */
     vch = '0';
@@ -439,7 +439,7 @@ th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return retval;
 
     if (strlen(ackbuf) < 4 || ackbuf[0] != 'M' || ackbuf[1] != 'D') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
 
@@ -447,7 +447,7 @@ th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         case '0': *mode = RIG_MODE_FM; break;     /* TH-D7A(G) modes */
         case '1': *mode = RIG_MODE_AM; break;
         default:
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unsupported Mode value '%c'\n", ackbuf[3]);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Mode value '%c'\n", __FUNCTION__, ackbuf[3]);
             return -RIG_EINVAL;
 	}
 
@@ -465,7 +465,7 @@ th_set_vfo (RIG *rig, vfo_t vfo)
 {
     char vfobuf[16], ackbuf[ACKBUF_LEN];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	switch (vfo) {
         case RIG_VFO_A:
@@ -487,7 +487,7 @@ th_set_vfo (RIG *rig, vfo_t vfo)
             break;
 #endif
         default:
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unsupported VFO %d\n", vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
             return -RIG_EINVAL;
 	}
 
@@ -496,7 +496,7 @@ th_set_vfo (RIG *rig, vfo_t vfo)
         return retval;
 
     if (ackbuf[0] != 'B' || ackbuf[1] != 'C') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
 
@@ -512,14 +512,14 @@ th_get_vfo (RIG *rig, vfo_t *vfo)
 {
     char ackbuf[ACKBUF_LEN];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = th_transaction (rig, "BC" EOM, ackbuf, sizeof(ackbuf));
     if (retval != RIG_OK)
         return retval;
 
     if (strlen(ackbuf) < 4 || ackbuf[0] != 'B' || ackbuf[1] != 'C') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
 
@@ -527,7 +527,7 @@ th_get_vfo (RIG *rig, vfo_t *vfo)
         case '0': *vfo = RIG_VFO_A; break;
         case '1': *vfo = RIG_VFO_B; break;
         default:
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected VFO value '%c'\n", ackbuf[3]);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VFO value '%c'\n", __FUNCTION__, ackbuf[3]);
             return -RIG_ERJCTED;
     }
 
@@ -544,7 +544,7 @@ th_set_trn(RIG *rig, int trn)
 {
     char trnbuf[16], ackbuf[ACKBUF_LEN];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     sprintf(trnbuf, "AI %c" EOM, (trn == RIG_TRN_RIG) ? '1' : '0');
     retval = th_transaction (rig, trnbuf, ackbuf, sizeof(ackbuf));
@@ -552,7 +552,7 @@ th_set_trn(RIG *rig, int trn)
 		return retval;
 
 	if (ackbuf[0] != 'A' || ackbuf[1] != 'I') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
 	}
 
@@ -568,14 +568,14 @@ th_get_trn (RIG *rig, int *trn)
 {
     char ackbuf[ACKBUF_LEN];
     int retval;
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = th_transaction(rig, "AI" EOM, ackbuf, sizeof(ackbuf));
 	if (retval != RIG_OK)
 		return retval;
 
     if (strlen(ackbuf) < 4 || ackbuf[0] != 'A' || ackbuf[1] != 'I') {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
 	}
 
@@ -593,14 +593,14 @@ th_get_kenwood_func (RIG *rig, const char *cmd, int *status)
 {
     char ackbuf[ACKBUF_LEN];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = th_transaction (rig, cmd, ackbuf, sizeof(ackbuf));
     if (retval != RIG_OK)
         return retval;
 
     if (strlen(ackbuf) < 4 || ackbuf[0] != cmd[0] || ackbuf[1] != cmd[1]) {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
 	}
 
@@ -619,7 +619,7 @@ th_get_kenwood_func (RIG *rig, const char *cmd, int *status)
 int
 th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called (0x%04x)\n", func);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __FUNCTION__, func);
 
     /* FIXME: What about the VFO? */
 
@@ -663,7 +663,7 @@ th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status)
         case RIG_FUNC_MBC:
             return -RIG_ENAVAIL;
         default:
-            rig_debug(RIG_DEBUG_ERR,__FUNCTION__": Unsupported function %#x", func);
+            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported function %#x", __FUNCTION__, func);
             return -RIG_EINVAL;
     }
     return RIG_OK;
@@ -678,14 +678,14 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char vch, lvlbuf[32], ackbuf[ACKBUF_LEN];
     int retval, v, l;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	switch (vfo) {
         case RIG_VFO_A: vch = '0'; break;
         case RIG_VFO_B: vch = '1'; break;
         case RIG_VFO_CURR: vch = '0'; break;    // FIXME: which one do I choose
         default:
-            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unsupported VFO %d\n", vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
             return -RIG_EINVAL;
 	}
 
@@ -701,7 +701,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             retval = sscanf(ackbuf, "SM %d,%d", &v, &l);
             if (retval != 2 || l < 0 || l > 5) {
-                rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+                rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
             }
 
@@ -717,7 +717,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
             retval = sscanf(ackbuf, "SQ %d,%d", &v, &l);
             if (retval != 2 || l < 0 || l > 5) {
-                rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", ackbuf);
+                rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
             }
 
@@ -730,7 +730,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         case RIG_LEVEL_METER:
             return -RIG_ENAVAIL;
         default:
-            rig_debug(RIG_DEBUG_ERR,__FUNCTION__": Unsupported Level %d", level);
+            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported Level %d", __FUNCTION__, level);
             return -RIG_EINVAL;
     }
     return RIG_OK;
@@ -750,7 +750,7 @@ th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	const struct rig_caps *caps;
     unsigned char tonebuf[16], ackbuf[ACKBUF_LEN];
     int i, retval;
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	caps = rig->caps;
 
@@ -781,7 +781,7 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
     char ackbuf[ACKBUF_LEN];
     int retval;
 	unsigned int tone_idx;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	caps = rig->caps;
 
@@ -791,15 +791,15 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
     retval = sscanf(ackbuf, "CTN %d", (int*)&tone_idx);
     if (retval != 1) {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__
-                        ": Unexpected reply '%s'\n", ackbuf);
+		rig_debug(RIG_DEBUG_ERR, 
+                        "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
 		return -RIG_EPROTO;
     }
 
     /* verify tone index for TH-7DA rig */
 	if (tone_idx <= 0 || tone_idx == 2 || tone_idx > 39) {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__
-						": Unexpected CTCSS no (%04d)\n", tone_idx);
+		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected CTCSS no (%04d)\n",
+				__FUNCTION__, tone_idx);
 		return -RIG_EPROTO;
 	}
     tone_idx -= (tone_idx == 1) ? 1 : 2; /* Correct for TH-7DA index anomaly */
@@ -813,7 +813,7 @@ th_get_info(RIG *rig)		/* I hope this is the correct function for this command. 
 	static unsigned char firmbuf[16];
 	int retval, firm_len = 0;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	memset(firmbuf, 0, sizeof(firmbuf));
 	retval = kenwood_transaction (rig, "ID" EOM, 3, firmbuf, &firm_len);
@@ -821,14 +821,14 @@ th_get_info(RIG *rig)		/* I hope this is the correct function for this command. 
 		return NULL;
 #if 1
 	if (firm_len != 6) {
-		rig_debug(RIG_DEBUG_ERR,__FUNCTION__": wrong answer len=%d\n",
-											firm_len);
+		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
+			__FUNCTION__, firm_len);
         return NULL;
     }
 #endif
 	if (firmbuf[0] != 'I' || firmbuf[1] != 'D') {
-       rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
-                               "'%s', len=%d\n", firmbuf, firm_len);
+       rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%d\n",
+		       __FUNCTION__, firmbuf, firm_len);
 	   return NULL;
 	}
 
@@ -845,18 +845,18 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
 	unsigned char vsel, membuf[16], ackbuf[16];
 	int retval, mem_len, ack_len = 0;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 	memset(ackbuf, 0, sizeof(ackbuf));
 
 	if (ch < 0 || ch > 200) {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": channel num out of range: %d\n", ch);
+		rig_debug(RIG_DEBUG_ERR, "%s: channel num out of range: %d\n", __FUNCTION__, ch);
 		return -RIG_EINVAL;
 	}
 	switch (vfo) {
 	  case RIG_VFO_A: vsel = '0'; break;
 	  case RIG_VFO_B: vsel = '1'; break;
 	  default:
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unsupported VFO %d\n", vfo);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __FUNCTION__, vfo);
 		return -RIG_EINVAL;
 	}
 
@@ -866,13 +866,13 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
 		return retval;
 
 	if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": negative acknowledgment\n");
+		rig_debug(RIG_DEBUG_ERR, "%s: negative acknowledgment\n", __FUNCTION__);
 		return -RIG_ERJCTED;
 	}
 
 	if (ackbuf[0] != 'M' || ackbuf[1] != 'C') {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
-								"'%s', len=%d\n", ackbuf, ack_len);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%d\n",
+				__FUNCTION__, ackbuf, ack_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -885,7 +885,7 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 	unsigned char *membuf, ackbuf[16];
 	int retval, mem_len, ack_len = 0;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 	memset(ackbuf, 0, sizeof(ackbuf));
 
 	switch (vfo) {
@@ -899,7 +899,7 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		membuf = "MC" EOM;
 		break;
 	  default:
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unsupported VFO %d\n", vfo);
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __FUNCTION__, vfo);
 		return -RIG_EINVAL;
 	}
 
@@ -909,20 +909,21 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		return retval;
 
 	if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": negative acknowledgment\n");
+		rig_debug(RIG_DEBUG_ERR, "%s: negative acknowledgment\n", __FUNCTION__);
 		return -RIG_ERJCTED;
 	}
 
 	if (ackbuf[0] != 'M' || ackbuf[1] != 'C') {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
-								"'%s', len=%d\n", ackbuf, ack_len);
+		rig_debug(RIG_DEBUG_ERR, "%s: unexpected reply '%s', len=%d\n",
+				__FUNCTION__, ackbuf, ack_len);
 		return -RIG_ERJCTED;
 	}
 
     *ch = atoi(&membuf[3]);
 #if 0
 	if (*ch < 0 || *ch > 200) {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": channel num out of range: %d\n", ch);
+		rig_debug(RIG_DEBUG_ERR, "%s: channel num out of range: %d\n",
+				__FUNCTION__, ch);
 		return -RIG_EINVAL;
 	}
 #endif
