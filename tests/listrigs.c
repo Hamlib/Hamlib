@@ -3,7 +3,7 @@
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.5 2001-02-11 23:20:33 f4cfe Exp $  
+ *    $Id: listrigs.c,v 1.6 2001-02-14 01:12:59 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -80,6 +80,9 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 	case RIG_TYPE_COMPUTER:
 			printf("Computer\n");
 			break;
+	case RIG_TYPE_OTHER:
+			printf("Other\n");
+			break;
 	default:
 			printf("Unknown\n");
 	}
@@ -117,6 +120,7 @@ int main (int argc, char *argv[])
 		exit(3);
 	}
 	rig_load_backend("winradio");	/* may not be compiled .. */
+	rig_load_backend("dummy");
 
 	printf("Rig#\tMfg\tModel       \tVers.\tStatus\tType\n");
 	status = rig_list_foreach(print_caps_sum,NULL);

@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.6 2001-02-11 23:23:17 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.7 2001-02-14 01:12:59 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -89,6 +89,9 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 			break;
 	case RIG_TYPE_COMPUTER:
 			printf("Computer");
+			break;
+	case RIG_TYPE_OTHER:
+			printf("Other");
 			break;
 	default:
 			printf("Unknown");
@@ -487,6 +490,7 @@ int main (int argc, char *argv[])
 		exit(3);
 	}
 	rig_load_backend("winradio");	/* may not be compiled ... */
+	rig_load_backend("dummy");
 
 	printf("<TABLE BORDER=1>");
 	printf("<TR><TD>Model</TD><TD>Mfg</TD><TD>Vers.</TD><TD>Status</TD>"
