@@ -4,7 +4,7 @@
 # Simple  Make file for common parts.
 #
 #
-#	$Id: Makefile,v 1.1 2000-07-25 01:01:00 javabear Exp $	
+#	$Id: Makefile,v 1.2 2000-09-14 00:52:27 f4cfe Exp $	
 #
 #
 
@@ -19,6 +19,10 @@ all:	$(MAKEALL)
 
 serial.o:	serial.c serial.h 
 	$(CC)	$(CFLAGS)  $(INCLUDE) -c serial.c
+
+rig.o: rig.c rig.h rigcaps.h riglist.h
+	$(CC)	$(CFLAGS)  $(INCLUDE) -c rig.c
+
 
 # clean up
 
