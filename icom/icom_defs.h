@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.8 2001-03-01 21:22:44 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.9 2001-06-10 22:27:08 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@
  */
 #define PR		0xfe		/* Preamble code */
 #define CTRLID	0xe0		/* Controllers's default address */
+#define BCASTID	0x00		/* Broadcast address */
 #define FI		0xfd		/* End of message code */
 #define ACK		0xfb		/* OK code */
 #define NAK		0xfa		/* NG code */
@@ -253,6 +254,11 @@
  */
 #define S_TONE_RPTR	0x00		/* Tone frequency setting for repeater user */
 #define S_TONE_SQL	0x01		/* Tone frequency setting for squelch */
+
+/*
+ * C_RD_TRXID
+ */
+#define S_RD_TRXID 0x00
 
 #endif /* _ICOM_DEFS_H */
 
