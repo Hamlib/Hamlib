@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.6 2000-07-30 05:08:24 javabear Exp $  
+ * $Id: serial.c,v 1.7 2000-08-04 02:49:39 javabear Exp $  
  *
  */
 
@@ -19,7 +19,6 @@
 #include <sys/ioctl.h>
 #include "serial.h"
 
-static void dump_hex(unsigned char *ptr, int size, int width);
 
 /*
  * Open serial port 
@@ -210,7 +209,7 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num ) {
  * Do a hex dump of the unsigned char array.
  */
 
-static void dump_hex(unsigned char *ptr, int size, int width) {
+void dump_hex(unsigned char *ptr, int size, int width) {
   int i =0;
 
   printf("\n");
