@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: optoscan.c,v 1.1 2002-03-06 21:10:08 fillods Exp $
+ *		$Id: optoscan.c,v 1.2 2002-03-07 22:58:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -125,7 +125,7 @@ const char* optoscan_get_info(RIG *rig)
 				return NULL;
 
 		if (ack_len != 7) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_info: ack NG (%#.2x), "
+				rig_debug(RIG_DEBUG_ERR,"optoscan_get_info: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0], ack_len);
 				return NULL;
 		}

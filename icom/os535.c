@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan535
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: os535.c,v 1.1 2002-03-06 21:10:08 fillods Exp $
+ *		$Id: os535.c,v 1.2 2002-03-07 22:58:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -119,6 +119,7 @@ tx_range_list2: { RIG_FRNG_END, },		/* this is a scanner */
 tuning_steps:	{
 	 {OS535_MODES,kHz(5)},
 	 {OS535_MODES,kHz(12.5)},
+	 {OS535_MODES,kHz(50)},
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
