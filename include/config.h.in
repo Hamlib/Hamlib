@@ -20,6 +20,9 @@
 /* Define if you have the `atexit' function. */
 #undef HAVE_ATEXIT
 
+/* Define if you have the `cfmakeraw' function. */
+#undef HAVE_CFMAKERAW
+
 /* Define if you have the <dirent.h> header file, and it defines `DIR'. */
 #undef HAVE_DIRENT_H
 

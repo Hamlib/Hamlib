@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.23 2002-01-16 22:58:50 fillods Exp $
+ *		$Id: serial.c,v 1.24 2002-01-22 21:17:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -126,7 +126,10 @@ int serial_open(port_t *rp) {
 #else	/* sgtty */
   ioctl (fd, TIOCGETP, &sg);
 #endif
+
+#ifdef HAVE_CFMAKERAW
   cfmakeraw(&options); /* Set serial port to RAW mode by default. */
+#endif
 
   /*
    * Set the baud rates to requested values
