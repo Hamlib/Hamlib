@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: frame.h,v 1.5 2001-04-26 21:31:01 f4cfe Exp $  
+ *    $Id: frame.h,v 1.6 2001-06-04 21:09:13 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@
 int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *data, int data_len);
 
 int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len);
-int read_icom_frame(FILE *stream, unsigned char rxbuffer[], int timeout);
+int read_icom_frame(port_t *p, unsigned char rxbuffer[]);
 
 unsigned short rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width);
 void icom2rig_mode(RIG *rig, unsigned short icmode, rmode_t *mode, pbwidth_t *width);
