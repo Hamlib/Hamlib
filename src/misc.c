@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.c,v 1.11 2001-12-20 07:48:38 fillods Exp $
+ *		$Id: misc.c,v 1.12 2002-01-07 17:41:13 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,9 +72,14 @@ void dump_hex(const unsigned char ptr[], size_t size)
     if (i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH-1)
       rig_debug(RIG_DEBUG_TRACE,"\t%s\n",buf);
   }
-  /*
-   * add some spaces in this case in order to align right ASCII dump column
-   */
+
+  /* Add some spaces in order to align right ASCII dump column */
+  if ((i / DUMP_HEX_WIDTH) > 0) {
+    int j;
+    for (j = i % DUMP_HEX_WIDTH; j < DUMP_HEX_WIDTH; j++)
+      rig_debug(RIG_DEBUG_TRACE,"   ");
+  }
+
   if (i % DUMP_HEX_WIDTH != DUMP_HEX_WIDTH-1) {
   	buf[i % DUMP_HEX_WIDTH] = '\0';
     rig_debug(RIG_DEBUG_TRACE,"\t%s\n",buf);
