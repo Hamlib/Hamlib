@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.80 2003-04-27 22:15:04 fillods Exp $
+ *	$Id: rig.h,v 1.81 2003-05-03 13:17:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1245,11 +1245,16 @@ struct rig_state {
 
   int hold_decode;	/*!< set to 1 to hold the event decoder (async) otherwise 0 */
   vfo_t current_vfo;	/*!< VFO currently set */
-  int transceive;	/*!< Whether the transceive mode is on */
   int vfo_list;		/*!< Complete list of VFO for this rig */
   int comm_state;	/*!< Comm port state, opened/closed. */
   rig_ptr_t priv;	/*!< Pointer to private rig state data. */
   rig_ptr_t obj;	/*!< Internal use by hamlib++ for event handling. */
+
+  int transceive;	/*!< Whether the transceive mode is on */
+  int poll_interval;	/*!< Event notification polling period in milliseconds */
+  freq_t current_freq;	/*!< Frequency currently set */
+  rmode_t current_mode;	/*!< Mode currently set */
+  pbwidth_t current_width;	/*!< Passband width currently set */
 
 };
 

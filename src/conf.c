@@ -9,7 +9,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.9 2003-02-23 22:38:54 fillods Exp $
+ *	$Id: conf.c,v 1.10 2003-05-03 13:17:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -100,6 +100,11 @@ static const struct confparams frontend_cfg_params[] = {
 			"Serial port set state of DTR signal for external powering",
 			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
 	},
+	{ TOK_POLL_INTERVAL, "poll_interval", "Polling interval", 
+			"Polling interval in millisecond for transceive emulation",
+			"500", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
+	},
+
 
 	{ RIG_CONF_END, NULL, }
 };
@@ -209,6 +214,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 		case TOK_VFO_COMP:
 				rs->vfo_comp = atof(val);
 				break;
+		case TOK_POLL_INTERVAL:
+				rs->poll_interval = atof(val);
+				break;
+
 
 		default:
 				return -RIG_EINVAL;
@@ -299,6 +308,9 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 
 		case TOK_VFO_COMP:
 				sprintf(val, "%f", rs->vfo_comp);
+				break;
+		case TOK_POLL_INTERVAL:
+				sprintf(val, "%d", rs->poll_interval);
 				break;
 
 		default:

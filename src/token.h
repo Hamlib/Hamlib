@@ -2,7 +2,7 @@
  *  Hamlib Interface - token header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: token.h,v 1.2 2003-02-23 22:38:54 fillods Exp $
+ *	$Id: token.h,v 1.3 2003-05-03 13:17:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,6 +56,7 @@
 /* rx_range_list/tx_range_list, filters, announces, has(func,lvl,..) */
 
 #define TOK_VFO_COMP	TOKEN_FRONTEND(110)
+#define TOK_POLL_INTERVAL	TOKEN_FRONTEND(111)
 #define TOK_ITU_REGION	TOKEN_FRONTEND(120)
 
 /*

@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.42 2003-04-06 18:40:35 fillods Exp $  
+ * $Id: rigctl.c,v 1.43 2003-05-03 13:17:25 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -33,6 +33,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include <getopt.h>
 
@@ -255,6 +256,21 @@ char parse_arg(const char *arg)
 				if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
 						return test_list[i].cmd;
 		return 0;
+}
+
+static int scanfc(const char *format, void *p)
+{
+	int ret;
+
+	do {
+		ret = scanf(format, p);
+		if (ret < 0) {
+			if (errno != EINTR)
+				rig_debug(RIG_DEBUG_ERR, "scanf: %s\n", strerror(errno));
+			continue;
+		}
+		return ret;
+	} while(1);
 }
 
 #define MAXCONFLEN 128
@@ -493,16 +509,17 @@ int main (int argc, char *argv[])
 				printf("\nRig command: ");
 
 				do {
-					scanf("%c", &cmd);
+					scanfc("%c", &cmd);
 
 					/* command by name */
 					if (cmd == '\\') {
 						unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
 						int c_len = MAXNAMSIZ;
 
-						scanf("%c", pcmd);
+						scanfc("%c", pcmd);
 						while(c_len-- && (isalnum(*pcmd) || *pcmd == '_' ))
-							scanf("%c", ++pcmd);
+							scanfc("%c", ++pcmd);
+
 						*pcmd = '\0';
 						cmd = parse_arg(cmd_name);
 						break;
@@ -523,7 +540,7 @@ int main (int argc, char *argv[])
 				/* comment line */
 				if (cmd == '#' || cmd == ';') {
 					while( cmd != '\n' && cmd != '\r')
-						scanf("%c", &cmd);
+						scanfc("%c", &cmd);
 					continue;
 				}
 				if (cmd == 'Q' || cmd == 'q')
@@ -553,7 +570,7 @@ int main (int argc, char *argv[])
 			if (!(cmd_entry->flags & ARG_NOVFO) && vfo_mode) {
 				if (interactive) {
 					printf("VFO: ");
-					scanf("%s", arg1);
+					scanfc("%s", arg1);
 					vfo = parse_vfo(arg1);
 				} else {
 					if (!argv[optind]) {
@@ -567,7 +584,7 @@ int main (int argc, char *argv[])
 			if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 				if (interactive) {
 					printf("%s: ", cmd_entry->arg1);
-					scanf("%s", arg1);
+					scanfc("%s", arg1);
 					p1 = arg1;
 				} else {
 					if (!argv[optind]) {
@@ -581,7 +598,7 @@ int main (int argc, char *argv[])
 			if ((cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
 				if (interactive) {
 					printf("%s: ", cmd_entry->arg2);
-					scanf("%s", arg2);
+					scanfc("%s", arg2);
 					p2 = arg2;
 				} else {
 					if (!argv[optind]) {
@@ -595,7 +612,7 @@ int main (int argc, char *argv[])
 			if ((cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
 				if (interactive) {
 					printf("%s: ", cmd_entry->arg3);
-					scanf("%s", arg3);
+					scanfc("%s", arg3);
 					p3 = arg3;
 				} else {
 					if (!argv[optind]) {
@@ -1446,7 +1463,14 @@ declare_proto_rig(set_trn)
 {
 	int trn;
 
-	sscanf(arg1, "%d", &trn);
+	if (!strcmp(arg1, "OFF"))
+		trn = RIG_TRN_OFF;
+	else if (!strcmp(arg1, "RIG") || !strcmp(arg1, "ON"))
+		trn = RIG_TRN_RIG;
+	else if (!strcmp(arg1, "POLL"))
+		trn = RIG_TRN_POLL;
+	else
+		return -RIG_EINVAL;
 
 	if (trn != RIG_TRN_OFF) {
 		rig_set_freq_callback(rig, myfreq_event, NULL);
@@ -1462,16 +1486,16 @@ declare_proto_rig(set_trn)
 
 declare_proto_rig(get_trn)
 {
-		int status;
-		int trn;
+	int status;
+	int trn;
 
-		status = rig_get_trn(rig, &trn);
-		if (status != RIG_OK)
-				return status;
-		if (interactive)
-			printf("%s: ", cmd->arg1);
-		printf("%d\n", trn);
+	status = rig_get_trn(rig, &trn);
+	if (status != RIG_OK)
 		return status;
+	if (interactive)
+		printf("%s: ", cmd->arg1);
+	printf("%d\n", trn);
+	return status;
 }
 
 declare_proto_rig(get_info)

@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.71 2003-04-27 22:15:06 fillods Exp $
+ *	$Id: rig.c,v 1.72 2003-05-03 13:17:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,7 +69,7 @@ const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-  "Copyright (C) 2000, 2001, 2002 Stephane Fillod and Frank Singleton\n"
+  "Copyright (C) 2000-2003 Stephane Fillod and Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 
@@ -269,7 +269,8 @@ RIG *rig_init(rig_model_t rig_model)
 
 		rs->vfo_comp = 0.0;	/* override it with preferences */
 		rs->current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
-		rs->transceive = caps->transceive;
+		rs->transceive = RIG_TRN_OFF;
+		rs->poll_interval = 500;
 		/* should it be a parameter to rig_init ? --SF */
 		rs->itu_region = RIG_ITU_REGION2;
 
@@ -511,86 +512,83 @@ int rig_open(RIG *rig)
 
 int rig_close(RIG *rig)
 {
-		const struct rig_caps *caps;
-		struct rig_state *rs;
+	const struct rig_caps *caps;
+	struct rig_state *rs;
 
-		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_close called \n");
+	rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_close called \n");
 
-		if (!rig || !rig->caps)
-				return -RIG_EINVAL;
+	if (!rig || !rig->caps)
+		return -RIG_EINVAL;
 
-		caps = rig->caps;
-		rs = &rig->state;
+	caps = rig->caps;
+	rs = &rig->state;
 
-		if (!rs->comm_state)
-				return -RIG_EINVAL;
+	if (!rs->comm_state)
+		return -RIG_EINVAL;
 
-		if (rs->transceive) {
-				/*
-				 * TODO: check error codes et al.
-				 */
-				remove_trn_rig(rig);
-		}
+	if (rs->transceive != RIG_TRN_OFF) {
+		remove_trn_rig(rig);
+	}
 
-		/*
-		 * Let the backend say 73s to the rig.
-		 * and ignore the return code.
-		 */
-		if (caps->rig_close)
-				caps->rig_close(rig);
+	/*
+	 * Let the backend say 73s to the rig.
+	 * and ignore the return code.
+	 */
+	if (caps->rig_close)
+		caps->rig_close(rig);
 
-		/* 
-		 * FIXME: what happens if PTT and rig ports are the same?
-		 * 			(eg. ptt_type = RIG_PTT_SERIAL)
-		 */
-		switch(rs->pttport.type.ptt) {
-		case RIG_PTT_NONE:
-		case RIG_PTT_RIG:
-				break;
-		case RIG_PTT_SERIAL_RTS:
-		case RIG_PTT_SERIAL_DTR:
-				ser_close(&rs->pttport);
-				break;
-		case RIG_PTT_PARALLEL:
-				par_close(&rs->pttport);
-				break;
-		default:
-				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
-								rs->pttport.type.ptt);
-		}
+	/* 
+	 * FIXME: what happens if PTT and rig ports are the same?
+	 * 			(eg. ptt_type = RIG_PTT_SERIAL)
+	 */
+	switch(rs->pttport.type.ptt) {
+	case RIG_PTT_NONE:
+	case RIG_PTT_RIG:
+			break;
+	case RIG_PTT_SERIAL_RTS:
+	case RIG_PTT_SERIAL_DTR:
+			ser_close(&rs->pttport);
+			break;
+	case RIG_PTT_PARALLEL:
+			par_close(&rs->pttport);
+			break;
+	default:
+			rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
+							rs->pttport.type.ptt);
+	}
 
-		switch(rs->dcdport.type.dcd) {
-		case RIG_DCD_NONE:
-		case RIG_DCD_RIG:
-				break;
-		case RIG_DCD_SERIAL_DSR:
-		case RIG_DCD_SERIAL_CTS:
-				ser_close(&rs->dcdport);
-				break;
-		case RIG_DCD_PARALLEL:
-				par_close(&rs->dcdport);
-				break;
-		default:
-				rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
-								rs->dcdport.type.dcd);
-		}
+	switch(rs->dcdport.type.dcd) {
+	case RIG_DCD_NONE:
+	case RIG_DCD_RIG:
+			break;
+	case RIG_DCD_SERIAL_DSR:
+	case RIG_DCD_SERIAL_CTS:
+			ser_close(&rs->dcdport);
+			break;
+	case RIG_DCD_PARALLEL:
+			par_close(&rs->dcdport);
+			break;
+	default:
+			rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
+							rs->dcdport.type.dcd);
+	}
 
-		rs->dcdport.fd = rs->pttport.fd = -1;
+	rs->dcdport.fd = rs->pttport.fd = -1;
 
-		if (rs->rigport.fd != -1) {
-				if (!rs->rigport.stream)
-						fclose(rs->rigport.stream); /* this closes also fd */
-				else
-					close(rs->rigport.fd);
-				rs->rigport.fd = -1;
-				rs->rigport.stream = NULL;
-		}
+	if (rs->rigport.fd != -1) {
+		if (!rs->rigport.stream)
+			fclose(rs->rigport.stream); /* this closes also fd */
+		else
+			close(rs->rigport.fd);
+		rs->rigport.fd = -1;
+		rs->rigport.stream = NULL;
+	}
 
-		remove_opened_rig(rig);
+	remove_opened_rig(rig);
 
-		rs->comm_state = 0;
+	rs->comm_state = 0;
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /**
@@ -649,35 +647,40 @@ int rig_cleanup(RIG *rig)
 
 int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		const struct rig_caps *caps;
-		int retcode;
-		vfo_t curr_vfo;
+	const struct rig_caps *caps;
+	int retcode;
+	vfo_t curr_vfo;
 
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
 
-		caps = rig->caps;
+	caps = rig->caps;
 
-		if (rig->state.vfo_comp != 0.0)
-				freq += (freq_t)((double)rig->state.vfo_comp * freq);
+	if (rig->state.vfo_comp != 0.0)
+		freq += (freq_t)((double)rig->state.vfo_comp * freq);
 
-		if (caps->set_freq == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->set_freq == NULL)
+		return -RIG_ENAVAIL;
 
-		if ((caps->targetable_vfo&RIG_TARGETABLE_FREQ) || 
-						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-			return caps->set_freq(rig, vfo, freq);
-
+	if ((caps->targetable_vfo&RIG_TARGETABLE_FREQ) || 
+			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
+		retcode = caps->set_freq(rig, vfo, freq);
+	} else {
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
 		curr_vfo = rig->state.current_vfo;
 		retcode = caps->set_vfo(rig, vfo);
 		if (retcode != RIG_OK)
-				return retcode;
+			return retcode;
 
 		retcode = caps->set_freq(rig, vfo, freq);
 		caps->set_vfo(rig, curr_vfo);
-		return retcode;
+	}
+	if (retcode == RIG_OK &&
+			(vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
+		rig->state.current_freq = freq;
+
+	return retcode;
 }
 
 /**
@@ -699,35 +702,40 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-		const struct rig_caps *caps;
-		int retcode;
-		vfo_t curr_vfo;
+	const struct rig_caps *caps;
+	int retcode;
+	vfo_t curr_vfo;
 
-		if (CHECK_RIG_ARG(rig) || !freq)
-			return -RIG_EINVAL;
+	if (CHECK_RIG_ARG(rig) || !freq)
+		return -RIG_EINVAL;
 
-		caps = rig->caps;
+	caps = rig->caps;
 
-		if (caps->get_freq == NULL)
+	if (caps->get_freq == NULL)
+		return -RIG_ENAVAIL;
+
+	if ((caps->targetable_vfo&RIG_TARGETABLE_FREQ) || 
+			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
+		retcode = caps->get_freq(rig, vfo, freq);
+	} else {
+		if (!caps->set_vfo)
 			return -RIG_ENAVAIL;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+			return retcode;
+		retcode = caps->get_freq(rig, vfo, freq);
+		caps->set_vfo(rig, curr_vfo);
+	}
+	/* VFO compensation */
+	if (rig->state.vfo_comp != 0.0)
+		*freq += (freq_t)(rig->state.vfo_comp * (*freq));
 
-		if ((caps->targetable_vfo&RIG_TARGETABLE_FREQ) || 
-				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
-			retcode = caps->get_freq(rig, vfo, freq);
-		} else {
-			if (!caps->set_vfo)
-				return -RIG_ENAVAIL;
-			curr_vfo = rig->state.current_vfo;
-			retcode = caps->set_vfo(rig, vfo);
-			if (retcode != RIG_OK)
-					return retcode;
-			retcode = caps->get_freq(rig, vfo, freq);
-			caps->set_vfo(rig, curr_vfo);
-		}
-		/* VFO compensation */
-		if (rig->state.vfo_comp != 0.0)
-			*freq += (freq_t)(rig->state.vfo_comp * (*freq));
-		return retcode;
+	if (retcode == RIG_OK &&
+			(vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
+		rig->state.current_freq = *freq;
+
+	return retcode;
 }
 
 
@@ -750,32 +758,41 @@ int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-		const struct rig_caps *caps;
-		int retcode;
-		vfo_t curr_vfo;
+	const struct rig_caps *caps;
+	int retcode;
+	vfo_t curr_vfo;
 
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
 
-		caps = rig->caps;
+	caps = rig->caps;
 
-		if (caps->set_mode == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->set_mode == NULL)
+		return -RIG_ENAVAIL;
 
-		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
-				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-			return caps->set_mode(rig, vfo, mode, width);
+	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
+		retcode = caps->set_mode(rig, vfo, mode, width);
+	} else {
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
 		curr_vfo = rig->state.current_vfo;
 		retcode = caps->set_vfo(rig, vfo);
 		if (retcode != RIG_OK)
-				return retcode;
+			return retcode;
 
 		retcode = caps->set_mode(rig, vfo, mode, width);
 		caps->set_vfo(rig, curr_vfo);
-		return retcode;
+	}
+
+	if (retcode == RIG_OK &&
+			(vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)) {
+		rig->state.current_mode = mode;
+		rig->state.current_width = width;
+	}
+
+	return retcode;
 }
 
 /**
@@ -800,32 +817,41 @@ int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-		const struct rig_caps *caps;
-		int retcode;
-		vfo_t curr_vfo;
+	const struct rig_caps *caps;
+	int retcode;
+	vfo_t curr_vfo;
 
-		if (CHECK_RIG_ARG(rig) || !mode || !width)
-			return -RIG_EINVAL;
+	if (CHECK_RIG_ARG(rig) || !mode || !width)
+		return -RIG_EINVAL;
 
-		caps = rig->caps;
+	caps = rig->caps;
 
-		if (caps->get_mode == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->get_mode == NULL)
+		return -RIG_ENAVAIL;
 
-		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
-						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-			return caps->get_mode(rig, vfo, mode, width);
+	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
+		retcode = caps->get_mode(rig, vfo, mode, width);
+	} else {
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
 		curr_vfo = rig->state.current_vfo;
 		retcode = caps->set_vfo(rig, vfo);
 		if (retcode != RIG_OK)
-				return retcode;
+			return retcode;
 
 		retcode = caps->get_mode(rig, vfo, mode, width);
 		caps->set_vfo(rig, curr_vfo);
-		return retcode;
+	}
+
+	if (retcode == RIG_OK &&
+			(vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)) {
+		rig->state.current_mode = *mode;
+		rig->state.current_width = *width;
+	}
+
+	return retcode;
 }
 
 /**
@@ -2581,211 +2607,6 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
 	return NULL;
 }
 
-/**
- * \brief set the callback for freq events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
- *
- *  Install a callback for freq events, to be called when in transceive mode.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rig_set_trn()
- */
-
-int rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
-{
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
-
-		rig->callbacks.freq_event = cb;
-		rig->callbacks.freq_arg = arg;
-
-		return RIG_OK;
-}
-
-/**
- * \brief set the callback for mode events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
- *
- *  Install a callback for mode events, to be called when in transceive mode.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rig_set_trn()
- */
-
-int rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
-{
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
-
-		rig->callbacks.mode_event = cb;
-		rig->callbacks.mode_arg = arg;
-
-		return RIG_OK;
-}
-
-/**
- * \brief set the callback for vfo events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
- *
- *  Install a callback for vfo events, to be called when in transceive mode.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rig_set_trn()
- */
-
-int rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
-{
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
-
-		rig->callbacks.vfo_event = cb;
-		rig->callbacks.vfo_arg = arg;
-
-		return RIG_OK;
-}
-
-/**
- * \brief set the callback for ptt events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
- *
- *  Install a callback for ptt events, to be called when in transceive mode.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rig_set_trn()
- */
-
-int rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
-{
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
-
-		rig->callbacks.ptt_event = cb;
-		rig->callbacks.ptt_arg = arg;
-
-		return RIG_OK;
-}
-
-/**
- * \brief set the callback for dcd events
- * \param rig	The rig handle
- * \param cb	The callback to install
- * \param arg	A Pointer to some private data to pass later on to the callback
- *
- *  Install a callback for dcd events, to be called when in transceive mode.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rig_set_trn()
- */
-
-int rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
-{
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
-
-		rig->callbacks.dcd_event = cb;
-		rig->callbacks.dcd_arg = arg;
-
-		return RIG_OK;
-}
-
-/**
- * \brief control the transceive mode 
- * \param rig	The rig handle
- * \param trn	The transceive status to set to
- *
- *  Enable/disable the transceive handling of a rig and kick off async mode.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rig_get_trn()
- */
-
-int rig_set_trn(RIG *rig, int trn)
-{
-		const struct rig_caps *caps;
-		int status;
-
-		if (CHECK_RIG_ARG(rig))
-			return -RIG_EINVAL;
-
-		caps = rig->caps;
-
-		if (rig->state.transceive == RIG_TRN_OFF)
-			return -RIG_ENAVAIL;
-
-		if (trn == RIG_TRN_RIG) {
-			if (rig->state.transceive) {
-				/*
-				 * TODO: check error codes et al.
-				 */
-				status = add_trn_rig(rig);
-				if (status == RIG_OK && caps->set_trn)
-						return caps->set_trn(rig, RIG_TRN_RIG);
-				else
-						return status;
-			} else {
-				return -RIG_ECONF;
-			}
-		} else {
-				status = remove_trn_rig(rig);
-				if (caps->set_trn)
-						return caps->set_trn(rig, RIG_TRN_OFF);
-				else
-						return status;
-		}
-
-		return RIG_OK;
-}
-
-/**
- * \brief get the current transceive mode
- * \param rig	The rig handle
- * \param trn	The location where to store the current transceive mode
- *
- *  Retrieves the current status of the transceive mode, i.e. if radio 
- *  sends new status automatically when some changes happened on the radio.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rig_set_trn()
- */
-int rig_get_trn(RIG *rig, int *trn)
-{
-		if (CHECK_RIG_ARG(rig) || !trn)
-			return -RIG_EINVAL;
-
-		if (rig->caps->get_trn == NULL)
-			return -RIG_ENAVAIL;
-
-		return rig->caps->get_trn(rig, trn);
-}
 
 /**
  * \brief get general information from the radio
