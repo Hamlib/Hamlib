@@ -1,4 +1,4 @@
-bin_PROGRAMS = dumpcaps testrig testtrn testbcd listrigs rigctl @RIGMATRIX@
+bin_PROGRAMS = dumpcaps testrig testtrn testbcd testfreq listrigs rigctl @RIGMATRIX@
 EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
@@ -29,6 +29,7 @@ rigmatrix_DEPENDENCIES = $(BACKENDEPS)
 testrig_SOURCES = testrig.c
 testtrn_SOURCES = testtrn.c
 testbcd_SOURCES = testbcd.c
+testfreq_SOURCES = testfreq.c
 dumpcaps_SOURCES = dumpcaps.c
 listrigs_SOURCES = listrigs.c
 rigctl_SOURCES = rigctl.c
