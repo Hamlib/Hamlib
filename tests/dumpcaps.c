@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.2 2000-10-09 01:17:20 javabear Exp $  
+ *    $Id: dumpcaps.c,v 1.3 2000-10-10 22:13:26 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -173,7 +173,36 @@ int main (int argc, char *argv[])
 	}
 
 	printf("Can set frequency:\t%c\n",caps->set_freq!=NULL?'Y':'N');
+	printf("Can get frequency:\t%c\n",caps->get_freq!=NULL?'Y':'N');
+	printf("Can set mode:\t%c\n",caps->set_mode!=NULL?'Y':'N');
+	printf("Can get mode:\t%c\n",caps->get_mode!=NULL?'Y':'N');
+	printf("Can set vfo:\t%c\n",caps->set_vfo!=NULL?'Y':'N');
+	printf("Can get vfo:\t%c\n",caps->get_vfo!=NULL?'Y':'N');
+	printf("Can set ptt:\t%c\n",caps->set_ptt!=NULL?'Y':'N');
+	printf("Can get ptt:\t%c\n",caps->get_ptt!=NULL?'Y':'N');
+	printf("Can set repeater duplex:\t%c\n",caps->set_rpt_shift!=NULL?'Y':'N');
+	printf("Can get repeater duplex:\t%c\n",caps->get_rpt_shift!=NULL?'Y':'N');
+	printf("Can set repeater offset:\t%c\n",caps->set_rpt_offs!=NULL?'Y':'N');
+	printf("Can get repeater offset:\t%c\n",caps->get_rpt_offs!=NULL?'Y':'N');
+	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
+	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
+	printf("Can set power:\t%c\n",caps->set_power!=NULL?'Y':'N');
+	printf("Can get power:\t%c\n",caps->get_power!=NULL?'Y':'N');
+	printf("Can set volume:\t%c\n",caps->set_volume!=NULL?'Y':'N');
+	printf("Can get volume:\t%c\n",caps->get_volume!=NULL?'Y':'N');
+	printf("Can set power on:\t%c\n",caps->set_poweron!=NULL?'Y':'N');
+	printf("Can set power off:\t%c\n",caps->set_poweroff!=NULL?'Y':'N');
+	printf("Can get S-meter level:\t%c\n",caps->get_strength!=NULL?'Y':'N');
+	printf("Can set squelch:\t%c\n",caps->set_squelch!=NULL?'Y':'N');
+	printf("Can get squelch:\t%c\n",caps->get_squelch!=NULL?'Y':'N');
+	printf("Can get squelch status:\t%c\n",caps->get_squelch_status!=NULL?'Y':'N');
+	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
+	printf("Can get transceive:\t%c\n",caps->get_trn!=NULL?'Y':'N');
+	printf("Can decode events:\t%c\n",caps->decode_event!=NULL?'Y':'N');
+	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':'N');
+	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':'N');
 	
+
 	return 0;
 }
 
