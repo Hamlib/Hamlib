@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.8 2002-11-04 22:40:55 fillods Exp $
+ *	$Id: ts850.c,v 1.9 2003-06-23 18:11:43 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,7 +53,7 @@ const struct rig_caps ts850_caps = {
 .rig_model =  RIG_MODEL_TS850,
 .model_name = "TS-850",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -61,9 +61,9 @@ const struct rig_caps ts850_caps = {
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
-.serial_rate_max =  57600,
+.serial_rate_max =  4800,
 .serial_data_bits =  8,
-.serial_stop_bits =  1,
+.serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.18 2002-12-22 13:51:48 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.19 2003-06-23 18:11:43 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -244,14 +244,14 @@ const struct rig_caps ts450s_caps = {
 .rig_model =  RIG_MODEL_TS450S,
 .model_name = "TS-450S",
 .mfg_name =  "Kenwood",
-.version =  "0.2.5",
+.version =  "0.2.6",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  4800,
+.serial_rate_min =  1200,
 .serial_rate_max =  4800,
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
