@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.18 2001-02-25 23:06:18 f4cfe Exp $
+ *	$Id: rig.h,v 1.19 2001-02-27 22:56:23 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -65,6 +65,7 @@ typedef struct rig RIG;
  */
 enum rig_debug_level_e {
 	RIG_DEBUG_NONE = 0,
+	RIG_DEBUG_BUG,
 	RIG_DEBUG_ERR,
 	RIG_DEBUG_VERBOSE,
 	RIG_DEBUG_TRACE
@@ -86,6 +87,8 @@ enum rig_port_e {
 	RIG_PORT_SERIAL,
 	RIG_PORT_NETWORK,
 	RIG_PORT_DEVICE,	/* Device driver, like the WiNRADiO */
+	RIG_PORT_PACKET,	/* e.g. SV8CS */
+	RIG_PORT_DTMF,		/* bridge via another rig, eg. Kenwood Sky Cmd System */
 	RIG_PORT_ULTRA		/* IrDA Ultra protocol! */
 };
 
@@ -141,6 +144,7 @@ enum split_e {
 
 typedef enum split_e split_t;
 
+#if 1
 enum vfo_e {
 	RIG_VFO_MAIN = 0,
 	RIG_VFO_SUB,
@@ -154,13 +158,40 @@ enum vfo_e {
 
 typedef enum vfo_e vfo_t;
 
+#else
+
+#define RIG_VFO_CURR	0	/* current VFO */
+#define RIG_VFO_A	(1<<0)
+#define RIG_VFO_B	(1<<1)
+#define RIG_VFO_C	(1<<2)
+#define RIG_VFO_MAIN	RIG_VFO_A
+#define RIG_VFO_SUB 	RIG_VFO_B
+#define RIG_VFO_SAT 	RIG_VFO_C
+/*
+ * could RIG_VFO_ALL be useful?
+ * i.e. apply to all VFO, when used as target
+ */
+typedef int vfo_t;
+#endif
+
+#if 1
 enum passband_width_e {
 	RIG_PASSBAND_NORMAL = 0,
 	RIG_PASSBAND_NARROW,
 	RIG_PASSBAND_WIDE
 };
-
 typedef enum passband_width_e pbwidth_t;
+
+#else
+#define RIG_PASSBAND_NORMAL Hz(0)
+/* 
+ * also see rig_passband_normal(rig,mode),
+ * 	rig_passband_narrow(rig,mode) and rig_passband_wide(rig,mode)
+ */
+typedef shortfreq_t pbwidth_t;
+
+#endif
+
 
 enum dcd_e {
 	RIG_DCD_OFF = 0,	/* squelch closed */
@@ -244,13 +275,13 @@ union value_u {
 };
 typedef union value_u value_t;
 
+/* free slot:
+ * 1<<2 (was RIG_LEVEL_ANT)
+ * 1<<20 (was RIG_LEVEL_ANN)
+ */
 #define RIG_LEVEL_NONE		0
 #define RIG_LEVEL_PREAMP	(1<<0)	/* Preamp, arg int (dB) */
 #define RIG_LEVEL_ATT		(1<<1)	/* Attenuator, arg int (dB) */
-/* RIG_LEVEL_ANT deprecated in favor of rig_set_ant/rig_get_ant */
-#if 0
-#define RIG_LEVEL_ANT		(1<<2)	/* Antenna, arg int (numbering from 0) */
-#endif
 #define RIG_LEVEL_AF		(1<<3)	/* Volume, arg float [0.0..1.0] */
 #define RIG_LEVEL_RF		(1<<4)	/* RF gain (not TX power), arg float [0.0..1.0] */
 #define RIG_LEVEL_SQL		(1<<5)	/* Squelch, arg float [0.0 .. 1.0] */
@@ -268,10 +299,6 @@ typedef union value_u value_t;
 #define RIG_LEVEL_AGC		(1<<17)	/* AGC, arg int (see enum agc_level_e) */
 #define RIG_LEVEL_BKINDL	(1<<18)	/* BKin Delay, arg int (tenth of dots) */
 #define RIG_LEVEL_BALANCE	(1<<19)	/* Balance (Dual Watch), arg float [0.0 .. 1.0] */
-/* RIG_LEVEL_ANN deprecated in favor of rig_set_ann/rig_get_ann */
-#if 0
-#define RIG_LEVEL_ANN		(1<<20)	/* Announce, arg int (see enum ann_level_e) */
-#endif
 		/* These ones are not settable */
 #define RIG_LEVEL_SWR		(1<<28)	/* SWR, arg float */
 #define RIG_LEVEL_ALC		(1<<29)	/* ALC, arg float */
@@ -331,12 +358,12 @@ typedef signed long shortfreq_t;
 
 /*
  * power unit macros, converts to mW
+ * This is limited to 2MW on 32 bits systems.
  */
 #define mW(p)	 ((int)(p))
 #define Watts(p) ((int)((p)*1000))
 #define W(p)	 Watts(p)
 #define kW(p)	 ((int)((p)*1000000L))
-#define MW(p)	 ((int)((p)*1000000000LL))	/* geeez! :-) */
 
 typedef unsigned int rmode_t;	/* radio mode  */
 
@@ -481,11 +508,12 @@ struct rig_caps {
   setting_t has_get_level;		/* bitwise OR'ed RIG_LEVEL_* */
   setting_t has_set_level;		/* bitwise OR'ed RIG_LEVEL_* */
 
-  char preamp[MAXDBLSTSIZ];		/* in dB, 0 terminated */
-  char attenuator[MAXDBLSTSIZ];	/* in dB, 0 terminated */
+  int preamp[MAXDBLSTSIZ];		/* in dB, 0 terminated */
+  int attenuator[MAXDBLSTSIZ];	/* in dB, 0 terminated */
 
   shortfreq_t max_rit;	/* max absolute RIT */
 
+  int vfo_list;
   int targetable_vfo;
   int transceive;	/* the rig is able to generate events, to be used by callbacks */
 
@@ -499,7 +527,9 @@ struct rig_caps {
   freq_range_t tx_range_list2[FRQRANGESIZ];
   struct tuning_step_list tuning_steps[TSLSTSIZ];
 
-  struct filter_list filters[FLTLSTSIZ];	/* mode/filter table at -6dB */
+  struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
+
+  void *priv;	/* 51 area, useful when having different models in a backend */
 
   /*
    * Rig Admin API
@@ -646,20 +676,23 @@ struct rig_state {
   int ptt_fd;	/* ptt port file handle */
   FILE *stream;	/* serial port/socket (buffered) stream handle */
 
-  int transceive;	/* wether the transceive mode is on */
+  int transceive;	/* whether the transceive mode is on */
   int hold_decode;/* set to 1 to hold the event decoder (async) otherwise 0 */
   vfo_t current_vfo;
 
   int itu_region;
   freq_range_t rx_range_list[FRQRANGESIZ];	/* these ones can be updated */
   freq_range_t tx_range_list[FRQRANGESIZ];
+  struct tuning_step_list tuning_steps[TSLSTSIZ];
 
-  struct filter_list filters[FLTLSTSIZ];	/* mode/filter table at -6dB */
+  struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
 
   shortfreq_t max_rit;	/* max absolute RIT */
 
-  char preamp[MAXDBLSTSIZ];			/* in dB, 0 terminated */
-  char attenuator[MAXDBLSTSIZ];		/* in dB, 0 terminated */
+  int vfo_list;
+
+  int preamp[MAXDBLSTSIZ];			/* in dB, 0 terminated */
+  int attenuator[MAXDBLSTSIZ];		/* in dB, 0 terminated */
 	   
   setting_t has_get_func;
   setting_t has_set_func;		/* updatable, e.g. for optional DSP, etc. */
