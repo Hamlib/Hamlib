@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: jrc.c,v 1.4 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: jrc.c,v 1.5 2002-02-27 23:25:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -856,12 +856,14 @@ int jrc_decode_event(RIG *rig)
 		if (rig->callbacks.freq_event) {
 			buf[14] = '\0';	/* side-effect: destroy AGC first digit! */
 			sscanf(buf+4, "%lld", &freq);
-			return rig->callbacks.freq_event(rig,RIG_VFO_CURR,freq);
+			return rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
+							rig->callbacks.freq_arg);
 		}
 
 		if (rig->callbacks.mode_event) {
 			jrc2rig_mode(rig, buf[3], buf[2], &mode, &width);
-			return rig->callbacks.mode_event(rig,RIG_VFO_CURR,mode,width);
+			return rig->callbacks.mode_event(rig, RIG_VFO_CURR, mode, width,
+							rig->callbacks.freq_arg);
 		}
 
 		return RIG_OK;

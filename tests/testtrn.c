@@ -10,9 +10,13 @@
 
 #define SERIAL_PORT "/dev/ttyS0"
 
-int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq)
+int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
-		printf("Rig changed freq to %lliHz\n",freq);
+		int *count_ptr = (int *) arg;
+
+		printf("Rig changed freq to %lliHz\n", freq);
+		*count_ptr += 1;
+
 		return 0;
 }
 
@@ -21,7 +25,7 @@ int main (int argc, char *argv[])
 { 
 	RIG *my_rig;		/* handle to rig (nstance) */
 	int retcode;		/* generic return code from functions */
-	int i;
+	int i, count = 0;
 
 	if (argc != 2) {
 		fprintf(stderr,"%s <rig_num>\n", argv[0]);
@@ -61,7 +65,7 @@ int main (int argc, char *argv[])
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
 	} 
 
-	my_rig->callbacks.freq_event = myfreq_event;
+	rig_set_freq_callback(my_rig, myfreq_event, (rig_ptr_t)&count);
 
 	retcode = rig_set_trn(my_rig, RIG_TRN_RIG);
 
@@ -71,8 +75,9 @@ int main (int argc, char *argv[])
 
 
 	for (i=0;i<12;i++)
-			sleep(60);	/* or anything smarter */
+			sleep(10);	/* or anything smarter */
 
+	printf("Frequency changed %d times\n", count);
 
 	rig_close(my_rig); /* close port */
 	rig_cleanup(my_rig); /* if you care about memory */

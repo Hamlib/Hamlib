@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: th.c,v 1.4 2002-01-07 17:48:36 fgretief Exp $
+ *		$Id: th.c,v 1.5 2002-02-27 23:25:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -212,13 +212,14 @@ th_decode_event (RIG *rig)
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
-            rig->callbacks.vfo_event(rig, vfo);
+            rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
         }
         if (rig->callbacks.freq_event) {
-            rig->callbacks.freq_event(rig, vfo, freq);
+            rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
         }
         if (rig->callbacks.mode_event) {
-            rig->callbacks.mode_event(rig, vfo, mode, RIG_PASSBAND_NORMAL);
+            rig->callbacks.mode_event(rig, vfo, mode, RIG_PASSBAND_NORMAL,
+							rig->callbacks.mode_arg);
         }
 
     /* --------------------------------------------------------------------- */
@@ -240,7 +241,8 @@ th_decode_event (RIG *rig)
         /* Callback execution */
 #if STILLHAVETOADDCALLBACK
         if (rig->callbacks.strength_event)
-            rig->callbacks.strength_event(rig, vfo,(float)(lev / 5.0) );
+            rig->callbacks.strength_event(rig, vfo,(float)(lev / 5.0),
+							rig->callbacks.strength_arg);
 #endif
 
     /* --------------------------------------------------------------------- */
@@ -273,7 +275,7 @@ th_decode_event (RIG *rig)
 
         rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": VFO event - vfo = %d\n", vfo);
         if (rig->callbacks.vfo_event)
-            rig->callbacks.vfo_event(rig, vfo);
+            rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
 
     /* --------------------------------------------------------------------- */
 #if 0

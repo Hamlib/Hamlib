@@ -11,7 +11,7 @@
  *  Hamlib C++ bindings - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.cc,v 1.7 2001-12-27 21:50:14 fillods Exp $
+ *		$Id: rigclass.cc,v 1.8 2002-02-27 23:25:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,19 +39,19 @@
 #define CHECK_RIG(cmd) { int _retval = cmd; if (_retval != RIG_OK) \
 							THROW(new RigException (_retval)); }
 
-static int hamlibpp_freq_event(RIG *rig, vfo_t vfo, freq_t freq);
+static int hamlibpp_freq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg);
 
 
 
 
 
-static int hamlibpp_freq_event(RIG *rig, vfo_t vfo, freq_t freq)
+static int hamlibpp_freq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
 	if (!rig || !rig->state.obj)
 		return -RIG_EINVAL;
 
-/* assert rig == ((Rig*)rig->state.obj).thRig */
-	return ((Rig*)rig->state.obj)->FreqEvent(vfo, freq);
+/* assert rig == ((Rig*)rig->state.obj).theRig */
+	return ((Rig*)rig->state.obj)->FreqEvent(vfo, freq, arg);
 }
 
 
