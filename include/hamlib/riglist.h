@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.54 2005-04-03 19:15:43 fillods Exp $
+ *	$Id: riglist.h,v 1.55 2005-04-03 19:19:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -458,13 +458,11 @@ typedef int rig_model_t;
 		{ RIG_PCR, RIG_BACKEND_PCR }, \
 		{ RIG_AOR, RIG_BACKEND_AOR }, \
 		{ RIG_JRC, RIG_BACKEND_JRC }, \
-		{ RIG_RADIOSHACK, RIG_BACKEND_RADIOSHACK }, \
 		{ RIG_UNIDEN, RIG_BACKEND_UNIDEN }, \
 		{ RIG_DRAKE, RIG_BACKEND_DRAKE }, \
 		{ RIG_LOWE, RIG_BACKEND_LOWE }, \
 		{ RIG_RACAL, RIG_BACKEND_RACAL }, \
 		{ RIG_WJ, RIG_BACKEND_WJ }, \
-		{ RIG_EK, RIG_BACKEND_EK }, \
 		{ RIG_SKANTI, RIG_BACKEND_SKANTI }, \
 		{ RIG_WINRADIO, RIG_BACKEND_WINRADIO }, \
 		{ RIG_TENTEC, RIG_BACKEND_TENTEC }, \
@@ -487,6 +485,9 @@ typedef int rig_model_t;
  *		const char *backend;
  * } rig_backend_list[] = RIG_LIST;
  *
+ * TODO:
+ *
+	{ RIG_RADIOSHACK, RIG_BACKEND_RADIOSHACK }, \
  */
 
 #endif /* _RIGLIST_H */
