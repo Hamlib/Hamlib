@@ -7032,6 +7032,69 @@ fi
 
 
 
+for ac_hdr in tcl8.2/tcl.h
+do
+ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
+echo "configure:7040: checking for $ac_hdr" >&5
+if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 7045 "configure"
+#include "confdefs.h"
+#include <$ac_hdr>
+EOF
+ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
+{ (eval echo configure:7050: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
+if test -z "$ac_err"; then
+  rm -rf conftest*
+  eval "ac_cv_header_$ac_safe=yes"
+else
+  echo "$ac_err" >&5
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_header_$ac_safe=no"
+fi
+rm -f conftest*
+fi
+if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_hdr=HAVE_`echo $ac_hdr | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_hdr 1
+EOF
+ 
+else
+  echo "$ac_t""no" 1>&6
+fi
+done
+
+if test "${ac_cv_header_tcl8_2_tcl_h}" = "no" ; then
+  echo "disabling HamlibTCL support"
+  LIBHAMLIBTCL=
+  LTHAMLIBTCL=
+else
+  echo "enabling HamlibTCL support"
+  LIBHAMLIBTCL=libhamlibtcl.a
+  LTHAMLIBTCL=libhamlibtcl.la
+fi
+
+
+if test x$LTHAMLIBTCL != x; then
+  HAMLIBTCL_TRUE=
+  HAMLIBTCL_FALSE='#'
+else
+  HAMLIBTCL_TRUE='#'
+  HAMLIBTCL_FALSE=
+fi
+
+
+
+
+
 
 
 if test "${ac_cv_header_sys_socket_h}" = "no"; then
@@ -7172,6 +7235,7 @@ pcr/Makefile
 alinco/Makefile
 src/Makefile
 c++/Makefile
+tcl/Makefile
 tests/Makefile
 doc/Makefile include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -7254,6 +7318,10 @@ s%@WINRADIOLNK@%$WINRADIOLNK%g
 s%@WINRADIODEPS@%$WINRADIODEPS%g
 s%@LIBWINRADIO@%$LIBWINRADIO%g
 s%@LTLIBWINRADIO@%$LTLIBWINRADIO%g
+s%@HAMLIBTCL_TRUE@%$HAMLIBTCL_TRUE%g
+s%@HAMLIBTCL_FALSE@%$HAMLIBTCL_FALSE%g
+s%@LIBHAMLIBTCL@%$LIBHAMLIBTCL%g
+s%@LTHAMLIBTCL@%$LTHAMLIBTCL%g
 s%@INCLUDES@%$INCLUDES%g
 s%@NET@%$NET%g
 s%@V_MAJOR@%$V_MAJOR%g
@@ -7315,6 +7383,7 @@ pcr/Makefile
 alinco/Makefile
 src/Makefile
 c++/Makefile
+tcl/Makefile
 tests/Makefile
 doc/Makefile"}
 EOF
