@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.5 2000-10-22 16:14:53 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.6 2000-11-01 23:27:26 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -43,8 +43,10 @@ int main (int argc, char *argv[])
 			exit(1);
 	}
 
-/*  	status = rig_load_backend("icom"); */
-	status = rig_load_backend("ft747");
+  	status = rig_load_backend("icom");
+	status |= rig_load_backend("ft747");
+	status |= rig_load_backend("ft847");
+	status |= rig_load_backend("aor");
 
 	if (status != RIG_OK ) {
 		printf("rig_load_backend: error = %s \n", rigerror(status));
@@ -127,7 +129,7 @@ int main (int argc, char *argv[])
 			printf("Unknown\n");
 	}
 
-	printf("Serial speed: %d..%dbauds, %d%c%d %s\n", caps->serial_rate_min,
+	printf("Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
 					caps->serial_rate_max,caps->serial_data_bits,
 					caps->serial_parity==RIG_PARITY_NONE?'N':
 					(caps->serial_parity==RIG_PARITY_ODD?'O':'E'),

@@ -3,7 +3,7 @@
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.1 2000-10-08 21:20:44 f4cfe Exp $  
+ *    $Id: listrigs.c,v 1.2 2000-11-01 23:27:26 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -101,6 +101,11 @@ int main (int argc, char *argv[])
 	status = rig_load_backend("ft847");
 	if (status != RIG_OK ) {
 		printf("rig_load_backend: ft847 error = %s \n", rigerror(status));
+		exit(3);
+	}
+	status = rig_load_backend("aor");
+	if (status != RIG_OK ) {
+		printf("rig_load_backend: aor error = %s \n", rigerror(status));
 		exit(3);
 	}
 
