@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.26 2001-04-28 12:49:12 f4cfe Exp $
+   $Id: rig.c,v 1.27 2001-05-04 22:44:10 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -51,6 +51,21 @@ const char hamlib_version[] = "Hamlib version " VERSION;
 const int full_ctcss_list[] = {
 		600,  670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
 		948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1200,  1230, 1273,
+		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
+		1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
+		2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
+		0,
+};
+
+/*
+ * 50 CTCSS sub-audible tones, from 67.0Hz to 254.1Hz
+ * Don't even think about changing a bit of this array, several
+ * backends depend on it. If you need to, create a copy for your 
+ * own caps. --SF
+ */
+const int common_ctcss_list[] = {
+		670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
+		948,  974, 1000, 1035, 1072, 1109, 1148, 1188,  1230, 1273,
 		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
 		1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
 		2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
@@ -212,6 +227,7 @@ RIG *rig_init(rig_model_t rig_model)
 		RIG *rig;
 		const struct rig_caps *caps;
 		struct rig_state *rs;
+		int i;
 
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_init called \n");
 
@@ -257,7 +273,6 @@ RIG *rig_init(rig_model_t rig_model)
 		rs->ptt_type = caps->ptt_type;
 		rs->dcd_type = caps->dcd_type;
 		rs->vfo_comp = 0.0;	/* override it with preferences */
-		rs->vfo_list = caps->vfo_list;
 		rs->current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
 
 		/* should it be a parameter to rig_init ? --SF */
@@ -280,12 +295,23 @@ RIG *rig_init(rig_model_t rig_model)
 					break;
 		}
 
+		rs->vfo_list = 0;
+		for (i=0; i<FRQRANGESIZ; i++) {
+				if (rs->rx_range_list[i].start != 0 &&
+								rs->rx_range_list[i].end != 0)
+					rs->vfo_list |= rs->rx_range_list[i].vfo;
+				if (rs->tx_range_list[i].start != 0 &&
+								rs->tx_range_list[i].end != 0)
+					rs->vfo_list |= rs->tx_range_list[i].vfo;
+		}
+
 		memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
 		memcpy(rs->attenuator, caps->attenuator, sizeof(int)*MAXDBLSTSIZ);
 		memcpy(rs->tuning_steps, caps->tuning_steps, 
 						sizeof(struct tuning_step_list)*TSLSTSIZ);
 		memcpy(rs->filters, caps->filters, 
 						sizeof(struct filter_list)*FLTLSTSIZ);
+		memcpy(rs->chan_list, caps->chan_list, sizeof(chan_t)*CHANLSTSIZ);
 
 		rs->has_get_func = caps->has_get_func;
 		rs->has_set_func = caps->has_set_func;
@@ -295,7 +321,9 @@ RIG *rig_init(rig_model_t rig_model)
 		rs->has_set_parm = caps->has_set_parm;
 
 		rs->max_rit = caps->max_rit;
+		rs->max_xit = caps->max_xit;
 		rs->max_ifshift = caps->max_ifshift;
+		rs->announces = caps->announces;
 
 		rs->fd = -1;
 		rs->ptt_fd = -1;
@@ -1631,6 +1659,97 @@ int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 		return retcode;
 }
 
+/**
+ *      rig_set_xit - set the XIT
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @xit:	The XIT offset to adjust to
+ *
+ *      The rig_set_xit() function sets the current XIT offset.
+ *      A value of 0 for @xit disables XIT.
+ *
+ *      RETURN VALUE: The rig_set_xit() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_xit()
+ */
+
+int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->set_xit == NULL)
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->set_xit(rig, vfo, xit);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->set_xit(rig, vfo, xit);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
+/**
+ *      rig_get_xit - get the current XIT offset
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @xit:	The location where to store the current XIT offset
+ *
+ *      The rig_get_xit() function retrieves the current XIT offset.
+ *
+ *      RETURN VALUE: The rig_get_xit() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_set_xit()
+ */
+
+int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps || !xit)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->get_xit == NULL)
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->get_xit(rig, vfo, xit);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->get_xit(rig, vfo, xit);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
 
 
 /**
@@ -2510,7 +2629,7 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 		caps = rig->caps;
 
-		if (caps->set_level == NULL)
+		if (caps->set_level == NULL || !rig_has_set_level(rig,level))
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
@@ -2564,7 +2683,7 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		caps = rig->caps;
 
-		if (caps->get_level == NULL)
+		if (caps->get_level == NULL || !rig_has_get_level(rig,level))
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
@@ -2604,7 +2723,7 @@ int rig_set_parm(RIG *rig, setting_t parm, value_t val)
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
 
-		if (rig->caps->set_parm == NULL)
+		if (rig->caps->set_parm == NULL || !rig_has_set_parm(rig,parm))
 			return -RIG_ENAVAIL;
 
 		return rig->caps->set_parm(rig, parm, val);
@@ -2631,7 +2750,7 @@ int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
 		if (!rig || !rig->caps || !val)
 			return -RIG_EINVAL;
 
-		if (rig->caps->get_parm == NULL)
+		if (rig->caps->get_parm == NULL || !rig_has_get_parm(rig,parm))
 			return -RIG_ENAVAIL;
 
 		return rig->caps->get_parm(rig, parm, val);
@@ -2656,11 +2775,8 @@ int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
  */
 setting_t rig_has_get_level(RIG *rig, setting_t level)
 {
-		/* 
-		 * FIXME: error code -1 is not safe!!
-		 */
 		if (!rig || !rig->caps)
-				return -1;
+				return 0;
 
 		return (rig->state.has_get_level & level);
 }
@@ -2685,11 +2801,8 @@ setting_t rig_has_get_level(RIG *rig, setting_t level)
  */
 setting_t rig_has_set_level(RIG *rig, setting_t level)
 {
-		/* 
-		 * FIXME: error code -1 is not safe!!
-		 */
 		if (!rig || !rig->caps)
-				return -1;
+				return 0;
 
 		return (rig->state.has_set_level & level);
 }
@@ -2713,11 +2826,8 @@ setting_t rig_has_set_level(RIG *rig, setting_t level)
  */
 setting_t rig_has_get_parm(RIG *rig, setting_t parm)
 {
-		/* 
-		 * FIXME: error code -1 is not safe!!
-		 */
 		if (!rig || !rig->caps)
-				return -1;
+				return 0;
 
 		return (rig->state.has_get_parm & parm);
 }
@@ -2742,16 +2852,11 @@ setting_t rig_has_get_parm(RIG *rig, setting_t parm)
  */
 setting_t rig_has_set_parm(RIG *rig, setting_t parm)
 {
-		/* 
-		 * FIXME: error code -1 is not safe!!
-		 */
 		if (!rig || !rig->caps)
-				return -1;
+				return 0;
 
 		return (rig->state.has_set_parm & parm);
 }
-
-
 
 /**
  *      rig_has_get_func - check ability of radio functions
@@ -2771,11 +2876,8 @@ setting_t rig_has_set_parm(RIG *rig, setting_t parm)
  */
 setting_t rig_has_get_func(RIG *rig, setting_t func)
 {
-		/* 
-		 * FIXME: error code -1 is not safe!!
-		 */
 		if (!rig || !rig->caps)
-				return -1;
+				return 0;
 
 		return (rig->state.has_get_func & func);
 }
@@ -2798,11 +2900,8 @@ setting_t rig_has_get_func(RIG *rig, setting_t func)
  */
 setting_t rig_has_set_func(RIG *rig, setting_t func)
 {
-		/* 
-		 * FIXME: error code -1 is not safe!!
-		 */
 		if (!rig || !rig->caps)
-				return -1;
+				return 0;
 
 		return (rig->state.has_set_func & func);
 }
@@ -2834,7 +2933,7 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 		caps = rig->caps;
 
-		if (caps->set_func == NULL)
+		if (caps->set_func == NULL || !rig_has_set_func(rig,func))
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
@@ -2882,7 +2981,7 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 		caps = rig->caps;
 
-		if (caps->get_func == NULL)
+		if (caps->get_func == NULL || !rig_has_get_func(rig,func))
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
@@ -3224,6 +3323,122 @@ int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 }
 
 
+int rig_save_channel(RIG *rig, channel_t *chan)
+{
+  int i;
+  int chan_num;
+
+  chan_num = chan->channel_num;
+  memset((void*)chan, 0, sizeof(channel_t));
+  chan->channel_num = chan_num;
+
+  rig_get_vfo(rig, &chan->vfo);
+  rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
+  rig_get_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width);
+  rig_get_split(rig, RIG_VFO_CURR, &chan->split);
+  if (chan->split != RIG_SPLIT_OFF) {
+  	rig_get_split_freq(rig, RIG_VFO_CURR, &chan->freq, &chan->tx_freq);
+  	rig_get_split_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width, 
+					&chan->tx_mode, &chan->tx_width);
+  }
+  rig_get_rptr_shift(rig, RIG_VFO_CURR, &chan->rptr_shift);
+  rig_get_rptr_offs(rig, RIG_VFO_CURR, &chan->rptr_offs);
+
+  for (i=0; i<RIG_SETTING_MAX; i++)
+  	rig_get_level(rig, RIG_VFO_CURR, 1<<i, &chan->levels[i]);
+
+  rig_get_ant(rig, RIG_VFO_CURR, &chan->ant);
+  rig_get_ts(rig, RIG_VFO_CURR, &chan->tuning_step);
+  rig_get_rit(rig, RIG_VFO_CURR, &chan->rit);
+  rig_get_xit(rig, RIG_VFO_CURR, &chan->xit);
+
+  chan->funcs = 0;
+  for (i=0; i<RIG_SETTING_MAX; i++) {
+  	int fstatus;
+  	rig_get_func(rig, RIG_VFO_CURR, 1<<i, &fstatus);
+	chan->funcs |= fstatus? 1<<i : 0;
+  }
+
+  rig_get_ctcss(rig, RIG_VFO_CURR, &chan->ctcss);
+  rig_get_ctcss_sql(rig, RIG_VFO_CURR, &chan->ctcss_sql);
+  rig_get_dcs(rig, RIG_VFO_CURR, &chan->dcs);
+  rig_get_dcs_sql(rig, RIG_VFO_CURR, &chan->dcs_sql);
+/* rig_get_mem_name(rig, RIG_VFO_CURR, chan->channel_desc); */
+
+	return RIG_OK;
+}
+
+/*
+ * restore_channel data of current VFO/mem (does not save context!)
+ * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ * TODO: still a WIP --SF
+ *
+ * missing: rptr_shift, rptr_offs, split (freq&mode),xit
+ * level missing: AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH, MICGAIN, etc.
+ * TODO: error checking
+ *
+ * set_channel and get_channel should save and restore the context of RIG_VFO_CURR 
+ *  before and afterhand, plus select the right channel.
+ *  xet_channel can operate on VFO ?
+ * set_channel:
+ *	save_channel(&curr_chan)
+ *	rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
+ *	rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+ *	restore_channel(chan)
+ *	restore_channel(&curr_chan)
+ *
+ * get_channel:
+ *	save_channel(&curr_chan)
+ *	rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
+ *	rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+ *	save_channel(chan)
+ *	restore_channel(&curr_chan)
+ */
+int rig_restore_channel(RIG *rig, const channel_t *chan)
+{
+  int i;
+
+  rig_set_vfo(rig, chan->vfo);	/* huh!? */
+  rig_set_freq(rig, RIG_VFO_CURR, chan->freq);
+  rig_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
+  rig_set_split(rig, RIG_VFO_CURR, chan->split);
+  if (chan->split != RIG_SPLIT_OFF) {
+  	rig_set_split_freq(rig, RIG_VFO_CURR, chan->freq, chan->tx_freq);
+  	rig_set_split_mode(rig, RIG_VFO_CURR, chan->mode, chan->width, 
+					chan->tx_mode, chan->tx_width);
+  }
+  rig_set_rptr_shift(rig, RIG_VFO_CURR, chan->rptr_shift);
+  rig_set_rptr_offs(rig, RIG_VFO_CURR, chan->rptr_offs);
+#if 0
+   /* power in mW */
+  rig_mW2power(rig, &hfpwr, chan->power, chan->freq, chan->mode);
+  rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_RFPOWER, hfpwr);
+  rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT, chan->att);
+  rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP, chan->preamp);
+#else
+// define rig_idx2setting(s) (1<<(s))
+  for (i=0; i<RIG_SETTING_MAX; i++)
+  	rig_set_level(rig, RIG_VFO_CURR, 1<<i, chan->levels[i]);
+#endif
+
+  rig_set_ant(rig, RIG_VFO_CURR, chan->ant);
+  rig_set_ts(rig, RIG_VFO_CURR, chan->tuning_step);
+  rig_set_rit(rig, RIG_VFO_CURR, chan->rit);
+  rig_set_xit(rig, RIG_VFO_CURR, chan->xit);
+
+  for (i=0; i<RIG_SETTING_MAX; i++)
+  	rig_set_func(rig, RIG_VFO_CURR, 1<<i, chan->funcs & (1<<i));
+
+  rig_set_ctcss(rig, RIG_VFO_CURR, chan->ctcss);
+  rig_set_ctcss_sql(rig, RIG_VFO_CURR, chan->ctcss_sql);
+  rig_set_dcs(rig, RIG_VFO_CURR, chan->dcs);
+  rig_set_dcs_sql(rig, RIG_VFO_CURR, chan->dcs_sql);
+/* rig_set_mem_name(rig, RIG_VFO_CURR, chan->channel_desc); */
+
+	return RIG_OK;
+}
+
+
 /**
  *      rig_set_channel - set channel data
  *      @rig:	The rig handle
@@ -3241,11 +3456,26 @@ int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 
 int rig_set_channel(RIG *rig, const channel_t *chan)
 {
+		channel_t curr_chan;
+		int curr_chan_num;
+
 		if (!rig || !rig->caps || !chan)
 			return -RIG_EINVAL;
 
-		if (rig->caps->set_channel == NULL)
-			return -RIG_ENAVAIL;
+		/*
+		 * if not available, emulate it
+		 */
+		if (rig->caps->set_channel == NULL) {
+ 			rig_save_channel(rig, &curr_chan);
+			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
+			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
+			rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+			rig_restore_channel(rig, chan);
+			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_VFO_MODE);
+			rig_restore_channel(rig, &curr_chan);
+ 			return RIG_OK;
+		}
 
 		return rig->caps->set_channel(rig, chan);
 }
@@ -3267,11 +3497,32 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  */
 int rig_get_channel(RIG *rig, channel_t *chan)
 {
+		channel_t curr_chan;
+		int curr_chan_num;
+
 		if (!rig || !rig->caps || !chan)
 			return -RIG_EINVAL;
 
-		if (rig->caps->get_channel == NULL)
-			return -RIG_ENAVAIL;
+		/*
+		 * if not available, emulate it
+		 */
+		if (rig->caps->get_channel == NULL) {
+#if 0
+			rig_save_channel(rig, &curr_chan);
+#endif
+			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
+#if 0
+			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
+#endif
+			rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+			rig_save_channel(rig, chan);
+#if 0
+			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+			rig_restore_channel(rig, &curr_chan);
+#endif
+
+ 			return RIG_OK;
+		}
 
 		return rig->caps->get_channel(rig, chan);
 }
@@ -3414,10 +3665,25 @@ unsigned char* rig_get_info(RIG *rig)
 }
 
 
-/*
- * more rig_* to come -- FS
+/**
+ *      rig_setting2idx - basically convert setting_t expressed 2^n to n
+ *      @s:	The setting to convert
  *
+ *      The rig_setting2idx() function converts a setting_t value expressed
+ *      by 2^n to the value of n.
+ *
+ *      RETURN VALUE: The index such that 2^n is the setting, otherwise 0
+ *      if the setting was not found.
  */
+int rig_setting2idx(setting_t s)
+{
+		int i;
 
+		for (i = 0; i<RIG_SETTING_MAX; i++)
+				if (s & (1<<i))
+						return i;
+
+		return 0;
+}
 
 
