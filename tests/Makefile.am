@@ -7,8 +7,8 @@ LDADD = ../src/libhamlib.la
 DEPENDENCIES = ../src/libhamlib.la
 
 ## The quotes around -dlopen below fool automake into accepting it
-BACKENDLNK = "-dlopen" self "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-yaesu.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la "-dlopen" ../alinco/libhamlib-alinco.la @WINRADIOLNK@
-BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la @WINRADIODEPS@
+BACKENDLNK = "-dlopen" self "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-yaesu.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la "-dlopen" ../alinco/libhamlib-alinco.la "-dlopen" ../uniden/libhamlib-uniden.la "-dlopen" ../tentec/libhamlib-tentec.la @WINRADIOLNK@
+BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la ../uniden/libhamlib-uniden.la ../tentec/libhamlib-tentec.la @WINRADIODEPS@
 
 ## Linker options
 listrigs_LDADD = $(BACKENDLNK) $(LDADD)

@@ -216,6 +216,8 @@ kenwood/Makefile
 winradio/Makefile
 pcr/Makefile
 alinco/Makefile
+uniden/Makefile
+tentec/Makefile
 src/Makefile
 c++/Makefile
 tcl/Makefile
