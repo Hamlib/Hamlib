@@ -8,21 +8,23 @@ bin_PROGRAMS = rpc.rigd
 LDADD = ../src/libhamlib.la ../lib/libmisc.a # -lnsl
 DEPENDENCIES = ../src/libhamlib.la
 rpc_rigd_SOURCES = $(RPCRIG_SVC)
+man_MANS = rpc.rigd.8
 
 # The RPC backend
 lib_LTLIBRARIES = libhamlib-rpcrig.la
 libhamlib_rpcrig_la_SOURCES = $(RPCRIG_CLNT)
 libhamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version -lnsl
-#libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la
+libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-rpcrig.a
 libhamlib_rpcrig_a_SOURCES = $(RPCRIG_CLNT)
 libhamlib_rpcrig_a_LIBADD = ../src/libhamlib.la # -lnsl
 
-noinst_HEADERS = rpcrig.h
+noinst_HEADERS = rpcrig.h rpcrig_backend.h
+
+EXTRA_DIST = rpcrig.x $(man_MANS)
 
 RPCGEN = rpcgen
-
 
 rpcrig.h: rpcrig.x
 	rm -f $@
