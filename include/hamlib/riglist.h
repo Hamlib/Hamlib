@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.3 2000-10-16 21:48:48 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.4 2000-10-23 19:55:11 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,17 +28,48 @@
 
 
 enum rig_model_e {
+	/*
+	 * Yeasu 
+	 */
 	RIG_MODEL_FT847 = 0,
 	RIG_MODEL_FT1000,
 	RIG_MODEL_FT1000D,
+	RIG_MODEL_FT1000MP,
 	RIG_MODEL_FT747,
+	RIG_MODEL_FT757,
+	RIG_MODEL_FT757GXII,
+	RIG_MODEL_FT575,
+	RIG_MODEL_FT767,
+	RIG_MODEL_FT736R,
 	RIG_MODEL_FT840,
+	RIG_MODEL_FT820,
 	RIG_MODEL_FT920,
+	RIG_MODEL_FT890,
+	RIG_MODEL_FT990,
+	RIG_MODEL_FRG100,	/* same as FT890/990 ? */
+	RIG_MODEL_FRG9600,
+	RIG_MODEL_FRG8800,
 
+	/*
+	 * Kenwood
+	 */
 	RIG_MODEL_TS570D,
 	RIG_MODEL_TS870S,
+	RIG_MODEL_TS850,
 	RIG_MODEL_TS950,
+	RIG_MODEL_TS711,
+	RIG_MODEL_TS811,
+	RIG_MODEL_TS940,
+	RIG_MODEL_TS440,
+	RIG_MODEL_TSR5000,
+	RIG_MODEL_TS450S,
+	RIG_MODEL_TS690S,
+	RIG_MODEL_TS950SDX,
+	RIG_MODEL_TS50,
 
+	/*
+	 * Icom
+	 */
 	RIG_MODEL_IC1271,
 	RIG_MODEL_IC1275,
 	RIG_MODEL_IC271,
@@ -74,8 +105,8 @@ enum rig_model_e {
 	RIG_MODEL_IC821,
 	RIG_MODEL_IC821H,
 	RIG_MODEL_IC970,
-	RIG_MODEL_ICR71,
 	RIG_MODEL_ICR10,
+	RIG_MODEL_ICR71,
 	RIG_MODEL_ICR72,
 	RIG_MODEL_ICR75,
 	RIG_MODEL_ICR7000,
@@ -83,31 +114,102 @@ enum rig_model_e {
 	RIG_MODEL_ICR8500,
 	RIG_MODEL_ICR9000,
 	RIG_MODEL_PCR1000,
-	RIG_MODEL_MINISCOUT
+	RIG_MODEL_PCR100,
+
+	/*
+	 * Optoelectronics
+	 */
+	RIG_MODEL_MINISCOUT,
+	RIG_MODEL_XPLORER,
+
+	/*
+	 * AOR
+	 */
+	RIG_MODEL_AR8200,
+	RIG_MODEL_AR8000,
+	RIG_MODEL_AR7030,
+	RIG_MODEL_AR5000,
+	RIG_MODEL_AR3030,
+	RIG_MODEL_AR3000A,
+	RIG_MODEL_AR3000,
+	RIG_MODEL_AR2700,
+	RIG_MODEL_AR2500,
+	RIG_MODEL_AR16,
+
+	/*
+	 * JRC
+	 */
+	RIG_MODEL_JST245,
+	RIG_MODEL_CMH530,
+	RIG_MODEL_NRD345,
+	RIG_MODEL_NRD525,
+	RIG_MODEL_NRD535,
+	RIG_MODEL_NRD545,
+
+	/*
+	 * Radio Shack
+	 */
+	RIG_MODEL_RS64,		/* PRO-64 */
+	RIG_MODEL_RS2005,	/* w/ OptoElectronics OS456 Board */
+	RIG_MODEL_RS2006,	/* w/ OptoElectronics OS456 Board */
+	RIG_MODEL_RS2035,	/* w/ OptoElectronics OS435 Board */
+	RIG_MODEL_RS2042,	/* w/ OptoElectronics OS435 Board */
+	RIG_MODEL_RS2041,	/* PRO-2041 */
+	RIG_MODEL_RS2052,	/* PRO-2052 */
+
+	/*
+	 * Uniden
+	 */
+	RIG_MODEL_BC780,	/* Uniden BC780 - Trunk Tracker "Desktop Radio" */
+	RIG_MODEL_BC245,
+	RIG_MODEL_BC895,
+
+	/*
+	 * Drake
+	 */
+	RIG_MODEL_DKR8,
+	RIG_MODEL_DKR8A,
+
+	/*
+	 * Lowe
+	 */
+	RIG_MODEL_HF150,
+	RIG_MODEL_HF250,
+
+	/*
+	 * Racal
+	 */
+	RIG_MODEL_RA3790,
+	RIG_MODEL_RA3720,
+
+	/*
+	 * Watkins-Johnson
+	 */
+	RIG_MODEL_HF1000,
+	RIG_MODEL_HF1000A,
+	RIG_MODEL_WJ8711,
+
+	/*
+	 * Rohde & Schwarz
+	 */
+	RIG_MODEL_ESM500,
+	RIG_MODEL_EK890,
+	RIG_MODEL_EK891,
+	RIG_MODEL_EK895,
+	RIG_MODEL_EK070,
+
+	RIG_MODEL_KWZ30,	/* KNEISNER +DOERING */
+	RIG_MODEL_E1800,	/* DASA-Telefunken */
+	RIG_MODEL_EKD500,	/* RFT */
+	RIG_MODEL_WINRADIO,	/* Rosetta */
+	RIG_MODEL_TT550,	/* Ten Tec */
+	RIG_MODEL_RX320,
+
 
 	/* etc. */
 };
 
 typedef enum rig_model_e rig_model_t;
 
-/*
- * It would be nice to have an automatic way of referencing all the backends
- * supported by hamlib. Maybe this array should be placed in a separate file..
- */
-#if 0
-extern const struct rig_caps ft747_caps;
-extern const struct rig_caps ft847_caps;
-extern const struct rig_caps ic706_caps;
-extern const struct rig_caps ic706mkiig_caps;
-extern const struct rig_caps ft747_caps;
-
-#endif
-/* etc. */
-
 
 #endif /* _RIGLIST_H */
-
-
-
-
-
