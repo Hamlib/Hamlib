@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.2 2001-01-05 18:20:50 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.3 2001-01-28 22:14:21 f4cfe Exp $  
  *
  *
  *
@@ -58,7 +58,7 @@ const struct rig_caps ts870s_caps = {
   RIG_HANDSHAKE_NONE, 0, 0, 2000, 3, TS870S_FUNC_ALL, TS870S_LEVEL_ALL,
   TS870S_LEVEL_ALL, 0, 1000, RIG_TRN_ON,
   {
-	{KHz(100),MHz(2040),TS870S_ALL_MODES,-1,-1},
+	{KHz(100),MHz(30),TS870S_ALL_MODES,-1,-1},
 	{0,0,0,0,0},
   }, /* rx range */
   { {0,0,0,0,0} },	/* FIXME: no tx range yet! */
