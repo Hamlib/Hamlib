@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.4 2004-07-16 11:47:40 t_mills Exp $
+ *	$Id: ar3030.c,v 1.5 2004-08-08 19:42:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,10 +61,8 @@ struct ar3030_priv_data {
  *	set_channel(emulated?),rig_vfo_op
  *	rig_reset(RIG_RESET_MCALL)
  *	quit the remote control mode on close?
- *
- *	Modes: FAX
  */
-#define AR3030_MODES (RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
+#define AR3030_MODES (RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_FAX)
 
 #define AR3030_FUNC_ALL (RIG_FUNC_NONE)
 
@@ -370,7 +368,7 @@ int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_LSB:      aormode = 'L'; break;
 	case RIG_MODE_FM:	      aormode = 'N'; break;
 	case RIG_MODE_AMS:      aormode = 'S'; break;
-	/*case RIG_MODE_FAX:	aormode = 'X'; break;*/
+	case RIG_MODE_FAX:	aormode = 'X'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
 					__FUNCTION__,mode);
@@ -412,7 +410,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case 'C':	*mode = RIG_MODE_CW; break;
 	case 'S':	*mode = RIG_MODE_AMS; break;
 	case 'N':	*mode = RIG_MODE_FM; break;
-	/*case 'X':	*mode = RIG_MODE_FAX; break;*/
+	case 'X':	*mode = RIG_MODE_FAX; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
 						__FUNCTION__,buf[25]);
@@ -597,7 +595,7 @@ int ar3030_get_channel(RIG *rig, channel_t *chan)
 	case 'C':	chan->mode = RIG_MODE_CW; break;
 	case 'S':	chan->mode = RIG_MODE_AMS; break;
 	case 'N':	chan->mode = RIG_MODE_FM; break;
-	/*case 'X':	chan->mode = RIG_MODE_FAX; break;*/
+	case 'X':	chan->mode = RIG_MODE_FAX; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
 						__FUNCTION__,infobuf[22]);

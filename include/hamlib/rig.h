@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.96 2004-05-19 09:11:34 fillods Exp $
+ *	$Id: rig.h,v 1.97 2004-08-08 19:42:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -700,11 +700,18 @@ typedef enum {
 	RIG_MODE_AMS =    	(1<<9),	/*!< Amplitude Modulation Synchronous */
 	RIG_MODE_PKTLSB =       (1<<10),/*!< Packet/Digital LSB mode (dedicated port) */
 	RIG_MODE_PKTUSB =       (1<<11),/*!< Packet/Digital USB mode (dedicated port) */
-	RIG_MODE_PKTFM =        (1<<12) /*!< Packet/Digital FM mode (dedicated port) */
+	RIG_MODE_PKTFM =        (1<<12),/*!< Packet/Digital FM mode (dedicated port) */
+	RIG_MODE_ECSSUSB =      (1<<13),/*!< Exalted Carrier Single Sideband USB */
+	RIG_MODE_ECSSLSB =      (1<<14),/*!< Exalted Carrier Single Sideband LSB */
+	RIG_MODE_FAX =          (1<<15) /*!< Facsimile Mode */
+
 } rmode_t;
 
 /** \brief macro for backends, no to be used by rig_set_mode et al. */
 #define RIG_MODE_SSB  	(RIG_MODE_USB|RIG_MODE_LSB)
+
+/** \brief macro for backends, no to be used by rig_set_mode et al. */
+#define RIG_MODE_ECSS   (RIG_MODE_ECSSUSB|RIG_MODE_ECSSLSB)
 
 
 #define RIG_DBLST_END 0		/* end marker in a preamp/att level list */

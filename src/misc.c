@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.32 2004-05-17 21:09:44 fillods Exp $
+ *	$Id: misc.c,v 1.33 2004-08-08 19:42:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -310,6 +310,9 @@ static struct {
 	{ RIG_MODE_PKTLSB, "PKTLSB" },
 	{ RIG_MODE_PKTUSB, "PKTUSB" },
 	{ RIG_MODE_PKTFM, "PKTFM" },
+	{ RIG_MODE_ECSSUSB, "ECSSUSB" },
+	{ RIG_MODE_ECSSLSB, "ECSSLSB" },
+	{ RIG_MODE_FAX, "FAX" },
 	{ RIG_MODE_NONE, "" },
 };
 

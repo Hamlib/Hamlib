@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "May 25, 2004" "Hamlib"
+.TH RIGCTL "1" "August 8, 2004" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -118,7 +118,9 @@ Set frequency, in Hz.
 Get frequency, in Hz.
 .TP
 .B M, set_mode
-Set mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS.
+Set mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
+PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX.
+
 The passband is the exact passband in Hz, or 0 for the default.
 .TP
 .B m, get_mode
@@ -179,7 +181,9 @@ Set TX frequency, in Hz.
 Get TX frequency.
 .TP
 .B X, set_split_mode
-Set transmit mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS.
+Set transmit mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
+PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX.
+
 The passband is the exact passband in Hz, or 0 for the default.
 .TP
 .B x, get_split_mode

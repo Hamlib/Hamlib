@@ -1,8 +1,8 @@
 /*
  *  Hamlib Lowe backend - main file
- *  Copyright (c) 2003 by Stephane Fillod
+ *  Copyright (c) 2003-2004 by Stephane Fillod
  *
- *	$Id: lowe.c,v 1.2 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: lowe.c,v 1.3 2004-08-08 19:42:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -136,7 +136,7 @@ int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_LSB:      mode_sel = MD_LSB; break;
 	case RIG_MODE_FM:       mode_sel = MD_FM; break;
 	case RIG_MODE_AM:       mode_sel = MD_AM; break;
-	case RIG_MODE_RTTY:     mode_sel = MD_FAX; break;	/* TBC */
+	case RIG_MODE_FAX:     mode_sel = MD_FAX; break;
 	case RIG_MODE_AMS:     mode_sel = MD_AMS; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"lowe_set_mode: "
@@ -173,8 +173,8 @@ int lowe_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		*mode = RIG_MODE_LSB;
 	else if (!strcmp(mdbuf+1, MD_FM))
 		*mode = RIG_MODE_FM;
-	else if (!strcmp(mdbuf+1, MD_FAX))	/* TBC */
-		*mode = RIG_MODE_RTTY;
+	else if (!strcmp(mdbuf+1, MD_FAX))
+		*mode = RIG_MODE_FAX;
 	else if (!strcmp(mdbuf+1, MD_AMS))
 		*mode = RIG_MODE_AMS;
 	else if (!strcmp(mdbuf+1, MD_AM))
