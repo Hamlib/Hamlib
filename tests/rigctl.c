@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.45 2003-08-25 22:38:08 fillods Exp $  
+ * $Id: rigctl.c,v 1.46 2003-08-25 22:45:10 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -41,9 +41,9 @@
 #include "misc.h"
 
 #ifdef _WIN32
-#define LLFMT "Ll"
-#else
 #define LLFMT "L"
+#else
+#define LLFMT "ll"
 #endif
 
 #define MAXNAMSIZ 32
