@@ -87,6 +87,7 @@ AC_SUBST(V_MAJOR)
 AC_SUBST(V_MINOR)
 AC_SUBST(DLL_PRELOAD)
 
-AC_OUTPUT( ft747/Makefile ft847/Makefile icom/Makefile Makefile \
-			include/Makefile include/hamlib/Makefile src/Makefile \
+AC_OUTPUT( ft747/Makefile ft847/Makefile icom/Makefile aor/Makefile \
+			Makefile include/Makefile include/hamlib/Makefile src/Makefile \
 			tests/Makefile doc/Makefile )
+

@@ -2741,8 +2741,8 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "ft747/Makefile ft847/Makefile icom/Makefile Makefile \
-			include/Makefile include/hamlib/Makefile src/Makefile \
+trap 'rm -fr `echo "ft747/Makefile ft847/Makefile icom/Makefile aor/Makefile \
+			Makefile include/Makefile include/hamlib/Makefile src/Makefile \
 			tests/Makefile doc/Makefile  include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
@@ -2847,8 +2847,8 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"ft747/Makefile ft847/Makefile icom/Makefile Makefile \
-			include/Makefile include/hamlib/Makefile src/Makefile \
+CONFIG_FILES=\${CONFIG_FILES-"ft747/Makefile ft847/Makefile icom/Makefile aor/Makefile \
+			Makefile include/Makefile include/hamlib/Makefile src/Makefile \
 			tests/Makefile doc/Makefile "}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
@@ -3028,4 +3028,5 @@ EOF
 chmod +x $CONFIG_STATUS
 rm -fr confdefs* $ac_clean_files
 test "$no_create" = yes || ${CONFIG_SHELL-/bin/sh} $CONFIG_STATUS || exit 1
+
 

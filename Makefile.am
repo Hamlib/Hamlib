@@ -1,2 +1,2 @@
 EXTRA_DIST = COPYING INSTALL PLAN README THANKS TODO WANTED
-SUBDIRS = include src icom ft747 ft847 tests doc
+SUBDIRS = include src icom ft747 ft847 aor tests doc
