@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - event handling
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: event.c,v 1.11 2001-12-16 11:14:46 fillods Exp $
+ *	$Id: event.c,v 1.12 2002-09-08 22:30:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,10 +89,12 @@ int add_trn_rig(RIG *rig)
 						strerror(errno));
 
 #ifdef HAVE_SIGINFO_T
+#ifdef F_SETSIG
 	status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETSIG failed: %s\n",
 						strerror(errno));
+#endif
 
 	status = fcntl(rig->state.rigport.fd, F_SETFL, O_ASYNC);
 	if (status < 0)
