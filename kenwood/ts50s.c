@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS50 description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *		$Id: ts50s.c,v 1.1 2002-01-03 21:41:17 fillods Exp $
+ *		$Id: ts50s.c,v 1.2 2002-02-19 08:34:56 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -177,6 +177,7 @@ set_mode: kenwood_set_mode,
 get_mode: kenwood_get_mode,
 set_vfo: kenwood_set_vfo,
 get_vfo: kenwood_get_vfo,
+get_ptt: kenwood_get_ptt,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
 set_func: kenwood_set_func,

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: ts790.c,v 1.1 2002-01-24 23:35:19 fillods Exp $
+ *		$Id: ts790.c,v 1.2 2002-02-19 08:33:08 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -167,6 +167,7 @@ set_vfo: kenwood_set_vfo,
 get_vfo: kenwood_get_vfo,
 set_ctcss_tone: kenwood_set_ctcss_tone,
 get_ctcss_tone: kenwood_get_ctcss_tone,
+get_ptt: kenwood_get_ptt,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
 set_func: kenwood_set_func,
