@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.53 2002-01-07 18:18:15 fgretief Exp $
+ *		$Id: rig.c,v 1.54 2002-01-21 08:30:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,6 +64,8 @@ const char hamlib_copyright[] =
 
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
+
+#define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
 /*
  * Data structure to track the opened rig (by rig_open)
@@ -623,7 +625,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -673,7 +675,7 @@ int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !freq)
+		if (CHECK_RIG_ARG(rig) || !freq)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -724,7 +726,7 @@ int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -774,7 +776,7 @@ int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !mode || !width)
+		if (CHECK_RIG_ARG(rig) || !mode || !width)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -935,7 +937,7 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
 		const struct rig_caps *caps;
 		int retcode;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -970,7 +972,7 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
 		const struct rig_caps *caps;
 		int retcode;
 
-		if (!rig || !rig->caps || !vfo)
+		if (CHECK_RIG_ARG(rig) || !vfo)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1004,7 +1006,7 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1068,7 +1070,7 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !ptt)
+		if (CHECK_RIG_ARG(rig) || !ptt)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1132,7 +1134,7 @@ int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !dcd)
+		if (CHECK_RIG_ARG(rig) || !dcd)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1198,7 +1200,7 @@ int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1242,7 +1244,7 @@ int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !rptr_shift)
+		if (CHECK_RIG_ARG(rig) || !rptr_shift)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1287,7 +1289,7 @@ int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1332,7 +1334,7 @@ int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !rptr_offs)
+		if (CHECK_RIG_ARG(rig) || !rptr_offs)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1378,7 +1380,7 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1422,7 +1424,7 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !tx_freq)
+		if (CHECK_RIG_ARG(rig) || !tx_freq)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1468,7 +1470,7 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1513,7 +1515,7 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_widt
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !tx_mode || !tx_width)
+		if (CHECK_RIG_ARG(rig) || !tx_mode || !tx_width)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1558,7 +1560,7 @@ int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1602,7 +1604,7 @@ int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !split)
+		if (CHECK_RIG_ARG(rig) || !split)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1647,7 +1649,7 @@ int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1692,7 +1694,7 @@ int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !rit)
+		if (CHECK_RIG_ARG(rig) || !rit)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1737,7 +1739,7 @@ int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1782,7 +1784,7 @@ int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !xit)
+		if (CHECK_RIG_ARG(rig) || !xit)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1829,7 +1831,7 @@ int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1874,7 +1876,7 @@ int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !ts)
+		if (CHECK_RIG_ARG(rig) || !ts)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1919,7 +1921,7 @@ int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1964,7 +1966,7 @@ int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !ant)
+		if (CHECK_RIG_ARG(rig) || !ant)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2133,7 +2135,7 @@ int rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2182,7 +2184,7 @@ int rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !tone)
+		if (CHECK_RIG_ARG(rig) || !tone)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2227,7 +2229,7 @@ int rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2271,7 +2273,7 @@ int rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !code)
+		if (CHECK_RIG_ARG(rig) || !code)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2321,7 +2323,7 @@ int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2370,7 +2372,7 @@ int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !tone)
+		if (CHECK_RIG_ARG(rig) || !tone)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2415,7 +2417,7 @@ int rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2459,7 +2461,7 @@ int rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !code)
+		if (CHECK_RIG_ARG(rig) || !code)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2502,7 +2504,7 @@ int rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 
 int rig_set_powerstat(RIG *rig, powerstat_t status)
 {
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_powerstat == NULL)
@@ -2528,7 +2530,7 @@ int rig_set_powerstat(RIG *rig, powerstat_t status)
 
 int rig_get_powerstat(RIG *rig, powerstat_t *status)
 {
-		if (!rig || !rig->caps || !status)
+		if (CHECK_RIG_ARG(rig) || !status)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_powerstat == NULL)
@@ -2554,7 +2556,7 @@ int rig_get_powerstat(RIG *rig, powerstat_t *status)
 
 int rig_reset(RIG *rig, reset_t reset)
 {
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		if (rig->caps->reset == NULL)
@@ -2609,7 +2611,7 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2663,7 +2665,7 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !val)
+		if (CHECK_RIG_ARG(rig) || !val)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2705,7 +2707,7 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int rig_set_parm(RIG *rig, setting_t parm, value_t val)
 {
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_parm == NULL || !rig_has_set_parm(rig,parm))
@@ -2732,7 +2734,7 @@ int rig_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
-		if (!rig || !rig->caps || !val)
+		if (CHECK_RIG_ARG(rig) || !val)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_parm == NULL || !rig_has_get_parm(rig,parm))
@@ -2909,7 +2911,7 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -2957,7 +2959,7 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !func)
+		if (CHECK_RIG_ARG(rig) || !func)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3061,7 +3063,7 @@ int rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3107,7 +3109,7 @@ int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !ch)
+		if (CHECK_RIG_ARG(rig) || !ch)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3177,7 +3179,7 @@ int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3248,7 +3250,7 @@ int rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3294,7 +3296,7 @@ int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !digits)
+		if (CHECK_RIG_ARG(rig) || !digits)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3340,7 +3342,7 @@ int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !digits || !length)
+		if (CHECK_RIG_ARG(rig) || !digits || !length)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3385,7 +3387,7 @@ int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !msg)
+		if (CHECK_RIG_ARG(rig) || !msg)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3433,7 +3435,7 @@ int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3478,7 +3480,7 @@ int rig_save_channel(RIG *rig, channel_t *chan)
   int i;
   int chan_num;
 
-  if (!rig || !chan)
+  if (CHECK_RIG_ARG(rig) || !chan)
 	return -RIG_EINVAL;
 
   chan_num = chan->channel_num;
@@ -3540,7 +3542,7 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
 {
   int i;
 
-  if (!rig || !chan)
+  if (CHECK_RIG_ARG(rig) || !chan)
 	return -RIG_EINVAL;
 
   rig_set_vfo(rig, chan->vfo);	/* huh!? */
@@ -3596,7 +3598,7 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 		int curr_chan_num;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !chan)
+		if (CHECK_RIG_ARG(rig) || !chan)
 			return -RIG_EINVAL;
 
 		/*
@@ -3639,7 +3641,7 @@ int rig_get_channel(RIG *rig, channel_t *chan)
 		int curr_chan_num;
 #endif
 
-		if (!rig || !rig->caps || !chan)
+		if (CHECK_RIG_ARG(rig) || !chan)
 			return -RIG_EINVAL;
 
 		/*
@@ -3719,7 +3721,7 @@ int rig_set_trn(RIG *rig, int trn)
 		const struct rig_caps *caps;
 		int status;
 
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -3768,7 +3770,7 @@ int rig_set_trn(RIG *rig, int trn)
  */
 int rig_get_trn(RIG *rig, int *trn)
 {
-		if (!rig || !rig->caps || !trn)
+		if (CHECK_RIG_ARG(rig) || !trn)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_trn == NULL)
@@ -3790,7 +3792,7 @@ int rig_get_trn(RIG *rig, int *trn)
  */
 const char* rig_get_info(RIG *rig)
 {
-		if (!rig || !rig->caps)
+		if (CHECK_RIG_ARG(rig))
 			return NULL;
 
 		if (rig->caps->get_info == NULL)

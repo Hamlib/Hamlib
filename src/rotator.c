@@ -11,7 +11,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotator.c,v 1.4 2002-01-16 17:06:59 fgretief Exp $
+ *		$Id: rotator.c,v 1.5 2002-01-21 08:30:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,6 +48,8 @@
 
 
 #define DEFAULT_SERIAL_PORT "/dev/rotator"
+
+#define CHECK_ROT_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
 /*
  * Data structure to track the opened rot (by rot_open)
@@ -469,7 +471,7 @@ int rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevation)
 		const struct rot_caps *caps;
 		const struct rot_state *rs;
 
-		if (!rot || !rot->caps)
+		if (CHECK_ROT_ARG(rot))
 			return -RIG_EINVAL;
 
 		caps = rot->caps;
@@ -504,7 +506,7 @@ int rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elevation)
 {
 		const struct rot_caps *caps;
 
-		if (!rot || !rot->caps || !azimuth || !elevation)
+		if (CHECK_ROT_ARG(rot) || !azimuth || !elevation)
 			return -RIG_EINVAL;
 
 		caps = rot->caps;
@@ -531,7 +533,7 @@ int rot_park (ROT *rot)
 {
 		const struct rot_caps *caps;
 
-		if (!rot || !rot->caps)
+		if (CHECK_ROT_ARG(rot))
 			return -RIG_EINVAL;
 
 		caps = rot->caps;
@@ -558,7 +560,7 @@ int rot_stop (ROT *rot)
 {
 		const struct rot_caps *caps;
 
-		if (!rot || !rot->caps)
+		if (CHECK_ROT_ARG(rot))
 			return -RIG_EINVAL;
 
 		caps = rot->caps;
@@ -586,7 +588,7 @@ int rot_reset (ROT *rot, rot_reset_t reset)
 {
 		const struct rot_caps *caps;
 
-		if (!rot || !rot->caps)
+		if (CHECK_ROT_ARG(rot))
 			return -RIG_EINVAL;
 
 		caps = rot->caps;
@@ -610,7 +612,7 @@ int rot_move (ROT *rot, int direction, int speed)
 {
         const struct rot_caps *caps;
 
-        if (!rot || !rot->caps)
+        if (CHECK_ROT_ARG(rot))
             return -RIG_EINVAL;
 
         caps = rot->caps;
@@ -634,7 +636,7 @@ int rot_move (ROT *rot, int direction, int speed)
  */
 const char* rot_get_info(ROT *rot)
 {
-		if (!rot || !rot->caps)
+		if (CHECK_ROT_ARG(rot))
 			return NULL;
 
 		if (rot->caps->get_info == NULL)
