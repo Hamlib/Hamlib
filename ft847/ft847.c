@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.18 2000-09-04 17:51:35 javabear Exp $  
+ * $Id: ft847.c,v 1.19 2000-09-17 04:43:03 javabear Exp $  
  *
  *
  *
@@ -36,8 +36,192 @@
 #include <sys/ioctl.h>
 
 #include "rig.h"
+#include "riglist.h"
 #include "serial.h"
 #include "ft847.h"
+
+/* prototypes */
+int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
+
+
+/* 
+ * Receiver caps 
+ */
+
+#define FT847_ALL_RX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_WFM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
+
+/* tx doesn't have WFM.
+ * 100W in 160-6m (25 watts AM carrier)
+ * 50W in 2m/70cm (12.5 watts AM carrier)
+ */ 
+#define FT847_OTHER_TX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
+#define FT847_AM_TX_MODES (RIG_MODE_AM| RIG_MODE_NAM)
+
+/*
+ * ft847 rigs capabilities.
+ * Notice that some rigs share the same functions.
+ * Also this struct is READONLY!
+ */
+const struct rig_caps ft847_caps = {
+  RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", RIG_STATUS_ALPHA,
+  RIG_TYPE_TRANSCEIVER, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
+  RIG_HANDSHAKE_NONE, 50, 100, 0,
+  { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
+    {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
+    {420000000,512000000,FT847_ALL_RX_MODES,-1,-1},
+
+    {0,0,0,0,0}, }, /* rx range end */
+
+  { {1800000,1999999,FT847_OTHER_TX_MODES,5000,100000},	/* 5-100W class */
+    {1800000,1999999,FT847_AM_TX_MODES,1000,25000},	/* 1-5W class */
+
+    {3500000,3999999,FT847_OTHER_TX_MODES,5000,100000},
+    {3500000,3999999,FT847_AM_TX_MODES,1000,25000},
+
+    {7000000,7300000,FT847_OTHER_TX_MODES,5000,100000},
+    {7000000,7300000,FT847_AM_TX_MODES,1000,25000},
+
+    {10000000,10150000,FT847_OTHER_TX_MODES,5000,100000},
+    {10000000,10150000,FT847_AM_TX_MODES,1000,25000},
+
+    {14000000,14350000,FT847_OTHER_TX_MODES,5000,100000},
+    {14000000,14350000,FT847_AM_TX_MODES,1000,25000},
+
+    {18068000,18168000,FT847_OTHER_TX_MODES,5000,100000},
+    {18068000,18168000,FT847_AM_TX_MODES,1000,25000},
+
+    {21000000,21450000,FT847_OTHER_TX_MODES,5000,100000},
+    {21000000,21450000,FT847_AM_TX_MODES,1000,25000},
+
+    {24890000,24990000,FT847_OTHER_TX_MODES,5000,100000},
+    {24890000,24990000,FT847_AM_TX_MODES,1000,25000},
+
+    {28000000,29700000,FT847_OTHER_TX_MODES,5000,100000},
+    {28000000,29700000,FT847_AM_TX_MODES,1000,25000},
+
+    {50000000,54000000,FT847_OTHER_TX_MODES,5000,100000},
+    {50000000,54000000,FT847_AM_TX_MODES,1000,25000},
+
+    {144000000,148000000,FT847_OTHER_TX_MODES,1000,50000}, 
+    {144000000,148000000,FT847_AM_TX_MODES,1000,12500}, 
+
+    {430000000,44000000,FT847_OTHER_TX_MODES,1000,50000}, /* check range */
+    {430000000,440000000,FT847_AM_TX_MODES,1000,12500},
+
+    {0,0,0,0,0} },
+
+  ft847_init, ft847_cleanup, NULL, NULL, NULL /* probe not supported yet */,
+  ft847_set_freq_main_vfo_hz
+};
+
+/*  
+ * Init some private data
+ */
+
+static const struct ft847_priv_data ft847_priv = { 847 }; /* dummy atm */
+
+
+
+/*
+ * Function definitions below
+ */
+
+/*
+ * setup *priv 
+ * serial port is already open (rig->state->fd)
+ */
+
+int ft847_init(RIG *rig) {
+  struct ft847_priv_data *p;
+  
+  if (!rig)
+    return -1;
+  
+  p = (struct ft847_priv_data*)malloc(sizeof(struct ft847_priv_data));
+  if (!p) {
+				/* whoops! memory shortage! */
+    return -2;
+  }
+  
+  /* init the priv_data from static struct 
+   *          + override with rig-specific preferences
+   */
+  *p = ft847_priv;
+  
+  rig->state.priv = (void*)p;
+  
+  return 0;
+}
+
+
+/*
+ * ft847_cleanup routine
+ * the serial port is closed by the frontend
+ */
+int ft847_cleanup(RIG *rig) {
+  if (!rig)
+    return -1;
+  
+  if (rig->state.priv)
+    free(rig->state.priv);
+  rig->state.priv = NULL;
+  
+  return 0;
+}
+
+		/* 
+		 * should check return code and that write wrote cmd_len chars! 
+		 */
+/*  		write_block2(rig_s->fd, buf, frm_len, rig_s->write_delay); */
+
+
+/*
+ * Example of wrapping backend function inside frontend API
+ * 	 
+ */
+
+int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode) {
+  struct ft847_priv_data *p;
+  struct rig_state *rig_s;
+  unsigned char buf[16];
+  int frm_len = 5;		/* fix later */
+
+  /*  examlpe opcode */
+  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x04 }; /* dial lock = on */
+
+  
+  if (!rig)
+    return -1;
+  
+  p = (struct ft847_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+  
+  /* 
+   * should check return code and that write wrote cmd_len chars! 
+   */
+
+  write_block2(rig_s->fd, data, frm_len, rig_s->write_delay);
+  
+  /*
+   * wait for ACK ... etc.. 
+   */
+  read_block(rig_s->fd, buf, frm_len, rig_s->timeout);
+  
+  /*
+   * TODO: check address, Command number and ack!
+   */
+  
+  /* then set the mode ... etc. */
+  
+  return 0;
+}
+
+
+
+
+
+
+#if 0
 
 #define TRUE    1;
 #define FALSE   0;
@@ -615,3 +799,4 @@ static int is_in_list(int *list, int list_length, int value) {
 }
 
 
+#endif /* 0 */
