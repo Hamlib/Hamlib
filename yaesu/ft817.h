@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.h,v 1.1 2001-12-15 03:19:39 aa1vl Exp $  
+ *    $Id: ft817.h,v 1.2 2002-01-23 02:53:14 aa1vl Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 #define _FT817_H 1
 
 #define FT817_WRITE_DELAY                    0
-#define FT817_POST_WRITE_DELAY               10
+#define FT817_POST_WRITE_DELAY               300
 #define FT817_DEFAULT_READ_TIMEOUT           2000
 
 enum ft817_native_cmd_e {
