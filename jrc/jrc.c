@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.17 2004-09-05 00:33:47 fineware Exp $
+ *	$Id: jrc.c,v 1.18 2004-09-14 22:17:49 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -493,14 +493,32 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 		case RIG_LEVEL_SQL:
-		  cmd_len = sprintf(cmdbuf, "JJ%03d" EOM, (int)(val.f*255.0));
+		  cmd_len = sprintf(cmdbuf, "LL%03d" EOM, (int)(val.f*255.0));
 
 		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+		case RIG_LEVEL_NR:
+		  cmd_len = sprintf(cmdbuf, "FF%03d" EOM, (int)(val.f*255.0));
+
+		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+		/*case RIG_LEVEL_TONE:
+		  cmd_len = sprintf(cmdbuf, "KK%03d" EOM, (int)(val.f*255.0));
+
+		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);*/
 
 		case RIG_LEVEL_NOTCHF:
-		  cmd_len = sprintf(cmdbuf, "FF%+04d" EOM, val.i);
+		  cmd_len = sprintf(cmdbuf, "GG%+04d" EOM, val.i);
 
 		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+		  /*case RIG_LEVEL_BWC:
+		  if (priv->pbs_len == 3)
+			  val.i /= 10;
+		  
+		  cmd_len = sprintf(cmdbuf, "W%0*d" EOM, priv->pbs_len,  val.i);
+
+		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);*/
 
 		case RIG_LEVEL_AGC:
 		  if (val.i < 10)
@@ -676,6 +694,38 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  val->f = (float)lvl/255.0;
 		  break;
 
+		case RIG_LEVEL_NR:
+		  retval = jrc_transaction (rig, "FF" EOM, 3, lvlbuf, &lvl_len);
+		  if (retval != RIG_OK)
+		    return retval;
+
+		  if (lvl_len != 6) {
+		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
+			      "len=%d\n", lvl_len);
+		    return -RIG_ERJCTED;
+		  }
+		  /*
+		   * 000..255
+		   */
+		  sscanf(lvlbuf+2, "%u", &lvl);
+		  val->f = (float)lvl/255.0;
+		  break;
+
+		/*case RIG_LEVEL_TONE:
+		  retval = jrc_transaction (rig, "KK" EOM, 3, lvlbuf, &lvl_len);
+		  if (retval != RIG_OK)
+		    return retval;
+
+		  if (lvl_len != 6) {
+		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
+			      "len=%d\n", lvl_len);
+		    return -RIG_ERJCTED;
+		  }
+
+		  sscanf(lvlbuf+2, "%u", &lvl);
+		  val->f = (float)lvl/255.0;
+		  break;*/
+
 		case RIG_LEVEL_NOTCHF:
 		  retval = jrc_transaction (rig, "GG" EOM, 3, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
@@ -692,6 +742,24 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  sscanf(lvlbuf+2, "%d", &lvl);
 		  val->f = (float)lvl/255.0;
 		  break;
+
+		  /*case RIG_LEVEL_BWC:
+		  retval = jrc_transaction (rig, "W" EOM, 2, lvlbuf, &lvl_len);
+		  if (retval != RIG_OK)
+		    return retval;
+
+		  if (lvlbuf[0] != 'W' || lvl_len != priv->pbs_len+2) {
+		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
+			      "len=%d\n", lvl_len);
+		    return -RIG_ERJCTED;
+		  }
+
+		  sscanf(lvlbuf+1, "%d", &lvl);
+		  if (priv->pbs_len == 3)
+			  lvl *= 10;
+		  
+		  val->i = lvl;
+		  break;*/
 
 		case RIG_LEVEL_CWPITCH:
 		  cw_len = sprintf(cwbuf, "%s" EOM, priv->cw_pitch);
