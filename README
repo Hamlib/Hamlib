@@ -1,5 +1,5 @@
 hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
-and (C) Stephane Fillod 2000,2001
+and (C) Stephane Fillod 2000-2002
 
 The purpose of this project is to provide stable, flexible,
 shared libraries that enable quicker development of Amateur
@@ -56,10 +56,13 @@ Hamlib is entirely developped using GNU tools, under various Linux systems.
 That is, if you want to take part in the development of Hamlib, 
 you'll need at least the following tools:
 	* autoconf > 2.50
-	* automake > 1.4-p4
+	* automake > 1.5
 	* libtool  > 1.4.2
 	* doxygen
 	* cvs and ssh to connect to http://sourceforge.net/
+
+There's also a README.betatester and README.developer files in this directory
+if you feel like hacking hamlib.
 
 However, if you just want to recompile the library, please refer
 to the INSTALL file. IMPORTANT: If autoconf or automake are installed on
