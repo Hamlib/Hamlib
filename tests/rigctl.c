@@ -7,7 +7,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.20 2001-07-25 21:59:55 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.21 2001-09-22 11:49:19 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -46,8 +46,17 @@
 #define MAXNBOPT 100	/* max number of different options */
 
 
-#define ARG_IN  0x01
-#define ARG_OUT 0x02
+#define ARG_IN1  0x01
+#define ARG_OUT1 0x02
+#define ARG_IN2  0x04
+#define ARG_OUT2 0x08
+#define ARG_IN3  0x10
+#define ARG_OUT3 0x20
+#define ARG_IN4  0x40
+#define ARG_OUT4 0x80
+
+#define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
+#define ARG_OUT  (ARG_OUT1|ARG_OUT2|ARG_OUT3|ARG_OUT4)
 
 struct test_table {
 	unsigned char cmd;
@@ -142,15 +151,15 @@ struct test_table test_list[] = {
 		{ 'N', "set_ts", set_ts, ARG_IN, "Tuning step" },
 		{ 'n', "get_ts", get_ts, ARG_OUT, "Tuning step" },
 		{ 'L', "set_level", set_level, ARG_IN, "Level", "Value" },
-		{ 'l', "get_level", get_level, ARG_OUT, "Level", "Value" },
+		{ 'l', "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Value" },
 		{ 'U', "set_func", set_func, ARG_IN, "Func", "Func status" },
-		{ 'u', "get_func", get_func, ARG_OUT, "Func", "Func status" },
+		{ 'u', "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
 		{ 'E', "set_mem", set_mem, ARG_IN, "Memory#" },
 		{ 'e', "get_mem", get_mem, ARG_OUT, "Memory#" },
 		{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
 		{ 'g', "scan", scan, ARG_IN, "Scan fct", "Channel" },
 		{ 'H', "set_channel", set_channel, ARG_IN,  /* huh! */ },
-		{ 'h', "get_channel", get_channel, ARG_OUT, "Channel" },
+		{ 'h', "get_channel", get_channel, ARG_IN, "Channel" },
 		{ 'A', "set_trn", set_trn, ARG_IN, "Transceive" },
 		{ 'a', "get_trn", get_trn, ARG_OUT, "Transceive" },
 		{ 'B', "set_bank", set_bank, ARG_IN, "Bank" },
@@ -165,7 +174,7 @@ struct test_table test_list[] = {
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:P:d:D:vhVl"
+#define SHORT_OPTIONS "m:r:p:P:d:D:c:vhVl"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -174,6 +183,7 @@ static struct option long_options[] =
 	{"dcd-file", 1, 0, 'd'},
 	{"ptt-type", 1, 0, 'P'},
 	{"dcd-type", 1, 0, 'D'},
+	{"civaddr",  1, 0, 'c'},
 	{"list",     0, 0, 'l'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
@@ -219,6 +229,7 @@ int main (int argc, char *argv[])
 	const char *rig_file=NULL, *ptt_file=NULL, *dcd_file=NULL;
 	ptt_type_t ptt_type = RIG_PTT_NONE;
 	dcd_type_t dcd_type = RIG_DCD_NONE;
+	char *civaddr = NULL;	/* NULL means no need to set conf */
 
 	while(1) {
 		int c;
@@ -278,6 +289,13 @@ int main (int argc, char *argv[])
 					}
 					dcd_type = atoi(optarg);
 					break;
+			case 'c':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					civaddr = optarg;
+					break;
 			case 'v':
 					verbose++;
 					break;
@@ -322,6 +340,9 @@ int main (int argc, char *argv[])
 		strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN);
 	if (dcd_file)
 		strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN);
+	if (civaddr)
+        rig_set_conf(my_rig, rig_token_lookup(my_rig, "civaddr"), civaddr);
+
 
 	if ((retcode = rig_open(my_rig)) != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
@@ -337,12 +358,24 @@ int main (int argc, char *argv[])
 			char arg1[MAXARGSZ+1], *p1;
 			char arg2[MAXARGSZ+1], *p2;
 			char arg3[MAXARGSZ+1], *p3;
+			static int last_was_ret = 1;
 
 			if (interactive) {
 				printf("\nRig command: ");
-				scanf("%c", &cmd);
-				if (cmd == 0x0a)
-						scanf("%c", &cmd);
+
+				do {
+					scanf("%c", &cmd);
+					if (cmd == 0x0a || cmd == 0x0d) {
+						if (last_was_ret) {
+							printf("? for help, q to quit.\n");
+							printf("\nRig command: ");
+							continue;
+						}
+						last_was_ret = 1;
+					}
+				} while (cmd == 0x0a || cmd == 0x0d);
+
+				last_was_ret = 0;
 
 				if (cmd == 'Q' || cmd == 'q')
 						break;
@@ -368,48 +401,46 @@ int main (int argc, char *argv[])
 			}
 
 			p1 = p2 = p3 = NULL;
-			if (cmd_entry->flags & ARG_IN) {
-				if (cmd_entry->arg1) {
-					if (interactive) {
-						printf("%s: ", cmd_entry->arg1);
-						scanf("%s", arg1);
-						p1 = arg1;
-					} else {
-						if (!argv[optind]) {
-							fprintf(stderr, "Invalid arg for command '%s'\n", 
-										cmd_entry->name);
-							exit(2);
-						}
-						p1 = argv[optind++];
+			if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+				if (interactive) {
+					printf("%s: ", cmd_entry->arg1);
+					scanf("%s", arg1);
+					p1 = arg1;
+				} else {
+					if (!argv[optind]) {
+						fprintf(stderr, "Invalid arg for command '%s'\n", 
+									cmd_entry->name);
+						exit(2);
 					}
+					p1 = argv[optind++];
 				}
-				if (cmd_entry->arg2) {
-					if (interactive) {
-						printf("%s: ", cmd_entry->arg2);
-						scanf("%s", arg2);
-						p2 = arg2;
-					} else {
-						if (!argv[optind]) {
-							fprintf(stderr, "Invalid arg for command '%s'\n", 
-										cmd_entry->name);
-							exit(2);
-						}
-						p2 = argv[optind++];
+			}
+			if ((cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
+				if (interactive) {
+					printf("%s: ", cmd_entry->arg2);
+					scanf("%s", arg2);
+					p2 = arg2;
+				} else {
+					if (!argv[optind]) {
+						fprintf(stderr, "Invalid arg for command '%s'\n", 
+									cmd_entry->name);
+						exit(2);
 					}
+					p2 = argv[optind++];
 				}
-				if (cmd_entry->arg3) {
-					if (interactive) {
-						printf("%s: ", cmd_entry->arg3);
-						scanf("%s", arg3);
-						p3 = arg3;
-					} else {
-						if (!argv[optind]) {
-							fprintf(stderr, "Invalid arg for command '%s'\n", 
-										cmd_entry->name);
-							exit(2);
-						}
-						p3 = argv[optind++];
+			}
+			if ((cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
+				if (interactive) {
+					printf("%s: ", cmd_entry->arg3);
+					scanf("%s", arg3);
+					p3 = arg3;
+				} else {
+					if (!argv[optind]) {
+						fprintf(stderr, "Invalid arg for command '%s'\n", 
+									cmd_entry->name);
+						exit(2);
 					}
+					p3 = argv[optind++];
 				}
 			}
 			retcode = (*cmd_entry->rig_routine)(my_rig, interactive, 
@@ -438,7 +469,7 @@ void usage_rig()
 {
 		int i;
 
-		printf("Commands:\n");
+		printf("Commands (may not be available for this rig):\n");
 		for (i=0; test_list[i].cmd != 0; i++) {
 			printf("%c: %-16s(", test_list[i].cmd, test_list[i].name);
 			if (test_list[i].arg1)
@@ -467,6 +498,7 @@ void usage()
 	"  -d, --dcd-file=DEVICE      set device of the DCD device to operate on\n"
 	"  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
 	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
+	"  -c, --civaddr=ID           set CI-V address (for Icom rigs only)\n"
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
