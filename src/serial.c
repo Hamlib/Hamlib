@@ -1,10 +1,10 @@
 /*
  *  Hamlib Interface - serial communication low-level support
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.28 2002-11-28 22:33:48 fillods Exp $
+ *	$Id: serial.c,v 1.29 2003-02-23 22:36:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -424,37 +424,39 @@ int ser_close(port_t *p)
 #endif
 }
 
+int ser_set_rts(const port_t *p, int state)
+{
+#if defined(_WIN32) || defined(__CYGWIN__)
+		/*
+		 * TODO: log error with 0x%lx GetLastError()
+		 */
+	return !EscapeCommFunction(p->handle, state ? SETRTS : CLRRTS);
+#else
+	unsigned char y = TIOCM_RTS;
+	return ioctl(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+#endif
+}
+
+int ser_set_dtr(const port_t *p, int state)
+{
+#if defined(_WIN32) || defined(__CYGWIN__)
+	return !EscapeCommFunction(p->handle, state ? SETDTR : CLRDTR);
+#else
+	unsigned char y = TIOCM_DTR;
+	return ioctl(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+#endif
+}
+
 /* 
  * p is supposed to be &rig->state.pttport
  */
 int ser_ptt_set(port_t *p, ptt_t pttx)
 {
 		switch(p->type.ptt) {
-#if defined(_WIN32) || defined(__CYGWIN__)
-		/*
-		 * TODO: log error with 0x%lx GetLastError()
-		 */
 		case RIG_PTT_SERIAL_RTS:
-			return !EscapeCommFunction(p->handle, pttx==RIG_PTT_ON ? 
-														SETRTS : CLRRTS);
-
+			return ser_set_rts(p, pttx==RIG_PTT_ON);
 		case RIG_PTT_SERIAL_DTR:
-			return !EscapeCommFunction(p->handle, pttx==RIG_PTT_ON ? 
-														SETDTR : CLRDTR);
-#else
-		case RIG_PTT_SERIAL_RTS:
-			{
-				unsigned char y = TIOCM_RTS;
-				return ioctl(p->fd, pttx==RIG_PTT_ON ? TIOCMBIS : TIOCMBIC, &y);
-			}
-
-		case RIG_PTT_SERIAL_DTR:
-			{
-				unsigned char y = TIOCM_DTR;
-				return ioctl(p->fd, pttx==RIG_PTT_ON ? TIOCMBIS : TIOCMBIC, &y);
-			}
-#endif
-
+			return ser_set_dtr(p, pttx==RIG_PTT_ON);
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
 								p->type.ptt);
