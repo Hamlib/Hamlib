@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.3 2002-06-29 08:42:29 dedmons Exp $
+ *		$Id: ts2k.c,v 1.4 2002-06-29 09:54:50 dedmons Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -65,7 +65,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.3 2002-06-29 08:42:29 dedmons Exp $
+ *		$Id: ts2k.c,v 1.4 2002-06-29 09:54:50 dedmons Exp $
  */
 
 
@@ -157,7 +157,7 @@ const int ts2k_ctcss_list[] = {
 	670, 719, 744, 770, 797, 825, 854, 885, 915, 948,
 	974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
 	1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799, 1862,
-	1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503, // 17500,
+	1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503, 17500,
 	/* Note: 17500 is not available as ctcss, only tone. --kd7eni */
 	0,
 };
@@ -2269,9 +2269,9 @@ int ts2k_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift)
 	case '2':
 		*rptr_shift = RIG_RPT_SHIFT_PLUS;
 		break;
-	case '3':
-		*rptr_shift = RIG_RPT_SHIFT_1750;
-		break;
+//	case '3':
+//		*rptr_shift = RIG_RPT_SHIFT_1750;
+//		break;
 
 	default:
 		return -RIG_EINVAL;
