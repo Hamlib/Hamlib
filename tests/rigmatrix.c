@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.7 2001-02-14 01:12:59 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.8 2001-02-15 00:01:35 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -137,6 +137,45 @@ int print_caps_parms(const struct rig_caps *caps, void *data)
 			printf("Unknown");
 	}
 
+	printf("</TD><TD>");
+
+	switch (caps->dcd_type) {
+	case RIG_DCD_RIG:
+			printf("rig");
+			break;
+	case RIG_DCD_PARALLEL:
+			printf("parallel");
+			break;
+	case RIG_DCD_SERIAL_CTS:
+	case RIG_DCD_SERIAL_DSR:
+			printf("serial");
+			break;
+	case RIG_DCD_NONE:
+			printf("None");
+			break;
+	default:
+			printf("Unknown");
+	}
+
+	printf("</TD><TD>");
+
+	switch (caps->port_type) {
+	case RIG_PORT_SERIAL:
+			printf("serial");
+			break;
+	case RIG_PORT_DEVICE:
+			printf("device");
+			break;
+	case RIG_PORT_NETWORK:
+			printf("network");
+			break;
+	case RIG_PORT_NONE:
+			printf("None");
+			break;
+	default:
+			printf("Unknown");
+	}
+
 	printf("</TD><TD>%d</TD><TD>%d</TD><TD>%d%c%d</TD><TD>%s</TD>", 
 					caps->serial_rate_min, caps->serial_rate_max,
 					caps->serial_data_bits,
@@ -178,6 +217,7 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 	print_yn(caps->get_vfo);
 	print_yn(caps->set_ptt);
 	print_yn(caps->get_ptt);
+	print_yn(caps->get_dcd);
 	print_yn(caps->set_rptr_shift);
 	print_yn(caps->get_rptr_shift);
 	print_yn(caps->set_rptr_offs);
@@ -506,7 +546,8 @@ int main (int argc, char *argv[])
 	printf("<P>");
 
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD><TD>PTT</TD><TD>Speed min</TD><TD>Speed max</TD>"
+	printf("<TR><TD>Model</TD><TD>PTT</TD><TD>DCD</TD><TD>Port</TD>"
+					"<TD>Speed min</TD><TD>Speed max</TD>"
 					"<TD>Parm.</TD><TD>Handshake</TD><TD>Write delay</TD>"
 					"<TD>Post delay</TD><TD>Timeout</TD><TD>Retry</TD></TR>\n");
 	status = rig_list_foreach(print_caps_parms,NULL);
@@ -526,7 +567,7 @@ int main (int argc, char *argv[])
 					"<TD>Set freq</TD><TD>Get freq</TD>"
 					"<TD>Set mode</TD><TD>Get mode</TD>"
 					"<TD>Set VFO</TD><TD>Get VFO</TD>"
-					"<TD>Set PTT</TD><TD>Get PTT</TD>"
+					"<TD>Set PTT</TD><TD>Get PTT</TD><TD>Get DCD</TD>"
 					"<TD>Set rptr shift</TD><TD>Get rptr shift</TD>"
 					"<TD>Set rptr offs</TD><TD>Get rptr offs</TD>"
 					"<TD>Set split frq</TD><TD>Get split frq</TD>"
