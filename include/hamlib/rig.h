@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.98 2004-08-10 21:00:12 fillods Exp $
+ *	$Id: rig.h,v 1.99 2004-09-14 22:15:42 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -581,6 +581,7 @@ enum rig_level_e {
 	RIG_LEVEL_SWR =		(1<<28),/*!< SWR, arg float */
 	RIG_LEVEL_ALC =		(1<<29),/*!< ALC, arg float */
 	RIG_LEVEL_STRENGTH =	(1<<30) /*!< Effective (calibrated) signal strength relative to S9, arg int (dB) */
+	/*RIG_LEVEL_BWC =		(1<<31)*/ /*!< Bandwidth Control, arg int (Hz) */
 };
 
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
