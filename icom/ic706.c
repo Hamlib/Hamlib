@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.7 2000-10-23 19:48:12 f4cfe Exp $  
+ * $Id: ic706.c,v 1.8 2000-11-28 22:26:20 f4cfe Exp $  
  *
  *
  *
@@ -221,6 +221,12 @@ set_ts: icom_set_ts,
 get_ts: icom_get_ts,
 set_rptr_shift: icom_set_rptr_shift,
 get_rptr_shift: icom_get_rptr_shift,
+set_rptr_offs: icom_set_rptr_offs,
+get_rptr_offs: icom_get_rptr_offs,
+set_split_freq: icom_set_split_freq,
+get_split_freq: icom_get_split_freq,
+set_split: icom_set_split,
+get_split: icom_get_split,
 };
 
 
