@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.28 2002-10-03 20:13:35 fillods Exp $
+ *	$Id: dummy.c,v 1.29 2002-11-04 22:36:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,6 +38,7 @@
 #include <serial.h>
 #include <misc.h>
 #include <tones.h>
+#include <idx_builtin.h>
 
 #include "dummy.h"
 
@@ -976,11 +977,39 @@ static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 #define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | \
                      RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM)
 
+#define DUMMY_MEM_CAP {    \
+	.bank_num = 1,	\
+	.vfo = 1,	\
+	.ant = 1,	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+	.tx_freq = 1,	\
+	.tx_mode = 1,	\
+	.tx_width = 1,	\
+	.split = 1,	\
+	.rptr_shift = 1,	\
+	.rptr_offs = 1,	\
+	.tuning_step = 1,	\
+	.rit = 1,	\
+	.xit = 1,	\
+	.funcs = 1,	\
+	.levels = 1,	\
+	.ctcss_tone = 1,	\
+	.ctcss_sql = 1,	\
+	.dcs_code = 1,	\
+	.dcs_sql = 1,	\
+	.scan_group = 1,	\
+	.flags = 1,	\
+	.channel_desc = 1,	\
+	.ext_levels = 1,	\
+	}
+
 const struct rig_caps dummy_caps = {
   .rig_model =      RIG_MODEL_DUMMY,
   .model_name =     "Dummy",
   .mfg_name =       "Hamlib",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_OTHER,
@@ -994,12 +1023,13 @@ const struct rig_caps dummy_caps = {
   .has_set_level =  RIG_LEVEL_SET(DUMMY_LEVEL),
   .has_get_parm = 	 DUMMY_PARM,
   .has_set_parm = 	 RIG_PARM_SET(DUMMY_PARM),
+  .level_gran =		{ [LVL_CWPITCH] = { .step = 10 } },
   .ctcss_list = 	 common_ctcss_list,
   .dcs_list =   	 full_dcs_list,
   .chan_list = 	 {
-			{   0,  18, RIG_MTYPE_MEM, 0 },
-			{  19,  19, RIG_MTYPE_CALL, 0 },
-			{  20,  21, RIG_MTYPE_EDGE, 0 },
+			{   0,  18, RIG_MTYPE_MEM, DUMMY_MEM_CAP },
+			{  19,  19, RIG_MTYPE_CALL },
+			{  20,  21, RIG_MTYPE_EDGE },
 			RIG_CHAN_END,
 		 },
   .scan_ops = 	 DUMMY_SCAN,
@@ -1012,6 +1042,17 @@ const struct rig_caps dummy_caps = {
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
   .tuning_steps =  { {DUMMY_MODES,1}, RIG_TS_END, },
+  .filters =  {
+	{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},
+	{RIG_MODE_CW, Hz(500)},
+	{RIG_MODE_AM, kHz(8)},
+	{RIG_MODE_AM, kHz(2.4)},
+	{RIG_MODE_FM, kHz(15)},
+	{RIG_MODE_FM, kHz(8)},
+	{RIG_MODE_WFM, kHz(230)},
+	RIG_FLT_END,
+  },
+
   .priv =  NULL,	/* priv */
 
   .rig_init =     dummy_init,
