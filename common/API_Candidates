@@ -1,3 +1,68 @@
+/*
+ *  
+ * API Notes -- FS
+ *
+ */
+
+
+I think it is more intuitive  to code things as follows...
+
+backend must implement all opcodes (of course)
+this may infer function names like thus (at least according
+to yaesu docs not passing vfo as a parameter  - aaarrrgh).
+
+
+eg 6 functions in backend ..
+
+int cmd_set_freq_main_vfo_hz(RIG *rig,freq_t freq, rig_mode_t mode);
+int cmd_set_freq_sat_rx_vfo_hz(RIG *rig,freq_t freq, rig_mode_t mode);
+int cmd_set_freq_sat_tx_vfo_hz(RIG *rig,freq_t freq, rig_mode_t mode);
+
+long int cmd_get_freq_mode_status_main_vfo(RIG *rig, unsigned char *mode);
+long int cmd_get_freq_mode_status_sat_rx_vfo(RIG *rig, unsigned char *mode);
+long int cmd_get_freq_mode_status_sat_tx_vfo(RIG *rig, unsigned char *mode);
+
+This creates a large function namespace, this is ok as there
+shall be wrappers for them up front anyway. Also, bakend must test
+all opcodes anyway.
+
+However, frontend should have reduced namespace for function calls.
+
+eg result, 2 functions up front ....
+
+cmd_set_freq(RIG *rig,freq_t freq, rig_mode_t mode, vfo_t vfo )
+long int cmd_get_freq_mode_status(RIG *rig, unsigned char *mode, vfo_t vfo);
+
+ie: 3 to 1 reduction, and an emphasis on what parameters
+you are setting on the rig, driven more by the parameter
+list, than extending function names.
+
+so, lets create some enums
+
+enum rig_vfo_e {
+	RIG_VFO_MAIN = 0,
+	RIG_VFO_RX,
+	RIG_VFO_TX,
+	RIG_VFO_SUB,
+
+	/* etc */
+
+}
+
+typedef enum rig_vfo_e rig_vfo_t;
+
+enum rig_rptr_shift_e {
+	RIG_RPT_SHIFT_NONE = 0,
+	RIG_RPT_SHIFT_MINUS,
+	RIG_RPT_SHIFT_PLUS,
+	/* etc */
+
+}
+
+typedef enum rig_rptr_shift_e rig_rptr_shift_t;
+
+
+
 
 #include <rigcaps.h>
 
