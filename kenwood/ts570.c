@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.10 2002-09-03 18:55:05 pa4tu Exp $
+ *	$Id: ts570.c,v 1.11 2002-09-04 17:32:42 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -345,6 +345,10 @@ const struct rig_caps ts570d_caps = {
 
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
+.set_rit =  kenwood_set_rit,
+.get_rit =  kenwood_get_rit,
+.set_xit =  kenwood_set_xit,
+.get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,

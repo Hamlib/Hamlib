@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS440 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts440.c,v 1.4 2002-09-03 18:58:41 pa4tu Exp $
+ *	$Id: ts440.c,v 1.5 2002-09-04 17:32:42 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -147,6 +147,8 @@ const struct rig_caps ts440_caps = {
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
+.set_xit =  kenwood_set_xit,
+.get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_old_set_vfo,

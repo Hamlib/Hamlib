@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.44 2002-09-04 15:10:21 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.45 2002-09-04 17:32:42 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -497,6 +497,19 @@ int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
 
 	return RIG_OK;
+}
+
+/* 
+ * rit and xit are the same
+ */
+int kenwood_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
+{
+        return kenwood_get_rit(rig, vfo, rit);
+}
+
+int kenwood_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
+{
+        return kenwood_set_rit(rig, vfo, rit);
 }
 
 
