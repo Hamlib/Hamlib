@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.8 2000-10-30 21:45:27 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.9 2000-11-28 22:31:40 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -233,6 +233,8 @@ typedef union value_u value_t;
 #define RIG_LEVEL_BALANCE	(1<<19)	/* Balance (Dual Watch), arg float [0.0 .. 1.0] */
 #define RIG_LEVEL_ANN		(1<<20)	/* Announce, arg int (see enum ann_level_e) */
 		/* These ones are not settable */
+#define RIG_LEVEL_SWR		(1<<28)	/* SWR, arg float */
+#define RIG_LEVEL_ALC		(1<<29)	/* ALC, arg float */
 #define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0) */
 #define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (db) */
 
@@ -259,6 +261,7 @@ typedef unsigned long setting_t;	/* at least 32 bits */
 #define RIG_FUNC_FBKIN    	(1<<7)		/* Full Break-in, for CW mode */
 #define RIG_FUNC_ANF    	(1<<8)		/* Automatic Notch Filter (DSP) */
 #define RIG_FUNC_NR     	(1<<9)		/* Noise Reduction (DSP) */
+#define RIG_FUNC_AIP     	(1<<10)		/* AIP (Kenwood) */
 
 
 
@@ -451,6 +454,9 @@ struct rig_caps {
   int (*set_split)(RIG *rig, split_t split);
   int (*get_split)(RIG *rig, split_t *split);
 
+  int (*set_rit)(RIG *rig, signed long rit);
+  int (*get_rit)(RIG *rig, signed long *rit);
+
   int (*set_ts)(RIG *rig, unsigned long ts); /* set tuning step */
   int (*get_ts)(RIG *rig, unsigned long *ts); /* get tuning step */
 
@@ -458,6 +464,11 @@ struct rig_caps {
   int (*get_dcs)(RIG *rig, unsigned int *code);
   int (*set_ctcss)(RIG *rig, unsigned int tone);
   int (*get_ctcss)(RIG *rig, unsigned int *tone);
+
+  int (*set_dcs_sql)(RIG *rig, unsigned int code);
+  int (*get_dcs_sql)(RIG *rig, unsigned int *code);
+  int (*set_ctcss_sql)(RIG *rig, unsigned int tone);
+  int (*get_ctcss_sql)(RIG *rig, unsigned int *tone);
 
   /*
    * It'd be nice to have a power2mW and mW2power functions
@@ -494,6 +505,9 @@ struct rig_caps {
 
   int (*set_channel)(RIG *rig, const channel_t *chan);
   int (*get_channel)(RIG *rig, channel_t *chan);
+
+  /* get firmware info, etc. */
+  unsigned char* (*get_info)(RIG *rig);
 
   /* more to come... */
 };
@@ -603,10 +617,18 @@ extern int rig_get_ctcss(RIG *rig, unsigned int *tone);
 extern int rig_set_dcs(RIG *rig, unsigned int code);
 extern int rig_get_dcs(RIG *rig, unsigned int *code);
 
+extern int rig_set_ctcss_sql(RIG *rig, unsigned int tone);
+extern int rig_get_ctcss_sql(RIG *rig, unsigned int *tone);
+extern int rig_set_dcs_sql(RIG *rig, unsigned int code);
+extern int rig_get_dcs_sql(RIG *rig, unsigned int *code);
+
 extern int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq);
 extern int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
 extern int rig_set_split(RIG *rig, split_t split);
 extern int rig_get_split(RIG *rig, split_t *split);
+
+extern int rig_set_rit(RIG *rig, signed long rit);
+extern int rig_get_rit(RIG *rig, signed long *rit);
 
 extern int rig_set_ts(RIG *rig, unsigned long ts); /* set tuning step */
 extern int rig_get_ts(RIG *rig, unsigned long *ts); /* get tuning step */
@@ -646,6 +668,9 @@ extern int rig_get_channel(RIG *rig, channel_t *chan);
 
 extern int rig_set_trn(RIG *rig, int trn); /* activate the transceive mode */
 extern int rig_get_trn(RIG *rig, int *trn);
+
+
+extern unsigned char *rig_get_info(RIG *rig);
 
 extern const struct rig_caps *rig_get_caps(rig_model_t rig_model);
 const freq_range_t *rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode);
