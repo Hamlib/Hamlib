@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.10 2001-04-22 13:57:39 f4cfe Exp $  
+ * $Id: ft747.c,v 1.11 2001-05-03 01:47:51 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -126,29 +126,56 @@ static const yaesu_cmd_set_t ncmd[] = {
  */
 
 const struct rig_caps ft747_caps = {
-  RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", "GPL?",
-  RIG_STATUS_ALPHA, RIG_TYPE_MOBILE, 
-  RIG_PTT_RIG, RIG_DCD_NONE, RIG_PORT_SERIAL,
-  4800, 4800, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
-  FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,
-  FT747_FUNC_ALL, FT747_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { RIG_DBLST_END, },	/* FIXME! */
-  { RIG_DBLST_END, },
-  NULL,
-  Hz(9999), Hz(0),	/* RIT, IF-SHIFT */
-  0,			/* FIXME: VFO list */
-  0, RIG_TRN_OFF,
-  20, 0, 0,
+  rig_model:       RIG_MODEL_FT747, 
+  model_name:      "FT-747GX", 
+  mfg_name:        "Yaesu", 
+  version:          "0.1", 
+  copyright:        "LGPL?",
+  status:           RIG_STATUS_ALPHA, 
+  rig_type:         RIG_TYPE_MOBILE, 
+  ptt_type:         RIG_PTT_RIG,
+  dcd_type:         RIG_DCD_NONE,
+  port_type:        RIG_PORT_SERIAL,
+  serial_rate_min:  4800,
+  serial_rate_max:  4800,
+  serial_data_bits: 8,
+  serial_stop_bits: 2,
+  serial_parity:    RIG_PARITY_NONE,
+  serial_handshake: RIG_HANDSHAKE_NONE,
+  write_delay:      FT747_WRITE_DELAY,
+  post_write_delay: FT747_POST_WRITE_DELAY,
+  timeout:          2000,
+  retry:            0,
+  has_get_func:     FT747_FUNC_ALL,
+  has_set_func:     FT747_FUNC_ALL,
+  has_get_level:    RIG_LEVEL_NONE,
+  has_set_level:    RIG_LEVEL_NONE,
+  has_get_parm:     RIG_PARM_NONE,
+  has_set_parm:     RIG_PARM_NONE,
+  ctcss_list:       NULL,
+  dcs_list:         NULL,
+  preamp:           { RIG_DBLST_END, },
+  attenuator:       { RIG_DBLST_END, },
+  dtmf_digits:      NULL,
+  max_rit:          Hz(9999),
+  max_ifshift:      Hz(0),
+  vfo_list:         0,
+  targetable_vfo:   0,
+  transceive:       RIG_TRN_OFF,
+  chan_qty:         20,
+  bank_qty:         0,
+  chan_desc_sz:     0,
+  chan_list:        { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
-  { RIG_CHAN_END, },	/* FIXME: memory channel list */
+  rx_range_list1:   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 
-  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
-  { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, RIG_FRNG_END, }, /* rx range */
-  
-  { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
+  tx_range_list1:   { RIG_FRNG_END, },
+
+  rx_range_list2:   { { start:kHz(100), end:MHz(29.9999), 
+			modes:FT747_ALL_RX_MODES,low_power:-1,high_power:-1}, 
+		      RIG_FRNG_END, }, /* rx range */
+
+  tx_range_list2:   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
     {1500000,1999900,FT747_AM_TX_MODES,2000,25000},	/* 25W class */
     
     {3500000,3999900,FT747_OTHER_TX_MODES,5000,100000},
@@ -176,6 +203,8 @@ const struct rig_caps ft747_caps = {
     {28000000,29999900,FT747_AM_TX_MODES,2000,25000},
     
     RIG_FRNG_END, },
+
+
   
   { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
     {FT747_SSB_CW_RX_MODES,2500}, /* fast on */
