@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.13 2002-09-29 19:40:56 fillods Exp $
+ *	$Id: event.c,v 1.14 2002-09-29 20:18:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -131,7 +131,7 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 	/*
 	 * so far, only file oriented ports have event reporting support
 	 */
-	if (rig->state.rigport.type != RIG_PORT_SERIAL || 
+	if (rig->state.rigport.type.rig != RIG_PORT_SERIAL || 
 			rig->state.rigport.fd == -1)
 		return -1;
 
