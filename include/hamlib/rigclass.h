@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.4 2001-10-02 08:16:19 terry Exp $
+ *		$Id: rigclass.h,v 1.5 2001-11-08 07:38:38 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,6 +89,8 @@ public:
   int getMem (vfo_t vfo = RIG_VFO_CURR);
   void setPowerStat (powerstat_t status);
   powerstat_t getPowerStat (void);
+  rmode_t RngRxModes (freq_t freq);
+  rmode_t RngTxModes (freq_t freq);
 
 
   shortfreq_t getResolution (rmode_t mode);

@@ -1,8 +1,17 @@
+/**
+ * \file src/rigclass.cc
+ * \brief Ham Radio Control Libraries C++ interface
+ * \author Stephane Fillod
+ * \date 2001
+ *
+ * Hamlib C++ interface is a frontend implementing wrapper functions.
+ */
+
 /*
  *  Hamlib C++ bindings - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.cc,v 1.3 2001-07-13 19:16:58 f4cfe Exp $
+ *		$Id: rigclass.cc,v 1.4 2001-11-08 07:38:38 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -372,5 +381,41 @@ powerstat_t Rig::getPowerStat (void)
 	CHECK_RIG( rig_get_powerstat(theRig, &status) );
 
 	return status;
+}
+
+rmode_t Rig::RngRxModes (freq_t freq)
+{
+	rmode_t modes = RIG_MODE_NONE;
+	freq_range_t *rng;
+	int i;
+
+	for (i=0; i<FRQRANGESIZ; i++) {
+		rng = &theRig->state.rx_range_list[i];
+		if (RIG_IS_FRNG_END(*rng)) {
+			return modes;
+		}
+		if (freq >= rng->start && freq <= rng->end)
+			modes |= rng->modes;
+	}
+
+	return modes;
+}
+
+rmode_t Rig::RngTxModes (freq_t freq)
+{
+	rmode_t modes = RIG_MODE_NONE;
+	freq_range_t *rng;
+	int i;
+
+	for (i=0; i<FRQRANGESIZ; i++) {
+		rng = &theRig->state.tx_range_list[i];
+		if (RIG_IS_FRNG_END(*rng)) {
+			return modes;
+		}
+		if (freq >= rng->start && freq <= rng->end)
+			modes |= rng->modes;
+	}
+
+	return modes;
 }
 
