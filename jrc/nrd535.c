@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-535 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd535.c,v 1.10 2004-09-05 00:33:56 fineware Exp $
+ *	$Id: nrd535.c,v 1.11 2004-09-14 22:19:09 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 
 #define NRD535_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB)
 
-#define NRD535_LEVEL (RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_IF|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH)
+#define NRD535_LEVEL (RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_IF|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH) /*RIG_LEVEL_BWC*/
 
 /* FIXME: add more from "U" command */
 #define NRD535_PARM (RIG_PARM_TIME|RIG_PARM_BEEP)
@@ -126,6 +126,7 @@ const struct rig_caps nrd535_caps = {
 	[LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 20 } },
 	[LVL_IF] = { .min = { .i = -2000 }, .max = { .i = 2000 } },
 	[LVL_CWPITCH] = { .min = { .i = -5000 }, .max = { .i = 5000 } },
+	/*[LVL_BWC] = { .min = { .i = 500 }, .max = { .i = 5500 }, .step = { .i = 10} },*/
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.14 2004-09-05 00:33:56 fineware Exp $
+ *	$Id: nrd545.c,v 1.15 2004-09-14 22:19:10 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 
 #define NRD545_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_BC|RIG_FUNC_NR)
 
-#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH)
+#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH) /*RIG_LEVEL_BWC*/
 
 /* FIXME: add more from "U" command */
 #define NRD545_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
@@ -121,6 +121,11 @@ const struct rig_caps nrd545_caps = {
 .has_set_parm =  RIG_PARM_SET(NRD545_PARM),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 20 } },
+	[LVL_IF] = { .min = { .i = -2550 }, .max = { .i = 2550 }, .step = { .i = 10} },
+	[LVL_NOTCHF] = { .min = { .i = -1023 }, .max = { .i = 1023 } },
+	[LVL_CWPITCH] = { .min = { .i = -2550 }, .max = { .i = 2550 } },
+	/*[LVL_BWC] = { .min = { .i = 10 }, .max = { .i = 9990 }, .step = { .i = 10} },*/
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,
