@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backend
  * 	as well as by the frontend.
  *
- * $Id: misc.c,v 1.3 2000-10-16 21:53:22 f4cfe Exp $  
+ * $Id: misc.c,v 1.4 2000-12-22 01:16:17 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -81,43 +81,6 @@ void dump_hex(const unsigned char ptr[], size_t size)
   }
 
 } 
-
-
-/*
- * Convert char to packed decimal
- * eg: 33 (0x21) => 0x33
- *
- */
-
-char calc_packed_from_char(unsigned char dec ) {
- 
-  char d1,d2,pkd;
-
-  d1 = dec/10;
-  d2 = dec - (d1 * 10);
-  pkd = (d1*16)+d2;
- 
-  return pkd;
-}
-
-
-/*
- * Convert packed decimal to decimal
- * eg: 0x33 (51) => 33 decimal
- *
- */
-
-char calc_char_from_packed(unsigned char pkd ) {
- 
-  char d1,d2,dec;
-
-  d1 = pkd/16;
-  d2 = pkd - (d1 * 16);
-  dec = (d1*10)+d2;
-
-  return dec;
-}
-
 
 
 /*

@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backends
  * 	as well as by the frontend.
  *
- *    $Id: misc.h,v 1.3 2000-10-16 21:53:22 f4cfe Exp $  
+ *    $Id: misc.h,v 1.4 2000-12-22 01:16:17 javabear Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,24 +38,6 @@
 #define Hold_Decode(rig) {(rig)->state.hold_decode = 1;}
 #define Unhold_Decode(rig) {(rig)->state.hold_decode = 0;}
 
-
-
-/*
- * Convert char to packed decimal
- * eg: 33 (0x21) => 0x33
- *
- */
-
-char calc_packed_from_char(unsigned char dec );
-
-
-/*
- * Convert packed decimal to decimal
- * eg: 0x33 (51) => 33 decimal
- *
- */
-
-char calc_char_from_packed(unsigned char pkd );
 
 /*
  * Do a hex dump of the unsigned char array.
