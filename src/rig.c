@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.27 2001-05-04 22:44:10 f4cfe Exp $
+   $Id: rig.c,v 1.28 2001-05-24 22:24:18 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -3345,7 +3345,7 @@ int rig_save_channel(RIG *rig, channel_t *chan)
   rig_get_rptr_offs(rig, RIG_VFO_CURR, &chan->rptr_offs);
 
   for (i=0; i<RIG_SETTING_MAX; i++)
-  	rig_get_level(rig, RIG_VFO_CURR, 1<<i, &chan->levels[i]);
+  	rig_get_level(rig, RIG_VFO_CURR, rig_idx2setting(i), &chan->levels[i]);
 
   rig_get_ant(rig, RIG_VFO_CURR, &chan->ant);
   rig_get_ts(rig, RIG_VFO_CURR, &chan->tuning_step);
@@ -3355,8 +3355,8 @@ int rig_save_channel(RIG *rig, channel_t *chan)
   chan->funcs = 0;
   for (i=0; i<RIG_SETTING_MAX; i++) {
   	int fstatus;
-  	rig_get_func(rig, RIG_VFO_CURR, 1<<i, &fstatus);
-	chan->funcs |= fstatus? 1<<i : 0;
+  	rig_get_func(rig, RIG_VFO_CURR, rig_idx2setting(i), &fstatus);
+	chan->funcs |= fstatus? rig_idx2setting(i) : 0;
   }
 
   rig_get_ctcss(rig, RIG_VFO_CURR, &chan->ctcss);
@@ -3416,9 +3416,8 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
   rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT, chan->att);
   rig_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP, chan->preamp);
 #else
-// define rig_idx2setting(s) (1<<(s))
   for (i=0; i<RIG_SETTING_MAX; i++)
-  	rig_set_level(rig, RIG_VFO_CURR, 1<<i, chan->levels[i]);
+  	rig_set_level(rig, RIG_VFO_CURR, rig_idx2setting(i), chan->levels[i]);
 #endif
 
   rig_set_ant(rig, RIG_VFO_CURR, chan->ant);
@@ -3427,7 +3426,8 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
   rig_set_xit(rig, RIG_VFO_CURR, chan->xit);
 
   for (i=0; i<RIG_SETTING_MAX; i++)
-  	rig_set_func(rig, RIG_VFO_CURR, 1<<i, chan->funcs & (1<<i));
+  	rig_set_func(rig, RIG_VFO_CURR, rig_idx2setting(i), 
+					chan->funcs & rig_idx2setting(i));
 
   rig_set_ctcss(rig, RIG_VFO_CURR, chan->ctcss);
   rig_set_ctcss_sql(rig, RIG_VFO_CURR, chan->ctcss_sql);
@@ -3653,7 +3653,7 @@ int rig_get_trn(RIG *rig, vfo_t vfo, int *trn)
  *      if the operation has been sucessful, or NULL 
  *      if an error occured.
  */
-unsigned char* rig_get_info(RIG *rig)
+const char* rig_get_info(RIG *rig)
 {
 		if (!rig || !rig->caps)
 			return NULL;
@@ -3680,7 +3680,7 @@ int rig_setting2idx(setting_t s)
 		int i;
 
 		for (i = 0; i<RIG_SETTING_MAX; i++)
-				if (s & (1<<i))
+				if (s & rig_idx2setting(i))
 						return i;
 
 		return 0;

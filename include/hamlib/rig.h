@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.30 2001-05-04 22:34:33 f4cfe Exp $
+ *	$Id: rig.h,v 1.31 2001-05-24 22:24:18 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,10 @@
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
 #include <stdio.h>		/* required for FILE definition */
 #include <sys/time.h>		/* required for struct timeval */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern const char hamlib_version[];
 
@@ -570,10 +574,10 @@ struct channel {
   shortfreq_t xit;
   setting_t funcs;
   value_t levels[RIG_SETTING_MAX];
-  int ctcss;
-  int ctcss_sql;
-  int dcs;
-  int dcs_sql;
+  unsigned int ctcss;
+  unsigned int ctcss_sql;
+  unsigned int dcs;
+  unsigned int dcs_sql;
   char channel_desc[MAXCHANDESC];
 };
 
@@ -1026,7 +1030,7 @@ extern int rig_set_trn(RIG *rig, vfo_t vfo, int trn); /* activate the transceive
 extern int rig_get_trn(RIG *rig, vfo_t vfo, int *trn);
 
 
-extern unsigned char *rig_get_info(RIG *rig);
+extern const char *rig_get_info(RIG *rig);
 
 extern const struct rig_caps *rig_get_caps(rig_model_t rig_model);
 const freq_range_t *rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode);
@@ -1038,6 +1042,7 @@ extern pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode);
 extern const char *rigerror(int errnum);
 
 extern int rig_setting2idx(setting_t s);
+#define rig_idx2setting(i) (1<<(i))
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
@@ -1051,6 +1056,10 @@ int rig_register(const struct rig_caps *caps);
 int rig_unregister(rig_model_t rig_model);
 int rig_list_foreach(int (*cfunc)(const struct rig_caps*,void*),void *data);
 int rig_load_backend(const char *be_name);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _RIG_H */
 
