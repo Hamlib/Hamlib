@@ -173,6 +173,9 @@ AC_TRY_COMPILE(,[struct{char a;int b;}s[8]={[3]={.b=5}};], [AC_MSG_RESULT(yes)],
 		"Have you considered GCC lately?.")]);
 
 
+dnl Check if libxml2 present for rigmem support
+AM_PATH_XML2(2.0.0,[AC_DEFINE(HAVE_XML2,[1],[Define if libxml2 is available])])
+
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 
 AC_ARG_WITH(rigmatrix,
