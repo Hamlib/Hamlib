@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.16 2004-08-31 03:47:52 fineware Exp $
+ *	$Id: jrc.c,v 1.17 2004-09-05 00:33:47 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -985,6 +985,163 @@ int jrc_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		*ch = chan;
 
 		return RIG_OK;
+}
+
+/*
+ * jrc_set_chan
+ * Assumes rig!=NULL
+ */
+int jrc_set_chan(RIG *rig, const channel_t *chan)
+{
+	struct jrc_priv_caps *priv = (struct jrc_priv_caps*)rig->caps->priv;
+	char	cmdbuf[BUFSZ];
+	int		cmd_len;
+
+	sprintf(cmdbuf,"K%03d000",chan->channel_num);
+	
+	if (chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i == 20)
+		cmdbuf[4] = '1';
+			
+	if (chan->width <= s_Hz(1500))
+		cmdbuf[5] = '2';
+	else if (chan->width <= s_Hz(4000))
+		cmdbuf[5] = '1';
+	else if (chan->width <= s_Hz(9000))
+		cmdbuf[5] = '0';
+	else if (rig->caps->rig_model == RIG_MODEL_NRD535)
+		cmdbuf[5] = '3'; /*aux - nrd535 only*/
+	else
+		cmdbuf[5] = '1'; /*inter*/
+	
+	switch (chan->mode) {
+		case RIG_MODE_CW:       cmdbuf[6] = MD_CW; break;
+		case RIG_MODE_USB:      cmdbuf[6] = MD_USB; break;
+		case RIG_MODE_LSB:      cmdbuf[6] = MD_LSB; break;
+		case RIG_MODE_FM:       cmdbuf[6] = MD_FM; break;
+		case RIG_MODE_AM:       cmdbuf[6] = MD_AM; break;
+		case RIG_MODE_RTTY:		cmdbuf[6] = MD_RTTY; break;
+		case RIG_MODE_WFM:		cmdbuf[6] = MD_WFM; break;
+		case RIG_MODE_AMS:		cmdbuf[6] = MD_AMS; break;
+		case RIG_MODE_FAX:		cmdbuf[6] = MD_FAX; break;
+		case RIG_MODE_ECSSUSB:	cmdbuf[6] = MD_ECSS_USB; break;
+		case RIG_MODE_ECSSLSB:	cmdbuf[6] = MD_ECSS_LSB; break;
+		default: cmdbuf[6] = MD_AM;
+	}
+	
+	sprintf(cmdbuf+7,"%0*Ld", priv->max_freq_len, (long long)chan->freq);
+	
+	if (priv->mem_len==17) {
+		switch (chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i) {
+			case RIG_AGC_SLOW : cmdbuf[priv->mem_len-2] = '0'; break;
+			case RIG_AGC_FAST : cmdbuf[priv->mem_len-2] = '1'; break;
+			case RIG_AGC_OFF  : cmdbuf[priv->mem_len-2] = '2'; break;
+			default : cmdbuf[priv->mem_len-2] = '1';
+		}
+	}
+	else {
+		sprintf(cmdbuf+priv->mem_len-4,"%03d", chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i);
+	}
+
+	cmd_len = priv->mem_len;	
+	return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+}
+
+/*
+ * jrc_get_chan
+ * Assumes rig!=NULL
+ */
+int jrc_get_chan(RIG *rig, channel_t *chan)
+{
+	struct jrc_priv_caps *priv = (struct jrc_priv_caps*)rig->caps->priv;
+	char	membuf[BUFSZ], cmdbuf[BUFSZ], freqbuf[BUFSZ];
+	int		mem_len, cmd_len, retval;
+
+	chan->vfo = RIG_VFO_MEM;
+	chan->ant = RIG_ANT_NONE;
+	chan->freq = 0;
+	chan->mode = RIG_MODE_NONE;
+	chan->width = RIG_PASSBAND_NORMAL;
+	chan->tx_freq = 0;
+	chan->tx_mode = RIG_MODE_NONE;
+	chan->tx_width = RIG_PASSBAND_NORMAL;
+	chan->split = RIG_SPLIT_OFF;
+	chan->tx_vfo = RIG_VFO_NONE;
+	chan->rptr_shift = RIG_RPT_SHIFT_NONE;
+	chan->rptr_offs = 0;
+	chan->tuning_step = 0;
+	chan->rit = 0;
+	chan->xit = 0;
+	chan->funcs = 0;
+	chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF;
+	chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 0;
+	chan->ctcss_tone = 0;
+	chan->ctcss_sql = 0;
+	chan->dcs_code = 0;
+	chan->dcs_sql = 0;
+	chan->scan_group = 0;
+	chan->flags = RIG_CHFLAG_SKIP;
+	strcpy(chan->channel_desc, "");
+
+	cmd_len = sprintf(cmdbuf, "L%03d%03d" EOM, chan->channel_num, chan->channel_num);
+	retval = jrc_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	/* need to handle vacant memories LmmmV<cr>, len = 6 */
+	if ((mem_len != priv->mem_len) && (mem_len != 6)) {
+		rig_debug(RIG_DEBUG_ERR,"jrc_get_mem: wrong answer %s, "
+				    "len=%d\n", membuf, mem_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (mem_len != 6) {
+		if (membuf[4] == '1')
+			chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 20;
+		switch (membuf[5]) {
+			case '0' : chan->width = s_Hz(6000); break; //wide
+			case '1' : chan->width = s_Hz(2000); break; //inter
+			case '2' : chan->width = s_Hz(1000); break; //narr
+			case '3' : chan->width = s_Hz(12000); break; //aux - nrd535 only
+			default : chan->width = RIG_PASSBAND_NORMAL;
+		}
+		switch (membuf[6]) {
+			case '0' : chan->mode = RIG_MODE_RTTY; break;
+			case '1' : chan->mode = RIG_MODE_CW; break;
+			case '2' : chan->mode = RIG_MODE_USB; break;
+			case '3' : chan->mode = RIG_MODE_LSB; break;
+			case '4' : chan->mode = RIG_MODE_AM; break;
+			case '5' : chan->mode = RIG_MODE_FM; break;
+			case '6' : if (rig->caps->rig_model == RIG_MODEL_NRD535) {
+		             		chan->mode = RIG_MODE_FAX; break;  //FAX on nrd535
+						}
+						else {
+							chan->mode = RIG_MODE_AMS; break;  //AMS on nrd545
+						}
+			case '7' : chan->mode = RIG_MODE_ECSSUSB; break;  //ECSS-USB
+			case '8' : chan->mode = RIG_MODE_ECSSLSB; break;  //ECSS-LSB
+			case '9' : chan->mode = RIG_MODE_WFM; break;  //nrd545 only
+			default: chan->mode = RIG_MODE_NONE;
+		}
+
+		strncpy(freqbuf,membuf+7,priv->max_freq_len);
+		freqbuf[priv->max_freq_len] = 0x00;
+		chan->freq = strtol(freqbuf,NULL, 10);
+		
+		if (priv->mem_len==17) {
+			switch (membuf[priv->mem_len-2]){
+				case '0' : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_SLOW; break;
+				case '1' : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST; break;
+				case '2' : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF; break;
+				default : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST;
+		    }
+		}
+		else {
+			strncpy(freqbuf,membuf+priv->mem_len-4,3);
+			chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = strtol(freqbuf,NULL, 10);
+		}
+	}
+
+	return RIG_OK;
 }
 
 /*

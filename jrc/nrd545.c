@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.13 2004-08-31 03:47:52 fineware Exp $
+ *	$Id: nrd545.c,v 1.14 2004-09-05 00:33:56 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -198,6 +198,8 @@ const struct rig_caps nrd545_caps = {
 .reset =  jrc_reset,
 .set_mem =  jrc_set_mem,
 .get_mem =  jrc_get_mem,
+.set_channel =  jrc_set_chan,
+.get_channel =  jrc_get_chan,
 .vfo_op =  jrc_vfo_op,
 .scan =  jrc_scan,
 .set_powerstat =  jrc_set_powerstat,

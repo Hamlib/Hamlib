@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.14 2004-09-01 01:08:11 fineware Exp $
+ *	$Id: drake.c,v 1.15 2004-09-05 00:32:57 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -476,6 +476,200 @@ int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
 	*ch = chan;
 
 	priv->curr_ch = chan;
+	
+	return RIG_OK;
+}
+
+/*
+ * drake_set_chan
+ * Assumes rig!=NULL
+ */
+int drake_set_chan(RIG *rig, const channel_t *chan)
+{
+	struct drake_priv_data *priv = rig->state.priv;
+	vfo_t	old_vfo;
+	int		old_chan;
+    char	mdbuf[16], ackbuf[16];
+	int		mdbuf_len, ack_len, retval;
+
+	drake_get_vfo(rig, &old_vfo);
+	old_chan = 0;
+
+	/* set to vfo if needed */
+	if (old_vfo == RIG_VFO_MEM){
+		old_chan = priv->curr_ch;
+		retval = drake_set_vfo(rig, RIG_VFO_VFO);
+		if (retval != RIG_OK)
+			return retval;
+	}
+	
+	/* set all memory features */
+	drake_set_ant(rig, RIG_VFO_CURR, chan->ant);
+	drake_set_freq(rig, RIG_VFO_CURR, chan->freq);
+	drake_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
+	drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_NB,
+					(chan->funcs & RIG_FUNC_NB) == RIG_FUNC_NB);
+	drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_AGC,
+					chan->levels[rig_setting2idx(RIG_LEVEL_AGC)]);
+	drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP,
+					chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)]);
+	drake_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT,
+					chan->levels[rig_setting2idx(RIG_LEVEL_ATT)]);
+	drake_set_func(rig, RIG_VFO_CURR, RIG_FUNC_MN,
+					(chan->funcs & RIG_FUNC_MN) == RIG_FUNC_MN);
+	
+	mdbuf_len = sprintf(mdbuf, "PR" EOM "%03d" EOM, chan->channel_num);
+	retval = drake_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+	
+	if (old_vfo == RIG_VFO_MEM)
+		drake_set_mem(rig, RIG_VFO_CURR, old_chan);
+	
+	return retval;
+}
+
+/*
+ * drake_get_chan
+ * Assumes rig!=NULL
+ */
+int drake_get_chan(RIG *rig, channel_t *chan)
+{
+	struct drake_priv_data *priv = rig->state.priv;
+	vfo_t	old_vfo;
+	int		old_chan;
+    char	mdbuf[BUFSZ],freqstr[BUFSZ];
+	int		mdbuf_len, retval;
+
+	chan->vfo = RIG_VFO_MEM;
+	chan->ant = RIG_ANT_NONE;
+	chan->freq = 0;
+	chan->mode = RIG_MODE_NONE;
+	chan->width = RIG_PASSBAND_NORMAL;
+	chan->tx_freq = 0;
+	chan->tx_mode = RIG_MODE_NONE;
+	chan->tx_width = RIG_PASSBAND_NORMAL;
+	chan->split = RIG_SPLIT_OFF;
+	chan->tx_vfo = RIG_VFO_NONE;
+	chan->rptr_shift = RIG_RPT_SHIFT_NONE;
+	chan->rptr_offs = 0;
+	chan->tuning_step = 0;
+	chan->rit = 0;
+	chan->xit = 0;
+	chan->funcs = 0;
+	chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF;
+	chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 0;
+	chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 0;
+	chan->ctcss_tone = 0;
+	chan->ctcss_sql = 0;
+	chan->dcs_code = 0;
+	chan->dcs_sql = 0;
+	chan->scan_group = 0;
+	chan->flags = RIG_CHFLAG_SKIP;
+	strcpy(chan->channel_desc, "       ");
+	
+	drake_get_vfo(rig, &old_vfo);
+	old_chan = 0;
+
+	if (old_vfo == RIG_VFO_MEM)
+		old_chan = priv->curr_ch;
+	
+	//go to new channel
+	retval = drake_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+	if (retval != RIG_OK)
+		return retval;
+	
+	//now decypher it
+	retval = drake_transaction (rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
+	if (retval != RIG_OK)
+	  return retval;
+
+	if (mdbuf_len < 35) {
+	  rig_debug(RIG_DEBUG_ERR,"drake_get_channel: wrong answer %s, "
+		    "len=%d\n", mdbuf, mdbuf_len);
+	  return -RIG_ERJCTED;
+	}
+
+	if ((mdbuf[5] >= '4') && (mdbuf[5] <= '?'))
+		chan->funcs |= RIG_FUNC_NB;
+	
+	switch(mdbuf[5] & 0x33){
+		case '0': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF; break;
+		case '2': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST; break;
+		case '3': chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_SLOW; break;
+		default : chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_FAST;
+	}
+	
+	if ((mdbuf[6] & 0x3c) == '8')
+		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 10;
+	
+	if ((mdbuf[6] & 0x3c) == '4')
+		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 10;
+
+	if ((mdbuf[6] & 0x32) =='2');
+		chan->funcs |= RIG_FUNC_MN;
+	
+	switch(mdbuf[7] & 0x3c){
+		case '0': chan->ant = RIG_ANT_1; break;
+		case '4': chan->ant = RIG_ANT_3; break;
+		case '8': chan->ant = RIG_ANT_2; break;
+		default : chan->ant = RIG_ANT_NONE;
+	}
+	
+	switch(mdbuf[8] & 0x37){
+		case '0': chan->width = s_Hz(500); break;
+		case '1': chan->width = s_Hz(1800); break;
+		case '2': chan->width = s_Hz(2300); break;
+		case '3': chan->width = s_Hz(4000); break;
+		case '4': chan->width = s_Hz(6000); break;
+		default : chan->width = RIG_PASSBAND_NORMAL;
+	}
+
+	if ((mdbuf[8] >= '0') && (mdbuf[8] <= '4')) {
+		switch(mdbuf[7] & 0x33){
+	  		case '0': chan->mode = RIG_MODE_LSB; break;
+			case '1': chan->mode = RIG_MODE_RTTY; break;
+			case '2': chan->mode = RIG_MODE_FM; 
+						chan->width = s_Hz(12000); break;
+			default : chan->mode = RIG_MODE_NONE;
+		}
+	} else {
+		switch(mdbuf[7] & 0x33){
+			case '0': chan->mode = RIG_MODE_USB; break;
+			case '1': chan->mode = RIG_MODE_CW; break;
+			case '2': chan->mode = RIG_MODE_AM; break;
+			default : chan->mode = RIG_MODE_NONE;
+		}
+	}
+
+	if ((mdbuf[9] & 0x34) == '4') {
+		if (chan->mode == RIG_MODE_AM)
+			chan->mode = RIG_MODE_AMS;
+		else if (chan->mode == RIG_MODE_USB)
+			chan->mode = RIG_MODE_ECSSUSB;
+		else if (chan->mode == RIG_MODE_LSB)
+			chan->mode = RIG_MODE_ECSSLSB;
+	}
+	
+	strncpy(freqstr,mdbuf+11,9);
+	freqstr[9] = 0x00;
+	if ((mdbuf[21] == 'k') || (mdbuf[21] == 'K'))
+		chan->freq = strtod(freqstr,NULL) * 1000.0;
+	if ((mdbuf[21] == 'm') || (mdbuf[21] == 'M'))
+		chan->freq = strtod(freqstr,NULL) * 1000000.0;
+	
+	
+	strncpy(chan->channel_desc, mdbuf+25, 7);
+
+	//now put the radio back the way it was
+	if (old_vfo != RIG_VFO_MEM) {
+		retval = drake_set_vfo(rig, RIG_VFO_VFO);	
+		if (retval != RIG_OK)
+			return retval;
+	}
+	else {
+		retval = drake_set_mem(rig, RIG_VFO_CURR, old_chan);
+		if (retval != RIG_OK)
+			return retval;
+	}
 	
 	return RIG_OK;
 }

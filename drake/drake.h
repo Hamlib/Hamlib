@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main header
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.h,v 1.6 2004-06-04 21:48:05 fillods Exp $
+ *	$Id: drake.h,v 1.7 2004-09-05 00:32:57 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,6 +41,8 @@ int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant);
 int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
 int drake_set_mem(RIG *rig, vfo_t vfo, int ch);
 int drake_get_mem(RIG *rig, vfo_t vfo, int *ch);
+int drake_set_chan(RIG *rig, const channel_t *chan);
+int drake_get_chan(RIG *rig, channel_t *chan);
 int drake_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int drake_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int drake_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);

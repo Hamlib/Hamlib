@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8B description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: r8b.c,v 1.9 2004-08-31 03:45:34 fineware Exp $
+ *	$Id: r8b.c,v 1.10 2004-09-05 00:32:57 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,6 +64,19 @@
 	} }
 
 /*
+ * channel caps.
+ */
+#define DRAKE_MEM_CAP {	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+	.ant = 1,	\
+	.funcs = 1,	\
+	.levels = RIG_LEVEL_AGC|RIG_LEVEL_ATT|RIG_LEVEL_PREAMP,	\
+	.channel_desc = 1,	\
+} 
+
+/*
  * R-8B rig capabilities.
  *
  * manual: http://www.rldrake.com/swl/R8B.pdf
@@ -114,7 +127,7 @@ const struct rig_caps r8b_caps = {
 .vfo_ops =  R8B_VFO_OPS,
 
 .chan_list =  {
-		{   0,  999, RIG_MTYPE_MEM },
+		{   0,  999, RIG_MTYPE_MEM, DRAKE_MEM_CAP },
 		RIG_CHAN_END
 	},
 
@@ -168,6 +181,8 @@ const struct rig_caps r8b_caps = {
 .get_ant = drake_get_ant,
 .set_mem = drake_set_mem,
 .get_mem = drake_get_mem,
+.set_channel = drake_set_chan,
+.get_channel = drake_get_chan,
 .vfo_op = drake_vfo_op,
 .set_powerstat = drake_set_powerstat,
 .get_powerstat = drake_get_powerstat,
