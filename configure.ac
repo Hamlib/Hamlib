@@ -207,6 +207,13 @@ AC_SUBST(RIGMATRIX)
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft kit skanti tapr flexradio wj racal tuner"
 ROT_BACKEND_LIST="dummy easycomm rotorez sartek fodtrack"
 BINDINGS=""
+BINDING_ALL=""
+BINDING_CHECK=""
+BINDING_CLEAN=""
+BINDING_DISTCLEAN=""
+BINDING_DISTCHECK=""
+BINDING_INSTALL_EXEC=""
+BINDING_UNINSTALL=""
 BINDING_LIST=""
 
 dnl Check if cxx-binding not wanted, default is to build it
@@ -245,6 +252,13 @@ AC_MSG_RESULT($cf_with_perl_binding)
 
 if test "${cf_with_perl_binding}" = "yes" ; then
   BINDING_LIST="${BINDING_LIST} perl"
+  BINDING_ALL="${BINDING_ALL} all-perl"
+  BINDING_CHECK="${BINDING_CHECK} check-perl"
+  BINDING_CLEAN="${BINDING_CLEAN} clean-perl"
+  BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-perl"
+  BINDING_DISTCHECK="${BINDING_DISTCHECK} distcheck-perl"
+  BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-perl"
+  BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-perl"
 fi
 
 dnl Kylix binding has been removed because unmaintained. Volunteers welcome.
@@ -269,6 +283,12 @@ AC_MSG_RESULT($cf_with_tcl_binding)
 
 if test "${cf_with_tcl_binding}" = "yes" ; then
   BINDING_LIST="${BINDING_LIST} tcl"
+  BINDING_ALL="${BINDING_ALL} all-tcl"
+  BINDING_CHECK="${BINDING_CHECK} check-tcl"
+  BINDING_CLEAN="${BINDING_CLEAN} clean-tcl"
+  BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-tcl"
+  BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-tcl"
+  BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-tcl"
 fi
 AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(TCL_INCLUDE_SPEC)
@@ -289,6 +309,12 @@ AC_MSG_RESULT($cf_with_python_binding)
 
 if test "${cf_with_python_binding}" = "yes" ; then
   BINDING_LIST="${BINDING_LIST} python"
+  BINDING_ALL="${BINDING_ALL} all-py"
+  BINDING_CHECK="${BINDING_CHECK} check-py"
+  BINDING_CLEAN="${BINDING_CLEAN} clean-py"
+  BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-py"
+  BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-py"
+  BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-py"
 fi
 
 
@@ -373,8 +399,7 @@ AC_SUBST(ROT_BACKENDLNK)
 AC_SUBST(ROT_BACKENDEPS)
 
 AC_CHECK_PROG(cf_with_bindings, [swig], [yes], [no], [$PATH])
-if test "${cf_with_bindings}" = "yes" -a "${cf_with_tcl_binding}" = "yes" \
-	-a "${cf_with_perl_binding}" = "yes" -a "${cf_with_python_binding}" = "yes";
+if test "${cf_with_bindings}" = "yes";
 then
   cf_with_bindings=no
 
@@ -387,6 +412,13 @@ fi
 AC_MSG_CHECKING(whether to build bindings)
 AC_MSG_RESULT($cf_with_bindings)
 AC_SUBST(BINDINGS)
+AC_SUBST(BINDING_ALL)
+AC_SUBST(BINDING_CHECK)
+AC_SUBST(BINDING_CLEAN)
+AC_SUBST(BINDING_DISTCLEAN)
+AC_SUBST(BINDING_DISTCHECK)
+AC_SUBST(BINDING_INSTALL_EXEC)
+AC_SUBST(BINDING_UNINSTALL)
 AC_SUBST(BINDING_LIST)
 
 

@@ -116,14 +116,14 @@ uninstall-py:
 
 lib_LTLIBRARIES = $(tcl_ltlib) $(python_ltlib)
 
-all-local: all-perl all-tcl all-py
+all-local: @BINDING_ALL@
 
-check-local: check-perl check-tcl check-py
-clean-local: clean-perl clean-tcl clean-py
-distclean-local: distclean-perl distclean-tcl distclean-py
-distcheck-local: distcheck-perl
-install-exec-local: install-perl install-tcl install-py
-uninstall-local: uninstall-perl uninstall-tcl uninstall-py
+check-local: @BINDING_CHECK@
+clean-local: @BINDING_CLEAN@
+distclean-local: @BINDING_DISTCLEAN@
+distcheck-local: @BINDING_DISTCHECK@
+install-exec-local: @BINDING_INSTALL_EXEC@
+uninstall-local: @BINDING_UNINSTALL@
 
 
 rig.swg: $(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
