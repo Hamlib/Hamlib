@@ -4,6 +4,15 @@ Copyright (C) 2000-2004  Stephane Fillod, Frank Singleton and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.2.3
+	2004-11-17
+	* frontend API: LEVEL_SQLSTAT marked as deprecated
+	* new backends: Racal, V4L radio cards, Watkins-Johnson 8888
+	* new models:  IC-78, IC-7800, IC-R20, IC-756PROIII
+	* fixes: AOR 5k&8k: added S-Meter, 7030: fixed freq,
+		IC-R8500: calibrated S-Meter, Jupiter and many others..
+	* port: mingw32 support with gcc 3.4 version
+
 Version 1.2.2
 	2004-08-23
 	* new models: Ten-Tec (Orion), AOR 3030, Yaesu FRG's, Skanti
