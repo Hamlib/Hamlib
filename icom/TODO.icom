@@ -12,7 +12,6 @@ TODO
 2. Write (more) extensive Test Suite
 4. write a gentable script to generate C structs from rig list file
 5. write a basic (G)UI to easily edit rig caps and generate C structs
-6. maybe share freq2bcd and bcd2freq with other rigs?
 7. more than one Icom can share the same serial port!! (->check with frontend)
 8.
 
@@ -20,4 +19,6 @@ DONE
 ----
 
 3. rename ic706 -> icom and make it generic!
+
+6. maybe share freq2bcd and bcd2freq with other rigs?
 
