@@ -9,7 +9,7 @@ DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 bin_PROGRAMS = rigctl rotctl
 man_MANS = rigctl.1 rotctl.1
 
-check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc @RIGMATRIX@
+check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench @RIGMATRIX@
 
 rigctl_SOURCES = rigctl.c dumpcaps.c
 
@@ -23,6 +23,7 @@ DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 listrigs_LDFLAGS = @BACKENDLNK@
 dumpmem_LDFLAGS = @BACKENDLNK@
 testrig_LDFLAGS = @BACKENDLNK@
+rig_bench_LDFLAGS = @BACKENDLNK@
 testtrn_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
 rotctl_LDFLAGS = @ROT_BACKENDLNK@
@@ -38,6 +39,7 @@ rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
 
 dumpmem_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testrig_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+rig_bench_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testtrn_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
