@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.72 2003-05-03 13:17:25 fillods Exp $
+ *	$Id: rig.c,v 1.73 2003-06-22 19:41:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -397,6 +397,13 @@ int rig_open(RIG *rig)
 					return status;
 				break;
 
+		case RIG_PORT_PARALLEL:
+				rs->rigport.stream = NULL;
+				status = par_open(&rs->rigport);
+				if (status != 0)
+						return status;
+				break;
+
 		case RIG_PORT_DEVICE:
 				status = open(rs->rigport.pathname, O_RDWR, 0);
 				if (status < 0)
@@ -576,10 +583,20 @@ int rig_close(RIG *rig)
 	rs->dcdport.fd = rs->pttport.fd = -1;
 
 	if (rs->rigport.fd != -1) {
-		if (!rs->rigport.stream)
+		if (!rs->rigport.stream) {
 			fclose(rs->rigport.stream); /* this closes also fd */
-		else
-			close(rs->rigport.fd);
+		} else {
+			switch(rs->rigport.type.rig) {
+			case RIG_PORT_SERIAL:
+				ser_close(&rs->rigport);
+				break;
+			case RIG_PORT_PARALLEL:
+				par_close(&rs->rigport);
+				break;
+			default:
+				close(rs->rigport.fd);
+			}
+		}
 		rs->rigport.fd = -1;
 		rs->rigport.stream = NULL;
 	}
