@@ -80,7 +80,7 @@ WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
-bin_PROGRAMS = dumpcaps testcaps testrig testtrn testbcd testfreq listrigs rigctl @RIGMATRIX@
+bin_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs rigctl @RIGMATRIX@
 EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
@@ -91,6 +91,7 @@ BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libh
 
 listrigs_LDADD = ../src/libhamlib.la $(BACKENDLNK)
 dumpcaps_LDADD = ../src/libhamlib.la $(BACKENDLNK)
+dumpmem_LDADD = ../src/libhamlib.la $(BACKENDLNK)
 testcaps_LDADD = ../src/libhamlib.la $(BACKENDLNK)
 testrig_LDADD = ../src/libhamlib.la $(BACKENDLNK)
 testtrn_LDADD = ../src/libhamlib.la $(BACKENDLNK)
@@ -99,6 +100,7 @@ rigctl_LDADD = ../src/libhamlib.la $(BACKENDLNK)
 rigmatrix_LDADD = -lgd ../src/libhamlib.la $(BACKENDLNK)
 
 dumpcaps_DEPENDENCIES = $(BACKENDEPS)
+dumpmem_DEPENDENCIES = $(BACKENDEPS)
 testcaps_DEPENDENCIES = $(BACKENDEPS)
 testrig_DEPENDENCIES = $(BACKENDEPS)
 testtrn_DEPENDENCIES = $(BACKENDEPS)
@@ -111,6 +113,7 @@ testtrn_SOURCES = testtrn.c
 testbcd_SOURCES = testbcd.c
 testfreq_SOURCES = testfreq.c
 dumpcaps_SOURCES = dumpcaps.c
+dumpmem_SOURCES = dumpmem.c
 testcaps_SOURCES = testcaps.c
 listrigs_SOURCES = listrigs.c
 rigctl_SOURCES = rigctl.c
@@ -129,6 +132,8 @@ rigmatrix_OBJECTS =  rigmatrix.o
 rigmatrix_LDFLAGS = 
 dumpcaps_OBJECTS =  dumpcaps.o
 dumpcaps_LDFLAGS = 
+dumpmem_OBJECTS =  dumpmem.o
+dumpmem_LDFLAGS = 
 testcaps_OBJECTS =  testcaps.o
 testcaps_LDFLAGS = 
 testrig_OBJECTS =  testrig.o
@@ -159,11 +164,11 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/dumpcaps.P .deps/listrigs.P .deps/rigctl.P \
-.deps/rigmatrix.P .deps/testbcd.P .deps/testcaps.P .deps/testfreq.P \
-.deps/testrig.P .deps/testtrn.P
-SOURCES = $(rigmatrix_SOURCES) $(dumpcaps_SOURCES) $(testcaps_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES) $(testbcd_SOURCES) $(testfreq_SOURCES) $(listrigs_SOURCES) $(rigctl_SOURCES)
-OBJECTS = $(rigmatrix_OBJECTS) $(dumpcaps_OBJECTS) $(testcaps_OBJECTS) $(testrig_OBJECTS) $(testtrn_OBJECTS) $(testbcd_OBJECTS) $(testfreq_OBJECTS) $(listrigs_OBJECTS) $(rigctl_OBJECTS)
+DEP_FILES =  .deps/dumpcaps.P .deps/dumpmem.P .deps/listrigs.P \
+.deps/rigctl.P .deps/rigmatrix.P .deps/testbcd.P .deps/testcaps.P \
+.deps/testfreq.P .deps/testrig.P .deps/testtrn.P
+SOURCES = $(rigmatrix_SOURCES) $(dumpcaps_SOURCES) $(dumpmem_SOURCES) $(testcaps_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES) $(testbcd_SOURCES) $(testfreq_SOURCES) $(listrigs_SOURCES) $(rigctl_SOURCES)
+OBJECTS = $(rigmatrix_OBJECTS) $(dumpcaps_OBJECTS) $(dumpmem_OBJECTS) $(testcaps_OBJECTS) $(testrig_OBJECTS) $(testtrn_OBJECTS) $(testbcd_OBJECTS) $(testfreq_OBJECTS) $(listrigs_OBJECTS) $(rigctl_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -240,6 +245,10 @@ rigmatrix: $(rigmatrix_OBJECTS) $(rigmatrix_DEPENDENCIES)
 dumpcaps: $(dumpcaps_OBJECTS) $(dumpcaps_DEPENDENCIES)
 	@rm -f dumpcaps
 	$(LINK) $(dumpcaps_LDFLAGS) $(dumpcaps_OBJECTS) $(dumpcaps_LDADD) $(LIBS)
+
+dumpmem: $(dumpmem_OBJECTS) $(dumpmem_DEPENDENCIES)
+	@rm -f dumpmem
+	$(LINK) $(dumpmem_LDFLAGS) $(dumpmem_OBJECTS) $(dumpmem_LDADD) $(LIBS)
 
 testcaps: $(testcaps_OBJECTS) $(testcaps_DEPENDENCIES)
 	@rm -f testcaps
