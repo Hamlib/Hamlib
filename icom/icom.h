@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.47 2002-08-19 22:17:11 fillods Exp $
+ *	$Id: icom.h,v 1.48 2002-11-04 22:26:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,23 @@
 #define STR_CAL_LENGTH 16
 #define STR_CAL_S0 -54
 
+
+/*
+ * common channel caps.
+ * If your rig has better/lesser, don't modify this define but clone it,
+ * so you don't change other rigs.
+ */
+#define IC_MEM_CAP {	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+	.rptr_shift = 1,	\
+	.rptr_offs = 1,	\
+	.ctcss_tone = 1,	\
+	.ctcss_sql = 1,	\
+	.dcs_code = 1,	\
+	.dcs_sql = 1,	\
+} 
 
 struct ts_sc_list {
 	shortfreq_t ts;	/* tuning step */
@@ -129,7 +146,6 @@ extern const struct rig_caps ic910_caps;
 extern const struct rig_caps ic970_caps;
 extern const struct rig_caps icr7000_caps;
 extern const struct rig_caps icr8500_caps;
-extern const struct rig_caps icall_caps;
 extern const struct rig_caps ic275_caps;
 extern const struct rig_caps ic475_caps;
 
