@@ -2,6 +2,13 @@
 # Run this to generate all the initial makefiles, etc.
 # Taken from glib CVS
 
+# changes the following to match the versions installed on your system
+AUTOCONF=autoconf
+AUTOMAKE=automake
+ACLOCAL=aclocal
+AUTOHEADER=autoheader
+
+
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 
@@ -9,11 +16,11 @@ ORIGDIR=`pwd`
 cd $srcdir
 PROJECT=hamlib
 TEST_TYPE=-f
-FILE=include/config.h.in
+FILE=include/hamlib/rig.h
 
 DIE=0
 
-(autoconf --version) < /dev/null > /dev/null 2>&1 || {
+($AUTOCONF --version) < /dev/null > /dev/null 2>&1 || {
         echo
         echo "You must have autoconf installed to compile $PROJECT."
         echo "Download the appropriate package for your distribution,"
@@ -21,7 +28,7 @@ DIE=0
         DIE=1
 }
 
-(automake --version) < /dev/null > /dev/null 2>&1 || {
+($AUTOMAKE --version) < /dev/null > /dev/null 2>&1 || {
         echo
         echo "You must have automake installed to compile $PROJECT."
         echo "Get ftp://sourceware.cygnus.com/pub/automake/automake-1.5.tar.gz"
@@ -47,13 +54,13 @@ case $CC in
 *xlc | *xlc\ * | *lcc | *lcc\ *) am_opt=--include-deps;;
 esac
 
-aclocal $ACLOCAL_FLAGS
+$ACLOCAL $ACLOCAL_FLAGS
 
 # optionally feature autoheader
-(autoheader --version)  < /dev/null > /dev/null 2>&1 && autoheader
+($AUTOHEADER --version)  < /dev/null > /dev/null 2>&1 && $AUTOHEADER
 
-automake -a $am_opt
-autoconf
+$AUTOMAKE -a $am_opt
+$AUTOCONF
 cd $ORIGDIR
 
 $srcdir/configure --enable-maintainer-mode "$@"
