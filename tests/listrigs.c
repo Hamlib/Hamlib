@@ -3,7 +3,7 @@
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.4 2001-02-07 23:45:59 f4cfe Exp $  
+ *    $Id: listrigs.c,v 1.5 2001-02-11 23:20:33 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -70,6 +70,9 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 			break;
 	case RIG_TYPE_RECEIVER:
 			printf("Receiver\n");
+			break;
+	case RIG_TYPE_PCRECEIVER:
+			printf("PC Receiver\n");
 			break;
 	case RIG_TYPE_SCANNER:
 			printf("Scanner\n");
