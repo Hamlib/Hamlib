@@ -98,10 +98,12 @@ ALINCOSRCLIST = 505dsp.c
 lib_LTLIBRARIES = libhamlib-kachina.la
 libhamlib_kachina_la_SOURCES = $(ALINCOSRCLIST) kachina.c
 libhamlib_kachina_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_kachina_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_kachina_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-kachina.a
 libhamlib_kachina_a_SOURCES = $(ALINCOSRCLIST) kachina.c
+libhamlib_kachina_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_kachina_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = kachina.h
@@ -113,12 +115,14 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_kachina_a_AR = $(AR) cru
 libhamlib_kachina_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_kachina_a_OBJECTS = 505dsp.$(OBJEXT) kachina.$(OBJEXT)
+am_libhamlib_kachina_a_OBJECTS = libhamlib_kachina_a-505dsp.$(OBJEXT) \
+	libhamlib_kachina_a-kachina.$(OBJEXT)
 libhamlib_kachina_a_OBJECTS = $(am_libhamlib_kachina_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_kachina_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_kachina_la_OBJECTS = 505dsp.lo kachina.lo
+am_libhamlib_kachina_la_OBJECTS = libhamlib_kachina_la-505dsp.lo \
+	libhamlib_kachina_la-kachina.lo
 libhamlib_kachina_la_OBJECTS = $(am_libhamlib_kachina_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -127,8 +131,10 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/505dsp.Plo $(DEPDIR)/505dsp.Po \
-@AMDEP_TRUE@	$(DEPDIR)/kachina.Plo $(DEPDIR)/kachina.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_kachina_a-505dsp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kachina_a-kachina.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kachina_la-505dsp.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kachina_la-kachina.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -192,6 +198,8 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_kachina_a-505dsp.$(OBJEXT): 505dsp.c
+libhamlib_kachina_a-kachina.$(OBJEXT): kachina.c
 libhamlib-kachina.a: $(libhamlib_kachina_a_OBJECTS) $(libhamlib_kachina_a_DEPENDENCIES) 
 	-rm -f libhamlib-kachina.a
 	$(libhamlib_kachina_a_AR) libhamlib-kachina.a $(libhamlib_kachina_a_OBJECTS) $(libhamlib_kachina_a_LIBADD)
@@ -215,6 +223,8 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_kachina_la-505dsp.lo: 505dsp.c
+libhamlib_kachina_la-kachina.lo: kachina.c
 libhamlib-kachina.la: $(libhamlib_kachina_la_OBJECTS) $(libhamlib_kachina_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_kachina_la_LDFLAGS) $(libhamlib_kachina_la_OBJECTS) $(libhamlib_kachina_la_LIBADD) $(LIBS)
 
@@ -224,10 +234,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/505dsp.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/505dsp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/kachina.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/kachina.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kachina_a-505dsp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kachina_a-kachina.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kachina_la-505dsp.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kachina_la-kachina.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -249,6 +259,78 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_kachina_a-505dsp.o: 505dsp.c
+@AMDEP_TRUE@	source='505dsp.c' object='libhamlib_kachina_a-505dsp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_a-505dsp.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_a-505dsp.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_a-505dsp.o `test -f 505dsp.c || echo '$(srcdir)/'`505dsp.c
+
+libhamlib_kachina_a-505dsp.obj: 505dsp.c
+@AMDEP_TRUE@	source='505dsp.c' object='libhamlib_kachina_a-505dsp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_a-505dsp.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_a-505dsp.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_a-505dsp.obj `cygpath -w 505dsp.c`
+
+libhamlib_kachina_a-505dsp.lo: 505dsp.c
+@AMDEP_TRUE@	source='505dsp.c' object='libhamlib_kachina_a-505dsp.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_a-505dsp.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kachina_a-505dsp.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_a-505dsp.lo `test -f 505dsp.c || echo '$(srcdir)/'`505dsp.c
+
+libhamlib_kachina_a-kachina.o: kachina.c
+@AMDEP_TRUE@	source='kachina.c' object='libhamlib_kachina_a-kachina.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_a-kachina.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_a-kachina.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_a-kachina.o `test -f kachina.c || echo '$(srcdir)/'`kachina.c
+
+libhamlib_kachina_a-kachina.obj: kachina.c
+@AMDEP_TRUE@	source='kachina.c' object='libhamlib_kachina_a-kachina.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_a-kachina.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_a-kachina.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_a-kachina.obj `cygpath -w kachina.c`
+
+libhamlib_kachina_a-kachina.lo: kachina.c
+@AMDEP_TRUE@	source='kachina.c' object='libhamlib_kachina_a-kachina.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_a-kachina.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kachina_a-kachina.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_a-kachina.lo `test -f kachina.c || echo '$(srcdir)/'`kachina.c
+
+libhamlib_kachina_la-505dsp.o: 505dsp.c
+@AMDEP_TRUE@	source='505dsp.c' object='libhamlib_kachina_la-505dsp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_la-505dsp.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_la-505dsp.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_la-505dsp.o `test -f 505dsp.c || echo '$(srcdir)/'`505dsp.c
+
+libhamlib_kachina_la-505dsp.obj: 505dsp.c
+@AMDEP_TRUE@	source='505dsp.c' object='libhamlib_kachina_la-505dsp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_la-505dsp.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_la-505dsp.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_la-505dsp.obj `cygpath -w 505dsp.c`
+
+libhamlib_kachina_la-505dsp.lo: 505dsp.c
+@AMDEP_TRUE@	source='505dsp.c' object='libhamlib_kachina_la-505dsp.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_la-505dsp.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kachina_la-505dsp.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_la-505dsp.lo `test -f 505dsp.c || echo '$(srcdir)/'`505dsp.c
+
+libhamlib_kachina_la-kachina.o: kachina.c
+@AMDEP_TRUE@	source='kachina.c' object='libhamlib_kachina_la-kachina.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_la-kachina.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_la-kachina.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_la-kachina.o `test -f kachina.c || echo '$(srcdir)/'`kachina.c
+
+libhamlib_kachina_la-kachina.obj: kachina.c
+@AMDEP_TRUE@	source='kachina.c' object='libhamlib_kachina_la-kachina.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_la-kachina.Po' tmpdepfile='$(DEPDIR)/libhamlib_kachina_la-kachina.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_la-kachina.obj `cygpath -w kachina.c`
+
+libhamlib_kachina_la-kachina.lo: kachina.c
+@AMDEP_TRUE@	source='kachina.c' object='libhamlib_kachina_la-kachina.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kachina_la-kachina.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kachina_la-kachina.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kachina_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kachina_la-kachina.lo `test -f kachina.c || echo '$(srcdir)/'`kachina.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

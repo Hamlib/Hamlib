@@ -98,12 +98,14 @@ RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)
 libhamlib_la_LDFLAGS = -no-undefined -release @VERSION@
+libhamlib_la_CFLAGS = -DIN_HAMLIB -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_la_LIBADD = $(LIBLTDL)
 libhamlib_la_DEPENDENCIES = $(LIBLTDL)
 
 lib_LIBRARIES = libhamlib.a
 libhamlib_a_SOURCES = $(RIGSRC)
 libhamlib_a_LIBADD = $(LIBLTDL)
+libhamlib_a_CFLAGS = -DIN_HAMLIB -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_a_DEPENDENCIES = $(LIBLTDL)
 
 noinst_HEADERS = event.h misc.h serial.h cal.h conf.h tone_tbl.h
@@ -114,13 +116,16 @@ CONFIG_CLEAN_FILES =
 LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_a_AR = $(AR) cru
-am_libhamlib_a_OBJECTS = rig.$(OBJEXT) serial.$(OBJEXT) misc.$(OBJEXT) \
-	register.$(OBJEXT) event.$(OBJEXT) cal.$(OBJEXT) conf.$(OBJEXT)
+am_libhamlib_a_OBJECTS = libhamlib_a-rig.$(OBJEXT) \
+	libhamlib_a-serial.$(OBJEXT) libhamlib_a-misc.$(OBJEXT) \
+	libhamlib_a-register.$(OBJEXT) libhamlib_a-event.$(OBJEXT) \
+	libhamlib_a-cal.$(OBJEXT) libhamlib_a-conf.$(OBJEXT)
 libhamlib_a_OBJECTS = $(am_libhamlib_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-am_libhamlib_la_OBJECTS = rig.lo serial.lo misc.lo register.lo event.lo \
-	cal.lo conf.lo
+am_libhamlib_la_OBJECTS = libhamlib_la-rig.lo libhamlib_la-serial.lo \
+	libhamlib_la-misc.lo libhamlib_la-register.lo \
+	libhamlib_la-event.lo libhamlib_la-cal.lo libhamlib_la-conf.lo
 libhamlib_la_OBJECTS = $(am_libhamlib_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -129,13 +134,20 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/cal.Plo $(DEPDIR)/cal.Po \
-@AMDEP_TRUE@	$(DEPDIR)/conf.Plo $(DEPDIR)/conf.Po \
-@AMDEP_TRUE@	$(DEPDIR)/event.Plo $(DEPDIR)/event.Po \
-@AMDEP_TRUE@	$(DEPDIR)/misc.Plo $(DEPDIR)/misc.Po \
-@AMDEP_TRUE@	$(DEPDIR)/register.Plo $(DEPDIR)/register.Po \
-@AMDEP_TRUE@	$(DEPDIR)/rig.Plo $(DEPDIR)/rig.Po \
-@AMDEP_TRUE@	$(DEPDIR)/serial.Plo $(DEPDIR)/serial.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_a-cal.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_a-conf.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_a-event.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_a-misc.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_a-register.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_a-rig.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_a-serial.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-cal.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-conf.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-event.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-misc.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-register.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-rig.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-serial.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -198,6 +210,13 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_a-rig.$(OBJEXT): rig.c
+libhamlib_a-serial.$(OBJEXT): serial.c
+libhamlib_a-misc.$(OBJEXT): misc.c
+libhamlib_a-register.$(OBJEXT): register.c
+libhamlib_a-event.$(OBJEXT): event.c
+libhamlib_a-cal.$(OBJEXT): cal.c
+libhamlib_a-conf.$(OBJEXT): conf.c
 libhamlib.a: $(libhamlib_a_OBJECTS) $(libhamlib_a_DEPENDENCIES) 
 	-rm -f libhamlib.a
 	$(libhamlib_a_AR) libhamlib.a $(libhamlib_a_OBJECTS) $(libhamlib_a_LIBADD)
@@ -221,6 +240,13 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_la-rig.lo: rig.c
+libhamlib_la-serial.lo: serial.c
+libhamlib_la-misc.lo: misc.c
+libhamlib_la-register.lo: register.c
+libhamlib_la-event.lo: event.c
+libhamlib_la-cal.lo: cal.c
+libhamlib_la-conf.lo: conf.c
 libhamlib.la: $(libhamlib_la_OBJECTS) $(libhamlib_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_la_LDFLAGS) $(libhamlib_la_OBJECTS) $(libhamlib_la_LIBADD) $(LIBS)
 
@@ -230,20 +256,20 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cal.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/cal.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/conf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/conf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/event.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/event.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/misc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/misc.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/register.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/register.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rig.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rig.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/serial.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/serial.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_a-cal.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_a-conf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_a-event.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_a-misc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_a-register.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_a-rig.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_a-serial.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-cal.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-conf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-event.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-misc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-register.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-rig.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-serial.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -265,6 +291,258 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_a-rig.o: rig.c
+@AMDEP_TRUE@	source='rig.c' object='libhamlib_a-rig.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-rig.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-rig.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-rig.o `test -f rig.c || echo '$(srcdir)/'`rig.c
+
+libhamlib_a-rig.obj: rig.c
+@AMDEP_TRUE@	source='rig.c' object='libhamlib_a-rig.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-rig.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-rig.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-rig.obj `cygpath -w rig.c`
+
+libhamlib_a-rig.lo: rig.c
+@AMDEP_TRUE@	source='rig.c' object='libhamlib_a-rig.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-rig.Plo' tmpdepfile='$(DEPDIR)/libhamlib_a-rig.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-rig.lo `test -f rig.c || echo '$(srcdir)/'`rig.c
+
+libhamlib_a-serial.o: serial.c
+@AMDEP_TRUE@	source='serial.c' object='libhamlib_a-serial.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-serial.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-serial.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-serial.o `test -f serial.c || echo '$(srcdir)/'`serial.c
+
+libhamlib_a-serial.obj: serial.c
+@AMDEP_TRUE@	source='serial.c' object='libhamlib_a-serial.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-serial.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-serial.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-serial.obj `cygpath -w serial.c`
+
+libhamlib_a-serial.lo: serial.c
+@AMDEP_TRUE@	source='serial.c' object='libhamlib_a-serial.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-serial.Plo' tmpdepfile='$(DEPDIR)/libhamlib_a-serial.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-serial.lo `test -f serial.c || echo '$(srcdir)/'`serial.c
+
+libhamlib_a-misc.o: misc.c
+@AMDEP_TRUE@	source='misc.c' object='libhamlib_a-misc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-misc.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-misc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-misc.o `test -f misc.c || echo '$(srcdir)/'`misc.c
+
+libhamlib_a-misc.obj: misc.c
+@AMDEP_TRUE@	source='misc.c' object='libhamlib_a-misc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-misc.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-misc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-misc.obj `cygpath -w misc.c`
+
+libhamlib_a-misc.lo: misc.c
+@AMDEP_TRUE@	source='misc.c' object='libhamlib_a-misc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-misc.Plo' tmpdepfile='$(DEPDIR)/libhamlib_a-misc.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-misc.lo `test -f misc.c || echo '$(srcdir)/'`misc.c
+
+libhamlib_a-register.o: register.c
+@AMDEP_TRUE@	source='register.c' object='libhamlib_a-register.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-register.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-register.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-register.o `test -f register.c || echo '$(srcdir)/'`register.c
+
+libhamlib_a-register.obj: register.c
+@AMDEP_TRUE@	source='register.c' object='libhamlib_a-register.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-register.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-register.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-register.obj `cygpath -w register.c`
+
+libhamlib_a-register.lo: register.c
+@AMDEP_TRUE@	source='register.c' object='libhamlib_a-register.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-register.Plo' tmpdepfile='$(DEPDIR)/libhamlib_a-register.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-register.lo `test -f register.c || echo '$(srcdir)/'`register.c
+
+libhamlib_a-event.o: event.c
+@AMDEP_TRUE@	source='event.c' object='libhamlib_a-event.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-event.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-event.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-event.o `test -f event.c || echo '$(srcdir)/'`event.c
+
+libhamlib_a-event.obj: event.c
+@AMDEP_TRUE@	source='event.c' object='libhamlib_a-event.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-event.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-event.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-event.obj `cygpath -w event.c`
+
+libhamlib_a-event.lo: event.c
+@AMDEP_TRUE@	source='event.c' object='libhamlib_a-event.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-event.Plo' tmpdepfile='$(DEPDIR)/libhamlib_a-event.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-event.lo `test -f event.c || echo '$(srcdir)/'`event.c
+
+libhamlib_a-cal.o: cal.c
+@AMDEP_TRUE@	source='cal.c' object='libhamlib_a-cal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-cal.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-cal.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-cal.o `test -f cal.c || echo '$(srcdir)/'`cal.c
+
+libhamlib_a-cal.obj: cal.c
+@AMDEP_TRUE@	source='cal.c' object='libhamlib_a-cal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-cal.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-cal.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-cal.obj `cygpath -w cal.c`
+
+libhamlib_a-cal.lo: cal.c
+@AMDEP_TRUE@	source='cal.c' object='libhamlib_a-cal.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-cal.Plo' tmpdepfile='$(DEPDIR)/libhamlib_a-cal.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-cal.lo `test -f cal.c || echo '$(srcdir)/'`cal.c
+
+libhamlib_a-conf.o: conf.c
+@AMDEP_TRUE@	source='conf.c' object='libhamlib_a-conf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-conf.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-conf.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-conf.o `test -f conf.c || echo '$(srcdir)/'`conf.c
+
+libhamlib_a-conf.obj: conf.c
+@AMDEP_TRUE@	source='conf.c' object='libhamlib_a-conf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-conf.Po' tmpdepfile='$(DEPDIR)/libhamlib_a-conf.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-conf.obj `cygpath -w conf.c`
+
+libhamlib_a-conf.lo: conf.c
+@AMDEP_TRUE@	source='conf.c' object='libhamlib_a-conf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_a-conf.Plo' tmpdepfile='$(DEPDIR)/libhamlib_a-conf.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_a_CFLAGS) $(CFLAGS) -c -o libhamlib_a-conf.lo `test -f conf.c || echo '$(srcdir)/'`conf.c
+
+libhamlib_la-rig.o: rig.c
+@AMDEP_TRUE@	source='rig.c' object='libhamlib_la-rig.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rig.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rig.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rig.o `test -f rig.c || echo '$(srcdir)/'`rig.c
+
+libhamlib_la-rig.obj: rig.c
+@AMDEP_TRUE@	source='rig.c' object='libhamlib_la-rig.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rig.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rig.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rig.obj `cygpath -w rig.c`
+
+libhamlib_la-rig.lo: rig.c
+@AMDEP_TRUE@	source='rig.c' object='libhamlib_la-rig.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rig.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-rig.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rig.lo `test -f rig.c || echo '$(srcdir)/'`rig.c
+
+libhamlib_la-serial.o: serial.c
+@AMDEP_TRUE@	source='serial.c' object='libhamlib_la-serial.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-serial.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-serial.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-serial.o `test -f serial.c || echo '$(srcdir)/'`serial.c
+
+libhamlib_la-serial.obj: serial.c
+@AMDEP_TRUE@	source='serial.c' object='libhamlib_la-serial.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-serial.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-serial.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-serial.obj `cygpath -w serial.c`
+
+libhamlib_la-serial.lo: serial.c
+@AMDEP_TRUE@	source='serial.c' object='libhamlib_la-serial.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-serial.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-serial.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-serial.lo `test -f serial.c || echo '$(srcdir)/'`serial.c
+
+libhamlib_la-misc.o: misc.c
+@AMDEP_TRUE@	source='misc.c' object='libhamlib_la-misc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-misc.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-misc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-misc.o `test -f misc.c || echo '$(srcdir)/'`misc.c
+
+libhamlib_la-misc.obj: misc.c
+@AMDEP_TRUE@	source='misc.c' object='libhamlib_la-misc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-misc.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-misc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-misc.obj `cygpath -w misc.c`
+
+libhamlib_la-misc.lo: misc.c
+@AMDEP_TRUE@	source='misc.c' object='libhamlib_la-misc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-misc.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-misc.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-misc.lo `test -f misc.c || echo '$(srcdir)/'`misc.c
+
+libhamlib_la-register.o: register.c
+@AMDEP_TRUE@	source='register.c' object='libhamlib_la-register.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-register.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-register.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-register.o `test -f register.c || echo '$(srcdir)/'`register.c
+
+libhamlib_la-register.obj: register.c
+@AMDEP_TRUE@	source='register.c' object='libhamlib_la-register.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-register.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-register.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-register.obj `cygpath -w register.c`
+
+libhamlib_la-register.lo: register.c
+@AMDEP_TRUE@	source='register.c' object='libhamlib_la-register.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-register.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-register.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-register.lo `test -f register.c || echo '$(srcdir)/'`register.c
+
+libhamlib_la-event.o: event.c
+@AMDEP_TRUE@	source='event.c' object='libhamlib_la-event.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-event.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-event.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-event.o `test -f event.c || echo '$(srcdir)/'`event.c
+
+libhamlib_la-event.obj: event.c
+@AMDEP_TRUE@	source='event.c' object='libhamlib_la-event.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-event.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-event.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-event.obj `cygpath -w event.c`
+
+libhamlib_la-event.lo: event.c
+@AMDEP_TRUE@	source='event.c' object='libhamlib_la-event.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-event.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-event.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-event.lo `test -f event.c || echo '$(srcdir)/'`event.c
+
+libhamlib_la-cal.o: cal.c
+@AMDEP_TRUE@	source='cal.c' object='libhamlib_la-cal.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-cal.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-cal.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-cal.o `test -f cal.c || echo '$(srcdir)/'`cal.c
+
+libhamlib_la-cal.obj: cal.c
+@AMDEP_TRUE@	source='cal.c' object='libhamlib_la-cal.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-cal.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-cal.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-cal.obj `cygpath -w cal.c`
+
+libhamlib_la-cal.lo: cal.c
+@AMDEP_TRUE@	source='cal.c' object='libhamlib_la-cal.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-cal.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-cal.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-cal.lo `test -f cal.c || echo '$(srcdir)/'`cal.c
+
+libhamlib_la-conf.o: conf.c
+@AMDEP_TRUE@	source='conf.c' object='libhamlib_la-conf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-conf.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-conf.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-conf.o `test -f conf.c || echo '$(srcdir)/'`conf.c
+
+libhamlib_la-conf.obj: conf.c
+@AMDEP_TRUE@	source='conf.c' object='libhamlib_la-conf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-conf.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-conf.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-conf.obj `cygpath -w conf.c`
+
+libhamlib_la-conf.lo: conf.c
+@AMDEP_TRUE@	source='conf.c' object='libhamlib_la-conf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-conf.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-conf.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-conf.lo `test -f conf.c || echo '$(srcdir)/'`conf.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

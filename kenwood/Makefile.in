@@ -98,10 +98,12 @@ TSSRCLIST = ts870s.c ts570.c ts450s.c ts2000.c thd7.c thf7.c
 lib_LTLIBRARIES = libhamlib-kenwood.la
 libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c th.c
 libhamlib_kenwood_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_kenwood_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-kenwood.a
 libhamlib_kenwood_a_SOURCES = $(TSSRCLIST) kenwood.c th.c
+libhamlib_kenwood_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_kenwood_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = kenwood.h th.h
@@ -113,15 +115,23 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_kenwood_a_AR = $(AR) cru
 libhamlib_kenwood_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_kenwood_a_OBJECTS = ts870s.$(OBJEXT) ts570.$(OBJEXT) \
-	ts450s.$(OBJEXT) ts2000.$(OBJEXT) thd7.$(OBJEXT) thf7.$(OBJEXT) \
-	kenwood.$(OBJEXT) th.$(OBJEXT)
+am_libhamlib_kenwood_a_OBJECTS = libhamlib_kenwood_a-ts870s.$(OBJEXT) \
+	libhamlib_kenwood_a-ts570.$(OBJEXT) \
+	libhamlib_kenwood_a-ts450s.$(OBJEXT) \
+	libhamlib_kenwood_a-ts2000.$(OBJEXT) \
+	libhamlib_kenwood_a-thd7.$(OBJEXT) \
+	libhamlib_kenwood_a-thf7.$(OBJEXT) \
+	libhamlib_kenwood_a-kenwood.$(OBJEXT) \
+	libhamlib_kenwood_a-th.$(OBJEXT)
 libhamlib_kenwood_a_OBJECTS = $(am_libhamlib_kenwood_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_kenwood_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_kenwood_la_OBJECTS = ts870s.lo ts570.lo ts450s.lo ts2000.lo \
-	thd7.lo thf7.lo kenwood.lo th.lo
+am_libhamlib_kenwood_la_OBJECTS = libhamlib_kenwood_la-ts870s.lo \
+	libhamlib_kenwood_la-ts570.lo libhamlib_kenwood_la-ts450s.lo \
+	libhamlib_kenwood_la-ts2000.lo libhamlib_kenwood_la-thd7.lo \
+	libhamlib_kenwood_la-thf7.lo libhamlib_kenwood_la-kenwood.lo \
+	libhamlib_kenwood_la-th.lo
 libhamlib_kenwood_la_OBJECTS = $(am_libhamlib_kenwood_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -130,14 +140,22 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/kenwood.Plo $(DEPDIR)/kenwood.Po \
-@AMDEP_TRUE@	$(DEPDIR)/th.Plo $(DEPDIR)/th.Po $(DEPDIR)/thd7.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/thd7.Po $(DEPDIR)/thf7.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/thf7.Po $(DEPDIR)/ts2000.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ts2000.Po $(DEPDIR)/ts450s.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ts450s.Po $(DEPDIR)/ts570.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ts570.Po $(DEPDIR)/ts870s.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ts870s.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_kenwood_a-kenwood.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_a-th.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_a-thd7.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_a-thf7.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_a-ts2000.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_a-ts450s.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_a-ts570.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_a-ts870s.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-kenwood.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-th.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-thd7.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-thf7.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-ts2000.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-ts450s.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-ts570.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_kenwood_la-ts870s.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -201,6 +219,14 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_kenwood_a-ts870s.$(OBJEXT): ts870s.c
+libhamlib_kenwood_a-ts570.$(OBJEXT): ts570.c
+libhamlib_kenwood_a-ts450s.$(OBJEXT): ts450s.c
+libhamlib_kenwood_a-ts2000.$(OBJEXT): ts2000.c
+libhamlib_kenwood_a-thd7.$(OBJEXT): thd7.c
+libhamlib_kenwood_a-thf7.$(OBJEXT): thf7.c
+libhamlib_kenwood_a-kenwood.$(OBJEXT): kenwood.c
+libhamlib_kenwood_a-th.$(OBJEXT): th.c
 libhamlib-kenwood.a: $(libhamlib_kenwood_a_OBJECTS) $(libhamlib_kenwood_a_DEPENDENCIES) 
 	-rm -f libhamlib-kenwood.a
 	$(libhamlib_kenwood_a_AR) libhamlib-kenwood.a $(libhamlib_kenwood_a_OBJECTS) $(libhamlib_kenwood_a_LIBADD)
@@ -224,6 +250,14 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_kenwood_la-ts870s.lo: ts870s.c
+libhamlib_kenwood_la-ts570.lo: ts570.c
+libhamlib_kenwood_la-ts450s.lo: ts450s.c
+libhamlib_kenwood_la-ts2000.lo: ts2000.c
+libhamlib_kenwood_la-thd7.lo: thd7.c
+libhamlib_kenwood_la-thf7.lo: thf7.c
+libhamlib_kenwood_la-kenwood.lo: kenwood.c
+libhamlib_kenwood_la-th.lo: th.c
 libhamlib-kenwood.la: $(libhamlib_kenwood_la_OBJECTS) $(libhamlib_kenwood_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_kenwood_la_LDFLAGS) $(libhamlib_kenwood_la_OBJECTS) $(libhamlib_kenwood_la_LIBADD) $(LIBS)
 
@@ -233,22 +267,22 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/kenwood.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/kenwood.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/th.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/th.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thd7.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thd7.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thf7.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thf7.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts2000.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts2000.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts450s.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts450s.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts570.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts570.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts870s.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts870s.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-kenwood.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-th.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-thd7.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-thf7.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-ts2000.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-ts450s.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-ts570.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_a-ts870s.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-kenwood.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-th.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-thd7.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-thf7.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-ts2000.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-ts450s.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-ts570.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_kenwood_la-ts870s.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -270,6 +304,294 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_kenwood_a-ts870s.o: ts870s.c
+@AMDEP_TRUE@	source='ts870s.c' object='libhamlib_kenwood_a-ts870s.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts870s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts870s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts870s.o `test -f ts870s.c || echo '$(srcdir)/'`ts870s.c
+
+libhamlib_kenwood_a-ts870s.obj: ts870s.c
+@AMDEP_TRUE@	source='ts870s.c' object='libhamlib_kenwood_a-ts870s.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts870s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts870s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts870s.obj `cygpath -w ts870s.c`
+
+libhamlib_kenwood_a-ts870s.lo: ts870s.c
+@AMDEP_TRUE@	source='ts870s.c' object='libhamlib_kenwood_a-ts870s.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts870s.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts870s.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts870s.lo `test -f ts870s.c || echo '$(srcdir)/'`ts870s.c
+
+libhamlib_kenwood_a-ts570.o: ts570.c
+@AMDEP_TRUE@	source='ts570.c' object='libhamlib_kenwood_a-ts570.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts570.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts570.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts570.o `test -f ts570.c || echo '$(srcdir)/'`ts570.c
+
+libhamlib_kenwood_a-ts570.obj: ts570.c
+@AMDEP_TRUE@	source='ts570.c' object='libhamlib_kenwood_a-ts570.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts570.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts570.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts570.obj `cygpath -w ts570.c`
+
+libhamlib_kenwood_a-ts570.lo: ts570.c
+@AMDEP_TRUE@	source='ts570.c' object='libhamlib_kenwood_a-ts570.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts570.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts570.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts570.lo `test -f ts570.c || echo '$(srcdir)/'`ts570.c
+
+libhamlib_kenwood_a-ts450s.o: ts450s.c
+@AMDEP_TRUE@	source='ts450s.c' object='libhamlib_kenwood_a-ts450s.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts450s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts450s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts450s.o `test -f ts450s.c || echo '$(srcdir)/'`ts450s.c
+
+libhamlib_kenwood_a-ts450s.obj: ts450s.c
+@AMDEP_TRUE@	source='ts450s.c' object='libhamlib_kenwood_a-ts450s.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts450s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts450s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts450s.obj `cygpath -w ts450s.c`
+
+libhamlib_kenwood_a-ts450s.lo: ts450s.c
+@AMDEP_TRUE@	source='ts450s.c' object='libhamlib_kenwood_a-ts450s.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts450s.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts450s.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts450s.lo `test -f ts450s.c || echo '$(srcdir)/'`ts450s.c
+
+libhamlib_kenwood_a-ts2000.o: ts2000.c
+@AMDEP_TRUE@	source='ts2000.c' object='libhamlib_kenwood_a-ts2000.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts2000.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts2000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts2000.o `test -f ts2000.c || echo '$(srcdir)/'`ts2000.c
+
+libhamlib_kenwood_a-ts2000.obj: ts2000.c
+@AMDEP_TRUE@	source='ts2000.c' object='libhamlib_kenwood_a-ts2000.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts2000.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts2000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts2000.obj `cygpath -w ts2000.c`
+
+libhamlib_kenwood_a-ts2000.lo: ts2000.c
+@AMDEP_TRUE@	source='ts2000.c' object='libhamlib_kenwood_a-ts2000.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-ts2000.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-ts2000.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-ts2000.lo `test -f ts2000.c || echo '$(srcdir)/'`ts2000.c
+
+libhamlib_kenwood_a-thd7.o: thd7.c
+@AMDEP_TRUE@	source='thd7.c' object='libhamlib_kenwood_a-thd7.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-thd7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-thd7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-thd7.o `test -f thd7.c || echo '$(srcdir)/'`thd7.c
+
+libhamlib_kenwood_a-thd7.obj: thd7.c
+@AMDEP_TRUE@	source='thd7.c' object='libhamlib_kenwood_a-thd7.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-thd7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-thd7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-thd7.obj `cygpath -w thd7.c`
+
+libhamlib_kenwood_a-thd7.lo: thd7.c
+@AMDEP_TRUE@	source='thd7.c' object='libhamlib_kenwood_a-thd7.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-thd7.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-thd7.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-thd7.lo `test -f thd7.c || echo '$(srcdir)/'`thd7.c
+
+libhamlib_kenwood_a-thf7.o: thf7.c
+@AMDEP_TRUE@	source='thf7.c' object='libhamlib_kenwood_a-thf7.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-thf7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-thf7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-thf7.o `test -f thf7.c || echo '$(srcdir)/'`thf7.c
+
+libhamlib_kenwood_a-thf7.obj: thf7.c
+@AMDEP_TRUE@	source='thf7.c' object='libhamlib_kenwood_a-thf7.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-thf7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-thf7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-thf7.obj `cygpath -w thf7.c`
+
+libhamlib_kenwood_a-thf7.lo: thf7.c
+@AMDEP_TRUE@	source='thf7.c' object='libhamlib_kenwood_a-thf7.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-thf7.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-thf7.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-thf7.lo `test -f thf7.c || echo '$(srcdir)/'`thf7.c
+
+libhamlib_kenwood_a-kenwood.o: kenwood.c
+@AMDEP_TRUE@	source='kenwood.c' object='libhamlib_kenwood_a-kenwood.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-kenwood.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-kenwood.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-kenwood.o `test -f kenwood.c || echo '$(srcdir)/'`kenwood.c
+
+libhamlib_kenwood_a-kenwood.obj: kenwood.c
+@AMDEP_TRUE@	source='kenwood.c' object='libhamlib_kenwood_a-kenwood.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-kenwood.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-kenwood.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-kenwood.obj `cygpath -w kenwood.c`
+
+libhamlib_kenwood_a-kenwood.lo: kenwood.c
+@AMDEP_TRUE@	source='kenwood.c' object='libhamlib_kenwood_a-kenwood.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-kenwood.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-kenwood.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-kenwood.lo `test -f kenwood.c || echo '$(srcdir)/'`kenwood.c
+
+libhamlib_kenwood_a-th.o: th.c
+@AMDEP_TRUE@	source='th.c' object='libhamlib_kenwood_a-th.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-th.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-th.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-th.o `test -f th.c || echo '$(srcdir)/'`th.c
+
+libhamlib_kenwood_a-th.obj: th.c
+@AMDEP_TRUE@	source='th.c' object='libhamlib_kenwood_a-th.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-th.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-th.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-th.obj `cygpath -w th.c`
+
+libhamlib_kenwood_a-th.lo: th.c
+@AMDEP_TRUE@	source='th.c' object='libhamlib_kenwood_a-th.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_a-th.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_a-th.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_a_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_a-th.lo `test -f th.c || echo '$(srcdir)/'`th.c
+
+libhamlib_kenwood_la-ts870s.o: ts870s.c
+@AMDEP_TRUE@	source='ts870s.c' object='libhamlib_kenwood_la-ts870s.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts870s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts870s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts870s.o `test -f ts870s.c || echo '$(srcdir)/'`ts870s.c
+
+libhamlib_kenwood_la-ts870s.obj: ts870s.c
+@AMDEP_TRUE@	source='ts870s.c' object='libhamlib_kenwood_la-ts870s.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts870s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts870s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts870s.obj `cygpath -w ts870s.c`
+
+libhamlib_kenwood_la-ts870s.lo: ts870s.c
+@AMDEP_TRUE@	source='ts870s.c' object='libhamlib_kenwood_la-ts870s.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts870s.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts870s.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts870s.lo `test -f ts870s.c || echo '$(srcdir)/'`ts870s.c
+
+libhamlib_kenwood_la-ts570.o: ts570.c
+@AMDEP_TRUE@	source='ts570.c' object='libhamlib_kenwood_la-ts570.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts570.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts570.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts570.o `test -f ts570.c || echo '$(srcdir)/'`ts570.c
+
+libhamlib_kenwood_la-ts570.obj: ts570.c
+@AMDEP_TRUE@	source='ts570.c' object='libhamlib_kenwood_la-ts570.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts570.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts570.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts570.obj `cygpath -w ts570.c`
+
+libhamlib_kenwood_la-ts570.lo: ts570.c
+@AMDEP_TRUE@	source='ts570.c' object='libhamlib_kenwood_la-ts570.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts570.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts570.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts570.lo `test -f ts570.c || echo '$(srcdir)/'`ts570.c
+
+libhamlib_kenwood_la-ts450s.o: ts450s.c
+@AMDEP_TRUE@	source='ts450s.c' object='libhamlib_kenwood_la-ts450s.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts450s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts450s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts450s.o `test -f ts450s.c || echo '$(srcdir)/'`ts450s.c
+
+libhamlib_kenwood_la-ts450s.obj: ts450s.c
+@AMDEP_TRUE@	source='ts450s.c' object='libhamlib_kenwood_la-ts450s.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts450s.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts450s.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts450s.obj `cygpath -w ts450s.c`
+
+libhamlib_kenwood_la-ts450s.lo: ts450s.c
+@AMDEP_TRUE@	source='ts450s.c' object='libhamlib_kenwood_la-ts450s.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts450s.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts450s.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts450s.lo `test -f ts450s.c || echo '$(srcdir)/'`ts450s.c
+
+libhamlib_kenwood_la-ts2000.o: ts2000.c
+@AMDEP_TRUE@	source='ts2000.c' object='libhamlib_kenwood_la-ts2000.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts2000.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts2000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts2000.o `test -f ts2000.c || echo '$(srcdir)/'`ts2000.c
+
+libhamlib_kenwood_la-ts2000.obj: ts2000.c
+@AMDEP_TRUE@	source='ts2000.c' object='libhamlib_kenwood_la-ts2000.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts2000.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts2000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts2000.obj `cygpath -w ts2000.c`
+
+libhamlib_kenwood_la-ts2000.lo: ts2000.c
+@AMDEP_TRUE@	source='ts2000.c' object='libhamlib_kenwood_la-ts2000.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-ts2000.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-ts2000.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-ts2000.lo `test -f ts2000.c || echo '$(srcdir)/'`ts2000.c
+
+libhamlib_kenwood_la-thd7.o: thd7.c
+@AMDEP_TRUE@	source='thd7.c' object='libhamlib_kenwood_la-thd7.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-thd7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-thd7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-thd7.o `test -f thd7.c || echo '$(srcdir)/'`thd7.c
+
+libhamlib_kenwood_la-thd7.obj: thd7.c
+@AMDEP_TRUE@	source='thd7.c' object='libhamlib_kenwood_la-thd7.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-thd7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-thd7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-thd7.obj `cygpath -w thd7.c`
+
+libhamlib_kenwood_la-thd7.lo: thd7.c
+@AMDEP_TRUE@	source='thd7.c' object='libhamlib_kenwood_la-thd7.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-thd7.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-thd7.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-thd7.lo `test -f thd7.c || echo '$(srcdir)/'`thd7.c
+
+libhamlib_kenwood_la-thf7.o: thf7.c
+@AMDEP_TRUE@	source='thf7.c' object='libhamlib_kenwood_la-thf7.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-thf7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-thf7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-thf7.o `test -f thf7.c || echo '$(srcdir)/'`thf7.c
+
+libhamlib_kenwood_la-thf7.obj: thf7.c
+@AMDEP_TRUE@	source='thf7.c' object='libhamlib_kenwood_la-thf7.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-thf7.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-thf7.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-thf7.obj `cygpath -w thf7.c`
+
+libhamlib_kenwood_la-thf7.lo: thf7.c
+@AMDEP_TRUE@	source='thf7.c' object='libhamlib_kenwood_la-thf7.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-thf7.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-thf7.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-thf7.lo `test -f thf7.c || echo '$(srcdir)/'`thf7.c
+
+libhamlib_kenwood_la-kenwood.o: kenwood.c
+@AMDEP_TRUE@	source='kenwood.c' object='libhamlib_kenwood_la-kenwood.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-kenwood.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-kenwood.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-kenwood.o `test -f kenwood.c || echo '$(srcdir)/'`kenwood.c
+
+libhamlib_kenwood_la-kenwood.obj: kenwood.c
+@AMDEP_TRUE@	source='kenwood.c' object='libhamlib_kenwood_la-kenwood.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-kenwood.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-kenwood.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-kenwood.obj `cygpath -w kenwood.c`
+
+libhamlib_kenwood_la-kenwood.lo: kenwood.c
+@AMDEP_TRUE@	source='kenwood.c' object='libhamlib_kenwood_la-kenwood.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-kenwood.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-kenwood.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-kenwood.lo `test -f kenwood.c || echo '$(srcdir)/'`kenwood.c
+
+libhamlib_kenwood_la-th.o: th.c
+@AMDEP_TRUE@	source='th.c' object='libhamlib_kenwood_la-th.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-th.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-th.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-th.o `test -f th.c || echo '$(srcdir)/'`th.c
+
+libhamlib_kenwood_la-th.obj: th.c
+@AMDEP_TRUE@	source='th.c' object='libhamlib_kenwood_la-th.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-th.Po' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-th.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-th.obj `cygpath -w th.c`
+
+libhamlib_kenwood_la-th.lo: th.c
+@AMDEP_TRUE@	source='th.c' object='libhamlib_kenwood_la-th.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_kenwood_la-th.Plo' tmpdepfile='$(DEPDIR)/libhamlib_kenwood_la-th.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_kenwood_la_CFLAGS) $(CFLAGS) -c -o libhamlib_kenwood_la-th.lo `test -f th.c || echo '$(srcdir)/'`th.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

@@ -93,18 +93,20 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-YAESUSRC = ft747.c ft847.c
+YAESUSRC = ft747.c ft817.c ft847.c
 
 lib_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = $(YAESUSRC) yaesu.c
 libhamlib_yaesu_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_yaesu_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-yaesu.a
 libhamlib_yaesu_a_SOURCES = $(YAESUSRC) yaesu.c
+libhamlib_yaesu_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_yaesu_a_LIBADD = ../src/libhamlib.la
 
-noinst_HEADERS = ft747.h ft847.h yaesu.h
+noinst_HEADERS = ft747.h ft817.h ft847.h yaesu.h
 subdir = yaesu
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -113,13 +115,17 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_yaesu_a_AR = $(AR) cru
 libhamlib_yaesu_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_yaesu_a_OBJECTS = ft747.$(OBJEXT) ft847.$(OBJEXT) \
-	yaesu.$(OBJEXT)
+am_libhamlib_yaesu_a_OBJECTS = libhamlib_yaesu_a-ft747.$(OBJEXT) \
+	libhamlib_yaesu_a-ft817.$(OBJEXT) \
+	libhamlib_yaesu_a-ft847.$(OBJEXT) \
+	libhamlib_yaesu_a-yaesu.$(OBJEXT)
 libhamlib_yaesu_a_OBJECTS = $(am_libhamlib_yaesu_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_yaesu_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_yaesu_la_OBJECTS = ft747.lo ft847.lo yaesu.lo
+am_libhamlib_yaesu_la_OBJECTS = libhamlib_yaesu_la-ft747.lo \
+	libhamlib_yaesu_la-ft817.lo libhamlib_yaesu_la-ft847.lo \
+	libhamlib_yaesu_la-yaesu.lo
 libhamlib_yaesu_la_OBJECTS = $(am_libhamlib_yaesu_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -128,9 +134,14 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/ft747.Plo $(DEPDIR)/ft747.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ft847.Plo $(DEPDIR)/ft847.Po \
-@AMDEP_TRUE@	$(DEPDIR)/yaesu.Plo $(DEPDIR)/yaesu.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_yaesu_a-ft747.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_yaesu_a-ft817.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_yaesu_a-ft847.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_yaesu_a-yaesu.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_yaesu_la-ft747.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_yaesu_la-ft817.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_yaesu_la-ft847.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_yaesu_la-yaesu.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -194,6 +205,10 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_yaesu_a-ft747.$(OBJEXT): ft747.c
+libhamlib_yaesu_a-ft817.$(OBJEXT): ft817.c
+libhamlib_yaesu_a-ft847.$(OBJEXT): ft847.c
+libhamlib_yaesu_a-yaesu.$(OBJEXT): yaesu.c
 libhamlib-yaesu.a: $(libhamlib_yaesu_a_OBJECTS) $(libhamlib_yaesu_a_DEPENDENCIES) 
 	-rm -f libhamlib-yaesu.a
 	$(libhamlib_yaesu_a_AR) libhamlib-yaesu.a $(libhamlib_yaesu_a_OBJECTS) $(libhamlib_yaesu_a_LIBADD)
@@ -217,6 +232,10 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_yaesu_la-ft747.lo: ft747.c
+libhamlib_yaesu_la-ft817.lo: ft817.c
+libhamlib_yaesu_la-ft847.lo: ft847.c
+libhamlib_yaesu_la-yaesu.lo: yaesu.c
 libhamlib-yaesu.la: $(libhamlib_yaesu_la_OBJECTS) $(libhamlib_yaesu_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_yaesu_la_LDFLAGS) $(libhamlib_yaesu_la_OBJECTS) $(libhamlib_yaesu_la_LIBADD) $(LIBS)
 
@@ -226,12 +245,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ft747.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ft747.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ft847.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ft847.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/yaesu.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/yaesu.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_a-ft747.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_a-ft817.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_a-ft847.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_a-yaesu.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_la-ft747.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_la-ft817.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_la-ft847.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_yaesu_la-yaesu.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -253,6 +274,150 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_yaesu_a-ft747.o: ft747.c
+@AMDEP_TRUE@	source='ft747.c' object='libhamlib_yaesu_a-ft747.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft747.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft747.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft747.o `test -f ft747.c || echo '$(srcdir)/'`ft747.c
+
+libhamlib_yaesu_a-ft747.obj: ft747.c
+@AMDEP_TRUE@	source='ft747.c' object='libhamlib_yaesu_a-ft747.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft747.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft747.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft747.obj `cygpath -w ft747.c`
+
+libhamlib_yaesu_a-ft747.lo: ft747.c
+@AMDEP_TRUE@	source='ft747.c' object='libhamlib_yaesu_a-ft747.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft747.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft747.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft747.lo `test -f ft747.c || echo '$(srcdir)/'`ft747.c
+
+libhamlib_yaesu_a-ft817.o: ft817.c
+@AMDEP_TRUE@	source='ft817.c' object='libhamlib_yaesu_a-ft817.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft817.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft817.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft817.o `test -f ft817.c || echo '$(srcdir)/'`ft817.c
+
+libhamlib_yaesu_a-ft817.obj: ft817.c
+@AMDEP_TRUE@	source='ft817.c' object='libhamlib_yaesu_a-ft817.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft817.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft817.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft817.obj `cygpath -w ft817.c`
+
+libhamlib_yaesu_a-ft817.lo: ft817.c
+@AMDEP_TRUE@	source='ft817.c' object='libhamlib_yaesu_a-ft817.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft817.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft817.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft817.lo `test -f ft817.c || echo '$(srcdir)/'`ft817.c
+
+libhamlib_yaesu_a-ft847.o: ft847.c
+@AMDEP_TRUE@	source='ft847.c' object='libhamlib_yaesu_a-ft847.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft847.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft847.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft847.o `test -f ft847.c || echo '$(srcdir)/'`ft847.c
+
+libhamlib_yaesu_a-ft847.obj: ft847.c
+@AMDEP_TRUE@	source='ft847.c' object='libhamlib_yaesu_a-ft847.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft847.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft847.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft847.obj `cygpath -w ft847.c`
+
+libhamlib_yaesu_a-ft847.lo: ft847.c
+@AMDEP_TRUE@	source='ft847.c' object='libhamlib_yaesu_a-ft847.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-ft847.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-ft847.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-ft847.lo `test -f ft847.c || echo '$(srcdir)/'`ft847.c
+
+libhamlib_yaesu_a-yaesu.o: yaesu.c
+@AMDEP_TRUE@	source='yaesu.c' object='libhamlib_yaesu_a-yaesu.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-yaesu.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-yaesu.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-yaesu.o `test -f yaesu.c || echo '$(srcdir)/'`yaesu.c
+
+libhamlib_yaesu_a-yaesu.obj: yaesu.c
+@AMDEP_TRUE@	source='yaesu.c' object='libhamlib_yaesu_a-yaesu.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-yaesu.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-yaesu.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-yaesu.obj `cygpath -w yaesu.c`
+
+libhamlib_yaesu_a-yaesu.lo: yaesu.c
+@AMDEP_TRUE@	source='yaesu.c' object='libhamlib_yaesu_a-yaesu.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_a-yaesu.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_a-yaesu.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_a_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_a-yaesu.lo `test -f yaesu.c || echo '$(srcdir)/'`yaesu.c
+
+libhamlib_yaesu_la-ft747.o: ft747.c
+@AMDEP_TRUE@	source='ft747.c' object='libhamlib_yaesu_la-ft747.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft747.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft747.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft747.o `test -f ft747.c || echo '$(srcdir)/'`ft747.c
+
+libhamlib_yaesu_la-ft747.obj: ft747.c
+@AMDEP_TRUE@	source='ft747.c' object='libhamlib_yaesu_la-ft747.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft747.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft747.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft747.obj `cygpath -w ft747.c`
+
+libhamlib_yaesu_la-ft747.lo: ft747.c
+@AMDEP_TRUE@	source='ft747.c' object='libhamlib_yaesu_la-ft747.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft747.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft747.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft747.lo `test -f ft747.c || echo '$(srcdir)/'`ft747.c
+
+libhamlib_yaesu_la-ft817.o: ft817.c
+@AMDEP_TRUE@	source='ft817.c' object='libhamlib_yaesu_la-ft817.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft817.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft817.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft817.o `test -f ft817.c || echo '$(srcdir)/'`ft817.c
+
+libhamlib_yaesu_la-ft817.obj: ft817.c
+@AMDEP_TRUE@	source='ft817.c' object='libhamlib_yaesu_la-ft817.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft817.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft817.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft817.obj `cygpath -w ft817.c`
+
+libhamlib_yaesu_la-ft817.lo: ft817.c
+@AMDEP_TRUE@	source='ft817.c' object='libhamlib_yaesu_la-ft817.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft817.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft817.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft817.lo `test -f ft817.c || echo '$(srcdir)/'`ft817.c
+
+libhamlib_yaesu_la-ft847.o: ft847.c
+@AMDEP_TRUE@	source='ft847.c' object='libhamlib_yaesu_la-ft847.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft847.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft847.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft847.o `test -f ft847.c || echo '$(srcdir)/'`ft847.c
+
+libhamlib_yaesu_la-ft847.obj: ft847.c
+@AMDEP_TRUE@	source='ft847.c' object='libhamlib_yaesu_la-ft847.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft847.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft847.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft847.obj `cygpath -w ft847.c`
+
+libhamlib_yaesu_la-ft847.lo: ft847.c
+@AMDEP_TRUE@	source='ft847.c' object='libhamlib_yaesu_la-ft847.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-ft847.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-ft847.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-ft847.lo `test -f ft847.c || echo '$(srcdir)/'`ft847.c
+
+libhamlib_yaesu_la-yaesu.o: yaesu.c
+@AMDEP_TRUE@	source='yaesu.c' object='libhamlib_yaesu_la-yaesu.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-yaesu.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-yaesu.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-yaesu.o `test -f yaesu.c || echo '$(srcdir)/'`yaesu.c
+
+libhamlib_yaesu_la-yaesu.obj: yaesu.c
+@AMDEP_TRUE@	source='yaesu.c' object='libhamlib_yaesu_la-yaesu.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-yaesu.Po' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-yaesu.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-yaesu.obj `cygpath -w yaesu.c`
+
+libhamlib_yaesu_la-yaesu.lo: yaesu.c
+@AMDEP_TRUE@	source='yaesu.c' object='libhamlib_yaesu_la-yaesu.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_yaesu_la-yaesu.Plo' tmpdepfile='$(DEPDIR)/libhamlib_yaesu_la-yaesu.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_yaesu_la_CFLAGS) $(CFLAGS) -c -o libhamlib_yaesu_la-yaesu.lo `test -f yaesu.c || echo '$(srcdir)/'`yaesu.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

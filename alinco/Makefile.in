@@ -98,10 +98,12 @@ ALINCOSRCLIST = dx77.c
 lib_LTLIBRARIES = libhamlib-alinco.la
 libhamlib_alinco_la_SOURCES = $(ALINCOSRCLIST) alinco.c
 libhamlib_alinco_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_alinco_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_alinco_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-alinco.a
 libhamlib_alinco_a_SOURCES = $(ALINCOSRCLIST) alinco.c
+libhamlib_alinco_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_alinco_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = alinco.h
@@ -113,12 +115,14 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_alinco_a_AR = $(AR) cru
 libhamlib_alinco_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_alinco_a_OBJECTS = dx77.$(OBJEXT) alinco.$(OBJEXT)
+am_libhamlib_alinco_a_OBJECTS = libhamlib_alinco_a-dx77.$(OBJEXT) \
+	libhamlib_alinco_a-alinco.$(OBJEXT)
 libhamlib_alinco_a_OBJECTS = $(am_libhamlib_alinco_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_alinco_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_alinco_la_OBJECTS = dx77.lo alinco.lo
+am_libhamlib_alinco_la_OBJECTS = libhamlib_alinco_la-dx77.lo \
+	libhamlib_alinco_la-alinco.lo
 libhamlib_alinco_la_OBJECTS = $(am_libhamlib_alinco_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -127,8 +131,10 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/alinco.Plo $(DEPDIR)/alinco.Po \
-@AMDEP_TRUE@	$(DEPDIR)/dx77.Plo $(DEPDIR)/dx77.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_alinco_a-alinco.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_alinco_a-dx77.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_alinco_la-alinco.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_alinco_la-dx77.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -192,6 +198,8 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_alinco_a-dx77.$(OBJEXT): dx77.c
+libhamlib_alinco_a-alinco.$(OBJEXT): alinco.c
 libhamlib-alinco.a: $(libhamlib_alinco_a_OBJECTS) $(libhamlib_alinco_a_DEPENDENCIES) 
 	-rm -f libhamlib-alinco.a
 	$(libhamlib_alinco_a_AR) libhamlib-alinco.a $(libhamlib_alinco_a_OBJECTS) $(libhamlib_alinco_a_LIBADD)
@@ -215,6 +223,8 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_alinco_la-dx77.lo: dx77.c
+libhamlib_alinco_la-alinco.lo: alinco.c
 libhamlib-alinco.la: $(libhamlib_alinco_la_OBJECTS) $(libhamlib_alinco_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_alinco_la_LDFLAGS) $(libhamlib_alinco_la_OBJECTS) $(libhamlib_alinco_la_LIBADD) $(LIBS)
 
@@ -224,10 +234,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/alinco.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/alinco.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dx77.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dx77.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_alinco_a-alinco.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_alinco_a-dx77.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_alinco_la-alinco.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_alinco_la-dx77.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -249,6 +259,78 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_alinco_a-dx77.o: dx77.c
+@AMDEP_TRUE@	source='dx77.c' object='libhamlib_alinco_a-dx77.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_a-dx77.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_a-dx77.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_a_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_a-dx77.o `test -f dx77.c || echo '$(srcdir)/'`dx77.c
+
+libhamlib_alinco_a-dx77.obj: dx77.c
+@AMDEP_TRUE@	source='dx77.c' object='libhamlib_alinco_a-dx77.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_a-dx77.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_a-dx77.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_a_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_a-dx77.obj `cygpath -w dx77.c`
+
+libhamlib_alinco_a-dx77.lo: dx77.c
+@AMDEP_TRUE@	source='dx77.c' object='libhamlib_alinco_a-dx77.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_a-dx77.Plo' tmpdepfile='$(DEPDIR)/libhamlib_alinco_a-dx77.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_a_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_a-dx77.lo `test -f dx77.c || echo '$(srcdir)/'`dx77.c
+
+libhamlib_alinco_a-alinco.o: alinco.c
+@AMDEP_TRUE@	source='alinco.c' object='libhamlib_alinco_a-alinco.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_a-alinco.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_a-alinco.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_a_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_a-alinco.o `test -f alinco.c || echo '$(srcdir)/'`alinco.c
+
+libhamlib_alinco_a-alinco.obj: alinco.c
+@AMDEP_TRUE@	source='alinco.c' object='libhamlib_alinco_a-alinco.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_a-alinco.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_a-alinco.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_a_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_a-alinco.obj `cygpath -w alinco.c`
+
+libhamlib_alinco_a-alinco.lo: alinco.c
+@AMDEP_TRUE@	source='alinco.c' object='libhamlib_alinco_a-alinco.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_a-alinco.Plo' tmpdepfile='$(DEPDIR)/libhamlib_alinco_a-alinco.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_a_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_a-alinco.lo `test -f alinco.c || echo '$(srcdir)/'`alinco.c
+
+libhamlib_alinco_la-dx77.o: dx77.c
+@AMDEP_TRUE@	source='dx77.c' object='libhamlib_alinco_la-dx77.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_la-dx77.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_la-dx77.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_la_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_la-dx77.o `test -f dx77.c || echo '$(srcdir)/'`dx77.c
+
+libhamlib_alinco_la-dx77.obj: dx77.c
+@AMDEP_TRUE@	source='dx77.c' object='libhamlib_alinco_la-dx77.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_la-dx77.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_la-dx77.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_la_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_la-dx77.obj `cygpath -w dx77.c`
+
+libhamlib_alinco_la-dx77.lo: dx77.c
+@AMDEP_TRUE@	source='dx77.c' object='libhamlib_alinco_la-dx77.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_la-dx77.Plo' tmpdepfile='$(DEPDIR)/libhamlib_alinco_la-dx77.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_la_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_la-dx77.lo `test -f dx77.c || echo '$(srcdir)/'`dx77.c
+
+libhamlib_alinco_la-alinco.o: alinco.c
+@AMDEP_TRUE@	source='alinco.c' object='libhamlib_alinco_la-alinco.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_la-alinco.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_la-alinco.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_la_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_la-alinco.o `test -f alinco.c || echo '$(srcdir)/'`alinco.c
+
+libhamlib_alinco_la-alinco.obj: alinco.c
+@AMDEP_TRUE@	source='alinco.c' object='libhamlib_alinco_la-alinco.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_la-alinco.Po' tmpdepfile='$(DEPDIR)/libhamlib_alinco_la-alinco.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_la_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_la-alinco.obj `cygpath -w alinco.c`
+
+libhamlib_alinco_la-alinco.lo: alinco.c
+@AMDEP_TRUE@	source='alinco.c' object='libhamlib_alinco_la-alinco.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_alinco_la-alinco.Plo' tmpdepfile='$(DEPDIR)/libhamlib_alinco_la-alinco.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_alinco_la_CFLAGS) $(CFLAGS) -c -o libhamlib_alinco_la-alinco.lo `test -f alinco.c || echo '$(srcdir)/'`alinco.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

@@ -98,10 +98,12 @@ TENTECSRCLIST = rx320.c
 lib_LTLIBRARIES = libhamlib-tentec.la
 libhamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c
 libhamlib_tentec_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_tentec_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_tentec_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-tentec.a
 libhamlib_tentec_a_SOURCES = $(TENTECSRCLIST) tentec.c
+libhamlib_tentec_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_tentec_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = tentec.h
@@ -113,12 +115,14 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_tentec_a_AR = $(AR) cru
 libhamlib_tentec_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_tentec_a_OBJECTS = rx320.$(OBJEXT) tentec.$(OBJEXT)
+am_libhamlib_tentec_a_OBJECTS = libhamlib_tentec_a-rx320.$(OBJEXT) \
+	libhamlib_tentec_a-tentec.$(OBJEXT)
 libhamlib_tentec_a_OBJECTS = $(am_libhamlib_tentec_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_tentec_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_tentec_la_OBJECTS = rx320.lo tentec.lo
+am_libhamlib_tentec_la_OBJECTS = libhamlib_tentec_la-rx320.lo \
+	libhamlib_tentec_la-tentec.lo
 libhamlib_tentec_la_OBJECTS = $(am_libhamlib_tentec_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -127,8 +131,10 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rx320.Plo $(DEPDIR)/rx320.Po \
-@AMDEP_TRUE@	$(DEPDIR)/tentec.Plo $(DEPDIR)/tentec.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_tentec_a-rx320.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_tentec_a-tentec.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_tentec_la-rx320.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_tentec_la-tentec.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -192,6 +198,8 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_tentec_a-rx320.$(OBJEXT): rx320.c
+libhamlib_tentec_a-tentec.$(OBJEXT): tentec.c
 libhamlib-tentec.a: $(libhamlib_tentec_a_OBJECTS) $(libhamlib_tentec_a_DEPENDENCIES) 
 	-rm -f libhamlib-tentec.a
 	$(libhamlib_tentec_a_AR) libhamlib-tentec.a $(libhamlib_tentec_a_OBJECTS) $(libhamlib_tentec_a_LIBADD)
@@ -215,6 +223,8 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_tentec_la-rx320.lo: rx320.c
+libhamlib_tentec_la-tentec.lo: tentec.c
 libhamlib-tentec.la: $(libhamlib_tentec_la_OBJECTS) $(libhamlib_tentec_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_tentec_la_LDFLAGS) $(libhamlib_tentec_la_OBJECTS) $(libhamlib_tentec_la_LIBADD) $(LIBS)
 
@@ -224,10 +234,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rx320.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rx320.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tentec.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tentec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_a-rx320.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_a-tentec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_la-rx320.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_la-tentec.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -249,6 +259,78 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_tentec_a-rx320.o: rx320.c
+@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_a-rx320.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-rx320.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-rx320.o `test -f rx320.c || echo '$(srcdir)/'`rx320.c
+
+libhamlib_tentec_a-rx320.obj: rx320.c
+@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_a-rx320.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-rx320.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-rx320.obj `cygpath -w rx320.c`
+
+libhamlib_tentec_a-rx320.lo: rx320.c
+@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_a-rx320.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-rx320.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-rx320.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-rx320.lo `test -f rx320.c || echo '$(srcdir)/'`rx320.c
+
+libhamlib_tentec_a-tentec.o: tentec.c
+@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_a-tentec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-tentec.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-tentec.o `test -f tentec.c || echo '$(srcdir)/'`tentec.c
+
+libhamlib_tentec_a-tentec.obj: tentec.c
+@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_a-tentec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-tentec.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-tentec.obj `cygpath -w tentec.c`
+
+libhamlib_tentec_a-tentec.lo: tentec.c
+@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_a-tentec.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-tentec.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-tentec.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-tentec.lo `test -f tentec.c || echo '$(srcdir)/'`tentec.c
+
+libhamlib_tentec_la-rx320.o: rx320.c
+@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_la-rx320.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-rx320.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-rx320.o `test -f rx320.c || echo '$(srcdir)/'`rx320.c
+
+libhamlib_tentec_la-rx320.obj: rx320.c
+@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_la-rx320.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-rx320.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-rx320.obj `cygpath -w rx320.c`
+
+libhamlib_tentec_la-rx320.lo: rx320.c
+@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_la-rx320.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-rx320.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-rx320.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-rx320.lo `test -f rx320.c || echo '$(srcdir)/'`rx320.c
+
+libhamlib_tentec_la-tentec.o: tentec.c
+@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_la-tentec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-tentec.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-tentec.o `test -f tentec.c || echo '$(srcdir)/'`tentec.c
+
+libhamlib_tentec_la-tentec.obj: tentec.c
+@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_la-tentec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-tentec.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-tentec.obj `cygpath -w tentec.c`
+
+libhamlib_tentec_la-tentec.lo: tentec.c
+@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_la-tentec.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-tentec.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-tentec.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-tentec.lo `test -f tentec.c || echo '$(srcdir)/'`tentec.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

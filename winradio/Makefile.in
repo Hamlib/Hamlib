@@ -100,10 +100,12 @@ WRSRCLIST = wr1000.c wr1500.c wr1550.c wr3100.c wr3150.c wr3500.c wr3700.c
 lib_LTLIBRARIES = libhamlib-winradio.la
 libhamlib_winradio_la_SOURCES = $(WRSRCLIST) winradio.c
 libhamlib_winradio_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_winradio_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-winradio.a
 libhamlib_winradio_a_SOURCES = $(WRSRCLIST) winradio.c
+libhamlib_winradio_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_winradio_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = winradio.h
@@ -115,15 +117,23 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_winradio_a_AR = $(AR) cru
 libhamlib_winradio_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_winradio_a_OBJECTS = wr1000.$(OBJEXT) wr1500.$(OBJEXT) \
-	wr1550.$(OBJEXT) wr3100.$(OBJEXT) wr3150.$(OBJEXT) \
-	wr3500.$(OBJEXT) wr3700.$(OBJEXT) winradio.$(OBJEXT)
+am_libhamlib_winradio_a_OBJECTS = libhamlib_winradio_a-wr1000.$(OBJEXT) \
+	libhamlib_winradio_a-wr1500.$(OBJEXT) \
+	libhamlib_winradio_a-wr1550.$(OBJEXT) \
+	libhamlib_winradio_a-wr3100.$(OBJEXT) \
+	libhamlib_winradio_a-wr3150.$(OBJEXT) \
+	libhamlib_winradio_a-wr3500.$(OBJEXT) \
+	libhamlib_winradio_a-wr3700.$(OBJEXT) \
+	libhamlib_winradio_a-winradio.$(OBJEXT)
 libhamlib_winradio_a_OBJECTS = $(am_libhamlib_winradio_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_winradio_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_winradio_la_OBJECTS = wr1000.lo wr1500.lo wr1550.lo \
-	wr3100.lo wr3150.lo wr3500.lo wr3700.lo winradio.lo
+am_libhamlib_winradio_la_OBJECTS = libhamlib_winradio_la-wr1000.lo \
+	libhamlib_winradio_la-wr1500.lo libhamlib_winradio_la-wr1550.lo \
+	libhamlib_winradio_la-wr3100.lo libhamlib_winradio_la-wr3150.lo \
+	libhamlib_winradio_la-wr3500.lo libhamlib_winradio_la-wr3700.lo \
+	libhamlib_winradio_la-winradio.lo
 libhamlib_winradio_la_OBJECTS = $(am_libhamlib_winradio_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -132,14 +142,22 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/winradio.Plo $(DEPDIR)/winradio.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wr1000.Plo $(DEPDIR)/wr1000.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wr1500.Plo $(DEPDIR)/wr1500.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wr1550.Plo $(DEPDIR)/wr1550.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wr3100.Plo $(DEPDIR)/wr3100.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wr3150.Plo $(DEPDIR)/wr3150.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wr3500.Plo $(DEPDIR)/wr3500.Po \
-@AMDEP_TRUE@	$(DEPDIR)/wr3700.Plo $(DEPDIR)/wr3700.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_winradio_a-winradio.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_a-wr1000.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_a-wr1500.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_a-wr1550.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_a-wr3100.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_a-wr3150.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_a-wr3500.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_a-wr3700.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-winradio.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-wr1000.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-wr1500.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-wr1550.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-wr3100.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-wr3150.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-wr3500.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_winradio_la-wr3700.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -209,6 +227,14 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_winradio_a-wr1000.$(OBJEXT): wr1000.c
+libhamlib_winradio_a-wr1500.$(OBJEXT): wr1500.c
+libhamlib_winradio_a-wr1550.$(OBJEXT): wr1550.c
+libhamlib_winradio_a-wr3100.$(OBJEXT): wr3100.c
+libhamlib_winradio_a-wr3150.$(OBJEXT): wr3150.c
+libhamlib_winradio_a-wr3500.$(OBJEXT): wr3500.c
+libhamlib_winradio_a-wr3700.$(OBJEXT): wr3700.c
+libhamlib_winradio_a-winradio.$(OBJEXT): winradio.c
 libhamlib-winradio.a: $(libhamlib_winradio_a_OBJECTS) $(libhamlib_winradio_a_DEPENDENCIES) 
 	-rm -f libhamlib-winradio.a
 	$(libhamlib_winradio_a_AR) libhamlib-winradio.a $(libhamlib_winradio_a_OBJECTS) $(libhamlib_winradio_a_LIBADD)
@@ -232,6 +258,14 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_winradio_la-wr1000.lo: wr1000.c
+libhamlib_winradio_la-wr1500.lo: wr1500.c
+libhamlib_winradio_la-wr1550.lo: wr1550.c
+libhamlib_winradio_la-wr3100.lo: wr3100.c
+libhamlib_winradio_la-wr3150.lo: wr3150.c
+libhamlib_winradio_la-wr3500.lo: wr3500.c
+libhamlib_winradio_la-wr3700.lo: wr3700.c
+libhamlib_winradio_la-winradio.lo: winradio.c
 libhamlib-winradio.la: $(libhamlib_winradio_la_OBJECTS) $(libhamlib_winradio_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_winradio_la_LDFLAGS) $(libhamlib_winradio_la_OBJECTS) $(libhamlib_winradio_la_LIBADD) $(LIBS)
 
@@ -241,22 +275,22 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/winradio.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/winradio.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr1000.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr1000.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr1500.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr1500.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr1550.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr1550.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3100.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3100.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3150.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3150.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3500.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3500.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3700.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/wr3700.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-winradio.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-wr1000.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-wr1500.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-wr1550.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-wr3100.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-wr3150.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-wr3500.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_a-wr3700.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-winradio.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-wr1000.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-wr1500.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-wr1550.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-wr3100.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-wr3150.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-wr3500.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_winradio_la-wr3700.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -278,6 +312,294 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_winradio_a-wr1000.o: wr1000.c
+@AMDEP_TRUE@	source='wr1000.c' object='libhamlib_winradio_a-wr1000.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1000.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1000.o `test -f wr1000.c || echo '$(srcdir)/'`wr1000.c
+
+libhamlib_winradio_a-wr1000.obj: wr1000.c
+@AMDEP_TRUE@	source='wr1000.c' object='libhamlib_winradio_a-wr1000.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1000.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1000.obj `cygpath -w wr1000.c`
+
+libhamlib_winradio_a-wr1000.lo: wr1000.c
+@AMDEP_TRUE@	source='wr1000.c' object='libhamlib_winradio_a-wr1000.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1000.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1000.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1000.lo `test -f wr1000.c || echo '$(srcdir)/'`wr1000.c
+
+libhamlib_winradio_a-wr1500.o: wr1500.c
+@AMDEP_TRUE@	source='wr1500.c' object='libhamlib_winradio_a-wr1500.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1500.o `test -f wr1500.c || echo '$(srcdir)/'`wr1500.c
+
+libhamlib_winradio_a-wr1500.obj: wr1500.c
+@AMDEP_TRUE@	source='wr1500.c' object='libhamlib_winradio_a-wr1500.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1500.obj `cygpath -w wr1500.c`
+
+libhamlib_winradio_a-wr1500.lo: wr1500.c
+@AMDEP_TRUE@	source='wr1500.c' object='libhamlib_winradio_a-wr1500.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1500.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1500.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1500.lo `test -f wr1500.c || echo '$(srcdir)/'`wr1500.c
+
+libhamlib_winradio_a-wr1550.o: wr1550.c
+@AMDEP_TRUE@	source='wr1550.c' object='libhamlib_winradio_a-wr1550.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1550.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1550.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1550.o `test -f wr1550.c || echo '$(srcdir)/'`wr1550.c
+
+libhamlib_winradio_a-wr1550.obj: wr1550.c
+@AMDEP_TRUE@	source='wr1550.c' object='libhamlib_winradio_a-wr1550.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1550.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1550.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1550.obj `cygpath -w wr1550.c`
+
+libhamlib_winradio_a-wr1550.lo: wr1550.c
+@AMDEP_TRUE@	source='wr1550.c' object='libhamlib_winradio_a-wr1550.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr1550.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr1550.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr1550.lo `test -f wr1550.c || echo '$(srcdir)/'`wr1550.c
+
+libhamlib_winradio_a-wr3100.o: wr3100.c
+@AMDEP_TRUE@	source='wr3100.c' object='libhamlib_winradio_a-wr3100.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3100.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3100.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3100.o `test -f wr3100.c || echo '$(srcdir)/'`wr3100.c
+
+libhamlib_winradio_a-wr3100.obj: wr3100.c
+@AMDEP_TRUE@	source='wr3100.c' object='libhamlib_winradio_a-wr3100.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3100.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3100.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3100.obj `cygpath -w wr3100.c`
+
+libhamlib_winradio_a-wr3100.lo: wr3100.c
+@AMDEP_TRUE@	source='wr3100.c' object='libhamlib_winradio_a-wr3100.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3100.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3100.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3100.lo `test -f wr3100.c || echo '$(srcdir)/'`wr3100.c
+
+libhamlib_winradio_a-wr3150.o: wr3150.c
+@AMDEP_TRUE@	source='wr3150.c' object='libhamlib_winradio_a-wr3150.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3150.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3150.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3150.o `test -f wr3150.c || echo '$(srcdir)/'`wr3150.c
+
+libhamlib_winradio_a-wr3150.obj: wr3150.c
+@AMDEP_TRUE@	source='wr3150.c' object='libhamlib_winradio_a-wr3150.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3150.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3150.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3150.obj `cygpath -w wr3150.c`
+
+libhamlib_winradio_a-wr3150.lo: wr3150.c
+@AMDEP_TRUE@	source='wr3150.c' object='libhamlib_winradio_a-wr3150.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3150.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3150.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3150.lo `test -f wr3150.c || echo '$(srcdir)/'`wr3150.c
+
+libhamlib_winradio_a-wr3500.o: wr3500.c
+@AMDEP_TRUE@	source='wr3500.c' object='libhamlib_winradio_a-wr3500.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3500.o `test -f wr3500.c || echo '$(srcdir)/'`wr3500.c
+
+libhamlib_winradio_a-wr3500.obj: wr3500.c
+@AMDEP_TRUE@	source='wr3500.c' object='libhamlib_winradio_a-wr3500.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3500.obj `cygpath -w wr3500.c`
+
+libhamlib_winradio_a-wr3500.lo: wr3500.c
+@AMDEP_TRUE@	source='wr3500.c' object='libhamlib_winradio_a-wr3500.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3500.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3500.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3500.lo `test -f wr3500.c || echo '$(srcdir)/'`wr3500.c
+
+libhamlib_winradio_a-wr3700.o: wr3700.c
+@AMDEP_TRUE@	source='wr3700.c' object='libhamlib_winradio_a-wr3700.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3700.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3700.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3700.o `test -f wr3700.c || echo '$(srcdir)/'`wr3700.c
+
+libhamlib_winradio_a-wr3700.obj: wr3700.c
+@AMDEP_TRUE@	source='wr3700.c' object='libhamlib_winradio_a-wr3700.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3700.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3700.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3700.obj `cygpath -w wr3700.c`
+
+libhamlib_winradio_a-wr3700.lo: wr3700.c
+@AMDEP_TRUE@	source='wr3700.c' object='libhamlib_winradio_a-wr3700.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-wr3700.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-wr3700.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-wr3700.lo `test -f wr3700.c || echo '$(srcdir)/'`wr3700.c
+
+libhamlib_winradio_a-winradio.o: winradio.c
+@AMDEP_TRUE@	source='winradio.c' object='libhamlib_winradio_a-winradio.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-winradio.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-winradio.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-winradio.o `test -f winradio.c || echo '$(srcdir)/'`winradio.c
+
+libhamlib_winradio_a-winradio.obj: winradio.c
+@AMDEP_TRUE@	source='winradio.c' object='libhamlib_winradio_a-winradio.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-winradio.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-winradio.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-winradio.obj `cygpath -w winradio.c`
+
+libhamlib_winradio_a-winradio.lo: winradio.c
+@AMDEP_TRUE@	source='winradio.c' object='libhamlib_winradio_a-winradio.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_a-winradio.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_a-winradio.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_a_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_a-winradio.lo `test -f winradio.c || echo '$(srcdir)/'`winradio.c
+
+libhamlib_winradio_la-wr1000.o: wr1000.c
+@AMDEP_TRUE@	source='wr1000.c' object='libhamlib_winradio_la-wr1000.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1000.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1000.o `test -f wr1000.c || echo '$(srcdir)/'`wr1000.c
+
+libhamlib_winradio_la-wr1000.obj: wr1000.c
+@AMDEP_TRUE@	source='wr1000.c' object='libhamlib_winradio_la-wr1000.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1000.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1000.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1000.obj `cygpath -w wr1000.c`
+
+libhamlib_winradio_la-wr1000.lo: wr1000.c
+@AMDEP_TRUE@	source='wr1000.c' object='libhamlib_winradio_la-wr1000.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1000.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1000.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1000.lo `test -f wr1000.c || echo '$(srcdir)/'`wr1000.c
+
+libhamlib_winradio_la-wr1500.o: wr1500.c
+@AMDEP_TRUE@	source='wr1500.c' object='libhamlib_winradio_la-wr1500.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1500.o `test -f wr1500.c || echo '$(srcdir)/'`wr1500.c
+
+libhamlib_winradio_la-wr1500.obj: wr1500.c
+@AMDEP_TRUE@	source='wr1500.c' object='libhamlib_winradio_la-wr1500.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1500.obj `cygpath -w wr1500.c`
+
+libhamlib_winradio_la-wr1500.lo: wr1500.c
+@AMDEP_TRUE@	source='wr1500.c' object='libhamlib_winradio_la-wr1500.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1500.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1500.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1500.lo `test -f wr1500.c || echo '$(srcdir)/'`wr1500.c
+
+libhamlib_winradio_la-wr1550.o: wr1550.c
+@AMDEP_TRUE@	source='wr1550.c' object='libhamlib_winradio_la-wr1550.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1550.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1550.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1550.o `test -f wr1550.c || echo '$(srcdir)/'`wr1550.c
+
+libhamlib_winradio_la-wr1550.obj: wr1550.c
+@AMDEP_TRUE@	source='wr1550.c' object='libhamlib_winradio_la-wr1550.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1550.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1550.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1550.obj `cygpath -w wr1550.c`
+
+libhamlib_winradio_la-wr1550.lo: wr1550.c
+@AMDEP_TRUE@	source='wr1550.c' object='libhamlib_winradio_la-wr1550.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr1550.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr1550.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr1550.lo `test -f wr1550.c || echo '$(srcdir)/'`wr1550.c
+
+libhamlib_winradio_la-wr3100.o: wr3100.c
+@AMDEP_TRUE@	source='wr3100.c' object='libhamlib_winradio_la-wr3100.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3100.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3100.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3100.o `test -f wr3100.c || echo '$(srcdir)/'`wr3100.c
+
+libhamlib_winradio_la-wr3100.obj: wr3100.c
+@AMDEP_TRUE@	source='wr3100.c' object='libhamlib_winradio_la-wr3100.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3100.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3100.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3100.obj `cygpath -w wr3100.c`
+
+libhamlib_winradio_la-wr3100.lo: wr3100.c
+@AMDEP_TRUE@	source='wr3100.c' object='libhamlib_winradio_la-wr3100.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3100.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3100.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3100.lo `test -f wr3100.c || echo '$(srcdir)/'`wr3100.c
+
+libhamlib_winradio_la-wr3150.o: wr3150.c
+@AMDEP_TRUE@	source='wr3150.c' object='libhamlib_winradio_la-wr3150.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3150.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3150.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3150.o `test -f wr3150.c || echo '$(srcdir)/'`wr3150.c
+
+libhamlib_winradio_la-wr3150.obj: wr3150.c
+@AMDEP_TRUE@	source='wr3150.c' object='libhamlib_winradio_la-wr3150.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3150.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3150.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3150.obj `cygpath -w wr3150.c`
+
+libhamlib_winradio_la-wr3150.lo: wr3150.c
+@AMDEP_TRUE@	source='wr3150.c' object='libhamlib_winradio_la-wr3150.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3150.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3150.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3150.lo `test -f wr3150.c || echo '$(srcdir)/'`wr3150.c
+
+libhamlib_winradio_la-wr3500.o: wr3500.c
+@AMDEP_TRUE@	source='wr3500.c' object='libhamlib_winradio_la-wr3500.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3500.o `test -f wr3500.c || echo '$(srcdir)/'`wr3500.c
+
+libhamlib_winradio_la-wr3500.obj: wr3500.c
+@AMDEP_TRUE@	source='wr3500.c' object='libhamlib_winradio_la-wr3500.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3500.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3500.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3500.obj `cygpath -w wr3500.c`
+
+libhamlib_winradio_la-wr3500.lo: wr3500.c
+@AMDEP_TRUE@	source='wr3500.c' object='libhamlib_winradio_la-wr3500.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3500.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3500.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3500.lo `test -f wr3500.c || echo '$(srcdir)/'`wr3500.c
+
+libhamlib_winradio_la-wr3700.o: wr3700.c
+@AMDEP_TRUE@	source='wr3700.c' object='libhamlib_winradio_la-wr3700.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3700.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3700.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3700.o `test -f wr3700.c || echo '$(srcdir)/'`wr3700.c
+
+libhamlib_winradio_la-wr3700.obj: wr3700.c
+@AMDEP_TRUE@	source='wr3700.c' object='libhamlib_winradio_la-wr3700.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3700.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3700.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3700.obj `cygpath -w wr3700.c`
+
+libhamlib_winradio_la-wr3700.lo: wr3700.c
+@AMDEP_TRUE@	source='wr3700.c' object='libhamlib_winradio_la-wr3700.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-wr3700.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-wr3700.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-wr3700.lo `test -f wr3700.c || echo '$(srcdir)/'`wr3700.c
+
+libhamlib_winradio_la-winradio.o: winradio.c
+@AMDEP_TRUE@	source='winradio.c' object='libhamlib_winradio_la-winradio.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-winradio.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-winradio.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-winradio.o `test -f winradio.c || echo '$(srcdir)/'`winradio.c
+
+libhamlib_winradio_la-winradio.obj: winradio.c
+@AMDEP_TRUE@	source='winradio.c' object='libhamlib_winradio_la-winradio.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-winradio.Po' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-winradio.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-winradio.obj `cygpath -w winradio.c`
+
+libhamlib_winradio_la-winradio.lo: winradio.c
+@AMDEP_TRUE@	source='winradio.c' object='libhamlib_winradio_la-winradio.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_winradio_la-winradio.Plo' tmpdepfile='$(DEPDIR)/libhamlib_winradio_la-winradio.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_winradio_la_CFLAGS) $(CFLAGS) -c -o libhamlib_winradio_la-winradio.lo `test -f winradio.c || echo '$(srcdir)/'`winradio.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

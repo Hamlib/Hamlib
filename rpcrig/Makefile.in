@@ -99,21 +99,26 @@ install_sh = @install_sh@
 RPCRIG_SVC = rpcrig_xdr.c rpcrig_svc.c rpcrig_proc.c rpcrigd.c
 RPCRIG_CLNT = rpcrig_xdr.c rpcrig_clnt.c rpcrig_backend.c
 
+LDADD = ../src/libhamlib.la ../lib/libmisc.a
+DEPENDENCIES = ../src/libhamlib.la 
+
 # The RPC server
 bin_PROGRAMS = rpc.rigd
-LDADD = ../src/libhamlib.la ../lib/libmisc.a # -lnsl
-DEPENDENCIES = ../src/libhamlib.la
+rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rpc_rigd_SOURCES = $(RPCRIG_SVC)
+rpc_rigd_LDFLAGS = @BACKENDLNK@ -export-dynamic
 man_MANS = rpc.rigd.8
 
 # The RPC backend
 lib_LTLIBRARIES = libhamlib-rpcrig.la
 libhamlib_rpcrig_la_SOURCES = $(RPCRIG_CLNT)
 libhamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version -lnsl
+libhamlib_rpcrig_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-rpcrig.a
 libhamlib_rpcrig_a_SOURCES = $(RPCRIG_CLNT)
+libhamlib_rpcrig_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_rpcrig_a_LIBADD = ../src/libhamlib.la # -lnsl
 
 noinst_HEADERS = rpcrig.h rpcrig_backend.h
@@ -129,14 +134,16 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_rpcrig_a_AR = $(AR) cru
 libhamlib_rpcrig_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_rpcrig_a_OBJECTS = rpcrig_xdr.$(OBJEXT) \
-	rpcrig_clnt.$(OBJEXT) rpcrig_backend.$(OBJEXT)
+am_libhamlib_rpcrig_a_OBJECTS = libhamlib_rpcrig_a-rpcrig_xdr.$(OBJEXT) \
+	libhamlib_rpcrig_a-rpcrig_clnt.$(OBJEXT) \
+	libhamlib_rpcrig_a-rpcrig_backend.$(OBJEXT)
 libhamlib_rpcrig_a_OBJECTS = $(am_libhamlib_rpcrig_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_rpcrig_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_rpcrig_la_OBJECTS = rpcrig_xdr.lo rpcrig_clnt.lo \
-	rpcrig_backend.lo
+am_libhamlib_rpcrig_la_OBJECTS = libhamlib_rpcrig_la-rpcrig_xdr.lo \
+	libhamlib_rpcrig_la-rpcrig_clnt.lo \
+	libhamlib_rpcrig_la-rpcrig_backend.lo
 libhamlib_rpcrig_la_OBJECTS = $(am_libhamlib_rpcrig_la_OBJECTS)
 bin_PROGRAMS = rpc.rigd$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
@@ -145,8 +152,6 @@ am_rpc_rigd_OBJECTS = rpcrig_xdr.$(OBJEXT) rpcrig_svc.$(OBJEXT) \
 	rpcrig_proc.$(OBJEXT) rpcrigd.$(OBJEXT)
 rpc_rigd_OBJECTS = $(am_rpc_rigd_OBJECTS)
 rpc_rigd_LDADD = $(LDADD)
-rpc_rigd_DEPENDENCIES = ../src/libhamlib.la ../lib/libmisc.a
-rpc_rigd_LDFLAGS =
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
@@ -154,12 +159,14 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rpcrig_backend.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/rpcrig_backend.Po \
-@AMDEP_TRUE@	$(DEPDIR)/rpcrig_clnt.Plo $(DEPDIR)/rpcrig_clnt.Po \
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/rpcrig_proc.Po $(DEPDIR)/rpcrig_svc.Po \
-@AMDEP_TRUE@	$(DEPDIR)/rpcrig_xdr.Plo $(DEPDIR)/rpcrig_xdr.Po \
-@AMDEP_TRUE@	$(DEPDIR)/rpcrigd.Po
+@AMDEP_TRUE@	$(DEPDIR)/rpcrig_xdr.Po $(DEPDIR)/rpcrigd.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -226,6 +233,9 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_rpcrig_a-rpcrig_xdr.$(OBJEXT): rpcrig_xdr.c
+libhamlib_rpcrig_a-rpcrig_clnt.$(OBJEXT): rpcrig_clnt.c
+libhamlib_rpcrig_a-rpcrig_backend.$(OBJEXT): rpcrig_backend.c
 libhamlib-rpcrig.a: $(libhamlib_rpcrig_a_OBJECTS) $(libhamlib_rpcrig_a_DEPENDENCIES) 
 	-rm -f libhamlib-rpcrig.a
 	$(libhamlib_rpcrig_a_AR) libhamlib-rpcrig.a $(libhamlib_rpcrig_a_OBJECTS) $(libhamlib_rpcrig_a_LIBADD)
@@ -249,6 +259,9 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_rpcrig_la-rpcrig_xdr.lo: rpcrig_xdr.c
+libhamlib_rpcrig_la-rpcrig_clnt.lo: rpcrig_clnt.c
+libhamlib_rpcrig_la-rpcrig_backend.lo: rpcrig_backend.c
 libhamlib-rpcrig.la: $(libhamlib_rpcrig_la_OBJECTS) $(libhamlib_rpcrig_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_rpcrig_la_LDFLAGS) $(libhamlib_rpcrig_la_OBJECTS) $(libhamlib_rpcrig_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
@@ -285,13 +298,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_backend.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_backend.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_clnt.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_clnt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_proc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_svc.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_xdr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrig_xdr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rpcrigd.Po@am__quote@
 
@@ -315,6 +329,114 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_rpcrig_a-rpcrig_xdr.o: rpcrig_xdr.c
+@AMDEP_TRUE@	source='rpcrig_xdr.c' object='libhamlib_rpcrig_a-rpcrig_xdr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_xdr.o `test -f rpcrig_xdr.c || echo '$(srcdir)/'`rpcrig_xdr.c
+
+libhamlib_rpcrig_a-rpcrig_xdr.obj: rpcrig_xdr.c
+@AMDEP_TRUE@	source='rpcrig_xdr.c' object='libhamlib_rpcrig_a-rpcrig_xdr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_xdr.obj `cygpath -w rpcrig_xdr.c`
+
+libhamlib_rpcrig_a-rpcrig_xdr.lo: rpcrig_xdr.c
+@AMDEP_TRUE@	source='rpcrig_xdr.c' object='libhamlib_rpcrig_a-rpcrig_xdr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.Plo' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_xdr.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_xdr.lo `test -f rpcrig_xdr.c || echo '$(srcdir)/'`rpcrig_xdr.c
+
+libhamlib_rpcrig_a-rpcrig_clnt.o: rpcrig_clnt.c
+@AMDEP_TRUE@	source='rpcrig_clnt.c' object='libhamlib_rpcrig_a-rpcrig_clnt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_clnt.o `test -f rpcrig_clnt.c || echo '$(srcdir)/'`rpcrig_clnt.c
+
+libhamlib_rpcrig_a-rpcrig_clnt.obj: rpcrig_clnt.c
+@AMDEP_TRUE@	source='rpcrig_clnt.c' object='libhamlib_rpcrig_a-rpcrig_clnt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_clnt.obj `cygpath -w rpcrig_clnt.c`
+
+libhamlib_rpcrig_a-rpcrig_clnt.lo: rpcrig_clnt.c
+@AMDEP_TRUE@	source='rpcrig_clnt.c' object='libhamlib_rpcrig_a-rpcrig_clnt.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.Plo' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_clnt.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_clnt.lo `test -f rpcrig_clnt.c || echo '$(srcdir)/'`rpcrig_clnt.c
+
+libhamlib_rpcrig_a-rpcrig_backend.o: rpcrig_backend.c
+@AMDEP_TRUE@	source='rpcrig_backend.c' object='libhamlib_rpcrig_a-rpcrig_backend.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_backend.o `test -f rpcrig_backend.c || echo '$(srcdir)/'`rpcrig_backend.c
+
+libhamlib_rpcrig_a-rpcrig_backend.obj: rpcrig_backend.c
+@AMDEP_TRUE@	source='rpcrig_backend.c' object='libhamlib_rpcrig_a-rpcrig_backend.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_backend.obj `cygpath -w rpcrig_backend.c`
+
+libhamlib_rpcrig_a-rpcrig_backend.lo: rpcrig_backend.c
+@AMDEP_TRUE@	source='rpcrig_backend.c' object='libhamlib_rpcrig_a-rpcrig_backend.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.Plo' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_a-rpcrig_backend.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_a_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_a-rpcrig_backend.lo `test -f rpcrig_backend.c || echo '$(srcdir)/'`rpcrig_backend.c
+
+libhamlib_rpcrig_la-rpcrig_xdr.o: rpcrig_xdr.c
+@AMDEP_TRUE@	source='rpcrig_xdr.c' object='libhamlib_rpcrig_la-rpcrig_xdr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_xdr.o `test -f rpcrig_xdr.c || echo '$(srcdir)/'`rpcrig_xdr.c
+
+libhamlib_rpcrig_la-rpcrig_xdr.obj: rpcrig_xdr.c
+@AMDEP_TRUE@	source='rpcrig_xdr.c' object='libhamlib_rpcrig_la-rpcrig_xdr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_xdr.obj `cygpath -w rpcrig_xdr.c`
+
+libhamlib_rpcrig_la-rpcrig_xdr.lo: rpcrig_xdr.c
+@AMDEP_TRUE@	source='rpcrig_xdr.c' object='libhamlib_rpcrig_la-rpcrig_xdr.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.Plo' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_xdr.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_xdr.lo `test -f rpcrig_xdr.c || echo '$(srcdir)/'`rpcrig_xdr.c
+
+libhamlib_rpcrig_la-rpcrig_clnt.o: rpcrig_clnt.c
+@AMDEP_TRUE@	source='rpcrig_clnt.c' object='libhamlib_rpcrig_la-rpcrig_clnt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_clnt.o `test -f rpcrig_clnt.c || echo '$(srcdir)/'`rpcrig_clnt.c
+
+libhamlib_rpcrig_la-rpcrig_clnt.obj: rpcrig_clnt.c
+@AMDEP_TRUE@	source='rpcrig_clnt.c' object='libhamlib_rpcrig_la-rpcrig_clnt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_clnt.obj `cygpath -w rpcrig_clnt.c`
+
+libhamlib_rpcrig_la-rpcrig_clnt.lo: rpcrig_clnt.c
+@AMDEP_TRUE@	source='rpcrig_clnt.c' object='libhamlib_rpcrig_la-rpcrig_clnt.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.Plo' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_clnt.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_clnt.lo `test -f rpcrig_clnt.c || echo '$(srcdir)/'`rpcrig_clnt.c
+
+libhamlib_rpcrig_la-rpcrig_backend.o: rpcrig_backend.c
+@AMDEP_TRUE@	source='rpcrig_backend.c' object='libhamlib_rpcrig_la-rpcrig_backend.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_backend.o `test -f rpcrig_backend.c || echo '$(srcdir)/'`rpcrig_backend.c
+
+libhamlib_rpcrig_la-rpcrig_backend.obj: rpcrig_backend.c
+@AMDEP_TRUE@	source='rpcrig_backend.c' object='libhamlib_rpcrig_la-rpcrig_backend.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.Po' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_backend.obj `cygpath -w rpcrig_backend.c`
+
+libhamlib_rpcrig_la-rpcrig_backend.lo: rpcrig_backend.c
+@AMDEP_TRUE@	source='rpcrig_backend.c' object='libhamlib_rpcrig_la-rpcrig_backend.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.Plo' tmpdepfile='$(DEPDIR)/libhamlib_rpcrig_la-rpcrig_backend.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_rpcrig_la_CFLAGS) $(CFLAGS) -c -o libhamlib_rpcrig_la-rpcrig_backend.lo `test -f rpcrig_backend.c || echo '$(srcdir)/'`rpcrig_backend.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
@@ -504,19 +626,19 @@ uninstall-man: uninstall-man8
 
 rpcrig.h: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -h rpcrig.x -o $@
+	$(RPCGEN) -h $< -o $@
 
 rpcrig_clnt.c: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -l rpcrig.x -o $@
+	$(RPCGEN) -l $< -o $@
 
 rpcrig_svc.c: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -m rpcrig.x -o $@
+	$(RPCGEN) -m $< -o $@
 
 rpcrig_xdr.c: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -c rpcrig.x -o $@
+	$(RPCGEN) -c $< -o $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -98,10 +98,12 @@ UNIDENSRC = bc895.c
 lib_LTLIBRARIES = libhamlib-uniden.la
 libhamlib_uniden_la_SOURCES = $(UNIDENSRC) uniden.c
 libhamlib_uniden_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_uniden_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_uniden_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-uniden.a
 libhamlib_uniden_a_SOURCES = $(UNIDENSRC) uniden.c
+libhamlib_uniden_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_uniden_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = uniden.h
@@ -113,12 +115,14 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_uniden_a_AR = $(AR) cru
 libhamlib_uniden_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_uniden_a_OBJECTS = bc895.$(OBJEXT) uniden.$(OBJEXT)
+am_libhamlib_uniden_a_OBJECTS = libhamlib_uniden_a-bc895.$(OBJEXT) \
+	libhamlib_uniden_a-uniden.$(OBJEXT)
 libhamlib_uniden_a_OBJECTS = $(am_libhamlib_uniden_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_uniden_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_uniden_la_OBJECTS = bc895.lo uniden.lo
+am_libhamlib_uniden_la_OBJECTS = libhamlib_uniden_la-bc895.lo \
+	libhamlib_uniden_la-uniden.lo
 libhamlib_uniden_la_OBJECTS = $(am_libhamlib_uniden_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -127,8 +131,10 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/bc895.Plo $(DEPDIR)/bc895.Po \
-@AMDEP_TRUE@	$(DEPDIR)/uniden.Plo $(DEPDIR)/uniden.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_uniden_a-bc895.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_uniden_a-uniden.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_uniden_la-bc895.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_uniden_la-uniden.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -192,6 +198,8 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib_uniden_a-bc895.$(OBJEXT): bc895.c
+libhamlib_uniden_a-uniden.$(OBJEXT): uniden.c
 libhamlib-uniden.a: $(libhamlib_uniden_a_OBJECTS) $(libhamlib_uniden_a_DEPENDENCIES) 
 	-rm -f libhamlib-uniden.a
 	$(libhamlib_uniden_a_AR) libhamlib-uniden.a $(libhamlib_uniden_a_OBJECTS) $(libhamlib_uniden_a_LIBADD)
@@ -215,6 +223,8 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib_uniden_la-bc895.lo: bc895.c
+libhamlib_uniden_la-uniden.lo: uniden.c
 libhamlib-uniden.la: $(libhamlib_uniden_la_OBJECTS) $(libhamlib_uniden_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_uniden_la_LDFLAGS) $(libhamlib_uniden_la_OBJECTS) $(libhamlib_uniden_la_LIBADD) $(LIBS)
 
@@ -224,10 +234,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/bc895.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/bc895.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/uniden.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/uniden.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_uniden_a-bc895.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_uniden_a-uniden.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_uniden_la-bc895.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_uniden_la-uniden.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -249,6 +259,78 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib_uniden_a-bc895.o: bc895.c
+@AMDEP_TRUE@	source='bc895.c' object='libhamlib_uniden_a-bc895.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_a-bc895.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_a-bc895.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_a_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_a-bc895.o `test -f bc895.c || echo '$(srcdir)/'`bc895.c
+
+libhamlib_uniden_a-bc895.obj: bc895.c
+@AMDEP_TRUE@	source='bc895.c' object='libhamlib_uniden_a-bc895.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_a-bc895.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_a-bc895.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_a_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_a-bc895.obj `cygpath -w bc895.c`
+
+libhamlib_uniden_a-bc895.lo: bc895.c
+@AMDEP_TRUE@	source='bc895.c' object='libhamlib_uniden_a-bc895.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_a-bc895.Plo' tmpdepfile='$(DEPDIR)/libhamlib_uniden_a-bc895.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_a_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_a-bc895.lo `test -f bc895.c || echo '$(srcdir)/'`bc895.c
+
+libhamlib_uniden_a-uniden.o: uniden.c
+@AMDEP_TRUE@	source='uniden.c' object='libhamlib_uniden_a-uniden.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_a-uniden.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_a-uniden.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_a_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_a-uniden.o `test -f uniden.c || echo '$(srcdir)/'`uniden.c
+
+libhamlib_uniden_a-uniden.obj: uniden.c
+@AMDEP_TRUE@	source='uniden.c' object='libhamlib_uniden_a-uniden.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_a-uniden.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_a-uniden.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_a_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_a-uniden.obj `cygpath -w uniden.c`
+
+libhamlib_uniden_a-uniden.lo: uniden.c
+@AMDEP_TRUE@	source='uniden.c' object='libhamlib_uniden_a-uniden.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_a-uniden.Plo' tmpdepfile='$(DEPDIR)/libhamlib_uniden_a-uniden.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_a_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_a-uniden.lo `test -f uniden.c || echo '$(srcdir)/'`uniden.c
+
+libhamlib_uniden_la-bc895.o: bc895.c
+@AMDEP_TRUE@	source='bc895.c' object='libhamlib_uniden_la-bc895.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_la-bc895.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_la-bc895.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_la_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_la-bc895.o `test -f bc895.c || echo '$(srcdir)/'`bc895.c
+
+libhamlib_uniden_la-bc895.obj: bc895.c
+@AMDEP_TRUE@	source='bc895.c' object='libhamlib_uniden_la-bc895.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_la-bc895.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_la-bc895.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_la_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_la-bc895.obj `cygpath -w bc895.c`
+
+libhamlib_uniden_la-bc895.lo: bc895.c
+@AMDEP_TRUE@	source='bc895.c' object='libhamlib_uniden_la-bc895.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_la-bc895.Plo' tmpdepfile='$(DEPDIR)/libhamlib_uniden_la-bc895.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_la_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_la-bc895.lo `test -f bc895.c || echo '$(srcdir)/'`bc895.c
+
+libhamlib_uniden_la-uniden.o: uniden.c
+@AMDEP_TRUE@	source='uniden.c' object='libhamlib_uniden_la-uniden.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_la-uniden.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_la-uniden.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_la_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_la-uniden.o `test -f uniden.c || echo '$(srcdir)/'`uniden.c
+
+libhamlib_uniden_la-uniden.obj: uniden.c
+@AMDEP_TRUE@	source='uniden.c' object='libhamlib_uniden_la-uniden.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_la-uniden.Po' tmpdepfile='$(DEPDIR)/libhamlib_uniden_la-uniden.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_la_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_la-uniden.obj `cygpath -w uniden.c`
+
+libhamlib_uniden_la-uniden.lo: uniden.c
+@AMDEP_TRUE@	source='uniden.c' object='libhamlib_uniden_la-uniden.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_uniden_la-uniden.Plo' tmpdepfile='$(DEPDIR)/libhamlib_uniden_la-uniden.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_uniden_la_CFLAGS) $(CFLAGS) -c -o libhamlib_uniden_la-uniden.lo `test -f uniden.c || echo '$(srcdir)/'`uniden.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

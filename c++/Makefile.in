@@ -96,10 +96,12 @@ install_sh = @install_sh@
 lib_LTLIBRARIES = libhamlib++.la
 libhamlib___la_SOURCES = rigclass.cc
 libhamlib___la_LDFLAGS = -no-undefined -release @VERSION@
+libhamlib___la_CXXFLAGS = -DHAMLIB_DLL $(AM_CXXFLAGS)
 libhamlib___la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib++.a
 libhamlib___a_SOURCES = rigclass.cc
+libhamlib___a_CXXFLAGS = -DHAMLIB_STATIC $(AM_CXXFLAGS)
 libhamlib___a_LIBADD = ../src/libhamlib.la
 subdir = c++
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -109,12 +111,12 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib___a_AR = $(AR) cru
 libhamlib___a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib___a_OBJECTS = rigclass.$(OBJEXT)
+am_libhamlib___a_OBJECTS = libhamlib___a-rigclass.$(OBJEXT)
 libhamlib___a_OBJECTS = $(am_libhamlib___a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib___la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib___la_OBJECTS = rigclass.lo
+am_libhamlib___la_OBJECTS = libhamlib___la-rigclass.lo
 libhamlib___la_OBJECTS = $(am_libhamlib___la_OBJECTS)
 
 DEFS = @DEFS@
@@ -123,7 +125,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rigclass.Plo $(DEPDIR)/rigclass.Po
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib___a-rigclass.Po \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib___la-rigclass.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -185,6 +188,7 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+libhamlib___a-rigclass.$(OBJEXT): rigclass.cc
 libhamlib++.a: $(libhamlib___a_OBJECTS) $(libhamlib___a_DEPENDENCIES) 
 	-rm -f libhamlib++.a
 	$(libhamlib___a_AR) libhamlib++.a $(libhamlib___a_OBJECTS) $(libhamlib___a_LIBADD)
@@ -208,6 +212,7 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
+libhamlib___la-rigclass.lo: rigclass.cc
 libhamlib++.la: $(libhamlib___la_OBJECTS) $(libhamlib___la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libhamlib___la_LDFLAGS) $(libhamlib___la_OBJECTS) $(libhamlib___la_LIBADD) $(LIBS)
 
@@ -217,8 +222,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigclass.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigclass.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib___a-rigclass.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib___la-rigclass.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -240,6 +245,42 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+
+libhamlib___a-rigclass.o: rigclass.cc
+@AMDEP_TRUE@	source='rigclass.cc' object='libhamlib___a-rigclass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib___a-rigclass.Po' tmpdepfile='$(DEPDIR)/libhamlib___a-rigclass.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib___a_CXXFLAGS) $(CXXFLAGS) -c -o libhamlib___a-rigclass.o `test -f rigclass.cc || echo '$(srcdir)/'`rigclass.cc
+
+libhamlib___a-rigclass.obj: rigclass.cc
+@AMDEP_TRUE@	source='rigclass.cc' object='libhamlib___a-rigclass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib___a-rigclass.Po' tmpdepfile='$(DEPDIR)/libhamlib___a-rigclass.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib___a_CXXFLAGS) $(CXXFLAGS) -c -o libhamlib___a-rigclass.obj `cygpath -w rigclass.cc`
+
+libhamlib___a-rigclass.lo: rigclass.cc
+@AMDEP_TRUE@	source='rigclass.cc' object='libhamlib___a-rigclass.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib___a-rigclass.Plo' tmpdepfile='$(DEPDIR)/libhamlib___a-rigclass.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib___a_CXXFLAGS) $(CXXFLAGS) -c -o libhamlib___a-rigclass.lo `test -f rigclass.cc || echo '$(srcdir)/'`rigclass.cc
+
+libhamlib___la-rigclass.o: rigclass.cc
+@AMDEP_TRUE@	source='rigclass.cc' object='libhamlib___la-rigclass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib___la-rigclass.Po' tmpdepfile='$(DEPDIR)/libhamlib___la-rigclass.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib___la_CXXFLAGS) $(CXXFLAGS) -c -o libhamlib___la-rigclass.o `test -f rigclass.cc || echo '$(srcdir)/'`rigclass.cc
+
+libhamlib___la-rigclass.obj: rigclass.cc
+@AMDEP_TRUE@	source='rigclass.cc' object='libhamlib___la-rigclass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib___la-rigclass.Po' tmpdepfile='$(DEPDIR)/libhamlib___la-rigclass.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib___la_CXXFLAGS) $(CXXFLAGS) -c -o libhamlib___la-rigclass.obj `cygpath -w rigclass.cc`
+
+libhamlib___la-rigclass.lo: rigclass.cc
+@AMDEP_TRUE@	source='rigclass.cc' object='libhamlib___la-rigclass.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib___la-rigclass.Plo' tmpdepfile='$(DEPDIR)/libhamlib___la-rigclass.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib___la_CXXFLAGS) $(CXXFLAGS) -c -o libhamlib___la-rigclass.lo `test -f rigclass.cc || echo '$(srcdir)/'`rigclass.cc
 CXXDEPMODE = @CXXDEPMODE@
 uninstall-info-am:
 
