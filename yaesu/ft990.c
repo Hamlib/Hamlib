@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.2 2003-11-28 15:45:19 fillods Exp $
+ * $Id: ft990.c,v 1.3 2003-11-30 22:46:01 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -101,6 +101,8 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x8E } }, /* Step Operating Frequency Up */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x8E } }, /* Step Operating Frequency Down */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* Read Meter */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0xf8 } }, /* DIM Level */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0xf9 } }, /* Set Offset for Repeater Shift */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xfa } }, /* Read Status Flags */
 };
 
@@ -133,7 +135,7 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.1",
+  .version =            "0.0.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_NEW,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -153,7 +155,7 @@ const struct rig_caps ft990_caps = {
   .has_get_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER | RIG_FUNC_MON,
   .has_set_func =       RIG_FUNC_LOCK | RIG_FUNC_TUNER,
   .has_get_level =      RIG_LEVEL_STRENGTH | RIG_LEVEL_SWR | RIG_LEVEL_ALC | \
-			RIG_LEVEL_ALC | RIG_LEVEL_RFPOWER,
+                        RIG_LEVEL_ALC | RIG_LEVEL_RFPOWER,
   .has_set_level =      RIG_LEVEL_NONE,
   .has_get_parm =       RIG_PARM_NONE,
   .has_set_parm =       RIG_PARM_NONE,
@@ -165,7 +167,7 @@ const struct rig_caps ft990_caps = {
   .max_xit =            Hz(9999),
   .max_ifshift =        Hz(1200),
   .vfo_ops =            RIG_OP_CPY | RIG_OP_FROM_VFO | RIG_OP_TO_VFO |
-			RIG_OP_UP | RIG_OP_DOWN | RIG_OP_TUNE | RIG_OP_TOGGLE,
+                        RIG_OP_UP | RIG_OP_DOWN | RIG_OP_TUNE | RIG_OP_TOGGLE,
   .targetable_vfo =     RIG_TARGETABLE_ALL,
   .transceive =         RIG_TRN_OFF,        /* Yaesus have to be polled, sigh */
   .bank_qty =           0,
@@ -180,8 +182,8 @@ const struct rig_caps ft990_caps = {
   },
 
   .tx_range_list1 =     {
-	FRQ_RNG_HF(1, FT990_OTHER_TX_MODES, W(5), W(100), FT990_VFO_ALL, FT990_ANTS),
-	FRQ_RNG_HF(1, FT990_AM_TX_MODES, W(2), W(25), FT990_VFO_ALL, FT990_ANTS),	/* AM class */
+        FRQ_RNG_HF(1, FT990_OTHER_TX_MODES, W(5), W(100), FT990_VFO_ALL, FT990_ANTS),
+        FRQ_RNG_HF(1, FT990_AM_TX_MODES, W(2), W(25), FT990_VFO_ALL, FT990_ANTS), /* AM class */
     RIG_FRNG_END,
   },
 
@@ -191,8 +193,8 @@ const struct rig_caps ft990_caps = {
   },
 
   .tx_range_list2 =     {
-	FRQ_RNG_HF(2, FT990_OTHER_TX_MODES, W(5), W(100), FT990_VFO_ALL, FT990_ANTS),
-	FRQ_RNG_HF(2, FT990_AM_TX_MODES, W(2), W(25), FT990_VFO_ALL, FT990_ANTS),	/* AM class */
+        FRQ_RNG_HF(2, FT990_OTHER_TX_MODES, W(5), W(100), FT990_VFO_ALL, FT990_ANTS),
+        FRQ_RNG_HF(2, FT990_AM_TX_MODES, W(2), W(25), FT990_VFO_ALL, FT990_ANTS), /* AM class */
 
     RIG_FRNG_END,
   },
@@ -243,6 +245,7 @@ const struct rig_caps ft990_caps = {
   .get_ptt =            ft990_get_ptt,
   .set_rptr_shift =     ft990_set_rptr_shift,
   .get_rptr_shift =     ft990_get_rptr_shift,
+  .set_rptr_offs =      ft990_set_rptr_offs,
   .set_split_vfo =      ft990_set_split_vfo,
   .get_split_vfo =      ft990_get_split_vfo,
   .set_rit =            ft990_set_rit,
@@ -255,7 +258,6 @@ const struct rig_caps ft990_caps = {
   .set_mem =            ft990_set_mem,
   .get_mem =            ft990_get_mem,
   .vfo_op =             ft990_vfo_op,
-  .scan =               ft990_scan,
   .set_channel =        ft990_set_channel,
   .get_channel =        ft990_get_channel,
 };
@@ -374,11 +376,21 @@ static int ft990_close(RIG *rig) {
 
 /*
  * rig_set_freq*
+ *
  * Set frequency for a given VFO
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   freq       | input  | 100000 - 30000000
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct ft990_priv_data *priv;
@@ -391,6 +403,10 @@ static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
   rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %lli Hz\n", __func__, freq);
+
+  // Frequency range sanity check
+  if (freq < 100000 || freq > 30000000)
+    return -RIG_EINVAL;
 
   priv = (struct ft990_priv_data *)rig->state.priv;
 
@@ -417,12 +433,22 @@ static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 }
 
 /*
- * rig_get_freq
+ * rig_get_freq*
+ *
  * Get frequency for a given VFO
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   freq *     | output | 100000 - 30000000
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   struct ft990_priv_data *priv;
@@ -449,20 +475,17 @@ static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   switch(vfo) {
     case RIG_VFO_A:
     case RIG_VFO_VFO:
-      rig_debug(RIG_DEBUG_TRACE, "%s: passed vfoa\n", __func__);
       p = priv->update_data.vfoa.basefreq;
       ci = FT990_NATIVE_UPDATE_VFO_DATA;
       count = FT990_VFO_DATA_LENGTH;
       break;
     case RIG_VFO_B:
-      rig_debug(RIG_DEBUG_TRACE, "%s: passed vfob\n", __func__);
       p = priv->update_data.vfob.basefreq;
       ci = FT990_NATIVE_UPDATE_VFO_DATA;
       count = FT990_VFO_DATA_LENGTH;
       break;
     case RIG_VFO_MEM:
     case RIG_VFO_MAIN:
-      rig_debug(RIG_DEBUG_TRACE, "%s: passed mem\n", __func__);
       p = priv->update_data.current_front.basefreq;
       ci = FT990_NATIVE_UPDATE_OP_DATA;
       count = FT990_OP_DATA_LENGTH;
@@ -485,17 +508,32 @@ static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   rig_debug(RIG_DEBUG_TRACE,
             "%s: freq = %lli Hz for vfo 0x%02x\n", __func__, f, vfo);
 
-  *freq = f;                    /* return displayed frequency */
+  // Frequency sanity check
+  if (f<100000 || f>30000000)
+    return -RIG_EINVAL;
+
+  *freq = f;
 
   return RIG_OK;
 }
 
 /*
- * rig_set_ptt
+ * rig_set_ptt*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Control PTT for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   ptt        | input  | 0 = off, 1 = off
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
@@ -547,11 +585,20 @@ static int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 }
 
 /*
- * rig_get_ptt
+ * rig_get_ptt*
  *
- * This function returns the status of the ptt line.
+ * Get PTT line status
  *
- * The vfo selection is ignored.
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   ptt *      | output | 0 = off, 1 = on
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored since the PTT status
+ *           is independent from the VFO selection.
  */
 static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
@@ -568,7 +615,7 @@ static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
   priv = (struct ft990_priv_data *) rig->state.priv;
 
   err = ft990_get_update_data(rig, FT990_NATIVE_READ_FLAGS,
-			      FT990_STATUS_FLAGS_LENGTH);
+                              FT990_STATUS_FLAGS_LENGTH);
 
   if(err != RIG_OK)
     return err;
@@ -581,17 +628,25 @@ static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 }
 
 /*
- * rig_set_rptr_shift
+ * rig_set_rptr_shift*
  *
- * Simplex Operation:        rptr_shift = any character
- * Negative Repeater Shift:  rptr_shift = -
- * Positive Repeater Shift:  rptr_shift = +
+ * Set repeater shift for a given VFO
  *
- * Repeater shift can only be set when in FM mode
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   freq       | input  | - = negative repeater shift,
+ *              |        | + = positive repeater shift,
+ *              |        | any other character = simplex (is this a bug?)
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ *           Repeater shift can only be set when in FM mode.
  */
 static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
@@ -652,6 +707,8 @@ static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
   if (err != RIG_OK)
     return err;
 
+  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = 0x%02x\n", __func__, *p);
+
   // Shift mode settings are only valid in FM mode
   if ((*p & FT990_MODE_FM) == 0)
     return -RIG_EINVAL;
@@ -681,13 +738,31 @@ static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 }
 
 /*
- * rig_get_rptr_shift
+ * rig_get_rptr_shift*
+ *
+ * Get repeater shift setting for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   shift *    | output | 0 = simplex
+ *              |        | 1 = negative repeater shift
+ *              |        | 2 = positive repeater shift
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ *           Repeater shift can only be obtained when in FM mode.
  */
 static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
   struct ft990_priv_data *priv;
+  ft990_op_data_t *p;
   unsigned char ci;
-  char *p;
   int rl;
   int err;
 
@@ -710,18 +785,18 @@ static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
   switch(vfo) {
   case RIG_VFO_A:
   case RIG_VFO_VFO:
-    p = (char *) &priv->update_data.vfoa.status;
+    p = &priv->update_data.vfoa;
     ci = FT990_NATIVE_UPDATE_VFO_DATA;
     rl = FT990_VFO_DATA_LENGTH;
     break;
   case RIG_VFO_B:
-    p = (char *) &priv->update_data.vfob.status;
+    p = &priv->update_data.vfob;
     ci = FT990_NATIVE_UPDATE_VFO_DATA;
     rl = FT990_VFO_DATA_LENGTH;
     break;
   case RIG_VFO_MEM:
   case RIG_VFO_MAIN:
-    p = (char *) &priv->update_data.current_front.status;
+    p = &priv->update_data.current_front;
     ci = FT990_NATIVE_UPDATE_OP_DATA;
     rl = FT990_OP_DATA_LENGTH;
     break;
@@ -735,21 +810,87 @@ static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
   if (err != RIG_OK)
     return err;
 
-  *rptr_shift = (*p & FT990_RPT_MASK) >> 2;
+  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = 0x%02x\n", __func__, p->mode);
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: rptr_shift = 0x%02x\n", __func__, *rptr_shift);
+  // Shift mode settings are only valid in FM mode
+  if (p->mode & FT990_MODE_FM)
+    *rptr_shift = (p->status & FT990_RPT_MASK) >> 2;
+  else
+    return -RIG_EINVAL;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: set rptr shift = 0x%02x\n", __func__, *rptr_shift);
 
   return RIG_OK;
 }
 
 /*
- * rig_set_split_vfo
+ * rig_set_rptr_offs*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Set repeater frequency offset for a given VFO
  *
- * Only VFOA and VFOB are valid for split mode operation.
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   off        | input  | 0 - 199999
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored since the
+ *           repeater frequency offset is independent from the VFO selection.
+ */
+static int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
+{
+  unsigned char bcd[(int) FT990_BCD_RPTR_OFFSET/2];
+  int err;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed offs = 0x%02x\n", __func__, offs);
+
+  // Check for valid offset
+  if (offs < 0 || offs > 199999)
+    return -RIG_EINVAL;
+
+  to_bcd(bcd, offs/10, FT990_BCD_RPTR_OFFSET);
+
+  rig_debug(RIG_DEBUG_TRACE,
+            "%s: set bcd[0] = 0x%02x, bcd[1] = 0x%02x, bcd[2] = 0x%02x\n",
+            __func__, bcd[0], bcd[1], bcd[2]);
+
+  err = ft990_send_dynamic_cmd(rig, FT990_NATIVE_RPTR_OFFSET, 0,
+                               bcd[2], bcd[1], bcd[0]);
+
+  if (err != RIG_OK)
+    return err;
+
+  return RIG_OK;
+}
+
+/*
+ * rig_set_split_vfo*
+ *
+ * Set split operation for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   split      | input  | 0 = off, 1 = on
+ *   tx_vfo     | input  | currVFO, VFOA, VFOB
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo or tx_vfo will use the currently
+ *           selected VFO obtained from the priv->current_vfo data structure.
+ *           Only VFOA and VFOB are valid assignments for the tx_vfo.
+ *           The tx_vfo is loaded first when assigning MEM to vfo to ensure
+ *           the correct TX VFO is selected by the rig in split mode.
+ *           An error is returned if vfo and tx_vfo are the same.
  */
 static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
@@ -768,27 +909,35 @@ static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
   priv = (struct ft990_priv_data *) rig->state.priv;
 
-  // Set to selected VFO
   if(vfo == RIG_VFO_CURR) {
     vfo = priv->current_vfo;
-    rig_debug(RIG_DEBUG_TRACE,"%s: priv->current.vfo = 0x%02x\n",
+    rig_debug(RIG_DEBUG_TRACE,"%s: vfo = priv->current.vfo = 0x%02x\n",
               __func__, vfo);
-  } else {
-    if (vfo != priv->current_vfo) {
-      err = ft990_set_vfo(rig, vfo);
-
-      if (err != RIG_OK)
-        return err;
-    }
   }
 
-  // Only VFO A and VFO B are useful for split operation
-  if (vfo == RIG_VFO_MEM)
-    return -RIG_EINVAL;
+  if (tx_vfo == RIG_VFO_CURR) {
+    tx_vfo = priv->current_vfo;
+    rig_debug(RIG_DEBUG_TRACE,"%s: tx_vfo = priv->current.vfo = 0x%02x\n",
+              __func__, tx_vfo);
+  }
 
-  // Can't operate split mode on same VFO
-  if (vfo == tx_vfo)
-    return -RIG_EINVAL;
+  // RX VFO and TX VFO cannot be the same, no support for MEM as TX VFO
+  if (vfo == tx_vfo || tx_vfo == RIG_VFO_MEM)
+    return -RIG_ENTARGET;
+
+  // Set TX VFO first if RIG_VFO_MEM selected for RX VFO
+  if (vfo == RIG_VFO_MEM) {
+    err = ft990_set_vfo(rig, tx_vfo);
+
+    if (err != RIG_OK)
+      return err;
+  }
+
+  // Set RX VFO
+  err = ft990_set_vfo(rig, vfo);
+
+  if (err != RIG_OK)
+    return err;
 
   switch(split) {
     case RIG_SPLIT_ON:
@@ -805,14 +954,25 @@ static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
   if (err != RIG_OK);
     return err;
-
   return RIG_OK;
 }
 
 /*
- * rig_get_split_vfo
+ * rig_get_split_vfo*
  *
- * Ignore vfo parameter
+ * Get split mode status for a given VFO
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   split *    | output | 0 = on, 1 = off
+ *   tx_vfo *   | output | VFOA, VFOB
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored in order to
+ *           preserve the current split vfo system settings.
  */
 static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
@@ -838,6 +998,9 @@ static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
   // Get split mode status
   *split = priv->update_data.flag1 & FT990_SF_SPLIT;
 
+  rig_debug(RIG_DEBUG_TRACE, "%s: set split = 0x%02x\n", __func__, priv->update_data.flag1);
+  rig_debug(RIG_DEBUG_TRACE, "%s: set split = 0x%02x\n", __func__, *split);
+
   // Get transmit vfo
   switch(priv->current_vfo) {
     case RIG_VFO_A:
@@ -846,29 +1009,43 @@ static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
     case RIG_VFO_B:
       *tx_vfo = RIG_VFO_A;
       break;
+    case RIG_VFO_MEM:
+      if (priv->update_data.flag1 & FT990_SF_VFOB)
+        *tx_vfo = RIG_VFO_B;
+      else
+        *tx_vfo = RIG_VFO_A;
+      break;
     default:
       return -RIG_EINVAL;
   }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: set split = 0x%02x\n", __func__, *split);
   rig_debug(RIG_DEBUG_TRACE, "%s: set tx_vfo = 0x%02x\n", __func__, *tx_vfo);
 
   return RIG_OK;
 }
 
 /*
- * rig_set_rit
+ * rig_set_rit*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Set receiver clarifier offset for a given VFO
  *
- * The following conditions are checked
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   rit        | input  | -9999 - 9999
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
- *  rit = 0 && xit enabled   -> disable rit
- *  rit = 0 && xit disabled  -> disable rit and set frequency = 0
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  *
- * Valid RIT frequency range is from -9999Hz to 9999Hz
+ *           The following conditions are checked:
+ *
+ *           rit = 0 && xit enabled   -> disable rit
+ *           rit = 0 && xit disabled  -> disable rit and set frequency = 0
  */
 static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
@@ -942,12 +1119,22 @@ static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 }
 
 /*
- * rig_get_rit
+ * rig_get_rit*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Get receiver clarifier offset for a given VFO
  *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   rit *      | output | -9999 - 9999
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
@@ -1013,18 +1200,27 @@ static int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 }
 
 /*
- * rig_set_xit
+ * rig_set_xit*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Set transmitter clarifier offset for a given VFO
  *
- * The following conditions are checked
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   xit        | input  | -9999 - 9999
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
- *  xit = 0 && rit enabled   -> disable xit
- *  xit = 0 && rit disabled  -> disable xit and set frequency = 0
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  *
- * Valid XIT frequency range is from -9999Hz to 9999Hz
+ *           The following conditions are checked:
+ *
+ *           xit = 0 && rit enabled   -> disable xit
+ *           xit = 0 && rit disabled  -> disable xit and set frequency = 0
  */
 static int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
@@ -1096,12 +1292,22 @@ static int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 }
 
 /*
- * rig_get_xit
+ * rig_get_xit*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Get transmitter clarifier offset for a given VFO
  *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   xit *      | output | -9999 - 9999
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
@@ -1164,9 +1370,21 @@ static int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 }
 
 /*
- * rig_set_func
+ * rig_set_func*
  *
- * The vfo selection is ignored.
+ * Set rig function
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   func       | input  | LOCK, TUNER
+ *   status     | input  | 0 = off, 1 = off
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored since the
+ *           the status of rig functions are vfo independent.
  */
 static int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
@@ -1208,9 +1426,21 @@ static int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 }
 
 /*
- * rig_get_func
+ * rig_get_func*
  *
- * The vfo selection is ignored.
+ * Get status of a rig function
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   func       | input  | LOCK, TUNER, MON
+ *   status *   | output | 0 = off, 1 = on
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored since the
+ *           the status of rig function are vfo independent.
  */
 static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
@@ -1250,15 +1480,32 @@ static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 }
 
 /*
- * rig_set_mode
+ * rig_set_mode*
  *
- * Set mode and passband: eg AM, CW etc for a given VFO
+ * Set operating mode and passband for a given VFO
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   mode       | input  | USB, LSB, CW, AM, FM, RTTY, RTTYR,
+ *   width      | input  | 2400, 2000, 500, 250 (USB)
+ *              |        | 2400, 2000, 500, 250 (LSB)
+ *              |        | 2400, 2000, 500, 250 (CW)
+ *              |        | 2400, 2000, 500, 250 (RTTY)
+ *              |        | 2400, 2000, 500, 250 (RTTYR)
+ *              |        | 6000, 2400           (AM)
+ *              |        | 8000                 (FM)
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ *
+ * Notes:    Hamlib currently doesn't provide support for packet radio modes
  */
-
 static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   struct ft990_priv_data *priv;
@@ -1369,13 +1616,31 @@ static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 }
 
 /*
- * rig_get_mode
+ * rig_get_mode*
  *
- * get mode eg AM, CW etc for a given VFO
+ * Get operating mode and passband for a given VFO
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   mode       | input  | USB, LSB, CW, AM, FM, RTTY, RTTYR,
+ *   width *    | output | 2400, 2000, 500, 250 (USB)
+ *              |        | 2400, 2000, 500, 250 (LSB)
+ *              |        | 2400, 2000, 500, 250 (CW)
+ *              |        | 2400, 2000, 500, 250 (RTTY)
+ *              |        | 2400, 2000, 500, 250 (RTTYR)
+ *              |        | 6000, 2400           (AM)
+ *              |        | 8000                 (FM)
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ *
+ * Notes:    Hamlib currently doesn't provide support for packet radio modes
  */
 static int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -1504,11 +1769,21 @@ switch(vfo) {
 }
 
 /*
- * rig_set_vfo
+ * rig_set_vfo*
  *
- * Set vfo and store requested vfo for later RIG_VFO_CURR
- * requests.
+ * Set operational VFO
  *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_set_vfo(RIG *rig, vfo_t vfo) {
   struct ft990_priv_data *priv;
@@ -1565,12 +1840,23 @@ static int ft990_set_vfo(RIG *rig, vfo_t vfo) {
 }
 
 /*
- * rig_get_vfo
+ * rig_get_vfo*
  *
- * get current RX vfo/mem and store requested vfo for
- * later RIG_VFO_CURR requests plus pass the tested vfo/mem
- * back to the frontend.
+ * Get operational VFO
  *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo *      | output | VFOA, VFOB, MEM
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
+ *           The result is stored in the priv->current_vfo data structure
+ *           for later retrieval.
  */
 static int ft990_get_vfo(RIG *rig, vfo_t *vfo) {
   struct ft990_priv_data *priv;
@@ -1620,18 +1906,28 @@ static int ft990_get_vfo(RIG *rig, vfo_t *vfo) {
  * parameter. The following are the currently supported
  * levels and returned value range:
  *
- *  ----------------------------------------------------------
- * |  level  | Description         | Returned Value |  Units |
- *  ----------------------------------------------------------
- *  STRENGTH | Signal Strength     | -54 .. +60     |  db    |
- *  COMP     | Compression         | 0.0 .. 1.0     | %/100  |
- *  RFPOWER  | RF Power Output     | 0.0 .. 1.0     | %/100  |
- *  SWR      | Standing Wave Ratio | 0.0 .. 1.0     | %/100  |
- *  ----------------------------------------------------------
+ * Parameter    | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, Main, VFO, VFOA, VFOB, MEM
+ *   level      | input  | STRENGTH, ALC, COMP, RFPOWER, SWR
+ *   value *    | output | see table below
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
- * If vfo differs from stored value then VFO will be set to the
- * passed vfo.
+ *     ----------------------------------------------------------
+ *       level  | Description         | Returned Value |  Units |
+ *     ----------------------------------------------------------
+ *     STRENGTH | Signal Strength     | -54 .. +60     |  db    |
+ *     COMP     | Compression         | 0.0 .. 1.0     | %/100  |
+ *     RFPOWER  | RF Power Output     | 0.0 .. 1.0     | %/100  |
+ *     SWR      | Standing Wave Ratio | 0.0 .. 1.0     | %/100  |
+ *     ----------------------------------------------------------
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
 {
@@ -1696,7 +1992,28 @@ static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
 }
 
 /*
- * vfo_op
+ * rig_vfo_op*
+ *
+ * Perform vfo operations
+ *
+ * Parameter    | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | VFOA, VFOB, MEM
+ *   op         | input  | CPY       = copy from VFO to VFO
+ *              |        | FROM_VFO  = copy from VFO to MEM
+ *              |        | TO_VFO    = copy from MEM to VFO
+ *              |        | UP        = step dial frequency up
+ *              |        | DOWN      = step dial frequency down
+ *              |        | TUNE      = start antenna tuner
+ *              |        | TOGGLE    = toggle between VFOA and VFOB
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: Passing currVFO to vfo will use the currently selected VFO
+ *           obtained from the priv->current_vfo data structure.
+ *           In all other cases the passed vfo is selected if it differs
+ *           from the currently selected VFO.
  */
 static int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
@@ -1780,11 +2097,20 @@ static int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 }
 
 /*
- * rig_set_mem
+ * rig_set_mem*
  *
- * Set main vfo to selected channel number
+ * Set main vfo to selected memory channel number
  *
- * The vfo selection is ignored.
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   ch         | input  | 1 - 90
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored since the
+ *           the channel selection is vfo independent.
  */
 static int ft990_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
@@ -1816,11 +2142,21 @@ static int ft990_set_mem(RIG *rig, vfo_t vfo, int ch)
 }
 
 /*
- * rig_get_mem
+ * rig_get_mem*
  *
- * Get channel memory number used by main vfo
+ * Get memory channel number used by main vfo
  *
- * Will succeed only when in RIG_VFO_MEM mode
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   vfo        | input  | currVFO, VFOA, VFOB, MEM
+ *   ch *       | output | 1 - 90
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: The passed value for the vfo is ignored since the
+ *           the channel selection is vfo independent.
+ *           Will succeed only when in RIG_VFO_MEM mode.
  */
 static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
@@ -1863,26 +2199,36 @@ static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
 }
 
 /*
- * rig_scan
- */
-static int ft990_scan (RIG * rig, vfo_t vfo, scan_t scan, int ch)
-{
-  return -RIG_ENIMPL;
-}
-
-/*
  * rig_set_channel
  */
-static int ft990_set_channel (RIG * rig, const channel_t * chan)
+static int ft990_set_channel (RIG *rig, const channel_t *chan)
 {
+  struct ft990_priv_data *priv;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  priv = (struct ft990_priv_data *) rig->state.priv;
+
   return -RIG_ENIMPL;
 }
 
 /*
  * rig_get_channel
  */
-static int ft990_get_channel (RIG * rig, channel_t * chan)
+static int ft990_get_channel (RIG *rig, channel_t *chan)
 {
+  struct ft990_priv_data *priv;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  priv = (struct ft990_priv_data *) rig->state.priv;
+
   return -RIG_ENIMPL;
 }
 
@@ -2112,6 +2458,17 @@ static int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
   return RIG_OK;
 }
 
+/*
+ * Private helper function to build and send a complete command to
+ * change the rit frequency.
+ *
+ * Arguments:   *rig    Valid RIG instance
+ *              ci      Command index of the pcs struct
+ *              freq    freq_t frequency value
+ *
+ * Returns:     RIG_OK if all called functions are successful,
+ *              otherwise returns error from called functiion
+ */
 static int ft990_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
   struct ft990_priv_data *priv;
   struct rig_state *rig_s;

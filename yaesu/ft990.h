@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- *    $Id: ft990.h,v 1.2 2003-11-28 15:45:19 fillods Exp $  
+ *    $Id: ft990.h,v 1.3 2003-11-30 22:46:01 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -72,6 +72,7 @@
 
 #define FT990_BCD_DIAL                  8
 #define FT990_BCD_RIT                   3
+#define FT990_BCD_RPTR_OFFSET           6
 
 /* Timing values in mS */
 
@@ -141,6 +142,8 @@ typedef enum ft990_native_cmd_e {
   FT990_NATIVE_OP_FREQ_STEP_UP,
   FT990_NATIVE_OP_FREQ_STEP_DOWN,
   FT990_NATIVE_READ_METER,
+  FT990_NATIVE_DIM_LEVEL,
+  FT990_NATIVE_RPTR_OFFSET,
   FT990_NATIVE_READ_FLAGS,
   FT990_NATIVE_SIZE
 } ft990_native_cmd_t;
@@ -161,6 +164,7 @@ static int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
 static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
+static int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
 static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
@@ -173,9 +177,8 @@ static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 static int ft990_set_mem(RIG *rig, vfo_t vfo, int ch);
 static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch);
-static int ft990_scan (RIG * rig, vfo_t vfo, scan_t scan, int ch);
-static int ft990_set_channel (RIG * rig, const channel_t * chan);
-static int ft990_get_channel (RIG * rig, channel_t * chan);
+static int ft990_set_channel (RIG *rig, const channel_t *chan);
+static int ft990_get_channel (RIG *rig, channel_t *chan);
 
 
 /*
