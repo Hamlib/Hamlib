@@ -16,9 +16,9 @@ configure-stamp:
 	@echo "!!"
 	@echo "if you see any errors add automake-1.7 and aclocal-1.7 to autogen.sh"
 	@echo "!!"
-	sh autogen.sh
+	sh autogen.sh --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
 	# Add here commands to configure the package.
-	./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+#	./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
 
 	touch configure-stamp
 
