@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.15 2000-09-04 17:51:35 javabear Exp $  
+ * $Id: testlibft847.c,v 1.16 2000-09-04 19:58:56 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -207,7 +207,6 @@ int main(void) {
   rc = rig_get_caps();		/* find capabilities */
 
   printf("rig_name = %s \n", rc->rig_name); 
-  rc->serial_data_bits = 8; 
   printf("Initial serial_port_name = %s \n", rc->serial_port_name); 
 
   strcpy(rc->serial_port_name,SERIAL_PORT); /* put wanted serial port in caps */

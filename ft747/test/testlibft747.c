@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.9 2000-09-04 04:06:14 javabear Exp $  
+ * $Id: testlibft747.c,v 1.10 2000-09-04 19:58:55 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -225,10 +225,14 @@ int main(void) {
   rc = rig_get_caps();		/* find capabilities */
 
   printf("rig_name = %s \n", rc->rig_name);
+  strcpy(rc->serial_port_name,SERIAL_PORT); /* put wanted serial port in caps */
   
-  fd = rig_open(SERIAL_PORT);
-  printf("port opened ok \n");
+/*    fd = rig_open(SERIAL_PORT); */
+/*    printf("port opened ok \n"); */
 
+  fd = rig_open(rc);
+  printf("port %s opened ok \n", rc->serial_port_name);
+    
   test(fd);
   printf("testing communication result ok \n");
 

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.9 2000-09-04 04:07:33 javabear Exp $  
+ * $Id: ft747.c,v 1.10 2000-09-04 19:58:55 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@
 #include "ft747.h"
 
 static struct rig_caps rigft747 = {
-  "ft747", 4800, 4800, 8, 2, RIG_PARITY_NONE
+  "ft747", 4800, 4800, 8, 2, RIG_PARITY_NONE, ""
 };
 
 
@@ -55,8 +55,18 @@ static struct rig_caps rigft747 = {
  */
 
 
-int rig_open(char *serial_port) {
-  return open_port(serial_port);
+/*  int rig_open(char *serial_port) { */
+/*    return open_port(serial_port); */
+/*  } */
+
+/*
+ * Open serial connection to rig using rig_caps
+ * returns fd.
+ */
+
+
+int rig_open(struct rig_caps *rc) {
+  return open_port2(rc);
 }
 
 /*
@@ -79,8 +89,6 @@ struct rig_caps *rig_get_caps() {
   r = &rigft747;
 
   printf("rig = %s \n", r->rig_name);
-
-  printf("rig = %s \n", rigft747.rig_name);
 
   printf("rig serial_rate_min = = %u \n", rigft747.serial_rate_min);
 
