@@ -271,7 +271,6 @@ esac
 
 # assumes we have libgnuradio, libfftw
 if test "${cf_with_cxx}" = "yes" ; then
-  PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.5)
   AC_MSG_CHECKING(whether to build gnuradio backend)
   AC_ARG_WITH(gnuradio,
         [  --with-gnuradio	build gnuradio backend],
@@ -280,6 +279,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_gnuradio)
 
   if test "${cf_with_gnuradio}" = "yes" ; then
+  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.5)
 	BACKEND_LIST="$BACKEND_LIST gnuradio"
   fi
 fi
