@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.11 2000-08-19 04:07:00 javabear Exp $  
+ * $Id: testlibft847.c,v 1.12 2000-09-03 23:44:18 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -36,10 +36,10 @@
 
 #include "testlibft847.h"
 #include "ft847.h"
+#include "rig.h"
 
 
 static unsigned char datain[5]; /* data read from rig */
-
 
 /*
  * Decode routine for TX status update map
@@ -200,9 +200,15 @@ static int test(fd) {
 
 int main(void) {
 
+  struct rig_caps *rc;	/* points to rig caps */
 
   int fd;
+
+  rc = rig_get_caps();		/* find capabilities */
+
+  printf("rig test = %s \n", rc->rig_name);
   
+
   fd = rig_open(SERIAL_PORT);
   printf("port %s opened ok \n",SERIAL_PORT);
   
