@@ -1,13 +1,13 @@
 /*
  * hamlib - (C) 2000 Frank Singleton and Stephane Fillod
  *
- * rigctl.c - (C) Stephane Fillod 2000
+ * rigctl.c - (C) Stephane Fillod 2000,2001
  *
  * This program test/control a radio using Hamlib.
- * TODO: be more generic and add command line option to run 
- * 		in non-interactive mode
+ * It takes commands in interactive mode as well as 
+ * from command line options.
  *
- * $Id: rigctl.c,v 1.18 2001-07-01 11:46:17 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.19 2001-07-20 11:09:26 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,12 @@
  * 
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -36,22 +41,36 @@
 #include <hamlib/rig.h>
 
 
-#define SERIAL_PORT "/dev/ttyS0"
 
-#define MAXNAMSIZ 40
+#define MAXNAMSIZ 32
 #define MAXNBOPT 100	/* max number of different options */
 
 
+#define ARG_IN  0x01
+#define ARG_OUT 0x02
+
 struct test_table {
 	unsigned char cmd;
-	unsigned char name[MAXNAMSIZ];
-        int (*test_func)(RIG*, int, const struct test_table*, const char*, const char*, const char*);
-	const char *name1;
-	const char *name2;
-	const char *name3;
+	const char *name;
+    int (*rig_routine)(RIG*, int, const struct test_table*, const char*, 
+					const char*, const char*);
+	int flags;
+	const char *arg1;
+	const char *arg2;
+	const char *arg3;
 };
 
-#define declare_proto_rig(f) static int (f)(RIG *rig, int interactive, const struct test_table *cmd, const char *arg1, const char *arg2, const char *arg3)
+/* 
+ * Prototypes
+ */
+void usage();
+void usage_rig();
+void version();
+void list_models();
+
+#define declare_proto_rig(f) static int (f)(RIG *rig, int interactive, \
+			const struct test_table *cmd, const char *arg1, \
+			const char *arg2, const char *arg3)
 
 declare_proto_rig(set_freq);
 declare_proto_rig(get_freq);
@@ -84,67 +103,82 @@ declare_proto_rig(get_func);
 declare_proto_rig(set_bank);
 declare_proto_rig(set_mem);
 declare_proto_rig(get_mem);
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-declare_proto_rig(mv_ctl);
-#else
 declare_proto_rig(vfo_op);
-#endif
 declare_proto_rig(scan);
 declare_proto_rig(set_channel);
 declare_proto_rig(get_channel);
 declare_proto_rig(set_trn);
 declare_proto_rig(get_trn);
 
+
+
 /*
  * convention: upper case cmd is set, lowercase is get
  *
- * TODO: add missing rig_set_/rig_get_: rit, ann, ant, dcs, ctcss, dcd, etc.
- * NB: do NOT use -W since it's reserved by POSIX.
- *		'q' 'Q' '?' are also reserved for interface use
+ * TODO: add missing rig_set_/rig_get_: [rx]it, ant, sql, dcd, etc.
+ * NB: 'q' 'Q' '?' are reserved by interactive mode interface
  */
 struct test_table test_list[] = {
-		{ 'F', "set_freq", set_freq, "Frequency" },
-		{ 'f', "get_freq", get_freq, "Frequency" },
-		{ 'M', "set_mode", set_mode, "Mode", "Passband" },
-		{ 'm', "get_mode", get_mode, "Mode", "Passband" },
-		{ 'V', "set_vfo", set_vfo, "VFO" },
-		{ 'v', "get_vfo", get_vfo, "VFO" },
-		{ 'T', "set_ptt", set_ptt, "PTT" },
-		{ 't', "get_ptt", get_ptt, "PTT" },
-		{ 'R', "set_rptr_shift", set_rptr_shift, "Rptr shift" },
-		{ 'r', "get_rptr_shift", get_rptr_shift, "Rptr shift" },
-		{ 'O', "set_rptr_offs", set_rptr_offs, "Rptr offset" },
-		{ 'o', "get_rptr_offs", get_rptr_offs, "Rptr offset" },
-		{ 'C', "set_ctcss_tone", set_ctcss_tone, "CTCSS tone" },
-		{ 'c', "get_ctcss_tone", get_ctcss_tone, "CTCSS tone" },
-		{ 'D', "set_dcs_code", set_dcs_code, "DCS code" },
-		{ 'd', "get_dcs_code", get_dcs_code, "DCS code" },
-		{ 'I', "set_split_freq", set_split_freq, "Tx frequency" },
-		{ 'i', "get_split_freq", get_split_freq, "Tx frequency" },
-		{ 'S', "set_split", set_split, "Split mode" },
-		{ 's', "get_split", get_split, "Split mode" },
-		{ 'N', "set_ts", set_ts, "Tuning step" },
-		{ 'n', "get_ts", get_ts, "Tuning step" },
+		{ 'F', "set_freq", set_freq, ARG_IN, "Frequency" },
+		{ 'f', "get_freq", get_freq, ARG_OUT, "Frequency" },
+		{ 'M', "set_mode", set_mode, ARG_IN, "Mode", "Passband" },
+		{ 'm', "get_mode", get_mode, ARG_OUT, "Mode", "Passband" },
+		{ 'V', "set_vfo", set_vfo, ARG_IN, "VFO" },
+		{ 'v', "get_vfo", get_vfo, ARG_OUT, "VFO" },
+		{ 'T', "set_ptt", set_ptt, ARG_IN, "PTT" },
+		{ 't', "get_ptt", get_ptt, ARG_OUT, "PTT" },
+		{ 'R', "set_rptr_shift", set_rptr_shift, ARG_IN, "Rptr shift" },
+		{ 'r', "get_rptr_shift", get_rptr_shift, ARG_OUT, "Rptr shift" },
+		{ 'O', "set_rptr_offs", set_rptr_offs, ARG_IN, "Rptr offset" },
+		{ 'o', "get_rptr_offs", get_rptr_offs, ARG_OUT, "Rptr offset" },
+		{ 'C', "set_ctcss_tone", set_ctcss_tone, ARG_IN, "CTCSS tone" },
+		{ 'c', "get_ctcss_tone", get_ctcss_tone, ARG_OUT, "CTCSS tone" },
+		{ 'D', "set_dcs_code", set_dcs_code, ARG_IN, "DCS code" },
+		{ 'd', "get_dcs_code", get_dcs_code, ARG_OUT, "DCS code" },
+		{ 'I', "set_split_freq", set_split_freq, ARG_IN, "Tx frequency" },
+		{ 'i', "get_split_freq", get_split_freq, ARG_OUT, "Tx frequency" },
+		{ 'S', "set_split", set_split, ARG_IN, "Split mode" },
+		{ 's', "get_split", get_split, ARG_OUT, "Split mode" },
+		{ 'N', "set_ts", set_ts, ARG_IN, "Tuning step" },
+		{ 'n', "get_ts", get_ts, ARG_OUT, "Tuning step" },
+		{ 'L', "set_level", set_level, ARG_IN, "Level", "Value" },
+		{ 'l', "get_level", get_level, ARG_OUT, "Level", "Value" },
+		{ 'U', "set_func", set_func, ARG_IN, "Func", "Func status" },
+		{ 'u', "get_func", get_func, ARG_OUT, "Func", "Func status" },
+		{ 'E', "set_mem", set_mem, ARG_IN, "Memory#" },
+		{ 'e', "get_mem", get_mem, ARG_OUT, "Memory#" },
+		{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
+		{ 'g', "scan", scan, ARG_IN, "Scan fct", "Channel" },
+		{ 'H', "set_channel", set_channel, ARG_IN,  /* huh! */ },
+		{ 'h', "get_channel", get_channel, ARG_OUT, "Channel" },
+		{ 'A', "set_trn", set_trn, ARG_IN, "Transceive" },
+		{ 'a', "get_trn", get_trn, ARG_OUT, "Transceive" },
+		{ 'B', "set_bank", set_bank, ARG_IN, "Bank" },
 		{ '2', "power2mW", power2mW },
-		{ 'L', "set_level", set_level, "Level", "Value" },
-		{ 'l', "get_level", get_level, "Level", "Value" },
-		{ 'U', "set_func", set_func, "Func", "Func status" },
-		{ 'u', "get_func", get_func, "Func", "Func status" },
-		{ 'B', "set_bank", set_bank, "Bank" },
-		{ 'E', "set_mem", set_mem, "Memory#" },
-		{ 'e', "get_mem", get_mem, "Memory#" },
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-		{ 'G', "mv_ctl", mv_ctl, "Mem/VFO op" },
-#else
-		{ 'G', "vfo_op", vfo_op, "Mem/VFO op" },
-#endif
-		{ 'g', "scan", scan, "Scan fct", "Channel" },
-		{ 'H', "set_channel", set_channel /* huh! */ },
-		{ 'h', "get_channel", get_channel, "Channel" },
-		{ 'A', "set_trn", set_trn, "Transceive" },
-		{ 'a', "get_trn", get_trn, "Transceive" },
 		{ 0x00, "", NULL },
 
+};
+
+/*
+ * Reminder: when adding long options, 
+ * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
+ * NB: do NOT use -W since it's reserved by POSIX.
+ * TODO: add an option to read from a file
+ */
+#define SHORT_OPTIONS "m:r:p:P:d:D:vhVl"
+static struct option long_options[] =
+{
+	{"model",    1, 0, 'm'},
+	{"rig-file", 1, 0, 'r'},
+	{"ptt-file", 1, 0, 'p'},
+	{"dcd-file", 1, 0, 'd'},
+	{"ptt-type", 1, 0, 'P'},
+	{"dcd-type", 1, 0, 'D'},
+	{"list",     0, 0, 'l'},
+	{"verbose",  0, 0, 'v'},
+	{"help",     0, 0, 'h'},
+	{"version",  0, 0, 'V'},
+	{0, 0, 0, 0}
 };
 
 struct test_table *find_cmd_entry(int cmd)
@@ -159,164 +193,230 @@ struct test_table *find_cmd_entry(int cmd)
 
 	return &test_list[i];
 }
+/*
+ * TODO: use Lex
+ */
+char parse_arg(const char *arg)
+{
+		int i;
+		for (i=0; i<MAXNBOPT && test_list[i].cmd != 0; i++)
+				if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
+						return test_list[i].cmd;
+		return 0;
+}
 
 int main (int argc, char *argv[])
 { 
 	RIG *my_rig;		/* handle to rig (nstance) */
+	rig_model_t my_model = RIG_MODEL_DUMMY;
 
 	int interactive=1;	/* if no cmd on command line, switch to interactive */
 	int retcode;		/* generic return code from functions */
-	int i;
 	char cmd;
-	struct option long_options[MAXNBOPT];
-	char opt_string[MAXNBOPT*2], *opt_ptr;
 	struct test_table *cmd_entry;
 
- 	/*
-	 * allocate memory, setup & open port 
+	int verbose = 0;
+	const char *rig_file=NULL, *ptt_file=NULL, *dcd_file=NULL;
+	ptt_type_t ptt_type = RIG_PTT_NONE;
+	dcd_type_t dcd_type = RIG_DCD_NONE;
+
+	while(1) {
+		int c;
+		int option_index = 0;
+
+		c = getopt_long (argc, argv, SHORT_OPTIONS,
+			long_options, &option_index);
+		if (c == -1)
+			break;
+
+		switch(c) {
+			case 'h':
+					usage();
+					exit(0);
+			case 'V':
+					version();
+					exit(0);
+			case 'm':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					my_model = atoi(optarg);
+					break;
+			case 'r':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					rig_file = optarg;
+					break;
+			case 'p':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					ptt_file = optarg;
+					break;
+			case 'd':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					dcd_file = optarg;
+					break;
+			case 'P':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					ptt_type = atoi(optarg);
+					break;
+			case 'D':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					dcd_type = atoi(optarg);
+					break;
+			case 'v':
+					verbose++;
+					break;
+			case 'l':
+					list_models();
+					exit(0);
+			default:
+					usage();	/* unknown option? */
+					exit(1);
+		}
+	}
+	if (verbose < 2)
+		rig_set_debug(RIG_DEBUG_WARN);
+
+	/*
+	 * at least one command on command line, 
+	 * disable interactive mode
 	 */
+	if (optind < argc)
+		interactive = 0;
 
-#if 0
-  	retcode = rig_load_backend("icom");
-	retcode |= rig_load_backend("ft747");
-	retcode |= rig_load_backend("ft847");
-	retcode |= rig_load_backend("kenwood");
-	retcode |= rig_load_backend("aor");
-	retcode |= rig_load_backend("pcr");
-	rig_load_backend("winradio");
-	rig_load_backend("dummy");
+  	my_rig = rig_init(my_model);
 
-	if (retcode != RIG_OK ) {
-		printf("rig_load_backend: error = %s \n", rigerror(retcode));
-		exit(3);
+	if (!my_rig) {
+			fprintf(stderr, "Unknown rig num %d, or initialization error.\n", 
+							my_model);
+			fprintf(stderr, "Please check with --list option.\n");
+			exit(2);
 	}
-#endif
 
-	opt_ptr = opt_string;
-	for (i=0; i<MAXNBOPT-1 && test_list[i].cmd; i++) {
-		/*
-		 * build long_options
-		 */
-		long_options[i].name = test_list[i].name;
-		long_options[i].val = test_list[i].cmd;
-		long_options[i].has_arg = test_list[i].name1 ? 
-						required_argument : no_argument;
-		long_options[i].flag = 0;
+	if (rig_file)
+		strncpy(my_rig->state.rigport.path, rig_file, FILPATHLEN);
 
-		/*
-		 * build short_options
-		 */
-		*opt_ptr++ = test_list[i].cmd;
-		if (long_options[i].has_arg)
-			*opt_ptr++ = ':';
-	}
-	memset(long_options+i, 0, sizeof(struct option));
-	*opt_ptr = '\0';
-
-printf("%s\n",opt_string);
-
-	/* TODO: add a long option(after they are consumed) or arg to set rig model */
-#if 0
-  	my_rig = rig_init(RIG_MODEL_DUMMY);
-#else
-  	my_rig = rig_init(RIG_MODEL_IC706MKIIG);
-#endif
-
-	if (!my_rig)
-			exit(1); /* whoops! something went wrong (mem alloc?) */
-
-	strncpy(my_rig->state.rigport.path, SERIAL_PORT, FILPATHLEN);
-
-	/* TODO: make this a parameter */
-	my_rig->state.pttport.type.ptt = RIG_PTT_PARALLEL;
-	strncpy(my_rig->state.pttport.path, "/dev/parport0", FILPATHLEN);
+	/* 
+	 * ex: RIG_PTT_PARALLEL and /dev/parport0
+	 */
+	if (ptt_type != RIG_PTT_NONE)
+		my_rig->state.pttport.type.ptt = ptt_type;
+	if (dcd_type != RIG_DCD_NONE)
+		my_rig->state.dcdport.type.dcd = dcd_type;
+	if (ptt_file)
+		strncpy(my_rig->state.pttport.path, ptt_file, FILPATHLEN);
+	if (dcd_file)
+		strncpy(my_rig->state.dcdport.path, dcd_file, FILPATHLEN);
 
 	if ((retcode = rig_open(my_rig)) != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
 			exit(2);
 	}
 
-	while(1) {
-		int c;
-		int option_index = 0;
+	if (verbose > 0)
+			printf("Opened rig model %d, '%s'\n", my_rig->caps->rig_model,
+							my_rig->caps->model_name);
 
-		c = getopt_long (argc, argv, opt_string,
-			long_options, &option_index);
-		if (c == -1)
-			break;
-
-		printf ("## option '%c' %s\n", c, long_options[option_index].name);
-
-		cmd_entry = find_cmd_entry(c);
-		if (!cmd_entry)
-			break;	/* TODO: */
-
-		/*
-		 * at least one command on command line, 
-		 * disable interactive mode
-		 */
-		interactive = 0;
-
-		retcode = (*cmd_entry->test_func)(my_rig, interactive, cmd_entry, optarg,
-					optarg, optarg);
-				
-		if (retcode != RIG_OK ) {
-  			printf("%s: error = %s\n",cmd_entry->name,rigerror(retcode));
-			}
-	}
-
-	if (!interactive) {
-		rig_close(my_rig); /* close port */
-		rig_cleanup(my_rig); /* if you care about memory */
-		return 0;
-	}
-
+#define MAXARGSZ 127
 	while (1) {
-			char arg1[128], *p1;
-			char arg2[128], *p2;
-			char arg3[128], *p3;
+			char arg1[MAXARGSZ+1], *p1;
+			char arg2[MAXARGSZ+1], *p2;
+			char arg3[MAXARGSZ+1], *p3;
 
-			printf("\nRig command: ");
-			scanf("%c", &cmd);
-			if (cmd == 0x0a)
-					scanf("%c", &cmd);
+			if (interactive) {
+				printf("\nRig command: ");
+				scanf("%c", &cmd);
+				if (cmd == 0x0a)
+						scanf("%c", &cmd);
 
-			if (cmd == 'Q' || cmd == 'q')
-					break;
-
-			if (cmd == '?') {
-				for (i=0; test_list[i].cmd != 0x00; i++)
-						printf("%c: %s\n",test_list[i].cmd,test_list[i].name);
-				continue;
+				if (cmd == 'Q' || cmd == 'q')
+						break;
+				if (cmd == '?') {
+						usage_rig();
+					continue;
+				}
+			} else {
+					/* parse rest of command line */
+					if (optind >= argc)
+							break;
+					if (argv[optind][1] == '\0')
+							cmd = argv[optind][0];
+					else
+							cmd = parse_arg(argv[optind]);
+					optind++;
 			}
 
 			cmd_entry = find_cmd_entry(cmd);
 			if (!cmd_entry) {
-				fprintf(stderr, "Command not found!\n");
+				fprintf(stderr, "Command '%c' not found!\n", cmd);
 				continue;
 			}
 
 			p1 = p2 = p3 = NULL;
-			if (cmd_entry->name1) {
-				printf("%s: ", cmd_entry->name1);
-				scanf("%s", arg1);
-				p1 = arg1;
+			if (cmd_entry->flags & ARG_IN) {
+				if (cmd_entry->arg1) {
+					if (interactive) {
+						printf("%s: ", cmd_entry->arg1);
+						scanf("%s", arg1);
+						p1 = arg1;
+					} else {
+						if (!argv[optind]) {
+							fprintf(stderr, "Invalid arg for command '%s'\n", 
+										cmd_entry->name);
+							exit(2);
+						}
+						p1 = argv[optind++];
+					}
+				}
+				if (cmd_entry->arg2) {
+					if (interactive) {
+						printf("%s: ", cmd_entry->arg2);
+						scanf("%s", arg2);
+						p2 = arg2;
+					} else {
+						if (!argv[optind]) {
+							fprintf(stderr, "Invalid arg for command '%s'\n", 
+										cmd_entry->name);
+							exit(2);
+						}
+						p2 = argv[optind++];
+					}
+				}
+				if (cmd_entry->arg3) {
+					if (interactive) {
+						printf("%s: ", cmd_entry->arg3);
+						scanf("%s", arg3);
+						p3 = arg3;
+					} else {
+						if (!argv[optind]) {
+							fprintf(stderr, "Invalid arg for command '%s'\n", 
+										cmd_entry->name);
+							exit(2);
+						}
+						p3 = argv[optind++];
+					}
+				}
 			}
-			if (cmd_entry->name2) {
-				printf("%s: ", cmd_entry->name2);
-				scanf("%s", arg2);
-				p2 = arg2;
-			}
-			if (cmd_entry->name3) {
-				printf("%s: ", cmd_entry->name3);
-				scanf("%s", arg3);
-				p1 = arg3;
-			}
-			retcode = (*cmd_entry->test_func)(my_rig, interactive, cmd_entry, p1,
-					p2, p3);
+			retcode = (*cmd_entry->rig_routine)(my_rig, interactive, 
+							cmd_entry, p1, p2, p3);
 				
 			if (retcode != RIG_OK ) {
-	  			printf("%s: error = %s\n",cmd_entry->name,rigerror(retcode));
+	  			printf("%s: error = %s\n", cmd_entry->name, rigerror(retcode));
 			}
 	}
 
@@ -324,6 +424,80 @@ printf("%s\n",opt_string);
 	rig_cleanup(my_rig); /* if you care about memory */
 
 	return 0;
+}
+
+
+
+void version()
+{
+		printf("rigctl, %s\n\n", hamlib_version);
+		printf("%s\n", hamlib_copyright);
+}
+
+void usage_rig()
+{
+		int i;
+
+		printf("Commands:\n");
+		for (i=0; test_list[i].cmd != 0; i++) {
+			printf("%c: %-16s(", test_list[i].cmd, test_list[i].name);
+			if (test_list[i].arg1)
+					printf("%s", test_list[i].arg1);
+			if (test_list[i].arg2)
+					printf(",%s", test_list[i].arg2);
+			if (test_list[i].arg3)
+					printf(",%s", test_list[i].arg3);
+			printf(")  \t");
+
+			if (i%2)
+					printf("\n");
+		}
+
+}
+void usage()
+{
+		printf("Usage: rigctl [OPTION]... [COMMAND]...\n"
+		   "Send COMMANDs to a connected radio transceiver or receiver.\n\n");
+
+
+		printf(
+	"  -m, --model=ID             select radio model number. See model list\n"
+	"  -r, --rig-file=DEVICE      set device of the radio to operate on\n"
+	"  -p, --ptt-file=DEVICE      set device of the PTT device to operate on\n"
+	"  -d, --dcd-file=DEVICE      set device of the DCD device to operate on\n"
+	"  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
+	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
+	"  -l, --list                 list all model numbers and exit\n"
+	"  -v, --verbose              set verbose mode, cumulative\n"
+	"  -h, --help                 display this help and exit\n"
+	"  -V, --version              output version information and exit\n\n"
+			);
+
+		usage_rig();
+
+		printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
+
+}
+
+static int print_model_list(const struct rig_caps *caps, void *data)
+{
+	printf("%d\t%-14s%-16s%s\n", caps->rig_model, caps->mfg_name,
+										caps->model_name, caps->version);
+	return 1;  /* !=0, we want them all ! */
+}
+
+void list_models()
+{
+	int status;
+
+	rig_load_all_backends();
+
+	printf("Rig#\tMfg           Model           Vers.\n");
+	status = rig_list_foreach(print_model_list, NULL);
+	if (status != RIG_OK ) {
+		printf("rig_list_foreach: error = %s \n", rigerror(status));
+		exit(2);
+	}
 }
 
 
@@ -346,7 +520,7 @@ declare_proto_rig(get_freq)
 
 		status = rig_get_freq(rig, RIG_VFO_CURR, &freq);
 		if (interactive)
-			printf("%s: ", cmd->name1); /* i.e. "Frequency" */
+			printf("%s: ", cmd->arg1); /* i.e. "Frequency" */
 		printf("%lld", freq);
 		return status;
 }
@@ -370,10 +544,10 @@ declare_proto_rig(get_mode)
 
 		status = rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", mode);
 		if (interactive)
-			printf("%s: ", cmd->name2);
+			printf("%s: ", cmd->arg2);
 		printf("%ld", width);
 		return status;
 }
@@ -395,7 +569,7 @@ declare_proto_rig(get_vfo)
 
 		status = rig_get_vfo(rig, &vfo);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", vfo);
 		return status;
 }
@@ -417,7 +591,7 @@ declare_proto_rig(get_ptt)
 
 		status = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", ptt);
 		return status;
 }
@@ -439,7 +613,7 @@ declare_proto_rig(get_rptr_shift)
 
 		status = rig_get_rptr_shift(rig, RIG_VFO_CURR, &rptr_shift);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", rptr_shift);
 		return status;
 }
@@ -461,7 +635,7 @@ declare_proto_rig(get_rptr_offs)
 
 		status = rig_get_rptr_offs(rig, RIG_VFO_CURR, &rptr_offs);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%ld\n", rptr_offs);
 		return status;
 }
@@ -483,7 +657,7 @@ declare_proto_rig(get_ctcss_tone)
 
 		status = rig_get_ctcss_tone(rig, RIG_VFO_CURR, &tone);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", tone);
 		return status;
 }
@@ -505,7 +679,7 @@ declare_proto_rig(get_dcs_code)
 
 		status = rig_get_dcs_code(rig, RIG_VFO_CURR, &code);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", code);
 		return status;
 }
@@ -527,7 +701,7 @@ declare_proto_rig(get_split_freq)
 
 		status = rig_get_split_freq(rig, RIG_VFO_CURR, &txfreq);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%lld\n", txfreq);
 		return status;
 }
@@ -549,7 +723,7 @@ declare_proto_rig(get_split)
 
 		status = rig_get_split(rig, RIG_VFO_CURR, &split);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", split);
 		return status;
 }
@@ -571,7 +745,7 @@ declare_proto_rig(get_ts)
 
 		status = rig_get_ts(rig, RIG_VFO_CURR, &ts);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%ld\n", ts);
 		return status;
 }
@@ -620,7 +794,7 @@ declare_proto_rig(get_level)
 		sscanf(arg1, "%lld", &level);
 		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
 		if (interactive)
-			printf("%s: ", cmd->name2);
+			printf("%s: ", cmd->arg2);
 		if (RIG_LEVEL_IS_FLOAT(level))
 			printf("%f\n", val.f);
 		else
@@ -654,7 +828,7 @@ declare_proto_rig(get_func)
 		sscanf(arg1, "%lld", &func);
 		status = rig_get_func(rig, RIG_VFO_CURR, func, &func_stat);
 		if (interactive)
-			printf("%s: ", cmd->name2);
+			printf("%s: ", cmd->arg2);
 		printf("%d\n", func_stat);
 		return status;
 }
@@ -685,21 +859,11 @@ declare_proto_rig(get_mem)
 
 		status = rig_get_mem(rig, RIG_VFO_CURR, &ch);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", ch);
 		return status;
 }
 
-
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-declare_proto_rig(mv_ctl)
-{
-		mv_op_t op;
-
-		sscanf(arg1, "%d", (int*)&op);
-		return rig_mv_ctl(rig, RIG_VFO_CURR, op);
-}
-#else
 declare_proto_rig(vfo_op)
 {
 		vfo_op_t op;
@@ -707,7 +871,6 @@ declare_proto_rig(vfo_op)
 		sscanf(arg1, "%d", (int*)&op);
 		return rig_vfo_op(rig, RIG_VFO_CURR, op);
 }
-#endif
 
 declare_proto_rig(scan)
 {
@@ -722,7 +885,7 @@ declare_proto_rig(scan)
 declare_proto_rig(set_channel)
 {
 		fprintf(stderr,"rigctl_set_channel not implemented yet!\n");
-		return 0;
+		return -RIG_ENIMPL;
 }
 
 
@@ -733,6 +896,7 @@ declare_proto_rig(get_channel)
 
 		sscanf(arg1, "%d", &chan.channel_num);
 		status = rig_get_channel(rig, &chan);
+		/* TODO: dump data here */
 		return status;
 }
 
@@ -753,7 +917,7 @@ declare_proto_rig(get_trn)
 
 		status = rig_get_trn(rig, RIG_VFO_CURR, &trn);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->arg1);
 		printf("%d\n", trn);
 		return status;
 }
