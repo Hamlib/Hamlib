@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.21 2001-12-27 22:00:43 fillods Exp $
+ *		$Id: serial.c,v 1.22 2002-01-07 17:14:22 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -126,7 +126,8 @@ int serial_open(port_t *rp) {
 #else	/* sgtty */
   ioctl (fd, TIOCGETP, &sg);
 #endif
-  
+  cfmakeraw(&options); /* Set serial port to RAW mode by default. */
+
   /*
    * Set the baud rates to requested values
    */
@@ -563,6 +564,78 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
   }
 
   rig_debug(RIG_DEBUG_TRACE,"RX %d bytes\n",total_count);
+  dump_hex(rxbuffer, total_count);
+  return total_count;			/* return bytes count read */
+}
+
+/*
+ * Read a string from "fd" and put result into
+ * an array of unsigned char pointed to by "rxbuffer"
+ *
+ * Blocks on read until timeout hits.
+ *
+ * It then reads characters until one of the characters in
+ * "stopset" is found, or until "rxmax-1" characters was copied
+ * into rxbuffer.  String termination character is added at the end.
+ *
+ * Actually, this function has nothing specific to serial comm,
+ * it could work very well also with any file handle, like a socket.
+ *
+ * Assumes rxbuffer!=NULL
+ */
+int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset)
+{
+  fd_set rfds;
+  struct timeval tv, tv_timeout;
+  int rd_count, total_count = 0;
+  int retval;
+
+  rxbuffer[0] = '\000';
+
+  FD_ZERO(&rfds);
+  FD_SET(p->fd, &rfds);
+
+  /*
+   * Wait up to timeout ms.
+   */
+  tv_timeout.tv_sec = p->timeout/1000;
+  tv_timeout.tv_usec = (p->timeout%1000)*1000;
+
+  while (total_count < (rxmax-1)) {
+		tv = tv_timeout;	/* select may have updated it */
+
+		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
+        if (retval == 0)    /* Timed out */
+            break;
+
+		if (retval < 0) {
+            rig_debug(RIG_DEBUG_ERR,__FUNCTION__": select error after %d chars:"
+                            " %s\n", total_count, strerror(errno));
+            return -RIG_EIO;
+		}
+		/*
+         * read 1 character from the rig, (check if in stop set)
+		 * The file descriptor must have been set up non blocking.
+		 */
+        rd_count = read(p->fd, &rxbuffer[total_count], 1);
+		if (rd_count < 0) {
+            rig_debug(RIG_DEBUG_ERR, __FUNCTION__": read failed - %s\n",
+                            strerror(errno));
+            return -RIG_EIO;
+		}
+        ++total_count;
+        if (stopset && strchr(stopset, rxbuffer[total_count-1]))
+            break;
+        /* Note: This function will always break on a '\000' character. */
+  }
+  rxbuffer[total_count] = '\000';
+
+  if (total_count == 0) {
+    rig_debug(RIG_DEBUG_WARN, __FUNCTION__": timedout without reading a character\n");
+    return -RIG_ETIMEOUT;
+  }
+
+  rig_debug(RIG_DEBUG_TRACE,"RX %d characters\n",total_count);
   dump_hex(rxbuffer, total_count);
   return total_count;			/* return bytes count read */
 }

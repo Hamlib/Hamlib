@@ -2,7 +2,7 @@
  *  Hamlib Interface - serial communication header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: serial.h,v 1.14 2001-12-17 22:42:48 fillods Exp $
+ *		$Id: serial.h,v 1.15 2002-01-07 17:14:22 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,6 +31,7 @@ extern HAMLIB_EXPORT(int) read_block(port_t *p, char *rxbuffer, size_t count);
 extern HAMLIB_EXPORT(int) write_block(port_t *p, const char *txbuffer, size_t count);
 extern HAMLIB_EXPORT(int) fread_block(port_t *p, char *rxbuffer, size_t count);
 extern HAMLIB_EXPORT(int) serial_flush(port_t *p);
+extern HAMLIB_EXPORT(int) read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset);
 
 /* Hamlib internal use, see rig.c */
 int ser_open(port_t *p);
