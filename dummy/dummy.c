@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: dummy.c,v 1.16 2001-08-08 06:04:48 f4cfe Exp $
+ *		$Id: dummy.c,v 1.17 2001-11-18 14:16:57 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,6 +49,12 @@
 
 #include "dummy.h"
 
+struct dummy_priv_data {
+		freq_t curr_freq;
+		rmode_t curr_mode;
+		pbwidth_t curr_width;
+		/* current vfo already in rig_state */
+};
 
 static unsigned char *decode_vfo(vfo_t vfo)
 {
@@ -126,14 +132,30 @@ static unsigned char *decode_freq(freq_t freq)
 /********************************************************************/
 
 static int dummy_init(RIG *rig) {
+  struct dummy_priv_data *priv;
+
+  priv = (struct dummy_priv_data*)malloc(sizeof(struct dummy_priv_data));
+  if (!priv)
+		  return -RIG_ENOMEM;
+  rig->state.priv = (void*)priv;
+
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
   rig->state.rigport.type.rig = RIG_PORT_NONE;
+
+  priv->curr_freq = MHz(145);
+  priv->curr_mode = RIG_MODE_FM;
+  priv->curr_width = rig_passband_normal(rig, RIG_MODE_FM);
 
   return RIG_OK;
 }
 
 static int dummy_cleanup(RIG *rig) {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  if (rig->state.priv)
+  	free(rig->state.priv);
+
+  rig->state.priv = NULL;
 
   return RIG_OK;
 }
@@ -154,8 +176,11 @@ static int dummy_close(RIG *rig)
 
 static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
  			decode_vfo(vfo), decode_freq(freq));
+  priv->curr_freq = freq;
 
   return RIG_OK;
 }
@@ -163,7 +188,11 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
+
+  *freq = priv->curr_freq;
 
   return RIG_OK;
 }
@@ -171,8 +200,13 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
   		decode_vfo(vfo), decode_mode(mode, width));
+
+  priv->curr_mode = mode;
+  priv->curr_width = width;
 
   return RIG_OK;
 }
@@ -180,7 +214,12 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
+
+  *mode = priv->curr_mode;
+  *width = priv->curr_width;
 
   return RIG_OK;
 }
@@ -414,22 +453,6 @@ static int dummy_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 }
 
 
-static int dummy_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
-static int dummy_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
 static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
@@ -620,7 +643,7 @@ const struct rig_caps dummy_caps = {
   mfg_name:      "Hamlib",
   version:       "0.1",
   copyright:	 "LGPL",
-  status:        RIG_STATUS_NEW,
+  status:        RIG_STATUS_BETA,
   rig_type:      RIG_TYPE_OTHER,
   targetable_vfo:	 0,
   ptt_type:      RIG_PTT_NONE,
@@ -695,8 +718,6 @@ const struct rig_caps dummy_caps = {
   get_xit:	dummy_get_xit,
   set_ts:	dummy_set_ts,
   get_ts:	dummy_get_ts,
-  power2mW:	dummy_power2mW,
-  mW2power:	dummy_mW2power,
   set_ant:	dummy_set_ant,
   get_ant:	dummy_get_ant,
   set_bank:	dummy_set_bank,
