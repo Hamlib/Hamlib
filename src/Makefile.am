@@ -12,5 +12,5 @@ libhamlib_a_SOURCES = $(RIGSRC)
 libhamlib_a_LIBADD = $(LIBLTDL)
 libhamlib_a_DEPENDENCIES = $(LIBLTDL)
 
-noinst_HEADERS = event.h misc.h serial.h cal.h conf.h
+noinst_HEADERS = event.h misc.h serial.h cal.h conf.h tone_tbl.h
 
