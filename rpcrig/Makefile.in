@@ -121,7 +121,7 @@ noinst_HEADERS = rpcrig.h rpcrig_backend.h
 EXTRA_DIST = rpcrig.x $(man_MANS)
 
 RPCGEN = rpcgen
-subdir = rpc
+subdir = rpcrig
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
@@ -193,7 +193,7 @@ distclean-libtool:
 	-rm -f libtool
 $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  rpc/Makefile
+	  $(AUTOMAKE) --gnu  rpcrig/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
