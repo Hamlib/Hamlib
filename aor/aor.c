@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.21 2003-02-13 22:17:44 fillods Exp $
+ *	$Id: aor.c,v 1.22 2003-02-24 22:27:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,7 +47,7 @@
  * Is \r portable enough?
  */
 #define CR '\r'
-#define EOM "\x0a"
+#define EOM "\r"
 
 #define BUFSZ 64
 
@@ -154,6 +154,12 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			return retval;
 
 		rfp = strstr(freqbuf, "RF");
+		if (!rfp) {
+			rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in aor_get_freq: '%s'\n",
+					freqbuf);
+			return -RIG_EPROTO;
+		}
+
 		sscanf(rfp+2,"%lld", freq);
 
 		return RIG_OK;
@@ -332,6 +338,104 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		return aor_transaction (rig, tsbuf, ts_len, ackbuf, &ack_len);
 }
 
+
+/*
+ * aor_set_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	struct aor_priv_data *priv;
+	struct rig_state *rs;
+	unsigned char lvlbuf[BUFSZ],ackbuf[BUFSZ];
+	int lvl_len, ack_len;
+	unsigned i;
+
+	rs = &rig->state;
+	priv = (struct aor_priv_data*)rs->priv;
+
+
+	switch (level) {
+	case RIG_LEVEL_ATT:
+		{
+		unsigned att = 0;
+		for (i=0; i<MAXDBLSTSIZ && !RIG_IS_DBLST_END(rs->attenuator[i]); i++) {
+			if (rs->attenuator[i] == val.i) {
+				att = i+1;
+				break;
+			}
+		}
+		/* should be catched by the front end */
+		if (i>=MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i]))
+			return -RIG_EINVAL;
+
+		lvl_len = sprintf(lvlbuf, "AT%u" EOM, att);
+		break;
+		}
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d", level);
+		return -RIG_EINVAL;
+	}
+
+	return aor_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
+}
+
+/*
+ * aor_get_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ */
+int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	struct aor_priv_data *priv;
+	struct rig_state *rs;
+	unsigned char lvlbuf[BUFSZ],ackbuf[BUFSZ];
+	int lvl_len, ack_len, retval;
+
+	rs = &rig->state;
+	priv = (struct aor_priv_data*)rs->priv;
+
+	switch (level) {
+	case RIG_LEVEL_ATT:
+		lvl_len = sprintf(lvlbuf, "AT" EOM);
+		break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d", level);
+		return -RIG_EINVAL;
+	}
+
+	retval = aor_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
+
+	if (retval != RIG_OK)
+			return retval;
+
+	switch (level) {
+	case RIG_LEVEL_ATT:
+		{
+		unsigned att;
+		if (ack_len < 4 || ackbuf[0] != 'A' || ackbuf[1] != 'T')
+			return -RIG_EPROTO;
+		att = ackbuf[3]-'0';
+		if (att == 0) {
+			val->i = 0;
+			break;
+		}
+		if (att > MAXDBLSTSIZ || rs->attenuator[att-1]==0) {
+			rig_debug(RIG_DEBUG_ERR,"Unsupported att aor_get_level %d",
+							att);
+			return -RIG_EPROTO;
+		}
+		val->i = rs->attenuator[att-1];
+		break;
+		}
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_get_level %d", level);
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
+
 /*
  * aor_set_powerstat
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -414,5 +518,4 @@ int initrigs_aor(void *be_handle)
 
 		return RIG_OK;
 }
-
 
