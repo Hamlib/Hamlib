@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.43 2004-09-26 08:35:04 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.44 2005-04-03 18:36:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ int dumpcaps (RIG* rig)
 { 
 	const struct rig_caps *caps;
 	int status,i;
+	int can_esplit,can_echannel;
 	char freqbuf[20];
 	int backend_warnings=0;
 	static char prntbuf[1024];	/* a malloc would be better.. */
@@ -355,6 +356,8 @@ int dumpcaps (RIG* rig)
 
 	printf("Has priv data:\t%c\n",caps->priv!=NULL?'Y':'N');
 	/*
+	 * Status is either 'Y'es, 'E'mulated, 'N'o
+	 *
 	 * TODO: keep me up-to-date with API call list!
 	 */
 	printf("Has init:\t%c\n",caps->rig_init!=NULL?'Y':'N');
@@ -376,10 +379,18 @@ int dumpcaps (RIG* rig)
 	printf("Can get repeater duplex:\t%c\n",caps->get_rptr_shift!=NULL?'Y':'N');
 	printf("Can set repeater offset:\t%c\n",caps->set_rptr_offs!=NULL?'Y':'N');
 	printf("Can get repeater offset:\t%c\n",caps->get_rptr_offs!=NULL?'Y':'N');
-	printf("Can set split freq:\t%c\n",caps->set_split_freq!=NULL?'Y':'N');
-	printf("Can get split freq:\t%c\n",caps->get_split_freq!=NULL?'Y':'N');
-	printf("Can set split mode:\t%c\n",caps->set_split_mode!=NULL?'Y':'N');
-	printf("Can get split mode:\t%c\n",caps->get_split_mode!=NULL?'Y':'N');
+
+	can_esplit = caps->set_vfo || 
+		(rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op);
+	printf("Can set split freq:\t%c\n",caps->set_split_freq!=NULL?'Y':
+			(can_esplit&&caps->set_freq?'E':'N'));
+	printf("Can get split freq:\t%c\n",caps->get_split_freq!=NULL?'Y':
+			(can_esplit&&caps->get_freq?'E':'N'));
+	printf("Can set split mode:\t%c\n",caps->set_split_mode!=NULL?'Y':
+			(can_esplit&&caps->set_mode?'E':'N'));
+	printf("Can get split mode:\t%c\n",caps->get_split_mode!=NULL?'Y':
+			(can_esplit&&caps->get_mode?'E':'N'));
+
 	printf("Can set split vfo:\t%c\n",caps->set_split_vfo!=NULL?'Y':'N');
 	printf("Can get split vfo:\t%c\n",caps->get_split_vfo!=NULL?'Y':'N');
 	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
@@ -416,8 +427,13 @@ int dumpcaps (RIG* rig)
 	printf("Can set bank:\t%c\n",caps->set_bank!=NULL?'Y':'N');
 	printf("Can set mem:\t%c\n",caps->set_mem!=NULL?'Y':'N');
 	printf("Can get mem:\t%c\n",caps->get_mem!=NULL?'Y':'N');
-	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':'N');
-	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':'N');
+
+	can_echannel = caps->set_mem && caps->set_vfo;
+	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':
+			(can_echannel?'E':'N'));
+	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':
+			(can_echannel?'E':'N'));
+
 	printf("Can ctl mem/vfo:\t%c\n",caps->vfo_op!=NULL?'Y':'N');
 	printf("Can scan:\t%c\n",caps->scan!=NULL?'Y':'N');
 	printf("Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
