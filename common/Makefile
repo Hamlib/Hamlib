@@ -27,20 +27,19 @@
 #
 #
 #
-#	$Id: Makefile,v 1.6 2000-09-23 05:10:24 javabear Exp $	
+#	$Id: Makefile,v 1.7 2000-09-24 23:32:04 javabear Exp $	
 #
 #
+INSTALL_LIBDIR		=	./lib/
+INSTALL_INCLUDEDIR	=	./include/
+INCLUDE		=	-I/usr/include -I/usr/local/include -I. -I../common
 
 LIB_NAME        =	libhamlib.so
 LIB_SONAME      =	libhamlib.so.1
 LIB_RELEASE     =	libhamlib.so.1.0.1
-
-INCLUDE		=	-I/usr/include -I/usr/local/include -I. -I../common
-
-
-LIB_HEADER      =        rig.h serial.h
-LIB_SRC         =        rig.c serial.c
-LIB_OBJECTS     =        serial.o rig.o 
+LIB_HEADER      =	rig.h serial.h riglist.h  
+LIB_SRC         =	rig.c serial.c
+LIB_OBJECTS     =	serial.o rig.o 
 
 
 CC	=	gcc
@@ -51,7 +50,31 @@ LDFLAG	=	-lm
 CFLAGS	=	-g -Wall -D__USE_FIXED_PROTOTYPES__ -pedantic -fPIC -g -Wall
 MAKEALL	=	$(OBJ)
 
-all:	$(MAKEALL)
+all:	lib
+
+.PHONY:	lib
+lib:	
+	$(CC) $(CFLAGS) $(INCLUDE) -c $(LIB_SRC)
+	$(CC) -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
+# install header and lib
+
+install:
+	make install_lib
+	make install_header
+
+# install lib in INSTALL_LIBDIR
+
+.PHONY:	install_lib
+install_lib:
+	mv $(LIB_RELEASE) $(INSTALL_LIBDIR)
+	cd $(INSTALL_LIBDIR); /sbin/ldconfig -n .
+	cd $(INSTALL_LIBDIR); ln -s $(LIB_SONAME) $(LIB_NAME)
+
+# install hamlib headers in INSTALL_INCLUDEDIR
+
+.PHONY:	install_header
+install_header:
+	cp -f $(LIB_HEADER) $(INSTALL_INCLUDEDIR)
 
 serial.o:	serial.c serial.h 
 	$(CC)	$(CFLAGS)  $(INCLUDE) -c serial.c
@@ -59,8 +82,6 @@ serial.o:	serial.c serial.h
 rig.o: rig.c rig.h riglist.h
 	$(CC)	$(CFLAGS)  $(INCLUDE) -c rig.c
 
-testrig.o:	testrig.c rig.h
-	$(CC)	$(CFLAGS)  $(INCLUDE) -c testrig.c
 
 # clean up
 
@@ -82,3 +103,4 @@ cleanlocal:
 hamlib:	 
 	$(CC) $(CFLAGS) $(INCLUDE) -c $(LIB_SRC)
 	$(CC) -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
+
