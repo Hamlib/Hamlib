@@ -1,8 +1,8 @@
 /* hamlib - Ham Radio Control Libraries
-   Copyright (C) 2000 Stephane Fillod and Frank Singleton
+   Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.25 2001-04-24 19:55:29 f4cfe Exp $
+   $Id: rig.c,v 1.26 2001-04-28 12:49:12 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -1309,7 +1309,7 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
  *      @rig:	The rig handle
  *      @vfo:	The target VFO
  *      @rx_freq:	The location where to store the current receive split frequency
- *      @tx_freq:	The location where to store the current receive split frequency
+ *      @tx_freq:	The location where to store the current transmit split frequency
  *
  *      The rig_get_split_freq() function retrieves the current split
  *      frequencies.
@@ -1346,6 +1346,107 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 				return retcode;
 
 		retcode = caps->get_split_freq(rig, vfo, rx_freq, tx_freq);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
+/**
+ *      rig_set_split_mode - set the split modes
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @rx_mode:	The receive split mode to set to
+ *      @rx_width:	The receive split width to set to
+ *      @tx_mode:	The transmit split mode to set to
+ *      @tx_width:	The transmit split width to set to
+ *
+ *      The rig_set_split_mode() function sets the split mode.
+ *
+ *      RETURN VALUE: The rig_set_split_mode() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_split_mode()
+ */
+
+int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->set_split_mode == NULL)
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->set_split_mode(rig, vfo, rx_mode, rx_width, 
+							tx_mode, tx_width);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->set_split_mode(rig, vfo, rx_mode, rx_width,
+						tx_mode, tx_width);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
+/**
+ *      rig_get_split_mode - get the current split modes
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @rx_mode:	The location where to store the current receive split mode
+ *      @rx_width:	The location where to store the current receive split width
+ *      @tx_mode:	The location where to store the current transmit split mode
+ *      @tx_width:	The location where to store the current transmit split width
+ *
+ *      The rig_get_split_mode() function retrieves the current split
+ *      mode.
+ *
+ *      RETURN VALUE: The rig_get_split_mode() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_set_split_mode()
+ */
+int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps || !rx_mode || !rx_width || 
+						!tx_mode || !tx_width)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->get_split_mode == NULL)
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->get_split_mode(rig, vfo, rx_mode, rx_width,
+							tx_mode, tx_width);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->get_split_mode(rig, vfo, rx_mode, rx_width,
+						tx_mode, tx_width);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -3025,6 +3126,51 @@ int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 				return retcode;
 
 		retcode = caps->recv_dtmf(rig, vfo, digits, length);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
+/**
+ *      rig_send_morse - send morse code
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @msg:	Message to be sent
+ *
+ *      The rig_send_morse() function sends morse message.
+ *      See keyer change speed, etc. (TODO).
+ *
+ *      RETURN VALUE: The rig_send_morse() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ */
+
+int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps || !msg)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->send_morse == NULL)
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->send_morse(rig, vfo, msg);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->send_morse(rig, vfo, msg);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
