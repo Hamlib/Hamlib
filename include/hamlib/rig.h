@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.43 2001-06-27 17:32:47 f4cfe Exp $
+ *	$Id: rig.h,v 1.44 2001-06-30 23:11:00 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -344,6 +344,8 @@ typedef enum mem_vfo_op_e mv_op_t;
 #define RIG_OP_MCL		(1<<4)		/* Memory clear */
 #define RIG_OP_UP		(1<<5)		/* UP */
 #define RIG_OP_DOWN		(1<<6)		/* DOWN */
+#define RIG_OP_BAND_UP		(1<<7)		/* Band UP */
+#define RIG_OP_BAND_DOWN	(1<<8)		/* Band DOWN */
 
 /* 
  * RIG_MVOP_DUAL_ON/RIG_MVOP_DUAL_OFF (Dual watch off/Dual watch on)
@@ -500,6 +502,9 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_VSC     	(1<<18)		/* Voice Scan Control */
 #define RIG_FUNC_REV     	(1<<19)		/* Reverse tx and rx freqs */
 #define RIG_FUNC_SQL     	(1<<20)		/* Turn Squelch Monitor on/off*/
+#define RIG_FUNC_ABM     	(1<<21)		/* Auto Band Mode */
+#define RIG_FUNC_BC     	(1<<22)		/* Beat Canceller */
+#define RIG_FUNC_MBC     	(1<<23)		/* Manual Beat Canceller */
 
 
 /*
