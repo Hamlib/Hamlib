@@ -163,6 +163,10 @@ darwin* | rhapsody*)
   CFLAGS="${CFLAGS} -no-cpp-precomp"
   CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
   ;;
+mingw* | pw32* | cygwin*)
+  WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
+  AC_SUBST([WINLDFLAGS])
+  ;;
 esac
 
 dnl Check if C99 struct initializers are supported
