@@ -1,0 +1,23 @@
+Quirks, known bugs, and other notes.
+====================================
+
+$Id: README.ft890,v 1.1 2003-04-05 04:13:52 n0nb Exp $
+
+In this document I'll try to describe the behavior of the Yaesu FT-890
+transceiver with Hamlib.  Some of these are limitations of the radio
+while others are programming trade-offs with Hamlib.
+
+This document is organized by Hamlib function calls and documents observed
+behavior with each call.
+
+rig_set_rit
+    *   RIG_VFO_* value is respected so the rig VFO may be changed with
+        this call.
+    *   To "zero" the RIT pass a value > 0 or < 10 with this call.  The 
+        digit will be dropped as resolution is 10 Hz minimum and the 
+        clarifier offset set to 0 Hz.
+        
+General notes.
+    As with most all Yaesu radios the radio must be polled by the application
+    for status updates, i.e. no transceive mode in CAT.
+

@@ -9,7 +9,7 @@
  * via serial interface to an FT-890 using the "CAT" interface
  *
  *
- *    $Id: ft890.h,v 1.2 2003-03-24 12:18:42 n0nb Exp $  
+ *    $Id: ft890.h,v 1.3 2003-04-05 04:13:53 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -34,6 +34,8 @@
 
 #define TRUE    1
 #define FALSE   0
+#define ON      TRUE
+#define OFF     FALSE
 
 #define FT890_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
@@ -52,7 +54,10 @@
 #define FT890_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN) /* fix */
 
 
-/* Other features */
+/*
+ * Other features (used by rig_caps)
+ *
+ */
 
 #define FT890_ANTS 0
 
@@ -62,7 +67,7 @@
 #define FT890_OP_DATA_LENGTH            19      /* 0x10 P1 = 03 return size */
 #define FT890_VFO_DATA_LENGTH           18      /* 0x10 P1 = 03 return size -- A & B returned */
 #define FT890_MEM_CHNL_DATA_LENGTH      19      /* 0x10 P1 = 04, P4 = 0x01-0x20 return size */
-#define FT890_STATUS_FLAGS_LENGTH       5       /* 0xfa return size */
+#define FT890_STATUS_FLAGS_LENGTH       5       /* 0xf7, 0xfa return size */
 #define FT890_ALL_DATA_LENGTH           649     /* 0x10 P1 = 00 return size */
 
 /* Timing values in mS */
@@ -127,6 +132,10 @@ enum ft890_native_cmd_e {
   FT890_NATIVE_OP_DATA,
   FT890_NATIVE_VFO_DATA,
   FT890_NATIVE_MEM_CHNL_DATA,
+  FT890_NATIVE_TUNER_OFF,
+  FT890_NATIVE_TUNER_ON,
+  FT890_NATIVE_TUNER_START,
+  FT890_NATIVE_READ_METER,
   FT890_NATIVE_READ_FLAGS,
   FT890_NATIVE_SIZE             /* end marker, value indicates number of */
 				                /* native cmd entries */
@@ -153,13 +162,17 @@ typedef enum ft890_native_cmd_e ft890_native_cmd_t;
  * Internal Clarifier parms - when setting clarifier via
  * FT890_NATIVE_CLARIFIER_OPS
  *
+ * The manual seems to be incorrect with regard to P1 and P2 values
+ * P1 = 0x00    clarifier off
+ * P1 = 0x01    clarifier on
+ * P1 = 0xff    clarifier set
+ * P2 = 0x00    clarifier up
+ * P2 = 0xff    clarifier down
  */
 
 /* P1 values */
 #define CLAR_RX_OFF     0x00
 #define CLAR_RX_ON      0x01
-#define CLAR_TX_OFF     0x80
-#define CLAR_TX_ON      0x81
 #define CLAR_SET_FREQ   0xff
 
 /* P2 values */
@@ -205,6 +218,7 @@ typedef enum ft890_native_cmd_e ft890_native_cmd_t;
 #define SF_PTT_ON   (1<<7)              /* bit 7 set, PTT closed */
 #define SF_PTT_MASK (SF_PTT_ON)
 
+
 /*
  * Offsets for VFO record retrieved via 0x10 P1 = 02, 03, 04
  *
@@ -247,6 +261,24 @@ typedef enum ft890_native_cmd_e ft890_native_cmd_t;
 #define FT890_SUMO_VFO_B_MODE           0x0f    /* Current sub display && VFO B */
 #define FT890_SUMO_VFO_B_FLAG           0x11
 
+
+/*
+ * Read meter offset
+ *
+ * FT-890 returns the level of the S meter when in RX and ALC or PO or SWR
+ * when in TX.  The level is replicated in the first four bytes sent by the
+ * rig with the final byte being a constant 0xf7
+ *
+ * The manual states that the returned value will range between 0x00 and 0xff
+ * while "in practice the highest value returned will be around 0xf0".  The
+ * manual is silent when this value is returned as my rig returns 0x00 for
+ * S0, 0x44 for S9 and 0x9D for S9 +60.
+ *
+ */
+
+#define FT890_SUMO_METER                0x00    /* Meter level */
+
+
 /*
  * Narrow filter selection flag from offset 0x08 or 0x11
  * in VFO/Memory Record
@@ -258,6 +290,7 @@ typedef enum ft890_native_cmd_e ft890_native_cmd_t;
 #define FLAG_AM_N   (1<<6)
 #define FLAG_CW_N   (1<<7)
 #define FLAG_MASK   (FLAG_AM_N|FLAG_CW_N)
+
 
 /*
  * Mode Bitmap from offset 0x06 or 0x0f in VFO/Memory Record.
@@ -317,11 +350,11 @@ static int ft890_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq); */
 /* static int ft890_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
 static int ft890_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width); */
 
-/* static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit); */
+static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
-/* static int ft890_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
-static int ft890_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit); */
+static int ft890_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
+static int ft890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 #endif /* _FT890_H */

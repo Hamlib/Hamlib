@@ -9,7 +9,7 @@
  * via serial interface to an FT-890 using the "CAT" interface
  *
  *
- * $Id: ft890.c,v 1.2 2003-03-24 12:18:42 n0nb Exp $
+ * $Id: ft890.c,v 1.3 2003-04-05 04:13:53 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -117,11 +117,11 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* Status Update Data--Current operating data for VFO/Memory (19 bytes) */
   { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* Status Update DATA--VFO A and B Data (18 bytes) */
   { 0, { 0x00, 0x00, 0x00, 0x04, 0x10 } }, /* Status Update Data--Memory Channel Data (19 bytes) P4 = 0x01-0x20 Memory Channel Number */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, /* tuner off */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, /* tuner on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, /* tuner start*/
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* Read meter, S on RX, ALC|PO|SWR on TX */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xfa } }, /* Read status flags */
-/*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* keyer commands */
-/*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
-/*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* tuner on */
-/*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, */ /* tuner start*/
 
 };
 
@@ -153,7 +153,7 @@ const struct rig_caps ft890_caps = {
   .rig_model =          RIG_MODEL_FT890,
   .model_name =         "FT-890",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.2",
+  .version =            "0.0.3",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_NEW,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -170,9 +170,9 @@ const struct rig_caps ft890_caps = {
   .post_write_delay =   FT890_POST_WRITE_DELAY,
   .timeout =            2000,
   .retry =              0,
-  .has_get_func =       RIG_FUNC_NONE,
-  .has_set_func =       RIG_FUNC_NONE,
-  .has_get_level =      RIG_LEVEL_NONE,
+  .has_get_func =       RIG_FUNC_TUNER,
+  .has_set_func =       RIG_FUNC_TUNER,
+  .has_get_level =      RIG_LEVEL_STRENGTH,
   .has_set_level =      RIG_LEVEL_NONE,
   .has_get_parm =       RIG_PARM_NONE,
   .has_set_parm =       RIG_PARM_NONE,
@@ -260,11 +260,10 @@ const struct rig_caps ft890_caps = {
 //  .get_split_freq =     ft890_get_split_freq,
 //  .set_split_mode =     ft890_set_split_mode,
 //  .get_split_mode =     ft890_get_split_mode,
-//  .set_rit =            ft890_set_rit,
-//  .get_rit =            ft890_get_rit,
-//  .set_xit =            ft890_set_xit,
-//  .get_xit =            ft890_get_xit,
-
+  .set_rit =            ft890_set_rit,
+  .get_rit =            ft890_get_rit,
+  .set_func =           ft890_set_func,
+  .get_level =          ft890_get_level,
 };
 
 
@@ -1158,19 +1157,20 @@ static int ft890_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
 
 /*
- * set the RIT offset
+ * rig_set_rit
  *
- * vfo is ignored as RIT cannot be changed on sub VFO
+ * VFO and MEM rit values are independent.
  *
- * FIXME:   Should rig be forced into VFO mode if RIG_VFO_A or
- *          RIG_VFO_VFO is received?
+ * passed vfo value is respected.
  *
- * VFO and MEM rit values are independent.  The sub display carries
- * an RIT value only if A<>B button is pressed or set_vfo is called with
- * RIG_VFO_B and the main display has an RIT value.
+ * Clarifier offset is retained in the rig for either VFO when the
+ * VFO is changed.  Offset is not retained when in memory tune mode
+ * and VFO mode is selected or another memory channel is selected.
+ *
  */
 
 static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
+  struct ft890_priv_data *priv;
   unsigned char offset;
   int err;
 
@@ -1179,25 +1179,49 @@ static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
   if (!rig)
     return -RIG_EINVAL;
 
-  if (rit < -9999 || rit > 9999)
+  if (rit < -9990 || rit > 9990)
     return -RIG_EINVAL;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
   rig_debug(RIG_DEBUG_TRACE, "%s: passed rit = %li\n", __func__, rit);
 
-  if (rit == 0) {
-    offset = CLAR_RX_OFF;
-  } else {
-    offset = CLAR_RX_ON;
-  }
-  rig_debug(RIG_DEBUG_TRACE, "%s: set offset = 0x%02x\n", __func__, offset);
+  priv = (struct ft890_priv_data *)rig->state.priv;
 
+  /*
+   * The assumption here is that the user hasn't changed
+   * the VFO manually.  Does it really need to be checked
+   * every time?  My goal is to reduce the traffic on the
+   * serial line to a minimum, but respect the application's
+   * request to change the VFO with this call.
+   *
+   */
+  if (vfo == RIG_VFO_CURR) {
+    vfo = priv->current_vfo;    /* from previous rig_get_vfo cmd */
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: priv->current_vfo = 0x%02x\n", __func__, vfo);
+  } else if (vfo != priv->current_vfo) {
+    ft890_set_vfo(rig, vfo);
+  }
+
+  /*
+   * Shuts clarifier off but does not set frequency to 0 Hz
+   */
+  if (rit == 0) {
+    err = ft890_send_dynamic_cmd(rig, FT890_NATIVE_CLARIFIER_OPS,
+                                 CLAR_RX_OFF, 0, 0, 0);
+    return RIG_OK;
+  }
+
+  /*
+   * Clarifier must first be turned on then the frequency can
+   * be set, +9990 Hz to -9990 Hz
+   */
   err = ft890_send_dynamic_cmd(rig, FT890_NATIVE_CLARIFIER_OPS,
-                               offset, 0, 0, 0);
+                               CLAR_RX_ON, 0, 0, 0);
   if (err != RIG_OK)
     return err;
 
-  err = ft890_send_rit_freq(rig, FT890_NATIVE_CLARIFIER_OPS, rit);
+    err = ft890_send_rit_freq(rig, FT890_NATIVE_CLARIFIER_OPS, rit);
   if (err != RIG_OK)
     return err;
 
@@ -1206,14 +1230,11 @@ static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
 
 
 /*
- * Get the RIT offset
- * Value of vfo is ignored as it's not needed
- * Rig returns offset as hex from 0x0000 to 0x270f for 0 to +9.999 kHz
- * and 0xffff to 0xd8f1 for -1 to -9.999 kHz
+ * rig_get_rit
  *
- * VFO and MEM rit values are independent.  The sub display carries
- * an RIT value only if A<>B button is pressed or set_vfo is called with
- * RIG_VFO_B and the main display has an RIT value.
+ * Rig returns offset as hex from 0x0000 to 0x03e7 for 0 to +9.990 kHz
+ * and 0xffff to 0xfc19 for -1 to -9.990 kHz
+ *
  */
 
 static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
@@ -1221,7 +1242,7 @@ static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
   unsigned char *p;
   unsigned char offset;
   shortfreq_t f;
-  int err, cmd_index;
+  int err, cmd_index, length;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1240,19 +1261,20 @@ static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
 
   switch(vfo) {
   case RIG_VFO_MEM:
-  case RIG_VFO_MAIN:
     cmd_index = FT890_NATIVE_OP_DATA;
     offset = FT890_SUMO_DISPLAYED_CLAR;
+    length = FT890_OP_DATA_LENGTH;
     break;
   case RIG_VFO_A:
   case RIG_VFO_VFO:
     cmd_index = FT890_NATIVE_VFO_DATA;
     offset = FT890_SUMO_VFO_A_CLAR;
+    length = FT890_VFO_DATA_LENGTH;
     break;
   case RIG_VFO_B:
-  case RIG_VFO_SUB:
     cmd_index = FT890_NATIVE_VFO_DATA;
     offset = FT890_SUMO_VFO_B_CLAR;
+    length = FT890_VFO_DATA_LENGTH;
     break;
   default:
     return RIG_EINVAL;
@@ -1260,62 +1282,63 @@ static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
   rig_debug(RIG_DEBUG_TRACE, "%s: set cmd_index = %i\n", __func__, cmd_index);
   rig_debug(RIG_DEBUG_TRACE, "%s: set offset = 0x%02x\n", __func__, offset);
 
-  err = ft890_get_update_data(rig, cmd_index, FT890_VFO_DATA_LENGTH);
+  err = ft890_get_update_data(rig, cmd_index, length);
   if (err != RIG_OK)
     return err;
 
   p = &priv->update_data[offset];
 
   /* big endian integer */
-  f = (p[0]<<8) + p[1];
-  if (f > 0xd8f0)               /* 0xd8f1 to 0xffff is negative offset */
+  f = (p[0]<<8) + p[1];         /* returned value is hex to nearest hundred Hz */
+  if (f > 0xfc18)               /* 0xfc19 to 0xffff is negative offset */
     f = ~(0xffff - f);
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: read freq = %li Hz\n", __func__, f);
+  rig_debug(RIG_DEBUG_TRACE, "%s: read freq = %li Hz\n", __func__, f * 10);
 
-  *rit = f;                     /* store clarifier frequency */
+  *rit = f * 10;                /* store clarifier frequency */
 
   return RIG_OK;
 }
 
 
 /*
- * set the XIT offset
+ * rig_set_func
  *
- * vfo is ignored as XIT cannot be changed on sub VFO
+ * set the '890 supported functions
  *
- * FIXME:   Should rig be forced into VFO mode if RIG_VFO_A or
- *          RIG_VFO_VFO is received?
+ * vfo is ignored for tuner as it is an independent function
+ *
  */
 
-static int ft890_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
-  unsigned char offset;
-  int err;
+static int ft890_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
+  int err, cmd_index;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
     return -RIG_EINVAL;
 
-  if (xit < -9999 || xit > 9999)
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed func = 0x%02x\n", __func__, func);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed status = %i\n", __func__, status);
+
+  switch (func) {
+  case RIG_FUNC_TUNER:
+    switch (status) {
+    case OFF:
+      cmd_index = FT890_NATIVE_TUNER_OFF;
+      break;
+    case ON:
+      cmd_index = FT890_NATIVE_TUNER_ON;
+      break;
+    default:
+      return -RIG_EINVAL;
+    }
+    break;
+  default:
     return -RIG_EINVAL;
-
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed xit = %li\n", __func__, xit);
-
-  if (xit == 0) {
-    offset = CLAR_TX_OFF;
-  } else {
-    offset = CLAR_TX_ON;
   }
-  rig_debug(RIG_DEBUG_TRACE, "%s: set offset = 0x%02x\n", __func__, offset);
 
-  err = ft890_send_dynamic_cmd(rig, FT890_NATIVE_CLARIFIER_OPS,
-                               offset, 0, 0, 0);
-  if (err != RIG_OK)
-    return err;
-
-  err = ft890_send_rit_freq(rig, FT890_NATIVE_CLARIFIER_OPS, xit);
+  err = ft890_send_static_cmd(rig, cmd_index);
   if (err != RIG_OK)
     return err;
 
@@ -1324,13 +1347,24 @@ static int ft890_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
 
 
 /*
- * Get the XIT offset
- * Value of vfo is ignored as it's not needed
- * Rig returns offset as hex from 0x0000 to 0x270f for 0 to +9.999 kHz
- * and 0xffff to 0xd8f1 for -1 to -9.999 kHz
+ * rig_get_level
+ *
+ * get the '890 meter level
+ *
+ * vfo is ignored for now
+ *
+ * Meter level returned from FT-890 is S meter when rig is in RX
+ * Meter level returned is one of ALC or PO or SWR when rig is in TX
+ * depending on front panel meter selection.  Meter selection is NOT
+ * available via CAT.
+ *
+ * TODO: Add support for TX values
+ *
  */
 
-static int ft890_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
+static int ft890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
+  struct ft890_priv_data *priv;
+  unsigned char *p;
   int err;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1338,12 +1372,50 @@ static int ft890_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
   if (!rig)
     return -RIG_EINVAL;
 
-  err = ft890_get_rit(rig, vfo, xit);   /* abuse get_rit and store in *xit */
-  if (err != RIG_OK)
-    return err;
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed level = 0x%02x\n", __func__, level);
+
+  priv = (struct ft890_priv_data *)rig->state.priv;
+
+  switch (level) {
+  case RIG_LEVEL_STRENGTH:
+    err = ft890_get_update_data(rig, FT890_NATIVE_READ_METER,
+                                FT890_STATUS_FLAGS_LENGTH);
+    if (err != RIG_OK)
+      return err;
+  
+    p = &priv->update_data[FT890_SUMO_METER];
+  
+    /*
+     * My FT-890 returns a range of 0x00 to 0x44 for S0 to S9 and 0x44 to
+     * 0x9d for S9 to S9 +60
+     *
+     * For ease of calculation I rounded S9 up to 0x48 (72 decimal) and
+     * S9 +60 up to 0xa0 (160 decimal).  I calculated a divisor for readings
+     * less than S9 by dividing 72 by 54 and the divisor for readings greater
+     * than S9 by dividing 88 (160 - 72) by 60.  The result tracks rather well.
+     *
+     * The greatest error is around S1 and S2 and then from S9 to S9 +35.  Such
+     * is life when mapping non-linear S-meters to a linear scale.
+     *
+     */
+    if (*p > 160) {
+      val->i = 60;
+    } else  if (*p <= 72) {
+      val->i = ((72 - *p) / 1.3333) * -1;
+    } else {
+      val->i = ((*p - 72) / 1.4667);
+    }
+  
+    rig_debug(RIG_DEBUG_TRACE, "%s: calculated level = %i\n", __func__, val->i);
+
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
 
   return RIG_OK;
 }
+
 
 
 /*
