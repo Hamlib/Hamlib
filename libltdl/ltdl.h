@@ -146,10 +146,14 @@ typedef	struct lt_dlhandle_struct *lt_dlhandle;	/* A loaded module.  */
 extern	int	    lt_dlinit		LT_PARAMS((void));
 extern	int	    lt_dlexit		LT_PARAMS((void));
 
-/* Module search path manipultation.  */
+/* Module search path manipulation.  */
 extern	int	    lt_dladdsearchdir	LT_PARAMS((const char *search_dir));
 extern	int 	    lt_dlsetsearchpath	LT_PARAMS((const char *search_path));
 extern	const char *lt_dlgetsearchpath	LT_PARAMS((void));
+extern	int	    lt_dlforeachfile	LT_PARAMS((
+			const char *search_path,
+			int (*func) (const char *filename, lt_ptr data),
+			lt_ptr data));
 
 /* Portable libltdl versions of the system dlopen() API. */
 extern	lt_dlhandle lt_dlopen		LT_PARAMS((const char *filename));
@@ -171,7 +175,7 @@ extern	int	    lt_dlisresident	LT_PARAMS((lt_dlhandle handle));
 
 typedef void	lt_dlmutex_lock		LT_PARAMS((void));
 typedef void	lt_dlmutex_unlock	LT_PARAMS((void));
-typedef void	lt_dlmutex_seterror	LT_PARAMS((const char *error));
+typedef void	lt_dlmutex_seterror	LT_PARAMS((const char *errmsg));
 typedef const char *lt_dlmutex_geterror	LT_PARAMS((void));
 
 extern	int	lt_dlmutex_register	LT_PARAMS((lt_dlmutex_lock *lock,
@@ -275,8 +279,8 @@ extern	lt_dlloader    *lt_dlloader_find    LT_PARAMS((
 extern	const char     *lt_dlloader_name    LT_PARAMS((lt_dlloader *place));
 extern	lt_user_data   *lt_dlloader_data    LT_PARAMS((lt_dlloader *place));
 extern	int		lt_dlloader_add     LT_PARAMS((lt_dlloader *place,
-						const struct lt_user_dlloader *dlloader,
-						const char *loader_name));
+				const struct lt_user_dlloader *dlloader,
+				const char *loader_name));
 extern	int		lt_dlloader_remove  LT_PARAMS((
 						const char *loader_name));
 

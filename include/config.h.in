@@ -60,6 +60,9 @@
 /* Define if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
+/* Define if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
 /* Define if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
@@ -78,8 +81,14 @@
 /* Define if you have the <sys/ioctl.h> header file. */
 #undef HAVE_SYS_IOCTL_H
 
+/* Define if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
 /* Define if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
+
+/* Define if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
 
 /* Define if you have the <tcl8.2/tcl.h> header file. */
 #undef HAVE_TCL8_2_TCL_H

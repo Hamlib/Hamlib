@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4a from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -61,9 +61,13 @@ host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
 CC = @CC@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
+GCJ = @GCJ@
+GCJFLAGS = @GCJFLAGS@
 LIBADD_DL = @LIBADD_DL@
 LIBTOOL = @LIBTOOL@
 LIBTOOL_DEPS = @LIBTOOL_DEPS@
@@ -117,12 +121,12 @@ LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 HEADERS =  $(include_HEADERS) $(noinst_HEADERS)
 
 DIST_COMMON =  README ./stamp-h.in COPYING.LIB Makefile.am Makefile.in \
-acconfig.h acinclude.m4 aclocal.m4 config.h.in configure configure.in
+acinclude.m4 aclocal.m4 config-h.in configure configure.ac
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = tar
+TAR = gtar
 GZIP_ENV = --best
 SOURCES = $(libltdl_la_SOURCES) $(libltdlc_la_SOURCES)
 OBJECTS = $(libltdl_la_OBJECTS) $(libltdlc_la_OBJECTS)
@@ -130,19 +134,19 @@ OBJECTS = $(libltdl_la_OBJECTS) $(libltdlc_la_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
-$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.in  acinclude.m4
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ configure.ac  acinclude.m4
 	cd $(srcdir) && $(ACLOCAL)
 
-config.status: $(srcdir)/configure.in $(CONFIG_STATUS_DEPENDENCIES)
+config.status: $(srcdir)/configure.ac $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
-$(srcdir)/configure: @MAINTAINER_MODE_TRUE@$(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+$(srcdir)/configure: @MAINTAINER_MODE_TRUE@$(srcdir)/configure.ac $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
 
 config.h: stamp-h
@@ -150,17 +154,17 @@ config.h: stamp-h
 		rm -f stamp-h; \
 		$(MAKE) stamp-h; \
 	else :; fi
-stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
+stamp-h: $(srcdir)/config-h.in $(top_builddir)/config.status
 	cd $(top_builddir) \
-	  && CONFIG_FILES= CONFIG_HEADERS=config.h \
+	  && CONFIG_FILES= CONFIG_HEADERS=config.h:config-h.in \
 	     $(SHELL) ./config.status
 	@echo timestamp > stamp-h 2> /dev/null
-$(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@$(srcdir)/stamp-h.in
+$(srcdir)/config-h.in: @MAINTAINER_MODE_TRUE@$(srcdir)/stamp-h.in
 	@if test ! -f $@; then \
 		rm -f $(srcdir)/stamp-h.in; \
 		$(MAKE) $(srcdir)/stamp-h.in; \
 	else :; fi
-$(srcdir)/stamp-h.in: $(top_srcdir)/configure.in $(ACLOCAL_M4) acconfig.h
+$(srcdir)/stamp-h.in: $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOHEADER)
 	@echo timestamp > $(srcdir)/stamp-h.in 2> /dev/null
 
@@ -282,15 +286,15 @@ ID: $(HEADERS) $(SOURCES) $(LISP)
 	here=`pwd` && cd $(srcdir) \
 	  && mkid -f$$here/ID $$unique $(LISP)
 
-TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) $(LISP)
+TAGS:  $(HEADERS) $(SOURCES) config-h.in $(TAGS_DEPENDENCIES) $(LISP)
 	tags=; \
 	here=`pwd`; \
 	list='$(SOURCES) $(HEADERS)'; \
 	unique=`for i in $$list; do echo $$i; done | \
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
-	test -z "$(ETAGS_ARGS)config.h.in$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags config.h.in $$unique $(LISP) -o $$here/TAGS)
+	test -z "$(ETAGS_ARGS)config-h.in$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags config-h.in $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 
@@ -443,7 +447,7 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 ltdl.lo: ltdl.h config.h
 
-$(OBJECTS): libtool
+$(libltdl_la_OBJECTS) $(libltdlc_la_OBJECTS): libtool
 libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
