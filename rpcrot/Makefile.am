@@ -8,7 +8,7 @@ LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la @NET_LIB
 DEPENDENCIES = $(top_builddir)/src/libhamlib.la 
 
 BUILT_SOURCES  = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
-DISTCLEANFILES = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # needed for backward compatibility on Solaris.
 AM_CFLAGS = $(CFLAGS) -DPORTMAP
@@ -16,15 +16,15 @@ AM_CFLAGS = $(CFLAGS) -DPORTMAP
 # The RPC server
 sbin_PROGRAMS = rpc.rotd
 rpc_rotd_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
-rpc_rotd_SOURCES = rpcrot_proc.c rpcrotd.c
-nodist_rpc_rotd_SOURCES = rpcrot_xdr.c rpcrot_svc.c rpcrot.h
+rpc_rotd_SOURCES = rpcrotd.c rpcrot_proc.c
+nodist_rpc_rotd_SOURCES = rpcrot_svc.c rpcrot_xdr.c rpcrot.h
 rpc_rotd_LDFLAGS = @ROT_BACKENDLNK@
 man_MANS = rpc.rotd.8
 
 # The RPC backend
 lib_LTLIBRARIES = hamlib-rpcrot.la
 hamlib_rpcrot_la_SOURCES = rpcrot_backend.c rpcrot_backend.h
-nodist_hamlib_rpcrot_la_SOURCES = rpcrot_xdr_lt.c rpcrot_clnt.c rpcrot.h
+nodist_hamlib_rpcrot_la_SOURCES = rpcrot_clnt.c rpcrot_xdr_lt.c rpcrot.h
 hamlib_rpcrot_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_rpcrot_la_LIBADD = $(top_builddir)/src/libhamlib.la @NET_LIBS@
 
@@ -33,26 +33,26 @@ EXTRA_DIST = rpcrot.x $(man_MANS)
 
 RPCGEN = rpcgen
 
-rpcrot.h: rpcrot.x
+rpcrot.h: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -h `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	$(RPCGEN) -h -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
-rpcrot_clnt.c: rpcrot.x rpcrot.h
+rpcrot_clnt.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -l `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	$(RPCGEN) -l -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
-rpcrot_svc.c: rpcrot.x rpcrot.h
+rpcrot_svc.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -m `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	$(RPCGEN) -m -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
 # note:
 # we need 2 rpcrot_xdr.c's: one for static rpcrot deamon, one for lt backend
 
-rpcrot_xdr.c: rpcrot.x rpcrot.h
+rpcrot_xdr.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	$(RPCGEN) -c -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
-rpcrot_xdr_lt.c: rpcrot.x rpcrot.h
+rpcrot_xdr_lt.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	$(RPCGEN) -c -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
 

@@ -8,7 +8,7 @@ LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la @NET_LIB
 DEPENDENCIES = $(top_builddir)/src/libhamlib.la 
 
 BUILT_SOURCES  = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
-DISTCLEANFILES = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
+DISTCLEANFILES = $(BUILT_SOURCES)
 
 # needed for backward compatibility on Solaris.
 AM_CFLAGS = $(CFLAGS) -DPORTMAP
@@ -16,15 +16,15 @@ AM_CFLAGS = $(CFLAGS) -DPORTMAP
 # The RPC server
 sbin_PROGRAMS = rpc.rigd
 rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-rpc_rigd_SOURCES = rpcrig_proc.c rpcrigd.c
-nodist_rpc_rigd_SOURCES = rpcrig_xdr.c rpcrig_svc.c rpcrig.h
+rpc_rigd_SOURCES = rpcrigd.c rpcrig_proc.c
+nodist_rpc_rigd_SOURCES = rpcrig_svc.c rpcrig_xdr.c rpcrig.h
 rpc_rigd_LDFLAGS = @BACKENDLNK@
 man_MANS = rpc.rigd.8
 
 # The RPC backend
 lib_LTLIBRARIES = hamlib-rpcrig.la
 hamlib_rpcrig_la_SOURCES = rpcrig_backend.c rpcrig_backend.h
-nodist_hamlib_rpcrig_la_SOURCES = rpcrig_xdr_lt.c rpcrig_clnt.c rpcrig.h
+nodist_hamlib_rpcrig_la_SOURCES = rpcrig_clnt.c rpcrig_xdr_lt.c rpcrig.h
 hamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_rpcrig_la_LIBADD = $(top_builddir)/src/libhamlib.la @NET_LIBS@
 
@@ -32,26 +32,26 @@ EXTRA_DIST = rpcrig.x $(man_MANS)
 
 RPCGEN = rpcgen
 
-rpcrig.h: rpcrig.x
+rpcrig.h: Makefile rpcrig.x
 	rm -f $@
-	$(RPCGEN) -h `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
+	$(RPCGEN) -h -C `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
-rpcrig_clnt.c: rpcrig.x rpcrig.h
+rpcrig_clnt.c: Makefile rpcrig.x
 	rm -f $@
-	$(RPCGEN) -l `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
+	$(RPCGEN) -l -C `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
-rpcrig_svc.c: rpcrig.x rpcrig.h
+rpcrig_svc.c: Makefile rpcrig.x
 	rm -f $@
-	$(RPCGEN) -m `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
+	$(RPCGEN) -m -C `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
 # note: 
 # we need 2 rpcrig_xdr.c's: one for static rpcrig deamon, one for lt backend
 
-rpcrig_xdr.c: rpcrig.x rpcrig.h
+rpcrig_xdr.c: Makefile rpcrig.x
 	rm -f $@
-	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
+	$(RPCGEN) -c -C `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
-rpcrig_xdr_lt.c: rpcrig.x rpcrig.h
+rpcrig_xdr_lt.c: Makefile rpcrig.x
 	rm -f $@
-	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
+	$(RPCGEN) -c -C `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
