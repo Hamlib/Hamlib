@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4-p4a from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -126,7 +126,7 @@ acinclude.m4 aclocal.m4 config-h.in configure configure.ac
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
-TAR = gtar
+TAR = tar
 GZIP_ENV = --best
 SOURCES = $(libltdl_la_SOURCES) $(libltdlc_la_SOURCES)
 OBJECTS = $(libltdl_la_OBJECTS) $(libltdlc_la_OBJECTS)

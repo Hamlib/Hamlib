@@ -78,7 +78,7 @@ define([AC_PROG_LIBTOOL], [])
 # AC_LIBTOOL_SETUP
 # ----------------
 AC_DEFUN([AC_LIBTOOL_SETUP],
-[AC_PREREQ(2.13)dnl
+[AC_PREREQ(2.50)dnl
 AC_REQUIRE([AC_ENABLE_SHARED])dnl
 AC_REQUIRE([AC_ENABLE_STATIC])dnl
 AC_REQUIRE([AC_ENABLE_FAST_INSTALL])dnl
@@ -188,13 +188,16 @@ ifdef([AC_PROVIDE_AC_LIBTOOL_DLOPEN], enable_dlopen=yes, enable_dlopen=no)
 ifdef([AC_PROVIDE_AC_LIBTOOL_WIN32_DLL],
 enable_win32_dll=yes, enable_win32_dll=no)
 
-AC_ARG_ENABLE(libtool-lock,
-  [  --disable-libtool-lock  avoid locking (might break parallel builds)])
+AC_ARG_ENABLE([libtool-lock],
+    [AC_HELP_STRING([--disable-libtool-lock],
+        [avoid locking (might break parallel builds)])])
 test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 
-AC_ARG_WITH(pic,
-  [  --with-pic              try to use only PIC/non-PIC objects [default=use both]],
-pic_mode="$withval", pic_mode=default)
+AC_ARG_WITH([pic],
+    [AC_HELP_STRING([--with-pic],
+        [try to use only PIC/non-PIC objects @<:@default=use both@:>@])],
+    [pic_mode="$withval"],
+    [pic_mode=default])
 test -z "$pic_mode" && pic_mode=default
 
 # Use C for the default configuration in the libtool script
@@ -413,13 +416,29 @@ AC_DIVERT_POP
 # _LT_AC_LOCK
 # -----------
 AC_DEFUN([_LT_AC_LOCK],
-[AC_ARG_ENABLE(libtool-lock,
-  [  --disable-libtool-lock  avoid locking (might break parallel builds)])
+[AC_ARG_ENABLE([libtool-lock],
+    [AC_HELP_STRING([--disable-libtool-lock],
+        [avoid locking (might break parallel builds)])])
 test "x$enable_libtool_lock" != xno && enable_libtool_lock=yes
 
 # Some flags need to be propagated to the compiler or linker for good
 # libtool support.
 case $host in
+ia64-*-hpux*)
+  # Find out which ABI we are using.
+  echo 'int i;' > conftest.$ac_ext
+  if AC_TRY_EVAL(ac_compile); then
+    case `/usr/bin/file conftest.$ac_objext` in
+    *ELF-32*)
+      HPUX_IA64_MODE="32"
+      ;;
+    *ELF-64*)
+      HPUX_IA64_MODE="64"
+      ;;
+    esac
+  fi
+  rm -rf conftest*
+  ;;
 *-*-irix6*)
   # Find out which ABI we are using.
   echo '[#]line __oline__ "configure"' > conftest.$ac_ext
@@ -732,7 +751,7 @@ else
   *)
     AC_CHECK_FUNC(shl_load, lt_cv_dlopen="shl_load",
       [AC_CHECK_LIB(dld, shl_load,
-        [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"],
+        [lt_cv_dlopen="shl_load" lt_cv_dlopen_libs="-dld"],
         [AC_CHECK_LIB(dl, dlopen,
           [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"],
           [AC_CHECK_FUNC(dlopen, lt_cv_dlopen="dlopen",
@@ -1071,7 +1090,7 @@ cygwin* | mingw* | pw32*)
     ;;
   yes,mingw*)
     library_names_spec='${libname}`echo ${release} | [sed -e 's/[.]/-/g']`${versuffix}.dll'
-    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/;/ /g"`
+    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/$PATH_SEPARATOR/ /g"`
     ;;
   yes,pw32*)
     library_names_spec='`echo ${libname} | sed -e 's/^lib/pw/'``echo ${release} | sed -e 's/[.]/-/g'`${versuffix}.dll'
@@ -1155,14 +1174,29 @@ gnu*)
 hpux9* | hpux10* | hpux11*)
   # Give a soname corresponding to the major version so that dld.sl refuses to
   # link against other versions.
-  dynamic_linker="$host_os dld.sl"
   version_type=sunos
   need_lib_prefix=no
   need_version=no
-  shlibpath_var=SHLIB_PATH
-  shlibpath_overrides_runpath=no # +s is required to enable SHLIB_PATH
-  library_names_spec='${libname}${release}.sl$versuffix ${libname}${release}.sl$major $libname.sl'
-  soname_spec='${libname}${release}.sl$major'
+  if test "$host_cpu" = ia64; then
+    hardcode_into_libs=yes
+    dynamic_linker="$host_os dld.so"
+    shlibpath_var=LD_LIBRARY_PATH
+    shlibpath_overrides_runpath=yes # Unless +noenvvar is specified.
+    library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
+    soname_spec='${libname}${release}.so$major'
+    if test "X$HPUX_IA64_MODE" = X32; then
+      sys_lib_search_path_spec="/usr/lib/hpux32 /usr/local/lib/hpux32 /usr/local/lib"
+    else
+      sys_lib_search_path_spec="/usr/lib/hpux64 /usr/local/lib/hpux64"
+    fi
+    sys_lib_dlsearch_path_spec=$sys_lib_search_path_spec
+  else
+    dynamic_linker="$host_os dld.sl"
+    shlibpath_var=SHLIB_PATH
+    shlibpath_overrides_runpath=no # +s is required to enable SHLIB_PATH
+    library_names_spec='${libname}${release}.sl$versuffix ${libname}${release}.sl$major $libname.sl'
+    soname_spec='${libname}${release}.sl$major'
+  fi
   # HP-UX runs *really* slowly unless shared libraries are mode 555.
   postinstall_cmds='chmod 555 $lib'
   ;;
@@ -1367,10 +1401,11 @@ test "$dynamic_linker" = no && can_build_shared=no
 # ----------------
 AC_DEFUN([_LT_AC_TAGCONFIG],
 [AC_REQUIRE([_LT_AC_LIBTOOL_SYS_PATH_SEPARATOR])dnl
-AC_ARG_WITH(tags, 
-  [  --with-tags=TAGS        include additional configurations [CXX,GCJ]],
-  [tagnames="$withval"],
-  [tagnames="CXX,GCJ"])
+AC_ARG_WITH([tags], 
+    [AC_HELP_STRING([--with-tags=TAGS],
+        [include additional configurations @<:@CXX,GCJ@:>@])],
+    [tagnames="$withval"],
+    [tagnames="CXX,GCJ"])
 
 if test -f "$ltmain" && test -n "$tagnames"; then
   if test ! -f "${ofile}"; then
@@ -1464,28 +1499,27 @@ AC_DEFUN([AC_LIBTOOL_WIN32_DLL],
 AC_DEFUN([AC_ENABLE_SHARED],
 [AC_REQUIRE([_LT_AC_LIBTOOL_SYS_PATH_SEPARATOR])dnl
 define([AC_ENABLE_SHARED_DEFAULT], ifelse($1, no, no, yes))dnl
-AC_ARG_ENABLE(shared,
-changequote(<<, >>)dnl
-<<  --enable-shared[=PKGS]  build shared libraries [default=>>AC_ENABLE_SHARED_DEFAULT],
-changequote([, ])dnl
-[p=${PACKAGE-default}
-case $enableval in
-yes) enable_shared=yes ;;
-no) enable_shared=no ;;
-*)
-  enable_shared=no
-  # Look at the argument we got.  We use all the common list separators.
-  IFS="${IFS= 	}"; lt_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:},"
-  for pkg in $enableval; do
-    IFS="$lt_save_ifs"
-    if test "X$pkg" = "X$p"; then
-      enable_shared=yes
-    fi
-  done
-  IFS="$lt_save_ifs"
-  ;;
-esac],
-enable_shared=AC_ENABLE_SHARED_DEFAULT)dnl
+AC_ARG_ENABLE([shared],
+    [AC_HELP_STRING([--enable-shared@<:@=PKGS@:>@],
+        [build shared libraries @<:@default=]AC_ENABLE_SHARED_DEFAULT[@:>@])],
+    [p=${PACKAGE-default}
+    case $enableval in
+    yes) enable_shared=yes ;;
+    no) enable_shared=no ;;
+    *)
+      enable_shared=no
+      # Look at the argument we got.  We use all the common list separators.
+      IFS="${IFS= 	}"; lt_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:},"
+      for pkg in $enableval; do
+        IFS="$lt_save_ifs"
+        if test "X$pkg" = "X$p"; then
+          enable_shared=yes
+        fi
+      done
+      IFS="$lt_save_ifs"
+      ;;
+    esac],
+    [enable_shared=]AC_ENABLE_SHARED_DEFAULT)
 ])# AC_ENABLE_SHARED
 
 
@@ -1505,28 +1539,27 @@ AC_ENABLE_SHARED(no)
 AC_DEFUN([AC_ENABLE_STATIC],
 [AC_REQUIRE([_LT_AC_LIBTOOL_SYS_PATH_SEPARATOR])dnl
 define([AC_ENABLE_STATIC_DEFAULT], ifelse($1, no, no, yes))dnl
-AC_ARG_ENABLE(static,
-changequote(<<, >>)dnl
-<<  --enable-static[=PKGS]  build static libraries [default=>>AC_ENABLE_STATIC_DEFAULT],
-changequote([, ])dnl
-[p=${PACKAGE-default}
-case $enableval in
-yes) enable_static=yes ;;
-no) enable_static=no ;;
-*)
-  enable_static=no
-  # Look at the argument we got.  We use all the common list separators.
-  IFS="${IFS= 	}"; lt_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:},"
-  for pkg in $enableval; do
-    IFS="$lt_save_ifs"
-    if test "X$pkg" = "X$p"; then
-      enable_static=yes
-    fi
-  done
-  IFS="$lt_save_ifs"
-  ;;
-esac],
-enable_static=AC_ENABLE_STATIC_DEFAULT)dnl
+AC_ARG_ENABLE([static],
+    [AC_HELP_STRING([--enable-static@<:@=PKGS@:>@],
+        [build static libraries @<:@default=]AC_ENABLE_STATIC_DEFAULT[@:>@])],
+    [p=${PACKAGE-default}
+    case $enableval in
+    yes) enable_static=yes ;;
+    no) enable_static=no ;;
+    *)
+     enable_static=no
+      # Look at the argument we got.  We use all the common list separators.
+      IFS="${IFS= 	}"; lt_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:},"
+      for pkg in $enableval; do
+        IFS="$lt_save_ifs"
+        if test "X$pkg" = "X$p"; then
+          enable_static=yes
+        fi
+      done
+      IFS="$lt_save_ifs"
+      ;;
+    esac],
+    [enable_static=]AC_ENABLE_STATIC_DEFAULT)
 ])# AC_ENABLE_STATIC
 
 
@@ -1546,28 +1579,27 @@ AC_ENABLE_STATIC(no)
 AC_DEFUN([AC_ENABLE_FAST_INSTALL],
 [AC_REQUIRE([_LT_AC_LIBTOOL_SYS_PATH_SEPARATOR])dnl
 define([AC_ENABLE_FAST_INSTALL_DEFAULT], ifelse($1, no, no, yes))dnl
-AC_ARG_ENABLE(fast-install,
-changequote(<<, >>)dnl
-<<  --enable-fast-install[=PKGS]  optimize for fast installation [default=>>AC_ENABLE_FAST_INSTALL_DEFAULT],
-changequote([, ])dnl
-[p=${PACKAGE-default}
-case $enableval in
-yes) enable_fast_install=yes ;;
-no) enable_fast_install=no ;;
-*)
-  enable_fast_install=no
-  # Look at the argument we got.  We use all the common list separators.
-  IFS="${IFS= 	}"; lt_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:},"
-  for pkg in $enableval; do
-    IFS="$lt_save_ifs"
-    if test "X$pkg" = "X$p"; then
-      enable_fast_install=yes
-    fi
-  done
-  IFS="$lt_save_ifs"
-  ;;
-esac],
-enable_fast_install=AC_ENABLE_FAST_INSTALL_DEFAULT)dnl
+AC_ARG_ENABLE([fast-install],
+    [AC_HELP_STRING([--enable-fast-install@<:@=PKGS@:>@],
+    [optimize for fast installation @<:@default=]AC_ENABLE_FAST_INSTALL_DEFAULT[@:>@])],
+    [p=${PACKAGE-default}
+    case $enableval in
+    yes) enable_fast_install=yes ;;
+    no) enable_fast_install=no ;;
+    *)
+      enable_fast_install=no
+      # Look at the argument we got.  We use all the common list separators.
+      IFS="${IFS= 	}"; lt_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:},"
+      for pkg in $enableval; do
+        IFS="$lt_save_ifs"
+        if test "X$pkg" = "X$p"; then
+          enable_fast_install=yes
+        fi
+      done
+      IFS="$lt_save_ifs"
+      ;;
+    esac],
+    [enable_fast_install=]AC_ENABLE_FAST_INSTALL_DEFAULT)
 ])# AC_ENABLE_FAST_INSTALL
 
 
@@ -1673,9 +1705,11 @@ fi
 # ----------
 # find the path to the GNU or non-GNU linker
 AC_DEFUN([AC_PROG_LD],
-[AC_ARG_WITH(gnu-ld,
-  [  --with-gnu-ld           assume the C compiler uses GNU ld [default=no]],
-  test "$withval" = no || with_gnu_ld=yes, with_gnu_ld=no)
+[AC_ARG_WITH([gnu-ld],
+    [AC_HELP_STRING([--with-gnu-ld],
+        [assume the C compiler uses GNU ld @<:@default=no@:>@])],
+    [test "$withval" = no || with_gnu_ld=yes],
+    [with_gnu_ld=no])
 AC_REQUIRE([AC_PROG_CC])dnl
 AC_REQUIRE([AC_CANONICAL_HOST])dnl
 AC_REQUIRE([AC_CANONICAL_BUILD])dnl
@@ -1855,9 +1889,14 @@ gnu*)
   ;;
 
 hpux10.20* | hpux11*)
-  [lt_cv_deplibs_check_method='file_magic (s[0-9][0-9][0-9]|PA-RISC[0-9].[0-9]) shared library']
   lt_cv_file_magic_cmd=/usr/bin/file
-  lt_cv_file_magic_test_file=/usr/lib/libc.sl
+  if test "$host_cpu" = ia64; then
+    [lt_cv_deplibs_check_method='file_magic (s[0-9][0-9][0-9]|ELF-[0-9][0-9]) shared object file - IA64']
+    lt_cv_file_magic_test_file=/usr/lib/hpux32/libc.so
+  else
+    [lt_cv_deplibs_check_method='file_magic (s[0-9][0-9][0-9]|PA-RISC[0-9].[0-9]) shared library']
+    lt_cv_file_magic_test_file=/usr/lib/libc.sl
+  fi
   ;;
 
 irix5* | irix6*)
@@ -1884,7 +1923,7 @@ irix5* | irix6*)
 # This must be Linux ELF.
 linux*)
   case $host_cpu in
-  alpha* | hppa* | i*86 | ia64* | m68* | mips | mipsel | powerpc* | sparc* | s390* )
+  alpha* | hppa* | i*86 | ia64* | m68* | mips | mipsel | powerpc* | sparc* | s390* | sh*)
     lt_cv_deplibs_check_method=pass_all ;;
   *)
     # glibc up to 2.1.1 does not perform some relocations on ARM
@@ -1927,10 +1966,6 @@ solaris*)
   lt_cv_file_magic_test_file=/lib/libc.so
   ;;
 
-[sysv5uw[78]* | sysv4*uw2*)]
-  lt_cv_deplibs_check_method=pass_all
-  ;;
-
 sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
   case $host_vendor in
   motorola)
@@ -1950,6 +1985,10 @@ sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
     lt_cv_file_magic_test_file=/lib/libc.so
     ;;
   esac
+  ;;
+
+sysv5OpenUNIX8* | sysv5UnixWare7* | sysv5uw[[78]]* | unixware7* | sysv4*uw2*)
+  lt_cv_deplibs_check_method=pass_all
   ;;
 esac
 ])
@@ -2498,11 +2537,20 @@ case $host_os in
     ;;
   hpux*)
     if test $with_gnu_ld = no; then
-      _LT_AC_TAGVAR(hardcode_libdir_flag_spec, $1)='${wl}+b ${wl}$libdir'
-      _LT_AC_TAGVAR(hardcode_libdir_separator, $1)=:
-      _LT_AC_TAGVAR(export_dynamic_flag_spec, $1)='${wl}-E'
+      if test "$host_cpu" = ia64; then
+        _LT_AC_TAGVAR(hardcode_libdir_flag_spec, $1)='-L$libdir'
+      else
+        _LT_AC_TAGVAR(hardcode_libdir_flag_spec, $1)='${wl}+b ${wl}$libdir'
+        _LT_AC_TAGVAR(hardcode_libdir_separator, $1)=:
+        _LT_AC_TAGVAR(export_dynamic_flag_spec, $1)='${wl}-E'
+      fi
     fi
-    _LT_AC_TAGVAR(hardcode_direct, $1)=yes
+    if test "$host_cpu" = ia64; then
+      _LT_AC_TAGVAR(hardcode_direct, $1)=no
+      _LT_AC_TAGVAR(hardcode_shlibpath_var, $1)=no
+    else
+      _LT_AC_TAGVAR(hardcode_direct, $1)=yes
+    fi
     _LT_AC_TAGVAR(hardcode_minus_L, $1)=yes # Not in the search PATH, but as the default
 			 # location of the library.
 
@@ -2513,8 +2561,16 @@ case $host_os in
         ;;
       aCC)
 	case $host_os in
-	hpux9*) _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$CC -b ${wl}+b ${wl}$install_libdir -o $output_objdir/$soname $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib' ;;
-	*) _LT_AC_TAGVAR(archive_cmds, $1)='$CC -b ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags' ;;
+        hpux9*)
+            _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$CC -b ${wl}+b ${wl}$install_libdir -o $output_objdir/$soname $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib'
+          ;;
+      *)
+          if test "$host_cpu" = ia64; then
+            _LT_AC_TAGVAR(archive_cmds, $1)='$LD -b +h $soname -o $lib $linker_flags $libobjs $deplibs'
+          else
+            _LT_AC_TAGVAR(archive_cmds, $1)='$CC -b ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags'
+          fi
+          ;;
 	esac
         # Commands to make compiler produce verbose output that lists
         # what "hidden" libraries, object files and flags are used when
@@ -2530,8 +2586,16 @@ case $host_os in
         if test $GXX = yes; then
 	  if test $with_gnu_ld = no; then
 	    case "$host_os" in
-	    hpux9*) _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$CC -shared -nostdlib -fPIC ${wl}+b ${wl}$install_libdir -o $output_objdir/$soname $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib' ;;
-	    *) _LT_AC_TAGVAR(archive_cmds, $1)='$CC -shared -nostdlib -fPIC ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags' ;;
+            hpux9*)
+                _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$CC -shared -nostdlib -fPIC ${wl}+b ${wl}$install_libdir -o $output_objdir/$soname $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib'
+                ;;
+          *)
+                if test "$host_cpu" = ia64; then
+                  _LT_AC_TAGVAR(archive_cmds, $1)='$LD -b +h $soname -o $lib $linker_flags $libobjs $deplibs'
+                else
+                  _LT_AC_TAGVAR(archive_cmds, $1)='$CC -shared -nostdlib -fPIC ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags'
+                fi
+                ;;
 	    esac
 	  fi
 	else
@@ -2873,6 +2937,9 @@ case $host_os in
         ;;
     esac
     ;;
+  sysv5OpenUNIX8* | sysv5UnixWare7* | sysv5uw[[78]]* | unixware7*)
+    _LT_AC_TAGVAR(archive_cmds_need_lc, $2)=no
+    ;;
   tandem*)
     case $cc_basename in
       NCC)
@@ -2885,10 +2952,6 @@ case $host_os in
         _LT_AC_TAGVAR(ld_shlibs, $1)=no
         ;;
     esac
-    ;;
-  unixware*)
-    # FIXME: insert proper C++ library support
-    _LT_AC_TAGVAR(ld_shlibs, $1)=no
     ;;
   vxworks*)
     # FIXME: insert proper C++ library support
@@ -3583,7 +3646,7 @@ AC_CACHE_VAL([lt_cv_sys_global_symbol_pipe],
 symxfrm='\1 \2\3 \3'
 
 # Transform an extracted symbol line into a proper C declaration
-lt_cv_sys_global_symbol_to_cdecl="sed -n -e 's/^. .* \(.*\)$/extern char \1;/p'"
+lt_cv_sys_global_symbol_to_cdecl="sed -n -e 's/^. .* \(.*\)$/extern int \1;/p'"
 
 # Transform an extracted symbol line into symbol name and symbol address
 lt_cv_sys_global_symbol_to_c_name_address="sed -n -e 's/^: \([[^ ]]*\) $/  {\\\"\1\\\", (lt_ptr) 0},/p' -e 's/^$symcode \([[^ ]]*\) \([[^ ]]*\)$/  {\"\2\", (lt_ptr) \&\2},/p'"
@@ -3597,7 +3660,10 @@ cygwin* | mingw* | pw32*)
   [symcode='[ABCDGISTW]']
   ;;
 hpux*) # Its linker distinguishes data from code symbols
-  lt_cv_sys_global_symbol_to_cdecl="sed -n -e 's/^T .* \(.*\)$/extern char \1();/p' -e 's/^$symcode* .* \(.*\)$/extern char \1;/p'"
+  if test "$host_cpu" = ia64; then
+    [symcode='[ABCDEGRST]']
+  fi
+  lt_cv_sys_global_symbol_to_cdecl="sed -n -e 's/^T .* \(.*\)$/extern int \1();/p' -e 's/^$symcode* .* \(.*\)$/extern char \1;/p'"
   lt_cv_sys_global_symbol_to_c_name_address="sed -n -e 's/^: \([[^ ]]*\) $/  {\\\"\1\\\", (lt_ptr) 0},/p' -e 's/^$symcode* \([[^ ]]*\) \([[^ ]]*\)$/  {\"\2\", (lt_ptr) \&\2},/p'"
   ;;
 irix*)
@@ -3788,6 +3854,12 @@ ifelse([$1],[CXX],[
         _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)=-Kconform_pic
       fi
       ;;
+    hpux*)
+      # PIC is the default for IA64 HP-UX, but not for PA HP-UX.
+      if test "$host_cpu" != ia64; then
+        _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
+      fi
+      ;;
     *)
       _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
       ;;
@@ -3832,12 +3904,16 @@ ifelse([$1],[CXX],[
           CC)
             _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
             _LT_AC_TAGVAR(lt_prog_compiler_static, $1)="${ac_cv_prog_cc_wl}-a ${ac_cv_prog_cc_wl}archive"
-            _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='+Z'
+            if test "$host_cpu" != ia64; then
+              _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='+Z'
+            fi
             ;;
           aCC)
             _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
             _LT_AC_TAGVAR(lt_prog_compiler_static, $1)="${ac_cv_prog_cc_wl}-a ${ac_cv_prog_cc_wl}archive"
-            _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='+Z'
+            if test "$host_cpu" != ia64; then
+              _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='+Z'
+            fi
             ;;
           *)
             ;;
@@ -3981,8 +4057,6 @@ ifelse([$1],[CXX],[
       if test "$host_cpu" = ia64; then
         # AIX 5 now supports IA64 processor
         _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='-Bstatic'
-      else
-        _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='-bnso -bI:/lib/syscalls.exp'
       fi
       ;;
   
@@ -4021,6 +4095,13 @@ ifelse([$1],[CXX],[
         _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)=-Kconform_pic
       fi
       ;;
+
+    hpux*)
+      # PIC is the default for IA64 HP-UX, but not for PA HP-UX.
+      if test "$host_cpu" != ia64; then
+        _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
+      fi
+      ;;
   
     *)
       _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
@@ -4047,7 +4128,9 @@ ifelse([$1],[CXX],[
   
     hpux9* | hpux10* | hpux11*)
       _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
-      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='+Z'
+      if test "$host_cpu" != ia64; then
+        _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='+Z'
+      fi
       # Is there a better lt_prog_compiler_static that works with the bundled CC?
       _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='${wl}-a ${wl}archive'
       ;;
@@ -4597,20 +4680,43 @@ EOF
     hpux9* | hpux10* | hpux11*)
       if test $GXX = yes; then
         case $host_os in
-        hpux9*) _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$CC -shared -fPIC ${wl}+b ${wl}$install_libdir -o $output_objdir/$soname $libobjs $deplibs $compiler_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib' ;;
-        *) _LT_AC_TAGVAR(archive_cmds, $1)='$CC -shared -fPIC ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $libobjs $deplibs $compiler_flags' ;;
+          hpux9*)
+            _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$CC -shared -fPIC ${wl}+b ${wl}$install_libdir -o $output_objdir/$soname $libobjs $deplibs $compiler_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib'
+            ;;
+        *)
+            if test "$host_cpu" = ia64; then
+              _LT_AC_TAGVAR(archive_cmds, $1)='$CC -shared ${wl}+h ${wl}$soname -o $lib $libobjs $deplibs $compiler_flags'
+            else
+              _LT_AC_TAGVAR(archive_cmds, $1)='$CC -shared -fPIC ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $libobjs $deplibs $compiler_flags'
+            fi
+            ;;
         esac
       else
         case $host_os in
-        hpux9*) _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$LD -b +b $install_libdir -o $output_objdir/$soname $libobjs $deplibs $linker_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib' ;;
-        *) _LT_AC_TAGVAR(archive_cmds, $1)='$LD -b +h $soname +b $install_libdir -o $lib $libobjs $deplibs $linker_flags' ;;
+          hpux9*)
+            _LT_AC_TAGVAR(archive_cmds, $1)='$rm $output_objdir/$soname~$LD -b +b $install_libdir -o $output_objdir/$soname $libobjs $deplibs $linker_flags~test $output_objdir/$soname = $lib || mv $output_objdir/$soname $lib'
+            ;;
+          *) 
+            if test "$host_cpu" = ia64; then
+              _LT_AC_TAGVAR(archive_cmds, $1)='$LD -b +h $soname -o $lib $libobjs $deplibs $linker_flags'
+            else
+              _LT_AC_TAGVAR(archive_cmds, $1)='$LD -b +h $soname +b $install_libdir -o $lib $libobjs $deplibs $linker_flags'
+            fi
+            ;;
         esac
       fi
-      _LT_AC_TAGVAR(hardcode_libdir_flag_spec, $1)='${wl}+b ${wl}$libdir'
-      _LT_AC_TAGVAR(hardcode_libdir_separator, $1)=:
-      _LT_AC_TAGVAR(hardcode_direct, $1)=yes
-      _LT_AC_TAGVAR(hardcode_minus_L, $1)=yes # Not in the search PATH, but as the default
-  			 # location of the library.
+      if test "$host_cpu" = ia64; then
+        _LT_AC_TAGVAR(hardcode_libdir_flag_spec, $1)='-L$libdir'
+        _LT_AC_TAGVAR(hardcode_direct, $1)=no
+        _LT_AC_TAGVAR(hardcode_shlibpath_var, $1)=no
+      else
+        _LT_AC_TAGVAR(hardcode_libdir_flag_spec, $1)='${wl}+b ${wl}$libdir'
+        _LT_AC_TAGVAR(hardcode_libdir_separator, $1)=:
+        _LT_AC_TAGVAR(hardcode_direct, $1)=yes
+      fi
+      # hardcode_minus_L: Not really in the search PATH,
+      # but as the default location of the library.
+      _LT_AC_TAGVAR(hardcode_minus_L, $1)=yes
       _LT_AC_TAGVAR(export_dynamic_flag_spec, $1)='${wl}-E'
       ;;
   
@@ -4780,7 +4886,7 @@ EOF
       runpath_var=LD_RUN_PATH
       ;;
   
-    sysv5uw7* | unixware7*)
+   sysv5OpenUNIX8* | sysv5UnixWare7* |  sysv5uw[[78]]* | unixware7*)
       _LT_AC_TAGVAR(no_undefined_flag, $1)='${wl}-z ${wl}text'
       if test "$GCC" = yes; then
         _LT_AC_TAGVAR(archive_cmds, $1)='$CC -shared ${wl}-h ${wl}$soname -o $lib $libobjs $deplibs $compiler_flags'
@@ -5093,160 +5199,167 @@ AC_DEFUN([LT_AC_PROG_GCJ],
 ## configuration script generated by Autoconf, you may include it under
 ## the same distribution terms that you use for the rest of that program.
 
-# serial 3 AC_LIB_LTDL
+# serial 4 AC_LIB_LTDL
 
 # AC_LIB_LTDL
 # -----------
-AC_DEFUN([AC_LIB_LTDL],
-[AC_PREREQ(2.13)dnl
-AC_REQUIRE([AC_PROG_CC])dnl
-AC_REQUIRE([AC_C_CONST])dnl
-
 # Perform all the checks necessary for compilation of the ltdl objects
-#  -- including compiler checks (above) and header checks (below).
-AC_REQUIRE([AC_HEADER_STDC])dnl
-AC_REQUIRE([AC_HEADER_DIRENT])dnl
-AC_REQUIRE([_LT_AC_CHECK_DLFCN])dnl
+#  -- including compiler checks and header checks.
+AC_DEFUN([AC_LIB_LTDL],
+[AC_PREREQ(2.50)
+AC_REQUIRE([AC_PROG_CC])
+AC_REQUIRE([AC_C_CONST])
+AC_REQUIRE([AC_HEADER_STDC])
+AC_REQUIRE([AC_HEADER_DIRENT])
+AC_REQUIRE([_LT_AC_CHECK_DLFCN])
+AC_REQUIRE([AC_LTDL_ENABLE_INSTALL])
+AC_REQUIRE([AC_LTDL_SHLIBEXT])
+AC_REQUIRE([AC_LTDL_SHLIBPATH])
+AC_REQUIRE([AC_LTDL_SYSSEARCHPATH])
+AC_REQUIRE([AC_LTDL_OBJDIR])
+AC_REQUIRE([AC_LTDL_DLPREOPEN])
+AC_REQUIRE([AC_LTDL_DLLIB])
+AC_REQUIRE([AC_LTDL_SYMBOL_USCORE])
+AC_REQUIRE([AC_LTDL_DLSYM_USCORE])
+AC_REQUIRE([AC_LTDL_SYS_DLOPEN_DEPLIBS])
+AC_REQUIRE([AC_LTDL_FUNC_ARGZ])
 
-AC_CHECK_HEADERS(malloc.h memory.h stdlib.h stdio.h ctype.h dl.h sys/dl.h dld.h)
-AC_CHECK_HEADERS(string.h strings.h, break)
-AC_CHECK_FUNCS(strchr index, break)
-AC_CHECK_FUNCS(strrchr rindex, break)
-AC_CHECK_FUNCS(memcpy bcopy, break)
-AC_CHECK_FUNCS(strcmp)
+AC_CHECK_HEADERS([ctype.h errno.h malloc.h memory.h stdlib.h stdio.h])
+AC_CHECK_HEADERS([dl.h sys/dl.h dld.h])
+AC_CHECK_HEADERS([string.h strings.h], [break])
 
-AC_REQUIRE([AC_LTDL_ENABLE_INSTALL])dnl
-AC_REQUIRE([AC_LTDL_SHLIBEXT])dnl
-AC_REQUIRE([AC_LTDL_SHLIBPATH])dnl
-AC_REQUIRE([AC_LTDL_SYSSEARCHPATH])dnl
-AC_REQUIRE([AC_LTDL_OBJDIR])dnl
-AC_REQUIRE([AC_LTDL_DLPREOPEN])dnl
-AC_REQUIRE([AC_LTDL_DLLIB])dnl
-AC_REQUIRE([AC_LTDL_SYMBOL_USCORE])dnl
-AC_REQUIRE([AC_LTDL_DLSYM_USCORE])dnl
-AC_REQUIRE([AC_LTDL_SYS_DLOPEN_DEPLIBS])dnl
+AC_CHECK_FUNCS([strchr index], [break])
+AC_CHECK_FUNCS([strrchr rindex], [break])
+AC_CHECK_FUNCS([memcpy bcopy], [break])
+AC_CHECK_FUNCS([memmove strcmp])
 ])# AC_LIB_LTDL
+
 
 # AC_LTDL_ENABLE_INSTALL
 # ----------------------
 AC_DEFUN([AC_LTDL_ENABLE_INSTALL],
-[AC_ARG_ENABLE(ltdl-install,
-[  --enable-ltdl-install   install libltdl])
+[AC_ARG_ENABLE([ltdl-install],
+    [AC_HELP_STRING([--enable-ltdl-install], [install libltdl])])
 
 AM_CONDITIONAL(INSTALL_LTDL, test x"${enable_ltdl_install-no}" != xno)
 AM_CONDITIONAL(CONVENIENCE_LTDL, test x"${enable_ltdl_convenience-no}" != xno)
 ])])# AC_LTDL_ENABLE_INSTALL
+
 
 # AC_LTDL_SYS_DLOPEN_DEPLIBS
 # --------------------------
 AC_DEFUN([AC_LTDL_SYS_DLOPEN_DEPLIBS],
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
-	libltdl_cv_sys_dlopen_deplibs, [dnl
-	# PORTME does your system automatically load deplibs for dlopen?
-	# or its logical equivalent (e.g. shl_load for HP-UX < 11)
-	# For now, we just catch OSes we know something about -- in the
-	# future, we'll try test this programmatically.
-	libltdl_cv_sys_dlopen_deplibs=unknown
-	case "$host_os" in
-	aix3*|aix4.1.*|aix4.2.*)
-	  # Unknown whether this is true for these versions of AIX, but
-	  # we want this `case' here to explicitly catch those versions.
-	  libltdl_cv_sys_dlopen_deplibs=unknown
-	  ;;
-	aix[45]*)
-	  libltdl_cv_sys_dlopen_deplibs=yes
-	  ;;
-	gnu*)
-	  libltdl_cv_sys_dlopen_deplibs=yes
-	  ;;
-	irix[12345]*|irix6.[01]*)
-	  # Catch all versions of IRIX before 6.2, and indicate that we don't
-	  # know how it worked for any of those versions.
-	  libltdl_cv_sys_dlopen_deplibs=unknown
-	  ;;
-	irix*)
-	  # The case above catches anything before 6.2, and it's known that
-	  # at 6.2 and later dlopen does load deplibs.
-	  libltdl_cv_sys_dlopen_deplibs=yes
-	  ;;
-	linux*)
-	  libltdl_cv_sys_dlopen_deplibs=yes
-	  ;;
-	netbsd*)
-	  libltdl_cv_sys_dlopen_deplibs=yes
-	  ;;
-	osf[1234]*)
-	  # dlopen did load deplibs (at least at 4.x), but until the 5.x series,
-	  # it did *not* use an RPATH in a shared library to find objects the
-	  # library depends on, so we explictly say `no'.
-	  libltdl_cv_sys_dlopen_deplibs=no
-	  ;;
-	osf5.0|osf5.0a|osf5.1)
-	  # dlopen *does* load deplibs and with the right loader patch applied
-	  # it even uses RPATH in a shared library to search for shared objects
-	  # that the library depends on, but there's no easy way to know if that
-	  # patch is installed.  Since this is the case, all we can really
-	  # say is unknown -- it depends on the patch being installed.  If
-	  # it is, this changes to `yes'.  Without it, it would be `no'.
-	  libltdl_cv_sys_dlopen_deplibs=unknown
-	  ;;
-	osf*)
-	  # the two cases above should catch all versions of osf <= 5.1.  Read
-	  # the comments above for what we know about them.
-	  # At > 5.1, deplibs are loaded *and* any RPATH in a shared library
-	  # is used to find them so we can finally say `yes'.
-	  libltdl_cv_sys_dlopen_deplibs=yes
-	  ;;
-	solaris*)
-	  libltdl_cv_sys_dlopen_deplibs=yes
-	  ;;
-	esac
-])
+  [libltdl_cv_sys_dlopen_deplibs],
+  [# PORTME does your system automatically load deplibs for dlopen?
+  # or its logical equivalent (e.g. shl_load for HP-UX < 11)
+  # For now, we just catch OSes we know something about -- in the
+  # future, we'll try test this programmatically.
+  libltdl_cv_sys_dlopen_deplibs=unknown
+  case "$host_os" in
+  aix3*|aix4.1.*|aix4.2.*)
+    # Unknown whether this is true for these versions of AIX, but
+    # we want this `case' here to explicitly catch those versions.
+    libltdl_cv_sys_dlopen_deplibs=unknown
+    ;;
+  aix[45]*)
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
+  gnu*)
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
+  irix[12345]*|irix6.[01]*)
+    # Catch all versions of IRIX before 6.2, and indicate that we don't
+    # know how it worked for any of those versions.
+    libltdl_cv_sys_dlopen_deplibs=unknown
+    ;;
+  irix*)
+    # The case above catches anything before 6.2, and it's known that
+    # at 6.2 and later dlopen does load deplibs.
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
+  linux*)
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
+  netbsd*)
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
+  osf[1234]*)
+    # dlopen did load deplibs (at least at 4.x), but until the 5.x series,
+    # it did *not* use an RPATH in a shared library to find objects the
+    # library depends on, so we explictly say `no'.
+    libltdl_cv_sys_dlopen_deplibs=no
+    ;;
+  osf5.0|osf5.0a|osf5.1)
+    # dlopen *does* load deplibs and with the right loader patch applied
+    # it even uses RPATH in a shared library to search for shared objects
+    # that the library depends on, but there's no easy way to know if that
+    # patch is installed.  Since this is the case, all we can really
+    # say is unknown -- it depends on the patch being installed.  If
+    # it is, this changes to `yes'.  Without it, it would be `no'.
+    libltdl_cv_sys_dlopen_deplibs=unknown
+    ;;
+  osf*)
+    # the two cases above should catch all versions of osf <= 5.1.  Read
+    # the comments above for what we know about them.
+    # At > 5.1, deplibs are loaded *and* any RPATH in a shared library
+    # is used to find them so we can finally say `yes'.
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
+  solaris*)
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
+  esac
+  ])
 if test "$libltdl_cv_sys_dlopen_deplibs" != yes; then
- AC_DEFINE(LTDL_DLOPEN_DEPLIBS, 1,
-    [Define if the OS needs help to load dependent libraries for dlopen(). ])
+ AC_DEFINE([LTDL_DLOPEN_DEPLIBS], [1],
+    [Define if the OS needs help to load dependent libraries for dlopen()])
 fi
 ])# AC_LTDL_SYS_DLOPEN_DEPLIBS
+
 
 # AC_LTDL_SHLIBEXT
 # ----------------
 AC_DEFUN([AC_LTDL_SHLIBEXT],
 [AC_REQUIRE([AC_LIBTOOL_SYS_DYNAMIC_LINKER])
 AC_CACHE_CHECK([which extension is used for shared libraries],
-  libltdl_cv_shlibext,
-[ac_last=
+  [libltdl_cv_shlibext],
+  [ac_last=
   for ac_spec in $library_names_spec; do
     ac_last="$ac_spec"
   done
   echo "$ac_last" | [sed 's/\[.*\]//;s/^[^.]*//;s/\$.*$//;s/\.$//'] > conftest
-libltdl_cv_shlibext=`cat conftest`
-rm -f conftest
-])
+  libltdl_cv_shlibext=`cat conftest`
+  rm -f conftest
+  ])
 if test -n "$libltdl_cv_shlibext"; then
   AC_DEFINE_UNQUOTED(LTDL_SHLIB_EXT, "$libltdl_cv_shlibext",
     [Define to the extension used for shared libraries, say, ".so". ])
 fi
 ])# AC_LTDL_SHLIBEXT
 
+
 # AC_LTDL_SHLIBPATH
 # -----------------
 AC_DEFUN([AC_LTDL_SHLIBPATH],
 [AC_REQUIRE([AC_LIBTOOL_SYS_DYNAMIC_LINKER])
 AC_CACHE_CHECK([which variable specifies run-time library path],
-  libltdl_cv_shlibpath_var, [libltdl_cv_shlibpath_var="$shlibpath_var"])
+  [libltdl_cv_shlibpath_var], [libltdl_cv_shlibpath_var="$shlibpath_var"])
 if test -n "$libltdl_cv_shlibpath_var"; then
   AC_DEFINE_UNQUOTED(LTDL_SHLIBPATH_VAR, "$libltdl_cv_shlibpath_var",
     [Define to the name of the environment variable that determines the dynamic library search path. ])
 fi
 ])# AC_LTDL_SHLIBPATH
 
+
 # AC_LTDL_SYSSEARCHPATH
 # ---------------------
 AC_DEFUN([AC_LTDL_SYSSEARCHPATH],
 [AC_REQUIRE([AC_LIBTOOL_SYS_DYNAMIC_LINKER])
 AC_CACHE_CHECK([for the default library search path],
-  libltdl_cv_sys_search_path, [libltdl_cv_sys_search_path="$sys_lib_dlsearch_path_spec"])
+  [libltdl_cv_sys_search_path],
+  [libltdl_cv_sys_search_path="$sys_lib_dlsearch_path_spec"])
 if test -n "$libltdl_cv_sys_search_path"; then
   case "$host" in
   *-*-mingw*) pathsep=";" ;;
@@ -5265,45 +5378,50 @@ if test -n "$libltdl_cv_sys_search_path"; then
 fi
 ])# AC_LTDL_SYSSEARCHPATH
 
+
 # AC_LTDL_OBJDIR
 # --------------
 AC_DEFUN([AC_LTDL_OBJDIR],
 [AC_CACHE_CHECK([for objdir],
-  libltdl_cv_objdir, [libltdl_cv_objdir="$objdir"
-if test -n "$objdir"; then
-  :
-else
-  rm -f .libs 2>/dev/null
-  mkdir .libs 2>/dev/null
-  if test -d .libs; then
-    libltdl_cv_objdir=.libs
+  [libltdl_cv_objdir],
+  [libltdl_cv_objdir="$objdir"
+  if test -n "$objdir"; then
+    :
   else
-    # MS-DOS does not allow filenames that begin with a dot.
-    libltdl_cv_objdir=_libs
+    rm -f .libs 2>/dev/null
+    mkdir .libs 2>/dev/null
+    if test -d .libs; then
+      libltdl_cv_objdir=.libs
+    else
+      # MS-DOS does not allow filenames that begin with a dot.
+      libltdl_cv_objdir=_libs
+    fi
+  rmdir .libs 2>/dev/null
   fi
-rmdir .libs 2>/dev/null
-fi])
+  ])
 AC_DEFINE_UNQUOTED(LTDL_OBJDIR, "$libltdl_cv_objdir/",
   [Define to the sub-directory in which libtool stores uninstalled libraries. ])
 ])# AC_LTDL_OBJDIR
 
+
 # AC_LTDL_DLPREOPEN
 # -----------------
 AC_DEFUN([AC_LTDL_DLPREOPEN],
-[AC_REQUIRE([AC_LIBTOOL_SYS_GLOBAL_SYMBOL_PIPE])dnl
+[AC_REQUIRE([AC_LIBTOOL_SYS_GLOBAL_SYMBOL_PIPE])
 AC_CACHE_CHECK([whether libtool supports -dlopen/-dlpreopen],
-       libltdl_cv_preloaded_symbols, [dnl
-  if test -n "$global_symbol_pipe"; then
+  [libltdl_cv_preloaded_symbols],
+  [if test -n "$global_symbol_pipe"; then
     libltdl_cv_preloaded_symbols=yes
   else
     libltdl_cv_preloaded_symbols=no
   fi
-])
-if test x"$libltdl_cv_preloaded_symbols" = x"yes"; then
+  ])
+if test x"$libltdl_cv_preloaded_symbols" = xyes; then
   AC_DEFINE(HAVE_PRELOADED_SYMBOLS, 1,
     [Define if libtool can extract symbol lists from object files. ])
 fi
 ])# AC_LTDL_DLPREOPEN
+
 
 # AC_LTDL_DLLIB
 # -------------
@@ -5311,97 +5429,106 @@ AC_DEFUN([AC_LTDL_DLLIB],
 [LIBADD_DL=
 AC_SUBST(LIBADD_DL)
 AC_LANG_PUSH([C])
-AC_CHECK_LIB(dl, dlopen, 
-    [AC_DEFINE(HAVE_LIBDL, 1,
-      [Define if you have the libdl library or equivalent. ])
-    LIBADD_DL="-ldl"],
+AC_CHECK_LIB([dl], [dlopen], 
+  [AC_DEFINE([HAVE_LIBDL], [1],
+     [Define if you have the libdl library or equivalent. ])
+   LIBADD_DL="-ldl"],
   [AC_TRY_LINK([#if HAVE_DLFCN_H
 #  include <dlfcn.h>
 #endif
-], [dlopen();], 
-      [AC_DEFINE(HAVE_LIBDL, 1,
-        [Define if you have the libdl library or equivalent.])],
+    ],
+    [dlopen();], 
+    [AC_DEFINE(HAVE_LIBDL, 1,
+      [Define if you have the libdl library or equivalent. ])],
     [AC_CHECK_LIB(svld, dlopen, 
-        [AC_DEFINE(HAVE_LIBDL, 1,
-          [Define if you have the libdl library or equivalent.])
-        LIBADD_DL="-lsvld"])])])
+      [AC_DEFINE(HAVE_LIBDL, 1,
+        [Define if you have the libdl library or equivalent. ])
+      LIBADD_DL="-lsvld"
+      ])
+    ])
+  ])
 
 AC_CHECK_FUNC(shl_load,
-    [AC_DEFINE(HAVE_SHL_LOAD, 1, [Define if you have the shl_load function.])],
-  [AC_CHECK_LIB(dld, shl_load,
-      [AC_DEFINE(HAVE_SHL_LOAD, 1, [Define if you have the shl_load function.])
-      LIBADD_DL="$LIBADD_DL -ldld"])])
+  [AC_DEFINE([HAVE_SHL_LOAD], [1],
+    [Define if you have the shl_load function. ])],
+  [AC_CHECK_LIB([dld], [shl_load],
+    [AC_DEFINE([HAVE_SHL_LOAD], [1],
+      [Define if you have the shl_load function. ])
+    LIBADD_DL="$LIBADD_DL -ldld"
+    ])
+  ])
 
-AC_CHECK_LIB(dld, dld_link,
-    [AC_DEFINE(HAVE_DLD, 1, [Define if you have the GNU dld library.])
-    test "x$ac_cv_lib_dld_shl_load" = yes || LIBADD_DL="$LIBADD_DL -ldld"])
+AC_CHECK_LIB([dld], [dld_link],
+  [AC_DEFINE([HAVE_DLD], [1],
+    [Define if you have the GNU dld library.])
+  test x"$ac_cv_lib_dld_shl_load" = xyes || LIBADD_DL="$LIBADD_DL -ldld"
+  ])
 
-
-if test "x$ac_cv_func_dlopen" = xyes || test "x$ac_cv_lib_dl_dlopen" = xyes
+if test x"$ac_cv_func_dlopen" = xyes || test x"$ac_cv_lib_dl_dlopen" = xyes
 then
   lt_save_LIBS="$LIBS"
   LIBS="$LIBS $LIBADD_DL"
-  AC_CHECK_FUNCS(dlerror)
+  AC_CHECK_FUNCS([dlerror])
   LIBS="$lt_save_LIBS"
 fi
 AC_LANG_POP
 ])# AC_LTDL_DLLIB
 
+
 # AC_LTDL_SYMBOL_USCORE
 # ---------------------
+# does the compiler prefix global symbols with an underscore?
 AC_DEFUN([AC_LTDL_SYMBOL_USCORE],
-[dnl does the compiler prefix global symbols with an underscore?
-AC_REQUIRE([AC_LIBTOOL_SYS_GLOBAL_SYMBOL_PIPE])dnl
-AC_MSG_CHECKING([for _ prefix in compiled symbols])
-AC_CACHE_VAL(ac_cv_sys_symbol_underscore,
-[ac_cv_sys_symbol_underscore=no
-cat > conftest.$ac_ext <<EOF
+[AC_REQUIRE([AC_LIBTOOL_SYS_GLOBAL_SYMBOL_PIPE])
+AC_CACHE_CHECK([for _ prefix in compiled symbols],
+  [ac_cv_sys_symbol_underscore],
+  [ac_cv_sys_symbol_underscore=no
+  cat > conftest.$ac_ext <<EOF
 void nm_test_func(){}
 int main(){nm_test_func;return 0;}
 EOF
-if AC_TRY_EVAL(ac_compile); then
-  # Now try to grab the symbols.
-  ac_nlist=conftest.nm
-  if AC_TRY_EVAL(NM conftest.$ac_objext \| $global_symbol_pipe \> $ac_nlist) && test -s "$ac_nlist"; then
-    # See whether the symbols have a leading underscore.
-    if egrep '^. _nm_test_func' "$ac_nlist" >/dev/null; then
-      ac_cv_sys_symbol_underscore=yes
-    else
-      if egrep '^. nm_test_func ' "$ac_nlist" >/dev/null; then
-	:
+  if AC_TRY_EVAL(ac_compile); then
+    # Now try to grab the symbols.
+    ac_nlist=conftest.nm
+    if AC_TRY_EVAL(NM conftest.$ac_objext \| $global_symbol_pipe \> $ac_nlist) && test -s "$ac_nlist"; then
+      # See whether the symbols have a leading underscore.
+      if egrep '^. _nm_test_func' "$ac_nlist" >/dev/null; then
+        ac_cv_sys_symbol_underscore=yes
       else
-	echo "configure: cannot find nm_test_func in $ac_nlist" >&AC_FD_CC
+        if egrep '^. nm_test_func ' "$ac_nlist" >/dev/null; then
+	  :
+        else
+	  echo "configure: cannot find nm_test_func in $ac_nlist" >&AC_FD_CC
+        fi
       fi
+    else
+      echo "configure: cannot run $global_symbol_pipe" >&AC_FD_CC
     fi
   else
-    echo "configure: cannot run $global_symbol_pipe" >&AC_FD_CC
+    echo "configure: failed program was:" >&AC_FD_CC
+    cat conftest.c >&AC_FD_CC
   fi
-else
-  echo "configure: failed program was:" >&AC_FD_CC
-  cat conftest.c >&AC_FD_CC
-fi
-rm -rf conftest*
-])
-AC_MSG_RESULT($ac_cv_sys_symbol_underscore)
+  rm -rf conftest*
+  ])
 ])# AC_LTDL_SYMBOL_USCORE
 
 
 # AC_LTDL_DLSYM_USCORE
 # --------------------
 AC_DEFUN([AC_LTDL_DLSYM_USCORE],
-[AC_REQUIRE([AC_LTDL_SYMBOL_USCORE])dnl
+[AC_REQUIRE([AC_LTDL_SYMBOL_USCORE])
 if test x"$ac_cv_sys_symbol_underscore" = xyes; then
   if test x"$ac_cv_func_dlopen" = xyes ||
      test x"$ac_cv_lib_dl_dlopen" = xyes ; then
 	AC_CACHE_CHECK([whether we have to add an underscore for dlsym],
-		libltdl_cv_need_uscore, [dnl
-		libltdl_cv_need_uscore=unknown
-                save_LIBS="$LIBS"
-                LIBS="$LIBS $LIBADD_DL"
-		_LT_AC_TRY_DLOPEN_SELF(
-		  libltdl_cv_need_uscore=no, libltdl_cv_need_uscore=yes,
-		  [],			     libltdl_cv_need_uscore=cross)
-		LIBS="$save_LIBS"
+	  [libltdl_cv_need_uscore],
+	  [libltdl_cv_need_uscore=unknown
+          save_LIBS="$LIBS"
+          LIBS="$LIBS $LIBADD_DL"
+	  _LT_AC_TRY_DLOPEN_SELF(
+	    [libltdl_cv_need_uscore=no], [libltdl_cv_need_uscore=yes],
+	    [],				 [libltdl_cv_need_uscore=cross])
+	  LIBS="$save_LIBS"
 	])
   fi
 fi
@@ -5411,3 +5538,19 @@ if test x"$libltdl_cv_need_uscore" = xyes; then
     [Define if dlsym() requires a leading underscode in symbol names. ])
 fi
 ])# AC_LTDL_DLSYM_USCORE
+
+# AC_LTDL_FUNC_ARGZ
+# -----------------
+AC_DEFUN([AC_LTDL_FUNC_ARGZ],
+[AC_CHECK_HEADERS([argz.h])
+
+AC_CHECK_TYPES([error_t],
+  [],
+  [AC_DEFINE([error_t], [int],
+    [Define to a type to use for `error_t' if it is not otherwise available])],
+  [#if HAVE_ARGZ_H
+#  include <argz.h>
+#endif])
+
+AC_CHECK_FUNCS([argz_append argz_create_sep argz_insert argz_next])
+])# AC_LTDL_FUNC_ARGZ
