@@ -2,7 +2,7 @@
  * memsave.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memsave.c,v 1.1 2003-12-04 23:15:02 fillods Exp $  
+ *	$Id: memsave.c,v 1.2 2003-12-05 22:08:17 f4dwv Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -43,8 +43,7 @@ static int dump_xml_chan(RIG *rig, xmlNodePtr root ,int chn, int chan_num);
 int xml_save (RIG *my_rig, const char *outfilename)
 { 
 #ifdef HAVE_XML2
-	int status,i,j;
-	int c,m=0;
+	int i,j;
 	xmlDocPtr Doc;
 	xmlNodePtr root;
 
@@ -134,29 +133,29 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		sprintf(attrbuf,"%d",chan.vfo);
 		xmlNewProp(node, "vfo", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.ant) {
+	if (rig->state.chan_list[i].mem_caps.ant && chan.ant != RIG_ANT_NONE) {
 		sprintf(attrbuf,"%d",chan.ant);
 		xmlNewProp(node, "ant", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.freq) {
+	if (rig->state.chan_list[i].mem_caps.freq && chan.freq != RIG_FREQ_NONE) {
 		sprintf(attrbuf,"%lld",chan.freq);
 		xmlNewProp(node, "freq", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.mode) {
+	if (rig->state.chan_list[i].mem_caps.mode && chan.mode != RIG_MODE_NONE) {
 		xmlNewProp(node, "mode", strrmode(chan.mode));
 	}
-	if (rig->state.chan_list[i].mem_caps.width) {
+	if (rig->state.chan_list[i].mem_caps.width && chan.width != 0) {
 		sprintf(attrbuf,"%d",(int)chan.width);
 		xmlNewProp(node, "width", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.tx_freq) {
+	if (rig->state.chan_list[i].mem_caps.tx_freq && chan.tx_freq != RIG_FREQ_NONE) {
 		sprintf(attrbuf,"%lld",chan.tx_freq);
 		xmlNewProp(node, "tx_freq", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.tx_mode) {
+	if (rig->state.chan_list[i].mem_caps.tx_mode && chan.tx_mode != RIG_MODE_NONE) {
 		xmlNewProp(node, "tx_mode", strrmode(chan.tx_mode));
 	}
-	if (rig->state.chan_list[i].mem_caps.tx_width) {
+	if (rig->state.chan_list[i].mem_caps.tx_width && chan.tx_width!=0) {
 		sprintf(attrbuf,"%d",(int)chan.tx_width);
 		xmlNewProp(node, "tx_width", attrbuf);
 	}
@@ -191,15 +190,15 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 					xmlNewProp(node, "rptr_offs", attrbuf);
 				}
 	}
-	if (rig->state.chan_list[i].mem_caps.tuning_step) {
+	if (rig->state.chan_list[i].mem_caps.tuning_step && chan.tuning_step !=0) {
 		sprintf(attrbuf,"%d",(int)chan.tuning_step);
 		xmlNewProp(node, "tuning_step", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.rit) {
+	if (rig->state.chan_list[i].mem_caps.rit && chan.rit!=0) {
 		sprintf(attrbuf,"%d",(int)chan.rit);
 		xmlNewProp(node, "rit", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.xit) {
+	if (rig->state.chan_list[i].mem_caps.xit && chan.xit !=0) {
 		sprintf(attrbuf,"%d",(int)chan.xit);
 		xmlNewProp(node, "xit", attrbuf);
 	}
@@ -207,19 +206,19 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		sprintf(attrbuf,"%llx",chan.funcs);
 		xmlNewProp(node, "funcs", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.ctcss_tone) {
+	if (rig->state.chan_list[i].mem_caps.ctcss_tone && chan.ctcss_tone !=0) {
 		sprintf(attrbuf,"%d",chan.ctcss_tone);
 		xmlNewProp(node, "ctcss_tone", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.ctcss_sql) {
+	if (rig->state.chan_list[i].mem_caps.ctcss_sql && chan.ctcss_sql !=0) {
 		sprintf(attrbuf,"%d",chan.ctcss_sql);
 		xmlNewProp(node, "ctcss_sql", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.dcs_code) {
+	if (rig->state.chan_list[i].mem_caps.dcs_code && chan.dcs_code !=0) {
 		sprintf(attrbuf,"%d",chan.dcs_code);
 		xmlNewProp(node, "dcs_code", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.dcs_sql) {
+	if (rig->state.chan_list[i].mem_caps.dcs_sql && chan.dcs_sql !=0) {
 		sprintf(attrbuf,"%d",chan.dcs_sql);
 		xmlNewProp(node, "dcs_sql", attrbuf);
 	}
