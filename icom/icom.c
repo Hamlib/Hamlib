@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.49 2002-01-27 14:50:22 fillods Exp $
+ *		$Id: icom.c,v 1.50 2002-02-27 23:17:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2213,14 +2213,17 @@ int icom_decode_event(RIG *rig)
 				 */
 				if (rig->callbacks.freq_event) {
 					freq = from_bcd(buf+5, (priv->civ_731_mode ? 4:5)*2);
-					return rig->callbacks.freq_event(rig,RIG_VFO_CURR,freq);
+					return rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
+									rig->callbacks.freq_arg);
 				} else
 						return -RIG_ENAVAIL;
 				break;
 		case C_SND_MODE:
 				if (rig->callbacks.mode_event) {
 					icom2rig_mode(rig, buf[5]| buf[6]<<8, &mode, &width);
-					return rig->callbacks.mode_event(rig,RIG_VFO_CURR,mode,width);
+					return rig->callbacks.mode_event(rig, RIG_VFO_CURR, 
+									mode, width,
+									rig->callbacks.mode_arg);
 				} else
 						return -RIG_ENAVAIL;
 				break;
@@ -2331,6 +2334,7 @@ int initrigs_icom(void *be_handle)
 
 		rig_register(&ic821h_caps);
 		
+		rig_register(&icr7000_caps);
 		rig_register(&icr8500_caps);
 
 		rig_register(&ic275_caps);
