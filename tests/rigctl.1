@@ -61,7 +61,9 @@ to operate on.
 Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
 .TP
 .B \-c, --civaddr=id
-Use \fBid\fP as the CI-V address to communicate with the rig. Only for Icom rigs.
+Use \fBid\fP as the CI-V address to communicate with the rig. 
+Only for Icom rigs. NB: the id is in decimal, unless prefixed by \fB0x\fP,
+in which case it is hexadecimal.
 .TP
 .B \-L, \-\-show-conf
 List all config parameters.
