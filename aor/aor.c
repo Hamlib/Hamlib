@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.30 2005-01-24 23:03:51 fillods Exp $
+ *	$Id: aor.c,v 1.31 2005-01-25 00:33:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -158,7 +158,7 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			return -RIG_EPROTO;
 		}
 
-		sscanf(rfp+2,"%"SCNfreq, &freq);
+		sscanf(rfp+2,"%"SCNfreq, freq);
 
 		return RIG_OK;
 }
