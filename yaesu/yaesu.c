@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.17 2004-02-08 17:08:46 fillods Exp $  
+ *	$Id: yaesu.c,v 1.18 2004-04-24 13:01:00 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -52,6 +52,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
 
   rig_register(&ft100_caps);
   rig_register(&ft747_caps);
+  rig_register(&ft757gx_caps);
   rig_register(&ft817_caps);
   rig_register(&ft847_caps);
   rig_register(&ft857_caps);
