@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.27 2002-01-07 17:54:23 fgretief Exp $
+ *		$Id: kenwood.c,v 1.28 2002-01-09 23:14:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -514,6 +514,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_NOTCHF:
 		case RIG_LEVEL_COMP:
 		case RIG_LEVEL_AGC:
+			return get_kenwood_level(rig, "GT;", 3, &val->f);
+    
 		case RIG_LEVEL_BKINDL:
 		case RIG_LEVEL_BALANCE:
 			return -RIG_ENIMPL;
@@ -529,7 +531,59 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-		return -RIG_ENIMPL;
+		unsigned char fctbuf[16], ackbuf[16];
+		int fct_len, ack_len = 0;
+
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
+		switch (func) {
+		case RIG_FUNC_NB:
+		fct_len = sprintf(fctbuf,"NB%c;", status==RIG_FUNC_NB?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_ABM:
+		fct_len = sprintf(fctbuf,"AM%c;", status==RIG_FUNC_ABM?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_COMP:
+		fct_len = sprintf(fctbuf,"PR%c;", status==RIG_FUNC_COMP?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_TONE:
+		fct_len = sprintf(fctbuf,"TO%c;", status==RIG_FUNC_TONE?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_TSQL:
+		fct_len = sprintf(fctbuf,"CT%c;", status==RIG_FUNC_TSQL?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_VOX:
+		fct_len = sprintf(fctbuf,"VX%c;", status==RIG_FUNC_VOX?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_NR:
+		fct_len = sprintf(fctbuf,"NR%c;", status==RIG_FUNC_NR?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_BC:
+		fct_len = sprintf(fctbuf,"BC%c;", status==RIG_FUNC_BC?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_ANF:
+		fct_len = sprintf(fctbuf,"NT%c;", status==RIG_FUNC_ANF?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_LOCK:
+		fct_len = sprintf(fctbuf,"LK%c;", status==RIG_FUNC_LOCK?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
+			return -RIG_EINVAL;
+		}
+
+		return RIG_OK;
 }
 
 
