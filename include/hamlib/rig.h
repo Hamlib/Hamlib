@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.73 2002-12-16 22:02:28 fillods Exp $
+ *	$Id: rig.h,v 1.74 2003-02-23 22:34:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -180,6 +180,15 @@ enum serial_handshake_e {
 };
 
 
+/**
+ * \brief Serial control state
+ */
+enum serial_control_state_e {
+  RIG_SIGNAL_UNSET = 0,	/*!< Unset or tri-state */
+  RIG_SIGNAL_ON,	/*!< ON */
+  RIG_SIGNAL_OFF	/*!< OFF */
+};
+
 #define RIG_FLAG_RECEIVER		(1<<1)
 #define RIG_FLAG_TRANSMITTER	(1<<2)
 #define RIG_FLAG_SCANNER		(1<<3)
@@ -294,16 +303,16 @@ typedef signed long shortfreq_t;
  */
 typedef int vfo_t;
 
-/** \brief current "tunable channel"/VFO */
-#define RIG_VFO_CURR    0
-
 /** \brief used in caps */
 #define RIG_VFO_NONE    0
+
+/** \brief current "tunable channel"/VFO */
+#define RIG_VFO_CURR    -6
 
 /** \brief means Memory mode, to be used with set_vfo */
 #define RIG_VFO_MEM	-2
 
-/** \brief means (any)VFO mode, with set_vfo */
+/** \brief means (last or any)VFO mode, with set_vfo */
 #define RIG_VFO_VFO	-3
 
 /** \brief alias for split tx or uplink  */
@@ -324,8 +333,8 @@ typedef int vfo_t;
 #define RIG_VFO_A (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO1))
 #define RIG_VFO_B (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO2))
 #define RIG_VFO_C (RIG_CTRL_BAND(RIG_CTRL_SUB, RIG_VFO1))
-#define RIG_VFO_MAIN (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO_CURR))
-#define RIG_VFO_SUB  (RIG_CTRL_BAND(RIG_CTRL_SUB, RIG_VFO_CURR))
+#define RIG_VFO_MAIN (RIG_CTRL_BAND(RIG_CTRL_MAIN, 0))
+#define RIG_VFO_SUB  (RIG_CTRL_BAND(RIG_CTRL_SUB, 0))
 
 
 #define RIG_TARGETABLE_NONE 0x00
@@ -726,15 +735,28 @@ typedef struct freq_range_list freq_range_t;
 /**
  * \brief Tuning step definition
  *
- * Lists the tuning steps available for each mode
+ * Lists the tuning steps available for each mode.
  *
- * \sa rig_set_ts
+ * If in the list a ts field has RIG_TS_ANY value,
+ * this means the rig allows its tuning step to be
+ * set to any value ranging from the lowest to the
+ * highest (if any) value in the list for that mode.
+ * The tuning step must be sorted in the ascending
+ * order, and the RIG_TS_ANY value, if present, must
+ * be the last one in the list.
+ *
+ * Note also that the minimum frequency resolution
+ * of the rig is determined by the lowest value
+ * in the Tuning step list.
+ *
+ * \sa rig_set_ts, rig_get_resolution
  */
 struct tuning_step_list {
   rmode_t modes;	/*!< Bit field of RIG_MODE's */
   shortfreq_t ts;	/*!< Tuning step in Hz */
 };
 
+#define RIG_TS_ANY     0
 #define RIG_TS_END     {RIG_MODE_NONE,0}
 #define RIG_IS_TS_END(t)	((t).modes == RIG_MODE_NONE && (t).ts == 0)
 
@@ -752,6 +774,16 @@ struct tuning_step_list {
  * Note: if there's no lower width or upper width, then narrow or
  * respectively wide passband is equal to the default normal passband.
  *
+ * If in the list a width field has RIG_FLT_ANY value,
+ * this means the rig allows its passband width to be
+ * set to any value ranging from the lowest to the
+ * highest value (if any) in the list for that mode.
+ * The RIG_TS_ANY value, if present, must
+ * be the last one in the list.
+ *
+ * The width field is the narrowest passband in a transmit/receive chain
+ * with regard to different IF.
+ * 
  * \sa rig_set_mode, rig_passband_normal, rig_passband_narrow, rig_passband_wide
  */
 struct filter_list {
@@ -759,6 +791,7 @@ struct filter_list {
   pbwidth_t width;	/*!< Passband width in Hz */
 };
 
+#define RIG_FLT_ANY     0
 #define RIG_FLT_END     {RIG_MODE_NONE,0}
 #define RIG_IS_FLT_END(f)	((f).modes == RIG_MODE_NONE)
 
@@ -1161,6 +1194,8 @@ typedef struct {
 		int stop_bits;	/*!< Number of stop bits */
 		enum serial_parity_e parity;		/*!< Serial parity */
 		enum serial_handshake_e handshake;	/*!< Serial handshake */
+		enum serial_control_state_e rts_state;	/*!< RTS set state */
+		enum serial_control_state_e dtr_state;	/*!< DTR set state */
 	} serial;		/*!< serial attributes */
 	struct {
 		int pin;	/*!< Parrallel port pin number */
