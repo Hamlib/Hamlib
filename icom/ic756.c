@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.4 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: ic756.c,v 1.5 2002-10-07 21:48:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -397,7 +397,7 @@ static const struct confparams ic756pro2_ext_parms[] = {
 	{ TOK_SSBBASS, "ssbbass", "SSB Tx Tone (Bass)", "SSB Tx Tone (Bass)",
 		NULL, RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
 	},
-	{ TOK_MEMNAME, "memname", "Show mem name", "Show memory name",
+	{ TOK_MEMNAME, "showmem", "Show mem name", "Show memory name",
 		NULL, RIG_CONF_CHECKBUTTON, { }
 	},
 	{ TOK_SQLCTRL, "sqlctrl", "RF/Sql control", "set RF/Squelch control",
@@ -413,7 +413,7 @@ static const struct confparams ic756pro2_ext_parms[] = {
 /*
  * NUMERIC: val.f
  * COMBO: val.i, starting from 0
- * STRING: val.s
+ * STRING: val.cs for set, val.s for get
  * CHECKBUTTON: val.i 0/1
  */
 
@@ -599,11 +599,11 @@ static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
 		icom_val = val.i;
 		break;
 	case TOK_MYCALL:	/* max 10 ASCII char */
-		ep_len = strlen(val.s);
+		ep_len = strlen(val.cs);
 		if (ep_len > 10)
 			return -RIG_EINVAL;
 		ep_menu = 0x15;
-		memcpy(epbuf+1, val.s, ep_len);
+		memcpy(epbuf+1, val.cs, ep_len);
 		break;
 	default:
 		return -RIG_EINVAL;
