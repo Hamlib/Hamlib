@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.3 2000-10-10 22:13:26 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.4 2000-10-16 22:13:05 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -168,7 +168,7 @@ int main (int argc, char *argv[])
 
 	printf("Tuning steps:\n");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
-			printf("\t%dHz:\t%s\n",caps->tuning_steps[i].ts,
+			printf("\t%iHz:\t%s\n",caps->tuning_steps[i].ts,
 							decode_modes(caps->tuning_steps[i].modes));
 	}
 
@@ -186,16 +186,8 @@ int main (int argc, char *argv[])
 	printf("Can get repeater offset:\t%c\n",caps->get_rpt_offs!=NULL?'Y':'N');
 	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
 	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
-	printf("Can set power:\t%c\n",caps->set_power!=NULL?'Y':'N');
-	printf("Can get power:\t%c\n",caps->get_power!=NULL?'Y':'N');
-	printf("Can set volume:\t%c\n",caps->set_volume!=NULL?'Y':'N');
-	printf("Can get volume:\t%c\n",caps->get_volume!=NULL?'Y':'N');
 	printf("Can set power on:\t%c\n",caps->set_poweron!=NULL?'Y':'N');
 	printf("Can set power off:\t%c\n",caps->set_poweroff!=NULL?'Y':'N');
-	printf("Can get S-meter level:\t%c\n",caps->get_strength!=NULL?'Y':'N');
-	printf("Can set squelch:\t%c\n",caps->set_squelch!=NULL?'Y':'N');
-	printf("Can get squelch:\t%c\n",caps->get_squelch!=NULL?'Y':'N');
-	printf("Can get squelch status:\t%c\n",caps->get_squelch_status!=NULL?'Y':'N');
 	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
 	printf("Can get transceive:\t%c\n",caps->get_trn!=NULL?'Y':'N');
 	printf("Can decode events:\t%c\n",caps->decode_event!=NULL?'Y':'N');
@@ -222,19 +214,21 @@ static char *decode_modes(rmode_t modes)
 	if (modes&RIG_MODE_LSB) strcat(buf,"LSB ");
 	if (modes&RIG_MODE_RTTY) strcat(buf,"RTTY ");
 	if (modes&RIG_MODE_FM) strcat(buf,"FM ");
+#if 0
+	if (modes&RIG_MODE_CWR) strcat(buf,"CWR ");
 	if (modes&RIG_MODE_NFM) strcat(buf,"NFM ");
 	if (modes&RIG_MODE_WFM) strcat(buf,"WFM ");
 	if (modes&RIG_MODE_NAM) strcat(buf,"NAM ");
 	if (modes&RIG_MODE_WAM) strcat(buf,"WAM ");
 	if (modes&RIG_MODE_NCW) strcat(buf,"NCW ");
 	if (modes&RIG_MODE_WCW) strcat(buf,"WCW ");
-	if (modes&RIG_MODE_CWR) strcat(buf,"CWR ");
 	if (modes&RIG_MODE_NUSB) strcat(buf,"NUSB ");
 	if (modes&RIG_MODE_WUSB) strcat(buf,"WUSB ");
 	if (modes&RIG_MODE_NLSB) strcat(buf,"NLSB ");
 	if (modes&RIG_MODE_WLSB) strcat(buf,"WLSB ");
 	if (modes&RIG_MODE_NRTTY) strcat(buf,"NRTTY ");
 	if (modes&RIG_MODE_WRTTY) strcat(buf,"WRTTY ");
+#endif
 
 	return buf;
 }
