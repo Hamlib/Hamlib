@@ -1,4 +1,5 @@
 hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+and (C) Stephane Fillod 2000,2001
 
 The purpose of this project is to provide stable, flexible,
 shared libraries that enable quicker development of Amateur
@@ -29,21 +30,18 @@ Frontend Library
 
 libhamlib.so -  frontend lib that provides generic API
 		for all RIG types. This is what Application
-		programmers will "see"
+		programmers will "see".
 
 Backend Examples are:
 ---------------------
  
-1.libhamlib-ft747.so will provide connectivity to Yaesu
-  FT 747GX Transceiver via a standard API.
+1.libhamlib-yaesu.so will provide connectivity to Yaesu
+  FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
 
-2. libhamlib-ft847.so will provide connectivity to Yaesu FT 847
-   "Earth Station" via a standard API.
- 
-3. libhamlib-xxxx.so will provide connectivity to the Wiz-bang
+2. libhamlib-xxxx.so will provide connectivity to the Wiz-bang
    moon-melter 101A (yikes..)
 
-Hamlib will also enable developers  to develop
+Hamlib will also enable developers to develop
 professional looking GUI's towards a standard control library
 API, and they would not have to worry about the underlying
 connection towards physical hardware.
@@ -51,15 +49,39 @@ connection towards physical hardware.
 Initially serial (RS232) connectivity will be handled, but
 I expect that IP (and other) connectivity will follow afterwards. 
 
+Recompiling
+-----------
 
-Take a look at README.developer for more info.
+Hamlib is entirely developped using GNU tools, under various Linux systems. 
+That is, if you want to take part in the development of Hamlib, 
+you'll need at least the following tools:
+	* autoconf > 2.50
+	* automake > 1.4-p4
+	* libtool  > 1.4.2
+	* doxygen
+	* cvs and ssh to connect to http://sourceforge.net/
+
+However, if you just want to recompile the library, please refer
+to the INSTALL file. IMPORTANT: If autoconf or automake are installed on
+your system, make sure they are matching *at least* the version shown above.
+The Hamlib team is very interrested to hear from you, how Hamlib
+builds and works on your system, especially on non-Linux system or 
+non-PC systems. We try to make Hamlib as portable as possible.
+Please report in case of problems at hamlib-developer@lists.sourceforge.net
+Patches are welcome too!
+And for those who were brave enough to read until then, but not lucky enough
+to rebuild the lib, there're good news. The RPM and deb packages are
+available at the sourceforge.net site. Enjoy!
+
+
+Take a look at tests/README for more info on simple examples.
 
 Also, take a look at http://sourceforge.net/projects/hamlib/
 Here you will find a mail list, and  the latest CVS releases.
+Feedback, questions, etc. about Hamlib are very welcome 
+at the mail list: <hamlib-developer@lists.sourceforge.net>
 
-Have Fun / Frank S. 
+Have Fun / Frank S / Stephane F
 
-  73's de vk3fcs/km5ws
-
-
+  73's de vk3fcs/km5ws / f8cfe
 
