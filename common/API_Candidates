@@ -1,3 +1,75 @@
+#	$Id: API_Candidates,v 1.3 2000-09-16 17:58:07 javabear Exp $	
+
+
+
+Updated API notes -- FS 
+
+
+previously, on this channel.....
+> 
+> > > cmd_set_freq(RIG *rig,freq_t freq, rig_mode_t mode, vfo_t vfo )
+> > > long int cmd_get_freq_mode_status(RIG *rig, unsigned char *mode, vfo_t
+> > > vfo);
+> > >
+> >   Looks definitely better this way!
+> >   Just a question: what if the application just wants to change
+> >   the mode only? It might be troublesome in certain case to have
+> >   to remember the current frequency or having to query it.
+> 
+> true, I guess we have some options...
+> 
+> API provides
+> cmd_set_freq_(RIG *rig,freq_t freq, rig_mode_t mode, vfo_t vfo )
+> 
+> and possibly
+> cmd_set_mode(RIG *rig, rig_mode_t mode)
+> cmd_set_vfo(RIG *rig, vfo_t vfo)
+
+
+I must have had too many beers during the Olympic opening
+ceremony :-)
+
+
+Actually now that I think about it, the cleanest approach
+is probably for the frontend API to provide as a minimum functions
+like 
+
+cmd_set_mode(RIG *rig, rig_mode_t mode)
+cmd_set_vfo(RIG *rig, vfo_t vfo)
+cmd_set_freq_(RIG *rig, freq_t freq)
+cmd_set_filter_(RIG *rig, filter_t filter)
+
+and in general
+cmd_set_xxx_(RIG *rig, xxx_t xxx)
+
+and that optional  convenience functions like 
+
+cmd_set_channel_(RIG *rig,freq_t freq, rig_mode_t mode, vfo_t vfo
+....,,,, filter_t filter..)
+
+is some frontend convenience function that backend libs can handle
+either directly as is toward the rig if the rig can handle it that way, 
+or the backend lib breaks it into the simpler functions shown above if 
+the rig needs it that way. We dont care up the front how its done
+int the back of course (apart from efficiency issues of course)!
+
+
+So, 1 frontend convenience functions may cause multiple backend
+calls to the rig as it iterates through the convenience functions
+argumant list and  calls individual "primitives" towards the rig.
+
+
+Should be no state issues to deal with..
+
+just trying to avoid long function names like
+cmd_set_freq_mode_vfo_filter_power_this_that_whatever(....)
+
+/FS
+
+
+
+
+
 /*
  *  
  * API Notes -- FS
