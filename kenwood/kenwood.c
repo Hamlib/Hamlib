@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.82 2005-01-25 00:20:30 fillods Exp $
+ *	$Id: kenwood.c,v 1.83 2005-01-31 16:41:49 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -306,15 +306,17 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 					rig_debug(RIG_DEBUG_ERR,"kenwood_set_split_vfo: unsupported VFO %d\n", txvfo);
 					return -RIG_EINVAL;
 			} 
-		} else
-		  if(vfo==RIG_VFO_CURR)
-			rig_debug(RIG_DEBUG_ERR,"kenwood_set_split_vfo: unsupported VFO %d\n", vfo);
-
 		/* set TX VFO */
 		cmd_len = sprintf(cmdbuf, "FT%c%s", vfo_function, cmd_trm(rig));
 		ack_len = 0;
 		retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
-		return retval;
+		if (retval != RIG_OK)
+			return retval;
+		} else
+		  if(vfo==RIG_VFO_CURR)
+			rig_debug(RIG_DEBUG_ERR,"kenwood_set_split_vfo: unsupported VFO %d\n", vfo);
+
+		return RIG_OK;
 }
 
 /*
