@@ -202,6 +202,7 @@ AC_SUBST(RIGMATRIX)
 
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake"
 ROT_BACKEND_LIST="dummy easycomm rotorez"
+BINDINGS=""
 BINDING_LIST=""
 
 dnl Check if cxx-binding not wanted, default is to build it
@@ -219,7 +220,7 @@ AC_ARG_WITH(cxx-binding,
 AC_MSG_RESULT($cf_with_cxx_binding)
 
 if test "${cf_with_cxx_binding}" = "yes" ; then
-  BINDING_LIST="${BINDING_LIST} c++"
+  BINDINGS="${BINDINGS} c++"
 fi
 
 dnl Check if perl-binding not wanted, default is to not build it
@@ -253,7 +254,7 @@ AC_ARG_WITH(kylix-binding,
 AC_MSG_RESULT($cf_with_kylix_binding)
 
 if test "${cf_with_kylix_binding}" = "yes" ; then
-  BINDING_LIST="${BINDING_LIST} kylix"
+  BINDINGS="${BINDINGS} kylix"
 fi
 
 
@@ -277,6 +278,8 @@ if test "${cf_with_tcl_binding}" = "yes" ; then
   BINDING_LIST="${BINDING_LIST} tcl"
 fi
 AC_SUBST(TCL_LIB_SPEC)
+AC_SUBST(TCL_INCLUDE_SPEC)
+AC_SUBST(TCL_SHLIB_SUFFIX)
 
 # TODO: require "${ac_cv_header_sys_socket_h}" = "no"
 
@@ -367,19 +370,19 @@ AC_SUBST(ROT_BACKEND_LIST)
 AC_SUBST(ROT_BACKENDLNK)
 AC_SUBST(ROT_BACKENDEPS)
 
-BINDINGS=""
 AC_CHECK_PROG(cf_with_bindings, [swig], [yes], [no], [$PATH])
-if test "${cf_with_bindings}" = "yes" ; then
+if test "${cf_with_bindings}" = "yes" -a "${cf_with_tcl_binding}" = "yes" \
+	-a "${cf_with_perl_binding}" = "yes"; then
   AC_MSG_CHECKING(for swig >= 1.3.14)
   cf_with_bindings=no
   case `swig -version 2>&1| grep 'SWIG Version'` in
   *1.3.1[[4-9]]*)
   	cf_with_bindings=yes
- 	BINDINGS="bindings"
+ 	BINDINGS="${BINDINGS} bindings"
  	;;
   *2.*.*)
   	cf_with_bindings=yes
- 	BINDINGS="bindings"
+ 	BINDINGS="${BINDINGS} bindings"
 	;;
   esac
   AC_MSG_RESULT($cf_with_bindings)
@@ -387,19 +390,11 @@ fi
 AC_MSG_CHECKING(whether to build bindings)
 AC_MSG_RESULT($cf_with_bindings)
 AC_SUBST(BINDINGS)
-
-for bi in ${BINDING_LIST} ; do
-    if test "${bi}" != "c++" -a "${bi}" != "kylix" ; then
-    	BINDING_LA="${BINDING_LA} hamlib${bi}.la"
-    fi
-done
-AC_SUBST(BINDING_LA)
 AC_SUBST(BINDING_LIST)
+
 
 AC_SUBST(INCLUDES)
 
-#tcl/Makefile
-#perl/Makefile
 AC_CONFIG_FILES([Makefile
 macros/Makefile
 include/Makefile
