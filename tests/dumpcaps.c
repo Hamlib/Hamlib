@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.30 2002-01-27 23:54:58 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.31 2002-01-29 22:04:30 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -308,6 +308,12 @@ int main (int argc, char *argv[])
 	/*
 	 * TODO: keep me up-to-date with API call list!
 	 */
+	printf("Has init:\t%c\n",caps->rig_init!=NULL?'Y':'N');
+	printf("Has cleanup:\t%c\n",caps->rig_cleanup!=NULL?'Y':'N');
+	printf("Has open:\t%c\n",caps->rig_open!=NULL?'Y':'N');
+	printf("Has close:\t%c\n",caps->rig_close!=NULL?'Y':'N');
+	printf("Can set conf:\t%c\n",caps->set_conf!=NULL?'Y':'N');
+	printf("Can get conf:\t%c\n",caps->get_conf!=NULL?'Y':'N');
 	printf("Can set frequency:\t%c\n",caps->set_freq!=NULL?'Y':'N');
 	printf("Can get frequency:\t%c\n",caps->get_freq!=NULL?'Y':'N');
 	printf("Can set mode:\t%c\n",caps->set_mode!=NULL?'Y':'N');
@@ -343,6 +349,9 @@ int main (int argc, char *argv[])
 	printf("Can get DCS squelch:\t%c\n",caps->get_dcs_sql!=NULL?'Y':'N');
 	printf("Can set power stat:\t%c\n",caps->set_powerstat!=NULL?'Y':'N');
 	printf("Can get power stat:\t%c\n",caps->get_powerstat!=NULL?'Y':'N');
+	printf("Can get reset:\t%c\n",caps->reset!=NULL?'Y':'N');
+	printf("Can get ant:\t%c\n",caps->get_ant!=NULL?'Y':'N');
+	printf("Can set ant:\t%c\n",caps->set_ant!=NULL?'Y':'N');
 	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
 	printf("Can get transceive:\t%c\n",caps->get_trn!=NULL?'Y':'N');
 	printf("Can set func:\t%c\n",caps->set_func!=NULL?'Y':'N');
@@ -355,11 +364,13 @@ int main (int argc, char *argv[])
 	printf("Can recv DTMF:\t%c\n",caps->recv_dtmf!=NULL?'Y':'N');
 	printf("Can send Morse:\t%c\n",caps->send_morse!=NULL?'Y':'N');
 	printf("Can decode events:\t%c\n",caps->decode_event!=NULL?'Y':'N');
+	printf("Can set bank:\t%c\n",caps->set_bank!=NULL?'Y':'N');
 	printf("Can set mem:\t%c\n",caps->set_mem!=NULL?'Y':'N');
 	printf("Can get mem:\t%c\n",caps->get_mem!=NULL?'Y':'N');
 	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':'N');
 	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':'N');
 	printf("Can ctl mem/vfo:\t%c\n",caps->vfo_op!=NULL?'Y':'N');
+	printf("Can scan:\t%c\n",caps->scan!=NULL?'Y':'N');
 	printf("Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
 	
 
