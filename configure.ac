@@ -8,7 +8,7 @@ AC_PREREQ(2.50)
 ## Autoconf initialisation. ##
 ## ------------------------ ##
 dnl Please do not use '-' in the version number, 'make rpm' will fail
-AC_INIT([hamlib], [1.1.4], [hamlib-developer@lists.sourceforge.net])
+AC_INIT([hamlib], [1.1.5cvs], [hamlib-developer@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 
 ## ------------------------ ##
@@ -136,7 +136,7 @@ AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select gettimeofday memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
-AC_CHECK_FUNCS([cfmakeraw])
+AC_CHECK_FUNCS([cfmakeraw setitimer])
 AC_REPLACE_FUNCS([getopt_long usleep])
 AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
@@ -353,8 +353,8 @@ fi
 # dlopen force or preopen self for static version ?
 BACKENDLNK="-dlopen force"
 for be in ${BACKEND_LIST} ; do
-	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/hamlib-${be}.la"
-	BACKENDEPS="${BACKENDEPS} ../${be}/hamlib-${be}.la"
+	BACKENDLNK="${BACKENDLNK} -dlopen \$(top_builddir)/${be}/hamlib-${be}.la"
+	BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
 done
 AC_SUBST(BACKEND_LIST)
 AC_SUBST(BACKENDLNK)
@@ -363,8 +363,8 @@ AC_SUBST(BACKENDEPS)
 # dlopen force or preopen self for static version ?
 ROT_BACKENDLNK="-dlopen force"
 for be in ${ROT_BACKEND_LIST} ; do
-    ROT_BACKENDLNK="${ROT_BACKENDLNK} -dlopen ../${be}/hamlib-${be}.la"
-    ROT_BACKENDEPS="${ROT_BACKENDEPS} ../${be}/hamlib-${be}.la"
+    ROT_BACKENDLNK="${ROT_BACKENDLNK} -dlopen \$(top_builddir)/${be}/hamlib-${be}.la"
+    ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
 done
 AC_SUBST(ROT_BACKEND_LIST)
 AC_SUBST(ROT_BACKENDLNK)
