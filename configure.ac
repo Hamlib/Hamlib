@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_INIT_AUTOMAKE(hamlib, 1.1.2)
 AM_CONFIG_HEADER(include/config.h)
 AC_PREREQ(2.50)dnl              dnl Minimum Autoconf version required.
-AC_REVISION($Revision: 1.2 $)
+AC_REVISION($Revision: 1.3 $)
 
 dnl directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
@@ -23,6 +23,8 @@ AC_PROG_GCC_TRADITIONAL
 AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PROG_RANLIB
+AC_PROG_AWK
 
 AC_PROG_CXX
 AC_MSG_CHECKING(if you want to build C++ binding and demo)
@@ -44,8 +46,9 @@ fi
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h getopt.h)
-AC_CHECK_HEADERS(sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h)
+AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h unistd.h getopt.h errno.h])
+AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h])
+AC_CHECK_HEADERS([windows.h winioctl.h winbase.h])
 dnl AC_HEADER_STAT
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -53,6 +56,8 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
+AC_TYPE_SIGNAL
+AC_CHECK_TYPES([siginfo_t],[],[],[#include <signal.h>])
 
 dnl Checks for libraries.
 
@@ -71,7 +76,9 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS(atexit snprintf select strerror)
 AC_CHECK_FUNCS(getopt_long,,LIBOBJS="$LIBOBJS getopt.o getopt1.o")
 AC_CHECK_FUNCS(usleep,,LIBOBJS="$LIBOBJS usleep.o")
-
+AC_FUNC_ALLOCA
+AC_FUNC_MALLOC
+AC_FUNC_VPRINTF
 
 dnl initialize libtool
 dnl Enable building of the convenience library

@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: event.c,v 1.9 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: event.c,v 1.10 2001-08-22 21:10:17 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,10 +43,10 @@
 #include "event.h"
 
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-static void sa_sigiohandler(int signum);
+#ifdef HAVE_SIGINFO_T
+static RETSIGTYPE sa_sigioaction(int signum, siginfo_t *si, void *data);
 #else
-static void sa_sigioaction(int signum, siginfo_t *si, void *data);
+static RETSIGTYPE sa_sigiohandler(int signum);
 #endif
 
 /* This one should be in an include file */
@@ -65,18 +65,18 @@ int add_trn_rig(RIG *rig)
 		/*
 		 * FIXME: multiple open will register several time SIGIO hndlr
 		 */
-#if defined(_WIN32) || defined(__CYGWIN__)
-	act.sa_handler = sa_sigiohandler;
-#else
+#ifdef HAVE_SIGINFO_T
 	act.sa_sigaction = sa_sigioaction;
+#else
+	act.sa_handler = sa_sigiohandler;
 #endif
 
 	sigemptyset(&act.sa_mask);
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-	act.sa_flags = 0;
-#else
+#ifdef HAVE_SIGINFO_T
 	act.sa_flags = SA_SIGINFO;
+#else
+	act.sa_flags = 0;
 #endif
 
 	status = sigaction(SIGIO, &act, NULL);
@@ -89,8 +89,7 @@ int add_trn_rig(RIG *rig)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETOWN failed: %s\n",
 						strerror(errno));
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-#else
+#ifdef HAVE_SIGINFO_T
 	status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETSIG failed: %s\n",
@@ -127,7 +126,8 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 	fd_set rfds;
 	struct timeval tv;
 	int retval;
-#if 0
+
+#if 0&&defined(HAVE_SIGINFO_T)
 	siginfo_t *si = (siginfo_t*)data;
 
 	if (rig->state.rigport.fd != si->si_fd)
@@ -171,20 +171,21 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
  * check the rig is not holding SIGIO,
  * then call rig->caps->decode_event()  (this is done by search_rig)
  */
-#if defined(_WIN32) || defined(__CYGWIN__)
-static void sa_sigiohandler(int signum)
-{
-	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigiohandler: activity detected\n");
-
-	foreach_opened_rig(search_rig_and_decode, NULL);
-}
-
-#else
-static void sa_sigioaction(int signum, siginfo_t *si, rig_ptr_t data)
+#ifdef HAVE_SIGINFO_T
+static RETSIGTYPE sa_sigioaction(int signum, siginfo_t *si, rig_ptr_t data)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigioaction: activity detected\n");
 
 	foreach_opened_rig(search_rig_and_decode, si);
+}
+
+#else
+
+static RETSIGTYPE sa_sigiohandler(int signum)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigiohandler: activity detected\n");
+
+	foreach_opened_rig(search_rig_and_decode, NULL);
 }
 
 #endif
