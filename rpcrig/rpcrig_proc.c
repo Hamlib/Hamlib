@@ -2,7 +2,7 @@
  *  Hamlib RPC server - procedures
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_proc.c,v 1.7 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: rpcrig_proc.c,v 1.8 2003-04-22 19:31:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -132,15 +132,15 @@ rigstate_res *getrigstate_1_svc(void *arg, struct svc_req *svc)
 					sizeof(int)*MAXDBLSTSIZ);
 
 	memcpy(res.rigstate_res_u.state.tuning_steps, rs->tuning_steps,
-					sizeof(struct tuning_step_list)*TSLSTSIZ);
+					sizeof(tuning_step_s)*TSLSTSIZ);
 	memcpy(res.rigstate_res_u.state.filters, rs->filters, 
-					sizeof(struct filter_list)*FLTLSTSIZ);
+					sizeof(filter_s)*FLTLSTSIZ);
 	memcpy(res.rigstate_res_u.state.chan_list, rs->chan_list, 
-					sizeof(chan_t)*CHANLSTSIZ);
+					sizeof(chan_s)*CHANLSTSIZ);
 	memcpy(res.rigstate_res_u.state.rx_range_list, rs->rx_range_list, 
-					sizeof(freq_range_t)*FRQRANGESIZ);
+					sizeof(freq_range_s)*FRQRANGESIZ);
 	memcpy(res.rigstate_res_u.state.tx_range_list, rs->tx_range_list, 
-					sizeof(freq_range_t)*FRQRANGESIZ);
+					sizeof(freq_range_s)*FRQRANGESIZ);
 
 	res.rigstatus = RIG_OK;
 

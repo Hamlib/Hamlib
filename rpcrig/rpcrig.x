@@ -2,7 +2,7 @@
 % *  Hamlib Interface - RPC definitions
 % *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *
-% *	$Id: rpcrig.x,v 1.6 2003-04-06 18:40:35 fillods Exp $
+% *	$Id: rpcrig.x,v 1.7 2003-04-22 19:31:46 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -241,10 +241,16 @@ struct filter_s {
 	rmode_x modes;
 	pbwidth_x width;
 };
+struct channel_cap_x {
+	unsigned int caps;
+	setting_x funcs;
+	setting_x levels;
+};
 struct chan_s {
 	int start;
 	int end;
 	unsigned int type;
+	channel_cap_x mem_caps;
 };
 
 struct rigstate_s {
