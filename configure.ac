@@ -168,10 +168,10 @@ AC_SUBST(LIBOBJS)
 case "$host_os" in
  linux-gnu*)
  # Winradio only under Linux (until someone port it on other os)
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina"
+ BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina jrc"
  ;;
  *) 
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina"
+ BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
 esac
 
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
@@ -202,6 +202,7 @@ alinco/Makefile
 uniden/Makefile
 tentec/Makefile
 kachina/Makefile
+jrc/Makefile
 rpcrig/Makefile
 src/Makefile
 c++/Makefile
