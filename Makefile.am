@@ -9,6 +9,6 @@ SUBDIRS = include lib libltdl src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
 
 DIST_SUBDIRS = include lib libltdl src c++ tcl kylix perl tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
-	rpcrig winradio easycomm rpcrot gnuradio
+	rpcrig winradio easycomm rpcrot gnuradio drake
 
 
