@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.41 2002-09-03 18:53:03 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.42 2002-09-04 14:36:11 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -475,6 +475,9 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
 		return RIG_OK;
 }
 
+/*
+ * rit can only move up/down by 10 Hz, so we use a loop...
+ */
 int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
         unsigned char buf[50], infobuf[50], c;
