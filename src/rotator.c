@@ -1,7 +1,7 @@
 /**
  * \file src/rotator.c
  * \ingroup rot
- * \brief Ham Radio Control Libraries interface
+ * \brief Rotator interface
  * \author Stephane Fillod
  * \date 2000-2001
  *
@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotator.c,v 1.7 2002-09-24 21:42:56 fillods Exp $
+ *		$Id: rotator.c,v 1.8 2002-11-04 22:37:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as

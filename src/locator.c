@@ -1,7 +1,7 @@
 /**
  * \file src/locator.c
  * \ingroup hamlib
- * \brief Ham Radio Control Libraries interface
+ * \brief locator and bearing conversion interface
  * \author Stephane Fillod
  * \date 2000-2002
  *
@@ -12,7 +12,7 @@
  *  Hamlib Interface - locator and bearing conversion calls
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: locator.c,v 1.5 2002-09-24 21:42:56 fillods Exp $
+ *	$Id: locator.c,v 1.6 2002-11-04 22:37:53 fillods Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle, 
  *	by S. R. Sampson, N5OWK.
