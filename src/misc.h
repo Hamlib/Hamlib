@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backends
  * 	as well as by the frontend.
  *
- *    $Id: misc.h,v 1.1 2000-10-01 12:25:49 f4cfe Exp $  
+ *    $Id: misc.h,v 1.2 2000-10-08 21:43:41 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,18 @@
 
 #ifndef _MISC_H
 #define _MISC_H 1
+
+
+/*
+ * Carefull!! These marcos are NOT reentrant!
+ * ie. they may not be executed atomically,
+ * thus not ensure mutual exclusion.
+ * Fix it when making Hamlib reentrant!  --SF
+ */
+#define Hold_Decode(rig) {(rig)->state.hold_decode = 1;}
+#define Unhold_Decode(rig) {(rig)->state.hold_decode = 0;}
+
+
 
 /*
  * Convert char to packed decimal
