@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.14 2000-09-21 06:44:44 f4cfe Exp $  
+ * $Id: serial.c,v 1.15 2000-09-23 02:45:20 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -88,7 +88,7 @@ int serial_open(struct rig_state *rs) {
 
   switch(rs->serial_rate) {
   case 300:
-	speed = B300;
+	speed = B300;		/* yikes... */
     break;
   case 1200:
 	speed = B1200;
@@ -106,7 +106,7 @@ int serial_open(struct rig_state *rs) {
 	speed = B38400;
     break;
   case 57600:
-	speed = B57600;
+	speed = B57600;		/* cool.. */
     break;
   default:
     fprintf(stderr, "open_serial: unsupported rate specified: %d\n", 
@@ -259,15 +259,25 @@ int serial_open(struct rig_state *rs) {
  * Read "num" bytes from "fd" and put results into
  * an array of unsigned char pointed to by "rxbuffer"
  * 
- * Sleeps every second until number of bytes to read
+ * Sleeps read_delay milliseconds until number of bytes to read
  * is the amount requested.
  *
- * It the reads "num" bytes into rxbuffer.
+ * It then reads "num" bytes into rxbuffer.
+ *
+ * input:
+ * fd - file descriptor
+ * rxbuffer - ptr to rx buffer
+ * num - number of bytes to read
+ * read_delay - number of msec between read attempts
+ *
+ * returns:
+ *
+ * n - numbers of bytes read
  *
  */
 
 
-int read_sleep(int fd, unsigned char *rxbuffer, int num ) {  
+int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {  
   int bytes = 0;
   int n = 0;
 
@@ -278,7 +288,7 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num ) {
     printf("bytes  = %i\n", bytes);
     if (bytes == num)
       break;
-    sleep(1);			/* wait 1 second and try again */
+    usleep(read_delay*1000);	/* sleep read_delay msecs */
   }
 
   /* this should not block now */

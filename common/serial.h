@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.10 2000-09-19 06:58:56 f4cfe Exp $  
+ *    $Id: serial.h,v 1.11 2000-09-23 02:46:44 javabear Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@
 
 int serial_open(struct rig_state *rs);
 
-int read_sleep(int fd, unsigned char *rxbuffer, int num );
+int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay);
 int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
 int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay);
 
