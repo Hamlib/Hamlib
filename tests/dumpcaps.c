@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.38 2003-08-17 22:39:07 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.39 2003-08-25 22:36:39 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -147,6 +147,9 @@ int dumpcaps (RIG* rig)
 	switch (caps->port_type) {
 	case RIG_PORT_SERIAL:
 			printf("RS-232\n");
+			break;
+	case RIG_PORT_PARALLEL:
+			printf("Parallel\n");
 			break;
 	case RIG_PORT_DEVICE:
 			printf("device driver\n");
