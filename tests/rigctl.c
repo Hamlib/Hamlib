@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.8 2001-02-25 23:14:19 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.9 2001-03-01 21:25:45 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -129,10 +129,10 @@ struct test_table test_list[] = {
 		{ 'E', "set_mem", set_mem, "Memory#" },
 		{ 'e', "get_mem", get_mem, "Memory#" },
 		{ 'G', "mv_ctl", mv_ctl, "Mem/VFO op" },
-		{ 'H', "set_channel", set_channel },
-		{ 'h', "get_channel", get_channel },
-		{ 'A', "set_trn", set_trn },
-		{ 'a', "get_trn", get_trn },
+		{ 'H', "set_channel", set_channel /* huh! */ },
+		{ 'h', "get_channel", get_channel, "Channel" },
+		{ 'A', "set_trn", set_trn, "Transceive" },
+		{ 'a', "get_trn", get_trn, "Transceive" },
 		{ 0x00, "", NULL },
 
 };
@@ -197,7 +197,7 @@ int main (int argc, char *argv[])
 		if (long_options[i].has_arg)
 			*opt_ptr++ = ':';
 	}
-	memset(&long_options[i], 0, sizeof(struct option));
+	memset(long_options+i, 0, sizeof(struct option));
 	*opt_ptr = '\0';
 
 printf("%s\n",opt_string);
@@ -358,7 +358,7 @@ declare_proto_rig(get_mode)
 		status = rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
 		if (interactive)
 			printf("%s: ", cmd->name1);
-		printf("%d", mode);
+		printf("%d\n", mode);
 		if (interactive)
 			printf("%s: ", cmd->name2);
 		printf("%d", width);
@@ -611,7 +611,7 @@ declare_proto_rig(get_level)
 		sscanf(arg1, "%ld", &level);
 		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->name2);
 		if (RIG_LEVEL_IS_FLOAT(level))
 			printf("%f\n", val.f);
 		else
@@ -645,7 +645,7 @@ declare_proto_rig(get_func)
 		sscanf(arg1, "%ld", &func);
 		status = rig_get_func(rig, RIG_VFO_CURR, func, &func_stat);
 		if (interactive)
-			printf("%s: ", cmd->name1);
+			printf("%s: ", cmd->name2);
 		printf("%d\n", func_stat);
 		return status;
 }
@@ -693,13 +693,19 @@ declare_proto_rig(mv_ctl)
 
 declare_proto_rig(set_channel)
 {
+		fprintf(stderr,"rigctl_set_channel not implemented yet!\n");
 		return 0;
 }
 
 
 declare_proto_rig(get_channel)
 {
-		return 0;
+		int status;
+		channel_t chan;
+
+		sscanf(arg1, "%d", &chan.channel_num);
+		status = rig_get_channel(rig, &chan);
+		return status;
 }
 
 
