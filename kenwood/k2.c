@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - Elecraft K2 description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: k2.c,v 1.2 2004-09-26 08:35:04 fillods Exp $
+ *	$Id: k2.c,v 1.3 2004-11-08 22:46:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,7 +57,7 @@ const struct rig_caps k2_caps = {
 .mfg_name =  "Elecraft",
 .version =  "0.2.1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
