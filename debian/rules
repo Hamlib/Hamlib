@@ -55,21 +55,22 @@ install: build
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
 
 	# Move the appropriate files into the development package..
-	mv $(CURDIR)/debian/tmp/lib/libhamlib.so $(CURDIR)/debian/hamlib-dev/usr/lib/
-	mv $(CURDIR)/debian/tmp/lib/*.a $(CURDIR)/debian/hamlib-dev/usr/lib/
-	mv $(CURDIR)/debian/tmp/include/hamlib $(CURDIR)/debian/hamlib-dev/usr/include/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib.so $(CURDIR)/debian/hamlib-dev/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/*.a $(CURDIR)/debian/hamlib-dev/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/include/hamlib $(CURDIR)/debian/hamlib-dev/usr/include/
 
 	# Move the appropriate files into the runtime package..
-	mv $(CURDIR)/debian/tmp/lib/*.so $(CURDIR)/debian/hamlib1/usr/lib/
-	mv $(CURDIR)/debian/tmp/lib/*.la $(CURDIR)/debian/hamlib1/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/*.so $(CURDIR)/debian/hamlib1/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/*.la $(CURDIR)/debian/hamlib1/usr/lib/
 
 	# Move the appropriate files into the documentation package..
-	mv $(CURDIR)/doc/html $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
-	mv $(CURDIR)/doc/latex $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
+#	mv $(CURDIR)/doc/html $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
+#	mv $(CURDIR)/doc/latex $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
 
 	# Move the appropriate files into the utils package..
-	mv $(CURDIR)/debian/tmp/bin/rigctl $(CURDIR)/debian/hamlib-utils/usr/bin/
-	mv $(CURDIR)/debian/tmp/share/man/man1/rigctl.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
+	mv $(CURDIR)/debian/tmp/usr/bin/rigctl $(CURDIR)/debian/hamlib-utils/usr/bin/
+	mv $(CURDIR)/debian/tmp/usr/bin/rotctl $(CURDIR)/debian/hamlib-utils/usr/bin/
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/rigctl.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
 
 # Build architecture-independent files here.
 binary-indep: build install
