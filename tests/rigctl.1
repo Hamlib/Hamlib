@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "December 26, 2001" "Hamlib"
+.TH RIGCTL "1" "April 17, 2002" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -99,46 +99,47 @@ the operation will fail with a standard error message.
 A summary of commands is included below.
 .TP
 .B F, set_freq
-Set frequency.
+Set frequency, in Hz.
 .TP
 .B f, get_freq
-Get frequency.
+Get frequency, in Hz.
 .TP
 .B M, set_mode
-Set mode/passband.
+Set mode/passband: AM, FM, CW, USB, LSB, RTTY, WFM.
+The passband is the exact passband in Hz, or 0 for the default.
 .TP
 .B m, get_mode
 Get mode/passband.
 .TP
 .B V, set_vfo
-Set VFO.
+Set VFO: VFOA, VFOB, VFOC, VFO, MEM, Main, Sub, etc.
 .TP
 .B v, get_vfo
-Get VFO.
+Get current VFO.
 .TP
 .B T, set_ptt
-Set PTT.
+Set PTT, 0 or 1.
 .TP
 .B t, get_ptt
-Get PTT.
+Get PTT status.
 .TP
 .B R, set_rptr_shift
-Set repeater shift.
+Set repeater shift: "+", "-" or something else for none.
 .TP
 .B r, get_rptr_shift
 Get repeater shift.
 .TP
 .B O, set_rptr_offs
-Set repeater offset.
+Set repeater offset, in Hz.
 .TP
 .B o, get_rptr_offs
 Get repeater offset.
 .TP
 .B C, set_ctcss_tone
-Set CTCSS tone.
+Set CTCSS tone, in tenth of Hz.
 .TP
 .B c, get_ctcss_tone
-Get CTCSS tone.
+Get CTCSS tone, in tenth of Hz.
 .TP
 .B D, set_dcs_code
 Set DCS code.
@@ -147,34 +148,47 @@ Set DCS code.
 Get DCS code.
 .TP
 .B I, set_split_freq
-Set TX frequency.
+Set TX frequency, in Hz.
 .TP
 .B i, get_split_freq
 Get TX frequency.
 .TP
 .B S, set_split
-Set split mode.
+Set split mode, 0 or 1.
 .TP
 .B s, get_split
 Get split mode.
 .TP
 .B N, set_ts
-Set tuning step.
+Set tuning step, in Hz.
 .TP
 .B n, get_ts
 Get tuning step.
 .TP
 .B L, set_level
-Set level/value.
+Set level/value:
+PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN,
+PBT_OUT, CWPITCH, RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP,
+AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX.
 .TP
 .B l, get_level
-Get level value.
+Get level value: also
+SWR, ALC, SQLSTAT, STRENGTH.
 .TP
 .B U, set_func
-Set func/status.
+Set func/status:
+FAGC, NB, COMP, VOX, TONE, TSQL, SBKIN, FBKIN, ANF, NR, AIP, MON, MN,
+RNF, ARO, LOCK, MUTE, VSC, REV, SQL, BC, MBC, LMP, AFC, SATMODE, SCOPE, RESUME.
 .TP
 .B u, get_func
 Get func status.
+.TP
+.B P, set_parm
+Set parm/value:
+ANN, APO, BACKLIGHT, BEEP, TIME, BAT.
+.TP
+.B p, get_parm
+Get parm value.
 .TP
 .B B, set_bank
 Set bank.
@@ -186,15 +200,16 @@ Set memory channel number.
 Get memory channel number.
 .TP
 .B G, vfo_op
-Perform VFO operation.
+Perform VFO operation:
+CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT.
 .TP
 .B g, scan_op
-Perform scan operation/channel.
+Perform scan operation/channel: STOP, MEM, SLCT, PRIO, DELTA.
 .TP
-.B E, set_channel
-Set memory channel data. does not work yet.
+.B H, set_channel
+Set memory channel data. Not implemented yet.
 .TP
-.B e, get_channel
+.B h, get_channel
 Get memory channel data.
 .TP
 .B A, set_trn
@@ -204,7 +219,7 @@ Set transceive mode (reporting event).
 Get transceive mode (reporting event).
 .TP
 .B _, get_info
-Get misc information on the rig.
+Get misc information about the rig.
 
 .SH RETURN VALUE
 rigctl exits with:
@@ -222,7 +237,7 @@ Report bugs to <hamlib-developer@users.sourceforge.net>.
 .br
 I'm already aware of the bug in the previous section :-)
 .SH COPYRIGHT
-Copyright \(co 2000,2001 Stephane Fillod & Frank Singleton.
+Copyright \(co 2000-2002 Stephane Fillod & Frank Singleton.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
