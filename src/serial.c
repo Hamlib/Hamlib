@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface.
  *
- * $Id: serial.c,v 1.5 2001-01-28 22:18:09 f4cfe Exp $  
+ * $Id: serial.c,v 1.6 2001-02-09 23:08:20 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,10 @@
  * 
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
@@ -40,6 +44,14 @@
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
+
+#ifdef HAVE_SYS_IOCCOM_H
+#include <sys/ioccom.h>
+#endif
+
+#ifdef HAVE_LINUX_PPDEV_H
+#include <linux/ppdev.h>
+#endif
 
 
 /*
@@ -422,7 +434,8 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
 
 		retval = select(fd+1, &rfds, NULL, NULL, &tv);
 		if (!retval) {
-			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or select error - %s!\n",
+			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or "
+							"select error - %s!\n",
 							total_count, strerror(errno));
 				return -RIG_ETIMEOUT;
 		}
@@ -484,7 +497,8 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
 
 		retval = select(fd+1, &rfds, NULL, NULL, &tv);
 		if (!retval) {
-			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or select error - %s!\n",
+			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or "
+							"select error - %s!\n",
 							total_count, strerror(errno));
 				return -RIG_ETIMEOUT;
 		}
@@ -509,36 +523,139 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
 }
 
 /*
- * TODO: split ptt_set in ser_ptt_set and par_ptt_set
- * +ser_ptt_open/ser_ptt_close & par_ptt_open/par_ptt_close
+ * ser_ptt_set and par_ptt_set
+ * ser_ptt_open/ser_ptt_close & par_ptt_open/par_ptt_close
+ *
+ * assumes: rs is not NULL
  */
-int ptt_set(int fd, ptt_type_t ptt_type, int pttx)
+
+int ser_ptt_open(struct rig_state *rs)
+{
+		return open(rs->ptt_path, O_RDWR | O_NOCTTY);
+}
+
+/*
+ * TODO: to be called before exiting: atexit(parport_cleanup)
+ * void parport_cleanup() { ioctl(fd, PPRELEASE); }
+ */
+
+int par_ptt_open(struct rig_state *rs)
+{
+		int ptt_fd;
+
+		ptt_fd = open(rs->ptt_path, O_RDWR);
+#ifdef HAVE_LINUX_PPDEV_H
+		ioctl(ptt_fd, PPCLAIM);
+#endif
+		return ptt_fd;
+}
+
+int ser_ptt_set(struct rig_state *rs, ptt_t pttx)
 {
 		unsigned char y;
 
-		switch(ptt_type) {
+		switch(rs->ptt_type) {
 		case RIG_PTT_SERIAL_RTS:
 			y = TIOCM_RTS;
-			return ioctl(fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
+			return ioctl(rs->ptt_fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
 
 		case RIG_PTT_SERIAL_DTR:
-			return -RIG_ENIMPL;
 			y = TIOCM_DTR;
-			return ioctl(fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
+			return ioctl(rs->ptt_fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
 
-#ifdef LINUX	/* Have PPdev */
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
+								rs->ptt_type);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+int par_ptt_set(struct rig_state *rs, ptt_t pttx)
+{
+		switch(rs->ptt_type) {
+#ifdef HAVE_LINUX_PPDEV_H
 		case RIG_PTT_PARALLEL:
 				{
 					unsigned char reg;
 
-					reg = !!pttx;
-					return ioctl(fd, PPWDATA, &reg);
+					reg = pttx ? 0x01:0x00;
+					return ioctl(rs->ptt_fd, PPWDATA, &reg);
 				}
 #endif
 		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",ptt_type);
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+								rs->ptt_type);
 				return -RIG_EINVAL;
 		}
-		return 0;
+		return RIG_OK;
+}
+
+/*
+ * assumes pttx not NULL
+ */
+int ser_ptt_get(struct rig_state *rs, ptt_t *pttx)
+{
+		unsigned char y;
+		int status;
+
+		switch(rs->ptt_type) {
+		case RIG_PTT_SERIAL_RTS:
+			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
+			*pttx = y & TIOCM_RTS ? RIG_PTT_ON:RIG_PTT_OFF;
+			return status;
+
+		case RIG_PTT_SERIAL_DTR:
+			return -RIG_ENIMPL;
+			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
+			*pttx = y & TIOCM_DTR ? RIG_PTT_ON:RIG_PTT_OFF;
+			return status;
+
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
+								rs->ptt_type);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+/*
+ * assumes pttx not NULL
+ */
+int par_ptt_get(struct rig_state *rs, ptt_t *pttx)
+{
+		int status;
+
+		switch(rs->ptt_type) {
+#ifdef HAVE_LINUX_PPDEV_H
+		case RIG_PTT_PARALLEL:
+				{
+					unsigned char reg;
+
+					status = ioctl(rs->ptt_fd, PPRDATA, &reg);
+					*pttx = reg & 0x01 ? RIG_PTT_ON:RIG_PTT_OFF;
+					return status;
+				}
+#endif
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+								rs->ptt_type);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+
+int ser_ptt_close(struct rig_state *rs)
+{
+		return close(rs->ptt_fd);
+}
+
+int par_ptt_close(struct rig_state *rs)
+{
+#ifdef HAVE_LINUX_PPDEV_H
+		ioctl(rs->ptt_fd, PPRELEASE);
+#endif
+		return close(rs->ptt_fd);
 }
 
