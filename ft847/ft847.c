@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.3 2000-07-26 00:34:25 javabear Exp $  
+ * $Id: ft847.c,v 1.4 2000-07-26 23:36:54 javabear Exp $  
  *
  */
 
@@ -244,10 +244,15 @@ void cmd_set_repeater_offset(int fd, unsigned char d1,  unsigned char d2,
 }
 
 
+/*
+ * Get data rx from the RIG...
+ *
+ */
+
 
 unsigned char cmd_get_rx_status(int fd) {
   int bytes;			/* read from rig */
-  int i,n;			/* counters */
+  int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0xe7 }; /* get receiver status */
 
@@ -261,11 +266,9 @@ unsigned char cmd_get_rx_status(int fd) {
   bytes = 0;
   while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    printf("bytes  = %i\n", bytes);
     if (bytes == 1)
       break;
-    sleep(1);
-    
+    sleep(1);    
   }
 
   /* this should not block now */
@@ -279,9 +282,14 @@ unsigned char cmd_get_rx_status(int fd) {
 
 }
 
+/*
+ * Get data tx from the RIG...
+ *
+ */
+
 unsigned char cmd_get_tx_status(int fd) {
   int bytes;			/* read from rig */
-  int i,n;			/* counters */
+  int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0xf7 }; /* get tx status */
 
@@ -293,26 +301,31 @@ unsigned char cmd_get_tx_status(int fd) {
    */
 
   bytes = 0;
-  while(bytes < 1) {
+  while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    printf("bytes  = %i\n", bytes);
+    if (bytes == 1)
+      break;
     sleep(1);
-    
   }
 
   /* this should not block now */
   
   n = read(fd,datain,1);	/* grab 1 byte from rig */
 
-  printf("i = %i ,datain[i] = %x \n", i, datain[i]);
+  printf("datain[0] = %x \n",datain[0]);
 
   return datain[0];
 
 }
 
+/*
+ * Get freq and mode data from the RIG...
+ *
+ */
+
 unsigned char cmd_get_freq_mode_status_main_vfo(int fd) {
   int bytes;			/* read from rig */
-  int i,n;			/* counters */
+  int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x03 }; /* get freq and mode status */
 								  /* main vfo*/
@@ -325,18 +338,18 @@ unsigned char cmd_get_freq_mode_status_main_vfo(int fd) {
    */
 
   bytes = 0;
-  while(bytes < 1) {
+  while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    printf("bytes  = %i\n", bytes);
-    sleep(1);
-    
+    if (bytes == 1)
+      break;
+    sleep(1);   
   }
 
   /* this should not block now */
   
   n = read(fd,datain,1);	/* grab 1 byte from rig */
 
-  printf("i = %i ,datain[i] = %x \n", i, datain[i]);
+  printf("datain[0] = %x \n", datain[0]);
 
   return datain[0];
 
@@ -344,7 +357,7 @@ unsigned char cmd_get_freq_mode_status_main_vfo(int fd) {
 
 unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
   int bytes;			/* read from rig */
-  int i,n;			/* counters */
+  int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x13 }; /* get freq and mode status */
 								  /* sat rx vfo*/
@@ -357,18 +370,18 @@ unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
    */
 
   bytes = 0;
-  while(bytes < 1) {
+  while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    printf("bytes  = %i\n", bytes);
-    sleep(1);
-    
+    if (bytes == 1)
+      break;
+    sleep(1);   
   }
 
   /* this should not block now */
   
   n = read(fd,datain,1);	/* grab 1 byte from rig */
 
-  printf("i = %i ,datain[i] = %x \n", i, datain[i]);
+  printf("datain[0] = %x \n",  datain[0]);
 
   return datain[0];
 
@@ -376,7 +389,7 @@ unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
 
 unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd) {
   int bytes;			/* read from rig */
-  int i,n;			/* counters */
+  int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x13 }; /* get freq and mode status */
 								  /* sat tx vfo*/
@@ -389,18 +402,18 @@ unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd) {
    */
 
   bytes = 0;
-  while(bytes < 1) {
+  while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    printf("bytes  = %i\n", bytes);
+    if (bytes == 1)
+      break;
     sleep(1);
-    
   }
 
   /* this should not block now */
   
   n = read(fd,datain,1);	/* grab 1 byte from rig */
 
-  printf("i = %i ,datain[i] = %x \n", i, datain[i]);
+  printf("datain[0] = %x \n",  datain[0]);
 
   return datain[0];
 
