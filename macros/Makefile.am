@@ -4,6 +4,7 @@ MACROS = \
 	aclocal-include.m4 \
 	acx_pthread.m4 \
 	lf_warnings.m4 \
+	gr_doxygen.m4 \
 	gr_pwin32.m4 \
 	gr_swig.m4 \
 	libtool.m4 \
