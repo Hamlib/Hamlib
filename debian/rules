@@ -30,7 +30,7 @@ build-stamp:
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
+	rm -f build-stamp configure-stamp config.log config.status
 
 	# Add here commands to clean up after the build process.
 	-$(MAKE) distclean
@@ -100,7 +100,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -Xalinco -Xaor -Xdummy -Xicom -Xkachina -Xkenwood -Xpcr -Xtentec -Xuniden -Xwinradio -Xyaesu -Xdrake -Xeasycomm -Xjrc
+	dh_makeshlibs -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xpcr -Xrotorez -Xrpc -Xtentec -Xuniden -Xwinradio -Xyaesu
 	dh_installdeb
 #	dh_perl
 	dh_shlibdeps
