@@ -1,8 +1,8 @@
 /*
  *  Hamlib RPC backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.18 2004-03-15 03:30:26 nj8j Exp $
+ *	$Id: rpcrig_backend.c,v 1.19 2004-06-06 21:58:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,6 +25,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
