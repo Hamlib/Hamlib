@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.2 2000-07-28 00:49:49 javabear Exp $  
+ * $Id: serial.c,v 1.3 2000-07-30 02:00:49 javabear Exp $  
  *
  */
 
@@ -155,13 +155,20 @@ void pause2() {
 int write_block(int fd, unsigned char *data) {
   int i;
 
+  printf("write_block data =  ");
+
   for (i=0; i<5; i++) {
+
     if(write(fd, &data[i] , 1) < 0) {
       fputs("write() of  byte failed!\n", stderr);
       return -1;
     }
+    printf(" 0x%.2x ", data[i]);
+
     pause2();			/* 50 msec */
   }
+  printf("\n");
+  
   return 0;
 }
 
@@ -181,6 +188,9 @@ int write_block(int fd, unsigned char *data) {
 int read_sleep(int fd, unsigned char *rxbuffer, int num ) {  
   int bytes = 0;
   int n = 0;
+  int i;
+
+  printf("read_sleep called with num = %i \n",num);
 
   while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
@@ -190,9 +200,18 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num ) {
     sleep(1);			/* wait 1 second and try again */
   }
 
+  printf("\n");
   /* this should not block now */
   
   n = read(fd,rxbuffer,num);	/* grab num bytes from rig */
+
+  printf("read_sleep data = ");
+  for(i=0; i<n; i++) {
+    printf("0x%.2x ",rxbuffer[i]);
+  }
+
+  printf("\n");  
+  printf("\nread_sleep: n = %i \n",n);
 
   return n;			/* return bytes read */
 }
