@@ -26,7 +26,7 @@
 
     <para>Hamlib consists of several parts.  The application programming
     interface, <acronym>API</acronym>, shared library is
-    <filename>libhamlib-1.1.0.so</filename> which is installed in
+    <filename>libhamlib-&curver;.so</filename> which is installed in
     <filename class="directory">/usr/local/lib</filename> by default.
     For ease of use when linking, 
     <filename class="symlink">libhamlib.so</filename> is provided as a 
@@ -123,20 +123,20 @@
 
 	  <note><title>Working with long commandlines</title>
 	  <para>Long commands like those above are difficult to work with
-	  because once the line wraps the <literal>Bash(1)</literal> shell
+	  because once the line wraps the <literal>bash(1)</literal> shell
 	  seems to start doing weird things.  The trick is breaking the line
 	  into two (or more) parts with the <quote>\</quote> character.
 	  When the right edge of the screen is reached simply add 
 	  <literal>\</literal> to the end of the text you are typing and 
 	  then press
 	  <keycap>Enter</keycap>.  You will receive a <prompt>&gt;</prompt>
-	  from <literal>Bash(1)</literal> and you may continue typing the 
+	  from <literal>bash(1)</literal> and you may continue typing the 
 	  command.  If there is no space character in the command you are
 	  typing, be sure you don't add a space before the <literal>\</literal>
 	  or at the beginning of the next line. If you break the line where
 	  a space would exist in the command, either putting the space before
 	  the <literal>\</literal> or at the beginning of the next line.
-	  <literal>Bash(1)</literal> will splice the lines together to form one
+	  <literal>bash(1)</literal> will splice the lines together to form one
 	  command once it receives a <keycap>Enter</keycap> character not
 	  preceded by a <literal>\</literal>.
 	  </note>
@@ -223,12 +223,12 @@
 	archive into its own directory.</para>
 
 	<screen format="linespecific">
-	<prompt>myhost:~ $</prompt> <command>mv Download/hamlib-1.1.0.tar.gz src</command>
+	<prompt>myhost:~ $</prompt> <command>mv Download/hamlib-&curver;.tar.gz src</command>
 	<prompt>myhost:~ $</prompt> <command>cd src</command>
-	<prompt>myhost:~/src $</prompt> <command>tar xvfz hamlib-1.1.0.tar.gz</command>
+	<prompt>myhost:~/src $</prompt> <command>tar xvfz hamlib-&curver;.tar.gz</command>
 	</screen>
       
-	<para>Now you should have a directory called <filename class="directory">hamlib-1.1.0</filename>
+	<para>Now you should have a directory called <filename class="directory">hamlib-&curver;</filename>
 	in the directory you executed the <command>tar</command> command.  
 	This would be a good time to familiarize yourself with the files in 
 	the archive.</para>
@@ -241,7 +241,7 @@
       compiling Hamlib is as easy as running:</para>
 
       <screen format="linespecific">
-      <prompt>myhost:~/src/hamlib-1.1.0 $</prompt> <command>./configure</command>
+      <prompt>myhost:~/src/hamlib-&curver; $</prompt> <command>./configure</command>
       </screen>
 
       <para>The <literal>configure</literal> script checks for the presence of
@@ -251,7 +251,7 @@
       Hamlib:</para>
       
       <screen format="linespecific">
-      <prompt>myhost:~/src/hamlib-1.1.0 $</prompt> <command>make</command>
+      <prompt>myhost:~/src/hamlib-&curver; $</prompt> <command>make</command>
       </screen>
 
       <para>Now there should be considerable output to the screen during

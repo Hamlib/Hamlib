@@ -25,28 +25,12 @@
   "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
   #f)
 
-;(define %generate-article-toc%
-;  ;; Should a Table of Contents be produced for Articles?
-;  #t)
-
 (define (toc-depth nd)
   2)
-
-;(define %generate-article-titlepage-on-separate-page%
-;  ;; Should the article title page be on a separate page?
-;  #t)
 
 (define %section-autolabel%
   ;; Are sections enumerated?
   #t)
-
-;(define %footnote-ulinks%
-;  ;; Generate footnotes for ULinks?
-;  #f)
-
-;(define %bop-footnotes%
-;  ;; Make "bottom-of-page" footnotes?
-;  #f)
 
 (define %body-start-indent%
   ;; Default indent of body text
@@ -74,15 +58,14 @@
 
 (define %admon-graphics%
   ;; Use graphics in admonitions?
-  #t)
+  #f)
 
-(define %admon-graphics-path%
-  ;; Path to admonition grpahics
-  "./images/")
-
-(define admon-graphic-default-extension
-  ;; Admonition graphic file extension
-  ".pdf")
+(define %visual-acuity%
+  ;; General measure of document text size
+  ;; "normal"
+  ;; "presbyopic"
+  ;; "large-type"
+  "presbyopic")
 
 </style-specification-body>
 </style-specification>

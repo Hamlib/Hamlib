@@ -11,7 +11,7 @@
   <book>
     <bookinfo>
       <title>Ham Radio Control Libraries</title>
-      <subtitle>API Reference for Version &curver;</subtitle>
+      <subtitle>General manual for version &curver;</subtitle>
       <author>
 	<firstname>Nathan</firstname>
 	<surname>Bargmann</surname>
@@ -61,9 +61,8 @@
 	  <revnumber>0.2.0</revnumber>
 	  <date>15 January 2002</date>
 	  <authorinitials>nfb</authorinitials>
-	  <revremark>Update draft for 1.1.3 and converted to Docbook Version 
-	  4.1 DTD.  Cut down reference.sgml as this is handled by 
-	  Doxygen. Added framework for Index.</revremark>
+	  <revremark>Update draft, convert 4.1 DTD, add Index framework, API
+	  handled by Doxygen.</revremark>
 	</revision>
 	<revision>
 	  <revnumber>0.1.1</revnumber>
