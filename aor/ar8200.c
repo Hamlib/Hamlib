@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ar8200.c,v 1.8 2001-03-04 13:06:36 f4cfe Exp $  
+ * $Id: ar8200.c,v 1.9 2001-04-26 21:29:34 f4cfe Exp $  
  *
  *
  *
@@ -45,27 +45,29 @@
 
 #define AR8200_FUNC_ALL (RIG_FUNC_TSQL)
 
-#define AR8200_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define AR8200_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL)
 
 /*
  * ar8200 rig capabilities.
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
+ *
+ * part of info from http://www.aoruk.com/8200.htm
  */
 const struct rig_caps ar8200_caps = {
   RIG_MODEL_AR8200, "AR8200", "AOR", "0.1", "GPL",
   RIG_STATUS_UNTESTED, RIG_TYPE_SCANNER, 
   RIG_PTT_NONE, RIG_DCD_NONE, RIG_PORT_SERIAL, 
-  9600, 19200, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_XONXOFF,
+  4800, 19200, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_XONXOFF,
   0, 0, 200, 3, 
-  RIG_FUNC_NONE, AR8200_FUNC_ALL, AR8200_LEVEL_ALL, AR8200_LEVEL_ALL,
+  RIG_FUNC_NONE, AR8200_FUNC_ALL, AR8200_LEVEL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH, AR8200_LEVEL,
   RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
   NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { RIG_DBLST_END, },
   { RIG_DBLST_END, },
   NULL,
   Hz(0), Hz(0),	/* RIT, IF-SHIFT */
-  0,	/* FIXME: VFO list */
+  RIG_VFO_A,
   0, RIG_TRN_RIG,
   1000, 0, 0,
 
@@ -74,7 +76,7 @@ const struct rig_caps ar8200_caps = {
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },
   {
-	{kHz(100),MHz(2040),AR8200_MODES,-1,-1},
+	{kHz(100),MHz(2040),AR8200_MODES,-1,-1,RIG_VFO_A},
 	RIG_FRNG_END,
   }, /* rx range */
   { RIG_FRNG_END, },	/* no tx range, this is a scanner! */
@@ -96,7 +98,13 @@ const struct rig_caps ar8200_caps = {
 	},
         /* mode/filter list, remember: order matters! */
     {
-		/* FIXME! */
+        /* mode/filter list, remember: order matters! */
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(3)}, 
+		{RIG_MODE_AM, kHz(9)},
+		{RIG_MODE_AM, kHz(3)},
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)}, 
+		{RIG_MODE_FM, kHz(9)}, 
+		{RIG_MODE_WFM, kHz(230)}, /* 50kHz at -3dB, 380kHz at -20dB */
 		RIG_FLT_END,
 	},
 

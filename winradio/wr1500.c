@@ -8,7 +8,7 @@
  * /dev/winradio API. This file describe the WR1500 capabilities.
  *
  *
- *		$Id: wr1500.c,v 1.1 2001-03-02 18:37:17 f4cfe Exp $
+ *		$Id: wr1500.c,v 1.2 2001-04-26 21:33:15 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -59,11 +59,11 @@ const struct rig_caps wr1500_caps = {
   model_name:    "WR-1500",
   mfg_name:      "Winradio",
   version:       "0.6",
-  copyright:	 "GPL?",
+  copyright:	 "GPL",
   status:        RIG_STATUS_NEW,
   rig_type:      RIG_TYPE_PCRECEIVER,
   port_type:     RIG_PORT_DEVICE,
-  vfo_list:		 0,	/* FIXME! */
+  vfo_list:		 RIG_VFO_A,
   targetable_vfo:	 0,
   ptt_type:      RIG_PTT_NONE,
   dcd_type:      RIG_DCD_NONE,
@@ -77,12 +77,24 @@ const struct rig_caps wr1500_caps = {
   dcs_list:  	 NULL,  /* FIXME */
   chan_list:	 { RIG_CHAN_END, },	/* FIXME */
   transceive:    RIG_TRN_OFF,
+  max_ifshift:	 kHz(2),
   attenuator:    { 20, RIG_DBLST_END, },
   rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:WR1500_MODES,
-		    low_power:-1,high_power:-1},
-		    RIG_FRNG_END, },
+		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
+					{start:MHz(30),end:MHz(1500),modes:RIG_MODE_WFM,
+		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
+		    		RIG_FRNG_END, },
   tx_range_list2: { RIG_FRNG_END, },
-  tuning_steps: { {WR1500_MODES,1}, RIG_TS_END, },
+
+  tuning_steps: { {RIG_MODE_SSB|RIG_MODE_CW,1}, 
+  				  {RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM,10}, RIG_TS_END, },
+
+  filters:      { {RIG_MODE_SSB|RIG_MODE_CW, kHz(2.5)},
+                  {RIG_MODE_AM, kHz(6)},
+                  {RIG_MODE_FM, kHz(15)},
+                  {RIG_MODE_WFM, kHz(230)},
+                  RIG_FLT_END, },
+
   priv:			NULL,	/* priv */
 
   rig_init:    wr_rig_init,
