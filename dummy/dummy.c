@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: dummy.c,v 1.19 2001-12-20 07:46:12 fillods Exp $
+ *		$Id: dummy.c,v 1.20 2001-12-26 23:37:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -561,12 +561,12 @@ static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
  * Dummy rig capabilities.
  */
 
-#define DUMMY_FUNC  0
-#define DUMMY_SET_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AF)
-#define DUMMY_LEVEL (DUMMY_SET_LEVEL | RIG_LEVEL_STRENGTH)
+#define DUMMY_FUNC  0xfffffff	/* has it all */
+#define DUMMY_LEVEL 0xfffffff
+#define DUMMY_PARM  0xfffffff
 
-#define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | \
-                     RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM | RIG_MODE_WFM)
+#define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | \
+                     RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM)
 
 const struct rig_caps dummy_caps = {
   rig_model:     RIG_MODEL_DUMMY,
@@ -583,14 +583,15 @@ const struct rig_caps dummy_caps = {
   has_get_func:  DUMMY_FUNC,
   has_set_func:  DUMMY_FUNC,
   has_get_level: DUMMY_LEVEL,
-  has_set_level: DUMMY_SET_LEVEL,
-  has_get_parm:	 RIG_PARM_NONE,	/* FIXME */
-  has_set_parm:	 RIG_PARM_NONE,	/* FIXME */
+  has_set_level: RIG_LEVEL_SET(DUMMY_LEVEL),
+  has_get_parm:	 DUMMY_PARM,
+  has_set_parm:	 RIG_PARM_SET(DUMMY_PARM),
   ctcss_list:	 NULL,	/* FIXME */
   dcs_list:  	 NULL,  /* FIXME */
   chan_list:	 { RIG_CHAN_END, },	/* FIXME */
   transceive:    RIG_TRN_OFF,
   attenuator:    { 10, 20, 30, RIG_DBLST_END, },
+  preamp:		 { 10, RIG_DBLST_END, },
   rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:DUMMY_MODES,
 		    low_power:-1,high_power:-1,RIG_VFO_A|RIG_VFO_B},
 		    RIG_FRNG_END, },
