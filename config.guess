@@ -3,7 +3,7 @@
 #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
 #   Free Software Foundation, Inc.
 
-timestamp='2001-07-09'
+timestamp='2001-08-09'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -226,6 +226,9 @@ EOF
 				;;
 			2-307)
 				UNAME_MACHINE="alphaev67"
+				;;
+			2-1307)
+				UNAME_MACHINE="alphaev68"
 				;;
 		esac
 	fi
@@ -683,12 +686,13 @@ EOF
 	echo xmp-cray-unicos
         exit 0 ;;
     CRAY*Y-MP:*:*:*)
-	echo ymp-cray-unicos${UNAME_RELEASE}
+	echo ymp-cray-unicos${UNAME_RELEASE} | sed -e 's/\.[^.]*$/.X/'
 	exit 0 ;;
     CRAY*[A-Z]90:*:*:*)
 	echo ${UNAME_MACHINE}-cray-unicos${UNAME_RELEASE} \
 	| sed -e 's/CRAY.*\([A-Z]90\)/\1/' \
-	      -e y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+	      -e y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/ \
+	      -e 's/\.[^.]*$/.X/'
 	exit 0 ;;
     CRAY*TS:*:*:*)
 	echo t90-cray-unicos${UNAME_RELEASE} | sed -e 's/\.[^.]*$/.X/'
@@ -777,6 +781,9 @@ EOF
     ppc:Linux:*:*)
 	echo powerpc-unknown-linux-gnu
 	exit 0 ;;
+    ppc64:Linux:*:*)
+	echo powerpc64-unknown-linux-gnu
+	exit 0 ;;
     alpha:Linux:*:*)
 	case `sed -n '/^cpu model/s/^.*: \(.*\)/\1/p' < /proc/cpuinfo` in
 	  EV5)   UNAME_MACHINE=alphaev5 ;;
@@ -785,7 +792,7 @@ EOF
 	  PCA57) UNAME_MACHINE=alphapca56 ;;
 	  EV6)   UNAME_MACHINE=alphaev6 ;;
 	  EV67)  UNAME_MACHINE=alphaev67 ;;
-	  EV68*) UNAME_MACHINE=alphaev67 ;;
+	  EV68*) UNAME_MACHINE=alphaev68 ;;
         esac
 	objdump --private-headers /bin/sh | grep ld.so.1 >/dev/null
 	if test "$?" = 0 ; then LIBC="libc1" ; else LIBC="" ; fi
@@ -992,8 +999,8 @@ EOF
 		echo ns32k-sni-sysv
 	fi
 	exit 0 ;;
-    PENTIUM:CPunix:4.0*:*) # Unisys `ClearPath HMP IX 4000' SVR4/MP effort
-                           # says <Richard.M.Bartel@ccMail.Census.GOV>
+    PENTIUM:*:4.0*:*) # Unisys `ClearPath HMP IX 4000' SVR4/MP effort
+                      # says <Richard.M.Bartel@ccMail.Census.GOV>
         echo i586-unisys-sysv4
         exit 0 ;;
     *:UNIX_System_V:4*:FTX*)
@@ -1004,6 +1011,10 @@ EOF
     *:*:*:FTX*)
 	# From seanf@swdc.stratus.com.
 	echo i860-stratus-sysv4
+	exit 0 ;;
+    *:VOS:*:*)
+	# From Paul.Green@stratus.com.
+	echo hppa1.1-stratus-vos
 	exit 0 ;;
     mc68*:A/UX:*:*)
 	echo m68k-apple-aux${UNAME_RELEASE}
@@ -1096,6 +1107,9 @@ EOF
 	exit 0 ;;
     *:ITS:*:*)
 	echo pdp10-unknown-its
+	exit 0 ;;
+    i*86:XTS-300:*:STOP)
+	echo ${UNAME_MACHINE}-unknown-stop
 	exit 0 ;;
 esac
 
