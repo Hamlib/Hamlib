@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.16 2001-02-09 23:06:32 f4cfe Exp $
+   $Id: rig.c,v 1.17 2001-02-11 23:09:16 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -183,6 +183,7 @@ RIG *rig_init(rig_model_t rig_model)
 {
 		RIG *rig;
 		const struct rig_caps *caps;
+		struct rig_state *rs;
 
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_init called \n");
 
@@ -210,32 +211,64 @@ RIG *rig_init(rig_model_t rig_model)
 		 * TODO: read the Preferences here! 
 		 */
 
-		rig->state.port_type = RIG_PORT_SERIAL; /* default is serial port */
-		strncpy(rig->state.rig_path, DEFAULT_SERIAL_PORT, FILPATHLEN);
-		rig->state.serial_rate = rig->caps->serial_rate_max;	/* fastest ! */
-		rig->state.serial_data_bits = rig->caps->serial_data_bits;
-		rig->state.serial_stop_bits = rig->caps->serial_stop_bits;
-		rig->state.serial_parity = rig->caps->serial_parity;
-		rig->state.serial_handshake = rig->caps->serial_handshake;
-		rig->state.write_delay = rig->caps->write_delay;
-		rig->state.post_write_delay = rig->caps->post_write_delay;
+		rs = &rig->state;
 
-		rig->state.timeout = rig->caps->timeout;
-		rig->state.retry = rig->caps->retry;
-		rig->state.transceive = rig->caps->transceive;
-		rig->state.ptt_type = rig->caps->ptt_type;
-		rig->state.vfo_comp = 0.0;	/* override it with preferences */
-		rig->state.current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
+		rs->port_type = RIG_PORT_SERIAL; /* default is serial port */
+		strncpy(rs->rig_path, DEFAULT_SERIAL_PORT, FILPATHLEN);
+		rs->serial_rate = caps->serial_rate_max;	/* fastest ! */
+		rs->serial_data_bits = caps->serial_data_bits;
+		rs->serial_stop_bits = caps->serial_stop_bits;
+		rs->serial_parity = caps->serial_parity;
+		rs->serial_handshake = caps->serial_handshake;
+		rs->write_delay = caps->write_delay;
+		rs->post_write_delay = caps->post_write_delay;
 
-		rig->state.fd = -1;
-		rig->state.ptt_fd = -1;
+		rs->timeout = caps->timeout;
+		rs->retry = caps->retry;
+		rs->transceive = caps->transceive;
+		rs->ptt_type = caps->ptt_type;
+		rs->vfo_comp = 0.0;	/* override it with preferences */
+		rs->current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
+
+		/* should it be a parameter to rig_init ? --SF */
+		rs->itu_region = RIG_ITU_REGION2;
+
+		switch(rs->itu_region) {
+			case RIG_ITU_REGION1:
+					memcpy(rs->tx_range_list, caps->tx_range_list1, 
+									sizeof(struct freq_range_list)*FRQRANGESIZ);
+					memcpy(rs->rx_range_list, caps->rx_range_list1, 
+									sizeof(struct freq_range_list)*FRQRANGESIZ);
+					break;
+			case RIG_ITU_REGION2:
+			case RIG_ITU_REGION3:
+			default:
+					memcpy(rs->tx_range_list, caps->tx_range_list2, 
+									sizeof(struct freq_range_list)*FRQRANGESIZ);
+					memcpy(rs->rx_range_list, caps->rx_range_list2, 
+									sizeof(struct freq_range_list)*FRQRANGESIZ);
+					break;
+		}
+
+		memcpy(rs->preamp, caps->preamp, MAXDBLSTSIZ);
+		memcpy(rs->attenuator, caps->attenuator, MAXDBLSTSIZ);
+
+		rs->has_get_func = caps->has_get_func;
+		rs->has_set_func = caps->has_set_func;
+		rs->has_get_level = caps->has_get_level;
+		rs->has_set_level = caps->has_set_level;
+
+		rs->max_rit = caps->max_rit;
+
+		rs->fd = -1;
+		rs->ptt_fd = -1;
 
 		/* 
 		 * let the backend a chance to setup his private data
 		 * FIXME: check rig_init() return code
 		 */
-		if (rig->caps->rig_init != NULL)
-				rig->caps->rig_init(rig);	
+		if (caps->rig_init != NULL)
+				caps->rig_init(rig);	
 
 		return rig;
 }
@@ -282,8 +315,9 @@ int rig_open(RIG *rig)
 				break;
 
 		case RIG_PORT_NETWORK:	/* not implemented yet! */
-		default:
 				return -RIG_ENIMPL;
+		default:
+				return -RIG_EINVAL;
 		}
 
 		rig->state.stream = fdopen(rig->state.fd, "r+b");
@@ -336,12 +370,16 @@ int rig_open(RIG *rig)
  */
 int rig_close(RIG *rig)
 {
+		struct rig_state *rs;
+
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_close called \n");
 
 		if (! rig || !rig->caps)
 				return -RIG_EINVAL;
 
-		if (rig->state.transceive) {
+		rs = &rig->state;
+
+		if (rs->transceive) {
 				/*
 				 * TODO: check error codes et al.
 				 */
@@ -358,30 +396,30 @@ int rig_close(RIG *rig)
 		 * FIXME: what happens if PTT and rig ports are the same?
 		 * 			(eg. ptt_type = RIG_PTT_SERIAL)
 		 */
-		switch(rig->state.ptt_type) {
+		switch(rs->ptt_type) {
 		case RIG_PTT_NONE:
 				break;
 		case RIG_PTT_SERIAL_RTS:
 		case RIG_PTT_SERIAL_DTR:
-				ser_ptt_close(&rig->state);
+				ser_ptt_close(rs);
 				break;
 		case RIG_PTT_PARALLEL:
-				par_ptt_close(&rig->state);
+				par_ptt_close(rs);
 				break;
 		default:
 				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
-								rig->state.ptt_type);
+								rs->ptt_type);
 		}
 
-		rig->state.ptt_fd = -1;
+		rs->ptt_fd = -1;
 
-		if (rig->state.fd != -1) {
-				if (!rig->state.stream)
-						fclose(rig->state.stream); /* this closes also fd */
+		if (rs->fd != -1) {
+				if (!rs->stream)
+						fclose(rs->stream); /* this closes also fd */
 				else
-					close(rig->state.fd);
-				rig->state.fd = -1;
-				rig->state.stream = NULL;
+					close(rs->fd);
+				rs->fd = -1;
+				rs->stream = NULL;
 		}
 
 		remove_opened_rig(rig);
@@ -435,7 +473,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 			return -RIG_EINVAL;
 
 		if (rig->state.vfo_comp != 0.0)
-				freq += (freq_t)(rig->state.vfo_comp * freq);
+				freq += (freq_t)((double)rig->state.vfo_comp * freq);
 
 		if (rig->caps->set_freq == NULL)
 			return -RIG_ENAVAIL;
@@ -1312,18 +1350,18 @@ int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmod
 		if (!rig || !rig->caps || !mwpower || power<0.0 || power>1.0)
 			return -RIG_EINVAL;
 
-		if (rig->caps->power2mW == NULL) {
-			txrange = rig_get_range(rig->caps->tx_range_list, freq, mode);
-			if (!txrange) {
-				/*
-				 * freq is not on the tx range!
-				 */
-				return -RIG_ECONF; /* could be RIG_EINVAL ? */
-			}
-			*mwpower = (unsigned int)(power * txrange->high_power);
-			return RIG_OK;
-		} else
+		if (rig->caps->power2mW != NULL)
 			return rig->caps->power2mW(rig, mwpower, power, freq, mode);
+
+		txrange = rig_get_range(rig->state.tx_range_list, freq, mode);
+		if (!txrange) {
+			/*
+			 * freq is not on the tx range!
+			 */
+			return -RIG_ECONF; /* could be RIG_EINVAL ? */
+		}
+		*mwpower = (unsigned int)(power * txrange->high_power);
+		return RIG_OK;
 }
 
 /**
@@ -1354,20 +1392,24 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmod
 		if (!rig || !rig->caps || !power || mwpower==0)
 			return -RIG_EINVAL;
 
-		if (rig->caps->mW2power == NULL) {
-			txrange = rig_get_range(rig->caps->tx_range_list, freq, mode);
-			if (!txrange) {
-				/*
-				 * freq is not on the tx range!
-				 */
-				return -RIG_ECONF; /* could be RIG_EINVAL ? */
-			}
-			*power = txrange->high_power/mwpower;
-			if (*power > 1.0)
-					*power = 1.0;
-			return (mwpower>txrange->high_power? RIG_OK : RIG_ETRUNC);
-		} else
+		if (rig->caps->mW2power != NULL)
 			return rig->caps->mW2power(rig, power, mwpower, freq, mode);
+
+		txrange = rig_get_range(rig->state.tx_range_list, freq, mode);
+		if (!txrange) {
+			/*
+			 * freq is not on the tx range!
+			 */
+			return -RIG_ECONF; /* could be RIG_EINVAL ? */
+		}
+		if (mwpower == 0) {
+				*power = 0.0;
+				return RIG_OK;
+		}
+		*power = (float)txrange->high_power/mwpower;
+		if (*power > 1.0)
+				*power = 1.0;
+		return (mwpower>txrange->high_power? RIG_OK : RIG_ETRUNC);
 }
 
 /**
@@ -1448,11 +1490,6 @@ int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 		return retcode;
 }
 
-/*
- * rig_get_ctcss
- * Read CTCSS
- * NB: tone is NOT in HZ, but in tenth of Hz!
- */
 /**
  *      rig_get_ctcss - get the current CTCSS
  *      @rig:	The rig handle
@@ -1948,20 +1985,23 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  *      Since the @level is a OR'ed bitwise argument, more than
  *      one level can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_level() "macro" returns a bit wise
+ *      RETURN VALUE: The rig_has_get_level() "macro" returns a bit wise
  *      mask of supported level settings that can be retrieve,
  *      0 if none supported.
  *
- * 		EXAMPLE: if (rig_has_level(my_rig, RIG_LVL_STRENGTH)) disp_Smeter();
+ * 		EXAMPLE: if (rig_has_get_level(my_rig, RIG_LVL_STRENGTH)) disp_Smeter();
  *
  *      SEE ALSO: rig_has_set_level(), rig_get_level()
  */
-setting_t rig_has_level(RIG *rig, setting_t level)
+setting_t rig_has_get_level(RIG *rig, setting_t level)
 {
+		/* 
+		 * FIXME: error code -1 is not safe!!
+		 */
 		if (!rig || !rig->caps)
 				return -1;
 
-		return (rig->caps->has_level & level);
+		return (rig->state.has_get_level & level);
 }
 
 
@@ -1984,15 +2024,18 @@ setting_t rig_has_level(RIG *rig, setting_t level)
  */
 setting_t rig_has_set_level(RIG *rig, setting_t level)
 {
+		/* 
+		 * FIXME: error code -1 is not safe!!
+		 */
 		if (!rig || !rig->caps)
 				return -1;
 
-		return (rig->caps->has_set_level & level);
+		return (rig->state.has_set_level & level);
 }
 
 
 /**
- *      rig_has_func - check ability of radio functions
+ *      rig_has_get_func - check ability of radio functions
  *      @rig:	The rig handle
  *      @func:	The functions
  *
@@ -2000,19 +2043,49 @@ setting_t rig_has_set_level(RIG *rig, setting_t level)
  *      Since the @func is a OR'ed bitwise argument, more than
  *      one function can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_func() "macro" returns a bit wise
+ *      RETURN VALUE: The rig_has_get_func() "macro" returns a bit wise
  *      mask of supported functions, 0 if none supported.
  *
- * 		EXAMPLE: if (rig_has_func(my_rig, RIG_FUNC_FAGC)) disp_fagc_button();
+ * 		EXAMPLE: if (rig_has_get_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
  *
  *      SEE ALSO: rig_set_func(), rig_get_func()
  */
-setting_t rig_has_func(RIG *rig, setting_t func)
+setting_t rig_has_get_func(RIG *rig, setting_t func)
 {
+		/* 
+		 * FIXME: error code -1 is not safe!!
+		 */
 		if (!rig || !rig->caps)
 				return -1;
 
-		return (rig->caps->has_func & func);
+		return (rig->state.has_get_func & func);
+}
+
+/**
+ *      rig_has_set_func - check ability of radio functions
+ *      @rig:	The rig handle
+ *      @func:	The functions
+ *
+ *      The rig_has_func() "macro" checks if a rig supports a set of functions.
+ *      Since the @func is a OR'ed bitwise argument, more than
+ *      one function can be checked at the same time.
+ *
+ *      RETURN VALUE: The rig_has_set_func() "macro" returns a bit wise
+ *      mask of supported functions, 0 if none supported.
+ *
+ * 		EXAMPLE: if (rig_has_set_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
+ *
+ *      SEE ALSO: rig_set_func(), rig_get_func()
+ */
+setting_t rig_has_set_func(RIG *rig, setting_t func)
+{
+		/* 
+		 * FIXME: error code -1 is not safe!!
+		 */
+		if (!rig || !rig->caps)
+				return -1;
+
+		return (rig->state.has_set_func & func);
 }
 
 /**
@@ -2075,7 +2148,7 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  *
  *      SEE ALSO: rig_set_func()
  */
-int rig_get_func(RIG *rig, vfo_t vfo, setting_t *func)
+int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
 		int retcode;
 		vfo_t curr_vfo;
@@ -2088,7 +2161,7 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t *func)
 
 		if (rig->caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return rig->caps->get_func(rig, vfo, func);
+			return rig->caps->get_func(rig, vfo, func, status);
 
 		if (!rig->caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -2097,7 +2170,7 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t *func)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = rig->caps->get_func(rig, vfo, func);
+		retcode = rig->caps->get_func(rig, vfo, func, status);
 		rig->caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
