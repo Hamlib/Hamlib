@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.11 2000-12-05 22:01:02 f4cfe Exp $
+   $Id: rig.c,v 1.12 2000-12-22 00:56:00 javabear Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -278,7 +278,7 @@ int rig_close(RIG *rig)
 {
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_close called \n");
 
-		if (rig == NULL || rig->caps)
+		if (! rig || !rig->caps)
 				return -RIG_EINVAL;
 
 		if (rig->state.transceive) {
@@ -315,7 +315,7 @@ int rig_cleanup(RIG *rig)
 {
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_cleanup called \n");
 
-		if (rig == NULL || rig->caps)
+		if (!rig || !rig->caps)
 				return -RIG_EINVAL;
 
 		/*
