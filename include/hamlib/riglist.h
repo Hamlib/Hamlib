@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.27 2002-06-17 20:53:21 fillods Exp $
+ *		$Id: riglist.h,v 1.28 2002-07-06 09:24:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -317,6 +317,15 @@
 #define RIG_MODEL_RPC RIG_MAKE_MODEL(RIG_RPC, 1)
 
 	/*
+	 * Gnuradio backend
+	 */
+#define RIG_GNURADIO 20
+#define RIG_BACKEND_GNURADIO "gnuradio"
+#define RIG_MODEL_GNURADIO RIG_MAKE_MODEL(RIG_GNURADIO, 1) /* dev model */
+#define RIG_MODEL_MC4020 RIG_MAKE_MODEL(RIG_GNURADIO, 2)
+
+
+	/*
 	 * TODO:
 		RIG_MODEL_KWZ30,	KNEISNER +DOERING
 		RIG_MODEL_E1800,	DASA-Telefunken
@@ -347,6 +356,7 @@ typedef int rig_model_t;
 		{ RIG_ALINCO, RIG_BACKEND_ALINCO }, \
 		{ RIG_KACHINA, RIG_BACKEND_KACHINA }, \
 		{ RIG_RPC, RIG_BACKEND_RPC }, \
+		{ RIG_GNURADIO, RIG_BACKEND_GNURADIO }, \
 		{ 0, NULL }, /* end */  \
 }
 
