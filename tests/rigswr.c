@@ -4,7 +4,7 @@
  * This program output swr curve value
  * using Hamlib.
  *
- * $Id: rigswr.c,v 1.2 2004-06-14 22:22:31 fillods Exp $  
+ * $Id: rigswr.c,v 1.3 2005-04-04 22:26:38 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -43,13 +43,13 @@
 /* 
  * Prototypes
  */
-void usage();
-void version();
-int set_conf(RIG *rig, char *conf_parms);
+static void usage();
+static void version();
+static int set_conf(RIG *rig, char *conf_parms);
 
 /*
  * Reminder: when adding long options, 
- * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
+ *  keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
 #define SHORT_OPTIONS "m:r:s:c:C:p:P:vhV"
@@ -93,85 +93,85 @@ int main (int argc, char *argv[])
 		int option_index = 0;
 
 		c = getopt_long (argc, argv, SHORT_OPTIONS,
-			long_options, &option_index);
+				long_options, &option_index);
 		if (c == -1)
 			break;
 
 		switch(c) {
-			case 'h':
-					usage();
-					exit(0);
-			case 'V':
-					version();
-					exit(0);
-			case 'm':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					my_model = atoi(optarg);
-					break;
-			case 'r':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					rig_file = optarg;
-					break;
-			case 'c':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					civaddr = optarg;
-					break;
-			case 's':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					serial_rate = atoi(optarg);
-					break;
-			case 'C':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					if (*conf_parms != '\0')
-							strcat(conf_parms, ",");
-					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
-					break;
-			case 'p':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					ptt_file = optarg;
-					break;
-			case 'P':
-					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
-					}
-					if (!strcmp(optarg, "RIG"))
-						ptt_type = RIG_PTT_RIG;
-					else if (!strcmp(optarg, "DTR"))
-						ptt_type = RIG_PTT_SERIAL_DTR;
-					else if (!strcmp(optarg, "RTS"))
-						ptt_type = RIG_PTT_SERIAL_RTS;
-					else if (!strcmp(optarg, "PARALLEL"))
-						ptt_type = RIG_PTT_PARALLEL;
-					else if (!strcmp(optarg, "NONE"))
-						ptt_type = RIG_PTT_NONE;
-					else
-						ptt_type = atoi(optarg);
-					break;
-			case 'v':
-					verbose++;
-					break;
-			default:
-					usage();	/* unknown option? */
-					exit(1);
+		case 'h':
+			usage();
+			exit(0);
+		case 'V':
+			version();
+			exit(0);
+		case 'm':
+			if (!optarg) {
+				usage();	/* wrong arg count */
+				exit(1);
+			}
+			my_model = atoi(optarg);
+			break;
+		case 'r':
+			if (!optarg) {
+				usage();	/* wrong arg count */
+				exit(1);
+			}
+			rig_file = optarg;
+			break;
+		case 'c':
+			if (!optarg) {
+				usage();	/* wrong arg count */
+				exit(1);
+			}
+			civaddr = optarg;
+			break;
+		case 's':
+			if (!optarg) {
+				usage();	/* wrong arg count */
+				exit(1);
+			}
+			serial_rate = atoi(optarg);
+			break;
+		case 'C':
+			if (!optarg) {
+				usage();	/* wrong arg count */
+				exit(1);
+			}
+			if (*conf_parms != '\0')
+				strcat(conf_parms, ",");
+			strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+			break;
+		case 'p':
+			if (!optarg) {
+				usage();	/* wrong arg count */
+				exit(1);
+			}
+			ptt_file = optarg;
+			break;
+		case 'P':
+			if (!optarg) {
+				usage();	/* wrong arg count */
+				exit(1);
+			}
+			if (!strcmp(optarg, "RIG"))
+				ptt_type = RIG_PTT_RIG;
+			else if (!strcmp(optarg, "DTR"))
+				ptt_type = RIG_PTT_SERIAL_DTR;
+			else if (!strcmp(optarg, "RTS"))
+				ptt_type = RIG_PTT_SERIAL_RTS;
+			else if (!strcmp(optarg, "PARALLEL"))
+				ptt_type = RIG_PTT_PARALLEL;
+			else if (!strcmp(optarg, "NONE"))
+				ptt_type = RIG_PTT_NONE;
+			else
+				ptt_type = atoi(optarg);
+			break;
+		case 'v':
+			verbose++;
+			break;
+		default:
+			usage();	/* unknown option? */
+			exit(1);
 		}
 	}
 
@@ -179,7 +179,7 @@ int main (int argc, char *argv[])
 
 	rig_debug(RIG_DEBUG_VERBOSE, "rigswr, %s\n", hamlib_version);
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
-					"<hamlib-developer@lists.sourceforge.net>\n\n");
+			"<hamlib-developer@lists.sourceforge.net>\n\n");
 
 	if (optind+1 >= argc) {
 		usage();
@@ -231,8 +231,8 @@ int main (int argc, char *argv[])
 	}
 
 	if (verbose > 0)
-			printf("Opened rig model %d, '%s'\n", rig->caps->rig_model,
-							rig->caps->model_name);
+		printf("Opened rig model %d, '%s'\n", rig->caps->rig_model,
+					rig->caps->model_name);
 
 	freq=atof(argv[optind++]);
 	freqstop=atof(argv[optind++]);
@@ -267,17 +267,17 @@ int main (int argc, char *argv[])
 
 void version()
 {
-		printf("rigswr, %s\n\n", hamlib_version);
-		printf("%s\n", hamlib_copyright);
+	printf("rigswr, %s\n\n", hamlib_version);
+	printf("%s\n", hamlib_copyright);
 }
 
 void usage()
 {
-		printf("Usage: rigswr [OPTION]... start_freq stop_freq [freq_step]\n"
+	printf("Usage: rigswr [OPTION]... start_freq stop_freq [freq_step]\n"
 		   "Output SWR vs Frequency.\n\n");
 
 
-		printf(
+	printf(
 	"  -m, --model=ID             select radio model number. See model list\n"
 	"  -r, --rig-file=DEVICE      set device of the radio to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
@@ -309,7 +309,7 @@ int set_conf(RIG *rig, char *conf_parms)
 
 		ret = rig_set_conf(rig, rig_token_lookup(rig, p), q);
 		if (ret != RIG_OK)
-				return ret;
+			return ret;
 		p = n;
 	}
 	return RIG_OK;
