@@ -59,7 +59,8 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
 AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h rpc/rpcent.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
-AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h linux/parport.h sgtty.h term.h termio.h termios.h])
+AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
+AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h])
 
 dnl Check for Mingw support
 GR_PWIN32

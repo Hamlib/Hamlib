@@ -1,8 +1,8 @@
 /*
  *  Hamlib WiNRADiO backend - main header
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: winradio.h,v 1.9 2004-04-16 20:06:24 fillods Exp $
+ *	$Id: winradio.h,v 1.10 2004-08-16 20:44:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,7 +30,7 @@
  * So far, only Linux has Linradio support through ioctl,
  * until someone port it to some other OS...
  */
-#ifdef HAVE_IOCTL
+#ifdef HAVE_LINUX_IOCTL_H
 #define WINRADIO_IOCTL
 #endif
 
