@@ -7,23 +7,23 @@ noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq lis
 EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
-LDADD = ../src/libhamlib.la ../lib/libmisc.a
+LDADD = ../src/libhamlib.la
 DEPENDENCIES = ../src/libhamlib.la
 
 ## Linker options
-listrigs_LDFLAGS = @BACKENDLNK@ -export-dynamic
-dumpcaps_LDFLAGS = @BACKENDLNK@ -export-dynamic
-dumpmem_LDFLAGS = @BACKENDLNK@ -export-dynamic
-testcaps_LDFLAGS = @BACKENDLNK@ -export-dynamic
-testrig_LDFLAGS = @BACKENDLNK@ -export-dynamic
-testtrn_LDFLAGS = @BACKENDLNK@ -export-dynamic
+listrigs_LDFLAGS = @BACKENDLNK@
+dumpcaps_LDFLAGS = @BACKENDLNK@
+dumpmem_LDFLAGS = @BACKENDLNK@
+testcaps_LDFLAGS = @BACKENDLNK@
+testrig_LDFLAGS = @BACKENDLNK@
+testtrn_LDFLAGS = @BACKENDLNK@
 testbcd_LDFLAGS = @BACKENDLNK@
 testfreq_LDFLAGS = @BACKENDLNK@
-rigctl_LDFLAGS = @BACKENDLNK@ -export-dynamic
+rigctl_LDFLAGS = @BACKENDLNK@
 # rigmatrix needs also libgd
-rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@ -export-dynamic
+rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
 testcpp_LDADD = ../c++/libhamlib++.la $(LDADD)
-testcpp_LDFLAGS = @BACKENDLNK@ -export-dynamic
+testcpp_LDFLAGS = @BACKENDLNK@
 
 ## Dependencies
 
@@ -33,7 +33,7 @@ testcaps_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testrig_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testtrn_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@ ../lib/libmisc.a
+rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
 
