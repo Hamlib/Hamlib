@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.2 2000-10-09 01:17:20 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.3 2000-10-10 22:09:54 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -127,6 +127,13 @@ enum rptr_shift_e {
 };
 
 typedef enum rptr_shift_e rptr_shift_t;
+
+enum split_e {
+	RIG_SPLIT_OFF = 0,
+	RIG_SPLIT_ON,
+};
+
+typedef enum split_e split_t;
 
 enum vfo_e {
 	RIG_VFO_MAIN = 0,
@@ -347,6 +354,14 @@ struct rig_caps {
   int (*set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift );	/* set repeater shift */
   int (*get_rpt_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
 
+  int (*set_rpt_offs)(RIG *rig, unsigned long offs);/* set duplex offset freq */
+  int (*get_rpt_offs)(RIG *rig, unsigned long *offs);/* get duplex offset freq*/
+
+  int (*set_split_freq)(RIG *rig, freq_t rx_freq, freq_t tx_freq);
+  int (*get_split_freq)(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
+  int (*set_split)(RIG *rig, split_t split);
+  int (*get_split)(RIG *rig, split_t *split);
+
   int (*set_ts)(RIG *rig, unsigned long ts); /* set tuning step */
   int (*get_ts)(RIG *rig, unsigned long *ts); /* get tuning step */
 
@@ -371,7 +386,8 @@ struct rig_caps {
   int (*get_volume)(RIG *rig, float *vol);	/* get volume */
 
   int (*set_squelch)(RIG *rig, float sql);	/* set squelch */
-  int (*get_squelch)(RIG *rig, float *sql);	/* set squelch */
+  int (*get_squelch)(RIG *rig, float *sql);	/* get squelch setting */
+  int (*get_squelch_status)(RIG *rig, int *sql_status);	/* get squelch status */
   int (*get_strength)(RIG *rig, int *strength);	/* get signal strength */
 
   int (*set_poweron)(RIG *rig);
@@ -386,6 +402,9 @@ struct rig_caps {
   int (*mem_to_vfo)(RIG *rig);
   int (*vfo_to_mem)(RIG *rig);	/* memory write */
 /* also VFO A=B, and Switch VFO A and B, set to VFO mode, set to MEM mode */
+
+  int (*set_trn)(RIG *rig, int trn);	/* activate transceive mode on radio */
+  int (*get_trn)(RIG *rig, int *trn);	/* PCR-1000 can do that */
 
 
   int (*decode_event)(RIG *rig);	/* When transceive on, find out which callback to call, and call it */
@@ -493,6 +512,13 @@ extern int rig_get_ptt(RIG *rig, ptt_t *ptt); /* get ptt status */
 
 extern int rig_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift); /* set repeater shift */
 extern int rig_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift); /* get repeater shift */
+extern int rig_set_rpt_offs(RIG *rig, unsigned long rptr_offs); /* set repeater offset */
+extern int rig_get_rpt_offs(RIG *rig, unsigned long *rptr_offs); /* get repeater offset */
+
+extern int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq);
+extern int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
+extern int rig_set_split(RIG *rig, split_t split);
+extern int rig_get_split(RIG *rig, split_t *split);
 
 extern int rig_set_ts(RIG *rig, unsigned long ts); /* set tuning step */
 extern int rig_get_ts(RIG *rig, unsigned long *ts); /* get tuning step */
@@ -506,6 +532,7 @@ extern int rig_set_volume(RIG *rig, float vol);
 extern int rig_get_volume(RIG *rig, float *vol);
 extern int rig_set_squelch(RIG *rig, float sql);
 extern int rig_get_squelch(RIG *rig, float *sql);
+extern int rig_get_squelch_status(RIG *rig, int *sql_status);
 extern int rig_set_tonesq(RIG *rig, unsigned int tone);
 extern int rig_get_tonesq(RIG *rig, unsigned int *tone);
 extern int rig_set_tone(RIG *rig, unsigned int tone);
@@ -526,6 +553,7 @@ extern int rig_set_func(RIG *rig, unsigned long func);	/* activate the function(
 extern int rig_get_func(RIG *rig, unsigned long *func); /* get the setting from rig */
 
 extern int rig_set_trn(RIG *rig, int trn); /* activate the transceive mode */
+extern int rig_get_trn(RIG *rig, int *trn);
 
 extern const struct rig_caps *rig_get_caps(rig_model_t rig_model);
 const freq_range_t *rig_get_range(const freq_range_t range_list[], freq_t freq, unsigned long mode);
