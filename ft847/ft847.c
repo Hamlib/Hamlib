@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.1 2000-07-25 01:17:00 javabear Exp $  
+ * $Id: ft847.c,v 1.2 2000-07-26 00:00:40 javabear Exp $  
  *
  */
 
@@ -81,12 +81,12 @@ void cmd_ptt_off(int fd) {
 }
 
 void cmd_sat_on(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x08 }; /* sat = on */
+  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x4e }; /* sat = on */
   write_block(fd,data);
 }
 
 void cmd_sat_off(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x88 }; /* sat = off */
+  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x8e }; /* sat = off */
   write_block(fd,data);
 }
 
