@@ -3,7 +3,7 @@
  *  Hamlib GNUradio backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gnuradio.cc,v 1.4 2003-04-06 18:50:21 fillods Exp $
+ *	$Id: gnuradio.cc,v 1.5 2003-09-23 22:54:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,7 +37,7 @@
 #include <VrFileSink.h>
 
 #include <VrFixOffset.h>
-#include <GrMC4020Source.h>
+#include <make_GrMC4020Source.h>
 
 #include <VrConnect.h>
 #include <VrMultiTask.h>
@@ -72,6 +72,7 @@
 #include <hamlib/rig.h>
 #include <misc.h>
 #include <token.h>
+#include <register.h>
 
 #include "gnuradio.h"
 #include "gr_priv.h"	// struct gnuradio_priv_data
@@ -323,7 +324,7 @@ int mc4020_open(RIG *rig)
 	struct gnuradio_priv_data *priv = (struct gnuradio_priv_data*)rig->state.priv;
 
 	/* input sample rate from PCI-DAS4020/12: 20000000  */
-	priv->source = new GrMC4020Source<short>(priv->input_rate, MCC_CH3_EN | MCC_ALL_1V);
+	priv->source = make_GrMC4020SourceS(priv->input_rate, MCC_CH3_EN | MCC_ALL_1V);
 
 	return gr_open(rig);
 }
@@ -1075,7 +1076,7 @@ int gnuradio_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
   return ret;
 }
 
-int initrigs_gnuradio(void *be_handle)
+DECLARE_INITRIG_BACKEND(gnuradio)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "gnuradio: _init called\n");
 
