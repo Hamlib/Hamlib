@@ -136,6 +136,13 @@ AC_PROG_LIBTOOL
 dnl Configure libltdl
 AC_CONFIG_SUBDIRS(libltdl)
 
+dnl Check if C99 struct initializers are supported
+AC_MSG_CHECKING(whether C99 struct initializers are supported)
+AC_TRY_COMPILE(,struct{char a;int b;}s={.b=5};, [AC_MSG_RESULT(yes)],
+		[AC_MSG_ERROR( ""
+		"You need a C99 compliant C compiler that supports struct intializers."
+		"Have you considered GCC lately?.")]);
+
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 
@@ -304,6 +311,10 @@ done
 AC_SUBST(ROT_BACKEND_LIST)
 AC_SUBST(ROT_BACKENDLNK)
 AC_SUBST(ROT_BACKENDEPS)
+
+BINDINGS=""
+AC_CHECK_PROG(BINDINGS, [swig], [bindings], [], [$PATH])
+AC_SUBST(BINDINGS)
 
 for bi in ${BINDING_LIST} ; do
     if test "${bi}" != "c++" -a "${bi}" != "kylix" ; then
