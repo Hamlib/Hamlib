@@ -1,3 +1,9 @@
+hamlib (1.1.4-0.1) unstable; urgency=low
+
+  * Non-maintainer check for building hamlib on debian/unstable.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Fri,  8 Nov 2002 17:28:44 +0100
+
 hamlib (1.1.2-5) unstable; urgency=low
 
   * Updated section details to prevents overrides message.
