@@ -2,7 +2,7 @@
    register.c  - Copyright (C) 2000 Stephane Fillod and Frank Singleton
    Provides registering for dynamically loadable backends.
 
-   $Id: register.c,v 1.7 2001-06-15 07:08:37 f4cfe Exp $
+   $Id: register.c,v 1.8 2001-07-06 08:17:48 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -259,8 +259,16 @@ int rig_load_all_backends()
  */
 int rig_load_backend(const char *be_name)
 {
+		/*
+		 * determine PREFIX and POSTFIX values from configure script
+		 */
+#ifdef __CYGWIN__
+# define PREFIX "cyghamlib-"
+# define POSTFIX ".dll"
+#else
 # define PREFIX "libhamlib-"
-# define POSTFIX ".so" /* ".so.%u" */
+# define POSTFIX ".so"
+#endif
 	lt_dlhandle be_handle;
     int (*be_init)(rig_ptr_t);
 	int status;
