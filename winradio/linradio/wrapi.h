@@ -154,6 +154,7 @@ BOOL GetPower(int);
 int GetBFOOffset(int);
 int GetIFShift(int);
 BOOL GetAGC(int);
+int GetMaxIFGain(int);
 int GetIFGain(int);
 char *GetDescr(int);
 
@@ -165,6 +166,6 @@ char *GetDescr(int);
 /* Hooks called when rescheduling */
 extern void (*yield_hook)();
 extern void (*reenter_hook)();
-#endif /* __KERNEL__ */
+#endif
 
 #endif 
