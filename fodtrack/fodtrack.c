@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - Fodtrack parallel port
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: fodtrack.c,v 1.5 2003-08-25 22:26:42 fillods Exp $
+ *	$Id: fodtrack.c,v 1.6 2003-09-28 15:34:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,12 +49,18 @@
 #define PARPORT_CONTROL_STROBE 0x1
 #endif
 
+#ifndef CP_ACTIVE_LOW_BITS
+#define CP_ACTIVE_LOW_BITS 0x0B
+#endif
+
 /* ************************************************************************* */
 
 /** outputs an direction to the interface */
 static int setDirection(port_t *port, unsigned char outputvalue, int direction)
 {
   unsigned char outputstatus;
+
+  par_lock (port);
 
   // set the data bits
   par_write_data(port, outputvalue);
@@ -64,7 +70,7 @@ static int setDirection(port_t *port, unsigned char outputvalue, int direction)
     outputstatus = PARPORT_CONTROL_AUTOFD;
   else
     outputstatus=0;
-  par_write_control(port, outputstatus);
+  par_write_control(port, outputstatus^CP_ACTIVE_LOW_BITS);
   // and now the strobe impulse
   usleep(1);
 
@@ -72,14 +78,16 @@ static int setDirection(port_t *port, unsigned char outputvalue, int direction)
     outputstatus = PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_STROBE;
   else
     outputstatus = PARPORT_CONTROL_STROBE;
-  par_write_control(port, outputstatus);
+  par_write_control(port, outputstatus^CP_ACTIVE_LOW_BITS);
   usleep(1);
 
   if (direction)
     outputstatus= PARPORT_CONTROL_AUTOFD;
   else
     outputstatus=0;
-  par_write_control(port, outputstatus);
+  par_write_control(port, outputstatus^CP_ACTIVE_LOW_BITS);
+
+  par_unlock (port);
 
   return RIG_OK;
 }
@@ -118,9 +126,9 @@ const struct rot_caps fodtrack_rot_caps = {
   .rot_model =      ROT_MODEL_FODTRACK,
   .model_name =     "Fodtrack",
   .mfg_name =       "XQ2FOD",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_NEW,
+  .status =         RIG_STATUS_STABLE,
   .rot_type =       ROT_TYPE_OTHER,
   .port_type =      RIG_PORT_PARALLEL,
   .write_delay =  0,

@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.36 2003-08-25 22:35:55 fillods Exp $
+ *	$Id: serial.c,v 1.37 2003-09-28 15:34:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -84,6 +84,22 @@
 
 #ifdef HAVE_LINUX_PPDEV_H
 #include <linux/ppdev.h>
+#include <linux/parport.h>
+
+/* 
+ * These control port bits are active low.
+ * We toggle them so that this weirdness doesn't get get propagated
+ * through our interface.
+ */
+#define CP_ACTIVE_LOW_BITS	0x0B
+
+/*
+ * These status port bits are active low.
+ * We toggle them so that this weirdness doesn't get get propagated
+ * through our interface.
+ */
+#define SP_ACTIVE_LOW_BITS	0x80
+
 #endif
 
 
@@ -620,6 +636,7 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 int par_open(port_t *port)
 {
 	int fd;
+	int mode;
 
 	if (!port->pathname)
 		return -RIG_EINVAL;
@@ -627,14 +644,16 @@ int par_open(port_t *port)
 #ifdef HAVE_LINUX_PPDEV_H
 	fd = open(port->pathname, O_RDWR);
 	if (fd < 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "Opening device \"%s\": %s\n", port->pathname, strerror(errno));
+		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\": %s\n", port->pathname, strerror(errno));
 		return -RIG_EIO;
 	}
-	if (ioctl(fd, PPCLAIM) < 0) {
-		rig_debug(RIG_DEBUG_VERBOSE, "Claiming device \"%s\": %s\n", port->pathname, strerror(errno));
+	mode = IEEE1284_MODE_COMPAT;
+	if (ioctl (fd, PPSETMODE, &mode) != 0) {
+		rig_debug(RIG_DEBUG_ERR, "PPSETMODE \"%s\": %s\n", port->pathname, strerror(errno));
 		close(fd);
 		return -RIG_EIO;
 	}
+
 #elif defined(WIN32)
 	fd = (int)CreateFile(port->pathname, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_EXISTING, 0, NULL);
@@ -653,12 +672,11 @@ int par_open(port_t *port)
 int par_close(port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
-		ioctl(port->fd, PPRELEASE);
 #elif defined(WIN32)
-		CloseHandle((HANDLE)(port->fd));
-		return RIG_OK;
+	CloseHandle((HANDLE)(port->fd));
+	return RIG_OK;
 #endif
-		return close(port->fd);
+	return close(port->fd);
 }
 
 int par_write_data(port_t *port, unsigned char data)
@@ -703,7 +721,8 @@ int par_write_control(port_t *port, unsigned char control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
-	status = ioctl(port->fd, PPWCONTROL, &control);
+	unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
+	status = ioctl(port->fd, PPWCONTROL, &ctrl);
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
   unsigned char ctr = control;
@@ -735,7 +754,9 @@ int par_read_control(port_t *port, unsigned char *control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
-	status = ioctl(port->fd, PPRCONTROL, control);
+	unsigned char ctrl;
+	status = ioctl(port->fd, PPRCONTROL, &ctrl);
+	*control = ctrl ^ CP_ACTIVE_LOW_BITS;
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
 	char ret;
@@ -756,7 +777,9 @@ int par_read_status(port_t *port, unsigned char *status)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int ret;
-	ret = ioctl(port->fd, PPRSTATUS, status);
+	unsigned char sta;
+	ret = ioctl(port->fd, PPRSTATUS, &sta);
+	*status = sta ^ SP_ACTIVE_LOW_BITS;
 	return ret == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
 	unsigned char ret;
@@ -772,6 +795,34 @@ int par_read_status(port_t *port, unsigned char *status)
 	return -RIG_ENIMPL;
 }
 
+
+int par_lock(port_t *port)
+{
+#ifdef HAVE_LINUX_PPDEV_H
+	if (ioctl(port->fd, PPCLAIM) < 0) {
+		rig_debug(RIG_DEBUG_ERR, "Claiming device \"%s\": %s\n", port->pathname, strerror(errno));
+		return -RIG_EIO;
+	}
+	return RIG_OK;
+#elif defined(WIN32)
+	return RIG_OK;
+#endif
+	return -RIG_ENIMPL;
+}
+
+int par_unlock(port_t *port)
+{
+#ifdef HAVE_LINUX_PPDEV_H
+	if (ioctl(port->fd, PPRELEASE) < 0) {
+		rig_debug(RIG_DEBUG_ERR, "Releasing device \"%s\": %s\n", port->pathname, strerror(errno));
+		return -RIG_EIO;
+	}
+	return RIG_OK;
+#elif defined(WIN32)
+	return RIG_OK;
+#endif
+	return -RIG_ENIMPL;
+}
 
 
 int par_ptt_set(port_t *p, ptt_t pttx)
