@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.58 2002-03-15 13:04:32 fillods Exp $
+ *		$Id: icom.c,v 1.59 2002-03-18 23:04:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -331,7 +331,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char freqbuf[16], ackbuf[16];
+		unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int freq_len, ack_len, retval;
 
 		rs = &rig->state;
@@ -367,7 +367,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char freqbuf[16];
+		unsigned char freqbuf[MAXFRAMELEN];
 		int freq_len, retval;
 
 		rs = &rig->state;
@@ -418,7 +418,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		char icmode, icmode_ext;
 		int ack_len, retval, err;
 
@@ -459,7 +459,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char modebuf[16];
+		unsigned char modebuf[MAXFRAMELEN];
 		int mode_len, retval;
 
 		rs = &rig->state;
@@ -493,7 +493,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, icvfo, retval;
 
 		rs = &rig->state;
@@ -553,7 +553,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char lvlbuf[16], ackbuf[16];
+		unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int ack_len, lvl_len;
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
@@ -714,7 +714,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char lvlbuf[16];
+		unsigned char lvlbuf[MAXFRAMELEN];
 		int lvl_len;
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
@@ -954,7 +954,7 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char ackbuf[16], ptt_sc;
+		unsigned char ackbuf[MAXFRAMELEN], ptt_sc;
 		int ack_len, retval;
 
 		rs = &rig->state;
@@ -984,7 +984,7 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char pttbuf[16];
+		unsigned char pttbuf[MAXFRAMELEN];
 		int ptt_len, retval;
 
 		rs = &rig->state;
@@ -1018,7 +1018,7 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char dcdbuf[16];
+		unsigned char dcdbuf[MAXFRAMELEN];
 		int dcd_len, retval;
 		int icom_val;
 
@@ -1062,7 +1062,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 		int rptr_sc;
 
@@ -1108,7 +1108,7 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char rptrbuf[16];
+		unsigned char rptrbuf[MAXFRAMELEN];
 		int rptr_len, retval;
 
 		rs = &rig->state;
@@ -1155,7 +1155,7 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char offsbuf[16],ackbuf[16];
+		unsigned char offsbuf[MAXFRAMELEN],ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 
 		rs = &rig->state;
@@ -1189,7 +1189,7 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char offsbuf[16];
+		unsigned char offsbuf[MAXFRAMELEN];
 		int offs_len, retval;
 
 		rs = &rig->state;
@@ -1330,7 +1330,7 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 		int split_sc;
 
@@ -1372,7 +1372,7 @@ int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char splitbuf[16];
+		unsigned char splitbuf[MAXFRAMELEN];
 		int split_len, retval;
 
 		rs = &rig->state;
@@ -1415,7 +1415,7 @@ int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 		const struct icom_priv_caps *priv_caps;
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int i, ack_len, retval;
 		int ts_sc = 0;
 
@@ -1453,7 +1453,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 		const struct icom_priv_caps *priv_caps;
-		unsigned char tsbuf[16];
+		unsigned char tsbuf[MAXFRAMELEN];
 		int ts_len, i, retval;
 
 		priv_caps = (const struct icom_priv_caps*)rig->caps->priv;
@@ -1492,7 +1492,7 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  */
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-		unsigned char fctbuf[16], ackbuf[16];
+		unsigned char fctbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int fct_len, acklen, retval;
 		int fct_cn, fct_sc;		/* Command Number, Subcommand */
 
@@ -1597,7 +1597,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  */
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 		int fct_cn, fct_sc;		/* Command Number, Subcommand */
 
@@ -1701,7 +1701,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 		const struct rig_caps *caps;
-		unsigned char tonebuf[16], ackbuf[16];
+		unsigned char tonebuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int tone_len, ack_len, retval;
 		int i;
 
@@ -1747,7 +1747,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 		const struct rig_caps *caps;
-		unsigned char tonebuf[16];
+		unsigned char tonebuf[MAXFRAMELEN];
 		int tone_len, tone_idx, retval;
 		int i;
 
@@ -1794,7 +1794,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 {
 		const struct rig_caps *caps;
-		unsigned char tonebuf[16], ackbuf[16];
+		unsigned char tonebuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int tone_len, ack_len, retval;
 		int i;
 
@@ -1835,7 +1835,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 {
 		const struct rig_caps *caps;
-		unsigned char tonebuf[16];
+		unsigned char tonebuf[MAXFRAMELEN];
 		int tone_len, tone_idx, retval;
 		int i;
 
@@ -1881,7 +1881,7 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char chanbuf[24], ackbuf[16];
+		unsigned char chanbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int chan_len, freq_len, ack_len, retval;
 		char icmode, icmode_ext;
 		int err;
@@ -1996,7 +1996,7 @@ int icom_get_channel(RIG *rig, channel_t *chan)
  */
 int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 		int pwr_sc;
 
@@ -2022,7 +2022,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
  */
 int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 
 		retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
@@ -2050,7 +2050,7 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char membuf[2];
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 		int chan_len;
 
@@ -2083,7 +2083,7 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char bankbuf[2];
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int ack_len, retval;
 
 		rs = &rig->state;
@@ -2112,8 +2112,8 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char mvbuf[16];
-		unsigned char ackbuf[16];
+		unsigned char mvbuf[MAXFRAMELEN];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int mv_len, ack_len, retval;
 		int mv_cn, mv_sc;
 
@@ -2190,8 +2190,8 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char scanbuf[16];
-		unsigned char ackbuf[16];
+		unsigned char scanbuf[MAXFRAMELEN];
+		unsigned char ackbuf[MAXFRAMELEN];
 		int scan_len, ack_len, retval;
 		int scan_cn, scan_sc;
 
@@ -2265,7 +2265,7 @@ int icom_decode_event(RIG *rig)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char buf[32];
+		unsigned char buf[MAXFRAMELEN];
 		int frm_len;
 		freq_t freq;
 		rmode_t mode;
@@ -2277,8 +2277,27 @@ int icom_decode_event(RIG *rig)
 		priv = (struct icom_priv_data*)rs->priv;
 
 		frm_len = read_icom_frame(&rs->rigport, buf);
+
+		if (frm_len == -RIG_ETIMEOUT)
+		     rig_debug(RIG_DEBUG_VERBOSE, "icom: icom_decode got a timeout before the first character\n");
+
 		if (frm_len < 0)
 				return frm_len;
+
+		switch (buf[frm_len-1])
+		  {
+		  case COL:
+		    rig_debug(RIG_DEBUG_VERBOSE, "icom: icom_decode saw a collision\n");
+		    /* Collision */
+		    return -RIG_BUSBUSY;
+		  case FI:
+		    /* Ok, normal frame */
+		    break;
+		  default:
+		    /* Timeout after reading at least one character */
+		    /* Problem on ci-v bus? */
+		    return  -RIG_EPROTO;
+		  }
 
 		if (buf[3] != BCASTID && buf[3] != priv->re_civ_addr) {
 			rig_debug(RIG_DEBUG_WARN, "icom_decode: CI-V %#x called for %#x!\n",
@@ -2332,7 +2351,7 @@ int icom_decode_event(RIG *rig)
  */
 rig_model_t probe_icom(port_t *p)
 {
-		unsigned char buf[16], civ_addr, civ_id;
+		unsigned char buf[MAXFRAMELEN], civ_addr, civ_id;
 		int frm_len, i;
 		int retval;
 

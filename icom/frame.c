@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: frame.c,v 1.17 2002-03-11 23:28:45 fillods Exp $
+ *		$Id: frame.c,v 1.18 2002-03-18 23:04:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,7 +61,9 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
 {	
 	int i = 0;
 
+#if 0
 	frame[i++] = PAD;	/* give old rigs a chance to flush their rx buffers */
+#endif
 	frame[i++] = PR;	/* Preamble code */
 	frame[i++] = PR;
 	frame[i++] = re_id;
@@ -95,13 +97,14 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char buf[16];
+		unsigned char buf[MAXFRAMELEN];
+		unsigned char sendbuf[MAXFRAMELEN];
 		int frm_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		frm_len = make_cmd_frame(buf, priv->re_civ_addr, cmd, subcmd, 
+		frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, cmd, subcmd, 
 						payload, payload_len);
 
 		/* 
@@ -111,7 +114,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 
 		serial_flush(&rs->rigport);
 
-		retval = write_block(&rs->rigport, buf, frm_len);
+		retval = write_block(&rs->rigport, sendbuf, frm_len);
 		if (retval != RIG_OK) {
 				Unhold_Decode(rig);
 				return retval;
@@ -127,10 +130,51 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 */
 
 		retval = read_icom_frame(&rs->rigport, buf);
-		if (retval != frm_len) {
-				Unhold_Decode(rig);
-				return retval < 0 ? retval : -RIG_EPROTO;
-		}
+		if (retval == -RIG_ETIMEOUT || retval == 0)
+		  {
+		    /* Nothing recieved, CI-V interface is not echoing */
+		    Unhold_Decode(rig);
+		    return -RIG_BUSERROR;
+		  }
+		if (retval < 0)
+		  {
+		    /* Other error, return it */
+		    Unhold_Decode(rig);
+		    return retval;
+		  }
+
+		switch (buf[retval-1])
+		  {
+		  case COL:
+		    /* Collision */
+		    Unhold_Decode(rig);
+		    return -RIG_BUSBUSY;
+		  case FI:
+		    /* Ok, normal frame */
+		    break;
+		  default:
+		    /* Timeout after reading at least one character */
+		    /* Problem on ci-v bus? */
+		    Unhold_Decode(rig);
+		    return -RIG_BUSERROR;
+		  }
+
+		if (retval != frm_len) 
+		  {
+		    /* Not the same length??? */
+		    /* Problem on ci-v bus? */
+		    /* Someone else got a packet in? */
+		    Unhold_Decode(rig);
+		    return -RIG_EPROTO;
+		  }
+		if (memcmp(buf,sendbuf,frm_len))
+		  {
+		    /* Frames are different? */
+		    /* Problem on ci-v bus? */
+		    /* Someone else got a packet in? */
+		    Unhold_Decode(rig);
+		    return -RIG_EPROTO;
+		  }
 
 		/*
 		 * wait for ACK ... 
@@ -139,10 +183,30 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 */
 		frm_len = read_icom_frame(&rs->rigport, buf);
 		Unhold_Decode(rig);
-		if (frm_len < 0) {
-				return frm_len;
-		} else if (frm_len < ACKFRMLEN) {
-				return  -RIG_EPROTO;
+		
+		if (frm_len < 0) 
+		  {
+		    /* RIG_TIMEOUT: timeout getting response, return timeout */
+		    /* other error: return it */
+		    return frm_len;
+		  }
+		
+		switch (buf[frm_len-1])
+		  {
+		  case COL:
+		    /* Collision */
+		    return -RIG_BUSBUSY;
+		  case FI:
+		    /* Ok, normal frame */
+		    break;
+		  default:
+		    /* Timeout after reading at least one character */
+		    /* Problem on ci-v bus? */
+		    return  -RIG_EPROTO;
+		  }
+
+		if (frm_len < ACKFRMLEN) {
+		  return  -RIG_EPROTO;
 		}
 
 		*data_len = frm_len-(ACKFRMLEN-1);
@@ -151,7 +215,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		/*
 		 * TODO: check addresses in reply frame
 		 */
-
+		
 		return RIG_OK;
 }
 
@@ -169,7 +233,8 @@ int read_icom_frame(port_t *p, unsigned char rxbuffer[])
 {
 		int i;
 
-		i = read_string(p, rxbuffer, 16, icom_block_end, icom_block_end_length);
+		i = read_string(p, rxbuffer, MAXFRAMELEN, 
+						icom_block_end, icom_block_end_length);
 
 		return i;
 }

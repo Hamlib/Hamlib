@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - low level communication header
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: frame.h,v 1.11 2002-03-11 23:28:45 fillods Exp $
+ *		$Id: frame.h,v 1.12 2002-03-18 23:04:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,7 @@
 #ifndef _FRAME_H
 #define _FRAME_H 1
 
+#define MAXFRAMELEN 32
 
 /*
  * helper functions 
