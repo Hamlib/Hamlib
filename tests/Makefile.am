@@ -4,29 +4,26 @@ EXTRA_PROGRAMS = rigmatrix
 # all the programs need this
 LDADD = ../src/libhamlib.la
 
+BACKENDLNK = "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la
+BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la
+
 ## Linker options
-listrigs_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la "-dlopen" ../aor/libhamlib-aor.la
-dumpcaps_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la "-dlopen" ../aor/libhamlib-aor.la
-testrig_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la
-testtrn_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la
-rigctl_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la
+listrigs_LDADD = ../src/libhamlib.la $(BACKENDLNK)
+dumpcaps_LDADD = ../src/libhamlib.la $(BACKENDLNK)
+testrig_LDADD = ../src/libhamlib.la $(BACKENDLNK)
+testtrn_LDADD = ../src/libhamlib.la $(BACKENDLNK)
+rigctl_LDADD = ../src/libhamlib.la $(BACKENDLNK)
 # rigmatrix needs also libgd
-rigmatrix_LDADD = -lgd ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la "-dlopen" ../aor/libhamlib-aor.la
+rigmatrix_LDADD = -lgd ../src/libhamlib.la $(BACKENDLNK)
 
 ## Dependencies
-#dumpcaps_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la ../aor/libhamlib-aor.la
-#testrig_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
-#testtrn_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
-#listrigs_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la ../aor/libhamlib-aor.la
-#rigctl_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
-#rigmatrix_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la ../aor/libhamlib-aor.la
 
-dumpcaps_DEPENDENCIES = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la ../aor/libhamlib-aor.la
-testrig_DEPENDENCIES = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la
-testtrn_DEPENDENCIES = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la
-listrigs_DEPENDENCIES = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la ../aor/libhamlib-aor.la
-rigctl_DEPENDENCIES = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la
-rigmatrix_DEPENDENCIES = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la ../aor/libhamlib-aor.la
+dumpcaps_DEPENDENCIES = $(BACKENDEPS)
+testrig_DEPENDENCIES = $(BACKENDEPS)
+testtrn_DEPENDENCIES = $(BACKENDEPS)
+listrigs_DEPENDENCIES = $(BACKENDEPS)
+rigctl_DEPENDENCIES = $(BACKENDEPS)
+rigmatrix_DEPENDENCIES = $(BACKENDEPS)
 
 ## Source list
 testrig_SOURCES = testrig.c
