@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.15 2004-08-17 20:41:05 fillods Exp $
+ *	$Id: jrc.c,v 1.16 2004-08-31 03:47:52 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -160,6 +160,33 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 		return RIG_OK;
 }
+
+/*
+ * jrc_set_vfo
+ * Assumes rig!=NULL
+ */
+int jrc_set_vfo(RIG *rig, vfo_t vfo)
+{
+	unsigned char cmdbuf[16];
+	int cmd_len, retval;
+	char vfo_function;
+
+	switch (vfo) {
+	case RIG_VFO_VFO: vfo_function = 'F'; break;
+	case RIG_VFO_MEM: vfo_function = 'C'; break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"jrc_set_vfo: unsupported VFO %d\n",
+							vfo);
+		return -RIG_EINVAL;
+	}
+
+	cmd_len = sprintf(cmdbuf, "%c" EOM, vfo_function);
+	
+	retval = jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+	return retval;
+}
+
 
 /*
  * jrc_set_mode
@@ -945,7 +972,8 @@ int jrc_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		if (retval != RIG_OK)
 		  return retval;
 
-		if (mem_len != priv->mem_len) {
+		/* need to handle vacant memories LmmmV<cr>, len = 6 */
+		if ((mem_len != priv->mem_len) && (mem_len != 6)) {
 		  rig_debug(RIG_DEBUG_ERR,"jrc_get_mem: wrong answer %s, "
 			    "len=%d\n", membuf, mem_len);
 		  return -RIG_ERJCTED;

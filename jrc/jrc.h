@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main header
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.h,v 1.8 2004-06-04 21:48:05 fillods Exp $
+ *	$Id: jrc.h,v 1.9 2004-08-31 03:47:52 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,6 +42,7 @@ int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int jrc_set_vfo(RIG *rig, vfo_t vfo);
 int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.12 2004-08-12 02:05:50 fineware Exp $
+ *	$Id: nrd545.c,v 1.13 2004-08-31 03:47:52 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,7 @@
 /* FIXME: add more from "U" command */
 #define NRD545_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
-#define NRD545_VFO (RIG_VFO_A)
+#define NRD545_VFO (RIG_VFO_VFO|RIG_VFO_MEM)
 
 /*
  * FIXME: measure S-meter levels
@@ -186,6 +186,7 @@ const struct rig_caps nrd545_caps = {
 .get_freq =  jrc_get_freq,
 .set_mode =  jrc_set_mode,
 .get_mode =  jrc_get_mode,
+.set_vfo = jrc_set_vfo,
 .set_func =  jrc_set_func,
 .get_func =  jrc_get_func,
 .set_level =  jrc_set_level,
