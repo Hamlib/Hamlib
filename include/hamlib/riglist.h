@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.53 2005-02-26 22:29:03 fillods Exp $
+ *	$Id: riglist.h,v 1.54 2005-04-03 19:15:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -284,6 +284,7 @@
 #define RIG_MODEL_RA3790 RIG_MAKE_MODEL(RIG_RACAL, 1)
 #define RIG_MODEL_RA3720 RIG_MAKE_MODEL(RIG_RACAL, 2)
 #define RIG_MODEL_RA6790 RIG_MAKE_MODEL(RIG_RACAL, 3)
+#define RIG_MODEL_RA3710 RIG_MAKE_MODEL(RIG_RACAL, 4)
 
 	/*
 	 * Watkins-Johnson
