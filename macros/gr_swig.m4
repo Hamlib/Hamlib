@@ -43,9 +43,11 @@ AC_DEFUN([SWIG_PROG],[
 				awk '{ split($[1],a,"\."); print [a[1]*1000000+a[2]*1000+a[3]] }' 2>/dev/null`
 			if test $swig_required_version -gt $swig_version ; then
 				AC_MSG_WARN([SWIG version $1 required])
+				SWIG=false
 			fi
 		else
 			AC_MSG_WARN([cannot determine SWIG version])
+			SWIG=false
 		fi
 	fi
 ])
