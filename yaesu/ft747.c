@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.11 2001-05-03 01:47:51 javabear Exp $  
+ * $Id: ft747.c,v 1.12 2001-05-04 22:38:58 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -156,16 +156,14 @@ const struct rig_caps ft747_caps = {
   dcs_list:         NULL,
   preamp:           { RIG_DBLST_END, },
   attenuator:       { RIG_DBLST_END, },
-  dtmf_digits:      NULL,
   max_rit:          Hz(9999),
+  max_xit:          Hz(0),
   max_ifshift:      Hz(0),
-  vfo_list:         0,
   targetable_vfo:   0,
   transceive:       RIG_TRN_OFF,
-  chan_qty:         20,
   bank_qty:         0,
   chan_desc_sz:     0,
-  chan_list:        { RIG_CHAN_END, },	/* FIXME: memory channel list */
+  chan_list:        { RIG_CHAN_END, },	/* FIXME: memory channel list:20 */
 
   rx_range_list1:   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 
@@ -228,7 +226,6 @@ const struct rig_caps ft747_caps = {
   ft747_cleanup, 
   ft747_open,				/* port opened */
   ft747_close,				/* port closed */
-  NULL,				/* probe not supported yet */
 
   ft747_set_freq,		/* set freq */
   ft747_get_freq,		/* get freq */

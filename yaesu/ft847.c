@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.10 2001-04-22 13:57:39 f4cfe Exp $  
+ * $Id: ft847.c,v 1.11 2001-05-04 22:38:58 f4cfe Exp $  
  *
  *
  *
@@ -190,16 +190,16 @@ const struct rig_caps ft847_caps = {
   FT847_WRITE_DELAY, FT847_POST_WRITE_DELAY, 100, 0,
   RIG_FUNC_NONE, FT847_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
   RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  {}, {},		/* FIXME: granularity */
   NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { RIG_DBLST_END, },	/* FIXME! */
   { RIG_DBLST_END, },
-  NULL,
-  Hz(9999), Hz(0),	/* RIT, IF-SHIFT */
-  0,			/* FIXME: VFO list */
+  Hz(9999), Hz(0), Hz(0),	/* RIT, XIT, IF-SHIFT */
+  RIG_ANN_NONE,
   1, RIG_TRN_OFF,
-  78, 0, 0,
+  0, 0,
 
-  { RIG_CHAN_END, },	/* FIXME: memory chan list */
+  { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
 
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },
@@ -267,7 +267,6 @@ const struct rig_caps ft847_caps = {
   ft847_cleanup, 
   ft847_open, 
   ft847_close, 
-  NULL /* probe not supported yet */,
 
   ft847_set_freq,		/* set freq */
   ft847_get_freq,		/* get freq */
