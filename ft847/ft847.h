@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.3 2000-07-28 02:02:22 javabear Exp $  
+ *    $Id: ft847.h,v 1.4 2000-07-29 01:47:48 javabear Exp $  
  */
 
 /*
@@ -38,16 +38,16 @@ const unsigned char  TXSF_POALC_METER_MASK  = 0x1f; /* bottom 5 bits */
  * MODES for READING and SETTING
  */
 
-const unsigned char MODE_LSB = 0;
-const int MODE_USB  = 1;
-const int MODE_CW   = 2;
-const int MODE_CWR  = 3;
-const int MODE_AM   = 4;
-const int MODE_FM   = 8;
-const int MODE_CWN  = 82;
-const int MODE_CWNR = 83;
-const int MODE_AMN  = 84;
-const int MODE_FMN  = 88;
+#define MODE_LSB   0x00  
+#define MODE_USB   0x01
+#define MODE_CW    0x02
+#define MODE_CWR   0x03
+#define MODE_AM    0x04
+#define MODE_FM    0x08
+#define MODE_CWN   0x82
+#define MODE_CWNR  0x83
+#define MODE_AMN   0x84
+#define MODE_FMN   0x88
 
 
 
@@ -106,3 +106,12 @@ unsigned char cmd_get_tx_status(int fd);
 unsigned char cmd_get_freq_mode_status_main_vfo(int fd);
 unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd);
 unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd); 
+
+
+/*
+ * Set frequency in Hz.
+ *
+ */
+
+void cmd_set_freq_main_vfo_hz(unsigned long int freq);
+
