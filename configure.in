@@ -157,6 +157,7 @@ icom/Makefile
 aor/Makefile
 kenwood/Makefile
 winradio/Makefile
+pcr/Makefile
 src/Makefile
 tests/Makefile
 doc/Makefile])

@@ -3031,6 +3031,7 @@ icom/Makefile
 aor/Makefile
 kenwood/Makefile
 winradio/Makefile
+pcr/Makefile
 src/Makefile
 tests/Makefile
 doc/Makefile include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
@@ -3153,6 +3154,7 @@ icom/Makefile
 aor/Makefile
 kenwood/Makefile
 winradio/Makefile
+pcr/Makefile
 src/Makefile
 tests/Makefile
 doc/Makefile"}
