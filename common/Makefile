@@ -27,7 +27,7 @@
 #
 #
 #
-#	$Id: Makefile,v 1.5 2000-09-23 04:55:44 javabear Exp $	
+#	$Id: Makefile,v 1.6 2000-09-23 05:10:24 javabear Exp $	
 #
 #
 
@@ -47,7 +47,7 @@ CC	=	gcc
 INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include
 OBJ	=	serial.o rig.o testrig.o
 LDFLAG	=	-lm 
-# -ansi would break usleep, CRTSCTS, etc.
+
 CFLAGS	=	-g -Wall -D__USE_FIXED_PROTOTYPES__ -pedantic -fPIC -g -Wall
 MAKEALL	=	$(OBJ)
 
@@ -75,11 +75,10 @@ cleanlocal:
 	rm -f $(LIB_RELEASE)
 
 
-# test making a shared lib (at last) for the frontend -- FS
+# test making a shared lib ( for the frontend -- FS
 # still lots to cleanup. 
 
 .PHONY: hamlib
 hamlib:	 
 	$(CC) $(CFLAGS) $(INCLUDE) -c $(LIB_SRC)
 	$(CC) -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
-
