@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.3 2000-10-09 01:17:20 javabear Exp $
+   $Id: rig.c,v 1.4 2000-10-10 22:11:48 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -895,6 +895,8 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, unsigned long mode)
 
 int rig_set_trn(RIG *rig, int trn)
 {
+		int status;
+
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
 
@@ -906,14 +908,40 @@ int rig_set_trn(RIG *rig, int trn)
 				/*
 				 * TODO: check error codes et al.
 				 */
-				return add_trn_rig(rig);
+				status = add_trn_rig(rig);
+				if (rig->caps->set_trn)
+						return rig->caps->set_trn(rig, RIG_TRN_ON);
+				else
+						return status;
 			} else {
 				return -RIG_ECONF;
 			}
-		} else
-				return remove_trn_rig(rig);
+		} else {
+				status = remove_trn_rig(rig);
+				if (rig->caps->set_trn)
+						return rig->caps->set_trn(rig, RIG_TRN_OFF);
+				else
+						return status;
+		}
 
 		return RIG_OK;
 }
+
+/*
+ * rig_get_trn
+ * Check if radio sends status automatically when change sent
+ */
+
+int rig_get_trn(RIG *rig, int *trn)
+{
+		if (!rig || !rig->caps || !trn)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_trn == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_trn(rig, trn);
+}
+
 
 
