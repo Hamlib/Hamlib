@@ -1,0 +1,4 @@
+
+Here is how to generate man pages:
+
+./hamlib-doc -man ../src/rig.c  | ./split-man.pl man
