@@ -12,14 +12,15 @@
  *  Hamlib Interface - locator and bearing conversion calls
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *  Copyright (c) 2003 by Nate Bargmann
+ *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.7 2003-08-19 23:41:08 n0nb Exp $
+ *	$Id: locator.c,v 1.8 2003-08-21 03:11:27 n0nb Exp $
  *
- *	Code to determine bearing and range was taken from the Great Circle, 
+ *	Code to determine bearing and range was taken from the Great Circle,
  *	by S. R. Sampson, N5OWK.
  *	Ref: "Air Navigation", Air Force Manual 51-40, 1 February 1987
  *	Ref: "ARRL Satellite Experimenters Handbook", August 1990
- *  
+ *
  *  Code to calculate distance and azimuth between two Maidenhead locators,
  *  taken from wwl, by IK0ZSN Mirko Caserta.
  *
@@ -42,7 +43,7 @@
 
 /*! \page hamlib Hamlib general purpose API
  *
- *  Here are grouped some often used functions, like locator conversion 
+ *  Here are grouped some often used functions, like locator conversion
  *  routines.
  */
 
@@ -83,8 +84,7 @@
  *
  * \sa dec2dms()
  */
-double dms2dec(int degrees, int minutes, int seconds)
-{
+double dms2dec(int degrees, int minutes, int seconds) {
 	if (degrees >= 0)
 		return (double)degrees + (double)minutes/60. + (double)seconds/3600.;
 	else
@@ -108,8 +108,7 @@ double dms2dec(int degrees, int minutes, int seconds)
  *
  * \sa dms2dec()
  */
-void dec2dms(double dec, int *degrees, int *minutes, int *seconds)
-{
+void dec2dms(double dec, int *degrees, int *minutes, int *seconds) {
 	int deg, min, sec, is_neg = 0;
 	double st;
 
@@ -172,15 +171,38 @@ void dec2dms(double dec, int *degrees, int *minutes, int *seconds)
 	*seconds = sec;
 }
 
+/* The following is contributed by Dave Hines
+ *
+ * begin dph
+ */
+/*
+ * These are the constants used when converting between Maidenhead grid
+ * locators and longitude/latitude values. MAX_LOCATOR_PAIRS is the maximum
+ * number of locator character pairs to convert. This number MUST NOT exceed
+ * the number of pairs of values in range[] & weight[].
+ * Setting MAX_LOCATOR_PAIRS to 3 will convert the currently defined 6
+ * character locators. A value of 4 will convert the extended 8 character
+ * locators described in section 3L of "The IARU region 1 VHF managers
+ * handbook". Values of 5 and 6 will extent the format even more, to the
+ * longest definition I have seen for locators. Beware that there seems to be
+ * no universally accepted standard for 10 & 12 character locators.
+ * Note that the loc_char_weight values are in minutes of arc, to avoid
+ * constants which can't be represented precisely in either binary or decimal.
+ */
+const static double loc_char_weight[] = { 600.0, 60.0, 2.5, 0.25, 0.01, 0.001 };
+const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
+#define MAX_LOCATOR_PAIRS       6
+
+/* end dph */
 
 /**
  * \brief Convert Maidenhead grid locator to longitude/latitude
  * \param longitude	The location where to store longitude, decimal
  * \param latitude	The location where to store latitude, decimal
- * \param locator	The locator--four or six char nul terminated string
+ * \param locator	The locator--2 through 12 char nul terminated string
  *
  *  Convert Maidenhead grid locator to longitude/latitude (decimal).
- *  The locator be either in 4 or 6 chars long format. locator2longlat
+ *  The locator should be in 2 through 12 chars long format. locator2longlat
  *  is case insensitive, however it checks for locator validity.
  *
  *  Decimal long/lat is computed to center of grid square, i.e. given
@@ -189,60 +211,48 @@ void dec2dms(double dec, int *degrees, int *minutes, int *seconds)
  *  in the center of the given subsquare, i.e. 2' 30" from west boundary
  *  and 1' 15" from south boundary.
  *
- * \todo Support for greater accuracy as proposed by Dave Hines to
- *  six pairs of grid designators.
- *
  * \return RIG_OK to indicate conversion went ok, -RIG_EINVAL if locator
- *  exceeds RR99xx or is malformed (not of 4 or 6 character format).
+ *  exceeds RR99xx or is malformed (not of 2 through 12 character format).
  *
  * \sa longlat2locator()
  */
-int locator2longlat(double *longitude, double *latitude, const char *locator)
-{
-	char loc[6];
-        int length;
 
-	if (locator[4] != '\0' && locator[6] != '\0')
-		return -RIG_EINVAL;
+/* begin dph */
 
-	loc[0] = toupper(locator[0]);
-	loc[1] = toupper(locator[1]);
-	loc[2] = locator[2];
-	loc[3] = locator[3];
-	if (locator[4] != '\0') {
-		loc[4] = toupper(locator[4]);
-		loc[5] = toupper(locator[5]);
-                length = 6;
-	} else {
-                /* center of 4 character grid */
-		loc[4] = 'M';
-		loc[5] = 'M';
-                length = 4;
+int locator2longlat(double *longitude, double *latitude, const char *locator) {
+	int x_or_y, paircount = strlen(locator) / 2;
+        int locvalue, pair;
+	double xy[2], minutes;
+
+	if (paircount > MAX_LOCATOR_PAIRS)	/* Max. locator length to allow */
+		paircount = MAX_LOCATOR_PAIRS;
+
+	for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) { /* For x(=long) and y(=lat) */
+		minutes = 0.0;
+
+		for (pair = 0;  pair < paircount;  ++pair) {
+			locvalue = locator[pair*2 + x_or_y];
+
+			locvalue -= (loc_char_range[pair] == 10) ? '0' : /* Value of digit */
+				(isupper(locvalue)) ? 'A' : 'a';	 /*  or letter. */
+
+			if (((unsigned) locvalue) >= loc_char_range[pair]) /* Check range */
+				return -RIG_EINVAL;	/* Non-letter/digit or out of range */
+
+			minutes += locvalue * loc_char_weight[pair];
+		}
+		minutes += loc_char_weight[paircount-1] / 2.0; /* Center coordinate */
+
+		xy[x_or_y] = minutes / 60.0 - 90.0;
 	}
-	if (loc[0] < 'A' || loc[0] > 'R' ||
-		loc[1] < 'A' || loc[1] > 'R' ||
-		loc[2] < '0' || loc[2] > '9' ||
-		loc[3] < '0' || loc[3] > '9' ||
-		loc[4] < 'A' || loc[4] > 'X' ||
-		loc[5] < 'A' || loc[5] > 'X' ) {
-			return -RIG_EINVAL;
-	}
 
-	*longitude = 20.0 * (loc[0]-'A') - 180.0 + 2.0 * (loc[2]-'0') + 
-		(loc[4]-'A')/12.0;
-
-        /* move east to center of subsquare */
-	if (length == 6)
-		*longitude += 0.04166666;
-
-	*latitude = 10.0 * (loc[1]-'A') - 90.0 + (loc[3]-'0') +
-							(loc[5]-'A')/24.0;
-        /* move north to center of subsquare */
-	if (length == 6)
-		*latitude += 0.020833333;
+	/* Don't seg. fault if longitude or latitude pointers are null */
+	if (longitude != NULL)	*longitude = xy[0] * 2;
+	if (latitude != NULL)	*latitude = xy[1];
 
 	return RIG_OK;
 }
+/* end dph */
 
 /**
  * \brief Convert longitude/latitude to Maidenhead grid locator
@@ -251,63 +261,35 @@ int locator2longlat(double *longitude, double *latitude, const char *locator)
  * \param locator	The location where to store the locator
  *
  *  Convert longitude/latitude (decimal) to Maidenhead grid locator.
- *  \a locator must point to an array at least 6 char long.
- *
- * \todo Support for greater accuracy as proposed by Dave Hines to
- *  six pairs of grid designators.
+ *  \a locator must point to an array at least MAX_LOCATOR_PAIRS*2 char plus nul long.
  *
  * \sa locator2longlat()
  */
-void longlat2locator(double longitude, double latitude, char *locator)
-{
-	double tmp, min_sec;
 
-	tmp = longitude;
+/* begin dph */
 
-	/* Ideally, the input should be constrained to
-	 * >= -180. && < 179.9999999999999
-         */
-	if (tmp == 180.)
-		tmp = -tmp;
+void longlat2locator(double longitude, double latitude, char *locator) {
+	int x_or_y, pair, locvalue;
+        double tmp;
 
-	/* with input of -180 to 179 this expression will evaluate
-	 * to 1 to 359 or degrees east of -180 degrees longitude.
-         */
-	tmp = fmod(tmp, 360) + 180.;
+	for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) {
+		tmp = ((x_or_y == 0) ? longitude / 2. : latitude);
 
-	/* determine west side of the field.  Fields always start at
-	 * a longitude that is a multiple of 20.  Fields advance
-         * eastward from -180 deg West longitude.
-	 */
-	locator[0] = 'A' + (int)floor(tmp/20.);
-	tmp = fmod(tmp, 20.);
+		/* The 1e-6 here guards against floating point rounding errors */
+		tmp = fmod(tmp + 270., 180.) * 60. + 1e-6;
+		for (pair = 0;  pair < MAX_LOCATOR_PAIRS;  ++pair) {
+			locvalue = (int) (tmp / loc_char_weight[pair]);
 
-	/* at this point tmp = degrees east of west boundary
-	 * of the field.
-         */
-	locator[2] = '0' + (int)floor(tmp/2.);
-
-	min_sec = 12. * fabs(floor(longitude)-longitude);
-
-	/* When tmp is an odd value, then we must be sure that
-	 * the subsquare is referenced to 'm' as the longitude
-	 * subsquare range spans 2 degrees.
-	 */
-	if ((int)tmp % 2)
-		locator[4] = 'm' + (int)floor(min_sec);
-	else
-		locator[4] = 'a' + (int)floor(min_sec);
-
-        /* input should be constrained to >= -90. && < 90. */
-	tmp = fmod(latitude, 360) + 90.;
-
-	locator[1] = 'A' + (int)floor(tmp/10.);
-	tmp = fmod(tmp, 10.);
-	locator[3] = '0' + (int)floor(tmp);
-	tmp = 24. * fabs(floor(latitude)-latitude);
-	locator[5] = 'a' + (int)floor(tmp);
+			/* assert(locvalue < loc_char_range[pair]); */
+			tmp -= loc_char_weight[pair] * locvalue;
+			locvalue += (loc_char_range[pair] == 10) ? '0':'A';
+			locator[pair*2 + x_or_y] = locvalue;
+		}
+	}
+        locator[MAX_LOCATOR_PAIRS * 2] = '\0';
 }
 
+/* end dph */
 
 /**
  * \brief Calculate the distance and bearing between two points.
@@ -320,18 +302,17 @@ void longlat2locator(double longitude, double latitude, char *locator)
  *
  *  Calculate the QRB between \a lat1,\a lat1 and \a lon2,\a lat2.
  *
- *	This version also takes into consideration the two points 
- *	being close enough to be in the near-field, and the antipodal points, 
+ *	This version also takes into consideration the two points
+ *	being close enough to be in the near-field, and the antipodal points,
  *	which are easily calculated.
  *
- * \return the distance in kilometers and azimuth in decimal degrees 
+ * \return the distance in kilometers and azimuth in decimal degrees
  * for the short path.
 *
  * \sa distance_long_path(), azimuth_long_path()
  */
 int qrb(double lon1, double lat1, double lon2, double lat2,
-				double *distance, double *azimuth)
-{
+				double *distance, double *azimuth) {
 	double delta_long, tmp, arc, cosaz, az;
 
 	if (!distance || !azimuth)
@@ -367,14 +348,14 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 
    	tmp = sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(delta_long);
 
-	if (tmp > .999999)  {
+	if (tmp > .999999) {
 		/* Station points coincide, use an Omni! */
 		*distance = 0.0;
 		*azimuth = 0.0;
 		return 0;
 	}
 
-	if (tmp < -.999999)  {
+	if (tmp < -.999999) {
 		/*
 		 * points are antipodal, it's straight down.
 		 * Station is equal distance in all Azimuths.
@@ -386,7 +367,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 		*azimuth = 0.0;
 		return 0;
 	}
-	
+
 	arc = acos(tmp);
 
 	/*
@@ -401,7 +382,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 
 	/*
 	 * Long Path
-	 * 
+	 *
 	 * distlp = (ARC_IN_KM * 360.0) - distsp;
 	 */
 
@@ -444,8 +425,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
  *
  * \sa qrb()
  */
-double distance_long_path(double distance)
-{
+double distance_long_path(double distance) {
 	 return (ARC_IN_KM * 360.0) - distance;
 }
 
@@ -459,8 +439,6 @@ double distance_long_path(double distance)
  *
  * \sa qrb()
  */
-double azimuth_long_path(double azimuth)
-{
+double azimuth_long_path(double azimuth) {
 	return 360.0 - azimuth;
 }
-

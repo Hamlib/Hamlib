@@ -12,9 +12,8 @@
 #include <hamlib/rotator.h>
 
 
-int main (int argc, char *argv[])
-{
-	char recodedloc[8], *loc1, *loc2;
+int main (int argc, char *argv[]) {
+	char recodedloc[13], *loc1, *loc2;
 	double lon1 = 0, lat1, lon2, lat2;
 	double distance, az;
 	int deg, min, sec;
@@ -46,7 +45,7 @@ int main (int argc, char *argv[])
 	printf("  Recoded lat: %f\n", lat1);
 
 	longlat2locator(lon1, lat1, recodedloc);
-	recodedloc[6] = '\0';
+//	recodedloc[6] = '\0';
 	printf("  Recoded: %s\n", recodedloc);
 
 	if (loc2 == NULL)
@@ -70,7 +69,7 @@ int main (int argc, char *argv[])
 	printf("  Recoded lat: %f\n", lat2);
 
 	longlat2locator(lon2, lat2, recodedloc);
-	recodedloc[6] = '\0';
+//	recodedloc[6] = '\0';
 	printf("  Recoded: %s\n", recodedloc);
 
 	retcode = qrb(lon1, lat1, lon2, lat2, &distance, &az);
