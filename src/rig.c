@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.83 2004-10-02 20:37:24 fillods Exp $
+ *	$Id: rig.c,v 1.84 2005-01-12 01:55:38 n2por Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -820,7 +820,7 @@ int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (caps->set_mode == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_MODE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
 		retcode = caps->set_mode(rig, vfo, mode, width);
 	} else {
@@ -879,7 +879,7 @@ int HAMLIB_API rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
 	if (caps->get_mode == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+	if ((caps->targetable_vfo&RIG_TARGETABLE_MODE) || 
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
 		retcode = caps->get_mode(rig, vfo, mode, width);
 	} else {
