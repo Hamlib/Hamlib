@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.h,v 1.13 2003-11-16 17:14:42 fillods Exp $
+ *	$Id: alinco.h,v 1.14 2004-03-15 04:02:08 nj8j Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,8 +40,8 @@ int alinco_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int alinco_set_parm(RIG *rig, vfo_t vfo, setting_t parm, value_t val);
-int alinco_get_parm(RIG *rig, vfo_t vfo, setting_t parm, value_t *val);
+int alinco_set_parm(RIG *rig, setting_t parm, value_t val);
+int alinco_get_parm(RIG *rig, setting_t parm, value_t *val);
 int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);

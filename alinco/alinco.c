@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.21 2004-02-15 00:30:29 fillods Exp $
+ *	$Id: alinco.c,v 1.22 2004-03-15 04:02:08 nj8j Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -119,9 +119,16 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 	/* if (retval <= 3)
 			return retval; */
 
-	/* no data expected, TODO: flush input? */
-	if (!data || !data_len)
-			return 0;
+	/* no data expected, check for OK returned */
+	if (!data || !data_len) {
+	    	retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF));
+		retval -= 2;
+		echobuf[retval] = 0;
+		if (strcmp(echobuf, "OK") == 0) 
+			return RIG_OK;
+		else
+			return RIG_ERJCTED;
+	}
 
 	*data_len = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
 
@@ -488,6 +495,9 @@ int alinco_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 			cmd_len = sprintf(cmdbuf, AL CMD_NB "%d" EOM, status?1:0);
 
 			return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	        case RIG_FUNC_COMP:
+			cmd_len = sprintf(cmdbuf, AL CMD_SDATA "C%d" EOM, status?1:0);
+			return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 		case RIG_FUNC_MON:
 			cmd_len = sprintf(cmdbuf, AL CMD_MON "%d" EOM, status?1:0);
@@ -689,6 +699,35 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		return RIG_OK;
 }
+
+/*
+ * alinco_set_parm
+ */
+int alinco_set_parm(RIG *rig, setting_t parm, value_t val) {
+	int cmd_len;
+	char cmdbuf[BUFSZ];
+
+	/* Optimize:
+	 *   sort the switch cases with the most frequent first
+	 */
+	switch (parm) {
+	case RIG_PARM_BEEP:
+	    rig_debug(RIG_DEBUG_ERR,"val is %d\n", val.i);
+	    cmd_len = sprintf(cmdbuf, AL CMD_SDATA "A%d" EOM, val.i?1:0);
+	    return alinco_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+	case RIG_PARM_BACKLIGHT:
+	    rig_debug(RIG_DEBUG_ERR,"val is %0f\n", val.f);
+	    cmd_len = sprintf(cmdbuf, AL CMD_SDATA "O%d" EOM, (int)(val.f * 5));
+	    return alinco_transaction(rig, cmdbuf, cmd_len, NULL, NULL);
+
+	default:
+	    rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
+	    return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
 
 /*
  * alinco_set_ctcss_tone

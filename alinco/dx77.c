@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - DX77 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.10 2004-02-15 00:30:29 fillods Exp $
+ *	$Id: dx77.c,v 1.11 2004-03-15 04:02:08 nj8j Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 #define DX77_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define DX77_AM_TX_MODES RIG_MODE_AM
 
-#define DX77_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TONE|RIG_FUNC_COMP)
+#define DX77_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TONE)
 
 #define DX77_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
 
@@ -98,10 +98,10 @@ const struct rig_caps dx77_caps = {
 .retry =  3,
 
 .has_get_func =  DX77_FUNC,
-.has_set_func =  DX77_FUNC|RIG_FUNC_MON,
+.has_set_func =  DX77_FUNC|RIG_FUNC_MON|RIG_FUNC_COMP,
 .has_get_level =  DX77_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(DX77_LEVEL_ALL),
-.has_get_parm =  DX77_PARM_ALL,
+.has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_SET(DX77_PARM_ALL),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
@@ -181,6 +181,7 @@ const struct rig_caps dx77_caps = {
 .get_dcd =  alinco_get_dcd,
 .set_func =  alinco_set_func,
 .get_func =  alinco_get_func,
+.set_parm =  alinco_set_parm,
 .set_level =  alinco_set_level,
 .get_level =  alinco_get_level,
 .set_mem =  alinco_set_mem,
