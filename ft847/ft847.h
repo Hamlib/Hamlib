@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.1 2000-07-25 01:17:00 javabear Exp $  
+ *    $Id: ft847.h,v 1.2 2000-07-25 23:14:35 javabear Exp $  
  */
 
 /*
@@ -56,8 +56,8 @@ const int MODE_FMN  = 88;
  *
  */
 
-int open_port(char *serial_port); /* return fd or -1 on error */
-int close_port(int fd);		  /* close port using fd */
+int rig_open(char *serial_port); /* return fd or -1 on error */
+int rig_close(int fd);
 
 
 /*
