@@ -3,7 +3,7 @@
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *		$Id: rpcrot_backend.c,v 1.1 2002-01-16 16:45:11 fgretief Exp $
+ *		$Id: rpcrot_backend.c,v 1.2 2002-01-22 00:48:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -277,6 +277,7 @@ struct rot_caps rpcrot_caps = {
   stop: rpcrot_stop,
   reset: rpcrot_reset,
   park: rpcrot_park,
+  move: rpcrot_move,
 
 };
 
