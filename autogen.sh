@@ -11,7 +11,7 @@ ACLOCAL=aclocal
 # Needed on Gentoo
 export WANT_AUTOCONF_2_5	#  2.54 or higher, not 2.53a or 2.13
 
-ACLOCAL_FLAGS="$ACLOCAL_FLAGS -Imacros"
+ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I macros"
 
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
