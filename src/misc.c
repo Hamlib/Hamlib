@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.25 2003-03-24 23:07:10 fillods Exp $
+ *	$Id: misc.c,v 1.26 2003-06-22 19:39:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -417,6 +417,7 @@ static struct {
 		const char *str;
 } mode_str[] = {
 	{ RIG_MODE_AM, "AM" },
+	{ RIG_MODE_AMS, "AMS" },
 	{ RIG_MODE_FM, "FM" },
 	{ RIG_MODE_CW, "CW" },
 	{ RIG_MODE_CWR, "CWR" },
