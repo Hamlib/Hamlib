@@ -644,6 +644,7 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
   }
 }
 
+#ifdef GETOPT
 int
 getopt (argc, argv, optstring)
      int argc;
@@ -655,6 +656,7 @@ getopt (argc, argv, optstring)
 			   (int *) 0,
 			   0);
 }
+#endif
 
 #endif	/* _LIBC or not __GNU_LIBRARY__.  */
 

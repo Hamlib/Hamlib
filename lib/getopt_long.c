@@ -174,3 +174,5 @@ main (argc, argv)
 }
 
 #endif /* TEST */
+
+#include "getopt.c"
