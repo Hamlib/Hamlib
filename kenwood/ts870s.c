@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.35 2003-01-06 22:12:01 fillods Exp $
+ *	$Id: ts870s.c,v 1.36 2003-06-23 17:48:27 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,6 +55,38 @@ static const struct kenwood_priv_caps  ts870s_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
+/* only the ts870s and ts2000 support get_vfo with the 'FR;' command 
+   NOTE: using byte 31 in 'IF' will also work. TODO: check other rigs */
+int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
+{
+		unsigned char vfobuf[50];
+		int vfo_len, retval;
+
+
+		/* query RX VFO */
+		vfo_len = 50;
+		retval = kenwood_transaction (rig, "FR;", 3, vfobuf, &vfo_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (vfo_len != 4 || vfobuf[1] != 'R') {
+			rig_debug(RIG_DEBUG_ERR,"ts870s_get_vfo: unexpected answer %s, "
+							"len=%d\n", vfobuf, vfo_len);
+			return -RIG_ERJCTED;
+		}
+
+		/* TODO: replace 0,1,2,.. constants by defines */
+		switch (vfobuf[2]) {
+		case '0': *vfo = RIG_VFO_A; break;
+		case '1': *vfo = RIG_VFO_B; break;
+		case '2': *vfo = RIG_VFO_MEM; break;
+		default: 
+			rig_debug(RIG_DEBUG_ERR,"ts870s_get_vfo: unsupported VFO %c\n",
+								vfobuf[2]);
+			return -RIG_EPROTO;
+		}
+		return RIG_OK;
+}
 
 int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -158,7 +190,7 @@ const struct rig_caps ts870s_caps = {
 .rig_model =  RIG_MODEL_TS870S,
 .model_name = "TS-870S",
 .mfg_name =  "Kenwood",
-.version =  "0.3.2",
+.version =  "0.3.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -299,7 +331,7 @@ const struct rig_caps ts870s_caps = {
 .set_mode =  ts870s_set_mode,
 .get_mode =  ts870s_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo,
+.get_vfo =  ts870s_get_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,

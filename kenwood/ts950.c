@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS950 description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *	$Id: ts950.c,v 1.10 2002-11-04 22:40:55 fillods Exp $
+ *	$Id: ts950.c,v 1.11 2003-06-23 17:48:27 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,9 +38,11 @@
 
 #define TS950_VFO (RIG_VFO_A|RIG_VFO_B)
 
+#define cmd_trm(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)->cmdtrm
 const struct kenwood_priv_caps  ts950_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
+
 
 /*
  * ts950sdx rig capabilities.
@@ -51,17 +53,17 @@ const struct rig_caps ts950sdx_caps = {
 .rig_model =  RIG_MODEL_TS950SDX,
 .model_name = "TS-950SDX",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.4",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
-.serial_rate_max =  57600,
+.serial_rate_max =  4800,
 .serial_data_bits =  8,
-.serial_stop_bits =  1,
+.serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,

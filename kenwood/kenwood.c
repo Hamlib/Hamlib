@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.61 2003-04-16 22:30:41 fillods Exp $
+ *	$Id: kenwood.c,v 1.62 2003-06-23 17:48:27 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -264,39 +264,38 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
 
 /*
- * kenwood_get_vfo
+ * kenwood_get_vfo using byte 31 of the IF information field
  * Assumes rig!=NULL, !vfo
  */
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
 {
-		unsigned char vfobuf[50];
-		int vfo_len, retval;
+		unsigned char infobuf[50];
+		int info_len, retval;
 
-
-		/* query RX VFO */
-		vfo_len = 50;
-		retval = kenwood_transaction (rig, "FR;", 3, vfobuf, &vfo_len);
+                info_len = 50;
+		retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
 		if (retval != RIG_OK)
 			return retval;
 
-		if (vfo_len != 4 || vfobuf[1] != 'R') {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_vfo: unexpected answer %s, "
-							"len=%d\n", vfobuf, vfo_len);
-			return -RIG_ERJCTED;
-		}
+		if (info_len != 38 || infobuf[1] != 'F') {
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_vfo: wrong answer len=%d\n",
+						info_len);
+		return -RIG_ERJCTED;
 
-		/* TODO: replace 0,1,2,.. constants by defines */
-		switch (vfobuf[2]) {
+		}
+		switch (infobuf[30]) {
 		case '0': *vfo = RIG_VFO_A; break;
 		case '1': *vfo = RIG_VFO_B; break;
 		case '2': *vfo = RIG_VFO_MEM; break;
 		default: 
 			rig_debug(RIG_DEBUG_ERR,"kenwood_get_vfo: unsupported VFO %c\n",
-								vfobuf[2]);
+								infobuf[30]);
 			return -RIG_EPROTO;
 		}
 		return RIG_OK;
+
 }
+
 
 /*
  * kenwood_old_set_vfo
