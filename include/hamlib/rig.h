@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.35 2001-06-04 21:13:11 f4cfe Exp $
+ *	$Id: rig.h,v 1.36 2001-06-10 00:43:00 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -88,6 +88,7 @@ enum rig_debug_level_e {
 	RIG_DEBUG_NONE = 0,
 	RIG_DEBUG_BUG,
 	RIG_DEBUG_ERR,
+	RIG_DEBUG_WARN,
 	RIG_DEBUG_VERBOSE,
 	RIG_DEBUG_TRACE
 };
