@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-707
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic707.c,v 1.1 2004-02-02 22:15:17 fillods Exp $
+ *	$Id: ic707.c,v 1.2 2004-02-09 22:06:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -68,7 +68,7 @@ const struct rig_caps ic707_caps = {
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  1200,
+.serial_rate_min =  300,
 .serial_rate_max =  9600,
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
