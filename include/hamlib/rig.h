@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.69 2002-10-07 21:49:24 fillods Exp $
+ *	$Id: rig.h,v 1.70 2002-11-04 22:32:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -228,6 +228,8 @@ typedef signed long shortfreq_t;
  */
 #define RIG_VFO_MEM		-2		/* means Memory mode, to be used with set_vfo */
 #define RIG_VFO_VFO		-3		/* means (any)VFO mode, with set_vfo */
+#define RIG_VFO_UPLINK		-4		/* alias for duplex uplink */
+#define RIG_VFO_DOWNLINK	-5		/* alias for duplex downlink */
 
 #define RIG_VFO1 (1<<0)
 #define RIG_VFO2 (1<<1)
@@ -259,7 +261,7 @@ typedef int vfo_t;
 #define RIG_TARGETABLE_NONE 0x00
 #define RIG_TARGETABLE_FREQ 0x01
 #define RIG_TARGETABLE_MODE 0x02
-#define RIG_TARGETABLE_ALL  0xffffffff
+#define RIG_TARGETABLE_ALL  0xffffffffU
 
 
 #define RIG_PASSBAND_NORMAL Hz(0)
@@ -566,7 +568,7 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define RIG_MODE_NONE  	0
 #define RIG_MODE_AM    	(1<<0)
 #define RIG_MODE_CW    	(1<<1)
-#define RIG_MODE_USB	(1<<2)	/* select somewhere else the filters ? */
+#define RIG_MODE_USB	(1<<2)
 #define RIG_MODE_LSB	(1<<3)
 #define RIG_MODE_RTTY	(1<<4)
 #define RIG_MODE_FM    	(1<<5)
@@ -644,8 +646,6 @@ struct ext_list {
 /*
  * Convenience struct, describes a freq/vfo/mode combo
  * Also useful for memory handling -- FS
- *
- * TODO: skip flag, etc.
  */
 
 struct channel {
@@ -674,10 +674,44 @@ struct channel {
   int scan_group;
   int flags;	/* RIG_CHFLAG's */
   char channel_desc[MAXCHANDESC];
-  struct ext_list *ext_levels;
+  struct ext_list *ext_levels;	/* NULL ended list of ext level values, ext_levels can be NULL */
 };
 
 typedef struct channel channel_t;
+
+/*
+ * what the rig can store in memory
+ */
+struct channel_cap {
+  unsigned bank_num:1;
+  unsigned vfo:1;
+  unsigned ant:1;
+  unsigned freq:1;
+  unsigned mode:1;
+  unsigned width:1;
+  unsigned tx_freq:1;
+  unsigned tx_mode:1;
+  unsigned tx_width:1;
+  unsigned split:1;
+  unsigned rptr_shift:1;
+  unsigned rptr_offs:1;
+  unsigned tuning_step:1;
+  unsigned rit:1;
+  unsigned xit:1;
+  setting_t funcs;
+  setting_t levels;
+  unsigned ctcss_tone:1;
+  unsigned ctcss_sql:1;
+  unsigned dcs_code:1;
+  unsigned dcs_sql:1;
+  unsigned scan_group:1;
+  unsigned flags:1;
+  unsigned channel_desc:1;
+  unsigned ext_levels:1;
+};
+
+typedef struct channel_cap channel_cap_t;
+
 
 /*
  * chan_t is used to describe what memory your rig is equipped with
@@ -703,14 +737,15 @@ struct chan_list {
 	int start;			/* rig memory channel _number_ */
 	int end;
 	enum chan_type_e type;	/* among EDGE, MEM, CALL, .. */
-	int reserved;			/* don't know yet, maybe smthing like flags */
+	channel_cap_t mem_caps;		/* what the rig can store */
 };
 
-#define RIG_CHAN_END     {0,0,RIG_MTYPE_NONE,0}
+#define RIG_CHAN_END     {0,0,RIG_MTYPE_NONE}
 #define RIG_IS_CHAN_END(c)	((c).type == RIG_MTYPE_NONE)
 
 typedef struct chan_list chan_t;
 
+typedef	struct { float step; } gran_t;
 
 /* Basic rig type, can store some useful
 * info about different radios. Each lib must
@@ -762,8 +797,8 @@ struct rig_caps {
 	setting_t has_get_parm;
 	setting_t has_set_parm;
 
-	int level_gran[RIG_SETTING_MAX];
-	int parm_gran[RIG_SETTING_MAX];
+	gran_t level_gran[RIG_SETTING_MAX];
+	gran_t parm_gran[RIG_SETTING_MAX];
 
 	const struct confparams *extparms;    /* apply to whole rig */
 	const struct confparams *extlevels;   /* specific to a VFO */
@@ -1026,7 +1061,8 @@ struct rig_state {
 	setting_t has_get_parm;
 	setting_t has_set_parm;
 
-	int level_gran[RIG_SETTING_MAX];	/* level granularity */
+	gran_t level_gran[RIG_SETTING_MAX];	/* level granularity */
+	gran_t parm_gran[RIG_SETTING_MAX];	/* parm granularity */
 
 
 	/* 
