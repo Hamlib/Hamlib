@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_INIT_AUTOMAKE(hamlib, 1.1.2)
 AM_CONFIG_HEADER(include/config.h)
 AC_PREREQ(2.50)dnl              dnl Minimum Autoconf version required.
-AC_REVISION($Revision: 1.1 $)
+AC_REVISION($Revision: 1.2 $)
 
 dnl directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
@@ -127,30 +127,8 @@ else
 fi
 AC_SUBST(RIGMATRIX)
 
-dnl Check if linradio-toolkit includes are there, so we can enable WiNRADiO
-
-AC_CHECK_HEADERS(linradio/radio_ioctl.h linradio/wrapi.h)
-if test "${ac_cv_header_linradio_radio_ioctl_h}" = "no" -o \
-					"${ac_cv_header_linradio_wrapi_h}" = "no"; then
-  echo "disabling WiNRADiO receiver support"
-  WINRADIOLNK=
-  WINRADIODEPS=
-  LIBWINRADIO=
-  LTLIBWINRADIO=
-else
-  echo "enabling WiNRADiO receiver support"
-  LIBWINRADIO=libhamlib-winradio.a
-  LTLIBWINRADIO=libhamlib-winradio.la
-  WINRADIOLNK="-dlopen \$(top_builddir)/winradio/${LTLIBWINRADIO}"
-  WINRADIODEPS="\$(top_builddir)/winradio/${LTLIBWINRADIO}"
-fi
-AM_CONDITIONAL(WINRADIO, test x$LTLIBWINRADIO != x)
-AC_SUBST(WINRADIOLNK)
-AC_SUBST(WINRADIODEPS)
-AC_SUBST(LIBWINRADIO)
-AC_SUBST(LTLIBWINRADIO)
-
 dnl Check if tcl includes are there, so we can enable HamlibTCL
+dnl FIXME!
 
 AC_CHECK_HEADERS(tcl8.2/tcl.h)
 if test "${ac_cv_header_tcl8_2_tcl_h}" = "no" ; then
@@ -201,10 +179,12 @@ icom/Makefile
 aor/Makefile
 kenwood/Makefile
 winradio/Makefile
+winradio/linradio/Makefile
 pcr/Makefile
 alinco/Makefile
 uniden/Makefile
 tentec/Makefile
+kachina/Makefile
 src/Makefile
 c++/Makefile
 tcl/Makefile
