@@ -68,7 +68,6 @@ CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
-DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
@@ -80,6 +79,8 @@ LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTHAMLIBTCL = @LTHAMLIBTCL@
+LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
@@ -95,30 +96,18 @@ install_sh = @install_sh@
 
 lib_LTLIBRARIES = libhamlib-dummy.la
 libhamlib_dummy_la_SOURCES = dummy.c
-libhamlib_dummy_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_dummy_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
+libhamlib_dummy_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_dummy_la_LIBADD = ../src/libhamlib.la
-
-lib_LIBRARIES = libhamlib-dummy.a
-libhamlib_dummy_a_SOURCES = dummy.c
-libhamlib_dummy_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
-libhamlib_dummy_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = dummy.h
 subdir = dummy
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(lib_LIBRARIES)
-
-libhamlib_dummy_a_AR = $(AR) cru
-libhamlib_dummy_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_dummy_a_OBJECTS = libhamlib_dummy_a-dummy.$(OBJEXT)
-libhamlib_dummy_a_OBJECTS = $(am_libhamlib_dummy_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_dummy_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_dummy_la_OBJECTS = libhamlib_dummy_la-dummy.lo
+am_libhamlib_dummy_la_OBJECTS = dummy.lo
 libhamlib_dummy_la_OBJECTS = $(am_libhamlib_dummy_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -127,8 +116,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_dummy_a-dummy.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_dummy_la-dummy.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/dummy.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -137,12 +125,11 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
-DIST_SOURCES = $(libhamlib_dummy_a_SOURCES) \
-	$(libhamlib_dummy_la_SOURCES)
+DIST_SOURCES = $(libhamlib_dummy_la_SOURCES)
 HEADERS = $(noinst_HEADERS)
 
 DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
-SOURCES = $(libhamlib_dummy_a_SOURCES) $(libhamlib_dummy_la_SOURCES)
+SOURCES = $(libhamlib_dummy_la_SOURCES)
 
 all: all-am
 
@@ -157,46 +144,13 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool
-$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  dummy/Makefile
-Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
 	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
-
-AR = ar
-install-libLIBRARIES: $(lib_LIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
-	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
-	done
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libhamlib_dummy_a-dummy.$(OBJEXT): dummy.c
-libhamlib-dummy.a: $(libhamlib_dummy_a_OBJECTS) $(libhamlib_dummy_a_DEPENDENCIES) 
-	-rm -f libhamlib-dummy.a
-	$(libhamlib_dummy_a_AR) libhamlib-dummy.a $(libhamlib_dummy_a_OBJECTS) $(libhamlib_dummy_a_LIBADD)
-	$(RANLIB) libhamlib-dummy.a
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
@@ -216,7 +170,6 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-libhamlib_dummy_la-dummy.lo: dummy.c
 libhamlib-dummy.la: $(libhamlib_dummy_la_OBJECTS) $(libhamlib_dummy_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_dummy_la_LDFLAGS) $(libhamlib_dummy_la_OBJECTS) $(libhamlib_dummy_la_LIBADD) $(LIBS)
 
@@ -226,8 +179,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_dummy_a-dummy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_dummy_la-dummy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dummy.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -249,42 +201,6 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
-
-libhamlib_dummy_a-dummy.o: dummy.c
-@AMDEP_TRUE@	source='dummy.c' object='libhamlib_dummy_a-dummy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_dummy_a-dummy.Po' tmpdepfile='$(DEPDIR)/libhamlib_dummy_a-dummy.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_dummy_a_CFLAGS) $(CFLAGS) -c -o libhamlib_dummy_a-dummy.o `test -f dummy.c || echo '$(srcdir)/'`dummy.c
-
-libhamlib_dummy_a-dummy.obj: dummy.c
-@AMDEP_TRUE@	source='dummy.c' object='libhamlib_dummy_a-dummy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_dummy_a-dummy.Po' tmpdepfile='$(DEPDIR)/libhamlib_dummy_a-dummy.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_dummy_a_CFLAGS) $(CFLAGS) -c -o libhamlib_dummy_a-dummy.obj `cygpath -w dummy.c`
-
-libhamlib_dummy_a-dummy.lo: dummy.c
-@AMDEP_TRUE@	source='dummy.c' object='libhamlib_dummy_a-dummy.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_dummy_a-dummy.Plo' tmpdepfile='$(DEPDIR)/libhamlib_dummy_a-dummy.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_dummy_a_CFLAGS) $(CFLAGS) -c -o libhamlib_dummy_a-dummy.lo `test -f dummy.c || echo '$(srcdir)/'`dummy.c
-
-libhamlib_dummy_la-dummy.o: dummy.c
-@AMDEP_TRUE@	source='dummy.c' object='libhamlib_dummy_la-dummy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_dummy_la-dummy.Po' tmpdepfile='$(DEPDIR)/libhamlib_dummy_la-dummy.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_dummy_la_CFLAGS) $(CFLAGS) -c -o libhamlib_dummy_la-dummy.o `test -f dummy.c || echo '$(srcdir)/'`dummy.c
-
-libhamlib_dummy_la-dummy.obj: dummy.c
-@AMDEP_TRUE@	source='dummy.c' object='libhamlib_dummy_la-dummy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_dummy_la-dummy.Po' tmpdepfile='$(DEPDIR)/libhamlib_dummy_la-dummy.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_dummy_la_CFLAGS) $(CFLAGS) -c -o libhamlib_dummy_la-dummy.obj `cygpath -w dummy.c`
-
-libhamlib_dummy_la-dummy.lo: dummy.c
-@AMDEP_TRUE@	source='dummy.c' object='libhamlib_dummy_la-dummy.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_dummy_la-dummy.Plo' tmpdepfile='$(DEPDIR)/libhamlib_dummy_la-dummy.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_dummy_la_CFLAGS) $(CFLAGS) -c -o libhamlib_dummy_la-dummy.lo `test -f dummy.c || echo '$(srcdir)/'`dummy.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
@@ -343,10 +259,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(libdir)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
 
 install: install-am
 install-exec: install-exec-am
@@ -373,8 +289,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+	mostlyclean-am
 
 distclean: distclean-am
 
@@ -391,7 +307,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-libLIBRARIES install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
 install-info: install-info-am
 
@@ -408,21 +324,19 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-info-am uninstall-libLIBRARIES \
-	uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES clean-libLTLIBRARIES clean-libtool distclean \
-	distclean-compile distclean-depend distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am info \
-	info-am install install-am install-data install-data-am \
-	install-exec install-exec-am install-info install-info-am \
-	install-libLIBRARIES install-libLTLIBRARIES install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-info-am \
-	uninstall-libLIBRARIES uninstall-libLTLIBRARIES
+	clean-libLTLIBRARIES clean-libtool distclean distclean-compile \
+	distclean-depend distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am info info-am install \
+	install-am install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool tags uninstall \
+	uninstall-am uninstall-info-am uninstall-libLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -68,7 +68,6 @@ CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
-DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
@@ -80,6 +79,8 @@ LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTHAMLIBTCL = @LTHAMLIBTCL@
+LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
@@ -97,44 +98,19 @@ ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c icall.c ic275.c ic475.c
 
 lib_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
-libhamlib_icom_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_icom_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
+libhamlib_icom_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_icom_la_LIBADD = ../src/libhamlib.la
-
-lib_LIBRARIES = libhamlib-icom.a
-libhamlib_icom_a_SOURCES = $(ICOMSRCLIST) icom.c frame.c
-libhamlib_icom_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
-libhamlib_icom_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = frame.h icom.h icom_defs.h
 subdir = icom
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(lib_LIBRARIES)
-
-libhamlib_icom_a_AR = $(AR) cru
-libhamlib_icom_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_icom_a_OBJECTS = libhamlib_icom_a-ic706.$(OBJEXT) \
-	libhamlib_icom_a-icr8500.$(OBJEXT) \
-	libhamlib_icom_a-ic735.$(OBJEXT) \
-	libhamlib_icom_a-ic775.$(OBJEXT) \
-	libhamlib_icom_a-ic756.$(OBJEXT) \
-	libhamlib_icom_a-icall.$(OBJEXT) \
-	libhamlib_icom_a-ic275.$(OBJEXT) \
-	libhamlib_icom_a-ic475.$(OBJEXT) \
-	libhamlib_icom_a-icom.$(OBJEXT) \
-	libhamlib_icom_a-frame.$(OBJEXT)
-libhamlib_icom_a_OBJECTS = $(am_libhamlib_icom_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_icom_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_icom_la_OBJECTS = libhamlib_icom_la-ic706.lo \
-	libhamlib_icom_la-icr8500.lo libhamlib_icom_la-ic735.lo \
-	libhamlib_icom_la-ic775.lo libhamlib_icom_la-ic756.lo \
-	libhamlib_icom_la-icall.lo libhamlib_icom_la-ic275.lo \
-	libhamlib_icom_la-ic475.lo libhamlib_icom_la-icom.lo \
-	libhamlib_icom_la-frame.lo
+am_libhamlib_icom_la_OBJECTS = ic706.lo icr8500.lo ic735.lo ic775.lo \
+	ic756.lo icall.lo ic275.lo ic475.lo icom.lo frame.lo
 libhamlib_icom_la_OBJECTS = $(am_libhamlib_icom_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -143,26 +119,11 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_icom_a-frame.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-ic275.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-ic475.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-ic706.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-ic735.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-ic756.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-ic775.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-icall.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-icom.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_a-icr8500.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-frame.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-ic275.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-ic475.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-ic706.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-ic735.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-ic756.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-ic775.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-icall.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-icom.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_icom_la-icr8500.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/frame.Plo $(DEPDIR)/ic275.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ic475.Plo $(DEPDIR)/ic706.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ic735.Plo $(DEPDIR)/ic756.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ic775.Plo $(DEPDIR)/icall.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/icom.Plo $(DEPDIR)/icr8500.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -171,11 +132,11 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
-DIST_SOURCES = $(libhamlib_icom_a_SOURCES) $(libhamlib_icom_la_SOURCES)
+DIST_SOURCES = $(libhamlib_icom_la_SOURCES)
 HEADERS = $(noinst_HEADERS)
 
 DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
-SOURCES = $(libhamlib_icom_a_SOURCES) $(libhamlib_icom_la_SOURCES)
+SOURCES = $(libhamlib_icom_la_SOURCES)
 
 all: all-am
 
@@ -190,55 +151,13 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool
-$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  icom/Makefile
-Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
 	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
-
-AR = ar
-install-libLIBRARIES: $(lib_LIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
-	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
-	done
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libhamlib_icom_a-ic706.$(OBJEXT): ic706.c
-libhamlib_icom_a-icr8500.$(OBJEXT): icr8500.c
-libhamlib_icom_a-ic735.$(OBJEXT): ic735.c
-libhamlib_icom_a-ic775.$(OBJEXT): ic775.c
-libhamlib_icom_a-ic756.$(OBJEXT): ic756.c
-libhamlib_icom_a-icall.$(OBJEXT): icall.c
-libhamlib_icom_a-ic275.$(OBJEXT): ic275.c
-libhamlib_icom_a-ic475.$(OBJEXT): ic475.c
-libhamlib_icom_a-icom.$(OBJEXT): icom.c
-libhamlib_icom_a-frame.$(OBJEXT): frame.c
-libhamlib-icom.a: $(libhamlib_icom_a_OBJECTS) $(libhamlib_icom_a_DEPENDENCIES) 
-	-rm -f libhamlib-icom.a
-	$(libhamlib_icom_a_AR) libhamlib-icom.a $(libhamlib_icom_a_OBJECTS) $(libhamlib_icom_a_LIBADD)
-	$(RANLIB) libhamlib-icom.a
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
@@ -258,16 +177,6 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-libhamlib_icom_la-ic706.lo: ic706.c
-libhamlib_icom_la-icr8500.lo: icr8500.c
-libhamlib_icom_la-ic735.lo: ic735.c
-libhamlib_icom_la-ic775.lo: ic775.c
-libhamlib_icom_la-ic756.lo: ic756.c
-libhamlib_icom_la-icall.lo: icall.c
-libhamlib_icom_la-ic275.lo: ic275.c
-libhamlib_icom_la-ic475.lo: ic475.c
-libhamlib_icom_la-icom.lo: icom.c
-libhamlib_icom_la-frame.lo: frame.c
 libhamlib-icom.la: $(libhamlib_icom_la_OBJECTS) $(libhamlib_icom_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_icom_la_LDFLAGS) $(libhamlib_icom_la_OBJECTS) $(libhamlib_icom_la_LIBADD) $(LIBS)
 
@@ -277,26 +186,16 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-frame.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-ic275.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-ic475.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-ic706.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-ic735.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-ic756.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-ic775.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-icall.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-icom.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_a-icr8500.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-frame.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-ic275.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-ic475.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-ic706.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-ic735.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-ic756.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-ic775.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-icall.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-icom.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_icom_la-icr8500.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/frame.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic275.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic475.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic706.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic735.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic756.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic775.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/icall.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/icom.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/icr8500.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -318,366 +217,6 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
-
-libhamlib_icom_a-ic706.o: ic706.c
-@AMDEP_TRUE@	source='ic706.c' object='libhamlib_icom_a-ic706.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic706.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic706.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic706.o `test -f ic706.c || echo '$(srcdir)/'`ic706.c
-
-libhamlib_icom_a-ic706.obj: ic706.c
-@AMDEP_TRUE@	source='ic706.c' object='libhamlib_icom_a-ic706.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic706.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic706.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic706.obj `cygpath -w ic706.c`
-
-libhamlib_icom_a-ic706.lo: ic706.c
-@AMDEP_TRUE@	source='ic706.c' object='libhamlib_icom_a-ic706.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic706.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic706.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic706.lo `test -f ic706.c || echo '$(srcdir)/'`ic706.c
-
-libhamlib_icom_a-icr8500.o: icr8500.c
-@AMDEP_TRUE@	source='icr8500.c' object='libhamlib_icom_a-icr8500.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icr8500.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icr8500.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icr8500.o `test -f icr8500.c || echo '$(srcdir)/'`icr8500.c
-
-libhamlib_icom_a-icr8500.obj: icr8500.c
-@AMDEP_TRUE@	source='icr8500.c' object='libhamlib_icom_a-icr8500.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icr8500.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icr8500.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icr8500.obj `cygpath -w icr8500.c`
-
-libhamlib_icom_a-icr8500.lo: icr8500.c
-@AMDEP_TRUE@	source='icr8500.c' object='libhamlib_icom_a-icr8500.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icr8500.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icr8500.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icr8500.lo `test -f icr8500.c || echo '$(srcdir)/'`icr8500.c
-
-libhamlib_icom_a-ic735.o: ic735.c
-@AMDEP_TRUE@	source='ic735.c' object='libhamlib_icom_a-ic735.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic735.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic735.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic735.o `test -f ic735.c || echo '$(srcdir)/'`ic735.c
-
-libhamlib_icom_a-ic735.obj: ic735.c
-@AMDEP_TRUE@	source='ic735.c' object='libhamlib_icom_a-ic735.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic735.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic735.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic735.obj `cygpath -w ic735.c`
-
-libhamlib_icom_a-ic735.lo: ic735.c
-@AMDEP_TRUE@	source='ic735.c' object='libhamlib_icom_a-ic735.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic735.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic735.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic735.lo `test -f ic735.c || echo '$(srcdir)/'`ic735.c
-
-libhamlib_icom_a-ic775.o: ic775.c
-@AMDEP_TRUE@	source='ic775.c' object='libhamlib_icom_a-ic775.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic775.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic775.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic775.o `test -f ic775.c || echo '$(srcdir)/'`ic775.c
-
-libhamlib_icom_a-ic775.obj: ic775.c
-@AMDEP_TRUE@	source='ic775.c' object='libhamlib_icom_a-ic775.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic775.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic775.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic775.obj `cygpath -w ic775.c`
-
-libhamlib_icom_a-ic775.lo: ic775.c
-@AMDEP_TRUE@	source='ic775.c' object='libhamlib_icom_a-ic775.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic775.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic775.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic775.lo `test -f ic775.c || echo '$(srcdir)/'`ic775.c
-
-libhamlib_icom_a-ic756.o: ic756.c
-@AMDEP_TRUE@	source='ic756.c' object='libhamlib_icom_a-ic756.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic756.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic756.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic756.o `test -f ic756.c || echo '$(srcdir)/'`ic756.c
-
-libhamlib_icom_a-ic756.obj: ic756.c
-@AMDEP_TRUE@	source='ic756.c' object='libhamlib_icom_a-ic756.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic756.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic756.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic756.obj `cygpath -w ic756.c`
-
-libhamlib_icom_a-ic756.lo: ic756.c
-@AMDEP_TRUE@	source='ic756.c' object='libhamlib_icom_a-ic756.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic756.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic756.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic756.lo `test -f ic756.c || echo '$(srcdir)/'`ic756.c
-
-libhamlib_icom_a-icall.o: icall.c
-@AMDEP_TRUE@	source='icall.c' object='libhamlib_icom_a-icall.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icall.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icall.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icall.o `test -f icall.c || echo '$(srcdir)/'`icall.c
-
-libhamlib_icom_a-icall.obj: icall.c
-@AMDEP_TRUE@	source='icall.c' object='libhamlib_icom_a-icall.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icall.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icall.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icall.obj `cygpath -w icall.c`
-
-libhamlib_icom_a-icall.lo: icall.c
-@AMDEP_TRUE@	source='icall.c' object='libhamlib_icom_a-icall.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icall.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icall.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icall.lo `test -f icall.c || echo '$(srcdir)/'`icall.c
-
-libhamlib_icom_a-ic275.o: ic275.c
-@AMDEP_TRUE@	source='ic275.c' object='libhamlib_icom_a-ic275.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic275.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic275.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic275.o `test -f ic275.c || echo '$(srcdir)/'`ic275.c
-
-libhamlib_icom_a-ic275.obj: ic275.c
-@AMDEP_TRUE@	source='ic275.c' object='libhamlib_icom_a-ic275.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic275.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic275.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic275.obj `cygpath -w ic275.c`
-
-libhamlib_icom_a-ic275.lo: ic275.c
-@AMDEP_TRUE@	source='ic275.c' object='libhamlib_icom_a-ic275.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic275.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic275.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic275.lo `test -f ic275.c || echo '$(srcdir)/'`ic275.c
-
-libhamlib_icom_a-ic475.o: ic475.c
-@AMDEP_TRUE@	source='ic475.c' object='libhamlib_icom_a-ic475.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic475.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic475.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic475.o `test -f ic475.c || echo '$(srcdir)/'`ic475.c
-
-libhamlib_icom_a-ic475.obj: ic475.c
-@AMDEP_TRUE@	source='ic475.c' object='libhamlib_icom_a-ic475.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic475.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic475.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic475.obj `cygpath -w ic475.c`
-
-libhamlib_icom_a-ic475.lo: ic475.c
-@AMDEP_TRUE@	source='ic475.c' object='libhamlib_icom_a-ic475.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-ic475.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-ic475.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-ic475.lo `test -f ic475.c || echo '$(srcdir)/'`ic475.c
-
-libhamlib_icom_a-icom.o: icom.c
-@AMDEP_TRUE@	source='icom.c' object='libhamlib_icom_a-icom.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icom.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icom.o `test -f icom.c || echo '$(srcdir)/'`icom.c
-
-libhamlib_icom_a-icom.obj: icom.c
-@AMDEP_TRUE@	source='icom.c' object='libhamlib_icom_a-icom.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icom.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icom.obj `cygpath -w icom.c`
-
-libhamlib_icom_a-icom.lo: icom.c
-@AMDEP_TRUE@	source='icom.c' object='libhamlib_icom_a-icom.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-icom.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-icom.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-icom.lo `test -f icom.c || echo '$(srcdir)/'`icom.c
-
-libhamlib_icom_a-frame.o: frame.c
-@AMDEP_TRUE@	source='frame.c' object='libhamlib_icom_a-frame.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-frame.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-frame.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-frame.o `test -f frame.c || echo '$(srcdir)/'`frame.c
-
-libhamlib_icom_a-frame.obj: frame.c
-@AMDEP_TRUE@	source='frame.c' object='libhamlib_icom_a-frame.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-frame.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-frame.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-frame.obj `cygpath -w frame.c`
-
-libhamlib_icom_a-frame.lo: frame.c
-@AMDEP_TRUE@	source='frame.c' object='libhamlib_icom_a-frame.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_a-frame.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_a-frame.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_a_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_a-frame.lo `test -f frame.c || echo '$(srcdir)/'`frame.c
-
-libhamlib_icom_la-ic706.o: ic706.c
-@AMDEP_TRUE@	source='ic706.c' object='libhamlib_icom_la-ic706.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic706.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic706.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic706.o `test -f ic706.c || echo '$(srcdir)/'`ic706.c
-
-libhamlib_icom_la-ic706.obj: ic706.c
-@AMDEP_TRUE@	source='ic706.c' object='libhamlib_icom_la-ic706.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic706.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic706.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic706.obj `cygpath -w ic706.c`
-
-libhamlib_icom_la-ic706.lo: ic706.c
-@AMDEP_TRUE@	source='ic706.c' object='libhamlib_icom_la-ic706.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic706.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic706.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic706.lo `test -f ic706.c || echo '$(srcdir)/'`ic706.c
-
-libhamlib_icom_la-icr8500.o: icr8500.c
-@AMDEP_TRUE@	source='icr8500.c' object='libhamlib_icom_la-icr8500.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icr8500.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icr8500.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icr8500.o `test -f icr8500.c || echo '$(srcdir)/'`icr8500.c
-
-libhamlib_icom_la-icr8500.obj: icr8500.c
-@AMDEP_TRUE@	source='icr8500.c' object='libhamlib_icom_la-icr8500.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icr8500.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icr8500.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icr8500.obj `cygpath -w icr8500.c`
-
-libhamlib_icom_la-icr8500.lo: icr8500.c
-@AMDEP_TRUE@	source='icr8500.c' object='libhamlib_icom_la-icr8500.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icr8500.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icr8500.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icr8500.lo `test -f icr8500.c || echo '$(srcdir)/'`icr8500.c
-
-libhamlib_icom_la-ic735.o: ic735.c
-@AMDEP_TRUE@	source='ic735.c' object='libhamlib_icom_la-ic735.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic735.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic735.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic735.o `test -f ic735.c || echo '$(srcdir)/'`ic735.c
-
-libhamlib_icom_la-ic735.obj: ic735.c
-@AMDEP_TRUE@	source='ic735.c' object='libhamlib_icom_la-ic735.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic735.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic735.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic735.obj `cygpath -w ic735.c`
-
-libhamlib_icom_la-ic735.lo: ic735.c
-@AMDEP_TRUE@	source='ic735.c' object='libhamlib_icom_la-ic735.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic735.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic735.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic735.lo `test -f ic735.c || echo '$(srcdir)/'`ic735.c
-
-libhamlib_icom_la-ic775.o: ic775.c
-@AMDEP_TRUE@	source='ic775.c' object='libhamlib_icom_la-ic775.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic775.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic775.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic775.o `test -f ic775.c || echo '$(srcdir)/'`ic775.c
-
-libhamlib_icom_la-ic775.obj: ic775.c
-@AMDEP_TRUE@	source='ic775.c' object='libhamlib_icom_la-ic775.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic775.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic775.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic775.obj `cygpath -w ic775.c`
-
-libhamlib_icom_la-ic775.lo: ic775.c
-@AMDEP_TRUE@	source='ic775.c' object='libhamlib_icom_la-ic775.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic775.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic775.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic775.lo `test -f ic775.c || echo '$(srcdir)/'`ic775.c
-
-libhamlib_icom_la-ic756.o: ic756.c
-@AMDEP_TRUE@	source='ic756.c' object='libhamlib_icom_la-ic756.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic756.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic756.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic756.o `test -f ic756.c || echo '$(srcdir)/'`ic756.c
-
-libhamlib_icom_la-ic756.obj: ic756.c
-@AMDEP_TRUE@	source='ic756.c' object='libhamlib_icom_la-ic756.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic756.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic756.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic756.obj `cygpath -w ic756.c`
-
-libhamlib_icom_la-ic756.lo: ic756.c
-@AMDEP_TRUE@	source='ic756.c' object='libhamlib_icom_la-ic756.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic756.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic756.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic756.lo `test -f ic756.c || echo '$(srcdir)/'`ic756.c
-
-libhamlib_icom_la-icall.o: icall.c
-@AMDEP_TRUE@	source='icall.c' object='libhamlib_icom_la-icall.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icall.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icall.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icall.o `test -f icall.c || echo '$(srcdir)/'`icall.c
-
-libhamlib_icom_la-icall.obj: icall.c
-@AMDEP_TRUE@	source='icall.c' object='libhamlib_icom_la-icall.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icall.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icall.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icall.obj `cygpath -w icall.c`
-
-libhamlib_icom_la-icall.lo: icall.c
-@AMDEP_TRUE@	source='icall.c' object='libhamlib_icom_la-icall.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icall.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icall.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icall.lo `test -f icall.c || echo '$(srcdir)/'`icall.c
-
-libhamlib_icom_la-ic275.o: ic275.c
-@AMDEP_TRUE@	source='ic275.c' object='libhamlib_icom_la-ic275.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic275.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic275.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic275.o `test -f ic275.c || echo '$(srcdir)/'`ic275.c
-
-libhamlib_icom_la-ic275.obj: ic275.c
-@AMDEP_TRUE@	source='ic275.c' object='libhamlib_icom_la-ic275.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic275.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic275.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic275.obj `cygpath -w ic275.c`
-
-libhamlib_icom_la-ic275.lo: ic275.c
-@AMDEP_TRUE@	source='ic275.c' object='libhamlib_icom_la-ic275.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic275.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic275.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic275.lo `test -f ic275.c || echo '$(srcdir)/'`ic275.c
-
-libhamlib_icom_la-ic475.o: ic475.c
-@AMDEP_TRUE@	source='ic475.c' object='libhamlib_icom_la-ic475.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic475.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic475.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic475.o `test -f ic475.c || echo '$(srcdir)/'`ic475.c
-
-libhamlib_icom_la-ic475.obj: ic475.c
-@AMDEP_TRUE@	source='ic475.c' object='libhamlib_icom_la-ic475.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic475.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic475.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic475.obj `cygpath -w ic475.c`
-
-libhamlib_icom_la-ic475.lo: ic475.c
-@AMDEP_TRUE@	source='ic475.c' object='libhamlib_icom_la-ic475.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-ic475.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-ic475.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-ic475.lo `test -f ic475.c || echo '$(srcdir)/'`ic475.c
-
-libhamlib_icom_la-icom.o: icom.c
-@AMDEP_TRUE@	source='icom.c' object='libhamlib_icom_la-icom.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icom.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icom.o `test -f icom.c || echo '$(srcdir)/'`icom.c
-
-libhamlib_icom_la-icom.obj: icom.c
-@AMDEP_TRUE@	source='icom.c' object='libhamlib_icom_la-icom.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icom.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icom.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icom.obj `cygpath -w icom.c`
-
-libhamlib_icom_la-icom.lo: icom.c
-@AMDEP_TRUE@	source='icom.c' object='libhamlib_icom_la-icom.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-icom.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-icom.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-icom.lo `test -f icom.c || echo '$(srcdir)/'`icom.c
-
-libhamlib_icom_la-frame.o: frame.c
-@AMDEP_TRUE@	source='frame.c' object='libhamlib_icom_la-frame.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-frame.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-frame.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-frame.o `test -f frame.c || echo '$(srcdir)/'`frame.c
-
-libhamlib_icom_la-frame.obj: frame.c
-@AMDEP_TRUE@	source='frame.c' object='libhamlib_icom_la-frame.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-frame.Po' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-frame.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-frame.obj `cygpath -w frame.c`
-
-libhamlib_icom_la-frame.lo: frame.c
-@AMDEP_TRUE@	source='frame.c' object='libhamlib_icom_la-frame.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_icom_la-frame.Plo' tmpdepfile='$(DEPDIR)/libhamlib_icom_la-frame.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_icom_la_CFLAGS) $(CFLAGS) -c -o libhamlib_icom_la-frame.lo `test -f frame.c || echo '$(srcdir)/'`frame.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
@@ -736,10 +275,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(libdir)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
 
 install: install-am
 install-exec: install-exec-am
@@ -766,8 +305,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+	mostlyclean-am
 
 distclean: distclean-am
 
@@ -784,7 +323,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-libLIBRARIES install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
 install-info: install-info-am
 
@@ -801,21 +340,19 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-info-am uninstall-libLIBRARIES \
-	uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES clean-libLTLIBRARIES clean-libtool distclean \
-	distclean-compile distclean-depend distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am info \
-	info-am install install-am install-data install-data-am \
-	install-exec install-exec-am install-info install-info-am \
-	install-libLIBRARIES install-libLTLIBRARIES install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-info-am \
-	uninstall-libLIBRARIES uninstall-libLTLIBRARIES
+	clean-libLTLIBRARIES clean-libtool distclean distclean-compile \
+	distclean-depend distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am info info-am install \
+	install-am install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool tags uninstall \
+	uninstall-am uninstall-info-am uninstall-libLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

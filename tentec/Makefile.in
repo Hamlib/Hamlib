@@ -68,7 +68,6 @@ CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
-DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
@@ -80,6 +79,8 @@ LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTHAMLIBTCL = @LTHAMLIBTCL@
+LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
@@ -97,32 +98,18 @@ TENTECSRCLIST = rx320.c
 
 lib_LTLIBRARIES = libhamlib-tentec.la
 libhamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c
-libhamlib_tentec_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_tentec_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
+libhamlib_tentec_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_tentec_la_LIBADD = ../src/libhamlib.la
-
-lib_LIBRARIES = libhamlib-tentec.a
-libhamlib_tentec_a_SOURCES = $(TENTECSRCLIST) tentec.c
-libhamlib_tentec_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
-libhamlib_tentec_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = tentec.h
 subdir = tentec
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(lib_LIBRARIES)
-
-libhamlib_tentec_a_AR = $(AR) cru
-libhamlib_tentec_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_tentec_a_OBJECTS = libhamlib_tentec_a-rx320.$(OBJEXT) \
-	libhamlib_tentec_a-tentec.$(OBJEXT)
-libhamlib_tentec_a_OBJECTS = $(am_libhamlib_tentec_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_tentec_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_tentec_la_OBJECTS = libhamlib_tentec_la-rx320.lo \
-	libhamlib_tentec_la-tentec.lo
+am_libhamlib_tentec_la_OBJECTS = rx320.lo tentec.lo
 libhamlib_tentec_la_OBJECTS = $(am_libhamlib_tentec_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -131,10 +118,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_tentec_a-rx320.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_tentec_a-tentec.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_tentec_la-rx320.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_tentec_la-tentec.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rx320.Plo $(DEPDIR)/tentec.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -143,12 +127,11 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
-DIST_SOURCES = $(libhamlib_tentec_a_SOURCES) \
-	$(libhamlib_tentec_la_SOURCES)
+DIST_SOURCES = $(libhamlib_tentec_la_SOURCES)
 HEADERS = $(noinst_HEADERS)
 
 DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
-SOURCES = $(libhamlib_tentec_a_SOURCES) $(libhamlib_tentec_la_SOURCES)
+SOURCES = $(libhamlib_tentec_la_SOURCES)
 
 all: all-am
 
@@ -163,47 +146,13 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool
-$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  tentec/Makefile
-Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
 	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
-
-AR = ar
-install-libLIBRARIES: $(lib_LIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
-	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
-	done
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libhamlib_tentec_a-rx320.$(OBJEXT): rx320.c
-libhamlib_tentec_a-tentec.$(OBJEXT): tentec.c
-libhamlib-tentec.a: $(libhamlib_tentec_a_OBJECTS) $(libhamlib_tentec_a_DEPENDENCIES) 
-	-rm -f libhamlib-tentec.a
-	$(libhamlib_tentec_a_AR) libhamlib-tentec.a $(libhamlib_tentec_a_OBJECTS) $(libhamlib_tentec_a_LIBADD)
-	$(RANLIB) libhamlib-tentec.a
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
@@ -223,8 +172,6 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-libhamlib_tentec_la-rx320.lo: rx320.c
-libhamlib_tentec_la-tentec.lo: tentec.c
 libhamlib-tentec.la: $(libhamlib_tentec_la_OBJECTS) $(libhamlib_tentec_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_tentec_la_LDFLAGS) $(libhamlib_tentec_la_OBJECTS) $(libhamlib_tentec_la_LIBADD) $(LIBS)
 
@@ -234,10 +181,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_a-rx320.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_a-tentec.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_la-rx320.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_tentec_la-tentec.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rx320.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tentec.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -259,78 +204,6 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
-
-libhamlib_tentec_a-rx320.o: rx320.c
-@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_a-rx320.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-rx320.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-rx320.o `test -f rx320.c || echo '$(srcdir)/'`rx320.c
-
-libhamlib_tentec_a-rx320.obj: rx320.c
-@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_a-rx320.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-rx320.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-rx320.obj `cygpath -w rx320.c`
-
-libhamlib_tentec_a-rx320.lo: rx320.c
-@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_a-rx320.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-rx320.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-rx320.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-rx320.lo `test -f rx320.c || echo '$(srcdir)/'`rx320.c
-
-libhamlib_tentec_a-tentec.o: tentec.c
-@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_a-tentec.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-tentec.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-tentec.o `test -f tentec.c || echo '$(srcdir)/'`tentec.c
-
-libhamlib_tentec_a-tentec.obj: tentec.c
-@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_a-tentec.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-tentec.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-tentec.obj `cygpath -w tentec.c`
-
-libhamlib_tentec_a-tentec.lo: tentec.c
-@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_a-tentec.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_a-tentec.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_a-tentec.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_a_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_a-tentec.lo `test -f tentec.c || echo '$(srcdir)/'`tentec.c
-
-libhamlib_tentec_la-rx320.o: rx320.c
-@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_la-rx320.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-rx320.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-rx320.o `test -f rx320.c || echo '$(srcdir)/'`rx320.c
-
-libhamlib_tentec_la-rx320.obj: rx320.c
-@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_la-rx320.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-rx320.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-rx320.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-rx320.obj `cygpath -w rx320.c`
-
-libhamlib_tentec_la-rx320.lo: rx320.c
-@AMDEP_TRUE@	source='rx320.c' object='libhamlib_tentec_la-rx320.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-rx320.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-rx320.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-rx320.lo `test -f rx320.c || echo '$(srcdir)/'`rx320.c
-
-libhamlib_tentec_la-tentec.o: tentec.c
-@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_la-tentec.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-tentec.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-tentec.o `test -f tentec.c || echo '$(srcdir)/'`tentec.c
-
-libhamlib_tentec_la-tentec.obj: tentec.c
-@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_la-tentec.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-tentec.Po' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-tentec.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-tentec.obj `cygpath -w tentec.c`
-
-libhamlib_tentec_la-tentec.lo: tentec.c
-@AMDEP_TRUE@	source='tentec.c' object='libhamlib_tentec_la-tentec.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_tentec_la-tentec.Plo' tmpdepfile='$(DEPDIR)/libhamlib_tentec_la-tentec.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_tentec_la_CFLAGS) $(CFLAGS) -c -o libhamlib_tentec_la-tentec.lo `test -f tentec.c || echo '$(srcdir)/'`tentec.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
@@ -389,10 +262,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(libdir)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
 
 install: install-am
 install-exec: install-exec-am
@@ -419,8 +292,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+	mostlyclean-am
 
 distclean: distclean-am
 
@@ -437,7 +310,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-libLIBRARIES install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
 install-info: install-info-am
 
@@ -454,21 +327,19 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-info-am uninstall-libLIBRARIES \
-	uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES clean-libLTLIBRARIES clean-libtool distclean \
-	distclean-compile distclean-depend distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am info \
-	info-am install install-am install-data install-data-am \
-	install-exec install-exec-am install-info install-info-am \
-	install-libLIBRARIES install-libLTLIBRARIES install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-info-am \
-	uninstall-libLIBRARIES uninstall-libLTLIBRARIES
+	clean-libLTLIBRARIES clean-libtool distclean distclean-compile \
+	distclean-depend distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am info info-am install \
+	install-am install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool tags uninstall \
+	uninstall-am uninstall-info-am uninstall-libLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

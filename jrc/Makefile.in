@@ -68,7 +68,6 @@ CPP = @CPP@
 CXX = @CXX@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
-DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
@@ -80,6 +79,8 @@ LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTHAMLIBTCL = @LTHAMLIBTCL@
+LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
@@ -97,32 +98,18 @@ JRCSRCLIST = nrd545.c
 
 lib_LTLIBRARIES = libhamlib-jrc.la
 libhamlib_jrc_la_SOURCES = $(JRCSRCLIST) jrc.c
-libhamlib_jrc_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_jrc_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
+libhamlib_jrc_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_jrc_la_LIBADD = ../src/libhamlib.la
-
-lib_LIBRARIES = libhamlib-jrc.a
-libhamlib_jrc_a_SOURCES = $(JRCSRCLIST) jrc.c
-libhamlib_jrc_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
-libhamlib_jrc_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = jrc.h
 subdir = jrc
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(lib_LIBRARIES)
-
-libhamlib_jrc_a_AR = $(AR) cru
-libhamlib_jrc_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_jrc_a_OBJECTS = libhamlib_jrc_a-nrd545.$(OBJEXT) \
-	libhamlib_jrc_a-jrc.$(OBJEXT)
-libhamlib_jrc_a_OBJECTS = $(am_libhamlib_jrc_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_jrc_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_jrc_la_OBJECTS = libhamlib_jrc_la-nrd545.lo \
-	libhamlib_jrc_la-jrc.lo
+am_libhamlib_jrc_la_OBJECTS = nrd545.lo jrc.lo
 libhamlib_jrc_la_OBJECTS = $(am_libhamlib_jrc_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -131,10 +118,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_jrc_a-jrc.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_jrc_a-nrd545.Po \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_jrc_la-jrc.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/libhamlib_jrc_la-nrd545.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/jrc.Plo $(DEPDIR)/nrd545.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -143,11 +127,11 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
-DIST_SOURCES = $(libhamlib_jrc_a_SOURCES) $(libhamlib_jrc_la_SOURCES)
+DIST_SOURCES = $(libhamlib_jrc_la_SOURCES)
 HEADERS = $(noinst_HEADERS)
 
 DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
-SOURCES = $(libhamlib_jrc_a_SOURCES) $(libhamlib_jrc_la_SOURCES)
+SOURCES = $(libhamlib_jrc_la_SOURCES)
 
 all: all-am
 
@@ -162,47 +146,13 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool
-$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
 	  $(AUTOMAKE) --gnu  jrc/Makefile
-Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && \
 	  CONFIG_HEADERS= CONFIG_LINKS= \
 	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
-
-AR = ar
-install-libLIBRARIES: $(lib_LIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p"; \
-	    $(INSTALL_DATA) $$p $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
-
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
-	done
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libhamlib_jrc_a-nrd545.$(OBJEXT): nrd545.c
-libhamlib_jrc_a-jrc.$(OBJEXT): jrc.c
-libhamlib-jrc.a: $(libhamlib_jrc_a_OBJECTS) $(libhamlib_jrc_a_DEPENDENCIES) 
-	-rm -f libhamlib-jrc.a
-	$(libhamlib_jrc_a_AR) libhamlib-jrc.a $(libhamlib_jrc_a_OBJECTS) $(libhamlib_jrc_a_LIBADD)
-	$(RANLIB) libhamlib-jrc.a
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
@@ -222,8 +172,6 @@ uninstall-libLTLIBRARIES:
 
 clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-libhamlib_jrc_la-nrd545.lo: nrd545.c
-libhamlib_jrc_la-jrc.lo: jrc.c
 libhamlib-jrc.la: $(libhamlib_jrc_la_OBJECTS) $(libhamlib_jrc_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_jrc_la_LDFLAGS) $(libhamlib_jrc_la_OBJECTS) $(libhamlib_jrc_la_LIBADD) $(LIBS)
 
@@ -233,10 +181,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_jrc_a-jrc.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_jrc_a-nrd545.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_jrc_la-jrc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_jrc_la-nrd545.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/jrc.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/nrd545.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -258,78 +204,6 @@ distclean-depend:
 @AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
-
-libhamlib_jrc_a-nrd545.o: nrd545.c
-@AMDEP_TRUE@	source='nrd545.c' object='libhamlib_jrc_a-nrd545.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_a-nrd545.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_a-nrd545.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_a_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_a-nrd545.o `test -f nrd545.c || echo '$(srcdir)/'`nrd545.c
-
-libhamlib_jrc_a-nrd545.obj: nrd545.c
-@AMDEP_TRUE@	source='nrd545.c' object='libhamlib_jrc_a-nrd545.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_a-nrd545.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_a-nrd545.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_a_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_a-nrd545.obj `cygpath -w nrd545.c`
-
-libhamlib_jrc_a-nrd545.lo: nrd545.c
-@AMDEP_TRUE@	source='nrd545.c' object='libhamlib_jrc_a-nrd545.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_a-nrd545.Plo' tmpdepfile='$(DEPDIR)/libhamlib_jrc_a-nrd545.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_a_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_a-nrd545.lo `test -f nrd545.c || echo '$(srcdir)/'`nrd545.c
-
-libhamlib_jrc_a-jrc.o: jrc.c
-@AMDEP_TRUE@	source='jrc.c' object='libhamlib_jrc_a-jrc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_a-jrc.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_a-jrc.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_a_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_a-jrc.o `test -f jrc.c || echo '$(srcdir)/'`jrc.c
-
-libhamlib_jrc_a-jrc.obj: jrc.c
-@AMDEP_TRUE@	source='jrc.c' object='libhamlib_jrc_a-jrc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_a-jrc.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_a-jrc.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_a_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_a-jrc.obj `cygpath -w jrc.c`
-
-libhamlib_jrc_a-jrc.lo: jrc.c
-@AMDEP_TRUE@	source='jrc.c' object='libhamlib_jrc_a-jrc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_a-jrc.Plo' tmpdepfile='$(DEPDIR)/libhamlib_jrc_a-jrc.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_a_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_a-jrc.lo `test -f jrc.c || echo '$(srcdir)/'`jrc.c
-
-libhamlib_jrc_la-nrd545.o: nrd545.c
-@AMDEP_TRUE@	source='nrd545.c' object='libhamlib_jrc_la-nrd545.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_la-nrd545.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_la-nrd545.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_la_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_la-nrd545.o `test -f nrd545.c || echo '$(srcdir)/'`nrd545.c
-
-libhamlib_jrc_la-nrd545.obj: nrd545.c
-@AMDEP_TRUE@	source='nrd545.c' object='libhamlib_jrc_la-nrd545.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_la-nrd545.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_la-nrd545.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_la_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_la-nrd545.obj `cygpath -w nrd545.c`
-
-libhamlib_jrc_la-nrd545.lo: nrd545.c
-@AMDEP_TRUE@	source='nrd545.c' object='libhamlib_jrc_la-nrd545.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_la-nrd545.Plo' tmpdepfile='$(DEPDIR)/libhamlib_jrc_la-nrd545.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_la_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_la-nrd545.lo `test -f nrd545.c || echo '$(srcdir)/'`nrd545.c
-
-libhamlib_jrc_la-jrc.o: jrc.c
-@AMDEP_TRUE@	source='jrc.c' object='libhamlib_jrc_la-jrc.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_la-jrc.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_la-jrc.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_la_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_la-jrc.o `test -f jrc.c || echo '$(srcdir)/'`jrc.c
-
-libhamlib_jrc_la-jrc.obj: jrc.c
-@AMDEP_TRUE@	source='jrc.c' object='libhamlib_jrc_la-jrc.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_la-jrc.Po' tmpdepfile='$(DEPDIR)/libhamlib_jrc_la-jrc.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_la_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_la-jrc.obj `cygpath -w jrc.c`
-
-libhamlib_jrc_la-jrc.lo: jrc.c
-@AMDEP_TRUE@	source='jrc.c' object='libhamlib_jrc_la-jrc.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_jrc_la-jrc.Plo' tmpdepfile='$(DEPDIR)/libhamlib_jrc_la-jrc.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_jrc_la_CFLAGS) $(CFLAGS) -c -o libhamlib_jrc_la-jrc.lo `test -f jrc.c || echo '$(srcdir)/'`jrc.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
@@ -388,10 +262,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(HEADERS)
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(libdir)
+	$(mkinstalldirs) $(DESTDIR)$(libdir)
 
 install: install-am
 install-exec: install-exec-am
@@ -418,8 +292,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+	mostlyclean-am
 
 distclean: distclean-am
 
@@ -436,7 +310,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-libLIBRARIES install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES
 
 install-info: install-info-am
 
@@ -453,21 +327,19 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-info-am uninstall-libLIBRARIES \
-	uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES clean-libLTLIBRARIES clean-libtool distclean \
-	distclean-compile distclean-depend distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am info \
-	info-am install install-am install-data install-data-am \
-	install-exec install-exec-am install-info install-info-am \
-	install-libLIBRARIES install-libLTLIBRARIES install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-info-am \
-	uninstall-libLIBRARIES uninstall-libLTLIBRARIES
+	clean-libLTLIBRARIES clean-libtool distclean distclean-compile \
+	distclean-depend distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am info info-am install \
+	install-am install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool tags uninstall \
+	uninstall-am uninstall-info-am uninstall-libLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
