@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.9 2000-10-29 16:25:56 f4cfe Exp $  
+ * $Id: icom.c,v 1.10 2000-12-04 23:39:17 f4cfe Exp $  
  *
  *
  *
@@ -354,7 +354,7 @@ int icom_get_freq(RIG *rig, freq_t *freq)
  * icom_set_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_mode(RIG *rig, rmode_t mode)
+int icom_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -364,7 +364,7 @@ int icom_set_mode(RIG *rig, rmode_t mode)
 		rig_s = &rig->state;
 		priv = (struct icom_priv_data*)rig_s->priv;
 
-		icmode = hamlib2icom_mode(mode);
+		icmode = hamlib2icom_mode(mode,width);
 
 		icom_transaction (rig, C_SET_MODE, icmode, NULL, 0, ackbuf, &ack_len);
 
@@ -379,9 +379,9 @@ int icom_set_mode(RIG *rig, rmode_t mode)
 
 /*
  * icom_get_mode
- * Assumes rig!=NULL, rig->state.priv!=NULL, mode!=NULL
+ * Assumes rig!=NULL, rig->state.priv!=NULL, mode!=NULL, width!=NULL
  */
-int icom_get_mode(RIG *rig, rmode_t *mode)
+int icom_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -403,7 +403,7 @@ int icom_get_mode(RIG *rig, rmode_t *mode)
 				return -RIG_ERJCTED;
 		}
 
-		*mode = icom2hamlib_mode(modebuf[1]| modebuf[2]<<8);
+		icom2hamlib_mode(modebuf[1]| modebuf[2]<<8, mode, width);
 
 		return RIG_OK;
 }
@@ -1030,7 +1030,7 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 
 		chan_len = 3+freq_len+1;
 
-		icmode = hamlib2icom_mode(chan->mode);
+		icmode = hamlib2icom_mode(chan->mode, RIG_PASSBAND_NORMAL); /* FIXME */
 		chanbuf[chan_len++] = icmode&0xff;
 		chanbuf[chan_len++] = icmode>>8;
 		to_bcd_be(chanbuf+chan_len++,chan->att,2);
@@ -1061,6 +1061,7 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 		struct rig_state *rig_s;
 		unsigned char chanbuf[24];
 		int chan_len,freq_len;
+		pbwidth_t width; 	/* FIXME */
 
 		rig_s = &rig->state;
 		priv = (struct icom_priv_data*)rig_s->priv;
@@ -1089,7 +1090,8 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 
 		chan_len = 4+freq_len+1;
 
-		chan->mode = icom2hamlib_mode(chanbuf[chan_len] | chanbuf[chan_len+1]);
+		icom2hamlib_mode(chanbuf[chan_len] | chanbuf[chan_len+1], 
+						&chan->mode, &width);
 		chan_len += 2;
 		chan->att = from_bcd_be(chanbuf+chan_len++,2);
 		chan->preamp = from_bcd_be(chanbuf+chan_len++,2);
@@ -1279,6 +1281,7 @@ int icom_decode_event(RIG *rig)
 		int frm_len;
 		freq_t freq;
 		rmode_t mode;
+		pbwidth_t width; 
 
 		rig_debug(RIG_DEBUG_VERBOSE, "icom: icom_decode called\n");
 
@@ -1305,8 +1308,8 @@ int icom_decode_event(RIG *rig)
 				break;
 		case C_SND_MODE:
 				if (rig->callbacks.mode_event) {
-					mode = icom2hamlib_mode(buf[5]| buf[6]<<8);
-					return rig->callbacks.mode_event(rig,mode);
+					icom2hamlib_mode(buf[5]| buf[6]<<8, &mode, &width);
+					return rig->callbacks.mode_event(rig,mode,width);
 				} else
 						return -RIG_ENAVAIL;
 				break;

@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- *    $Id: aor.h,v 1.1 2000-11-01 23:23:56 f4cfe Exp $  
+ *    $Id: aor.h,v 1.2 2000-12-04 23:39:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -33,8 +33,8 @@ int aor_close(RIG *rig);
 
 int aor_set_freq(RIG *rig, freq_t freq);
 int aor_get_freq(RIG *rig, freq_t *freq);
-int aor_set_mode(RIG *rig, rmode_t mode);
-int aor_get_mode(RIG *rig, rmode_t *mode);
+int aor_set_mode(RIG *rig, rmode_t mode, pbwidth_t width);
+int aor_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width);
 
 int aor_set_ts(RIG *rig, unsigned long ts);
 int aor_set_poweroff(RIG *rig);

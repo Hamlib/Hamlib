@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.8 2000-10-29 16:26:23 f4cfe Exp $  
+ *    $Id: icom.h,v 1.9 2000-12-04 23:39:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -44,8 +44,8 @@ int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);
 int icom_set_freq(RIG *rig, freq_t freq);
 int icom_get_freq(RIG *rig, freq_t *freq);
-int icom_set_mode(RIG *rig, rmode_t mode);
-int icom_get_mode(RIG *rig, rmode_t *mode);
+int icom_set_mode(RIG *rig, rmode_t mode, pbwidth_t width);
+int icom_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width);
 int icom_set_vfo(RIG *rig, vfo_t vfo);
 int icom_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift);
 int icom_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift);

@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.1 2000-11-01 23:23:56 f4cfe Exp $  
+ * $Id: aor.c,v 1.2 2000-12-04 23:39:17 f4cfe Exp $  
  *
  *
  *
@@ -159,17 +159,39 @@ int aor_get_freq(RIG *rig, freq_t *freq)
  * aor_set_mode
  * Assumes rig!=NULL
  */
-int aor_set_mode(RIG *rig, rmode_t mode)
+int aor_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
 {
 		unsigned char mdbuf[16],ackbuf[16];
 		int mdbuf_len,ack_len,aormode;
 
 		switch (mode) {
-			case RIG_MODE_AM:       aormode = MD_AM; break;
+			case RIG_MODE_AM:       
+					switch(width) {
+						case RIG_PASSBAND_NORMAL: aormode = MD_AM; break;
+						case RIG_PASSBAND_WIDE: aormode = MD_WAM; break;
+						case RIG_PASSBAND_NARROW: aormode = MD_NAM; break;
+						default:
+							rig_debug(RIG_DEBUG_ERR,
+								"aor_set_mode: unsupported passband %d %d\n",
+								mode, width);
+						return -RIG_EINVAL;
+					}
+					break;
 			case RIG_MODE_CW:       aormode = MD_CW; break;
 			case RIG_MODE_USB:      aormode = MD_USB; break;
 			case RIG_MODE_LSB:      aormode = MD_LSB; break;
-			case RIG_MODE_FM:       aormode = MD_NFM; break;
+			case RIG_MODE_FM:
+					switch(width) {
+						case RIG_PASSBAND_NORMAL: aormode = MD_NFM; break;
+						case RIG_PASSBAND_WIDE: aormode = MD_WFM; break;
+						case RIG_PASSBAND_NARROW: aormode = MD_SFM; break;
+						default:
+							rig_debug(RIG_DEBUG_ERR,
+								"aor_set_mode: unsupported passband %d %d\n",
+								mode, width);
+						return -RIG_EINVAL;
+					}
+					break;
 			case RIG_MODE_RTTY:
 			default:
 				rig_debug(RIG_DEBUG_ERR,"aor_set_mode: unsupported mode %d\n",
@@ -193,7 +215,7 @@ int aor_set_mode(RIG *rig, rmode_t mode)
  * aor_get_mode
  * Assumes rig!=NULL, mode!=NULL
  */
-int aor_get_mode(RIG *rig, rmode_t *mode)
+int aor_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
 {
 		unsigned char ackbuf[16];
 		int ack_len;
@@ -207,12 +229,28 @@ int aor_get_mode(RIG *rig, rmode_t *mode)
 				return -RIG_ERJCTED;
 		}
 
+		*width = RIG_PASSBAND_NORMAL;
 		switch (ackbuf[0]) {
 			case MD_AM:		*mode = RIG_MODE_AM; break;
+			case MD_NAM:	
+							*mode = RIG_MODE_AM;
+							*width = RIG_PASSBAND_NARROW; 
+							break;
+			case MD_WAM:	
+							*mode = RIG_MODE_AM;
+							*width = RIG_PASSBAND_WIDE; 
+							break;
 			case MD_CW:		*mode = RIG_MODE_CW; break;
 			case MD_USB:	*mode = RIG_MODE_USB; break;
 			case MD_LSB:	*mode = RIG_MODE_LSB; break;
 			case MD_NFM:	*mode = RIG_MODE_FM; break;
+			case MD_SFM:	
+							*mode = RIG_MODE_FM;
+							*width = RIG_PASSBAND_NARROW; 
+							break;
+			case MD_WFM:	*mode = RIG_MODE_FM;
+							*width = RIG_PASSBAND_WIDE; 
+							break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"aor_get_mode: unsupported mode %d\n",
 								ackbuf[0]);

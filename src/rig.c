@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.9 2000-11-28 22:33:37 f4cfe Exp $
+   $Id: rig.c,v 1.10 2000-12-04 23:39:18 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -398,8 +398,11 @@ int rig_get_freq(RIG *rig, freq_t *freq)
  *      rig_set_mode - set the mode of the current VFO
  *      @rig:	The rig handle
  *      @mode:	The mode to set to
+ *      @width:	The passband width to set to
  *
  *      The rig_set_mode() function sets the mode of the current VFO.
+ *      As a begining, the backend is free to ignore the @width argument,
+ *      however, it would be nice to at least honor the WFM case.
  *
  *      RETURN VALUE: The rig_set_mode() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -408,7 +411,7 @@ int rig_get_freq(RIG *rig, freq_t *freq)
  *      SEE ALSO: rig_get_mode()
  */
 
-int rig_set_mode(RIG *rig, rmode_t mode)
+int rig_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -416,15 +419,18 @@ int rig_set_mode(RIG *rig, rmode_t mode)
 		if (rig->caps->set_mode == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_mode(rig, mode);
+			return rig->caps->set_mode(rig, mode, width);
 }
 
 /**
  *      rig_get_mode - get the mode of the current VFO
  *      @rig:	The rig handle
  *      @mode:	The location where to store the current mode
+ *      @width:	The location where to store the current passband width
  *
  *      The rig_set_mode() function retrieves the mode of the current VFO.
+ *      If the backend is unable to determine the width, it must
+ *      return %RIG_PASSBAND_NORMAL as a default.
  *
  *      RETURN VALUE: The rig_get_mode() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -433,47 +439,15 @@ int rig_set_mode(RIG *rig, rmode_t mode)
  *      SEE ALSO: rig_set_mode()
  */
 
-int rig_get_mode(RIG *rig, rmode_t *mode)
+int rig_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
 {
-		if (!rig || !rig->caps || !mode)
+		if (!rig || !rig->caps || !mode || !width)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_mode == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_mode(rig, mode);
-}
-
-/*
- * rig_set_passband
- *
- */
-
-int rig_set_passband(RIG *rig, pbwidth_t width)
-{
-		if (!rig || !rig->caps)
-			return -RIG_EINVAL;
-
-		if (rig->caps->set_passband == NULL)
-			return -RIG_ENAVAIL;
-		else
-			return rig->caps->set_passband(rig, width);
-}
-
-/*
- * rig_get_passband
- *
- */
-
-int rig_get_passband(RIG *rig, pbwidth_t *width)
-{
-		if (!rig || !rig->caps || !width)
-			return -RIG_EINVAL;
-
-		if (rig->caps->get_passband == NULL)
-			return -RIG_ENAVAIL;
-		else
-			return rig->caps->get_passband(rig, width);
+			return rig->caps->get_mode(rig, mode, width);
 }
 
 /**

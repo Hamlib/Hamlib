@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.2 2000-11-28 22:34:37 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.3 2000-12-04 23:39:18 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -46,8 +46,6 @@ static int set_freq(RIG *rig);
 static int get_freq(RIG *rig);
 static int set_mode(RIG *rig);
 static int get_mode(RIG *rig);
-static int set_passband(RIG *rig);
-static int get_passband(RIG *rig);
 static int set_vfo(RIG *rig);
 static int get_vfo(RIG *rig);
 static int set_ptt(RIG *rig);
@@ -85,8 +83,6 @@ struct test_table test_list[] = {
 		{ 'f', "rig_get_freq", get_freq },
 		{ 'M', "rig_set_mode", set_mode },
 		{ 'm', "rig_get_mode", get_mode },
-		{ 'P', "rig_set_passband", set_passband },
-		{ 'p', "rig_get_passband", get_passband },
 		{ 'V', "rig_set_vfo", set_vfo },
 		{ 'v', "rig_get_vfo", get_vfo },
 		{ 'T', "rig_set_ptt", set_ptt },
@@ -225,10 +221,13 @@ static int get_freq(RIG *rig)
 static int set_mode(RIG *rig)
 {
 		rmode_t mode;
+		pbwidth_t width;
 
 		printf("Mode: ");
 		scanf("%d", &mode);
-		return rig_set_mode(rig, mode);
+		printf("Passband: ");
+		scanf("%d", (int*)&width);
+		return rig_set_mode(rig, mode, width);
 }
 
 
@@ -236,30 +235,10 @@ static int get_mode(RIG *rig)
 {
 		int status;
 		rmode_t mode;
-
-		status = rig_get_mode(rig, &mode);
-		printf("Mode: %d\n", mode);
-		return status;
-}
-
-
-static int set_passband(RIG *rig)
-{
 		pbwidth_t width;
 
-		printf("Passband: ");
-		scanf("%d", (int*)&width);
-		return rig_set_passband(rig, width);
-}
-
-
-static int get_passband(RIG *rig)
-{
-		int status;
-		pbwidth_t width;
-
-		status = rig_get_passband(rig, &width);
-		printf("Passband: %d\n", width);
+		status = rig_get_mode(rig, &mode, &width);
+		printf("Mode: %d\nPassband: %d\n", mode, width);
 		return status;
 }
 

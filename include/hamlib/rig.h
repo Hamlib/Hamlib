@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.9 2000-11-28 22:31:40 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.10 2000-12-04 23:39:17 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -238,7 +238,7 @@ typedef union value_u value_t;
 #define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0) */
 #define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (db) */
 
-typedef unsigned long setting_t;	/* at least 32 bits */
+typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 
 /*
  * tranceive mode, ie. the rig notify the host of any event,
@@ -284,7 +284,11 @@ typedef long long freq_t;
 
 typedef unsigned int rmode_t;	/* radio mode  */
 
-/* Do not use an enum since this will be used w/ rig_mode_t bit fields */
+/*
+ * Do not use an enum since this will be used w/ rig_mode_t bit fields.
+ * Also, how should CW reverse sideband and RTTY reverse
+ * sideband be handled?
+ * */
 #define RIG_MODE_NONE  	0
 #define RIG_MODE_AM    	(1<<0)
 #define RIG_MODE_CW    	(1<<1)
@@ -293,25 +297,6 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define RIG_MODE_RTTY	(1<<4)
 #define RIG_MODE_FM    	(1<<5)
 
-/* The following are deprecated */
-/* use the get/set_filter to manipulate these bits */
-#if 0
-#define RIG_MODE_WFM	(1<<6)
-#define RIG_MODE_CWR	(1<<7)	/* CW reverse sideband*/
-#define RIG_MODE_RTTYR	(1<<8)	/* RTTY reverse sideband */
-
-#define RIG_MODE_NFM	(1<<19)	/* should we distinguish modes w/ filers? */
-#define RIG_MODE_NAM	(1<<20)	/* Narrow AM */
-#define RIG_MODE_WAM	(1<<9)	/* Wide AM */
-#define RIG_MODE_NCW	(1<<10)	
-#define RIG_MODE_WCW	(1<<11)	
-#define RIG_MODE_NUSB	(1<<13)	
-#define RIG_MODE_WUSB	(1<<14)	
-#define RIG_MODE_NLSB	(1<<15)	
-#define RIG_MODE_WLSB	(1<<16)	
-#define RIG_MODE_NRTTY	(1<<17)	
-#define RIG_MODE_WRTTY	(1<<18)	
-#endif
 
 
 #define RIGNAMSIZ 30
@@ -431,17 +416,14 @@ struct rig_caps {
   int (*set_freq)(RIG *rig, freq_t freq); /* select freq */
   int (*get_freq)(RIG *rig, freq_t *freq); /* get freq */
 
-  int (*set_mode)(RIG *rig, rmode_t mode); /* select mode */
-  int (*get_mode)(RIG *rig, rmode_t *mode); /* get mode */
+  int (*set_mode)(RIG *rig, rmode_t mode, pbwidth_t width); /* select mode */
+  int (*get_mode)(RIG *rig, rmode_t *mode, pbwidth_t *width); /* get mode */
 
   int (*set_vfo)(RIG *rig, vfo_t vfo); /* select vfo (A,B, etc.) */
   int (*get_vfo)(RIG *rig, vfo_t *vfo); /* get vfo */
 
   int (*set_ptt)(RIG *rig, ptt_t ptt); /* ptt on/off */
   int (*get_ptt)(RIG *rig, ptt_t *ptt); /* get ptt status */
-
-  int (*set_passband)(RIG *rig, pbwidth_t width); /* select width */
-  int (*get_passband)(RIG *rig, pbwidth_t *width); /* get width */
 
   int (*set_rptr_shift)(RIG *rig, rptr_shift_t rptr_shift);	/* set repeater shift */
   int (*get_rptr_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
@@ -564,7 +546,7 @@ struct rig_state {
  */
 struct rig_callbacks {
 	int (*freq_event)(RIG *rig, freq_t freq); 
-	int (*mode_event)(RIG *rig, rmode_t mode); 
+	int (*mode_event)(RIG *rig, rmode_t mode, pbwidth_t width); 
 	int (*vfo_event)(RIG *rig, vfo_t vfo); 
 	int (*ptt_event)(RIG *rig, ptt_t mode); 
 	/* etc.. */
@@ -595,11 +577,8 @@ extern int rig_open(RIG *rig);
 extern int rig_set_freq(RIG *rig, freq_t freq); /* select freq */
 extern int rig_get_freq(RIG *rig, freq_t *freq); /* get freq */
 
-extern int rig_set_mode(RIG *rig, rmode_t mode); /* select mode */
-extern int rig_get_mode(RIG *rig, rmode_t *mode); /* get mode */
-
-extern int rig_set_passband(RIG *rig, pbwidth_t width); /* select width */
-extern int rig_get_passband(RIG *rig, pbwidth_t *width); /* get width */
+extern int rig_set_mode(RIG *rig, rmode_t mode, pbwidth_t width); /* select mode */
+extern int rig_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width); /* get mode */
 
 extern int rig_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 extern int rig_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */

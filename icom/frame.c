@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.5 2000-11-01 23:21:47 f4cfe Exp $  
+ * $Id: frame.c,v 1.6 2000-12-04 23:39:17 f4cfe Exp $  
  *
  *
  *
@@ -194,7 +194,10 @@ int read_icom_frame(FILE *stream, unsigned char rxbuffer[], int timeout)
 }
 
 
-unsigned short hamlib2icom_mode(rmode_t mode)
+/*
+ * TODO: be more exhaustive
+ */
+unsigned short hamlib2icom_mode(rmode_t mode, pbwidth_t width)
 {
 		int icmode, icmode_ext;
 
@@ -206,24 +209,10 @@ unsigned short hamlib2icom_mode(rmode_t mode)
 		case RIG_MODE_USB:	icmode = S_USB; break;
 		case RIG_MODE_LSB:	icmode = S_LSB; break;
 		case RIG_MODE_RTTY:	icmode = S_RTTY; break;
-		case RIG_MODE_FM:	icmode = S_FM; break;
-#if 0
-		case RIG_MODE_WFM:	icmode = S_WFM; break;
-
-		case RIG_MODE_NFM:	icmode = S_FM; icmode_ext = 0x01; break;
-		case RIG_MODE_NAM:	icmode = S_AM; break;
-		case RIG_MODE_WAM:	icmode = S_AM; break;
-		case RIG_MODE_NCW:	icmode = S_CW; break;
-		case RIG_MODE_WCW:	icmode = S_CW; break;
-		case RIG_MODE_CWR:	icmode = S_CW; break;
-		case RIG_MODE_NUSB:	icmode = S_USB; break;
-		case RIG_MODE_WUSB:	icmode = S_USB; break;
-		case RIG_MODE_NLSB:	icmode = S_LSB; break;
-		case RIG_MODE_WLSB:	icmode = S_LSB; break;
-		case RIG_MODE_NRTTY: icmode = S_RTTY; break;
-		case RIG_MODE_WRTTY: icmode = S_RTTY; break;
-#endif
-
+		case RIG_MODE_FM:	
+							icmode = width==RIG_PASSBAND_WIDE?S_WFM:S_FM;
+							icmode_ext = width==RIG_PASSBAND_NARROW?0x01:0x00;
+							break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Hamlib mode %d\n",mode);
 			icmode = 0xff;
@@ -231,25 +220,27 @@ unsigned short hamlib2icom_mode(rmode_t mode)
 		return (icmode_ext<<8 | icmode);
 }
 
-rmode_t icom2hamlib_mode(unsigned short icmode)
+void icom2hamlib_mode(unsigned short icmode, rmode_t *mode, pbwidth_t *width)
 {
-		rmode_t mode;
+		*width = RIG_PASSBAND_NORMAL;
 
 		switch (icmode & 0xff) {
-		case S_AM:	mode = RIG_MODE_AM; break;
-		case S_CW:	mode = RIG_MODE_CW; break;
-		case S_FM:	mode = RIG_MODE_FM; break;
-		case S_WFM:	mode = RIG_MODE_FM; break;	/* and set width to wide.. */
-		case S_USB:	mode = RIG_MODE_USB; break;
-		case S_LSB:	mode = RIG_MODE_LSB; break;
-		case S_RTTY:	mode = RIG_MODE_RTTY; break;
+		case S_AM:	*mode = RIG_MODE_AM; break;
+		case S_CW:	*mode = RIG_MODE_CW; break;
+		case S_FM:	*mode = RIG_MODE_FM; break;
+		case S_WFM:	
+					*mode = RIG_MODE_FM;
+					*width = RIG_PASSBAND_WIDE;
+					break;
+		case S_USB:	*mode = RIG_MODE_USB; break;
+		case S_LSB:	*mode = RIG_MODE_LSB; break;
+		case S_RTTY:	*mode = RIG_MODE_RTTY; break;
 		case 0xff:	mode = 0; break;	/* blank mem channel */
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode %#.2x\n",
 							icmode);
-			mode = 0;
+			*mode = 0;
 		}
-		return mode;
 }
 
