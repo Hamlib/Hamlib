@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.80 2004-12-20 22:58:19 jrinas Exp $
+ *	$Id: kenwood.c,v 1.81 2004-12-27 12:53:01 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -188,8 +188,8 @@ transaction_read:
 
     /* Command recognised by rig but invalid data entered. */
     if (strlen(data) == 2 && data[0] == 'N') {
-        rig_debug(RIG_DEBUG_ERR, "%s: NegAck for '%s'\n", __FUNCTION__, cmdstr);
-        retval = -RIG_ERJCTED;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __FUNCTION__, cmdstr);
+        retval = -RIG_ENAVAIL;
         goto transaction_quit;
     }
 

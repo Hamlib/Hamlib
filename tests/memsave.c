@@ -2,7 +2,7 @@
  * memsave.c - Copyright (C) 2003-2004 Thierry Leconte
  *
  *
- *	$Id: memsave.c,v 1.6 2004-12-22 16:03:19 f4dwv Exp $  
+ *	$Id: memsave.c,v 1.7 2004-12-27 12:53:02 f4dwv Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -92,6 +92,11 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 	chan.vfo = RIG_VFO_MEM;
 	chan.channel_num = chan_num;
 	status=rig_get_channel(rig, &chan);
+
+	if (status == -RIG_ENAVAIL ) {
+		/* empty channel */
+		return RIG_OK;
+	}
 
 	if (status != RIG_OK ) {
 		printf("rig_get_channel: error = %s \n", rigerror(status));
