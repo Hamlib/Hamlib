@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: ts2000.c,v 1.1 2001-12-11 21:58:28 fillods Exp $
+ *		$Id: ts2000.c,v 1.2 2001-12-16 11:17:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -112,7 +112,7 @@ attenuator:  { 20, RIG_DBLST_END, },
 max_rit: kHz(20),
 max_xit: kHz(20),
 max_ifshift: kHz(1),
-targetable_vfo: 0,
+targetable_vfo: RIG_TARGETABLE_FREQ,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,

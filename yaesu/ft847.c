@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.17 2001-12-11 22:04:45 fillods Exp $  
+ * $Id: ft847.c,v 1.18 2001-12-16 11:17:42 fillods Exp $  
  *
  *
  *
@@ -219,7 +219,7 @@ attenuator:  { RIG_DBLST_END, },
 max_rit: Hz(9999),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
-targetable_vfo: 1,
+targetable_vfo: RIG_TARGETABLE_FREQ,
 transceive: RIG_TRN_OFF,
 bank_qty:  0,
 chan_desc_sz: 0,

@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.52 2001-10-16 21:18:02 f4cfe Exp $
+ *		$Id: rig.h,v 1.53 2001-12-16 11:17:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -273,6 +273,11 @@ typedef signed long shortfreq_t;
  * i.e. apply to all VFO, when used as target
  */
 typedef int vfo_t;
+
+#define RIG_TARGETABLE_NONE 0x00
+#define RIG_TARGETABLE_FREQ 0x01
+#define RIG_TARGETABLE_MODE 0x02
+#define RIG_TARGETABLE_ALL  0xffffffff
 
 
 #define RIG_PASSBAND_NORMAL Hz(0)

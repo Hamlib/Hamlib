@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: thf7.c,v 1.1 2001-11-09 15:44:38 f4cfe Exp $
+ *		$Id: thf7.c,v 1.2 2001-12-16 11:17:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -94,7 +94,7 @@ max_rit: Hz(0),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
 vfo_ops: THF7_VFO_OP,
-targetable_vfo: 0,
+targetable_vfo: RIG_TARGETABLE_FREQ,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,

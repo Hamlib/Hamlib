@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: ts450s.c,v 1.1 2001-08-08 21:31:12 f4cfe Exp $
+ *		$Id: ts450s.c,v 1.2 2001-12-16 11:17:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -93,7 +93,7 @@ attenuator:  { 6, 12, 18, RIG_DBLST_END, },
 max_rit: Hz(9999),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
-targetable_vfo: 0,
+targetable_vfo: RIG_TARGETABLE_FREQ,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,

@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.47 2001-10-25 21:22:49 f4cfe Exp $
+ *		$Id: rig.c,v 1.48 2001-12-16 11:17:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,7 +43,6 @@
 #include <fcntl.h>
 
 
-#define HAMLIB_DLL
 #include <hamlib/rig.h>
 #include <serial.h>
 #include "event.h"
@@ -621,8 +620,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		if (caps->set_freq == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_FREQ) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_freq(rig, vfo, freq);
 
 		if (!caps->set_vfo)
@@ -668,8 +667,8 @@ int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		if (caps->get_freq == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo) {
+		if ((caps->targetable_vfo&RIG_TARGETABLE_FREQ) || 
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo) {
 			retcode = caps->get_freq(rig, vfo, freq);
 		} else {
 			if (!caps->set_vfo)
@@ -719,8 +718,8 @@ int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		if (caps->set_mode == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_mode(rig, vfo, mode, width);
 
 		if (!caps->set_vfo)
@@ -769,8 +768,8 @@ int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		if (caps->get_mode == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_mode(rig, vfo, mode, width);
 
 		if (!caps->set_vfo)
@@ -1001,8 +1000,8 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 			if (caps->set_ptt == NULL)
 				return -RIG_ENIMPL;
 
-			if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-											vfo == rig->state.current_vfo)
+			if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 				return caps->set_ptt(rig, vfo, ptt);
 	
 			if (!caps->set_vfo)
@@ -1065,8 +1064,8 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 			if (caps->get_ptt == NULL)
 				return -RIG_ENIMPL;
 
-			if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-											vfo == rig->state.current_vfo)
+			if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 				return caps->get_ptt(rig, vfo, ptt);
 	
 			if (!caps->set_vfo)
@@ -1129,8 +1128,8 @@ int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 			if (caps->get_dcd == NULL)
 				return -RIG_ENIMPL;
 
-			if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-											vfo == rig->state.current_vfo)
+			if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 				return caps->get_dcd(rig, vfo, dcd);
 	
 			if (!caps->set_vfo)
@@ -1193,8 +1192,8 @@ int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 		if (caps->set_rptr_shift == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_rptr_shift(rig, vfo, rptr_shift);
 
 		if (!caps->set_vfo)
@@ -1237,8 +1236,8 @@ int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 		if (caps->get_rptr_shift == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_rptr_shift(rig, vfo, rptr_shift);
 
 		if (!caps->set_vfo)
@@ -1282,8 +1281,8 @@ int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 		if (caps->set_rptr_offs == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_rptr_offs(rig, vfo, rptr_offs);
 
 		if (!caps->set_vfo)
@@ -1327,8 +1326,8 @@ int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 		if (caps->get_rptr_offs == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_rptr_offs(rig, vfo, rptr_offs);
 
 		if (!caps->set_vfo)
@@ -1373,8 +1372,8 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 		if (caps->set_split_freq == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_split_freq(rig, vfo, tx_freq);
 
 		if (!caps->set_vfo)
@@ -1417,8 +1416,8 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 		if (caps->get_split_freq == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_split_freq(rig, vfo, tx_freq);
 
 		if (!caps->set_vfo)
@@ -1463,8 +1462,8 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 		if (caps->set_split_mode == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_split_mode(rig, vfo, tx_mode, tx_width);
 
 		if (!caps->set_vfo)
@@ -1508,8 +1507,8 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_widt
 		if (caps->get_split_mode == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_split_mode(rig, vfo, tx_mode, tx_width);
 
 		if (!caps->set_vfo)
@@ -1553,8 +1552,8 @@ int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
 		if (caps->set_split == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_split(rig, vfo, split);
 
 		if (!caps->set_vfo)
@@ -1597,8 +1596,8 @@ int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 		if (caps->get_split == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_split(rig, vfo, split);
 
 		if (!caps->set_vfo)
@@ -1642,8 +1641,8 @@ int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 		if (caps->set_rit == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_rit(rig, vfo, rit);
 
 		if (!caps->set_vfo)
@@ -1687,8 +1686,8 @@ int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 		if (caps->get_rit == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_rit(rig, vfo, rit);
 
 		if (!caps->set_vfo)
@@ -1732,8 +1731,8 @@ int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 		if (caps->set_xit == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_xit(rig, vfo, xit);
 
 		if (!caps->set_vfo)
@@ -1777,8 +1776,8 @@ int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 		if (caps->get_xit == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_xit(rig, vfo, xit);
 
 		if (!caps->set_vfo)
@@ -1824,8 +1823,8 @@ int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		if (caps->set_ts == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_ts(rig, vfo, ts);
 
 		if (!caps->set_vfo)
@@ -1869,8 +1868,8 @@ int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		if (caps->get_ts == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_ts(rig, vfo, ts);
 
 		if (!caps->set_vfo)
@@ -1914,8 +1913,8 @@ int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 		if (caps->set_ant == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_ant(rig, vfo, ant);
 
 		if (!caps->set_vfo)
@@ -1959,8 +1958,8 @@ int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 		if (caps->get_ant == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_ant(rig, vfo, ant);
 
 		if (!caps->set_vfo)
@@ -2128,8 +2127,8 @@ int rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 		if (caps->set_ctcss_tone == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_ctcss_tone(rig, vfo, tone);
 
 		if (!caps->set_vfo)
@@ -2177,8 +2176,8 @@ int rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 		if (caps->get_ctcss_tone == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_ctcss_tone(rig, vfo, tone);
 
 		if (!caps->set_vfo)
@@ -2222,8 +2221,8 @@ int rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 		if (caps->set_dcs_code == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_dcs_code(rig, vfo, code);
 
 		if (!caps->set_vfo)
@@ -2266,8 +2265,8 @@ int rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 		if (caps->get_dcs_code == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_dcs_code(rig, vfo, code);
 
 		if (!caps->set_vfo)
@@ -2316,8 +2315,8 @@ int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 		if (caps->set_ctcss_sql == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_ctcss_sql(rig, vfo, tone);
 
 		if (!caps->set_vfo)
@@ -2365,8 +2364,8 @@ int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 		if (caps->get_ctcss_sql == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_ctcss_sql(rig, vfo, tone);
 
 		if (!caps->set_vfo)
@@ -2410,8 +2409,8 @@ int rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 		if (caps->set_dcs_sql == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_dcs_sql(rig, vfo, code);
 
 		if (!caps->set_vfo)
@@ -2454,8 +2453,8 @@ int rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 		if (caps->get_dcs_sql == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_dcs_sql(rig, vfo, code);
 
 		if (!caps->set_vfo)
@@ -2604,8 +2603,8 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		if (caps->set_level == NULL || !rig_has_set_level(rig,level))
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_level(rig, vfo, level, val);
 
 		if (!caps->set_vfo)
@@ -2658,8 +2657,8 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (caps->get_level == NULL || !rig_has_get_level(rig,level))
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_level(rig, vfo, level, val);
 
 		if (!caps->set_vfo)
@@ -2904,8 +2903,8 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		if (caps->set_func == NULL || !rig_has_set_func(rig,func))
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_func(rig, vfo, func, status);
 
 		if (!caps->set_vfo)
@@ -2952,8 +2951,8 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		if (caps->get_func == NULL || !rig_has_get_func(rig,func))
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_func(rig, vfo, func, status);
 
 		if (!caps->set_vfo)
@@ -3056,8 +3055,8 @@ int rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 		if (caps->set_mem == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_mem(rig, vfo, ch);
 
 		if (!caps->set_vfo)
@@ -3102,8 +3101,8 @@ int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		if (caps->get_mem == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->get_mem(rig, vfo, ch);
 
 		if (!caps->set_vfo)
@@ -3172,8 +3171,8 @@ int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		if (caps->vfo_op == NULL || !rig_has_vfo_op(rig,op))
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->vfo_op(rig, vfo, op);
 
 		if (!caps->set_vfo)
@@ -3244,8 +3243,8 @@ int rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 						(scan!=RIG_SCAN_STOP && !rig_has_scan(rig, scan)))
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->scan(rig, vfo, scan, ch);
 
 		if (!caps->set_vfo)
@@ -3289,8 +3288,8 @@ int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 		if (caps->send_dtmf == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->send_dtmf(rig, vfo, digits);
 
 		if (!caps->set_vfo)
@@ -3335,8 +3334,8 @@ int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 		if (caps->recv_dtmf == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->recv_dtmf(rig, vfo, digits, length);
 
 		if (!caps->set_vfo)
@@ -3380,8 +3379,8 @@ int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 		if (caps->send_morse == NULL)
 			return -RIG_ENAVAIL;
 
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->send_morse(rig, vfo, msg);
 
 		if (!caps->set_vfo)
@@ -3428,8 +3427,8 @@ int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 		if (caps->set_bank == NULL)
 			return -RIG_ENAVAIL;
 		
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
+		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 			return caps->set_bank(rig, vfo, bank);
 
 		if (!caps->set_vfo)

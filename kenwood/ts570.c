@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: ts570.c,v 1.3 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: ts570.c,v 1.4 2001-12-16 11:17:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,7 +88,7 @@ max_rit: Hz(9990),
 max_xit: Hz(9990),
 max_ifshift: Hz(0),
 vfo_ops: TS570_VFO_OP,
-targetable_vfo: 0,
+targetable_vfo: RIG_TARGETABLE_FREQ,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,
@@ -248,7 +248,7 @@ max_rit: Hz(9990),
 max_xit: Hz(9990),
 max_ifshift: Hz(0),
 vfo_ops: TS570_VFO_OP,
-targetable_vfo: 0,
+targetable_vfo: RIG_TARGETABLE_FREQ,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,
