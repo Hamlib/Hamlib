@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.25 2003-10-01 19:34:08 fillods Exp $  
+ * $Id: ft847.c,v 1.26 2003-12-01 20:54:04 fillods Exp $  
  *
  *
  *
@@ -463,21 +463,13 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", strvfo(vfo));
   
+  if (vfo == RIG_VFO_CURR)
+	vfo = p->current_vfo;
+
   switch(vfo) {
   case RIG_VFO_MAIN:
     cmd_index = FT_847_NATIVE_CAT_SET_FREQ_MAIN;
     break;
-  case RIG_VFO_CURR:
-    switch(p->current_vfo) {	/* what is my active VFO ? */
-    case RIG_VFO_MAIN:
-      cmd_index = FT_847_NATIVE_CAT_SET_FREQ_MAIN;
-      break;
-    default:
-      rig_debug(RIG_DEBUG_VERBOSE,"ft847: Unknown default VFO \n");
-      return -RIG_EINVAL;		/* sorry, wrong current VFO */
-    }
-    break;
-
   default:
     rig_debug(RIG_DEBUG_VERBOSE,"ft847: Unknown  VFO \n");
     return -RIG_EINVAL;		/* sorry, wrong VFO */
@@ -520,8 +512,8 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", strvfo(vfo));
   
-  if (vfo == RIG_VFO_MAIN)
-		  vfo = p->current_vfo;
+  if (vfo == RIG_VFO_CURR)
+	vfo = p->current_vfo;
 
   /*
    * TODO:
@@ -615,12 +607,26 @@ int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char cmd_index;	/* index of sequence to send */
+  struct rig_state *rs = &rig->state;
+  struct ft847_priv_data *p;
+
+  p = (struct ft847_priv_data*)rs->priv;
+
   
   /* 
    * translate mode from generic to ft847 specific
    */
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: generic mode = %x \n", mode);
+
+  if (vfo == RIG_VFO_CURR)
+	vfo = p->current_vfo;
+
+  if (vfo != RIG_VFO_MAIN) {
+    rig_debug(RIG_DEBUG_VERBOSE,"ft847: unsupported VFO '%s'\n", strvfo(vfo));
+    return -RIG_ENIMPL;		/* sorry, it's in TODO list */
+  }
+
 
   switch(mode) {
   case RIG_MODE_AM:
@@ -717,6 +723,9 @@ int ft847_set_vfo(RIG *rig, vfo_t vfo) {
    */
 
   switch(vfo) {
+  case RIG_VFO_CURR:
+	  return 0;		/* easy! */
+
   case RIG_VFO_MAIN:
     p->current_vfo = vfo;		/* update active VFO */
     break;
