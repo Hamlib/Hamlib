@@ -81,10 +81,10 @@ WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
 lib_LTLIBRARIES = libhamlib-icom.la
-libhamlib_icom_la_SOURCES = ic706.c icr8500.c icom.c frame.c
+libhamlib_icom_la_SOURCES = ic706.c icr8500.c icall.c icom.c frame.c
 libhamlib_icom_la_LDFLAGS = -avoid-version # -module
 lib_LIBRARIES = libhamlib-icom.a
-libhamlib_icom_a_SOURCES = ic706.c icr8500.c icom.c frame.c
+libhamlib_icom_a_SOURCES = ic706.c icr8500.c icall.c icom.c frame.c
 noinst_HEADERS = frame.h icom.h icom_defs.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -97,12 +97,13 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_icom_a_LIBADD = 
-libhamlib_icom_a_OBJECTS =  ic706.o icr8500.o icom.o frame.o
+libhamlib_icom_a_OBJECTS =  ic706.o icr8500.o icall.o icom.o frame.o
 AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_icom_la_LIBADD = 
-libhamlib_icom_la_OBJECTS =  ic706.lo icr8500.lo icom.lo frame.lo
+libhamlib_icom_la_OBJECTS =  ic706.lo icr8500.lo icall.lo icom.lo \
+frame.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -117,7 +118,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/frame.P .deps/ic706.P .deps/icom.P .deps/icr8500.P
+DEP_FILES =  .deps/frame.P .deps/ic706.P .deps/icall.P .deps/icom.P \
+.deps/icr8500.P
 SOURCES = $(libhamlib_icom_a_SOURCES) $(libhamlib_icom_la_SOURCES)
 OBJECTS = $(libhamlib_icom_a_OBJECTS) $(libhamlib_icom_la_OBJECTS)
 
