@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.25 2002-03-07 22:49:00 fillods Exp $
+ *		$Id: serial.c,v 1.26 2002-09-05 18:20:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,11 +39,12 @@
 
 #ifdef HAVE_TERMIOS_H
 #include <termios.h> /* POSIX terminal control definitions */
-#endif
+#else
 #ifdef HAVE_TERMIO_H
 #include <termio.h>
 #else	/* sgtty */
 #include <sgtty.h>
+#endif
 #endif
 
 /* for CTS/RTS and DTR/DSR control under Win32 --SF */
