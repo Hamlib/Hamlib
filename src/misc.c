@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - toolbox
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.24 2003-01-06 22:08:45 fillods Exp $
+ *	$Id: misc.c,v 1.25 2003-03-24 23:07:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -520,12 +520,12 @@ static struct {
 	{ RIG_FUNC_SQL, "SQL" },
 	{ RIG_FUNC_BC, "BC" },
 	{ RIG_FUNC_MBC, "MBC" },
-	{ RIG_FUNC_LMP, "LMP" },
 	{ RIG_FUNC_AFC, "AFC" },
 	{ RIG_FUNC_SATMODE, "SATMODE" },
 	{ RIG_FUNC_SCOPE, "SCOPE" },
 	{ RIG_FUNC_RESUME, "RESUME" },
 	{ RIG_FUNC_TBURST, "TBURST" },
+	{ RIG_FUNC_TUNER, "TUNER" },
 	{ RIG_FUNC_NONE, NULL },
 };
 
@@ -667,6 +667,7 @@ static struct {
 	{ RIG_OP_BAND_DOWN, "BAND_DOWN" },
 	{ RIG_OP_LEFT, "LEFT" },
 	{ RIG_OP_RIGHT, "RIGHT" },
+	{ RIG_OP_TUNE, "TUNE" },
 	{ RIG_OP_NONE, NULL },
 };
 
