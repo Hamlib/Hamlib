@@ -7,7 +7,8 @@
 LDADD = ../src/libhamlib.la ../lib/libmisc.la @NET_LIBS@
 DEPENDENCIES = ../src/libhamlib.la 
 
-BUILT_SOURCES=rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
+BUILT_SOURCES  = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
+DISTCLEANFILES = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
 
 # The RPC server
 sbin_PROGRAMS = rpc.rigd
@@ -24,31 +25,30 @@ nodist_libhamlib_rpcrig_la_SOURCES = rpcrig_xdr_lt.c rpcrig_clnt.c rpcrig.h
 libhamlib_rpcrig_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
 
-
 EXTRA_DIST = rpcrig.x $(man_MANS)
 
 RPCGEN = rpcgen
 
 rpcrig.h: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -h rpcrig.x -o $@
+	$(RPCGEN) -h `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
 rpcrig_clnt.c: rpcrig.x rpcrig.h
 	rm -f $@
-	$(RPCGEN) -l rpcrig.x -o $@
+	$(RPCGEN) -l `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
 rpcrig_svc.c: rpcrig.x rpcrig.h
 	rm -f $@
-	$(RPCGEN) -m rpcrig.x -o $@
+	$(RPCGEN) -m `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
 # note: 
 # we need 2 rpcrig_xdr.c's: one for static rpcrig deamon, one for lt backend
 
 rpcrig_xdr.c: rpcrig.x rpcrig.h
 	rm -f $@
-	$(RPCGEN) -c rpcrig.x -o $@
+	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
 rpcrig_xdr_lt.c: rpcrig.x rpcrig.h
 	rm -f $@
-	$(RPCGEN) -c rpcrig.x -o $@
+	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 

@@ -8,7 +8,7 @@
 #EXTRA_LTLIBRARIES = hamlibperl.la hamlibtcl.la
 lib_LTLIBRARIES = hamlibperl.la hamlibtcl.la
 
-INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ -I@TCL_SRC_DIR@/generic
+INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ -I@TCL_SRC_DIR@/generic -I$(top_srcdir)/bindings
 
 # Perl binding
 #hamlibperl_la_INCLUDE = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@
@@ -17,10 +17,11 @@ nodist_hamlibperl_la_SOURCES = hamlibperl_wrap.c
 hamlibperl_la_LDFLAGS = -no-undefined -module
 hamlibperl_la_LIBADD = ../src/libhamlib.la
 
-BUILT_SOURCES = hamlibperl_wrap.c hamlibtcl_wrap.c
+BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c
+DISTCLEANFILES = hamlibperl_wrap.c hamlibtcl_wrap.c
 
 hamlibperl_wrap.c: hamlib.swg
-	swig -perl5 -shadow @INCLUDES@ -o $@ $<
+	swig -perl5 -shadow @INCLUDES@ -I$(top_srcdir)/bindings -o $@ $<
 
 
 # Tcl binding
@@ -31,7 +32,7 @@ hamlibtcl_la_LDFLAGS = -no-undefined -module @TCL_LIB_SPEC@
 hamlibtcl_la_LIBADD = ../src/libhamlib.la
 
 hamlibtcl_wrap.c: hamlib.swg
-	swig -tcl @INCLUDES@ -o $@ $<
+	swig -tcl @INCLUDES@ -I$(top_srcdir)/bindings -o $@ $<
 
 rig.swg: ../include/hamlib/rig.h ../include/hamlib/riglist.h
 rotator.swg: ../include/hamlib/rotator.h ../include/hamlib/rotlist.h

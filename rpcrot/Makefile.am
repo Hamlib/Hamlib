@@ -7,7 +7,8 @@
 LDADD = ../src/libhamlib.la ../lib/libmisc.la @NET_LIBS@
 DEPENDENCIES = ../src/libhamlib.la 
 
-BUILT_SOURCES=rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
+BUILT_SOURCES  = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
+DISTCLEANFILES = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
 
 # The RPC server
 sbin_PROGRAMS = rpc.rotd
@@ -31,24 +32,24 @@ RPCGEN = rpcgen
 
 rpcrot.h: rpcrot.x
 	rm -f $@
-	$(RPCGEN) -h rpcrot.x -o $@
+	$(RPCGEN) -h `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
 rpcrot_clnt.c: rpcrot.x rpcrot.h
 	rm -f $@
-	$(RPCGEN) -l rpcrot.x -o $@
+	$(RPCGEN) -l `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
 rpcrot_svc.c: rpcrot.x rpcrot.h
 	rm -f $@
-	$(RPCGEN) -m rpcrot.x -o $@
+	$(RPCGEN) -m `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
 # note:
 # we need 2 rpcrot_xdr.c's: one for static rpcrot deamon, one for lt backend
 
 rpcrot_xdr.c: rpcrot.x rpcrot.h
 	rm -f $@
-	$(RPCGEN) -c rpcrot.x -o $@
+	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
 rpcrot_xdr_lt.c: rpcrot.x rpcrot.h
 	rm -f $@
-	$(RPCGEN) -c rpcrot.x -o $@
+	$(RPCGEN) -c `test -f rpcrig.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
