@@ -61,6 +61,7 @@ AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h rpc/rpcent.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
 AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
 AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h])
+gt_HEADER_INTTYPES_H
 
 dnl Check for Mingw support
 GR_PWIN32
@@ -253,7 +254,8 @@ dnl Check for tcl-dev availability, so we can enable HamlibTCL
 SC_PATH_TCLCONFIG
 if test x"${no_tcl}" = x; then
 	SC_LOAD_TCLCONFIG
-	cf_with_tcl=yes
+	AC_CHECK_HEADERS([tcl.h],
+			[cf_with_tcl=yes])
 else
 	cf_with_tcl=no
 fi
