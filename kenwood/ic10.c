@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: ic10.c,v 1.1 2004-05-02 17:13:33 fillods Exp $
+ *	$Id: ic10.c,v 1.2 2004-05-02 17:18:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,6 +38,7 @@
 #include "register.h"
 
 #include "kenwood.h"
+#include "ic10.h"
 
 /*
  * modes in use by the "MD" command
