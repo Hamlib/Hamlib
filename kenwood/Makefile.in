@@ -62,10 +62,13 @@ host_triplet = @host@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
+GCJ = @GCJ@
+GCJFLAGS = @GCJFLAGS@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
 LIBHAMLIBTCL = @LIBHAMLIBTCL@
@@ -89,7 +92,7 @@ WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
-TSSRCLIST = ts870s.c ts570.c
+TSSRCLIST = ts870s.c ts570.c ts450s.c
 
 lib_LTLIBRARIES = libhamlib-kenwood.la
 libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c
@@ -113,12 +116,12 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_kenwood_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_kenwood_a_OBJECTS =  ts870s.$(OBJEXT) ts570.$(OBJEXT) \
-kenwood.$(OBJEXT)
+ts450s.$(OBJEXT) kenwood.$(OBJEXT)
 AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_kenwood_la_LIBADD = 
-libhamlib_kenwood_la_OBJECTS =  ts870s.lo ts570.lo kenwood.lo
+libhamlib_kenwood_la_OBJECTS =  ts870s.lo ts570.lo ts450s.lo kenwood.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -133,7 +136,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/kenwood.P .deps/ts570.P .deps/ts870s.P
+DEP_FILES =  .deps/kenwood.P .deps/ts450s.P .deps/ts570.P .deps/ts870s.P
 SOURCES = $(libhamlib_kenwood_a_SOURCES) $(libhamlib_kenwood_la_SOURCES)
 OBJECTS = $(libhamlib_kenwood_a_OBJECTS) $(libhamlib_kenwood_la_OBJECTS)
 
