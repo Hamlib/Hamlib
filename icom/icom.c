@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.88 2004-08-27 01:49:38 fineware Exp $
+ *	$Id: icom.c,v 1.89 2004-08-30 01:39:21 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2291,34 +2291,36 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
  */
 int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
-		unsigned char ackbuf[MAXFRAMELEN];
-		int ack_len, retval;
+		unsigned char cmdbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+		int cmd_len, ack_len, retval;
 
 		/* r75 has no way to get power status, so fake it */
 		if (rig->caps->rig_model == RIG_MODEL_ICR75) {
-			retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0,
-									ackbuf, &ack_len);
+			/* getting the mode doesn't work if a memory is blank */
+			/* so use one of the more innculous 'set mode' commands instead */
+			cmd_len = 1;
+			cmdbuf[0] = S_PRM_TIME;
+			retval = icom_transaction(rig, C_CTL_MEM, S_MEM_MODE_SLCT, 
+									cmdbuf, cmd_len, ackbuf, &ack_len);
 			if (retval != RIG_OK)
 				return retval;
 
-			*status = ((ack_len == 3)&&(ackbuf[0] == C_RD_MODE)) ?
+			*status = ((ack_len == 6)&&(ackbuf[0] == C_CTL_MEM)) ?
 						RIG_POWER_ON : RIG_POWER_OFF;
-
-			return RIG_OK;
 		}
+		else {
+			retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
+							ackbuf, &ack_len);
+			if (retval != RIG_OK)
+					return retval;
 
-		retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
-						ackbuf, &ack_len);
-		if (retval != RIG_OK)
-				return retval;
-
-		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_powerstat: ack NG (%#.2x), "
-								"len=%d\n", ackbuf[0],ack_len);
-				return -RIG_ERJCTED;
+			if (ack_len != 1 || ackbuf[0] != ACK) {
+					rig_debug(RIG_DEBUG_ERR,"icom_get_powerstat: ack NG (%#.2x), "
+									"len=%d\n", ackbuf[0],ack_len);
+					return -RIG_ERJCTED;
+			}
+			*status = ackbuf[1] == S_PWR_ON ? RIG_POWER_ON : RIG_POWER_OFF;
 		}
-		*status = ackbuf[1] == S_PWR_ON ? RIG_POWER_ON : RIG_POWER_OFF;
-
 		return RIG_OK;
 }
 
