@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.13 2000-09-17 03:21:31 javabear Exp $  
+ *    $Id: ft847.h,v 1.14 2000-09-23 03:49:13 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -44,7 +44,9 @@ struct ft847_priv_data {
 
 int ft847_init(RIG *rig);
 int ft847_cleanup(RIG *rig);
-int cmd_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
+int ft847_set_freq(RIG *rig, freq_t freq);
+
+/*  int cmd_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode); */
 
   /*
     int (*set_freq)(RIG *rig, freq_t freq);
