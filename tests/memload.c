@@ -2,7 +2,7 @@
  * memload.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memload.c,v 1.2 2004-01-15 22:43:59 fillods Exp $  
+ *	$Id: memload.c,v 1.3 2004-01-21 19:48:12 f4dwv Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -175,15 +175,17 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 			chan->tx_width = atoi(prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.split) {
+		chan->split=RIG_SPLIT_OFF;
 		prop=xmlGetProp(node, "split");
-		if(strcmp(prop,"off")==0) chan->split=RIG_SPLIT_OFF;
-		if(strcmp(prop,"on")==0) {
+		if(prop!=NULL) {
+			if(strcmp(prop,"on")==0) {
 				chan->split=RIG_SPLIT_ON;
 				if (rig->state.chan_list[i].mem_caps.tx_vfo) {
 					prop=xmlGetProp(node, "tx_vfo");
 					if(prop!=NULL)
 						sscanf(prop,"%x",&chan->tx_vfo);
 				}
+			}
 		}
 	}
 	if (rig->state.chan_list[i].mem_caps.rptr_shift) {
