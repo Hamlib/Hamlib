@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.h,v 1.15 2002-10-07 21:57:17 fillods Exp $
+ *		$Id: misc.h,v 1.16 2003-11-16 17:34:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,13 +61,6 @@ extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[], unsign
 extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len);
 
 extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
-extern HAMLIB_EXPORT(int) sprintf_mode(char *str, rmode_t);
-extern HAMLIB_EXPORT(int) sprintf_vfo(char *str, vfo_t);
-extern HAMLIB_EXPORT(int) sprintf_func(char *str, setting_t);
-extern HAMLIB_EXPORT(int) sprintf_level(char *str, setting_t);
-extern HAMLIB_EXPORT(int) sprintf_parm(char *str, setting_t);
-extern HAMLIB_EXPORT(int) sprintf_vfop(char *str, vfo_op_t);
-extern HAMLIB_EXPORT(int) sprintf_scan(char *str, scan_t);
 extern HAMLIB_EXPORT(const char *) strrmode(rmode_t mode);
 extern HAMLIB_EXPORT(const char *) strvfo(vfo_t vfo);
 extern HAMLIB_EXPORT(const char *) strfunc(setting_t);

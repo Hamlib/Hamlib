@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.47 2003-10-20 22:15:02 fillods Exp $  
+ * $Id: rigctl.c,v 1.48 2003-11-16 17:34:00 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@
 
 #include <hamlib/rig.h>
 #include "misc.h"
+#include "sprintflst.h"
 
 #ifdef _WIN32
 #define LLFMT "L"
@@ -863,7 +864,7 @@ declare_proto_rig(set_mode)
 		pbwidth_t width;
 
 		mode = parse_mode(arg1);
-		sscanf(arg2, "%d", (int*)&width);
+		sscanf(arg2, "%ld", &width);
 		return rig_set_mode(rig, vfo, mode, width);
 }
 

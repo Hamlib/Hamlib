@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.39 2003-08-25 22:36:39 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.40 2003-11-16 17:34:00 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -22,6 +22,9 @@
  * 
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -29,6 +32,8 @@
 
 #include <hamlib/rig.h>
 #include "misc.h"
+
+#include "sprintflst.h"
 
 
 static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
@@ -46,7 +51,7 @@ int dumpcaps (RIG* rig)
 	int status,i;
 	char freqbuf[20];
 	int backend_warnings=0;
-	char prntbuf[256];
+	static char prntbuf[1024];	/* a malloc would be better.. */
 
 	if (!rig || !rig->caps)
 		return -RIG_EINVAL;
@@ -217,10 +222,10 @@ int dumpcaps (RIG* rig)
 	sprintf_func(prntbuf, caps->has_set_func);
 	printf("Set functions: %s\n", prntbuf);
 
-	sprintf_level(prntbuf, caps->has_get_level);
+	sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
 	printf("Get level: %s\n", prntbuf);
 
-	sprintf_level(prntbuf, caps->has_set_level);
+	sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
 	printf("Set level: %s\n", prntbuf);
 	if (caps->has_set_level&RIG_LEVEL_READONLY_LIST) {
 			printf("Warning: backend can set readonly levels!\n");
@@ -230,10 +235,10 @@ int dumpcaps (RIG* rig)
 	rig_ext_level_foreach(rig, print_ext, NULL);
 	printf("\n");
 
-	sprintf_parm(prntbuf, caps->has_get_parm);
+	sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
 	printf("Get parameters: %s\n", prntbuf);
 
-	sprintf_parm(prntbuf, caps->has_set_parm);
+	sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
 	printf("Set parameters: %s\n", prntbuf);
 	if (caps->has_set_parm&RIG_PARM_READONLY_LIST) {
 			printf("Warning: backend can set readonly parms!\n");

@@ -9,7 +9,8 @@ man_MANS = rigctl.1 rotctl.1
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench @RIGMATRIX@
 
-rigctl_SOURCES = rigctl.c dumpcaps.c
+rigctl_SOURCES = rigctl.c dumpcaps.c sprintflst.c
+noinst_HEADERS = sprintflst.h
 
 EXTRA_PROGRAMS = rigmatrix
 
