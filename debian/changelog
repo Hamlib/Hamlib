@@ -1,3 +1,45 @@
+hamlib (1.2.3-2) unstable; urgency=low
+
+  * Do a correct rebuild, so hamlib3-tcl does not get linked with hamlib2.
+    Closes: #291663. Thanks to Steve Langasek for reporting.
+  * Add a build-conflicts line to the control file, so this does not happen
+    again.
+  * Prevent duplicate entries on the shlibs control file for hamlib.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sat, 22 Jan 2005 11:33:04 +0100
+
+hamlib (1.2.3-1) unstable; urgency=low
+
+  * New upstream.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Thu, 18 Nov 2004 16:55:55 +0100
+
+hamlib (1.2.2-1) unstable; urgency=low
+
+  * New upstream release.
+  * Upstream has added links to the website in the documentation. 
+    Closes: #263287.
+  * Add hints to tcltest.tcl for the correct path to the tcl library.
+    Closes: #258693.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sat,  2 Oct 2004 12:53:53 +0200
+
+hamlib (1.2.0-4) unstable; urgency=low
+
+  * Rebuild with correct gcc version. Closes: #254226.
+  * Dan reports an almost empty hamlib.html file in the hamlib-doc package.
+    This is normal behaviour, instead you should be clicking on one of the
+    links at the top of the page, or use index.html. Closes: #254739.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sun, 27 Jun 2004 11:06:32 +0200
+
+hamlib (1.2.0-3) unstable; urgency=low
+
+  * Try to accomodate for different perl versions, so 'make install' in the
+    perl package does not fail.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Fri, 28 May 2004 21:52:41 +0200
+
 hamlib (1.2.0-2) unstable; urgency=low
 
   * Correct references to the hamlib1 package in the control file.

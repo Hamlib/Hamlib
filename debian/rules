@@ -9,8 +9,8 @@
 export DH_COMPAT=3
 
 #change this when the so name has changed
-version=1.2.0
-perlversion=`perl -V:version|cut -d\' -f2`
+version=1.2.3
+perlversion = `perl -V:version|cut -d\' -f2`
 
 configure: configure-stamp
 configure-stamp:
@@ -35,7 +35,7 @@ clean:
 	-$(MAKE) clean
 	dh_clean
 	rm -f build-stamp configure-stamp 
-	rm -f config.log config.status libltdl/config.log libltdl/config.status
+	rm -f config.log libltdl/config.log
 	rm -rf doc/html
 	rm -rf libltdl/.libs lib/.libs
 	rm -f lib/termios.o libltdl/ltdl.o
@@ -58,8 +58,8 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++.so $(CURDIR)/debian/hamlib++-dev/usr/lib/
 
 	# Move the appropriate files into the C++ runtime package..
-	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++-$(version).so.2 $(CURDIR)/debian/hamlib2++/usr/lib/
-	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++-$(version).so.2.0.0 $(CURDIR)/debian/hamlib2++/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++-$(version).so.2 $(CURDIR)/debian/hamlib3++/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++-$(version).so.2.0.0 $(CURDIR)/debian/hamlib3++/usr/lib/
 
 	# Move the appropriate files into the C development package..
 	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib.so $(CURDIR)/debian/hamlib-dev/usr/lib/
@@ -70,26 +70,27 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/share/aclocal/hamlib.m4 $(CURDIR)/debian/hamlib-dev/usr/share/aclocal/
 
 	# Move the appropriate files into the C runtime package..
-	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2 $(CURDIR)/debian/hamlib2/usr/lib/
-	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2.0.0 $(CURDIR)/debian/hamlib2/usr/lib/
-	mv $(CURDIR)/debian/tmp/usr/lib/hamlib-*so $(CURDIR)/debian/hamlib2/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2 $(CURDIR)/debian/hamlib3/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2.0.2 $(CURDIR)/debian/hamlib3/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/hamlib-*so $(CURDIR)/debian/hamlib3/usr/lib/
 
 	# Move the appropriate files into the perl package and do some cleanups
-	mv $(CURDIR)/debian/tmp/usr/lib/perl/5.8.4/* $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5
-	rm -f $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/auto/Hamlib/.packlist
-	rm -f $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/auto/Hamlib/Hamlib.bs
-	rm -f $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/perllocal.pod
-	mv $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/perltest.pl $(CURDIR)/debian/hamlib2-perl/usr/share/doc/hamlib2-perl
+	mv $(CURDIR)/debian/tmp/usr/lib/perl/$(perlversion)/* $(CURDIR)/debian/hamlib3-perl/usr/lib/perl5
+	rm -f $(CURDIR)/debian/hamlib3-perl/usr/lib/perl5/auto/Hamlib/.packlist
+	rm -f $(CURDIR)/debian/hamlib3-perl/usr/lib/perl5/auto/Hamlib/Hamlib.bs
+	rm -f $(CURDIR)/debian/hamlib3-perl/usr/lib/perl5/perllocal.pod
+	mv $(CURDIR)/debian/hamlib3-perl/usr/lib/perl5/perltest.pl $(CURDIR)/debian/hamlib3-perl/usr/share/doc/hamlib3-perl
 
 	# Move the appropriate files into the python package
-	mv $(CURDIR)/debian/tmp/usr/lib/python/* $(CURDIR)/debian/python2.3-hamlib2/usr/lib/python2.3/site-packages
-	mv $(CURDIR)/debian/tmp/usr/lib/_Hamlib.so $(CURDIR)/debian/python2.3-hamlib2/usr/lib/python2.3/site-packages
-	mv $(CURDIR)/bindings/pytest.py $(CURDIR)/debian/python2.3-hamlib2/usr/share/doc/python2.3-hamlib2/
+	rm $(CURDIR)/debian/tmp/usr/lib/python/Hamlib.pyc
+	mv $(CURDIR)/debian/tmp/usr/lib/python/* $(CURDIR)/debian/python2.3-hamlib3/usr/lib/python2.3/site-packages
+	mv $(CURDIR)/debian/tmp/usr/lib/_Hamlib.so $(CURDIR)/debian/python2.3-hamlib3/usr/lib/python2.3/site-packages
+	cp $(CURDIR)/bindings/pytest.py $(CURDIR)/debian/python2.3-hamlib3/usr/share/doc/python2.3-hamlib3/
 
 	# Move the appropriate files into the tcl package
-	mv $(CURDIR)/debian/tmp/usr/lib/hamlibtcl* $(CURDIR)/debian/hamlib2-tcl/usr/lib/hamlib/
-	mv $(CURDIR)/debian/tmp/usr/lib/tcl/* $(CURDIR)/debian/hamlib2-tcl/usr/lib/hamlib/
-	mv $(CURDIR)/bindings/tcltest.tcl $(CURDIR)/debian/hamlib2-tcl/usr/share/doc/hamlib2-tcl/
+	mv $(CURDIR)/debian/tmp/usr/lib/hamlibtcl* $(CURDIR)/debian/hamlib3-tcl/usr/lib/hamlib/
+	mv $(CURDIR)/debian/tmp/usr/lib/tcl/* $(CURDIR)/debian/hamlib3-tcl/usr/lib/hamlib/
+	cp $(CURDIR)/bindings/tcltest.tcl $(CURDIR)/debian/hamlib3-tcl/usr/share/doc/hamlib3-tcl/
 
 	# Move the appropriate files into the documentation package..
 	mv $(CURDIR)/doc/html/* $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/html
@@ -134,10 +135,10 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu -Xtcl
+	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu -Xtcl -Xkit -Xracal -Xscanti -Xwj -Xtuner
 	dh_installdeb
 #	dh_perl
-	dh_shlibdeps -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu
+	dh_shlibdeps -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu -Xkit -Xracal -Xscanti -Xwj -Xtuner
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
