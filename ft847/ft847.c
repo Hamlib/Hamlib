@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.2 2000-07-26 00:00:40 javabear Exp $  
+ * $Id: ft847.c,v 1.3 2000-07-26 00:34:25 javabear Exp $  
  *
  */
 
@@ -254,14 +254,16 @@ unsigned char cmd_get_rx_status(int fd) {
   write_block(fd,data);
 
   /*
-   * Sleep regularly until the buffer contains all 1 bytes
+   * Sleep regularly until the buffer contains 1 byte
    * This should handle most cases.
    */
 
   bytes = 0;
-  while(bytes < 1) {
+  while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
     printf("bytes  = %i\n", bytes);
+    if (bytes == 1)
+      break;
     sleep(1);
     
   }
@@ -270,7 +272,7 @@ unsigned char cmd_get_rx_status(int fd) {
   
   n = read(fd,datain,1);	/* grab 1 byte from rig */
 
-  printf("i = %i ,datain[i] = %x \n", i, datain[i]);
+  printf("Byte read = %x \n", datain[0]);
 
   return datain[0];
 
