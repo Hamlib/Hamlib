@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.14 2000-09-24 23:30:28 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.15 2000-09-28 00:41:07 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -165,9 +165,17 @@ typedef enum ptt_type_e ptt_type_t;
  */
 typedef long long freq_t;
 
-#define KHz(f) ((freq_t)((f)*1000))
-#define MHz(f) ((freq_t)((f)*1000000))
-#define GHz(f) ((freq_t)((f)*1000000000))
+#define Hz(f)	((freq_t)(f))
+#define KHz(f)	((freq_t)((f)*1000))
+#define MHz(f)	((freq_t)((f)*1000000))
+#define GHz(f)	((freq_t)((f)*1000000000))
+
+/*
+ * power unit macros, converts to mW
+ */
+#define mW(p)	 ((int)(p))
+#define Watts(p) ((int)((p)*1000))
+#define KW(p)	 ((int)((p)*1000000))
 
 typedef unsigned int rmode_t;	/* radio mode  */
 
@@ -312,6 +320,32 @@ struct rig_caps {
   int (*set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift );	/* set repeater shift */
   int (*get_rpt_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
 
+  int (*set_tone)(RIG *rig, unsigned int tone);	/* set tone */
+  int (*get_tone)(RIG *rig, unsigned int *tone);	/* get tone */
+  int (*set_tonesq)(RIG *rig, unsigned int tone);	/* set tone squelch */
+  int (*get_tonesq)(RIG *rig, unsigned int *tone);	/* get tone squelch */
+
+  /*
+   * It'd be nice to have a power2mW and mW2power functions
+   * that could tell at what power (watts) the rig is running.
+   * Unfortunately, on most rigs, the formula is not the same
+   * on all bands/modes. Have to work this out.. --SF
+   */
+  int (*set_power)(RIG *rig, float power);	/* set TX power [0.0 .. 1.0] */
+  int (*get_power)(RIG *rig, float *power);
+
+  int (*set_volume)(RIG *rig, float vol);	/* select vol from 0.0 and 1.0 */
+  int (*get_volume)(RIG *rig, float *vol);	/* get volume */
+
+  int (*set_squelch)(RIG *rig, float sql);	/* set squelch */
+  int (*get_squelch)(RIG *rig, float *sql);	/* set squelch */
+  int (*get_strength)(RIG *rig, int *strength);	/* get signal strength */
+
+  int (*set_poweron)(RIG *rig);
+  int (*set_poweroff)(RIG *rig);
+
+  int (*set_func)(RIG *rig, unsigned long func); /* activate the function(s) */
+  int (*get_func)(RIG *rig, unsigned long *func); /* get the setting from rig */
 /*
  * Convenience Functions 
  */
@@ -360,6 +394,8 @@ struct rig_state {
  * Rig callbacks
  * ie., the rig notify the host computer someone changed 
  *	the freq/mode from the panel, depressed a button, etc.
+ *	In order to achieve this, the hamlib would have to run
+ *	an internal thread listening the rig with a select()...
  * 
  * Event based programming, really appropriate in a GUI.
  * So far, haven't heard of any rig capable of this, but there must be. --SF
@@ -405,6 +441,20 @@ int rig_get_ptt(RIG *rig, ptt_t *ptt); /* get ptt status */
 
 int rig_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift ); /* set repeater shift */
 int rig_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift); /* get repeater shift */
+
+int rig_set_power(RIG *rig, float power);
+int rig_get_power(RIG *rig, float *power);
+int rig_set_volume(RIG *rig, float vol);
+int rig_get_volume(RIG *rig, float *vol);
+int rig_set_squelch(RIG *rig, float sql);
+int rig_get_squelch(RIG *rig, float *sql);
+int rig_set_tonesq(RIG *rig, unsigned int tone);
+int rig_get_tonesq(RIG *rig, unsigned int *tone);
+int rig_set_tone(RIG *rig, unsigned int tone);
+int rig_get_tone(RIG *rig, unsigned int *tone);
+int rig_get_strength(RIG *rig, int *strength);
+int rig_set_poweron(RIG *rig);
+int rig_set_poweroff(RIG *rig);
 
 /* more to come -- FS */
 
