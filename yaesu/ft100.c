@@ -7,23 +7,23 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.5 2002-08-16 17:43:02 fillods Exp $  
+ *    $Id: ft100.c,v 1.6 2002-12-01 03:08:05 n0nb Exp $  
  *
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *
  */
 
 #include <stdlib.h>
@@ -160,7 +160,7 @@ const struct rig_caps ft100_caps = {
   .model_name = 		"FT-100", 
   .mfg_name = 		"Yaesu", 
   .version = 		"0.1", 
-  .copyright = 		"GPL",
+  .copyright = 		"LGPL",
   .status = 		RIG_STATUS_ALPHA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
   .ptt_type = 		RIG_PTT_RIG,
