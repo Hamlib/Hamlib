@@ -177,6 +177,9 @@
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
+/* Define to 1 if you have the <VrMultiTask.h> header file. */
+#undef HAVE_VRMULTITASK_H
+
 /* Define to 1 if you have the <winbase.h> header file. */
 #undef HAVE_WINBASE_H
 
