@@ -198,8 +198,8 @@ fi
 AC_SUBST(RIGMATRIX)
 
 
-BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe"
-ROT_BACKEND_LIST="dummy easycomm rotorez sartek"
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe flexradio"
+ROT_BACKEND_LIST="dummy easycomm rotorez sartek fodtrack"
 BINDINGS=""
 BINDING_LIST=""
 
@@ -281,6 +281,21 @@ AC_SUBST(TCL_SHLIB_SUFFIX)
 
 # TODO: require "${ac_cv_header_sys_socket_h}" = "no"
 
+dnl Check for python availability, so we can enable HamlibPy
+
+PYTHON_DEVEL
+cf_with_python=yes
+AC_MSG_CHECKING(whether to build python binding and demo)
+AC_ARG_WITH(python-binding,
+        [  --with-python-binding	build python binding and demo],
+        [cf_with_python_binding=$withval],
+        [cf_with_python_binding=$cf_with_python])
+AC_MSG_RESULT($cf_with_python_binding)
+
+if test "${cf_with_python_binding}" = "yes" ; then
+  BINDING_LIST="${BINDING_LIST} python"
+fi
+
 
 dnl Backend list
 
@@ -288,11 +303,6 @@ case "$host_os" in
  linux-gnu*)
  # Winradio only under Linux (until someone port it on other os)
  BACKEND_LIST="$BACKEND_LIST winradio"
- # TODO: support parallel port interface on other systems too
- if test "${ac_cv_header_linux_ppdev_h}" = "yes"; then
-   ROT_BACKEND_LIST="$ROT_BACKEND_LIST fodtrack"
-   BACKEND_LIST="$BACKEND_LIST flexradio"
- fi
  ;;
  *) 
 esac
@@ -307,7 +317,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_gnuradio)
 
   if test "${cf_with_gnuradio}" = "yes" ; then
-  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.7)
+  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.8)
 	BACKEND_LIST="$BACKEND_LIST gnuradio"
   fi
  
