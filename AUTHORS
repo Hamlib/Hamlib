@@ -52,6 +52,9 @@ M: Chuck Gilkes, WD0FCL/4
 [icom: icr7000]
 M: Chuck Hemker, N2POR
 
+[icom: ic735]
+C: Darren Hatcher, G0WCW
+
 [icom: icr75]
 M: Mark J. Fine
 
@@ -88,6 +91,10 @@ M: Andrew McNamara
 
 [kenwood: thd7]
 M: Stephane Fillod, F8CFE
+
+
+[pcr: pcr1000]
+M: Darren Hatcher, G0WCW
 
 
 [tentec]
@@ -165,6 +172,7 @@ M: Berndt Josef Wulf, VK5ABN
 
 [platform: win32]
 M: Stephane Fillod, F8CFE
+C: VB & testing by Darren Hatcher, G0WCW
 
 [packaging: debian]
 M: Joop Stakenborg, PG4I
@@ -201,4 +209,4 @@ Jim Jerzycke, KQ6EA <kq6ea (at) amsat.org>
 Alexandru Csete OZ9AEC <alexc (at) phys.au.dk>
 Diane Bruce, VA3DB <db (at) db.net>
 Dave Hines, M1CXW, <hamlib (at) dph.fluff.org>
-
+Darren Hatcher, G0WCW, <g0wcw (at) hatcher.org.uk>
