@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.11 2003-01-07 03:32:35 n0nb Exp $
+ * $Id: ft920.c,v 1.12 2003-01-07 03:40:25 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -158,7 +158,7 @@ const struct rig_caps ft920_caps = {
   .rig_model =          RIG_MODEL_FT920,
   .model_name =         "FT-920",
   .mfg_name =           "Yaesu",
-  .version =            "0.1.2",
+  .version =            "0.1.3",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
