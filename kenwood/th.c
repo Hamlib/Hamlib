@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.19 2004-03-21 16:55:28 f4dwv Exp $
+ *	$Id: th.c,v 1.20 2004-03-21 18:25:54 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -670,7 +670,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 
             retval = sscanf(ackbuf, "SM %d,%d", &v, &l);
-            if (retval != 2 || l < 0 || l > 5) {
+            if (retval != 2 || l < rig->caps->level_gran[LVL_RAWSTR].min.i || l > rig->caps->level_gran[LVL_RAWSTR].max.i) {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
             }
@@ -685,13 +685,13 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
             retval = sscanf(ackbuf, "SQ %d,%x", &v, &l);
-            if (retval != 2 || l < 0 || l > 32) {
+            if (retval != 2 || l < rig->caps->level_gran[LVL_SQL].min.i || l > rig->caps->level_gran[LVL_SQL].max.i) {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
             }
 
             /* range [0.0 ... 1.0] */
-            val->f = l / 32.0;
+            val->f = (float)(l-rig->caps->level_gran[LVL_SQL].min.i) / (float)(rig->caps->level_gran[LVL_SQL].max.i-rig->caps->level_gran[LVL_SQL].min.i);
 		break;
 
         case RIG_LEVEL_AF:
@@ -701,13 +701,13 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
             retval = sscanf(ackbuf, "AG %d,%x", &v, &l);
-            if (retval != 2 || l < 0 || l > 32) {
+            if (retval != 2 || l < rig->caps->level_gran[LVL_AF].min.i || l > rig->caps->level_gran[LVL_AF].max.i) {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
             }
 
             /* range [0.0 ... 1.0] */
-            val->f = l / 32.0;
+            val->f = (float)(l-rig->caps->level_gran[LVL_AF].min.i) / (float)(rig->caps->level_gran[LVL_AF].max.i-rig->caps->level_gran[LVL_AF].min.i);
 		break;
 
         case RIG_LEVEL_RFPOWER:
@@ -723,7 +723,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             }
 
             /* range [0.0 ... 1.0] */
-            val->f = (3.0-l) / 3.0;
+            val->f = (float)(l-rig->caps->level_gran[LVL_RFPOWER].min.i) / (float)(rig->caps->level_gran[LVL_RFPOWER].max.i-rig->caps->level_gran[LVL_AF].min.i);
 		break;
         default:
             rig_debug(RIG_DEBUG_ERR,"%s: Unsupported Level %d", __FUNCTION__, level);
@@ -758,11 +758,11 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
     switch(level) {
 
 	case RIG_LEVEL_RFPOWER :
-	    sprintf(lvlbuf, "PC %c,%d" EOM, vch,3-(int)(val.f*3.0));
+	    sprintf(lvlbuf, "PC %c,%01d" EOM, vch,(int)(val.f*(rig->caps->level_gran[LVL_RFPOWER].max.i-rig->caps->level_gran[LVL_RFPOWER].min.i))+rig->caps->level_gran[LVL_RFPOWER].min.i);
 	    retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
 	    return retval;
 	case RIG_LEVEL_SQL :
-	    sprintf(lvlbuf, "SQ %c,%02x" EOM, vch,(int)(val.f*32.0));
+	    sprintf(lvlbuf, "SQ %c,%02x" EOM, vch,(int)(val.f*(rig->caps->level_gran[LVL_SQL].max.i-rig->caps->level_gran[LVL_SQL].min.i))+rig->caps->level_gran[LVL_SQL].min.i);
 	    retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
 	    return retval;
 	case RIG_LEVEL_AF :

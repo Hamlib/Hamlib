@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.11 2004-03-20 16:48:34 f4dwv Exp $
+ *	$Id: thg71.c,v 1.12 2004-03-21 18:25:54 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,7 +30,6 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include <hamlib/rig.h>
-#include "idx_builtin.h"
 #include "kenwood.h"
 #include "th.h"
 
@@ -104,6 +103,7 @@ const struct rig_caps thg71_caps = {
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
 	[LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
+	[LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },
 },
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-D700 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: tmd700.c,v 1.2 2004-03-20 16:48:34 f4dwv Exp $
+ *	$Id: tmd700.c,v 1.3 2004-03-21 18:25:54 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -98,7 +98,11 @@ const struct rig_caps tmd700_caps = {
 .has_set_level =  RIG_LEVEL_SET(TMD700_LEVEL_ALL),
 .has_get_parm =  TMD700_PARMS,
 .has_set_parm =  TMD700_PARMS,    /* FIXME: parms */
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
+        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
+        [LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },
+},
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,

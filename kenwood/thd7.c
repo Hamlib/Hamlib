@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-D7 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: thd7.c,v 1.11 2004-03-20 16:48:34 f4dwv Exp $
+ *	$Id: thd7.c,v 1.12 2004-03-21 18:25:54 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -101,7 +101,11 @@ const struct rig_caps thd7a_caps = {
 .has_set_level =  RIG_LEVEL_SET(THD7_LEVEL_ALL),
 .has_get_parm =  THD7_PARMS,
 .has_set_parm =  THD7_PARMS,    /* FIXME: parms */
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran = {
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
+        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
+        [LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },
+},
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
