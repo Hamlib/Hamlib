@@ -2,7 +2,7 @@
 % *  Hamlib Interface - RPC definitions
 % *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *
-% *	$Id: rpcrig.x,v 1.4 2002-08-23 20:01:09 fillods Exp $
+% *	$Id: rpcrig.x,v 1.5 2002-09-13 07:01:25 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -22,6 +22,9 @@
 
 /* This gets stuffed into the source files. */
 #if RPC_HDR
+%#ifdef HAVE_CONFIG_H
+%#include "config.h"
+%#endif
 %#include <rpc/xdr.h>
 %#include <hamlib/rig.h>
 #endif

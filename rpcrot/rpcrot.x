@@ -1,9 +1,9 @@
 %/*
 % *  Hamlib Interface - RPC definitions
-% *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+% *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *  Contributed by Francois Retief <fgretief@sun.ac.za>
 % *
-% *		$Id: rpcrot.x,v 1.1 2002-01-16 16:45:11 fgretief Exp $
+% *	$Id: rpcrot.x,v 1.2 2002-09-13 07:01:54 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,9 @@
 
 /* This gets stuffed into the source files. */
 #if RPC_HDR
+%#ifdef HAVE_CONFIG_H
+%#include "config.h"
+%#endif
 %#include <rpc/xdr.h>
 %#include <hamlib/rotator.h>
 #endif
