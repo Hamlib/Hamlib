@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.13 2004-08-31 03:45:34 fineware Exp $
+ *	$Id: drake.c,v 1.14 2004-09-01 01:08:11 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -204,43 +204,30 @@ int drake_get_vfo(RIG *rig, vfo_t *vfo)
     char mdbuf[BUFSZ];
 	char cvfo;
 
-	retval = drake_transaction (rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
+	retval = drake_transaction (rig, "RA" EOM, 3, mdbuf, &mdbuf_len);
 	if (retval != RIG_OK)
 	  return retval;
 
-	if (mdbuf_len != 8) {
+	if (mdbuf_len < 35) {
 	  rig_debug(RIG_DEBUG_ERR,"drake_get_vfo: wrong answer %s, "
 		    "len=%d\n", mdbuf, mdbuf_len);
 	  return -RIG_ERJCTED;
 	}
 
-	cvfo = mdbuf[5];
-
-	switch(cvfo){
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7': *vfo = RIG_VFO_B; break;
-	case '8':
-	case '9':
-	case ':':
-	case ';':
-	case '<':
-	case '=':
-	case '>':
-	case '?': *vfo = RIG_VFO_A; break;
-	default :
-	  rig_debug(RIG_DEBUG_ERR,
-		    "drake_get_vfo: unsupported vfo %c\n",
-		    cvfo);
-	  *vfo = RIG_VFO_VFO;
-	  return -RIG_EINVAL;
+	if (mdbuf[0]=='*')
+		*vfo = RIG_VFO_MEM;
+	else {
+		cvfo = (mdbuf[9] & 0x38);
+		switch (cvfo) {
+		case '0' : *vfo = RIG_VFO_B; break;
+		case '8' : *vfo = RIG_VFO_A; break;
+		default : rig_debug(RIG_DEBUG_ERR,
+					"drake_get_vfo: unsupported vfo %c\n", cvfo);
+	  			*vfo = RIG_VFO_VFO;
+	  			return -RIG_EINVAL;
+		}
 	}
-
+	
 	return RIG_OK;
 }
 
@@ -333,17 +320,12 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	cwidth = mdbuf[4];
 	csynch = mdbuf[5];
 
-	switch(cwidth){
-	case '0':
-	case '8': *width = s_Hz(500); break;
-	case '1':
-	case '9': *width = s_Hz(1800); break;
-	case '2':
-	case ':': *width = s_Hz(2300); break;
-	case '3':
-	case ';': *width = s_Hz(4000); break;
-	case '4':
-	case '<': *width = s_Hz(6000); break;
+	switch(cwidth & 0x37){
+	case '0': *width = s_Hz(500); break;
+	case '1': *width = s_Hz(1800); break;
+	case '2': *width = s_Hz(2300); break;
+	case '3': *width = s_Hz(4000); break;
+	case '4': *width = s_Hz(6000); break;
 	default :
 	  rig_debug(RIG_DEBUG_ERR,
 		    "drake_get_mode: unsupported width %c\n",
@@ -352,17 +334,11 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	  return -RIG_EINVAL;
 	}
 
-	if (cwidth=='0'||cwidth=='1'||cwidth=='2'||cwidth=='3'||cwidth=='4'){
-	  switch(cmode){
-	  case '0':
-	  case '4':
-	  case '8': *mode = RIG_MODE_LSB; break;
-	  case '1':
-	  case '5':
-	  case '9': *mode = RIG_MODE_RTTY; break;
-	  case '2':
-	  case '6':
-	  case ':': *mode = RIG_MODE_FM; *width = s_Hz(12000); break;
+	if ((cwidth >= '0') && (cwidth <= '4')) {
+	  switch(cmode & 0x33){
+	  case '0': *mode = RIG_MODE_LSB; break;
+	  case '1': *mode = RIG_MODE_RTTY; break;
+	  case '2': *mode = RIG_MODE_FM; *width = s_Hz(12000); break;
 	  default :
 	    rig_debug(RIG_DEBUG_ERR,
 		      "drake_get_mode: unsupported mode %c\n",
@@ -371,16 +347,10 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	    return -RIG_EINVAL;
 	  }
 	} else {
-	  switch(cmode){
-	  case '0':
-	  case '4':
-	  case '8': *mode = RIG_MODE_USB; break;
-	  case '1':
-	  case '5':
-	  case '9': *mode = RIG_MODE_CW; break;
-	  case '2':
-	  case '6':
-	  case ':': *mode = RIG_MODE_AM; break;
+	  switch(cmode & 0x33){
+	  case '0': *mode = RIG_MODE_USB; break;
+	  case '1': *mode = RIG_MODE_CW; break;
+	  case '2': *mode = RIG_MODE_AM; break;
 	  default :
 	    rig_debug(RIG_DEBUG_ERR,
 		      "drake_get_mode: unsupported mode %c\n",
@@ -390,9 +360,7 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	  }
 	}
 
-	/*FIXME USB/LSB synch in R8B*/
-	if (csynch=='4'||csynch=='5'||csynch=='6'||csynch=='7'||
-	    csynch=='<'||csynch=='='||csynch=='>'||csynch=='?') {
+	if ((csynch & 0x34) == '4') {
 	if (*mode == RIG_MODE_AM)
 		*mode = RIG_MODE_AMS;
 	else
@@ -443,16 +411,10 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 
 	cant = mdbuf[3];
 
-	switch(cant){
-	case '0':
-	case '1':
-	case '2': *ant = RIG_ANT_1; break;
-	case '4':
-	case '5':
-	case '6': *ant = RIG_ANT_3; break;
-	case '8':
-	case '9':
-	case ':': *ant = RIG_ANT_2; break;
+	switch(cant & 0x3c){
+	case '0': *ant = RIG_ANT_1; break;
+	case '4': *ant = RIG_ANT_3; break;
+	case '8': *ant = RIG_ANT_2; break;
 	default :
 	  rig_debug(RIG_DEBUG_ERR,
 		    "drake_get_ant: unsupported antenna %c\n",
@@ -609,12 +571,12 @@ int drake_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	switch(func) {
 	case RIG_FUNC_MN:
 	  mc = mdbuf[2];
-	  *status = (mc=='2'||mc=='3'||mc=='6'||mc=='7'||mc==':'||mc==';'||mc=='>'||mc=='?');
+	  *status = ((mc & 0x32) =='2');
 	  break;
 	case RIG_FUNC_NB:
 	  /* TODO: NB narrow */
 	  mc = mdbuf[1];
-	  *status = ((mc!='0')&&(mc!='1')&&(mc!='2')&&(mc!='3'));
+	  *status = ((mc >= '4') && (mc <= '?'));
 	  break;
 	default:
 	  rig_debug(RIG_DEBUG_ERR,"Unsupported get func %d\n",func);
@@ -708,33 +670,24 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  break;
 	case RIG_LEVEL_PREAMP:
 	  mc = lvlbuf[2];
-	  if (mc=='8'||mc=='9'||mc==':'||mc==';')
+	  if ((mc & 0x3c) == '8')
 	    val->i = 10;
 	  else
 	    val->i = 0;
 	  break;
 	case RIG_LEVEL_ATT:
 	  mc = lvlbuf[2];
-	  if (mc=='4'||mc=='5'||mc=='6'||mc=='7')
+	  if ((mc & 0x3c) =='4')
 	    val->i = 10;
 	  else
 	    val->i = 0;
 	  break;
 	case RIG_LEVEL_AGC:
 	  mc = lvlbuf[1];
-	  switch(mc){
-	  case '0':
-	  case '4':
-	  case '8':
-	  case '<': val->i = RIG_AGC_OFF; break;
-	  case '2':
-	  case '6':
-	  case ':':
-	  case '>': val->i = RIG_AGC_FAST; break;
-	  case '3':
-	  case '7':
-	  case ';':
-	  case '?': val->i = RIG_AGC_SLOW; break;
+	  switch(mc & 0x33){
+	  case '0': val->i = RIG_AGC_OFF; break;
+	  case '2': val->i = RIG_AGC_FAST; break;
+	  case '3': val->i = RIG_AGC_SLOW; break;
 	  default : val->i = RIG_AGC_FAST;
 	  }
 	  break;
