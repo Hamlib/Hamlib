@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.41 2003-11-10 15:57:57 fillods Exp $
+ *	$Id: riglist.h,v 1.42 2003-11-16 17:30:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -113,6 +113,7 @@
 #define RIG_MODEL_TS930 RIG_MAKE_MODEL(RIG_KENWOOD, 22)
 #define RIG_MODEL_THG71 RIG_MAKE_MODEL(RIG_KENWOOD, 23)
 #define RIG_MODEL_TS680S RIG_MAKE_MODEL(RIG_KENWOOD, 24)
+#define RIG_MODEL_TS140S RIG_MAKE_MODEL(RIG_KENWOOD, 25)
 
 	/*
 	 * Icom
@@ -164,10 +165,10 @@
 #define RIG_MODEL_ICR8500 RIG_MAKE_MODEL(RIG_ICOM, 42)
 #define RIG_MODEL_ICR9000 RIG_MAKE_MODEL(RIG_ICOM, 43)
 #define RIG_MODEL_IC910 RIG_MAKE_MODEL(RIG_ICOM, 44)
-#define RIG_MODEL_ICR78 RIG_MAKE_MODEL(RIG_ICOM, 45)
+#define RIG_MODEL_IC78 RIG_MAKE_MODEL(RIG_ICOM, 45)
 #define RIG_MODEL_IC746PRO RIG_MAKE_MODEL(RIG_ICOM, 46)
 #define RIG_MODEL_IC756PROII RIG_MAKE_MODEL(RIG_ICOM, 47)
-#define RIG_MODEL_IC7400 RIG_MAKE_MODEL(RIG_ICOM, 54)
+#define RIG_MODEL_ICID1 RIG_MAKE_MODEL(RIG_ICOM, 54)
 #define RIG_MODEL_IC703 RIG_MAKE_MODEL(RIG_ICOM, 55)
 
 	/*
