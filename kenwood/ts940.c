@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS940 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts940.c,v 1.3 2004-05-17 21:01:03 fillods Exp $
+ *	$Id: ts940.c,v 1.4 2004-06-13 12:36:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,7 +47,8 @@
 #define TS940_SCAN_OPS (RIG_SCAN_VFO)
 
 static const struct kenwood_priv_caps  ts940_priv_caps  = {
-		.cmdtrm =  EOM_KEN,
+	.cmdtrm =  EOM_KEN,
+	.if_len =  29,
 };
 
 /*
@@ -61,7 +62,7 @@ const struct rig_caps ts940_caps = {
 .rig_model =  RIG_MODEL_TS940,
 .model_name = "TS-940S",
 .mfg_name =  "Kenwood",
-.version =  "0.3",
+.version =  "0.4",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

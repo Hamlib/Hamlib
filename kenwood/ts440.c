@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS440 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts440.c,v 1.10 2004-05-02 17:17:31 fillods Exp $
+ *	$Id: ts440.c,v 1.11 2004-06-13 12:36:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,7 +45,8 @@
 #define TS440_SCAN_OPS (RIG_SCAN_VFO)
 
 static const struct kenwood_priv_caps  ts440_priv_caps  = {
-		.cmdtrm =  EOM_KEN,
+	.cmdtrm =  EOM_KEN,
+	.if_len =  29,
 };
 
 /*
@@ -62,7 +63,7 @@ const struct rig_caps ts440_caps = {
 .rig_model =  RIG_MODEL_TS440,
 .model_name = "TS-440",
 .mfg_name =  "Kenwood",
-.version =  "0.3",
+.version =  "0.4",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
