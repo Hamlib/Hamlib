@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.32 2003-06-22 19:50:36 fillods Exp $
+ *	$Id: serial.c,v 1.33 2003-08-15 01:25:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -66,6 +66,13 @@
 #include <winbase.h>
 #endif
 
+#if defined(WIN32)
+#include "win32termios.h"
+#else
+#define OPEN open
+#define CLOSE close
+#endif
+
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
@@ -103,7 +110,7 @@ int serial_open(port_t *rp) {
   /*
    * Open in Non-blocking mode. Watch for EAGAIN errors!
    */
-  fd = open(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
+  fd = OPEN(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd == -1) {
     
@@ -118,7 +125,7 @@ int serial_open(port_t *rp) {
 
   err = serial_setup(rp);
   if (err != RIG_OK) {
-		  close(fd);
+		  CLOSE(fd);
 		  return err;
   }
 
@@ -126,7 +133,7 @@ int serial_open(port_t *rp) {
   if (rp->stream == NULL) {
 		rig_debug(RIG_DEBUG_ERR, "open_serial: fdopen failed: %s\n", 
 					strerror(errno));
-		close(fd);
+		CLOSE(fd);
 		return -RIG_EIO;		/* arg, so close! */
   }
 
@@ -137,7 +144,8 @@ int serial_open(port_t *rp) {
 int serial_setup(port_t *rp)
 {
   int fd;
-#ifdef HAVE_TERMIOS_H
+  /* There's a lib replacement for termios under Mingw */
+#if defined(HAVE_TERMIOS_H) || defined(WIN32)
   speed_t speed;			/* serial comm speed */
   struct termios options;
 #elif defined(HAVE_TERMIO_H)
@@ -157,7 +165,7 @@ int serial_setup(port_t *rp)
    * Get the current options for the port...
    */
   
-#ifdef HAVE_TERMIOS_H
+#if defined(HAVE_TERMIOS_H) || defined(WIN32)
   tcgetattr(fd, &options);
 #elif defined(HAVE_TERMIO_H)
   ioctl (fd, TCGETA, &options);
@@ -204,7 +212,7 @@ int serial_setup(port_t *rp)
   default:
     rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported rate specified: %d\n", 
 					rp->parm.serial.rate);
-	close(fd);
+	CLOSE(fd);
     return -RIG_ECONF;
   }
   /* TODO */
@@ -234,7 +242,7 @@ int serial_setup(port_t *rp)
   default:
     rig_debug(RIG_DEBUG_ERR,"open_serial: unsupported serial_data_bits "
 					"specified: %d\n", rp->parm.serial.data_bits);
-	close(fd);
+	CLOSE(fd);
     return -RIG_ECONF;
     break;
   }
@@ -256,7 +264,7 @@ int serial_setup(port_t *rp)
     rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_stop_bits "
 					"specified: %d\n",
 					rp->parm.serial.stop_bits);
-	close(fd);
+	CLOSE(fd);
     return -RIG_ECONF;
     break;
   }
@@ -282,7 +290,7 @@ int serial_setup(port_t *rp)
     rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_parity "
 					"specified: %d\n",
 					rp->parm.serial.parity);
-	close(fd);
+	CLOSE(fd);
     return -RIG_ECONF;
     break;
   }
@@ -310,7 +318,7 @@ int serial_setup(port_t *rp)
     rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported flow_control "
 					"specified: %d\n",
 					rp->parm.serial.handshake);
-	close(fd);
+	CLOSE(fd);
     return -RIG_ECONF;
     break;
   }
@@ -319,7 +327,7 @@ int serial_setup(port_t *rp)
    * Choose raw input, no preprocessing please ..
    */
 
-#if defined(HAVE_TERMIOS_H) || defined(HAVE_TERMIO_H)
+#if defined(HAVE_TERMIOS_H) || defined(HAVE_TERMIO_H) || defined(WIN32)
   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
 
   /*
@@ -343,25 +351,25 @@ int serial_setup(port_t *rp)
    * Finally, set the new options for the port...
    */
   
-#ifdef HAVE_TERMIOS_H
+#if defined(HAVE_TERMIOS_H) || defined(WIN32)
   if (tcsetattr(fd, TCSANOW, &options) == -1) {
 		rig_debug(RIG_DEBUG_ERR, "open_serial: tcsetattr failed: %s\n", 
 					strerror(errno));
-		close(fd);
+		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #elif defined(HAVE_TERMIO_H)
   if (ioctl(fd, TCSETA, &options) == -1) {
 		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TCSETA) failed: %s\n", 
 					strerror(errno));
-		close(fd);
+		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #else	/* sgtty */
   if (ioctl(fd, TIOCSETP, &sg) == -1) {
 		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TIOCSETP) failed: %s\n", 
 					strerror(errno));
-		close(fd);
+		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #endif
@@ -390,7 +398,7 @@ int serial_flush( port_t *p )
  * assumes: p is not NULL
  */
 
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
 int ser_open(port_t *p)
 {
 	const char *path = p->pathname;
@@ -421,7 +429,7 @@ int ser_open(port_t *p)
 
 int ser_close(port_t *p)
 {
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
 		return CloseHandle(p->handle);
 #else
 		return close(p->fd);
@@ -430,7 +438,7 @@ int ser_close(port_t *p)
 
 int ser_set_rts(const port_t *p, int state)
 {
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
 		/*
 		 * TODO: log error with 0x%lx GetLastError()
 		 */
@@ -443,7 +451,7 @@ int ser_set_rts(const port_t *p, int state)
 
 int ser_set_dtr(const port_t *p, int state)
 {
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
 	return !EscapeCommFunction(p->handle, state ? SETDTR : CLRDTR);
 #else
 	unsigned char y = TIOCM_DTR;
@@ -476,7 +484,7 @@ int ser_ptt_get(port_t *p, ptt_t *pttx)
 {
 
 		switch(p->type.ptt) {
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
 				/* TODO... */
 #else
 		case RIG_PTT_SERIAL_RTS:
@@ -515,7 +523,7 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 {
 
 		switch(p->type.dcd) {
-#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(WIN32)
 				/* TODO... */
 #else
 		case RIG_DCD_SERIAL_CTS:

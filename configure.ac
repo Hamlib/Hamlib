@@ -138,6 +138,7 @@ AC_REPLACE_FUNCS([getopt_long usleep])
 AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
+AC_LIBOBJ(termios)
 
 ## ------------------------ ##
 ## libtool  Initialisation. ##

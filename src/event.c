@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.18 2003-06-21 11:10:52 fillods Exp $
+ *	$Id: event.c,v 1.19 2003-08-15 01:25:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,6 +45,10 @@
 
 #include "event.h"
 
+#if defined(WIN32)
+#include "win32termios.h"
+#endif
+
 #ifndef DOC_HIDDEN
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
@@ -68,6 +72,7 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t),rig_ptr_t data);
  */
 int add_trn_rig(RIG *rig)
 {
+#ifndef WIN32
 	struct sigaction act;
 	int status;
 
@@ -115,6 +120,10 @@ int add_trn_rig(RIG *rig)
 #endif
 
 	return RIG_OK;
+
+#else
+	return -RIG_ENIMPL;
+#endif	/* !WIN32 */
 }
 
 /*
@@ -123,6 +132,7 @@ int add_trn_rig(RIG *rig)
  */
 int add_trn_poll_rig(RIG *rig)
 {
+#ifndef WIN32
 	struct sigaction act;
 	int status;
 
@@ -144,6 +154,10 @@ int add_trn_poll_rig(RIG *rig)
 				strerror(errno));
 
 	return RIG_OK;
+
+#else
+	return -RIG_ENIMPL;
+#endif	/* !WIN32 */
 }
 
 /*

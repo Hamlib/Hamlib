@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.7 2003-04-07 22:41:57 fillods Exp $
+ *	$Id: iofunc.c,v 1.8 2003-08-15 01:25:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,6 +38,11 @@
 #include "iofunc.h"
 #include "misc.h"
 
+#if defined(WIN32)
+#include "win32termios.h"
+#define read win32_serial_read
+#define write win32_serial_write
+#endif
 
 /*
  * Write a block of count characters to file descriptor,
