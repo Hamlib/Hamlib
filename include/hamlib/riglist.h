@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.24 2002-03-05 00:45:16 fillods Exp $
+ *		$Id: riglist.h,v 1.25 2002-03-06 21:09:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -145,6 +145,8 @@
 	 */
 #define RIG_MODEL_MINISCOUT RIG_MAKE_MODEL(RIG_ICOM, 48)
 #define RIG_MODEL_XPLORER RIG_MAKE_MODEL(RIG_ICOM, 49)
+#define RIG_MODEL_OS535 RIG_MAKE_MODEL(RIG_ICOM, 52)
+#define RIG_MODEL_OS456 RIG_MAKE_MODEL(RIG_ICOM, 53)
 
 	/*
 	 * TenTec (CI-V)
