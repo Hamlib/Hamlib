@@ -139,15 +139,15 @@ int rig_open(RIG *rig)
  *
  */
 
-int cmd_set_freq(RIG *rig, freq_t freq)
+int rig_set_freq(RIG *rig, freq_t freq)
 {
 		if (!rig || !rig->caps)
 			return -1; /* EINVAL */
 
-		if (rig->caps->set_freq == NULL)
+		if (rig->caps->rig_set_freq == NULL)
 			return -2; /* not implemented */
 		else
-			return rig->caps->set_freq(rig, freq);
+			return rig->caps->rig_set_freq(rig, freq);
 }
 
 /*
@@ -156,15 +156,15 @@ int cmd_set_freq(RIG *rig, freq_t freq)
  */
 
 
-int cmd_set_mode(RIG *rig, mode_t mode)
+int rig_set_mode(RIG *rig, rmode_t mode)
 {
 		if (!rig || !rig->caps)
 			return -1; /* EINVAL */
 
-		if (rig->caps->set_mode == NULL)
+		if (rig->caps->rig_set_mode == NULL)
 			return -2; /* not implemented */
 		else
-			return rig->caps->set_mode(rig, mode);
+			return rig->caps->rig_set_mode(rig, mode);
 }
 
 /*
@@ -173,15 +173,15 @@ int cmd_set_mode(RIG *rig, mode_t mode)
  */
 
 
-int cmd_set_vfo(RIG *rig, rig_vfo_t vfo)
+int rig_set_vfo(RIG *rig, vfo_t vfo)
 {
 		if (!rig || !rig->caps)
 			return -1; /* EINVAL */
 
-		if (rig->caps->set_vfo == NULL)
+		if (rig->caps->rig_set_vfo == NULL)
 			return -2; /* not implemented */
 		else
-			return rig->caps->set_vfo(rig, vfo);
+			return rig->caps->rig_set_vfo(rig, vfo);
 }
 
 /*

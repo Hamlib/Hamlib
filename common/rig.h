@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.8 2000-09-18 03:47:34 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.9 2000-09-19 01:25:58 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -88,15 +88,15 @@ enum rig_status_e {
 	RIG_STATUS_NEW
 };
 
-enum rig_rptr_shift_e {
+enum rptr_shift_e {
 	RIG_RPT_SHIFT_NONE = 0,
 	RIG_RPT_SHIFT_MINUS,
 	RIG_RPT_SHIFT_PLUS
 };
 
-typedef enum rig_rptr_shift_e rig_rptr_shift_t;
+typedef enum rptr_shift_e rptr_shift_t;
 
-enum rig_vfo_e {
+enum vfo_e {
 	RIG_VFO_MAIN = 0,
 	RIG_VFO_RX,
 	RIG_VFO_TX,
@@ -106,26 +106,21 @@ enum rig_vfo_e {
 
 };
 
-typedef enum rig_vfo_e rig_vfo_t;
+typedef enum vfo_e vfo_t;
 
-enum rig_ptt_e {
+enum ptt_e {
 	RIG_PTT_OFF = 0,
 	RIG_PTT_ON,
 };
 
-typedef enum rig_ptt_e rig_ptt_t;
-
-
-
-
-
+typedef enum ptt_e ptt_t;
 
 /*
  * frequency type in Hz, must be >32bits for SHF! 
  */
 typedef long long freq_t;
 
-typedef unsigned int rig_mode_t;
+typedef unsigned int rmode_t;	/* radio mode  */
 
 /* Do not use an enum since this will be used w/ rig_mode_t bit fields */
 #define RIG_MODE_AM    	(1<<0)
@@ -160,11 +155,11 @@ typedef unsigned int rig_mode_t;
  * what your have access to 
  */ 
 struct freq_range_list {
-		freq_t start;
-		freq_t end;
-		unsigned long modes;	/* bitwise OR'ed RIG_MODE_* */
-		int low_power;	/* in mW, -1 for no power (ie. rx list) */
-		int high_power;	/* in mW, -1 for no power (ie. rx list) */
+  freq_t start;
+  freq_t end;
+  unsigned long modes;	/* bitwise OR'ed RIG_MODE_* */
+  int low_power;	/* in mW, -1 for no power (ie. rx list) */
+  int high_power;	/* in mW, -1 for no power (ie. rx list) */
 };
 
 
@@ -177,8 +172,8 @@ struct freq_range_list {
 struct channel {
   int channel_num;
   freq_t freq;
-  rig_mode_t mode;
-  rig_vfo_t vfo;
+  rmode_t mode;
+  vfo_t vfo;
   char channel_desc[MAXCHANDESC];
 };
 
@@ -228,20 +223,20 @@ struct rig_caps {
    *  List Set/Get functions pairs
    */
   
-  int (*set_freq)(RIG *rig, freq_t freq); /* select freq */
-  struct freq_t (*get_freq)(RIG *rig); /* get freq */
+  int (*rig_set_freq)(RIG *rig, freq_t freq); /* select freq */
+  struct freq_t (*rig_get_freq)(RIG *rig); /* get freq */
 
-  int (*set_mode)(RIG *rig, rig_mode_t mode); /* select mode */
-  struct rig_mode_t (*get_mode)(RIG *rig, rig_mode_t mode); /* get mode */
+  int (*rig_set_mode)(RIG *rig, rmode_t mode); /* select mode */
+  struct rmode_t (*rig_get_mode)(RIG *rig, rmode_t mode); /* get mode */
 
-  int (*set_vfo)(RIG *rig, rig_vfo_t vfo); /* select vfo */
-  struct rig_vfo_t (*get_vfo)(RIG *rig); /* get vfo */
+  int (*rig_set_vfo)(RIG *rig, vfo_t vfo); /* select vfo */
+  struct vfo_t (*rig_get_vfo)(RIG *rig); /* get vfo */
 
-  int (*set_ptt)(RIG *rig, rig_ptt_t ptt); /* ptt on/off */
-  struct rig_ptt_t (*get_ptt)(RIG *rig); /* get ptt status */
+  int (*rig_set_ptt)(RIG *rig, ptt_t ptt); /* ptt on off */
+  struct ptt_t (*rig_get_ptt)(RIG *rig); /* get ptt status */
 
-  int (*set_rpt_shift)(RIG *rig, rig_rptr_shift_t rig_rptr_shift ); /* set repeater shift */
-  struct rig_rptr_shift_t (*get_rpt_shift)(RIG *rig); /* get repeater shift */
+  int (*rig_set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift ); /* set repeater shift */
+  struct rptr_shift_t (*rig_get_rpt_shift)(RIG *rig); /* get repeater shift */
 
 /*
  * Convenience Functions 
@@ -250,8 +245,8 @@ struct rig_caps {
 /*    int (*set_channel)(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo); */
 /*    int (*get_channel)(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo); */
 
-  int (*set_channel)(RIG *rig, struct channel *ch);
-  struct channel *(*get_channel)(RIG *rig);
+  int (*rig_set_channel)(RIG *rig, struct channel *ch);
+  struct channel (*rig_get_channel)(RIG *rig);
 
 
 
@@ -300,7 +295,7 @@ struct rig_state {
  * So far, haven't heard of any rig capable of this, but there must be. --SF
  */
 struct rig_callbacks {
-	int (*freq_main_vfo_hz_event)(RIG *rig, freq_t freq, rig_mode_t mode); 
+	int (*freq_main_vfo_hz_event)(RIG *rig, freq_t freq, rmode_t mode); 
 	/* etc.. */
 };
 
@@ -326,24 +321,24 @@ int rig_open(RIG *rig);
    *  List Set/Get functions pairs
    */
 
-int cmd_set_freq(RIG *rig, freq_t freq); /* select freq */
-struct freq_t cmd_get_freq(RIG *rig); /* get freq */
+int rig_set_freq(RIG *rig, freq_t freq); /* select freq */
+struct freq_t rig_get_freq(RIG *rig); /* get freq */
 
-int cmd_set_mode(RIG *rig, rig_mode_t mode); /* select mode */
-struct rig_mode_t cmd_get_mode(RIG *rig, rig_mode_t mode); /* get mode */
+int rig_set_mode(RIG *rig, rmode_t mode); /* select mode */
+struct rmode_t rig_get_mode(RIG *rig, rmode_t mode); /* get mode */
 
-int cmd_set_vfo(RIG *rig, rig_vfo_t vfo); /* select vfo */
-struct rig_vfo_t cmd_get_vfo(RIG *rig); /* get vfo */
+int rig_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
+struct vfo_t rig_get_vfo(RIG *rig); /* get vfo */
 
-int cmd_set_ptt(RIG *rig, rig_ptt_t ptt); /* ptt on/off */
-struct rig_ptt_t cmd_get_ptt(RIG *rig); /* get ptt status */
+int rig_set_ptt(RIG *rig, ptt_t ptt); /* ptt on/off */
+struct ptt_t rig_get_ptt(RIG *rig); /* get ptt status */
 
-int cmd_set_rpt_shift(RIG *rig, rig_rptr_shift_t rig_rptr_shift ); /* set repeater shift */
-struct rig_rptr_shift_t cmd_get_rpt_shift(RIG *rig); /* get repeater shift */
+int rig_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift ); /* set repeater shift */
+struct rptr_shift_t rig_get_rpt_shift(RIG *rig); /* get repeater shift */
 
 /* more to come -- FS */
 
-/*  int cmd_set_freq(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo ); */
+/*  int rig_set_freq(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo ); */
 /* etc. */
 
 int rig_close(RIG *rig);
@@ -354,4 +349,8 @@ RIG *rig_probe(const char *rig_path);
 const struct rig_caps *rig_get_caps(rig_model_t rig_model);
 
 #endif /* _RIG_H */
+
+
+
+
 
