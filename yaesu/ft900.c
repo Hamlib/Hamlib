@@ -9,7 +9,7 @@
  * via serial interface to an FT-900 using the "CAT" interface
  *
  *
- * $Id: ft900.c,v 1.2 2005-01-25 00:21:58 fillods Exp $
+ * $Id: ft900.c,v 1.3 2005-04-03 18:57:28 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -258,10 +258,6 @@ const struct rig_caps ft900_caps = {
   .get_ptt =            ft900_get_ptt,
   .set_split_vfo =          ft900_set_split_vfo,
   .get_split_vfo =          ft900_get_split_vfo,
-//  .set_split_freq =     ft900_set_split_freq,
-//  .get_split_freq =     ft900_get_split_freq,
-//  .set_split_mode =     ft900_set_split_mode,
-//  .get_split_mode =     ft900_get_split_mode,
   .set_rit =            ft900_set_rit,
   .get_rit =            ft900_get_rit,
   .set_func =           ft900_set_func,
@@ -1059,105 +1055,6 @@ static int ft900_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
 
     return RIG_OK;
 }
-
-
-/*
- * set the '900 split TX freq
- *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
- */
-
-static int ft900_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq) {
-  int err;
-
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-  if (!rig)
-    return -RIG_EINVAL;
-
-  err = ft900_set_freq(rig, vfo, tx_freq);
-  if (err != RIG_OK)
-    return err;
-
-  return RIG_OK;
-}
-
-
-/*
- * get the '900 split TX freq
- *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
- */
-
-static int ft900_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq) {
-  int err;
-
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-  if (!rig)
-    return -RIG_EINVAL;
-
-  err = ft900_get_freq(rig, vfo, tx_freq);
-  if (err != RIG_OK)
-    return err;
-
-  return RIG_OK;
-}
-
-
-/*
- * set the '900 split TX mode
- *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
- */
-
-static int ft900_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode,
-                                pbwidth_t tx_width) {
-  int err;
-
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-  if (!rig)
-    return -RIG_EINVAL;
-
-  err = ft900_set_mode(rig, vfo, tx_mode, tx_width);
-  if (err != RIG_OK)
-    return err;
-
-  return RIG_OK;
-}
-
-
-/*
- * get the '900 split TX mode
- *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
- */
-
-static int ft900_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
-                                pbwidth_t *tx_width) {
-  int err;
-
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-  if (!rig)
-    return -RIG_EINVAL;
-
-  err = ft900_get_mode(rig, vfo, tx_mode, tx_width);
-  if (err != RIG_OK)
-    return err;
-
-  return RIG_OK;
-}
-
 
 /*
  * rig_set_rit

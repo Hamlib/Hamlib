@@ -9,7 +9,7 @@
  * via serial interface to an FT-900 using the "CAT" interface
  *
  *
- *    $Id: ft900.h,v 1.1 2003-04-14 22:17:44 n0nb Exp $  
+ *    $Id: ft900.h,v 1.2 2005-04-03 18:57:28 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -343,12 +343,6 @@ static int ft900_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 static int ft900_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int ft900_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-
-/* static int ft900_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
-static int ft900_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq); */
-
-/* static int ft900_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
-static int ft900_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width); */
 
 static int ft900_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft900_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
