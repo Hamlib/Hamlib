@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.25 2002-01-03 21:42:53 fillods Exp $
+ *		$Id: kenwood.c,v 1.26 2002-01-06 17:47:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -414,7 +414,7 @@ static int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (lvl_len != 4) {
+	if (lvl_len != 6) {
 		rig_debug(RIG_DEBUG_ERR,"kenwood_get_level: wrong answer len=%d\n",
 				lvl_len);
 		return -RIG_ERJCTED;
@@ -450,14 +450,14 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			if (retval != RIG_OK)
 				return retval;
 
-			if (lvl_len != 4) {
+			if (lvl_len != 7) {
 				rig_debug(RIG_DEBUG_ERR,"kenwood_get_level: "
 								"wrong answer len=%d\n", lvl_len);
 				return -RIG_ERJCTED;
 			}
 
-			/* FIXME: should be in dB ! */
 			sscanf(lvlbuf+2, "%d", &val->i);
+			val->i *= 4;
 			break;
 
 		case RIG_LEVEL_SQLSTAT:
