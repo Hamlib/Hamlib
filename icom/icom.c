@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.50 2002-02-27 23:17:17 fillods Exp $
+ *		$Id: icom.c,v 1.51 2002-02-28 10:59:46 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -156,7 +156,21 @@ const struct ts_sc_list ic706_ts_sc_list[] = {
 		{ 0, 0 },
 };
 
-
+const struct ts_sc_list ic910_ts_sc_list[] = {
+        { Hz(1), 0x00 },
+        { Hz(10), 0x01 },
+        { Hz(50), 0x02 },
+        { Hz(100), 0x03 },
+        { kHz(1), 0x04 },
+        { kHz(5), 0x05 },
+        { kHz(6.25), 0x06 },
+        { kHz(10), 0x07 },
+        { kHz(12.5), 0x08 },
+        { kHz(20), 0x09 },
+        { kHz(25), 0x10 },
+        { kHz(100), 0x11 },
+        { 0, 0 },
+};
 
 struct icom_addr {
 		rig_model_t model;
@@ -168,11 +182,11 @@ struct icom_addr {
 #define TOK_MODE731 TOKEN_BACKEND(2)
 
 const struct confparams icom_cfg_params[] = {
-	{ TOK_CIVADDR, "civaddr", "CI-V address", "Transceiver's CI-V address", 
+	{ TOK_CIVADDR, "civaddr", "CI-V address", "Transceiver's CI-V address",
 			"0", RIG_CONF_NUMERIC, { n: { 0, 0xff, 1 } }
 	},
 	{ TOK_MODE731, "mode731", "CI-V 731 mode", "CI-V operating frequency "
-			"data length, needed for IC731 and IC735", 
+			"data length, needed for IC731 and IC735",
 			"0", RIG_CONF_CHECKBUTTON
 	},
 	{ RIG_CONF_END, NULL, }
@@ -239,7 +253,7 @@ static const struct icom_addr icom_addr_list[] = {
  * This is a generic icom_init function.
  * You might want to define yours, so you can customize it for your rig
  *
- * Basically, it sets up *priv 
+ * Basically, it sets up *priv
  * REM: serial port is already open (rig->state.rigport.fd)
  */
 int icom_init(RIG *rig)
@@ -269,7 +283,7 @@ int icom_init(RIG *rig)
 		/* TODO: CI-V address should be customizable */
 
 		/*
-		 * init the priv_data from static struct 
+		 * init the priv_data from static struct
 		 *          + override with preferences
 		 */
 
@@ -315,12 +329,12 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 
 		freq_len = priv->civ_731_mode ? 4:5;
-		/*	
+		/*
 		 * to_bcd requires nibble len
 		 */
 		to_bcd(freqbuf, freq, freq_len*2);
 
-		retval = icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len, 
+		retval = icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -349,7 +363,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_RD_FREQ, -1, NULL, 0, 
+		retval = icom_transaction (rig, C_RD_FREQ, -1, NULL, 0,
 						freqbuf, &freq_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -378,7 +392,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 				return -RIG_ERJCTED;
 		}
 
-		/*	
+		/*
 		 * from_bcd requires nibble len
 		 */
 		*freq = from_bcd(freqbuf+1, freq_len*2);
@@ -403,7 +417,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		icmode = rig2icom_mode(rig, mode,width);
 
 		icmode_ext[0] = (icmode>>8) & 0xff;
-		retval = icom_transaction (rig, C_SET_MODE, icmode & 0xff, icmode_ext, 
+		retval = icom_transaction (rig, C_SET_MODE, icmode & 0xff, icmode_ext,
 						icmode_ext[0]?1:0, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -435,7 +449,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_RD_MODE, -1, NULL, 0, 
+		retval = icom_transaction (rig, C_RD_MODE, -1, NULL, 0,
 						modebuf, &mode_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -474,8 +488,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 		case RIG_VFO_B: icvfo = S_VFOB; break;
 		case RIG_VFO_MAIN: icvfo = S_MAIN; break;
 		case RIG_VFO_SUB:  icvfo = S_SUB; break;
-		case RIG_VFO_VFO: 
-			retval = icom_transaction (rig, C_SET_VFO, -1, NULL, 0, 
+		case RIG_VFO_VFO:
+			retval = icom_transaction (rig, C_SET_VFO, -1, NULL, 0,
 							ackbuf, &ack_len);
 			if (retval != RIG_OK)
 				return retval;
@@ -485,8 +499,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 				return -RIG_ERJCTED;
 			}
 			return RIG_OK;
-		case RIG_VFO_MEM: 
-			retval = icom_transaction (rig, C_SET_MEM, -1, NULL, 0, 
+		case RIG_VFO_MEM:
+			retval = icom_transaction (rig, C_SET_MEM, -1, NULL, 0,
 							ackbuf, &ack_len);
 			if (retval != RIG_OK)
 				return retval;
@@ -501,7 +515,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 										vfo);
 						return -RIG_EINVAL;
 		}
-		retval = icom_transaction (rig, C_SET_VFO, icvfo, NULL, 0, 
+		retval = icom_transaction (rig, C_SET_VFO, icvfo, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -541,7 +555,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		else
 				icom_val = val.i;
 
-		/*	
+		/*
 		 * Most of the time, the data field is a 3 digit BCD,
 		 * but in *big endian* order: 0000..0255
 		 * (from_bcd is little endian)
@@ -566,7 +580,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 							break;
 			}
 			if (i==MAXDBLSTSIZ || rs->preamp[i] == 0) {
-				rig_debug(RIG_DEBUG_ERR,"Unsupported preamp set_level %ddB", 
+				rig_debug(RIG_DEBUG_ERR,"Unsupported preamp set_level %ddB",
 								val.i);
 				return -RIG_EINVAL;
 			}
@@ -645,13 +659,24 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_BALANCE;
 			break;
-
+        case RIG_LEVEL_VOXGAIN:     /* IC-910H */
+            lvl_cn = C_CTL_MEM;
+            lvl_sc = S_MEM_VOXGAIN;
+            break;
+        case RIG_LEVEL_VOXDELAY:    /* IC-910H */
+            lvl_cn = C_CTL_MEM;
+            lvl_sc = S_MEM_VOXDELAY;
+            break;
+        case RIG_LEVEL_ANTIVOX:     /* IC-910H */
+            lvl_cn = C_CTL_MEM;
+            lvl_sc = S_MEM_ANTIVOX;
+            break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
 			return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, 
+		retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -773,13 +798,24 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_BALANCE;
 			break;
-
+        case RIG_LEVEL_VOXGAIN:     /* IC-910H */
+            lvl_cn = C_CTL_MEM;
+            lvl_sc = S_MEM_VOXGAIN;
+            break;
+        case RIG_LEVEL_VOXDELAY:    /* IC-910H */
+            lvl_cn = C_CTL_MEM;
+            lvl_sc = S_MEM_VOXDELAY;
+            break;
+        case RIG_LEVEL_ANTIVOX:     /* IC-910H */
+            lvl_cn = C_CTL_MEM;
+            lvl_sc = S_MEM_ANTIVOX;
+            break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 			return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0, 
+		retval = icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0,
 						lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -796,7 +832,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return -RIG_ERJCTED;
 		}
 
-		/*	
+		/*
 		 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
 		 * (from_bcd is little endian)
 		 */
@@ -810,7 +846,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_SQLSTAT:
 			/*
 			 * 0x00=sql closed, 0x01=sql open
-			 */ 
+			 */
 			val->i = icom_val;
 			break;
 
@@ -820,7 +856,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 					break;
 			}
 			if (icom_val > MAXDBLSTSIZ || rs->preamp[icom_val-1]==0) {
-				rig_debug(RIG_DEBUG_ERR,"Unsupported preamp get_level %ddB", 
+				rig_debug(RIG_DEBUG_ERR,"Unsupported preamp get_level %ddB",
 								icom_val);
 				return -RIG_EPROTO;
 			}
@@ -834,7 +870,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				val->i = icom_val;
 		}
 
-		rig_debug(RIG_DEBUG_VERBOSE,"get_level: %d %d %d %f\n", lvl_len, 
+		rig_debug(RIG_DEBUG_VERBOSE,"get_level: %d %d %d %f\n", lvl_len,
 						icom_val, val->i, val->f);
 
 		return RIG_OK;
@@ -910,7 +946,7 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 		ptt_sc = ptt == RIG_PTT_ON ? S_PTT_ON:S_PTT_OFF;
 
-		retval = icom_transaction (rig, C_CTL_PTT, ptt_sc, NULL, 0, 
+		retval = icom_transaction (rig, C_CTL_PTT, ptt_sc, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -938,7 +974,7 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_CTL_PTT, -1, NULL, 0, 
+		retval = icom_transaction (rig, C_CTL_PTT, -1, NULL, 0,
 						pttbuf, &ptt_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -973,7 +1009,7 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0, 
+		retval = icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0,
 						dcdbuf, &dcd_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -988,7 +1024,7 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 				return -RIG_ERJCTED;
 		}
 
-		/*	
+		/*
 		 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
 		 * (from_bcd is little endian)
 		 */
@@ -997,7 +1033,7 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 			 * 0x00=sql closed, 0x01=sql open
 			 *
 			 * TODO: replace icom_val by dcdbuf[2] ?
-			 */ 
+			 */
 		*dcd = (icom_val==0x01) ? RIG_DCD_ON : RIG_DCD_OFF;
 
 		return RIG_OK;
@@ -1032,7 +1068,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 			return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0, 
+		retval = icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1062,7 +1098,7 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, 
+		retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0,
 						rptrbuf, &rptr_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1110,11 +1146,11 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 		priv = (struct icom_priv_data*)rs->priv;
 
 		/*
-		 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF 
+		 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF
 		 */
 		to_bcd(offsbuf, rptr_offs/100, OFFS_LEN*2);
 
-		retval = icom_transaction (rig, C_SET_OFFS, -1, offsbuf, OFFS_LEN, 
+		retval = icom_transaction (rig, C_SET_OFFS, -1, offsbuf, OFFS_LEN,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1143,7 +1179,7 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_RD_OFFS, -1, NULL, 0, 
+		retval = icom_transaction (rig, C_RD_OFFS, -1, NULL, 0,
 						offsbuf, &offs_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1159,7 +1195,7 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 		}
 
 		/*
-		 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF 
+		 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF
 		 */
 		*rptr_offs = from_bcd(offsbuf+1, offs_len*2)*100;
 
@@ -1169,7 +1205,7 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 
 /*
  * icom_set_split_freq
- * Assumes rig!=NULL, rig->state.priv!=NULL, 
+ * Assumes rig!=NULL, rig->state.priv!=NULL,
  * 	icom_set_vfo,icom_set_freq works for this rig
  * FIXME: status
  */
@@ -1220,7 +1256,7 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
 /*
  * icom_set_split_mode
- * Assumes rig!=NULL, rig->state.priv!=NULL, 
+ * Assumes rig!=NULL, rig->state.priv!=NULL,
  * 	icom_set_vfo,icom_set_mode works for this rig
  * FIXME: status
  */
@@ -1245,7 +1281,7 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width
 
 /*
  * icom_get_split_mode
- * Assumes rig!=NULL, rig->state.priv!=NULL, 
+ * Assumes rig!=NULL, rig->state.priv!=NULL,
  *  rx_mode!=NULL, rx_width!=NULL, tx_mode!=NULL, tx_width!=NULL
  * 	icom_set_vfo,icom_get_mode works for this rig
  * FIXME: status
@@ -1297,7 +1333,7 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 			return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0, 
+		retval = icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1326,7 +1362,7 @@ int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, 
+		retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0,
 						splitbuf, &split_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1379,7 +1415,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 				return -RIG_EINVAL;	/* not found, unsupported */
 		}
 
-		retval = icom_transaction (rig, C_SET_TS, ts_sc, NULL, 0, 
+		retval = icom_transaction (rig, C_SET_TS, ts_sc, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1507,13 +1543,24 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 			fct_cn = C_CTL_FUNC;
 			fct_sc = S_FUNC_RNF;
 			break;
-
+        case RIG_FUNC_AFC:      /* IC-910H */
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_FUNC_AFC;
+            break;
+        case RIG_FUNC_SATMODE:  /* IC-910H */
+            fct_cn = C_CTL_MEM;
+            fct_sc = S_MEM_SATMODE;
+            break;
+        case RIG_FUNC_SCOPE:    /* IC-910H */
+            fct_cn = C_CTL_MEM;
+            fct_sc = S_MEM_BANDSCOPE;
+            break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d", func);
 			return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, 
+		retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len,
 						ackbuf, &acklen);
 		if (retval != RIG_OK)
 				return retval;
@@ -1592,16 +1639,27 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 			fct_sc = S_FUNC_MN;
 			break;
 		case RIG_FUNC_RNF:
-			fct_cn = C_CTL_FUNC;
-			fct_sc = S_FUNC_RNF;
-			break;
-
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_FUNC_RNF;
+            break;
+        case RIG_FUNC_AFC:      /* IC-910H */
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_FUNC_AFC;
+            break;
+        case RIG_FUNC_SATMODE:  /* IC-910H */
+            fct_cn = C_CTL_MEM;
+            fct_sc = S_MEM_SATMODE;
+            break;
+        case RIG_FUNC_SCOPE:    /* IC-910H */
+            fct_cn = C_CTL_MEM;
+            fct_sc = S_MEM_BANDSCOPE;
+            break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %d", func);
 			return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, fct_cn, fct_sc, NULL, 0, 
+		retval = icom_transaction (rig, fct_cn, fct_sc, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1637,7 +1695,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 		 * I don't have documentation for this function,
 		 * and I can't experiment (no hardware), so let's guess.
 		 * Most probably, it might be the index of the CTCSS subaudible
-		 * tone, and not the tone itself, starting from zero. 
+		 * tone, and not the tone itself, starting from zero.
 		 *
 		 * Something in the range of 00..51, BCD big endian
 		 * Please someone let me know if it works this way. --SF
@@ -1652,7 +1710,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 		tone_len = 1;
 		to_bcd_be(tonebuf, (long long)i, tone_len*2);
 
-		retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, 
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR,
 						tonebuf, tone_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1683,7 +1741,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 		 * see icom_set_ctcss for discussion on the untested status!
 		 */
 
-		retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, NULL, 0, 
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, NULL, 0,
 												tonebuf, &tone_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1740,7 +1798,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 		tone_len = 1;
 		to_bcd_be(tonebuf, (long long)i, tone_len*2);
 
-		retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL, 
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL,
 						tonebuf, tone_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1771,7 +1829,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 		 * see icom_set_ctcss for discussion on the untested status!
 		 */
 
-		retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL, NULL, 0, 
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL, NULL, 0,
 												tonebuf, &tone_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1819,7 +1877,7 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 		chanbuf[2] = S_MEM_CNTNT_SLCT;
 
 		freq_len = priv->civ_731_mode ? 4:5;
-		/*	
+		/*
 		 * to_bcd requires nibble len
 		 */
 		to_bcd(chanbuf+3, chan->freq, freq_len*2);
@@ -1840,7 +1898,7 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 		strncpy(chanbuf+chan_len, chan->channel_desc, 8);
 		chan_len += 8;
 
-		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, 
+		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT,
 						chanbuf, chan_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1875,7 +1933,7 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 
 		freq_len = priv->civ_731_mode ? 4:5;
 
-		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, 
+		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT,
 						chanbuf, chan_len, chanbuf, &chan_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1890,19 +1948,19 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 				return -RIG_ERJCTED;
 		}
 
-		/*	
+		/*
 		 * from_bcd requires nibble len
 		 */
 		chan->freq = from_bcd(chanbuf+4, freq_len*2);
 
 		chan_len = 4+freq_len+1;
 
-		icom2rig_mode(rig, chanbuf[chan_len] | chanbuf[chan_len+1], 
+		icom2rig_mode(rig, chanbuf[chan_len] | chanbuf[chan_len+1],
 						&chan->mode, &width);
 		chan_len += 2;
-		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 
+		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i =
 				from_bcd_be(chanbuf+chan_len++,2);
-		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 
+		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i =
 				from_bcd_be(chanbuf+chan_len++,2);
 		chan->ant = from_bcd_be(chanbuf+chan_len++,2);
 		strncpy(chan->channel_desc, chanbuf+chan_len, 8);
@@ -1923,7 +1981,7 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 
 		pwr_sc = status==RIG_POWER_ON ? S_PWR_ON:S_PWR_OFF;
 
-		retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, 
+		retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1946,7 +2004,7 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 		unsigned char ackbuf[16];
 		int ack_len, retval;
 
-		retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0, 
+		retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1978,7 +2036,7 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(membuf, ch, CHAN_NB_LEN*2);
-		retval = icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN, 
+		retval = icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -2008,7 +2066,7 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(bankbuf, bank, BANK_NB_LEN*2);
-		retval = icom_transaction (rig, C_SET_MEM, S_BANK, 
+		retval = icom_transaction (rig, C_SET_MEM, S_BANK,
 						bankbuf, CHAN_NB_LEN, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -2086,7 +2144,7 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 				return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, 
+		retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -2150,12 +2208,18 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 			case RIG_SCAN_DELTA:
 				scan_sc = S_SCAN_DELTA;	/* TODO: delta-f support */
 				break;
+            case RIG_SCAN_RESUME_ON:
+                scan_sc = S_SCAN_RSMON;
+                break;
+            case RIG_SCAN_RESUME_OFF:
+                scan_sc = S_SCAN_RSMOFF;
+                break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported scan %#x", scan);
 				return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, scan_cn, scan_sc, scanbuf, scan_len, 
+		retval = icom_transaction (rig, scan_cn, scan_sc, scanbuf, scan_len,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -2181,7 +2245,7 @@ int icom_decode_event(RIG *rig)
 		int frm_len;
 		freq_t freq;
 		rmode_t mode;
-		pbwidth_t width; 
+		pbwidth_t width;
 
 		rig_debug(RIG_DEBUG_VERBOSE, "icom: icom_decode called\n");
 
@@ -2221,7 +2285,7 @@ int icom_decode_event(RIG *rig)
 		case C_SND_MODE:
 				if (rig->callbacks.mode_event) {
 					icom2rig_mode(rig, buf[5]| buf[6]<<8, &mode, &width);
-					return rig->callbacks.mode_event(rig, RIG_VFO_CURR, 
+					return rig->callbacks.mode_event(rig, RIG_VFO_CURR,
 									mode, width,
 									rig->callbacks.mode_arg);
 				} else
@@ -2262,13 +2326,13 @@ rig_model_t probe_icom(port_t *p)
 		/* try all possible addresses on the CI-V bus */
 		for (civ_addr=0x01; civ_addr<=0x7f; civ_addr++) {
 
-			frm_len = make_cmd_frame(buf, civ_addr, C_RD_TRXID, S_RD_TRXID, 
+			frm_len = make_cmd_frame(buf, civ_addr, C_RD_TRXID, S_RD_TRXID,
 							NULL, 0);
 
 			write_block(p, buf, frm_len);
 
-			/* read out the bytes we just sent 
-		 	* TODO: check this is what we expect 
+			/* read out the bytes we just sent
+		 	* TODO: check this is what we expect
 		 	*/
 			frm_len = read_icom_block(p, buf, frm_len);
 
@@ -2281,12 +2345,12 @@ rig_model_t probe_icom(port_t *p)
 
 			if (buf[7] != FI && buf[5] != FI) {
 					/* protocol error, unexpected reply.
-					 * is this a CI-V device? 
+					 * is this a CI-V device?
 					 */
 					close(p->fd);
 					return RIG_MODEL_NONE;
 			} else if (buf[4] == NAK) {
-					/* 
+					/*
 				 	* this is an Icom, but it does not support transceiver ID
 				 	* try to guess from the return address
 				 	*/
@@ -2304,7 +2368,7 @@ rig_model_t probe_icom(port_t *p)
 					}
 			}
 			/*
-			 * not found in known table.... 
+			 * not found in known table....
 			 * update icom_addr_list[]!
 			 */
 			rig_debug(RIG_DEBUG_WARN,"probe_icom: found unknown device "
@@ -2333,8 +2397,9 @@ int initrigs_icom(void *be_handle)
 		rig_register(&ic756pro_caps);
 
 		rig_register(&ic821h_caps);
-		
-		rig_register(&icr7000_caps);
+		rig_register(&ic910_caps);
+
+        rig_register(&icr7000_caps);
 		rig_register(&icr8500_caps);
 
 		rig_register(&ic275_caps);

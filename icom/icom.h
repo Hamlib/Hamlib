@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: icom.h,v 1.38 2002-02-27 23:17:17 fillods Exp $
+ *		$Id: icom.h,v 1.39 2002-02-28 10:59:46 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,7 +28,7 @@
 #include <tones.h>
 
 /*
- * defines used by comp_cal_str in rig.c 
+ * defines used by comp_cal_str in rig.c
  * STR_CAL_LENGTH is the lenght of the S Meter calibration table
  * STR_CAL_S0 is the value in dB of the lowest value (not even in table)
  */
@@ -63,6 +63,7 @@ extern const struct ts_sc_list r9000_ts_sc_list[];
 extern const struct ts_sc_list ic756_ts_sc_list[];
 extern const struct ts_sc_list ic756pro_ts_sc_list[];
 extern const struct ts_sc_list ic706_ts_sc_list[];
+extern const struct ts_sc_list ic910_ts_sc_list[];
 
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);
@@ -116,6 +117,7 @@ extern const struct rig_caps ic756_caps;
 extern const struct rig_caps ic756pro_caps;
 extern const struct rig_caps ic775_caps;
 extern const struct rig_caps ic821h_caps;
+extern const struct rig_caps ic910_caps;
 extern const struct rig_caps icr7000_caps;
 extern const struct rig_caps icr8500_caps;
 extern const struct rig_caps icall_caps;

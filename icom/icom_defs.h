@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.11 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: icom_defs.h,v 1.12 2002-02-28 10:59:46 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -137,6 +137,8 @@
 #define S_SCAN_SLCTN	0x23		/* Selected number memory scan */
 #define S_SCAN_SLCTM	0x24		/* Selected mode memory scan */
 #define S_SCAN_PRIO		0x42		/* Priority / window scan */
+#define S_SCAN_RSMOFF   0xD0        /* Set scan resume OFF */
+#define S_SCAN_RSMON    0xD3        /* Set scan resume ON */
 
 
 /*
@@ -179,6 +181,7 @@
  */
 #define S_ANN_ALL	0x00		/* Announce all */
 #define S_ANN_FREQ	0x01		/* Announce freq */
+#define S_ANN_MODE  0x02        /* Announce operating mode */
 
 /*
  * Function settings (C_CTL_LVL) subcommands
@@ -229,6 +232,7 @@
 #define S_FUNC_BKIN	0x47		/* BK-IN setting */
 #define S_FUNC_MN	0x48		/* Manual notch setting */
 #define S_FUNC_RNF	0x49		/* RTTY Filter Notch setting */
+#define S_FUNC_AFC  0x4A        /* Auto Frequency Control (AFC) setting */
 
 /*
  * Transceiver ID (C_RD_TRXID) subcommands
@@ -252,6 +256,16 @@
  */
 #define S_MEM_CNTNT	0x00
 #define S_MEM_CNTNT_SLCT	0x01
+                                    /* For IC-910H rig. */
+#define S_MEM_RDWR_MEM      0x00    /* Read/write memory channel */
+#define S_MEM_SATMEM        0x01    /* Satellite memory */
+#define S_MEM_VOXGAIN       0x02    /* VOX gain level (0=0%, 255=100%) */
+#define S_MEM_VOXDELAY      0x03    /* VOX delay (0=0.0 sec, 20=2.0 sec) */
+#define S_MEM_ANTIVOX       0x04    /* anti VOX setting */
+#define S_MEM_ATTLEVEL      0x05    /* Attenuation level (0=0%, 255=100%) */
+#define S_MEM_RIT           0x06    /* RIT (0=off, 1=on, 2=sub dial) */
+#define S_MEM_SATMODE       0x07    /* Satellite mode (on/off) */
+#define S_MEM_BANDSCOPE     0x08    /* Simple bandscope (on/off) */
 
 /*
  * Tone control (C_SET_TONE) subcommands
