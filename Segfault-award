@@ -3,7 +3,7 @@ This is the "Hamlib Segfault Honor Roll". hi.
 The distinctive HSHR is granted to people who were able to make Hamlib 
 issue segmentation faults (Bus errors and alike are valid too).
 The HSHR can only be claimed on identified releases. 
-A developer cannot apply for HSHR for segfaul on his/her own code.
+A developer cannot apply for HSHR for segfaults on his/her own code.
 
 Here is the list of the brave fellows:
 
