@@ -214,18 +214,18 @@ non-PC systems. We try to make Hamlib as portable as possible.
 Please report in case of problems at hamlib-developer@lists.sourceforge.net
 Patches are welcome too!
 
-So far, Hamlib has been tested under the following systems:
-(if your system is not present, please report to mailing list)
+So far, Hamlib has been tested successfuly under the following systems:
+(if your system is not present, please report to the mailing list)
 
 	* Debian potato/sarge/sid i386
 	* Debian sid mipsel
 	* RedHat i386
 	* Linux ppc
 	* Slackware i386
-	* FreeBSD
+	* FreeBSD & NetBSD
 	* Solaris 2.6
-	* win32: Cygwin
-	* should work under Darwin (untested lately)
+	* Mac OS X
+	* win32: Cygwin, Mingw
 
 
 2. How to add a new backend
