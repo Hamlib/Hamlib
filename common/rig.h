@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.11 2000-09-20 06:12:33 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.12 2000-09-21 06:44:44 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -32,16 +32,17 @@
 /*
  * Error codes that can be returned by the Hamlib functions
  */
-#define RIG_OK			 0			/* completed sucessfully */
-#define RIG_EINVAL		-1			/* invalid parameter */
-#define RIG_ECONF		-2			/* invalid configuration (serial,..) */
-#define RIG_ENOMEM		-3			/* memory shortage */
-#define RIG_ENIMPL		-4			/* function not implemented */
-#define RIG_ETIMEOUT	-5			/* communication timed out */
-#define RIG_EIO			-6			/* IO error, including open failed */
-#define RIG_EINTERNAL	-7			/* Internal Hamlib error, huh! */
-#define RIG_EPROTO		-8			/* Protocol error */
-#define RIG_ERJCTED		-9			/* Command rejected by the rig */
+#define RIG_OK			0			/* completed sucessfully */
+#define RIG_EINVAL		1			/* invalid parameter */
+#define RIG_ECONF		2			/* invalid configuration (serial,..) */
+#define RIG_ENOMEM		3			/* memory shortage */
+#define RIG_ENIMPL		4			/* function not implemented */
+#define RIG_ETIMEOUT	5			/* communication timed out */
+#define RIG_EIO			6			/* IO error, including open failed */
+#define RIG_EINTERNAL	7			/* Internal Hamlib error, huh! */
+#define RIG_EPROTO		8			/* Protocol error */
+#define RIG_ERJCTED		9			/* Command rejected by the rig */
+#define RIG_ETRUNC 		10			/* Command performed, but arg truncated */
 
 
 /* Forward struct references */
@@ -189,9 +190,10 @@ typedef unsigned int rmode_t;	/* radio mode  */
 
 #define RIGNAMSIZ 30
 #define RIGVERSIZ 8
-#define MAXRIGPATHLEN 100
+#define FILPATHLEN 100
 #define FRQRANGESIZ 30
-#define MAXCHANDESC 30		/* describe channel eg: WWV 5Mhz */
+#define MAXCHANDESC 30		/* describe channel eg: "WWV 5Mhz" */
+#define TSLSTSIZ 20			/* max tuning step list size, zero ended */
 
 
 /*
@@ -205,6 +207,15 @@ struct freq_range_list {
   int low_power;	/* in mW, -1 for no power (ie. rx list) */
   int high_power;	/* in mW, -1 for no power (ie. rx list) */
 };
+
+/*
+ * Lists the tuning steps available for each mode
+ */
+struct tuning_step_list {
+  unsigned long modes;	/* bitwise OR'ed RIG_MODE_* */
+  unsigned long ts;		/* tuning step in Hz */
+};
+
 
 
 /* 
@@ -220,7 +231,7 @@ struct channel {
   vfo_t vfo;
   int power;	/* in mW */
   signed int preamp;	/* in dB, if < 0, this is attenuator */
-  unsigned int tuning_step;	/* */
+  unsigned long tuning_step;	/* */
   unsigned char channel_desc[MAXCHANDESC];
 };
 
@@ -263,6 +274,7 @@ struct rig_caps {
   int chan_qty;		/* number of channels */
   struct freq_range_list rx_range_list[FRQRANGESIZ];
   struct freq_range_list tx_range_list[FRQRANGESIZ];
+  struct tuning_step_list tuning_steps[TSLSTSIZ];
 
   /*
    * Rig Admin API
@@ -326,8 +338,9 @@ struct rig_state {
 	int timeout;	/* in ms */
 	int retry;		/* maximum number of retries, 0 to disable */
   	enum ptt_type_e ptt_type;	/* how we will key the rig */
+  	char ptt_path[FILPATHLEN];	/* path to the keying device (serial,//) */
 	double vfo_comp;	/* VFO compensation in PPM, 0.0 to disable */
-	char rig_path[MAXRIGPATHLEN]; /* serial port/network path(host:port) */
+	char rig_path[FILPATHLEN]; /* serial port/network path(host:port) */
 	int fd;	/* serial port/socket file handle */
 	/*
 	 * Pointer to private data
@@ -395,9 +408,13 @@ int rig_cleanup(RIG *rig);
 
 RIG *rig_probe(const char *rig_path);
 
-int rig_has_func(RIG *rig, unsigned long func);
+int rig_has_func(RIG *rig, unsigned long func);	/* is part of capabilities? */
+int rig_set_func(RIG *rig, unsigned long func);	/* activate the function(s) */
+int rig_get_func(RIG *rig, unsigned long *func); /* get the setting from rig */
 
 const struct rig_caps *rig_get_caps(rig_model_t rig_model);
+
+const char *rigerror(int errnum);
 
 #endif /* _RIG_H */
 

@@ -43,6 +43,28 @@
 static const struct rig_caps *rig_base[] = { 
 	&ft747_caps, &ic706_caps, &ic706mkiig_caps, /* ... */ NULL, };
 
+static const char *rigerror_table[] = {
+		"Command completed sucessfully",
+		"Invalid parameter",
+		"Invalid configuration",
+		"Memory shortage",
+		"Feature not implemented",
+		"Communication timed out",
+		"IO error",
+		"Internal Hamlib error",
+		"Protocol error",
+		"Command rejected by the rig",
+		"Command performed, but arg truncated, result not guaranteed"
+};
+
+/*
+ * TODO: check table bounds, use gettext
+ */
+const char *rigerror(int errnum)
+{
+			return rigerror_table[errnum];
+}
+
 
 RIG *rig_init(rig_model_t rig_model)
 {
@@ -81,7 +103,7 @@ RIG *rig_init(rig_model_t rig_model)
 		 */
 
 		rig->state.port_type = RIG_PORT_SERIAL; /* default is serial port */
-		strncpy(rig->state.rig_path, DEFAULT_SERIAL_PORT, MAXRIGPATHLEN);
+		strncpy(rig->state.rig_path, DEFAULT_SERIAL_PORT, FILPATHLEN);
 		rig->state.port_type = RIG_PORT_SERIAL; /* default is serial port */
 		rig->state.serial_rate = rig->caps->serial_rate_max;	/* fastest ! */
 		rig->state.serial_data_bits = rig->caps->serial_data_bits;
@@ -108,7 +130,7 @@ int rig_open(RIG *rig)
 		int status;
 
 		if (!rig)
-				return RIG_EINVAL;
+				return -RIG_EINVAL;
 
 		switch(rig->state.port_type) {
 		case RIG_PORT_SERIAL:
@@ -119,7 +141,7 @@ int rig_open(RIG *rig)
 
 		case RIG_PORT_NETWORK:	/* not implemented yet! */
 		default:
-				return RIG_ENIMPL;
+				return -RIG_ENIMPL;
 		}
 
 		/* 
@@ -144,13 +166,13 @@ int rig_open(RIG *rig)
 int rig_set_freq(RIG *rig, freq_t freq)
 {
 		if (!rig || !rig->caps)
-			return RIG_EINVAL;
+			return -RIG_EINVAL;
 
 		if (rig->state.vfo_comp != 0.0)
 				freq = (freq_t)(rig->state.vfo_comp * freq);
 
 		if (rig->caps->set_freq == NULL)
-			return RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENIMPL;	/* not implemented */
 		else
 			return rig->caps->set_freq(rig, freq);
 }
@@ -163,10 +185,10 @@ int rig_set_freq(RIG *rig, freq_t freq)
 int rig_get_freq(RIG *rig, freq_t *freq)
 {
 		if (!rig || !rig->caps || !freq)
-			return RIG_EINVAL;
+			return -RIG_EINVAL;
 
 		if (rig->caps->get_freq == NULL)
-			return RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENIMPL;	/* not implemented */
 		else
 			return rig->caps->get_freq(rig, freq);
 }
@@ -180,10 +202,10 @@ int rig_get_freq(RIG *rig, freq_t *freq)
 int rig_set_mode(RIG *rig, rmode_t mode)
 {
 		if (!rig || !rig->caps)
-			return RIG_EINVAL;
+			return -RIG_EINVAL;
 
 		if (rig->caps->set_mode == NULL)
-			return RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENIMPL;	/* not implemented */
 		else
 			return rig->caps->set_mode(rig, mode);
 }
@@ -196,10 +218,10 @@ int rig_set_mode(RIG *rig, rmode_t mode)
 int rig_get_mode(RIG *rig, rmode_t *mode)
 {
 		if (!rig || !rig->caps || !mode)
-			return RIG_EINVAL;
+			return -RIG_EINVAL;
 
 		if (rig->caps->get_mode == NULL)
-			return RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENIMPL;	/* not implemented */
 		else
 			return rig->caps->get_mode(rig, mode);
 }
@@ -213,10 +235,10 @@ int rig_get_mode(RIG *rig, rmode_t *mode)
 int rig_set_vfo(RIG *rig, vfo_t vfo)
 {
 		if (!rig || !rig->caps)
-			return RIG_EINVAL;
+			return -RIG_EINVAL;
 
 		if (rig->caps->set_vfo == NULL)
-			return RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENIMPL;	/* not implemented */
 		else
 			return rig->caps->set_vfo(rig, vfo);
 }
@@ -229,10 +251,10 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
 int rig_get_vfo(RIG *rig, vfo_t *vfo)
 {
 		if (!rig || !rig->caps || !vfo)
-			return RIG_EINVAL;
+			return -RIG_EINVAL;
 
 		if (rig->caps->get_vfo == NULL)
-			return RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENIMPL;	/* not implemented */
 		else
 			return rig->caps->get_vfo(rig, vfo);
 }
@@ -251,7 +273,7 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
 int rig_close(RIG *rig)
 {
 		if (rig == NULL || rig->caps)
-				return RIG_EINVAL;
+				return -RIG_EINVAL;
 
 		/*
 		 * Let the backend say 73s to the rig
@@ -273,7 +295,7 @@ int rig_close(RIG *rig)
 int rig_cleanup(RIG *rig)
 {
 		if (rig == NULL || rig->caps)
-				return RIG_EINVAL;
+				return -RIG_EINVAL;
 
 		/*
 		 * basically free up the priv struct 
@@ -301,7 +323,7 @@ RIG *rig_probe(const char *port_path)
 		for (i = 0; rig_base[i]; i++) {
 			if (rig_base[i]->rig_probe != NULL) {
 				rig = rig_init(rig_base[i]->rig_model);
-				strncpy(rig->state.rig_path, port_path, MAXRIGPATHLEN);
+				strncpy(rig->state.rig_path, port_path, FILPATHLEN);
 				rig_open(rig);
 				if (rig && rig_base[i]->rig_probe(rig) == 0) {
 					return rig;

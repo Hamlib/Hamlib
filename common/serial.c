@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.13 2000-09-19 06:59:27 f4cfe Exp $  
+ * $Id: serial.c,v 1.14 2000-09-21 06:44:44 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -60,7 +60,7 @@ int serial_open(struct rig_state *rs) {
   speed_t speed;			/* serial comm speed */
 
   if (!rs)
-		  return RIG_EINVAL;
+		  return -RIG_EINVAL;
 
   /*
    * Open in Non-blocking mode. Watch for EAGAIN errors!
@@ -73,7 +73,7 @@ int serial_open(struct rig_state *rs) {
     
     fprintf(stderr, "serial_open: Unable to open %s - %s\n", 
 						rs->rig_path, strerror(errno));
-    return RIG_EIO;
+    return -RIG_EIO;
   }
  
   /*
@@ -112,7 +112,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported rate specified: %d\n", 
 					rs->serial_rate);
 	close(fd);
-    return RIG_ECONF;
+    return -RIG_ECONF;
   }
   cfsetispeed(&options, speed);
   cfsetospeed(&options, speed);
@@ -141,7 +141,7 @@ int serial_open(struct rig_state *rs) {
     printf("open_serial: unsupported serial_data_bits specified: %d\n",
 					rs->serial_data_bits);
 	close(fd);
-    return RIG_ECONF;
+    return -RIG_ECONF;
     break;
   }
 
@@ -162,7 +162,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported serial_stop_bits specified: %d\n",
 					rs->serial_stop_bits);
 	close(fd);
-    return RIG_ECONF;
+    return -RIG_ECONF;
     break;
   }
 
@@ -187,7 +187,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported serial_parity specified: %d\n",
 					rs->serial_parity);
 	close(fd);
-    return RIG_ECONF;
+    return -RIG_ECONF;
     break;
   }
 
@@ -214,7 +214,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported flow_control specified: %d\n",
 					rs->serial_handshake);
 	close(fd);
-    return RIG_ECONF;
+    return -RIG_ECONF;
     break;
   }
 
@@ -244,7 +244,7 @@ int serial_open(struct rig_state *rs) {
 		fprintf(stderr, "open_serial: tcsetattr failed: %s\n", 
 					strerror(errno));
 		close(fd);
-		return RIG_ECONF;		/* arg, so close! */
+		return -RIG_ECONF;		/* arg, so close! */
   }
 
   rs->fd = fd;
@@ -318,7 +318,7 @@ int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_d
   	for (i=0; i < count; i++) {
 		if (write(fd, txbuffer+i, 1) < 0) {
 			fprintf(stderr,"write_block() failed - %s\n", strerror(errno));
-			return RIG_EIO;
+			return -RIG_EIO;
     	}
     	usleep(write_delay*1000);
   	}
@@ -363,7 +363,7 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
 		if (!retval) {
 			fprintf(stderr,"rig timeout after %d chars or select error - %s!\n",
 							total_count, strerror(errno));
-				return RIG_ETIMEOUT;
+				return -RIG_ETIMEOUT;
 		}
 
 		/*
@@ -374,7 +374,7 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
 		if (rd_count < 0) {
 				fprintf(stderr, "read_block: read failed - %s\n",
 									strerror(errno));
-				return RIG_EIO;
+				return -RIG_EIO;
 		}
 		total_count += rd_count;
 		count -= rd_count;
