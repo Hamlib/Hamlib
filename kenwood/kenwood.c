@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.79 2004-11-27 13:19:56 fillods Exp $
+ *	$Id: kenwood.c,v 1.80 2004-12-20 22:58:19 jrinas Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -765,43 +765,43 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		ack_len = 0;
 		switch (func) {
 		case RIG_FUNC_NB:
-		fct_len = sprintf(fctbuf,"NB%c;", status==RIG_FUNC_NB?'0':'1');
+		fct_len = sprintf(fctbuf,"NB%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_ABM:
-		fct_len = sprintf(fctbuf,"AM%c;", status==RIG_FUNC_ABM?'0':'1');
+		fct_len = sprintf(fctbuf,"AM%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_COMP:
-		fct_len = sprintf(fctbuf,"PR%c;", status==RIG_FUNC_COMP?'0':'1');
+		fct_len = sprintf(fctbuf,"PR%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_TONE:
-		fct_len = sprintf(fctbuf,"TO%c;", status==RIG_FUNC_TONE?'0':'1');
+		fct_len = sprintf(fctbuf,"TO%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_TSQL:
-		fct_len = sprintf(fctbuf,"CT%c;", status==RIG_FUNC_TSQL?'0':'1');
+		fct_len = sprintf(fctbuf,"CT%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_VOX:
-		fct_len = sprintf(fctbuf,"VX%c;", status==RIG_FUNC_VOX?'0':'1');
+		fct_len = sprintf(fctbuf,"VX%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_NR:
-		fct_len = sprintf(fctbuf,"NR%c;", status==RIG_FUNC_NR?'0':'1');
+		fct_len = sprintf(fctbuf,"NR%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_BC:
-		fct_len = sprintf(fctbuf,"BC%c;", status==RIG_FUNC_BC?'0':'1');
+		fct_len = sprintf(fctbuf,"BC%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_ANF:
-		fct_len = sprintf(fctbuf,"NT%c;", status==RIG_FUNC_ANF?'0':'1');
+		fct_len = sprintf(fctbuf,"NT%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_LOCK:
-		fct_len = sprintf(fctbuf,"LK%c;", status==RIG_FUNC_LOCK?'0':'1');
+		fct_len = sprintf(fctbuf,"LK%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		default:
@@ -1303,7 +1303,7 @@ DECLARE_PROBERIG_BACKEND(kenwood)
 	unsigned char idbuf[IDBUFSZ];
 	int id_len=-1, i, k_id;
 	int retval=-1;
-	int rates[] = { 57600, 9600, 4800, 1200, 0 };	/* possible baud rates */
+	int rates[] = { 115200, 57600, 9600, 4800, 1200, 0 };	/* possible baud rates */
 	int rates_idx;
 
 	if (!port)
