@@ -34,7 +34,7 @@ libhamlib.so -  frontend lib that provides generic API
 Backend Examples are:
 ---------------------
  
-1.libhamlib-ft747.so will provide connectivity to Yeasu
+1.libhamlib-ft747.so will provide connectivity to Yaesu
   FT 747GX Transceiver via a standard API.
 
 2. libhamlib-ft847.so will provide connectivity to Yaesu FT 847
