@@ -1,6 +1,13 @@
 bin_PROGRAMS = dumpcaps testrig testtrn testbcd listrigs
 LDADD = ../src/libhamlib.la
 listrigs_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../ft747/libhamlib-ft747.la "-dlopen" ../ft847/libhamlib-ft847.la
+dumpcaps_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../ft747/libhamlib-ft747.la "-dlopen" ../ft847/libhamlib-ft847.la
+testrig_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../ft747/libhamlib-ft747.la "-dlopen" ../ft847/libhamlib-ft847.la
+testtrn_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../ft747/libhamlib-ft747.la "-dlopen" ../ft847/libhamlib-ft847.la
+listrigs_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
+dumpcaps_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
+testrig_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
+testtrn_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
 listrigs_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
 testrig_SOURCES = testrig.c
 testtrn_SOURCES = testtrn.c
