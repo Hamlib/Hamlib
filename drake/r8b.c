@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8B description
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: r8b.c,v 1.2 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: r8b.c,v 1.3 2002-10-20 20:46:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,8 +28,7 @@
 #include "drake.h"
 
 
-/* FIXME! */
-#define R8B_MODES (RIG_MODE_NONE)
+#define R8B_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_FM)
 
 #define R8B_FUNC (RIG_FUNC_NONE)
 
@@ -37,20 +36,25 @@
 
 #define R8B_PARM_ALL (RIG_PARM_NONE)
 
-#define R8B_VFO RIG_VFO_A
+#define R8B_VFO (RIG_VFO_A|RIG_VFO_B)
+
+#define R8B_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_CPY)
+
 
 /*
  * R-8B rig capabilities.
  *
- * TODO: check this with manual or web site.
+ * manual: http://www.rldrake.com/swl/R8B.pdf
+ *
  */
+
 const struct rig_caps r8b_caps = {
 .rig_model =  RIG_MODEL_DKR8B,
 .model_name = "R-8B",
 .mfg_name =  "Drake",
 .version =  "0.1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_UNTESTED,		/* and only basic support */
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -60,7 +64,7 @@ const struct rig_caps r8b_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
+.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
 .post_write_delay =  1,
 .timeout =  200,
@@ -76,40 +80,56 @@ const struct rig_caps r8b_caps = {
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END },
-.attenuator =   { RIG_DBLST_END },
+.preamp =   { 10, RIG_DBLST_END },
+.attenuator =   { 10, RIG_DBLST_END },
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
-.transceive =  RIG_TRN_OFF,
+.transceive =  RIG_TRN_OFF,	/* TODO: acutally has RIG_TRN_RIG */
 .bank_qty =   0,
-.chan_desc_sz =  0,
+.chan_desc_sz =  7,
+.vfo_ops =  R8B_VFO_OPS,
 
 .chan_list =  {
-		RIG_CHAN_END,
+		RIG_CHAN_END,	/* FIXME */
 	},
 
-.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.rx_range_list1 =  { 
+	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO},
+	RIG_FRNG_END,
+  },
 .tx_range_list1 =  { RIG_FRNG_END, },
 .rx_range_list2 =  {
-	{MHz(29),MHz(956),R8B_MODES,-1,-1,R8B_VFO},  // FIXME
+	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO},
 	RIG_FRNG_END,
   },
 .tx_range_list2 =  { RIG_FRNG_END, },
+
 .tuning_steps =  {
-	 {R8B_MODES,10},	/* FIXME: add other ts */
+	 {R8B_MODES,10},
+	 {R8B_MODES,100},
+	 {R8B_MODES,kHz(1)},
+	 {R8B_MODES,kHz(10)},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(8)},
-		{RIG_MODE_WFM, kHz(230)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.3)},	/* normal */
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(6)},	/* wide */
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(4)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(1.8)},	/* narrow */
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, Hz(500)},
+		{RIG_MODE_FM, kHz(12)},
 		RIG_FLT_END,
 	},
 .priv =  NULL,
 
 .set_freq =  drake_set_freq,
+.set_vfo =  drake_set_vfo,
+.set_mode =  drake_set_mode,
+
+.get_info =  drake_get_info,
 
 };
 
