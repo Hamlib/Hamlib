@@ -11,9 +11,9 @@
 
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.57 2002-03-14 23:06:02 fillods Exp $
+ *		$Id: rig.c,v 1.58 2002-03-18 22:59:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -97,6 +97,8 @@ static const char *rigerror_table[] = {
 		"Command performed, but arg truncated, result not guaranteed",
 		"Feature not available",
 		"Target VFO unaccessible",
+		"Communication bus error",
+		"Communication bus collision",
 		NULL,
 };
 /**

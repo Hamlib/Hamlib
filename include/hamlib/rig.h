@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - API header
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.62 2002-03-05 00:43:08 fillods Exp $
+ *		$Id: rig.h,v 1.63 2002-03-18 22:59:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,6 +82,8 @@ typedef unsigned int tone_t;
 #define RIG_ETRUNC 		10			/* Command performed, but arg truncated */
 #define RIG_ENAVAIL		11			/* function not available */
 #define RIG_ENTARGET	12			/* VFO not targetable */
+#define RIG_BUSERROR	13			/* Error talking on the bus */
+#define RIG_BUSBUSY		14			/* Collision on the bus */
 
 
 /* Forward struct references */
