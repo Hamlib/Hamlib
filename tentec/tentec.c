@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.8 2003-04-16 22:30:43 fillods Exp $
+ *	$Id: tentec.c,v 1.9 2003-05-05 10:46:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -205,9 +205,12 @@ int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	struct rig_state *rs = &rig->state;
 	int freq_len, retval;
 	char freqbuf[16];
+	freq_t old_freq;
 
 	priv = (struct tentec_priv_data *)rig->state.priv;
 
+	old_freq = priv->freq;
+	priv->freq = freq;
 	tentec_tuning_factor_calc(rig);
 
 	freq_len = sprintf(freqbuf, "N%c%c%c%c%c%c" EOM, 
@@ -216,10 +219,10 @@ int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 						priv->btf >> 8, priv->btf & 0xff);
 	
 	retval = write_block(&rs->rigport, freqbuf, freq_len);
-	if (retval != RIG_OK)
-			return retval;
-
-	priv->freq = freq;
+	if (retval != RIG_OK) {
+		priv->freq = old_freq;
+		return retval;
+	}
 
 	return RIG_OK;
 }
@@ -372,7 +375,7 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
 	int retval, lvl_len;
-	char lvlbuf[32];
+	unsigned char lvlbuf[32];
 
 
 	/* Optimize:
@@ -386,14 +389,16 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval != RIG_OK)
 			return retval;
 
-		if (lvl_len != 4) {
+		if (lvl_len != 3) {
 			rig_debug(RIG_DEBUG_ERR,"tentec_get_level: wrong answer"
 							"len=%d\n", lvl_len);
 			return -RIG_ERJCTED;
 		}
 
-		lvlbuf[4] = '\0';
-		val->i = rig_raw2val((lvlbuf[1]<<8) + lvlbuf[1], &priv->str_cal);
+		lvlbuf[3] = '\0';
+		rig_debug(RIG_DEBUG_VERBOSE,"tentec_get_level: cmd=%c,hi=%d,lo=%d\n",
+				lvlbuf[0],lvlbuf[1],lvlbuf[2]);
+		val->i = rig_raw2val((lvlbuf[1]<<8) + lvlbuf[2], &priv->str_cal);
 		break;
 
 	case RIG_LEVEL_AGC:
