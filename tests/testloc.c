@@ -8,12 +8,13 @@
  * to >= 1 or <= 6.  If two locators are given, then the qrb is also
  * calculated.
  *
- *	$Id: testloc.c,v 1.11 2003-11-03 04:26:37 n0nb Exp $
+ *	$Id: testloc.c,v 1.12 2004-01-16 21:19:03 fillods Exp $
  *
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <hamlib/rotator.h>
 
 
@@ -23,13 +24,13 @@ int main (int argc, char *argv[]) {
 	double distance, az, mmm, sec;
 	int  deg, min, retcode, loc_len, nesw = 0;
 
-	if (argc < 3) {
+	if (argc < 2) {
 		fprintf(stderr, "Usage: %s <locator1> <precision> [<locator2>]\n", argv[0]);
 		exit(1);
 	}
 
 	loc1 = argv[1];
-        loc_len = atoi(argv[2]);
+       	loc_len = argc > 2 ? atoi(argv[2]) : strlen(loc1)/2;
 	loc2 = argc > 3 ? argv[3] : NULL;
 
 	printf("Locator1:\t%s\n", loc1);
