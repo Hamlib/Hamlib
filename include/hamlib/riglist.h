@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.5 2000-11-28 22:28:30 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.6 2001-01-28 22:13:09 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
 
 enum rig_model_e {
 	/*
-	 * Yeasu 
+	 * Yaesu 
 	 */
 	RIG_MODEL_FT847 = 0,
 	RIG_MODEL_FT1000,
