@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - low level communication routines
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: frame.c,v 1.14 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: frame.c,v 1.15 2002-03-05 00:39:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -111,6 +111,9 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 * should check return code and that write wrote cmd_len chars! 
 		 */
 		Hold_Decode(rig);
+
+		serial_flush(&rs->rigport);
+
 		retval = write_block(&rs->rigport, buf, frm_len);
 		if (retval != RIG_OK) {
 				Unhold_Decode(rig);
@@ -244,6 +247,15 @@ unsigned short rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width)
 		else
 				icmode_ext = 0x01;
 
+		if (rig->caps->rig_model == RIG_MODEL_ICR7000) {
+				if (mode == RIG_MODE_USB || mode == RIG_MODE_LSB) {
+						icmode = S_AM;
+						icmode_ext = 0x00;
+				} else if (mode == RIG_MODE_AM && icmode_ext == 0x00) {
+						icmode_ext = 0x01;	/* default to Wide */
+				}
+		}
+		
 		return (icmode_ext<<8 | icmode);
 }
 
@@ -257,7 +269,14 @@ void icom2rig_mode(RIG *rig, unsigned short icmode, rmode_t *mode, pbwidth_t *wi
 		switch (icmode & 0xff) {
 		case S_AM:	*mode = RIG_MODE_AM; break;
 		case S_CW:	*mode = RIG_MODE_CW; break;
-		case S_FM:	*mode = RIG_MODE_FM; break;
+		case S_FM:	if (rig->caps->rig_model == RIG_MODEL_ICR7000
+									&& ((icmode>>8) & 0xff) == 0x00) {
+							*mode = RIG_MODE_USB;
+							*width = rig_passband_normal(rig, *mode);
+							return;
+					} else
+							*mode = RIG_MODE_FM;
+					break;
 		case S_WFM:	*mode = RIG_MODE_WFM; break;
 		case S_USB:	*mode = RIG_MODE_USB; break;
 		case S_LSB:	*mode = RIG_MODE_LSB; break;
