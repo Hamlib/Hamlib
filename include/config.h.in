@@ -39,12 +39,6 @@
 /* Define if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
 
-/* Define if you have the <linradio/radio_ioctl.h> header file. */
-#undef HAVE_LINRADIO_RADIO_IOCTL_H
-
-/* Define if you have the <linradio/wrapi.h> header file. */
-#undef HAVE_LINRADIO_WRAPI_H
-
 /* Define if you have the <linux/ppdev.h> header file. */
 #undef HAVE_LINUX_PPDEV_H
 
