@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.31 2003-02-23 22:43:01 fillods Exp $
+ *	$Id: dummy.c,v 1.32 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -480,7 +480,7 @@ static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t
   return RIG_OK;
 }
 
-static int dummy_set_split(RIG *rig, vfo_t vfo, split_t split)
+static int dummy_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
@@ -492,7 +492,7 @@ static int dummy_set_split(RIG *rig, vfo_t vfo, split_t split)
 }
 
 
-static int dummy_get_split(RIG *rig, vfo_t vfo, split_t *split)
+static int dummy_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
@@ -1117,8 +1117,8 @@ const struct rig_caps dummy_caps = {
   .get_split_freq = 	dummy_get_split_freq,
   .set_split_mode = 	dummy_set_split_mode,
   .get_split_mode = 	dummy_get_split_mode,
-  .set_split = 	dummy_set_split,
-  .get_split = 	dummy_get_split,
+  .set_split_vfo = 	dummy_set_split_vfo,
+  .get_split_vfo = 	dummy_get_split_vfo,
   .set_rit = 	dummy_set_rit,
   .get_rit = 	dummy_get_rit,
   .set_xit = 	dummy_set_xit,

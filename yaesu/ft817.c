@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.c,v 1.6 2003-03-10 08:26:20 fillods Exp $  
+ *    $Id: ft817.c,v 1.7 2003-04-06 18:40:35 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -218,8 +218,8 @@ const struct rig_caps ft817_caps = {
   .get_split_freq = 	NULL,
   .set_split_mode = 	NULL,
   .get_split_mode = 	NULL,
-  .set_split = 		NULL,
-  .get_split = 		NULL,
+  .set_split_vfo = 	NULL,
+  .get_split_vfo =	NULL,
   .set_rit = 		NULL,
   .get_rit = 		NULL,
   .set_xit = 		NULL,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Alinco backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *		$Id: alinco.c,v 1.13 2002-03-13 23:37:12 fillods Exp $
+ *	$Id: alinco.c,v 1.14 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -332,7 +332,7 @@ int alinco_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * alinco_set_split
  * Assumes rig!=NULL
  */
-int alinco_set_split(RIG *rig, vfo_t vfo, split_t split)
+int alinco_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
 		int cmd_len;
 		char cmdbuf[BUFSZ];
@@ -347,7 +347,7 @@ int alinco_set_split(RIG *rig, vfo_t vfo, split_t split)
  * alinco_get_split
  * Assumes rig!=NULL, split!=NULL
  */
-int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split)
+int alinco_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
 		int splt_len, retval;
 		char spltbuf[BUFSZ];

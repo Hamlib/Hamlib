@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.68 2003-03-10 08:26:09 fillods Exp $
+ *	$Id: rig.c,v 1.69 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1581,9 +1581,9 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_widt
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_get_split()
+ * \sa rig_get_split_vfo()
  */
-int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
+int rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1594,12 +1594,12 @@ int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
 
 		caps = rig->caps;
 
-		if (caps->set_split == NULL)
+		if (caps->set_split_vfo == NULL)
 			return -RIG_ENAVAIL;
 
 		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
 						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-			return caps->set_split(rig, vfo, split);
+			return caps->set_split_vfo(rig, vfo, split, tx_vfo);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -1608,7 +1608,7 @@ int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->set_split(rig, vfo, split);
+		retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -1625,9 +1625,9 @@ int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_set_split()
+ * \sa rig_set_split_vfo()
  */
-int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
+int rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1638,12 +1638,12 @@ int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 
 		caps = rig->caps;
 
-		if (caps->get_split == NULL)
+		if (caps->get_split_vfo == NULL)
 			return -RIG_ENAVAIL;
 
 		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
 						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-			return caps->get_split(rig, vfo, split);
+			return caps->get_split_vfo(rig, vfo, split, tx_vfo);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -1652,7 +1652,7 @@ int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->get_split(rig, vfo, split);
+		retcode = caps->get_split_vfo(rig, vfo, split, tx_vfo);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -2222,7 +2222,8 @@ int rig_reset(RIG *rig, reset_t reset)
 		return rig->caps->reset(rig, reset);
 }
 
-
+extern int rig_probe_first(port_t *p);
+extern int rig_probe_all_backends(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data);
 /**
  * \brief try to guess a rig
  * \param port		A pointer describing a port linking the host to the rig

@@ -1,5 +1,5 @@
 /*
- * hamlib - (C) Frank Singleton 2000-2002
+ * hamlib - (C) Frank Singleton 2000-2003
  *
  * ft100.c - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.8 2003-03-10 08:26:20 fillods Exp $  
+ *    $Id: ft100.c,v 1.9 2003-04-06 18:40:35 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -270,8 +270,8 @@ const struct rig_caps ft100_caps = {
   .get_split_freq = 	NULL,
   .set_split_mode =        NULL,
   .get_split_mode = 	NULL,
-  .set_split = 		ft100_set_split,
-  .get_split = 		NULL,
+  .set_split_vfo = 	ft100_set_split_vfo,
+  .get_split_vfo =	NULL,
   .set_rit = 		NULL,
   .get_rit = 		NULL,
   .set_xit = 		NULL,
@@ -688,7 +688,7 @@ int ft100_get_parm(RIG *rig, setting_t parm, value_t *val) {
 
 
 /* kc2ivl */
-int ft100_set_split(RIG *rig, vfo_t vfo, split_t split) {
+int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
 
   unsigned char cmd_index;
 

@@ -1,5 +1,5 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ * hamlib - (C) Frank Singleton 2000-2003 (vk3fcs@ix.netcom.com)
  *
  * ft100.h - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.4 2002-12-01 03:08:05 n0nb Exp $  
+ *    $Id: ft100.h,v 1.5 2003-04-06 18:40:35 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -163,8 +163,8 @@ int ft100_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int ft100_set_parm(RIG *rig, setting_t parm, value_t val);
 int ft100_get_parm(RIG *rig, setting_t parm, value_t *val);
 
-int ft100_set_split(RIG *rig, vfo_t vfo, split_t split);
-int ft100_get_split(RIG *rig, vfo_t vfo, split_t *split);
+int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
 int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);			 

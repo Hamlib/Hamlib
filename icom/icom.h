@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - main header
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.53 2003-03-10 08:26:08 fillods Exp $
+ *	$Id: icom.h,v 1.54 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -110,8 +110,8 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
 int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
-int icom_set_split(RIG *rig, vfo_t vfo, split_t split);
-int icom_get_split(RIG *rig, vfo_t vfo, split_t *split);
+int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);

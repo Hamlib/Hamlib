@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.11 2003-01-19 04:48:00 n0nb Exp $  
+ *    $Id: ft920.h,v 1.12 2003-04-06 18:40:36 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -321,8 +321,8 @@ static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int ft920_set_vfo(RIG *rig, vfo_t vfo);
 static int ft920_get_vfo(RIG *rig, vfo_t *vfo);
 
-static int ft920_set_split(RIG *rig, vfo_t vfo, split_t split);
-static int ft920_get_split(RIG *rig, vfo_t vfo, split_t *split);
+static int ft920_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.72 2003-03-10 08:26:08 fillods Exp $
+ *	$Id: icom.c,v 1.73 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1362,7 +1362,7 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wid
  * icom_set_split
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
+int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
@@ -1404,7 +1404,7 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
  * icom_get_split
  * Assumes rig!=NULL, rig->state.priv!=NULL, split!=NULL
  */
-int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
+int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;

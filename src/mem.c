@@ -3,16 +3,16 @@
  * \ingroup rig
  * \brief Memory and channel interface
  * \author Stephane Fillod
- * \date 2000-2002
+ * \date 2000-2003
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - mem/channel calls
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.1 2002-11-04 22:21:42 fillods Exp $
+ *	$Id: mem.c,v 1.2 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -242,7 +242,7 @@ int generic_save_channel(RIG *rig, channel_t *chan)
   rig_get_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width);
 
   chan->split = RIG_SPLIT_OFF;
-  rig_get_split(rig, RIG_VFO_CURR, &chan->split);
+  rig_get_split_vfo(rig, RIG_VFO_CURR, &chan->split, &chan->tx_vfo);
   if (chan->split != RIG_SPLIT_OFF) {
   	rig_get_split_freq(rig, RIG_VFO_CURR, &chan->tx_freq);
   	rig_get_split_mode(rig, RIG_VFO_CURR, &chan->tx_mode, &chan->tx_width);
@@ -296,7 +296,7 @@ int generic_restore_channel(RIG *rig, const channel_t *chan)
   rig_set_vfo(rig, chan->vfo);
   rig_set_freq(rig, RIG_VFO_CURR, chan->freq);
   rig_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
-  rig_set_split(rig, RIG_VFO_CURR, chan->split);
+  rig_set_split_vfo(rig, RIG_VFO_CURR, chan->split, chan->tx_vfo);
   if (chan->split != RIG_SPLIT_OFF) {
   	rig_set_split_freq(rig, RIG_VFO_CURR, chan->tx_freq);
   	rig_set_split_mode(rig, RIG_VFO_CURR, chan->tx_mode, chan->tx_width);

@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.14 2003-01-19 04:48:00 n0nb Exp $
+ * $Id: ft920.c,v 1.15 2003-04-06 18:40:36 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -268,8 +268,8 @@ const struct rig_caps ft920_caps = {
   .get_mode =           ft920_get_mode, /* get mode */
   .set_vfo =            ft920_set_vfo,  /* set vfo */
   .get_vfo =            ft920_get_vfo,  /* get vfo */
-  .set_split =          ft920_set_split,
-  .get_split =          ft920_get_split,
+  .set_split_vfo =      ft920_set_split_vfo,
+  .get_split_vfo =      ft920_get_split_vfo,
   .set_split_freq =     ft920_set_split_freq,
   .get_split_freq =     ft920_get_split_freq,
   .set_split_mode =     ft920_set_split_mode,
@@ -941,7 +941,7 @@ static int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
  *
  */
 
-static int ft920_set_split(RIG *rig, vfo_t vfo, split_t split) {
+static int ft920_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
   unsigned char cmd_index;
   int err;
 
@@ -979,7 +979,7 @@ static int ft920_set_split(RIG *rig, vfo_t vfo, split_t split) {
  *
  */
 
-static int ft920_get_split(RIG *rig, vfo_t vfo, split_t *split) {
+static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo) {
   struct ft920_priv_data *priv;
   unsigned char status_0;
   int err;

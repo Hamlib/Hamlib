@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: rigclass.h,v 1.12 2002-11-14 19:27:35 fillods Exp $
+ *	$Id: rigclass.h,v 1.13 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -134,8 +134,8 @@ public:
   freq_t getSplitFreq (vfo_t vfo = RIG_VFO_CURR);
   void setSplitMode(rmode_t, pbwidth_t width = RIG_PASSBAND_NORMAL, vfo_t vfo = RIG_VFO_CURR);
   rmode_t getSplitMode(pbwidth_t&, vfo_t vfo = RIG_VFO_CURR);
-  void setSplit(split_t split, vfo_t vfo = RIG_VFO_CURR);
-  split_t getSplit(vfo_t vfo = RIG_VFO_CURR);
+  void setSplitVFO(split_t split, vfo_t vfo = RIG_VFO_CURR, vfo_t tx_vfo = RIG_VFO_CURR);
+  split_t getSplitVFO(vfo_t &tx_vfo, vfo_t vfo = RIG_VFO_CURR);
 
   void setRit  (shortfreq_t rit, vfo_t vfo = RIG_VFO_CURR);
   shortfreq_t getRit  (vfo_t vfo = RIG_VFO_CURR);

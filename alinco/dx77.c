@@ -1,8 +1,8 @@
 /*
  *  Hamlib Alinco backend - DX77 description
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.5 2002-11-04 22:40:54 fillods Exp $
+ *	$Id: dx77.c,v 1.6 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -169,8 +169,8 @@ const struct rig_caps dx77_caps = {
 .get_mode =  alinco_get_mode,
 .set_vfo =  alinco_set_vfo,
 .get_vfo =  alinco_get_vfo,
-.set_split =  alinco_set_split,
-.get_split =  alinco_get_split,
+.set_split_vfo =  alinco_set_split_vfo,
+.get_split_vfo =  alinco_get_split_vfo,
 .set_split_freq =  alinco_set_split_freq,
 .get_split_freq =  alinco_get_split_freq,
 .set_ctcss_tone =  alinco_set_ctcss_tone,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-756 and variations
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.6 2002-11-04 22:40:54 fillods Exp $
+ *	$Id: ic756.c,v 1.7 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -214,8 +214,8 @@ const struct rig_caps ic756_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
-.set_split =  icom_set_split,
-.get_split =  icom_get_split,
+.set_split_vfo =  icom_set_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
 
 };
 
@@ -368,8 +368,8 @@ const struct rig_caps ic756pro_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
-.set_split =  icom_set_split,
-.get_split =  icom_get_split,
+.set_split_vfo =  icom_set_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
 
 };
 
@@ -557,8 +557,8 @@ const struct rig_caps ic756pro2_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
-.set_split =  icom_set_split,
-.get_split =  icom_get_split,
+.set_split_vfo =  icom_set_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
 
 .set_ext_parm =  ic756pro2_set_ext_parm,
 .get_ext_parm =  ic756pro2_get_ext_parm,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib RPC backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.11 2002-12-16 22:06:50 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.12 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -487,15 +487,47 @@ static int rpcrig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_
 	return mres->rigstatus;
 }
 
-static int rpcrig_set_split(RIG *rig, vfo_t vfo, split_t split)
+static int rpcrig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-	SETBODYVFO1(setsplit, split, split);
+	struct rpcrig_priv_data *priv;
+	int *result;
+	split_arg arg;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	arg.vfo = vfo;
+	arg.split = split;
+	arg.tx_vfo = tx_vfo;
+	result = setsplitvfo_1(&arg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setsplitvfo_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
 }
 
 
-static int rpcrig_get_split(RIG *rig, vfo_t vfo, split_t *split)
+static int rpcrig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-	GETBODYVFO1(getsplit, split, split);
+	struct rpcrig_priv_data *priv;
+	split_res *res;
+	vfo_x v;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	v = vfo;
+	res = getsplitvfo_1(&v, priv->cl);
+	if (res == NULL) {
+		clnt_perror(priv->cl, "getsplitvfo_1");
+		return -RIG_EPROTO;
+	}
+	if (res->rigstatus == RIG_OK) {
+		*split = res->split_res_u.split.split;
+		*tx_vfo = res->split_res_u.split.tx_vfo;
+	}
+
+	return res->rigstatus;
 }
 
 
@@ -1047,8 +1079,8 @@ struct rig_caps rpcrig_caps = {
   .get_split_freq = 	rpcrig_get_split_freq,
   .set_split_mode = 	rpcrig_set_split_mode,
   .get_split_mode = 	rpcrig_get_split_mode,
-  .set_split = 	rpcrig_set_split,
-  .get_split = 	rpcrig_get_split,
+  .set_split_vfo = 	rpcrig_set_split_vfo,
+  .get_split_vfo = 	rpcrig_get_split_vfo,
   .set_rit = 	rpcrig_set_rit,
   .get_rit = 	rpcrig_get_rit,
   .set_xit = 	rpcrig_set_xit,

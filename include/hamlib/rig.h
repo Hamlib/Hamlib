@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.77 2003-03-24 23:06:26 fillods Exp $
+ *	$Id: rig.h,v 1.78 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -818,6 +818,8 @@ struct channel {
   pbwidth_t tx_width;		/*!< Transmit passband width associated with mode */
 
   split_t split;		/*!< Split mode */
+  vfo_t tx_vfo;			/*!< Split transmit VFO */
+
   rptr_shift_t rptr_shift;	/*!< Repeater shift */
   shortfreq_t rptr_offs;	/*!< Repeater offset */
   shortfreq_t tuning_step;	/*!< Tuning step */
@@ -855,6 +857,7 @@ struct channel_cap {
   unsigned tx_width:1;		/*!< Transmit passband width associated with mode */
 
   unsigned split:1;		/*!< Split mode */
+  unsigned tx_vfo:1;		/*!< Split transmit VFO */
   unsigned rptr_shift:1;	/*!< Repeater shift */
   unsigned rptr_offs:1;		/*!< Repeater offset */
   unsigned tuning_step:1;	/*!< Tuning step */
@@ -1058,8 +1061,8 @@ struct rig_caps {
   int (*get_split_mode) (RIG * rig, vfo_t vfo, rmode_t * tx_mode,
 			       pbwidth_t * tx_width);
 
-  int (*set_split) (RIG * rig, vfo_t vfo, split_t split);
-  int (*get_split) (RIG * rig, vfo_t vfo, split_t * split);
+  int (*set_split_vfo) (RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+  int (*get_split_vfo) (RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo);
 
   int (*set_rit) (RIG * rig, vfo_t vfo, shortfreq_t rit);
   int (*get_rit) (RIG * rig, vfo_t vfo, shortfreq_t * rit);
@@ -1343,8 +1346,10 @@ extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo,
 extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *tx_freq));
 extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width));
 extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width));
-extern HAMLIB_EXPORT(int) rig_set_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t split));
-extern HAMLIB_EXPORT(int) rig_get_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t *split));
+extern HAMLIB_EXPORT(int) rig_set_split_vfo HAMLIB_PARAMS((RIG*, vfo_t rx_vfo, split_t split, vfo_t tx_vfo));
+extern HAMLIB_EXPORT(int) rig_get_split_vfo HAMLIB_PARAMS((RIG*, vfo_t rx_vfo, split_t *split, vfo_t *tx_vfo));
+#define rig_set_split(r,v,s) rig_set_split_vfo((r),(v),(s),RIG_VFO_CURR)
+#define rig_get_split(r,v,s) ({ vfo_t _tx_vfo; rig_get_split_vfo((r),(v),(s),&_tx_vfo); })
 
 extern HAMLIB_EXPORT(int) rig_set_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rit));
 extern HAMLIB_EXPORT(int) rig_get_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rit));

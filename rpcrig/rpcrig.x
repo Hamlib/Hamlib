@@ -2,7 +2,7 @@
 % *  Hamlib Interface - RPC definitions
 % *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *
-% *	$Id: rpcrig.x,v 1.5 2002-09-13 07:01:25 fillods Exp $
+% *	$Id: rpcrig.x,v 1.6 2003-04-06 18:40:35 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -100,10 +100,11 @@ default:
 struct split_arg {
 	vfo_x vfo;
 	split_x split;
+	vfo_x tx_vfo;
 };
 union split_res switch (int rigstatus) {
 case 0:
-	split_x split;
+	split_arg split;
 default:
 	void;
 };
@@ -299,8 +300,8 @@ program RIGPROG {
 		freq_res GETSPLITFREQ(vfo_x) = 17;
 		int SETSPLITMODE(mode_arg) = 18;
 		mode_res GETSPLITMODE(vfo_x) = 19;
-		int SETSPLIT(split_arg) = 20;
-		split_res GETSPLIT(vfo_x) = 21;
+		int SETSPLITVFO(split_arg) = 20;
+		split_res GETSPLITVFO(vfo_x) = 21;
 		int SETPTT(ptt_arg) = 22;
 		ptt_res GETPTT(vfo_x) = 23;
 		dcd_res GETDCD(vfo_x) = 24;

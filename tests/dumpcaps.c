@@ -1,9 +1,9 @@
 /*
- * dumpcaps.c - Copyright (C) 2000-2002 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2003 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.36 2003-03-19 23:44:37 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.37 2003-04-06 18:40:35 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -359,8 +359,8 @@ int dumpcaps (RIG* rig)
 	printf("Can get split freq:\t%c\n",caps->get_split_freq!=NULL?'Y':'N');
 	printf("Can set split mode:\t%c\n",caps->set_split_mode!=NULL?'Y':'N');
 	printf("Can get split mode:\t%c\n",caps->get_split_mode!=NULL?'Y':'N');
-	printf("Can set split:\t%c\n",caps->set_split!=NULL?'Y':'N');
-	printf("Can get split:\t%c\n",caps->get_split!=NULL?'Y':'N');
+	printf("Can set split vfo:\t%c\n",caps->set_split_vfo!=NULL?'Y':'N');
+	printf("Can get split vfo:\t%c\n",caps->get_split_vfo!=NULL?'Y':'N');
 	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
 	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
 	printf("Can set RIT:\t%c\n",caps->set_rit!=NULL?'Y':'N');

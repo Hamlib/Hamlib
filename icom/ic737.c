@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-737 and variations
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic737.c,v 1.1 2002-11-16 14:05:53 fillods Exp $
+ *	$Id: ic737.c,v 1.2 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -176,7 +176,7 @@ const struct rig_caps ic737_caps = {
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
-.set_split =  icom_set_split,
+.set_split_vfo =  icom_set_split_vfo,
 
 };
 

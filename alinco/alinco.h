@@ -1,8 +1,8 @@
 /*
  *  Hamlib Alinco backend - main header
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *		$Id: alinco.h,v 1.10 2001-12-28 20:28:02 fillods Exp $
+ *	$Id: alinco.h,v 1.11 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,8 +37,8 @@ int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int alinco_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int alinco_set_split(RIG *rig, vfo_t vfo, split_t split);
-int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split);
+int alinco_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int alinco_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int alinco_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);

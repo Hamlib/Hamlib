@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.41 2003-03-27 23:44:20 fillods Exp $  
+ * $Id: rigctl.c,v 1.42 2003-04-06 18:40:35 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -116,8 +116,8 @@ declare_proto_rig(set_split_freq);
 declare_proto_rig(get_split_freq);
 declare_proto_rig(set_split_mode);
 declare_proto_rig(get_split_mode);
-declare_proto_rig(set_split);
-declare_proto_rig(get_split);
+declare_proto_rig(set_split_vfo);
+declare_proto_rig(get_split_vfo);
 declare_proto_rig(set_ts);
 declare_proto_rig(get_ts);
 declare_proto_rig(power2mW);
@@ -175,8 +175,8 @@ struct test_table test_list[] = {
 		{ 'i', "get_split_freq", get_split_freq, ARG_OUT, "Tx frequency" },
 		{ 'X', "set_split_mode", set_split_mode, ARG_IN, "Mode", "Passband" },
 		{ 'x', "get_split_mode", get_split_mode, ARG_OUT, "Mode", "Passband" },
-		{ 'S', "set_split", set_split, ARG_IN, "Split mode" },
-		{ 's', "get_split", get_split, ARG_OUT, "Split mode" },
+		{ 'S', "set_split_vfo", set_split_vfo, ARG_IN, "Split mode", "TxVFO" },
+		{ 's', "get_split_vfo", get_split_vfo, ARG_OUT, "Split mode", "TxVFO" },
 		{ 'N', "set_ts", set_ts, ARG_IN, "Tuning step" },
 		{ 'n', "get_ts", get_ts, ARG_OUT, "Tuning step" },
 		{ 'L', "set_level", set_level, ARG_IN, "Level", "Value" },
@@ -1047,26 +1047,30 @@ declare_proto_rig(get_split_mode)
 }
 
 
-declare_proto_rig(set_split)
+declare_proto_rig(set_split_vfo)
 {
 		split_t split;
 
 		sscanf(arg1, "%d", (int*)&split);
-		return rig_set_split(rig, vfo, split);
+		return rig_set_split_vfo(rig, vfo, split, parse_vfo(arg2));
 }
 
 
-declare_proto_rig(get_split)
+declare_proto_rig(get_split_vfo)
 {
 		int status;
 		split_t split;
+		vfo_t tx_vfo;
 
-		status = rig_get_split(rig, vfo, &split);
+		status = rig_get_split_vfo(rig, vfo, &split, &tx_vfo);
 		if (status != RIG_OK)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", split);
+		if (interactive)
+			printf("%s: ", cmd->arg2);
+		printf("%s\n", strvfo(tx_vfo));
 		return status;
 }
 

@@ -9,7 +9,7 @@
  * via serial interface to an FT-890 using the "CAT" interface
  *
  *
- *    $Id: ft890.h,v 1.3 2003-04-05 04:13:53 n0nb Exp $  
+ *    $Id: ft890.h,v 1.4 2003-04-06 18:40:36 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -341,8 +341,8 @@ static int ft890_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft890_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft890_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
-static int ft890_set_split(RIG *rig, vfo_t vfo, split_t split);
-static int ft890_get_split(RIG *rig, vfo_t vfo, split_t *split);
+static int ft890_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft890_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 /* static int ft890_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int ft890_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq); */

@@ -178,11 +178,18 @@ Set TX frequency, in Hz.
 .B i, get_split_freq
 Get TX frequency.
 .TP
-.B S, set_split
-Set split mode, 0 or 1.
+.B X, set_split_mode
+Set transmit mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM.
+The passband is the exact passband in Hz, or 0 for the default.
 .TP
-.B s, get_split
-Get split mode.
+.B x, get_split_mode
+Get transmit mode/passband.
+.TP
+.B S, set_split_vfo
+Set split mode, 0 or 1, and transmit VFO.
+.TP
+.B s, get_split_vfo
+Get split mode and transmit VFO.
 .TP
 .B N, set_ts
 Set tuning step, in Hz.

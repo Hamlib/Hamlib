@@ -2,16 +2,16 @@
  * \file src/rigclass.cc
  * \brief Ham Radio Control Libraries C++ interface
  * \author Stephane Fillod
- * \date 2001
+ * \date 2001-2003
  *
  * Hamlib C++ interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib C++ bindings - main file
- *  Copyright (c) 2001-2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rigclass.cc,v 1.10 2002-09-22 11:41:49 fillods Exp $
+ *	$Id: rigclass.cc,v 1.11 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -312,14 +312,14 @@ rmode_t Rig::getSplitMode(pbwidth_t& width, vfo_t vfo) {
 	return mode;
 }
 
-void Rig::setSplit(split_t split, vfo_t vfo) {
-	CHECK_RIG(rig_set_split(theRig, vfo, split));
+void Rig::setSplitVFO(split_t split, vfo_t vfo, vfo_t tx_vfo) {
+	CHECK_RIG(rig_set_split_vfo(theRig, vfo, split, tx_vfo));
 }
 
-split_t Rig::getSplit(vfo_t vfo) {
+split_t Rig::getSplitVFO(vfo_t &tx_vfo, vfo_t vfo) {
 	split_t split;
 
-	CHECK_RIG( rig_get_split(theRig, vfo, &split) );
+	CHECK_RIG( rig_get_split_vfo(theRig, vfo, &split, &tx_vfo) );
 
 	return split;
 }
@@ -661,37 +661,37 @@ powerstat_t Rig::getPowerStat (void)
 
 rmode_t Rig::RngRxModes (freq_t freq)
 {
-	rmode_t modes = RIG_MODE_NONE;
+	unsigned modes = RIG_MODE_NONE;
 	freq_range_t *rng;
 	int i;
 
 	for (i=0; i<FRQRANGESIZ; i++) {
 		rng = &theRig->state.rx_range_list[i];
 		if (RIG_IS_FRNG_END(*rng)) {
-			return modes;
+			return (rmode_t)modes;
 		}
 		if (freq >= rng->start && freq <= rng->end)
-			modes |= rng->modes;
+			modes |= (unsigned)rng->modes;
 	}
 
-	return modes;
+	return (rmode_t)modes;
 }
 
 rmode_t Rig::RngTxModes (freq_t freq)
 {
-	rmode_t modes = RIG_MODE_NONE;
+	unsigned modes = RIG_MODE_NONE;
 	freq_range_t *rng;
 	int i;
 
 	for (i=0; i<FRQRANGESIZ; i++) {
 		rng = &theRig->state.tx_range_list[i];
 		if (RIG_IS_FRNG_END(*rng)) {
-			return modes;
+			return (rmode_t)modes;
 		}
 		if (freq >= rng->start && freq <= rng->end)
-			modes |= rng->modes;
+			modes |= (unsigned)rng->modes;
 	}
 
-	return modes;
+	return (rmode_t)modes;
 }
 

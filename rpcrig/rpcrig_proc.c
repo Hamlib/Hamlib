@@ -1,8 +1,8 @@
 /*
  *  Hamlib RPC server - procedures
- *  Copyright (c) 2001-2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_proc.c,v 1.6 2002-08-23 20:01:09 fillods Exp $
+ *	$Id: rpcrig_proc.c,v 1.7 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -249,8 +249,28 @@ mode_res *getsplitmode_1_svc(vfo_x *vfo, struct svc_req *svc)
 	return &res;
 }
 
-DECLARESETV1(setsplit, rig_set_split, split)
-DECLAREGETV1(getsplit, rig_get_split, split, split_t)
+int *setsplitvfo_1_svc(split_arg *arg, struct svc_req *svc)
+{
+	static int res;
+
+	res = rig_set_split_vfo(the_rpc_rig, arg->vfo, arg->split, arg->tx_vfo);
+
+	return &res;
+}
+
+split_res *getsplitvfo_1_svc(vfo_x *vfo, struct svc_req *svc)
+{
+	static split_res res;
+	split_t arg;
+	vfo_t tx_vfo;
+
+	res.rigstatus = rig_get_split_vfo(the_rpc_rig, *vfo, &arg, &tx_vfo);
+	res.split_res_u.split.split = arg;
+	res.split_res_u.split.tx_vfo = tx_vfo;
+
+	return &res;
+}
+
 
 DECLARESETV1(setptt, rig_set_ptt, ptt)
 DECLAREGETV1(getptt, rig_get_ptt, ptt, ptt_t)

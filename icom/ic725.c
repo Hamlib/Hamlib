@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-725 and variations
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic725.c,v 1.2 2002-12-26 11:43:20 fillods Exp $
+ *	$Id: ic725.c,v 1.3 2003-04-06 18:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -145,7 +145,7 @@ const struct rig_caps ic725_caps = {
 .set_mode =  icom_set_mode,
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
-.set_split =  icom_set_split,
+.set_split_vfo =  icom_set_split_vfo,
 .set_split_freq =  icom_set_split_freq,
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
