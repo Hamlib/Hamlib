@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <hamlib/rig.h>
-#include "../src/misc.h"
+#include "misc.h"
 
 
 int main (int argc, char *argv[])

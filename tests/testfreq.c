@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <hamlib/rig.h>
-#include "../src/misc.h"
+#include "misc.h"
 
 
 int main (int argc, char *argv[])
@@ -23,6 +23,10 @@ int main (int argc, char *argv[])
 	f = atoi(argv[1]);
 #endif
 
+	printf("%s\n", hamlib_version);
+	printf("caps size: %d\n", sizeof(struct rig_caps));
+	printf("state size: %d\n", sizeof(struct rig_state));
+	printf("RIG size: %d\n", sizeof(struct rig));
 	printf("freq_t size: %d\n", sizeof(freq_t));
 	printf("shortfreq_t size: %d\n", sizeof(shortfreq_t));
 
