@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-735 and variations
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ic735.c,v 1.1 2001-09-17 05:45:06 f4cfe Exp $
+ *		$Id: ic735.c,v 1.2 2002-03-15 13:03:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,28 +24,16 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include "icom.h"
 
 
-#define IC735_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
-#define IC735_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM)
-#define IC735_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY)
+#define IC735_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 
 /* 
  * 100W in all modes but AM (40W)
  */ 
-#define IC735_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define IC735_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define IC735_AM_TX_MODES (RIG_MODE_AM)
 
 #define IC735_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
@@ -69,7 +57,7 @@ model_name:"IC-735",
 mfg_name: "Icom", 
 version: "0.2", 
 copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
+status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_NONE,
 dcd_type: RIG_DCD_NONE,
@@ -138,27 +126,13 @@ tx_range_list2: { {kHz(1800),MHz(2)-1,IC735_OTHER_TX_MODES,5000,100000,IC735_VFO
 	RIG_FRNG_END, },
 
 tuning_steps:	{
-	 {IC735_1HZ_TS_MODES,1},
-	 {IC735_ALL_RX_MODES,10},
-	 {IC735_ALL_RX_MODES,100},
-	 {IC735_ALL_RX_MODES,kHz(1)},
-	 {IC735_ALL_RX_MODES,kHz(5)},
-	 {IC735_ALL_RX_MODES,kHz(9)},
-	 {IC735_ALL_RX_MODES,kHz(10)},
-	 {IC735_ALL_RX_MODES,12500},
-	 {IC735_ALL_RX_MODES,kHz(20)},
-	 {IC735_ALL_RX_MODES,kHz(25)},
-	 {IC735_ALL_RX_MODES,kHz(100)},
-	 {IC735_1MHZ_TS_MODES,MHz(1)},
+	 {IC735_ALL_RX_MODES,1},
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
 filters:	{
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},	/* bultin FL-272 */
-		{RIG_MODE_AM, kHz(8)},		/* mid w/ bultin FL-94 */
-		{RIG_MODE_AM, kHz(2.4)},	/* narrow w/ bultin FL-272 */
-		{RIG_MODE_FM, kHz(15)},		/* ?? TBC, mid w/ bultin FL-23+SFPC455E */
-		{RIG_MODE_FM, kHz(8)},		/* narrow w/ bultin FL-94 */
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
+		{RIG_MODE_AM, kHz(8)},
 		RIG_FLT_END,
 	},
 
