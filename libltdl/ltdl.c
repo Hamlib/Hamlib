@@ -94,6 +94,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 #include "ltdl.h"
 
+#if WITH_DMALLOC
+#  include <dmalloc.h>
+#endif
+
 
 
 
@@ -166,6 +170,18 @@ LT_GLOBAL_DATA void   (*lt_dlfree)	LT_PARAMS((lt_ptr ptr))
 
 /* The following macros reduce the amount of typing needed to cast
    assigned memory.  */
+#if WITH_DMALLOC
+
+#define LT_DLMALLOC(tp, n)	((tp *) xmalloc ((n) * sizeof(tp)))
+#define LT_DLREALLOC(tp, p, n)	((tp *) xrealloc ((p), (n) * sizeof(tp)))
+#define LT_DLFREE(p)						\
+	LT_STMT_START { if (p) (p) = (xfree (p), (lt_ptr) 0); } LT_STMT_END
+
+#define LT_EMALLOC(tp, n)	((tp *) xmalloc ((n) * sizeof(tp)))
+#define LT_EREALLOC(tp, p, n)	((tp *) xrealloc ((p), (n) * sizeof(tp)))
+
+#else
+
 #define LT_DLMALLOC(tp, n)	((tp *) lt_dlmalloc ((n) * sizeof(tp)))
 #define LT_DLREALLOC(tp, p, n)	((tp *) rpl_realloc ((p), (n) * sizeof(tp)))
 #define LT_DLFREE(p)						\
@@ -174,8 +190,10 @@ LT_GLOBAL_DATA void   (*lt_dlfree)	LT_PARAMS((lt_ptr ptr))
 #define LT_EMALLOC(tp, n)	((tp *) lt_emalloc ((n) * sizeof(tp)))
 #define LT_EREALLOC(tp, p, n)	((tp *) lt_erealloc ((p), (n) * sizeof(tp)))
 
+#endif
+
 #define LT_DLMEM_REASSIGN(p, q)			LT_STMT_START {	\
-	if ((p) != (q)) { lt_dlfree (p); (p) = (q); (q) = 0; }	\
+	if ((p) != (q)) { if (p) lt_dlfree (p); (p) = (q); (q) = 0; }	\
 						} LT_STMT_END
 
 
@@ -187,7 +205,7 @@ LT_GLOBAL_DATA void   (*lt_dlfree)	LT_PARAMS((lt_ptr ptr))
 
 static char *strdup LT_PARAMS((const char *str));
 
-char *
+static char *
 strdup(str)
      const char *str;
 {
@@ -213,7 +231,7 @@ strdup(str)
 
 static int strcmp LT_PARAMS((const char *str1, const char *str2));
 
-int
+static int
 strcmp (str1, str2)
      const char *str1;
      const char *str2;
@@ -245,7 +263,7 @@ strcmp (str1, str2)
 
 static const char *strchr LT_PARAMS((const char *str, int ch));
 
-const char*
+static const char*
 strchr(str, ch)
      const char *str;
      int ch;
@@ -271,7 +289,7 @@ strchr(str, ch)
 
 static const char *strrchr LT_PARAMS((const char *str, int ch));
 
-const char*
+static const char*
 strrchr(str, ch)
      const char *str;
      int ch;
@@ -305,7 +323,7 @@ strrchr(str, ch)
 
 static lt_ptr memcpy LT_PARAMS((lt_ptr dest, const lt_ptr src, size_t size));
 
-lt_ptr
+static lt_ptr
 memcpy (dest, src, size)
      lt_ptr dest;
      const lt_ptr src;
@@ -329,7 +347,7 @@ memcpy (dest, src, size)
 
 static lt_ptr memmove LT_PARAMS((lt_ptr dest, const lt_ptr src, size_t size));
 
-lt_ptr
+static lt_ptr
 memmove (dest, src, size)
      lt_ptr dest;
      const lt_ptr src;
@@ -364,12 +382,12 @@ memmove (dest, src, size)
 #undef realloc
 #define realloc rpl_realloc
 
-lt_ptr
+static lt_ptr
 realloc (ptr, size)
      lt_ptr ptr;
      size_t size;
 {
-  if (size <= 0)
+  if (size == 0)
     {
       /* For zero or less bytes, free the original memory */
       if (ptr != 0)
@@ -408,7 +426,7 @@ realloc (ptr, size)
 static error_t argz_append LT_PARAMS((char **pargz, size_t *pargz_len,
 					const char *buf, size_t buf_len));
 
-error_t
+static error_t
 argz_append (pargz, pargz_len, buf, buf_len)
      char **pargz;
      size_t *pargz_len;
@@ -450,7 +468,7 @@ argz_append (pargz, pargz_len, buf, buf_len)
 static error_t argz_create_sep LT_PARAMS((const char *str, int delim,
 					    char **pargz, size_t *pargz_len));
 
-error_t
+static error_t
 argz_create_sep (str, delim, pargz, pargz_len)
      const char *str;
      int delim;
@@ -513,7 +531,7 @@ argz_create_sep (str, delim, pargz, pargz_len)
 static error_t argz_insert LT_PARAMS((char **pargz, size_t *pargz_len,
 					char *before, const char *entry));
 
-error_t
+static error_t
 argz_insert (pargz, pargz_len, before, entry)
      char **pargz;
      size_t *pargz_len;
@@ -575,7 +593,7 @@ argz_insert (pargz, pargz_len, before, entry)
 static char *argz_next LT_PARAMS((char *argz, size_t argz_len,
 				    const char *entry));
 
-char *
+static char *
 argz_next (argz, argz_len, entry)
      char *argz;
      size_t argz_len;
@@ -620,7 +638,7 @@ argz_next (argz, argz_len, entry)
 static void argz_stringify LT_PARAMS((char *argz, size_t argz_len,
 				       int sep));
 
-void
+static void
 argz_stringify (argz, argz_len, sep)
      char *argz;
      size_t argz_len;
@@ -856,7 +874,7 @@ lt_dlseterror (errindex)
   return errors;
 }
 
-lt_ptr
+static lt_ptr
 lt_emalloc (size)
      size_t size;
 {
@@ -866,7 +884,7 @@ lt_emalloc (size)
   return mem;
 }
 
-lt_ptr
+static lt_ptr
 lt_erealloc (addr, size)
      lt_ptr addr;
      size_t size;
@@ -877,14 +895,14 @@ lt_erealloc (addr, size)
   return mem;
 }
 
-char *
+static char *
 lt_estrdup (str)
      const char *str;
 {
-  char *dup = strdup (str);
-  if (LT_STRLEN (str) && !dup)
+  char *copy = strdup (str);
+  if (LT_STRLEN (str) && !copy)
     LT_DLMUTEX_SETERROR (LT_DLSTRERROR (NO_MEMORY));
-  return dup;
+  return copy;
 }
 
 
@@ -1685,9 +1703,17 @@ static	int	lt_argz_insert	      LT_PARAMS((char **pargz,
 static	int	lt_argz_insertinorder LT_PARAMS((char **pargz,
 						 size_t *pargz_len,
 						 const char *entry));
+static	int	lt_argz_insertdir     LT_PARAMS((char **pargz,
+						 size_t *pargz_len,
+						 const char *dirnam,
+						 struct dirent *dp));
 static	int	lt_dlpath_insertdir   LT_PARAMS((char **ppath,
 						 char *before,
 						 const char *dir));
+static	int	list_files_by_dir     LT_PARAMS((const char *dirnam,
+						 char **pargz,
+						 size_t *pargz_len));
+static	int	file_not_found	      LT_PARAMS((void));
 
 static	char	       *user_search_path= 0;
 static	lt_dlloader    *loaders		= 0;
@@ -2138,11 +2164,11 @@ foreach_dirinpath (search_path, base_name, func, data1, data2)
 {
   int	 result		= 0;
   int	 filenamesize	= 0;
-  int	 lenbase	= LT_STRLEN (base_name);
+  size_t lenbase	= LT_STRLEN (base_name);
   size_t argz_len	= 0;
-  char * argz		= 0;
-  char * filename	= 0;
-  char * canonical	= 0;
+  char *argz		= 0;
+  char *filename	= 0;
+  char *canonical	= 0;
 
   LT_DLMUTEX_LOCK ();
 
@@ -2162,7 +2188,7 @@ foreach_dirinpath (search_path, base_name, func, data1, data2)
     char *dir_name = 0;
     while ((dir_name = argz_next (argz, argz_len, dir_name)))
       {
-	int lendir = LT_STRLEN (dir_name);
+	size_t lendir = LT_STRLEN (dir_name);
 
 	if (lendir +1 +lenbase >= filenamesize)
 	{
@@ -2473,7 +2499,7 @@ trim (dest, str)
   /* remove the leading and trailing "'" from str
      and store the result in dest */
   const char *end   = strrchr (str, '\'');
-  int	len	    = LT_STRLEN (str);
+  size_t len	    = LT_STRLEN (str);
   char *tmp;
 
   LT_DLFREE (*dest);
@@ -2511,7 +2537,7 @@ free_vars (dlname, oldname, libdir, deplibs)
   return 0;
 }
 
-int
+static int
 try_dlopen (phandle, filename)
      lt_dlhandle *phandle;
      const char *filename;
@@ -2598,7 +2624,6 @@ try_dlopen (phandle, filename)
       char *	deplibs	 = 0;
       char *    line	 = 0;
       size_t	line_len;
-      int	i;
 
       /* if we can't find the installed flag, it is probably an
 	 installed libtool archive, produced with an old version
@@ -2614,23 +2639,26 @@ try_dlopen (phandle, filename)
 	}
 
       /* canonicalize the module name */
-      for (i = 0; i < ext - base_name; ++i)
-	{
-	  if (isalnum ((int)(base_name[i])))
-	    {
-	      name[i] = base_name[i];
-	    }
-	  else
-	    {
-	      name[i] = '_';
-	    }
-	}
-      name[ext - base_name] = LT_EOS_CHAR;
+      {
+        size_t i;
+        for (i = 0; i < ext - base_name; ++i)
+	  {
+	    if (isalnum ((int)(base_name[i])))
+	      {
+	        name[i] = base_name[i];
+	      }
+	    else
+	      {
+	        name[i] = '_';
+	      }
+	  }
+        name[ext - base_name] = LT_EOS_CHAR;
+      }
 
-    /* Now try to open the .la file.  If there is no directory name
-       component, try to find it first in user_search_path and then other
-       prescribed paths.  Otherwise (or in any case if the module was not
-       yet found) try opening just the module name as passed.  */
+      /* Now try to open the .la file.  If there is no directory name
+         component, try to find it first in user_search_path and then other
+         prescribed paths.  Otherwise (or in any case if the module was not
+         yet found) try opening just the module name as passed.  */
       if (!dir)
 	{
 	  const char *search_path;
@@ -2689,7 +2717,7 @@ try_dlopen (phandle, filename)
       /* read the .la file */
       while (!feof (file))
 	{
-	  if (!fgets (line, line_len, file))
+	  if (!fgets (line, (int) line_len, file))
 	    {
 	      break;
 	    }
@@ -2699,7 +2727,7 @@ try_dlopen (phandle, filename)
 	  while (line[LT_STRLEN(line) -1] != '\n')
 	    {
 	      line = LT_DLREALLOC (char, line, line_len *2);
-	      if (!fgets (&line[line_len -1], line_len +1, file))
+	      if (!fgets (&line[line_len -1], (int) line_len +1, file))
 		{
 		  break;
 		}
@@ -2898,7 +2926,7 @@ lt_dlopen (filename)
 
 /* If the last error messge store was `FILE_NOT_FOUND', then return
    non-zero.  */
-int
+static int
 file_not_found ()
 {
   const char *error = 0;
@@ -2921,9 +2949,8 @@ lt_dlopenext (filename)
   lt_dlhandle	handle		= 0;
   char *	tmp		= 0;
   char *	ext		= 0;
-  int		len;
+  size_t	len;
   int		errors		= 0;
-  int		file_found	= 1; /* until proven otherwise */
 
   if (!filename)
     {
@@ -3002,7 +3029,7 @@ lt_dlopenext (filename)
 }
 
 
-int
+static int
 lt_argz_insert (pargz, pargz_len, before, entry)
      char **pargz;
      size_t *pargz_len;
@@ -3028,7 +3055,7 @@ lt_argz_insert (pargz, pargz_len, before, entry)
   return 0;
 }
 
-int
+static int
 lt_argz_insertinorder (pargz, pargz_len, entry)
      char **pargz;
      size_t *pargz_len;
@@ -3052,7 +3079,7 @@ lt_argz_insertinorder (pargz, pargz_len, entry)
   return lt_argz_insert (pargz, pargz_len, before, entry);
 }
 
-int
+static int
 lt_argz_insertdir (pargz, pargz_len, dirnam, dp)
      char **pargz;
      size_t *pargz_len;
@@ -3118,7 +3145,7 @@ lt_argz_insertdir (pargz, pargz_len, dirnam, dp)
   return errors;
 }
 
-int
+static int
 list_files_by_dir (dirnam, pargz, pargz_len)
      const char *dirnam;
      char **pargz;
@@ -3285,6 +3312,9 @@ lt_dlclose (handle)
       errors += handle->loader->module_close (data, handle->module);
       errors += unload_deplibs(handle);
 
+      /* It is up to the callers to free the data itself.  */
+      LT_DLFREE (handle->caller_data);
+
       LT_DLFREE (handle->info.filename);
       LT_DLFREE (handle->info.name);
       LT_DLFREE (handle);
@@ -3309,7 +3339,7 @@ lt_dlsym (handle, symbol)
      lt_dlhandle handle;
      const char *symbol;
 {
-  int	lensym;
+  size_t lensym;
   char	lsym[LT_SYMBOL_LENGTH];
   char	*sym;
   lt_ptr address;
@@ -3409,7 +3439,7 @@ lt_dlerror ()
   return error ? error : LT_DLSTRERROR (UNKNOWN);
 }
 
-int
+static int
 lt_dlpath_insertdir (ppath, before, dir)
      char **ppath;
      char *before;

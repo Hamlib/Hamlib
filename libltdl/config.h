@@ -1,5 +1,5 @@
 /* config.h.  Generated automatically by configure.  */
-/* config-h.in.  Generated automatically from configure.in by autoheader.  */
+/* config-h.in.  Generated automatically from configure.in by autoheader 2.13.  */
 
 /* Define to empty if the keyword does not work.  */
 /* #undef const */
@@ -124,8 +124,11 @@
 /* Define if libtool can extract symbol lists from object files.  */
 #define HAVE_PRELOADED_SYMBOLS 1
 
-/* Define if you have the libdl library or equivalent.  */
-#define HAVE_LIBDL 1
+/* Define if you have the shl_load function. */
+/* #undef HAVE_SHL_LOAD */
+
+/* Define if you have the shl_load function. */
+/* #undef HAVE_SHL_LOAD */
 
 /* Define if you have the libdl library or equivalent. */
 #define HAVE_LIBDL 1
@@ -133,16 +136,13 @@
 /* Define if you have the libdl library or equivalent. */
 #define HAVE_LIBDL 1
 
-/* Define if you have the shl_load function. */
-/* #undef HAVE_SHL_LOAD */
-
-/* Define if you have the shl_load function. */
-/* #undef HAVE_SHL_LOAD */
+/* Define if you have the libdl library or equivalent. */
+#define HAVE_LIBDL 1
 
 /* Define if you have the GNU dld library. */
 /* #undef HAVE_DLD */
 
-/* Define if dlsym() requires a leading underscode in symbol names.  */
+/* Define if dlsym() requires a leading underscore in symbol names.  */
 /* #undef NEED_USCORE */
 
 /* Define if the OS needs help to load dependent libraries for dlopen().  */
