@@ -6,13 +6,15 @@ Copyright (C) 2000,2001  Stephane Fillod
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 1.1.1
-	2001-03-??
+	2001-05-26
 	* new backends: Kenwood (TS870S), WiNRADiO, PCR-1000, Dummy (for tests)
 	* Hamlib frontend will take care of backends that can't target VFO.
-	* Extended API: caps, levels, etc.
+	* Extended API: caps, levels, parms, etc.
 	* rig_set_mode/rig_get_mode changed again, now use filter caps
 	* more fields shadowed in rig->state, etc.
 	* rigctl now works also non-interactively
+	* get_channel/set_channel can be emulated and new dumpmem utility
+	* will not compile on pure ANSI C compiler, because of gcc struct extension
 
 Version 1.1.0
 	2000-11-11
