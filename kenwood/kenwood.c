@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.69 2003-11-10 15:59:36 fillods Exp $
+ *	$Id: kenwood.c,v 1.70 2003-11-16 17:31:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1492,6 +1492,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 
 		rig_register(&ts950sdx_caps);
 		rig_register(&ts50s_caps);
+		rig_register(&ts140_caps);
 		rig_register(&ts440_caps);
 		rig_register(&ts450s_caps);
 		rig_register(&ts570d_caps);
