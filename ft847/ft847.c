@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.19 2000-09-17 04:43:03 javabear Exp $  
+ * $Id: ft847.c,v 1.20 2000-09-23 03:48:01 javabear Exp $  
  *
  *
  *
@@ -41,7 +41,7 @@
 #include "ft847.h"
 
 /* prototypes */
-int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
+int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
 
 
 /* 
@@ -49,6 +49,8 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
  */
 
 #define FT847_ALL_RX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_WFM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
+#define FT847_SSB_CW_RX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NCW)
+#define FT847_AM_FM_RX_MODES (RIG_MODE_AM| RIG_MODE_NAM |RIG_MODE_FM |RIG_MODE_NFM )
 
 /* tx doesn't have WFM.
  * 100W in 160-6m (25 watts AM carrier)
@@ -57,6 +59,8 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
 #define FT847_OTHER_TX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
 #define FT847_AM_TX_MODES (RIG_MODE_AM| RIG_MODE_NAM)
 
+#define FT847_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
+
 /*
  * ft847 rigs capabilities.
  * Notice that some rigs share the same functions.
@@ -64,8 +68,8 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
  */
 const struct rig_caps ft847_caps = {
   RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_TRANSCEIVER, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 50, 100, 0,
+  RIG_TYPE_TRANSCEIVER,RIG_PTT_NONE, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
+  RIG_HANDSHAKE_NONE, 50, 100, 0, FT847_FUNC_ALL, 78,
   { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
     {420000000,512000000,FT847_ALL_RX_MODES,-1,-1},
@@ -110,8 +114,23 @@ const struct rig_caps ft847_caps = {
 
     {0,0,0,0,0} },
 
-  ft847_init, ft847_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  ft847_set_freq_main_vfo_hz
+  { {FT847_SSB_CW_RX_MODES,1}, /* normal */
+    {FT847_SSB_CW_RX_MODES,10}, /* fast */
+    {FT847_SSB_CW_RX_MODES,100}, /* faster */
+
+    
+    {FT847_AM_FM_RX_MODES,10}, /* normal */
+    {FT847_AM_FM_RX_MODES,100}, /* fast  */
+        
+    {0,0},
+  },  
+  ft847_init, 
+  ft847_cleanup, 
+  NULL, 
+  NULL, 
+  NULL /* probe not supported yet */,
+  ft847_set_freq_main_vfo_hz,
+  NULL,
 };
 
 /*  
@@ -180,7 +199,7 @@ int ft847_cleanup(RIG *rig) {
  * 	 
  */
 
-int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode) {
+int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode) {
   struct ft847_priv_data *p;
   struct rig_state *rig_s;
   unsigned char buf[16];
@@ -200,7 +219,7 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode) {
    * should check return code and that write wrote cmd_len chars! 
    */
 
-  write_block2(rig_s->fd, data, frm_len, rig_s->write_delay);
+  write_block(rig_s->fd, data, frm_len, rig_s->write_delay);
   
   /*
    * wait for ACK ... etc.. 
