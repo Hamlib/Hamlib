@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: jrc.c,v 1.1 2001-12-17 22:40:34 fillods Exp $
+ *		$Id: jrc.c,v 1.2 2001-12-20 08:02:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -569,7 +569,7 @@ int jrc_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  * jrc_set_trn
  * Assumes rig!=NULL
  */
-int jrc_set_trn(RIG *rig, vfo_t vfo, int trn)
+int jrc_set_trn(RIG *rig, int trn)
 {
 		unsigned char trnbuf[16];
 		int trn_len;
