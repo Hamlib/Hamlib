@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.33 2002-08-19 22:17:11 fillods Exp $  
+ * $Id: rigctl.c,v 1.34 2002-08-22 23:44:50 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -140,8 +140,8 @@ declare_proto_rig(get_info);
 struct test_table test_list[] = {
 		{ 'F', "set_freq", set_freq, ARG_IN, "Frequency" },
 		{ 'f', "get_freq", get_freq, ARG_OUT, "Frequency" },
-		{ 'J', "set_rit", set_rit, ARG_IN, "Frequency" },
-		{ 'j', "get_rit", get_rit, ARG_OUT, "Frequency" },
+		{ 'J', "set_rit", set_rit, ARG_IN, "RIT" },
+		{ 'j', "get_rit", get_rit, ARG_OUT, "RIT" },
 		{ 'M', "set_mode", set_mode, ARG_IN, "Mode", "Passband" },
 		{ 'm', "get_mode", get_mode, ARG_OUT, "Mode", "Passband" },
 		{ 'V', "set_vfo", set_vfo, ARG_IN, "VFO" },
@@ -305,14 +305,36 @@ int main (int argc, char *argv[])
 							usage();	/* wrong arg count */
 							exit(1);
 					}
-					ptt_type = atoi(optarg);
+					if (!strcmp(optarg, "RIG"))
+						ptt_type = RIG_PTT_RIG;
+					else if (!strcmp(optarg, "DTR"))
+						ptt_type = RIG_PTT_SERIAL_DTR;
+					else if (!strcmp(optarg, "RTS"))
+						ptt_type = RIG_PTT_SERIAL_RTS;
+					else if (!strcmp(optarg, "PARALLEL"))
+						ptt_type = RIG_PTT_PARALLEL;
+					else if (!strcmp(optarg, "NONE"))
+						ptt_type = RIG_PTT_NONE;
+					else
+						ptt_type = atoi(optarg);
 					break;
 			case 'D':
 					if (!optarg) {
 							usage();	/* wrong arg count */
 							exit(1);
 					}
-					dcd_type = atoi(optarg);
+					if (!strcmp(optarg, "RIG"))
+						dcd_type = RIG_DCD_RIG;
+					else if (!strcmp(optarg, "DSR"))
+						dcd_type = RIG_DCD_SERIAL_DSR;
+					else if (!strcmp(optarg, "CTS"))
+						dcd_type = RIG_DCD_SERIAL_CTS;
+					else if (!strcmp(optarg, "PARALLEL"))
+						dcd_type = RIG_DCD_PARALLEL;
+					else if (!strcmp(optarg, "NONE"))
+						dcd_type = RIG_DCD_NONE;
+					else
+						dcd_type = atoi(optarg);
 					break;
 			case 'c':
 					if (!optarg) {
@@ -1297,13 +1319,52 @@ declare_proto_rig(get_channel)
 		return status;
 }
 
+static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
+{
+	printf("Event: freq changed to %lliHz on %s\n", freq, strvfo(vfo));
+	return 0;
+}
+
+static int mymode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width, rig_ptr_t arg)
+{
+	printf("Event: mode changed to %s, width %liHz on %s\n", strmode(mode),
+			width, strvfo(vfo));
+	return 0;
+}
+
+static int myvfo_event(RIG *rig, vfo_t vfo, rig_ptr_t arg)
+{
+	printf("Event: vfo changed to %s\n", strvfo(vfo));
+	return 0;
+}
+
+static int myptt_event(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
+{
+	printf("Event: PTT changed to %i on %s\n", ptt, strvfo(vfo));
+	return 0;
+}
+
+static int mydcd_event(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
+{
+	printf("Event: DCD changed to %i on %s\n", dcd, strvfo(vfo));
+	return 0;
+}
 
 declare_proto_rig(set_trn)
 {
-		int trn;
+	int trn;
 
-		sscanf(arg1, "%d", &trn);
-		return rig_set_trn(rig, trn);
+	sscanf(arg1, "%d", &trn);
+
+	if (trn != RIG_TRN_OFF) {
+		rig_set_freq_callback(rig, myfreq_event, NULL);
+		rig_set_mode_callback(rig, mymode_event, NULL);
+		rig_set_vfo_callback (rig, myvfo_event, NULL);
+		rig_set_ptt_callback (rig, myptt_event, NULL);
+		rig_set_dcd_callback (rig, mydcd_event, NULL);
+	}
+
+	return rig_set_trn(rig, trn);
 }
 
 

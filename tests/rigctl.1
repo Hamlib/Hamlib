@@ -52,10 +52,12 @@ to operate on.
 .TP
 .B \-p, --ptt-type=type
 Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
+Supported types are RIG, DTR, RTS, PARALLEL, NONE.
 .TP
 .B \-d, --dcd-type=type
 Use \fBtype\fP device as the kind of the Data Carrier Detect device 
 to operate on.
+Supported types are RIG, DSR, CTS, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
@@ -116,6 +118,12 @@ Set VFO: VFOA, VFOB, VFOC, VFO, MEM, Main, Sub, etc.
 .TP
 .B v, get_vfo
 Get current VFO.
+.TP
+.B J, set_rit
+Set RIT, in Hz.
+.TP
+.B j, get_rit
+Get RIT, in Hz.
 .TP
 .B T, set_ptt
 Set PTT, 0 or 1.
