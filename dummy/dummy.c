@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.4 2001-03-01 00:26:19 f4cfe Exp $
+ *	$Id: dummy.c,v 1.5 2001-03-02 18:30:11 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -400,7 +400,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 }
 
 
-static int dummy_set_poweron(RIG *rig)
+static int dummy_set_powerstat(RIG *rig, powerstat_t status)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -408,7 +408,7 @@ static int dummy_set_poweron(RIG *rig)
 }
 
 
-static int dummy_set_poweroff(RIG *rig)
+static int dummy_get_powerstat(RIG *rig, powerstat_t *status)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -594,8 +594,8 @@ const struct rig_caps dummy_caps = {
   set_vfo:     dummy_set_vfo,
   get_vfo:     dummy_get_vfo,
   
-  set_poweron:  dummy_set_poweron,
-  set_poweroff: dummy_set_poweroff,
+  set_powerstat: dummy_set_powerstat,
+  get_powerstat: dummy_get_powerstat,
   set_level:    dummy_set_level,
   get_level:    dummy_get_level,
   set_func:     dummy_set_func,

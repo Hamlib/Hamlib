@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.4 2001-02-27 23:06:53 f4cfe Exp $  
+ * $Id: aor.c,v 1.5 2001-03-02 18:29:31 f4cfe Exp $  
  *
  *
  *
@@ -287,16 +287,18 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 }
 
 /*
- * aor_set_poweroff
+ * aor_set_powerstat
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int aor_set_poweroff(RIG *rig)
+int aor_set_powerstat(RIG *rig, powerstat_t status)
 {
 		unsigned char ackbuf[16];
 		int ack_len;
 
-		/* turn off power */
+		if (status != RIG_POWER_OFF)
+				return -RIG_EINVAL;
 
+		/* turn off power */
 		aor_transaction (rig, "QP", 2, ackbuf, &ack_len);
 
 		return RIG_OK;

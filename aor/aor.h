@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- *    $Id: aor.h,v 1.3 2000-12-05 22:01:00 f4cfe Exp $  
+ *    $Id: aor.h,v 1.4 2001-03-02 18:29:48 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
 int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
-int aor_set_poweroff(RIG *rig);
+int aor_set_powerstat(RIG *rig, powerstat_t status);
 
 extern const struct rig_caps ar8200_caps;
 
