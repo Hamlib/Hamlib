@@ -65,8 +65,7 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/lib/hamlib-*so $(CURDIR)/debian/hamlib1/usr/lib/
 
 	# Move the appropriate files into the documentation package..
-#	mv $(CURDIR)/doc/html $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
-#	mv $(CURDIR)/doc/latex $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
+	mv $(CURDIR)/doc/html/* $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/html
 
 	# Move the appropriate files into the utils package..
 	mv $(CURDIR)/debian/tmp/usr/bin/rigctl $(CURDIR)/debian/hamlib-utils/usr/bin/
