@@ -198,7 +198,7 @@ alinco/Makefile
 uniden/Makefile
 tentec/Makefile
 kachina/Makefile
-rpc/Makefile
+rpcrig/Makefile
 src/Makefile
 c++/Makefile
 tcl/Makefile
