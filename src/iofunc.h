@@ -2,7 +2,7 @@
  *  Hamlib Interface - io function header
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: iofunc.h,v 1.3 2003-10-01 19:44:00 fillods Exp $
+ *		$Id: iofunc.h,v 1.4 2004-08-10 21:00:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,7 @@
 #ifndef _IOFUNC_H
 #define _IOFUNC_H 1
 
+#include <sys/types.h>
 #include <hamlib/rig.h>
 
 

@@ -11,7 +11,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.1 2004-02-08 17:08:46 fillods Exp $  
+ *    $Id: ft897.c,v 1.2 2004-08-10 21:00:13 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -66,6 +66,10 @@
 #include <stdlib.h>
 #include <string.h>  	/* String function definitions */
 #include <unistd.h>  	/* UNIX standard function definitions */
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 #include "hamlib/rig.h"
 #include "serial.h"

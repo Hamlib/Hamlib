@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.11 2003-10-17 22:53:54 fillods Exp $
+ *	$Id: iofunc.c,v 1.12 2004-08-10 21:00:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -85,10 +85,10 @@ int write_block(port_t *p, const char *txbuffer, size_t count)
 		  struct timeval tv;
 
 		  /* FIXME in Y2038 ... */
-		  gettimeofday(tv, NULL);
+		  gettimeofday(&tv, NULL);
 		  date_delay = p->post_write_delay*1000 - 
-				  		((tv.tv_sec - p->post_write_date->tv_sec)*1000000 +
-				  		 (tv.tv_usec - p->post_write_date->tv_usec));
+				  		((tv.tv_sec - p->post_write_date.tv_sec)*1000000 +
+				  		 (tv.tv_usec - p->post_write_date.tv_usec));
 		  if (date_delay > 0) {
 				/*
 				 * optional delay after last write 
@@ -116,14 +116,17 @@ int write_block(port_t *p, const char *txbuffer, size_t count)
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
 
-	if (p->post_write_delay > POST_WRITE_DELAY_TRSHLD)
-		gettimeofday(p->post_write_date, NULL);
+	if (p->post_write_delay > POST_WRITE_DELAY_TRSHLD) {
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		p->post_write_date.tv_sec = tv.tv_sec;
+		p->post_write_date.tv_usec = tv.tv_usec;
+	}
 	else
-#else
+#endif
     usleep(p->post_write_delay*1000); /* optional delay after last write */
 				   /* otherwise some yaesu rigs get confused */
 				   /* with sequential fast writes*/
-#endif
   }
   rig_debug(RIG_DEBUG_TRACE,"TX %d bytes\n",count);
   dump_hex(txbuffer,count);

@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.97 2004-08-08 19:42:47 fillods Exp $
+ *	$Id: rig.h,v 1.98 2004-08-10 21:00:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,12 +24,6 @@
 #define _RIG_H 1
 
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
-
-#if defined(__CYGWIN__) || defined(_WIN32)
-#include <windows.h>		/* HANDLE definition */
-#else
-#include <sys/time.h>		/* required for struct timeval */
-#endif
 
 /*! \file rig.h
  *  \ingroup rig
@@ -1224,12 +1218,12 @@ typedef struct {
   } type;
   int fd;			/*!< File descriptor */
 #if defined(__CYGWIN__) || defined(_WIN32)
-  HANDLE handle;		/*!< Win32 handle for serial special handling (PTT,DCD,..) */
+  void* deprecated_handle;	/*!< Place holder for deprecated field */
 #endif
 
   int write_delay;		/*!< Delay between each byte sent out, in ms */
   int post_write_delay;		/*!< Delay between each commands send out, in ms */
-  struct timeval post_write_date;	/*!< hamlib internal use */
+  struct { int tv_sec,tv_usec; } post_write_date;	/*!< hamlib internal use */
   int timeout;			/*!< Timeout, in ms */
   int retry;			/*!< Maximum number of retries, 0 to disable */
 
