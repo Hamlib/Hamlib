@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - PCR-1000 description
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: pcr1000.c,v 1.5 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: pcr1000.c,v 1.6 2002-03-07 22:50:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,22 +24,12 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 
 #include "pcr.h"
 
 
-#define PCR1000_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_FM|RIG_MODE_WFM)
+#define PCR1000_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
 
 #define PCR1000_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_ANF|RIG_FUNC_NR)
 
@@ -54,7 +44,7 @@ model_name:"IC-PCR1000",
 mfg_name: "Icom",
 version: "0.1",
 copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
+status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_PCRECEIVER,
 ptt_type: RIG_PTT_NONE,
 dcd_type: RIG_DCD_RIG,
@@ -67,7 +57,7 @@ serial_parity: RIG_PARITY_NONE,
 serial_handshake: RIG_HANDSHAKE_NONE,
 write_delay: 0,
 post_write_delay: 0,
-timeout: 200,
+timeout: 1000,
 retry: 3,
 
 has_get_func: RIG_FUNC_NONE,
@@ -118,8 +108,8 @@ priv: NULL,	/* priv */
 
 rig_init: pcr_init,
 rig_cleanup: pcr_cleanup,
-rig_open: NULL,
-rig_close: NULL,
+rig_open: pcr_open,
+rig_close: pcr_close,
 
 set_freq: pcr_set_freq,
 get_freq: pcr_get_freq,
