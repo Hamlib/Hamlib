@@ -1,0 +1,116 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH RIGCTL "1" "December 03, 2003" "Hamlib"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+rigmem \- backup and restore memory of radio transcievers and receivers
+.SH SYNOPSIS
+.B rigmem
+[\fIOPTION\fR]... [\fICOMMAND\fR]...
+.SH DESCRIPTION
+Backup and restore memory of radio transcievers and receivers.
+\fBrigmem\fP accepts \fBcommands\fP from command line only.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" respectively.
+Keep in mind that \fBHamlib\fP is still BETA level software. 
+A lof of stuff hasn't been tested thoroughly, and the API may change
+without publicised notice. Please report bugs and feedback at
+the e-mail address given in the REPORTING BUGS section.
+.SH OPTIONS
+This program follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+.TP
+.B \-m, \-\-model=id
+Select radio model number. See model list.
+.TP
+.B \-r, --rig-file=device
+Use \fBdevice\fP as the file name of the radio to operate on.
+.TP
+.B \-s, --serial-speed=baud
+Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
+.TP
+.B \-c, --civaddr=id
+Use \fBid\fP as the CI-V address to communicate with the rig. 
+Only for Icom rigs. NB: the id is in decimal, unless prefixed by \fB0x\fP,
+in which case it is hexadecimal.
+.TP
+.B \-C, \-\-set\-conf=parm=val[,parm=val]*
+Set config parameter.
+.TP
+.B \-x, \-\-xml
+Use XML format instead of CSV, if libxml2 is available.
+.TP
+.B \-v, \-\-verbose
+Set verbose mode, cumulative (BUG, ERR, WARN, VERBOSE, TRACE).
+.TP
+.B \-h, \-\-help
+Show summary of options and exit.
+.TP
+.B \-V, \-\-version
+Show version of program and exit.
+
+.SH COMMANDS
+Backup and restore are supported for basic CSV file and XML format where available.
+.PP
+Please note that the backend for the radio to be controlled, 
+or the radio itself may not support some commands. In that case, 
+the operation will fail with a standard error message.
+.PP
+A summary of commands is included below.
+.TP
+.B save
+Save all the content of memory in a CSV (or XML) file given as argument to the command.
+.TP
+.B load
+Load the content into all the memory from a CSV (or XML) file given as argument to the command.
+
+.TP
+.B save_parm
+Save all the parameters of the radio in a CSV (or XML) file given as argument to the command.
+.TP
+.B load_parm
+Load the parameters of the radio from a CSV (or XML) file given as argument to the command.
+
+.TP
+.B clear
+Very DANGEROUS command, as it will completly clear out everything you have programmed 
+in the memory of you radio. ALL DATA WILL BE LOST. Use at your own risks!
+
+.SH RETURN VALUE
+rigmem exits with:
+0 if all operations went fine; 1 if there was an invalid command line
+option or arg; or 2 if an error was returned by Hamlib.
+
+.SH AUTHOR
+Man page written by Stephane Fillod.
+.SH BUGS
+This almost empty section...
+.SH REPORTING BUGS
+Report bugs to <hamlib-developer@users.sourceforge.net>.
+.br
+I'm already aware of the bug in the previous section :-)
+.SH COPYRIGHT
+Copyright \(co 2000-2003 Stephane Fillod.
+.br
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.
+.SH SEE ALSO
+.BR hamlib (3), rigctl(1)
+
