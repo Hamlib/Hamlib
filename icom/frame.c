@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.1 2000-10-01 12:31:20 f4cfe Exp $  
+ * $Id: frame.c,v 1.2 2000-10-08 21:26:33 f4cfe Exp $  
  *
  *
  *
@@ -35,8 +35,8 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 
-#include <rig.h>
-#include <riglist.h>
+#include <hamlib/rig.h>
+#include <hamlib/riglist.h>
 #include <serial.h>
 #include <misc.h>
 #include "icom.h"
@@ -44,7 +44,7 @@
 #include "frame.h"
 
 /* Prototypes */
-int read_icom_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
+int read_icom_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout);
 
 /*
  * Build a CI-V frame.
@@ -146,8 +146,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
 		unsigned char buf[16];
-		int frm_len,pad_len;
-		int i;
+		int frm_len;
 
 		rig_s = &rig->state;
 		priv = (struct icom_priv_data*)rig_s->priv;
@@ -168,28 +167,20 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 * 		- if we get a timeout, then retry to send the frame,
 		 * 			up to rig_s->retry times.
 		 */
-		read_icom_block(rig_s->fd, buf, frm_len, rig_s->timeout);
+
+		Hold_Decode(rig);
+		read_icom_block(rig_s->stream, buf, frm_len, rig_s->timeout);
 
 		/*
 		 * wait for ACK ... 
 		 * FIXME: handle pading/collisions
+		 * ACKFRMLEN is the smallest frame we can expect from the rig
 		 */
-		read_icom_block(rig_s->fd, buf, ACKFRMLEN, rig_s->timeout);
+		frm_len = read_icom_frame(rig_s->stream, buf, rig_s->timeout);
+		Unhold_Decode(rig);
 
-		pad_len = 0;
-		while (buf[pad_len] == PAD)
-				pad_len++;
-
-		/*
-		 * Even if the return code is NG, make sure the whole frame
-		 * has been removed from buffers.
-		 */
-		for (i=ACKFRMLEN; buf[i-1] != FI; i++) {
-			read_icom_block(rig_s->fd, buf+i, 1, rig_s->timeout);
-		}
-
-		*data_len = i-pad_len-(ACKFRMLEN-1);
-		memcpy(data, buf+pad_len+4, *data_len);
+		*data_len = frm_len-(ACKFRMLEN-1);
+		memcpy(data, buf+4, *data_len);
 
 		/*
 		 * TODO: check addresses in reply frame
@@ -199,24 +190,112 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 }
 
 /*
- * read count usefull bytes, discarding collisions
+ * read count useful bytes, discarding collisions
  * FIXME: check return codes/bytes read
+ * this function will be deprecated soon!
  */
-int read_icom_block(int fd, unsigned char *rxbuffer, size_t count, int timeout)
+int read_icom_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout)
 {
 		int i;
 
-		read_block(fd, rxbuffer, count, timeout);
+		fread_block(stream, rxbuffer, count, timeout);
 
+#if 0
 		for (i=0; i<count; i++) {
 			if (rxbuffer[i] != COL)
 				break;
 		}
 		if (i > 0) {
 			memmove(rxbuffer, rxbuffer+i, count-i);
-			read_block(fd, rxbuffer+i, count-i, timeout);
+			fread_block(stream, rxbuffer+i, count-i, timeout);
 		}
+#endif
 		return count;	/* duh! */
 }
 
+/*
+ * read_icom_frame
+ * read a whole CI-V frame (until 0xfd is encountered)
+ * TODO: strips pading/collisions
+ * FIXME: check return codes/bytes read
+ */
+int read_icom_frame(FILE *stream, unsigned char rxbuffer[], int timeout)
+{
+		int i;
+
+		/*
+		 * ACKFRMLEN is supposed to be the smallest frame
+		 * we can expected on the CI-V bus
+		 * FIXME: a COL is smaller!!
+		 */
+		fread_block(stream, rxbuffer, ACKFRMLEN, timeout);
+
+		/*
+		 * buffered read are quite helpful here!
+		 * However, an automate with a state model would be more efficient..
+		 */
+		for (i=ACKFRMLEN; rxbuffer[i-1]!=FI; i++) {
+			fread_block(stream, rxbuffer+i, 1, timeout);
+		}
+
+		return i;
+}
+
+
+unsigned short hamlib2icom_mode(rmode_t mode)
+{
+		int icmode, icmode_ext;
+
+		icmode_ext = 0;
+
+		switch (mode) {
+		case RIG_MODE_AM:	icmode = S_AM; break;
+		case RIG_MODE_CW:	icmode = S_CW; break;
+		case RIG_MODE_USB:	icmode = S_USB; break;
+		case RIG_MODE_LSB:	icmode = S_LSB; break;
+		case RIG_MODE_RTTY:	icmode = S_RTTY; break;
+		case RIG_MODE_FM:	icmode = S_FM; break;
+		case RIG_MODE_WFM:	icmode = S_WFM; break;
+#if 0
+		case RIG_MODE_NFM:	icmode = S_FM; icmode_ext = 0x01; break;
+		case RIG_MODE_NAM:	icmode = S_AM; break;
+		case RIG_MODE_WAM:	icmode = S_AM; break;
+		case RIG_MODE_NCW:	icmode = S_CW; break;
+		case RIG_MODE_WCW:	icmode = S_CW; break;
+		case RIG_MODE_CWR:	icmode = S_CW; break;
+		case RIG_MODE_NUSB:	icmode = S_USB; break;
+		case RIG_MODE_WUSB:	icmode = S_USB; break;
+		case RIG_MODE_NLSB:	icmode = S_LSB; break;
+		case RIG_MODE_WLSB:	icmode = S_LSB; break;
+		case RIG_MODE_NRTTY: icmode = S_RTTY; break;
+		case RIG_MODE_WRTTY: icmode = S_RTTY; break;
+#endif
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Hamlib mode %d\n",mode);
+			icmode = 0xff;
+		}
+		return (icmode_ext<<8 | icmode);
+}
+
+rmode_t icom2hamlib_mode(unsigned short icmode)
+{
+		rmode_t mode;
+
+		switch (icmode & 0xff) {
+		case S_AM:	mode = RIG_MODE_AM; break;
+		case S_CW:	mode = RIG_MODE_CW; break;
+		case S_FM:	mode = RIG_MODE_FM; break;
+		case S_WFM:	mode = RIG_MODE_WFM; break;
+		case S_USB:	mode = RIG_MODE_USB; break;
+		case S_LSB:	mode = RIG_MODE_LSB; break;
+		case S_RTTY:	mode = RIG_MODE_RTTY; break;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode %#.2x\n",
+							icmode);
+			mode = 0;
+		}
+		return mode;
+}
 
