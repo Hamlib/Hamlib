@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.20 2002-07-09 22:18:33 fillods Exp $
+ *	$Id: misc.c,v 1.21 2002-08-26 21:26:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -256,7 +256,7 @@ int sprintf_freq(char *str, freq_t freq)
 		return sprintf (str, "%g %s", f, hz);
 }
 
-const char * strmode(rmode_t mode)
+const char * strrmode(rmode_t mode)
 {
 	switch (mode) {
     case RIG_MODE_AM: return "AM";
@@ -461,7 +461,7 @@ int sprintf_mode(char *str, rmode_t mode)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				const char *ms = strmode(mode & (1UL<<i));
+				const char *ms = strrmode(mode & (1UL<<i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);

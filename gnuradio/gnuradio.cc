@@ -3,7 +3,7 @@
  *  Hamlib GNUradio backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: gnuradio.cc,v 1.1 2002-07-06 09:27:38 fillods Exp $
+ *	$Id: gnuradio.cc,v 1.2 2002-08-26 21:26:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -205,7 +205,7 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   sprintf_freq(buf, width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", 
-  		__FUNCTION__, strvfo(vfo), strmode(mode), buf);
+  		__FUNCTION__, strvfo(vfo), strrmode(mode), buf);
 
   curr->mode = mode;
   curr->width = width;

@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.34 2002-08-22 23:44:50 fillods Exp $  
+ * $Id: rigctl.c,v 1.35 2002-08-26 21:26:06 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -753,7 +753,7 @@ declare_proto_rig(get_mode)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%s\n", strmode(mode));
+		printf("%s\n", strrmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%ld\n", width);
@@ -950,7 +950,7 @@ declare_proto_rig(get_split_mode)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%s\n", strmode(mode));
+		printf("%s\n", strrmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%ld\n", width);
@@ -1327,7 +1327,7 @@ static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 
 static int mymode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width, rig_ptr_t arg)
 {
-	printf("Event: mode changed to %s, width %liHz on %s\n", strmode(mode),
+	printf("Event: mode changed to %s, width %liHz on %s\n", strrmode(mode),
 			width, strvfo(vfo));
 	return 0;
 }
@@ -1410,12 +1410,12 @@ void dump_chan(RIG *rig, channel_t *chan)
 	sprintf_freq(freqbuf, chan->freq);
 	sprintf_freq(widthbuf, chan->width);
 	printf("Freq:   %s\tMode:   %s\tWidth:   %s\n", 
-						freqbuf, strmode(chan->mode), widthbuf);
+						freqbuf, strrmode(chan->mode), widthbuf);
 
 	sprintf_freq(freqbuf, chan->tx_freq);
 	sprintf_freq(widthbuf, chan->tx_width);
 	printf("txFreq: %s\ttxMode: %s\ttxWidth: %s\n", 
-						freqbuf, strmode(chan->tx_mode), widthbuf);
+						freqbuf, strrmode(chan->tx_mode), widthbuf);
 
 	sprintf_freq(freqbuf,chan->rptr_offs);
 	printf("Shift: %s, Offset: %s%s, ", strptrshift(chan->rptr_shift),

@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.26 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: dummy.c,v 1.27 2002-08-26 21:26:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -185,7 +185,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   sprintf_freq(buf, width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", __FUNCTION__, 
-  		strvfo(vfo), strmode(mode), buf);
+  		strvfo(vfo), strrmode(mode), buf);
 
   curr->mode = mode;
   curr->width = width;
@@ -458,7 +458,7 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
 
   sprintf_freq(buf, tx_width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", __FUNCTION__,
-  		strvfo(vfo), strmode(tx_mode), buf);
+  		strvfo(vfo), strrmode(tx_mode), buf);
 
   curr->tx_mode = tx_mode;
   curr->tx_width = tx_width;

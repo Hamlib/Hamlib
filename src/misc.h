@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.h,v 1.13 2002-07-06 09:26:59 fillods Exp $
+ *		$Id: misc.h,v 1.14 2002-08-26 21:26:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -68,7 +68,7 @@ extern HAMLIB_EXPORT(int) sprintf_level(char *str, setting_t);
 extern HAMLIB_EXPORT(int) sprintf_parm(char *str, setting_t);
 extern HAMLIB_EXPORT(int) sprintf_vfop(char *str, vfo_op_t);
 extern HAMLIB_EXPORT(int) sprintf_scan(char *str, scan_t);
-extern HAMLIB_EXPORT(const char *) strmode(rmode_t mode);
+extern HAMLIB_EXPORT(const char *) strrmode(rmode_t mode);
 extern HAMLIB_EXPORT(const char *) strvfo(vfo_t vfo);
 extern HAMLIB_EXPORT(const char *) strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) strlevel(setting_t);

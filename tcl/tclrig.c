@@ -2,7 +2,7 @@
  *  Hamlib tcl/tk bindings - rig
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: tclrig.c,v 1.3 2002-02-15 15:09:03 fillods Exp $
+ *		$Id: tclrig.c,v 1.4 2002-08-26 21:26:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -435,7 +435,7 @@ declare_proto_rig(get_mode)
 				return status;
 
 		/* FIXME: return also width */
-		Tcl_SetStringObj(resultPtr, strmode(mode), -1);
+		Tcl_SetStringObj(resultPtr, strrmode(mode), -1);
 
 		return RIG_OK;
 }
@@ -608,7 +608,7 @@ declare_proto_rig(get_split_mode)
 				return status;
 
 		/* FIXME: return also width */
-		Tcl_SetStringObj(resultPtr, strmode(mode), -1);
+		Tcl_SetStringObj(resultPtr, strrmode(mode), -1);
 
 		return RIG_OK;
 }
@@ -1145,7 +1145,7 @@ declare_proto_rig(get_split_mode)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%s\n", strmode(mode));
+		printf("%s\n", strrmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%ld\n", width);
