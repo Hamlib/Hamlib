@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.5 2001-02-07 23:45:59 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.6 2001-02-11 23:23:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -81,6 +81,9 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 	case RIG_TYPE_RECEIVER:
 			printf("Receiver");
 			break;
+	case RIG_TYPE_PCRECEIVER:
+			printf("PC Receiver");
+			break;
 	case RIG_TYPE_SCANNER:
 			printf("Scanner");
 			break;
@@ -152,6 +155,8 @@ int print_caps_parms(const struct rig_caps *caps, void *data)
 
 /*
  * backend functions definied
+ *
+ * TODO: add new API calls!
  */
 int print_caps_caps(const struct rig_caps *caps, void *data)
 {
@@ -205,7 +210,7 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 	if (!data)
 			return 0;
 
-	level = (*(int*)data)? caps->has_set_level : caps->has_level;
+	level = (*(int*)data)? caps->has_set_level : caps->has_get_level;
 
 	printf("<A NAME=\"%slevel%d\"><TR><TD>%s</TD>", 
 					(*(int*)data)? "set":"get",
@@ -214,7 +219,9 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 	
 	print_yn(level & RIG_LEVEL_PREAMP);
 	print_yn(level & RIG_LEVEL_ATT);
-	print_yn(level & RIG_LEVEL_ANT);
+#if 0
+	print_yn(level & RIG_LEVEL_ANT);	/* deprecated */
+#endif
 	print_yn(level & RIG_LEVEL_AF);
 	print_yn(level & RIG_LEVEL_RF);
 	print_yn(level & RIG_LEVEL_SQL);
@@ -232,7 +239,9 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 	print_yn(level & RIG_LEVEL_AGC);
 	print_yn(level & RIG_LEVEL_BKINDL);
 	print_yn(level & RIG_LEVEL_BALANCE);
-	print_yn(level & RIG_LEVEL_ANN);
+#if 0
+	print_yn(level & RIG_LEVEL_ANN);	/* deprecated */
+#endif
 
 	/* get only levels */
 	print_yn(level & RIG_LEVEL_SWR);
@@ -255,7 +264,7 @@ int print_caps_func(const struct rig_caps *caps, void *data)
 	if (!data)
 			return 0;
 
-	func = caps->has_func;
+	func = (*(int*)data)? caps->has_set_func : caps->has_get_func;
 
 	printf("<A NAME=\"%sfunc%d\"><TR><TD>%s</TD>", 
 					(*(int*)data)? "set":"get",
@@ -286,10 +295,13 @@ int print_caps_func(const struct rig_caps *caps, void *data)
 
 /*
  * inlined PNG graphics
+ *
+ * FIXME: default output pics is for region2: add region 1 too!
  */
 int print_caps_range(const struct rig_caps *caps, void *data)
 {
-	create_png_range(caps->rx_range_list, caps->tx_range_list, caps->rig_model);
+	create_png_range(caps->rx_range_list2, caps->tx_range_list2, 
+					caps->rig_model);
 
 	printf("<A NAME=\"rng%d\"><TR><TD>%s</TD>"
 					"<TD><IMG SRC=\"range%d.png\"></TD></TR></A>", 
@@ -527,7 +539,7 @@ int main (int argc, char *argv[])
 
 	printf("<P>");
 
-	printf("Has func");
+	printf("Has set func");
 	printf("<TABLE BORDER=1>\n");
 	printf("<TR><TD>Model</TD>"
 					"<TD>FAGC</TD><TD>NB</TD>"
@@ -545,11 +557,28 @@ int main (int argc, char *argv[])
 
 	printf("<P>");
 
+	printf("Has get func");
+	printf("<TABLE BORDER=1>\n");
+	printf("<TR><TD>Model</TD>"
+					"<TD>FAGC</TD><TD>NB</TD>"
+					"<TD>COMP</TD><TD>VOX</TD>"
+					"<TD>TONE</TD><TD>TSQL</TD>"
+					"<TD>SBKIN</TD><TD>FBKIN</TD>"
+					"<TD>ANF</TD><TD>NR</TD>"
+					"<TD>AIP</TD><TD>APF</TD>"
+					"<TD>MON</TD><TD>MN</TD>"
+					"<TD>RFN</TD>"
+					"</TR>\n");
+	set_or_get = 0;
+	status = rig_list_foreach(print_caps_func,&set_or_get);
+	printf("</TABLE>\n");
+
+	printf("<P>");
+
 	printf("Set level");
 	printf("<TABLE BORDER=1>\n");
 	printf("<TR><TD>Model</TD>"
-					"<TD>Preamp</TD><TD>Att</TD>"
-					"<TD>Ant</TD>"
+					"<TD>Pamp</TD><TD>Att</TD>"
 					"<TD>AF</TD><TD>RF</TD>"
 					"<TD>SQL</TD><TD>IF</TD>"
 					"<TD>APF</TD><TD>NR</TD>"
@@ -558,7 +587,7 @@ int main (int argc, char *argv[])
 					"<TD>Mic gain</TD><TD>Key speed</TD>"
 					"<TD>Notch</TD><TD>Comp</TD>"
 					"<TD>AGC</TD><TD>BKin delay</TD>"
-					"<TD>Bal</TD><TD>Ann</TD>"
+					"<TD>Bal</TD>"
 					"<TD>SWR</TD><TD>ALC</TD>"
 					"<TD>SQL stat</TD><TD>SMeter</TD>"
 					"</TR>\n");
