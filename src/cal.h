@@ -2,7 +2,7 @@
  *  Hamlib Interface - calibration header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: cal.h,v 1.4 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: cal.h,v 1.5 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,32 +24,6 @@
 #define _CAL_H 1
 
 #include <hamlib/rig.h>
-
-
-/* add rig_set_cal(cal_table), rig_get_calstat(rawmin,rawmax,cal_table), */
-
-#define MAX_CAL_LENGTH 32
-
-/*
- * cal_table_t is a data type suited to hold linear calibration
- * cal_table_t.size tell the number of plot cal_table_t.table contains
- * If a value is below or equal to cal_table_t.table[0].raw, 
- * rig_raw2val() will return cal_table_t.table[0].val
- * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw, 
- * rig_raw2val() will return cal_table_t.table[cal_table_t.size-1].val
- */
-struct cal_cell {
-	int raw;
-	int val;
-};
-struct cal_table {
-	int size;
-	struct cal_cell table[MAX_CAL_LENGTH];
-};
-
-typedef struct cal_table cal_table_t;
-
-#define EMPTY_STR_CAL { 0, { { 0, 0 }, } }
 
 extern HAMLIB_EXPORT(float) rig_raw2val(int rawval, const cal_table_t *cal);
 

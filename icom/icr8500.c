@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R8500 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icr8500.c,v 1.17 2003-10-01 19:31:57 fillods Exp $
+ *	$Id: icr8500.c,v 1.18 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
+#include "idx_builtin.h"
 #include "icom.h"
 
 
@@ -35,15 +36,14 @@
 
 #define ICR8500_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_APF)
 
-#define ICR8500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define ICR8500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
 
 #define ICR8500_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
 static const struct icom_priv_caps icr8500_priv_caps = {
 	0x4a,   /* default address */
 	0,      /* 731 mode */
-	r8500_ts_sc_list,
-	EMPTY_STR_CAL
+	r8500_ts_sc_list
 };
 /*
  * ICR8500 rigs capabilities.
@@ -76,7 +76,9 @@ const struct rig_caps icr8500_caps = {
 .has_set_level =  RIG_LEVEL_SET(ICR8500_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+},
 .parm_gran =  {},
 .ctcss_list =  NULL,	/* FIXME: CTCSS/DCS list */
 .dcs_list =  NULL,

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.10 2003-10-20 22:15:01 fillods Exp $
+ *	$Id: jrc.c,v 1.11 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -413,17 +413,14 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
- 		struct jrc_priv_caps *priv;
 		int retval, lvl_len, lvl;
 		char lvlbuf[BUFSZ];
-
-		priv = (struct jrc_priv_caps*)rig->caps->priv;
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
 		 */
 		switch (level) {
-		case RIG_LEVEL_STRENGTH:
+		case RIG_LEVEL_RAWSTR:
 				/* read A/D converted value */
 			retval = jrc_transaction (rig, "M" EOM, 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -436,7 +433,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			}
 
 			lvlbuf[4] = '\0';
-			val->i = rig_raw2val(atoi(lvlbuf+1), &priv->str_cal);
+			val->i = atoi(lvlbuf+1);
 			break;
 
 		case RIG_LEVEL_SQLSTAT:
@@ -579,11 +576,8 @@ int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
- 		struct jrc_priv_caps *priv;
 		int retval, lvl_len, i;
 		char lvlbuf[BUFSZ];
-
-		priv = (struct jrc_priv_caps*)rig->caps->priv;
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -867,6 +861,7 @@ DECLARE_INITRIG_BACKEND(jrc)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "jrc: _init called\n");
 
+		rig_register(&nrd535_caps);
 		rig_register(&nrd545_caps);
 
 		return RIG_OK;

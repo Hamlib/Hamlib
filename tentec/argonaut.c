@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-516 PC-Radio description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: argonaut.c,v 1.2 2003-10-01 19:32:02 fillods Exp $
+ *	$Id: argonaut.c,v 1.3 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define TT516_FUNCS (RIG_FUNC_NONE)
 
-#define TT516_LEVELS (RIG_LEVEL_STRENGTH|/* RIG_LEVEL_NB| */ \
+#define TT516_LEVELS (RIG_LEVEL_RAWSTR|/* RIG_LEVEL_NB| */ \
 				RIG_LEVEL_SQL|/*RIG_LEVEL_PBT|*/ \
 				RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD| \
 				RIG_LEVEL_SWR|RIG_LEVEL_ATT)

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-706 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.32 2003-10-01 19:31:56 fillods Exp $
+ *	$Id: ic706.c,v 1.33 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,6 +28,7 @@
 
 #include "hamlib/rig.h"
 #include "icom.h"
+#include "idx_builtin.h"
 
 #define IC706_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM)
 #define IC706_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
@@ -41,7 +42,7 @@
 
 #define IC706IIG_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
 
-#define IC706IIG_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define IC706IIG_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
 
 #define IC706_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
@@ -104,8 +105,7 @@
 static const struct icom_priv_caps ic706_priv_caps = { 
 		0x48,	/* default address */
 		0,		/* 731 mode */
-		ic706_ts_sc_list,
-		IC706IIG_STR_CAL
+		ic706_ts_sc_list
 };
 
 const struct rig_caps ic706_caps = {
@@ -203,6 +203,7 @@ const struct rig_caps ic706_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
+.str_cal = IC706IIG_STR_CAL,
 .priv =  (void*)&ic706_priv_caps,
 .rig_init =   icom_init,
 .rig_cleanup =   icom_cleanup,
@@ -235,8 +236,7 @@ const struct rig_caps ic706_caps = {
 static const struct icom_priv_caps ic706mkii_priv_caps = { 
 		0x4e,	/* default address */
 		0,		/* 731 mode */
-		ic706_ts_sc_list,
-		IC706IIG_STR_CAL
+		ic706_ts_sc_list
 };
 
 const struct rig_caps ic706mkii_caps = {
@@ -336,6 +336,7 @@ const struct rig_caps ic706mkii_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
+.str_cal = IC706IIG_STR_CAL,
 
 .priv =  (void*)&ic706mkii_priv_caps,
 .rig_init =   icom_init,
@@ -371,8 +372,7 @@ const struct rig_caps ic706mkii_caps = {
 static const struct icom_priv_caps ic706mkiig_priv_caps = { 
 		0x58,	/* default address */
 		0,		/* 731 mode */
-		ic706_ts_sc_list,
-		IC706IIG_STR_CAL
+		ic706_ts_sc_list
 };
 
 const struct rig_caps ic706mkiig_caps = {
@@ -384,7 +384,7 @@ const struct rig_caps ic706mkiig_caps = {
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_MOBILE,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  19200,
@@ -402,7 +402,9 @@ const struct rig_caps ic706mkiig_caps = {
 .has_set_level =  RIG_LEVEL_SET(IC706IIG_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
-.level_gran =  {}, 		/* granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
@@ -482,6 +484,7 @@ const struct rig_caps ic706mkiig_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
+.str_cal = IC706IIG_STR_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,

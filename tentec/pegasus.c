@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-550 PC-Radio description
  *  Copyright (c) 2002-2003 by Stephane Fillod
  *
- *	$Id: pegasus.c,v 1.3 2003-10-01 19:32:03 fillods Exp $
+ *	$Id: pegasus.c,v 1.4 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "tentec.h"
 
 
@@ -36,7 +37,7 @@
 #define TT550_FUNCS (RIG_FUNC_FAGC|RIG_FUNC_VOX|RIG_FUNC_ANF| \
 				RIG_FUNC_NR|RIG_FUNC_NB|RIG_FUNC_COMP)
 
-#define TT550_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_AF|RIG_LEVEL_STRENGTH| \
+#define TT550_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_AF|RIG_LEVEL_RAWSTR| \
 				RIG_LEVEL_RF|RIG_LEVEL_COMP|RIG_LEVEL_VOX|RIG_LEVEL_SQL| \
 				RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD| \
 				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
@@ -51,10 +52,6 @@
 		{      0, -60 }, \
 		{  10000,  20 }, \
 	} }
-
-static const struct tentec_priv_caps tt550_priv_caps = {
-		TT550_STR_CAL
-};
 
 /*
  * tt550 receiver capabilities.
@@ -92,7 +89,9 @@ const struct rig_caps tt550_caps = {
 .has_set_level =  RIG_LEVEL_SET(TT550_LEVELS),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 99999,
+},
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
@@ -142,7 +141,7 @@ const struct rig_caps tt550_caps = {
 		{RIG_MODE_AM|RIG_MODE_FM, kHz(8)},
 		RIG_FLT_END,
 	},
-.priv =  (void*)&tt550_priv_caps,
+.str_cal = TT550_STR_CAL,
 
 .rig_init =  tentec_init,
 .rig_cleanup =  tentec_cleanup,

@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - DX77 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.7 2003-10-01 19:31:54 fillods Exp $
+ *	$Id: dx77.c,v 1.8 2003-11-16 17:14:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "alinco.h"
 
 
@@ -36,7 +37,7 @@
 
 #define DX77_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TONE|RIG_FUNC_COMP)
 
-#define DX77_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
+#define DX77_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
 
 #define DX77_PARM_ALL (RIG_PARM_BEEP|RIG_PARM_BACKLIGHT)
 
@@ -59,10 +60,6 @@
 		{ 216, 60 }, \
 	} }
 
-static const struct alinco_priv_caps dx77_priv_caps = {
-		DX77_STR_CAL
-};
-
 /*
  * dx77 rig capabilities.
  *
@@ -82,7 +79,7 @@ const struct rig_caps dx77_caps = {
 .rig_model =  RIG_MODEL_DX77,
 .model_name = "DX-77",
 .mfg_name =  "Alinco",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -106,7 +103,9 @@ const struct rig_caps dx77_caps = {
 .has_set_level =  RIG_LEVEL_SET(DX77_LEVEL_ALL),
 .has_get_parm =  DX77_PARM_ALL,
 .has_set_parm =  RIG_PARM_SET(DX77_PARM_ALL),
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
@@ -163,7 +162,7 @@ const struct rig_caps dx77_caps = {
 		{RIG_MODE_AM, kHz(2.7)},
 		RIG_FLT_END,
 	},
-.priv =  (void*)&dx77_priv_caps,
+.str_cal = DX77_STR_CAL,
 
 .set_freq =  alinco_set_freq,
 .get_freq =  alinco_get_freq,

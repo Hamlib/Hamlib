@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.77 2003-10-01 19:44:00 fillods Exp $
+ *	$Id: rig.c,v 1.78 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -327,6 +327,9 @@ RIG *rig_init(rig_model_t rig_model)
 						sizeof(struct tuning_step_list)*TSLSTSIZ);
 		memcpy(rs->filters, caps->filters, 
 						sizeof(struct filter_list)*FLTLSTSIZ);
+		memcpy(&rs->str_cal, &caps->str_cal, 
+						sizeof(cal_table_t));
+
 		memcpy(rs->chan_list, caps->chan_list, sizeof(chan_t)*CHANLSTSIZ);
 
 		rs->has_get_func = caps->has_get_func;
@@ -335,6 +338,14 @@ RIG *rig_init(rig_model_t rig_model)
 		rs->has_set_level = caps->has_set_level;
 		rs->has_get_parm = caps->has_get_parm;
 		rs->has_set_parm = caps->has_set_parm;
+
+		/* emulation by frontend */
+		if ((caps->has_get_level & RIG_LEVEL_STRENGTH) == 0 &&
+			(caps->has_get_level & RIG_LEVEL_RAWSTR) == RIG_LEVEL_RAWSTR)
+			rs->has_get_level |= RIG_LEVEL_STRENGTH;
+
+		memcpy(rs->level_gran, caps->level_gran, sizeof(gran_t)*RIG_SETTING_MAX);
+		memcpy(rs->parm_gran, caps->parm_gran, sizeof(gran_t)*RIG_SETTING_MAX);
 
 		rs->max_rit = caps->max_rit;
 		rs->max_xit = caps->max_xit;

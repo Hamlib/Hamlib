@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.18 2003-10-20 22:15:01 fillods Exp $
+ *	$Id: alinco.c,v 1.19 2003-11-16 17:14:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -594,17 +594,14 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
- 		struct alinco_priv_caps *priv;
 		int retval, lvl_len;
 		char lvlbuf[BUFSZ];
-
-		priv = (struct alinco_priv_caps*)rig->caps->priv;
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
 		 */
 		switch (level) {
-		case RIG_LEVEL_STRENGTH:
+		case RIG_LEVEL_RAWSTR:
 				/* read A/D converted value */
 			retval = alinco_transaction (rig, AL CMD_SMETER "1" EOM, 
 							strlen(AL CMD_SMETER "1" EOM), lvlbuf, &lvl_len);
@@ -618,7 +615,7 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			}
 
 			lvlbuf[5] = '\0';
-			val->i = rig_raw2val(atoi(lvlbuf+3), &priv->str_cal);
+			val->i = atoi(lvlbuf+3);
 			break;
 
 		case RIG_LEVEL_SQLSTAT:

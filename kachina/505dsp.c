@@ -2,7 +2,7 @@
  *  Hamlib Kachina backend - 505DSP description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: 505dsp.c,v 1.5 2003-10-01 19:31:58 fillods Exp $
+ *	$Id: 505dsp.c,v 1.6 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define K505DSP_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TONE|RIG_FUNC_COMP)
 
-#define K505DSP_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
+#define K505DSP_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
 
 #define K505DSP_PARM_ALL (RIG_PARM_NONE)
 
@@ -46,10 +46,6 @@
 		{    0, -60 }, \
 		{  127,  20 }, \
 	} }
-
-static const struct kachina_priv_caps k505dsp_priv_caps = {
-		K505DSP_STR_CAL
-};
 
 /*
  * 505DSP rig capabilities.
@@ -153,7 +149,7 @@ const struct rig_caps k505dsp_caps = {
 		{RIG_MODE_FM, kHz(6)},
 		RIG_FLT_END,
 	},
-.priv =  (void*)&k505dsp_priv_caps,
+.str_cal = K505DSP_STR_CAL,
 
 .set_freq =  kachina_set_freq,
 .set_mode =  kachina_set_mode,

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-765 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic765.c,v 1.1 2003-11-10 16:01:21 fillods Exp $
+ *	$Id: ic765.c,v 1.2 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -54,8 +54,7 @@
 static const struct icom_priv_caps ic765_priv_caps = { 
 	0x2c,	/* default address */
 	0,		/* 731 mode */
-	ic737_ts_sc_list,
-	EMPTY_STR_CAL
+	ic737_ts_sc_list
 };
 
 const struct rig_caps ic765_caps = {

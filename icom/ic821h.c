@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *      $Id: ic821h.c,v 1.4 2003-10-01 19:31:56 fillods Exp $
+ *      $Id: ic821h.c,v 1.5 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,8 +50,7 @@
 static const struct icom_priv_caps ic821h_priv_caps = {
    	0x4c,   		/* default address */
 	1,				/* 731 mode */
-   	ic737_ts_sc_list,
-   	IC821H_STR_CAL
+   	ic737_ts_sc_list
 };
 
 const struct rig_caps ic821h_caps = {

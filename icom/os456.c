@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan456
  *  Copyright (c) 2000-2003 by Stephane Fillod and Michael Smith
  *
- *	$Id: os456.c,v 1.8 2003-10-01 19:31:57 fillods Exp $
+ *	$Id: os456.c,v 1.9 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "icom.h"
 #include "tones.h"
 #include "token.h"
@@ -41,7 +42,7 @@ extern struct confparams opto_ext_parms[];
 
 #define OS456_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 #define OS456_VFO_ALL (RIG_VFO_A)
-#define OS456_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF)
+#define OS456_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF)
 #define OS456_SCAN_OPS (RIG_SCAN_PLT)
 /*
  * The signal strength data is in the form of two bytes, each consisting 
@@ -68,7 +69,6 @@ static const struct icom_priv_caps os456_priv_caps = {
 		0x80,	/* default address */
 		0,		/* 731 mode */
 		NULL,
-		OS456_STR_CAL,
 		.settle_time = 20,
 };
 
@@ -99,7 +99,9 @@ const struct rig_caps os456_caps = {
 .has_set_level =  RIG_LEVEL_AF,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
-.level_gran =  {},
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+},
 .parm_gran =  {},
 .ctcss_list =  full_ctcss_list,
 .dcs_list =  full_dcs_list,
@@ -142,6 +144,7 @@ const struct rig_caps os456_caps = {
 		{RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM, kHz(15)},	/* TBC */
 		RIG_FLT_END,
 	},
+.str_cal = OS456_STR_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,

@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.8 2003-10-01 19:31:56 fillods Exp $
+ *      $Id: ic910.c,v 1.9 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,7 @@
 
 #include <hamlib/rig.h>
 #include "icom.h"
+#include "idx_builtin.h"
 
 /*
  * It seems some IC910 out there have weird firmware. Uncomment the following
@@ -195,14 +196,14 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
                             RIG_LEVEL_ATT| \
                             RIG_LEVEL_PREAMP)
 
-#define IC910_STR_CAL { 0, { } }
+#define IC910_STR_CAL { 0, { } }	/* FIXME */
+
 /*
  */
 static const struct icom_priv_caps ic910_priv_caps = {
     0x60,           /* default address */
     0,              /* 731 mode */
-    ic910_ts_sc_list,
-    IC910_STR_CAL
+    ic910_ts_sc_list
 };
 
 const struct rig_caps ic910_caps = {
@@ -228,11 +229,13 @@ const struct rig_caps ic910_caps = {
 .retry =  3,
 .has_get_func =  IC910_FUNC_ALL,
 .has_set_func =  IC910_FUNC_ALL | RIG_FUNC_RESUME,
-.has_get_level =  IC910_LEVEL_ALL | (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH),
+.has_get_level =  IC910_LEVEL_ALL | (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR),
 .has_set_level =  IC910_LEVEL_ALL,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
-.level_gran =  {},
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+},
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
@@ -288,9 +291,10 @@ const struct rig_caps ic910_caps = {
     RIG_TS_END, },
     /* mode/filter list, remember: order matters! */
 .filters =     {
-    {RIG_MODE_CW|RIG_MODE_SSB, kHz(2.3)},   /* buildin */
-    {RIG_MODE_FM, kHz(15)},                 /* buildin */
+    {RIG_MODE_CW|RIG_MODE_SSB, kHz(2.3)},   /* builtin */
+    {RIG_MODE_FM, kHz(15)},                 /* builtin */
      RIG_FLT_END, },
+.str_cal = IC910_STR_CAL,
 
 .priv =  (void*)&ic910_priv_caps,
 .rig_init =   icom_init,

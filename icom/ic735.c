@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-735 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic735.c,v 1.5 2003-10-01 19:31:56 fillods Exp $
+ *	$Id: ic735.c,v 1.6 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,8 +49,7 @@
 static const struct icom_priv_caps ic735_priv_caps = { 
 		0x04,	/* default address */
 		1,		/* 731 mode */
-		ic737_ts_sc_list,
-		IC735_STR_CAL
+		ic737_ts_sc_list
 };
 
 const struct rig_caps ic735_caps = {

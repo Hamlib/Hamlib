@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.2 2003-04-07 22:42:00 fillods Exp $
+ *	$Id: ft1000mp.c,v 1.3 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -130,7 +130,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 #define FT1000MP_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_LOCK /* |RIG_FUNC_TUNER */) /* FIXME */
 
-#define FT1000MP_LEVEL_GET (RIG_LEVEL_STRENGTH|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER|RIG_LEVEL_COMP|RIG_LEVEL_MICGAIN|RIG_LEVEL_CWPITCH)
+#define FT1000MP_LEVEL_GET (RIG_LEVEL_RAWSTR|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER|RIG_LEVEL_COMP|RIG_LEVEL_MICGAIN|RIG_LEVEL_CWPITCH)
 
 #define FT1000MP_VFOS (RIG_VFO_A|RIG_VFO_B)
 #define FT1000MP_ANTS 0		/* FIXME: declare antenna connectors: ANT-A, ANT-B, RX ANT */
@@ -189,7 +189,6 @@ struct ft1000mp_priv_data {
   unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
   yaesu_cmd_set_t pcs[FT1000MP_NATIVE_SIZE];  /* private cmd set */
   unsigned char update_data[2*FT1000MP_STATUS_UPDATE_LENGTH];/* returned data--max value, some are less */
-  cal_table_t str_cal;
 };
 
 
@@ -298,6 +297,7 @@ const struct rig_caps ft1000mp_caps = {
 
     RIG_FLT_END,
   },
+  .str_cal = FT1000MP_STR_CAL,
 
   .priv =               NULL,           /* private data */
 
@@ -331,7 +331,6 @@ const struct rig_caps ft1000mp_caps = {
 
 int ft1000mp_init(RIG *rig) {
   struct ft1000mp_priv_data *p;
-  cal_table_t cal = FT1000MP_STR_CAL;
   
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_init called \n");
 
@@ -349,7 +348,6 @@ int ft1000mp_init(RIG *rig) {
   p->pacing = FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
   p->read_update_delay = FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
   p->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
-  memcpy(&p->str_cal, &cal, sizeof(cal));
 
   rig->state.priv = (void*)p;
   
@@ -930,7 +928,7 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	 *   sort the switch cases with the most frequent first
 	 */
 	switch (level) {
-	case RIG_LEVEL_STRENGTH:
+	case RIG_LEVEL_RAWSTR:
   		if (vfo == RIG_VFO_CURR)
 			  vfo = priv->current_vfo;
 
@@ -974,8 +972,8 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	}
 
 	switch (level) {
-	case RIG_LEVEL_STRENGTH:
-		val->i = rig_raw2val(lvl_data[0], &priv->str_cal);
+	case RIG_LEVEL_RAWSTR:
+		val->i = lvl_data[0];
 		break;
 	default:
 		if (RIG_LEVEL_IS_FLOAT(level))

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: jrc.h,v 1.5 2003-04-16 22:30:40 fillods Exp $
+ *	$Id: jrc.h,v 1.6 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,11 +24,6 @@
 #define _JRC_H 1
 
 #include <hamlib/rig.h>
-#include <cal.h>
-
-struct jrc_priv_caps {
-	cal_table_t str_cal;
-};
 
 int jrc_open(RIG *rig);
 int jrc_close(RIG *rig);
@@ -50,6 +45,7 @@ int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 int jrc_decode_event(RIG *rig);
 
+extern const struct rig_caps nrd535_caps;
 extern const struct rig_caps nrd545_caps;
 
 

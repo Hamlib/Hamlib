@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.11 2003-10-01 19:32:03 fillods Exp $
+ *	$Id: tentec.c,v 1.12 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -92,7 +92,6 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 int tentec_init(RIG *rig)
 {
 	struct tentec_priv_data *priv;
-	struct tentec_priv_caps *priv_caps;
 
 	priv = (struct tentec_priv_data*)malloc(sizeof(struct tentec_priv_data));
 
@@ -100,7 +99,6 @@ int tentec_init(RIG *rig)
 				/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
-	priv_caps = (struct tentec_priv_caps *)rig->caps->priv;
 
 	memset(priv, 0, sizeof(struct tentec_priv_data));
 
@@ -113,7 +111,6 @@ int tentec_init(RIG *rig)
 	priv->cwbfo = 0;
 	priv->agc = 0.5;	/* medium */
 	priv->lnvol = priv->spkvol = 0.0;	/* mute */
-	memcpy(&priv->str_cal, &priv_caps->str_cal, sizeof(cal_table_t));
 
 	rig->state.priv = (rig_ptr_t)priv;
 
@@ -383,7 +380,7 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	 *   sort the switch cases with the most frequent first
 	 */
 	switch (level) {
-	case RIG_LEVEL_STRENGTH:
+	case RIG_LEVEL_RAWSTR:
 			/* read A/D converted value */
 		lvl_len = 4;
 		retval = tentec_transaction (rig, "X" EOM, 2, lvlbuf, &lvl_len);
@@ -399,7 +396,7 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvlbuf[3] = '\0';
 		rig_debug(RIG_DEBUG_VERBOSE,"tentec_get_level: cmd=%c,hi=%d,lo=%d\n",
 				lvlbuf[0],lvlbuf[1],lvlbuf[2]);
-		val->i = rig_raw2val((lvlbuf[1]<<8) + lvlbuf[2], &priv->str_cal);
+		val->i = (lvlbuf[1]<<8) + lvlbuf[2];
 		break;
 
 	case RIG_LEVEL_AGC:

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.5 2003-10-01 19:31:57 fillods Exp $
+ *	$Id: nrd545.c,v 1.6 2003-11-16 17:14:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "jrc.h"
 
 
@@ -34,7 +35,7 @@
 
 #define NRD545_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_ABM|RIG_FUNC_BC|RIG_FUNC_NR)
 
-#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL)
+#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL)
 
 /* FIXME: add more from "U" command */
 #define NRD545_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
@@ -48,10 +49,6 @@
 		{   0, -60 }, \
 		{ 255, 60 }, \
 	} }
-
-static const struct jrc_priv_caps nrd545_priv_caps = {
-		NRD545_STR_CAL
-};
 
 /*
  * NRD-545 rig capabilities.
@@ -85,7 +82,9 @@ const struct rig_caps nrd545_caps = {
 .has_set_level =  RIG_LEVEL_SET(NRD545_LEVEL),
 .has_get_parm =  RIG_PARM_TIME,
 .has_set_parm =  RIG_PARM_SET(NRD545_PARM),
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+},
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
@@ -138,7 +137,7 @@ const struct rig_caps nrd545_caps = {
 		{NRD545_MODES, kHz(4.5)},
 		RIG_FLT_END,
 	},
-.priv =  (void*)&nrd545_priv_caps,
+.str_cal = NRD545_STR_CAL,
 
 .rig_open =  jrc_open,
 .rig_close =  jrc_close,

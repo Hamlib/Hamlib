@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec.h,v 1.6 2003-05-12 22:29:59 fillods Exp $
+ *	$Id: tentec.h,v 1.7 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,11 +24,6 @@
 #define _TENTEC_H 1
 
 #include <hamlib/rig.h>
-#include <cal.h>
-
-struct tentec_priv_caps {
-	cal_table_t str_cal;
-};
 
 struct tentec_priv_data {
 	rmode_t mode;		/* detection mode */
@@ -43,9 +38,6 @@ struct tentec_priv_data {
 	int ctf; /* Coarse Tune Factor */
 	int ftf; /* Fine Tune Factor */
 	int btf; /* Bfo Tune Factor, btval is ignored by RX-320 in AM MODE */
-
-	/* S-meter calibration data */
-	cal_table_t str_cal;
 };
 
 int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);

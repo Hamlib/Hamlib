@@ -3,16 +3,16 @@
  * \ingroup rig
  * \brief func/level/parm interface
  * \author Stephane Fillod
- * \date 2000-2002
+ * \date 2000-2003
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - func/level/parm
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.2 2003-03-27 23:45:27 fillods Exp $
+ *	$Id: settings.c,v 1.3 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +42,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
+#include "cal.h"
 
 
 #ifndef DOC_HIDDEN
@@ -136,6 +137,22 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	if (caps->get_level == NULL || !rig_has_get_level(rig,level))
 		return -RIG_ENAVAIL;
+
+	/*
+	 * Special case(frontend emulation): calibrated S-meter reading
+	 */
+	if (level == RIG_LEVEL_STRENGTH && 
+			(caps->has_get_level & RIG_LEVEL_STRENGTH) == 0 &&
+			rig_has_get_level(rig,RIG_LEVEL_RAWSTR)) {
+
+		value_t rawstr;
+		retcode = rig_get_level(rig, vfo, RIG_LEVEL_RAWSTR, &rawstr);
+		if (retcode != RIG_OK)
+			return retcode;
+		val->i = (int)rig_raw2val(rawstr.i, &rig->state.str_cal);
+		return RIG_OK;
+	}
+
 
 	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)

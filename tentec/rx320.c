@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - RX-320 PC-Radio description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rx320.c,v 1.4 2003-10-01 19:32:03 fillods Exp $
+ *	$Id: rx320.c,v 1.5 2003-11-16 17:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,12 +27,13 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "tentec.h"
 
 
 #define RX320_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB)
 
-#define RX320_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_AF|RIG_LEVEL_STRENGTH)
+#define RX320_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_AF|RIG_LEVEL_RAWSTR)
 
 #define RX320_VFO (RIG_VFO_A)
 
@@ -44,10 +45,6 @@
 		{      0, -60 }, \
 		{  10000,  20 }, \
 	} }
-
-static const struct tentec_priv_caps rx320_priv_caps = {
-		RX320_STR_CAL
-};
 
 /*
  * rx320 receiver capabilities.
@@ -85,7 +82,9 @@ const struct rig_caps rx320_caps = {
 .has_set_level =  RIG_LEVEL_SET(RX320_LEVELS),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 99999,
+},
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
@@ -120,7 +119,7 @@ const struct rig_caps rx320_caps = {
 		{RIG_MODE_AM, kHz(6)},
 		RIG_FLT_END,
 	},
-.priv =  (void*)&rx320_priv_caps,
+.str_cal = RX320_STR_CAL,
 
 .rig_init =  tentec_init,
 .rig_cleanup =  tentec_cleanup,
