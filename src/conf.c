@@ -3,13 +3,13 @@
  * \ingroup rig
  * \brief Rig configuration interface
  * \author Stephane Fillod
- * \date 2000-2004
+ * \date 2000-2005
  */
 /*
  *  Hamlib Interface - configuration interface
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.12 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: conf.c,v 1.13 2005-04-04 18:30:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -116,113 +116,113 @@ static const struct confparams frontend_cfg_params[] = {
  */
 static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 {
-		const struct rig_caps *caps;
-		struct rig_state *rs;
+	const struct rig_caps *caps;
+	struct rig_state *rs;
 
-		caps = rig->caps;
-		rs = &rig->state;
+	caps = rig->caps;
+	rs = &rig->state;
 
-		switch(token) {
-		case TOK_PATHNAME:
-				strcpy(rs->rigport.pathname, val);
-				break;
-		case TOK_WRITE_DELAY:
-				rs->rigport.write_delay = atoi(val);
-				break;
-		case TOK_POST_WRITE_DELAY:
-				rs->rigport.post_write_delay = atoi(val);
-				break;
-		case TOK_TIMEOUT:
-				rs->rigport.timeout = atoi(val);
-				break;
-		case TOK_RETRY:
-				rs->rigport.retry = atoi(val);
-				break;
+	switch(token) {
+	case TOK_PATHNAME:
+		strcpy(rs->rigport.pathname, val);
+		break;
+	case TOK_WRITE_DELAY:
+		rs->rigport.write_delay = atoi(val);
+		break;
+	case TOK_POST_WRITE_DELAY:
+		rs->rigport.post_write_delay = atoi(val);
+		break;
+	case TOK_TIMEOUT:
+		rs->rigport.timeout = atoi(val);
+		break;
+	case TOK_RETRY:
+		rs->rigport.retry = atoi(val);
+		break;
 
-		case TOK_SERIAL_SPEED:
-				rs->rigport.parm.serial.rate = atoi(val);
-				break;
-		case TOK_DATA_BITS:
-				rs->rigport.parm.serial.data_bits = atoi(val);
-				break;
-		case TOK_STOP_BITS:
-				rs->rigport.parm.serial.stop_bits = atoi(val);
-				break;
-		case TOK_PARITY:
-				if (!strncmp(val, "None", 8))
-					rs->rigport.parm.serial.parity = RIG_PARITY_NONE;
-				else if (!strncmp(val, "Odd", 8))
-					rs->rigport.parm.serial.parity = RIG_PARITY_ODD;
-				else if (!strncmp(val, "Even", 8))
-					rs->rigport.parm.serial.parity = RIG_PARITY_EVEN;
-				else 
-						return -RIG_EINVAL;
-				break;
-		case TOK_HANDSHAKE:
-				if (!strncmp(val, "None", 8))
-					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-				else if (!strncmp(val, "XONXOFF", 8))
-					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
-				else if (!strncmp(val, "Hardware", 8))
-					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
-				else 
-						return -RIG_EINVAL;
-				break;
-
-		case TOK_RTS_STATE:
-				if (!strcmp(val, "Unset"))
-					rs->rigport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
-				else if (!strcmp(val, "ON"))
-					rs->rigport.parm.serial.rts_state = RIG_SIGNAL_ON;
-				else if (!strcmp(val, "OFF"))
-					rs->rigport.parm.serial.rts_state = RIG_SIGNAL_OFF;
-				else 
-						return -RIG_EINVAL;
-				break;
-
-		case TOK_DTR_STATE:
-				if (!strcmp(val, "Unset"))
-					rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
-				else if (!strcmp(val, "ON"))
-					rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_ON;
-				else if (!strcmp(val, "OFF"))
-					rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_OFF;
-				else 
-						return -RIG_EINVAL;
-				break;
-
-		case TOK_ITU_REGION:
-				rs->itu_region = atoi(val);
-                switch(rs->itu_region) {
-				case RIG_ITU_REGION1:
-					memcpy(rs->tx_range_list, caps->tx_range_list1,
-							sizeof(struct freq_range_list)*FRQRANGESIZ);
-					memcpy(rs->rx_range_list, caps->rx_range_list1,
-							sizeof(struct freq_range_list)*FRQRANGESIZ);
-					break;
-				case RIG_ITU_REGION2:
-				case RIG_ITU_REGION3:
-				default:
-					memcpy(rs->tx_range_list, caps->tx_range_list2,
-							sizeof(struct freq_range_list)*FRQRANGESIZ);
-					memcpy(rs->rx_range_list, caps->rx_range_list2,
-							sizeof(struct freq_range_list)*FRQRANGESIZ);
-					break;
-					}
-				break;
-
-		case TOK_VFO_COMP:
-				rs->vfo_comp = atof(val);
-				break;
-		case TOK_POLL_INTERVAL:
-				rs->poll_interval = atof(val);
-				break;
-
-
-		default:
+	case TOK_SERIAL_SPEED:
+		rs->rigport.parm.serial.rate = atoi(val);
+		break;
+	case TOK_DATA_BITS:
+		rs->rigport.parm.serial.data_bits = atoi(val);
+		break;
+	case TOK_STOP_BITS:
+		rs->rigport.parm.serial.stop_bits = atoi(val);
+		break;
+	case TOK_PARITY:
+		if (!strncmp(val, "None", 8))
+			rs->rigport.parm.serial.parity = RIG_PARITY_NONE;
+		else if (!strncmp(val, "Odd", 8))
+			rs->rigport.parm.serial.parity = RIG_PARITY_ODD;
+		else if (!strncmp(val, "Even", 8))
+			rs->rigport.parm.serial.parity = RIG_PARITY_EVEN;
+		else 
 				return -RIG_EINVAL;
-		}
-		return RIG_OK;
+		break;
+	case TOK_HANDSHAKE:
+		if (!strncmp(val, "None", 8))
+			rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
+		else if (!strncmp(val, "XONXOFF", 8))
+			rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
+		else if (!strncmp(val, "Hardware", 8))
+			rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
+		else 
+				return -RIG_EINVAL;
+		break;
+
+	case TOK_RTS_STATE:
+		if (!strcmp(val, "Unset"))
+			rs->rigport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
+		else if (!strcmp(val, "ON"))
+			rs->rigport.parm.serial.rts_state = RIG_SIGNAL_ON;
+		else if (!strcmp(val, "OFF"))
+			rs->rigport.parm.serial.rts_state = RIG_SIGNAL_OFF;
+		else 
+				return -RIG_EINVAL;
+		break;
+
+	case TOK_DTR_STATE:
+		if (!strcmp(val, "Unset"))
+			rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
+		else if (!strcmp(val, "ON"))
+			rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_ON;
+		else if (!strcmp(val, "OFF"))
+			rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_OFF;
+		else 
+				return -RIG_EINVAL;
+		break;
+
+	case TOK_ITU_REGION:
+		rs->itu_region = atoi(val);
+                switch(rs->itu_region) {
+		case RIG_ITU_REGION1:
+			memcpy(rs->tx_range_list, caps->tx_range_list1,
+					sizeof(struct freq_range_list)*FRQRANGESIZ);
+			memcpy(rs->rx_range_list, caps->rx_range_list1,
+					sizeof(struct freq_range_list)*FRQRANGESIZ);
+			break;
+		case RIG_ITU_REGION2:
+		case RIG_ITU_REGION3:
+		default:
+			memcpy(rs->tx_range_list, caps->tx_range_list2,
+					sizeof(struct freq_range_list)*FRQRANGESIZ);
+			memcpy(rs->rx_range_list, caps->rx_range_list2,
+					sizeof(struct freq_range_list)*FRQRANGESIZ);
+			break;
+			}
+		break;
+
+	case TOK_VFO_COMP:
+		rs->vfo_comp = atof(val);
+		break;
+	case TOK_POLL_INTERVAL:
+		rs->poll_interval = atof(val);
+		break;
+
+
+	default:
+		return -RIG_EINVAL;
+	}
+	return RIG_OK;
 }
 
 /*
@@ -231,93 +231,93 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
  */
 static int frontend_get_conf(RIG *rig, token_t token, char *val)
 {
-		const struct rig_caps *caps;
-		struct rig_state *rs;
-		const char *s;
+	const struct rig_caps *caps;
+	struct rig_state *rs;
+	const char *s;
 
-		caps = rig->caps;
-		rs = &rig->state;
+	caps = rig->caps;
+	rs = &rig->state;
 
-		switch(token) {
-		case TOK_PATHNAME:
-				strcpy(val, rs->rigport.pathname);
-				break;
-		case TOK_WRITE_DELAY:
-				sprintf(val, "%d", rs->rigport.write_delay);
-				break;
-		case TOK_POST_WRITE_DELAY:
-				sprintf(val, "%d", rs->rigport.post_write_delay);
-				break;
-		case TOK_TIMEOUT:
-				sprintf(val, "%d", rs->rigport.timeout);
-				break;
-		case TOK_RETRY:
-				sprintf(val, "%d", rs->rigport.retry);
-				break;
-		case TOK_ITU_REGION:
-				sprintf(val, "%d", 
-					rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
-				break;
-		case TOK_SERIAL_SPEED:
-				sprintf(val, "%d", rs->rigport.parm.serial.rate);
-				break;
-		case TOK_DATA_BITS:
-				sprintf(val, "%d", rs->rigport.parm.serial.data_bits);
-				break;
-		case TOK_STOP_BITS:
-				sprintf(val, "%d", rs->rigport.parm.serial.stop_bits);
-				break;
-		case TOK_PARITY:
-				switch (rs->rigport.parm.serial.parity) {
-				case RIG_PARITY_NONE: s = "None"; break;
-				case RIG_PARITY_ODD: s = "Odd"; break;
-				case RIG_PARITY_EVEN: s = "Even"; break;
-				default: return -RIG_EINVAL;
-				}
-				strcpy(val, s);
-				break;
-		case TOK_HANDSHAKE:
-				switch (rs->rigport.parm.serial.handshake) {
-				case RIG_HANDSHAKE_NONE: s = "None"; break;
-				case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
-				case RIG_HANDSHAKE_HARDWARE: s = "Hardware"; break;
-				default: return -RIG_EINVAL;
-				}
-				strcpy(val, s);
-				break;
-
-		case TOK_RTS_STATE:
-				switch (rs->rigport.parm.serial.rts_state) {
-				case RIG_SIGNAL_UNSET: s = "Unset"; break;
-				case RIG_SIGNAL_ON: s = "ON"; break;
-				case RIG_SIGNAL_OFF: s = "OFF"; break;
-				default: return -RIG_EINVAL;
-				}
-				strcpy(val, s);
-				break;
-
-		case TOK_DTR_STATE:
-				switch (rs->rigport.parm.serial.dtr_state) {
-				case RIG_SIGNAL_UNSET: s = "Unset"; break;
-				case RIG_SIGNAL_ON: s = "ON"; break;
-				case RIG_SIGNAL_OFF: s = "OFF"; break;
-				default: return -RIG_EINVAL;
-				}
-				strcpy(val, s);
-				break;
-
-		case TOK_VFO_COMP:
-				sprintf(val, "%f", rs->vfo_comp);
-				break;
-		case TOK_POLL_INTERVAL:
-				sprintf(val, "%d", rs->poll_interval);
-				break;
-
-		default:
-				return -RIG_EINVAL;
+	switch(token) {
+	case TOK_PATHNAME:
+		strcpy(val, rs->rigport.pathname);
+		break;
+	case TOK_WRITE_DELAY:
+		sprintf(val, "%d", rs->rigport.write_delay);
+		break;
+	case TOK_POST_WRITE_DELAY:
+		sprintf(val, "%d", rs->rigport.post_write_delay);
+		break;
+	case TOK_TIMEOUT:
+		sprintf(val, "%d", rs->rigport.timeout);
+		break;
+	case TOK_RETRY:
+		sprintf(val, "%d", rs->rigport.retry);
+		break;
+	case TOK_ITU_REGION:
+		sprintf(val, "%d", 
+			rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
+		break;
+	case TOK_SERIAL_SPEED:
+		sprintf(val, "%d", rs->rigport.parm.serial.rate);
+		break;
+	case TOK_DATA_BITS:
+		sprintf(val, "%d", rs->rigport.parm.serial.data_bits);
+		break;
+	case TOK_STOP_BITS:
+		sprintf(val, "%d", rs->rigport.parm.serial.stop_bits);
+		break;
+	case TOK_PARITY:
+		switch (rs->rigport.parm.serial.parity) {
+		case RIG_PARITY_NONE: s = "None"; break;
+		case RIG_PARITY_ODD: s = "Odd"; break;
+		case RIG_PARITY_EVEN: s = "Even"; break;
+		default: return -RIG_EINVAL;
 		}
+		strcpy(val, s);
+		break;
+	case TOK_HANDSHAKE:
+		switch (rs->rigport.parm.serial.handshake) {
+		case RIG_HANDSHAKE_NONE: s = "None"; break;
+		case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
+		case RIG_HANDSHAKE_HARDWARE: s = "Hardware"; break;
+		default: return -RIG_EINVAL;
+		}
+		strcpy(val, s);
+		break;
 
-		return RIG_OK;
+	case TOK_RTS_STATE:
+		switch (rs->rigport.parm.serial.rts_state) {
+		case RIG_SIGNAL_UNSET: s = "Unset"; break;
+		case RIG_SIGNAL_ON: s = "ON"; break;
+		case RIG_SIGNAL_OFF: s = "OFF"; break;
+		default: return -RIG_EINVAL;
+		}
+		strcpy(val, s);
+		break;
+
+	case TOK_DTR_STATE:
+		switch (rs->rigport.parm.serial.dtr_state) {
+		case RIG_SIGNAL_UNSET: s = "Unset"; break;
+		case RIG_SIGNAL_ON: s = "ON"; break;
+		case RIG_SIGNAL_OFF: s = "OFF"; break;
+		default: return -RIG_EINVAL;
+		}
+		strcpy(val, s);
+		break;
+
+	case TOK_VFO_COMP:
+		sprintf(val, "%f", rs->vfo_comp);
+		break;
+	case TOK_POLL_INTERVAL:
+		sprintf(val, "%d", rs->poll_interval);
+		break;
+
+	default:
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
 }
 
 /**
@@ -339,14 +339,16 @@ int HAMLIB_API rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams 
 	const struct confparams *cfp;
 
 	if (!rig || !rig->caps || !cfunc)
-			return -RIG_EINVAL;
+		return -RIG_EINVAL;
 
 	for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
-			if ((*cfunc)(cfp, data) == 0)
-					return RIG_OK;
+		if ((*cfunc)(cfp, data) == 0)
+			return RIG_OK;
+
 	for (cfp = frontend_cfg_params; cfp->name; cfp++)
-			if ((*cfunc)(cfp, data) == 0)
-					return RIG_OK;
+		if ((*cfunc)(cfp, data) == 0)
+			return RIG_OK;
+
 	return RIG_OK;
 }
 
@@ -362,17 +364,20 @@ int HAMLIB_API rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams 
  */
 const struct confparams * HAMLIB_API rig_confparam_lookup(RIG *rig, const char *name)
 {
-		const struct confparams *cfp;
+	const struct confparams *cfp;
 
-		if (!rig || !rig->caps)
-				return NULL;
-		for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
-				if (!strcmp(cfp->name, name))
-						return cfp;
-		for (cfp = frontend_cfg_params; cfp->name; cfp++)
-				if (!strcmp(cfp->name, name))
-						return cfp;
+	if (!rig || !rig->caps)
 		return NULL;
+
+	for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
+		if (!strcmp(cfp->name, name))
+			return cfp;
+
+	for (cfp = frontend_cfg_params; cfp->name; cfp++)
+		if (!strcmp(cfp->name, name))
+			return cfp;
+
+	return NULL;
 }
 
 /**
@@ -386,13 +391,13 @@ const struct confparams * HAMLIB_API rig_confparam_lookup(RIG *rig, const char *
  */
 token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
 {
-		const struct confparams *cfp;
+	const struct confparams *cfp;
 
-		cfp = rig_confparam_lookup(rig, name);
-		if (!cfp)
-				return RIG_CONF_END;
+	cfp = rig_confparam_lookup(rig, name);
+	if (!cfp)
+		return RIG_CONF_END;
 
-		return cfp->token;
+	return cfp->token;
 }
 
 /**
@@ -411,16 +416,16 @@ token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
  */
 int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
 {
-		if (!rig || !rig->caps)
-			return -RIG_EINVAL;
+	if (!rig || !rig->caps)
+		return -RIG_EINVAL;
 
-		if (IS_TOKEN_FRONTEND(token))
-				return frontend_set_conf(rig, token, val);
+	if (IS_TOKEN_FRONTEND(token))
+		return frontend_set_conf(rig, token, val);
 
-		if (rig->caps->set_conf == NULL)
-			return -RIG_ENAVAIL;
+	if (rig->caps->set_conf == NULL)
+		return -RIG_ENAVAIL;
 
-		return rig->caps->set_conf(rig, token, val);
+	return rig->caps->set_conf(rig, token, val);
 }
 
 /**
@@ -440,15 +445,15 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
  */
 int HAMLIB_API rig_get_conf(RIG *rig, token_t token, char *val)
 {
-		if (!rig || !rig->caps || !val)
-			return -RIG_EINVAL;
+	if (!rig || !rig->caps || !val)
+		return -RIG_EINVAL;
 
-		if (IS_TOKEN_FRONTEND(token))
-				return frontend_get_conf(rig, token, val);
+	if (IS_TOKEN_FRONTEND(token))
+		return frontend_get_conf(rig, token, val);
 
-		if (rig->caps->get_conf == NULL)
-			return -RIG_ENAVAIL;
+	if (rig->caps->get_conf == NULL)
+		return -RIG_ENAVAIL;
 
-		return rig->caps->get_conf(rig, token, val);
+	return rig->caps->get_conf(rig, token, val);
 }
 

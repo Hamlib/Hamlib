@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_reg.c,v 1.8 2005-04-03 12:27:17 fillods Exp $
+ *	$Id: rot_reg.c,v 1.9 2005-04-04 18:31:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,9 +62,9 @@ static struct {
  * It is chained, and used in a hash table, see below.
  */
 struct rot_list {
-		const struct rot_caps *caps;
-		lt_dlhandle handle;			/* handle returned by lt_dlopen() */
-		struct rot_list *next;
+	const struct rot_caps *caps;
+	lt_dlhandle handle;			/* handle returned by lt_dlopen() */
+	struct rot_list *next;
 };
 
 #define ROTLSTHASHSZ 16
@@ -84,30 +84,30 @@ static int rot_lookup_backend(rot_model_t rot_model);
  */
 int HAMLIB_API rot_register(const struct rot_caps *caps)
 {
-		int hval;
-		struct rot_list *p;
+	int hval;
+	struct rot_list *p;
 
-		if (!caps)
-				return -RIG_EINVAL;
+	if (!caps)
+		return -RIG_EINVAL;
 
-		rot_debug(RIG_DEBUG_VERBOSE, "rot_register (%d)\n",caps->rot_model);
+	rot_debug(RIG_DEBUG_VERBOSE, "rot_register (%d)\n",caps->rot_model);
 
 #ifndef DONT_WANT_DUP_CHECK
-		if (rot_get_caps(caps->rot_model)!=NULL)
-				return -RIG_EINVAL;
+	if (rot_get_caps(caps->rot_model)!=NULL)
+		return -RIG_EINVAL;
 #endif
 
-		p = (struct rot_list*)malloc(sizeof(struct rot_list));
-		if (!p)
-				return -RIG_ENOMEM;
+	p = (struct rot_list*)malloc(sizeof(struct rot_list));
+	if (!p)
+		return -RIG_ENOMEM;
 
-		hval = HASH_FUNC(caps->rot_model);
-		p->caps = caps;
-		p->handle = NULL;
-		p->next = rot_hash_table[hval];
-		rot_hash_table[hval] = p;
+	hval = HASH_FUNC(caps->rot_model);
+	p->caps = caps;
+	p->handle = NULL;
+	p->next = rot_hash_table[hval];
+	rot_hash_table[hval] = p;
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /*
@@ -117,13 +117,13 @@ int HAMLIB_API rot_register(const struct rot_caps *caps)
 
 const struct rot_caps * HAMLIB_API rot_get_caps(rot_model_t rot_model)
 {
-		struct rot_list *p;
+	struct rot_list *p;
 
-		for (p = rot_hash_table[HASH_FUNC(rot_model)]; p; p=p->next) {
-				if (p->caps->rot_model == rot_model)
-						return p->caps;
-		}
-		return NULL;	/* sorry, caps not registered! */
+	for (p = rot_hash_table[HASH_FUNC(rot_model)]; p; p=p->next) {
+		if (p->caps->rot_model == rot_model)
+			return p->caps;
+	}
+	return NULL;	/* sorry, caps not registered! */
 }
 
 /*
@@ -133,14 +133,14 @@ const struct rot_caps * HAMLIB_API rot_get_caps(rot_model_t rot_model)
  */
 static int rot_lookup_backend(rot_model_t rot_model)
 {
-		int i;
+	int i;
 
-		for (i=0; i<ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
-				if (ROT_BACKEND_NUM(rot_model) == 
-								rot_backend_list[i].be_num)
-						return i;
-		}
-		return -1;
+	for (i=0; i<ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
+		if (ROT_BACKEND_NUM(rot_model) == 
+				rot_backend_list[i].be_num)
+			return i;
+	}
+	return -1;
 }
 
 /*
@@ -151,54 +151,53 @@ static int rot_lookup_backend(rot_model_t rot_model)
  */
 int HAMLIB_API rot_check_backend(rot_model_t rot_model)
 {
-		const struct rot_caps *caps;
-		int be_idx;
-		int retval;
-		
-		/* already loaded ? */
-		caps = rot_get_caps(rot_model);
-		if (caps)
-				return RIG_OK;
+	const struct rot_caps *caps;
+	int be_idx;
+	int retval;
+	
+	/* already loaded ? */
+	caps = rot_get_caps(rot_model);
+	if (caps)
+		return RIG_OK;
 
-		be_idx = rot_lookup_backend(rot_model);
+	be_idx = rot_lookup_backend(rot_model);
 
-		/*
-		 * Never heard about this backend family!
-		 */
-		if (be_idx == -1) {
-			rot_debug(RIG_DEBUG_VERBOSE, "rot_check_backend: unsupported "
-							"backend %d for model %d\n", 
-							ROT_BACKEND_NUM(rot_model), rot_model
-							);
-			return -RIG_ENAVAIL;
-		}
-				
-		retval = rot_load_backend(rot_backend_list[be_idx].be_name);
+	/*
+	 * Never heard about this backend family!
+	 */
+	if (be_idx == -1) {
+		rot_debug(RIG_DEBUG_VERBOSE, "rot_check_backend: unsupported "
+					"backend %d for model %d\n", 
+					ROT_BACKEND_NUM(rot_model), rot_model);
+		return -RIG_ENAVAIL;
+	}
+			
+	retval = rot_load_backend(rot_backend_list[be_idx].be_name);
 
-		return retval;
+	return retval;
 }
 
 
 
 int HAMLIB_API rot_unregister(rot_model_t rot_model)
 {
-		int hval;
-		struct rot_list *p,*q;
+	int hval;
+	struct rot_list *p,*q;
 
-		hval = HASH_FUNC(rot_model);
-		q = NULL;
-		for (p = rot_hash_table[hval]; p; p=p->next) {
-				if (p->caps->rot_model == rot_model) {
-						if (q == NULL)
-								rot_hash_table[hval] = p->next;
-						else
-								q->next = p->next;
-						free(p);
-						return RIG_OK;
-				}
-				q = p;
+	hval = HASH_FUNC(rot_model);
+	q = NULL;
+	for (p = rot_hash_table[hval]; p; p=p->next) {
+		if (p->caps->rot_model == rot_model) {
+			if (q == NULL)
+				rot_hash_table[hval] = p->next;
+			else
+				q->next = p->next;
+			free(p);
+			return RIG_OK;
 		}
-		return -RIG_EINVAL;	/* sorry, caps not registered! */
+		q = p;
+	}
+	return -RIG_EINVAL;	/* sorry, caps not registered! */
 }
 
 /*
@@ -211,12 +210,12 @@ int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps*, rig_ptr_t),
 	int i;
 
 	if (!cfunc)
-			return -RIG_EINVAL;
+		return -RIG_EINVAL;
 
 	for (i=0; i<ROTLSTHASHSZ; i++) {
-				for (p=rot_hash_table[i]; p; p=p->next)
-						if ((*cfunc)(p->caps,data) == 0)
-								return RIG_OK;
+		for (p=rot_hash_table[i]; p; p=p->next)
+			if ((*cfunc)(p->caps,data) == 0)
+				return RIG_OK;
 	}
 	return RIG_OK;
 }
@@ -231,11 +230,11 @@ rot_model_t HAMLIB_API rot_probe_all(hamlib_port_t *p)
 	rot_model_t rot_model;
 
 	for (i=0; i<ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
-			if (rot_backend_list[i].be_probe) {
-					rot_model = (*rot_backend_list[i].be_probe)(p);
-					if (rot_model != ROT_MODEL_NONE)
-							return rot_model;
-			}
+		if (rot_backend_list[i].be_probe) {
+			rot_model = (*rot_backend_list[i].be_probe)(p);
+			if (rot_model != ROT_MODEL_NONE)
+				return rot_model;
+		}
 	}
 	return ROT_MODEL_NONE;
 }
@@ -246,7 +245,7 @@ int rot_load_all_backends()
 	int i;
 
 	for (i=0; i<ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
-			rot_load_backend(rot_backend_list[i].be_name);
+		rot_load_backend(rot_backend_list[i].be_name);
 	}
 	return RIG_OK;
 }

@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.17 2005-02-20 02:38:29 fillods Exp $
+ *	$Id: rotator.c,v 1.18 2005-04-04 18:31:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -105,16 +105,16 @@ static int remove_opened_rot(ROT *rot)
 	q = NULL;
 
 	for (p=opened_rot_list; p; p=p->next) {
-			if (p->rot == rot) {
-					if (q == NULL) {
-							opened_rot_list = opened_rot_list->next;
-					} else {
-							q->next = p->next;
-					}
-					free(p);
-					return RIG_OK;
+		if (p->rot == rot) {
+			if (q == NULL) {
+				opened_rot_list = opened_rot_list->next;
+			} else {
+				q->next = p->next;
 			}
-			q = p;
+			free(p);
+			return RIG_OK;
+		}
+		q = p;
 	}
 	return -RIG_EINVAL;	/* Not found in list ! */
 }
@@ -144,8 +144,8 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
 	struct opened_rot_l *p;
 
 	for (p=opened_rot_list; p; p=p->next) {
-			if ((*cfunc)(p->rot,data) == 0)
-					return RIG_OK;
+		if ((*cfunc)(p->rot,data) == 0)
+			return RIG_OK;
 	}
 	return RIG_OK;
 }
@@ -165,90 +165,90 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
 
 ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 {
-		ROT *rot;
-		const struct rot_caps *caps;
-		struct rot_state *rs;
-		int retcode;
+	ROT *rot;
+	const struct rot_caps *caps;
+	struct rot_state *rs;
+	int retcode;
 
-		rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_init called \n");
+	rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_init called \n");
 
-		rot_check_backend(rot_model);
+	rot_check_backend(rot_model);
 
-		caps = rot_get_caps(rot_model);
-		if (!caps)
-				return NULL;
+	caps = rot_get_caps(rot_model);
+	if (!caps)
+		return NULL;
 
+	/*
+	 * okay, we've found it. Allocate some memory and set it to zeros,
+	 * and especially the initialize the callbacks 
+	 */ 
+	rot = calloc(1, sizeof(ROT));
+	if (rot == NULL) {
 		/*
-		 * okay, we've found it. Allocate some memory and set it to zeros,
-		 * and especially the initialize the callbacks 
-		 */ 
-		rot = calloc(1, sizeof(ROT));
-		if (rot == NULL) {
-				/*
-				 * FIXME: how can the caller know it's a memory shortage,
-				 * 		  and not "rot not found" ?
-				 */
-				return NULL;
-		}
-
-		rot->caps = caps;
-
-		/*
-		 * populate the rot->state
-		 * TODO: read the Preferences here! 
+		 * FIXME: how can the caller know it's a memory shortage,
+		 * 		  and not "rot not found" ?
 		 */
+		return NULL;
+	}
 
-		rs = &rot->state;
+	rot->caps = caps;
 
-		rs->comm_state = 0;
-		rs->rotport.type.rig = caps->port_type; /* default from caps */
+	/*
+	 * populate the rot->state
+	 * TODO: read the Preferences here! 
+	 */
 
-		rs->rotport.write_delay = caps->write_delay;
-		rs->rotport.post_write_delay = caps->post_write_delay;
-		rs->rotport.timeout = caps->timeout;
-		rs->rotport.retry = caps->retry;
+	rs = &rot->state;
 
-		switch (caps->port_type) {
-		case RIG_PORT_SERIAL:
-		strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
-		rs->rotport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
-		rs->rotport.parm.serial.data_bits = caps->serial_data_bits;
-		rs->rotport.parm.serial.stop_bits = caps->serial_stop_bits;
-		rs->rotport.parm.serial.parity = caps->serial_parity;
-		rs->rotport.parm.serial.handshake = caps->serial_handshake;
-		break;
+	rs->comm_state = 0;
+	rs->rotport.type.rig = caps->port_type; /* default from caps */
 
-		case RIG_PORT_PARALLEL:
-		strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
-		break;
+	rs->rotport.write_delay = caps->write_delay;
+	rs->rotport.post_write_delay = caps->post_write_delay;
+	rs->rotport.timeout = caps->timeout;
+	rs->rotport.retry = caps->retry;
 
-		default:
-		strncpy(rs->rotport.pathname, "", FILPATHLEN);
+	switch (caps->port_type) {
+	case RIG_PORT_SERIAL:
+	strncpy(rs->rotport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
+	rs->rotport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
+	rs->rotport.parm.serial.data_bits = caps->serial_data_bits;
+	rs->rotport.parm.serial.stop_bits = caps->serial_stop_bits;
+	rs->rotport.parm.serial.parity = caps->serial_parity;
+	rs->rotport.parm.serial.handshake = caps->serial_handshake;
+	break;
+
+	case RIG_PORT_PARALLEL:
+	strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
+	break;
+
+	default:
+	strncpy(rs->rotport.pathname, "", FILPATHLEN);
+	}
+
+	rs->min_el = caps->min_el;
+	rs->max_el = caps->max_el;
+	rs->min_az = caps->min_az;
+	rs->max_az = caps->max_az;
+
+	rs->rotport.fd = -1;
+
+	/* 
+	 * let the backend a chance to setup his private data
+	 * This must be done only once defaults are setup,
+	 * so the backend init can override rot_state.
+	 */
+	if (caps->rot_init != NULL) {
+		retcode = caps->rot_init(rot);
+		if (retcode != RIG_OK) {
+			rot_debug(RIG_DEBUG_VERBOSE,"rot:backend_init failed!\n");
+			/* cleanup and exit */
+			free(rot);
+			return NULL;
 		}
+	}
 
-		rs->min_el = caps->min_el;
-		rs->max_el = caps->max_el;
-		rs->min_az = caps->min_az;
-		rs->max_az = caps->max_az;
-
-		rs->rotport.fd = -1;
-
-		/* 
-		 * let the backend a chance to setup his private data
-		 * This must be done only once defaults are setup,
-		 * so the backend init can override rot_state.
-		 */
-		if (caps->rot_init != NULL) {
-				retcode = caps->rot_init(rot);
-				if (retcode != RIG_OK) {
-						rot_debug(RIG_DEBUG_VERBOSE,"rot:backend_init failed!\n");
-						/* cleanup and exit */
-						free(rot);
-						return NULL;
-				}
-		}
-
-		return rot;
+	return rot;
 }
 
 /**
@@ -270,70 +270,70 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 
 int HAMLIB_API rot_open(ROT *rot)
 {
-		const struct rot_caps *caps;
-		struct rot_state *rs;
-		int status;
+	const struct rot_caps *caps;
+	struct rot_state *rs;
+	int status;
 
-		rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_open called \n");
+	rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_open called \n");
 
-		if (!rot || !rot->caps)
-				return -RIG_EINVAL;
+	if (!rot || !rot->caps)
+		return -RIG_EINVAL;
 
-		caps = rot->caps;
-		rs = &rot->state;
+	caps = rot->caps;
+	rs = &rot->state;
 
-		if (rs->comm_state)
-				return -RIG_EINVAL;
+	if (rs->comm_state)
+		return -RIG_EINVAL;
 
-		rs->rotport.fd = -1;
+	rs->rotport.fd = -1;
 
-		switch(rs->rotport.type.rig) {
-		case RIG_PORT_SERIAL:
-				status = serial_open(&rs->rotport);
-				if (status != 0)
-						return status;
-				break;
+	switch(rs->rotport.type.rig) {
+	case RIG_PORT_SERIAL:
+		status = serial_open(&rs->rotport);
+		if (status != 0)
+				return status;
+		break;
 
-		case RIG_PORT_PARALLEL:
-				status = par_open(&rs->rotport);
-				if (status < 0)
-					return status;
-				break;
+	case RIG_PORT_PARALLEL:
+		status = par_open(&rs->rotport);
+		if (status < 0)
+			return status;
+		break;
 
-		case RIG_PORT_DEVICE:
-				status = open(rs->rotport.pathname, O_RDWR, 0);
-				if (status < 0)
-						return -RIG_EIO;
-				rs->rotport.fd = status;
-				break;
+	case RIG_PORT_DEVICE:
+		status = open(rs->rotport.pathname, O_RDWR, 0);
+		if (status < 0)
+			return -RIG_EIO;
+		rs->rotport.fd = status;
+		break;
 
-		case RIG_PORT_NONE:
-		case RIG_PORT_RPC:
-				break;	/* ez :) */
+	case RIG_PORT_NONE:
+	case RIG_PORT_RPC:
+			break;	/* ez :) */
 
-		case RIG_PORT_NETWORK:	/* not implemented yet! */
-				return -RIG_ENIMPL;
-		default:
-				return -RIG_EINVAL;
+	case RIG_PORT_NETWORK:	/* not implemented yet! */
+		return -RIG_ENIMPL;
+	default:
+		return -RIG_EINVAL;
+	}
+
+
+	add_opened_rot(rot);
+
+	rs->comm_state = 1;
+
+	/* 
+	 * Maybe the backend has something to initialize
+	 * In case of failure, just close down and report error code.
+	 */
+	if (caps->rot_open != NULL) {
+		status = caps->rot_open(rot);	
+		if (status != RIG_OK) {
+			return status;
 		}
+	}
 
-
-		add_opened_rot(rot);
-
-		rs->comm_state = 1;
-
-		/* 
-		 * Maybe the backend has something to initialize
-		 * In case of failure, just close down and report error code.
-		 */
-		if (caps->rot_open != NULL) {
-				status = caps->rot_open(rot);	
-				if (status != RIG_OK) {
-						return status;
-				}
-		}
-
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /**
@@ -352,47 +352,47 @@ int HAMLIB_API rot_open(ROT *rot)
 
 int HAMLIB_API rot_close(ROT *rot)
 {
-		const struct rot_caps *caps;
-		struct rot_state *rs;
+	const struct rot_caps *caps;
+	struct rot_state *rs;
 
-		rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_close called \n");
+	rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_close called \n");
 
-		if (!rot || !rot->caps)
-				return -RIG_EINVAL;
+	if (!rot || !rot->caps)
+		return -RIG_EINVAL;
 
-		caps = rot->caps;
-		rs = &rot->state;
+	caps = rot->caps;
+	rs = &rot->state;
 
-		if (!rs->comm_state)
-				return -RIG_EINVAL;
+	if (!rs->comm_state)
+		return -RIG_EINVAL;
 
-		/*
-		 * Let the backend say 73s to the rot.
-		 * and ignore the return code.
-		 */
-		if (caps->rot_close)
-				caps->rot_close(rot);
+	/*
+	 * Let the backend say 73s to the rot.
+	 * and ignore the return code.
+	 */
+	if (caps->rot_close)
+		caps->rot_close(rot);
 
 
-		if (rs->rotport.fd != -1) {
-				switch(rs->rotport.type.rig) {
-				case RIG_PORT_SERIAL:
-					ser_close(&rs->rotport);
-					break;
-				case RIG_PORT_PARALLEL:
-					par_close(&rs->rotport);
-					break;
-				default:
-					close(rs->rotport.fd);
-				}
-				rs->rotport.fd = -1;
+	if (rs->rotport.fd != -1) {
+		switch(rs->rotport.type.rig) {
+		case RIG_PORT_SERIAL:
+			ser_close(&rs->rotport);
+			break;
+		case RIG_PORT_PARALLEL:
+			par_close(&rs->rotport);
+			break;
+		default:
+			close(rs->rotport.fd);
 		}
+		rs->rotport.fd = -1;
+	}
 
-		remove_opened_rot(rot);
+	remove_opened_rot(rot);
 
-		rs->comm_state = 0;
+	rs->comm_state = 0;
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /**
@@ -411,26 +411,26 @@ int HAMLIB_API rot_close(ROT *rot)
 
 int HAMLIB_API rot_cleanup(ROT *rot)
 {
-		rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_cleanup called \n");
+	rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_cleanup called \n");
 
-		if (!rot || !rot->caps)
-				return -RIG_EINVAL;
+	if (!rot || !rot->caps)
+		return -RIG_EINVAL;
 
-		/*
-		 * check if they forgot to close the rot
-		 */
-		if (rot->state.comm_state)
-				rot_close(rot);
+	/*
+	 * check if they forgot to close the rot
+	 */
+	if (rot->state.comm_state)
+		rot_close(rot);
 
-		/*
-		 * basically free up the priv struct 
-		 */
-		if (rot->caps->rot_cleanup)
-				rot->caps->rot_cleanup(rot);
+	/*
+	 * basically free up the priv struct 
+	 */
+	if (rot->caps->rot_cleanup)
+		rot->caps->rot_cleanup(rot);
 
-		free(rot);
+	free(rot);
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 
@@ -450,16 +450,16 @@ int HAMLIB_API rot_cleanup(ROT *rot)
  */
 int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
 {
-		if (!rot || !rot->caps)
-			return -RIG_EINVAL;
+	if (!rot || !rot->caps)
+		return -RIG_EINVAL;
 
-		if (IS_TOKEN_FRONTEND(token))
-				return frontrot_set_conf(rot, token, val);
+	if (IS_TOKEN_FRONTEND(token))
+		return frontrot_set_conf(rot, token, val);
 
-		if (rot->caps->set_conf == NULL)
-			return -RIG_ENAVAIL;
+	if (rot->caps->set_conf == NULL)
+		return -RIG_ENAVAIL;
 
-		return rot->caps->set_conf(rot, token, val);
+	return rot->caps->set_conf(rot, token, val);
 }
 
 /**
@@ -478,16 +478,16 @@ int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
  */
 int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val)
 {
-		if (!rot || !rot->caps || !val)
-			return -RIG_EINVAL;
+	if (!rot || !rot->caps || !val)
+		return -RIG_EINVAL;
 
-		if (IS_TOKEN_FRONTEND(token))
-				return frontrot_get_conf(rot, token, val);
+	if (IS_TOKEN_FRONTEND(token))
+		return frontrot_get_conf(rot, token, val);
 
-		if (rot->caps->get_conf == NULL)
-			return -RIG_ENAVAIL;
+	if (rot->caps->get_conf == NULL)
+		return -RIG_ENAVAIL;
 
-		return rot->caps->get_conf(rot, token, val);
+	return rot->caps->get_conf(rot, token, val);
 }
 
 /**
@@ -507,23 +507,23 @@ int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val)
 
 int HAMLIB_API rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevation)
 {
-		const struct rot_caps *caps;
-		const struct rot_state *rs;
+	const struct rot_caps *caps;
+	const struct rot_state *rs;
 
-		if (CHECK_ROT_ARG(rot))
-			return -RIG_EINVAL;
+	if (CHECK_ROT_ARG(rot))
+		return -RIG_EINVAL;
 
-		caps = rot->caps;
-		rs = &rot->state;
+	caps = rot->caps;
+	rs = &rot->state;
 
-		if (azimuth < rs->min_az || azimuth > rs->max_az ||
-				elevation < rs->min_el || elevation > rs->max_el)
-			return -RIG_EINVAL;
+	if (azimuth < rs->min_az || azimuth > rs->max_az ||
+			elevation < rs->min_el || elevation > rs->max_el)
+		return -RIG_EINVAL;
 
-		if (caps->set_position == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->set_position == NULL)
+		return -RIG_ENAVAIL;
 
-		return caps->set_position(rot, azimuth, elevation);
+	return caps->set_position(rot, azimuth, elevation);
 }
 
 /**
@@ -543,17 +543,17 @@ int HAMLIB_API rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevat
 
 int HAMLIB_API rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elevation)
 {
-		const struct rot_caps *caps;
+	const struct rot_caps *caps;
 
-		if (CHECK_ROT_ARG(rot) || !azimuth || !elevation)
-			return -RIG_EINVAL;
+	if (CHECK_ROT_ARG(rot) || !azimuth || !elevation)
+		return -RIG_EINVAL;
 
-		caps = rot->caps;
+	caps = rot->caps;
 
-		if (caps->get_position == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->get_position == NULL)
+		return -RIG_ENAVAIL;
 
-		return caps->get_position(rot, azimuth, elevation);
+	return caps->get_position(rot, azimuth, elevation);
 }
 
 /**
@@ -570,17 +570,17 @@ int HAMLIB_API rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elev
 
 int HAMLIB_API rot_park (ROT *rot)
 {
-		const struct rot_caps *caps;
+	const struct rot_caps *caps;
 
-		if (CHECK_ROT_ARG(rot))
-			return -RIG_EINVAL;
+	if (CHECK_ROT_ARG(rot))
+		return -RIG_EINVAL;
 
-		caps = rot->caps;
+	caps = rot->caps;
 
-		if (caps->park == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->park == NULL)
+		return -RIG_ENAVAIL;
 
-		return caps->park(rot);
+	return caps->park(rot);
 }
 
 /**
@@ -597,17 +597,17 @@ int HAMLIB_API rot_park (ROT *rot)
 
 int HAMLIB_API rot_stop (ROT *rot)
 {
-		const struct rot_caps *caps;
+	const struct rot_caps *caps;
 
-		if (CHECK_ROT_ARG(rot))
-			return -RIG_EINVAL;
+	if (CHECK_ROT_ARG(rot))
+		return -RIG_EINVAL;
 
-		caps = rot->caps;
+	caps = rot->caps;
 
-		if (caps->stop == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->stop == NULL)
+		return -RIG_ENAVAIL;
 
-		return caps->stop(rot);
+	return caps->stop(rot);
 }
 
 /**
@@ -625,17 +625,17 @@ int HAMLIB_API rot_stop (ROT *rot)
 
 int HAMLIB_API rot_reset (ROT *rot, rot_reset_t reset)
 {
-		const struct rot_caps *caps;
+	const struct rot_caps *caps;
 
-		if (CHECK_ROT_ARG(rot))
-			return -RIG_EINVAL;
+	if (CHECK_ROT_ARG(rot))
+		return -RIG_EINVAL;
 
-		caps = rot->caps;
+	caps = rot->caps;
 
-		if (caps->reset == NULL)
-			return -RIG_ENAVAIL;
+	if (caps->reset == NULL)
+		return -RIG_ENAVAIL;
 
-		return caps->reset(rot, reset);
+	return caps->reset(rot, reset);
 }
 
 /**
@@ -675,14 +675,12 @@ int HAMLIB_API rot_move (ROT *rot, int direction, int speed)
  */
 const char* HAMLIB_API rot_get_info(ROT *rot)
 {
-		if (CHECK_ROT_ARG(rot))
-			return NULL;
+	if (CHECK_ROT_ARG(rot))
+		return NULL;
 
-		if (rot->caps->get_info == NULL)
-			return NULL;
+	if (rot->caps->get_info == NULL)
+		return NULL;
 
-		return rot->caps->get_info(rot);
+	return rot->caps->get_info(rot);
 }
-
-
 

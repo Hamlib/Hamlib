@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: register.c,v 1.22 2005-04-03 12:27:16 fillods Exp $
+ *	$Id: register.c,v 1.23 2005-04-04 18:30:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,9 +62,9 @@ static struct {
  * It is chained, and used in a hash table, see below.
  */
 struct rig_list {
-		const struct rig_caps *caps;
-		lt_dlhandle handle;			/* handle returned by lt_dlopen() */
-		struct rig_list *next;
+	const struct rig_caps *caps;
+	lt_dlhandle handle;			/* handle returned by lt_dlopen() */
+	struct rig_list *next;
 };
 
 #define RIGLSTHASHSZ 16
@@ -84,30 +84,30 @@ static int rig_lookup_backend(rig_model_t rig_model);
  */
 int HAMLIB_API rig_register(const struct rig_caps *caps)
 {
-		int hval;
-		struct rig_list *p;
+	int hval;
+	struct rig_list *p;
 
-		if (!caps)
-				return -RIG_EINVAL;
+	if (!caps)
+		return -RIG_EINVAL;
 
-		rig_debug(RIG_DEBUG_VERBOSE, "rig_register (%d)\n",caps->rig_model);
+	rig_debug(RIG_DEBUG_VERBOSE, "rig_register (%d)\n",caps->rig_model);
 
 #ifndef DONT_WANT_DUP_CHECK
-		if (rig_get_caps(caps->rig_model)!=NULL)
-				return -RIG_EINVAL;
+	if (rig_get_caps(caps->rig_model)!=NULL)
+		return -RIG_EINVAL;
 #endif
 
-		p = (struct rig_list*)malloc(sizeof(struct rig_list));
-		if (!p)
-				return -RIG_ENOMEM;
+	p = (struct rig_list*)malloc(sizeof(struct rig_list));
+	if (!p)
+		return -RIG_ENOMEM;
 
-		hval = HASH_FUNC(caps->rig_model);
-		p->caps = caps;
-		p->handle = NULL;
-		p->next = rig_hash_table[hval];
-		rig_hash_table[hval] = p;
+	hval = HASH_FUNC(caps->rig_model);
+	p->caps = caps;
+	p->handle = NULL;
+	p->next = rig_hash_table[hval];
+	rig_hash_table[hval] = p;
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /*
@@ -117,13 +117,14 @@ int HAMLIB_API rig_register(const struct rig_caps *caps)
 
 const struct rig_caps * HAMLIB_API rig_get_caps(rig_model_t rig_model)
 {
-		struct rig_list *p;
+	struct rig_list *p;
 
-		for (p = rig_hash_table[HASH_FUNC(rig_model)]; p; p=p->next) {
-				if (p->caps->rig_model == rig_model)
-						return p->caps;
-		}
-		return NULL;	/* sorry, caps not registered! */
+	for (p = rig_hash_table[HASH_FUNC(rig_model)]; p; p=p->next) {
+		if (p->caps->rig_model == rig_model)
+			return p->caps;
+	}
+
+	return NULL;	/* sorry, caps not registered! */
 }
 
 /*
@@ -133,14 +134,15 @@ const struct rig_caps * HAMLIB_API rig_get_caps(rig_model_t rig_model)
  */
 static int rig_lookup_backend(rig_model_t rig_model)
 {
-		int i;
+	int i;
 
-		for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
-				if (RIG_BACKEND_NUM(rig_model) == 
-								rig_backend_list[i].be_num)
-						return i;
-		}
-		return -1;
+	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
+		if (RIG_BACKEND_NUM(rig_model) == 
+					rig_backend_list[i].be_num)
+			return i;
+	}
+
+	return -1;
 }
 
 /*
@@ -151,54 +153,55 @@ static int rig_lookup_backend(rig_model_t rig_model)
  */
 int HAMLIB_API rig_check_backend(rig_model_t rig_model)
 {
-		const struct rig_caps *caps;
-		int be_idx;
-		int retval;
-		
-		/* already loaded ? */
-		caps = rig_get_caps(rig_model);
-		if (caps)
-				return RIG_OK;
+	const struct rig_caps *caps;
+	int be_idx;
+	int retval;
+	
+	/* already loaded ? */
+	caps = rig_get_caps(rig_model);
+	if (caps)
+		return RIG_OK;
 
-		be_idx = rig_lookup_backend(rig_model);
+	be_idx = rig_lookup_backend(rig_model);
 
-		/*
-		 * Never heard about this backend family!
-		 */
-		if (be_idx == -1) {
-			rig_debug(RIG_DEBUG_VERBOSE, "rig_check_backend: unsupported "
-							"backend %d for model %d\n", 
-							RIG_BACKEND_NUM(rig_model), rig_model
-							);
-			return -RIG_ENAVAIL;
-		}
-				
-		retval = rig_load_backend(rig_backend_list[be_idx].be_name);
+	/*
+	 * Never heard about this backend family!
+	 */
+	if (be_idx == -1) {
+		rig_debug(RIG_DEBUG_VERBOSE, "rig_check_backend: unsupported "
+					"backend %d for model %d\n", 
+					RIG_BACKEND_NUM(rig_model), rig_model);
+		return -RIG_ENAVAIL;
+	}
 
-		return retval;
+	retval = rig_load_backend(rig_backend_list[be_idx].be_name);
+
+	return retval;
 }
 
 
 
 int HAMLIB_API rig_unregister(rig_model_t rig_model)
 {
-		int hval;
-		struct rig_list *p,*q;
+	int hval;
+	struct rig_list *p,*q;
 
-		hval = HASH_FUNC(rig_model);
-		q = NULL;
-		for (p = rig_hash_table[hval]; p; p=p->next) {
-				if (p->caps->rig_model == rig_model) {
-						if (q == NULL)
-								rig_hash_table[hval] = p->next;
-						else
-								q->next = p->next;
-						free(p);
-						return RIG_OK;
-				}
-				q = p;
+	hval = HASH_FUNC(rig_model);
+	q = NULL;
+	for (p = rig_hash_table[hval]; p; p=p->next) {
+		if (p->caps->rig_model == rig_model) {
+			if (q == NULL)
+				rig_hash_table[hval] = p->next;
+			else
+				q->next = p->next;
+
+			free(p);
+			return RIG_OK;
 		}
-		return -RIG_EINVAL;	/* sorry, caps not registered! */
+		q = p;
+	}
+
+	return -RIG_EINVAL;	/* sorry, caps not registered! */
 }
 
 /*
@@ -211,13 +214,14 @@ int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),
 	int i;
 
 	if (!cfunc)
-			return -RIG_EINVAL;
+		return -RIG_EINVAL;
 
 	for (i=0; i<RIGLSTHASHSZ; i++) {
-				for (p=rig_hash_table[i]; p; p=p->next)
-						if ((*cfunc)(p->caps,data) == 0)
-								return RIG_OK;
+		for (p=rig_hash_table[i]; p; p=p->next)
+			if ((*cfunc)(p->caps,data) == 0)
+				return RIG_OK;
 	}
+
 	return RIG_OK;
 }
 
@@ -271,6 +275,7 @@ int rig_load_all_backends()
 	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
 			rig_load_backend(rig_backend_list[i].be_name);
 	}
+
 	return RIG_OK;
 }
 

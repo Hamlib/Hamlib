@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - toolbox
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.34 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: misc.c,v 1.35 2005-04-04 18:30:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -106,15 +106,15 @@ HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bc
 	/* '450'/3-> 5,0;x,4 */
 
 	for (i=0; i < bcd_len/2; i++) {
-			a = freq%10;
-			freq /= 10;
-			a |= (freq%10)<<4;
-			freq /= 10;
-			bcd_data[i] = a;
+		a = freq%10;
+		freq /= 10;
+		a |= (freq%10)<<4;
+		freq /= 10;
+		bcd_data[i] = a;
 	}
 	if (bcd_len&1) {
-			bcd_data[i] &= 0xf0;
-			bcd_data[i] |= freq%10;	/* NB: high nibble is left uncleared */
+		bcd_data[i] &= 0xf0;
+		bcd_data[i] |= freq%10;	/* NB: high nibble is left uncleared */
 	}
 
 	return bcd_data;
@@ -132,13 +132,13 @@ unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned 
 	freq_t f = 0;
 
 	if (bcd_len&1)
-			f = bcd_data[bcd_len/2] & 0x0f;
+		f = bcd_data[bcd_len/2] & 0x0f;
 
 	for (i=(bcd_len/2)-1; i >= 0; i--) {
-			f *= 10;
-			f += bcd_data[i]>>4;
-			f *= 10;
-			f += bcd_data[i] & 0x0f;
+		f *= 10;
+		f += bcd_data[i]>>4;
+		f *= 10;
+		f += bcd_data[i] & 0x0f;
 	}
 	
 	return f;
@@ -157,16 +157,16 @@ HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned
 	/* '450'/3 -> 4,5;0,x */
 
 	if (bcd_len&1) {
-			bcd_data[bcd_len/2] &= 0x0f;
-			bcd_data[bcd_len/2] |= (freq%10)<<4;	/* NB: low nibble is left uncleared */
-			freq /= 10;
+		bcd_data[bcd_len/2] &= 0x0f;
+		bcd_data[bcd_len/2] |= (freq%10)<<4;	/* NB: low nibble is left uncleared */
+		freq /= 10;
 	}
 	for (i=(bcd_len/2)-1; i >= 0; i--) {
-			a = freq%10;
-			freq /= 10;
-			a |= (freq%10)<<4;
-			freq /= 10;
-			bcd_data[i] = a;
+		a = freq%10;
+		freq /= 10;
+		a |= (freq%10)<<4;
+		freq /= 10;
+		bcd_data[i] = a;
 	}
 
 	return bcd_data;
@@ -181,14 +181,14 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsign
 	freq_t f = 0;
 
 	for (i=0; i < bcd_len/2; i++) {
-			f *= 10;
-			f += bcd_data[i]>>4;
-			f *= 10;
-			f += bcd_data[i] & 0x0f;
+		f *= 10;
+		f += bcd_data[i]>>4;
+		f *= 10;
+		f += bcd_data[i] & 0x0f;
 	}
 	if (bcd_len&1) {
-			f *= 10;
-			f += bcd_data[bcd_len/2]>>4;
+		f *= 10;
+		f += bcd_data[bcd_len/2]>>4;
 	}
 
 	return f;
@@ -209,7 +209,7 @@ void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
  */
 int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 {
-		return (debug_level <= rig_debug_level);
+	return (debug_level <= rig_debug_level);
 }
 
 /*
@@ -219,16 +219,16 @@ int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
  */
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 {
-		va_list ap;
+	va_list ap;
 
-		if (debug_level <= rig_debug_level) {
-				va_start(ap, fmt);
-				/*
-				 * Who cares about return code?
-				 */
-				vfprintf (stderr, fmt, ap);
-				va_end(ap);
-		}
+	if (debug_level <= rig_debug_level) {
+		va_start(ap, fmt);
+		/*
+		 * Who cares about return code?
+		 */
+		vfprintf (stderr, fmt, ap);
+		va_end(ap);
+	}
 }
 
 #ifndef llabs
@@ -242,24 +242,24 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, .
  */
 int HAMLIB_API sprintf_freq(char *str, freq_t freq)
 {
-		double f;
-		char *hz;
+	double f;
+	char *hz;
 
-		if (llabs(freq) >= GHz(1)) {
-				hz = "GHz";
-				f = (double)freq/GHz(1);
-		} else if (llabs(freq) >= MHz(1)) {
-				hz = "MHz";
-				f = (double)freq/MHz(1);
-		} else if (llabs(freq) >= kHz(1)) {
-				hz = "kHz";
-				f = (double)freq/kHz(1);
-		} else {
-				hz = "Hz";
-				f = (double)freq;
-		}
+	if (llabs(freq) >= GHz(1)) {
+		hz = "GHz";
+		f = (double)freq/GHz(1);
+	} else if (llabs(freq) >= MHz(1)) {
+		hz = "MHz";
+		f = (double)freq/MHz(1);
+	} else if (llabs(freq) >= kHz(1)) {
+		hz = "kHz";
+		f = (double)freq/kHz(1);
+	} else {
+		hz = "Hz";
+		f = (double)freq;
+	}
 
-		return sprintf (str, "%g %s", f, hz);
+	return sprintf (str, "%g %s", f, hz);
 }
 
 const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
@@ -277,17 +277,17 @@ const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 {
 	switch (status) {
 	case RIG_STATUS_ALPHA:
-			return "Alpha";
+		return "Alpha";
 	case RIG_STATUS_UNTESTED:
-			return "Untested";
+		return "Untested";
 	case RIG_STATUS_BETA:
-			return "Beta";
+		return "Beta";
 	case RIG_STATUS_STABLE:
-			return "Stable";
+		return "Stable";
 	case RIG_STATUS_BUGGY:
-			return "Buggy";
+		return "Buggy";
 	case RIG_STATUS_NEW:
-			return "New";
+		return "New";
 	}
 	return "";
 }
@@ -422,8 +422,9 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
 	int i;
 
 	for (i=0 ; func_str[i].str != ""; i++)
-			if (!strcmp(s, func_str[i].str))
-					return func_str[i].func;
+		if (!strcmp(s, func_str[i].str))
+			return func_str[i].func;
+
 	return RIG_FUNC_NONE;
 }
 
@@ -482,8 +483,9 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
 	int i;
 
 	for (i=0 ; level_str[i].str != ""; i++)
-			if (!strcmp(s, level_str[i].str))
-					return level_str[i].level;
+		if (!strcmp(s, level_str[i].str))
+			return level_str[i].level;
+
 	return RIG_LEVEL_NONE;
 }
 
@@ -520,10 +522,11 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
 	int i;
 
 	for (i=0 ; parm_str[i].str != ""; i++)
-			if (!strcmp(s, parm_str[i].str))
-					return parm_str[i].parm;
+		if (!strcmp(s, parm_str[i].str))
+			return parm_str[i].parm;
+
 	return RIG_PARM_NONE;
-}
+
 
 const char * HAMLIB_API rig_strparm(setting_t parm)
 {
@@ -565,8 +568,9 @@ vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 	int i;
 
 	for (i=0 ; vfo_op_str[i].str != ""; i++)
-			if (!strcmp(s, vfo_op_str[i].str))
-					return vfo_op_str[i].vfo_op;
+		if (!strcmp(s, vfo_op_str[i].str))
+			return vfo_op_str[i].vfo_op;
+
 	return RIG_OP_NONE;
 }
 

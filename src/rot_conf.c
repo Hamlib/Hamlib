@@ -2,7 +2,7 @@
  *  Hamlib Interface - rotator configuration interface
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_conf.c,v 1.4 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: rot_conf.c,v 1.5 2005-04-04 18:31:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -108,76 +108,76 @@ static const struct confparams rotfrontend_cfg_params[] = {
  */
 int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 {
-		const struct rot_caps *caps;
-		struct rot_state *rs;
+	const struct rot_caps *caps;
+	struct rot_state *rs;
 
-		caps = rot->caps;
-		rs = &rot->state;
+	caps = rot->caps;
+	rs = &rot->state;
 
-		switch(token) {
-		case TOK_PATHNAME:
-				strcpy(rs->rotport.pathname, val);
-				break;
-		case TOK_WRITE_DELAY:
-				rs->rotport.write_delay = atoi(val);
-				break;
-		case TOK_POST_WRITE_DELAY:
-				rs->rotport.post_write_delay = atoi(val);
-				break;
-		case TOK_TIMEOUT:
-				rs->rotport.timeout = atoi(val);
-				break;
-		case TOK_RETRY:
-				rs->rotport.retry = atoi(val);
-				break;
+	switch(token) {
+	case TOK_PATHNAME:
+		strcpy(rs->rotport.pathname, val);
+		break;
+	case TOK_WRITE_DELAY:
+		rs->rotport.write_delay = atoi(val);
+		break;
+	case TOK_POST_WRITE_DELAY:
+		rs->rotport.post_write_delay = atoi(val);
+		break;
+	case TOK_TIMEOUT:
+		rs->rotport.timeout = atoi(val);
+		break;
+	case TOK_RETRY:
+		rs->rotport.retry = atoi(val);
+		break;
 
-		case TOK_SERIAL_SPEED:
-				rs->rotport.parm.serial.rate = atoi(val);
-				break;
-		case TOK_DATA_BITS:
-				rs->rotport.parm.serial.data_bits = atoi(val);
-				break;
-		case TOK_STOP_BITS:
-				rs->rotport.parm.serial.stop_bits = atoi(val);
-				break;
-		case TOK_PARITY:
-				if (!strncmp(val, "None", 8))
-					rs->rotport.parm.serial.parity = RIG_PARITY_NONE;
-				else if (!strncmp(val, "Odd", 8))
-					rs->rotport.parm.serial.parity = RIG_PARITY_ODD;
-				else if (!strncmp(val, "Even", 8))
-					rs->rotport.parm.serial.parity = RIG_PARITY_EVEN;
-				else 
-						return -RIG_EINVAL;
-				break;
-		case TOK_HANDSHAKE:
-				if (!strncmp(val, "None", 8))
-					rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-				else if (!strncmp(val, "XONXOFF", 8))
-					rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
-				else if (!strncmp(val, "Hardware", 8))
-					rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
-				else 
-						return -RIG_EINVAL;
-				break;
+	case TOK_SERIAL_SPEED:
+		rs->rotport.parm.serial.rate = atoi(val);
+		break;
+	case TOK_DATA_BITS:
+		rs->rotport.parm.serial.data_bits = atoi(val);
+		break;
+	case TOK_STOP_BITS:
+		rs->rotport.parm.serial.stop_bits = atoi(val);
+		break;
+	case TOK_PARITY:
+		if (!strncmp(val, "None", 8))
+			rs->rotport.parm.serial.parity = RIG_PARITY_NONE;
+		else if (!strncmp(val, "Odd", 8))
+			rs->rotport.parm.serial.parity = RIG_PARITY_ODD;
+		else if (!strncmp(val, "Even", 8))
+			rs->rotport.parm.serial.parity = RIG_PARITY_EVEN;
+		else 
+			return -RIG_EINVAL;
+		break;
+	case TOK_HANDSHAKE:
+		if (!strncmp(val, "None", 8))
+			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
+		else if (!strncmp(val, "XONXOFF", 8))
+			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
+		else if (!strncmp(val, "Hardware", 8))
+			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
+		else 
+			return -RIG_EINVAL;
+		break;
 
-		case TOK_MIN_AZ:
-				rs->min_az = atof(val);
-				break;
-		case TOK_MAX_AZ:
-				rs->max_az = atof(val);
-				break;
-		case TOK_MIN_EL:
-				rs->min_el = atof(val);
-				break;
-		case TOK_MAX_EL:
-				rs->max_el = atof(val);
-				break;
+	case TOK_MIN_AZ:
+		rs->min_az = atof(val);
+		break;
+	case TOK_MAX_AZ:
+		rs->max_az = atof(val);
+		break;
+	case TOK_MIN_EL:
+		rs->min_el = atof(val);
+		break;
+	case TOK_MAX_EL:
+		rs->max_el = atof(val);
+		break;
 
-		default:
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
+	default:
+		return -RIG_EINVAL;
+	}
+	return RIG_OK;
 }
 
 /*
@@ -186,75 +186,75 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
  */
 int frontrot_get_conf(ROT *rot, token_t token, char *val)
 {
-		const struct rot_caps *caps;
-		struct rot_state *rs;
-		const char *s;
+	const struct rot_caps *caps;
+	struct rot_state *rs;
+	const char *s;
 
-		caps = rot->caps;
-		rs = &rot->state;
+	caps = rot->caps;
+	rs = &rot->state;
 
-		switch(token) {
-		case TOK_PATHNAME:
-				strcpy(val, rs->rotport.pathname);
-				break;
-		case TOK_WRITE_DELAY:
-				sprintf(val, "%d", rs->rotport.write_delay);
-				break;
-		case TOK_POST_WRITE_DELAY:
-				sprintf(val, "%d", rs->rotport.post_write_delay);
-				break;
-		case TOK_TIMEOUT:
-				sprintf(val, "%d", rs->rotport.timeout);
-				break;
-		case TOK_RETRY:
-				sprintf(val, "%d", rs->rotport.retry);
-				break;
-		case TOK_SERIAL_SPEED:
-				sprintf(val, "%d", rs->rotport.parm.serial.rate);
-				break;
-		case TOK_DATA_BITS:
-				sprintf(val, "%d", rs->rotport.parm.serial.data_bits);
-				break;
-		case TOK_STOP_BITS:
-				sprintf(val, "%d", rs->rotport.parm.serial.stop_bits);
-				break;
-		case TOK_PARITY:
-				switch (rs->rotport.parm.serial.parity) {
-				case RIG_PARITY_NONE: s = "None"; break;
-				case RIG_PARITY_ODD: s = "Odd"; break;
-				case RIG_PARITY_EVEN: s = "Even"; break;
-				default: return -RIG_EINVAL;
-				}
-				strcpy(val, s);
-				break;
-		case TOK_HANDSHAKE:
-				switch (rs->rotport.parm.serial.handshake) {
-				case RIG_HANDSHAKE_NONE: s = "None"; break;
-				case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
-				case RIG_HANDSHAKE_HARDWARE: s = "Hardware"; break;
-				default: return -RIG_EINVAL;
-				}
-				strcpy(val, s);
-				break;
-
-		case TOK_MIN_AZ:
-				sprintf(val, "%f", rs->min_az);
-				break;
-		case TOK_MAX_AZ:
-				sprintf(val, "%f", rs->max_az);
-				break;
-		case TOK_MIN_EL:
-				sprintf(val, "%f", rs->min_el);
-				break;
-		case TOK_MAX_EL:
-				sprintf(val, "%f", rs->max_el);
-				break;
-
-		default:
-				return -RIG_EINVAL;
+	switch(token) {
+	case TOK_PATHNAME:
+		strcpy(val, rs->rotport.pathname);
+		break;
+	case TOK_WRITE_DELAY:
+		sprintf(val, "%d", rs->rotport.write_delay);
+		break;
+	case TOK_POST_WRITE_DELAY:
+		sprintf(val, "%d", rs->rotport.post_write_delay);
+		break;
+	case TOK_TIMEOUT:
+		sprintf(val, "%d", rs->rotport.timeout);
+		break;
+	case TOK_RETRY:
+		sprintf(val, "%d", rs->rotport.retry);
+		break;
+	case TOK_SERIAL_SPEED:
+		sprintf(val, "%d", rs->rotport.parm.serial.rate);
+		break;
+	case TOK_DATA_BITS:
+		sprintf(val, "%d", rs->rotport.parm.serial.data_bits);
+		break;
+	case TOK_STOP_BITS:
+		sprintf(val, "%d", rs->rotport.parm.serial.stop_bits);
+		break;
+	case TOK_PARITY:
+		switch (rs->rotport.parm.serial.parity) {
+		case RIG_PARITY_NONE: s = "None"; break;
+		case RIG_PARITY_ODD: s = "Odd"; break;
+		case RIG_PARITY_EVEN: s = "Even"; break;
+		default: return -RIG_EINVAL;
 		}
+		strcpy(val, s);
+		break;
+	case TOK_HANDSHAKE:
+		switch (rs->rotport.parm.serial.handshake) {
+		case RIG_HANDSHAKE_NONE: s = "None"; break;
+		case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
+		case RIG_HANDSHAKE_HARDWARE: s = "Hardware"; break;
+		default: return -RIG_EINVAL;
+		}
+		strcpy(val, s);
+		break;
 
-		return RIG_OK;
+	case TOK_MIN_AZ:
+		sprintf(val, "%f", rs->min_az);
+		break;
+	case TOK_MAX_AZ:
+		sprintf(val, "%f", rs->max_az);
+		break;
+	case TOK_MIN_EL:
+		sprintf(val, "%f", rs->min_el);
+		break;
+	case TOK_MAX_EL:
+		sprintf(val, "%f", rs->max_el);
+		break;
+
+	default:
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
 }
 
 /*
@@ -267,14 +267,14 @@ int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams 
 	const struct confparams *cfp;
 
 	if (!rot || !rot->caps || !cfunc)
-			return -RIG_EINVAL;
+		return -RIG_EINVAL;
 
 	for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
-			if ((*cfunc)(cfp, data) == 0)
-					return RIG_OK;
+		if ((*cfunc)(cfp, data) == 0)
+			return RIG_OK;
 	for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
-			if ((*cfunc)(cfp, data) == 0)
-					return RIG_OK;
+		if ((*cfunc)(cfp, data) == 0)
+			return RIG_OK;
 	return RIG_OK;
 }
 
@@ -287,17 +287,17 @@ int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams 
  */
 const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot, const char *name)
 {
-		const struct confparams *cfp;
+	const struct confparams *cfp;
 
-		if (!rot || !rot->caps)
-				return NULL;
-		for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
-				if (!strcmp(cfp->name, name))
-						return cfp;
-		for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
-				if (!strcmp(cfp->name, name))
-						return cfp;
+	if (!rot || !rot->caps)
 		return NULL;
+	for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
+		if (!strcmp(cfp->name, name))
+			return cfp;
+	for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
+		if (!strcmp(cfp->name, name))
+			return cfp;
+	return NULL;
 }
 
 /*
@@ -305,13 +305,12 @@ const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot, const char *
  */
 token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 {
-		const struct confparams *cfp;
+	const struct confparams *cfp;
 
-		cfp = rot_confparam_lookup(rot, name);
-		if (!cfp)
-				return RIG_CONF_END;
+	cfp = rot_confparam_lookup(rot, name);
+	if (!cfp)
+		return RIG_CONF_END;
 
-		return cfp->token;
+	return cfp->token;
 }
-
 

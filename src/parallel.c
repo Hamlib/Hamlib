@@ -2,7 +2,7 @@
  *  Hamlib Interface - parallel communication low-level support
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: parallel.c,v 1.3 2005-04-03 12:27:16 fillods Exp $
+ *	$Id: parallel.c,v 1.4 2005-04-04 18:30:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -319,28 +319,29 @@ int HAMLIB_API par_unlock(hamlib_port_t *port)
 
 int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
-		switch(p->type.ptt) {
-		case RIG_PTT_PARALLEL:
-				{
-					unsigned char reg;
-					int status;
+	switch(p->type.ptt) {
+	case RIG_PTT_PARALLEL:
+		{
+		unsigned char reg;
+		int status;
 
-					status = par_read_data(p, &reg);
-					if (status != RIG_OK)
-						return status;
-					if (pttx == RIG_PTT_ON)
-						reg |=   1 << p->parm.parallel.pin;
-					else
-						reg &= ~(1 << p->parm.parallel.pin);
+		status = par_read_data(p, &reg);
+		if (status != RIG_OK)
+			return status;
+		if (pttx == RIG_PTT_ON)
+			reg |=   1 << p->parm.parallel.pin;
+		else
+			reg &= ~(1 << p->parm.parallel.pin);
 
-					return par_write_data(p, reg);
-				}
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
-								p->type.ptt);
-				return -RIG_EINVAL;
+		return par_write_data(p, reg);
 		}
-		return RIG_OK;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+						p->type.ptt);
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
 }
 
 /*
@@ -348,23 +349,24 @@ int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
  */
 int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
-		switch(p->type.ptt) {
-		case RIG_PTT_PARALLEL:
-				{
-					unsigned char reg;
-					int status;
+	switch(p->type.ptt) {
+	case RIG_PTT_PARALLEL:
+		{
+		unsigned char reg;
+		int status;
 
-					status = par_read_data(p, &reg);
-					*pttx = reg & (1<<p->parm.parallel.pin) ? 
-							RIG_PTT_ON:RIG_PTT_OFF;
-					return status;
-				}
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
-								p->type.ptt);
-				return -RIG_ENAVAIL;
+		status = par_read_data(p, &reg);
+		*pttx = reg & (1<<p->parm.parallel.pin) ? 
+					RIG_PTT_ON:RIG_PTT_OFF;
+		return status;
 		}
-		return RIG_OK;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+						p->type.ptt);
+		return -RIG_ENAVAIL;
+	}
+
+	return RIG_OK;
 }
 
 /*
@@ -372,22 +374,23 @@ int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
  */
 int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 {
-		switch(p->type.dcd) {
-		case RIG_DCD_PARALLEL:
-				{
-					unsigned char reg;
-					int status;
+	switch(p->type.dcd) {
+	case RIG_DCD_PARALLEL:
+		{
+		unsigned char reg;
+		int status;
 
-					status = par_read_data(p, &reg);
-					*dcdx = reg & (1<<p->parm.parallel.pin) ? 
-							RIG_DCD_ON:RIG_DCD_OFF;
-					return status;
-				}
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n", 
-								p->type.dcd);
-				return -RIG_ENAVAIL;
+		status = par_read_data(p, &reg);
+		*dcdx = reg & (1<<p->parm.parallel.pin) ? 
+				RIG_DCD_ON:RIG_DCD_OFF;
+		return status;
 		}
-		return RIG_OK;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n", 
+						p->type.dcd);
+		return -RIG_ENAVAIL;
+	}
+
+	return RIG_OK;
 }
 
