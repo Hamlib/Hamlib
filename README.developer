@@ -1,5 +1,5 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
-	and Stephane Fillod 2000-2003
+	and Stephane Fillod 2000-2005
 
 Take a look at http://sourceforge.net/projects/hamlib/
 Here you will find a mail list, and the latest CVS releases.
@@ -97,36 +97,24 @@ General Guidelines.
 
 If you just want to recompile the library, please refer
 to the INSTALL file. 
+This document introduces with hacking the code of Hamlib.
 
 1.1 Obtaining sources: anonymous (pserver) cvs checkout
 
-  cvs -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib login
-  cvs -z3 -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib co hamlib
+  cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/hamlib login 
+  cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/hamlib co -P hamlib
 
 When prompted for a password for anonymous, simply press the Enter key.
-The check out has only to be done the first time. In the case you don't
-have cvs access through your firewall, but http gets through, daily
-cvs snapshots are available. The previous commands can be replaced
-by the following:
-
-	wget http://cvs.sf.net/cvstarballs/hamlib-cvsroot.tar.gz
-	tar zxvf hamlib-cvsroot.tar.gz
-	mv hamlib hroot
-	export CVSROOT=`pwd`/hroot
-	cvs co -P hamlib
-
+The check out has only to be done the first time. 
 After the initial retrieval, whenever you want to update your local
 version, issue the following command in the root directory of hamlib.
 
-  cvs -z3 -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib update -d
+  cvs -z3 update -dP
 
-Tip: 
-I use the following alias:
-alias hcvs='cvs -z3  -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib'
-This way, I just have to do "hcvs update -d" whenever I want to keep to
-date. Setting CVSROOT to ":pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib"
-works the same.
+1.1.1 Obtaining more info on CVS
 
+Check out the sourceforge page at https://sourceforge.net/cvs/?group_id=8305
+for more information about how to use the CVS repository of Hamlib.
 
 1.2. Requirements
 
@@ -143,13 +131,15 @@ version or you won't even be able to build from the cvs checkout.
 * autoconf		 2.54			# autoconf --version
 * automake		 1.7			# automake --version
 * libtool		 1.5			# libtool --version
-* cvs and ssh for connection to cvs.hamlib.sourceforge.net
+* cvs and ssh for connection to cvs.sourceforge.net
 
 Optional:
 * GNU C++					# g++ --version
 * swig (for bindings)	1.3.14  		# swig -version
 * perl devel					# h2xs
 * tcl devel
+* python devel
+* libxml2 devel					# xml2-config --version
 * libgd devel
 * RPC devel (libc-dev)				# rpcgen --version
 
@@ -183,7 +173,7 @@ versions seen in the previous section.
 
 Once you've run autogen.sh, make sure you've got some recent 
 config.guess and config.sub (needed to guess your system type).
-Anything of at least year 2002 should be fine, unless you run
+Anything of at least year 2004 should be fine, unless you run
 some exotic hardware/software system:
 
 	./config.guess --version
@@ -311,14 +301,71 @@ like this. The error checking is removed for simplicity.
    Ham shack.
    Starting point: kontakt, grig
 
-8. Coding guidelines
+8. Contributing code
+
+   8.1 License
+
    Contributed code to the Hamlib frontend must be released under the LGPL.
    Contributed code to Hamlib backends must follow backend current license.
    Needless to say, the LGPL is the license of choice.
    End user applications like rigctl, rotctl and RPC daemons should be released
    under the GPL, so any contributed code must follow the rule.
 
+   8.2 Coding guidelines and style
+
+   Try to keep current style of existing code. Improvements are welcome though.
+   Contributed code should always keep the source base in a compilable
+   state, and not regress unless stated otherwise.
+
+   There's no need to tag the source in a patch with your name in comments
+   behind each modification, we already know the culprit :-)
+
+
+   Patches should take care of portability issues.
+   Keep in mind Hamlib has to run under:
+   * various Linux's
+   * NetBSD, FreeBSD
+   * MacOS X
+   * Windows: MinGW/Cygwin, and VisualC++ support for rig.h
+
+   Hamlib should also compile with the following common compilers:
+   * gcc-2.9x
+   * gcc-3.0 and gcc-3.2+
+   * gcc-4.0
+   * in shared and static
+
+   Portability issues to watch:
+   * little vs. big endian systems (use shifts or hadoc functions)
+   * 64 bit int: avoid them in API
+   * printf/scanf of 64bit int: use PRIll and SCNll
+   * printf/scanf of freq_t: use PRIfreq and SCNfreq
+
+   8.3 Submitting patches
+
+   Patches should be in unified format (diff -u), against CVS head or
+   latest release. This format makes it easily readable. 
+   The patches are to be sent to the hamlib-developer
+   mailing list. If the file is too big, you can send it as a compressed
+   attachement.
+
+   8.4 CVS commit access
+
+   Generally, volunteers get access to sourceforge CVS upon asking
+   because there's some lag between the commit and the anonymous checkout.
+   However, before your start commiting, the project admins would like 
+   first to have a look at your "style", just to make sure you have grok 
+   the Hamlib approach (c.f. previous section on submitting a patch).
+   Then you'll be able to commit by yourself to the backend you have 
+   maintainance of. Please follow the rules hereunder:
+   * Always keep the CVS repository in a compilable state.
+   * Follow the coding guidelines
+   * Touching the frontend (files in src/ and include/hamlib) always 
+     requires discussion beforehand on the hamlib-developer list.
+   * Announce on the hamlib-developer list if you're about to do serious
+     maintainance work
+   
+   Thanks for contributing and have fun!
+
+
 
 Stephane Fillod f8cfe
-Frank Singleton vk3fcs/km5ws
-
