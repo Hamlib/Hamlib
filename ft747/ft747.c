@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.5 2000-07-28 03:06:16 javabear Exp $  
+ * $Id: ft747.c,v 1.6 2000-07-30 04:02:56 javabear Exp $  
  *
  */
 
@@ -124,7 +124,6 @@ void cmd_set_clarify_off(int fd) {
 void cmd_set_clarify_on(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x09 }; /* clarify on */
   write_block(fd,data);
-  printf("cmd_clarify_on complete \n");
 }
 
 void cmd_set_freq(int fd, unsigned int freq) {
@@ -137,7 +136,6 @@ void cmd_set_mode(int fd, int mode) {
 
   data[3] = mode;
   write_block(fd,data);
-  printf("cmd_mode_set complete \n");
 
 }
 
@@ -146,14 +144,12 @@ void cmd_set_pacing(int fd, int delay) {
 
   data[3] = delay;
   write_block(fd,data);
-  printf("cmd_pacing_set complete \n");
 
 }
 
 void cmd_set_ptt_off(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0f }; /* ptt off */
   write_block(fd,data);
-  printf("cmd_ptt_off complete \n");
 
 }
 
@@ -169,7 +165,6 @@ void cmd_set_ptt_on(int fd) {
 
 }
 
-
 /*
  * Read data from rig and store in buffer provided
  * by the user.
@@ -179,15 +174,9 @@ void cmd_get_update_store(int fd, unsigned char *buffer) {
   int i,n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
-  write_block(fd,data);
- 
-  n = read_sleep(fd,buffer,345);	/* wait and read for 345 bytes to be read */
 
-  for(i=0; i<n; i++) {
-    printf("i = %i ,buffer[i] = %x \n", i, buffer[i]);
-  }
-  
-  printf("cmd_update complete \n");
+  write_block(fd,data); 
+  n = read_sleep(fd,buffer,345);	/* wait and read for 345 bytes to be read */
 
   return;
 }
