@@ -8,7 +8,7 @@
 # Make file for libft847.so shared lib test suite.
 #
 #
-#	$Id: Makefile,v 1.1 2000-07-25 01:23:20 javabear Exp $	
+#	$Id: Makefile,v 1.2 2000-09-03 23:36:46 javabear Exp $	
 #
 #
 #
@@ -29,7 +29,7 @@ COMMON_DIR	=	../../common/
 
 
 CC	=	gcc
-INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include
+INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include -I$(COMMON_DIR)
 OBJ	=	testlibft847.o $(COMMON_DIR)serial.o
 LDFLAG	=	-lm -lft847 -L../lib
 CFLAGS	=	-g -Wall -ansi -pedantic -O2 -D__USE_FIXED_PROTOTYPES__ 
