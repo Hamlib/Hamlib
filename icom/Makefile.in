@@ -90,11 +90,17 @@ WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
+ICOMSRCLIST = ic706.c icr8500.c icall.c
+
 lib_LTLIBRARIES = libhamlib-icom.la
-libhamlib_icom_la_SOURCES = ic706.c icr8500.c icall.c icom.c frame.c
-libhamlib_icom_la_LDFLAGS = -avoid-version -module
+libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
+libhamlib_icom_la_LDFLAGS = -module -avoid-version
+libhamlib_icom_la_LIBADD = ../src/libhamlib.la
+
 lib_LIBRARIES = libhamlib-icom.a
-libhamlib_icom_a_SOURCES = ic706.c icr8500.c icall.c icom.c frame.c
+libhamlib_icom_a_SOURCES = $(ICOMSRCLIST) icom.c frame.c
+libhamlib_icom_a_LIBADD = ../src/libhamlib.la
+
 noinst_HEADERS = frame.h icom.h icom_defs.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -106,12 +112,12 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libhamlib_icom_a_LIBADD = 
+libhamlib_icom_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_icom_a_OBJECTS =  ic706.$(OBJEXT) icr8500.$(OBJEXT) \
 icall.$(OBJEXT) icom.$(OBJEXT) frame.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_icom_la_LIBADD = 
+libhamlib_icom_la_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_icom_la_OBJECTS =  ic706.lo icr8500.lo icall.lo icom.lo \
 frame.lo
 CFLAGS = @CFLAGS@

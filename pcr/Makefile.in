@@ -90,11 +90,17 @@ WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
+PCRSRCLIST = pcr1000.c pcr100.c
+
 lib_LTLIBRARIES = libhamlib-pcr.la
-libhamlib_pcr_la_SOURCES = pcr.c pcr1000.c pcr100.c
-libhamlib_pcr_la_LDFLAGS = -avoid-version # -module
+libhamlib_pcr_la_SOURCES = $(PCRSRCLIST) pcr.c
+libhamlib_pcr_la_LDFLAGS = -module -avoid-version
+libhamlib_pcr_la_LIBADD = ../src/libhamlib.la
+
 lib_LIBRARIES = libhamlib-pcr.a
-libhamlib_pcr_a_SOURCES = pcr.c pcr1000.c pcr100.c
+libhamlib_pcr_a_SOURCES = $(PCRSRCLIST) pcr.c
+libhamlib_pcr_a_LIBADD = ../src/libhamlib.la
+
 noinst_HEADERS = pcr.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -106,13 +112,13 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libhamlib_pcr_a_LIBADD = 
-libhamlib_pcr_a_OBJECTS =  pcr.$(OBJEXT) pcr1000.$(OBJEXT) \
-pcr100.$(OBJEXT)
+libhamlib_pcr_a_DEPENDENCIES =  ../src/libhamlib.la
+libhamlib_pcr_a_OBJECTS =  pcr1000.$(OBJEXT) pcr100.$(OBJEXT) \
+pcr.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_pcr_la_LIBADD = 
-libhamlib_pcr_la_OBJECTS =  pcr.lo pcr1000.lo pcr100.lo
+libhamlib_pcr_la_DEPENDENCIES =  ../src/libhamlib.la
+libhamlib_pcr_la_OBJECTS =  pcr1000.lo pcr100.lo pcr.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

@@ -92,9 +92,13 @@ hamlibdocdir = @hamlibdocdir@
 
 lib_LTLIBRARIES = libhamlib-dummy.la
 libhamlib_dummy_la_SOURCES = dummy.c
-libhamlib_dummy_la_LDFLAGS = -avoid-version # -module
+libhamlib_dummy_la_LDFLAGS = -module -avoid-version
+libhamlib_dummy_la_LIBADD = ../src/libhamlib.la
+
 lib_LIBRARIES = libhamlib-dummy.a
 libhamlib_dummy_a_SOURCES = dummy.c
+libhamlib_dummy_a_LIBADD = ../src/libhamlib.la
+
 noinst_HEADERS = dummy.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -106,11 +110,11 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libhamlib_dummy_a_LIBADD = 
+libhamlib_dummy_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_dummy_a_OBJECTS =  dummy.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_dummy_la_LIBADD = 
+libhamlib_dummy_la_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_dummy_la_OBJECTS =  dummy.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

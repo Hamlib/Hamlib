@@ -93,7 +93,7 @@ INCLUDES = $(INCLTDL)
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = rig.c serial.c misc.c register.c event.c cal.c
-libhamlib_la_LDFLAGS = -release @VERSION@
+libhamlib_la_LDFLAGS = -no-undefined -release @VERSION@
 libhamlib_la_LIBADD = $(LIBLTDL)
 libhamlib_la_DEPENDENCIES = $(LIBLTDL)
 
