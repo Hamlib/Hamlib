@@ -4,6 +4,8 @@ Take a look at http://sourceforge.net/projects/hamlib/
 Here you will find a mail list, and  the latest CVS releases.
 
 
+See README for frontend/backend outline.
+
 General Guidelines.
 -------------------
 
@@ -109,7 +111,7 @@ General Guidelines.
 	make runtest > RESULT.example
 
 9. Your header file (eg ft747.h, ft847.h etc) documents
-   your API, so please describe it so others can understand.
+   your backend API, so please describe it so others can understand.
    If this cannot be done, I may consider an "API.xxx" that
    decsribes the API (eg: API.ft847 )
 
@@ -118,23 +120,42 @@ General Guidelines.
     look like this..
 
 A C code snippet to connect to a FT847 and set
-the frequnecy of the main VFO to 439,700,000 Hz ,
+the frequency of the main VFO to 439,700,000 Hz ,
 using FM as the required mode, would look something 
-like this.
+like this. The error checking is removed for simplicity.
+
+See testrig.c for an example.
 
 <snip>
 
-  int fd;
-  
-  fd = rig_open(SERIAL_PORT);
-  printf("port %s opened ok \n",SERIAL_PORT);
-  
-  cmd_set_cat_on(fd);           /* cat on */
-  cmd_set_freq_main_vfo_hz(fd,439700000,MODE_FM);
-  cmd_set_cat_off(fd);          /* cat off */
-  
-  rig_close(fd);
-  printf("port %s closed ok \n",SERIAL_PORT);
+	#define SERIAL_PORT "/dev/ttyS1"
+...
+
+	my_rig = rig_init(RIG_MODEL_FT847);
+	strncpy(my_rig->state.rig_path,SERIAL_PORT,FILPATHLEN);
+
+	/*
+	 * Example of setting rig Main VFO to 439.700 Mhz FM -- FS
+	 * and some error checking on the return code.
+	 */
+
+	retcode = rig_set_vfo(my_rig, RIG_VFO_MAIN);
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_vfo: error = %i \n", retcode);
+	}
+
+	rig_set_freq(my_rig, 439700000); /* cq de vk3fcs */
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_freq: error = %i \n", retcode);
+	} 
+
+	rig_set_mode(my_rig, RIG_MODE_FM);
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_get_mode: error = %i \n", retcode);
+	} 
 
 <snip>
 
@@ -149,6 +170,9 @@ like this.
    so they can be used by end users as a nice part of the
    Ham shack.
 
+
+
+Frank Singleton vk3fcs/km5ws
 
 
 
