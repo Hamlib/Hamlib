@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.74 2004-03-20 10:23:43 fillods Exp $
+ *	$Id: kenwood.c,v 1.75 2004-03-29 20:54:26 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -140,14 +140,15 @@ kenwood_transaction (RIG *rig, const char *cmdstr, int cmd_len,
     int retval;
     const char *cmdtrm = EOM_KEN;  /* Default Command/Reply termination char */
     int retry_read = 0;
-#define MAX_RETRY_READ  32
 
     rs = &rig->state;
     rs->hold_decode = 1;
 
-	serial_flush(&rs->rigport);
-
     cmdtrm = cmd_trm(rig);
+
+transaction_write:
+
+    serial_flush(&rs->rigport);
 
     if (cmdstr) {
         retval = write_block(&rs->rigport, cmdstr, strlen(cmdstr));
@@ -168,16 +169,18 @@ kenwood_transaction (RIG *rig, const char *cmdstr, int cmd_len,
 transaction_read:
     memset(data,0,*datasize);
     retval = read_string(&rs->rigport, data, *datasize, cmdtrm, strlen(cmdtrm));
-    if (retval < 0)
-        	goto transaction_quit;
-	else
-		*datasize = retval;
+    if (retval < 0) {
+        if (retry_read++ < rig->state.rigport.retry)
+            goto transaction_write;
+        goto transaction_quit;
+    }	else
+  	    *datasize = retval;
 
     /* Check that command termination is correct */
-    if (!strchr(cmdtrm, data[strlen(data)])) {
-        if (retry_read++ < MAX_RETRY_READ)
-            goto transaction_read;
+    if (strchr(cmdtrm, data[strlen(data)-1])==NULL) {
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __FUNCTION__, data);
+        if (retry_read++ < rig->state.rigport.retry)
+            goto transaction_write;
         retval = -RIG_EPROTO;
         goto transaction_quit;
     }
@@ -213,9 +216,10 @@ transaction_read:
           *       to the decoder for callback. That way we don't ignore
           *       any commands.
           */
-        if (retry_read++ < MAX_RETRY_READ)
-            goto transaction_read;
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, data);
+        if (retry_read++ < rig->state.rigport.retry)
+            goto transaction_write;
+
         retval =  -RIG_EPROTO;
         goto transaction_quit;
     }
@@ -237,16 +241,12 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 		int cmd_len, ack_len, retval;
 		char vfo_function;
 
-			/*
-			 * FIXME: vfo==RIG_VFO_CURR
-			 */
-
 		switch (vfo) {
 		case RIG_VFO_VFO:
 		case RIG_VFO_A: vfo_function = '0'; break;
 		case RIG_VFO_B: vfo_function = '1'; break;
 		case RIG_VFO_MEM: vfo_function = '2'; break;
-		/* TODO : case RIG_VFO_C: */ 
+		case RIG_VFO_CURR: return RIG_OK;
 		default: 
 			rig_debug(RIG_DEBUG_ERR,"kenwood_set_vfo: unsupported VFO %d\n",
 								vfo);
@@ -361,16 +361,12 @@ int kenwood_old_set_vfo(RIG *rig, vfo_t vfo)
 		int cmd_len, ack_len, retval;
 		char vfo_function;
 
-			/*
-			 * FIXME: vfo==RIG_VFO_CURR
-			 */
-
 		switch (vfo) {
 		case RIG_VFO_VFO:
 		case RIG_VFO_A: vfo_function = '0'; break;
 		case RIG_VFO_B: vfo_function = '1'; break;
 		case RIG_VFO_MEM: vfo_function = '2'; break;
-		/* TODO : case RIG_VFO_C: */ 
+		case RIG_VFO_CURR: return RIG_OK;
 		default: 
 			rig_debug(RIG_DEBUG_ERR,"kenwood_set_vfo: unsupported VFO %d\n",
 								vfo);
@@ -430,17 +426,12 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		unsigned char freqbuf[16], ackbuf[16];
 		int freq_len, ack_len, retval;
 		char vfo_letter;
+		vfo_t	tvfo;
 
-			/*
-			 * better FIXME: vfo==RIG_VFO_CURR
-			 */
-		if (vfo == RIG_VFO_CURR) {
-			retval = kenwood_get_vfo(rig, &vfo);
-			if (retval != RIG_OK)
-					return retval;
-		}
-
-		switch (vfo) {
+        	if(vfo==RIG_VFO_CURR) tvfo=rig->state.current_vfo;
+        	else tvfo=vfo;
+                                                                                         
+		switch (tvfo) {
 		case RIG_VFO_A: vfo_letter = 'A'; break;
 		case RIG_VFO_B: vfo_letter = 'B'; break;
 		case RIG_VFO_C: vfo_letter = 'C'; break;
@@ -468,17 +459,12 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		int cmd_len, freq_len, retval;
 		char vfo_letter;
 		long long f;
+		vfo_t	tvfo;
 
-			/*
-			 * better FIXME: vfo==RIG_VFO_CURR
-			 */
-		if (vfo == RIG_VFO_CURR) {
-			retval = kenwood_get_vfo(rig, &vfo);
-			if (retval != RIG_OK)
-				return retval;
-		}
-
-		switch (vfo) {
+        	if(vfo==RIG_VFO_CURR) tvfo=rig->state.current_vfo;
+        	else tvfo=vfo;
+                                                                                         
+		switch (tvfo) {
 		case RIG_VFO_A: vfo_letter = 'A'; break;
 		case RIG_VFO_B: vfo_letter = 'B'; break;
 		case RIG_VFO_C: vfo_letter = 'C'; break;
