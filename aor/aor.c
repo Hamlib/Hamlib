@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: aor.c,v 1.13 2001-10-22 20:23:42 f4cfe Exp $
+ *		$Id: aor.c,v 1.14 2001-11-14 18:29:14 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -266,7 +266,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 								ackbuf[0]);
 				return -RIG_EINVAL;
 		}
-		if (*width != RIG_PASSBAND_NORMAL)
+		if (*width == RIG_PASSBAND_NORMAL)
 				*width = rig_passband_normal(rig, *mode);
 
 		return RIG_OK;
