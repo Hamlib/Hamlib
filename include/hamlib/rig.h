@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.66 2002-07-08 22:20:08 fillods Exp $
+ *	$Id: rig.h,v 1.67 2002-07-09 20:40:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -435,6 +435,7 @@ enum meter_level_e {
 union value_u {
 	signed int i;
 	float f;
+	char *s;
 };
 typedef union value_u value_t;
 
@@ -542,6 +543,7 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_SATMODE	(1<<26)	/* Satellite mode ON/OFF (IC-910H) */
 #define RIG_FUNC_SCOPE  	(1<<27)	/* Simple bandscope ON/OFF (IC-910H) */
 #define RIG_FUNC_RESUME		(1<<28)	/* Scan resume */
+#define RIG_FUNC_TBURST		(1<<29)	/* 1750 Hz tone burst */
 
 
 /*
@@ -630,6 +632,14 @@ struct filter_list {
 #define RIG_CHFLAG_NONE	0
 #define RIG_CHFLAG_SKIP	(1<<0)
 
+struct ext_list {
+	token_t token;
+	value_t val;
+};
+
+#define RIG_EXT_END     {0, {i:0}}
+#define RIG_IS_EXT_END(x)	((x).token == 0)
+
 /*
  * Convenience struct, describes a freq/vfo/mode combo
  * Also useful for memory handling -- FS
@@ -663,6 +673,7 @@ struct channel {
   int scan_group;
   int flags;	/* RIG_CHFLAG's */
   char channel_desc[MAXCHANDESC];
+  struct ext_list *ext_levels;
 };
 
 typedef struct channel channel_t;
@@ -752,6 +763,9 @@ struct rig_caps {
 
 	int level_gran[RIG_SETTING_MAX];
 	int parm_gran[RIG_SETTING_MAX];
+
+	const struct confparams *extparms;    /* apply to whole rig */
+	const struct confparams *extlevels;   /* specific to a VFO */
 
 	const tone_t *ctcss_list;
 	const tone_t *dcs_list;
@@ -883,6 +897,12 @@ struct rig_caps {
 
 	int (*set_parm) (RIG * rig, setting_t parm, value_t val);
 	int (*get_parm) (RIG * rig, setting_t parm, value_t * val);
+
+	int (*set_ext_level)(RIG *rig, vfo_t vfo, token_t token, value_t val);
+	int (*get_ext_level)(RIG *rig, vfo_t vfo, token_t token, value_t *val);
+
+	int (*set_ext_parm)(RIG *rig, token_t token, value_t val);
+	int (*get_ext_parm)(RIG *rig, token_t token, value_t *val);
 
 	int (*set_conf) (RIG * rig, token_t token, const char *val);
 	int (*get_conf) (RIG * rig, token_t token, char *val);
@@ -1151,6 +1171,19 @@ extern HAMLIB_EXPORT(int) rig_set_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t
 extern HAMLIB_EXPORT(int) rig_get_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t *status));
 
 extern HAMLIB_EXPORT(int) rig_reset HAMLIB_PARAMS((RIG *rig, reset_t reset));	/* dangerous! */
+
+extern HAMLIB_EXPORT(int) rig_set_ext_level HAMLIB_PARAMS((RIG *rig, vfo_t vfo,
+			token_t token, value_t val));
+extern HAMLIB_EXPORT(int) rig_get_ext_level HAMLIB_PARAMS((RIG *rig, vfo_t vfo,
+			token_t token, value_t *val));
+
+extern HAMLIB_EXPORT(int) rig_set_ext_parm HAMLIB_PARAMS((RIG *rig, token_t token, value_t val));
+extern HAMLIB_EXPORT(int) rig_get_ext_parm HAMLIB_PARAMS((RIG *rig, token_t token, value_t *val));
+
+extern HAMLIB_EXPORT(int) rig_ext_level_foreach HAMLIB_PARAMS((RIG *rig, int (*cfunc)(RIG*, const struct confparams *, rig_ptr_t), rig_ptr_t data));
+extern HAMLIB_EXPORT(int) rig_ext_parm_foreach HAMLIB_PARAMS((RIG *rig, int (*cfunc)(RIG*, const struct confparams *, rig_ptr_t), rig_ptr_t data));
+extern HAMLIB_EXPORT(const struct confparams*) rig_ext_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
+extern HAMLIB_EXPORT(token_t) rig_ext_token_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
 
 
 extern HAMLIB_EXPORT(int) rig_token_foreach HAMLIB_PARAMS((RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data));

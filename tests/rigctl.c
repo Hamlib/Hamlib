@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.30 2002-06-26 20:44:37 dedmons Exp $  
+ * $Id: rigctl.c,v 1.31 2002-07-09 20:40:28 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -607,7 +607,6 @@ static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 				printf(", %s", cfp->u.c.combostr[i]);
 		printf("\n");
 		break;
-	default:
 	}
 
 	return 1;  /* !=0, we want them all ! */
@@ -976,13 +975,43 @@ declare_proto_rig(power2mW)
 		return status;
 }
 
-
+/*
+ * RIG_CONF_ extparm's type:
+ *   NUMERIC: val.f
+ *   COMBO: val.i, starting from 0
+ *   STRING: val.s
+ *   CHECKBUTTON: val.i 0/1
+ */
 declare_proto_rig(set_level)
 {
 		setting_t level;
 		value_t val;
 
 		level = parse_level(arg1);
+		if (!rig_has_set_level(rig, level)) {
+			const struct confparams *cfp;
+
+			cfp = rig_ext_lookup(rig, arg1);
+			if (!cfp)
+				return -RIG_EINVAL;	/* no such parameter */
+
+			switch (cfp->type) {
+			case RIG_CONF_CHECKBUTTON:
+			case RIG_CONF_COMBO:
+				sscanf(arg2, "%d", &val.i);
+				break;
+			case RIG_CONF_NUMERIC:
+				sscanf(arg2, "%f", &val.f);
+				break;
+			case RIG_CONF_STRING:
+				val.s = arg2;
+				break;
+			default:
+				return -RIG_ECONF;
+			}
+			return rig_set_ext_level(rig, RIG_VFO_CURR, cfp->token, val);
+		}
+
 		if (RIG_LEVEL_IS_FLOAT(level))
 			sscanf(arg2, "%f", &val.f);
 		else
@@ -999,6 +1028,37 @@ declare_proto_rig(get_level)
 		value_t val;
 
 		level = parse_level(arg1);
+		if (!rig_has_get_level(rig, level)) {
+			const struct confparams *cfp;
+
+			cfp = rig_ext_lookup(rig, arg1);
+			if (!cfp)
+				return -RIG_EINVAL;	/* no such parameter */
+
+			status = rig_get_ext_level(rig, RIG_VFO_CURR, cfp->token, &val);
+			if (status != RIG_OK)
+				return status;
+
+			if (interactive)
+				printf("%s: ", cmd->arg2);
+
+			switch (cfp->type) {
+			case RIG_CONF_CHECKBUTTON:
+			case RIG_CONF_COMBO:
+				printf("%d\n", val.i);
+				break;
+			case RIG_CONF_NUMERIC:
+				printf("%f\n", val.f);
+				break;
+			case RIG_CONF_STRING:
+				printf("%s\n", val.s);
+				break;
+			default:
+				return -RIG_ECONF;
+			}
+			return status;
+		}
+
 		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
 		if (status != RIG_OK)
 				return status;
@@ -1008,7 +1068,6 @@ declare_proto_rig(get_level)
 			printf("%f\n", val.f);
 		else
 			printf("%d\n", val.i);
-
 		return status;
 }
 
@@ -1046,6 +1105,31 @@ declare_proto_rig(set_parm)
 		value_t val;
 
 		parm = parse_parm(arg1);
+
+		if (!rig_has_set_parm(rig, parm)) {
+			const struct confparams *cfp;
+
+			cfp = rig_ext_lookup(rig, arg1);
+			if (!cfp)
+				return -RIG_EINVAL;	/* no such parameter */
+
+			switch (cfp->type) {
+			case RIG_CONF_CHECKBUTTON:
+			case RIG_CONF_COMBO:
+				sscanf(arg2, "%d", &val.i);
+				break;
+			case RIG_CONF_NUMERIC:
+				sscanf(arg2, "%f", &val.f);
+				break;
+			case RIG_CONF_STRING:
+				val.s = arg2;
+				break;
+			default:
+				return -RIG_ECONF;
+			}
+			return rig_set_ext_parm(rig, cfp->token, val);
+		}
+
 		if (RIG_PARM_IS_FLOAT(parm))
 			sscanf(arg2, "%f", &val.f);
 		else
@@ -1062,6 +1146,37 @@ declare_proto_rig(get_parm)
 		value_t val;
 
 		parm = parse_parm(arg1);
+		if (!rig_has_get_parm(rig, parm)) {
+			const struct confparams *cfp;
+
+			cfp = rig_ext_lookup(rig, arg1);
+			if (!cfp)
+				return -RIG_EINVAL;	/* no such parameter */
+
+			status = rig_get_ext_parm(rig, cfp->token, &val);
+			if (status != RIG_OK)
+				return status;
+
+			if (interactive)
+				printf("%s: ", cmd->arg2);
+
+			switch (cfp->type) {
+			case RIG_CONF_CHECKBUTTON:
+			case RIG_CONF_COMBO:
+				printf("%d\n", val.i);
+				break;
+			case RIG_CONF_NUMERIC:
+				printf("%f\n", val.f);
+				break;
+			case RIG_CONF_STRING:
+				printf("%s\n", val.s);
+				break;
+			default:
+				return -RIG_ECONF;
+			}
+			return status;
+		}
+
 		status = rig_get_parm(rig, parm, &val);
 		if (status != RIG_OK)
 				return status;

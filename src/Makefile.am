@@ -1,6 +1,6 @@
 INCLUDES = @INCLUDES@ @INCLTDL@
 RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c tones.c \
-			rotator.c locator.c rot_reg.c rot_conf.c iofunc.c
+		rotator.c locator.c rot_reg.c rot_conf.c iofunc.c ext.c
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)

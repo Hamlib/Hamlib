@@ -13,7 +13,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.58 2002-03-18 22:59:30 fillods Exp $
+ *	$Id: rig.c,v 1.59 2002-07-09 20:40:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2986,6 +2986,148 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
+
+/**
+ * \brief set a radio level extra parameter
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param token	The parameter
+ * \param val	The value to set the parameter to
+ *
+ *  Sets an level extra parameter. 
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_ext_level()
+ */
+int rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+	const struct rig_caps *caps;
+	int retcode;
+	vfo_t curr_vfo;
+
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
+
+	caps = rig->caps;
+
+	if (caps->set_ext_level == NULL)
+		return -RIG_ENAVAIL;
+
+	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+		vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
+		return caps->set_ext_level(rig, vfo, token, val);
+
+	if (!caps->set_vfo)
+		return -RIG_ENTARGET;
+	curr_vfo = rig->state.current_vfo;
+	retcode = caps->set_vfo(rig, vfo);
+	if (retcode != RIG_OK)
+		return retcode;
+
+	retcode = caps->set_ext_level(rig, vfo, token, val);
+	caps->set_vfo(rig, curr_vfo);
+	return retcode;
+}
+
+/**
+ * \brief get the value of a level extra parameter
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param token	The parameter
+ * \param val	The location where to store the value of \a token
+ *
+ *  Retrieves the value of a level extra paramter associated with \a token.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_ext_level()
+ */
+int rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+	const struct rig_caps *caps;
+	int retcode;
+	vfo_t curr_vfo;
+
+	if (CHECK_RIG_ARG(rig) || !val)
+		return -RIG_EINVAL;
+
+	caps = rig->caps;
+
+	if (caps->get_ext_level == NULL)
+		return -RIG_ENAVAIL;
+
+	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+		vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
+		return caps->get_ext_level(rig, vfo, token, val);
+
+	if (!caps->set_vfo)
+		return -RIG_ENTARGET;
+	curr_vfo = rig->state.current_vfo;
+	retcode = caps->set_vfo(rig, vfo);
+	if (retcode != RIG_OK)
+		return retcode;
+
+	retcode = caps->get_ext_level(rig, vfo, token, val);
+	caps->set_vfo(rig, curr_vfo);
+	return retcode;
+}
+
+/**
+ * \brief set a radio parm extra parameter
+ * \param rig	The rig handle
+ * \param token	The parameter
+ * \param val	The value to set the parameter to
+ *
+ *  Sets an parm extra parameter. 
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_ext_parm()
+ */
+int rig_set_ext_parm(RIG *rig, token_t token, value_t val)
+{
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
+
+	if (rig->caps->set_ext_parm == NULL)
+		return -RIG_ENAVAIL;
+
+	return rig->caps->set_ext_parm(rig, token, val);
+}
+
+/**
+ * \brief get the value of a parm extra parameter
+ * \param rig	The rig handle
+ * \param token	The parameter
+ * \param val	The location where to store the value of \a token
+ *
+ *  Retrieves the value of a parm extra paramter associated with \a token.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_ext_parm()
+ */
+int rig_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+	if (CHECK_RIG_ARG(rig) || !val)
+		return -RIG_EINVAL;
+
+	if (rig->caps->get_ext_parm == NULL)
+		return -RIG_ENAVAIL;
+
+	return rig->caps->get_ext_parm(rig, token, val);
+}
+
+
 
 /**
  * \brief set a radio configuration parameter
