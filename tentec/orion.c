@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: orion.c,v 1.4 2005-03-25 20:33:31 aa6e Exp $
+ *	$Id: orion.c,v 1.5 2005-03-28 02:33:36 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,7 @@
 /* Edits by Martin Ewing AA6E, 23 Mar 2005 --> ?? 
    Added valid length settings before tentec_transaction calls.
    Added vfo_curr initialization to VFO A
+   Fixed up VSWR & S-meter, set ATT, set AGC, add rough STR_CAL func.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -114,6 +115,37 @@ struct tt565_priv_data {
 		RIG_OP_TO_VFO|RIG_OP_FROM_VFO| \
 		RIG_OP_TUNE)
 
+#if 0
+/* FIXME: real measure  -- borrowed from icr8500 */
+#define TT565_STR_CAL { 16,  { \
+                {   0, -54 },   /* S0 */ \
+                {  10, -48 }, \
+                {  32, -42 }, \
+                {  46, -36 }, \
+                {  62, -30 }, \
+                {  82, -24 }, \
+                {  98, -18 }, \
+                { 112, -12 }, \
+                { 124,  -6 }, \
+                { 134,   0 }, /* S9 */ \
+                { 156,  10 }, \
+                { 177,  20 }, \
+                { 192,  30 }, \
+                { 211,  40 }, \
+                { 228,  50 }, \
+                { 238,  60 }, \
+        } }
+#endif
+
+/* This is crude and measured off the air - need better data */
+
+#define TT565_STR_CAL { 5,  { \
+                { 014, -42 }, /* S2 */  \
+                { 031, -18 }, /* S6 */ \
+                { 043,   0 }, /* S9 */ \
+                { 052,  20 }, \
+                { 063,  40 }, \
+        } }
 
 /*
  * tt565 transceiver capabilities.
@@ -240,6 +272,7 @@ const struct rig_caps tt565_caps = {
 .reset =  tt565_reset,
 .get_info =  tt565_get_info,
 
+.str_cal = TT565_STR_CAL,
 };
 
 /*
@@ -834,8 +867,8 @@ const char *tt565_get_info(RIG *rig)
  */
 int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	int retval, cmd_len=0;
-	unsigned char cmdbuf[16];
+	int retval, cmd_len=0, ii;
+	unsigned char cmdbuf[16], cc;
 
 	switch (level) {
 	case RIG_LEVEL_RFPOWER:
@@ -844,41 +877,17 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	case RIG_LEVEL_AGC:
-#if 0
-	case RIG_LEVEL_AGC:
-		/* default to MEDIUM */
-		cmd_len = sprintf(cmdbuf, "G%c" EOM,
-				val.i==RIG_AGC_SLOW ? '1' : (
-				val.i==RIG_AGC_FAST ? '3' : '2' ) );
-		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
-		if (retval == RIG_OK)
-			priv->agc = val.i;
-		return retval;
-
-		cmd_len = sprintf(cmdbuf, "?R%cA" EOM,
-				which_receiver(rig, vfo));
-
-		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-
-		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'A' || lvl_len < 5) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
-			return -RIG_EPROTO;
+		switch(val.i) {
+		case RIG_AGC_OFF:    cc = 'O'; break;
+		case RIG_AGC_FAST:   cc = 'F'; break;
+		case RIG_AGC_MEDIUM: cc = 'M'; break;
+		case RIG_AGC_SLOW:   cc = 'S'; break;
+		case RIG_AGC_USER:   cc = 'P'; break;
+		default: cc = 'M';
 		}
-
-		switch(lvlbuf[4]) {
-		case 'O': val->i=RIG_AGC_OFF; break;
-		case 'F': val->i=RIG_AGC_FAST; break;
-		case 'M': val->i=RIG_AGC_MEDIUM; break;
-		case 'S': val->i=RIG_AGC_SLOW; break;
-		case 'P': val->i=RIG_AGC_USER; break;
-		default:
-			return -RIG_EPROTO;
-		}
-#endif
+		cmd_len = sprintf(cmdbuf, "*R%cA%c" EOM,
+			which_receiver(rig, vfo),
+			cc);
 		break;
 
 	case RIG_LEVEL_AF:
@@ -900,26 +909,14 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	case RIG_LEVEL_ATT:
-#if 0
-		cmd_len = sprintf(cmdbuf, "?R%cT" EOM,
-				which_receiver(rig, vfo));
-
-		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-
-		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'T' || lvl_len < 5) {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
-					__FUNCTION__, lvlbuf);
-			return -RIG_EPROTO;
+		ii = -1;			/* Request 0-5 dB -> 0, 6-11 dB -> 6, etc. */
+		while ( rig->caps->attenuator[++ii] != RIG_DBLST_END ) {
+			if (rig->caps->attenuator[ii] > val.i) break;
 		}
-
-		if (lvlbuf[4] == '0')
-			val.i = 0;
-		else
-			val.i = rig->caps->attenuator[lvlbuf[4]-'1'];
-#endif
+		
+		cmd_len = sprintf(cmdbuf, "*R%cT%d" EOM,
+				which_receiver(rig, vfo),
+				ii);
 		break;
 
 	case RIG_LEVEL_PREAMP:
@@ -980,13 +977,25 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval != RIG_OK)
 			return retval;
 
-		if (lvlbuf[1] != 'S' || lvl_len < 5 || lvlbuf[2]!='T') {
+		/* in Xmit, response is @STFuuuRvvvSwww (or ...Swwww)
+			uuu = 000-100 (apx) fwd watts
+                        vvv = 000-100       rev watts
+                        www = 256-999  256 * VSWR
+		   in Rcv,  response is @SRMuuuSvvv
+			uuu = 000-100 (apx) Main S meter
+                        vvv = 000-100 (apx) Sub  S meter
+		*/
+
+		if (lvlbuf[1] != 'S' || lvl_len < 5 ) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
 					__FUNCTION__, lvlbuf);
 			return -RIG_EPROTO;
 		}
-
-		val->f = atof(strchr(lvlbuf+5,'S'));
+		if (lvlbuf[2]=='T') {
+			val->f = atof(strchr(lvlbuf+5,'S')+1)/256.0;
+			if (val->f < 1.0) val->f = 9.99;	/* high VSWR */
+		}
+			else val->f = 0.0;	/* SWR in Receive = 0.0 */
 		break;
 
 	case RIG_LEVEL_RAWSTR:
@@ -995,14 +1004,17 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval != RIG_OK)
 			return retval;
 
-		if (lvlbuf[1] != 'S' || lvlbuf[2] != 'R' || lvl_len < 5) {
+		if (lvlbuf[1] != 'S' || lvl_len < 5) {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
 					__FUNCTION__, lvlbuf);
 			return -RIG_EPROTO;
 		}
 
-		val->i = atoi(strchr(lvlbuf+3,
-				vfo == RIG_VFO_SUB ? 'S' : 'M')+1); 
+		if (lvlbuf[2] == 'R') {
+			val->i = atoi(strchr(lvlbuf+3,
+				vfo == RIG_VFO_SUB ? 'S' : 'M')+1);  /* check main/sub logic */
+		}
+			else val->i = 0;	/* S-meter in xmit = 0 */
 		break;
 
 	case RIG_LEVEL_RFPOWER:
@@ -1065,7 +1077,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_IF:
-		cmd_len = sprintf(cmdbuf, "?R%cP" EOM,
+		cmd_len = sprintf(cmdbuf, "?R%cP" EOM,			/* passband tuning */
 				which_receiver(rig, vfo));
 
 		lvl_len=16;	
