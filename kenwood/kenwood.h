@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.35 2004-03-20 10:23:43 fillods Exp $
+ *	$Id: kenwood.h,v 1.36 2004-05-02 17:17:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,8 +50,7 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
-int kenwood_old_set_vfo(RIG *rig, vfo_t vfo);
-int kenwood_old_get_vfo(RIG *rig, vfo_t *vfo);
+
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
@@ -76,6 +75,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch);
 int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch);
+int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 const char* kenwood_get_info(RIG *rig);
 
 int kenwood_set_trn(RIG *rig, int trn);
@@ -84,28 +84,30 @@ int kenwood_get_trn(RIG *rig, int *trn);
 extern const struct rig_caps ts950sdx_caps;
 extern const struct rig_caps ts50s_caps;
 extern const struct rig_caps ts140_caps;
-extern const struct rig_caps ts440_caps;
 extern const struct rig_caps ts450s_caps;
 extern const struct rig_caps ts570d_caps;
 extern const struct rig_caps ts570s_caps;
 extern const struct rig_caps ts680s_caps;
 extern const struct rig_caps ts690s_caps;
-extern const struct rig_caps ts711_caps;
-extern const struct rig_caps ts811_caps;
 extern const struct rig_caps ts790_caps;
 extern const struct rig_caps ts850_caps;
 extern const struct rig_caps ts870s_caps;
 extern const struct rig_caps ts930_caps;
-extern const struct rig_caps ts940_caps;
 extern const struct rig_caps ts2000_caps;
+extern const struct rig_caps k2_caps;
+
 extern const struct rig_caps thd7a_caps;
 extern const struct rig_caps tmd700_caps;
 extern const struct rig_caps thf7a_caps;
 extern const struct rig_caps thf7e_caps;
 extern const struct rig_caps thg71_caps;
 extern const struct rig_caps tmv7_caps;
-extern const struct rig_caps k2_caps;
+
+extern const struct rig_caps ts440_caps;
+extern const struct rig_caps ts940_caps;
+extern const struct rig_caps ts711_caps;
+extern const struct rig_caps ts811_caps;
+extern const struct rig_caps r5000_caps;
 
 
 #endif /* _KENWOOD_H */
-

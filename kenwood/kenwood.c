@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.75 2004-03-29 20:54:26 f4dwv Exp $
+ *	$Id: kenwood.c,v 1.76 2004-05-02 17:17:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -351,73 +351,6 @@ int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
 
 
 /*
- * kenwood_old_set_vfo
- * Assumes rig!=NULL
- * for TS-940, TS-811, TS-711 and TS-440
- */
-int kenwood_old_set_vfo(RIG *rig, vfo_t vfo)
-{
-		unsigned char cmdbuf[16], ackbuf[16];
-		int cmd_len, ack_len, retval;
-		char vfo_function;
-
-		switch (vfo) {
-		case RIG_VFO_VFO:
-		case RIG_VFO_A: vfo_function = '0'; break;
-		case RIG_VFO_B: vfo_function = '1'; break;
-		case RIG_VFO_MEM: vfo_function = '2'; break;
-		case RIG_VFO_CURR: return RIG_OK;
-		default: 
-			rig_debug(RIG_DEBUG_ERR,"kenwood_set_vfo: unsupported VFO %d\n",
-								vfo);
-			return -RIG_EINVAL;
-		}
-
-		cmd_len = sprintf(cmdbuf, "FN%c%s", vfo_function, cmd_trm(rig));
-
-		ack_len = 0;
-		retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
-		return retval;
-}
-
-/*
- * kenwood_old_get_vfo
- * Assumes rig!=NULL, !vfo
- * for TS-940, TS-811, TS-711 and TS-440
- */
-int kenwood_old_get_vfo(RIG *rig, vfo_t *vfo)
-{
-		unsigned char vfobuf[50];
-		int vfo_len, retval;
-
-
-		/* query RX VFO */
-		vfo_len = 50;
-		retval = kenwood_transaction (rig, "FN;", 3, vfobuf, &vfo_len);
-		if (retval != RIG_OK)
-			return retval;
-
-		if (vfo_len != 4 || vfobuf[1] != 'N') {
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer %s, "
-				"len=%d\n", __FUNCTION__, vfobuf, vfo_len);
-			return -RIG_ERJCTED;
-		}
-
-		/* TODO: replace 0,1,2,.. constants by defines */
-		switch (vfobuf[2]) {
-		case '0': *vfo = RIG_VFO_A; break;
-		case '1': *vfo = RIG_VFO_B; break;
-		case '2': *vfo = RIG_VFO_MEM; break;
-		default: 
-			rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
-						__FUNCTION__, vfobuf[2]);
-			return -RIG_EPROTO;
-		}
-		return RIG_OK;
-}
-
-
-/*
  * kenwood_set_freq
  * Assumes rig!=NULL
  */
@@ -526,7 +459,7 @@ int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 	
 	info_len = 0;
         if (rit == 0)
-        return kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
+        	return kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
 
         if (rit > 0)
                 c = 'U';
@@ -556,6 +489,15 @@ int kenwood_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
 int kenwood_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
         return kenwood_set_rit(rig, vfo, rit);
+}
+
+int kenwood_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
+{
+	unsigned char ackbuf[16];
+	int ack_len = 0;
+
+	return kenwood_transaction (rig, scan==RIG_SCAN_STOP? "SC0;":"SC1;", 4, 
+						ackbuf, &ack_len);
 }
 
 
@@ -1068,6 +1010,7 @@ int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		return RIG_OK;
 }
 
+
 /*
  * kenwood_set_ptt
  * Assumes rig!=NULL
@@ -1528,21 +1471,23 @@ DECLARE_INITRIG_BACKEND(kenwood)
 		rig_register(&ts950sdx_caps);
 		rig_register(&ts50s_caps);
 		rig_register(&ts140_caps);
-		rig_register(&ts440_caps);
 		rig_register(&ts450s_caps);
 		rig_register(&ts570d_caps);
 		rig_register(&ts570s_caps);
 		rig_register(&ts680s_caps);
 		rig_register(&ts690s_caps);
-		rig_register(&ts711_caps);
-		rig_register(&ts811_caps);
 		rig_register(&ts790_caps);
 		rig_register(&ts850_caps);
 		rig_register(&ts870s_caps);
 		rig_register(&ts930_caps);
-		rig_register(&ts940_caps);
 		rig_register(&ts2000_caps);
 		rig_register(&k2_caps);
+
+		rig_register(&ts440_caps);
+		rig_register(&ts940_caps);
+		rig_register(&ts711_caps);
+		rig_register(&ts811_caps);
+		rig_register(&r5000_caps);
 
 		rig_register(&tmd700_caps);
 		rig_register(&thd7a_caps);
@@ -1552,5 +1497,4 @@ DECLARE_INITRIG_BACKEND(kenwood)
 
 		return RIG_OK;
 }
-
 

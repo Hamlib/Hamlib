@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS440 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts440.c,v 1.9 2003-10-01 19:31:58 fillods Exp $
+ *	$Id: ts440.c,v 1.10 2004-05-02 17:17:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,6 +28,7 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
+#include "ic10.h"
 
 
 #define TS440_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
@@ -61,12 +62,12 @@ const struct rig_caps ts440_caps = {
 .rig_model =  RIG_MODEL_TS440,
 .model_name = "TS-440",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_RIG,
+.dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
 .serial_rate_max =  4800,
@@ -79,7 +80,7 @@ const struct rig_caps ts440_caps = {
 .timeout =  200,
 .retry =  3,
 
-.has_get_func =  TS440_FUNC_ALL,
+.has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  TS440_FUNC_ALL,
 .has_get_level =  TS440_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(TS440_LEVEL_ALL),
@@ -102,7 +103,7 @@ const struct rig_caps ts440_caps = {
 .chan_desc_sz =  0,
 
 
-.chan_list =  { {   0,  99, RIG_MTYPE_MEM },
+.chan_list =  { {   0,  99, RIG_MTYPE_MEM, {IC10_CHANNEL_CAPS} },
 	     RIG_CHAN_END, },
 
 .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
@@ -146,32 +147,28 @@ const struct rig_caps ts440_caps = {
 .priv =  (void *)&ts440_priv_caps,
 
 .set_freq =  kenwood_set_freq,
-.get_freq =  kenwood_get_freq,
+.get_freq =  ic10_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
-.set_vfo =  kenwood_old_set_vfo,
-.get_vfo =  kenwood_old_get_vfo,
-.set_ctcss_tone =  kenwood_set_ctcss_tone,
-.get_ctcss_tone =  kenwood_get_ctcss_tone,
+.get_mode =  ic10_get_mode,
+.set_vfo =  ic10_set_vfo,
+.get_vfo =  ic10_get_vfo,
+.set_split_vfo =  ic10_set_split_vfo,
+.get_split_vfo =  ic10_get_split_vfo,
 .set_ptt =  kenwood_set_ptt,
-.get_ptt =  kenwood_get_ptt,
-.get_dcd =  kenwood_get_dcd,
+.get_ptt =  ic10_get_ptt,
 .set_func =  kenwood_set_func,
-.get_func =  kenwood_get_func,
-.set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
-.get_mem =  kenwood_get_mem,
+.get_mem =  ic10_get_mem,
 .set_trn =  kenwood_set_trn,
-.get_trn =  kenwood_get_trn,
-.set_powerstat =  kenwood_set_powerstat,
-.get_powerstat =  kenwood_get_powerstat,
-.reset =  kenwood_reset,
+.scan =  kenwood_scan,
+.set_channel = ic10_set_channel,
+.get_channel = ic10_get_channel,
+.decode_event = ic10_decode_event,
 
 };
 
