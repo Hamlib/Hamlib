@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.24 2001-03-04 23:06:30 f4cfe Exp $
+   $Id: rig.c,v 1.25 2001-04-24 19:55:29 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -280,10 +280,12 @@ RIG *rig_init(rig_model_t rig_model)
 					break;
 		}
 
-		memcpy(rs->preamp, caps->preamp, MAXDBLSTSIZ);
-		memcpy(rs->attenuator, caps->attenuator, MAXDBLSTSIZ);
-		memcpy(rs->tuning_steps, caps->tuning_steps, TSLSTSIZ);
-		memcpy(rs->filters, caps->filters, FLTLSTSIZ);
+		memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
+		memcpy(rs->attenuator, caps->attenuator, sizeof(int)*MAXDBLSTSIZ);
+		memcpy(rs->tuning_steps, caps->tuning_steps, 
+						sizeof(struct tuning_step_list)*TSLSTSIZ);
+		memcpy(rs->filters, caps->filters, 
+						sizeof(struct filter_list)*FLTLSTSIZ);
 
 		rs->has_get_func = caps->has_get_func;
 		rs->has_set_func = caps->has_set_func;
@@ -691,13 +693,21 @@ int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return retcode;
 }
 
-#if 0
-/*
- * purpose (example):
- * rig_set_mode(my_rig, RIG_MODE_LSB, rig_passband_narrow(my_rig, RIG_MODE_LSB))
+/**
+ *      rig_passband_normal - get the normal passband of a mode
+ *      @rig:	The rig handle
+ *      @mode:	The mode to get the passband
  *
- * FIXME: returning 0 when an error occurs, or mode not found is no good!
+ *      The rig_passband_normal() function returns the normal (default)
+ *      passband for the given the @mode.
+ *
+ *      RETURN VALUE: The rig_passband_normal() function returns 
+ *      the passband in Hz if the operation has been sucessful,
+ *      or a 0 if an error occured (passband not found, whatever).
+ *
+ *      SEE ALSO: rig_passband_narrow(), rig_passband_wide()
  */
+
 pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode)
 {
 		const struct rig_state *rs;
@@ -708,11 +718,32 @@ pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode)
 
 		rs = &rig->state;
 
-		for (i=0; i<FLTLSTSIZ && rs->filters[i].modes; i++)
-				if (rs->filters[i].modes & mode)
+		for (i=0; i<FLTLSTSIZ && rs->filters[i].modes; i++) {
+				if (rs->filters[i].modes & mode) {
 						return rs->filters[i].width;
+				}
+		}
+
 		return 0;
 }
+
+/**
+ *      rig_passband_narrow - get the narrow passband of a mode
+ *      @rig:	The rig handle
+ *      @mode:	The mode to get the passband
+ *
+ *      The rig_passband_narrow() function returns the narrow (closest)
+ *      passband for the given the @mode.
+ *
+ *		EXAMPLE: rig_set_mode(my_rig, RIG_MODE_LSB, 
+ *				 			rig_passband_narrow(my_rig, RIG_MODE_LSB) );
+ *
+ *      RETURN VALUE: The rig_passband_narrow() function returns 
+ *      the passband in Hz if the operation has been sucessful,
+ *      or a 0 if an error occured (passband not found, whatever).
+ *
+ *      SEE ALSO: rig_passband_normal(), rig_passband_wide()
+ */
 
 pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode)
 {
@@ -725,18 +756,39 @@ pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode)
 
 		rs = &rig->state;
 
-		for (i=0; i<FLTLSTSIZ-1 && rs->filters[i].modes; i++)
+		for (i=0; i<FLTLSTSIZ-1 && rs->filters[i].modes; i++) {
 				if (rs->filters[i].modes & mode) {
 					normal = rs->filters[i].width;
 					for (i++; i<FLTLSTSIZ && rs->filters[i].modes; i++) {
 							if ((rs->filters[i].modes & mode) &&
-											(rs->filters[i].width < normal))
+											(rs->filters[i].width < normal)) {
 									return rs->filters[i].width;
+							}
 					}
 					return 0;
 				}
+		}
+
 		return 0;
 }
+
+/**
+ *      rig_passband_wide - get the wide passband of a mode
+ *      @rig:	The rig handle
+ *      @mode:	The mode to get the passband
+ *
+ *      The rig_passband_wide() function returns the wide (default)
+ *      passband for the given the @mode.
+ *
+ *		EXAMPLE: rig_set_mode(my_rig, RIG_MODE_AM, 
+ *				 			rig_passband_wide(my_rig, RIG_MODE_AM) );
+ *
+ *      RETURN VALUE: The rig_passband_wide() function returns 
+ *      the passband in Hz if the operation has been sucessful,
+ *      or a 0 if an error occured (passband not found, whatever).
+ *
+ *      SEE ALSO: rig_passband_narrow(), rig_passband_normal()
+ */
 
 pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode)
 {
@@ -749,19 +801,21 @@ pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode)
 
 		rs = &rig->state;
 
-		for (i=0; i<FLTLSTSIZ-1 && rs->filters[i].modes; i++)
+		for (i=0; i<FLTLSTSIZ-1 && rs->filters[i].modes; i++) {
 				if (rs->filters[i].modes & mode) {
 					normal = rs->filters[i].width;
 					for (i++; i<FLTLSTSIZ && rs->filters[i].modes; i++) {
 							if ((rs->filters[i].modes & mode) &&
-											(rs->filters[i].width > normal))
+											(rs->filters[i].width > normal)) {
 									return rs->filters[i].width;
+							}
 					}
 					return 0;
 				}
+		}
+
 		return 0;
 }
-#endif
 
 /**
  *      rig_set_vfo - set the current VFO
@@ -2702,7 +2756,8 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  *      rig_get_func - get the status of functions of the radio
  *      @rig:	The rig handle
  *      @vfo:	The target VFO
- *      @func:	The location where to store the function status
+ *      @func:	The functions to get the status
+ *      @status:	The location where to store the function status
  *
  *      The rig_get_func() function retrieves the status of functions
  *      of the radio. Only the function bits set to 1 will be queried.
