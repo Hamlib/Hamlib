@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.38 2003-10-01 19:44:00 fillods Exp $
+ *	$Id: serial.c,v 1.39 2004-04-16 20:04:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -464,7 +464,7 @@ int ser_set_rts(port_t *p, int state)
 		y |= TIOCM_RTS;
 	else
 		y &= ~TIOCM_RTS;
-	return ioctl(p->fd, state ? TIOCMSET, &y);
+	return ioctl(p->fd, TIOCMSET, &y);
 #endif
 #endif
 }
@@ -503,7 +503,7 @@ int ser_set_dtr(port_t *p, int state)
 		y |= TIOCM_DTR;
 	else
 		y &= ~TIOCM_DTR;
-	return ioctl(p->fd, state ? TIOCMSET, &y);
+	return ioctl(p->fd, TIOCMSET, &y);
 #endif
 #endif
 }
@@ -519,6 +519,19 @@ int ser_get_dtr(port_t *p, int *state)
   status = ioctl(p->fd, TIOCMGET, &y);
   *state = (y & TIOCM_DTR) ? RIG_PTT_ON:RIG_PTT_OFF;
   return status;
+#endif
+}
+
+int ser_set_brk(port_t *p, int state)
+{
+#if defined(WIN32)
+	return !EscapeCommFunction(p->handle, state ? SETBREAK : CLRBREAK);
+#else
+#if defined(TIOCSBRK) && defined(TIOCCBRK)
+	return ioctl(p->fd, state ? TIOCSBRK : TIOCCBRK, 0 );
+#else
+	return -RIG_ENIMPL;
+#endif
 #endif
 }
 
