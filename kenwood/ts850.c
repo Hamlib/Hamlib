@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS850 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.17 2004-06-14 20:57:34 fillods Exp $
+ *	$Id: ts850.c,v 1.18 2004-09-08 20:51:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -60,18 +60,18 @@ static const struct kenwood_priv_caps  ts850_priv_caps  = {
 };
 
 /* forward definitions */
-int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
-int ts850_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ts850_get_mem(RIG *rig, vfo_t vfo, int *ch);
-int ts850_get_channel (RIG * rig, channel_t * chan);
-int ts850_set_channel (RIG * rig, const channel_t * chan);
+static int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
+static int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
+static int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+static int ts850_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+static int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ts850_get_mem(RIG *rig, vfo_t vfo, int *ch);
+static int ts850_get_channel (RIG * rig, channel_t * chan);
+static int ts850_set_channel (RIG * rig, const channel_t * chan);
 
 /*
  * ts850 rig capabilities.
@@ -82,7 +82,7 @@ const struct rig_caps ts850_caps = {
 .rig_model =  RIG_MODEL_TS850,
 .model_name = "TS-850",
 .mfg_name =  "Kenwood",
-.version =  "1.0",
+.version =  "1.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -94,7 +94,7 @@ const struct rig_caps ts850_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
+.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
 .post_write_delay =  500,
 .timeout =  1000,
