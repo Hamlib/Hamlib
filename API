@@ -1,3 +1,4 @@
+[FIXME: this doc is out dated! --SF 03/20/01]
 
 The Hamlib API is supposed to hide all the rig specific interface
 behind a "rig function capability structure", kind of abstraction
