@@ -4,6 +4,7 @@ MACROS = \
 	aclocal-include.m4 \
 	libtool.m4 \
 	pkg.m4 \
+	perl.m4 \
 	tcl.m4
 
 
