@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.54 2005-01-25 00:21:46 fillods Exp $  
+ * $Id: rigctl.c,v 1.55 2005-03-13 17:55:47 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,7 @@
 #define ARG_OUT3 0x20
 #define ARG_IN4  0x40
 #define ARG_OUT4 0x80
+#define ARG_IN_LINE 0x4000
 #define ARG_NOVFO 0x8000
 
 #define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
@@ -206,7 +207,7 @@ struct test_table test_list[] = {
 		{ 0x83, "set_ant", set_ant, ARG_IN, "Antenna" },
 		{ 0x84, "get_ant", get_ant, ARG_OUT, "Antenna" },
 		{ 0x85, "reset", reset, ARG_IN, "Reset" },
-		{ 0x86, "send_morse", send_morse, ARG_IN, "Morse" },
+		{ 0x86, "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
 		{ 0x87, "set_powerstat", set_powerstat, ARG_IN|ARG_NOVFO, "Status" },
 		{ 0x88, "get_powerstat", get_powerstat, ARG_OUT|ARG_NOVFO, "Status" },
 		{ 0x00, "", NULL },
@@ -590,7 +591,25 @@ int main (int argc, char *argv[])
 					vfo = rig_parse_vfo(argv[optind++]);
 				}
 			}
-			if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+			if ((cmd_entry->flags & ARG_IN_LINE) && 
+					(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+				if (interactive) {
+					char *nl;
+					printf("%s: ", cmd_entry->arg1);
+					fgets(arg1, MAXARGSZ, stdin);
+					nl = strchr(arg1, 0xa);
+					if (nl) *nl = '\0';	/* chomp */
+					p1 = arg1;
+				} else {
+					if (!argv[optind]) {
+						fprintf(stderr, "Invalid arg for command '%s'\n", 
+									cmd_entry->name);
+						exit(2);
+					}
+					p1 = argv[optind++];
+				}
+			} else 
+			  if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 				if (interactive) {
 					printf("%s: ", cmd_entry->arg1);
 					scanfc("%s", arg1);
