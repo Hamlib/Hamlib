@@ -333,6 +333,7 @@ like this. The error checking is removed for simplicity.
    * gcc-3.0 and gcc-3.2+
    * gcc-4.0
    * in shared and static
+   * C++ compiler against rig.h, riglist.h, rotator.h
 
    Portability issues to watch:
    * little vs. big endian systems (use shifts or hadoc functions)
