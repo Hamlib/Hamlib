@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.2 2000-07-27 00:43:58 javabear Exp $  
+ * $Id: ft747.c,v 1.3 2000-07-27 01:01:32 javabear Exp $  
  *
  */
 
@@ -194,9 +194,11 @@ void cmd_update_store(int fd, unsigned char *buffer) {
    */
 
   bytes = 0;
-  while(bytes < 345) {
+  while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
     printf("bytes  = %i\n", bytes);
+    if (bytes == 345)
+      break;
     sleep(1);			/* wait 1 second */
   }
 
@@ -212,6 +214,7 @@ void cmd_update_store(int fd, unsigned char *buffer) {
 
   return;
 }
+
 
 
 
