@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.25 2003-10-01 19:31:54 fillods Exp $
+ *	$Id: aor.c,v 1.26 2003-10-20 22:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -112,22 +112,23 @@ int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		unsigned char freqbuf[BUFSZ], ackbuf[BUFSZ];
 		int freq_len, ack_len, retval;
 		int lowhz;
+		long long f = (long long)freq;
 
 		/*
 		 * actually, frequency must be like nnnnnnnnm0, 
 		 * where m must be 0 or 5 (for 50Hz).
 		 */
-		lowhz = freq % 100;
-		freq /= 100;
+		lowhz = f % 100;
+		f /= 100;
 		if (lowhz < 25)
 				lowhz = 0;
 		else if (lowhz < 75)
 				lowhz = 50;
 		else 
 				lowhz = 100;
-		freq = freq*100 + lowhz;
+		f = f*100 + lowhz;
 
-		freq_len = sprintf(freqbuf,"RF%010lld" EOM, freq);
+		freq_len = sprintf(freqbuf,"RF%010lld" EOM, f);
 
 		retval = aor_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
@@ -145,6 +146,7 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		char *rfp;
 		int freq_len, retval;
 		unsigned char freqbuf[BUFSZ];
+		long long f;
 
 		retval = aor_transaction (rig, "RX" EOM, 3, freqbuf, &freq_len);
 		if (retval != RIG_OK)
@@ -157,7 +159,8 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			return -RIG_EPROTO;
 		}
 
-		sscanf(rfp+2,"%lld", freq);
+		sscanf(rfp+2,"%lld", &f);
+		*freq = f;
 
 		return RIG_OK;
 }
@@ -226,10 +229,10 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_AM:       
 					switch(width) {
 						case RIG_PASSBAND_NORMAL:
-						case kHz(9): aormode = MD_AM; break;
+						case s_kHz(9): aormode = MD_AM; break;
 
-						case kHz(12): aormode = MD_WAM; break;
-						case kHz(3): aormode = MD_NAM; break;
+						case s_kHz(12): aormode = MD_WAM; break;
+						case s_kHz(3): aormode = MD_NAM; break;
 						default:
 							rig_debug(RIG_DEBUG_ERR,
 								"aor_set_mode: unsupported passband %d %d\n",
@@ -244,9 +247,9 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_FM:
 					switch(width) {
 						case RIG_PASSBAND_NORMAL:
-						case kHz(12): aormode = MD_NFM; break;
+						case s_kHz(12): aormode = MD_NFM; break;
 
-						case kHz(9): aormode = MD_SFM; break;
+						case s_kHz(9): aormode = MD_SFM; break;
 						default:
 							rig_debug(RIG_DEBUG_ERR,
 								"aor_set_mode: unsupported passband %d %d\n",

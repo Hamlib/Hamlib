@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3000 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ar3000.c,v 1.2 2003-10-01 19:31:54 fillods Exp $
+ *	$Id: ar3000.c,v 1.3 2003-10-20 22:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,13 +202,13 @@ int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	unsigned char freqbuf[BUFSZ];
 	int freq_len, retval;
-	int lowhz;
+	unsigned lowhz;
 
 	/*
 	 * actually, frequency must be like nnnn.nnnnm, 
 	 * where m must be 0 or 5 (for 50Hz).
 	 */
-	lowhz = freq % 100;
+	lowhz = ((unsigned)freq) % 100;
 	freq /= 100;
 	if (lowhz < 25)
 		lowhz = 0;
@@ -248,7 +248,7 @@ int ar3k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	rfp = strchr(freqbuf, 'Y');
 	if (!rfp)
 		return -RIG_EPROTO;
-	sscanf(rfp+1,"%lld", freq);
+	sscanf(rfp+1,"%"FREQFMT, freq);
 	*freq *= 10;
 
 	return RIG_OK;

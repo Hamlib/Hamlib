@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod and Darren Hatcher
  *
- *	$Id: pcr.c,v 1.19 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: pcr.c,v 1.20 2003-10-20 22:15:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -269,7 +269,7 @@ int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 		priv = (struct pcr_priv_data *)rig->state.priv;
 
-		freq_len = sprintf(freqbuf,"K0%010Ld0%c0%c00" EOM, freq, 
+		freq_len = sprintf(freqbuf,"K0%010Ld0%c0%c00" EOM, (long long)freq, 
 						priv->last_mode, priv->last_filter);
 
 		ack_len = 6;
@@ -339,18 +339,18 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 				 */
 			case RIG_PASSBAND_NORMAL: break;
 
-			case kHz(2.8):	pcrfilter = FLT_2_8kHz; break;
-			case kHz(6):	pcrfilter = FLT_6kHz; break;
-			case kHz(15):	pcrfilter = FLT_15kHz; break;
-			case kHz(50):	pcrfilter = FLT_50kHz; break;
-			case kHz(230):	pcrfilter = FLT_230kHz; break;
+			case s_kHz(2.8):	pcrfilter = FLT_2_8kHz; break;
+			case s_kHz(6):		pcrfilter = FLT_6kHz; break;
+			case s_kHz(15):		pcrfilter = FLT_15kHz; break;
+			case s_kHz(50):		pcrfilter = FLT_50kHz; break;
+			case s_kHz(230):	pcrfilter = FLT_230kHz; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: unsupported "
 							"width %d\n", width);
 				return -RIG_EINVAL;
 		}
 
-		mdbuf_len = sprintf(mdbuf,"K0%010Ld0%c0%c00" EOM, priv->last_freq, 
+		mdbuf_len = sprintf(mdbuf,"K0%010Ld0%c0%c00" EOM, (long long)priv->last_freq, 
 						pcrmode, pcrfilter);
 
 		ack_len = 6;

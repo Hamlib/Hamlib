@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.46 2003-08-25 22:45:10 fillods Exp $  
+ * $Id: rigctl.c,v 1.47 2003-10-20 22:15:02 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -145,6 +145,7 @@ declare_proto_rig(get_info);
 declare_proto_rig(dump_caps);
 declare_proto_rig(set_ant);
 declare_proto_rig(get_ant);
+declare_proto_rig(reset);
 
 
 
@@ -206,6 +207,7 @@ struct test_table test_list[] = {
 		{ 'z', "get_xit", get_xit, ARG_OUT, "XIT" },
 		{ 0x83, "set_ant", set_ant, ARG_IN, "Antenna" },
 		{ 0x84, "get_ant", get_ant, ARG_OUT, "Antenna" },
+		{ 0x85, "reset", reset, ARG_IN, "Reset" },
 		{ 0x00, "", NULL },
 
 };
@@ -727,6 +729,14 @@ static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 				printf(", %s", cfp->u.c.combostr[i]);
 		printf("\n");
 		break;
+	case RIG_CONF_STRING:
+		printf("String.\n");
+		break;
+	case RIG_CONF_CHECKBUTTON:
+		printf("Check button.\n");
+		break;
+	default:
+		printf("Unkown conf\n");
 	}
 
 	return 1;  /* !=0, we want them all ! */
@@ -784,7 +794,7 @@ declare_proto_rig(set_freq)
 {
 		freq_t freq;
 
-		sscanf(arg1, "%"LLFMT"d", &freq);
+		sscanf(arg1, "%"FREQFMT, &freq);
 		return rig_set_freq(rig, vfo, freq);
 }
 
@@ -798,7 +808,7 @@ declare_proto_rig(get_freq)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1); /* i.e. "Frequency" */
-		printf("%lld\n", freq);
+		printf("%lld\n", (long long)freq);
 		return status;
 }
 
@@ -1021,7 +1031,7 @@ declare_proto_rig(set_split_freq)
 {
 		freq_t txfreq;
 
-		sscanf(arg1, "%"LLFMT"d", &txfreq);
+		sscanf(arg1, "%"FREQFMT, &txfreq);
 		return rig_set_split_freq(rig, vfo, txfreq);
 }
 
@@ -1036,7 +1046,7 @@ declare_proto_rig(get_split_freq)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%lld\n", txfreq);
+		printf("%lld\n", (long long)txfreq);
 		return status;
 }
 
@@ -1132,7 +1142,7 @@ declare_proto_rig(power2mW)
 		printf("Power [0.0 .. 1.0]: ");
 		scanf("%f", &power);
 		printf("Frequency: ");
-		scanf("%"LLFMT"d", &freq);
+		scanf("%"FREQFMT, &freq);
 		printf("Mode: ");
 		scanf("%d", &mode);
 		status = rig_power2mW(rig, &mwp, power, freq, mode);
@@ -1436,7 +1446,7 @@ declare_proto_rig(get_channel)
 
 static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
-	printf("Event: freq changed to %lliHz on %s\n", freq, strvfo(vfo));
+	printf("Event: freq changed to %lliHz on %s\n", (long long)freq, strvfo(vfo));
 	return 0;
 }
 
@@ -1607,6 +1617,14 @@ declare_proto_rig(get_ant)
 		printf("%s: ", cmd->arg1);
 	printf("%d\n", rig_setting2idx(ant));
 	return status;
+}
+
+declare_proto_rig(reset)
+{
+	reset_t reset;
+
+	sscanf(arg1, "%d", &reset);
+	return rig_reset(rig, reset);
 }
 
 

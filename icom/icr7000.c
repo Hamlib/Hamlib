@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R7000 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icr7000.c,v 1.5 2003-10-01 19:31:57 fillods Exp $
+ *	$Id: icr7000.c,v 1.6 2003-10-20 22:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,7 +55,7 @@ const struct rig_caps icr7000_caps = {
 .rig_model =  RIG_MODEL_ICR7000,
 .model_name = "ICR-7000",
 .mfg_name =  "Icom",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,
@@ -162,14 +162,16 @@ const struct rig_caps icr7000_caps = {
  */
 static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		/* 
-		 * The R7000 cannot set freqencies higher than 1GHz, 
-		 * this is done by flipping a switch on the front panel and
-		 * stripping the most significant digit.
-		 * This is the only change with the common icom_set_freq
-		 */
-		freq %= GHz(1);
+	long long f = (long long)freq;
 
-		return icom_set_freq(rig, vfo, freq);
+	/* 
+	 * The R7000 cannot set freqencies higher than 1GHz, 
+	 * this is done by flipping a switch on the front panel and
+	 * stripping the most significant digit.
+	 * This is the only change with the common icom_set_freq
+	 */
+	f %= (long long)GHz(1);
+
+	return icom_set_freq(rig, vfo, (freq_t)f);
 }
 

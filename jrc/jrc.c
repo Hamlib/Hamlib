@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.9 2003-10-01 19:31:57 fillods Exp $
+ *	$Id: jrc.c,v 1.10 2003-10-20 22:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -123,7 +123,7 @@ int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		if (freq >= GHz(10))
 				return -RIG_EINVAL;
 
-		freq_len = sprintf(freqbuf, "F%10Ld" EOM, freq);
+		freq_len = sprintf(freqbuf, "F%10Ld" EOM, (long long)freq);
 
 		return jrc_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }
@@ -136,6 +136,7 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		int freq_len, retval;
 		char freqbuf[BUFSZ];
+		long long f;
 
 		retval = jrc_transaction (rig, "F" EOM, 2, freqbuf, &freq_len);
 		if (retval != RIG_OK)
@@ -149,7 +150,8 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		freqbuf[freq_len-1] = '\0';
 
 		/* extract freq */
-		sscanf(freqbuf+1, "%llu", freq);
+		sscanf(freqbuf+1, "%llu", &f);
+		*freq = f;
 
 		return RIG_OK;
 }
@@ -839,8 +841,11 @@ int jrc_decode_event(RIG *rig)
 		 */
 
 		if (rig->callbacks.freq_event) {
+			long long f;
+
 			buf[14] = '\0';	/* side-effect: destroy AGC first digit! */
-			sscanf(buf+4, "%lld", &freq);
+			sscanf(buf+4, "%lld", &f);
+			freq = f;
 			return rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
 							rig->callbacks.freq_arg);
 		}

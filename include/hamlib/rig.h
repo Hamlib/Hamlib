@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.86 2003-10-01 19:50:41 fillods Exp $
+ *	$Id: rig.h,v 1.87 2003-10-20 22:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -255,6 +255,7 @@ typedef enum {
  * Hamlib has no support yet for fractional number of Hertz.
  */
 typedef signed long long freq_t;
+#define FREQFMT "lli"
 
 /**
  * \brief Short frequency type
@@ -266,6 +267,11 @@ typedef signed long shortfreq_t;
 #define kHz(f)	((freq_t)((f)*(freq_t)1000))
 #define MHz(f)	((freq_t)((f)*(freq_t)1000000))
 #define GHz(f)	((freq_t)((f)*(freq_t)1000000000))
+
+#define s_Hz(f) 	((shortfreq_t)(f))
+#define s_kHz(f)	((shortfreq_t)((f)*(shortfreq_t)1000))
+#define s_MHz(f)	((shortfreq_t)((f)*(shortfreq_t)1000000))
+#define s_GHz(f)	((shortfreq_t)((f)*(shortfreq_t)1000000000))
 
 #define RIG_FREQ_NONE Hz(0)
 
@@ -329,7 +335,7 @@ typedef int vfo_t;
 #define RIG_TARGETABLE_ALL  0xffffffffU
 
 
-#define RIG_PASSBAND_NORMAL Hz(0)
+#define RIG_PASSBAND_NORMAL s_Hz(0)
 /**
  * \brief Passband width, in Hz
  * \sa rig_passband_normal, rig_passband_narrow, rig_passband_wide

@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.6 2003-10-01 19:31:54 fillods Exp $
+ *	$Id: drake.c,v 1.7 2003-10-20 22:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -98,7 +98,7 @@ int drake_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	 * 10Hz resolution 
 	 * TODO: round nearest?
 	 */
-	freq_len = sprintf(freqbuf,"F%07Ld" EOM, freq/10);
+	freq_len = sprintf(freqbuf,"F%07d" EOM, (unsigned int)freq/10);
 	retval = drake_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
 
 	return retval;

@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.17 2003-10-01 19:31:53 fillods Exp $
+ *	$Id: alinco.c,v 1.18 2003-10-20 22:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -193,7 +193,7 @@ int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 				return -RIG_EINVAL;
 
 		/* at least 6 digits */
-		freq_len = sprintf(freqbuf, AL CMD_RXFREQ "%06Ld" EOM, freq);
+		freq_len = sprintf(freqbuf, AL CMD_RXFREQ "%06Ld" EOM, (long long)freq);
 
 		return alinco_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }
@@ -233,7 +233,7 @@ int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 		/* extract RX freq */
 		freqbuf[16] = '\0';
-		sscanf(freqbuf+6, "%lld", freq);
+		sscanf(freqbuf+6, "%"FREQFMT, freq);
 
 		return RIG_OK;
 }
@@ -388,7 +388,7 @@ int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 				return -RIG_EINVAL;
 
 		/* at least 6 digits */
-		freq_len = sprintf(freqbuf, AL CMD_TXFREQ "%06Ld" EOM, tx_freq);
+		freq_len = sprintf(freqbuf, AL CMD_TXFREQ "%06Ld" EOM, (long long)tx_freq);
 
 		retval = alinco_transaction (rig, freqbuf, freq_len, NULL, NULL);
 
@@ -410,7 +410,7 @@ int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
 		/* extract TX freq first, as RX kills freqbuf[16] */
 		freqbuf[26] = '\0';
-		sscanf(freqbuf+16, "%lld", tx_freq);
+		sscanf(freqbuf+16, "%"FREQFMT, tx_freq);
 
 		return RIG_OK;
 }

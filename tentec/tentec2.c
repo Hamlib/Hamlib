@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - Argonaut, Jupiter, RX-350
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec2.c,v 1.2 2003-10-01 19:32:03 fillods Exp $
+ *	$Id: tentec2.c,v 1.3 2003-10-20 22:15:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -70,6 +70,7 @@ int tentec2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int freq_len, retval;
 	unsigned char freqbuf[16];
 	int vfo_val;
+	unsigned long f = (unsigned long)freq;
 
 	/*
 	 * TODO: make use of rig_state.current_vfo
@@ -90,10 +91,10 @@ int tentec2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	}
 	freq_len = sprintf(freqbuf, "*%c%c%c%c%c" EOM, 
 						vfo_val,
-						(int)(freq >> 24) & 0xff,
-						(int)(freq >> 16) & 0xff,
-						(int)(freq >>  8) & 0xff,
-						(int)(freq        & 0xff));
+						(int)(f >> 24) & 0xff,
+						(int)(f >> 16) & 0xff,
+						(int)(f >>  8) & 0xff,
+						(int)(f        & 0xff));
 	
 	retval = write_block(&rs->rigport, freqbuf, freq_len);
 	if (retval != RIG_OK)

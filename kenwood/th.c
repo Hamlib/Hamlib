@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.12 2003-10-01 19:31:58 fillods Exp $
+ *	$Id: th.c,v 1.13 2003-10-20 22:15:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,9 +202,10 @@ th_decode_event (RIG *rig)
         rmode_t mode;
         int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
-        retval = sscanf(asyncbuf, "BUF %d,%lld,%d,%d,%d,%d,%d,,%d,,%d,%lld,%d",
+        retval = sscanf(asyncbuf, "BUF %d,%"FREQFMT",%d,%d,%d,%d,%d,,%d,,%d,%"FREQFMT",%d",
                                   &vfo, &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset, &mode);
+
         if (retval != 11) {
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BUF message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
@@ -328,13 +329,14 @@ th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[24], ackbuf[ACKBUF_LEN];
     int retval, step;
+
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     step = 0;
     if (step < 0 || step > 9)
         return -RIG_EINVAL;
 
-    sprintf(freqbuf, "FQ %011Ld,%d" EOM, freq, step);
+    sprintf(freqbuf, "FQ %011Ld,%d" EOM, (long long)freq, step);
     retval = th_transaction(rig, freqbuf, ackbuf, sizeof(ackbuf));
     if (retval != RIG_OK)
         return RIG_OK;
@@ -356,6 +358,7 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char vch, freqbuf[ACKBUF_LEN];
     int retval;
+
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     *freq = 0;
@@ -366,7 +369,7 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
     if (retval != RIG_OK)
         return retval;
 
-    retval = sscanf(freqbuf, "FQ %lld", freq);
+    retval = sscanf(freqbuf, "FQ %"FREQFMT, freq);
     if (retval != 1) {
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, freqbuf);
         return -RIG_ERJCTED;
