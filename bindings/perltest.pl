@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# make sure the module is there, hint: "ln -s .lib/hamlibperl.so hamlib.so"
+# make sure the module is there, hint: "ln -s .libs/hamlibperl.so hamlib.so"
 use hamlib;
 
 print "Version: $hamlib::hamlib_version\n";
