@@ -1,4 +1,4 @@
-/* $Id: rig_dll.h,v 1.8 2003-04-19 11:48:18 fillods Exp $ */
+/* $Id: rig_dll.h,v 1.9 2003-04-23 20:13:03 fillods Exp $ */
 
 
 /*
@@ -43,7 +43,7 @@
 #endif
 
 
-#if defined(__CYGWIN__) || defined(_WIN32)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #  undef HAMLIB_IMPEXP
 #  undef BACKEND_IMPEXP
 #  undef HAMLIB_API
@@ -90,13 +90,4 @@
 #  define BACKEND_EXPORT_VAR(type) BACKEND_IMPEXP type
 #endif
 
-#ifdef DECLARE_RIG_BACKEND
-#undef DECLARE_RIG_BACKEND
-#define DECLARE_RIG_BACKEND(backend) extern BACKEND_EXPORT(int) initrigs##API_VER##_##backend(void *be_handle)
-#endif
-
-#ifdef DECLARE_PROBERIG_BACKEND
-#undef DECLARE_PROBERIG_BACKEND
-#define DECLARE_PROBERIG_BACKEND(backend) extern BACKEND_EXPORT(rig_model_t) probeallrigs##API_VER##_##backend(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
-#endif
 
