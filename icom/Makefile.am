@@ -3,7 +3,8 @@ ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c  \
 		ic725.c ic737.c ic718.c os535.c os456.c omni.c \
 		ic736.c ic746.c ic703.c ic726.c ic271.c \
 		ic765.c ic781.c ic471.c id1.c icr9000.c \
-		icr10.c icr71.c icr72.c icr75.c
+		icr10.c icr71.c icr72.c icr75.c \
+		ic707.c ic728.c
 
 lib_LTLIBRARIES = hamlib-icom.la
 hamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c optoscan.c

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.63 2003-12-04 23:22:52 fillods Exp $
+ *	$Id: icom.h,v 1.64 2004-02-02 22:15:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -157,9 +157,11 @@ extern const struct rig_caps ic703_caps;
 extern const struct rig_caps ic706_caps;
 extern const struct rig_caps ic706mkii_caps;
 extern const struct rig_caps ic706mkiig_caps;
+extern const struct rig_caps ic707_caps;
 extern const struct rig_caps ic718_caps;
 extern const struct rig_caps ic725_caps;
 extern const struct rig_caps ic726_caps;
+extern const struct rig_caps ic728_caps;
 extern const struct rig_caps ic735_caps;
 extern const struct rig_caps ic736_caps;
 extern const struct rig_caps ic737_caps;
