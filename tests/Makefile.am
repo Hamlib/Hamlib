@@ -10,36 +10,32 @@ EXTRA_PROGRAMS = rigmatrix
 LDADD = ../src/libhamlib.la ../lib/libmisc.a
 DEPENDENCIES = ../src/libhamlib.la
 
-## The quotes around -dlopen below fool automake into accepting it
-BACKENDLNK = -dlopen self -dlopen ../icom/libhamlib-icom.la -dlopen ../yaesu/libhamlib-yaesu.la -dlopen ../kenwood/libhamlib-kenwood.la -dlopen ../aor/libhamlib-aor.la -dlopen ../dummy/libhamlib-dummy.la -dlopen ../pcr/libhamlib-pcr.la -dlopen ../alinco/libhamlib-alinco.la -dlopen ../uniden/libhamlib-uniden.la -dlopen ../tentec/libhamlib-tentec.la -dlopen ../winradio/libhamlib-winradio.la -dlopen ../kachina/libhamlib-kachina.la -dlopen ../rpc/libhamlib-rpcrig.la
-BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la ../uniden/libhamlib-uniden.la ../tentec/libhamlib-tentec.la ../winradio/libhamlib-winradio.la ../kachina/libhamlib-kachina.la ../rpc/libhamlib-rpcrig.la
-
 ## Linker options
-listrigs_LDFLAGS = $(BACKENDLNK)
-dumpcaps_LDFLAGS = $(BACKENDLNK)
-dumpmem_LDFLAGS = $(BACKENDLNK)
-testcaps_LDFLAGS = $(BACKENDLNK)
-testrig_LDFLAGS = $(BACKENDLNK)
-testtrn_LDFLAGS = $(BACKENDLNK)
-testbcd_LDFLAGS = $(BACKENDLNK)
-testfreq_LDFLAGS = $(BACKENDLNK)
-rigctl_LDFLAGS = $(BACKENDLNK)
+listrigs_LDFLAGS = @BACKENDLNK@
+dumpcaps_LDFLAGS = @BACKENDLNK@
+dumpmem_LDFLAGS = @BACKENDLNK@
+testcaps_LDFLAGS = @BACKENDLNK@
+testrig_LDFLAGS = @BACKENDLNK@
+testtrn_LDFLAGS = @BACKENDLNK@
+testbcd_LDFLAGS = @BACKENDLNK@
+testfreq_LDFLAGS = @BACKENDLNK@
+rigctl_LDFLAGS = @BACKENDLNK@
 # rigmatrix needs also libgd
-rigmatrix_LDFLAGS = -lgd $(BACKENDLNK)
+rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
 testcpp_LDADD = ../c++/libhamlib++.la $(LDADD)
-testcpp_LDFLAGS = $(BACKENDLNK)
+testcpp_LDFLAGS = @BACKENDLNK@
 
 ## Dependencies
 
-dumpcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
-dumpmem_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
-testcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
-testrig_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
-testtrn_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
-listrigs_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
-rigctl_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS) ../lib/libmisc.a
-rigmatrix_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
-testcpp_DEPENDENCIES = ../c++/libhamlib++.la $(BACKENDEPS)
+dumpcaps_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+dumpmem_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+testcaps_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+testrig_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+testtrn_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@ ../lib/libmisc.a
+rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
 
 ## Source list
 testrig_SOURCES = testrig.c
