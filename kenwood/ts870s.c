@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.38 2004-11-15 16:23:49 fillods Exp $
+ *	$Id: ts870s.c,v 1.39 2005-02-02 20:06:19 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define TS870S_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_ANF|RIG_FUNC_LOCK)
 
-#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
+#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -178,6 +178,122 @@ int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (retval != RIG_OK) return retval;
 
   return RIG_OK;
+}
+
+int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+		unsigned char lvlbuf[50];
+		int lvl_len, retval;
+		int lvl;
+		int i, ret, agclevel;
+
+		lvl_len = 50;
+		switch (level) {
+		case RIG_LEVEL_STRENGTH:
+			retval = kenwood_transaction (rig, "SM;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			if (lvl_len != 7 || lvlbuf[1] != 'M') {
+				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
+								"wrong answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+			}
+
+			/* Frontend expects:  -54 = S0, 0 = S9  */
+			sscanf(lvlbuf+2, "%d", &val->i);
+			val->i = (val->i * 4) - 54;
+			break;
+
+		case RIG_LEVEL_SWR:
+		/* same as ts850 */
+			lvl_len = 0;
+			retval = kenwood_transaction (rig, "RM1;", 4, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			lvl_len = 50;
+			retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			lvlbuf[7]='\0';
+			i=atoi(&lvlbuf[3]);
+			if(i == 30) 
+				val->f = 150.0; /* infinity :-) */
+			else
+				val->f = 60.0/(30.0-(float)i)-1.0;
+			break;
+
+		case RIG_LEVEL_ATT:
+			retval = kenwood_transaction (rig, "RA;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			if (lvl_len != 5) {
+				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
+								"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+			}
+
+			sscanf(lvlbuf+2, "%d", &lvl);
+			if (lvl == 0) {
+					val->i = 0;
+			} else {
+					for (i=0; i<lvl && i<MAXDBLSTSIZ; i++)
+							if (rig->state.attenuator[i] == 0) {
+								rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
+											"unexpected att level %d\n", lvl);
+									return -RIG_EPROTO;
+									}
+					if (i != lvl)
+							return -RIG_EINTERNAL;
+					val->i = rig->state.attenuator[i-1];
+			}
+			break;
+		case RIG_LEVEL_RFPOWER:
+			return get_kenwood_level(rig, "PC;", 3, &val->f);
+
+		case RIG_LEVEL_AF:
+			return get_kenwood_level(rig, "AG;", 3, &val->f);
+
+		case RIG_LEVEL_RF:
+			return get_kenwood_level(rig, "RG;", 3, &val->f);
+
+		case RIG_LEVEL_SQL:
+			return get_kenwood_level(rig, "SQ;", 3, &val->f);
+
+		case RIG_LEVEL_MICGAIN:
+			return get_kenwood_level(rig, "MG;", 3, &val->f);
+
+		case RIG_LEVEL_AGC:
+			ret = get_kenwood_level(rig, "GT;", 3, &val->f);
+			agclevel = 255 * val->f;
+			if (agclevel == 0) val->i = 0;
+			else if (agclevel < 85) val->i = 1;
+			else if (agclevel < 170) val->i = 2;
+			else if (agclevel <= 255) val->i = 3;
+			return ret;
+
+		case RIG_LEVEL_PREAMP:
+		case RIG_LEVEL_IF:
+		case RIG_LEVEL_APF:
+		case RIG_LEVEL_NR:
+		case RIG_LEVEL_PBT_IN:
+		case RIG_LEVEL_PBT_OUT:
+		case RIG_LEVEL_CWPITCH:
+		case RIG_LEVEL_KEYSPD:
+		case RIG_LEVEL_NOTCHF:
+		case RIG_LEVEL_COMP:
+		case RIG_LEVEL_BKINDL:
+		case RIG_LEVEL_BALANCE:
+			return -RIG_ENIMPL;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+			return -RIG_EINVAL;
+		}
+
+		return RIG_OK;
 }
 
 /*
@@ -342,7 +458,7 @@ const struct rig_caps ts870s_caps = {
 .set_func =  kenwood_set_func,
 .get_func =  kenwood_get_func,
 .set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
+.get_level =  ts870s_get_level,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
