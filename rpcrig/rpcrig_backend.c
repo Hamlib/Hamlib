@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.16 2003-05-16 16:31:46 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.17 2004-03-15 03:24:12 nj8j Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -762,7 +762,7 @@ static int rpcrig_set_parm(RIG *rig, setting_t parm, value_t val)
 	priv = (struct rpcrig_priv_data*)rig->state.priv;
 
 	setting_t2x(parm, &arg.setting);
-	if (RIG_LEVEL_IS_FLOAT(parm))
+	if (RIG_PARM_IS_FLOAT(parm))
 			arg.val.f = val.f;
 	else
 			arg.val.i = val.i;
