@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface.
  *
- * $Id: serial.c,v 1.3 2000-10-09 01:17:20 javabear Exp $  
+ * $Id: serial.c,v 1.4 2000-10-23 19:58:14 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -322,6 +322,8 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {
  * txbuffer - pointer to a command sequence array
  * count - count of byte to send from the txbuffer
  * write_delay - write delay in ms between 2 chars
+ * post_write_delay - minimum delay between two writes
+ * post_write_date - timeval of last write
  *
  * returns:
  *
@@ -332,14 +334,35 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {
  * it could work very well also with any file handle, like a socket.
  */
 
-int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay, int post_write_delay)
+int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay, int post_write_delay /* , struct timeval *post_write_date */ )
 {
   int i;
+
+#ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
+  if (post_write_date->tv_sec != 0) {
+		  signed int date_delay;	/* in us */
+		  struct timeval tv;
+
+		  /* FIXME in Y2038 ... */
+		  gettimeofday(tv, NULL);
+		  date_delay = post_write_delay*1000 - 
+				  		((tv.tv_sec - post_write_date->tv_sec)*1000000 +
+				  		 (tv.tv_usec - post_write_date->tv_usec));
+		  if (date_delay > 0) {
+				/*
+				 * optional delay after last write 
+				 */
+				usleep(date_delay); 
+		  }
+		  post_write_date->tv_sec = 0;
+  }
+#endif
 
   if (write_delay > 0) {
   	for (i=0; i < count; i++) {
 		if (write(fd, txbuffer+i, 1) < 0) {
-			rig_debug(RIG_DEBUG_ERR,"write_block() failed - %s\n", strerror(errno));
+			rig_debug(RIG_DEBUG_ERR,"write_block() failed - %s\n", 
+							strerror(errno));
 			return -RIG_EIO;
     	}
     	usleep(write_delay*1000);
@@ -348,11 +371,18 @@ int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_d
 		  write(fd, txbuffer, count);
   }
   
-  if(post_write_delay > 0)
+  if (post_write_delay > 0) {
+#ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
+#define POST_WRITE_DELAY_TRSHLD 10
+
+	if (post_write_delay > POST_WRITE_DELAY_TRSHLD)
+		gettimeofday(post_write_date, NULL);
+	else
+#endif
     usleep(post_write_delay*1000); /* optional delay after last write */
 				   /* otherwise some yaesu rigs get confused */
 				   /* with sequential fast writes*/
-
+  }
   rig_debug(RIG_DEBUG_TRACE,"TX %d bytes\n",count);
   dump_hex(txbuffer,count);
   
