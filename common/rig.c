@@ -1,5 +1,5 @@
 /* hamlib - Ham Radio Control Libraries
-   Copyright (C) 2000 Stephane Fillod
+   Copyright (C) 2000 Frank Singleton and Stephane Fillod
    This file is part of the hamlib package.
 
    Hamlib is free software; you can redistribute it and/or modify it
@@ -40,11 +40,6 @@
  * The rig_base is a variable length rig_caps* array, NULL terminated
  */
 
-/*
- * removed references to xxx_caps for testing. perhaps we should
- * 
- *
- */
 
 
 #if 0
@@ -91,6 +86,8 @@ RIG *rig_init(rig_model_t rig_model)
 {
 		RIG *rig;
 		int i;
+
+		printf("rig:rig_init called \n");
 
 		/* lookup for this rig */
 		for (i=0; rig_base[i]; i++) {
@@ -149,6 +146,8 @@ RIG *rig_init(rig_model_t rig_model)
 int rig_open(RIG *rig)
 {
 		int status;
+
+		printf("rig:rig_open called \n");
 
 		if (!rig)
 				return -RIG_EINVAL;
@@ -518,6 +517,9 @@ int rig_set_poweroff(RIG *rig)
  */
 int rig_close(RIG *rig)
 {
+
+		printf("rig:rig_close called \n");
+
 		if (rig == NULL || rig->caps)
 				return -RIG_EINVAL;
 
@@ -540,6 +542,9 @@ int rig_close(RIG *rig)
  */
 int rig_cleanup(RIG *rig)
 {
+
+		printf("rig:rig_cleanup called \n");
+ 
 		if (rig == NULL || rig->caps)
 				return -RIG_EINVAL;
 
