@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR7030 description
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod & Fritz Melchert
  *
- *	$Id: ar7030.c,v 1.4 2005-03-18 16:43:51 fillods Exp $
+ *	$Id: ar7030.c,v 1.5 2005-04-03 16:50:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -509,6 +509,8 @@ static int ar7030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 static int ar7030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
+  int smval1;
+  int smval2;
   switch(level)
   {
     case RIG_LEVEL_AF :
@@ -581,8 +583,8 @@ static int ar7030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
       // smval    Mem_Page=0   Address=3F - 40
       // 2 bytes Last S-meter reading (bars + segments)
       setMemPtr(rig ,0 ,0x3f);
-      int smval1 = (unsigned char)rxr_readByte(rig);
-      int smval2 = (unsigned char)rxr_readByte(rig);
+      smval1 = (unsigned char)rxr_readByte(rig);
+      smval2 = (unsigned char)rxr_readByte(rig);
       if (smval1 < 9)
       {
         val->i = (smval1 * 6 + smval2) - 127;
