@@ -71,6 +71,9 @@
 /* Define if you have the <linux/ppdev.h> header file.  */
 #undef HAVE_LINUX_PPDEV_H
 
+/* Define if you have the <sgtty.h> header file.  */
+#undef HAVE_SGTTY_H
+
 /* Define if you have the <sys/ioccom.h> header file.  */
 #undef HAVE_SYS_IOCCOM_H
 
@@ -79,6 +82,15 @@
 
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
+
+/* Define if you have the <term.h> header file.  */
+#undef HAVE_TERM_H
+
+/* Define if you have the <termio.h> header file.  */
+#undef HAVE_TERMIO_H
+
+/* Define if you have the <termios.h> header file.  */
+#undef HAVE_TERMIOS_H
 
 /* Define if you have the <unistd.h> header file.  */
 #undef HAVE_UNISTD_H
