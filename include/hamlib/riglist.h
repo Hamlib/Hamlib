@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.9 2001-02-27 23:01:25 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.10 2001-03-02 18:24:40 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -74,6 +74,7 @@ enum rig_model_e {
 	/*
 	 * Icom
 	 */
+	RIG_MODEL_ICALL,	/* do-it-all, for debug purpose */
 	RIG_MODEL_IC1271,
 	RIG_MODEL_IC1275,
 	RIG_MODEL_IC271,
