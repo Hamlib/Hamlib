@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.1 2004-11-27 13:19:56 fillods Exp $
+ *	$Id: ts480.c,v 1.2 2004-11-28 21:06:40 jrinas Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,13 +41,63 @@
  *
  * set PTT with audio from data connector (NOT microphone!!!)
  */
-static int
-kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
+static int kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
 {
   unsigned char ackbuf[16];
   int ack_len = 0;
 
   return kenwood_transaction (rig, ptt == RIG_PTT_ON ? "TX1;" : "RX;", 3, ackbuf, &ack_len);
+}
+
+
+/*
+ * kenwood_ts480_set_ant
+ * Assumes rig!=NULL
+ *
+ * set the aerial/antenna  to use
+ */
+static int kenwood_ts480_set_ant (RIG *rig, vfo_t vfo, ant_t ant)
+{
+  unsigned char ackbuf[16];
+  int ack_len = 0;
+  if ( RIG_ANT_1==ant)
+    return kenwood_transaction (rig,"AN1;", 4, ackbuf, &ack_len);
+  if ( RIG_ANT_2==ant)
+    return kenwood_transaction (rig,"AN2;", 4, ackbuf, &ack_len);
+  return -RIG_EINVAL;
+}
+
+
+/*
+ * kenwood_ts480_get_ant
+ * Assumes rig!=NULL
+ *
+ * get the aerial/antenna  in use
+ */
+static int kenwood_ts480_get_ant (RIG *rig, vfo_t vfo, ant_t * ant)
+{
+  unsigned char ackbuf[16];
+  int ack_len=16;
+  int retval;
+  
+  retval = kenwood_transaction (rig,"AN;", 3, ackbuf, &ack_len);
+  if (RIG_OK != retval)
+    return retval;
+  if (4!=ack_len)
+     return -RIG_EPROTO;   
+  switch (ackbuf[2])
+  {
+    case '1':
+      *ant=RIG_ANT_1;
+      break;
+    case '2':
+      *ant=RIG_ANT_2;
+      break;
+    default:
+      /* can only be a protocol error since the ts480 has only two antenna connectors */
+      return -RIG_EPROTO;  
+  }
+  return RIG_OK;
 }
 
 
@@ -200,7 +250,8 @@ const struct rig_caps ts480_caps = {
   .get_powerstat = kenwood_get_powerstat,
   .get_info = kenwood_ts480_get_info,
   .reset = kenwood_reset,
-
+  .set_ant = kenwood_ts480_set_ant,
+  .get_ant = kenwood_ts480_get_ant,
 };
 
 /*
