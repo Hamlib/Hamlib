@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.h,v 1.8 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: misc.h,v 1.9 2001-12-16 11:24:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,7 +59,12 @@ extern HAMLIB_EXPORT(unsigned long long) from_bcd(const unsigned char bcd_data[]
 extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
 extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_data[], int bcd_len);
 
-int freq_sprintf(char *str, freq_t freq);
+extern HAMLIB_EXPORT(int) freq_sprintf(char *str, freq_t freq);
+extern HAMLIB_EXPORT(const char *) strmode(rmode_t mode);
+extern HAMLIB_EXPORT(const char *) strvfo(vfo_t vfo);
+extern HAMLIB_EXPORT(const char *) strfunc(setting_t);
+extern HAMLIB_EXPORT(const char *) strlevel(setting_t);
+extern HAMLIB_EXPORT(const char *) strparm(setting_t);
 
 /* check if it's any of CR or LF */
 #define isreturn(c) ((c) == 10 || (c) == 13)

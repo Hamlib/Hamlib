@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.c,v 1.9 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: misc.c,v 1.10 2001-12-16 11:24:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define HAMLIB_DLL
 #include <hamlib/rig.h>
 
 #include "misc.h"
@@ -251,4 +250,118 @@ int freq_sprintf(char *str, freq_t freq)
 
 		return sprintf (str, "%g%s", f, hz);
 }
+
+const char * strmode(rmode_t mode)
+{
+	switch (mode) {
+    case RIG_MODE_AM: return "AM";
+	case RIG_MODE_CW: return "CW";
+	case RIG_MODE_USB: return "USB";
+	case RIG_MODE_LSB: return "LSB";
+	case RIG_MODE_RTTY: return "RTTY";
+	case RIG_MODE_FM: return "FM";
+	case RIG_MODE_WFM: return "WFM";
+	case RIG_MODE_NONE: return "None";
+	default:
+	}
+	return NULL;
+}
+
+const char *strvfo(vfo_t vfo)
+{
+	switch (vfo) {
+	case	RIG_VFO_A:
+			return "VFOA";
+	case	RIG_VFO_B:
+			return "VFOB";
+	case	RIG_VFO_C:
+			return "VFOC";
+	case	RIG_VFO_CURR:
+			return "currVFO";
+	case	RIG_VFO_ALL:
+			return "VFOall";
+	case	RIG_VFO_MEM:
+			return "MEM";
+	case	RIG_VFO_VFO:
+			return "VFO";
+	case	RIG_VFO_MAIN:
+			return "Main";
+	case	RIG_VFO_SUB:
+			return "Sub";
+	}
+	return NULL;
+}
+
+const char *strfunc(setting_t func)
+{
+	switch (func) {
+	case RIG_FUNC_FAGC: return "FAGC";
+	case RIG_FUNC_NB: return "NB";
+	case RIG_FUNC_COMP: return "COMP";
+	case RIG_FUNC_VOX: return "VOX";
+	case RIG_FUNC_TONE: return "TONE";
+	case RIG_FUNC_TSQL: return "TSQL";
+	case RIG_FUNC_SBKIN: return "SBKIN";
+	case RIG_FUNC_FBKIN: return "FBKIN";
+	case RIG_FUNC_ANF: return "ANF";
+	case RIG_FUNC_NR: return "NR";
+	case RIG_FUNC_AIP: return "AIP";
+	case RIG_FUNC_APF: return "APF";
+	case RIG_FUNC_MON: return "MON";
+	case RIG_FUNC_MN: return "MN";
+	case RIG_FUNC_RNF: return "RNF";
+	case RIG_FUNC_NONE: return "None";
+	default:
+	}
+	return NULL;
+}
+
+const char *strlevel(setting_t level)
+{
+	switch (level) {
+	case RIG_LEVEL_PREAMP: return "PREAMP";
+	case RIG_LEVEL_ATT: return "ATT";
+	case RIG_LEVEL_AF: return "AF";
+	case RIG_LEVEL_RF: return "RF";
+	case RIG_LEVEL_SQL: return "SQL";
+	case RIG_LEVEL_IF: return "IF";
+	case RIG_LEVEL_APF: return "APF";
+	case RIG_LEVEL_NR: return "NR";
+	case RIG_LEVEL_PBT_IN: return "PBT_IN";
+	case RIG_LEVEL_PBT_OUT: return "PBT_OUT";
+	case RIG_LEVEL_CWPITCH: return "CWPITCH";
+	case RIG_LEVEL_RFPOWER: return "RFPOWER";
+	case RIG_LEVEL_MICGAIN: return "MICGAIN";
+	case RIG_LEVEL_KEYSPD: return "KEYSPD";
+	case RIG_LEVEL_NOTCHF: return "NOTCHF";
+	case RIG_LEVEL_COMP: return "COMP";
+	case RIG_LEVEL_AGC: return "AGC";
+	case RIG_LEVEL_BKINDL: return "BKINDL";
+	case RIG_LEVEL_BALANCE: return "BALANCE";
+
+	case RIG_LEVEL_SWR: return "SWR";
+	case RIG_LEVEL_ALC: return "ALC";
+	case RIG_LEVEL_SQLSTAT: return "SQLSTAT";
+	case RIG_LEVEL_STRENGTH: return "STRENGTH";
+	case RIG_LEVEL_NONE: return "None";
+	default:
+	}
+	return NULL;
+}
+
+const char *strparm(setting_t parm)
+{
+	switch (parm) {
+	case RIG_PARM_ANN: return "ANN";
+	case RIG_PARM_APO: return "APO";
+	case RIG_PARM_BACKLIGHT: return "BACKLIGHT";
+	case RIG_PARM_BEEP: return "BEEP";
+	case RIG_PARM_TIME: return "TIME";
+	case RIG_PARM_BAT: return "BAT";
+	case RIG_PARM_NONE: return "None";
+	default:
+	}
+	return NULL;
+}
+
 
