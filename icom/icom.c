@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.12 2001-01-05 18:20:27 f4cfe Exp $  
+ * $Id: icom.c,v 1.13 2001-01-28 22:08:41 f4cfe Exp $  
  *
  *
  *
@@ -207,6 +207,9 @@ int icom_init(RIG *rig)
 				/* whoops! memory shortage! */
 				return -RIG_ENOMEM;
 		}
+
+		rig->state.priv = (void*)priv;
+
 		/* TODO: CI-V address should be customizable */
 
 		/*
@@ -245,14 +248,14 @@ int icom_init(RIG *rig)
 		case RIG_MODEL_ICR8500:
 			priv->ts_sc_list = r8500_ts_sc_list;
 			break;
-		case RIG_MODEL_IC706MKII:
+
 		case RIG_MODEL_IC706MKIIG:
+			ic706mkiig_str_cal_init(rig);
+		case RIG_MODEL_IC706MKII:
 		case RIG_MODEL_ICR9000:
 		default:
 			priv->ts_sc_list = ic706_ts_sc_list;
 		}
-
-		rig->state.priv = (void*)priv;
 
 		return RIG_OK;
 }
@@ -453,7 +456,36 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /*
- * icom_get_strength
+ * compensate strength using calibration
+ * assume STR_CAL_LENGTH!=0
+ */
+static int comp_cal_str(int str_cal_raw[], int str_cal_db[], int icom_val)
+{
+		int i;
+		int interpolation;
+
+		for (i=0; i<STR_CAL_LENGTH; i++)
+				if (icom_val < str_cal_raw[i])
+						break;
+
+		if (i==0)
+				return STR_CAL_S0;
+		if (i>=STR_CAL_LENGTH)
+				return str_cal_db[i-1];
+
+		if (str_cal_raw[i] == str_cal_raw[i-1])
+				return str_cal_db[i];
+
+		/* cheap, less accurate, but no fp involved */
+		interpolation = ((str_cal_raw[i]-icom_val)*(str_cal_db[i]-str_cal_db[i-1]))/(str_cal_raw[i]-str_cal_raw[i-1]);
+
+		return str_cal_db[i] - interpolation;
+}
+
+
+
+/*
+ * icom_get_level
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
  */
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
@@ -469,7 +501,19 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		priv = (struct icom_priv_data*)rig_s->priv;
 
 
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
 		switch (level) {
+		case RIG_LEVEL_STRENGTH:
+			lvl_cn = C_RD_SQSM;
+			lvl_sc = S_SML;
+			break;
+		case RIG_LEVEL_SQLSTAT:
+			lvl_cn = C_RD_SQSM;
+			lvl_sc = S_SQL;
+			break;
+
 		case RIG_LEVEL_PREAMP:
 			lvl_cn = C_CTL_FUNC;
 			lvl_sc = S_FUNC_PAMP;
@@ -555,16 +599,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_sc = -1;
 			break;
 
-		case RIG_LEVEL_SQLSTAT:
-			lvl_cn = C_RD_SQSM;
-			lvl_sc = S_SQL;
-			break;
-		case RIG_LEVEL_STRENGTH:
-			lvl_cn = C_RD_SQSM;
-			lvl_sc = S_SML;
-			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported get level %d", level);
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 			return -RIG_EINVAL;
 		}
 
@@ -581,13 +617,37 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return -RIG_EPROTO;
 		}
 #endif
-
 		/*	
 		 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
 		 * (from_bcd is little endian)
 		 */
 		icom_val = from_bcd_be(lvlbuf+2, lvl_len*2);
 
+
+		switch (level) {
+		case RIG_LEVEL_STRENGTH:
+			val->i = comp_cal_str(priv->str_cal_raw,priv->str_cal_db,icom_val);
+			break;
+		case RIG_LEVEL_SQLSTAT:
+			/*
+			 * 0x00=sql closed, 0x01=sql open
+			 */ 
+			val->i = icom_val;
+			break;
+
+		case RIG_LEVEL_PREAMP:
+		case RIG_LEVEL_ATT:
+		case RIG_LEVEL_ANT:
+			val->i = icom_val;
+			break;
+		default:
+			val->f = (float)icom_val/255;
+		}
+
+		rig_debug(RIG_DEBUG_VERBOSE,"strength: %d %d %d\n",lvl_len,icom_val,val->i);
+
+		/* this stuff is wrong, use calibrated data instead */
+#if 0
 #define STR_FLOOR 44.0
 #define STR_CEILING 223.0
 #define STR_MAX 114.0	/* S9+60db */
@@ -600,6 +660,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		else
 			val->i = icom_val;
 		rig_debug(RIG_DEBUG_VERBOSE,"%d %d %d\n",lvl_len,icom_val,val->i);
+#endif
 
 		return RIG_OK;
 }
@@ -1005,9 +1066,85 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		return RIG_OK;
 }
 
+
+/*
+ * icom_set_func
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+		unsigned char fctbuf[16];
+		int fct_len;
+		int fct_cn, fct_sc;		/* Command Number, Subcommand */
+
+		/*
+		 * except for IC-R8500
+		 */
+		fctbuf[0] = status? 0x00:0x01;
+		fct_len = rig->caps->rig_model == RIG_MODEL_ICR8500 ? 0 : 1;
+
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
+		switch (func) {
+		case RIG_FUNC_FAGC:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_AGC;	/* default to 0x01 super-fast */
+			break;
+		case RIG_FUNC_NB:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_NB;
+			break;
+		case RIG_FUNC_COMP:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_COMP;
+			break;
+		case RIG_FUNC_VOX:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_VOX;
+			break;
+		case RIG_FUNC_TONE:		/* repeater tone */
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_TONE;
+			break;
+		case RIG_FUNC_TSQL:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_TSQL;
+			break;
+		case RIG_FUNC_SBKIN:		/* FIXME ? */
+		case RIG_FUNC_FBKIN:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_BKIN;
+			break;
+		case RIG_FUNC_ANF:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_ANF;
+			break;
+		case RIG_FUNC_NR:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_NR;
+			break;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d", func);
+			return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, fct_cn, fct_sc, NULL, 0, fctbuf, &fct_len);
+
+		if (fct_len != 2) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_func: wrong frame len=%d\n",
+								fct_len);
+				return -RIG_EPROTO;
+		}
+
+		return RIG_OK;
+}
+
 /*
  * icom_set_channel
  * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ * TODO: still a WIP --SF
  */
 int icom_set_channel(RIG *rig, const channel_t *chan)
 {
@@ -1056,6 +1193,7 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 /*
  * icom_get_channel
  * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ * TODO: still a WIP --SF
  */
 int icom_get_channel(RIG *rig, channel_t *chan)
 {
@@ -1335,6 +1473,8 @@ int init_icom(void *be_handle)
 		rig_register(&ic706_caps);
 		rig_register(&ic706mkii_caps);
 		rig_register(&ic706mkiig_caps);
+
+		rig_register(&icr8500_caps);
 
 		return RIG_OK;
 }
