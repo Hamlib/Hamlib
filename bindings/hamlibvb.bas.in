@@ -1,0 +1,96 @@
+Attribute VB_Name = "modHL2VB"
+Option Explicit
+
+' Return error codes
+Public Const RIG_OK As Integer = 0
+Public Const RIG_EINVAL As Integer = 1
+Public Const RIG_ECONF As Integer = 2
+Public Const RIG_ENOMEM As Integer = 3
+Public Const RIG_ENIMPL As Integer = 4
+Public Const RIG_ETIMEOUT As Integer = 5
+Public Const RIG_EIO As Integer = 6
+Public Const RIG_EINTERNAL As Integer = 7
+Public Const RIG_EPROTO As Integer = 8
+Public Const RIG_ERJCTED As Integer = 9
+Public Const RIG_ETRUNC As Integer = 10
+Public Const RIG_ENAVAIL As Integer = 11
+Public Const RIG_ENTARGET As Integer = 12
+Public Const RIG_BUSERROR As Integer = 13
+Public Const RIG_BUSBUSY As Integer = 14
+
+Public Enum rig_debug_level_e
+	RIG_DEBUG_NONE = 0
+	RIG_DEBUG_BUG
+	RIG_DEBUG_ERR
+	RIG_DEBUG_WARN
+	RIG_DEBUG_VERBOSE
+	RIG_DEBUG_TRACE
+End Enum
+
+Public Const RIG_VFO_A As Integer = 1
+Public Const RIG_VFO_B As Integer = 2
+Public Const RIG_VFO_CURR As Integer = 536870912
+
+Public Const RIG_PASSBAND_NORMAL As Long = 0
+
+Public Enum RMode_t
+	RIG_MODE_NONE = 0&
+	RIG_MODE_AM = 1&
+	RIG_MODE_CW = 2&
+	RIG_MODE_USB = 4&
+	RIG_MODE_LSB = 8&
+	RIG_MODE_RTTY = 16&
+	RIG_MODE_FM = 32&
+	RIG_MODE_WFM = 64&
+	RIG_MODE_CWR = 128&
+	RIG_MODE_RTTYR = 256&
+	RIG_MODE_AMS = 512&
+End Enum
+
+
+'___________________________________________________________________________________
+
+
+' Basic example:
+'
+'   rig_set_debug (RIG_DEBUG_TRACE)
+'   myrig = rig_init (1)
+'   rig_open (myrig)
+'   rig_set_freq (myrig, RIG_VFO_A, 14250000)
+'   rig_set_mode (myrig, RIG_VFO_A, RIG_MODE_USB, RIG_PASSBAND_NORMAL)
+'   rig_close (myrig)
+'   rig_cleanup (myrig)
+
+
+
+
+Declare Function rig_set_debug Lib "hamlib@ABI_VERSION@.dll" (ByVal debug_level As rig_debug_level_e) _
+    As Integer
+
+
+Declare Function rig_init Lib "hamlib@ABI_VERSION@.dll" (ByVal rig_model As Integer) _
+    As Long
+Declare Function rig_open Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long) _
+    As Integer
+Declare Function rig_close Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long) _
+    As Integer
+Declare Function rig_cleanup Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long) _
+    As Integer
+
+
+
+Declare Function rig_set_freq Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long, ByVal vfo as Integer, ByVal freq As Double) _
+    As Integer
+Declare Function rig_get_freq Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long, ByVal vfo as Integer, freq As Double) _
+    As Integer
+
+Declare Function rig_set_mode Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long, ByVal vfo as Integer, ByVal mode As RMode_t, ByVal width As Long) _
+    As Integer
+Declare Function rig_get_mode Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long, ByVal vfo as Integer, mode As RMode_t, width As Long) _
+    As Integer
+
+Declare Function rig_set_vfo Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long, ByVal vfo as Integer) _
+    As Integer
+Declare Function rig_get_vfo Lib "hamlib@ABI_VERSION@.dll" (RIGptr As Long, vfop as Integer) _
+    As Integer
+
