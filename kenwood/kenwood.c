@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- * $Id: kenwood.c,v 1.7 2001-06-04 17:01:21 f4cfe Exp $  
+ * $Id: kenwood.c,v 1.8 2001-06-04 21:18:39 f4cfe Exp $  
  *
  *
  *
@@ -73,12 +73,12 @@ struct kenwood_id {
  * TODO: sort this list with most frequent rigs first.
  */
 static const struct kenwood_id kenwood_id_list[] = {
-	{ RIG_MODEL_R5000, 005 },
-	{ RIG_MODEL_TS870S, 015 },
+	{ RIG_MODEL_R5000, 5 },
+	{ RIG_MODEL_TS870S, 15 },
 #ifdef RIG_MODEL_TS2000
-	{ RIG_MODEL_TS2000, 019 },
+	{ RIG_MODEL_TS2000, 19 },
 #endif
-	{ -1, 0 },
+	{ -1, UNKNOWN_ID },
 };
 
 /*
