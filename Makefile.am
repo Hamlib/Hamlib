@@ -16,5 +16,5 @@ SUBDIRS = macros include lib libltdl src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
 # tcl and perl subdir are no more distributed
 DIST_SUBDIRS = macros include lib libltdl src c++ kylix bindings tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
-	rpcrig winradio easycomm fodtrack rpcrot gnuradio drake
+	rpcrig winradio easycomm fodtrack rpcrot gnuradio drake rotorez
 

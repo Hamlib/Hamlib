@@ -178,7 +178,7 @@ AC_SUBST(RIGMATRIX)
 
 
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake"
-ROT_BACKEND_LIST="dummy easycomm"
+ROT_BACKEND_LIST="dummy easycomm rotorez"
 BINDING_LIST=""
 
 dnl Check if cxx-binding not wanted, default is to build it
@@ -383,6 +383,7 @@ kylix/Makefile
 bindings/Makefile
 tests/Makefile
 doc/Makefile
+rotorez/Makefile
 hamlib.pc
 hamlib.spec]
 )

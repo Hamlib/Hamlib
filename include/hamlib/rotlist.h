@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rotators
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.6 2002-11-28 22:24:10 fillods Exp $
+ *	$Id: rotlist.h,v 1.7 2003-01-11 00:48:43 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -102,6 +102,29 @@
 #define ROT_BACKEND_FODTRACK "fodtrack"
 #define ROT_MODEL_FODTRACK ROT_MAKE_MODEL(ROT_FODTRACK, 1)
 
+/*! \def ROT_MODEL_ROTOREZ
+ *  \brief A macro that returns the model number of the Rotor-EZ backend.
+ *
+ *  The Rotor-EZ backend can be used with Hy-Gain rotators that support
+ *  the extended DCU command set by Idiom Press Rotor-EZ board.
+ */
+/*! \def ROT_MODEL_ROTORCARD
+ *  \brief A macro that returns the model number of the Rotor Card backend.
+ *
+ *  The Rotor-EZ backend can be used with Yaesu rotators that support the
+ *  extended DCU command set by Idiom Press Rotor Card board.
+ */
+/*! \def ROT_MODEL_DCU
+ *  \brief A macro that returns the model number of the DCU backend.
+ *
+ *  The Rotor-EZ backend can be used with rotators that support the
+ *  DCU command set by Hy-Gain (currently the DCU-1).
+ */
+#define ROT_ROTOREZ 4
+#define ROT_BACKEND_ROTOREZ "rotorez"
+#define ROT_MODEL_ROTOREZ ROT_MAKE_MODEL(ROT_ROTOREZ, 1)
+#define ROT_MODEL_ROTORCARD ROT_MAKE_MODEL(ROT_ROTOREZ, 2)
+#define ROT_MODEL_DCU ROT_MAKE_MODEL(ROT_ROTOREZ, 3)
 
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
@@ -120,7 +143,8 @@ typedef int rot_model_t;
 		{ ROT_DUMMY, ROT_BACKEND_DUMMY }, \
 		{ ROT_RPC, ROT_BACKEND_RPC }, \
 		{ ROT_EASYCOMM, ROT_BACKEND_EASYCOMM }, \
-		{ ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
+        { ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
+        { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ }, \
 		{ 0, NULL }, /* end */  \
 }
 
