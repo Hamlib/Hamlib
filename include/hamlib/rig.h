@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.84 2003-08-17 22:39:07 fillods Exp $
+ *	$Id: rig.h,v 1.85 2003-08-25 22:28:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -427,7 +427,8 @@ typedef enum {
 	RIG_OP_BAND_DOWN =	(1<<8),	/*!< Band DOWN */
 	RIG_OP_LEFT =		(1<<9),	/*!< LEFT */
 	RIG_OP_RIGHT =		(1<<10),/*!< RIGHT */
-	RIG_OP_TUNE =		(1<<11) /*!< Start tune */
+	RIG_OP_TUNE =		(1<<11),/*!< Start tune */
+	RIG_OP_TOGGLE =		(1<<12) /*!< Toggle VFOA and VFOB */
 } vfo_op_t;
 
 

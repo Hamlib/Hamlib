@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.27 2003-08-17 22:39:07 fillods Exp $
+ *	$Id: misc.c,v 1.28 2003-08-25 22:28:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -669,6 +669,7 @@ static struct {
 	{ RIG_OP_LEFT, "LEFT" },
 	{ RIG_OP_RIGHT, "RIGHT" },
 	{ RIG_OP_TUNE, "TUNE" },
+	{ RIG_OP_TOGGLE, "TOGGLE" },
 	{ RIG_OP_NONE, NULL },
 };
 
