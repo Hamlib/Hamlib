@@ -90,6 +90,7 @@ RIG *rig_init(rig_model_t rig_model)
 		rig->state.serial_handshake = rig->caps->serial_handshake;
 		rig->state.timeout = rig->caps->timeout;
 		rig->state.retry = rig->caps->retry;
+		rig->state.vfo_comp = 0.0;	/* override it with preferences */
 
 		/* 
 		 * let the backend a chance to setup his private data
@@ -106,7 +107,7 @@ int rig_open(RIG *rig)
 		int status;
 
 		if (!rig)
-				return -1;
+				return RIG_EINVAL;
 
 		switch(rig->state.port_type) {
 		case RIG_PORT_SERIAL:
@@ -117,7 +118,7 @@ int rig_open(RIG *rig)
 
 		case RIG_PORT_NETWORK:	/* not implemented yet! */
 		default:
-				return -3;
+				return RIG_ENIMPL;
 		}
 
 		/* 
@@ -127,11 +128,11 @@ int rig_open(RIG *rig)
 		if (rig->caps->rig_open != NULL)
 				rig->caps->rig_open(rig);	
 
-		return 0;
+		return RIG_OK;
 }
 
 /*
- * Examples of typical cmd_* wrapper
+ * Examples of typical rig_* wrapper
  */
 
 /*
@@ -142,50 +143,102 @@ int rig_open(RIG *rig)
 int rig_set_freq(RIG *rig, freq_t freq)
 {
 		if (!rig || !rig->caps)
-			return -1; /* EINVAL */
+			return RIG_EINVAL;
 
-		if (rig->caps->rig_set_freq == NULL)
-			return -2; /* not implemented */
+		if (rig->state.vfo_comp != 0.0)
+				freq = (freq_t)(rig->state.vfo_comp * freq);
+
+		if (rig->caps->set_freq == NULL)
+			return RIG_ENIMPL;	/* not implemented */
 		else
-			return rig->caps->rig_set_freq(rig, freq);
+			return rig->caps->set_freq(rig, freq);
 }
+
+/*
+ * cmd_get_freq
+ *
+ */
+
+int rig_get_freq(RIG *rig, freq_t *freq)
+{
+		if (!rig || !rig->caps || !freq)
+			return RIG_EINVAL;
+
+		if (rig->caps->get_freq == NULL)
+			return RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_freq(rig, freq);
+}
+
 
 /*
  * cmd_set_mode
  *
  */
 
-
 int rig_set_mode(RIG *rig, rmode_t mode)
 {
 		if (!rig || !rig->caps)
-			return -1; /* EINVAL */
+			return RIG_EINVAL;
 
-		if (rig->caps->rig_set_mode == NULL)
-			return -2; /* not implemented */
+		if (rig->caps->set_mode == NULL)
+			return RIG_ENIMPL;	/* not implemented */
 		else
-			return rig->caps->rig_set_mode(rig, mode);
+			return rig->caps->set_mode(rig, mode);
 }
+
+/*
+ * cmd_get_mode
+ *
+ */
+
+int rig_get_mode(RIG *rig, rmode_t *mode)
+{
+		if (!rig || !rig->caps || !mode)
+			return RIG_EINVAL;
+
+		if (rig->caps->get_mode == NULL)
+			return RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_mode(rig, mode);
+}
+
 
 /*
  * cmd_set_vfo
  *
  */
 
-
 int rig_set_vfo(RIG *rig, vfo_t vfo)
 {
 		if (!rig || !rig->caps)
-			return -1; /* EINVAL */
+			return RIG_EINVAL;
 
-		if (rig->caps->rig_set_vfo == NULL)
-			return -2; /* not implemented */
+		if (rig->caps->set_vfo == NULL)
+			return RIG_ENIMPL;	/* not implemented */
 		else
-			return rig->caps->rig_set_vfo(rig, vfo);
+			return rig->caps->set_vfo(rig, vfo);
 }
 
 /*
- * more cmd_* to come -- FS
+ * cmd_get_vfo
+ *
+ */
+
+int rig_get_vfo(RIG *rig, vfo_t *vfo)
+{
+		if (!rig || !rig->caps || !vfo)
+			return RIG_EINVAL;
+
+		if (rig->caps->get_vfo == NULL)
+			return RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_vfo(rig, vfo);
+}
+
+
+/*
+ * more rig_* to come -- FS
  *
  */
 
@@ -197,18 +250,20 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
 int rig_close(RIG *rig)
 {
 		if (rig == NULL || rig->caps)
-				return -1;
+				return RIG_EINVAL;
 
 		/*
-		 * Let the rig say 73s to the rig
+		 * Let the backend say 73s to the rig
 		 */
 		if (rig->caps->rig_close)
 				rig->caps->rig_close(rig);
 
-		if (rig->state.fd != -1)
+		if (rig->state.fd != -1) {
 				close(rig->state.fd);
+				rig->state.fd = -1;
+		}
 
-		return 0;
+		return RIG_OK;
 }
 
 /*
@@ -217,7 +272,7 @@ int rig_close(RIG *rig)
 int rig_cleanup(RIG *rig)
 {
 		if (rig == NULL || rig->caps)
-				return -1;
+				return RIG_EINVAL;
 
 		/*
 		 * basically free up the priv struct 
@@ -227,7 +282,7 @@ int rig_cleanup(RIG *rig)
 
 		free(rig);
 
-		return 0;
+		return RIG_OK;
 }
 
 
