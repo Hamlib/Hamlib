@@ -1,6 +1,0 @@
-Revision history for Perl extension Hamlib.
-
-0.01  Sat Feb  9 22:12:07 2002
-	- original version; created by h2xs 1.21 with options
-		-Oax -n Hamlib -p rig_ -o '^[R]IG \*$' -F -I../../include rig.h
-
