@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.95 2004-05-17 21:09:40 fillods Exp $
+ *	$Id: rig.h,v 1.96 2004-05-19 09:11:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,10 +24,11 @@
 #define _RIG_H 1
 
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
-#include <sys/time.h>		/* required for struct timeval */
 
 #if defined(__CYGWIN__) || defined(_WIN32)
 #include <windows.h>		/* HANDLE definition */
+#else
+#include <sys/time.h>		/* required for struct timeval */
 #endif
 
 /*! \file rig.h
@@ -1239,9 +1240,6 @@ typedef struct {
 	struct {
 		int pin;	/*!< Parrallel port pin number */
 	} parallel;		/*!< parallel attributes */
-	struct {
-		/* place holder */
-	} network;		/*!< Network attributes */
   } parm;			/*!< Port parameter union */
 } port_t;
 
