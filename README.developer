@@ -20,6 +20,7 @@ ft747/
 `-- test
     |-- Makefile
     |-- RCS
+    |-- RESULT.example	
     |-- testlibft747.c
     `-- testlibft747.h 
 
@@ -35,3 +36,17 @@ ft747/
 6. libXXXX.so should be built to allow TX (PTT) to be disabled
    if required. See ft747.[ch] for how this is done.
 
+7. The Makefile for the test suite should have a target like
+   this to allow testing the API.
+
+	# run test program in local directory
+ 
+	.PHONY: runtest
+	runtest:
+        	(LD_LIBRARY_PATH="../lib" ./testlibft747 )  
+
+
+8. You may wish to make an example out from your test suite
+   program available as follows.
+
+	make runtest > RESULT.example
