@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.35 2002-03-15 19:43:43 fillods Exp $
+ *		$Id: kenwood.c,v 1.36 2002-03-15 22:58:14 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -553,7 +553,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			 * 		0 = S9
 			 */
 			sscanf(lvlbuf+2, "%d", &val->i);
-			val->i *= (val->i * 4) - 54;
+			val->i = (val->i * 4) - 54;
 			break;
 
 		case RIG_LEVEL_SQLSTAT:
