@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.30 2002-01-24 23:36:54 fillods Exp $
+ *		$Id: kenwood.c,v 1.31 2002-02-18 18:25:42 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -789,9 +789,32 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 }
 
 /*
+ * kenwood_get_ptt
+ * Assumes rig!=NULL, ptt!=NULL
+ */
+int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+		unsigned char infobuf[50];
+		int info_len, retval;
+
+		retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (info_len != 38) {
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_ptt: wrong answer len=%d\n",
+						info_len);
+		return -RIG_ERJCTED;
+		}
+
+		*ptt = infobuf[28] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
+
+		return RIG_OK;
+}
+
+/*
  * kenwood_set_ptt
  * Assumes rig!=NULL
- * TODO: kenwood_get_ptt reading P8 field returned by IF;
  */
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {

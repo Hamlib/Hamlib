@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.h,v 1.18 2002-01-24 23:36:54 fillods Exp $
+ *		$Id: kenwood.h,v 1.19 2002-02-18 18:26:08 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -60,6 +60,7 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
 int kenwood_reset(RIG *rig, reset_t reset);
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
