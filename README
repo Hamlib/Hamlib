@@ -34,13 +34,13 @@ libhamlib.so -  frontend lib that provides generic API
 Backend Examples are:
 ---------------------
  
-1.libft747.so will provide connectivity to Yeasu
+1.libhamlib-ft747.so will provide connectivity to Yeasu
   FT 747GX Transceiver via a standard API.
 
-2. libft847.so will provide connectivity to Yaesu FT 847
+2. libhamlib-ft847.so will provide connectivity to Yaesu FT 847
    "Earth Station" via a standard API.
  
-3. libxxxx.so will provide connectivity to the Wiz-bang
+3. libhamlib-xxxx.so will provide connectivity to the Wiz-bang
    moon-melter 101A (yikes..)
 
 Hamlib will also enable developers  to develop
@@ -60,5 +60,6 @@ Here you will find a mail list, and  the latest CVS releases.
 Have Fun / Frank S. 
 
   73's de vk3fcs/km5ws
+
 
 
