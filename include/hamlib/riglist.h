@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - list of known rigs
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.29 2002-07-08 22:09:54 fillods Exp $
+ *	$Id: riglist.h,v 1.30 2002-11-12 00:15:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,8 +26,31 @@
 #define RIG_MAKE_MODEL(a,b) ((a)*100+(b))
 #define RIG_BACKEND_NUM(a) ((a)/100)
 
+/*! \file riglist.h
+ *  \brief Hamlib rig(radio) model definitions.
+ *
+ *  This file contains rig model definitions for the Hamlib rig API.
+ *  Each distinct rig type has a unique model number (ID) and is used
+ *  by hamlib to identify and distinguish between the different hardware drivers.
+ *  The exact model numbers can be acquired using the macros in this
+ *  file. To obtain a list of supported rig branches, one can use the statically
+ *  defined RIG_BACKEND_LIST macro. To obtain a full list of supported rig (including
+ *  each model in every branch), the foreach_opened_rig() API function can be used.
+ *
+ *  The model number, or ID, is used to tell hamlib, which rig the client whishes to
+ *  use. It is done with the rig_init() API call.
+ */
+
 #define RIG_MODEL_NONE 0
 
+/*! \def RIG_MODEL_DUMMY
+ *  \brief A macro that returns the model number for the dummy backend.
+ *
+ *  The dummy backend, as the name suggests, is a backend which performs
+ *  no hardware operations and always behaves as one would expect. It can
+ *  be thought of as a hardware simulator and is very usefull for testing
+ *  client applications.
+ */
 #define RIG_DUMMY 0
 #define RIG_BACKEND_DUMMY "dummy"
 #define RIG_MODEL_DUMMY RIG_MAKE_MODEL(RIG_DUMMY, 1)
@@ -91,8 +114,7 @@
 	 */
 #define RIG_ICOM 3
 #define RIG_BACKEND_ICOM "icom"
-	/* do-it-all, for debug purpose */
-#define RIG_MODEL_ICALL RIG_MAKE_MODEL(RIG_ICOM, 0)
+#define RIG_MODEL_ICALL RIG_MAKE_MODEL(RIG_ICOM, 0)	/* no in use anymore */
 #define RIG_MODEL_IC1271 RIG_MAKE_MODEL(RIG_ICOM, 1)
 #define RIG_MODEL_IC1275 RIG_MAKE_MODEL(RIG_ICOM, 2)
 #define RIG_MODEL_IC271 RIG_MAKE_MODEL(RIG_ICOM, 3)
@@ -310,9 +332,14 @@
 #define RIG_BACKEND_KACHINA "kachina"
 #define RIG_MODEL_505DSP RIG_MAKE_MODEL(RIG_KACHINA, 1)
 
-	/*
-	 * RPC Network pseudo-backend
-	 */
+
+/*! \def RIG_MODEL_RPC
+ *  \brief A macro that returns the model number of the RPC Network pseudo-backend.
+ *
+ *  The RPC backend can be used to connect and send commands to a rig server,
+ *  \c rpc.rigd, running on a remote machine. Using this client/server scheme,
+ *  several clients can control and monitor the same rig hardware.
+ */
 #define RIG_RPC 19
 #define RIG_BACKEND_RPC "rpcrig"
 #define RIG_MODEL_RPC RIG_MAKE_MODEL(RIG_RPC, 1)
@@ -334,8 +361,19 @@
 		RIG_W41PC (ISA card) Wavecom
 	*/
 
+/*! \typedef typedef int rig_model_t
+    \brief Convenience type definition for rig model.
+*/
 typedef int rig_model_t;
 
+
+/*! \def RIG_BACKEND_LIST
+ *  \brief Static list of rig models.
+ *
+ *  This is a NULL terminated list of available rig backends. Each entry
+ *  in the list consists of two fields: The branch number, which is an integer,
+ *  and the branch name, which is a character string.
+ */
 #define RIG_BACKEND_LIST {		\
 		{ RIG_DUMMY, RIG_BACKEND_DUMMY }, \
 		{ RIG_YAESU, RIG_BACKEND_YAESU }, \
