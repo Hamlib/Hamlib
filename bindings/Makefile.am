@@ -9,7 +9,7 @@
 SWIG=swig
 
 #INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ @TCL_INCLUDE_SPEC@ -I$(top_srcdir)/bindings
-INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@
+INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@ @PYTHON_CPPFLAGS@
 
 SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h \
 		$(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h
@@ -52,7 +52,7 @@ install-perl: Hamlib-pl.mk
 ##########################################
 # Tcl binding
 
-lib_LTLIBRARIES = hamlibtcl.la
+tcl_ltlib = hamlibtcl.la
 
 PKG_VER=1.0
 DLL=hamlibtcl-$(PKG_VER)@TCL_SHLIB_SUFFIX@
@@ -71,13 +71,13 @@ hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
 all-tcl: pkgIndex.tcl #$(DLL)
 
 
-PACKAGEDIR      = $(TCL_EXEC_PREFIX)/lib/$(PACKAGE)
-libdir = $(PACKAGEDIR)
+tcldir      = $(TCL_EXEC_PREFIX)/lib/$(PACKAGE)
+libdir = $(tcldir)
 
 install-tcl: all-tcl
-#	if test ! -d $(PACKAGEDIR); then mkdir $(PACKAGEDIR); fi
-#	$(INSTALL_PROGRAM) $(DLL) $(PACKAGEDIR)/$(DLL)
-#	$(INSTALL_DATA) pkgIndex.tcl $(PACKAGEDIR)/pkgIndex.tcl
+#	if test ! -d $(tcldir); then mkdir $(tcldir); fi
+#	$(INSTALL_PROGRAM) $(DLL) $(tcldir)/$(DLL)
+#	$(INSTALL_DATA) pkgIndex.tcl $(tcldir)/pkgIndex.tcl
 #	$(INSTALL_DATA) $(MANN) $(MAN_INSTALL_DIR)/
 
 check-tcl: all-tcl
@@ -88,14 +88,49 @@ clean-tcl:
 distclean-tcl: clean-tcl
 
 ##########################################
+# Python binding
 
-all-local: all-perl all-tcl
+python_ltlib = _Hamlib.la
 
-check-local: check-perl check-tcl
-clean-local: clean-perl clean-tcl
-distclean-local: distclean-perl distclean-tcl
+nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
+_Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version
+_Hamlib_la_LIBADD = $(top_builddir)/src/libhamlib.la
+
+hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
+	$(SWIG) -python @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
+		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+
+all-py: 
+
+
+pythondir      = $(prefix)/lib/$(PACKAGE)
+#libdir = $(pythondir)
+
+install-py: all-py
+#	if test ! -d $(pythondir); then mkdir $(pythondir); fi
+#	$(INSTALL_PROGRAM) $(DLL) $(pythondir)/$(DLL)
+#	$(INSTALL_DATA) $(MANN) $(MAN_INSTALL_DIR)/
+
+check-py: all-py
+	TCLLIBPATH=$(builddir)/.libs $(srcdir)/pytest.py || echo "Tcl test failed" 1>&2
+
+clean-py:
+	rm -f pkgIndex.py $(DLL)
+distclean-py: clean-py
+
+
+
+##########################################
+
+lib_LTLIBRARIES = $(tcl_ltlib) $(python_ltlib)
+
+all-local: all-perl all-tcl all-py
+
+check-local: check-perl check-tcl check-py
+clean-local: clean-perl clean-tcl clean-py
+distclean-local: distclean-perl distclean-tcl distclean-py
 distcheck-local: distcheck-perl
-install-exec-local: install-perl install-tcl
+install-exec-local: install-perl install-tcl install-py
 
 
 
@@ -106,13 +141,14 @@ hamlib.swg: ignore.swg rig.swg rotator.swg
 
 
 EXTRA_DIST = hamlib.swg ignore.swg rig.swg rotator.swg \
-			Makefile.PL perltest.pl tcltest.tcl
+			Makefile.PL perltest.pl tcltest.tcl pytest.py
 
-BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c
+BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c hamlibpy_wrap.c Hamlib.py
 
 DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
 
-CLEANFILES = hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
-		hamlibtcl_wrap.c pkgIndex.tcl
+MOSTLYCLEANFILES = hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
+		hamlibtcl_wrap.c pkgIndex.tcl \
+		hamlibpy_wrap.c Hamlib.py *.pyc
 
-noinst_SCRIPTS = perltest.pl tcltest.tcl
+noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py
