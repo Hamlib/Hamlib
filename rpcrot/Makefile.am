@@ -10,6 +10,9 @@ DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 BUILT_SOURCES  = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
 DISTCLEANFILES = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
 
+# needed for backward compatibility on Solaris.
+AM_CFLAGS = $(CFLAGS) -DPORTMAP
+
 # The RPC server
 sbin_PROGRAMS = rpc.rotd
 rpc_rotd_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@

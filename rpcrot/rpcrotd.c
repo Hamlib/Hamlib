@@ -4,7 +4,7 @@
  * This program let programs control a rotator through
  * the mean of RPC services using Hamlib.
  *
- * $Id: rpcrotd.c,v 1.3 2002-10-30 23:39:34 fillods Exp $
+ * $Id: rpcrotd.c,v 1.4 2002-12-16 22:07:02 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,9 +37,10 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <netdb.h>
+#ifdef HAVE_RPC_RPCENT_H
+#include <rpc/rpcent.h>
+#endif
 
-
-/* TODO: autoconf should check for getopt support, include libs otherwise */
 #include <getopt.h>
 
 #include <hamlib/rotator.h>

@@ -3,7 +3,7 @@
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *	$Id: rpcrot_backend.c,v 1.4 2002-09-13 06:59:54 fillods Exp $
+ *	$Id: rpcrot_backend.c,v 1.5 2002-12-16 22:07:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,6 +43,10 @@
 #include <token.h>
 
 #include <rpc/rpc.h>
+#ifdef HAVE_RPC_RPCENT_H
+#include <rpc/rpcent.h>
+#endif
+
 #include "rpcrot.h"
 #include "rpcrot_backend.h"
 

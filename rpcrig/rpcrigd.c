@@ -4,7 +4,7 @@
  * This program let programs control a radio through
  * the mean of RPC services using Hamlib.
  *
- *	$Id: rpcrigd.c,v 1.5 2002-09-13 06:58:55 fillods Exp $  
+ *	$Id: rpcrigd.c,v 1.6 2002-12-16 22:06:54 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,9 +37,10 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <netdb.h>
+#ifdef HAVE_RPC_RPCENT_H
+#include <rpc/rpcent.h>
+#endif
 
-
-/* TODO: autoconf should check for getopt support, include libs otherwise */
 #include <getopt.h>
 
 #include <hamlib/rig.h>

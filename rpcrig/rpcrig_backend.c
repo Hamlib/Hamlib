@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.10 2002-09-13 06:58:55 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.11 2002-12-16 22:06:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,6 +42,9 @@
 #include <netdb.h>
 
 #include <rpc/rpc.h>
+#ifdef HAVE_RPC_RPCENT_H
+#include <rpc/rpcent.h>
+#endif
 #include "rpcrig.h"
 
 #include "rpcrig_backend.h"

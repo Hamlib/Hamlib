@@ -10,6 +10,9 @@ DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 BUILT_SOURCES  = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
 DISTCLEANFILES = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
 
+# needed for backward compatibility on Solaris.
+AM_CFLAGS = $(CFLAGS) -DPORTMAP
+
 # The RPC server
 sbin_PROGRAMS = rpc.rigd
 rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
