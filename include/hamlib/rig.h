@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.34 2001-06-04 17:01:21 f4cfe Exp $
+ *	$Id: rig.h,v 1.35 2001-06-04 21:13:11 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -502,6 +502,7 @@ struct freq_range_list {
   int low_power;	/* in mW, -1 for no power (ie. rx list) */
   int high_power;	/* in mW, -1 for no power (ie. rx list) */
   vfo_t vfo;		/* VFOs that can access this range */
+  ant_t ant;
 };
 typedef struct freq_range_list freq_range_t;
 
@@ -1041,7 +1042,7 @@ extern int rig_reset(RIG *rig, reset_t reset);	/* dangerous! */
 extern int rig_close(RIG *rig);
 extern int rig_cleanup(RIG *rig);
 
-extern RIG *rig_probe(const char *rig_path);
+extern rig_model_t rig_probe(port_t *p);
 
 extern int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant);	/* antenna */
 extern int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
@@ -1107,6 +1108,10 @@ int rig_register(const struct rig_caps *caps);
 int rig_unregister(rig_model_t rig_model);
 int rig_list_foreach(int (*cfunc)(const struct rig_caps*,void*),void *data);
 int rig_load_backend(const char *be_name);
+int rig_check_backend(rig_model_t rig_model);
+int rig_load_all_backends();
+rig_model_t rig_probe_all(port_t *p);
+
 
 #ifdef __cplusplus
 }
