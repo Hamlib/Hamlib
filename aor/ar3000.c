@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR3000 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar3000.c,v 1.3 2003-10-20 22:15:01 fillods Exp $
+ *	$Id: ar3000.c,v 1.4 2004-06-14 21:09:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,23 +33,34 @@
 
 #include "aor.h"
 
-int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ar3k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int ar3k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ar3k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
-int ar3k_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+static int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ar3k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ar3k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ar3k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
+static int ar3k_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
+static int ar3k_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int ar3k_set_bank(RIG *rig, vfo_t vfo, int bank);
+static int ar3k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ar3k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 
 #define AR3000A_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define AR3000A_FUNC_ALL (RIG_FUNC_MUTE)
+#define AR3000A_FUNC_ALL (RIG_FUNC_MUTE|RIG_FUNC_SQL)
 
-#define AR3000A_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define AR3000A_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_RAWSTR)
 
 #define AR3000A_VFO_OPS (RIG_OP_NONE)
 
 #define AR3000A_VFO (RIG_VFO_A)
+
+#define AR3000A_STR_CAL { 3, \
+	{ \
+		{ '%', -60 }, /* mute */ \
+		{ 'A', -54 }, /* S1 */  \
+		{ 'P', 20 }   /* +20 */ \
+	} }
 
 /*
  * AR3000A rig capabilities.
@@ -57,14 +68,13 @@ int ar3k_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
  * info coming from A3000A pdf manual from http://www.aoruk.com/
  *
  * TODO:
- * set_mem, set_channel, get_channel, set_level ATT, get_level ATT,STR,
- * set_bank, ..
+ * set_channel, get_channel, set_func MUTE,SQL, get_dcd, ...
  */
 const struct rig_caps ar3000a_caps = {
 .rig_model =  RIG_MODEL_AR3000A,
 .model_name = "AR3000A",
 .mfg_name =  "AOR",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_SCANNER,
@@ -133,6 +143,7 @@ const struct rig_caps ar3000a_caps = {
 		RIG_FLT_END,
 	},
 
+.str_cal = AR3000A_STR_CAL,
 .priv =  NULL,
 .rig_init =  NULL,
 .rig_cleanup =  NULL,
@@ -146,6 +157,11 @@ const struct rig_caps ar3000a_caps = {
 
 .set_ts =  ar3k_set_ts,
 .get_ts =  ar3k_get_ts,
+.set_mem = ar3k_set_mem,
+.set_bank = ar3k_set_bank,
+
+.set_level = ar3k_set_level,
+.get_level = ar3k_get_level,
 
 };
 
@@ -266,7 +282,7 @@ int ar3k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	switch (mode) {
 	case RIG_MODE_AM:       aormode = 'A'; break;
 	case RIG_MODE_CW:       aormode = 'C'; break;
-	case RIG_MODE_USB:      aormode = 'L'; break;
+	case RIG_MODE_USB:      aormode = 'U'; break;
 	case RIG_MODE_LSB:      aormode = 'L'; break;
 	case RIG_MODE_WFM:      aormode = 'W'; break;
 	case RIG_MODE_FM:	aormode = 'N'; break;
@@ -346,7 +362,7 @@ int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		lowhz = 100;
 	ts = ts*100 + lowhz;
 
-	freq_len = sprintf(freqbuf,"%03.2f" EOM, ((double)ts)/kHz(1));
+	freq_len = sprintf(freqbuf,"%03.2fS" EOM, ((double)ts)/kHz(1));
 
 	retval = ar3k_transaction (rig, freqbuf, freq_len, NULL, NULL);
 	if (retval != RIG_OK)
@@ -382,4 +398,80 @@ int ar3k_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 	return RIG_OK;
 }
 
+
+int ar3k_set_mem(RIG *rig, vfo_t vfo, int ch)
+{
+	unsigned char cmdbuf[BUFSZ];
+	int cmd_len, retval;
+
+	cmd_len = sprintf(cmdbuf, "%02dM" EOM, ch);
+	retval = ar3k_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+	return retval;
+}
+
+int ar3k_set_bank(RIG *rig, vfo_t vfo, int bank)
+{
+	unsigned char cmdbuf[BUFSZ];
+	int cmd_len, retval;
+
+	cmd_len = sprintf(cmdbuf, "%dX" EOM, bank);
+	retval = ar3k_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+	return retval;
+}
+
+
+int ar3k_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	unsigned char *cmd;
+	int retval;
+
+	switch(level) {
+	case RIG_LEVEL_ATT:
+		cmd = val.i ? "R" EOM : "T" EOM;
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+
+	retval = ar3k_transaction (rig, cmd, strlen(cmd), NULL, NULL);
+	if (retval != RIG_OK)
+		return retval;
+
+	return RIG_OK;
+}
+
+int ar3k_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	int info_len, retval;
+	unsigned char infobuf[BUFSZ];
+
+	switch(level) {
+	case RIG_LEVEL_ATT:
+		/*
+	 	* #--J0WZ-----Y---------Q
+	 	*      X                R,S,T,U,V
+	 	*/
+		retval = ar3k_transaction (rig, "D" EOM, 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		val->i = strchr(infobuf, 'W') ? rig->caps->attenuator[1] : 0;
+		return RIG_OK;
+
+	case RIG_LEVEL_RAWSTR:
+		retval = ar3k_transaction (rig, "Y" EOM, 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		val->i = infobuf[0];
+		return RIG_OK;
+
+	default:
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
 
