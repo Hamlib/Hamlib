@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3000 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar3000.c,v 1.7 2005-02-19 00:37:25 fillods Exp $
+ *	$Id: ar3000.c,v 1.8 2005-02-26 22:28:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,7 +76,7 @@ const struct rig_caps ar3000a_caps = {
 .mfg_name =  "AOR",
 .version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
