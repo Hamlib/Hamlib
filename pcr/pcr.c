@@ -6,7 +6,7 @@
  * via serial interface to an Icom PCR-1xxx radio.
  *
  *
- *	$Id: pcr.c,v 1.3 2001-04-26 21:32:32 f4cfe Exp $  
+ *	$Id: pcr.c,v 1.4 2001-06-02 17:52:55 f4cfe Exp $  
  *
  *
  *
@@ -310,7 +310,7 @@ int pcr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * pcr_get_info
  * Assumes rig!=NULL
  */
-unsigned char *pcr_get_info(RIG *rig)
+const char *pcr_get_info(RIG *rig)
 {
 		struct pcr_priv_data *priv;
 		unsigned char ackbuf[16];
@@ -401,6 +401,7 @@ int init_pcr(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "pcr: _init called\n");
 
+		rig_register(&pcr100_caps);
 		rig_register(&pcr1000_caps);
 
 		return RIG_OK;

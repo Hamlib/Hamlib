@@ -3,10 +3,10 @@
  *
  * pcr.h - Copyright (C) 2001 Stephane Fillod
  * This shared library provides an API for communicating
- * via serial interface to an ICOM using the "CI-V" interface.
+ * via serial interface to an ICOM using the PCR1000 protocol.
  *
  *
- *    $Id: pcr.h,v 1.1 2001-03-02 18:26:18 f4cfe Exp $  
+ *    $Id: pcr.h,v 1.2 2001-06-02 17:52:55 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -44,12 +44,13 @@ int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int pcr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int pcr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-unsigned char *pcr_get_info(RIG *rig);
+const char *pcr_get_info(RIG *rig);
 
 
 extern const struct rig_caps pcr1000_caps;
+extern const struct rig_caps pcr100_caps;
 
-extern int init_icom(void *be_handle);
+extern int init_pcr(void *be_handle);
 
 
 #endif /* _PCR_H */
