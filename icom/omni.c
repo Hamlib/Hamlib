@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the TenTenc OMNI VI
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: omni.c,v 1.1 2002-05-30 17:38:07 fillods Exp $
+ *		$Id: omni.c,v 1.2 2002-06-04 22:41:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,16 +40,13 @@
 #define OMNIVIP_STR_CAL { 0, { } }
 
 
-#define OMNIVIP_STR_CAL { 0, { \
-		} }		/* TBC */
-
 /*
  * Specs from http://www.tentec.com/TT564.htm
  */
 
 static const struct icom_priv_caps omnivip_priv_caps = { 
-		0x80,	/* default address */
-		0,		/* 731 mode */
+		0x04,	/* default address */
+		1,		/* 731 mode */
 		NULL,
 		OMNIVIP_STR_CAL
 };
