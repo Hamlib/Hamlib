@@ -533,7 +533,7 @@ fi
 
 # version code:
 V_MAJOR=1
-V_MINOR=1.0
+V_MINOR=1.1
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
   if test -f $ac_dir/install-sh; then
@@ -2619,8 +2619,8 @@ done
 
 fi
 
-if test "${enable_rigmatrix}" != "no"; then
-  for ac_hdr in gd.h
+
+for ac_hdr in gd.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
 echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
@@ -2763,7 +2763,6 @@ enable_rigmatrix=no
 fi
 done
 
-fi
 if test "${ac_cv_header_gd_h}" = "no"; then
   echo "disabling rigmatrix generation"
   RIGMATRIX=
@@ -2771,6 +2770,64 @@ else
   echo "enabling rigmatrix generation"
   RIGMATRIX=rigmatrix
 fi
+
+
+
+for ac_hdr in linradio/radio_ioctl.h linradio/wrapi.h
+do
+ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
+echo "configure:2781: checking for $ac_hdr" >&5
+if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  cat > conftest.$ac_ext <<EOF
+#line 2786 "configure"
+#include "confdefs.h"
+#include <$ac_hdr>
+EOF
+ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
+{ (eval echo configure:2791: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
+if test -z "$ac_err"; then
+  rm -rf conftest*
+  eval "ac_cv_header_$ac_safe=yes"
+else
+  echo "$ac_err" >&5
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  eval "ac_cv_header_$ac_safe=no"
+fi
+rm -f conftest*
+fi
+if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
+  echo "$ac_t""yes" 1>&6
+    ac_tr_hdr=HAVE_`echo $ac_hdr | sed 'y%abcdefghijklmnopqrstuvwxyz./-%ABCDEFGHIJKLMNOPQRSTUVWXYZ___%'`
+  cat >> confdefs.h <<EOF
+#define $ac_tr_hdr 1
+EOF
+ 
+else
+  echo "$ac_t""no" 1>&6
+fi
+done
+
+if test "${ac_cv_header_linradio_radio_ioctl_h}" = "no" -o \
+					"${ac_cv_header_linradio_wrapi_h}" = "no"; then
+  echo "disabling WiNRADiO receiver support"
+  WINRADIO=
+  WINRADIOLNK=
+  WINRADIODEPS=
+else
+  echo "enabling WiNRADiO receiver support"
+  WINRADIO=winradio
+  WINRADIOLNK="\"-dlopen\" ../winradio/libhamlib-winradio.la"
+  WINRADIODEPS="../winradio/libhamlib-winradio.la"
+fi
+
+
+
 
 
 
@@ -2787,7 +2844,7 @@ fi
 if test "${enable_shared}" = "no"; then
   enable_preload=yes
 fi
-if test "${enable_dynamic}" = no || test "${enable_preload}" = "yes"; then
+if test "${enable_dynamic}" = "no" || test "${enable_preload}" = "yes"; then
   echo "preloading backends into DLL"
   DLL_PRELOAD="\$(PRELOADABLE_BACKENDS)"
 else
@@ -2898,7 +2955,8 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "ft747/Makefile ft847/Makefile icom/Makefile aor/Makefile \
+trap 'rm -fr `echo "yaesu/Makefile icom/Makefile aor/Makefile \
+			kenwood/Makefile winradio/Makefile \
 			Makefile include/Makefile include/hamlib/Makefile src/Makefile \
 			tests/Makefile doc/Makefile  include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -2960,6 +3018,9 @@ s%@build_os@%$build_os%g
 s%@RANLIB@%$RANLIB%g
 s%@LIBTOOL@%$LIBTOOL%g
 s%@RIGMATRIX@%$RIGMATRIX%g
+s%@WINRADIO@%$WINRADIO%g
+s%@WINRADIOLNK@%$WINRADIOLNK%g
+s%@WINRADIODEPS@%$WINRADIODEPS%g
 s%@INCLUDES@%$INCLUDES%g
 s%@NET@%$NET%g
 s%@V_MAJOR@%$V_MAJOR%g
@@ -3006,7 +3067,8 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"ft747/Makefile ft847/Makefile icom/Makefile aor/Makefile \
+CONFIG_FILES=\${CONFIG_FILES-"yaesu/Makefile icom/Makefile aor/Makefile \
+			kenwood/Makefile winradio/Makefile \
 			Makefile include/Makefile include/hamlib/Makefile src/Makefile \
 			tests/Makefile doc/Makefile "}
 EOF
