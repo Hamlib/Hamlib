@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.9 2001-03-02 18:35:18 f4cfe Exp $  
+ * $Id: ft747.c,v 1.10 2001-04-22 13:57:39 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -444,6 +444,7 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
   case RIG_PASSBAND_NORMAL:	/* easy  case , no change to native sequence */
     break;
 
+#ifdef RIG_PASSBAND_OLDTIME
   case RIG_PASSBAND_WIDE:
     return -RIG_EINVAL;		/* sorry, WIDE WIDTH is not supported */
 
@@ -462,11 +463,14 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
       return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
     }
     break;
+#else
+  /* TODO! */
+#endif
 
   default:
     return -RIG_EINVAL;		/* sorry, wrong WIDTH requested  */    
   }
-  
+
   /*
    * phew! now send cmd to rig
    */ 

@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.5 2001-03-02 18:29:31 f4cfe Exp $  
+ * $Id: aor.c,v 1.6 2001-04-22 13:57:39 f4cfe Exp $  
  *
  *
  *
@@ -168,8 +168,12 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_AM:       
 					switch(width) {
 						case RIG_PASSBAND_NORMAL: aormode = MD_AM; break;
+#ifdef RIG_PASSBAND_OLDTIME
 						case RIG_PASSBAND_WIDE: aormode = MD_WAM; break;
 						case RIG_PASSBAND_NARROW: aormode = MD_NAM; break;
+#else
+	/* TODO */
+#endif
 						default:
 							rig_debug(RIG_DEBUG_ERR,
 								"aor_set_mode: unsupported passband %d %d\n",
@@ -183,8 +187,12 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_FM:
 					switch(width) {
 						case RIG_PASSBAND_NORMAL: aormode = MD_NFM; break;
+#ifdef RIG_PASSBAND_OLDTIME
 						case RIG_PASSBAND_WIDE: aormode = MD_WFM; break;
 						case RIG_PASSBAND_NARROW: aormode = MD_SFM; break;
+#else
+	/* TODO */
+#endif
 						default:
 							rig_debug(RIG_DEBUG_ERR,
 								"aor_set_mode: unsupported passband %d %d\n",
@@ -192,6 +200,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 						return -RIG_EINVAL;
 					}
 					break;
+			case RIG_MODE_WFM:      aormode = MD_WFM; break;
 			case RIG_MODE_RTTY:
 			default:
 				rig_debug(RIG_DEBUG_ERR,"aor_set_mode: unsupported mode %d\n",
@@ -234,11 +243,19 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			case MD_AM:		*mode = RIG_MODE_AM; break;
 			case MD_NAM:	
 							*mode = RIG_MODE_AM;
+#ifdef RIG_PASSBAND_OLDTIME
 							*width = RIG_PASSBAND_NARROW; 
+#else
+	/* FIXME! */
+#endif
 							break;
 			case MD_WAM:	
 							*mode = RIG_MODE_AM;
+#ifdef RIG_PASSBAND_OLDTIME
 							*width = RIG_PASSBAND_WIDE; 
+#else
+	/* FIXME! */
+#endif
 							break;
 			case MD_CW:		*mode = RIG_MODE_CW; break;
 			case MD_USB:	*mode = RIG_MODE_USB; break;
@@ -246,10 +263,13 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			case MD_NFM:	*mode = RIG_MODE_FM; break;
 			case MD_SFM:	
 							*mode = RIG_MODE_FM;
+#ifdef RIG_PASSBAND_OLDTIME
 							*width = RIG_PASSBAND_NARROW; 
+#else
+	/* FIXME! */
+#endif
 							break;
-			case MD_WFM:	*mode = RIG_MODE_FM;
-							*width = RIG_PASSBAND_WIDE; 
+			case MD_WFM:	*mode = RIG_MODE_WFM;
 							break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"aor_get_mode: unsupported mode %d\n",

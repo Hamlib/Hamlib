@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.6 2001-03-02 18:37:17 f4cfe Exp $
+ *		$Id: winradio.c,v 1.7 2001-04-22 13:57:39 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -74,11 +74,18 @@ int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   case RIG_MODE_CW:  m = RMD_CW; break;
   case RIG_MODE_LSB: m = RMD_LSB; break;
   case RIG_MODE_USB: m = RMD_USB; break;
+  case RIG_MODE_WFM: m = RMD_FMW; break;
   case RIG_MODE_FM:
     switch ( width ) {
+#ifdef RIG_PASSBAND_OLDTIME
     case RIG_PASSBAND_NARROW: m = RMD_FM6; break;
+#else
+	/* TODO */
+#endif
     case RIG_PASSBAND_NORMAL: m = RMD_FMN; break;
+#ifdef RIG_PASSBAND_OLDTIME
     case RIG_PASSBAND_WIDE:   m = RMD_FMW; break;
+#endif
     default: return -RIG_EINVAL;
     }
   default: return -RIG_EINVAL;
@@ -93,12 +100,15 @@ int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   switch ( m ) {
   case RMD_CW: *mode = RIG_MODE_CW; *width = RIG_PASSBAND_NORMAL; break;
   case RMD_AM: *mode = RIG_MODE_AM; *width = RIG_PASSBAND_NORMAL; break;
+#ifdef RIG_PASSBAND_OLDTIME
   case RMD_FMN: *mode = RIG_MODE_FM; *width = RIG_PASSBAND_NARROW; break;
-  case RMD_FMW: *mode = RIG_MODE_FM; *width = RIG_PASSBAND_WIDE; break;
+  case RMD_FM6: *mode = RIG_MODE_FM; *width = RIG_PASSBAND_NARROW; break;
+#else
+				/* TODO */
+#endif
+  case RMD_FMW: *mode = RIG_MODE_WFM; *width = RIG_PASSBAND_NORMAL; break;
   case RMD_LSB: *mode = RIG_MODE_LSB; *width = RIG_PASSBAND_NORMAL; break;
   case RMD_USB: *mode = RIG_MODE_USB; *width = RIG_PASSBAND_NORMAL; break;
-  case RMD_FMM: *mode = RIG_MODE_FM; *width = RIG_PASSBAND_NARROW; break;
-  case RMD_FM6: *mode = RIG_MODE_FM; *width = RIG_PASSBAND_NARROW; break;
   default: return -RIG_EINVAL;
   }
   return RIG_OK;

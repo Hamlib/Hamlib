@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.8 2001-02-27 23:05:51 f4cfe Exp $  
+ * $Id: frame.c,v 1.9 2001-04-22 13:57:39 f4cfe Exp $  
  *
  *
  *
@@ -210,9 +210,16 @@ unsigned short hamlib2icom_mode(rmode_t mode, pbwidth_t width)
 		case RIG_MODE_LSB:	icmode = S_LSB; break;
 		case RIG_MODE_RTTY:	icmode = S_RTTY; break;
 		case RIG_MODE_FM:	
+#ifdef RIG_PASSBAND_OLDTIME
 							icmode = width==RIG_PASSBAND_WIDE?S_WFM:S_FM;
 							icmode_ext = width==RIG_PASSBAND_NARROW?0x02:0x00;
+#else
+							icmode = S_FM;
+							/* FIXME: */
+							icmode_ext = width!=RIG_PASSBAND_NORMAL?0x00:0x02;
+#endif
 							break;
+		case RIG_MODE_WFM:	icmode = S_WFM; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Hamlib mode %d\n",mode);
 			icmode = 0xff;
@@ -229,8 +236,7 @@ void icom2hamlib_mode(unsigned short icmode, rmode_t *mode, pbwidth_t *width)
 		case S_CW:	*mode = RIG_MODE_CW; break;
 		case S_FM:	*mode = RIG_MODE_FM; break;
 		case S_WFM:	
-					*mode = RIG_MODE_FM;
-					*width = RIG_PASSBAND_WIDE;
+					*mode = RIG_MODE_WFM;
 					break;
 		case S_USB:	*mode = RIG_MODE_USB; break;
 		case S_LSB:	*mode = RIG_MODE_LSB; break;
