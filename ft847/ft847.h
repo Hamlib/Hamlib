@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.4 2000-07-29 01:47:48 javabear Exp $  
+ *    $Id: ft847.h,v 1.5 2000-07-29 20:26:59 javabear Exp $  
  */
 
 /*
@@ -65,7 +65,6 @@ int rig_close(int fd);
  *
  */
 
-
 void cmd_cat_on(int fd);
 void cmd_cat_off(int fd);
 void cmd_ptt_on(int fd);
@@ -103,9 +102,16 @@ void cmd_set_repeater_offset(int fd, unsigned char d1,  unsigned char d2,
 
 unsigned char cmd_get_rx_status(int fd);
 unsigned char cmd_get_tx_status(int fd);
-unsigned char cmd_get_freq_mode_status_main_vfo(int fd);
-unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd);
-unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd); 
+
+/*
+ * Get frequency and mode info
+ *
+ */
+
+
+long int cmd_get_freq_mode_status_main_vfo(int fd, unsigned char *mode);
+long int cmd_get_freq_mode_status_sat_rx_vfo(int fd, unsigned char *mode);
+long int cmd_get_freq_mode_status_sat_tx_vfo(int fd, unsigned char *mode);
 
 
 /*
