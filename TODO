@@ -4,36 +4,30 @@ hamlib - (C) Frank Singleton 2000
 GENERAL PROJECT TODO
 --------------------
 
-1. Implement more interfaces/backends
+1. Implement more interfaces/backends [ongoing]
 2. Write More extensive Test Suites [ongoing]
 3. Document API's [ongoing]
 4. Document Limitations/Assumptions.
 6. Encourage people to build cool GUI's using
    our libs. (any GTK wiz's out here ..)
 8. More safe checking during function calls (in rig_* wrappers).
- 
-11. Add some scanning routines [ 1.1.2? ]
-
 13. ~/.hamlibrc and /etc/hamlibrc preferences file
-
 14. Write the list of all functions that should be in the API
-
 15. Handle retransmissions (no more than n) if timeout (->backends)
 16. Write .spec (rpm) and .deb (debian) package files
 18. rewrite the post_write_delay. Active delay is a waste of cycles! [need test]
-19. specify how to access Reverse modes (CWR, RTTYW). through set_mode?
-20. adapt API include files to support C++ (__BEGIN_DECLS/__END_DECLS, etc.)
+19. specify how to access Reverse modes (CWR, RTTYR). through set_mode?
 21. grab cygwin and test portability under Win32 (what about MacOS?)
 23. add support in the API for additional filters, DSP bandpass control
-24. Should Hamlib (the library itself) be LGPL'ed ?
-25. Write aclocal .m4 macro helpers for autoconf support
-26. Write rig simulator so no hardware is involved with Hamlib testing
+25. Write aclocal .m4 macro helpers for autoconf support [need test]
+26. Write rig protocol simulator so no hardware is involved with Hamlib testing
 27. complete memory bank support
-28. add rig_srch_ctcss, rig_srch_dcs, set_split_mode, get_split_mode, rig_send_cw
+28. add rig_srch_ctcss, rig_srch_dcs, etc.
 29. emulate get_stuff (caching) if backend has no support for it
 30. Write perl/python/etc. modules
 31. Add some antenna tuner support
-32. 
+32. Document C++/tcltk bindings, complete Hamlib API documentation using doxygen
+33. Merge dumpmem/dumpcaps into rigctl
 
 DONE
 ----
@@ -60,3 +54,8 @@ DONE
 
 22. handle nicely different versions of same rig coming for 
 	ITU region1/region2 ham band (-> freq ranges in capabilities)
+
+11. Add some scanning routines [ 1.1.2? ]
+
+20. adapt API include files to support C++ (__BEGIN_DECLS/__END_DECLS, etc.)
+24. Should Hamlib (the library itself) be LGPL'ed ?

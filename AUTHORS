@@ -16,11 +16,15 @@ Backends:
  winradio:		Pascal Brisset
  icom&others:	Stephane Fillod
 
-Frontends:
+Frontend:
+ Stephane Fillod and Frank Singleton
 
+Web site:	http://hamlib.sf.net/
+ Nate Bargmann
 
 email addresses:
 
-Frank Singleton <vk3fcs@ix.netcom.com>
-Stephane Fillod <f4cfe@users.sourceforge.net>
-Pascal Brisset <pab@users.sourceforge.net>
+Frank Singleton <vk3fcs (at) ix.netcom.com>
+Stephane Fillod <f4cfe (at) users.sourceforge.net>
+Pascal Brisset <pab (at) users.sourceforge.net>
+Nate Bargmann <n0nb@ (at) networksplus.net>
