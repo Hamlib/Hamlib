@@ -1,0 +1,46 @@
+hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+
+
+
+1. You should be able to enter the tree (eg: ft747) of
+   choice and type "make".Here is what should happen.
+
+	[frank@kirk ft747]$ make
+	gcc -fPIC -g -Wall -c ft747.c
+	gcc -shared -Wl,-soname,libft747.so.1 -o libft747.so.1.0.1 ft747.o -lc
+	[frank@kirk ft747]$  
+
+2. To install the lib in the "./lib" directory, and its header file
+   into "./include" do "make install"
+
+	[frank@kirk ft747]$ make install
+	make install_lib
+	make[1]: Entering directory `/home/frank/devel/hamlib/ft747'
+	mv libft747.so.1.0.1 ./lib/
+	cd ./lib/; /sbin/ldconfig -n .
+	cd ./lib/; ln -s libft747.so.1 libft747.so
+	make[1]: Leaving directory `/home/frank/devel/hamlib/ft747'
+	make install_header
+	make[1]: Entering directory `/home/frank/devel/hamlib/ft747'
+	cp -f ft747.h ./include/
+	make[1]: Leaving directory `/home/frank/devel/hamlib/ft747'
+	[frank@kirk ft747]$ 
+
+3. ./lib and ./include should now look like this 
+
+|-- include
+|   `-- ft747.h
+|-- lib
+|   |-- libft747.so -> libft747.so.1
+|   |-- libft747.so.1 -> libft747.so.1.0.1
+|   `-- libft747.so.1.0.1         
+
+
+4. To make and run the test suite , cd to test directory, build
+   the binary and run the test.
+
+	cd test
+	make
+	make runtest
+
+5. ..
