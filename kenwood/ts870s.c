@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.33 2002-12-20 23:44:16 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.34 2002-12-21 13:48:19 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,7 +27,7 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 
-#define TS870S_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TS870S_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define TS870S_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS870S_AM_TX_MODES RIG_MODE_AM
 
