@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.16 2002-12-21 00:23:12 pa4tu Exp $
+ *	$Id: ts570.c,v 1.17 2002-12-21 00:30:25 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -366,7 +366,7 @@ const struct rig_caps ts570d_caps = {
 .rig_model =  RIG_MODEL_TS570D,
 .model_name = "TS-570D",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -478,11 +478,21 @@ const struct rig_caps ts570d_caps = {
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB, kHz(2.4)},
-		{RIG_MODE_CW, Hz(200)},
+		{RIG_MODE_SSB, Hz(500)},
+		{RIG_MODE_SSB, Hz(0)},
+		{RIG_MODE_SSB, kHz(1)},
+		{RIG_MODE_CW, Hz(400)},
+		{RIG_MODE_CW, Hz(100)},
+		{RIG_MODE_CW, Hz(1000)},
+		{RIG_MODE_RTTY, Hz(1000)},
 		{RIG_MODE_RTTY, Hz(500)},
-		{RIG_MODE_AM, kHz(9)},
-		{RIG_MODE_FM, kHz(14)},
+		{RIG_MODE_RTTY, Hz(1500)},
+		{RIG_MODE_AM, Hz(500)},
+		{RIG_MODE_AM, Hz(0)},
+		{RIG_MODE_AM, kHz(1)},
+		{RIG_MODE_FM, Hz(500)},
+		{RIG_MODE_FM, Hz(0)},
+		{RIG_MODE_FM, kHz(1)},
 		RIG_FLT_END,
 	},
 .priv =  (void *)&ts570_priv_caps,
