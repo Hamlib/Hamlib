@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main file
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: pcr.c,v 1.14 2002-03-13 23:56:41 fillods Exp $
+ *		$Id: pcr.c,v 1.15 2002-03-26 08:05:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,6 +64,7 @@
 /* as returned by GE? */
 #define COUNTRY_JAPAN	0x08
 #define	COUNTRY_USA		0x01
+#define	COUNTRY_UK		0x02	/* TBC */
 #define	COUNTRY_EUAUCA	0x0a
 #define	COUNTRY_FGA		0x0b
 #define	COUNTRY_DEN		0x0c
@@ -105,14 +106,22 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 			return retval;
 
 	/* eat the first ack */
+#ifdef WANT_READ_STRING
 	retval = read_string(&rs->rigport, data, 1, "\x0a", 1);
 	if (retval < 0)
 			return retval;
 	if (retval != 1)
 			return -RIG_EPROTO;
+#else
+	retval = read_block(&rs->rigport, data, 1);
+#endif
 
 	/* here is the real response */
+#ifdef WANT_READ_STRING
 	*data_len = read_string(&rs->rigport, data, *data_len, "\x0a", 1);
+#else
+	*data_len = read_block( &rs->rigport, data, *data_len );
+#endif
 
 	return RIG_OK;
 }
@@ -460,6 +469,7 @@ const char *pcr_get_info(RIG *rig)
 		switch (country_code) {
 		case COUNTRY_JAPAN: country = "Japan"; break;
 		case COUNTRY_USA: country = "USA"; break;
+		case COUNTRY_UK: country = "UK"; break;
 		case COUNTRY_EUAUCA: country = "Europe/Australia/Canada"; break;
 		case COUNTRY_FGA: country = "FGA?"; break;
 		case COUNTRY_DEN: country = "DEN?"; break;
@@ -472,7 +482,7 @@ const char *pcr_get_info(RIG *rig)
 
 
 		sprintf(buf, "Firmware v%d.%d, Protocol v%d.%d, "
-						"Optional devices:%s%s%s, Country: %s, ", 
+						"Optional devices:%s%s%s, Country: %s", 
 						frmwr_version/10,frmwr_version%10,
 						proto_version/10,proto_version%10,
 						options&OPT_UT106 ? " DSP"  : "",
