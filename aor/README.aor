@@ -1,0 +1,40 @@
+hamlib - Copyright (C) 2000 Frank Singleton
+
+libaor.so - Copyright (C) 2000 Stephane Fillod
+This shared library provides an API for communicating
+via serial interface to an AOR scanner.
+
+
+Reference Documentation
+-----------------------
+
+AOR RS232 protocol listing for the AR8200 (accompanies the CC8200)
+Document release V1.3
+AOR Ltd.
+
+
+Status
+------
+
+This is a WIP.
+Handles 5% of all opcodes.
+All primitives are written from spec. In other words,
+they are totally untested because I don't own an AOR scanner myself.
+Patchs and contributions are welcome! I'm also looking for
+a real maintainer :)  --SF
+
+
+This lib should/will support other AOR models.
+
+Warnings
+--------
+
+1. NOTHING IS WORKING, this is a WIP.
+
+
+Contributors
+------------
+
+
+
+
