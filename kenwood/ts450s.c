@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.16 2002-12-21 13:41:25 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.17 2002-12-21 15:34:52 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -54,7 +54,8 @@ static const struct kenwood_priv_caps  ts450_priv_caps  = {
 /*
  * Function definitions
  */
-static int ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int 
+ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
   unsigned char infobuf[50];
   int info_len, retval;
@@ -91,7 +92,8 @@ static int ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   return RIG_OK;
 }
 
-static int ts450s_get_vfo(RIG *rig, vfo_t *vfo)
+static int 
+ts450s_get_vfo(RIG *rig, vfo_t *vfo)
 {
   unsigned char infobuf[50];
   int info_len, retval;
@@ -118,7 +120,8 @@ static int ts450s_get_vfo(RIG *rig, vfo_t *vfo)
   return RIG_OK;
 }
 
-static int ts450s_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int 
+ts450s_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
   unsigned char infobuf[50];
   int info_len, retval;
@@ -140,7 +143,8 @@ static int ts450s_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 }
 
-int ts450s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int 
+ts450s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
   unsigned char lvlbuf[50];
   int lvl_len, retval;
@@ -191,11 +195,61 @@ int ts450s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_COMP:
     case RIG_LEVEL_BKINDL:
     case RIG_LEVEL_BALANCE:
-	return -RIG_ENIMPL;
+	return -RIG_ENAVAIL;
     default:
 	rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 	return -RIG_EINVAL;
   }
+
+  return RIG_OK;
+}
+
+static int 
+ts450s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+  unsigned char levelbuf[16], ackbuf[16];
+  int level_len, ack_len, retval;
+  int kenwood_val;
+
+  if (RIG_LEVEL_IS_FLOAT(level))
+    kenwood_val = val.f * 255;
+  else
+    kenwood_val = val.i;
+
+  switch (level) 
+  {
+    case RIG_LEVEL_CWPITCH:
+      level_len = sprintf(levelbuf, "PT%02d;", (int)kenwood_val/30);
+      break;
+    case RIG_LEVEL_STRENGTH:
+    case RIG_LEVEL_AGC:
+    case RIG_LEVEL_MICGAIN:
+    case RIG_LEVEL_SQL:
+    case RIG_LEVEL_RF:
+    case RIG_LEVEL_AF:
+    case RIG_LEVEL_RFPOWER:
+    case RIG_LEVEL_ATT:
+    case RIG_LEVEL_SQLSTAT:
+    case RIG_LEVEL_PREAMP:
+    case RIG_LEVEL_IF:
+    case RIG_LEVEL_APF:
+    case RIG_LEVEL_NR:
+    case RIG_LEVEL_PBT_IN:
+    case RIG_LEVEL_PBT_OUT:
+    case RIG_LEVEL_KEYSPD:
+    case RIG_LEVEL_NOTCHF:
+    case RIG_LEVEL_COMP:
+    case RIG_LEVEL_BKINDL:
+    case RIG_LEVEL_BALANCE:
+      return -RIG_ENAVAIL;
+    default:
+      rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
+      return -RIG_EINVAL;
+  }
+
+  ack_len = 0;
+  retval = kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+  if (retval != RIG_OK)	return retval;
 
   return RIG_OK;
 }
@@ -212,7 +266,7 @@ const struct rig_caps ts450s_caps = {
 .rig_model =  RIG_MODEL_TS450S,
 .model_name = "TS-450S",
 .mfg_name =  "Kenwood",
-.version =  "0.2.4",
+.version =  "0.2.5",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -323,7 +377,7 @@ const struct rig_caps ts450s_caps = {
 .get_dcd =  kenwood_get_dcd,
 .set_func =  kenwood_set_func,
 .get_func =  kenwood_get_func,
-.set_level =  kenwood_set_level,
+.set_level =  ts450s_set_level,
 .get_level =  ts450s_get_level,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
