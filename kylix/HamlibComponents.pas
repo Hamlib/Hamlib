@@ -393,9 +393,15 @@ procedure TRigComponent.SetFreq(vfo: vfo_t; freq: freq_t);
 var
     retval: integer;
 begin
+    vfo:=1;
+    writeln('vfo=',vfo,' freq=',freq);
     retval := rig_set_freq(FRig, vfo, freq);
     if (retval <> RIG_OK)
-    then raise ERigException.Create('rig_set_freq: ' + StrPas(rigerror(retval)));
+    then
+    begin
+       writeln('Return=',retval);
+       raise ERigException.Create('rig_set_freq: ' + StrPas(rigerror(retval)));
+       end;
 end;
 
 procedure TRigComponent.SetTransceive(trn: integer);
