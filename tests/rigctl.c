@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.35 2002-08-26 21:26:06 fillods Exp $  
+ * $Id: rigctl.c,v 1.36 2002-09-06 10:43:59 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include <getopt.h>
 
@@ -135,7 +136,7 @@ declare_proto_rig(get_info);
  * TODO: add missing rig_set_/rig_get_: [rx]it, ant, sql, dcd, etc.
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
  *
- *	Available letters: -.--------K-----*-----W-YZ
+ *	Available alphabetic letters: -.--------K-----*-----W-YZ
  */
 struct test_table test_list[] = {
 		{ 'F', "set_freq", set_freq, ARG_IN, "Frequency" },
@@ -453,6 +454,20 @@ int main (int argc, char *argv[])
 
 				do {
 					scanf("%c", &cmd);
+
+					/* command by name */
+					if (cmd == '\\') {
+						char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
+						int c_len = MAXNAMSIZ;
+
+						scanf("%c", pcmd);
+						while(c_len-- && (isalnum(*pcmd) || *pcmd == '_' ))
+							scanf("%c", ++pcmd);
+						*pcmd = '\0';
+						cmd = parse_arg(cmd_name);
+						break;
+					}
+
 					if (cmd == 0x0a || cmd == 0x0d) {
 						if (last_was_ret) {
 							printf("? for help, q to quit.\n");
@@ -465,12 +480,12 @@ int main (int argc, char *argv[])
 
 				last_was_ret = 0;
 
+				/* comment line */
 				if (cmd == '#' || cmd == ';') {
 					while( cmd != '\n' && cmd != '\r')
 						scanf("%c", &cmd);
 					continue;
 				}
-
 				if (cmd == 'Q' || cmd == 'q')
 						break;
 				if (cmd == '?') {
