@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: alinco.c,v 1.6 2001-07-13 19:08:14 f4cfe Exp $
+ *		$Id: alinco.c,v 1.7 2001-07-14 16:48:03 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,10 +34,21 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
-#include <serial.h>
-#include <misc.h>
+#if defined(__CYGWIN__)
+#  undef HAMLIB_DLL
+#  include <hamlib/rig.h>
+#  include <serial.h>
+#  include <misc.h>
+#  include <cal.h>
+#  define HAMLIB_DLL
+#  include <hamlib/rig_dll.h>
+#else
+#  include <hamlib/rig.h>
+#  include <serial.h>
+#  include <misc.h>
+#  include <cal.h>
+#endif
+
 #include "alinco.h"
 
 
@@ -589,7 +600,7 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d\n", level);
+			rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
 			return -RIG_EINVAL;
 		}
 
