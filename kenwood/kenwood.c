@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.17 2001-11-09 15:44:38 f4cfe Exp $
+ *		$Id: kenwood.c,v 1.18 2001-12-11 21:58:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@ struct kenwood_id_string {
 /*
  * Identification number as returned by "ID;"
  * Please, if the model number of your rig is listed as UNKNOWN_ID,
- * send the value to <f4cfe@users.sourceforge.net> for inclusion. Thanks --SF
+ * send the value to <fillods@users.sourceforge.net> for inclusion. Thanks --SF
  *
  * TODO: sort this list with most frequent rigs first.
  */
@@ -160,10 +160,23 @@ static int port_transaction(port_t *port, const char *cmd, int cmd_len, char *da
  * Note: right now, kenwood_transaction is a simple call to port_transaction.
  * kenwood_transaction could have been written to accept a port_t instead
  * of RIG, but who knows if we will need some priv stuff in the future?
+ *
+ * It is possible to tell kenwood_transaction no data are expected back,
+ * so it won't return -RIG_ETIMEOUT. To do so, pass *data_len set to 0.
+ * Note: kenwood_transaction cannot just sent the cmd and return
+ * immediately because the rig can return an error code.
+ * FIXME: handle correctly error codes: "?;", "E;", "O;"
  */
 int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	return port_transaction(&rig->state.rigport, cmd, cmd_len, data, data_len);
+	int ret, wanted_data_len;
+
+	wanted_data_len = *data_len;
+
+	ret = port_transaction(&rig->state.rigport, cmd, cmd_len, data, data_len);
+	if (wanted_data_len == 0 && ret == -RIG_ETIMEOUT)
+			ret = RIG_OK;
+	return ret;
 }
 
 /*
@@ -173,7 +186,7 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int 
 int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 {
 		unsigned char cmdbuf[16], ackbuf[16];
-		int ack_len, retval;
+		int ack_len = 0, retval;
 		char vfo_function;
 
 			/*
@@ -203,6 +216,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
 		/* set TX VFO */
 		cmdbuf[1] = 'T';
+		ack_len = 0;
 		retval = kenwood_transaction (rig, cmdbuf, 4, ackbuf, &ack_len);
 
 		return retval;
@@ -249,7 +263,7 @@ int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		unsigned char freqbuf[16], ackbuf[16];
-		int freq_len, ack_len, retval;
+		int freq_len, ack_len = 0, retval;
 		char vfo_letter;
 
 			/*
@@ -314,7 +328,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		if (retval != RIG_OK)
 			return retval;
 
-		sscanf(freqbuf,"%Ld", freq);
+		sscanf(freqbuf+2, "%Ld", freq);
 
 		return RIG_OK;
 }
@@ -326,7 +340,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		unsigned char mdbuf[16],ackbuf[16];
-		int mdbuf_len, ack_len, kmode, retval;
+		int mdbuf_len, ack_len = 0, kmode, retval;
 
 		switch (mode) {
 			case RIG_MODE_CW:       kmode = MD_CW; break;
@@ -612,7 +626,7 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  * Assumes rig!=NULL, rig->caps->ctcss_list != NULL
  *
  * Warning! This is untested stuff! May work at least on TS-870S
- * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
+ * 	Please owners report to me <fillods@users.sourceforge.net>, thanks. --SF
 
  * TODO: TS-2000 uses CN/CT
  */
@@ -620,7 +634,7 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[16], ackbuf[16];
-	int tone_len, ack_len;
+	int tone_len, ack_len = 0;
 	int i;
 								 
 	caps = rig->caps;
@@ -693,7 +707,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len = 0;
 
 		return kenwood_transaction (rig, ptt==RIG_PTT_ON? "TX;":"RX;", 3, 
 						ackbuf, &ack_len);
@@ -731,7 +745,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int kenwood_set_trn(RIG *rig, vfo_t vfo, int trn)
 {
 		unsigned char trnbuf[16], ackbuf[16];
-		int trn_len,ack_len;
+		int trn_len, ack_len = 0;
 
 		trn_len = sprintf(trnbuf,"AI%c;", trn==RIG_TRN_RIG?'1':'0');
 
@@ -768,7 +782,7 @@ int kenwood_get_trn(RIG *rig, vfo_t vfo, int *trn)
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
 		unsigned char pwrbuf[16], ackbuf[16];
-		int pwr_len,ack_len;
+		int pwr_len, ack_len = 0;
 
 		pwr_len = sprintf(pwrbuf,"PS%c;", status==RIG_POWER_ON?'1':'0');
 
@@ -805,7 +819,7 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
 int kenwood_reset(RIG *rig, reset_t reset)
 {
 		unsigned char rstbuf[16], ackbuf[16];
-		int rst_len,ack_len;
+		int rst_len, ack_len = 0;
 		char rst;
 
 		switch(reset) {
@@ -828,7 +842,7 @@ int kenwood_reset(RIG *rig, reset_t reset)
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
 		unsigned char morsebuf[30], ackbuf[16];
-		int morse_len, ack_len;
+		int morse_len, ack_len = 0;
 		int msg_len, buff_len, retval;
 		const char *p;
 
@@ -865,7 +879,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 		unsigned char *cmd, ackbuf[16];
-		int ack_len;
+		int ack_len = 0;
 
 		switch(op) {
 			case RIG_OP_UP: cmd="UP;"; break;
@@ -888,7 +902,7 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 		unsigned char membuf[16], ackbuf[16];
-		int mem_len, ack_len;
+		int mem_len, ack_len = 0;
 
 		/*
 		 * "MCbmm;"
@@ -1040,6 +1054,7 @@ int init_kenwood(void *be_handle)
 		rig_register(&ts570d_caps);
 		rig_register(&ts570s_caps);
 		rig_register(&ts870s_caps);
+		rig_register(&ts2000_caps);
 		rig_register(&thd7a_caps);
 		rig_register(&thf7e_caps);
 

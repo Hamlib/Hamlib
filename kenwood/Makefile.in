@@ -93,7 +93,7 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-TSSRCLIST = ts870s.c ts570.c ts450s.c thd7.c thf7.c
+TSSRCLIST = ts870s.c ts570.c ts450s.c ts2000.c thd7.c thf7.c
 
 lib_LTLIBRARIES = libhamlib-kenwood.la
 libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c th.c
@@ -114,14 +114,14 @@ LIBRARIES = $(lib_LIBRARIES)
 libhamlib_kenwood_a_AR = $(AR) cru
 libhamlib_kenwood_a_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_kenwood_a_OBJECTS = ts870s.$(OBJEXT) ts570.$(OBJEXT) \
-	ts450s.$(OBJEXT) thd7.$(OBJEXT) thf7.$(OBJEXT) \
+	ts450s.$(OBJEXT) ts2000.$(OBJEXT) thd7.$(OBJEXT) thf7.$(OBJEXT) \
 	kenwood.$(OBJEXT) th.$(OBJEXT)
 libhamlib_kenwood_a_OBJECTS = $(am_libhamlib_kenwood_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_kenwood_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_kenwood_la_OBJECTS = ts870s.lo ts570.lo ts450s.lo thd7.lo \
-	thf7.lo kenwood.lo th.lo
+am_libhamlib_kenwood_la_OBJECTS = ts870s.lo ts570.lo ts450s.lo ts2000.lo \
+	thd7.lo thf7.lo kenwood.lo th.lo
 libhamlib_kenwood_la_OBJECTS = $(am_libhamlib_kenwood_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -133,7 +133,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/kenwood.Plo $(DEPDIR)/kenwood.Po \
 @AMDEP_TRUE@	$(DEPDIR)/th.Plo $(DEPDIR)/th.Po $(DEPDIR)/thd7.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/thd7.Po $(DEPDIR)/thf7.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/thf7.Po $(DEPDIR)/ts450s.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/thf7.Po $(DEPDIR)/ts2000.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ts2000.Po $(DEPDIR)/ts450s.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/ts450s.Po $(DEPDIR)/ts570.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/ts570.Po $(DEPDIR)/ts870s.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/ts870s.Po
@@ -240,6 +241,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thd7.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thf7.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thf7.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts2000.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts2000.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts450s.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts450s.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts570.Plo@am__quote@
