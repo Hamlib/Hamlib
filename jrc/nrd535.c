@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-535 DSP description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: nrd535.c,v 1.1 2003-11-16 16:58:35 fillods Exp $
+ *	$Id: nrd535.c,v 1.2 2003-12-08 08:39:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -102,7 +102,7 @@ const struct rig_caps nrd535_caps = {
 .has_get_parm =  RIG_PARM_TIME,
 .has_set_parm =  RIG_PARM_SET(NRD535_PARM),
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-703
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic703.c,v 1.2 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: ic703.c,v 1.3 2003-12-08 08:33:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -111,7 +111,7 @@ const struct rig_caps ic703_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
@@ -129,7 +129,7 @@ const struct rig_caps ic703_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		   {   1,  99, RIG_MTYPE_MEM, IC_MEM_CAP },
+		   {   1,  99, RIG_MTYPE_MEM },
 		   { 100, 105, RIG_MTYPE_EDGE },    /* two by two */
 		   { 106, 107, RIG_MTYPE_CALL },
 		   RIG_CHAN_END,

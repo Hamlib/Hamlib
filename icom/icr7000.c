@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R7000 and IC-R7100 descriptions
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icr7000.c,v 1.7 2003-11-16 17:29:16 fillods Exp $
+ *	$Id: icr7000.c,v 1.8 2003-12-08 08:33:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -199,7 +199,7 @@ const struct rig_caps icr7100_caps = {
 .has_get_parm =  ICR7100_PARMS,
 .has_set_parm =  RIG_PARM_SET(ICR7100_PARMS), 
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan535
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: os535.c,v 1.8 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: os535.c,v 1.9 2003-12-08 08:33:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -92,7 +92,7 @@ const struct rig_caps os535_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  full_ctcss_list,
@@ -154,7 +154,6 @@ const struct rig_caps os535_caps = {
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
 
-.get_level =  icom_get_level,
 .get_dcd =  icom_get_dcd,
 
 .decode_event =  icom_decode_event,

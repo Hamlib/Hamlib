@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.8 2003-11-16 17:24:34 fillods Exp $
+ *	$Id: ic756.c,v 1.9 2003-12-08 08:33:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -115,7 +115,7 @@ const struct rig_caps ic756_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
@@ -258,7 +258,7 @@ const struct rig_caps ic756pro_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
@@ -441,7 +441,7 @@ const struct rig_caps ic756pro2_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .extparms =  ic756pro2_ext_parms,

@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *  Caps submitted by Chuck Gilkes WD0FCL/4
  *
- *	$Id: ic718.c,v 1.6 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: ic718.c,v 1.7 2003-12-08 08:33:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,7 +89,7 @@ const struct rig_caps ic718_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,

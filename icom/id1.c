@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of ID-1 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: id1.c,v 1.1 2003-11-16 16:58:35 fillods Exp $
+ *	$Id: id1.c,v 1.2 2003-12-08 08:33:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -102,7 +102,7 @@ const struct rig_caps id1_caps = {
 .has_get_parm =  ID1_PARM_ALL,
 .has_set_parm =  ID1_PARM_ALL,
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
@@ -120,9 +120,9 @@ const struct rig_caps id1_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		   {   1,  99, RIG_MTYPE_MEM, IC_MEM_CAP },
-		   { 100, 101, RIG_MTYPE_EDGE, IC_MEM_CAP },    /* two by two */
-		   { 102, 104, RIG_MTYPE_CALL, IC_MEM_CAP },
+		   {   1,  99, RIG_MTYPE_MEM },
+		   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+		   { 102, 104, RIG_MTYPE_CALL },
 		   RIG_CHAN_END,
 	},
 

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R75
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.1 2003-11-16 16:58:35 fillods Exp $
+ *	$Id: icr75.c,v 1.2 2003-12-08 08:33:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -116,7 +116,7 @@ const struct rig_caps icr75_caps = {
 .has_get_parm =  RIG_PARM_ANN,
 .has_set_parm =  RIG_PARM_ANN,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,

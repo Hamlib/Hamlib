@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan456
  *  Copyright (c) 2000-2003 by Stephane Fillod and Michael Smith
  *
- *	$Id: os456.c,v 1.9 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: os456.c,v 1.10 2003-12-08 08:33:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -100,7 +100,7 @@ const struct rig_caps os456_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  full_ctcss_list,

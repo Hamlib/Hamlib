@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.7 2003-12-04 20:45:30 f4dwv Exp $
+ *	$Id: thg71.c,v 1.8 2003-12-08 08:36:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -117,8 +117,8 @@ const struct rig_caps thg71_caps = {
 .has_get_level =  THG71_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(THG71_LEVEL_ALL),
 .level_gran = {
-        [LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 5,
-        [LVL_SQL].min.i = 0, [LVL_RAWSTR].max.i = 5,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
+	[LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
 },
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,

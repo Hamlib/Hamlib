@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R8500 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icr8500.c,v 1.18 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: icr8500.c,v 1.19 2003-12-08 08:33:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,7 +77,7 @@ const struct rig_caps icr8500_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,	/* FIXME: CTCSS/DCS list */

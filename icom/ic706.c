@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-706 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.34 2003-12-04 23:23:29 fillods Exp $
+ *	$Id: ic706.c,v 1.35 2003-12-08 08:33:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -421,7 +421,7 @@ const struct rig_caps ic706mkiig_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,

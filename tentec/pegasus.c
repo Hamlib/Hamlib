@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-550 PC-Radio description
  *  Copyright (c) 2002-2003 by Stephane Fillod
  *
- *	$Id: pegasus.c,v 1.4 2003-11-16 17:14:44 fillods Exp $
+ *	$Id: pegasus.c,v 1.5 2003-12-08 08:38:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -90,7 +90,7 @@ const struct rig_caps tt550_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 99999,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 99999 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,

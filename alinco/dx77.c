@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - DX77 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.8 2003-11-16 17:14:42 fillods Exp $
+ *	$Id: dx77.c,v 1.9 2003-12-08 08:37:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -104,7 +104,7 @@ const struct rig_caps dx77_caps = {
 .has_get_parm =  DX77_PARM_ALL,
 .has_set_parm =  RIG_PARM_SET(DX77_PARM_ALL),
 .level_gran = {
-	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
