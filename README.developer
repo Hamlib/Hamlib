@@ -136,7 +136,7 @@ version or you won't even be able to build from the cvs checkout.
 
 * Gnu C or any C99 compliant compiler		# gcc --version
 * Gnu make  (or any modern one, BSD okay)	# make --version
-* autoconf		 2.50			# autoconf --version
+* autoconf		 2.54			# autoconf --version
 * automake		 1.5			# automake --version
 * libtool		 1.4.2			# libtool --version
 * cvs and ssh for connection to cvs.hamlib.sourceforge.net
@@ -306,8 +306,12 @@ like this. The error checking is removed for simplicity.
    Starting point: kontakt, grig
 
 8. Coding guidelines
-   Your code must be LGPL.
-   
+   Contributed code to the Hamlib frontend must be released under the LGPL.
+   Contributed code to Hamlib backends must be follow backend current license.
+   Needless to say, the LGPL is the license of choice.
+   End user applications like rigctl, rotctl and RPC daemons should be released
+   under the GPL, so any contributed code must follow the rule.
+
 
 Stephane Fillod f8cfe
 Frank Singleton vk3fcs/km5ws
