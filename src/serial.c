@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.20 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: serial.c,v 1.21 2001-12-27 22:00:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -338,56 +338,6 @@ int serial_open(port_t *rp) {
 }
 
 
-
-
-/*
- * Read "num" bytes from "fd" and put results into
- * an array of unsigned char pointed to by "rxbuffer"
- * 
- * Sleeps read_delay milliseconds until number of bytes to read
- * is the amount requested.
- *
- * It then reads "num" bytes into rxbuffer.
- *
- * input:
- * fd - file descriptor
- * rxbuffer - ptr to rx buffer
- * num - number of bytes to read
- * read_delay - number of msec between read attempts
- *
- * returns:
- *
- * n - numbers of bytes read
- *
- */
-
-/* please, use read_block instead, and forget about non-portable FIONREAD */
-#ifdef WANT_DEPRECATED_READSLEEP
-
-int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {  
-  int bytes = 0;
-  int n = 0;
-
-  rig_debug(RIG_DEBUG_ERR,"serial:read_sleep called with num = %i \n",num);
-
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    rig_debug(RIG_DEBUG_TRACE,"bytes  = %i\n", bytes);
-    if (bytes == num)
-      break;
-    usleep(read_delay*1000);	/* sleep read_delay msecs */
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,rxbuffer,num);	/* grab num bytes from rig */
-
-  dump_hex(rxbuffer,num);
-  return n;			/* return bytes read */
-}
-
-#endif	/* WANT_DEPRECATED_READSLEEP */
-
 /*
  * Write a block of count characters to file descriptor,
  * with a pause between each character if write_delay is > 0
@@ -586,8 +536,10 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
 
 		retval = select(fd+1, &rfds, NULL, NULL, &tv);
 		if (retval == 0) {
+#if 0
 			rig_debug(RIG_DEBUG_WARN, "fread_block: timedout after %d chars\n",
 							total_count);
+#endif
 				return -RIG_ETIMEOUT;
 		}
 		if (retval < 0) {
