@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.26 2003-12-01 20:54:04 fillods Exp $  
+ * $Id: ft847.c,v 1.27 2004-02-16 21:38:59 fillods Exp $  
  *
  *
  *
@@ -583,7 +583,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 }
 
 /*
- * Note taken from http://my.en.com/~rayd/ft-847/FAQ/page4.htm#pollingcodes
+ * Note taken from http://www.supercontrol.de/cat/ft847faq/page4.htm#pollingcodes
  * The FT-847, as originally delivered, could not poll the radio for frequency
  * and mode information. This was added beginning with the 8G05 production
  * runs. The Operating Manual does not show the codes for polling the radio.
