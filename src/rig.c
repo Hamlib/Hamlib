@@ -1,22 +1,33 @@
-/* hamlib - Ham Radio Control Libraries
-   Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
-   This file is part of the hamlib package.
+/**
+ * \file src/rig.c
+ * \brief Ham Radio Control Libraries interface
+ * \author Stephane Fillod
+ * \author Frank Singleton
+ * \date 2000-2001
+ *
+ * Hamlib interface is a frontend implementing wrapper functions.
+ */
 
-   $Id: rig.c,v 1.38 2001-06-27 17:32:47 f4cfe Exp $
-
-   Hamlib is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
-
-   Hamlib is distributed in the hope that it will be useful, but WITHOUT
-   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-   License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with sane; see the file COPYING.  If not, write to the Free
-   Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+/*
+ *  Hamlib Interface - main file
+ *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *
+ *		$Id: rig.c,v 1.39 2001-06-30 12:36:43 f4cfe Exp $
+ *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -37,15 +48,16 @@
 #include <serial.h>
 #include "event.h"
 
-/*
- * Hamlib version. Should we include copyright here too?
+/**
+ * \brief Hamlib release number
+ * \todo Should we include copyright here too?
  */
 const char hamlib_version[] = "Hamlib version " VERSION;
 
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 
-/*
+/**
  * 52 CTCSS sub-audible tones
  */
 const tone_t full_ctcss_list[] = {
@@ -57,9 +69,10 @@ const tone_t full_ctcss_list[] = {
 		0,
 };
 
-/*
+/**
  * 50 CTCSS sub-audible tones, from 67.0Hz to 254.1Hz
- * Don't even think about changing a bit of this array, several
+ *
+ * \note Don't even think about changing a bit of this array, several
  * backends depend on it. If you need to, create a copy for your 
  * own caps. --SF
  */
@@ -72,7 +85,7 @@ const tone_t common_ctcss_list[] = {
 		0,
 };
 
-/*
+/**
  * 106 DCS codes
  */
 const tone_t full_dcs_list[] = {
@@ -118,20 +131,20 @@ static const char *rigerror_table[] = {
 		"Target VFO unaccessible",
 		NULL,
 };
+/**
+ * \internal
+ */
 #define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
 /**
- *      rigerror - return string describing error code
- *      @errnum:   The error code
+ * \brief get string describing the error code
+ * \param errnum	The error code
+ * \return the appropriate description string, ortherwise a NULL pointer 
+ * if the error code is unknown.
  *
- * 		The rigerror() function returns a string describing the
- *      error code passed in the argument @errnum.
+ * Returns a string describing the error code passed in the argument \a errnum.
  *
- *		RETURN VALUE: The  rigerror() function returns the appropriate
- *		description string, or a NULL pointer if the error 
- *		code is unknown.
- *
- *      TODO: check table bounds, support gettext
+ * \todo support gettext/localization
  */
 const char *rigerror(int errnum)
 {
@@ -178,22 +191,22 @@ static int remove_opened_rig(RIG *rig)
 }
 
 /**
- *      foreach_opened_rig - execs cfunc() on each opened rig
- *      @cfunc:	The function to be executed on each rig
- *      @data:	Data pointer to be passed to cfunc() 
+ * \brief execs cfunc() on each opened rig
+ * \param cfunc	The function to be executed on each rig
+ * \param data	Data pointer to be passed to cfunc() 
  *
- *      The foreach_opened_rig() function calls cfunc() function
- *      for each opened rig. The contents of the opened rig table
- *      is processed in random order according to a function
- *      pointed to by @cfunc, whic is called with two arguments,
- *      the first pointing to the &RIG handle, the second
- *      to a data pointer @data.
- *      If @data is not needed, then it can be set to %NULL.
- *      The processing of the opened rig table is stopped
- *      when cfunc() returns 0.
+ *  Calls cfunc() function for each opened rig. 
+ *  The contents of the opened rig table
+ *  is processed in random order according to a function
+ *  pointed to by \a cfunc, whic is called with two arguments,
+ *  the first pointing to the #RIG handle, the second
+ *  to a data pointer \a data.
+ *  If \a data is not needed, then it can be set to NULL.
+ *  The processing of the opened rig table is stopped
+ *  when cfunc() returns 0.
+ * \internal
  *
- *      RETURN VALUE: The foreach_opened_rig() function always returns
- *		%RIG_OK.
+ * \return always RIG_OK.
  */
 
 int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
@@ -208,18 +221,16 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 }
 
 /**
- *      rig_init - allocate a new &RIG handle
- *      @rig_model:	The rig model for this new handle
- *      @data:	Data pointer to be passed to cfunc() 
+ * \brief allocate a new #RIG handle
+ * \param rig_model	The rig model for this new handle
  *
- *      The rig_init() function allocates a new &RIG handle and
- *      initialize the associated data for @rig_model.
+ * Allocates a new #RIG handle and initializes the associated data 
+ * for \a rig_model.
  *
- *      RETURN VALUE: The rig_init() function returns a pointer
- *      to the &RIG handle or %NULL if memory allocation failed
- *      or @rig_model is unknown.
+ * \return a pointer to the #RIG handle otherwise NULL if memory allocation
+ * failed or \a rig_model is unknown (e.g. backend autoload failed).
  *
- *      SEE ALSO: rig_cleanup(), rig_open()
+ * \sa rig_cleanup(), rig_open()
  */
 
 RIG *rig_init(rig_model_t rig_model)
@@ -340,20 +351,20 @@ RIG *rig_init(rig_model_t rig_model)
 }
 
 /**
- *      rig_open - open the communication to the rig
- *      @rig:	The &RIG handle of the radio to be opened
+ * \brief open the communication to the rig
+ * \param rig	The #RIG handle of the radio to be opened
  *
- *      The rig_open() function opens communication to a radio
- *      which &RIG handle has been passed by argument.
+ * Opens communication to a radio which \a RIG handle has been passed
+ * by argument.
  *
- *      RETURN VALUE: The rig_open() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      ERRORS: %RIG_EINVAL	@rig is %NULL or unconsistent.
- *      		%RIG_ENIMPL	port type communication is not implemented yet.
+ * \retval RIG_EINVAL	\a rig is NULL or unconsistent.
+ * \retval RIG_ENIMPL	port type communication is not implemented yet.
  *
- *      SEE ALSO: rig_close()
+ * \sa rig_init(), rig_close()
  */
 
 int rig_open(RIG *rig)
@@ -459,9 +470,20 @@ int rig_open(RIG *rig)
 		return RIG_OK;
 }
 
-/*
- * Close port
+/**
+ * \brief close the communication to the rig
+ * \param rig	The #RIG handle of the radio to be closed
+ *
+ * Closes communication to a radio which \a RIG handle has been passed
+ * by argument that was previously open with rig_open().
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_cleanup(), rig_open()
  */
+
 int rig_close(RIG *rig)
 {
 		const struct rig_caps *caps;
@@ -540,9 +562,20 @@ int rig_close(RIG *rig)
 		return RIG_OK;
 }
 
-/*
- * Release a rig struct which port has already been closed
+/**
+ * \brief release a rig handle and free associated memory
+ * \param rig	The #RIG handle of the radio to be closed
+ *
+ * Releases a rig struct which port has eventualy been closed already 
+ * with rig_close().
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_init(), rig_close()
  */
+
 int rig_cleanup(RIG *rig)
 {
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_cleanup called \n");
@@ -563,18 +596,18 @@ int rig_cleanup(RIG *rig)
 
 
 /**
- *      rig_set_freq - set the frequency of the current VFO
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @freq:	The frequency to set to
+ * \brief set the frequency of the target VFO
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param freq	The frequency to set to
  *
- *      The rig_set_freq() function sets the frequency of the current VFO.
+ * Sets the frequency of the target VFO.
  *
- *      RETURN VALUE: The rig_set_freq() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_freq()
+ * \sa rig_get_freq()
  */
 
 int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -611,20 +644,20 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 }
 
 /**
- *      rig_get_freq - get the frequency of the current VFO
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @freq:	The location where to store the current frequency
+ * \brief get the frequency of the target VFO
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param freq	The location where to store the current frequency
  *
- *      The rig_get_freq() function retrieves the frequency of the current VFO.
- *	The value stored at @freq location equals %RIG_FREQ_NONE when the current
+ *  Retrieves the frequency of the target VFO.
+ *	The value stored at \a freq location equals RIG_FREQ_NONE when the current
  *	frequency of the VFO is not defined (e.g. blank memory).
  *
- *      RETURN VALUE: The rig_get_freq() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_freq()
+ * \sa rig_set_freq()
  */
 
 int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -662,21 +695,20 @@ int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 
 /**
- *      rig_set_mode - set the mode of the current VFO
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @mode:	The mode to set to
- *      @width:	The passband width to set to
+ * \brief set the mode of the target VFO
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param mode	The mode to set to
+ * \param width	The passband width to set to
  *
- *      The rig_set_mode() function sets the mode of the current VFO.
- *      As a begining, the backend is free to ignore the @width argument,
- *      assuming the default passband width.
+ * Sets the mode and associated passband of the target VFO.
+ * The passband \a width must be supported by the backend of the rig.
  *
- *      RETURN VALUE: The rig_set_mode() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_mode()
+ * \sa rig_get_mode()
  */
 
 int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
@@ -710,23 +742,23 @@ int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 }
 
 /**
- *      rig_get_mode - get the mode of the current VFO
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @mode:	The location where to store the current mode
- *      @width:	The location where to store the current passband width
+ * \brief get the mode of the target VFO
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param mode	The location where to store the current mode
+ * \param width	The location where to store the current passband width
  *
- *      The rig_get_mode() function retrieves the mode of the current VFO.
- *      If the backend is unable to determine the width, it must
- *      return %RIG_PASSBAND_NORMAL as a default.
- *	The value stored at @mode location equals %RIG_MODE_NONE when the current
+ *  Retrieves the mode and passband of the target VFO.
+ *  If the backend is unable to determine the width, the \a width
+ *  will be set to RIG_PASSBAND_NORMAL as a default.
+ *	The value stored at \a mode location equals RIG_MODE_NONE when the current
  *	mode of the VFO is not defined (e.g. blank memory).
  *
- *      RETURN VALUE: The rig_get_mode() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_mode()
+ * \sa rig_set_mode()
  */
 
 int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
@@ -760,18 +792,16 @@ int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 /**
- *      rig_passband_normal - get the normal passband of a mode
- *      @rig:	The rig handle
- *      @mode:	The mode to get the passband
+ * \brief get the normal passband of a mode
+ * \param rig	The rig handle
+ * \param mode	The mode to get the passband
  *
- *      The rig_passband_normal() function returns the normal (default)
- *      passband for the given the @mode.
+ *  Returns the normal (default) passband for the given \a mode.
  *
- *      RETURN VALUE: The rig_passband_normal() function returns 
- *      the passband in Hz if the operation has been sucessful,
- *      or a 0 if an error occured (passband not found, whatever).
+ * \return the passband in Hz if the operation has been sucessful,
+ * or a 0 if an error occured (passband not found, whatever).
  *
- *      SEE ALSO: rig_passband_narrow(), rig_passband_wide()
+ * \sa rig_passband_narrow(), rig_passband_wide()
  */
 
 pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode)
@@ -794,21 +824,18 @@ pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode)
 }
 
 /**
- *      rig_passband_narrow - get the narrow passband of a mode
- *      @rig:	The rig handle
- *      @mode:	The mode to get the passband
+ * \brief get the narrow passband of a mode
+ * \param rig	The rig handle
+ * \param mode	The mode to get the passband
  *
- *      The rig_passband_narrow() function returns the narrow (closest)
- *      passband for the given the @mode.
- *
- *		EXAMPLE: rig_set_mode(my_rig, RIG_MODE_LSB, 
+ *  Returns the narrow (closest) passband for the given \a mode.
+ *	EXAMPLE: rig_set_mode(my_rig, RIG_MODE_LSB, 
  *				 			rig_passband_narrow(my_rig, RIG_MODE_LSB) );
  *
- *      RETURN VALUE: The rig_passband_narrow() function returns 
- *      the passband in Hz if the operation has been sucessful,
- *      or a 0 if an error occured (passband not found, whatever).
+ * \return the passband in Hz if the operation has been sucessful,
+ * or a 0 if an error occured (passband not found, whatever).
  *
- *      SEE ALSO: rig_passband_normal(), rig_passband_wide()
+ * \sa rig_passband_normal(), rig_passband_wide()
  */
 
 pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode)
@@ -839,21 +866,18 @@ pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode)
 }
 
 /**
- *      rig_passband_wide - get the wide passband of a mode
- *      @rig:	The rig handle
- *      @mode:	The mode to get the passband
+ * \brief get the wide passband of a mode
+ * \param rig	The rig handle
+ * \param mode	The mode to get the passband
  *
- *      The rig_passband_wide() function returns the wide (default)
- *      passband for the given the @mode.
- *
- *		EXAMPLE: rig_set_mode(my_rig, RIG_MODE_AM, 
+ *  Returns the wide (default) passband for the given \a mode.
+ *	EXAMPLE: rig_set_mode(my_rig, RIG_MODE_AM, 
  *				 			rig_passband_wide(my_rig, RIG_MODE_AM) );
  *
- *      RETURN VALUE: The rig_passband_wide() function returns 
- *      the passband in Hz if the operation has been sucessful,
- *      or a 0 if an error occured (passband not found, whatever).
+ * \return the passband in Hz if the operation has been sucessful,
+ * or a 0 if an error occured (passband not found, whatever).
  *
- *      SEE ALSO: rig_passband_narrow(), rig_passband_normal()
+ * \sa rig_passband_narrow(), rig_passband_normal()
  */
 
 pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode)
@@ -884,20 +908,19 @@ pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode)
 }
 
 /**
- *      rig_set_vfo - set the current VFO
- *      @rig:	The rig handle
- *      @vfo:	The VFO to set to
+ * \brief set the current VFO
+ * \param rig	The rig handle
+ * \param vfo	The VFO to set to
  *
- *      The rig_set_vfo() function sets the current VFO. The VFO can
- *      be %RIG_VFO_A, %RIG_VFO_B, %RIG_VFO_C for VFOA, VFOB, VFOC
- *      respectively or %RIG_VFO_MEM for Memory mode.
- *      Supported VFOs depends on rig capabilities.
+ *  Sets the current VFO. The VFO can be RIG_VFO_A, RIG_VFO_B, RIG_VFO_C 
+ *  for VFOA, VFOB, VFOC respectively or RIG_VFO_MEM for Memory mode.
+ *  Supported VFOs depends on rig capabilities.
  *
- *      RETURN VALUE: The rig_set_vfo() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_vfo()
+ * \sa rig_get_vfo()
  */
 
 int rig_set_vfo(RIG *rig, vfo_t vfo)
@@ -920,20 +943,19 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
 }
 
 /**
- *      rig_get_vfo - get the current VFO
- *      @rig:	The rig handle
- *      @vfo:	The location where to store the current VFO
+ * \brief get the current VFO
+ * \param rig	The rig handle
+ * \param vfo	The location where to store the current VFO
  *
- *      The rig_get_vfo() function retrieves the current VFO. The VFO can
- *      be %RIG_VFO_A, %RIG_VFO_B, %RIG_VFO_C for VFOA, VFOB, VFOC
- *      respectively or %RIG_VFO_MEM for Memory mode.
- *      Supported VFOs depends on rig capabilities.
+ *  Retrieves the current VFO. The VFO can be RIG_VFO_A, RIG_VFO_B, RIG_VFO_C 
+ *  for VFOA, VFOB, VFOC respectively or RIG_VFO_MEM for Memory mode.
+ *  Supported VFOs depends on rig capabilities.
  *
- *      RETURN VALUE: The rig_get_vfo() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_vfo()
+ * \sa rig_set_vfo()
  */
 
 int rig_get_vfo(RIG *rig, vfo_t *vfo)
@@ -956,18 +978,18 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
 }
 
 /**
- *      rig_set_ptt - set PTT on/off
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ptt:	The PTT status to set to
+ * \brief set PTT on/off
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ptt	The PTT status to set to
  *
- *      The rig_set_ptt() function sets "Push-To-Talk" on/off.
+ *  Sets "Push-To-Talk" on/off.
  *
- *      RETURN VALUE: The rig_set_ptt() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_ptt()
+ * \sa rig_get_ptt()
  */
 int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
@@ -1020,19 +1042,18 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 }
 
 /**
- *      rig_get_ptt - get the status of the PTT
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ptt:	The location where to store the status of the PTT
+ * \brief get the status of the PTT
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ptt	The location where to store the status of the PTT
  *
- *      The rig_get_ptt() function retrieves the status of PTT (are we
- *      on the air?).
+ *  Retrieves the status of PTT (are we on the air?).
  *
- *      RETURN VALUE: The rig_get_ptt() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_ptt()
+ * \sa rig_set_ptt()
  */
 int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {	
@@ -1086,17 +1107,16 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 }
 
 /**
- *      rig_get_dcd - get the status of the DCD
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @dcd:	The location where to store the status of the DCD
+ * \brief get the status of the DCD
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param dcd	The location where to store the status of the DCD
  *
- *      The rig_get_dcd() function retrieves the status of DCD (is squelch
- *	open?).
+ *  Retrieves the status of DCD (is squelch open?).
  *
- *      RETURN VALUE: The rig_get_dcd() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
  */
 int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
@@ -1152,18 +1172,18 @@ int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 
 /**
- *      rig_set_rptr_shift - set the repeater shift
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @rptr_shift:	The repeater shift to set to
+ * \brief set the repeater shift
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param rptr_shift	The repeater shift to set to
  *
- *      The rig_set_rptr_shift() function sets the current repeater shift.
+ *  Sets the current repeater shift.
  *
- *      RETURN VALUE: The rig_rptr_shift() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_rptr_shift()
+ * \sa rig_get_rptr_shift()
  */
 int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
@@ -1196,18 +1216,18 @@ int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 }
 
 /**
- *      rig_get_rptr_shift - get the current repeater shift
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @rptr_shift:	The location where to store the current repeater shift
+ * \brief get the current repeater shift
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param rptr_shift	The location where to store the current repeater shift
  *
- *      The rig_get_rptr_shift() function retrieves the current repeater shift.
+ *  Retrieves the current repeater shift.
  *
- *      RETURN VALUE: The rig_get_rptr_shift() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_rptr_shift()
+ * \sa rig_set_rptr_shift()
  */
 int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
@@ -1240,18 +1260,18 @@ int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 }
 
 /**
- *      rig_set_rptr_offs - set the repeater offset
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @rptr_offs:	The VFO to set to
+ * \brief set the repeater offset
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param rptr_offs	The VFO to set to
  *
- *      The rig_set_rptr_offs() function sets the current repeater offset.
+ *  Sets the current repeater offset.
  *
- *      RETURN VALUE: The rig_set_rptr_offs() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_rptr_offs()
+ * \sa rig_get_rptr_offs()
  */
 
 int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
@@ -1285,18 +1305,18 @@ int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 }
 
 /**
- *      rig_get_rptr_offs - get the current repeater offset
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @rptr_offs:	The location where to store the current repeater offset
+ * \brief get the current repeater offset
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param rptr_offs	The location where to store the current repeater offset
  *
- *      The rig_get_rptr_offs() function retrieves the current repeater offset.
+ *  Retrieves the current repeater offset.
  *
- *      RETURN VALUE: The rig_get_rptr_offs() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_rptr_offs()
+ * \sa rig_set_rptr_offs()
  */
 
 int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
@@ -1331,18 +1351,18 @@ int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 
 
 /**
- *      rig_set_split_freq - set the split frequencies
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tx_freq:	The transmit split frequency to set to
+ * \brief set the split frequencies
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_freq	The transmit split frequency to set to
  *
- *      The rig_set_split_freq() function sets the split frequencies.
+ *  Sets the split frequencies.
  *
- *      RETURN VALUE: The rig_set_split_freq() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_split_freq()
+ * \sa rig_get_split_freq()
  */
 
 int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
@@ -1376,19 +1396,18 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 }
 
 /**
- *      rig_get_split_freq - get the current split frequencies
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tx_freq:	The location where to store the current transmit split frequency
+ * \brief get the current split frequencies
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_freq	The location where to store the current transmit split frequency
  *
- *      The rig_get_split_freq() function retrieves the current split
- *      frequencies.
+ *  Retrieves the current split frequencies.
  *
- *      RETURN VALUE: The rig_get_split_freq() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_split_freq()
+ * \sa rig_set_split_freq()
  */
 int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
@@ -1421,19 +1440,19 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 }
 
 /**
- *      rig_set_split_mode - set the split modes
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tx_mode:	The transmit split mode to set to
- *      @tx_width:	The transmit split width to set to
+ * \brief set the split modes
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_mode	The transmit split mode to set to
+ * \param tx_width	The transmit split width to set to
  *
- *      The rig_set_split_mode() function sets the split mode.
+ *  Sets the split mode.
  *
- *      RETURN VALUE: The rig_set_split_mode() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_split_mode()
+ * \sa rig_get_split_mode()
  */
 
 int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
@@ -1467,20 +1486,19 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 }
 
 /**
- *      rig_get_split_mode - get the current split modes
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tx_mode:	The location where to store the current transmit split mode
- *      @tx_width:	The location where to store the current transmit split width
+ * \brief get the current split modes
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tx_mode	The location where to store the current transmit split mode
+ * \param tx_width	The location where to store the current transmit split width
  *
- *      The rig_get_split_mode() function retrieves the current split
- *      mode.
+ *  Retrieves the current split mode.
  *
- *      RETURN VALUE: The rig_get_split_mode() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_split_mode()
+ * \sa rig_set_split_mode()
  */
 int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
@@ -1514,18 +1532,18 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_widt
 
 
 /**
- *      rig_set_split - set the split mode
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @split:	The split mode to set to
+ * \brief set the split mode
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param split	The split mode to set to
  *
- *      The rig_set_split() function sets the current split mode.
+ *  Sets the current split mode.
  *
- *      RETURN VALUE: The rig_set_split() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_split()
+ * \sa rig_get_split()
  */
 int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
@@ -1558,18 +1576,18 @@ int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
 }
 
 /**
- *      rig_get_split - get the current split mode
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @split:	The location where to store the current split mode
+ * \brief get the current split mode
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param split	The location where to store the current split mode
  *
- *      The rig_get_split() function retrieves the current split mode.
+ *  Retrieves the current split mode.
  *
- *      RETURN VALUE: The rig_get_split() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_split()
+ * \sa rig_set_split()
  */
 int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
@@ -1602,19 +1620,18 @@ int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 }
 
 /**
- *      rig_set_rit - set the RIT
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @rit:	The RIT offset to adjust to
+ * \brief set the RIT
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param rit	The RIT offset to adjust to
  *
- *      The rig_set_rit() function sets the current RIT offset.
- *      A value of 0 for @rit disables RIT.
+ *  Sets the current RIT offset. A value of 0 for \a rit disables RIT.
  *
- *      RETURN VALUE: The rig_set_rit() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_rit()
+ * \sa rig_get_rit()
  */
 
 int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
@@ -1648,18 +1665,18 @@ int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 }
 
 /**
- *      rig_get_rit - get the current RIT offset
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @rit:	The location where to store the current RIT offset
+ * \brief get the current RIT offset
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param rit	The location where to store the current RIT offset
  *
- *      The rig_get_rit() function retrieves the current RIT offset.
+ *  Retrieves the current RIT offset.
  *
- *      RETURN VALUE: The rig_get_rit() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_rit()
+ * \sa rig_set_rit()
  */
 
 int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
@@ -1693,19 +1710,18 @@ int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 }
 
 /**
- *      rig_set_xit - set the XIT
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @xit:	The XIT offset to adjust to
+ * \brief set the XIT
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param xit	The XIT offset to adjust to
  *
- *      The rig_set_xit() function sets the current XIT offset.
- *      A value of 0 for @xit disables XIT.
+ *  Sets the current XIT offset. A value of 0 for \a xit disables XIT.
  *
- *      RETURN VALUE: The rig_set_xit() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_xit()
+ * \sa rig_get_xit()
  */
 
 int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
@@ -1739,18 +1755,18 @@ int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 }
 
 /**
- *      rig_get_xit - get the current XIT offset
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @xit:	The location where to store the current XIT offset
+ * \brief get the current XIT offset
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param xit	The location where to store the current XIT offset
  *
- *      The rig_get_xit() function retrieves the current XIT offset.
+ *  Retrieves the current XIT offset.
  *
- *      RETURN VALUE: The rig_get_xit() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_xit()
+ * \sa rig_set_xit()
  */
 
 int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
@@ -1786,18 +1802,18 @@ int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
 
 /**
- *      rig_set_ts - set the Tuning Step
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ts:	The tuning step to set to
+ * \brief set the Tuning Step
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ts	The tuning step to set to
  *
- *      The rig_set_rs() function sets the Tuning Step.
+ *  Sets the Tuning Step.
  *
- *      RETURN VALUE: The rig_set_ts() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_ts()
+ * \sa rig_get_ts()
  */
 
 int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
@@ -1831,18 +1847,18 @@ int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 }
 
 /**
- *      rig_get_ts - get the current Tuning Step
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ts:	The location where to store the current tuning step
+ * \brief get the current Tuning Step
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ts	The location where to store the current tuning step
  *
- *      The rig_get_ts() function retrieves the current tuning step.
+ *  Retrieves the current tuning step.
  *
- *      RETURN VALUE: The rig_get_ts() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_ts()
+ * \sa rig_set_ts()
  */
 
 int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
@@ -1875,71 +1891,19 @@ int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		return retcode;
 }
 
-#if 0
 /**
- *      rig_set_ann - set the announce level
- *      @rig:	The rig handle
- *      @ann:	The announce level
+ * \brief set the antenna
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ant	The anntena to select
  *
- *      The rig_set_ann() function sets the current announce level.
+ *  Sets the current antenna.
  *
- *      RETURN VALUE: The rig_set_ann() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_ann()
- */
-
-int rig_set_ann(RIG *rig, ann_t ann)
-{
-		if (!rig || !rig->caps)
-			return -RIG_EINVAL;
-
-		if (rig->caps->set_ann == NULL)
-			return -RIG_ENAVAIL;
-
-		return rig->caps->set_ann(rig, ann);
-}
-
-/**
- *      rig_get_ann - get the current announce level
- *      @rig:	The rig handle
- *      @ann:	The location where to store the current announce level
- *
- *      The rig_get_ann() function retrieves the current announce level.
- *
- *      RETURN VALUE: The rig_get_ann() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
- *
- *      SEE ALSO: rig_set_ann()
- */
-
-int rig_get_ann(RIG *rig, ann_t *ann)
-{
-		if (!rig || !rig->caps || !ann)
-			return -RIG_EINVAL;
-
-		if (rig->caps->get_ann == NULL)
-			return -RIG_ENAVAIL;
-
-		return rig->caps->get_ann(rig, ann);
-}
-#endif
-
-/**
- *      rig_set_ant - set the antenna
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ant:	The anntena to select
- *
- *      The rig_set_ant() function sets the current antenna.
- *
- *      RETURN VALUE: The rig_set_ant() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
- *
- *      SEE ALSO: rig_get_ant()
+ * \sa rig_get_ant()
  */
 
 int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
@@ -1973,18 +1937,18 @@ int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 }
 
 /**
- *      rig_get_ant - get the current antenna
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ant:	The location where to store the current antenna
+ * \brief get the current antenna
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ant	The location where to store the current antenna
  *
- *      The rig_get_ant() function retrieves the current antenna.
+ *  Retrieves the current antenna.
  *
- *      RETURN VALUE: The rig_get_ant() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_ant()
+ * \sa rig_set_ant()
  */
 
 int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
@@ -2020,25 +1984,24 @@ int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 
 
 /**
- *      rig_power2mW - conversion utility from relative range to absolute in mW
- *      @rig:	The rig handle
- *      @mwpower:	The location where to store the converted power in mW
- *      @power:	The relative power
- *      @freq:	The frequency where the conversion should take place
- *      @mode:	The mode where the conversion should take place
+ * \brief conversion utility from relative range to absolute in mW
+ * \param rig	The rig handle
+ * \param mwpower	The location where to store the converted power in mW
+ * \param power	The relative power
+ * \param freq	The frequency where the conversion should take place
+ * \param mode	The mode where the conversion should take place
  *
- *      The rig_power2mW() function converts a power value expressed in
- *      a range on a [0.0 .. 1.0] relative scale to the real transmit power
- *      in milli Watts the radio would emit.
- *      The @freq and @mode where the conversion should take place must be
- *      also provided since the relative power is peculiar to a specific
- *      freq and mode range of the radio.
+ *  Converts a power value expressed in a range on a [0.0 .. 1.0] relative 
+ *  scale to the real transmit power in milli Watts the radio would emit.
+ *  The \a freq and \a mode where the conversion should take place must be
+ *  also provided since the relative power is peculiar to a specific
+ *  freq and mode range of the radio.
  *
- *      RETURN VALUE: The rig_power2mW() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_mW2power()
+ * \sa rig_mW2power()
  */
 int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
 {
@@ -2062,25 +2025,24 @@ int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmod
 }
 
 /**
- *      rig_mW2power - conversion utility from absolute in mW to relative range
- *      @rig:	The rig handle
- *      @power:	The location where to store the converted relative power
- *      @mwpower:	The power in mW
- *      @freq:	The frequency where the conversion should take place
- *      @mode:	The mode where the conversion should take place
+ * \brief conversion utility from absolute in mW to relative range
+ * \param rig	The rig handle
+ * \param power	The location where to store the converted relative power
+ * \param mwpower	The power in mW
+ * \param freq	The frequency where the conversion should take place
+ * \param mode	The mode where the conversion should take place
  *
- *      The rig_mW2power() function converts a power value expressed in
- *      the real transmit power in milli Watts the radio would emit to
- *      a range on a [0.0 .. 1.0] relative scale.
- *      The @freq and @mode where the conversion should take place must be
- *      also provided since the relative power is peculiar to a specific
- *      freq and mode range of the radio.
+ * Converts a power value expressed in the real transmit power in milli Watts
+ * the radio would emit to a range on a [0.0 .. 1.0] relative scale.
+ * The \a freq and \a mode where the conversion should take place must be
+ * also provided since the relative power is peculiar to a specific
+ * freq and mode range of the radio.
  *
- *      RETURN VALUE: The rig_mW2power() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_power2mW()
+ * \sa rig_power2mW()
  */
 int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
 {
@@ -2110,16 +2072,14 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmod
 }
 
 /**
- *      rig_get_resolution - get the best frequency resolution of the rig
- *      @rig:	The rig handle
- *      @mode:	The mode where the conversion should take place
+ * \brief get the best frequency resolution of the rig
+ * \param rig	The rig handle
+ * \param mode	The mode where the conversion should take place
  *
- *      The rig_get_resolution() function returns the best frequency
- *      resolution of the rig, for a given @mode.
+ *  Returns the best frequency resolution of the rig, for a given \a mode.
  *
- *      RETURN VALUE: The rig_get_resolution() function returns the
- *      frequency resolution in Hertz if the operation has been sucessful,
- *      or a negative value if an error occured.
+ * \return the frequency resolution in Hertz if the operation h
+ * has been sucessful, otherwise a negative value if an error occured.
  *
  */
 shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode)
@@ -2141,23 +2101,23 @@ shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode)
 }
 
 /**
- *      rig_set_ctcss - set CTCSS
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tone:	The tone to set to
+ * \brief set CTCSS
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tone	The tone to set to
  *
- *      The rig_set_ctcss() function sets the current Continuous Tone
- *      Controlled Squelch System (CTCSS) sub-audible tone.
- *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
- *      if you want to set subaudible tone of 88.5 Hz for example,
- *      then pass 885 to this function. Also, to disable Tone squelch,
- *      set @tone to 0.
+ *  Sets the current Continuous Tone Controlled Squelch System (CTCSS) 
+ *  sub-audible tone.
+ *  \note  \a tone is NOT in Hz, but in tenth of Hz! This way,
+ *  if you want to set a subaudible tone of 88.5 Hz for example,
+ *  then pass 885 to this function.
+ *  Also, to disable Tone squelch, set \a tone to 0 (FIXME: not clear in API).
  *
- *      RETURN VALUE: The rig_set_ctcss() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_ctcss(), rig_set_dcs(), rig_get_dcs()
+ * \sa rig_get_ctcss(), rig_set_dcs(), rig_get_dcs()
  */
 
 int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
@@ -2191,23 +2151,23 @@ int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 }
 
 /**
- *      rig_get_ctcss - get the current CTCSS
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tone:	The location where to store the current tone
+ * \brief get the current CTCSS
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tone	The location where to store the current tone
  *
- *      The rig_get_ctcss() function retrieves the current Continuous Tone
- *      Controlled Squelch System (CTCSS) sub-audible tone.
- *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
- *      if the function rig_get_ctcss() returns a subaudible tone of 885
- *      for example, then the real tone is 88.5 Hz. 
- *      Also, a value of 0 for @tone means the Tone squelch is disabled.
+ *  Retrieves the current Continuous Tone Controlled Squelch System (CTCSS) 
+ *  sub-audible tone.
+ *  \note \a *tone is NOT in Hz, but in tenth of Hz! This way,
+ *  if the function rig_get_ctcss() returns a subaudible tone of 885
+ *  for example, then the real tone is 88.5 Hz. 
+ *  Also, a value of 0 for \a *tone means the Tone squelch is disabled.
  *
- *      RETURN VALUE: The rig_get_ctcss() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_ctcss(), rig_set_dcs(), rig_get_dcs()
+ * \sa rig_set_ctcss(), rig_set_dcs(), rig_get_dcs()
  */
 int rig_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 {
@@ -2240,19 +2200,18 @@ int rig_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 }
 
 /**
- *      rig_set_dcs - set the current DCS
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @code:	The tone to set to
+ * \brief set the current DCS
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param code	The tone to set to
  *
- *      The rig_set_dcs() function sets the current Digitally-Coded Squelch
- *      code.
+ * Sets the current Digitally-Coded Squelch code.
  *
- *      RETURN VALUE: The rig_set_dcs() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
+ * \sa rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
  */
 
 int rig_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
@@ -2286,19 +2245,18 @@ int rig_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
 }
 
 /**
- *      rig_get_dcs - get the current DCS
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @code:	The location where to store the current tone
+ * \brief get the current DCS code
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param code	The location where to store the current tone
  *
- *      The rig_get_dcs() function retrieves the current 
- *      Digitally-Coded Squelch. 
+ * Retrieves the current Digitally-Coded Squelch code. 
  *
- *      RETURN VALUE: The rig_get_dcs() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
+ * \sa rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
  */
 int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
 {
@@ -2331,23 +2289,23 @@ int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
 }
 
 /**
- *      rig_set_ctcss_sql - set CTCSS squelch
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tone:	The PL tone to set the squelch to
+ * \brief set CTCSS squelch
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tone	The PL tone to set the squelch to
  *
- *      The rig_set_ctcss_sql() function sets the current Continuous Tone
- *      Controlled Squelch System (CTCSS) sub-audible squelch tone.
- *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
- *      if you want to set subaudible tone of 88.5 Hz for example,
- *      then pass 885 to this function. Also, to disable Tone squelch,
- *      set @tone to 0.
+ *  Sets the current Continuous Tone Controlled Squelch System (CTCSS)
+ *  sub-audible squelch tone.
+ *  \note \a tone is NOT in Hz, but in tenth of Hz! This way,
+ *  if you want to set subaudible tone of 88.5 Hz for example,
+ *  then pass 885 to this function.
+ *  Also, to disable Tone squelch, set \a tone to 0 (FIXME: not clear in API).
  *
- *      RETURN VALUE: The rig_set_ctcss_sql() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_ctcss_sql(), rig_set_ctcss()
+ * \sa rig_get_ctcss_sql(), rig_set_ctcss()
  */
 
 int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
@@ -2381,23 +2339,23 @@ int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 }
 
 /**
- *      rig_get_ctcss_sql - get the current CTCSS squelch
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @tone:	The location where to store the current tone
+ * \brief get the current CTCSS squelch
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param tone	The location where to store the current tone
  *
- *      The rig_get_ctcss_sql() function retrieves the current Continuous Tone
- *      Controlled Squelch System (CTCSS) sub-audible squelch tone.
- *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
- *      if the function rig_get_ctcss() returns a subaudible tone of 885
- *      for example, then the real tone is 88.5 Hz. 
- *      Also, a value of 0 for @tone means the Tone squelch is disabled.
+ *  Retrieves the current Continuous Tone Controlled Squelch System (CTCSS) 
+ *  sub-audible squelch tone.
+ *  \note \a *tone is NOT in Hz, but in tenth of Hz! This way,
+ *  if the function rig_get_ctcss_sql() returns a subaudible tone of 885
+ *  for example, then the real tone is 88.5 Hz. 
+ *  Also, a value of 0 for @tone means the Tone squelch is disabled.
  *
- *      RETURN VALUE: The rig_get_ctcss_sql() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_ctcss_sql(), rig_get_ctcss()
+ * \sa rig_set_ctcss_sql(), rig_get_ctcss()
  */
 int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 {
@@ -2430,19 +2388,18 @@ int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 }
 
 /**
- *      rig_set_dcs_sql - set the current DCS
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @code:	The tone to set to
+ * \brief set the current DCS code
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param code	The tone to set to
  *
- *      The rig_set_dcs_sql() function sets the current Digitally-Coded Squelch
- *      code.
+ * Sets the current Digitally-Coded Squelch code.
  *
- *      RETURN VALUE: The rig_set_dcs_sql() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return returns RIG_OK if the operation has been sucessful, ortherwise
+ * a negative value if an error occured (in which case, cause is set
+ * appropriately).
  *
- *      SEE ALSO: rig_get_dcs_sql(), rig_set_dcs()
+ * \sa rig_get_dcs_sql(), rig_set_dcs()
  */
 
 int rig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
@@ -2476,19 +2433,18 @@ int rig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 }
 
 /**
- *      rig_get_dcs_sql - get the current DCS
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @code:	The location where to store the current tone
+ * \brief get the current DCS code
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param code	The location where to store the current tone
  *
- *      The rig_get_dcs_sql() function retrieves the current 
- *      Digitally-Coded Squelch. 
+ * Retrieves the current Digitally-Coded Squelch code. 
  *
- *      RETURN VALUE: The rig_get_dcs_sql() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, ortherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_dcs_sql(), rig_get_dcs()
+ * \sa rig_get_dcs_sql(), rig_get_dcs()
  */
 int rig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 {
@@ -2522,19 +2478,19 @@ int rig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 
 
 /**
- *      rig_set_powerstat - turn on/off the radio
- *      @rig:	The rig handle
- *      @status:	The status to set to
+ * \brief turn on/off the radio
+ * \param rig	The rig handle
+ * \param status	The status to set to
  *
- *      The rig_set_powerstat() function turns on/off the radio.
- *      See %RIG_POWER_ON, %RIG_POWER_OFF and %RIG_POWER_STANDBY defines
- *      for the @status.
+ * turns on/off the radio.
+ * See #RIG_POWER_ON, #RIG_POWER_OFF and #RIG_POWER_STANDBY defines
+ * for the \a status.
  *
- *      RETURN VALUE: The rig_set_powerstat() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, ortherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_powerstat()
+ * \sa rig_get_powerstat()
  */
 
 int rig_set_powerstat(RIG *rig, powerstat_t status)
@@ -2549,19 +2505,18 @@ int rig_set_powerstat(RIG *rig, powerstat_t status)
 }
 
 /**
- *      rig_get_powerstat - get the on/off status of the radio
- *      @rig:	The rig handle
- *      @status:	The locatation where to store the current status
+ * \brief get the on/off status of the radio
+ * \param rig	The rig handle
+ * \param status	The locatation where to store the current status
  *
- *      The rig_get_powerstat() function retrieve the status of the radio.
- *      See %RIG_POWER_ON, %RIG_POWER_OFF and %RIG_POWER_STANDBY defines
- *      for the @status.
+ *  Retrieve the status of the radio. See RIG_POWER_ON, RIG_POWER_OFF and 
+ *  RIG_POWER_STANDBY defines for the \a status.
  *
- *      RETURN VALUE: The rig_get_powerstat() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_powerstat()
+ * \sa rig_set_powerstat()
  */
 
 int rig_get_powerstat(RIG *rig, powerstat_t *status)
@@ -2576,17 +2531,17 @@ int rig_get_powerstat(RIG *rig, powerstat_t *status)
 }
 
 /**
- *      rig_reset - reset the radio
- *      @rig:	The rig handle
- *      @reset:	The reset operation to perform
+ * \brief reset the radio
+ * \param rig	The rig handle
+ * \param reset	The reset operation to perform
  *
- *      The rig_reset() function reset the radio.
- *      See %RIG_RESET_NONE, %RIG_RESET_SOFT and %RIG_RESET_MCALL defines
- *      for the @reset.
+ *  Resets the radio.
+ *  See RIG_RESET_NONE, RIG_RESET_SOFT and RIG_RESET_MCALL defines
+ *  for the \a reset.
  *
- *      RETURN VALUE: The rig_reset() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
  */
 
@@ -2603,42 +2558,43 @@ int rig_reset(RIG *rig, reset_t reset)
 
 
 /**
- *      rig_probe - try to guess a rig
- *      @p:		A pointer describing a port connected to the rig
+ * \brief try to guess a rig
+ * \param port		A pointer describing a port linking the host to the rig
  *
- *      The rig_probe() function try to guess a rig, can be very buggy!
- *      (but fun if it works!)
- *		CAUTION: this is really Experimental, It never worked 
- *		(never tested tough)!!
+ *  Try to guess what is the model of rig pointed to by port. 
+ *  It can be very buggy, and mess up the radio at the other end.
+ *  (but fun if it works!)
  *
- *      RETURN VALUE: The rig_probe() function returns the rig model id
- *      according to the rig_model_t type if found, or %RIG_MODEL_NONE
- *      otherwise.
+ * \warning this is really Experimental, It has been tested only
+ * with IC-706MkIIG. any feedback welcome! --SF
+ *
+ * \return the rig model id according to the rig_model_t type if found, 
+ * otherwise RIG_MODEL_NONE if unable to determine rig model.
  */
-rig_model_t rig_probe(port_t *p)
+rig_model_t rig_probe(port_t *port)
 {
-		if (!p)
+		if (!port)
 				return RIG_MODEL_NONE;
 
-		return rig_probe_all(p);
+		return rig_probe_all(port);
 }
 
 /**
- *      rig_set_level - set a radio level setting
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @level:	The level setting
- *      @val:	The value to set the level setting to
+ * \brief set a radio level setting
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param level	The level setting
+ * \param val	The value to set the level setting to
  *
- *      The rig_set_level() function sets the level of a setting.
- *      The level value @val can be a float or an integer. See &value_t
- *      for more information.
+ * Sets the level of a setting.
+ * The level value \a val can be a float or an integer. See #value_t
+ * for more information.
  *
- *      RETURN VALUE: The rig_set_level() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_has_set_level(), rig_get_level()
+ * \sa rig_has_set_level(), rig_get_level()
  */
 int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
@@ -2671,28 +2627,28 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /**
- *      rig_get_level - get the value of a level
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @level:	The level setting
- *      @val:	The location where to store the value of @level
+ * \brief get the value of a level
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param level	The level setting
+ * \param val	The location where to store the value of \a level
  *
- *      The rig_get_level() function retrieves the value of a @level.
- *      The level value @val can be a float or an integer. See &value_t
- *      for more information.
+ *  Retrieves the value of a \a level.
+ *  The level value @val can be a float or an integer. See #value_t
+ *  for more information.
  *
- * 		%RIG_LEVEL_STRENGTH: @val is an integer, representing the S Meter
+ * 		RIG_LEVEL_STRENGTH: \a val is an integer, representing the S Meter
  * 		level in dB, according to the ideal S Meter scale. The ideal
  * 		S Meter scale is as follow: S0=-54, S1=-48, S2=-42, S3=-36,
  * 		S4=-30, S5=-24, S6=-18, S7=-12, S8=-6, S9=0, +10=10, +20=20,
  * 		+30=30, +40=40, +50=50 and +60=60. This is the responsability
  * 		of the backend to return values calibrated for this scale.
  *
- *      RETURN VALUE: The rig_get_level() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_has_get_level(), rig_set_level()
+ * \sa rig_has_get_level(), rig_set_level()
  */
 int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
@@ -2725,20 +2681,20 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 }
 
 /**
- *      rig_set_parm - set a radio parameter
- *      @rig:	The rig handle
- *      @parm:	The parameter
- *      @val:	The value to set the parameter sto
+ * \brief set a radio parameter
+ * \param rig	The rig handle
+ * \param parm	The parameter
+ * \param val	The value to set the parameter sto
  *
- *      The rig_set_parm() function sets a parameter. 
- *      The parameter value @val can be a float or an integer. See &value_t
- *      for more information.
+ *  Sets a parameter. 
+ *  The parameter value \a val can be a float or an integer. See #value_t
+ *  for more information.
  *
- *      RETURN VALUE: The rig_set_parm() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_has_set_parm(), rig_get_parm()
+ * \sa rig_has_set_parm(), rig_get_parm()
  */
 int rig_set_parm(RIG *rig, setting_t parm, value_t val)
 {
@@ -2752,20 +2708,20 @@ int rig_set_parm(RIG *rig, setting_t parm, value_t val)
 }
 
 /**
- *      rig_get_parm - get the value of a parameter
- *      @rig:	The rig handle
- *      @parm:	The parameter
- *      @val:	The location where to store the value of @parm
+ * \brief get the value of a parameter
+ * \param rig	The rig handle
+ * \param parm	The parameter
+ * \param val	The location where to store the value of @parm
  *
- *      The rig_get_parm() function retrieves the value of a @parm.
- *      The parameter value @val can be a float or an integer. See &value_t
- *      for more information.
+ *  Retrieves the value of a \a parm.
+ *  The parameter value \a val can be a float or an integer. See #value_t
+ *  for more information.
  *
- *      RETURN VALUE: The rig_get_parm() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_has_get_parm(), rig_set_parm()
+ * \sa rig_has_get_parm(), rig_set_parm()
  */
 int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
@@ -2779,22 +2735,20 @@ int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
 }
 
 /**
- *      rig_has_get_level - check retrieval ability of level settings
- *      @rig:	The rig handle
- *      @level:	The level settings
+ * \brief check retrieval ability of level settings
+ * \param rig	The rig handle
+ * \param level	The level settings
  *
- *      The rig_has_get_level() "macro" checks if a rig is capable of 
- *      *getting* a level setting.
- *      Since the @level is a OR'ed bitwise argument, more than
- *      one level can be checked at the same time.
+ *  Checks if a rig is capable of *getting* a level setting.
+ *  Since the \a level is an OR'ed bitwise argument, more than
+ *  one level can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_get_level() "macro" returns a bit wise
- *      mask of supported level settings that can be retrieve,
- *      0 if none supported.
+ * 	EXAMPLE: if (rig_has_get_level(my_rig, RIG_LVL_STRENGTH)) disp_Smeter();
  *
- * 		EXAMPLE: if (rig_has_get_level(my_rig, RIG_LVL_STRENGTH)) disp_Smeter();
+ * \return a bit map of supported level settings that can be retrieved,
+ * otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_has_set_level(), rig_get_level()
+ * \sa rig_has_set_level(), rig_get_level()
  */
 setting_t rig_has_get_level(RIG *rig, setting_t level)
 {
@@ -2806,21 +2760,20 @@ setting_t rig_has_get_level(RIG *rig, setting_t level)
 
 
 /**
- *      rig_has_set_level - check settable ability of level settings
- *      @rig:	The rig handle
- *      @level:	The level settings
+ * \brief check settable ability of level settings
+ * \param rig	The rig handle
+ * \param level	The level settings
  *
- *      The rig_has_set_level() "macro" checks if a rig can *set* a level
- *      setting. Since the @level is a OR'ed bitwise argument, more than
- *      one level can be check at the same time.
+ *  Checks if a rig can *set* a level setting.
+ *  Since the \a level is an OR'ed bitwise argument, more than
+ *  one level can be check at the same time.
  *
- *      RETURN VALUE: The rig_has_set_level() "macro" returns a bit wise
- *      mask of supported level settings that can be set,
- *      0 if none supported.
+ * 	EXAMPLE: if (rig_has_set_level(my_rig, RIG_LVL_RFPOWER)) crank_tx();
  *
- * 		EXAMPLE: if (rig_has_set_level(my_rig, RIG_LVL_RFPOWER)) crank_tx();
+ * \return a bit map of supported level settings that can be set,
+ * otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_has_get_level(), rig_set_level()
+ * \sa rig_has_get_level(), rig_set_level()
  */
 setting_t rig_has_set_level(RIG *rig, setting_t level)
 {
@@ -2831,22 +2784,20 @@ setting_t rig_has_set_level(RIG *rig, setting_t level)
 }
 
 /**
- *      rig_has_get_parm - check retrieval ability of parameter settings
- *      @rig:	The rig handle
- *      @parm:	The parameter settings
+ * \brief check retrieval ability of parameter settings
+ * \param rig	The rig handle
+ * \param parm	The parameter settings
  *
- *      The rig_has_get_parm() "macro" checks if a rig is capable of
- *      *getting* a parm setting.
- *      Since the @parm is a OR'ed bitwise argument, more than
- *      one parameter can be checked at the same time.
+ *  Checks if a rig is capable of *getting* a parm setting.
+ *  Since the \a parm is an OR'ed bitwise argument, more than
+ *  one parameter can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_get_parm() "macro" returns a bit wise
- *      mask of supported parameter settings that can be retrieve,
- *      0 if none supported.
+ * 	EXAMPLE: if (rig_has_get_parm(my_rig, RIG_PARM_ANN)) good4you();
  *
- * 		EXAMPLE: if (rig_has_get_parm(my_rig, RIG_PARM_ANN)) good4you();
+ * \return a bit map of supported parameter settings that can be retrieved,
+ * otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_has_set_parm(), rig_get_parm()
+ * \sa rig_has_set_parm(), rig_get_parm()
  */
 setting_t rig_has_get_parm(RIG *rig, setting_t parm)
 {
@@ -2858,21 +2809,20 @@ setting_t rig_has_get_parm(RIG *rig, setting_t parm)
 
 
 /**
- *      rig_has_set_parm - check settable ability of parameter settings
- *      @rig:	The rig handle
- *      @parm:	The parameter settings
+ * \brief check settable ability of parameter settings
+ * \param rig	The rig handle
+ * \param parm	The parameter settings
  *
- *      The rig_has_set_parm() "macro" checks if a rig can *set* a parameter
- *      setting. Since the @parm is a OR'ed bitwise argument, more than
- *      one parameter can be check at the same time.
+ *  Checks if a rig can *set* a parameter setting.
+ *  Since the \a parm is an OR'ed bitwise argument, more than
+ *  one parameter can be check at the same time.
  *
- *      RETURN VALUE: The rig_has_set_parm() "macro" returns a bit wise
- *      mask of supported parameter settings that can be set,
- *      0 if none supported.
+ * 	EXAMPLE: if (rig_has_set_parm(my_rig, RIG_PARM_ANN)) announce_all();
  *
- * 		EXAMPLE: if (rig_has_set_parm(my_rig, RIG_PARM_ANN)) announce_all();
+ * \return a bit map of supported parameter settings that can be set,
+ * otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_has_get_parm(), rig_set_parm()
+ * \sa rig_has_get_parm(), rig_set_parm()
  */
 setting_t rig_has_set_parm(RIG *rig, setting_t parm)
 {
@@ -2883,21 +2833,20 @@ setting_t rig_has_set_parm(RIG *rig, setting_t parm)
 }
 
 /**
- *      rig_has_get_func - check ability of radio functions
- *      @rig:	The rig handle
- *      @func:	The functions
+ * \brief check ability of radio functions
+ * \param rig	The rig handle
+ * \param func	The functions
  *
- *      The rig_has_get_func() "macro" checks if a rig supports 
- *      a set of functions.
- *      Since the @func is a OR'ed bitwise argument, more than
- *      one function can be checked at the same time.
+ *  Checks if a rig supports a set of functions.
+ *  Since the \a func is an OR'ed bitwise argument, more than
+ *  one function can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_get_func() "macro" returns a bit wise
- *      mask of supported functions, 0 if none supported.
+ * 	EXAMPLE: if (rig_has_get_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
  *
- * 		EXAMPLE: if (rig_has_get_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
+ *  \return a bit map of supported functions, 
+ *  otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_has_set_func(), rig_get_func()
+ * \sa rig_has_set_func(), rig_get_func()
  */
 setting_t rig_has_get_func(RIG *rig, setting_t func)
 {
@@ -2908,21 +2857,20 @@ setting_t rig_has_get_func(RIG *rig, setting_t func)
 }
 
 /**
- *      rig_has_set_func - check ability of radio functions
- *      @rig:	The rig handle
- *      @func:	The functions
+ * \brief check ability of radio functions
+ * \param rig	The rig handle
+ * \param func	The functions
  *
- *      The rig_has_set_func() "macro" checks if a rig supports 
- *      a set of functions.
- *      Since the @func is a OR'ed bitwise argument, more than
- *      one function can be checked at the same time.
+ *  Checks if a rig supports a set of functions.
+ *  Since the \a func is an OR'ed bitwise argument, more than
+ *  one function can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_set_func() "macro" returns a bit wise
- *      mask of supported functions, 0 if none supported.
+ * 	EXAMPLE: if (rig_has_set_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
  *
- * 		EXAMPLE: if (rig_has_set_func(my_rig,RIG_FUNC_FAGC)) disp_fagc_button();
+ * \return a bit map of supported functions, 
+ * otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_set_func(), rig_has_get_func()
+ * \sa rig_set_func(), rig_has_get_func()
  */
 setting_t rig_has_set_func(RIG *rig, setting_t func)
 {
@@ -2933,19 +2881,19 @@ setting_t rig_has_set_func(RIG *rig, setting_t func)
 }
 
 /**
- *      rig_set_func - activate/desactivate functions of radio
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @func:	The functions to activate
- *      @status:	The status (on or off) to set to
+ * \brief activate/desactivate functions of radio
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param func	The functions to activate
+ * \param status	The status (on or off) to set to
  *
- *      The rig_set_func() function activate/desactivate functions of the radio.
+ * Activate/desactivate functions of the radio.
  *
- *      RETURN VALUE: The rig_set_func() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_func()
+ * \sa rig_get_func()
  */
 
 int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
@@ -2979,22 +2927,22 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 }
 
 /**
- *      rig_get_func - get the status of functions of the radio
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @func:	The functions to get the status
- *      @status:	The location where to store the function status
+ * \brief get the status of functions of the radio
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param func	The functions to get the status
+ * \param status	The location where to store the function status
  *
- *      The rig_get_func() function retrieves the status of functions
- *      of the radio. Only the function bits set to 1 will be queried.
- *      On return, @func will hold the status of funtions (bit set to 1 =
- *      activated, bit set to 0 = desactivated).
+ *  Retrieves the status of functions of the radio. Only the function bits 
+ *  set to 1 will be queried.
+ *  On return, \a func will hold the status of functions (bit set to 1 =
+ *  activated, bit set to 0 = desactivated).
  *
- *      RETURN VALUE: The rig_get_func() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_func()
+ * \sa rig_set_func()
  */
 int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
@@ -3027,20 +2975,20 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 }
 
 /**
- *      rig_set_mem - set the current memory channel number
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ch:	The memory channel number
+ * \brief set the current memory channel number
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ch	The memory channel number
  *
- *      The rig_set_mem() function sets the current memory channel number.
- *      It is not mandatory for the radio to be in memory mode. Actually
- *      it depends on rigs. YMMV.
+ *  Sets the current memory channel number.
+ *  It is not mandatory for the radio to be in memory mode. Actually
+ *  it depends on rigs. YMMV.
  *
- *      RETURN VALUE: The rig_set_mem() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_mem()
+ * \sa rig_get_mem()
  */
 
 int rig_set_mem(RIG *rig, vfo_t vfo, int ch)
@@ -3074,20 +3022,20 @@ int rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 }
 
 /**
- *      rig_get_mem - get the current memory channel number
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @ch:	The location where to store the current memory channel number
+ * \brief get the current memory channel number
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param ch	The location where to store the current memory channel number
  *
- *      The rig_get_mem() function retrieves the current memory channel number.
- *      It is not mandatory for the radio to be in memory mode. Actually
- *      it depends on rigs. YMMV.
+ *  Retrieves the current memory channel number.
+ *  It is not mandatory for the radio to be in memory mode. Actually
+ *  it depends on rigs. YMMV.
  *
- *      RETURN VALUE: The rig_get_mem() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_mem()
+ * \sa rig_set_mem()
  */
 int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
@@ -3122,16 +3070,16 @@ int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 #ifdef WANT_OLD_VFO_TO_BE_REMOVED
 /**
  *      rig_mv_ctl - perform Memory/VFO operations
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @op:	The Memory/VFO operation to perform
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param op	The Memory/VFO operation to perform
  *
- *      The rig_mv_ctl() function performs Memory/VFO operation.
- *      See &mv_op_t for more information.
+ *  Performs Memory/VFO operation.
+ *  See #mv_op_t for more information.
  *
- *      RETURN VALUE: The rig_mv_ctl() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
  */
 
@@ -3167,21 +3115,20 @@ int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 #else
 
 /**
- *      rig_has_vfo_op - check retrieval ability of VFO operations
- *      @rig:	The rig handle
- *      @op:	The VFO op
+ * \brief check retrieval ability of VFO operations
+ * \param rig	The rig handle
+ * \param op	The VFO op
  *
- *      The rig_has_vfo_op() "macro" checks if a rig is capable of executing
- *      a VFO operation. Since the @op is an OR'ed bitmap argument, more than
- *      one op can be checked at the same time.
+ *  Checks if a rig is capable of executing a VFO operation. 
+ *  Since the \a op is an OR'ed bitmap argument, more than
+ *  one op can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_vfo_op() "macro" returns a bitmap
- *      mask of supported op settings that can be retrieved,
- *      0 if none supported.
+ * 	EXAMPLE: if (rig_has_vfo_op(my_rig, RIG_OP_CPY)) disp_VFOcpy_btn();
  *
- * 		EXAMPLE: if (rig_has_vfo_op(my_rig, RIG_OP_CPY)) disp_VFOcpy_btn();
+ * \return a bit map mask of supported op settings that can be retrieved,
+ * otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_vfo_op()
+ * \sa rig_vfo_op()
  */
 vfo_op_t rig_has_vfo_op(RIG *rig, vfo_op_t op)
 {
@@ -3192,19 +3139,19 @@ vfo_op_t rig_has_vfo_op(RIG *rig, vfo_op_t op)
 }
 
 /**
- *      rig_vfo_op - perform Memory/VFO operations
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @op:	The Memory/VFO operation to perform
+ * \brief perform Memory/VFO operations
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param op	The Memory/VFO operation to perform
  *
- *      The rig_vfo_op() function performs Memory/VFO operation.
- *      See &vfo_op_t for more information.
+ *  Performs Memory/VFO operation.
+ *  See #vfo_op_t for more information.
  *
- *      RETURN VALUE: The rig_vfo_op() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_has_vfo_op()
+ * \sa rig_has_vfo_op()
  */
 
 int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
@@ -3239,21 +3186,20 @@ int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 #endif	/* WANT_OLD_VFO_TO_BE_REMOVED */
 
 /**
- *      rig_has_scan - check availability of scaning functions
- *      @rig:	The rig handle
- *      @scan:	The scan op
+ * \brief check availability of scaning functions
+ * \param rig	The rig handle
+ * \param scan	The scan op
  *
- *      The rig_has_scan() "macro" checks if a rig is capable of performing
- *      a scan operation. Since the @scan is an OR'ed bitmap argument, more than
- *      one op can be checked at the same time.
+ *  Checks if a rig is capable of performing a scan operation. 
+ *  Since the \a scan parameter is an OR'ed bitmap argument, more than
+ *  one op can be checked at the same time.
  *
- *      RETURN VALUE: The rig_has_scan() "macro" returns a bitmap
- *      mask of supported scan settings that can be retrieved,
- *      0 if none supported.
+ * 	EXAMPLE: if (rig_has_scan(my_rig, RIG_SCAN_PRIO)) disp_SCANprio_btn();
  *
- * 		EXAMPLE: if (rig_has_scan(my_rig, RIG_SCAN_PRIO)) disp_SCANprio_btn();
+ * \return a bit map of supported scan settings that can be retrieved,
+ * otherwise 0 if none supported.
  *
- *      SEE ALSO: rig_scan()
+ * \sa rig_scan()
  */
 scan_t rig_has_scan(RIG *rig, scan_t scan)
 {
@@ -3264,20 +3210,20 @@ scan_t rig_has_scan(RIG *rig, scan_t scan)
 }
 
 /**
- *      rig_scan - perform Memory/VFO operations
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @scan:	The scanning operation to perform
- *      @ch:	Optional channel argument used for the scan.
+ * \brief perform Memory/VFO operations
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param scan	The scanning operation to perform
+ * \param ch	Optional channel argument used for the scan.
  *
- *      The rig_scan() function performs scanning operation.
- *      See &scan_t for more information.
+ *  Performs scanning operation.
+ *  See #scan_t for more information.
  *
- *      RETURN VALUE: The rig_scan() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_has_scan()
+ * \sa rig_has_scan()
  */
 
 int rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
@@ -3312,17 +3258,17 @@ int rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 }
 
 /**
- *      rig_send_dtmf - send DTMF digits
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @digits:	Digits to be send
+ * \brief send DTMF digits
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param digits	Digits to be send
  *
- *      The rig_send_dtmf() function sends DTMF digits.
- *      See DTMF change speed, etc. (TODO).
+ *  Sends DTMF digits.
+ *  See DTMF change speed, etc. (TODO).
  *
- *      RETURN VALUE: The rig_send_dtmf() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
  */
 
@@ -3357,18 +3303,18 @@ int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 }
 
 /**
- *      rig_recv_dtmf - receive DTMF digits
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @digits:	Location where the digits are to be stored 
- *      @length:	in: max length of buffer, out: number really read.
+ * \brief receive DTMF digits
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param digits	Location where the digits are to be stored 
+ * \param length	in: max length of buffer, out: number really read.
  *
- *      The rig_recv_dtmf() function receive DTMF digits (not blocking).
- *      See DTMF change speed, etc. (TODO).
+ *  Receives DTMF digits (not blocking).
+ *  See DTMF change speed, etc. (TODO).
  *
- *      RETURN VALUE: The rig_recv_dtmf() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
  */
 
@@ -3403,17 +3349,17 @@ int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 }
 
 /**
- *      rig_send_morse - send morse code
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @msg:	Message to be sent
+ * \brief send morse code
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param msg	Message to be sent
  *
- *      The rig_send_morse() function sends morse message.
- *      See keyer change speed, etc. (TODO).
+ *  Sends morse message.
+ *  See keyer change speed, etc. (TODO).
  *
- *      RETURN VALUE: The rig_send_morse() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
  */
 
@@ -3449,20 +3395,20 @@ int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 
 /**
- *      rig_set_bank - set the current memory bank
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @bank:	The memory bank
+ * \brief set the current memory bank
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param bank	The memory bank
  *
- *      The rig_set_bank() function sets the current memory bank.
- *      It is not mandatory for the radio to be in memory mode. Actually
- *      it depends on rigs. YMMV.
+ *  Sets the current memory bank number.
+ *  It is not mandatory for the radio to be in memory mode. Actually
+ *  it depends on rigs. YMMV.
  *
- *      RETURN VALUE: The rig_set_bank() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_mem()
+ * \sa rig_set_mem()
  */
 
 int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
@@ -3495,11 +3441,29 @@ int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 		return retcode;
 }
 
+/**
+ * \brief save all the data associated with current VFO
+ * \param rig	The rig handle
+ * \param chan	The location where to store the channel data
+ *
+ *  Gets all the data associated with current VFO. 
+ *  See #channel_t for more information.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \todo return code checking
+ * \sa rig_get_channel()
+ */
 
 int rig_save_channel(RIG *rig, channel_t *chan)
 {
   int i;
   int chan_num;
+
+  if (!rig || !chan)
+	return -RIG_EINVAL;
 
   chan_num = chan->channel_num;
   memset(chan, 0, sizeof(channel_t));
@@ -3540,35 +3504,28 @@ int rig_save_channel(RIG *rig, channel_t *chan)
 	return RIG_OK;
 }
 
-/*
- * restore_channel data of current VFO/mem (does not save context!)
- * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
- * TODO: still a WIP --SF
+/**
+ * \brief restore all the data associated with current VFO
+ * \param rig	The rig handle
+ * \param chan	The location where to store the channel data
  *
- * missing: rptr_shift, rptr_offs, split (freq&mode),xit
- * level missing: AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH, MICGAIN, etc.
- * TODO: error checking
+ *  Sets all the data associated with current VFO. 
+ *  See #channel_t for more information.
  *
- * set_channel and get_channel should save and restore the context of RIG_VFO_CURR 
- *  before and afterhand, plus select the right channel.
- *  xet_channel can operate on VFO ?
- * set_channel:
- *	save_channel(&curr_chan)
- *	rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
- *	rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
- *	restore_channel(chan)
- *	restore_channel(&curr_chan)
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- * get_channel:
- *	save_channel(&curr_chan)
- *	rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
- *	rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
- *	save_channel(chan)
- *	restore_channel(&curr_chan)
+ * \todo return code checking
+ * \sa rig_get_channel()
  */
+
 int rig_restore_channel(RIG *rig, const channel_t *chan)
 {
   int i;
+
+  if (!rig || !chan)
+	return -RIG_EINVAL;
 
   rig_set_vfo(rig, chan->vfo);	/* huh!? */
   rig_set_freq(rig, RIG_VFO_CURR, chan->freq);
@@ -3603,18 +3560,18 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
 
 
 /**
- *      rig_set_channel - set channel data
- *      @rig:	The rig handle
- *      @chan:	The location of data to set for this channel
+ * \brief set channel data
+ * \param rig	The rig handle
+ * \param chan	The location of data to set for this channel
  *
- *      The rig_set_channel() function sets the data associated 
- *      with a channel. See &channel_t for more information.
+ *  Sets the data associated with a channel. 
+ *  See #channel_t for more information.
  *
- *      RETURN VALUE: The rig_set_channel() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_channel()
+ * \sa rig_get_channel()
  */
 
 int rig_set_channel(RIG *rig, const channel_t *chan)
@@ -3654,19 +3611,18 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 }
 
 /**
- *      rig_get_channel - get channel data
- *      @rig:	The rig handle
- *      @chan:	The location where to store the channel data
+ * \brief get channel data
+ * \param rig	The rig handle
+ * \param chan	The location where to store the channel data
  *
- *      The rig_get_channel() function retrieves the data associated 
- *      with the channel @chan->channel_num. 
- *      See &channel_t for more information.
+ *  Retrieves the data associated with the channel \a chan->channel_num. 
+ *  See #channel_t for more information.
  *
- *      RETURN VALUE: The rig_get_channel() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_channel()
+ * \sa rig_set_channel()
  */
 int rig_get_channel(RIG *rig, channel_t *chan)
 {
@@ -3709,18 +3665,16 @@ int rig_get_channel(RIG *rig, channel_t *chan)
 }
 
 /**
- *      rig_get_range - find the freq_range of freq/mode
- *      @range_list:	The range list to search from
- *      @freq:	The frequency that will be part of this range
- *      @mode:	The mode that will be part of this range
+ * \brief find the freq_range of freq/mode
+ * \param range_list	The range list to search from
+ * \param freq	The frequency that will be part of this range
+ * \param mode	The mode that will be part of this range
  *
- *      The rig_get_range() function returns the location of the &freq_range_t
- *      including @freq and @mode.
- *      Works for rx and tx range list as well.
+ *  Returns a pointer to the #freq_range_t including \a freq and \a mode.
+ *  Works for rx and tx range list as well.
  *
- *      RETURN VALUE: The rig_get_range() function returns the location
- *      of the &freq_range_t if found, %NULL if not found or if @range_list
- *      is invalid.
+ * \return the location of the #freq_range_t if found,
+ * otherwise NULL if not found or if \a range_list is invalid.
  *
  */
 const freq_range_t *
@@ -3742,19 +3696,18 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
 
 
 /**
- *      rig_set_trn - control the transceive mode 
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @trn:	The transceive status to set to
+ * \brief control the transceive mode 
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param trn	The transceive status to set to
  *
- *      The rig_set_trn() function enable/disable the transceive
- *      handling of a rig and kick off async mode.
+ *  Enable/disable the transceive handling of a rig and kick off async mode.
  *
- *      RETURN VALUE: The rig_set_trn() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_get_trn()
+ * \sa rig_get_trn()
  */
 
 int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
@@ -3795,20 +3748,19 @@ int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
 }
 
 /**
- *      rig_get_trn - get the current transceive mode
- *      @rig:	The rig handle
- *      @vfo:	The target VFO
- *      @trn:	The location where to store the current transceive mode
+ * \brief get the current transceive mode
+ * \param rig	The rig handle
+ * \param vfo	The target VFO
+ * \param trn	The location where to store the current transceive mode
  *
- *      The rig_get_trn() function retrieves the current status
- *      of the transceive mode, ie. if radio sends new status automatically 
- *      when some changes happened on the radio.
+ *  Retrieves the current status of the transceive mode, i.e. if radio 
+ *  sends new status automatically when some changes happened on the radio.
  *
- *      RETURN VALUE: The rig_get_trn() function returns %RIG_OK
- *      if the operation has been sucessful, or a negative value
- *      if an error occured (in which case, cause is set appropriately).
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  *
- *      SEE ALSO: rig_set_trn()
+ * \sa rig_set_trn()
  */
 int rig_get_trn(RIG *rig, vfo_t vfo, int *trn)
 {
@@ -3822,17 +3774,15 @@ int rig_get_trn(RIG *rig, vfo_t vfo, int *trn)
 }
 
 /**
- *      rig_get_info - get general information from the radio
- *      @rig:	The rig handle
+ * \brief get general information from the radio
+ * \param rig	The rig handle
  *
- *      The rig_get_info() function retrieves some general information
- *      from the radio. This can include firmware revision, exact
- *      model name, or just nothing. 
+ * Retrieves some general information from the radio.
+ * This can include firmware revision, exact model name, or just nothing. 
  *
- *      RETURN VALUE: The rig_get_info() function returns a pointer
- *      to freshly allocated memory containing the ASCIIZ string 
- *      if the operation has been sucessful, or NULL 
- *      if an error occured.
+ * \return a pointer to freshly allocated memory containing the ASCIIZ string 
+ * if the operation has been sucessful, otherwise NULL if an error occured
+ * or get_info not part of capabilities.
  */
 const char* rig_get_info(RIG *rig)
 {
@@ -3847,14 +3797,13 @@ const char* rig_get_info(RIG *rig)
 
 
 /**
- *      rig_setting2idx - basically convert setting_t expressed 2^n to n
- *      @s:	The setting to convert
+ * \brief basically convert setting_t expressed 2^n to n
+ * \param s	The setting to convert to
  *
- *      The rig_setting2idx() function converts a setting_t value expressed
- *      by 2^n to the value of n.
+ *  Converts a setting_t value expressed by 2^n to the value of n.
  *
- *      RETURN VALUE: The index such that 2^n is the setting, otherwise 0
- *      if the setting was not found.
+ * \return the index such that 2^n is the setting, otherwise 0
+ * if the setting was not found.
  */
 int rig_setting2idx(setting_t s)
 {
