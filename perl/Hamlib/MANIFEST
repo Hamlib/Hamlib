@@ -1,0 +1,17 @@
+blib
+Changes
+Hamlib.bs
+Hamlib.c
+Hamlib.o
+Hamlib.pm
+Hamlib.xs
+l2
+Makefile
+Makefile.old
+Makefile.PL
+MANIFEST
+pm_to_blib
+README
+rig.h
+test.pl
+typemap
