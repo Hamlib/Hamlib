@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.40 2005-02-02 20:14:12 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.41 2005-02-02 20:23:10 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define TS870S_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_ANF|RIG_FUNC_LOCK)
 
-#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR|RIG_LEVEL_COMP|RIG_LEVEL_AGC|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
+#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR|RIG_LEVEL_COMP|RIG_LEVEL_AGC|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_PREAMP)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -302,7 +302,6 @@ int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			else if (agclevel <= 255) val->i = 3;
 			return ret;
 
-		case RIG_LEVEL_PREAMP:
 		case RIG_LEVEL_IF:
 		case RIG_LEVEL_APF:
 		case RIG_LEVEL_NR:
@@ -314,6 +313,9 @@ int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_BKINDL:
 		case RIG_LEVEL_BALANCE:
 			return -RIG_ENIMPL;
+
+		case RIG_LEVEL_PREAMP:
+			return -RIG_ENAVAIL;
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
@@ -335,7 +337,7 @@ const struct rig_caps ts870s_caps = {
 .rig_model =  RIG_MODEL_TS870S,
 .model_name = "TS-870S",
 .mfg_name =  "Kenwood",
-.version =  "0.3.4",
+.version =  "0.4.0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
