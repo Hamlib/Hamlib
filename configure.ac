@@ -240,19 +240,7 @@ if test "${cf_with_perl_binding}" = "yes" ; then
   BINDING_LIST="${BINDING_LIST} perl"
 fi
 
-dnl Check if kylix-binding wanted, REM: nothing to build yet
-
-cf_with_kylix=no
-AC_MSG_CHECKING(whether to build Kylix binding and demo)
-AC_ARG_WITH(kylix-binding,
-        [  --with-kylix-binding   build Kylix binding and demo],
-        [cf_with_kylix_binding=$withval],
-        [cf_with_kylix_binding=$cf_with_kylix])
-AC_MSG_RESULT($cf_with_kylix_binding)
-
-if test "${cf_with_kylix_binding}" = "yes" ; then
-  BINDINGS="${BINDINGS} kylix"
-fi
+dnl Kylix binding has been removed because unmaintained. Volunteers welcome.
 
 
 dnl Check for tcl-dev availability, so we can enable HamlibTCL
@@ -319,7 +307,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_gnuradio)
 
   if test "${cf_with_gnuradio}" = "yes" ; then
-  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.8cvs)
+  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.9)
 	dnl check for pthreads
 	ACX_PTHREAD([BACKEND_LIST="$BACKEND_LIST gnuradio"],
 		[AC_MSG_FAILURE([gnuradio backend requires POSIX threads.  pthreads not found.])])
@@ -374,7 +362,8 @@ AC_SUBST(ROT_BACKENDEPS)
 
 AC_CHECK_PROG(cf_with_bindings, [swig], [yes], [no], [$PATH])
 if test "${cf_with_bindings}" = "yes" -a "${cf_with_tcl_binding}" = "yes" \
-	-a "${cf_with_perl_binding}" = "yes"; then
+	-a "${cf_with_perl_binding}" = "yes" -a "${cf_with_python_binding}" = "yes";
+then
   cf_with_bindings=no
 
   SWIG_PROG(1.3.14)
