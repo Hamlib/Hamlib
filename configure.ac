@@ -7,7 +7,7 @@ AM_CONFIG_HEADER(include/config.h)
 
 # Minimum Autoconf version required.
 AC_PREREQ(2.50)
-AC_REVISION($Revision: 1.4 $)
+AC_REVISION($Revision: 1.5 $)
 
 dnl directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
@@ -193,6 +193,7 @@ alinco/Makefile
 uniden/Makefile
 tentec/Makefile
 kachina/Makefile
+rpc/Makefile
 src/Makefile
 c++/Makefile
 tcl/Makefile
