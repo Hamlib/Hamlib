@@ -13,6 +13,8 @@
 
 @SET_MAKE@
 
+# note: VPATH building does not work yet
+
 SHELL = @SHELL@
 
 srcdir = @srcdir@
@@ -102,6 +104,11 @@ am__quote = @am__quote@
 cf_with_perl = @cf_with_perl@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
+
+EXTRA_DIST = Hamlib/Changes Hamlib/MANIFEST Hamlib/README \
+				Hamlib/Hamlib.pm Hamlib/Hamlib.xs Hamlib/Makefile.PL \
+				Hamlib/test.pl Hamlib/typemap
+
 subdir = perl
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -138,6 +145,7 @@ top_distdir = ..
 distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
 
 distdir: $(DISTFILES)
+	$(mkinstalldirs) $(distdir)/Hamlib
 	@for file in $(DISTFILES); do \
 	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
 	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
@@ -158,8 +166,6 @@ check: check-am
 all-am: Makefile
 
 installdirs:
-
-install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -228,11 +234,28 @@ uninstall-am: uninstall-info-am
 	mostlyclean-libtool uninstall uninstall-am uninstall-info-am
 
 
-Hamlib/Makefile: Hamlib/Makefile.PL
+Hamlib/Makefile: $(top_srcdir)/perl/Hamlib/Makefile.PL
+	mkdir -p Hamlib
+	cp -u $(top_srcdir)/perl/Hamlib/{Changes,MANIFEST,README,Hamlib.pm,Hamlib.xs,Makefile.PL,test.pl,typemap} Hamlib/. 2> /dev/null || exit 0
 	cd Hamlib && perl Makefile.PL
 
 all: Hamlib/Makefile
 	make -C Hamlib
+
+test: all
+	make -C Hamlib test
+
+clean: Hamlib/Makefile
+	make -C Hamlib clean
+
+distclean: Hamlib/Makefile
+	make -C Hamlib distclean
+
+distcheck: Hamlib/Makefile
+	make -C Hamlib distcheck
+
+install: Hamlib/Makefile
+	make -C Hamlib install
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
