@@ -1,0 +1,52 @@
+hamlib-1.2.3 aor ar7030.c
+
+2004.11.26
+
+Parameteraenderung fuer USB-Serial
+//.post_write_delay =  0,   //Device: /dev/ttyS0
+//.post_write_delay =  85,  //Device: /dev/tts/USB0 < 85 sec 'timedout after 0 chars'
+
+Befehle mit rigctl
+# rigctl -m 503 -r /dev/ttyS0
+# rigctl -m 503 -r /dev/tts/USB0
+
+Rig command: F               Frequency:   0 .. 32016718 Hz
+
+Rig command: f
+Rig command: \get_freq
+
+Rig command: M               Mode:        FM, AMS, AM, USB, LSB, CW, RTTY
+                             Passband:    1 - 6
+
+Rig command: m               Passband:    800, 2100, 3700, 5200, 9500, XXXX (Value from RX) Hz
+
+Rig command: L
+  Level: AF                  Value: 0.0 - 1.0
+  Level: RF                  Value: 0.1, 0.0 -0.1, -0.2, -0.3, -0.4  >  +10, 0 ,-10 , -20, -30, -40 dB
+  Level: SQL                 Value: 0.0 - 1.0
+  Level: AGC                 Value: 0 > OFF, 2 > FAST, 3 > SLOW, 5 > MEDIUM
+  Level: CWPITCH             Value: -4248 .. 0 .. 4215 Hz
+
+
+Rig command: l
+  Level: AF
+  Level: RF
+  Level: SQL
+  Level: AGC
+  Level: CWPITCH
+  Level: RAWSTR
+  Level: STRENGTH            Value: -121dBm ... -23dBm > S1 ... S9 + 50 dB 
+
+Rig command: \set_powerstat  Status: 0 > Power off, 1 > Power on
+
+Rig command: \get_powerstat
+
+Rig command: \reset          Reset: 1 > Software reset
+
+Rig command:                 Quitt Q q
+
+Rig command:                 Quitt Q Q
+
+Rig command: 1               Caps dump for model 503
+
+Friedrich Melchert (DC9RP)
