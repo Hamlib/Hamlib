@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.3 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: rigclass.h,v 1.4 2001-10-02 08:16:19 terry Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -215,7 +215,6 @@ extern "C" {
 #endif
 
 #include <assert.h>
-#include <eti.h>
 #include <errno.h>
 }
 
