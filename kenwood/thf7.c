@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: thf7.c,v 1.2 2001-12-16 11:17:42 fillods Exp $
+ *		$Id: thf7.c,v 1.3 2002-01-07 17:43:21 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +38,6 @@
 #include "kenwood.h"
 #include "th.h"
 
-
 #define THF7_MODES_TX (RIG_MODE_FM|RIG_MODE_AM)
 #define THF7_MODES	(THF7_MODES_TX|RIG_MODE_WFM|RIG_MODE_SSB|RIG_MODE_CW)
 
@@ -52,6 +51,10 @@
  * TODO: Band A & B
  */
 #define THF7_VFO (RIG_VFO_A|RIG_VFO_C)
+
+const struct kenwood_priv_caps  thf7_priv_caps  = {
+    cmdtrm: "\r",   /* Command termination character */
+};
 
 /*
  * th-f7e rig capabilities.
@@ -133,7 +136,11 @@ filters: {
 		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
 		RIG_FLT_END,
 	},
-priv: NULL,
+priv: (void *)&thf7_priv_caps,
+rig_init: kenwood_init,
+rig_cleanup: kenwood_cleanup,
+rig_open: NULL,
+rig_close: NULL,
 
 set_freq: th_set_freq,
 get_freq: th_get_freq,
