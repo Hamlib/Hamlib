@@ -2,7 +2,7 @@
  *  Hamlib Interface - CTCSS and DCS tables
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: tone_tbl.h,v 1.2 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: tone_tbl.h,v 1.3 2001-12-17 22:43:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -94,7 +94,7 @@ TBL_SCOPE const tone_t full_dcs_list[] = {
 extern const HAMLIB_EXPORT_VAR(tone_t) full_ctcss_list[];
 extern const HAMLIB_EXPORT_VAR(tone_t) common_ctcss_list[];
 extern const HAMLIB_EXPORT_VAR(tone_t) full_dcs_list[];
-#endif	/* HAMLIB_DLL || __CYGWIN__ */
+#endif	/* IN_HAMLIB || __CYGWIN__ */
 	
 
 #endif /* _TONE_TBL_H */
