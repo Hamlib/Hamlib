@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.9 2002-11-22 03:04:30 n0nb Exp $
+ * $Id: ft920.c,v 1.10 2002-11-23 14:09:20 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -273,6 +273,8 @@ const struct rig_caps ft920_caps = {
   .get_mode =           ft920_get_mode, /* get mode */
   .set_vfo =            ft920_set_vfo,  /* set vfo */
   .get_vfo =            ft920_get_vfo,  /* get vfo */
+  .set_split =          ft920_set_split,
+  .get_split =          ft920_get_split,
 
 };
 
@@ -914,6 +916,83 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
   default:                      /* Oops! */
     return -RIG_EINVAL;         /* sorry, wrong current VFO */
   }
+}
+
+
+/*
+ * set the '920 into split TX/RX mode
+ *
+ * VFO cannot be set as the set split on command only changes the
+ * TX to the sub display.  Setting split off returns the TX to the
+ * main display.
+ *
+ */
+
+int ft920_set_split(RIG *rig, vfo_t vfo, split_t split) {
+  unsigned char cmd_index;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "ft920: ft920_set_split called\n");
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  switch(split) {
+  case RIG_SPLIT_OFF:
+    cmd_index = FT920_NATIVE_SPLIT_OFF;
+    break;
+  case RIG_SPLIT_ON:
+    cmd_index = FT920_NATIVE_SPLIT_ON;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+
+  ft920_send_priv_cmd(rig, cmd_index);
+
+  return RIG_OK;
+}
+
+
+/*
+ * Get whether the '920 is in split mode
+ *
+ */
+
+int ft920_get_split(RIG *rig, vfo_t vfo, split_t *split) {
+  struct ft920_priv_data *priv;
+  unsigned char status_0;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "ft920: ft920_get_split called\n");
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  priv = (struct ft920_priv_data *)rig->state.priv;
+
+  /* Get flags for VFO split status */
+  ft920_get_update_data(rig, FT920_NATIVE_STATUS_FLAGS,
+                        FT920_STATUS_FLAGS_LENGTH);
+  
+  status_0 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_0];
+  status_0 &= SF_VFOB;             /* get VFO B (sub display) active bits */
+
+  rig_debug(RIG_DEBUG_TRACE,
+            "ft920: get_split: split status_0 = [0x%x]\n", status_0);
+
+  switch (status_0) {
+  case SF_SPLITA:
+  case SF_SPLITB:
+    *split = RIG_SPLIT_ON;
+    break;
+  case SF_VFOA:
+  case SF_VFOB:
+    *split = RIG_SPLIT_OFF;
+    break;
+  default:
+    return RIG_EINVAL;
+  }
+
+    return RIG_OK;
 }
 
 

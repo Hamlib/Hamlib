@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.7 2002-11-22 03:04:30 n0nb Exp $  
+ *    $Id: ft920.h,v 1.8 2002-11-23 14:09:21 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -214,17 +214,17 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 #define FT920_SUMO_DISPLAYED_STATUS_0   0x00    /* Status flag byte 0 */
 #define SF_VFOA     0x00    /* bits 0 & 1, VFO A TX/RX == 0 */
-#define SF_SPLITA   0x01    /* Split operation with VFO-B on TX */
-#define SF_SPLITB   0x02    /* Split operation with VFO-B on RX */
-#define SF_VFOB     0x03    /* bits 0 & 1, VFO B TX/RX  == 3 */
+#define SF_SPLITA   (1<<0)  /* Split operation with VFO-B on TX */
+#define SF_SPLITB   (1<<1)  /* Split operation with VFO-B on RX */
+#define SF_VFOB     (SF_SPLITA|SF_SPLITB)   /* bits 0 & 1, VFO B TX/RX  == 3 */
 
 #define FT920_SUMO_DISPLAYED_STATUS_1   0x01    /* Status flag byte 1 */
-#define SF_QMB      0x08    /* Quick Memory Bank (QMB) selected */
-#define SF_MT       0x10    /* Memory Tuning in progress */
-#define SF_VFO      0x20    /* VFO operation selected */
-#define SF_MR       0x40    /* Memory Mode selected */
-#define SF_GC       0x80    /* General Coverage Reception selected */
-#define SF_VFO_MASK 0x78    /* Ignore general coverage flag.  Is it needed? */
+#define SF_QMB      (1<<3)  /* Quick Memory Bank (QMB) selected */
+#define SF_MT       (1<<4)  /* Memory Tuning in progress */
+#define SF_VFO      (1<<5)  /* VFO operation selected */
+#define SF_MR       (1<<6)  /* Memory Mode selected */
+#define SF_GC       (1<<7)  /* General Coverage Reception selected */
+#define SF_VFO_MASK (SF_QMB|SF_MT|SF_VFO|SF_MR)
 
 /*
  * Offsets for VFO record retrieved via 0x10 P1 = 02, 03
@@ -305,11 +305,13 @@ int ft920_close(RIG *rig);
 int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
-int ft920_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-int ft920_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+int ft920_set_vfo(RIG *rig, vfo_t vfo);
+int ft920_get_vfo(RIG *rig, vfo_t *vfo);
 
+int ft920_set_split(RIG *rig, vfo_t vfo, split_t split);
+int ft920_get_split(RIG *rig, vfo_t vfo, split_t *split);
 
 #endif /* _FT920_H */

@@ -1,0 +1,55 @@
+Quirks, known bugs, and other notes.
+====================================
+
+$Id: README.ft920,v 1.1 2002-11-23 14:09:19 n0nb Exp $
+
+In this document I'll try to describe the behavior of the Yaesu FT-920
+transceiver with Hamlib.  Some of these are limitations of the radio
+while others are programming trade-offs with Hamlib.
+
+This document is organized by Hamlib function calls and documents observed
+behavior with each call.
+
+rig_set_mode
+    *   If radio is in MEM or MEM TUNE state, main display mode can be 
+        changed when RIG_VFO_CURR is passed.  
+    *   Modes DATA USB and DATA FM cannot be set at this time 
+        (Hamlib limitation).  See below.
+
+rig_get_mode
+    *   Modes DATA USB and DATA FM cannot be returned as rig.h only has
+        RIG_MODE_RTTY (Hamlib limitation).
+    *   DATA LSB is mapped to RIG_MODE_RTTY.
+        
+rig_set_freq
+    *   If radio is in MEM or MEM TUNE state, main display freq can be 
+        changed when RIG_VFO_CURR is passed.  
+    *   RIG_TARGETABLE_ALL is properly handled (I think).
+
+rig_set_vfo
+    *   When called with RIG_VFO_A, the radio appears to do nothing, 
+        however, rig_state->current_vfo will be updated.  
+    *   When called with RIG_VFO_B, the radio will swap the main and sub 
+        displays, the same as if the front panel A<>B button is pressed.
+    *   No provision exists to make VFO-B (sub display) the active RX
+        through CAT.
+
+rig_get_split
+    *   Both split capabilities are tested, i.e. RX A/TX B and RX B/TX A,
+        but Hamlib only supports an indication that the radio is split.
+    *   The VFO value passed is not used by the ft920 backend lib.
+        
+rig_set_split
+    *   When called with RIG_SPLIT_OFF the radio will make TX A active if
+        TX B was active, otherwise no change.
+    *   When called with RIG_SPLIT_ON the radio will make TX B active if
+        TX A was active, otherwise no change.
+    *   The FT-920 has no capability to change the active RX to RX B (sub
+        display) through CAT.  Thus if VFO-B is active RX/TX the setting
+        RIG_SPLIT_ON will make no visible change on the radio.  
+    *   The VFO value passed is not used by the ft920 backend lib.
+    
+General notes.
+    As with most all Yaesu radios the radio must be polled by the application
+    for status updates, i.e. no transceive mode in CAT.
+
