@@ -1,0 +1,87 @@
+
+
+Here is a non-exhaustive list of things IMO to keep in mind when
+developping the hamlib library.
+
+
+Plan:
+----
+o Hamlib is intended to provide the means to control any rig
+o develop the library as a shared/static library
+o portable (not only Linux, but UN*X, Win32 using cygwin,etc.  -> autoconf?)
+o generic (any rig made, any model)
+o wrappable (Java, perl module, Python module, etc.)
+o support serial ports, IrDA ports, USB ports, network ports (w/ a daemon)
+o thread safe (reentrant) would be a must
+o support preference file (eg. /etc/hamlibrc, ~/.hamlibrc )
+o written in C (C++ would have been more appropriate, but C is okay)
+o support more than one rig per application (ie. generic code)
+o support more than one rig per serial port (ie. Icoms)
+o handle serial retransmission and timeouts would be nice
+o i18n support if applicable
+o software compensation for the actual radio oscillator frequency errors
+o if avail., support events sent by the rig (eg. main freq has been changed,..)
+o maybe add some misc functions like PTT signaling (through serial/parallel..)
+o Well documented API, and Howto write a new backend
+o ...
+
+
+Good inspiration:
+----------------
+o SANE, with frontend/backend scheme, dynamic loading, autoconf, etc.
+o struct net_device (Linux kernel) for the void *priv idea
+o any rigctrl sources out there ?
+
+
+Applications:
+------------
+o control your rig from your computer, can be handy if you've relocated 
+	your UHF transceiver in the attic, to reduce cable loss.
+o edit/backup/restore/extend the memory capacity of your rig
+o software scanning (and huristics)
+o s/w squelch
+o real time spectral analysis and digital modes ( Frank has written some
+	working code for this) it does 40 frames / sec and no load, 
+	really cool to see time and spectral info !!
+	I have based it on generic data engine and plugins !! output also to
+	small gtk window.
+o doppler compensation in tracking mode (using mtrack satellite tracker?)
+o let real time signal analysis drive freq/modes/etc.... (eg. PSK31 tuning)
+o networked rigs, provides realtime (global) spectral analysis to
+  find (a common) quiet part of the band for a qso between 2 parties
+o software controlled hopping (poor mans GSM frequency hopping)
+   also, must output hopping sequence to other rig to be useful
+o <add here the application you thought it'd be impossible>
+
+
+Capabilities:
+------------
+We have to find a way to code capabilities in the hamlib in order
+to let the application know what this rig is able to do (before
+attempting to do it and crash :).
+I think some features can be coded using bit fields and masking.
+
+Maybe we can distinguish between 3 states :
+  - Don't have this feature,
+  - Have it, 
+  - Have it and can control (r/w) it remotly using the backend in hamlib
+
+o freq ranges supported: rx/mode, tx/modes/power
+o number of VFO, operations (set VFO separately, VFO A=B, switch, ..)
+o freq granularity (resolution), tuning steps
+o SCAN functions (start, stop, ..)
+o Split (cross band, duplex, ...)
+o RIT (+- KHz)
+o Memory scheme, what is stored in, quantity, call channels, scan edges
+o ATT, P.AMP, AGC, NB, TONE, TSQL, COMP, VOX, BK-IN, ...
+o Tuner control (internal, external, can control)
+o Meter indication: Squelch condition, S-meter level, ALC, SWR
+o Number of antennas (which band ?) and selection
+o available "set mode" items (ie. rig setup), and provide a way to modify them
+o DSP ?
+
+Any other ideas?
+
+
+Frank Singleton
+Stephane Fillod

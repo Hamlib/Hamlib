@@ -1,0 +1,104 @@
+
+The Hamlib API is supposed to hide all the rig specific interface
+behind a "rig function capability structure", kind of abstraction
+layer.
+
+
+Could be internal data structures populated inside each lib,
+and requested by the app.
+Note generic <-> symbolic transforms
+
+
+any app      generic  (frontend)    rig lib (backend)
+-------      -------                -------
+
+   ----------->
+    get caps for
+     rig xxxx
+
+                    get caps
+                 -------------->    { internal data structure }
+
+
+                  caps struct populated
+                <--------------
+
+
+apps knows what the rig can do.
+now do something useful.
+
+Example:
+
+   ----------->
+    opn_rig xxxx
+
+                  open rig path
+                 -------------->    { internal data structure }
+
+                  rig specific 
+				  struct populated
+                <--------------
+
+    return handle
+  <--------------
+
+   ----------->
+    cmd_* <handle>
+
+                  call backend 
+                 -------------->    { internal data structure }
+
+                <--------------
+
+  <--------------
+
+
+  - Once you'r done, close_rig handle
+
+
+
+Also frontend can request 2 modes of commands:
+
+- acknowledged and unacknowledged mode
+
+
+unack:
+-----
+
+set freq to xxx
+--------------->
+returns -1 if error
+assume ok otherwise
+
+
+OR
+
+acked mode
+
+set freq to xxx
+--------------->
+                 set freq
+              ------------------------->
+                get freq
+              ------------------------->
+                 freq retuerned
+             <-------------------------
+
+            compare requested
+            with actual
+  result
+<--------------
+
+
+It seems it's not necessary to provide acknowledged commands
+within the Hamlib. Nevertheless, the application is free do it.
+
+
+Also, returned data must be uniform accross all rigs.
+
+eg: TX power in mW, not  0-15 units on yaesu and 0 - 23 units on icom.
+
+
+
+Frank Singleton
+Stephane Fillod
