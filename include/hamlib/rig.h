@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.72 2002-11-28 22:38:06 fillods Exp $
+ *	$Id: rig.h,v 1.73 2002-12-16 22:02:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -679,8 +679,6 @@ typedef unsigned int rmode_t;
 
 /*
  * Do not use an enum since this will be used w/ rig_mode_t bit fields.
- * Also, how should CW reverse sideband and RTTY reverse
- * sideband be handled?
  */
 #define RIG_MODE_NONE  	0
 #define RIG_MODE_AM    	(1<<0)
@@ -689,7 +687,9 @@ typedef unsigned int rmode_t;
 #define RIG_MODE_LSB	(1<<3)
 #define RIG_MODE_RTTY	(1<<4)
 #define RIG_MODE_FM    	(1<<5)
-#define RIG_MODE_WFM   	(1<<6)	/* after all, Wide FM is a mode on its own */
+#define RIG_MODE_WFM   	(1<<6)	/* broadcast wide FM */
+#define RIG_MODE_CWR   	(1<<7)	/* CW reverse sideband */
+#define RIG_MODE_RTTYR	(1<<8)
 
 /* macro for backends, no to be used by rig_set_mode et al. */
 #define RIG_MODE_SSB  	(RIG_MODE_USB|RIG_MODE_LSB)
