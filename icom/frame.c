@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.20 2003-04-07 22:41:50 fillods Exp $
+ *	$Id: frame.c,v 1.21 2003-04-26 09:54:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -292,7 +292,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 /*
  * assumes rig!=NULL, mode!=NULL, width!=NULL
  */
-void icom2rig_mode(RIG *rig, unsigned char md, char pd, rmode_t *mode, pbwidth_t *width)
+void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t *width)
 {
 		*width = RIG_PASSBAND_NORMAL;
 
@@ -322,6 +322,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, char pd, rmode_t *mode, pbwidth_t
 			case 0x00: *width = rig_passband_narrow(rig, *mode); break;
 			case 0x01: *width = rig_passband_normal(rig, *mode); break;
 			case 0x02: *width = rig_passband_wide(rig, *mode); break;
+			case -1: break;		/* no passband data */
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n",
 							pd);

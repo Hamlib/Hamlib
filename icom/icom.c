@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.75 2003-04-16 22:30:40 fillods Exp $
+ *	$Id: icom.c,v 1.76 2003-04-26 09:54:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -461,7 +461,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 				return err;
 
 		/* IC-731 and IC-735 don't support passband data */
-		if (priv->civ_731_mode)
+		if (priv->civ_731_mode || rig->caps->rig_model == RIG_MODEL_OS456)
 				icmode_ext = -1;
 
 		retval = icom_transaction (rig, C_SET_MODE, icmode, &icmode_ext,
@@ -511,7 +511,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 				return -RIG_ERJCTED;
 		}
 
-		icom2rig_mode(rig, modebuf[1], modebuf[2], mode, width);
+		icom2rig_mode(rig, modebuf[1], mode_len==2 ? modebuf[2] : -1, mode, width);
 
 		return RIG_OK;
 }
