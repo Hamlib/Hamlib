@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.35 2005-04-04 18:30:51 fillods Exp $
+ *	$Id: misc.c,v 1.36 2005-04-04 21:24:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -526,6 +526,7 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
 			return parm_str[i].parm;
 
 	return RIG_PARM_NONE;
+}
 
 
 const char * HAMLIB_API rig_strparm(setting_t parm)
