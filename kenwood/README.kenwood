@@ -1,0 +1,37 @@
+hamlib - Copyright (C) 2000 Frank Singleton
+
+libkenwood.so - Copyright (C) 2000 Stephane Fillod
+This shared library provides an API for communicating
+via serial interface to a Kenwood rig.
+
+
+Reference Documentation
+-----------------------
+
+Kenwood CAT protocol (manual).
+
+Status
+------
+
+This is a WIP.
+Handles 5% of all opcodes.
+All primitives are written from spec. In other words,
+they are totally untested because I don't own a Kenwood radio myself.
+Patchs and contributions are welcome! I'm also looking for
+a real maintainer :)  --SF
+
+
+This lib should/will support other Kenwood models.
+
+Warnings
+--------
+
+1. NOTHING IS WORKING, this is a WIP.
+
+
+Contributors
+------------
+
+
+
+
