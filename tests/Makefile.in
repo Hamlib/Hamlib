@@ -1,6 +1,7 @@
-# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
+# Makefile.in generated automatically by automake 1.5 from Makefile.am.
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
+# Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -10,6 +11,7 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+@SET_MAKE@
 
 SHELL = @SHELL@
 
@@ -31,13 +33,9 @@ infodir = @infodir@
 mandir = @mandir@
 includedir = @includedir@
 oldincludedir = /usr/include
-
-DESTDIR =
-
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
-
 top_builddir = ..
 
 ACLOCAL = @ACLOCAL@
@@ -46,11 +44,11 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 
 INSTALL = @INSTALL@
-INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_HEADER = $(INSTALL_DATA)
 transform = @program_transform_name@
-
 NORMAL_INSTALL = :
 PRE_INSTALL = :
 POST_INSTALL = :
@@ -59,24 +57,26 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
+DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTHAMLIBTCL = @LTHAMLIBTCL@
-MAKEINFO = @MAKEINFO@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
@@ -85,7 +85,10 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
+am__include = @am__include@
+am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
+install_sh = @install_sh@
 
 bin_PROGRAMS = rigctl
 man_MANS = rigctl.1
@@ -98,8 +101,8 @@ EXTRA_PROGRAMS = rigmatrix
 LDADD = ../src/libhamlib.la ../lib/libmisc.a
 DEPENDENCIES = ../src/libhamlib.la
 
-BACKENDLNK = -dlopen self -dlopen ../icom/libhamlib-icom.la -dlopen ../yaesu/libhamlib-yaesu.la -dlopen ../kenwood/libhamlib-kenwood.la -dlopen ../aor/libhamlib-aor.la -dlopen ../dummy/libhamlib-dummy.la -dlopen ../pcr/libhamlib-pcr.la -dlopen ../alinco/libhamlib-alinco.la -dlopen ../uniden/libhamlib-uniden.la -dlopen ../tentec/libhamlib-tentec.la -dlopen ../winradio/libhamlib-winradio.la -dlopen ../kachina/libhamlib-kachina.la
-BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la ../uniden/libhamlib-uniden.la ../tentec/libhamlib-tentec.la ../winradio/libhamlib-winradio.la ../kachina/libhamlib-kachina.la
+BACKENDLNK = -dlopen self -dlopen ../icom/libhamlib-icom.la -dlopen ../yaesu/libhamlib-yaesu.la -dlopen ../kenwood/libhamlib-kenwood.la -dlopen ../aor/libhamlib-aor.la -dlopen ../dummy/libhamlib-dummy.la -dlopen ../pcr/libhamlib-pcr.la -dlopen ../alinco/libhamlib-alinco.la -dlopen ../uniden/libhamlib-uniden.la -dlopen ../tentec/libhamlib-tentec.la -dlopen ../winradio/libhamlib-winradio.la -dlopen ../kachina/libhamlib-kachina.la -dlopen ../rpc/libhamlib-rpcrig.la
+BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la ../uniden/libhamlib-uniden.la ../tentec/libhamlib-tentec.la ../winradio/libhamlib-winradio.la ../kachina/libhamlib-kachina.la ../rpc/libhamlib-rpcrig.la
 
 listrigs_LDFLAGS = $(BACKENDLNK)
 dumpcaps_LDFLAGS = $(BACKENDLNK)
@@ -138,142 +141,96 @@ rigmatrix_SOURCES = rigmatrix.c
 testcpp_SOURCES = testcpp.cc
 
 EXTRA_DIST = rigmatrix_head.html $(man_MANS)
+subdir = tests
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_HEADER = ../include/config.h
-CONFIG_CLEAN_FILES = 
-bin_PROGRAMS =  rigctl$(EXEEXT)
-noinst_PROGRAMS =  dumpcaps$(EXEEXT) dumpmem$(EXEEXT) testcaps$(EXEEXT) \
-testrig$(EXEEXT) testtrn$(EXEEXT) testbcd$(EXEEXT) testfreq$(EXEEXT) \
-listrigs$(EXEEXT) testcpp$(EXEEXT) @RIGMATRIX@
-PROGRAMS =  $(bin_PROGRAMS) $(noinst_PROGRAMS)
+CONFIG_HEADER = $(top_builddir)/include/config.h
+CONFIG_CLEAN_FILES =
+EXTRA_PROGRAMS = rigmatrix$(EXEEXT)
+bin_PROGRAMS = rigctl$(EXEEXT)
+noinst_PROGRAMS = dumpcaps$(EXEEXT) dumpmem$(EXEEXT) testcaps$(EXEEXT) \
+	testrig$(EXEEXT) testtrn$(EXEEXT) testbcd$(EXEEXT) \
+	testfreq$(EXEEXT) listrigs$(EXEEXT) testcpp$(EXEEXT) \
+	@RIGMATRIX@
+PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 
+am_dumpcaps_OBJECTS = dumpcaps.$(OBJEXT)
+dumpcaps_OBJECTS = $(am_dumpcaps_OBJECTS)
+dumpcaps_LDADD = $(LDADD)
+am_dumpmem_OBJECTS = dumpmem.$(OBJEXT)
+dumpmem_OBJECTS = $(am_dumpmem_OBJECTS)
+dumpmem_LDADD = $(LDADD)
+am_listrigs_OBJECTS = listrigs.$(OBJEXT)
+listrigs_OBJECTS = $(am_listrigs_OBJECTS)
+listrigs_LDADD = $(LDADD)
+am_rigctl_OBJECTS = rigctl.$(OBJEXT)
+rigctl_OBJECTS = $(am_rigctl_OBJECTS)
+rigctl_LDADD = $(LDADD)
+am_rigmatrix_OBJECTS = rigmatrix.$(OBJEXT)
+rigmatrix_OBJECTS = $(am_rigmatrix_OBJECTS)
+rigmatrix_LDADD = $(LDADD)
+am_testbcd_OBJECTS = testbcd.$(OBJEXT)
+testbcd_OBJECTS = $(am_testbcd_OBJECTS)
+testbcd_LDADD = $(LDADD)
+testbcd_DEPENDENCIES = ../src/libhamlib.la ../lib/libmisc.a
+am_testcaps_OBJECTS = testcaps.$(OBJEXT)
+testcaps_OBJECTS = $(am_testcaps_OBJECTS)
+testcaps_LDADD = $(LDADD)
+am_testcpp_OBJECTS = testcpp.$(OBJEXT)
+testcpp_OBJECTS = $(am_testcpp_OBJECTS)
+am_testfreq_OBJECTS = testfreq.$(OBJEXT)
+testfreq_OBJECTS = $(am_testfreq_OBJECTS)
+testfreq_LDADD = $(LDADD)
+testfreq_DEPENDENCIES = ../src/libhamlib.la ../lib/libmisc.a
+am_testrig_OBJECTS = testrig.$(OBJEXT)
+testrig_OBJECTS = $(am_testrig_OBJECTS)
+testrig_LDADD = $(LDADD)
+am_testtrn_OBJECTS = testtrn.$(OBJEXT)
+testtrn_OBJECTS = $(am_testtrn_OBJECTS)
+testtrn_LDADD = $(LDADD)
 
-DEFS = @DEFS@ -I. -I$(srcdir) -I../include
+DEFS = @DEFS@
+DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-rigmatrix_OBJECTS =  rigmatrix.$(OBJEXT)
-rigmatrix_LDADD = $(LDADD)
-rigctl_OBJECTS =  rigctl.$(OBJEXT)
-rigctl_LDADD = $(LDADD)
-dumpcaps_OBJECTS =  dumpcaps.$(OBJEXT)
-dumpcaps_LDADD = $(LDADD)
-dumpmem_OBJECTS =  dumpmem.$(OBJEXT)
-dumpmem_LDADD = $(LDADD)
-testcaps_OBJECTS =  testcaps.$(OBJEXT)
-testcaps_LDADD = $(LDADD)
-testrig_OBJECTS =  testrig.$(OBJEXT)
-testrig_LDADD = $(LDADD)
-testtrn_OBJECTS =  testtrn.$(OBJEXT)
-testtrn_LDADD = $(LDADD)
-testbcd_OBJECTS =  testbcd.$(OBJEXT)
-testbcd_LDADD = $(LDADD)
-testbcd_DEPENDENCIES =  ../src/libhamlib.la ../lib/libmisc.a
-testfreq_OBJECTS =  testfreq.$(OBJEXT)
-testfreq_LDADD = $(LDADD)
-testfreq_DEPENDENCIES =  ../src/libhamlib.la ../lib/libmisc.a
-listrigs_OBJECTS =  listrigs.$(OBJEXT)
-listrigs_LDADD = $(LDADD)
-testcpp_OBJECTS =  testcpp.$(OBJEXT)
-CXXFLAGS = @CXXFLAGS@
-CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
-CFLAGS = @CFLAGS@
-COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/dumpcaps.Po $(DEPDIR)/dumpmem.Po \
+@AMDEP_TRUE@	$(DEPDIR)/listrigs.Po $(DEPDIR)/rigctl.Po \
+@AMDEP_TRUE@	$(DEPDIR)/rigmatrix.Po $(DEPDIR)/testbcd.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testcaps.Po $(DEPDIR)/testcpp.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testfreq.Po $(DEPDIR)/testrig.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testtrn.Po
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
+	$(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-man1dir = $(mandir)/man1
-MANS = $(man_MANS)
+LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+CXXFLAGS = @CXXFLAGS@
+DIST_SOURCES = $(dumpcaps_SOURCES) $(dumpmem_SOURCES) \
+	$(listrigs_SOURCES) $(rigctl_SOURCES) $(rigmatrix_SOURCES) \
+	$(testbcd_SOURCES) $(testcaps_SOURCES) $(testcpp_SOURCES) \
+	$(testfreq_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES)
 
 NROFF = nroff
-DIST_COMMON =  README Makefile.am Makefile.in
+MANS = $(man_MANS)
+DIST_COMMON = README Makefile.am Makefile.in
+SOURCES = $(dumpcaps_SOURCES) $(dumpmem_SOURCES) $(listrigs_SOURCES) $(rigctl_SOURCES) $(rigmatrix_SOURCES) $(testbcd_SOURCES) $(testcaps_SOURCES) $(testcpp_SOURCES) $(testfreq_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES)
 
+all: all-am
 
-DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
-
-TAR = tar
-GZIP_ENV = --best
-DEP_FILES =  .deps/dumpcaps.P .deps/dumpmem.P .deps/listrigs.P \
-.deps/rigctl.P .deps/rigmatrix.P .deps/testbcd.P .deps/testcaps.P \
-.deps/testcpp.P .deps/testfreq.P .deps/testrig.P .deps/testtrn.P
-SOURCES = $(rigmatrix_SOURCES) $(rigctl_SOURCES) $(dumpcaps_SOURCES) $(dumpmem_SOURCES) $(testcaps_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES) $(testbcd_SOURCES) $(testfreq_SOURCES) $(listrigs_SOURCES) $(testcpp_SOURCES)
-OBJECTS = $(rigmatrix_OBJECTS) $(rigctl_OBJECTS) $(dumpcaps_OBJECTS) $(dumpmem_OBJECTS) $(testcaps_OBJECTS) $(testrig_OBJECTS) $(testtrn_OBJECTS) $(testbcd_OBJECTS) $(testfreq_OBJECTS) $(listrigs_OBJECTS) $(testcpp_OBJECTS)
-
-all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .cc .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
-	cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/Makefile
-
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-
-
-mostlyclean-binPROGRAMS:
-
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-
-distclean-binPROGRAMS:
-
-maintainer-clean-binPROGRAMS:
-
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    echo " $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`"; \
-	    $(LIBTOOL)  --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
-	  else :; fi; \
-	done
-
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	list='$(bin_PROGRAMS)'; for p in $$list; do \
-	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
-	done
-
-mostlyclean-noinstPROGRAMS:
-
-clean-noinstPROGRAMS:
-	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-
-distclean-noinstPROGRAMS:
-
-maintainer-clean-noinstPROGRAMS:
-
-# FIXME: We should only use cygpath when building on Windows,
-# and only if it is available.
-.c.obj:
-	$(COMPILE) -c `cygpath -w $<`
-
-.s.o:
-	$(COMPILE) -c $<
-
-.S.o:
-	$(COMPILE) -c $<
-
-mostlyclean-compile:
-	-rm -f *.o core *.core
-	-rm -f *.$(OBJEXT)
-
-clean-compile:
-
-distclean-compile:
-	-rm -f *.tab.c
-
-maintainer-clean-compile:
-
-.s.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
-
-.S.lo:
-	$(LIBTOOL) --mode=compile $(COMPILE) -c $<
+.SUFFIXES: .c .cc .lo .o .obj
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -282,63 +239,142 @@ clean-libtool:
 	-rm -rf .libs _libs
 
 distclean-libtool:
+	-rm -f libtool
+$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
+	cd $(top_srcdir) && \
+	  $(AUTOMAKE) --gnu  tests/Makefile
+Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) && \
+	  CONFIG_HEADERS= CONFIG_LINKS= \
+	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(bindir)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+	  if test -f $$p \
+	     || test -f $$p1 \
+	  ; then \
+	    f=`echo $$p1|sed '$(transform);s/$$/$(EXEEXT)/'`; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f"; \
+	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f; \
+	  else :; fi; \
+	done
 
-maintainer-clean-libtool:
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	  f=`echo $$p|sed 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
+	  echo " rm -f $(DESTDIR)$(bindir)/$$f"; \
+	  rm -f $(DESTDIR)$(bindir)/$$f; \
+	done
 
-rigmatrix$(EXEEXT): $(rigmatrix_OBJECTS) $(rigmatrix_DEPENDENCIES)
-	@rm -f rigmatrix$(EXEEXT)
-	$(LINK) $(rigmatrix_LDFLAGS) $(rigmatrix_OBJECTS) $(rigmatrix_LDADD) $(LIBS)
+clean-binPROGRAMS:
+	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
-rigctl$(EXEEXT): $(rigctl_OBJECTS) $(rigctl_DEPENDENCIES)
-	@rm -f rigctl$(EXEEXT)
-	$(LINK) $(rigctl_LDFLAGS) $(rigctl_OBJECTS) $(rigctl_LDADD) $(LIBS)
-
-dumpcaps$(EXEEXT): $(dumpcaps_OBJECTS) $(dumpcaps_DEPENDENCIES)
+clean-noinstPROGRAMS:
+	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+dumpcaps$(EXEEXT): $(dumpcaps_OBJECTS) $(dumpcaps_DEPENDENCIES) 
 	@rm -f dumpcaps$(EXEEXT)
 	$(LINK) $(dumpcaps_LDFLAGS) $(dumpcaps_OBJECTS) $(dumpcaps_LDADD) $(LIBS)
-
-dumpmem$(EXEEXT): $(dumpmem_OBJECTS) $(dumpmem_DEPENDENCIES)
+dumpmem$(EXEEXT): $(dumpmem_OBJECTS) $(dumpmem_DEPENDENCIES) 
 	@rm -f dumpmem$(EXEEXT)
 	$(LINK) $(dumpmem_LDFLAGS) $(dumpmem_OBJECTS) $(dumpmem_LDADD) $(LIBS)
-
-testcaps$(EXEEXT): $(testcaps_OBJECTS) $(testcaps_DEPENDENCIES)
+listrigs$(EXEEXT): $(listrigs_OBJECTS) $(listrigs_DEPENDENCIES) 
+	@rm -f listrigs$(EXEEXT)
+	$(LINK) $(listrigs_LDFLAGS) $(listrigs_OBJECTS) $(listrigs_LDADD) $(LIBS)
+rigctl$(EXEEXT): $(rigctl_OBJECTS) $(rigctl_DEPENDENCIES) 
+	@rm -f rigctl$(EXEEXT)
+	$(LINK) $(rigctl_LDFLAGS) $(rigctl_OBJECTS) $(rigctl_LDADD) $(LIBS)
+rigmatrix$(EXEEXT): $(rigmatrix_OBJECTS) $(rigmatrix_DEPENDENCIES) 
+	@rm -f rigmatrix$(EXEEXT)
+	$(LINK) $(rigmatrix_LDFLAGS) $(rigmatrix_OBJECTS) $(rigmatrix_LDADD) $(LIBS)
+testbcd$(EXEEXT): $(testbcd_OBJECTS) $(testbcd_DEPENDENCIES) 
+	@rm -f testbcd$(EXEEXT)
+	$(LINK) $(testbcd_LDFLAGS) $(testbcd_OBJECTS) $(testbcd_LDADD) $(LIBS)
+testcaps$(EXEEXT): $(testcaps_OBJECTS) $(testcaps_DEPENDENCIES) 
 	@rm -f testcaps$(EXEEXT)
 	$(LINK) $(testcaps_LDFLAGS) $(testcaps_OBJECTS) $(testcaps_LDADD) $(LIBS)
-
-testrig$(EXEEXT): $(testrig_OBJECTS) $(testrig_DEPENDENCIES)
+testcpp$(EXEEXT): $(testcpp_OBJECTS) $(testcpp_DEPENDENCIES) 
+	@rm -f testcpp$(EXEEXT)
+	$(CXXLINK) $(testcpp_LDFLAGS) $(testcpp_OBJECTS) $(testcpp_LDADD) $(LIBS)
+testfreq$(EXEEXT): $(testfreq_OBJECTS) $(testfreq_DEPENDENCIES) 
+	@rm -f testfreq$(EXEEXT)
+	$(LINK) $(testfreq_LDFLAGS) $(testfreq_OBJECTS) $(testfreq_LDADD) $(LIBS)
+testrig$(EXEEXT): $(testrig_OBJECTS) $(testrig_DEPENDENCIES) 
 	@rm -f testrig$(EXEEXT)
 	$(LINK) $(testrig_LDFLAGS) $(testrig_OBJECTS) $(testrig_LDADD) $(LIBS)
-
-testtrn$(EXEEXT): $(testtrn_OBJECTS) $(testtrn_DEPENDENCIES)
+testtrn$(EXEEXT): $(testtrn_OBJECTS) $(testtrn_DEPENDENCIES) 
 	@rm -f testtrn$(EXEEXT)
 	$(LINK) $(testtrn_LDFLAGS) $(testtrn_OBJECTS) $(testtrn_LDADD) $(LIBS)
 
-testbcd$(EXEEXT): $(testbcd_OBJECTS) $(testbcd_DEPENDENCIES)
-	@rm -f testbcd$(EXEEXT)
-	$(LINK) $(testbcd_LDFLAGS) $(testbcd_OBJECTS) $(testbcd_LDADD) $(LIBS)
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT) core *.core
 
-testfreq$(EXEEXT): $(testfreq_OBJECTS) $(testfreq_DEPENDENCIES)
-	@rm -f testfreq$(EXEEXT)
-	$(LINK) $(testfreq_LDFLAGS) $(testfreq_OBJECTS) $(testfreq_LDADD) $(LIBS)
+distclean-compile:
+	-rm -f *.tab.c
 
-listrigs$(EXEEXT): $(listrigs_OBJECTS) $(listrigs_DEPENDENCIES)
-	@rm -f listrigs$(EXEEXT)
-	$(LINK) $(listrigs_LDFLAGS) $(listrigs_OBJECTS) $(listrigs_LDADD) $(LIBS)
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dumpcaps.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dumpmem.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/listrigs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigctl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigmatrix.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testbcd.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcaps.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcpp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testfreq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testrig.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testtrn.Po@am__quote@
 
-testcpp$(EXEEXT): $(testcpp_OBJECTS) $(testcpp_DEPENDENCIES)
-	@rm -f testcpp$(EXEEXT)
-	$(CXXLINK) $(testcpp_LDFLAGS) $(testcpp_OBJECTS) $(testcpp_LDADD) $(LIBS)
+distclean-depend:
+	-rm -rf $(DEPDIR)
+
+.c.o:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `test -f $< || echo '$(srcdir)/'`$<
+
+.c.obj:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(COMPILE) -c `cygpath -w $<`
+
+.c.lo:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+CCDEPMODE = @CCDEPMODE@
+
 .cc.o:
-	$(CXXCOMPILE) -c $<
-.cc.obj:
-	$(CXXCOMPILE) -c `cygpath -w $<`
-.cc.lo:
-	$(LTCXXCOMPILE) -c $<
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
 
-install-man1:
+.cc.obj:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CXXCOMPILE) -c -o $@ `cygpath -w $<`
+
+.cc.lo:
+@AMDEP_TRUE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LTCXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
+CXXDEPMODE = @CXXDEPMODE@
+uninstall-info-am:
+
+man1dir = $(mandir)/man1
+install-man1: $(man1_MANS) $(man_MANS)
+	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(DESTDIR)$(man1dir)
-	@list='$(man1_MANS)'; \
-	l2='$(man_MANS)'; for i in $$l2; do \
+	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
+	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
+	for i in $$l2; do \
 	  case "$$i" in \
 	    *.1*) list="$$list $$i" ;; \
 	  esac; \
@@ -348,14 +384,16 @@ install-man1:
 	  else file=$$i; fi; \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
 	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
 	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst"; \
 	  $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst; \
 	done
-
 uninstall-man1:
-	@list='$(man1_MANS)'; \
-	l2='$(man_MANS)'; for i in $$l2; do \
+	@$(NORMAL_UNINSTALL)
+	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
+	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
+	for i in $$l2; do \
 	  case "$$i" in \
 	    *.1*) list="$$list $$i" ;; \
 	  esac; \
@@ -363,204 +401,154 @@ uninstall-man1:
 	for i in $$list; do \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
 	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
 	  echo " rm -f $(DESTDIR)$(man1dir)/$$inst"; \
 	  rm -f $(DESTDIR)$(man1dir)/$$inst; \
 	done
-install-man: $(MANS)
-	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) install-man1
-uninstall-man:
-	@$(NORMAL_UNINSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) uninstall-man1
 
 tags: TAGS
 
-ID: $(HEADERS) $(SOURCES) $(LISP)
-	list='$(SOURCES) $(HEADERS)'; \
-	unique=`for i in $$list; do echo $$i; done | \
-	  awk '    { files[$$0] = 1; } \
+ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
-	here=`pwd` && cd $(srcdir) \
-	  && mkid -f$$here/ID $$unique $(LISP)
+	mkid -fID $$unique $(LISP)
 
-TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS)'; \
-	unique=`for i in $$list; do echo $$i; done | \
-	  awk '    { files[$$0] = 1; } \
+	list='$(SOURCES) $(HEADERS) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+	  || etags $(ETAGS_ARGS) $$tags  $$unique $(LISP)
 
-mostlyclean-tags:
-
-clean-tags:
+GTAGS:
+	here=`CDPATH=: && cd $(top_builddir) && pwd` \
+	  && cd $(top_srcdir) \
+	  && gtags -i $(GTAGS_ARGS) $$here
 
 distclean-tags:
-	-rm -f TAGS ID
+	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH
 
-maintainer-clean-tags:
+DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 
-distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-
-subdir = tests
+top_distdir = ..
+distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
 
 distdir: $(DISTFILES)
-	here=`cd $(top_builddir) && pwd`; \
-	top_distdir=`cd $(top_distdir) && pwd`; \
-	distdir=`cd $(distdir) && pwd`; \
-	cd $(top_srcdir) \
-	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu tests/Makefile
 	@for file in $(DISTFILES); do \
-	  d=$(srcdir); \
+	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
+	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
+	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
+	    $(mkinstalldirs) "$(distdir)/$$dir"; \
+	  fi; \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pR $$d/$$file $(distdir) \
+	    || exit 1; \
 	  else \
 	    test -f $(distdir)/$$file \
-	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
-	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	    || cp -p $$d/$$file $(distdir)/$$file \
+	    || exit 1; \
 	  fi; \
 	done
-
-DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
-
--include $(DEP_FILES)
-
-mostlyclean-depend:
-
-clean-depend:
-
-distclean-depend:
-	-rm -rf .deps
-
-maintainer-clean-depend:
-
-%.o: %.c
-	@echo '$(COMPILE) -c $<'; \
-	$(COMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
-	@-cp .deps/$(*F).pp .deps/$(*F).P; \
-	tr ' ' '\012' < .deps/$(*F).pp \
-	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
-	    >> .deps/$(*F).P; \
-	rm .deps/$(*F).pp
-
-%.lo: %.c
-	@echo '$(LTCOMPILE) -c $<'; \
-	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
-	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
-	  < .deps/$(*F).pp > .deps/$(*F).P; \
-	tr ' ' '\012' < .deps/$(*F).pp \
-	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
-	    >> .deps/$(*F).P; \
-	rm -f .deps/$(*F).pp
-
-%.o: %.cc
-	@echo '$(CXXCOMPILE) -c $<'; \
-	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
-	@-cp .deps/$(*F).pp .deps/$(*F).P; \
-	tr ' ' '\012' < .deps/$(*F).pp \
-	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
-	    >> .deps/$(*F).P; \
-	rm .deps/$(*F).pp
-
-%.lo: %.cc
-	@echo '$(LTCXXCOMPILE) -c $<'; \
-	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
-	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
-	  < .deps/$(*F).pp > .deps/$(*F).P; \
-	tr ' ' '\012' < .deps/$(*F).pp \
-	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
-	    >> .deps/$(*F).P; \
-	rm -f .deps/$(*F).pp
-info-am:
-info: info-am
-dvi-am:
-dvi: dvi-am
 check-am: all-am
 check: check-am
-installcheck-am:
-installcheck: installcheck-am
-install-exec-am: install-binPROGRAMS
-install-exec: install-exec-am
+all-am: Makefile $(PROGRAMS) $(MANS)
 
-install-data-am: install-man
+installdirs:
+	$(mkinstalldirs) $(DESTDIR)$(bindir) $(DESTDIR)$(man1dir)
+
+install: install-am
+install-exec: install-exec-am
 install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
-install: install-am
-uninstall-am: uninstall-binPROGRAMS uninstall-man
-uninstall: uninstall-am
-all-am: Makefile $(PROGRAMS) $(MANS)
-all-redirect: all-am
+
+installcheck: installcheck-am
 install-strip:
-	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
-installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(bindir) $(DESTDIR)$(mandir)/man1
-
-
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
+	  `test -z '$(STRIP)' || \
+	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
 mostlyclean-generic:
 
 clean-generic:
 
 distclean-generic:
-	-rm -f Makefile $(CONFIG_CLEAN_FILES)
-	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+	-rm -f Makefile $(CONFIG_CLEAN_FILES) stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-mostlyclean-am:  mostlyclean-binPROGRAMS mostlyclean-noinstPROGRAMS \
-		mostlyclean-compile mostlyclean-libtool \
-		mostlyclean-tags mostlyclean-depend mostlyclean-generic
-
-mostlyclean: mostlyclean-am
-
-clean-am:  clean-binPROGRAMS clean-noinstPROGRAMS clean-compile \
-		clean-libtool clean-tags clean-depend clean-generic \
-		mostlyclean-am
-
+	@echo "This command is intended for maintainers to use"
+	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-distclean-am:  distclean-binPROGRAMS distclean-noinstPROGRAMS \
-		distclean-compile distclean-libtool distclean-tags \
-		distclean-depend distclean-generic clean-am
-	-rm -f libtool
+clean-am: clean-binPROGRAMS clean-generic clean-libtool \
+	clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 
-maintainer-clean-am:  maintainer-clean-binPROGRAMS \
-		maintainer-clean-noinstPROGRAMS \
-		maintainer-clean-compile maintainer-clean-libtool \
-		maintainer-clean-tags maintainer-clean-depend \
-		maintainer-clean-generic distclean-am
-	@echo "This command is intended for maintainers to use;"
-	@echo "it deletes files that may require special tools to rebuild."
+distclean-am: clean-am distclean-compile distclean-depend \
+	distclean-generic distclean-libtool distclean-tags
+
+dvi: dvi-am
+
+dvi-am:
+
+info: info-am
+
+info-am:
+
+install-data-am: install-man
+
+install-exec-am: install-binPROGRAMS
+
+install-info: install-info-am
+
+install-man: install-man1
+
+installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 
-.PHONY: mostlyclean-binPROGRAMS distclean-binPROGRAMS clean-binPROGRAMS \
-maintainer-clean-binPROGRAMS uninstall-binPROGRAMS install-binPROGRAMS \
-mostlyclean-noinstPROGRAMS distclean-noinstPROGRAMS \
-clean-noinstPROGRAMS maintainer-clean-noinstPROGRAMS \
-mostlyclean-compile distclean-compile clean-compile \
-maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool install-man1 uninstall-man1 \
-install-man uninstall-man tags mostlyclean-tags distclean-tags \
-clean-tags maintainer-clean-tags distdir mostlyclean-depend \
-distclean-depend clean-depend maintainer-clean-depend info-am info \
-dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs \
-mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+maintainer-clean-am: distclean-am maintainer-clean-generic
+
+mostlyclean: mostlyclean-am
+
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
+
+uninstall-am: uninstall-binPROGRAMS uninstall-info-am uninstall-man
+
+uninstall-man: uninstall-man1
+
+.PHONY: GTAGS all all-am check check-am clean clean-binPROGRAMS \
+	clean-generic clean-libtool clean-noinstPROGRAMS distclean \
+	distclean-compile distclean-depend distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am info \
+	info-am install install-am install-binPROGRAMS install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-man1 install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool tags uninstall \
+	uninstall-am uninstall-binPROGRAMS uninstall-info-am \
+	uninstall-man uninstall-man1
 
 
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	mkdir -p html
 	( cd html && cat ../rigmatrix_head.html && ../rigmatrix ) > html/rigmatrix.html
 	for f in `./listrigs | tail +2 | cut -f1` ; do ./dumpcaps $$f > html/model$$f.txt ; done
-
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
