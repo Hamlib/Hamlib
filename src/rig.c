@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.20 2001-02-27 23:10:12 f4cfe Exp $
+   $Id: rig.c,v 1.21 2001-03-01 00:30:58 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -45,6 +45,34 @@ const char hamlib_version[] = "Hamlib version " VERSION;
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 
+/*
+ * 52 CTCSS sub-audible tones
+ */
+const int full_ctcss_list[] = {
+		600,  670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
+		948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1200,  1230, 1273,
+		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
+		1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
+		2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
+		0,
+};
+
+/*
+ * 106 DCS codes
+ */
+const int full_dcs_list[] = {
+		017, 023, 025, 026, 031, 032, 036, 043, 047, 050, 051, 053, 
+		054, 065, 071, 072, 073, 074, 114, 115, 116, 122, 125, 131, 
+		132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174, 205, 
+		212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255, 261, 
+		263, 265, 266, 271, 274, 306, 311, 315, 325, 331, 332, 343, 
+		346, 351, 356, 364, 365, 371, 411, 412, 413, 423, 431, 432, 
+		445, 446, 452, 454, 455, 462, 464, 465, 466, 503, 506, 516, 
+		523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654, 
+		662, 664, 703, 712, 723, 731, 732, 734, 743, 754, 
+		0,
+};
+	
 /*
  * Data structure to track the opened rig (by rig_open)
  */
@@ -261,6 +289,8 @@ RIG *rig_init(rig_model_t rig_model)
 		rs->has_set_func = caps->has_set_func;
 		rs->has_get_level = caps->has_get_level;
 		rs->has_set_level = caps->has_set_level;
+		rs->has_get_parm = caps->has_get_parm;
+		rs->has_set_parm = caps->has_set_parm;
 
 		rs->max_rit = caps->max_rit;
 
@@ -1537,6 +1567,7 @@ int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		return retcode;
 }
 
+#if 0
 /**
  *      rig_set_ann - set the announce level
  *      @rig:	The rig handle
@@ -1586,6 +1617,7 @@ int rig_get_ann(RIG *rig, ann_t *ann)
 
 		return rig->caps->get_ann(rig, ann);
 }
+#endif
 
 /**
  *      rig_set_ant - set the antenna
@@ -2310,7 +2342,7 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 }
 
 /**
- *      rig_get_level - get the level of a level
+ *      rig_get_level - get the value of a level
  *      @rig:	The rig handle
  *      @vfo:	The target VFO
  *      @level:	The level setting
@@ -2364,7 +2396,61 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 }
 
 /**
- *      rig_has_level - check retrieval ability of level settings
+ *      rig_set_parm - set a radio parameter
+ *      @rig:	The rig handle
+ *      @parm:	The parameter
+ *      @val:	The value to set the parameter sto
+ *
+ *      The rig_set_parm() function sets a parameter. 
+ *      The parameter value @val can be a float or an integer. See &value_t
+ *      for more information.
+ *
+ *      RETURN VALUE: The rig_set_parm() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_has_set_parm(), rig_get_parm()
+ */
+int rig_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_parm == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->set_parm(rig, parm, val);
+}
+
+/**
+ *      rig_get_parm - get the value of a parameter
+ *      @rig:	The rig handle
+ *      @parm:	The parameter
+ *      @val:	The location where to store the value of @parm
+ *
+ *      The rig_get_parm() function retrieves the value of a @parm.
+ *      The parameter value @val can be a float or an integer. See &value_t
+ *      for more information.
+ *
+ *      RETURN VALUE: The rig_get_parm() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_has_parm(), rig_set_parm()
+ */
+int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+		if (!rig || !rig->caps || !val)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_parm == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->get_parm(rig, parm, val);
+}
+
+/**
+ *      rig_has_get_level - check retrieval ability of level settings
  *      @rig:	The rig handle
  *      @level:	The level settings
  *
@@ -2419,6 +2505,64 @@ setting_t rig_has_set_level(RIG *rig, setting_t level)
 
 		return (rig->state.has_set_level & level);
 }
+
+/**
+ *      rig_has_get_parm - check retrieval ability of parameter settings
+ *      @rig:	The rig handle
+ *      @parm:	The parameter settings
+ *
+ *      The rig_has_parm() "macro" checks if a rig can *get* a parm setting.
+ *      Since the @parm is a OR'ed bitwise argument, more than
+ *      one parameter can be checked at the same time.
+ *
+ *      RETURN VALUE: The rig_has_get_parm() "macro" returns a bit wise
+ *      mask of supported parameter settings that can be retrieve,
+ *      0 if none supported.
+ *
+ * 		EXAMPLE: if (rig_has_get_parm(my_rig, RIG_PARM_ANN)) good4you();
+ *
+ *      SEE ALSO: rig_has_set_parm(), rig_get_parm()
+ */
+setting_t rig_has_get_parm(RIG *rig, setting_t parm)
+{
+		/* 
+		 * FIXME: error code -1 is not safe!!
+		 */
+		if (!rig || !rig->caps)
+				return -1;
+
+		return (rig->state.has_get_parm & parm);
+}
+
+
+/**
+ *      rig_has_set_parm - check settable ability of parameter settings
+ *      @rig:	The rig handle
+ *      @parm:	The parameter settings
+ *
+ *      The rig_has_set_parm() "macro" checks if a rig can *set* a parameter
+ *      setting. Since the @parm is a OR'ed bitwise argument, more than
+ *      one parameter can be check at the same time.
+ *
+ *      RETURN VALUE: The rig_has_set_parm() "macro" returns a bit wise
+ *      mask of supported parameter settings that can be set,
+ *      0 if none supported.
+ *
+ * 		EXAMPLE: if (rig_has_set_parm(my_rig, RIG_PARM_ANN)) announce_all();
+ *
+ *      SEE ALSO: rig_has_parm(), rig_set_parm()
+ */
+setting_t rig_has_set_parm(RIG *rig, setting_t parm)
+{
+		/* 
+		 * FIXME: error code -1 is not safe!!
+		 */
+		if (!rig || !rig->caps)
+				return -1;
+
+		return (rig->state.has_set_parm & parm);
+}
+
 
 
 /**
