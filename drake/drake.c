@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.10 2004-08-08 20:14:03 fineware Exp $
+ *	$Id: drake.c,v 1.11 2004-08-12 02:04:30 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,8 +61,6 @@
 /*
  * drake_transaction
  * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
- *
- * FIXME: this is a skeleton, rewrite me for Drake protocol
  */
 int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
@@ -253,7 +251,9 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	switch (mode) {
 	case RIG_MODE_CW:       mode_sel = MD_CW; break;
+	case RIG_MODE_ECSSUSB:
 	case RIG_MODE_USB:      mode_sel = MD_USB; break;
+	case RIG_MODE_ECSSLSB:
 	case RIG_MODE_LSB:      mode_sel = MD_LSB; break;
 	case RIG_MODE_FM:       mode_sel = MD_FM; break;
 	case RIG_MODE_AMS:
@@ -291,8 +291,10 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		retval = drake_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
 	}
 
-	if (mode == RIG_MODE_AMS || mode == RIG_MODE_AM) {
-		mdbuf_len = sprintf(mdbuf, "S%c" EOM, mode==RIG_MODE_AMS?'O':'F');
+	if ((mode == RIG_MODE_AMS) || (mode == RIG_MODE_ECSSUSB) || (mode == RIG_MODE_ECSSLSB) ||
+		(mode == RIG_MODE_AM) || (mode == RIG_MODE_USB) || (mode == RIG_MODE_LSB)) {
+		mdbuf_len = sprintf(mdbuf, "S%c" EOM,
+			((mode == RIG_MODE_AMS) || (mode==RIG_MODE_ECSSUSB) || (mode==RIG_MODE_ECSSLSB))?'O':'F');
 		retval = drake_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
 	}
 
@@ -385,9 +387,16 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	/*FIXME USB/LSB synch in R8B*/
 	if (csynch=='4'||csynch=='5'||csynch=='6'||csynch=='7'||
-	    csynch=='<'||csynch=='='||csynch=='>'||csynch=='?')
-	  *mode = RIG_MODE_AMS;
-
+	    csynch=='<'||csynch=='='||csynch=='>'||csynch=='?') {
+	if (*mode == RIG_MODE_AM)
+		*mode = RIG_MODE_AMS;
+	else
+	if (*mode == RIG_MODE_USB)
+		*mode = RIG_MODE_ECSSUSB;
+	else
+	if (*mode == RIG_MODE_LSB)
+		*mode = RIG_MODE_ECSSLSB;
+	}
 	return RIG_OK;
 }
 
