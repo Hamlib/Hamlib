@@ -1,4 +1,5 @@
-bin_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs rigctl @RIGMATRIX@
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs @RIGMATRIX@
+bin_PROGRAMS = rigctl
 EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
