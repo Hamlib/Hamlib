@@ -1,4 +1,4 @@
-/* include/config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* include/config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
 
 /* Define if on AIX 3.
    System headers sometimes define this.
@@ -35,11 +35,11 @@
 /* Define if you have the atexit function.  */
 #undef HAVE_ATEXIT
 
-/* Define if you have the dlopen function.  */
-#undef HAVE_DLOPEN
-
 /* Define if you have the gdImageCreate function.  */
 #undef HAVE_GDIMAGECREATE
+
+/* Define if you have the getopt_long function.  */
+#undef HAVE_GETOPT_LONG
 
 /* Define if you have the select function.  */
 #undef HAVE_SELECT
@@ -61,6 +61,9 @@
 
 /* Define if you have the <gd.h> header file.  */
 #undef HAVE_GD_H
+
+/* Define if you have the <getopt.h> header file.  */
+#undef HAVE_GETOPT_H
 
 /* Define if you have the <linradio/radio_ioctl.h> header file.  */
 #undef HAVE_LINRADIO_RADIO_IOCTL_H
@@ -97,9 +100,6 @@
 
 /* Define if you have the c library (-lc).  */
 #undef HAVE_LIBC
-
-/* Define if you have the dl library (-ldl).  */
-#undef HAVE_LIBDL
 
 /* Define if you have the gd library (-lgd).  */
 #undef HAVE_LIBGD
