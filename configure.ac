@@ -269,8 +269,12 @@ dnl Check for tcl-dev availability, so we can enable HamlibTCL
 SC_PATH_TCLCONFIG
 if test x"${no_tcl}" = x; then
 	SC_LOAD_TCLCONFIG
+	tcl_save_CPPFLAGS=$CPPFLAGS
+	echo $TCL_INCLUDE_SPEC
+	CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
 	AC_CHECK_HEADERS([tcl.h],
 			[cf_with_tcl=yes])
+	CPPFLAGS=$tcl_save_CPPFLAGS
 else
 	cf_with_tcl=no
 fi
@@ -404,7 +408,7 @@ then
   cf_with_bindings=no
 
   SWIG_PROG(1.3.14)
-  if test "${SWIG}" != "false" ; then
+  if test "${SWIG}" != "false" -a "x${BINDING_ALL}" != "x"; then
     BINDINGS="${BINDINGS} bindings"
     cf_with_bindings=yes
   fi
