@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.5 2000-10-23 19:48:12 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.6 2000-10-29 16:27:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -42,6 +42,14 @@
 #define ACKFRMLEN	6		/* reply frame length */
 
 #define S_NONE -1
+
+
+/*
+ * Arguments length in bytes
+ */
+#define CHAN_NB_LEN 2
+#define BANK_NB_LEN 2
+#define OFFS_LEN 3
 
 /*
  * Cn controller commands
