@@ -84,12 +84,16 @@ tests:			rigctl/rotctl and various C programs for testing
 Reading the INSTALL file in top directory will explain you more verbosely
 to do the following commands
 
+	chmod +x autogen.sh
+	./autogen.sh
 	./configure --config-cache --disable-static --prefix=/some/where
 	make
 	make install
 
 The prefix argument is optionnal. The --disable-static speeds up
 compilation if you don't plan to use static libraries.
+
+NOTE: autogen.sh has only to be run the first time after a fresh checkout.
 
 * testing Hamlib
 
@@ -110,9 +114,9 @@ Or simply:
 	rigctl --help
 
 Let's say you own an Icom IC-756:
-	rigctl -vvvv -r /dev/ttyS0 -m 326
+	rigctl -vvvvv -r /dev/ttyS0 -m 326
 
-The -vvvv is very important since this will increase verbosity, and give
+The -vvvvv is very important since this will increase verbosity, and give
 precious traces to developpers if something goes wrong. At this level, 
 the protocol data exchanged will also be dumped.
 Unless some problem shows up, you should be presented with a menu
@@ -148,7 +152,7 @@ Tip: traces can be hard to cut and paste sometimes. In that case,
 
 	$ script my_rig_traces.txt
 	Script started, file is my_rig_traces.txt
-	$ rigctl -vvvv -r /dev/ttyS0 -m 326
+	$ rigctl -vvvvv -r /dev/ttyS0 -m 326
 	rig:rig_init called
 	rig: loading backend icom
 	icom: _init called
