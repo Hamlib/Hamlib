@@ -1,0 +1,1496 @@
+2001-01-08 13:37  f4cfe
+
+	* ChangeLog, LICENSE: Initial release
+
+2001-01-07 17:02  javabear
+
+	* yaesu/: ft847.c, ft847.h: minor cleanup
+
+2001-01-06 00:49  javabear
+
+	* yaesu/: ft747.c, ft847.c: added targetable_vfo value to caps
+
+2001-01-05 12:24  f4cfe
+
+	* src/rig.c: * added targetable_vfo support in wrappers for rigs
+	that cannot address directly VFOs
+
+2001-01-05 12:22  f4cfe
+
+	* tests/: dumpcaps.c, rigmatrix.c: * added targetable_vfo support
+
+2001-01-05 12:21  f4cfe
+
+	* include/hamlib/rig.h: * added targetable_vfo field in caps
+
+2001-01-05 12:20  f4cfe
+
+	* icom/: frame.c, icom.c: * icom_set_mode fixup (passband not done
+	right)
+
+2001-01-05 12:18  f4cfe
+
+	* aor/ar8200.c, icom/ic706.c, kenwood/ts870s.c: * added
+	targetable_vfo field in caps
+
+2001-01-04 20:03  javabear
+
+	* yaesu/ft747.c: general cleanup, added _send_priv_cmd
+
+2001-01-04 01:03  javabear
+
+	* yaesu/: ft747.c, ft747.h, ft847.c, ft847.h: Begin to use common
+	yaesu code
+
+2001-01-03 23:47  javabear
+
+	* tests/Makefile.am: common yaesu dir
+
+2001-01-03 23:41  javabear
+
+	* Makefile.am, configure.in: common yaesu handling
+
+2001-01-03 23:39  javabear
+
+	* yaesu/: ft747.c, ft747.h, ft847.c, ft847.h: Moved from ft747 and
+	ft847 dirs
+
+2001-01-03 22:42  javabear
+
+	* yaesu/Makefile.am: Initial yaesu Makefile
+
+2001-01-03 17:14  f4cfe
+
+	* configure.in: * bumped version number to 1.1.1 * added kenwood
+	sub-Makefile
+
+2001-01-03 17:10  f4cfe
+
+	* Makefile.am: * added kenwood/ subdirectory
+
+2000-12-23 02:40  f4cfe
+
+	* kenwood/: Makefile.am, README.kenwood, kenwood.c, kenwood.h,
+	ts870s.c: * Initial release
+
+2000-12-21 22:59  javabear
+
+	* yaesu/yaesu.h: nseq uses YAESU_CMD_LENGTH
+
+2000-12-21 19:41  javabear
+
+	* yaesu/yaesu.h: add version tag
+
+2000-12-21 19:36  javabear
+
+	* yaesu/yaesu.h: Initial release, common yaesu declareations etc.
+
+2000-12-21 19:27  javabear
+
+	* ft847/ft847.c: removed old API functions, general cleanup tested
+	rig_close and rig_cleanup
+
+2000-12-21 19:16  javabear
+
+	* src/: misc.c, misc.h: removed unused calc_ functions.
+
+2000-12-21 18:56  javabear
+
+	* src/rig.c: rig_cleanup and rig_close not calling backend
+
+2000-12-20 00:33  javabear
+
+	* ft847/ft847.c: Added ft847_send_priv_cmd(), converted some part
+	of API to use this. Added _set_mode to work now.  TODO: put
+	_send_priv_cmd into yaesu.[ch] so ft747 can use also.  Turned on
+	PTT also (stand back)..
+
+2000-12-17 23:17  javabear
+
+	* ft847/: ft847.c, ft847.h: more table driven stuff for ft847.
+	cat/ptt/freq being converted.
+
+2000-12-17 16:14  javabear
+
+	* ft847/: ft847.c, ft847.h: converting ft847 to table driven,
+	similar to ft747.
+
+2000-12-16 09:13  f4cfe
+
+	* Makefile.am: * remove WANTED from dist
+
+2000-12-12 19:27  javabear
+
+	* tests/testrig.c: Added some new freq/mode combinations.
+
+2000-12-12 19:26  javabear
+
+	* ft747/: ft747.c, ft747.h: Removed static stuff from functions. 
+	Also, begin to implement table driven command translation from API
+	to rig native. priv now contains a cmd table that is used for
+	backend commands towards rig.
+
+2000-12-10 22:19  javabear
+
+	* ft747/: ft747.c, ft747.h: trying different approach to storing
+	cmd sequence.  _set_ptt is being converted. Needs tidying up
+	though.  Some sequences are complete, and can be read from static
+	data. Incomplete sequences will eventually be copied form static
+	declaration, and completed in priv data.
+
+2000-12-09 15:50  javabear
+
+	* tests/testrig.c: added ptt handling example, stand back !
+
+2000-12-09 15:48  javabear
+
+	* ft747/ft747.c: minor updates to active vfo handling
+
+2000-12-08 20:03  javabear
+
+	* ft747/ft747.h: some new defines for FT747_VFO_A/B
+
+2000-12-08 20:01  javabear
+
+	* ft747/ft747.c: minor update to active VFO handling in _set_vfo
+
+2000-12-06 20:34  javabear
+
+	* ft747/: ft747.c, ft747.h: 1. Added VFO as target for some set/get
+	cmds.  2. ./testrig still runs ok using RIG_VFO_CURR.
+
+2000-12-05 16:04  f4cfe
+
+	* tests/: rigctl.c, testrig.c, testtrn.c: * updates since the new
+	API now requires a target VFO to be specified.	  Mainly,
+	RIG_VFO_CURR is used, which should ensure the same behaviour	of
+	the tests programs as before.
+
+2000-12-05 16:01  f4cfe
+
+	* aor/aor.c, aor/aor.h, icom/icom.c, icom/icom.h, src/rig.c,
+	include/hamlib/rig.h: * all the API functions are now targetted to
+	a particular VFO.    This is a major change in the library
+	interface, and the implementation    is not complete yet
+	(especially in the backends), but the API should    be fine.
+	Anyway, at this stage of developement, interface design   
+	experimenting matters more than completeness.  * added new
+	shortfreq_t type for frequencies on 31bits (up to 2GHz)   for use
+	by offset/shifts/etc.
+
+2000-12-05 15:52  f4cfe
+
+	* TODO: * more stuff to do
+
+2000-12-05 15:51  f4cfe
+
+	* doc/Makefile.am: * added NOTES in the distribution
+
+2000-12-05 13:32  f4cfe
+
+	* tests/testrig.c: * [sg]et_mode is now responsible for
+	setting/getting the passband
+
+2000-12-04 17:45  f4cfe
+
+	* include/config.h.in: * regenerated due to added libgd option
+
+2000-12-04 17:39  f4cfe
+
+	* aor/aor.c, aor/aor.h, icom/frame.c, icom/frame.h, icom/icom.c,
+	icom/icom.h, include/hamlib/rig.h, src/rig.c, tests/rigctl.c: *
+	removed [sg]et_passband in favor of an enhanced [sg]et_mode which  
+	includes the passband, since most rigs tie these parameters
+	together   quite often. For exemple, WFM is
+	(RIG_MODE_FM,RIG_PASSBAND_WIDE) in Hamlib.    Another set of
+	functions will be needed to fine tune aditional    frequency
+	response/filters.
+
+2000-12-04 17:28  f4cfe
+
+	* doc/NOTES: Initial release
+
+2000-11-28 16:38  f4cfe
+
+	* configure: * regenerate (libgd check)
+
+2000-11-28 16:36  f4cfe
+
+	* configure.in: * check for libgd, and build rigmatrix accordingly
+
+2000-11-28 16:35  f4cfe
+
+	* tests/Makefile.am: * made rigmatrix build optional
+
+2000-11-28 16:34  f4cfe
+
+	* tests/: dumpcaps.c, rigctl.c: * misc format fixup
+
+2000-11-28 16:33  f4cfe
+
+	* src/rig.c: * cleanup, removed "not implemented" misleading
+	comments * added added squelch primitives of DCS/CTCSS * added
+	set/get_RIT and rig_get_info wrappers
+
+2000-11-28 16:31  f4cfe
+
+	* include/hamlib/rig.h: * added squelch primitives of DCS/CTCSS *
+	added set/get_RIT and rig_get_info()
+
+2000-11-28 16:28  f4cfe
+
+	* include/hamlib/riglist.h: * misc reordering, added Skanti
+
+2000-11-28 16:26  f4cfe
+
+	* icom/ic706.c: * added split/rptr capability
+
+2000-11-28 16:23  f4cfe
+
+	* icom/TODO.icom: some work done
+
+2000-11-25 15:52  javabear
+
+	* tests/testrig.c: more set_freq() examples
+
+2000-11-25 15:49  javabear
+
+	* ft747/: ft747.c, ft747.h: added set/get freq to use generic bcd
+	etc
+
+2000-11-25 02:19  javabear
+
+	* ft747/: ft747.h, ft747.c: updated ptt/mode/vfo
+
+2000-11-17 13:11  f4cfe
+
+	* NEWS: Initial release
+
+2000-11-04 15:37  f4cfe
+
+	* INSTALL: new install notes, ala autoconf
+
+2000-11-04 15:35  f4cfe
+
+	* AUTHORS: clarification on license
+
+2000-11-01 17:27  f4cfe
+
+	* tests/: dumpcaps.c, listrigs.c: * load/know more backends
+
+2000-11-01 17:24  f4cfe
+
+	* tests/Makefile.am: * added rigmatrix
+
+2000-11-01 17:23  f4cfe
+
+	* aor/Makefile.am, aor/README.aor, aor/aor.c, aor/aor.h,
+	aor/ar8200.c, tests/rigmatrix.c: Initial release
+
+2000-11-01 17:21  f4cfe
+
+	* icom/: frame.c, frame.h: * some cleanup (removed deprecated
+	make_cmd_frame_freq and make_cmd_frame_chan)
+
+2000-11-01 17:20  f4cfe
+
+	* icom/README.icom: * misc changes
+
+2000-11-01 17:19  f4cfe
+
+	* TODO: * done some work, still lot to do\!
+
+2000-11-01 17:18  f4cfe
+
+	* PLAN: * cosmetic changes
+
+2000-11-01 17:16  f4cfe
+
+	* Makefile.am, configure, configure.in: * added new AOR backend
+
+2000-10-30 15:45  f4cfe
+
+	* include/hamlib/rig.h: * misc fix of the size of immediate value
+	(long long)
+
+2000-10-29 10:35  f4cfe
+
+	* tests/rigctl.c: Initial release
+
+2000-10-29 10:31  f4cfe
+
+	* tests/Makefile.am: * added rigctl
+
+2000-10-29 10:30  f4cfe
+
+	* src/rig.c: * addded wrapper for rig_set_bank * misc fixups
+
+2000-10-29 10:29  f4cfe
+
+	* include/hamlib/rig.h: * misc cleanup
+
+2000-10-29 10:27  f4cfe
+
+	* icom/icom_defs.h: * defined some argument common lengths
+
+2000-10-29 10:26  f4cfe
+
+	* icom/icom.h: * added icom_set_rptr_offs/icom_get_rptr_offs,	   
+	  icom_set_split_freq/icom_get_split_freq and	     
+	icom_set_split/icom_get_split
+
+2000-10-29 10:25  f4cfe
+
+	* icom/icom.c: * added icom_set_rptr_offs/icom_get_rptr_offs,  
+	icom_set_split_freq/icom_get_split_freq and    
+	icom_set_split/icom_get_split * also fixed a bug in icom_set_mem,
+	and icom_set_bank (invalid arg len)
+
+2000-10-29 04:18  f4cfe
+
+	* ft747/Makefile.am, ft847/Makefile.am: * include missing header
+	files in the distribution
+
+2000-10-29 04:17  f4cfe
+
+	* doc/Makefile.am: * include scripts in the distribution. I don't
+	know why noinst_SCRIPTS doesn't do it by itself
+
+2000-10-29 04:15  f4cfe
+
+	* configure, configure.in: * Added include paths so 'make
+	distcheck' works
+
+2000-10-23 14:59  f4cfe
+
+	* tests/Makefile.am: byebye LD_LIBRARY_PATH, hello unreadability :)
+
+2000-10-23 14:58  f4cfe
+
+	* src/serial.c: * coded in a solution to not have active
+	post_write_delay wait loop
+
+2000-10-23 14:56  f4cfe
+
+	* src/rig.c: * misc comments update about CTCSS & DCS
+
+2000-10-23 14:55  f4cfe
+
+	* include/hamlib/riglist.h: * try to be more exhaustive in the rig
+	list. Any volounteers ? * cleanup
+
+2000-10-23 14:53  f4cfe
+
+	* include/hamlib/rig.h: * added rig_set_bank() to the API * added
+	struct timeval post_write_date to rig_state, so the
+	post_write_delay   may not be an active wait loop.  * cleanup
+
+2000-10-23 14:48  f4cfe
+
+	* icom/: ic706.c, icom.c, icom.h, icom_defs.h: * Added some more
+	capabilities
+
+2000-10-22 11:19  f4cfe
+
+	* include/: Makefile.am, hamlib/Makefile.am: Initial release
+
+2000-10-22 11:14  f4cfe
+
+	* tests/dumpcaps.c: * API function names changed: *_rpt_* functions
+	to *_rptr_*
+
+2000-10-22 11:13  f4cfe
+
+	* tests/Makefile.am: * Added path to shared libs and modules,
+	LD_LIBRARY_PATH is history (for now)
+
+2000-10-22 11:09  f4cfe
+
+	* src/Makefile.am: * Added -release option to LDFLAGS so the shared
+	lib shows the current numbers
+
+2000-10-22 11:08  f4cfe
+
+	* src/rig.c: * Added "hamlib-doc" source comments, ala
+	kernel-doc,gnome-doc.	 See doc/ subdirectory for more info. The
+	work is still in progress,    the current comments are pretty
+	shallow rigth now, they're still    lacking the valuable
+	information like semantics, side effects,    special cases, error
+	definitions, etc. that makes a good API documention.	Please help
+	commenting, fixing typos and mispellings!  * renamed rig_*_rpt_*
+	functions to rig_*_rptr_* to be more uniform * made use of
+	setting_t type in *_has_* functions * removed set_volume,
+	get_volume, set_squelch, get_squelch,	get_squelch_status,
+	set_ant, get_ant, int et_att, get_att,	 set_preamp, get_preamp,
+	set_power, and get_power   in favor of set_level/get_level.  *
+	set_func takes one more arg for the status (activate or
+	desactivate)
+
+2000-10-22 11:02  f4cfe
+
+	* include/hamlib/rig.h: * renamed rig_*_rpt_* functions to
+	rig_*_rptr_* to be more uniform * made use of setting_t type in
+	*_has_* functions * removed set_volume, get_volume, set_squelch,
+	get_squelch,   get_squelch_status, set_ant, get_ant, int et_att,
+	get_att,   set_preamp, get_preamp, set_power, and get_power   in
+	favor of set_level/get_level.  * set_func takes one more arg for
+	the status (activate or desactivate)
+
+2000-10-22 10:55  f4cfe
+
+	* ft747/Makefile.am, ft847/Makefile.am, icom/Makefile.am: * added
+	-avoid-version to LDFLAGS for dlopen modules
+
+2000-10-22 10:53  f4cfe
+
+	* configure.in: * added DLTOOL check * added automaked include/ and
+	doc/ subdirectories
+
+2000-10-22 10:50  f4cfe
+
+	* Makefile.am: * added include/ and doc/ automaked subdirectories
+
+2000-10-22 10:48  f4cfe
+
+	* doc/: Makefile.am, hamlib-doc, split-man.pl: Initial release
+
+2000-10-16 17:37  f4cfe
+
+	* icom/icom_defs.h: * Various defines renamed (S_SET -> S_CTL) *
+	S_LVL_* added
+
+2000-10-16 17:35  f4cfe
+
+	* icom/icom.h: new prototypes (*_level,*_channel)
+
+2000-10-16 17:34  f4cfe
+
+	* icom/icom.c: * more CI-V addresses, RIG_MODEL_IC820 still missing
+	* Added icom_[sg]et_channel (untested, not complete) * Added
+	icom_[sg]et_level (30% implemented, get_strength tested and OK)
+
+2000-10-16 17:32  f4cfe
+
+	* icom/ic706.c: * Reworked the RIG_MODE_* defines. see rig.h *
+	Added has_level caps fields
+
+2000-10-16 17:30  f4cfe
+
+	* icom/frame.c: * Accomodate with new API modes, WFM is FM + Wide
+	filter
+
+2000-10-16 17:28  f4cfe
+
+	* icom/Makefile.am: * Listed local include files
+
+2000-10-16 17:27  f4cfe
+
+	* ft747/ft747.c, ft847/ft847.c: Misc changes to accomodate with new
+	API, pls check modes handling and new has_level caps field
+
+2000-10-16 17:13  f4cfe
+
+	* tests/dumpcaps.c: Updated after caps has been reworked
+
+2000-10-16 17:10  f4cfe
+
+	* tests/testbcd.c: Added Big Endian tests
+
+2000-10-16 17:08  f4cfe
+
+	* src/rig.c: * Added rig_[sg]et_passband to [sg]et
+	narrow/normal/wide filter. These are a good companions to
+	rig_[sg]et_mode. Maybe they should be merged?
+	
+	* Added rig_[sg]et_rpt_offs to set/get repeater offset
+	
+	* Added rig_split functions: rig_[sg]et_split_freq (set RX and TX
+	freq) and rig_[sg]et_split to activate split mode
+	
+	* Added rig_[gs]et_level, however
+	rig_set_preamp/rig_set_att/rig_set_ant et al. will be removed very
+	soon.
+	
+	* Added Memory/VFO handling routines (actually wrappers, like the
+	rest)
+
+2000-10-16 16:58  f4cfe
+
+	* include/hamlib/rig.h: * Replaced
+	
+	* Added rig_has_level/rig_has_set_level (cloned from their *_func
+	cousins)
+	
+	* Reworked the RIG_MODE_* defines. The filter information (narrow,
+	normal, wide) has been splited for less complexity. Thus adding
+	rig_[sg]et_passband.
+	
+	* Reworked the vfo_t enum. Main is now an alias for VFO A, Sub for
+	VFO B, Sat for VFO C. I'm almost sure it's a wrong assumption.
+	Could someone tell if Main is or is not VFO A ?
+	
+	* Coded in a Memory/VFO handling proposal. Access is done through
+	mv_ctl. See mem_vfo_op_e for a list of available operations.
+	
+	* Renamed [sg]et_tone to [sg]et_dcs and [sg]et_tonesq to
+	[sg]et_ctcss.
+	rig_?et_volume/rig_?et_squelch/rig_get_squelch_status/rig_get_stren
+	gth/rig_?et_ant/rig_?et_att/rig_?et_preamp by
+	rig_set_level/rig_get_level. This is a good saving in terms of
+	namespace, but a potential gain in messy backend implementation.
+	Feedback welcome.
+
+2000-10-16 16:53  f4cfe
+
+	* src/: misc.c, misc.h: * fix in to_bcd(), in case of odd len
+	numbers * Added to_bcd_be/from_bcd_be for Big endian BCD
+	representation
+
+2000-10-16 16:50  f4cfe
+
+	* src/Makefile.am: * Listed local include files
+
+2000-10-16 16:48  f4cfe
+
+	* include/hamlib/riglist.h: * Added RIG_MODEL_MINISCOUT
+
+2000-10-13 22:55  javabear
+
+	* ft747/ft747.c: minor fixes
+
+2000-10-12 13:37  javabear
+
+	* TODO: cvs mail update works ok :-)
+
+2000-10-12 12:47  javabear
+
+	* TODO: cvs mails to hamlib-cvs-digest
+
+2000-10-11 12:46  f4cfe
+
+	* common/: API_Candidates, Makefile, Makefile.testrig, rig.c,
+	rig.h, riglist.h, serial.c, serial.h, testrig.c: files moved to
+	../src or ../include/hamlib
+
+2000-10-10 17:17  f4cfe
+
+	* icom/icom_defs.h: added PTT defs and other
+
+2000-10-10 17:13  f4cfe
+
+	* tests/dumpcaps.c: dumps more 'I have/I dont have function XX'
+
+2000-10-10 17:11  f4cfe
+
+	* src/rig.c: * added support for set_trn to activate on the fly the
+	transceive mode
+
+2000-10-10 17:09  f4cfe
+
+	* include/hamlib/rig.h: * added [sg]et_rpt_offs to set repeater
+	offset * added [sg]et_split_freq to set split frequencies * added
+	[sg]et_split to activate split operation * added get_squelch_status
+	to get the open/close status of the squelch * added [sg]et_trn to
+	activate on the run the transceive mode (PCR1000 can do that)
+
+2000-10-10 17:05  f4cfe
+
+	* include/hamlib/riglist.h: added Icom models in the list
+
+2000-10-10 16:58  f4cfe
+
+	* icom/: icom.c, icom.h: * added tuning step support * added
+	rptr_shift setting * added ptt control (untested)
+
+2000-10-08 20:17  javabear
+
+	* aclocal.m4, configure, ft747/ft747.c, ft747/ft747.h,
+	ft847/ft847.c, ft847/ft847.h, icom/frame.c, icom/ic706.c,
+	include/hamlib/rig.h, src/rig.c, src/serial.c, src/serial.h,
+	tests/dumpcaps.c, tests/testrig.c: added post_write_delay
+
+2000-10-08 18:06  javabear
+
+	* ft747/ft747.c: merge with TRN stuff and add some set/get_mode and
+	vfo stuff
+
+2000-10-08 17:58  javabear
+
+	* ft747/ft747.h: API updates - added set/get_mode
+
+2000-10-08 16:57  f4cfe
+
+	* ft747/ft747.c, ft847/ft847.c: rig.h is in include/hamlib, added
+	dynamic loading support and set transceive cap to off
+
+2000-10-08 16:48  f4cfe
+
+	* tests/testrig.c: added dynamic loading support, and
+	rig_get_strength call
+
+2000-10-08 16:47  f4cfe
+
+	* tests/Makefile.am: renamed printcaps to dumpcaps, added listrigs,
+	testtrn rules
+
+2000-10-08 16:46  f4cfe
+
+	* src/serial.h: added fread_block
+
+2000-10-08 16:46  f4cfe
+
+	* src/serial.c: added fread_block for file buffered access
+
+2000-10-08 16:45  f4cfe
+
+	* src/rig.c: * added dynamic loading support with new data struct
+	for known rig list, * keep track of opened rigs
+	(add_opened_rig/remove_opened_rig/foreach_opened_rig), *
+	misunderstanding on RIG_ENIMPL, this is RIG_ENAVAIL in most cases,
+	* added support for file buffered access (opt.), * added
+	rig_set_trn to turn on/off transceive support
+
+2000-10-08 16:43  f4cfe
+
+	* src/misc.h: added Hold_Decode/Unhold_Decode macros to rule
+	receiving
+
+2000-10-08 16:43  f4cfe
+
+	* src/misc.c, tests/testbcd.c: include moved
+
+2000-10-08 16:41  f4cfe
+
+	* src/Makefile.am: added register.c (dynamic loading) and event.c
+	(async notification from rig)
+
+2000-10-08 16:39  f4cfe
+
+	* icom/icom.h: added new caps prototypes
+
+2000-10-08 16:38  f4cfe
+
+	* icom/icom.c: * added added dynamic loading support, * added CI-V
+	ID list, * added generic
+	icom_set_mode,icom_get_mode,icom_set_vfo,icom_get_vfo,icom_get_stre
+	ngth,icom_decode_event
+
+2000-10-08 16:37  f4cfe
+
+	* icom/ic706.c: * headers moved, * added rig transceive cap On, *
+	made use of MHz,KHz macros, * added get_strength and decode_event
+	to ic706iig
+
+2000-10-08 16:35  f4cfe
+
+	* icom/frame.h: added
+	read_icom_frame,icom2hamlib_mode,hamlib2icom_mode
+
+2000-10-08 16:26  f4cfe
+
+	* icom/frame.c: * read_icom_block now uses file buffered access, *
+	added read_icom_frame which read a whole CI-V frame (until
+	receiving EOM), * added hamlib2icom_modeand icom2hamlib_mode
+	functions to convert from one representation to another
+
+2000-10-08 16:24  f4cfe
+
+	* configure.in: include/rig.h moved to include/hamlib/rig.h, added
+	version defines
+
+2000-10-08 16:23  f4cfe
+
+	* configure: regenrated from configure.in (mainly include/rig.h
+	moved to include/hamlib/rig.h)
+
+2000-10-08 16:21  f4cfe
+
+	* tests/: dumpcaps.c, printcaps.c: printcaps renamed to dumpcaps
+
+2000-10-08 16:17  f4cfe
+
+	* lib/usleep.c, src/event.c, src/event.h, src/register.c,
+	tests/listrigs.c, tests/testtrn.c: Initial release
+
+2000-10-08 16:16  f4cfe
+
+	* include/: rig.h, riglist.h: include files moved again (to
+	include/hamlib)
+
+2000-10-08 16:15  f4cfe
+
+	* include/hamlib/: rig.h, riglist.h: include files moved again
+
+2000-10-07 15:52  javabear
+
+	* README: updated lib names for backend to libhamlib-xxxxx.so
+
+2000-10-01 19:01  javabear
+
+	* ft747/: ft747.h, ft747.c: added ft747_open and ft747_close
+
+2000-10-01 18:49  javabear
+
+	* ft847/: ft847.h, ft847.c: added ft847_open and ft847_close to
+	enable CAT ON/OFF
+
+2000-10-01 16:38  f4cfe
+
+	* AUTHORS: Initial release
+
+2000-10-01 09:31  f4cfe
+
+	* TODO: Made the list longer
+
+2000-10-01 09:28  f4cfe
+
+	* ft747/Makefile, ft847/Makefile, icom/Makefile, Makefile:
+	Deprecated by autoconf/automake
+
+2000-10-01 09:24  f4cfe
+
+	* src/: serial.c, serial.h: Moved from ../common
+
+2000-10-01 07:53  f4cfe
+
+	* tests/testrig.c: Moved from ../common
+
+2000-10-01 07:52  f4cfe
+
+	* tests/: Makefile.am, printcaps.c, testbcd.c: Initial release
+
+2000-10-01 07:47  f4cfe
+
+	* ft747/Makefile.am, ft847/Makefile.am: Initial release
+
+2000-10-01 07:45  f4cfe
+
+	* include/: rig.h, riglist.h: Moved from ../common
+
+2000-10-01 07:41  f4cfe
+
+	* config.guess, Makefile.am, aclocal.m4, config.sub, configure,
+	configure.in, install-sh, ltconfig, ltmain.sh, missing,
+	mkinstalldirs, include/config.h.in: Initial release
+
+2000-10-01 07:37  f4cfe
+
+	* icom/icom.h: Helper functions moved to frame.h
+
+2000-10-01 07:37  f4cfe
+
+	* icom/icom.c: Moved frame handling to frame.c Renamed
+	bcd2freq/freq2bcd to from_bcd/to_bcd Coded and tested icom_get_freq
+	Made use of generic icom_transaction
+
+2000-10-01 07:33  f4cfe
+
+	* icom/ic706.c: added icom_get_freq capability
+
+2000-10-01 07:32  f4cfe
+
+	* icom/Makefile.am: Initial release
+
+2000-10-01 07:31  f4cfe
+
+	* icom/: frame.c, frame.h: Initial release, some functions gathered
+	from icom.c
+
+2000-10-01 07:29  f4cfe
+
+	* src/rig.c: Moved from ../common Added more wrappers, coded in
+	mW2power power2mW Added rig_set_debug/rig_need_debug/rig_debug
+	Various fixes
+
+2000-10-01 07:26  f4cfe
+
+	* src/Makefile.am: Initial release
+
+2000-10-01 07:25  f4cfe
+
+	* src/: misc.c, misc.h: Initial release, functions gathered from
+	serial.c and others
+
+2000-09-28 22:33  javabear
+
+	* common/Makefile: better libhamlib.so version :-)
+
+2000-09-28 22:29  javabear
+
+	* common/rig.c: added printf's to confirm rig.c (hamlib) is being
+	called ok
+
+2000-09-28 22:21  javabear
+
+	* common/rig.c: alternative rig_base declaration removes references
+	to rig_caps at compile time. should populate it another way -- FS
+
+2000-09-28 22:15  javabear
+
+	* common/: Makefile, Makefile.testrig, rig.c: makefile for testing
+	testrig linking
+
+2000-09-28 22:12  javabear
+
+	* common/testrig.c: added	printf("testrig:main() has been
+	called \n"); for testing linking
+
+2000-09-27 19:43  f4cfe
+
+	* common/serial.c: added 2400bauds support
+
+2000-09-27 19:42  f4cfe
+
+	* common/rig.c: added new wrappers
+
+2000-09-27 19:41  f4cfe
+
+	* common/rig.h: augmented API
+
+2000-09-24 19:02  javabear
+
+	* Makefile: removed "make verify". Added reference to
+	common/Makefile
+
+2000-09-24 18:49  javabear
+
+	* common/: Makefile, Makefile: make, make install, and make clean
+	work ok, using ./lib and ./include directories also.
+
+2000-09-24 18:32  javabear
+
+	* common/Makefile: starting on libhamlib Makefile, added ./lib and
+	./include under common
+
+2000-09-24 18:30  javabear
+
+	* common/rig.h: added VFO types to enum
+
+2000-09-23 22:37  javabear
+
+	* common/rig.h: added typedef enum ptt_type_e ptt_type_t;
+
+2000-09-23 22:36  javabear
+
+	* ft747/ft747.h: starting to implement set/get pairs
+
+2000-09-23 22:35  javabear
+
+	* ft747/ft747.c: started ft747_set_ptt and ft747_set_vfo
+
+2000-09-23 21:19  javabear
+
+	* README.developer: updated code snippet example
+
+2000-09-23 21:15  javabear
+
+	* README: describe frontend/backend structure
+
+2000-09-23 00:10  javabear
+
+	* common/Makefile: test making a shared lib  for the frontend -
+	make hamlib
+
+2000-09-22 23:55  javabear
+
+	* common/Makefile: test making a shared lib (at last) for the
+	frontend - more todo
+
+2000-09-22 22:49  javabear
+
+	* ft847/ft847.h: [no log message]
+
+2000-09-22 22:48  javabear
+
+	* ft847/ft847.c: updated rig_caps structure
+
+2000-09-22 21:45  javabear
+
+	* common/: serial.c, serial.h: added usleep to read_sleep()
+
+2000-09-22 21:26  javabear
+
+	* common/Makefile: added testrig to Makefile, no linking yet
+
+2000-09-22 21:17  javabear
+
+	* common/testrig.c: added some set/get examples with return code
+	checking
+
+2000-09-22 19:35  javabear
+
+	* ft747/ft747.c: added extra rig caps
+
+2000-09-22 19:34  javabear
+
+	* ft747/ft747.h: minor updates
+
+2000-09-21 01:46  f4cfe
+
+	* icom/: ic706.c, icom.c: RIG_E* modified, added tuning_step
+
+2000-09-21 01:44  f4cfe
+
+	* common/: rig.c, rig.h, serial.c: RIG_E modified, added rigerror()
+	and new field tuning_steps available on rig.
+
+2000-09-20 01:13  f4cfe
+
+	* common/riglist.h: added RIG_MODEL_IC731
+
+2000-09-20 01:12  f4cfe
+
+	* common/: rig.c, rig.h: added rig_has_func() and misc fields
+
+2000-09-19 02:06  f4cfe
+
+	* icom/icom.h: function renamed
+
+2000-09-19 02:06  f4cfe
+
+	* icom/icom_defs.h: new defs
+
+2000-09-19 02:04  f4cfe
+
+	* icom/icom.c: added return codes and read_icom_block()
+
+2000-09-19 02:02  f4cfe
+
+	* THANKS: Initial release
+
+2000-09-19 02:01  f4cfe
+
+	* common/rig.h: added error code def's, ptt_type_e, func support
+	(AGC, NB, etc.), vfo_comp, renamed functions, changed way of
+	getting return value of rig_get_*
+
+2000-09-19 02:00  f4cfe
+
+	* common/rig.c: added error code returns, vfo compensation
+
+2000-09-19 01:59  f4cfe
+
+	* common/testrig.c: function calls renamed
+
+2000-09-19 01:59  f4cfe
+
+	* common/serial.c: added error code returns
+
+2000-09-19 01:58  f4cfe
+
+	* common/serial.h: write_block2 renamed to write_block
+
+2000-09-18 20:25  javabear
+
+	* common/: rig.h, rig.c: still thinking about set/get strategy
+
+2000-09-18 19:25  javabear
+
+	* common/riglist.h: added extern const struct rig_caps ft747_caps;
+
+2000-09-18 19:16  javabear
+
+	* common/serial.h: cleanup comments
+
+2000-09-17 22:59  javabear
+
+	* common/testrig.c: Example of setting rig Main VFO to 439.700 Mhz
+	FM
+
+2000-09-17 22:47  javabear
+
+	* common/: rig.h, rig.c: added 3 more cmd_* for API examples
+
+2000-09-16 23:43  javabear
+
+	* ft847/ft847.c: converting to frontend/backend style
+
+2000-09-16 22:21  javabear
+
+	* ft847/ft847.h: changing to frontend/backend style
+
+2000-09-16 22:03  javabear
+
+	* common/rig.c: fixed typos, added &ft747_caps in rig_caps
+
+2000-09-16 19:06  javabear
+
+	* common/serial.h: removed open_port() and write_block()
+
+2000-09-16 18:56  javabear
+
+	* common/serial.c: removed open_port() and write_block()
+
+2000-09-16 18:15  javabear
+
+	* ft747/: ft747.h, ft747.c: converting to frontend/backend
+	structure compiles ok
+
+2000-09-16 16:37  javabear
+
+	* common/rig.h: missing ; in some enums
+
+2000-09-16 16:23  javabear
+
+	* common/rig.h: fixed some typos, added  3 more candidates for API
+
+2000-09-16 13:14  javabear
+
+	* common/serial.c: removed old open_port2() using old rig_caps
+
+2000-09-16 12:58  javabear
+
+	* common/API_Candidates: frontend API clarification
+
+2000-09-15 21:00  f4cfe
+
+	* ic706/: Makefile, README.icom706, TODO.ic706, ic706.c, ic706.h:
+	moved to icom/
+
+2000-09-15 20:54  f4cfe
+
+	* common/riglist.h: moved in extern defs of rig_caps
+
+2000-09-15 20:49  f4cfe
+
+	* icom/icom.c: Icom generic stuff, added in CI-V frame maker
+	helpers
+
+2000-09-15 20:46  f4cfe
+
+	* icom/ic706.c: stripped down and kept only ic706 rig tables and
+	functions
+
+2000-09-15 20:45  f4cfe
+
+	* icom/icom_defs.h: Initial release, holds CI-V constants
+
+2000-09-15 20:43  f4cfe
+
+	* icom/: Makefile, README.icom, TODO.icom, icom.h: moved from
+	../ic706, made Icom CI-V generic
+
+2000-09-15 20:37  f4cfe
+
+	* common/rigcaps.h: cut/pasted into rig.h
+
+2000-09-15 20:32  f4cfe
+
+	* common/testrig.c: now uses the rig_init()/rig_open() sequence
+
+2000-09-15 20:29  f4cfe
+
+	* common/: serial.c, serial.h: added serial_open() helper for the
+	frontend       write_block2()/read_block() handle
+	timeout/write_delay features
+
+2000-09-15 20:25  f4cfe
+
+	* common/rig.c: now compiles, added (serial) port opening
+
+2000-09-15 20:23  f4cfe
+
+	* common/rig.h: cut/pasted rigcaps.h, major cleanup, updated some
+	data structs (rig, rig_state)
+
+2000-09-15 20:21  f4cfe
+
+	* common/Makefile: remove "-ansi" define which breaks usleep() and
+	CRTSCTS
+
+2000-09-15 20:09  f4cfe
+
+	* TODO: some work has been done, but there's more to do!
+
+2000-09-15 20:08  f4cfe
+
+	* PLAN: [no log message]
+
+2000-09-15 00:08  javabear
+
+	* common/API_Candidates: frontend reduction on backend function
+	namespace - phew !!
+
+2000-09-13 19:52  f4cfe
+
+	* common/: Makefile, rig.h: Updated for the new frontend/backend
+	caps
+
+2000-09-13 19:50  f4cfe
+
+	* common/: API_Candidates, rig.c, rigcaps.h, riglist.h, testrig.c:
+	Initial revision, very alpha stage
+
+2000-09-13 19:48  f4cfe
+
+	* API, COPYING, PLAN: file creation, basically scratch notes
+
+2000-09-13 19:44  f4cfe
+
+	* ic706/: Makefile, TODO.ic706, ic706.c, ic706.h: file creation,
+	not in a compilable/working state
+
+2000-09-13 19:42  f4cfe
+
+	* ic706/README.icom706: file creation
+
+2000-09-04 14:58  javabear
+
+	* ft747/ft747.c, ft747/ft747.h, ft747/test/testlibft747.c,
+	ft847/test/testlibft847.c: adding rig_caps stuff
+
+2000-09-04 12:51  javabear
+
+	* common/rig.h, common/serial.c, common/serial.h, ft847/ft847.c,
+	ft847/ft847.h, ft847/test/testlibft847.c: adding rig_caps
+	functionality
+
+2000-09-04 10:11  javabear
+
+	* TODO: add capabilities and preferences
+
+2000-09-03 23:07  javabear
+
+	* ft747/ft747.c: adding rig_caps stuff
+
+2000-09-03 23:06  javabear
+
+	* ft747/test/testlibft747.c: adding rig_cap stuff
+
+2000-09-03 22:58  javabear
+
+	* ft747/ft747.h: adding rig_caps stuff
+
+2000-09-03 22:50  javabear
+
+	* common/rig.h: added GPL stuff and comments
+
+2000-09-03 22:45  javabear
+
+	* ft847/test/testlibft847.c: starting to add rig_caps stuff.
+
+2000-09-03 22:44  javabear
+
+	* ft847/test/testlibft847.c: starting to add rig_caps stuff
+
+2000-09-03 22:36  javabear
+
+	* ft847/: ft847.c, ft847.h: starting to add rig_caps stuff
+
+2000-09-03 22:19  javabear
+
+	* common/rig.h: initial capabilities stuff
+
+2000-09-03 18:44  javabear
+
+	* ft847/test/testlibft847.c: adding capabilities
+
+2000-09-03 18:38  javabear
+
+	* ft747/test/Makefile: added  -I$(COMMON_DIR) to find rig.h
+
+2000-09-03 18:36  javabear
+
+	* ft847/test/Makefile: added -I$(COMMON_DIR) to find rig.h
+
+2000-08-20 16:52  javabear
+
+	* README, README.developer: Updated docs to point to 
+	http://sourceforge.net/projects/hamlib/ and added a C code snippet
+	on how to use the API.
+
+2000-08-19 11:21  javabear
+
+	* README.license: included full GPL license
+
+2000-08-18 23:07  javabear
+
+	* common/serial.c, common/serial.h, ft747/ft747.c, ft747/ft747.h,
+	ft747/test/testlibft747.c, ft747/test/testlibft747.h,
+	ft847/ft847.c, ft847/ft847.h, ft847/test/testlibft847.c,
+	ft847/test/testlibft847.h: added GPL license info
+
+2000-08-18 22:14  javabear
+
+	* README.license: added README.license for GPL
+
+2000-08-08 20:26  javabear
+
+	* ft847/README.ft847: describe faulty yaesu documentation
+
+2000-08-08 20:24  javabear
+
+	* ft847/: ft847.c, ft847.h: adding dcs tables and repeater offset
+	in Hz
+
+2000-08-03 21:48  javabear
+
+	* common/: serial.h, serial.c: void dump_hex(unsigned char *ptr,
+	int size, int width);
+
+2000-07-30 00:09  javabear
+
+	* ft847/ft847.h: cleanup
+
+2000-07-30 00:06  javabear
+
+	* ft747/ft747.c, ft847/ft847.c, common/serial.c: cleanup
+
+2000-07-30 00:03  javabear
+
+	* ft847/test/testlibft847.c, ft747/test/testlibft747.c,
+	ft747/test/testlibft747.c: cleanup
+
+2000-07-29 23:35  javabear
+
+	* common/: serial.h, serial.c: calc_packed_from_char and
+	calc_char_from_packed now here
+
+2000-07-29 23:26  javabear
+
+	* ft847/ft847.c: calc_freq_from_packed4 is about to be replaced
+
+2000-07-29 23:05  javabear
+
+	* ft747/test/testlibft747.c: removed dump_hex from here..
+
+2000-07-29 23:02  javabear
+
+	* ft747/ft747.c: removed unwanted debug printf's
+
+2000-07-29 22:57  javabear
+
+	* common/serial.c: added generic hex dump routine, static void
+	dump_hex(unsigned char *ptr, int size, int width);
+
+2000-07-29 21:53  javabear
+
+	* ft847/ft847.c: minor
+
+2000-07-29 21:03  javabear
+
+	* ft847/ft847.c: added routines for dec <-> packed decimal
+	conversion
+
+2000-07-29 21:02  javabear
+
+	* ft847/test/testlibft847.c: trying some cms_set_freq_xxx commands
+
+2000-07-29 21:00  javabear
+
+	* common/serial.c: dump raw hex data when writing and reading
+
+2000-07-29 19:29  javabear
+
+	* ft847/ft847.h: fix typo
+
+2000-07-29 19:28  javabear
+
+	* ft847/ft847.c: now set sat rx and tx freq and mode also
+
+2000-07-29 18:15  javabear
+
+	* TODO: add scanning todo
+
+2000-07-29 18:13  javabear
+
+	* ft847/test/testlibft847.c: starting on cmd_set_freq commands now
+
+2000-07-29 18:12  javabear
+
+	* ft847/ft847.h: starting on cmd_set commands now
+
+2000-07-29 18:11  javabear
+
+	* ft847/ft847.c:  starting with the cmd_set commands now
+
+2000-07-29 15:31  javabear
+
+	* ft847/test/testlibft847.c:	 frq =
+	cmd_get_freq_mode_status_main_vfo(fd, &mode);
+
+2000-07-29 15:30  javabear
+
+	* ft847/ft847.c: long int cmd_get_freq_mode_status_main_vfo(int fd,
+	unsigned char *mode)
+
+2000-07-29 15:26  javabear
+
+	* ft847/ft847.h: long int cmd_get_freq_mode_status_main_vfo(int fd,
+	unsigned char *mode);
+
+2000-07-28 21:39  javabear
+
+	* ft847/test/testlibft847.c: playing with test routines
+
+2000-07-28 21:38  javabear
+
+	* ft847/ft847.c: working out freq conversion, unfinished
+
+2000-07-28 20:47  javabear
+
+	* ft847/ft847.h: use #defines for MODE_XXX used in case statements
+
+2000-07-28 19:52  javabear
+
+	* ft747/ft747.h: cannot use const int in case statements ?? so use
+	#define instead
+
+2000-07-28 19:50  javabear
+
+	* ft747/test/testlibft747.c: use MODE_xx defines
+
+2000-07-28 17:11  javabear
+
+	* README.developer: using CVS instead of RCS directories
+
+2000-07-27 22:09  javabear
+
+	* ft747/test/testlibft747.c: removed cmd_get_update
+
+2000-07-27 22:05  javabear
+
+	* ft747/: ft747.h, ft747.c: removed cmd_get_update
+
+2000-07-27 21:02  javabear
+
+	* ft847/: ft847.h, test/testlibft847.c, ft847.c: had rx and tx
+	status swapped (document error?)
+
+2000-07-27 20:20  javabear
+
+	* ft847/ft847.c: using read_sleep from serial.h
+
+2000-07-27 19:57  javabear
+
+	* ft747/ft747.c: use read_sleep now from serial.h
+
+2000-07-27 19:48  javabear
+
+	* common/: serial.h, serial.c: added read_sleep
+
+2000-07-26 20:01  javabear
+
+	* ft747/ft747.c: use while(1) and break
+
+2000-07-26 19:52  javabear
+
+	* ft747/test/testlibft747.c: read uses while(1) and break
+
+2000-07-26 19:49  javabear
+
+	* ft747/test/testlibft747.h: use ft747 on serial port /dev/ttyS0
+
+2000-07-26 19:47  javabear
+
+	* ft747/test/Makefile: use common dir for serial stuff
+
+2000-07-26 19:43  javabear
+
+	* ft747/ft747.c: using rig_open and rig_close and serial.h
+
+2000-07-26 19:42  javabear
+
+	* ft747/ft747.h: added rig_open and rig_close
+
+2000-07-26 19:26  javabear
+
+	* ft747/Makefile: added ../common as object path
+
+2000-07-26 18:36  javabear
+
+	* ft847/ft847.c: all reads use while (1) and break
+
+2000-07-25 19:37  javabear
+
+	* ft847/test/testlibft847.c: updated test()
+
+2000-07-25 19:34  javabear
+
+	* ft847/ft847.c: changed cmd_get_rx_status, must do tx also
+
+2000-07-25 19:09  javabear
+
+	* ft847/test/testlibft847.c: added sat-on and sat_off to test
+
+2000-07-25 19:00  javabear
+
+	* ft847/ft847.c: fixed cmd_sat_on / off
+
+2000-07-25 18:14  javabear
+
+	* ft847/ft847.h: added rig_open and rig_close
+
+2000-07-25 17:55  javabear
+
+	* ft847/test/testlibft847.c: use rig_open and rig_close
+
+2000-07-25 17:42  javabear
+
+	* ft847/README.ft847: fixed some typos
+
+2000-07-24 20:23  javabear
+
+	* ft847/test/: Makefile, RESULT.example, testlibft847.c,
+	testlibft847.h: initial import
+
+2000-07-24 20:17  javabear
+
+	* ft847/: Makefile, README.ft847, TODO.ft847, ft847.c, ft847.h:
+	initial import
+
+2000-07-24 20:01  javabear
+
+	* common/: Makefile, serial.c, serial.h: initial import
+
+2000-07-24 19:46  javabear
+
+	* TODO: add some things
+
+2000-07-24 19:34  javabear
+
+	* Makefile: initial top level makefile
+
+2000-07-18 18:28  frank
+
+	* ft747/Makefile: [no log message]
+
+2000-07-18 17:01  frank
+
+	* ft747/Makefile: added build_all ,cleanall and verify targets
+
+2000-07-18 16:46  frank
+
+	* TODO, TODO: [no log message]
+
+2000-07-18 16:42  frank
+
+	* TODO: Initial revision
+
+2000-07-18 16:35  frank
+
+	* INSTALL: Initial revision
+
+2000-07-18 16:26  frank
+
+	* README.developer: [no log message]
+
+2000-07-18 16:19  frank
+
+	* README.developer: [no log message]
+
+2000-07-18 16:16  frank
+
+	* README.developer: [no log message]
+
+2000-07-18 16:09  frank
+
+	* README.developer: Initial revision
+
+2000-07-18 15:53  frank
+
+	* README, TODO.skeleton, ft747/Makefile, ft747/README.ft747,
+	ft747/TODO.ft747, ft747/ft747.c, ft747/ft747.h,
+	ft747/test/Makefile, ft747/test/testlibft747.c,
+	ft747/test/testlibft747.h: Initial revision
+
