@@ -2,7 +2,7 @@
  *  Hamlib Interface - CTCSS and DCS tables header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: tones.h,v 1.2 2003-04-16 22:33:18 fillods Exp $
+ *	$Id: tones.h,v 1.3 2003-04-19 11:49:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,7 +88,6 @@ static const tone_t static_full_dcs_list[] = {
  * because DLL's vars don't have constant address.
  */
 #if (defined(_WIN32) || defined(__CYGWIN__)) && defined(DLL_EXPORT) && !defined(IN_HAMLIB)
-#error tones.h
 #define common_ctcss_list static_common_ctcss_list
 #define full_ctcss_list static_full_ctcss_list
 #define full_dcs_list static_full_dcs_list
