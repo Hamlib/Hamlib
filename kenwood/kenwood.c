@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.51 2002-12-16 18:44:02 fillods Exp $
+ *	$Id: kenwood.c,v 1.52 2002-12-19 11:00:54 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -532,11 +532,13 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 		switch (mode) {
 			case RIG_MODE_CW:       kmode = MD_CW; break;
+			case RIG_MODE_CWR:      kmode = MD_CWR; break;
 			case RIG_MODE_USB:      kmode = MD_USB; break;
 			case RIG_MODE_LSB:      kmode = MD_LSB; break;
 			case RIG_MODE_FM:       kmode = MD_FM; break;
 			case RIG_MODE_AM:       kmode = MD_AM; break;
 			case RIG_MODE_RTTY:     kmode = MD_FSK; break;
+			case RIG_MODE_RTTYR:    kmode = MD_FSKR; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"kenwood_set_mode: "
 								"unsupported mode %d\n", mode);
@@ -573,19 +575,15 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 		*width = RIG_PASSBAND_NORMAL;	/* FIXME */
 		switch (modebuf[2]) {
-			case MD_CW:		*mode = RIG_MODE_CW; break;
+			case MD_CW:	*mode = RIG_MODE_CW; break;
+			case MD_CWR:	*mode = RIG_MODE_CWR; break;
 			case MD_USB:	*mode = RIG_MODE_USB; break;
 			case MD_LSB:	*mode = RIG_MODE_LSB; break;
-			case MD_FM:		*mode = RIG_MODE_FM; break;
-			case MD_AM:		*mode = RIG_MODE_AM; break;
-			case MD_FSK:		*mode = RIG_MODE_RTTY; break;
-#ifdef RIG_MODE_CWR
-			case MD_CWR:		*mode = RIG_MODE_CWR; break;
-#endif
-#ifdef RIG_MODE_RTTYR
-			case MD_FSKR:		*mode = RIG_MODE_RTTY; break;
-#endif
-			case MD_NONE:		*mode = RIG_MODE_NONE; break;
+			case MD_FM:	*mode = RIG_MODE_FM; break;
+			case MD_AM:	*mode = RIG_MODE_AM; break;
+			case MD_FSK:	*mode = RIG_MODE_RTTY; break;
+			case MD_FSKR:	*mode = RIG_MODE_RTTYR; break;
+			case MD_NONE:	*mode = RIG_MODE_NONE; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"kenwood_get_mode: "
 								"unsupported mode '%c'\n", modebuf[2]);

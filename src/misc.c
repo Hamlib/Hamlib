@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.22 2002-10-07 21:57:16 fillods Exp $
+ *	$Id: misc.c,v 1.23 2002-12-19 11:02:13 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -265,9 +265,11 @@ const char * strrmode(rmode_t mode)
 	switch (mode) {
     case RIG_MODE_AM: return "AM";
 	case RIG_MODE_CW: return "CW";
+	case RIG_MODE_CWR: return "CWR";
 	case RIG_MODE_USB: return "USB";
 	case RIG_MODE_LSB: return "LSB";
 	case RIG_MODE_RTTY: return "RTTY";
+	case RIG_MODE_RTTYR: return "RTTYR";
 	case RIG_MODE_FM: return "FM";
 	case RIG_MODE_WFM: return "WFM";
 	case RIG_MODE_NONE: return "";
