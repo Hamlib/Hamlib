@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.32 2002-12-20 16:13:38 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.33 2002-12-20 23:44:16 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -270,12 +270,20 @@ const struct rig_caps ts870s_caps = {
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB, kHz(2.4)},
+		{RIG_MODE_SSB, Hz(200)},
+		{RIG_MODE_SSB, Hz(0)},
+		{RIG_MODE_SSB, Hz(600)},
 		{RIG_MODE_CW, Hz(400)},
 		{RIG_MODE_CW, Hz(100)},
 		{RIG_MODE_CW, Hz(1000)},
+		{RIG_MODE_RTTY, Hz(1000)},
 		{RIG_MODE_RTTY, Hz(500)},
-		{RIG_MODE_AM, kHz(9)},
+		{RIG_MODE_RTTY, Hz(1500)},
+		{RIG_MODE_AM, Hz(200)},
+		{RIG_MODE_AM, Hz(0)},
+		{RIG_MODE_AM, Hz(500)},
+		{RIG_MODE_FM, kHz(8)},
+		{RIG_MODE_FM, kHz(5)},
 		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
