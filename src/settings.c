@@ -12,7 +12,7 @@
  *  Hamlib Interface - func/level/parm
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.1 2002-11-04 22:21:42 fillods Exp $
+ *	$Id: settings.c,v 1.2 2003-03-27 23:45:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -360,7 +360,10 @@ setting_t rig_has_set_func(RIG *rig, setting_t func)
  * \param func	The functions to activate
  * \param status	The status (on or off) to set to
  *
- * Activate/desactivate functions of the radio.
+ * Activate/desactivate a function of the radio.
+ *
+ * The \a status argument is a non null value for "activate", 
+ * "desactivate" otherwise, much as true/false definitions in C language.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -406,10 +409,11 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  * \param func	The functions to get the status
  * \param status	The location where to store the function status
  *
- *  Retrieves the status of functions of the radio. Only the function bits 
- *  set to 1 will be queried.
- *  On return, \a func will hold the status of functions (bit set to 1 =
- *  activated, bit set to 0 = desactivated).
+ *  Retrieves the status (on/off) of a function of the radio.
+ *  Upon return, \a status will hold the status of the function,
+ *  The value pointer to by the \a status argument is a non null 
+ *  value for "on", "off" otherwise, much as true/false 
+ *  definitions in C language.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
