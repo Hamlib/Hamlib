@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.11 2000-09-16 18:14:18 javabear Exp $  
+ * $Id: serial.c,v 1.12 2000-09-16 23:56:35 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -254,90 +254,6 @@ int serial_open(struct rig_state *rs) {
 
 
 
-/*
- * Open serial port 
- *
- * Set to 4800 8N2
- *
- * input:
- *
- * serial_port - ptr to a char (string) indicating port
- *               to open (eg: "/dev/ttyS1").
- * 
- * returns:
- *
- * fd - the file descriptor on success or -1 on error.
- *
- */
-
-int open_port(char *serial_port) {
-
-  int fd; /* File descriptor for the port */
-  struct termios options;
-  
-  
-  fd = open(serial_port, O_RDWR | O_NOCTTY | O_NDELAY);
-
-  if (fd == -1) {
-    
-    /* Could not open the port. */
-    
-    printf("open_port: Unable to open %s - ",serial_port);
-    return -1;			/* bad */
-  }
- 
-  fcntl(fd, F_SETFL, 0);	/*  */
- 
-  
-  /*
-   * Get the current options for the port...
-   */
-  
-  tcgetattr(fd, &options);
-  
-  /*
-   * Set the baud rates to 4800...
-   */
-  
-  cfsetispeed(&options, B4800);
-  cfsetospeed(&options, B4800);
-  
-  /*
-   * Enable the receiver and set local mode...
-   */
-  
-  options.c_cflag |= (CLOCAL | CREAD);
-  
-  /*
-   * Set 8N2
-   */
-
-  options.c_cflag &= ~PARENB;
-  options.c_cflag |= CSTOPB;
-  options.c_cflag &= ~CSIZE;
-  options.c_cflag |= CS8;
-
-  /*
-   * Chose raw input, no preprocessing please ..
-   */
-
-  options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
-
-  /*
-   * Chose raw output, no preprocessing please ..
-   */
-
-  options.c_oflag &= ~OPOST;
-
-  /*
-   * Set the new options for the port...
-   */
-  
-  tcsetattr(fd, TCSANOW, &options);
-  
-  return (fd);
-}
-
 
 /*
  * 'close_port()' - Close serial port 
@@ -355,17 +271,6 @@ int close_port(int fd) {
     return -1;			/* oops */
   }
   return 0;			/* ok */
-}
-
-
-/*
- * Provides delay  for block formation.
- * Should be 50-200 msec according to YAESU docs.
- */
-
-void pause2() {
-  usleep(50 * 1000);		/* 50 msec */
-  return;
 }
 
 
@@ -451,7 +356,7 @@ int write_block2(int fd, const unsigned char *txbuffer, size_t count, int write_
  * 
  * Blocks on read until timeout hits.
  *
- * It the reads "num" bytes into rxbuffer.
+ * It then reads "num" bytes into rxbuffer.
  *
  */
 
@@ -523,6 +428,10 @@ void dump_hex(const unsigned char *ptr, int size, int width) {
 
   return;
 } 
+
+
+
+/* todo: put in other file -- FS */
 
 
 /*
