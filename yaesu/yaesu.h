@@ -6,7 +6,7 @@
  *
  * Common yaesu declarations for hamlib
  *
- * 	$Id: yaesu.h,v 1.10 2002-02-26 01:20:10 fillods Exp $	
+ * 	$Id: yaesu.h,v 1.11 2002-10-28 04:53:05 n0nb Exp $	
  *
  *
  *
@@ -51,6 +51,7 @@ extern const struct rig_caps ft747_caps;
 extern const struct rig_caps ft817_caps;
 extern const struct rig_caps ft847_caps;
 extern const struct rig_caps ft100_caps;
+extern const struct rig_caps ft920_caps;
 
 extern BACKEND_EXPORT(int) initrigs_yaesu(void *be_handle);
 

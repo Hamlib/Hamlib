@@ -55,16 +55,14 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the `c' library (-lc). */
-#undef HAVE_LIBC
-
 /* Define to 1 if you have the `syslog' library (-lsyslog). */
 #undef HAVE_LIBSYSLOG
 
 /* Define to 1 if you have the <linux/ppdev.h> header file. */
 #undef HAVE_LINUX_PPDEV_H
 
-/* Define to 1 if your system has a working `malloc' function. */
+/* Define to 1 if your system has a working `malloc' function, and to 0
+   otherwise. */
 #undef HAVE_MALLOC
 
 /* Define to 1 if you have the <malloc.h> header file. */
@@ -147,6 +145,9 @@
    */
 #undef HAVE_SYS_NDIR_H
 
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
 
@@ -176,9 +177,6 @@
 
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
-
-/* Define to 1 if you have the <VrMultiTask.h> header file. */
-#undef HAVE_VRMULTITASK_H
 
 /* Define to 1 if you have the <winbase.h> header file. */
 #undef HAVE_WINBASE_H
@@ -250,6 +248,9 @@
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */
 #undef inline
+
+/* Define to rpl_malloc if the replacement function should be used. */
+#undef malloc
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t

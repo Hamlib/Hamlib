@@ -1,4 +1,4 @@
-YAESUSRC = ft747.c ft817.c ft847.c ft100.c
+YAESUSRC = ft747.c ft817.c ft847.c ft100.c ft920.c
 
 lib_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = $(YAESUSRC) yaesu.c
