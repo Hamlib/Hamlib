@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.15 2003-11-30 20:23:51 f4dwv Exp $
+ *	$Id: th.c,v 1.16 2003-12-02 22:45:43 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -581,7 +581,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	}
 
     switch (level) {
-        case RIG_LEVEL_STRENGTH:
+        case RIG_LEVEL_RAWSTR:
             sprintf(lvlbuf, "SM %c" EOM, vch);
             retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
 			if (retval != RIG_OK)
