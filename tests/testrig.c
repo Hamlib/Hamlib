@@ -55,7 +55,7 @@ int main ()
 	
 
 	/*
-	 * Example of setting rig Main VFO to 439.700 Mhz FM -- FS
+	 * Example of setting rig paameters
 	 * and some error checking on the return code.
 	 */
 
@@ -102,6 +102,23 @@ int main ()
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_mode: error = %s \n", rigerror(retcode));
 	} 
+
+	retcode = rig_set_ptt(my_rig, RIG_VFO_A, RIG_PTT_ON ); /* stand back ! */
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_ptt: error = %s \n", rigerror(retcode));
+	} 
+
+	sleep(1);
+
+	retcode = rig_set_ptt(my_rig, RIG_VFO_A, RIG_PTT_OFF ); /* phew ! */
+
+	if (retcode != RIG_OK ) {
+	  printf("rig_set_ptt: error = %s \n", rigerror(retcode));
+	} 
+
+	sleep(1);
+
 
 	/*
 	 * Simple examples of getting rig information -- FS
