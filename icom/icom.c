@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.79 2003-10-24 22:59:18 fillods Exp $
+ *	$Id: icom.c,v 1.80 2003-11-05 20:40:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -205,6 +205,7 @@ const struct confparams icom_cfg_params[] = {
  * TODO: sort this list with most frequent rigs first.
  */
 static const struct icom_addr icom_addr_list[] = {
+		{ RIG_MODEL_IC703, 0x68 },
 		{ RIG_MODEL_IC706, 0x48 },
 		{ RIG_MODEL_IC706MKII, 0x4e },
 		{ RIG_MODEL_IC706MKIIG, 0x58 },
@@ -222,6 +223,7 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC731, 0x02 },	/* need confirmation */
 		{ RIG_MODEL_IC735, 0x04 },
 		{ RIG_MODEL_IC736, 0x40 },
+		{ RIG_MODEL_IC7400, 0x66 },
 		{ RIG_MODEL_IC746, 0x56 },
 		{ RIG_MODEL_IC746PRO, 0x66 },
 		{ RIG_MODEL_IC737, 0x3c },
@@ -2548,6 +2550,7 @@ DECLARE_INITRIG_BACKEND(icom)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "icom: _init called\n");
 
+	rig_register(&ic703_caps);
 	rig_register(&ic706_caps);
 	rig_register(&ic706mkii_caps);
 	rig_register(&ic706mkiig_caps);
@@ -2556,6 +2559,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic735_caps);
 	rig_register(&ic736_caps);
 	rig_register(&ic737_caps);
+	rig_register(&ic7400_caps);
 	rig_register(&ic746_caps);
 	rig_register(&ic746pro_caps);
 	rig_register(&ic775_caps);
