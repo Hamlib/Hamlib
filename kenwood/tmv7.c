@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.11 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: tmv7.c,v 1.12 2005-04-03 20:40:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -655,9 +655,8 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 /*-------------------------------------------------------------------- */
 int tmv7_open(RIG *rig)
 {
-    char ackbuf[ACKBUF_LEN],*strl,*stru;
-    int retval,i,ack_len=ACKBUF_LEN;
-    const freq_range_t frend=RIG_FRNG_END;
+    char ackbuf[ACKBUF_LEN];
+    int retval,ack_len=ACKBUF_LEN;
 
 	/* just to be sure it's a TM-V7 */
     retval = kenwood_transaction(rig, "ID"EOM, 3, ackbuf, &ack_len);
