@@ -2,13 +2,13 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
  * wr1500.c - Copyright (C) 2001 pab@users.sourceforge.net
- * Derived from hamlib code (C) 2000 Stephane Fillod.
+ * Derived from hamlib code (C) 2000,2001 Stephane Fillod.
  *
  * This shared library supports winradio receivers through the
  * /dev/winradio API. This file describe the WR1500 capabilities.
  *
  *
- *		$Id: wr1500.c,v 1.3 2001-05-04 22:37:35 f4cfe Exp $
+ *		$Id: wr1500.c,v 1.4 2001-06-02 18:09:07 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@
  * Winradio rigs capabilities.
  */
 
-#define WR1500_FUNC  0
+#define WR1500_FUNC  RIG_FUNC_NONE
 #define WR1500_SET_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AF)
 #define WR1500_LEVEL (WR1500_SET_LEVEL | RIG_LEVEL_STRENGTH)
 
@@ -70,17 +70,28 @@ const struct rig_caps wr1500_caps = {
   has_set_func:  WR1500_FUNC,
   has_get_level: WR1500_LEVEL,
   has_set_level: WR1500_SET_LEVEL,
-  has_get_parm:	 RIG_PARM_NONE,	/* FIXME */
-  has_set_parm:	 RIG_PARM_NONE,	/* FIXME */
-  ctcss_list:	 NULL,	/* FIXME */
-  dcs_list:  	 NULL,  /* FIXME */
-  chan_list:	 { RIG_CHAN_END, },	/* FIXME */
+  has_get_parm:	 RIG_PARM_NONE,
+  has_set_parm:	 RIG_PARM_NONE,
+  ctcss_list:	 NULL,
+  dcs_list:  	 NULL,
+  chan_list:	 { RIG_CHAN_END, },
   transceive:    RIG_TRN_OFF,
   max_ifshift:	 kHz(2),
   attenuator:    { 20, RIG_DBLST_END, },
-  rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:WR1500_MODES,
+  rx_range_list1: { {start:kHz(150),end:MHz(1500),modes:WR1500_MODES,
 		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
 					{start:MHz(30),end:MHz(1500),modes:RIG_MODE_WFM,
+		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
+		    		RIG_FRNG_END, },
+  rx_range_list2: { {start:kHz(150),end:MHz(824),modes:WR1500_MODES,
+		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
+					{start:MHz(30),end:MHz(824),modes:RIG_MODE_WFM,
+		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
+					{start:MHz(849),end:MHz(869),
+					 modes:WR1500_MODES|RIG_MODE_WFM,
+		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
+					{start:MHz(894),end:MHz(1500),
+					 modes:WR1500_MODES|RIG_MODE_WFM,
 		    		 low_power:-1,high_power:-1,vfo:RIG_VFO_A},
 		    		RIG_FRNG_END, },
   tx_range_list2: { RIG_FRNG_END, },
@@ -90,19 +101,13 @@ const struct rig_caps wr1500_caps = {
 
   filters:      { {RIG_MODE_SSB|RIG_MODE_CW, kHz(2.5)},
                   {RIG_MODE_AM, kHz(6)},
-                  {RIG_MODE_FM, kHz(15)},
+                  {RIG_MODE_FM, kHz(17)},
                   {RIG_MODE_WFM, kHz(230)},
                   RIG_FLT_END, },
 
   priv:			NULL,	/* priv */
 
   rig_init:    wr_rig_init,
-  /*
-  rig_cleanup: wr_rig_cleanup,
-  rig_open:    wr_rig_open,
-  rig_close:   wr_rig_close,
-  rig_probe:   wr_rig_probe,
-  */
 
   set_freq:    wr_set_freq,
   get_freq:    wr_get_freq,
