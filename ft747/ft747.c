@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.8 2000-08-19 04:07:00 javabear Exp $  
+ * $Id: ft747.c,v 1.9 2000-09-04 04:07:33 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,9 +35,13 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 
+#include "rig.h"
 #include "serial.h"
 #include "ft747.h"
 
+static struct rig_caps rigft747 = {
+  "ft747", 4800, 4800, 8, 2, RIG_PARITY_NONE
+};
 
 
 /*
@@ -63,6 +67,27 @@ int rig_open(char *serial_port) {
 int rig_close(int fd) {
   return close_port(fd);
 }
+
+/*
+ * Gets rig capabilities.
+ * 
+ */
+
+struct rig_caps *rig_get_caps() {
+ 
+  struct rig_caps *r;
+  r = &rigft747;
+
+  printf("rig = %s \n", r->rig_name);
+
+  printf("rig = %s \n", rigft747.rig_name);
+
+  printf("rig serial_rate_min = = %u \n", rigft747.serial_rate_min);
+
+
+  return  &rigft747;
+}
+
 
 /*
  * Implement OPCODES
