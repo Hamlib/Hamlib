@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.2 2002-03-04 13:00:22 avflinsch Exp $  
+ *    $Id: ft100.c,v 1.3 2002-03-12 13:02:58 avflinsch Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -42,6 +42,31 @@
 #include "ft100.h"
 #include "misc.h"
 #include "yaesu_tones.h"
+
+
+
+const char *CFREQ_TBL[256] =
+{   
+ "00", "01", "02", "03", "04", "05", "06", "07", "08", "09","0A","0B","0C","0D","0E", "0F",	
+ "10", "11", "12", "13", "14", "15", "16", "17", "18", "19","1A","1B","1C","1D","1E", "1F",
+ "20", "21", "22", "23", "24", "25", "26", "27", "28", "29","2A","2B","2C","2D","2E", "2F",
+ "30", "31", "32", "33", "34", "35", "36", "37", "38", "39","3A","3B","3C","3D","3E", "3F",
+ "40", "41", "42", "43", "44", "45", "46", "47", "48", "49","43","4B","4C","4D","4E", "4F",
+ "50", "51", "52", "53", "54", "55", "56", "57", "58", "59","5A","5B","5C","5D","5E", "5F",
+ "60", "61", "62", "63", "64", "65", "66", "67", "68", "69","6A","6B","6C","6D","6E", "6F",
+ "70", "71", "72", "73", "74", "75", "76", "77", "78", "79","7A","7B","7C","7D","7E", "7F",
+ "80", "81", "82", "83", "84", "85", "86", "87", "88", "89","8A","8B","8C","8D","8E", "8F",
+ "90", "91", "92", "93", "94", "95", "96", "97", "98", "99","9A","9B","9C","9D","9E", "9F",
+ "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9","AA","AB","AC","AD","AE", "AF",
+ "B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9","BA","BB","BC","BD","BE", "BF",
+ "C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9","CA","CB","CC","CD","CE", "CF",
+ "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9","DA","DB","DC","DD","DE", "DF",
+ "E0", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9","EA","EB","EC","ED","EE", "EF",
+ "F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9","FA","FB","FC","FD","FE", "FF"
+};
+
+
+
 
 /* prototypes */
 
@@ -113,7 +138,11 @@ static const yaesu_cmd_set_t ncmd[] = {
    
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr on */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }  /* pwr off */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr off */
+   
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x10 } }, /* read status block */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* read meter block */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0xfa } }  /* read flags block */ 
 };
 
 
@@ -225,7 +254,7 @@ const struct rig_caps ft100_caps = {
   rig_open:		ft100_open, 
   rig_close:		ft100_close, 
   set_freq:		ft100_set_freq,
-  get_freq:		NULL,
+  get_freq:		ft100_get_freq,
   set_mode:		ft100_set_mode,
   get_mode:		NULL,
   set_vfo:		NULL,
@@ -412,35 +441,52 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 }
 
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+  
+   FT100_STATUS_INFO ft100_status;
+   FT100_METER_INFO  ft100_meters;
+   FT100_FLAG_INFO   ft100_flags;
+  
+   freq_t d1, d2;
+   char freq_str[6], sfreq[10];  
+   int i;
+    
+   int n = 0;
+    
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq \n");
+   
+   if( !rig )  return -RIG_EINVAL;
+   if( !freq )  return -RIG_EINVAL;
+  
+   serial_flush( &rig->state.rigport );
+   n=ft100_get_info(rig, &ft100_status, &ft100_meters, &ft100_flags);
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: Freq= %3i %3i %3i %3i \n",(int)ft100_status.freq[0], (int)ft100_status.freq[1], (int)ft100_status.freq[2],(int)ft100_status.freq[3]);
+  
+   /* now convert it .... */
+   /* yes i know its butt fugly, but it works */
+   
+   
+   for (i=0; i<5; i++ )
+      freq_str[i]=0x00;
 
-  int n = 0;
-  unsigned char data[ YAESU_CMD_LENGTH ];
-
-  if( !rig )  return -RIG_EINVAL;
-  if( !freq )  return -RIG_EINVAL;
-
-  serial_flush( &rig->state.rigport );
-
-  ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_GET_FREQ_MODE_STATUS );
-
-  n = read_block( &rig->state.rigport, data, YAESU_CMD_LENGTH );
-
-  if( n == YAESU_CMD_LENGTH ) {
-//     printf( "[%.2x %.2x %.2x %.2x]", data[0], data[1], data[2], data[3] );
-     *freq = MHz( 100*((data[0] & 0xf0) >> 4) ) +
-             MHz(  10*( data[0] & 0x0f)       ) +
-	     MHz(     ((data[1] & 0xf0) >> 4) ) +
-	     kHz( 100*( data[1] & 0x0f)       ) +
-	     kHz(  10*((data[2] & 0xf0) >> 4) ) +
-	     kHz(     ( data[2] & 0x0f)       ) +
-	          100*((data[3] & 0xf0) >> 4)   +
-		   10*( data[3] & 0x0f);
-
-     return RIG_OK;
-  }
-
-  return -RIG_EIO;
+   for (i=0; i<4; i++)
+        strcat(freq_str, CFREQ_TBL[(int)ft100_status.freq[i]]);
+   
+   d1=strtol(freq_str,NULL,16);
+   d2=(d1*1.25)/10;
+   
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%lld d2=%lld\n",d1,d2);
+   
+   sprintf(sfreq,"%8i",d2);
+   
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq= %s \n",sfreq);
+   
+   memcpy(freq, &d2, sizeof(freq_t));
+   
+   return RIG_OK;
 }
+
+
+
 
 
 int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
@@ -770,3 +816,33 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
 
   return RIG_OK;
 }
+
+
+/*
+ * okie dokie here....
+ * get everything, let the calling function figure out what it needs
+ * 
+ */
+
+int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags)
+{
+   unsigned char cmd_index;
+   int n;
+   
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: getting all info \n");
+   
+   cmd_index=FT100_NATIVE_CAT_READ_STATUS;
+   ft100_send_priv_cmd(rig,cmd_index);
+   n = read_block( &rig->state.rigport, ft100_status, sizeof(FT100_STATUS_INFO));  
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read status=%i \n",n);
+   
+   cmd_index=FT100_NATIVE_CAT_READ_METERS;
+   ft100_send_priv_cmd(rig,cmd_index);
+   n = read_block( &rig->state.rigport, ft100_meter, sizeof(FT100_METER_INFO));  
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read meters=%i \n",n);
+   
+   
+   return RIG_OK;
+}
+
+
