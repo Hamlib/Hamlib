@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.21 2000-11-25 21:49:34 javabear Exp $  
+ * $Id: ft747.c,v 1.22 2000-12-07 02:34:56 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -188,7 +188,7 @@ int ft747_init(RIG *rig) {
 
   p->pacing = FT747_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
   p->read_update_delay = FT747_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
- 
+  p->current_vfo =  RIG_VFO_A;	/* default to VFO_A ? */
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -260,7 +260,7 @@ int ft747_close(RIG *rig) {
  */
 
 
-int ft747_set_freq(RIG *rig, freq_t freq) {
+int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
 
@@ -277,6 +277,8 @@ int ft747_set_freq(RIG *rig, freq_t freq) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq = %Li Hz \n", freq);
 
+  ft747_set_vfo(rig, vfo);	/* select VFO first , new API */
+
   to_bcd(bcd,freq,8);
 
   dump_hex(bcd,4);		/* just checking */
@@ -292,10 +294,15 @@ int ft747_set_freq(RIG *rig, freq_t freq) {
   write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
 
-  return -RIG_ENIMPL;
+  return RIG_OK;
 }
 
-int ft747_get_freq(RIG *rig, freq_t *freq) {
+
+/*
+ * Return Freq for a given VFO
+ */
+
+int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   struct ft747_priv_data *p;
   freq_t f;
 
@@ -305,10 +312,22 @@ int ft747_get_freq(RIG *rig, freq_t *freq) {
   p = (struct ft747_priv_data*)rig->state.priv;
 
   ft747_get_update_data(rig);	/* get whole shebang from rig */
-    
-  f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ+1]),8); /* grab freq and convert */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: displayed freq = %Li Hz \n", f);
+  if (vfo == RIG_VFO_CURR )
+    vfo = p->current_vfo;	/* from previous vfo cmd */
+
+  switch(vfo) {
+  case RIG_VFO_A:
+    f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]),8); /* grab freq and convert */
+    break;
+  case RIG_VFO_B:
+    f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]),8); /* grab freq and convert */
+  break;
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong VFO */
+  }
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:  freq = %Li Hz  for VFO = %u \n", f, vfo);
 
   (*freq) = f;			/* return diplayed frequency */
 
@@ -317,11 +336,11 @@ int ft747_get_freq(RIG *rig, freq_t *freq) {
 
 
 /*
- * set mode : eg AM. AMN , CW, NCW etc..
+ * set mode : eg AM, CW etc for a given VFO
  *
  */
 
-int ft747_set_mode(RIG *rig, rmode_t mode) {
+int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
 
@@ -335,6 +354,7 @@ int ft747_set_mode(RIG *rig, rmode_t mode) {
   p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
   
+  ft747_set_vfo(rig, vfo);	/* select VFO first , new API */
   
   /* 
    * translate mode from generic to ft747 specific
@@ -363,6 +383,22 @@ int ft747_set_mode(RIG *rig, rmode_t mode) {
     return -RIG_EINVAL;		/* sorry, wrong MODE */
   }
 
+
+  /*
+   * Now set width
+   */
+
+  switch(width) {
+  case RIG_PASSBAND_NORMAL:	/* easy  case */
+    break;
+  case RIG_PASSBAND_NARROW:	/* must set narrow */
+    mymode |= MODE_NAR;
+    break;
+  case RIG_PASSBAND_WIDE:
+    return -RIG_EINVAL;		/* sorry, wrong WIDTH */
+
+  }
+
   cmd[3] = mymode;
   write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: rig specific mode = %x \n", mymode);
@@ -371,7 +407,8 @@ int ft747_set_mode(RIG *rig, rmode_t mode) {
   
 }
 
-int ft747_get_mode(RIG *rig, rmode_t *mode) {
+
+int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   struct ft747_priv_data *p;
   unsigned char mymode;		/* ft747 mode */
 
@@ -424,13 +461,16 @@ int ft747_get_mode(RIG *rig, rmode_t *mode) {
 
 
 
-
+/*
+ * set vfo and store requested vfo for later RIG_VFO_CURR
+ * requests.
+ *
+ */
 int ft747_set_vfo(RIG *rig, vfo_t vfo) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
 
-  static unsigned char cmd_A[] = { 0x00, 0x00, 0x00, 0x00, 0x05 }; /* select vfo A */
-  static unsigned char cmd_B[] = { 0x00, 0x00, 0x00, 0x01, 0x05 };  /* select vfo B */
+  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x05 }; /* select vfo A/B/Current */
   
   if (!rig)
     return -RIG_EINVAL;
@@ -445,14 +485,24 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
 
   switch(vfo) {
   case RIG_VFO_A:
-    write_block(rig_s->fd, cmd_A, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+    cmd[3] = 0x00;
+    write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+    p->current_vfo = vfo;		/* update active VFO */
     return RIG_OK;
   case RIG_VFO_B:
-    write_block(rig_s->fd, cmd_B, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+    cmd[3] = 0x01;
+    write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+    p->current_vfo = vfo;		/* update active VFO */
     return RIG_OK;
+  case RIG_VFO_CURR:
+    cmd[3] = p->current_vfo;		/* use active VFO */
+    write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+    return RIG_OK;
+
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
+
 
   return RIG_OK;		/* good */
 }
@@ -490,7 +540,7 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
 
 }
 
-int ft747_set_ptt(RIG *rig, ptt_t ptt) {
+int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
 
@@ -502,6 +552,8 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt) {
   
   p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
+
+  ft747_set_vfo(rig,vfo);	/* select VFO first */
 
   switch(ptt) {
   case RIG_PTT_OFF:
@@ -516,7 +568,7 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt) {
   return RIG_OK;		/* good */
 }
 
-int ft747_get_ptt(RIG *rig, ptt_t *ptt) {
+int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   struct ft747_priv_data *p;
   unsigned char status;		/* ft747 mode */
 

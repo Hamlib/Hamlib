@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.15 2000-11-25 21:49:34 javabear Exp $  
+ *    $Id: ft747.h,v 1.16 2000-12-07 02:34:56 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -115,11 +115,17 @@
 /*
  * Some useful offsets in the status update map (offset) 
  *
+ * Manual appears to be full of mistakes regarding offsets etc.. -- FS
+ *
  */
 
 #define FT747_SUMO_DISPLAYED_MODE             0x18    
 #define FT747_SUMO_DISPLAYED_STATUS           0x00    
 #define FT747_SUMO_DISPLAYED_FREQ             0x01    
+#define FT747_SUMO_VFO_A_FREQ                 0x09
+#define FT747_SUMO_VFO_B_FREQ                 0x11
+    
+
 
 
 /*
@@ -130,6 +136,7 @@
 struct ft747_priv_data {
   unsigned char pacing;		/* pacing value */
   unsigned int read_update_delay;	 /* depends on pacing value */
+  unsigned char current_vfo;	/* active VFO from last cmd */
   unsigned char p_cmd[FT747_CMD_LENGTH]; /* private copy of constructed CAT cmd */
   unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
 };
@@ -143,17 +150,17 @@ int ft747_cleanup(RIG *rig);
 int ft747_open(RIG *rig);
 int ft747_close(RIG *rig);
 
-int ft747_set_freq(RIG *rig, freq_t freq);
-int ft747_get_freq(RIG *rig, freq_t *freq);
+int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-int ft747_set_mode(RIG *rig, rmode_t mode); /* select mode */
-int ft747_get_mode(RIG *rig, rmode_t *mode); /* get mode */
+int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
 
 int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
-int ft747_set_ptt(RIG *rig, ptt_t ptt);
-int ft747_get_ptt(RIG *rig, ptt_t *ptt);
+int ft747_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 
 
