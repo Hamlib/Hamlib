@@ -6,7 +6,7 @@
  *  Hamlib bindings - swig interface file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: hamlib.swg,v 1.1 2002-09-08 22:31:01 fillods Exp $
+ *	$Id: hamlib.swg,v 1.2 2002-09-16 06:50:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -52,6 +52,9 @@
 	typedef channel_t * channel_t_p;
 	typedef channel_t * const_channel_t_p;
 %}
+
+%include typemaps.i
+%include exception.i
 
 /*
  * The Rig "class"

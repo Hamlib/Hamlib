@@ -2,7 +2,7 @@
  *  Hamlib bindings - Rotator interface
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: rotator.swg,v 1.1 2002-09-08 22:31:01 fillods Exp $
+ *	$Id: rotator.swg,v 1.2 2002-09-16 06:50:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,6 +26,8 @@ typedef struct Rot {
 	ROT *rot;
 	struct rot_caps *caps;		/* shortcut to ROT->caps */
 	struct rot_state *state;	/* shortcut to ROT->state */
+	int error_status;
+	int do_exception;
 } Rot;
 
 %}
@@ -33,12 +35,12 @@ typedef struct Rot {
 /*
  * decalre wrapper method with 0,1,2 arguments besides ROT*
  */
-#define ROTMETHOD0(f) int f () \
-				{ return rot_##f(self->rot); }
-#define ROTMETHOD1(f, t1) int f (t1 _##t1) \
-				{ return rot_##f(self->rot, _##t1); }
-#define ROTMETHOD2(f, t1, t2) int f (t1 _##t1##_1, t2 _##t2##_2) \
-				{ return rot_##f(self->rot, _##t1##_1, _##t2##_2); }
+#define ROTMETHOD0(f) void f () \
+				{ self->error_status = rot_##f(self->rot); }
+#define ROTMETHOD1(f, t1) void f (t1 _##t1) \
+				{ self->error_status = rot_##f(self->rot, _##t1); }
+#define ROTMETHOD2(f, t1, t2) void f (t1 _##t1##_1, t2 _##t2##_2) \
+				{ self->error_status = rot_##f(self->rot, _##t1##_1, _##t2##_2); }
 
 %extend Rot {
 	Rot(rot_model_t rot_model) {
@@ -55,12 +57,25 @@ typedef struct Rot {
 		/* install shortcuts */
 		r->caps = r->rot->caps;
 		r->state = &r->rot->state;
+		r->do_exception = 0;    /* default is disabled */
+		r->error_status = RIG_OK;
 		return r;
 	}
 	~Rot () {
 		rot_cleanup(self->rot);
 		free(self);
 	}
+
+/*
+ * return code checking
+ */
+%exception {
+	arg1->error_status = RIG_OK;
+	$action
+	if (arg1->error_status != RIG_OK && arg1->do_exception)
+		SWIG_exception(SWIG_UnknownError, rigerror(arg1->error_status));
+}
+
 	ROTMETHOD0(open)
 	ROTMETHOD0(close)
 
@@ -72,10 +87,10 @@ typedef struct Rot {
 
 	ROTMETHOD1(token_lookup, const_char_string)	/* conf */
 
-	int set_conf_s(const char *name, const char *val) {
+	void set_conf_s(const char *name, const char *val) {
 		token_t tok = rot_token_lookup(self->rot, name);
 		/* FIXME: token not found */
-		return rot_set_conf(self->rot, tok, val);
+		self->error_status = rot_set_conf(self->rot, tok, val);
 	}
 
 	ROTMETHOD2(set_conf, token_t, const_char_string)
