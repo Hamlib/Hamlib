@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.8 2002-10-28 04:53:05 n0nb Exp $  
+ *	$Id: yaesu.c,v 1.9 2002-11-21 23:09:28 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ int initrigs_yaesu(void *be_handle)
   rig_register(&ft847_caps); 
   rig_register(&ft100_caps); 
   rig_register(&ft920_caps);
+  rig_register(&ft1000mp_caps);
 
   return RIG_OK;
 }
