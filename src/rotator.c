@@ -11,7 +11,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotator.c,v 1.1 2001-12-27 21:46:25 fillods Exp $
+ *		$Id: rotator.c,v 1.2 2001-12-28 20:34:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -189,9 +189,9 @@ ROT *rot_init(rot_model_t rot_model)
 		rs->rotport.retry = caps->retry;
 
 		rs->min_el = caps->min_el;
-		rs->min_el = caps->min_el;
+		rs->max_el = caps->max_el;
 		rs->min_az = caps->min_az;
-		rs->min_az = caps->min_az;
+		rs->max_az = caps->max_az;
 
 		rs->rotport.fd = -1;
 
@@ -467,11 +467,17 @@ int rot_get_conf(ROT *rot, token_t token, char *val)
 int rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevation)
 {
 		const struct rot_caps *caps;
+		const struct rot_state *rs;
 
 		if (!rot || !rot->caps)
 			return -RIG_EINVAL;
 
 		caps = rot->caps;
+		rs = &rot->state;
+
+		if (azimuth < rs->min_az || azimuth > rs->max_az ||
+				elevation < rs->min_el || elevation > rs->max_el)
+			return -RIG_EINVAL;
 
 		if (caps->set_position == NULL)
 			return -RIG_ENAVAIL;
@@ -510,6 +516,89 @@ int rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elevation)
 }
 
 /**
+ * \brief park the antenna
+ * \param rot	The rot handle
+ *
+ *  Park the antenna.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ */
+
+int rot_park (ROT *rot)
+{
+		const struct rot_caps *caps;
+
+		if (!rot || !rot->caps)
+			return -RIG_EINVAL;
+
+		caps = rot->caps;
+
+		if (caps->park == NULL)
+			return -RIG_ENAVAIL;
+
+		return caps->park(rot);
+}
+
+/**
+ * \brief stop the rotator
+ * \param rot	The rot handle
+ *
+ *  Stop the rotator.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ */
+
+int rot_stop (ROT *rot)
+{
+		const struct rot_caps *caps;
+
+		if (!rot || !rot->caps)
+			return -RIG_EINVAL;
+
+		caps = rot->caps;
+
+		if (caps->stop == NULL)
+			return -RIG_ENAVAIL;
+
+		return caps->stop(rot);
+}
+
+/**
+ * \brief reset the rotator
+ * \param rot	The rot handle
+ * \param reset The reset operation to perform
+ *
+ *  Resets the rotator.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ */
+
+int rot_reset (ROT *rot, rot_reset_t reset)
+{
+		const struct rot_caps *caps;
+
+		if (!rot || !rot->caps)
+			return -RIG_EINVAL;
+
+		caps = rot->caps;
+
+		if (caps->reset == NULL)
+			return -RIG_ENAVAIL;
+
+		return caps->reset(rot, reset);
+}
+
+
+/**
  * \brief get general information from the rotator
  * \param rot	The rot handle
  *
@@ -530,4 +619,6 @@ const char* rot_get_info(ROT *rot)
 
 		return rot->caps->get_info(rot);
 }
+
+
 
