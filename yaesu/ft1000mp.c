@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000.c,v 1.3 2002-11-28 22:29:20 fillods Exp $
+ *	$Id: ft1000mp.c,v 1.1 2002-12-01 21:49:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,7 +47,7 @@
 #include "misc.h"
 #include "cal.h"
 #include "yaesu.h"
-#include "ft1000.h"
+#include "ft1000mp.h"
 
 
 /* Private helper function prototypes */
