@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.1 2000-07-25 01:23:20 javabear Exp $  
+ * $Id: testlibft847.c,v 1.2 2000-07-25 22:55:57 javabear Exp $  
  *
  */
 
@@ -148,9 +148,7 @@ static int test(fd) {
   cmd_cat_on(fd);
   sleep(1);
   cmd_cat_off(fd);
-  
-  dump_hex(datain, 5, 5);	/* do a hex dump */
-  
+    
   return 0;
 }
 
@@ -165,13 +163,13 @@ int main(void) {
 
   int fd;
   
-  fd = open_port(SERIAL_PORT);
+  fd = rig_open(SERIAL_PORT);
   printf("port %s opened ok \n",SERIAL_PORT);
   
   test(fd);
   printf("testing communication result ok \n");
   
-  close(fd);
+  rig_close(fd);
   printf("port %s closed ok \n",SERIAL_PORT);
   
   return 0;
