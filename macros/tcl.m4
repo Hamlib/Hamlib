@@ -59,6 +59,7 @@ AC_DEFUN(SC_PATH_TCLCONFIG, [
 	    # check in a few common install locations
 	    if test x"${ac_cv_c_tclconfig}" = x ; then
 		for i in `ls -d ${prefix}/lib 2>/dev/null` \
+			`ls -d /usr/lib 2>/dev/null` \
 			`ls -d /usr/local/lib 2>/dev/null` \
 			`ls -dr /usr/lib/tcl[[8-9]].[[0-9]]* 2>/dev/null` ; do
 		    if test -f "$i/tclConfig.sh" ; then
