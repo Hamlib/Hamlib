@@ -65,7 +65,31 @@ int main ()
 	  printf("rig_set_vfo: error = %s \n", rigerror(retcode));
 	}
 
-	retcode = rig_set_freq(my_rig, 439700000); /* cq de vk3fcs */
+
+	/*
+	 * Lets try some frequencies
+	 */
+	
+	retcode = rig_set_freq(my_rig, 28350125); /* 10m */
+	sleep(2);
+	retcode = rig_set_freq(my_rig, 21235175); /* 15m  */
+	sleep(2);
+	retcode = rig_set_freq(my_rig, 770000); /* KAAM */
+	sleep(2);
+	retcode = rig_set_freq(my_rig, 7250100); /* 40m  */
+	sleep(2);
+	retcode = rig_set_freq(my_rig, 3980000); /* 80m  */
+	sleep(2);
+	retcode = rig_set_freq(my_rig, 1875000); /* 160m  */
+	sleep(2);
+	retcode = rig_set_freq(my_rig, 14250375); /* cq de vk3fcs */
+	sleep(2);
+#if 0
+	retcode = rig_set_freq(my_rig, 145100000); /* 2m  */
+	sleep(2);
+	retcode = rig_set_freq(my_rig, 435125000); /* 70cm  */
+	sleep(2);
+#endif
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
