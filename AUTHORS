@@ -24,8 +24,10 @@ Backends:
  IC-R7000:		HQ testing by Chuck Hemker, N2POR
  TS-2000:		testing by Dale Edmons, KD7ENI
  jrc:			Manual and testing by Bob Parnass, AJ9S
+ 			Maintenance by Mark J. Fine
  aor:			testing by John Ronan
  tentec:		testing by James Chance, N3TKD
+ 			Maintenance by Mark J. Fine
  OptoScan:		Michael Smith, KE4RJQ
  ft990, NetBSD:		Berndt, VK5ABN
 
@@ -56,3 +58,4 @@ Chuck Gilkes, WD0FCL/4, <chuck (at) webbasset.com>
 Dale E. Edmons, KD7ENI, <dedmons (at) w-link.net>
 Michael Smith KE4RJQ <james.m.smith (at) earthlink.net>
 Bernt VK5ABN <wulf (at) ping.net.au>
+Mark J. Fine <mark.fine (at) fineware-swl.com>
