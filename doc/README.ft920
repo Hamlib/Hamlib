@@ -1,7 +1,7 @@
 Quirks, known bugs, and other notes.
 ====================================
 
-$Id: README.ft920,v 1.1 2002-11-23 14:09:19 n0nb Exp $
+$Id: README.ft920,v 1.2 2003-01-07 03:32:35 n0nb Exp $
 
 In this document I'll try to describe the behavior of the Yaesu FT-920
 transceiver with Hamlib.  Some of these are limitations of the radio
@@ -49,6 +49,26 @@ rig_set_split
         RIG_SPLIT_ON will make no visible change on the radio.  
     *   The VFO value passed is not used by the ft920 backend lib.
     
+rig_set_split_freq
+    *   Backend simply wraps rig_set_freq--calling app needs to specify
+        target VFO to set frequency.  Should backend determine split
+        and set "proper" VFO?
+    
+rig_get_split_freq
+    *   Backend simply wraps rig_get_freq--calling app needs to specify
+        target VFO to set frequency.  Should backend determine split
+        and set "proper" VFO?
+
+rig_set_split_mode
+    *   Backend simply wraps rig_set_mode--calling app needs to specify
+        target VFO to set frequency.  Should backend determine split
+        and set "proper" VFO?
+    
+rig_get_split_mode
+    *   Backend simply wraps rig_get_mode--calling app needs to specify
+        target VFO to set frequency.  Should backend determine split
+        and set "proper" VFO?
+
 General notes.
     As with most all Yaesu radios the radio must be polled by the application
     for status updates, i.e. no transceive mode in CAT.

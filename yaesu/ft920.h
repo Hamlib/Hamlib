@@ -2,14 +2,14 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft920.h - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
- *           (C) Nate Bargmann 2002 (n0nb at arrl.net)
+ *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.8 2002-11-23 14:09:21 n0nb Exp $  
+ *    $Id: ft920.h,v 1.9 2003-01-07 03:32:35 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -313,5 +313,11 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo);
 
 int ft920_set_split(RIG *rig, vfo_t vfo, split_t split);
 int ft920_get_split(RIG *rig, vfo_t vfo, split_t *split);
+
+int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
+
+int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
 
 #endif /* _FT920_H */
