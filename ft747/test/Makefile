@@ -9,7 +9,7 @@
 # Make file for libft747.so shared lib test suite.
 #
 #
-#	$Id: Makefile,v 1.1 2000-07-18 20:54:50 frank Exp $	
+#	$Id: Makefile,v 1.2 2000-07-27 00:47:56 javabear Exp $	
 #
 #
 #
@@ -22,14 +22,13 @@
 LIB_NAME	=	libft747.so
 LIB_HEADER	=	ft747.h
 
-#LIB_SONAME	=	libft747.so.1
-#LIB_RELEASE	=	libft747.so.1.0.1
-
+# access to common stuff
+COMMON_DIR	=	../../common/
 
 CC	=	gcc
-INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../
-OBJ	=	testlibft747.o
-LDFLAG	=	-lm -lft747 -L../
+INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include 
+OBJ	=	testlibft747.o $(COMMON_DIR)serial.o
+LDFLAG	=	-lm -lft747 -L../lib
 CFLAGS	=	-g -Wall -ansi -pedantic -O2 -D__USE_FIXED_PROTOTYPES__ 
 MAKEALL	=	testlibft747
 
@@ -40,6 +39,10 @@ testlibft747:	$(OBJ)
 
 testlibft747.o:	testlibft747.c testlibft747.h 
 	$(CC)	$(CFLAGS)  $(INCLUDE) -c testlibft747.c
+
+# what common stuff I need.
+serial.o:
+	(cd $(COMMON_DIR) && $(MAKE))
 
 # clean up
 
