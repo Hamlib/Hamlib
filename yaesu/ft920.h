@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.3 2002-10-31 01:00:30 n0nb Exp $  
+ *    $Id: ft920.h,v 1.4 2002-11-01 04:39:47 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -123,18 +123,28 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
  * When READING modes
  */
 
-#define MODE_FM     0x01
-#define MODE_AM     0x02
-#define MODE_CW     0x04
-#define MODE_FMN    0x81
-#define MODE_AMN    0x82
-#define MODE_CWN    0x84
-#define MODE_USB    0x08
-#define MODE_LSB    0x10
-#define MODE_NAR    0x80   
+#define MODE_LSB     0x00
+#define MODE_CW_L    0x01
+#define MODE_AM      0x02
+#define MODE_FM      0x03
+#define MODE_DATA_L  0x04
+#define MODE_DATA_U  0x05
+#define MODE_DATA_F  0x06
+#define MODE_USB     0x40
+#define MODE_CW_U    0x41
+/* Narrow filter selected */
+#define MODE_LSBN    0x80
+#define MODE_CW_LN   0x81
+#define MODE_AMN     0x82
+#define MODE_FMN     0x83
+#define MODE_DATA_LN 0x84
+#define MODE_DATA_UN 0x85
+#define MODE_DATA_FN 0x86
+#define MODE_USBN    0xc0
+#define MODE_CW_UN   0xc1
 
 /* All relevent bits */
-#define MODE_MASK   0x9f   
+#define MODE_MASK   0xc7
 
 
 /*
@@ -142,9 +152,10 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
  */
 
 #define SF_DLOCK   0x01
-#define SF_SPLIT   0x02
+#define SF_SPLITA  0x01
+#define SF_SPLITB  0x02
 #define SF_CLAR    0x04
-#define SF_VFOAB   0x08
+#define SF_VFOAB   0x03         /* Status byte 0, bit 4, VFO A == 0, VFO B == 1 */
 #define SF_VFOMR   0x10
 #define SF_RXTX    0x20
 #define SF_RESV    0x40
@@ -166,7 +177,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
  *
  */
 
-#define FT920_SUMO_DISPLAYED_MODE             0x18    
+#define FT920_SUMO_DISPLAYED_MODE             0x07
 #define FT920_SUMO_DISPLAYED_STATUS           0x00    
 #define FT920_SUMO_DISPLAYED_FREQ             0x01    
 #define FT920_SUMO_VFO_A_FREQ                 0x01
