@@ -11,10 +11,13 @@ SWIG=swig
 #INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ @TCL_INCLUDE_SPEC@ -I$(top_srcdir)/bindings
 INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@
 
+SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h \
+		$(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h
+
 ##########################################
 # Perl binding
 
-hamlibperl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
+hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
 	$(SWIG) -perl5 -shadow @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
 			`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
@@ -61,7 +64,7 @@ hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la
 pkgIndex.tcl: Makefile
 	echo 'package ifneeded Hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
 
-hamlibtcl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
+hamlibtcl_wrap.c: hamlib.swg $(SWGDEP)
 	$(SWIG) -tcl -pkgversion $(PKG_VER) @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
 		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
