@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.21 2001-03-01 21:17:00 f4cfe Exp $
+ *	$Id: rig.h,v 1.22 2001-03-02 18:46:27 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -236,6 +236,13 @@ enum ptt_type_e {
 
 typedef enum ptt_type_e ptt_type_t;
 
+enum powerstat_e {
+		RIG_POWER_OFF = 0,
+		RIG_POWER_ON,
+		RIG_POWER_STANDBY
+};
+typedef enum powerstat_e powerstat_t;
+
 
 enum mem_vfo_op_e {
 	RIG_MVOP_VFO_MODE = 0,
@@ -316,7 +323,10 @@ typedef union value_u value_t;
 
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 
+#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SQLSTAT|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH)
+
 #define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
+#define RIG_LEVEL_SET(l) ((l)&~RIG_LEVEL_READONLY_LIST)
 
 
 /*
@@ -327,6 +337,7 @@ typedef union value_u value_t;
 #define RIG_PARM_APO		(1<<1)	/* Auto power off, int in minute */
 #define RIG_PARM_BACKLIGHT	(1<<2)	/* LCD light, float [0.0..1.0] */
 #define RIG_PARM_BEEP		(1<<4)	/* Beep on keypressed, int (0,1) */
+#define RIG_PARM_TIME		(1<<5)	/* hh:mm:ss, int in seconds */
 
 #define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT)
 
@@ -579,7 +590,10 @@ struct rig_caps {
   int preamp[MAXDBLSTSIZ];		/* in dB, 0 terminated */
   int attenuator[MAXDBLSTSIZ];	/* in dB, 0 terminated */
 
+  const char *dtmf_digits;	/* ASCIIZ string of supported digits */
+
   shortfreq_t max_rit;	/* max absolute RIT */
+  shortfreq_t max_ifshift;	/* max absolute IF-SHIFT */
 
   int vfo_list;
   int targetable_vfo;
@@ -666,8 +680,8 @@ struct rig_caps {
   int (*power2mW)(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
   int (*mW2power)(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 
-  int (*set_poweron)(RIG *rig);
-  int (*set_poweroff)(RIG *rig);
+  int (*set_powerstat)(RIG *rig, powerstat_t status);
+  int (*get_powerstat)(RIG *rig, powerstat_t *status);
 
   int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant);	/* antenna */
   int (*get_ant)(RIG *rig, vfo_t vfo, ant_t *ant);
@@ -680,6 +694,9 @@ struct rig_caps {
 
   int (*set_parm)(RIG *rig, setting_t parm, value_t val);/* set parameter */
   int (*get_parm)(RIG *rig, setting_t parm, value_t *val);/* get parameter */
+
+  int (*send_dtmf)(RIG *rig, vfo_t vfo, const char *digits);
+  int (*recv_dtmf)(RIG *rig, vfo_t vfo, char *digits, int *length);
 
   int (*set_bank)(RIG *rig, vfo_t vfo, int bank);			/* set memory bank number */
   int (*set_mem)(RIG *rig, vfo_t vfo, int ch);			/* set memory channel number */
@@ -759,6 +776,7 @@ struct rig_state {
   struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
 
   shortfreq_t max_rit;	/* max absolute RIT */
+  shortfreq_t max_ifshift;	/* max absolute IF-SHIFT */
 
   int vfo_list;
 
@@ -876,8 +894,8 @@ extern int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 extern int rig_set_parm(RIG *rig, setting_t parm, value_t val);
 extern int rig_get_parm(RIG *rig, setting_t parm, value_t *val);
 
-extern int rig_set_poweron(RIG *rig);
-extern int rig_set_poweroff(RIG *rig);
+extern int rig_set_powerstat(RIG *rig, powerstat_t status);
+extern int rig_get_powerstat(RIG *rig, powerstat_t *status);
 
 /* more to come -- FS */
 
@@ -900,6 +918,9 @@ extern setting_t rig_has_set_func(RIG *rig, setting_t func);
 
 extern int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);	/* activate the function(s) */
 extern int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status); /* get the setting from rig */
+
+extern int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits);
+extern int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length);
 
 extern int rig_set_bank(RIG *rig, vfo_t vfo, int bank);	/* set memory bank number */
 extern int rig_set_mem(RIG *rig, vfo_t vfo, int ch);		/* set memory channel number */
