@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft757gx.c,v 1.2 2004-08-08 19:15:27 fillods Exp $  
+ * $Id: ft757gx.c,v 1.3 2004-08-10 21:03:56 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -247,7 +247,7 @@ const struct rig_caps ft757gx2_caps = {
   .copyright =         "LGPL",
   .status =            RIG_STATUS_ALPHA, 
   .rig_type =          RIG_TYPE_MOBILE, 
-  .ptt_type =          RIG_PTT_NONE,	/* pin4: RIG_PTT_SERIAL_DTR ? */
+  .ptt_type =          RIG_PTT_SERIAL_DTR,	/* pin4? */
   .dcd_type =          RIG_DCD_NONE,
   .port_type =         RIG_PORT_SERIAL,
   .serial_rate_min =   4800,
@@ -584,6 +584,9 @@ int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x01, 0x10};
   int retval;
  
+  if (level != RIG_LEVEL_RAWSTR)
+	return -RIG_EINVAL;
+
   serial_flush(&rig->state.rigport);
 
   /* send READ STATUS(Meter only) cmd to rig  */
