@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.17 2000-12-17 22:14:19 javabear Exp $  
+ *    $Id: ft847.h,v 1.18 2000-12-18 05:17:45 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -171,9 +171,10 @@ typedef struct ft847_cmd_set ft847_cmd_set_t;
 
 struct ft847_priv_data {
   unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A, SAT_RX, SAT_TX */
+  unsigned char p_cmd[FT847_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
   ft847_cmd_set_t pcs[FT_847_NATIVE_SIZE];		/* private cmd set */
-  unsigned char tx_status;	/* tx returned data */
-  unsigned char rx_status;	/* rx returned data */
+  unsigned char rx_status;	/* tx returned data */
+  unsigned char tx_status;	/* rx returned data */
   unsigned char fm_status_main; /* freq and mode ,returned data */
   unsigned char fm_status_satrx; /* freq and mode ,returned data */
   unsigned char fm_status_sattx; /* freq and mode ,returned data */
@@ -192,17 +193,17 @@ int ft847_open(RIG *rig);
 int ft847_cleanup(RIG *rig);
 int ft847_close(RIG *rig);
 
-int ft847_set_freq(RIG *rig, freq_t freq);
-int ft847_get_freq(RIG *rig, freq_t *freq);
+int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-int ft847_set_mode(RIG *rig, rmode_t mode); /* select mode */
-int ft847_get_mode(RIG *rig, rmode_t *mode); /* get mode */
+int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
 
 int ft847_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 int ft847_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
-int ft847_set_ptt(RIG *rig, ptt_t ptt);
-int ft847_get_ptt(RIG *rig, ptt_t *ptt);
+int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 
 
