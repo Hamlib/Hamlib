@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#
+# -*- coding: <iso-8859-1> -*-
 
 import sys
 
@@ -10,7 +10,7 @@ sys.path.append ('/usr/local/hamlib/python')
 import Hamlib
 
 def StartUp ():
-    print "Version: ", Hamlib.cvar.hamlib_version
+    print "Python test, version: ", Hamlib.cvar.hamlib_version
 
     Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_TRACE)
 
@@ -60,10 +60,10 @@ def StartUp ():
     err, long2, lat2 = Hamlib.locator2longlat("DM33DX")
     loc1 = Hamlib.longlat2locator(long1, lat1)
     loc2 = Hamlib.longlat2locator(long2, lat2)
-    print "Loc1: ",loc1
-    print "Loc2: ",loc2
+    print "Loc1: IN98EC -> ",loc1
+    print "Loc2: DM33DX -> ",loc2
 
-    err, dist, az = Hamlib.qrb(long1, lat1, long2, lat2)
+    dist, az = Hamlib.qrb(long1, lat1, long2, lat2)
     longpath = Hamlib.distance_long_path(dist)
     print "Distance: ",dist," km, long path: ",longpath
     deg, min, sec = Hamlib.dec2dms(az)
