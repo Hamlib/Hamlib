@@ -1,11 +1,11 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2002
+ * rotctl.c - (C) Stephane Fillod 2000-2003
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rotctl.c,v 1.6 2003-02-27 03:47:47 n0nb Exp $  
+ * $Id: rotctl.c,v 1.7 2003-04-07 20:54:18 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -300,7 +300,7 @@ int main (int argc, char *argv[])
 			static int last_was_ret = 1;
 
 			if (interactive) {
-				printf("\nRot command: ");
+				printf("\nRotator command: ");
 
 				do {
 					scanf("%c", &cmd);
@@ -321,7 +321,7 @@ int main (int argc, char *argv[])
 					if (cmd == 0x0a || cmd == 0x0d) {
 						if (last_was_ret) {
 							printf("? for help, q to quit.\n");
-							printf("\nRot command: ");
+							printf("\nRotator command: ");
 							continue;
 						}
 						last_was_ret = 1;
@@ -487,7 +487,6 @@ static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 				printf(", %s", cfp->u.c.combostr[i]);
 		printf("\n");
 		break;
-	default:
 	}
 
 	return 1;  /* !=0, we want them all ! */
