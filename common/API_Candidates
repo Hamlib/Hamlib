@@ -1,0 +1,74 @@
+
+#include <rigcaps.h>
+
+/* These are all potential candidates that can go into the API,
+ * after some cleanup, like type standardization, etc..
+ */
+
+void cmd_set_ptt_on(RIG *rig);
+void cmd_set_ptt_off(RIG *rig);
+
+void cmd_set_freq_main_vfo(RIG *rig, unsigned char d1,  unsigned char d2,
+			   unsigned char d3, unsigned char d4);
+
+void cmd_set_freq_sat_rx_vfo(RIG *rig, unsigned char d1,  unsigned char d2,
+			   unsigned char d3, unsigned char d4);
+
+void cmd_set_freq_sat_tx_vfo(RIG *rig, unsigned char d1,  unsigned char d2,
+			   unsigned char d3, unsigned char d4);
+
+void cmd_set_opmode_main_vfo(RIG *rig, unsigned char d1);
+void cmd_set_opmode_sat_rx_vfo(RIG *rig, unsigned char d1);
+void cmd_set_opmode_sat_tx_vfo(RIG *rig, unsigned char d1);
+
+void cmd_set_ctcss_dcs_main_vfo(RIG *rig, unsigned char d1);
+void cmd_set_ctcss_dcs_sat_rx_vfo(RIG *rig, unsigned char d1);
+void cmd_set_ctcss_dcs_sat_tx_vfo(RIG *rig, unsigned char d1);
+
+void cmd_set_ctcss_freq_main_vfo(RIG *rig, unsigned char d1);
+void cmd_set_ctcss_freq_sat_rx_vfo(RIG *rig, unsigned char d1);
+void cmd_set_ctcss_freq_sat_tx_vfo(RIG *rig, unsigned char d1);
+
+void cmd_set_dcs_code_main_vfo(RIG *rig, unsigned char d1, unsigned char d2);
+void cmd_set_dcs_code_sat_rx_vfo(RIG *rig, unsigned char d1, unsigned char d2);
+void cmd_set_dcs_code_sat_tx_vfo(RIG *rig, unsigned char d1, unsigned char d2);
+
+void cmd_set_repeater_shift_minus(RIG *rig);
+void cmd_set_repeater_shift_plus(RIG *rig);
+void cmd_set_repeater_shift_simplex(RIG *rig);
+
+void cmd_set_repeater_offset(RIG *rig, unsigned char d1,  unsigned char d2,
+			   unsigned char d3, unsigned char d4);
+
+unsigned char cmd_get_rx_status(RIG *rig);
+unsigned char cmd_get_tx_status(RIG *rig);
+
+/*
+ * Get frequency and mode info
+ *
+ */
+
+long int cmd_get_freq_mode_status_main_vfo(RIG *rig, unsigned char *mode);
+long int cmd_get_freq_mode_status_sat_rx_vfo(RIG *rig, unsigned char *mode);
+long int cmd_get_freq_mode_status_sat_tx_vfo(RIG *rig, unsigned char *mode);
+
+
+/*
+ * Set frequency in Hz and mode
+ *
+ */
+
+void cmd_set_freq_main_vfo_hz(RIG *rig,freq_t freq, rig_mode_t mode);
+void cmd_set_freq_sat_rx_vfo_hz(RIG *rig,freq_t freq, rig_mode_t mode);
+void cmd_set_freq_sat_tx_vfo_hz(RIG *rig,freq_t freq, rig_mode_t mode);
+
+
+/*
+ * Set Repeater offset in Hz.
+ *
+ */
+
+void cmd_set_repeater_offset_hz(RIG *rig,freq_t freq);
+
+
+
