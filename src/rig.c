@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.28 2001-05-24 22:24:18 f4cfe Exp $
+   $Id: rig.c,v 1.29 2001-06-02 18:05:14 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ const char hamlib_version[] = "Hamlib version " VERSION;
 /*
  * 52 CTCSS sub-audible tones
  */
-const int full_ctcss_list[] = {
+const tone_t full_ctcss_list[] = {
 		600,  670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
 		948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1200,  1230, 1273,
 		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
@@ -63,7 +63,7 @@ const int full_ctcss_list[] = {
  * backends depend on it. If you need to, create a copy for your 
  * own caps. --SF
  */
-const int common_ctcss_list[] = {
+const tone_t common_ctcss_list[] = {
 		670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
 		948,  974, 1000, 1035, 1072, 1109, 1148, 1188,  1230, 1273,
 		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
@@ -75,7 +75,7 @@ const int common_ctcss_list[] = {
 /*
  * 106 DCS codes
  */
-const int full_dcs_list[] = {
+const tone_t full_dcs_list[] = {
 		017, 023, 025, 026, 031, 032, 036, 043, 047, 050, 051, 053, 
 		054, 065, 071, 072, 073, 074, 114, 115, 116, 122, 125, 131, 
 		132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174, 205, 
