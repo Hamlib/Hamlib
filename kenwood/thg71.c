@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.8 2003-12-08 08:36:31 fillods Exp $
+ *	$Id: thg71.c,v 1.9 2003-12-08 21:41:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,10 +202,10 @@ const struct rig_caps thg71_caps = {
 int thg71_decode_event (RIG *rig)
 {
     char asyncbuf[ACKBUF_LEN];
-    int retval;
+    int retval, asyncbuf_len = ACKBUF_LEN-1;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
-    retval = th_transaction(rig, NULL, asyncbuf, sizeof(asyncbuf));
+    retval = kenwood_transaction(rig, NULL, 0, asyncbuf, &asyncbuf_len);
     if (retval != RIG_OK)
         return retval;
 
