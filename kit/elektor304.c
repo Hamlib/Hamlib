@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Elektor DRM receiver description
  *  Copyright (c) 2004 by Stephane Fillod
  *
- *	$Id: elektor304.c,v 1.2 2004-08-01 23:14:53 fillods Exp $
+ *	$Id: elektor304.c,v 1.3 2004-08-10 21:02:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -44,7 +44,7 @@
 #define ELEKTOR304_VFO (RIG_VFO_A)
 
 /* defaults */
-#define OSCFREQ 	MHz(50000)
+#define OSCFREQ 	MHz(50)
 #define IFMIXFREQ	kHz(454.3)
 
 struct elektor304_priv_data {
@@ -84,10 +84,10 @@ const struct rig_caps elektor304_caps = {
 .rig_model =  RIG_MODEL_ELEKTOR304,
 .model_name = "Elektor 3/04",
 .mfg_name =  "Elektor",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "GPL",
-.status =  RIG_STATUS_UNTESTED,
-.rig_type =  RIG_TYPE_RECEIVER,
+.status =  RIG_STATUS_ALPHA,
+.rig_type =  RIG_TYPE_TUNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,	/* bit banging */
@@ -100,7 +100,7 @@ const struct rig_caps elektor304_caps = {
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  200,
-.retry =  1,
+.retry = 0,
 
 .has_get_func =  ELEKTOR304_FUNC,
 .has_set_func =  ELEKTOR304_FUNC,
@@ -304,10 +304,8 @@ static int ad_write(port_t *port, unsigned data)
 		ad_sdata(port, data & mask ? 0 : 1);	/* RTS 0 or 1 */
 		ad_sclk(port, 1);	/* TXD 1, clock */
                 ad_sclk(port, 0);	/* TXD 0 */
-		ad_delay(AD_DELAY);
 		mask >>= 1;	/* Next bit for masking */
 	}
-	ad_delay(AD_DELAY);
 
 	ad_fsync(port, 0);	/* DTR 0 */
 
@@ -333,7 +331,8 @@ int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	ad_sclk(port, 0);
 
 	/* all frequencies are in Hz */
-	frg = (unsigned long)((freq + priv->if_mix_freq)/priv->osc_freq * 4294967296.0);
+	frg = (unsigned long)(((double)freq + priv->if_mix_freq) /
+				priv->osc_freq * 4294967296.0);
 
 	fll = frg & 0xff;
 	flh = (frg>>8) & 0xff;
@@ -345,10 +344,10 @@ int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	ad_write(port, 0xF800);  /* Reset */
 
-	ad_write(port, 0x3000+fll);	/* 4 Bytes to FREQ0 */
-	ad_write(port, 0x2100+flh);
-	ad_write(port, 0x3200+fhl);
-	ad_write(port, 0x2300+fhh); 
+	ad_write(port, 0x3000|fll);	/* 4 Bytes to FREQ0 */
+	ad_write(port, 0x2100|flh);
+	ad_write(port, 0x3200|fhl);
+	ad_write(port, 0x2300|fhh); 
 
 	ad_write(port, 0x8000);	/* Sync */
 	ad_write(port, 0xC000);	/* Reset end */
