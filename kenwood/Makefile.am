@@ -1,4 +1,4 @@
-TSSRCLIST = ts870s.c
+TSSRCLIST = ts870s.c ts570.c
 
 lib_LTLIBRARIES = libhamlib-kenwood.la
 libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c
