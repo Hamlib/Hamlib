@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.74 2003-02-23 22:34:54 fillods Exp $
+ *	$Id: rig.h,v 1.75 2003-03-10 08:40:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -78,7 +78,7 @@ extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
  * Error codes that can be returned by the Hamlib functions
  */
 enum rig_errcode_e {
-	RIG_OK,			/*<! completed sucessfully */
+	RIG_OK=0,		/*<! No error, operation completed sucessfully */
 	RIG_EINVAL,		/*<! invalid parameter */
 	RIG_ECONF,		/*<! invalid configuration (serial,..) */
 	RIG_ENOMEM,		/*<! memory shortage */
@@ -275,66 +275,52 @@ typedef signed long shortfreq_t;
  *
  * There's several way of using a vfo_t. For most cases, using RIG_VFO_A,
  * RIG_VFO_B, RIG_VFO_CURR, etc., as opaque macros should suffice.
- * However, vfo_t is also designed to describe vfo capability of a rig.
  *
  * Strictly speaking a VFO is Variable Frequency Oscillator.
  * Here, it is referred as a tunable channel, from the radio operator
- * point of view.
+ * point of view. The channel can be designated individualy by its real 
+ * number, or using an alias.
+ * Aliases may, or may not be honored by backend, and are defined using
+ * high significant bits, like RIG_VFO_MEM, RIG_VFO_MAIN, etc.
  *
- * The vfo_t type is a bit field type which spans at least on a quad byte 
- * integer (32 bits).
- *
- * There is one byte per "tunable channel":
- *
-\verbatim
-    MSB           LSB
-     8             1
-    +-+-+-+-+-+-+-+-+
-    | |             |
-    CTL     VFO
-\endverbatim
- *
- * The least significant byte holds the first "tunable channel",
- * the second byte the second one and so on.
- *
- * Note that vfo_t is a signed integer, so last byte is unusable.
- * However vfo_t can have negative values, defining some non standard
- * VFO types.
  */
 typedef int vfo_t;
 
 /** \brief used in caps */
 #define RIG_VFO_NONE    0
 
+#define RIG_VFO_TX_FLAG    ((vfo_t)(1<<30))
+
 /** \brief current "tunable channel"/VFO */
-#define RIG_VFO_CURR    -6
+#define RIG_VFO_CURR    ((vfo_t)(1<<29))
 
 /** \brief means Memory mode, to be used with set_vfo */
-#define RIG_VFO_MEM	-2
+#define RIG_VFO_MEM	((vfo_t)(1<<28))
 
 /** \brief means (last or any)VFO mode, with set_vfo */
-#define RIG_VFO_VFO	-3
+#define RIG_VFO_VFO	((vfo_t)(1<<27))
 
-/** \brief alias for split tx or uplink  */
-#define RIG_VFO_TX	-4
+#define RIG_VFO_TX_VFO(v)	((v)|RIG_VFO_TX_FLAG)
+
+/** \brief alias for split tx or uplink, of VFO_CURR  */
+#define RIG_VFO_TX	RIG_VFO_TX_VFO(RIG_VFO_CURR)
 
 /** \brief alias for split rx or downlink */
-#define RIG_VFO_RX	-5
+#define RIG_VFO_RX	RIG_VFO_CURR
 
+/** \brief alias for MAIN */
+#define RIG_VFO_MAIN	((vfo_t)(1<<26))
+/** \brief alias for SUB */
+#define RIG_VFO_SUB	((vfo_t)(1<<25))
 
-#define RIG_VFO1 (1<<0)
-#define RIG_VFO2 (1<<1)
-#define RIG_CTRL_MAIN 1
-#define RIG_CTRL_SUB 2
+#define RIG_VFO_N(n) ((vfo_t)(1<<(n)))
 
-#define RIG_CTRL_BAND(band,vfo) ( (0x80<<(((band)-1)<<3)) | ((vfo)<<(((band)-1)<<3)) )
-
-				 /* macros */
-#define RIG_VFO_A (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO1))
-#define RIG_VFO_B (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO2))
-#define RIG_VFO_C (RIG_CTRL_BAND(RIG_CTRL_SUB, RIG_VFO1))
-#define RIG_VFO_MAIN (RIG_CTRL_BAND(RIG_CTRL_MAIN, 0))
-#define RIG_VFO_SUB  (RIG_CTRL_BAND(RIG_CTRL_SUB, 0))
+/** \brief VFO A */
+#define RIG_VFO_A RIG_VFO_N(0)
+/** \brief VFO B */
+#define RIG_VFO_B RIG_VFO_N(1)
+/** \brief VFO C */
+#define RIG_VFO_C RIG_VFO_N(2)
 
 
 #define RIG_TARGETABLE_NONE 0x00
@@ -1428,8 +1414,6 @@ extern HAMLIB_EXPORT(token_t) rig_token_lookup HAMLIB_PARAMS((RIG *rig, const ch
 extern HAMLIB_EXPORT(int) rig_close HAMLIB_PARAMS((RIG *rig));
 extern HAMLIB_EXPORT(int) rig_cleanup HAMLIB_PARAMS((RIG *rig));
 
-extern HAMLIB_EXPORT(rig_model_t) rig_probe HAMLIB_PARAMS((port_t *p));
-
 extern HAMLIB_EXPORT(int) rig_set_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t ant));	/* antenna */
 extern HAMLIB_EXPORT(int) rig_get_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t *ant));
 
@@ -1496,7 +1480,10 @@ extern HAMLIB_EXPORT(int) rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(const str
 extern HAMLIB_EXPORT(int) rig_load_backend HAMLIB_PARAMS((const char *be_name));
 extern HAMLIB_EXPORT(int) rig_check_backend HAMLIB_PARAMS((rig_model_t rig_model));
 extern HAMLIB_EXPORT(int) rig_load_all_backends HAMLIB_PARAMS(());
-extern HAMLIB_EXPORT(rig_model_t) rig_probe_all HAMLIB_PARAMS((port_t *p));
+
+typedef int (*rig_probe_func_t)(const port_t *, rig_model_t, rig_ptr_t);
+extern HAMLIB_EXPORT(int) rig_probe_all HAMLIB_PARAMS((port_t *p, rig_probe_func_t, rig_ptr_t));
+extern HAMLIB_EXPORT(rig_model_t) rig_probe HAMLIB_PARAMS((port_t *p));
 
 
 __END_DECLS
