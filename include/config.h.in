@@ -77,6 +77,9 @@
 /* Define if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
 
+/* Define if you have the <net/errno.h> header file. */
+#undef HAVE_NET_ERRNO_H
+
 /* Define if you have the <rpc/rpc.h> header file. */
 #undef HAVE_RPC_RPC_H
 
@@ -145,9 +148,6 @@
 
 /* Define if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
-
-/* Define if you have the <tcl8.2/tcl.h> header file. */
-#undef HAVE_TCL8_2_TCL_H
 
 /* Define if you have the <termios.h> header file. */
 #undef HAVE_TERMIOS_H
