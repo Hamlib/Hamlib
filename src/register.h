@@ -2,7 +2,7 @@
  *  Hamlib Interface - plugin registration
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: register.h,v 1.3 2003-11-16 22:15:37 fillods Exp $
+ *	$Id: register.h,v 1.4 2003-11-16 22:32:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,21 +35,21 @@
 #ifdef DECLARE_INITRIG_BACKEND
 #undef DECLARE_INITRIG_BACKEND
 #endif
-#define DECLARE_INITRIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) initrigs1_##backend(void *be_handle)
+#define DECLARE_INITRIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) initrigs2_##backend(void *be_handle)
 
 #ifdef DECLARE_PROBERIG_BACKEND
 #undef DECLARE_PROBERIG_BACKEND
 #endif
-#define DECLARE_PROBERIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rig_model_t) probeallrigs1_##backend(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+#define DECLARE_PROBERIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rig_model_t) probeallrigs2_##backend(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 
 #ifdef DECLARE_INITROT_BACKEND
 #undef DECLARE_INITROT_BACKEND
 #endif
-#define DECLARE_INITROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) initrots1_##backend(void *be_handle)
+#define DECLARE_INITROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(int) initrots2_##backend(void *be_handle)
 
 #ifdef DECLARE_PROBEROT_BACKEND
 #undef DECLARE_PROBEROT_BACKEND
 #endif
-#define DECLARE_PROBEROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rot_model_t) probeallrots1_##backend(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+#define DECLARE_PROBEROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rot_model_t) probeallrots2_##backend(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 
 #endif	/* _REGISTER_H */
