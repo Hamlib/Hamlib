@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.63 2002-03-18 22:59:30 fillods Exp $
+ *		$Id: rig.h,v 1.64 2002-04-23 21:49:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -361,8 +361,6 @@ typedef long vfo_op_t;
 #define RIG_SCAN_PRIO	(1L<<2)		/* Priority watch (mem or call channel) */
 #define RIG_SCAN_PROG	(1L<<3)		/* Programmed(edge) scan */
 #define RIG_SCAN_DELTA	(1L<<4)		/* delta-f scan */
-#define RIG_SCAN_RESUME_ON  (1L<<5) /* Scan resume ON (IC-910H) */
-#define RIG_SCAN_RESUME_OFF (1L<<6) /* Scan resume OFF (IC-910H) */
 
 typedef long scan_t;
 
@@ -545,6 +543,7 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_AFC        (1<<25)     /* Auto Frequency Control ON/OFF */
 #define RIG_FUNC_SATMODE    (1<<26)     /* Satellite mode ON/OFF (IC-910H) */
 #define RIG_FUNC_SCOPE      (1<<27)     /* Simple bandscope ON/OFF (IC-910H) */
+#define RIG_FUNC_RESUME		(1<<28)		/* Scan resume */
 
 /*
  * power unit macros, converts to mW

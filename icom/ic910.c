@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.1 2002-02-28 10:59:46 fgretief Exp $
+ *      $Id: ic910.c,v 1.2 2002-04-23 21:49:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -118,7 +118,7 @@ post_write_delay: 0,
 timeout: 200,
 retry: 3,
 has_get_func: IC910_FUNC_ALL,
-has_set_func: IC910_FUNC_ALL,
+has_set_func: IC910_FUNC_ALL | RIG_FUNC_RESUME,
 has_get_level: IC910_LEVEL_ALL | (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH),
 has_set_level: IC910_LEVEL_ALL,
 has_get_parm: RIG_PARM_NONE,
@@ -201,8 +201,6 @@ get_vfo: NULL,
 set_vfo: icom_set_vfo,
 get_ts: icom_get_ts,
 set_ts: icom_set_ts,
-get_channel: icom_get_channel,
-set_channel: icom_set_channel,
 get_func: icom_get_func,
 set_func: icom_set_func,
 get_level: icom_get_level,

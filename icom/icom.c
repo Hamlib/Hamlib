@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.59 2002-03-18 23:04:27 fillods Exp $
+ *		$Id: icom.c,v 1.60 2002-04-23 21:49:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1571,6 +1571,11 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             fct_cn = C_CTL_MEM;
             fct_sc = S_MEM_BANDSCOPE;
             break;
+		case RIG_FUNC_RESUME:	/* IC-910H */
+			fct_cn = C_CTL_SCAN;
+			fct_sc = status ? S_SCAN_RSMON : S_SCAN_RSMOFF;
+			fct_len = 0;
+			break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d", func);
 			return -RIG_EINVAL;
@@ -1873,11 +1878,11 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 }
 
 /*
- * icom_set_channel
+ * icr75_set_channel
  * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
  * TODO: still a WIP --SF
  */
-int icom_set_channel(RIG *rig, const channel_t *chan)
+int icr75_set_channel(RIG *rig, const channel_t *chan)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
@@ -1934,11 +1939,11 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 }
 
 /*
- * icom_get_channel
+ * icr75_get_channel
  * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
  * TODO: still a WIP --SF
  */
-int icom_get_channel(RIG *rig, channel_t *chan)
+int icr75_get_channel(RIG *rig, channel_t *chan)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
@@ -1964,7 +1969,7 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 		 */
 		chan_len--;
 		if (freq_len != freq_len+16) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_channel: wrong frame len=%d\n",
+				rig_debug(RIG_DEBUG_ERR,"icr75_get_channel: wrong frame len=%d\n",
 								chan_len);
 				return -RIG_ERJCTED;
 		}
@@ -2232,12 +2237,6 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 			case RIG_SCAN_DELTA:
 				scan_sc = S_SCAN_DELTA;	/* TODO: delta-f support */
 				break;
-            case RIG_SCAN_RESUME_ON:
-                scan_sc = S_SCAN_RSMON;
-                break;
-            case RIG_SCAN_RESUME_OFF:
-                scan_sc = S_SCAN_RSMOFF;
-                break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported scan %#x", scan);
 				return -RIG_EINVAL;
