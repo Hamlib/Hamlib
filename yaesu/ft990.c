@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.3 2003-11-30 22:46:01 fillods Exp $
+ * $Id: ft990.c,v 1.4 2003-12-03 12:25:36 bwulf Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -135,7 +135,7 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.2",
+  .version =            "0.0.3",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_NEW,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1742,7 +1742,7 @@ switch(vfo) {
     case FT990_BW_F2400:
       if (*mode == RIG_MODE_FM)
         *width = 8000;
-      else if (*mode == RIG_MODE_AM) // <- firware bug?
+      else if (*mode == RIG_MODE_AM) // <- FT990 firmware bug?
         *width = 6000;
       else
         *width = 2400;
@@ -1757,7 +1757,7 @@ switch(vfo) {
       *width = 250;
       break;
     case FT990_BW_F6000:
-      *width = 2400;                 // <- firware bug?
+      *width = 2400;                 // <- FT990 firmware bug?
       break;
     default:
       return -RIG_EINVAL;
@@ -2168,6 +2168,8 @@ static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
   if (!rig)
     return -RIG_EINVAL;
 
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+
   priv = (struct ft990_priv_data *) rig->state.priv;
 
   if (vfo == RIG_VFO_CURR) {
@@ -2189,17 +2191,26 @@ static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
   rig_debug(RIG_DEBUG_TRACE, "%s: channel number %i\n", __func__,
             priv->update_data.channelnumber + 1);
 
+  *ch = priv->update_data.channelnumber + 1;
+
   // Check for valid channel number
   if (*ch < 1 || *ch > 90)
     return -RIG_EINVAL;
-
-  *ch = priv->update_data.channelnumber + 1;
 
   return RIG_OK;
 }
 
 /*
- * rig_set_channel
+ * rig_set_channel*
+ *
+ * Set memory channel parameters and attributes
+ *
+ * Parameter    | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   chan *     | input  | channel attribute data structure
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  */
 static int ft990_set_channel (RIG *rig, const channel_t *chan)
 {
@@ -2216,20 +2227,154 @@ static int ft990_set_channel (RIG *rig, const channel_t *chan)
 }
 
 /*
- * rig_get_channel
+ * rig_get_channel*
+ *
+ * Get memory channel parameters and attributes
+ *
+ * Parameter    | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   chan *     | output  | channel attributes data structure
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments: TX attributes are set equal to their corresponding RX attributes.
  */
 static int ft990_get_channel (RIG *rig, channel_t *chan)
 {
   struct ft990_priv_data *priv;
+  ft990_op_data_t *p;
+  int curr_chan;
+  int err;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rig)
     return -RIG_EINVAL;
 
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed chan->channel_num = %i\n",
+            __func__, chan->channel_num);
+
   priv = (struct ft990_priv_data *) rig->state.priv;
 
-  return -RIG_ENIMPL;
+  // Check for valid range of passed channel number
+  if (chan->channel_num < 1 || chan->channel_num > 90)
+    return -RIG_EINVAL;
+
+  // Update and save current channel in temporary variable
+  err = ft990_get_mem(rig, RIG_VFO_MEM, &curr_chan);
+
+  if (err != RIG_OK)
+    return err;
+
+  // Pass channel number to private data structure to be used
+  // by ft990_get_update_data().
+  priv->update_data.channelnumber = (unsigned char) chan->channel_num - 1;
+
+  // Get a clean slate
+  bzero(chan, sizeof(channel_t));
+
+  // Update channel data reflecting the current status
+  err = ft990_get_update_data(rig, FT990_NATIVE_UPDATE_MEM_CHNL_DATA,
+                              FT990_MEM_CHNL_DATA_LENGTH);
+
+  // Restore private channel data
+  chan->channel_num = priv->update_data.channelnumber + 1;
+  priv->update_data.channelnumber = curr_chan;
+
+  if (err != RIG_OK)
+    return err;
+
+  // Point to the channel data structure of interest
+  p = (ft990_op_data_t *) &priv->update_data.channel[chan->channel_num - 1];
+
+  // VFO for memory operation is always RIG_VFO_MEM
+  chan->vfo = RIG_VFO_MEM;
+
+  // Extract channel frequency
+  chan->freq = ((((p->basefreq[0] <<8) + p->basefreq[1])<<8) +
+                   p->basefreq[2]) * 10;
+
+  switch(p->mode) {
+    case FT990_MODE_LSB:
+      chan->mode = RIG_MODE_LSB;
+      break;
+    case FT990_MODE_USB:
+      chan->mode = RIG_MODE_USB;
+      break;
+    case FT990_MODE_CW:
+      chan->mode = RIG_MODE_CW;
+      break;
+    case FT990_MODE_AM:
+      chan->mode = RIG_MODE_AM;
+      break;
+    case FT990_MODE_FM:
+      chan->mode = RIG_MODE_FM;
+      break;
+    case FT990_MODE_RTTY:
+      if (p->filter & FT990_BW_FMPKTRTTY)
+        chan->mode = RIG_MODE_RTTYR;
+      else
+        chan->mode = RIG_MODE_RTTY;
+      break;
+    case FT990_MODE_PKT:
+      // Note: Hamlib currently doesn't support packet radio modes such as
+      // RIG_MODE_PKT_FM and RIG_MODE_PKT_LSB
+      if (p->filter & FT990_BW_FMPKTRTTY)
+        chan->mode = RIG_MODE_FM;
+      else
+        chan->mode = RIG_MODE_LSB;
+      break;
+    default:
+      return -RIG_EINVAL;
+  }
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = 0x%02x\n", __func__, chan->mode);
+
+  // The FT990 firmware appears to have a bug since the
+  // AM bandwidth for 2400Hz and 6000Hz are interchanged.
+  switch(p->filter) {
+   case FT990_BW_F2400:
+      if (chan->mode == RIG_MODE_FM)
+        chan->width = 8000;
+      else if (chan->mode == RIG_MODE_AM) // <- FT990 firmware bug?
+        chan->width = 6000;
+      else
+        chan->width = 2400;
+      break;
+    case FT990_BW_F2000:
+      chan->width = 2000;
+      break;
+    case FT990_BW_F500:
+      chan->width = 500;
+      break;
+    case FT990_BW_F250:
+      chan->width = 250;
+      break;
+    case FT990_BW_F6000:
+      chan->width = 2400;                 // <- FT990 firmware bug?
+      break;
+    default:
+      return -RIG_EINVAL;
+   }
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: set status = %i\n", __func__, p->status);
+
+  if (chan->mode & RIG_MODE_FM)
+    chan->rptr_shift = (p->status & FT990_RPT_MASK) >> 2;
+
+  chan->tx_freq  = chan->freq;
+  chan->tx_mode  = chan->mode;
+  chan->tx_width = chan->width;
+  chan->tx_vfo   = chan->vfo;
+
+  if (p->status & FT990_CLAR_TX_EN)
+    chan->xit = (short) ((p->coffset[0]<<8) | p->coffset[1]) * 10;
+
+  if (p->status & FT990_CLAR_RX_EN)
+    chan->rit = (short) ((p->coffset[0]<<8) | p->coffset[1]) * 10;
+
+  return RIG_OK;
 }
 
 /*
