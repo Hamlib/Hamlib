@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kachina backend - 505DSP description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: 505dsp.c,v 1.6 2003-11-16 17:14:44 fillods Exp $
+ *	$Id: 505dsp.c,v 1.7 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define K505DSP_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TONE|RIG_FUNC_COMP)
 
-#define K505DSP_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
+#define K505DSP_LEVEL_ALL (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
 
 #define K505DSP_PARM_ALL (RIG_PARM_NONE)
 
@@ -60,12 +60,12 @@ const struct rig_caps k505dsp_caps = {
 .rig_model =  RIG_MODEL_505DSP,
 .model_name = "505DSP",
 .mfg_name =  "Kachina",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_COMPUTER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  9600,
 .serial_rate_max =  9600,

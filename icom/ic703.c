@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-703
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic703.c,v 1.3 2003-12-08 08:33:57 fillods Exp $
+ *	$Id: ic703.c,v 1.4 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +38,7 @@
 
 #define IC703_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_ANF|RIG_FUNC_MON)
 
-#define IC703_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_METER|RIG_LEVEL_COMP|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_NR|RIG_LEVEL_IF|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT)
+#define IC703_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_METER|RIG_LEVEL_COMP|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_NR|RIG_LEVEL_IF|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT)
 
 #define IC703_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
@@ -87,12 +87,12 @@ const struct rig_caps ic703_caps = {
 .rig_model =  RIG_MODEL_IC703,
 .model_name = "IC-703", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_MOBILE,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  19200,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - PCR-100 description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: pcr100.c,v 1.4 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: pcr100.c,v 1.5 2004-09-26 08:35:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 
 #define PCR100_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_ANF|RIG_FUNC_NR)
 
-#define PCR100_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_AF|RIG_LEVEL_STRENGTH)
+#define PCR100_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_AF|RIG_LEVEL_STRENGTH)
 
 /*
  * IC PCR100 rigs capabilities.

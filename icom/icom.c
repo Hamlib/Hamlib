@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.91 2004-09-25 14:33:16 fillods Exp $
+ *	$Id: icom.c,v 1.92 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -804,10 +804,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_cn = C_RD_SQSM;
 			lvl_sc = S_SML;
 			break;
-		case RIG_LEVEL_SQLSTAT:
-			lvl_cn = C_RD_SQSM;
-			lvl_sc = S_SQL;
-			break;
 		case RIG_LEVEL_PREAMP:
 			lvl_cn = C_CTL_FUNC;
 			lvl_sc = S_FUNC_PAMP;
@@ -943,12 +939,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		case RIG_LEVEL_STRENGTH:
 			val->i = (int)rig_raw2val(icom_val,&rig->caps->str_cal);
-			break;
-		case RIG_LEVEL_SQLSTAT:
-			/*
-			 * 0x00=sql closed, 0x01=sql open
-			 */
-			val->i = icom_val;
 			break;
 		case RIG_LEVEL_PREAMP:
 			if (icom_val == 0) {

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.18 2004-09-14 22:17:49 fineware Exp $
+ *	$Id: jrc.c,v 1.19 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -599,9 +599,6 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  lvlbuf[4] = '\0';
 		  val->i = (int)rig_raw2val(atoi(lvlbuf+1), &rig->caps->str_cal);
 		  break;
-
-		case RIG_LEVEL_SQLSTAT:
-		  return -RIG_ENIMPL;	/* get_dcd ? */
 
 		case RIG_LEVEL_ATT:
 		  retval = jrc_transaction (rig, "I" EOM, 2, lvlbuf, &lvl_len);

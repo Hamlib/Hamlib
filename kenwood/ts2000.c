@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS2000 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.15 2003-10-01 19:31:58 fillods Exp $
+ *	$Id: ts2000.c,v 1.16 2004-09-26 08:35:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define TS2000_FUNC_ALL (RIG_FUNC_TSQL)
 
-#define TS2000_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
+#define TS2000_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
 
 #define TS2000_MAINVFO (RIG_VFO_A|RIG_VFO_B)
 #define TS2000_SUBVFO (RIG_VFO_C)

@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - OptoScan extensions
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.10 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: optoscan.c,v 1.11 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -462,10 +462,6 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	lvl_cn = C_RD_SQSM;
 	lvl_sc = S_SML;
 	break;
-      case RIG_LEVEL_SQLSTAT:
-	lvl_cn = C_RD_SQSM;
-	lvl_sc = S_SQL;
-	break;
       default:
 	rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
 	return -RIG_EINVAL;
@@ -508,12 +504,6 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   
   switch (level) {
   case RIG_LEVEL_RAWSTR:
-    val->i = icom_val;
-    break;
-  case RIG_LEVEL_SQLSTAT:
-    /*
-     * 0x00=sql closed, 0x01=sql open
-     */
     val->i = icom_val;
     break;
   default:

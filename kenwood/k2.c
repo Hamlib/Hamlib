@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - Elecraft K2 description
- *  Copyright (c) 2002 by Stephane Fillod
+ *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: k2.c,v 1.1 2002-11-13 20:35:17 fillods Exp $
+ *	$Id: k2.c,v 1.2 2004-09-26 08:35:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,7 @@
 
 #define K2_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK)
 
-#define K2_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER)
+#define K2_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER)
 
 #define K2_VFO (RIG_VFO_A|RIG_VFO_B)
 #define K2_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
@@ -55,7 +55,7 @@ const struct rig_caps k2_caps = {
 .rig_model =  RIG_MODEL_K2,
 .model_name = "K2",
 .mfg_name =  "Elecraft",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

@@ -1,9 +1,9 @@
 /*
  *  Hamlib CI-V backend - description of IC-910 (VHF/UHF All-Mode Tranceiver)
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.10 2003-12-08 08:33:58 fillods Exp $
+ *      $Id: ic910.c,v 1.11 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -196,7 +196,7 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
                             RIG_LEVEL_ATT| \
                             RIG_LEVEL_PREAMP)
 
-#define IC910_STR_CAL { 0, { } }	/* FIXME */
+#define IC910_STR_CAL UNKNOWN_IC_STR_CAL	/* FIXME */
 
 /*
  */
@@ -210,12 +210,12 @@ const struct rig_caps ic910_caps = {
 .rig_model =  RIG_MODEL_IC910,
 .model_name = "IC-910",
 .mfg_name =  "Icom",
-.version =  "0.1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  19200,
@@ -229,7 +229,7 @@ const struct rig_caps ic910_caps = {
 .retry =  3,
 .has_get_func =  IC910_FUNC_ALL,
 .has_set_func =  IC910_FUNC_ALL | RIG_FUNC_RESUME,
-.has_get_level =  IC910_LEVEL_ALL | (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR),
+.has_get_level =  IC910_LEVEL_ALL | (RIG_LEVEL_RAWSTR),
 .has_set_level =  IC910_LEVEL_ALL,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
@@ -329,6 +329,7 @@ const struct rig_caps ic910_caps = {
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
+.get_dcd =  icom_get_dcd,
 .decode_event =  icom_decode_event,
 };
 

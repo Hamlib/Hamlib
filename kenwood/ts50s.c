@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS50 description
- *  Copyright (c) 2002 by Stephane Fillod
+ *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: ts50s.c,v 1.10 2002-11-04 22:40:55 fillods Exp $
+ *	$Id: ts50s.c,v 1.11 2004-09-26 08:35:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define TS50_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_TSQL|RIG_FUNC_TONE|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_LOCK|RIG_FUNC_BC)
 
-#define TS50_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
+#define TS50_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
 
 #define TS50_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS50_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
@@ -54,7 +54,7 @@ const struct rig_caps ts50s_caps = {
 .rig_model =  RIG_MODEL_TS50,
 .model_name = "TS-50S",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_MOBILE,

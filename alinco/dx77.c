@@ -1,8 +1,8 @@
 /*
  *  Hamlib Alinco backend - DX77 description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.12 2004-08-01 21:19:30 fillods Exp $
+ *	$Id: dx77.c,v 1.13 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,7 +37,7 @@
 
 #define DX77_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TONE)
 
-#define DX77_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
+#define DX77_LEVEL_ALL (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
 
 #define DX77_PARM_ALL (RIG_PARM_BEEP|RIG_PARM_BACKLIGHT)
 
@@ -84,7 +84,7 @@ const struct rig_caps dx77_caps = {
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  9600,
 .serial_rate_max =  9600,

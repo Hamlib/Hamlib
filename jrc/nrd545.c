@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.15 2004-09-14 22:19:10 fineware Exp $
+ *	$Id: nrd545.c,v 1.16 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 
 #define NRD545_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_BC|RIG_FUNC_NR)
 
-#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH) /*RIG_LEVEL_BWC*/
+#define NRD545_LEVEL (RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH) /*RIG_LEVEL_BWC*/
 
 /* FIXME: add more from "U" command */
 #define NRD545_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
@@ -100,7 +100,7 @@ const struct rig_caps nrd545_caps = {
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  4800,
 .serial_rate_max =  4800,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-R72
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr72.c,v 1.1 2003-11-16 16:58:35 fillods Exp $
+ *	$Id: icr72.c,v 1.2 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,7 +33,7 @@
 
 #define ICR72_FUNC_ALL (RIG_FUNC_NONE)
 
-#define ICR72_LEVEL_ALL (RIG_LEVEL_SQLSTAT)
+#define ICR72_LEVEL_ALL (RIG_LEVEL_NONE)
 
 #define ICR72_VFO_OPS (RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_MCL)
 
@@ -52,7 +52,7 @@ const struct rig_caps icr72_caps = {
 .rig_model =  RIG_MODEL_ICR72,
 .model_name = "IC-R72", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-535 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd535.c,v 1.11 2004-09-14 22:19:09 fineware Exp $
+ *	$Id: nrd535.c,v 1.12 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -102,7 +102,7 @@ const struct rig_caps nrd535_caps = {
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  4800,
 .serial_rate_max =  4800,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of the OptoScan456
- *  Copyright (c) 2000-2003 by Stephane Fillod and Michael Smith
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Michael Smith
  *
- *	$Id: os456.c,v 1.10 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: os456.c,v 1.11 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +42,7 @@ extern struct confparams opto_ext_parms[];
 
 #define OS456_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 #define OS456_VFO_ALL (RIG_VFO_A)
-#define OS456_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF)
+#define OS456_LEVELS (RIG_LEVEL_RAWSTR|RIG_LEVEL_AF)
 #define OS456_SCAN_OPS (RIG_SCAN_PLT)
 /*
  * The signal strength data is in the form of two bytes, each consisting 

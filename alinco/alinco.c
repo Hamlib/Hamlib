@@ -1,8 +1,8 @@
 /*
  *  Hamlib Alinco backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.23 2004-07-07 00:27:52 nj8j Exp $
+ *	$Id: alinco.c,v 1.24 2004-09-26 08:34:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -692,9 +692,6 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvlbuf[6] = '\0';
 			val->i = atoi(lvlbuf+3);
 			break;
-
-		case RIG_LEVEL_SQLSTAT:
-			return -RIG_ENIMPL;	/* get_dcd ? */
 
 		case RIG_LEVEL_PREAMP:
 			retval = current_data_read(rig, lvlbuf);

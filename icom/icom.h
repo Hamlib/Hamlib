@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.69 2004-09-25 14:33:16 fillods Exp $
+ *	$Id: icom.h,v 1.70 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -67,6 +67,12 @@
 	.tx_width = 1,	\
 	.rptr_offs = 1,	\
 } 
+
+/*
+ * S-Meter data for uncalibrated rigs
+ */
+#define UNKNOWN_IC_STR_CAL { 2, {{ 0, -60}, { 255, 60}} }
+
 
 struct ts_sc_list {
 	shortfreq_t ts;	/* tuning step */

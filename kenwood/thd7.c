@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-D7 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: thd7.c,v 1.13 2004-06-13 12:35:30 fillods Exp $
+ *	$Id: thd7.c,v 1.14 2004-09-26 08:35:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -51,7 +51,6 @@
 
 #define THD7_LEVEL_ALL (RIG_LEVEL_STRENGTH| \
                         RIG_LEVEL_SQL| \
-                        RIG_LEVEL_SQLSTAT| \
                         RIG_LEVEL_AF| \
                         RIG_LEVEL_RF|\
                         RIG_LEVEL_MICGAIN)
@@ -77,7 +76,7 @@ const struct rig_caps thd7a_caps = {
 .rig_model =  RIG_MODEL_THD7A,
 .model_name = "TH-D7A",
 .mfg_name =  "Kenwood",
-.version =  "0.1.1",
+.version =  "0.1.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_HANDHELD|RIG_FLAG_APRS|RIG_FLAG_TNC|RIG_FLAG_DXCLUSTER,
@@ -179,6 +178,8 @@ const struct rig_caps thd7a_caps = {
 .get_level =  th_get_level,
 .get_parm =  th_get_parm,
 .get_info =  th_get_info,
+
+.get_dcd =  kenwood_get_dcd,
 
 .decode_event =  th_decode_event,
 };

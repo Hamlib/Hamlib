@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS950 description
- *  Copyright (c) 2002-2003 by Stephane Fillod
+ *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: ts950.c,v 1.12 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: ts950.c,v 1.13 2004-09-26 08:35:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define TS950_FUNC_ALL (RIG_FUNC_TSQL)
 
-#define TS950_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
+#define TS950_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
 
 #define TS950_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -55,7 +55,7 @@ const struct rig_caps ts950sdx_caps = {
 .rig_model =  RIG_MODEL_TS950SDX,
 .model_name = "TS-950SDX",
 .mfg_name =  "Kenwood",
-.version =  "0.2.4",
+.version =  "0.2.5",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

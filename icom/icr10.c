@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-R10
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr10.c,v 1.2 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: icr10.c,v 1.3 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,7 @@
 
 #define ICR10_FUNC_ALL (RIG_FUNC_NONE)
 
-#define ICR10_LEVEL_ALL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
+#define ICR10_LEVEL_ALL (RIG_LEVEL_RAWSTR)
 
 #define ICR10_VFO_ALL (RIG_VFO_A)
 
@@ -44,11 +44,7 @@
 /*
  * FIXME: S-meter measurement
  */
-#define ICR10_STR_CAL { 2, \
-	{ \
-		{  0, -60 }, /* S0 */ \
-		{ 255, 60 } /* +60 */ \
-	} }
+#define ICR10_STR_CAL UNKNOWN_IC_STR_CAL
 
 static const struct icom_priv_caps icr10_priv_caps = { 
 		0x52,	/* default address */
@@ -60,7 +56,7 @@ const struct rig_caps icr10_caps = {
 .rig_model =  RIG_MODEL_ICR10,
 .model_name = "IC-R10", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER|RIG_FLAG_HANDHELD,

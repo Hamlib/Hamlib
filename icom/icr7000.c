@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - IC-R7000 and IC-R7100 descriptions
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr7000.c,v 1.8 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: icr7000.c,v 1.9 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,15 +43,12 @@
 static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
 #define ICR7100_FUNCS (RIG_FUNC_VSC)
-#define ICR7100_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
+#define ICR7100_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
 #define ICR7100_PARMS (RIG_PARM_ANN)
 #define ICR7100_SCAN_OPS (RIG_SCAN_MEM)	/* TBC */
 
 /* FIXME: S-Meter measurements */
-#define ICR7100_STR_CAL { 2, { \
-		{    0, -60 }, /* S0 */ \
-		{  255,  60 }, /* +60 */ \
-		} }
+#define ICR7100_STR_CAL UNKNOWN_IC_STR_CAL
 
 static const struct icom_priv_caps icr7000_priv_caps = {
 	0x08,   /* default address */
@@ -65,7 +62,7 @@ const struct rig_caps icr7000_caps = {
 .rig_model =  RIG_MODEL_ICR7000,
 .model_name = "IC-R7000",
 .mfg_name =  "Icom",
-.version =  "0.2.1",
+.version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,
@@ -174,12 +171,12 @@ const struct rig_caps icr7100_caps = {
 .rig_model =  RIG_MODEL_ICR7100,
 .model_name = "IC-R7100",
 .mfg_name =  "Icom",
-.version =  "0.2.1",
+.version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  1200,
@@ -284,6 +281,7 @@ const struct rig_caps icr7100_caps = {
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
+.get_dcd =  icom_get_dcd,
 };
 
 

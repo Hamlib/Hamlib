@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.77 2004-06-13 12:35:30 fillods Exp $
+ *	$Id: kenwood.c,v 1.78 2004-09-26 08:35:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -730,7 +730,6 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			else if (agclevel <= 255) val->i = 3;
 			return ret;
 
-		case RIG_LEVEL_SQLSTAT:
 		case RIG_LEVEL_PREAMP:
 		case RIG_LEVEL_IF:
 		case RIG_LEVEL_APF:

@@ -13,7 +13,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.c,v 1.5 2004-08-10 21:00:13 fillods Exp $  
+ *    $Id: ft857.c,v 1.6 2004-09-26 08:35:05 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -165,7 +165,7 @@ const struct rig_caps ft857_caps = {
   .retry = 		0, 
   .has_get_func =       RIG_FUNC_NONE,
   .has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL, 
-  .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_SQLSTAT,
+  .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER,
   .has_set_level = 	RIG_LEVEL_NONE,
   .has_get_parm = 	RIG_PARM_NONE,
   .has_set_parm = 	RIG_PARM_NONE,
@@ -527,9 +527,6 @@ static int ft857_get_smeter_level(RIG *rig, value_t *val)
 
 int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-  dcd_t dcd;
-  int n;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -539,12 +536,6 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
   case RIG_LEVEL_RFPOWER:
     return ft857_get_pometer_level(rig, val);
-
-  case RIG_LEVEL_SQLSTAT:
-    if ((n = ft857_get_dcd(rig, vfo, &dcd)) < 0)
-      return n;
-    val->i = dcd;
-    break;
 
   default:
     return -RIG_EINVAL;

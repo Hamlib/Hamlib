@@ -1,9 +1,9 @@
 /*
  *  Hamlib CI-V backend - description of IC-718 caps
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *  Caps submitted by Chuck Gilkes WD0FCL/4
  *
- *	$Id: ic718.c,v 1.7 2003-12-08 08:33:57 fillods Exp $
+ *	$Id: ic718.c,v 1.8 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,14 +44,14 @@
 
 #define IC718_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
 
-#define IC718_LEVEL_ALL (RIG_LEVEL_MICGAIN|RIG_LEVEL_NR|RIG_LEVEL_CWPITCH|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
+#define IC718_LEVEL_ALL (RIG_LEVEL_MICGAIN|RIG_LEVEL_NR|RIG_LEVEL_CWPITCH|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RAWSTR)
 
-#define IC718_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define IC718_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define IC718_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC718_SCAN_OPS (RIG_SCAN_MEM)
 
-#define IC718_STR_CAL { 0, { } }
+#define IC718_STR_CAL UNKNOWN_IC_STR_CAL
 
 
 
@@ -65,12 +65,12 @@ const struct rig_caps ic718_caps = {
 .rig_model =  RIG_MODEL_IC718,
 .model_name = "IC-718", 
 .mfg_name =  "Icom", 
-.version =  "0.1", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =   RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  19200,
@@ -92,6 +92,7 @@ const struct rig_caps ic718_caps = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	},
 .parm_gran =  {},
+.str_cal = IC718_STR_CAL,
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 10, RIG_DBLST_END, },

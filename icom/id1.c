@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of ID-1 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: id1.c,v 1.2 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: id1.c,v 1.3 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,7 @@
 
 #define ID1_FUNC_ALL (RIG_FUNC_MUTE|RIG_FUNC_MON|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_LOCK|RIG_FUNC_AFC)
 
-#define ID1_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RFPOWER|RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
+#define ID1_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_RFPOWER|RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_RAWSTR)
 
 #define ID1_PARM_ALL (RIG_PARM_BEEP|RIG_PARM_BACKLIGHT /* |RIG_PARM_FAN */)
 
@@ -44,13 +44,9 @@
 #define ID1_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM)
 
 /*
- * FIXME:
+ * FIXME: real measurement
  */
-#define ID1_STR_CAL { 2, \
-	{ \
-		{  45, -60 }, \
-		{ 204, 60 }  /* +60 */ \
-	} }
+#define ID1_STR_CAL	UNKNOWN_IC_STR_CAL
 
 
 const struct ts_sc_list id1_ts_sc_list[] = {
@@ -78,7 +74,7 @@ const struct rig_caps id1_caps = {
 .rig_model =  RIG_MODEL_ICID1,
 .model_name = "IC ID-1", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_MOBILE,

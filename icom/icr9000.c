@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - IC-R9000 descriptions
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr9000.c,v 1.2 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: icr9000.c,v 1.3 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,7 @@
 #define ICR9000_OPS (RIG_OP_FROM_VFO|RIG_OP_MCL)
 
 #define ICR9000_FUNCS (RIG_FUNC_VSC)
-#define ICR9000_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
+#define ICR9000_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
 #define ICR9000_PARMS (RIG_PARM_ANN)
 #define ICR9000_SCAN_OPS (RIG_SCAN_MEM)	/* TBC */
 
@@ -49,10 +49,7 @@
 
 
 /* FIXME: S-Meter measurements */
-#define ICR9000_STR_CAL { 2, { \
-		{    0, -60 }, /* S0 */ \
-		{  255,  60 }, /* +60 */ \
-		} }
+#define ICR9000_STR_CAL	UNKNOWN_IC_STR_CAL
 
 static const struct icom_priv_caps icr9000_priv_caps = {
 	0x2a,   /* default address */
@@ -66,12 +63,12 @@ const struct rig_caps icr9000_caps = {
 .rig_model =  RIG_MODEL_ICR9000,
 .model_name = "IC-R9000",
 .mfg_name =  "Icom",
-.version =  "0.2.1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  1200,
@@ -180,6 +177,7 @@ const struct rig_caps icr9000_caps = {
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
+.get_dcd =  icom_get_dcd,
 };
 
 

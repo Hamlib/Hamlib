@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.42 2004-05-17 21:09:44 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.43 2004-09-26 08:35:04 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -224,6 +224,17 @@ int dumpcaps (RIG* rig)
 
 	sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
 	printf("Get level: %s\n", prntbuf);
+
+	if ((caps->has_get_level&RIG_LEVEL_SQLSTAT)) {
+			printf("Warning: backend uses deprecated SQLSTAT level!\n");
+			backend_warnings++;
+	}
+
+	if ((caps->has_get_level&RIG_LEVEL_RAWSTR) &&
+				caps->str_cal.size == 0) {
+			printf("Warning: backend has get RAWSTR, but not calibration data\n");
+			backend_warnings++;
+	}
 
 	sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
 	printf("Set level: %s\n", prntbuf);

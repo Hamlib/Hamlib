@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.11 2004-09-25 14:33:16 fillods Exp $
+ *	$Id: ic756.c,v 1.12 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,7 +49,7 @@
 
 #define IC756PRO_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RNF)
 
-#define IC756PRO_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF||RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
+#define IC756PRO_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_RAWSTR)
 
 #define IC756_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
@@ -96,7 +96,7 @@ const struct rig_caps ic756_caps = {
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  19200,
@@ -346,7 +346,6 @@ const struct rig_caps ic756pro_caps = {
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
 .set_ptt =  icom_set_ptt,
-.get_ptt =  icom_get_ptt,
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
@@ -536,7 +535,6 @@ const struct rig_caps ic756pro2_caps = {
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
 .set_ptt =  icom_set_ptt,
-.get_ptt =  icom_get_ptt,
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
@@ -780,7 +778,6 @@ const struct rig_caps ic756pro3_caps = {
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
 .set_ptt =  icom_set_ptt,
-.get_ptt =  icom_get_ptt,
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
