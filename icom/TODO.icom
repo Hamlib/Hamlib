@@ -1,0 +1,23 @@
+hamlib - (C) Frank Singleton 2000
+
+TODO.icom - Copyright (C) 2000 Stephane Fillod
+This shared library provides an API for communicating
+via serial interface to an ICOM using the "CI-V" interface.
+
+TODO
+----
+
+0. complete this TODO list :)
+1. Complete Cn/Sc codes
+2. Write (more) extensive Test Suite
+4. write a gentable script to generate C structs from rig list file
+5. write a basic (G)UI to easily edit rig caps and generate C structs
+6. maybe share freq2bcd and bcd2freq with other rigs?
+7. more than one Icom can share the same serial port!! (->check with frontend)
+8.
+
+DONE
+----
+
+3. rename ic706 -> icom and make it generic!
+
