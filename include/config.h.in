@@ -35,9 +35,6 @@
 /* Define if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define if you have the `gdImageCreate' function. */
-#undef HAVE_GDIMAGECREATE
-
 /* Define if you have the <gd.h> header file. */
 #undef HAVE_GD_H
 
@@ -53,14 +50,8 @@
 /* Define if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if you have the `gd' library (-lgd). */
-#undef HAVE_LIBGD
-
 /* Define if you have the `syslog' library (-lsyslog). */
 #undef HAVE_LIBSYSLOG
-
-/* Define if you have the `z' library (-lz). */
-#undef HAVE_LIBZ
 
 /* Define if you have the <linux/ppdev.h> header file. */
 #undef HAVE_LINUX_PPDEV_H

@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -96,7 +99,7 @@ aclocal_DATA = hamlib.m4
 
 EXTRA_DIST = PLAN TODO LICENSE hamlib.m4
 
-SUBDIRS = include lib libltdl src icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina rpc c++ tcl tests doc
+SUBDIRS = include lib libltdl src @BACKEND_LIST@ c++ tcl tests doc
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
