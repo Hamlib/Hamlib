@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.38 2003-10-07 22:11:43 fillods Exp $
+ *	$Id: riglist.h,v 1.39 2003-10-20 20:29:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -369,6 +369,7 @@
 #define RIG_MICROTUNE 21
 #define RIG_BACKEND_MICROTUNE "microtune"
 #define RIG_MODEL_MICROTUNE_4937 RIG_MAKE_MODEL(RIG_MICROTUNE, 1)	/* eval board */
+#define RIG_MODEL_MICROTUNE_4702 RIG_MAKE_MODEL(RIG_MICROTUNE, 2)	/* Alan's */
 
 	/*
 	 * TAPR
