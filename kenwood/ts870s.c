@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.25 2002-09-03 18:55:05 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.26 2002-09-04 14:31:12 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -193,6 +193,7 @@ const struct rig_caps ts870s_caps = {
 .get_func =  kenwood_get_func,
 .set_level =  kenwood_set_level,
 .get_level =  kenwood_get_level,
+.send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
