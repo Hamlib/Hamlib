@@ -69,22 +69,20 @@ C++ Bindings.
 %package c++-devel
 Summary: Hamlib radio control library C++ bindings headers and static libs
 Group: Development/Libraries
-Requires: hamlib
+Requires: hamlib, hamlib-devel
 
 %description c++-devel
 This package contains all of the headers and the static libraries 
 for C++ bindings of Hamlib.
 
-You'll only need this package if you
-are doing development.
+You'll only need this package if you are doing development.
 
 %prep
-#%setup -q
 %setup
 %build
 
-CFLAGS=$RPM_OPT_FLAGS CXXFLAGS=$RPM_OPT_FLAGS ./configure --prefix=%prefix
-make
+./configure --prefix=%prefix
+make CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" all
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -116,6 +114,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(755, root, root, 755)
 #%{prefix}/lib/libhamlib-%{version}.so
 %{prefix}/lib/libhamlib-*.so
+%{prefix}/lib/libhamlib-*.la
 
 %{prefix}/bin/rigctl
 %{prefix}/man/man1/rigctl.1
@@ -131,7 +130,6 @@ rm -rf $RPM_BUILD_ROOT
 %{prefix}/lib/libhamlib.a
 %{prefix}/lib/libhamlib.la
 %{prefix}/lib/libhamlib-*.a
-%{prefix}/lib/libhamlib-*.la
 
 %files c++
 %defattr(755, root, root, 755)
