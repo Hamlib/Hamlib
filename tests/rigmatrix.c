@@ -1,10 +1,10 @@
 /*
- * rigmatric.c - Copyright (C) 2000,2001 Stephane Fillod
+ * rigmatrix.c - Copyright (C) 2000,2001,2002 Stephane Fillod
  * This program generates the supported rig matrix in HTML format.
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.16 2001-09-20 21:21:14 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.17 2002-01-29 22:05:37 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -33,41 +33,21 @@
 #include <gdfonts.h>
 
 #include <hamlib/rig.h>
+#include "misc.h"
 
+static setting_t bitmap_func, bitmap_level, bitmap_parm;
 
 int create_png_range(const freq_range_t rx_range_list[], const freq_range_t tx_range_list[], int num);
 
 int print_caps_sum(const struct rig_caps *caps, void *data)
 {
 
-	printf("<TR><TD><A HREF=\"model%d.txt\">%s</A></TD><TD>%s</TD><TD>%s</TD><TD>",
+	printf("<TR><TD><A HREF=\"model%d.txt\">%s</A></TD><TD>%s</TD>"
+					"<TD>%s</TD><TD>%s</TD><TD>",
 					caps->rig_model,
-					caps->model_name,caps->mfg_name,caps->version
+					caps->model_name,caps->mfg_name,caps->version,
+					strstatus(caps->status)
 					);
-
-	switch (caps->status) {
-	case RIG_STATUS_ALPHA:
-			printf("Alpha");
-			break;
-	case RIG_STATUS_UNTESTED:
-			printf("Untested");
-			break;
-	case RIG_STATUS_BETA:
-			printf("Beta");
-			break;
-	case RIG_STATUS_STABLE:
-			printf("Stable");
-			break;
-	case RIG_STATUS_BUGGY:
-			printf("Buggy");
-			break;
-	case RIG_STATUS_NEW:
-			printf("New");
-			break;
-	default:
-			printf("Unknown");
-	}
-	printf("</TD><TD>");
 
 	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
@@ -245,6 +225,7 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 	print_yn(caps->set_trn);
 	print_yn(caps->set_trn);
 	print_yn(caps->decode_event);
+	print_yn(caps->get_info);
 
 	printf("</TR></A>\n");
 
@@ -257,6 +238,7 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 int print_caps_parm(const struct rig_caps *caps, void *data)
 {
 	setting_t parm;
+	int i;
 
 	if (!data)
 			return 0;
@@ -268,13 +250,13 @@ int print_caps_parm(const struct rig_caps *caps, void *data)
 					caps->rig_model,
 					caps->model_name);
 	
-	print_yn(parm & RIG_PARM_ANN);
-	print_yn(parm & RIG_PARM_APO);
-	print_yn(parm & RIG_PARM_BACKLIGHT);
-	print_yn(parm & RIG_PARM_BEEP);
-	print_yn(parm & RIG_PARM_TIME);
-	print_yn(parm & RIG_PARM_BAT);
-
+	/*
+	 * bitmap_parm: only those who have a label
+	 */
+	for (i = 0; i < 60; i++) {
+			if (rig_idx2setting(i) & bitmap_parm)
+					print_yn(parm & rig_idx2setting(i));
+	}
 	printf("</TR></A>\n");
 
 	return 1;
@@ -286,6 +268,7 @@ int print_caps_parm(const struct rig_caps *caps, void *data)
 int print_caps_level(const struct rig_caps *caps, void *data)
 {
 	setting_t level;
+	int i;
 
 	if (!data)
 			return 0;
@@ -297,32 +280,13 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 					caps->rig_model,
 					caps->model_name);
 	
-	print_yn(level & RIG_LEVEL_PREAMP);
-	print_yn(level & RIG_LEVEL_ATT);
-	print_yn(level & RIG_LEVEL_AF);
-	print_yn(level & RIG_LEVEL_RF);
-	print_yn(level & RIG_LEVEL_SQL);
-	print_yn(level & RIG_LEVEL_IF);
-	print_yn(level & RIG_LEVEL_APF);
-	print_yn(level & RIG_LEVEL_NR);
-	print_yn(level & RIG_LEVEL_PBT_IN);
-	print_yn(level & RIG_LEVEL_PBT_OUT);
-	print_yn(level & RIG_LEVEL_CWPITCH);
-	print_yn(level & RIG_LEVEL_RFPOWER);
-	print_yn(level & RIG_LEVEL_MICGAIN);
-	print_yn(level & RIG_LEVEL_KEYSPD);
-	print_yn(level & RIG_LEVEL_NOTCHF);
-	print_yn(level & RIG_LEVEL_COMP);
-	print_yn(level & RIG_LEVEL_AGC);
-	print_yn(level & RIG_LEVEL_BKINDL);
-	print_yn(level & RIG_LEVEL_BALANCE);
-
-	/* get only levels */
-	print_yn(level & RIG_LEVEL_SWR);
-	print_yn(level & RIG_LEVEL_ALC);
-	print_yn(level & RIG_LEVEL_SQLSTAT);
-	print_yn(level & RIG_LEVEL_STRENGTH);
-
+	/*
+	 * bitmap_level: only those who have a label
+	 */
+	for (i = 0; i < 60; i++) {
+			if (rig_idx2setting(i) & bitmap_level)
+					print_yn(level & rig_idx2setting(i));
+	}
 	printf("</TR></A>\n");
 
 	return 1;
@@ -334,6 +298,7 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 int print_caps_func(const struct rig_caps *caps, void *data)
 {
 	setting_t func;
+	int i;
 
 	if (!data)
 			return 0;
@@ -345,22 +310,13 @@ int print_caps_func(const struct rig_caps *caps, void *data)
 					caps->rig_model,
 					caps->model_name);
 	
-	print_yn(func & RIG_FUNC_FAGC);
-	print_yn(func & RIG_FUNC_NB);
-	print_yn(func & RIG_FUNC_COMP);
-	print_yn(func & RIG_FUNC_VOX);
-	print_yn(func & RIG_FUNC_TONE);
-	print_yn(func & RIG_FUNC_TSQL);
-	print_yn(func & RIG_FUNC_SBKIN);
-	print_yn(func & RIG_FUNC_FBKIN);
-	print_yn(func & RIG_FUNC_ANF);
-	print_yn(func & RIG_FUNC_NR);
-	print_yn(func & RIG_FUNC_AIP);
-	print_yn(func & RIG_FUNC_APF);
-	print_yn(func & RIG_FUNC_MON);
-	print_yn(func & RIG_FUNC_MN);
-	print_yn(func & RIG_FUNC_RNF);
-
+	/*
+	 * bitmap_func: only those who have a label
+	 */
+	for (i = 0; i < 60; i++) {
+			if (rig_idx2setting(i) & bitmap_func)
+					print_yn(func & rig_idx2setting(i));
+	}
 	printf("</TR></A>\n");
 
 	return 1;
@@ -534,6 +490,8 @@ int main (int argc, char *argv[])
 	int status;
 	time_t gentime;
 	int set_or_get;
+	int i;
+	char *pbuf, prntbuf[512];
 
 	rig_load_all_backends();
 
@@ -586,25 +544,28 @@ int main (int argc, char *argv[])
 					"<TD>Set DCS</TD><TD>Get DCS</TD>"
 					"<TD>Set Power Stat</TD><TD>Get Power Stat</TD>"
 					"<TD>Set trn</TD><TD>Get trn</TD>"
-					"<TD>Decode</TD>"
+					"<TD>Decode</TD><TD>Get info</TD>"
 					"</TR>\n");
 	status = rig_list_foreach(print_caps_caps,NULL);
 	printf("</TABLE>\n");
 
 	printf("<P>");
 
+	bitmap_func = 0;
+	prntbuf[0] = '\0';
+	pbuf = prntbuf;
+	for (i = 0; i < 60; i++) {
+			setting_t func = rig_idx2setting(i);
+			const char *s = strfunc(func);
+			if (!s)
+					continue;
+			bitmap_func |= func;
+			pbuf += sprintf(pbuf, "<TD>%s</TD>", s);
+	}
+
 	printf("Has set func");
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD>"
-					"<TD>FAGC</TD><TD>NB</TD>"
-					"<TD>COMP</TD><TD>VOX</TD>"
-					"<TD>TONE</TD><TD>TSQL</TD>"
-					"<TD>SBKIN</TD><TD>FBKIN</TD>"
-					"<TD>ANF</TD><TD>NR</TD>"
-					"<TD>AIP</TD><TD>APF</TD>"
-					"<TD>MON</TD><TD>MN</TD>"
-					"<TD>RNF</TD>"
-					"</TR>\n");
+	printf("<TR><TD>Model</TD>%s</TR>\n", prntbuf);
 	set_or_get = 1;
 	status = rig_list_foreach(print_caps_func,&set_or_get);
 	printf("</TABLE>\n");
@@ -613,38 +574,28 @@ int main (int argc, char *argv[])
 
 	printf("Has get func");
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD>"
-					"<TD>FAGC</TD><TD>NB</TD>"
-					"<TD>COMP</TD><TD>VOX</TD>"
-					"<TD>TONE</TD><TD>TSQL</TD>"
-					"<TD>SBKIN</TD><TD>FBKIN</TD>"
-					"<TD>ANF</TD><TD>NR</TD>"
-					"<TD>AIP</TD><TD>APF</TD>"
-					"<TD>MON</TD><TD>MN</TD>"
-					"<TD>RNF</TD>"
-					"</TR>\n");
+	printf("<TR><TD>Model</TD>%s</TR>\n", prntbuf);
 	set_or_get = 0;
 	status = rig_list_foreach(print_caps_func,&set_or_get);
 	printf("</TABLE>\n");
 
 	printf("<P>");
 
+	bitmap_level = 0;
+	prntbuf[0] = '\0';
+	pbuf = prntbuf;
+	for (i = 0; i < 60; i++) {
+			setting_t level = rig_idx2setting(i);
+			const char *s = strlevel(level);
+			if (!s)
+					continue;
+			bitmap_level |= level;
+			pbuf += sprintf(pbuf, "<TD>%s</TD>", s);
+	}
+
 	printf("Set level");
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD>"
-					"<TD>Preamp</TD><TD>Att</TD>"
-					"<TD>AF</TD><TD>RF</TD>"
-					"<TD>SQL</TD><TD>IF</TD>"
-					"<TD>APF</TD><TD>NR</TD>"
-					"<TD>PBT IN</TD><TD>PBT OUT</TD>"
-					"<TD>CW pitch</TD><TD>RF Power</TD>"
-					"<TD>Mic gain</TD><TD>Key speed</TD>"
-					"<TD>Notch</TD><TD>Comp</TD>"
-					"<TD>AGC</TD><TD>BKin delay</TD>"
-					"<TD>Bal</TD>"
-					"<TD>SWR</TD><TD>ALC</TD>"
-					"<TD>SQL stat</TD><TD>SMeter</TD>"
-					"</TR>\n");
+	printf("<TR><TD>Model</TD>%s</TR>\n", prntbuf);
 	set_or_get = 1;
 	status = rig_list_foreach(print_caps_level,&set_or_get);
 	printf("</TABLE>\n");
@@ -653,33 +604,27 @@ int main (int argc, char *argv[])
 
 	printf("Get level");
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD>"
-					"<TD>Preamp</TD><TD>Att</TD>"
-					"<TD>AF</TD><TD>RF</TD>"
-					"<TD>SQL</TD><TD>IF</TD>"
-					"<TD>APF</TD><TD>NR</TD>"
-					"<TD>PBT IN</TD><TD>PBT OUT</TD>"
-					"<TD>CW pitch</TD><TD>RF Power</TD>"
-					"<TD>Mic gain</TD><TD>Key speed</TD>"
-					"<TD>Notch</TD><TD>Comp</TD>"
-					"<TD>AGC</TD><TD>BKin delay</TD>"
-					"<TD>Bal</TD>"
-					"<TD>SWR</TD><TD>ALC</TD>"
-					"<TD>SQL stat</TD><TD>SMeter</TD>"
-					"</TR>\n");
+	printf("<TR><TD>Model</TD>%s</TR>\n", prntbuf);
 	set_or_get = 0;
 	status = rig_list_foreach(print_caps_level,&set_or_get);
 	printf("</TABLE>\n");
 
 	printf("<P>");
 
+	bitmap_parm = 0;
+	prntbuf[0] = '\0';
+	pbuf = prntbuf;
+	for (i = 0; i < 60; i++) {
+			setting_t parm = rig_idx2setting(i);
+			const char *s = strparm(parm);
+			if (!s)
+					continue;
+			bitmap_parm |= parm;
+			pbuf += sprintf(pbuf, "<TD>%s</TD>", s);
+	}
 	printf("Set parm");
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD>"
-					"<TD>Ann</TD><TD>APO</TD>"
-					"<TD>Back Light</TD><TD>Beep</TD>"
-					"<TD>Time</TD><TD>Batt</TD>"
-					"</TR>\n");
+	printf("<TR><TD>Model</TD>%s</TR>\n", prntbuf);
 	set_or_get = 1;
 	status = rig_list_foreach(print_caps_parm,&set_or_get);
 	printf("</TABLE>\n");
@@ -688,11 +633,7 @@ int main (int argc, char *argv[])
 
 	printf("Get parm");
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD>"
-					"<TD>Ann</TD><TD>APO</TD>"
-					"<TD>Back Light</TD><TD>Beep</TD>"
-					"<TD>Time</TD><TD>Batt</TD>"
-					"</TR>\n");
+	printf("<TR><TD>Model</TD>%s</TR>\n", prntbuf);
 	set_or_get = 0;
 	status = rig_list_foreach(print_caps_parm,&set_or_get);
 	printf("</TABLE>\n");
