@@ -2,7 +2,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: conf.c,v 1.3 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: conf.c,v 1.4 2001-12-20 07:47:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -168,16 +168,41 @@ int frontend_get_conf(RIG *rig, token_t token, char *val)
 }
 
 /*
- * lookup only in backend config table
+ * rig_token_foreach
+ * executes cfunc on all the elements stored in the conf table
+ * start first with backend conf table, then finish with frontend table
+ */
+int rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
+{
+	const struct confparams *cfp;
+
+	if (!rig || !rig->caps || !cfunc)
+			return -RIG_EINVAL;
+
+	for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
+			if ((*cfunc)(cfp, data) == 0)
+					return RIG_OK;
+	for (cfp = frontend_cfg_params; cfp->name; cfp++)
+			if ((*cfunc)(cfp, data) == 0)
+					return RIG_OK;
+	return RIG_OK;
+}
+
+
+/*
+ * lookup backend config table first, then fall back to frontend
  * should use Lex to speed it up, strcmp hurts!
  */
 const struct confparams *rig_confparam_lookup(RIG *rig, const char *name)
 {
 		const struct confparams *cfp;
 
-		if (!rig || !rig->caps || !rig->caps->cfgparams)
+		if (!rig || !rig->caps)
 				return NULL;
-		for (cfp = rig->caps->cfgparams; cfp->name; cfp++)
+		for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
+				if (!strcmp(cfp->name, name))
+						return cfp;
+		for (cfp = frontend_cfg_params; cfp->name; cfp++)
 				if (!strcmp(cfp->name, name))
 						return cfp;
 		return NULL;
@@ -193,4 +218,6 @@ token_t rig_token_lookup(RIG *rig, const char *name)
 
 		return cfp->token;
 }
+
+
 
