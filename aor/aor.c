@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.28 2004-06-14 21:10:11 fillods Exp $
+ *	$Id: aor.c,v 1.29 2004-09-07 20:40:20 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -350,6 +350,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	unsigned char lvlbuf[BUFSZ],ackbuf[BUFSZ];
 	int lvl_len, ack_len;
 	unsigned i;
+	int agc;
 
 	rs = &rig->state;
 	priv = (struct aor_priv_data*)rs->priv;
@@ -372,8 +373,19 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		lvl_len = sprintf(lvlbuf, "AT%u" EOM, att);
 		break;
 		}
+	case RIG_LEVEL_AGC:	/* AR5000 */
+		switch(val.i) {
+		case RIG_AGC_FAST: agc = '0'; break;
+		case RIG_AGC_MEDIUM: agc = '1'; break;
+		case RIG_AGC_SLOW: agc = '2'; break;
+		case RIG_AGC_OFF:
+		default: agc = 'F';
+		}
+		lvl_len = sprintf(lvlbuf,"AC%c" EOM, agc);
+		break;
+
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d", level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d\n", level);
 		return -RIG_EINVAL;
 	}
 
@@ -395,11 +407,17 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	priv = (struct aor_priv_data*)rs->priv;
 
 	switch (level) {
+	case RIG_LEVEL_RAWSTR:
+		lvl_len = sprintf(lvlbuf, "LM" EOM);
+		break;
 	case RIG_LEVEL_ATT:
 		lvl_len = sprintf(lvlbuf, "AT" EOM);
 		break;
+	case RIG_LEVEL_AGC:	/* AR5000 */
+		lvl_len = sprintf(lvlbuf, "AC" EOM);
+		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_set_level %d", level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, level);
 		return -RIG_EINVAL;
 	}
 
@@ -409,6 +427,12 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
 	switch (level) {
+	case RIG_LEVEL_RAWSTR:
+		if (ack_len < 4 || ackbuf[0] != 'L' || ackbuf[1] != 'M')
+			return -RIG_EPROTO;
+		sscanf(ackbuf+(ackbuf[2]=='%'?3:2), "%x", &val->i);
+		break;
+
 	case RIG_LEVEL_ATT:
 		{
 		unsigned att;
@@ -420,17 +444,50 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		}
 		if (att > MAXDBLSTSIZ || rs->attenuator[att-1]==0) {
-			rig_debug(RIG_DEBUG_ERR,"Unsupported att aor_get_level %d",
-							att);
+			rig_debug(RIG_DEBUG_ERR,"Unsupported att %s %d\n",
+							__FUNCTION__, att);
 			return -RIG_EPROTO;
 		}
 		val->i = rs->attenuator[att-1];
 		break;
 		}
+	case RIG_LEVEL_AGC:
+		if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'C')
+			return -RIG_EPROTO;
+		switch(ackbuf[3]) {
+		case '0': val->i = RIG_AGC_FAST; break;
+		case '1': val->i = RIG_AGC_MEDIUM; break;
+		case '2': val->i = RIG_AGC_SLOW; break;
+		case 'F':
+		default: val->i = RIG_AGC_OFF;
+		}
+		break;
+
 	default:
-		rig_debug(RIG_DEBUG_ERR,"Unsupported aor_get_level %d", level);
+		rig_debug(RIG_DEBUG_ERR,"Unsupported %s %d\n", __FUNCTION__, level);
 		return -RIG_EINVAL;
 	}
+
+	return RIG_OK;
+}
+
+/*
+ * aor_get_dcd
+ * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ */
+int aor_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+	unsigned char ackbuf[BUFSZ];
+	int  ack_len, retval;
+
+	retval = aor_transaction (rig, "LM" EOM, 3, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len < 2 || ackbuf[0] != 'L' || ackbuf[1] != 'M')
+		return -RIG_EPROTO;
+
+	*dcd = ackbuf[2]=='%' ? RIG_DCD_OFF:RIG_DCD_ON;
 
 	return RIG_OK;
 }
@@ -442,8 +499,8 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int aor_set_powerstat(RIG *rig, powerstat_t status)
 {
-		if (status != RIG_POWER_OFF)
-				return -RIG_EINVAL;
+		if (status == RIG_POWER_ON)
+			return aor_transaction (rig, "X" EOM, 2, NULL, NULL);
 
 		/* turn off power */
 		return aor_transaction (rig, "QP" EOM, 3, NULL, NULL);

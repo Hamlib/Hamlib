@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR5000 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.4 2003-10-01 19:31:54 fillods Exp $
+ *	$Id: ar5000.c,v 1.5 2004-09-07 20:40:20 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,9 +32,9 @@
 
 #define AR5000_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define AR5000_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_ABM)
+#define AR5000_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_ABM|RIG_FUNC_AFC)
 
-#define AR5000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define AR5000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
 
 #define AR5000_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
@@ -45,43 +45,41 @@
 /*
  * Data was obtained from AR5000 pdf on http://www.aoruk.com
  */
-#define dBm2S(x) (x)	/* FIXME */
+#define dBm2S9(x) ((x)+73)
 
 #define AR5000_REAL_STR_CAL { 33, \
 	{ \
-		{  0x02, dBm2S(-120) }, \
-		{  0x06, dBm2S(-111) }, \
-		{  0x0b, dBm2S(-110) }, \
-		{  0x14, dBm2S(-109) }, \
-		{  0x1d, dBm2S(-108) }, \
-		{  0x25, dBm2S(-107) }, \
-		{  0x2b, dBm2S(-106) }, \
-		{  0x32, dBm2S(-105) }, \
-		{  0x38, dBm2S(-104) }, \
-		{  0x3d, dBm2S(-103) }, \
-		{  0x43, dBm2S(-102) }, \
-		{  0x49, dBm2S(-101) }, \
-		{  0x4e, dBm2S(-100) }, \
-		{  0x63, dBm2S(-95) }, \
-		{  0x71, dBm2S(-90) }, \
-		{  0x7f, dBm2S(-85) }, \
-		{  0x8b, dBm2S(-80) }, \
-		{  0x96, dBm2S(-75) }, \
-		{  0xa0, dBm2S(-70) }, \
-		{  0xaa, dBm2S(-65) }, \
-		{  0xb3, dBm2S(-60) }, \
-		{  0xbd, dBm2S(-55) }, \
-		{  0xc6, dBm2S(-50) }, \
-		{  0xce, dBm2S(-45) }, \
-		{  0xd7, dBm2S(-40) }, \
-		{  0xe0, dBm2S(-35) }, \
-		{  0xe8, dBm2S(-30) }, \
-		{  0xf1, dBm2S(-25) }, \
-		{  0xf8, dBm2S(-20) }, \
-		{  0xfa, dBm2S(-15) }, \
-		{  0xfb, dBm2S(-10) }, \
-		{  0xfc, dBm2S(-5) }, \
-		{  0xfd, dBm2S(0) }, \
+		{  0x02, dBm2S9(-120) }, \
+		{  0x06, dBm2S9(-111) }, \
+		{  0x0b, dBm2S9(-110) }, \
+		{  0x14, dBm2S9(-109) }, \
+		{  0x1d, dBm2S9(-108) }, \
+		{  0x25, dBm2S9(-107) }, \
+		{  0x2b, dBm2S9(-106) }, \
+		{  0x32, dBm2S9(-105) }, \
+		{  0x38, dBm2S9(-104) }, \
+		{  0x3d, dBm2S9(-103) }, \
+		{  0x43, dBm2S9(-102) }, \
+		{  0x49, dBm2S9(-101) }, \
+		{  0x4e, dBm2S9(-100) }, \
+		{  0x63, dBm2S9(-95) }, \
+		{  0x71, dBm2S9(-90) }, \
+		{  0x7f, dBm2S9(-85) }, \
+		{  0x8b, dBm2S9(-80) }, \
+		{  0x96, dBm2S9(-75) }, \
+		{  0xa0, dBm2S9(-70) }, \
+		{  0xaa, dBm2S9(-65) }, \
+		{  0xb3, dBm2S9(-60) }, \
+		{  0xbd, dBm2S9(-55) }, \
+		{  0xc6, dBm2S9(-50) }, \
+		{  0xce, dBm2S9(-45) }, \
+		{  0xd7, dBm2S9(-40) }, \
+		{  0xe0, dBm2S9(-35) }, \
+		{  0xe8, dBm2S9(-30) }, \
+		{  0xf1, dBm2S9(-25) }, \
+		{  0xf8, dBm2S9(-20) }, \
+		{  0xfa, dBm2S9(-15) }, \
+		{  0xfd, dBm2S9(0) } \
 	} }
 
 static int ar5k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
@@ -98,12 +96,12 @@ const struct rig_caps ar5000_caps = {
 .rig_model =  RIG_MODEL_AR5000,
 .model_name = "AR5000",
 .mfg_name =  "AOR",
-.version =  "0.1.1",
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  4800,
 .serial_rate_max =  19200,
@@ -135,6 +133,7 @@ const struct rig_caps ar5000_caps = {
 .bank_qty =   20,
 .chan_desc_sz =  12,
 .vfo_ops =  AR5000_VFO_OPS,
+.str_cal = AR5000_REAL_STR_CAL,
 
 .chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
 
@@ -202,6 +201,7 @@ const struct rig_caps ar5000_caps = {
 
 .set_level =  aor_set_level,
 .get_level =  aor_get_level,
+.get_dcd = aor_get_dcd,
 
 .set_ts =  aor_set_ts,
 .set_powerstat =  aor_set_powerstat,

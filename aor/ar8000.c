@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR8000 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar8000.c,v 1.4 2003-10-01 19:31:54 fillods Exp $
+ *	$Id: ar8000.c,v 1.5 2004-09-07 20:40:20 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,15 +32,23 @@
 
 #define AR8000_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define AR8000_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_ABM)
+#define AR8000_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_ABM|RIG_FUNC_AFC)
 
-#define AR8000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define AR8000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
 
 #define AR8000_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
 #define AR8000_VFO_OPS (RIG_OP_MCL|RIG_OP_UP|RIG_OP_DOWN|RIG_OP_LEFT|RIG_OP_RIGHT)
 
 #define AR8000_VFO (RIG_VFO_A|RIG_VFO_B)
+
+/* TODO: measure and report real values */
+#define AR8000_STR_CAL { 2, \
+	{ \
+		{  0x00, -60 }, \
+		{  0xff, 60 } \
+	} }
+
 
 /*
  * ar8000 rig capabilities.
@@ -53,12 +61,12 @@ const struct rig_caps ar8000_caps = {
 .rig_model =  RIG_MODEL_AR8000,
 .model_name = "AR8000",
 .mfg_name =  "AOR",
-.version =  "0.1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  4800,
 .serial_rate_max =  19200,
@@ -90,6 +98,7 @@ const struct rig_caps ar8000_caps = {
 .bank_qty =   20,
 .chan_desc_sz =  12,
 .vfo_ops =  AR8000_VFO_OPS,
+.str_cal = AR8000_STR_CAL,
 
 .chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
 
@@ -147,6 +156,10 @@ const struct rig_caps ar8000_caps = {
 .get_mode =  aor_get_mode,
 .set_vfo =  aor_set_vfo,
 .get_vfo =  aor_get_vfo,
+
+.set_level = aor_set_level,
+.get_level = aor_get_level,
+.get_dcd = aor_get_dcd,
 
 .set_ts =  aor_set_ts,
 .set_powerstat =  aor_set_powerstat,
