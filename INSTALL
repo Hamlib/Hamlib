@@ -159,15 +159,30 @@ find the X include and library files automatically, but if it doesn't,
 you can use the `configure' options `--x-includes=DIR' and
 `--x-libraries=DIR' to specify their locations.
 
+
+Win32
+=====
+- Debian system with mingw32msvc cross-compiler
+
+	./configure --host=i586-mingw32msvc
+
+- Mingw compiler under Cygwin 
+	CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" ./configure --host=i686-pc-mingw32 
+
+- Cygwin
+	Native Cygwin requires no special options besides regular ones.
+
+
 Hamlib specific Features
 ========================
 
    Should you encounter any problem with the build of the C++ binding,
 you can disable this optional part by passing `--without-cxx-binding'
-to the configure script.
+to the configure script (may happen under MacOSX).
 
-   Any problem encountered with the perl, tcl or swig tool can be
-disabled by passing `--without-tcl' and `--without-perl-binding'.
+   Any problem encountered with the perl, tcl, python or swig tool can be
+disabled by passing `--without-tcl-binding', `--without-perl-binding',
+and/or '--without-python-binding'.
 
    Some platfroms may have trouble compiling the RPC support (e.g. Mac OS X).
 in such a case, the rpcrig and rpcrot backends may be disabled 
