@@ -4,7 +4,7 @@
  * This include defines the list of known rigs.
  *
  *
- * 	$Id: riglist.h,v 1.11 2001-04-22 14:46:03 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.12 2001-06-02 17:48:46 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -224,7 +224,10 @@ enum rig_model_e {
 	RIG_MODEL_WR1000,	/* WR-1000i */
 	RIG_MODEL_WR1500,	/* WR-1500i and WR-1500e */
 	RIG_MODEL_WR1550,	/* WR-1550e */
+	RIG_MODEL_WR3100,
 	RIG_MODEL_WR3150,	/* WR-3150i */
+	RIG_MODEL_WR3500,
+	RIG_MODEL_WR3700,
 
 	/*
 	 * Ten Tec
