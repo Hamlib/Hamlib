@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: frame.h,v 1.1 2000-10-01 12:31:20 f4cfe Exp $  
+ *    $Id: frame.h,v 1.2 2000-10-08 21:35:48 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,8 @@
 #ifndef _FRAME_H
 #define _FRAME_H 1
 
+#include <hamlib/rig.h>
+
 /*
  * helper functions 
  */
@@ -37,6 +39,10 @@ int make_cmd_frame_freq(char frame[], char re_id, char cmd, int subcmd, freq_t f
 int make_cmd_frame_chan(char frame[], char re_id,char cmd,int subcmd,int chan);
 
 int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len);
+int read_icom_frame(FILE *stream, unsigned char rxbuffer[], int timeout);
+
+unsigned short hamlib2icom_mode(rmode_t mode);
+rmode_t icom2hamlib_mode(unsigned short icmode);
 
 #endif /* _FRAME_H */
 
