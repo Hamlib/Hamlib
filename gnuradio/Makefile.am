@@ -1,5 +1,5 @@
 
-CPPFLAGS = @GNURADIO_CFLAGS@
+AM_CPPFLAGS = @GNURADIO_CFLAGS@
 
 lib_LTLIBRARIES = libhamlib-gnuradio.la
 libhamlib_gnuradio_la_SOURCES = gr.c gnuradio.cc
