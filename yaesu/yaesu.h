@@ -6,7 +6,7 @@
  *
  * Common yaesu declarations for hamlib
  *
- * 	$Id: yaesu.h,v 1.16 2003-04-16 22:30:43 fillods Exp $	
+ * 	$Id: yaesu.h,v 1.17 2003-08-11 21:20:35 fillods Exp $	
  *
  *
  *
@@ -50,6 +50,7 @@ typedef struct yaesu_cmd_set yaesu_cmd_set_t;
 extern const struct rig_caps ft100_caps;
 extern const struct rig_caps ft747_caps;
 extern const struct rig_caps ft817_caps;
+extern const struct rig_caps ft857_caps;
 extern const struct rig_caps ft847_caps;
 extern const struct rig_caps ft890_caps;
 extern const struct rig_caps ft900_caps;
