@@ -11,7 +11,7 @@
  *  Hamlib C++ bindings - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.cc,v 1.5 2001-12-16 11:18:40 fillods Exp $
+ *		$Id: rigclass.cc,v 1.6 2001-12-20 07:46:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -369,16 +369,16 @@ float Rig::mW2power (unsigned int mwpower, freq_t freq, rmode_t mode)
 	return power;
 }
 
-void Rig::setTrn (int trn, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setTrn (int trn)
 {
-	CHECK_RIG( rig_set_trn(theRig, vfo, trn) );
+	CHECK_RIG( rig_set_trn(theRig, trn) );
 }
 
-int Rig::getTrn (vfo_t vfo = RIG_VFO_CURR)
+int Rig::getTrn ()
 {
 	int trn;
 
-	CHECK_RIG( rig_get_trn(theRig, vfo, &trn) );
+	CHECK_RIG( rig_get_trn(theRig, &trn) );
 
 	return trn;
 }

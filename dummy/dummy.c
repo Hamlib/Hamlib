@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: dummy.c,v 1.18 2001-12-16 11:24:56 fillods Exp $
+ *		$Id: dummy.c,v 1.19 2001-12-20 07:46:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -511,7 +511,7 @@ static int dummy_get_channel(RIG *rig, channel_t *chan)
 }
 
 
-static int dummy_set_trn(RIG *rig, vfo_t vfo, int trn)
+static int dummy_set_trn(RIG *rig, int trn)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -519,7 +519,7 @@ static int dummy_set_trn(RIG *rig, vfo_t vfo, int trn)
 }
 
 
-static int dummy_get_trn(RIG *rig, vfo_t vfo, int *trn)
+static int dummy_get_trn(RIG *rig, int *trn)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 

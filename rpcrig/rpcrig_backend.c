@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rpcrig_backend.c,v 1.2 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: rpcrig_backend.c,v 1.3 2001-12-20 07:46:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -597,7 +597,7 @@ static int rpcrig_get_channel(RIG *rig, channel_t *chan)
 }
 
 
-static int rpcrig_set_trn(RIG *rig, vfo_t vfo, int trn)
+static int rpcrig_set_trn(RIG *rig, int trn)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -605,7 +605,7 @@ static int rpcrig_set_trn(RIG *rig, vfo_t vfo, int trn)
 }
 
 
-static int rpcrig_get_trn(RIG *rig, vfo_t vfo, int *trn)
+static int rpcrig_get_trn(RIG *rig, int *trn)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 

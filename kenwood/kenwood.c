@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.20 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: kenwood.c,v 1.21 2001-12-20 07:46:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -733,7 +733,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  * kenwood_set_trn
  * Assumes rig!=NULL
  */
-int kenwood_set_trn(RIG *rig, vfo_t vfo, int trn)
+int kenwood_set_trn(RIG *rig, int trn)
 {
 		unsigned char trnbuf[16], ackbuf[16];
 		int trn_len, ack_len = 0;
@@ -747,7 +747,7 @@ int kenwood_set_trn(RIG *rig, vfo_t vfo, int trn)
  * kenwood_get_trn
  * Assumes rig!=NULL, trn!=NULL
  */
-int kenwood_get_trn(RIG *rig, vfo_t vfo, int *trn)
+int kenwood_get_trn(RIG *rig, int *trn)
 {
 		unsigned char trnbuf[16];
 		int trn_len, retval;

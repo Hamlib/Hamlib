@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.6 2001-12-16 11:18:40 fillods Exp $
+ *		$Id: rigclass.h,v 1.7 2001-12-20 07:46:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -81,8 +81,8 @@ public:
 
   unsigned int power2mW (float power, freq_t freq, rmode_t mode);
   float mW2power (unsigned int mwpower, freq_t freq, rmode_t mode);
-  void setTrn (int trn, vfo_t vfo = RIG_VFO_CURR);
-  int getTrn (vfo_t vfo = RIG_VFO_CURR);
+  void setTrn (int trn);
+  int getTrn (void);
   void setBank (int bank, vfo_t vfo = RIG_VFO_CURR);
   void setMem (int ch, vfo_t vfo = RIG_VFO_CURR);
   int getMem (vfo_t vfo = RIG_VFO_CURR);

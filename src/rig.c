@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.49 2001-12-19 03:35:27 fillods Exp $
+ *		$Id: rig.c,v 1.50 2001-12-20 07:46:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -3698,7 +3698,7 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
  * \sa rig_get_trn()
  */
 
-int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
+int rig_set_trn(RIG *rig, int trn)
 {
 		const struct rig_caps *caps;
 		int status;
@@ -3718,7 +3718,7 @@ int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
 				 */
 				status = add_trn_rig(rig);
 				if (caps->set_trn)
-						return caps->set_trn(rig, vfo, RIG_TRN_RIG);
+						return caps->set_trn(rig, RIG_TRN_RIG);
 				else
 						return status;
 			} else {
@@ -3727,7 +3727,7 @@ int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
 		} else {
 				status = remove_trn_rig(rig);
 				if (caps->set_trn)
-						return caps->set_trn(rig, vfo, RIG_TRN_OFF);
+						return caps->set_trn(rig, RIG_TRN_OFF);
 				else
 						return status;
 		}
@@ -3750,7 +3750,7 @@ int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
  *
  * \sa rig_set_trn()
  */
-int rig_get_trn(RIG *rig, vfo_t vfo, int *trn)
+int rig_get_trn(RIG *rig, int *trn)
 {
 		if (!rig || !rig->caps || !trn)
 			return -RIG_EINVAL;
@@ -3758,7 +3758,7 @@ int rig_get_trn(RIG *rig, vfo_t vfo, int *trn)
 		if (rig->caps->get_trn == NULL)
 			return -RIG_ENAVAIL;
 
-		return rig->caps->get_trn(rig, vfo, trn);
+		return rig->caps->get_trn(rig, trn);
 }
 
 /**

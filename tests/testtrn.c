@@ -63,7 +63,7 @@ int main (int argc, char *argv[])
 
 	my_rig->callbacks.freq_event = myfreq_event;
 
-	retcode = rig_set_trn(my_rig, RIG_VFO_CURR, RIG_TRN_RIG);
+	retcode = rig_set_trn(my_rig, RIG_TRN_RIG);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_trn: error = %s \n", rigerror(retcode));
