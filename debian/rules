@@ -8,17 +8,15 @@
 # This is the debhelper compatability version to use.
 export DH_COMPAT=3
 
-version=1.1.5
+#change this when the so name has changed
+version=1.2.0
+perlversion=`perl -V:version|cut -d\' -f2`
 
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	./configure --prefix=/usr --mandir=\$${prefix}/share/man \
-	--without-cxx-binding \
-	--without-perl-binding  \
 	--without-kylix-binding \
-	--without-tcl-binding   \
-	--without-python-binding
 
 	touch configure-stamp
 
@@ -36,29 +34,62 @@ clean:
 	# Add here commands to clean up after the build process.
 	-$(MAKE) clean
 	dh_clean
-	rm -f build-stamp configure-stamp config.log config.status libltdl/config.log libltdl/config.status
+	rm -f build-stamp configure-stamp 
+	rm -f config.log config.status libltdl/config.log libltdl/config.status
+	rm -rf doc/html
+	rm -rf libltdl/.libs lib/.libs
+	rm -f lib/termios.o libltdl/ltdl.o
 
 install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
+
 	# Add here commands to install the package into debian/tmp
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
-	# Move the appropriate files into the development package..
+
+	# Move C++ files out of the way
+	# Move the appropriate files into the C++ development package..
+	mv $(CURDIR)/debian/tmp/usr/include/hamlib/rigclass.h $(CURDIR)/debian/hamlib++-dev/usr/include/
+	mv $(CURDIR)/debian/tmp/usr/include/hamlib/rotclass.h $(CURDIR)/debian/hamlib++-dev/usr/include/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++.a $(CURDIR)/debian/hamlib++-dev/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++.la $(CURDIR)/debian/hamlib++-dev/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++.so $(CURDIR)/debian/hamlib++-dev/usr/lib/
+
+	# Move the appropriate files into the C++ runtime package..
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++-$(version).so.2 $(CURDIR)/debian/hamlib2++/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib++-$(version).so.2.0.0 $(CURDIR)/debian/hamlib2++/usr/lib/
+
+	# Move the appropriate files into the C development package..
 	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib.so $(CURDIR)/debian/hamlib-dev/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/lib/*.a $(CURDIR)/debian/hamlib-dev/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/lib/*.la $(CURDIR)/debian/hamlib-dev/usr/lib/
-	rm -f $(CURDIR)/debian/tmp/usr/include/hamlib/rigclass.h
-	rm -f $(CURDIR)/debian/tmp/usr/include/hamlib/rotclass.h
 	mv $(CURDIR)/debian/tmp/usr/include/hamlib $(CURDIR)/debian/hamlib-dev/usr/include/
 	mv $(CURDIR)/debian/tmp/usr/lib/pkgconfig/hamlib.pc $(CURDIR)/debian/hamlib-dev/usr/lib/pkgconfig/
 	mv $(CURDIR)/debian/tmp/usr/share/aclocal/hamlib.m4 $(CURDIR)/debian/hamlib-dev/usr/share/aclocal/
 
-	# Move the appropriate files into the runtime package..
+	# Move the appropriate files into the C runtime package..
 	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2 $(CURDIR)/debian/hamlib2/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2.0.0 $(CURDIR)/debian/hamlib2/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/lib/hamlib-*so $(CURDIR)/debian/hamlib2/usr/lib/
+
+	# Move the appropriate files into the perl package and do some cleanups
+	mv $(CURDIR)/debian/tmp/usr/lib/perl/5.8.4/* $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5
+	rm -f $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/auto/Hamlib/.packlist
+	rm -f $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/auto/Hamlib/Hamlib.bs
+	rm -f $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/perllocal.pod
+	mv $(CURDIR)/debian/hamlib2-perl/usr/lib/perl5/perltest.pl $(CURDIR)/debian/hamlib2-perl/usr/share/doc/hamlib2-perl
+
+	# Move the appropriate files into the python package
+	mv $(CURDIR)/debian/tmp/usr/lib/python/* $(CURDIR)/debian/python2.3-hamlib2/usr/lib/python2.3/site-packages
+	mv $(CURDIR)/debian/tmp/usr/lib/_Hamlib.so $(CURDIR)/debian/python2.3-hamlib2/usr/lib/python2.3/site-packages
+	mv $(CURDIR)/bindings/pytest.py $(CURDIR)/debian/python2.3-hamlib2/usr/share/doc/python2.3-hamlib2/
+
+	# Move the appropriate files into the tcl package
+	mv $(CURDIR)/debian/tmp/usr/lib/hamlibtcl* $(CURDIR)/debian/hamlib2-tcl/usr/lib/hamlib/
+	mv $(CURDIR)/debian/tmp/usr/lib/tcl/* $(CURDIR)/debian/hamlib2-tcl/usr/lib/hamlib/
+	mv $(CURDIR)/bindings/tcltest.tcl $(CURDIR)/debian/hamlib2-tcl/usr/share/doc/hamlib2-tcl/
 
 	# Move the appropriate files into the documentation package..
 	mv $(CURDIR)/doc/html/* $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/html
@@ -103,7 +134,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu
+	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu -Xtcl
 	dh_installdeb
 #	dh_perl
 	dh_shlibdeps -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu

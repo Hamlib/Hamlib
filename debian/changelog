@@ -1,11 +1,22 @@
-hamlib (1.1.5-1) unstable; urgency=low
+hamlib (1.2.0-2) unstable; urgency=low
+
+  * Correct references to the hamlib1 package in the control file.
+  * Removed *.files in the debian directory.
+  * Build hamlib++-dev and hamlib2++ packages for C++.
+  * Added swig, libperl-dev, python-dev, tcl8.4-dev to build-depends.
+  * Added perl, python and tcl bindings.
+  * Update standards version to 3.6.1.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Wed, 24 Mar 2004 18:19:26 +0100
+
+hamlib (1.2.0-1) unstable; urgency=low
 
   * New upstream.
   * New package: hamlib2 because of API changes.
   * 1 new program in hamlib-utils called rigmem.
   * Upstream changelog is old, so not included anymore.
 
- -- Joop Stakenborg <pa3aba@debian.org>  Fri, 30 Jan 2004 20:37:06 +0100
+ -- Joop Stakenborg <pa3aba@debian.org>  Sat, 28 Feb 2004 08:23:34 +0100
 
 hamlib (1.1.4-6) unstable; urgency=low
 
