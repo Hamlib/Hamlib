@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.48 2003-11-16 17:34:00 fillods Exp $  
+ * $Id: rigctl.c,v 1.49 2004-02-08 20:25:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -745,8 +745,8 @@ static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 
 static int print_model_list(const struct rig_caps *caps, void *data)
 {
-	printf("%d\t%-14s%-16s%s\n", caps->rig_model, caps->mfg_name,
-										caps->model_name, caps->version);
+	printf("%d\t%-16s%-24s%-8s%s\n", caps->rig_model, caps->mfg_name,
+				caps->model_name, caps->version, strstatus(caps->status));
 	return 1;  /* !=0, we want them all ! */
 }
 
@@ -756,7 +756,7 @@ void list_models()
 
 	rig_load_all_backends();
 
-	printf("Rig#\tMfg           Model           Vers.\n");
+	printf("Rig#\tMfg             Model                   Vers.   Status\n");
 	status = rig_list_foreach(print_model_list, NULL);
 	if (status != RIG_OK ) {
 		printf("rig_list_foreach: error = %s \n", rigerror(status));
@@ -1537,7 +1537,7 @@ void dump_chan(RIG *rig, channel_t *chan)
 	printf("Channel: %d, Name: '%s'\n", chan->channel_num, 
 					chan->channel_desc);
 
-	printf("VFO: %s, Antenna: %d, Split %s\n", strvfo(chan->vfo),
+	printf("VFO: %s, Antenna: %d, Split: %s\n", strvfo(chan->vfo),
 					chan->ant, chan->split==RIG_SPLIT_ON?"ON":"OFF");
 
 	sprintf_freq(freqbuf, chan->freq);
