@@ -52,6 +52,8 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/lib/*.a $(CURDIR)/debian/hamlib-dev/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/lib/*.la $(CURDIR)/debian/hamlib-dev/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/include/hamlib $(CURDIR)/debian/hamlib-dev/usr/include/
+	mv $(CURDIR)/debian/tmp/usr/lib/pkgconfig/hamlib.pc $(CURDIR)/debian/hamlib-dev/usr/lib/pkgconfig/
+	mv $(CURDIR)/debian/tmp/usr/share/aclocal/hamlib.m4 $(CURDIR)/debian/hamlib-dev/usr/share/aclocal/
 
 	# Move the appropriate files into the runtime package..
 	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.1 $(CURDIR)/debian/hamlib1/usr/lib/
