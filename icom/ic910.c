@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.5 2002-09-11 21:32:07 fillods Exp $
+ *      $Id: ic910.c,v 1.6 2002-09-21 13:54:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,14 +55,83 @@ static int ic910_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 #endif /* HAVE_WEIRD_IC910_MODES */
 
+/* this function compares 2 frequencies
+ * returns 1 if they are in the same band
+ * returns 0 if they are in different bands
+ */
+
+static int compareFrequencies (RIG* rig, freq_t freq1, freq_t freq2) {
+    int freq1band=0, freq2band=0;
+    freq_range_t noband = RIG_FRNG_END;
+
+    while (rig->caps->rx_range_list1[freq1band].start!=noband.start) {
+        if (freq1 >= rig->caps->rx_range_list1[freq1band].start &&
+            freq1 <= rig->caps->rx_range_list1[freq1band].end)
+            break;
+        ++freq1band;
+    	fprintf(stderr, "%i\n", freq1band);
+    }
+
+    while (rig->caps->rx_range_list1[freq2band].start!=noband.start) {
+        if (freq2 >= rig->caps->rx_range_list1[freq2band].start &&
+            freq2 <= rig->caps->rx_range_list1[freq2band].end)
+            break;
+        ++freq2band;
+    }
+
+    if (freq2band == freq1band) return 1;
+    else return 0;
+}
+
+    /* swaps main and sub band - but preserves PREAMP, MODE
+     * they are also exchanged, but we do not want that
+     */
+
+static int icom_swap_bands(RIG* rig) {
+    /* TODO: actually use retval! */
+    int retval=0;
+    rmode_t mmode, smode;        /* used to store the mode */
+    pbwidth_t mwidth, swidth;    /* used to store the width */
+    value_t mpreamp, spreamp;    /* used to store preamp */
+    value_t matt, satt;          /* used to store attenuation */
+
+    /* main band get values */
+    icom_set_vfo(rig, RIG_VFO_MAIN);
+    /* get the mode, width, preamp */
+    icom_get_mode(rig, RIG_VFO_CURR, &mmode, &mwidth);
+    icom_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP, &mpreamp);
+    icom_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT, &matt);
+
+    /* sub band get values */
+    icom_set_vfo(rig, RIG_VFO_SUB);
+    /* get the mode, width, preamp, att */
+    icom_get_mode(rig, RIG_VFO_CURR, &smode, &swidth);
+    icom_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP, &spreamp);
+    icom_get_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT, &satt);
+
+    /* now, we can exchange the bands */
+    icom_vfo_op(rig, RIG_VFO_CURR, RIG_OP_XCHG);
+
+    /* restore the sub vales NOTE: sub band is still active */
+    /* set the mode, width, preamp */
+    icom_set_mode(rig, RIG_VFO_CURR, smode, swidth);
+    icom_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP, spreamp);
+    icom_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT, satt);
+
+    /* restore main band values */
+    icom_set_vfo(rig, RIG_VFO_MAIN);
+    /* set the mode, width, preamp */
+    icom_set_mode(rig, RIG_VFO_CURR, mmode, mwidth);
+    icom_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_PREAMP, mpreamp);
+    icom_set_level(rig, RIG_VFO_CURR, RIG_LEVEL_ATT, matt);
+
+    return retval;
+}
 
 static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
  {
     int retval;
     freq_t otherfreq;
-    freq_t freqdiff;
-    rmode_t mmode, smode;
-    pbwidth_t mwidth, swidth;
 
     /* get the freq of the other band */
     if (vfo==RIG_VFO_MAIN)
@@ -71,35 +140,18 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
         icom_set_vfo(rig, RIG_VFO_MAIN);
 
     retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
-    freqdiff=freq-otherfreq;
-    if(freqdiff < 0) freqdiff=freqdiff*-1;
     if (retval!=RIG_OK) return retval;
 
-    if (freqdiff < MHz(100) ) {
-	/* before we exchange the bands, we need to know the modes on the bands! */
-	icom_set_vfo(rig, RIG_VFO_MAIN);
-	retval=icom_get_mode(rig, RIG_VFO_CURR, &mmode, &mwidth);
-	if(retval!=RIG_OK) return retval;
-	icom_set_vfo(rig, RIG_VFO_SUB);
-	retval=icom_get_mode(rig, RIG_VFO_CURR, &smode, &swidth);
-	if(retval!=RIG_OK) return retval;	
-        /* exchange the bands */
-	retval=icom_vfo_op(rig, RIG_VFO_CURR, RIG_OP_XCHG);
-	if (retval!=RIG_OK) return retval;
-	/* set the modes back */
-	retval=icom_set_mode(rig, RIG_VFO_CURR, mmode, mwidth);
-	if (retval!=RIG_OK) return retval;
-	icom_set_vfo(rig, RIG_VFO_MAIN);
-	retval=icom_set_mode(rig, RIG_VFO_CURR, smode, swidth);
-	if (retval!=RIG_OK) return retval;
-     }
+    if (compareFrequencies(rig, freq, otherfreq))
+         icom_swap_bands(rig);
+
     icom_set_vfo(rig, vfo);
     return icom_set_freq(rig, RIG_VFO_CURR, freq);
  }
- 
- 
+
+
 #define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
- 
+
 #define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
 #define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_C)
@@ -109,7 +161,8 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
 #define IC910_VFO_OPS      (RIG_OP_FROM_VFO| \
                             RIG_OP_TO_VFO| \
                             RIG_OP_CPY| \
-                            RIG_OP_MCL)
+                            RIG_OP_MCL| \
+                            RIG_OP_XCHG)
 
 #define IC910_FUNC_ALL     (RIG_FUNC_FAGC| \
                             RIG_FUNC_NB| \
@@ -137,7 +190,8 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
                             RIG_LEVEL_VOXGAIN| \
                             RIG_LEVEL_VOXDELAY| \
                             RIG_LEVEL_ANTIVOX| \
-                            RIG_LEVEL_ATT)
+                            RIG_LEVEL_ATT| \
+                            RIG_LEVEL_PREAMP)
 
 #define IC910_STR_CAL { 0, { } }
 /*
@@ -180,11 +234,11 @@ const struct rig_caps ic910_caps = {
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END, },
-.attenuator =   { RIG_DBLST_END, },
+.preamp =   {20, RIG_DBLST_END, },
+.attenuator =   {20, RIG_DBLST_END, },
 .max_rit =  Hz(0),     /* SSB,CW: +-1.0kHz  FM: +-5.0kHz */
 .max_xit =  Hz(0),
-.max_ifshift =  Hz(0),	/* 1.2kHz manual knob */
+.max_ifshift =  Hz(0),    /* 1.2kHz manual knob */
 .targetable_vfo =  0,
 .vfo_ops =  IC910_VFO_OPS,
 .scan_ops =  IC910_SCAN_OPS,
@@ -201,22 +255,22 @@ const struct rig_caps ic910_caps = {
 .rx_range_list1 =   {  /* USA */
     {MHz(144),MHz(148),IC910_MODES,-1,-1,IC910_VFO_ALL},
     {MHz(430),MHz(450),IC910_MODES,-1,-1,IC910_VFO_ALL},
-	RIG_FRNG_END, },
+    RIG_FRNG_END, },
 .tx_range_list1 =  {
     {MHz(144),MHz(148),IC910_MODES,W(5),W(100),IC910_VFO_ALL},
     {MHz(430),MHz(450),IC910_MODES,W(5),W(75),IC910_VFO_ALL},
-	RIG_FRNG_END, },
+    RIG_FRNG_END, },
 
 .rx_range_list2 =   { /* Europe */
     {MHz(144),MHz(146),IC910_MODES,-1,-1,IC910_VFO_ALL},
     {MHz(430),MHz(440),IC910_MODES,-1,-1,IC910_VFO_ALL},
-	RIG_FRNG_END, },
+    RIG_FRNG_END, },
 .tx_range_list2 =  {
     {MHz(144),MHz(146),IC910_MODES,W(5),W(100),IC910_VFO_ALL},
     {MHz(430),MHz(440),IC910_MODES,W(5),W(75),IC910_VFO_ALL},
-	RIG_FRNG_END, },
+    RIG_FRNG_END, },
 
-.tuning_steps = 	{
+.tuning_steps =     {
     {RIG_MODE_SSB|RIG_MODE_CW,1},
     {RIG_MODE_SSB|RIG_MODE_CW,10},
     {RIG_MODE_SSB|RIG_MODE_CW,50},
@@ -230,8 +284,8 @@ const struct rig_caps ic910_caps = {
     {RIG_MODE_FM,kHz(25)},
     {RIG_MODE_FM,kHz(100)},
     RIG_TS_END, },
-	/* mode/filter list, remember: order matters! */
-.filters = 	{
+    /* mode/filter list, remember: order matters! */
+.filters =     {
     {RIG_MODE_CW|RIG_MODE_SSB, kHz(2.3)},   /* buildin */
     {RIG_MODE_FM, kHz(15)},                 /* buildin */
      RIG_FLT_END, },
