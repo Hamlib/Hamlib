@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.13 2001-01-28 22:08:41 f4cfe Exp $  
+ * $Id: icom.c,v 1.14 2001-02-11 23:14:28 f4cfe Exp $  
  *
  *
  *
@@ -522,10 +522,12 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_cn = C_CTL_ATT;
 			lvl_sc = -1;
 			break;
+#if 0
 		case RIG_LEVEL_ANT:
 			lvl_cn = C_CTL_ANT;
 			lvl_sc = -1;
 			break;
+#endif
 		case RIG_LEVEL_AF:
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_AF;
@@ -594,10 +596,12 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_BALANCE;
 			break;
+#if 0
 		case RIG_LEVEL_ANN:
 			lvl_cn = C_CTL_ANN;
 			lvl_sc = -1;
 			break;
+#endif
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
@@ -637,7 +641,9 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		case RIG_LEVEL_PREAMP:
 		case RIG_LEVEL_ATT:
+#if 0
 		case RIG_LEVEL_ANT:
+#endif
 			val->i = icom_val;
 			break;
 		default:
@@ -1001,7 +1007,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		struct rig_state *rig_s;
 		unsigned char ackbuf[16];
 		int i, ack_len;
-		int ts_sc;
+		int ts_sc = 0;
 
 		rig_s = &rig->state;
 		priv = (struct icom_priv_data*)rig_s->priv;
