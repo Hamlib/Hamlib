@@ -1,10 +1,10 @@
 /*  hamlib - Copyright (C) 2000 Frank Singleton
  *
- * riglist.h - Copyrith (C) 2000 Stephane Fillod
- * This program defines the list of supported rigs.
+ * riglist.h - Copyrith (C) 2000,2001 Stephane Fillod
+ * This include defines the list of known rigs.
  *
  *
- * 	$Id: riglist.h,v 1.10 2001-03-02 18:24:40 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.11 2001-04-22 14:46:03 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -226,12 +226,18 @@ enum rig_model_e {
 	RIG_MODEL_WR1550,	/* WR-1550e */
 	RIG_MODEL_WR3150,	/* WR-3150i */
 
+	/*
+	 * Ten Tec
+	 */
+	RIG_MODEL_TT550,	/* Pegasus */
+	RIG_MODEL_TT538,	/* Jupiter */
+	RIG_MODEL_RX320,
+	RIG_MODEL_RX340,
+
 	RIG_MODEL_KWZ30,	/* KNEISNER +DOERING */
 	RIG_MODEL_E1800,	/* DASA-Telefunken */
 	RIG_MODEL_EKD500,	/* RFT */
 	RIG_MODEL_DX77,		/* Alinco */
-	RIG_MODEL_TT550,	/* Ten Tec */
-	RIG_MODEL_RX320,
 
 
 	/* etc. */
