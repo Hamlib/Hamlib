@@ -94,7 +94,9 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c icall.c ic275.c ic475.c
+ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c icall.c \
+				ic275.c ic475.c ic821h.c
+
 
 lib_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
@@ -110,7 +112,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_icom_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_icom_la_OBJECTS = ic706.lo icr8500.lo ic735.lo ic775.lo \
-	ic756.lo icall.lo ic275.lo ic475.lo icom.lo frame.lo
+	ic756.lo icall.lo ic275.lo ic475.lo ic821h.lo icom.lo frame.lo
 libhamlib_icom_la_OBJECTS = $(am_libhamlib_icom_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -122,8 +124,9 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/frame.Plo $(DEPDIR)/ic275.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/ic475.Plo $(DEPDIR)/ic706.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/ic735.Plo $(DEPDIR)/ic756.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ic775.Plo $(DEPDIR)/icall.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/icom.Plo $(DEPDIR)/icr8500.Plo
+@AMDEP_TRUE@	$(DEPDIR)/ic775.Plo $(DEPDIR)/ic821h.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/icall.Plo $(DEPDIR)/icom.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/icr8500.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -193,6 +196,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic735.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic756.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic775.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic821h.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/icall.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/icom.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/icr8500.Plo@am__quote@
