@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.30 2002-11-12 00:15:01 fillods Exp $
+ *	$Id: riglist.h,v 1.31 2003-01-29 22:31:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -352,6 +352,13 @@
 #define RIG_MODEL_GNURADIO RIG_MAKE_MODEL(RIG_GNURADIO, 1) /* dev model */
 #define RIG_MODEL_MC4020 RIG_MAKE_MODEL(RIG_GNURADIO, 2)
 
+	/*
+	 * Microtune tuners
+	 */
+#define RIG_MICROTUNE 21
+#define RIG_BACKEND_MICROTUNE "microtune"
+#define RIG_MODEL_MICROTUNE_4937 RIG_MAKE_MODEL(RIG_MICROTUNE, 1)	/* eval board */
+
 
 	/*
 	 * TODO:
@@ -396,6 +403,7 @@ typedef int rig_model_t;
 		{ RIG_KACHINA, RIG_BACKEND_KACHINA }, \
 		{ RIG_RPC, RIG_BACKEND_RPC }, \
 		{ RIG_GNURADIO, RIG_BACKEND_GNURADIO }, \
+		{ RIG_MICROTUNE, RIG_BACKEND_MICROTUNE }, \
 		{ 0, NULL }, /* end */  \
 }
 
