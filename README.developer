@@ -50,3 +50,11 @@ ft747/
    program available as follows.
 
 	make runtest > RESULT.example
+
+9. Your header file (eg ft747.h, ft847.h etc) documents
+   your API, so please describe it so others can understand.
+   If this cannot be done, I may consider an "API.xxx" that
+   decsribes the API (eg: API.ft747 )
+
+10. ...
+
