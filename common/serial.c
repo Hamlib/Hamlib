@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.12 2000-09-16 23:56:35 javabear Exp $  
+ * $Id: serial.c,v 1.13 2000-09-19 06:59:27 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -60,7 +60,7 @@ int serial_open(struct rig_state *rs) {
   speed_t speed;			/* serial comm speed */
 
   if (!rs)
-		  return -1;
+		  return RIG_EINVAL;
 
   /*
    * Open in Non-blocking mode. Watch for EAGAIN errors!
@@ -73,7 +73,7 @@ int serial_open(struct rig_state *rs) {
     
     fprintf(stderr, "serial_open: Unable to open %s - %s\n", 
 						rs->rig_path, strerror(errno));
-    return -2;
+    return RIG_EIO;
   }
  
   /*
@@ -87,6 +87,9 @@ int serial_open(struct rig_state *rs) {
    */
 
   switch(rs->serial_rate) {
+  case 300:
+	speed = B300;
+    break;
   case 1200:
 	speed = B1200;
     break;
@@ -109,7 +112,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported rate specified: %d\n", 
 					rs->serial_rate);
 	close(fd);
-    return -1;
+    return RIG_ECONF;
   }
   cfsetispeed(&options, speed);
   cfsetospeed(&options, speed);
@@ -138,7 +141,7 @@ int serial_open(struct rig_state *rs) {
     printf("open_serial: unsupported serial_data_bits specified: %d\n",
 					rs->serial_data_bits);
 	close(fd);
-    return -1;
+    return RIG_ECONF;
     break;
   }
 
@@ -159,7 +162,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported serial_stop_bits specified: %d\n",
 					rs->serial_stop_bits);
 	close(fd);
-    return -1;
+    return RIG_ECONF;
     break;
   }
 
@@ -184,7 +187,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported serial_parity specified: %d\n",
 					rs->serial_parity);
 	close(fd);
-    return -1;
+    return RIG_ECONF;
     break;
   }
 
@@ -211,7 +214,7 @@ int serial_open(struct rig_state *rs) {
     fprintf(stderr, "open_serial: unsupported flow_control specified: %d\n",
 					rs->serial_handshake);
 	close(fd);
-    return -1;
+    return RIG_ECONF;
     break;
   }
 
@@ -241,37 +244,14 @@ int serial_open(struct rig_state *rs) {
 		fprintf(stderr, "open_serial: tcsetattr failed: %s\n", 
 					strerror(errno));
 		close(fd);
-		return -1;		/* arg, so close! */
+		return RIG_ECONF;		/* arg, so close! */
   }
 
   rs->fd = fd;
 
-  return 0;
+  return RIG_OK;
 }
 
-
-
-
-
-
-
-/*
- * 'close_port()' - Close serial port 
- *
- * fd - file descriptor for open port
- *
- *
- * Returns success (0) or -1 on error.
- */
-
-int close_port(int fd) {
-
-  if (close(fd) <0 ) {
-    printf("close_port: Unable to close port using fd %i - ",fd);
-    return -1;			/* oops */
-  }
-  return 0;			/* ok */
-}
 
 
 
@@ -310,7 +290,7 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num ) {
 }
 
 /*
- * Write a count character block to file descriptor,
+ * Write a block of count characters to file descriptor,
  * with a pause between each character if write_delay is > 0
  *
  * The delay is for Yaesu type rigs..require 5 character
@@ -326,11 +306,11 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num ) {
  * returns:
  *
  *  0 = OK
- * -1 = NOT OK
+ *  <0 = NOT OK
  *
  */
 
-int write_block2(int fd, const unsigned char *txbuffer, size_t count, int write_delay)
+int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay)
 {
   int i;
 
@@ -338,7 +318,7 @@ int write_block2(int fd, const unsigned char *txbuffer, size_t count, int write_
   	for (i=0; i < count; i++) {
 		if (write(fd, txbuffer+i, 1) < 0) {
 			fprintf(stderr,"write_block() failed - %s\n", strerror(errno));
-			return -1;
+			return RIG_EIO;
     	}
     	usleep(write_delay*1000);
   	}
@@ -347,7 +327,7 @@ int write_block2(int fd, const unsigned char *txbuffer, size_t count, int write_
   }
   dump_hex(txbuffer,count,16);
   
-  return 0;
+  return RIG_OK;
 }
 
 /*
@@ -383,7 +363,7 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
 		if (!retval) {
 			fprintf(stderr,"rig timeout after %d chars or select error - %s!\n",
 							total_count, strerror(errno));
-				return -1;
+				return RIG_ETIMEOUT;
 		}
 
 		/*
@@ -394,7 +374,7 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
 		if (rd_count < 0) {
 				fprintf(stderr, "read_block: read failed - %s\n",
 									strerror(errno));
-				return -1;
+				return RIG_EIO;
 		}
 		total_count += rd_count;
 		count -= rd_count;
@@ -418,8 +398,7 @@ void dump_hex(const unsigned char *ptr, int size, int width) {
 
   for(i=0; i<size; i++) {
     if (i % width == 0) {
-      printf("\n");
-      printf("0x%.4x  ",i);
+      printf("\n0x%.4x  ",i);
     }
     printf(" 0x%.2x", *(ptr+i));
 
