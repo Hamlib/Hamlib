@@ -4,6 +4,7 @@
  * yaesu.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  * Common yaesu declarations for hamlib
  *
+ * 	$Id: yaesu.h,v 1.2 2000-12-22 01:41:09 javabear Exp $	
  *
  *
  *
