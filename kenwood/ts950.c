@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS950 description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *		$Id: ts950.c,v 1.2 2002-02-19 08:34:01 pa4tu Exp $
+ *		$Id: ts950.c,v 1.3 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,6 +37,10 @@
 #define TS950_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
 
 #define TS950_VFO (RIG_VFO_A|RIG_VFO_B)
+
+const struct kenwood_priv_caps  ts950_priv_caps  = {
+		cmdtrm: EOM_KEN,
+};
 
 /*
  * ts950sdx rig capabilities.
@@ -142,7 +146,7 @@ filters: {
 		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
-priv: NULL,
+priv: (void *)&ts950_priv_caps,
 
 set_freq: kenwood_set_freq,
 get_freq: kenwood_get_freq,

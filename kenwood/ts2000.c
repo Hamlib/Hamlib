@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS2000 description
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2000.c,v 1.4 2002-02-19 08:30:49 pa4tu Exp $
+ *		$Id: ts2000.c,v 1.5 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,6 +55,10 @@ static const tone_t ts2000_dcs_list[] = {
   523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654,
   662, 664, 703, 712, 723, 731, 732, 734, 743, 754,
   0,
+};
+
+const struct kenwood_priv_caps  ts2000_priv_caps  = {
+		cmdtrm: EOM_KEN,
 };
 
 /*
@@ -205,7 +209,7 @@ filters: {
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)},
 		RIG_FLT_END,
 	},
-priv: NULL,
+priv: (void *)&ts2000_priv_caps,
 
 set_freq: kenwood_set_freq,
 get_freq: kenwood_get_freq,

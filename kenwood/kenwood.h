@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: kenwood.h,v 1.20 2002-03-05 20:23:44 fillods Exp $
+ *		$Id: kenwood.h,v 1.21 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -22,6 +22,9 @@
 
 #ifndef _KENWOOD_H
 #define _KENWOOD_H 1
+
+#define EOM_KEN ";"
+#define EOM_TH "\r"
 
 struct kenwood_priv_caps {
     /* read-only values */
@@ -43,7 +46,7 @@ extern int kenwood_cleanup(RIG *rig);
 extern const int kenwood38_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
-				int *data_len);
+				size_t *data_len);
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH handheld primitives
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: th.c,v 1.6 2002-03-10 23:41:39 fillods Exp $
+ *		$Id: th.c,v 1.7 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,7 @@
 #include <serial.h>
 
 const struct kenwood_priv_caps  th_priv_caps  = {
-    cmdtrm: "\r",
+    cmdtrm: EOM_TH,
 };
 /* Note: Currently the code assumes the command termination is a
  * single character.
@@ -50,7 +50,7 @@ const struct kenwood_priv_caps  th_priv_caps  = {
 #ifdef TH_ADD_CMDTRM
 #define EOM
 #else
-#define EOM "\r"
+#define EOM EOM_TH
 #endif
 
 /*
@@ -65,6 +65,7 @@ const struct kenwood_priv_caps  th_priv_caps  = {
 
 #define ACKBUF_LEN  64
 
+#if 0
 /**
  * th_transaction
  * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
@@ -170,6 +171,16 @@ transaction_quit:
     rs->hold_decode = 0;
     return retval;
 }
+
+#else
+
+int th_transaction (RIG *rig, const char *cmdstr, char *data, size_t datasize)
+{
+		size_t ds = datasize;
+		return kenwood_transaction(rig, cmdstr, strlen(cmdstr), 
+						                data, &ds);
+}
+#endif
 
 /*
  * th_decode_event is called by sa_sigio, when some asynchronous
@@ -793,6 +804,128 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	}
     tone_idx -= (tone_idx == 1) ? 1 : 2; /* Correct for TH-7DA index anomaly */
 	*tone = caps->ctcss_list[tone_idx];
+	return RIG_OK;
+}
+
+const char *
+th_get_info(RIG *rig)		/* I hope this is the correct function for this command. */
+{
+	static unsigned char firmbuf[16];
+	int retval, firm_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+
+	memset(firmbuf, 0, sizeof(firmbuf));
+	retval = kenwood_transaction (rig, "ID" EOM, 3, firmbuf, &firm_len);
+	if (retval != RIG_OK)
+		return NULL;
+#if 1
+	if (firm_len != 6) {
+		rig_debug(RIG_DEBUG_ERR,__FUNCTION__": wrong answer len=%d\n",
+											firm_len);
+        return NULL;
+    }
+#endif
+	if (firmbuf[0] != 'I' || firmbuf[1] != 'D') {
+       rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+                               "'%s', len=%d\n", firmbuf, firm_len);
+	   return NULL;
+	}
+
+	return &firmbuf[2];
+}
+
+/*
+ * th_set_mem
+ * Assumes rig!=NULL
+ */
+int
+th_set_mem(RIG *rig, vfo_t vfo, int ch)
+{
+	unsigned char vsel, membuf[16], ackbuf[16];
+	int retval, mem_len, ack_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	memset(ackbuf, 0, sizeof(ackbuf));
+
+	if (ch < 0 || ch > 200) {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": channel num out of range: %d\n", ch);
+		return -RIG_EINVAL;
+	}
+	switch (vfo) {
+	  case RIG_VFO_A: vsel = '0'; break;
+	  case RIG_VFO_B: vsel = '1'; break;
+	  default:
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unsupported VFO %d\n", vfo);
+		return -RIG_EINVAL;
+	}
+
+	mem_len = sprintf(membuf, "MC %c,%i" EOM, vsel, ch);
+	retval = kenwood_transaction(rig, membuf, mem_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": negative acknowledgment\n");
+		return -RIG_ERJCTED;
+	}
+
+	if (ackbuf[0] != 'M' || ackbuf[1] != 'C') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+								"'%s', len=%d\n", ackbuf, ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	return RIG_OK;
+}
+
+int
+th_get_mem(RIG *rig, vfo_t vfo, int *ch)
+{
+	unsigned char *membuf, ackbuf[16];
+	int retval, mem_len, ack_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	memset(ackbuf, 0, sizeof(ackbuf));
+
+	switch (vfo) {
+	  case RIG_VFO_A:
+		membuf = "MC 0" EOM;
+		break;
+	  case RIG_VFO_B:
+		membuf = "MC 1" EOM;
+		break;
+	  case RIG_VFO_CURR:
+		membuf = "MC" EOM;
+		break;
+	  default:
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unsupported VFO %d\n", vfo);
+		return -RIG_EINVAL;
+	}
+
+	mem_len = strlen(membuf);
+	retval = kenwood_transaction(rig, membuf, mem_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": negative acknowledgment\n");
+		return -RIG_ERJCTED;
+	}
+
+	if (ackbuf[0] != 'M' || ackbuf[1] != 'C') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+								"'%s', len=%d\n", ackbuf, ack_len);
+		return -RIG_ERJCTED;
+	}
+
+    *ch = atoi(&membuf[3]);
+#if 0
+	if (*ch < 0 || *ch > 200) {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": channel num out of range: %d\n", ch);
+		return -RIG_EINVAL;
+	}
+#endif
 	return RIG_OK;
 }
 

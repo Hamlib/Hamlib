@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS870S description
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts870s.c,v 1.21 2002-02-18 18:27:03 pa4tu Exp $
+ *		$Id: ts870s.c,v 1.22 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,6 +37,10 @@
 #define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
+
+static const struct kenwood_priv_caps  ts870s_priv_caps  = {
+		cmdtrm: EOM_KEN,
+};
 
 /*
  * ts870s rig capabilities.
@@ -170,7 +174,7 @@ filters: {
 		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
-priv: NULL,
+priv: (void *)&ts870s_priv_caps,
 
 set_freq: kenwood_set_freq,
 get_freq: kenwood_get_freq,

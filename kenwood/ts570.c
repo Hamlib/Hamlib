@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: ts570.c,v 1.6 2002-02-19 08:32:05 pa4tu Exp $
+ *		$Id: ts570.c,v 1.7 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,6 +40,10 @@
 
 #define TS570_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS570_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+
+static const struct kenwood_priv_caps  ts570_priv_caps  = {
+		cmdtrm: EOM_KEN,
+};
 
 /*
  * ts570 rig capabilities.
@@ -177,7 +181,7 @@ filters: {
 		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
-priv: NULL,
+priv: (void *)&ts570_priv_caps,
 
 set_freq: kenwood_set_freq,
 get_freq: kenwood_get_freq,

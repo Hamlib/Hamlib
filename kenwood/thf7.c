@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH-F7 description
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: thf7.c,v 1.3 2002-01-07 17:43:21 fgretief Exp $
+ *		$Id: thf7.c,v 1.4 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,15 +24,6 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
 #include "kenwood.h"
@@ -53,7 +44,7 @@
 #define THF7_VFO (RIG_VFO_A|RIG_VFO_C)
 
 const struct kenwood_priv_caps  thf7_priv_caps  = {
-    cmdtrm: "\r",   /* Command termination character */
+    cmdtrm: EOM_TH,   /* Command termination character */
 };
 
 /*
@@ -65,7 +56,7 @@ model_name:"TH-F7E",
 mfg_name: "Kenwood",
 version: "0.1",
 copyright: "LGPL",
-status: RIG_STATUS_NEW,
+status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_HANDHELD,
 ptt_type: RIG_PTT_RIG,
 dcd_type: RIG_DCD_RIG,
@@ -152,8 +143,15 @@ get_ctcss_tone: th_get_ctcss_tone,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
 vfo_op: kenwood_vfo_op,
-set_mem: kenwood_set_mem,
-get_mem: kenwood_get_mem,
+set_mem: th_set_mem,
+get_mem: th_get_mem,
+set_trn: th_set_trn,
+get_trn: th_get_trn,
 
+get_func: th_get_func,
+get_level: th_get_level,
+get_info: th_get_info,
+
+decode_event: th_decode_event,
 };
 

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main file
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.33 2002-03-05 20:23:44 fillods Exp $
+ *		$Id: kenwood.c,v 1.34 2002-03-13 23:42:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,10 +39,6 @@
 #include <misc.h>
 
 #include "kenwood.h"
-
-
-#define EOM ';'
-#define EOM_TH '\r'
 
 /*
  * modes in use by the "MD" command
@@ -106,69 +102,120 @@ const int kenwood38_ctcss_list[] = {
 	0,
 };
 
-/*
- * port_transaction
- * called by kenwood_transaction and probe_kenwood
- * We assume that port!=NULL, data!=NULL, data_len!=NULL
- * Otherwise, you'll get a nice seg fault. You've been warned!
- * return value: RIG_OK if everything's fine, negative value otherwise
- * TODO: error case handling, error codes from the rig, ..
- */
-static int port_transaction(port_t *port, const char *cmd, int cmd_len, char *data, int *data_len)
-{
-	int i, retval;
+#define cmd_trm(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)->cmdtrm
 
-	retval = write_block(port, cmd, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
-
-	/*
-	 * buffered read are quite helpful here!
-	 * However, an automate with a state model would be more efficient..
-	 */
-	i = 0;
-	do {
-		retval = fread_block(port, data+i, 1);
-		if (retval == 0)
-				continue;	/* huh!? */
-		if (retval < 0)
-				return retval;
-		i++;
-	} while (data[i-1] != EOM && data[i-1] != EOM_TH);
-
-	*data_len = i;
-
-	return RIG_OK;
-}
-
-/*
+/**
  * kenwood_transaction
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
- * Otherwise, you'll get a nice seg fault. You've been warned!
- * return value: RIG_OK if everything's fine, negative value otherwise
- * TODO: error case handling, error codes from the rig, ..
+ * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
  *
- * Note: right now, kenwood_transaction is a simple call to port_transaction.
- * kenwood_transaction could have been written to accept a port_t instead
- * of RIG, but who knows if we will need some priv stuff in the future?
+ * cmdstr - Command to be sent to the rig. Cmdstr can also be NULL, indicating
+ *          that only a reply is needed (nothing will be send).
+ * data - Buffer for reply string.  Can be NULL, indicating that no reply is
+ *        is needed and will return with RIG_OK after command was sent.
+ * datasize - in: Size of buffer. It is the caller's responsibily to provide
+ *            a large enough buffer for all possible replies for a command.
+ *            out: location where to store number of bytes read.
  *
- * It is possible to tell kenwood_transaction no data are expected back,
- * so it won't return -RIG_ETIMEOUT. To do so, pass *data_len set to 0.
- * Note: kenwood_transaction cannot just sent the cmd and return
- * immediately because the rig can return an error code.
- * FIXME: handle correctly error codes: "?;", "E;", "O;"
+ * returns:
+ *   RIG_OK  -  if no error occured.
+ *   RIG_EIO  -  if an I/O error occured while sending/receiving data.
+ *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
+ *   RIG_REJECTED  -  if a negative acknowledge was received or command not
+ *                    recognized by rig.
  */
-int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+int
+kenwood_transaction (RIG *rig, const char *cmdstr, int cmd_len,
+				char *data, size_t *datasize)
 {
-	int ret, wanted_data_len;
+    struct rig_state *rs;
+    int retval;
+    const char *cmdtrm = EOM_KEN;  /* Default Command/Reply termination char */
+    int retry_read = 0;
+#define MAX_RETRY_READ  32
 
-	wanted_data_len = *data_len;
+    rs = &rig->state;
+    rs->hold_decode = 1;
 
-	ret = port_transaction(&rig->state.rigport, cmd, cmd_len, data, data_len);
-	if (wanted_data_len == 0 && ret == -RIG_ETIMEOUT)
-			ret = RIG_OK;
-	return ret;
+	serial_flush(&rs->rigport);
+
+    cmdtrm = cmd_trm(rig);
+
+    if (cmdstr) {
+        retval = write_block(&rs->rigport, cmdstr, strlen(cmdstr));
+        if (retval != RIG_OK)
+            goto transaction_quit;
+#ifdef TH_ADD_CMDTRM
+        retval = write_block(&rs->rigport, cmdtrm, strlen(cmdtrm));
+        if (retval != RIG_OK)
+            goto transaction_quit;
+#endif
+    }
+
+    if (data == NULL || *datasize <= 0) {
+        rig->state.hold_decode = 0;
+        return RIG_OK;  /* don't want a reply */
+    }
+
+transaction_read:
+    retval = read_string(&rs->rigport, data, *datasize, cmdtrm, strlen(cmdtrm));
+    if (retval < 0)
+        goto transaction_quit;
+	else
+			*datasize = retval;
+
+    /* Check that command termination is correct */
+    if (!strchr(cmdtrm, data[strlen(data)])) {
+        if (retry_read++ < MAX_RETRY_READ)
+            goto transaction_read;
+        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Command is not correctly terminated '%s'\n", data);
+        retval = -RIG_EPROTO;
+        goto transaction_quit;
+    }
+
+    /* Command recognised by rig but invalid data entered. */
+    if (strlen(data) == 2 && data[0] == 'N') {
+        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": NegAck for '%s'\n", cmdstr);
+        retval = -RIG_ERJCTED;
+        goto transaction_quit;
+    }
+
+    /* Command not understood by rig */
+    if (strlen(data) == 2 && data[0] == '?') {
+        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unknown command '%s'\n", cmdstr);
+        retval = -RIG_ERJCTED;
+        goto transaction_quit;
+    }
+
+#define CONFIG_STRIP_CMDTRM 1
+#ifdef CONFIG_STRIP_CMDTRM
+	if (strlen(data) > 0)
+    	data[strlen(data)-1] = '\0';  /* not very elegant, but should work. */
+	else
+    	data[0] = '\0';
+#endif
+    /*
+     * Check that received the correct reply. The first two characters
+     * should be the same as command.
+     */
+    if (cmdstr && (data[0] != cmdstr[0] || data[1] != cmdstr[1])) {
+         /*
+          * TODO: When RIG_TRN is enabled, we can pass the string
+          *       to the decoder for callback. That way we don't ignore
+          *       any commands.
+          */
+        if (retry_read++ < MAX_RETRY_READ)
+            goto transaction_read;
+        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": Unexpected reply '%s'\n", data);
+        retval =  -RIG_EPROTO;
+        goto transaction_quit;
+    }
+
+    retval = RIG_OK;
+transaction_quit:
+    rs->hold_decode = 0;
+    return retval;
 }
+
 
 /*
  * kenwood_set_vfo
@@ -177,7 +224,7 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int 
 int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 {
 		unsigned char cmdbuf[16], ackbuf[16];
-		int ack_len = 0, retval;
+		int cmd_len, ack_len = 0, retval;
 		char vfo_function;
 
 			/*
@@ -195,13 +242,11 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 								vfo);
 			return -RIG_EINVAL;
 		}
-		cmdbuf[0] = 'F';
-		cmdbuf[1] = 'R';
-		cmdbuf[2] = vfo_function;
-		cmdbuf[3] = EOM;
+
+		cmd_len = sprintf(cmdbuf, "FR%c%s", vfo_function, cmd_trm(rig));
 
 		/* set RX VFO */
-		retval = kenwood_transaction (rig, cmdbuf, 4, ackbuf, &ack_len);
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -290,7 +335,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		unsigned char freqbuf[50];
 		unsigned char cmdbuf[4];
-		int freq_len, retval;
+		int cmd_len, freq_len, retval;
 		char vfo_letter;
 
 			/*
@@ -311,11 +356,10 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 								vfo);
 			return -RIG_EINVAL;
 		}
-		cmdbuf[0] = 'F';
-		cmdbuf[1] = vfo_letter;
-		cmdbuf[2] = EOM;
 
-		retval = kenwood_transaction (rig, cmdbuf, 3, freqbuf, &freq_len);
+		cmd_len = sprintf(cmdbuf, "F%c%s", vfo_letter, cmd_trm(rig));
+
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, freqbuf, &freq_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1089,13 +1133,14 @@ const char* kenwood_get_info(RIG *rig)
 	}
 }
 
+#define IDBUFSZ 16
 
 /*
  * probe_kenwood
  */
 rig_model_t probe_kenwood(port_t *port)
 {
-	unsigned char idbuf[16];
+	unsigned char idbuf[IDBUFSZ];
 	int id_len, i, k_id;
 	int retval;
 
@@ -1110,7 +1155,8 @@ rig_model_t probe_kenwood(port_t *port)
 	if (retval != RIG_OK)
 			return RIG_MODEL_NONE;
 
-	retval = port_transaction(port, "ID;", 3, idbuf, &id_len);
+	retval = write_block(port, "ID;", 3);
+    id_len = read_string(port, idbuf, IDBUFSZ, EOM_KEN EOM_TH, 2);
 
 	close(port->fd);
 
@@ -1170,7 +1216,6 @@ int kenwood_init(RIG *rig)
 {
     const struct rig_caps *caps;
     const struct kenwood_priv_caps *priv_caps;
-    struct kenwood_priv_data *priv;
     rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
 
     if (!rig || !rig->caps)
