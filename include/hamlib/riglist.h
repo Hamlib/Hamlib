@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.16 2001-07-14 16:46:43 f4cfe Exp $
+ *		$Id: riglist.h,v 1.17 2001-08-08 06:06:35 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -164,6 +164,7 @@
 #define RIG_MODEL_AR2700 RIG_MAKE_MODEL(RIG_AOR, 8)
 #define RIG_MODEL_AR2500 RIG_MAKE_MODEL(RIG_AOR, 9)
 #define RIG_MODEL_AR16 RIG_MAKE_MODEL(RIG_AOR, 10)
+#define RIG_MODEL_SDU5500 RIG_MAKE_MODEL(RIG_AOR, 11)
 
 	/*
 	 * JRC
@@ -225,6 +226,7 @@
 #define RIG_BACKEND_RACAL "racal"
 #define RIG_MODEL_RA3790 RIG_MAKE_MODEL(RIG_RACAL, 1)
 #define RIG_MODEL_RA3720 RIG_MAKE_MODEL(RIG_RACAL, 2)
+#define RIG_MODEL_RA6790 RIG_MAKE_MODEL(RIG_RACAL, 3)
 
 	/*
 	 * Watkins-Johnson
@@ -256,7 +258,7 @@
 #define RIG_MODEL_TRP9000 RIG_MAKE_MODEL(RIG_SKANTI, 3)
 
 	/*
-	 * WiNRADiO/LinRADiO, by Rosetta?
+	 * WiNRADiO/LinRADiO, by Rosetta Labs
 	 */
 #define RIG_WINRADIO 15
 #define RIG_BACKEND_WINRADIO "winradio"
@@ -278,15 +280,26 @@
 #define RIG_MODEL_RX320 RIG_MAKE_MODEL(RIG_TENTEC, 3)
 #define RIG_MODEL_RX340 RIG_MAKE_MODEL(RIG_TENTEC, 4)
 
+	/*
+	 * Alinco
+	 */
 #define RIG_ALINCO 17
 #define RIG_BACKEND_ALINCO "alinco"
-#define RIG_MODEL_DX77 RIG_MAKE_MODEL(RIG_ALINCO, 1)		/* Alinco */
+#define RIG_MODEL_DX77 RIG_MAKE_MODEL(RIG_ALINCO, 1)
+
+	/*
+	 * Kachina
+	 */
+#define RIG_KACHINA 18
+#define RIG_BACKEND_KACHINA "kachina"
+#define RIG_MODEL_505DSP RIG_MAKE_MODEL(RIG_KACHINA, 1)
 
 	/*
 	 * TODO:
 		RIG_MODEL_KWZ30,	KNEISNER +DOERING
 		RIG_MODEL_E1800,	DASA-Telefunken
 		RIG_EKD500,	RFT
+		RIG_W41PC (ISA card) Wavecom
 	*/
 
 typedef int rig_model_t;
