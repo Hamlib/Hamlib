@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: ic756.c,v 1.1 2001-09-18 00:37:39 f4cfe Exp $
+ *		$Id: ic756.c,v 1.2 2002-01-27 14:47:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@
 static const struct icom_priv_caps ic756_priv_caps = { 
 		0x50,	/* default address */
 		0,		/* 731 mode */
-		ic756_ts_sc_list,
+		ic756pro_ts_sc_list,
 		IC756PRO_STR_CAL	/* FIXME */
 };
 
