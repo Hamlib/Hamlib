@@ -45,7 +45,7 @@ rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	mkdir -p html
 	( cd html && cat ../rigmatrix_head.html && ../rigmatrix ) > html/rigmatrix.html
-	for f in `./listrigs | tail +2 | cut -f1` ; do ./dumpcaps $$f > html/model$$f.txt ; done
+	for f in `./listrigs | tail +2 | cut -f1` ; do ( ./dumpcaps $$f > html/model$$f.txt || exit 0 ) ; done
 
 EXTRA_DIST = rigmatrix_head.html $(man_MANS)
 
