@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.7 2002-11-16 04:12:01 n0nb Exp $
+ * $Id: ft920.c,v 1.8 2002-11-21 23:06:37 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -921,7 +921,7 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
       *vfo = RIG_VFO_A;
       priv->current_vfo = RIG_VFO_A;
       return RIG_OK;
-    case NULL:
+    case 0:
       *vfo = RIG_VFO_A;
       priv->current_vfo = RIG_VFO_A;
       return RIG_OK;
