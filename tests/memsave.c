@@ -2,7 +2,7 @@
  * memsave.c - Copyright (C) 2003-2004 Thierry Leconte
  *
  *
- *	$Id: memsave.c,v 1.5 2004-05-17 21:09:45 fillods Exp $  
+ *	$Id: memsave.c,v 1.6 2004-12-22 16:03:19 f4dwv Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -178,7 +178,7 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 				xmlNewProp(node, "rptr_shift", "-");
 				break;
 		}
-		if (rig->state.chan_list[i].mem_caps.rptr_offs) {
+		if (rig->state.chan_list[i].mem_caps.rptr_offs && (int)chan.rptr_offs!=0) {
 			sprintf(attrbuf,"%d",(int)chan.rptr_offs);
 			xmlNewProp(node, "rptr_offs", attrbuf);
 		}
