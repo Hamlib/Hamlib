@@ -69,23 +69,65 @@ int main ()
 
 
 	/*
-	 * Lets try some frequencies
+	 * Lets try some frequencies and modes. Return code is not checked.
+	 * Examples of checking return code are further down.
+	 *
 	 */
 	
+	/* 10m FM Narrow */
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 28350125); /* 10m */
-	sleep(2);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_FM, RIG_PASSBAND_NARROW);
+	sleep(3);		/* so you can see it -- FS */
+
+	/* 15m USB */
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 21235175); /* 15m  */
-	sleep(2);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_USB, RIG_PASSBAND_NORMAL);
+	sleep(3);
+
+	/* AM Broadcast band */
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 770000); /* KAAM */
-	sleep(2);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM, RIG_PASSBAND_NORMAL);
+	sleep(3);
+
+	/* 40m LSB */
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 7250100); /* 40m  */
-	sleep(2);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
+	sleep(3);
+
+	/* 80m AM NArrow */
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 3980000); /* 80m  */
-	sleep(2);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM, RIG_PASSBAND_NARROW);
+	sleep(3);
+
+	/* 160m CW Normal */
+
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 1875000); /* 160m  */
-	sleep(2);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_CW, RIG_PASSBAND_NORMAL);
+	sleep(3);
+
+	/* 160m CW Narrow -- The band is noisy tonight -- FS*/
+
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_CW, RIG_PASSBAND_NARROW);
+	sleep(3);
+
+	/* 20m USB on VFO_A */
+
+	retcode = rig_set_vfo(my_rig, RIG_VFO_A);
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 14250375); /* cq de vk3fcs */
-	sleep(2);
+	sleep(3);
+
+	/* 20m USB on VFO_A , with only 1 call */
+
+	retcode = rig_set_freq(my_rig, RIG_VFO_A, 14295125); /* cq de vk3fcs */
+	sleep(3);
+
+
+
 #if 0
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 145100000); /* 2m  */
 	sleep(2);
