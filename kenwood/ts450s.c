@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.10 2002-09-13 19:00:36 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.11 2002-12-16 15:36:48 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,18 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 
+/*
+ * modes in use by the "MD" command
+ */
+#define MD_NONE	'0'
+#define MD_LSB	'1'
+#define MD_USB	'2'
+#define MD_CW	'3'
+#define MD_FM	'4'
+#define MD_AM	'5'
+#define MD_FSK	'6'
+#define MD_CWR	'7'
+#define MD_FSKR	'9'
 
 #define TS450S_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS450S_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
@@ -43,18 +55,105 @@ static const struct kenwood_priv_caps  ts450_priv_caps  = {
 };
 
 /*
+ * Function definitions
+ */
+static int ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+  unsigned char infobuf[50];
+  int info_len, retval;
+
+  retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+  if (retval != RIG_OK)
+  return retval;
+
+  if (info_len != 38 || infobuf[1] != 'F') {
+    rig_debug(RIG_DEBUG_ERR,"ts450s_get_mode: wrong answer len=%d\n",
+      info_len);
+    return -RIG_ERJCTED;
+  }
+
+  *width = RIG_PASSBAND_NORMAL;	/* FIXME */
+
+  switch (infobuf[29]) {
+    case MD_CW:		*mode = RIG_MODE_CW; break;
+    case MD_USB:	*mode = RIG_MODE_USB; break;
+    case MD_LSB:	*mode = RIG_MODE_LSB; break;
+    case MD_FM:		*mode = RIG_MODE_FM; break;
+    case MD_AM:		*mode = RIG_MODE_AM; break;
+    case MD_FSK:        *mode = RIG_MODE_RTTY; break;
+    case MD_CWR:	*mode = RIG_MODE_CWR; break;
+    case MD_FSKR:	*mode = RIG_MODE_RTTY; break;
+    case MD_NONE:	*mode = RIG_MODE_NONE; break;
+    default:
+      rig_debug(RIG_DEBUG_ERR,"ts450s_get_mode: "
+	"unsupported mode '%c'\n", infobuf[29]);
+    return -RIG_EINVAL;
+  }
+  return RIG_OK;
+}
+
+static int ts450s_get_vfo(RIG *rig, vfo_t *vfo)
+{
+  unsigned char infobuf[50];
+  int info_len, retval;
+
+  retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+  if (retval != RIG_OK)
+  return retval;
+
+  if (info_len != 38 || infobuf[1] != 'F') {
+    rig_debug(RIG_DEBUG_ERR,"ts450s_get_mode: wrong answer len=%d\n",
+      info_len);
+    return -RIG_ERJCTED;
+  }
+
+  switch (infobuf[30]) {
+    case '0': *vfo = RIG_VFO_A; break;
+    case '1': *vfo = RIG_VFO_B; break;
+    case '2': *vfo = RIG_VFO_MEM; break;
+    default: 
+      rig_debug(RIG_DEBUG_ERR,"ts450s_get_vfo: unsupported VFO %c\n", 
+        infobuf[30]);
+      return -RIG_EPROTO;
+  }
+  return RIG_OK;
+}
+
+static int ts450s_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+  unsigned char infobuf[50];
+  int info_len, retval;
+
+  retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+  if (retval != RIG_OK)
+  return retval;
+
+  if (info_len != 38 || infobuf[1] != 'F') {
+    rig_debug(RIG_DEBUG_ERR,"ts450s_get_freq: wrong answer len=%d\n",
+      info_len);
+    return -RIG_ERJCTED;
+  }
+
+  infobuf[14] = '\0';
+  sscanf(infobuf+2, "%lld", freq);
+
+  return RIG_OK;
+
+}
+
+/*
  * ts450s rig capabilities.
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  * RIT: Variable Range ±9.99 kHz
  *
- * part of infos comes from .http = //www.qsl.net/sm7vhs/radio/kenwood/ts450/specs.htm
+ * infos comes from http://www.cnham.com/ts450/ts_450_ex_control.pdf
  */
 const struct rig_caps ts450s_caps = {
 .rig_model =  RIG_MODEL_TS450S,
 .model_name = "TS-450S",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -149,15 +248,15 @@ const struct rig_caps ts450s_caps = {
 .priv =  (void *)&ts450_priv_caps,
 
 .set_freq =  kenwood_set_freq,
-.get_freq =  kenwood_get_freq,
+.get_freq =  ts450s_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
+.get_mode =  ts450s_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo,
+.get_vfo =  ts450s_get_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,
@@ -177,8 +276,3 @@ const struct rig_caps ts450s_caps = {
 .reset =  kenwood_reset,
 
 };
-
-/*
- * Function definitions below
- */
-
