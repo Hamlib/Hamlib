@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: ts870s.c,v 1.18 2002-01-03 21:45:03 fillods Exp $
+ *		$Id: ts870s.c,v 1.19 2002-01-08 07:28:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,9 +32,9 @@
 #define TS870S_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS870S_AM_TX_MODES RIG_MODE_AM
 
-#define TS870S_FUNC_ALL (RIG_FUNC_TSQL)
+#define TS870S_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_ANF|RIG_FUNC_LOCK)
 
-#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
+#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
 
