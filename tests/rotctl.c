@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rotctl.c,v 1.4 2002-09-06 10:43:59 fillods Exp $  
+ * $Id: rotctl.c,v 1.5 2002-09-24 21:45:37 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -172,7 +172,7 @@ int main (int argc, char *argv[])
 
 	int interactive=1;	/* if no cmd on command line, switch to interactive */
 	int retcode;		/* generic return code from functions */
-	char cmd;
+	unsigned char cmd;
 	struct test_table *cmd_entry;
 
 	int verbose = 0;
@@ -305,7 +305,7 @@ int main (int argc, char *argv[])
 
 					/* command by name */
 					if (cmd == '\\') {
-						char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
+						unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
 						int c_len = MAXNAMSIZ;
 					
 						scanf("%c", pcmd);
