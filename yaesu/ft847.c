@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.3 2001-01-06 06:49:40 javabear Exp $  
+ * $Id: ft847.c,v 1.4 2001-01-07 23:02:09 javabear Exp $  
  *
  *
  *
@@ -28,8 +28,8 @@
 
 
 /*
- * TODO - Remove static stuff, see ft747 for new style.
- *      - create yaesu.h for common command structure etc..
+ * TODO - Remove static stuff, see ft747 for new style [started]
+ *      - create yaesu.h for common command structure etc..[started]
  *      - add mode set before freq set to avoid prior mode offset (eg: CW)
  *
  */
@@ -432,7 +432,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
-  memcpy(&p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);  
+  memcpy(p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);  
 
   to_bcd_be(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
