@@ -4,7 +4,7 @@
 RPCRIG_SVC = rpcrig_xdr.c rpcrig_svc.c rpcrig_proc.c rpcrigd.c
 RPCRIG_CLNT = rpcrig_xdr.c rpcrig_clnt.c rpcrig_backend.c
 
-LDADD = ../src/libhamlib.la
+LDADD = ../src/libhamlib.la  @NET_LIBS@
 DEPENDENCIES = ../src/libhamlib.la 
 
 # The RPC server
@@ -18,7 +18,7 @@ man_MANS = rpc.rigd.8
 lib_LTLIBRARIES = libhamlib-rpcrig.la
 libhamlib_rpcrig_la_SOURCES = $(RPCRIG_CLNT)
 libhamlib_rpcrig_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
-libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la # -lnsl
+libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
 
 
 noinst_HEADERS = rpcrig.h rpcrig_backend.h
