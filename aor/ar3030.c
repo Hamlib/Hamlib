@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.5 2004-08-08 19:42:59 fillods Exp $
+ *	$Id: ar3030.c,v 1.6 2004-09-07 20:37:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -213,7 +213,7 @@ const struct rig_caps ar3030_caps = {
  * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling
  */
-int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int ar3030_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int retval;
 	struct rig_state *rs;

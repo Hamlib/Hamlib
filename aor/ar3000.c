@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar3000.c,v 1.4 2004-06-14 21:09:48 fillods Exp $
+ *	$Id: ar3000.c,v 1.5 2004-09-07 20:37:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -188,7 +188,7 @@ const struct rig_caps ar3000a_caps = {
  * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling
  */
-int ar3k_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int ar3k_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int retval;
 	struct rig_state *rs;
