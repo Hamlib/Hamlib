@@ -63,6 +63,7 @@ AWK = @AWK@
 BACKENDEPS = @BACKENDEPS@
 BACKENDLNK = @BACKENDLNK@
 BACKEND_LIST = @BACKEND_LIST@
+BINDING_LIST = @BINDING_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -73,15 +74,15 @@ EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-LTHAMLIBTCL = @LTHAMLIBTCL@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
+MATH_LIBS = @MATH_LIBS@
 NET = @NET@
+NET_LIBS = @NET_LIBS@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -91,6 +92,10 @@ ROT_BACKENDEPS = @ROT_BACKENDEPS@
 ROT_BACKENDLNK = @ROT_BACKENDLNK@
 ROT_BACKEND_LIST = @ROT_BACKEND_LIST@
 STRIP = @STRIP@
+TCL_BIN_DIR = @TCL_BIN_DIR@
+TCL_LIB_FILE = @TCL_LIB_FILE@
+TCL_LIB_SPEC = @TCL_LIB_SPEC@
+TCL_SRC_DIR = @TCL_SRC_DIR@
 VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
@@ -100,7 +105,7 @@ install_sh = @install_sh@
 bin_PROGRAMS = rigctl rotctl
 man_MANS = rigctl.1 rotctl.1
 
-noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp testloc @RIGMATRIX@
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testloc @RIGMATRIX@
 
 EXTRA_PROGRAMS = rigmatrix
 
@@ -124,8 +129,6 @@ testloc_LDFLAGS = -dlpreopen self
 
 # rigmatrix needs also libgd
 rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
-testcpp_LDADD = ../c++/libhamlib++.la
-testcpp_LDFLAGS = @BACKENDLNK@
 
 dumpcaps_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 dumpmem_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
@@ -136,9 +139,6 @@ listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rotctl_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
-
-testcpp_SOURCES = testcpp.cc
 
 EXTRA_DIST = rigmatrix_head.html $(man_MANS)
 subdir = tests
@@ -149,8 +149,8 @@ EXTRA_PROGRAMS = rigmatrix$(EXEEXT)
 bin_PROGRAMS = rigctl$(EXEEXT) rotctl$(EXEEXT)
 noinst_PROGRAMS = dumpcaps$(EXEEXT) dumpmem$(EXEEXT) testcaps$(EXEEXT) \
 	testrig$(EXEEXT) testtrn$(EXEEXT) testbcd$(EXEEXT) \
-	testfreq$(EXEEXT) listrigs$(EXEEXT) testcpp$(EXEEXT) \
-	testloc$(EXEEXT) @RIGMATRIX@
+	testfreq$(EXEEXT) listrigs$(EXEEXT) testloc$(EXEEXT) \
+	@RIGMATRIX@
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 
 dumpcaps_SOURCES = dumpcaps.c
@@ -178,8 +178,6 @@ testbcd_DEPENDENCIES = ../src/libhamlib.la
 testcaps_SOURCES = testcaps.c
 testcaps_OBJECTS = testcaps.$(OBJEXT)
 testcaps_LDADD = $(LDADD)
-am_testcpp_OBJECTS = testcpp.$(OBJEXT)
-testcpp_OBJECTS = $(am_testcpp_OBJECTS)
 testfreq_SOURCES = testfreq.c
 testfreq_OBJECTS = testfreq.$(OBJEXT)
 testfreq_LDADD = $(LDADD)
@@ -205,9 +203,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/listrigs.Po $(DEPDIR)/rigctl.Po \
 @AMDEP_TRUE@	$(DEPDIR)/rigmatrix.Po $(DEPDIR)/rotctl.Po \
 @AMDEP_TRUE@	$(DEPDIR)/testbcd.Po $(DEPDIR)/testcaps.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testcpp.Po $(DEPDIR)/testfreq.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testloc.Po $(DEPDIR)/testrig.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testtrn.Po
+@AMDEP_TRUE@	$(DEPDIR)/testfreq.Po $(DEPDIR)/testloc.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testrig.Po $(DEPDIR)/testtrn.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -216,28 +213,19 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-CXXFLAGS = @CXXFLAGS@
 DIST_SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c \
-	rotctl.c testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c \
-	testloc.c testrig.c testtrn.c
+	rotctl.c testbcd.c testcaps.c testfreq.c testloc.c testrig.c \
+	testtrn.c
 
 NROFF = nroff
 MANS = $(man_MANS)
 DIST_COMMON = README Makefile.am Makefile.in
-SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c rotctl.c testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c testloc.c testrig.c testtrn.c
+SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c rotctl.c testbcd.c testcaps.c testfreq.c testloc.c testrig.c testtrn.c
 
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .cc .lo .o .obj
+.SUFFIXES: .c .lo .o .obj
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -305,9 +293,6 @@ testbcd$(EXEEXT): $(testbcd_OBJECTS) $(testbcd_DEPENDENCIES)
 testcaps$(EXEEXT): $(testcaps_OBJECTS) $(testcaps_DEPENDENCIES) 
 	@rm -f testcaps$(EXEEXT)
 	$(LINK) $(testcaps_LDFLAGS) $(testcaps_OBJECTS) $(testcaps_LDADD) $(LIBS)
-testcpp$(EXEEXT): $(testcpp_OBJECTS) $(testcpp_DEPENDENCIES) 
-	@rm -f testcpp$(EXEEXT)
-	$(CXXLINK) $(testcpp_LDFLAGS) $(testcpp_OBJECTS) $(testcpp_LDADD) $(LIBS)
 testfreq$(EXEEXT): $(testfreq_OBJECTS) $(testfreq_DEPENDENCIES) 
 	@rm -f testfreq$(EXEEXT)
 	$(LINK) $(testfreq_LDFLAGS) $(testfreq_OBJECTS) $(testfreq_LDADD) $(LIBS)
@@ -335,7 +320,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rotctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testbcd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcaps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcpp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testfreq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testrig.Po@am__quote@
@@ -362,25 +346,6 @@ distclean-depend:
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LTCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
 CCDEPMODE = @CCDEPMODE@
-
-.cc.o:
-@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
-
-.cc.obj:
-@AMDEP_TRUE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(CXXCOMPILE) -c -o $@ `cygpath -w $<`
-
-.cc.lo:
-@AMDEP_TRUE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-	$(LTCXXCOMPILE) -c -o $@ `test -f $< || echo '$(srcdir)/'`$<
-CXXDEPMODE = @CXXDEPMODE@
 uninstall-info-am:
 
 man1dir = $(mandir)/man1

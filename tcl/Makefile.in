@@ -73,15 +73,15 @@ ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-LTHAMLIBTCL = @LTHAMLIBTCL@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
+MATH_LIBS = @MATH_LIBS@
 NET = @NET@
+NET_LIBS = @NET_LIBS@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -91,17 +91,23 @@ ROT_BACKENDEPS = @ROT_BACKENDEPS@
 ROT_BACKENDLNK = @ROT_BACKENDLNK@
 ROT_BACKEND_LIST = @ROT_BACKEND_LIST@
 STRIP = @STRIP@
+TCL_BIN_DIR = @TCL_BIN_DIR@
+TCL_LIB_FILE = @TCL_LIB_FILE@
+TCL_LIB_SPEC = @TCL_LIB_SPEC@
+TCL_SRC_DIR = @TCL_SRC_DIR@
 VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-INCLUDES = @INCLUDES@ -I/usr/include/tcl8.2
+INCLUDES = @INCLUDES@ -I@TCL_SRC_DIR@/generic
 
 lib_LTLIBRARIES = libhamlibtcl.la
 libhamlibtcl_la_SOURCES = hamlibtcl.c tclrig.c tclrot.c
-libhamlibtcl_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
+libhamlibtcl_la_LDFLAGS = -no-undefined -module -version-info 0:0:0 \
+							@TCL_LIB_SPEC@
+
 libhamlibtcl_la_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = tclrig.h tclrot.h
