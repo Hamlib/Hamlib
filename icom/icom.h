@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.2 2000-09-19 07:06:48 f4cfe Exp $  
+ *    $Id: icom.h,v 1.3 2000-10-01 12:37:50 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,11 +37,8 @@ struct icom_priv_data {
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);
 int icom_set_freq(RIG *rig, freq_t freq);
+int icom_get_freq(RIG *rig, freq_t *freq);
 
-/* helper functions */
-int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *data, int data_len);
-int make_cmd_frame_freq(char frame[], char re_id, char cmd, int subcmd, freq_t freq, int ic731_mode);
-int make_cmd_frame_chan(char frame[], char re_id,char cmd,int subcmd,int chan);
 
 #endif /* _ICOM_H */
 
