@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.14 2001-07-01 11:46:17 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.15 2001-08-08 06:08:33 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -69,7 +69,7 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 	}
 	printf("</TD><TD>");
 
-	switch (caps->rig_type) {
+	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
 			printf("Transceiver");
 			break;

@@ -3,7 +3,7 @@
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.9 2001-06-04 21:17:53 f4cfe Exp $  
+ *    $Id: listrigs.c,v 1.10 2001-08-08 06:08:33 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 	default:
 			printf("Unknown\t");
 	}
-	switch (caps->rig_type) {
+	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
 			printf("Transceiver\n");
 			break;

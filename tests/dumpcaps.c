@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.27 2001-07-01 11:46:17 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.28 2001-08-08 06:08:33 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -106,7 +106,7 @@ int main (int argc, char *argv[])
 			backend_warnings++;
 	}
 	printf("Rig type:\t");
-	switch (caps->rig_type) {
+	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
 			printf("Transceiver\n");
 			break;
