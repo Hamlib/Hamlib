@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTD "8" "3 January 2002" "Hamlib"
+.TH ROTD "8" "12 September 2002" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -21,7 +21,7 @@ rotd \- Hamlib rotator service daemon
 .B rpc.rotd
 [\fIOPTION\fR]...
 .SH DESCRIPTION
-The \fBrotd\fP program is a Hamlib rig daemon that handles RPC client requests.
+The \fBrotd\fP program is a Hamlib rotator daemon that handles RPC client requests.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
@@ -38,14 +38,17 @@ A summary of options is included below.
 .B \-m, \-\-model=id
 Select rotator model number. See model list.
 .TP
-.B \-r, --rig-file=device
+.B \-r, --rot-file=device
 Use \fBdevice\fP as the file name of the rotator to operate on.
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
+Set serial speed to \fBbaud\fP rate. Uses maximal rotator speed as default.
 .TP
 .B \-C, \-\-set\-conf=parm=val[,parm=val]*
 Set config parameter.
+.TP
+.B \-t, --prog=number
+Use \fBnumber\fP as the RPC program number. The default is 536873369.
 .TP
 .B \-v, \-\-verbose
 Set verbose mode, cumulative.

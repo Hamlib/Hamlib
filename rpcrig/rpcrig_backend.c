@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.9 2002-08-23 20:01:09 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.10 2002-09-13 06:58:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,19 +33,34 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 #include <math.h>
+#include <limits.h>
 
 #include <hamlib/rig.h>
 #include <serial.h>
 #include <misc.h>
+#include <token.h>
+#include <netdb.h>
 
 #include <rpc/rpc.h>
 #include "rpcrig.h"
 
 #include "rpcrig_backend.h"
 
+#define RIGPROTO "udp"
+
+/*
+ * Borrowed from stringify.h
+ * Indirect stringification.  Doing two levels allows the parameter to be a
+ * macro itself.  For example, compile with -DFOO=bar, __stringify(FOO)
+ * converts to "bar".
+ */
+
+#define r_stringify_1(x)	#x
+#define r_stringify(x)		r_stringify_1(x)
 
 struct rpcrig_priv_data {
 		CLIENT *cl;
+		unsigned long prognum;
 };
 
 #define SETBODY1(f, rpc_type, rig_arg)	\
@@ -118,8 +133,26 @@ struct rpcrig_priv_data {
 	return res->rigstatus;
 
 
+static unsigned long extract_prognum(const char val[])
+{
+	if (val[0] == '+') {
+		return RIGPROG + atol(val+1);
+	} else
+		if (val[0] < '0' || val[0] > '9') {
+			struct rpcent *ent;
+			ent = getrpcbyname (val);
+			if (ent)
+				return ent->r_number;
+			else
+				return 0;
+	} else
+		return atol(val);
+}
+
+
 static int rpcrig_init(RIG *rig)
 {
+	struct rpcrig_priv_data *priv;
 	if (!rig || !rig->caps)
 		return -RIG_EINVAL;
 	
@@ -128,8 +161,11 @@ static int rpcrig_init(RIG *rig)
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
 	rig->state.rigport.type.rig = RIG_PORT_RPC;
 	strcpy(rig->state.rigport.pathname, "localhost");
+	priv->prognum = RIGPROG;
 
 	return RIG_OK;
 }
@@ -158,22 +194,35 @@ static int rpcrig_open(RIG *rig)
 	rigstate_res *rs_res;
 	rig_model_t model;
 	const struct rig_caps *caps;
-	char *server;
+	char *server, *s;
 	int i;
 
 	rs = &rig->state;
 	priv = (struct rpcrig_priv_data*)rs->priv;
-	server = rs->rigport.pathname;
+	server = strdup(rs->rigport.pathname);
+	s = strchr(server, ':');
+	if (s) {
+		unsigned long prognum;
+		*s = '\0';
+		prognum = extract_prognum(s+1);
+		if (prognum == 0) {
+			free(server);
+			return -RIG_ECONF;
+		}
+		priv->prognum = prognum;
+	}
 
-	priv->cl = clnt_create(server, RIGPROG, RIGVERS, "udp");
+	priv->cl = clnt_create(server, priv->prognum, RIGVERS, RIGPROTO);
 	if (priv->cl == NULL) {
 		clnt_pcreateerror(server);
+		free(server);
 		return -RIG_ECONF;
 	}
 	mdl_res = getmodel_1(NULL, priv->cl);
 	if (mdl_res == NULL) {
 		clnt_perror(priv->cl, server);
 		clnt_destroy(priv->cl);
+		free(server);
 		priv->cl = NULL;
 		return -RIG_EPROTO;
 	}
@@ -201,9 +250,11 @@ static int rpcrig_open(RIG *rig)
 	if (rs_res == NULL) {
 		clnt_perror(priv->cl, server);
 		clnt_destroy(priv->cl);
+		free(server);
 		priv->cl = NULL;
 		return -RIG_EPROTO;
 	}
+	free(server);
 	rs->has_get_func = rs_res->rigstate_res_u.state.has_get_func;
 	rs->has_set_func = rs_res->rigstate_res_u.state.has_set_func;
 	rs->has_get_level = rs_res->rigstate_res_u.state.has_get_level;
@@ -854,6 +905,66 @@ static int rpcrig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 
 
+#define TOK_PROGNUM TOKEN_BACKEND(1)
+
+static const struct confparams rpcrig_cfg_params[] = {
+	{ TOK_PROGNUM, "prognum", "Program number", "RPC program number",
+			r_stringify(RIGPROG), RIG_CONF_NUMERIC, { .n = { 100000, ULONG_MAX, 1 } }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
+/*
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int rpcrig_set_conf(RIG *rig, token_t token, const char *val)
+{
+	struct rpcrig_priv_data *priv;
+	struct rig_state *rs;
+
+	rs = &rig->state;
+	priv = (struct rpcrig_priv_data*)rs->priv;
+
+	switch(token) {
+	case TOK_PROGNUM:
+		{
+			unsigned long prognum;
+			prognum = extract_prognum(val);
+			if (prognum == 0)
+				return -RIG_EINVAL;
+			priv->prognum = prognum;
+			break;
+		}
+	default:
+		return -RIG_EINVAL;
+	}
+	return RIG_OK;
+}
+
+/*
+ * assumes rig!=NULL,
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *  and val points to a buffer big enough to hold the conf value.
+ */
+int rpcrig_get_conf(RIG *rig, token_t token, char *val)
+{
+	struct rpcrig_priv_data *priv;
+	struct rig_state *rs;
+
+	rs = &rig->state;
+	priv = (struct rpcrig_priv_data*)rs->priv;
+
+	switch(token) {
+	case TOK_PROGNUM:
+		sprintf(val, "%ld", priv->prognum);
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+	return RIG_OK;
+}
+
+
 /*
  * Dummy rig capabilities.
  */
@@ -890,6 +1001,10 @@ struct rig_caps rpcrig_caps = {
   .rig_cleanup =  rpcrig_cleanup,
   .rig_open =     rpcrig_open,
   .rig_close =    rpcrig_close,
+
+  .cfgparams =	rpcrig_cfg_params,
+  .set_conf =	rpcrig_set_conf,
+  .get_conf =	rpcrig_get_conf,
 
   .set_freq =     rpcrig_set_freq,
   .get_freq =     rpcrig_get_freq,
@@ -962,5 +1077,4 @@ int initrigs_rpcrig(void *be_handle)
 
 	return RIG_OK;
 }
-
 

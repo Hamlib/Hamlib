@@ -4,7 +4,7 @@
  * This program let programs control a radio through
  * the mean of RPC services using Hamlib.
  *
- *	$Id: rpcrigd.c,v 1.4 2002-08-23 19:55:53 fillods Exp $  
+ *	$Id: rpcrigd.c,v 1.5 2002-09-13 06:58:55 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <netdb.h>
 
 
 /* TODO: autoconf should check for getopt support, include libs otherwise */
@@ -60,7 +61,7 @@ void rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp);
  * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
-#define SHORT_OPTIONS "m:r:p:P:d:D:c:s:C:vhV"
+#define SHORT_OPTIONS "m:r:p:P:d:D:c:s:C:t:vhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -72,6 +73,7 @@ static struct option long_options[] =
 	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
 	{"set-conf", 1, 0, 'C'},
+	{"prog", 1, 0, 't'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -101,6 +103,22 @@ int set_conf(RIG *my_rig, char *conf_parms)
 }
 
 
+static unsigned long extract_prognum(const char val[])
+{
+	if (val[0] == '+') {
+		return RIGPROG + atol(val+1);
+	} else
+		if (val[0] < '0' || val[0] > '9') {
+			struct rpcent *ent;
+			ent = getrpcbyname (val);
+			if (ent)
+				return ent->r_number;
+			else
+				return 0;
+	} else
+		return atol(val);
+}
+
 
 RIG *the_rpc_rig;
 
@@ -122,6 +140,7 @@ main (int argc, char *argv[])
 	char *civaddr = NULL;	/* NULL means no need to set conf */
 	int serial_rate = 0;
 	char conf_parms[MAXCONFLEN] = "";
+	unsigned long prognum = RIGPROG;
 
 	/* Arguments parsing */
 
@@ -228,6 +247,13 @@ main (int argc, char *argv[])
 							strcat(conf_parms, ",");
 					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
 					break;
+			case 't':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					prognum = extract_prognum(optarg);
+					break;
 			case 'v':
 					verbose++;
 					break;
@@ -294,30 +320,30 @@ main (int argc, char *argv[])
 	/* Setup the RPC service and fire it up */
 
 
-	pmap_unset (RIGPROG, RIGVERS);
+	pmap_unset (prognum, RIGVERS);
 
 	transp = svcudp_create(RPC_ANYSOCK);
 	if (transp == NULL) {
-		fprintf (stderr, "%s", "cannot create udp service.");
+		fprintf (stderr, "cannot create udp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, RIGPROG, RIGVERS, rigprog_1, IPPROTO_UDP)) {
-		fprintf (stderr, "%s", "unable to register (RIGPROG, RIGVERS, udp).");
+	if (!svc_register(transp, prognum, RIGVERS, rigprog_1, IPPROTO_UDP)) {
+		fprintf (stderr, "unable to register (%lu, %u, udp).", prognum, RIGVERS);
 		exit(1);
 	}
 
 	transp = svctcp_create(RPC_ANYSOCK, 0, 0);
 	if (transp == NULL) {
-		fprintf (stderr, "%s", "cannot create tcp service.");
+		fprintf (stderr, "cannot create tcp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, RIGPROG, RIGVERS, rigprog_1, IPPROTO_TCP)) {
-		fprintf (stderr, "%s", "unable to register (RIGPROG, RIGVERS, tcp).");
+	if (!svc_register(transp, prognum, RIGVERS, rigprog_1, IPPROTO_TCP)) {
+		fprintf (stderr, "unable to register (%lu, %u, tcp).", prognum, RIGVERS);
 		exit(1);
 	}
 
 	svc_run ();
-	fprintf (stderr, "%s", "svc_run returned");
+	fprintf (stderr, "svc_run returned");
 
 	/* the rig gets automatically closed in rigd_exit() */
 
@@ -349,6 +375,7 @@ void usage()
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address (for Icom rigs only)\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
+	"  -t, --prog=NUMBER          set RPC program number\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n"

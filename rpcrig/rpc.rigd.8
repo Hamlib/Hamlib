@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGD "8" "August 23, 2002" "Hamlib"
+.TH RIGD "8" "September 12, 2002" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -65,6 +65,9 @@ Use \fBid\fP as the CI-V address to communicate with the rig. Only for Icom rigs
 .TP
 .B \-C, \-\-set\-conf=parm=val[,parm=val]*
 Set config parameter.
+.TP
+.B \-t, --prog=number
+Use \fBnumber\fP as the RPC program number. The default is 536871065.
 .TP
 .B \-v, \-\-verbose
 Set verbose mode, cumulative.

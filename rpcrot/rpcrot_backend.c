@@ -3,7 +3,7 @@
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *	$Id: rpcrot_backend.c,v 1.3 2002-08-16 17:43:02 fillods Exp $
+ *	$Id: rpcrot_backend.c,v 1.4 2002-09-13 06:59:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,10 +34,13 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 #include <math.h>
+#include <netdb.h>
+#include <limits.h>
 
 #include <hamlib/rotator.h>
 #include <serial.h>
 #include <misc.h>
+#include <token.h>
 
 #include <rpc/rpc.h>
 #include "rpcrot.h"
@@ -45,12 +48,45 @@
 
 struct rpcrot_priv_data {
 		CLIENT *cl;
+		unsigned long prognum;
 };
+
+#define ROTPROTO "udp"
+
+/*
+ * Borrowed from stringify.h
+ * Indirect stringification.  Doing two levels allows the parameter to be a
+ * macro itself.  For example, compile with -DFOO=bar, __stringify(FOO)
+ * converts to "bar".
+ */
+
+#define r_stringify_1(x)	#x
+#define r_stringify(x)		r_stringify_1(x)
+
 
 /* ************************************************************************* */
 
+static unsigned long extract_prognum(const char val[])
+{
+	if (val[0] == '+') {
+		return ROTPROG + atol(val+1);
+	} else
+		if (val[0] < '0' || val[0] > '9') {
+			struct rpcent *ent;
+			ent = getrpcbyname (val);
+			if (ent)
+				return ent->r_number;
+			else
+				return 0;
+	} else
+		return atol(val);
+}
+
+
 static int rpcrot_init(ROT *rot)
 {
+	struct rpcrot_priv_data *priv;
+
 	if (!rot || !rot->caps)
 		return -RIG_EINVAL;
 	
@@ -59,8 +95,11 @@ static int rpcrot_init(ROT *rot)
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
+	priv = (struct rpcrot_priv_data*)rot->state.priv;
+
 	rot->state.rotport.type.rig = RIG_PORT_RPC;
 	strcpy(rot->state.rotport.pathname, "localhost");
+	priv->prognum = ROTPROG;
 
 	return RIG_OK;
 }
@@ -91,21 +130,34 @@ static int rpcrot_open(ROT *rot)
 	rotstate_res *rs_res;
 	rot_model_t model;
 	const struct rot_caps *caps;
-	char *server;
+	char *server, *s;
 
 	rs = &rot->state;
 	priv = (struct rpcrot_priv_data *)rs->priv;
-	server = rs->rotport.pathname;
+	server = strdup(rs->rotport.pathname);
+	s = strchr(server, ':');
+	if (s) {
+		unsigned long prognum;
+		*s = '\0';
+		prognum = extract_prognum(s+1);
+		if (prognum == 0) {
+			free(server);
+			return -RIG_ECONF;
+		}
+		priv->prognum = prognum;
+	}
 
-	priv->cl = clnt_create(server, ROTPROG, ROTVERS, "udp");
+	priv->cl = clnt_create(server, priv->prognum, ROTVERS, ROTPROTO);
 	if (priv->cl == NULL) {
 		clnt_pcreateerror(server);
+		free(server);
 		return -RIG_ECONF;
 	}
 	mdl_res = getmodel_1(NULL, priv->cl);
 	if (mdl_res == NULL) {
 		clnt_perror(priv->cl, server);
 		clnt_destroy(priv->cl);
+		free(server);
 		priv->cl = NULL;
 		return -RIG_EPROTO;
 	}
@@ -125,9 +177,12 @@ static int rpcrot_open(ROT *rot)
 	if (rs_res == NULL) {
 		clnt_perror(priv->cl, server);
 		clnt_destroy(priv->cl);
+		free(server);
 		priv->cl = NULL;
 		return -RIG_EPROTO;
 	}
+
+	free(server);
 
 	if (rs_res->rotstatus != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: error from remote - %s\n", __FUNCTION__, rigerror(rs_res->rotstatus));
@@ -254,6 +309,65 @@ static int rpcrot_move(ROT *rot, int direction, int speed)
     return *result;
 }
 
+#define TOK_PROGNUM TOKEN_BACKEND(1)
+
+static const struct confparams rpcrot_cfg_params[] = {
+	{ TOK_PROGNUM, "prognum", "Program number", "RPC program number",
+			r_stringify(ROTPROG), RIG_CONF_NUMERIC, { .n = { 100000, ULONG_MAX, 1 } }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
+/*
+ * Assumes rot!=NULL, rot->state.priv!=NULL
+ */
+int rpcrot_set_conf(ROT *rot, token_t token, const char *val)
+{
+	struct rpcrot_priv_data *priv;
+	struct rot_state *rs;
+
+	rs = &rot->state;
+	priv = (struct rpcrot_priv_data*)rs->priv;
+
+	switch(token) {
+	case TOK_PROGNUM:
+		{
+			unsigned long prognum;
+			prognum = extract_prognum(val);
+			if (prognum == 0)
+				return -RIG_EINVAL;
+			priv->prognum = prognum;
+			break;
+		}
+	default:
+		return -RIG_EINVAL;
+	}
+	return RIG_OK;
+}
+
+/*
+ * assumes rot!=NULL,
+ * Assumes rot!=NULL, rot->state.priv!=NULL
+ *  and val points to a buffer big enough to hold the conf value.
+ */
+int rpcrot_get_conf(ROT *rot, token_t token, char *val)
+{
+	struct rpcrot_priv_data *priv;
+	struct rot_state *rs;
+
+	rs = &rot->state;
+	priv = (struct rpcrot_priv_data*)rs->priv;
+
+	switch(token) {
+	case TOK_PROGNUM:
+		sprintf(val, "%ld", priv->prognum);
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+	return RIG_OK;
+}
+
 /* ************************************************************************* */
 
 struct rot_caps rpcrot_caps = {
@@ -271,6 +385,10 @@ struct rot_caps rpcrot_caps = {
   .rot_cleanup =  rpcrot_cleanup,
   .rot_open =     rpcrot_open,
   .rot_close =    rpcrot_close,
+
+  .cfgparams =  rpcrot_cfg_params,
+  .set_conf =   rpcrot_set_conf,
+  .get_conf =   rpcrot_get_conf,
 
   .set_position =  rpcrot_set_position,
   .get_position =  rpcrot_get_position,

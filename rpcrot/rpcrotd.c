@@ -1,10 +1,10 @@
 /*
- * rpcrotd - (C) Stephane Fillod 2001
+ * rpcrotd - (C) Stephane Fillod 2001-2002
  *
  * This program let programs control a rotator through
  * the mean of RPC services using Hamlib.
  *
- * $Id: rpcrotd.c,v 1.1 2002-01-16 16:45:11 fgretief Exp $
+ * $Id: rpcrotd.c,v 1.2 2002-09-13 06:59:54 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <netdb.h>
 
 
 /* TODO: autoconf should check for getopt support, include libs otherwise */
@@ -59,13 +60,14 @@ void rotprog_1(struct svc_req *rqstp, register SVCXPRT *transp);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:vhV"
+#define SHORT_OPTIONS "m:r:s:C:t:vhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
 	{"rot-file", 1, 0, 'r'},
 	{"serial-speed", 1, 0, 's'},
 	{"set-conf", 1, 0, 'C'},
+	{"prog", 1, 0, 't'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -95,6 +97,21 @@ int set_conf(ROT *my_rot, char *conf_parms)
 }
 
 
+static unsigned long extract_prognum(const char val[])
+{
+	if (val[0] == '+') {
+		return ROTPROG + atol(val+1);
+	} else
+		if (val[0] < '0' || val[0] > '9') {
+			struct rpcent *ent;
+			ent = getrpcbyname (val);
+			if (ent)
+				return ent->r_number;
+			else
+				return 0;
+	} else
+		return atol(val);
+}
 
 ROT *the_rpc_rot;
 
@@ -113,6 +130,7 @@ main (int argc, char *argv[])
 	const char *rot_file=NULL;
 	int serial_rate = 0;
 	char conf_parms[MAXCONFLEN] = "";
+	unsigned long prognum = ROTPROG;
 
 	/* Arguments parsing */
 
@@ -161,6 +179,13 @@ main (int argc, char *argv[])
 					if (*conf_parms != '\0')
 							strcat(conf_parms, ",");
 					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+					break;
+			case 't':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					prognum = extract_prognum(optarg);
 					break;
 			case 'v':
 					verbose++;
@@ -213,15 +238,15 @@ main (int argc, char *argv[])
 	/* Setup the RPC service and fire it up */
 
 
-	pmap_unset (ROTPROG, ROTVERS);
+	pmap_unset (prognum, ROTVERS);
 
 	transp = svcudp_create(RPC_ANYSOCK);  /* Looks like we can spesify a socket number here?? */
 	if (transp == NULL) {
-		fprintf (stderr, "%s", "cannot create udp service.");
+		fprintf (stderr, "cannot create udp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, ROTPROG, ROTVERS, rotprog_1, IPPROTO_UDP)) {
-		fprintf (stderr, "%s", "unable to register (ROTPROG, ROTVERS, udp).");
+	if (!svc_register(transp, prognum, ROTVERS, rotprog_1, IPPROTO_UDP)) {
+		fprintf (stderr, "unable to register (%lu, %u, udp).", prognum, ROTVERS);
 		exit(1);
 	}
 
@@ -230,13 +255,13 @@ main (int argc, char *argv[])
 		fprintf (stderr, "%s", "cannot create tcp service.");
 		exit(1);
 	}
-	if (!svc_register(transp, ROTPROG, ROTVERS, rotprog_1, IPPROTO_TCP)) {
-		fprintf (stderr, "%s", "unable to register (ROTPROG, ROTVERS, tcp).");
+	if (!svc_register(transp, prognum, ROTVERS, rotprog_1, IPPROTO_TCP)) {
+		fprintf (stderr, "unable to register (%lu, %u, tcp).", prognum, ROTVERS);
 		exit(1);
 	}
 
 	svc_run ();
-	fprintf (stderr, "%s", "svc_run returned");
+	fprintf (stderr, "svc_run returned");
 
 	/* the rotator gets automatically closed in rotd_exit() */
 
@@ -257,9 +282,10 @@ void usage()
 
 	printf(
 	"  -m, --model=ID             select rotator model number. See model list\n"
-	"  -r, --rig-file=DEVICE      set device of the rotator to operate on\n"
+	"  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
+        "  -t, --prog=NUMBER          set RPC program number\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n"
