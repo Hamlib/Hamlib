@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.14 2003-11-29 13:34:54 f4dwv Exp $
+ *	$Id: th.c,v 1.15 2003-11-30 20:23:51 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -188,7 +188,7 @@ th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 
       if(vfo!=RIG_VFO_CURR) {
         	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_ENTARGET;
 	}
 
     step = 1;
@@ -216,7 +216,7 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
 
       if(vfo!=RIG_VFO_CURR) {
         	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_ENTARGET;
 	}
 
     *freq = 0;
@@ -249,7 +249,7 @@ th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
       if(vfo!=RIG_VFO_CURR) {
         	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_ENTARGET;
 	}
 
     /* TODO: Find from rig->caps what modes can be supported. */
@@ -282,7 +282,7 @@ th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
       if(vfo!=RIG_VFO_CURR) {
         	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_ENTARGET;
 	}
 
     vch = '0';
@@ -336,7 +336,7 @@ th_set_vfo (RIG *rig, vfo_t vfo)
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-            return -RIG_EINVAL;
+            return -RIG_EVFO;
 	}
 
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
@@ -387,7 +387,7 @@ th_get_vfo (RIG *rig, vfo_t *vfo)
         case '1': *vfo = RIG_VFO_B; break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VFO value '%c'\n", __FUNCTION__, ackbuf[3]);
-            return -RIG_ERJCTED;
+            return -RIG_EVFO;
     }
 
 	return RIG_OK;
@@ -577,7 +577,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		 vch = '1'; break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-            return -RIG_EINVAL;
+            return -RIG_EVFO;
 	}
 
     switch (level) {
@@ -654,7 +654,7 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		 vch = '1'; break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-            return -RIG_EINVAL;
+            return -RIG_EVFO;
 	}
 
     if(level!=RIG_LEVEL_RFPOWER)
@@ -786,7 +786,7 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
 			vsel = '1'; break;
 	  default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_EVFO;
 	}
 	sprintf(membuf, "MC %c,%03i" EOM, vsel, ch);
 
@@ -824,7 +824,7 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		break;
 	  default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_EVFO;
 	}
 
 	retval= rig_set_vfo(rig,RIG_VFO_MEM);
@@ -888,7 +888,7 @@ int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 		break;
 	  default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_EVFO;
 	}
 
 
@@ -926,7 +926,7 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
       if(vfo!=RIG_VFO_CURR) {
         	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_ENTARGET;
 	}
 
 	switch(op) {
