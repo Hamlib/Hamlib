@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.5 2002-11-09 13:09:02 csete Exp $
+ *	$Id: rotator.h,v 1.6 2002-11-12 00:11:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,8 +25,6 @@
 
 #include <hamlib/rig.h>
 #include <hamlib/rotlist.h>
-#include <stdio.h>		/* required for FILE definition */
-#include <time.h>		/* required for time_t definition */
 
 
 /*! \file rotator.h
@@ -57,12 +55,16 @@ typedef struct rot ROT;
  *
  *  The elevation_t type is used as parameter for the
  *  rot_set_position() and rot_get_position() functions.
+ *
+ *  Unless specified otherwise, the unit of elevation_t is decimal degrees.
  */
 /*! \typedef typedef float azimuth_t
  *  \brief Type definition for azimuth.
  *
  *  The azimuth_t type is used as parameter for the
  *  rot_set_position() and rot_get_position() functions.
+ *
+ *  Unless specified otherwise, the unit of azimuth_t is decimal degrees.
  */
 typedef float elevation_t;
 typedef float azimuth_t;
@@ -189,7 +191,7 @@ struct rot_caps {
   int write_delay;                               /*!< Write delay. */
   int post_write_delay;                          /*!< Post-write delay. */
   int timeout;                                   /*!< Timeout. */
-  int retry;                                     /*!< Retry (boolean?). */
+  int retry;                                     /*!< Number of retry if command fails. */
 
   /*
    * Movement range, az is relative to North
@@ -263,14 +265,7 @@ struct rot_state {
   port_t rotport;             /*!< Rotator port (internal use). */
 
   int comm_state;	      /*!< Comm port state, opened/closed. */
-  /*
-   * Pointer to private data
-   */
-  rig_ptr_t priv;             /*!< Pointer to private data. */
-  
-  /*
-   * internal use by hamlib++ for event handling
-   */
+  rig_ptr_t priv;             /*!< Pointer to private rotator state data. */
   rig_ptr_t obj;              /*!< Internal use by hamlib++ for event handling. */
 
   /* etc... */
@@ -328,12 +323,6 @@ extern HAMLIB_EXPORT(token_t) rot_token_lookup HAMLIB_PARAMS((ROT *rot, const ch
 
 extern HAMLIB_EXPORT(const struct rot_caps *) rot_get_caps HAMLIB_PARAMS((rot_model_t rot_model));
 
-
-/*
- * 1 towards 2
- * returns qrb in km
- * and azimuth in decimal degrees
- */
 extern HAMLIB_EXPORT(int) qrb HAMLIB_PARAMS((double lon1, double lat1, 
 						double lon2, double lat2, 
 						double *distance, double *azimuth));

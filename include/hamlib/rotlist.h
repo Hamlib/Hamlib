@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - list of known rotators
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotlist.h,v 1.4 2002-11-09 13:09:02 csete Exp $
+ *	$Id: rotlist.h,v 1.5 2002-11-12 00:11:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,12 +27,13 @@
 #define ROT_BACKEND_NUM(a) ((a)/100)
 
 /*! \file rotlist.h
+ *  \ingroup rot
  *  \brief Hamlib rotator model definitions.
  *
  *  This file contains rotator model definitions for the Hamlib rotator API.
  *  Each distinct rotator type has a unique model number (ID) and is used
- *  by hamlib to identify and distiinguish between the different hardware drivers.
- *  The exact model numbers can be aquired using the macros in this
+ *  by hamlib to identify and distinguish between the different hardware drivers.
+ *  The exact model numbers can be acquired using the macros in this
  *  file. To obtain a list of supported rotator branches, one can use the statically
  *  defined ROT_BACKEND_LIST macro. To obtain a full list of supported rotators (including
  *  each model in every branch), the foreach_opened_rot() API function can be used.
