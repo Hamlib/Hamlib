@@ -67,6 +67,10 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/bin/rotctl $(CURDIR)/debian/hamlib-utils/usr/bin/
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/rigctl.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/rotctl.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
+	mv $(CURDIR)/debian/tmp/usr/sbin/rpc.rigd $(CURDIR)/debian/hamlib-utils/usr/sbin/
+	mv $(CURDIR)/debian/tmp/usr/sbin/rpc.rotd $(CURDIR)/debian/hamlib-utils/usr/sbin/
+	mv $(CURDIR)/debian/tmp/usr/share/man/man8/rpc.rigd.8 $(CURDIR)/debian/hamlib-utils/usr/share/man/man8
+	mv $(CURDIR)/debian/tmp/usr/share/man/man8/rpc.rotd.8 $(CURDIR)/debian/hamlib-utils/usr/share/man/man8
 
 # Build architecture-independent files here.
 binary-indep: build install
