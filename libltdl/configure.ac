@@ -1,6 +1,8 @@
-dnl Process this file with autoconf to create configure.
+dnl Process this file with autoconf to create configure. -*- autoconf -*-
 
-AC_INIT(ltdl.c)
+AC_PREREQ(2.50)
+AC_INIT(libltdl, 1.1)
+AC_CONFIG_SRCDIR(ltdl.c)
 
 dnl We shouldn't be using these internal macros of autoconf,
 dnl but CONFIG_AUX_DIR($with_auxdir) breaks automake.
@@ -22,7 +24,7 @@ if test -z "$enable_ltdl_install$enable_ltdl_convenience"; then
 fi
 
 AM_INIT_AUTOMAKE(libltdl,1.1,-)
-AM_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(config.h:config-h.in)
 AM_MAINTAINER_MODE
 
 AC_PROG_CC
@@ -37,8 +39,3 @@ AC_LIB_LTDL
 
 dnl Output the makefile
 AC_OUTPUT(Makefile)
-
-# Local Variables:
-# mode:shell-script
-# sh-indentation:2
-# End:
