@@ -2,7 +2,7 @@
  *  Hamlib Interface - io function header
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: iofunc.h,v 1.1 2002-01-16 22:56:34 fillods Exp $
+ *		$Id: iofunc.h,v 1.2 2002-03-10 23:41:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,7 +29,7 @@
 extern HAMLIB_EXPORT(int) read_block(port_t *p, char *rxbuffer, size_t count);
 extern HAMLIB_EXPORT(int) write_block(port_t *p, const char *txbuffer, size_t count);
 extern HAMLIB_EXPORT(int) fread_block(port_t *p, char *rxbuffer, size_t count);
-extern HAMLIB_EXPORT(int) read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset);
+extern HAMLIB_EXPORT(int) read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset, int stopset_len);
 
 #endif /* _IOFUNC_H */
 

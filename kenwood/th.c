@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: th.c,v 1.5 2002-02-27 23:25:42 fillods Exp $
+ *		$Id: th.c,v 1.6 2002-03-10 23:41:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -117,7 +117,7 @@ th_transaction (RIG *rig, const char *cmdstr, char *data, size_t datasize)
     }
 
 transaction_read:
-    retval = read_string(&rs->rigport, data, datasize, cmdtrm);
+    retval = read_string(&rs->rigport, data, datasize, cmdtrm, strlen(cmdtrm));
     if (retval < 0)
         goto transaction_quit;
 

@@ -3,7 +3,7 @@
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *		$Id: easycomm.c,v 1.1 2002-01-16 16:35:22 fgretief Exp $
+ *		$Id: easycomm.c,v 1.2 2002-03-10 23:41:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,7 +69,7 @@ easycomm_transaction (ROT *rot, const char *cmdstr, char *data, size_t data_len)
     if (data == NULL || data_len <= 0)
         return RIG_OK;  /* don't want a reply */
 
-    retval = read_string(&rs->rotport, data, data_len, "\n");
+    retval = read_string(&rs->rotport, data, data_len, "\n", 1);
     if (retval < 0)
         return retval;  /* error */
 

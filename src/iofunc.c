@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: iofunc.c,v 1.1 2002-01-16 22:56:34 fillods Exp $
+ *		$Id: iofunc.c,v 1.2 2002-03-10 23:41:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -273,14 +273,13 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
  *
  * Assumes rxbuffer!=NULL
  */
-int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset)
+int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
+				int stopset_len)
 {
   fd_set rfds;
   struct timeval tv, tv_timeout;
   int rd_count, total_count = 0;
   int retval;
-
-  rxbuffer[0] = '\000';
 
   FD_ZERO(&rfds);
   FD_SET(p->fd, &rfds);
@@ -291,7 +290,7 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset)
   tv_timeout.tv_sec = p->timeout/1000;
   tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
-  while (total_count < (rxmax-1)) {
+  while (total_count < rxmax) {
 		tv = tv_timeout;	/* select may have updated it */
 
 		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
@@ -314,10 +313,13 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset)
             return -RIG_EIO;
 		}
         ++total_count;
-        if (stopset && strchr(stopset, rxbuffer[total_count-1]))
-            break;
-        /* Note: This function will always break on a '\000' character. */
+		if (stopset && memchr(stopset, rxbuffer[total_count-1], stopset_len))
+			break;
   }
+  /*
+   * Doesn't hurt anyway. But be aware, some binary protocols may have
+   * null chars within th received buffer.
+   */
   rxbuffer[total_count] = '\000';
 
   if (total_count == 0) {
