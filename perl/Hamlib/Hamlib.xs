@@ -4,6 +4,8 @@
 
 #include <hamlib/rig.h>
 
+typedef RIG*  Hamlib__Rig;
+
 static int
 not_here(char *s)
 {
@@ -2610,40 +2612,174 @@ not_there:
     return 0;
 }
 
-
-MODULE = Hamlib		PACKAGE = Hamlib		PREFIX = rig_
-
+MODULE = Hamlib		PACKAGE = Hamlib
 
 double
 constant(sv,arg)
+    PROTOTYPE: $$
     PREINIT:
-	STRLEN		len;
+    STRLEN      len;
     INPUT:
-	SV *		sv
-	char *		s = SvPV(sv, len);
-	int		arg
+    SV *        sv
+    char *      s = SvPV(sv, len);
+    int     arg
     CODE:
-	RETVAL = constant(s,len,arg);
+    RETVAL = constant(s,len,arg);
     OUTPUT:
-	RETVAL
+    RETVAL
 
+MODULE = Hamlib		PACKAGE = Hamlib::Rig		PREFIX = rig_
+
+double
+constant(sv,arg)
+    PROTOTYPE: $$
+    PREINIT:
+    STRLEN      len;
+    INPUT:
+    SV *        sv
+    char *      s = SvPV(sv, len);
+    int     arg
+    CODE:
+    RETVAL = constant(s,len,arg);
+    OUTPUT:
+    RETVAL
+
+Hamlib::Rig
+rig_init(rig_model)
+    rig_model_t rig_model
+        PROTOTYPE: $
+    CODE:
+    {
+        RIG * theRig;
+        theRig = rig_init(rig_model);
+        RETVAL = theRig;
+    }
+	POST_CALL:
+		if (RETVAL == NULL)
+			croak("rig_init error");
+    OUTPUT:
+        RETVAL
+
+void
+rig_DESTROY(rig)
+    Hamlib::Rig   rig
+    PROTOTYPE: $
+    CODE:
+    {
+        rig_cleanup(rig);
+    }
 
 int
-rig_check_backend(rig_model)
-	rig_model_t	rig_model
-
-int
-rig_cleanup(rig)
-	RIG *	rig
+rig_open(rig)
+	Hamlib::Rig	rig
+    PROTOTYPE: $
+	CODE:
+		{
+        RETVAL = rig_open(rig);
+		}
+	POST_CALL:
+		if (RETVAL != RIG_OK)
+			croak("rig_open error: '%s'", rigerror(RETVAL));
+    OUTPUT:
+        RETVAL
 
 int
 rig_close(rig)
-	RIG *	rig
+	Hamlib::Rig	rig
+        PROTOTYPE: $
+    CODE:
+    {
+        RETVAL = rig_close(rig);
+    }
+    OUTPUT:
+        RETVAL
 
-const struct confparams *
-rig_confparam_lookup(rig, name)
-	RIG *	rig
-	const char *	name
+int
+rig_cleanup(rig)
+	Hamlib::Rig	rig
+
+int
+rig_set_vfo(rig, vfo)
+	Hamlib::Rig	rig
+	vfo_t	vfo
+
+int
+rig_get_vfo(rig)
+	Hamlib::Rig	rig
+    CODE:
+    {
+	    vfo_t vfo;
+        rig_get_vfo(rig, &vfo);
+        RETVAL = vfo;
+    }
+    OUTPUT:
+        RETVAL
+
+
+int
+rig_set_freq(rig, freq, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  freq_t	freq
+	  vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, freq
+
+freq_t
+rig_get_freq(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    freq_t freq;
+        rig_get_freq(rig, vfo, &freq);
+        RETVAL = freq;
+    }
+    OUTPUT:
+        RETVAL
+
+int
+rig_set_mode(rig, mode, width = RIG_PASSBAND_NORMAL, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
+	rmode_t	mode
+	pbwidth_t	width
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, mode, width
+
+void
+rig_get_mode(rig, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
+	vfo_t	vfo
+    PPCODE:
+    {
+		rmode_t	mode;
+		pbwidth_t	width;
+        rig_get_mode(rig, vfo, &mode, &width);
+		EXTEND(sp,2);
+		PUSHs(sv_2mortal(newSVuv(mode)));
+		PUSHs(sv_2mortal(newSViv(width)));
+    }
+
+int
+rig_set_split_mode(rig, mode, width = RIG_PASSBAND_NORMAL, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
+	rmode_t	mode
+	pbwidth_t	width
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, mode, width
+
+int
+rig_get_split_mode(rig, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
+	vfo_t	vfo
+    CODE:
+    {
+		rmode_t	mode;
+		pbwidth_t	width;
+        rig_get_split_mode(rig, vfo, &mode, &width);
+        RETVAL = mode;
+    }
 
 void
 rig_debug(debug_level, fmt, ...)
@@ -2664,12 +2800,6 @@ int
 rig_get_channel(rig, chan)
 	RIG *	rig
 	channel_t *	chan
-
-int
-rig_get_conf(rig, token, val)
-	RIG *	rig
-	token_t	token
-	char *	val
 
 int
 rig_get_ctcss_sql(rig, vfo, tone)
@@ -2702,12 +2832,6 @@ rig_get_dcs_sql(rig, vfo, code)
 	tone_t *	code
 
 int
-rig_get_freq(rig, vfo, freq)
-	RIG *	rig
-	vfo_t	vfo
-	freq_t *	freq
-
-int
 rig_get_func(rig, vfo, func, status)
 	RIG *	rig
 	vfo_t	vfo
@@ -2716,7 +2840,7 @@ rig_get_func(rig, vfo, func, status)
 
 const char *
 rig_get_info(rig)
-	RIG *	rig
+	Hamlib::Rig	rig
 
 int
 rig_get_level(rig, vfo, level, val)
@@ -2730,13 +2854,6 @@ rig_get_mem(rig, vfo, ch)
 	RIG *	rig
 	vfo_t	vfo
 	int *	ch
-
-int
-rig_get_mode(rig, vfo, mode, width)
-	RIG *	rig
-	vfo_t	vfo
-	rmode_t *	mode
-	pbwidth_t *	width
 
 int
 rig_get_parm(rig, parm, val)
@@ -2791,17 +2908,55 @@ rig_get_split(rig, vfo, split)
 	split_t *	split
 
 int
-rig_get_split_freq(rig, vfo, tx_freq)
-	RIG *	rig
-	vfo_t	vfo
-	freq_t *	tx_freq
+rig_set_split_freq(rig, tx_freq, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  freq_t	tx_freq
+	  vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, tx_freq
+
+freq_t
+rig_get_split_freq(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    freq_t tx_freq;
+        rig_get_freq(rig, vfo, &tx_freq);
+        RETVAL = tx_freq;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_split_mode(rig, vfo, tx_mode, tx_width)
-	RIG *	rig
-	vfo_t	vfo
-	rmode_t *	tx_mode
-	pbwidth_t *	tx_width
+rig_set_conf(rig, name, val)
+	Hamlib::Rig	rig
+	const char *	name
+	const char *	val
+    CODE:
+    {
+		token_t	token;
+		token = rig_token_lookup(rig, name);
+        RETVAL = rig_set_conf(rig, token, val);
+    }
+	OUTPUT:
+		RETVAL
+
+SV*
+rig_get_conf(rig, name)
+	Hamlib::Rig	rig
+	const char *	name
+    CODE:
+    {
+		token_t	token;
+		char val[256];
+
+		token = rig_token_lookup(rig, name);
+        rig_get_conf(rig, token, val);
+        RETVAL = newSVpv(val, 0);
+    }
+	OUTPUT:
+		RETVAL
 
 int
 rig_get_trn(rig, trn)
@@ -2813,11 +2968,6 @@ rig_get_ts(rig, vfo, ts)
 	RIG *	rig
 	vfo_t	vfo
 	shortfreq_t *	ts
-
-int
-rig_get_vfo(rig, vfo)
-	RIG *	rig
-	vfo_t *	vfo
 
 int
 rig_get_xit(rig, vfo, xit)
@@ -2865,18 +3015,6 @@ rig_has_vfo_op(rig, op)
 	RIG *	rig
 	vfo_op_t	op
 
-RIG *
-rig_init(rig_model)
-	rig_model_t	rig_model
-
-#ifdef TO_BE_FIXED_LATER
-int
-rig_list_foreach(arg0, data)
-	int ( * cfunc ) ( const struct rig_caps *, void * )	arg0
-	void *	data
-
-#endif
-
 int
 rig_load_all_backends()
 
@@ -2895,10 +3033,6 @@ rig_mW2power(rig, power, mwpower, freq, mode)
 int
 rig_need_debug(debug_level)
 	enum rig_debug_level_e	debug_level
-
-int
-rig_open(rig)
-	RIG *	rig
 
 pbwidth_t
 rig_passband_narrow(rig, mode)
@@ -2994,12 +3128,6 @@ rig_set_channel(rig, chan)
 	const channel_t *	chan
 
 int
-rig_set_conf(rig, token, val)
-	RIG *	rig
-	token_t	token
-	const char *	val
-
-int
 rig_set_ctcss_sql(rig, vfo, tone)
 	RIG *	rig
 	vfo_t	vfo
@@ -3028,12 +3156,6 @@ rig_set_debug(debug_level)
 	enum rig_debug_level_e	debug_level
 
 int
-rig_set_freq(rig, vfo, freq)
-	RIG *	rig
-	vfo_t	vfo
-	freq_t	freq
-
-int
 rig_set_func(rig, vfo, func, status)
 	RIG *	rig
 	vfo_t	vfo
@@ -3052,13 +3174,6 @@ rig_set_mem(rig, vfo, ch)
 	RIG *	rig
 	vfo_t	vfo
 	int	ch
-
-int
-rig_set_mode(rig, vfo, mode, width)
-	RIG *	rig
-	vfo_t	vfo
-	rmode_t	mode
-	pbwidth_t	width
 
 int
 rig_set_parm(rig, parm, val)
@@ -3102,19 +3217,6 @@ rig_set_split(rig, vfo, split)
 	split_t	split
 
 int
-rig_set_split_freq(rig, vfo, tx_freq)
-	RIG *	rig
-	vfo_t	vfo
-	freq_t	tx_freq
-
-int
-rig_set_split_mode(rig, vfo, tx_mode, tx_width)
-	RIG *	rig
-	vfo_t	vfo
-	rmode_t	tx_mode
-	pbwidth_t	tx_width
-
-int
 rig_set_trn(rig, trn)
 	RIG *	rig
 	int	trn
@@ -3126,11 +3228,6 @@ rig_set_ts(rig, vfo, ts)
 	shortfreq_t	ts
 
 int
-rig_set_vfo(rig, vfo)
-	RIG *	rig
-	vfo_t	vfo
-
-int
 rig_set_xit(rig, vfo, xit)
 	RIG *	rig
 	vfo_t	vfo
@@ -3139,20 +3236,6 @@ rig_set_xit(rig, vfo, xit)
 int
 rig_setting2idx(s)
 	setting_t	s
-
-#ifdef TO_BE_FIXED_LATER
-int
-rig_token_foreach(rig, arg1, data)
-	RIG *	rig
-	int ( * cfunc ) ( const struct confparams *, void * )	arg1
-	void *	data
-
-#endif
-
-token_t
-rig_token_lookup(rig, name)
-	RIG *	rig
-	const char *	name
 
 int
 rig_unregister(rig_model)
