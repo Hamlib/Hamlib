@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - IC-R8500 description
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr8500.c,v 1.19 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: icr8500.c,v 1.20 2004-09-26 17:29:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,9 +36,32 @@
 
 #define ICR8500_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_APF)
 
-#define ICR8500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR)
+#define ICR8500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
 
 #define ICR8500_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
+
+#define ICR8500_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_SLCT|RIG_SCAN_PRIO)
+
+/* FIXME: real measure */
+#define ICR8500_STR_CAL { 16,  { \
+		{   0, -54 },	/* S0 */ \
+		{  10, -48 }, \
+		{  32, -42 }, \
+		{  46, -36 }, \
+		{  62, -30 }, \
+		{  82, -24 }, \
+		{  98, -18 }, \
+		{ 112, -12 }, \
+		{ 124,  -6 }, \
+		{ 134,   0 }, /* S9 */ \
+		{ 156,  10 }, \
+		{ 177,  20 }, \
+		{ 192,  30 }, \
+		{ 211,  40 }, \
+		{ 228,  50 }, \
+		{ 238,  60 }, \
+	} }
+
 
 static const struct icom_priv_caps icr8500_priv_caps = {
 	0x4a,   /* default address */
@@ -52,12 +75,12 @@ const struct rig_caps icr8500_caps = {
 .rig_model =  RIG_MODEL_ICR8500,
 .model_name = "ICR-8500",
 .mfg_name =  "Icom",
-.version =  "0.2",
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  19200,
@@ -89,13 +112,23 @@ const struct rig_caps icr8500_caps = {
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
 .vfo_ops =  ICR8500_OPS,
+.scan_ops =  ICR8500_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   12,
 .chan_desc_sz =  0,
+.str_cal = ICR8500_STR_CAL,
 
-.chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list */
+.chan_list =  {		/* FIXME: memory channel list */
+	{   1, 999, RIG_MTYPE_MEM, IC_MIN_MEM_CAP },
+	RIG_CHAN_END,
+	},
 
-.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+
+.rx_range_list1 =  {
+	{kHz(100),MHz(824)-10,ICR8500_MODES,-1,-1, RIG_VFO_A},
+    {MHz(849)+10,MHz(869)-10,ICR8500_MODES,-1,-1, RIG_VFO_A},
+    {MHz(894)+10,GHz(2)-10,ICR8500_MODES,-1,-1, RIG_VFO_A},
+ 	RIG_FRNG_END, },
 .tx_range_list1 =  { RIG_FRNG_END, },
 
 .rx_range_list2 =  {
@@ -156,8 +189,10 @@ const struct rig_caps icr8500_caps = {
 .set_func =  icom_set_func,
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
+.scan =  icom_scan,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
+.get_dcd =  icom_get_dcd,
 };
 
 
