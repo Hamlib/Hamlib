@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-746 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic746.c,v 1.4 2005-01-19 17:17:54 pa4tu Exp $
+ *	$Id: ic746.c,v 1.5 2005-04-03 19:47:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -104,7 +104,7 @@ const struct rig_caps ic746_caps = {
 .rig_model =  RIG_MODEL_IC746,
 .model_name = "IC-746", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -258,7 +258,7 @@ const struct rig_caps ic746pro_caps = {
 .rig_model =  RIG_MODEL_IC746PRO,
 .model_name = "IC-746PRO", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
