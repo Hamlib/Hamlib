@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.28 2001-04-26 21:31:46 f4cfe Exp $
+ *	$Id: rig.h,v 1.29 2001-04-28 12:47:54 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -330,6 +330,15 @@ enum agc_level_e {
 		RIG_AGC_SLOW
 };
 
+enum meter_level_e {
+		RIG_METER_NONE = 0,
+		RIG_METER_SWR,
+		RIG_METER_COMP,
+		RIG_METER_ALC,
+		RIG_METER_IC,
+		RIG_METER_DB,
+};
+
 /*
  * Universal approach for use by set_level/get_level
  */
@@ -341,9 +350,8 @@ typedef union value_u value_t;
 
 /* free slot:
  * 1<<2 (was RIG_LEVEL_ANT)
- * 1<<20 (was RIG_LEVEL_ANN)
  */
-#define RIG_LEVEL_NONE		0
+#define RIG_LEVEL_NONE		0ULL
 #define RIG_LEVEL_PREAMP	(1<<0)	/* Preamp, arg int (dB) */
 #define RIG_LEVEL_ATT		(1<<1)	/* Attenuator, arg int (dB) */
 #define RIG_LEVEL_AF		(1<<3)	/* Volume, arg float [0.0..1.0] */
@@ -363,6 +371,8 @@ typedef union value_u value_t;
 #define RIG_LEVEL_AGC		(1<<17)	/* AGC, arg int (see enum agc_level_e) */
 #define RIG_LEVEL_BKINDL	(1<<18)	/* BKin Delay, arg int (tenth of dots) */
 #define RIG_LEVEL_BALANCE	(1<<19)	/* Balance (Dual Watch), arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_METER		(1<<20)	/* Display meter, arg int (see enum meter_level_e) */
+
 		/* These ones are not settable */
 #define RIG_LEVEL_SQLSTAT	(1<<27)	/* SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 #define RIG_LEVEL_SWR		(1<<28)	/* SWR, arg float */
@@ -392,7 +402,7 @@ typedef union value_u value_t;
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
 
 
-typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
+typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 
 /*
  * tranceive mode, ie. the rig notify the host of any event,
@@ -692,6 +702,8 @@ struct rig_caps {
 
   int (*set_split_freq)(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
   int (*get_split_freq)(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
+  int (*set_split_mode)(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width);
+  int (*get_split_mode)(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width);
   int (*set_split)(RIG *rig, vfo_t vfo, split_t split);
   int (*get_split)(RIG *rig, vfo_t vfo, split_t *split);
 
@@ -738,6 +750,7 @@ struct rig_caps {
 
   int (*send_dtmf)(RIG *rig, vfo_t vfo, const char *digits);
   int (*recv_dtmf)(RIG *rig, vfo_t vfo, char *digits, int *length);
+  int (*send_morse)(RIG *rig, vfo_t vfo, const char *msg);
 
   int (*set_bank)(RIG *rig, vfo_t vfo, int bank);			/* set memory bank number */
   int (*set_mem)(RIG *rig, vfo_t vfo, int ch);			/* set memory channel number */
@@ -762,12 +775,6 @@ struct rig_caps {
 
   /* more to come... */
 };
-
-/*
- * example of 3.5MHz -> 3.8MHz, 100W transmit range
- *   tx_range_list = {{3500000,3800000,RIG_MODE_AM|RIG_MODE_CW,100000},0}
- *
- */
 
 
 /* 
@@ -913,6 +920,8 @@ extern int rig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code);
 
 extern int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
 extern int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
+extern int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width);
+extern int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width);
 extern int rig_set_split(RIG *rig, vfo_t vfo, split_t split);
 extern int rig_get_split(RIG *rig, vfo_t vfo, split_t *split);
 
@@ -964,6 +973,7 @@ extern int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status); /* ge
 
 extern int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits);
 extern int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length);
+extern int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 
 extern int rig_set_bank(RIG *rig, vfo_t vfo, int bank);	/* set memory bank number */
 extern int rig_set_mem(RIG *rig, vfo_t vfo, int ch);		/* set memory channel number */
