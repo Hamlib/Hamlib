@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.7 2003-12-24 14:36:07 bwulf Exp $
+ * $Id: ft990.c,v 1.8 2004-01-15 22:52:13 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -2314,7 +2314,7 @@ static int ft990_get_channel (RIG *rig, channel_t *chan)
   priv->update_data.channelnumber = (unsigned char) chan->channel_num - 1;
 
   // Get a clean slate
-  bzero(chan, sizeof(channel_t));
+  memset(chan, 0, sizeof(channel_t));
 
   // Update channel data reflecting the current status
   err = ft990_get_update_data(rig, FT990_NATIVE_UPDATE_MEM_CHNL_DATA,
