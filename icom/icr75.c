@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R75
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.4 2004-08-27 01:49:38 fineware Exp $
+ *	$Id: icr75.c,v 1.5 2004-09-05 00:38:06 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -227,7 +227,6 @@ const struct rig_caps icr75_caps = {
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
 .set_ts =  icom_set_ts,
-/*.get_ts =  icom_get_ts,*/
 .set_powerstat = icom_set_powerstat,
 .get_powerstat = icom_get_powerstat,
 
@@ -265,20 +264,20 @@ int icr75_set_channel(RIG *rig, const channel_t *chan)
 		 */
 		to_bcd(chanbuf+3, chan->freq, freq_len*2);
 
-		chan_len = 3+freq_len+1;
+		chan_len = 2+freq_len+1;
 
-		err = rig2icom_mode(rig, chan->mode, RIG_PASSBAND_NORMAL,
-						&icmode, &icmode_ext);/* FIXME */
+		err = rig2icom_mode(rig, chan->mode, chan->width,
+						&icmode, &icmode_ext);
 		if (err != RIG_OK)
 				return err;
 
 		chanbuf[chan_len++] = icmode;
-		chanbuf[chan_len++] = icmode_ext;	/* FIXME */
+		chanbuf[chan_len++] = icmode_ext;
 
 		to_bcd_be(chanbuf+chan_len++,
-						chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i, 2);
+					chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i, 2);
 		to_bcd_be(chanbuf+chan_len++,
-						chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i, 2);
+					chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i, 2);
 
 		to_bcd_be(chanbuf+chan_len++,chan->ant,2);
 		memset(chanbuf+chan_len, 0, 8);
@@ -310,7 +309,6 @@ int icr75_get_channel(RIG *rig, channel_t *chan)
 		struct rig_state *rs;
 		unsigned char chanbuf[24];
 		int chan_len, freq_len, retval;
-		pbwidth_t width; 	/* FIXME */
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -325,32 +323,70 @@ int icr75_get_channel(RIG *rig, channel_t *chan)
 		if (retval != RIG_OK)
 				return retval;
 
+		chan->vfo = RIG_VFO_MEM;
+		chan->ant = RIG_ANT_NONE;
+		chan->freq = 0;
+		chan->mode = RIG_MODE_NONE;
+		chan->width = RIG_PASSBAND_NORMAL;
+		chan->tx_freq = 0;
+		chan->tx_mode = RIG_MODE_NONE;
+		chan->tx_width = RIG_PASSBAND_NORMAL;
+		chan->split = RIG_SPLIT_OFF;
+		chan->tx_vfo = RIG_VFO_NONE;
+		chan->rptr_shift = RIG_RPT_SHIFT_NONE;
+		chan->rptr_offs = 0;
+		chan->tuning_step = 0;
+		chan->rit = 0;
+		chan->xit = 0;
+		chan->funcs = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_AF)].f = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_RF)].f = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_SQL)].f = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_NR)].f = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_PBT_IN)].f = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_PBT_OUT)].f = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_CWPITCH)].i = 0;
+		chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF;
+		chan->ctcss_tone = 0;
+		chan->ctcss_sql = 0;
+		chan->dcs_code = 0;
+		chan->dcs_sql = 0;
+		chan->scan_group = 0;
+		chan->flags = RIG_CHFLAG_SKIP;
+		strcpy(chan->channel_desc, "        ");
+		
 		/*
 		 * freqbuf should contain Cn,Data area
 		 */
-		chan_len--;
-		if (freq_len != freq_len+16) {
+		if ((chan_len != freq_len+18) && (chan_len != 5)) {
 				rig_debug(RIG_DEBUG_ERR,"icr75_get_channel: wrong frame len=%d\n",
 								chan_len);
 				return -RIG_ERJCTED;
 		}
-
+		
+		/* do this only if not a blank channel */
+		if (chan_len != 5) {
 		/*
 		 * from_bcd requires nibble len
 		 */
-		chan->freq = from_bcd(chanbuf+4, freq_len*2);
+			chan->flags = RIG_CHFLAG_NONE;
+			
+			chan->freq = from_bcd(chanbuf+5, freq_len*2);
 
-		chan_len = 4+freq_len+1;
+			chan_len = 4+freq_len+1;
 
-		icom2rig_mode(rig, chanbuf[chan_len], chanbuf[chan_len+1],
-						&chan->mode, &width);
-		chan_len += 2;
-		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i =
-				from_bcd_be(chanbuf+chan_len++,2);
-		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i =
-				from_bcd_be(chanbuf+chan_len++,2);
-		chan->ant = from_bcd_be(chanbuf+chan_len++,2);
-		strncpy(chan->channel_desc, chanbuf+chan_len, 8);
+			icom2rig_mode(rig, chanbuf[chan_len], chanbuf[chan_len+1],
+							&chan->mode, &chan->width);
+			chan_len += 2;
+			if (from_bcd_be(chanbuf+chan_len++,2) != 0)
+				chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 20;
+			if (from_bcd_be(chanbuf+chan_len++,2) != 0)
+				chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 20;
+			chan->ant = from_bcd_be(chanbuf+chan_len++,2);
+			strncpy(chan->channel_desc, chanbuf+chan_len, 8);
+		}
 
 		return RIG_OK;
 }
