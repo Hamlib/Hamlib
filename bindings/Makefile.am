@@ -8,8 +8,8 @@
 
 SWIG=swig
 
-#INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ -I@TCL_SRC_DIR@/generic -I$(top_srcdir)/bindings
-INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings -I@TCL_SRC_DIR@/generic
+#INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ @TCL_INCLUDE_SPEC@ -I$(top_srcdir)/bindings
+INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@
 
 ##########################################
 # Perl binding
@@ -19,8 +19,10 @@ hamlibperl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
 			`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 # Add  LIB="$(libdir)"  to install in private place
-Hamlib-pl.mk: Makefile.PL
-	perl Makefile.PL MAKEFILE=Hamlib-pl.mk INST_MAN3DIR="$(mandir)" \
+Hamlib-pl.mk: $(srcdir)/Makefile.PL
+	test -f Makefile.PL || $(LN_S) $(srcdir)/Makefile.PL Makefile.PL
+	perl `test -f Makefile.PL || echo '$(srcdir)/'`Makefile.PL \
+			MAKEFILE=Hamlib-pl.mk INST_MAN3DIR="$(mandir)" \
 			INC="$(INCLUDES)"  \
 			OBJECT="hamlibperl_wrap.o" VERSION="$(PACKAGE_VERSION)" \
 			LIBS="-L$(top_builddir)/src/.libs -lhamlib"
@@ -49,25 +51,25 @@ install-perl: Hamlib-pl.mk
 
 lib_LTLIBRARIES = hamlibtcl.la
 
-PKG_VER=1.0 # $(PACKAGE_VERSION) 
-TCL_SHLIB_SUFFIX=".so"
-DLL=hamlibtcl$(PKG_VER)$(TCL_SHLIB_SUFFIX)
+PKG_VER=1.0
+DLL=hamlibtcl-$(PKG_VER)@TCL_SHLIB_SUFFIX@
 
 nodist_hamlibtcl_la_SOURCES = hamlibtcl_wrap.c
-hamlibtcl_la_LDFLAGS = -no-undefined -module -avoid-version @TCL_LIB_SPEC@
+hamlibtcl_la_LDFLAGS = -no-undefined -module -release $(PKG_VER) -avoid-version @TCL_LIB_SPEC@
 hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
-pkgIndex.tcl:
+pkgIndex.tcl: Makefile
 	echo 'package ifneeded Hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
 
 hamlibtcl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
-	$(SWIG) -tcl -pkgversion $(PKG_VER) @INCLUDES@ -I$(top_srcdir)/bindings -o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(SWIG) -tcl -pkgversion $(PKG_VER) @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
+		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
-$(DLL): hamlibtcl.la
-	rm -f $@ ; cp .libs/hamlibtcl.so $@
+all-tcl: pkgIndex.tcl #$(DLL)
 
-all-tcl: $(DLL) pkgIndex.tcl
+
 PACKAGEDIR      = $(TCL_EXEC_PREFIX)/lib/$(PACKAGE)
+libdir = $(PACKAGEDIR)
 
 install-tcl: all-tcl
 #	if test ! -d $(PACKAGEDIR); then mkdir $(PACKAGEDIR); fi
@@ -75,8 +77,9 @@ install-tcl: all-tcl
 #	$(INSTALL_DATA) pkgIndex.tcl $(PACKAGEDIR)/pkgIndex.tcl
 #	$(INSTALL_DATA) $(MANN) $(MAN_INSTALL_DIR)/
 
-test-tcl: all-tcl
-	TCLLIBPATH=`pwd` ./tcltest.tcl
+check-tcl: all-tcl
+	TCLLIBPATH=$(builddir)/.libs $(srcdir)/tcltest.tcl || echo "Tcl test failed" 1>&2
+
 clean-tcl:
 	rm -f pkgIndex.tcl $(DLL)
 distclean-tcl: clean-tcl
