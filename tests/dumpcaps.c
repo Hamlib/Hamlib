@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.33 2002-11-04 22:28:46 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.34 2002-11-28 22:27:11 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -84,6 +84,9 @@ int dumpcaps (RIG* rig)
 			break;
 	case RIG_TYPE_COMPUTER:
 			printf("Computer\n");
+			break;
+	case RIG_TYPE_TUNER:
+			printf("Tuner\n");
 			break;
 	case RIG_TYPE_OTHER:
 			printf("Other\n");
