@@ -1,7 +1,7 @@
 
 /* 
  * Very simple test program to check freq convertion --SF
- * This is mainly to test KHz, MHz, GHz macros and long long support.
+ * This is mainly to test kHz, MHz, GHz macros and long long support.
  */
 
 #include <stdio.h>
