@@ -2,10 +2,10 @@
  * \file src/locator.c
  * \ingroup hamlib
  * \brief locator and bearing conversion interface
- * \author Stephane Fillod
- * \date 2000-2002
+ * \author Stephane Fillod and the Hamlib Group
+ * \date 2000-2003
  *
- *  Hamlib Interface - locator and bearing conversion calls
+ *  Hamlib Interface - locator, bearing, and conversion calls
  */
 
 /*
@@ -14,7 +14,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.10 2003-09-11 01:04:14 n0nb Exp $
+ *	$Id: locator.c,v 1.11 2003-09-12 03:15:21 n0nb Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle,
  *	by S. R. Sampson, N5OWK.
@@ -103,16 +103,16 @@ const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
 #endif	/* !DOC_HIDDEN */
 
 /**
- * \brief Convert DMS angle to decimal representation
+ * \brief Convert DMS to decimal degrees
  * \param degrees	Degrees
  * \param minutes	Minutes
  * \param seconds	Seconds
  *
- *  Convert degree/minute/second angle to a decimal representation.
- *  Degrees >360, minutes > 60, and seconds > 60 are allowed, but
- *  resulting angle won't be normalized.
+ *  Convert degree/minute/second angle to decimal degrees angle.
+ *  \a degrees >360, \a minutes > 60, and \a seconds > 60 are allowed,
+ *  but resulting angle won't be normalized.
  *
- * \return the decimal representation.
+ * \return The angle in decimal degrees.
  *
  * \sa dec2dms()
  */
@@ -120,63 +120,86 @@ const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
 double dms2dec(float degrees, double minutes, double seconds) {
 	double s, st;
 
-        s = copysign(1.0, (double)degrees);
+	s = copysign(1.0, (double)degrees);
 	st = fabs((double)degrees);
 
 	return copysign((st + minutes / 60. + seconds / 3600.), s);
 }
 
 /**
- * \brief Convert decimal angle into DMS representation
- * \param dec	Decimal angle
+ * \brief Convert D M.MMM notation to decimal degrees
+ * \param degrees	Degrees
+ * \param minutes	Minutes
+ *
+ *  Convert a degrees, decimal minutes notation common on
+ *  many GPS units to its decimal degrees value.
+ *
+ *  \a degrees > 360, \a minutes > 60 are allowed, but
+ *  resulting angle won't be normalized.
+ *
+ * \return The angle in decimal degrees.
+ *
+ * \sa dec2dmmm()
+ */
+
+double dmmm2dec(float degrees, double minutes) {
+	return dms2dec(degrees, minutes, 0.0);
+}
+
+/**
+ * \brief Convert decimal degrees angle into DMS notation
+ * \param dec		Decimal angle
  * \param degrees	The location where to store the degrees
  * \param minutes	The location where to store the minutes
  * \param seconds	The location where to store the seconds
  *
- *  Convert decimal angle into its degree/minute/second representation.
+ *  Convert decimal degrees angle into its degree/minute/second
+ *  notation.
  *
- *  When passed a value < -180 or > 180, the sign will be reversed
- *  and the value constrained to => -180 and <= 180 before conversion.
+ *  When \a dec < -180 or \a dec > 180, the angle will be normalized
+ *  within these limits and the sign set appropriately.
  *
- *  Upon return dec2dms guarantees -180 <= degrees < 180,
- *  0 <= minutes < 60, and 0 <= seconds < 60.
+ *  Upon return dec2dms guarantees -180 <= \a degrees < 180,
+ *  0 <= \a minutes < 60, and 0 <= \a seconds < 60.
+ *
+ * \retval -RIG_EINVAL if any of the pointers are NULL.
+ * \retval RIG_OK if conversion went OK.
  *
  * \sa dms2dec()
  */
 
-void dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
-	int is_neg = 0;
-        float deg;
+int dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
+	int s = 0;
+	float deg;
 	double st, min;
 
+	/* bail if NULL pointers passed */
 	if (!degrees || !minutes || !seconds)
-		return;
+		return -RIG_EINVAL;
 
 	/* reverse the sign if dec has a magnitude greater
 	 * than 180 and factor out multiples of 360.
 	 * e.g. when passed 270 st will be set to -90
 	 * and when passed -270 st will be set to 90.  If
-	 * passed 361 st will be set to -1, etc.  If passed
-         * a value > -180 || < 180, value will be unchanged.
+	 * passed 361 st will be set to 1, etc.  If passed
+	 * a value > -180 || < 180, value will be unchanged.
 	 */
 	if (dec >= 0.0)
 		st = fmod(dec + 180, 360) - 180;
-        else
+	else
 		st = fmod(dec - 180, 360) + 180;
 
 	/* if after all of that st is negative, we want deg
-	 * to be negative as well.  Treat -180 as a special
-	 * case, not returning its sign so longitudes will
-         * be returned from -179.999 to 180.0.
-         */
-	if (st < 0.0 && st != -180.)
-		is_neg = 1;
+	 * to be negative as well.
+	 */
+	if (st < 0.0)
+		s = 1;
 
 	/* work on st as a positive value to remove a
 	 * bug introduced by the effect of floor() when
 	 * passed a negative value.  e.g. when passed
 	 * -96.8333 floor() returns -95!  Also avoids
-         * a rounding error introduced on negative values.
+	 * a rounding error introduced on negative values.
 	 */
 	st = fabs(st);
 
@@ -185,22 +208,63 @@ void dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
 	min = floor(st);
 	st  = 60. * (st - min);
 
-	/* set *degrees to original sign passed to dec */
-	(is_neg == 1) ? (*degrees = -deg) : (*degrees = deg);
+	/* set *degrees to sign determined by fmod() */
+	(s == 1) ? (*degrees = -deg) : (*degrees = deg);
 
 	*minutes = min;
 	*seconds = st;
+
+	return RIG_OK;
+}
+
+/**
+ * \brief Convert a decimal angle into D M.MMM notation
+ * \param dec		Decimal angle
+ * \param degrees	The location where to store the degrees
+ * \param minutes	The location where to store the minutes
+ *
+ *  Convert a decimal angle into its degree, decimal minute
+ *  notation common on many GPS units.
+ *
+ *  When passed a value < -180 or > 180, the value will be normalized
+ *  within these limits and the sign set apropriately.
+ *
+ *  Upon return dec2dmmm guarantees -180 <= \a degrees < 180,
+ *  0 <= \a minutes < 60.
+ *
+ * \retval -RIG_EINVAL if any of the pointers are NULL.
+ * \retval RIG_OK if conversion went OK.
+ *
+ * \sa dmmm2dec()
+ */
+
+int dec2dmmm(double dec, float *degrees, double *minutes) {
+	int r;
+	double min, sec;
+
+	/* bail if NULL pointers passed */
+	if (!degrees || !minutes)
+		return -RIG_EINVAL;
+
+	r = dec2dms(dec, degrees, &min, &sec);
+	if (r != RIG_OK)
+		return r;
+
+	*minutes = min + sec / 60;
+
+	return RIG_OK;
 }
 
 /**
  * \brief Convert Maidenhead grid locator to longitude/latitude
- * \param longitude	The location where to store longitude, decimal
- * \param latitude	The location where to store latitude, decimal
- * \param locator	The locator--2 through 12 char nul terminated string
+ * \param longitude	The location where to store longitude, decimal degrees
+ * \param latitude	The location where to store latitude, decimal degrees
+ * \param locator	The locator--2 through 12 char + nul string
  *
  *  Convert Maidenhead grid locator to longitude/latitude (decimal).
- *  The locator should be in 2 through 12 chars long format. locator2longlat
- *  is case insensitive, however it checks for locator validity.
+ *  The locator should be in 2 through 12 chars long format.
+ *  \a locator2longlat is case insensitive, however it checks for
+ *  locator validity.
  *
  *  Decimal long/lat is computed to center of grid square, i.e. given
  *  EM19 will return coordinates equivalent to the southwest corner
@@ -208,8 +272,13 @@ void dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
  *  in the center of the given subsquare, i.e. 2' 30" from west boundary
  *  and 1' 15" from south boundary.
  *
- * \return RIG_OK to indicate conversion went ok, -RIG_EINVAL if locator
- *  exceeds RR99xx or exceeds length limit.  Currently 1 to 6 lon/lat pairs.
+ * \retval -RIG_EINVAL if locator exceeds RR99xx99yy99 or exceeds length
+ *  limit--currently 1 to 6 lon/lat pairs.
+ * \retval RIG_OK if conversion went OK.
+ *
+ * \bug The fifth pair ranges from aa to yy, there is another convention
+ *  that ranges from aa to xx.  At some point both conventions should be
+ *  supported.
  *
  * \sa longlat2locator()
  */
@@ -221,35 +290,43 @@ int locator2longlat(double *longitude, double *latitude, const char *locator) {
         int locvalue, pair;
 	double xy[2], minutes;
 
+	/* bail if NULL pointers passed */
+	if (!longitude || !latitude)
+		return -RIG_EINVAL;
+
 	paircount = strlen(locator) / 2;
 
-	if (paircount > MAX_LOCATOR_PAIRS)	/* Max. locator length to allow */
+	/* verify paircount is within limits */
+	if (paircount > MAX_LOCATOR_PAIRS)
 		paircount = MAX_LOCATOR_PAIRS;
 	else if (paircount < MIN_LOCATOR_PAIRS)
 		return -RIG_EINVAL;
 
-	for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) { /* For x(=long) and y(=lat) */
+	/* For x(=lon) and y(=lat) */
+	for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) {
 		minutes = 0.0;
 
 		for (pair = 0;  pair < paircount;  ++pair) {
 			locvalue = locator[pair*2 + x_or_y];
 
-			locvalue -= (loc_char_range[pair] == 10) ? '0' : /* Value of digit */
-				(isupper(locvalue)) ? 'A' : 'a';	 /*  or letter. */
+			/* Value of digit or letter */
+			locvalue -= (loc_char_range[pair] == 10) ? '0' :
+				(isupper(locvalue)) ? 'A' : 'a';
 
-			if (((unsigned) locvalue) >= loc_char_range[pair]) /* Check range */
-				return -RIG_EINVAL;	/* Non-letter/digit or out of range */
+			/* Check range for non-letter/digit or out of range */
+			if (((unsigned) locvalue) >= loc_char_range[pair])
+				return -RIG_EINVAL;
 
 			minutes += locvalue * loc_char_weight[pair];
 		}
-		minutes += loc_char_weight[paircount - 1] / 2.0; /* Center coordinate */
+		/* Center coordinate */
+		minutes += loc_char_weight[paircount - 1] / 2.0;
 
 		xy[x_or_y] = minutes / 60.0 - 90.0;
 	}
 
-	/* Don't seg. fault if longitude or latitude pointers are null */
-	if (longitude != NULL)	*longitude = xy[0] * 2;
-	if (latitude != NULL)	*latitude = xy[1];
+	*longitude = xy[0] * 2;
+	*latitude = xy[1];
 
 	return RIG_OK;
 }
@@ -257,16 +334,22 @@ int locator2longlat(double *longitude, double *latitude, const char *locator) {
 
 /**
  * \brief Convert longitude/latitude to Maidenhead grid locator
- * \param longitude	The longitude, decimal
- * \param latitude	The latitude, decimal
+ * \param longitude	The longitude, decimal degrees
+ * \param latitude	The latitude, decimal degrees
  * \param locator	The location where to store the locator
  * \param pair_count	The desired precision expressed as lon/lat pairs in the locator
  *
- *  Convert longitude/latitude (decimal) to Maidenhead grid locator.
- *  \a locator must point to an array at least pair_count * 2 char plus '\0'.
+ *  Convert longitude/latitude (decimal degrees) to Maidenhead grid locator.
+ *  \a locator must point to an array at least \a pair_count * 2 char + '\0'.
  *
- * \return RIG_OK if locator was successfully computed.  -RIG_EINVAL if
- * pair_count exceeds length limit.  Currently 1 to 6 lon/lat pairs.
+ * \retval -RIG_EINVAL if \a locator is NULL or \a pair_count exceeds
+ *  length limit.  Currently 1 to 6 lon/lat pairs.
+ * \retval RIG_OK if conversion went OK.
+ *
+ * \bug \a locator is not tested for overflow.
+ * \bug The fifth pair ranges from aa to yy, there is another convention
+ *  that ranges from aa to xx.  At some point both conventions should be
+ *  supported.
  *
  * \sa locator2longlat()
  */
@@ -274,9 +357,12 @@ int locator2longlat(double *longitude, double *latitude, const char *locator) {
 /* begin dph */
 
 int longlat2locator(double longitude, double latitude,
-		     char *locator, int pair_count) {
+		    char *locator, int pair_count) {
 	int x_or_y, pair, locvalue;
 	double tmp;
+
+	if (!locator)
+                return -RIG_EINVAL;
 
 	if (pair_count < MIN_LOCATOR_PAIRS || pair_count > MAX_LOCATOR_PAIRS)
                 return -RIG_EINVAL;
@@ -304,36 +390,42 @@ int longlat2locator(double longitude, double latitude,
 
 /**
  * \brief Calculate the distance and bearing between two points.
- * \param lon1	The local longitude, decimal degrees
- * \param lat1	The local latitude, decimal degrees
- * \param lon2	The remote longitude, decimal degrees
- * \param lat2	The remote latitude, decimal degrees
+ * \param lon1		The local longitude, decimal degrees
+ * \param lat1		The local latitude, decimal degrees
+ * \param lon2		The remote longitude, decimal degrees
+ * \param lat2		The remote latitude, decimal degrees
  * \param distance	The location where to store the distance
  * \param azimuth	The location where to store the bearing
  *
- *  Calculate the QRB between \a lat1,\a lat1 and \a lon2,\a lat2.
+ *  Calculate the QRB between \a lon1, \a lat1 and \a lon2, \a lat2.
  *
  *	This version also takes into consideration the two points
  *	being close enough to be in the near-field, and the antipodal points,
  *	which are easily calculated.
  *
- * \return the distance in kilometers and azimuth in decimal degrees
- * for the short path.
-*
+ * \retval -RIG_EINVAL if NULL pointer passed or lat and lon values
+ * exceed -90 to 90 or -180 to 180.
+ * \retval RIG_OK if calculations are successful.
+ *
+ * \return The distance in kilometers and azimuth in decimal degrees
+ *  for the short path are stored in \a distance and \a azimuth.
+ *
  * \sa distance_long_path(), azimuth_long_path()
  */
+
 int qrb(double lon1, double lat1, double lon2, double lat2,
 				double *distance, double *azimuth) {
 	double delta_long, tmp, arc, cosaz, az;
 
+	/* bail if NULL pointers passed */
 	if (!distance || !azimuth)
-		return -1;
+		return -RIG_EINVAL;
 
 	if ((lat1 > 90.0 || lat1 < -90.0) || (lat2 > 90.0 || lat2 < -90.0))
-		return -1;
+		return -RIG_EINVAL;
 
 	if ((lon1 > 180.0 || lon1 < -180.0) || (lon2 > 180.0 || lon2 < -180.0))
-		return -1;
+		return -RIG_EINVAL;
 
 	/* Prevent ACOS() Domain Error */
 
@@ -347,9 +439,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 	else if (lat2 == -90.0)
 		lat2 = -89.99;
 
-	/*
-	 * Convert variables to Radians
-	 */
+	/* Convert variables to Radians */
 	lat1	/= RADIAN;
 	lon1	/= RADIAN;
    	lat2	/= RADIAN;
@@ -423,7 +513,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 	if (*azimuth == 360.0)
 		*azimuth = 0;
 
-	return 0;
+	return RIG_OK;
 }
 
 /**
@@ -436,6 +526,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
  *
  * \sa qrb()
  */
+
 double distance_long_path(double distance) {
 	 return (ARC_IN_KM * 360.0) - distance;
 }
@@ -450,6 +541,7 @@ double distance_long_path(double distance) {
  *
  * \sa qrb()
  */
+
 double azimuth_long_path(double azimuth) {
 	return 360.0 - azimuth;
 }
