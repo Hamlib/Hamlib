@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.40 2001-06-15 06:59:47 f4cfe Exp $
+ *	$Id: rig.h,v 1.41 2001-06-15 07:16:16 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or

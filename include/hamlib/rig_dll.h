@@ -1,4 +1,4 @@
-/* $Id: rig_dll.h,v 1.2 2001-06-15 06:59:47 f4cfe Exp $ */
+/* $Id: rig_dll.h,v 1.3 2001-06-15 07:16:16 f4cfe Exp $ */
 
 
 #if defined(__CYGWIN__)
