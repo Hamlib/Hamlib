@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backend
  * 	as well as by the frontend.
  *
- * $Id: misc.c,v 1.5 2001-04-24 19:52:28 f4cfe Exp $  
+ * $Id: misc.c,v 1.6 2001-05-04 22:41:22 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -222,6 +222,7 @@ void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 		}
 }
 
+#define llabs(a) ((a)<0?-(a):(a))
 
 /*
  * rig_freq_snprintf
@@ -233,13 +234,13 @@ int freq_sprintf(char *str, freq_t freq)
 		double f;
 		char *hz;
 
-		if (freq >= GHz(1)) {
+		if (llabs(freq) >= GHz(1)) {
 				hz = "GHz";
 				f = (double)freq/GHz(1);
-		} else if (freq >= MHz(1)) {
+		} else if (llabs(freq) >= MHz(1)) {
 				hz = "MHz";
 				f = (double)freq/MHz(1);
-		} else if (freq >= kHz(1)) {
+		} else if (llabs(freq) >= kHz(1)) {
 				hz = "kHz";
 				f = (double)freq/kHz(1);
 		} else {
