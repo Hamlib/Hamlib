@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.32 2003-02-09 22:50:52 fillods Exp $
+ *	$Id: riglist.h,v 1.33 2003-03-15 23:58:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -108,6 +108,7 @@
 #define RIG_MODEL_THF6A RIG_MAKE_MODEL(RIG_KENWOOD, 19)
 #define RIG_MODEL_THF7E RIG_MAKE_MODEL(RIG_KENWOOD, 20)
 #define RIG_MODEL_K2 RIG_MAKE_MODEL(RIG_KENWOOD, 21)
+#define RIG_MODEL_TS930 RIG_MAKE_MODEL(RIG_KENWOOD, 22)
 
 	/*
 	 * Icom
@@ -351,7 +352,8 @@
 #define RIG_BACKEND_GNURADIO "gnuradio"
 #define RIG_MODEL_GNURADIO RIG_MAKE_MODEL(RIG_GNURADIO, 1) /* dev model, Chirp source */
 #define RIG_MODEL_MC4020 RIG_MAKE_MODEL(RIG_GNURADIO, 2)	/* MC4020 */
-#define RIG_MODEL_GRAUDIO RIG_MAKE_MODEL(RIG_GNURADIO, 3)	/* Source card source */
+#define RIG_MODEL_GRAUDIO RIG_MAKE_MODEL(RIG_GNURADIO, 3)	/* Sound card source */
+#define RIG_MODEL_GRAUDIOIQ RIG_MAKE_MODEL(RIG_GNURADIO, 4)	/* I&Q stereo sound card source */
 
 	/*
 	 * Microtune tuners

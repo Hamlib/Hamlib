@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.58 2003-03-10 08:26:09 fillods Exp $
+ *	$Id: kenwood.c,v 1.59 2003-03-15 23:58:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1320,9 +1320,9 @@ const char* kenwood_get_info(RIG *rig)
 rig_model_t probeallrigs_kenwood(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 {
 	unsigned char idbuf[IDBUFSZ];
-	int id_len, i, k_id;
-	int retval;
-	int rates[] = { 57600, 9600, 4800, 0 };	/* possible baud rates */
+	int id_len=-1, i, k_id;
+	int retval=-1;
+	int rates[] = { 57600, 9600, 4800, 1200, 0 };	/* possible baud rates */
 	int rates_idx;
 
 	if (!port)
@@ -1496,6 +1496,7 @@ int initrigs_kenwood(void *be_handle)
 		rig_register(&ts790_caps);
 		rig_register(&ts850_caps);
 		rig_register(&ts870s_caps);
+		rig_register(&ts930_caps);
 		rig_register(&ts2000_caps);
 		rig_register(&k2_caps);
 
