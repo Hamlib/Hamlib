@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.17 2001-02-27 23:05:51 f4cfe Exp $  
+ * $Id: icom.c,v 1.18 2001-03-01 00:28:08 f4cfe Exp $  
  *
  *
  *
@@ -185,6 +185,20 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_MINISCOUT, 0x94 },
 		{ RIG_MODEL_IC718, 0x36 },	/* need confirmation */
 		{ -1, 0 },
+};
+
+/*
+ * 50 CTCSS sub-audible tones, from 67.0Hz to 254.1Hz
+ * Don't even think about changing a bit of this array, several
+ * rigs depend on it. If you need to, create a copy for your caps. --SF
+ */
+const int icom_ctcss_list[] = {
+		670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
+		948,  974, 1000, 1035, 1072, 1109, 1148, 1188,  1230, 1273,
+		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
+		1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
+		2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
+		0,
 };
 
 /*

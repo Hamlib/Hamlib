@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.12 2001-02-14 23:55:54 f4cfe Exp $  
+ *    $Id: icom.h,v 1.13 2001-03-01 00:28:08 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -51,6 +51,9 @@ struct icom_priv_data {
 	int str_cal_raw[STR_CAL_LENGTH];
 	int str_cal_db[STR_CAL_LENGTH];
 };
+
+extern const int icom_ctcss_list[];
+
 
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);
