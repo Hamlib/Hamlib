@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.14 2001-06-04 17:01:21 f4cfe Exp $  
+ * $Id: ft747.c,v 1.15 2001-12-11 22:04:45 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -148,7 +148,7 @@ const struct rig_caps ft747_caps = {
   model_name:      "FT-747GX", 
   mfg_name:        "Yaesu", 
   version:          "0.1", 
-  copyright:        "LGPL?",
+  copyright:        "LGPL",
   status:           RIG_STATUS_ALPHA, 
   rig_type:         RIG_TYPE_MOBILE, 
   ptt_type:         RIG_PTT_RIG,

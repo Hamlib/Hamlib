@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.16 2001-11-19 21:12:19 f4cfe Exp $  
+ * $Id: ft847.c,v 1.17 2001-12-11 22:04:45 fillods Exp $  
  *
  *
  *
@@ -187,7 +187,7 @@ rig_model: RIG_MODEL_FT847,
 model_name:"FT-847", 
 mfg_name: "Yaesu", 
 version: "0.1", 
-copyright: "GPL",
+copyright: "LGPL",
 status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_RIG,
