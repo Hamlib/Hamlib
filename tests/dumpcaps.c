@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.18 2001-04-24 19:56:41 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.19 2001-04-26 21:33:57 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -339,9 +339,9 @@ int main (int argc, char *argv[])
 
 	printf("VFO list: ");
 	if (caps->vfo_list!=0) {
-		if (caps->vfo_list&RIG_VFO_A) printf("VFOA ");
-		if (caps->vfo_list&RIG_VFO_B) printf("VFOB ");
-		if (caps->vfo_list&RIG_VFO_C) printf("VFOC ");
+		if ((caps->vfo_list&RIG_VFO_A)==RIG_VFO_A) printf("VFOA ");
+		if ((caps->vfo_list&RIG_VFO_B)==RIG_VFO_A) printf("VFOB ");
+		if ((caps->vfo_list&RIG_VFO_C)==RIG_VFO_A) printf("VFOC ");
 		printf("\n");
 	} else {
 			printf(" none! This backend might be bogus!\n");
