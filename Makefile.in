@@ -63,6 +63,7 @@ AWK = @AWK@
 BACKENDEPS = @BACKENDEPS@
 BACKENDLNK = @BACKENDLNK@
 BACKEND_LIST = @BACKEND_LIST@
+BINDING_LIST = @BINDING_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -103,7 +104,7 @@ aclocal_DATA = hamlib.m4
 EXTRA_DIST = PLAN TODO LICENSE hamlib.m4
 
 SUBDIRS = include lib libltdl src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
-          c++ tcl kylix tests doc
+          @BINDING_LIST@ tests doc
 
 
 DIST_SUBDIRS = include lib libltdl src c++ tcl kylix tests doc \
