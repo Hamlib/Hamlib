@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2004 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.13 2004-06-13 12:35:30 fillods Exp $
+ *	$Id: thg71.c,v 1.14 2004-12-06 22:16:55 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -152,7 +152,7 @@ const struct rig_caps thg71_caps = {
 	RIG_FLT_END,
 	},
 
-.str_cal ={ 2, { {0, -30 }, {5,-13}}}, /* guessed from technical manual */
+.str_cal ={ 3, { { 0, -60 }, {1, -30 }, {5,-13}}}, /* guessed from technical manual */
 
 .priv =  (void *)&thg71_priv_caps,
 .rig_open =  thg71_open,
@@ -453,6 +453,7 @@ int thg71_open(RIG *rig)
 	}
 	rig->state.rx_range_list[i]= frend;
 	rig->state.tx_range_list[i]= frend;
+	rig->state.vfo_list=RIG_VFO_A | RIG_VFO_MEM ;
 
     return RIG_OK;
 }
