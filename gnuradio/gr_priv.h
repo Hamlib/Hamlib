@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - gnuradio priv structure
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gr_priv.h,v 1.5 2003-09-28 15:59:27 fillods Exp $
+ *	$Id: gr_priv.h,v 1.6 2003-09-28 20:51:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,38 +27,15 @@
 #include <VrSink.h>
 #include <VrMultiTask.h>
 #include <VrFixOffset.h>
-#include <GrFreqXlatingFIRfilterSCF.h>
-#include <GrFreqXlatingFIRfilterCCF.h>
-#include <GrFIRfilterFSF.h>
-#include <VrQuadratureDemod.h>	/* FM */
-//#include <VrAmplitudeDemod.h>	/* AM */
-#include <GrIIRfilter.h>
-#include <GrConvertFS.h>
-#include <VrAmp.h>
+#include <GrConvertSF.h>
 
-/* SSB mod */
-//#include <GrSSBMod.h>
-//#include <GrHilbert.h>
+#include <VrSource.h>
 
 #include <pthread.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
+#include "demod.h"
 
-#define IOTYPE short
-
-struct mod_data {
-	freq_t centerfreq;
-	GrFreqXlatingFIRfilterCCF *mixer;
-	VrAmp<float,float> *gainstage;
-	VrSigProc *demod;
-
-	int CFIRdecimate;
-	int CFIRdecimate2;
-	int RFIRdecimate;
-	GrFreqXlatingFIRfilterSCF *chan_filter;
-	GrFIRfilterFSF *audio_filter;
-	GrFIRfilterFFF *audioF_filter;
-};
 
 #define NUM_CHAN 2	/* VFO A and VFO B */
 
@@ -76,22 +53,23 @@ struct gnuradio_priv_data {
 	shortfreq_t input_rate;
 	shortfreq_t IF_center_freq;
 
-	VrSource<VrComplex> *source;	/*< IF source */
-	VrFixOffset<IOTYPE,IOTYPE> *offset_fixer;	/*< some sources need it */
+	VrSource<VrComplex> *source;
+
+	/* MC4020 */
+	VrSource<short> *mc4020_source;
+	VrFixOffset<short,short> *offset_fixer;
+	GrConvertSF *convert_SF;
+
 	VrSink<float> *sink;		/*< Audio sink */
 	VrMultiTask *m;
-	int need_fixer;		/*< always need Offset fixer ? */
 
 	pthread_t process_thread;
 	pthread_mutex_t mutex_process;
 	volatile int do_process;	/*< flag to tell process thread to stop */
 
-	struct mod_data mods[NUM_CHAN];	/*< Modulation objects and stuff, one per channel */
+	DemodChainCF *mods[NUM_CHAN];	/*< Modulation objects and stuff, one per channel */
 };
 
-//#define GR_SOURCE(priv) ((priv)->need_fixer?(priv)->offset_fixer:(priv)->source)
-//#define GR_SOURCE(priv) ((priv)->offset_fixer)
-#define GR_SOURCE(priv) ((priv)->source)
 
 //#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate/2)
 #define GR_MAX_FREQUENCY(priv) ((priv)->input_rate)
