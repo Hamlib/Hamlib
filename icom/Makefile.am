@@ -1,4 +1,4 @@
-ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c icall.c
+ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c icall.c
 
 lib_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
