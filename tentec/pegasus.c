@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-550 PC-Radio description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: pegasus.c,v 1.6 2004-02-09 22:10:21 fillods Exp $
+ *	$Id: pegasus.c,v 1.7 2004-02-15 11:05:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,16 +38,12 @@
 #define TT550_FUNCS (RIG_FUNC_VOX|RIG_FUNC_ANF|RIG_FUNC_TUNER| \
 				RIG_FUNC_NR|RIG_FUNC_VOX)
 
-#ifndef RIG_LEVEL_LINEOUT
-#define RIG_LEVEL_LINEOUT 0
-#endif
 
 #define TT550_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_AF|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH| \
                                 RIG_LEVEL_RF|RIG_LEVEL_COMP|RIG_LEVEL_VOX|RIG_LEVEL_SQL| \
                                 RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD| \
-                                RIG_LEVEL_SWR|RIG_LEVEL_ATT|RIG_LEVEL_NR| \
-                                RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_ANTIVOX| \
-				RIG_LEVEL_LINEOUT)
+                                RIG_LEVEL_SWR|RIG_LEVEL_ATT|RIG_LEVEL_NR|RIG_LEVEL_IF| \
+                                RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
 
 
 

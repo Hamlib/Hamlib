@@ -230,32 +230,6 @@ tt550_tuning_factor_calc (RIG * rig, int tx)
 	{
 	  // CW Mode uses LSB Mode
 	  IBfo = 1500;
-	  int tt550_reset (RIG * rig, reset_t reset)
-	  {
-	    int retval, reset_len;
-	    char reset_buf[32];
-
-	    reset_len = 15;
-	    retval =
-	      tt550_transaction (rig, "XX" EOM, 3, reset_buf, &reset_len);
-	    if (retval != RIG_OK)
-	      return retval;
-
-	    reset_len = 15;
-	    if (strstr (reset_buf, "DSP START"))
-	      {
-		retval =
-		  tt550_transaction (rig, "P1" EOM, 3, reset_buf, &reset_len);
-		if (retval != RIG_OK)
-		  return retval;
-	      }
-	    if (!strstr (reset_buf, "RADIO START"))
-	      {
-		return -RIG_EPROTO;
-	      }
-
-	    return RIG_OK;
-	  }
 
 	  TFreq =
 	    radio_freq - (double) (IBfo / 1e6) + (double) (Bfo / 1e6) +
@@ -294,7 +268,7 @@ tt550_tuning_factor_calc (RIG * rig, int tx)
 	  TFreq =
 	    radio_freq + (double) (IBfo / 1e6) + (double) (PbtAdj / 1e6) +
 	    (double) (RitAdj / 1e6);
-	  IBfo = IBfo + (double) (PbtAdj / 1e6);
+	  IBfo = IBfo + PbtAdj ;
 	}
 
 
@@ -304,7 +278,7 @@ tt550_tuning_factor_calc (RIG * rig, int tx)
 	  TFreq =
 	    radio_freq - (double) (IBfo / 1e6) - (double) (PbtAdj / 1e6) +
 	    (double) (RitAdj / 1e6);
-	  IBfo = IBfo + (double) (PbtAdj / 1e6);
+	  IBfo = IBfo + PbtAdj ;
 	}
       if (Mode == RIG_MODE_CW)
 	{
@@ -315,7 +289,7 @@ tt550_tuning_factor_calc (RIG * rig, int tx)
 	      TFreq =
 		radio_freq - (double) (IBfo / 1e6) - (double) (PbtAdj / 1e6) +
 		(double) (RitAdj / 1e6);
-	      IBfo = IBfo + Bfo + (double) (PbtAdj / 1e6);
+	      IBfo = IBfo + Bfo + PbtAdj;
 	    }
 	  else
 	    {
@@ -324,7 +298,7 @@ tt550_tuning_factor_calc (RIG * rig, int tx)
 	      TFreq =
 		radio_freq - (double) (IBfo / 1e6) + (double) (Bfo / 1e6) -
 		(double) (PbtAdj / 1e6) + (double) (RitAdj / 1e6);
-	      IBfo = IBfo + (double) (PbtAdj / 1e6);
+	      IBfo = IBfo + PbtAdj ;
 	    }
 
 	}
@@ -1029,7 +1003,7 @@ tt550_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	  priv->voxgain = val.f;
 	return retval;
 
-      case RIG_LEVEL_VOXDELAY:
+      case RIG_LEVEL_VOX:
 	cmd_len = sprintf (cmdbuf, "UH%c" EOM, (int) (val.f * 255));
 	retval = write_block (&rs->rigport, cmdbuf, cmd_len);
 	if (retval == RIG_OK)
@@ -1063,6 +1037,11 @@ tt550_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	if (retval == RIG_OK)
 	  priv->bkindl = val.f;
 	return retval;
+
+      case RIG_LEVEL_IF:
+        priv->pbtadj = val.i;
+  	retval = tt550_set_rx_freq (rig, vfo, priv->tx_freq);
+        return retval;
 
       default:
 	rig_debug (RIG_DEBUG_ERR, "Unsupported set_level %d\n", level);
@@ -1171,7 +1150,7 @@ tt550_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 	val->f = priv->voxgain;
 	break;
 
-      case RIG_LEVEL_VOXDELAY:
+      case RIG_LEVEL_VOX:
 	val->f = priv->voxdelay;
 	break;
 
@@ -1191,6 +1170,10 @@ tt550_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 	val->f = priv->bkindl;
 	break;
 
+      case RIG_LEVEL_IF:
+        val->i = priv->pbtadj;
+        break;
+
       default:
 	rig_debug (RIG_DEBUG_ERR, "Unsupported get_level %d\n", level);
 	return -RIG_EINVAL;
@@ -1207,7 +1190,7 @@ tt550_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 const char *
 tt550_get_info (RIG * rig)
 {
-  static char buf[15];
+  static char buf[16];
   int firmware_len, retval;
 
   /*
@@ -1235,7 +1218,7 @@ tt550_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
 {
   struct rig_state *rs = &rig->state;
   int cmd_len;
-  char cmdbuf[32];
+  char cmdbuf[16];
 
   cmd_len = sprintf (cmdbuf, "Q%c" EOM, ptt == 0 ? '0' : '1');
   return (write_block (&rs->rigport, cmdbuf, cmd_len));
@@ -1304,9 +1287,10 @@ tt550_get_split_vfo (RIG * rig, vfo_t vfo, split_t * split, vfo_t * tx_vfo)
 int
 tt550_set_func (RIG * rig, vfo_t vfo, setting_t func, int status)
 {
-  unsigned char fctbuf[16], ackbuf[16];
+  unsigned char fctbuf[16];
   int fct_len, ack_len;
   struct tt550_priv_data *priv = (struct tt550_priv_data *) rig->state.priv;
+  struct rig_state *rs = &rig->state;
 
   /* Optimize:
    *   sort the switch cases with the most frequent first
@@ -1316,26 +1300,27 @@ tt550_set_func (RIG * rig, vfo_t vfo, setting_t func, int status)
     {
       case RIG_FUNC_VOX:
 	fct_len =
-	  sprintf (fctbuf, "U%c;", status == RIG_FUNC_VOX ? '0' : '1');
-	priv->vox = status == RIG_FUNC_VOX ? '0' : '1';
-	return tt550_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+	  sprintf (fctbuf, "U%c" EOM, status == 0 ? '0' : '1');
+	priv->vox = status;
+        return write_block (&rs->rigport, fctbuf, fct_len);
 
       case RIG_FUNC_NR:
 	fct_len =
-	  sprintf (fctbuf, "K%c%c;", status == RIG_FUNC_NR ? '0' : '1',
-		   priv->anf);
-	priv->en_nr = status == RIG_FUNC_NR ? '0' : '1';
-	return tt550_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+	  sprintf (fctbuf, "K%c%c" EOM, status == 0 ? '0' : '1',
+		   priv->anf == 0 ? '0' : '1');
+	priv->en_nr = status;
+        return write_block (&rs->rigport, fctbuf, fct_len);
 
       case RIG_FUNC_ANF:
 	fct_len =
-	  sprintf (fctbuf, "K%c%c;", priv->en_nr,
-		   status == RIG_FUNC_ANF ? '0' : '1');
-	priv->anf = status == RIG_FUNC_ANF ? '0' : '1';
-	return tt550_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+	  sprintf (fctbuf, "K%c%c" EOM, priv->en_nr == 0 ? '0' : '1',
+		   status == 0 ? '0' : '1');
+	priv->anf = status;
+        return write_block (&rs->rigport, fctbuf, fct_len);
+
 
       case RIG_FUNC_TUNER:
-	priv->tuner = status == RIG_FUNC_TUNER ? '0' : '1';
+	priv->tuner = status;
 	if (status == '0')
 	  tt550_ldg_control (rig, 0);
 	return RIG_OK;
