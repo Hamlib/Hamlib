@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: frame.c,v 1.16 2002-03-10 23:44:24 fillods Exp $
+ *		$Id: frame.c,v 1.17 2002-03-11 23:28:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,9 +40,6 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
-
-/* Prototypes */
-int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count);
 
 /*
  * Build a CI-V frame.
@@ -129,7 +126,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 * 			up to rs->retry times.
 		 */
 
-		retval = read_icom_block(&rs->rigport, buf, frm_len);
+		retval = read_icom_frame(&rs->rigport, buf);
 		if (retval != frm_len) {
 				Unhold_Decode(rig);
 				return retval < 0 ? retval : -RIG_EPROTO;
@@ -158,29 +155,9 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		return RIG_OK;
 }
 
-/*
- * read count useful bytes, discarding collisions
- * FIXME: check return codes/bytes read
- * this function will be deprecated soon!
- */
-int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count)
-{
-		int i;
-
-		i = fread_block(p, rxbuffer, count);
-
-#if 0
-		for (i=0; i<count; i++) {
-			if (rxbuffer[i] != COL)
-				break;
-		}
-		if (i > 0) {
-			memmove(rxbuffer, rxbuffer+i, count-i);
-			fread_block(stream, rxbuffer+i, count-i, timeout);
-		}
-#endif
-		return i;	/* duh! */
-}
+/* used in read_icom_frame as end of block */
+static const char icom_block_end[2] = {FI, COL};
+#define icom_block_end_length 2
 
 /*
  * read_icom_frame
@@ -190,26 +167,9 @@ int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count)
  */
 int read_icom_frame(port_t *p, unsigned char rxbuffer[])
 {
-		int i, count;
+		int i;
 
-		/*
-		 * ACKFRMLEN is supposed to be the smallest frame
-		 * we can expected on the CI-V bus
-		 * FIXME: a COLlision is smaller!!
-		 */
-		count = fread_block(p, rxbuffer, ACKFRMLEN);
-		if (count != ACKFRMLEN)
-				return count;
-
-		/*
-		 * buffered read are quite helpful here!
-		 * However, an automate with a state model would be more efficient..
-		 */
-		for (i=ACKFRMLEN; rxbuffer[i-1]!=FI; i++) {
-			count = fread_block(p, rxbuffer+i, 1);
-			if (count != 1)
-					return i;
-		}
+		i = read_string(p, rxbuffer, 16, icom_block_end, icom_block_end_length);
 
 		return i;
 }

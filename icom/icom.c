@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.56 2002-03-10 23:44:24 fillods Exp $
+ *		$Id: icom.c,v 1.57 2002-03-11 23:28:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2351,7 +2351,7 @@ rig_model_t probe_icom(port_t *p)
 			/* read out the bytes we just sent
 		 	* TODO: check this is what we expect
 		 	*/
-			frm_len = read_icom_block(p, buf, frm_len);
+			frm_len = read_icom_frame(p, buf);
 
 			/* this is the reply */
 			frm_len = read_icom_frame(p, buf);

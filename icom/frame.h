@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: frame.h,v 1.10 2002-03-10 23:44:24 fillods Exp $
+ *		$Id: frame.h,v 1.11 2002-03-11 23:28:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,7 +29,6 @@
  */
 int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *data, int data_len);
 
-int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count);
 int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len);
 int read_icom_frame(port_t *p, unsigned char rxbuffer[]);
 
