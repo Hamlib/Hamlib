@@ -1,5 +1,6 @@
 /**
  * \file src/rotator.c
+ * \ingroup rot
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \date 2000-2001
@@ -11,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotator.c,v 1.6 2002-01-27 14:55:30 fillods Exp $
+ *		$Id: rotator.c,v 1.7 2002-09-24 21:42:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +28,12 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/*! \page rot Rotator interface
+ *
+ * Rotator can be any kind of azimuth or azimuth and elevation controlled
+ * antenna system.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -47,6 +54,8 @@
 #include "rot_conf.h"
 #include "token.h"
 
+
+#ifndef DOC_HIDDEN
 
 #define DEFAULT_SERIAL_PORT "/dev/rotator"
 
@@ -96,6 +105,7 @@ static int remove_opened_rot(ROT *rot)
 	}
 	return -RIG_EINVAL;	/* Not found in list ! */
 }
+#endif /* !DOC_HIDDEN */
 
 /**
  * \brief execs cfunc() on each opened rot

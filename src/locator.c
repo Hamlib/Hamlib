@@ -1,5 +1,6 @@
 /**
  * \file src/locator.c
+ * \ingroup hamlib
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \date 2000-2002
@@ -11,7 +12,7 @@
  *  Hamlib Interface - locator and bearing conversion calls
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: locator.c,v 1.4 2002-09-01 22:23:49 fillods Exp $
+ *	$Id: locator.c,v 1.5 2002-09-24 21:42:56 fillods Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle, 
  *	by S. R. Sampson, N5OWK.
@@ -38,6 +39,12 @@
  *
  */
 
+/*! \page hamlib Hamlib general purpose API
+ *
+ *  Here are grouped some often used functions, like locator conversion 
+ *  routines.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -52,10 +59,14 @@
 #include <hamlib/rotator.h>
 
 
+#ifndef DOC_HIDDEN
+
 #define RADIAN  (180.0 / M_PI)
 
 /* arc length for 1 degree, 60 Nautical Miles */
 #define ARC_IN_KM 111.2
+
+#endif	/* !DOC_HIDDEN */
 
 /**
  * \brief Convert DMS angle to decimal representation
@@ -215,14 +226,15 @@ void longlat2locator(double longitude, double latitude, char *locator)
  * \param distance	The location where to store the distance
  * \param azimuth	The location where to store the bearing
  *
- *  Calculate the QRB between \a lat1,\a lat1 and
- *  \a lon2,\a lat2, and return the distance in kilometers and
- *  azimuth in decimal degrees for the short path.
+ *  Calculate the QRB between \a lat1,\a lat1 and \a lon2,\a lat2.
  *
  *	This version also takes into consideration the two points 
  *	being close enough to be in the near-field, and the antipodal points, 
  *	which are easily calculated.
  *
+ * \return the distance in kilometers and azimuth in decimal degrees 
+ * for the short path.
+*
  * \sa distance_long_path(), azimuth_long_path()
  */
 int qrb(double lon1, double lat1, double lon2, double lat2,
@@ -324,14 +336,33 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 	return 0;
 }
 
+/**
+ * \brief Calculate the long path distance between two points.
+ * \param distance	The distance
+ *
+ *  Calculate the long path (resp. short path) of a given distance.
+ *
+ * \return the distance in kilometers for the opposite path.
+ *
+ * \sa qrb()
+ */
 double distance_long_path(double distance)
 {
 	 return (ARC_IN_KM * 360.0) - distance;
 }
 
+/**
+ * \brief Calculate the long path bearing between two points.
+ * \param azimuth	The bearing
+ *
+ *  Calculate the long path (resp. short path) of a given bearing.
+ *
+ * \return the azimuth in decimal degrees for the opposite path.
+ *
+ * \sa qrb()
+ */
 double azimuth_long_path(double azimuth)
 {
 		return 360.0-azimuth;
 }
-
 

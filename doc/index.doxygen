@@ -4,7 +4,11 @@
 \author Frank Singleton
 
 <H2>Preface</H2>
-<P>This document describes the \e Hamlib library API.
+<P>This document describes the \e Hamlib library API for 1.1.4.
+Each function of the API occuring in rig.c at the time of release 
+is documented here.  Every effort was made to ensure all arguments 
+and return values are correct, but, as always, the source is definitive.
+Errors are bound to have occurred and others will be blamed.</P>
 
 <H2>Documentation License</H2>
 <P> This documentation is free; you can redistribute it without 
@@ -17,6 +21,9 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</P>
 
 <H2>API links</H2>
 <UL>
+<LI>Page \ref hamlib explains the design of the general API.
+<LI>Page \ref rig explains the design of the Rig (radio) API.
+<LI>Page \ref rot explains the design of the Rotator API.
 </UL>
 
 */

@@ -1,6 +1,6 @@
 /**
  * \file src/rig.c
- * \ingroup hamlib
+ * \ingroup rig
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
@@ -13,7 +13,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.62 2002-09-01 22:23:49 fillods Exp $
+ *	$Id: rig.c,v 1.63 2002-09-24 21:42:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,18 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/*! \page rig Rig (radio) interface
+ *
+ * Although the word rig can stand for lot of thinfs, we are
+ * understanding it as general remote controllable radio equipment,
+ * with a so-called tunable VFO.
+ */
+
+/**
+ * \example ../tests/testrig.c
+ * \anchor example_test_rig
  */
 
 #ifdef HAVE_CONFIG_H
@@ -59,11 +71,12 @@ const char hamlib_version[] = "Hamlib version " VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-	"Copyright (C) 2000, 2001, 2002 Stephane Fillod and Frank Singleton\n"
-	"This is free software; see the source for copying conditions.  "
-	"There is NO\n warranty; not even for MERCHANTABILITY or FITNESS FOR A"
-	"PARTICULAR PURPOSE.";
+  "Copyright (C) 2000, 2001, 2002 Stephane Fillod and Frank Singleton\n"
+  "This is free software; see the source for copying conditions.  There is NO\n"
+  "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 
+
+#ifndef DOC_HIDDEN
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 
@@ -101,28 +114,8 @@ static const char *rigerror_table[] = {
 		"Communication bus collision",
 		NULL,
 };
-/**
- * \internal
- */
-#define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
-/**
- * \brief get string describing the error code
- * \param errnum	The error code
- * \return the appropriate description string, ortherwise a NULL pointer 
- * if the error code is unknown.
- *
- * Returns a string describing the error code passed in the argument \a errnum.
- *
- * \todo support gettext/localization
- */
-const char *rigerror(int errnum)
-{
-		errnum = abs(errnum);
-		if (errnum > ERROR_TBL_SZ)
-			return NULL;
-		return rigerror_table[errnum];
-}
+#define ERROR_TBL_SZ (sizeof(rigerror_table)/sizeof(char *))
 
 /*
  * track which rig is opened (with rig_open)
@@ -169,7 +162,7 @@ static int remove_opened_rig(RIG *rig)
  *  The contents of the opened rig table
  *  is processed in random order according to a function
  *  pointed to by \a cfunc, whic is called with two arguments,
- *  the first pointing to the #RIG handle, the second
+ *  the first pointing to the RIG handle, the second
  *  to a data pointer \a data.
  *  If \a data is not needed, then it can be set to NULL.
  *  The processing of the opened rig table is stopped
@@ -190,11 +183,31 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
 	return RIG_OK;
 }
 
+#endif /* !DOC_HIDDEN */
+
 /**
- * \brief allocate a new #RIG handle
+ * \brief get string describing the error code
+ * \param errnum	The error code
+ * \return the appropriate description string, ortherwise a NULL pointer 
+ * if the error code is unknown.
+ *
+ * Returns a string describing the error code passed in the argument \a errnum.
+ *
+ * \todo support gettext/localization
+ */
+const char *rigerror(int errnum)
+{
+		errnum = abs(errnum);
+		if (errnum > ERROR_TBL_SZ)
+			return NULL;
+		return rigerror_table[errnum];
+}
+
+/**
+ * \brief allocate a new RIG handle
  * \param rig_model	The rig model for this new handle
  *
- * Allocates a new #RIG handle and initializes the associated data 
+ * Allocates a new \link ::RIG \endlink handle and initializes the associated data 
  * for \a rig_model.
  *
  * \return a pointer to the #RIG handle otherwise NULL if memory allocation
@@ -3164,6 +3177,7 @@ int rig_set_conf(RIG *rig, token_t token, const char *val)
  * \param val	The location where to store the value of config \a token
  *
  *  Retrieves the value of a configuration paramter associated with \a token.
+ *  The location pointed to by val must be large enough to hold the value of the config.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -3605,6 +3619,7 @@ int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 		return retcode;
 }
 
+#ifndef DOC_HIDDEN
 /*
  * call on every ext_levels of a rig
  */
@@ -3738,7 +3753,7 @@ int generic_restore_channel(RIG *rig, const channel_t *chan)
 
   return RIG_OK;
 }
-
+#endif	/* !DOC_HIDDEN */
 
 /**
  * \brief set channel data
@@ -3749,6 +3764,7 @@ int generic_restore_channel(RIG *rig, const channel_t *chan)
  *  be the state of a VFO specified by \a chan->vfo, or a memory channel
  *  specified with \a chan->vfo = RIG_VFO_MEM and \a chan->channel_num.
  *  See #channel_t for more information.
+ *
  *  The rig_set_channel is supposed to have no impact on the current VFO
  *  and memory number selected. Depending on backend and rig capabilities,
  *  the chan struct may not be set completely.
@@ -3838,6 +3854,20 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  *  be the state of a VFO specified by \a chan->vfo, or a memory channel
  *  specified with \a chan->vfo = RIG_VFO_MEM and \a chan->channel_num.
  *  See #channel_t for more information.
+ *
+ *  Example:
+\code
+  channel_t chan;
+  int err;
+
+  chan->vfo = RIG_VFO_MEM;
+  chan->channel_num = 10;
+  err = rig_get_channel(rig, &chan);
+  if (err != RIG_OK)
+  	error("get_channel failed: %s", rigerror(err));
+
+\endcode
+ *
  *  The rig_get_channel is supposed to have no impact on the current VFO
  *  and memory number selected. Depending on backend and rig capabilities,
  *  the chan struct may not be filled in completely.
