@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.64 2002-08-19 22:17:11 fillods Exp $
+ *	$Id: icom.c,v 1.65 2002-09-11 21:30:22 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1531,7 +1531,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		/*
 		 * except for IC-R8500
 		 */
-		fctbuf[0] = status? 0x00:0x01;
+		fctbuf[0] = status? 0x01:0x00;
 		fct_len = rig->caps->rig_model == RIG_MODEL_ICR8500 ? 0 : 1;
 
 		/* Optimize:
@@ -1540,7 +1540,12 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		switch (func) {
 		case RIG_FUNC_FAGC:
 			fct_cn = C_CTL_FUNC;
-			fct_sc = S_FUNC_AGC;	/* default to 0x01 super-fast */
+			fct_sc = S_FUNC_AGC;
+			/* note: should it be a LEVEL only, and no func? --SF */
+			if (status != 0)
+				fctbuf[0] = 0x01;	/* default to 0x01 super-fast */
+			else
+				fctbuf[0] = 0x02;
 			break;
 		case RIG_FUNC_NB:
 			fct_cn = C_CTL_FUNC;
@@ -1618,9 +1623,9 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		if (retval != RIG_OK)
 				return retval;
 
-		if (fct_len != 2) {
+		if (acklen != 1) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_func: wrong frame len=%d\n",
-								fct_len);
+								acklen);
 				return -RIG_EPROTO;
 		}
 
