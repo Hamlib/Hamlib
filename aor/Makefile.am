@@ -1,4 +1,4 @@
-AORSRCLIST = ar8200.c ar8000.c
+AORSRCLIST = ar8200.c ar8000.c ar5000.c
 
 lib_LTLIBRARIES = libhamlib-aor.la
 libhamlib_aor_la_SOURCES = $(AORSRCLIST) aor.c
