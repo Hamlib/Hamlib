@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8B description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: r8b.c,v 1.8 2004-08-12 02:05:02 fineware Exp $
+ *	$Id: r8b.c,v 1.9 2004-08-31 03:45:34 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +38,7 @@
 
 #define R8B_PARM_ALL (RIG_PARM_TIME)
 
-#define R8B_VFO (RIG_VFO_A|RIG_VFO_B)
+#define R8B_VFO (RIG_VFO_A|RIG_VFO_B|RIG_VFO_VFO|RIG_VFO_MEM)
 
 #define R8B_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_MCL|RIG_OP_CPY)
 

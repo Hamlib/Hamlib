@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.12 2004-08-17 20:41:04 fillods Exp $
+ *	$Id: drake.c,v 1.13 2004-08-31 03:45:34 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -173,17 +173,22 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
 	char vfo_function;
 
 	switch (vfo) {
-	case RIG_VFO_VFO:
-	case RIG_VFO_A: vfo_function = 'A'; break;
-	case RIG_VFO_B: vfo_function = 'B'; break;
+	case RIG_VFO_A  : vfo_function = 'A'; break;
+	case RIG_VFO_B  : vfo_function = 'B'; break;
+	case RIG_VFO_VFO: vfo_function = 'F'; break;
+	case RIG_VFO_MEM: vfo_function = 'C'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"drake_set_vfo: unsupported VFO %d\n",
 							vfo);
 		return -RIG_EINVAL;
 	}
 
-	cmd_len = sprintf(cmdbuf, "V%c" EOM, vfo_function);
-
+	cmd_len = 0;
+	if ((vfo_function=='A')||(vfo_function=='B'))
+		cmd_len = sprintf(cmdbuf, "V%c" EOM, vfo_function);
+	if ((vfo_function=='F')||(vfo_function=='C'))
+		cmd_len = sprintf(cmdbuf, "%c" EOM, vfo_function);
+	
 	retval = drake_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
 	return retval;
 }
@@ -196,7 +201,7 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
 int drake_get_vfo(RIG *rig, vfo_t *vfo)
 {
 	int mdbuf_len, retval;
-        char mdbuf[BUFSZ];
+    char mdbuf[BUFSZ];
 	char cvfo;
 
 	retval = drake_transaction (rig, "RM" EOM, 3, mdbuf, &mdbuf_len);
@@ -465,11 +470,20 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
  */
 int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
+	int len, ack_len, retval;
+    char buf[16], ackbuf[16];
 	struct drake_priv_data *priv = rig->state.priv;
 
 	priv->curr_ch = ch;
 
-	return RIG_OK;
+	len = sprintf(buf, "C%03d" EOM, ch);
+	
+	retval = drake_transaction (rig, buf, len, ackbuf, &ack_len);
+
+	if (ack_len != 2)
+		rig_debug(RIG_DEBUG_ERR,"drake_set_mem: could not set channel %03d.\n", ch);
+	
+	return retval;
 }
 
 /*
@@ -478,8 +492,9 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
+	struct drake_priv_data *priv = rig->state.priv;
 	int mdbuf_len, retval;
-        char mdbuf[BUFSZ];
+    char mdbuf[BUFSZ];
 	int chan;
 
 	retval = drake_transaction (rig, "RC" EOM, 3, mdbuf, &mdbuf_len);
@@ -498,6 +513,8 @@ int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
 	sscanf(mdbuf+1, "%03d", &chan);
 	*ch = chan;
 
+	priv->curr_ch = chan;
+	
 	return RIG_OK;
 }
 
@@ -522,7 +539,8 @@ int drake_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		len = sprintf(buf,"A E B" EOM);
 		break;
 	case RIG_OP_TO_VFO:
-		len = sprintf(buf,"C%03d" EOM, priv->curr_ch);
+		/* len = sprintf(buf,"C%03d" EOM, priv->curr_ch); */
+		len = sprintf(buf,"F" EOM);
 		break;
 	case RIG_OP_MCL:
 		len = sprintf(buf,"EC%03d" EOM, priv->curr_ch);
