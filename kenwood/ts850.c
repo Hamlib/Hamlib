@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.12 2004-02-08 17:04:50 fillods Exp $
+ *	$Id: ts850.c,v 1.13 2004-02-14 15:12:41 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,6 +43,8 @@
 #define TS850_LEVEL_SET (RIG_LEVEL_CWPITCH)
 
 #define TS850_VFO (RIG_VFO_A|RIG_VFO_B)
+
+#define TS850_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
 
 #define TS850_CHANNEL_CAPS \
 .freq=1,\
@@ -113,6 +115,7 @@ const struct rig_caps ts850_caps = {
 .max_rit =  kHz(1.27),
 .max_xit =  kHz(1.27),
 .max_ifshift =  Hz(0),
+.vfo_ops=TS850_VFO_OPS,
 .targetable_vfo =  RIG_TARGETABLE_FREQ,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
