@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.h,v 1.9 2001-12-16 11:24:17 fillods Exp $
+ *		$Id: misc.h,v 1.10 2001-12-20 07:48:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -65,6 +65,7 @@ extern HAMLIB_EXPORT(const char *) strvfo(vfo_t vfo);
 extern HAMLIB_EXPORT(const char *) strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) strlevel(setting_t);
 extern HAMLIB_EXPORT(const char *) strparm(setting_t);
+extern HAMLIB_EXPORT(const char *) strptrshift(rptr_shift_t);
 
 /* check if it's any of CR or LF */
 #define isreturn(c) ((c) == 10 || (c) == 13)
