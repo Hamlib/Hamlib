@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.4 2003-11-30 20:27:01 f4dwv Exp $
+ *	$Id: thg71.c,v 1.5 2003-12-02 22:47:56 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,6 +30,7 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "kenwood.h"
 #include "th.h"
 
@@ -44,11 +45,14 @@
                        )
 
 #define THG71_LEVEL_ALL (\
-			RIG_LEVEL_METER| \
-			RIG_LEVEL_STRENGTH| \
+			RIG_LEVEL_RAWSTR| \
                         RIG_LEVEL_SQL| \
                         RIG_LEVEL_RFPOWER\
 			)
+
+#ifndef RIG_TONEMAX
+#define RIG_TONEMAX     38
+#endif
 
 #define THG71_CHANNEL_CAPS \
 .freq=1,\
@@ -57,6 +61,8 @@
 .tuning_step=1,\
 .rptr_shift=1,\
 .rptr_offs=1,\
+.ctcss_tone=1,\
+.ctcss_sql=1,\
 .channel_desc=1
 
 
@@ -109,7 +115,10 @@ const struct rig_caps thg71_caps = {
 .has_set_func =  THG71_FUNC_ALL,
 .has_get_level =  THG71_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(THG71_LEVEL_ALL),
-.level_gran =  {},
+.level_gran = {
+        [LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 5,
+        [LVL_SQL].min.i = 0, [LVL_RAWSTR].max.i = 5,
+},
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
@@ -125,7 +134,12 @@ const struct rig_caps thg71_caps = {
 .chan_desc_sz =  6,
 
 
-.chan_list =  { {  1,  200, RIG_MTYPE_MEM , {THG71_CHANNEL_CAPS}},
+.chan_list =  { 
+		{  1,  199, RIG_MTYPE_MEM , {THG71_CHANNEL_CAPS}},  /* normal MEM */
+		{  200,219, RIG_MTYPE_EDGE , {THG71_CHANNEL_CAPS}}, /* U/L MEM */
+		{  220,220, RIG_MTYPE_MEM , {THG71_CHANNEL_CAPS}},  /* Priority */
+		{  221,222, RIG_MTYPE_MEM , {THG71_CHANNEL_CAPS}},  /* Call 0/1 */
+		{  223,231, RIG_MTYPE_MEM , {THG71_CHANNEL_CAPS}},  /* Band VFO */
 			 RIG_CHAN_END,
 		   },
 
@@ -151,6 +165,9 @@ const struct rig_caps thg71_caps = {
 	{RIG_MODE_AM, kHz(9)},
 	RIG_FLT_END,
 	},
+
+.str_cal ={ 2, { {0, -30 }, {5,-13}}}, /* guessed from technical manual */
+
 .priv =  (void *)&thg71_priv_caps,
 .rig_init =  kenwood_init,
 .rig_cleanup =  kenwood_cleanup,
@@ -405,18 +422,46 @@ int thg71_get_channel(RIG *rig, channel_t *chan)
 {
     char membuf[64],ackbuf[ACKBUF_LEN];
     int retval,ack_len=ACKBUF_LEN;
-    long long freq,offset;   
+    long long freq,offset;
+    char req[64];
     int chn, step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
+    if(chan->channel_num<200)
+    	sprintf(req,"MR 0,0,%03d",chan->channel_num);
+    else
+    if(chan->channel_num<210) {
+    	sprintf(req,"MR 0,0,L%01d",chan->channel_num-200);
+        sprintf(chan->channel_desc,"L%01d",chan->channel_num-200);
+    } else
+    if(chan->channel_num<220) {
+   	sprintf(req,"MR 0,0,U%01d",chan->channel_num-210);
+        sprintf(chan->channel_desc,"U%01d",chan->channel_num-210);
+    } else
+    if(chan->channel_num==220) {
+   	sprintf(req,"MR 0,0,PR");
+        sprintf(chan->channel_desc,"Pr");
+    } else
+    if(chan->channel_num<223) {
+    	sprintf(req,"CR 0,%01d",chan->channel_num-221);
+        if(chan->channel_num==221) sprintf(chan->channel_desc,"Call V");
+        if(chan->channel_num==222) sprintf(chan->channel_desc,"Call U");
+    } else
+    if(chan->channel_num<232) {
+    	sprintf(req,"VR %01d",chan->channel_num-222);
+        sprintf(chan->channel_desc,"BAND %01d",chan->channel_num-222);
+    } else
+	return -RIG_EINVAL;
 
-    sprintf(membuf,"MR 0,0,%03d"EOM,chan->channel_num);
+    sprintf(membuf,"%s"EOM,req);
     retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
-   
-    retval = sscanf(ackbuf, "MR 0,0,%d,%lld,%d,%d,%d,%d,%d,,%d,,%d,%lld",
-                                  &chn, &freq, &step, &shift, &rev, &tone,
-                                  &ctcss, &tonefq, &ctcssfq, &offset);
+
+    strcat(req,",%lld,%d,%d,%d,%d,%d,,%d,,%d,%lld");
+    retval = sscanf(ackbuf, req,
+                    &freq, &step, &shift, &rev, &tone,
+                    &ctcss, &tonefq, &ctcssfq, &offset);
+
     chan->freq=(freq_t)freq;
     chan->vfo=RIG_VFO_MEM;
     chan->tuning_step=rig->state.tuning_steps[step].ts;
@@ -439,13 +484,24 @@ int thg71_get_channel(RIG *rig, channel_t *chan)
 		break;
     }
     chan->rptr_offs=offset;
- 
-    sprintf(membuf,"MNA 0,%03d"EOM,chan->channel_num);
-    retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
+
+    if(tone)
+	 chan->ctcss_tone=rig->caps->ctcss_list[tonefq==1?0:tonefq-2];
+    else
+	 chan->ctcss_tone=0;
+    if(ctcss)
+	 chan->ctcss_sql=rig->caps->ctcss_list[ctcssfq==1?0:ctcssfq-2];
+    else
+	 chan->ctcss_sql=0;
+
+    if(chan->channel_num<200) {
+    	sprintf(membuf,"MNA 0,%03d"EOM,chan->channel_num);
+    	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
+        memcpy(chan->channel_desc,&ackbuf[10],7);
+    }
 
-    memcpy(chan->channel_desc,&ackbuf[10],7);
     return RIG_OK;
 }
 
@@ -454,20 +510,15 @@ int thg71_set_channel(RIG *rig, const channel_t *chan)
 {
     char membuf[ACKBUF_LEN],ackbuf[ACKBUF_LEN];
     int retval,ack_len=ACKBUF_LEN;
+    char req[64];
     long long freq,offset;   
-    int chn, step, shift;
-
+    int chn, step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
     chn=chan->channel_num;
     freq=(long long)chan->freq;
 
     for(step=0; rig->state.tuning_steps[step].ts!=0;step++)
 	if(chan->tuning_step==rig->state.tuning_steps[step].ts) break;
-
-    if(rig->state.tuning_steps[step].ts==0) {
-	    rig_debug(RIG_DEBUG_ERR, "%s: not supported tunning step %d\n", __FUNCTION__,chan->tuning_step);
-            return -RIG_EINVAL;
-    }
 
     switch(chan->rptr_shift) {
 	case RIG_RPT_SHIFT_NONE :
@@ -485,20 +536,67 @@ int thg71_set_channel(RIG *rig, const channel_t *chan)
     }
     offset=chan->rptr_offs;
     
-    sprintf(membuf, "MW 0,0,%03d,%011lld,%d,%d,0,0,0,,09,,09,%09lld,0"EOM,
-                                  chn, freq, step, shift, offset);
+    for (tone = 0; rig->caps->ctcss_list[tone] != 0 && tone < RIG_TONEMAX; tone++) {
+		if (rig->caps->ctcss_list[tone] == chan->ctcss_tone)
+			break;
+	}
+    if(rig->caps->ctcss_list[tone]==0) {
+	 tone=0;tonefq=9;
+    } else {
+	 tone=1;tonefq=tone==0?1:tone+2;
+    }
+    for (ctcss = 0; rig->caps->ctcss_list[ctcss] != 0 && ctcss < RIG_TONEMAX; ctcss++) {
+		if (rig->caps->ctcss_list[ctcss] == chan->ctcss_sql)
+			break;
+	}
+    if(rig->caps->ctcss_list[ctcss]==0) {
+	ctcss=0;ctcssfq=9;
+    } else {
+	 ctcss=1;ctcssfq=ctcss==0?1:ctcss+2;
+    }
+
+    if(chan->channel_num<200)
+    	sprintf(req,"MW 0,0,%03d",chan->channel_num);
+    else
+    if(chan->channel_num<210) {
+    	sprintf(req,"MW 0,0,L%01d",chan->channel_num-200);
+    } else
+    if(chan->channel_num<220) {
+   	sprintf(req,"MW 0,0,U%01d",chan->channel_num-210);
+    } else
+    if(chan->channel_num==220) {
+   	sprintf(req,"MW 0,0,PR");
+    } else
+    if(chan->channel_num<223) {
+    	sprintf(req,"CW 0,%01d",chan->channel_num-221);
+    } else
+    if(chan->channel_num<232) {
+    	sprintf(req,"VW %01d",chan->channel_num-222);
+    } else
+	return -RIG_EINVAL;
+
+    if(chan->channel_num<=220)
+    sprintf(membuf, "%s,%011lld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09lld,0"EOM,
+                    req,freq, step, shift, tone,
+                    ctcss, tonefq, ctcssfq, offset);
+    else
+    sprintf(membuf, "%s,%011lld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09lld"EOM,
+                    req, freq, step, shift, tone,
+                    ctcss, tonefq, ctcssfq, offset);
 
     retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
 
-    ack_len=ACKBUF_LEN;
-    sprintf(membuf,"MNA 0,%03d,%s"EOM,chan->channel_num,chan->channel_desc);
-    retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
+    if(chan->channel_num<200) {
+    	ack_len=ACKBUF_LEN;
+    	sprintf(membuf,"MNA 0,%03d,%s"EOM,chan->channel_num,chan->channel_desc);
+    	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
+    }
 
-	return RIG_OK;
+    return RIG_OK;
 }
 
 /* --------------------------------------------------------------------- */
