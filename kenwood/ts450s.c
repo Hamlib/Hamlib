@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS450S description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.20 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: ts450s.c,v 1.21 2004-11-15 16:53:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,8 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 
+#include "bandplan.h"
+
 /*
  * modes in use by the "MD" command
  */
@@ -43,11 +45,27 @@
 #define MD_FSKR	'9'
 
 #define TS450S_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
-#define TS450S_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TS450S_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define TS450S_AM_TX_MODES RIG_MODE_AM
-#define TS450S_FUNC_ALL (RIG_FUNC_LOCK) /* TODO */
-#define TS450S_LEVEL_ALL (RIG_LEVEL_STRENGTH|RIG_LEVEL_CWPITCH)
+#define TS450S_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_AIP|RIG_FUNC_TONE)
+#define TS450S_LEVEL_ALL (RIG_LEVEL_STRENGTH|RIG_LEVEL_CWPITCH|RIG_LEVEL_AGC|RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 #define TS450S_VFO (RIG_VFO_A|RIG_VFO_B)
+
+#define TS450S_PARMS (RIG_PARM_ANN)	/* optional */
+
+#define TS450S_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
+#define TS450S_SCAN_OPS (RIG_SCAN_VFO)
+
+#define TS450S_CHANNEL_CAPS { \
+	.freq=1,\
+	.mode=1,\
+	.tx_freq=1,\
+	.tx_mode=1,\
+	.split=1,\
+	.funcs=RIG_FUNC_TONE, \
+	.flags=RIG_CHFLAG_SKIP \
+	}
+
 
 static const struct kenwood_priv_caps  ts450_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
@@ -163,7 +181,6 @@ ts450s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_ATT:
-    case RIG_LEVEL_SQLSTAT:
     case RIG_LEVEL_PREAMP:
     case RIG_LEVEL_IF:
     case RIG_LEVEL_APF:
@@ -209,7 +226,6 @@ ts450s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     case RIG_LEVEL_AF:
     case RIG_LEVEL_RFPOWER:
     case RIG_LEVEL_ATT:
-    case RIG_LEVEL_SQLSTAT:
     case RIG_LEVEL_PREAMP:
     case RIG_LEVEL_IF:
     case RIG_LEVEL_APF:
@@ -240,13 +256,19 @@ ts450s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * Also this struct is READONLY!
  * RIT: Variable Range ±9.99 kHz
  *
+ * TODO: protocol to be checked with manual (identical to TS690)
+ * 	- get_channel/set_channel: MR/MW
+ * 	- how to set_split in vfo mode?
+ * 	- ...
+ *
+ * specs: http://www.qsl.net/sm7vhs/radio/kenwood/ts450/specs.htm
  * infos comes from http://www.cnham.com/ts450/ts_450_ex_control.pdf
  */
 const struct rig_caps ts450s_caps = {
 .rig_model =  RIG_MODEL_TS450S,
 .model_name = "TS-450S",
 .mfg_name =  "Kenwood",
-.version =  "0.2.6",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -258,18 +280,18 @@ const struct rig_caps ts450s_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
+.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
-.post_write_delay =  0,
-.timeout =  200,
+.post_write_delay =  100,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  TS450S_FUNC_ALL,
 .has_set_func =  TS450S_FUNC_ALL,
-.has_get_level =  TS450S_LEVEL_ALL,
+.has_get_level =  TS450S_LEVEL_ALL|RIG_LEVEL_RFPOWER,
 .has_set_level =  RIG_LEVEL_SET(TS450S_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.has_get_parm =  TS450S_PARMS,
+.has_set_parm =  TS450S_PARMS,
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
@@ -277,18 +299,32 @@ const struct rig_caps ts450s_caps = {
 .preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
 .attenuator =   { 6, 12, 18, RIG_DBLST_END, },
 .max_rit =  Hz(9999),
-.max_xit =  Hz(0),
+.max_xit =  Hz(9999),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  RIG_TARGETABLE_FREQ,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
+.vfo_ops = TS450S_VFO_OPS,
+.scan_ops =  TS450S_SCAN_OPS,
 
+.chan_list =  {
+			{  0, 89, RIG_MTYPE_MEM, TS450S_CHANNEL_CAPS },	/* TBC */
+			{ 90, 99, RIG_MTYPE_EDGE, TS450S_CHANNEL_CAPS },
+			RIG_CHAN_END,
+		},
 
-.chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
+.rx_range_list1 =  { 
+	{kHz(500),MHz(30),TS450S_ALL_MODES,-1,-1,TS450S_VFO},
+	RIG_FRNG_END,
+  }, /* rx range */
 
-.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-.tx_range_list1 =  { RIG_FRNG_END, },
+.tx_range_list1 =  { 
+	FRQ_RNG_HF(1,TS450S_OTHER_TX_MODES, W(5),W(100),TS450S_VFO,0),
+	FRQ_RNG_HF(1,TS450S_AM_TX_MODES, W(2),W(40),TS450S_VFO,0),   /* AM class */
+	RIG_FRNG_END,
+  },
+
 .rx_range_list2 =  {
 	{kHz(500),MHz(30),TS450S_ALL_MODES,-1,-1,TS450S_VFO},
 	RIG_FRNG_END,
@@ -315,27 +351,18 @@ const struct rig_caps ts450s_caps = {
 	RIG_FRNG_END,
   }, /* tx range */
 .tuning_steps =  {
-	 {TS450S_ALL_MODES,50},
-	 {TS450S_ALL_MODES,100},
-	 {TS450S_ALL_MODES,kHz(1)},
-	 {TS450S_ALL_MODES,kHz(5)},
-	 {TS450S_ALL_MODES,kHz(9)},
-	 {TS450S_ALL_MODES,kHz(10)},
-	 {TS450S_ALL_MODES,12500},
-	 {TS450S_ALL_MODES,kHz(20)},
-	 {TS450S_ALL_MODES,kHz(25)},
-	 {TS450S_ALL_MODES,kHz(100)},
-	 {TS450S_ALL_MODES,MHz(1)},
-	 {TS450S_ALL_MODES,0},	/* any tuning step */
+	 {TS450S_ALL_MODES,1},
+	 {TS450S_ALL_MODES,10},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB, kHz(2.4)},
-		{RIG_MODE_CW|RIG_MODE_RTTY, Hz(500)},
-		{RIG_MODE_AM, kHz(6)},
 		{RIG_MODE_FM, kHz(12)},
-		{RIG_MODE_FM, kHz(6)},
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(6)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_AM, kHz(2.4)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_AM, Hz(500)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_AM, kHz(12)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR, kHz(6)},
 		RIG_FLT_END,
 	},
 .priv =  (void *)&ts450_priv_caps,
@@ -367,5 +394,7 @@ const struct rig_caps ts450s_caps = {
 .set_powerstat =  kenwood_set_powerstat,
 .get_powerstat =  kenwood_get_powerstat,
 .reset =  kenwood_reset,
+.scan =  kenwood_scan,
 
 };
+

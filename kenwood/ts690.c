@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS690 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts690.c,v 1.1 2003-11-10 15:59:36 fillods Exp $
+ *	$Id: ts690.c,v 1.2 2004-11-15 16:51:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,17 +31,32 @@
 #include "kenwood.h"
 
 
-#define TS690_ALL_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_CW|RIG_MODE_SSB)
-#define TS690_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TS690_ALL_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_CW|RIG_MODE_RTTYR|RIG_MODE_CWR|RIG_MODE_SSB)
+#define TS690_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_CWR)
 #define TS690_AM_TX_MODES RIG_MODE_AM
 
 /* FIXME: TBC */
-#define TS690_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_ANF|RIG_FUNC_LOCK)
+#define TS690_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_AIP|RIG_FUNC_TONE)
 
-#define TS690_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
+#define TS690_LEVEL_ALL (RIG_LEVEL_STRENGTH|RIG_LEVEL_AGC|RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
+
+#define TS690_PARMS (RIG_PARM_ANN)	/* optional */
+
+#define TS690_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
+#define TS690_SCAN_OPS (RIG_SCAN_VFO)
 
 #define TS690_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS690_ANTS (0)
+
+#define TS690_CHANNEL_CAPS { \
+	.freq=1,\
+	.mode=1,\
+	.tx_freq=1,\
+	.tx_mode=1,\
+	.split=1,\
+	.funcs=RIG_FUNC_TONE, \
+	.flags=RIG_CHFLAG_SKIP \
+	}
 
 static const struct kenwood_priv_caps  ts690_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
@@ -52,40 +67,43 @@ static const struct kenwood_priv_caps  ts690_priv_caps  = {
  * written from specs:
  * 	http://www.qsl.net/sm7vhs/radio/kenwood/ts690/specs.htm
  *
- * TODO: protocol to be check with manual!
+ * TODO: protocol to be checked with manual!
+ * 	- get_channel/set_channel: MR/MW
+ * 	- how to set_split in vfo mode?
+ * 	- ...
  */
 const struct rig_caps ts690s_caps = {
 .rig_model =  RIG_MODEL_TS690S,
 .model_name = "TS-690S",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  1200,
-.serial_rate_max =  57600,	/* TBC */
+.serial_rate_min =  4800,
+.serial_rate_max =  4800,
 .serial_data_bits =  8,
-.serial_stop_bits =  1,
+.serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
+.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
-.post_write_delay =  0,
-.timeout =  200,
+.post_write_delay =  100,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  TS690_FUNC_ALL,
 .has_set_func =  TS690_FUNC_ALL,
-.has_get_level =  TS690_LEVEL_ALL,
+.has_get_level =  TS690_LEVEL_ALL|RIG_LEVEL_RFPOWER,
 .has_set_level =  RIG_LEVEL_SET(TS690_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.has_get_parm =  TS690_PARMS,
+.has_set_parm =  RIG_LEVEL_SET(TS690_PARMS),    /* FIXME: parms */
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
-.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
-.attenuator =   { RIG_DBLST_END, },	/* TBC */
+.preamp =   { RIG_DBLST_END, },
+.attenuator =   { RIG_DBLST_END, },
 .max_rit =  kHz(2.2),
 .max_xit =  kHz(2.2),
 .max_ifshift =  Hz(0),
@@ -93,11 +111,12 @@ const struct rig_caps ts690s_caps = {
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
-
+.vfo_ops = TS690_VFO_OPS,
+.scan_ops =  TS690_SCAN_OPS,
 
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM  },	/* TBC */
-			{ 90, 99, RIG_MTYPE_EDGE },
+			{  0, 89, RIG_MTYPE_MEM, TS690_CHANNEL_CAPS },	/* TBC */
+			{ 90, 99, RIG_MTYPE_EDGE, TS690_CHANNEL_CAPS },
 			RIG_CHAN_END,
 		},
 
@@ -129,24 +148,18 @@ const struct rig_caps ts690s_caps = {
   }, /* tx range */
 
 .tuning_steps =  {		/* FIXME: TBC */
-	 {TS690_ALL_MODES,50},
-	 {TS690_ALL_MODES,100},
-	 {TS690_ALL_MODES,kHz(1)},
-	 {TS690_ALL_MODES,kHz(5)},
-	 {TS690_ALL_MODES,kHz(9)},
-	 {TS690_ALL_MODES,kHz(10)},
-	 {TS690_ALL_MODES,12500},
-	 {TS690_ALL_MODES,kHz(20)},
-	 {TS690_ALL_MODES,kHz(25)},
-	 {TS690_ALL_MODES,kHz(100)},
-	 {TS690_ALL_MODES,MHz(1)},
+	 {TS690_ALL_MODES,1},
+	 {TS690_ALL_MODES,10},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_AM, kHz(5)},
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.2)},
 		{RIG_MODE_FM, kHz(12)},
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(6)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_AM, kHz(2.4)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_AM, Hz(500)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR|RIG_MODE_AM, kHz(12)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_CWR|RIG_MODE_RTTYR, kHz(6)},
 		RIG_FLT_END,
 	},
 .priv =  (void *)&ts690_priv_caps,
@@ -173,9 +186,7 @@ const struct rig_caps ts690s_caps = {
 .get_mem =  kenwood_get_mem,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
-.set_powerstat =  kenwood_set_powerstat,
-.get_powerstat =  kenwood_get_powerstat,
-.reset =  kenwood_reset,
+.scan =  kenwood_scan,
 
 };
 
