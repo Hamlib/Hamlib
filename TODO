@@ -4,40 +4,46 @@ hamlib - (C) Frank Singleton 2000
 GENERAL PROJECT TODO
 --------------------
 
-1. Implement more interfaces
-2. Write More extensive Test Suites
-3. Document API's
+1. Implement more interfaces/backends
+2. Write More extensive Test Suites [ongoing]
+3. Document API's [ongoing]
 4. Document Limitations/Assumptions.
-5. Build top level Makefile for maintenance  [ongoing]
 6. Encourage people to build cool GUI's using
    our libs. (any GTK wiz's out here ..)
-7. Move common routines to a common area
-   and avoid duplication. 	[ongoing]
-8. More safe checking during function calls.
+8. More safe checking during function calls (in rig_* wrappers).
  
-10. Improve Makefiles (autoconf?)
-
 11. Add some scanning routines
-
-12. Add general rig capabilities handling. see rig.h [ongoing]
 
 13. ~/.hamlibrc and /etc/hamlibrc preferences file
 
 14. Write the list of all functions that should be in the API,
 	see common/API_Candidates file.
 
-15. Handle retransmissions (no more than n) if timeout
+15. Handle retransmissions (no more than n) if timeout (->backends)
 16. Write .spec (rpm) and .deb (debian) package files
-17. Add support for a configurable debug level (none, function calls, 
-	packet traces) [started]
-17. In serial.c (and non serial too), use buffered IO instead of read/write,
-	for better performance. Use flushing with fwrite.
+18. rewrite the post_write_delay. Active delay is a waste of cycles!
+
 
 DONE
 ----
 
+5. Build top level Makefile for maintenance
+
+7. Move common routines to a common area
+   and avoid duplication.
+
 9. If read from rig takes > "n" seconds, then no longer
    block on read, just return error. 
+
+10. Improve Makefiles (autoconf?)
+
+12. Add general rig capabilities handling. see rig.h
+
+17a. Add support for a configurable debug level (none, function calls, 
+	packet traces)
+
+17b. In serial.c (and non serial too), use buffered IO instead of read/write,
+	for better performance. Use flushing with fwrite.
 
 18. Get CVS updates mailed to our hamlib-cvs-digest list
 
