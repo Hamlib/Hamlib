@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.10 2000-08-19 04:07:00 javabear Exp $  
+ *    $Id: ft847.h,v 1.11 2000-09-04 03:38:12 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -84,6 +84,7 @@ const unsigned char CTCSS_ENC_DEC_OFF = 0x2a;
 
 int rig_open(char *serial_port); /* return fd or -1 on error */
 int rig_close(int fd);
+struct rig_caps *rig_get_caps(); /* return ptr to capabilities */
 
 
 /*

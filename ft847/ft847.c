@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.16 2000-08-19 04:07:00 javabear Exp $  
+ * $Id: ft847.c,v 1.17 2000-09-04 03:36:15 javabear Exp $  
  *
  *
  *
@@ -35,6 +35,7 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 
+#include "rig.h"
 #include "serial.h"
 #include "ft847.h"
 
@@ -47,6 +48,10 @@ static unsigned char datain[5]; /* data read from rig */
 static long int  calc_freq_from_packed4(unsigned char *in);
 static void calc_packed4_from_freq(long int freq, unsigned char *out);
 
+
+static struct rig_caps rigft847 = {
+  "ft847", 4800, 56000, 8, 2, RIG_PARITY_NONE
+};
 
 
 /*
@@ -91,6 +96,28 @@ int rig_open(char *serial_port) {
 int rig_close(int fd) {
   return close_port(fd);
 }
+
+
+/*
+ * Gets rig capabilities.
+ * 
+ */
+
+struct rig_caps *rig_get_caps() {
+ 
+  struct rig_caps *r;
+  r = &rigft847;
+
+  printf("rig = %s \n", r->rig_name);
+
+  printf("rig = %s \n", rigft847.rig_name);
+
+  printf("rig serial_rate_min = = %u \n", rigft847.serial_rate_min);
+
+
+  return  &rigft847;
+}
+
 
 /*
  * Implement OPCODES
