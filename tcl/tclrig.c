@@ -2,7 +2,7 @@
  *  Hamlib tcl/tk bindings - rig
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: tclrig.c,v 1.1 2002-01-22 00:34:48 fillods Exp $
+ *		$Id: tclrig.c,v 1.2 2002-02-15 00:14:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -71,10 +71,16 @@ declare_proto_rig(set_vfo);
 declare_proto_rig(get_vfo);
 declare_proto_rig(get_info);
 declare_proto_rig(get_strength);
+declare_proto_rig(set_level);
+declare_proto_rig(get_level);
+declare_proto_rig(set_func);
+declare_proto_rig(get_func);
+declare_proto_rig(set_parm);
+declare_proto_rig(get_parm);
 #if 0
 declare_proto_rig(set_ptt);
 declare_proto_rig(get_ptt);
-declare_proto_rig(get_ptt);
+declare_proto_rig(get_dcd);
 declare_proto_rig(set_rptr_shift);
 declare_proto_rig(get_rptr_shift);
 declare_proto_rig(set_rptr_offs);
@@ -92,12 +98,6 @@ declare_proto_rig(get_split);
 declare_proto_rig(set_ts);
 declare_proto_rig(get_ts);
 declare_proto_rig(power2mW);
-declare_proto_rig(set_level);
-declare_proto_rig(get_level);
-declare_proto_rig(set_func);
-declare_proto_rig(get_func);
-declare_proto_rig(set_parm);
-declare_proto_rig(get_parm);
 declare_proto_rig(set_bank);
 declare_proto_rig(set_mem);
 declare_proto_rig(get_mem);
@@ -124,6 +124,12 @@ static struct cmd_table cmd_list[] = {
 		{ "set_vfo", set_vfo, ARG_IN, "VFO" },
 		{ "get_vfo", get_vfo, ARG_OUT, "VFO" },
 		{ "get_strength", get_strength, ARG_OUT, "Strength" },
+		{ "set_level", set_level, ARG_IN, "Level", "Value" },
+		{ "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Value" },
+		{ "set_func", set_func, ARG_IN, "Func", "Func status" },
+		{ "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
+		{ "set_parm", set_parm, ARG_IN, "Parm", "Value" },
+		{ "get_parm", get_parm, ARG_IN1|ARG_OUT2, "Parm", "Value" },
 #if 0
 		{ "set_ptt", set_ptt, ARG_IN, "PTT" },
 		{ "get_ptt", get_ptt, ARG_OUT, "PTT" },
@@ -143,12 +149,6 @@ static struct cmd_table cmd_list[] = {
 		{ "get_split", get_split, ARG_OUT, "Split mode" },
 		{ "set_ts", set_ts, ARG_IN, "Tuning step" },
 		{ "get_ts", get_ts, ARG_OUT, "Tuning step" },
-		{ "set_level", set_level, ARG_IN, "Level", "Value" },
-		{ "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Value" },
-		{ "set_func", set_func, ARG_IN, "Func", "Func status" },
-		{ "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
-		{ "set_parm", set_parm, ARG_IN, "Level", "Value" },
-		{ "get_parm", get_parm, ARG_IN1|ARG_OUT2, "Level", "Value" },
 		{ "set_mem", set_mem, ARG_IN, "Memory#" },
 		{ "get_mem", get_mem, ARG_OUT, "Memory#" },
 		{ "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
@@ -456,6 +456,128 @@ declare_proto_rig(get_info)
 
 		return RIG_OK;
 }
+
+
+declare_proto_rig(set_func)
+{
+		int status;
+		setting_t func;
+		int stat;
+
+		func = parse_func(Tcl_GetString(objv[2]));
+		status = Tcl_GetIntFromObj(interp, objv[3], &stat);
+		if (status != TCL_OK)
+			return status;
+		return rig_set_func(rig, RIG_VFO_CURR, func, stat);
+}
+
+declare_proto_rig(get_func)
+{
+		int status;
+		setting_t func;
+		int stat;
+		Tcl_Obj *resultPtr;
+
+		resultPtr = Tcl_GetObjResult(interp);
+
+		func = parse_func(Tcl_GetString(objv[2]));
+		status = rig_get_func(rig, RIG_VFO_CURR, func, &stat);
+		if (status != RIG_OK)
+				return status;
+
+		Tcl_SetIntObj(resultPtr, stat);
+		return RIG_OK;
+}
+
+declare_proto_rig(set_level)
+{
+		int status;
+		setting_t level;
+		value_t val;
+		double d;
+
+		level = parse_level(Tcl_GetString(objv[2]));
+		if (RIG_LEVEL_IS_FLOAT(level)) {
+			status = Tcl_GetDoubleFromObj(interp, objv[3], &d);
+			val.f = d;
+		} else {
+			status = Tcl_GetIntFromObj(interp, objv[3], &val.i);
+		}
+		if (status != TCL_OK)
+			return status;
+		return rig_set_level(rig, RIG_VFO_CURR, level, val);
+}
+
+declare_proto_rig(get_level)
+{
+		int status;
+		setting_t level;
+		value_t val;
+		double d;
+		Tcl_Obj *resultPtr;
+
+		resultPtr = Tcl_GetObjResult(interp);
+
+		level = parse_level(Tcl_GetString(objv[2]));
+		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
+		if (status != RIG_OK)
+				return status;
+
+		if (RIG_LEVEL_IS_FLOAT(level)) {
+			d = val.f;
+			Tcl_SetDoubleObj(resultPtr, d);
+		} else {
+			Tcl_SetIntObj(resultPtr, val.i);
+		}
+		return RIG_OK;
+}
+
+declare_proto_rig(set_parm)
+{
+		int status;
+		setting_t parm;
+		value_t val;
+		double d;
+
+		parm = parse_parm(Tcl_GetString(objv[2]));
+		if (RIG_PARM_IS_FLOAT(parm)) {
+			status = Tcl_GetDoubleFromObj(interp, objv[3], &d);
+			val.f = d;
+		} else {
+			status = Tcl_GetIntFromObj(interp, objv[3], &val.i);
+		}
+		if (status != TCL_OK)
+			return status;
+		return rig_set_parm(rig, parm, val);
+}
+
+declare_proto_rig(get_parm)
+{
+		int status;
+		setting_t parm;
+		value_t val;
+		double d;
+		Tcl_Obj *resultPtr;
+
+		resultPtr = Tcl_GetObjResult(interp);
+
+		parm = parse_parm(Tcl_GetString(objv[2]));
+		status = rig_get_parm(rig, parm, &val);
+		if (status != RIG_OK)
+				return status;
+
+		if (RIG_PARM_IS_FLOAT(parm)) {
+			d = val.f;
+			Tcl_SetDoubleObj(resultPtr, d);
+		} else {
+			Tcl_SetIntObj(resultPtr, val.i);
+		}
+		return RIG_OK;
+}
+
+
+
+
 
 #if 0
 
