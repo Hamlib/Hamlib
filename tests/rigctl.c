@@ -7,7 +7,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.22 2001-12-20 07:51:02 fillods Exp $  
+ * $Id: rigctl.c,v 1.23 2001-12-20 22:59:08 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -924,7 +924,7 @@ declare_proto_rig(power2mW)
 		printf("Power [0.0 .. 1.0]: ");
 		scanf("%f", &power);
 		printf("Frequency: ");
-		scanf("%Ld", &freq);
+		scanf("%lld", &freq);
 		printf("Mode: ");
 		scanf("%d", &mode);
 		status = rig_power2mW(rig, &mwp, power, freq, mode);

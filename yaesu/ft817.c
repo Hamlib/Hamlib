@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.c,v 1.2 2001-12-15 04:09:16 aa1vl Exp $  
+ *    $Id: ft817.c,v 1.3 2001-12-20 22:59:09 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -349,7 +349,7 @@ int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft817: requested freq = %Li Hz \n", freq);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft817: requested freq = %lli Hz \n", freq);
   rig_debug(RIG_DEBUG_VERBOSE,"ft817: vfo =%i \n", vfo);
 
   if( ( vfo != RIG_VFO_CURR ) &&
@@ -371,7 +371,7 @@ int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   to_bcd_be(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft817: requested freq after conversion = %Li Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
+  rig_debug(RIG_DEBUG_VERBOSE,"ft817: requested freq after conversion = %lli Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
   write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);

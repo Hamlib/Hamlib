@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.21 2001-12-20 07:46:12 fillods Exp $
+ *		$Id: kenwood.c,v 1.22 2001-12-20 22:59:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -319,7 +319,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		if (retval != RIG_OK)
 			return retval;
 
-		sscanf(freqbuf+2, "%Ld", freq);
+		sscanf(freqbuf+2, "%lld", freq);
 
 		return RIG_OK;
 }

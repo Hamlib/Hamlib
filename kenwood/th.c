@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: th.c,v 1.1 2001-11-09 15:42:11 f4cfe Exp $
+ *		$Id: th.c,v 1.2 2001-12-20 22:59:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -115,7 +115,7 @@ int th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		if (retval != RIG_OK)
 			return retval;
 
-		sscanf(freqbuf+3, "%Ld", freq);
+		sscanf(freqbuf+3, "%lld", freq);
 
 		return RIG_OK;
 }

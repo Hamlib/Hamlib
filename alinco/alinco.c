@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: alinco.c,v 1.10 2001-12-19 03:35:27 fillods Exp $
+ *		$Id: alinco.c,v 1.11 2001-12-20 22:59:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -243,7 +243,7 @@ int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 		/* extract RX freq */
 		freqbuf[16] = '\0';
-		sscanf(freqbuf+6, "%Ld", freq);
+		sscanf(freqbuf+6, "%lld", freq);
 
 		return RIG_OK;
 }
@@ -420,7 +420,7 @@ int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
 		/* extract TX freq first, as RX kills freqbuf[16] */
 		freqbuf[26] = '\0';
-		sscanf(freqbuf+16, "%Ld", tx_freq);
+		sscanf(freqbuf+16, "%lld", tx_freq);
 
 		return RIG_OK;
 }

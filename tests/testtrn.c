@@ -12,7 +12,7 @@
 
 int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		printf("Rig changed freq to %LiHz\n",freq);
+		printf("Rig changed freq to %lliHz\n",freq);
 		return 0;
 }
 

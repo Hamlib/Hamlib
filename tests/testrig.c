@@ -194,7 +194,7 @@ int main (int argc, char *argv[])
 	retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 	
 	if (retcode == RIG_OK ) {
-	  printf("rig_get_freq: freq = %Li \n", freq);
+	  printf("rig_get_freq: freq = %lli \n", freq);
 	} else {
 	  printf("rig_get_freq: error =  %s \n", rigerror(retcode));
 	}

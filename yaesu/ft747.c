@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.15 2001-12-11 22:04:45 fillods Exp $  
+ * $Id: ft747.c,v 1.16 2001-12-20 22:59:08 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -382,7 +382,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq = %Li Hz \n", freq);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq = %lli Hz \n", freq);
 
   /* frontend sets VFO now , if targetable_vfo = 0 */
 
@@ -399,7 +399,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   to_bcd(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %Li Hz \n", from_bcd(p->p_cmd,8)* 10 );
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %lli Hz \n", from_bcd(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
   write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
@@ -439,7 +439,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:  freq = %Li Hz  for VFO = %u \n", f, vfo);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:  freq = %lli Hz  for VFO = %u \n", f, vfo);
 
   (*freq) = f;			/* return diplayed frequency */
 
