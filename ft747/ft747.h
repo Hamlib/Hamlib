@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.14 2000-11-25 08:19:21 javabear Exp $  
+ *    $Id: ft747.h,v 1.15 2000-11-25 21:49:34 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@
 #define FT747_WRITE_DELAY                    50
 
 
-/* Sequential fast writes confuse FT747 without this delay */
+/* Sequential fast writes confuse my FT747 without this delay */
 
 #define FT747_POST_WRITE_DELAY               5
 
@@ -65,7 +65,7 @@
  */
 
 
-/* MODES - when setting modes via cmd_mode_set() */
+/* Internal MODES - when setting modes via cmd_mode_set() */
 
 #define MODE_SET_LSB    0x00
 #define MODE_SET_USB    0x01
@@ -91,6 +91,8 @@
 #define MODE_USB    0x08
 #define MODE_LSB    0x10
 #define MODE_NAR    0x80   
+
+/* All relevent bits */
 #define MODE_MASK   0x9f   
 
 
@@ -117,7 +119,7 @@
 
 #define FT747_SUMO_DISPLAYED_MODE             0x18    
 #define FT747_SUMO_DISPLAYED_STATUS           0x00    
-#define FT747_SUMO_DISPLAYED_FREQ             0x00    
+#define FT747_SUMO_DISPLAYED_FREQ             0x01    
 
 
 /*
@@ -127,7 +129,8 @@
 
 struct ft747_priv_data {
   unsigned char pacing;		/* pacing value */
-  unsigned int read_update_delay;	/* depends on pacing value */
+  unsigned int read_update_delay;	 /* depends on pacing value */
+  unsigned char p_cmd[FT747_CMD_LENGTH]; /* private copy of constructed CAT cmd */
   unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
 };
 

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.20 2000-11-25 08:20:06 javabear Exp $  
+ * $Id: ft747.c,v 1.21 2000-11-25 21:49:34 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,10 +31,10 @@
 /*
  * TODO -   FS
  *
- * 1. Rentrant code
+ * 1. Rentrant code, handle static stuff
  * 2. rationalise code, more helper functions.
- *
- *
+ * 3. Allow cached reads
+ * 4. Fix crappy 25Hz resolution handling
  *
  *
  */
@@ -52,11 +52,11 @@
 #include <hamlib/riglist.h>
 #include "serial.h"
 #include "ft747.h"
+#include "misc.h"
 
 
 /* prototypes */
 
-int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
 static int ft747_get_update_data(RIG *rig);
 
 
@@ -64,16 +64,10 @@ static int ft747_get_update_data(RIG *rig);
  * Receiver caps 
  */
 
-#if 0
-#define FT747_ALL_RX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NAM| RIG_MODE_NCW)
-#define FT747_SSB_CW_RX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NCW)
-#define FT747_AM_RX_MODES (RIG_MODE_AM| RIG_MODE_NAM)
-#else
+
 #define FT747_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT747_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT747_AM_RX_MODES (RIG_MODE_AM)
-#endif
-
 #define FT747_FM_RX_MODES (RIG_MODE_FM)
 
 
@@ -157,12 +151,6 @@ const struct rig_caps ft747_caps = {
 
 };
 
-/*  
- * Init some private data
- */
-
-static const struct ft747_priv_data ft747_priv = { 0 }; /* dummy atm */
-
 
 /*
  * Function definitions below
@@ -189,7 +177,7 @@ int ft747_init(RIG *rig) {
     return -RIG_ENOMEM;
   }
   
-  printf("ft747:ft747_init called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_init called \n");
 
   /* init the priv_data from static struct 
    *          + override with rig-specific preferences
@@ -273,11 +261,58 @@ int ft747_close(RIG *rig) {
 
 
 int ft747_set_freq(RIG *rig, freq_t freq) {
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+
+  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x0a }; /* set freq */
+  static unsigned char bcd[] = { 0,0,0,0 }; /* set freq */
+
+  int i;
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq = %Li Hz \n", freq);
+
+  to_bcd(bcd,freq,8);
+
+  dump_hex(bcd,4);		/* just checking */
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %Li Hz \n", from_bcd(bcd,8));
+
+  to_bcd(bcd,freq/10,8);	/* must pass as multiple of 10 Hz to ft747 yuk , see TODO -- FS*/
+
+  for(i=0; i<4; i++) {
+    cmd[i] = bcd[i];		/* add bcd coded freq to cmd */
+  }
+
+  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+
+
   return -RIG_ENIMPL;
 }
 
 int ft747_get_freq(RIG *rig, freq_t *freq) {
-  return -RIG_ENIMPL;
+  struct ft747_priv_data *p;
+  freq_t f;
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft747_priv_data*)rig->state.priv;
+
+  ft747_get_update_data(rig);	/* get whole shebang from rig */
+    
+  f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ+1]),8); /* grab freq and convert */
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: displayed freq = %Li Hz \n", f);
+
+  (*freq) = f;			/* return diplayed frequency */
+
+  return RIG_OK;
 }
 
 
@@ -337,7 +372,6 @@ int ft747_set_mode(RIG *rig, rmode_t mode) {
 }
 
 int ft747_get_mode(RIG *rig, rmode_t *mode) {
-  struct rig_state *rig_s;
   struct ft747_priv_data *p;
   unsigned char mymode;		/* ft747 mode */
 
@@ -345,7 +379,6 @@ int ft747_get_mode(RIG *rig, rmode_t *mode) {
     return -RIG_EINVAL;
   
   p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
 
   ft747_get_update_data(rig);	/* get whole shebang from rig */
   
@@ -426,7 +459,6 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
 
 
 int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
-  struct rig_state *rig_s;
   struct ft747_priv_data *p;
   unsigned char status;		/* ft747 status flag */
 
@@ -434,7 +466,6 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
     return -RIG_EINVAL;
   
   p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
 
   ft747_get_update_data(rig);	/* get whole shebang from rig */
   
@@ -486,7 +517,6 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt) {
 }
 
 int ft747_get_ptt(RIG *rig, ptt_t *ptt) {
-  struct rig_state *rig_s;
   struct ft747_priv_data *p;
   unsigned char status;		/* ft747 mode */
 
@@ -494,7 +524,6 @@ int ft747_get_ptt(RIG *rig, ptt_t *ptt) {
     return -RIG_EINVAL;
   
   p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
 
   ft747_get_update_data(rig);	/* get whole shebang from rig */
   
