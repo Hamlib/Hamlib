@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8A description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: r8a.c,v 1.3 2004-08-08 20:14:25 fineware Exp $
+ *	$Id: r8a.c,v 1.4 2004-08-12 02:05:28 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -138,12 +138,14 @@ const struct rig_caps r8a_caps = {
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(2.3)},	/* normal */
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(6)},	/* wide */
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(4)},
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(1.8)},	/* narrow */
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, Hz(500)},
 		{RIG_MODE_FM, kHz(12)},
+		{RIG_MODE_AM|RIG_MODE_AMS, kHz(6)},
+		{RIG_MODE_AM|RIG_MODE_AMS, kHz(4)},
+		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.3)},
+		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(1.8)},
+		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(4)},
+		{RIG_MODE_CW, Hz(500)},
+		{RIG_MODE_CW, kHz(1.8)},
 		RIG_FLT_END,
 	},
 .str_cal = R8A_STR_CAL,

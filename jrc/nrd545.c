@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.11 2004-08-08 20:13:19 fineware Exp $
+ *	$Id: nrd545.c,v 1.12 2004-08-12 02:05:50 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -169,10 +169,13 @@ const struct rig_caps nrd545_caps = {
 	},
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
-		{RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_FM, kHz(10)},
-		{NRD545_MODES, kHz(2.4)},
-		{NRD545_MODES, kHz(1)},
-		{NRD545_MODES, kHz(4.5)},
+		{RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_ECSS|RIG_MODE_FM, kHz(10)},
+		{RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_ECSS|RIG_MODE_FM, kHz(4.5)},
+		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
+		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(1)},
+		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(4.5)},
+		{RIG_MODE_CW, kHz(1)},
+		{RIG_MODE_CW, kHz(2.4)},
 		RIG_FLT_END,
 	},
 .str_cal = NRD545_STR_CAL,
