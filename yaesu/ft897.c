@@ -11,7 +11,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.4 2005-01-25 00:21:58 fillods Exp $  
+ *    $Id: ft897.c,v 1.5 2005-03-26 13:03:26 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -36,11 +36,6 @@
  *   - RIT ON/OFF without touching the RIT offset. This would
  *     need frontend support (eg. a new RIG_FUNC_xxx)
  *
- *   - VFO A/B toggle. Needs frontend support (RIG_FUNC_xxx)
- *
- *   - Split ON/OFF. Maybe some sort of split operation could
- *     be supported with this and the above???
- *
  *   - DCS encoder/squelch ON/OFF, similar to RIG_FUNC_TONE/TSQL.
  *     Needs frontend support.
  *
@@ -49,14 +44,21 @@
  *      - discriminator centered (yes/no flag)
  *      - received ctcss/dcs matched (yes/no flag)
  *
+ * The manual also indicates that CTCSS and DCS codes can be set
+ * separately for tx and rx, but this doesn't seem to work. It
+ * doesn't work from front panel either.
+ *
+ * DONE (--sf):
+ *
+ *   - VFO A/B toggle. Needs frontend support (RIG_OP_TOGGLE)
+ *
+ *   - Split ON/OFF. Maybe some sort of split operation could
+ *     be supported with this and the above???
+ *
  *   - TX status command returns info that is not used:
  *
  *      - split on/off flag
  *      - high swr flag
- *
- * The manual also indicates that CTCSS and DCS codes can be set
- * separately for tx and rx, but this doesn't seem to work. It
- * doesn't work from front panel either.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -78,6 +80,38 @@
 #include "misc.h"
 #include "tones.h"
 #include "bandplan.h"
+
+
+static int ft897_init(RIG *rig);
+static int ft897_open(RIG *rig);
+static int ft897_cleanup(RIG *rig);
+static int ft897_close(RIG *rig);
+static int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+// static int ft897_set_vfo(RIG *rig, vfo_t vfo);
+// static int ft897_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft897_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+static int ft897_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+// static int ft897_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ft897_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ft897_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+// static int ft897_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+// static int ft897_set_parm(RIG *rig, setting_t parm, value_t val);
+// static int ft897_get_parm(RIG *rig, setting_t parm, value_t *val);
+static int ft897_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+static int ft897_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t code);
+static int ft897_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+static int ft897_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft897_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+static int ft897_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+static int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+// static int ft897_set_powerstat(RIG *rig, powerstat_t status);
 
 /* Native ft897 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
@@ -144,7 +178,7 @@ const struct rig_caps ft897_caps = {
   .rig_model = 		RIG_MODEL_FT897,
   .model_name = 	"FT-897", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.1", 
+  .version = 		"0.2", 
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_ALPHA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -163,7 +197,7 @@ const struct rig_caps ft897_caps = {
   .retry = 		0, 
   .has_get_func =       RIG_FUNC_NONE,
   .has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL, 
-  .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER,
+  .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_SWR | RIG_LEVEL_RAWSTR,
   .has_set_level = 	RIG_LEVEL_NONE,
   .has_get_parm = 	RIG_PARM_NONE,
   .has_set_parm = 	RIG_PARM_NONE,
@@ -181,6 +215,7 @@ const struct rig_caps ft897_caps = {
   .bank_qty = 		0,
   .chan_desc_sz = 	0,
   .chan_list =          { RIG_CHAN_END, },
+  .vfo_ops =		RIG_OP_TOGGLE,
 
   .rx_range_list1 =  { 
     {kHz(100),MHz(56), FT897_ALL_RX_MODES,-1,-1},
@@ -257,8 +292,8 @@ const struct rig_caps ft897_caps = {
   .get_split_freq = 	NULL,
   .set_split_mode = 	NULL,
   .get_split_mode = 	NULL,
-  .set_split_vfo = 	NULL,
-  .get_split_vfo =	NULL,
+  .set_split_vfo =	ft897_set_split_vfo,
+  .get_split_vfo =	ft897_get_split_vfo,
   .set_rit = 		ft897_set_rit,
   .get_rit = 		NULL,
   .set_xit = 		NULL,
@@ -284,6 +319,7 @@ const struct rig_caps ft897_caps = {
   .get_func = 		NULL,
   .set_parm = 		NULL,
   .get_parm = 		NULL,
+  .vfo_op =		ft897_vfo_op,
 }; 
 
 /* ---------------------------------------------------------------------- */
@@ -507,6 +543,24 @@ static int ft897_get_pometer_level(RIG *rig, value_t *val)
   return RIG_OK;
 }
 
+static int ft897_get_swr_level(RIG *rig, value_t *val)
+{
+  struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+  int n;
+
+  if (check_cache_timeout(&p->tx_status_tv))
+    if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
+      return n;
+
+  /* Valid only if PTT is on */
+  if ((p->tx_status & 0x80) == 0)
+    val->f = p->tx_status & 0x40 ? 30.0 : 1.0;	/* or infinity? */
+  else
+    val->f = 0.0;
+
+  return RIG_OK;
+}
+
 static int ft897_get_smeter_level(RIG *rig, value_t *val)
 {
   struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
@@ -523,6 +577,20 @@ static int ft897_get_smeter_level(RIG *rig, value_t *val)
   return RIG_OK;
 }
 
+static int ft897_get_rawstr_level(RIG *rig, value_t *val)
+{
+  struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+  int n;
+
+  if (check_cache_timeout(&p->rx_status_tv))
+    if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_RX_STATUS)) < 0)
+      return n;
+
+  val->i = p->rx_status & 0x0F;
+
+  return RIG_OK;
+}
+
 int ft897_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
   if (vfo != RIG_VFO_CURR)
@@ -532,8 +600,14 @@ int ft897_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   case RIG_LEVEL_STRENGTH:
     return ft897_get_smeter_level(rig, val);
 
+  case RIG_LEVEL_RAWSTR:
+    return ft897_get_rawstr_level(rig, val);
+
   case RIG_LEVEL_RFPOWER:
     return ft897_get_pometer_level(rig, val);
+
+  case RIG_LEVEL_SWR:
+    return ft897_get_swr_level(rig, val);
 
   default:
     return -RIG_EINVAL;
@@ -707,6 +781,76 @@ int ft897_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
   if (n < 0 && n != -RIG_ERJCTED)
     return n;
+
+  return RIG_OK;
+}
+
+int ft897_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+  int index, n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "ft897: ft897_vfo_op called\n");
+
+  switch (op) {
+  case RIG_OP_TOGGLE:
+    index = FT897_NATIVE_CAT_SET_VFOAB;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+
+  n = ft897_send_cmd(rig, index);
+
+  if (n < 0 && n != -RIG_ERJCTED)
+    return n;
+
+  return RIG_OK;
+}
+
+int ft897_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+  int index, n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "ft897: ft897_set_split_vfo called\n");
+
+  switch(split) {
+  case RIG_SPLIT_OFF:
+    index = FT897_NATIVE_CAT_SPLIT_OFF;
+    break;
+  case RIG_SPLIT_ON:
+    index = FT897_NATIVE_CAT_SPLIT_ON;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+
+  n = ft897_send_cmd(rig, index);
+
+  if (n < 0 && n != -RIG_ERJCTED)
+    return n;
+
+  return RIG_OK;
+}
+
+int ft897_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+  struct ft897_priv_data *p = (struct ft897_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->tx_status_tv))
+    if ((n = ft897_get_status(rig, FT897_NATIVE_CAT_GET_TX_STATUS)) < 0)
+      return n;
+
+  *split = ((p->tx_status & 0x20) == 0) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
 
   return RIG_OK;
 }

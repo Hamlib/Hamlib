@@ -10,7 +10,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.h,v 1.1 2004-02-08 17:08:46 fillods Exp $  
+ *    $Id: ft897.h,v 1.2 2005-03-26 13:03:27 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -134,33 +134,5 @@ struct ft897_priv_data {
   unsigned char fm_status[YAESU_CMD_LENGTH];
 };
 
-
-int ft897_init(RIG *rig);
-int ft897_open(RIG *rig);
-int ft897_cleanup(RIG *rig);
-int ft897_close(RIG *rig);
-int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft897_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-// int ft897_set_vfo(RIG *rig, vfo_t vfo);
-// int ft897_get_vfo(RIG *rig, vfo_t *vfo);
-int ft897_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int ft897_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-// int ft897_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ft897_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ft897_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-// int ft897_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-// int ft897_set_parm(RIG *rig, setting_t parm, value_t val);
-// int ft897_get_parm(RIG *rig, setting_t parm, value_t *val);
-int ft897_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
-int ft897_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t code);
-int ft897_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
-int ft897_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
-int ft897_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
-int ft897_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
-int ft897_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
-// int ft897_set_powerstat(RIG *rig, powerstat_t status);
 
 #endif /* _FT897_H */
