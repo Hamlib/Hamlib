@@ -6,7 +6,7 @@ libhamlib_yaesu_la_LDFLAGS = -no-undefined -module -avoid-version
 libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-yaesu.a
-libhamlib_yaesu_a_SOURCES = yaesu.c $(YAESUSRC)
+libhamlib_yaesu_a_SOURCES = $(YAESUSRC) yaesu.c
 libhamlib_yaesu_a_LIBADD = ../src/libhamlib.la
 
 noinst_HEADERS = ft747.h ft847.h yaesu.h
