@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.13 2003-04-14 03:05:32 n0nb Exp $  
+ *	$Id: yaesu.c,v 1.14 2003-04-16 22:30:43 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "yaesu.h"
 
@@ -45,7 +46,7 @@
  * initrigs_yaesu is called by rig_backend_load
  */
 
-int initrigs_yaesu(void *be_handle)
+DECLARE_INITRIG_BACKEND(yaesu)
 {
   rig_debug(RIG_DEBUG_VERBOSE, "yaesu: %s called\n", __func__);
 

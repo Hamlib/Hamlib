@@ -12,7 +12,7 @@
  * Hy-Gain is a trademark of MFJ Enterprises
  *
  *
- *    $Id: rotorez.c,v 1.6 2003-04-07 22:41:55 fillods Exp $
+ *    $Id: rotorez.c,v 1.7 2003-04-16 22:30:41 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -42,6 +42,7 @@
 #include "hamlib/rotator.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "rotorez.h"
 
@@ -410,7 +411,8 @@ static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr) {
  * Initialize backend
  */
 
-int initrots_rotorez(void *be_handle) {
+DECLARE_INITROT_BACKEND(rotorez)
+{
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   rot_register(&rotorez_rot_caps);

@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.7 2003-04-07 22:41:58 fillods Exp $
+ *	$Id: tentec.c,v 1.8 2003-04-16 22:30:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,7 @@
 #include "serial.h"
 #include "misc.h"
 #include "cal.h"
+#include "register.h"
 
 #include "tentec.h"
 
@@ -439,7 +440,7 @@ const char *tentec_get_info(RIG *rig)
 /*
  * initrigs_tentec is called by rig_backend_load
  */
-int initrigs_tentec(void *be_handle)
+DECLARE_INITRIG_BACKEND(tentec)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "tentec: _init called\n");
 

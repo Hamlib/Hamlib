@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: drake.h,v 1.3 2003-03-10 08:26:08 fillods Exp $
+ *	$Id: drake.h,v 1.4 2003-04-16 22:30:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,10 +32,6 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 const char *drake_get_info(RIG *rig);
 
 extern const struct rig_caps r8b_caps;
-
-extern BACKEND_EXPORT(int) initrigs_drake(void *be_handle);
-extern BACKEND_EXPORT(rig_model_t) probeallrigs_drake(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data);
-
 
 #endif /* _DRAKE_H */
 

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Rotator backend - Fodtrack interface protocol
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: fodtrack.h,v 1.1 2002-11-28 22:24:10 fillods Exp $
+ *	$Id: fodtrack.h,v 1.2 2003-04-16 22:30:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,7 +24,5 @@
 #define _ROT_FODTRACK_H 1
 
 extern const struct rot_caps fodtrack_rot_caps;
-
-extern BACKEND_EXPORT(int) initrots_fodtrack(void *be_handle);
 
 #endif /* _ROT_FODTRACK_H */

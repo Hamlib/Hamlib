@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.74 2003-04-07 22:41:50 fillods Exp $
+ *	$Id: icom.c,v 1.75 2003-04-16 22:30:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,6 +34,7 @@
 #include <misc.h>
 #include <cal.h>
 #include <token.h>
+#include <register.h>
 
 #include "icom.h"
 #include "icom_defs.h"
@@ -2383,9 +2384,10 @@ int icom_decode_event(RIG *rig)
  * init_icom is called by rig_probe_all (register.c)
  *
  * probe_icom reports all the devices on the CI-V bus.
- * TODO: try different speeds
+ *
+ * rig_model_t probeallrigs_icom(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
  */
-rig_model_t probeallrigs_icom(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
+DECLARE_PROBERIG_BACKEND(icom)
 {
 	unsigned char buf[MAXFRAMELEN], civ_addr, civ_id;
 	int frm_len, i;
@@ -2394,23 +2396,23 @@ rig_model_t probeallrigs_icom(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
 	int rates[] = { 19200, 9600, 300, 0 };
 	int rates_idx;
 
-	if (!p)
+	if (!port)
 		return RIG_MODEL_NONE;
 
-	if (p->type.rig != RIG_PORT_SERIAL)
+	if (port->type.rig != RIG_PORT_SERIAL)
 		return RIG_MODEL_NONE;
 
-	p->write_delay = p->post_write_delay = 0;
-	p->retry = 1;
+	port->write_delay = port->post_write_delay = 0;
+	port->retry = 1;
 
 	/*
 	 * try for all different baud rates
 	 */
 	for (rates_idx = 0; rates[rates_idx]; rates_idx++) {
-		p->parm.serial.rate = rates[rates_idx];
-		p->timeout = 2*1000/rates[rates_idx] + 40;
+		port->parm.serial.rate = rates[rates_idx];
+		port->timeout = 2*1000/rates[rates_idx] + 40;
 
-		retval = serial_open(p);
+		retval = serial_open(port);
 		if (retval != RIG_OK)
 			return RIG_MODEL_NONE;
 
@@ -2426,16 +2428,16 @@ rig_model_t probeallrigs_icom(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
 			frm_len = make_cmd_frame(buf, civ_addr, C_RD_TRXID, S_RD_TRXID,
 							NULL, 0);
 
-			serial_flush(p);
-			write_block(p, buf, frm_len);
+			serial_flush(port);
+			write_block(port, buf, frm_len);
 
 			/* read out the bytes we just sent
 		 	* TODO: check this is what we expect
 		 	*/
-			frm_len = read_icom_frame(p, buf);
+			frm_len = read_icom_frame(port, buf);
 
 			/* this is the reply */
-			frm_len = read_icom_frame(p, buf);
+			frm_len = read_icom_frame(port, buf);
 
 			/* timeout.. nobody's there */
 			if (frm_len <= 0)
@@ -2445,7 +2447,7 @@ rig_model_t probeallrigs_icom(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
 					/* protocol error, unexpected reply.
 					 * is this a CI-V device?
 					 */
-					close(p->fd);
+					close(port->fd);
 					return RIG_MODEL_NONE;
 			} else if (buf[4] == NAK) {
 					/*
@@ -2463,7 +2465,7 @@ rig_model_t probeallrigs_icom(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
 											" at %#x\n", civ_id, buf[3]);
 							model = icom_addr_list[i].model;
 							if (cfunc)
-								(*cfunc)(p, model, data);
+								(*cfunc)(port, model, data);
 							break;
 					}
 			}
@@ -2476,7 +2478,7 @@ rig_model_t probeallrigs_icom(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
 							"with CI-V ID %#x, please report to Hamlib "
 							"developers.\n", civ_id);
 		}
-		close(p->fd);
+		close(port->fd);
 
 		/*
 		 * Assumes all the rigs on the bus are running at same speed.
@@ -2492,7 +2494,7 @@ rig_model_t probeallrigs_icom(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
 /*
  * initrigs_icom is called by rig_backend_load
  */
-int initrigs_icom(void *be_handle)
+DECLARE_INITRIG_BACKEND(icom)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "icom: _init called\n");
 

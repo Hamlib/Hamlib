@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - Fodtrack parallel port
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: fodtrack.c,v 1.2 2003-04-07 22:41:49 fillods Exp $
+ *	$Id: fodtrack.c,v 1.3 2003-04-16 22:30:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,6 +42,7 @@
 #include "hamlib/rotator.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "fodtrack.h"
 
@@ -136,7 +137,7 @@ const struct rot_caps fodtrack_rot_caps = {
 
 /* ************************************************************************* */
 
-int initrots_fodtrack(void *be_handle)
+DECLARE_INITROT_BACKEND(fodtrack)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 

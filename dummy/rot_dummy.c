@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rot_dummy.c,v 1.5 2003-04-07 22:41:47 fillods Exp $
+ *	$Id: rot_dummy.c,v 1.6 2003-04-16 22:30:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include "hamlib/rotator.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "rot_dummy.h"
 
@@ -187,7 +188,7 @@ const struct rot_caps dummy_rot_caps = {
   .get_info =      dummy_rot_get_info,
 };
 
-int initrots_dummy(void *be_handle)
+DECLARE_INITROT_BACKEND(dummy)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
 

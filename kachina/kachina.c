@@ -2,7 +2,7 @@
  *  Hamlib Kachina backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: kachina.c,v 1.5 2003-04-07 22:41:52 fillods Exp $
+ *	$Id: kachina.c,v 1.6 2003-04-16 22:30:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,7 @@
 #include "serial.h"
 #include "misc.h"
 #include "cal.h"
+#include "register.h"
 
 #include "kachina.h"
 
@@ -205,7 +206,7 @@ int kachina_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 /*
  * initrigs_kachina is called by rig_backend_load
  */
-int initrigs_kachina(void *be_handle)
+DECLARE_INITRIG_BACKEND(kachina)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "kachina: _init called\n");
 

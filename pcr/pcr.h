@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - main header
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: pcr.h,v 1.8 2002-08-26 22:33:52 fillods Exp $
+ *	$Id: pcr.h,v 1.9 2003-04-16 22:30:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -75,8 +75,6 @@ int pcr_set_DSP_auto_notch(RIG *rig, int state);     // J83xx
 
 extern const struct rig_caps pcr1000_caps;
 extern const struct rig_caps pcr100_caps;
-
-extern BACKEND_EXPORT(int) initrigs_pcr(void *be_handle);
 
 
 #endif /* _PCR_H */

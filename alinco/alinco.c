@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.15 2003-04-07 22:41:44 fillods Exp $
+ *	$Id: alinco.c,v 1.16 2003-04-16 22:30:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,7 @@
 #include <serial.h>
 #include <misc.h>
 #include <cal.h>
+#include <register.h>
 
 #include "alinco.h"
 
@@ -820,7 +821,7 @@ int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch)
 /*
  * initrigs_alinco is called by rig_backend_load
  */
-int initrigs_alinco(void *be_handle)
+DECLARE_INITRIG_BACKEND(alinco)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "alinco: _init called\n");
 

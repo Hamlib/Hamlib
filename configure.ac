@@ -7,11 +7,16 @@ AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_MAINTAINER_MODE
 
+ABI_VERSION=1
+
 # Minimum Autoconf version required.
 AC_PREREQ(2.50)
 
 dnl Pick up the Hamlib macros.
 AM_ACLOCAL_INCLUDE(macros)
+
+AC_DEFINE_UNQUOTED(ABI_VERSION, $ABI_VERSION, [Frontend ABI version])
+AC_SUBST(ABI_VERSION)
 
 dnl directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib

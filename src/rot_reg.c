@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - provides registering for dynamically loadable backends.
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *		$Id: rot_reg.c,v 1.5 2002-11-04 22:27:49 fillods Exp $
+ *	$Id: rot_reg.c,v 1.6 2003-04-16 22:30:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -259,23 +259,14 @@ int rot_load_all_backends()
  */
 int rot_load_backend(const char *be_name)
 {
-		/*
-		 * determine PREFIX and POSTFIX values from configure script
-		 */
-#ifdef __CYGWIN__
-# define PREFIX "cyghamlib-"
-# define POSTFIX ".dll"
-#else
 # define PREFIX "hamlib-"
-# define POSTFIX ".la"
-#endif
 
 	lt_dlhandle be_handle;
     int (*be_init)(rig_ptr_t);
 	int status;
 	char libname[PATH_MAX];
-	char initfname[MAXFUNCNAMELEN]  = "initrots_";
-	char probefname[MAXFUNCNAMELEN] = "proberots_";
+	char initfname[MAXFUNCNAMELEN];
+	char probefname[MAXFUNCNAMELEN];
 	int i;
 
 	/*
@@ -320,7 +311,7 @@ int rot_load_backend(const char *be_name)
 		return -RIG_EINVAL;
     }
 
-    strncat(initfname, be_name, MAXFUNCNAMELEN);
+    snprintf(initfname, MAXFUNCNAMELEN, "initrots%d_%s", ABI_VERSION, be_name);
     be_init = (int (*)(rig_ptr_t)) lt_dlsym (be_handle, initfname);
 	if (!be_init) {
 			rot_debug(RIG_DEBUG_ERR, "rot: dlsym(%s) failed (%s)\n",
@@ -337,7 +328,7 @@ int rot_load_backend(const char *be_name)
 	 */
 	for (i=0; i<ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
 		if (!strncmp(be_name, rot_backend_list[i].be_name, 64)) {
-    			strncat(probefname, be_name, MAXFUNCNAMELEN);
+			snprintf(probefname, MAXFUNCNAMELEN, "probeallrots%d_%s", ABI_VERSION, be_name);
     			rot_backend_list[i].be_probe = (rot_model_t (*)(port_t *))
 						lt_dlsym (be_handle, probefname);
 				break;

@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.23 2003-04-07 22:41:44 fillods Exp $
+ *	$Id: aor.c,v 1.24 2003-04-16 22:30:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "aor.h"
 
@@ -502,7 +503,7 @@ const char *aor_get_info(RIG *rig)
 /*
  * initrigs_aor is called by rig_backend_load
  */
-int initrigs_aor(void *be_handle)
+DECLARE_INITRIG_BACKEND(aor)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "aor: _init called\n");
 

@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: register.c,v 1.19 2003-04-06 18:34:15 fillods Exp $
+ *	$Id: register.c,v 1.20 2003-04-16 22:30:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -282,23 +282,14 @@ int rig_load_all_backends()
  */
 int rig_load_backend(const char *be_name)
 {
-		/*
-		 * determine PREFIX and POSTFIX values from configure script
-		 */
-#ifdef __CYGWIN__
-# define PREFIX "cyghamlib-"
-# define POSTFIX ".dll"
-#else
 # define PREFIX "hamlib-"
-# define POSTFIX ".la"
-#endif
 
 	lt_dlhandle be_handle;
     int (*be_init)(rig_ptr_t);
 	int status;
 	char libname[PATH_MAX];
-	char initfname[MAXFUNCNAMELEN]  = "initrigs_";
-	char probefname[MAXFUNCNAMELEN] = "probeallrigs_";
+	char initfname[MAXFUNCNAMELEN];
+	char probefname[MAXFUNCNAMELEN];
 	int i;
 
 	/*
@@ -345,7 +336,7 @@ int rig_load_backend(const char *be_name)
 		return -RIG_EINVAL;
     }
 
-    strncat(initfname, be_name, MAXFUNCNAMELEN);
+    snprintf(initfname, MAXFUNCNAMELEN, "initrigs%d_%s", ABI_VERSION, be_name);
     be_init = (int (*)(rig_ptr_t)) lt_dlsym (be_handle, initfname);
 	if (!be_init) {
 			rig_debug(RIG_DEBUG_ERR, "rig: dlsym(%s) failed (%s)\n",
@@ -362,7 +353,7 @@ int rig_load_backend(const char *be_name)
 	 */
 	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
 		if (!strncmp(be_name, rig_backend_list[i].be_name, 64)) {
-    			strncat(probefname, be_name, MAXFUNCNAMELEN);
+    			snprintf(probefname, MAXFUNCNAMELEN, "probeallrigs%d_%s", ABI_VERSION, be_name);
     			rig_backend_list[i].be_probe_all = 
 				(rig_model_t (*)(port_t*, rig_probe_func_t, rig_ptr_t))
 						lt_dlsym (be_handle, probefname);

@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.h,v 1.11 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: alinco.h,v 1.12 2003-04-16 22:30:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,9 +55,6 @@ int alinco_set_mem(RIG *rig, vfo_t vfo, int ch);
 int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch);
 
 extern const struct rig_caps dx77_caps;
-
-extern BACKEND_EXPORT(int) initrigs_alinco(void *be_handle);
-
 
 #endif /* _ALINCO_H */
 

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.60 2003-04-07 22:41:53 fillods Exp $
+ *	$Id: kenwood.c,v 1.61 2003-04-16 22:30:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "kenwood.h"
 
@@ -1311,8 +1312,10 @@ const char* kenwood_get_info(RIG *rig)
  *
  * Notes:
  * There's only one rig possible per port.
+ *
+ * rig_model_t probeallrigs_kenwood(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
  */
-rig_model_t probeallrigs_kenwood(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+DECLARE_PROBERIG_BACKEND(kenwood)
 {
 	unsigned char idbuf[IDBUFSZ];
 	int id_len=-1, i, k_id;
@@ -1478,7 +1481,7 @@ int kenwood_cleanup(RIG *rig)
 /*
  * initrigs_kenwood is called by rig_backend_load
  */
-int initrigs_kenwood(void *be_handle)
+DECLARE_INITRIG_BACKEND(kenwood)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "kenwood: _init called\n");
 

@@ -1,9 +1,9 @@
 /*
  *  Hamlib RPC backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *	$Id: rpcrot_backend.c,v 1.6 2003-04-07 22:41:56 fillods Exp $
+ *	$Id: rpcrot_backend.c,v 1.7 2003-04-16 22:30:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,6 +36,7 @@
 #include "serial.h"
 #include "misc.h"
 #include "token.h"
+#include "register.h"
 
 #include <rpc/rpc.h>
 #ifdef HAVE_RPC_RPCENT_H
@@ -400,7 +401,7 @@ struct rot_caps rpcrot_caps = {
 
 /* ************************************************************************* */
 
-int initrots_rpcrot(void *be_handle)
+DECLARE_INITROT_BACKEND(rpcrot)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 

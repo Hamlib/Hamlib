@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.33 2003-04-07 22:41:46 fillods Exp $
+ *	$Id: dummy.c,v 1.34 2003-04-16 22:30:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,6 +34,7 @@
 #include "misc.h"
 #include "tones.h"
 #include "idx_builtin.h"
+#include "register.h"
 
 #include "dummy.h"
 
@@ -1136,7 +1137,7 @@ const struct rig_caps dummy_caps = {
   .get_trn = 	dummy_get_trn,
 };
 
-int initrigs_dummy(void *be_handle)
+DECLARE_INITRIG_BACKEND(dummy)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
 

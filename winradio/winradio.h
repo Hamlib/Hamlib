@@ -1,8 +1,8 @@
 /*
  *  Hamlib WiNRADiO backend - main header
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *		$Id: winradio.h,v 1.7 2001-12-28 20:28:04 fillods Exp $
+ *	$Id: winradio.h,v 1.8 2003-04-16 22:30:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,7 +45,5 @@ extern const struct rig_caps wr3100_caps;
 extern const struct rig_caps wr3150_caps;
 extern const struct rig_caps wr3500_caps;
 extern const struct rig_caps wr3700_caps;
-
-extern BACKEND_EXPORT(int) initrigs_winradio(void *be_handle);
 
 #endif /* _WINRADIO_H */

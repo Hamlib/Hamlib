@@ -2,7 +2,7 @@
  *  Hamlib microtune backend - 4937 file
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: module_4937.c,v 1.1 2003-01-29 23:06:30 fillods Exp $
+ *	$Id: module_4937.c,v 1.2 2003-04-16 22:30:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 
 #include <hamlib/rig.h>
 
+#include "register.h"
 #include "microtune.h"
 
 /*
@@ -93,7 +94,7 @@ const struct rig_caps module_4937_caps = {
 };
 
 
-int initrigs_microtune(void *be_handle)
+DECLARE_INITRIG_BACKEND(microtune)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "microtune: _init called\n");
 

@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main header
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: rot_dummy.h,v 1.1 2001-12-28 20:29:33 fillods Exp $
+ *		$Id: rot_dummy.h,v 1.2 2003-04-16 22:30:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,7 +25,5 @@
 
 
 extern const struct rot_caps dummy_rot_caps;
-
-extern BACKEND_EXPORT(int) initrots_dummy(void *be_handle);
 
 #endif /* _ROT_DUMMY_H */

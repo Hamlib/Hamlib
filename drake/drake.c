@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.4 2003-04-07 22:41:56 fillods Exp $
+ *	$Id: drake.c,v 1.5 2003-04-16 22:30:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "drake.h"
 
@@ -205,7 +206,7 @@ const char *drake_get_info(RIG *rig)
 /*
  * initrigs_drake is called by rig_backend_load
  */
-int initrigs_drake(void *be_handle)
+DECLARE_INITRIG_BACKEND(drake)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "drake: _init called\n");
 
@@ -215,9 +216,9 @@ int initrigs_drake(void *be_handle)
 }
 
 /*
- * probe_drake
+ * probe_drake(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
  */
-rig_model_t probeallrigs_drake(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+DECLARE_PROBERIG_BACKEND(drake)
 {
 	static unsigned char idbuf[BUFSZ];
 	int retval, id_len;

@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: uniden.c,v 1.5 2003-04-07 22:41:58 fillods Exp $
+ *	$Id: uniden.c,v 1.6 2003-04-16 22:30:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "uniden.h"
 
@@ -113,7 +114,7 @@ int uniden_set_mem(RIG *rig, vfo_t vfo, int ch)
 /*
  * initrigs_uniden is called by rig_backend_load
  */
-int initrigs_uniden(void *be_handle)
+DECLARE_INITRIG_BACKEND(uniden)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "uniden: _init called\n");
 

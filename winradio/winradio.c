@@ -3,7 +3,7 @@
  *  Copyright (C) 2001 pab@users.sourceforge.net
  *  Derived from hamlib code (C) 2000-2003 Stephane Fillod.
  *
- *	$Id: winradio.c,v 1.17 2003-04-07 22:41:59 fillods Exp $
+ *	$Id: winradio.c,v 1.18 2003-04-16 22:30:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,6 +36,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "register.h"
 
 #include "winradio.h"
 
@@ -229,7 +230,7 @@ const char *wr_get_info(RIG *rig) {
 }
 
 
-int initrigs_winradio(void *be_handle)
+DECLARE_INITRIG_BACKEND(winradio)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "winradio: _init called\n");
 

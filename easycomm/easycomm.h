@@ -1,9 +1,9 @@
 /*
  *  Hamlib Rotator backend - Easycomm interface protocol
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *		$Id: easycomm.h,v 1.1 2002-01-16 16:35:22 fgretief Exp $
+ *	$Id: easycomm.h,v 1.2 2003-04-16 22:30:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,7 +26,5 @@
 
 extern const struct rot_caps easycomm1_rot_caps;
 extern const struct rot_caps easycomm2_rot_caps;
-
-extern BACKEND_EXPORT(int) initrots_easycomm(void *be_handle);
 
 #endif /* _ROT_EASYCOMM_H */
