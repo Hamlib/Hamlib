@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.9 2000-09-19 01:25:58 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.10 2000-09-19 07:01:10 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,22 @@
 
 #include <riglist.h>	/* list in another file to not mess up w/ this one */
 
-/* Forward enum and struct references */
+/*
+ * Error codes that can be returned by the Hamlib functions
+ */
+#define RIG_OK			 0			/* completed sucessfully */
+#define RIG_EINVAL		-1			/* invalid parameter */
+#define RIG_ECONF		-2			/* invalid configuration (serial,..) */
+#define RIG_ENOMEM		-3			/* memory shortage */
+#define RIG_ENIMPL		-4			/* function not implemented */
+#define RIG_ETIMEOUT	-5			/* communication timed out */
+#define RIG_EIO			-6			/* IO error, including open failed */
+#define RIG_EINTERNAL	-7			/* Internal Hamlib error, huh! */
+#define RIG_EPROTO		-8			/* Protocol error */
+#define RIG_ERJCTED		-9			/* Command rejected by the rig */
+
+
+/* Forward struct references */
 
 struct rig;
 struct rig_state;
@@ -110,15 +125,41 @@ typedef enum vfo_e vfo_t;
 
 enum ptt_e {
 	RIG_PTT_OFF = 0,
-	RIG_PTT_ON,
+	RIG_PTT_ON
 };
 
+enum ptt_type_e {
+	RIG_PTT_BUILTIN = 0,		/* PTT controlable through remote interface */
+	RIG_PTT_SERIAL,				/* PTT accessed through CTS/RTS */
+	RIG_PTT_PARALLEL,			/* PTT accessed through DATA0 */
+	RIG_PTT_NONE				/* not available */
+};
+
+
 typedef enum ptt_e ptt_t;
+
+/*
+ * These are activated functions.
+ */
+#define RIG_FUNC_FAGC    	(1<<0)		/* Fast AGC */
+#define RIG_FUNC_NB	    	(1<<1)		/* Noise Blanker */
+#define RIG_FUNC_COMP    	(1<<2)		/* Compression */
+#define RIG_FUNC_VOX    	(1<<3)		/* VOX */
+#define RIG_FUNC_TONE    	(1<<4)		/* Tone */
+#define RIG_FUNC_TSQL    	(1<<5)		/* may require a tone field */
+#define RIG_FUNC_SBKIN    	(1<<6)		/* Semi Break-in (is it the rigth name?) */
+#define RIG_FUNC_FBKIN    	(1<<7)		/* Full Break-in, for CW mode */
+
+
 
 /*
  * frequency type in Hz, must be >32bits for SHF! 
  */
 typedef long long freq_t;
+
+#define KHz(f) ((freq_t)((f)*1000))
+#define MHz(f) ((freq_t)((f)*1000000))
+#define GHz(f) ((freq_t)((f)*1000000000))
 
 typedef unsigned int rmode_t;	/* radio mode  */
 
@@ -151,8 +192,9 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define MAXCHANDESC 30		/* describe channel eg: WWV 5Mhz */
 
 
-/* put together a buch of this struct in an array to define 
- * what your have access to 
+/*
+ * Put together a bunch of this struct in an array to define 
+ * what your rig have access to 
  */ 
 struct freq_range_list {
   freq_t start;
@@ -174,7 +216,7 @@ struct channel {
   freq_t freq;
   rmode_t mode;
   vfo_t vfo;
-  char channel_desc[MAXCHANDESC];
+  unsigned char channel_desc[MAXCHANDESC];
 };
 
 typedef struct channel channel_t;
@@ -185,7 +227,8 @@ typedef struct channel channel_t;
 * useful enquiries about capablilities.
 */
 
-/* The main idea of this struct is that it will be defined by the backend
+/* 
+ * The main idea of this struct is that it will be defined by the backend
  * rig driver, and will remain readonly for the application
  */
 struct rig_caps {
@@ -195,6 +238,7 @@ struct rig_caps {
   char version[RIGVERSIZ]; /* driver version, eg "0.5" */
   enum rig_status_e status; /* among ALPHA, BETA, STABLE, NEW  */
   enum rig_type_e rig_type;
+  enum ptt_type_e ptt_type;	/* how we will key the rig */
   int serial_rate_min; /* eg 4800 */
   int serial_rate_max; /* eg 9600 */
   int serial_data_bits; /* eg 8 */
@@ -204,6 +248,7 @@ struct rig_caps {
   int write_delay;		/* delay in ms between each byte sent out */
   int timeout;	/* in ms */
   int retry;		/* maximum number of retries, 0 to disable */
+  unsigned long has_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
   struct freq_range_list rx_range_list[FRQRANGESIZ];
   struct freq_range_list tx_range_list[FRQRANGESIZ];
 
@@ -223,39 +268,29 @@ struct rig_caps {
    *  List Set/Get functions pairs
    */
   
-  int (*rig_set_freq)(RIG *rig, freq_t freq); /* select freq */
-  struct freq_t (*rig_get_freq)(RIG *rig); /* get freq */
+  int (*set_freq)(RIG *rig, freq_t freq); /* select freq */
+  int (*get_freq)(RIG *rig, freq_t *freq); /* get freq */
 
-  int (*rig_set_mode)(RIG *rig, rmode_t mode); /* select mode */
-  struct rmode_t (*rig_get_mode)(RIG *rig, rmode_t mode); /* get mode */
+  int (*set_mode)(RIG *rig, rmode_t mode); /* select mode */
+  int (*get_mode)(RIG *rig, rmode_t *mode); /* get mode */
 
-  int (*rig_set_vfo)(RIG *rig, vfo_t vfo); /* select vfo */
-  struct vfo_t (*rig_get_vfo)(RIG *rig); /* get vfo */
+  int (*set_vfo)(RIG *rig, vfo_t vfo); /* select vfo (A,B, etc.) */
+  int (*get_vfo)(RIG *rig, vfo_t *vfo); /* get vfo */
 
-  int (*rig_set_ptt)(RIG *rig, ptt_t ptt); /* ptt on off */
-  struct ptt_t (*rig_get_ptt)(RIG *rig); /* get ptt status */
+  int (*set_ptt)(RIG *rig, ptt_t ptt); /* ptt on/off */
+  int (*get_ptt)(RIG *rig, ptt_t *ptt); /* get ptt status */
 
-  int (*rig_set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift ); /* set repeater shift */
-  struct rptr_shift_t (*rig_get_rpt_shift)(RIG *rig); /* get repeater shift */
+  int (*set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift );	/* set repeater shift */
+  int (*get_rpt_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
 
 /*
  * Convenience Functions 
  */
 
-/*    int (*set_channel)(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo); */
-/*    int (*get_channel)(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo); */
+  int (*set_channel)(RIG *rig, const struct channel *ch);
+  int (*get_channel)(RIG *rig, struct channel *ch);
 
-  int (*rig_set_channel)(RIG *rig, struct channel *ch);
-  struct channel (*rig_get_channel)(RIG *rig);
-
-
-
-/*    int (*set_freq_main_vfo_hz)(RIG *rig, freq_t freq, rig_mode_t mode); */
-  
-  
-  
-  /* etc... */
-  
+  /* more to come... */
 };
 
 /*
@@ -278,10 +313,14 @@ struct rig_state {
 	int write_delay;        /* delay in ms between each byte sent out */
 	int timeout;	/* in ms */
 	int retry;		/* maximum number of retries, 0 to disable */
+	double vfo_comp;	/* VFO compensation in PPM, 0.0 to disable */
 	char rig_path[MAXRIGPATHLEN]; /* serial port/network path(host:port) */
 	int fd;	/* serial port/socket file handle */
+	/*
+	 * Pointer to private data
+	 * tuff like CI_V_address for Icom goes in this *priv 51 area
+	 */
 	void *priv;  /* pointer to private data */
-	/* stuff like CI_V_address for Icom goes in this *priv 51 area */
 
 	/* etc... */
 };
@@ -322,24 +361,21 @@ int rig_open(RIG *rig);
    */
 
 int rig_set_freq(RIG *rig, freq_t freq); /* select freq */
-struct freq_t rig_get_freq(RIG *rig); /* get freq */
+int rig_get_freq(RIG *rig, freq_t *freq); /* get freq */
 
 int rig_set_mode(RIG *rig, rmode_t mode); /* select mode */
-struct rmode_t rig_get_mode(RIG *rig, rmode_t mode); /* get mode */
+int rig_get_mode(RIG *rig, rmode_t *mode); /* get mode */
 
 int rig_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-struct vfo_t rig_get_vfo(RIG *rig); /* get vfo */
+int rig_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
 int rig_set_ptt(RIG *rig, ptt_t ptt); /* ptt on/off */
-struct ptt_t rig_get_ptt(RIG *rig); /* get ptt status */
+int rig_get_ptt(RIG *rig, ptt_t *ptt); /* get ptt status */
 
 int rig_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift ); /* set repeater shift */
-struct rptr_shift_t rig_get_rpt_shift(RIG *rig); /* get repeater shift */
+int rig_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift); /* get repeater shift */
 
 /* more to come -- FS */
-
-/*  int rig_set_freq(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo ); */
-/* etc. */
 
 int rig_close(RIG *rig);
 int rig_cleanup(RIG *rig);
