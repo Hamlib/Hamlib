@@ -2,7 +2,7 @@
  *  Hamlib RPC server - procedures
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rpcrig_proc.c,v 1.3 2001-12-26 23:44:05 fillods Exp $
+ *		$Id: rpcrig_proc.c,v 1.4 2001-12-27 21:56:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,6 +55,7 @@ model_x *getmodel_1_svc(void *arg, struct svc_req *svc)
 rigstate_res *getrigstate_1_svc(void *arg, struct svc_req *svc)
 {
 	static rigstate_res res;
+	struct rig_state *rs;
 
 	rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -63,13 +64,36 @@ rigstate_res *getrigstate_1_svc(void *arg, struct svc_req *svc)
 		return &res;
 	}
 
-	res.rigstate_res_u.state.itu_region = the_rpc_rig->state.itu_region;
-	res.rigstate_res_u.state.has_set_func = the_rpc_rig->state.has_set_func;
-	res.rigstate_res_u.state.has_get_func = the_rpc_rig->state.has_get_func;
-	res.rigstate_res_u.state.has_set_level = the_rpc_rig->state.has_set_level;
-	res.rigstate_res_u.state.has_get_level = the_rpc_rig->state.has_get_level;
-	res.rigstate_res_u.state.has_set_parm = the_rpc_rig->state.has_set_parm;
-	res.rigstate_res_u.state.has_get_parm = the_rpc_rig->state.has_get_parm;
+	rs = &the_rpc_rig->state;
+
+	res.rigstate_res_u.state.itu_region = rs->itu_region;
+	res.rigstate_res_u.state.has_set_func = rs->has_set_func;
+	res.rigstate_res_u.state.has_get_func = rs->has_get_func;
+	res.rigstate_res_u.state.has_set_level = rs->has_set_level;
+	res.rigstate_res_u.state.has_get_level = rs->has_get_level;
+	res.rigstate_res_u.state.has_set_parm = rs->has_set_parm;
+	res.rigstate_res_u.state.has_get_parm = rs->has_get_parm;
+
+	res.rigstate_res_u.state.max_rit = rs->max_rit;
+	res.rigstate_res_u.state.max_xit = rs->max_xit;
+	res.rigstate_res_u.state.max_ifshift = rs->max_ifshift;
+	res.rigstate_res_u.state.announces = rs->announces;
+
+	memcpy(res.rigstate_res_u.state.preamp, rs->preamp,
+					sizeof(int)*MAXDBLSTSIZ);
+	memcpy(res.rigstate_res_u.state.attenuator, rs->attenuator,
+					sizeof(int)*MAXDBLSTSIZ);
+
+	memcpy(res.rigstate_res_u.state.tuning_steps, rs->tuning_steps,
+					sizeof(struct tuning_step_list)*TSLSTSIZ);
+	memcpy(res.rigstate_res_u.state.filters, rs->filters, 
+					sizeof(struct filter_list)*FLTLSTSIZ);
+	memcpy(res.rigstate_res_u.state.chan_list, rs->chan_list, 
+					sizeof(chan_t)*CHANLSTSIZ);
+	memcpy(res.rigstate_res_u.state.rx_range_list, rs->rx_range_list, 
+					sizeof(freq_range_t)*FRQRANGESIZ);
+	memcpy(res.rigstate_res_u.state.tx_range_list, rs->tx_range_list, 
+					sizeof(freq_range_t)*FRQRANGESIZ);
 
 	res.rigstatus = RIG_OK;
 

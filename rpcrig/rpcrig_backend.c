@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rpcrig_backend.c,v 1.4 2001-12-26 23:42:18 fillods Exp $
+ *		$Id: rpcrig_backend.c,v 1.5 2001-12-27 21:56:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,6 +89,7 @@ static int rpcrig_open(RIG *rig)
 	rig_model_t model;
 	const struct rig_caps *caps;
 	char *server;
+	int i;
 
 	rs = &rig->state;
 	priv = (struct rpcrig_priv_data*)rs->priv;
@@ -140,30 +141,33 @@ static int rpcrig_open(RIG *rig)
 	rs->has_get_parm = rs_res->rigstate_res_u.state.has_get_parm;
 	rs->has_set_parm = rs_res->rigstate_res_u.state.has_set_parm;
 
-#if 0
-	rs->vfo_list = 0;
-	for (i=0; i<FRQRANGESIZ; i++) {
-		if (rs->rx_range_list[i].start != 0 &&
-							rs->rx_range_list[i].end != 0)
+	rs->max_rit = rs_res->rigstate_res_u.state.max_rit;
+	rs->max_xit = rs_res->rigstate_res_u.state.max_xit;
+	rs->max_ifshift = rs_res->rigstate_res_u.state.max_ifshift;
+	rs->announces = rs_res->rigstate_res_u.state.announces;
+
+	memcpy(rs->preamp, rs_res->rigstate_res_u.state.preamp, 
+					sizeof(int)*MAXDBLSTSIZ);
+	memcpy(rs->attenuator, rs_res->rigstate_res_u.state.attenuator, 
+					sizeof(int)*MAXDBLSTSIZ);
+
+	memcpy(rs->tuning_steps, rs_res->rigstate_res_u.state.tuning_steps, 
+					sizeof(struct tuning_step_list)*TSLSTSIZ);
+	memcpy(rs->filters, rs_res->rigstate_res_u.state.filters, 
+					sizeof(struct filter_list)*FLTLSTSIZ);
+	memcpy(rs->chan_list, rs_res->rigstate_res_u.state.chan_list, 
+					sizeof(chan_t)*CHANLSTSIZ);
+	memcpy(rs->rx_range_list, rs_res->rigstate_res_u.state.rx_range_list, 
+					sizeof(freq_range_t)*FRQRANGESIZ);
+	memcpy(rs->tx_range_list, rs_res->rigstate_res_u.state.tx_range_list, 
+					sizeof(freq_range_t)*FRQRANGESIZ);
+
+	for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++) {
 			rs->vfo_list |= rs->rx_range_list[i].vfo;
-		if (rs->tx_range_list[i].start != 0 &&
-							rs->tx_range_list[i].end != 0)
+	}
+	for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++) {
 			rs->vfo_list |= rs->tx_range_list[i].vfo;
 	}
-
-	memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);
-	memcpy(rs->attenuator, caps->attenuator, sizeof(int)*MAXDBLSTSIZ);
-	memcpy(rs->tuning_steps, caps->tuning_steps, 
-						sizeof(struct tuning_step_list)*TSLSTSIZ);
-	memcpy(rs->filters, caps->filters, 
-						sizeof(struct filter_list)*FLTLSTSIZ);
-	memcpy(rs->chan_list, caps->chan_list, sizeof(chan_t)*CHANLSTSIZ);
-
-	rs->max_rit = caps->max_rit;
-	rs->max_xit = caps->max_xit;
-	rs->max_ifshift = caps->max_ifshift;
-	rs->announces = caps->announces;
-#endif
 
 	return RIG_OK;
 }

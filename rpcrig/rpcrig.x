@@ -2,7 +2,7 @@
 % *  Hamlib Interface - RPC definitions
 % *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
 % *
-% *		$Id: rpcrig.x,v 1.2 2001-12-26 23:40:54 fillods Exp $
+% *		$Id: rpcrig.x,v 1.3 2001-12-27 21:52:07 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,7 @@
 /* This gets stuffed into the source files. */
 #if RPC_HDR
 %#include <rpc/xdr.h>
+%#include <hamlib/rig.h>
 #endif
 
 typedef unsigned int model_x;
@@ -36,6 +37,8 @@ typedef int dcd_x;
 typedef long vfo_op_x;
 typedef long shortfreq_x;
 typedef unsigned hyper setting_x;
+typedef long ant_x;
+typedef long ann_x;
 
 struct mode_s {
 	rmode_x mode;
@@ -125,18 +128,31 @@ struct vfo_op_arg {
 	vfo_op_x op;
 };
 
+struct	freq_range_s {
+	freq_x start;
+	freq_x end;
+	rmode_x modes;
+	int low_power;
+	int high_power;
+	vfo_x vfo;
+	ant_x ant;
+};
+struct tuning_step_s {
+	rmode_x modes;
+	shortfreq_x ts;
+};
+struct filter_s {
+	rmode_x modes;
+	pbwidth_x width;
+};
+struct chan_s {
+	int start;
+	int end;
+	unsigned int type;
+};
 
 struct rigstate_s {
 	int itu_region;
-#if 0
-	freq_range_t rx_range_list[FRQRANGESIZ];
-	freq_range_t tx_range_list[FRQRANGESIZ];
-
-	struct tuning_step_list tuning_steps[TSLSTSIZ];
-
-	struct filter_list filters[FLTLSTSIZ];
-
-	chan_t chan_list[CHANLSTSIZ];
 
 	shortfreq_x max_rit;
 	shortfreq_x max_xit;
@@ -144,16 +160,24 @@ struct rigstate_s {
 
 	ann_x announces;
 
-	int preamp<MAXDBLSTSIZ>;
-	int attenuator<MAXDBLSTSIZ>;
-
-#endif
 	setting_x has_get_func;
 	setting_x has_set_func;
 	setting_x has_get_level;
 	setting_x has_set_level;
 	setting_x has_get_parm;
 	setting_x has_set_parm;
+
+	int preamp[MAXDBLSTSIZ];
+	int attenuator[MAXDBLSTSIZ];
+
+	freq_range_s rx_range_list[FRQRANGESIZ];
+	freq_range_s tx_range_list[FRQRANGESIZ];
+
+	tuning_step_s tuning_steps[TSLSTSIZ];
+
+	filter_s filters[FLTLSTSIZ];
+
+	chan_s chan_list[CHANLSTSIZ];
 };
 
 union rigstate_res switch (int rigstatus) {
@@ -197,8 +221,6 @@ program RIGPROG {
 
 
 #ifdef RPC_HDR
-%
-%#include <hamlib/rig.h>
 %
 %#define freq_t2x(t, x) do { *(x) = (t); } while(0)
 %#define freq_x2t(x) ((freq_t)*(x))
