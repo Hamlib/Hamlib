@@ -1,0 +1,34 @@
+hamlib - (C) Frank Singleton 2000
+
+libft747.so - (C) Frank Singleton 2000
+This shared library provides an API for communicating
+via serial interface to an FT-747GX using the "CAT" interface
+box (FIF-232C) or similar.
+
+
+Reference Documentation
+-----------------------
+
+Operating Manual
+FT-747GX
+Yaesu Musen Co, LTD.
+
+
+Status
+------
+
+Handles >90% of all opcodes
+
+
+Warnings
+--------
+
+NA
+
+
+Contributors
+------------
+
+
+
+
