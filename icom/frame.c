@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.3 2000-10-09 01:17:19 javabear Exp $  
+ * $Id: frame.c,v 1.4 2000-10-16 22:30:32 f4cfe Exp $  
  *
  *
  *
@@ -255,8 +255,9 @@ unsigned short hamlib2icom_mode(rmode_t mode)
 		case RIG_MODE_LSB:	icmode = S_LSB; break;
 		case RIG_MODE_RTTY:	icmode = S_RTTY; break;
 		case RIG_MODE_FM:	icmode = S_FM; break;
-		case RIG_MODE_WFM:	icmode = S_WFM; break;
 #if 0
+		case RIG_MODE_WFM:	icmode = S_WFM; break;
+
 		case RIG_MODE_NFM:	icmode = S_FM; icmode_ext = 0x01; break;
 		case RIG_MODE_NAM:	icmode = S_AM; break;
 		case RIG_MODE_WAM:	icmode = S_AM; break;
@@ -286,7 +287,7 @@ rmode_t icom2hamlib_mode(unsigned short icmode)
 		case S_AM:	mode = RIG_MODE_AM; break;
 		case S_CW:	mode = RIG_MODE_CW; break;
 		case S_FM:	mode = RIG_MODE_FM; break;
-		case S_WFM:	mode = RIG_MODE_WFM; break;
+		case S_WFM:	mode = RIG_MODE_FM; break;	/* and set width to wide.. */
 		case S_USB:	mode = RIG_MODE_USB; break;
 		case S_LSB:	mode = RIG_MODE_LSB; break;
 		case S_RTTY:	mode = RIG_MODE_RTTY; break;
