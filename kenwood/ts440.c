@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS440 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts440.c,v 1.1 2002-07-05 23:22:11 fillods Exp $
+ *	$Id: ts440.c,v 1.2 2002-07-10 21:45:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,9 +49,11 @@ static const struct kenwood_priv_caps  ts440_priv_caps  = {
  * ts440 rig capabilities.
  *
  * TODO: scan, get/set_channel, RIT/XIT, Voice Recall, split
- * FIXME: set/get_vfo with FNn;
  *
  * part of infos comes from http://www.n7uic.net/radio/kenwood/ts440/specs.htm
+ * http://public.srce.hr/9A1CDD/mods/kenwood/knwdif.mod
+ * http://www.ifrance.fr/clucas/modposte/ts440/mod440.htm
+ *
  */
 const struct rig_caps ts440_caps = {
 rig_model: RIG_MODEL_TS440,
@@ -145,8 +147,8 @@ set_freq: kenwood_set_freq,
 get_freq: kenwood_get_freq,
 set_mode: kenwood_set_mode,
 get_mode: kenwood_get_mode,
-set_vfo: kenwood_set_vfo,
-get_vfo: kenwood_get_vfo,
+set_vfo: kenwood_old_set_vfo,
+get_vfo: kenwood_old_get_vfo,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
 set_func: kenwood_set_func,

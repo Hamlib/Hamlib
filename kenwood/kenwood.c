@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.39 2002-07-08 22:53:25 fillods Exp $
+ *	$Id: kenwood.c,v 1.40 2002-07-10 21:45:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -263,6 +263,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 		return retval;
 }
 
+
 /*
  * kenwood_get_vfo
  * Assumes rig!=NULL, !vfo
@@ -297,6 +298,77 @@ int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
 		}
 		return RIG_OK;
 }
+
+/*
+ * kenwood_old_set_vfo
+ * Assumes rig!=NULL
+ * for TS-940, TS-811, TS-711 and TS-440
+ */
+int kenwood_old_set_vfo(RIG *rig, vfo_t vfo)
+{
+		unsigned char cmdbuf[16], ackbuf[16];
+		int cmd_len, ack_len = 0, retval;
+		char vfo_function;
+
+			/*
+			 * FIXME: vfo==RIG_VFO_CURR
+			 */
+
+		switch (vfo) {
+		case RIG_VFO_VFO:
+		case RIG_VFO_A: vfo_function = '0'; break;
+		case RIG_VFO_B: vfo_function = '1'; break;
+		case RIG_VFO_MEM: vfo_function = '2'; break;
+		/* TODO : case RIG_VFO_C: */ 
+		default: 
+			rig_debug(RIG_DEBUG_ERR,"kenwood_set_vfo: unsupported VFO %d\n",
+								vfo);
+			return -RIG_EINVAL;
+		}
+
+		cmd_len = sprintf(cmdbuf, "FN%c%s", vfo_function, cmd_trm(rig));
+
+		ack_len = 16;
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
+		return retval;
+}
+
+/*
+ * kenwood_old_get_vfo
+ * Assumes rig!=NULL, !vfo
+ * for TS-940, TS-811, TS-711 and TS-440
+ */
+int kenwood_old_get_vfo(RIG *rig, vfo_t *vfo)
+{
+		unsigned char vfobuf[50];
+		int vfo_len, retval;
+
+
+		/* query RX VFO */
+		vfo_len = 50;
+		retval = kenwood_transaction (rig, "FN;", 3, vfobuf, &vfo_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (vfo_len != 4 || vfobuf[1] != 'N') {
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer %s, "
+				"len=%d\n", __FUNCTION__, vfobuf, vfo_len);
+			return -RIG_ERJCTED;
+		}
+
+		/* TODO: replace 0,1,2,.. constants by defines */
+		switch (vfobuf[2]) {
+		case '0': *vfo = RIG_VFO_A; break;
+		case '1': *vfo = RIG_VFO_B; break;
+		case '2': *vfo = RIG_VFO_MEM; break;
+		default: 
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
+						__FUNCTION__, vfobuf[2]);
+			return -RIG_EPROTO;
+		}
+		return RIG_OK;
+}
+
 
 /*
  * kenwood_set_freq

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: kenwood.h,v 1.22 2002-07-05 23:22:11 fillods Exp $
+ *		$Id: kenwood.h,v 1.23 2002-07-10 21:45:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,6 +49,8 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 				size_t *data_len);
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
+int kenwood_old_set_vfo(RIG *rig, vfo_t vfo);
+int kenwood_old_get_vfo(RIG *rig, vfo_t *vfo);
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
