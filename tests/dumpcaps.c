@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.35 2003-02-23 22:41:03 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.36 2003-03-19 23:44:37 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@
 
 
 static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
-static const char *decode_mtype(enum chan_type_e type);
+static const char *decode_mtype(chan_type_t type);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
 static void dump_chan_caps(const channel_cap_t *chan);
@@ -179,7 +179,7 @@ int dumpcaps (RIG* rig)
 	printf("Has transceive: %s\n",
 					caps->transceive?"yes":"no");
 
-	printf("Announce: 0x%lx\n", caps->announces);
+	printf("Announce: 0x%x\n", caps->announces);
 	printf("Max RIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_rit/1000, caps->max_rit%1000,
 					caps->max_rit/1000, caps->max_rit%1000);
@@ -420,7 +420,7 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
  * NB: this function is not reentrant, because of the static buf.
  * 		but who cares?  --SF
  */
-static const char *decode_mtype(enum chan_type_e type)
+static const char *decode_mtype(chan_type_t type)
 {
 		switch(type) {
 				case RIG_MTYPE_NONE: return "NONE";
