@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.22 2000-12-07 02:34:56 javabear Exp $  
+ * $Id: ft747.c,v 1.23 2000-12-09 02:01:59 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -469,9 +469,8 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 int ft747_set_vfo(RIG *rig, vfo_t vfo) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-
   static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x05 }; /* select vfo A/B/Current */
-  
+
   if (!rig)
     return -RIG_EINVAL;
   
@@ -483,28 +482,38 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
    * TODO : check for errors -- FS
    */
 
+
   switch(vfo) {
   case RIG_VFO_A:
-    cmd[3] = 0x00;
+    cmd[3] = FT747_VFO_A; 
     write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     p->current_vfo = vfo;		/* update active VFO */
     return RIG_OK;
   case RIG_VFO_B:
-    cmd[3] = 0x01;
+    cmd[3] = FT747_VFO_B;
     write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     p->current_vfo = vfo;		/* update active VFO */
     return RIG_OK;
   case RIG_VFO_CURR:
-    cmd[3] = p->current_vfo;		/* use active VFO */
-    write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-    return RIG_OK;
-
+    switch(p->current_vfo) {	/* what is my active VFO ? */
+    case RIG_VFO_A:
+      cmd[3] = FT747_VFO_A; 
+      write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+      p->current_vfo = RIG_VFO_A;		/* update active VFO */
+      return RIG_OK;
+    case RIG_VFO_B:
+      cmd[3] = FT747_VFO_B; 
+      write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+      p->current_vfo = RIG_VFO_B;		/* update active VFO */
+      return RIG_OK;
+    default:
+      rig_debug(RIG_DEBUG_VERBOSE,"ft747: Unknown default VFO \n");
+      return -RIG_EINVAL;		/* sorry, wrong VFO */
+    }
+    
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
-
-
-  return RIG_OK;		/* good */
 }
 
 
