@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.106 2005-04-03 22:33:08 fillods Exp $
+ *	$Id: rig.h,v 1.107 2005-04-06 21:27:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -22,6 +22,9 @@
 
 #ifndef _RIG_H
 #define _RIG_H 1
+
+#include <stdio.h>
+#include <stdarg.h>
 
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
 
@@ -1331,6 +1334,8 @@ struct rig_state {
 };
 
 
+typedef int (*vprintf_cb_t) (enum rig_debug_level_e, rig_ptr_t, const char *, va_list);
+
 typedef int (*freq_cb_t) (RIG *, vfo_t, freq_t, rig_ptr_t);
 typedef int (*mode_cb_t) (RIG *, vfo_t, rmode_t, pbwidth_t, rig_ptr_t);
 typedef int (*vfo_cb_t) (RIG *, vfo_t, rig_ptr_t);
@@ -1544,8 +1549,11 @@ extern HAMLIB_EXPORT(int) rig_setting2idx HAMLIB_PARAMS((setting_t s));
  * Maybe "hamlib_" would have been better. Let me know. --SF
  */
 extern HAMLIB_EXPORT(void) rig_set_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
+#define rig_set_debug_level(level) rig_set_debug(level)
 extern HAMLIB_EXPORT(int) rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
 extern HAMLIB_EXPORT(void) rig_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level, const char *fmt, ...));
+extern HAMLIB_EXPORT(vprintf_cb_t) rig_set_debug_callback HAMLIB_PARAMS((vprintf_cb_t cb, rig_ptr_t arg));
+extern HAMLIB_EXPORT(FILE*) rig_set_debug_file HAMLIB_PARAMS((FILE *stream));
 
 extern HAMLIB_EXPORT(int) rig_register HAMLIB_PARAMS((const struct rig_caps *caps));
 extern HAMLIB_EXPORT(int) rig_unregister HAMLIB_PARAMS((rig_model_t rig_model));

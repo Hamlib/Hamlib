@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.36 2005-04-04 21:24:51 fillods Exp $
+ *	$Id: misc.c,v 1.37 2005-04-06 21:27:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,6 +41,9 @@
 
 
 static int rig_debug_level = RIG_DEBUG_TRACE;
+static FILE *rig_debug_stream;
+static vprintf_cb_t rig_vprintf_cb;
+static rig_ptr_t rig_vprintf_arg;
 
 /*
  * Do a hex dump of the unsigned char array.
@@ -200,7 +203,7 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsign
  */
 void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
 {
-		rig_debug_level = debug_level;
+	rig_debug_level = debug_level;
 }
 
 /*
@@ -214,22 +217,70 @@ int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 
 /*
  * rig_debug
- * Debugging messages are done through stderr
- * TODO: add syslog support if needed
+ * Default is debugging messages are done through stderr
  */
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 {
 	va_list ap;
 
-	if (debug_level <= rig_debug_level) {
-		va_start(ap, fmt);
-		/*
-		 * Who cares about return code?
-		 */
-		vfprintf (stderr, fmt, ap);
-		va_end(ap);
+	if (!rig_need_debug(debug_level))
+		return;
+
+
+	va_start(ap, fmt);
+
+	if (rig_vprintf_cb) {
+
+		rig_vprintf_cb(debug_level, rig_vprintf_arg, fmt, ap);
+
+	} else {
+		if (!rig_debug_stream)
+			rig_debug_stream = stderr;
+
+		vfprintf (rig_debug_stream, fmt, ap);
 	}
+
+	va_end(ap);
 }
+
+/**
+ * \brief set callback to handle debug messages
+ * \param cb    The callback to install
+ * \param arg   A Pointer to some private data to pass later on to the callback
+ *
+ *  Install a callback for \a rig_debug messages.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause
+ * is set appropriately).
+ *
+ * \sa rig_debug()
+ */
+//typedef int (*vprintf_cb_t) (enum rig_debug_level_e debug_level, rig_ptr_t, const char *, va_list);
+vprintf_cb_t rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
+{
+	vprintf_cb_t prev_cb = rig_vprintf_cb;
+
+	rig_vprintf_cb = cb;
+	rig_vprintf_arg = arg;
+
+	return prev_cb;
+}
+
+/**
+ * \brief change stderr to some different output
+ * \param stream The stream to set output to
+ */
+FILE *rig_set_debug_file(FILE *stream)
+{
+	FILE *prev_stream = rig_debug_stream;
+
+	rig_debug_stream = stream;
+
+	return prev_stream;
+}
+
+
 
 #ifndef llabs
 #define llabs(a) ((a)<0?-(a):(a))
