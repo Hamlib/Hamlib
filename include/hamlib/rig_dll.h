@@ -1,4 +1,4 @@
-/* $Id: rig_dll.h,v 1.5 2001-12-19 03:37:07 fillods Exp $ */
+/* $Id: rig_dll.h,v 1.6 2002-11-14 19:27:34 fillods Exp $ */
 
 
 /*
@@ -18,8 +18,8 @@
 #  undef HAMLIB_IMPEXP
 #  undef BACKEND_IMPEXP
 #  undef HAMLIB_API
-#  undef HAMLIB_EXPORT(type)
-#  undef HAMLIB_EXPORT_VAR(type)
+#  undef HAMLIB_EXPORT
+#  undef HAMLIB_EXPORT_VAR
 #  if defined(HAMLIB_DLL) && defined(IN_HAMLIB)
 /* building a DLL */
 #    define HAMLIB_IMPEXP __declspec(dllexport)
@@ -44,8 +44,8 @@
 
 
 #if defined(__CYGWIN__)
-#  undef BACKEND_EXPORT_VAR(type)
-#  undef HAMLIB_EXPORT_VAR(type)
+#  undef BACKEND_EXPORT_VAR
+#  undef HAMLIB_EXPORT_VAR
 #  ifdef DLL_EXPORT
 #    ifdef IN_HAMLIB
 #      define BACKEND_EXPORT_VAR(type) __declspec(dllexport) type

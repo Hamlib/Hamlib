@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: rigclass.h,v 1.11 2002-09-22 11:41:49 fillods Exp $
+ *	$Id: rigclass.h,v 1.12 2002-11-14 19:27:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,7 +24,7 @@
 #define _RIGCLASS_H 1
 
 #include <hamlib/rig.h>
-
+#include <iostream>
 
 
 class BACKEND_IMPEXP Rig {
@@ -246,7 +246,7 @@ public:
     {};
 
   void print() const {
-	cerr << "Rig exception: " << message << endl;
+	  std::cerr << "Rig exception: " << message << std::endl;
   }
   virtual const char *classname() const {
     return "Rig";
@@ -264,7 +264,7 @@ inline void THROW(const RigException *e) {
   genericerror(1, ((e != 0) ? (char *)(e->message) : ""));
 #else
   if (e)
-    cerr << e->message << endl;
+    std::cerr << e->message << endl;
   exit(0);
 #endif
 }
