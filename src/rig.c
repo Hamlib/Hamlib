@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.54 2002-01-21 08:30:31 fillods Exp $
+ *		$Id: rig.c,v 1.55 2002-01-27 14:55:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,6 +47,7 @@
 #include <serial.h>
 #include "event.h"
 #include "conf.h"
+#include "token.h"
 
 /**
  * \brief Hamlib release number
@@ -57,7 +58,7 @@ const char hamlib_version[] = "Hamlib version " VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-	"Copyright (C) 2000, 2001 Stephane Fillod and Frank Singleton\n"
+	"Copyright (C) 2000, 2001, 2002 Stephane Fillod and Frank Singleton\n"
 	"This is free software; see the source for copying conditions.  "
 	"There is NO\n warranty; not even for MERCHANTABILITY or FITNESS FOR A"
 	"PARTICULAR PURPOSE.";
@@ -3002,7 +3003,7 @@ int rig_set_conf(RIG *rig, token_t token, const char *val)
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
 
-		if (RIG_IS_TOKEN_FRONTEND(token))
+		if (IS_TOKEN_FRONTEND(token))
 				return frontend_set_conf(rig, token, val);
 
 		if (rig->caps->set_conf == NULL)
@@ -3030,7 +3031,7 @@ int rig_get_conf(RIG *rig, token_t token, char *val)
 		if (!rig || !rig->caps || !val)
 			return -RIG_EINVAL;
 
-		if (RIG_IS_TOKEN_FRONTEND(token))
+		if (IS_TOKEN_FRONTEND(token))
 				return frontend_get_conf(rig, token, val);
 
 		if (rig->caps->get_conf == NULL)

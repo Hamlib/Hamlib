@@ -1,8 +1,8 @@
 /*
- *  Hamlib Interface - configuration interface
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Hamlib Interface - rotator configuration interface
+ *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rot_conf.c,v 1.1 2001-12-27 21:46:25 fillods Exp $
+ *		$Id: rot_conf.c,v 1.2 2002-01-27 14:55:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,7 @@
 #include <hamlib/rotator.h>
 
 #include "rot_conf.h"
+#include "token.h"
 
 
 /*
@@ -40,7 +41,7 @@
  * options available in the rot->state struct.
  */
 static const struct confparams rotfrontend_cfg_params[] = {
-	{ TOK_ROT_PATHNAME, "rot_pathname", "Rig path name", 
+	{ TOK_PATHNAME, "rot_pathname", "Rig path name", 
 			"Path name to the device file of the rotator",
 			"/dev/rotator", RIG_CONF_STRING, 
 	},
@@ -80,6 +81,23 @@ static const struct confparams rotfrontend_cfg_params[] = {
 			"None", RIG_CONF_COMBO, { c: {{ "None", "XONXOFF", "Hardware", NULL }} }
 	},
 
+	{ TOK_MIN_AZ, "min_az", "Minimum azimuth",
+			"Minimum rotator azimuth in degrees",
+			"-180", RIG_CONF_NUMERIC, { n: { -360, 360, .001 } }
+	},
+	{ TOK_MAX_AZ, "max_az", "Maximum azimuth",
+			"Maximum rotator azimuth in degrees",
+			"180", RIG_CONF_NUMERIC, { n: { -360, 360, .001 } }
+	},
+	{ TOK_MIN_EL, "min_el", "Minimum elevation",
+			"Minimum rotator elevation in degrees",
+			"0", RIG_CONF_NUMERIC, { n: { -90, 180, .001 } }
+	},
+	{ TOK_MAX_EL, "max_el", "Maximum elevation",
+			"Maximum rotator elevation in degrees",
+			"90", RIG_CONF_NUMERIC, { n: { -90, 180, .001 } }
+	},
+
 	{ RIG_CONF_END, NULL, }
 };
 
@@ -97,7 +115,7 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 		rs = &rot->state;
 
 		switch(token) {
-		case TOK_ROT_PATHNAME:
+		case TOK_PATHNAME:
 				strcpy(rs->rotport.pathname, val);
 				break;
 		case TOK_WRITE_DELAY:
@@ -143,6 +161,19 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 						return -RIG_EINVAL;
 				break;
 
+		case TOK_MIN_AZ:
+				rs->min_az = atof(val);
+				break;
+		case TOK_MAX_AZ:
+				rs->max_az = atof(val);
+				break;
+		case TOK_MIN_EL:
+				rs->min_el = atof(val);
+				break;
+		case TOK_MAX_EL:
+				rs->max_el = atof(val);
+				break;
+
 		default:
 				return -RIG_EINVAL;
 		}
@@ -163,7 +194,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 		rs = &rot->state;
 
 		switch(token) {
-		case TOK_ROT_PATHNAME:
+		case TOK_PATHNAME:
 				strcpy(val, rs->rotport.pathname);
 				break;
 		case TOK_WRITE_DELAY:
@@ -204,6 +235,19 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 				default: return -RIG_EINVAL;
 				}
 				strcpy(val, s);
+				break;
+
+		case TOK_MIN_AZ:
+				sprintf(val, "%f", rs->min_az);
+				break;
+		case TOK_MAX_AZ:
+				sprintf(val, "%f", rs->max_az);
+				break;
+		case TOK_MIN_EL:
+				sprintf(val, "%f", rs->min_el);
+				break;
+		case TOK_MAX_EL:
+				sprintf(val, "%f", rs->max_el);
 				break;
 
 		default:

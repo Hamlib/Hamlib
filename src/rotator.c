@@ -11,7 +11,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotator.c,v 1.5 2002-01-21 08:30:31 fillods Exp $
+ *		$Id: rotator.c,v 1.6 2002-01-27 14:55:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,6 +45,7 @@
 #include <hamlib/rotator.h>
 #include <serial.h>
 #include "rot_conf.h"
+#include "token.h"
 
 
 #define DEFAULT_SERIAL_PORT "/dev/rotator"
@@ -414,7 +415,7 @@ int rot_set_conf(ROT *rot, token_t token, const char *val)
 		if (!rot || !rot->caps)
 			return -RIG_EINVAL;
 
-		if (RIG_IS_TOKEN_FRONTEND(token))
+		if (IS_TOKEN_FRONTEND(token))
 				return frontrot_set_conf(rot, token, val);
 
 		if (rot->caps->set_conf == NULL)
@@ -442,7 +443,7 @@ int rot_get_conf(ROT *rot, token_t token, char *val)
 		if (!rot || !rot->caps || !val)
 			return -RIG_EINVAL;
 
-		if (RIG_IS_TOKEN_FRONTEND(token))
+		if (IS_TOKEN_FRONTEND(token))
 				return frontrot_get_conf(rot, token, val);
 
 		if (rot->caps->get_conf == NULL)

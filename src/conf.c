@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - configuration interface
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: conf.c,v 1.5 2001-12-26 23:45:38 fillods Exp $
+ *		$Id: conf.c,v 1.6 2002-01-27 14:55:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,7 @@
 #include <hamlib/rig.h>
 
 #include "conf.h"
+#include "token.h"
 
 
 /*
@@ -40,7 +41,7 @@
  * options available in the rig->state struct.
  */
 static const struct confparams frontend_cfg_params[] = {
-	{ TOK_RIG_PATHNAME, "rig_pathname", "Rig path name", 
+	{ TOK_PATHNAME, "rig_pathname", "Rig path name", 
 			"Path name to the device file of the rig",
 			"/dev/rig", RIG_CONF_STRING, 
 	},
@@ -105,7 +106,7 @@ int frontend_set_conf(RIG *rig, token_t token, const char *val)
 		rs = &rig->state;
 
 		switch(token) {
-		case TOK_RIG_PATHNAME:
+		case TOK_PATHNAME:
 				strcpy(rs->rigport.pathname, val);
 				break;
 		case TOK_WRITE_DELAY:
@@ -195,7 +196,7 @@ int frontend_get_conf(RIG *rig, token_t token, char *val)
 		rs = &rig->state;
 
 		switch(token) {
-		case TOK_RIG_PATHNAME:
+		case TOK_PATHNAME:
 				strcpy(val, rs->rigport.pathname);
 				break;
 		case TOK_WRITE_DELAY:
