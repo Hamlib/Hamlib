@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.27 2001-04-24 19:51:46 f4cfe Exp $
+ *	$Id: rig.h,v 1.28 2001-04-26 21:31:46 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -199,7 +199,7 @@ typedef enum vfo_e vfo_t;
  */
 
 /* How to call it? "tunable channel"? Control band? */
-#define RIG_CTRL_BAND(band,vfo) ( 1<<(8*((band)-1)) | (vfo)<<(8*((band)-1)) )
+#define RIG_CTRL_BAND(band,vfo) ( (0x80<<(8*((band)-1))) | ((vfo)<<(8*((band)-1))) )
 
 				 /* macros */
 #define RIG_VFO_A (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO1))
