@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.39 2005-02-02 20:06:19 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.40 2005-02-02 20:14:12 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,7 @@
 
 #define TS870S_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_ANF|RIG_FUNC_LOCK)
 
-#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
+#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR|RIG_LEVEL_COMP|RIG_LEVEL_AGC|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -224,6 +224,34 @@ int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				val->f = 60.0/(30.0-(float)i)-1.0;
 			break;
 
+		case RIG_LEVEL_COMP:
+			lvl_len = 0;
+			retval = kenwood_transaction (rig, "RM2;", 4, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			lvl_len = 50;
+			retval = kenwood_transaction (rig, "RM;", 4, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			lvlbuf[7]='\0';
+			val->f=(float)atoi(&lvlbuf[3])/30.0;
+			break;
+
+		case RIG_LEVEL_ALC:
+			lvl_len = 0;
+			retval = kenwood_transaction (rig, "RM3;", 4, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			lvl_len = 50;
+			retval = kenwood_transaction (rig, "RM;", 4, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			lvlbuf[7]='\0';
+			val->f=(float)atoi(&lvlbuf[3])/30.0;
+			break;
+
 		case RIG_LEVEL_ATT:
 			retval = kenwood_transaction (rig, "RA;", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
@@ -283,7 +311,6 @@ int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_CWPITCH:
 		case RIG_LEVEL_KEYSPD:
 		case RIG_LEVEL_NOTCHF:
-		case RIG_LEVEL_COMP:
 		case RIG_LEVEL_BKINDL:
 		case RIG_LEVEL_BALANCE:
 			return -RIG_ENIMPL;
