@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.18 2001-08-12 22:59:59 f4cfe Exp $
+ *		$Id: riglist.h,v 1.19 2001-10-07 21:50:51 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -78,6 +78,8 @@
 #define RIG_MODEL_TS2000 RIG_MAKE_MODEL(RIG_KENWOOD, 14)
 #define RIG_MODEL_R5000 RIG_MAKE_MODEL(RIG_KENWOOD, 15)
 #define RIG_MODEL_TS570S RIG_MAKE_MODEL(RIG_KENWOOD, 16)
+#define RIG_MODEL_THD7A RIG_MAKE_MODEL(RIG_KENWOOD, 17)
+#define RIG_MODEL_THD7AG RIG_MAKE_MODEL(RIG_KENWOOD, 18)
 
 	/*
 	 * Icom
@@ -129,6 +131,8 @@
 #define RIG_MODEL_ICR7100 RIG_MAKE_MODEL(RIG_ICOM, 41)
 #define RIG_MODEL_ICR8500 RIG_MAKE_MODEL(RIG_ICOM, 42)
 #define RIG_MODEL_ICR9000 RIG_MAKE_MODEL(RIG_ICOM, 43)
+#define RIG_MODEL_IC910 RIG_MAKE_MODEL(RIG_ICOM, 44)
+
 	/*
 	 * Optoelectronics (CI-V)
 	 */
@@ -295,6 +299,13 @@
 #define RIG_MODEL_505DSP RIG_MAKE_MODEL(RIG_KACHINA, 1)
 
 	/*
+	 * RPC Network pseudo-backend
+	 */
+#define RIG_RPC 19
+#define RIG_BACKEND_RPC "rpcrig"
+#define RIG_MODEL_RPC RIG_MAKE_MODEL(RIG_RPC, 1)
+
+	/*
 	 * TODO:
 		RIG_MODEL_KWZ30,	KNEISNER +DOERING
 		RIG_MODEL_E1800,	DASA-Telefunken
@@ -324,6 +335,7 @@ typedef int rig_model_t;
 		{ RIG_TENTEC, RIG_BACKEND_TENTEC }, \
 		{ RIG_ALINCO, RIG_BACKEND_ALINCO }, \
 		{ RIG_KACHINA, RIG_BACKEND_KACHINA }, \
+		{ RIG_RPC, RIG_BACKEND_RPC }, \
 		{ 0, NULL }, /* end */  \
 }
 
