@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - Rotator API header
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: rotator.h,v 1.3 2002-01-16 16:52:33 fgretief Exp $
+ *	$Id: rotator.h,v 1.4 2002-09-08 22:27:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -232,8 +232,8 @@ extern HAMLIB_EXPORT(const struct rot_caps *) rot_get_caps HAMLIB_PARAMS((rot_mo
  */
 extern HAMLIB_EXPORT(int) qrb HAMLIB_PARAMS((double lon1, double lat1, 
 						double lon2, double lat2, 
-						double *bearing, double *azimuth));
-extern HAMLIB_EXPORT(double) bearing_long_path HAMLIB_PARAMS((double bearing));
+						double *distance, double *azimuth));
+extern HAMLIB_EXPORT(double) distance_long_path HAMLIB_PARAMS((double distance));
 extern HAMLIB_EXPORT(double) azimuth_long_path HAMLIB_PARAMS((double azimuth));
 
 extern HAMLIB_EXPORT(void) longlat2locator HAMLIB_PARAMS((double longitude, 
