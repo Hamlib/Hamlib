@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.6 2003-12-23 13:46:20 bwulf Exp $
+ * $Id: ft990.c,v 1.7 2003-12-24 14:36:07 bwulf Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -135,9 +135,9 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.4",
+  .version =            "0.0.5",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_NEW,
+  .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_NONE,
@@ -225,8 +225,8 @@ const struct rig_caps ft990_caps = {
     {RIG_MODE_FM,   kHz(8)},      /* FM standard filter */
     {RIG_MODE_RTTY, RIG_FLT_ANY}, /* Enable all filters for RTTY */
     {RIG_MODE_RTTYR,RIG_FLT_ANY}, /* Enable all filters for Reverse RTTY */
-//    {RIG_MODE_PKTLSB,RIG_FLT_ANY}, /* Enable all filters for Packet Radio LSB */
-//    {RIG_MODE_PKTFM,kHz(8)},      /* FM standard filter for Packet Radio FM */
+    {RIG_MODE_PKTLSB,RIG_FLT_ANY}, /* Enable all filters for Packet Radio LSB */
+    {RIG_MODE_PKTFM,kHz(8)},      /* FM standard filter for Packet Radio FM */
     RIG_FLT_END,
   },
 
@@ -1611,14 +1611,12 @@ static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_FM:
       ci = FT990_NATIVE_MODE_SET_FM;
       break;
-/* hamlib currently doesn't support packet radio modes
     case RIG_MODE_PKTLSB:
       ci = FT990_NATIVE_MODE_SET_PKT_LSB;
       break;
     case RIG_MODE_PKTFM:
       ci = FT990_NATIVE_MODE_SET_PKT_FM;
       break;
-*/
    default:
      return -RIG_EINVAL;
   }
@@ -1630,8 +1628,8 @@ static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   if (ci == FT990_NATIVE_MODE_SET_AM_N ||
       ci == FT990_NATIVE_MODE_SET_AM_W ||
-      ci == FT990_NATIVE_MODE_SET_FM) //   ||
-//      ci == FT990_NATIVE_MODE_SET_PKT_FM)
+      ci == FT990_NATIVE_MODE_SET_FM  ||
+      ci == FT990_NATIVE_MODE_SET_PKT_FM)
     return RIG_OK;
 
   switch(width) {
@@ -1746,8 +1744,6 @@ switch(vfo) {
   rig_debug(RIG_DEBUG_TRACE, "%s: fl = 0x%02x\n", __func__, *fl);
   rig_debug(RIG_DEBUG_TRACE, "%s: current mode = 0x%02x\n", __func__, *p);
 
-  // Hamlib doesn't support Packet FM and Packet LSB modes
-  // and hence they are mapped to their native modes!
   switch(*p) {
     case FT990_MODE_LSB:
       *mode = RIG_MODE_LSB;
@@ -1772,11 +1768,9 @@ switch(vfo) {
       break;
     case FT990_MODE_PKT:
       if (*fl & FT990_BW_FMPKTRTTY)
-        *mode = RIG_MODE_FM;
-//        *mode = RIG_MODE_PKTFM;
+        *mode = RIG_MODE_PKTFM;
       else
-        *mode = RIG_MODE_LSB;
-//        *mode = RIG_MODE_PKTLSB;
+        *mode = RIG_MODE_PKTLSB;
       break;
     default:
       return -RIG_EINVAL;
@@ -1788,7 +1782,7 @@ switch(vfo) {
   // AM bandwidth for 2400Hz and 6000Hz are interchanged.
   switch(*fl & 0x7f) {
     case FT990_BW_F2400:
-      if (*mode == RIG_MODE_FM /*|| *mode == RIG_MODE_PKTFM*/)
+      if (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM)
         *width = 8000;
       else if (*mode == RIG_MODE_AM) // <- FT990 firmware bug?
         *width = 6000;
@@ -2366,12 +2360,10 @@ static int ft990_get_channel (RIG *rig, channel_t *chan)
         chan->mode = RIG_MODE_RTTY;
       break;
     case FT990_MODE_PKT:
-      // Note: Hamlib currently doesn't support packet radio modes such as
-      // RIG_MODE_PKT_FM and RIG_MODE_PKT_LSB
       if (p->filter & FT990_BW_FMPKTRTTY)
-        chan->mode = RIG_MODE_FM;
+        chan->mode = RIG_MODE_PKTFM;
       else
-        chan->mode = RIG_MODE_LSB;
+        chan->mode = RIG_MODE_PKTLSB;
       break;
     default:
       return -RIG_EINVAL;
