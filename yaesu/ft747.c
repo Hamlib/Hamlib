@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.2 2001-01-04 07:03:58 javabear Exp $  
+ * $Id: ft747.c,v 1.3 2001-01-05 02:03:33 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,11 +30,11 @@
 /*
  * TODO -   FS
  *
- * 1. Rentrant code, remove static stuff from all functions.
- * 2. rationalise code, more helper functions.
+ * 1. Rentrant code, remove static stuff from all functions [started]
+ * 2. rationalise code, more helper functions [started]
  * 3. Allow cached reads
- * 4. Fix crappy 25Hz resolution handling
- *
+ * 4. Fix crappy 25Hz resolution handling of FT747 aaarrgh !
+ * 5. Put variant of ftxxx_send_cmd in yaesu.c
  *
  */
 
@@ -55,9 +55,10 @@
 #include "ft747.h"
 
 
-/* prototypes */
+/* Private helper function prototypes */
 
 static int ft747_get_update_data(RIG *rig);
+static int ft747_send_priv_cmd(RIG *rig, unsigned char ci);
 
 /* Native ft747 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
@@ -204,10 +205,8 @@ int ft747_init(RIG *rig) {
     return -RIG_EINVAL;
   
   p = (struct ft747_priv_data*)malloc(sizeof(struct ft747_priv_data));
-  if (!p) {
-				/* whoops! memory shortage! */
+  if (!p)			/* whoops! memory shortage! */    
     return -RIG_ENOMEM;
-  }
   
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_init called \n");
 
@@ -275,14 +274,11 @@ int ft747_open(RIG *rig) {
  */
 
 int ft747_close(RIG *rig) {
-  struct rig_state *rig_s;
- 
+
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_s = &rig->state;
-
-  /* TODO */
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_close called \n");
 
   return RIG_OK;
 }
@@ -338,6 +334,8 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   struct ft747_priv_data *p;
   freq_t f;
 
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_get_freq called \n");
+
   if (!rig)
     return -RIG_EINVAL;
   
@@ -373,17 +371,11 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
  */
 
 int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
-  struct rig_state *rig_s;
-  struct ft747_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
 
   if (!rig)
     return -RIG_EINVAL;
-  
-  p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
-  
+
   ft747_set_vfo(rig, vfo);	/* select VFO first , new API */
   
   /* 
@@ -448,8 +440,7 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
    * phew! now send cmd to rig
    */ 
 
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  ft747_send_priv_cmd(rig,cmd_index);
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: cmd_index = %i \n", cmd_index);
 
@@ -519,8 +510,6 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 int ft747_set_vfo(RIG *rig, vfo_t vfo) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-
-  unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
 
 
@@ -568,8 +557,7 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
    * phew! now send cmd to rig
    */ 
 
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  ft747_send_priv_cmd(rig,cmd_index);
 
   return RIG_OK;
 
@@ -609,20 +597,12 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
 }
 
 int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
-  struct rig_state *rig_s;
-  struct ft747_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
-
 
   if (!rig)
     return -RIG_EINVAL;
   
-  p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
-
   ft747_set_vfo(rig,vfo);	/* select VFO first */
-
 
   switch(ptt) {
   case RIG_PTT_OFF:
@@ -639,8 +619,7 @@ int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
    * phew! now send cmd to rig
    */ 
 
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  ft747_send_priv_cmd(rig,cmd_index);
 
   return RIG_OK;		/* good */
 }
@@ -678,36 +657,6 @@ int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
 }
 
 
-
-
-#if 0
-
-/*
- * private helper function. Retrieves update data from rig.
- * Uses ft747_get_update_data() to get status flag
- */
-
-static int ft747_get_status_flags(RIG *rig, int sf_order) {
-  struct rig_state *rig_s;
-  struct ft747_priv_data *p;
-  unsigned char status;		/* ft747 status flags */
-  
-
-  if (!rig)
-    return -RIG_EINVAL;
-
-  p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
-
-  ft747_get_update_data(rig);	/* get whole shebang from rig */
-
-  status = p->update_data[FT747_STATUS_UPDATE_STATUS_OFFSET];  
-
-  return status & SF_RXTX;
-}
-
-#endif
-
 /*
  * private helper function. Retrieves update data from rig.
  * using pacing value and buffer indicated in *priv struct.
@@ -718,10 +667,8 @@ static int ft747_get_status_flags(RIG *rig, int sf_order) {
 static int ft747_get_update_data(RIG *rig) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-  int n;			/* counter */
-
-  static unsigned char cmd_pace[] = { 0x00, 0x00, 0x00, 0x00, 0x0e }; /* pacing set */
-  static unsigned char cmd_update[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
+  unsigned char *cmd;		/* points to sequence to send */
+  int n;			/* for read_  */
 
   if (!rig)
     return -RIG_EINVAL;
@@ -729,16 +676,25 @@ static int ft747_get_update_data(RIG *rig) {
   p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
 
-  cmd_pace[3] = p->pacing;		/* get pacing value */
+  /* 
+   * Copy native cmd PACING  to private cmd storage area 
+   */
+
+  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_PACING].nseq,YAESU_CMD_LENGTH);  
+  p->p_cmd[3] = p->pacing;		/* get pacing value, and store in private cmd */
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: read pacing = %i \n",p->pacing);
 
-  write_block(rig_s->fd, cmd_pace, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+   /* send PACING cmd to rig  */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: read timeout = %i \n",FT747_DEFAULT_READ_TIMEOUT);
+  cmd = p->p_cmd;
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
-  write_block(rig_s->fd, cmd_update, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay); /* request data */
-  n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT); 
-/*    n = read_block(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
+  /* send UPDATE comand to fetch data*/
+
+  ft747_send_priv_cmd(rig,FT_747_NATIVE_UPDATE);
+
+  /*    n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
+  n = read_block(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT); 
 
   return 0;
 
@@ -749,10 +705,46 @@ static int ft747_get_update_data(RIG *rig) {
 /*
  * init_ft747 is called by rig_backend_load
  */
+
 int init_ft747(void *be_handle) {
   rig_debug(RIG_DEBUG_VERBOSE, "ft747: _init called\n");
   rig_register(&ft747_caps); 
   return RIG_OK;
 }
 
+
+
+/*
+ * private helper function to send a private command
+ * sequence . Must only be complete sequences.
+ * TODO: place variant of this in yaesu.c
+ */
+
+static int ft747_send_priv_cmd(RIG *rig, unsigned char ci) {
+
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char cmd_index;	/* index of sequence to send */
+ 
+  if (!rig)
+    return -RIG_EINVAL;
+
+
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+  
+  cmd_index = ci;		/* get command */
+
+  if (! p->pcs[cmd_index].ncomp) {
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: Attempt to send incomplete sequence \n");
+    return -RIG_EINVAL;
+  }
+
+  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
+  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  
+  return RIG_OK;
+
+}
 
