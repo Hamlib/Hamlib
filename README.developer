@@ -109,7 +109,7 @@ by the following:
 	tar zxvf hamlib-cvsroot.tar.gz
 	mv hamlib hroot
 	export CVSROOT=`pwd`/hroot
-	cvs co hamlib
+	cvs co -P hamlib
 
 After the initial retrieval, whenever you want to update your local
 version, issue the following command in the root directory of hamlib.
@@ -135,7 +135,7 @@ you'll need the following tools. Make sure you have at least the required
 version or you won't even be able to build from the cvs checkout.
 
 * Gnu C or any C99 compliant compiler		# gcc --version
-* Gnu make  (or any modern one, BSD's isn't)	# make --version
+* Gnu make  (or any modern one, BSD okay)	# make --version
 * autoconf		 2.50			# autoconf --version
 * automake		 1.5			# automake --version
 * libtool		 1.4.2			# libtool --version
@@ -160,6 +160,8 @@ and automake "automake-1.5", aclocal "aclocal-1.5" or upper version.
 
 IMPORTANT: If autoconf or automake are installed on your system, 
 make sure they are matching *at least* the version shown above.
+Some people experience troubles with automake 1.5, if you're one of those,
+it's recommanded to upgrade to automake 1.7, which is a lot more stable.
 
 
 1.3. configure and build stage
@@ -171,7 +173,7 @@ the AUTOCONF,AUTOHEADER,AUTOHEADER,ACLOCAL variables with the required
 versions seen in the previous section.
 
 	chmod +x autogen.sh
-	./autogen.sh --config-cache --disable-static --prefix=/some/where
+	./autogen.sh --disable-static --prefix=/some/where
 	make
 	make install
 
@@ -215,7 +217,7 @@ So far, Hamlib has been tested under the following systems:
 	* Debian sid mipsel
 	* RedHat i386
 	* Slackware i386
-	* *BSD: port ongoing
+	* FreeBSD
 	* win32: builds under Cygwin, module loading still broken
 	* Some work started under Darwin (issues with libtool)
 
@@ -303,7 +305,9 @@ like this. The error checking is removed for simplicity.
    Ham shack.
    Starting point: kontakt, grig
 
-
+8. Coding guidelines
+   Your code must be LGPL.
+   
 
 Stephane Fillod f8cfe
 Frank Singleton vk3fcs/km5ws
