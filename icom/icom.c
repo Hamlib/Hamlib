@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.52 2002-03-04 20:23:18 fillods Exp $
+ *		$Id: icom.c,v 1.53 2002-03-05 00:41:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -376,7 +376,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		/*
 		 * is it a blank mem channel ?
 		 */
-		if (freq_len == 1 && freqbuf[0] == 0xff) {
+		if (freq_len == 1 && freqbuf[1] == 0xff) {
 			*freq = RIG_FREQ_NONE;
 
 			return RIG_OK;
