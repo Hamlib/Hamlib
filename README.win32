@@ -1,30 +1,16 @@
-Message-ID: <40D5E4A4.4080305@starpower.net>
-From: "Mark J. Fine" <fineware@starpower.net>
+From: "Mark J. Fine" <mark.fine@fineware-swl.com>
 Subject: [Hamlib-developer] Building under Cygwin for Windows (Mingw32)
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=hamlib-developer>
 Date: Sun, 20 Jun 2004 15:25:24 -0400
-<revised by mjf 10 August, 2004>
 
+<revised by mjf Tue, 17 Aug, 2004>
 
 Found this to be helpful for building hamlib under Cygwin/Mingw32 for 
 linking with Windows apps:
 
+
 1. To create the dlls, do the following from within Cygwin (assumes
 Cygwin is fully updated):
-
-Modify ./configure.ac to put all of the AC_CONFIG_FILES parameters all
-on one line, i.e.:
-   AC_CONFIG_FILES([Makefile macros/Makefile include/Makefile
-lib/Makefile dummy/Makefile yaesu/Makefile icom/Makefile aor/Makefile
-kenwood/Makefile winradio/Makefile pcr/Makefile alinco/Makefile
-uniden/Makefile tentec/Makefile kachina/Makefile jrc/Makefile
-drake/Makefile lowe/Makefile rft/Makefile kit/Makefile tapr/Makefile
-gnuradio/Makefile easycomm/Makefile fodtrack/Makefile sartek/Makefile
-rpcrig/Makefile rpcrot/Makefile src/Makefile c++/Makefile
-bindings/Makefile bindings/hamlibvb.bas tests/Makefile doc/Makefile 
-doc/hamlib.cfg rotorez/Makefile microtune/Makefile flexradio/Makefile
-hamlib.pc hamlib.spec])
-For some reason Cygwin doesn't like it.
 
 # export CC="gcc -mno-cygwin"
 # export CXX="g++ -mno-cygwin"
@@ -38,15 +24,22 @@ In that case, "make clean", and re-run autogen as above.
 
 # make
 
-Don't run "make install" if you've already made a native Cygwin version
-of hamlib, since it will screw up the pkgconfig for Cygwin linking. In
-fact, it's best to have one tree for native Cygwin and another tree for
-cross-compiling so you can avoid overwriting any created object files or
-libraries.
+If you are only building one version of hamlib, you can proceed to
+install it:
 
-Instead of "make install", manually go through all of the .libs and copy
-the resulting .exes and .dlls in to a single directory, or create a script
-to do it for you. Likewise, copy the .h files in include/hamlib into this
+# make install
+
+Note: Don't run "make install" if you've already made a native Cygwin or
+Linux version of hamlib. It will interfere with the pkgconfig used for
+linking the hamlib library with a native Cygwin or Linux application.
+In fact if you are building two versions, it's best to have one tree for 
+native Cygwin and another tree for cross-compiling with MingW32. This way
+you can avoid overwriting or corrupting any needed object files or libraries.
+
+As an alternative to "make install", manually go through all of the .libs
+in the source tree and copy the resulting .exes and .dlls in to a single
+directory. Or, create a script or batch file to do it for you. Likewise,
+you will need to copy all of the the .h files from include/hamlib into this
 same directory.
 
 Go to the directory you've just put all that stuff in and run:
@@ -54,12 +47,15 @@ Go to the directory you've just put all that stuff in and run:
 # strip *.exe
 This will make the resulting images smaller.
 
+
 2. To create a MSVC-compatible interface library, do the following in a
 Windows command window from the directory where you put all that stuff:
 
  > lib /def:libhamlib.def /machine:IX86 /name:libhamlib-1-2-2cvs-2
 
-This will create libhamlib.lib and libhamlib.exp.
+This will create libhamlib.lib and libhamlib.exp. This example is for
+hamlib v1.2.2cvs-2. You will have to use the correct version of the 
+library in the "/name:" switch, above. 
 
 REM: Using the (free) Microsoft Visual C++ Toolkit 2003, replace
 the "lib" command by "link /lib".
@@ -67,7 +63,6 @@ the "lib" command by "link /lib".
 libhamlib.lib and the .h includes from include/hamlib can now be used
 within any MSVC build (i.e., dream), but all the dlls must be put in the
 same directory or in PATH as the resulting .exe otherwise it won't find it.
-
 
 -- 
 
