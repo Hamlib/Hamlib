@@ -7,7 +7,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.23 2001-12-20 22:59:08 fillods Exp $  
+ * $Id: rigctl.c,v 1.24 2001-12-21 09:48:51 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -193,7 +193,7 @@ struct test_table test_list[] = {
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:P:d:D:c:C:LvhVl"
+#define SHORT_OPTIONS "m:r:p:P:d:D:c:s:C:LvhVl"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -202,6 +202,7 @@ static struct option long_options[] =
 	{"dcd-file", 1, 0, 'd'},
 	{"ptt-type", 1, 0, 'P'},
 	{"dcd-type", 1, 0, 'D'},
+	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
@@ -253,6 +254,7 @@ int main (int argc, char *argv[])
 	const char *rig_file=NULL, *ptt_file=NULL, *dcd_file=NULL;
 	ptt_type_t ptt_type = RIG_PTT_NONE;
 	dcd_type_t dcd_type = RIG_DCD_NONE;
+	int serial_rate = 0;
 	char *civaddr = NULL;	/* NULL means no need to set conf */
 	char conf_parms[MAXCONFLEN] = "";
 
@@ -321,6 +323,13 @@ int main (int argc, char *argv[])
 					}
 					civaddr = optarg;
 					break;
+			case 's':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					serial_rate = atoi(optarg);
+					break;
 			case 'C':
 					if (!optarg) {
 							usage();	/* wrong arg count */
@@ -383,6 +392,9 @@ int main (int argc, char *argv[])
 		strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN);
 	if (dcd_file)
 		strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN);
+	/* FIXME: bound checking and port type == serial */
+	if (serial_rate != 0)
+		my_rig->state.rigport.parm.serial.rate = serial_rate;
 	if (civaddr)
         rig_set_conf(my_rig, rig_token_lookup(my_rig, "civaddr"), civaddr);
 
@@ -547,6 +559,7 @@ void usage()
 	"  -d, --dcd-file=DEVICE      set device of the DCD device to operate on\n"
 	"  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
 	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
+	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address (for Icom rigs only)\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
