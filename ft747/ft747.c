@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.15 2000-10-08 21:57:39 f4cfe Exp $  
+ * $Id: ft747.c,v 1.16 2000-10-08 23:06:17 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -44,9 +44,11 @@
 #include "serial.h"
 #include "ft747.h"
 
+
 /* prototypes */
 
 int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
+static int ft747_get_update_data(RIG *rig);
 
 
 /* 
@@ -143,7 +145,7 @@ const struct rig_caps ft747_caps = {
  * Init some private data
  */
 
-static const struct ft747_priv_data ft747_priv = { 747 }; /* dummy atm */
+static const struct ft747_priv_data ft747_priv = { 0 }; /* dummy atm */
 
 
 /*
@@ -153,6 +155,9 @@ static const struct ft747_priv_data ft747_priv = { 747 }; /* dummy atm */
 /*
  * setup *priv 
  * serial port is already open (rig->state->fd)
+ *
+ * 
+ *
  */
 
 
@@ -174,8 +179,12 @@ int ft747_init(RIG *rig) {
    *          + override with rig-specific preferences
    */
   
-  *p = ft747_priv;
-  
+/*    *p = ft747_priv; */
+
+				/* TODO: read pacing from preferences */
+  p->pacing = FT747_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
+  p->read_update_delay = FT747_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
+ 
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -252,12 +261,119 @@ int ft747_get_freq(RIG *rig, freq_t *freq) {
   return -RIG_ENIMPL;
 }
 
-int ft747_set_mode(RIG *rig, rmode_t mode) {
-  return -RIG_ENIMPL;
+
+/*
+ * set mode : eg AM. AMN , CW, NCW etc..
+ *
+ */
+
+int ft747_set_mode(RIG *rig, rmode_t rmode) {
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+
+  unsigned char mymode;		/* ft747 mode value */
+
+  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x0c }; /* mode set */
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+  
+  
+  /* 
+   * translate mode from generic to ft747 specific
+   */
+  printf("rmode = %x \n", rmode);
+
+  switch(rmode) {
+  case RIG_MODE_AM:
+    mymode = MODE_SET_AMW;
+    break;
+  case RIG_MODE_CW:
+    mymode = MODE_SET_CWW;
+    break;
+  case RIG_MODE_USB:
+    mymode = MODE_SET_USB;
+    break;
+  case RIG_MODE_LSB:
+    mymode = MODE_SET_LSB;
+    break;
+  case RIG_MODE_FM:
+    mymode = MODE_SET_FMW;
+    break;
+  case RIG_MODE_NFM:
+    mymode = MODE_SET_FMN;
+    break;
+  case RIG_MODE_NCW:
+    mymode = MODE_SET_CWN;
+    break;
+  case RIG_MODE_NAM:
+    mymode = MODE_SET_AMN;
+    break;
+  case RIG_MODE_WAM:
+    mymode = MODE_SET_AMW;
+    break;
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong MODE */
+  }
+
+  cmd[3] = mymode;
+  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay);
+  return RIG_OK;		/* good */
+  
 }
 
-int ft747_get_mode(RIG *rig, rmode_t *mode) {
-  return -RIG_ENIMPL;
+int ft747_get_mode(RIG *rig, rmode_t *rmode) {
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+  unsigned char mymode;		/* ft747 mode */
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+
+  ft747_get_update_data(rig);	/* get whole shebang from rig */
+  
+  mymode = p->update_data[FT747_STATUS_UPDATE_MODE_OFFSET];
+  mymode = mymode & 0x9f; /* mask out bits 5 and 6 */
+  
+  printf("mymode = %x \n", mymode);
+
+  switch(mymode) {
+  case MODE_FM:
+    (*rmode) = RIG_MODE_FM;
+    break;
+  case MODE_AM:
+    (*rmode) = RIG_MODE_AM;
+    break;
+  case MODE_CW:
+    (*rmode) = RIG_MODE_CW;
+    break;
+  case MODE_USB:
+    (*rmode) = RIG_MODE_USB;
+    break;
+  case MODE_LSB:
+    (*rmode) = RIG_MODE_LSB;
+    break;
+  case MODE_FMN:
+    (*rmode) = RIG_MODE_NFM;
+    break;
+  case MODE_AMN:
+    (*rmode) = RIG_MODE_NAM;
+    break;
+  case MODE_CWN:
+    (*rmode) = RIG_MODE_NCW;
+    break;
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong mode */
+    break; 
+  }
+  
+  return RIG_OK;
 }
 
 
@@ -305,8 +421,8 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
 
-  static unsigned char ptt_off[] = { 0x00, 0x00, 0x00, 0x00, 0x0f }; /* ptt off */
-  static unsigned char ptt_on[] = { 0x00, 0x00, 0x00, 0x01, 0x0f }; /* ptt on */
+  static unsigned char cmd_ptt_off[] = { 0x00, 0x00, 0x00, 0x00, 0x0f }; /* ptt off */
+  static unsigned char cmd_ptt_on[] = { 0x00, 0x00, 0x00, 0x01, 0x0f }; /* ptt on */
 
   if (!rig)
     return -RIG_EINVAL;
@@ -316,10 +432,10 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt) {
 
   switch(ptt) {
   case RIG_PTT_OFF:
-    write_block(rig_s->fd, ptt_off, FT747_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_ptt_off, FT747_CMD_LENGTH, rig_s->write_delay);
     return RIG_OK;
   case RIG_PTT_ON:
-    write_block(rig_s->fd, ptt_on, FT747_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_ptt_on, FT747_CMD_LENGTH, rig_s->write_delay);
     return RIG_OK;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
@@ -332,6 +448,42 @@ int ft747_get_ptt(RIG *rig, ptt_t *ptt) {
 }
 
 
+
+/*
+ * private helper function. Retrieves update data from rig.
+ * using pacing value and buffer indicated in *priv struct.
+ *
+ * need to use this when doing ft747_get_* stuff
+ */
+
+static int ft747_get_update_data(RIG *rig) {
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+  int n;			/* counter */
+
+  static unsigned char cmd_pace[] = { 0x00, 0x00, 0x00, 0x00, 0x0e }; /* pacing set */
+  static unsigned char cmd_update[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+
+  cmd_pace[3] = p->pacing;		/* get pacing value */
+  printf("read pacing = %i \n",p->pacing);
+
+  write_block(rig_s->fd, cmd_pace, FT747_CMD_LENGTH, rig_s->write_delay);
+
+  printf("read timeout = %i \n",FT747_DEFAULT_READ_TIMEOUT);
+
+  write_block(rig_s->fd, cmd_update, FT747_CMD_LENGTH, rig_s->write_delay); /* request data */
+  n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT); 
+/*    n = read_block(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
+
+  return 0;
+
+}
 
 /*
  * Implement OPCODES
@@ -465,7 +617,7 @@ void ft747_cmd_get_update_store(int fd, unsigned char *buffer) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
 
   write_block(fd,data); 
-  n = read_sleep(fd,buffer,345);	/* wait and read for 345 bytes to be read */
+  n = read_sleep(fd,buffer,FT747_STATUS_UPDATE_SIZE);	/* wait and read for bytes to be read */
 
   return;
 }
