@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-D7 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: thd7.c,v 1.10 2003-10-01 19:31:58 fillods Exp $
+ *	$Id: thd7.c,v 1.11 2004-03-20 16:48:34 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -116,11 +116,13 @@ const struct rig_caps thd7a_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-
-.chan_list =  { {  1,  200, RIG_MTYPE_MEM },
-			 RIG_CHAN_END,
-		   },	/* FIXME: memory channel list: 200 memories */
-
+.chan_list =  {
+                {  1,  199, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* normal MEM */
+                {  200,219, RIG_MTYPE_EDGE , {TH_CHANNEL_CAPS}}, /* U/L MEM */
+                {  221,222, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* Call 0/1 */
+                RIG_CHAN_END,
+                   },
+                                                                                                    
 .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 .tx_range_list1 =  { RIG_FRNG_END, },
 .rx_range_list2 =  {
@@ -168,6 +170,8 @@ const struct rig_caps thd7a_caps = {
 .get_ctcss_tone =  th_get_ctcss_tone,
 .set_mem =  th_set_mem,
 .get_mem =  th_get_mem,
+.set_channel =  th_set_channel,
+.get_channel =  th_get_channel,
 .set_trn =  th_set_trn,
 .get_trn =  th_get_trn,
 
