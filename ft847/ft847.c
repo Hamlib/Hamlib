@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.26 2000-12-18 05:17:45 javabear Exp $  
+ * $Id: ft847.c,v 1.27 2000-12-20 06:33:59 javabear Exp $  
  *
  *
  *
@@ -32,6 +32,16 @@
  *      - create yaesu.h for common command structure etc..
  */
 
+/*
+ * Notes on limitations in RIG control capabilities. These are
+ * related to the Yaesu's FT847 design, not my program :-)
+ *
+ * 1. Rig opcodes allow only 10Hz resolution.
+ * 2. Cannot select VFO
+ *
+ *
+ *
+ */
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -49,6 +59,8 @@
 #include "misc.h"
 
 /* prototypes */
+
+static int ft847_send_priv_cmd(RIG *rig, unsigned char ci);
 
 
 /* Native ft847 cmd set prototypes. These are READ ONLY as each */
@@ -145,27 +157,18 @@ static const ft847_cmd_set_t ncmd[] = {
  * Receiver caps 
  */
 
-#if 0
-#define FT847_ALL_RX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_WFM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
-#define FT847_SSB_CW_RX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NCW)
-#define FT847_AM_FM_RX_MODES (RIG_MODE_AM| RIG_MODE_NAM |RIG_MODE_FM |RIG_MODE_NFM )
-#else
+
 #define FT847_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define FT847_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT847_AM_FM_RX_MODES (RIG_MODE_AM|RIG_MODE_FM)
-#endif
 
 /* tx doesn't have WFM.
  * 100W in 160-6m (25 watts AM carrier)
  * 50W in 2m/70cm (12.5 watts AM carrier)
  */ 
-#if 0
-#define FT847_OTHER_TX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
-#define FT847_AM_TX_MODES (RIG_MODE_AM| RIG_MODE_NAM)
-#else
+
 #define FT847_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define FT847_AM_TX_MODES (RIG_MODE_AM)
-#endif
 
 #define FT847_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
 
@@ -174,9 +177,11 @@ static const ft847_cmd_set_t ncmd[] = {
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  */
+
+
 const struct rig_caps ft847_caps = {
   RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_TRANSCEIVER,RIG_PTT_NONE, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
+  RIG_TYPE_TRANSCEIVER,RIG_PTT_RIG, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE,FT847_WRITE_DELAY ,FT847_POST_WRITE_DELAY, 100, 0, FT847_FUNC_ALL, 0, 0, 78, RIG_TRN_OFF,
   { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
@@ -276,12 +281,12 @@ int ft847_init(RIG *rig) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_init called \n");
 
   /* 
-   * Copy native cmd set to private cmd storage area 
+   * Copy complete native cmd set to private cmd storage area 
    */
 
   memcpy(p->pcs,ncmd,sizeof(ncmd));
 
-  p->current_vfo =  RIG_VFO_A;	/* default to VFO_A */
+  p->current_vfo =  RIG_VFO_MAIN;	/* default to VFO_MAIN */
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -300,6 +305,8 @@ int ft847_cleanup(RIG *rig) {
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_cleanup called \n");
   
   return RIG_OK;
 }
@@ -311,23 +318,12 @@ int ft847_cleanup(RIG *rig) {
  */
 
 int ft847_open(RIG *rig) {
-  struct rig_state *rig_s;
-  struct ft847_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
-  unsigned char cmd_index;	/* index of sequence to send */
 
- 
-  if (!rig)
-    return -RIG_EINVAL;
-
-  p = (struct ft847_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
-  
   /* Good time to set CAT ON */
 
-  cmd_index = FT_847_NATIVE_CAT_ON;
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);  
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_open called \n");
+
+  ft847_send_priv_cmd(rig,FT_847_NATIVE_CAT_ON);
 
   return RIG_OK;
 }
@@ -338,6 +334,24 @@ int ft847_open(RIG *rig) {
  */
 
 int ft847_close(RIG *rig) {
+
+  /* Good time to set CAT OFF */
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_close called \n");
+
+  ft847_send_priv_cmd(rig,FT_847_NATIVE_CAT_OFF);
+
+  return RIG_OK;
+}
+
+/*
+ * private helper function to send a private command
+ * sequence . Must only be complete sequences.
+ *
+ */
+
+static int ft847_send_priv_cmd(RIG *rig, unsigned char ci) {
+
   struct rig_state *rig_s;
   struct ft847_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
@@ -346,21 +360,28 @@ int ft847_close(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
+
   p = (struct ft847_priv_data*)rig->state.priv;
   rig_s = &rig->state;
-
-  /* Good time to set CAT OFF */
   
-  cmd_index = FT_847_NATIVE_CAT_OFF;
+  cmd_index = ci;		/* get command */
+
+  if (! p->pcs[cmd_index].ncomp) {
+    rig_debug(RIG_DEBUG_VERBOSE,"ft847: Attempt to send incomplete sequence \n");
+    return -RIG_EINVAL;
+  }
+
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
   write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
   
   return RIG_OK;
+
 }
 
 
+
 /*
- * Example of wrapping backend function inside frontend API
+ * Set frequency to freq Hz. Note 10 Hz resolution -- YUK -- FS
  * 	 
  */
 
@@ -385,27 +406,17 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
    * Copy native cmd freq_set to private cmd storage area 
    */
 
-  /*
-   * TODO Is VFO_B = SAT_RX ? -- FS
-   */
-
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%i \n", vfo);
   
   switch(vfo) {
-  case RIG_VFO_A:
+  case RIG_VFO_MAIN:
     cmd_index = FT_847_NATIVE_CAT_SET_FREQ_MAIN;
-    break;
-  case RIG_VFO_B:
-    cmd_index = FT_847_NATIVE_CAT_SET_FREQ_SAT_RX_VFO;
     break;
   case RIG_VFO_CURR:
     switch(p->current_vfo) {	/* what is my active VFO ? */
-    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
       cmd_index = FT_847_NATIVE_CAT_SET_FREQ_MAIN;
-      break;
-    case RIG_VFO_B:
-      cmd_index = FT_847_NATIVE_CAT_SET_FREQ_SAT_RX_VFO;
       break;
     default:
       rig_debug(RIG_DEBUG_VERBOSE,"ft847: Unknown default VFO \n");
@@ -435,8 +446,79 @@ int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   return -RIG_ENIMPL;
 }
 
+
+
+
 int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
-  return -RIG_ENIMPL;
+  unsigned char cmd_index;	/* index of sequence to send */
+  
+  /* 
+   * translate mode from generic to ft847 specific
+   */
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847: generic mode = %x \n", mode);
+
+  switch(mode) {
+  case RIG_MODE_AM:
+    cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_AM;
+    break;
+  case RIG_MODE_CW:
+    cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_CW;
+    break;
+  case RIG_MODE_USB:
+    cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_USB;
+    break;
+  case RIG_MODE_LSB:
+    cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_LSB;
+    break;
+  case RIG_MODE_FM:
+    cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_FM;
+    break;
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong MODE */
+  }
+
+
+  /*
+   * Now set width
+   */
+
+  switch(width) {
+  case RIG_PASSBAND_NORMAL:	         /* easy case , no change to native sequence */
+    ft847_send_priv_cmd(rig,cmd_index);	 /* TODO -- check return codes */
+    return RIG_OK;		         /* I am out of here .. */
+
+  case RIG_PASSBAND_WIDE:
+    return -RIG_EINVAL;		/* sorry, WIDE WIDTH is not supported */
+
+  case RIG_PASSBAND_NARROW:	/* must set narrow */
+    switch(mode) {
+    case RIG_MODE_AM:
+      cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN;
+      break;
+    case RIG_MODE_FM:
+      cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_FMN;
+      break;
+    case RIG_MODE_CW:
+      cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN;
+      break;
+    default:
+      return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
+    }
+    break;
+
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong WIDTH requested  */    
+  }
+  
+
+  /*
+   * Now send the command
+   */
+
+  ft847_send_priv_cmd(rig,cmd_index);
+
+  return RIG_OK;
 }
 
 int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
@@ -458,7 +540,7 @@ int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
  * Try later -- FS
  *
  *
- * Also, handle only VFO_A and VFO_B . Add SAT VFO's later.
+ * Also, RIG can handle only VFO_MAIN . Add SAT VFO's later.
  *
  */
 
@@ -478,21 +560,21 @@ int ft847_set_vfo(RIG *rig, vfo_t vfo) {
    */
 
   switch(vfo) {
-  case RIG_VFO_A:
-    p->current_vfo = vfo;		/* update active VFO */
-    break;
-  case RIG_VFO_B:
+  case RIG_VFO_MAIN:
     p->current_vfo = vfo;		/* update active VFO */
     break;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
+
+
   return RIG_OK;
 
 }
 
 int ft847_get_vfo(RIG *rig, vfo_t *vfo) {
+
   return -RIG_ENIMPL;
 
 }
@@ -505,20 +587,9 @@ int ft847_get_vfo(RIG *rig, vfo_t *vfo) {
 
 
 int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
-  struct rig_state *rig_s;
-  struct ft847_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
 
-  if (!rig)
-    return -RIG_EINVAL;
-  
-  p = (struct ft847_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
-    
-  /* 
-   * TODO : check for errors -- FS
-   */
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847:ft847_set_ptt called \n");
 
   switch(ptt) {
   case RIG_PTT_ON:
@@ -535,9 +606,8 @@ int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
    * phew! now send cmd to rig
    */ 
 
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-  
+  ft847_send_priv_cmd(rig,cmd_index);
+
   return RIG_OK;		/* good */
 
 }
@@ -546,6 +616,9 @@ int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   return -RIG_ENIMPL;
 
 }
+
+
+#if 0
 
 
 int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode) {
@@ -589,7 +662,6 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode) {
 
 
 
-#if 0
 
 #define TRUE    1;
 #define FALSE   0;
