@@ -1,13 +1,13 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * ic706.c - Copyright (C) 2000 Stephane Fillod
+ * ic706.c - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to an IC-706,IC-706MKII,IC706-MKIIG
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.20 2001-04-28 12:38:02 f4cfe Exp $  
+ * $Id: ic706.c,v 1.21 2001-05-04 22:37:35 f4cfe Exp $  
  *
  *
  *
@@ -91,29 +91,52 @@ static const struct icom_priv_caps ic706_priv_caps = {
 };
 
 const struct rig_caps ic706_caps = {
-  RIG_MODEL_IC706, "IC-706", "Icom", "0.2", "GPL",
-  RIG_STATUS_UNTESTED, RIG_TYPE_MOBILE,
-  RIG_PTT_NONE, RIG_DCD_NONE, RIG_PORT_SERIAL,
-  300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
-  0, 0, 200, 3, 
-  IC706_FUNC_ALL, IC706_FUNC_ALL, 
-  IC706_LEVEL_ALL, RIG_LEVEL_SET(IC706_LEVEL_ALL),
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { 10, RIG_DBLST_END, },	/* preamp */
-  { 20, RIG_DBLST_END, },
-  NULL,
-  Hz(0), Hz(0),	/* RIT, IF-SHIFT */
-  IC706_VFO_ALL,			/* VFO list */
-  0, RIG_TRN_RIG, 
-  101, 0, 0,
+rig_model: RIG_MODEL_IC706,
+model_name:"IC-706", 
+mfg_name: "Icom", 
+version: "0.2", 
+copyright: "GPL",
+status: RIG_STATUS_UNTESTED,
+rig_type: RIG_TYPE_MOBILE,
+ptt_type: RIG_PTT_NONE,
+dcd_type: RIG_DCD_NONE,
+port_type: RIG_PORT_SERIAL,
+serial_rate_min: 300,
+serial_rate_max: 19200,
+serial_data_bits: 8,
+serial_stop_bits: 1,
+serial_parity: RIG_PARITY_NONE,
+serial_handshake: RIG_HANDSHAKE_NONE, 
+write_delay: 0,
+post_write_delay: 0,
+timeout: 200,
+retry: 3, 
+has_get_func: IC706_FUNC_ALL,
+has_set_func: IC706_FUNC_ALL, 
+has_get_level: IC706_LEVEL_ALL,
+has_set_level: RIG_LEVEL_SET(IC706_LEVEL_ALL),
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
+level_gran: {}, 		/* granularity */
+parm_gran: {},
+ctcss_list: NULL,
+dcs_list: NULL,
+preamp:  { 10, RIG_DBLST_END, },
+attenuator:  { 20, RIG_DBLST_END, },
+max_rit: Hz(0),
+max_xit: Hz(0),
+max_ifshift: Hz(0),
+targetable_vfo: 0,
+transceive: RIG_TRN_RIG,
+bank_qty:  0,
+chan_desc_sz: 0,
 
-  { RIG_CHAN_END, },	/* FIXME: memory channel list */
+chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
-  { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
-  { {kHz(30),199999999,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},RIG_FRNG_END, }, /* rx range */
-  { {kHz(1800),1999999,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},	/* 100W class */
+rx_range_list1:  { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
+tx_range_list1:  { RIG_FRNG_END, },
+rx_range_list2:  { {kHz(30),199999999,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},RIG_FRNG_END, }, /* rx range */
+tx_range_list2:  { {kHz(1800),1999999,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},	/* 100W class */
     {kHz(1800),1999999,IC706_AM_TX_MODES,2000,40000,IC706_VFO_ALL},	/* 40W class */
     {kHz(3500),3999999,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},
     {kHz(3500),3999999,IC706_AM_TX_MODES,2000,40000,IC706_VFO_ALL},
@@ -137,7 +160,7 @@ const struct rig_caps ic706_caps = {
     {MHz(144),MHz(148),IC706_AM_TX_MODES,2000,8000,IC706_VFO_ALL}, /* anyone? */
 	RIG_FRNG_END, },
 
-	{{IC706_1HZ_TS_MODES,1},
+tuning_steps:	{{IC706_1HZ_TS_MODES,1},
 	 {IC706_ALL_RX_MODES,10},
 	 {IC706_ALL_RX_MODES,100},
 	 {IC706_ALL_RX_MODES,kHz(1)},
@@ -153,7 +176,7 @@ const struct rig_caps ic706_caps = {
 	},
 
 	/* mode/filter list, remember: order matters! */
-	{
+filters: {
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},	/* bultin FL-272 */
 		{RIG_MODE_AM, kHz(8)},		/* mid w/ bultin FL-94 */
 		{RIG_MODE_AM, kHz(2.4)},	/* narrow w/ bultin FL-272 */
@@ -162,10 +185,18 @@ const struct rig_caps ic706_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
-  (void*)&ic706_priv_caps,
-  icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
-  NULL,
+priv: (void*)&ic706_priv_caps,
+rig_init:  icom_init,
+rig_cleanup:  icom_cleanup,
+rig_open: NULL,
+rig_close: NULL,
+
+set_freq: icom_set_freq,
+get_freq: icom_get_freq,
+set_mode: icom_set_mode,
+get_mode: icom_get_mode,
+set_vfo: icom_set_vfo,
+
 };
 
 
@@ -177,29 +208,53 @@ static const struct icom_priv_caps ic706mkii_priv_caps = {
 };
 
 const struct rig_caps ic706mkii_caps = {
-  RIG_MODEL_IC706MKII, "IC-706MKII", "Icom", "0.2", "GPL",
-  RIG_STATUS_UNTESTED, RIG_TYPE_MOBILE, 
-  RIG_PTT_NONE, RIG_DCD_NONE, RIG_PORT_SERIAL,
-  300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
-  0, 0, 200, 3, 
-  IC706_FUNC_ALL, IC706_FUNC_ALL, 
-  IC706_LEVEL_ALL, RIG_LEVEL_SET(IC706_LEVEL_ALL),
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { 10, RIG_DBLST_END, },	/* preamp */
-  { 20, RIG_DBLST_END, },
-  NULL,
-  Hz(0), Hz(0),	/* RIT, IF-SHIFT */
-  IC706_VFO_ALL,			/* VFO list */
-  0, RIG_TRN_RIG, 
-  101, 0, 0,
+rig_model: RIG_MODEL_IC706MKII,
+model_name:"IC-706MkII", 
+mfg_name: "Icom", 
+version: "0.2", 
+copyright: "GPL",
+status: RIG_STATUS_UNTESTED,
+rig_type: RIG_TYPE_MOBILE,
+ptt_type: RIG_PTT_NONE,
+dcd_type: RIG_DCD_NONE,
+port_type: RIG_PORT_SERIAL,
+serial_rate_min: 300,
+serial_rate_max: 19200,
+serial_data_bits: 8,
+serial_stop_bits: 1,
+serial_parity: RIG_PARITY_NONE,
+serial_handshake: RIG_HANDSHAKE_NONE, 
+write_delay: 0,
+post_write_delay: 0,
+timeout: 200,
+retry: 3, 
+has_get_func: IC706_FUNC_ALL,
+has_set_func: IC706_FUNC_ALL, 
+has_get_level: IC706_LEVEL_ALL,
+has_set_level: RIG_LEVEL_SET(IC706_LEVEL_ALL),
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
+level_gran: {}, 		/* granularity */
+parm_gran: {},
+ctcss_list: NULL,
+dcs_list: NULL,
+preamp:  { 10, RIG_DBLST_END, },
+attenuator:  { 20, RIG_DBLST_END, },
+max_rit: Hz(0),
+max_xit: Hz(0),
+max_ifshift: Hz(0),
+targetable_vfo: 0,
+transceive: RIG_TRN_RIG,
+bank_qty:  0,
+chan_desc_sz: 0,
 
-  { RIG_CHAN_END, },	/* FIXME: memory channel list */
+chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
-  { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
-  { {kHz(30),199999999,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},RIG_FRNG_END, }, /* rx range */
-  { {kHz(1800),1999999,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},	/* 100W class */
+rx_range_list1:  { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
+tx_range_list1:  { RIG_FRNG_END, },
+rx_range_list2:  { {kHz(30),199999999,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},
+						 RIG_FRNG_END, }, /* rx range */
+tx_range_list2:  { {kHz(1800),1999999,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},	/* 100W class */
     {kHz(1800),1999999,IC706_AM_TX_MODES,2000,40000,IC706_VFO_ALL},	/* 40W class */
     {kHz(3500),3999999,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},
     {kHz(3500),3999999,IC706_AM_TX_MODES,2000,40000,IC706_VFO_ALL},
@@ -223,7 +278,8 @@ const struct rig_caps ic706mkii_caps = {
     {MHz(144),MHz(148),IC706_AM_TX_MODES,2000,8000,IC706_VFO_ALL}, /* anyone? */
 	RIG_FRNG_END, },
 
-	{{IC706_1HZ_TS_MODES,1},
+tuning_steps:	{
+	 {IC706_1HZ_TS_MODES,1},
 	 {IC706_ALL_RX_MODES,10},
 	 {IC706_ALL_RX_MODES,100},
 	 {IC706_ALL_RX_MODES,kHz(1)},
@@ -239,7 +295,7 @@ const struct rig_caps ic706mkii_caps = {
 	},
 
 	/* mode/filter list, remember: order matters! */
-	{
+filters: {
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},	/* bultin FL-272 */
 		{RIG_MODE_AM, kHz(8)},		/* mid w/ bultin FL-94 */
 		{RIG_MODE_AM, kHz(2.4)},	/* narrow w/ bultin FL-272 */
@@ -248,10 +304,18 @@ const struct rig_caps ic706mkii_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
-  (void*)&ic706mkii_priv_caps,
-  icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
-  NULL,
+
+priv: (void*)&ic706mkii_priv_caps,
+rig_init:  icom_init,
+rig_cleanup:  icom_cleanup,
+rig_open: NULL,
+rig_close: NULL,
+
+set_freq: icom_set_freq,
+get_freq: icom_get_freq,
+set_mode: icom_set_mode,
+get_mode: icom_get_mode,
+set_vfo: icom_set_vfo,
 };
 
 /*
@@ -266,36 +330,60 @@ static const struct icom_priv_caps ic706mkiig_priv_caps = {
 };
 
 const struct rig_caps ic706mkiig_caps = {
-  RIG_MODEL_IC706MKIIG, "IC-706MKIIG", "Icom", "0.2", "GPL", 
-  RIG_STATUS_ALPHA, RIG_TYPE_MOBILE, 
-  RIG_PTT_NONE, RIG_DCD_RIG, RIG_PORT_SERIAL,
-  300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
-  0, 0, 200, 3, 
-  IC706_FUNC_ALL, IC706_FUNC_ALL, 
-  IC706_LEVEL_ALL, RIG_LEVEL_SET(IC706_LEVEL_ALL),
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  icom_ctcss_list, NULL,
-  { 10, RIG_DBLST_END, },	/* preamp */
-  { 20, RIG_DBLST_END, },
-  NULL,
-  Hz(0), Hz(0),	/* RIT, IF-SHIFT */
-  IC706_VFO_ALL,			/* VFO list */
-  0, RIG_TRN_RIG, 
-  105, 0, 0,
+rig_model: RIG_MODEL_IC706MKIIG,
+model_name:"IC-706MkIIG", 
+mfg_name: "Icom", 
+version: "0.2", 
+copyright: "GPL",
+status: RIG_STATUS_ALPHA,
+rig_type: RIG_TYPE_MOBILE,
+ptt_type: RIG_PTT_NONE,
+dcd_type: RIG_DCD_NONE,
+port_type: RIG_PORT_SERIAL,
+serial_rate_min: 300,
+serial_rate_max: 19200,
+serial_data_bits: 8,
+serial_stop_bits: 1,
+serial_parity: RIG_PARITY_NONE,
+serial_handshake: RIG_HANDSHAKE_NONE, 
+write_delay: 0,
+post_write_delay: 0,
+timeout: 200,
+retry: 3, 
+has_get_func: IC706_FUNC_ALL,
+has_set_func: IC706_FUNC_ALL, 
+has_get_level: IC706_LEVEL_ALL,
+has_set_level: RIG_LEVEL_SET(IC706_LEVEL_ALL),
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
+level_gran: {}, 		/* granularity */
+parm_gran: {},
+ctcss_list: common_ctcss_list,
+dcs_list: NULL,
+preamp:  { 10, RIG_DBLST_END, },
+attenuator:  { 20, RIG_DBLST_END, },
+max_rit: Hz(0),
+max_xit: Hz(0),
+max_ifshift: Hz(0),
+targetable_vfo: 0,
+transceive: RIG_TRN_RIG,
+bank_qty:  0,
+chan_desc_sz: 0,
 
-  /* memory channel list */
-  { {  01,  99, RIG_MTYPE_MEM, 0 },
-    { 100, 105, RIG_MTYPE_EDGE, 0 },	/* two by two */
-    { 106, 107, RIG_MTYPE_CALL, 0 },
-    RIG_CHAN_END,
-  },
+chan_list: {
+				   {  01,  99, RIG_MTYPE_MEM, 0 },
+				   { 100, 105, RIG_MTYPE_EDGE, 0 },    /* two by two */
+				   { 106, 107, RIG_MTYPE_CALL, 0 },
+				   RIG_CHAN_END,
+		},
 
-  { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
-  { {kHz(30),MHz(200)-1,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},	/* this trx also has UHF */
+rx_range_list1:  { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
+tx_range_list1:  { RIG_FRNG_END, },
+
+rx_range_list2:  { {kHz(30),MHz(200)-1,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},	/* this trx also has UHF */
  	{MHz(400),MHz(470),IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},
 	RIG_FRNG_END, },
-  { {kHz(1800),MHz(2)-1,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},	/* 100W class */
+tx_range_list2: { {kHz(1800),MHz(2)-1,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},	/* 100W class */
     {kHz(1800),MHz(2)-1,IC706_AM_TX_MODES,2000,40000,IC706_VFO_ALL},	/* 40W class */
     {kHz(3500),MHz(4)-1,IC706_OTHER_TX_MODES,5000,100000,IC706_VFO_ALL},
     {kHz(3500),MHz(4)-1,IC706_AM_TX_MODES,2000,40000,IC706_VFO_ALL},
@@ -320,7 +408,9 @@ const struct rig_caps ic706mkiig_caps = {
     {MHz(430),MHz(450),IC706_OTHER_TX_MODES,5000,20000,IC706_VFO_ALL},
     {MHz(430),MHz(450),IC706_AM_TX_MODES,2000,8000,IC706_VFO_ALL},
 	RIG_FRNG_END, },
-	{{IC706_1HZ_TS_MODES,1},
+
+tuning_steps:	{
+	 {IC706_1HZ_TS_MODES,1},
 	 {IC706_ALL_RX_MODES,10},
 	 {IC706_ALL_RX_MODES,100},
 	 {IC706_ALL_RX_MODES,kHz(1)},
@@ -335,7 +425,7 @@ const struct rig_caps ic706mkiig_caps = {
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
-	{
+filters:	{
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},	/* bultin FL-272 */
 		{RIG_MODE_AM, kHz(8)},		/* mid w/ bultin FL-94 */
 		{RIG_MODE_AM, kHz(2.4)},	/* narrow w/ bultin FL-272 */
@@ -344,23 +434,24 @@ const struct rig_caps ic706mkiig_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
-  (void*)&ic706mkiig_priv_caps,
-  icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
-  NULL, 
-  /*
-   * FIXME:
-   * the use of the following GNU extension (field: value)
-   * is bad manner in portable code but admit it, quite handy
-   * when testing stuff. --SF
-   */
+
+priv: (void*)&ic706mkiig_priv_caps,
+rig_init:  icom_init,
+rig_cleanup:  icom_cleanup,
+rig_open: NULL,
+rig_close: NULL,
+
+set_freq: icom_set_freq,
+get_freq: icom_get_freq,
+set_mode: icom_set_mode,
+get_mode: icom_get_mode,
+set_vfo: icom_set_vfo,
+
 decode_event: icom_decode_event,
 set_level: icom_set_level,
 get_level: icom_get_level,
 set_func: icom_set_func,
 get_func: icom_get_func,
-set_channel: icom_set_channel,
-get_channel: icom_get_channel,
 set_mem: icom_set_mem,
 mv_ctl: icom_mv_ctl,
 set_ptt: icom_set_ptt,
@@ -378,6 +469,7 @@ set_split_mode: icom_set_split_mode,
 get_split_mode: icom_get_split_mode,
 set_split: icom_set_split,
 get_split: icom_get_split,
+
 };
 
 

@@ -1,13 +1,13 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * icr8500.c - Copyright (C) 2000 Stephane Fillod
+ * icr8500.c - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to an ICR-8500
  * using the "CI-V" interface.
  *
  *
- * $Id: icr8500.c,v 1.8 2001-03-04 13:03:41 f4cfe Exp $  
+ * $Id: icr8500.c,v 1.9 2001-05-04 22:37:35 f4cfe Exp $  
  *
  *
  *
@@ -58,35 +58,61 @@ static const struct icom_priv_caps icr8500_priv_caps = {
  * ICR8500 rigs capabilities.
  */
 const struct rig_caps icr8500_caps = {
-  RIG_MODEL_ICR8500, "ICR-8500", "Icom", "0.2", "GPL", 
-  RIG_STATUS_UNTESTED, RIG_TYPE_RECEIVER, 
+rig_model: RIG_MODEL_ICR8500,
+model_name:"ICR-8500",
+mfg_name: "Icom",
+version: "0.2",
+copyright: "GPL",
+status: RIG_STATUS_UNTESTED,
+rig_type: RIG_TYPE_RECEIVER,
+ptt_type: RIG_PTT_NONE,
+dcd_type: RIG_DCD_NONE,
+port_type: RIG_PORT_SERIAL,
+serial_rate_min: 300,
+serial_rate_max: 19200,
+serial_data_bits: 8,
+serial_stop_bits: 1,
+serial_parity: RIG_PARITY_NONE,
+serial_handshake: RIG_HANDSHAKE_NONE,
+write_delay: 0,
+post_write_delay: 0,
+timeout: 200,
+retry: 3,
 
-  RIG_PTT_NONE, RIG_DCD_NONE, RIG_PORT_SERIAL,
-  300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE,
-  0, 0, 200, 3,
-  RIG_FUNC_NONE, ICR8500_FUNC_ALL, ICR8500_LEVEL_ALL, ICR8500_LEVEL_ALL,
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { 10, RIG_DBLST_END, },
-  { 20, RIG_DBLST_END, },
-  NULL,
-  Hz(9999), Hz(0),	/* RIT, IF-SHIFT */
-  0,			/* FIXME: VFO list */
-  0, RIG_TRN_RIG,
-  999, 12, 0,
+has_get_func: RIG_FUNC_NONE,
+has_set_func: ICR8500_FUNC_ALL,
+has_get_level: ICR8500_LEVEL_ALL,
+has_set_level: RIG_LEVEL_SET(ICR8500_LEVEL_ALL),
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
+level_gran: {},                 /* FIXME: granularity */
+parm_gran: {},
+ctcss_list: NULL,	/* FIXME: CTCSS/DCS list */
+dcs_list: NULL,
+preamp:  { 10, RIG_DBLST_END, },
+attenuator:  { 20, RIG_DBLST_END, },
+max_rit: Hz(9999),
+max_xit: Hz(0),
+max_ifshift: Hz(0),
+targetable_vfo: 0,
+transceive: RIG_TRN_RIG,
+bank_qty:  12,
+chan_desc_sz: 0,
 
-  { RIG_CHAN_END, },	/* FIXME: memory channel list */
+chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
-  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
+rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+tx_range_list1: { RIG_FRNG_END, },
 
-  { {kHz(100),MHz(824)-10,ICR8500_MODES,-1,-1},
-    {MHz(849)+10,MHz(869)-10,ICR8500_MODES,-1,-1},
-    {MHz(894)+10,GHz(2)-10,ICR8500_MODES,-1,-1},
+rx_range_list2: {
+	{kHz(100),MHz(824)-10,ICR8500_MODES,-1,-1, RIG_VFO_A},
+    {MHz(849)+10,MHz(869)-10,ICR8500_MODES,-1,-1, RIG_VFO_A},
+    {MHz(894)+10,GHz(2)-10,ICR8500_MODES,-1,-1, RIG_VFO_A},
  	RIG_FRNG_END, },
-  { RIG_FRNG_END, },	/* no TX ranges, this is a receiver */
+tx_range_list2: { RIG_FRNG_END, },	/* no TX ranges, this is a receiver */
 
-  {  {ICR8500_MODES,10},
+tuning_steps: {
+	 {ICR8500_MODES,10},
 	 {ICR8500_MODES,50},
 	 {ICR8500_MODES,100},
 	 {ICR8500_MODES,kHz(1)},
@@ -102,7 +128,7 @@ const struct rig_caps icr8500_caps = {
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
-	{
+filters: {
 			/* FIXME: To be confirmed! --SF */
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},
 		{RIG_MODE_AM, kHz(8)},
@@ -113,16 +139,19 @@ const struct rig_caps icr8500_caps = {
 		{RIG_MODE_WFM, kHz(230)},
 		RIG_FLT_END,
 	},
-  (void*)&icr8500_priv_caps,
-  icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
-  NULL, 
-  /*
-   * FIXME:
-   * the use of the following GNU extension (field: value)
-   * is bad manner in portable code but admit it, quite handy
-   * when testing stuff. --SF
-   */
+
+priv: (void*)&icr8500_priv_caps,
+rig_init:  icom_init,
+rig_cleanup:  icom_cleanup,
+rig_open: NULL,
+rig_close: NULL,
+
+set_freq: icom_set_freq,
+get_freq: icom_get_freq,
+set_mode: icom_set_mode,
+get_mode: icom_get_mode,
+set_vfo: icom_set_vfo,
+
 decode_event: icom_decode_event,
 set_level: icom_set_level,
 get_level: icom_get_level,

@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.11 2001-04-28 12:40:44 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.12 2001-05-04 22:37:35 f4cfe Exp $  
  *
  *
  *
@@ -60,31 +60,57 @@
  * part of infos comes from http://www.kenwood.net/
  */
 const struct rig_caps ts870s_caps = {
-  RIG_MODEL_TS870S, "TS-870S", "Kenwood", "0.1", "GPL",
-  RIG_STATUS_UNTESTED, RIG_TYPE_TRANSCEIVER, 
-  RIG_PTT_RIG, RIG_DCD_NONE, RIG_PORT_SERIAL,
-  1200, 57600, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
-  0, 0, 200, 3, 
-  RIG_FUNC_NONE, TS870S_FUNC_ALL, TS870S_LEVEL_ALL, TS870S_LEVEL_ALL, 
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { RIG_DBLST_END, },	/* FIXME! */
-  { RIG_DBLST_END, },
-  NULL,
-  Hz(9999), Hz(0),	/* RIT, IF-SHIFT */
-  TS870S_VFO,
-  0, RIG_TRN_RIG,
-  1000, 0, 0,
+rig_model: RIG_MODEL_TS870S,
+model_name:"TS-870S",
+mfg_name: "Kenwood",
+version: "0.1",
+copyright: "GPL",
+status: RIG_STATUS_UNTESTED,
+rig_type: RIG_TYPE_RECEIVER,
+ptt_type: RIG_PTT_RIG,
+dcd_type: RIG_DCD_NONE,
+port_type: RIG_PORT_SERIAL,
+serial_rate_min: 1200,
+serial_rate_max: 57600,
+serial_data_bits: 8,
+serial_stop_bits: 1,
+serial_parity: RIG_PARITY_NONE,
+serial_handshake: RIG_HANDSHAKE_NONE,
+write_delay: 0,
+post_write_delay: 0,
+timeout: 200,
+retry: 3,
 
-  { RIG_CHAN_END, },	/* FIXME: memory channel list */
+has_get_func: RIG_FUNC_NONE,
+has_set_func: TS870S_FUNC_ALL,
+has_get_level: TS870S_LEVEL_ALL,
+has_set_level: RIG_LEVEL_SET(TS870S_LEVEL_ALL),
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
+level_gran: {},                 /* FIXME: granularity */
+parm_gran: {},
+ctcss_list: NULL,   /* FIXME: CTCSS/DCS list */
+dcs_list: NULL,
+preamp:  { RIG_DBLST_END, },
+attenuator:  { RIG_DBLST_END, },
+max_rit: Hz(9999),
+max_xit: Hz(0),
+max_ifshift: Hz(0),
+targetable_vfo: 0,
+transceive: RIG_TRN_RIG,
+bank_qty:  0,
+chan_desc_sz: 0,
 
-  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
-  {
+
+chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
+
+rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+tx_range_list1: { RIG_FRNG_END, },
+rx_range_list2: {
 	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1,TS870S_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
-  {
+tx_range_list2: {
     {kHz(1800),MHz(2)-1,TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},	/* 100W class */
     {kHz(1800),MHz(2)-1,TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},		/* 25W class */
     {kHz(3500),MHz(4)-1,TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
@@ -105,7 +131,7 @@ const struct rig_caps ts870s_caps = {
     {MHz(28),kHz(29700),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
 	RIG_FRNG_END,
   }, /* tx range */
-  {
+tuning_steps: {
 	 {TS870S_ALL_MODES,50},
 	 {TS870S_ALL_MODES,100},
 	 {TS870S_ALL_MODES,kHz(1)},
@@ -121,7 +147,7 @@ const struct rig_caps ts870s_caps = {
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
-    {
+filters: {
 		{RIG_MODE_SSB, kHz(2.4)},
 		{RIG_MODE_CW, Hz(200)},
 		{RIG_MODE_RTTY, Hz(500)},
@@ -129,10 +155,13 @@ const struct rig_caps ts870s_caps = {
 		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
-  NULL,	/* priv */
+priv: NULL,
 
-  NULL, NULL, NULL, NULL, NULL /* probe not supported yet */,
-  kenwood_set_freq, kenwood_get_freq, kenwood_set_mode, kenwood_get_mode, NULL,
+set_freq: kenwood_set_freq,
+get_freq: kenwood_get_freq,
+set_mode: kenwood_set_mode,
+get_mode: kenwood_get_mode,
+
 };
 
 /*

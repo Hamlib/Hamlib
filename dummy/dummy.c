@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.5 2001-03-02 18:30:11 f4cfe Exp $
+ *	$Id: dummy.c,v 1.6 2001-05-04 22:37:35 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -76,6 +76,8 @@ static unsigned char *decode_mode(rmode_t mode, pbwidth_t width)
 			return "CW";
 	case	RIG_MODE_RTTY:
 			return "RTTY";
+	case	RIG_MODE_WFM:
+			return "WFM";
 	case	RIG_MODE_NONE:
 			return "None";
 		default:
@@ -546,7 +548,7 @@ static unsigned char *dummy_get_info(RIG *rig)
 #define DUMMY_LEVEL (DUMMY_SET_LEVEL | RIG_LEVEL_STRENGTH)
 
 #define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | \
-                     RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM)
+                     RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM | RIG_MODE_WFM)
 
 const struct rig_caps dummy_caps = {
   rig_model:     RIG_MODEL_DUMMY,
@@ -571,9 +573,8 @@ const struct rig_caps dummy_caps = {
   chan_list:	 { RIG_CHAN_END, },	/* FIXME */
   transceive:    RIG_TRN_OFF,
   attenuator:    { 10, 20, 30, RIG_DBLST_END, },
-  vfo_list:      0,		/* FIXME */
   rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:DUMMY_MODES,
-		    low_power:-1,high_power:-1},
+		    low_power:-1,high_power:-1,RIG_VFO_A|RIG_VFO_B},
 		    RIG_FRNG_END, },
   tx_range_list2: { RIG_FRNG_END, },
   tuning_steps: { {DUMMY_MODES,1}, RIG_TS_END, },

@@ -8,7 +8,7 @@
  * /dev/winradio API. This file describe the WR1500 capabilities.
  *
  *
- *		$Id: wr1500.c,v 1.2 2001-04-26 21:33:15 f4cfe Exp $
+ *		$Id: wr1500.c,v 1.3 2001-05-04 22:37:35 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -63,7 +63,6 @@ const struct rig_caps wr1500_caps = {
   status:        RIG_STATUS_NEW,
   rig_type:      RIG_TYPE_PCRECEIVER,
   port_type:     RIG_PORT_DEVICE,
-  vfo_list:		 RIG_VFO_A,
   targetable_vfo:	 0,
   ptt_type:      RIG_PTT_NONE,
   dcd_type:      RIG_DCD_NONE,

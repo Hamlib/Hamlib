@@ -6,7 +6,7 @@
  * via serial interface to an Icom PCR-1000.
  *
  *
- *	$Id: pcr1000.c,v 1.2 2001-03-04 13:06:36 f4cfe Exp $  
+ *	$Id: pcr1000.c,v 1.3 2001-05-04 22:37:35 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -50,37 +50,63 @@
  * IC PCR1000 rigs capabilities.
  */
 const struct rig_caps pcr1000_caps = {
-  RIG_MODEL_PCR1000, "IC-PCR1000", "Icom", "0.1", "GPL",
-  RIG_STATUS_UNTESTED, RIG_TYPE_PCRECEIVER, 
-  RIG_PTT_NONE, RIG_DCD_RIG, RIG_PORT_SERIAL,
-  300, 38400, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
-  0, 0, 200, 3, 
-  RIG_FUNC_NONE, PCR1000_FUNC, PCR1000_LEVEL, RIG_LEVEL_SET(PCR1000_LEVEL),
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  pcr1_ctcss_list, NULL,
-  { RIG_DBLST_END, },
-  { 20, RIG_DBLST_END, },	/* attenuator */
-  "0123456789ABCDEF",
-  Hz(0), kHz(1.2),	/* RIT, IF-SHIFT */
-  0,			/* FIXME: VFO list */
-  0, RIG_TRN_RIG,
-  0, 0, 0,
+rig_model: RIG_MODEL_PCR1000,
+model_name:"IC-PCR1000",
+mfg_name: "Icom",
+version: "0.1",
+copyright: "GPL",
+status: RIG_STATUS_UNTESTED,
+rig_type: RIG_TYPE_PCRECEIVER,
+ptt_type: RIG_PTT_NONE,
+dcd_type: RIG_DCD_RIG,
+port_type: RIG_PORT_SERIAL,
+serial_rate_min: 300,
+serial_rate_max: 38400,
+serial_data_bits: 8,
+serial_stop_bits: 1,
+serial_parity: RIG_PARITY_NONE,
+serial_handshake: RIG_HANDSHAKE_NONE,
+write_delay: 0,
+post_write_delay: 0,
+timeout: 200,
+retry: 3,
 
-  { RIG_CHAN_END, },	/* no memory channel list: this is a PC receiver */
+has_get_func: RIG_FUNC_NONE,
+has_set_func: PCR1000_FUNC,
+has_get_level: PCR1000_LEVEL,
+has_set_level: RIG_LEVEL_SET(PCR1000_LEVEL),
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
+level_gran: {},                 /* FIXME: granularity */
+parm_gran: {},
+ctcss_list: pcr1_ctcss_list,
+dcs_list: NULL,
+preamp:  { RIG_DBLST_END, },
+attenuator:  { 20, RIG_DBLST_END, },
+max_rit: Hz(0),
+max_xit: Hz(0),
+max_ifshift: Hz(1.2),
+targetable_vfo: 0,
+transceive: RIG_TRN_RIG,
+bank_qty:  0,
+chan_desc_sz: 0,
 
-  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
-  { {kHz(100),MHz(824)-10,PCR1000_MODES,-1,-1},
-    {MHz(849)+10,MHz(869)-10,PCR1000_MODES,-1,-1},
-    {MHz(894)+10,GHz(1.3)-10,PCR1000_MODES,-1,-1},
+chan_list: { RIG_CHAN_END, },	/* no memory channel list: this is a PC receiver */
+
+rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+tx_range_list1: { RIG_FRNG_END, },
+rx_range_list2: { {kHz(100),MHz(824)-10,PCR1000_MODES,-1,-1,RIG_VFO_A},
+    {MHz(849)+10,MHz(869)-10,PCR1000_MODES,-1,-1,RIG_VFO_A},
+    {MHz(894)+10,GHz(1.3)-10,PCR1000_MODES,-1,-1,RIG_VFO_A},
  	RIG_FRNG_END, },
-  { RIG_FRNG_END, },	/* no TX ranges, this is a receiver */
+tx_range_list2: { RIG_FRNG_END, },	/* no TX ranges, this is a receiver */
 
-  { { PCR1000_MODES,Hz(1) },
+tuning_steps: {
+	  { PCR1000_MODES,Hz(1) },
 	  RIG_TS_END,
 	},
 	      /* mode/filter list, remember: order matters! */
-  {
+filters: {
 		{RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_AM, kHz(2.8)},
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(6)},
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(15)},
@@ -88,12 +114,19 @@ const struct rig_caps pcr1000_caps = {
 		{RIG_MODE_WFM, kHz(230)},
 		RIG_FLT_END,
   },
-  NULL,	/* priv */
+priv: NULL,	/* priv */
 
-  pcr_init, pcr_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  pcr_set_freq, pcr_get_freq, pcr_set_mode, pcr_get_mode,
-  NULL, 
-  get_info:	pcr_get_info,
+rig_init: pcr_init,
+rig_cleanup: pcr_cleanup,
+rig_open: NULL,
+rig_close: NULL,
+
+set_freq: pcr_set_freq,
+get_freq: pcr_get_freq,
+set_mode: pcr_set_mode,
+get_mode: pcr_get_mode,
+
+get_info:	pcr_get_info,
 
   /*
    * TODO:
