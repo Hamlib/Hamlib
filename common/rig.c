@@ -159,7 +159,7 @@ int rig_open(RIG *rig)
  */
 
 /*
- * cmd_set_freq
+ * rig_set_freq
  *
  */
 
@@ -178,7 +178,7 @@ int rig_set_freq(RIG *rig, freq_t freq)
 }
 
 /*
- * cmd_get_freq
+ * rig_get_freq
  *
  */
 
@@ -195,7 +195,7 @@ int rig_get_freq(RIG *rig, freq_t *freq)
 
 
 /*
- * cmd_set_mode
+ * rig_set_mode
  *
  */
 
@@ -211,7 +211,7 @@ int rig_set_mode(RIG *rig, rmode_t mode)
 }
 
 /*
- * cmd_get_mode
+ * rig_get_mode
  *
  */
 
@@ -228,7 +228,7 @@ int rig_get_mode(RIG *rig, rmode_t *mode)
 
 
 /*
- * cmd_set_vfo
+ * rig_set_vfo
  *
  */
 
@@ -244,7 +244,7 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
 }
 
 /*
- * cmd_get_vfo
+ * rig_get_vfo
  *
  */
 
@@ -258,6 +258,231 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
 		else
 			return rig->caps->get_vfo(rig, vfo);
 }
+
+/*
+ * rig_set_power
+ * NB: power must be on a [0.0 .. 1.0] scale
+ * Approximation and rounding is done by the backend
+ */
+
+int rig_set_power(RIG *rig, float power)
+{
+		if (!rig || !rig->caps || power<0.0 || power>1.0)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_power == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_power(rig, power);
+}
+
+/*
+ * rig_get_power
+ * NB: returned power must be on a [0.0 .. 1.0] scale
+ */
+
+int rig_get_power(RIG *rig, float *power)
+{
+		if (!rig || !rig->caps || !power)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_power == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_power(rig, power);
+}
+
+
+
+/*
+ * rig_set_volume
+ * The volume is specified on a scale from 0.0 to 1.0.
+ * 0.0 means the lowest volume, whereas 1.0 is the loudest the rig
+ * can do.
+ * The backend is responsible for the appropriate conversion (and rounding)
+ */
+
+int rig_set_volume(RIG *rig, float vol)
+{
+		if (!rig || !rig->caps || vol<0.0 || vol>1.0)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_volume == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_volume(rig, vol);
+}
+
+/*
+ * rig_get_volume
+ *
+ */
+
+int rig_get_volume(RIG *rig, float *vol)
+{
+		if (!rig || !rig->caps || !vol)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_volume == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_volume(rig, vol);
+}
+
+/*
+ * rig_set_squelch
+ *
+ */
+
+int rig_set_squelch(RIG *rig, float sql)
+{
+		if (!rig || !rig->caps || sql<0.0 || sql>1.0)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_squelch == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_squelch(rig, sql);
+}
+
+/*
+ * rig_get_squelch
+ * Read squelch condition
+ */
+
+int rig_get_squelch(RIG *rig, float *sql)
+{
+		if (!rig || !rig->caps || !sql)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_squelch == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_squelch(rig, sql);
+}
+
+/*
+ * rig_set_tonesq
+ * Set CTCSS.
+ * NB: tone is NOT in HZ, but in tenth of Hz!
+ * Exemple: If you want to set subaudible tone of 88.5, then pass 885
+ * 			to this function
+ * Also, if you want to disable Tone squelch, set tone to 0.
+ */
+
+int rig_set_tonesq(RIG *rig, unsigned int tone)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_tonesq == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_tonesq(rig, tone);
+}
+
+/*
+ * rig_get_tonesq
+ * Read CTCSS
+ * NB: tone is NOT in HZ, but in tenth of Hz!
+ */
+
+int rig_get_tonesq(RIG *rig, unsigned int *tone)
+{
+		if (!rig || !rig->caps || !tone)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_tonesq == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_tonesq(rig, tone);
+}
+
+/*
+ * rig_set_tone
+ * Set subaudible tone to access a repeater.
+ * NB: tone is NOT in HZ, but in tenth of Hz!
+ * Exemple: If you want to set subaudible tone of 88.5, then pass 885
+ * 			to this function
+ * Also, if you want to disable Tone generation, set tone to 0.
+ */
+
+int rig_set_tone(RIG *rig, unsigned int tone)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_tone == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_tone(rig, tone);
+}
+
+/*
+ * rig_get_tone
+ * Read current subaudible tone to access a repeater.
+ * NB: tone is NOT in HZ, but in tenth of Hz!
+ */
+
+int rig_get_tone(RIG *rig, unsigned int *tone)
+{
+		if (!rig || !rig->caps || !tone)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_tone == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_tone(rig, tone);
+}
+
+
+/*
+ * rig_get_strength
+ * read S-meter level
+ * The signal strength in db is returned in pointed strength argument
+ */
+
+int rig_get_strength(RIG *rig, int *strength)
+{
+		if (!rig || !rig->caps || !strength)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_strength == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_strength(rig, strength);
+}
+
+/*
+ * rig_set_poweron
+ */
+
+int rig_set_poweron(RIG *rig)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_poweron == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_poweron(rig);
+}
+
+/*
+ * rig_set_poweroff
+ */
+
+int rig_set_poweroff(RIG *rig)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_poweroff == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_poweroff(rig);
+}
+
 
 
 /*
@@ -348,6 +573,40 @@ int rig_has_func(RIG *rig, unsigned long func)
 
 		return (rig->caps->has_func & func);
 }
+
+/*
+ * rig_set_func
+ */
+
+int rig_set_func(RIG *rig, unsigned long func)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_func == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->set_func(rig, func);
+}
+
+/*
+ * rig_get_func
+ * Query the setting of function bits set to 1
+ * and return their status.
+ */
+
+int rig_get_func(RIG *rig, unsigned long *func)
+{
+		if (!rig || !rig->caps || !func)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_func == NULL)
+			return -RIG_ENIMPL;	/* not implemented */
+		else
+			return rig->caps->get_func(rig, func);
+}
+
+
 
 
 /*
