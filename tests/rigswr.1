@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGSWR "1" "December 03, 2003" "Hamlib"
+.TH RIGSWR "1" "June 14, 2004" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -21,15 +21,15 @@ rigswr \- measure VSWR vs frequency using hamlib
 .B rigswr
 [\fIOPTION\fR]... start_freq stop_freq [freq_step]
 .SH DESCRIPTION
-rigswr use hamlib to control a rig to measure VSWR vs frequency : 
+\fBrigswr\fP uses Hamlib to control a rig to measure VSWR vs frequency: 
 .br
 It scans frequencies from start_freq to stop_freq with step freq_step.
-For each frequency, it transmit during 1 second in CW mode
+For each frequency, it transmits at 25% of total POWER during 0.5 second in CW mode
 and read VSWR.
 .br
 Frequency and corresponding VSWR are then printed on stdout.
 .br
-To work correctly, rigswr need a rig that could measure VSWR and a hamlib backend that 
+To work correctly, rigswr needs a rig that could measure VSWR and a Hamlib backend that 
 is able to get it.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
@@ -45,7 +45,7 @@ options starting with two dashes (`-').
 A summary of options is included below.
 .TP
 .B \-m, \-\-model=id
-Select radio model number. See model list.
+Select radio model number. See model list provided by rigctl.
 .TP
 .B \-r, --rig-file=device
 Use \fBdevice\fP as the file name of the radio to operate on.
@@ -58,8 +58,17 @@ Use \fBid\fP as the CI-V address to communicate with the rig.
 Only for Icom rigs. NB: the id is in decimal, unless prefixed by \fB0x\fP,
 in which case it is hexadecimal.
 .TP
+.B \-p, --ptt-file=device
+Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on.
+This is only needed if the radio doesn't have legacy PTT control.
+.TP
+.B \-p, --ptt-type=type
+Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
+Supported types are RIG, DTR, RTS, PARALLEL, NONE.
+This is only needed if the radio doesn't have legacy PTT control.
+.TP
 .B \-C, \-\-set\-conf=parm=val[,parm=val]*
-Set config parameter.
+Set config parameter. See -L option of rigctl for a list.
 .TP
 .B \-v, \-\-verbose
 Set verbose mode, cumulative (BUG, ERR, WARN, VERBOSE, TRACE).
@@ -71,15 +80,17 @@ Show summary of options and exit.
 Show version of program and exit.
 
 .SH RETURN VALUE
-rigmem exits with:
+rigswr exits with:
 0 if all operations went fine; 1 if there was an invalid command line
-option or arg; or 2 if an error was returned by Hamlib.
+option or arg; 2 if an error was returned by Hamlib; 3 if the rig
+doesn't have the required capabilities.
 
 .SH EXAMPLE
 rigswr -m 209 -r /dev/tty1 14000000 14350000 50000 > cswr
+
 .br
-Scans frequencies between 14Mhz and 14.200Mhz with stp 50Khz on a TS850 and
-send VSWR measurements in file cswr.
+Scans frequencies between 14MHz and 14.200MHz with 50KHz step on a TS850 and
+record VSWR measurements in file cswr.
 .br
 After completion, cswr file contains the following lines :
 .br
@@ -92,10 +103,22 @@ After completion, cswr file contains the following lines :
   14150000 1.07
 .br
   14200000 1.07
-.br
 
+.TP
+Result could then be ploted with gnuplot:
+.br
+gnuplot
+.br
+set date style linespoints
+.br
+set grid
+.br
+plot "cswr"
 .SH AUTHOR
 Man page written by Thierry Leconte & Stephane Fillod .
+.SH BUGS
+Depending on keyer/QSK setup, transmits in CW mode may not be modulated
+thus giving possibly wrong result. Please report this situation if it happens.
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@users.sourceforge.net>.
 .SH COPYRIGHT
