@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH-F7 description
- *  Copyright (c) 2001-2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.6 2002-11-04 22:40:54 fillods Exp $
+ *	$Id: thf7.c,v 1.7 2003-03-24 23:08:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,8 @@
 
 #define THF7_LEVEL_ALL (RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
 
+#define THF7_PARMS (RIG_PARM_BACKLIGHT)
+
 #define THF7_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
 /*
@@ -53,7 +55,7 @@ const struct rig_caps thf7e_caps = {
 .rig_model =  RIG_MODEL_THF7E,
 .model_name = "TH-F7E",
 .mfg_name =  "Kenwood",
-.version =  "0.1",
+.version =  "0.1.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_HANDHELD,
@@ -75,8 +77,8 @@ const struct rig_caps thf7e_caps = {
 .has_set_func =  THF7_FUNC_ALL,
 .has_get_level =  THF7_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(THF7_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.has_get_parm =  THF7_PARMS,
+.has_set_parm =  THF7_PARMS,    /* FIXME: parms */
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
@@ -149,6 +151,7 @@ const struct rig_caps thf7e_caps = {
 
 .get_func =  th_get_func,
 .get_level =  th_get_level,
+.get_parm =  th_get_parm,
 .get_info =  th_get_info,
 
 .decode_event =  th_decode_event,

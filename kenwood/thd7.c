@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH-D7 description
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: thd7.c,v 1.8 2002-11-04 22:40:54 fillods Exp $
+ *	$Id: thd7.c,v 1.9 2003-03-24 23:08:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,8 +45,7 @@
                        RIG_FUNC_TONE|   \
                        RIG_FUNC_REV|    \
                        RIG_FUNC_LOCK|   \
-                       RIG_FUNC_ARO|    \
-                       RIG_FUNC_LMP)
+                       RIG_FUNC_ARO)
 
 #define THD7_LEVEL_ALL (RIG_LEVEL_STRENGTH| \
                         RIG_LEVEL_SQL| \
@@ -54,6 +53,8 @@
                         RIG_LEVEL_AF| \
                         RIG_LEVEL_RF|\
                         RIG_LEVEL_MICGAIN)
+
+#define THD7_PARMS	(RIG_PARM_BACKLIGHT)
 
 #define THD7_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
@@ -74,7 +75,7 @@ const struct rig_caps thd7a_caps = {
 .rig_model =  RIG_MODEL_THD7A,
 .model_name = "TH-D7A",
 .mfg_name =  "Kenwood",
-.version =  "0.1",
+.version =  "0.1.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_HANDHELD|RIG_FLAG_APRS|RIG_FLAG_TNC|RIG_FLAG_DXCLUSTER,
@@ -96,8 +97,8 @@ const struct rig_caps thd7a_caps = {
 .has_set_func =  THD7_FUNC_ALL,
 .has_get_level =  THD7_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(THD7_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.has_get_parm =  THD7_PARMS,
+.has_set_parm =  THD7_PARMS,    /* FIXME: parms */
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
@@ -170,6 +171,7 @@ const struct rig_caps thd7a_caps = {
 
 .get_func =  th_get_func,
 .get_level =  th_get_level,
+.get_parm =  th_get_parm,
 .get_info =  th_get_info,
 
 .decode_event =  th_decode_event,

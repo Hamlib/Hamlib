@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH handheld primitives
- *  Copyright (c) 2001-2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.9 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: th.c,v 1.10 2003-03-24 23:08:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -642,8 +642,6 @@ th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status)
             return th_get_kenwood_func(rig, "AIP" EOM, status);
         case RIG_FUNC_LOCK:
             return th_get_kenwood_func(rig, "LK" EOM, status);
-        case RIG_FUNC_LMP:
-            return th_get_kenwood_func(rig, "LMP" EOM, status);
 
         case RIG_FUNC_FAGC:
         case RIG_FUNC_NB:
@@ -668,6 +666,35 @@ th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status)
     }
     return RIG_OK;
 }
+
+/*
+ * th_get_parm
+ * Assumes rig!=NULL, status!=NULL
+ */
+int
+th_get_parm (RIG *rig, setting_t parm, value_t *val)
+{
+    int status;
+    int ret;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __FUNCTION__, parm);
+
+    /* Optimize:
+     *   sort the switch cases with the most frequent first
+     */
+    switch (parm) {
+        case RIG_PARM_BACKLIGHT:
+            ret = th_get_kenwood_func(rig, "LMP" EOM, &status);
+	    val->f = status ? 1.0 : 0;
+            return ret;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported parm %#x", __FUNCTION__, parm);
+            return -RIG_EINVAL;
+    }
+    return RIG_OK;
+}
+
 
 /*
  * th_get_level
