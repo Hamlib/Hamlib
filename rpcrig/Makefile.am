@@ -4,27 +4,26 @@
 # Note: automake complains rpcrig_xdr.c is generated both with and 
 #  without libtool, hence the copy rpcrig_xdr_lt.c
 
-RPCRIG_SVC = rpcrig_xdr.c rpcrig_svc.c rpcrig_proc.c rpcrigd.c
-RPCRIG_CLNT = rpcrig_xdr_lt.c rpcrig_clnt.c rpcrig_backend.c
-
-LDADD = ../src/libhamlib.la  @NET_LIBS@
+LDADD = ../src/libhamlib.la ../lib/libmisc.la @NET_LIBS@
 DEPENDENCIES = ../src/libhamlib.la 
+
+BUILT_SOURCES=rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
 
 # The RPC server
 sbin_PROGRAMS = rpc.rigd
 rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-rpc_rigd_SOURCES = $(RPCRIG_SVC)
+rpc_rigd_SOURCES = rpcrig_proc.c rpcrigd.c
+nodist_rpc_rigd_SOURCES = rpcrig_xdr.c rpcrig_svc.c rpcrig.h
 rpc_rigd_LDFLAGS = @BACKENDLNK@
 man_MANS = rpc.rigd.8
 
 # The RPC backend
 lib_LTLIBRARIES = libhamlib-rpcrig.la
-libhamlib_rpcrig_la_SOURCES = $(RPCRIG_CLNT)
+libhamlib_rpcrig_la_SOURCES = rpcrig_backend.c rpcrig_backend.h
+nodist_libhamlib_rpcrig_la_SOURCES = rpcrig_xdr_lt.c rpcrig_clnt.c rpcrig.h
 libhamlib_rpcrig_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
 
-
-noinst_HEADERS = rpcrig.h rpcrig_backend.h
 
 EXTRA_DIST = rpcrig.x $(man_MANS)
 
@@ -32,20 +31,24 @@ RPCGEN = rpcgen
 
 rpcrig.h: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -h $< -o $@
+	$(RPCGEN) -h rpcrig.x -o $@
 
 rpcrig_clnt.c: rpcrig.x rpcrig.h
 	rm -f $@
-	$(RPCGEN) -l $< -o $@
+	$(RPCGEN) -l rpcrig.x -o $@
 
 rpcrig_svc.c: rpcrig.x rpcrig.h
 	rm -f $@
-	$(RPCGEN) -m $< -o $@
+	$(RPCGEN) -m rpcrig.x -o $@
+
+# note: 
+# we need 2 rpcrig_xdr.c's: one for static rpcrig deamon, one for lt backend
 
 rpcrig_xdr.c: rpcrig.x rpcrig.h
 	rm -f $@
-	$(RPCGEN) -c $< -o $@
+	$(RPCGEN) -c rpcrig.x -o $@
 
-rpcrig_xdr_lt.c: rpcrig_xdr.c
-	cp -f $< $@
+rpcrig_xdr_lt.c: rpcrig.x rpcrig.h
+	rm -f $@
+	$(RPCGEN) -c rpcrig.x -o $@
 

@@ -4,27 +4,26 @@
 # Note: automake complains rpcrot_xdr.c is generated both with and
 #  without libtool, hence the copy rpcrot_xdr_lt.c
 
-RPCROT_SVC = rpcrot.h rpcrot_xdr.c rpcrot_svc.c rpcrot_proc.c rpcrotd.c
-RPCROT_CLNT = rpcrot.h rpcrot_xdr_lt.c rpcrot_clnt.c rpcrot_backend.c
-
-LDADD = ../src/libhamlib.la @NET_LIBS@
+LDADD = ../src/libhamlib.la ../lib/libmisc.la @NET_LIBS@
 DEPENDENCIES = ../src/libhamlib.la 
+
+BUILT_SOURCES=rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
 
 # The RPC server
 sbin_PROGRAMS = rpc.rotd
 rpc_rotd_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
-rpc_rotd_SOURCES = $(RPCROT_SVC)
+rpc_rotd_SOURCES = rpcrot_proc.c rpcrotd.c
+nodist_rpc_rotd_SOURCES = rpcrot_xdr.c rpcrot_svc.c rpcrot.h
 rpc_rotd_LDFLAGS = @ROT_BACKENDLNK@
 man_MANS = rpc.rotd.8
 
 # The RPC backend
 lib_LTLIBRARIES = libhamlib-rpcrot.la
-libhamlib_rpcrot_la_SOURCES = $(RPCROT_CLNT)
+libhamlib_rpcrot_la_SOURCES = rpcrot_backend.c rpcrot_backend.h
+nodist_libhamlib_rpcrot_la_SOURCES = rpcrot_xdr_lt.c rpcrot_clnt.c rpcrot.h
 libhamlib_rpcrot_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_rpcrot_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
 
-
-noinst_HEADERS = rpcrot.h rpcrot_backend.h
 
 EXTRA_DIST = rpcrot.x $(man_MANS)
 
@@ -32,20 +31,24 @@ RPCGEN = rpcgen
 
 rpcrot.h: rpcrot.x
 	rm -f $@
-	$(RPCGEN) -h $< -o $@
+	$(RPCGEN) -h rpcrot.x -o $@
 
 rpcrot_clnt.c: rpcrot.x rpcrot.h
 	rm -f $@
-	$(RPCGEN) -l $< -o $@
+	$(RPCGEN) -l rpcrot.x -o $@
 
 rpcrot_svc.c: rpcrot.x rpcrot.h
 	rm -f $@
-	$(RPCGEN) -m $< -o $@
+	$(RPCGEN) -m rpcrot.x -o $@
+
+# note:
+# we need 2 rpcrot_xdr.c's: one for static rpcrot deamon, one for lt backend
 
 rpcrot_xdr.c: rpcrot.x rpcrot.h
 	rm -f $@
-	$(RPCGEN) -c $< -o $@
+	$(RPCGEN) -c rpcrot.x -o $@
 
-rpcrot_xdr_lt.c: rpcrot_xdr.c
-	cp -f $< $@
+rpcrot_xdr_lt.c: rpcrot.x rpcrot.h
+	rm -f $@
+	$(RPCGEN) -c rpcrot.x -o $@
 
