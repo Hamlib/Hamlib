@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.15 2001-08-08 06:08:33 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.16 2001-09-20 21:21:14 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -316,9 +316,6 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 	print_yn(level & RIG_LEVEL_AGC);
 	print_yn(level & RIG_LEVEL_BKINDL);
 	print_yn(level & RIG_LEVEL_BALANCE);
-#if 0
-	print_yn(level & RIG_LEVEL_ANN);	/* deprecated */
-#endif
 
 	/* get only levels */
 	print_yn(level & RIG_LEVEL_SWR);
@@ -537,41 +534,6 @@ int main (int argc, char *argv[])
 	int status;
 	time_t gentime;
 	int set_or_get;
-
-#if 0
-	status = rig_load_backend("icom");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("ft747");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: ft747 error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("ft847");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: ft847 error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("kenwood");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: kenwood error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("aor");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: aor error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("pcr");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: pcr error = %s \n", rigerror(status));
-		exit(3);
-	}
-	rig_load_backend("winradio");	/* may not be compiled ... */
-	rig_load_backend("dummy");
-#endif
 
 	rig_load_all_backends();
 

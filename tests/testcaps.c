@@ -4,7 +4,7 @@
  * like the passband info..
  *
  *
- *    $Id: testcaps.c,v 1.3 2001-07-13 19:08:15 f4cfe Exp $  
+ *    $Id: testcaps.c,v 1.4 2001-09-20 21:21:14 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -45,22 +45,6 @@ int main (int argc, char *argv[])
 			fprintf(stderr,"%s <rig_num>\n",argv[0]);
 			exit(1);
 	}
-
-#if 0
-  	status = rig_load_backend("icom");
-	status |= rig_load_backend("ft747");
-	status |= rig_load_backend("ft847");
-	status |= rig_load_backend("kenwood");
-	status |= rig_load_backend("aor");
-	status |= rig_load_backend("pcr");
-	rig_load_backend("winradio");   /* may not be compiled ... */
-	rig_load_backend("dummy");
-
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: error = %s \n", rigerror(status));
-		exit(3);
-	}
-#endif
 
 	pbrig = rig_init(atoi(argv[1]));
 	if (!pbrig) {

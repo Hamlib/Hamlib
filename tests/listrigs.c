@@ -3,7 +3,7 @@
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.10 2001-08-08 06:08:33 f4cfe Exp $  
+ *    $Id: listrigs.c,v 1.11 2001-09-20 21:21:14 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -96,41 +96,6 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 int main (int argc, char *argv[])
 { 
 	int status;
-
-#if 0
-	status = rig_load_backend("icom");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("yaesu");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: yaesu error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("kenwood");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: kenwood error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("aor");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: aor error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("pcr");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: pcr error = %s \n", rigerror(status));
-		exit(3);
-	}
-	status = rig_load_backend("alinco");
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: alinco error = %s \n", rigerror(status));
-		exit(3);
-	}
-	rig_load_backend("winradio");	/* may not be compiled .. */
-	rig_load_backend("dummy");
-#endif
 
 	rig_load_all_backends();
 

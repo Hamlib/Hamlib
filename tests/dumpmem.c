@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.5 2001-07-25 21:59:55 f4cfe Exp $  
+ *    $Id: dumpmem.c,v 1.6 2001-09-20 21:21:14 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -44,22 +44,6 @@ int main (int argc, char *argv[])
 			fprintf(stderr,"%s <rig_num>\n",argv[0]);
 			exit(1);
 	}
-
-#if 0
-  	status = rig_load_backend("icom");
-	status |= rig_load_backend("ft747");
-	status |= rig_load_backend("ft847");
-	status |= rig_load_backend("kenwood");
-	status |= rig_load_backend("aor");
-	status |= rig_load_backend("pcr");
-	rig_load_backend("winradio");   /* may not be compiled in ... */
-	rig_load_backend("dummy");
-
-	if (status != RIG_OK ) {
-		printf("rig_load_backend: error = %s \n", rigerror(status));
-		exit(3);
-	}
-#endif
 
   	my_rig = rig_init(atoi(argv[1]));
 

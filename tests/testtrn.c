@@ -34,14 +34,6 @@ int main (int argc, char *argv[])
 	 * allocate memory, setup & open port 
 	 */
 
-#if 0
-	retcode = rig_load_backend("icom");
-	if (retcode != RIG_OK ) {
-		printf("rig_load_backend: error = %s \n", rigerror(retcode));
-		exit(3);
-	}
-#endif
-
 	my_rig = rig_init(atoi(argv[1]));
 	if (!my_rig) {
 			fprintf(stderr,"Unknown rig num: %d\n",atoi(argv[1]));
