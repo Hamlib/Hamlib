@@ -1,168 +1,223 @@
-[FIXME: this doc is out dated! --SF 03/20/01]
-
-hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+				and Stephane Fillod 2000-2002
 
 Take a look at http://sourceforge.net/projects/hamlib/
-Here you will find a mail list, and  the latest CVS releases.
-
+Here you will find a mail list, and the latest CVS releases.
 
 See README for frontend/backend outline.
+
+
+The shared libs provide functions for both radio control,
+and data retrieval from the radio.
+ 
+The structure of the libraries is as follows.
+
+(1)	There is one frontend library "libhamlib" that
+	provides the generic API for user applications.
+
+(2)	There are "n" backend libraries that "wrap" 
+	rig specific communications inside frontend API.
+
+(3)	Frontend lib loads (on demand) the appropriate
+	backend lib as required. 
+
+Frontend Library
+----------------
+
+libhamlib.so -  frontend lib that provides generic API
+		for all RIG types. This is what Application
+		programmers will "see".
+
+Backend Examples are:
+---------------------
+ 
+1.libhamlib-yaesu.so will provide connectivity to Yaesu
+  FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
+
+2. libhamlib-xxxx.so will provide connectivity to the Wiz-bang
+   moon-melter 101A (yikes..)
+
+Hamlib also enables developers to develop professional looking 
+GUI's towards a standard control library API, and they would not have 
+to worry about the underlying connection towards physical hardware.
+ 
+Initially serial (RS232) connectivity will be handled, but
+I expect that IP (and other) connectivity will follow afterwards. 
+
 
 General Guidelines.
 -------------------
 
-0. The top level directory looks like thus.
+0. The top level directory looks like this.
 
-[frank@kirk hamlib]$ tree -d
-.
-|-- CVS
-|-- common
-|   `-- CVS
-|-- ft1000
-|   `-- CVS
-|-- ft1000d
-|   `-- CVS
-|-- ft747
-|   |-- CVS
-|   |-- include
-|   |   `-- CVS
+[fillods@charybde hamlib]$ tree -d
+|-- alinco
+|-- aor
+|-- c++
+|-- debian
+|-- doc
+|   |-- html
+|   |-- man
+|   `-- sgml
+|-- dummy
+|-- easycomm
+|-- icom
 |   |-- lib
-|   |   `-- CVS
 |   `-- test
-|       `-- CVS
-|-- ft840
-|   `-- CVS
-|-- ft847
-|   |-- CVS
-|   |-- include
-|   |   `-- CVS
-|   |-- lib
-|   |   `-- CVS
-|   `-- test
-|       `-- CVS
-|-- ft920
-|   `-- CVS
-|-- ts570d
-|   `-- CVS
-|-- ts870s
-|   `-- CVS
-`-- ts950
-    `-- CVS    
-
-1.Every new shared lib should be created autonomously
-  within its own directory. eg ft747/ for libft747.so
-
-2. Every lib should have the following structure
-[frank@kirk ft747]$ tree
-
-.
-|-- CVS
-|   |-- Entries
-|   |-- Entries.Log
-|   |-- Repository
-|   `-- Root
-|-- Makefile
-|-- README.ft747
-|-- TODO.ft747
-|-- ft747.c
-|-- ft747.h
 |-- include
-|   `-- CVS
-|       |-- Entries
-|       |-- Repository
-|       `-- Root
+|   `-- hamlib
+|-- jrc
+|-- kachina
+|-- kenwood
+|-- kylix
+|   `-- tests
 |-- lib
-|   `-- CVS
-|       |-- Entries
-|       |-- Repository
-|       `-- Root
-`-- test
-    |-- CVS
-    |   |-- Entries
-    |   |-- Repository
-    |   `-- Root
-    |-- Makefile
-    |-- testlibft747.c
-    `-- testlibft747.h
-
-3. Use the ft847 tree for examples of coding style. If there
-   are any glaring problems,let me know..
-
-4. The "test" directory should contain source code of the
-   form testlibXXXX.[ch]
-
-5. The "test" directory should build a test suite that
-   excercises the API you are implementing.
-
-6. libXXXX.so should be built to allow TX (PTT) to be disabled
-   if required. See ft847.[ch] for how this is done.
-
-7. The Makefile for the test suite should have a target like
-   this to allow testing the API.
-
-	# run test program in local directory
- 
-	.PHONY: runtest
-	runtest:
-        	(LD_LIBRARY_PATH="../lib" ./testlibft747 )  
+|-- libltdl
+|-- pcr
+|-- perl
+|   `-- Hamlib
+|-- rpcrig
+|-- rpcrot
+|-- src
+|-- tcl
+|-- tentec
+|-- tests
+|   `-- html
+|-- uniden
+|-- winradio
+|   `-- linradio
+`-- yaesu
 
 
-8. You may wish to make an example out from your test suite
-   program available as follows.
+2. Building
+2.1. Requirements
 
-	make runtest > RESULT.example
+Hamlib is entirely developped using GNU tools, under various Linux systems. 
+Note that it is not restricted to Linux systems. We welcome anyone who
+has access to a POSIXish system to port Hamlib to. Contact us for help.
 
-9. Your header file (eg ft747.h, ft847.h etc) documents
-   your backend API, so please describe it so others can understand.
-   If this cannot be done, I may consider an "API.xxx" that
-   decsribes the API (eg: API.ft847 )
+That is, if you want to take part in the development of Hamlib, 
+you'll need at least the following tools:
 
-10. C code examples.
-    An example piece of code may  uses the ft847 API could
-    look like this..
+	* gcc
+	* autoconf > 2.50
+	* automake > 1.5
+	* libtool  > 1.4.2
+	* cvs and ssh for connection to cvs.hamlib.sourceforge.net
+Optional:
+	* g++
+	* perl devel
+	* tcl devel
+	* libgd devel
+	* RPC devel
+
+Documentation:
+	* doxygen
+	* DocBook
+
+However, if you just want to recompile the library, please refer
+to the INSTALL file. 
+
+IMPORTANT: If autoconf or automake are installed on your system, 
+make sure they are matching *at least* the version shown above.
+The Hamlib team is very interrested to hear from you, how Hamlib
+builds and works on your system, especially on non-Linux system or 
+non-PC systems. We try to make Hamlib as portable as possible.
+Please report in case of problems at hamlib-developer@lists.sourceforge.net
+Patches are welcome too!
+
+So far, Hamlib has been tested under the following systems:
+(if your system is not present, please report to mailing list)
+
+	* Debian potato/sid i386
+	* Debian sid mipsel
+	* RedHat i386
+	* Slackware i386
+	* win32: builds under Cygwin, module loading still broken
+	* Some work started under Darwin (libtool problem)
+
+
+The difference between building as a tester and a developer
+is in the '--enable-maintainer-mode' option passed to configure.
+This option will add new Makefile targets and dependencies.
+
+	./configure --config-cache --enable-maintainer-mode --disable-static 
+
+Tcl build, add this if needed:
+			--with-tcl=/usr/lib/tcl8.2
+
+2. How to add a new backend
+	The rule is one backend per protocol family.
+	Try to share code between rigs of the same family, if applicable.
+
+
+	2.1. mkdir mybackend
+		Create a new subdir, of the name of the protocol backend. 
+		NB: the directory MUST be the same as the backend name.
+
+	2.2. Add <mybackend> to the SUBDIRS variable in the topdir Makefile.am, 
+	2.3. Add the backend name to the BACKEND_LIST variable in configure.ac
+	2.4. Add "mybackend/Makefile" in the AC_CONFIG_FILES macro at the bottom 
+ 		of configure.ac
+
+	2.5. Create mybackend/Makefile.am, mybackend.c mybackend.h
+		Use 'dummy' backend as a template.
+
+			$ automake mybackend/Makefile
+			$ CONFIG_HEADERS= CONFIG_LINKS= \
+				CONFIG_FILES=mybackend/Makefile ./config.status
+
+		make in topdir to rebuild all
+
+	2.6. Commit your work:
+		$ cvs add mybackend
+		$ cd mybackend
+		$ cvs add Makefile.am mybackend.c mybackend.h
+		$ cvs commit -m "Initial release" Makefile.am mybackend.c mybackend.h
+
+
+3. How to add a new model to and existing backend
+	3.1. make sure there's already a (unique) ID for the model to be added
+			in include/hamlib/riglist.h
+	3.2. locate the existing backend
+	3.3. Clone the most similar model in the backend
+	3.4. Add the new C file to the _SOURCES variable 
+		of the backend's Makefile.am
+	3.5. Add "extern const struct rig_caps <mymodel>_caps;" to mybackend.h
+	3.6. In initrigs_<mybackend> of mybackend.c, 
+		add "rig_register(&<mymodel>_caps);"
+
+	3.7. Run make if you have dependencies, or the following to regenerate
+		the makefile.
+			$ automake mybackend/Makefile
+			$ CONFIG_HEADERS= CONFIG_LINKS= \
+				CONFIG_FILES=mybackend/Makefile ./config.status
+
+		make in topdir to rebuild all
+
+	3.8. Commit your work:
+		$ cd mybackend
+		$ cvs add mymodel.c
+		$ cvs commit -m "added <mymodel> to <mybackend>" \
+				Makefile.am mybackend.c mybackend.h mymodel.c
+
+
+4. Read README.betatester to test the new backend/model.
+   Report to mailing list.
+
+5. Basic functions: set_freq and set_mode. set_vfo would be great.
+
+6. C code examples.
 
 A C code snippet to connect to a FT847 and set
 the frequency of the main VFO to 439,700,000 Hz ,
 using FM as the required mode, would look something 
 like this. The error checking is removed for simplicity.
 
-See testrig.c for an example.
-
-<snip>
-
-	#define SERIAL_PORT "/dev/ttyS1"
-...
-
-	my_rig = rig_init(RIG_MODEL_FT847);
-	strncpy(my_rig->state.rig_path,SERIAL_PORT,FILPATHLEN);
-
-	/*
-	 * Example of setting rig Main VFO to 439.700 Mhz FM -- FS
-	 * and some error checking on the return code.
-	 */
-
-	retcode = rig_set_vfo(my_rig, RIG_VFO_MAIN);
-
-	if (retcode != RIG_OK ) {
-	  printf("rig_set_vfo: error = %i \n", retcode);
-	}
-
-	rig_set_freq(my_rig, 439700000); /* cq de vk3fcs */
-
-	if (retcode != RIG_OK ) {
-	  printf("rig_set_freq: error = %i \n", retcode);
-	} 
-
-	rig_set_mode(my_rig, RIG_MODE_FM);
-
-	if (retcode != RIG_OK ) {
-	  printf("rig_get_mode: error = %i \n", retcode);
-	} 
-
-<snip>
+    See tests/testrig.c
 
 
-11. Where are the GUI's.
+7. Where are the GUI's?
 
    "Build it and they will come ..."
 
@@ -171,11 +226,10 @@ See testrig.c for an example.
    to see some GTK apps that use the hamlib API's
    so they can be used by end users as a nice part of the
    Ham shack.
+   Starting point: kontakt, grig
 
 
 
+Stephane Fillod f8cfe
 Frank Singleton vk3fcs/km5ws
-
-
-
 
