@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.8 2001-02-14 01:05:41 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.9 2001-02-27 23:01:25 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ enum rig_model_e {
 	RIG_MODEL_FT736R,
 	RIG_MODEL_FT840,
 	RIG_MODEL_FT820,
+	RIG_MODEL_FT900,
 	RIG_MODEL_FT920,
 	RIG_MODEL_FT890,
 	RIG_MODEL_FT990,
@@ -120,10 +121,16 @@ enum rig_model_e {
 	RIG_MODEL_PCR100,
 
 	/*
-	 * Optoelectronics
+	 * Optoelectronics (CI-V)
 	 */
 	RIG_MODEL_MINISCOUT,
 	RIG_MODEL_XPLORER,
+
+	/*
+	 * TenTec (CI-V)
+	 */
+	RIG_MODEL_OMNIVI,
+	RIG_MODEL_OMNIVIP,	/* OMNI-IV+ */
 
 	/*
 	 * AOR
@@ -142,6 +149,7 @@ enum rig_model_e {
 	/*
 	 * JRC
 	 */
+	RIG_MODEL_JST145,
 	RIG_MODEL_JST245,
 	RIG_MODEL_CMH530,
 	RIG_MODEL_NRD345,
@@ -220,6 +228,7 @@ enum rig_model_e {
 	RIG_MODEL_KWZ30,	/* KNEISNER +DOERING */
 	RIG_MODEL_E1800,	/* DASA-Telefunken */
 	RIG_MODEL_EKD500,	/* RFT */
+	RIG_MODEL_DX77,		/* Alinco */
 	RIG_MODEL_TT550,	/* Ten Tec */
 	RIG_MODEL_RX320,
 
