@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.11 2004-09-26 08:35:03 fillods Exp $
+ *	$Id: optoscan.c,v 1.12 2004-10-02 20:18:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -595,7 +595,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 
       optoscan_wait_timer(rig,state); /*Step 5*/
       
-      ser_get_dcd(&rs->rigport,&pin_state);
+      ser_get_car(&rs->rigport,&pin_state);
       if( pin_state ) /*Step 6*/
 	{
 	  return RIG_OK; /* we've broken squelch - return(). caller can */

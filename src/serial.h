@@ -2,7 +2,7 @@
  *  Hamlib Interface - serial communication header
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *		$Id: serial.h,v 1.24 2004-10-02 10:32:09 fillods Exp $
+ *		$Id: serial.h,v 1.25 2004-10-02 20:18:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,15 +35,14 @@ extern HAMLIB_EXPORT(int) serial_flush(port_t *p);
 /* Hamlib internal use, see rig.c */
 int ser_open(port_t *p);
 int ser_close(port_t *p);
-int ser_ptt_set(port_t *p, ptt_t pttx);
-int ser_ptt_get(port_t *p, ptt_t *pttx);
-int ser_dcd_get(port_t *p, dcd_t *dcdx);
 extern HAMLIB_EXPORT(int) ser_set_rts(port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_get_rts(port_t *p, int *state);
 extern HAMLIB_EXPORT(int) ser_set_brk(port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_set_dtr(port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_get_dtr(port_t *p, int *state);
-extern HAMLIB_EXPORT(int) ser_get_dcd(port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_get_cts(port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_get_dsr(port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_get_car(port_t *p, int *state);
 int par_open(port_t *p);
 int par_close(port_t *p);
 int par_ptt_set(port_t *p, ptt_t pttx);

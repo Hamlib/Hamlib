@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.41 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: serial.c,v 1.42 2004-10-02 20:18:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -414,7 +414,8 @@ int HAMLIB_API ser_set_rts(port_t *p, int state)
 	unsigned int y = TIOCM_RTS;
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
-	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y) < 0 ?
+			-RIG_EIO : RIG_OK;
 #else
 	if (IOCTL(p->fd, TIOCMGET, &y) < 0) {
 		return -RIG_EIO;
@@ -423,7 +424,7 @@ int HAMLIB_API ser_set_rts(port_t *p, int state)
 		y |= TIOCM_RTS;
 	else
 		y &= ~TIOCM_RTS;
-	return IOCTL(p->fd, TIOCMSET, &y);
+	return IOCTL(p->fd, TIOCMSET, &y) < 0 ? -RIG_EIO : RIG_OK;
 #endif
 }
 
@@ -433,11 +434,13 @@ int HAMLIB_API ser_set_rts(port_t *p, int state)
  */
 int HAMLIB_API ser_get_rts(port_t *p, int *state)
 {
-  int status;
+  int retcode;
   unsigned int y;
-  status = IOCTL(p->fd, TIOCMGET, &y);
-  *state = (y & TIOCM_RTS) ? RIG_PTT_ON:RIG_PTT_OFF;
-  return RIG_OK;
+
+  retcode = IOCTL(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_RTS) == TIOCM_RTS;
+
+  return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
 int HAMLIB_API ser_set_dtr(port_t *p, int state)
@@ -445,7 +448,8 @@ int HAMLIB_API ser_set_dtr(port_t *p, int state)
 	unsigned int y = TIOCM_DTR;
 
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
-	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y) < 0 ? 
+			-RIG_EIO : RIG_OK;
 #else
 	if (IOCTL(p->fd, TIOCMGET, &y) < 0) {
 		return -RIG_EIO;
@@ -454,23 +458,26 @@ int HAMLIB_API ser_set_dtr(port_t *p, int state)
 		y |= TIOCM_DTR;
 	else
 		y &= ~TIOCM_DTR;
-	return IOCTL(p->fd, TIOCMSET, &y);
+	return IOCTL(p->fd, TIOCMSET, &y) < 0 ? -RIG_EIO : RIG_OK;
 #endif
 }
 
 int HAMLIB_API ser_get_dtr(port_t *p, int *state)
 {
-  int status;
+  int retcode;
   unsigned int y;
-  status = IOCTL(p->fd, TIOCMGET, &y);
-  *state = (y & TIOCM_DTR) ? RIG_PTT_ON:RIG_PTT_OFF;
-  return status;
+
+  retcode = IOCTL(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_DTR) == TIOCM_DTR;
+
+  return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
 int HAMLIB_API ser_set_brk(port_t *p, int state)
 {
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
-	return IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0 );
+	return IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0 ) < 0 ?
+			-RIG_EIO : RIG_OK;
 #else
 	return -RIG_ENIMPL;
 #endif
@@ -480,87 +487,37 @@ int HAMLIB_API ser_set_brk(port_t *p, int state)
  * assumes state not NULL
  * p is supposed to be &rig->state.rigport
  */
-int HAMLIB_API ser_get_dcd(port_t *p, int *state)
+int HAMLIB_API ser_get_car(port_t *p, int *state)
 {
-  int status;
+  int retcode;
   unsigned int y;
-  status = IOCTL(p->fd, TIOCMGET, &y);
-  *state = (y & TIOCM_CAR) ? RIG_DCD_ON:RIG_DCD_OFF;
-  return RIG_OK;
+
+  retcode = IOCTL(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_CAR) == TIOCM_CAR;
+
+  return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
-/* 
- * p is supposed to be &rig->state.pttport
- */
-int ser_ptt_set(port_t *p, ptt_t pttx)
+int HAMLIB_API ser_get_cts(port_t *p, int *state)
 {
-		switch(p->type.ptt) {
-		case RIG_PTT_SERIAL_RTS:
-			return ser_set_rts(p, pttx==RIG_PTT_ON);
-		case RIG_PTT_SERIAL_DTR:
-			return ser_set_dtr(p, pttx==RIG_PTT_ON);
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-								p->type.ptt);
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
+  int retcode;
+  unsigned int y;
+
+  retcode = IOCTL(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_CTS) == TIOCM_CTS;
+
+  return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
-/*
- * assumes pttx not NULL
- */
-int ser_ptt_get(port_t *p, ptt_t *pttx)
+int HAMLIB_API ser_get_dsr(port_t *p, int *state)
 {
+  int retcode;
+  unsigned int y;
 
-		switch(p->type.ptt) {
-		case RIG_PTT_SERIAL_RTS:
-			return ser_get_rts(p, &pttx);
-		case RIG_PTT_SERIAL_DTR:
-			return ser_get_dtr(p, &pttx);
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-								p->type.ptt);
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
-}
+  retcode = IOCTL(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_DSR) == TIOCM_DSR;
 
-/*
- * assumes dcdx not NULL
- * p is supposed to be &rig->state.dcdport
- */
-int ser_dcd_get(port_t *p, dcd_t *dcdx)
-{
-
-		switch(p->type.dcd) {
-		case RIG_DCD_SERIAL_CTS:
-			{
-				unsigned int y;
-				int status;
-
-				status = IOCTL(p->fd, TIOCMGET, &y);
-				*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
-				return status;
-			}
-
-		case RIG_DCD_SERIAL_DSR:
-			{
-				unsigned int y;
-				int status;
-
-				status = IOCTL(p->fd, TIOCMGET, &y);
-				*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
-				return status;
-			}
-		case RIG_DCD_SERIAL_CAR:
-			return ser_get_dcd(p, &dcdx);
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
-								p->type.dcd);
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
+  return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
 

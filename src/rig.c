@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.81 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: rig.c,v 1.82 2004-10-02 20:18:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1137,12 +1137,13 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 			break;
 
 		case RIG_PTT_SERIAL_DTR:
+	                        return ser_set_dtr(&rig->state.pttport, ptt==RIG_PTT_ON);
+
 		case RIG_PTT_SERIAL_RTS:
-				ser_ptt_set(&rig->state.pttport, ptt);
-				break;
+	                        return ser_set_rts(&rig->state.pttport, ptt==RIG_PTT_ON);
+
 		case RIG_PTT_PARALLEL:
-				par_ptt_set(&rig->state.pttport, ptt);
-				break;
+				return par_ptt_set(&rig->state.pttport, ptt);
 
 		case RIG_PTT_NONE:
 				return -RIG_ENAVAIL;	/* not available */
@@ -1170,7 +1171,7 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {	
 		const struct rig_caps *caps;
-		int retcode;
+		int retcode, status;
 		vfo_t curr_vfo;
 
 		if (CHECK_RIG_ARG(rig) || !ptt)
@@ -1201,12 +1202,17 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 			break;
 
 		case RIG_PTT_SERIAL_RTS:
+			retcode = ser_get_rts(&rig->state.pttport, &status);
+			*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+			return retcode;
+
 		case RIG_PTT_SERIAL_DTR:
-				ser_ptt_get(&rig->state.pttport, ptt);
-				break;
+			retcode = ser_get_dtr(&rig->state.pttport, &status);
+			*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
+			return retcode;
+
 		case RIG_PTT_PARALLEL:
-				par_ptt_get(&rig->state.pttport, ptt);
-				break;
+				return par_ptt_get(&rig->state.pttport, ptt);
 
 		case RIG_PTT_NONE:
 				return -RIG_ENAVAIL;	/* not available */
@@ -1234,7 +1240,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {	
 		const struct rig_caps *caps;
-		int retcode;
+		int retcode, status;
 		vfo_t curr_vfo;
 
 		if (CHECK_RIG_ARG(rig) || !dcd)
@@ -1265,13 +1271,23 @@ int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 			break;
 
 		case RIG_DCD_SERIAL_CTS:
+			retcode = ser_get_cts(&rig->state.dcdport, &status);
+			*dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
+			return retcode;
+
 		case RIG_DCD_SERIAL_DSR:
+			retcode = ser_get_dsr(&rig->state.dcdport, &status);
+			*dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
+			return retcode;
+
 		case RIG_DCD_SERIAL_CAR:
-				ser_dcd_get(&rig->state.dcdport, dcd);
-				break;
+			retcode = ser_get_car(&rig->state.dcdport, &status);
+			*dcd = status ? RIG_DCD_ON : RIG_DCD_OFF;
+			return retcode;
+
+			
 		case RIG_DCD_PARALLEL:
-				par_dcd_get(&rig->state.dcdport, dcd);
-				break;
+			return par_dcd_get(&rig->state.dcdport, dcd);
 
 		case RIG_DCD_NONE:
 				return -RIG_ENAVAIL;	/* not available */
