@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.1 2004-06-14 21:10:11 fillods Exp $
+ *	$Id: ar3030.c,v 1.2 2004-07-03 15:01:55 t_mills Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -358,8 +358,8 @@ int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_CW:       aormode = 'C'; break;
 	case RIG_MODE_USB:      aormode = 'U'; break;
 	case RIG_MODE_LSB:      aormode = 'L'; break;
-	case RIG_MODE_WFM:      aormode = 'W'; break;
-	case RIG_MODE_FM:	aormode = 'N'; break;
+	case RIG_MODE_FM:	      aormode = 'N'; break;
+	case RIG_MODE_AMS:      aormode = 'S'; break;
 	/*case RIG_MODE_FAX:	aormode = 'X'; break;*/
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
@@ -394,7 +394,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	priv->curr_vfo = RIG_VFO_A;
 
-	switch (buf[19]) {
+	switch (buf[25]) {
 	case 'A':	*mode = RIG_MODE_AM; break;
 	case 'L':	*mode = RIG_MODE_LSB; break;
 	case 'U':	*mode = RIG_MODE_USB; break;
@@ -404,7 +404,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	/*case 'X':	*mode = RIG_MODE_FAX; break;*/
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-						__FUNCTION__,buf[19]);
+						__FUNCTION__,buf[25]);
 		return -RIG_EPROTO;
 	}
 
