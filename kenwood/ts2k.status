@@ -1,0 +1,23 @@
+Rig: TS-2000, ts2k.c          Thought this might help. --Dale kd73ni
+n/i = not written, orig = original/rewritten, new = new, ok = works as written
+F:      ok  (no limit check)    orig    f:      ok, (vfo only)          orig
+M:      ok                      orig    m:      ok  (no vfo check)      orig
+V:      ok  (trivial only)      orig    v:      ok  (trivial only)      orig
+T:      ok  (even in CALL_C)    orig    t:      ok                      orig
+R:      ok                      new     r:      ok  (vfo only)          new 
+O:      bugs                    new     o:      ok                      new 
+C:      ok  (requires exact)    orig    c:      ok                      orig  
+D:      ok                      new     d:      ok                      new
+I:      broken                  new     i:      broken                  new
+X:      ok  (TX only!)          new     x:      replies                 new
+S:      ok  (default only!)     new     s:      on  (not broken!)       new
+N:      ok  (default only)      new     n:      ok                      new
+L:      ok  (PREAMP at least)   new     l:      bad                     new
+U:      bugs (VOX always on)    new     u:      bugs                    orig
+P:      ok  (BEEP 0.0 works!)   new     p:      ok                      new
+E:      ok                      orig    e:      ok                      orig
+G:      ok  (up/down at least)  new     g:      broken                  new
+H:            n/i (rigctl too!)         h:      ok  (needs work)        new
+A:      ok  (see a)             orig    a:      ok  (sigio remains on)  orig 
+B:                 n/a                  _:      ok  (which Sea?) :)     orig 
+2:      bugs (don't understand) orig    #:	ok  (rigctl comment)    new
