@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.12 2001-02-14 01:11:22 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.13 2001-02-15 00:01:08 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -141,6 +141,45 @@ int main (int argc, char *argv[])
 			printf("Unknown\n");
 	}
 
+	printf("DCD type:\t");
+	switch (caps->dcd_type) {
+	case RIG_DCD_RIG:
+			printf("rig capable\n");
+			break;
+	case RIG_DCD_PARALLEL:
+			printf("thru parallel port (DATA1? STROBE?)\n");
+			break;
+	case RIG_DCD_SERIAL_CTS:
+			printf("thru serial port (CTS/RTS)\n");
+			break;
+	case RIG_DCD_SERIAL_DSR:
+			printf("thru serial port (DTR/DSR)\n");
+			break;
+	case RIG_DCD_NONE:
+			printf("None\n");
+			break;
+	default:
+			printf("Unknown\n");
+	}
+
+	printf("Port type:\t");
+	switch (caps->port_type) {
+	case RIG_PORT_SERIAL:
+			printf("RS-232\n");
+			break;
+	case RIG_PORT_DEVICE:
+			printf("device driver\n");
+			break;
+	case RIG_PORT_NETWORK:
+			printf("network link\n");
+			break;
+	case RIG_PORT_NONE:
+			printf("None\n");
+			break;
+	default:
+			printf("Unknown\n");
+	}
+
 	printf("Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
 					caps->serial_rate_max,caps->serial_data_bits,
 					caps->serial_parity==RIG_PARITY_NONE?'N':
@@ -158,20 +197,20 @@ int main (int argc, char *argv[])
 	printf("Has targetable VFO: %s\n",
 					caps->targetable_vfo?"yes":"no");
 
-	printf("Max RIT: -%ld.%ldKHz/+%ld.%ldKHz\n", 
+	printf("Max RIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_rit/1000, caps->max_rit%1000,
 					caps->max_rit/1000, caps->max_rit%1000);
 
 	printf("Preamp:");
 	for(i=0; i<MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
 			printf(" %ddB", caps->preamp[i]);
-	if (caps->preamp[i] == 0)
+	if (i == 0)
 		printf(" none");
 	printf("\n");
 	printf("Attenuator:");
 	for(i=0; i<MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
 			printf(" %ddB",caps->attenuator[i]);
-	if (caps->attenuator[i] == 0)
+	if (i == 0)
 		printf(" none");
 	printf("\n");
 
@@ -307,12 +346,27 @@ int main (int argc, char *argv[])
 	status = range_sanity_check(caps->rx_range_list2,1);
 	printf("RX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
 
-	printf("Tuning steps:\n");
+	printf("Tuning steps:");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
-			printf("\t%8liHz:\t%s\n",caps->tuning_steps[i].ts,
+			printf("\n\t%8liHz:\t%s",caps->tuning_steps[i].ts,
 							decode_modes(caps->tuning_steps[i].modes));
 	}
+	if (i==0)
+			printf(" none! This backend might be bogus!");
+	printf("\n");
 
+	printf("Filters:");
+	for (i=0; i<FLTLSTSIZ && caps->filters[i].modes; i++) {
+			printf("\n\t%8liHz:\t%s",caps->filters[i].width,
+							decode_modes(caps->filters[i].modes));
+	}
+	if (i==0)
+			printf(" none! This backend might be bogus!");
+	printf("\n");
+
+	/*
+	 * TODO: keep me up-to-date with API call list!
+	 */
 	printf("Can set frequency:\t%c\n",caps->set_freq!=NULL?'Y':'N');
 	printf("Can get frequency:\t%c\n",caps->get_freq!=NULL?'Y':'N');
 	printf("Can set mode:\t%c\n",caps->set_mode!=NULL?'Y':'N');
@@ -321,6 +375,7 @@ int main (int argc, char *argv[])
 	printf("Can get vfo:\t%c\n",caps->get_vfo!=NULL?'Y':'N');
 	printf("Can set ptt:\t%c\n",caps->set_ptt!=NULL?'Y':'N');
 	printf("Can get ptt:\t%c\n",caps->get_ptt!=NULL?'Y':'N');
+	printf("Can get dcd:\t%c\n",caps->get_dcd!=NULL?'Y':'N');
 	printf("Can set repeater duplex:\t%c\n",caps->set_rptr_shift!=NULL?'Y':'N');
 	printf("Can get repeater duplex:\t%c\n",caps->get_rptr_shift!=NULL?'Y':'N');
 	printf("Can set repeater offset:\t%c\n",caps->set_rptr_offs!=NULL?'Y':'N');
@@ -359,6 +414,9 @@ static char *decode_modes(rmode_t modes)
 	if (modes&RIG_MODE_LSB) strcat(buf,"LSB ");
 	if (modes&RIG_MODE_RTTY) strcat(buf,"RTTY ");
 	if (modes&RIG_MODE_FM) strcat(buf,"FM ");
+#ifdef RIG_MODE_WFM
+	if (modes&RIG_MODE_WFM) strcat(buf,"WFM ");
+#endif
 
 	return buf;
 }
