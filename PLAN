@@ -1,35 +1,36 @@
 
 
-Here is a non-exhaustive list of things IMO to keep in mind when
-developping the hamlib library.
+Here is a non-exhaustive list of things IMO to keep in mind while
+developping the Hamlib library.
 
 
 Plan:
 ----
-o Hamlib is intended to provide the means to control any rig
+o Hamlib is intended to provide the means to control any capable rig
 o develop the library as a shared/static library
-o portable (not only Linux, but UN*X, Win32 using cygwin,etc.  -> autoconf?)
-o generic (any rig made, any model)
-o wrappable (Java, perl module, Python module, etc.)
+o portable (not only Linux, but UN*X, Win32 using cygwin, etc. -> autoconf?)
+o be good, be generic (any rig made, any model)
+o uniform data types/units (eg. for power, use Watts, not rig specific val)
+o wrappable (Java, C++, perl module, Python module, etc.)
 o support serial ports, IrDA ports, USB ports, network ports (w/ a daemon)
 o thread safe (reentrant) would be a must
 o support preference file (eg. /etc/hamlibrc, ~/.hamlibrc )
-o written in C (C++ would have been more appropriate, but C is okay)
+o written in C (C++ would have been much more appropriate, but C is okay)
 o support more than one rig per application (ie. generic code)
 o support more than one rig per serial port (ie. Icoms)
-o handle serial retransmission and timeouts would be nice
+o handle nicely serial retransmission and timeouts
 o i18n support if applicable
 o software compensation for the actual radio oscillator frequency errors(mode?)
 o if avail., support events sent by the rig (eg. main freq has been changed,..)
 o maybe add some misc functions like PTT signaling (through serial/parallel..)
-o Well documented API, and Howto write a new backend
+o Well documented API, and Howto write a new rig backend
 o ...
 
 
 Good inspiration:
 ----------------
 o SANE, with frontend/backend scheme, dynamic loading, autoconf, etc.
-o struct net_device (Linux kernel) for the void *priv idea
+o struct net_device (Linux kernel) for the "void *priv" idea
 o any rigctrl sources out there ?
 
 
@@ -43,7 +44,7 @@ o s/w squelch
 o real time spectral analysis and digital modes ( Frank has written some
 	working code for this) it does 40 frames / sec and no load, 
 	really cool to see time and spectral info !!
-	I have based it on generic data engine and plugins !! output also to
+	He has based it on generic data engine and plugins !! output also to
 	small gtk window.
 o doppler compensation in tracking mode (using mtrack satellite tracker?)
 o let real time signal analysis drive freq/modes/etc.... (eg. PSK31 tuning)
@@ -51,6 +52,7 @@ o networked rigs, provides realtime (global) spectral analysis to
   find (a common) quiet part of the band for a qso between 2 parties
 o software controlled hopping (poor mans GSM frequency hopping)
    also, must output hopping sequence to other rig to be useful
+o computer assisted scanner
 o <add here the application you thought it'd be impossible>
 
 
@@ -68,7 +70,7 @@ Maybe we can distinguish between 3 states :
 
 o freq ranges supported: rx/mode, tx/modes/power
 o number of VFO, operations (set VFO separately, VFO A=B, switch, ..)
-o freq granularity (resolution), tuning steps (-> array)
+o freq granularity, tuning steps (-> array)
 o SCAN functions (start, stop, ..)
 o Split (cross band, duplex, ...)
 o RIT (+- KHz)
