@@ -154,7 +154,8 @@ fi
 AC_SUBST(NET)
 
 
-BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc easycomm"
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
+ROT_BACKEND_LIST="dummy easycomm"
 
 case "$host_os" in
  linux-gnu*)
@@ -165,7 +166,8 @@ case "$host_os" in
 esac
 
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
- BACKEND_LIST="$BACKEND_LIST rpcrig rpcrot"
+    BACKEND_LIST="$BACKEND_LIST rpcrig"
+    ROT_BACKEND_LIST="$ROT_BACKEND_LIST rpcrot"
 fi
 
 # dlopen force or preopen self for static version ?
@@ -177,6 +179,16 @@ done
 AC_SUBST(BACKEND_LIST)
 AC_SUBST(BACKENDLNK)
 AC_SUBST(BACKENDEPS)
+
+# dlopen force or preopen self for static version ?
+ROT_BACKENDLNK="-dlopen force"
+for be in ${ROT_BACKEND_LIST} ; do
+    ROT_BACKENDLNK="${ROT_BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
+    ROT_BACKENDEPS="${ROT_BACKENDEPS} ../${be}/libhamlib-${be}.la"
+done
+AC_SUBST(ROT_BACKEND_LIST)
+AC_SUBST(ROT_BACKENDLNK)
+AC_SUBST(ROT_BACKENDEPS)
 
 Xsed="sed -e s/^X//"
 LTLIBOBJS=`echo X"$LIBOBJS" | $Xsed -e "s,\.[^.]* ,.lo ,g;s,\.[^.]*\$,.lo,"`
