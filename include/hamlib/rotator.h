@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - Rotator API header
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.6 2002-11-12 00:11:54 fillods Exp $
+ *	$Id: rotator.h,v 1.7 2003-04-27 22:14:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,6 +69,11 @@ typedef struct rot ROT;
 typedef float elevation_t;
 typedef float azimuth_t;
 
+/*! \def ROT_RESET_ALL
+ *  \brief A macro that returns the flag for the \b reset operation.
+ *  \sa rot_reset(), rot_reset_t
+ */
+#define ROT_RESET_ALL	1
 
 /*! \typedef typedef int rot_reset_t
  *  \brief Type definition for rotator reset.
@@ -179,7 +184,7 @@ struct rot_caps {
   enum rig_status_e status;                      /*!< Driver status. */
 
   int rot_type;                                  /*!< Rotator type. */
-  enum rig_port_e port_type;                     /*!< Type of communication port. */
+  enum rig_port_e port_type;			 /*!< Type of communication port. */
 
   int serial_rate_min;                           /*!< Minimal serial speed. */
   int serial_rate_max;                           /*!< Maximal serial speed. */
