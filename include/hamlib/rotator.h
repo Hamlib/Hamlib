@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: rotator.h,v 1.1 2001-12-27 21:41:11 fillods Exp $
+ *		$Id: rotator.h,v 1.2 2001-12-28 20:30:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef _ROT_H
-#define _ROT_H 1
+#ifndef _ROTATOR_H
+#define _ROTATOR_H 1
 
 #include <hamlib/rig.h>
 #include <hamlib/rotlist.h>
@@ -40,6 +40,8 @@ typedef struct rot ROT;
 
 typedef float elevation_t;
 typedef float azimuth_t;
+
+typedef int rot_reset_t;
 
 
 #define ROT_FLAG_AZIMUTH		(1<<1)
@@ -128,7 +130,7 @@ struct rot_caps {
   int (*stop)(ROT *rot);
   int (*park)(ROT *rot);
 
-  int (*reset)(ROT *rot, reset_t reset);
+  int (*reset)(ROT *rot, rot_reset_t reset);
 
   /* get firmware info, etc. */
   const char* (*get_info)(ROT *rot);
@@ -192,13 +194,21 @@ extern HAMLIB_EXPORT(int) rot_open HAMLIB_PARAMS((ROT *rot));
 extern HAMLIB_EXPORT(int) rot_close HAMLIB_PARAMS((ROT *rot));
 extern HAMLIB_EXPORT(int) rot_cleanup HAMLIB_PARAMS((ROT *rot));
 
+extern HAMLIB_EXPORT(int) rot_set_conf HAMLIB_PARAMS((ROT *rot, token_t token, const char *val));
+extern HAMLIB_EXPORT(int) rot_get_conf HAMLIB_PARAMS((ROT *rot, token_t token, char *val));
   /*
-   *  General API commands, from most primitive to least.. :()
+   *  General API commands, from most primitive to least.. )
    *  List Set/Get functions pairs
    */
 
 extern HAMLIB_EXPORT(int) rot_set_position HAMLIB_PARAMS((ROT *rot, azimuth_t azimuth, elevation_t elevation));
 extern HAMLIB_EXPORT(int) rot_get_position HAMLIB_PARAMS((ROT *rot, azimuth_t *azimuth, elevation_t *elevation));
+
+extern HAMLIB_EXPORT(int) rot_stop HAMLIB_PARAMS((ROT *rot));
+extern HAMLIB_EXPORT(int) rot_park HAMLIB_PARAMS((ROT *rot));
+extern HAMLIB_EXPORT(int) rot_reset HAMLIB_PARAMS((ROT *rot, rot_reset_t reset));
+extern HAMLIB_EXPORT(const char*) rot_get_info HAMLIB_PARAMS((ROT *rot));
+
 
 extern HAMLIB_EXPORT(int) rot_register HAMLIB_PARAMS((const struct rot_caps *caps));
 extern HAMLIB_EXPORT(int) rot_unregister HAMLIB_PARAMS((rot_model_t rot_model));
@@ -207,6 +217,10 @@ extern HAMLIB_EXPORT(int) rot_load_backend HAMLIB_PARAMS((const char *be_name));
 extern HAMLIB_EXPORT(int) rot_check_backend HAMLIB_PARAMS((rot_model_t rot_model));
 extern HAMLIB_EXPORT(int) rot_load_all_backends HAMLIB_PARAMS(());
 extern HAMLIB_EXPORT(rot_model_t) rot_probe_all HAMLIB_PARAMS((port_t *p));
+
+extern HAMLIB_EXPORT(int) rot_token_foreach HAMLIB_PARAMS((ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data));
+extern HAMLIB_EXPORT(const struct confparams*) rot_confparam_lookup HAMLIB_PARAMS((ROT *rot, const char *name));
+extern HAMLIB_EXPORT(token_t) rot_token_lookup HAMLIB_PARAMS((ROT *rot, const char *name));
 
 extern HAMLIB_EXPORT(const struct rot_caps *) rot_get_caps HAMLIB_PARAMS((rot_model_t rot_model));
 
@@ -222,14 +236,14 @@ extern HAMLIB_EXPORT(int) qrb HAMLIB_PARAMS((double lon1, double lat1,
 extern HAMLIB_EXPORT(double) bearing_long_path HAMLIB_PARAMS((double bearing));
 extern HAMLIB_EXPORT(double) azimuth_long_path HAMLIB_PARAMS((double azimuth));
 
-extern HAMLIB_EXPORT(int) longlat2locator HAMLIB_PARAMS((double longitude, 
+extern HAMLIB_EXPORT(void) longlat2locator HAMLIB_PARAMS((double longitude, 
 						double latitude, char *locator));
 extern HAMLIB_EXPORT(int) locator2longlat HAMLIB_PARAMS((double *longitude, 
 						double *latitude, const char *locator));
 
 extern HAMLIB_EXPORT(double) dms2dec HAMLIB_PARAMS((int degs, int minutes, 
 						int seconds));
-extern HAMLIB_EXPORT(void) dec2dms HAMLIB_PARAMS((double dec, int *degs, 
+extern HAMLIB_EXPORT(void) dec2dms HAMLIB_PARAMS((double dec, int *degrees, 
 						int *minutes, int *seconds));
 
 
@@ -237,5 +251,5 @@ extern HAMLIB_EXPORT(void) dec2dms HAMLIB_PARAMS((double dec, int *degs,
 
 __END_DECLS
 
-#endif /* _ROT_H */
+#endif /* _ROTATOR_H */
 
