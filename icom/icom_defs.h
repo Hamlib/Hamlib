@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.3 2000-10-10 22:17:34 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.4 2000-10-16 22:37:22 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -67,14 +67,17 @@
 #define C_CTL_SCAN	0x0e		/* Control scan, Sc */
 #define C_CTL_SPLT	0x0f		/* Control split, Sc */
 #define C_SET_TS	0x10		/* Set tuning step, Sc */
-#define C_SET_ATT	0x11		/* Set attenuator, Sc */
-#define C_SET_ANT	0x12		/* Set antenna, Sc */
+#define C_CTL_ATT	0x11		/* Set attenuator, Sc */
+#define C_CTL_ANT	0x12		/* Set antenna, Sc */
 #define C_CTL_ANN	0x13		/* Control announce (speech synth.), Sc */
-#define C_SET_AFRF	0x14		/* Set AF/RF/squelch, Sc */
+#define C_CTL_LVL	0x14		/* Set AF/RF/squelch, Sc */
 #define C_RD_SQSM	0x15		/* Read squelch condiction/S-meter level, Sc */
-#define C_SET_FUNC	0x16		/* Function settings (AGC,NB,etc.), Sc */
+#define C_CTL_FUNC	0x16		/* Function settings (AGC,NB,etc.), Sc */
 #define C_SND_CW	0x17		/* Send CW message */
+#define C_SET_PWR	0x18		/* Set Power ON/OFF, Sc */
 #define C_RD_TRXID	0x19		/* Read transceiver ID code */
+#define C_CTL_MEM	0x1a		/* Misc memory/bank functions, Sc */
+#define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
 
@@ -120,7 +123,7 @@
 #define S_DUP_P		0x12		/* Duplex + mode */
 
 /*
- * Set Attenuator (C_SET_ATT) subcommands
+ * Set Attenuator (C_CTL_ATT) subcommands
  */
 #define S_ATT_RD	0x00		/* Without subcommand, reads out setting */
 #define S_ATT_OFF	0x00		/* Off */
@@ -145,22 +148,42 @@
 #define S_ANN_FREQ	0x01		/* Announce freq */
 
 /*
+ * Function settings (C_CTL_LVL) subcommands
+ */
+#define S_LVL_AF		0x01		/* AF level setting */
+#define S_LVL_RF		0x02		/* RF level setting */
+#define S_LVL_SQL		0x03		/* SQL level setting */
+#define S_LVL_IF		0x04		/* IF shift setting */
+#define S_LVL_APF		0x05		/* APF level setting */
+#define S_LVL_NR		0x06		/* NR level setting */
+#define S_LVL_PBTIN		0x07		/* Twin PBT setting (inside) */
+#define S_LVL_PBTOUT	0x08		/* Twin PBT setting (outside) */
+#define S_LVL_CWPITCH	0x09		/* CW pitch setting */
+#define S_LVL_RFPOWER	0x0a		/* RF power setting */
+#define S_LVL_MICGAIN	0x0b		/* MIC gain setting */
+#define S_LVL_KEYSPD	0x0c		/* Key Speed setting */
+#define S_LVL_NOTCHF	0x0d		/* Notch freq. setting */
+#define S_LVL_COMP		0x0e		/* Compressor level setting */
+#define S_LVL_BKINDL	0x0f		/* BKin delay setting */
+#define S_LVL_BALANCE	0x10		/* Balance setting (Dual watch) */
+
+/*
  * Read squelch condition/S-meter level (C_RD_SQSM) subcommands
  */
 #define S_SQL	0x01		/* Read squelch condition */
 #define S_SML	0x02		/* Read S-meter level */
 
 /*
- * Function settings (C_SET_FUNC) subcommands
+ * Function settings (C_CTL_FUNC) subcommands
  */
-#define S_PAMP	0x02		/* Preamp setting */
-#define S_AGC	0x12		/* AGC setting */
-#define S_NB	0x22		/* NB setting */
-#define S_TONE	0x42		/* TONE setting */
-#define S_TSQL	0x43		/* TSQL setting */
-#define S_COMP	0x44		/* COMP setting */
-#define S_VOX	0x46		/* VOX setting */
-#define S_BKIN	0x47		/* BK-IN setting */
+#define S_FUNC_PAMP	0x02		/* Preamp setting */
+#define S_FUNC_AGC	0x12		/* AGC setting */
+#define S_FUNC_NB	0x22		/* NB setting */
+#define S_FUNC_TONE	0x42		/* TONE setting */
+#define S_FUNC_TSQL	0x43		/* TSQL setting */
+#define S_FUNC_COMP	0x44		/* COMP setting */
+#define S_FUNC_VOX	0x46		/* VOX setting */
+#define S_FUNC_BKIN	0x47		/* BK-IN setting */
 
 /*
  * Transceiver ID (C_RD_TRXID) subcommands
@@ -172,6 +195,12 @@
  */
 #define S_PTT_ON	0x00		/* no documentation, not tested! */
 #define S_PTT_OFF	0x01		/* please confirm (IC-756Pro, IC-746) --SF */
+
+/*
+ * Memory contents (C_CTL_MEM) subcommands
+ */
+#define S_MEM_CNTNT	0x00
+#define S_MEM_CNTNT_SLCT	0x01
 
 #endif /* _ICOM_DEFS_H */
 
