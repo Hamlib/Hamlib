@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.75 2003-08-17 22:39:07 fillods Exp $
+ *	$Id: rig.c,v 1.76 2003-08-25 22:33:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,8 +76,17 @@ const char hamlib_copyright[] =
 
 #ifndef DOC_HIDDEN
 
+#if defined(WIN32) && !defined(__CYGWIN__)
+#define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
+#else
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
+#endif
+
+#if defined(WIN32)
+#define DEFAULT_PARALLEL_PORT "\\\\.\\$VDMLPT1"
+#else
 #define DEFAULT_PARALLEL_PORT "/dev/parport0"
+#endif
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
