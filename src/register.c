@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: register.c,v 1.14 2001-12-28 20:28:02 fillods Exp $
+ *		$Id: register.c,v 1.15 2002-01-02 23:41:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -280,8 +280,12 @@ int rig_load_backend(const char *be_name)
 
 	/*
 	 * lt_dlinit may be called several times
+	 *
+	 * FIXME: make static build seamless
 	 */
+#if 0
 	LTDL_SET_PRELOADED_SYMBOLS();
+#endif
 
 	status = lt_dlinit();
 	if (status) {
@@ -303,8 +307,12 @@ int rig_load_backend(const char *be_name)
 	 * external module not found? try dlopenself for backends 
 	 * compiled in static
 	 */
-	if (!be_handle)
+	if (!be_handle) {
+		rig_debug(RIG_DEBUG_VERBOSE, "rig:  lt_dlopen(\"%s\") failed (%s),
+						trying static symbols...\n",
+						libname, lt_dlerror());
 		be_handle = lt_dlopen (NULL);
+	}
 
 	if (!be_handle) {
 		rig_debug(RIG_DEBUG_ERR, "rig:  lt_dlopen(\"%s\") failed (%s)\n",
