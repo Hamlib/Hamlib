@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.4 2002-11-01 04:39:47 n0nb Exp $  
+ *    $Id: ft920.h,v 1.5 2002-11-04 05:16:19 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -52,24 +52,24 @@
 
 /*
  * 8N2 and 1 start bit = 11 bits at 4800 bps => effective byte rate = 1 byte in 2.2917 msec
- * => 345 bytes in 790 msec
+ * => 28 bytes in 64 msec
  *
  * delay for 1 byte = 2.2917 + (pace_interval * 5) 
  *
  * pace_interval          time to read 345 bytes
  * ------------           ----------------------
  *
- *     0                       790 msec           
- *     1                       2515 msec
- *     2                       4240 msec
- *    255                      441 sec => 7 min 21 seconds
+ *     0                       64 msec
+ *     1                       321 msec
+ *     2                       642 msec
+ *    255                      16.4 sec
  *
  */
 
 
 
 /*
- * Native FT920 functions. This is what I have to work with :-)
+ * Native FT920 functions. More to come :-)
  *
  */
 
@@ -97,16 +97,18 @@ enum ft920_native_cmd_e {
   FT_920_NATIVE_PACING,
   FT_920_NATIVE_VFO_UPDATE,
   FT_920_NATIVE_UPDATE,
-  FT_920_NATIVE_SIZE		/* end marker, value indicates number of */
-				/* native cmd entries */
+  FT_920_NATIVE_SIZE            /* end marker, value indicates number of */
+				                /* native cmd entries */
 
 };
 
 typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 
-
-/* Internal MODES - when setting modes via cmd_mode_set() */
+/*
+ * Internal MODES - when setting modes via cmd_mode_set()
+ *
+ */
 
 #define MODE_SET_LSB    0x00
 #define MODE_SET_USB    0x01
@@ -121,6 +123,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 /*
  * Mode Bitmap. Bits 5 and 6 unused
  * When READING modes
+ *
  */
 
 #define MODE_LSB     0x00
@@ -149,6 +152,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 /*
  * Status Flag Masks when reading
+ *
  */
 
 #define SF_DLOCK   0x01
@@ -164,6 +168,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 /*
  * Local VFO CMD's, according to spec
+ *
  */
 
 #define FT920_VFO_A                  0x00
@@ -172,8 +177,6 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 /*
  * Some useful offsets in the status update map (offset) 
- *
- * Manual appears to be full of mistakes regarding offsets etc.. -- FS
  *
  */
 
@@ -186,7 +189,8 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 
 /* 
- * API local implementation 
+ * API local implementation
+ *
  */
 
 int ft920_init(RIG *rig);
@@ -202,48 +206,6 @@ int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get
 
 int ft920_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 int ft920_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
-
-
-/*
- * Below is leftovers of old interface. TODO
- *
- */
-
-#if 0
-/*
- * Allow TX commands to be disabled
- *
- */
-
-#undef TX_ENABLED
-
-
-
-/*
- * Mode Bitmap. Bits 5 and 6 unused
- * When reading modes
- */
-
-#define MODE_FM     0x01
-#define MODE_AM     0x02
-#define MODE_CW     0x04
-#define MODE_FMN    0x81
-#define MODE_AMN    0x82
-#define MODE_CWN    0x84
-#define MODE_USB    0x08
-#define MODE_LSB    0x10
-#define MODE_NAR    0x80	/* narrow bit set only */
-
-/*
- * Map band data value to band.
- *
- * Band "n" is from band_data[n] to band_data[n+1]
- */
-
-const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 25.0, 30.0 };
-
-
-#endif
 
 
 #endif /* _FT920_H */
