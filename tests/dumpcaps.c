@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.23 2001-05-08 16:41:52 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.24 2001-06-02 18:11:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -117,6 +117,9 @@ int main (int argc, char *argv[])
 			break;
 	case RIG_TYPE_SCANNER:
 			printf("Scanner\n");
+			break;
+	case RIG_TYPE_TRUNKSCANNER:
+			printf("Trunking scanner\n");
 			break;
 	case RIG_TYPE_COMPUTER:
 			printf("Computer\n");

@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.11 2001-05-22 22:01:00 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.12 2001-06-02 18:11:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -87,6 +87,9 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 			break;
 	case RIG_TYPE_SCANNER:
 			printf("Scanner");
+			break;
+	case RIG_TYPE_TRUNKSCANNER:
+			printf("Trunking scanner");
 			break;
 	case RIG_TYPE_COMPUTER:
 			printf("Computer");

@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.7 2001-05-08 09:08:59 f4cfe Exp $
+ *	$Id: dummy.c,v 1.8 2001-06-02 18:10:20 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -557,7 +557,7 @@ static int dummy_get_trn(RIG *rig, vfo_t vfo, int *trn)
   return RIG_OK;
 }
 
-static unsigned char *dummy_get_info(RIG *rig)
+static const char *dummy_get_info(RIG *rig)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
