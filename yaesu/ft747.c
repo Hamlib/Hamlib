@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.13 2001-05-06 01:34:25 javabear Exp $  
+ * $Id: ft747.c,v 1.14 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -335,8 +335,10 @@ int ft747_open(RIG *rig) {
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: write_delay = %i msec \n", rig_s->write_delay);
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: post_write_delay = %i msec \n", rig_s->post_write_delay);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: write_delay = %i msec \n", 
+				  rig_s->rigport.write_delay);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: post_write_delay = %i msec \n", 
+				  rig_s->rigport.post_write_delay);
 
   
    /* TODO */
@@ -400,7 +402,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %Li Hz \n", from_bcd(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -780,14 +782,15 @@ static int ft747_get_update_data(RIG *rig) {
    /* send PACING cmd to rig  */
 
   cmd = p->p_cmd;
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
 
   /* send UPDATE comand to fetch data*/
 
   ft747_send_priv_cmd(rig,FT_747_NATIVE_UPDATE);
 
   /*    n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
-  n = read_block(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT); 
+  n = read_block(&rig_s->rigport, p->update_data, 
+				  FT747_STATUS_UPDATE_DATA_LENGTH); 
 
   return 0;
 
@@ -835,7 +838,7 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci) {
   }
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
   
   return RIG_OK;
 

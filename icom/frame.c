@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.11 2001-05-04 22:39:47 f4cfe Exp $  
+ * $Id: frame.c,v 1.12 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  *
@@ -44,7 +44,7 @@
 #include "frame.h"
 
 /* Prototypes */
-int read_icom_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout);
+int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count);
 
 /*
  * Build a CI-V frame.
@@ -109,7 +109,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		/* 
 		 * should check return code and that write wrote cmd_len chars! 
 		 */
-		write_block(rs->fd, buf, frm_len, rs->write_delay, rs->post_write_delay);
+		write_block(&rs->rigport, buf, frm_len);
 
 		/*
 		 * read what we just sent, because TX and RX are looped,
@@ -121,14 +121,14 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 */
 
 		Hold_Decode(rig);
-		read_icom_block(rs->stream, buf, frm_len, rs->timeout);
+		read_icom_block(&rs->rigport, buf, frm_len);
 
 		/*
 		 * wait for ACK ... 
 		 * FIXME: handle pading/collisions
 		 * ACKFRMLEN is the smallest frame we can expect from the rig
 		 */
-		frm_len = read_icom_frame(rs->stream, buf, rs->timeout);
+		frm_len = read_icom_frame(&rs->rigport, buf);
 		Unhold_Decode(rig);
 
 		*data_len = frm_len-(ACKFRMLEN-1);
@@ -146,11 +146,11 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
  * FIXME: check return codes/bytes read
  * this function will be deprecated soon!
  */
-int read_icom_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout)
+int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count)
 {
 		int i;
 
-		fread_block(stream, rxbuffer, count, timeout);
+		fread_block(p, rxbuffer, count);
 
 #if 0
 		for (i=0; i<count; i++) {
@@ -171,7 +171,7 @@ int read_icom_block(FILE *stream, unsigned char *rxbuffer, size_t count, int tim
  * TODO: strips padding/collisions
  * FIXME: check return codes/bytes read
  */
-int read_icom_frame(FILE *stream, unsigned char rxbuffer[], int timeout)
+int read_icom_frame(port_t *p, unsigned char rxbuffer[])
 {
 		int i;
 
@@ -180,14 +180,14 @@ int read_icom_frame(FILE *stream, unsigned char rxbuffer[], int timeout)
 		 * we can expected on the CI-V bus
 		 * FIXME: a COL is smaller!!
 		 */
-		fread_block(stream, rxbuffer, ACKFRMLEN, timeout);
+		fread_block(p, rxbuffer, ACKFRMLEN);
 
 		/*
 		 * buffered read are quite helpful here!
 		 * However, an automate with a state model would be more efficient..
 		 */
 		for (i=ACKFRMLEN; rxbuffer[i-1]!=FI; i++) {
-			fread_block(stream, rxbuffer+i, 1, timeout);
+			fread_block(p, rxbuffer+i, 1);
 		}
 
 		return i;

@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.12 2001-05-22 18:05:29 f4cfe Exp $  
+ * $Id: ft847.c,v 1.13 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  *
@@ -422,7 +422,7 @@ static int ft847_send_priv_cmd(RIG *rig, unsigned char ci) {
   }
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
   
   return RIG_OK;
 
@@ -487,7 +487,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: requested freq after conversion = %Li Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(rig_s->fd, cmd, YAESU_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }

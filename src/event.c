@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: event.c,v 1.4 2001-06-02 17:56:37 f4cfe Exp $
+   $Id: event.c,v 1.5 2001-06-04 17:01:21 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -81,18 +81,18 @@ int add_trn_rig(RIG *rig)
 		rig_debug(RIG_DEBUG_ERR,"rig_open sigaction failed: %s\n",
 						strerror(errno));
 
-	status = fcntl(rig->state.fd, F_SETOWN, getpid());
+	status = fcntl(rig->state.rigport.fd, F_SETOWN, getpid());
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETOWN failed: %s\n",
 						strerror(errno));
 
 #ifndef _WIN32
-	status = fcntl(rig->state.fd, F_SETSIG, SIGIO);
+	status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETSIG failed: %s\n",
 						strerror(errno));
 
-	status = fcntl(rig->state.fd, F_SETFL, O_ASYNC);
+	status = fcntl(rig->state.rigport.fd, F_SETFL, O_ASYNC);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETASYNC failed: %s\n",
 						strerror(errno));
@@ -116,7 +116,7 @@ int remove_trn_rig(RIG *rig)
  * to find out which rig generated this event,
  * and decode/process it.
  *
- * assumes rig!=NULL, rig->state.fd>=0
+ * assumes rig!=NULL, rig->state.rigport.fd>=0
  */
 static int search_rig_and_decode(RIG *rig, void *data)
 {
@@ -126,11 +126,11 @@ static int search_rig_and_decode(RIG *rig, void *data)
 #if 0
 	siginfo_t *si = (siginfo_t*)data;
 
-	if (rig->state.fd != si->si_fd)
+	if (rig->state.rigport.fd != si->si_fd)
 			return -1;
 #else
 	FD_ZERO(&rfds);
-	FD_SET(rig->state.fd, &rfds);
+	FD_SET(rig->state.rigport.fd, &rfds);
 	/* Read status immediately. */
 	tv.tv_sec = 0;
 	tv.tv_usec = 0;
@@ -139,7 +139,7 @@ static int search_rig_and_decode(RIG *rig, void *data)
 	 * since it is less portable than select
 	 * REM: EINTR possible with 0sec timeout? retval==0?
 	 */
-	retval = select(rig->state.fd+1, &rfds, NULL, NULL, &tv);                                                      
+	retval = select(rig->state.rigport.fd+1, &rfds, NULL, NULL, &tv);                                                      
 	if (retval < 0) {
 		rig_debug(RIG_DEBUG_ERR, "search_rig_and_decode: select: %s\n",
 								strerror(errno));

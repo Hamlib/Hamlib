@@ -39,7 +39,7 @@ int main ()
 	if (!my_rig)
 			exit(1); /* whoops! something went wrong (mem alloc?) */
 
-	strncpy(my_rig->state.rig_path,SERIAL_PORT,FILPATHLEN);
+	strncpy(my_rig->state.rigport.path, SERIAL_PORT, FILPATHLEN);
 
 	if (rig_open(my_rig))
 			exit(2);

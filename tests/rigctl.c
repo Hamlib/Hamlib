@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.13 2001-06-03 19:54:05 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.14 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -221,11 +221,11 @@ printf("%s\n",opt_string);
 	if (!my_rig)
 			exit(1); /* whoops! something went wrong (mem alloc?) */
 
-	strncpy(my_rig->state.rig_path,SERIAL_PORT,FILPATHLEN);
+	strncpy(my_rig->state.rigport.path, SERIAL_PORT, FILPATHLEN);
 
 	/* TODO: make this a parameter */
-	my_rig->state.ptt_type = RIG_PTT_PARALLEL;
-	strncpy(my_rig->state.ptt_path,"/dev/parport0",FILPATHLEN);
+	my_rig->state.pttport.type.ptt = RIG_PTT_PARALLEL;
+	strncpy(my_rig->state.pttport.path, "/dev/parport0", FILPATHLEN);
 
 	if ((retcode = rig_open(my_rig)) != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));

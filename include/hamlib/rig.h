@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.33 2001-06-03 19:50:30 f4cfe Exp $
+ *	$Id: rig.h,v 1.34 2001-06-04 17:01:21 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -805,6 +805,49 @@ struct rig_caps {
   /* more to come... */
 };
 
+/*
+ * yeah, looks like OO painstakingly programmed in C, sigh
+ */
+typedef struct {
+  union {
+  	enum rig_port_e rig;	/* serial, network, etc. */
+  	enum ptt_type_e ptt;
+  	enum dcd_type_e dcd;
+  } type;
+  int fd;
+  FILE *stream;
+#ifdef _WIN32
+  int handle;		/* for serial special handling (PTT,DCD,..) */
+#endif
+
+  int write_delay;        /* delay in ms between each byte sent out */
+  int post_write_delay;		/* for some yaesu rigs */
+  struct timeval post_write_date;		/* hamlib internal use */
+  int timeout;	/* in ms */
+  int retry;		/* maximum number of retries, 0 to disable */
+
+  char path[FILPATHLEN];
+  union {
+		  struct {
+    		int rate;
+    		int data_bits;
+    		int stop_bits;
+    		enum serial_parity_e parity;
+    		enum serial_handshake_e handshake;
+		  } serial;
+		  struct {
+			int pin;
+		  } parallel;
+		  struct {
+				  /* place holder? */
+		  } device;
+#ifdef NET
+		  struct {
+			struct sockaddr saddr;
+		  } network;
+#endif
+  } parm;
+} port_t;
 
 /* 
  * Rig state
@@ -816,6 +859,7 @@ struct rig_caps {
  * not be initialized like caps are.
  */
 struct rig_state {
+#ifdef WANT_OLD_PORT_STUFF
   enum rig_port_e port_type;	/* serial, network, etc. */
 
   int serial_rate;
@@ -835,11 +879,17 @@ struct rig_state {
 
   char ptt_path[FILPATHLEN];	/* path to the keying device (serial,//) */
   char rig_path[FILPATHLEN]; /* serial port/network path(host:port) */
-  double vfo_comp;				/* VFO compensation in PPM, 0.0 to disable */
 
   int fd;	/* serial port/socket file handle */
   int ptt_fd;	/* ptt port file handle */
   FILE *stream;	/* serial port/socket (buffered) stream handle */
+#else
+  port_t rigport;
+  port_t pttport;
+  port_t dcdport;
+#endif
+
+  double vfo_comp;				/* VFO compensation in PPM, 0.0 to disable */
 
   int transceive;	/* whether the transceive mode is on */
   int hold_decode;/* set to 1 to hold the event decoder (async) otherwise 0 */

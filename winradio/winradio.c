@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.9 2001-06-02 18:08:40 f4cfe Exp $
+ *		$Id: winradio.c,v 1.10 2001-06-04 17:01:21 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -48,8 +48,8 @@
 #define DEFAULT_WINRADIO_PATH "/dev/winradio0"
 
 int wr_rig_init(RIG *rig) {
-  rig->state.port_type = RIG_PORT_DEVICE;
-  strncpy(rig->state.rig_path, DEFAULT_WINRADIO_PATH, FILPATHLEN);
+  rig->state.rigport.type.rig = RIG_PORT_DEVICE;
+  strncpy(rig->state.rigport.path, DEFAULT_WINRADIO_PATH, FILPATHLEN);
 
   return RIG_OK;
 }
@@ -59,13 +59,13 @@ int wr_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   if (freq > GHz(4.2))
 		  return -RIG_EINVAL;
   f = (unsigned long)freq;
-  if ( ioctl(rig->state.fd, RADIO_SET_FREQ, &f) ) return -RIG_EINVAL;
+  if ( ioctl(rig->state.rigport.fd, RADIO_SET_FREQ, &f) ) return -RIG_EINVAL;
   return RIG_OK;
 }
 
 int wr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   unsigned long f;
-  if ( ioctl(rig->state.fd, RADIO_GET_FREQ, &f) < 0 ) return -RIG_EINVAL;
+  if ( ioctl(rig->state.rigport.fd, RADIO_GET_FREQ, &f) < 0 ) return -RIG_EINVAL;
   *freq = (freq_t)f;
   return RIG_OK;
 }
@@ -90,13 +90,13 @@ int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     }
   default: return -RIG_EINVAL;
   }
-  if ( ioctl(rig->state.fd, RADIO_SET_MODE, &m) ) return -RIG_EINVAL;
+  if ( ioctl(rig->state.rigport.fd, RADIO_SET_MODE, &m) ) return -RIG_EINVAL;
   return  RIG_OK;
 }
 
 int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   unsigned long m;
-  if ( ioctl(rig->state.fd, RADIO_GET_MODE, &m) ) return -RIG_EINVAL;
+  if ( ioctl(rig->state.rigport.fd, RADIO_GET_MODE, &m) ) return -RIG_EINVAL;
 
   *width = RIG_PASSBAND_NORMAL;
   switch ( m ) {
@@ -119,12 +119,12 @@ int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 int wr_set_powerstat(RIG *rig, powerstat_t status) {
   unsigned long p = 1;
   p = status==RIG_POWER_ON ? 1 : 0;
-  if ( ioctl(rig->state.fd, RADIO_SET_POWER, &p) ) return -RIG_EINVAL;
+  if ( ioctl(rig->state.rigport.fd, RADIO_SET_POWER, &p) ) return -RIG_EINVAL;
   return RIG_OK;
 }
 int wr_get_powerstat(RIG *rig, powerstat_t *status) {
   unsigned long p;
-  if ( ioctl(rig->state.fd, RADIO_GET_POWER, &p) ) return -RIG_EINVAL;
+  if ( ioctl(rig->state.rigport.fd, RADIO_GET_POWER, &p) ) return -RIG_EINVAL;
   *status = p ? RIG_POWER_ON : RIG_POWER_OFF;
   return RIG_OK;
 }
@@ -133,7 +133,7 @@ int wr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
   switch ( func ) {
   case RIG_FUNC_FAGC: {
     unsigned long v = status ? 1 : 0;
-    if ( ioctl(rig->state.fd, RADIO_SET_AGC, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_SET_AGC, &v) ) return -RIG_EINVAL;
     return RIG_OK;
   }
   default:
@@ -145,7 +145,7 @@ int wr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status) {
   switch ( func ) {
   case RIG_FUNC_FAGC: {
     unsigned long v;
-    if ( ioctl(rig->state.fd, RADIO_GET_AGC, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_AGC, &v) ) return -RIG_EINVAL;
 	*status = v;
     return RIG_OK;
   }
@@ -159,24 +159,24 @@ int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
   switch ( level ) {
   case RIG_LEVEL_AF: {
     unsigned long v;
-    if ( ioctl(rig->state.fd, RADIO_GET_MAXVOL, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_MAXVOL, &v) ) return -RIG_EINVAL;
     v *= val.f;
-    if ( ioctl(rig->state.fd, RADIO_SET_VOL, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_SET_VOL, &v) ) return -RIG_EINVAL;
     return RIG_OK;
   }
   case RIG_LEVEL_ATT: {
     unsigned long v = val.i ? 1 : 0;
-    if ( ioctl(rig->state.fd, RADIO_SET_ATTN, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_SET_ATTN, &v) ) return -RIG_EINVAL;
     return RIG_OK;
   }
   case RIG_LEVEL_IF: {
     long v = val.i;
-    if ( ioctl(rig->state.fd, RADIO_SET_IFS, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_SET_IFS, &v) ) return -RIG_EINVAL;
     return RIG_OK;
   }
   case RIG_LEVEL_RF: {
     long v = val.f*100;	/* iMaxIFGain on wHWVer > RHV_3150 */
-    if ( ioctl(rig->state.fd, RADIO_SET_IFG, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_SET_IFG, &v) ) return -RIG_EINVAL;
     return RIG_OK;
   }
   default:
@@ -188,32 +188,32 @@ int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
   switch ( level ) {
   case RIG_LEVEL_AF: {
     unsigned long v, mv;
-    if ( ioctl(rig->state.fd, RADIO_GET_MAXVOL, &mv) ) return -RIG_EINVAL;
-    if ( ioctl(rig->state.fd, RADIO_GET_VOL, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_MAXVOL, &mv) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_VOL, &v) ) return -RIG_EINVAL;
     val->f = (float)v / mv;
     return RIG_OK;
   }
   case RIG_LEVEL_ATT: {
     unsigned long v;
-    if ( ioctl(rig->state.fd, RADIO_GET_VOL, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_VOL, &v) ) return -RIG_EINVAL;
     val->i = v ? rig->state.attenuator[0] : 0;
     return RIG_OK;
   }
   case RIG_LEVEL_STRENGTH: {
     unsigned long v;
-    if ( ioctl(rig->state.fd, RADIO_GET_SS, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_SS, &v) ) return -RIG_EINVAL;
     val->i = v-60; /* 0..120, Hamlib assumes S9 = 0dB */
     return RIG_OK;
   }
   case RIG_LEVEL_IF: {
     long v;
-    if ( ioctl(rig->state.fd, RADIO_GET_IFS, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_IFS, &v) ) return -RIG_EINVAL;
     val->i = v;
     return RIG_OK;
   }
   case RIG_LEVEL_RF: {
     long v;
-    if ( ioctl(rig->state.fd, RADIO_GET_IFG, &v) ) return -RIG_EINVAL;
+    if ( ioctl(rig->state.rigport.fd, RADIO_GET_IFG, &v) ) return -RIG_EINVAL;
     val->f = (float)v/100;	/* iMaxIFGain on wHWVer > RHV_3150 */
     return RIG_OK;
   }
@@ -227,7 +227,7 @@ int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
  */
 const char *wr_get_info(RIG *rig) {
   static char buf[100];
-  if ( ioctl(rig->state.fd, RADIO_GET_DESCR, buf) < 0 ) return "?";
+  if ( ioctl(rig->state.rigport.fd, RADIO_GET_DESCR, buf) < 0 ) return "?";
   return buf;
 }
 

@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.1 2001-05-04 22:47:35 f4cfe Exp $  
+ *    $Id: dumpmem.c,v 1.2 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -67,7 +67,7 @@ int main (int argc, char *argv[])
 		exit(1); /* whoops! something went wrong (mem alloc?) */
 	}
 
-	strncpy(my_rig->state.rig_path, SERIAL_PORT, FILPATHLEN);
+	strncpy(my_rig->state.rigport.path, SERIAL_PORT, FILPATHLEN);
 
 	if (rig_open(my_rig))
 			exit(2);

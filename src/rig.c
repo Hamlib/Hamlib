@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.30 2001-06-03 19:54:05 f4cfe Exp $
+   $Id: rig.c,v 1.31 2001-06-04 17:01:21 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -257,24 +257,24 @@ RIG *rig_init(rig_model_t rig_model)
 
 		rs = &rig->state;
 
-		rs->port_type = caps->port_type; /* default from caps */
-		strncpy(rs->rig_path, DEFAULT_SERIAL_PORT, FILPATHLEN);
-		rs->serial_rate = caps->serial_rate_max;	/* fastest ! */
-		rs->serial_data_bits = caps->serial_data_bits;
-		rs->serial_stop_bits = caps->serial_stop_bits;
-		rs->serial_parity = caps->serial_parity;
-		rs->serial_handshake = caps->serial_handshake;
-		rs->write_delay = caps->write_delay;
-		rs->post_write_delay = caps->post_write_delay;
+		rs->rigport.type.rig = caps->port_type; /* default from caps */
+		strncpy(rs->rigport.path, DEFAULT_SERIAL_PORT, FILPATHLEN);
+		rs->rigport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
+		rs->rigport.parm.serial.data_bits = caps->serial_data_bits;
+		rs->rigport.parm.serial.stop_bits = caps->serial_stop_bits;
+		rs->rigport.parm.serial.parity = caps->serial_parity;
+		rs->rigport.parm.serial.handshake = caps->serial_handshake;
+		rs->rigport.write_delay = caps->write_delay;
+		rs->rigport.post_write_delay = caps->post_write_delay;
 
-		rs->timeout = caps->timeout;
-		rs->retry = caps->retry;
-		rs->transceive = caps->transceive;
-		rs->ptt_type = caps->ptt_type;
-		rs->dcd_type = caps->dcd_type;
+		rs->rigport.timeout = caps->timeout;
+		rs->rigport.retry = caps->retry;
+		rs->pttport.type.ptt = caps->ptt_type;
+		rs->dcdport.type.dcd = caps->dcd_type;
+
 		rs->vfo_comp = 0.0;	/* override it with preferences */
 		rs->current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
-
+		rs->transceive = caps->transceive;
 		/* should it be a parameter to rig_init ? --SF */
 		rs->itu_region = RIG_ITU_REGION2;
 
@@ -325,8 +325,7 @@ RIG *rig_init(rig_model_t rig_model)
 		rs->max_ifshift = caps->max_ifshift;
 		rs->announces = caps->announces;
 
-		rs->fd = -1;
-		rs->ptt_fd = -1;
+		rs->rigport.fd = rs->pttport.fd = rs->dcdport.fd = -1;
 
 		/* 
 		 * let the backend a chance to setup his private data
@@ -367,9 +366,9 @@ int rig_open(RIG *rig)
 				return -RIG_EINVAL;
 
 		caps = rig->caps;
-		rig->state.fd = -1;
+		rig->state.rigport.fd = -1;
 
-		switch(rig->state.port_type) {
+		switch(rig->state.rigport.type.rig) {
 		case RIG_PORT_SERIAL:
 				status = serial_open(&rig->state);
 				if (status != 0)
@@ -377,10 +376,10 @@ int rig_open(RIG *rig)
 				break;
 
 		case RIG_PORT_DEVICE:
-				status = open(rig->state.rig_path, O_RDWR, 0);
+				status = open(rig->state.rigport.path, O_RDWR, 0);
 				if (status < 0)
 						return -RIG_EIO;
-				rig->state.fd = status;
+				rig->state.rigport.fd = status;
 				break;
 
 		case RIG_PORT_NONE:
@@ -392,32 +391,55 @@ int rig_open(RIG *rig)
 				return -RIG_EINVAL;
 		}
 
-		if (rig->state.fd >= 0)
-			rig->state.stream = fdopen(rig->state.fd, "r+b");
+		if (rig->state.rigport.fd >= 0)
+			rig->state.rigport.stream = fdopen(rig->state.rigport.fd, "r+b");
 
 		/*
 		 * FIXME: what to do if PTT open fails or PTT unsupported?
 		 * 			fail rig_open?  remember unallocating..
 		 */
-		switch(rig->state.ptt_type) {
+		switch(rig->state.pttport.type.ptt) {
 		case RIG_PTT_NONE:
+		case RIG_PTT_RIG:
 				break;
 		case RIG_PTT_SERIAL_RTS:
 		case RIG_PTT_SERIAL_DTR:
-				rig->state.ptt_fd = ser_ptt_open(&rig->state);
-				if (rig->state.ptt_fd < 0)
+				rig->state.pttport.fd = ser_open(&rig->state.pttport);
+				if (rig->state.pttport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-								rig->state.ptt_path);
+								rig->state.pttport.path);
 				break;
 		case RIG_PTT_PARALLEL:
-				rig->state.ptt_fd = par_ptt_open(&rig->state);
-				if (rig->state.ptt_fd < 0)
+				rig->state.pttport.fd = par_open(&rig->state.pttport);
+				if (rig->state.pttport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-								rig->state.ptt_path);
+								rig->state.pttport.path);
 				break;
 		default:
 				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
-								rig->state.ptt_type);
+								rig->state.pttport.type.ptt);
+		}
+
+		switch(rig->state.dcdport.type.dcd) {
+		case RIG_DCD_NONE:
+		case RIG_DCD_RIG:
+				break;
+		case RIG_DCD_SERIAL_DSR:
+		case RIG_DCD_SERIAL_CTS:
+				rig->state.dcdport.fd = ser_open(&rig->state.dcdport);
+				if (rig->state.dcdport.fd < 0)
+					rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
+								rig->state.dcdport.path);
+				break;
+		case RIG_DCD_PARALLEL:
+				rig->state.dcdport.fd = par_open(&rig->state.dcdport);
+				if (rig->state.dcdport.fd < 0)
+					rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
+								rig->state.dcdport.path);
+				break;
+		default:
+				rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
+								rig->state.dcdport.type.dcd);
 		}
 
 		add_opened_rig(rig);
@@ -471,30 +493,47 @@ int rig_close(RIG *rig)
 		 * FIXME: what happens if PTT and rig ports are the same?
 		 * 			(eg. ptt_type = RIG_PTT_SERIAL)
 		 */
-		switch(rs->ptt_type) {
+		switch(rs->pttport.type.ptt) {
 		case RIG_PTT_NONE:
+		case RIG_PTT_RIG:
 				break;
 		case RIG_PTT_SERIAL_RTS:
 		case RIG_PTT_SERIAL_DTR:
-				ser_ptt_close(rs);
+				ser_close(&rs->pttport);
 				break;
 		case RIG_PTT_PARALLEL:
-				par_ptt_close(rs);
+				par_close(&rs->pttport);
 				break;
 		default:
 				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
-								rs->ptt_type);
+								rs->pttport.type.ptt);
 		}
 
-		rs->ptt_fd = -1;
+		switch(rs->dcdport.type.dcd) {
+		case RIG_DCD_NONE:
+		case RIG_DCD_RIG:
+				break;
+		case RIG_DCD_SERIAL_DSR:
+		case RIG_DCD_SERIAL_CTS:
+				ser_close(&rs->dcdport);
+				break;
+		case RIG_DCD_PARALLEL:
+				par_close(&rs->dcdport);
+				break;
+		default:
+				rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
+								rs->dcdport.type.dcd);
+		}
 
-		if (rs->fd != -1) {
-				if (!rs->stream)
-						fclose(rs->stream); /* this closes also fd */
+		rs->dcdport.fd = rs->pttport.fd = -1;
+
+		if (rs->rigport.fd != -1) {
+				if (!rs->rigport.stream)
+						fclose(rs->rigport.stream); /* this closes also fd */
 				else
-					close(rs->fd);
-				rs->fd = -1;
-				rs->stream = NULL;
+					close(rs->rigport.fd);
+				rs->rigport.fd = -1;
+				rs->rigport.stream = NULL;
 		}
 
 		remove_opened_rig(rig);
@@ -942,7 +981,7 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 		caps = rig->caps;
 
-		switch (rig->state.ptt_type) {
+		switch (rig->state.pttport.type.ptt) {
 		case RIG_PTT_RIG:
 			if (caps->set_ptt == NULL)
 				return -RIG_ENIMPL;
@@ -966,10 +1005,10 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 		case RIG_PTT_SERIAL_DTR:
 		case RIG_PTT_SERIAL_RTS:
-				ser_ptt_set(&rig->state, ptt);
+				ser_ptt_set(&rig->state.pttport, ptt);
 				break;
 		case RIG_PTT_PARALLEL:
-				par_ptt_set(&rig->state, ptt);
+				par_ptt_set(&rig->state.pttport, ptt);
 				break;
 
 		case RIG_PTT_NONE:
@@ -1007,7 +1046,7 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 		caps = rig->caps;
 
-		switch (rig->state.ptt_type) {
+		switch (rig->state.pttport.type.ptt) {
 		case RIG_PTT_RIG:
 			if (caps->get_ptt == NULL)
 				return -RIG_ENIMPL;
@@ -1031,10 +1070,10 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 		case RIG_PTT_SERIAL_RTS:
 		case RIG_PTT_SERIAL_DTR:
-				ser_ptt_get(&rig->state, ptt);
+				ser_ptt_get(&rig->state.pttport, ptt);
 				break;
 		case RIG_PTT_PARALLEL:
-				par_ptt_get(&rig->state, ptt);
+				par_ptt_get(&rig->state.pttport, ptt);
 				break;
 
 		case RIG_PTT_NONE:
@@ -1072,7 +1111,7 @@ int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 		caps = rig->caps;
 
-		switch (rig->state.dcd_type) {
+		switch (rig->state.dcdport.type.dcd) {
 		case RIG_DCD_RIG:
 			if (caps->get_dcd == NULL)
 				return -RIG_ENIMPL;
@@ -1096,10 +1135,10 @@ int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 		case RIG_DCD_SERIAL_CTS:
 		case RIG_DCD_SERIAL_DSR:
-				ser_dcd_get(&rig->state, dcd);
+				ser_dcd_get(&rig->state.dcdport, dcd);
 				break;
 		case RIG_DCD_PARALLEL:
-				par_dcd_get(&rig->state, dcd);
+				par_dcd_get(&rig->state.dcdport, dcd);
 				break;
 
 		case RIG_DCD_NONE:

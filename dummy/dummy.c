@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.9 2001-06-03 19:54:05 f4cfe Exp $
+ *	$Id: dummy.c,v 1.10 2001-06-04 17:01:21 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -119,7 +119,7 @@ static unsigned char *decode_freq(freq_t freq)
 
 static int dummy_init(RIG *rig) {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-  rig->state.port_type = RIG_PORT_NONE;
+  rig->state.rigport.type.rig = RIG_PORT_NONE;
 
   return RIG_OK;
 }

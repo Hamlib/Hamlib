@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.27 2001-06-03 19:54:05 f4cfe Exp $  
+ * $Id: icom.c,v 1.28 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  *
@@ -193,7 +193,7 @@ static const struct icom_addr icom_addr_list[] = {
  * You might want to define yours, so you can customize it for your rig
  *
  * Basically, it sets up *priv 
- * REM: serial port is already open (rig->state->fd)
+ * REM: serial port is already open (rig->state.rigport.fd)
  */
 int icom_init(RIG *rig)
 {
@@ -1977,7 +1977,7 @@ int icom_decode_event(RIG *rig)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		frm_len = read_icom_frame(rs->stream, buf, rs->timeout);
+		frm_len = read_icom_frame(&rs->rigport, buf);
 		/*
 		 * the first 2 bytes must be 0xfe
 		 * the 3rd one the emitter

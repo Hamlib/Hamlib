@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *	$Id: alinco.c,v 1.1 2001-06-03 17:39:59 f4cfe Exp $  
+ *	$Id: alinco.c,v 1.2 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  *
@@ -104,7 +104,7 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 
 	rs = &rig->state;
 
-	write_block(rs->fd, cmd, cmd_len, rs->write_delay, rs->post_write_delay);
+	write_block(&rs->rigport, cmd, cmd_len);
 
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
@@ -115,7 +115,7 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 	 */
 	i = 0;
 	do {
-		count = fread_block(rs->stream, data+i, 1, rs->timeout);
+		count = fread_block(&rs->rigport, data+i, 1);
 		if (count > 0)
 				i += count;
 	} while (count > 0);
@@ -331,10 +331,10 @@ int alinco_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 /*
- * icom_set_split
+ * alinco_set_split
  * Assumes rig!=NULL
  */
-int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
+int alinco_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
 		int cmd_len;
 		char cmdbuf[32];
@@ -346,10 +346,10 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 }
 
 /*
- * icom_get_split
+ * alinco_get_split
  * Assumes rig!=NULL, split!=NULL
  */
-int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
+int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
 		int splt_len;
 		char spltbuf[32];
@@ -428,10 +428,10 @@ int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 
 
 /*
- * icom_get_rit
+ * alinco_get_rit
  * Assumes rig!=NULL, split!=NULL
  */
-int icom_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
 		int rit_len;
 		char ritbuf[32];

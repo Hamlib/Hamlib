@@ -10,7 +10,7 @@
  * ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.10 2001-06-02 17:56:37 f4cfe Exp $  
+ *	$Id: serial.c,v 1.11 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -89,6 +89,7 @@ int serial_open(struct rig_state *rs) {
 
   int fd;				/* File descriptor for the port */
   speed_t speed;			/* serial comm speed */
+  port_t *rp;
 
 #ifdef HAVE_TERMIOS_H
   struct termios options;
@@ -103,17 +104,19 @@ int serial_open(struct rig_state *rs) {
   if (!rs)
 		  return -RIG_EINVAL;
 
+  rp = &rs->rigport;
+
   /*
    * Open in Non-blocking mode. Watch for EAGAIN errors!
    */
-  fd = open(rs->rig_path, O_RDWR | O_NOCTTY | O_NDELAY);
+  fd = open(rp->path, O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd == -1) {
     
     /* Could not open the port. */
     
     rig_debug(RIG_DEBUG_ERR, "serial_open: Unable to open %s - %s\n", 
-						rs->rig_path, strerror(errno));
+						rp->path, strerror(errno));
     return -RIG_EIO;
   }
  
@@ -133,7 +136,7 @@ int serial_open(struct rig_state *rs) {
    * Set the baud rates to requested values
    */
 
-  switch(rs->serial_rate) {
+  switch(rp->parm.serial.rate) {
   case 300:
 	speed = B300;		/* yikes... */
     break;
@@ -163,7 +166,7 @@ int serial_open(struct rig_state *rs) {
     break;
   default:
     rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported rate specified: %d\n", 
-					rs->serial_rate);
+					rp->parm.serial.rate);
 	close(fd);
     return -RIG_ECONF;
   }
@@ -182,7 +185,7 @@ int serial_open(struct rig_state *rs) {
  *
  */
 
-  switch(rs->serial_data_bits) {
+  switch(rp->parm.serial.data_bits) {
   case 7:
     options.c_cflag &= ~CSIZE;
     options.c_cflag |= CS7;
@@ -192,8 +195,8 @@ int serial_open(struct rig_state *rs) {
     options.c_cflag |= CS8;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR,"open_serial: unsupported serial_data_bits specified: %d\n",
-					rs->serial_data_bits);
+    rig_debug(RIG_DEBUG_ERR,"open_serial: unsupported serial_data_bits "
+					"specified: %d\n", rp->parm.serial.data_bits);
 	close(fd);
     return -RIG_ECONF;
     break;
@@ -204,7 +207,7 @@ int serial_open(struct rig_state *rs) {
  *
  */  
 
-  switch(rs->serial_stop_bits) {
+  switch(rp->parm.serial.stop_bits) {
   case 1:
     options.c_cflag &= ~CSTOPB;
     break;
@@ -213,8 +216,9 @@ int serial_open(struct rig_state *rs) {
     break;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_stop_bits specified: %d\n",
-					rs->serial_stop_bits);
+    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_stop_bits "
+					"specified: %d\n",
+					rp->parm.serial.stop_bits);
 	close(fd);
     return -RIG_ECONF;
     break;
@@ -225,7 +229,7 @@ int serial_open(struct rig_state *rs) {
  *
  */  
 
-  switch(rs->serial_parity) {
+  switch(rp->parm.serial.parity) {
   case RIG_PARITY_NONE:
     options.c_cflag &= ~PARENB;
     break;
@@ -238,8 +242,9 @@ int serial_open(struct rig_state *rs) {
     options.c_cflag |= PARODD;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_parity specified: %d\n",
-					rs->serial_parity);
+    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_parity "
+					"specified: %d\n",
+					rp->parm.serial.parity);
 	close(fd);
     return -RIG_ECONF;
     break;
@@ -251,7 +256,7 @@ int serial_open(struct rig_state *rs) {
  *
  */  
 
-  switch(rs->serial_handshake) {
+  switch(rp->parm.serial.handshake) {
   case RIG_HANDSHAKE_NONE:
     options.c_cflag &= ~CRTSCTS;
     options.c_iflag &= ~IXON;
@@ -265,8 +270,9 @@ int serial_open(struct rig_state *rs) {
     options.c_iflag &= ~IXON;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported flow_control specified: %d\n",
-					rs->serial_handshake);
+    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported flow_control "
+					"specified: %d\n",
+					rp->parm.serial.handshake);
 	close(fd);
     return -RIG_ECONF;
     break;
@@ -323,8 +329,7 @@ int serial_open(struct rig_state *rs) {
   }
 #endif
 
-
-  rs->fd = fd;
+  rp->fd = fd;
 
   return RIG_OK;
 }
@@ -410,54 +415,55 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {
  * it could work very well also with any file handle, like a socket.
  */
 
-int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay, int post_write_delay /* , struct timeval *post_write_date */ )
+int write_block(port_t *p, const char *txbuffer, size_t count)
 {
   int i;
 
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
-  if (post_write_date->tv_sec != 0) {
+  if (p->post_write_date.tv_sec != 0) {
 		  signed int date_delay;	/* in us */
 		  struct timeval tv;
 
 		  /* FIXME in Y2038 ... */
 		  gettimeofday(tv, NULL);
-		  date_delay = post_write_delay*1000 - 
-				  		((tv.tv_sec - post_write_date->tv_sec)*1000000 +
-				  		 (tv.tv_usec - post_write_date->tv_usec));
+		  date_delay = p->post_write_delay*1000 - 
+				  		((tv.tv_sec - p->post_write_date->tv_sec)*1000000 +
+				  		 (tv.tv_usec - p->post_write_date->tv_usec));
 		  if (date_delay > 0) {
 				/*
 				 * optional delay after last write 
 				 */
 				usleep(date_delay); 
 		  }
-		  post_write_date->tv_sec = 0;
+		  p->post_write_date.tv_sec = 0;
   }
 #endif
 
-  if (write_delay > 0) {
+  if (p->write_delay > 0) {
   	for (i=0; i < count; i++) {
-		if (write(fd, txbuffer+i, 1) < 0) {
+		if (write(p->fd, txbuffer+i, 1) < 0) {
 			rig_debug(RIG_DEBUG_ERR,"write_block() failed - %s\n", 
 							strerror(errno));
 			return -RIG_EIO;
     	}
-    	usleep(write_delay*1000);
+    	usleep(p->write_delay*1000);
   	}
   } else {
-		  write(fd, txbuffer, count);
+		  write(p->fd, txbuffer, count);
   }
   
-  if (post_write_delay > 0) {
+  if (p->post_write_delay > 0) {
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
 #define POST_WRITE_DELAY_TRSHLD 10
 
-	if (post_write_delay > POST_WRITE_DELAY_TRSHLD)
-		gettimeofday(post_write_date, NULL);
+	if (p->post_write_delay > POST_WRITE_DELAY_TRSHLD)
+		gettimeofday(p->post_write_date, NULL);
 	else
-#endif
-    usleep(post_write_delay*1000); /* optional delay after last write */
+#else
+    usleep(p->post_write_delay*1000); /* optional delay after last write */
 				   /* otherwise some yaesu rigs get confused */
 				   /* with sequential fast writes*/
+#endif
   }
   rig_debug(RIG_DEBUG_TRACE,"TX %d bytes\n",count);
   dump_hex(txbuffer,count);
@@ -477,7 +483,7 @@ int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_d
  * it could work very well also with any file handle, like a socket.
  */
 
-int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
+int read_block(port_t *p, char *rxbuffer, size_t count)
 {  
   fd_set rfds;
   struct timeval tv, tv_timeout;
@@ -485,18 +491,18 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
   int retval;
 
   FD_ZERO(&rfds);
-  FD_SET(fd, &rfds);
+  FD_SET(p->fd, &rfds);
 
   /*
    * Wait up to timeout ms.
    */
-  tv_timeout.tv_sec = timeout/1000;
-  tv_timeout.tv_usec = (timeout%1000)*1000;
+  tv_timeout.tv_sec = p->timeout/1000;
+  tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
   while (count > 0) {
 		tv = tv_timeout;	/* select may have updated it */
 
-		retval = select(fd+1, &rfds, NULL, NULL, &tv);
+		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
 		if (!retval) {
 			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or "
 							"select error - %s!\n",
@@ -508,7 +514,7 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
 		 * grab bytes from the rig
 		 * The file descriptor must have been set up non blocking.
 		 */
-  		rd_count = read(fd, rxbuffer+total_count, count);
+  		rd_count = read(p->fd, rxbuffer+total_count, count);
 		if (rd_count < 0) {
 				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
 									strerror(errno));
@@ -523,7 +529,7 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
   return total_count;			/* return bytes count read */
 }
 
-int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout )
+int fread_block(port_t *p, char *rxbuffer, size_t count)
 {  
   fd_set rfds;
   struct timeval tv, tv_timeout;
@@ -531,7 +537,7 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
   int retval;
   int fd;
 
-  fd = fileno(stream);
+  fd = fileno(p->stream);
 
   FD_ZERO(&rfds);
   FD_SET(fd, &rfds);
@@ -539,15 +545,15 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
   /*
    * Wait up to timeout ms.
    */
-  tv_timeout.tv_sec = timeout/1000;
-  tv_timeout.tv_usec = (timeout%1000)*1000;
+  tv_timeout.tv_sec = p->timeout/1000;
+  tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
 
 		/*
 		 * grab bytes from the rig
 		 * The file descriptor must have been set up non blocking.
 		 */
-  		rd_count = fread(rxbuffer, 1, count, stream);
+  		rd_count = fread(rxbuffer, 1, count, p->stream);
 		if (rd_count < 0) {
 				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
 									strerror(errno));
@@ -571,7 +577,7 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
 		 * grab bytes from the rig
 		 * The file descriptor must have been set up non blocking.
 		 */
-  		rd_count = fread(rxbuffer+total_count, 1, count, stream);
+  		rd_count = fread(rxbuffer+total_count, 1, count, p->stream);
 		if (rd_count < 0) {
 				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
 									strerror(errno));
@@ -590,17 +596,20 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
  * ser_ptt_set and par_ptt_set
  * ser_ptt_open/ser_ptt_close & par_ptt_open/par_ptt_close
  *
- * assumes: rs is not NULL
+ * ser_open/ser_close,par_open/par_close to be used for PTT and DCD
+ *
+ * assumes: p is not NULL
  */
 
 #ifdef _WIN32
-int ser_ptt_open(struct rig_state *rs)
+int ser_open(port_t *p)
 {
-	const char *path = rs->ptt_path;
+	const char *path = p->path;
 	HANDLE h;
 	DCB dcb;
 
-	h = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	h = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, 
+					OPEN_EXISTING, 0, NULL);
 	if (h == INVALID_HANDLE_VALUE) {
 		rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n", path);
 		return -1;
@@ -611,132 +620,199 @@ int ser_ptt_open(struct rig_state *rs)
 		CloseHandle(h);
 		return -1;
 	} 
-	return (int)h;
+	p->handle = h;
+	return 0;
 }
 #else
-int ser_ptt_open(struct rig_state *rs)
+int ser_open(port_t *p)
 {
-		return open(rs->ptt_path, O_RDWR | O_NOCTTY);
+		return (p->fd = open(p->path, O_RDWR | O_NOCTTY));
 }
 #endif
+
+int ser_close(port_t *p)
+{
+#ifdef _WIN32
+		return CloseHandle(p->handle);
+#else
+		return close(p->fd);
+#endif
+}
+
+/* 
+ * p is supposed to be &rig->state.pttport
+ */
+int ser_ptt_set(port_t *p, ptt_t pttx)
+{
+		switch(p->type.ptt) {
+#ifdef _WIN32
+		/*
+		 * TODO: log error with 0x%lx GetLastError()
+		 */
+		case RIG_PTT_SERIAL_RTS:
+			return !EscapeCommFunction(p->handle, pttx==RIG_PTT_ON ? 
+														SETRTS : CLRRTS);
+
+		case RIG_PTT_SERIAL_DTR:
+			return !EscapeCommFunction(p->handle, pttx==RIG_PTT_ON ? 
+														SETDTR : CLRDTR);
+#else
+		case RIG_PTT_SERIAL_RTS:
+			{
+				unsigned char y = TIOCM_RTS;
+				return ioctl(p->fd, pttx==RIG_PTT_ON ? TIOCMBIS : TIOCMBIC, &y);
+			}
+
+		case RIG_PTT_SERIAL_DTR:
+			{
+				unsigned char y = TIOCM_DTR;
+				return ioctl(p->fd, pttx==RIG_PTT_ON ? TIOCMBIS : TIOCMBIC, &y);
+			}
+#endif
+
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
+								p->type.ptt);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+/*
+ * assumes pttx not NULL
+ */
+int ser_ptt_get(port_t *p, ptt_t *pttx)
+{
+		unsigned char y;
+		int status;
+
+		switch(p->type.ptt) {
+#ifdef _WIN32
+				/* TODO... */
+#else
+		case RIG_PTT_SERIAL_RTS:
+			status = ioctl(p->fd, TIOCMGET, &y);
+			*pttx = y & TIOCM_RTS ? RIG_PTT_ON:RIG_PTT_OFF;
+			return status;
+
+		case RIG_PTT_SERIAL_DTR:
+			status = ioctl(p->fd, TIOCMGET, &y);
+			*pttx = y & TIOCM_DTR ? RIG_PTT_ON:RIG_PTT_OFF;
+			return status;
+#endif
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
+								p->type.ptt);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+/*
+ * assumes dcdx not NULL
+ * p is supposed to be &rig->state.dcdport
+ */
+int ser_dcd_get(port_t *p, dcd_t *dcdx)
+{
+		unsigned char y;
+		int status;
+
+		switch(p->type.dcd) {
+#ifdef _WIN32
+				/* TODO... */
+#else
+		case RIG_DCD_SERIAL_CTS:
+			status = ioctl(p->fd, TIOCMGET, &y);
+			*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
+			return status;
+
+		case RIG_DCD_SERIAL_DSR:
+			status = ioctl(p->fd, TIOCMGET, &y);
+			*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
+			return status;
+#endif
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
+								p->type.dcd);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+
 
 /*
  * TODO: to be called before exiting: atexit(parport_cleanup)
  * void parport_cleanup() { ioctl(fd, PPRELEASE); }
  */
 
-int par_ptt_open(struct rig_state *rs)
+int par_open(port_t *p)
 {
-		int ptt_fd;
+		int fd;
 
-		ptt_fd = open(rs->ptt_path, O_RDWR);
+		fd = open(p->path, O_RDWR);
 #ifdef HAVE_LINUX_PPDEV_H
-		ioctl(ptt_fd, PPCLAIM);
+		ioctl(fd, PPCLAIM);
 #endif
-		return ptt_fd;
+		p->fd = fd;
+		return fd;
 }
 
-int ser_ptt_set(struct rig_state *rs, ptt_t pttx)
+int par_close(port_t *p)
 {
-		unsigned char y;
-
-		switch(rs->ptt_type) {
-#ifdef _WIN32
-/* TODO: log error with 0x%lx GetLastError() */
-		case RIG_PTT_SERIAL_RTS:
-			return !EscapeCommFunction((HANDLE)rs->ptt_fd, pttx ? SETRTS : CLRRTS);
-
-		case RIG_PTT_SERIAL_DTR:
-			return !EscapeCommFunction((HANDLE)rs->ptt_fd, pttx ? SETDTR : CLRDTR);
-#else
-		case RIG_PTT_SERIAL_RTS:
-			y = TIOCM_RTS;
-			return ioctl(rs->ptt_fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
-
-		case RIG_PTT_SERIAL_DTR:
-			y = TIOCM_DTR;
-			return ioctl(rs->ptt_fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
-#endif
-
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-								rs->ptt_type);
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
-}
-
-int par_ptt_set(struct rig_state *rs, ptt_t pttx)
-{
-		switch(rs->ptt_type) {
 #ifdef HAVE_LINUX_PPDEV_H
-		case RIG_PTT_PARALLEL:
-				{
-					unsigned char reg;
-
-					reg = pttx ? 0x01:0x00;
-					return ioctl(rs->ptt_fd, PPWDATA, &reg);
-				}
+		ioctl(p->fd, PPRELEASE);
 #endif
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
-								rs->ptt_type);
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
+		return close(p->fd);
 }
 
-/*
- * assumes pttx not NULL
- */
-int ser_ptt_get(struct rig_state *rs, ptt_t *pttx)
+int par_ptt_set(port_t *p, ptt_t pttx)
 {
-		unsigned char y;
-		int status;
-
-		switch(rs->ptt_type) {
-#ifdef _WIN32
-#else
-		case RIG_PTT_SERIAL_RTS:
-			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
-			*pttx = y & TIOCM_RTS ? RIG_PTT_ON:RIG_PTT_OFF;
-			return status;
-
-		case RIG_PTT_SERIAL_DTR:
-			return -RIG_ENIMPL;
-			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
-			*pttx = y & TIOCM_DTR ? RIG_PTT_ON:RIG_PTT_OFF;
-			return status;
-#endif
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
-								rs->ptt_type);
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
-}
-
-/*
- * assumes pttx not NULL
- */
-int par_ptt_get(struct rig_state *rs, ptt_t *pttx)
-{
-
-		switch(rs->ptt_type) {
+		switch(p->type.ptt) {
 #ifdef HAVE_LINUX_PPDEV_H
 		case RIG_PTT_PARALLEL:
 				{
 					unsigned char reg;
 					int status;
 
-					status = ioctl(rs->ptt_fd, PPRDATA, &reg);
-					*pttx = reg & 0x01 ? RIG_PTT_ON:RIG_PTT_OFF;
+					status = ioctl(p->fd, PPRDATA, &reg);
+					if (pttx == RIG_PTT_ON)
+						reg |=   1 << p->parm.parallel.pin;
+					else
+						reg &= ~(1 << p->parm.parallel.pin);
+
+					return ioctl(p->fd, PPWDATA, &reg);
+				}
+#endif
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+								p->type.ptt);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+/*
+ * assumes pttx not NULL
+ */
+int par_ptt_get(port_t *p, ptt_t *pttx)
+{
+		switch(p->type.ptt) {
+#ifdef HAVE_LINUX_PPDEV_H
+		case RIG_PTT_PARALLEL:
+				{
+					unsigned char reg;
+					int status;
+
+					status = ioctl(p->fd, PPRDATA, &reg);
+					*pttx = reg & (1<<p->parm.parallel.pin) ? 
+							RIG_PTT_ON:RIG_PTT_OFF;
 					return status;
 				}
 #endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
-								rs->ptt_type);
+								p->type.ptt);
 				return -RIG_ENAVAIL;
 		}
 		return RIG_OK;
@@ -744,79 +820,27 @@ int par_ptt_get(struct rig_state *rs, ptt_t *pttx)
 
 /*
  * assumes dcdx not NULL
- * FIXME: currently using state.ptt_fd. Should dcd_fd be opened instead?
  */
-int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx)
+int par_dcd_get(port_t *p, dcd_t *dcdx)
 {
-		unsigned char y;
-		int status;
-
-		switch(rs->dcd_type) {
-#ifdef _WIN32
-#else
-		case RIG_DCD_SERIAL_CTS:
-			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
-			*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
-			return status;
-
-		case RIG_DCD_SERIAL_DSR:
-			return -RIG_ENIMPL;
-			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
-			*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
-			return status;
-#endif
-		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
-								rs->dcd_type);
-				return -RIG_EINVAL;
-		}
-		return RIG_OK;
-}
-
-/*
- * assumes dcdx not NULL
- * FIXME: currently using state.ptt_fd. Should dcd_fd be opened instead?
- */
-int par_dcd_get(struct rig_state *rs, dcd_t *dcdx)
-{
-
-		switch(rs->dcd_type) {
+		switch(p->type.dcd) {
 #ifdef HAVE_LINUX_PPDEV_H
 		case RIG_DCD_PARALLEL:
 				{
 					unsigned char reg;
 					int status;
 
-					status = ioctl(rs->ptt_fd, PPRDATA, &reg);
-					*dcdx = reg & 0x01 ? RIG_DCD_ON:RIG_DCD_OFF;
+					status = ioctl(p->fd, PPRDATA, &reg);
+					*dcdx = reg & (1<<p->parm.parallel.pin) ? 
+							RIG_DCD_ON:RIG_DCD_OFF;
 					return status;
 				}
 #endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n", 
-								rs->dcd_type);
+								p->type.dcd);
 				return -RIG_ENAVAIL;
 		}
 		return RIG_OK;
-}
-
-#ifdef _WIN32
-int ser_ptt_close(struct rig_state *rs)
-{
-		return CloseHandle((HANDLE)rs->ptt_fd);
-}
-#else
-int ser_ptt_close(struct rig_state *rs)
-{
-		return close(rs->ptt_fd);
-}
-#endif
-
-int par_ptt_close(struct rig_state *rs)
-{
-#ifdef HAVE_LINUX_PPDEV_H
-		ioctl(rs->ptt_fd, PPRELEASE);
-#endif
-		return close(rs->ptt_fd);
 }
 

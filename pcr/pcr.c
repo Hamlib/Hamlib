@@ -6,7 +6,7 @@
  * via serial interface to an Icom PCR-1xxx radio.
  *
  *
- *	$Id: pcr.c,v 1.4 2001-06-02 17:52:55 f4cfe Exp $  
+ *	$Id: pcr.c,v 1.5 2001-06-04 17:01:21 f4cfe Exp $  
  *
  *
  *
@@ -100,7 +100,7 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 
 	rs = &rig->state;
 
-	write_block(rs->fd, cmd, cmd_len, rs->write_delay, rs->post_write_delay);
+	write_block(&rs->rigport, cmd, cmd_len);
 
 	/*
 	 * buffered read are quite helpful here!
@@ -108,7 +108,7 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	 */
 	i = 0;
 	do {
-		fread_block(rs->stream, data+i, 1, rs->timeout);
+		fread_block(&rs->rigport, data+i, 1);
 	} while (data[i++] != ';');
 
 	*data_len = i;

@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.6 2001-06-02 17:56:37 f4cfe Exp $  
+ *    $Id: serial.h,v 1.7 2001-06-04 17:01:21 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,21 +36,21 @@ int serial_open(struct rig_state *rs);
 #if 0
 int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay);
 #endif
-int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
-int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay, int post_write_delay);
-int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout);
+int read_block(port_t *p, char *rxbuffer, size_t count);
+int write_block(port_t *p, const char *txbuffer, size_t count);
+int fread_block(port_t *p, char *rxbuffer, size_t count);
 
 /* Hamlib internal use, see rig.c */
-int ser_ptt_open(struct rig_state *rs);
-int par_ptt_open(struct rig_state *rs);
-int ser_ptt_set(struct rig_state *rs, ptt_t pttx);
-int par_ptt_set(struct rig_state *rs, ptt_t pttx);
-int ser_ptt_get(struct rig_state *rs, ptt_t *pttx);
-int par_ptt_get(struct rig_state *rs, ptt_t *pttx);
-int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx);
-int par_dcd_get(struct rig_state *rs, dcd_t *dcdx);
-int ser_ptt_close(struct rig_state *rs);
-int par_ptt_close(struct rig_state *rs);
+int ser_open(port_t *p);
+int ser_close(port_t *p);
+int ser_ptt_set(port_t *p, ptt_t pttx);
+int ser_ptt_get(port_t *p, ptt_t *pttx);
+int ser_dcd_get(port_t *p, dcd_t *dcdx);
+int par_open(port_t *p);
+int par_close(port_t *p);
+int par_ptt_set(port_t *p, ptt_t pttx);
+int par_ptt_get(port_t *p, ptt_t *pttx);
+int par_dcd_get(port_t *p, dcd_t *dcdx);
 
 #endif /* _SERIAL_H */
 
