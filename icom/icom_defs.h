@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.12 2002-02-28 10:59:46 fgretief Exp $
+ *		$Id: icom_defs.h,v 1.13 2002-03-06 21:11:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -278,5 +278,24 @@
  */
 #define S_RD_TRXID 0x00
 
-#endif /* _ICOM_DEFS_H */
+/*
+ * C_CTL_MISC	OptoScan extension
+ */
+#define S_OPTO_LOCAL	0x01
+#define S_OPTO_REMOTE	0x02
+#define S_OPTO_TAPE_ON	0x03
+#define S_OPTO_TAPE_OFF	0x04
+#define S_OPTO_RDSTAT	0x05
+#define S_OPTO_RDCTCSS	0x06
+#define S_OPTO_RDDCS	0x07
+#define S_OPTO_RDDTMF	0x08
+#define S_OPTO_RDID 	0x09
+#define S_OPTO_SPKRON 	0x0a
+#define S_OPTO_SPKROFF 	0x0b
+#define S_OPTO_5KSCON 	0x0c
+#define S_OPTO_5KSCOFF 	0x0d
+#define S_OPTO_NXT	 	0x0e
+#define S_OPTO_SCON 	0x0f
+#define S_OPTO_SCOFF 	0x10
 
+#endif /* _ICOM_DEFS_H */
