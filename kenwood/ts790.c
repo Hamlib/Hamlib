@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.7 2002-09-04 17:32:42 pa4tu Exp $
+ *	$Id: ts790.c,v 1.8 2002-09-04 17:53:51 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -187,7 +187,10 @@ const struct rig_caps ts790_caps = {
 .get_mem =  kenwood_get_mem,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
+.set_powerstat =  kenwood_set_powerstat,
+.get_powerstat =  kenwood_get_powerstat,
 .get_info =  kenwood_get_info,
+.reset =  kenwood_reset,
 
 };
 
