@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - low level communication routines
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.25 2004-09-06 18:10:49 fineware Exp $
+ *	$Id: frame.c,v 1.26 2005-04-03 12:27:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -260,7 +260,7 @@ static const char icom_block_end[2] = {FI, COL};
  * TODO: strips padding/collisions
  * FIXME: check return codes/bytes read
  */
-int read_icom_frame(port_t *p, unsigned char rxbuffer[])
+int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
 {
 		int i;
 

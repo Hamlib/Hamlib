@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_reg.c,v 1.7 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: rot_reg.c,v 1.8 2005-04-03 12:27:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,7 +53,7 @@
 static struct {
 	int be_num;
 	const char *be_name;
-    rot_model_t (*be_probe)(port_t *);
+    rot_model_t (*be_probe)(hamlib_port_t *);
 } rot_backend_list[ROT_BACKEND_MAX] = ROT_BACKEND_LIST;
 
 
@@ -225,7 +225,7 @@ int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps*, rig_ptr_t),
  * rot_probe_all
  * called straight by rot_probe
  */
-rot_model_t HAMLIB_API rot_probe_all(port_t *p)
+rot_model_t HAMLIB_API rot_probe_all(hamlib_port_t *p)
 {
 	int i;
 	rot_model_t rot_model;
@@ -329,7 +329,7 @@ int HAMLIB_API rot_load_backend(const char *be_name)
 	for (i=0; i<ROT_BACKEND_MAX && rot_backend_list[i].be_name; i++) {
 		if (!strncmp(be_name, rot_backend_list[i].be_name, 64)) {
 			snprintf(probefname, MAXFUNCNAMELEN, "probeallrots%d_%s", ABI_VERSION, be_name);
-    			rot_backend_list[i].be_probe = (rot_model_t (*)(port_t *))
+    			rot_backend_list[i].be_probe = (rot_model_t (*)(hamlib_port_t *))
 						lt_dlsym (be_handle, probefname);
 				break;
 		}

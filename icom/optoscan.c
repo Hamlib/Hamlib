@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - OptoScan extensions
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.12 2004-10-02 20:18:16 fillods Exp $
+ *	$Id: optoscan.c,v 1.13 2005-04-03 12:27:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -677,7 +677,7 @@ static int optoscan_send_freq(RIG *rig,pltstate_t *state)
   unsigned char buff[OPTO_BUFF_SIZE];
   struct icom_priv_data *priv;
   struct rig_state *rs;
-  const port_t *port;
+  const hamlib_port_t *port;
   int fd;
   char md,pd;
   freq_t freq;

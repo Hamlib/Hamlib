@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.86 2005-03-26 17:57:14 fillods Exp $
+ *	$Id: rig.c,v 1.87 2005-04-03 12:27:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2360,8 +2360,8 @@ int HAMLIB_API rig_reset(RIG *rig, reset_t reset)
 		return rig->caps->reset(rig, reset);
 }
 
-extern int rig_probe_first(port_t *p);
-extern int rig_probe_all_backends(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data);
+extern int rig_probe_first(hamlib_port_t *p);
+extern int rig_probe_all_backends(hamlib_port_t *p, rig_probe_func_t cfunc, rig_ptr_t data);
 /**
  * \brief try to guess a rig
  * \param port		A pointer describing a port linking the host to the rig
@@ -2376,7 +2376,7 @@ extern int rig_probe_all_backends(port_t *p, rig_probe_func_t cfunc, rig_ptr_t d
  * \return the rig model id according to the rig_model_t type if found, 
  * otherwise RIG_MODEL_NONE if unable to determine rig model.
  */
-rig_model_t HAMLIB_API rig_probe(port_t *port)
+rig_model_t HAMLIB_API rig_probe(hamlib_port_t *port)
 {
 	if (!port)
 		return RIG_MODEL_NONE;
@@ -2401,7 +2401,7 @@ rig_model_t HAMLIB_API rig_probe(port_t *port)
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  */
-int HAMLIB_API rig_probe_all(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+int HAMLIB_API rig_probe_all(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 {
 	if (!port)
 		return -RIG_EINVAL;

@@ -2,7 +2,7 @@
  *  Hamlib Interface - parallel communication low-level support
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: parallel.c,v 1.2 2005-02-20 02:38:27 fillods Exp $
+ *	$Id: parallel.c,v 1.3 2005-04-03 12:27:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,7 +89,7 @@
  * void parport_cleanup() { ioctl(fd, PPRELEASE); }
  */
 
-int par_open(port_t *port)
+int par_open(hamlib_port_t *port)
 {
 	int fd;
 	int mode;
@@ -133,7 +133,7 @@ int par_open(port_t *port)
 	return fd;
 }
 
-int par_close(port_t *port)
+int par_close(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
@@ -144,7 +144,7 @@ int par_close(port_t *port)
 	return close(port->fd);
 }
 
-int HAMLIB_API par_write_data(port_t *port, unsigned char data)
+int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -165,7 +165,7 @@ int HAMLIB_API par_write_data(port_t *port, unsigned char data)
 	return -RIG_ENIMPL;
 }
 
-int HAMLIB_API par_read_data(port_t *port, unsigned char *data)
+int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -190,7 +190,7 @@ int HAMLIB_API par_read_data(port_t *port, unsigned char *data)
 }
 
 
-int HAMLIB_API par_write_control(port_t *port, unsigned char control)
+int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -228,7 +228,7 @@ int HAMLIB_API par_write_control(port_t *port, unsigned char control)
 	return -RIG_ENIMPL;
 }
 
-int HAMLIB_API par_read_control(port_t *port, unsigned char *control)
+int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -257,7 +257,7 @@ int HAMLIB_API par_read_control(port_t *port, unsigned char *control)
 }
 
 
-int HAMLIB_API par_read_status(port_t *port, unsigned char *status)
+int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int ret;
@@ -286,7 +286,7 @@ int HAMLIB_API par_read_status(port_t *port, unsigned char *status)
 }
 
 
-int HAMLIB_API par_lock(port_t *port)
+int HAMLIB_API par_lock(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	if (ioctl(port->fd, PPCLAIM) < 0) {
@@ -301,7 +301,7 @@ int HAMLIB_API par_lock(port_t *port)
 	return -RIG_ENIMPL;
 }
 
-int HAMLIB_API par_unlock(port_t *port)
+int HAMLIB_API par_unlock(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	if (ioctl(port->fd, PPRELEASE) < 0) {
@@ -317,7 +317,7 @@ int HAMLIB_API par_unlock(port_t *port)
 }
 
 
-int par_ptt_set(port_t *p, ptt_t pttx)
+int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
 		switch(p->type.ptt) {
 		case RIG_PTT_PARALLEL:
@@ -346,7 +346,7 @@ int par_ptt_set(port_t *p, ptt_t pttx)
 /*
  * assumes pttx not NULL
  */
-int par_ptt_get(port_t *p, ptt_t *pttx)
+int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
 		switch(p->type.ptt) {
 		case RIG_PTT_PARALLEL:
@@ -370,7 +370,7 @@ int par_ptt_get(port_t *p, ptt_t *pttx)
 /*
  * assumes dcdx not NULL
  */
-int par_dcd_get(port_t *p, dcd_t *dcdx)
+int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 {
 		switch(p->type.dcd) {
 		case RIG_DCD_PARALLEL:

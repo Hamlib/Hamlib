@@ -37,7 +37,7 @@
 
 static int AGC_DAC_I2C_ADDR =	0x2C;
 
-microtune_eval_board::microtune_eval_board (port_t *port)
+microtune_eval_board::microtune_eval_board (hamlib_port_t *port)
 {
   m_ppio = port;
   m_i2cio = new i2cio_pp (m_ppio);

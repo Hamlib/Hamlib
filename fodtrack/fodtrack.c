@@ -1,8 +1,8 @@
 /*
  *  Hamlib Rotator backend - Fodtrack parallel port
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: fodtrack.c,v 1.7 2004-10-02 20:37:24 fillods Exp $
+ *	$Id: fodtrack.c,v 1.8 2005-04-03 12:27:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,7 +56,7 @@
 /* ************************************************************************* */
 
 /** outputs an direction to the interface */
-static int setDirection(port_t *port, unsigned char outputvalue, int direction)
+static int setDirection(hamlib_port_t *port, unsigned char outputvalue, int direction)
 {
   unsigned char outputstatus;
 
@@ -96,7 +96,7 @@ static int
 fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
  int retval;
- port_t *pport;
+ hamlib_port_t *pport;
 
   rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
 

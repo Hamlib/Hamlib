@@ -31,7 +31,7 @@
  */
 class microtune_4937 : public microtune_eval_board {
 public:
-  microtune_4937(port_t *port) : microtune_eval_board (port), d_reference_divider(640), d_fast_tuning_p(false) {}
+  microtune_4937(hamlib_port_t *port) : microtune_eval_board (port), d_reference_divider(640), d_fast_tuning_p(false) {}
   ~microtune_4937() {}
 
   /*!

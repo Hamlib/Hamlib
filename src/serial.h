@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - serial communication header
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: serial.h,v 1.26 2004-10-02 20:37:24 fillods Exp $
+ *	$Id: serial.h,v 1.27 2005-04-03 12:27:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,21 +28,21 @@
 
 __BEGIN_DECLS
 
-extern HAMLIB_EXPORT(int) serial_open(port_t *rs);
-extern HAMLIB_EXPORT(int) serial_setup(port_t *rs);
-extern HAMLIB_EXPORT(int) serial_flush(port_t *p);
+extern HAMLIB_EXPORT(int) serial_open(hamlib_port_t *rs);
+extern HAMLIB_EXPORT(int) serial_setup(hamlib_port_t *rs);
+extern HAMLIB_EXPORT(int) serial_flush(hamlib_port_t *p);
 
 /* Hamlib internal use, see rig.c */
-int ser_open(port_t *p);
-int ser_close(port_t *p);
-extern HAMLIB_EXPORT(int) ser_set_rts(port_t *p, int state);
-extern HAMLIB_EXPORT(int) ser_get_rts(port_t *p, int *state);
-extern HAMLIB_EXPORT(int) ser_set_brk(port_t *p, int state);
-extern HAMLIB_EXPORT(int) ser_set_dtr(port_t *p, int state);
-extern HAMLIB_EXPORT(int) ser_get_dtr(port_t *p, int *state);
-extern HAMLIB_EXPORT(int) ser_get_cts(port_t *p, int *state);
-extern HAMLIB_EXPORT(int) ser_get_dsr(port_t *p, int *state);
-extern HAMLIB_EXPORT(int) ser_get_car(port_t *p, int *state);
+int ser_open(hamlib_port_t *p);
+int ser_close(hamlib_port_t *p);
+extern HAMLIB_EXPORT(int) ser_set_rts(hamlib_port_t *p, int state);
+extern HAMLIB_EXPORT(int) ser_get_rts(hamlib_port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_set_brk(hamlib_port_t *p, int state);
+extern HAMLIB_EXPORT(int) ser_set_dtr(hamlib_port_t *p, int state);
+extern HAMLIB_EXPORT(int) ser_get_dtr(hamlib_port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_get_cts(hamlib_port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_get_dsr(hamlib_port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_get_car(hamlib_port_t *p, int *state);
 
 __END_DECLS
 

@@ -32,7 +32,7 @@
 class microtune_4702 : public microtune_eval_board {
 public:
 
-  microtune_4702(port_t *port) : microtune_eval_board (port), d_reference_divider(320), prescaler(false) {}
+  microtune_4702(hamlib_port_t *port) : microtune_eval_board (port), d_reference_divider(320), prescaler(false) {}
   ~microtune_4702() {}
 
   /*!

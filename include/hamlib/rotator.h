@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.12 2005-03-26 23:33:39 fillods Exp $
+ *	$Id: rotator.h,v 1.13 2005-04-03 12:27:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -319,7 +319,7 @@ extern HAMLIB_EXPORT(int) rot_unregister HAMLIB_PARAMS((rot_model_t rot_model));
 extern HAMLIB_EXPORT(int) rot_list_foreach HAMLIB_PARAMS((int (*cfunc)(const struct rot_caps*, rig_ptr_t), rig_ptr_t data));
 extern HAMLIB_EXPORT(int) rot_load_backend HAMLIB_PARAMS((const char *be_name));
 extern HAMLIB_EXPORT(int) rot_check_backend HAMLIB_PARAMS((rot_model_t rot_model));
-extern HAMLIB_EXPORT(int) rot_load_all_backends HAMLIB_PARAMS(());
+extern HAMLIB_EXPORT(int) rot_load_all_backends HAMLIB_PARAMS((void));
 extern HAMLIB_EXPORT(rot_model_t) rot_probe_all HAMLIB_PARAMS((hamlib_port_t *p));
 
 extern HAMLIB_EXPORT(int) rot_token_foreach HAMLIB_PARAMS((ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data));

@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.13 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: iofunc.c,v 1.14 2005-04-03 12:27:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -75,7 +75,7 @@
  * it could work very well also with any file handle, like a socket.
  */
 
-int HAMLIB_API write_block(port_t *p, const char *txbuffer, size_t count)
+int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 {
   int i;
 
@@ -147,7 +147,7 @@ int HAMLIB_API write_block(port_t *p, const char *txbuffer, size_t count)
  * it could work very well also with any file handle, like a socket.
  */
 
-int HAMLIB_API read_block(port_t *p, char *rxbuffer, size_t count)
+int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 {  
   fd_set rfds;
   struct timeval tv, tv_timeout;
@@ -215,7 +215,7 @@ int HAMLIB_API read_block(port_t *p, char *rxbuffer, size_t count)
  *
  * Assumes rxbuffer!=NULL
  */
-int HAMLIB_API read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
+int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
 				int stopset_len)
 {
   fd_set rfds;

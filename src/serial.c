@@ -1,10 +1,10 @@
 /*
  *  Hamlib Interface - serial communication low-level support
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.43 2004-10-02 20:37:24 fillods Exp $
+ *	$Id: serial.c,v 1.44 2005-04-03 12:27:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -85,7 +85,7 @@
  *
  */
 
-int HAMLIB_API serial_open(port_t *rp) {
+int HAMLIB_API serial_open(hamlib_port_t *rp) {
 
   int fd;				/* File descriptor for the port */
   int err;
@@ -119,7 +119,7 @@ int HAMLIB_API serial_open(port_t *rp) {
 }
 
 
-int HAMLIB_API serial_setup(port_t *rp)
+int HAMLIB_API serial_setup(hamlib_port_t *rp)
 {
   int fd;
   /* There's a lib replacement for termios under Mingw */
@@ -360,24 +360,24 @@ int HAMLIB_API serial_setup(port_t *rp)
  * Flush all characters waiting in RX buffer.
  */
 
-int HAMLIB_API serial_flush( port_t *p )
+int HAMLIB_API serial_flush(hamlib_port_t *p )
 {
   tcflush(p->fd, TCIFLUSH);
 
   return RIG_OK;
 }
 
-int ser_open(port_t *p)
+int ser_open(hamlib_port_t *p)
 {
 	return (p->fd = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY));
 }
 
-int ser_close(port_t *p)
+int ser_close(hamlib_port_t *p)
 {
 	return CLOSE(p->fd);
 }
 
-int HAMLIB_API ser_set_rts(port_t *p, int state)
+int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
 {
 	unsigned int y = TIOCM_RTS;
 
@@ -400,7 +400,7 @@ int HAMLIB_API ser_set_rts(port_t *p, int state)
  * assumes state not NULL
  * p is supposed to be &rig->state.rigport
  */
-int HAMLIB_API ser_get_rts(port_t *p, int *state)
+int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
 {
   int retcode;
   unsigned int y;
@@ -411,7 +411,7 @@ int HAMLIB_API ser_get_rts(port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
-int HAMLIB_API ser_set_dtr(port_t *p, int state)
+int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 {
 	unsigned int y = TIOCM_DTR;
 
@@ -430,7 +430,7 @@ int HAMLIB_API ser_set_dtr(port_t *p, int state)
 #endif
 }
 
-int HAMLIB_API ser_get_dtr(port_t *p, int *state)
+int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
 {
   int retcode;
   unsigned int y;
@@ -441,7 +441,7 @@ int HAMLIB_API ser_get_dtr(port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
-int HAMLIB_API ser_set_brk(port_t *p, int state)
+int HAMLIB_API ser_set_brk(hamlib_port_t *p, int state)
 {
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
 	return IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0 ) < 0 ?
@@ -455,7 +455,7 @@ int HAMLIB_API ser_set_brk(port_t *p, int state)
  * assumes state not NULL
  * p is supposed to be &rig->state.rigport
  */
-int HAMLIB_API ser_get_car(port_t *p, int *state)
+int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
 {
   int retcode;
   unsigned int y;
@@ -466,7 +466,7 @@ int HAMLIB_API ser_get_car(port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
-int HAMLIB_API ser_get_cts(port_t *p, int *state)
+int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
 {
   int retcode;
   unsigned int y;
@@ -477,7 +477,7 @@ int HAMLIB_API ser_get_cts(port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
-int HAMLIB_API ser_get_dsr(port_t *p, int *state)
+int HAMLIB_API ser_get_dsr(hamlib_port_t *p, int *state)
 {
   int retcode;
   unsigned int y;

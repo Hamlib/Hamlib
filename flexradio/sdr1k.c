@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - SDR-1000
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.8 2005-01-24 23:03:53 fillods Exp $
+ *	$Id: sdr1k.c,v 1.9 2005-04-03 12:27:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -413,7 +413,7 @@ int
 write_latch (RIG *rig, latch_t which, unsigned value, unsigned mask)
 {
   struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
-  port_t *pport = &rig->state.rigport;
+  hamlib_port_t *pport = &rig->state.rigport;
 
   if (!(L_EXT <= which && which <= L_DDS1))
     return -RIG_EINVAL;

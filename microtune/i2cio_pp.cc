@@ -31,7 +31,7 @@
 #include "i2cio_pp.h"
 #include "microtune_eval_board_defs.h"
 
-i2cio_pp::i2cio_pp (port_t *pp)
+i2cio_pp::i2cio_pp (hamlib_port_t *pp)
 {
   unsigned char	r;
   d_pp = pp;

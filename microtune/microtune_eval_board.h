@@ -41,7 +41,7 @@ class i2c;
  */
 class microtune_eval_board  {
 public:
-  microtune_eval_board (port_t *port);
+  microtune_eval_board (hamlib_port_t *port);
   virtual ~microtune_eval_board ();
 
   //! is the eval board present?
@@ -96,7 +96,7 @@ private:
   void write_dac (int which, int value);
   void write_both_dacs (int val0, int val1);
   
-  port_t	*m_ppio;
+  hamlib_port_t	*m_ppio;
   i2cio	*m_i2cio;
   i2c	*m_i2c;
 };

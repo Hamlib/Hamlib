@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - plugin registration
- *  Copyright (c) 2003 by Stephane Fillod
+ *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: register.h,v 1.4 2003-11-16 22:32:21 fillods Exp $
+ *	$Id: register.h,v 1.5 2005-04-03 12:27:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,7 @@
 #ifdef DECLARE_PROBERIG_BACKEND
 #undef DECLARE_PROBERIG_BACKEND
 #endif
-#define DECLARE_PROBERIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rig_model_t) probeallrigs2_##backend(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+#define DECLARE_PROBERIG_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rig_model_t) probeallrigs2_##backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 
 #ifdef DECLARE_INITROT_BACKEND
 #undef DECLARE_INITROT_BACKEND
@@ -50,6 +50,6 @@
 #ifdef DECLARE_PROBEROT_BACKEND
 #undef DECLARE_PROBEROT_BACKEND
 #endif
-#define DECLARE_PROBEROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rot_model_t) probeallrots2_##backend(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+#define DECLARE_PROBEROT_BACKEND(backend) EXTERN_C BACKEND_EXPORT(rot_model_t) probeallrots2_##backend(hamlib_port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 
 #endif	/* _REGISTER_H */

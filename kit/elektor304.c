@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Elektor DRM receiver description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: elektor304.c,v 1.5 2005-01-24 23:04:21 fillods Exp $
+ *	$Id: elektor304.c,v 1.6 2005-04-03 12:27:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -246,7 +246,7 @@ static int ad_delay(int m)
 	return j;
 }
 
-static int ad_sdata(port_t *port, int i)
+static int ad_sdata(hamlib_port_t *port, int i)
 {
 	int ret;
 
@@ -260,7 +260,7 @@ static int ad_sdata(port_t *port, int i)
 	return ret;
 }
 
-static int ad_sclk(port_t *port, int i)
+static int ad_sclk(hamlib_port_t *port, int i)
 {
 	int ret;
 
@@ -274,7 +274,7 @@ static int ad_sclk(port_t *port, int i)
 	return ret;
 }
 
-static int ad_fsync(port_t *port, int i)
+static int ad_fsync(hamlib_port_t *port, int i)
 {
 	int ret;
 
@@ -288,7 +288,7 @@ static int ad_fsync(port_t *port, int i)
 	return ret;
 }
 
-static int ad_write(port_t *port, unsigned data)
+static int ad_write(hamlib_port_t *port, unsigned data)
 {
 	unsigned mask=0x8000;
 	int i;
@@ -317,7 +317,7 @@ int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned fhl,fhh,fll,flh;
 
 	struct elektor304_priv_data *priv;
-	port_t *port = &rig->state.rigport;
+	hamlib_port_t *port = &rig->state.rigport;
 
 	priv = (struct elektor304_priv_data*)rig->state.priv;
 

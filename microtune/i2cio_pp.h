@@ -40,7 +40,7 @@
 class i2cio_pp : public i2cio {
  public:
 
-  i2cio_pp (port_t *a_pp);
+  i2cio_pp (hamlib_port_t *a_pp);
 
   virtual void set_scl (bool state);
   virtual void set_sda (bool state);
@@ -50,7 +50,7 @@ class i2cio_pp : public i2cio {
   virtual void unlock ();
 
  private:
-  port_t	*d_pp;
+  hamlib_port_t	*d_pp;
 };
 
 #endif /* _I2CIO_PP_H_ */

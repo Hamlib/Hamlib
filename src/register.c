@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - provides registering for dynamically loadable backends.
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: register.c,v 1.21 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: register.c,v 1.22 2005-04-03 12:27:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,7 +53,7 @@
 static struct {
 	int be_num;
 	const char *be_name;
-	rig_model_t (* be_probe_all)(port_t*, rig_probe_func_t, rig_ptr_t);
+	rig_model_t (* be_probe_all)(hamlib_port_t*, rig_probe_func_t, rig_ptr_t);
 } rig_backend_list[RIG_BACKEND_MAX] = RIG_BACKEND_LIST;
 
 
@@ -221,7 +221,7 @@ int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),
 	return RIG_OK;
 }
 
-static int dummy_rig_probe(const port_t *p, rig_model_t model, rig_ptr_t data)
+static int dummy_rig_probe(const hamlib_port_t *p, rig_model_t model, rig_ptr_t data)
 {
 	rig_debug(RIG_DEBUG_TRACE, "Found rig, model %d\n", model);
 	return RIG_OK;
@@ -231,7 +231,7 @@ static int dummy_rig_probe(const port_t *p, rig_model_t model, rig_ptr_t data)
  * rig_probe_first
  * called straight by rig_probe
  */
-rig_model_t rig_probe_first(port_t *p)
+rig_model_t rig_probe_first(hamlib_port_t *p)
 {
 	int i;
 	rig_model_t model;
@@ -251,7 +251,7 @@ rig_model_t rig_probe_first(port_t *p)
  * rig_probe_all_backends
  * called straight by rig_probe_all
  */
-int rig_probe_all_backends(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
+int rig_probe_all_backends(hamlib_port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
 {
 	int i;
 
@@ -355,7 +355,7 @@ int HAMLIB_API rig_load_backend(const char *be_name)
 		if (!strncmp(be_name, rig_backend_list[i].be_name, 64)) {
     			snprintf(probefname, MAXFUNCNAMELEN, "probeallrigs%d_%s", ABI_VERSION, be_name);
     			rig_backend_list[i].be_probe_all = 
-				(rig_model_t (*)(port_t*, rig_probe_func_t, rig_ptr_t))
+				(rig_model_t (*)(hamlib_port_t*, rig_probe_func_t, rig_ptr_t))
 						lt_dlsym (be_handle, probefname);
 				break;
 		}
