@@ -3,16 +3,16 @@
  * \ingroup rig
  * \brief Memory and channel interface
  * \author Stephane Fillod
- * \date 2000-2003
+ * \date 2000-2004
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - mem/channel calls
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.2 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: mem.c,v 1.3 2004-08-16 22:34:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as

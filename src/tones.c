@@ -3,13 +3,13 @@
  * \ingroup rig
  * \brief CTCSS and DCS interface and tables
  * \author Stephane Fillod
- * \date 2000-2003
+ * \date 2000-2004
  */
 /*
  *  Hamlib Interface - CTCSS and DCS interface and tables
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: tones.c,v 1.5 2003-10-01 19:32:02 fillods Exp $
+ *	$Id: tones.c,v 1.6 2004-08-16 22:34:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as

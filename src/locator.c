@@ -3,7 +3,7 @@
  * \ingroup hamlib
  * \brief locator and bearing conversion interface
  * \author Stephane Fillod and the Hamlib Group
- * \date 2000-2003
+ * \date 2000-2004
  *
  *  Hamlib Interface - locator, bearing, and conversion calls
  */
@@ -14,7 +14,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.14 2003-11-03 15:07:23 n0nb Exp $
+ *	$Id: locator.c,v 1.15 2004-08-16 22:34:25 fillods Exp $
  *
  *  Code to determine bearing and range was taken from the Great Circle,
  *  by S. R. Sampson, N5OWK.
@@ -387,7 +387,7 @@ int locator2longlat(double *longitude, double *latitude, const char *locator) {
  * \param pair_count	Precision expressed as lon/lat pairs in the locator
  *
  *  Convert longitude/latitude (decimal degrees) to Maidenhead grid locator.
- *  \a locator must point to an array at least \a pair_count * 2 char + '\0'.
+ *  \a locator must point to an array at least \a pair_count * 2 char + '\\0'.
  *
  * \retval -RIG_EINVAL if \a locator is NULL or \a pair_count exceeds
  *  length limit.  Currently 1 to 6 lon/lat pairs.

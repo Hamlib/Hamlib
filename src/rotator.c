@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.13 2003-10-01 19:44:00 fillods Exp $
+ *	$Id: rotator.c,v 1.14 2004-08-16 22:34:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,7 +25,7 @@
  * \ingroup rot
  * \brief Rotator interface
  * \author Stephane Fillod
- * \date 2000-2002
+ * \date 2000-2004
  *
  * Hamlib interface is a frontend implementing rotator wrapper functions.
  */
