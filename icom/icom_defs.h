@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.2 2000-09-19 07:06:19 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.3 2000-10-10 22:17:34 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -74,7 +74,8 @@
 #define C_RD_SQSM	0x15		/* Read squelch condiction/S-meter level, Sc */
 #define C_SET_FUNC	0x16		/* Function settings (AGC,NB,etc.), Sc */
 #define C_SND_CW	0x17		/* Send CW message */
-#define C_RD_TRXID	0x17		/* Read transceiver ID code */
+#define C_RD_TRXID	0x19		/* Read transceiver ID code */
+#define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
 
 /*
@@ -161,6 +162,16 @@
 #define S_VOX	0x46		/* VOX setting */
 #define S_BKIN	0x47		/* BK-IN setting */
 
+/*
+ * Transceiver ID (C_RD_TRXID) subcommands
+ */
+#define S_TRXID	0x00		/* Read transceiver ID code */
+
+/*
+ * Transmit control (C_CTL_PTT) subcommands
+ */
+#define S_PTT_ON	0x00		/* no documentation, not tested! */
+#define S_PTT_OFF	0x01		/* please confirm (IC-756Pro, IC-746) --SF */
 
 #endif /* _ICOM_DEFS_H */
 
