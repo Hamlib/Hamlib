@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.37 2001-06-11 00:41:28 f4cfe Exp $
+ *	$Id: rig.h,v 1.38 2001-06-12 07:09:44 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -509,6 +509,7 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_MUTE     	(1<<17)		/* Mute, could be emulated by LELVE_AF*/
 #define RIG_FUNC_VSC     	(1<<18)		/* Voice Scan Control */
 #define RIG_FUNC_REV     	(1<<19)		/* Reverse tx and rx freqs */
+#define RIG_FUNC_SQL     	(1<<20)		/* Turn Squelch Monitor on/off*/
 
 
 /*
@@ -870,7 +871,7 @@ typedef struct {
   int fd;
   FILE *stream;
 #ifdef _WIN32
-  int handle;		/* for serial special handling (PTT,DCD,..) */
+  HANDLE handle;		/* for serial special handling (PTT,DCD,..) */
 #endif
 
   int write_delay;        /* delay in ms between each byte sent out */
