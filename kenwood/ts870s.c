@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.41 2005-02-02 20:23:10 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.42 2005-02-03 20:22:21 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,13 +30,21 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 
-#define TS870S_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
-#define TS870S_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TS870S_ALL_MODES	\
+(RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB		\
+|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+#define TS870S_OTHER_TX_MODES 	\
+(RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS870S_AM_TX_MODES RIG_MODE_AM
 
-#define TS870S_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_BC|RIG_FUNC_ANF|RIG_FUNC_LOCK)
+#define TS870S_FUNC_ALL	\
+(RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR		\
+|RIG_FUNC_BC|RIG_FUNC_ANF|RIG_FUNC_LOCK)
 
-#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR|RIG_LEVEL_COMP|RIG_LEVEL_AGC|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_PREAMP)
+#define TS870S_LEVEL_ALL	\
+(RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR		\
+|RIG_LEVEL_COMP|RIG_LEVEL_ALC|RIG_LEVEL_AGC|RIG_LEVEL_RFPOWER		\
+|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_PREAMP)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -206,15 +214,22 @@ int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_SWR:
-		/* same as ts850 */
-			lvl_len = 0;
-			retval = kenwood_transaction (rig, "RM1;", 4, lvlbuf, &lvl_len);
-			if (retval != RIG_OK)
-				return retval;
 			lvl_len = 50;
 			retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
+			/* set meter to SWR if needed */
+			if (lvlbuf[2] != '1')
+			{
+				lvl_len = 0;
+				retval = kenwood_transaction (rig, "RM1;", 4, lvlbuf, &lvl_len);
+				if (retval != RIG_OK)
+					return retval;
+				lvl_len = 50;
+				retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
+				if (retval != RIG_OK)
+					return retval;
+			}
 
 			lvlbuf[7]='\0';
 			i=atoi(&lvlbuf[3]);
@@ -225,28 +240,44 @@ int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_COMP:
-			lvl_len = 0;
-			retval = kenwood_transaction (rig, "RM2;", 4, lvlbuf, &lvl_len);
-			if (retval != RIG_OK)
-				return retval;
 			lvl_len = 50;
-			retval = kenwood_transaction (rig, "RM;", 4, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
+			/* set meter to COMP if needed */
+			if (lvlbuf[2] != '2')
+			{
+				lvl_len = 0;
+				retval = kenwood_transaction (rig, "RM2;", 4, lvlbuf, &lvl_len);
+				if (retval != RIG_OK)
+					return retval;
+				lvl_len = 50;
+				retval = kenwood_transaction (rig, "RM;", 4, lvlbuf, &lvl_len);
+				if (retval != RIG_OK)
+					return retval;
+			}
 
 			lvlbuf[7]='\0';
 			val->f=(float)atoi(&lvlbuf[3])/30.0;
 			break;
 
 		case RIG_LEVEL_ALC:
-			lvl_len = 0;
-			retval = kenwood_transaction (rig, "RM3;", 4, lvlbuf, &lvl_len);
-			if (retval != RIG_OK)
-				return retval;
 			lvl_len = 50;
-			retval = kenwood_transaction (rig, "RM;", 4, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
+			/* set meter to ALC if needed */
+			if (lvlbuf[2] != '3')
+			{
+				lvl_len = 0;
+				retval = kenwood_transaction (rig, "RM3;", 4, lvlbuf, &lvl_len);
+				if (retval != RIG_OK)
+					return retval;
+				lvl_len = 50;
+				retval = kenwood_transaction (rig, "RM;", 4, lvlbuf, &lvl_len);
+				if (retval != RIG_OK)
+					return retval;
+			}
 
 			lvlbuf[7]='\0';
 			val->f=(float)atoi(&lvlbuf[3])/30.0;
@@ -337,7 +368,7 @@ const struct rig_caps ts870s_caps = {
 .rig_model =  RIG_MODEL_TS870S,
 .model_name = "TS-870S",
 .mfg_name =  "Kenwood",
-.version =  "0.4.0",
+.version =  "0.4.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
