@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.53 2002-03-05 00:41:04 fillods Exp $
+ *		$Id: icom.c,v 1.54 2002-03-05 23:31:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -119,6 +119,15 @@ const struct ts_sc_list r9000_ts_sc_list[] = {
 		{ 0, 0 },
 };
 
+const struct ts_sc_list ic718_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ kHz(1), 0x01 },
+		{ kHz(5), 0x01 },
+		{ kHz(9), 0x01 },
+		{ kHz(10), 0x04 },
+		{ kHz(100), 0x05 },
+		{ 0, 0 },
+};
 
 const struct ts_sc_list ic756_ts_sc_list[] = {
 		{ 10, 0x00 },
@@ -2391,6 +2400,7 @@ int initrigs_icom(void *be_handle)
 		rig_register(&ic706_caps);
 		rig_register(&ic706mkii_caps);
 		rig_register(&ic706mkiig_caps);
+		rig_register(&ic718_caps);
 		rig_register(&ic735_caps);
 		rig_register(&ic775_caps);
 		rig_register(&ic756_caps);
