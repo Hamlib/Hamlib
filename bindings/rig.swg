@@ -1,8 +1,8 @@
 /*
  *  Hamlib bindings - Rig interface
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rig.swg,v 1.5 2002-11-14 19:27:46 fillods Exp $
+ *	$Id: rig.swg,v 1.6 2003-04-06 18:48:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -267,7 +267,7 @@ typedef struct Rig {
 	METHOD1(set_dcs_sql, tone_t)
 	METHOD1(set_split_freq, freq_t)
 	METHOD2(set_split_mode, rmode_t, pbwidth_t)
-	METHOD1(set_split, split_t)
+	METHOD2(set_split_vfo, split_t, vfo_t)
 	METHOD1(set_rit, shortfreq_t)
 	METHOD1(set_xit, shortfreq_t)
 	METHOD1(set_ts, shortfreq_t)
@@ -347,8 +347,8 @@ typedef struct Rig {
 	/* get functions */
 
 	METHOD1VGET(get_freq, freq_t)
-	extern void get_mode(rmode_t *OUTPUT, pbwidth_t *OUTPUT, vfo_t vfo = RIG_VFO_CURR);
-	extern void get_split_mode(rmode_t *OUTPUT, pbwidth_t *OUTPUT, vfo_t vfo = RIG_VFO_CURR);
+	extern void get_mode(unsigned int *OUTPUT, int *OUTPUT, vfo_t vfo = RIG_VFO_CURR);
+	extern void get_split_mode(unsigned int *OUTPUT, int *OUTPUT, vfo_t vfo = RIG_VFO_CURR);
 	METHOD1GET(get_vfo, vfo_t)
 	METHOD1VGET(get_ptt, ptt_t)
 	METHOD1VGET(get_rptr_shift, rptr_shift_t)
@@ -358,7 +358,9 @@ typedef struct Rig {
 	METHOD1VGET(get_ctcss_sql, tone_t)
 	METHOD1VGET(get_dcs_sql, tone_t)
 	METHOD1VGET(get_split_freq, freq_t)
-	METHOD1VGET(get_split, split_t)
+	void get_split_vfo(split_t *split, vfo_t *tx_vfo, vfo_t vfo = RIG_VFO_CURR)
+	{ self->error_status = rig_get_split_vfo(self->rig, vfo, split, tx_vfo); }
+
 	METHOD1VGET(get_rit, shortfreq_t)
 	METHOD1VGET(get_xit, shortfreq_t)
 	METHOD1VGET(get_ts, shortfreq_t)
@@ -385,7 +387,7 @@ typedef struct Rig {
 	 * get_channel(0, RIG_VFO_A) returns VFO A data
 	 */
 	struct channel *get_channel(int channel_num = INT_MAX, vfo_t vfo = RIG_VFO_MEM) {
-		channel_t *chan;
+		struct channel *chan;
 		chan = new_channel(channel_num, channel_num != INT_MAX ? vfo : RIG_VFO_CURR);
 		self->error_status = rig_get_channel(self->rig, chan);
 		/* TODO: copy ext_level's */
@@ -446,14 +448,22 @@ typedef struct Rig {
  * these ones returns 2 values, here is a perl example:
  * 	($mode, $width) = $rig->get_mode();
  */
-void Rig_get_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
+void Rig_get_mode(Rig *self, unsigned *mode, int *width, vfo_t vfo)
 {
-	self->error_status = rig_get_mode(self->rig, vfo, mode, width);
+	rmode_t mode1 = *mode;
+	pbwidth_t width1 = *width;
+	self->error_status = rig_get_mode(self->rig, vfo, &mode1, &width1);
+	*mode = mode1;
+	*width = width1;
 }
 
-void Rig_get_split_mode(Rig *self, rmode_t *mode, pbwidth_t *width, vfo_t vfo)
+void Rig_get_split_mode(Rig *self, unsigned *mode, int *width, vfo_t vfo)
 {
-	self->error_status = rig_get_mode(self->rig, vfo, mode, width);
+	rmode_t mode1 = *mode;
+	pbwidth_t width1 = *width;
+	self->error_status = rig_get_split_mode(self->rig, vfo, &mode1, &width1);
+	*mode = mode1;
+	*width = width1;
 }
 
 %}
