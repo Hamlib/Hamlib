@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: event.c,v 1.7 2001-06-15 07:08:37 f4cfe Exp $
+   $Id: event.c,v 1.8 2001-06-17 21:54:31 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -89,6 +89,7 @@ int add_trn_rig(RIG *rig)
 						strerror(errno));
 
 #if defined(_WIN32) || defined(__CYGWIN__)
+#else
 	status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETSIG failed: %s\n",
