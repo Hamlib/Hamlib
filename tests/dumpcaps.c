@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.10 2001-02-07 23:45:59 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.11 2001-02-11 23:19:58 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -103,6 +103,29 @@ int main (int argc, char *argv[])
 	case RIG_TYPE_RECEIVER:
 			printf("Receiver\n");
 			break;
+	case RIG_TYPE_PCRECEIVER:
+			printf("PC Receiver\n");
+			break;
+	case RIG_TYPE_SCANNER:
+			printf("Scanner\n");
+			break;
+	case RIG_TYPE_COMPUTER:
+			printf("Computer\n");
+			break;
+	default:
+			printf("Unknown\n");
+	}
+
+	printf("PTT type:\t");
+	switch (caps->ptt_type) {
+	case RIG_PTT_RIG:
+			printf("rig capable\n");
+			break;
+	case RIG_PTT_PARALLEL:
+			printf("thru parallel port (DATA0)\n");
+			break;
+	case RIG_PTT_SERIAL_RTS:
+			printf("thru serial port (CTS/RTS)\n");
 	case RIG_TYPE_SCANNER:
 			printf("Scanner\n");
 			break;
@@ -151,55 +174,92 @@ int main (int argc, char *argv[])
 	printf("Has targetable VFO: %s\n",
 					caps->targetable_vfo?"yes":"no");
 
+	printf("Max RIT: -%ld.%ldKHz/+%ld.%ldKHz\n", 
+					caps->max_rit/1000, caps->max_rit%1000,
+					caps->max_rit/1000, caps->max_rit%1000);
 
-	printf("Functions: ");
-	if (caps->has_func!=0) {
-		if (caps->has_func&RIG_FUNC_FAGC) printf("FAGC ");
-		if (caps->has_func&RIG_FUNC_NB) printf("NB ");
-		if (caps->has_func&RIG_FUNC_COMP) printf("COMP ");
-		if (caps->has_func&RIG_FUNC_VOX) printf("VOX ");
-		if (caps->has_func&RIG_FUNC_TONE) printf("TONE ");
-		if (caps->has_func&RIG_FUNC_TSQL) printf("TSQL ");
-		if (caps->has_func&RIG_FUNC_SBKIN) printf("SBKIN ");
-		if (caps->has_func&RIG_FUNC_FBKIN) printf("FBKIN ");
-		if (caps->has_func&RIG_FUNC_ANF) printf("ANF ");
-		if (caps->has_func&RIG_FUNC_NR) printf("NR ");
-		if (caps->has_func&RIG_FUNC_AIP) printf("AIP ");
-		if (caps->has_func&RIG_FUNC_APF) printf("APF ");
-		if (caps->has_func&RIG_FUNC_MON) printf("MON ");
-		if (caps->has_func&RIG_FUNC_MN) printf("MN ");
-		if (caps->has_func&RIG_FUNC_RFN) printf("RFN ");
+	printf("Preamp:");
+	for(i=0; i<MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
+			printf(" %ddB", caps->preamp[i]);
+	printf("\n");
+	printf("Attenuator:");
+	for(i=0; i<MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
+			printf(" %ddB",caps->attenuator[i]);
+	printf("\n");
+
+	printf("Get functions: ");
+	if (caps->has_get_func!=0) {
+		if (caps->has_get_func&RIG_FUNC_FAGC) printf("FAGC ");
+		if (caps->has_get_func&RIG_FUNC_NB) printf("NB ");
+		if (caps->has_get_func&RIG_FUNC_COMP) printf("COMP ");
+		if (caps->has_get_func&RIG_FUNC_VOX) printf("VOX ");
+		if (caps->has_get_func&RIG_FUNC_TONE) printf("TONE ");
+		if (caps->has_get_func&RIG_FUNC_TSQL) printf("TSQL ");
+		if (caps->has_get_func&RIG_FUNC_SBKIN) printf("SBKIN ");
+		if (caps->has_get_func&RIG_FUNC_FBKIN) printf("FBKIN ");
+		if (caps->has_get_func&RIG_FUNC_ANF) printf("ANF ");
+		if (caps->has_get_func&RIG_FUNC_NR) printf("NR ");
+		if (caps->has_get_func&RIG_FUNC_AIP) printf("AIP ");
+		if (caps->has_get_func&RIG_FUNC_APF) printf("APF ");
+		if (caps->has_get_func&RIG_FUNC_MON) printf("MON ");
+		if (caps->has_get_func&RIG_FUNC_MN) printf("MN ");
+		if (caps->has_get_func&RIG_FUNC_RFN) printf("RFN ");
+		printf("\n");
+	} else
+			printf("none\n");
+
+	printf("Set functions: ");
+	if (caps->has_set_func!=0) {
+		if (caps->has_set_func&RIG_FUNC_FAGC) printf("FAGC ");
+		if (caps->has_set_func&RIG_FUNC_NB) printf("NB ");
+		if (caps->has_set_func&RIG_FUNC_COMP) printf("COMP ");
+		if (caps->has_set_func&RIG_FUNC_VOX) printf("VOX ");
+		if (caps->has_set_func&RIG_FUNC_TONE) printf("TONE ");
+		if (caps->has_set_func&RIG_FUNC_TSQL) printf("TSQL ");
+		if (caps->has_set_func&RIG_FUNC_SBKIN) printf("SBKIN ");
+		if (caps->has_set_func&RIG_FUNC_FBKIN) printf("FBKIN ");
+		if (caps->has_set_func&RIG_FUNC_ANF) printf("ANF ");
+		if (caps->has_set_func&RIG_FUNC_NR) printf("NR ");
+		if (caps->has_set_func&RIG_FUNC_AIP) printf("AIP ");
+		if (caps->has_set_func&RIG_FUNC_APF) printf("APF ");
+		if (caps->has_set_func&RIG_FUNC_MON) printf("MON ");
+		if (caps->has_set_func&RIG_FUNC_MN) printf("MN ");
+		if (caps->has_set_func&RIG_FUNC_RFN) printf("RFN ");
 		printf("\n");
 	} else
 			printf("none\n");
 
 	printf("Get level: ");
-	if (caps->has_level!=0) {
-		if (caps->has_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
-		if (caps->has_level&RIG_LEVEL_ATT) printf("ATT ");
-		if (caps->has_level&RIG_LEVEL_ANT) printf("ANT ");
-		if (caps->has_level&RIG_LEVEL_AF) printf("AF ");
-		if (caps->has_level&RIG_LEVEL_RF) printf("RF ");
-		if (caps->has_level&RIG_LEVEL_SQL) printf("SQL ");
-		if (caps->has_level&RIG_LEVEL_IF) printf("IF ");
-		if (caps->has_level&RIG_LEVEL_APF) printf("APF ");
-		if (caps->has_level&RIG_LEVEL_NR) printf("NR ");
-		if (caps->has_level&RIG_LEVEL_PBT_IN) printf("PBT_IN ");
-		if (caps->has_level&RIG_LEVEL_PBT_OUT) printf("PBT_OUT ");
-		if (caps->has_level&RIG_LEVEL_CWPITCH) printf("CWPITCH ");
-		if (caps->has_level&RIG_LEVEL_RFPOWER) printf("RFPOWER ");
-		if (caps->has_level&RIG_LEVEL_MICGAIN) printf("MICGAIN ");
-		if (caps->has_level&RIG_LEVEL_KEYSPD) printf("KEYSPD ");
-		if (caps->has_level&RIG_LEVEL_NOTCHF) printf("NOTCHF ");
-		if (caps->has_level&RIG_LEVEL_COMP) printf("COMP ");
-		if (caps->has_level&RIG_LEVEL_AGC) printf("AGC ");
-		if (caps->has_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
-		if (caps->has_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
-		if (caps->has_level&RIG_LEVEL_ANN) printf("ANN ");
-		if (caps->has_level&RIG_LEVEL_SWR) printf("SWR ");
-		if (caps->has_level&RIG_LEVEL_ALC) printf("ALC ");
-		if (caps->has_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
-		if (caps->has_level&RIG_LEVEL_STRENGTH) printf("STRENGTH ");
+	if (caps->has_get_level!=0) {
+		if (caps->has_get_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
+		if (caps->has_get_level&RIG_LEVEL_ATT) printf("ATT ");
+#if 0
+		if (caps->has_get_level&RIG_LEVEL_ANT) printf("ANT ");	/* deprecated */
+#endif
+		if (caps->has_get_level&RIG_LEVEL_AF) printf("AF ");
+		if (caps->has_get_level&RIG_LEVEL_RF) printf("RF ");
+		if (caps->has_get_level&RIG_LEVEL_SQL) printf("SQL ");
+		if (caps->has_get_level&RIG_LEVEL_IF) printf("IF ");
+		if (caps->has_get_level&RIG_LEVEL_APF) printf("APF ");
+		if (caps->has_get_level&RIG_LEVEL_NR) printf("NR ");
+		if (caps->has_get_level&RIG_LEVEL_PBT_IN) printf("PBT_IN ");
+		if (caps->has_get_level&RIG_LEVEL_PBT_OUT) printf("PBT_OUT ");
+		if (caps->has_get_level&RIG_LEVEL_CWPITCH) printf("CWPITCH ");
+		if (caps->has_get_level&RIG_LEVEL_RFPOWER) printf("RFPOWER ");
+		if (caps->has_get_level&RIG_LEVEL_MICGAIN) printf("MICGAIN ");
+		if (caps->has_get_level&RIG_LEVEL_KEYSPD) printf("KEYSPD ");
+		if (caps->has_get_level&RIG_LEVEL_NOTCHF) printf("NOTCHF ");
+		if (caps->has_get_level&RIG_LEVEL_COMP) printf("COMP ");
+		if (caps->has_get_level&RIG_LEVEL_AGC) printf("AGC ");
+		if (caps->has_get_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
+		if (caps->has_get_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
+#if 0
+		if (caps->has_get_level&RIG_LEVEL_ANN) printf("ANN ");	/* deprecated */
+#endif
+		if (caps->has_get_level&RIG_LEVEL_SWR) printf("SWR ");
+		if (caps->has_get_level&RIG_LEVEL_ALC) printf("ALC ");
+		if (caps->has_get_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
+		if (caps->has_get_level&RIG_LEVEL_STRENGTH) printf("STRENGTH ");
 		printf("\n");
 	} else
 			printf("none\n");
@@ -208,7 +268,9 @@ int main (int argc, char *argv[])
 	if (caps->has_set_level!=0) {
 		if (caps->has_set_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
 		if (caps->has_set_level&RIG_LEVEL_ATT) printf("ATT ");
-		if (caps->has_set_level&RIG_LEVEL_ANT) printf("ANT ");
+#if 0
+		if (caps->has_set_level&RIG_LEVEL_ANT) printf("ANT ");	/* deprecated */
+#endif
 		if (caps->has_set_level&RIG_LEVEL_AF) printf("AF ");
 		if (caps->has_set_level&RIG_LEVEL_RF) printf("RF ");
 		if (caps->has_set_level&RIG_LEVEL_SQL) printf("SQL ");
@@ -226,10 +288,12 @@ int main (int argc, char *argv[])
 		if (caps->has_set_level&RIG_LEVEL_AGC) printf("AGC ");
 		if (caps->has_set_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
 		if (caps->has_set_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
-		if (caps->has_set_level&RIG_LEVEL_ANN) printf("ANN ");
+#if 0
+		if (caps->has_set_level&RIG_LEVEL_ANN) printf("ANN ");	/* deprecated */
+#endif
 
 		/*
-		 * TODO: shoudl warn here, these ones are not settable!!
+		 * TODO: should warn here, these ones are not settable!!
 		 */
 		if (caps->has_set_level&RIG_LEVEL_SWR) printf("SWR ");
 		if (caps->has_set_level&RIG_LEVEL_ALC) printf("ALC ");
@@ -240,13 +304,20 @@ int main (int argc, char *argv[])
 			printf("none\n");
 
 
-	printf("Number of channels:\t%d\n",caps->chan_qty);
+	printf("Number of channels:\t%d\n", caps->chan_qty);
+	printf("Number of banks:\t%d\n", caps->bank_qty);
+	printf("Memory name desc size:\t%d\n", caps->chan_desc_sz);
 
 /* TODO: print rx/tx ranges here */
-	status = range_sanity_check(caps->tx_range_list,0);
-	printf("TX ranges status:\t%s (%d)\n",status?"Bad":"OK",status);
-	status = range_sanity_check(caps->rx_range_list,1);
-	printf("RX ranges status:\t%s (%d)\n",status?"Bad":"OK",status);
+	status = range_sanity_check(caps->tx_range_list1,0);
+	printf("TX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
+	status = range_sanity_check(caps->rx_range_list1,1);
+	printf("RX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
+
+	status = range_sanity_check(caps->tx_range_list2,0);
+	printf("TX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
+	status = range_sanity_check(caps->rx_range_list2,1);
+	printf("RX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
 
 	printf("Tuning steps:\n");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
@@ -272,6 +343,10 @@ int main (int argc, char *argv[])
 	printf("Can set power off:\t%c\n",caps->set_poweroff!=NULL?'Y':'N');
 	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
 	printf("Can get transceive:\t%c\n",caps->get_trn!=NULL?'Y':'N');
+	printf("Can set func:\t%c\n",caps->set_func!=NULL?'Y':'N');
+	printf("Can get func:\t%c\n",caps->get_func!=NULL?'Y':'N');
+	printf("Can set level:\t%c\n",caps->set_level!=NULL?'Y':'N');
+	printf("Can get level:\t%c\n",caps->get_level!=NULL?'Y':'N');
 	printf("Can decode events:\t%c\n",caps->decode_event!=NULL?'Y':'N');
 	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':'N');
 	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':'N');
@@ -296,21 +371,6 @@ static char *decode_modes(rmode_t modes)
 	if (modes&RIG_MODE_LSB) strcat(buf,"LSB ");
 	if (modes&RIG_MODE_RTTY) strcat(buf,"RTTY ");
 	if (modes&RIG_MODE_FM) strcat(buf,"FM ");
-#if 0
-	if (modes&RIG_MODE_CWR) strcat(buf,"CWR ");
-	if (modes&RIG_MODE_NFM) strcat(buf,"NFM ");
-	if (modes&RIG_MODE_WFM) strcat(buf,"WFM ");
-	if (modes&RIG_MODE_NAM) strcat(buf,"NAM ");
-	if (modes&RIG_MODE_WAM) strcat(buf,"WAM ");
-	if (modes&RIG_MODE_NCW) strcat(buf,"NCW ");
-	if (modes&RIG_MODE_WCW) strcat(buf,"WCW ");
-	if (modes&RIG_MODE_NUSB) strcat(buf,"NUSB ");
-	if (modes&RIG_MODE_WUSB) strcat(buf,"WUSB ");
-	if (modes&RIG_MODE_NLSB) strcat(buf,"NLSB ");
-	if (modes&RIG_MODE_WLSB) strcat(buf,"WLSB ");
-	if (modes&RIG_MODE_NRTTY) strcat(buf,"NRTTY ");
-	if (modes&RIG_MODE_WRTTY) strcat(buf,"WRTTY ");
-#endif
 
 	return buf;
 }
@@ -325,6 +385,9 @@ static char *decode_modes(rmode_t modes)
  * - array is ended by a {0,0,0,0,0} element (before boundary) rc=-4
  * - ranges with same modes do not overlap		rc=-5
  * ->fprintf(stderr,)!
+ *
+ * TODO: array is sorted in ascending freq order
+ * TODO2: do as well for ts_sanity_check()
  */
 int range_sanity_check(const struct freq_range_list range_list[], int rx)
 {
