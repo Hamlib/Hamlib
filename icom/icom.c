@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.69 2002-12-23 14:20:42 fillods Exp $
+ *	$Id: icom.c,v 1.70 2003-01-06 22:06:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -392,14 +392,16 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			return RIG_OK;
 		}
 
-		/*
-		 * TODO: older rig may return less than 4 or 5 bytes (for low freqs)!
-		 *  also if freq is undefined (i.e. blank memory) set freq to RIG_FREQ_NONE
-		 */
-		if (freq_len != (priv->civ_731_mode ? 4:5)) {
+		if (freq_len != 4 && freq_len != 5) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
 								freq_len);
 				return -RIG_ERJCTED;
+		}
+
+		if (freq_len != (priv->civ_731_mode ? 4:5)) {
+				rig_debug(RIG_DEBUG_WARN,"icom_get_freq: "
+						"freq len (%d) differs from "
+						"expected\n", freq_len);
 		}
 
 		/*
@@ -451,7 +453,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char ackbuf[MAXFRAMELEN];
-		char icmode, icmode_ext;
+		unsigned char icmode; 
+		signed char icmode_ext;
 		int ack_len, retval, err;
 
 		rs = &rig->state;
@@ -1926,7 +1929,8 @@ int icr75_set_channel(RIG *rig, const channel_t *chan)
 		struct rig_state *rs;
 		unsigned char chanbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 		int chan_len, freq_len, ack_len, retval;
-		char icmode, icmode_ext;
+		unsigned char icmode;
+		signed char icmode_ext;
 		int err;
 
 		rs = &rig->state;
