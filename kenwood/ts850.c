@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.11 2004-01-21 19:52:40 f4dwv Exp $
+ *	$Id: ts850.c,v 1.12 2004-02-08 17:04:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,6 +25,8 @@
 #endif
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 #include <hamlib/rig.h>
@@ -67,7 +69,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ts850_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int ts850_get_channel (RIG * rig, channel_t * chan);
-int ts850_set_channel (RIG * rig, channel_t * chan);
+int ts850_set_channel (RIG * rig, const channel_t * chan);
 
 /*
  * ts850 rig capabilities.
@@ -373,6 +375,7 @@ static char mode_to_char(rmode_t mode)
          case RIG_MODE_RTTY:     return(MD_FSK);
          case RIG_MODE_RTTYR:    return(MD_FSKR);
 	 default:
+		rig_debug(RIG_DEBUG_WARN,"%s: unsupported mode %d\n", __FUNCTION__,mode);
      }
  return(RIG_MODE_NONE);
 }
@@ -684,7 +687,7 @@ int ts850_get_channel (RIG * rig, channel_t * chan)
 }
 
 
-int ts850_set_channel (RIG * rig, channel_t * chan)
+int ts850_set_channel (RIG * rig, const channel_t * chan)
 {
                 unsigned char cmdbuf[30], membuf[30];
                 int retval, cmd_len,mem_len;
