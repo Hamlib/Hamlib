@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-706 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.33 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: ic706.c,v 1.34 2003-12-04 23:23:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -365,6 +365,24 @@ const struct rig_caps ic706mkii_caps = {
 
 };
 
+
+/*
+ * IC706MkIIG channel caps.
+ */
+#define IC706MKIIG_MEM_CAP {	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+	.split = 1,	\
+	.tx_freq = 1,	\
+	.tx_mode = 1,	\
+	.tx_width = 1,	\
+	.rptr_offs = 1,	\
+	.rptr_shift = 1, /* only set */	\
+	.funcs = IC706IIG_FUNC_ALL, \
+	.levels = RIG_LEVEL_SET(IC706IIG_LEVEL_ALL), \
+} 
+
 /*
  * Basically, the IC706MKIIG is an IC706MKII plus UHF, a DSP
  * and 50W VHF
@@ -379,7 +397,7 @@ const struct rig_caps ic706mkiig_caps = {
 .rig_model =  RIG_MODEL_IC706MKIIG,
 .model_name = "IC-706MkIIG", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  "0.2.1", 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_MOBILE,
@@ -421,9 +439,9 @@ const struct rig_caps ic706mkiig_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-				   {   1,  99, RIG_MTYPE_MEM, IC_MEM_CAP },
-				   { 100, 105, RIG_MTYPE_EDGE },    /* two by two */
-				   { 106, 107, RIG_MTYPE_CALL },
+				   {   1,  99, RIG_MTYPE_MEM, IC706MKIIG_MEM_CAP },
+				   { 100, 105, RIG_MTYPE_EDGE, IC706MKIIG_MEM_CAP },    /* two by two */
+				   { 106, 107, RIG_MTYPE_CALL, IC706MKIIG_MEM_CAP },
 				   RIG_CHAN_END,
 		},
 
@@ -522,6 +540,7 @@ const struct rig_caps ic706mkiig_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 };
 
