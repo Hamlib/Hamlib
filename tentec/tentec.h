@@ -1,8 +1,8 @@
 /*
  *  Hamlib Tentec backend - main header
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: tentec.h,v 1.7 2003-11-16 17:14:44 fillods Exp $
+ *	$Id: tentec.h,v 1.8 2004-05-03 22:34:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,8 +55,12 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 const char* tentec_get_info(RIG *rig);
 
 extern const struct rig_caps rx320_caps;
+extern const struct rig_caps rx340_caps;
+extern const struct rig_caps rx350_caps;
 extern const struct rig_caps tt516_caps;
+extern const struct rig_caps tt538_caps;
 extern const struct rig_caps tt550_caps;
+extern const struct rig_caps tt565_caps;
 
 
 #endif /* _TENTEC_H */

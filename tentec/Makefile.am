@@ -1,4 +1,5 @@
-TENTECSRCLIST = rx320.c pegasus.c argonaut.c
+TENTECSRCLIST = rx320.c rx340.c rx350.c \
+		pegasus.c argonaut.c orion.c jupiter.c
 
 lib_LTLIBRARIES = hamlib-tentec.la
 hamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c tentec2.c tt550.c
