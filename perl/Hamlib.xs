@@ -2786,11 +2786,18 @@ rig_debug(debug_level, fmt, ...)
 	enum rig_debug_level_e	debug_level
 	const char *	fmt
 
-int
-rig_get_ant(rig, vfo, ant)
-	RIG *	rig
-	vfo_t	vfo
-	ant_t *	ant
+ant_t
+rig_get_ant(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    ant_t ant;
+        rig_get_ant(rig, vfo, &ant);
+        RETVAL = ant;
+    }
+    OUTPUT:
+        RETVAL
 
 const struct rig_caps *
 rig_get_caps(rig_model)
@@ -2802,75 +2809,156 @@ rig_get_channel(rig, chan)
 	channel_t *	chan
 
 int
-rig_get_ctcss_sql(rig, vfo, tone)
-	RIG *	rig
-	vfo_t	vfo
-	tone_t *	tone
+rig_get_ctcss_sql(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    tone_t tone;
+        rig_get_ctcss_sql(rig, vfo, &tone);
+        RETVAL = tone;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_ctcss_tone(rig, vfo, tone)
-	RIG *	rig
-	vfo_t	vfo
-	tone_t *	tone
+rig_get_ctcss_tone(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    tone_t tone;
+        rig_get_ctcss_tone(rig, vfo, &tone);
+        RETVAL = tone;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_dcd(rig, vfo, dcd)
-	RIG *	rig
-	vfo_t	vfo
-	dcd_t *	dcd
+rig_get_dcd(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    dcd_t dcd;
+        rig_get_dcd(rig, vfo, &dcd);
+        RETVAL = dcd;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_dcs_code(rig, vfo, code)
-	RIG *	rig
-	vfo_t	vfo
-	tone_t *	code
+rig_get_dcs_code(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    tone_t code;
+        rig_get_dcs_code(rig, vfo, &code);
+        RETVAL = code;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_dcs_sql(rig, vfo, code)
-	RIG *	rig
-	vfo_t	vfo
-	tone_t *	code
+rig_get_dcs_sql(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    tone_t code;
+        rig_get_dcs_sql(rig, vfo, &code);
+        RETVAL = code;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_func(rig, vfo, func, status)
-	RIG *	rig
-	vfo_t	vfo
-	setting_t	func
-	int *	status
+rig_get_func(rig, func, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  setting_t	func
+	  vfo_t	vfo
+    CODE:
+    {
+	    int status;
+        rig_get_func(rig, vfo, func, &status);
+        RETVAL = status;
+    }
+    OUTPUT:
+        RETVAL
+
 
 const char *
 rig_get_info(rig)
 	Hamlib::Rig	rig
 
-int
-rig_get_level(rig, vfo, level, val)
-	RIG *	rig
-	vfo_t	vfo
-	setting_t	level
-	value_t *	val
+value_t
+rig_get_level(rig, level, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  setting_t	level
+	  vfo_t	vfo
+    CODE:
+    {
+	value_t	val;
+        rig_get_level(rig, vfo, level, &val);
+        RETVAL = val;
+    }
+    OUTPUT:
+        RETVAL
+
 
 int
-rig_get_mem(rig, vfo, ch)
-	RIG *	rig
-	vfo_t	vfo
-	int *	ch
+rig_get_mem(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	int ch;
+        rig_get_mem(rig, vfo, &ch);
+        RETVAL = ch;
+    }
+    OUTPUT:
+        RETVAL
+
+
+value_t
+rig_get_parm(rig, parm)
+	  Hamlib::Rig	rig
+	  setting_t	parm
+    CODE:
+    {
+	value_t	val;
+        rig_get_parm(rig, parm, &val);
+        RETVAL = val;
+    }
+    OUTPUT:
+        RETVAL
+
 
 int
-rig_get_parm(rig, parm, val)
-	RIG *	rig
-	setting_t	parm
-	value_t *	val
+rig_get_powerstat(rig)
+	  Hamlib::Rig	rig
+    CODE:
+    {
+	    powerstat_t status;
+        rig_get_powerstat(rig, &status);
+        RETVAL = status;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_powerstat(rig, status)
-	RIG *	rig
-	powerstat_t *	status
-
-int
-rig_get_ptt(rig, vfo, ptt)
-	RIG *	rig
-	vfo_t	vfo
-	ptt_t *	ptt
+rig_get_ptt(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    ptt_t ptt;
+        rig_get_ptt(rig, vfo, &ptt);
+        RETVAL = ptt;
+    }
+    OUTPUT:
+        RETVAL
 
 const freq_range_t *
 rig_get_range(range_list, freq, mode)
@@ -2880,32 +2968,61 @@ rig_get_range(range_list, freq, mode)
 
 shortfreq_t
 rig_get_resolution(rig, mode)
-	RIG *	rig
+	Hamlib::Rig	rig
 	rmode_t	mode
 
 int
-rig_get_rit(rig, vfo, rit)
-	RIG *	rig
-	vfo_t	vfo
-	shortfreq_t *	rit
+rig_get_rit(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    shortfreq_t rit;
+        rig_get_rit(rig, vfo, &rit);
+        RETVAL = rit;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_rptr_offs(rig, vfo, rptr_offs)
-	RIG *	rig
-	vfo_t	vfo
-	shortfreq_t *	rptr_offs
+rig_get_rptr_offs(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    shortfreq_t rptr_offs;
+        rig_get_rptr_offs(rig, vfo, &rptr_offs);
+        RETVAL = rptr_offs;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_rptr_shift(rig, vfo, rptr_shift)
-	RIG *	rig
-	vfo_t	vfo
-	rptr_shift_t *	rptr_shift
+rig_get_rptr_shift(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    rptr_shift_t rptr_shift;
+        rig_get_rptr_shift(rig, vfo, &rptr_shift);
+        RETVAL = rptr_shift;
+    }
+    OUTPUT:
+        RETVAL
 
-int
-rig_get_split(rig, vfo, split)
-	RIG *	rig
-	vfo_t	vfo
-	split_t *	split
+split_t
+rig_get_split(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    split_t split;
+        rig_get_split(rig, vfo, &split);
+        RETVAL = split;
+    }
+    OUTPUT:
+        RETVAL
+
 
 int
 rig_set_split_freq(rig, tx_freq, vfo = RIG_VFO_CURR)
@@ -2927,6 +3044,95 @@ rig_get_split_freq(rig, vfo = RIG_VFO_CURR)
     }
     OUTPUT:
         RETVAL
+
+int
+rig_set_ext_level(rig, name, value, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
+	const char *	name
+	const char *	value
+	vfo_t		vfo
+    CODE:
+    {
+		value_t val;
+		const struct confparams *cfp;
+
+		cfp = rig_ext_lookup(rig, name);
+		if (!cfp)
+			return;     /* no such parameter */
+
+		/* FIXME: only RIG_CONF_STRING supported so far */
+		val.s = value;
+        RETVAL = rig_set_ext_level(rig, vfo, cfp->token, val);
+    }
+	OUTPUT:
+		RETVAL
+
+SV*
+rig_get_ext_level(rig, name, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
+	const char *	name
+	vfo_t		vfo
+    CODE:
+    {
+		value_t val;
+		char s[256];
+		const struct confparams *cfp;
+
+		cfp = rig_ext_lookup(rig, name);
+		if (!cfp)
+			return;     /* no such parameter */
+
+		/* FIXME: only RIG_CONF_STRING supported so far */
+		val.s = s;
+        rig_get_ext_level(rig, vfo, cfp->token, &val);
+        RETVAL = newSVpv(val.s, 0);
+    }
+	OUTPUT:
+		RETVAL
+
+int
+rig_set_ext_parm(rig, name, value)
+	Hamlib::Rig	rig
+	const char *	name
+	const char *	value
+    CODE:
+    {
+		value_t val;
+		const struct confparams *cfp;
+
+		cfp = rig_ext_lookup(rig, name);
+		if (!cfp)
+			return;     /* no such parameter */
+
+		/* FIXME: only RIG_CONF_STRING supported so far */
+		val.s = value;
+        RETVAL = rig_set_ext_parm(rig, cfp->token, val);
+    }
+	OUTPUT:
+		RETVAL
+
+SV*
+rig_get_ext_parm(rig, name)
+	Hamlib::Rig	rig
+	const char *	name
+    CODE:
+    {
+		value_t val;
+		char s[256];
+		const struct confparams *cfp;
+
+		cfp = rig_ext_lookup(rig, name);
+		if (!cfp)
+			return;     /* no such parameter */
+
+		/* FIXME: only RIG_CONF_STRING supported so far */
+		val.s = s;
+        rig_get_ext_parm(rig, cfp->token, &val);
+        RETVAL = newSVpv(val.s, 0);
+    }
+	OUTPUT:
+		RETVAL
+
 
 int
 rig_set_conf(rig, name, val)
@@ -2960,59 +3166,81 @@ rig_get_conf(rig, name)
 
 int
 rig_get_trn(rig, trn)
-	RIG *	rig
-	int *	trn
+	  Hamlib::Rig	rig
+    CODE:
+    {
+	    int trn;
+        rig_get_trn(rig, &trn);
+        RETVAL = trn;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_ts(rig, vfo, ts)
-	RIG *	rig
-	vfo_t	vfo
-	shortfreq_t *	ts
+rig_get_ts(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    shortfreq_t ts;
+	    freq_t freq;
+        rig_get_ts(rig, vfo, &ts);
+        RETVAL = ts;
+    }
+    OUTPUT:
+        RETVAL
 
 int
-rig_get_xit(rig, vfo, xit)
-	RIG *	rig
-	vfo_t	vfo
-	shortfreq_t *	xit
+rig_get_xit(rig, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  vfo_t	vfo
+    CODE:
+    {
+	    shortfreq_t xit;
+        rig_get_xit(rig, vfo, &xit);
+        RETVAL = xit;
+    }
+    OUTPUT:
+        RETVAL
 
 setting_t
 rig_has_get_func(rig, func)
-	RIG *	rig
+	Hamlib::Rig	rig
 	setting_t	func
 
 setting_t
 rig_has_get_level(rig, level)
-	RIG *	rig
+	Hamlib::Rig	rig
 	setting_t	level
 
 setting_t
 rig_has_get_parm(rig, parm)
-	RIG *	rig
+	Hamlib::Rig	rig
 	setting_t	parm
 
 scan_t
 rig_has_scan(rig, scan)
-	RIG *	rig
+	Hamlib::Rig	rig
 	scan_t	scan
 
 setting_t
 rig_has_set_func(rig, func)
-	RIG *	rig
+	Hamlib::Rig	rig
 	setting_t	func
 
 setting_t
 rig_has_set_level(rig, level)
-	RIG *	rig
+	Hamlib::Rig	rig
 	setting_t	level
 
 setting_t
 rig_has_set_parm(rig, parm)
-	RIG *	rig
+	Hamlib::Rig	rig
 	setting_t	parm
 
 vfo_op_t
 rig_has_vfo_op(rig, op)
-	RIG *	rig
+	Hamlib::Rig	rig
 	vfo_op_t	op
 
 int
@@ -3036,17 +3264,17 @@ rig_need_debug(debug_level)
 
 pbwidth_t
 rig_passband_narrow(rig, mode)
-	RIG *	rig
+	Hamlib::Rig	rig
 	rmode_t	mode
 
 pbwidth_t
 rig_passband_normal(rig, mode)
-	RIG *	rig
+	Hamlib::Rig	rig
 	rmode_t	mode
 
 pbwidth_t
 rig_passband_wide(rig, mode)
-	RIG *	rig
+	Hamlib::Rig	rig
 	rmode_t	mode
 
 int
@@ -3078,39 +3306,49 @@ rig_register(caps)
 
 int
 rig_reset(rig, reset)
-	RIG *	rig
+	Hamlib::Rig	rig
 	reset_t	reset
 
 int
-rig_scan(rig, vfo, scan, ch)
-	RIG *	rig
-	vfo_t	vfo
+rig_scan(rig, scan, ch, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	scan_t	scan
 	int	ch
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, scan, ch
 
 int
-rig_send_dtmf(rig, vfo, digits)
-	RIG *	rig
-	vfo_t	vfo
+rig_send_dtmf(rig, vfo, digits, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	const char *	digits
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, digits
 
 int
-rig_send_morse(rig, vfo, msg)
-	RIG *	rig
-	vfo_t	vfo
+rig_send_morse(rig, vfo, msg, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	const char *	msg
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, msg
 
 int
-rig_set_ant(rig, vfo, ant)
-	RIG *	rig
-	vfo_t	vfo
-	ant_t	ant
+rig_set_ant(rig, ant, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  ant_t ant
+	  vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, ant
 
 int
-rig_set_bank(rig, vfo, bank)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_bank(rig, bank, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	int	bank
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, bank
 
 int
 rig_set_channel(rig, chan)
@@ -3118,110 +3356,138 @@ rig_set_channel(rig, chan)
 	const channel_t *	chan
 
 int
-rig_set_ctcss_sql(rig, vfo, tone)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_ctcss_sql(rig, tone, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	tone_t	tone
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, tone
 
 int
-rig_set_ctcss_tone(rig, vfo, tone)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_ctcss_tone(rig, tone, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	tone_t	tone
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, tone
 
 int
-rig_set_dcs_code(rig, vfo, code)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_dcs_code(rig, code, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	tone_t	code
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, code
 
 int
-rig_set_dcs_sql(rig, vfo, code)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_dcs_sql(rig, code, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	tone_t	code
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, code
 
 void
 rig_set_debug(debug_level)
 	enum rig_debug_level_e	debug_level
 
 int
-rig_set_func(rig, vfo, func, status)
-	RIG *	rig
-	vfo_t	vfo
-	setting_t	func
-	int	status
+rig_set_func(rig, func, status, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  setting_t	func
+	  int	status
+	  vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, func, status
 
 int
-rig_set_level(rig, vfo, level, val)
-	RIG *	rig
-	vfo_t	vfo
-	setting_t	level
-	value_t	val
+rig_set_level(rig, level, val, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  setting_t	level
+	  value_t	val
+	  vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, level, val
 
 int
-rig_set_mem(rig, vfo, ch)
-	RIG *	rig
-	vfo_t	vfo
-	int	ch
+rig_set_mem(rig, ch, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  int	ch
+	  vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, ch
 
 int
 rig_set_parm(rig, parm, val)
-	RIG *	rig
-	setting_t	parm
-	value_t	val
+	  Hamlib::Rig	rig
+	  setting_t	parm
+	  value_t	val
 
 int
 rig_set_powerstat(rig, status)
-	RIG *	rig
+	Hamlib::Rig	rig
 	powerstat_t	status
 
 int
-rig_set_ptt(rig, vfo, ptt)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_ptt(rig, ptt, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	ptt_t	ptt
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, ptt
 
 int
-rig_set_rit(rig, vfo, rit)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_rit(rig, rit, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	shortfreq_t	rit
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, rit
 
 int
-rig_set_rptr_offs(rig, vfo, rptr_offs)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_rptr_offs(rig, rptr_offs, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	shortfreq_t	rptr_offs
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, rptr_offs
 
 int
-rig_set_rptr_shift(rig, vfo, rptr_shift)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_rptr_shift(rig, rptr_shift, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	rptr_shift_t	rptr_shift
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, rptr_shift
 
 int
-rig_set_split(rig, vfo, split)
-	RIG *	rig
-	vfo_t	vfo
-	split_t	split
+rig_set_split(rig, split, vfo = RIG_VFO_CURR)
+	  Hamlib::Rig	rig
+	  split_t	split
+	  vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, split
 
 int
 rig_set_trn(rig, trn)
-	RIG *	rig
+	Hamlib::Rig	rig
 	int	trn
 
 int
-rig_set_ts(rig, vfo, ts)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_ts(rig, ts, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	shortfreq_t	ts
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, ts
 
 int
-rig_set_xit(rig, vfo, xit)
-	RIG *	rig
-	vfo_t	vfo
+rig_set_xit(rig, xit, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	shortfreq_t	xit
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, xit
 
 int
 rig_setting2idx(s)
@@ -3232,10 +3498,12 @@ rig_unregister(rig_model)
 	rig_model_t	rig_model
 
 int
-rig_vfo_op(rig, vfo, op)
-	RIG *	rig
-	vfo_t	vfo
+rig_vfo_op(rig, op, vfo = RIG_VFO_CURR)
+	Hamlib::Rig	rig
 	vfo_op_t	op
+	vfo_t	vfo
+	C_ARGS:
+	  rig, vfo, op
 
 const char *
 rigerror(errnum)
