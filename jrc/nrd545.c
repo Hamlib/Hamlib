@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.10 2004-08-01 21:23:41 fillods Exp $
+ *	$Id: nrd545.c,v 1.11 2004-08-08 20:13:19 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,11 +31,11 @@
 #include "jrc.h"
 
 
-#define NRD545_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define NRD545_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_AMS|RIG_MODE_ECSS)
 
-#define NRD545_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_ABM|RIG_FUNC_BC|RIG_FUNC_NR)
+#define NRD545_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_BC|RIG_FUNC_NR)
 
-#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_ATT|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH)
+#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH)
 
 /* FIXME: add more from "U" command */
 #define NRD545_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
@@ -45,8 +45,22 @@
 /*
  * FIXME: measure S-meter levels
  */
-#define NRD545_STR_CAL { 2, { \
+#define NRD545_STR_CAL { 16, { \
 		{   0, -60 }, \
+		{  36, -48 }, \
+		{  42, -42 }, \
+		{  48, -36 }, \
+		{  55, -30 }, \
+		{  60, -24 }, \
+		{  67, -18 }, \
+		{  72, -12 }, \
+		{  78, -6 }, \
+		{  87,  0 }, \
+		{ 107, 10 }, \
+		{ 126, 20 }, \
+		{ 146, 30 }, \
+		{ 164, 40 }, \
+		{ 186, 50 }, \
 		{ 255, 60 }, \
 	} }
 
@@ -58,7 +72,7 @@
 	.mode = 1,	\
 	.width = 1,	\
 	.levels = RIG_LEVEL_ATT|RIG_LEVEL_AGC, \
-} 
+}
 
 
 static const struct jrc_priv_caps nrd545_priv_caps = {
@@ -155,7 +169,7 @@ const struct rig_caps nrd545_caps = {
 	},
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(10)},
+		{RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_FM, kHz(10)},
 		{NRD545_MODES, kHz(2.4)},
 		{NRD545_MODES, kHz(1)},
 		{NRD545_MODES, kHz(4.5)},

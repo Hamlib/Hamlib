@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.13 2004-06-04 21:48:03 fillods Exp $
+ *	$Id: jrc.c,v 1.14 2004-08-08 20:12:16 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,8 +56,9 @@
 #define MD_AM	'4'
 #define MD_FM 	'5'
 #define MD_AMS	'6'
-#define MD_ECCS_USB	'7'
-#define MD_ECCS_LSB	'8'
+#define MD_FAX	'6'
+#define MD_ECSS_USB	'7'
+#define MD_ECSS_LSB	'8'
 #define MD_WFM	'9'
 
 
@@ -144,7 +145,7 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		retval = jrc_transaction (rig, "I" EOM, 2, freqbuf, &freq_len);
 		if (retval != RIG_OK)
 		  return retval;
-				
+
 		//I command returns Iabdffffffffg<CR>
 		if (freqbuf[0] != 'I' || freq_len != priv->info_len) {
 		  rig_debug(RIG_DEBUG_ERR,"jrc_get_freq: wrong answer %s, "
@@ -172,7 +173,6 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		const char *bandwidth;
 
 		switch (mode) {
-		  /* FIXME: ECSS modes */
 		case RIG_MODE_CW:       amode = MD_CW; break;
 		case RIG_MODE_USB:      amode = MD_USB; break;
 		case RIG_MODE_LSB:      amode = MD_LSB; break;
@@ -181,6 +181,9 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		case RIG_MODE_RTTY:	amode = MD_RTTY; break;
 		case RIG_MODE_WFM:	amode = MD_WFM; break;
 		case RIG_MODE_AMS:	amode = MD_AMS; break;
+		case RIG_MODE_FAX:	amode = MD_FAX; break;
+		case RIG_MODE_ECSSUSB:	amode = MD_ECSS_USB; break;
+		case RIG_MODE_ECSSLSB:	amode = MD_ECSS_LSB; break;
 		default:
 		  rig_debug(RIG_DEBUG_ERR,
 			    "jrc_set_mode: unsupported mode %d\n", mode);
@@ -222,7 +225,7 @@ int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		char freqbuf[BUFSZ];
 		char cmode;
 		char cwidth;
-		
+
 		//note: JRCs use "I" to get information
 		retval = jrc_transaction (rig, "I" EOM, 2, freqbuf, &freq_len);
 		if (retval != RIG_OK)
@@ -260,9 +263,14 @@ int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		case '3' : *mode = RIG_MODE_LSB; break;
 		case '4' : *mode = RIG_MODE_AM; break;
 		case '5' : *mode = RIG_MODE_FM; break;
-		case '6' : *mode = RIG_MODE_AMS; break;  //FAX on nrd535
-		case '7' : *mode = RIG_MODE_AMS; break;  //ECSS-USB
-		case '8' : *mode = RIG_MODE_AMS; break;  //ECSS-LSB
+		case '6' : if (rig->caps->rig_model == RIG_MODEL_NRD535) {
+		             *mode = RIG_MODE_FAX; break;  //FAX on nrd535
+					}
+		           else {
+		             *mode = RIG_MODE_AMS; break;  //AMS on nrd545
+				   }
+		case '7' : *mode = RIG_MODE_ECSSUSB; break;  //ECSS-USB
+		case '8' : *mode = RIG_MODE_ECSSLSB; break;  //ECSS-LSB
 		case '9' : *mode = RIG_MODE_WFM; break;  //nrd545 only
 		default:
 		  rig_debug(RIG_DEBUG_ERR,
@@ -356,7 +364,7 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		  }
 		  //*status = funcbuf[1] != '2';
 		  *status = funcbuf[4+priv->max_freq_len] != '2';
-		  
+
 		  return RIG_OK;
 
 		case RIG_FUNC_NB:
@@ -469,8 +477,8 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 		case RIG_LEVEL_AGC:
 		  if (val.i < 10)
-		  	cmd_len = sprintf(cmdbuf, "G%d" EOM, 
-				  val.i == RIG_AGC_SLOW ? 0 : 
+		  	cmd_len = sprintf(cmdbuf, "G%d" EOM,
+				  val.i == RIG_AGC_SLOW ? 0 :
 				  val.i == RIG_AGC_FAST ? 1 : 2);
 		  else
 		  	cmd_len = sprintf(cmdbuf, "G3%03d" EOM, val.i/20);
@@ -520,17 +528,34 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  retval = jrc_transaction (rig, "M" EOM, 2, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvl_len != 5) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
 		    return -RIG_ERJCTED;
 		  }
-		  
+
 		  lvlbuf[4] = '\0';
 		  val->i = atoi(lvlbuf+1);
 		  break;
-		  
+
+		case RIG_LEVEL_STRENGTH:
+		  /* read calibrated A/D converted value */
+		  retval = jrc_transaction (rig, "M" EOM, 2, lvlbuf, &lvl_len);
+		  if (retval != RIG_OK)
+		    return retval;
+
+		  if (lvl_len != 5) {
+		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
+			      "len=%d\n", lvl_len);
+		    return -RIG_ERJCTED;
+		  }
+
+		  lvlbuf[4] = '\0';
+		  int ss = atoi(lvlbuf+1);
+		  val->i = (int)rig_raw2val(ss,&rig->caps->str_cal);
+		  break;
+
 		case RIG_LEVEL_SQLSTAT:
 		  return -RIG_ENIMPL;	/* get_dcd ? */
 
@@ -578,7 +603,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  retval = jrc_transaction (rig, "HH" EOM, 3, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvl_len != 6) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
@@ -595,7 +620,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  retval = jrc_transaction (rig, "JJ" EOM, 3, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvl_len != 6) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
@@ -607,12 +632,12 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  sscanf(lvlbuf+2, "%u", &lvl);
 		  val->f = (float)lvl/255.0;
 		  break;
-		  
+
 		case RIG_LEVEL_SQL:
 		  retval = jrc_transaction (rig, "LL" EOM, 3, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvl_len != 6) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
@@ -624,12 +649,12 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  sscanf(lvlbuf+2, "%u", &lvl);
 		  val->f = (float)lvl/255.0;
 		  break;
-		  
+
 		case RIG_LEVEL_NOTCHF:
 		  retval = jrc_transaction (rig, "GG" EOM, 3, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvl_len != 8) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
@@ -648,7 +673,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  retval = jrc_transaction (rig, cwbuf, cw_len, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvl_len != cw_len+5) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
@@ -663,7 +688,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  retval = jrc_transaction (rig, "P" EOM, 2, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvlbuf[0] != 'P' || lvl_len != priv->pbs_info_len) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
@@ -709,21 +734,21 @@ int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
 		case RIG_PARM_BEEP:
 
 		  cmd_len = sprintf(cmdbuf, "U%0*d" EOM, priv->beep_len, priv->beep + val.i?1:0);
-		  
+
 		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 		case RIG_PARM_TIME:
 		  minutes = val.i/60;
-		  cmd_len = sprintf(cmdbuf, "R1%02d%02d" EOM, 
+		  cmd_len = sprintf(cmdbuf, "R1%02d%02d" EOM,
 				    minutes/60, minutes%60);
-		  
+
 		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
-		  
+
 		default:
 		  rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
 		  return -RIG_EINVAL;
 		}
-		
+
 		return RIG_OK;
 }
 
@@ -747,14 +772,14 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 		  retval = jrc_transaction (rig, "R0" EOM, 3, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  /* "Rhhmmss"CR */
 		  if (lvl_len != 8) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_parm: wrong answer"
 			      "len=%d\n", lvl_len);
 		    return -RIG_ERJCTED;
 		  }
-		  
+
 		  /* convert ASCII to numeric 0..9 */
 		  for (i=1; i<7; i++) {
 		    lvlbuf[i] -= '0';
@@ -763,13 +788,13 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 			     10*lvlbuf[3] + lvlbuf[4])*60 +	/* minutes */
 		             10*lvlbuf[5] + lvlbuf[6];	/* secondes */
 		  break;
-		  
+
 		case RIG_PARM_BEEP:
-		  cmd_len = sprintf(cmdbuf, "U%d" EOM, priv->beep/10);  
+		  cmd_len = sprintf(cmdbuf, "U%d" EOM, priv->beep/10);
 		  retval = jrc_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
-		  
+
 		  if (lvl_len != priv->beep_len+2) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_parm: wrong answer"
 			      "len=%d\n", lvl_len);
@@ -778,7 +803,7 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 
 		  val->i = lvlbuf[priv->beep_len] == 0 ? 0 : 1;
 		  break;
-		  
+
 		default:
 		  rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d\n", parm);
 		  return -RIG_EINVAL;
@@ -876,7 +901,7 @@ int jrc_reset(RIG *rig, reset_t reset)
 			case RIG_RESET_MCALL: rst='1'; break;	/* mem clear */
 			case RIG_RESET_VFO: rst='2'; break;		/* user setup default */
 			case RIG_RESET_MASTER: rst='3'; break;	/* 1 + 2 */
-			default: 
+			default:
 				rig_debug(RIG_DEBUG_ERR,"jrc_reset: unsupported reset %d\n",
 								reset);
 				return -RIG_EINVAL;
@@ -945,7 +970,7 @@ int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 		switch(op) {
 			case RIG_OP_FROM_VFO: cmd="E1" EOM; break;
-			default: 
+			default:
 				rig_debug(RIG_DEBUG_ERR,"jrc_vfo_op: unsupported op %#x\n",
 								op);
 				return -RIG_EINVAL;
@@ -959,7 +984,7 @@ int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  * jrc_scan, scan operation
  * Assumes rig!=NULL
  *
- * Not really a scan operation so speaking. 
+ * Not really a scan operation so speaking.
  * You just make the rig increment frequency of decrement continuously,
  * depending on the sign of ch.
  * However, using DCD sensing, followed by a stop, you get it.
@@ -983,17 +1008,25 @@ int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 		return jrc_transaction (rig, scan_cmd, 3, NULL, NULL);
 }
 
-static int jrc2rig_mode(RIG *rig, char jmode, char jwidth, 
+static int jrc2rig_mode(RIG *rig, char jmode, char jwidth,
 				rmode_t *mode, pbwidth_t *width)
 {
 		switch (jmode) {
-		case MD_CW:	*mode = RIG_MODE_CW; break;
-		case MD_USB:	*mode = RIG_MODE_USB; break;
-		case MD_LSB:	*mode = RIG_MODE_LSB; break;
-		case MD_FM:	*mode = RIG_MODE_FM; break;
-		case MD_AM:	*mode = RIG_MODE_AM; break;
-		case MD_RTTY:	*mode = RIG_MODE_RTTY; break;
-		case MD_WFM:	*mode = RIG_MODE_WFM; break;
+		case MD_CW:			*mode = RIG_MODE_CW; break;
+		case MD_USB:		*mode = RIG_MODE_USB; break;
+		case MD_LSB:		*mode = RIG_MODE_LSB; break;
+		case MD_FM:			*mode = RIG_MODE_FM; break;
+		case MD_AM:			*mode = RIG_MODE_AM; break;
+		case MD_AMS:		if (rig->caps->rig_model == RIG_MODEL_NRD535) {
+								*mode = RIG_MODE_FAX; break;
+							}
+							else {
+								*mode = RIG_MODE_AMS; break;
+							}
+		case MD_ECSS_USB:	*mode = RIG_MODE_ECSSUSB; break;
+		case MD_ECSS_LSB:	*mode = RIG_MODE_ECSSLSB; break;
+		case MD_RTTY:		*mode = RIG_MODE_RTTY; break;
+		case MD_WFM:		*mode = RIG_MODE_WFM; break;
 		default:
 		  rig_debug(RIG_DEBUG_ERR,
 			    "jrc_set_mode: unsupported mode %c\n",
@@ -1036,7 +1069,7 @@ int jrc_decode_event(RIG *rig)
 		struct rig_state *rs;
 		freq_t freq;
 		rmode_t mode;
-		pbwidth_t width; 
+		pbwidth_t width;
 		int count;
 		char buf[BUFSZ];
 
@@ -1066,7 +1099,7 @@ int jrc_decode_event(RIG *rig)
 
 		if (rig->callbacks.freq_event) {
 		  long long f;
-		  
+
 		  //buf[14] = '\0';	/* side-effect: destroy AGC first digit! */
 		  buf[4+priv->max_freq_len] = '\0';	/* side-effect: destroy AGC first digit! */
 		  sscanf(buf+4, "%lld", &f);
@@ -1074,13 +1107,13 @@ int jrc_decode_event(RIG *rig)
 		  return rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
 						   rig->callbacks.freq_arg);
 		}
-		
+
 		if (rig->callbacks.mode_event) {
 		  jrc2rig_mode(rig, buf[3], buf[2], &mode, &width);
 		  return rig->callbacks.mode_event(rig, RIG_VFO_CURR, mode, width,
 						   rig->callbacks.freq_arg);
 		}
-		
+
 		return RIG_OK;
 }
 

@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-535 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd535.c,v 1.6 2004-08-01 21:23:41 fillods Exp $
+ *	$Id: nrd535.c,v 1.7 2004-08-08 20:12:55 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,11 +31,11 @@
 #include "jrc.h"
 
 
-#define NRD535_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)	/* + FAX */
+#define NRD535_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_ECSS|RIG_MODE_FAX)	/* + FAX */
 
-#define NRD535_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_ABM)
+#define NRD535_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB)
 
-#define NRD535_LEVEL (RIG_LEVEL_RAWSTR|RIG_LEVEL_ATT|RIG_LEVEL_IF|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH)
+#define NRD535_LEVEL (RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ATT|RIG_LEVEL_IF|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH)
 
 /* FIXME: add more from "U" command */
 #define NRD535_PARM (RIG_PARM_TIME|RIG_PARM_BEEP)
@@ -47,14 +47,22 @@
  *
  * FIXME: measure S-meter levels
  */
-#define NRD535_STR_CAL { 8, { \
+#define NRD535_STR_CAL { 16, { \
 		{   0, 60 }, \
-		{  72, 50 }, \
+		{  71, 50 }, \
+		{  75, 40 }, \
 		{  81, 30 }, \
+		{  87, 20 }, \
 		{  93, 10 }, \
 		{ 100,  0 }, \
-		{ 106, -12 }, \
+		{ 103, -6 }, \
+		{ 107, -12 }, \
+		{ 112, -18 }, \
 		{ 118, -24 }, \
+		{ 124, -30 }, \
+		{ 133, -36 }, \
+		{ 143, -42 }, \
+		{ 152, -48 }, \
 		{ 255, -60 }, \
 	} }
 
@@ -68,7 +76,7 @@
 	.width = 1,	\
 	.funcs = RIG_FUNC_FAGC, \
 	.levels = RIG_LEVEL_ATT|RIG_LEVEL_AGC, \
-} 
+}
 
 static const struct jrc_priv_caps nrd535_priv_caps = {
 	.max_freq_len = 8,
@@ -159,7 +167,7 @@ const struct rig_caps nrd535_caps = {
 	},
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
-		{RIG_MODE_FM, kHz(12)},
+		{NRD535_MODES, kHz(12)},
 		{NRD535_MODES, kHz(2)},
 		{NRD535_MODES, kHz(1)},
 		{NRD535_MODES, kHz(6)},
