@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.7 2000-09-04 19:58:55 javabear Exp $  
+ *    $Id: ft747.h,v 1.8 2000-09-16 23:15:42 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +26,36 @@
  * 
  */
 
+
+#ifndef _FT747_H
+#define _FT747_H 1
+
+
+
+/*
+ * future - private data
+ *
+ */
+
+struct ft747_priv_data {
+  int dummy;			/* for test */
+};
+
+
+
+/* 
+ * API local implementation 
+ */
+
+int ft747_init(RIG *rig);
+int ft747_cleanup(RIG *rig);
+int cmd_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
+
+  /*
+    int (*set_freq)(RIG *rig, freq_t freq);
+    int (*set_mode)(RIG *rig, rig_mode_t mode);
+    int (*set_vfo)(RIG *rig, rig_vfo_t vfo);
+  */
 
 /*
  * Allow TX commands to be disabled
@@ -88,16 +118,13 @@ const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 2
  *
  */
 
-/*  int rig_open(char *serial_port); */ /* return fd or -1 on error */
-
-int rig_close(int fd);		 /* close port using fd */
-struct rig_caps *rig_get_caps(); /* return ptr to capabilities */
-int rig_open(struct rig_caps *rc); /* use rig_caps struct to open */
-
 /*
  * set commands
  */
 
+
+
+#if 0
 
 void cmd_set_split_yes(int fd);
 void cmd_set_split_no(int fd);
@@ -112,7 +139,11 @@ void cmd_set_up500k(int fd);
 void cmd_set_down500k(int fd);
 void cmd_set_clarify_off(int fd);
 void cmd_set_clarify_on(int fd);
-void cmd_set_freq(int fd, unsigned int freq);
+
+/*
+ *void cmd_set_freq(int fd, unsigned int freq);
+ */
+
 void cmd_set_mode(int fd, int mode);
 void cmd_set_pacing(int fd, int delay);
 void cmd_set_ptt_off(int fd);
@@ -124,5 +155,7 @@ void cmd_set_ptt_on(int fd);	/* careful.. */
 
 void cmd_get_update_store(int fd, unsigned char *buffer); /* data external */
 
+#endif
 
 
+#endif /* _FT747_H */
