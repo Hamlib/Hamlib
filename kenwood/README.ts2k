@@ -1,6 +1,6 @@
 
 Status:	Being Overhauled.  Consider it broken.
-	Still depends on new features in private rig.h.
+	Temporary kludge to force compile (broke Hamlib!)
 
 	The ts2k.[ch] are for the TS-2000.  I'm too lazy to spell it any
 	different.
@@ -45,6 +45,7 @@ File change summary:	(Hopefully, I'll keep this updated...)
 	ts2000.h	renamed ts2000.c to ts2000.h
 	rigctl.c	Added comments: [# | ;] anything... [\n | \r]
 
+// rig.h *NOT* modified in CVS!!!!
 	include/hamlib/rig.h:	(nothing extraordinary.  yet.)
 			added RIG_FUNC_ALL, RIG_PARM_ALL, RIG_LEVEL_ALL.
 			added RIG_FUNC_EXCLUDE, RIG_PARM_EXCLUDE, RIG_LEVEL_EXCLUDE
