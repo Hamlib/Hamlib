@@ -1,0 +1,351 @@
+
+Version: June 6, 2002
+
+	This document provides some data on translating commands from the
+	TS-2000 to/from hamlib.  It shows the sequence that should be used
+	to acheive a particular function result.  Sometimes a particular
+	sequence should be called.
+							--D. Edmons, kd7eni
+
+
+	Note: As a standard convention, I *always* send lowercase to the
+		ts-2000.  Replies are *always* in uppercase.  One then
+		can determine the source of any string.
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+api_func()	"TS-2000_string"	ts2000_function()
+--------------------------------------------------------------------------------
+rigerr()	"?;"			1) syntax error
+					2) command not executed
+					3) transient error
+					4) bug? some commands cannot be
+					  sent twice--see 2)--or rig will
+					  send this.  "tx;" is one of them!
+
+					note: should retry at least once!
+						if 4) don't apply
+
+		"E;"			1) communication error
+		"O;"			1) processing incomplete
+
+for_each_opened_rig()			none
+
+rig_init()	"id;"			ts2000_init()
+		"ID019;"		ts2000_get_id() ?
+
+	Note: rig_init() should check several things and set a global
+		status.  These are as follows:
+
+		"sc;"	Rig is *not* multitasking for 80% of all commands
+			If "SC1;", on either main or sub *both* must be
+			halted before most commands will function.  These may
+			be restored after command is executed or not if the
+			command superceeds scan mode.
+		"fr;"/"ft;" or "if;"	If in memory mode, the rig won't always
+			act appropriately to serial port requests.
+		"qr;"	if quick memory set, same as previous
+		"sr2;"	*never* do this or somebody'll be real angry!
+		"ai;"	Check if autoinformation is on!  If so, you will get
+			continuous output from the 2k (TS-2000).  To turn it
+			off: "ai0;", and on: "ai2;"
+		"?;"	If this occurs, one of the above may be the cause.  Also,
+			the user may have a menu currently selected using the
+			rig front panel.  I currently don't know any way to get
+			this info from the rig.  I highly reccomend that a
+			message be sent to the user if "?;" occurs on more than
+			one retry, that he/she must deselect this manually.
+			There is no other way.  (I've enabled "ai2;" and no
+			string is sent when menu button is pressed or released
+			unless an option is changed "ex...;")
+
+rig_open()				see rig_init()
+
+rig_close()
+
+rig_cleanup()				none
+
+rig_get_freq()				Independent of PTT/CTRL
+rig_set_freq()	"fa...;", "fb...;"	main receiver only
+		"fc...;"		sub reciever only
+
+rig_get_mode()
+rig_set_mode()	"if...;"		CTRL receiver only
+					Reads multiple paramaters at once.
+		"oi...;"		!CTRL receiver only
+					Reads multiple paramaters at once.
+		"md...;"		Changes the operating mod of the current
+					receiver (main or sub)
+					ts2000_sub_pwr()
+					ts2000_get_info() if/oi
+
+rig_get_vfo()				*Main* only
+rig_set_vfo()	"fr...;", "ft...;"	These can force split mode if not driven
+					the same.  Sending "fr...;" after "ft...;"
+					can change "ft...;" to match "fr...;"
+					Use "fr...;" first and then "ft...;" and
+					things should work ok even if you use this
+					select 'split' mode.  If split mode is
+					entered, setting "fr...;" will not take
+					it out.  Always both and in the sequence
+					noted in the middle column. 
+					These should be set in rig_set_vfo()
+					unless split frequency is being changed.
+					*Sub* only
+					Both "ft...;" and "fr...;" alway match
+					and split not available.  Setting vfo_b
+					is not an error but reads back as vfo_a
+					which would be an error.  
+		"dc...;"		Changes PTT/CTRL to main or sub.
+
+rig_get_ptt()	"dc;"			
+rig_set_ptt()	"dc...;"		The modes are as follows:
+					"dc00;"	PTT on main (and CTRL)
+					"dc01;" PTT on main (CTRL on sub)
+					"dc10;" PTT on sub (CTRL on main)
+					"dc11;" PTT on sub (and CTRL)
+rig_get_rptr_shift()
+rig_get_rptr_shift()
+		"os...;"		sets simplex, +, or - offset
+					for E-type use: "os3;"
+
+rig_get_rptr_offs()
+rig_get_rptr_offs()
+		"of...;"		sets offset frequency in Hz
+
+rig_get_split_freq()			*Main* only
+rig_set_split_freq()
+					First test "fr;" and "ft;" and use
+					the following accordingly:
+rig_get_split()
+rig_set_split()
+rig_get_vfo()
+rig_set_vfo()				acts on CTRL transceiver only
+					note: always set receive first
+						and rig behaves better
+		"fr0;"			set receive on vfo_a
+		"ft1;"			set transmit on vfo_b
+
+		"fr1;"			set receive on vfo_b
+		"ft0;"			set transmit on vfo_a
+
+		"ft2;"			mem
+		"ft3;"			call
+
+rig_get_rit()
+rig_set_rit()
+rig_get_xit()
+rig_set_xit()
+		"rt...;"		RIT on/off, read
+		"xt...;"		XIT on/off, read
+
+		"rc;"			clears offset (=0 Hz)
+
+		"if;"			Get much info for CTRL including
+					xit/rit on/of + offset in Hz
+					ts2000_get_rit_hz()
+		"oi;"			Get much info for !CTRL including
+					xit/rit on/of + offset in Hz
+					If CTRL is on main, "if;" reads main
+					and "oi;" reads sub.  One still needs
+					"dc;" to determine which transceiver
+					has CTRL selected at any given moment!
+
+	Proceedure:	As far as I can tell, do as follows:
+		1) turn on xit or rit
+			"rt1;" or "xt;"
+		2) read current offset ("if;")
+		3) clear offset if desired
+			"rc;"
+		4) ensure main is selected
+			"dc00;"
+		5) 	"ru12345;" (or "rd12345;" for negative offset)
+			"ru;" will add 10Hz, "ru00001;" will add 1Hz
+		6) if offset is already correct, 4),3) may be skipped
+
+rig_get_ts()
+rig_set_ts()
+		"st...;"		depends on current mode
+
+rig_power2mW()				none
+rig_mW2power()				none
+
+rig_get_dcs()
+rig_set_dcs()
+rig_get_ctcss()
+rig_set_ctcss()	"tn...;"		get/set tone freq
+		"cn...;"		get/set ctcss freq
+		"qc...;"		get/set dcs freq
+
+rig_get_dcs_sql()
+rig_set_dcs_sql()
+rig_get_ctcss_sql()
+rig_set_ctcss_sql()
+		"ct...;"		enable/disable ctcss
+		"to...;"		enable/disable tone (3=noop!) (use 0 or 1)
+		"dq...;"		enable/disable dcs
+
+		Note:	sending "ct1;" results in "to0;" and "dq0;" being set.
+			These are exclusive of the others, but all may be off
+			as determined using minicom and setting "ai2;"  :)
+
+			I may have the enable verses set freq backwards with respect
+			to the c/c++ function.
+
+rig_poweroff()	"ps0;"			turn rig power off
+		"sb0;"			turn sub-receiver off (set to VFO
+					mode first--you have been properly
+					warned.)  If left in scan, then
+					powered off, main is still affected
+					as if sub is still scanning!  This
+					is better read as sub-display off.
+					However, you can't switch CTRL to
+					sub to place it in vfo mode....
+					(You've switch power off...)  ;)
+
+rig_poweron()	"ps1;"		listed but *not* functional (tell user to
+					manually intervene.)  The b2000 may?
+		"ps;"			either on or no reply!  silly huh?
+		"sb1;"			turns sub-receiver on (display
+					and controls now work).
+
+rig_get_level()				???
+rig_set_level()		// caveats will be listed as found...
+
+// This isn't set-level stuff is it?  what was I thinking?
+		"to0;"	"to0;"		Second command is an error!
+		"to1;"	"to1;"		Second command is an error!
+		"to2;"			Toggles current ( curr=!curr )	
+		"to3;"			doesn't toggle ( curr = curr ) NOOP
+	correct preceedure:
+		send("to;", reply);	// request current
+		if( reply!=request) send("to2;", NOREPLY);
+
+		"ct0;"			same as above but '2','3' not avail!
+		"ct1;"			Correct command can be sent but
+					error occurs if rig is already in
+					requested mode.  "?;" should then
+					be ignored.  (applies to "to...;"
+					also.)
+
+rig_has_level()				???
+rig_has_set_level()			???
+rig_has_func()				???
+rig_has_set_func()			???
+rig_get_func()				???
+
+rig_get_mem()	"mr...;"		memory read
+rig_set_mem()	"mw...;"		memory write
+					each memory has a tx and rx, so
+					you may do split memory.
+
+rig_mv_ctl()	"fa...;", "fb...;", "fc...;"	vfo freq
+		"ft...;", "fr...;"		vfo select (A, B, mem, call)
+		"mc...;"			memory channel select
+
+rig_set_bank()				none (only 300 memories)
+
+		Note: There is a related function: "pm...;".  There are five
+			of these "programable memories".  The manual barely even
+			mentions it.  I don't know of any way to access these
+			other than with the "pm...;"  As far as I have been able
+			to determine, the menu A/B settings etc get saved but
+			*not* the channel memories!  These may be related or
+			similar to the five or ten satellite memories etc??
+
+			To set the programable memory use "pi...;" and use
+			"pm...;" to recall it.  Values are 0-5.  "pi0;" is
+			not valid, but "pm0;" is.
+
+rig_set_channel()			?? see rig_get_mem() ??
+
+rig_get_range()				
+
+rig_get_trn()	"ai;"			auto info get state
+rig_set_trn()	"ai0;", "ai2;"		auto info on/off
+
+rig_get_info()				unknown
+		related:	"if;", "oi;"		get info for main, sub
+				"id;"			019 => TS-2000
+
+--------------------------------------------------------------------------------
+
+End of functions documented in hamlib-1.1.0.pdf.
+
+--------------------------------------------------------------------------------
+
+	Other notes of interest.
+
+	"dc00;"	PTT/CTRL both on main receiver (e.g. selects main as current!)
+	"dc11;"	PTT/CTRL both on sub receiver (e.g. selects sub as current!)
+	"sb1;"	Power up/down sub-receiver
+
+	"mf0;", "mf1;"	The ts2k (TS-2000) may send these to switch between
+		menuA and menuB.
+		It isn't possible to see if the user has pressed the menu
+		button.  However, after the button is pressed a second time
+		the rig sends the "ex...;" command the user changed.  The
+		rig will set what the user selects immediately in the rig,
+		but doesn't send them out the port until menu is deselected.
+		I use "mf0;" (menuA) for VHF settings and "mf1;" (menuB)
+		for HF settings.
+		
+
+	"?;"	When this occurs the previous command should always be retried.
+		However, several of the things as in rig_init() may be the
+		culprit.  If this occurs, then check more closely as in rig_init()
+		before retrying or it may be a waste of time.  Additionally,
+		some commands send this if the current mode is not compatible
+		with the one just sent.  This is just common sense usually.
+
+		Note: there are exceptions to this.  see BUGERR in ts2k.h
+			and "to...;" "ct...;" above... (also occurs on
+			"tx;" if sent twice)
+
+	"pk...;"	Packet clusters are received when:
+				1) TNC on sub
+				2) sub freq set to station sending packet clusters
+				3) "cm1;" sent to rig
+		Sending "pk;" to the receiver retreives the PCT data.  If you
+		send the ";" again, the rig sends the data again.  Up to 10
+		are saved in temporary memory pushing out the oldest.  But,
+		true to form, there is a bug.  When PCT is active "qr...;"
+		should recall past data.  It don't.  Moreover, "qr...;"
+		actually writes the quick memory to the current VFO rather
+		than the PCT.  There appears to be no way to fully use this
+		without going to the TNC directly using "tc 0;".  Again,
+		true to form, once the TNC is active, you must use the panel
+		menu to turn the TNC off and there is no way to fully use
+		this in software.  The B2000 must have better firmware and
+		slightly different hardware.  Else, there's something
+		Kenwood isn't telling us! 
+
+		TNC summary:
+			"pk...;"	retreive last PCT data
+			"cm...;"	enable/disable PCT
+			"tc ..;"	(note space) TNC ext/int (sortof)
+			"ex055...;"	enable (*cannot* disable) TNC
+					Once "tc 0;" is set, the serial line
+					is an active TNC port and not the
+					rig port.  Since the TNC don't have
+					an exit or quit command, it stays
+					active until user goes to menu(55)
+					and turns it off!  Sending a ";"
+					doesn't help but "\n" is the TNC
+					end of line and shows your errors.
+					("\nEH?\ncmd:")
+
+		Sending any full command stops the rig from replying to single
+		";"'s (after "pk...;").  The "ai...;" command does not seem to be related even
+		though the manual says it is.  (Original paperback, not new pdf)
+		("ai...;" seemed to bring the rig out of its confused stat when
+		"qr...;" was sent, but I don't what happened.  PCT would not
+		function via the panel but I didn't think to try "cm...;"
+
+		Avoid the TS-2000 if you have more than a casual interest in
+		its digital modes and want your rig in the attic!
+
+
+		Kenwood seems very disinterested in making firmware updates
+		available under linux.  Any suggestions?
+
