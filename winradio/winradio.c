@@ -2,13 +2,13 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
  * winradio.c - Copyright (C) 2001 pab@users.sourceforge.net
- * Derived from hamlib code (C) 2000 Stephane Fillod.
+ * Derived from hamlib code (C) 2000,2001 Stephane Fillod.
  *
  * This shared library supports winradio receivers through the
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.7 2001-04-22 13:57:39 f4cfe Exp $
+ *		$Id: winradio.c,v 1.8 2001-04-26 21:32:54 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -77,15 +77,12 @@ int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   case RIG_MODE_WFM: m = RMD_FMW; break;
   case RIG_MODE_FM:
     switch ( width ) {
-#ifdef RIG_PASSBAND_OLDTIME
-    case RIG_PASSBAND_NARROW: m = RMD_FM6; break;
-#else
-	/* TODO */
-#endif
-    case RIG_PASSBAND_NORMAL: m = RMD_FMN; break;
-#ifdef RIG_PASSBAND_OLDTIME
-    case RIG_PASSBAND_WIDE:   m = RMD_FMW; break;
-#endif
+    case RIG_PASSBAND_NORMAL:
+    case kHz(17):
+    case kHz(15): m = RMD_FMN; break;
+
+    case kHz(6): m = RMD_FM6; break;
+    case kHz(50): m = RMD_FMM; break;
     default: return -RIG_EINVAL;
     }
   default: return -RIG_EINVAL;
@@ -97,20 +94,22 @@ int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
 int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   unsigned long m;
   if ( ioctl(rig->state.fd, RADIO_GET_MODE, &m) ) return -RIG_EINVAL;
+
+  *width = RIG_PASSBAND_NORMAL;
   switch ( m ) {
-  case RMD_CW: *mode = RIG_MODE_CW; *width = RIG_PASSBAND_NORMAL; break;
-  case RMD_AM: *mode = RIG_MODE_AM; *width = RIG_PASSBAND_NORMAL; break;
-#ifdef RIG_PASSBAND_OLDTIME
-  case RMD_FMN: *mode = RIG_MODE_FM; *width = RIG_PASSBAND_NARROW; break;
-  case RMD_FM6: *mode = RIG_MODE_FM; *width = RIG_PASSBAND_NARROW; break;
-#else
-				/* TODO */
-#endif
-  case RMD_FMW: *mode = RIG_MODE_WFM; *width = RIG_PASSBAND_NORMAL; break;
-  case RMD_LSB: *mode = RIG_MODE_LSB; *width = RIG_PASSBAND_NORMAL; break;
-  case RMD_USB: *mode = RIG_MODE_USB; *width = RIG_PASSBAND_NORMAL; break;
+  case RMD_CW: *mode = RIG_MODE_CW; break;
+  case RMD_AM: *mode = RIG_MODE_AM; break;
+  case RMD_FMN: *mode = RIG_MODE_FM; break; /* 15kHz or 17kHz on WR-3100 */
+  case RMD_FM6: *mode = RIG_MODE_FM; break; /* 6kHz */
+  case RMD_FMM: *mode = RIG_MODE_FM; break; /* 50kHz */
+  case RMD_FMW: *mode = RIG_MODE_WFM; break;
+  case RMD_LSB: *mode = RIG_MODE_LSB; break;
+  case RMD_USB: *mode = RIG_MODE_USB; break;
   default: return -RIG_EINVAL;
   }
+  if (*width == RIG_PASSBAND_NORMAL)
+  	*width = rig_passband_normal(rig,*mode);
+
   return RIG_OK;
 }
 

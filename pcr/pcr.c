@@ -6,7 +6,7 @@
  * via serial interface to an Icom PCR-1xxx radio.
  *
  *
- *	$Id: pcr.c,v 1.2 2001-04-22 13:57:39 f4cfe Exp $  
+ *	$Id: pcr.c,v 1.3 2001-04-26 21:32:32 f4cfe Exp $  
  *
  *
  *
@@ -228,28 +228,27 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_LSB:	pcrmode = MD_LSB; pcrfilter = FLT_2_8kHz; break;
 			case RIG_MODE_AM:	pcrmode = MD_AM; pcrfilter = FLT_15kHz; break;
 			case RIG_MODE_WFM:	pcrmode = MD_WFM; pcrfilter = FLT_230kHz; break;
-			case RIG_MODE_FM:
-					pcrmode = MD_FM;
-					switch (width) {
-						case RIG_PASSBAND_NORMAL: pcrfilter = FLT_15kHz; break;
-#ifdef RIG_PASSBAND_OLDTIME
-						case RIG_PASSBAND_NARROW: pcrfilter = FLT_6kHz; break;
-						case RIG_PASSBAND_WIDE:
-								pcrmode = MD_WFM;
-								pcrfilter = FLT_50kHz;
-								break;
-#else
-		/* TODO */
-#endif
-						default:
-							rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: unsupported "
-										"width %d\n", width);
-							return -RIG_EINVAL;
-					}
-					break;
+			case RIG_MODE_FM:	pcrmode = MD_FM; pcrfilter = FLT_15kHz; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: unsupported mode %d\n",
 								mode);
+				return -RIG_EINVAL;
+		}
+
+		switch (width) {
+				/* nop, pcrfilter already set
+				 * TODO: use rig_passband_normal instead?
+				 */
+			case RIG_PASSBAND_NORMAL: break;
+
+			case kHz(2.8):	pcrfilter = FLT_2_8kHz; break;
+			case kHz(6):	pcrfilter = FLT_6kHz; break;
+			case kHz(15):	pcrfilter = FLT_15kHz; break;
+			case kHz(50):	pcrfilter = FLT_50kHz; break;
+			case kHz(230):	pcrfilter = FLT_230kHz; break;
+			default:
+				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: unsupported "
+							"width %d\n", width);
 				return -RIG_EINVAL;
 		}
 
@@ -280,44 +279,28 @@ int pcr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 		priv = (struct pcr_priv_data *)rig->state.priv;
 
-		*width = RIG_PASSBAND_NORMAL;
 		switch (priv->last_mode) {
 			case MD_CW:		*mode = RIG_MODE_CW; break;
 			case MD_USB:	*mode = RIG_MODE_USB; break;
 			case MD_LSB:	*mode = RIG_MODE_LSB; break;
 			case MD_AM:		*mode = RIG_MODE_AM; break;
-			case MD_WFM:
-				*mode = RIG_MODE_WFM;
-				break;
-			case MD_FM:
-				*mode = RIG_MODE_FM;
-				switch(priv->last_filter) {
-#ifdef RIG_PASSBAND_OLDTIME
-					case FLT_2_8kHz:
-					case FLT_6kHz: *width = RIG_PASSBAND_NARROW; break;
-#else
-					case FLT_2_8kHz:	*width = kHz(2.8); break;
-					case FLT_6kHz:		*width = kHz(6); break;
-#endif
-						/* TODO: return Hz(0) or 15kHz? */
-					case FLT_15kHz: *width = RIG_PASSBAND_NORMAL; break;
-#ifdef RIG_PASSBAND_OLDTIME
-					case FLT_50kHz:
-					case FLT_230kHz: *width = RIG_PASSBAND_WIDE; break;
-#else
-					case FLT_50kHz:		*width = kHz(50); break;
-					case FLT_230kHz:	*width = kHz(230); break;
-#endif
-					default:
-							rig_debug(RIG_DEBUG_ERR,"pcr_get_mode: unsupported "
-										"width %d\n", priv->last_filter);
-							return -RIG_EINVAL;
-				}
-				break;
+			case MD_WFM:	*mode = RIG_MODE_WFM; break;
+			case MD_FM:		*mode = RIG_MODE_FM; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_mode: unsupported mode %d\n",
 								priv->last_mode);
 				return -RIG_EINVAL;
+		}
+		switch(priv->last_filter) {
+			case FLT_2_8kHz:	*width = kHz(2.8); break;
+			case FLT_6kHz:		*width = kHz(6); break;
+			case FLT_15kHz: 	*width = kHz(15); break;
+			case FLT_50kHz:		*width = kHz(50); break;
+			case FLT_230kHz:	*width = kHz(230); break;
+			default:
+					rig_debug(RIG_DEBUG_ERR,"pcr_get_mode: unsupported "
+								"width %d\n", priv->last_filter);
+					return -RIG_EINVAL;
 		}
 
 		return RIG_OK;

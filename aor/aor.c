@@ -1,12 +1,12 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * aor.c - Copyright (C) 2000 Stephane Fillod
+ * aor.c - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.6 2001-04-22 13:57:39 f4cfe Exp $  
+ * $Id: aor.c,v 1.7 2001-04-26 21:28:59 f4cfe Exp $  
  *
  *
  *
@@ -167,13 +167,11 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		switch (mode) {
 			case RIG_MODE_AM:       
 					switch(width) {
-						case RIG_PASSBAND_NORMAL: aormode = MD_AM; break;
-#ifdef RIG_PASSBAND_OLDTIME
-						case RIG_PASSBAND_WIDE: aormode = MD_WAM; break;
-						case RIG_PASSBAND_NARROW: aormode = MD_NAM; break;
-#else
-	/* TODO */
-#endif
+						case RIG_PASSBAND_NORMAL:
+						case kHz(9): aormode = MD_AM; break;
+
+						case kHz(12): aormode = MD_WAM; break;
+						case kHz(3): aormode = MD_NAM; break;
 						default:
 							rig_debug(RIG_DEBUG_ERR,
 								"aor_set_mode: unsupported passband %d %d\n",
@@ -184,15 +182,13 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_CW:       aormode = MD_CW; break;
 			case RIG_MODE_USB:      aormode = MD_USB; break;
 			case RIG_MODE_LSB:      aormode = MD_LSB; break;
+			case RIG_MODE_WFM:      aormode = MD_WFM; break;
 			case RIG_MODE_FM:
 					switch(width) {
-						case RIG_PASSBAND_NORMAL: aormode = MD_NFM; break;
-#ifdef RIG_PASSBAND_OLDTIME
-						case RIG_PASSBAND_WIDE: aormode = MD_WFM; break;
-						case RIG_PASSBAND_NARROW: aormode = MD_SFM; break;
-#else
-	/* TODO */
-#endif
+						case RIG_PASSBAND_NORMAL:
+						case kHz(12): aormode = MD_NFM; break;
+
+						case kHz(9): aormode = MD_SFM; break;
 						default:
 							rig_debug(RIG_DEBUG_ERR,
 								"aor_set_mode: unsupported passband %d %d\n",
@@ -200,8 +196,6 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 						return -RIG_EINVAL;
 					}
 					break;
-			case RIG_MODE_WFM:      aormode = MD_WFM; break;
-			case RIG_MODE_RTTY:
 			default:
 				rig_debug(RIG_DEBUG_ERR,"aor_set_mode: unsupported mode %d\n",
 								mode);
@@ -243,39 +237,28 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			case MD_AM:		*mode = RIG_MODE_AM; break;
 			case MD_NAM:	
 							*mode = RIG_MODE_AM;
-#ifdef RIG_PASSBAND_OLDTIME
-							*width = RIG_PASSBAND_NARROW; 
-#else
-	/* FIXME! */
-#endif
+							*width = rig_passband_narrow(rig, *mode); 
 							break;
 			case MD_WAM:	
 							*mode = RIG_MODE_AM;
-#ifdef RIG_PASSBAND_OLDTIME
-							*width = RIG_PASSBAND_WIDE; 
-#else
-	/* FIXME! */
-#endif
+							*width = rig_passband_wide(rig, *mode); 
 							break;
 			case MD_CW:		*mode = RIG_MODE_CW; break;
 			case MD_USB:	*mode = RIG_MODE_USB; break;
 			case MD_LSB:	*mode = RIG_MODE_LSB; break;
+			case MD_WFM:	*mode = RIG_MODE_WFM; break;
 			case MD_NFM:	*mode = RIG_MODE_FM; break;
 			case MD_SFM:	
 							*mode = RIG_MODE_FM;
-#ifdef RIG_PASSBAND_OLDTIME
-							*width = RIG_PASSBAND_NARROW; 
-#else
-	/* FIXME! */
-#endif
-							break;
-			case MD_WFM:	*mode = RIG_MODE_WFM;
+							*width = rig_passband_narrow(rig, *mode); 
 							break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"aor_get_mode: unsupported mode %d\n",
 								ackbuf[0]);
 				return -RIG_EINVAL;
 		}
+		if (*width != RIG_PASSBAND_NORMAL)
+				*width = rig_passband_normal(rig, *mode);
 
 		return RIG_OK;
 }

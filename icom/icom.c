@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.22 2001-03-04 23:05:18 f4cfe Exp $  
+ * $Id: icom.c,v 1.23 2001-04-26 21:31:01 f4cfe Exp $  
  *
  *
  *
@@ -214,7 +214,6 @@ int icom_init(RIG *rig)
 		struct icom_priv_data *priv;
 		const struct icom_priv_caps *priv_caps;
 		const struct rig_caps *caps;
-		int i;
 
 		if (!rig || !rig->caps)
 				return -RIG_EINVAL;
@@ -242,48 +241,6 @@ int icom_init(RIG *rig)
 		 */
 
 		priv->re_civ_addr = 0x00;
-
-		/* to be removed soon */
-#if 0
-		for (i=0; icom_addr_list[i].model >= 0; i++) {
-				if (icom_addr_list[i].model == caps->rig_model) {
-						priv->re_civ_addr = icom_addr_list[i].re_civ_addr;
-						break;
-				}
-		}
-
-		if (caps->rig_model == RIG_MODEL_IC731 ||
-						caps->rig_model == RIG_MODEL_IC735)
-			priv->civ_731_mode = 1;
-		else
-			priv->civ_731_mode = 0;
-
-		switch (caps->rig_model) {
-		case RIG_MODEL_IC737:
-			priv->ts_sc_list = ic737_ts_sc_list;
-			break;
-		case RIG_MODEL_ICR7100:
-		case RIG_MODEL_ICR72:
-			priv->ts_sc_list = r7100_ts_sc_list;
-			break;
-		case RIG_MODEL_IC756:
-			priv->ts_sc_list = ic756_ts_sc_list;
-			break;
-		case RIG_MODEL_ICR75:
-			priv->ts_sc_list = r75_ts_sc_list;
-			break;
-		case RIG_MODEL_ICR8500:
-			priv->ts_sc_list = r8500_ts_sc_list;
-			break;
-
-		case RIG_MODEL_IC706MKIIG:
-			ic706mkiig_str_cal_init(rig);
-		case RIG_MODEL_IC706MKII:
-		case RIG_MODEL_ICR9000:
-		default:
-			priv->ts_sc_list = ic706_ts_sc_list;
-		}
-#endif
 
 		priv->re_civ_addr = priv_caps->re_civ_addr;
 		priv->civ_731_mode = priv_caps->civ_731_mode;
@@ -404,7 +361,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icmode = hamlib2icom_mode(mode,width);
+		icmode = rig2icom_mode(rig, mode,width);
 
 		icmode_ext[0] = (icmode>>8) & 0xff;
 		icom_transaction (rig, C_SET_MODE, icmode & 0xff, icmode_ext, 
@@ -449,7 +406,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 				return -RIG_ERJCTED;
 		}
 
-		icom2hamlib_mode(modebuf[1]| modebuf[2]<<8, mode, width);
+		icom2rig_mode(rig, modebuf[1]| modebuf[2]<<8, mode, width);
 
 		return RIG_OK;
 }
@@ -635,37 +592,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return RIG_OK;
 }
 
-/* will be removed soon */
-#if 0
-/*
- * compensate strength using calibration
- * assume STR_CAL_LENGTH!=0
- */
-static int comp_cal_str(int str_cal_raw[], int str_cal_db[], int icom_val)
-{
-		int i;
-		int interpolation;
-
-		for (i=0; i<STR_CAL_LENGTH; i++)
-				if (icom_val < str_cal_raw[i])
-						break;
-
-		if (i==0)
-				return STR_CAL_S0;
-		if (i>=STR_CAL_LENGTH)
-				return str_cal_db[i-1];
-
-		if (str_cal_raw[i] == str_cal_raw[i-1])
-				return str_cal_db[i];
-
-		/* cheap, less accurate, but no fp involved */
-		interpolation = ((str_cal_raw[i]-icom_val)*(str_cal_db[i]-str_cal_db[i-1]))/(str_cal_raw[i]-str_cal_raw[i-1]);
-
-		return str_cal_db[i] - interpolation;
-}
-#endif
-
-
 /*
  * icom_get_level
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
@@ -802,9 +728,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		switch (level) {
 		case RIG_LEVEL_STRENGTH:
-#if 0
-			val->i = comp_cal_str(priv->str_cal_raw,priv->str_cal_db,icom_val);
-#endif
 			val->i = rig_raw2val(icom_val, &priv->str_cal);
 			break;
 		case RIG_LEVEL_SQLSTAT:
@@ -1657,7 +1580,7 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 
 		chan_len = 3+freq_len+1;
 
-		icmode = hamlib2icom_mode(chan->mode, RIG_PASSBAND_NORMAL); /* FIXME */
+		icmode = rig2icom_mode(rig, chan->mode, RIG_PASSBAND_NORMAL);/* FIXME */
 		chanbuf[chan_len++] = icmode&0xff;
 		chanbuf[chan_len++] = icmode>>8;
 		to_bcd_be(chanbuf+chan_len++,chan->att,2);
@@ -1718,7 +1641,7 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 
 		chan_len = 4+freq_len+1;
 
-		icom2hamlib_mode(chanbuf[chan_len] | chanbuf[chan_len+1], 
+		icom2rig_mode(rig, chanbuf[chan_len] | chanbuf[chan_len+1], 
 						&chan->mode, &width);
 		chan_len += 2;
 		chan->att = from_bcd_be(chanbuf+chan_len++,2);
@@ -1943,7 +1866,7 @@ int icom_decode_event(RIG *rig)
 				break;
 		case C_SND_MODE:
 				if (rig->callbacks.mode_event) {
-					icom2hamlib_mode(buf[5]| buf[6]<<8, &mode, &width);
+					icom2rig_mode(rig, buf[5]| buf[6]<<8, &mode, &width);
 					return rig->callbacks.mode_event(rig,RIG_VFO_CURR,mode,width);
 				} else
 						return -RIG_ENAVAIL;
