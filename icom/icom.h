@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.50 2002-12-23 14:20:42 fillods Exp $
+ *	$Id: icom.h,v 1.51 2002-12-26 14:32:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,17 @@
 #define STR_CAL_LENGTH 16
 #define STR_CAL_S0 -54
 
+
+/*
+ * minimal channel caps.
+ * If your rig has better/lesser, don't modify this define but clone it,
+ * so you don't change other rigs.
+ */
+#define IC_MIN_MEM_CAP {	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+} 
 
 /*
  * common channel caps.
