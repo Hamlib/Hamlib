@@ -6,8 +6,6 @@
 #  - VPATH building does not work yet
 #  - Tcl install procedure is not complete yet
 
-SWIG=swig
-
 #INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ @TCL_INCLUDE_SPEC@ -I$(top_srcdir)/bindings
 INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@ @PYTHON_CPPFLAGS@
 
@@ -27,6 +25,7 @@ Hamlib-pl.mk: $(srcdir)/Makefile.PL
 	perl `test -f Makefile.PL || echo '$(srcdir)/'`Makefile.PL \
 			MAKEFILE=Hamlib-pl.mk INST_MAN3DIR="$(mandir)" \
 			INC="$(INCLUDES)"  \
+			CC="$(CC)"  \
 			OBJECT="hamlibperl_wrap.o" VERSION="$(PACKAGE_VERSION)" \
 			LIBS="-L$(top_builddir)/src/.libs -lhamlib"
 
@@ -112,7 +111,7 @@ install-py: all-py
 #	$(INSTALL_DATA) $(MANN) $(MAN_INSTALL_DIR)/
 
 check-py: all-py
-	TCLLIBPATH=$(builddir)/.libs $(srcdir)/pytest.py || echo "Tcl test failed" 1>&2
+	$(srcdir)/pytest.py || echo "Tcl test failed" 1>&2
 
 clean-py:
 	rm -f pkgIndex.py $(DLL)
