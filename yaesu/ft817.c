@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.c,v 1.10 2005-01-25 00:21:58 fillods Exp $  
+ *    $Id: ft817.c,v 1.11 2005-04-03 19:27:59 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -206,7 +206,7 @@ const struct rig_caps ft817_caps = {
   .set_vfo = 		ft817_set_vfo,
   .get_vfo = 		ft817_get_vfo,
   .set_ptt = 		ft817_set_ptt,
-  .get_ptt = 		ft817_get_ptt,
+  .get_ptt = 		NULL,
   .get_dcd = 		NULL,
   .set_rptr_shift = 	NULL,
   .get_rptr_shift = 	NULL,
@@ -544,6 +544,7 @@ int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
 }
 
 
+#if 0
 /* TODO: all of this */
 int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   return -RIG_ENIMPL;
@@ -594,7 +595,5 @@ int ft817_set_parm(RIG *rig, setting_t parm, value_t val) {
 int ft817_get_parm(RIG *rig, setting_t parm, value_t *val) {
    return -RIG_ENIMPL;
 }
-
-
-
+#endif
 

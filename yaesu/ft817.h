@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.h,v 1.3 2002-12-01 03:08:05 n0nb Exp $  
+ *    $Id: ft817.h,v 1.4 2005-04-03 19:27:59 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -89,24 +89,26 @@ struct ft817_priv_data {
 };
 
 
-int ft817_init(RIG *rig);
-int ft817_open(RIG *rig);
-int ft817_cleanup(RIG *rig);
-int ft817_close(RIG *rig);
-int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int ft817_set_vfo(RIG *rig, vfo_t vfo);
-int ft817_get_vfo(RIG *rig, vfo_t *vfo);
-int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-int ft817_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int ft817_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int ft817_set_parm(RIG *rig, setting_t parm, value_t val);
-int ft817_get_parm(RIG *rig, setting_t parm, value_t *val);
+static int ft817_init(RIG *rig);
+static int ft817_open(RIG *rig);
+static int ft817_cleanup(RIG *rig);
+static int ft817_close(RIG *rig);
+static int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft817_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft817_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft817_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft817_set_vfo(RIG *rig, vfo_t vfo);
+static int ft817_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft817_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+#if 0
+static int ft817_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int ft817_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ft817_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ft817_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft817_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+static int ft817_set_parm(RIG *rig, setting_t parm, value_t val);
+static int ft817_get_parm(RIG *rig, setting_t parm, value_t *val);
+#endif
 
 #endif /* _FT817_H */
 

@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.5 2003-03-10 08:26:20 fillods Exp $  
+ *    $Id: ft847.h,v 1.6 2005-04-03 19:27:59 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -167,34 +167,23 @@ struct ft847_priv_data {
  * API local implementation 
  */
 
-int ft847_init(RIG *rig);
-int ft847_open(RIG *rig);
+static int ft847_init(RIG *rig);
+static int ft847_open(RIG *rig);
 
-int ft847_cleanup(RIG *rig);
-int ft847_close(RIG *rig);
+static int ft847_cleanup(RIG *rig);
+static int ft847_close(RIG *rig);
 
-int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+static int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
 
-int ft847_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-int ft847_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+static int ft847_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
+static int ft847_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
-int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-
-
+static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 
 #endif /* _FT847_H */
-
-
-
-
-
-
-
-
-

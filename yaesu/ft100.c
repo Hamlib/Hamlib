@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.16 2005-01-25 00:21:58 fillods Exp $  
+ *    $Id: ft100.c,v 1.17 2005-04-03 19:27:59 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -684,6 +684,7 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
 }
 
 
+#if 0
 /* TODO: all of this */
 int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   return -RIG_ENIMPL;
@@ -734,6 +735,7 @@ int ft100_set_parm(RIG *rig, setting_t parm, value_t val) {
 int ft100_get_parm(RIG *rig, setting_t parm, value_t *val) {
    return -RIG_ENIMPL;
 }
+#endif
 
 
 /* kc2ivl */
@@ -883,17 +885,17 @@ int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *
    
    cmd_index=FT100_NATIVE_CAT_READ_STATUS;
    ft100_send_priv_cmd(rig,cmd_index);
-   n = read_block( &rig->state.rigport, ft100_status, sizeof(FT100_STATUS_INFO));  
+   n = read_block( &rig->state.rigport, (char*)ft100_status, sizeof(FT100_STATUS_INFO));  
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: read status=%i \n",n);
    
    cmd_index=FT100_NATIVE_CAT_READ_METERS;
    ft100_send_priv_cmd(rig,cmd_index);
-   n = read_block( &rig->state.rigport, ft100_meter, sizeof(FT100_METER_INFO));  
+   n = read_block( &rig->state.rigport, (char*)ft100_meter, sizeof(FT100_METER_INFO));  
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: read meters=%i \n",n);
    
    cmd_index=FT100_NATIVE_CAT_READ_FLAGS;
    ft100_send_priv_cmd(rig,cmd_index);
-   n = read_block( &rig->state.rigport, ft100_flags, sizeof(FT100_FLAG_INFO));
+   n = read_block( &rig->state.rigport, (char*)ft100_flags, sizeof(FT100_FLAG_INFO));
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: read flags=%i \n",n);
    
    return RIG_OK;

@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.5 2003-04-06 18:40:35 fillods Exp $  
+ *    $Id: ft100.h,v 1.6 2005-04-03 19:27:59 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -137,53 +137,46 @@ typedef struct
 }
 FT100_FLAG_INFO;
 
-int ft100_init(RIG *rig);
-int ft100_open(RIG *rig);
-int ft100_cleanup(RIG *rig);
-int ft100_close(RIG *rig);
+static int ft100_init(RIG *rig);
+static int ft100_open(RIG *rig);
+static int ft100_cleanup(RIG *rig);
+static int ft100_close(RIG *rig);
 
-int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
-int ft100_set_vfo(RIG *rig, vfo_t vfo);
-int ft100_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft100_set_vfo(RIG *rig, vfo_t vfo);
+static int ft100_get_vfo(RIG *rig, vfo_t *vfo);
 
-int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+#if 0
+static int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
-int ft100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ft100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-int ft100_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int ft100_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+static int ft100_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft100_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 
-int ft100_set_parm(RIG *rig, setting_t parm, value_t val);
-int ft100_get_parm(RIG *rig, setting_t parm, value_t *val);
+static int ft100_set_parm(RIG *rig, setting_t parm, value_t val);
+static int ft100_get_parm(RIG *rig, setting_t parm, value_t *val);
+#endif
 
-int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+//static int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
-int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
-int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);			 
+static int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
+//static int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);			 
 
-int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
-int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
+static int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+//static int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
 
-int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
-int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+static int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+//static int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 
-int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags);
+static int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags);
 
 #endif /* _FT100_H */
-
-
-
-
-
-
-
-
-

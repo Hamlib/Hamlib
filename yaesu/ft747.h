@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.4 2002-12-01 03:08:05 n0nb Exp $  
+ *    $Id: ft747.h,v 1.5 2005-04-03 19:27:59 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -178,22 +178,22 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
  * API local implementation 
  */
 
-int ft747_init(RIG *rig);
-int ft747_cleanup(RIG *rig);
-int ft747_open(RIG *rig);
-int ft747_close(RIG *rig);
+static int ft747_init(RIG *rig);
+static int ft747_cleanup(RIG *rig);
+static int ft747_open(RIG *rig);
+static int ft747_close(RIG *rig);
 
-int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
-int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
+static int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+static int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
 
-int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+static int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
+static int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
-int ft747_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int ft747_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 
 

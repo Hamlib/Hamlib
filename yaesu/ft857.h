@@ -12,7 +12,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.h,v 1.3 2003-09-21 11:08:06 fillods Exp $  
+ *    $Id: ft857.h,v 1.4 2005-04-03 19:27:59 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -137,32 +137,32 @@ struct ft857_priv_data {
 };
 
 
-int ft857_init(RIG *rig);
-int ft857_open(RIG *rig);
-int ft857_cleanup(RIG *rig);
-int ft857_close(RIG *rig);
-int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-// int ft857_set_vfo(RIG *rig, vfo_t vfo);
-// int ft857_get_vfo(RIG *rig, vfo_t *vfo);
-int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-// int ft857_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-// int ft857_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-// int ft857_set_parm(RIG *rig, setting_t parm, value_t val);
-// int ft857_get_parm(RIG *rig, setting_t parm, value_t *val);
-int ft857_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
-int ft857_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t code);
-int ft857_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
-int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
-int ft857_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
-int ft857_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
-int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
-// int ft857_set_powerstat(RIG *rig, powerstat_t status);
+static int ft857_init(RIG *rig);
+static int ft857_open(RIG *rig);
+static int ft857_cleanup(RIG *rig);
+static int ft857_close(RIG *rig);
+static int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+// static int ft857_set_vfo(RIG *rig, vfo_t vfo);
+// static int ft857_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+// static int ft857_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+// static int ft857_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+// static int ft857_set_parm(RIG *rig, setting_t parm, value_t val);
+// static int ft857_get_parm(RIG *rig, setting_t parm, value_t *val);
+static int ft857_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+static int ft857_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t code);
+static int ft857_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+static int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+static int ft857_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+static int ft857_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+static int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+// static int ft857_set_powerstat(RIG *rig, powerstat_t status);
 
 #endif /* _FT857_H */
