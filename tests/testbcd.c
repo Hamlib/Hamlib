@@ -16,16 +16,23 @@ int main (int argc, char *argv[])
 	freq_t f=0;
 
 	if (argc != 2) {
-			fprintf(stderr,"%s <freq>\n",argv[0]);
+			fprintf(stderr,"Usage: %s <freq>\n",argv[0]);
 			exit(1);
 	}
 
 	f = atoi(argv[1]);
 
+	printf("Little Endian mode\n");
 	printf("Frequency: %lld\n",f);
 	to_bcd(b, f, 10);
 	printf("BCD: %2.2x,%2.2x,%2.2x,%2.2x,%2.2x\n",b[0],b[1],b[2],b[3],b[4]);
 	printf("Result after recoding: %lld\n", from_bcd(b, 10));
+
+	printf("\nBig Endian mode\n");
+	printf("Frequency: %lld\n",f);
+	to_bcd_be(b, f, 10);
+	printf("BCD: %2.2x,%2.2x,%2.2x,%2.2x,%2.2x\n",b[0],b[1],b[2],b[3],b[4]);
+	printf("Result after recoding: %lld\n", from_bcd_be(b, 10));
 
 	return 0;
 }
