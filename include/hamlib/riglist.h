@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.46 2004-08-11 17:58:36 fillods Exp $
+ *	$Id: riglist.h,v 1.47 2004-09-12 21:27:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -285,6 +285,7 @@
 #define RIG_MODEL_HF1000 RIG_MAKE_MODEL(RIG_WJ, 1)
 #define RIG_MODEL_HF1000A RIG_MAKE_MODEL(RIG_WJ, 2)
 #define RIG_MODEL_WJ8711 RIG_MAKE_MODEL(RIG_WJ, 3)
+#define RIG_MODEL_WJ8888 RIG_MAKE_MODEL(RIG_WJ, 4)
 
 	/*
 	 * Rohde & Schwarz
@@ -409,6 +410,14 @@
 #define RIG_MODEL_ELEKTOR304 RIG_MAKE_MODEL(RIG_KIT, 1)
 #define RIG_MODEL_DRT1 RIG_MAKE_MODEL(RIG_KIT, 2)
 
+	/*
+	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
+	 */
+#define RIG_TUNER 26
+#define RIG_BACKEND_TUNER "tuner"
+#define RIG_MODEL_V4L RIG_MAKE_MODEL(RIG_TUNER, 1)
+
+
 
 	/*
 	 * TODO:
@@ -457,6 +466,7 @@ typedef int rig_model_t;
 		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
 		{ RIG_RFT, RIG_BACKEND_RFT }, \
 		{ RIG_KIT, RIG_BACKEND_KIT }, \
+		{ RIG_TUNER, RIG_BACKEND_TUNER }, \
 		{ 0, NULL }, /* end */  \
 }
 
