@@ -6,6 +6,7 @@ MACROS = \
 	ltdl.m4 \
 	pkg.m4 \
 	perl.m4 \
+	python.m4 \
 	tcl.m4
 
 
