@@ -17,7 +17,7 @@ extern "C" {
  *  Hamlib Interface - RPC definitions
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rpcrig.h,v 1.2 2001-12-26 23:42:20 fillods Exp $
+ *		$Id: rpcrig.h,v 1.3 2001-12-27 21:59:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,7 @@ extern "C" {
  *
  */
 #include <rpc/xdr.h>
+#include <hamlib/rig.h>
 
 typedef u_int model_x;
 
@@ -57,6 +58,10 @@ typedef long vfo_op_x;
 typedef long shortfreq_x;
 
 typedef uint64_t setting_x;
+
+typedef long ant_x;
+
+typedef long ann_x;
 
 struct mode_s {
 	rmode_x mode;
@@ -163,14 +168,55 @@ struct vfo_op_arg {
 };
 typedef struct vfo_op_arg vfo_op_arg;
 
+struct freq_range_s {
+	freq_x start;
+	freq_x end;
+	rmode_x modes;
+	int low_power;
+	int high_power;
+	vfo_x vfo;
+	ant_x ant;
+};
+typedef struct freq_range_s freq_range_s;
+
+struct tuning_step_s {
+	rmode_x modes;
+	shortfreq_x ts;
+};
+typedef struct tuning_step_s tuning_step_s;
+
+struct filter_s {
+	rmode_x modes;
+	pbwidth_x width;
+};
+typedef struct filter_s filter_s;
+
+struct chan_s {
+	int start;
+	int end;
+	u_int type;
+};
+typedef struct chan_s chan_s;
+
 struct rigstate_s {
 	int itu_region;
+	shortfreq_x max_rit;
+	shortfreq_x max_xit;
+	shortfreq_x max_ifshift;
+	ann_x announces;
 	setting_x has_get_func;
 	setting_x has_set_func;
 	setting_x has_get_level;
 	setting_x has_set_level;
 	setting_x has_get_parm;
 	setting_x has_set_parm;
+	int preamp[MAXDBLSTSIZ];
+	int attenuator[MAXDBLSTSIZ];
+	freq_range_s rx_range_list[FRQRANGESIZ];
+	freq_range_s tx_range_list[FRQRANGESIZ];
+	tuning_step_s tuning_steps[TSLSTSIZ];
+	filter_s filters[FLTLSTSIZ];
+	chan_s chan_list[CHANLSTSIZ];
 };
 typedef struct rigstate_s rigstate_s;
 
@@ -181,8 +227,6 @@ struct rigstate_res {
 	} rigstate_res_u;
 };
 typedef struct rigstate_res rigstate_res;
-
-#include <hamlib/rig.h>
 
 #define freq_t2x(t, x) do { *(x) = (t); } while(0)
 #define freq_x2t(x) ((freq_t)*(x))
@@ -369,6 +413,8 @@ extern  bool_t xdr_dcd_x (XDR *, dcd_x*);
 extern  bool_t xdr_vfo_op_x (XDR *, vfo_op_x*);
 extern  bool_t xdr_shortfreq_x (XDR *, shortfreq_x*);
 extern  bool_t xdr_setting_x (XDR *, setting_x*);
+extern  bool_t xdr_ant_x (XDR *, ant_x*);
+extern  bool_t xdr_ann_x (XDR *, ann_x*);
 extern  bool_t xdr_mode_s (XDR *, mode_s*);
 extern  bool_t xdr_value_s (XDR *, value_s*);
 extern  bool_t xdr_freq_arg (XDR *, freq_arg*);
@@ -384,6 +430,10 @@ extern  bool_t xdr_dcd_res (XDR *, dcd_res*);
 extern  bool_t xdr_setting_arg (XDR *, setting_arg*);
 extern  bool_t xdr_val_res (XDR *, val_res*);
 extern  bool_t xdr_vfo_op_arg (XDR *, vfo_op_arg*);
+extern  bool_t xdr_freq_range_s (XDR *, freq_range_s*);
+extern  bool_t xdr_tuning_step_s (XDR *, tuning_step_s*);
+extern  bool_t xdr_filter_s (XDR *, filter_s*);
+extern  bool_t xdr_chan_s (XDR *, chan_s*);
 extern  bool_t xdr_rigstate_s (XDR *, rigstate_s*);
 extern  bool_t xdr_rigstate_res (XDR *, rigstate_res*);
 
@@ -399,6 +449,8 @@ extern bool_t xdr_dcd_x ();
 extern bool_t xdr_vfo_op_x ();
 extern bool_t xdr_shortfreq_x ();
 extern bool_t xdr_setting_x ();
+extern bool_t xdr_ant_x ();
+extern bool_t xdr_ann_x ();
 extern bool_t xdr_mode_s ();
 extern bool_t xdr_value_s ();
 extern bool_t xdr_freq_arg ();
@@ -414,6 +466,10 @@ extern bool_t xdr_dcd_res ();
 extern bool_t xdr_setting_arg ();
 extern bool_t xdr_val_res ();
 extern bool_t xdr_vfo_op_arg ();
+extern bool_t xdr_freq_range_s ();
+extern bool_t xdr_tuning_step_s ();
+extern bool_t xdr_filter_s ();
+extern bool_t xdr_chan_s ();
 extern bool_t xdr_rigstate_s ();
 extern bool_t xdr_rigstate_res ();
 

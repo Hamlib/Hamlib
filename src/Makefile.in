@@ -94,15 +94,17 @@ hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
 INCLUDES = @INCLUDES@ @INCLTDL@
-RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c tones.c
+RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c tones.c \
+			rotator.c locator.c rot_reg.c rot_conf.c
+
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)
 libhamlib_la_LDFLAGS = -no-undefined -release @VERSION@ -version-info 0:0:0
 libhamlib_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
-libhamlib_la_LIBADD = @LIBLTDL@ ../lib/libmisc.la
+libhamlib_la_LIBADD = @LIBLTDL@ ../lib/libmisc.la -lm
 
-noinst_HEADERS = event.h misc.h serial.h cal.h conf.h tones.h
+noinst_HEADERS = event.h misc.h serial.h cal.h conf.h tones.h rot_conf.h
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -113,7 +115,9 @@ libhamlib_la_DEPENDENCIES = ../lib/libmisc.la
 am_libhamlib_la_OBJECTS = libhamlib_la-rig.lo libhamlib_la-serial.lo \
 	libhamlib_la-misc.lo libhamlib_la-register.lo \
 	libhamlib_la-event.lo libhamlib_la-cal.lo libhamlib_la-conf.lo \
-	libhamlib_la-tones.lo
+	libhamlib_la-tones.lo libhamlib_la-rotator.lo \
+	libhamlib_la-locator.lo libhamlib_la-rot_reg.lo \
+	libhamlib_la-rot_conf.lo
 libhamlib_la_OBJECTS = $(am_libhamlib_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -125,9 +129,13 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_la-cal.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-conf.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-event.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-locator.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-misc.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-register.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-rig.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-rot_conf.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-rot_reg.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-rotator.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-serial.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-tones.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -191,6 +199,10 @@ libhamlib_la-event.lo: event.c
 libhamlib_la-cal.lo: cal.c
 libhamlib_la-conf.lo: conf.c
 libhamlib_la-tones.lo: tones.c
+libhamlib_la-rotator.lo: rotator.c
+libhamlib_la-locator.lo: locator.c
+libhamlib_la-rot_reg.lo: rot_reg.c
+libhamlib_la-rot_conf.lo: rot_conf.c
 libhamlib.la: $(libhamlib_la_OBJECTS) $(libhamlib_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_la_LDFLAGS) $(libhamlib_la_OBJECTS) $(libhamlib_la_LIBADD) $(LIBS)
 
@@ -203,9 +215,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-cal.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-conf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-event.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-locator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-misc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-register.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-rig.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-rot_conf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-rot_reg.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-rotator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-serial.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-tones.Plo@am__quote@
 
@@ -373,6 +389,78 @@ libhamlib_la-tones.lo: tones.c
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-tones.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-tones.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-tones.lo `test -f tones.c || echo '$(srcdir)/'`tones.c
+
+libhamlib_la-rotator.o: rotator.c
+@AMDEP_TRUE@	source='rotator.c' object='libhamlib_la-rotator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rotator.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rotator.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rotator.o `test -f rotator.c || echo '$(srcdir)/'`rotator.c
+
+libhamlib_la-rotator.obj: rotator.c
+@AMDEP_TRUE@	source='rotator.c' object='libhamlib_la-rotator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rotator.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rotator.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rotator.obj `cygpath -w rotator.c`
+
+libhamlib_la-rotator.lo: rotator.c
+@AMDEP_TRUE@	source='rotator.c' object='libhamlib_la-rotator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rotator.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-rotator.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rotator.lo `test -f rotator.c || echo '$(srcdir)/'`rotator.c
+
+libhamlib_la-locator.o: locator.c
+@AMDEP_TRUE@	source='locator.c' object='libhamlib_la-locator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-locator.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-locator.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-locator.o `test -f locator.c || echo '$(srcdir)/'`locator.c
+
+libhamlib_la-locator.obj: locator.c
+@AMDEP_TRUE@	source='locator.c' object='libhamlib_la-locator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-locator.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-locator.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-locator.obj `cygpath -w locator.c`
+
+libhamlib_la-locator.lo: locator.c
+@AMDEP_TRUE@	source='locator.c' object='libhamlib_la-locator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-locator.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-locator.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-locator.lo `test -f locator.c || echo '$(srcdir)/'`locator.c
+
+libhamlib_la-rot_reg.o: rot_reg.c
+@AMDEP_TRUE@	source='rot_reg.c' object='libhamlib_la-rot_reg.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rot_reg.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rot_reg.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rot_reg.o `test -f rot_reg.c || echo '$(srcdir)/'`rot_reg.c
+
+libhamlib_la-rot_reg.obj: rot_reg.c
+@AMDEP_TRUE@	source='rot_reg.c' object='libhamlib_la-rot_reg.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rot_reg.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rot_reg.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rot_reg.obj `cygpath -w rot_reg.c`
+
+libhamlib_la-rot_reg.lo: rot_reg.c
+@AMDEP_TRUE@	source='rot_reg.c' object='libhamlib_la-rot_reg.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rot_reg.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-rot_reg.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rot_reg.lo `test -f rot_reg.c || echo '$(srcdir)/'`rot_reg.c
+
+libhamlib_la-rot_conf.o: rot_conf.c
+@AMDEP_TRUE@	source='rot_conf.c' object='libhamlib_la-rot_conf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rot_conf.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rot_conf.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rot_conf.o `test -f rot_conf.c || echo '$(srcdir)/'`rot_conf.c
+
+libhamlib_la-rot_conf.obj: rot_conf.c
+@AMDEP_TRUE@	source='rot_conf.c' object='libhamlib_la-rot_conf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rot_conf.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-rot_conf.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rot_conf.obj `cygpath -w rot_conf.c`
+
+libhamlib_la-rot_conf.lo: rot_conf.c
+@AMDEP_TRUE@	source='rot_conf.c' object='libhamlib_la-rot_conf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rot_conf.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-rot_conf.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rot_conf.lo `test -f rot_conf.c || echo '$(srcdir)/'`rot_conf.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 

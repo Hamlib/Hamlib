@@ -8,7 +8,7 @@
  *  Hamlib Interface - RPC definitions
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rpcrig_xdr.c,v 1.2 2001-12-26 23:44:09 fillods Exp $
+ *		$Id: rpcrig_xdr.c,v 1.3 2001-12-27 21:58:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -132,6 +132,26 @@ xdr_setting_x (XDR *xdrs, setting_x *objp)
 	register int32_t *buf;
 
 	 if (!xdr_uint64_t (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_ant_x (XDR *xdrs, ant_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_long (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_ann_x (XDR *xdrs, ann_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_long (xdrs, objp))
 		 return FALSE;
 	return TRUE;
 }
@@ -361,11 +381,215 @@ xdr_vfo_op_arg (XDR *xdrs, vfo_op_arg *objp)
 }
 
 bool_t
+xdr_freq_range_s (XDR *xdrs, freq_range_s *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_freq_x (xdrs, &objp->start))
+		 return FALSE;
+	 if (!xdr_freq_x (xdrs, &objp->end))
+		 return FALSE;
+	 if (!xdr_rmode_x (xdrs, &objp->modes))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->low_power))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->high_power))
+		 return FALSE;
+	 if (!xdr_vfo_x (xdrs, &objp->vfo))
+		 return FALSE;
+	 if (!xdr_ant_x (xdrs, &objp->ant))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_tuning_step_s (XDR *xdrs, tuning_step_s *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_rmode_x (xdrs, &objp->modes))
+		 return FALSE;
+	 if (!xdr_shortfreq_x (xdrs, &objp->ts))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_filter_s (XDR *xdrs, filter_s *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_rmode_x (xdrs, &objp->modes))
+		 return FALSE;
+	 if (!xdr_pbwidth_x (xdrs, &objp->width))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_chan_s (XDR *xdrs, chan_s *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->start))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->end))
+		 return FALSE;
+	 if (!xdr_u_int (xdrs, &objp->type))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
 xdr_rigstate_s (XDR *xdrs, rigstate_s *objp)
 {
 	register int32_t *buf;
 
+	int i;
+
+	if (xdrs->x_op == XDR_ENCODE) {
+		 if (!xdr_int (xdrs, &objp->itu_region))
+			 return FALSE;
+		 if (!xdr_shortfreq_x (xdrs, &objp->max_rit))
+			 return FALSE;
+		 if (!xdr_shortfreq_x (xdrs, &objp->max_xit))
+			 return FALSE;
+		 if (!xdr_shortfreq_x (xdrs, &objp->max_ifshift))
+			 return FALSE;
+		 if (!xdr_ann_x (xdrs, &objp->announces))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_get_func))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_set_func))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_get_level))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_set_level))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_get_parm))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_set_parm))
+			 return FALSE;
+		buf = XDR_INLINE (xdrs, ( MAXDBLSTSIZ  + MAXDBLSTSIZ ) * BYTES_PER_XDR_UNIT);
+		if (buf == NULL) {
+			 if (!xdr_vector (xdrs, (char *)objp->preamp, MAXDBLSTSIZ,
+				sizeof (int), (xdrproc_t) xdr_int))
+				 return FALSE;
+			 if (!xdr_vector (xdrs, (char *)objp->attenuator, MAXDBLSTSIZ,
+				sizeof (int), (xdrproc_t) xdr_int))
+				 return FALSE;
+
+		} else {
+		{
+			register int *genp;
+
+			for (i = 0, genp = objp->preamp;
+				i < MAXDBLSTSIZ; ++i) {
+				IXDR_PUT_LONG(buf, *genp++);
+			}
+		}
+		{
+			register int *genp;
+
+			for (i = 0, genp = objp->attenuator;
+				i < MAXDBLSTSIZ; ++i) {
+				IXDR_PUT_LONG(buf, *genp++);
+			}
+		}
+		}
+		 if (!xdr_vector (xdrs, (char *)objp->rx_range_list, FRQRANGESIZ,
+			sizeof (freq_range_s), (xdrproc_t) xdr_freq_range_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->tx_range_list, FRQRANGESIZ,
+			sizeof (freq_range_s), (xdrproc_t) xdr_freq_range_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->tuning_steps, TSLSTSIZ,
+			sizeof (tuning_step_s), (xdrproc_t) xdr_tuning_step_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->filters, FLTLSTSIZ,
+			sizeof (filter_s), (xdrproc_t) xdr_filter_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->chan_list, CHANLSTSIZ,
+			sizeof (chan_s), (xdrproc_t) xdr_chan_s))
+			 return FALSE;
+		return TRUE;
+	} else if (xdrs->x_op == XDR_DECODE) {
+		 if (!xdr_int (xdrs, &objp->itu_region))
+			 return FALSE;
+		 if (!xdr_shortfreq_x (xdrs, &objp->max_rit))
+			 return FALSE;
+		 if (!xdr_shortfreq_x (xdrs, &objp->max_xit))
+			 return FALSE;
+		 if (!xdr_shortfreq_x (xdrs, &objp->max_ifshift))
+			 return FALSE;
+		 if (!xdr_ann_x (xdrs, &objp->announces))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_get_func))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_set_func))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_get_level))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_set_level))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_get_parm))
+			 return FALSE;
+		 if (!xdr_setting_x (xdrs, &objp->has_set_parm))
+			 return FALSE;
+		buf = XDR_INLINE (xdrs, ( MAXDBLSTSIZ  + MAXDBLSTSIZ ) * BYTES_PER_XDR_UNIT);
+		if (buf == NULL) {
+			 if (!xdr_vector (xdrs, (char *)objp->preamp, MAXDBLSTSIZ,
+				sizeof (int), (xdrproc_t) xdr_int))
+				 return FALSE;
+			 if (!xdr_vector (xdrs, (char *)objp->attenuator, MAXDBLSTSIZ,
+				sizeof (int), (xdrproc_t) xdr_int))
+				 return FALSE;
+
+		} else {
+		{
+			register int *genp;
+
+			for (i = 0, genp = objp->preamp;
+				i < MAXDBLSTSIZ; ++i) {
+				*genp++ = IXDR_GET_LONG(buf);
+			}
+		}
+		{
+			register int *genp;
+
+			for (i = 0, genp = objp->attenuator;
+				i < MAXDBLSTSIZ; ++i) {
+				*genp++ = IXDR_GET_LONG(buf);
+			}
+		}
+		}
+		 if (!xdr_vector (xdrs, (char *)objp->rx_range_list, FRQRANGESIZ,
+			sizeof (freq_range_s), (xdrproc_t) xdr_freq_range_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->tx_range_list, FRQRANGESIZ,
+			sizeof (freq_range_s), (xdrproc_t) xdr_freq_range_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->tuning_steps, TSLSTSIZ,
+			sizeof (tuning_step_s), (xdrproc_t) xdr_tuning_step_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->filters, FLTLSTSIZ,
+			sizeof (filter_s), (xdrproc_t) xdr_filter_s))
+			 return FALSE;
+		 if (!xdr_vector (xdrs, (char *)objp->chan_list, CHANLSTSIZ,
+			sizeof (chan_s), (xdrproc_t) xdr_chan_s))
+			 return FALSE;
+	 return TRUE;
+	}
+
 	 if (!xdr_int (xdrs, &objp->itu_region))
+		 return FALSE;
+	 if (!xdr_shortfreq_x (xdrs, &objp->max_rit))
+		 return FALSE;
+	 if (!xdr_shortfreq_x (xdrs, &objp->max_xit))
+		 return FALSE;
+	 if (!xdr_shortfreq_x (xdrs, &objp->max_ifshift))
+		 return FALSE;
+	 if (!xdr_ann_x (xdrs, &objp->announces))
 		 return FALSE;
 	 if (!xdr_setting_x (xdrs, &objp->has_get_func))
 		 return FALSE;
@@ -378,6 +602,27 @@ xdr_rigstate_s (XDR *xdrs, rigstate_s *objp)
 	 if (!xdr_setting_x (xdrs, &objp->has_get_parm))
 		 return FALSE;
 	 if (!xdr_setting_x (xdrs, &objp->has_set_parm))
+		 return FALSE;
+	 if (!xdr_vector (xdrs, (char *)objp->preamp, MAXDBLSTSIZ,
+		sizeof (int), (xdrproc_t) xdr_int))
+		 return FALSE;
+	 if (!xdr_vector (xdrs, (char *)objp->attenuator, MAXDBLSTSIZ,
+		sizeof (int), (xdrproc_t) xdr_int))
+		 return FALSE;
+	 if (!xdr_vector (xdrs, (char *)objp->rx_range_list, FRQRANGESIZ,
+		sizeof (freq_range_s), (xdrproc_t) xdr_freq_range_s))
+		 return FALSE;
+	 if (!xdr_vector (xdrs, (char *)objp->tx_range_list, FRQRANGESIZ,
+		sizeof (freq_range_s), (xdrproc_t) xdr_freq_range_s))
+		 return FALSE;
+	 if (!xdr_vector (xdrs, (char *)objp->tuning_steps, TSLSTSIZ,
+		sizeof (tuning_step_s), (xdrproc_t) xdr_tuning_step_s))
+		 return FALSE;
+	 if (!xdr_vector (xdrs, (char *)objp->filters, FLTLSTSIZ,
+		sizeof (filter_s), (xdrproc_t) xdr_filter_s))
+		 return FALSE;
+	 if (!xdr_vector (xdrs, (char *)objp->chan_list, CHANLSTSIZ,
+		sizeof (chan_s), (xdrproc_t) xdr_chan_s))
 		 return FALSE;
 	return TRUE;
 }

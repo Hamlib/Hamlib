@@ -97,7 +97,7 @@ install_sh = @install_sh@
 bin_PROGRAMS = rigctl
 man_MANS = rigctl.1
 
-noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp @RIGMATRIX@
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp testloc @RIGMATRIX@
 
 EXTRA_PROGRAMS = rigmatrix
 
@@ -111,9 +111,13 @@ dumpmem_LDFLAGS = @BACKENDLNK@
 testcaps_LDFLAGS = @BACKENDLNK@
 testrig_LDFLAGS = @BACKENDLNK@
 testtrn_LDFLAGS = @BACKENDLNK@
-testbcd_LDFLAGS = @BACKENDLNK@
 testfreq_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
+
+# temporary hack
+testbcd_LDFLAGS = -dlpreopen self
+testloc_LDFLAGS = -dlpreopen self
+
 # rigmatrix needs also libgd
 rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
 testcpp_LDADD = ../c++/libhamlib++.la
@@ -129,16 +133,6 @@ rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
 
-testrig_SOURCES = testrig.c
-testtrn_SOURCES = testtrn.c
-testbcd_SOURCES = testbcd.c
-testfreq_SOURCES = testfreq.c
-dumpcaps_SOURCES = dumpcaps.c
-dumpmem_SOURCES = dumpmem.c
-testcaps_SOURCES = testcaps.c
-listrigs_SOURCES = listrigs.c
-rigctl_SOURCES = rigctl.c
-rigmatrix_SOURCES = rigmatrix.c
 testcpp_SOURCES = testcpp.cc
 
 EXTRA_DIST = rigmatrix_head.html $(man_MANS)
@@ -151,42 +145,46 @@ bin_PROGRAMS = rigctl$(EXEEXT)
 noinst_PROGRAMS = dumpcaps$(EXEEXT) dumpmem$(EXEEXT) testcaps$(EXEEXT) \
 	testrig$(EXEEXT) testtrn$(EXEEXT) testbcd$(EXEEXT) \
 	testfreq$(EXEEXT) listrigs$(EXEEXT) testcpp$(EXEEXT) \
-	@RIGMATRIX@
+	testloc$(EXEEXT) @RIGMATRIX@
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 
-am_dumpcaps_OBJECTS = dumpcaps.$(OBJEXT)
-dumpcaps_OBJECTS = $(am_dumpcaps_OBJECTS)
+dumpcaps_SOURCES = dumpcaps.c
+dumpcaps_OBJECTS = dumpcaps.$(OBJEXT)
 dumpcaps_LDADD = $(LDADD)
-am_dumpmem_OBJECTS = dumpmem.$(OBJEXT)
-dumpmem_OBJECTS = $(am_dumpmem_OBJECTS)
+dumpmem_SOURCES = dumpmem.c
+dumpmem_OBJECTS = dumpmem.$(OBJEXT)
 dumpmem_LDADD = $(LDADD)
-am_listrigs_OBJECTS = listrigs.$(OBJEXT)
-listrigs_OBJECTS = $(am_listrigs_OBJECTS)
+listrigs_SOURCES = listrigs.c
+listrigs_OBJECTS = listrigs.$(OBJEXT)
 listrigs_LDADD = $(LDADD)
-am_rigctl_OBJECTS = rigctl.$(OBJEXT)
-rigctl_OBJECTS = $(am_rigctl_OBJECTS)
+rigctl_SOURCES = rigctl.c
+rigctl_OBJECTS = rigctl.$(OBJEXT)
 rigctl_LDADD = $(LDADD)
-am_rigmatrix_OBJECTS = rigmatrix.$(OBJEXT)
-rigmatrix_OBJECTS = $(am_rigmatrix_OBJECTS)
+rigmatrix_SOURCES = rigmatrix.c
+rigmatrix_OBJECTS = rigmatrix.$(OBJEXT)
 rigmatrix_LDADD = $(LDADD)
-am_testbcd_OBJECTS = testbcd.$(OBJEXT)
-testbcd_OBJECTS = $(am_testbcd_OBJECTS)
+testbcd_SOURCES = testbcd.c
+testbcd_OBJECTS = testbcd.$(OBJEXT)
 testbcd_LDADD = $(LDADD)
 testbcd_DEPENDENCIES = ../src/libhamlib.la
-am_testcaps_OBJECTS = testcaps.$(OBJEXT)
-testcaps_OBJECTS = $(am_testcaps_OBJECTS)
+testcaps_SOURCES = testcaps.c
+testcaps_OBJECTS = testcaps.$(OBJEXT)
 testcaps_LDADD = $(LDADD)
 am_testcpp_OBJECTS = testcpp.$(OBJEXT)
 testcpp_OBJECTS = $(am_testcpp_OBJECTS)
-am_testfreq_OBJECTS = testfreq.$(OBJEXT)
-testfreq_OBJECTS = $(am_testfreq_OBJECTS)
+testfreq_SOURCES = testfreq.c
+testfreq_OBJECTS = testfreq.$(OBJEXT)
 testfreq_LDADD = $(LDADD)
 testfreq_DEPENDENCIES = ../src/libhamlib.la
-am_testrig_OBJECTS = testrig.$(OBJEXT)
-testrig_OBJECTS = $(am_testrig_OBJECTS)
+testloc_SOURCES = testloc.c
+testloc_OBJECTS = testloc.$(OBJEXT)
+testloc_LDADD = $(LDADD)
+testloc_DEPENDENCIES = ../src/libhamlib.la
+testrig_SOURCES = testrig.c
+testrig_OBJECTS = testrig.$(OBJEXT)
 testrig_LDADD = $(LDADD)
-am_testtrn_OBJECTS = testtrn.$(OBJEXT)
-testtrn_OBJECTS = $(am_testtrn_OBJECTS)
+testtrn_SOURCES = testtrn.c
+testtrn_OBJECTS = testtrn.$(OBJEXT)
 testtrn_LDADD = $(LDADD)
 
 DEFS = @DEFS@
@@ -199,8 +197,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/listrigs.Po $(DEPDIR)/rigctl.Po \
 @AMDEP_TRUE@	$(DEPDIR)/rigmatrix.Po $(DEPDIR)/testbcd.Po \
 @AMDEP_TRUE@	$(DEPDIR)/testcaps.Po $(DEPDIR)/testcpp.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testfreq.Po $(DEPDIR)/testrig.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testtrn.Po
+@AMDEP_TRUE@	$(DEPDIR)/testfreq.Po $(DEPDIR)/testloc.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testrig.Po $(DEPDIR)/testtrn.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -218,15 +216,14 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CXXFLAGS = @CXXFLAGS@
-DIST_SOURCES = $(dumpcaps_SOURCES) $(dumpmem_SOURCES) \
-	$(listrigs_SOURCES) $(rigctl_SOURCES) $(rigmatrix_SOURCES) \
-	$(testbcd_SOURCES) $(testcaps_SOURCES) $(testcpp_SOURCES) \
-	$(testfreq_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES)
+DIST_SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c \
+	testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c testloc.c \
+	testrig.c testtrn.c
 
 NROFF = nroff
 MANS = $(man_MANS)
 DIST_COMMON = README Makefile.am Makefile.in
-SOURCES = $(dumpcaps_SOURCES) $(dumpmem_SOURCES) $(listrigs_SOURCES) $(rigctl_SOURCES) $(rigmatrix_SOURCES) $(testbcd_SOURCES) $(testcaps_SOURCES) $(testcpp_SOURCES) $(testfreq_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES)
+SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c testloc.c testrig.c testtrn.c
 
 all: all-am
 
@@ -302,6 +299,9 @@ testcpp$(EXEEXT): $(testcpp_OBJECTS) $(testcpp_DEPENDENCIES)
 testfreq$(EXEEXT): $(testfreq_OBJECTS) $(testfreq_DEPENDENCIES) 
 	@rm -f testfreq$(EXEEXT)
 	$(LINK) $(testfreq_LDFLAGS) $(testfreq_OBJECTS) $(testfreq_LDADD) $(LIBS)
+testloc$(EXEEXT): $(testloc_OBJECTS) $(testloc_DEPENDENCIES) 
+	@rm -f testloc$(EXEEXT)
+	$(LINK) $(testloc_LDFLAGS) $(testloc_OBJECTS) $(testloc_LDADD) $(LIBS)
 testrig$(EXEEXT): $(testrig_OBJECTS) $(testrig_DEPENDENCIES) 
 	@rm -f testrig$(EXEEXT)
 	$(LINK) $(testrig_LDFLAGS) $(testrig_OBJECTS) $(testrig_LDADD) $(LIBS)
@@ -324,6 +324,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcaps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcpp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testfreq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testloc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testrig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testtrn.Po@am__quote@
 
