@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -59,23 +59,33 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
+INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBLTDL = @LIBLTDL@
+LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
+LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
+STRIP = @STRIP@
 VERSION = @VERSION@
 V_MAJOR = @V_MAJOR@
 V_MINOR = @V_MINOR@
-WINRADIO = @WINRADIO@
+WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -100,10 +110,9 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_ft747_a_LIBADD = 
-libhamlib_ft747_a_OBJECTS =  ft747.o
+libhamlib_ft747_a_OBJECTS =  ft747.$(OBJEXT)
 libhamlib_ft847_a_LIBADD = 
-libhamlib_ft847_a_OBJECTS =  ft847.o
-AR = ar
+libhamlib_ft847_a_OBJECTS =  ft847.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_ft747_la_LIBADD = 
@@ -130,7 +139,7 @@ OBJECTS = $(libhamlib_ft747_a_OBJECTS) $(libhamlib_ft847_a_OBJECTS) $(libhamlib_
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s
+.SUFFIXES: .S .c .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu yaesu/Makefile
 
@@ -171,6 +180,11 @@ uninstall-libLIBRARIES:
 	  rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -179,6 +193,7 @@ uninstall-libLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 

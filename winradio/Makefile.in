@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -59,32 +59,49 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
+INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBLTDL = @LIBLTDL@
+LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
+LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
+STRIP = @STRIP@
 VERSION = @VERSION@
 V_MAJOR = @V_MAJOR@
 V_MINOR = @V_MINOR@
-WINRADIO = @WINRADIO@
+WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
-lib_LTLIBRARIES = libhamlib-winradio.la
-libhamlib_winradio_la_SOURCES = winradio.c wr1500.c
-libhamlib_winradio_la_LDFLAGS = -avoid-version # -module
-lib_LIBRARIES = libhamlib-winradio.a
-libhamlib_winradio_a_SOURCES = winradio.c wr1500.c
+WRSRCLIST = wr1000.c wr1500.c wr1550.c wr3100.c wr3150.c wr3500.c wr3700.c
+
+LDFLAGS = -avoid-version # -module
+#lib_LTLIBRARIES = @LTLIBWINRADIO@
+@WINRADIO_TRUE@lib_LTLIBRARIES = libhamlib-winradio.la
+@WINRADIO_TRUE@libhamlib_winradio_la_SOURCES = winradio.c $(WRSRCLIST)
+#EXTRA_LTLIBRARIES = libhamlib-winradio.la
+
+lib_LIBRARIES = @LIBWINRADIO@
+libhamlib_winradio_a_SOURCES = winradio.c $(WRSRCLIST)
+EXTRA_LIBRARIES = libhamlib-winradio.a
+
 noinst_HEADERS = winradio.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -94,15 +111,18 @@ LIBRARIES =  $(lib_LIBRARIES)
 
 DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
-LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_winradio_a_LIBADD = 
-libhamlib_winradio_a_OBJECTS =  winradio.o wr1500.o
-AR = ar
+libhamlib_winradio_a_OBJECTS =  winradio.$(OBJEXT) wr1000.$(OBJEXT) \
+wr1500.$(OBJEXT) wr1550.$(OBJEXT) wr3100.$(OBJEXT) wr3150.$(OBJEXT) \
+wr3500.$(OBJEXT) wr3700.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
+libhamlib_winradio_la_LDFLAGS = 
 libhamlib_winradio_la_LIBADD = 
-libhamlib_winradio_la_OBJECTS =  winradio.lo wr1500.lo
+@WINRADIO_TRUE@libhamlib_winradio_la_OBJECTS =  winradio.lo wr1000.lo \
+@WINRADIO_TRUE@wr1500.lo wr1550.lo wr3100.lo wr3150.lo wr3500.lo \
+@WINRADIO_TRUE@wr3700.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -117,13 +137,15 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/winradio.P .deps/wr1500.P
+DEP_FILES =  .deps/winradio.P .deps/wr1000.P .deps/wr1500.P \
+.deps/wr1550.P .deps/wr3100.P .deps/wr3150.P .deps/wr3500.P \
+.deps/wr3700.P
 SOURCES = $(libhamlib_winradio_a_SOURCES) $(libhamlib_winradio_la_SOURCES)
 OBJECTS = $(libhamlib_winradio_a_OBJECTS) $(libhamlib_winradio_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s
+.SUFFIXES: .S .c .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu winradio/Makefile
 
@@ -164,6 +186,11 @@ uninstall-libLIBRARIES:
 	  rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -172,6 +199,7 @@ uninstall-libLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 

@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -59,32 +59,49 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
-INCLUDES = @INCLUDES@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
+INCLTDL = @INCLTDL@
+LIBLTDL = @LIBLTDL@
+LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
+LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
+STRIP = @STRIP@
 VERSION = @VERSION@
 V_MAJOR = @V_MAJOR@
 V_MINOR = @V_MINOR@
-WINRADIO = @WINRADIO@
+WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
+INCLUDES = $(INCLTDL)
+
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = rig.c serial.c misc.c register.c event.c cal.c
 libhamlib_la_LDFLAGS = -release @VERSION@
+libhamlib_la_LIBADD = $(LIBLTDL)
+libhamlib_la_DEPENDENCIES = $(LIBLTDL)
+
 lib_LIBRARIES = libhamlib.a
 libhamlib_a_SOURCES = rig.c serial.c misc.c register.c event.c cal.c
+libhamlib_a_LIBADD = $(LIBLTDL)
+libhamlib_a_DEPENDENCIES = $(LIBLTDL)
+
 noinst_HEADERS = event.h misc.h serial.h cal.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -96,12 +113,10 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libhamlib_a_LIBADD = 
-libhamlib_a_OBJECTS =  rig.o serial.o misc.o register.o event.o cal.o
-AR = ar
+libhamlib_a_OBJECTS =  rig.$(OBJEXT) serial.$(OBJEXT) misc.$(OBJEXT) \
+register.$(OBJEXT) event.$(OBJEXT) cal.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_la_LIBADD = 
 libhamlib_la_OBJECTS =  rig.lo serial.lo misc.lo register.lo event.lo \
 cal.lo
 CFLAGS = @CFLAGS@
@@ -125,7 +140,7 @@ OBJECTS = $(libhamlib_a_OBJECTS) $(libhamlib_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s
+.SUFFIXES: .S .c .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile
 
@@ -166,6 +181,11 @@ uninstall-libLIBRARIES:
 	  rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -174,6 +194,7 @@ uninstall-libLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 

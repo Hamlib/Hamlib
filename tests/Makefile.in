@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -59,23 +59,33 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
+INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBLTDL = @LIBLTDL@
+LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
+LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
+STRIP = @STRIP@
 VERSION = @VERSION@
 V_MAJOR = @V_MAJOR@
 V_MINOR = @V_MINOR@
-WINRADIO = @WINRADIO@
+WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -86,28 +96,30 @@ EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
 LDADD = ../src/libhamlib.la
+DEPENDENCIES = ../src/libhamlib.la
 
 BACKENDLNK = "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la @WINRADIOLNK@
+#BACKENDLNK = -dlopen ../icom/libhamlib-icom.la -dlopen ../yaesu/libhamlib-ft747.la -dlopen ../yaesu/libhamlib-ft847.la -dlopen ../kenwood/libhamlib-kenwood.la -dlopen ../aor/libhamlib-aor.la -dlopen ../dummy/libhamlib-dummy.la -dlopen ../pcr/libhamlib-pcr.la @WINRADIOLNK@
 BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la @WINRADIODEPS@
 
-listrigs_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-dumpcaps_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-dumpmem_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-testcaps_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-testrig_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-testtrn_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-rigctl_LDADD = ../src/libhamlib.la $(BACKENDLNK)
+listrigs_LDADD = $(BACKENDLNK) $(LDADD)
+dumpcaps_LDADD = $(BACKENDLNK) $(LDADD)
+dumpmem_LDADD = $(BACKENDLNK) $(LDADD)
+testcaps_LDADD = $(BACKENDLNK) $(LDADD)
+testrig_LDADD = $(BACKENDLNK) $(LDADD)
+testtrn_LDADD = $(BACKENDLNK) $(LDADD)
+rigctl_LDADD = $(BACKENDLNK) $(LDADD) ../lib/libmisc.a
 # rigmatrix needs also libgd
-rigmatrix_LDADD = -lgd ../src/libhamlib.la $(BACKENDLNK)
+rigmatrix_LDADD = -lgd $(BACKENDLNK) $(LDADD)
 
-dumpcaps_DEPENDENCIES = $(BACKENDEPS)
-dumpmem_DEPENDENCIES = $(BACKENDEPS)
-testcaps_DEPENDENCIES = $(BACKENDEPS)
-testrig_DEPENDENCIES = $(BACKENDEPS)
-testtrn_DEPENDENCIES = $(BACKENDEPS)
-listrigs_DEPENDENCIES = $(BACKENDEPS)
-rigctl_DEPENDENCIES = $(BACKENDEPS)
-rigmatrix_DEPENDENCIES = $(BACKENDEPS)
+dumpcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+dumpmem_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testrig_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testtrn_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+listrigs_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+rigctl_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS) ../lib/libmisc.a
+rigmatrix_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 
 testrig_SOURCES = testrig.c
 testtrn_SOURCES = testtrn.c
@@ -122,6 +134,10 @@ rigmatrix_SOURCES = rigmatrix.c
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
 CONFIG_CLEAN_FILES = 
+bin_PROGRAMS =  rigctl$(EXEEXT)
+noinst_PROGRAMS =  dumpcaps$(EXEEXT) dumpmem$(EXEEXT) testcaps$(EXEEXT) \
+testrig$(EXEEXT) testtrn$(EXEEXT) testbcd$(EXEEXT) testfreq$(EXEEXT) \
+listrigs$(EXEEXT) @RIGMATRIX@
 PROGRAMS =  $(bin_PROGRAMS) $(noinst_PROGRAMS)
 
 
@@ -129,29 +145,29 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-rigmatrix_OBJECTS =  rigmatrix.o
+rigmatrix_OBJECTS =  rigmatrix.$(OBJEXT)
 rigmatrix_LDFLAGS = 
-rigctl_OBJECTS =  rigctl.o
+rigctl_OBJECTS =  rigctl.$(OBJEXT)
 rigctl_LDFLAGS = 
-dumpcaps_OBJECTS =  dumpcaps.o
+dumpcaps_OBJECTS =  dumpcaps.$(OBJEXT)
 dumpcaps_LDFLAGS = 
-dumpmem_OBJECTS =  dumpmem.o
+dumpmem_OBJECTS =  dumpmem.$(OBJEXT)
 dumpmem_LDFLAGS = 
-testcaps_OBJECTS =  testcaps.o
+testcaps_OBJECTS =  testcaps.$(OBJEXT)
 testcaps_LDFLAGS = 
-testrig_OBJECTS =  testrig.o
+testrig_OBJECTS =  testrig.$(OBJEXT)
 testrig_LDFLAGS = 
-testtrn_OBJECTS =  testtrn.o
+testtrn_OBJECTS =  testtrn.$(OBJEXT)
 testtrn_LDFLAGS = 
-testbcd_OBJECTS =  testbcd.o
+testbcd_OBJECTS =  testbcd.$(OBJEXT)
 testbcd_LDADD = $(LDADD)
 testbcd_DEPENDENCIES =  ../src/libhamlib.la
 testbcd_LDFLAGS = 
-testfreq_OBJECTS =  testfreq.o
+testfreq_OBJECTS =  testfreq.$(OBJEXT)
 testfreq_LDADD = $(LDADD)
 testfreq_DEPENDENCIES =  ../src/libhamlib.la
 testfreq_LDFLAGS = 
-listrigs_OBJECTS =  listrigs.o
+listrigs_OBJECTS =  listrigs.$(OBJEXT)
 listrigs_LDFLAGS = 
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -173,7 +189,7 @@ OBJECTS = $(rigmatrix_OBJECTS) $(rigctl_OBJECTS) $(dumpcaps_OBJECTS) $(dumpmem_O
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s
+.SUFFIXES: .S .c .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/Makefile
 
@@ -216,6 +232,11 @@ distclean-noinstPROGRAMS:
 
 maintainer-clean-noinstPROGRAMS:
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -224,6 +245,7 @@ maintainer-clean-noinstPROGRAMS:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -248,44 +270,44 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-rigmatrix: $(rigmatrix_OBJECTS) $(rigmatrix_DEPENDENCIES)
-	@rm -f rigmatrix
+rigmatrix$(EXEEXT): $(rigmatrix_OBJECTS) $(rigmatrix_DEPENDENCIES)
+	@rm -f rigmatrix$(EXEEXT)
 	$(LINK) $(rigmatrix_LDFLAGS) $(rigmatrix_OBJECTS) $(rigmatrix_LDADD) $(LIBS)
 
-rigctl: $(rigctl_OBJECTS) $(rigctl_DEPENDENCIES)
-	@rm -f rigctl
+rigctl$(EXEEXT): $(rigctl_OBJECTS) $(rigctl_DEPENDENCIES)
+	@rm -f rigctl$(EXEEXT)
 	$(LINK) $(rigctl_LDFLAGS) $(rigctl_OBJECTS) $(rigctl_LDADD) $(LIBS)
 
-dumpcaps: $(dumpcaps_OBJECTS) $(dumpcaps_DEPENDENCIES)
-	@rm -f dumpcaps
+dumpcaps$(EXEEXT): $(dumpcaps_OBJECTS) $(dumpcaps_DEPENDENCIES)
+	@rm -f dumpcaps$(EXEEXT)
 	$(LINK) $(dumpcaps_LDFLAGS) $(dumpcaps_OBJECTS) $(dumpcaps_LDADD) $(LIBS)
 
-dumpmem: $(dumpmem_OBJECTS) $(dumpmem_DEPENDENCIES)
-	@rm -f dumpmem
+dumpmem$(EXEEXT): $(dumpmem_OBJECTS) $(dumpmem_DEPENDENCIES)
+	@rm -f dumpmem$(EXEEXT)
 	$(LINK) $(dumpmem_LDFLAGS) $(dumpmem_OBJECTS) $(dumpmem_LDADD) $(LIBS)
 
-testcaps: $(testcaps_OBJECTS) $(testcaps_DEPENDENCIES)
-	@rm -f testcaps
+testcaps$(EXEEXT): $(testcaps_OBJECTS) $(testcaps_DEPENDENCIES)
+	@rm -f testcaps$(EXEEXT)
 	$(LINK) $(testcaps_LDFLAGS) $(testcaps_OBJECTS) $(testcaps_LDADD) $(LIBS)
 
-testrig: $(testrig_OBJECTS) $(testrig_DEPENDENCIES)
-	@rm -f testrig
+testrig$(EXEEXT): $(testrig_OBJECTS) $(testrig_DEPENDENCIES)
+	@rm -f testrig$(EXEEXT)
 	$(LINK) $(testrig_LDFLAGS) $(testrig_OBJECTS) $(testrig_LDADD) $(LIBS)
 
-testtrn: $(testtrn_OBJECTS) $(testtrn_DEPENDENCIES)
-	@rm -f testtrn
+testtrn$(EXEEXT): $(testtrn_OBJECTS) $(testtrn_DEPENDENCIES)
+	@rm -f testtrn$(EXEEXT)
 	$(LINK) $(testtrn_LDFLAGS) $(testtrn_OBJECTS) $(testtrn_LDADD) $(LIBS)
 
-testbcd: $(testbcd_OBJECTS) $(testbcd_DEPENDENCIES)
-	@rm -f testbcd
+testbcd$(EXEEXT): $(testbcd_OBJECTS) $(testbcd_DEPENDENCIES)
+	@rm -f testbcd$(EXEEXT)
 	$(LINK) $(testbcd_LDFLAGS) $(testbcd_OBJECTS) $(testbcd_LDADD) $(LIBS)
 
-testfreq: $(testfreq_OBJECTS) $(testfreq_DEPENDENCIES)
-	@rm -f testfreq
+testfreq$(EXEEXT): $(testfreq_OBJECTS) $(testfreq_DEPENDENCIES)
+	@rm -f testfreq$(EXEEXT)
 	$(LINK) $(testfreq_LDFLAGS) $(testfreq_OBJECTS) $(testfreq_LDADD) $(LIBS)
 
-listrigs: $(listrigs_OBJECTS) $(listrigs_DEPENDENCIES)
-	@rm -f listrigs
+listrigs$(EXEEXT): $(listrigs_OBJECTS) $(listrigs_DEPENDENCIES)
+	@rm -f listrigs$(EXEEXT)
 	$(LINK) $(listrigs_LDFLAGS) $(listrigs_OBJECTS) $(listrigs_LDADD) $(LIBS)
 
 tags: TAGS

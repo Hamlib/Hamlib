@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -59,32 +59,42 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
+INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBLTDL = @LIBLTDL@
+LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
+LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
 OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
+STRIP = @STRIP@
 VERSION = @VERSION@
 V_MAJOR = @V_MAJOR@
 V_MINOR = @V_MINOR@
-WINRADIO = @WINRADIO@
+WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
 lib_LTLIBRARIES = libhamlib-pcr.la
-libhamlib_pcr_la_SOURCES = pcr.c pcr1000.c
+libhamlib_pcr_la_SOURCES = pcr.c pcr1000.c pcr100.c
 libhamlib_pcr_la_LDFLAGS = -avoid-version # -module
 lib_LIBRARIES = libhamlib-pcr.a
-libhamlib_pcr_a_SOURCES = pcr.c pcr1000.c
+libhamlib_pcr_a_SOURCES = pcr.c pcr1000.c pcr100.c
 noinst_HEADERS = pcr.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -97,12 +107,12 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_pcr_a_LIBADD = 
-libhamlib_pcr_a_OBJECTS =  pcr.o pcr1000.o
-AR = ar
+libhamlib_pcr_a_OBJECTS =  pcr.$(OBJEXT) pcr1000.$(OBJEXT) \
+pcr100.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_pcr_la_LIBADD = 
-libhamlib_pcr_la_OBJECTS =  pcr.lo pcr1000.lo
+libhamlib_pcr_la_OBJECTS =  pcr.lo pcr1000.lo pcr100.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -117,13 +127,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/pcr.P .deps/pcr1000.P
+DEP_FILES =  .deps/pcr.P .deps/pcr100.P .deps/pcr1000.P
 SOURCES = $(libhamlib_pcr_a_SOURCES) $(libhamlib_pcr_la_SOURCES)
 OBJECTS = $(libhamlib_pcr_a_OBJECTS) $(libhamlib_pcr_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .s
+.SUFFIXES: .S .c .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu pcr/Makefile
 
@@ -164,6 +174,11 @@ uninstall-libLIBRARIES:
 	  rm -f $(DESTDIR)$(libdir)/$$p; \
 	done
 
+# FIXME: We should only use cygpath when building on Windows,
+# and only if it is available.
+.c.obj:
+	$(COMPILE) -c `cygpath -w $<`
+
 .s.o:
 	$(COMPILE) -c $<
 
@@ -172,6 +187,7 @@ uninstall-libLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
+	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
