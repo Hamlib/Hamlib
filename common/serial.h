@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.6 2000-09-04 17:51:29 javabear Exp $  
+ *    $Id: serial.h,v 1.7 2000-09-16 01:29:35 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,14 @@
  * 
  */
 
+
+#ifndef _SERIAL_H
+#define _SERIAL_H 1
+
+#include <rig.h>
+
+
+int serial_open(struct rig_state *rs);
 
 int open_port(char *serial_port);
 int write_block(int fd, unsigned char *data);
@@ -42,6 +50,9 @@ int open_port2(struct rig_caps *rc);
 
 int read_sleep(int fd, unsigned char *rxbuffer, int num );
 
+
+int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
+int write_block2(int fd, const unsigned char *txbuffer, size_t count, int write_delay);
 
 /*
  * Convert char to packed decimal
@@ -64,4 +75,8 @@ char calc_char_from_packed(unsigned char pkd );
  * Do a hex dump of the unsigned char array.
  */
 
-void dump_hex(unsigned char *ptr, int size, int width);
+void dump_hex(const unsigned char *ptr, int size, int width);
+
+
+#endif /* _SERIAL_H */
+
