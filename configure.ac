@@ -121,7 +121,7 @@ AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
 AC_CHECK_FUNCS([cfmakeraw])
 AC_REPLACE_FUNCS([getopt_long usleep])
 AC_FUNC_ALLOCA
-AC_FUNC_MALLOC
+#AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
 
 dnl initialize libtool
@@ -138,6 +138,15 @@ dnl Configure libtool
 AC_PROG_LIBTOOL
 dnl Configure libltdl
 AC_CONFIG_SUBDIRS(libltdl)
+
+case "$host_os" in
+darwin* | rhapsody*)
+  # Trick from http://fink.sourceforge.net/doc/porting/
+  # TODO: check the compiler actually does support these options
+  CFLAGS="${CFLAGS} -no-cpp-precomp"
+  CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
+  ;;
+esac
 
 dnl Check if C99 struct initializers are supported
 AC_MSG_CHECKING(whether C99 struct initializers are supported)
@@ -198,8 +207,6 @@ if test x"${no_perl}" = x; then
 else
 	cf_with_perl=no
 fi
-
-#AC_CHECK_PROG(cf_with_perl, h2xs, [yes], [no])
 
 AC_MSG_CHECKING(whether to build perl binding and demo)
 AC_ARG_WITH(perl-binding,
@@ -288,11 +295,16 @@ AC_SUBST(GNURADIO_CFLAGS)
 AC_SUBST(GNURADIO_LIBS)
 
 
+AC_CHECK_PROG(cf_with_rpcgen, rpcgen, [yes], [no])
+AC_MSG_CHECKING(whether to build rpc backends)
 # RPCRig must be the last one added to BACKEND_LIST 
 # because it links against other backends (build order)
-if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
+if test "${ac_cv_header_rpc_rpc_h}" = "yes" -a "${cf_with_rpcgen}" = "yes"; then
     BACKEND_LIST="$BACKEND_LIST rpcrig"
     ROT_BACKEND_LIST="$ROT_BACKEND_LIST rpcrot"
+    AC_MSG_RESULT([yes])
+else
+    AC_MSG_RESULT([no])
 fi
 
 
