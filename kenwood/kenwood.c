@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.49 2002-10-22 20:24:07 fillods Exp $
+ *	$Id: kenwood.c,v 1.50 2002-11-13 20:35:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -80,7 +80,7 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_TS440, 4 },
 	{ RIG_MODEL_R5000, 5 },
 	{ RIG_MODEL_TS870S, 15 },
-	{ RIG_MODEL_TS570D, 17 },
+	{ RIG_MODEL_TS570D, 17 },	/* Elecraft K2 also returns 17 */
 	{ RIG_MODEL_TS570S, 18 },
 	{ RIG_MODEL_TS2000, 19 },
 	{ RIG_MODEL_NONE, UNKNOWN_ID },	/* end marker */
@@ -1372,12 +1372,33 @@ rig_model_t probe_kenwood(port_t *port)
 
 	k_id = atoi(idbuf+2);
 
+	/*
+	 * Elecraft K2 returns same ID as TS570
+	 */
+	if (k_id == 17) {
+		retval = serial_open(port);
+		if (retval != RIG_OK)
+			return RIG_MODEL_NONE;
+		retval = write_block(port, "K2;", 3);
+    		id_len = read_string(port, idbuf, IDBUFSZ, EOM_KEN EOM_TH, 2);
+		close(port->fd);
+		if (retval != RIG_OK)
+			return RIG_MODEL_NONE;
+		/* 
+		 * reply should be something like 'K2n;'
+		 */
+		if (id_len == 4 || !strcmp(idbuf, "K2")) {
+			rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: found K2\n");
+			return RIG_MODEL_K2;
+		}
+	}
+
 	for (i=0; kenwood_id_list[i].model != RIG_MODEL_NONE; i++) {
-			if (kenwood_id_list[i].id == k_id) {
-					rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: "
-									"found %03d\n", k_id);
-					return kenwood_id_list[i].model;
-			}
+		if (kenwood_id_list[i].id == k_id) {
+			rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: "
+							"found %03d\n", k_id);
+			return kenwood_id_list[i].model;
+		}
 	}
 	/*
 	 * not found in known table.... 
@@ -1460,6 +1481,8 @@ int initrigs_kenwood(void *be_handle)
 		rig_register(&ts850_caps);
 		rig_register(&ts870s_caps);
 		rig_register(&ts2000_caps);
+		rig_register(&k2_caps);
+
 		rig_register(&thd7a_caps);
 		rig_register(&thf7e_caps);
 
