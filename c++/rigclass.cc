@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities. C++ bindings.
  *
  *
- *	$Id: rigclass.cc,v 1.1 2001-06-15 06:56:10 f4cfe Exp $
+ *	$Id: rigclass.cc,v 1.2 2001-06-18 20:17:20 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -154,6 +154,9 @@ void Rig::getLevel(setting_t level, int& vali, vfo_t vfo)
 {
 	value_t val;
 
+	if (RIG_LEVEL_IS_FLOAT(level))
+		THROW(new RigException (-RIG_EINVAL));
+
 	CHECK_RIG( rig_get_level(theRig, vfo, level, &val) );
 	vali = val.i;
 }
@@ -162,9 +165,36 @@ void Rig::getLevel(setting_t level, float& valf, vfo_t vfo)
 {
 	value_t val;
 
+	if (!RIG_LEVEL_IS_FLOAT(level))
+		THROW(new RigException (-RIG_EINVAL));
+
 	CHECK_RIG( rig_get_level(theRig, vfo, level, &val) );
 	valf = val.f;
 }
+
+int Rig::getLevelI(setting_t level, vfo_t vfo)
+{
+	value_t val;
+
+	if (RIG_LEVEL_IS_FLOAT(level))
+		THROW(new RigException (-RIG_EINVAL));
+
+	CHECK_RIG( rig_get_level(theRig, vfo, level, &val) );
+	return val.i;
+}
+
+float Rig::getLevelF(setting_t level, vfo_t vfo)
+{
+	value_t val;
+
+	if (!RIG_LEVEL_IS_FLOAT(level))
+		THROW(new RigException (-RIG_EINVAL));
+
+	CHECK_RIG( rig_get_level(theRig, vfo, level, &val) );
+	return val.f;
+}
+
+
 
 
 setting_t Rig::hasGetLevel (setting_t level)
@@ -176,7 +206,8 @@ setting_t Rig::hasSetLevel (setting_t level)
 	return rig_has_set_level(theRig, level);
 }
 
-const char *Rig::getInfo (void) {
+const char *Rig::getInfo (void)
+{
 	return rig_get_info(theRig);
 }
 
@@ -193,5 +224,154 @@ pbwidth_t Rig::passbandNarrow (rmode_t mode)
 pbwidth_t Rig::passbandWide (rmode_t mode)
 {
 	return rig_passband_wide(theRig, mode);
+}
+
+void Rig::setRptrShift (rptr_shift_t rptr_shift, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_rptr_shift(theRig, vfo, rptr_shift) );
+}
+
+rptr_shift_t Rig::getRptrShift (vfo_t vfo = RIG_VFO_CURR)
+{
+	rptr_shift_t rptr_shift;
+
+	CHECK_RIG( rig_get_rptr_shift(theRig, vfo, &rptr_shift) );
+
+	return rptr_shift;
+}
+
+void Rig::setRptrOffs (shortfreq_t rptr_offs, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_rptr_offs(theRig, vfo, rptr_offs) );
+}
+
+shortfreq_t Rig::getRptrOffs (vfo_t vfo = RIG_VFO_CURR)
+{
+	shortfreq_t rptr_offs;
+
+	CHECK_RIG( rig_get_rptr_offs(theRig, vfo, &rptr_offs) );
+
+	return rptr_offs;
+}
+
+void Rig::setTs (shortfreq_t ts, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_ts(theRig, vfo, ts) );
+}
+
+shortfreq_t Rig::getTs (vfo_t vfo = RIG_VFO_CURR)
+{
+	shortfreq_t ts;
+
+	CHECK_RIG( rig_get_ts(theRig, vfo, &ts) );
+
+	return ts;
+}
+
+void Rig::setFunc (setting_t func, bool status, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_func(theRig, vfo, func, status? 1:0) );
+}
+
+bool Rig::getFunc (setting_t func, vfo_t vfo = RIG_VFO_CURR)
+{
+	int status;
+
+	CHECK_RIG( rig_get_func(theRig, vfo, func, &status) );
+
+	return status ? true : false;
+}
+
+
+
+shortfreq_t Rig::getResolution (rmode_t mode)
+{
+	shortfreq_t res;
+
+	res = rig_get_resolution(theRig, mode);
+	if (res < 0)
+		THROW(new RigException (res));
+
+	return res;
+}
+
+void Rig::reset (reset_t reset)
+{
+	CHECK_RIG( rig_reset(theRig, reset) );
+}
+
+bool Rig::hasGetFunc (setting_t func)
+{
+	return rig_has_get_func(theRig, func)==func;
+}
+bool Rig::hasSetFunc (setting_t func)
+{
+	return rig_has_set_func(theRig, func)==func;
+}
+
+unsigned int Rig::power2mW (float power, freq_t freq, rmode_t mode)
+{
+	unsigned int mwpower;
+
+	CHECK_RIG( rig_power2mW(theRig, &mwpower, power, freq, mode) );
+
+	return mwpower;
+}
+
+float Rig::mW2power (unsigned int mwpower, freq_t freq, rmode_t mode)
+{
+	float power;
+
+	CHECK_RIG( rig_mW2power(theRig, &power, mwpower, freq, mode) );
+
+	return power;
+}
+
+void Rig::setTrn (int trn, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_trn(theRig, vfo, trn) );
+}
+
+int Rig::getTrn (vfo_t vfo = RIG_VFO_CURR)
+{
+	int trn;
+
+	CHECK_RIG( rig_get_trn(theRig, vfo, &trn) );
+
+	return trn;
+}
+
+void Rig::setBank (int bank, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_ts(theRig, vfo, bank) );
+}
+
+void Rig::setMem (int ch, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_mem(theRig, vfo, ch) );
+}
+
+int Rig::getMem (vfo_t vfo = RIG_VFO_CURR)
+{
+	int mem;
+
+	CHECK_RIG( rig_get_mem(theRig, vfo, &mem) );
+
+	return mem;
+}
+
+
+void Rig::setPowerStat (powerstat_t status)
+{
+	CHECK_RIG( rig_set_powerstat(theRig, status) );
+}
+
+powerstat_t Rig::getPowerStat (void)
+{
+	powerstat_t status;
+
+	CHECK_RIG( rig_get_powerstat(theRig, &status) );
+
+	return status;
 }
 

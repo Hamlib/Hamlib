@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities. C++ version.
  *
  *
- *	$Id: rigclass.h,v 1.1 2001-06-15 06:58:12 f4cfe Exp $
+ *	$Id: rigclass.h,v 1.2 2001-06-18 20:17:20 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -65,6 +65,8 @@ public:
   void setLevel(setting_t level, float valf, vfo_t vfo = RIG_VFO_CURR);
   void getLevel(setting_t level, int& vali, vfo_t vfo = RIG_VFO_CURR);
   void getLevel(setting_t level, float& valf, vfo_t vfo = RIG_VFO_CURR);
+  int getLevelI(setting_t level, vfo_t vfo = RIG_VFO_CURR);
+  float getLevelF(setting_t level, vfo_t vfo = RIG_VFO_CURR);
   setting_t hasGetLevel (setting_t level);
   setting_t hasSetLevel (setting_t level);
 
@@ -72,6 +74,31 @@ public:
   pbwidth_t passbandNormal (rmode_t);
   pbwidth_t passbandNarrow (rmode_t);
   pbwidth_t passbandWide (rmode_t);
+
+  void setRptrShift (rptr_shift_t rptr_shift, vfo_t vfo = RIG_VFO_CURR);
+  rptr_shift_t getRptrShift (vfo_t vfo = RIG_VFO_CURR);
+  void setRptrOffs (shortfreq_t rptr_offs, vfo_t vfo = RIG_VFO_CURR);
+  shortfreq_t getRptrOffs (vfo_t vfo = RIG_VFO_CURR);
+  void setTs (shortfreq_t ts, vfo_t vfo = RIG_VFO_CURR);
+  shortfreq_t getTs (vfo_t vfo = RIG_VFO_CURR);
+  void setFunc (setting_t func, bool status, vfo_t vfo = RIG_VFO_CURR);
+  bool getFunc (setting_t func, vfo_t vfo = RIG_VFO_CURR);
+
+  unsigned int power2mW (float power, freq_t freq, rmode_t mode);
+  float mW2power (unsigned int mwpower, freq_t freq, rmode_t mode);
+  void setTrn (int trn, vfo_t vfo = RIG_VFO_CURR);
+  int getTrn (vfo_t vfo = RIG_VFO_CURR);
+  void setBank (int bank, vfo_t vfo = RIG_VFO_CURR);
+  void setMem (int ch, vfo_t vfo = RIG_VFO_CURR);
+  int getMem (vfo_t vfo = RIG_VFO_CURR);
+  void setPowerStat (powerstat_t status);
+  powerstat_t getPowerStat (void);
+
+
+  shortfreq_t getResolution (rmode_t mode);
+  void reset (reset_t reset);
+  bool hasGetFunc (setting_t func);
+  bool hasSetFunc (setting_t func);
 
   // callbacks available in your derived object
   virtual int FreqEvent(vfo_t, freq_t) const {
@@ -94,13 +121,9 @@ public:
 };
  
 
+
+
 #if 0
-
-extern HAMLIB_EXPORT(int) rig_set_rptr_shift HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift));
-extern HAMLIB_EXPORT(int) rig_get_rptr_shift HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift));
-extern HAMLIB_EXPORT(int) rig_set_rptr_offs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rptr_offs));
-extern HAMLIB_EXPORT(int) rig_get_rptr_offs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs));
-
 extern HAMLIB_EXPORT(int) rig_set_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
 extern HAMLIB_EXPORT(int) rig_get_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
 extern HAMLIB_EXPORT(int) rig_set_dcs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
@@ -123,24 +146,13 @@ extern HAMLIB_EXPORT(int) rig_get_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortf
 extern HAMLIB_EXPORT(int) rig_set_xit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t xit));
 extern HAMLIB_EXPORT(int) rig_get_xit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *xit));
 
-extern HAMLIB_EXPORT(int) rig_set_ts HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t ts));
-extern HAMLIB_EXPORT(int) rig_get_ts HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *ts));
 
-extern HAMLIB_EXPORT(int) rig_power2mW HAMLIB_PARAMS((RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode));
-extern HAMLIB_EXPORT(int) rig_mW2power HAMLIB_PARAMS((RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode));
-
-extern HAMLIB_EXPORT(shortfreq_t) rig_get_resolution HAMLIB_PARAMS((RIG *rig, rmode_t mode));
 
 
 #define rig_get_strength(r,v,s) rig_get_level((r),(v),RIG_LEVEL_STRENGTH, (value_t*)(s))
 
 extern HAMLIB_EXPORT(int) rig_set_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t val));
 extern HAMLIB_EXPORT(int) rig_get_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t *val));
-
-extern HAMLIB_EXPORT(int) rig_set_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t status));
-extern HAMLIB_EXPORT(int) rig_get_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t *status));
-
-extern HAMLIB_EXPORT(int) rig_reset HAMLIB_PARAMS((RIG *rig, reset_t reset));	/* dangerous! */
 
 extern HAMLIB_EXPORT(int) rig_set_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t ant));	/* antenna */
 extern HAMLIB_EXPORT(int) rig_get_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t *ant));
@@ -149,19 +161,10 @@ extern HAMLIB_EXPORT(int) rig_get_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t 
 extern HAMLIB_EXPORT(setting_t) rig_has_get_parm HAMLIB_PARAMS((RIG *rig, setting_t parm));
 extern HAMLIB_EXPORT(setting_t) rig_has_set_parm HAMLIB_PARAMS((RIG *rig, setting_t parm));
 
-extern HAMLIB_EXPORT(setting_t) rig_has_get_func HAMLIB_PARAMS((RIG *rig, setting_t func));
-extern HAMLIB_EXPORT(setting_t) rig_has_set_func HAMLIB_PARAMS((RIG *rig, setting_t func));
-
-extern HAMLIB_EXPORT(int) rig_set_func HAMLIB_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int status));
-extern HAMLIB_EXPORT(int) rig_get_func HAMLIB_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int *status));
-
 extern HAMLIB_EXPORT(int) rig_send_dtmf HAMLIB_PARAMS((RIG *rig, vfo_t vfo, const char *digits));
 extern HAMLIB_EXPORT(int) rig_recv_dtmf HAMLIB_PARAMS((RIG *rig, vfo_t vfo, char *digits, int *length));
 extern HAMLIB_EXPORT(int) rig_send_morse HAMLIB_PARAMS((RIG *rig, vfo_t vfo, const char *msg));
 
-extern HAMLIB_EXPORT(int) rig_set_bank HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int bank));
-extern HAMLIB_EXPORT(int) rig_set_mem HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int ch));
-extern HAMLIB_EXPORT(int) rig_get_mem HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int *ch));
 extern HAMLIB_EXPORT(int) rig_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_t vfo, vfo_op_t op));
 extern HAMLIB_EXPORT(vfo_op_t) rig_has_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_op_t op));
 
@@ -170,8 +173,6 @@ extern HAMLIB_EXPORT(int) rig_save_channel HAMLIB_PARAMS((RIG *rig, channel_t *c
 extern HAMLIB_EXPORT(int) rig_set_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan));	/* mem */
 extern HAMLIB_EXPORT(int) rig_get_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));
 
-extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int trn));
-extern HAMLIB_EXPORT(int) rig_get_trn HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int *trn));
 
 #endif 
 
@@ -222,6 +223,11 @@ extern "C" {
 #include <errno.h>
 }
 
+#include <iostream.h>
+#if !(defined(__GNUG__)||defined(__SUNPRO_CC))
+   extern "C" void exit(int);
+#endif
+
 // Forward Declarations
 
 class HAMLIB_IMPEXP RigException
@@ -242,15 +248,13 @@ public:
     : message(msg), errorno (-RIG_EINTERNAL)
     {};
 
+  void print() const {
+	cerr << "Rig exception: " << message << endl;
+  }
   virtual const char *classname() const {
     return "Rig";
   }
 };
-
-#if !(defined(__GNUG__)||defined(__SUNPRO_CC))
-#  include <iostream.h>
-   extern "C" void exit(int);
-#endif
 
 inline void THROW(const RigException *e) {
 #if defined(__GNUG__)
