@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- * $Id: kenwood.c,v 1.11 2001-06-20 06:08:21 f4cfe Exp $  
+ * $Id: kenwood.c,v 1.12 2001-06-30 23:19:42 f4cfe Exp $  
  *
  *
  *
@@ -84,8 +84,10 @@ struct kenwood_id {
 static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_R5000, 5 },
 	{ RIG_MODEL_TS870S, 15 },
+	{ RIG_MODEL_TS570D, 17 },
+	{ RIG_MODEL_TS570S, 18 },
 	{ RIG_MODEL_TS2000, 19 },
-	{ -1, UNKNOWN_ID },
+	{ RIG_MODEL_NONE, UNKNOWN_ID },	/* end marker */
 };
 
 /*
@@ -100,20 +102,18 @@ const int kenwood38_ctcss_list[] = {
 };
 
 /*
- * kenwood_transaction
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * port_transaction
+ * called by kenwood_transaction and probe_kenwood
+ * We assume that port!=NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling, error codes from the rig, ..
  */
-int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int port_transaction(port_t *port, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int i, retval;
-	struct rig_state *rs;
 
-	rs = &rig->state;
-
-	retval = write_block(&rs->rigport, cmd, cmd_len);
+	retval = write_block(port, cmd, cmd_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -123,7 +123,7 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int 
 	 */
 	i = 0;
 	do {
-		retval = fread_block(&rs->rigport, data+i, 1);
+		retval = fread_block(port, data+i, 1);
 		if (retval == 0)
 				continue;	/* huh!? */
 		if (retval < 0)
@@ -133,6 +133,22 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int 
 	*data_len = i;
 
 	return RIG_OK;
+}
+
+/*
+ * kenwood_transaction
+ * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * Otherwise, you'll get a nice seg fault. You've been warned!
+ * return value: RIG_OK if everything's fine, negative value otherwise
+ * TODO: error case handling, error codes from the rig, ..
+ *
+ * Note: right now, kenwood_transaction is a simple call to port_transaction.
+ * kenwood_transaction could have been written to accept a port_t instead
+ * of RIG, but who knows if we will need some priv stuff in the future?
+ */
+int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+{
+	return port_transaction(&rig->state.rigport, cmd, cmd_len, data, data_len);
 }
 
 /*
@@ -150,8 +166,10 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 			 */
 
 		switch (vfo) {
+		case RIG_VFO_VFO:
 		case RIG_VFO_A: vfo_function = '0'; break;
 		case RIG_VFO_B: vfo_function = '1'; break;
+		case RIG_VFO_MEM: vfo_function = '2'; break;
 		/* TODO : case RIG_VFO_C: */ 
 		default: 
 			rig_debug(RIG_DEBUG_ERR,"kenwood_set_vfo: unsupported VFO %d\n",
@@ -159,7 +177,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 			return -RIG_EINVAL;
 		}
 		cmdbuf[0] = 'F';
-		cmdbuf[0] = 'R';
+		cmdbuf[1] = 'R';
 		cmdbuf[2] = vfo_function;
 		cmdbuf[3] = EOM;
 
@@ -169,7 +187,7 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 			return retval;
 
 		/* set TX VFO */
-		cmdbuf[0] = 'T';
+		cmdbuf[1] = 'T';
 		retval = kenwood_transaction (rig, cmdbuf, 4, ackbuf, &ack_len);
 
 		return retval;
@@ -190,10 +208,6 @@ int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
 		if (retval != RIG_OK)
 			return retval;
 
-			/*
-			 * FIXME: vfo==RIG_VFO_CURR
-			 */
-
 		if (vfo_len != 4 || vfobuf[1] != 'R') {
 			rig_debug(RIG_DEBUG_ERR,"kenwood_get_vfo: unexpected answer %s, "
 							"len=%d\n", vfobuf, vfo_len);
@@ -204,9 +218,7 @@ int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
 		switch (vfobuf[2]) {
 		case '0': *vfo = RIG_VFO_A; break;
 		case '1': *vfo = RIG_VFO_B; break;
-#if 0
-		case '2': *vfo = RIG_VFO_NONE; break;
-#endif
+		case '2': *vfo = RIG_VFO_MEM; break;
 		default: 
 			rig_debug(RIG_DEBUG_ERR,"kenwood_get_vfo: unsupported VFO %c\n",
 								vfobuf[2]);
@@ -489,6 +501,97 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		return RIG_OK;
 }
 
+/* 
+ * assumes status!=NULL
+ * works for any 'format 1' command
+ */
+static int get_kenwood_func(RIG *rig, const char *cmd, int cmd_len, int *status)
+{
+	unsigned char fctbuf[16];
+	int fct_len, retval;
+
+	retval = kenwood_transaction (rig, cmd, cmd_len, fctbuf, &fct_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (fct_len != 4) {
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: wrong answer len=%d\n",
+				fct_len);
+		return -RIG_ERJCTED;
+	}
+
+	*status = fctbuf[2] == '0' ? 0 : 1;
+
+	return RIG_OK;
+};
+
+
+/*
+ * kenwood_get_func
+ * Assumes rig!=NULL, val!=NULL
+ */
+int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+		unsigned char fctbuf[16];
+		int fct_len, retval;
+
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
+		switch (func) {
+		case RIG_FUNC_FAGC:
+			retval = kenwood_transaction (rig, "GT;", 3, fctbuf, &fct_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			if (fct_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: "
+								"wrong answer len=%d\n", fct_len);
+				return -RIG_ERJCTED;
+			}
+
+			*status = fctbuf[4] != '4' ? 1 : 0;
+			break;
+
+		case RIG_FUNC_NB:
+			return get_kenwood_func(rig, "NB;", 3, status);
+
+		case RIG_FUNC_ABM:
+			return get_kenwood_func(rig, "AM;", 3, status);
+
+		case RIG_FUNC_COMP:
+			return get_kenwood_func(rig, "PR;", 3, status);
+
+		case RIG_FUNC_TONE:
+			return get_kenwood_func(rig, "TO;", 3, status);
+
+		case RIG_FUNC_TSQL:
+			return get_kenwood_func(rig, "CT;", 3, status);
+
+		case RIG_FUNC_VOX:
+			return get_kenwood_func(rig, "VX;", 3, status);
+
+		case RIG_FUNC_NR:
+			return get_kenwood_func(rig, "NR;", 3, status);
+
+ 			/* FIXME on TS2000 */
+		case RIG_FUNC_BC:
+			return get_kenwood_func(rig, "BC;", 3, status);
+
+		case RIG_FUNC_ANF:
+			return get_kenwood_func(rig, "NT;", 3, status);
+
+		case RIG_FUNC_LOCK:
+			return get_kenwood_func(rig, "LK;", 3, status);
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
+			return -RIG_EINVAL;
+		}
+
+		return RIG_OK;
+}
+
 /*
  * kenwood_set_ctcss
  * Assumes rig!=NULL, rig->caps->ctcss_list != NULL
@@ -690,14 +793,9 @@ int kenwood_reset(RIG *rig, reset_t reset)
 		int rst_len,ack_len;
 		char rst;
 
-		/* FIXME: define RIG_RESET_VFO & RIG_RESET_MASTER in rig.h */
 		switch(reset) {
-#ifdef RIG_RESET_VFO
 			case RIG_RESET_VFO: rst='1'; break;
-#endif
-#ifdef RIG_RESET_MASTER
 			case RIG_RESET_MASTER: rst='2'; break;
-#endif
 			default: 
 				rig_debug(RIG_DEBUG_ERR,"kenwood_reset: unsupported reset %d\n",
 								reset);
@@ -745,6 +843,163 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 		return RIG_OK;
 }
 
+/*
+ * kenwood_vfo_op
+ * Assumes rig!=NULL
+ */
+int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+		unsigned char *cmd, ackbuf[16];
+		int ack_len;
+
+		switch(op) {
+			case RIG_OP_UP: cmd="UP;"; break;
+			case RIG_OP_DOWN: cmd="DN;"; break;
+			case RIG_OP_BAND_UP: cmd="BD;"; break;
+			case RIG_OP_BAND_DOWN: cmd="BU;"; break;
+			default: 
+				rig_debug(RIG_DEBUG_ERR,"kenwood_vfo_op: unsupported op %#x\n",
+								op);
+				return -RIG_EINVAL;
+		}
+
+		return kenwood_transaction (rig, cmd, 3, ackbuf, &ack_len);
+}
+
+/*
+ * kenwood_set_mem
+ * Assumes rig!=NULL
+ */
+int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
+{
+		unsigned char membuf[16], ackbuf[16];
+		int mem_len, ack_len;
+
+		/*
+		 * "MCbmm;"
+		 * where b is the bank number, mm the memory number.
+		 * b can be a space
+		 */
+		mem_len = sprintf(membuf, "MC %02d;", ch);
+
+		return kenwood_transaction (rig, membuf, mem_len, ackbuf, &ack_len);
+}
+
+/*
+ * kenwood_get_mem
+ * Assumes rig!=NULL
+ */
+int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch)
+{
+		unsigned char membuf[16];
+		int retval, mem_len;
+
+		/*
+		 * "MCbmm;"
+		 * where b is the bank number, mm the memory number.
+		 * b can be a space
+		 */
+
+		retval = kenwood_transaction (rig, "MC;", 3, membuf, &mem_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (mem_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"kenwood_get_mem: wrong answer "
+								"len=%d\n", mem_len);
+				return -RIG_ERJCTED;
+		}
+		*ch = atoi(membuf+2);
+
+		return RIG_OK;
+}
+
+/*
+ * kenwood_get_info
+ * supposed to work only for TS2000...
+ * Assumes rig!=NULL
+ */
+const char* kenwood_get_info(RIG *rig)
+{
+	unsigned char firmbuf[16];
+	int firm_len, retval;
+								 
+	retval = kenwood_transaction (rig, "TY;", 3, firmbuf, &firm_len);
+	if (retval != RIG_OK)
+		return NULL;
+
+	if (firm_len != 6) {
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_info: wrong answer len=%d\n",
+						firm_len);
+		return NULL;
+	}
+
+	switch (firmbuf[4]) {
+			case '0': return "Firmware: Overseas type";
+			case '1': return "Firmware: Japanese 100W type";
+			case '2': return "Firmware: Japanese 20W type";
+			default: return "Firmware: unknown";
+	}
+}
+
+
+/*
+ * probe_kenwood
+ */
+rig_model_t probe_kenwood(port_t *port)
+{
+	unsigned char idbuf[16];
+	int id_len, i, k_id;
+	int retval;
+
+	if (!port)
+			return RIG_MODEL_NONE;
+
+	port->write_delay = port->post_write_delay = 0;
+	port->timeout = 50;
+	port->retry = 1;
+
+	retval = serial_open(port);
+	if (retval != RIG_OK)
+			return RIG_MODEL_NONE;
+
+	retval = port_transaction(port, "ID;", 3, idbuf, &id_len);
+
+	close(port->fd);
+
+	if (retval != RIG_OK)
+			return RIG_MODEL_NONE;
+
+	/* 
+	 * reply should be something like 'IDxxx;'
+	 */
+	if (id_len != 6) {
+			idbuf[6] = '\0';
+			rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: protocol error,"
+							" expected %d, received %d: %s\n",
+							6, id_len, idbuf);
+			return RIG_MODEL_NONE;
+	}
+
+	k_id = atoi(idbuf+2);
+
+	for (i=0; kenwood_id_list[i].model != RIG_MODEL_NONE; i++) {
+			if (kenwood_id_list[i].id == k_id) {
+					rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: "
+									"found %03d\n", k_id);
+					return kenwood_id_list[i].model;
+			}
+	}
+	/*
+	 * not found in known table.... 
+	 * update kenwood_id_list[]!
+	 */
+	rig_debug(RIG_DEBUG_WARN,"probe_kenwood: found unknown device "
+				"with ID %03d, please report to Hamlib "
+				"developers.\n", k_id);
+
+	return RIG_MODEL_NONE;
+}
 
 
 /*
@@ -754,6 +1009,8 @@ int init_kenwood(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "kenwood: _init called\n");
 
+		rig_register(&ts570d_caps);
+		rig_register(&ts570s_caps);
 		rig_register(&ts870s_caps);
 
 		return RIG_OK;
