@@ -2,7 +2,7 @@
  *  Hamlib bindings - Rig interface
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: rig.swg,v 1.4 2002-10-08 21:54:58 fillods Exp $
+ *	$Id: rig.swg,v 1.5 2002-11-14 19:27:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -75,7 +75,7 @@ typedef struct Rig {
 
 
 #define METHODSIMPLESET(f, t1, fld, chk) void set_##f (setting_t stg, t1 fld  _VFO_DECL) \
-		{ value_t val; 	if (chk (stg)) {	\
+		{ value_t val; 	if (chk) {	\
 			self->error_status = -RIG_EINVAL;	/* invalid type */	\
 			return;	\
 		}	\
@@ -119,7 +119,7 @@ typedef struct Rig {
 			self->error_status = rig_set_ext_##f(self->rig  _VFO_ARG, cfp->token, val);	\
 			return;	\
 		}	\
-		if (chk (stg)) {	\
+		if (chk) {	\
 			self->error_status = -RIG_EINVAL;	/* invalid type */	\
 			return;	\
 		}	\
@@ -144,7 +144,7 @@ typedef struct Rig {
 	}
 
 #define METHODSIMPLEGET(f, t1, fld, chk) t1 get_##f##_##fld (setting_t stg  _VFO_DECL) \
-		{ value_t val; 	if (chk (stg)) {	\
+		{ value_t val; 	if (chk) {	\
 			self->error_status = -RIG_EINVAL;	/* invalid type */	\
 			return val.fld;		/* undefined value */	\
 		}	\
@@ -180,7 +180,7 @@ typedef struct Rig {
 				return val.fld;	/* undefined */ \
 			}	\
 		}	\
-		if (chk (stg)) {	\
+		if (chk) {	\
 			self->error_status = -RIG_EINVAL;	/* invalid type */	\
 			return val.fld;	/* undefined */ \
 		}	\
@@ -279,17 +279,17 @@ typedef struct Rig {
 	METHOD1(send_morse, const_char_string)
 	METHOD1(vfo_op, vfo_op_t)
 	METHOD2(scan, scan_t, int)
-	METHODSIMPLESET(level, int, i, RIG_LEVEL_IS_FLOAT)
-	METHODSIMPLESET(level, float, f, !RIG_LEVEL_IS_FLOAT)
-	METHODSUPERSET(level, int, i, RIG_LEVEL_IS_FLOAT)
-	METHODSUPERSET(level, float, f, !RIG_LEVEL_IS_FLOAT)
+	METHODSIMPLESET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
+	METHODSIMPLESET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
+	METHODSUPERSET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
+	METHODSUPERSET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
 	METHODSTRSET(level)
 	METHOD2(set_ext_level, token_t, value_t)
 
-	METHODSIMPLEGET(level, int, i, RIG_LEVEL_IS_FLOAT)
-	METHODSIMPLEGET(level, float, f, !RIG_LEVEL_IS_FLOAT)
-	METHODSUPERGET(level, int, i, RIG_LEVEL_IS_FLOAT)
-	METHODSUPERGET(level, float, f, !RIG_LEVEL_IS_FLOAT)
+	METHODSIMPLEGET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
+	METHODSIMPLEGET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
+	METHODSUPERGET(level, int, i, RIG_LEVEL_IS_FLOAT(stg))
+	METHODSUPERGET(level, float, f, !RIG_LEVEL_IS_FLOAT(stg))
 	METHODSTRGET(level)
 
 	/*
@@ -318,16 +318,16 @@ typedef struct Rig {
 	METHOD2(set_conf, token_t, const_char_string)
 	METHOD2(set_ext_parm, token_t, value_t)
 
-	METHODSIMPLESET(parm, int, i, RIG_PARM_IS_FLOAT)
-	METHODSIMPLESET(parm, float, f, !RIG_PARM_IS_FLOAT)
-	METHODSUPERSET(parm, int, i, RIG_PARM_IS_FLOAT)
-	METHODSUPERSET(parm, float, f, !RIG_PARM_IS_FLOAT)
+	METHODSIMPLESET(parm, int, i, RIG_PARM_IS_FLOAT(stg))
+	METHODSIMPLESET(parm, float, f, !RIG_PARM_IS_FLOAT(stg))
+	METHODSUPERSET(parm, int, i, RIG_PARM_IS_FLOAT(stg))
+	METHODSUPERSET(parm, float, f, !RIG_PARM_IS_FLOAT(stg))
 	METHODSTRSET(parm)
 
-	METHODSIMPLEGET(parm, int, i, RIG_PARM_IS_FLOAT)
-	METHODSIMPLEGET(parm, float, f, !RIG_PARM_IS_FLOAT)
-	METHODSUPERGET(parm, int, i, RIG_PARM_IS_FLOAT)
-	METHODSUPERGET(parm, float, f, !RIG_PARM_IS_FLOAT)
+	METHODSIMPLEGET(parm, int, i, RIG_PARM_IS_FLOAT(stg))
+	METHODSIMPLEGET(parm, float, f, !RIG_PARM_IS_FLOAT(stg))
+	METHODSUPERGET(parm, int, i, RIG_PARM_IS_FLOAT(stg))
+	METHODSUPERGET(parm, float, f, !RIG_PARM_IS_FLOAT(stg))
 	METHODSTRGET(parm)
 
 
