@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.6 2000-10-16 22:32:36 f4cfe Exp $  
+ * $Id: ic706.c,v 1.7 2000-10-23 19:48:12 f4cfe Exp $  
  *
  *
  *
@@ -213,6 +213,14 @@ set_level: icom_set_level,
 get_level: icom_get_level,
 set_channel: icom_set_channel,
 get_channel: icom_get_channel,
+set_mem: icom_set_mem,
+mv_ctl: icom_mv_ctl,
+set_ptt: icom_set_ptt,
+get_ptt: icom_get_ptt,
+set_ts: icom_set_ts,
+get_ts: icom_get_ts,
+set_rptr_shift: icom_set_rptr_shift,
+get_rptr_shift: icom_get_rptr_shift,
 };
 
 

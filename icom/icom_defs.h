@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.4 2000-10-16 22:37:22 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.5 2000-10-23 19:48:12 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -40,6 +40,8 @@
 #define PAD		0xff		/* Transmit padding */
 
 #define ACKFRMLEN	6		/* reply frame length */
+
+#define S_NONE -1
 
 /*
  * Cn controller commands
@@ -105,6 +107,17 @@
 #define S_VFOB	0x01		/* Set to VFO B */
 #define S_BTOA	0xa0		/* VFO A=B */
 #define S_XCHNG	0xb0		/* Switch VFO A and B */
+#define S_SUBTOMAIN	0xb1		/* MAIN = SUB */
+#define S_DUAL_OFF	0xc0		/* Dual watch off */
+#define S_DUAL_ON	0xc1		/* Dual watch on */
+#define S_MAIN	0xd0		/* Select MAIN band */
+#define S_SUB	0xd1		/* Select SUB band */
+#define S_FRONTWIN	0xe0		/* Select front window */
+
+/*
+ * Set MEM (C_SET_MEM) sub commands
+ */
+#define S_BANK	0xa0		/* Select memory bank */
 
 /*
  * Scan control (C_CTL_SCAN) subcommands
@@ -189,6 +202,12 @@
  * Transceiver ID (C_RD_TRXID) subcommands
  */
 #define S_TRXID	0x00		/* Read transceiver ID code */
+
+/*
+ * Set Power On/Off (C_SET_PWR) subcommands
+ */
+#define S_PWR_OFF	0x00
+#define S_PWR_ON	0x01
 
 /*
  * Transmit control (C_CTL_PTT) subcommands

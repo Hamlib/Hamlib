@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.7 2000-10-16 22:34:22 f4cfe Exp $  
+ * $Id: icom.c,v 1.8 2000-10-23 19:48:12 f4cfe Exp $  
  *
  *
  *
@@ -140,7 +140,6 @@ struct icom_addr {
  *
  * TODO: sort this list with most frequent rigs first.
  */
-#define UNKNOWN_ADDR 0x01
 static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC706, 0x48 },
 		{ RIG_MODEL_IC706MKII, 0x4e },
@@ -156,7 +155,7 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC726, 0x30 },
 		{ RIG_MODEL_IC728, 0x38 },
 		{ RIG_MODEL_IC729, 0x3a },
-		{ RIG_MODEL_IC731, 0x04 },
+		{ RIG_MODEL_IC731, 0x02 },	/* need confirmation */
 		{ RIG_MODEL_IC735, 0x04 },
 		{ RIG_MODEL_IC736, 0x40 },
 		{ RIG_MODEL_IC746, 0x56 },
@@ -184,7 +183,7 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_ICR8500, 0x4a },
 		{ RIG_MODEL_ICR9000, 0x2a },
 		{ RIG_MODEL_MINISCOUT, 0x94 },
-		{ RIG_MODEL_IC718, UNKNOWN_ADDR },
+		{ RIG_MODEL_IC718, 0x36 },	/* need confirmation */
 		{ -1, 0 },
 };
 
@@ -436,7 +435,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
  * icom_get_strength
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_level(RIG *rig, setting_t set, value_t val)
+int icom_set_level(RIG *rig, setting_t level, value_t val)
 {
 			return -RIG_ENIMPL;
 }
@@ -445,7 +444,7 @@ int icom_set_level(RIG *rig, setting_t set, value_t val)
  * icom_get_strength
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
  */
-int icom_get_level(RIG *rig, setting_t set, value_t *val)
+int icom_get_level(RIG *rig, setting_t level, value_t *val)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -458,7 +457,7 @@ int icom_get_level(RIG *rig, setting_t set, value_t *val)
 		priv = (struct icom_priv_data*)rig_s->priv;
 
 
-		switch (set) {
+		switch (level) {
 		case RIG_LEVEL_PREAMP:
 			lvl_cn = C_CTL_FUNC;
 			lvl_sc = S_FUNC_PAMP;
@@ -553,7 +552,7 @@ int icom_get_level(RIG *rig, setting_t set, value_t *val)
 			lvl_sc = S_SML;
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported get level %d", set);
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get level %d", level);
 			return -RIG_EINVAL;
 		}
 
@@ -584,52 +583,11 @@ int icom_get_level(RIG *rig, setting_t set, value_t *val)
 #define max(a,b) ((a)>(b)?(a):(b))
 #endif
 		/* translate to db */
-		if (set == RIG_LEVEL_STRENGTH)
+		if (level == RIG_LEVEL_STRENGTH)
 			val->i = rint(STR_MAX/(STR_CEILING-STR_FLOOR)*max(icom_val-STR_FLOOR,0));
 		else
 			val->i = icom_val;
 		rig_debug(RIG_DEBUG_VERBOSE,"%d %d %d\n",lvl_len,icom_val,val->i);
-
-		return RIG_OK;
-}
-
-/*
- * icom_set_rpt_shift
- * Assumes rig!=NULL, rig->state.priv!=NULL
- */
-int icom_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift)
-{
-		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
-		unsigned char ackbuf[16];
-		int ack_len;
-		int rptr_sc;
-
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
-
-		switch (rptr_shift) {
-		case RIG_RPT_SHIFT_NONE:
-			rptr_sc = S_DUP_OFF;	/* Simplex mode */
-			break;
-		case RIG_RPT_SHIFT_MINUS:
-			rptr_sc = S_DUP_M;		/* Duples - mode */
-			break;
-		case RIG_RPT_SHIFT_PLUS:
-			rptr_sc = S_DUP_P;		/* Duplex + mode */
-			break;
-		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported shift %d", rptr_shift);
-			return -RIG_EINVAL;
-		}
-
-		icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0, ackbuf, &ack_len);
-
-		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_shift: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
-				return -RIG_ERJCTED;
-		}
 
 		return RIG_OK;
 }
@@ -692,12 +650,53 @@ int icom_get_ptt(RIG *rig, ptt_t *ptt)
 		return RIG_OK;
 }
 
+/*
+ * icom_set_rptr_shift
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char ackbuf[16];
+		int ack_len;
+		int rptr_sc;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		switch (rptr_shift) {
+		case RIG_RPT_SHIFT_NONE:
+			rptr_sc = S_DUP_OFF;	/* Simplex mode */
+			break;
+		case RIG_RPT_SHIFT_MINUS:
+			rptr_sc = S_DUP_M;		/* Duplex - mode */
+			break;
+		case RIG_RPT_SHIFT_PLUS:
+			rptr_sc = S_DUP_P;		/* Duplex + mode */
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported shift %d", rptr_shift);
+			return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_shift: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
 
 /*
- * icom_get_rpt_shift
+ * icom_get_rptr_shift
  * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_shift!=NULL
  */
-int icom_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift)
+int icom_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -790,7 +789,7 @@ int icom_get_ts(RIG *rig, unsigned long *ts)
 		icom_transaction (rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
 
 		/*
-		 * rptrbuf should contain Cn,Sc
+		 * tsbuf should contain Cn,Sc
 		 */
 		ts_len--;
 		if (ts_len != 1) {
@@ -908,6 +907,174 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 		return RIG_OK;
 }
 
+
+
+/*
+ * icom_set_poweron
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_poweron(RIG *rig)
+{
+		unsigned char ackbuf[16];
+		int ack_len;
+
+		icom_transaction(rig, C_SET_PWR, S_PWR_ON, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_poweron: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_set_poweroff
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_poweroff(RIG *rig)
+{
+		unsigned char ackbuf[16];
+		int ack_len;
+
+		icom_transaction(rig, C_SET_PWR, S_PWR_OFF, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_poweroff: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_set_mem
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_mem(RIG *rig, int ch)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char membuf[2];
+		unsigned char ackbuf[16];
+		int ack_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		to_bcd_be(membuf, ch, 2);
+		icom_transaction (rig, C_SET_MEM, -1, membuf, 2, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_mem: ack NG (%#.2x),
+								len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_set_bank
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_bank(RIG *rig, int bank)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char bankbuf[2];
+		unsigned char ackbuf[16];
+		int ack_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		to_bcd_be(bankbuf, bank, 2);
+		icom_transaction (rig, C_SET_MEM, S_BANK, bankbuf, 2, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_bank: ack NG (%#.2x),
+								len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_mv_ctl, Mem/VFO operation
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_mv_ctl(RIG *rig, mv_op_t op)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char mvbuf[16];
+		unsigned char ackbuf[16];
+		int mv_len, ack_len;
+		int mv_cn, mv_sc;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		mv_len = 0;
+
+		switch(op) {
+			case RIG_MVOP_VFO_MODE:
+				mv_cn = C_SET_VFO;
+				mv_sc = -1;
+				break;
+			case RIG_MVOP_MEM_MODE:
+				mv_cn = C_SET_MEM;
+				mv_sc = -1;
+				break;
+			case RIG_MVOP_VFO_CPY:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_BTOA;
+				break;
+			case RIG_MVOP_VFO_XCHG:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_XCHNG;
+				break;
+			case RIG_MVOP_DUAL_OFF:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_DUAL_OFF;
+				break;
+			case RIG_MVOP_DUAL_ON:
+				mv_cn = C_SET_VFO;
+				mv_sc = S_DUAL_ON;
+				break;
+			case RIG_MVOP_FROM_VFO:
+				mv_cn = C_WR_MEM;
+				mv_sc = -1;
+				break;
+			case RIG_MVOP_TO_VFO:
+				mv_cn = C_MEM2VFO;
+				mv_sc = -1;
+				break;
+			case RIG_MVOP_MCL:
+				mv_cn = C_CLR_MEM;
+				mv_sc = -1;
+				break;
+			default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported mem/vfo op %d", op);
+				return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
+
+#if 0
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_mem: ack NG (%#.2x),
+								len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+#endif
+
+		return RIG_OK;
+}
 
 
 /*
