@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.42 2005-02-03 20:22:21 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.43 2005-02-03 20:51:19 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,11 @@
 (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR		\
 |RIG_FUNC_BC|RIG_FUNC_ANF|RIG_FUNC_LOCK)
 
-#define TS870S_LEVEL_ALL	\
+#define TS870S_LEVEL_SET	\
+(RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_RFPOWER		\
+|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_PREAMP)
+
+#define TS870S_LEVEL_GET	\
 (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_SWR		\
 |RIG_LEVEL_COMP|RIG_LEVEL_ALC|RIG_LEVEL_AGC|RIG_LEVEL_RFPOWER		\
 |RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_PREAMP)
@@ -356,6 +360,7 @@ int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		return RIG_OK;
 }
 
+
 /*
  * ts870s rig capabilities.
  * Notice that some rigs share the same functions.
@@ -368,7 +373,7 @@ const struct rig_caps ts870s_caps = {
 .rig_model =  RIG_MODEL_TS870S,
 .model_name = "TS-870S",
 .mfg_name =  "Kenwood",
-.version =  "0.4.1",
+.version =  "0.4.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -388,8 +393,8 @@ const struct rig_caps ts870s_caps = {
 
 .has_get_func =  TS870S_FUNC_ALL,
 .has_set_func =  TS870S_FUNC_ALL,
-.has_get_level =  TS870S_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(TS870S_LEVEL_ALL),
+.has_get_level =  TS870S_LEVEL_GET,
+.has_set_level =  TS870S_LEVEL_SET,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
 .level_gran =  {},                 /* FIXME: granularity */
