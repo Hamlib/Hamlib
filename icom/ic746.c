@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-746 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic746.c,v 1.3 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: ic746.c,v 1.4 2005-01-19 17:17:54 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -73,22 +73,22 @@
 
 #define IC746_STR_CAL { 16, \
 	{ \
-		{   0, -18 }, \
-		{  10, -16 }, \
-		{  27, -14 }, \
-		{  45, -12 }, \
-		{  60, -10 }, \
-		{  76, -8 }, \
-		{  89, -6 }, \
-		{ 100, -4 }, \
-		{ 110, -2 }, \
+		{   0, -60 }, \
+		{  10, -55 }, \
+		{  27, -49 }, \
+		{  45, -42 }, \
+		{  60, -35 }, \
+		{  76, -28 }, \
+		{  89, -21 }, \
+		{ 100, -14 }, \
+		{ 110, -7 }, \
 		{ 120, 0 }, \
-		{ 125, 2 }, \
-		{ 129, 4 }, \
-		{ 133, 6 }, \
-		{ 138, 8 }, \
-		{ 142, 10 }, \
-		{ 146, 12 } \
+		{ 125, 10 }, \
+		{ 129, 20 }, \
+		{ 133, 30 }, \
+		{ 138, 40 }, \
+		{ 142, 50 }, \
+		{ 146, 60 } \
 	} }
 
 /*
