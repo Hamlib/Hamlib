@@ -14,7 +14,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.8 2003-08-21 03:11:27 n0nb Exp $
+ *	$Id: locator.c,v 1.9 2003-08-21 20:22:06 n0nb Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle,
  *	by S. R. Sampson, N5OWK.
@@ -68,6 +68,38 @@
 /* arc length for 1 degree, 60 Nautical Miles */
 #define ARC_IN_KM 111.2
 
+/* The following is contributed by Dave Hines
+ *
+ * begin dph
+ */
+/*
+ * These are the constants used when converting between Maidenhead grid
+ * locators and longitude/latitude values. MAX_LOCATOR_PAIRS is the maximum
+ * number of locator character pairs to convert. This number MUST NOT exceed
+ * the number of pairs of values in range[] & weight[].
+ * Setting MAX_LOCATOR_PAIRS to 3 will convert the currently defined 6
+ * character locators. A value of 4 will convert the extended 8 character
+ * locators described in section 3L of "The IARU region 1 VHF managers
+ * handbook". Values of 5 and 6 will extent the format even more, to the
+ * longest definition I have seen for locators. Beware that there seems to be
+ * no universally accepted standard for 10 & 12 character locators.
+ * Note that the loc_char_weight values are in minutes of arc, to avoid
+ * constants which can't be represented precisely in either binary or decimal.
+ *
+ * MAX_LOCATOR_PAIRS now sets the limit locator2longlat() will convert and
+ * sets the maximum length longlat2locator() will generate.  Each function
+ * properly handles any value from 1 to 6 so MAX_LOCATOR_PAIRS should be
+ * left at 6.  MIN_LOCATOR_PAIRS sets a floor on the shortest locator that
+ * should be handled.  -N0NB
+ *
+ */
+const static double loc_char_weight[] = { 600.0, 60.0, 2.5, 0.25, 0.01, 0.001 };
+const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
+#define MAX_LOCATOR_PAIRS       6
+#define MIN_LOCATOR_PAIRS       1
+
+/* end dph */
+
 #endif	/* !DOC_HIDDEN */
 
 /**
@@ -84,11 +116,11 @@
  *
  * \sa dec2dms()
  */
-double dms2dec(int degrees, int minutes, int seconds) {
+double dms2dec(int degrees, int minutes, double seconds) {
 	if (degrees >= 0)
-		return (double)degrees + (double)minutes/60. + (double)seconds/3600.;
+		return (double)degrees + (double)minutes/60. + seconds/3600.;
 	else
-		return (double)degrees - (double)minutes/60. - (double)seconds/3600.;
+		return (double)degrees - (double)minutes/60. - seconds/3600.;
 }
 
 /**
@@ -108,8 +140,8 @@ double dms2dec(int degrees, int minutes, int seconds) {
  *
  * \sa dms2dec()
  */
-void dec2dms(double dec, int *degrees, int *minutes, int *seconds) {
-	int deg, min, sec, is_neg = 0;
+void dec2dms(double dec, int *degrees, int *minutes, double *seconds) {
+	int deg, min, is_neg = 0;
 	double st;
 
 	if (!degrees || !minutes || !seconds)
@@ -147,53 +179,13 @@ void dec2dms(double dec, int *degrees, int *minutes, int *seconds) {
 	st  = 60. * (st-(double)deg);
 	min = (int)floor(st);
 	st  = 60. * (st-(double)min);
-	sec = (int)floor(st);
-
-	/* round fractional seconds up if greater than sec.5
-	 * round up min and deg if warranted.
-         */
-	if (fmod(st, sec) >= 0.5) {
-		sec++;
-		if (sec == 60) {
-			sec = 0;
-			min++;
-			if (min == 60) {
-				min = 0;
-				deg++;
-			}
-		}
-	}
 
 	/* set *degrees to original sign passed to dec */
 	(is_neg == 1) ? (*degrees = deg * -1) : (*degrees = deg);
 
 	*minutes = min;
-	*seconds = sec;
+	*seconds = st;
 }
-
-/* The following is contributed by Dave Hines
- *
- * begin dph
- */
-/*
- * These are the constants used when converting between Maidenhead grid
- * locators and longitude/latitude values. MAX_LOCATOR_PAIRS is the maximum
- * number of locator character pairs to convert. This number MUST NOT exceed
- * the number of pairs of values in range[] & weight[].
- * Setting MAX_LOCATOR_PAIRS to 3 will convert the currently defined 6
- * character locators. A value of 4 will convert the extended 8 character
- * locators described in section 3L of "The IARU region 1 VHF managers
- * handbook". Values of 5 and 6 will extent the format even more, to the
- * longest definition I have seen for locators. Beware that there seems to be
- * no universally accepted standard for 10 & 12 character locators.
- * Note that the loc_char_weight values are in minutes of arc, to avoid
- * constants which can't be represented precisely in either binary or decimal.
- */
-const static double loc_char_weight[] = { 600.0, 60.0, 2.5, 0.25, 0.01, 0.001 };
-const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
-#define MAX_LOCATOR_PAIRS       6
-
-/* end dph */
 
 /**
  * \brief Convert Maidenhead grid locator to longitude/latitude
@@ -212,7 +204,7 @@ const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
  *  and 1' 15" from south boundary.
  *
  * \return RIG_OK to indicate conversion went ok, -RIG_EINVAL if locator
- *  exceeds RR99xx or is malformed (not of 2 through 12 character format).
+ *  exceeds RR99xx or exceeds length limit.  Currently 1 to 6 lon/lat pairs.
  *
  * \sa longlat2locator()
  */
@@ -220,12 +212,16 @@ const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
 /* begin dph */
 
 int locator2longlat(double *longitude, double *latitude, const char *locator) {
-	int x_or_y, paircount = strlen(locator) / 2;
+	int x_or_y, paircount;
         int locvalue, pair;
 	double xy[2], minutes;
 
+	paircount = strlen(locator) / 2;
+
 	if (paircount > MAX_LOCATOR_PAIRS)	/* Max. locator length to allow */
 		paircount = MAX_LOCATOR_PAIRS;
+	else if (paircount < MIN_LOCATOR_PAIRS)
+		return -RIG_EINVAL;
 
 	for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) { /* For x(=long) and y(=lat) */
 		minutes = 0.0;
@@ -241,7 +237,7 @@ int locator2longlat(double *longitude, double *latitude, const char *locator) {
 
 			minutes += locvalue * loc_char_weight[pair];
 		}
-		minutes += loc_char_weight[paircount-1] / 2.0; /* Center coordinate */
+		minutes += loc_char_weight[paircount - 1] / 2.0; /* Center coordinate */
 
 		xy[x_or_y] = minutes / 60.0 - 90.0;
 	}
@@ -259,34 +255,44 @@ int locator2longlat(double *longitude, double *latitude, const char *locator) {
  * \param longitude	The longitude, decimal
  * \param latitude	The latitude, decimal
  * \param locator	The location where to store the locator
+ * \param pair_count	The desired precision expressed as lon/lat pairs in the locator
  *
  *  Convert longitude/latitude (decimal) to Maidenhead grid locator.
- *  \a locator must point to an array at least MAX_LOCATOR_PAIRS*2 char plus nul long.
+ *  \a locator must point to an array at least pair_count * 2 char plus '\0'.
+ *
+ * \return RIG_OK if locator was successfully computed.  -RIG_EINVAL if
+ * pair_count exceeds length limit.  Currently 1 to 6 lon/lat pairs.
  *
  * \sa locator2longlat()
  */
 
 /* begin dph */
 
-void longlat2locator(double longitude, double latitude, char *locator) {
+int longlat2locator(double longitude, double latitude,
+		     char *locator, int pair_count) {
 	int x_or_y, pair, locvalue;
-        double tmp;
+	double tmp;
+
+	if (pair_count < MIN_LOCATOR_PAIRS || pair_count > MAX_LOCATOR_PAIRS)
+                return -RIG_EINVAL;
 
 	for (x_or_y = 0;  x_or_y < 2;  ++x_or_y) {
 		tmp = ((x_or_y == 0) ? longitude / 2. : latitude);
 
 		/* The 1e-6 here guards against floating point rounding errors */
 		tmp = fmod(tmp + 270., 180.) * 60. + 1e-6;
-		for (pair = 0;  pair < MAX_LOCATOR_PAIRS;  ++pair) {
+		for (pair = 0;  pair < pair_count;  ++pair) {
 			locvalue = (int) (tmp / loc_char_weight[pair]);
 
 			/* assert(locvalue < loc_char_range[pair]); */
 			tmp -= loc_char_weight[pair] * locvalue;
 			locvalue += (loc_char_range[pair] == 10) ? '0':'A';
-			locator[pair*2 + x_or_y] = locvalue;
+			locator[pair * 2 + x_or_y] = locvalue;
 		}
 	}
-        locator[MAX_LOCATOR_PAIRS * 2] = '\0';
+        locator[pair_count * 2] = '\0';
+
+	return RIG_OK;
 }
 
 /* end dph */
