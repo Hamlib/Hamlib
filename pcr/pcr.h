@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main header
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: pcr.h,v 1.7 2002-03-07 22:48:50 fillods Exp $
+ *	$Id: pcr.h,v 1.8 2002-08-26 22:33:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,6 +41,36 @@ int pcr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int pcr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 const char *pcr_get_info(RIG *rig);
+
+
+/*Added - G0WCW ----------------------------------------------------- */
+
+int pcr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int pcr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
+int pcr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+
+int pcr_set_comm_rate(RIG *rig, int baud_rate);
+int pcr_check_ok(RIG *rig);
+
+int pcr_set_volume(RIG *rig, int level);
+int pcr_set_squelch(RIG *rig, int level);
+int pcr_set_IF_shift(RIG *rig, int shift);
+int pcr_set_AGC(RIG *rig, int level);                // J45xx
+int pcr_set_NB(RIG *rig, int level);                 // J46xx
+int pcr_set_Attenuator(RIG *rig, int level);         // J47xx
+
+int pcr_set_BFO(RIG *rig, int shift);                // J4Axx
+int pcr_set_VSC(RIG *rig, int level);                // J50xx
+int pcr_set_DSP(RIG *rig, int state);                // J80xx
+int pcr_set_DSP_state(RIG *rig, int state);          // J8100=off J8101=on
+int pcr_set_DSP_noise_reducer(RIG *rig, int state);  // J82xx
+int pcr_set_DSP_auto_notch(RIG *rig, int state);     // J83xx
+/* ------------------------------------------------------------------ */
+
+// int pcr_get_param(RIG *rig, setting_t parm, value_t *val);
+// int pcr_set_param(RIG *rig, setting_t parm, value_t *val);
 
 
 extern const struct rig_caps pcr1000_caps;

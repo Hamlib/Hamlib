@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - main file
- *  Copyright (c) 2001-2002 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod and Darren Hatcher
  *
- *		$Id: pcr.c,v 1.15 2002-03-26 08:05:51 fillods Exp $
+ *	$Id: pcr.c,v 1.16 2002-08-26 22:33:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,6 +40,13 @@
 
 #include "pcr.h"
 
+/* baud rates used */
+#define B_300   0
+#define B_1200  1
+#define B_4800  2
+#define B_9600  3
+#define B_19200 4
+#define B_38400 5
 
 /*
  * modes in use by the "MD" command
@@ -186,7 +193,6 @@ int pcr_open(RIG *rig)
 	unsigned char ackbuf[16];
 	int ack_len, retval;
 	int wanted_serial_rate;
-	const char *rate_cmd;
 
 	rs = &rig->state;
 	priv = (struct pcr_priv_data *)rs->priv;
@@ -211,6 +217,8 @@ int pcr_open(RIG *rig)
 
 #if 0
 	if (wanted_serial_rate != 9600) {
+		const char *rate_cmd;
+
 		switch (wanted_serial_rate) {
 			case 300:	rate_cmd = "G100" EOM; break;
 			case 1200:	rate_cmd = "G101" EOM; break;
@@ -495,6 +503,885 @@ const char *pcr_get_info(RIG *rig)
 
 
 
+/* *********************************************************************** */
+/* load of new stuff added in by Darren Hatcher - G0WCW                    */
+/* *********************************************************************** */
+
+/*
+ * pcr_set_level called by generic set level handler
+ *
+ * We are missing a way to set the BFO on/off here,
+ */
+
+int pcr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	int retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_level called\npcr: values = %f %ld, level  = %d\n", val.f, val.i,level);
+
+	/* split by float/int types */
+	if (!RIG_LEVEL_IS_FLOAT(level)){
+	/* ints first */
+		switch( level ) {
+
+		case RIG_LEVEL_ATT:
+			/* This is only on or off, but hamlib forces to use set level
+			 * and pass as a float. Here we'll use 0 for off and 1 for on.
+			 * If someone finds out how to set the ATT for the PCR in dB, let us
+			 * know and the function can be changed to allow a true set level.
+			 *
+			 * Experiment shows it seems to have an effect, but unsure by how many db
+			 */
+			retval = pcr_set_Attenuator(rig, val.i);
+			break;
+
+		case RIG_LEVEL_IF:
+			/*	.... rig supports 0 to FF, with 0x80 in the middle */
+			retval = pcr_set_IF_shift(rig, val.i);
+			break;
+
+		case RIG_LEVEL_AGC:
+			/* this is implemented as a level even though it is a binary function
+			 * as far as PCR is concerned. There is no AGC on/off for a "set func",
+			 * so done here is a set level
+			 */
+			retval = pcr_set_AGC(rig, val.i);
+			break;
+
+   		default:
+			rig_debug(RIG_DEBUG_VERBOSE, "pcr: Integer rig level default not found ...\n");
+      			return -RIG_EINVAL;
+   		}
+	}
+	if (RIG_LEVEL_IS_FLOAT(level)){
+	/* floats */
+		switch( level ) {
+
+		case RIG_LEVEL_AF:
+			/* "val" can be 0.0 to 1.0 float which is 0 to 255 levels
+			 * 0.3 seems to be ok in terms of loudness
+			 */
+			retval = pcr_set_volume(rig, (val.f * 0xFF));
+			break;
+
+		case RIG_LEVEL_SQL:
+			/* "val" can be 0.0 to 1.0 float
+			 *	.... rig supports 0 to FF - look at function for
+			 *	squelch "bands"
+			 */
+			retval = pcr_set_squelch(rig, (val.f * 0xFF));
+			break;
+
+		case RIG_LEVEL_NR:
+			/* This selectss the DSP unit - this isn't a level per se,
+			 * but in the manual it says that we have to switch it on first
+			 * we'll assume 1 is for the UT-106, and anything else as off
+			 *
+			 * Later on we can set if the DSP features are on or off in set_func
+			 */
+			retval = pcr_set_DSP(rig, (int) val.f);
+			break;
+   		default:
+			rig_debug(RIG_DEBUG_VERBOSE, "pcr: Float  rig level default not found ...\n");
+      			return -RIG_EINVAL;
+   		}
+	}
+
+	return RIG_OK;
+}
+
+/*
+ * pcr_get_level ....
+ *
+ * This needs a set of stored variables as the PCR doesn't return the current status of settings.
+ * So we'll need to store them as we go along and keep them in sync.
+ */
+
+int pcr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_get_level called\n");
+
+	/* stuff needs putting in here ... */
+
+	return -RIG_ENIMPL;
+}
+
+
+/*
+ * pcr_set_func
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * This is missing a way to call the set DSP noise reducer, as we don't have a func to call it
+ * based on the flags in rig.h -> see also missing a flag for setting the BFO.
+ */
+int pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+	int retval;
+
+	rig_debug(RIG_DEBUG_TRACE,
+			"pcr: pcr_set_func called\npcr: status = %ld, func = %d\n", status ,func);
+
+	switch( func ) {
+
+		case RIG_FUNC_NR: /* sets DSP noise reduction on or off */
+			/* status = 00 for off or 01 for on
+			 * Note that the user should switch the DSP unit on first
+			 *  using the set level function RIG_LEVEL_NR
+			 */
+			if (status == 1)
+				retval = pcr_set_DSP_state(rig, 1);
+			else
+				retval = pcr_set_DSP_state(rig, 0);
+			break;
+
+		case RIG_FUNC_ANF: /* DSP auto notch filter */
+			if (status == 1)
+				retval = pcr_set_DSP_auto_notch(rig, 1);
+			else
+				retval = pcr_set_DSP_auto_notch(rig, 0);
+			break;
+
+		case RIG_FUNC_NB: /* noise blanker */
+			/* status = 00 for off or 01 for on */
+			if (status == 0)
+				retval = pcr_set_NB(rig, 0);
+			else
+				retval = pcr_set_NB(rig, 1);
+
+			break;
+
+   		default:
+			rig_debug(RIG_DEBUG_VERBOSE, "pcr: Rig function default not found ...\n");
+      			return -RIG_EINVAL;
+   	}
+
+	return RIG_OK;
+}
+
+/*
+ * pcr_get_func
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * This will need similar variables/flags as get_level. The PCR doesn't offer much in the way of
+ *  confirmation of current settings (according to the docs).
+ */
+int pcr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+	/* stub here ... */
+	return -RIG_ENIMPL;
+}
+
+/* --------------------------------------------------------------------------------------- */
+/* The next functions are all "helper types". These are called by the base functions above */
+/* --------------------------------------------------------------------------------------- */
+/*
+ * Asks if the rig is ok = G0? response is G000 if ok or G001 if not
+ *
+ * Is only useful in fast transfer mode (when the CR/LF is stripped off all commands) ...
+ * but also works on standard mode.
+ */
+
+int pcr_check_ok(RIG *rig)
+{
+	unsigned char ackbuf[16];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_check_ok called\n");
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, "G0?" EOM, 5, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+			return retval;
+
+	if (ack_len != 6) {
+			rig_debug(RIG_DEBUG_ERR,"pcr_check_ok: ack NG, len=%d\n",
+							ack_len);
+			return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not acked ok
+			return -RIG_EPROTO;
+	return RIG_OK;
+}
+
+
+/*
+ * Sets the volume ofthe rig to the level specified in the level integer.
+ *
+ * Format is J40xx - where xx is 00 to FF in hex, and specifies 255 volume levels
+ *
+ */
+
+int pcr_set_volume(RIG *rig, int level)
+{
+	unsigned char ackbuf[16], vol_cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_volume called - %d\n",level);
+
+	// check that volume valid
+	if (level < 0x0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+				"pcr_set_volume: rig level too low: %d\n", level);
+			return -RIG_EINVAL;
+	}
+	else
+		if (level > 0xff)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_volume: rig level too high: %d\n", level);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	sprintf(vol_cmd,"J40%0X\r\n", level);
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, vol_cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_volume: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+}
+
+/*
+ * Sets the serial rate of the rig RS232
+ *
+ * Format is G1xx - where xx is defined as:
+ * 		00=1200, 01=2400, 02=4800, 03=9600, 04=19200, 05=38400, 06..FF=38400
+ *
+ * baud_rate: 0=1200 ... 5=38400
+ */
+
+int pcr_set_comm_rate(RIG *rig, int baud_rate)
+{
+	unsigned char ackbuf[16], baud_cmd[8];
+	struct pcr_priv_data *priv;
+
+	int ack_len, retval;
+	struct rig_state *rs;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "pcr: pcr_set_comm_rate called\n");
+
+	// check that rate valid
+	if (baud_rate < 0)
+	{
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_comm_rate: rig rate too low: %d\n", baud_rate);
+		return -RIG_EINVAL;
+	}
+	else
+		if (baud_rate > B_38400) 
+			baud_rate = B_38400; //enforce to 38400
+
+	// it  must be valid ...
+
+	sprintf(baud_cmd,"G10%0d" EOM, baud_rate);
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, baud_cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	rs = &rig->state;
+	priv = (struct pcr_priv_data *)rs->priv;
+
+	// Note: the rate will be ok if we get to here ...
+	switch ( baud_rate ) {
+
+		case B_300:
+			rs->rigport.parm.serial.rate = 300; // work ok!
+			break;
+		case B_1200:
+			rs->rigport.parm.serial.rate = 1200; //work ok!
+			break;
+		case B_4800:
+			rs->rigport.parm.serial.rate = 4800; // work ok!
+			break;
+		case B_9600:
+			rs->rigport.parm.serial.rate = 9600; // work ok!
+			break;
+		case B_19200:
+			rs->rigport.parm.serial.rate = 19200;  // work ok!
+			break;
+		case B_38400:
+			rs->rigport.parm.serial.rate = 38400;  // work ok!
+			break;
+		default:
+			rs->rigport.parm.serial.rate = 38400;
+			break;
+	}
+
+
+	// re-setup the port
+	serial_setup(&rs->rigport);
+
+	// The return value is at the new speed. However the old message may be garbled ...
+	// so to sync ok, we need to just do an ack
+	retval = pcr_check_ok(rig);
+	if (retval != RIG_OK)
+		return retval; // hmmm ... busted
+
+	// ok .. good stuff
+
+	return RIG_OK;
+}
+
+
+/*
+ * pcr_set_squelch
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Format is J41xx - where xx is 00 to FF in hex, and specifies 255 squelch levels
+ *
+ * Sets the squelch of the rig to the level specified in the level integer.
+ * There are some bands though ...
+ * 	00	Tone squelch clear and squelch open
+ *	01-3f	Squelch open
+ *	40-7f	Noise squelch
+ *	80-ff	Noise squelch + S meter squelch ...
+ *		 Comparative S level = (squelch setting - 128) X 2
+ *
+ *	Could do with some constatnts to add together to allow better (and more accurate)
+ *	use of Hamlib API. Otherwise may get unexpected squelch settings if have to do by hand.
+ *
+ *
+ */
+
+int pcr_set_squelch(RIG *rig, int level)
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_squelch called - %d\n",level);
+
+	// check that level valid
+	if (level < 0x0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+						"pcr_set_squelch: rig level too low: %d\n", level);
+			return -RIG_EINVAL;
+	}
+	else
+		if (level > 0xff)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_squelch: rig level too high: %d\n", level);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+
+	sprintf(cmd,"J41%0X\r\n", level);
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_squelch: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+
+/*
+ * pcr_set_IF_shift
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the IF shift  of the rig to the level specified in the level integer.
+ * 	IF-SHIFT position (in 256 stages, 80 = centre):
+ *
+ * 		< 80	Minus shift (in 10 Hz steps)
+ * 		> 80	Plus shift (in 10 Hz steps)
+ * 		  80	Centre
+ *
+ * Format is J43xx - where xx is 00 to FF in hex, and specifies 255 squelch levels
+ *
+ */
+int pcr_set_IF_shift(RIG *rig, int shift)
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_IF_shift called - %d\n",shift);
+
+	// check that level valid
+	if (shift < 0x0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_IF_shift: rig shift too low: %d\n", shift);
+			return -RIG_EINVAL;
+	}
+	else
+		if (shift > 0xff)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_IF_shift: rig shift too high: %d\n", shift);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+
+	sprintf(cmd,"J43%0X\r\n", shift);
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_IF_shift: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+/*
+ * pcr_set_AGC
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the AGC on or off based on the level specified in the level integer.
+ * 	00 = off, 01 (non zero) is on
+ *
+ * Format is J45xx - where xx is 00 to FF in hex
+ *
+ */
+int pcr_set_AGC(RIG *rig, int level)
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_AGC called - %d\n",level);
+
+	// check that level valid
+	if (level < 0x0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_AGC: AGC too low: %d\n", level);
+			return -RIG_EINVAL;
+	}
+	else
+		if (level > 0xff)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_AGC: rig AGC too high: %d\n", level);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	if (level == 0)
+		sprintf(cmd,"J4500\r\n"); /* off */
+	else
+		sprintf(cmd,"J4501\r\n"); /* else must be on */
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_AGC: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+/*
+ * pcr_set_NB(RIG *rig, int level);
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the noise blanker on or off based on the level specified in the level integer.
+ * 	00 = off, 01 (non zero) is on
+ *
+ * Format is J46xx - where xx is 00 to FF in hex
+ *
+ */
+int pcr_set_NB(RIG *rig, int level)
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_NB called - %d\n",level);
+
+	// check that level valid
+	if (level < 0x0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_NB: NB too low: %d\n", level);
+			return -RIG_EINVAL;
+	}
+	else
+		if (level > 0xff)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_NB: rig NB too high: %d\n", level);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	if (level == 0)
+		sprintf(cmd,"J4600\r\n"); /* off */
+	else
+		sprintf(cmd,"J4601\r\n"); /* else must be on */
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_NB: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+
+/*
+ * pcr_set_NB(RIG *rig, int level);
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the attenuator on or off based on the level specified in the level integer.
+ * 	00 = off, 01 (non zero) is on
+ *		the downer is I don't know where to set the attenatuor level ....!
+ *
+ * Format is J47xx - where xx is 00 to FF in hex
+ *
+ */
+int pcr_set_Attenuator(RIG *rig, int level)
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_Att called - Atten level = %d\n",level);
+
+	// check that level valid
+	if (level < 0x0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_Att: too low: %d\n", level);
+			return -RIG_EINVAL;
+	}
+	else
+		if (level > 0xff)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_Att: rig too high: %d\n", level);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	if (level == 0)
+		sprintf(cmd,"J4700\r\n"); /* off */
+	else
+		sprintf(cmd,"J4701\r\n"); /* else must be on */
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_Att: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	rig_debug(RIG_DEBUG_VERBOSE,"pcr_set_Att: all ok\n");
+	return RIG_OK;
+
+}
+
+/*
+ * pcr_set_BFO
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the BFO of the rig to the level specified in the level integer.
+ * 	BFO-SHIFT position (in 256 stages, 80 = centre):
+ *
+ * 		< 80	Minus shift (in 10 Hz steps)
+ * 		> 80	Plus shift (in 10 Hz steps)
+ * 		  80	Centre
+ *
+ * Format is J43xx - where xx is 00 to FF in hex, and specifies 255 squelch levels
+ *
+ */
+int pcr_set_BFO(RIG *rig, int shift) // J4Axx
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_BFO_shift called - %d\n",shift);
+
+	// check that level valid
+	if (shift < 0x0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_BFO_shift: rig shift too low: %d\n", shift);
+			return -RIG_EINVAL;
+	}
+	else
+		if (shift > 0xff)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_BFO_shift: rig shift too high: %d\n", shift);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+
+	sprintf(cmd,"J4A%0X\r\n", shift);
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_BFO_shift: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+
+/*
+ * pcr_set_DSP(RIG *rig, int level);
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the DSP to UT106 (01) or off (non 01)
+ *
+ */
+int pcr_set_DSP(RIG *rig, int level)
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_DSP called - level = %d\n",level);
+
+	/* check that level valid - zero or one only */
+	if (level < 0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_DSP: too low: %d\n", level);
+			return -RIG_EINVAL;
+	}
+	else
+		if (level > 1)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_DSP: rig too high: %d\n", level);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	if (level == 1)
+		sprintf(cmd,"J8001\r\n"); /* else must be UT106 */
+	else
+		sprintf(cmd,"J8000\r\n"); /* off */
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_DSP: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+
+/*
+ * pcr_set_DSP_state(RIG *rig, int state);
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the DSP on or off (1 = on, 0 = off)
+ *
+ */
+
+int pcr_set_DSP_state(RIG *rig, int state)
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_DSP_state called - state = %d\n",state);
+
+	/* check that state valid - zero or one only */
+	if (state < 0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_DSP: too low: %d\n", state);
+			return -RIG_EINVAL;
+	}
+	else
+		if (state > 1)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_DSP: rig too high: %d\n", state);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	if (state == 1)
+		sprintf(cmd,"J8101\r\n"); /* else must be set on */
+	else
+		sprintf(cmd,"J8100\r\n"); /* off */
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_DSP_state: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+}
+
+/*
+ * pcr_set_DSPnoise_reducer(RIG *rig, int state);
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the DSP noise reducer on or off (0x01 = on, 0x00 = off)
+ *  the level of NR set by values 0x01 to 0x10 (1 to 16 inclusive)
+ */
+
+int pcr_set_DSP_noise_reducer(RIG *rig, int state) // J82xx
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_DSP_state called - state = %d\n",state);
+
+	/* check that state valid - zero or one only */
+	if (state < 0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_DSP_noise_reducer: too low: %d\n", state);
+			return -RIG_EINVAL;
+	}
+	else
+		if (state > 0x10)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_DSP_noise_reducer: rig too high: %d\n", state);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	if (state == 0)
+		sprintf(cmd,"J8200\r\n"); /* off */
+	else
+		sprintf(cmd,"J82%0X\r\n",state); /* else must be set on */
+
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_DSP_noise_reducer: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+
+/*
+ * pcr_set_DSP_auto_notch(RIG *rig, int state);
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the auto notch on or off (1 = on, 0 = off)
+ *
+ */
+
+int pcr_set_DSP_auto_notch(RIG *rig, int state) // J83xx
+{
+	unsigned char ackbuf[16], cmd[12];
+	int ack_len, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "pcr: pcr_set_DSP_auto_notch called - state = %d\n",state);
+
+	/* check that state valid - zero or one only */
+	if (state < 0)
+	{
+			rig_debug(RIG_DEBUG_ERR,
+					"pcr_set_DSP_auto_notch: too low: %d\n", state);
+			return -RIG_EINVAL;
+	}
+	else
+		if (state > 1)
+		{
+			rig_debug(RIG_DEBUG_ERR, "pcr_set_DSP_auto_notch: rig too high: %d\n", state);
+			return -RIG_EINVAL;
+		}
+	// it  must be valid ...
+	if (state == 0)
+		sprintf(cmd,"J8300\r\n"); /* off */
+	else
+		sprintf(cmd,"J8301\r\n"); /* else must be set on */
+
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 6 ){
+		rig_debug(RIG_DEBUG_ERR,"pcr_set_DSP_auto_notch: ack NG, len=%d\n", ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+		return -RIG_EPROTO;
+
+	return RIG_OK;
+
+}
+
+
+int pcr_set_VSC(RIG *rig, int level) // J50xx
+{
+	/* Not sure what VSC for so skipping the function here ... */
+	return -RIG_ENIMPL;
+}
+
+/* *********************************************************************************************
+ * int pcr_set_comm_mode(RIG *rig, int mode_type);  // Set radio to fast/diagnostic mode  G3xx
+ * int pcr_soft_reset(RIG *rig);                    // Ask rig to reset itself            H0xx
+ ********************************************************************************************* */
+
+
+
 /*
  * initrigs_pcr is called by rig_backend_load
  */
@@ -507,5 +1394,4 @@ int initrigs_pcr(void *be_handle)
 
 		return RIG_OK;
 }
-
 
