@@ -27,7 +27,7 @@
 #
 #
 #
-#	$Id: Makefile,v 1.10 2000-09-29 03:15:30 javabear Exp $	
+#	$Id: Makefile,v 1.11 2000-09-29 03:33:58 javabear Exp $	
 #
 #
 
@@ -43,6 +43,7 @@ LIB_HEADER      =	rig.h serial.h riglist.h
 LIB_SRC         =	rig.c serial.c
 LIB_OBJECTS     =	serial.o rig.o 
 
+ 
 
 CC	=	gcc
 INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I./include
