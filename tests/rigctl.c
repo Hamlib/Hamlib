@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.11 2001-04-22 14:47:27 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.12 2001-04-28 12:43:43 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -593,7 +593,7 @@ declare_proto_rig(set_level)
 		setting_t level;
 		value_t val;
 
-		sscanf(arg1, "%ld", &level);
+		sscanf(arg1, "%lld", &level);
 		if (RIG_LEVEL_IS_FLOAT(level))
 			sscanf(arg2, "%f", &val.f);
 		else
@@ -609,7 +609,7 @@ declare_proto_rig(get_level)
 		setting_t level;
 		value_t val;
 
-		sscanf(arg1, "%ld", &level);
+		sscanf(arg1, "%lld", &level);
 		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
 		if (interactive)
 			printf("%s: ", cmd->name2);
@@ -627,7 +627,7 @@ declare_proto_rig(set_func)
 		setting_t func;
 		int func_stat;
 
-		sscanf(arg1, "%ld", &func);
+		sscanf(arg1, "%lld", &func);
 		sscanf(arg2, "%d", (int*)&func_stat);
 		return rig_set_func(rig, RIG_VFO_CURR, func, func_stat);
 }
@@ -643,7 +643,7 @@ declare_proto_rig(get_func)
 		setting_t func;
 		int func_stat;
 
-		sscanf(arg1, "%ld", &func);
+		sscanf(arg1, "%lld", &func);
 		status = rig_get_func(rig, RIG_VFO_CURR, func, &func_stat);
 		if (interactive)
 			printf("%s: ", cmd->name2);
