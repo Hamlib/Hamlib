@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.4 2001-02-09 23:09:50 f4cfe Exp $  
+ *    $Id: serial.h,v 1.5 2001-02-15 00:00:11 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,6 +45,8 @@ int ser_ptt_set(struct rig_state *rs, ptt_t pttx);
 int par_ptt_set(struct rig_state *rs, ptt_t pttx);
 int ser_ptt_get(struct rig_state *rs, ptt_t *pttx);
 int par_ptt_get(struct rig_state *rs, ptt_t *pttx);
+int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx);
+int par_dcd_get(struct rig_state *rs, dcd_t *dcdx);
 int ser_ptt_close(struct rig_state *rs);
 int par_ptt_close(struct rig_state *rs);
 

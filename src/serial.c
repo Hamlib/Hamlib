@@ -10,7 +10,7 @@
  * packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.8 2001-02-14 01:09:57 f4cfe Exp $  
+ *	$Id: serial.c,v 1.9 2001-02-15 00:00:11 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -701,12 +701,9 @@ int par_ptt_get(struct rig_state *rs, ptt_t *pttx)
 		return RIG_OK;
 }
 
-/* This is a WIP */
-
-#ifdef WANT_RIG_DCD
 /*
  * assumes dcdx not NULL
- * REM: currently using state.ptt_fd. Should dcd_fd be opened instead?
+ * FIXME: currently using state.ptt_fd. Should dcd_fd be opened instead?
  */
 int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx)
 {
@@ -726,7 +723,7 @@ int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx)
 			return status;
 
 		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
+				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
 								rs->dcd_type);
 				return -RIG_EINVAL;
 		}
@@ -735,31 +732,30 @@ int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx)
 
 /*
  * assumes dcdx not NULL
- * REM: currently using state.ptt_fd. Should dcd_fd be opened instead?
+ * FIXME: currently using state.ptt_fd. Should dcd_fd be opened instead?
  */
 int par_dcd_get(struct rig_state *rs, dcd_t *dcdx)
 {
 
 		switch(rs->dcd_type) {
 #ifdef HAVE_LINUX_PPDEV_H
-		case RIG_PTT_PARALLEL:
+		case RIG_DCD_PARALLEL:
 				{
 					unsigned char reg;
 					int status;
 
 					status = ioctl(rs->ptt_fd, PPRDATA, &reg);
-					*dcdx = reg & 0x01 ? RIG_PTT_ON:RIG_PTT_OFF;
+					*dcdx = reg & 0x01 ? RIG_DCD_ON:RIG_DCD_OFF;
 					return status;
 				}
 #endif
 		default:
-				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n", 
 								rs->dcd_type);
 				return -RIG_ENAVAIL;
 		}
 		return RIG_OK;
 }
-#endif
 
 int ser_ptt_close(struct rig_state *rs)
 {
