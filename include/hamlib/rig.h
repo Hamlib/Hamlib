@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.32 2001-06-02 17:50:14 f4cfe Exp $
+ *	$Id: rig.h,v 1.33 2001-06-03 19:50:30 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -185,6 +185,13 @@ typedef signed long shortfreq_t;
 #define RIG_VFO_NONE    0       /* used in caps */
 #define RIG_VFO_ALL		-1		/* apply to all VFO (when used as target) */
 
+/*
+ * Or should it be better designated 
+ * as a "tunable channel" (RIG_CTRL_MEM) ? --SF
+ */
+#define RIG_VFO_MEM		-2		/* means Memory mode, to be used with set_vfo */
+#define RIG_VFO_VFO		-3		/* means (any)VFO mode, with set_vfo */
+
 #define RIG_VFO1 (1<<0)
 #define RIG_VFO2 (1<<1)
 #define RIG_CTRL_MAIN 1
@@ -280,6 +287,7 @@ enum reset_e {
 typedef enum reset_e reset_t;
 
 
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 enum mem_vfo_op_e {
 	RIG_MVOP_VFO_MODE = 0,
 	RIG_MVOP_MEM_MODE,
@@ -293,6 +301,28 @@ enum mem_vfo_op_e {
 };
 
 typedef enum mem_vfo_op_e mv_op_t;
+
+#else
+
+/* VFO/MEM mode are set by set_vfo */
+#define RIG_OP_NONE	0
+#define RIG_OP_CPY		(1<<0)		/* VFO A = VFO B */
+#define RIG_OP_XCHG		(1<<1)		/* Exchange VFO A/B */
+#define RIG_OP_FROM_VFO	(1<<2)		/* VFO->MEM */
+#define RIG_OP_TO_VFO	(1<<3)		/* MEM->VFO */
+#define RIG_OP_MCL		(1<<4)		/* Memory clear */
+#define RIG_OP_UP		(1<<5)		/* UP */
+#define RIG_OP_DOWN		(1<<6)		/* DOWN */
+
+/* 
+ * RIG_MVOP_DUAL_ON/RIG_MVOP_DUAL_OFF (Dual watch off/Dual watch on)
+ * better be set by set_func IMHO, 
+ * or is it the balance (-> set_level) ? --SF
+ */
+
+typedef long vfo_op_t;
+
+#endif	/* WANT_OLD_VFO_TO_BE_REMOVED */
 
 
 /*
@@ -640,6 +670,7 @@ struct rig_caps {
   shortfreq_t max_ifshift;
 
   ann_t announces;
+  vfo_op_t vfo_ops;
   int targetable_vfo;
   int transceive;
 
@@ -749,7 +780,11 @@ struct rig_caps {
   int (*set_bank)(RIG *rig, vfo_t vfo, int bank);
   int (*set_mem)(RIG *rig, vfo_t vfo, int ch);
   int (*get_mem)(RIG *rig, vfo_t vfo, int *ch);
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
   int (*mv_ctl)(RIG *rig, vfo_t vfo, mv_op_t op);
+#else
+  int (*vfo_op)(RIG *rig, vfo_t vfo, vfo_op_t op);
+#endif
 
   int (*set_trn)(RIG *rig, vfo_t vfo, int trn);
   int (*get_trn)(RIG *rig, vfo_t vfo, int *trn);
@@ -980,7 +1015,12 @@ extern int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 extern int rig_set_bank(RIG *rig, vfo_t vfo, int bank);	/* set memory bank number */
 extern int rig_set_mem(RIG *rig, vfo_t vfo, int ch);		/* set memory channel number */
 extern int rig_get_mem(RIG *rig, vfo_t vfo, int *ch);		/* get memory channel number */
+#ifdef WANT_OLD_VFO_TO_BE_REMOVED
 extern int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);	/* Mem/VFO operation */
+#else
+extern int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op); /* Mem/VFO operation */
+extern vfo_op_t rig_has_vfo_op(RIG *rig, vfo_op_t op);
+#endif
 
 extern int rig_restore_channel(RIG *rig, const channel_t *chan); /* curr VFO */
 extern int rig_save_channel(RIG *rig, channel_t *chan);
