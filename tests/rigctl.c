@@ -7,7 +7,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.21 2001-09-22 11:49:19 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.22 2001-12-20 07:51:02 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,10 +35,10 @@
 #include <string.h>
 #include <unistd.h>
 
-/* TODO: autoconf should check for getopt support, include libs otherwise */
 #include <getopt.h>
 
 #include <hamlib/rig.h>
+#include "misc.h"
 
 
 
@@ -76,6 +76,17 @@ void usage();
 void usage_rig();
 void version();
 void list_models();
+static int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
+int set_conf(RIG *my_rig, char *conf_parms);
+
+rmode_t parse_mode(const char *s);
+vfo_t parse_vfo(const char *s);
+setting_t parse_func(const char *s);
+setting_t parse_level(const char *s);
+setting_t parse_parm(const char *s);
+vfo_op_t parse_vfo_op(const char *s);
+scan_t parse_scan(const char *s);
+rptr_shift_t parse_rptr_shift(const char *s);
 
 #define declare_proto_rig(f) static int (f)(RIG *rig, int interactive, \
 			const struct test_table *cmd, const char *arg1, \
@@ -100,6 +111,8 @@ declare_proto_rig(set_dcs_code);
 declare_proto_rig(get_dcs_code);
 declare_proto_rig(set_split_freq);
 declare_proto_rig(get_split_freq);
+declare_proto_rig(set_split_mode);
+declare_proto_rig(get_split_mode);
 declare_proto_rig(set_split);
 declare_proto_rig(get_split);
 declare_proto_rig(set_ts);
@@ -109,6 +122,8 @@ declare_proto_rig(set_level);
 declare_proto_rig(get_level);
 declare_proto_rig(set_func);
 declare_proto_rig(get_func);
+declare_proto_rig(set_parm);
+declare_proto_rig(get_parm);
 declare_proto_rig(set_bank);
 declare_proto_rig(set_mem);
 declare_proto_rig(get_mem);
@@ -146,6 +161,8 @@ struct test_table test_list[] = {
 		{ 'd', "get_dcs_code", get_dcs_code, ARG_OUT, "DCS code" },
 		{ 'I', "set_split_freq", set_split_freq, ARG_IN, "Tx frequency" },
 		{ 'i', "get_split_freq", get_split_freq, ARG_OUT, "Tx frequency" },
+		{ 'X', "set_split_mode", set_split_mode, ARG_IN, "Mode", "Passband" },
+		{ 'x', "get_split_mode", get_split_mode, ARG_OUT, "Mode", "Passband" },
 		{ 'S', "set_split", set_split, ARG_IN, "Split mode" },
 		{ 's', "get_split", get_split, ARG_OUT, "Split mode" },
 		{ 'N', "set_ts", set_ts, ARG_IN, "Tuning step" },
@@ -154,6 +171,8 @@ struct test_table test_list[] = {
 		{ 'l', "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Value" },
 		{ 'U', "set_func", set_func, ARG_IN, "Func", "Func status" },
 		{ 'u', "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
+		{ 'P', "set_parm", set_parm, ARG_IN, "Level", "Value" },
+		{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2, "Level", "Value" },
 		{ 'E', "set_mem", set_mem, ARG_IN, "Memory#" },
 		{ 'e', "get_mem", get_mem, ARG_OUT, "Memory#" },
 		{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
@@ -174,7 +193,7 @@ struct test_table test_list[] = {
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:P:d:D:c:vhVl"
+#define SHORT_OPTIONS "m:r:p:P:d:D:c:C:LvhVl"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -185,6 +204,8 @@ static struct option long_options[] =
 	{"dcd-type", 1, 0, 'D'},
 	{"civaddr",  1, 0, 'c'},
 	{"list",     0, 0, 'l'},
+	{"set-conf", 1, 0, 'C'},
+	{"show-conf",0, 0, 'L'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -215,6 +236,8 @@ char parse_arg(const char *arg)
 		return 0;
 }
 
+#define MAXCONFLEN 128
+
 int main (int argc, char *argv[])
 { 
 	RIG *my_rig;		/* handle to rig (nstance) */
@@ -226,10 +249,12 @@ int main (int argc, char *argv[])
 	struct test_table *cmd_entry;
 
 	int verbose = 0;
+	int show_conf = 0;
 	const char *rig_file=NULL, *ptt_file=NULL, *dcd_file=NULL;
 	ptt_type_t ptt_type = RIG_PTT_NONE;
 	dcd_type_t dcd_type = RIG_DCD_NONE;
 	char *civaddr = NULL;	/* NULL means no need to set conf */
+	char conf_parms[MAXCONFLEN] = "";
 
 	while(1) {
 		int c;
@@ -296,8 +321,20 @@ int main (int argc, char *argv[])
 					}
 					civaddr = optarg;
 					break;
+			case 'C':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					if (*conf_parms != '\0')
+							strcat(conf_parms, ",");
+					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+					break;
 			case 'v':
 					verbose++;
+					break;
+			case 'L':
+					show_conf++;
 					break;
 			case 'l':
 					list_models();
@@ -326,6 +363,12 @@ int main (int argc, char *argv[])
 			exit(2);
 	}
 
+	retcode = set_conf(my_rig, conf_parms) != RIG_OK;
+	if (retcode != RIG_OK) {
+			fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
+			exit(2);
+	}
+
 	if (rig_file)
 		strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN);
 
@@ -343,6 +386,12 @@ int main (int argc, char *argv[])
 	if (civaddr)
         rig_set_conf(my_rig, rig_token_lookup(my_rig, "civaddr"), civaddr);
 
+	/*
+	 * print out conf parameters
+	 */
+	if (show_conf) {
+			rig_token_foreach(my_rig, print_conf_list, (rig_ptr_t)my_rig);
+	}
 
 	if ((retcode = rig_open(my_rig)) != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
@@ -499,6 +548,8 @@ void usage()
 	"  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
 	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
 	"  -c, --civaddr=ID           set CI-V address (for Icom rigs only)\n"
+	"  -C, --set-conf=PARM=VAL    set config parameters\n"
+	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
@@ -509,6 +560,37 @@ void usage()
 
 		printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 
+}
+
+static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
+{
+	RIG *rig = (RIG*) data;
+	int i;
+	char buf[128] = "";
+
+	rig_get_conf(rig, cfp->token, buf);
+	printf("%s: \"%s\"\n" "\t"
+					"Default: %s, Value: %s\n", 
+					cfp->name, cfp->tooltip, 
+					cfp->dflt, buf );
+
+	switch (cfp->type) {
+	case RIG_CONF_NUMERIC:
+		printf("\tRange: %.1f..%.1f, step %.1f\n", 
+					cfp->u.n.min, cfp->u.n.max, cfp->u.n.step);
+		break;
+	case RIG_CONF_COMBO:
+		if (!cfp->u.c.combostr)
+				break;
+		printf("\tCombo: %s", cfp->u.c.combostr[0]);
+		for (i=1 ; i<RIG_COMBO_MAX && cfp->u.c.combostr[i]; i++)
+				printf(", %s", cfp->u.c.combostr[i]);
+		printf("\n");
+		break;
+	default:
+	}
+
+	return 1;  /* !=0, we want them all ! */
 }
 
 static int print_model_list(const struct rig_caps *caps, void *data)
@@ -530,6 +612,28 @@ void list_models()
 		printf("rig_list_foreach: error = %s \n", rigerror(status));
 		exit(2);
 	}
+}
+
+
+int set_conf(RIG *my_rig, char *conf_parms)
+{
+	char *p, *q, *n;
+	int ret;
+
+	p = conf_parms;
+	while (p && *p != '\0') {
+			/* FIXME: left hand value of = cannot be null */
+		q = strchr(p, '=');
+		if (q) *q++ = '\0';
+		n = strchr(q, ',');
+		if (n) *n++ = '\0';
+
+		ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
+		if (ret != RIG_OK)
+				return ret;
+		p = n;
+	}
+	return RIG_OK;
 }
 
 
@@ -562,7 +666,7 @@ declare_proto_rig(set_mode)
 		rmode_t mode;
 		pbwidth_t width;
 
-		sscanf(arg1, "%d", &mode);
+		mode = parse_mode(arg1);
 		sscanf(arg2, "%d", (int*)&width);
 		return rig_set_mode(rig, RIG_VFO_CURR, mode, width);
 }
@@ -577,7 +681,7 @@ declare_proto_rig(get_mode)
 		status = rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%d\n", mode);
+		printf("%s\n", strmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%ld", width);
@@ -589,7 +693,7 @@ declare_proto_rig(set_vfo)
 {
 		vfo_t vfo;
 
-		sscanf(arg1, "%d", (int*)&vfo);
+		vfo = parse_vfo(arg1);
 		return rig_set_vfo(rig, vfo);
 }
 
@@ -602,7 +706,7 @@ declare_proto_rig(get_vfo)
 		status = rig_get_vfo(rig, &vfo);
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%d\n", vfo);
+		printf("%s\n", strvfo(vfo));
 		return status;
 }
 
@@ -633,7 +737,7 @@ declare_proto_rig(set_rptr_shift)
 {
 		rptr_shift_t rptr_shift;
 
-		sscanf(arg1, "%d", (int*)&rptr_shift);
+		rptr_shift = parse_rptr_shift(arg1);
 		return rig_set_rptr_shift(rig, RIG_VFO_CURR, rptr_shift);
 }
 
@@ -646,7 +750,7 @@ declare_proto_rig(get_rptr_shift)
 		status = rig_get_rptr_shift(rig, RIG_VFO_CURR, &rptr_shift);
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%d\n", rptr_shift);
+		printf("%s\n", strptrshift(rptr_shift));
 		return status;
 }
 
@@ -738,6 +842,33 @@ declare_proto_rig(get_split_freq)
 		return status;
 }
 
+declare_proto_rig(set_split_mode)
+{
+		rmode_t mode;
+		pbwidth_t width;
+
+		mode = parse_mode(arg1);
+		sscanf(arg2, "%d", (int*)&width);
+		return rig_set_split_mode(rig, RIG_VFO_CURR, mode, width);
+}
+
+
+declare_proto_rig(get_split_mode)
+{
+		int status;
+		rmode_t mode;
+		pbwidth_t width;
+
+		status = rig_get_split_mode(rig, RIG_VFO_CURR, &mode, &width);
+		if (interactive)
+			printf("%s: ", cmd->arg1);
+		printf("%s\n", strmode(mode));
+		if (interactive)
+			printf("%s: ", cmd->arg2);
+		printf("%ld", width);
+		return status;
+}
+
 
 declare_proto_rig(set_split)
 {
@@ -807,7 +938,7 @@ declare_proto_rig(set_level)
 		setting_t level;
 		value_t val;
 
-		sscanf(arg1, "%lld", &level);
+		level = parse_level(arg1);
 		if (RIG_LEVEL_IS_FLOAT(level))
 			sscanf(arg2, "%f", &val.f);
 		else
@@ -823,7 +954,7 @@ declare_proto_rig(get_level)
 		setting_t level;
 		value_t val;
 
-		sscanf(arg1, "%lld", &level);
+		level = parse_level(arg1);
 		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
 		if (interactive)
 			printf("%s: ", cmd->arg2);
@@ -841,7 +972,7 @@ declare_proto_rig(set_func)
 		setting_t func;
 		int func_stat;
 
-		sscanf(arg1, "%lld", &func);
+		func = parse_level(arg1);
 		sscanf(arg2, "%d", (int*)&func_stat);
 		return rig_set_func(rig, RIG_VFO_CURR, func, func_stat);
 }
@@ -857,11 +988,44 @@ declare_proto_rig(get_func)
 		setting_t func;
 		int func_stat;
 
-		sscanf(arg1, "%lld", &func);
+		func = parse_level(arg1);
 		status = rig_get_func(rig, RIG_VFO_CURR, func, &func_stat);
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%d\n", func_stat);
+		return status;
+}
+
+declare_proto_rig(set_parm)
+{
+		setting_t parm;
+		value_t val;
+
+		parm = parse_parm(arg1);
+		if (RIG_LEVEL_IS_FLOAT(parm))
+			sscanf(arg2, "%f", &val.f);
+		else
+			sscanf(arg2, "%d", &val.i);
+
+		return rig_set_parm(rig, parm, val);
+}
+
+
+declare_proto_rig(get_parm)
+{
+		int status;
+		setting_t parm;
+		value_t val;
+
+		parm = parse_parm(arg1);
+		status = rig_get_parm(rig, parm, &val);
+		if (interactive)
+			printf("%s: ", cmd->arg2);
+		if (RIG_LEVEL_IS_FLOAT(parm))
+			printf("%f\n", val.f);
+		else
+			printf("%d\n", val.i);
+
 		return status;
 }
 
@@ -900,7 +1064,7 @@ declare_proto_rig(vfo_op)
 {
 		vfo_op_t op;
 
-		sscanf(arg1, "%d", (int*)&op);
+		op = parse_vfo_op(arg1);
 		return rig_vfo_op(rig, RIG_VFO_CURR, op);
 }
 
@@ -909,7 +1073,7 @@ declare_proto_rig(scan)
 		scan_t op;
 		int ch;
 
-		sscanf(arg1, "%d", (int*)&op);
+		op = parse_scan(arg1);
 		sscanf(arg2, "%d", &ch);
 		return rig_scan(rig, RIG_VFO_CURR, op, ch);
 }
@@ -938,7 +1102,7 @@ declare_proto_rig(set_trn)
 		int trn;
 
 		sscanf(arg1, "%d", &trn);
-		return rig_set_trn(rig, RIG_VFO_CURR, trn);
+		return rig_set_trn(rig, trn);
 }
 
 
@@ -947,12 +1111,216 @@ declare_proto_rig(get_trn)
 		int status;
 		int trn;
 
-		status = rig_get_trn(rig, RIG_VFO_CURR, &trn);
+		status = rig_get_trn(rig, &trn);
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", trn);
 		return status;
 }
 
+/* ********************************************************** */
 
+static struct { 
+		rmode_t mode;
+		const char *str;
+} mode_str[] = {
+	{ RIG_MODE_AM, "AM" },
+	{ RIG_MODE_FM, "FM" },
+	{ RIG_MODE_CW, "CW" },
+	{ RIG_MODE_USB, "USB" },
+	{ RIG_MODE_LSB, "LSB" },
+	{ RIG_MODE_RTTY, "RTTY" },
+	{ RIG_MODE_WFM, "WFM" },
+	{ RIG_MODE_NONE, NULL },
+};
+
+
+rmode_t parse_mode(const char *s)
+{
+	int i;
+
+	for (i=0 ; mode_str[i].str != NULL; i++)
+			if (!strcmp(s, mode_str[i].str))
+					return mode_str[i].mode;
+	return RIG_MODE_NONE;
+}
+
+static struct { 
+		vfo_t vfo ;
+		const char *str;
+} vfo_str[] = {
+		{ RIG_VFO_A, "VFOA" },
+		{ RIG_VFO_B, "VFOB" },
+		{ RIG_VFO_C, "VFOC" },
+		{ RIG_VFO_CURR, "currVFO" },
+		{ RIG_VFO_ALL, "allVFO" },
+		{ RIG_VFO_MEM, "MEM" },
+		{ RIG_VFO_VFO, "VFO" },
+		{ RIG_VFO_MAIN, "Main" },
+		{ RIG_VFO_SUB, "Sub" },
+		{ RIG_VFO_NONE, NULL },
+};
+
+vfo_t parse_vfo(const char *s)
+{
+	int i;
+
+	for (i=0 ; vfo_str[i].str != NULL; i++)
+			if (!strcmp(s, vfo_str[i].str))
+					return vfo_str[i].vfo;
+	return RIG_VFO_NONE;
+}
+
+
+static struct { 
+		setting_t func; 
+		const char *str;
+} func_str[] = {
+	{ RIG_FUNC_FAGC, "FAGC" },
+	{ RIG_FUNC_NB, "NB" },
+	{ RIG_FUNC_COMP, "COMP" },
+	{ RIG_FUNC_TONE, "TONE" },
+	{ RIG_FUNC_TSQL, "TSQL" },
+	{ RIG_FUNC_SBKIN, "SBKIN" },
+	{ RIG_FUNC_FBKIN, "FBKIN" },
+	{ RIG_FUNC_ANF, "ANF" },
+	{ RIG_FUNC_NR, "NR" },
+	{ RIG_FUNC_AIP, "AIP" },
+	{ RIG_FUNC_MON, "MON" },
+	{ RIG_FUNC_MN, "MN" },
+	{ RIG_FUNC_RNF, "RNF" },
+	{ RIG_FUNC_NONE, NULL },
+};
+
+setting_t parse_func(const char *s)
+{
+	int i;
+
+	for (i=0 ; func_str[i].str != NULL; i++)
+			if (!strcmp(s, func_str[i].str))
+					return func_str[i].func;
+	return RIG_FUNC_NONE;
+}
+
+static struct { 
+		setting_t level;
+		const char *str;
+} level_str[] = {
+	{ RIG_LEVEL_PREAMP, "PREAMP" },
+	{ RIG_LEVEL_ATT, "ATT" },
+	{ RIG_LEVEL_AF, "AF" },
+	{ RIG_LEVEL_RF, "RF" },
+	{ RIG_LEVEL_SQL, "SQL" },
+	{ RIG_LEVEL_IF, "IF" },
+	{ RIG_LEVEL_APF, "APF" },
+	{ RIG_LEVEL_NR, "NR" },
+	{ RIG_LEVEL_PBT_IN, "PBT_IN" },
+	{ RIG_LEVEL_PBT_OUT, "PBT_OUT" },
+	{ RIG_LEVEL_CWPITCH, "CWPITCH" },
+	{ RIG_LEVEL_RFPOWER, "RFPOWER" },
+	{ RIG_LEVEL_MICGAIN, "MICGAIN" },
+	{ RIG_LEVEL_KEYSPD, "KEYSPD" },
+	{ RIG_LEVEL_NOTCHF, "NOTCHF" },
+	{ RIG_LEVEL_COMP, "COMP" },
+	{ RIG_LEVEL_AGC, "AGC" },
+	{ RIG_LEVEL_BKINDL, "BKINDL" },
+	{ RIG_LEVEL_BALANCE, "BAL" },
+
+	{ RIG_LEVEL_SWR, "SWR" },
+	{ RIG_LEVEL_ALC, "ALC" },
+	{ RIG_LEVEL_SQLSTAT, "SQLSTAT" },
+	{ RIG_LEVEL_STRENGTH, "STRENGTH" },
+	{ RIG_LEVEL_NONE, NULL },
+};
+
+setting_t parse_level(const char *s)
+{
+	int i;
+
+	for (i=0 ; level_str[i].str != NULL; i++)
+			if (!strcmp(s, level_str[i].str))
+					return level_str[i].level;
+	return RIG_LEVEL_NONE;
+}
+
+static struct { 
+		setting_t parm;
+		const char *str;
+} parm_str[] = {
+	{ RIG_PARM_ANN, "ANN" },
+	{ RIG_PARM_APO, "APO" },
+	{ RIG_PARM_BACKLIGHT, "BACKLIGHT" },
+	{ RIG_PARM_BEEP, "BEEP" },
+	{ RIG_PARM_TIME, "TIME" },
+	{ RIG_PARM_BAT, "BAT" },
+	{ RIG_PARM_NONE, NULL },
+};
+
+setting_t parse_parm(const char *s)
+{
+	int i;
+
+	for (i=0 ; parm_str[i].str != NULL; i++)
+			if (!strcmp(s, parm_str[i].str))
+					return parm_str[i].parm;
+	return RIG_PARM_NONE;
+}
+
+static struct { 
+		vfo_op_t vfo_op;
+		const char *str;
+} vfo_op_str[] = {
+	{ RIG_OP_CPY, "CPY" },
+	{ RIG_OP_XCHG, "XCHG" },
+	{ RIG_OP_FROM_VFO, "FROM_VFO" },
+	{ RIG_OP_TO_VFO, "TO_VFO" },
+	{ RIG_OP_MCL, "MCL" },
+	{ RIG_OP_UP, "UP" },
+	{ RIG_OP_DOWN, "DOWN" },
+	{ RIG_OP_BAND_UP, "BAND_UP" },
+	{ RIG_OP_BAND_DOWN, "BAND_DOWN" },
+	{ RIG_OP_NONE, NULL },
+};
+
+vfo_op_t parse_vfo_op(const char *s)
+{
+	int i;
+
+	for (i=0 ; vfo_op_str[i].str != NULL; i++)
+			if (!strcmp(s, vfo_op_str[i].str))
+					return vfo_op_str[i].vfo_op;
+	return RIG_OP_NONE;
+}
+
+static struct { 
+		scan_t scan;
+		const char *str;
+} scan_str[] = {
+	{ RIG_SCAN_STOP, "STOP" },
+	{ RIG_SCAN_MEM, "MEM" },
+	{ RIG_SCAN_SLCT, "SLCT" },
+	{ RIG_SCAN_PRIO, "PRIO" },
+	{ RIG_SCAN_DELTA, "DELTA" },
+	{ RIG_SCAN_NONE, NULL },
+};
+
+scan_t parse_scan(const char *s)
+{
+	int i;
+
+	for (i=0 ; scan_str[i].str != NULL; i++)
+			if (!strcmp(s, scan_str[i].str))
+					return scan_str[i].scan;
+	return RIG_SCAN_NONE;
+}
+
+rptr_shift_t parse_rptr_shift(const char *s)
+{
+	if (!strcmp(s, "+"))
+			return RIG_RPT_SHIFT_PLUS;
+	else if (!strcmp(s, "-"))
+			return RIG_RPT_SHIFT_MINUS;
+	else
+			return RIG_RPT_SHIFT_NONE;
+}
 
