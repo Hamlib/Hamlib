@@ -1,12 +1,12 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * frame.c - Copyright (C) 2000 Stephane Fillod
+ * frame.c - Copyright (C) 2000,2001 Stephane Fillod
  * This module provides a set of low level functions to handle the
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.10 2001-04-26 21:31:01 f4cfe Exp $  
+ * $Id: frame.c,v 1.11 2001-05-04 22:39:47 f4cfe Exp $  
  *
  *
  *
@@ -251,7 +251,7 @@ void icom2rig_mode(RIG *rig, unsigned short icmode, rmode_t *mode, pbwidth_t *wi
 							icmode);
 			*mode = RIG_MODE_NONE;
 		}
-		switch ((icmode>>8) & 0xff00) {
+		switch ((icmode>>8) & 0xff) {
 			case 0x00: *width = rig_passband_narrow(rig, *mode); break;
 			case 0x01: *width = rig_passband_normal(rig, *mode); break;
 			case 0x02: *width = rig_passband_wide(rig, *mode); break;
