@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.20 2003-12-22 07:39:46 fillods Exp $
+ *	$Id: alinco.c,v 1.21 2004-02-15 00:30:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,8 @@
 
 
 /* Line Feed */
-#define EOM "\x0a"
+#define EOM "\x0d"
+#define LF "\x0a"
 
 #define BUFSZ 32
 
@@ -111,19 +112,23 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 			return retval;
 
 	/*
-	 * Transceiver sends an echo of cmd 
+	 * Transceiver sends an echo of cmd followed by a CR/LF
 	 * TODO: check whether cmd and echobuf match (optional)
 	 */
-	retval = read_string(&rs->rigport, echobuf, BUFSZ, EOM, strlen(EOM));
-	if (retval != RIG_OK)
-			return retval;
+	retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF));
+	/* if (retval <= 3)
+			return retval; */
 
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
 			return 0;
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+	*data_len = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
 
+	/* strip CR/LF from string
+	 */
+	*data_len -= 2;
+	data[*data_len] = 0;
 	return RIG_OK;
 }
 
@@ -167,7 +172,7 @@ int alinco_get_vfo(RIG *rig, vfo_t *vfo)
 		if (retval != RIG_OK)
 			return retval;
 
-		if (vfo_len != 4 || vfo_len != 6) {
+		if (vfo_len != 4) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_vfo: wrong answer %s, "
 							"len=%d\n", vfobuf, vfo_len);
 			return -RIG_ERJCTED;
@@ -178,7 +183,7 @@ int alinco_get_vfo(RIG *rig, vfo_t *vfo)
 				*vfo = RIG_VFO_A;
 		else if (!strcmp(vfobuf, "VFOB"))
 				*vfo = RIG_VFO_B;
-		else if (!strcmp(vfobuf, "Memory") || !strcmp(vfobuf, "MEMO"))
+		else if (!strcmp(vfobuf, "MEMO"))
 				*vfo = RIG_VFO_MEM;
 		else {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_vfo: unsupported VFO %s\n",
@@ -254,12 +259,12 @@ int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		char mdbuf[BUFSZ];
-		int mdbuf_len, narrow_filter, retval;
+		int mdbuf_len, wide_filter, retval;
 		char amode;
 
 		switch (mode) {
 				/* FIXME: MD_CWL or MD_CWU? */
-			case RIG_MODE_CW:       amode = MD_CWL; break;
+			case RIG_MODE_CW:       amode = MD_CWU; break;
 			case RIG_MODE_USB:      amode = MD_USB; break;
 			case RIG_MODE_LSB:      amode = MD_LSB; break;
 			case RIG_MODE_FM:       amode = MD_FM; break;
@@ -282,11 +287,11 @@ int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		 */
 		if (width != RIG_PASSBAND_NORMAL && 
 						width < rig_passband_normal(rig, mode))
-				narrow_filter = 1;
+				wide_filter = 0;
 		else
-				narrow_filter = 0;
+				wide_filter = 1;
 
-		mdbuf_len = sprintf(mdbuf, AL CMD_FLTER "%02d" EOM, narrow_filter);
+		mdbuf_len = sprintf(mdbuf, AL CMD_FLTER "%02d" EOM, wide_filter);
 		retval = alinco_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
 
 		return retval;
@@ -440,12 +445,15 @@ int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 		if (retval != RIG_OK)
 			return retval;
 
-		if (rit_len > 5 || (ritbuf[0] != '+' && ritbuf[0] != '-')) {
+		if (rit_len != 8) { /* || (ritbuf[0] != '+' && ritbuf[0] != '-')) { */
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_rit: wrong answer %s, "
 							"len=%d\n", ritbuf, rit_len);
 			return -RIG_ERJCTED;
 		}
 		ritbuf[rit_len] = '\0';
+		ritbuf[0] = ' ';
+		ritbuf[1] = ' ';
+		ritbuf[2] = ' ';
 
 		*rit = atoi(ritbuf);
 
@@ -617,13 +625,13 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			if (retval != RIG_OK)
 				return retval;
 
-			if (lvl_len != 5) {
+			if (lvl_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"alinco_get_level: wrong answer"
 								"len=%d\n", lvl_len);
 				return -RIG_ERJCTED;
 			}
 
-			lvlbuf[5] = '\0';
+			lvlbuf[6] = '\0';
 			val->i = atoi(lvlbuf+3);
 			break;
 

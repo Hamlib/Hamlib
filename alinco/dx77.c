@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - DX77 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.9 2003-12-08 08:37:39 fillods Exp $
+ *	$Id: dx77.c,v 1.10 2004-02-15 00:30:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -79,9 +79,9 @@ const struct rig_caps dx77_caps = {
 .rig_model =  RIG_MODEL_DX77,
 .model_name = "DX-77",
 .mfg_name =  "Alinco",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -158,6 +158,7 @@ const struct rig_caps dx77_caps = {
         /* mode/filter list, remember: order matters! */
 .filters =  {
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.7)},
+		{RIG_MODE_CW, kHz(0.5)},
 		{RIG_MODE_AM|RIG_MODE_FM, kHz(8)},
 		{RIG_MODE_AM, kHz(2.7)},
 		RIG_FLT_END,
