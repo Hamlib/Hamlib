@@ -1,0 +1,171 @@
+
+* Why does Hamlib need beta-testers?
+Hamlib is developed by a team of enthusiasts around the world, for fun,
+much in the spirit of hamradio. (Note that it is not restricted for ham
+usage only). There's a great deal of protocols and rigs around the
+developers may not own. However, protocols may be available, so backends
+can be implemented, but cannot always be tested by developers.
+That's where beta-testers are so precious. On top of that, I've been
+told that there's no such sure thing like bug free code. 
+Feedback and improvement requests are also valuable.
+
+* Okay, you volunteer as beta-tester, how to proceed?
+First of all, you can start testing official releases. They are easier to
+test because they come in precompiled and packaged (.rpm, .deb).
+Reports from these versions are still very appreciated, on
+hamlib-developer@lists.sourceforge.net mailing list.
+
+However, the development of Hamlib is still very active, 
+so it's better to test from latest cvs version of the code.
+And depending on feedback you made, developers can commit a fix
+of a patch, so you can try out the change right after, without
+waiting for the next official version.
+So to proceed, you will have first to check out latest sources from cvs,
+then rebuild the Hamlib package and finally test it with your rig.
+Don't worry, it's much simpler than what it looks, despite the size of the
+package.
+Pre-requisite:
+ - live internet access
+ - cvs
+ - gcc toolchain
+ 
+So here we go:
+
+* anonymous (pserver) cvs checkout:
+
+  cvs -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib login
+  cvs -z3 -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib co hamlib
+
+When prompted for a password for anonymous, simply press the Enter key.
+The check out has only to be done the first time. In the case you don't
+have cvs access through your firewall, but http gets through, daily
+cvs snapshots are available. The previous commands can be replaced
+by the following:
+
+	wget http://cvs.sf.net/cvstarballs/hamlib-cvsroot.tar.gz
+	tar zxvf hamlib-cvsroot.tar.gz
+	mv hamlib hroot
+	export CVSROOT=`pwd`/hroot
+	cvs co hamlib
+
+After the initial retrieval, whenever you want to update your local
+version, issue the following command in the root directory of hamlib.
+
+  cvs -z3 -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib update -d
+
+Tip: 
+I use the following alias:
+alias hcvs='cvs -z3  -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib'
+This way, I just have to do "hcvs update -d" whenever I want to keep to
+date.
+
+For the braves who want to peruse the contents, here's what all the
+subdirectories are for:
+
+alinco,aor,icom,
+jrc,kachina,kenwood,
+pcr,tentec,uniden,
+winradio,yaesu:		rig backends
+rpcrig:			special networked rig backend (through RPC)
+rpcrot:        		special networked rotator backend (through RPC)
+easycomm:		rotator backends
+dummy:			virtual dummy rig and rotator, for developer's use.
+c++,tcl,kylix:		C++, tcl, and Kylix bindings
+lib:			library for functions missing on your system
+libltdl:		wrapper for shared module loader
+debian:			debian package scripts
+doc:			documentation base and scripts to extract from src
+include:		exported header files go there
+src:			Hamlib frontend source directory
+tests:			rigctl/rotctl and various C programs for testing
+
+* build
+Reading the INSTALL file in top directory will explain you more verbosely
+to do the following commands
+
+	./configure --disable-static --prefix=/some/where
+	make
+	make install
+
+The prefix argument is optionnal. The --disable-static speeds up
+compilation if you don't plan to use static libraries.
+
+* testing Hamlib
+
+Don't attempt to test Hamlib from source directory unless you're a
+developper and you understand what are the side effect of *not* installing
+freshly generated objects.
+
+So here we go. First of all, identify your rig model id.
+Make sure /some/where/bin is in your PATH, rigctl has to be reachable.
+Run "rigctl -l"  to get a list of rigs supported by Hamlib.
+If you cannot find yours in the list, please report to the 
+hamlib-developer mailing list. Protocol manual and rig specification may
+help a lot.
+You found your id? good! You're almost ready to use rigctl.
+Have a quick look at its manual page:
+	man -M /some/where/man rigctl
+Or simply:
+	rigctl --help
+
+Let's say you own an Icom IC-756:
+	rigctl -vvvv -r /dev/ttyS0 -m 326
+
+The -vvvv is very important since this will increase verbosity, and give
+precious traces to developpers if something goes wrong. At this level, 
+the protocol data exchanged will also be dumped.
+Unless some problem shows up, you should be presented with a menu
+like "Rig command: ". Enter "?" followed by return to have the list 
+of available commands. 'Q' or 'q' quits rigctl immediately.
+
+Most wanted functions to be tested are:
+'_'	get misc information on the rig
+'f'	get frequency
+'F'	set frequency, in Hz
+'m'	get mode
+'M'	set mode (AM,FM,CW,USB,etc. and passband width in Hz)
+'v'	get vfo
+'V'	set vfo (VFOA, VFOB, etc.)
+
+NB: some functions may not be implemented in the backend of
+simply not available on this rig.
+
+When reporting to hamlib-developer mailing list, please include traces and
+also comments to tell developers if the action performed correctly on the
+rig.
+
+Tip: traces can be hard to cut and paste sometimes. In that case,
+	there's a handy tool for you:  script(1). It will make
+	a typescript of everything printed on your terminal.
+
+	$ script my_rig_traces.txt
+	Script started, file is my_rig_traces.txt
+	$ rigctl -vvvv -r /dev/ttyS0 -m 326
+	rig:rig_init called
+	rig: loading backend icom
+	icom: _init called
+	rig_register (309)
+	rig_register (326)
+	rig:rig_open called
+	Opened rig model 326, 'IC-756'
+
+	Rig command: q
+	rig:rig_close called
+	rig:rig_cleanup called
+	$ exit
+	exit
+	Script done, file is my_rig_traces.txt
+	$
+
+And then send my_rig_traces.txt to hamlib-developer.
+
+
+Okay fellows, test as much as you can, in the weirdest situations if
+possible. There is a special prize for those who find 'Segmentation fault'
+and other nasty bugs.
+Needless to say, patchs are also very welcome :-)
+
+
+Jan 25, 2002
+Stephane - F8CFE
+
