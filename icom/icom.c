@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.21 2001-03-04 13:03:41 f4cfe Exp $  
+ * $Id: icom.c,v 1.22 2001-03-04 23:05:18 f4cfe Exp $  
  *
  *
  *
@@ -344,6 +344,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 /*
  * icom_get_freq
  * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+ * Note: old rig may return less than 4/5 bytes for get_freq
  */
 int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
@@ -366,7 +367,7 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		 * is it a blank mem channel ?
 		 */
 		if (freq_len == 1 && freqbuf[0] == 0xff) {
-			*freq = -1;
+			*freq = RIG_FREQ_NONE;
 
 			return RIG_OK;
 		}
@@ -1930,7 +1931,10 @@ int icom_decode_event(RIG *rig)
 		 */
 		switch (buf[4]) {
 		case C_SND_FREQ:
-				/* TODO: check the read freq len is 4 or 5 bytes */
+				/*
+				 * TODO: the freq length might be less than 4 or 5 bytes
+				 * 			on older rigs!
+				 */
 				if (rig->callbacks.freq_event) {
 					freq = from_bcd(buf+5, (priv->civ_731_mode ? 4:5)*2);
 					return rig->callbacks.freq_event(rig,RIG_VFO_CURR,freq);
