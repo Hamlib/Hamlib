@@ -3,7 +3,7 @@
  *  Hamlib GNUradio backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gnuradio.cc,v 1.7 2003-09-28 20:51:05 fillods Exp $
+ *	$Id: gnuradio.cc,v 1.8 2004-02-08 20:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,20 +42,13 @@
 
 #include <VrConnect.h>
 #include <VrMultiTask.h>
-#include <GrFreqXlatingFIRfilterSCF.h>
-#include <GrFreqXlatingFIRfilterCCF.h>
-#include <GrFIRfilterFSF.h>
-#include <GrFIRfilterFFF.h>
-#include <VrQuadratureDemod.h>	/* FM */
-#include <GrMagnitude.h>	/* AM */
-#include <GrSSBMod.h>		/* SSB */
 
-#include <gr_firdes.h>
-#include <gr_fir_builderF.h>
 
 /* Demodulator chains */
 #include <nfm.h>
 #include <am.h>
+#include <ssb.h>
+#include <wfm.h>
 
 
 
@@ -63,8 +56,8 @@
 #define CARRIER_FREQ	          	        1.070e6	// AM 1070
 #define AMPLITUDE				3000
 
-#define AUDIO_IN	"/dev/dsp"
-#define AUDIO_OUT	"/dev/dsp1"
+#define AUDIO_SINK	"/dev/dsp"
+#define AUDIO_SRC	"/dev/dsp1"
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -271,6 +264,13 @@ int gr_open(RIG *rig)
    * 	and override available modes with gnuradio's
    */
 
+  rig->state.has_set_func  |= priv->tuner->state.has_set_func;
+  rig->state.has_get_func  |= priv->tuner->state.has_get_func;
+  rig->state.has_set_level |= priv->tuner->state.has_set_level;
+  rig->state.has_get_level |= priv->tuner->state.has_get_level;
+  rig->state.has_set_parm  |= priv->tuner->state.has_set_parm;
+  rig->state.has_get_parm  |= priv->tuner->state.has_get_parm;
+
 
   /* ** Source ** */
   
@@ -288,7 +288,7 @@ int gr_open(RIG *rig)
   /* VrFileSource (double sampling_freq, const char *file, bool repeat = false) */
   //priv->source = new VrFileSource<short>(priv->input_rate, "microtune_source.sw", true);
 
-  priv->sink = new GrAudioSink<float>(1,AUDIO_IN);
+  priv->sink = new GrAudioSink<float>(1,AUDIO_SINK);
 
   /* ** Sink ** */
   if (!priv->sink)
@@ -299,8 +299,6 @@ int gr_open(RIG *rig)
 
   priv->m->start();
 
-  /* or set it to MODE_NONE? */
-  //gr_set_mode(rig, RIG_VFO_CURR, RIG_MODE_WFM, RIG_PASSBAND_NORMAL);
   if (priv->tuner_model == RIG_MODEL_DUMMY) {
 	  gr_set_freq(rig, RIG_VFO_CURR, priv->IF_center_freq);
   }
@@ -358,7 +356,7 @@ int graudio_open(RIG *rig)
 	 * assumes sound card is full duplex!
 	 * mono source
 	 */
-	priv->source =  new GrAudioSource<VrComplex>(priv->input_rate, 1,1,AUDIO_OUT);
+	priv->source =  new GrAudioSource<VrComplex>(priv->input_rate, 1,1,AUDIO_SRC);
 
 	return gr_open(rig);
 }
@@ -376,7 +374,7 @@ int graudioiq_open(RIG *rig)
 	 * assumes sound card is full duplex!
 	 * I&Q source
 	 */
-	priv->source =  new GrAudioSource<VrComplex>(priv->input_rate, 2,1, AUDIO_OUT);
+	priv->source =  new GrAudioSource<VrComplex>(priv->input_rate, 2,1, AUDIO_SRC);
 
 	return gr_open(rig);
 }
@@ -459,8 +457,10 @@ static int update_freq(RIG *rig, unsigned chan_num, freq_t tuner_freq, freq_t fr
   DemodChainCF *mod = priv->mods[chan_num];
   double freq_offset;
 
-  if (chan->mode == RIG_MODE_NONE)
-	  return RIG_OK;
+  if (chan->mode == RIG_MODE_NONE || !mod) {
+	rig_debug(RIG_DEBUG_TRACE,"No (de)modulator for chan %d\n",chan_num);
+	return RIG_OK;
+  }
 
   /*
    * In case the tuner is not a real tuner
@@ -469,16 +469,11 @@ static int update_freq(RIG *rig, unsigned chan_num, freq_t tuner_freq, freq_t fr
 	  tuner_freq = priv->IF_center_freq;
 
   freq_offset = (double) (freq - tuner_freq);
-  rig_debug(RIG_DEBUG_VERBOSE, "%s: %lld %lld freq_offset=%g\n",
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: tuner:%lld gr:%lld freq_offset=%g\n",
 		  __FUNCTION__, tuner_freq, freq, freq_offset);
 
   if (freq_offset == 0)
 	  return RIG_OK;	/* nothing to do */
-
-  /* mode=RIG_MODE_NONE? */
-  if (!mod) {
-	  return RIG_OK;
-  }
 
   pthread_mutex_lock(&priv->mutex_process);
 
@@ -520,12 +515,18 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	  /*
 	   * do not set tuner to freq, but center it
 	   */
-	  ret = rig_set_freq(priv->tuner, RIG_VFO_CURR, freq + GR_MAX_FREQUENCY(priv)/2);
+#if 0
+	  if (GR_MAX_FREQUENCY(priv)/2 < mode_offset)
+		  tuner_freq = freq - mode_offset - resolution;
+	  else
+#endif
+		  tuner_freq = freq - GR_MAX_FREQUENCY(priv)/2;
+	  ret = rig_set_freq(priv->tuner, RIG_VFO_CURR, tuner_freq);
 	  if (ret != RIG_OK)
 		  return ret;
 	  /*
-	   * query freq right back, because wanted freq may not be real freq,
-	   * because of resolution of tuner
+	   * query freq right back, because wanted freq may be rounded
+	   * because of the resolution of the tuner
 	   */
   	  ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
 	  if (ret != RIG_OK)
@@ -595,9 +596,9 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (priv->tuner_model == RIG_MODEL_DUMMY)
 	  tuner_freq = 0;
 
-  freq_offset = (double) (chan->freq - tuner_freq);
-  rig_debug(RIG_DEBUG_VERBOSE, "%s: freq_offset=%g\n",
-		  __FUNCTION__, freq_offset);
+  freq_offset = (double) (chan->freq - tuner_freq + priv->IF_center_freq);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: freq_offset=%g tuner_freq=%lld, IFcenter=%ld\n",
+		  __FUNCTION__, freq_offset, tuner_freq, priv->IF_center_freq);
 
 
 
@@ -619,6 +620,9 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	delete mod;
   	priv->mods[chan_num] = NULL;
+
+	delete priv->m;
+	priv->m = new VrMultiTask ();
   }
 
   if (mode == RIG_MODE_NONE) {
@@ -629,25 +633,23 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	return RIG_OK;
   }
 
+  float rf_gain = chan->levels[rig_setting2idx(RIG_LEVEL_RF)].f;
 
   switch(mode) {
-#if 0
-  case RIG_MODE_USB:
-	//float rf_gain = chan->levels[rig_setting2idx(RIG_LEVEL_RF)].f;
-	float low_cutoff = 300;
-	float high_cutoff = low_cutoff+width;
-	centerfreq = (freq_t)(priv->IF_center_freq + low_cutoff + width/2);
-
-	mod = new USBDemodChain(priv->source, priv->sink, priv->input_rate, centerfreq);
+  case RIG_MODE_LSB:
+	mod = new LSBDemodChainCF(priv->source, priv->sink, mode, width, priv->input_rate, (freq_t)freq_offset);
 	break;
-#endif
+  case RIG_MODE_USB:
+	mod = new USBDemodChainCF(priv->source, priv->sink, mode, width, priv->input_rate, (freq_t)freq_offset);
+	break;
   case RIG_MODE_AM:
-	//centerfreq = priv->IF_center_freq;
-	mod = new AMDemodChainCF(priv->source, priv->sink, mode, width, priv->input_rate, kHz(10));
+	mod = new AMDemodChainCF(priv->source, priv->sink, mode, width, priv->input_rate, (freq_t)freq_offset);
 	break;
   case RIG_MODE_FM:
-	//centerfreq = priv->IF_center_freq;
-	mod = new FMDemodChainCF(priv->source, priv->sink, mode, width, priv->input_rate, kHz(10));
+	mod = new FMDemodChainCF(priv->source, priv->sink, mode, width, priv->input_rate, (freq_t)freq_offset);
+	break;
+  case RIG_MODE_WFM:
+	mod = new WFMDemodChainCF(priv->source, priv->sink, mode, width, priv->input_rate, (freq_t)freq_offset);
 	break;
   default:
 	  ret = -RIG_EINVAL;
@@ -655,6 +657,7 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   priv->mods[chan_num] = mod;
 
+  /* wire up the chain */
   mod->connect();
 
   priv->m->add (priv->sink);
@@ -742,11 +745,12 @@ int gnuradio_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
   switch (level) {
   case RIG_LEVEL_RF:
-	mod->setRFgain(val.f);
+	  /* line-in level of sound card, etc. */
 	break;
   default:
-	rig_debug(RIG_DEBUG_WARN, "%s: level %s unimplemented!\n",
+	rig_debug(RIG_DEBUG_TRACE, "%s: level %s, try tuner\n",
 			  __FUNCTION__, strlevel(level));
+	ret = rig_set_level(priv->tuner, vfo, level, val);
 	break;
   }
 

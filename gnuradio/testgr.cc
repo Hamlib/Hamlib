@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   int retcode;		/* generic return code from functions */
   struct gnuradio_priv_data *priv;
 
-  GrFFTSink<IOTYPE> *fftsink;
+  GrFFTSink<float> *fftsink;
 
   VrGUI *guimain = new VrGUI(argc, argv);
   VrGUILayout *horiz = guimain->top->horizontal();
@@ -64,14 +64,14 @@ int main(int argc, char *argv[])
 	exit(2);
   }
 
-  fftsink = new GrFFTSink<IOTYPE>(vert, 300, 450, 1024);
+  fftsink = new GrFFTSink<float>(vert, 300, 450, 1024);
 
   pthread_mutex_lock(&priv->mutex_process);
   priv->m->add (fftsink);
 
   // now wire it all together from the sink, back to the sources
   
-  NWO_CONNECT (GR_SOURCE(priv), fftsink);
+  NWO_CONNECT (priv->source, fftsink);
   pthread_mutex_unlock(&priv->mutex_process);
 
   rig_set_freq(my_rig, RIG_VFO_CURR, (freq_t)CARRIER_FREQ-kHz(10));

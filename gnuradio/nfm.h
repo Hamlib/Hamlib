@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - Narrow FM class
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: nfm.h,v 1.1 2003-09-28 20:51:05 fillods Exp $
+ *	$Id: nfm.h,v 1.2 2004-02-08 20:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,13 +36,9 @@ class FMDemodChainCF : public DemodChainCF {
 	FMDemodChainCF (VrSource<d_iType> *src, VrSink<d_oType> *snk, rmode_t mode, pbwidth_t width, int input_rate, freq_t centerfreq = 0) : 
 		DemodChainCF(src, snk, mode, width, input_rate, centerfreq) { 
 
-		demod_in = demod_out = q_demod = new VrQuadratureDemod<d_oType>(1);
+		demod_in = demod_out = q_demod = new VrQuadratureDemod<d_oType>(1.0);
 	}
 	~FMDemodChainCF() { delete q_demod; }
-
-	//void setWidth(pbwidth_t width) { }
-	//void setFreq(freq_t centerfreq) { }
-	void setRFgain(float gain) { q_demod->setGain(gain); }
 };
 
 #endif	/* _NFM_H */

@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - Demodulator chain class
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: demod.h,v 1.1 2003-10-20 22:34:56 fillods Exp $
+ *	$Id: demod.h,v 1.2 2004-02-08 20:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,8 +29,8 @@
 #include <GrFIRfilterFFF.h>
 #include <VrAmp.h>
 
-#include <GrAGC.h>
-//#include <HrAGC.h>
+//#include <GrAGC.h>
+#include <HrAGC.h>
 
 #include <gr_firdes.h>
 #include <gr_fir_builderF.h>
@@ -45,7 +45,7 @@
 class DemodChainCF {
   public:
 	DemodChainCF (VrSource<d_iType> *d_source, VrSink<d_oType> *d_sink, rmode_t mode, pbwidth_t width, int input_rate, freq_t centerfreq = 0) : 
-		d_source(d_source), d_sink(d_sink), mode(mode), width(width), input_rate(input_rate), centerfreq(centerfreq), rf_gain(1.0), if_width_of_transition_band(500), CFIRdecimate(1), RFIRdecimate(1) {}
+		d_source(d_source), d_sink(d_sink), mode(mode), width(width), input_rate(input_rate), centerfreq(centerfreq), rf_gain(1.0), if_width_of_transition_band(1000), CFIRdecimate(1), RFIRdecimate(1) {}
 	virtual ~DemodChainCF () { delete agc; delete mixer; delete gainstage; delete audio_filter; }
 
 	virtual const char *name() { return strrmode(mode); }
@@ -64,7 +64,7 @@ class DemodChainCF {
 	VrSigProc *demod_in;
 	VrSigProc *demod_out;
 
-	GrAGC<d_oType,d_oType> *agc;
+	HrAGC<d_oType,d_oType> *agc;
 	GrFreqXlatingFIRfilterCCF *mixer;
 	VrAmp<d_oType,d_oType> *gainstage;
 	GrFIRfilterFFF *audio_filter;
@@ -103,7 +103,7 @@ void DemodChainCF::connect()
 
 
   mixer = new GrFreqXlatingFIRfilterCCF (CFIRdecimate, channel_coeffs, centerfreq);
-  agc = new GrAGC<d_oType,d_oType>(1e-2);
+  agc = new HrAGC<d_oType,d_oType>(1e-2);
   gainstage = new VrAmp<float,float>(1);	/* AF */
   audio_filter = new GrFIRfilterFFF (RFIRdecimate, audio_coeffs);
 

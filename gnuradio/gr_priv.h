@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - gnuradio priv structure
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gr_priv.h,v 1.6 2003-09-28 20:51:05 fillods Exp $
+ *	$Id: gr_priv.h,v 1.7 2004-02-08 20:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -71,7 +71,7 @@ struct gnuradio_priv_data {
 };
 
 
-//#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate/2)
-#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate)
+#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate/2)
+//#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate)
 
 #endif	/* _GR_PRIV_H */

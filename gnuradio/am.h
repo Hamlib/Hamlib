@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - AM class
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: am.h,v 1.1 2003-09-28 20:51:05 fillods Exp $
+ *	$Id: am.h,v 1.2 2004-02-08 20:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,10 +39,6 @@ class AMDemodChainCF : public DemodChainCF {
 		demod_in = demod_out = a_demod = new GrMagnitude<d_iType, d_oType>();
 	}
 	~AMDemodChainCF() { delete a_demod; }
-
-	//void setWidth(pbwidth_t width) { }
-	//void setFreq(freq_t centerfreq) { }
-	void setRFgain(float gain) { /* a_demod->setGain(gain); */ }
 };
 
 #endif	/* _AM_H */

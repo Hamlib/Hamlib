@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - Wide FM class
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: wfm.h,v 1.1 2003-10-01 19:38:34 fillods Exp $
+ *	$Id: wfm.h,v 1.2 2004-02-08 20:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,8 +36,8 @@ class WFMDemodChainCF : public DemodChainCF {
 	GrFIRfilterFFF *audio_filter;
 
   public:
-	WFMDemodChainCF (VrSource<d_iType> *src, VrSink<d_oType> *snk, rmode_t mode, pbwidth_t width, int input_rate, freq_t centerfreq = 0, float rf_gain = 1.0) : 
-		DemodChainCF(src, snk, mode, width, input_rate, centerfreq, rf_gain) { 
+	WFMDemodChainCF (VrSource<d_iType> *src, VrSink<d_oType> *snk, rmode_t mode, pbwidth_t width, int input_rate, freq_t centerfreq = 0) : 
+		DemodChainCF(src, snk, mode, width, input_rate, centerfreq) { 
 
 		CFIRdecimate = 125;
 		RFIRdecimate = 5;
@@ -64,7 +64,7 @@ class WFMDemodChainCF : public DemodChainCF {
 		// float --> float
 		double width_of_transition_band = audioRate / 32;
 		vector<float> audio_coeffs =
-		  gr_firdes::low_pass (rf_gain,			// gain
+		  gr_firdes::low_pass (1.0,			// gain
 				   quadRate,			// sampling rate
 				   audioRate/2 - width_of_transition_band, // low-pass cutoff freq
 				   width_of_transition_band,
@@ -75,7 +75,7 @@ class WFMDemodChainCF : public DemodChainCF {
 	  
 		audio_filter = new GrFIRfilterFFF(RFIRdecimate, audio_coeffs);
 	
-		q_demod = new VrQuadratureDemod<d_oType>(rf_gain);
+		q_demod = new VrQuadratureDemod<d_oType>(1.0);
 
 		demod_in = q_demod;
 		demod_out = audio_filter;

@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - graudio/any rig
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: graudio.c,v 1.5 2003-10-01 19:31:55 fillods Exp $
+ *	$Id: graudio.c,v 1.6 2004-02-08 20:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,8 +50,8 @@
 
 static const struct gnuradio_priv_caps graudio_priv_caps = {
 	.tuner_model = RIG_MODEL_DUMMY,
-	.input_rate = 48000,	/* To be fixed. how? */
-	.IF_center_freq = -kHz(10),
+	.input_rate = 48000,	/* To be fixed, later */
+	.IF_center_freq = 0 /* -kHz(10) */,
 };
 
 
