@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.76 2003-03-19 23:41:44 fillods Exp $
+ *	$Id: rig.h,v 1.77 2003-03-24 23:06:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -424,6 +424,7 @@ typedef enum {
 	RIG_OP_BAND_DOWN =	(1<<8),	/*!< Band DOWN */
 	RIG_OP_LEFT =		(1<<9),	/*!< LEFT */
 	RIG_OP_RIGHT =		(1<<10),/*!< RIGHT */
+	RIG_OP_TUNE =		(1<<11),/*!< Start tune */
 } vfo_op_t;
 
 
@@ -631,31 +632,32 @@ enum rig_func_e {
 	RIG_FUNC_COMP =    	(1<<2),	/*!< Compression */
 	RIG_FUNC_VOX =    	(1<<3),	/*!< VOX */
 	RIG_FUNC_TONE =    	(1<<4),	/*!< Tone */
-	RIG_FUNC_TSQL =    	(1<<5),	/*!< may require a tone field */
+	RIG_FUNC_TSQL =    	(1<<5),	/*!< CTCSS */
 	RIG_FUNC_SBKIN =    	(1<<6),	/*!< Semi Break-in */
-	RIG_FUNC_FBKIN =    	(1<<7),	/*!< Full Break-in, for CW mode */
+	RIG_FUNC_FBKIN =    	(1<<7),	/*!< Full Break-in (CW mode) */
 	RIG_FUNC_ANF =    	(1<<8),	/*!< Automatic Notch Filter (DSP) */
 	RIG_FUNC_NR =     	(1<<9),	/*!< Noise Reduction (DSP) */
 	RIG_FUNC_AIP =     	(1<<10),/*!< AIP (Kenwood) */
 	RIG_FUNC_APF =     	(1<<11),/*!< Auto Passband Filter */
-	RIG_FUNC_MON =     	(1<<12),/*!< Monitor transmitted signal, != rev */
-	RIG_FUNC_MN =     	(1<<13),/*!< Manual Notch (Icom) */
-	RIG_FUNC_RNF =     	(1<<14),/*!< RTTY Filter Notch (Icom) */
+	RIG_FUNC_MON =     	(1<<12),/*!< Monitor transmitted signal */
+	RIG_FUNC_MN =     	(1<<13),/*!< Manual Notch */
+	RIG_FUNC_RNF =     	(1<<14),/*!< RTTY Filter Notch */
 	RIG_FUNC_ARO =     	(1<<15),/*!< Auto Repeater Offset */
 	RIG_FUNC_LOCK =     	(1<<16),/*!< Lock */
-	RIG_FUNC_MUTE =     	(1<<17),/*!< Mute, could be emulated by LEVEL_AF */
+	RIG_FUNC_MUTE =     	(1<<17),/*!< Mute */
 	RIG_FUNC_VSC =     	(1<<18),/*!< Voice Scan Control */
-	RIG_FUNC_REV =     	(1<<19),/*!< Reverse tx and rx freqs */
+	RIG_FUNC_REV =     	(1<<19),/*!< Reverse transmit and receive frequencies */
 	RIG_FUNC_SQL =     	(1<<20),/*!< Turn Squelch Monitor on/off */
 	RIG_FUNC_ABM =     	(1<<21),/*!< Auto Band Mode */
 	RIG_FUNC_BC =     	(1<<22),/*!< Beat Canceller */
 	RIG_FUNC_MBC =     	(1<<23),/*!< Manual Beat Canceller */
-	RIG_FUNC_LMP =    	(1<<24),/*!< LCD lamp ON/OFF */
+	/* 			(1<<24), used to be RIG_FUNC_LMP, see RIG_PARM_BACKLIGHT instead) */
 	RIG_FUNC_AFC =    	(1<<25),/*!< Auto Frequency Control ON/OFF */
-	RIG_FUNC_SATMODE =	(1<<26),/*!< Satellite mode ON/OFF (IC-910H) */
-	RIG_FUNC_SCOPE =  	(1<<27),/*!< Simple bandscope ON/OFF (IC-910H) */
-	RIG_FUNC_RESUME =	(1<<28),/*!< Scan resume */
+	RIG_FUNC_SATMODE =	(1<<26),/*!< Satellite mode ON/OFF */
+	RIG_FUNC_SCOPE =  	(1<<27),/*!< Simple bandscope ON/OFF */
+	RIG_FUNC_RESUME =	(1<<28),/*!< Scan auto-resume */
 	RIG_FUNC_TBURST =	(1<<29),/*!< 1750 Hz tone burst */
+	RIG_FUNC_TUNER =	(1<<30),/*!< Enable automatic tuner */
 };
 
 /*
