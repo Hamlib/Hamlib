@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.21 2004-11-04 22:49:10 f4dwv Exp $
+ *	$Id: th.c,v 1.22 2004-11-11 17:51:53 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -915,12 +915,15 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 	unsigned char *membuf, ackbuf[ACKBUF_LEN];
 	int retval,ack_len=ACKBUF_LEN;
-	vfo_t tvfo;
+	vfo_t tvfo,cvfo;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
-	if(vfo==RIG_VFO_CURR) tvfo=rig->state.current_vfo;
-	else tvfo=vfo;
+	cvfo=rig->state.current_vfo;
+	if(vfo==RIG_VFO_CURR)
+		 tvfo=cvfo;
+	else
+		 tvfo=vfo;
 
 	switch (tvfo) {
 	  case RIG_VFO_VFO:
@@ -952,6 +955,10 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 	ackbuf[8]='\0';
         *ch = atoi(&ackbuf[5]);
+
+	retval= rig_set_vfo(rig,cvfo);
+	if (retval != RIG_OK)
+		return retval;
 
 	return RIG_OK;
 }
@@ -1007,6 +1014,26 @@ th_set_powerstat(RIG *rig, powerstat_t status)
 
 	return RIG_OK;
 }
+
+int th_get_powerstat(RIG *rig, powerstat_t *status)
+{
+                unsigned char pwrbuf[50];
+                int pwr_len = 50, retval;
+                                                                                                                            
+                retval = kenwood_transaction (rig, "PS;", 3, pwrbuf, &pwr_len);
+                if (retval != RIG_OK)
+                        return retval;
+                                                                                                                            
+                if (pwr_len != 4) {
+                                rig_debug(RIG_DEBUG_ERR,"kenwood_get_powerstat: wrong answer "
+                                                                "len=%d\n", pwr_len);
+                                return -RIG_ERJCTED;
+                }
+                *status = pwrbuf[2] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
+                                                                                                                            
+                return RIG_OK;
+}
+                                                                                                                            
 
 int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.h,v 1.8 2004-03-21 18:25:54 f4dwv Exp $
+ *	$Id: th.h,v 1.9 2004-11-11 17:51:53 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,6 +34,7 @@ extern int th_get_vfo(RIG *rig, vfo_t *vfo);
 extern int th_set_trn(RIG *rig, int trn);
 extern int th_get_trn (RIG *rig, int *trn);
 extern int th_set_powerstat (RIG *rig, powerstat_t status);
+extern int th_get_powerstat (RIG *rig, powerstat_t *status);
 extern int th_set_func (RIG *rig, vfo_t vfo, setting_t func, int status);
 extern int th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status);
 extern int th_get_parm (RIG *rig, setting_t parm, value_t *val);
