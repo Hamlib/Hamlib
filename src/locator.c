@@ -11,7 +11,7 @@
  *  Hamlib Interface - locator and bearing conversion calls
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: locator.c,v 1.1 2001-12-27 21:46:25 fillods Exp $
+ *		$Id: locator.c,v 1.2 2001-12-28 20:33:27 fillods Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle, 
  *	by S. R. Sampson, N5OWK.
@@ -57,35 +57,79 @@
 /* arc length for 1 degree, 60 Nautical Miles */
 #define ARC_IN_KM 111.2
 
-/*
- * degrees >360, minutes > 60, and seconds > 60 are allowed
+/**
+ * \brief Convert DMS angle to decimal representation
+ * \param degrees	Degrees
+ * \param minutes	Minutes
+ * \param degrees	Seconds
+ *
+ *  Convert degree/minute/second angle to a decimal representation.
+ *  Degrees >360, minutes > 60, and seconds > 60 are allowed, but
+ *  resulting angle won't be normalized.
+ *
+ * \return the decimal representation.
+ *
+ * \sa dec2dms()
  */
 double dms2dec(int degrees, int minutes, int seconds)
 {
-		return (double)degrees + minutes/60.0 + seconds/3600.0;
+		return (double)degrees + (double)minutes/60. + (double)seconds/3600.;
 }
-/*
- * guarantee: dec2dms will make sure 0<=degress<360,
- * 0<=minutes<60, 0<=seconds<0
+
+/**
+ * \brief Convert decimal angle into DMS representation
+ * \param dec	Decimal angle
+ * \param degrees	The location where to store the degrees
+ * \param minutes	The location where to store the minutes
+ * \param degrees	The location where to store the seconds
+ *
+ *  Convert decimal angle into its degree/minute/second representation.
+ *  Upon return dec2dms guarantees -180<=degrees<180,
+ *  0<=minutes<60, and 0<=seconds<60.
+ *
+ * \sa dms2dec()
  */
 void dec2dms(double dec, int *degrees, int *minutes, int *seconds)
 {
+		int deg, min, sec;
+		double st;
+
 		if (!degrees || !minutes || !seconds)
 				return;
 
-		dec = fmod(dec, 360);
-		*degrees = (int)floor(dec);
-		dec -= *degrees;
-		dec *= 60;
-		*minutes = (int)floor(dec);
-		dec -= *minutes;
-		dec *= 60;
-		*seconds = (int)floor(dec);
+		st = fmod(dec+180, 360)-180;
+
+		deg = (int)floor(st);
+		st  = 60. * (st-(double)deg);
+		min = (int)floor(st);
+		st  = 60. * (st-(double)min);
+		if (deg < 0 && min != 0) 
+				min = 60 - min;
+		sec = (int)floor(st);
+		if (deg < 0 && sec != 0) 
+				sec = 60 - sec;
+
+		*degrees = deg;
+		*minutes = min;
+		*seconds = sec;
 }
 
 
-/*
- * 4 characters and 6 characters are accepted
+/**
+ * \brief Convert Maidenhead grid locator to longitude/latitude
+ * \param longitude	The location where to store longitude, decimal
+ * \param latitude	The location where to store latitude, decimal
+ * \param locator	The locator
+ *
+ *  Convert Maidenhead grid locator to longitude/latitude (decimal).
+ *  The locator be either in 4 or 6 chars long format. locator2longlat
+ *  is case insensitive, however it checks for locator validity.
+ *
+ * \todo: give center coordinate of locator
+ *
+ * \return 0 to indicate conversion went ok, otherwise a negative value.
+ *
+ * \sa longlat2locator()
  */
 int locator2longlat(double *longitude, double *latitude, const char *locator)
 {
@@ -105,57 +149,77 @@ int locator2longlat(double *longitude, double *latitude, const char *locator)
 		loc[4] = 'A';
 		loc[5] = 'A';
 	}
-	if (loc[0] < 'A' || loc[0] > 'Z' ||
-		loc[1] < 'A' || loc[1] > 'Z' ||
+	if (loc[0] < 'A' || loc[0] > 'R' ||
+		loc[1] < 'A' || loc[1] > 'R' ||
 		loc[2] < '0' || loc[2] > '9' ||
 		loc[3] < '0' || loc[3] > '9' ||
-		loc[4] < 'A' || loc[4] > 'Z' ||
-		loc[5] < 'A' || loc[5] > 'Z' ) {
+		loc[4] < 'A' || loc[4] > 'X' ||
+		loc[5] < 'A' || loc[5] > 'X' ) {
 			return -1;
 	}
 
 	*longitude = 20.0 * (loc[0]-'A') - 180.0 + 2.0 * (loc[2]-'0') + 
-										(loc[4]-'A')/12.0 + 1.0;
+										(loc[4]-'A')/12.0;
+	if (loc[0] <= 'I' && (loc[2] != '0' || loc[4] != 'A'))
+			*longitude += 1;
 
 	*latitude = 10.0 * (loc[1]-'A') - 90.0 + (loc[3]-'0') + 
-										(loc[5]-'A')/24.0 + 1.0/48.0;
+										(loc[5]-'A')/24.0;
 
 	return 0;
 }
 
-/*
- * locator must be at least 6 chars long
+/**
+ * \brief Convert longitude/latitude to Maidenhead grid locator
+ * \param longitude	The longitude, decimal
+ * \param latitude	The latitude, decimal
+ * \param locator	The location where to store the locator
+ *
+ *  Convert longitude/latitude (decimal) to Maidenhead grid locator.
+ *  \a locator must point to an array at least 6 char long.
+ *
+ * \todo: give center coordinate of locator
+ *
+ * \sa locator2longlat()
  */
-int longlat2locator(double longitude, double latitude, char *locator)
+void longlat2locator(double longitude, double latitude, char *locator)
 {
-#if 0
-	double t,s;
+	double tmp;
 
-	t = 20.0 * (loc[0]-'A') - 180.0 + 2.0 * (loc[2]-'0') + 
-										(loc[4]-'A')/12.0 + 1.0;
-	*longitude = t; 
+	tmp = longitude + 180.;
+	locator[0] = 'A' + (int)floor(tmp/20.);
+	tmp = fmod(tmp, 20.);
+	locator[2] = '0' + (int)floor(tmp/2.);
+	tmp = 12.5*fmod(tmp, 2.);
+	locator[4] = 'A' + (int)floor(tmp);
 
-	s = 10.0 * (loc[1]-'A') - 90.0 + (loc[3]-'0') + 
-										(loc[5]-'A')/24.0 + 1.0/48.0;
-	*latitude = s;
-#endif
-	strcpy (locator, "MM00mm");
-
-	return 0;
+	tmp = latitude + 90.;
+	locator[1] = 'A' + (int)(tmp/10.);
+	tmp = fmod(tmp, 10.);
+	locator[3] = '0' + (int)tmp;
+	tmp = 25. * (tmp - trunc(tmp));
+	locator[5] = 'A' + (int)tmp;
 }
 
 
-/*
- * 1 towards 2
- * returns qrb in km
- * and azimuth in decimal degrees
- */
-
-/*
+/**
+ * \brief Calculate the bearing and azimuth between two points.
+ * \param lon1	The local longitude, decimal degrees
+ * \param lat1	The local latitude, decimal degrees
+ * \param lon2	The remote longitude, decimal degrees
+ * \param lat2	The remote latitude, decimal degrees
+ * \param bearing	The location where to store the bearing
+ * \param azimuth	The location where to store the azimuth
+ *
+ *  Calculate the QRB between \a lat1,\a lat1 and
+ *  \a lon2,\a lat2, and return the bearing in kilometers and
+ *  azimuth in decimal degrees for the short path.
+ *
  *	This version also takes into consideration the two points 
  *	being close enough to be in the near-field, and the antipodal points, 
- *	which are easily calculated.  These last points were made
- *	in discussions with John Allison who makes the nice MAPIT program.
+ *	which are easily calculated.
+ *
+ * \sa bearing_long_path(), azimuth_long_path()
  */
 int qrb(double lon1, double lat1, double lon2, double lat2,
 				double *bearing, double *azimuth)
@@ -265,4 +329,5 @@ double azimuth_long_path(double azimuth)
 {
 		return 360.0-azimuth;
 }
+
 
