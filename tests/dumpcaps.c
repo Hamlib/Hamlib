@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.7 2000-11-28 22:34:37 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.8 2001-01-05 18:22:40 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -140,8 +140,11 @@ int main (int argc, char *argv[])
 
 	printf("Write delay %dms, timeout %dms, %d retry\n",
 					caps->write_delay,caps->timeout,caps->retry);
-	printf("Post Write delay %dms \n",
+	printf("Post Write delay %dms\n",
 					caps->post_write_delay);
+
+	printf("Has targetable VFO: %s\n",
+					caps->targetable_vfo?"yes":"no");
 
 
 	printf("Functions: ");
@@ -170,7 +173,7 @@ int main (int argc, char *argv[])
 
 	printf("Tuning steps:\n");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
-			printf("\t%liHz:\t%s\n",caps->tuning_steps[i].ts,
+			printf("\t%8liHz:\t%s\n",caps->tuning_steps[i].ts,
 							decode_modes(caps->tuning_steps[i].modes));
 	}
 

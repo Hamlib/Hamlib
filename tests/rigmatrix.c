@@ -3,7 +3,7 @@
  * This program generates the supported rig matrix in HTML format.
  *
  *
- *    $Id: rigmatrix.c,v 1.1 2000-11-01 23:25:54 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.2 2001-01-05 18:22:40 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -145,6 +145,9 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 					caps->model_name);
 	
 #define print_yn(fn) printf("<TD>%c</TD>", (fn) ? 'Y':'N')
+
+	/* targetable_vfo is not a function, but a boolean */
+	print_yn(caps->targetable_vfo);
 
 	print_yn(caps->set_freq);
 	print_yn(caps->get_freq);
@@ -387,7 +390,8 @@ int main (int argc, char *argv[])
 	printf("<P>");
 
 	printf("<TABLE BORDER=1>\n");
-	printf("<TR><TD>Model</TD><TD>Set freq</TD><TD>Get freq</TD>"
+	printf("<TR><TD>Model</TD><TD>Target VFO</TD>"
+					"<TD>Set freq</TD><TD>Get freq</TD>"
 					"<TD>Set mode</TD><TD>Get mode</TD>"
 					"<TD>Set VFO</TD><TD>Get VFO</TD>"
 					"<TD>Set PTT</TD><TD>Get PTT</TD>"
