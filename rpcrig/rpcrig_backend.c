@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rpcrig_backend.c,v 1.3 2001-12-20 07:46:12 fillods Exp $
+ *		$Id: rpcrig_backend.c,v 1.4 2001-12-26 23:42:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,17 +44,6 @@
 #include "rpcrig_backend.h"
 
 
-/********************************************************************/
-static void freq_t2freq_s(freq_t freqt, freq_s *freqs)
-{
-	freqs->f1 = freqt & 0xffffffff;
-	freqs->f2 = (freqt>>32) & 0xffffffff;
-}
-static freq_t freq_s2freq_t(freq_s *freqs)
-{
-	return freqs->f1 | ((freq_t)freqs->f2 << 32);
-}
-
 struct rpcrig_priv_data {
 		CLIENT *cl;
 };
@@ -69,7 +58,8 @@ static int rpcrig_init(RIG *rig)
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
 	}
-	rig->state.rigport.type.rig = RIG_PORT_NONE;
+	rig->state.rigport.type.rig = RIG_PORT_RPC;
+	strcpy(rig->state.rigport.pathname, "localhost");
 
 	return RIG_OK;
 }
@@ -87,38 +77,70 @@ static int rpcrig_cleanup(RIG *rig)
 	return RIG_OK;
 }
 
+/*
+ * assumes rig!=NULL, rs->priv != NULL
+ */
 static int rpcrig_open(RIG *rig)
 {
 	struct rpcrig_priv_data *priv;
 	struct rig_state *rs;
-	model_x *result;
-	char *server = "localhost";
+	model_x *mdl_res;
+	rigstate_res *rs_res;
 	rig_model_t model;
 	const struct rig_caps *caps;
-	int i;
+	char *server;
 
 	rs = &rig->state;
 	priv = (struct rpcrig_priv_data*)rs->priv;
+	server = rs->rigport.pathname;
 
 	priv->cl = clnt_create(server, RIGPROG, RIGVERS, "udp");
 	if (priv->cl == NULL) {
 		clnt_pcreateerror(server);
 		return -RIG_ECONF;
 	}
-	result = getmodel_1(NULL, priv->cl);
-	if (result == NULL) {
+	mdl_res = getmodel_1(NULL, priv->cl);
+	if (mdl_res == NULL) {
 		clnt_perror(priv->cl, server);
 		clnt_destroy(priv->cl);
+		priv->cl = NULL;
 		return -RIG_EPROTO;
 	}
-	model = *result;
+	model = *mdl_res;
 	rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ ": model %d\n", model);
+
+	/*
+	 * autoload if necessary
+	 */
+	rig_check_backend(model);
+
 	caps = rig_get_caps(model);
 
 	/*
+	 * TODO: decide if it's the way to go.
+	 * 		 This for example breaks reentrancy
+	 */
+	//memcpy(&rpcrig_caps, caps, sizeof(struct rig_caps));
+	
+	/*
 	 * TODO: get these from RPC instead
 	 */
-#if 1
+
+	rs_res = getrigstate_1(NULL, priv->cl);
+	if (rs_res == NULL) {
+		clnt_perror(priv->cl, server);
+		clnt_destroy(priv->cl);
+		priv->cl = NULL;
+		return -RIG_EPROTO;
+	}
+	rs->has_get_func = rs_res->rigstate_res_u.state.has_get_func;
+	rs->has_set_func = rs_res->rigstate_res_u.state.has_set_func;
+	rs->has_get_level = rs_res->rigstate_res_u.state.has_get_level;
+	rs->has_set_level = rs_res->rigstate_res_u.state.has_set_level;
+	rs->has_get_parm = rs_res->rigstate_res_u.state.has_get_parm;
+	rs->has_set_parm = rs_res->rigstate_res_u.state.has_set_parm;
+
+#if 0
 	rs->vfo_list = 0;
 	for (i=0; i<FRQRANGESIZ; i++) {
 		if (rs->rx_range_list[i].start != 0 &&
@@ -137,13 +159,6 @@ static int rpcrig_open(RIG *rig)
 						sizeof(struct filter_list)*FLTLSTSIZ);
 	memcpy(rs->chan_list, caps->chan_list, sizeof(chan_t)*CHANLSTSIZ);
 
-	rs->has_get_func = caps->has_get_func;
-	rs->has_set_func = caps->has_set_func;
-	rs->has_get_level = caps->has_get_level;
-	rs->has_set_level = caps->has_set_level;
-	rs->has_get_parm = caps->has_get_parm;
-	rs->has_set_parm = caps->has_set_parm;
-
 	rs->max_rit = caps->max_rit;
 	rs->max_xit = caps->max_xit;
 	rs->max_ifshift = caps->max_ifshift;
@@ -159,10 +174,51 @@ static int rpcrig_close(RIG *rig)
 
 	priv = (struct rpcrig_priv_data*)rig->state.priv;
 
-	clnt_destroy(priv->cl);
+	if (priv->cl)
+		clnt_destroy(priv->cl);
 
 	return RIG_OK;
 }
+
+static int rpcrig_set_vfo(RIG *rig, vfo_t vfo)
+{
+	struct rpcrig_priv_data *priv;
+	int *result;
+	vfo_x varg;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	varg = vfo;
+	result = setvfo_1(&varg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setvfo_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
+}
+
+
+static int rpcrig_get_vfo(RIG *rig, vfo_t *vfo)
+{
+	struct rpcrig_priv_data *priv;
+	vfo_x v;
+	vfo_res *vres;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	v = *vfo;
+	vres = getvfo_1(&v, priv->cl);
+	if (vres == NULL) {
+		clnt_perror(priv->cl, "getvfo_1");
+		return -RIG_EPROTO;
+	}
+	if (vres->rigstatus == RIG_OK)
+		*vfo = vres->vfo_res_u.vfo;
+
+	return vres->rigstatus;
+}
+
 
 static int rpcrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -170,15 +226,15 @@ static int rpcrig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	struct rig_state *rs;
 	int *result;
 	freq_arg farg;
-	char *server = "localhost";
 
 	rs = &rig->state;
 	priv = (struct rpcrig_priv_data*)rs->priv;
 
-	freq_t2freq_s(freq, &farg.freq);
+	farg.vfo = vfo;
+	freq_t2x(freq, &farg.freq);
 	result = setfreq_1(&farg, priv->cl);
 	if (result == NULL) {
-		clnt_perror(priv->cl, server);
+		clnt_perror(priv->cl, "setfreq_1");
 		return -RIG_EPROTO;
 	}
 
@@ -192,7 +248,6 @@ static int rpcrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	struct rig_state *rs;
 	freq_res *fres;
 	vfo_x v;
-	char *server = "localhost";
 
 	rs = &rig->state;
 	priv = (struct rpcrig_priv_data*)rs->priv;
@@ -200,11 +255,11 @@ static int rpcrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	v = vfo;
 	fres = getfreq_1(&v, priv->cl);
 	if (fres == NULL) {
-		clnt_perror(priv->cl, server);
+		clnt_perror(priv->cl, "getfreq_1");
 		return -RIG_EPROTO;
 	}
 	if (fres->rigstatus == RIG_OK)
-		*freq = freq_s2freq_t(&fres->freq_res_u.freq);
+		*freq = freq_x2t(&fres->freq_res_u.freq);
 
 	return fres->rigstatus;
 }
@@ -212,57 +267,226 @@ static int rpcrig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int rpcrig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	int *result;
+	mode_arg marg;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	marg.vfo = vfo;
+	mode_t2s(mode, width, &marg.mw);
+	result = setmode_1(&marg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setmode_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
 }
 
 
 static int rpcrig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	mode_res *mres;
+	vfo_x v;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	v = vfo;
+	mres = getmode_1(&v, priv->cl);
+	if (mres == NULL) {
+		clnt_perror(priv->cl, "getmode_1");
+		return -RIG_EPROTO;
+	}
+	if (mres->rigstatus == RIG_OK)
+		mode_s2t(&mres->mode_res_u.mw, mode, width);
+
+	return mres->rigstatus;
+}
+
+static int rpcrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+{
+	struct rpcrig_priv_data *priv;
+	struct rig_state *rs;
+	int *result;
+	freq_arg farg;
+
+	rs = &rig->state;
+	priv = (struct rpcrig_priv_data*)rs->priv;
+
+	farg.vfo = vfo;
+	freq_t2x(tx_freq, &farg.freq);
+	result = setsplitfreq_1(&farg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setsplitfreq_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
+}
+
+static int rpcrig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
+	struct rpcrig_priv_data *priv;
+	struct rig_state *rs;
+	freq_res *fres;
+	vfo_x v;
+
+	rs = &rig->state;
+	priv = (struct rpcrig_priv_data*)rs->priv;
+
+	v = vfo;
+	fres = getsplitfreq_1(&v, priv->cl);
+	if (fres == NULL) {
+		clnt_perror(priv->cl, "getsplitfreq_1");
+		return -RIG_EPROTO;
+	}
+	if (fres->rigstatus == RIG_OK)
+		*tx_freq = freq_x2t(&fres->freq_res_u.freq);
+
+	return fres->rigstatus;
+}
+
+static int rpcrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+{
+	struct rpcrig_priv_data *priv;
+	int *result;
+	mode_arg marg;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	marg.vfo = vfo;
+	mode_t2s(tx_mode, tx_width, &marg.mw);
+	result = setsplitmode_1(&marg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setsplitmode_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
+}
+
+static int rpcrig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+	struct rpcrig_priv_data *priv;
+	mode_res *mres;
+	vfo_x v;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	v = vfo;
+	mres = getsplitmode_1(&v, priv->cl);
+	if (mres == NULL) {
+		clnt_perror(priv->cl, "getsplitmode_1");
+		return -RIG_EPROTO;
+	}
+	if (mres->rigstatus == RIG_OK)
+		mode_s2t(&mres->mode_res_u.mw, tx_mode, tx_width);
+
+	return mres->rigstatus;
+}
+
+static int rpcrig_set_split(RIG *rig, vfo_t vfo, split_t split)
+{
+	struct rpcrig_priv_data *priv;
+	int *result;
+	split_arg sarg;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	sarg.vfo = vfo;
+	sarg.split = split;
+	result = setsplit_1(&sarg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setsplit_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
 }
 
 
-static int rpcrig_set_vfo(RIG *rig, vfo_t vfo)
+static int rpcrig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	split_res *sres;
+	vfo_x v;
 
-  return RIG_OK;
-}
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
 
+	v = vfo;
+	sres = getsplit_1(&v, priv->cl);
+	if (sres == NULL) {
+		clnt_perror(priv->cl, "getsplit_1");
+		return -RIG_EPROTO;
+	}
+	if (sres->rigstatus == RIG_OK)
+		*split = sres->split_res_u.split;
 
-static int rpcrig_get_vfo(RIG *rig, vfo_t *vfo)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
+	return sres->rigstatus;
 }
 
 
 static int rpcrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	int *result;
+	ptt_arg arg;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	arg.vfo = vfo;
+	arg.ptt = ptt;
+	result = setptt_1(&arg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setptt_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
 }
 
 
 static int rpcrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	ptt_res *res;
+	vfo_x v;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	v = vfo;
+	res = getptt_1(&v, priv->cl);
+	if (res == NULL) {
+		clnt_perror(priv->cl, "getptt_1");
+		return -RIG_EPROTO;
+	}
+	if (res->rigstatus == RIG_OK)
+		*ptt = res->ptt_res_u.ptt;
+
+	return res->rigstatus;
 }
 
 
 static int rpcrig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	dcd_res *res;
+	vfo_x v;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	v = vfo;
+	res = getdcd_1(&v, priv->cl);
+	if (res == NULL) {
+		clnt_perror(priv->cl, "getdcd_1");
+		return -RIG_EPROTO;
+	}
+	if (res->rigstatus == RIG_OK)
+		*dcd = res->dcd_res_u.dcd;
+
+	return res->rigstatus;
 }
 
 
@@ -362,50 +586,6 @@ static int rpcrig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 }
 
 
-static int rpcrig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
-static int rpcrig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-static int rpcrig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-static int rpcrig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-static int rpcrig_set_split(RIG *rig, vfo_t vfo, split_t split)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
-static int rpcrig_get_split(RIG *rig, vfo_t vfo, split_t *split)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
 static int rpcrig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
@@ -454,37 +634,173 @@ static int rpcrig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 }
 
 
-static int rpcrig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
+static int rpcrig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	int *result;
+	setting_arg arg;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	arg.vfo = vfo;
+	setting_t2x(func, &arg.setting);
+	arg.val.i = status;
+	result = setfunc_1(&arg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setfunc_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
 }
 
 
-static int rpcrig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
+static int rpcrig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	val_res *res;
+	setting_arg arg;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	arg.vfo = vfo;
+	setting_t2x(func, &arg.setting);
+	arg.val.i = *status;
+	res = getfunc_1(&arg, priv->cl);
+	if (res == NULL) {
+		clnt_perror(priv->cl, "getfunc_1");
+		return -RIG_EPROTO;
+	}
+	if (res->rigstatus == RIG_OK)
+			*status = res->val_res_u.val.i;
+
+	return res->rigstatus;
 }
 
 
 static int rpcrig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	int *result;
+	setting_arg arg;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	arg.vfo = vfo;
+	setting_t2x(level, &arg.setting);
+	if (RIG_LEVEL_IS_FLOAT(level))
+			arg.val.f = val.f;
+	else
+			arg.val.i = val.i;
+	result = setlevel_1(&arg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setlevel_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
 }
 
 
 static int rpcrig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+	struct rpcrig_priv_data *priv;
+	val_res *res;
+	setting_arg arg;
 
-  return RIG_OK;
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	arg.vfo = vfo;
+	setting_t2x(level, &arg.setting);
+	if (RIG_LEVEL_IS_FLOAT(level))
+			arg.val.f = val->f;
+	else
+			arg.val.i = val->i;
+	res = getlevel_1(&arg, priv->cl);
+	if (res == NULL) {
+		clnt_perror(priv->cl, "getlevel_1");
+		return -RIG_EPROTO;
+	}
+	if (res->rigstatus == RIG_OK) {
+			if (RIG_LEVEL_IS_FLOAT(level))
+				val->f = res->val_res_u.val.f;
+			else
+				val->i = res->val_res_u.val.i;
+	}
+
+	return res->rigstatus;
 }
 
+
+static int rpcrig_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+	struct rpcrig_priv_data *priv;
+	int *result;
+	setting_arg arg;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	setting_t2x(parm, &arg.setting);
+	if (RIG_LEVEL_IS_FLOAT(parm))
+			arg.val.f = val.f;
+	else
+			arg.val.i = val.i;
+	result = setparm_1(&arg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "setparm_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
+}
+
+
+static int rpcrig_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+	struct rpcrig_priv_data *priv;
+	val_res *res;
+	setting_arg arg;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	setting_t2x(parm, &arg.setting);
+	if (RIG_LEVEL_IS_FLOAT(parm))
+			arg.val.f = val->f;
+	else
+			arg.val.i = val->i;
+	res = getparm_1(&arg, priv->cl);
+	if (res == NULL) {
+		clnt_perror(priv->cl, "getparm_1");
+		return -RIG_EPROTO;
+	}
+	if (res->rigstatus == RIG_OK) {
+			if (RIG_LEVEL_IS_FLOAT(parm))
+				val->f = res->val_res_u.val.f;
+			else
+				val->i = res->val_res_u.val.i;
+	}
+
+	return res->rigstatus;
+}
+
+static int rpcrig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+	struct rpcrig_priv_data *priv;
+	int *result;
+	vfo_op_arg arg;
+
+	priv = (struct rpcrig_priv_data*)rig->state.priv;
+
+	arg.vfo = vfo;
+	arg.op = op;
+	result = vfoop_1(&arg, priv->cl);
+	if (result == NULL) {
+		clnt_perror(priv->cl, "vfoop_1");
+		return -RIG_EPROTO;
+	}
+
+	return *result;
+}
 
 static int rpcrig_set_powerstat(RIG *rig, powerstat_t status)
 {
@@ -502,22 +818,6 @@ static int rpcrig_get_powerstat(RIG *rig, powerstat_t *status)
 }
 
 
-static int rpcrig_set_parm(RIG *rig, setting_t parm, value_t val)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
-static int rpcrig_get_parm(RIG *rig, setting_t parm, value_t *val)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
 static int rpcrig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
@@ -527,22 +827,6 @@ static int rpcrig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 
 
 static int rpcrig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
-static int rpcrig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-
-
-static int rpcrig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -573,13 +857,6 @@ static int rpcrig_get_mem(RIG *rig, vfo_t vfo, int *ch)
   return RIG_OK;
 }
 
-
-static int rpcrig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
 
 static int rpcrig_set_channel(RIG *rig, const channel_t *chan)
 {
@@ -647,13 +924,6 @@ static int rpcrig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
  * Dummy rig capabilities.
  */
 
-#define RPCRIG_FUNC  0
-#define RPCRIG_SET_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AF)
-#define RPCRIG_LEVEL (RPCRIG_SET_LEVEL | RIG_LEVEL_STRENGTH)
-
-#define RPCRIG_MODES (RIG_MODE_AM | RIG_MODE_CW | \
-                     RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM | RIG_MODE_WFM)
-
 struct rig_caps rpcrig_caps = {
   rig_model:     RIG_MODEL_RPC,
   model_name:    "RPC rig",
@@ -666,23 +936,21 @@ struct rig_caps rpcrig_caps = {
   ptt_type:      RIG_PTT_NONE,
   dcd_type:      RIG_DCD_NONE,
   port_type:     RIG_PORT_NONE,
-  has_get_func:  RPCRIG_FUNC,
-  has_set_func:  RPCRIG_FUNC,
-  has_get_level: RPCRIG_LEVEL,
-  has_set_level: RPCRIG_SET_LEVEL,
-  has_get_parm:	 RIG_PARM_NONE,	/* FIXME */
-  has_set_parm:	 RIG_PARM_NONE,	/* FIXME */
-  ctcss_list:	 NULL,	/* FIXME */
-  dcs_list:  	 NULL,  /* FIXME */
-  chan_list:	 { RIG_CHAN_END, },	/* FIXME */
+  has_get_func:  RIG_FUNC_NONE,
+  has_set_func:  RIG_FUNC_NONE,
+  has_get_level: RIG_LEVEL_NONE,
+  has_set_level: RIG_LEVEL_NONE,
+  has_get_parm:	 RIG_PARM_NONE,
+  has_set_parm:	 RIG_PARM_NONE,
+  ctcss_list:	 NULL,
+  dcs_list:  	 NULL,
+  chan_list:	 { RIG_CHAN_END, },
   transceive:    RIG_TRN_OFF,
-  attenuator:    { 10, 20, 30, RIG_DBLST_END, },
-  rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:RPCRIG_MODES,
-		    low_power:-1,high_power:-1,RIG_VFO_A|RIG_VFO_B},
-		    RIG_FRNG_END, },
+  attenuator:    { RIG_DBLST_END, },
+  rx_range_list2: { RIG_FRNG_END, },
   tx_range_list2: { RIG_FRNG_END, },
-  tuning_steps: { {RPCRIG_MODES,1}, RIG_TS_END, },
-  priv: NULL,	/* priv */
+  tuning_steps: { RIG_TS_END, },
+  priv: NULL,
 
   rig_init:    rpcrig_init,
   rig_cleanup: rpcrig_cleanup,
@@ -735,8 +1003,6 @@ struct rig_caps rpcrig_caps = {
   get_xit:	rpcrig_get_xit,
   set_ts:	rpcrig_set_ts,
   get_ts:	rpcrig_get_ts,
-  power2mW:	rpcrig_power2mW,
-  mW2power:	rpcrig_mW2power,
   set_ant:	rpcrig_set_ant,
   get_ant:	rpcrig_get_ant,
   set_bank:	rpcrig_set_bank,
