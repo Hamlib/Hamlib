@@ -1,9 +1,9 @@
 /*
- * dumpcaps.c - Copyright (C) 2000,2001 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000,2001,2002 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.29 2001-09-20 21:21:14 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.30 2002-01-27 23:54:58 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,6 @@
 #include "misc.h"
 
 
-static char *decode_modes(rmode_t modes);
 static const char *decode_mtype(enum chan_type_e type);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
@@ -43,6 +42,7 @@ int main (int argc, char *argv[])
 	char freqbuf[20];
 	int backend_warnings=0;
 	int rig_model;
+	char prntbuf[256];
 
 	if (argc != 2) {
 			fprintf(stderr,"%s <rig_num>\n",argv[0]);
@@ -65,30 +65,7 @@ int main (int argc, char *argv[])
 	printf("Mfg name:\t%s\n",caps->mfg_name);
 	printf("Backend version:\t%s\n",caps->version);
 	printf("Backend copyright:\t%s\n",caps->copyright);
-	printf("Backend status:\t");
-	switch (caps->status) {
-	case RIG_STATUS_ALPHA:
-			printf("Alpha\n");
-			break;
-	case RIG_STATUS_UNTESTED:
-			printf("Untested\n");
-			break;
-	case RIG_STATUS_BETA:
-			printf("Beta\n");
-			break;
-	case RIG_STATUS_STABLE:
-			printf("Stable\n");
-			break;
-	case RIG_STATUS_BUGGY:
-			printf("Buggy\n");
-			break;
-	case RIG_STATUS_NEW:
-			printf("New\n");
-			break;
-	default:
-			printf("Unknown\n");
-			backend_warnings++;
-	}
+	printf("Backend status:\t%s\n", strstatus(caps->status));
 	printf("Rig type:\t");
 	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
@@ -232,136 +209,31 @@ int main (int argc, char *argv[])
 		printf(" none");
 	printf("\n");
 
-	printf("Get functions: ");
-	if (caps->has_get_func!=0) {
-		if (caps->has_get_func&RIG_FUNC_FAGC) printf("FAGC ");
-		if (caps->has_get_func&RIG_FUNC_NB) printf("NB ");
-		if (caps->has_get_func&RIG_FUNC_COMP) printf("COMP ");
-		if (caps->has_get_func&RIG_FUNC_VOX) printf("VOX ");
-		if (caps->has_get_func&RIG_FUNC_TONE) printf("TONE ");
-		if (caps->has_get_func&RIG_FUNC_TSQL) printf("TSQL ");
-		if (caps->has_get_func&RIG_FUNC_SBKIN) printf("SBKIN ");
-		if (caps->has_get_func&RIG_FUNC_FBKIN) printf("FBKIN ");
-		if (caps->has_get_func&RIG_FUNC_ANF) printf("ANF ");
-		if (caps->has_get_func&RIG_FUNC_NR) printf("NR ");
-		if (caps->has_get_func&RIG_FUNC_AIP) printf("AIP ");
-		if (caps->has_get_func&RIG_FUNC_APF) printf("APF ");
-		if (caps->has_get_func&RIG_FUNC_MON) printf("MON ");
-		if (caps->has_get_func&RIG_FUNC_MN) printf("MN ");
-		if (caps->has_get_func&RIG_FUNC_RNF) printf("RNF ");
-		printf("\n");
-	} else
-			printf("none\n");
+	sprintf_func(prntbuf, caps->has_get_func);
+	printf("Get functions: %s\n", prntbuf);
 
-	printf("Set functions: ");
-	if (caps->has_set_func!=0) {
-		if (caps->has_set_func&RIG_FUNC_FAGC) printf("FAGC ");
-		if (caps->has_set_func&RIG_FUNC_NB) printf("NB ");
-		if (caps->has_set_func&RIG_FUNC_COMP) printf("COMP ");
-		if (caps->has_set_func&RIG_FUNC_VOX) printf("VOX ");
-		if (caps->has_set_func&RIG_FUNC_TONE) printf("TONE ");
-		if (caps->has_set_func&RIG_FUNC_TSQL) printf("TSQL ");
-		if (caps->has_set_func&RIG_FUNC_SBKIN) printf("SBKIN ");
-		if (caps->has_set_func&RIG_FUNC_FBKIN) printf("FBKIN ");
-		if (caps->has_set_func&RIG_FUNC_ANF) printf("ANF ");
-		if (caps->has_set_func&RIG_FUNC_NR) printf("NR ");
-		if (caps->has_set_func&RIG_FUNC_AIP) printf("AIP ");
-		if (caps->has_set_func&RIG_FUNC_APF) printf("APF ");
-		if (caps->has_set_func&RIG_FUNC_MON) printf("MON ");
-		if (caps->has_set_func&RIG_FUNC_MN) printf("MN ");
-		if (caps->has_set_func&RIG_FUNC_RNF) printf("RNF ");
-		printf("\n");
-	} else
-			printf("none\n");
+	sprintf_func(prntbuf, caps->has_set_func);
+	printf("Set functions: %s\n", prntbuf);
 
-	printf("Get level: ");
-	if (caps->has_get_level!=0) {
-		if (caps->has_get_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
-		if (caps->has_get_level&RIG_LEVEL_ATT) printf("ATT ");
-		if (caps->has_get_level&RIG_LEVEL_AF) printf("AF ");
-		if (caps->has_get_level&RIG_LEVEL_RF) printf("RF ");
-		if (caps->has_get_level&RIG_LEVEL_SQL) printf("SQL ");
-		if (caps->has_get_level&RIG_LEVEL_IF) printf("IF ");
-		if (caps->has_get_level&RIG_LEVEL_APF) printf("APF ");
-		if (caps->has_get_level&RIG_LEVEL_NR) printf("NR ");
-		if (caps->has_get_level&RIG_LEVEL_PBT_IN) printf("PBT_IN ");
-		if (caps->has_get_level&RIG_LEVEL_PBT_OUT) printf("PBT_OUT ");
-		if (caps->has_get_level&RIG_LEVEL_CWPITCH) printf("CWPITCH ");
-		if (caps->has_get_level&RIG_LEVEL_RFPOWER) printf("RFPOWER ");
-		if (caps->has_get_level&RIG_LEVEL_MICGAIN) printf("MICGAIN ");
-		if (caps->has_get_level&RIG_LEVEL_KEYSPD) printf("KEYSPD ");
-		if (caps->has_get_level&RIG_LEVEL_NOTCHF) printf("NOTCHF ");
-		if (caps->has_get_level&RIG_LEVEL_COMP) printf("COMP ");
-		if (caps->has_get_level&RIG_LEVEL_AGC) printf("AGC ");
-		if (caps->has_get_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
-		if (caps->has_get_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
+	sprintf_level(prntbuf, caps->has_get_level);
+	printf("Get level: %s\n", prntbuf);
 
-		if (caps->has_get_level&RIG_LEVEL_SWR) printf("SWR ");
-		if (caps->has_get_level&RIG_LEVEL_ALC) printf("ALC ");
-		if (caps->has_get_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
-		if (caps->has_get_level&RIG_LEVEL_STRENGTH) printf("STRENGTH ");
-		printf("\n");
-	} else
-			printf("none\n");
+	sprintf_level(prntbuf, caps->has_set_level);
+	printf("Set level: %s\n", prntbuf);
+	if (caps->has_set_level&RIG_LEVEL_READONLY_LIST) {
+			printf("Warning: backend can set readonly levels!\n");
+			backend_warnings++;
+	}
 
-	printf("Set level: ");
-	if (caps->has_set_level!=0) {
-		if (caps->has_set_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
-		if (caps->has_set_level&RIG_LEVEL_ATT) printf("ATT ");
-		if (caps->has_set_level&RIG_LEVEL_AF) printf("AF ");
-		if (caps->has_set_level&RIG_LEVEL_RF) printf("RF ");
-		if (caps->has_set_level&RIG_LEVEL_SQL) printf("SQL ");
-		if (caps->has_set_level&RIG_LEVEL_IF) printf("IF ");
-		if (caps->has_set_level&RIG_LEVEL_APF) printf("APF ");
-		if (caps->has_set_level&RIG_LEVEL_NR) printf("NR ");
-		if (caps->has_set_level&RIG_LEVEL_PBT_IN) printf("PBT_IN ");
-		if (caps->has_set_level&RIG_LEVEL_PBT_OUT) printf("PBT_OUT ");
-		if (caps->has_set_level&RIG_LEVEL_CWPITCH) printf("CWPITCH ");
-		if (caps->has_set_level&RIG_LEVEL_RFPOWER) printf("RFPOWER ");
-		if (caps->has_set_level&RIG_LEVEL_MICGAIN) printf("MICGAIN ");
-		if (caps->has_set_level&RIG_LEVEL_KEYSPD) printf("KEYSPD ");
-		if (caps->has_set_level&RIG_LEVEL_NOTCHF) printf("NOTCHF ");
-		if (caps->has_set_level&RIG_LEVEL_COMP) printf("COMP ");
-		if (caps->has_set_level&RIG_LEVEL_AGC) printf("AGC ");
-		if (caps->has_set_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
-		if (caps->has_set_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
+	sprintf_parm(prntbuf, caps->has_get_parm);
+	printf("Get parameters: %s\n", prntbuf);
 
-		if (caps->has_set_level&RIG_LEVEL_SWR) printf("SWR ");
-		if (caps->has_set_level&RIG_LEVEL_ALC) printf("ALC ");
-		if (caps->has_set_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
-		if (caps->has_set_level&RIG_LEVEL_STRENGTH) printf("STRENGTH ");
-		printf("\n");
-		if (caps->has_set_level&RIG_LEVEL_READONLY_LIST) {
-				printf("Warning: backend can set readonly levels!\n");
-				backend_warnings++;
-		}
-	} else
-			printf("none\n");
-
-	printf("Get parameters: ");
-	if (caps->has_get_parm!=0) {
-		if (caps->has_get_parm&RIG_PARM_ANN) printf("ANN ");
-		if (caps->has_get_parm&RIG_PARM_APO) printf("APO ");
-		if (caps->has_get_parm&RIG_PARM_BACKLIGHT) printf("BACKLIGHT ");
-		if (caps->has_get_parm&RIG_PARM_BEEP) printf("BEEP ");
-		if (caps->has_get_parm&RIG_PARM_TIME) printf("TIME ");
-		if (caps->has_get_parm&RIG_PARM_BAT) printf("BAT ");
-		printf("\n");
-	} else
-			printf("none\n");
-
-	printf("Set parameters: ");
-	if (caps->has_set_parm!=0) {
-		if (caps->has_set_parm&RIG_PARM_ANN) printf("ANN ");
-		if (caps->has_set_parm&RIG_PARM_APO) printf("APO ");
-		if (caps->has_set_parm&RIG_PARM_BACKLIGHT) printf("BACKLIGHT ");
-		if (caps->has_set_parm&RIG_PARM_BEEP) printf("BEEP ");
-		if (caps->has_set_parm&RIG_PARM_TIME) printf("TIME ");
-		if (caps->has_set_parm&RIG_PARM_BAT) printf("BAT ");
-		printf("\n");
-	} else
-			printf("none\n");
-
+	sprintf_parm(prntbuf, caps->has_set_parm);
+	printf("Set parameters: %s\n", prntbuf);
+	if (caps->has_set_parm&RIG_PARM_READONLY_LIST) {
+			printf("Warning: backend can set readonly parms!\n");
+			backend_warnings++;
+	}
 
 #if 0
 	/* FIXME: use rig->state.vfo_list instead */
@@ -407,9 +279,9 @@ int main (int argc, char *argv[])
 
 	printf("Tuning steps:");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
-			freq_sprintf(freqbuf,caps->tuning_steps[i].ts);
-			printf("\n\t%s:   \t%s", freqbuf,
-							decode_modes(caps->tuning_steps[i].modes));
+			sprintf_freq(freqbuf,caps->tuning_steps[i].ts);
+			sprintf_mode(prntbuf,caps->tuning_steps[i].modes);
+			printf("\n\t%s:   \t%s", freqbuf, prntbuf);
 	}
 	if (i==0) {
 			printf(" none! This backend might be bogus!");
@@ -422,9 +294,9 @@ int main (int argc, char *argv[])
 
 	printf("Filters:");
 	for (i=0; i<FLTLSTSIZ && caps->filters[i].modes; i++) {
-			freq_sprintf(freqbuf,caps->filters[i].width);
-			printf("\n\t%s:   \t%s", freqbuf,
-							decode_modes(caps->filters[i].modes));
+			sprintf_freq(freqbuf,caps->filters[i].width);
+			sprintf_mode(prntbuf,caps->filters[i].modes);
+			printf("\n\t%s:   \t%s", freqbuf, prntbuf);
 	}
 	if (i==0) {
 			printf(" none! This backend might be bogus!");
@@ -487,11 +359,7 @@ int main (int argc, char *argv[])
 	printf("Can get mem:\t%c\n",caps->get_mem!=NULL?'Y':'N');
 	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':'N');
 	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':'N');
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-	printf("Can ctl mem/vfo:\t%c\n",caps->mv_ctl!=NULL?'Y':'N');
-#else
 	printf("Can ctl mem/vfo:\t%c\n",caps->vfo_op!=NULL?'Y':'N');
-#endif
 	printf("Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
 	
 
@@ -505,24 +373,6 @@ int main (int argc, char *argv[])
  * NB: this function is not reentrant, because of the static buf.
  * 		but who cares?  --SF
  */
-static char *decode_modes(rmode_t modes)
-{
-	static char buf[80];
-
-	buf[0] = '\0';
-	if (modes&RIG_MODE_AM) strcat(buf,"AM ");
-	if (modes&RIG_MODE_CW) strcat(buf,"CW ");
-	if (modes&RIG_MODE_USB) strcat(buf,"USB ");
-	if (modes&RIG_MODE_LSB) strcat(buf,"LSB ");
-	if (modes&RIG_MODE_RTTY) strcat(buf,"RTTY ");
-	if (modes&RIG_MODE_FM) strcat(buf,"FM ");
-#ifdef RIG_MODE_WFM
-	if (modes&RIG_MODE_WFM) strcat(buf,"WFM ");
-#endif
-
-	return buf;
-}
-
 static const char *decode_mtype(enum chan_type_e type)
 {
 		switch(type) {
