@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.41 2001-06-15 07:16:16 f4cfe Exp $
+ *	$Id: rig.h,v 1.42 2001-06-26 20:55:28 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -356,6 +356,17 @@ typedef long vfo_op_t;
 #endif	/* WANT_OLD_VFO_TO_BE_REMOVED */
 
 
+#define RIG_SCAN_NONE	0L
+#define RIG_SCAN_STOP	RIG_SCAN_NONE
+#define RIG_SCAN_MEM	(1L<<0)		/* Scan all memory channels */
+#define RIG_SCAN_SLCT	(1L<<1)		/* Scan all selected memory channels */
+#define RIG_SCAN_PRIO	(1L<<2)		/* Priority watch (mem or call channel) */
+#define RIG_SCAN_PROG	(1L<<3)		/* Programmed(edge) scan */
+#define RIG_SCAN_DELTA	(1L<<4)		/* delta-f scan */
+
+typedef long scan_t;
+
+
 /*
  * When optional speech synthesizer is installed 
  * what about RIG_ANN_ENG and RIG_ANN_JAPAN? and RIG_ANN_CW?
@@ -704,6 +715,7 @@ struct rig_caps {
 
   ann_t announces;
   vfo_op_t vfo_ops;
+  scan_t scan_ops;
   int targetable_vfo;
   int transceive;
 
@@ -818,6 +830,7 @@ struct rig_caps {
 #else
   int (*vfo_op)(RIG *rig, vfo_t vfo, vfo_op_t op);
 #endif
+  int (*scan)(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 
   int (*set_trn)(RIG *rig, vfo_t vfo, int trn);
   int (*get_trn)(RIG *rig, vfo_t vfo, int *trn);
@@ -1109,6 +1122,8 @@ extern HAMLIB_EXPORT(int) rig_mv_ctl HAMLIB_PARAMS((RIG *rig, vfo_t vfo, mv_op_t
 extern HAMLIB_EXPORT(int) rig_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_t vfo, vfo_op_t op));
 extern HAMLIB_EXPORT(vfo_op_t) rig_has_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_op_t op));
 #endif
+extern HAMLIB_EXPORT(int) rig_scan HAMLIB_PARAMS((RIG *rig, vfo_t vfo, scan_t scan, int ch));
+extern HAMLIB_EXPORT(scan_t) rig_has_scan HAMLIB_PARAMS((RIG *rig, scan_t scan));
 
 extern HAMLIB_EXPORT(int) rig_restore_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan)); /* curr VFO */
 extern HAMLIB_EXPORT(int) rig_save_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));

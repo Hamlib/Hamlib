@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.36 2001-06-15 07:08:37 f4cfe Exp $
+   $Id: rig.c,v 1.37 2001-06-26 20:55:28 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -3183,11 +3183,11 @@ int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
  *      @op:	The VFO op
  *
  *      The rig_has_vfo_op() "macro" checks if a rig is capable of executing
- *      a VFO operation. Since the @op is a OR'ed bitmap argument, more than
+ *      a VFO operation. Since the @op is an OR'ed bitmap argument, more than
  *      one op can be checked at the same time.
  *
  *      RETURN VALUE: The rig_has_vfo_op() "macro" returns a bitmap
- *      mask of supported op settings that can be retrieve,
+ *      mask of supported op settings that can be retrieved,
  *      0 if none supported.
  *
  * 		EXAMPLE: if (rig_has_vfo_op(my_rig, RIG_OP_CPY)) disp_VFOcpy_btn();
@@ -3248,6 +3248,79 @@ int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		return retcode;
 }
 #endif	/* WANT_OLD_VFO_TO_BE_REMOVED */
+
+/**
+ *      rig_has_scan - check availability of scaning functions
+ *      @rig:	The rig handle
+ *      @scan:	The scan op
+ *
+ *      The rig_has_scan() "macro" checks if a rig is capable of performing
+ *      a scan operation. Since the @scan is an OR'ed bitmap argument, more than
+ *      one op can be checked at the same time.
+ *
+ *      RETURN VALUE: The rig_has_scan() "macro" returns a bitmap
+ *      mask of supported scan settings that can be retrieved,
+ *      0 if none supported.
+ *
+ * 		EXAMPLE: if (rig_has_scan(my_rig, RIG_SCAN_PRIO)) disp_SCANprio_btn();
+ *
+ *      SEE ALSO: rig_scan()
+ */
+scan_t rig_has_scan(RIG *rig, scan_t scan)
+{
+		if (!rig || !rig->caps)
+				return 0;
+
+		return (rig->caps->scan_ops & scan);
+}
+
+/**
+ *      rig_scan - perform Memory/VFO operations
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @scan:	The scanning operation to perform
+ *      @ch:	Optional channel argument used for the scan.
+ *
+ *      The rig_scan() function performs scanning operation.
+ *      See &scan_t for more information.
+ *
+ *      RETURN VALUE: The rig_scan() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_has_scan()
+ */
+
+int rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->scan == NULL || 
+						(scan!=RIG_SCAN_STOP && !rig_has_scan(rig, scan)))
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->scan(rig, vfo, scan, ch);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->scan(rig, vfo, scan, ch);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
 
 /**
  *      rig_send_dtmf - send DTMF digits

@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.22 2001-06-03 19:54:05 f4cfe Exp $  
+ * $Id: ic706.c,v 1.23 2001-06-26 20:55:29 f4cfe Exp $  
  *
  *
  *
@@ -57,7 +57,8 @@
 
 #define IC706_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
-#define IC706_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
+#define IC706_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
+#define IC706_SCAN_OPS (RIG_SCAN_MEM)
 
 #define IC706IIG_STR_CAL { 16, \
 	{ \
@@ -368,7 +369,8 @@ max_rit: Hz(0),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
 targetable_vfo: 0,
-vfo_ops: IC706_OPS,
+vfo_ops: IC706_VFO_OPS,
+scan_ops: IC706_SCAN_OPS,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
 chan_desc_sz: 0,
@@ -461,6 +463,7 @@ mv_ctl: icom_mv_ctl,
 #else
 vfo_op: icom_vfo_op,
 #endif
+scan: icom_scan,
 set_ptt: icom_set_ptt,
 get_ptt: icom_get_ptt,
 get_dcd: icom_get_dcd,

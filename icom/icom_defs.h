@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.9 2001-06-10 22:27:08 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.10 2001-06-26 20:55:29 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -131,8 +131,17 @@
 /*
  * Scan control (C_CTL_SCAN) subcommands
  */
-#define S_STOP	0x00		/* Scan stop */
-#define S_START	0x01		/* Scan start */
+#define S_SCAN_STOP		0x00		/* Stop scan/window scan */
+#define S_SCAN_START	0x01		/* Programmed/Memory scan */
+#define S_SCAN_PROG		0x02		/* Programmed scan */
+#define S_SCAN_DELTA	0x03		/* Delta-f scan */
+#define S_SCAN_WRITE	0x04		/* auto memory-write scan */
+#define S_SCAN_FPROG	0x12		/* Fine programmed scan */
+#define S_SCAN_FDELTA	0x13		/* Fine delta-f scan */
+#define S_SCAN_MEM2		0x22		/* Memory scan */
+#define S_SCAN_SLCTN	0x23		/* Selected number memory scan */
+#define S_SCAN_SLCTM	0x24		/* Selected mode memory scan */
+#define S_SCAN_PRIO		0x42		/* Priority / window scan */
 
 
 /*

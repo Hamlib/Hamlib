@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.15 2001-06-04 21:17:53 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.16 2001-06-26 20:55:28 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -89,6 +89,7 @@ declare_proto_rig(mv_ctl);
 #else
 declare_proto_rig(vfo_op);
 #endif
+declare_proto_rig(scan);
 declare_proto_rig(set_channel);
 declare_proto_rig(get_channel);
 declare_proto_rig(set_trn);
@@ -137,6 +138,7 @@ struct test_table test_list[] = {
 #else
 		{ 'G', "vfo_op", vfo_op, "Mem/VFO op" },
 #endif
+		{ 'g', "scan", scan, "Scan fct", "Channel" },
 		{ 'H', "set_channel", set_channel /* huh! */ },
 		{ 'h', "get_channel", get_channel, "Channel" },
 		{ 'A', "set_trn", set_trn, "Transceive" },
@@ -711,6 +713,15 @@ declare_proto_rig(vfo_op)
 }
 #endif
 
+declare_proto_rig(scan)
+{
+		scan_t op;
+		int ch;
+
+		sscanf(arg1, "%d", (int*)&op);
+		sscanf(arg2, "%d", &ch);
+		return rig_scan(rig, RIG_VFO_CURR, op, ch);
+}
 
 declare_proto_rig(set_channel)
 {

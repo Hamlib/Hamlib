@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.31 2001-06-20 06:08:21 f4cfe Exp $  
+ * $Id: icom.c,v 1.32 2001-06-26 20:55:28 f4cfe Exp $  
  *
  *
  *
@@ -435,7 +435,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 		switch(vfo) {
 		case RIG_VFO_A: icvfo = S_VFOA; break;
 		case RIG_VFO_B: icvfo = S_VFOB; break;
-#ifdef RIG_VFO_VFO
 		case RIG_VFO_VFO: 
 			retval = icom_transaction (rig, C_SET_VFO, -1, NULL, 0, 
 							ackbuf, &ack_len);
@@ -447,8 +446,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 				return -RIG_ERJCTED;
 			}
 			return RIG_OK;
-#endif
-#ifdef RIG_VFO_MEM
 		case RIG_VFO_MEM: 
 			retval = icom_transaction (rig, C_SET_MEM, -1, NULL, 0, 
 							ackbuf, &ack_len);
@@ -460,7 +457,6 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 				return -RIG_ERJCTED;
 			}
 			return RIG_OK;
-#endif
 		default:
 						rig_debug(RIG_DEBUG_ERR,"icom: Unsupported VFO %d\n",
 										vfo);
@@ -2058,6 +2054,75 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		return RIG_OK;
 }
 #endif
+
+/*
+ * icom_scan, scan operation
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+		unsigned char scanbuf[16];
+		unsigned char ackbuf[16];
+		int scan_len, ack_len, retval;
+		int scan_cn, scan_sc;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+		scan_len = 0;
+		scan_cn = C_CTL_SCAN;
+
+		switch(scan) {
+			case RIG_SCAN_STOP:
+				scan_sc = S_SCAN_STOP;
+				break;
+			case RIG_SCAN_MEM:
+				retval = icom_set_vfo(rig, RIG_VFO_MEM);
+				if (retval != RIG_OK)
+						return retval;
+				scan_sc = S_SCAN_START;
+				break;
+			case RIG_SCAN_SLCT:
+				retval = icom_set_vfo(rig, RIG_VFO_MEM);
+				if (retval != RIG_OK)
+						return retval;
+				scan_sc = S_SCAN_START;
+				break;
+			case RIG_SCAN_PRIO:
+			case RIG_SCAN_PROG:
+				/* TODO: for SCAN_PROG, check this is an edge chan */
+				/* BTW, I'm wondering if this is possible with CI-V */
+				retval = icom_set_mem(rig, RIG_VFO_CURR, ch);
+				if (retval != RIG_OK)
+						return retval;
+				retval = icom_set_vfo(rig, RIG_VFO_VFO);
+				if (retval != RIG_OK)
+						return retval;
+				scan_sc = S_SCAN_START;
+				break;
+			case RIG_SCAN_DELTA:
+				scan_sc = S_SCAN_DELTA;	/* TODO: delta-f support */
+				break;
+			default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported scan %#x", scan);
+				return -RIG_EINVAL;
+		}
+
+		retval = icom_transaction (rig, scan_cn, scan_sc, scanbuf, scan_len, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_scan: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
 
 /*
  * icom_decode is called by sa_sigio, when some asynchronous
