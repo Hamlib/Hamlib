@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.19 2001-04-26 21:33:57 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.20 2001-04-28 12:42:26 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -399,8 +399,16 @@ int main (int argc, char *argv[])
 	printf("Can get repeater duplex:\t%c\n",caps->get_rptr_shift!=NULL?'Y':'N');
 	printf("Can set repeater offset:\t%c\n",caps->set_rptr_offs!=NULL?'Y':'N');
 	printf("Can get repeater offset:\t%c\n",caps->get_rptr_offs!=NULL?'Y':'N');
+	printf("Can set split freq:\t%c\n",caps->set_split_freq!=NULL?'Y':'N');
+	printf("Can get split freq:\t%c\n",caps->get_split_freq!=NULL?'Y':'N');
+	printf("Can set split mode:\t%c\n",caps->set_split_mode!=NULL?'Y':'N');
+	printf("Can get split mode:\t%c\n",caps->get_split_mode!=NULL?'Y':'N');
+	printf("Can set split:\t%c\n",caps->set_split!=NULL?'Y':'N');
+	printf("Can get split:\t%c\n",caps->get_split!=NULL?'Y':'N');
 	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
 	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
+	printf("Can set RIT:\t%c\n",caps->set_rit!=NULL?'Y':'N');
+	printf("Can get RIT:\t%c\n",caps->get_rit!=NULL?'Y':'N');
 	printf("Can set CTCSS:\t%c\n",caps->set_ctcss!=NULL?'Y':'N');
 	printf("Can get CTCSS:\t%c\n",caps->get_ctcss!=NULL?'Y':'N');
 	printf("Can set DCS:\t%c\n",caps->set_dcs!=NULL?'Y':'N');
@@ -417,9 +425,18 @@ int main (int argc, char *argv[])
 	printf("Can get func:\t%c\n",caps->get_func!=NULL?'Y':'N');
 	printf("Can set level:\t%c\n",caps->set_level!=NULL?'Y':'N');
 	printf("Can get level:\t%c\n",caps->get_level!=NULL?'Y':'N');
+	printf("Can set param:\t%c\n",caps->set_parm!=NULL?'Y':'N');
+	printf("Can get param:\t%c\n",caps->get_parm!=NULL?'Y':'N');
+	printf("Can send DTMF:\t%c\n",caps->send_dtmf!=NULL?'Y':'N');
+	printf("Can recv DTMF:\t%c\n",caps->recv_dtmf!=NULL?'Y':'N');
+	printf("Can send Morse:\t%c\n",caps->send_morse!=NULL?'Y':'N');
 	printf("Can decode events:\t%c\n",caps->decode_event!=NULL?'Y':'N');
+	printf("Can set mem:\t%c\n",caps->set_mem!=NULL?'Y':'N');
+	printf("Can get mem:\t%c\n",caps->get_mem!=NULL?'Y':'N');
 	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':'N');
 	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':'N');
+	printf("Can ctl mem/vfo:\t%c\n",caps->mv_ctl!=NULL?'Y':'N');
+	printf("Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
 	
 
 	return 0;
