@@ -3,7 +3,7 @@
  * It was generated using rpcgen.
  */
 
-#include "/home/fgretief/src-6/hamlib-cvssh/rpcrot/rpcrot.h"
+#include "rpcrot.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <rpc/pmap_clnt.h>
@@ -20,7 +20,7 @@
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *		$Id: rpcrot_svc.c,v 1.1 2002-01-16 16:45:11 fgretief Exp $
+ *		$Id: rpcrot_svc.c,v 1.2 2002-01-16 23:37:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
