@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.h,v 1.10 2001-12-20 07:48:38 fillods Exp $
+ *		$Id: misc.h,v 1.11 2002-01-22 00:50:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -66,6 +66,17 @@ extern HAMLIB_EXPORT(const char *) strfunc(setting_t);
 extern HAMLIB_EXPORT(const char *) strlevel(setting_t);
 extern HAMLIB_EXPORT(const char *) strparm(setting_t);
 extern HAMLIB_EXPORT(const char *) strptrshift(rptr_shift_t);
+extern HAMLIB_EXPORT(const char *) strvfop(vfo_op_t op);
+extern HAMLIB_EXPORT(const char *) strscan(scan_t scan);
+
+extern HAMLIB_EXPORT(rmode_t) parse_mode(const char *s);
+extern HAMLIB_EXPORT(vfo_t) parse_vfo(const char *s);
+extern HAMLIB_EXPORT(setting_t) parse_func(const char *s);
+extern HAMLIB_EXPORT(setting_t) parse_level(const char *s);
+extern HAMLIB_EXPORT(setting_t) parse_parm(const char *s);
+extern HAMLIB_EXPORT(vfo_op_t) parse_vfo_op(const char *s);
+extern HAMLIB_EXPORT(scan_t) parse_scan(const char *s);
+extern HAMLIB_EXPORT(rptr_shift_t) parse_rptr_shift(const char *s);
 
 /* check if it's any of CR or LF */
 #define isreturn(c) ((c) == 10 || (c) == 13)
