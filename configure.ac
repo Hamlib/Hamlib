@@ -182,6 +182,21 @@ if test "${cf_with_cxx_binding}" = "yes" ; then
   BINDING_LIST="$BINDING_LIST c++"
 fi
 
+dnl Check if perl-binding not wanted, default is to not build it
+
+AC_CHECK_PROG(cf_with_perl, h2xs, [yes], [no])
+
+AC_MSG_CHECKING(whether to build perl binding and demo)
+AC_ARG_WITH(perl-binding,
+        [  --with-perl-binding   build perl binding and demo],
+        [cf_with_perl_binding=$withval],
+        [cf_with_perl_binding=$cf_with_perl])
+AC_MSG_RESULT($cf_with_perl_binding)
+
+if test "${cf_with_perl_binding}" = "yes" ; then
+  BINDING_LIST="$BINDING_LIST perl"
+fi
+
 dnl Check if kylix-binding wanted, REM: nothing to build yet
 
 cf_with_kylix=no
@@ -272,7 +287,6 @@ AC_SUBST(LIBOBJS)
 AC_SUBST(LTLIBOBJS)
 AC_SUBST(INCLUDES)
 
-
 AC_CONFIG_FILES([Makefile
 include/Makefile
 lib/Makefile
@@ -295,6 +309,7 @@ src/Makefile
 c++/Makefile
 tcl/Makefile
 kylix/Makefile
+perl/Makefile
 tests/Makefile
 doc/Makefile
 hamlib.spec])
