@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.13 2000-09-24 03:37:57 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.14 2000-09-24 23:30:28 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -121,7 +121,7 @@ enum vfo_e {
 	RIG_VFO_SAT_TX,
 	RIG_VFO_A,
 	RIG_VFO_B,
-	RIG_VFO_C,
+	RIG_VFO_C
 
 };
 
