@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.c,v 1.14 2002-01-27 23:47:41 fillods Exp $
+ *		$Id: misc.c,v 1.15 2002-01-29 21:59:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -452,15 +452,14 @@ const char *strstatus(enum rig_status_e status)
 int sprintf_mode(char *str, rmode_t mode)
 {
 		int i, len=0;
-		const char *ms;
 
 		*str = '\0';
 		if (mode == RIG_MODE_NONE)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				ms = strmode(mode & (1UL<<i));
-				if (!ms)
+				const char *ms = strmode(mode & (1UL<<i));
+				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
 				strcat(str, " ");
@@ -472,15 +471,14 @@ int sprintf_mode(char *str, rmode_t mode)
 int sprintf_func(char *str, setting_t func)
 {
 		int i, len=0;
-		const char *ms;
 
 		*str = '\0';
 		if (func == RIG_FUNC_NONE)
 				return 0;
 
 		for (i = 0; i < 60; i++) {
-				ms = strfunc(func & (1ULL<<i));
-				if (!ms)
+				const char *ms = strfunc(func & rig_idx2setting(i));
+				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
 				strcat(str, " ");
@@ -493,15 +491,14 @@ int sprintf_func(char *str, setting_t func)
 int sprintf_level(char *str, setting_t level)
 {
 		int i, len=0;
-		const char *ms;
 
 		*str = '\0';
 		if (level == RIG_LEVEL_NONE)
 				return 0;
 
 		for (i = 0; i < 60; i++) {
-				ms = strlevel(level & (1ULL<<i));
-				if (!ms)
+				const char *ms = strlevel(level & rig_idx2setting(i));
+				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
 				strcat(str, " ");
@@ -514,15 +511,14 @@ int sprintf_level(char *str, setting_t level)
 int sprintf_parm(char *str, setting_t parm)
 {
 		int i, len=0;
-		const char *ms;
 
 		*str = '\0';
 		if (parm == RIG_PARM_NONE)
 				return 0;
 
 		for (i = 0; i < 60; i++) {
-				ms = strparm(parm & (1ULL<<i));
-				if (!ms)
+				const char *ms = strparm(parm & rig_idx2setting(i));
+				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
 				strcat(str, " ");
@@ -535,15 +531,14 @@ int sprintf_parm(char *str, setting_t parm)
 int sprintf_vfop(char *str, vfo_op_t op)
 {
 		int i, len=0;
-		const char *ms;
 
 		*str = '\0';
 		if (op == RIG_OP_NONE)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				ms = strvfop(op & (1UL<<i));
-				if (!ms)
+				const char *ms = strvfop(op & (1UL<<i));
+				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
 				strcat(str, " ");
@@ -556,15 +551,14 @@ int sprintf_vfop(char *str, vfo_op_t op)
 int sprintf_scan(char *str, scan_t scan)
 {
 		int i, len=0;
-		const char *ms;
 
 		*str = '\0';
 		if (scan == RIG_SCAN_NONE)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				ms = strscan(scan & (1UL<<i));
-				if (!ms)
+				const char *ms = strscan(scan & (1UL<<i));
+				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
 				strcat(str, " ");
