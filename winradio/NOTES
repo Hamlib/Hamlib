@@ -1,0 +1,33 @@
+Mail from <pab@users.sourceforge.net>, 02/06/01
+
+Stephane mentioned the hamlib project to the
+linradio.sourceforge.net developers a few weeks
+ago. I believe my reply was routed to
+/dev/null@shell1.sourceforge.net. Anyway I have
+put some notes and early untested code at:
+
+http://linradio.sourceforge.net/hamlib.html
+
+
+Here are some winradio-specific issues:
+- Winradios are simple (henceforth cheap) receivers. The software
+  driver does a lot of work that you would normally expect to see in
+  an embedded controller. The driver is about 100KB of C.
+- Receivers come with ISA, PCMCIA and RS232 interfaces.
+- The protocol varies a lot across the model range.
+- Most models barely have an internal state. They can't even tell
+  which frequency they are tuned to.
+- With most models, frequency sweeping must be done in software. This
+  requires real-time tricks with RS232 (currently suboptimal).
+- High-end models have a DSP (not supported with Linux).
+
+We are currently providing two abstractions for all of this:
+- A kernel module which provides /dev/winradioX devices and ioctl API
+  (radio_ioctl.h).
+- A user-mode driver which has problems with security (being root to
+  use ISA receivers) and RS232 performance.
+
+The best approach is to create a hamlib-X.Y.Z/winradio/winradio.c file
+that wraps our ioctl API (toolkit/driver/radio_ioctl.h) into a "struct
+rig_caps".
+
