@@ -1,6 +1,13 @@
-Authors of the Hamlib API:
+This file is licensed to you under the license specified in the included file
+`COPYING'. Look there for further details.
+
+Authors of the Hamlib API, original code:
 
  Frank Singleton and Stephane Fillod
+
+
+Contributors:
+(if any is missing, please email the current maintainer).
 
 Backends:
 
