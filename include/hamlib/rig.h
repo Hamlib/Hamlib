@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.23 2001-03-04 13:04:46 f4cfe Exp $
+ *	$Id: rig.h,v 1.24 2001-03-04 23:06:30 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -243,6 +243,13 @@ enum powerstat_e {
 };
 typedef enum powerstat_e powerstat_t;
 
+enum reset_e {
+		RIG_RESET_NONE = 0,
+		RIG_RESET_SOFT,
+		RIG_RESET_MCALL		/* memory clear */
+};
+typedef enum reset_e reset_t;
+
 
 enum mem_vfo_op_e {
 	RIG_MVOP_VFO_MODE = 0,
@@ -375,6 +382,9 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 #define RIG_FUNC_MN     	(1<<13)		/* Manual Notch (Icom) */
 #define RIG_FUNC_RNF     	(1<<14)		/* RTTY Filter Notch (Icom) */
 #define RIG_FUNC_ARO     	(1<<15)		/* Auto Repeater Offset */
+#define RIG_FUNC_LOCK     	(1<<16)		/* Lock */
+#define RIG_FUNC_MUTE     	(1<<17)		/* Mute, could be emulated by LELVE_AF*/
+#define RIG_FUNC_VSC     	(1<<18)		/* Voice Scan Control */
 
 
 /*
@@ -682,6 +692,7 @@ struct rig_caps {
 
   int (*set_powerstat)(RIG *rig, powerstat_t status);
   int (*get_powerstat)(RIG *rig, powerstat_t *status);
+  int (*reset)(RIG *rig, reset_t reset);
 
   int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant);	/* antenna */
   int (*get_ant)(RIG *rig, vfo_t vfo, ant_t *ant);
@@ -896,6 +907,8 @@ extern int rig_get_parm(RIG *rig, setting_t parm, value_t *val);
 
 extern int rig_set_powerstat(RIG *rig, powerstat_t status);
 extern int rig_get_powerstat(RIG *rig, powerstat_t *status);
+
+extern int rig_reset(RIG *rig, reset_t reset);	/* dangerous! */
 
 /* more to come -- FS */
 

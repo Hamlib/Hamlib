@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.23 2001-03-04 13:06:36 f4cfe Exp $
+   $Id: rig.c,v 1.24 2001-03-04 23:06:30 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -2268,6 +2268,31 @@ int rig_get_powerstat(RIG *rig, powerstat_t *status)
 		return rig->caps->get_powerstat(rig, status);
 }
 
+/**
+ *      rig_reset - reset the radio
+ *      @rig:	The rig handle
+ *      @reset:	The reset operation to perform
+ *
+ *      The rig_reset() function reset the radio.
+ *      See %RIG_RESET_NONE, %RIG_RESET_SOFT and %RIG_RESET_MCALL defines
+ *      for the @reset.
+ *
+ *      RETURN VALUE: The rig_reset() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ */
+
+int rig_reset(RIG *rig, reset_t reset)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->reset == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->reset(rig, reset);
+}
 
 
 
