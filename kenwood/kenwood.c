@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.52 2002-12-19 11:00:54 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.53 2002-12-20 10:39:41 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -573,7 +573,6 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 				return -RIG_ERJCTED;
 		}
 
-		*width = RIG_PASSBAND_NORMAL;	/* FIXME */
 		switch (modebuf[2]) {
 			case MD_CW:	*mode = RIG_MODE_CW; break;
 			case MD_CWR:	*mode = RIG_MODE_CWR; break;
@@ -589,6 +588,8 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 								"unsupported mode '%c'\n", modebuf[2]);
 				return -RIG_EINVAL;
 		}
+
+                *width = rig_passband_normal(rig, *mode);
 
 		return RIG_OK;
 }
