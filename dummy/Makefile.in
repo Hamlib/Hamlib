@@ -95,11 +95,11 @@ hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
 lib_LTLIBRARIES = libhamlib-dummy.la
-libhamlib_dummy_la_SOURCES = dummy.c
+libhamlib_dummy_la_SOURCES = dummy.c rot_dummy.c
 libhamlib_dummy_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_dummy_la_LIBADD = ../src/libhamlib.la
 
-noinst_HEADERS = dummy.h
+noinst_HEADERS = dummy.h rot_dummy.h
 subdir = dummy
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -107,7 +107,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_dummy_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_dummy_la_OBJECTS = dummy.lo
+am_libhamlib_dummy_la_OBJECTS = dummy.lo rot_dummy.lo
 libhamlib_dummy_la_OBJECTS = $(am_libhamlib_dummy_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -116,7 +116,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/dummy.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/dummy.Plo $(DEPDIR)/rot_dummy.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -180,6 +180,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/dummy.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rot_dummy.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
