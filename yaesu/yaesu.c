@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.23 2005-02-26 23:13:48 fillods Exp $  
+ *	$Id: yaesu.c,v 1.24 2005-02-26 23:44:41 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -41,6 +41,31 @@
 
 #include "yaesu.h"
 
+struct yaesu_id {
+	rig_model_t model;
+	int id1, id2;
+};
+
+#define UNKNOWN_ID -1
+
+/*
+ * Identification number as returned by 0xFA opcode.
+ * Note: On the FT736R, the 0xFA opcode sets CTCSS tone code
+ *
+ * Please, if the model number of your rig is listed as UNKNOWN_ID,
+ * send the value to <fillods@users.sourceforge.net> for inclusion. Thanks --SF
+ */
+static const struct yaesu_id yaesu_id_list[] = {
+	{ RIG_MODEL_FT1000, 0x10, 0x21 }, /* or 0x10, 0x00 ? */
+	{ RIG_MODEL_FT990, 0x09, 0x90 },
+	{ RIG_MODEL_FT890, 0x08, 0x41 },
+	{ RIG_MODEL_FRG100, 0x03, 0x92 }, /* TBC, inconsistency in manual */
+	{ RIG_MODEL_FT1000MP, 0x03, 0x93 },
+	{ RIG_MODEL_FT1000MPMKV, 0x03, 0x93 }, /* or 0x10, 0x00 ? */
+	{ RIG_MODEL_FT1000MPMKVFLD, 0x03, 0x93 },
+	{ RIG_MODEL_NONE, UNKNOWN_ID, UNKNOWN_ID },	/* end marker */
+};
+
 
 /*
  * initrigs_yaesu is called by rig_backend_load
@@ -73,5 +98,90 @@ DECLARE_INITRIG_BACKEND(yaesu)
   rig_register(&vr5000_caps);
 
   return RIG_OK;
+}
+
+/*
+ * proberigs_yaesu
+ *
+ * Notes:
+ * There's only one rig possible per port.
+ *
+ * rig_model_t probeallrigs_yaesu(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+ */
+DECLARE_PROBERIG_BACKEND(yaesu)
+{
+	unsigned char idbuf[YAESU_CMD_LENGTH];
+	static const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xfa};
+	int id_len=-1, i, id1, id2;
+	int retval=-1;
+	int rates[] = { 4800, 57600, 9600, 38400, 0 };	/* possible baud rates */
+	int rates_idx;
+
+	if (!port)
+		return RIG_MODEL_NONE;
+
+	if (port->type.rig != RIG_PORT_SERIAL)
+		return RIG_MODEL_NONE;
+
+	port->write_delay = port->post_write_delay = 20;
+	port->parm.serial.stop_bits = 2;
+	port->retry = 1;
+
+	/*
+	 * try for all different baud rates
+	 */
+	for (rates_idx = 0; rates[rates_idx]; rates_idx++) {
+		port->parm.serial.rate = rates[rates_idx];
+		port->timeout = 2*1000/rates[rates_idx] + 50;
+	
+		retval = serial_open(port);
+		if (retval != RIG_OK)
+			return RIG_MODEL_NONE;
+
+		/* send READ STATUS cmd to rig  */
+		retval = write_block(port, cmd, YAESU_CMD_LENGTH);
+		id_len = read_block(port, idbuf, YAESU_CMD_LENGTH);
+
+		close(port->fd);
+
+		if (retval != RIG_OK || id_len < 0)
+			continue;
+	}
+
+	if (retval != RIG_OK || id_len < 0)
+		return RIG_MODEL_NONE;
+
+	/* 
+	 * reply should be [Flag1,Flag2,Flag3,ID1,ID2]
+	 */
+	if (id_len != 5 || id_len != 6) {
+		idbuf[7] = '\0';
+		rig_debug(RIG_DEBUG_WARN,"probe_yaesu: protocol error,"
+			" expected %d, received %d: %s\n", 6, id_len, idbuf);
+		return RIG_MODEL_NONE;
+	}
+	id1 = idbuf[3];
+	id1 = idbuf[4];
+
+
+	for (i=0; yaesu_id_list[i].model != RIG_MODEL_NONE; i++) {
+		if (id1 == yaesu_id_list[i].id1 && id2 == yaesu_id_list[i].id2) {
+			rig_debug(RIG_DEBUG_VERBOSE,"probe_yaesu: "
+					"found ID %02xH %02xH\n", id1, id2);
+			if (cfunc)
+				(*cfunc)(port, yaesu_id_list[i].model, data);
+			return yaesu_id_list[i].model;
+		}
+	}
+
+	/*
+	 * not found in known table.... 
+	 * update yaesu_id_list[]!
+	 */
+	rig_debug(RIG_DEBUG_WARN,"probe_yaesu: found unknown device "
+				"with ID %02xH %02xH, please report to Hamlib "
+				"developers.\n", id1, id2);
+
+	return RIG_MODEL_NONE;
 }
 
