@@ -1,6 +1,11 @@
 
+/* 
+ * Hamlib sample program
+ */
+
 #include <rig.h>
 #include <stdio.h>
+#include <string.h>
 
 #define SERIAL_PORT "/dev/ttyS1"
 
@@ -8,17 +13,24 @@ int main ()
 { 
 	RIG *my_rig;
 
- 	/* allocate memory, setup & open port */
-	my_rig = rig_open(SERIAL_PORT, RIG_MODEL_FT847);
-	if (!my_rig) exit(1); /* whoops! smth went wrong (mem alloc?) */
+ 	/*
+	 * allocate memory, setup & open port 
+	 */
+	my_rig = rig_init(RIG_MODEL_FT847);
+	if (!my_rig)
+			exit(1); /* whoops! something went wrong (mem alloc?) */
 
-	/* at this point, the RIG* struct is automatically populated */
+	strncpy(my_rig->state.rig_path,SERIAL_PORT,MAXRIGPATHLEN);
 
-	printf("Port %s opened ok\n",SERIAL_PORT);
+	if (rig_open(my_rig))
+			exit(2);
 
-	cmd_set_freq_main_vfo_hz(my_rig, 439700000, RIG_MODE_FM);
+	printf("Port %s opened ok\n", SERIAL_PORT);
 
-	rig_close(my_rig); /* close port and release memory */
+	cmd_set_freq(my_rig, 439700000, RIG_MODE_FM, RIG_VFO_MAIN);
+
+	rig_close(my_rig); /* close port */
+	rig_cleanup(my_rig); /* if you care about memory */
 
 	printf("port %s closed ok \n",SERIAL_PORT);
 
