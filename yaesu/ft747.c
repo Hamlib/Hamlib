@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.12 2001-05-04 22:38:58 f4cfe Exp $  
+ * $Id: ft747.c,v 1.13 2001-05-06 01:34:25 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -120,6 +120,24 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 #define FT747_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
 
+
+
+
+/*
+ * future - private data
+ *
+ */
+
+struct ft747_priv_data {
+  unsigned char pacing;		/* pacing value */
+  unsigned int read_update_delay;	 /* depends on pacing value */
+  unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
+  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
+  yaesu_cmd_set_t pcs[FT_747_NATIVE_SIZE];		/* private cmd set */
+  unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
+};
+
+
 /*
  * ft747 rigs capabilities.
  * Also this struct is READONLY!
@@ -169,75 +187,84 @@ const struct rig_caps ft747_caps = {
 
   tx_range_list1:   { RIG_FRNG_END, },
 
-  rx_range_list2:   { { start:kHz(100), end:MHz(29.9999), 
+  rx_range_list2:   { { start:kHz(100), end:29999900, 
 			modes:FT747_ALL_RX_MODES,low_power:-1,high_power:-1}, 
 		      RIG_FRNG_END, }, /* rx range */
 
-  tx_range_list2:   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
-    {1500000,1999900,FT747_AM_TX_MODES,2000,25000},	/* 25W class */
+  tx_range_list2:   { {kHz(1500),1999900,FT747_OTHER_TX_MODES,low_power:5000,high_power:100000},	/* 100W class */ 
+
+    {start:kHz(1500),end:1999900,FT747_AM_TX_MODES,low_power:2000,high_power:25000},	/* 25W class */
     
-    {3500000,3999900,FT747_OTHER_TX_MODES,5000,100000},
-    {3500000,3999900,FT747_AM_TX_MODES,2000,25000},
+    {start:kHz(3500),3999900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:kHz(3500),3999900,FT747_AM_TX_MODES,2000,25000},
     
-    {7000000,7499900,FT747_OTHER_TX_MODES,5000,100000},
-    {7000000,7499900,FT747_AM_TX_MODES,2000,25000},
+    {start:kHz(7000),7499900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:kHz(7000),7499900,FT747_AM_TX_MODES,2000,25000},
     
-    {10000000,10499900,FT747_OTHER_TX_MODES,5000,100000},
-    {10000000,10499900,FT747_AM_TX_MODES,2000,25000},
+    {start:MHz(10),10499900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:MHz(10),10499900,FT747_AM_TX_MODES,2000,25000},
     
-    {14000000,14499900,FT747_OTHER_TX_MODES,5000,100000},
-    {14000000,14499900,FT747_AM_TX_MODES,2000,25000},
+    {start:MHz(14),14499900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:MHz(14),14499900,FT747_AM_TX_MODES,2000,25000},
     
-    {18000000,18499900,FT747_OTHER_TX_MODES,5000,100000},
-    {18000000,18499900,FT747_AM_TX_MODES,2000,25000},
+    {start:MHz(18),18499900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:MHz(18),18499900,FT747_AM_TX_MODES,2000,25000},
     
-    {21000000,21499900,FT747_OTHER_TX_MODES,5000,100000},
-    {21000000,21499900,FT747_AM_TX_MODES,2000,25000},
+    {start:MHz(21),21499900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:MHz(21),21499900,FT747_AM_TX_MODES,2000,25000},
     
-    {24500000,24999900,FT747_OTHER_TX_MODES,5000,100000},
-    {24500000,24999900,FT747_AM_TX_MODES,2000,25000},
+    {start:kHz(24500),24999900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:kHz(24500),24999900,FT747_AM_TX_MODES,2000,25000},
     
-    {28000000,29999900,FT747_OTHER_TX_MODES,5000,100000},
-    {28000000,29999900,FT747_AM_TX_MODES,2000,25000},
+    {start:MHz(28),29999900,FT747_OTHER_TX_MODES,5000,100000},
+    {start:MHz(28),29999900,FT747_AM_TX_MODES,2000,25000},
     
     RIG_FRNG_END, },
 
 
   
-  { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
-    {FT747_SSB_CW_RX_MODES,2500}, /* fast on */
-    
-    {FT747_AM_RX_MODES,kHz(1)}, /* fast off */
-    {FT747_AM_RX_MODES,kHz(10)}, /* fast on */
-    
-    {FT747_FM_RX_MODES,kHz(5)}, /* fast off */
-    {FT747_FM_RX_MODES,12500}, /* fast on */
-    
-    RIG_TS_END,
+  tuning_steps:   { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
+		    {FT747_SSB_CW_RX_MODES,2500}, /* fast on */
+		    
+		    {FT747_AM_RX_MODES,kHz(1)}, /* fast off */
+		    {FT747_AM_RX_MODES,kHz(10)}, /* fast on */
+		    
+		    {FT747_FM_RX_MODES,kHz(5)}, /* fast off */
+		    {FT747_FM_RX_MODES,12500}, /* fast on */
+		    
+		    RIG_TS_END,
   },  
+
       /* mode/filter list, remember: order matters! */
-  {
-		/* FIXME! */
-		RIG_FLT_END,
+
+  filters:   { {RIG_MODE_SSB, kHz(2.2)}, /* standard SSB filter bandwidth */
+	       {RIG_MODE_CW, kHz(1.8)},	/* normal CW filter */
+	       {RIG_MODE_CW, kHz(0.5)},	/* CW filter with narrow selection */
+	       {RIG_MODE_AM, kHz(6)},	/* normal AM filter */
+	       {RIG_MODE_AM, kHz(2.4)},	/* AM filter with narrow selection */
+	       {RIG_MODE_FM, kHz(8)},	/* FM with optional FM unit */
+	       {RIG_MODE_WFM, kHz(19)},	/* WideFM, with optional FM unit. */
+	          
+	       RIG_FLT_END,
   },
-  NULL,	/* priv */
 
-  ft747_init, 
-  ft747_cleanup, 
-  ft747_open,				/* port opened */
-  ft747_close,				/* port closed */
 
-  ft747_set_freq,		/* set freq */
-  ft747_get_freq,		/* get freq */
-  ft747_set_mode,		/* set mode */
-  ft747_get_mode,		/* get mode */
-  ft747_set_vfo,		/* set vfo */
-  ft747_get_vfo,		/* get vfo */
-  ft747_set_ptt,		/* set ptt */
-  ft747_get_ptt,		/* get ptt */
+  priv:  NULL, /* private data */
 
-  NULL,				/* add later */
-  NULL,				/* add later */
+  rig_init:  ft747_init, 
+  rig_cleanup:   ft747_cleanup, 
+  rig_open:  ft747_open,				/* port opened */
+  rig_close: ft747_close,				/* port closed */
+
+  set_freq:  ft747_set_freq,		/* set freq */
+  get_freq:  ft747_get_freq,		/* get freq */
+  set_mode:  ft747_set_mode,		/* set mode */
+  get_mode:  ft747_get_mode,		/* get mode */
+  set_vfo:   ft747_set_vfo,		/* set vfo */
+
+  get_vfo:   ft747_get_vfo,		/* get vfo */
+  set_ptt:   ft747_set_ptt,		/* set ptt */
+  get_ptt:   ft747_get_ptt,		/* get ptt */
 
 };
 

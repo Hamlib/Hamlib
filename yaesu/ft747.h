@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.2 2001-01-04 07:03:58 javabear Exp $  
+ *    $Id: ft747.h,v 1.3 2001-05-06 01:34:25 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -173,21 +173,6 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
 #define FT747_SUMO_VFO_B_FREQ                 0x11
     
 
-
-
-/*
- * future - private data
- *
- */
-
-struct ft747_priv_data {
-  unsigned char pacing;		/* pacing value */
-  unsigned int read_update_delay;	 /* depends on pacing value */
-  unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
-  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
-  yaesu_cmd_set_t pcs[FT_747_NATIVE_SIZE];		/* private cmd set */
-  unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
-};
 
 /* 
  * API local implementation 
