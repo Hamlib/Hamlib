@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.5 2000-07-30 04:05:35 javabear Exp $  
+ * $Id: testlibft747.c,v 1.6 2000-07-30 05:04:04 javabear Exp $  
  *
  */
 
@@ -147,7 +147,6 @@ static void decode_band_data(unsigned char data) {
  */
 
 static int test(fd) {
-  int i;
   struct ft747_update_data *header;
 
   cmd_set_split_yes(fd);
