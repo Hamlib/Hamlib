@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS870S description
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.43 2005-02-03 20:51:19 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.44 2005-02-24 22:35:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -71,7 +71,7 @@ static const struct kenwood_priv_caps  ts870s_priv_caps  = {
 
 /* only the ts870s and ts2000 support get_vfo with the 'FR;' command 
    NOTE: using byte 31 in 'IF' will also work. TODO: check other rigs */
-int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
+static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 {
 		unsigned char vfobuf[50];
 		int vfo_len, retval;
@@ -102,7 +102,7 @@ int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 		return RIG_OK;
 }
 
-int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
   unsigned char buf[50];
   int buf_len, retval;
@@ -154,7 +154,7 @@ int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   return RIG_OK;
 }
 
-int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   unsigned char buf[16],ackbuf[16];
   int buf_len, ack_len, kmode, retval;
@@ -192,7 +192,7 @@ int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   return RIG_OK;
 }
 
-int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 		unsigned char lvlbuf[50];
 		int lvl_len, retval;

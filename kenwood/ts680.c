@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS680 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.3 2005-01-31 16:15:56 pa4tu Exp $
+ *	$Id: ts680.c,v 1.4 2005-02-24 22:35:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -60,7 +60,7 @@ static const struct kenwood_priv_caps  ts680_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
-int ts680_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int ts680_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
                 unsigned char modebuf[50];
                 int mode_len, retval;
@@ -95,7 +95,7 @@ int ts680_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                 return RIG_OK;
 }
 
-int ts680_set_vfo(RIG *rig, vfo_t vfo)
+static int ts680_set_vfo(RIG *rig, vfo_t vfo)
 {
                 unsigned char cmdbuf[16], ackbuf[16];
                 int cmd_len, ack_len, retval;
@@ -121,7 +121,7 @@ int ts680_set_vfo(RIG *rig, vfo_t vfo)
                 return RIG_OK;
 }
 
-int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+static int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
                 unsigned char freqbuf[50];
                 int freq_len, retval;
@@ -149,7 +149,7 @@ int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                 return RIG_OK;
 }
 
-int ts680_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+static int ts680_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
                 unsigned char fctbuf[16], ackbuf[16];
                 int fct_len, ack_len;

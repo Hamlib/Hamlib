@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.9 2005-01-25 00:20:36 fillods Exp $
+ *	$Id: tmv7.c,v 1.10 2005-02-24 22:35:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,13 +76,13 @@ const struct kenwood_priv_caps  tmv7_priv_caps  = {
 
 
 /* tmv7 procs */
-int tmv7_open(RIG *rig);
-int tmv7_decode_event (RIG *rig);
-int tmv7_set_vfo (RIG *rig, vfo_t vfo);
-int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int tmv7_get_powerstat (RIG *rig, powerstat_t *status);
-int tmv7_get_channel(RIG *rig, channel_t *chan);
-int tmv7_set_channel(RIG *rig, const channel_t *chan);
+static int tmv7_open(RIG *rig);
+static int tmv7_decode_event (RIG *rig);
+static int tmv7_set_vfo (RIG *rig, vfo_t vfo);
+static int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int tmv7_get_powerstat (RIG *rig, powerstat_t *status);
+static int tmv7_get_channel(RIG *rig, channel_t *chan);
+static int tmv7_set_channel(RIG *rig, const channel_t *chan);
 
 /*
  * tm-v7 rig capabilities.

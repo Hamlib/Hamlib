@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.15 2005-01-24 23:04:16 fillods Exp $
+ *	$Id: thg71.c,v 1.16 2005-02-24 22:35:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,13 +64,12 @@ const struct kenwood_priv_caps  thg71_priv_caps  = {
 
 
 /* thg71 procs */
-int thg71_open(RIG *rig);
-int thg71_decode_event (RIG *rig);
-int thg71_set_freq (RIG *rig, vfo_t vfo, freq_t freq);
-int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int thg71_set_vfo (RIG *rig, vfo_t vfo);
-int thg71_get_vfo (RIG *rig, vfo_t *vfo);
-int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int thg71_open(RIG *rig);
+static int thg71_decode_event (RIG *rig);
+static int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int thg71_set_vfo (RIG *rig, vfo_t vfo);
+static int thg71_get_vfo (RIG *rig, vfo_t *vfo);
+static int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 /*
  * th-g71 rig capabilities.
