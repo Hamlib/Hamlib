@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.4 2004-06-13 12:35:30 fillods Exp $
+ *	$Id: tmv7.c,v 1.5 2004-11-11 17:53:38 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,6 +69,7 @@ int tmv7_open(RIG *rig);
 int tmv7_decode_event (RIG *rig);
 int tmv7_set_vfo (RIG *rig, vfo_t vfo);
 int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int tmv7_get_powerstat (RIG *rig, powerstat_t *status);
 
 /*
  * tm-v7 rig capabilities.
@@ -102,7 +103,7 @@ const struct rig_caps tmv7_caps = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 7 } },
 	[LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 32 } },
 	[LVL_AF] = { .min = { .i = 0 }, .max = { .i = 32 } },
-	[LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },
+	[LVL_RFPOWER] = { .min = { .i = 0 }, .max = { .i = 2 } },
 },
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
@@ -120,14 +121,37 @@ const struct rig_caps tmv7_caps = {
 
 
 .chan_list =  { 
-		{  1,  199, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* normal MEM */
-		{  200,219, RIG_MTYPE_EDGE , {TH_CHANNEL_CAPS}}, /* U/L MEM */
+		{  1,  90, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* normal MEM VHF */
+		{ 91,  180, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* normal MEM UHF */
+		{  201,203, RIG_MTYPE_EDGE , {TH_CHANNEL_CAPS}}, /* L MEM */
+		{  211,213, RIG_MTYPE_EDGE , {TH_CHANNEL_CAPS}}, /* U MEM */
 		{  221,222, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* Call 0/1 */
 		RIG_CHAN_END,
 		   },
 
-/* no rx/tx_range_list */
-/* computed in tmv7_open */
+.rx_range_list1 =  {
+        {MHz(118),MHz(174),RIG_MODE_AM | RIG_MODE_FM,-1,-1,RIG_VFO_A},
+        {MHz(300),MHz(470),RIG_MODE_FM,-1,-1,RIG_VFO_B},
+        RIG_FRNG_END,
+  }, /* rx range */
+
+.tx_range_list1 =  {
+        {MHz(118),MHz(174), RIG_MODE_FM,W(5),W(50),RIG_VFO_A},
+        {MHz(300),MHz(470),RIG_MODE_FM,W(5),W(35),RIG_VFO_B},
+        RIG_FRNG_END,
+  }, /* tx range */
+
+.rx_range_list2 =  {
+        {MHz(118),MHz(174),RIG_MODE_AM | RIG_MODE_FM,-1,-1,RIG_VFO_A},
+        {MHz(300),MHz(470),RIG_MODE_FM,-1,-1,RIG_VFO_B},
+        RIG_FRNG_END,
+  }, /* rx range */
+
+.tx_range_list2 =  {
+        {MHz(118),MHz(174), RIG_MODE_FM,W(5),W(50),RIG_VFO_A},
+        {MHz(300),MHz(470),RIG_MODE_FM,W(5),W(35),RIG_VFO_B},
+        RIG_FRNG_END,
+  }, /* tx range */
 
 .tuning_steps =  {
 	 {RIG_MODE_FM,kHz(5)},
@@ -145,6 +169,8 @@ const struct rig_caps tmv7_caps = {
 	{RIG_MODE_AM, kHz(9)},
 	RIG_FLT_END,
 	},
+
+.str_cal ={ 4, { {0, -60 }, {1, -30,}, {5,0}, {7,20}}}, /* rought guess */
 
 .priv =  (void *)&tmv7_priv_caps,
 .rig_open =  tmv7_open,
@@ -167,7 +193,7 @@ const struct rig_caps tmv7_caps = {
 .get_level = th_get_level,
 .set_level = th_set_level,
 .get_info =  th_get_info,
-.set_powerstat =  th_set_powerstat,
+.get_powerstat =  tmv7_get_powerstat,
 .vfo_op = th_vfo_op,
 .set_ptt = th_set_ptt,
 .get_dcd=th_get_dcd,
@@ -289,7 +315,7 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
     char vfobuf[16], ackbuf[ACKBUF_LEN];
     int retval,ack_len;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __FUNCTION__,vfo);
 
 	switch (vfo) {
         case RIG_VFO_A:
@@ -313,11 +339,15 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 
     ack_len=ACKBUF_LEN;
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
-	if (retval != RIG_OK)
+	if (retval != RIG_OK) {
+            rig_debug(RIG_DEBUG_ERR, "%s: bad return \n", __FUNCTION__);
         return retval;
+    }
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: next %d\n", __FUNCTION__,vfo);
 	switch (vfo) {
         case RIG_VFO_A:
+        case RIG_VFO_VFO:
             sprintf(vfobuf, "BC 0,0" EOM);
             break;
         case RIG_VFO_B:
@@ -329,6 +359,8 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 		return RIG_OK;
 	}
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: next2\n", __FUNCTION__);
+    ack_len=ACKBUF_LEN;
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
 	if (retval != RIG_OK)
         return retval;
@@ -372,6 +404,14 @@ int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	return RIG_OK;
 }
 
+int tmv7_get_powerstat (RIG *rig, powerstat_t *status)
+{
+/* dummy func to make sgcontrol happy */
+
+	*status=RIG_POWER_ON;
+	return RIG_OK;
+}
+
 /*-------------------------------------------------------------------- */
 int tmv7_open(RIG *rig)
 {
@@ -388,42 +428,6 @@ int tmv7_open(RIG *rig)
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
-
-	/* fill state.rx/tx range_list */
-    ack_len=ACKBUF_LEN;
-    retval = kenwood_transaction(rig, "FL"EOM, 3, ackbuf, &ack_len);
-        if (retval != RIG_OK)
-        	return retval;
-
-    strl=strtok(ackbuf," ");
-    for(i=0;i<FRQRANGESIZ;i++) {
-		freq_range_t frng;
-
-	    	strl=strtok(NULL,",");
-	    	stru=strtok(NULL,",");
-		if(strl==NULL && stru==NULL)
-			break;
-		frng.start=MHz(atoi(strl));
-		frng.end=MHz(atoi(stru));
-		frng.vfo=RIG_VFO_A;
-		frng.ant=0;
-		if(frng.end<=MHz(136))
-			frng.modes=RIG_MODE_AM;
-		else
-			frng.modes=RIG_MODE_FM;
-
-		frng.high_power=-1;
-		frng.low_power=-1;
-		rig->state.rx_range_list[i]=frng;
-		if(frng.start> MHz(200))
-			frng.high_power=5.5;
-		else
-			frng.high_power=6;
-		frng.low_power=mW(50);
-		rig->state.tx_range_list[i]=frng;
-	}
-	rig->state.rx_range_list[i]= frend;
-	rig->state.tx_range_list[i]= frend;
 
     return RIG_OK;
 }
