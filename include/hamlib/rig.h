@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.59 2002-01-27 23:46:01 fillods Exp $
+ *		$Id: rig.h,v 1.60 2002-02-27 23:22:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -210,9 +210,9 @@ typedef long long freq_t;
 typedef signed long shortfreq_t;
 
 #define Hz(f)	((freq_t)(f))
-#define kHz(f)	((freq_t)((f)*1000))
-#define MHz(f)	((freq_t)((f)*1000000L))
-#define GHz(f)	((freq_t)((f)*1000000000LL))
+#define kHz(f)	(((freq_t)(f))*1000UL)
+#define MHz(f)	(((freq_t)(f))*1000000UL)
+#define GHz(f)	(((freq_t)(f))*1000000000UL)
 
 #define RIG_FREQ_NONE Hz(0)
 
@@ -1013,12 +1013,23 @@ struct rig_state {
  * Event based programming, really appropriate in a GUI.
  * So far, Icoms are able to do that in Transceive mode, and PCR-1000 too.
  */
+typedef int (*freq_cb_t)(RIG *, vfo_t, freq_t, rig_ptr_t); 
+typedef int (*mode_cb_t)(RIG *, vfo_t, rmode_t, pbwidth_t, rig_ptr_t); 
+typedef int (*vfo_cb_t)(RIG *, vfo_t, rig_ptr_t); 
+typedef int (*ptt_cb_t)(RIG *, vfo_t, ptt_t, rig_ptr_t); 
+typedef int (*dcd_cb_t)(RIG *, vfo_t, dcd_t, rig_ptr_t); 
+
 struct rig_callbacks {
-	int (*freq_event)(RIG *rig, vfo_t vfo, freq_t freq); 
-	int (*mode_event)(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); 
-	int (*vfo_event)(RIG *rig, vfo_t vfo); 
-	int (*ptt_event)(RIG *rig, vfo_t vfo, ptt_t mode); 
-	int (*dcd_event)(RIG *rig, vfo_t vfo, dcd_t mode); 
+	freq_cb_t freq_event; 
+	rig_ptr_t freq_arg;
+	mode_cb_t mode_event;
+	rig_ptr_t mode_arg;
+	vfo_cb_t vfo_event;
+	rig_ptr_t vfo_arg;
+	ptt_cb_t ptt_event;
+	rig_ptr_t ptt_arg;
+	dcd_cb_t dcd_event;
+	rig_ptr_t dcd_arg;
 	/* etc.. */
 };
 
@@ -1153,7 +1164,11 @@ extern HAMLIB_EXPORT(int) rig_get_channel HAMLIB_PARAMS((RIG *rig, channel_t *ch
 
 extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, int trn));
 extern HAMLIB_EXPORT(int) rig_get_trn HAMLIB_PARAMS((RIG *rig, int *trn));
-
+extern HAMLIB_EXPORT(int) rig_set_freq_callback HAMLIB_PARAMS((RIG *, freq_cb_t, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_set_mode_callback HAMLIB_PARAMS((RIG *, mode_cb_t, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_set_vfo_callback HAMLIB_PARAMS((RIG *, vfo_cb_t, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_set_ptt_callback HAMLIB_PARAMS((RIG *, ptt_cb_t, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_set_dcd_callback HAMLIB_PARAMS((RIG *, dcd_cb_t, rig_ptr_t));
 
 extern HAMLIB_EXPORT(const char *) rig_get_info HAMLIB_PARAMS((RIG *rig));
 

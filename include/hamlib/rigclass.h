@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.8 2001-12-27 21:50:14 fillods Exp $
+ *		$Id: rigclass.h,v 1.9 2002-02-27 23:22:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -156,19 +156,19 @@ public:
   void reset (reset_t reset);
 
   // callbacks available in your derived object
-  virtual int FreqEvent(vfo_t, freq_t) const {
+  virtual int FreqEvent(vfo_t, freq_t, rig_ptr_t) const {
 		  return RIG_OK;
   }
-  virtual int ModeEvent(vfo_t, rmode_t, pbwidth_t) const {
+  virtual int ModeEvent(vfo_t, rmode_t, pbwidth_t, rig_ptr_t) const {
 		  return RIG_OK;
   }
-  virtual int VFOEvent(vfo_t) const {
+  virtual int VFOEvent(vfo_t, rig_ptr_t) const {
 		  return RIG_OK;
   }
-  virtual int PTTEvent(vfo_t, ptt_t) const {
+  virtual int PTTEvent(vfo_t, ptt_t, rig_ptr_t) const {
 		  return RIG_OK;
   }
-  virtual int DCDEvent(vfo_t, dcd_t) const {
+  virtual int DCDEvent(vfo_t, dcd_t, rig_ptr_t) const {
 		  return RIG_OK;
   }
 
