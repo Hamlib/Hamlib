@@ -2,7 +2,7 @@
  *  Hamlib WiNRADiO backend - WR-G303 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: g303.c,v 1.3 2004-08-16 22:33:07 fillods Exp $
+ *	$Id: g303.c,v 1.4 2004-08-23 19:48:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -107,14 +107,14 @@ struct g3_priv_data {
 	FNCG3GetFrequency G3GetFrequency;
 	FNCSetPower SetPower;
 	FNCGetPower GetPower;
-	FNCSetPower SetAtten;
-	FNCGetPower GetAtten;
-	FNCSetPower SetAGC;
-	FNCGetPower GetAGC;
-	FNCSetPower SetIFGain;
-	FNCGetPower GetIFGain;
-	FNCGetPower GetSignalStrengthdBm;
-	FNCGetPower GetRawSignalStrength;
+	FNCSetAtten SetAtten;
+	FNCGetAtten GetAtten;
+	FNCSetAGC SetAGC;
+	FNCGetAGC GetAGC;
+	FNCSetIFGain SetIFGain;
+	FNCGetIFGain GetIFGain;
+	FNCGetSignalStrengthdBm GetSignalStrengthdBm;
+	FNCGetRawSignalStrength GetRawSignalStrength;
 	FNCG3GetInfo G3GetInfo;
 };
 
@@ -125,7 +125,7 @@ const struct rig_caps g303_caps = {
   .mfg_name =       "Winradio",
   .version =        "0.2",
   .copyright = 	    "LGPL",	/* This wrapper, not the G3 DLL */
-  .status =         RIG_STATUS_UNTESTED,
+  .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_PCRECEIVER,
   .port_type =      RIG_PORT_NONE,
   .targetable_vfo = 	 0,
@@ -139,7 +139,7 @@ const struct rig_caps g303_caps = {
   .has_set_parm = 	 RIG_PARM_NONE,
   .ctcss_list = 	 NULL,
   .dcs_list =   	 NULL,
-  .chan_list = 	 { RIG_CHAN_END, },
+  .chan_list = 	 { RIG_CHAN_END },
   .transceive =     RIG_TRN_OFF,
   .max_ifshift = 	 kHz(2),
   .attenuator =     { 20, RIG_DBLST_END, },	/* TBC */
@@ -371,7 +371,7 @@ int g3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_STRENGTH:
-		val->i = priv->GetSignalStrengthdBm(priv->hRadio)+73;
+		val->i = priv->GetSignalStrengthdBm(priv->hRadio)/10+73;
 		break;
 
 	case RIG_LEVEL_RAWSTR:
