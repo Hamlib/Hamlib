@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.58 2002-01-27 14:52:12 fillods Exp $
+ *		$Id: rig.h,v 1.59 2002-01-27 23:46:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -619,11 +619,14 @@ struct filter_list {
  * Convenience struct, describes a freq/vfo/mode combo 
  * Also useful for memory handling -- FS
  *
- * TODO: skip flag, split, shift, etc.
+ * TODO: skip flag, etc.
  */
 
 struct channel {
   int channel_num;
+  int bank_num;
+  vfo_t vfo;
+  int ant;
   freq_t freq;
   rmode_t mode;
   pbwidth_t width;
@@ -633,9 +636,6 @@ struct channel {
   split_t split;
   rptr_shift_t rptr_shift;
   shortfreq_t rptr_offs;
-  vfo_t vfo;
-
-  int ant;	/* antenna number */
   shortfreq_t tuning_step;
   shortfreq_t rit;
   shortfreq_t xit;
@@ -645,6 +645,7 @@ struct channel {
   tone_t ctcss_sql;
   tone_t dcs_code;
   tone_t dcs_sql;
+  int flags;	/* to be defined */
   char channel_desc[MAXCHANDESC];
 };
 
@@ -1166,7 +1167,7 @@ extern HAMLIB_EXPORT(pbwidth_t) rig_passband_wide HAMLIB_PARAMS((RIG *rig, rmode
 extern HAMLIB_EXPORT(const char *) rigerror HAMLIB_PARAMS((int errnum));
 
 extern HAMLIB_EXPORT(int) rig_setting2idx HAMLIB_PARAMS((setting_t s));
-#define rig_idx2setting(i) (1<<(i))
+#define rig_idx2setting(i) (1ULL<<(i))
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
