@@ -154,20 +154,22 @@ fi
 AC_SUBST(NET)
 
 
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
+
 case "$host_os" in
  linux-gnu*)
  # Winradio only under Linux (until someone port it on other os)
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina jrc"
+ BACKEND_LIST="$BACKEND_LIST winradio"
  ;;
  *) 
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
 esac
 
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
  BACKEND_LIST="$BACKEND_LIST rpcrig"
 fi
 
-BACKENDLNK="-dlopen force"
+# Preopen self for static version
+BACKENDLNK="-dlpreopen self"
 for be in ${BACKEND_LIST} ; do
 	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
 	BACKENDEPS="${BACKENDEPS} ../${be}/libhamlib-${be}.la"
