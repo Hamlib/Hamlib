@@ -32,6 +32,11 @@ Initially serial (RS232) connectivity will be handled, but
 I expect that IP connectivity will follow afterwards. 
 
 
+Take a look at README.developer for more info.
+
+Also, take a look at http://sourceforge.net/projects/hamlib/
+Here you will find a mail list, and  the latest CVS releases.
+
 Have Fun / Frank S. 
 
   73's de vk3fcs/km5ws

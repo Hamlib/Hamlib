@@ -1,5 +1,9 @@
 hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
 
+Take a look at http://sourceforge.net/projects/hamlib/
+Here you will find a mail list, and  the latest CVS releases.
+
+
 General Guidelines.
 -------------------
 
@@ -87,7 +91,7 @@ General Guidelines.
    excercises the API you are implementing.
 
 6. libXXXX.so should be built to allow TX (PTT) to be disabled
-   if required. See ft747.[ch] for how this is done.
+   if required. See ft847.[ch] for how this is done.
 
 7. The Makefile for the test suite should have a target like
    this to allow testing the API.
@@ -109,6 +113,43 @@ General Guidelines.
    If this cannot be done, I may consider an "API.xxx" that
    decsribes the API (eg: API.ft847 )
 
-10. ...
+10. C code examples.
+    An example piece of code may  uses the ft847 API could
+    look like this..
+
+A C code snippet to connect to a FT847 and set
+the frequnecy of the main VFO to 439,700,000 Hz ,
+using FM as the required mode, would look something 
+like this.
+
+<snip>
+
+  int fd;
+  
+  fd = rig_open(SERIAL_PORT);
+  printf("port %s opened ok \n",SERIAL_PORT);
+  
+  cmd_set_cat_on(fd);           /* cat on */
+  cmd_set_freq_main_vfo_hz(fd,439700000,MODE_FM);
+  cmd_set_cat_off(fd);          /* cat off */
+  
+  rig_close(fd);
+  printf("port %s closed ok \n",SERIAL_PORT);
+
+<snip>
+
+
+11. Where are the GUI's.
+
+   "Build it and they will come ..."
+
+   Seriously, I am hoping the API's will provide a solid
+   framework for some cool GUI development. I would like
+   to see some GTK apps that use the hamlib API's
+   so they can be used by end users as a nice part of the
+   Ham shack.
+
+
+
 
 
