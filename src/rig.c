@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.6 2000-10-22 16:08:23 f4cfe Exp $
+   $Id: rig.c,v 1.7 2000-10-23 19:56:29 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -939,7 +939,8 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, mode
  *      @rig:	The rig handle
  *      @tone:	The tone to set to
  *
- *      The rig_set_ctcss() function sets the current squelch tone.
+ *      The rig_set_ctcss() function sets the current Continuous Tone
+ *      Controlled Squelch System (CTCSS) sub-audible tone.
  *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
  *      if you want to set subaudible tone of 88.5 Hz for example,
  *      then pass 885 to this function. Also, to disable Tone squelch,
@@ -973,8 +974,8 @@ int rig_set_ctcss(RIG *rig, unsigned int tone)
  *      @rig:	The rig handle
  *      @tone:	The location where to store the current tone
  *
- *      The rig_get_ctcss() function retrieves the current 
- *      squelch tone.
+ *      The rig_get_ctcss() function retrieves the current Continuous Tone
+ *      Controlled Squelch System (CTCSS) sub-audible tone.
  *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
  *      if the function rig_get_ctcss() returns a subaudible tone of 885
  *      for example, then the real tone is 88.5 Hz. 
@@ -1000,14 +1001,10 @@ int rig_get_ctcss(RIG *rig, unsigned int *tone)
 /**
  *      rig_set_dcs - set the current DCS
  *      @rig:	The rig handle
- *      @tone:	The tone to set to
+ *      @code:	The tone to set to
  *
- *      The rig_set_dcs() function sets the current subaudible tone to 
- *      access a repeater or tone squelched frequency.
- *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
- *      if you want to set subaudible tone of 88.5 Hz for example,
- *      then pass 885 to this function. Also, to disable Tone squelch,
- *      set @tone to 0.
+ *      The rig_set_dcs() function sets the current Digitally-Coded Squelch
+ *      code.
  *
  *      RETURN VALUE: The rig_set_dcs() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -1016,7 +1013,7 @@ int rig_get_ctcss(RIG *rig, unsigned int *tone)
  *      SEE ALSO: rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
  */
 
-int rig_set_dcs(RIG *rig, unsigned int tone)
+int rig_set_dcs(RIG *rig, unsigned int code)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1024,19 +1021,16 @@ int rig_set_dcs(RIG *rig, unsigned int tone)
 		if (rig->caps->set_dcs == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
-			return rig->caps->set_dcs(rig, tone);
+			return rig->caps->set_dcs(rig, code);
 }
 
 /**
  *      rig_get_dcs - get the current DCS
  *      @rig:	The rig handle
- *      @tone:	The location where to store the current tone
+ *      @code:	The location where to store the current tone
  *
- *      The rig_get_dcs() function retrieves the current DCS. 
- *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
- *      if the function rig_get_dcs() returns a subaudible tone of 885
- *      for example, then the real tone is 88.5 Hz. 
- *      Also, a value of 0 for @tone means the Tone encoding is disabled.
+ *      The rig_get_dcs() function retrieves the current 
+ *      Digitally-Coded Squelch. 
  *
  *      RETURN VALUE: The rig_get_dcs() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -1044,15 +1038,15 @@ int rig_set_dcs(RIG *rig, unsigned int tone)
  *
  *      SEE ALSO: rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
  */
-int rig_get_dcs(RIG *rig, unsigned int *tone)
+int rig_get_dcs(RIG *rig, unsigned int *code)
 {
-		if (!rig || !rig->caps || !tone)
+		if (!rig || !rig->caps || !code)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_dcs == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
-			return rig->caps->get_dcs(rig, tone);
+			return rig->caps->get_dcs(rig, code);
 }
 
 /**
@@ -1187,7 +1181,7 @@ int rig_get_level(RIG *rig, setting_t level, value_t *val)
 		if (rig->caps->get_level == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
-			return rig->caps->get_level(rig, set, val);
+			return rig->caps->get_level(rig, level, val);
 }
 
 /**
