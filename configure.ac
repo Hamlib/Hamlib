@@ -1,16 +1,27 @@
-dnl Process this file with autoconf to produce a configure script.
+## Process this file with autoconf to create configure. -*- autoconf -*-
 
+## FIXME: Is this really new enough? ##
+AC_PREREQ(2.50)
+
+
+## ------------------------ ##
+## Autoconf initialisation. ##
+## ------------------------ ##
 dnl Please do not use '-' in the version number, 'make rpm' will fail
-AC_INIT(hamlib, 1.1.4cvs, hamlib-developer@lists.sourceforge.net)
-AM_INIT_AUTOMAKE(hamlib, 1.1.4cvs)
+AC_INIT([hamlib], [1.1.4cvs], [hamlib-developer@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
-AM_CONFIG_HEADER(include/config.h)
+
+## ------------------------ ##
+## Automake Initialisation. ##
+## ------------------------ ##
+AM_INIT_AUTOMAKE(AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION, -)
+AM_CONFIG_HEADER([include/config.h])
 AM_MAINTAINER_MODE
 
+## ------------------------------- ##
+## Hamlib  specific configuration. ##
+## ------------------------------- ##
 ABI_VERSION=1
-
-# Minimum Autoconf version required.
-AC_PREREQ(2.50)
 
 dnl Pick up the Hamlib macros.
 AM_ACLOCAL_INCLUDE(macros)
@@ -23,9 +34,9 @@ hamlibdocdir=$datadir/doc/hamlib
 AC_SUBST(hamlibdocdir)
 
 dnl Checks for programs.
+AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_AWK
-AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -37,6 +48,8 @@ AC_ISC_POSIX
 AC_MINIX
 AM_PROG_CC_STDC
 AC_PROG_GCC_TRADITIONAL
+AC_C_CONST
+AC_C_INLINE
 
 dnl Checks for header files.
 AC_HEADER_DIRENT
@@ -59,8 +72,6 @@ if test "${ac_cv_cxx_compiler_gnu}" = "yes"; then
 fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_TYPE_SIGNAL
@@ -131,18 +142,23 @@ AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
 
-dnl initialize libtool
+## ------------------------ ##
+## libtool  Initialisation. ##
+## ------------------------ ##
 dnl Enable building of the convenience library
 dnl and set LIBLTDL accordingly
 AC_LIBLTDL_CONVENIENCE
 dnl Substitute INCLTDL and LIBLTDL in the Makefiles
-AC_SUBST(INCLTDL)
-AC_SUBST(LIBLTDL)
+AC_SUBST([INCLTDL])
+AC_SUBST([LIBLTDL])
+
 dnl Check for dlopen support
 AC_LIBTOOL_WIN32_DLL
 AC_LIBTOOL_DLOPEN
 dnl Configure libtool
 AC_PROG_LIBTOOL
+AC_SUBST([LIBTOOL_DEPS])
+AC_LIB_LTDL
 dnl Configure libltdl
 AC_CONFIG_SUBDIRS(libltdl)
 
