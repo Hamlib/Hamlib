@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: rot_dummy.c,v 1.1 2001-12-28 20:29:33 fillods Exp $
+ *		$Id: rot_dummy.c,v 1.2 2002-01-16 16:48:52 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -140,6 +140,12 @@ static int dummy_rot_reset(ROT *rot, rot_reset_t reset)
   return RIG_OK;
 }
 
+static int dummy_rot_move(ROT *rot, int direction, int speed)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
 
 static const char *dummy_rot_get_info(ROT *rot)
 {
@@ -181,7 +187,8 @@ const struct rot_caps dummy_rot_caps = {
   park:    dummy_rot_park,
   stop:    dummy_rot_stop,
   reset:   dummy_rot_reset,
-  
+  move:    dummy_rot_move,
+
   get_info:     dummy_rot_get_info,
 };
 

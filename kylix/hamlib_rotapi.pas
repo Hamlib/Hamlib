@@ -91,7 +91,8 @@ type
         park : function(rot: PRot): integer; cdecl;
 
         reset : function(rot: PRot; reset: rot_reset_t): integer; cdecl;
-
+        move : function(rot: PRot; direction: integer; speed: integer): integer; cdecl;
+       
         {* get firmware info, etc. *}
         get_info : function(rot: PRot): PChar; cdecl;
 
@@ -193,6 +194,9 @@ function rot_get_position(rot: PRot; var az: azimuth_t; var el: elevation_t): in
 function rot_stop(rot: PRot): integer; cdecl;
 function rot_park(rot: PRot): integer; cdecl;
 function rot_reset(rot: PRot; reset: rot_reset_t): integer; cdecl;
+function rot_move(rot: PRot; direction: integer; speed: integer): integer; cdecl;
+function rot_set_position_at(rot: PRot; az: azimuth_t; el: elevation_t; when: longint): integer; cdecl;
+
 function rot_get_info(rot: PRot): PChar; cdecl;
 
 function rot_register(caps: PRotCaps): integer; cdecl;
@@ -229,6 +233,8 @@ function rot_get_position;  external hamlib_modulename name 'rot_get_position';
 function rot_stop;          external hamlib_modulename name 'rot_stop';
 function rot_park;          external hamlib_modulename name 'rot_park';
 function rot_reset;         external hamlib_modulename name 'rot_reset';
+function rot_move;          external hamlib_modulename name 'rot_move';
+function rot_set_position_at; external hamlib_modulename name 'rot_set_position_at';
 function rot_get_info;      external hamlib_modulename name 'rot_get_info';
 function rot_register;      external hamlib_modulename name 'rot_register';
 function rot_unregister;    external hamlib_modulename name 'rot_unregister';

@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: rotator.h,v 1.2 2001-12-28 20:30:58 fillods Exp $
+ *		$Id: rotator.h,v 1.3 2002-01-16 16:52:33 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,7 +26,7 @@
 #include <hamlib/rig.h>
 #include <hamlib/rotlist.h>
 #include <stdio.h>		/* required for FILE definition */
-#include <sys/time.h>		/* required for struct timeval */
+#include <time.h>		/* required for time_t definition */
 
 
 __BEGIN_DECLS
@@ -47,18 +47,22 @@ typedef int rot_reset_t;
 #define ROT_FLAG_AZIMUTH		(1<<1)
 #define ROT_FLAG_ELEVATION		(1<<2)
 
+#define ROT_TYPE_OTHER		    0
 
-#define ROT_TYPE_OTHER		0
-
-
+#define ROT_MOVE_UP             (1<<1)
+#define ROT_MOVE_DOWN           (1<<2)
+#define ROT_MOVE_LEFT           (1<<3)
+#define ROT_MOVE_CCW            ROT_MOVE_LEFT
+#define ROT_MOVE_RIGHT          (1<<4)
+#define ROT_MOVE_CW             ROT_MOVE_RIGHT
 
 /* Basic rot type, can store some useful
-* info about different rotators. Each lib must
-* be able to populate this structure, so we can make
-* useful enquiries about capablilities.
-*/
+ * info about different rotators. Each lib must
+ * be able to populate this structure, so we can make
+ * useful enquiries about capablilities.
+ */
 
-/* 
+/*
  * The main idea of this struct is that it will be defined by the backend
  * rig driver, and will remain readonly for the application.
  * Fields that need to be modifiable by the application are
@@ -68,7 +72,7 @@ typedef int rot_reset_t;
  * sharing the struct rot_caps of the backend, while keeping their own
  * customized data.
  * NB: don't move fields around, as backend depends on it when initializing
- * 		their caps.
+ *     their caps.
  */
 struct rot_caps {
   rot_model_t rot_model;
@@ -93,7 +97,7 @@ struct rot_caps {
   int timeout;
   int retry;
 
-  /* 
+  /*
    * Movement range, az is relative to North
    * negative values allowed for overlap
    */
@@ -110,12 +114,12 @@ struct rot_caps {
    * Rot Admin API
    *
    */
- 
+
   int (*rot_init)(ROT *rot);
   int (*rot_cleanup)(ROT *rot);
   int (*rot_open)(ROT *rot);
   int (*rot_close)(ROT *rot);
-  
+
   int (*set_conf)(ROT *rot, token_t token, const char *val);
   int (*get_conf)(ROT *rot, token_t token, char *val);
 
@@ -123,14 +127,14 @@ struct rot_caps {
    *  General API commands, from most primitive to least.. :()
    *  List Set/Get functions pairs
    */
-  
+
   int (*set_position)(ROT *rot, azimuth_t azimuth, elevation_t elevation);
   int (*get_position)(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
 
   int (*stop)(ROT *rot);
   int (*park)(ROT *rot);
-
   int (*reset)(ROT *rot, rot_reset_t reset);
+  int (*move)(ROT *rot, int direction, int speed);
 
   /* get firmware info, etc. */
   const char* (*get_info)(ROT *rot);
@@ -185,8 +189,6 @@ struct rot {
 	struct rot_state state;
 };
 
-
-
 /* --------------- API function prototypes -----------------*/
 
 extern HAMLIB_EXPORT(ROT *) rot_init HAMLIB_PARAMS((rot_model_t rot_model));
@@ -200,15 +202,13 @@ extern HAMLIB_EXPORT(int) rot_get_conf HAMLIB_PARAMS((ROT *rot, token_t token, c
    *  General API commands, from most primitive to least.. )
    *  List Set/Get functions pairs
    */
-
 extern HAMLIB_EXPORT(int) rot_set_position HAMLIB_PARAMS((ROT *rot, azimuth_t azimuth, elevation_t elevation));
 extern HAMLIB_EXPORT(int) rot_get_position HAMLIB_PARAMS((ROT *rot, azimuth_t *azimuth, elevation_t *elevation));
-
 extern HAMLIB_EXPORT(int) rot_stop HAMLIB_PARAMS((ROT *rot));
 extern HAMLIB_EXPORT(int) rot_park HAMLIB_PARAMS((ROT *rot));
 extern HAMLIB_EXPORT(int) rot_reset HAMLIB_PARAMS((ROT *rot, rot_reset_t reset));
+extern HAMLIB_EXPORT(int) rot_move HAMLIB_PARAMS((ROT *rot, int direction, int speed));
 extern HAMLIB_EXPORT(const char*) rot_get_info HAMLIB_PARAMS((ROT *rot));
-
 
 extern HAMLIB_EXPORT(int) rot_register HAMLIB_PARAMS((const struct rot_caps *caps));
 extern HAMLIB_EXPORT(int) rot_unregister HAMLIB_PARAMS((rot_model_t rot_model));
