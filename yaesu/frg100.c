@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FRG-100 using the "CAT" interface
  *
- *	$Id: frg100.c,v 1.1 2004-08-10 21:08:41 fillods Exp $
+ *	$Id: frg100.c,v 1.2 2004-08-26 20:56:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,9 +88,9 @@ const struct rig_caps frg100_caps = {
   .rig_model =          RIG_MODEL_FRG100,
   .model_name =         "FRG-100",
   .mfg_name =           "Yaesu",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_UNTESTED,
+  .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_RECEIVER,
   .ptt_type =           RIG_PTT_NONE,
   .dcd_type =           RIG_DCD_NONE,
@@ -193,7 +193,7 @@ int frg100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0a};
 
    /* store bcd format in cmd (MSB), not sure though */
-  to_bcd_be(cmd, freq/10, 8);
+  to_bcd(cmd, freq/10, 8);
 
   /* Frequency set */
   return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
