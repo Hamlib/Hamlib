@@ -152,10 +152,12 @@ extern	int	    lt_dlinit		LT_PARAMS((void));
 extern	int	    lt_dlexit		LT_PARAMS((void));
 
 /* Module search path manipulation.  */
-extern	int	    lt_dladdsearchdir	LT_PARAMS((const char *search_dir));
-extern	int 	    lt_dlsetsearchpath	LT_PARAMS((const char *search_path));
-extern	const char *lt_dlgetsearchpath	LT_PARAMS((void));
-extern	int	    lt_dlforeachfile	LT_PARAMS((
+extern	int	    lt_dladdsearchdir	 LT_PARAMS((const char *search_dir));
+extern	int	    lt_dlinsertsearchdir LT_PARAMS((const char *before,
+						    const char *search_dir));
+extern	int 	    lt_dlsetsearchpath	 LT_PARAMS((const char *search_path));
+extern	const char *lt_dlgetsearchpath	 LT_PARAMS((void));
+extern	int	    lt_dlforeachfile	 LT_PARAMS((
 			const char *search_path,
 			int (*func) (const char *filename, lt_ptr data),
 			lt_ptr data));
@@ -321,7 +323,8 @@ extern	int		lt_dlloader_remove  LT_PARAMS((
     LT_ERROR(INVALID_ERRORCODE,     "invalid errorcode")		\
     LT_ERROR(SHUTDOWN,		    "library already shutdown")		\
     LT_ERROR(CLOSE_RESIDENT_MODULE, "can't close resident module")	\
-    LT_ERROR(INVALID_MUTEX_ARGS,    "invalid mutex handler registration")
+    LT_ERROR(INVALID_MUTEX_ARGS,    "invalid mutex handler registration") \
+    LT_ERROR(INVALID_POSITION,	    "invalid search path insert position")
 
 /* Enumerate the symbolic error names. */
 enum {
