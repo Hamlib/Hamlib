@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backend
  * 	as well as by the frontend.
  *
- * $Id: misc.c,v 1.2 2000-10-08 21:43:00 f4cfe Exp $  
+ * $Id: misc.c,v 1.3 2000-10-16 21:53:22 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -143,8 +143,10 @@ to_bcd(unsigned char bcd_data[], unsigned long long freq, int bcd_len)
 			freq /= 10;
 			bcd_data[i] = a;
 	}
-	if (bcd_len&1)
+	if (bcd_len&1) {
+			bcd_data[i] &= 0xf0;
 			bcd_data[i] |= freq%10;	/* NB: high nibble is left uncleared */
+	}
 
 	return bcd_data;
 }
@@ -173,6 +175,52 @@ unsigned long long from_bcd(const unsigned char bcd_data[], int bcd_len)
 	return f;
 }
 
+/*
+ * Same as to_bcd, but in Big Endian mode
+ */
+unsigned char *
+to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len)
+{
+	int i;
+	unsigned char a;
+
+	/* '450'-> 0,4;5,0 */
+
+	for (i=(bcd_len/2)-1; i >= 0; i--) {
+			a = freq%10;
+			freq /= 10;
+			a |= (freq%10)<<4;
+			freq /= 10;
+			bcd_data[i] = a;
+	}
+	if (bcd_len&1) {
+			bcd_data[0] &= 0xf0;
+			bcd_data[0] |= freq%10;	/* NB: high nibble is left uncleared */
+	}
+
+	return bcd_data;
+}
+
+/*
+ * Same as from_bcd, but in Big Endian mode
+ */
+unsigned long long from_bcd_be(const unsigned char bcd_data[], int bcd_len)
+{
+	int i;
+	freq_t f = 0;
+
+	if (bcd_len&1)
+			f = bcd_data[0] & 0x0f;
+
+	for (i=bcd_len&1; i < (bcd_len+1)/2; i++) {
+			f *= 10;
+			f += bcd_data[i]>>4;
+			f *= 10;
+			f += bcd_data[i] & 0x0f;
+	}
+	
+	return f;
+}
 
 /*
  * rig_set_debug

@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backends
  * 	as well as by the frontend.
  *
- *    $Id: misc.h,v 1.2 2000-10-08 21:43:41 f4cfe Exp $  
+ *    $Id: misc.h,v 1.3 2000-10-16 21:53:22 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,6 +73,12 @@ void dump_hex(const unsigned char ptr[], size_t size);
  */
 unsigned char *to_bcd(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
 unsigned long long from_bcd(const unsigned char bcd_data[], int bcd_len);
+
+/*
+ * same as to_bcd and from_bcd, but in Big Endian mode
+ */
+unsigned char *to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
+unsigned long long from_bcd_be(const unsigned char bcd_data[], int bcd_len);
 
 #endif /* _MISC_H */
 
