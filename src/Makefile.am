@@ -9,5 +9,5 @@ libhamlib_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
 libhamlib_la_LIBADD = @LIBLTDL@ ../lib/libmisc.la -lm
 
 noinst_HEADERS = event.h misc.h serial.h iofunc.h cal.h tones.h \
-					conf.h rot_conf.h
+					conf.h rot_conf.h token.h
 
