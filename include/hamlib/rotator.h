@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - Rotator API header
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.11 2003-11-03 04:26:37 n0nb Exp $
+ *	$Id: rotator.h,v 1.12 2005-03-26 23:33:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -267,7 +267,7 @@ struct rot_state {
 	/*
 	 * non overridable fields, internal use
 	 */
-  port_t rotport;             /*!< Rotator port (internal use). */
+  hamlib_port_t rotport;             /*!< Rotator port (internal use). */
 
   int comm_state;	      /*!< Comm port state, opened/closed. */
   rig_ptr_t priv;             /*!< Pointer to private rotator state data. */
@@ -320,7 +320,7 @@ extern HAMLIB_EXPORT(int) rot_list_foreach HAMLIB_PARAMS((int (*cfunc)(const str
 extern HAMLIB_EXPORT(int) rot_load_backend HAMLIB_PARAMS((const char *be_name));
 extern HAMLIB_EXPORT(int) rot_check_backend HAMLIB_PARAMS((rot_model_t rot_model));
 extern HAMLIB_EXPORT(int) rot_load_all_backends HAMLIB_PARAMS(());
-extern HAMLIB_EXPORT(rot_model_t) rot_probe_all HAMLIB_PARAMS((port_t *p));
+extern HAMLIB_EXPORT(rot_model_t) rot_probe_all HAMLIB_PARAMS((hamlib_port_t *p));
 
 extern HAMLIB_EXPORT(int) rot_token_foreach HAMLIB_PARAMS((ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data));
 extern HAMLIB_EXPORT(const struct confparams*) rot_confparam_lookup HAMLIB_PARAMS((ROT *rot, const char *name));

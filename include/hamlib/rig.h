@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - API header
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.101 2005-01-24 23:03:22 fillods Exp $
+ *	$Id: rig.h,v 1.102 2005-03-26 23:33:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1248,7 +1248,11 @@ typedef struct {
 		int pin;	/*!< Parrallel port pin number */
 	} parallel;		/*!< parallel attributes */
   } parm;			/*!< Port parameter union */
-} port_t;
+} hamlib_port_t;
+
+#if !defined(__MACOSX__) || !defined(__cplusplus)
+typedef hamlib_port_t port_t;
+#endif
 
 
 /** 
@@ -1264,9 +1268,9 @@ struct rig_state {
 	/*
 	 * overridable fields
 	 */
-  port_t rigport;	/*!< Rig port (internal use). */
-  port_t pttport;	/*!< PTT port (internal use). */
-  port_t dcdport;	/*!< DCD port (internal use). */
+  hamlib_port_t rigport;	/*!< Rig port (internal use). */
+  hamlib_port_t pttport;	/*!< PTT port (internal use). */
+  hamlib_port_t dcdport;	/*!< DCD port (internal use). */
 
   double vfo_comp;	/*!< VFO compensation in PPM, 0.0 to disable */
 
@@ -1545,9 +1549,9 @@ extern HAMLIB_EXPORT(int) rig_load_backend HAMLIB_PARAMS((const char *be_name));
 extern HAMLIB_EXPORT(int) rig_check_backend HAMLIB_PARAMS((rig_model_t rig_model));
 extern HAMLIB_EXPORT(int) rig_load_all_backends HAMLIB_PARAMS(());
 
-typedef int (*rig_probe_func_t)(const port_t *, rig_model_t, rig_ptr_t);
-extern HAMLIB_EXPORT(int) rig_probe_all HAMLIB_PARAMS((port_t *p, rig_probe_func_t, rig_ptr_t));
-extern HAMLIB_EXPORT(rig_model_t) rig_probe HAMLIB_PARAMS((port_t *p));
+typedef int (*rig_probe_func_t)(const hamlib_port_t *, rig_model_t, rig_ptr_t);
+extern HAMLIB_EXPORT(int) rig_probe_all HAMLIB_PARAMS((hamlib_port_t *p, rig_probe_func_t, rig_ptr_t));
+extern HAMLIB_EXPORT(rig_model_t) rig_probe HAMLIB_PARAMS((hamlib_port_t *p));
 
 
 /* Misc calls */
