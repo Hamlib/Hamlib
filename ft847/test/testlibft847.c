@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.2 2000-07-25 22:55:57 javabear Exp $  
+ * $Id: testlibft847.c,v 1.3 2000-07-26 00:09:29 javabear Exp $  
  *
  */
 
@@ -144,10 +144,17 @@ static void dump_hex(unsigned char *ptr, int size, int length) {
  */
 
 static int test(fd) {
+  unsigned char data1;
 
-  cmd_cat_on(fd);
+  cmd_cat_off(fd);		/* cat off */
   sleep(1);
-  cmd_cat_off(fd);
+  cmd_cat_on(fd);		/* cat on */
+  sleep(1);
+  cmd_sat_on(fd);		/* sat mode on */
+  sleep(1);
+  cmd_sat_off(fd);		/* sat mode off */
+  sleep(1);
+  cmd_cat_off(fd);		/* cat off */
     
   return 0;
 }
