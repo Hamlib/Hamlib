@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.2 2000-07-27 00:52:26 javabear Exp $  
+ * $Id: testlibft747.c,v 1.3 2000-07-28 03:09:08 javabear Exp $  
  *
  */
 
@@ -166,58 +166,35 @@ static int test(fd) {
   int bytes = 0;
   struct ft747_update_data *header;
 
-  cmd_split_yes(fd);
+  cmd_set_split_yes(fd);
   sleep(1);
-  cmd_split_no(fd);
+  cmd_set_split_no(fd);
   sleep(1);
-  cmd_dlock_on(fd);
+  cmd_set_dlock_on(fd);
   sleep(1);
-  cmd_dlock_off(fd);
+  cmd_set_dlock_off(fd);
   sleep(1);
-  cmd_select_vfo_a(fd);
+  cmd_set_select_vfo_a(fd);
   sleep(1);
-  cmd_up500k(fd);
+  cmd_set_up500k(fd);
   sleep(1);
-  cmd_down500k(fd);
+  cmd_set_down500k(fd);
   sleep(1);
 /*    cmd_memory_to_vfo(fd,1); */
   sleep(1);
 /*    cmd_vfo_to_memory(fd,2); */
   sleep(1);
-  cmd_mode_set(fd,3);		/* cw */
-  cmd_ptt_on(fd);		/* stand back .. */
+  cmd_set_mode(fd,3);		/* cw */
+  cmd_set_ptt_on(fd);		/* stand back .. */
   sleep(1);
-  cmd_ptt_off(fd);		/* phew.. */
+  cmd_set_ptt_off(fd);		/* phew.. */
   sleep(1);
 
-  cmd_pacing_set(fd,0);		/* set pacing */
-  cmd_update(fd);		/* request data from rig */
-/*    sleep(1); */			/* be nice .. */
- /*   n = read(fd,datain,345);	 */	/* grab 345 bytes from rig */
+  cmd_set_pacing(fd,0);		/* set pacing */
 
-/*    printf("n = %i, frequency = %.6s \n", n, datain[1]); */
+  cmd_get_update_store(fd,datain); /* read (sleep)  and store in datain */
 
-
-  /*
-   * Sleep regularly until the buffer contains all 345 bytes
-   * This should handle most values used for pacing.
-   */
-
-  bytes = 0;
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    if (bytes == 345)
-      break;
-    printf("bytes  = %i\n", bytes);
-    sleep(1);
-    
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,datain,345);		/* grab 345 bytes from rig */
-
-  for(i=0; i<n; i++) {
+  for(i=0; i<345; i++) {
     printf("i = %i ,datain[i] = %x \n", i, datain[i]);
   }
 

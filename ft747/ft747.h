@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.2 2000-07-27 00:42:09 javabear Exp $  
+ *    $Id: ft747.h,v 1.3 2000-07-28 03:05:18 javabear Exp $  
  */
 
 
@@ -73,26 +73,35 @@ const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 2
 int rig_open(char *serial_port); /* return fd or -1 on error */
 int rig_close(int fd);		 /* close port using fd */
 
-void cmd_split_yes(int fd);
-void cmd_split_no(int fd);
-void cmd_recall_memory(int fd, int mem);
-void cmd_vfo_to_memory(int fd, int mem);
-void cmd_dlock_off(int fd);
-void cmd_dlock_on(int fd);
-void cmd_select_vfo_a(int fd);
-void cmd_select_vfo_b(int fd);
-void cmd_memory_to_vfo(int fd, int mem);
-void cmd_up500k(int fd);
-void cmd_down500k(int fd);
-void cmd_clarify_off(int fd);
-void cmd_clarify_on(int fd);
-void cmd_freq_set(int fd, unsigned int freq);
-void cmd_mode_set(int fd, int mode);
-void cmd_pacing_set(int fd, int delay);
-void cmd_ptt_off(int fd);
-void cmd_ptt_on(int fd);	/* careful.. */
-void cmd_update(int fd);	/* data internal */
-void cmd_update_store(int fd, unsigned char *buffer); /* data external */
+/*
+ * set commands
+ */
+
+
+void cmd_set_split_yes(int fd);
+void cmd_set_split_no(int fd);
+void cmd_set_recall_memory(int fd, int mem);
+void cmd_set_vfo_to_memory(int fd, int mem);
+void cmd_set_dlock_off(int fd);
+void cmd_set_dlock_on(int fd);
+void cmd_set_select_vfo_a(int fd);
+void cmd_set_select_vfo_b(int fd);
+void cmd_set_memory_to_vfo(int fd, int mem);
+void cmd_set_up500k(int fd);
+void cmd_set_down500k(int fd);
+void cmd_set_clarify_off(int fd);
+void cmd_set_clarify_on(int fd);
+void cmd_set_freq(int fd, unsigned int freq);
+void cmd_set_mode(int fd, int mode);
+void cmd_set_pacing(int fd, int delay);
+void cmd_set_ptt_off(int fd);
+void cmd_set_ptt_on(int fd);	/* careful.. */
+
+/*
+ * get commands
+ */
+
+void cmd_get_update_store(int fd, unsigned char *buffer); /* data external */
 
 
 

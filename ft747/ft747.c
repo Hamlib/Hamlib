@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.4 2000-07-28 00:57:29 javabear Exp $  
+ * $Id: ft747.c,v 1.5 2000-07-28 03:06:16 javabear Exp $  
  *
  */
 
@@ -23,7 +23,6 @@
 #include "serial.h"
 #include "ft747.h"
 
-static unsigned char datain[350]; /* data read from rig */
 
 
 /*
@@ -54,86 +53,86 @@ int rig_close(int fd) {
  * Implement OPCODES
  */
 
-void cmd_split_yes(int fd) {
+void cmd_set_split_yes(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x01 }; /* split = on */
   write_block(fd,data);
 }
 
-void cmd_split_no(int fd) {
+void cmd_set_split_no(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x01 }; /* split = off */
   write_block(fd,data);
 }
 
-void cmd_recall_memory(int fd, int mem) {
+void cmd_set_recall_memory(int fd, int mem) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x02 }; /* recall memory*/
   
   data[3] = mem;
   write_block(fd,data);
 }
 
-void cmd_vfo_to_memory(int fd, int mem) {
+void cmd_set_vfo_to_memory(int fd, int mem) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x03 }; /* vfo to  memory*/
   
   data[3] = mem;
   write_block(fd,data);
 }
 
-void cmd_dlock_off(int fd) {
+void cmd_set_dlock_off(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x04 }; /* dial lock = off */
   write_block(fd,data);
 }
 
-void cmd_dlock_on(int fd) {
+void cmd_set_dlock_on(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x04 }; /* dial lock = on */
   write_block(fd,data);
 
 }
 
-void cmd_select_vfo_a(int fd) {
+void cmd_set_select_vfo_a(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x05 }; /* select vfo A */
   write_block(fd,data);
 }
 
-void cmd_select_vfo_b(int fd) {
+void cmd_set_select_vfo_b(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x05 }; /* select vfo B */
   write_block(fd,data);
 }
 
-void cmd_memory_to_vfo(int fd, int mem) {
+void cmd_set_memory_to_vfo(int fd, int mem) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x06 }; /* memory to vfo*/
   
   data[3] = mem;
   write_block(fd,data);
 }
 
-void cmd_up500k(int fd) {
+void cmd_set_up500k(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x07 }; /* up 500 khz */
   write_block(fd,data);
 }
 
-void cmd_down500k(int fd) {
+void cmd_set_down500k(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x08 }; /* down 500 khz */
   write_block(fd,data);
 }
 
-void cmd_clarify_off(int fd) {
+void cmd_set_clarify_off(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x09 }; /* clarify off */
   write_block(fd,data);
   printf("cmd_clarify_off complete \n");
 }
 
-void cmd_clarify_on(int fd) {
+void cmd_set_clarify_on(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x09 }; /* clarify on */
   write_block(fd,data);
   printf("cmd_clarify_on complete \n");
 }
 
-void cmd_freq_set(int fd, unsigned int freq) {
+void cmd_set_freq(int fd, unsigned int freq) {
   printf("cmd_freq_set not implemented yet \n");
 }
 
 
-void cmd_mode_set(int fd, int mode) {
+void cmd_set_mode(int fd, int mode) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0c }; /* mode set */
 
   data[3] = mode;
@@ -142,7 +141,7 @@ void cmd_mode_set(int fd, int mode) {
 
 }
 
-void cmd_pacing_set(int fd, int delay) {
+void cmd_set_pacing(int fd, int delay) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0e }; /* pacing set */
 
   data[3] = delay;
@@ -151,14 +150,14 @@ void cmd_pacing_set(int fd, int delay) {
 
 }
 
-void cmd_ptt_off(int fd) {
+void cmd_set_ptt_off(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0f }; /* ptt off */
   write_block(fd,data);
   printf("cmd_ptt_off complete \n");
 
 }
 
-void cmd_ptt_on(int fd) {
+void cmd_set_ptt_on(int fd) {
 
 #ifdef TX_ENABLED
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x0f }; /* ptt on */
@@ -170,27 +169,22 @@ void cmd_ptt_on(int fd) {
 
 }
 
-void cmd_update(int fd) {
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
-  write_block(fd,data);
-  printf("cmd_update complete \n");
-}
 
 /*
  * Read data from rig and store in buffer provided
  * by the user.
  */
 
-void cmd_update_store(int fd, unsigned char *buffer) {
+void cmd_get_update_store(int fd, unsigned char *buffer) {
   int i,n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
   write_block(fd,data);
  
-  n = read_sleep(fd,datain,345);	/* wait and read for 345 bytes to be read */
+  n = read_sleep(fd,buffer,345);	/* wait and read for 345 bytes to be read */
 
   for(i=0; i<n; i++) {
-    printf("i = %i ,datain[i] = %x \n", i, datain[i]);
+    printf("i = %i ,buffer[i] = %x \n", i, buffer[i]);
   }
   
   printf("cmd_update complete \n");
