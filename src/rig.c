@@ -1,19 +1,8 @@
-/**
- * \file src/rig.c
- * \ingroup rig
- * \brief Ham Radio Control Libraries interface
- * \author Stephane Fillod
- * \author Frank Singleton
- * \date 2000-2002
- *
- * Hamlib interface is a frontend implementing wrapper functions.
- */
-
 /*
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.64 2002-11-04 22:21:41 fillods Exp $
+ *	$Id: rig.c,v 1.65 2002-11-28 22:32:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,6 +19,18 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+
+/**
+ * \file src/rig.c
+ * \ingroup rig
+ * \brief Ham Radio Control Libraries interface
+ * \author Stephane Fillod
+ * \author Frank Singleton
+ * \date 2000-2002
+ *
+ * Hamlib interface is a frontend implementing wrapper functions.
+ */
+
 
 /*! \page rig Rig (radio) interface
  *
@@ -1921,7 +1922,11 @@ int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  * \param vfo	The target VFO
  * \param ant	The anntena to select
  *
- *  Sets the current antenna.
+ *  Select the antenna connector.
+\code
+	rig_set_ant(rig, RIG_VFO_CURR, RIG_ANT_1);  // apply to both TX&RX
+	rig_set_ant(rig, RIG_VFO_RX, RIG_ANT_2);
+\endcode
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
