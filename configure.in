@@ -1,8 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(include/hamlib/rig.h)
+AC_CANONICAL_SYSTEM
+
 # version code:
 V_MAJOR=1
 V_MINOR=1.1
+
 AM_INIT_AUTOMAKE(hamlib, ${V_MAJOR}.${V_MINOR})
 AM_CONFIG_HEADER(include/config.h)
 AC_PREREQ(2.10)dnl              dnl Minimum Autoconf version required.
@@ -13,15 +16,15 @@ AC_SUBST(hamlibdocdir)
 hamlibdocdir=$datadir/doc/hamlib
 
 dnl Checks for programs.
-AC_PROG_CC
+AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AC_PROG_MAKE_SET
-AC_PROG_CPP
-AC_PROG_GCC_TRADITIONAL
+AC_ISC_POSIX
+AC_PROG_CC
 AC_AIX
 AC_MINIX
-AC_ISC_POSIX
+AM_PROG_CC_STDC
+AC_PROG_GCC_TRADITIONAL
 
 INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE -DV_MAJOR=${V_MAJOR} -DV_MINOR=${V_MINOR}"
@@ -31,7 +34,7 @@ fi
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h)
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h sys/ioccom.h linux/ppdev.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -41,9 +44,9 @@ AC_HEADER_TIME
 
 dnl Checks for libraries.
 
-AC_CHECK_LIB(intl,gettext)
-AC_CHECK_LIB(nsl,gethostbyaddr)
-AC_CHECK_LIB(socket,socket)
+dnl AC_CHECK_LIB(intl,gettext)
+dnl AC_CHECK_LIB(nsl,gethostbyaddr)
+dnl AC_CHECK_LIB(socket,socket)
 AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 
 dnl Replace `main' with a function in -lc:
@@ -69,16 +72,33 @@ fi
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 
+AC_ARG_ENABLE(rigmatrix,
+[  --enable-rigmatrix	Generate rigmatrix tool (requires libgd)],
+[case "${enableval}" in
+	yes) wantrigmatrix=true ;;
+	no)  wantrigmatrix=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-rigmatrix) ;;
+	esac],[wantrigmatrix=false])
+
+AM_CONDITIONAL(WANTRIGMATRIX, test x$wantrigmatrix = xtrue)
+
+if test "x${wantrigmatrix}" != "xfalse"; then
 AC_CHECK_HEADERS(gd.h,
   [AC_CHECK_LIB(gd,gdImageCreate)
   AC_CHECK_FUNCS(gdImageCreate, , enable_rigmatrix=no)],
    [enable_rigmatrix=no])
+AC_CHECK_LIB(gd,png_write_data)
+AC_CHECK_LIB(z,uncompress)
 if test "${ac_cv_header_gd_h}" = "no"; then
   echo "disabling rigmatrix generation"
   RIGMATRIX=
 else
   echo "enabling rigmatrix generation"
   RIGMATRIX=rigmatrix
+fi
+else
+  echo "disabling rigmatrix generation"
+  RIGMATRIX=
 fi
 AC_SUBST(RIGMATRIX)
 
@@ -126,8 +146,15 @@ AC_SUBST(V_MAJOR)
 AC_SUBST(V_MINOR)
 AC_SUBST(DLL_PRELOAD)
 
-AC_OUTPUT( yaesu/Makefile icom/Makefile aor/Makefile \
-			kenwood/Makefile winradio/Makefile \
-			Makefile include/Makefile include/hamlib/Makefile src/Makefile \
-			tests/Makefile doc/Makefile )
+AC_OUTPUT([Makefile
+include/Makefile
+include/hamlib/Makefile
+yaesu/Makefile
+icom/Makefile
+aor/Makefile
+kenwood/Makefile
+winradio/Makefile
+src/Makefile
+tests/Makefile
+doc/Makefile])
 
