@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.63 2003-06-23 18:11:43 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.64 2003-06-28 22:39:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,7 +76,7 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_TS440, 4 },
 	{ RIG_MODEL_R5000, 5 },
 	{ RIG_MODEL_TS790, 7 },
-        { RIG_MODEL_TS950SD, 8 },
+        { RIG_MODEL_TS950SDX, 8 },	/* reported as RIG_MODEL_TS950SD originally */
 	{ RIG_MODEL_TS450S, 10 },
 	{ RIG_MODEL_TS690S, 11 },
 	{ RIG_MODEL_TS870S, 15 },
