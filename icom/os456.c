@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan456
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: os456.c,v 1.2 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: os456.c,v 1.3 2003-04-09 06:37:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,7 +33,7 @@
 
 #define OS456_VFO_ALL (RIG_VFO_A)
 
-#define OS456_LEVELS (RIG_LEVEL_STRENGTH)
+#define OS456_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
 
 /*
  * The signal strength data is in the form of two bytes, each consisting 
@@ -44,8 +44,8 @@
  */
 
 #define OS456_STR_CAL { 2, { \
-		{ 125, -60 }, \
 		{ 0, 60 }, \
+		{ 125, -60 }, \
 		} }		/* TBC */
 
 /*
@@ -85,8 +85,8 @@ const struct rig_caps os456_caps = {
 .timeout =  200,
 .retry =  3, 
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE, 
-.has_get_level =  RIG_LEVEL_NONE,
+.has_set_func =  RIG_FUNC_NONE,
+.has_get_level =  OS456_LEVELS,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
@@ -156,6 +156,10 @@ const struct rig_caps os456_caps = {
 .decode_event =  icom_decode_event,
 
 .get_info =  optoscan_get_info,
+
+.get_ctcss_tone = optoscan_get_ctcss_tone,
+.get_dcs_code = optoscan_get_dcs_code,
+.recv_dtmf = optoscan_recv_dtmf,
 
 };
 

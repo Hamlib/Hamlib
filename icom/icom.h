@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.54 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: icom.h,v 1.55 2003-04-09 06:37:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -140,6 +140,9 @@ int icom_decode_event(RIG *rig);
 int optoscan_open(RIG *rig);
 int optoscan_close(RIG *rig);
 const char* optoscan_get_info(RIG *rig);
+int optoscan_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+int optoscan_get_dcs_code(RIG * rig, vfo_t vfo, tone_t *code);
+int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length);
 
 extern const struct confparams icom_cfg_params[];
 

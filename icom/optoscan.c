@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.3 2003-04-07 22:41:51 fillods Exp $
+ *	$Id: optoscan.c,v 1.4 2003-04-09 06:37:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -134,4 +134,111 @@ const char* optoscan_get_info(RIG *rig)
 		return info;
 }
 
+/*
+ * optoscan_get_ctcss_tone
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int optoscan_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+		const struct rig_caps *caps;
+		unsigned char tonebuf[MAXFRAMELEN];
+		int tone_len, retval;
 
+		caps = rig->caps;
+
+		retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDCTCSS, NULL, 0,
+												tonebuf, &tone_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (tone_len != 4) {
+				rig_debug(RIG_DEBUG_ERR,"optoscan_get_ctcss_tone: ack NG (%#.2x), "
+								"len=%d\n", tonebuf[0], tone_len);
+				return -RIG_ERJCTED;
+		}
+
+		tone_len -= 2;
+
+		*tone = from_bcd_be(tonebuf+2, tone_len*2);
+		rig_debug(RIG_DEBUG_ERR,"optoscan_get_ctcss_tone: *tone=%d\n",*tone);
+
+		return RIG_OK;
+}
+
+
+/*
+ * optoscan_get_dcs_code
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int optoscan_get_dcs_code(RIG * rig, vfo_t vfo, tone_t *code)
+{
+		const struct rig_caps *caps;
+		unsigned char tonebuf[MAXFRAMELEN];
+		int tone_len, retval;
+
+		caps = rig->caps;
+
+		retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDCS, NULL, 0,
+												tonebuf, &tone_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (tone_len != 4) {
+				rig_debug(RIG_DEBUG_ERR,"optoscan_get_dcs_code: ack NG (%#.2x), "
+								"len=%d\n", tonebuf[0], tone_len);
+				return -RIG_ERJCTED;
+		}
+
+		tone_len -= 2;
+
+		*code = from_bcd_be(tonebuf+2, tone_len*2);
+		rig_debug(RIG_DEBUG_ERR,"optoscan_get_dcs_code: *code=%d\n",*code);
+
+        return RIG_OK;
+}
+
+int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
+{
+		const struct rig_caps *caps;
+		unsigned char dtmfbuf[MAXFRAMELEN],digit;
+		int len, retval, digitpos;
+		unsigned char xlate[] = {"0","1","2","3","4","5","6",
+					 "7","8","9","A","B","C","D",
+					 "*","#"};
+		caps = rig->caps;
+		digitpos=0;
+	       
+		do {
+		  retval = icom_transaction(rig, C_CTL_MISC, S_OPTO_RDDTMF, 
+					    NULL,0,dtmfbuf, &len);
+		  if (retval != RIG_OK)
+		    return retval;
+		  
+		  if (len != 3) {
+		    rig_debug(RIG_DEBUG_ERR,"optoscan_recv_dtmf: ack NG (%#.2x), len=%d\n", dtmfbuf[0], len);
+		    return -RIG_ERJCTED;
+		  }
+		  
+		  digit = dtmfbuf[2];
+		  
+		  if( digit < 0x16 )
+		    {
+		      digits[digitpos] = xlate[digit];
+		      digitpos++;
+		    }
+		} while( (digit != 0x99) && (digitpos < *length) );
+		  
+		*length = digitpos;
+		digits[digitpos]=0;
+
+		if(*length > 0)
+		  {
+		    rig_debug(RIG_DEBUG_ERR,"optoscan_recv_dtmf: %d digits - %s\n",*length,digits);
+		  }
+		else
+		  {
+		    rig_debug(RIG_DEBUG_ERR,"optoscan_recv_dtmf: no digits to read.\n");
+		  }
+
+        return RIG_OK;
+}
