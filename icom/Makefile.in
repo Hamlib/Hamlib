@@ -93,7 +93,7 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c icall.c
+ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c icall.c ic275.c ic475.c
 
 lib_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
@@ -115,13 +115,13 @@ libhamlib_icom_a_AR = $(AR) cru
 libhamlib_icom_a_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_icom_a_OBJECTS = ic706.$(OBJEXT) icr8500.$(OBJEXT) \
 	ic735.$(OBJEXT) ic775.$(OBJEXT) ic756.$(OBJEXT) icall.$(OBJEXT) \
-	icom.$(OBJEXT) frame.$(OBJEXT)
+	ic275.$(OBJEXT) ic475.$(OBJEXT) icom.$(OBJEXT) frame.$(OBJEXT)
 libhamlib_icom_a_OBJECTS = $(am_libhamlib_icom_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_icom_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_icom_la_OBJECTS = ic706.lo icr8500.lo ic735.lo ic775.lo \
-	ic756.lo icall.lo icom.lo frame.lo
+	ic756.lo icall.lo ic275.lo ic475.lo icom.lo frame.lo
 libhamlib_icom_la_OBJECTS = $(am_libhamlib_icom_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -131,6 +131,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/frame.Plo $(DEPDIR)/frame.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ic275.Plo $(DEPDIR)/ic275.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ic475.Plo $(DEPDIR)/ic475.Po \
 @AMDEP_TRUE@	$(DEPDIR)/ic706.Plo $(DEPDIR)/ic706.Po \
 @AMDEP_TRUE@	$(DEPDIR)/ic735.Plo $(DEPDIR)/ic735.Po \
 @AMDEP_TRUE@	$(DEPDIR)/ic756.Plo $(DEPDIR)/ic756.Po \
@@ -234,6 +236,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/frame.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/frame.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic275.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic275.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic475.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic475.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic706.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic706.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ic735.Plo@am__quote@
