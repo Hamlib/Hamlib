@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.5 2000-08-19 04:07:00 javabear Exp $  
+ *    $Id: serial.h,v 1.6 2000-09-04 17:51:29 javabear Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@
 int open_port(char *serial_port);
 int write_block(int fd, unsigned char *data);
 int close_port(int fd);
+int open_port2(struct rig_caps *rc);
 
 
 /*

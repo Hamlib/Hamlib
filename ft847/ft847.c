@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.17 2000-09-04 03:36:15 javabear Exp $  
+ * $Id: ft847.c,v 1.18 2000-09-04 17:51:35 javabear Exp $  
  *
  *
  *
@@ -50,7 +50,7 @@ static void calc_packed4_from_freq(long int freq, unsigned char *out);
 
 
 static struct rig_caps rigft847 = {
-  "ft847", 4800, 56000, 8, 2, RIG_PARITY_NONE
+  "ft847", 4800, 57600, 8, 2, RIG_PARITY_NONE, ""
 };
 
 
@@ -84,9 +84,21 @@ static int dcs_allowed[] = {
  */
 
 
-int rig_open(char *serial_port) {
-  return open_port(serial_port);
+/*  int rig_open(char *serial_port) { */
+/*    return open_port(serial_port); */
+/*  } */
+
+/*
+ * Open serial connection to rig using rig_caps
+ * returns fd.
+ */
+
+
+int rig_open(struct rig_caps *rc) {
+  return open_port2(rc);
 }
+
+
 
 /*
  * Closes serial connection to rig.
@@ -105,14 +117,13 @@ int rig_close(int fd) {
 
 struct rig_caps *rig_get_caps() {
  
-  struct rig_caps *r;
-  r = &rigft847;
+  struct rig_caps *rc;
+  rc = &rigft847;
 
-  printf("rig = %s \n", r->rig_name);
+  printf("rig = %s \n", rc->rig_name);
 
-  printf("rig = %s \n", rigft847.rig_name);
-
-  printf("rig serial_rate_min = = %u \n", rigft847.serial_rate_min);
+  printf("rig serial_rate_min = = %u \n", rc->serial_rate_min);
+  printf("rig serial_rate_max = = %u \n", rc->serial_rate_max);
 
 
   return  &rigft847;

@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities,
  *
  *
- * 	$Id: rig.h,v 1.2 2000-09-04 03:50:42 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.3 2000-09-04 17:51:28 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,10 +31,9 @@
  * useful enquiries about capablilities.
  */
 
-
-#define RIG_PARITY_ODD       0
-#define RIG_PARITY_EVEN      1
-#define RIG_PARITY_NONE      2
+#define RIG_PARITY_NONE      0
+#define RIG_PARITY_ODD       1
+#define RIG_PARITY_EVEN      2
 
 struct rig_caps {
   char rig_name[30];		/* eg ft847 */
@@ -43,10 +42,16 @@ struct rig_caps {
   unsigned char serial_data_bits;	/* eg 8 */
   unsigned char serial_stop_bits;	/* eg 2 */
   unsigned char serial_parity;	/*  */
-
+  char serial_port_name[30];		/* requested serial port */
 };
 
 
+/*
+ * visible function prototypes
+ *
+ */
+
+/*  int open_port2(struct rig_caps *rc); */
 
 
 

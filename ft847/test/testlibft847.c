@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.14 2000-09-04 03:45:54 javabear Exp $  
+ * $Id: testlibft847.c,v 1.15 2000-09-04 17:51:35 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -34,9 +34,9 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 
+#include "rig.h"
 #include "testlibft847.h"
 #include "ft847.h"
-#include "rig.h"
 
 
 static unsigned char datain[5]; /* data read from rig */
@@ -206,16 +206,24 @@ int main(void) {
 
   rc = rig_get_caps();		/* find capabilities */
 
-  printf("rig_name = %s \n", rc->rig_name);  
+  printf("rig_name = %s \n", rc->rig_name); 
+  rc->serial_data_bits = 8; 
+  printf("Initial serial_port_name = %s \n", rc->serial_port_name); 
 
-  fd = rig_open(SERIAL_PORT);
-  printf("port %s opened ok \n",SERIAL_PORT);
-  
+  strcpy(rc->serial_port_name,SERIAL_PORT); /* put wanted serial port in caps */
+
+
+/*    fd = rig_open(SERIAL_PORT); */
+/*    printf("port %s opened ok \n",SERIAL_PORT); */
+
+  fd = rig_open(rc);
+  printf("port %s opened ok \n", rc->serial_port_name);
+    
   test(fd);
   printf("testing communication result ok \n");
   
   rig_close(fd);
-  printf("port %s closed ok \n",SERIAL_PORT);
+  printf("port %s closed ok \n", rc->serial_port_name);
   
   return 0;
 }
