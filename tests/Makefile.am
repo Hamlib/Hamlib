@@ -3,11 +3,12 @@ AUTOMAKE_OPTIONS = dejagnu
 
 RUNTESTDEFAULTFLAGS = --tool rigctl --srcdir $$srcdir/testsuite RIGCTL=`pwd`/rigctl TESTBCD=`pwd`/testbcd
 
+DISTCLEANFILES = rigctl.log rigctl.sum
 
 bin_PROGRAMS = rigctl rotctl
 man_MANS = rigctl.1 rotctl.1
 
-noinst_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc @RIGMATRIX@
+check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc @RIGMATRIX@
 
 rigctl_SOURCES = rigctl.c dumpcaps.c
 
