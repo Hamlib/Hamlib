@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.46 2001-10-16 21:18:02 f4cfe Exp $
+ *		$Id: rig.c,v 1.47 2001-10-25 21:22:49 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -544,6 +544,8 @@ int rig_close(RIG *rig)
 		}
 
 		remove_opened_rig(rig);
+
+		rs->comm_state = RIG_COMM_NOTOPEN;
 
 		return RIG_OK;
 }
