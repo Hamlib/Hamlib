@@ -1,0 +1,87 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(include/rig.h)
+AM_INIT_AUTOMAKE(hamlib, 1.1.0)
+AM_CONFIG_HEADER(include/config.h)
+AC_PREREQ(2.10)dnl              dnl Minimum Autoconf version required.
+AC_ARG_PROGRAM
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_CPP
+AC_PROG_GCC_TRADITIONAL
+AC_AIX
+AC_MINIX
+AC_ISC_POSIX
+
+INCLUDES="${INCLUDES} -I/usr/local/include -I../src"
+CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+if test "${ac_cv_prog_gcc}" = "yes"; then
+  CFLAGS="${CFLAGS} -Wall"
+fi
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+dnl Checks for libraries.
+
+AC_CHECK_LIB(intl,gettext)
+AC_CHECK_LIB(nsl,gethostbyaddr)
+AC_CHECK_LIB(socket,socket)
+AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
+
+dnl Replace `main' with a function in -lc:
+AC_CHECK_LIB(c, main)
+dnl Replace `main' with a function in -lm:
+AC_CHECK_LIB(m, main)
+
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(atexit snprintf usleep select strerror)
+
+
+dnl initialize libtool
+AM_PROG_LIBTOOL
+
+if test "${enable_dynamic}" != "no"; then
+  AC_CHECK_HEADERS(dlfcn.h,
+  [AC_CHECK_LIB(dl,dlopen)
+  AC_CHECK_FUNCS(dlopen, , enable_dynamic=no)],
+   [enable_dynamic=no])
+fi
+
+AC_SUBST(INCLUDES)
+
+if test "${ac_cv_header_sys_socket_h}" = "no"; then
+  echo "disabling NET port"
+  NET=
+else
+  echo "enabling NET port"
+  NET=net
+fi
+AC_SUBST(NET)
+
+if test "${enable_shared}" = "no"; then
+  enable_preload=yes
+fi
+if test "${enable_dynamic}" = no || test "${enable_preload}" = "yes"; then
+  echo "preloading backends into DLL"
+  DLL_PRELOAD="\$(PRELOADABLE_BACKENDS)"
+else
+  DLL_PRELOAD=""
+fi
+AC_SUBST(V_MAJOR)
+AC_SUBST(V_MINOR)
+AC_SUBST(DLL_PRELOAD)
+
+AC_OUTPUT( ft747/Makefile ft847/Makefile icom/Makefile Makefile \
+			src/Makefile tests/Makefile )
