@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: th.h,v 1.1 2001-11-09 15:42:11 f4cfe Exp $
+ *		$Id: th.h,v 1.2 2002-01-07 17:48:36 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -19,17 +19,23 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+#ifndef __TH_H__
+#define __TH_H__ 1
 
+extern int th_transaction (RIG *rig, const char *cmdstr, char *data, size_t datasize);
+extern int th_decode_event (RIG *rig);
+extern int th_set_freq (RIG *rig, vfo_t vfo, freq_t freq);
+extern int th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq);
+extern int th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+extern int th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+extern int th_set_vfo(RIG *rig, vfo_t vfo);
+extern int th_get_vfo(RIG *rig, vfo_t *vfo);
+extern int th_set_trn(RIG *rig, int trn);
+extern int th_get_trn (RIG *rig, int *trn);
+extern int th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status);
+extern int th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+extern int th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+extern int th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 
-#ifndef _TH_H
-#define _TH_H 1
-
-int th_set_vfo(RIG *rig, vfo_t vfo);
-int th_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
-int th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
-
-#endif /* _TH_H */
+#endif /* __TH_H__ */
+/* end of file */
