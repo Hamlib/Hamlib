@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.20 2004-03-21 18:25:54 f4dwv Exp $
+ *	$Id: th.c,v 1.21 2004-11-04 22:49:10 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1098,7 +1098,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
 {
     char membuf[64],ackbuf[ACKBUF_LEN];
     int retval,ack_len;
-    long long freq,offset;
+    freq_t freq,offset;
     char req[16],scf[128];
     int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
@@ -1140,7 +1140,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
                     &freq, &step, &shift, &rev, &tone,
                     &ctcss, &tonefq, &ctcssfq, &offset);
 
-    chan->freq=(freq_t)freq;
+    chan->freq=freq;
     chan->vfo=RIG_VFO_MEM;
     chan->tuning_step=rig->state.tuning_steps[step].ts;
     if(freq <MHz(136) )  {
