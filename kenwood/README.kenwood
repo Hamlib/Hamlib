@@ -13,25 +13,22 @@ Kenwood CAT protocol (manual).
 Status
 ------
 
-This is a WIP.
-Handles 5% of all opcodes.
-All primitives are written from spec. In other words,
-they are totally untested because I don't own a Kenwood radio myself.
-Patchs and contributions are welcome! I'm also looking for
+All primitives are written from spec.
+Some testing has been done with a TS-870S. At least reading
+and setting of frequency, mode, VFO, audio- and RF level should work.
+Patches and contributions are welcome! I'm also looking for
 a real maintainer :)  --SF
 
-
-This lib should/will support other Kenwood models.
+This lib should/will support other Kenwood models as well.
 
 Warnings
 --------
 
-1. NOTHING IS WORKING, this is a WIP.
+1. This library should be tested with more kenwood rigs.
+2. Error codes returned by the rig are not yet handled.
 
 
 Contributors
 ------------
 
-
-
-
+Joop Stakenborg, PA4TU <pa3aba at debian.org> for TS-870S.
