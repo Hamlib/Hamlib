@@ -10,7 +10,7 @@
  * packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.7 2001-02-11 23:16:07 f4cfe Exp $  
+ *	$Id: serial.c,v 1.8 2001-02-14 01:09:57 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -39,11 +39,24 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+
+#ifdef HAVE_TERMIOS_H
+#include <termios.h> /* POSIX terminal control definitions */
+#endif
+#ifdef HAVE_TERMIO_H
+#include <termio.h>
+#else	/* sgtty */
+#include <sgtty.h>
+#endif
+
+#ifdef __CYGWIN32__
+/* include <winsock.h>	for FIONREAD?? */
+/* TODO: have a look in <winbase.h> for CTS/RTS and DTR/DSR control --SF */
+#endif
 
 #include <hamlib/rig.h>
 #include "serial.h"
@@ -74,8 +87,17 @@
 int serial_open(struct rig_state *rs) {
 
   int fd;				/* File descriptor for the port */
-  struct termios options;
   speed_t speed;			/* serial comm speed */
+
+#ifdef HAVE_TERMIOS_H
+  struct termios options;
+#elif defined(HAVE_TERMIO_H)
+  struct termio options;
+#elif defined(HAVE_SGTTY_H)
+  struct sgttyb sg;
+#else
+#error "No term control supported!"
+#endif
 
   if (!rs)
 		  return -RIG_EINVAL;
@@ -98,7 +120,13 @@ int serial_open(struct rig_state *rs) {
    * Get the current options for the port...
    */
   
+#ifdef HAVE_TERMIOS_H
   tcgetattr(fd, &options);
+#elif defined(HAVE_TERMIO_H)
+  ioctl (fd, TCGETA, &options);
+#else	/* sgtty */
+  ioctl (fd, TIOCGETP, &sg);
+#endif
   
   /*
    * Set the baud rates to requested values
@@ -135,6 +163,7 @@ int serial_open(struct rig_state *rs) {
 	close(fd);
     return -RIG_ECONF;
   }
+  /* TODO */
   cfsetispeed(&options, speed);
   cfsetospeed(&options, speed);
 
@@ -243,6 +272,7 @@ int serial_open(struct rig_state *rs) {
    * Choose raw input, no preprocessing please ..
    */
 
+#if defined(HAVE_TERMIOS_H) || defined(HAVE_TERMIO_H)
   options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
 
   /*
@@ -250,6 +280,11 @@ int serial_open(struct rig_state *rs) {
    */
 
   options.c_oflag &= ~OPOST;
+
+#else	/* sgtty */
+  sg.sg_flags = RAW;
+#endif
+
 
   /*
    * Flush serial port
@@ -261,12 +296,29 @@ int serial_open(struct rig_state *rs) {
    * Finally, set the new options for the port...
    */
   
+#ifdef HAVE_TERMIOS_H
   if (tcsetattr(fd, TCSANOW, &options) == -1) {
 		rig_debug(RIG_DEBUG_ERR, "open_serial: tcsetattr failed: %s\n", 
 					strerror(errno));
 		close(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
+#elif defined(HAVE_TERMIO_H)
+  if (ioctl(fd, TCSETA, &options) == -1) {
+		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TCSETA) failed: %s\n", 
+					strerror(errno));
+		close(fd);
+		return -RIG_ECONF;		/* arg, so close! */
+  }
+#else	/* sgtty */
+  if (ioctl(fd, TIOCSETP, &sg) == -1) {
+		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TIOCSETP) failed: %s\n", 
+					strerror(errno));
+		close(fd);
+		return -RIG_ECONF;		/* arg, so close! */
+  }
+#endif
+
 
   rs->fd = fd;
 
@@ -628,13 +680,13 @@ int ser_ptt_get(struct rig_state *rs, ptt_t *pttx)
  */
 int par_ptt_get(struct rig_state *rs, ptt_t *pttx)
 {
-		int status;
 
 		switch(rs->ptt_type) {
 #ifdef HAVE_LINUX_PPDEV_H
 		case RIG_PTT_PARALLEL:
 				{
 					unsigned char reg;
+					int status;
 
 					status = ioctl(rs->ptt_fd, PPRDATA, &reg);
 					*pttx = reg & 0x01 ? RIG_PTT_ON:RIG_PTT_OFF;
@@ -649,6 +701,65 @@ int par_ptt_get(struct rig_state *rs, ptt_t *pttx)
 		return RIG_OK;
 }
 
+/* This is a WIP */
+
+#ifdef WANT_RIG_DCD
+/*
+ * assumes dcdx not NULL
+ * REM: currently using state.ptt_fd. Should dcd_fd be opened instead?
+ */
+int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx)
+{
+		unsigned char y;
+		int status;
+
+		switch(rs->dcd_type) {
+		case RIG_DCD_SERIAL_CTS:
+			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
+			*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
+			return status;
+
+		case RIG_DCD_SERIAL_DSR:
+			return -RIG_ENIMPL;
+			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
+			*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
+			return status;
+
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
+								rs->dcd_type);
+				return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+/*
+ * assumes dcdx not NULL
+ * REM: currently using state.ptt_fd. Should dcd_fd be opened instead?
+ */
+int par_dcd_get(struct rig_state *rs, dcd_t *dcdx)
+{
+
+		switch(rs->dcd_type) {
+#ifdef HAVE_LINUX_PPDEV_H
+		case RIG_PTT_PARALLEL:
+				{
+					unsigned char reg;
+					int status;
+
+					status = ioctl(rs->ptt_fd, PPRDATA, &reg);
+					*dcdx = reg & 0x01 ? RIG_PTT_ON:RIG_PTT_OFF;
+					return status;
+				}
+#endif
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
+								rs->dcd_type);
+				return -RIG_ENAVAIL;
+		}
+		return RIG_OK;
+}
+#endif
 
 int ser_ptt_close(struct rig_state *rs)
 {
