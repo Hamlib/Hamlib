@@ -6,7 +6,7 @@
  * via serial interface to an Icom PCR-1xxx radio.
  *
  *
- *	$Id: pcr.c,v 1.5 2001-06-04 17:01:21 f4cfe Exp $  
+ *	$Id: pcr.c,v 1.6 2001-06-12 07:07:11 f4cfe Exp $  
  *
  *
  *
@@ -95,12 +95,14 @@ const int pcr1_ctcss_list[] = {
  */
 int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i;
+	int i, retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
 
-	write_block(&rs->rigport, cmd, cmd_len);
+	retval = write_block(&rs->rigport, cmd, cmd_len);
+	if (retval != RIG_OK)
+			return retval;
 
 	/*
 	 * buffered read are quite helpful here!
@@ -108,12 +110,16 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	 */
 	i = 0;
 	do {
-		fread_block(&rs->rigport, data+i, 1);
-	} while (data[i++] != ';');
+		retval = fread_block(&rs->rigport, data+i, 1);
+		if (retval == 0)
+				continue;		/* huh!? */
+		if (retval < 0)
+				return retval;
+	} while (i++ < *data_len);
 
-	*data_len = i;
+	*data_len = i;	/* useless ? */
 
-	return i;
+	return RIG_OK;
 }
 
 /*
@@ -134,13 +140,13 @@ int pcr_init(RIG *rig)
 	}
 
 	/*
-	 * FIXME: how can we retrieve current status?
+	 * FIXME: how can we retrieve initial status?
 	 */
 	priv->last_freq = MHz(145);
 	priv->last_mode = MD_FM;
 	priv->last_filter = FLT_15kHz;
 
-	rig->state.priv = (void*)priv;
+	rig->state.priv = (rig_ptr_t)priv;
 
 	return RIG_OK;
 }
@@ -170,14 +176,17 @@ int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		struct pcr_priv_data *priv;
 		unsigned char freqbuf[32], ackbuf[16];
-		int freq_len,ack_len;
+		int freq_len, ack_len, retval;
 
 		priv = (struct pcr_priv_data *)rig->state.priv;
 
 		freq_len = sprintf(freqbuf,"K0%010Ld0%c0%c00" CRLF, freq, 
 						priv->last_mode, priv->last_filter);
 
-		pcr_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
+		ack_len = 6;
+		retval = pcr_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_set_freq: ack NG, len=%d\n",
@@ -213,7 +222,7 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		struct pcr_priv_data *priv;
 		unsigned char mdbuf[32],ackbuf[16];
-		int mdbuf_len, ack_len;
+		int mdbuf_len, ack_len, retval;
 		int pcrmode, pcrfilter;
 
 		priv = (struct pcr_priv_data *)rig->state.priv;
@@ -255,7 +264,10 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		mdbuf_len = sprintf(mdbuf,"K0%010Ld0%c0%c00" CRLF, priv->last_freq, 
 						pcrmode, pcrfilter);
 
-		pcr_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+		ack_len = 6;
+		retval = pcr_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: ack NG, len=%d\n",
@@ -315,7 +327,7 @@ const char *pcr_get_info(RIG *rig)
 		struct pcr_priv_data *priv;
 		unsigned char ackbuf[16];
 		static char buf[100];	/* FIXME: reentrancy */
-		int ack_len;
+		int ack_len, retval;
 		int proto_version = 0, frmwr_version = 0;
 		int options = 0, country_code = 0;
 		char *country;
@@ -325,47 +337,51 @@ const char *pcr_get_info(RIG *rig)
 		/*
 		 * protocol version
 		 */
-		pcr_transaction (rig, "G2?" CRLF, 5, ackbuf, &ack_len);
-
-		if (ack_len != 6) {
+		ack_len = 6;
+		retval = pcr_transaction (rig, "G2?" CRLF, 5, ackbuf, &ack_len);
+		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
+		} else {
+			sscanf(ackbuf, "G2%d", &proto_version);
 		}
-		sscanf(ackbuf, "G2%d", &proto_version);
 
 		/*
 		 * Firmware version
 		 */
-		pcr_transaction (rig, "G4?" CRLF, 5, ackbuf, &ack_len);
-
-		if (ack_len != 6) {
+		ack_len = 6;
+		retval = pcr_transaction (rig, "G4?" CRLF, 5, ackbuf, &ack_len);
+		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
+		} else {
+			sscanf(ackbuf, "G4%d", &frmwr_version);
 		}
-		sscanf(ackbuf, "G4%d", &frmwr_version);
-
 
 		/*
 		 * optional devices
 		 */
-		pcr_transaction (rig, "GD?" CRLF, 5, ackbuf, &ack_len);
-
-		if (ack_len != 6) {
+		ack_len = 6;
+		retval = pcr_transaction (rig, "GD?" CRLF, 5, ackbuf, &ack_len);
+		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
+		} else {
+				sscanf(ackbuf, "GD%d", &options);
 		}
-		sscanf(ackbuf, "GD%d", &options);
 
 		/*
 		 * Country
 		 */
-		pcr_transaction (rig, "GE?" CRLF, 5, ackbuf, &ack_len);
-
-		if (ack_len != 6) {
+		ack_len = 6;
+		retval = pcr_transaction (rig, "GE?" CRLF, 5, ackbuf, &ack_len);
+		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
+		} else {
+			sscanf(ackbuf, "GE%d", &country_code);
 		}
-		sscanf(ackbuf, "GE%d", &country_code);
+
 		switch (country_code) {
 		case COUNTRY_JAPAN: country = "Japan"; break;
 		case COUNTRY_USA: country = "USA"; break;

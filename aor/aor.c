@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.8 2001-06-04 17:01:21 f4cfe Exp $  
+ * $Id: aor.c,v 1.9 2001-06-12 07:07:11 f4cfe Exp $  
  *
  *
  *
@@ -68,17 +68,23 @@
  * aor_transaction
  * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
+ * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling
  */
 int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i;
+	int i, retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
 
-	write_block(&rs->rigport, cmd, cmd_len);
-	write_block(&rs->rigport, "\n", 1);
+	retval = write_block(&rs->rigport, cmd, cmd_len);
+	if (retval != RIG_OK)
+			return retval;
+
+	retval = write_block(&rs->rigport, "\n", 1);
+	if (retval != RIG_OK)
+			return retval;
 
 	/*
 	 * buffered read are quite helpful here!
@@ -86,12 +92,16 @@ int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	 */
 	i = 0;
 	do {
-		fread_block(&rs->rigport, data+i, 1);
+		retval = fread_block(&rs->rigport, data+i, 1);
+		if (retval == 0)
+				continue;	/* huh!? */
+		if (retval != RIG_OK)
+			return retval;
 	} while (data[i++] != CR);
 
 	*data_len = i;
 
-	return i;
+	return RIG_OK;
 }
 
 /*
@@ -105,9 +115,7 @@ int aor_close(RIG *rig)
 
 		/* terminate remote operation via the RS-232 */
 
-		aor_transaction (rig, "EX", 2, ackbuf, &ack_len);
-
-		return RIG_OK;
+		return aor_transaction (rig, "EX", 2, ackbuf, &ack_len);
 }
 
 
@@ -118,7 +126,7 @@ int aor_close(RIG *rig)
 int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		unsigned char freqbuf[16], ackbuf[16];
-		int freq_len,ack_len;
+		int freq_len, ack_len, retval;
 
 		/*
 		 * actually, frequency must be like nnnnnnnnm0, 
@@ -126,13 +134,9 @@ int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		 */
 		freq_len = sprintf(freqbuf,"RF%010Ld", freq);
 
-		aor_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
-
-		if (ack_len != 1 || ackbuf[0] != CR) {
-				rig_debug(RIG_DEBUG_ERR,"aor_set_freq: ack NG, len=%d\n",
-								ack_len);
-				return -RIG_ERJCTED;
-		}
+		retval = aor_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		return RIG_OK;
 }
@@ -145,9 +149,11 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		unsigned char freqbuf[16];
 		char *rfp;
-		int freq_len;
+		int freq_len, retval;
 
-		aor_transaction (rig, "RX", 2, freqbuf, &freq_len);
+		retval = aor_transaction (rig, "RX", 2, freqbuf, &freq_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		rfp = strstr(freqbuf, "RF");
 		sscanf(rfp+2,"%Ld", freq);
@@ -162,7 +168,7 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		unsigned char mdbuf[16],ackbuf[16];
-		int mdbuf_len,ack_len,aormode;
+		int mdbuf_len, ack_len, aormode, retval;
 
 		switch (mode) {
 			case RIG_MODE_AM:       
@@ -203,15 +209,9 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		}
 
 		mdbuf_len = sprintf(mdbuf, "MD%c", aormode);
-		aor_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+		retval = aor_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
 
-		if (ack_len != 1 || ackbuf[0] != CR) {
-				rig_debug(RIG_DEBUG_ERR,"aor_set_mode: ack NG, len=%d\n",
-								ack_len);
-				return -RIG_ERJCTED;
-		}
-
-		return RIG_OK;
+		return retval;
 }
 
 /*
@@ -221,10 +221,12 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 
 
-		aor_transaction (rig, "MD", 2, ackbuf, &ack_len);
+		retval = aor_transaction (rig, "MD", 2, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 2 || ackbuf[1] != CR) {
 				rig_debug(RIG_DEBUG_ERR,"aor_get_mode: ack NG, len=%d\n",
@@ -278,15 +280,7 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		 */
 		ts_len = sprintf(tsbuf,"ST%06ld", ts);
 
-		aor_transaction (rig, tsbuf, ts_len, ackbuf, &ack_len);
-
-		if (ack_len != 1 || ackbuf[0] != CR) {
-				rig_debug(RIG_DEBUG_ERR,"aor_set_ts: ack NG, len=%d\n",
-								ack_len);
-				return -RIG_ERJCTED;
-		}
-
-		return RIG_OK;
+		return aor_transaction (rig, tsbuf, ts_len, ackbuf, &ack_len);
 }
 
 /*
@@ -302,9 +296,7 @@ int aor_set_powerstat(RIG *rig, powerstat_t status)
 				return -RIG_EINVAL;
 
 		/* turn off power */
-		aor_transaction (rig, "QP", 2, ackbuf, &ack_len);
-
-		return RIG_OK;
+		return aor_transaction (rig, "QP", 2, ackbuf, &ack_len);
 }
 
 

@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *	$Id: alinco.c,v 1.2 2001-06-04 17:01:21 f4cfe Exp $  
+ *	$Id: alinco.c,v 1.3 2001-06-12 07:07:10 f4cfe Exp $  
  *
  *
  *
@@ -99,12 +99,14 @@
  */
 int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i, count;
+	int i, count, retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
 
-	write_block(&rs->rigport, cmd, cmd_len);
+	retval = write_block(&rs->rigport, cmd, cmd_len);
+	if (retval != RIG_OK)
+			return retval;
 
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
@@ -118,11 +120,13 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 		count = fread_block(&rs->rigport, data+i, 1);
 		if (count > 0)
 				i += count;
+		else if (count < 0)
+				return count;
 	} while (count > 0);
 
 	*data_len = i;
 
-	return i;
+	return RIG_OK;
 }
 
 /*
@@ -148,9 +152,7 @@ int alinco_set_vfo(RIG *rig, vfo_t vfo)
 		}
 		cmd_len = sprintf(cmdbuf, AL CMD_VFO "%c" EOM, vfo_num);
 
-		alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
-
-		return RIG_OK;
+		return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 }
 
 /*
@@ -160,10 +162,12 @@ int alinco_set_vfo(RIG *rig, vfo_t vfo)
 int alinco_get_vfo(RIG *rig, vfo_t *vfo)
 {
 		char vfobuf[16];
-		int vfo_len;
+		int vfo_len, retval;
 
-		alinco_transaction(rig, AL CMD_RMV EOM, strlen(AL CMD_RMV EOM), 
-						vfobuf, &vfo_len);
+		retval = alinco_transaction(rig, AL CMD_RMV EOM, 
+						strlen(AL CMD_RMV EOM), vfobuf, &vfo_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		if (vfo_len != 4 || vfo_len != 6) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_vfo: wrong answer %s, "
@@ -202,9 +206,7 @@ int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		/* at least 6 digits */
 		freq_len = sprintf(freqbuf, AL CMD_RXFREQ "%06Ld" EOM, freq);
 
-		alinco_transaction (rig, freqbuf, freq_len, NULL, NULL);
-
-		return RIG_OK;
+		return alinco_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }
 
 /*
@@ -212,10 +214,12 @@ int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 static int current_data_read(RIG *rig, char *databuf)
 {
-		int data_len;
+		int data_len, retval;
 
-		alinco_transaction (rig, AL CMD_RDATA EOM, strlen(AL CMD_RDATA EOM), 
-						databuf, &data_len);
+		retval = alinco_transaction (rig, AL CMD_RDATA EOM, 
+						strlen(AL CMD_RDATA EOM), databuf, &data_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		if (data_len != 26) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_current_data_read: "
@@ -252,7 +256,7 @@ int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		char mdbuf[16];
-		int mdbuf_len, narrow_filter;
+		int mdbuf_len, narrow_filter, retval;
 		char amode;
 
 		switch (mode) {
@@ -270,7 +274,9 @@ int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		}
 
 		mdbuf_len = sprintf(mdbuf, AL CMD_MODE "%c" EOM, amode);
-		alinco_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+		retval = alinco_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+		if (retval != RIG_OK)
+			return retval;
 
 		/*
 		 * TODO: please DX77 owners, check this, I'm not sure
@@ -283,9 +289,9 @@ int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 				narrow_filter = 0;
 
 		mdbuf_len = sprintf(mdbuf, AL CMD_FLTER "%02d" EOM, narrow_filter);
-		alinco_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+		retval = alinco_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
 
-		return RIG_OK;
+		return retval;
 }
 
 /*
@@ -351,11 +357,13 @@ int alinco_set_split(RIG *rig, vfo_t vfo, split_t split)
  */
 int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
-		int splt_len;
+		int splt_len, retval;
 		char spltbuf[32];
 
-		alinco_transaction (rig, AL CMD_RSPLT EOM, strlen(AL CMD_RSPLT EOM), 
-						spltbuf, &splt_len);
+		retval = alinco_transaction (rig, AL CMD_RSPLT EOM, 
+						strlen(AL CMD_RSPLT EOM), spltbuf, &splt_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		if (splt_len != 2) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_split: wrong answer %s, "
@@ -433,12 +441,14 @@ int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
  */
 int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-		int rit_len;
+		int rit_len, retval;
 		char ritbuf[32];
 
 		/* read in Hertz unit */
-		alinco_transaction (rig, AL CMD_RIT "0" EOM, strlen(AL CMD_RIT "0" EOM),
-						ritbuf, &rit_len);
+		retval = alinco_transaction (rig, AL CMD_RIT "0" EOM,
+						strlen(AL CMD_RIT "0" EOM), ritbuf, &rit_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		if (rit_len > 5 || (ritbuf[0] != '+' && ritbuf[0] != '-')) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_rit: wrong answer %s, "
@@ -615,8 +625,10 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		switch (level) {
 		case RIG_LEVEL_STRENGTH:
 				/* read A/D converted value */
-			alinco_transaction (rig, AL CMD_SMETER "1" EOM, 
+			retval = alinco_transaction (rig, AL CMD_SMETER "1" EOM, 
 							strlen(AL CMD_SMETER "1" EOM), lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
 
 			if (lvl_len != 5) {
 				rig_debug(RIG_DEBUG_ERR,"alinco_get_level: wrong answer"
@@ -660,8 +672,10 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_RFPOWER:
-			alinco_transaction (rig, AL CMD_RPOWER EOM, 
+			retval = alinco_transaction (rig, AL CMD_RPOWER EOM, 
 							strlen(AL CMD_RPOWER EOM), lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
 
 			if (lvl_len != 1) {
 				rig_debug(RIG_DEBUG_ERR,"alinco_get_level: wrong answer"
@@ -714,10 +728,12 @@ int alinco_set_ctcss(RIG *rig, vfo_t vfo, tone_t tone)
 int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 		char pttbuf[16];
-		int ptt_len;
+		int ptt_len, retval;
 
-		alinco_transaction (rig, AL CMD_PTT EOM, strlen(AL CMD_PTT EOM), 
-						pttbuf, &ptt_len);
+		retval = alinco_transaction (rig, AL CMD_PTT EOM, 
+						strlen(AL CMD_PTT EOM), pttbuf, &ptt_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		if (ptt_len != 3 || ptt_len != 4) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_ptt: wrong answer %s, "
@@ -746,10 +762,12 @@ int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int alinco_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 		char dcdbuf[16];
-		int dcd_len;
+		int dcd_len, retval;
 
-		alinco_transaction (rig, AL CMD_SQL EOM, strlen(AL CMD_SQL EOM), 
-						dcdbuf, &dcd_len);
+		retval = alinco_transaction (rig, AL CMD_SQL EOM,
+						strlen(AL CMD_SQL EOM), dcdbuf, &dcd_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		if (dcd_len != 4 || dcd_len != 5) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_dcd: wrong answer %s, "
@@ -785,9 +803,7 @@ int alinco_set_mem(RIG *rig, vfo_t vfo, int ch)
 
 		cmd_len = sprintf(cmdbuf, AL CMD_MCALL "%02d" EOM, ch);
 
-		alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
-
-		return RIG_OK;
+		return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 }
 
 /*
@@ -797,10 +813,12 @@ int alinco_set_mem(RIG *rig, vfo_t vfo, int ch)
 int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 		char membuf[16];
-		int mem_len;
+		int mem_len, retval;
 
-		alinco_transaction (rig, AL CMD_RMEM EOM, strlen(AL CMD_RMEM EOM), 
-						membuf, &mem_len);
+		retval = alinco_transaction (rig, AL CMD_RMEM EOM, 
+						strlen(AL CMD_RMEM EOM), membuf, &mem_len);
+		if (retval != RIG_OK)
+			return retval;
 
 		if (mem_len != 2) {
 			rig_debug(RIG_DEBUG_ERR,"alinco_get_mem: wrong answer %s, "
