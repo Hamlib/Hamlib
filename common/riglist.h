@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.3 2000-09-19 00:25:33 javabear Exp $	 *
+ * 	$Id: riglist.h,v 1.4 2000-09-20 06:13:14 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -39,7 +39,8 @@ enum rig_model_e {
 	RIG_MODEL_TS950,
 	RIG_MODEL_IC706,
 	RIG_MODEL_IC706MKII,
-	RIG_MODEL_IC706MKIIG
+	RIG_MODEL_IC706MKIIG,
+	RIG_MODEL_IC731
 	/* etc. */
 };
 
@@ -49,6 +50,7 @@ typedef enum rig_model_e rig_model_t;
  * It would be nice to have an automatic way of referencing all the backends
  * supported by hamlib. Maybe this array should be placed in a separate file..
  */
+extern const struct rig_caps ft747_caps;
 extern const struct rig_caps ft847_caps;
 extern const struct rig_caps ic706_caps;
 extern const struct rig_caps ic706mkiig_caps;
