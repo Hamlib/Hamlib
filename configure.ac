@@ -67,13 +67,16 @@ dnl Checks for libraries.
 # Also, Linux requires the "ieee" library for math to work
 # right (and it must appear before "-lm").
 #--------------------------------------------------------------------
-AC_CHECK_FUNC(sin, MATH_LIBS="", MATH_LIBS="-lm")
-AC_CHECK_LIB(ieee, main, [MATH_LIBS="-lieee $MATH_LIBS"])
+AC_CHECK_FUNC(sin, [MATH_LIBS=""], [MATH_LIBS="-lm"])
+AC_CHECK_LIB(ieee, main, [MATH_LIBS="-lieee $MATH_LIBS"], [], [])
+
+# trunc is part of C99 only
+AC_CHECK_LIB([c], [trunc], [], [AC_LIBOBJ(trunc)], [$MATH_LIBS])
 #--------------------------------------------------------------------
 # Interactive UNIX requires -linet instead of -lsocket, plus it
 # needs net/errno.h to define the socket-related error codes.
 #--------------------------------------------------------------------
-AC_CHECK_LIB(inet, main, [LIBS="$LIBS -linet"])
+AC_CHECK_LIB(inet, main, [LIBS="$LIBS -linet"], [], [])
 #--------------------------------------------------------------------
 #   Check for the existence of the -lsocket and -lnsl libraries.
 #   The order here is important, so that they end up in the right
@@ -95,7 +98,7 @@ hl_checkBoth=0
 hl_oldLibs=$LIBS
 AC_CHECK_FUNC(connect, hl_checkSocket=0, hl_checkSocket=1)
 if test "$hl_checkSocket" = 1; then
-	AC_CHECK_LIB(socket, main, NET_LIBS="$NET_LIBS -lsocket", hl_checkBoth=1)
+	AC_CHECK_LIB(socket, main, [NET_LIBS="$NET_LIBS -lsocket"], [hl_checkBoth=1], [])
 fi
 if test "$hl_checkBoth" = 1; then
 	hl2_oldLibs=$LIBS
@@ -103,7 +106,7 @@ if test "$hl_checkBoth" = 1; then
 	AC_CHECK_FUNC(accept, hl_checkNsl=0, [LIBS=$hl2_oldLibs])
 fi
 AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main, 
-									[NET_LIBS="$NET_LIBS -lnsl"]))
+									[NET_LIBS="$NET_LIBS -lnsl"], [], []))
 LIBS=$hl_oldLibs
 AC_SUBST(NET_LIBS)
 AC_SUBST(MATH_LIBS)
@@ -115,8 +118,7 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select gettimeofday memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
 AC_CHECK_FUNCS([cfmakeraw])
-AC_REPLACE_FUNCS(getopt_long)
-AC_REPLACE_FUNCS(usleep)
+AC_REPLACE_FUNCS([getopt_long usleep])
 AC_FUNC_ALLOCA
 AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
@@ -198,11 +200,11 @@ fi
 dnl Check for tcl-dev availability, so we can enable HamlibTCL
 
 SC_PATH_TCLCONFIG
-SC_LOAD_TCLCONFIG
-if test x"${TCL_LIB_SPEC}" = x; then
-	cf_with_tcl=no
-else
+if test x"${no_tcl}" = x; then
+	SC_LOAD_TCLCONFIG
 	cf_with_tcl=yes
+else
+	cf_with_tcl=no
 fi
 AC_MSG_CHECKING(whether to build tcl binding and demo)
 AC_ARG_WITH(tcl-binding,
