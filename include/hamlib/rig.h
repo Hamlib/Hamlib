@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.13 2001-01-28 22:11:36 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.14 2001-02-07 23:40:16 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -290,6 +290,7 @@ typedef signed long shortfreq_t;
  */
 #define mW(p)	 ((int)(p))
 #define Watts(p) ((int)((p)*1000))
+#define W(p)	 Watts(p)
 #define KW(p)	 ((int)((p)*1000000L))
 #define MW(p)	 ((int)((p)*1000000000LL))	/* geeez! :-) */
 
@@ -629,6 +630,8 @@ extern int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts); /* get tuning step 
 
 extern int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
 extern int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
+
+extern shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode);
 
 extern int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 extern int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
