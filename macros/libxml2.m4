@@ -133,7 +133,81 @@ main()
     }
   return 1;
 }
-],, no_xml=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+],, no_xml=yes,
+AC_TRY_LINK([
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <libxml/xmlversion.h>
+],[
+  int xml_major_version, xml_minor_version, xml_micro_version;
+  int major, minor, micro;
+  char *tmp_version;
+
+  system("touch conf.xmltest");
+
+  /* Capture xml2-config output via autoconf/configure variables */
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = (char *)strdup("$min_xml_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string from xml2-config\n", "$min_xml_version");
+     exit(1);
+   }
+   free(tmp_version);
+
+   /* Capture the version information from the header files */
+   tmp_version = (char *)strdup(LIBXML_DOTTED_VERSION);
+   if (sscanf(tmp_version, "%d.%d.%d", &xml_major_version, &xml_minor_version, &xml_micro_version) != 3) {
+     printf("%s, bad version string from libxml includes\n", "LIBXML_DOTTED_VERSION");
+     exit(1);
+   }
+   free(tmp_version);
+
+ /* Compare xml2-config output to the libxml headers */
+  if ((xml_major_version != $xml_config_major_version) ||
+      (xml_minor_version != $xml_config_minor_version) ||
+      (xml_micro_version != $xml_config_micro_version))
+    {
+      printf("*** libxml header files (version %d.%d.%d) do not match\n",
+         xml_major_version, xml_minor_version, xml_micro_version);
+      printf("*** xml2-config (version %d.%d.%d)\n",
+         $xml_config_major_version, $xml_config_minor_version, $xml_config_micro_version);
+      return 1;
+    } 
+/* Compare the headers to the library to make sure we match */
+  /* Less than ideal -- doesn't provide us with return value feedback, 
+   * only exits if there's a serious mismatch between header and library.
+   */
+    LIBXML_TEST_VERSION;
+
+    /* Test that the library is greater than our minimum version */
+    if ((xml_major_version > major) ||
+        ((xml_major_version == major) && (xml_minor_version > minor)) ||
+        ((xml_major_version == major) && (xml_minor_version == minor) &&
+        (xml_micro_version >= micro)))
+      {
+        return 0;
+       }
+     else
+      {
+        printf("\n*** An old version of libxml (%d.%d.%d) was found.\n",
+               xml_major_version, xml_minor_version, xml_micro_version);
+        printf("*** You need a version of libxml newer than %d.%d.%d. The latest version of\n",
+           major, minor, micro);
+        printf("*** libxml is always available from ftp://ftp.xmlsoft.org.\n");
+        printf("***\n");
+        printf("*** If you have already installed a sufficiently new version, this error\n");
+        printf("*** probably means that the wrong copy of the xml2-config shell script is\n");
+        printf("*** being found. The easiest way to fix this is to remove the old version\n");
+        printf("*** of LIBXML, but you can also set the XML2_CONFIG environment to point to the\n");
+        printf("*** correct copy of xml2-config. (In this case, you will have to\n");
+        printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
+        printf("*** so that the correct libraries are found at run-time))\n");
+    }
+  return 1;
+}
+], [echo $ac_n "cross compiling; assumed OK... $ac_c"], no_xml=yes )
+)
        CPPFLAGS="$ac_save_CPPFLAGS"
        LIBS="$ac_save_LIBS"
      fi
