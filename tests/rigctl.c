@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.28 2002-01-27 23:58:24 fillods Exp $  
+ * $Id: rigctl.c,v 1.29 2002-04-23 22:04:19 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -164,8 +164,8 @@ struct test_table test_list[] = {
 		{ 'l', "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Value" },
 		{ 'U', "set_func", set_func, ARG_IN, "Func", "Func status" },
 		{ 'u', "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
-		{ 'P', "set_parm", set_parm, ARG_IN, "Level", "Value" },
-		{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2, "Level", "Value" },
+		{ 'P', "set_parm", set_parm, ARG_IN, "Parm", "Value" },
+		{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2, "Parm", "Value" },
 		{ 'E', "set_mem", set_mem, ARG_IN, "Memory#" },
 		{ 'e', "get_mem", get_mem, ARG_OUT, "Memory#" },
 		{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
