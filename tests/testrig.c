@@ -2,7 +2,7 @@
  * Hamlib sample program
  */
 
-#include <rig.h>
+#include <hamlib/rig.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -14,6 +14,7 @@ int main ()
 	freq_t freq;		/* frequency  */
 	rmode_t rmode;		/* radio mode of operation */
 	vfo_t vfo;		/* vfo selection */
+	int strength;		/* S-Meter level */
 	int retcode;		/* generic return code from functions */
 
 
@@ -22,6 +23,12 @@ int main ()
  	/*
 	 * allocate memory, setup & open port 
 	 */
+
+	retcode = rig_load_backend("icom");
+	if (retcode != RIG_OK ) {
+		printf("rig_load_backend: error = %s \n", rigerror(retcode));
+		exit(3);
+	}
 
 	my_rig = rig_init(RIG_MODEL_IC706MKIIG);
 	if (!my_rig)
@@ -92,6 +99,15 @@ int main ()
 	} else {
 	  printf("rig_get_mode: error =  %s \n", rigerror(retcode));
 	}
+
+	retcode = rig_get_strength(my_rig, &strength);
+
+	if (retcode == RIG_OK ) {
+	  printf("rig_get_strength: strength = %i \n", strength);
+	} else {
+	  printf("rig_get_strength: error =  %s \n", rigerror(retcode));
+	}
+
 
 	rig_close(my_rig); /* close port */
 	rig_cleanup(my_rig); /* if you care about memory */
