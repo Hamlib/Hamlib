@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.14 2002-03-10 23:39:35 fillods Exp $
+ *		$Id: icom_defs.h,v 1.15 2004-08-21 23:53:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -102,6 +102,9 @@
 #define S_RTTY	0x04		/* Set to RTTY */
 #define S_FM	0x05		/* Set to FM */
 #define S_WFM	0x06		/* Set to Wide FM */
+#define S_CWR	0x07		/* Set to CW Reverse */
+#define S_RTTYR	0x08		/* Set to RTTY Reverse */
+#define S_AMS	0x11		/* Set to AMS */
 
 #define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
 #define PD_WIDE		0x01	/* Wide */
@@ -141,6 +144,8 @@
 #define S_SCAN_SLCTN	0x23		/* Selected number memory scan */
 #define S_SCAN_SLCTM	0x24		/* Selected mode memory scan */
 #define S_SCAN_PRIO		0x42		/* Priority / window scan */
+#define S_SCAN_NSLCT	0xB0        /* Set as non select channel */
+#define S_SCAN_SLCT		0xB1        /* Set as select channel */
 #define S_SCAN_RSMOFF   0xD0        /* Set scan resume OFF */
 #define S_SCAN_RSMON    0xD3        /* Set scan resume ON */
 
@@ -260,6 +265,8 @@
  */
 #define S_MEM_CNTNT	0x00
 #define S_MEM_CNTNT_SLCT	0x01
+#define S_MEM_FILT_SLCT		0x01
+#define S_MEM_MODE_SLCT		0x02
                                     /* For IC-910H rig. */
 #define S_MEM_RDWR_MEM      0x00    /* Read/write memory channel */
 #define S_MEM_SATMEM        0x01    /* Satellite memory */
@@ -301,5 +308,15 @@
 #define S_OPTO_NXT	 	0x0e
 #define S_OPTO_SCON 	0x0f
 #define S_OPTO_SCOFF 	0x10
+
+/*
+ * C_CTL_MODE	Misc CI-V Mode settings
+ */
+#define S_PRM_BEEP		0x02
+#define S_PRM_LANG		0x15
+#define S_PRM_BACKLT	0x21
+#define S_PRM_SLEEP		0x32
+#define S_PRM_SLPTM		0x33
+#define S_PRM_TIME		0x27
 
 #endif /* _ICOM_DEFS_H */

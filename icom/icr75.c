@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-R75
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.2 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: icr75.c,v 1.3 2004-08-21 23:53:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,26 +44,39 @@
  *  - set_parm, set_trn, IF filter setting, etc.
  */
 
-#define ICR75_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_AMS)
+#define ICR75_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_AMS)
 
-#define ICR75_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_NR|RIG_FUNC_ANF|RIG_FUNC_APF)
+#define ICR75_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_ANF|RIG_FUNC_NR)
 
-#define ICR75_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
+#define ICR75_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
-#define ICR75_VFO_ALL (RIG_VFO_A)
+#define ICR75_PARM_ALL (RIG_PARM_ANN|RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP|RIG_PARM_TIME)
+
+#define ICR75_VFO_ALL (RIG_VFO_VFO|RIG_VFO_MEM)
 
 #define ICR75_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ICR75_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO)
 
 #define ICR75_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-/*
- * FIXME: S-meter measurement
- */
-#define ICR75_STR_CAL { 2, \
-	{ \
-		{  0, -60 }, /* S0 */ \
-		{ 255, 60 } /* +60 */ \
+#define ICR75_STR_CAL { 17, { \
+		{   0, -60 }, \
+		{  37, -54 }, \
+		{  52, -48 }, \
+		{  61, -42 }, \
+		{  72, -36 }, \
+		{  86, -30 }, \
+		{  95, -24 }, \
+		{ 109, -18 }, \
+		{ 124, -12 }, \
+		{ 128, -6 }, \
+		{ 146,  0 }, \
+		{ 166, 10 }, \
+		{ 186, 20 }, \
+		{ 199, 30 }, \
+		{ 225, 40 }, \
+		{ 233, 50 }, \
+		{ 255, 60 }, \
 	} }
 
 /*
@@ -92,9 +105,9 @@ const struct rig_caps icr75_caps = {
 .rig_model =  RIG_MODEL_ICR75,
 .model_name = "IC-R75", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  "0.3", 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
@@ -106,19 +119,25 @@ const struct rig_caps icr75_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE, 
 .write_delay =  0,
-.post_write_delay =  0,
+.post_write_delay =  1,
 .timeout =  200,
 .retry =  3, 
 .has_get_func =  ICR75_FUNC_ALL,
 .has_set_func =  ICR75_FUNC_ALL, 
 .has_get_level =  ICR75_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(ICR75_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_ANN,
-.has_set_parm =  RIG_PARM_ANN,	/* FIXME: parms */
+.has_get_parm =  ICR75_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(ICR75_PARM_ALL),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_PBT_IN] = { .min = { .f = -1280 }, .max = { .f = +1280 } },
+	[LVL_PBT_OUT] = { .min = { .f = -1280 }, .max = { .f = +1280 } },
+	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 } },
 },
-.parm_gran =  {},
+.parm_gran =  {
+	[PARM_APO] = { .min = { .i = 1 }, .max = { .i = 1439} },
+	[PARM_TIME] = { .min = { .i = 0 }, .max = { .i = 86399} },
+},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
 .preamp =   { 20, RIG_DBLST_END, },	/* TBC */
@@ -166,8 +185,12 @@ const struct rig_caps icr75_caps = {
 	},
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(1.9)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(6)},
 		{RIG_MODE_AM|RIG_MODE_AMS, kHz(6)},
+		{RIG_MODE_AM|RIG_MODE_AMS, kHz(2.4)},
+		{RIG_MODE_AM|RIG_MODE_AMS, kHz(15)},
 		{RIG_MODE_FM, kHz(15)},
 		RIG_FLT_END,
 	},
@@ -196,12 +219,14 @@ const struct rig_caps icr75_caps = {
 .get_func =  icom_get_func,
 .set_level =  icom_set_level,
 .get_level =  icom_get_level,
+.set_parm =  icom_set_parm,
+.get_parm =  icom_get_parm,
 .get_dcd =  icom_get_dcd,
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
 .set_ts =  icom_set_ts,
-.get_ts =  icom_get_ts,
+/*.get_ts =  icom_get_ts,*/
 .set_powerstat = icom_set_powerstat,
 .get_powerstat = icom_get_powerstat,
 
