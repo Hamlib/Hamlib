@@ -3,8 +3,9 @@
 exec tclsh "$0" "$@"
 
 load ".libs/hamlibtcl.so" Hamlib
+#package require Hamlib
 
-puts $hamlib_version\n
+puts "Tcl test, $hamlib_version\n"
 
 rig_set_debug $RIG_DEBUG_TRACE
 
