@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.3 2000-09-21 06:46:13 f4cfe Exp $  
+ * $Id: icom.c,v 1.4 2000-10-01 12:37:10 f4cfe Exp $  
  *
  *
  *
@@ -37,13 +37,13 @@
 
 #include <rig.h>
 #include <riglist.h>
-#include "serial.h"
+#include <serial.h>
+#include <misc.h>
 #include "icom.h"
 #include "icom_defs.h"
+#include "frame.h"
 
 /* Prototypes */
-unsigned char *freq2bcd(unsigned char bcd_data[], freq_t freq, int bcd_len);
-freq_t bcd2freq(const unsigned char bcd_data[], int bcd_len);
 int read_icom_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
 
 struct icom_addr {
@@ -52,6 +52,8 @@ struct icom_addr {
 };
 
 static const struct icom_addr icom_addr_list[] = {
+		{ RIG_MODEL_IC706, 0x58 },
+		{ RIG_MODEL_IC706MKII, 0x58 },
 		{ RIG_MODEL_IC706MKIIG, 0x58 },
 		{ -1, 0 },
 };
@@ -65,38 +67,39 @@ static const struct icom_addr icom_addr_list[] = {
  */
 int icom_init(RIG *rig)
 {
-		struct icom_priv_data *p;
+		struct icom_priv_data *priv;
 		int i;
 
 		if (!rig)
 				return -RIG_EINVAL;
 
-		p = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
-		if (!p) {
+		priv = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
+		if (!priv) {
 				/* whoops! memory shortage! */
 				return -RIG_ENOMEM;
 		}
 		/* TODO: CI-V address should be customizable */
 
-		/* init the priv_data from static struct 
+		/*
+		 * init the priv_data from static struct 
 		 *          + override with preferences
 		 */
 
-		p->re_civ_addr = 0x00;
+		priv->re_civ_addr = 0x00;
 		for (i=0; icom_addr_list[i].model >= 0; i++) {
 				if (icom_addr_list[i].model == rig->caps->rig_model) {
-						p->re_civ_addr = icom_addr_list[i].re_civ_addr;
+						priv->re_civ_addr = icom_addr_list[i].re_civ_addr;
 						break;
 				}
 		}
 
 		if (rig->caps->rig_model == RIG_MODEL_IC731)
-			p->civ_731_mode = 1;
+			priv->civ_731_mode = 1;
 		else
-			p->civ_731_mode = 0;
+			priv->civ_731_mode = 0;
 
 
-		rig->state.priv = (void*)p;
+		rig->state.priv = (void*)priv;
 
 		return RIG_OK;
 }
@@ -117,209 +120,70 @@ int icom_cleanup(RIG *rig)
 		return RIG_OK;
 }
 
-/*
- * Build a CI-V frame.
- * The whole frame is placed in frame[],
- * "re_id" is the transceiver's CI-V address,
- * "cmd" is the Command number,
- * "subcmd" is the Sub command number, set to -1 if not present in frame,
- * if the frame has no data, then the "data" pointer must be NULL.
- * "data_len" holds the Data area length pointed by the "data" pointer.
- * REM: if "data" is NULL, then "data_len" MUST be 0.
- *
- * NB: the frame array must be big enough to hold the frame.
- * 		The smallest frame is 8 bytes, the biggest is at least 13 bytes.
- *
- * TODO: inline the function?
- */
-int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *data, int data_len)
-{	
-	int i = 0;
-
-	frame[i++] = PAD;	/* give old rigs a chance to flush their rx buffers */
-	frame[i++] = PR;	/* Preamble code */
-	frame[i++] = PR;
-	frame[i++] = re_id;
-	frame[i++] = CTRLID;
-	frame[i++] = cmd;
-	if (subcmd != -1)
-			frame[i++] = subcmd & 0xff;
-
-	if (data) {
-		memcpy(frame+7, data, data_len);
-	}
-
-	i += data_len;
-	frame[i++] = FI;		/* EOM code */
-
-	return i;
-}
-
-int make_cmd_frame_freq(char frame[], char re_id, char cmd, int subcmd, freq_t freq, int ic731_mode)
-{
-	int freq_len;
-	int i = 0;
-
-	frame[i++] = PAD;	/* give old rigs a chance to flush their rx buffers */
-	frame[i++] = PR;	/* Preamble code */
-	frame[i++] = PR;
-	frame[i++] = re_id;
-	frame[i++] = CTRLID;
-	frame[i++] = cmd;
-	if (subcmd != -1)
-			frame[i++] = subcmd & 0xff;
-
-	freq_len = ic731_mode ? 5:4;
-	freq2bcd(frame+i, freq, freq_len*2);	/* freq2bcd requires nibble len */
-
-	i += freq_len;
-	frame[i++] = FI;		/* EOM code */
-
-	return i;
-}
 
 /*
- * for C_SET_MEM, subcmd=-1
- */
-int 
-make_cmd_frame_chan(char frame[], char re_id, char cmd, int subcmd, int chan)
-{
-	int i = 0;
-
-	frame[i++] = PAD;	/* give old rigs a chance to flush their rx buffers */
-	frame[i++] = PR;	/* Preamble code */
-	frame[i++] = PR;
-	frame[i++] = re_id;
-	frame[i++] = CTRLID;
-	frame[i++] = cmd;
-	if (subcmd != -1)
-			frame[i++] = subcmd & 0xff;
-
-	freq2bcd(frame+i, (freq_t)chan, 4);	/* freq2bcd requires nibble len */
-
-	i += 2;		/* channel number is on 4 digits = 2 octets */
-	frame[i++] = FI;		/* EOM code */
-
-	return i;
-}
-
-
-/*
- * TODO: implement (ie. rewrite it) this function properly,
- * 		right now it just serves as a backend example
+ * icom_set_freq
+ * Assumes rig!=NULL, rig->state.priv!=NULL
  */
 int icom_set_freq(RIG *rig, freq_t freq)
 {
-		struct icom_priv_data *p;
+		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
-		unsigned char buf[16];
-		int frm_len;
+		unsigned char freqbuf[16], ackbuf[16];
+		int freq_len,ack_len;
 
-		if (!rig)
-				return -RIG_EINVAL;
-
-		p = (struct icom_priv_data*)rig->state.priv;
 		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
 
-		frm_len = make_cmd_frame_freq(buf, p->re_civ_addr, C_SET_FREQ, -1, 
-						freq, p->civ_731_mode);
 
-		/* 
-		 * should check return code and that write wrote cmd_len chars! 
+		freq_len = priv->civ_731_mode ? 4:5;
+		/*	
+		 * to_bcd requires nibble len
 		 */
-		write_block(rig_s->fd, buf, frm_len, rig_s->write_delay);
+		to_bcd(freqbuf, freq, freq_len*2);
 
-		/*
-		 * wait for ACK ... etc.. 
-		 */
-		read_icom_block(rig_s->fd, buf, ACKFRMLEN, rig_s->timeout);
+		icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len, ackbuf, &ack_len);
 
-		if (buf[5] != ACK) {
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_freq: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
-
-		/*
-		 * TODO: check address, Command number and ack!
-		 */
 
 		return RIG_OK;
 }
 
-
 /*
- * read count usefull bytes, discarding collisions
- * FIXME: check return codes/bytes read
+ * icom_get_freq
+ * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
  */
-int read_icom_block(int fd, unsigned char *rxbuffer, size_t count, int timeout)
+int icom_get_freq(RIG *rig, freq_t *freq)
 {
-		int i;
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char freqbuf[16];
+		int freq_len;
 
-		read_block(fd, rxbuffer, count, timeout);
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
 
-		for (i=0; i<count; i++) {
-			if (rxbuffer[i] != COL)
-				break;
+		icom_transaction (rig, C_RD_FREQ, -1, NULL, 0, freqbuf, &freq_len);
+
+		/*
+		 * freqbuf should contain Cn,Data area
+		 */
+		freq_len--;
+		if (freq_len != (priv->civ_731_mode ? 4:5)) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
+								freq_len);
+				return -RIG_ERJCTED;
 		}
-		if (i > 0) {
-			memmove(rxbuffer, rxbuffer+i, count-i);
-			read_block(fd, rxbuffer+i, count-i, timeout);
-		}
-		return count;	/* duh! */
+
+		/*	
+		 * to_bcd requires nibble len
+		 */
+		*freq = from_bcd(freqbuf+1, freq_len*2);
+
+		return RIG_OK;
 }
-
-
-
-/*
- * Convert an int (ie. long long frequency in Hz) to 4-bit BCD digits, 
- * packed two digits per octet, in little-endian order.
- * bcd_len is the number of BCD digits, usually 10 or 8 in 1-Hz units, 
- *	and 6 digits in 100-Hz units for Tx offset data.
- *
- * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
- */
-unsigned char *
-freq2bcd(unsigned char bcd_data[], freq_t freq, int bcd_len)
-{
-	int i;
-	unsigned char a;
-
-	/* '450'-> 0,5;4,0 */
-
-	for (i=0; i < bcd_len/2; i++) {
-			a = freq%10;
-			freq /= 10;
-			a |= (freq%10)<<4;
-			freq /= 10;
-			bcd_data[i] = a;
-	}
-	if (bcd_len&1)
-			bcd_data[i] |= freq%10;	/* NB: high nibble is not cleared */
-
-	return bcd_data;
-}
-
-/*
- * Convert BCD digits to an int (ie. long long frequency in Hz)
- * bcd_len is the number of BCD digits.
- *
- * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
- */
-freq_t bcd2freq(const unsigned char bcd_data[], int bcd_len)
-{
-	int i;
-	freq_t f = 0;
-
-	if (bcd_len&1)
-			f = bcd_data[bcd_len/2] & 0x0f;
-
-	for (i=(bcd_len/2)-1; i >= 0; i--) {
-			f *= 10;
-			f += bcd_data[i]>>4;
-			f *= 10;
-			f += bcd_data[i] & 0x0f;
-	}
-	
-	return f;
-}
-
 
