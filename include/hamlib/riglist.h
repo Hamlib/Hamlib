@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - list of known rigs
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.31 2003-01-29 22:31:06 fillods Exp $
+ *	$Id: riglist.h,v 1.32 2003-02-09 22:50:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -349,8 +349,9 @@
 	 */
 #define RIG_GNURADIO 20
 #define RIG_BACKEND_GNURADIO "gnuradio"
-#define RIG_MODEL_GNURADIO RIG_MAKE_MODEL(RIG_GNURADIO, 1) /* dev model */
-#define RIG_MODEL_MC4020 RIG_MAKE_MODEL(RIG_GNURADIO, 2)
+#define RIG_MODEL_GNURADIO RIG_MAKE_MODEL(RIG_GNURADIO, 1) /* dev model, Chirp source */
+#define RIG_MODEL_MC4020 RIG_MAKE_MODEL(RIG_GNURADIO, 2)	/* MC4020 */
+#define RIG_MODEL_GRAUDIO RIG_MAKE_MODEL(RIG_GNURADIO, 3)	/* Source card source */
 
 	/*
 	 * Microtune tuners
