@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.85 2005-02-20 02:38:27 fillods Exp $
+ *	$Id: rig.c,v 1.86 2005-03-26 17:57:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1488,13 +1488,13 @@ int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  * \param vfo	The target VFO
  * \param tx_freq	The transmit split frequency to set to
  *
- *  Sets the split frequencies.
+ *  Sets the split(TX) frequency.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_get_split_freq()
+ * \sa rig_get_split_freq(), rig_set_split_vfo()
  */
 
 int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
@@ -1508,22 +1508,32 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
 		caps = rig->caps;
 
-		if (caps->set_split_freq == NULL)
-			return -RIG_ENAVAIL;
-
-		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
-						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
+		if (caps->set_split_freq && 
+				((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
 			return caps->set_split_freq(rig, vfo, tx_freq);
 
-		if (!caps->set_vfo)
-			return -RIG_ENTARGET;
 		curr_vfo = rig->state.current_vfo;
-		retcode = caps->set_vfo(rig, vfo);
+		if (caps->set_vfo) {
+			retcode = caps->set_vfo(rig, vfo);
+		} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
+			retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		} else {
+			return -RIG_ENAVAIL;
+		}
 		if (retcode != RIG_OK)
-				return retcode;
+			return retcode;
 
-		retcode = caps->set_split_freq(rig, vfo, tx_freq);
-		caps->set_vfo(rig, curr_vfo);
+		if (caps->set_split_freq)
+			retcode = caps->set_split_freq(rig, vfo, tx_freq);
+		else
+			retcode = caps->set_freq(rig, RIG_VFO_CURR, tx_freq);
+
+		if (caps->set_vfo) {
+			caps->set_vfo(rig, curr_vfo);
+		} else {
+			caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		}
 		return retcode;
 }
 
@@ -1533,7 +1543,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  * \param vfo	The target VFO
  * \param tx_freq	The location where to store the current transmit split frequency
  *
- *  Retrieves the current split frequencies.
+ *  Retrieves the current split(TX) frequency.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -1552,22 +1562,33 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
 		caps = rig->caps;
 
-		if (caps->get_split_freq == NULL)
-			return -RIG_ENAVAIL;
-
-		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
-						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
+		if (caps->get_split_freq && 
+				((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
 			return caps->get_split_freq(rig, vfo, tx_freq);
 
-		if (!caps->set_vfo)
-			return -RIG_ENTARGET;
 		curr_vfo = rig->state.current_vfo;
-		retcode = caps->set_vfo(rig, vfo);
+		if (caps->set_vfo) {
+			retcode = caps->set_vfo(rig, vfo);
+		} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
+			retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		} else {
+			return -RIG_ENAVAIL;
+		}
 		if (retcode != RIG_OK)
-				return retcode;
+			return retcode;
 
-		retcode = caps->get_split_freq(rig, vfo, tx_freq);
-		caps->set_vfo(rig, curr_vfo);
+		if (caps->get_split_freq)
+			retcode = caps->get_split_freq(rig, vfo, tx_freq);
+		else
+			retcode = caps->get_freq(rig, RIG_VFO_CURR, tx_freq);
+
+		if (caps->set_vfo) {
+			caps->set_vfo(rig, curr_vfo);
+		} else {
+			caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		}
+
 		return retcode;
 }
 
@@ -1578,7 +1599,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  * \param tx_mode	The transmit split mode to set to
  * \param tx_width	The transmit split width to set to
  *
- *  Sets the split mode.
+ *  Sets the split(TX) mode.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -1598,22 +1619,33 @@ int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_
 
 		caps = rig->caps;
 
-		if (caps->set_split_mode == NULL)
-			return -RIG_ENAVAIL;
-
-		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
-						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
+		if (caps->set_split_mode && 
+				((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
 			return caps->set_split_mode(rig, vfo, tx_mode, tx_width);
 
-		if (!caps->set_vfo)
-			return -RIG_ENTARGET;
 		curr_vfo = rig->state.current_vfo;
-		retcode = caps->set_vfo(rig, vfo);
+		if (caps->set_vfo) {
+			retcode = caps->set_vfo(rig, vfo);
+		} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
+			retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		} else {
+			return -RIG_ENAVAIL;
+		}
 		if (retcode != RIG_OK)
-				return retcode;
+			return retcode;
 
-		retcode = caps->set_split_mode(rig, vfo, tx_mode, tx_width);
-		caps->set_vfo(rig, curr_vfo);
+		if (caps->set_split_mode)
+			retcode = caps->set_split_mode(rig, vfo, tx_mode, tx_width);
+		else
+			retcode = caps->set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+
+		if (caps->set_vfo) {
+			caps->set_vfo(rig, curr_vfo);
+		} else {
+			caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		}
+
 		return retcode;
 }
 
@@ -1624,7 +1656,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_
  * \param tx_mode	The location where to store the current transmit split mode
  * \param tx_width	The location where to store the current transmit split width
  *
- *  Retrieves the current split mode.
+ *  Retrieves the current split(TX) mode.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -1643,22 +1675,32 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
 
 		caps = rig->caps;
 
-		if (caps->get_split_mode == NULL)
-			return -RIG_ENAVAIL;
-
-		if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
-						vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
+		if (caps->get_split_mode && 
+				 ((caps->targetable_vfo&RIG_TARGETABLE_ALL) || 
+				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
 			return caps->get_split_mode(rig, vfo, tx_mode, tx_width);
 
-		if (!caps->set_vfo)
-			return -RIG_ENTARGET;
 		curr_vfo = rig->state.current_vfo;
-		retcode = caps->set_vfo(rig, vfo);
+		if (caps->set_vfo) {
+			retcode = caps->set_vfo(rig, vfo);
+		} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
+			retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		} else {
+			return -RIG_ENAVAIL;
+		}
 		if (retcode != RIG_OK)
-				return retcode;
+			return retcode;
 
-		retcode = caps->get_split_mode(rig, vfo, tx_mode, tx_width);
-		caps->set_vfo(rig, curr_vfo);
+		if (caps->get_split_mode)
+			retcode = caps->get_split_mode(rig, vfo, tx_mode, tx_width);
+		else
+			retcode = caps->get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+
+		if (caps->set_vfo) {
+			caps->set_vfo(rig, curr_vfo);
+		} else {
+			caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
+		}
 		return retcode;
 }
 
