@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.14 2001-02-07 23:40:16 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.15 2001-02-09 23:02:56 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,8 @@
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
 #include <stdio.h>		/* required for FILE definition */
 #include <sys/time.h>		/* required for struct timeval */
+
+extern const char hamlib_version[];
 
 /*
  * Error codes that can be returned by the Hamlib functions
