@@ -1,13 +1,13 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ * hamlib - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
  *
- * ft747.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ * ft747.h - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
  * This shared library provides an API for communicating
  * via serial interface to an FT-747GX using the "CAT" interface
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.13 2000-10-09 01:17:19 javabear Exp $  
+ *    $Id: ft747.h,v 1.14 2000-11-25 08:19:21 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -91,14 +91,33 @@
 #define MODE_USB    0x08
 #define MODE_LSB    0x10
 #define MODE_NAR    0x80   
+#define MODE_MASK   0x9f   
 
 
 /*
- * Some useful offsets in the status update map
+ * Status Flag Masks when reading
+ */
+
+#define SF_DLOCK   0x01
+#define SF_SPLIT   0x02
+#define SF_CLAR    0x04
+#define SF_VFOAB   0x08
+#define SF_VFOMR   0x10
+#define SF_RXTX    0x20
+#define SF_RESV    0x40
+#define SF_PRI     0x80
+
+
+
+
+/*
+ * Some useful offsets in the status update map (offset) 
  *
  */
 
-#define FT747_STATUS_UPDATE_MODE_OFFSET   0x18    
+#define FT747_SUMO_DISPLAYED_MODE             0x18    
+#define FT747_SUMO_DISPLAYED_STATUS           0x00    
+#define FT747_SUMO_DISPLAYED_FREQ             0x00    
 
 
 /*
@@ -124,8 +143,8 @@ int ft747_close(RIG *rig);
 int ft747_set_freq(RIG *rig, freq_t freq);
 int ft747_get_freq(RIG *rig, freq_t *freq);
 
-int ft747_set_mode(RIG *rig, rmode_t rmode); /* select mode */
-int ft747_get_mode(RIG *rig, rmode_t *rmode); /* get mode */
+int ft747_set_mode(RIG *rig, rmode_t mode); /* select mode */
+int ft747_get_mode(RIG *rig, rmode_t *mode); /* get mode */
 
 int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
@@ -148,19 +167,6 @@ int ft747_get_ptt(RIG *rig, ptt_t *ptt);
 
 #undef TX_ENABLED
 
-
-/*
- * Status Flags
- */
-
-#define SF_DLOCK   0x01
-#define SF_SPLIT   0x02
-#define SF_CLAR    0x04
-#define SF_VFOAB   0x08
-#define SF_VFOMR   0x10
-#define SF_RXTX    0x20
-#define SF_RESV    0x40
-#define SF_PRI     0x80
 
 
 /*

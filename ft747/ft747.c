@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.19 2000-10-16 22:27:11 f4cfe Exp $  
+ * $Id: ft747.c,v 1.20 2000-11-25 08:20:06 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
+ */
+
+
+
+/*
+ * TODO -   FS
+ *
+ * 1. Rentrant code
+ * 2. rationalise code, more helper functions.
+ *
+ *
+ *
+ *
  */
 
 #include <stdlib.h>
@@ -80,7 +93,7 @@ static int ft747_get_update_data(RIG *rig);
 
 const struct rig_caps ft747_caps = {
   RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_MOBILE, RIG_PTT_NONE, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
+  RIG_TYPE_MOBILE, RIG_PTT_RIG, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,FT747_FUNC_ALL,0,0,20,RIG_TRN_OFF,
   { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   
@@ -182,9 +195,9 @@ int ft747_init(RIG *rig) {
    *          + override with rig-specific preferences
    */
   
-/*    *p = ft747_priv; */
 
-				/* TODO: read pacing from preferences */
+  /* TODO: read pacing from preferences */
+
   p->pacing = FT747_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
   p->read_update_delay = FT747_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
  
@@ -202,7 +215,7 @@ int ft747_cleanup(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
   
-  printf("ft747:ft747_cleanup called \n");
+  rig_debug(RIG_DEBUG_VERBOSE, "ft747: _cleanup called\n");
 
   if (rig->state.priv)
     free(rig->state.priv);
@@ -224,8 +237,8 @@ int ft747_open(RIG *rig) {
 
   rig_s = &rig->state;
 
-  printf("ft747:rig_open: write_delay = %i \n", rig_s->write_delay);
-  printf("ft747:rig_open: post_write_delay = %i \n", rig_s->post_write_delay);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: write_delay = %i msec \n", rig_s->write_delay);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: post_write_delay = %i msec \n", rig_s->post_write_delay);
 
   
    /* TODO */
@@ -273,7 +286,7 @@ int ft747_get_freq(RIG *rig, freq_t *freq) {
  *
  */
 
-int ft747_set_mode(RIG *rig, rmode_t rmode) {
+int ft747_set_mode(RIG *rig, rmode_t mode) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
 
@@ -292,9 +305,9 @@ int ft747_set_mode(RIG *rig, rmode_t rmode) {
    * translate mode from generic to ft747 specific
    */
 
-  printf("rmode = %x \n", rmode);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: generic mode = %x \n", mode);
 
-  switch(rmode) {
+  switch(mode) {
   case RIG_MODE_AM:
     mymode = MODE_SET_AMW;
     break;
@@ -310,31 +323,20 @@ int ft747_set_mode(RIG *rig, rmode_t rmode) {
   case RIG_MODE_FM:
     mymode = MODE_SET_FMW;
     break;
-#if 0
-  case RIG_MODE_NFM:
-    mymode = MODE_SET_FMN;
-    break;
-  case RIG_MODE_NCW:
-    mymode = MODE_SET_CWN;
-    break;
-  case RIG_MODE_NAM:
-    mymode = MODE_SET_AMN;
-    break;
-  case RIG_MODE_WAM:
-    mymode = MODE_SET_AMW;
-    break;
-#endif
+
   default:
     return -RIG_EINVAL;		/* sorry, wrong MODE */
   }
 
   cmd[3] = mymode;
   write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: rig specific mode = %x \n", mymode);
+
   return RIG_OK;		/* good */
   
 }
 
-int ft747_get_mode(RIG *rig, rmode_t *rmode) {
+int ft747_get_mode(RIG *rig, rmode_t *mode) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
   unsigned char mymode;		/* ft747 mode */
@@ -347,38 +349,37 @@ int ft747_get_mode(RIG *rig, rmode_t *rmode) {
 
   ft747_get_update_data(rig);	/* get whole shebang from rig */
   
-  mymode = p->update_data[FT747_STATUS_UPDATE_MODE_OFFSET];
-  mymode = mymode & 0x9f; /* mask out bits 5 and 6 */
+  mymode = p->update_data[FT747_SUMO_DISPLAYED_MODE];
+  mymode = mymode & MODE_MASK; /* mask out bits 5 and 6 */
   
-  printf("mymode = %x \n", mymode);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: mymode = %x \n", mymode);
+
+  /* 
+   * translate mode from ft747 to generic.
+   */
 
   switch(mymode) {
   case MODE_FM:
-    (*rmode) = RIG_MODE_FM;
+    (*mode) = RIG_MODE_FM;
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = FM \n");
     break;
   case MODE_AM:
-    (*rmode) = RIG_MODE_AM;
+    (*mode) = RIG_MODE_AM;
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = AM \n");
     break;
   case MODE_CW:
-    (*rmode) = RIG_MODE_CW;
+    (*mode) = RIG_MODE_CW;
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = CW \n");
     break;
   case MODE_USB:
-    (*rmode) = RIG_MODE_USB;
+    (*mode) = RIG_MODE_USB;
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = USB \n");
     break;
   case MODE_LSB:
-    (*rmode) = RIG_MODE_LSB;
+    (*mode) = RIG_MODE_LSB;
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = LSB \n");
     break;
-#if 0
-  case MODE_FMN:
-    (*rmode) = RIG_MODE_NFM;
-    break;
-  case MODE_AMN:
-    (*rmode) = RIG_MODE_NAM;
-    break;
-  case MODE_CWN:
-    (*rmode) = RIG_MODE_NCW;
-    break;
-#endif
+
   default:
     return -RIG_EINVAL;		/* sorry, wrong mode */
     break; 
@@ -425,7 +426,37 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
 
 
 int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
-  return -RIG_ENIMPL;
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+  unsigned char status;		/* ft747 status flag */
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+
+  ft747_get_update_data(rig);	/* get whole shebang from rig */
+  
+  status = p->update_data[FT747_SUMO_DISPLAYED_STATUS];
+  status = status & SF_VFOAB; /* check VFO bit*/
+  
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: vfo status = %x \n", status);
+
+  /* 
+   * translate vfo status from ft747 to generic.
+   */
+
+  if (status) {
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: VFO = B \n");
+    (*vfo) = RIG_VFO_B;
+    return RIG_OK; 
+  } else {
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: VFO = A \n");
+    (*vfo) = RIG_VFO_A;
+    return RIG_OK;
+  }
+
 }
 
 int ft747_set_ptt(RIG *rig, ptt_t ptt) {
@@ -455,10 +486,69 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt) {
 }
 
 int ft747_get_ptt(RIG *rig, ptt_t *ptt) {
-  return -RIG_ENIMPL;
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+  unsigned char status;		/* ft747 mode */
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+
+  ft747_get_update_data(rig);	/* get whole shebang from rig */
+  
+  status = p->update_data[FT747_SUMO_DISPLAYED_STATUS];
+  status = status & SF_RXTX; /* check RXTX bit*/
+  
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: ptt status = %x \n", status);
+
+  /* 
+   * translate mode from ft747 to generic.
+   */
+
+  if (status) {
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: PTT = ON \n");
+    (*ptt) = RIG_PTT_ON;
+    return RIG_OK; 
+  } else {
+    rig_debug(RIG_DEBUG_VERBOSE,"ft747: PTT = OFF \n");
+    (*ptt) = RIG_PTT_OFF;
+    return RIG_OK;
+  }
+
 }
 
 
+
+
+#if 0
+
+/*
+ * private helper function. Retrieves update data from rig.
+ * Uses ft747_get_update_data() to get status flag
+ */
+
+static int ft747_get_status_flags(RIG *rig, int sf_order) {
+  struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+  unsigned char status;		/* ft747 status flags */
+  
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  p = (struct ft747_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+
+  ft747_get_update_data(rig);	/* get whole shebang from rig */
+
+  status = p->update_data[FT747_STATUS_UPDATE_STATUS_OFFSET];  
+
+  return status & SF_RXTX;
+}
+
+#endif
 
 /*
  * private helper function. Retrieves update data from rig.
@@ -482,11 +572,11 @@ static int ft747_get_update_data(RIG *rig) {
   rig_s = &rig->state;
 
   cmd_pace[3] = p->pacing;		/* get pacing value */
-  printf("read pacing = %i \n",p->pacing);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: read pacing = %i \n",p->pacing);
 
   write_block(rig_s->fd, cmd_pace, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
-  printf("read timeout = %i \n",FT747_DEFAULT_READ_TIMEOUT);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: read timeout = %i \n",FT747_DEFAULT_READ_TIMEOUT);
 
   write_block(rig_s->fd, cmd_update, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay); /* request data */
   n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT); 
@@ -497,7 +587,7 @@ static int ft747_get_update_data(RIG *rig) {
 }
 
 /*
- * Implement OPCODES
+ * TODO: Implement these old OPCODES -- FS
  */
 
 
