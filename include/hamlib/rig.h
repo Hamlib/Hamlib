@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.57 2002-01-09 23:08:12 fillods Exp $
+ *		$Id: rig.h,v 1.58 2002-01-27 14:52:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -368,10 +368,6 @@ typedef long scan_t;
 typedef long token_t;
 
 #define RIG_CONF_END 0
-
-#define RIG_TOKEN_BACKEND(t) (t)
-#define RIG_TOKEN_FRONTEND(t) ((t)|(1<<30))
-#define RIG_IS_TOKEN_FRONTEND(t) ((t)&(1<<30))
 
 /*
  * strongly inspired from soundmedem. Thanks Thomas!
