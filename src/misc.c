@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.c,v 1.13 2002-01-22 00:50:31 fillods Exp $
+ *		$Id: misc.c,v 1.14 2002-01-27 23:47:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -230,11 +230,11 @@ void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 #define llabs(a) ((a)<0?-(a):(a))
 
 /*
- * rig_freq_snprintf
+ * rig_freq_snprintf?
  * pretty print frequencies
  * str must be long enough. max can be as long as 17 chars
  */
-int freq_sprintf(char *str, freq_t freq)
+int sprintf_freq(char *str, freq_t freq)
 {
 		double f;
 		char *hz;
@@ -266,7 +266,7 @@ const char * strmode(rmode_t mode)
 	case RIG_MODE_RTTY: return "RTTY";
 	case RIG_MODE_FM: return "FM";
 	case RIG_MODE_WFM: return "WFM";
-	case RIG_MODE_NONE: return "None";
+	case RIG_MODE_NONE: return "";
 	default:
 	}
 	return NULL;
@@ -315,7 +315,17 @@ const char *strfunc(setting_t func)
 	case RIG_FUNC_MON: return "MON";
 	case RIG_FUNC_MN: return "MN";
 	case RIG_FUNC_RNF: return "RNF";
-	case RIG_FUNC_NONE: return "None";
+	case RIG_FUNC_ARO: return "ARO";
+	case RIG_FUNC_LOCK: return "LOCK";
+	case RIG_FUNC_MUTE: return "MUTE";
+	case RIG_FUNC_VSC: return "VSC";
+	case RIG_FUNC_REV: return "REV";
+	case RIG_FUNC_SQL: return "SQL";
+	case RIG_FUNC_BC: return "BC";
+	case RIG_FUNC_MBC: return "MBC";
+	case RIG_FUNC_LMP: return "LMP";
+
+	case RIG_FUNC_NONE: return "";
 	default:
 	}
 	return NULL;
@@ -326,6 +336,7 @@ const char *strlevel(setting_t level)
 	switch (level) {
 	case RIG_LEVEL_PREAMP: return "PREAMP";
 	case RIG_LEVEL_ATT: return "ATT";
+	case RIG_LEVEL_VOX: return "VOX";
 	case RIG_LEVEL_AF: return "AF";
 	case RIG_LEVEL_RF: return "RF";
 	case RIG_LEVEL_SQL: return "SQL";
@@ -343,12 +354,14 @@ const char *strlevel(setting_t level)
 	case RIG_LEVEL_AGC: return "AGC";
 	case RIG_LEVEL_BKINDL: return "BKINDL";
 	case RIG_LEVEL_BALANCE: return "BALANCE";
+	case RIG_LEVEL_METER: return "METER";
 
 	case RIG_LEVEL_SWR: return "SWR";
 	case RIG_LEVEL_ALC: return "ALC";
 	case RIG_LEVEL_SQLSTAT: return "SQLSTAT";
 	case RIG_LEVEL_STRENGTH: return "STRENGTH";
-	case RIG_LEVEL_NONE: return "None";
+
+	case RIG_LEVEL_NONE: return "";
 	default:
 	}
 	return NULL;
@@ -363,7 +376,8 @@ const char *strparm(setting_t parm)
 	case RIG_PARM_BEEP: return "BEEP";
 	case RIG_PARM_TIME: return "TIME";
 	case RIG_PARM_BAT: return "BAT";
-	case RIG_PARM_NONE: return "None";
+
+	case RIG_PARM_NONE: return "";
 	default:
 	}
 	return NULL;
@@ -374,6 +388,7 @@ const char *strptrshift(rptr_shift_t shift)
 	switch (shift) {
 	case RIG_RPT_SHIFT_MINUS: return "+";
 	case RIG_RPT_SHIFT_PLUS: return "-";
+
 	case RIG_RPT_SHIFT_NONE: return "None";
 	default:
 	}
@@ -394,7 +409,8 @@ const char *strvfop(vfo_op_t op)
 	case RIG_OP_BAND_DOWN: return "BAND_DOWN";
 	case RIG_OP_LEFT: return "LEFT";
 	case RIG_OP_RIGHT: return "RIGHT";
-	case RIG_OP_NONE: return "None";
+
+	case RIG_OP_NONE: return "";
 	default:
 	}
 	return NULL;
@@ -412,6 +428,151 @@ const char *strscan(scan_t scan)
 	}
 	return NULL;
 }
+
+const char *strstatus(enum rig_status_e status)
+{
+	switch (status) {
+	case RIG_STATUS_ALPHA:
+			return "Alpha";
+	case RIG_STATUS_UNTESTED:
+			return "Untested";
+	case RIG_STATUS_BETA:
+			return "Beta";
+	case RIG_STATUS_STABLE:
+			return "Stable";
+	case RIG_STATUS_BUGGY:
+			return "Buggy";
+	case RIG_STATUS_NEW:
+			return "New";
+	default:
+			return "";
+	}
+}
+
+int sprintf_mode(char *str, rmode_t mode)
+{
+		int i, len=0;
+		const char *ms;
+
+		*str = '\0';
+		if (mode == RIG_MODE_NONE)
+				return 0;
+
+		for (i = 0; i < 30; i++) {
+				ms = strmode(mode & (1UL<<i));
+				if (!ms)
+						continue;	/* unknown, FIXME! */
+				strcat(str, ms);
+				strcat(str, " ");
+				len += strlen(ms) + 1;
+		}
+		return len;
+}
+
+int sprintf_func(char *str, setting_t func)
+{
+		int i, len=0;
+		const char *ms;
+
+		*str = '\0';
+		if (func == RIG_FUNC_NONE)
+				return 0;
+
+		for (i = 0; i < 60; i++) {
+				ms = strfunc(func & (1ULL<<i));
+				if (!ms)
+						continue;	/* unknown, FIXME! */
+				strcat(str, ms);
+				strcat(str, " ");
+				len += strlen(ms) + 1;
+		}
+		return len;
+}
+
+
+int sprintf_level(char *str, setting_t level)
+{
+		int i, len=0;
+		const char *ms;
+
+		*str = '\0';
+		if (level == RIG_LEVEL_NONE)
+				return 0;
+
+		for (i = 0; i < 60; i++) {
+				ms = strlevel(level & (1ULL<<i));
+				if (!ms)
+						continue;	/* unknown, FIXME! */
+				strcat(str, ms);
+				strcat(str, " ");
+				len += strlen(ms) + 1;
+		}
+		return len;
+}
+
+
+int sprintf_parm(char *str, setting_t parm)
+{
+		int i, len=0;
+		const char *ms;
+
+		*str = '\0';
+		if (parm == RIG_PARM_NONE)
+				return 0;
+
+		for (i = 0; i < 60; i++) {
+				ms = strparm(parm & (1ULL<<i));
+				if (!ms)
+						continue;	/* unknown, FIXME! */
+				strcat(str, ms);
+				strcat(str, " ");
+				len += strlen(ms) + 1;
+		}
+		return len;
+}
+
+
+int sprintf_vfop(char *str, vfo_op_t op)
+{
+		int i, len=0;
+		const char *ms;
+
+		*str = '\0';
+		if (op == RIG_OP_NONE)
+				return 0;
+
+		for (i = 0; i < 30; i++) {
+				ms = strvfop(op & (1UL<<i));
+				if (!ms)
+						continue;	/* unknown, FIXME! */
+				strcat(str, ms);
+				strcat(str, " ");
+				len += strlen(ms) + 1;
+		}
+		return len;
+}
+
+
+int sprintf_scan(char *str, scan_t scan)
+{
+		int i, len=0;
+		const char *ms;
+
+		*str = '\0';
+		if (scan == RIG_SCAN_NONE)
+				return 0;
+
+		for (i = 0; i < 30; i++) {
+				ms = strscan(scan & (1UL<<i));
+				if (!ms)
+						continue;	/* unknown, FIXME! */
+				strcat(str, ms);
+				strcat(str, " ");
+				len += strlen(ms) + 1;
+		}
+		return len;
+}
+
 
 
 static struct { 
@@ -473,6 +634,7 @@ static struct {
 	{ RIG_FUNC_FAGC, "FAGC" },
 	{ RIG_FUNC_NB, "NB" },
 	{ RIG_FUNC_COMP, "COMP" },
+	{ RIG_FUNC_VOX, "VOX" },
 	{ RIG_FUNC_TONE, "TONE" },
 	{ RIG_FUNC_TSQL, "TSQL" },
 	{ RIG_FUNC_SBKIN, "SBKIN" },
@@ -483,6 +645,15 @@ static struct {
 	{ RIG_FUNC_MON, "MON" },
 	{ RIG_FUNC_MN, "MN" },
 	{ RIG_FUNC_RNF, "RNF" },
+	{ RIG_FUNC_ARO, "ARO" },
+	{ RIG_FUNC_LOCK, "LOCK" },
+	{ RIG_FUNC_MUTE, "MUTE" },
+	{ RIG_FUNC_VSC, "VSC" },
+	{ RIG_FUNC_REV, "REV" },
+	{ RIG_FUNC_SQL, "SQL" },
+	{ RIG_FUNC_BC, "BC" },
+	{ RIG_FUNC_MBC, "MBC" },
+	{ RIG_FUNC_LMP, "LMP" },
 	{ RIG_FUNC_NONE, NULL },
 };
 
@@ -502,6 +673,7 @@ static struct {
 } level_str[] = {
 	{ RIG_LEVEL_PREAMP, "PREAMP" },
 	{ RIG_LEVEL_ATT, "ATT" },
+	{ RIG_LEVEL_VOX, "VOX" },
 	{ RIG_LEVEL_AF, "AF" },
 	{ RIG_LEVEL_RF, "RF" },
 	{ RIG_LEVEL_SQL, "SQL" },
@@ -519,6 +691,7 @@ static struct {
 	{ RIG_LEVEL_AGC, "AGC" },
 	{ RIG_LEVEL_BKINDL, "BKINDL" },
 	{ RIG_LEVEL_BALANCE, "BAL" },
+	{ RIG_LEVEL_METER, "METER" },
 
 	{ RIG_LEVEL_SWR, "SWR" },
 	{ RIG_LEVEL_ALC, "ALC" },

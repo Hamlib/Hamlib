@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.h,v 1.11 2002-01-22 00:50:32 fillods Exp $
+ *		$Id: misc.h,v 1.12 2002-01-27 23:47:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,7 +59,14 @@ extern HAMLIB_EXPORT(unsigned long long) from_bcd(const unsigned char bcd_data[]
 extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
 extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_data[], int bcd_len);
 
-extern HAMLIB_EXPORT(int) freq_sprintf(char *str, freq_t freq);
+extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
+extern HAMLIB_EXPORT(int) sprintf_mode(char *str, rmode_t);
+extern HAMLIB_EXPORT(int) sprintf_vfo(char *str, vfo_t);
+extern HAMLIB_EXPORT(int) sprintf_func(char *str, setting_t);
+extern HAMLIB_EXPORT(int) sprintf_level(char *str, setting_t);
+extern HAMLIB_EXPORT(int) sprintf_parm(char *str, setting_t);
+extern HAMLIB_EXPORT(int) sprintf_vfop(char *str, vfo_op_t);
+extern HAMLIB_EXPORT(int) sprintf_scan(char *str, scan_t);
 extern HAMLIB_EXPORT(const char *) strmode(rmode_t mode);
 extern HAMLIB_EXPORT(const char *) strvfo(vfo_t vfo);
 extern HAMLIB_EXPORT(const char *) strfunc(setting_t);
@@ -68,6 +75,7 @@ extern HAMLIB_EXPORT(const char *) strparm(setting_t);
 extern HAMLIB_EXPORT(const char *) strptrshift(rptr_shift_t);
 extern HAMLIB_EXPORT(const char *) strvfop(vfo_op_t op);
 extern HAMLIB_EXPORT(const char *) strscan(scan_t scan);
+extern HAMLIB_EXPORT(const char *) strstatus(enum rig_status_e status);
 
 extern HAMLIB_EXPORT(rmode_t) parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) parse_vfo(const char *s);
