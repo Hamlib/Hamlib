@@ -1,11 +1,11 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2003
+ * rotctl.c - (C) Stephane Fillod 2000-2004
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rotctl.c,v 1.7 2003-04-07 20:54:18 fillods Exp $  
+ *	$Id: rotctl.c,v 1.8 2004-05-17 20:59:41 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -78,15 +78,6 @@ void version();
 void list_models();
 static int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(ROT *my_rot, char *conf_parms);
-
-rmode_t parse_mode(const char *s);
-vfo_t parse_vfo(const char *s);
-setting_t parse_func(const char *s);
-setting_t parse_level(const char *s);
-setting_t parse_parm(const char *s);
-vfo_op_t parse_vfo_op(const char *s);
-scan_t parse_scan(const char *s);
-rptr_shift_t parse_rptr_shift(const char *s);
 
 #define declare_proto_rot(f) static int (f)(ROT *rot, int interactive, \
 			const struct test_table *cmd, const char *arg1, \
