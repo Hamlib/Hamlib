@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.14 2000-09-23 03:49:13 javabear Exp $  
+ *    $Id: ft847.h,v 1.15 2000-10-01 23:49:08 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,10 @@
 #ifndef _FT847_H
 #define _FT847_H 1
 
+
+#define FT847_CMD_LENGTH      5
+
+
 /*
  * future - private data
  *
@@ -38,21 +42,33 @@ struct ft847_priv_data {
 };
 
 
+
 /* 
  * API local implementation 
  */
 
 int ft847_init(RIG *rig);
+int ft847_open(RIG *rig);
+
 int ft847_cleanup(RIG *rig);
+int ft847_close(RIG *rig);
+
 int ft847_set_freq(RIG *rig, freq_t freq);
+int ft847_get_freq(RIG *rig, freq_t *freq);
 
-/*  int cmd_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode); */
+int ft847_set_mode(RIG *rig, rmode_t mode); /* select mode */
+int ft847_get_mode(RIG *rig, rmode_t *mode); /* get mode */
 
-  /*
-    int (*set_freq)(RIG *rig, freq_t freq);
-    int (*set_mode)(RIG *rig, rig_mode_t mode);
-    int (*set_vfo)(RIG *rig, rig_vfo_t vfo);
-  */
+int ft847_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
+int ft847_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+
+int ft847_set_ptt(RIG *rig, ptt_t ptt);
+int ft847_get_ptt(RIG *rig, ptt_t *ptt);
+
+
+
+
+#if 0
 
 /*
  * Allow TX commands to be disabled
@@ -113,7 +129,6 @@ const unsigned char CTCSS_ENC_DEC_OFF = 0x2a;
  */
 
 
-#if 0
 
 void cmd_set_cat_on(int fd);
 void cmd_set_cat_off(int fd);

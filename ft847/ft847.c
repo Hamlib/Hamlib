@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.20 2000-09-23 03:48:01 javabear Exp $  
+ * $Id: ft847.c,v 1.21 2000-10-01 23:50:46 javabear Exp $  
  *
  *
  *
@@ -126,10 +126,10 @@ const struct rig_caps ft847_caps = {
   },  
   ft847_init, 
   ft847_cleanup, 
-  NULL, 
-  NULL, 
+  ft847_open, 
+  ft847_close, 
   NULL /* probe not supported yet */,
-  ft847_set_freq_main_vfo_hz,
+  NULL,
   NULL,
 };
 
@@ -154,12 +154,12 @@ int ft847_init(RIG *rig) {
   struct ft847_priv_data *p;
   
   if (!rig)
-    return -1;
+    return -RIG_EINVAL;
   
   p = (struct ft847_priv_data*)malloc(sizeof(struct ft847_priv_data));
   if (!p) {
 				/* whoops! memory shortage! */
-    return -2;
+    return -RIG_ENOMEM;
   }
   
   /* init the priv_data from static struct 
@@ -168,8 +168,10 @@ int ft847_init(RIG *rig) {
   *p = ft847_priv;
   
   rig->state.priv = (void*)p;
+
+
   
-  return 0;
+  return RIG_OK;
 }
 
 
@@ -177,27 +179,140 @@ int ft847_init(RIG *rig) {
  * ft847_cleanup routine
  * the serial port is closed by the frontend
  */
+
 int ft847_cleanup(RIG *rig) {
   if (!rig)
-    return -1;
+    return -RIG_EINVAL;
   
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
   
-  return 0;
+  return RIG_OK;
 }
 
-		/* 
-		 * should check return code and that write wrote cmd_len chars! 
-		 */
-/*  		write_block2(rig_s->fd, buf, frm_len, rig_s->write_delay); */
+
+/*
+ * ft847_open  routine
+ * 
+ */
+
+int ft847_open(RIG *rig) {
+  struct rig_state *rig_s;
+  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x00 }; /* cat = on */
+ 
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_s = &rig->state;
+  
+  /* Good time to set CAT ON */
+  
+  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay);  
+  return RIG_OK;
+}
+
+
+/*
+ * ft847_close  routine
+ * 
+ */
+
+int ft847_close(RIG *rig) {
+  struct rig_state *rig_s;
+  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x80 }; /* cat = off */
+ 
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_s = &rig->state;
+
+  /* Good time to set CAT OFF */
+
+  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay);  
+  return RIG_OK;
+}
+
+
 
 
 /*
  * Example of wrapping backend function inside frontend API
  * 	 
  */
+
+
+int ft847_set_freq(RIG *rig, freq_t freq) {
+  return -RIG_ENIMPL;
+}
+
+int ft847_get_freq(RIG *rig, freq_t *freq) {
+  return -RIG_ENIMPL;
+}
+
+int ft847_set_mode(RIG *rig, rmode_t mode) {
+  return -RIG_ENIMPL;
+}
+
+int ft847_get_mode(RIG *rig, rmode_t *mode) {
+  return -RIG_ENIMPL;
+}
+
+int ft847_set_vfo(RIG *rig, vfo_t vfo) {
+  return -RIG_ENIMPL;
+
+}
+int ft847_get_vfo(RIG *rig, vfo_t *vfo) {
+  return -RIG_ENIMPL;
+
+}
+
+
+/*
+ * _set_ptt
+ *
+ */
+
+
+int ft847_set_ptt(RIG *rig, ptt_t ptt) {
+  struct rig_state *rig_s;
+  struct ft847_priv_data *p;
+
+  static unsigned char cmd_A[] = { 0x00, 0x00, 0x00, 0x00, 0x08 }; /* ptt = on */
+  static unsigned char cmd_B[] = { 0x00, 0x00, 0x00, 0x00, 0x88 }; /* ptt = off */
+  
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  p = (struct ft847_priv_data*)rig->state.priv;
+  rig_s = &rig->state;
+    
+  /* 
+   * TODO : check for errors -- FS
+   */
+
+  switch(ptt) {
+  case RIG_PTT_ON:
+    write_block(rig_s->fd, cmd_A, FT847_CMD_LENGTH, rig_s->write_delay);
+    return RIG_OK;
+  case RIG_PTT_OFF:
+    write_block(rig_s->fd, cmd_B, FT847_CMD_LENGTH, rig_s->write_delay);
+    return RIG_OK;
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong ptt range */
+  }
+  
+  return RIG_OK;		/* good */
+
+}
+
+int ft847_get_ptt(RIG *rig, ptt_t *ptt) {
+  return -RIG_ENIMPL;
+
+}
+
+
+
 
 int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode) {
   struct ft847_priv_data *p;
