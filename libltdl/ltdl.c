@@ -37,8 +37,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 #  include <stdio.h>
 #endif
 
+/* Include the header defining malloc.  On K&R C compilers,
+   that's <malloc.h>, on ANSI C and ISO C compilers, that's <stdlib.h>.  */
 #if HAVE_STDLIB_H
 #  include <stdlib.h>
+#else
+#  if HAVE_MALLOC_H
+#    include <malloc.h>
+#  endif
 #endif
 
 #if HAVE_STRING_H
@@ -51,10 +57,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 #if HAVE_CTYPE_H
 #  include <ctype.h>
-#endif
-
-#if HAVE_MALLOC_H
-#  include <malloc.h>
 #endif
 
 #if HAVE_MEMORY_H
@@ -237,7 +239,7 @@ LT_GLOBAL_DATA void   (*lt_dlfree)	LT_PARAMS((lt_ptr ptr))
 #else
 
 #define LT_DLMALLOC(tp, n)	((tp *) lt_dlmalloc ((n) * sizeof(tp)))
-#define LT_DLREALLOC(tp, p, n)	((tp *) rpl_realloc ((p), (n) * sizeof(tp)))
+#define LT_DLREALLOC(tp, p, n)	((tp *) lt_dlrealloc ((p), (n) * sizeof(tp)))
 #define LT_DLFREE(p)						\
 	LT_STMT_START { if (p) (p) = (lt_dlfree (p), (lt_ptr) 0); } LT_STMT_END
 
@@ -1016,7 +1018,7 @@ lt_erealloc (addr, size)
      lt_ptr addr;
      size_t size;
 {
-  lt_ptr mem = realloc (addr, size);
+  lt_ptr mem = lt_dlrealloc (addr, size);
   if (size && !mem)
     LT_DLMUTEX_SETERROR (LT_DLSTRERROR (NO_MEMORY));
   return mem;
