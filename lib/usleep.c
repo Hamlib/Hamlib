@@ -27,6 +27,13 @@ Cambridge, MA 02139, USA.  */
 # include <sys/select.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+#ifdef HAVE_WINBASE_H
+# include <winbase.h>
+#endif
+
 #ifdef apollo
 # include <apollo/base.h>
 # include <apollo/time.h>
@@ -45,6 +52,9 @@ usleep (unsigned int useconds)
   /* The usleep function does not work under the SYS5.3 environment.
      Use the Domain/OS time_$wait call instead. */
   time_$wait (time_$relative, DomainTime100mS, &DomainStatus);
+#elif WIN32
+  Sleep( useconds/1000 );
+  return 0;
 #else
   struct timeval delay;
 
