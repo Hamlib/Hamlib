@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.28 2001-06-04 17:01:21 f4cfe Exp $  
+ * $Id: icom.c,v 1.29 2001-06-10 22:29:00 f4cfe Exp $  
  *
  *
  *
@@ -185,7 +185,7 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_ICR9000, 0x2a },
 		{ RIG_MODEL_MINISCOUT, 0x94 },
 		{ RIG_MODEL_IC718, 0x36 },	/* need confirmation */
-		{ -1, 0 },
+		{ RIG_MODEL_NONE, 0 },
 };
 
 /*
@@ -261,7 +261,7 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char freqbuf[16], ackbuf[16];
-		int freq_len,ack_len;
+		int freq_len, ack_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -273,7 +273,10 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		 */
 		to_bcd(freqbuf, freq, freq_len*2);
 
-		icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_freq: ack NG (%#.2x), "
@@ -294,12 +297,15 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char freqbuf[16];
-		int freq_len;
+		int freq_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icom_transaction (rig, C_RD_FREQ, -1, NULL, 0, freqbuf, &freq_len);
+		retval = icom_transaction (rig, C_RD_FREQ, -1, NULL, 0, 
+						freqbuf, &freq_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * freqbuf should contain Cn,Data area
@@ -342,7 +348,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char ackbuf[16],icmode_ext[1];
-		int ack_len,icmode;
+		int ack_len, icmode, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -350,8 +356,10 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		icmode = rig2icom_mode(rig, mode,width);
 
 		icmode_ext[0] = (icmode>>8) & 0xff;
-		icom_transaction (rig, C_SET_MODE, icmode & 0xff, icmode_ext, 
+		retval = icom_transaction (rig, C_SET_MODE, icmode & 0xff, icmode_ext, 
 						icmode_ext[0]?1:0, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_mode: ack NG (%#.2x), "
@@ -375,12 +383,15 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char modebuf[16];
-		int mode_len;
+		int mode_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icom_transaction (rig, C_RD_MODE, -1, NULL, 0, modebuf, &mode_len);
+		retval = icom_transaction (rig, C_RD_MODE, -1, NULL, 0, 
+						modebuf, &mode_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * modebuf should contain Cn,Data area
@@ -406,7 +417,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char ackbuf[16];
-		int ack_len,icvfo;
+		int ack_len, icvfo, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -416,7 +427,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 		case RIG_VFO_B: icvfo = S_VFOB; break;
 #ifdef RIG_VFO_VFO
 		case RIG_VFO_VFO: 
-			icom_transaction (rig, C_SET_VFO, -1, NULL, 0, ackbuf, &ack_len);
+			retval = icom_transaction (rig, C_SET_VFO, -1, NULL, 0, 
+							ackbuf, &ack_len);
+			if (retval != RIG_OK)
+				return retval;
 			if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_vfo: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
@@ -426,7 +440,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 #endif
 #ifdef RIG_VFO_MEM
 		case RIG_VFO_MEM: 
-			icom_transaction (rig, C_SET_MEM, -1, NULL, 0, ackbuf, &ack_len);
+			retval = icom_transaction (rig, C_SET_MEM, -1, NULL, 0, 
+							ackbuf, &ack_len);
+			if (retval != RIG_OK)
+				return retval;
 			if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_vfo: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
@@ -439,7 +456,10 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 										vfo);
 						return -RIG_EINVAL;
 		}
-		icom_transaction (rig, C_SET_VFO, icvfo, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_SET_VFO, icvfo, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_vfo: ack NG (%#.2x), "
@@ -462,7 +482,7 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		int ack_len, lvl_len;
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
-		int i;
+		int i, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -586,8 +606,10 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, 
+		retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, lvl_len, 
 						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), "
@@ -611,6 +633,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
 		int cmdhead;
+		int retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -711,7 +734,10 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0, lvlbuf, &lvl_len);
+		retval = icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0, 
+						lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * strbuf should contain Cn,Sc,Data area
@@ -778,14 +804,17 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char ackbuf[16], ptt_sc;
-		int ack_len;
+		int ack_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
 		ptt_sc = ptt == RIG_PTT_ON ? S_PTT_ON:S_PTT_OFF;
 
-		icom_transaction (rig, C_CTL_PTT, ptt_sc, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_CTL_PTT, ptt_sc, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_ptt: ack NG (%#.2x), "
@@ -805,12 +834,15 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char pttbuf[16];
-		int ptt_len;
+		int ptt_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icom_transaction (rig, C_CTL_PTT, -1, NULL, 0, pttbuf, &ptt_len);
+		retval = icom_transaction (rig, C_CTL_PTT, -1, NULL, 0, 
+						pttbuf, &ptt_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * freqbuf should contain Cn,Data area
@@ -836,13 +868,16 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char dcdbuf[16];
-		int dcd_len;
+		int dcd_len, retval;
 		int icom_val;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0, dcdbuf, &dcd_len);
+		retval = icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0, 
+						dcdbuf, &dcd_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * freqbuf should contain Cn,Data area
@@ -877,7 +912,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 		int rptr_sc;
 
 		rs = &rig->state;
@@ -898,7 +933,10 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 			return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_shift: ack NG (%#.2x), "
@@ -920,12 +958,15 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char rptrbuf[16];
-		int rptr_len;
+		int rptr_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, rptrbuf, &rptr_len);
+		retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, 
+						rptrbuf, &rptr_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * rptrbuf should contain Cn,Sc
@@ -964,7 +1005,7 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char offsbuf[16],ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -974,7 +1015,10 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 		 */
 		to_bcd(offsbuf, rptr_offs/100, OFFS_LEN*2);
 
-		icom_transaction (rig, C_SET_OFFS, -1, offsbuf, OFFS_LEN, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_SET_OFFS, -1, offsbuf, OFFS_LEN, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_offs: ack NG (%#.2x), "
@@ -995,20 +1039,23 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char offsbuf[16];
-		int offs_len;
+		int offs_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icom_transaction (rig, C_RD_OFFS, -1, NULL, 0, offsbuf, &offs_len);
+		retval = icom_transaction (rig, C_RD_OFFS, -1, NULL, 0, 
+						offsbuf, &offs_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * offsbuf should contain Cn
 		 */
 		offs_len--;
 		if (offs_len != OFFS_LEN) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_rptr_offs: wrong frame len=%d\n",
-								offs_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_get_rptr_offs: "
+								"wrong frame len=%d\n", offs_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1104,7 +1151,7 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 		int split_sc;
 
 		rs = &rig->state;
@@ -1122,7 +1169,10 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 			return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_split: ack NG (%#.2x), "
@@ -1143,12 +1193,15 @@ int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char splitbuf[16];
-		int split_len;
+		int split_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, splitbuf, &split_len);
+		retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, 
+						splitbuf, &split_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * splitbuf should contain Cn,Sc
@@ -1183,7 +1236,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 		const struct icom_priv_caps *priv_caps;
 		unsigned char ackbuf[16];
-		int i, ack_len;
+		int i, ack_len, retval;
 		int ts_sc = 0;
 
 		priv_caps = (const struct icom_priv_caps*)rig->caps->priv;
@@ -1198,7 +1251,10 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 				return -RIG_EINVAL;	/* not found, unsupported */
 		}
 
-		icom_transaction (rig, C_SET_TS, ts_sc, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_SET_TS, ts_sc, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_ts: ack NG (%#.2x), "
@@ -1218,11 +1274,13 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 		const struct icom_priv_caps *priv_caps;
 		unsigned char tsbuf[16];
-		int ts_len,i;
+		int ts_len, i, retval;
 
 		priv_caps = (const struct icom_priv_caps*)rig->caps->priv;
 
-		icom_transaction (rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
+		retval = icom_transaction (rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * tsbuf should contain Cn,Sc
@@ -1255,7 +1313,7 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 		unsigned char fctbuf[16], ackbuf[16];
-		int fct_len, acklen;
+		int fct_len, acklen, retval;
 		int fct_cn, fct_sc;		/* Command Number, Subcommand */
 
 		/*
@@ -1327,7 +1385,10 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 			return -RIG_EINVAL;
 		}
 
-		icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, ackbuf, &acklen);
+		retval = icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, 
+						ackbuf, &acklen);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (fct_len != 2) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_func: wrong frame len=%d\n",
@@ -1346,7 +1407,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 		int fct_cn, fct_sc;		/* Command Number, Subcommand */
 
 		/* Optimize:
@@ -1412,7 +1473,10 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 			return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, fct_cn, fct_sc, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction (rig, fct_cn, fct_sc, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 3) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_func: wrong frame len=%d\n",
@@ -1436,7 +1500,7 @@ int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 {
 		const struct rig_caps *caps;
 		unsigned char tonebuf[16], ackbuf[16];
-		int tone_len, ack_len;
+		int tone_len, ack_len, retval;
 		int i;
 
 		caps = rig->caps;
@@ -1460,8 +1524,10 @@ int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 		tone_len = 1;
 		to_bcd_be(tonebuf, (long long)i, tone_len*2);
 
-		icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, tonebuf, tone_len, 
-												ackbuf, &ack_len);
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, 
+						tonebuf, tone_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_ctcss: ack NG (%#.2x), "
@@ -1480,7 +1546,7 @@ int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 {
 		const struct rig_caps *caps;
 		unsigned char tonebuf[16];
-		int tone_len, tone_idx;
+		int tone_len, tone_idx, retval;
 		int i;
 
 		caps = rig->caps;
@@ -1489,8 +1555,10 @@ int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 		 * see icom_set_ctcss for discussion on the untested status!
 		 */
 
-		icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, NULL, 0, 
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, NULL, 0, 
 												tonebuf, &tone_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (tone_len != 3) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss: ack NG (%#.2x), "
@@ -1525,7 +1593,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 {
 		const struct rig_caps *caps;
 		unsigned char tonebuf[16], ackbuf[16];
-		int tone_len, ack_len;
+		int tone_len, ack_len, retval;
 		int i;
 
 		caps = rig->caps;
@@ -1544,8 +1612,10 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 		tone_len = 1;
 		to_bcd_be(tonebuf, (long long)i, tone_len*2);
 
-		icom_transaction(rig, C_SET_TONE, S_TONE_SQL, tonebuf, tone_len, 
-												ackbuf, &ack_len);
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL, 
+						tonebuf, tone_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_ctcss_sql: ack NG (%#.2x), "
@@ -1564,7 +1634,7 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 {
 		const struct rig_caps *caps;
 		unsigned char tonebuf[16];
-		int tone_len, tone_idx;
+		int tone_len, tone_idx, retval;
 		int i;
 
 		caps = rig->caps;
@@ -1573,8 +1643,10 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 		 * see icom_set_ctcss for discussion on the untested status!
 		 */
 
-		icom_transaction(rig, C_SET_TONE, S_TONE_SQL, NULL, 0, 
+		retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL, NULL, 0, 
 												tonebuf, &tone_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (tone_len != 3) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_sql: ack NG (%#.2x), "
@@ -1608,7 +1680,7 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char chanbuf[24], ackbuf[16];
-		int chan_len,freq_len,ack_len;
+		int chan_len, freq_len, ack_len, retval;
 		int icmode;
 
 		rs = &rig->state;
@@ -1629,22 +1701,21 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 		icmode = rig2icom_mode(rig, chan->mode, RIG_PASSBAND_NORMAL);/* FIXME */
 		chanbuf[chan_len++] = icmode&0xff;
 		chanbuf[chan_len++] = icmode>>8;
-#if 0
-		to_bcd_be(chanbuf+chan_len++,chan->att,2);
-		to_bcd_be(chanbuf+chan_len++,chan->preamp,2);
-#else
+
 		to_bcd_be(chanbuf+chan_len++,
 						chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i, 2);
 		to_bcd_be(chanbuf+chan_len++,
 						chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i, 2);
-#endif
+
 		to_bcd_be(chanbuf+chan_len++,chan->ant,2);
 		memset(chanbuf+chan_len, 0, 8);
 		strncpy(chanbuf+chan_len, chan->channel_desc, 8);
 		chan_len += 8;
 
-		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len,
-						ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, 
+						chanbuf, chan_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_channel: ack NG (%#.2x), "
@@ -1665,7 +1736,7 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char chanbuf[24];
-		int chan_len,freq_len;
+		int chan_len, freq_len, retval;
 		pbwidth_t width; 	/* FIXME */
 
 		rs = &rig->state;
@@ -1676,8 +1747,10 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 
 		freq_len = priv->civ_731_mode ? 4:5;
 
-		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len, 
-						chanbuf, &chan_len);
+		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, 
+						chanbuf, chan_len, chanbuf, &chan_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		/*
 		 * freqbuf should contain Cn,Data area
@@ -1717,12 +1790,15 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 		int pwr_sc;
 
 		pwr_sc = status==RIG_POWER_ON ? S_PWR_ON:S_PWR_OFF;
 
-		icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_powerstat: ack NG (%#.2x), "
@@ -1740,9 +1816,12 @@ int icom_set_powerstat(RIG *rig, powerstat_t status)
 int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 
-		icom_transaction(rig, C_SET_PWR, -1, NULL, 0, ackbuf, &ack_len);
+		retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_powerstat: ack NG (%#.2x), "
@@ -1765,13 +1844,16 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 		struct rig_state *rs;
 		unsigned char membuf[2];
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(membuf, ch, CHAN_NB_LEN*2);
-		icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_mem: ack NG (%#.2x), "
@@ -1792,13 +1874,16 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 		struct rig_state *rs;
 		unsigned char bankbuf[2];
 		unsigned char ackbuf[16];
-		int ack_len;
+		int ack_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
 		to_bcd_be(bankbuf, bank, BANK_NB_LEN*2);
-		icom_transaction (rig, C_SET_MEM, S_BANK, bankbuf, CHAN_NB_LEN, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_SET_MEM, S_BANK, 
+						bankbuf, CHAN_NB_LEN, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_bank: ack NG (%#.2x), "
@@ -1870,7 +1955,10 @@ int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 				return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
+		retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_mv_ctl: ack NG (%#.2x), "
@@ -1892,7 +1980,7 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		struct rig_state *rs;
 		unsigned char mvbuf[16];
 		unsigned char ackbuf[16];
-		int mv_len, ack_len;
+		int mv_len, ack_len, retval;
 		int mv_cn, mv_sc;
 
 		rs = &rig->state;
@@ -1946,7 +2034,10 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 				return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
+		retval = icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, 
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_vfo_op: ack NG (%#.2x), "
@@ -1978,6 +2069,14 @@ int icom_decode_event(RIG *rig)
 		priv = (struct icom_priv_data*)rs->priv;
 
 		frm_len = read_icom_frame(&rs->rigport, buf);
+		if (frm_len < 0)
+				return frm_len;
+
+		if (buf[3] != BCASTID && buf[3] != priv->re_civ_addr) {
+			rig_debug(RIG_DEBUG_WARN, "icom_decode: CI-V %#x called for %#x!\n",
+							priv->re_civ_addr, buf[3]);
+		}
+
 		/*
 		 * the first 2 bytes must be 0xfe
 		 * the 3rd one the emitter
@@ -2014,6 +2113,86 @@ int icom_decode_event(RIG *rig)
 		return RIG_OK;
 }
 
+/*
+ * init_icom is called by rig_probe_all (register.c)
+ *
+ * TODO: probe_icom will only report the _first_ device on the CI-V bus.
+ * 		more devices could be found on the bus.
+ */
+rig_model_t probe_icom(port_t *p)
+{
+		unsigned char buf[16], civ_addr, civ_id;
+		int frm_len, i;
+		int retval;
+
+		if (!p)
+				return RIG_MODEL_NONE;
+
+		p->write_delay = p->post_write_delay = 0;
+		p->timeout = 50;
+		p->retry = 1;
+
+		retval = serial_open(p);
+		if (retval != RIG_OK)
+				return RIG_MODEL_NONE;
+
+		/* try all possible addresses on the CI-V bus */
+		for (civ_addr=0x01; civ_addr<=0x7f; civ_addr++) {
+
+			frm_len = make_cmd_frame(buf, civ_addr, C_RD_TRXID, S_RD_TRXID, 
+							NULL, 0);
+
+			write_block(p, buf, frm_len);
+
+			/* read out the bytes we just sent 
+		 	* TODO: check this is what we expect 
+		 	*/
+			frm_len = read_icom_block(p, buf, frm_len);
+
+			/* this is the reply */
+			frm_len = read_icom_frame(p, buf);
+
+			/* timeout.. nobody's there */
+			if (frm_len <= 0)
+					continue;
+
+			if (buf[7] != FI && buf[5] != FI) {
+					/* protocol error, unexpected reply.
+					 * is this a CI-V device? 
+					 */
+					close(p->fd);
+					return RIG_MODEL_NONE;
+			} else if (buf[4] == NAK) {
+					/* 
+				 	* this is an Icom, but it does not support transceiver ID
+				 	* try to guess from the return address
+				 	*/
+					civ_id = buf[3];
+			} else {
+					civ_id = buf[6];
+			}
+
+			for (i=0; icom_addr_list[i].model != RIG_MODEL_NONE; i++) {
+					if (icom_addr_list[i].re_civ_addr == civ_id) {
+							close(p->fd);
+							rig_debug(RIG_DEBUG_VERBOSE,"probe_icom: found %#x"
+											" at %#x\n", civ_id, buf[3]);
+							return icom_addr_list[i].model;
+					}
+			}
+			/*
+			 * not found in known table.... 
+			 * update icom_addr_list[]!
+			 */
+			rig_debug(RIG_DEBUG_WARN,"probe_icom: found unknown device "
+							"with CI-V ID %#x, please report to Hamlib "
+							"developers.\n", civ_id);
+		}
+
+
+		close(p->fd);
+		return RIG_MODEL_NONE;
+}
 
 /*
  * init_icom is called by rig_backend_load
