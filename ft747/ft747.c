@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.24 2000-12-09 21:48:52 javabear Exp $  
+ * $Id: ft747.c,v 1.25 2000-12-11 04:19:10 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@
 /*
  * TODO -   FS
  *
- * 1. Rentrant code, handle static stuff
+ * 1. Rentrant code, remove static stuff from all functions.
  * 2. rationalise code, more helper functions.
  * 3. Allow cached reads
  * 4. Fix crappy 25Hz resolution handling
@@ -58,6 +58,45 @@
 /* prototypes */
 
 static int ft747_get_update_data(RIG *rig);
+
+/* Native ft747 cmd set prototypes. These are READ ONLY as each */
+/* rig instance will copy from these and modify if required . */
+/* Complete sequences (1) can be read and used directly as a cmd sequence . */
+/* Incomplete sequences (0) must be copied to priv data and completed */
+/* there. */
+
+static const struct ft747_cmd_set ncmd[] = { 
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split = off */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split = on */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* recall memory*/
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* vfo to  memory*/
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x04 } }, /* dial lock = off */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x04 } }, /* dial lock = on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* select vfo A */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* select vfo B */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* memory to vfo*/
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* up 500 khz */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* down 500 khz */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* clarify off */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, /* clarify on */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set freq */
+
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* mode set LSB */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* mode set USB */
+  { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* mode set CWW */
+  { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* mode set CWN */
+  { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* mode set AMW */
+  { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* mode set AMN */
+  { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* mode set FMW */
+  { 1, { 0x00, 0x00, 0x00, 0x07, 0x0c } }, /* mode set FMN */
+
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* pacing set */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* ptt off */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0f } }, /* ptt on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x10 } }, /* request update from rig */
+
+};
+
 
 
 /* 
@@ -551,9 +590,7 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
 int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-
-  static unsigned char cmd_ptt_off[] = { 0x00, 0x00, 0x00, 0x00, 0x0f }; /* ptt off */
-  static unsigned char cmd_ptt_on[] = { 0x00, 0x00, 0x00, 0x01, 0x0f }; /* ptt on */
+  unsigned char *cmd;		/* points to sequence to send */
 
   if (!rig)
     return -RIG_EINVAL;
@@ -563,16 +600,19 @@ int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
 
   ft747_set_vfo(rig,vfo);	/* select VFO first */
 
+
   switch(ptt) {
   case RIG_PTT_OFF:
-    write_block(rig_s->fd, cmd_ptt_off, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-    return RIG_OK;
+    cmd = (unsigned char *)&ncmd[FT_747_NATIVE_MODE_PTT_OFF].nseq; /* get native sequence */
+    break;
   case RIG_PTT_ON:
-    write_block(rig_s->fd, cmd_ptt_on, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-    return RIG_OK;
+    cmd = (unsigned char *)&ncmd[FT_747_NATIVE_MODE_PTT_ON].nseq;
+    break;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
+
+  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
   return RIG_OK;		/* good */
 }
 
@@ -815,6 +855,18 @@ void ft747_cmd_get_update_store(int fd, unsigned char *buffer) {
 
 #endif
 
+
+/*
+ * Private helper cmd to copy a native cmd sequence to priv
+ */
+
+static void build_cmd(unsigned char *dst, int command){
+  int i;
+  for(i=0; i<FT747_CMD_LENGTH; i++) {
+    dst[i] = ncmd[command].nseq[i]; /* lookup native cmd and build sequence */
+  }
+  return;
+}
 
 
 /*
