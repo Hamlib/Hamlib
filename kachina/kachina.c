@@ -2,7 +2,7 @@
  *  Hamlib Kachina backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: kachina.c,v 1.1 2001-08-12 22:52:44 f4cfe Exp $
+ *		$Id: kachina.c,v 1.2 2001-12-20 08:02:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,20 +34,10 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  include <cal.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  include <cal.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
+#include <cal.h>
 
 #include "kachina.h"
 
