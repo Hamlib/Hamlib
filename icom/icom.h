@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.10 2000-12-05 22:01:02 f4cfe Exp $  
+ *    $Id: icom.h,v 1.11 2001-01-28 22:06:11 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,14 @@
 
 #include <hamlib/rig.h>
 
+/*
+ * defines used by comp_cal_str in rig.c 
+ * STR_CAL_LENGTH is the lenght of the S Meter calibration table
+ * STR_CAL_S0 is the value in dB of the lowest value (not even in table)
+ */
+#define STR_CAL_LENGTH 16
+#define STR_CAL_S0 -54
+
 
 struct ts_sc_list {
 	shortfreq_t ts;	/* tuning step */
@@ -40,6 +48,8 @@ struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	const struct ts_sc_list *ts_sc_list;
+	int str_cal_raw[STR_CAL_LENGTH];
+	int str_cal_db[STR_CAL_LENGTH];
 };
 
 int icom_init(RIG *rig);
@@ -66,6 +76,7 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch);
 int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_set_channel(RIG *rig, const channel_t *chan);
 int icom_get_channel(RIG *rig, channel_t *chan);
 int icom_set_poweron(RIG *rig);
@@ -75,6 +86,7 @@ int icom_decode_event(RIG *rig);
 extern const struct rig_caps ic706_caps;
 extern const struct rig_caps ic706mkii_caps;
 extern const struct rig_caps ic706mkiig_caps;
+extern const struct rig_caps icr8500_caps;
 
 extern int init_icom(void *be_handle);
 

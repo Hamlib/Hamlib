@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.9 2001-01-05 18:18:50 f4cfe Exp $  
+ * $Id: ic706.c,v 1.10 2001-01-28 22:06:11 f4cfe Exp $  
  *
  *
  *
@@ -61,7 +61,7 @@
  * Also this struct is READONLY!
  */
 const struct rig_caps ic706_caps = {
-  RIG_MODEL_IC706, "IC-706", "Icom", "0.2", RIG_STATUS_ALPHA,
+  RIG_MODEL_IC706, "IC-706", "Icom", "0.2", RIG_STATUS_UNTESTED,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 300, 19200, 8, 1, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, 0, 0, 2000, 3, IC706_FUNC_ALL, IC706_LEVEL_ALL,
   IC706_LEVEL_ALL, 0, 101, RIG_TRN_ON,
@@ -108,7 +108,7 @@ const struct rig_caps ic706_caps = {
 };
 
 const struct rig_caps ic706mkii_caps = {
-  RIG_MODEL_IC706MKII, "IC-706MKII", "Icom", "0.2", RIG_STATUS_ALPHA,
+  RIG_MODEL_IC706MKII, "IC-706MKII", "Icom", "0.2", RIG_STATUS_UNTESTED,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 300, 19200, 8, 1, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, 0, 0, 2000, 3, IC706_FUNC_ALL, IC706_LEVEL_ALL,
   IC706_LEVEL_ALL, 0, 101, RIG_TRN_ON,
@@ -217,6 +217,7 @@ const struct rig_caps ic706mkiig_caps = {
 decode_event: icom_decode_event,
 set_level: icom_set_level,
 get_level: icom_get_level,
+set_func: icom_set_func,
 set_channel: icom_set_channel,
 get_channel: icom_get_channel,
 set_mem: icom_set_mem,
@@ -240,4 +241,29 @@ get_split: icom_get_split,
  * Function definitions below
  */
 
+static const int mkiig_raw[STR_CAL_LENGTH] = {
+100, 104, 108, 111, 114, 118, 121, 125, 129, 133, 137, 142, 146, 151, 156, 161
+};
+static const int mkiig_db[STR_CAL_LENGTH] = {
+-18, -16, -14, -12, -10,  -8,  -6,  -4,  -2,   0,   2,   4,   6,   8,  10,  12
+};
+
+/*
+ * called by icom_init
+ * assume rig!=NULL, rig->state.priv!=NULL
+ */
+int ic706mkiig_str_cal_init(RIG *rig)
+{
+	int i;
+	struct icom_priv_data *p = (struct icom_priv_data *)rig->state.priv;
+
+	/*
+	 * initialize the S Meter calibration table
+	 */
+	for (i=0; i<STR_CAL_LENGTH; i++) {
+			p->str_cal_raw[i] = mkiig_raw[i];
+			p->str_cal_db[i] = mkiig_db[i];
+	}
+	return RIG_OK;
+}
 
