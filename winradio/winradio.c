@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.5 2001-03-01 00:26:19 f4cfe Exp $
+ *		$Id: winradio.c,v 1.6 2001-03-02 18:37:17 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -47,27 +47,27 @@
 
 #define DEFAULT_WINRADIO_PATH "/dev/winradio0"
 
-static int wr_rig_init(RIG *rig) {
+int wr_rig_init(RIG *rig) {
   rig->state.port_type = RIG_PORT_DEVICE;
   strncpy(rig->state.rig_path, DEFAULT_WINRADIO_PATH, FILPATHLEN);
 
   return RIG_OK;
 }
 
-static int wr_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
+int wr_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   unsigned long f = freq;
   if ( ioctl(rig->state.fd, RADIO_SET_FREQ, &f) ) return -RIG_EINVAL;
   return RIG_OK;
 }
 
-static int wr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+int wr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   unsigned long f;
   if ( ioctl(rig->state.fd, RADIO_GET_FREQ, &f) < 0 ) return -RIG_EINVAL;
   *freq = f;
   return RIG_OK;
 }
 
-static int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
+int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned long m;
   switch ( mode ) {
   case RIG_MODE_AM:  m = RMD_AM; break;
@@ -87,7 +87,7 @@ static int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   return  RIG_OK;
 }
 
-static int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
+int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   unsigned long m;
   if ( ioctl(rig->state.fd, RADIO_GET_MODE, &m) ) return -RIG_EINVAL;
   switch ( m ) {
@@ -104,18 +104,20 @@ static int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   return RIG_OK;
 }
 
-static int wr_set_poweron(RIG *rig) {
+int wr_set_powerstat(RIG *rig, powerstat_t status) {
   unsigned long p = 1;
+  p = status==RIG_POWER_ON ? 1 : 0;
   if ( ioctl(rig->state.fd, RADIO_SET_POWER, &p) ) return -RIG_EINVAL;
   return RIG_OK;
 }
-static int wr_set_poweroff(RIG *rig) {
-  unsigned long p = 0;
-  if ( ioctl(rig->state.fd, RADIO_SET_POWER, &p) ) return -RIG_EINVAL;
+int wr_get_powerstat(RIG *rig, powerstat_t *status) {
+  unsigned long p;
+  if ( ioctl(rig->state.fd, RADIO_GET_POWER, &p) ) return -RIG_EINVAL;
+  *status = p ? RIG_POWER_ON : RIG_POWER_OFF;
   return RIG_OK;
 }
 
-static int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
+int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
   switch ( level ) {
   case RIG_LEVEL_AF: {
     unsigned long v;
@@ -134,7 +136,7 @@ static int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
   }    
 }
 
-static int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
+int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
   switch ( level ) {
   case RIG_LEVEL_AF: {
     unsigned long v, mv;
@@ -163,76 +165,12 @@ static int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
 /*
  * FIXME: static buf does not allow reentrancy!
  */
-static unsigned char *wr_get_info(RIG *rig) {
+unsigned char *wr_get_info(RIG *rig) {
   static char buf[100];
   if ( ioctl(rig->state.fd, RADIO_GET_DESCR, buf) < 0 ) return "?";
   return buf;
 }
 
-/*
- * Winradio rigs capabilities.
- */
-
-#define WR1500_FUNC  0
-#define WR1500_SET_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AF)
-#define WR1500_LEVEL (WR1500_SET_LEVEL | RIG_LEVEL_STRENGTH)
-
-#define WR1500_MODES (RIG_MODE_AM | RIG_MODE_CW | \
-                     RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_FM)
-
-const struct rig_caps wr1500_caps = {
-  rig_model:     RIG_MODEL_WR1500,
-  model_name:    "WR-1500",
-  mfg_name:      "Winradio",
-  version:       "0.6",
-  copyright:	 "GPL?",
-  status:        RIG_STATUS_NEW,
-  rig_type:      RIG_TYPE_PCRECEIVER,
-  port_type:     RIG_PORT_DEVICE,
-  vfo_list:		 0,	/* FIXME! */
-  targetable_vfo:	 0,
-  ptt_type:      RIG_PTT_NONE,
-  dcd_type:      RIG_DCD_NONE,
-  has_get_func:  WR1500_FUNC,
-  has_set_func:  WR1500_FUNC,
-  has_get_level: WR1500_LEVEL,
-  has_set_level: WR1500_SET_LEVEL,
-  has_get_parm:	 RIG_PARM_NONE,	/* FIXME */
-  has_set_parm:	 RIG_PARM_NONE,	/* FIXME */
-  ctcss_list:	 NULL,	/* FIXME */
-  dcs_list:  	 NULL,  /* FIXME */
-  chan_list:	 { RIG_CHAN_END, },	/* FIXME */
-  transceive:    RIG_TRN_OFF,
-  attenuator:    { 20, RIG_DBLST_END, },
-  rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:WR1500_MODES,
-		    low_power:-1,high_power:-1},
-		    RIG_FRNG_END, },
-  tx_range_list2: { RIG_FRNG_END, },
-  tuning_steps: { {WR1500_MODES,1}, RIG_TS_END, },
-  priv:			NULL,	/* priv */
-
-  rig_init:    wr_rig_init,
-  /*
-  rig_cleanup: wr_rig_cleanup,
-  rig_open:    wr_rig_open,
-  rig_close:   wr_rig_close,
-  rig_probe:   wr_rig_probe,
-  */
-
-  set_freq:    wr_set_freq,
-  get_freq:    wr_get_freq,
-  set_mode:    wr_set_mode,
-  get_mode:    wr_get_mode,
-  
-  set_poweron:  wr_set_poweron,
-  set_poweroff: wr_set_poweroff,
-  set_level:    wr_set_level,
-  get_level:    wr_get_level,
-  set_func:     NULL,
-  get_func:     NULL,
-
-  get_info:     wr_get_info,
-};
 
 int init_winradio(void *be_handle)
 {

@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.h,v 1.1 2001-02-07 23:54:14 f4cfe Exp $
+ *		$Id: winradio.h,v 1.2 2001-03-02 18:37:17 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,17 @@
 #define _WINRADIO_H 1
 
 #include <hamlib/rig.h>
+
+int wr_rig_init(RIG *rig);
+int wr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int wr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int wr_set_powerstat(RIG *rig, powerstat_t status);
+int wr_get_powerstat(RIG *rig, powerstat_t *status);
+int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+unsigned char *wr_get_info(RIG *rig);
 
 extern const struct rig_caps wr1500_caps;
 
