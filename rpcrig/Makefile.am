@@ -19,11 +19,11 @@ rpc_rigd_LDFLAGS = @BACKENDLNK@
 man_MANS = rpc.rigd.8
 
 # The RPC backend
-lib_LTLIBRARIES = libhamlib-rpcrig.la
-libhamlib_rpcrig_la_SOURCES = rpcrig_backend.c rpcrig_backend.h
-nodist_libhamlib_rpcrig_la_SOURCES = rpcrig_xdr_lt.c rpcrig_clnt.c rpcrig.h
-libhamlib_rpcrig_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
-libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
+lib_LTLIBRARIES = hamlib-rpcrig.la
+hamlib_rpcrig_la_SOURCES = rpcrig_backend.c rpcrig_backend.h
+nodist_hamlib_rpcrig_la_SOURCES = rpcrig_xdr_lt.c rpcrig_clnt.c rpcrig.h
+hamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version
+hamlib_rpcrig_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
 
 EXTRA_DIST = rpcrig.x $(man_MANS)
 

@@ -19,11 +19,11 @@ rpc_rotd_LDFLAGS = @ROT_BACKENDLNK@
 man_MANS = rpc.rotd.8
 
 # The RPC backend
-lib_LTLIBRARIES = libhamlib-rpcrot.la
-libhamlib_rpcrot_la_SOURCES = rpcrot_backend.c rpcrot_backend.h
-nodist_libhamlib_rpcrot_la_SOURCES = rpcrot_xdr_lt.c rpcrot_clnt.c rpcrot.h
-libhamlib_rpcrot_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
-libhamlib_rpcrot_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
+lib_LTLIBRARIES = hamlib-rpcrot.la
+hamlib_rpcrot_la_SOURCES = rpcrot_backend.c rpcrot_backend.h
+nodist_hamlib_rpcrot_la_SOURCES = rpcrot_xdr_lt.c rpcrot_clnt.c rpcrot.h
+hamlib_rpcrot_la_LDFLAGS = -no-undefined -module -avoid-version
+hamlib_rpcrot_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
 
 
 EXTRA_DIST = rpcrot.x $(man_MANS)
