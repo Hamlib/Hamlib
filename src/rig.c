@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.82 2004-10-02 20:18:16 fillods Exp $
+ *	$Id: rig.c,v 1.83 2004-10-02 20:37:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,8 +56,9 @@
 #include <fcntl.h>
 
 
-#include <hamlib/rig.h>
-#include <serial.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "parallel.h"
 #include "event.h"
 
 /**

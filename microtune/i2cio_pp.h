@@ -32,7 +32,7 @@
 #define _I2CIO_PP_H_
 
 #include "i2cio.h"
-#include "serial.h"
+#include "parallel.h"
 
 /*!
  * \brief concrete class that implements low level i/o for i2c bus using parallel port

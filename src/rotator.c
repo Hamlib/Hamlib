@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.15 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: rotator.c,v 1.16 2004-10-02 20:37:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,8 +50,9 @@
 #include <fcntl.h>
 
 
-#include <hamlib/rotator.h>
-#include <serial.h>
+#include "hamlib/rotator.h"
+#include "serial.h"
+#include "parallel.h"
 #include "rot_conf.h"
 #include "token.h"
 

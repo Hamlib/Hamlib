@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - SDR-1000
  *  Copyright (c) 2003-2004 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.6 2004-05-17 21:09:42 fillods Exp $
+ *	$Id: sdr1k.c,v 1.7 2004-10-02 20:37:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,7 +30,7 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
-#include "serial.h"
+#include "parallel.h"
 #include "misc.h"
 #include "bandplan.h"
 #include "register.h"
