@@ -19,7 +19,7 @@ o support more than one rig per application (ie. generic code)
 o support more than one rig per serial port (ie. Icoms)
 o handle serial retransmission and timeouts would be nice
 o i18n support if applicable
-o software compensation for the actual radio oscillator frequency errors
+o software compensation for the actual radio oscillator frequency errors(mode?)
 o if avail., support events sent by the rig (eg. main freq has been changed,..)
 o maybe add some misc functions like PTT signaling (through serial/parallel..)
 o Well documented API, and Howto write a new backend
@@ -68,7 +68,7 @@ Maybe we can distinguish between 3 states :
 
 o freq ranges supported: rx/mode, tx/modes/power
 o number of VFO, operations (set VFO separately, VFO A=B, switch, ..)
-o freq granularity (resolution), tuning steps
+o freq granularity (resolution), tuning steps (-> array)
 o SCAN functions (start, stop, ..)
 o Split (cross band, duplex, ...)
 o RIT (+- KHz)
@@ -79,6 +79,10 @@ o Meter indication: Squelch condition, S-meter level, ALC, SWR
 o Number of antennas (which band ?) and selection
 o available "set mode" items (ie. rig setup), and provide a way to modify them
 o DSP ?
+
+o max memory channel
+o per rig timeout/retry (can be overriden)
+o Write some memory channel handling (name, mode, freq/vfo, duplex, split, ..)
 
 Any other ideas?
 
