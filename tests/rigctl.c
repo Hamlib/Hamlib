@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.1 2000-10-29 16:35:29 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.2 2000-11-28 22:34:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -248,7 +248,7 @@ static int set_passband(RIG *rig)
 		pbwidth_t width;
 
 		printf("Passband: ");
-		scanf("%d", &width);
+		scanf("%d", (int*)&width);
 		return rig_set_passband(rig, width);
 }
 
@@ -269,7 +269,7 @@ static int set_vfo(RIG *rig)
 		vfo_t vfo;
 
 		printf("VFO: ");
-		scanf("%d", &vfo);
+		scanf("%d", (int*)&vfo);
 		return rig_set_vfo(rig, vfo);
 }
 
@@ -290,7 +290,7 @@ static int set_ptt(RIG *rig)
 		ptt_t ptt;
 
 		printf("PTT: ");
-		scanf("%d", &ptt);
+		scanf("%d", (int*)&ptt);
 		return rig_set_ptt(rig, ptt);
 }
 
@@ -311,7 +311,7 @@ static int set_rptr_shift(RIG *rig)
 		rptr_shift_t rptr_shift;
 
 		printf("Repeater shift: ");
-		scanf("%d", &rptr_shift);
+		scanf("%d", (int*)&rptr_shift);
 		return rig_set_rptr_shift(rig, rptr_shift);
 }
 
@@ -332,7 +332,7 @@ static int set_rptr_offs(RIG *rig)
 		unsigned long rptr_offs;
 
 		printf("Repeater shift offset: ");
-		scanf("%d", &rptr_offs);
+		scanf("%ld", &rptr_offs);
 		return rig_set_rptr_offs(rig, rptr_offs);
 }
 
@@ -343,7 +343,7 @@ static int get_rptr_offs(RIG *rig)
 		unsigned long rptr_offs;
 
 		status = rig_get_rptr_offs(rig, &rptr_offs);
-		printf("Repeater shift offset: %d\n", rptr_offs);
+		printf("Repeater shift offset: %ld\n", rptr_offs);
 		return status;
 }
 
@@ -419,7 +419,7 @@ static int set_split(RIG *rig)
 		split_t split;
 
 		printf("Split mode: ");
-		scanf("%d", &split);
+		scanf("%d", (int*)&split);
 		return rig_set_split(rig, split);
 }
 
@@ -440,7 +440,7 @@ static int set_ts(RIG *rig)
 		unsigned long ts;
 
 		printf("Tuning step: ");
-		scanf("%d", &ts);
+		scanf("%ld", &ts);
 		return rig_set_ts(rig, ts);
 }
 
@@ -451,7 +451,7 @@ static int get_ts(RIG *rig)
 		unsigned long ts;
 
 		status = rig_get_ts(rig, &ts);
-		printf("Tuning step: %d\n", ts);
+		printf("Tuning step: %ld\n", ts);
 		return status;
 }
 
@@ -535,7 +535,7 @@ static int mv_ctl(RIG *rig)
 		mv_op_t op;
 
 		printf("Mem/VFO op: ");
-		scanf("%d", &op);
+		scanf("%d", (int*)&op);
 		return rig_mv_ctl(rig, op);
 }
 

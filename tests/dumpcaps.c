@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.6 2000-11-01 23:27:26 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.7 2000-11-28 22:34:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -170,7 +170,7 @@ int main (int argc, char *argv[])
 
 	printf("Tuning steps:\n");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
-			printf("\t%iHz:\t%s\n",caps->tuning_steps[i].ts,
+			printf("\t%liHz:\t%s\n",caps->tuning_steps[i].ts,
 							decode_modes(caps->tuning_steps[i].modes));
 	}
 
