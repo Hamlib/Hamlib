@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.13 2001-06-04 21:17:53 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.14 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -236,10 +236,10 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 	print_yn(caps->get_split);
 	print_yn(caps->set_ts);
 	print_yn(caps->get_ts);
-	print_yn(caps->set_ctcss);
-	print_yn(caps->get_ctcss);
-	print_yn(caps->set_dcs);
-	print_yn(caps->get_dcs);
+	print_yn(caps->set_ctcss_tone);
+	print_yn(caps->get_ctcss_tone);
+	print_yn(caps->set_dcs_code);
+	print_yn(caps->get_dcs_code);
 	print_yn(caps->set_powerstat);
 	print_yn(caps->get_powerstat);
 	print_yn(caps->set_trn);

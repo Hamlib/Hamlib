@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.44 2001-06-30 23:11:00 f4cfe Exp $
+ *	$Id: rig.h,v 1.45 2001-07-01 11:46:16 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -613,9 +613,9 @@ struct channel {
   shortfreq_t xit;
   setting_t funcs;
   value_t levels[RIG_SETTING_MAX];
-  tone_t ctcss;
+  tone_t ctcss_tone;
   tone_t ctcss_sql;
-  tone_t dcs;
+  tone_t dcs_code;
   tone_t dcs_sql;
   char channel_desc[MAXCHANDESC];
 };
@@ -788,10 +788,10 @@ struct rig_caps {
   int (*set_ts)(RIG *rig, vfo_t vfo, shortfreq_t ts);
   int (*get_ts)(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 
-  int (*set_dcs)(RIG *rig, vfo_t vfo, tone_t code);
-  int (*get_dcs)(RIG *rig, vfo_t vfo, tone_t *code);
-  int (*set_ctcss)(RIG *rig, vfo_t vfo, tone_t tone);
-  int (*get_ctcss)(RIG *rig, vfo_t vfo, tone_t *tone);
+  int (*set_dcs_code)(RIG *rig, vfo_t vfo, tone_t code);
+  int (*get_dcs_code)(RIG *rig, vfo_t vfo, tone_t *code);
+  int (*set_ctcss_tone)(RIG *rig, vfo_t vfo, tone_t tone);
+  int (*get_ctcss_tone)(RIG *rig, vfo_t vfo, tone_t *tone);
 
   int (*set_dcs_sql)(RIG *rig, vfo_t vfo, tone_t code);
   int (*get_dcs_sql)(RIG *rig, vfo_t vfo, tone_t *code);
@@ -1049,10 +1049,10 @@ extern HAMLIB_EXPORT(int) rig_get_rptr_shift HAMLIB_PARAMS((RIG *rig, vfo_t vfo,
 extern HAMLIB_EXPORT(int) rig_set_rptr_offs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rptr_offs));
 extern HAMLIB_EXPORT(int) rig_get_rptr_offs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs));
 
-extern HAMLIB_EXPORT(int) rig_set_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
-extern HAMLIB_EXPORT(int) rig_get_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
-extern HAMLIB_EXPORT(int) rig_set_dcs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
-extern HAMLIB_EXPORT(int) rig_get_dcs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
+extern HAMLIB_EXPORT(int) rig_set_ctcss_tone HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
+extern HAMLIB_EXPORT(int) rig_get_ctcss_tone HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
+extern HAMLIB_EXPORT(int) rig_set_dcs_code HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
+extern HAMLIB_EXPORT(int) rig_get_dcs_code HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
 extern HAMLIB_EXPORT(int) rig_set_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
 extern HAMLIB_EXPORT(int) rig_get_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));

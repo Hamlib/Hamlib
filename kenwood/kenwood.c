@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- * $Id: kenwood.c,v 1.12 2001-06-30 23:19:42 f4cfe Exp $  
+ * $Id: kenwood.c,v 1.13 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  *
@@ -593,7 +593,7 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 }
 
 /*
- * kenwood_set_ctcss
+ * kenwood_set_ctcss_tone
  * Assumes rig!=NULL, rig->caps->ctcss_list != NULL
  *
  * Warning! This is untested stuff! May work at least on TS-870S
@@ -601,7 +601,7 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
  * TODO: TS-2000 uses CN/CT
  */
-int kenwood_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
+int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[16], ackbuf[16];
@@ -625,10 +625,10 @@ int kenwood_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 }
 
 /*
- * kenwood_get_ctcss
+ * kenwood_get_ctcss_tone
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int kenwood_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
+int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[16];
@@ -644,23 +644,23 @@ int kenwood_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 		return retval;
 
 	if (tone_len != 10) {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss: unexpected reply '%s', "
-							"len=%d\n", tonebuf, tone_len);
+			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss_tone: unexpected reply "
+							"'%s', len=%d\n", tonebuf, tone_len);
 			return -RIG_ERJCTED;
 	}
 
 	sscanf(tonebuf+5, "%u", (int*)&tone_idx);
 
 	if (tone_idx == 0) {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss: Unexpected CTCSS no "
-					"(%04d)\n", tone_idx);
+			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss_tone: Unexpected CTCSS "
+							"no (%04d)\n", tone_idx);
 			return -RIG_EPROTO;
 	}
 		
 	/* check this tone exists. That's better than nothing. */
 	for (i = 0; i<tone_idx; i++) {
 		if (caps->ctcss_list[i] == 0) {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss: CTCSS NG "
+			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss_tone: CTCSS NG "
 					"(%04d)\n", tone_idx);
 			return -RIG_EPROTO;
 		}

@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * 		$Id: icall.c,v 1.5 2001-06-03 19:54:05 f4cfe Exp $  
+ * 		$Id: icall.c,v 1.6 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -210,8 +210,8 @@ set_split_mode: icom_set_split_mode,
 get_split_mode: icom_get_split_mode,
 set_split: icom_set_split,
 get_split: icom_get_split,
-set_ctcss: icom_set_ctcss,
-get_ctcss: icom_get_ctcss,
+set_ctcss_tone: icom_set_ctcss_tone,
+get_ctcss_tone: icom_get_ctcss_tone,
 set_ctcss_sql: icom_set_ctcss_sql,
 get_ctcss_sql: icom_get_ctcss_sql,
 };

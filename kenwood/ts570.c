@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- *	$Id: ts570.c,v 1.1 2001-06-30 23:12:58 f4cfe Exp $  
+ *	$Id: ts570.c,v 1.2 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -188,8 +188,8 @@ set_mode: kenwood_set_mode,
 get_mode: kenwood_get_mode,
 set_vfo: kenwood_set_vfo,
 get_vfo: kenwood_get_vfo,
-set_ctcss: kenwood_set_ctcss,
-get_ctcss: kenwood_get_ctcss,
+set_ctcss_tone: kenwood_set_ctcss_tone,
+get_ctcss_tone: kenwood_get_ctcss_tone,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
 get_level: kenwood_get_level,
@@ -343,8 +343,8 @@ set_mode: kenwood_set_mode,
 get_mode: kenwood_get_mode,
 set_vfo: kenwood_set_vfo,
 get_vfo: kenwood_get_vfo,
-set_ctcss: kenwood_set_ctcss,
-get_ctcss: kenwood_get_ctcss,
+set_ctcss_tone: kenwood_set_ctcss_tone,
+get_ctcss_tone: kenwood_get_ctcss_tone,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
 get_level: kenwood_get_level,

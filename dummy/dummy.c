@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.13 2001-06-27 17:32:47 f4cfe Exp $
+ *	$Id: dummy.c,v 1.14 2001-07-01 11:46:17 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -259,7 +259,7 @@ static int dummy_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 }
 
 
-static int dummy_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
+static int dummy_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -267,7 +267,7 @@ static int dummy_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 }
 
 
-static int dummy_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
+static int dummy_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -275,7 +275,7 @@ static int dummy_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 }
 
 
-static int dummy_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
+static int dummy_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -283,7 +283,7 @@ static int dummy_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
 }
 
 
-static int dummy_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
+static int dummy_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -291,7 +291,7 @@ static int dummy_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
 }
 
 
-static int dummy_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
+static int dummy_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -299,7 +299,7 @@ static int dummy_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 }
 
 
-static int dummy_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
+static int dummy_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -685,10 +685,10 @@ const struct rig_caps dummy_caps = {
   get_rptr_shift:	dummy_get_rptr_shift,
   set_rptr_offs:	dummy_set_rptr_offs,
   get_rptr_offs:	dummy_get_rptr_offs,
-  set_ctcss:	dummy_set_ctcss,
-  get_ctcss:	dummy_get_ctcss,
-  set_dcs:	dummy_set_dcs,
-  get_dcs:	dummy_get_dcs,
+  set_ctcss_tone:	dummy_set_ctcss_tone,
+  get_ctcss_tone:	dummy_get_ctcss_tone,
+  set_dcs_code:	dummy_set_dcs_code,
+  get_dcs_code:	dummy_get_dcs_code,
   set_ctcss_sql:	dummy_set_ctcss_sql,
   get_ctcss_sql:	dummy_get_ctcss_sql,
   set_dcs_sql:	dummy_set_dcs_sql,

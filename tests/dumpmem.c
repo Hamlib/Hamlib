@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.3 2001-06-04 21:17:53 f4cfe Exp $  
+ *    $Id: dumpmem.c,v 1.4 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -177,9 +177,9 @@ int dump_chan(RIG *rig, int chan_num)
 
 	freq_sprintf(freqbuf,chan.xit);
 	printf("XIT: %s%s\n", chan.xit>0?"+":"", freqbuf);
-	printf("CTCSS: %d.%dHz\n", chan.ctcss/10, chan.ctcss%10);
+	printf("CTCSS: %d.%dHz\n", chan.ctcss_tone/10, chan.ctcss_tone%10);
 	printf("CTCSSsql: %d.%dHz\n", chan.ctcss_sql/10, chan.ctcss_sql%10);
-	printf("DCS: %d.%d\n", chan.dcs/10, chan.dcs%10);
+	printf("DCS: %d.%d\n", chan.dcs_code/10, chan.dcs_code%10);
 	printf("DCSsql: %d.%d\n", chan.dcs_sql/10, chan.dcs_sql%10);
 	printf("Name: %s\n", chan.channel_desc);
 

@@ -6,7 +6,7 @@
  * via serial interface to a Alinco radio.
  *
  *
- *	$Id: dx77.c,v 1.1 2001-06-03 17:39:59 f4cfe Exp $  
+ *	$Id: dx77.c,v 1.2 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  *
@@ -185,7 +185,7 @@ set_split: alinco_set_split,
 get_split: alinco_get_split,
 set_split_freq: alinco_set_split_freq,
 get_split_freq: alinco_get_split_freq,
-set_ctcss: alinco_set_ctcss,
+set_ctcss_tone: alinco_set_ctcss_tone,
 get_rit: alinco_get_rit,
 get_ptt: alinco_get_ptt,
 get_dcd: alinco_get_dcd,

@@ -6,7 +6,7 @@
  * via serial interface to a Alinco radio.
  *
  *
- *    $Id: alinco.h,v 1.4 2001-06-27 17:32:47 f4cfe Exp $  
+ *    $Id: alinco.h,v 1.5 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -59,7 +59,7 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int alinco_set_parm(RIG *rig, vfo_t vfo, setting_t parm, value_t val);
 int alinco_get_parm(RIG *rig, vfo_t vfo, setting_t parm, value_t *val);
-int alinco_set_ctcss(RIG *rig, vfo_t vfo, tone_t tone);
+int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int alinco_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);

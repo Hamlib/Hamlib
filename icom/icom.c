@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.33 2001-06-27 17:32:47 f4cfe Exp $  
+ * $Id: icom.c,v 1.34 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  *
@@ -1525,13 +1525,13 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 }
 
 /*
- * icom_set_ctcss
+ * icom_set_ctcss_tone
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Warning! This is untested stuff! May work at least on 756PRO and IC746.
  * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
  */
-int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
+int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 		const struct rig_caps *caps;
 		unsigned char tonebuf[16], ackbuf[16];
@@ -1565,7 +1565,7 @@ int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 				return retval;
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_ctcss: ack NG (%#.2x), "
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ctcss_tone: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0], ack_len);
 				return -RIG_ERJCTED;
 		}
@@ -1574,10 +1574,10 @@ int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 }
 
 /*
- * icom_get_ctcss
+ * icom_get_ctcss_tone
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
+int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 		const struct rig_caps *caps;
 		unsigned char tonebuf[16];
@@ -1596,7 +1596,7 @@ int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 				return retval;
 
 		if (tone_len != 3) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss: ack NG (%#.2x), "
+				rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_tone: ack NG (%#.2x), "
 								"len=%d\n", tonebuf[0], tone_len);
 				return -RIG_ERJCTED;
 		}
@@ -1607,7 +1607,7 @@ int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 		/* check this tone exists. That's better than nothing. */
 		for (i = 0; i<=tone_idx; i++) {
 				if (caps->ctcss_list[i] == 0) {
-						rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss: CTCSS NG "
+						rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_tone: CTCSS NG "
 								"(%#.2x)\n", tonebuf[2]);
 						return -RIG_EPROTO;
 				}

@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.14 2001-05-22 21:59:26 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.15 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  *
@@ -163,8 +163,8 @@ set_mode: kenwood_set_mode,
 get_mode: kenwood_get_mode,
 set_vfo: kenwood_set_vfo,
 get_vfo: kenwood_get_vfo,
-set_ctcss: kenwood_set_ctcss,
-get_ctcss: kenwood_get_ctcss,
+set_ctcss_tone: kenwood_set_ctcss_tone,
+get_ctcss_tone: kenwood_get_ctcss_tone,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
 get_level: kenwood_get_level,

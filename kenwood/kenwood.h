@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *    $Id: kenwood.h,v 1.6 2001-06-30 23:19:42 f4cfe Exp $  
+ *    $Id: kenwood.h,v 1.7 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -40,8 +40,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int kenwood_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone);
-int kenwood_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone);
+int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
 int kenwood_reset(RIG *rig, reset_t reset);

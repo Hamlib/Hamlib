@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *	$Id: alinco.c,v 1.4 2001-06-27 17:32:47 f4cfe Exp $  
+ *	$Id: alinco.c,v 1.5 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  *
@@ -688,10 +688,10 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 }
 
 /*
- * alinco_set_ctcss
+ * alinco_set_ctcss_tone
  * Assumes rig!=NULL, rig->caps->ctcss_list != NULL
  */
-int alinco_set_ctcss(RIG *rig, vfo_t vfo, tone_t tone)
+int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[16];

@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.26 2001-06-04 21:17:52 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.27 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -477,10 +477,10 @@ int main (int argc, char *argv[])
 	printf("Can get RIT:\t%c\n",caps->get_rit!=NULL?'Y':'N');
 	printf("Can set XIT:\t%c\n",caps->set_xit!=NULL?'Y':'N');
 	printf("Can get XIT:\t%c\n",caps->get_xit!=NULL?'Y':'N');
-	printf("Can set CTCSS:\t%c\n",caps->set_ctcss!=NULL?'Y':'N');
-	printf("Can get CTCSS:\t%c\n",caps->get_ctcss!=NULL?'Y':'N');
-	printf("Can set DCS:\t%c\n",caps->set_dcs!=NULL?'Y':'N');
-	printf("Can get DCS:\t%c\n",caps->get_dcs!=NULL?'Y':'N');
+	printf("Can set CTCSS:\t%c\n",caps->set_ctcss_tone!=NULL?'Y':'N');
+	printf("Can get CTCSS:\t%c\n",caps->get_ctcss_tone!=NULL?'Y':'N');
+	printf("Can set DCS:\t%c\n",caps->set_dcs_code!=NULL?'Y':'N');
+	printf("Can get DCS:\t%c\n",caps->get_dcs_code!=NULL?'Y':'N');
 	printf("Can set CTCSS squelch:\t%c\n",caps->set_ctcss_sql!=NULL?'Y':'N');
 	printf("Can get CTCSS squelch:\t%c\n",caps->get_ctcss_sql!=NULL?'Y':'N');
 	printf("Can set DCS squelch:\t%c\n",caps->set_dcs_sql!=NULL?'Y':'N');

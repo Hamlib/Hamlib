@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.17 2001-06-27 17:32:47 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.18 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -66,10 +66,10 @@ declare_proto_rig(set_rptr_shift);
 declare_proto_rig(get_rptr_shift);
 declare_proto_rig(set_rptr_offs);
 declare_proto_rig(get_rptr_offs);
-declare_proto_rig(set_ctcss);
-declare_proto_rig(get_ctcss);
-declare_proto_rig(set_dcs);
-declare_proto_rig(get_dcs);
+declare_proto_rig(set_ctcss_tone);
+declare_proto_rig(get_ctcss_tone);
+declare_proto_rig(set_dcs_code);
+declare_proto_rig(get_dcs_code);
 declare_proto_rig(set_split_freq);
 declare_proto_rig(get_split_freq);
 declare_proto_rig(set_split);
@@ -115,10 +115,10 @@ struct test_table test_list[] = {
 		{ 'r', "get_rptr_shift", get_rptr_shift, "Rptr shift" },
 		{ 'O', "set_rptr_offs", set_rptr_offs, "Rptr offset" },
 		{ 'o', "get_rptr_offs", get_rptr_offs, "Rptr offset" },
-		{ 'C', "set_ctcss", set_ctcss, "CTCSS tone" },
-		{ 'c', "get_ctcss", get_ctcss, "CTCSS tone" },
-		{ 'D', "set_dcs", set_dcs, "DCS code" },
-		{ 'd', "get_dcs", get_dcs, "DCS code" },
+		{ 'C', "set_ctcss_tone", set_ctcss_tone, "CTCSS tone" },
+		{ 'c', "get_ctcss_tone", get_ctcss_tone, "CTCSS tone" },
+		{ 'D', "set_dcs_code", set_dcs_code, "DCS code" },
+		{ 'd', "get_dcs_code", get_dcs_code, "DCS code" },
 		{ 'I', "set_split_freq", set_split_freq, "Tx frequency" },
 		{ 'i', "get_split_freq", get_split_freq, "Tx frequency" },
 		{ 'S', "set_split", set_split, "Split mode" },
@@ -467,21 +467,21 @@ declare_proto_rig(get_rptr_offs)
 }
 
 
-declare_proto_rig(set_ctcss)
+declare_proto_rig(set_ctcss_tone)
 {
-		unsigned int tone;
+		tone_t tone;
 
 		sscanf(arg1, "%d", &tone);
-		return rig_set_ctcss(rig, RIG_VFO_CURR, tone);
+		return rig_set_ctcss_tone(rig, RIG_VFO_CURR, tone);
 }
 
 
-declare_proto_rig(get_ctcss)
+declare_proto_rig(get_ctcss_tone)
 {
 		int status;
-		unsigned int tone;
+		tone_t tone;
 
-		status = rig_get_ctcss(rig, RIG_VFO_CURR, &tone);
+		status = rig_get_ctcss_tone(rig, RIG_VFO_CURR, &tone);
 		if (interactive)
 			printf("%s: ", cmd->name1);
 		printf("%d\n", tone);
@@ -489,21 +489,21 @@ declare_proto_rig(get_ctcss)
 }
 
 
-declare_proto_rig(set_dcs)
+declare_proto_rig(set_dcs_code)
 {
-		unsigned int code;
+		tone_t code;
 
 		sscanf(arg1, "%d", &code);
-		return rig_set_dcs(rig, RIG_VFO_CURR, code);
+		return rig_set_dcs_code(rig, RIG_VFO_CURR, code);
 }
 
 
-declare_proto_rig(get_dcs)
+declare_proto_rig(get_dcs_code)
 {
 		int status;
-		unsigned int code;
+		tone_t code;
 
-		status = rig_get_dcs(rig, RIG_VFO_CURR, &code);
+		status = rig_get_dcs_code(rig, RIG_VFO_CURR, &code);
 		if (interactive)
 			printf("%s: ", cmd->name1);
 		printf("%d\n", code);

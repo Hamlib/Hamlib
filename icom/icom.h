@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.23 2001-06-27 17:32:47 f4cfe Exp $  
+ *    $Id: icom.h,v 1.24 2001-07-01 11:46:17 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -88,10 +88,10 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
-int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone);
-int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone);
-int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone);
-int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone);
+int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank);
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch);
 #ifdef WANT_OLD_VFO_TO_BE_REMOVED

@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.39 2001-06-30 12:36:43 f4cfe Exp $
+ *		$Id: rig.c,v 1.40 2001-07-01 11:46:17 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2101,26 +2101,26 @@ shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode)
 }
 
 /**
- * \brief set CTCSS
+ * \brief set CTCSS sub-tone frequency
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param tone	The tone to set to
  *
  *  Sets the current Continuous Tone Controlled Squelch System (CTCSS) 
- *  sub-audible tone.
- *  \note  \a tone is NOT in Hz, but in tenth of Hz! This way,
+ *  sub-audible tone frequency.
+ *  \note  the \a tone integer is NOT in Hz, but in tenth of Hz! This way,
  *  if you want to set a subaudible tone of 88.5 Hz for example,
  *  then pass 885 to this function.
- *  Also, to disable Tone squelch, set \a tone to 0 (FIXME: not clear in API).
+ *  Also, to disable Tone encoding, set \a tone to 0 (FIXME: not clear in API).
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_get_ctcss(), rig_set_dcs(), rig_get_dcs()
+ * \sa rig_get_ctcss_tone(), rig_set_ctcss_sql()
  */
 
-int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
+int rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2131,12 +2131,12 @@ int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 
 		caps = rig->caps;
 
-		if (caps->set_ctcss == NULL)
+		if (caps->set_ctcss_tone == NULL)
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->set_ctcss(rig, vfo, tone);
+			return caps->set_ctcss_tone(rig, vfo, tone);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -2145,31 +2145,31 @@ int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->set_ctcss(rig, vfo, tone);
+		retcode = caps->set_ctcss_tone(rig, vfo, tone);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
 
 /**
- * \brief get the current CTCSS
+ * \brief get the current CTCSS sub-tone frequency
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param tone	The location where to store the current tone
  *
  *  Retrieves the current Continuous Tone Controlled Squelch System (CTCSS) 
- *  sub-audible tone.
- *  \note \a *tone is NOT in Hz, but in tenth of Hz! This way,
- *  if the function rig_get_ctcss() returns a subaudible tone of 885
+ *  sub-audible tone frequency.
+ *  \note the \a *tone integer is NOT in Hz, but in tenth of Hz! This way,
+ *  if the function rig_get_ctcss_tone() returns a subaudible tone of 885
  *  for example, then the real tone is 88.5 Hz. 
- *  Also, a value of 0 for \a *tone means the Tone squelch is disabled.
+ *  Also, a value of 0 for \a *tone means the Tone encoding is disabled.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_set_ctcss(), rig_set_dcs(), rig_get_dcs()
+ * \sa rig_set_ctcss_tone(), rig_get_ctcss_sql()
  */
-int rig_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
+int rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2180,12 +2180,12 @@ int rig_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 
 		caps = rig->caps;
 
-		if (caps->get_ctcss == NULL)
+		if (caps->get_ctcss_tone == NULL)
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->get_ctcss(rig, vfo, tone);
+			return caps->get_ctcss_tone(rig, vfo, tone);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -2194,27 +2194,27 @@ int rig_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->get_ctcss(rig, vfo, tone);
+		retcode = caps->get_ctcss_tone(rig, vfo, tone);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
 
 /**
- * \brief set the current DCS
+ * \brief set the current encoding DCS code
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param code	The tone to set to
  *
- * Sets the current Digitally-Coded Squelch code.
+ * Sets the current encoding Digitally-Coded Squelch code.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
+ * \sa rig_get_dcs_code(), rig_set_dcs_sql()
  */
 
-int rig_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
+int rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2225,12 +2225,12 @@ int rig_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
 
 		caps = rig->caps;
 
-		if (caps->set_dcs == NULL)
+		if (caps->set_dcs_code == NULL)
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->set_dcs(rig, vfo, code);
+			return caps->set_dcs_code(rig, vfo, code);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -2239,26 +2239,26 @@ int rig_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->set_dcs(rig, vfo, code);
+		retcode = caps->set_dcs_code(rig, vfo, code);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
 
 /**
- * \brief get the current DCS code
+ * \brief get the current encoding DCS code
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param code	The location where to store the current tone
  *
- * Retrieves the current Digitally-Coded Squelch code. 
+ * Retrieves the current encoding Digitally-Coded Squelch code. 
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
+ * \sa rig_set_dcs_code(), rig_get_dcs_sql()
  */
-int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
+int rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2269,12 +2269,12 @@ int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
 
 		caps = rig->caps;
 
-		if (caps->get_dcs == NULL)
+		if (caps->get_dcs_code == NULL)
 			return -RIG_ENAVAIL;
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->get_dcs(rig, vfo, code);
+			return caps->get_dcs_code(rig, vfo, code);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -2283,7 +2283,7 @@ int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->get_dcs(rig, vfo, code);
+		retcode = caps->get_dcs_code(rig, vfo, code);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -2295,9 +2295,9 @@ int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
  * \param tone	The PL tone to set the squelch to
  *
  *  Sets the current Continuous Tone Controlled Squelch System (CTCSS)
- *  sub-audible squelch tone.
+ *  sub-audible *squelch* tone.
  *  \note \a tone is NOT in Hz, but in tenth of Hz! This way,
- *  if you want to set subaudible tone of 88.5 Hz for example,
+ *  if you want to set subaudible squelch tone of 88.5 Hz for example,
  *  then pass 885 to this function.
  *  Also, to disable Tone squelch, set \a tone to 0 (FIXME: not clear in API).
  *
@@ -2305,10 +2305,10 @@ int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_get_ctcss_sql(), rig_set_ctcss()
+ * \sa rig_get_ctcss_sql(), rig_set_ctcss_tone()
  */
 
-int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
+int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2345,7 +2345,7 @@ int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
  * \param tone	The location where to store the current tone
  *
  *  Retrieves the current Continuous Tone Controlled Squelch System (CTCSS) 
- *  sub-audible squelch tone.
+ *  sub-audible *squelch* tone.
  *  \note \a *tone is NOT in Hz, but in tenth of Hz! This way,
  *  if the function rig_get_ctcss_sql() returns a subaudible tone of 885
  *  for example, then the real tone is 88.5 Hz. 
@@ -2355,9 +2355,9 @@ int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_set_ctcss_sql(), rig_get_ctcss()
+ * \sa rig_set_ctcss_sql(), rig_get_ctcss_tone()
  */
-int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
+int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2393,16 +2393,16 @@ int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
  * \param vfo	The target VFO
  * \param code	The tone to set to
  *
- * Sets the current Digitally-Coded Squelch code.
+ * Sets the current Digitally-Coded *Squelch* code.
  *
  * \return returns RIG_OK if the operation has been sucessful, ortherwise
  * a negative value if an error occured (in which case, cause is set
  * appropriately).
  *
- * \sa rig_get_dcs_sql(), rig_set_dcs()
+ * \sa rig_get_dcs_sql(), rig_set_dcs_code()
  */
 
-int rig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
+int rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2438,15 +2438,15 @@ int rig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
  * \param vfo	The target VFO
  * \param code	The location where to store the current tone
  *
- * Retrieves the current Digitally-Coded Squelch code. 
+ * Retrieves the current Digitally-Coded *Squelch* code. 
  *
  * \return RIG_OK if the operation has been sucessful, ortherwise 
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  *
- * \sa rig_get_dcs_sql(), rig_get_dcs()
+ * \sa rig_set_dcs_sql(), rig_get_dcs_code()
  */
-int rig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
+int rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -3495,9 +3495,9 @@ int rig_save_channel(RIG *rig, channel_t *chan)
 	chan->funcs |= fstatus? rig_idx2setting(i) : 0;
   }
 
-  rig_get_ctcss(rig, RIG_VFO_CURR, &chan->ctcss);
+  rig_get_ctcss_tone(rig, RIG_VFO_CURR, &chan->ctcss_tone);
   rig_get_ctcss_sql(rig, RIG_VFO_CURR, &chan->ctcss_sql);
-  rig_get_dcs(rig, RIG_VFO_CURR, &chan->dcs);
+  rig_get_dcs_code(rig, RIG_VFO_CURR, &chan->dcs_code);
   rig_get_dcs_sql(rig, RIG_VFO_CURR, &chan->dcs_sql);
 /* rig_get_mem_name(rig, RIG_VFO_CURR, chan->channel_desc); */
 
@@ -3549,9 +3549,9 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
   	rig_set_func(rig, RIG_VFO_CURR, rig_idx2setting(i), 
 					chan->funcs & rig_idx2setting(i));
 
-  rig_set_ctcss(rig, RIG_VFO_CURR, chan->ctcss);
+  rig_set_ctcss_tone(rig, RIG_VFO_CURR, chan->ctcss_tone);
   rig_set_ctcss_sql(rig, RIG_VFO_CURR, chan->ctcss_sql);
-  rig_set_dcs(rig, RIG_VFO_CURR, chan->dcs);
+  rig_set_dcs_code(rig, RIG_VFO_CURR, chan->dcs_code);
   rig_set_dcs_sql(rig, RIG_VFO_CURR, chan->dcs_sql);
 /* rig_set_mem_name(rig, RIG_VFO_CURR, chan->channel_desc); */
 
