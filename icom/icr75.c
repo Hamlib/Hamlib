@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R75
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.6 2004-09-06 17:43:24 fineware Exp $
+ *	$Id: icr75.c,v 1.7 2004-09-06 19:16:28 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -193,6 +193,7 @@ const struct rig_caps icr75_caps = {
 		{RIG_MODE_AM|RIG_MODE_AMS, kHz(2.4)},
 		{RIG_MODE_AM|RIG_MODE_AMS, kHz(15)},
 		{RIG_MODE_FM, kHz(15)},
+		{RIG_MODE_FM, kHz(6)},
 		RIG_FLT_END,
 	},
 .str_cal = ICR75_STR_CAL,
