@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.22 2004-03-15 04:02:08 nj8j Exp $
+ *	$Id: alinco.c,v 1.23 2004-07-07 00:27:52 nj8j Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -605,11 +605,59 @@ int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			cmd_len = sprintf(cmdbuf, AL CMD_PWR "%1d" EOM, val.f<0.5 ? 1 : 0);
 
 			return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+		case RIG_LEVEL_KEYSPD:
+			if (val.i < 6) {
+			    lvl = 31;
+			} else if(val.i >= 6 && val.i < 20) {
+			    lvl = val.i + 25;
+			} else if(val.i >= 20 && val.i <= 50) {
+			    lvl = val.i - 20;
+			} else {
+			    lvl = 30;
+			}
+			cmd_len = sprintf(cmdbuf, AL CMD_SDATA "P%02d" EOM, lvl);
+
+			return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+		case RIG_LEVEL_CWPITCH:
+		    	if(val.i < 426) {
+			    lvl = 5;
+			} else if(val.i >= 426 && val.i <= 475) {
+			    lvl = 6;
+			} else if(val.i >= 476 && val.i <= 525) {
+			    lvl = 7;
+			} else if(val.i >= 526 && val.i <= 575) {
+			    lvl = 8;
+			} else if(val.i >= 576 && val.i <= 625) {
+			    lvl = 9;
+			} else if(val.i >= 626 && val.i <= 675) {
+			    lvl = 10;
+			} else if(val.i >= 676 && val.i <= 725) {
+			    lvl = 11;
+			} else if(val.i >= 726 && val.i <= 775) {
+			    lvl = 12;
+			} else if(val.i >= 776 && val.i <= 825) {
+			    lvl = 0;
+			} else if(val.i >= 826 && val.i <= 875) {
+			    lvl = 1;
+			} else if(val.i >= 876 && val.i <= 925) {
+			    lvl = 2;
+			} else if(val.i >= 926 && val.i <= 975) {
+			    lvl = 3;
+			} else if(val.i >= 976 && val.i <= 1025) {
+			    lvl = 4;
+			} else {
+			    lvl = 4;
+		        }
+			cmd_len = sprintf(cmdbuf, AL CMD_SDATA "M%02d" EOM, lvl);
+
+			return alinco_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
 			return -RIG_EINVAL;
 		}
+
 
 		return RIG_OK;
 }
