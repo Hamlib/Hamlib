@@ -23,7 +23,7 @@ int main (int argc, char *argv[])
 			exit(1);
 	}
 
-	f = atoll(argv[1]);
+	f = (freq_t)atoll(argv[1]);
 	if (argc > 2) {
 		digits = atoi(argv[2]);
 		if (digits > MAXDIGITS)
@@ -31,20 +31,20 @@ int main (int argc, char *argv[])
 	}
 	
 	printf("Little Endian mode\n");
-	printf("Frequency: %lld\n",f);
+	printf("Frequency: %"FREQFMT"\n",f);
 	to_bcd(b, f, digits);
 	printf("BCD: %2.2x",b[0]);
 	for (i = 1; i < (digits+1)/2; i++)
 		printf(",%2.2x",b[i]);
-	printf("\nResult after recoding: %lld\n", from_bcd(b, digits));
+	printf("\nResult after recoding: %llu\n", from_bcd(b, digits));
 
 	printf("\nBig Endian mode\n");
-	printf("Frequency: %lld\n",f);
+	printf("Frequency: %"FREQFMT"\n",f);
 	to_bcd_be(b, f, digits);
 	printf("BCD: %2.2x",b[0]);
 	for (i = 1; i < (digits+1)/2; i++)
 		printf(",%2.2x",b[i]);
-	printf("\nResult after recoding: %lld\n", from_bcd_be(b, digits));
+	printf("\nResult after recoding: %llu\n", from_bcd_be(b, digits));
 
 	return 0;
 }
