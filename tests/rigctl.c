@@ -1,11 +1,11 @@
 /*
- * rigctl.c - (C) Stephane Fillod 2000-2003
+ * rigctl.c - (C) Stephane Fillod 2000-2004
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.50 2004-05-17 21:09:45 fillods Exp $  
+ * $Id: rigctl.c,v 1.51 2004-06-06 21:59:54 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -147,6 +147,9 @@ declare_proto_rig(dump_caps);
 declare_proto_rig(set_ant);
 declare_proto_rig(get_ant);
 declare_proto_rig(reset);
+declare_proto_rig(send_morse);
+declare_proto_rig(set_powerstat);
+declare_proto_rig(get_powerstat);
 
 
 
@@ -209,6 +212,9 @@ struct test_table test_list[] = {
 		{ 0x83, "set_ant", set_ant, ARG_IN, "Antenna" },
 		{ 0x84, "get_ant", get_ant, ARG_OUT, "Antenna" },
 		{ 0x85, "reset", reset, ARG_IN, "Reset" },
+		{ 0x86, "send_morse", send_morse, ARG_IN, "Morse" },
+		{ 0x87, "set_powerstat", set_powerstat, ARG_IN|ARG_NOVFO, "Status" },
+		{ 0x88, "get_powerstat", get_powerstat, ARG_OUT|ARG_NOVFO, "Status" },
 		{ 0x00, "", NULL },
 
 };
@@ -1628,4 +1634,30 @@ declare_proto_rig(reset)
 	return rig_reset(rig, reset);
 }
 
+declare_proto_rig(send_morse)
+{
+	return rig_send_morse(rig, vfo, arg1);
+}
+
+declare_proto_rig(set_powerstat)
+{
+	powerstat_t stat;
+
+	sscanf(arg1, "%d", &stat);
+	return rig_set_powerstat(rig, stat);
+}
+
+declare_proto_rig(get_powerstat)
+{
+	int status;
+	powerstat_t stat;
+
+	status = rig_get_powerstat(rig, &stat);
+	if (status != RIG_OK)
+		return status;
+	if (interactive)
+		printf("%s: ", cmd->arg1);
+	printf("%d\n", stat);
+	return status;
+}
 

@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "March 28, 2003" "Hamlib"
+.TH RIGCTL "1" "May 25, 2004" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -256,6 +256,18 @@ Set antenna number (0, 1, 2, ..).
 .B get_ant
 Get antenna number (0, 1, 2, ..).
 .TP
+.B reset
+Reset.
+.TP
+.B send_morse
+Send morse symbols.
+.TP
+.B set_powerstat
+Set power status.
+.TP
+.B get_powerstat
+Get power status.
+.TP
 .B _, get_info
 Get misc information about the rig.
 .TP
@@ -279,7 +291,7 @@ Report bugs to <hamlib-developer@users.sourceforge.net>.
 .br
 I'm already aware of the bug in the previous section :-)
 .SH COPYRIGHT
-Copyright \(co 2000-2003 Stephane Fillod & Frank Singleton.
+Copyright \(co 2000-2004 Stephane Fillod & Frank Singleton.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
