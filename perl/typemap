@@ -1,0 +1,72 @@
+TYPEMAP
+Hamlib::Rig					T_PTROBJ
+freq_t						T_HAMLIB_QUAD
+const char *				T_PV
+pbwidth_t					T_IV
+rig_model_t					T_IV
+rmode_t						T_UV
+vfo_t						T_IV
+
+# will vanish one day..
+RIG *						T_PTROBJ
+
+# Following to be fixed:
+ant_t						T_IV
+ant_t *						T_PTROBJ
+channel_t *					T_PTROBJ
+const channel_t *				T_PTROBJ
+const freq_range_t *				T_PTROBJ
+const struct confparams *			T_PTROBJ
+const struct rig_caps *				T_PTROBJ
+dcd_t *						T_PTROBJ
+enum rig_debug_level_e				T_PTROBJ
+float						T_DOUBLE
+float *						T_PTROBJ
+int ( * cfunc ) ( const struct confparams *, void * )	T_PTROBJ
+int ( * cfunc ) ( const struct rig_caps *, void * )	T_PTROBJ
+int *						T_PTROBJ
+port_t *					T_PTROBJ
+powerstat_t					T_PTROBJ
+powerstat_t *					T_PTROBJ
+ptt_t						T_PTROBJ
+ptt_t *						T_PTROBJ
+reset_t						T_PTROBJ
+rptr_shift_t					T_PTROBJ
+rptr_shift_t *					T_PTROBJ
+scan_t						T_IV
+setting_t					T_HAMLIB_QUAD
+shortfreq_t					T_IV
+shortfreq_t *					T_PTROBJ
+split_t						T_IV
+split_t *					T_PTROBJ
+token_t						T_IV
+tone_t						T_UV
+tone_t *					T_PTROBJ
+unsigned int *					T_PTROBJ
+value_t						T_OPAQUE_STRUCT
+value_t *					T_PTROBJ
+vfo_op_t					T_IV
+#############################################################################
+INPUT
+T_OPAQUE_STRUCT
+	if (sv_derived_from($arg, \"${ntype}\")) {
+	    STRLEN len;
+	    char  *s = SvPV((SV*)SvRV($arg), len);
+
+	    if (len != sizeof($var))
+		croak(\"Size %d of packed data != expected %d\",
+			len, sizeof($var));
+	    $var = *($type *)s;
+	}
+	else
+	    croak(\"$var is not of type ${ntype}\")
+
+T_HAMLIB_QUAD
+	$var = ($type)SvNV($arg)
+#############################################################################
+OUTPUT
+T_OPAQUE_STRUCT
+	sv_setref_pvn($arg, \"${ntype}\", (char *)&$var, sizeof($var));
+
+T_HAMLIB_QUAD
+	sv_setnv($arg, (NV)$var);
