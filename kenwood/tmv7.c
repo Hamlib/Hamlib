@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.2 2004-03-21 16:58:07 f4dwv Exp $
+ *	$Id: tmv7.c,v 1.3 2004-03-21 18:26:46 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,7 +30,6 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include <hamlib/rig.h>
-#include "idx_builtin.h"
 #include "kenwood.h"
 #include "th.h"
 
@@ -55,7 +54,7 @@
 #define RIG_TONEMAX     38
 #endif
 
-#define RIG_VFO_A_OP (RIG_OP_UP|RIG_OP_DOWN)
+#define RIG_VFO_A_OP (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_TO_VFO)
 
 #define ACKBUF_LEN 128
 
@@ -100,8 +99,10 @@ const struct rig_caps tmv7_caps = {
 .has_get_level =  TMV7_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(TMV7_LEVEL_ALL),
 .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
-	[LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 7 } },
+	[LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 32 } },
+	[LVL_AF] = { .min = { .i = 0 }, .max = { .i = 32 } },
+	[LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },
 },
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
