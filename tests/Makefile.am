@@ -4,31 +4,32 @@ EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
 LDADD = ../src/libhamlib.la
+DEPENDENCIES = ../src/libhamlib.la
 
 BACKENDLNK = "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la @WINRADIOLNK@
 BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la @WINRADIODEPS@
 
 ## Linker options
-listrigs_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-dumpcaps_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-dumpmem_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-testcaps_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-testrig_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-testtrn_LDADD = ../src/libhamlib.la $(BACKENDLNK)
-rigctl_LDADD = ../src/libhamlib.la $(BACKENDLNK)
+listrigs_LDADD = $(BACKENDLNK) $(LDADD)
+dumpcaps_LDADD = $(BACKENDLNK) $(LDADD)
+dumpmem_LDADD = $(BACKENDLNK) $(LDADD)
+testcaps_LDADD = $(BACKENDLNK) $(LDADD)
+testrig_LDADD = $(BACKENDLNK) $(LDADD)
+testtrn_LDADD = $(BACKENDLNK) $(LDADD)
+rigctl_LDADD = $(BACKENDLNK) $(LDADD) ../lib/libmisc.a
 # rigmatrix needs also libgd
-rigmatrix_LDADD = -lgd ../src/libhamlib.la $(BACKENDLNK)
+rigmatrix_LDADD = -lgd $(BACKENDLNK) $(LDADD)
 
 ## Dependencies
 
-dumpcaps_DEPENDENCIES = $(BACKENDEPS)
-dumpmem_DEPENDENCIES = $(BACKENDEPS)
-testcaps_DEPENDENCIES = $(BACKENDEPS)
-testrig_DEPENDENCIES = $(BACKENDEPS)
-testtrn_DEPENDENCIES = $(BACKENDEPS)
-listrigs_DEPENDENCIES = $(BACKENDEPS)
-rigctl_DEPENDENCIES = $(BACKENDEPS)
-rigmatrix_DEPENDENCIES = $(BACKENDEPS)
+dumpcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+dumpmem_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testrig_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testtrn_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+listrigs_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+rigctl_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS) ../lib/libmisc.a
+rigmatrix_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 
 ## Source list
 testrig_SOURCES = testrig.c
