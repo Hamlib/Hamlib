@@ -1,0 +1,16 @@
+hamlib - (C) Frank Singleton 2000
+
+TODO.ic706 - Copyright (C) 2000 Stephane Fillod
+This shared library provides an API for communicating
+via serial interface to an IC-706 using the "CI-V" interface.
+
+TODO
+----
+
+0. complete this TODO list :)
+1. Complete pcodes
+2. Write More extensive Test Suite
+3. 
+4.
+5.
+
