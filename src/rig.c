@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.8 2000-10-29 16:30:43 f4cfe Exp $
+   $Id: rig.c,v 1.9 2000-11-28 22:33:37 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -357,7 +357,7 @@ int rig_set_freq(RIG *rig, freq_t freq)
 				freq += (freq_t)(rig->state.vfo_comp * freq);
 
 		if (rig->caps->set_freq == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_freq(rig, freq);
 }
@@ -384,7 +384,7 @@ int rig_get_freq(RIG *rig, freq_t *freq)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_freq == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else {
 			status = rig->caps->get_freq(rig, freq);
 			if (rig->state.vfo_comp != 0.0)
@@ -414,7 +414,7 @@ int rig_set_mode(RIG *rig, rmode_t mode)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_mode == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_mode(rig, mode);
 }
@@ -439,7 +439,7 @@ int rig_get_mode(RIG *rig, rmode_t *mode)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_mode == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_mode(rig, mode);
 }
@@ -455,7 +455,7 @@ int rig_set_passband(RIG *rig, pbwidth_t width)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_passband == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_passband(rig, width);
 }
@@ -471,7 +471,7 @@ int rig_get_passband(RIG *rig, pbwidth_t *width)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_passband == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_passband(rig, width);
 }
@@ -496,7 +496,7 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_vfo == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_vfo(rig, vfo);
 }
@@ -521,7 +521,7 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_vfo == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_vfo(rig, vfo);
 }
@@ -547,16 +547,18 @@ int rig_set_ptt(RIG *rig, ptt_t ptt)
 		switch (rig->state.ptt_type) {
 		case RIG_PTT_RIG:
 			if (rig->caps->set_ptt == NULL)
-				return -RIG_ENIMPL;	/* not implemented */
+				return -RIG_ENIMPL;
 			else
 				return rig->caps->set_ptt(rig, ptt);
 			break;
 
 		case RIG_PTT_SERIAL:
 		case RIG_PTT_PARALLEL:
+				return -RIG_ENIMPL;	/* not implemented */
+
 		case RIG_PTT_NONE:
 		default:
-				return -RIG_ENIMPL;	/* not implemented */
+				return -RIG_ENAVAIL;	/* not available */
 		}
 }
 
@@ -582,7 +584,7 @@ int rig_get_ptt(RIG *rig, ptt_t *ptt)
 		switch (rig->state.ptt_type) {
 		case RIG_PTT_RIG:
 			if (rig->caps->get_ptt == NULL)
-				return -RIG_ENIMPL;	/* not implemented */
+				return -RIG_ENIMPL;
 			else
 				return rig->caps->get_ptt(rig, ptt);
 			break;
@@ -617,7 +619,7 @@ int rig_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_rptr_shift == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_rptr_shift(rig, rptr_shift);
 }
@@ -641,7 +643,7 @@ int rig_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_rptr_shift == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_rptr_shift(rig, rptr_shift);
 }
@@ -666,7 +668,7 @@ int rig_set_rptr_offs(RIG *rig, unsigned long rptr_offs)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_rptr_offs == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_rptr_offs(rig, rptr_offs);
 }
@@ -691,7 +693,7 @@ int rig_get_rptr_offs(RIG *rig, unsigned long *rptr_offs)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_rptr_offs == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_rptr_offs(rig, rptr_offs);
 }
@@ -718,7 +720,7 @@ int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_split_freq == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_split_freq(rig, rx_freq, tx_freq);
 }
@@ -744,7 +746,7 @@ int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_split_freq == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_split_freq(rig, rx_freq, tx_freq);
 }
@@ -770,7 +772,7 @@ int rig_set_split(RIG *rig, split_t split)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_split == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_split(rig, split);
 }
@@ -794,10 +796,62 @@ int rig_get_split(RIG *rig, split_t *split)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_split == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_split(rig, split);
 }
+
+/**
+ *      rig_set_rit - set the RIT
+ *      @rig:	The rig handle
+ *      @rit:	The RIT offset to adjust to
+ *
+ *      The rig_set_rit() function sets the current RIT offset.
+ *      A value of 0 for @rit disables RIT.
+ *
+ *      RETURN VALUE: The rig_set_rit() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_rit()
+ */
+
+int rig_set_rit(RIG *rig, signed long rit)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_rit == NULL)
+			return -RIG_ENAVAIL;
+		else
+			return rig->caps->set_rit(rig, rit);
+}
+
+/**
+ *      rig_get_rit - get the current RIT offset
+ *      @rig:	The rig handle
+ *      @rit:	The location where to store the current RIT offset
+ *
+ *      The rig_get_rit() function retrieves the current RIT offset.
+ *
+ *      RETURN VALUE: The rig_get_rit() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_set_rit()
+ */
+
+int rig_get_rit(RIG *rig, signed long *rit)
+{
+		if (!rig || !rig->caps || !rit)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_rit == NULL)
+			return -RIG_ENAVAIL;
+		else
+			return rig->caps->get_rit(rig, rit);
+}
+
 
 
 /**
@@ -820,7 +874,7 @@ int rig_set_ts(RIG *rig, unsigned long ts)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_ts == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_ts(rig, ts);
 }
@@ -845,7 +899,7 @@ int rig_get_ts(RIG *rig, unsigned long *ts)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_ts == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_ts(rig, ts);
 }
@@ -961,7 +1015,7 @@ int rig_set_ctcss(RIG *rig, unsigned int tone)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_ctcss == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_ctcss(rig, tone);
 }
@@ -995,7 +1049,7 @@ int rig_get_ctcss(RIG *rig, unsigned int *tone)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_ctcss == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_ctcss(rig, tone);
 }
@@ -1021,7 +1075,7 @@ int rig_set_dcs(RIG *rig, unsigned int code)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_dcs == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_dcs(rig, code);
 }
@@ -1046,10 +1100,121 @@ int rig_get_dcs(RIG *rig, unsigned int *code)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_dcs == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_dcs(rig, code);
 }
+
+/**
+ *      rig_set_ctcss_sql - set CTCSS squelch
+ *      @rig:	The rig handle
+ *      @tone:	The PL tone to set the squelch to
+ *
+ *      The rig_set_ctcss_sql() function sets the current Continuous Tone
+ *      Controlled Squelch System (CTCSS) sub-audible squelch tone.
+ *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
+ *      if you want to set subaudible tone of 88.5 Hz for example,
+ *      then pass 885 to this function. Also, to disable Tone squelch,
+ *      set @tone to 0.
+ *
+ *      RETURN VALUE: The rig_set_ctcss_sql() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_ctcss_sql(), rig_set_ctcss()
+ */
+
+int rig_set_ctcss_sql(RIG *rig, unsigned int tone)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_ctcss_sql == NULL)
+			return -RIG_ENAVAIL;
+		else
+			return rig->caps->set_ctcss_sql(rig, tone);
+}
+
+/**
+ *      rig_get_ctcss_sql - get the current CTCSS squelch
+ *      @rig:	The rig handle
+ *      @tone:	The location where to store the current tone
+ *
+ *      The rig_get_ctcss_sql() function retrieves the current Continuous Tone
+ *      Controlled Squelch System (CTCSS) sub-audible squelch tone.
+ *      NB, @tone is NOT in Hz, but in tenth of Hz! This way,
+ *      if the function rig_get_ctcss() returns a subaudible tone of 885
+ *      for example, then the real tone is 88.5 Hz. 
+ *      Also, a value of 0 for @tone means the Tone squelch is disabled.
+ *
+ *      RETURN VALUE: The rig_get_ctcss_sql() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_set_ctcss_sql(), rig_get_ctcss()
+ */
+int rig_get_ctcss_sql(RIG *rig, unsigned int *tone)
+{
+		if (!rig || !rig->caps || !tone)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_ctcss_sql == NULL)
+			return -RIG_ENAVAIL;
+		else
+			return rig->caps->get_ctcss_sql(rig, tone);
+}
+
+/**
+ *      rig_set_dcs_sql - set the current DCS
+ *      @rig:	The rig handle
+ *      @code:	The tone to set to
+ *
+ *      The rig_set_dcs_sql() function sets the current Digitally-Coded Squelch
+ *      code.
+ *
+ *      RETURN VALUE: The rig_set_dcs_sql() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_dcs_sql(), rig_set_dcs()
+ */
+
+int rig_set_dcs_sql(RIG *rig, unsigned int code)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_dcs_sql == NULL)
+			return -RIG_ENAVAIL;
+		else
+			return rig->caps->set_dcs_sql(rig, code);
+}
+
+/**
+ *      rig_get_dcs_sql - get the current DCS
+ *      @rig:	The rig handle
+ *      @code:	The location where to store the current tone
+ *
+ *      The rig_get_dcs_sql() function retrieves the current 
+ *      Digitally-Coded Squelch. 
+ *
+ *      RETURN VALUE: The rig_get_dcs_sql() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_dcs_sql(), rig_get_dcs()
+ */
+int rig_get_dcs_sql(RIG *rig, unsigned int *code)
+{
+		if (!rig || !rig->caps || !code)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_dcs_sql == NULL)
+			return -RIG_ENAVAIL;
+		else
+			return rig->caps->get_dcs_sql(rig, code);
+}
+
 
 /**
  *      rig_set_poweron - turn on the radio
@@ -1070,7 +1235,7 @@ int rig_set_poweron(RIG *rig)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_poweron == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_poweron(rig);
 }
@@ -1094,7 +1259,7 @@ int rig_set_poweroff(RIG *rig)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_poweroff == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_poweroff(rig);
 }
@@ -1154,7 +1319,7 @@ int rig_set_level(RIG *rig, setting_t level, value_t val)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_level == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_level(rig, level, val);
 }
@@ -1181,7 +1346,7 @@ int rig_get_level(RIG *rig, setting_t level, value_t *val)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_level == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_level(rig, level, val);
 }
@@ -1283,7 +1448,7 @@ int rig_set_func(RIG *rig, setting_t func, int status)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_func == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_func(rig, func, status);
 }
@@ -1310,7 +1475,7 @@ int rig_get_func(RIG *rig, setting_t *func)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_func == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_func(rig, func);
 }
@@ -1337,7 +1502,7 @@ int rig_set_mem(RIG *rig, int ch)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_mem == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_mem(rig, ch);
 }
@@ -1363,7 +1528,7 @@ int rig_get_mem(RIG *rig, int *ch)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_mem == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_mem(rig, ch);
 }
@@ -1388,7 +1553,7 @@ int rig_mv_ctl(RIG *rig, mv_op_t op)
 			return -RIG_EINVAL;
 
 		if (rig->caps->mv_ctl == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->mv_ctl(rig, op);
 }
@@ -1415,7 +1580,7 @@ int rig_set_bank(RIG *rig, int bank)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_bank == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_bank(rig, bank);
 }
@@ -1442,7 +1607,7 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_channel == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->set_channel(rig, chan);
 }
@@ -1468,7 +1633,7 @@ int rig_get_channel(RIG *rig, channel_t *chan)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_channel == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_channel(rig, chan);
 }
@@ -1576,9 +1741,33 @@ int rig_get_trn(RIG *rig, int *trn)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_trn == NULL)
-			return -RIG_ENAVAIL;	/* not implemented */
+			return -RIG_ENAVAIL;
 		else
 			return rig->caps->get_trn(rig, trn);
+}
+
+/**
+ *      rig_get_info - get general information from the radio
+ *      @rig:	The rig handle
+ *
+ *      The rig_get_info() function retrieves some general information
+ *      from the radio. This can include firmware revision, exact
+ *      model name, or just nothing. 
+ *
+ *      RETURN VALUE: The rig_get_info() function returns a pointer
+ *      to freshly allocated memory containing the ASCIIZ string 
+ *      if the operation has been sucessful, or NULL 
+ *      if an error occured.
+ */
+unsigned char* rig_get_info(RIG *rig)
+{
+		if (!rig || !rig->caps)
+			return NULL;
+
+		if (rig->caps->get_info == NULL)
+			return NULL;
+		else
+			return rig->caps->get_info(rig);
 }
 
 
