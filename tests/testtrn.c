@@ -75,7 +75,10 @@ int main (int argc, char *argv[])
 
 
 	for (i=0;i<12;i++)
-			sleep(10);	/* or anything smarter */
+	  {
+	    printf("Loop count: %d\n", i);
+	    sleep(10);	/* or anything smarter */
+	  }
 
 	printf("Frequency changed %d times\n", count);
 

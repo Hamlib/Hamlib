@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.c,v 1.16 2002-04-23 21:53:59 fillods Exp $
+ *		$Id: misc.c,v 1.17 2002-06-17 20:59:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -267,7 +267,6 @@ const char * strmode(rmode_t mode)
 	case RIG_MODE_FM: return "FM";
 	case RIG_MODE_WFM: return "WFM";
 	case RIG_MODE_NONE: return "";
-	default:
 	}
 	return NULL;
 }
@@ -330,7 +329,6 @@ const char *strfunc(setting_t func)
 	case RIG_FUNC_RESUME: return "RESUME";
 
 	case RIG_FUNC_NONE: return "";
-	default:
 	}
 	return NULL;
 }
@@ -368,7 +366,6 @@ const char *strlevel(setting_t level)
 	case RIG_LEVEL_STRENGTH: return "STRENGTH";
 
 	case RIG_LEVEL_NONE: return "";
-	default:
 	}
 	return NULL;
 }
@@ -384,7 +381,6 @@ const char *strparm(setting_t parm)
 	case RIG_PARM_BAT: return "BAT";
 
 	case RIG_PARM_NONE: return "";
-	default:
 	}
 	return NULL;
 }
@@ -396,7 +392,6 @@ const char *strptrshift(rptr_shift_t shift)
 	case RIG_RPT_SHIFT_PLUS: return "-";
 
 	case RIG_RPT_SHIFT_NONE: return "None";
-	default:
 	}
 	return NULL;
 }
@@ -417,7 +412,6 @@ const char *strvfop(vfo_op_t op)
 	case RIG_OP_RIGHT: return "RIGHT";
 
 	case RIG_OP_NONE: return "";
-	default:
 	}
 	return NULL;
 }
@@ -430,7 +424,6 @@ const char *strscan(scan_t scan)
 	case RIG_SCAN_SLCT: return "SLCT";
 	case RIG_SCAN_PRIO: return "PRIO";
 	case RIG_SCAN_DELTA: return "DELTA";
-	default:
 	}
 	return NULL;
 }

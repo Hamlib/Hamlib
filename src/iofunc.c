@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: iofunc.c,v 1.4 2002-04-23 22:03:51 fillods Exp $
+ *		$Id: iofunc.c,v 1.5 2002-06-17 20:59:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -304,8 +304,8 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
 
 		if (retval < 0) {
 			dump_hex(rxbuffer, total_count);
-            rig_debug(RIG_DEBUG_ERR,__FUNCTION__": select error after %d chars:"
-                            " %s\n", total_count, strerror(errno));
+            rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n", 
+				__FUNCTION__, total_count, strerror(errno));
             return -RIG_EIO;
 		}
 		/*
