@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rotators
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.7 2003-01-11 00:48:43 n0nb Exp $
+ *	$Id: rotlist.h,v 1.8 2003-01-12 14:29:14 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -140,12 +140,12 @@ typedef int rot_model_t;
  *  and the branch name, which is a character string.
  */
 #define ROT_BACKEND_LIST {		\
-		{ ROT_DUMMY, ROT_BACKEND_DUMMY }, \
-		{ ROT_RPC, ROT_BACKEND_RPC }, \
-		{ ROT_EASYCOMM, ROT_BACKEND_EASYCOMM }, \
+        { ROT_DUMMY, ROT_BACKEND_DUMMY }, \
+        { ROT_RPC, ROT_BACKEND_RPC }, \
+        { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM }, \
         { ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
         { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ }, \
-		{ 0, NULL }, /* end */  \
+        { 0, NULL }, /* end */  \
 }
 
 /*

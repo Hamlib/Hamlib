@@ -9,7 +9,7 @@
  * supports the Hy-Gain DCU-1.
  *
  *
- *    $Id: rotorez.h,v 1.1 2003-01-11 00:47:48 n0nb Exp $
+ *    $Id: rotorez.h,v 1.2 2003-01-12 14:29:14 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -31,9 +31,26 @@
 #ifndef _ROT_ROTOREZ_H
 #define _ROT_ROTOREZ_H 1
 
+#define AZ_READ_LEN 3
+
 extern const struct rot_caps rotorez_rot_caps;
+extern const struct rot_caps rotorcard_rot_caps;
+extern const struct rot_caps dcu_rot_caps;
 
 extern BACKEND_EXPORT(int) initrots_rotorez(void *be_handle);
+
+/* 
+ * API local implementation
+ *
+ */
+
+static int rotorez_rot_init(ROT *rot);
+static int rotorez_rot_cleanup(ROT *rot);
+
+static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
+static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
+
+static int rotorez_rot_stop(ROT *rot);
 
 #endif  /* _ROT_ROTOREZ_H */
 

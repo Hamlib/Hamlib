@@ -1,0 +1,85 @@
+The following email describes the command set used by the Rotor-EZ
+interface for Hy-Gain rotors and the RotorCard interface for Yaesu
+rotors manufactured and sold by Idiom Press, http://www.idiompres.com
+
+The Hy-Gain DCU-1/DCU-1X Digital Control Unit supports a subset of
+these commands--AP1XXX; and AM1;  The DCU-1/DCU-1X is manufactured 
+and sold by Hy-Gain, http://www.hy-gain.com
+
+$Id: rotorez.txt,v 1.1 2003-01-12 14:29:15 n0nb Exp $
+
+From: "sales@idiompress.com" <info@idiompress.com>
+To: "Nate Bargmann" <n0nb@arrl.net>
+Subject: Re: Rotor Card and Rotor-EZ command reference
+Date: Fri, 10 Jan 2003 09:38:52 -0800
+
+Here you go:
+
+Important note:  The program you are using must insert leading zeros into
+bearing commands, such as "009" degrees, instead of "9" degrees. Most
+programs are already configured this way, but some are not in their default
+mode, and in such cases you must change the default setting or the RS-232
+portion of Rotor-EZ will not work properly.
+
+Rotor-EZ can also be commanded from any terminal having RS232 output, using
+the following configuration: 4800 baud, 8,N,1    Note that upper case/lower
+case must be used as listed for the commands below to work:
+
+"AP1xxx<CR>" sets target bearing to "xxx" degrees where xxx are three digits
+between 000 and 360, and executes. A typical command to rotate to 080
+degrees would be AP1080<CR> Note that the <CR> is often labeled <Enter> on
+many keyboards.
+
+"AP1xxx;"  sets the target bearing but does not execute.
+"AM1;"   executes rotation to the bearing set by the "AP1xxx;" command
+"AI1;"    inquires current bearing; and responds with (000-359) degrees
+";"   terminates rotation
+"E"   enable endpoint option - effective immediately
+"e"    disable endpoint option - effective immediately
+"O"        enable overshoot option - effective immediately
+"o"   disable overshoot option - effective immediately
+"S"        enable unstick option - effective immediately
+"s"        disable unstick option - effective immediately
+"V"     reports version number
+"J"        enable jam protection - effective immediately
+"j"        disable jam protection - effective immediately - NOT recommended!
+
+Note that during any rotation initiated by an RS232 command, the rotation
+can be halted and further rotation cancelled by a momentary press of the
+Brake paddle. Also, an RS232 operation can be overridden by using the
+pointing control during rotation; when the control is moved rotation will
+cease and  the control will wait for a new command after the five second
+brake delay is completed.
+
+
+
+
+73
+
+
+
+----- Original Message -----
+From: Nate Bargmann <n0nb@arrl.net>
+To: <sales@idiompress.com>
+Sent: Friday, January 10, 2003 8:23 AM
+Subject: Rotor Card and Rotor-EZ command reference
+
+
+> Hi!
+>
+> I am working with a software project called Hamlib
+> http://hamlib.sourceforge.net and I would like to add support for the
+> Rotor Card and Rotor-EZ into our library.  In the course of several Web
+> searches I have downloaded the Hy-Gain DCU-1 manual from their site and
+> I've also visited the Digital Audio Rotor-EZ troubleshooting site.
+> Between the two I have found a couple of descrepancies in the command
+> set.  If possible, I would like a copy of the complete command set and
+> their syntax for these two boards for our project.
+>
+> Thanks!
+>
+> 73, de Nate >>
+>
+
+
+
