@@ -4,7 +4,7 @@
 #
 # creates:	libft747.so
 #
-#	$Id: Makefile,v 1.3 2000-07-18 23:28:01 frank Exp $	
+#	$Id: Makefile,v 1.4 2000-07-27 00:26:22 javabear Exp $	
 #
 #
 # .h files go in INSTALL_INCLUDEDIR
@@ -15,6 +15,7 @@
 
 INSTALL_LIBDIR		=	./lib/
 INSTALL_INCLUDEDIR	=	./include/
+INCLUDE			=	-I/usr/include -I/usr/local/include -I. -I../common
 
 LIB_NAME	=	libft747.so
 LIB_SONAME	=	libft747.so.1
@@ -30,7 +31,7 @@ all:	lib
 
 .PHONY:	lib
 lib:	
-	$(CC) $(CFLAGS) -c $(LIB_SRC)
+	$(CC) $(CFLAGS) $(INCLUDE) -c $(LIB_SRC)
 	$(CC) -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
 
 # install header and lib
