@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - list of known rigs
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.52 2005-02-21 18:03:48 fillods Exp $
+ *	$Id: riglist.h,v 1.53 2005-02-26 22:29:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,7 +63,7 @@
 #define RIG_MODEL_FT847 RIG_MAKE_MODEL(RIG_YAESU, 1)
 #define RIG_MODEL_FT1000 RIG_MAKE_MODEL(RIG_YAESU, 2)
 #define RIG_MODEL_FT1000D RIG_MAKE_MODEL(RIG_YAESU, 3)
-#define RIG_MODEL_FT1000MP RIG_MAKE_MODEL(RIG_YAESU, 4)
+#define RIG_MODEL_FT1000MPMKV RIG_MAKE_MODEL(RIG_YAESU, 4)
 #define RIG_MODEL_FT747 RIG_MAKE_MODEL(RIG_YAESU, 5)
 #define RIG_MODEL_FT757 RIG_MAKE_MODEL(RIG_YAESU, 6)
 #define RIG_MODEL_FT757GXII RIG_MAKE_MODEL(RIG_YAESU, 7)
@@ -83,6 +83,9 @@
 #define RIG_MODEL_FT100 RIG_MAKE_MODEL(RIG_YAESU, 21)
 #define RIG_MODEL_FT857 RIG_MAKE_MODEL(RIG_YAESU, 22)
 #define RIG_MODEL_FT897 RIG_MAKE_MODEL(RIG_YAESU, 23)
+#define RIG_MODEL_FT1000MP RIG_MAKE_MODEL(RIG_YAESU, 24)
+#define RIG_MODEL_FT1000MPMKVFLD RIG_MAKE_MODEL(RIG_YAESU, 25)
+#define RIG_MODEL_VR5000 RIG_MAKE_MODEL(RIG_YAESU, 26)
 
 	/*
 	 * Kenwood
