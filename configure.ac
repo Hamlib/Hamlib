@@ -7,7 +7,6 @@ AM_CONFIG_HEADER(include/config.h)
 
 # Minimum Autoconf version required.
 AC_PREREQ(2.50)
-AC_REVISION($Revision: 1.5 $)
 
 dnl directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
@@ -96,16 +95,9 @@ AM_PROG_LIBTOOL
 dnl Configure libltdl
 AC_CONFIG_SUBDIRS(libltdl)
 
-dnl if test "${enable_dynamic}" != "no"; then
-dnl   AC_CHECK_HEADERS(dlfcn.h,
-dnl   [AC_CHECK_LIB(dl,dlopen)
-dnl   AC_CHECK_FUNCS(dlopen, , enable_dynamic=no)],
-dnl    [enable_dynamic=no])
-dnl fi
-
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 
-AC_ARG_ENABLE(rigmatrix,
+AC_ARG_ENABLE([rigmatrix],
 [  --enable-rigmatrix	Generate rigmatrix tool (requires libgd)],
 [case "${enableval}" in
 	yes) wantrigmatrix=true ;;
@@ -116,13 +108,9 @@ AC_ARG_ENABLE(rigmatrix,
 AM_CONDITIONAL(WANTRIGMATRIX, test x$wantrigmatrix = xtrue)
 
 if test "x${wantrigmatrix}" != "xfalse"; then
-AC_CHECK_HEADERS(gd.h,
-  [AC_CHECK_LIB([gd],[gdImageCreate])
-  AC_CHECK_FUNCS(gdImageCreate, , enable_rigmatrix=no)],
-   [enable_rigmatrix=no])
-AC_CHECK_LIB([gd],[png_write_data])
-AC_CHECK_LIB([z],[uncompress])
-if test "${ac_cv_header_gd_h}" = "no"; then
+AC_CHECK_HEADERS([gd.h],
+  [AC_CHECK_LIB([gd],[gdImageCreate],[enable_rigmatrix=yes], [enable_rigmatrix=no],[-lz])])
+if test "${enable_rigmatrix}" = "no"; then
   echo "disabling rigmatrix generation"
   RIGMATRIX=
 else
@@ -176,6 +164,23 @@ else
 fi
 AC_SUBST(DLL_PRELOAD)
 AC_SUBST(LIBOBJS)
+
+case "$host_os" in
+ linux-gnu*)
+ # Winradio only under Linux (until someone port it on other os)
+ BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina rpcrig"
+ ;;
+ *) 
+ BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina rpcrig"
+esac
+
+for be in ${BACKEND_LIST} ; do
+	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
+	BACKENDEPS="${BACKENDEPS} ../${be}/libhamlib-${be}.la"
+done
+AC_SUBST(BACKEND_LIST)
+AC_SUBST(BACKENDLNK)
+AC_SUBST(BACKENDEPS)
 
 AC_CONFIG_FILES([Makefile
 include/Makefile
