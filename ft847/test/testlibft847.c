@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.8 2000-07-29 23:13:53 javabear Exp $  
+ * $Id: testlibft847.c,v 1.9 2000-07-30 02:02:15 javabear Exp $  
  *
  */
 
@@ -129,30 +129,32 @@ static int test(fd) {
   int i;
   long int frq;			/* freq */
 
-  cmd_cat_off(fd);		/* cat off */
+  cmd_set_cat_off(fd);		/* cat off */
   sleep(1);
-  cmd_cat_on(fd);		/* cat on */
+  cmd_set_cat_on(fd);		/* cat on */
   sleep(1);
-  cmd_sat_on(fd);		/* sat mode on */
+  cmd_set_sat_on(fd);		/* sat mode on */
   sleep(5);
-  cmd_sat_off(fd);		/* sat mode off */
+  cmd_set_sat_off(fd);		/* sat mode off */
+  sleep(3);
+  cmd_set_opmode_main_vfo(fd,MODE_AM);
   sleep(1);
-
   data1 = cmd_get_rx_status(fd);
   printf("data1 = %i \n", data1);
 
-  decode_rx_status_flags(data1);
+/*    decode_rx_status_flags(data1); */
   sleep(1);
 
   for (i=0; i<4; i++) {
-    data1 = cmd_get_rx_status(fd);
-    decode_rx_status_flags(data1);
-    sleep(1);
+/*      data1 = cmd_get_rx_status(fd); */
+/*      decode_rx_status_flags(data1); */
+/*      sleep(1); */
     frq = cmd_get_freq_mode_status_main_vfo(fd, &mode);
     printf("freq = %ld Hz and mode = %x \n",frq, mode );
 
     sleep(1);   
   }
+
   cmd_set_freq_main_vfo_hz(fd,439700000,MODE_FM);
   sleep(5);
   cmd_set_freq_main_vfo_hz(fd,123456780,MODE_CW);
@@ -160,7 +162,14 @@ static int test(fd) {
   cmd_set_freq_main_vfo_hz(fd,770000,MODE_AM);
   sleep(5);
 
-  cmd_cat_off(fd);		/* cat off */
+  cmd_set_freq_sat_rx_vfo_hz(fd,137125000,MODE_FM);
+  sleep(5);
+  cmd_set_freq_sat_rx_vfo_hz(fd,137125000,MODE_FM);
+  sleep(5);
+  cmd_set_freq_sat_tx_vfo_hz(fd,437875000,MODE_FMN);
+  sleep(5);
+
+  cmd_set_cat_off(fd);		/* cat off */
     
   return 0;
 }
