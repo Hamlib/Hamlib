@@ -7,17 +7,22 @@ Version: %ver
 Release: 1
 Copyright: LGPL
 Group: Ham/Libraries
-Packager: Stephane Fillod <f4cfe@users.sourceforge.net>
+Packager: Stephane Fillod <fillods@users.sourceforge.net>
 Source: ftp://ftp.sourceforge.net/pub/sourceforge/hamlib/hamlib-%{ver}.tar.gz
 BuildRoot: /tmp/hamlib-%{ver}-buildroot
 URL: http://hamlib.sourceforge.net
-#BuildRequires: binutils >= 2.9.4, gcc >= 2.95, glibc-devel >= 2.1
-#BuildRequires: /bin/sh, fileutils, findutils, flex
-#BuildRequires: gzip, make >= 3.77, patch >= 2.5, rpm >= 3.0, sed
-#BuildRequires: textutils
-##BuildRequires: /bin/sh, automake >= 1.4, libtool >= 1.4, fileutils, findutils, flex
+BuildRequires: binutils >= 2.9.4, gcc >= 2.95, glibc-devel >= 2.1
+BuildRequires: /bin/sh, fileutils, findutils, flex
+BuildRequires: gzip, make >= 3.77, patch >= 2.5, rpm >= 3.0, sed
+BuildRequires: textutils
+BuildRequires: /bin/sh, automake >= 1.4, libtool >= 1.4, fileutils, findutils
 
 %changelog
+
+* Thu Jun 17 2002 Stephane Fillod
+- Added rotator support
+- Added RPC daemon, hamlib.m4
+- Upstream version 1.1.3
 
 * Mon Jul 18 2001 Stephane Fillod
 - Made initial "working" SPEC file
@@ -59,23 +64,31 @@ Requires: hamlib
  developed using this library you'll need the 'hamlib' package.
 
 %package c++
-Summary: Hamlib radio control library C++ bindings
+Summary: Hamlib radio control library C++ binding
 Group: Development/Libraries
 Requires: hamlib
 
 %description c++
-C++ Bindings.
+C++ Binding.
 
 %package c++-devel
-Summary: Hamlib radio control library C++ bindings headers and static libs
+Summary: Hamlib radio control library C++ binding headers and static libs
 Group: Development/Libraries
 Requires: hamlib, hamlib-devel
 
 %description c++-devel
 This package contains all of the headers and the static libraries 
-for C++ bindings of Hamlib.
+for C++ binding of Hamlib.
 
 You'll only need this package if you are doing development.
+
+#%package perl
+#Summary: Hamlib radio control library Perl binding
+#Group: Development/Libraries
+#Requires: hamlib
+#
+#%description perl
+#Perl Binding.
 
 %prep
 %setup
@@ -117,7 +130,14 @@ rm -rf $RPM_BUILD_ROOT
 %{prefix}/lib/libhamlib-*.la
 
 %{prefix}/bin/rigctl
+%{prefix}/sbin/rpc.rigd
 %{prefix}/man/man1/rigctl.1
+%{prefix}/man/man8/rpc.rigd.8
+
+%{prefix}/bin/rotctl
+%{prefix}/sbin/rpc.rotd
+%{prefix}/man/man1/rotctl.1
+%{prefix}/man/man8/rpc.rotd.8
 
 %files devel
 %defattr(644, root, root, 755)
@@ -125,8 +145,10 @@ rm -rf $RPM_BUILD_ROOT
 %{prefix}/include/hamlib/rig.h
 %{prefix}/include/hamlib/rig_dll.h
 %{prefix}/include/hamlib/riglist.h
+%{prefix}/include/hamlib/rotator.h
+%{prefix}/include/hamlib/rotlist.h
 
-#%{prefix}/share/aclocal/hamlib.m4
+%{prefix}/share/aclocal/hamlib.m4
 %{prefix}/lib/libhamlib.a
 %{prefix}/lib/libhamlib.la
 %{prefix}/lib/libhamlib-*.a
@@ -140,9 +162,15 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644, root, root, 755)
 
 %{prefix}/include/hamlib/rigclass.h
+%{prefix}/include/hamlib/rotclass.h
 
 #%{prefix}/share/aclocal/hamlib++.m4
 %{prefix}/lib/libhamlib++.a
 %{prefix}/lib/libhamlib++.la
 
+#%files perl
+#%defattr(755, root, root, 755)
+#/usr/local/lib/perl/5.6.1/Hamlib.pm
+#%dir /usr/local/lib/perl/5.6.1/auto/Hamlib
+#%doc /usr/local/man/man3/Hamlib.3pm
 
