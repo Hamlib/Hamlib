@@ -1,11 +1,12 @@
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
 <!ENTITY preface SYSTEM "preface.sgml">
 <!ENTITY intro SYSTEM "intro.sgml">
 <!ENTITY using SYSTEM "using.sgml">
 <!ENTITY reference SYSTEM "reference.sgml">
 <!ENTITY backend SYSTEM "backend.sgml">
 <!ENTITY internals SYSTEM "internals.sgml">
-<!ENTITY curver "1.1.0 (ALPHA)">
+<!ENTITY genindex SYSTEM "genindex.sgml">
+<!ENTITY curver "1.1.3">
 ]>
   <book>
     <bookinfo>
@@ -18,17 +19,18 @@
       <address>
 	<email>n0nb@networksplus.net</email>
       </address>
-      <pubdate>23 September 2001</pubdate>
+      <pubdate>15 January, 2002</pubdate>
       <copyright>
 	<year>2000</year>
 	<year>2001</year>
-	<holder>Frank Singleton, VK3FCS &amp; KM5WS; Stephane Fillod, F4CFE;
+	<year>2002</year>
+	<holder>Frank Singleton, VK3FCS &amp; KM5WS; Stephane Fillod, F8CFE;
 	Nate Bargmann, N0NB</holder>
       </copyright>
       <legalnotice id="legalnotice">
 	<title>Hamlib-doc - Ham Radio Control Libraries Documentation</title>
 
-	<para>Copyright (C) 2000-2001 Stephane Fillod, Frank Singleton, Nate 
+	<para>Copyright (C) 2000-2002 Stephane Fillod, Frank Singleton, Nate 
 	Bargmann.  This documentation file is part of the Hamlib 
 	package.</para>
 
@@ -56,16 +58,24 @@
       </abstract>
       <revhistory>
 	<revision>
+	  <revnumber>0.2.0</revnumber>
+	  <date>15 January 2002</date>
+	  <authorinitials>nfb</authorinitials>
+	  <revremark>Update draft for 1.1.3 and converted to Docbook Version 
+	  4.1 DTD.  Cut down reference.sgml as this is handled by 
+	  Doxygen. Added framework for Index.</revremark>
+	</revision>
+	<revision>
 	  <revnumber>0.1.1</revnumber>
 	  <date>23 September 2001</date>
 	  <authorinitials>nfb</authorinitials>
-	  <revremark>Final final draft for &curver;</revremark>
+	  <revremark>Final final draft for 1.1.0 (ALPHA)</revremark>
 	</revision>
 	<revision>
 	  <revnumber>0.1.0</revnumber>
 	  <date>24 February 2001</date>
 	  <authorinitials>nfb</authorinitials>
-	  <revremark>Final draft for &curver;</revremark>
+	  <revremark>Final draft for 1.1.0 (ALPHA)</revremark>
 	</revision>
 	<revision>
 	  <revnumber>0.0.1</revnumber>
@@ -83,5 +93,6 @@
     &reference;
 <!--    &backend; -->
 <!--    &internals; -->
+    &genindex;
   </book>
 

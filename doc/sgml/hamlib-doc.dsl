@@ -2,140 +2,144 @@
 <!ENTITY % html "IGNORE">
 <![%html;[
 <!ENTITY % print "IGNORE">
-<!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheet/dsssl/docbook/nwalsh/html/docbook.dsl" CDATA dsssl>
+<!ENTITY docbook.dsl PUBLIC "-//Norman Walsh//DOCUMENT DocBook HTML Stylesheet//EN" CDATA dsssl>
 ]]>
 <!ENTITY % print "INCLUDE">
 <![%print;[
-<!ENTITY docbook.dsl SYSTEM "/usr/lib/sgml/stylesheet/dsssl/docbook/nwalsh/print/docbook.dsl" CDATA dsssl>
+<!ENTITY docbook.dsl PUBLIC "-//Norman Walsh//DOCUMENT DocBook Print Stylesheet//EN" CDATA dsssl>
 ]]>
 ]>
 
-<!-- Cygnus customizations by Mark Galassi -->
-<!-- Shamelessly appropriated for Hamlib-doc by Nate Bargmann
-     n0nb@arrl.net.  Original file is cygnus-both.dsl from the
-     Cygnus tools collection.  This seemed easier than writing
-     a new .dsl and coordinating with this file...
--->
-
-
 <style-sheet>
-
 
 <style-specification id="print" use="docbook">
 <style-specification-body> 
 
-;; ====================
+;; ==============================
 ;; customize the print stylesheet
-;; ====================
+;; ==============================
 
-;; make funcsynopsis look pretty
-(define %funcsynopsis-decoration%
-  ;; Decorate elements of a FuncSynopsis?
-  #t)
-
-;; use graphics in admonitions, and have their path be "."
-;; NO: we are not yet ready to use gifs in TeX and so forth
-(define %admon-graphics-path%
-  "./")
-(define %admon-graphics%
+(declare-characteristic preserve-sdata?
+  ;; this is necessary because right now jadetex does not understand
+  ;; symbolic entities, whereas things work well with numeric entities.
+  "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
   #f)
 
-;; this is necessary because right now jadetex does not understand
-;; symbolic entities, whereas things work well with numeric entities.
-(declare-characteristic preserve-sdata?
-          "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
-          #f)
-(define %two-side% #t)
+;(define %generate-article-toc%
+;  ;; Should a Table of Contents be produced for Articles?
+;  #t)
 
-(define %section-autolabel% 
+(define (toc-depth nd)
+  2)
+
+;(define %generate-article-titlepage-on-separate-page%
+;  ;; Should the article title page be on a separate page?
+;  #t)
+
+(define %section-autolabel%
   ;; Are sections enumerated?
   #t)
-;; (define %title-font-family% 
-;;   ;; The font family used in titles
-;;   "Ariel")
-(define %visual-acuity%
-  ;; General measure of document text size
-  ;; "presbyopic"
-  ;; "large-type"
-  "presbyopic")
 
-(define %generate-part-toc% #t)
+;(define %footnote-ulinks%
+;  ;; Generate footnotes for ULinks?
+;  #f)
 
-;; (define %block-start-indent% 10pt)
+;(define %bop-footnotes%
+;  ;; Make "bottom-of-page" footnotes?
+;  #f)
 
-(define %graphic-default-extension% "eps")
+(define %body-start-indent%
+  ;; Default indent of body text
+  0pi)
 
-;; added by Nate Bargmann to start RefEntry on a new page.
-;; REFERENCE RefEntries and FuncSynopses
+(define %para-indent-firstpara%
+  ;; First line start-indent for the first paragraph
+  12pt)
 
-(define %refentry-new-page% 
-  ;; REFENTRY refentry-new-page
-  ;; PURP 'RefEntry' starts on new page?
-  ;; DESC
-  ;; If true, each 'RefEntry' begins on a new page.
-  ;; /DESC
-  ;; AUTHOR N/A
-  ;; /REFENTRY
+(define %para-indent%
+  ;; First line start-indent for paragraphs (other than the first)
+  0pt)
+
+(define %block-start-indent%
+  ;; Extra start-indent for block-elements
+  0pt)
+
+(define formal-object-float
+  ;; Do formal objects float?
   #t)
 
-(element (varlistentry term)
-  (make paragraph
-    space-before: (if (first-sibling?)
-		      %block-sep%
-                      0pt)
-    keep-with-next?: #t
-    first-line-start-indent: 4em
-    start-indent: 0pt
-    (process-children)))
+(define %hyphenation%
+  ;; Allow automatic hyphenation?
+  #t)
 
+(define %admon-graphics%
+  ;; Use graphics in admonitions?
+  #t)
+
+(define %admon-graphics-path%
+  ;; Path to admonition grpahics
+  "./images/")
+
+(define admon-graphic-default-extension
+  ;; Admonition graphic file extension
+  ".pdf")
 
 </style-specification-body>
 </style-specification>
 
+
 <!--
-;; ====================
-;; customize the html stylesheet
-;; ====================
+;; ===================================================
+;; customize the html stylesheet; borrowed from Cygnus
+;; at http://sourceware.cygnus.com/ (cygnus-both.dsl)
+;; ===================================================
 -->
+
 <style-specification id="html" use="docbook">
 <style-specification-body> 
 
-;; this is necessary because right now jadetex does not understand
-;; symbolic entities, whereas things work well with numeric entities.
 (declare-characteristic preserve-sdata?
-          "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
-          #f)
+  ;; this is necessary because right now jadetex does not understand
+  ;; symbolic entities, whereas things work well with numeric entities.
+  "UNREGISTERED::James Clark//Characteristic::preserve-sdata?"
+  #f)
 
-;; put the legal notice in a separate file
 (define %generate-legalnotice-link%
+  ;; put the legal notice in a separate file
   #t)
 
-;; use graphics in admonitions, and have their path be "stylesheet-images"
-;; NO: they do not yet look very good
 (define %admon-graphics-path%
-  "./stylesheet-images/")
+  ;; use graphics in admonitions, set their
+  "../images/")
+
 (define %admon-graphics%
   #f)
 
-;; make funcsynopsis look pretty
 (define %funcsynopsis-decoration%
-  ;; Decorate elements of a FuncSynopsis?
+  ;; make funcsynopsis look pretty
   #t)
 
-(define %html-ext% ".html")
-(define %body-attr%
-  ;; What attributes should be hung off of BODY?
-  '())
-;;  (list
-;;   (list "BGCOLOR" "#FFFFFF")
-;;   (list "TEXT" "#000000")))
+(define %html-ext%
+  ".html")
 
 (define %generate-article-toc% 
   ;; Should a Table of Contents be produced for Articles?
   ;; If true, a Table of Contents will be generated for each 'Article'.
   #t)
 
-(define %generate-part-toc% #t)
+(define %generate-part-toc%
+  #t)
+
+(define %generate-article-titlepage%
+  #t)
+
+(define (chunk-skip-first-element-list)
+  ;; forces the Table of Contents on separate page
+  '())
+
+(define %root-filename%
+  ;; The filename of the root HTML document (e.g, "index").
+  "hamlib-doc")
 
 (define %shade-verbatim%
   #t)
@@ -144,8 +148,16 @@
   ;; Use ID attributes as name for component HTML files?
   #t)
 
-(define %graphic-default-extension% "png")
+(define %graphic-default-extension% 
+  "gif")
 
+(define %section-autolabel%
+  ;; For enumerated sections (1.1, 1.1.1, 1.2, etc.)
+  #t)
+
+(define (toc-depth nd)
+  ;; more depth, 2 levels, to toc, instead of flat hierarchy
+  2)
 
 </style-specification-body>
 </style-specification>
