@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.1 2001-02-14 00:59:02 f4cfe Exp $
+ *	$Id: dummy.c,v 1.2 2001-02-14 23:57:30 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -42,6 +42,71 @@
 #include "dummy.h"
 
 
+static unsigned char *decode_vfo(vfo_t vfo)
+{
+	switch (vfo) {
+	case	RIG_VFO_A:
+			return "VFOA";
+	case	RIG_VFO_B:
+			return "VFOA";
+	case	RIG_VFO_C:
+			return "VFOC";
+	case	RIG_VFO_CURR:
+			return "currVFO";
+	case	RIG_VFO_ALL:
+			return "VFOall";
+		default:
+			return "VFO?";
+	}
+	return "VFO?";
+}
+
+static unsigned char *decode_mode(rmode_t mode, pbwidth_t width)
+{
+	switch (mode) {
+	case	RIG_MODE_AM:
+			return "AM";
+	case	RIG_MODE_FM:
+			return "FM";
+	case	RIG_MODE_LSB:
+			return "LSB";
+	case	RIG_MODE_USB:
+			return "USB";
+	case	RIG_MODE_CW:
+			return "CW";
+	case	RIG_MODE_RTTY:
+			return "RTTY";
+	case	RIG_MODE_NONE:
+			return "None";
+		default:
+			return "MODE?";
+	}
+	return "MODE?";
+}
+
+/*
+ * Huh! ugly code! these static buffers prevent reentrancy!
+ */
+#define BUF_SIZE 32
+
+static unsigned char *decode_freq(freq_t freq)
+{
+	static unsigned char buf[BUF_SIZE];
+
+	if (freq < kHz(1))
+		snprintf(buf, BUF_SIZE, "%lldHz", freq);
+	else if (freq < MHz(1))
+			snprintf(buf, BUF_SIZE, "%lld.%lldkHz", freq/kHz(1), freq%kHz(1));
+	else if (freq < GHz(1))
+			snprintf(buf, BUF_SIZE, "%lld.%lldMHz", freq/MHz(1), freq%MHz(1));
+	else
+		snprintf(buf, BUF_SIZE, "%lld.%lldGHz", freq/GHz(1), freq%GHz(1));
+
+	return buf;
+}
+
+/********************************************************************/
+
 static int dummy_init(RIG *rig) {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
   rig->state.port_type = RIG_PORT_NONE;
@@ -71,7 +136,8 @@ static int dummy_close(RIG *rig)
 
 static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
+ 			decode_vfo(vfo), decode_freq(freq));
 
   return RIG_OK;
 }
@@ -79,7 +145,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
 
   return RIG_OK;
 }
@@ -87,7 +153,8 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
+  		decode_vfo(vfo), decode_mode(mode, width));
 
   return RIG_OK;
 }
@@ -95,7 +162,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
 
   return RIG_OK;
 }
@@ -103,7 +170,7 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
 
   return RIG_OK;
 }
@@ -126,6 +193,14 @@ static int dummy_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 
 static int dummy_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
+
+
+static int dummy_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -483,13 +558,15 @@ const struct rig_caps dummy_caps = {
   rig_type:      RIG_TYPE_OTHER,
   targetable_vfo:	 0,
   ptt_type:      RIG_PTT_NONE,
+  dcd_type:      RIG_DCD_NONE,
+  port_type:     RIG_PORT_NONE,
   has_get_func:  DUMMY_FUNC,
   has_set_func:  DUMMY_FUNC,
   has_get_level: DUMMY_LEVEL,
   has_set_level: DUMMY_SET_LEVEL,
   transceive:    RIG_TRN_OFF,
   attenuator:    { 10, 20, 30, RIG_DBLST_END, },
-  rx_range_list2: { {start:KHz(150),end:MHz(1500),modes:DUMMY_MODES,
+  rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:DUMMY_MODES,
 		    low_power:-1,high_power:-1},
 		    RIG_FRNG_END, },
   tx_range_list2: { RIG_FRNG_END, },
@@ -522,6 +599,7 @@ const struct rig_caps dummy_caps = {
 
   set_ptt:	dummy_set_ptt,
   get_ptt:	dummy_get_ptt,
+  get_dcd:	dummy_get_dcd,
   set_rptr_shift:	dummy_set_rptr_shift,
   get_rptr_shift:	dummy_get_rptr_shift,
   set_rptr_offs:	dummy_set_rptr_offs,
