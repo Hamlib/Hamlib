@@ -1,0 +1,133 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH ROTCTL "1" "December 28, 2001" "Hamlib"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+rotctl \- control antenna rotators
+.SH SYNOPSIS
+.B rotctl
+[\fIOPTION\fR]... [\fICOMMAND\fR]...
+.SH DESCRIPTION
+Control antenna rotators.
+\fBrotctl\fP accepts \fBcommands\fP from command line as well as in
+interactive mode if none provided in command line.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" respectively.
+Keep in mind that \fBHamlib\fP is still ALPHA level software. 
+A lof of stuff hasn't been tested thoroughly, and the API may change
+without publicised notice. Please report bugs and feedback at
+the e-mail address given in the REPORTING BUGS section.
+.SH OPTIONS
+This program follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+.TP
+.B \-m, \-\-model=id
+Select rotator model number. See model list.
+.TP
+.B \-r, --rot-file=device
+Use \fBdevice\fP as the file name of the rotator to operate.
+.TP
+.B \-p, --ptt-file=device
+Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on.
+.TP
+.B \-d, --dcd-file=device
+Use \fBdevice\fP as the file name of the Data Carrier Detect device 
+to operate on.
+.TP
+.B \-p, --ptt-type=type
+Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
+.TP
+.B \-d, --dcd-type=type
+Use \fBtype\fP device as the kind of the Data Carrier Detect device 
+to operate on.
+.TP
+.B \-s, --serial-speed=baud
+Set serial speed to \fBbaud\fP rate. Uses maximal rotator speed as default.
+.TP
+.B \-L, \-\-show-conf
+List all config parameters.
+.TP
+.B \-C, \-\-set\-conf=parm=val[,parm=val]*
+Set config parameter.
+.TP
+.B \-l, \-\-list
+List all model numbers and exit.
+.TP
+.B \-v, \-\-verbose
+Set verbose mode, cumulative.
+.TP
+.B \-h, \-\-help
+Show summary of options and exit.
+.TP
+.B \-V, \-\-version
+Show version of program and exit.
+
+.SH COMMANDS
+Commands can be entered either as a single char, or as a long command name.
+Basically, the commands do not take a dash in front of them, as
+the options usually do. They may be typed in when in interactive mode
+or provided as argument in command line interface mode.
+Since most of the Hamlib operations have a \fIset\fP and a \fIget\fP method,
+upper case letter will be used for \fIset\fP method whereas the corresponding
+lower case letter refers to the \fIget\fP method.
+.PP
+Please note that the backend for the rotator to be controlled, 
+or the rotator itself may not support some commands. In that case, 
+the operation will fail with a standard error message.
+.PP
+A summary of commands is included below.
+.TP
+.B P, set_pos
+Set position: azimuth and elevation.
+.TP
+.B p, get_pos
+Get position: azimuth and elevation.
+.TP
+.B K, park
+Park the antenna.
+.TP
+.B S, stop
+Stop the rotator.
+.TP
+.B R, reset
+Reset the rotator.
+
+.SH RETURN VALUE
+rotctl exits with:
+0 if all operations went fine; 1 if there was an invalid command line
+option or arg; or 2 if an error was returned by Hamlib.
+
+.SH AUTHOR
+Written by Stephane Fillod.
+.SH BUGS
+.PP
+This suspicious empty section...
+.SH REPORTING BUGS
+Report bugs to <hamlib-developer@users.sourceforge.net>.
+.br
+I'm already aware of the bug in the previous section :-)
+.SH COPYRIGHT
+Copyright \(co 2000,2001 Stephane Fillod.
+.br
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.
+.SH SEE ALSO
+.BR hamlib (3)
+
