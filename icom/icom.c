@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.25 2001-05-04 22:40:37 f4cfe Exp $  
+ * $Id: icom.c,v 1.26 2001-05-15 22:06:37 f4cfe Exp $  
  *
  *
  *
@@ -1438,7 +1438,7 @@ int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 				return -RIG_EINVAL;
 
 		tone_len = 1;
-		to_bcd_be(tonebuf, (long long)caps->ctcss_list[i], tone_len*2);
+		to_bcd_be(tonebuf, (long long)i, tone_len*2);
 
 		icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, tonebuf, tone_len, 
 												ackbuf, &ack_len);
@@ -1522,7 +1522,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 				return -RIG_EINVAL;
 
 		tone_len = 1;
-		to_bcd_be(tonebuf, (long long)caps->ctcss_list[i], tone_len*2);
+		to_bcd_be(tonebuf, (long long)i, tone_len*2);
 
 		icom_transaction(rig, C_SET_TONE, S_TONE_SQL, tonebuf, tone_len, 
 												ackbuf, &ack_len);
