@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.23 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: kenwood.c,v 1.24 2002-01-02 23:38:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -373,7 +373,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		}
 
 		*width = RIG_PASSBAND_NORMAL;	/* FIXME */
-		switch (ackbuf[0]) {
+		switch (ackbuf[2]) {
 			case MD_CW:		*mode = RIG_MODE_CW; break;
 			case MD_USB:	*mode = RIG_MODE_USB; break;
 			case MD_LSB:	*mode = RIG_MODE_LSB; break;
@@ -389,7 +389,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			case MD_NONE:		*mode = RIG_MODE_NONE; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"kenwood_get_mode: "
-								"unsupported mode %d\n", ackbuf[0]);
+								"unsupported mode '%c'\n", ackbuf[2]);
 				return -RIG_EINVAL;
 		}
 
