@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.18 2001-02-14 01:08:12 f4cfe Exp $
+   $Id: rig.c,v 1.19 2001-02-14 23:59:09 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ RIG *rig_init(rig_model_t rig_model)
 
 		rs = &rig->state;
 
-		rs->port_type = RIG_PORT_SERIAL; /* default is serial port */
+		rs->port_type = caps->port_type; /* default from caps */
 		strncpy(rs->rig_path, DEFAULT_SERIAL_PORT, FILPATHLEN);
 		rs->serial_rate = caps->serial_rate_max;	/* fastest ! */
 		rs->serial_data_bits = caps->serial_data_bits;
@@ -227,6 +227,7 @@ RIG *rig_init(rig_model_t rig_model)
 		rs->retry = caps->retry;
 		rs->transceive = caps->transceive;
 		rs->ptt_type = caps->ptt_type;
+		rs->dcd_type = caps->dcd_type;
 		rs->vfo_comp = 0.0;	/* override it with preferences */
 		rs->current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
 
@@ -252,6 +253,7 @@ RIG *rig_init(rig_model_t rig_model)
 
 		memcpy(rs->preamp, caps->preamp, MAXDBLSTSIZ);
 		memcpy(rs->attenuator, caps->attenuator, MAXDBLSTSIZ);
+		memcpy(rs->filters, caps->filters, FLTLSTSIZ);
 
 		rs->has_get_func = caps->has_get_func;
 		rs->has_set_func = caps->has_set_func;
@@ -507,6 +509,8 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  *      @freq:	The location where to store the current frequency
  *
  *      The rig_get_freq() function retrieves the frequency of the current VFO.
+ *	The value stored at @freq location equals %RIG_FREQ_NONE when the current
+ *	frequency of the VFO is not defined (e.g. blank memory).
  *
  *      RETURN VALUE: The rig_get_freq() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -601,6 +605,8 @@ int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  *      The rig_set_mode() function retrieves the mode of the current VFO.
  *      If the backend is unable to determine the width, it must
  *      return %RIG_PASSBAND_NORMAL as a default.
+ *	The value stored at @mode location equals %RIG_MODE_NONE when the current
+ *	mode of the VFO is not defined (e.g. blank memory).
  *
  *      RETURN VALUE: The rig_get_mode() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
@@ -811,6 +817,68 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 				break;
 
 		case RIG_PTT_NONE:
+				return -RIG_ENAVAIL;	/* not available */
+
+		default:
+				return -RIG_EINVAL;
+		}
+
+		return RIG_OK;
+}
+
+/**
+ *      rig_get_dcd - get the status of the DCD
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @dcd:	The location where to store the status of the DCD
+ *
+ *      The rig_get_dcd() function retrieves the status of DCD (is squelch
+ *	open?).
+ *
+ *      RETURN VALUE: The rig_get_dcd() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ */
+int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{	
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps || !dcd)
+			return -RIG_EINVAL;
+
+		switch (rig->state.dcd_type) {
+		case RIG_DCD_RIG:
+			if (rig->caps->get_dcd == NULL)
+				return -RIG_ENIMPL;
+
+			if (rig->caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+											vfo == rig->state.current_vfo)
+				return rig->caps->get_dcd(rig, vfo, dcd);
+	
+			if (!rig->caps->set_vfo)
+				return -RIG_ENTARGET;
+			curr_vfo = rig->state.current_vfo;
+			retcode = rig->caps->set_vfo(rig, vfo);
+			if (retcode != RIG_OK)
+					return retcode;
+	
+			retcode = rig->caps->get_dcd(rig, vfo, dcd);
+			rig->caps->set_vfo(rig, curr_vfo);
+			return retcode;
+
+			break;
+
+		case RIG_DCD_SERIAL_CTS:
+		case RIG_DCD_SERIAL_DSR:
+				ser_dcd_get(&rig->state, dcd);
+				break;
+		case RIG_DCD_PARALLEL:
+				par_dcd_get(&rig->state, dcd);
+				break;
+
+		case RIG_DCD_NONE:
 				return -RIG_ENAVAIL;	/* not available */
 
 		default:
