@@ -34,7 +34,8 @@ int main (int argc, char *argv[])
 	printf("  Longitude: %f, %d° %d' %d\"\n", lon1, deg, min, sec);
 	dec2dms(lat1, &deg, &min, &sec);
 	printf("  Latitude:  %f, %d° %d' %d\"\n", lat1, deg, min, sec);
-	retcode = longlat2locator(lon1, lat1, recodedloc);
+	longlat2locator(lon1, lat1, recodedloc);
+	recodedloc[6] = '\0';
 	printf("  Recoded: %s\n", recodedloc);
 
 	if (loc2 == NULL)
@@ -46,7 +47,8 @@ int main (int argc, char *argv[])
 	printf("  Longitude: %f, %d° %d' %d\"\n", lon2, deg, min, sec);
 	dec2dms(lat2, &deg, &min, &sec);
 	printf("  Latitude:  %f, %d° %d' %d\"\n", lat2, deg, min, sec);
-	retcode = longlat2locator(lon2, lat2, recodedloc);
+	longlat2locator(lon2, lat2, recodedloc);
+	recodedloc[6] = '\0';
 	printf("  Recoded: %s\n", recodedloc);
 
 	retcode = qrb(lon1, lat1, lon2, lat2, &bearing, &az);
