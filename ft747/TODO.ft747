@@ -1,0 +1,16 @@
+hamlib - (C) Frank Singleton 2000
+
+TODO.ft747 - (C) Frank Singleton 2000
+This shared library provides an API for communicating
+via serial interface to an FT-747GX using the "CAT" interface
+box (FIF-232C) or similar.
+
+TODO
+----
+
+1. Complete pcodes
+2. Write More extensive Test Suite
+3. 
+4.
+5.
+

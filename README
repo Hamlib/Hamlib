@@ -1,0 +1,39 @@
+hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+
+The purpose of this project is to provide stable, flexible,
+shared libraries that enable quicker development of Amateur
+Radio Equipment Control Applications.
+ 
+Many Amateur Radio Transceivers come with serial interfaces
+that allows software to control the radio. This project will
+endeavour to provide shared libraries that greatly simplify
+the application programmers interaction with radio equipment.
+ 
+The shared libs will provide functions for both radio control,
+and data retrieval from the radio.
+ 
+Examples are:
+ 
+1.libft747.so will provide connectivity to Yeasu
+  FT 747GX Transceiver via a standard API.
+
+2. libft847.so will provide connectivity to Yaesu FT 847
+   "Earth Station" via a standard API.
+ 
+3. libxxxx.so will provide connectivity to the Wiz-bang
+   moon-melter 101A (yikes..)
+
+These libraries will also enable developers  to develop
+professional looking GUI's towards a standard control library
+API, and they would not have to worry about the underlying
+connection towards physical hardware.
+ 
+Initially serial (RS232) connectivity will be handled, but
+I expect that IP connectivity will follow afterwards. 
+
+
+Have Fun / Frank S. 
+
+  73's de vk3fcs/km5ws
+
+
