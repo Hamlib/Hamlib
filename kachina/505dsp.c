@@ -2,7 +2,7 @@
  *  Hamlib Kachina backend - 505DSP description
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: 505dsp.c,v 1.1 2001-08-12 22:52:44 f4cfe Exp $
+ *		$Id: 505dsp.c,v 1.2 2001-10-18 17:51:08 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,6 +36,7 @@
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
 #include "kachina.h"
+#include "tone_tbl.h"
 
 
 #define K505DSP_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
