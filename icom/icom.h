@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.h,v 1.25 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: icom.h,v 1.26 2001-07-21 13:00:03 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -101,9 +101,13 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icom_set_channel(RIG *rig, const channel_t *chan);
 int icom_get_channel(RIG *rig, channel_t *chan);
+int icom_set_conf(RIG *rig, token_t token, const char *val);
+int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
 int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_decode_event(RIG *rig);
+
+extern const struct confparams icom_cfg_params[];
 
 extern const struct rig_caps ic706_caps;
 extern const struct rig_caps ic706mkii_caps;

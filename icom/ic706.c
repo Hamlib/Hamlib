@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-706 and variations
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: ic706.c,v 1.24 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: ic706.c,v 1.25 2001-07-21 13:00:03 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -436,6 +436,10 @@ filters:	{
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
+
+cfgparams: icom_cfg_params,
+set_conf: icom_set_conf,
+get_conf: icom_get_conf,
 
 priv: (void*)&ic706mkiig_priv_caps,
 rig_init:  icom_init,

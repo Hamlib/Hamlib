@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.41 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: rig.c,v 1.42 2001-07-21 13:00:03 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,6 +47,7 @@
 #include <hamlib/rig.h>
 #include <serial.h>
 #include "event.h"
+#include "conf.h"
 
 /**
  * \brief Hamlib release number
@@ -58,8 +59,8 @@ const char hamlib_version[] = "Hamlib version " VERSION;
  */
 const char hamlib_copyright[] = 
 	"Copyright (C) 2000, 2001 Stephane Fillod and Frank Singleton\n"
-	"This is free software; see the source for copying conditions.\n"
-	"There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\n"
+	"This is free software; see the source for copying conditions.  "
+	"There is NO\n warranty; not even for MERCHANTABILITY or FITNESS FOR A"
 	"PARTICULAR PURPOSE.";
 
 
@@ -2357,7 +2358,7 @@ int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
  *  \note \a *tone is NOT in Hz, but in tenth of Hz! This way,
  *  if the function rig_get_ctcss_sql() returns a subaudible tone of 885
  *  for example, then the real tone is 88.5 Hz. 
- *  Also, a value of 0 for @tone means the Tone squelch is disabled.
+ *  Also, a value of 0 for \a tone means the Tone squelch is disabled.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -2642,7 +2643,7 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * \param val	The location where to store the value of \a level
  *
  *  Retrieves the value of a \a level.
- *  The level value @val can be a float or an integer. See #value_t
+ *  The level value \a val can be a float or an integer. See #value_t
  *  for more information.
  *
  * 		RIG_LEVEL_STRENGTH: \a val is an integer, representing the S Meter
@@ -2692,7 +2693,7 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  * \brief set a radio parameter
  * \param rig	The rig handle
  * \param parm	The parameter
- * \param val	The value to set the parameter sto
+ * \param val	The value to set the parameter to
  *
  *  Sets a parameter. 
  *  The parameter value \a val can be a float or an integer. See #value_t
@@ -2719,7 +2720,7 @@ int rig_set_parm(RIG *rig, setting_t parm, value_t val)
  * \brief get the value of a parameter
  * \param rig	The rig handle
  * \param parm	The parameter
- * \param val	The location where to store the value of @parm
+ * \param val	The location where to store the value of \a parm
  *
  *  Retrieves the value of a \a parm.
  *  The parameter value \a val can be a float or an integer. See #value_t
@@ -2981,6 +2982,63 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
+
+/**
+ * \brief set a radio configuration parameter
+ * \param rig	The rig handle
+ * \param token	The parameter
+ * \param val	The value to set the parameter to
+ *
+ *  Sets a configuration parameter. 
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_conf()
+ */
+int rig_set_conf(RIG *rig, token_t token, const char *val)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (RIG_IS_TOKEN_FRONTEND(token))
+				return frontend_set_conf(rig, token, val);
+
+		if (rig->caps->set_conf == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->set_conf(rig, token, val);
+}
+
+/**
+ * \brief get the value of a configuration parameter
+ * \param rig	The rig handle
+ * \param token	The parameter
+ * \param val	The location where to store the value of config \a token
+ *
+ *  Retrieves the value of a configuration paramter associated with \a token.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_conf()
+ */
+int rig_get_conf(RIG *rig, token_t token, char *val)
+{
+		if (!rig || !rig->caps || !val)
+			return -RIG_EINVAL;
+
+		if (RIG_IS_TOKEN_FRONTEND(token))
+				return frontend_get_conf(rig, token, val);
+
+		if (rig->caps->get_conf == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->get_conf(rig, token, val);
+}
+
 
 /**
  * \brief set the current memory channel number

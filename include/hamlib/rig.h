@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.47 2001-07-20 11:07:11 f4cfe Exp $
+ *		$Id: rig.h,v 1.48 2001-07-21 13:00:03 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -365,6 +365,43 @@ typedef long vfo_op_t;
 
 typedef long scan_t;
 
+/*
+ * configuration token
+ */
+typedef long token_t;
+
+#define RIG_CONF_END 0
+
+#define RIG_TOKEN_BACKEND(t) (t)
+#define RIG_TOKEN_FRONTEND(t) ((t)|(1<<30))
+#define RIG_IS_TOKEN_FRONTEND(t) ((t)&(1<<30))
+
+/*
+ * strongly inspired from soundmedem. Thanks Thomas!
+ */
+#define RIG_CONF_STRING      0
+#define RIG_CONF_COMBO       1
+#define RIG_CONF_NUMERIC     2
+#define RIG_CONF_CHECKBUTTON 3
+
+struct confparams {
+		token_t token;
+		const char *name;	/* try to avoid spaces in the name */
+		const char *label;
+		const char *tooltip;
+        const char *dflt;
+		unsigned int type;
+		union {
+			struct {
+				float min;
+				float max;
+				float step;
+			} n;
+			struct {
+				const char *combostr[8];
+			} c;
+		} u;
+};
 
 /*
  * When optional speech synthesizer is installed 
@@ -406,7 +443,6 @@ union value_u {
 		float f;
 };
 typedef union value_u value_t;
-
 
 #define RIG_LEVEL_NONE		0ULL
 #define RIG_LEVEL_PREAMP	(1<<0)	/* Preamp, arg int (dB) */
@@ -734,6 +770,7 @@ struct rig_caps {
 
   struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
 
+  const struct confparams *cfgparams;
   const rig_ptr_t priv;
 
   /*
@@ -819,6 +856,9 @@ struct rig_caps {
 
   int (*set_parm)(RIG *rig, setting_t parm, value_t val);
   int (*get_parm)(RIG *rig, setting_t parm, value_t *val);
+
+  int (*set_conf)(RIG *rig, token_t token, const char *val);
+  int (*get_conf)(RIG *rig, token_t token, char *val);
 
   int (*send_dtmf)(RIG *rig, vfo_t vfo, const char *digits);
   int (*recv_dtmf)(RIG *rig, vfo_t vfo, char *digits, int *length);
@@ -1084,12 +1124,17 @@ extern HAMLIB_EXPORT(int) rig_get_level HAMLIB_PARAMS((RIG *rig, vfo_t vfo, sett
 extern HAMLIB_EXPORT(int) rig_set_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t val));
 extern HAMLIB_EXPORT(int) rig_get_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t *val));
 
+extern HAMLIB_EXPORT(int) rig_set_conf HAMLIB_PARAMS((RIG *rig, token_t token, const char *val));
+extern HAMLIB_EXPORT(int) rig_get_conf HAMLIB_PARAMS((RIG *rig, token_t token, char *val));
+
 extern HAMLIB_EXPORT(int) rig_set_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t status));
 extern HAMLIB_EXPORT(int) rig_get_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t *status));
 
 extern HAMLIB_EXPORT(int) rig_reset HAMLIB_PARAMS((RIG *rig, reset_t reset));	/* dangerous! */
 
-/* more to come -- FS */
+
+extern HAMLIB_EXPORT(const struct confparams*) rig_confparam_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
+extern HAMLIB_EXPORT(token_t) rig_token_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
 
 extern HAMLIB_EXPORT(int) rig_close HAMLIB_PARAMS((RIG *rig));
 extern HAMLIB_EXPORT(int) rig_cleanup HAMLIB_PARAMS((RIG *rig));

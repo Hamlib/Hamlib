@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.35 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: icom.c,v 1.36 2001-07-21 13:00:03 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -141,6 +141,21 @@ const struct ts_sc_list ic706_ts_sc_list[] = {
 struct icom_addr {
 		rig_model_t model;
 		unsigned char re_civ_addr;
+};
+
+
+#define TOK_CIVADDR RIG_TOKEN_BACKEND(1)
+#define TOK_MODE731 RIG_TOKEN_BACKEND(2)
+
+const struct confparams icom_cfg_params[] = {
+	{ TOK_CIVADDR, "civaddr", "CI-V address", "Transceiver's CI-V address", 
+			"0", RIG_CONF_NUMERIC, { n: { 0, 0xff, 1 } }
+	},
+	{ TOK_MODE731, "mode731", "CI-V 731 mode", "CI-V operating frequency "
+			"data length, needed for IC731 and IC735", 
+			"0", RIG_CONF_CHECKBUTTON
+	},
+	{ RIG_CONF_END, NULL, }
 };
 
 /*
@@ -798,6 +813,57 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		return RIG_OK;
 }
+
+/*
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_conf(RIG *rig, token_t token, const char *val)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+		switch(token) {
+			case TOK_CIVADDR:
+					priv->re_civ_addr = atoi(val);
+					break;
+			case TOK_MODE731:
+					priv->civ_731_mode = atoi(val) ? 1:0;
+					break;
+			default:
+					return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
+/*
+ * assumes rig!=NULL,
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *  and val points to a buffer big enough to hold the conf value.
+ */
+int icom_get_conf(RIG *rig, token_t token, char *val)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+		switch(token) {
+			case TOK_CIVADDR:
+					sprintf(val, "%d", priv->re_civ_addr);
+					break;
+			case TOK_MODE731:
+					sprintf(val, "%d", priv->civ_731_mode);
+					break;
+			default:
+					return -RIG_EINVAL;
+		}
+		return RIG_OK;
+}
+
 
 /*
  * icom_set_ptt
