@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.79 2003-04-16 22:33:18 fillods Exp $
+ *	$Id: rig.h,v 1.80 2003-04-27 22:15:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -75,7 +75,8 @@ __BEGIN_DECLS
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
 extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
 
-/*
+/**
+ * \brief Hamlib error codes
  * Error codes that can be returned by the Hamlib functions
  */
 enum rig_errcode_e {

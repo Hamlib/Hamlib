@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.70 2003-04-19 13:47:57 fillods Exp $
+ *	$Id: rig.c,v 1.71 2003-04-27 22:15:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,6 @@
 
 /**
  * \example ../tests/testrig.c
- * \anchor example_test_rig
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1574,6 +1573,7 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_widt
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param split	The split mode to set to
+ * \param tx_vfo	The transmit VFO
  *
  *  Sets the current split mode.
  *
@@ -1618,6 +1618,7 @@ int rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param split	The location where to store the current split mode
+ * \param tx_vfo	The transmit VFO
  *
  *  Retrieves the current split mode.
  *
