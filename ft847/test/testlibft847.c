@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.13 2000-09-04 03:44:26 javabear Exp $  
+ * $Id: testlibft847.c,v 1.14 2000-09-04 03:45:54 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -219,6 +219,8 @@ int main(void) {
   
   return 0;
 }
+
+
 
 
 
