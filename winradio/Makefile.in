@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -92,17 +92,20 @@ hamlibdocdir = @hamlibdocdir@
 
 WRSRCLIST = wr1000.c wr1500.c wr1550.c wr3100.c wr3150.c wr3500.c wr3700.c
 
-LDFLAGS = -module -avoid-version
+LDFLAGS = -no-undefined -module -avoid-version
 #lib_LTLIBRARIES = @LTLIBWINRADIO@
 @WINRADIO_TRUE@lib_LTLIBRARIES = libhamlib-winradio.la
 @WINRADIO_TRUE@libhamlib_winradio_la_SOURCES = winradio.c $(WRSRCLIST)
+#libhamlib_winradio_la_LDFLAGS = -no-undefined -module -avoid-version
 @WINRADIO_TRUE@libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
 #EXTRA_LTLIBRARIES = libhamlib-winradio.la
 
-lib_LIBRARIES = @LIBWINRADIO@
-libhamlib_winradio_a_SOURCES = winradio.c $(WRSRCLIST)
-libhamlib_winradio_a_LIBADD = ../src/libhamlib.la
-EXTRA_LIBRARIES = libhamlib-winradio.a
+#lib_LIBRARIES = @LIBWINRADIO@
+@WINRADIO_TRUE@lib_LIBRARIES = libhamlib-winradio.a
+@WINRADIO_TRUE@libhamlib_winradio_a_SOURCES = winradio.c $(WRSRCLIST)
+@WINRADIO_TRUE@libhamlib_winradio_a_LIBADD = ../src/libhamlib.la
+#EXTRA_LIBRARIES = libhamlib-winradio.a
+@WINRADIO_FALSE@BUILT_SOURCES = winradio.c $(WRSRCLIST)
 
 noinst_HEADERS = winradio.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -114,10 +117,11 @@ LIBRARIES =  $(lib_LIBRARIES)
 DEFS = @DEFS@ -I. -I$(srcdir) -I../include
 CPPFLAGS = @CPPFLAGS@
 LIBS = @LIBS@
-libhamlib_winradio_a_DEPENDENCIES =  ../src/libhamlib.la
-libhamlib_winradio_a_OBJECTS =  winradio.$(OBJEXT) wr1000.$(OBJEXT) \
-wr1500.$(OBJEXT) wr1550.$(OBJEXT) wr3100.$(OBJEXT) wr3150.$(OBJEXT) \
-wr3500.$(OBJEXT) wr3700.$(OBJEXT)
+@WINRADIO_TRUE@libhamlib_winradio_a_DEPENDENCIES =  ../src/libhamlib.la
+@WINRADIO_TRUE@libhamlib_winradio_a_OBJECTS =  winradio.$(OBJEXT) \
+@WINRADIO_TRUE@wr1000.$(OBJEXT) wr1500.$(OBJEXT) wr1550.$(OBJEXT) \
+@WINRADIO_TRUE@wr3100.$(OBJEXT) wr3150.$(OBJEXT) wr3500.$(OBJEXT) \
+@WINRADIO_TRUE@wr3700.$(OBJEXT)
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_winradio_la_LDFLAGS = 
@@ -376,6 +380,7 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean-am:  mostlyclean-libLIBRARIES mostlyclean-compile \
 		mostlyclean-libtool mostlyclean-libLTLIBRARIES \
 		mostlyclean-tags mostlyclean-depend mostlyclean-generic

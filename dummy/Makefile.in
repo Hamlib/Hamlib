@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -92,7 +92,7 @@ hamlibdocdir = @hamlibdocdir@
 
 lib_LTLIBRARIES = libhamlib-dummy.la
 libhamlib_dummy_la_SOURCES = dummy.c
-libhamlib_dummy_la_LDFLAGS = -module -avoid-version
+libhamlib_dummy_la_LDFLAGS = -no-undefined -module -avoid-version
 libhamlib_dummy_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-dummy.a

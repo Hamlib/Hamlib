@@ -1,4 +1,4 @@
-# Makefile.in generated automatically by automake 1.4-p2 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
 
 # Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
@@ -94,7 +94,7 @@ PCRSRCLIST = pcr1000.c pcr100.c
 
 lib_LTLIBRARIES = libhamlib-pcr.la
 libhamlib_pcr_la_SOURCES = $(PCRSRCLIST) pcr.c
-libhamlib_pcr_la_LDFLAGS = -module -avoid-version
+libhamlib_pcr_la_LDFLAGS = -no-undefined -module -avoid-version
 libhamlib_pcr_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-pcr.a
