@@ -9,10 +9,30 @@ that allows software to control the radio. This project will
 endeavour to provide shared libraries that greatly simplify
 the application programmers interaction with radio equipment.
  
+
 The shared libs will provide functions for both radio control,
 and data retrieval from the radio.
  
-Examples are:
+The structure of the libraries will be as follows.
+
+(1)	There will be 1 frontend library "libhamlib" that
+	provides the generic API for user applications.
+
+(2)	There will be "n" backend libraries that "wrap" 
+	rig specific communications inside frontend API.
+
+(3)	Frontend lib will load (on demand) the appropriate
+	backend lib as required. 
+
+Frontend Library
+----------------
+
+libhamlib.so -  frontend lib that provides generic API
+		for all RIG types. This is what Application
+		programmers will "see"
+
+Backend Examples are:
+---------------------
  
 1.libft747.so will provide connectivity to Yeasu
   FT 747GX Transceiver via a standard API.
@@ -23,13 +43,13 @@ Examples are:
 3. libxxxx.so will provide connectivity to the Wiz-bang
    moon-melter 101A (yikes..)
 
-These libraries will also enable developers  to develop
+Hamlib will also enable developers  to develop
 professional looking GUI's towards a standard control library
 API, and they would not have to worry about the underlying
 connection towards physical hardware.
  
 Initially serial (RS232) connectivity will be handled, but
-I expect that IP connectivity will follow afterwards. 
+I expect that IP (and other) connectivity will follow afterwards. 
 
 
 Take a look at README.developer for more info.
