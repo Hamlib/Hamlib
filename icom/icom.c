@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.10 2000-12-04 23:39:17 f4cfe Exp $  
+ * $Id: icom.c,v 1.11 2000-12-05 22:01:02 f4cfe Exp $  
  *
  *
  *
@@ -278,7 +278,7 @@ int icom_cleanup(RIG *rig)
  * icom_set_freq
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_freq(RIG *rig, freq_t freq)
+int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -310,7 +310,7 @@ int icom_set_freq(RIG *rig, freq_t freq)
  * icom_get_freq
  * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
  */
-int icom_get_freq(RIG *rig, freq_t *freq)
+int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -354,7 +354,7 @@ int icom_get_freq(RIG *rig, freq_t *freq)
  * icom_set_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
+int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -381,7 +381,7 @@ int icom_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
  * icom_get_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL, mode!=NULL, width!=NULL
  */
-int icom_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
+int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -445,7 +445,7 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
  * icom_get_strength
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_level(RIG *rig, setting_t level, value_t val)
+int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 			return -RIG_ENIMPL;
 }
@@ -454,7 +454,7 @@ int icom_set_level(RIG *rig, setting_t level, value_t val)
  * icom_get_strength
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
  */
-int icom_get_level(RIG *rig, setting_t level, value_t *val)
+int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -606,7 +606,7 @@ int icom_get_level(RIG *rig, setting_t level, value_t *val)
  * icom_set_ptt
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_ptt(RIG *rig, ptt_t ptt)
+int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -633,7 +633,7 @@ int icom_set_ptt(RIG *rig, ptt_t ptt)
  * icom_get_ptt
  * Assumes rig!=NULL, rig->state.priv!=NULL, ptt!=NULL
  */
-int icom_get_ptt(RIG *rig, ptt_t *ptt)
+int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -664,7 +664,7 @@ int icom_get_ptt(RIG *rig, ptt_t *ptt)
  * icom_set_rptr_shift
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift)
+int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -706,7 +706,7 @@ int icom_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift)
  * icom_get_rptr_shift
  * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_shift!=NULL
  */
-int icom_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
+int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -750,7 +750,7 @@ int icom_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
  * icom_set_rptr_offs
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_rptr_offs(RIG *rig, unsigned long rptr_offs)
+int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -781,7 +781,7 @@ int icom_set_rptr_offs(RIG *rig, unsigned long rptr_offs)
  * icom_get_rptr_offs
  * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_offs!=NULL
  */
-int icom_get_rptr_offs(RIG *rig, unsigned long *rptr_offs)
+int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -818,14 +818,14 @@ int icom_get_rptr_offs(RIG *rig, unsigned long *rptr_offs)
  * 	icom_set_vfo,icom_set_freq works for this rig
  * FIXME: status
  */
-int icom_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
+int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
 {
 		int status;
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
-		status |= icom_set_freq(rig, tx_freq);
+		status |= icom_set_freq(rig, RIG_VFO_CURR, tx_freq);
 		status |= icom_set_vfo(rig, RIG_VFO_A);
-		status |= icom_set_freq(rig, rx_freq);
+		status |= icom_set_freq(rig, RIG_VFO_CURR, rx_freq);
 
 		return status;
 }
@@ -836,14 +836,14 @@ int icom_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
  * 	icom_set_vfo,icom_get_freq works for this rig
  * FIXME: status
  */
-int icom_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
+int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 {
 		int status;
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
-		status |= icom_get_freq(rig, tx_freq);
+		status |= icom_get_freq(rig, RIG_VFO_CURR, tx_freq);
 		status |= icom_set_vfo(rig, RIG_VFO_A);
-		status |= icom_get_freq(rig, rx_freq);
+		status |= icom_get_freq(rig, RIG_VFO_CURR, rx_freq);
 
 		return status;
 }
@@ -852,7 +852,7 @@ int icom_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
  * icom_set_split
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_split(RIG *rig, split_t split)
+int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -891,7 +891,7 @@ int icom_set_split(RIG *rig, split_t split)
  * icom_get_split
  * Assumes rig!=NULL, rig->state.priv!=NULL, split!=NULL
  */
-int icom_get_split(RIG *rig, split_t *split)
+int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -932,7 +932,7 @@ int icom_get_split(RIG *rig, split_t *split)
  * icom_set_ts
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_ts(RIG *rig, unsigned long ts)
+int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -968,7 +968,7 @@ int icom_set_ts(RIG *rig, unsigned long ts)
  * icom_get_ts
  * Assumes rig!=NULL, rig->state.priv!=NULL, ts!=NULL
  */
-int icom_get_ts(RIG *rig, unsigned long *ts)
+int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -1147,7 +1147,7 @@ int icom_set_poweroff(RIG *rig)
  * icom_set_mem
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_mem(RIG *rig, int ch)
+int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -1174,7 +1174,7 @@ int icom_set_mem(RIG *rig, int ch)
  * icom_set_bank
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_bank(RIG *rig, int bank)
+int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -1201,7 +1201,7 @@ int icom_set_bank(RIG *rig, int bank)
  * icom_mv_ctl, Mem/VFO operation
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_mv_ctl(RIG *rig, mv_op_t op)
+int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
@@ -1302,14 +1302,14 @@ int icom_decode_event(RIG *rig)
 				/* TODO: check the read freq len is 4 or 5 bytes */
 				if (rig->callbacks.freq_event) {
 					freq = from_bcd(buf+5, (priv->civ_731_mode ? 4:5)*2);
-					return rig->callbacks.freq_event(rig,freq);
+					return rig->callbacks.freq_event(rig,RIG_VFO_CURR,freq);
 				} else
 						return -RIG_ENAVAIL;
 				break;
 		case C_SND_MODE:
 				if (rig->callbacks.mode_event) {
 					icom2hamlib_mode(buf[5]| buf[6]<<8, &mode, &width);
-					return rig->callbacks.mode_event(rig,mode,width);
+					return rig->callbacks.mode_event(rig,RIG_VFO_CURR,mode,width);
 				} else
 						return -RIG_ENAVAIL;
 				break;

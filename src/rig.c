@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.10 2000-12-04 23:39:18 f4cfe Exp $
+   $Id: rig.c,v 1.11 2000-12-05 22:01:02 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -337,6 +337,7 @@ int rig_cleanup(RIG *rig)
 /**
  *      rig_set_freq - set the frequency of the current VFO
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @freq:	The frequency to set to
  *
  *      The rig_set_freq() function sets the frequency of the current VFO.
@@ -348,7 +349,7 @@ int rig_cleanup(RIG *rig)
  *      SEE ALSO: rig_get_freq()
  */
 
-int rig_set_freq(RIG *rig, freq_t freq)
+int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -359,12 +360,13 @@ int rig_set_freq(RIG *rig, freq_t freq)
 		if (rig->caps->set_freq == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_freq(rig, freq);
+			return rig->caps->set_freq(rig, vfo, freq);
 }
 
 /**
  *      rig_get_freq - get the frequency of the current VFO
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @freq:	The location where to store the current frequency
  *
  *      The rig_get_freq() function retrieves the frequency of the current VFO.
@@ -376,7 +378,7 @@ int rig_set_freq(RIG *rig, freq_t freq)
  *      SEE ALSO: rig_set_freq()
  */
 
-int rig_get_freq(RIG *rig, freq_t *freq)
+int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		int status;
 
@@ -386,7 +388,7 @@ int rig_get_freq(RIG *rig, freq_t *freq)
 		if (rig->caps->get_freq == NULL)
 			return -RIG_ENAVAIL;
 		else {
-			status = rig->caps->get_freq(rig, freq);
+			status = rig->caps->get_freq(rig, vfo, freq);
 			if (rig->state.vfo_comp != 0.0)
 				*freq += (freq_t)(rig->state.vfo_comp * (*freq));
 			return status;
@@ -397,6 +399,7 @@ int rig_get_freq(RIG *rig, freq_t *freq)
 /**
  *      rig_set_mode - set the mode of the current VFO
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @mode:	The mode to set to
  *      @width:	The passband width to set to
  *
@@ -411,7 +414,7 @@ int rig_get_freq(RIG *rig, freq_t *freq)
  *      SEE ALSO: rig_get_mode()
  */
 
-int rig_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
+int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -419,12 +422,13 @@ int rig_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
 		if (rig->caps->set_mode == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_mode(rig, mode, width);
+			return rig->caps->set_mode(rig, vfo, mode, width);
 }
 
 /**
  *      rig_get_mode - get the mode of the current VFO
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @mode:	The location where to store the current mode
  *      @width:	The location where to store the current passband width
  *
@@ -439,7 +443,7 @@ int rig_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
  *      SEE ALSO: rig_set_mode()
  */
 
-int rig_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
+int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 		if (!rig || !rig->caps || !mode || !width)
 			return -RIG_EINVAL;
@@ -447,7 +451,7 @@ int rig_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
 		if (rig->caps->get_mode == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_mode(rig, mode, width);
+			return rig->caps->get_mode(rig, vfo, mode, width);
 }
 
 /**
@@ -503,6 +507,7 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
 /**
  *      rig_set_ptt - set PTT on/off
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @ptt:	The PTT status to set to
  *
  *      The rig_set_ptt() function sets "Push-To-Talk" on/off.
@@ -513,7 +518,7 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
  *
  *      SEE ALSO: rig_get_ptt()
  */
-int rig_set_ptt(RIG *rig, ptt_t ptt)
+int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -523,7 +528,7 @@ int rig_set_ptt(RIG *rig, ptt_t ptt)
 			if (rig->caps->set_ptt == NULL)
 				return -RIG_ENIMPL;
 			else
-				return rig->caps->set_ptt(rig, ptt);
+				return rig->caps->set_ptt(rig, vfo, ptt);
 			break;
 
 		case RIG_PTT_SERIAL:
@@ -539,6 +544,7 @@ int rig_set_ptt(RIG *rig, ptt_t ptt)
 /**
  *      rig_get_ptt - get the status of the PTT
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @ptt:	The location where to store the status of the PTT
  *
  *      The rig_get_ptt() function retrieves the status of PTT (are we
@@ -550,7 +556,7 @@ int rig_set_ptt(RIG *rig, ptt_t ptt)
  *
  *      SEE ALSO: rig_set_ptt()
  */
-int rig_get_ptt(RIG *rig, ptt_t *ptt)
+int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 		if (!rig || !rig->caps || !ptt)
 			return -RIG_EINVAL;
@@ -560,7 +566,7 @@ int rig_get_ptt(RIG *rig, ptt_t *ptt)
 			if (rig->caps->get_ptt == NULL)
 				return -RIG_ENIMPL;
 			else
-				return rig->caps->get_ptt(rig, ptt);
+				return rig->caps->get_ptt(rig, vfo, ptt);
 			break;
 
 		case RIG_PTT_SERIAL:
@@ -577,6 +583,7 @@ int rig_get_ptt(RIG *rig, ptt_t *ptt)
 /**
  *      rig_set_rptr_shift - set the repeater shift
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rptr_shift:	The repeater shift to set to
  *
  *      The rig_set_rptr_shift() function sets the current repeater shift.
@@ -587,7 +594,7 @@ int rig_get_ptt(RIG *rig, ptt_t *ptt)
  *
  *      SEE ALSO: rig_get_rptr_shift()
  */
-int rig_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift)
+int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -595,12 +602,13 @@ int rig_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift)
 		if (rig->caps->set_rptr_shift == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_rptr_shift(rig, rptr_shift);
+			return rig->caps->set_rptr_shift(rig, vfo, rptr_shift);
 }
 
 /**
  *      rig_get_rptr_shift - get the current repeater shift
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rptr_shift:	The location where to store the current repeater shift
  *
  *      The rig_get_rptr_shift() function retrieves the current repeater shift.
@@ -611,7 +619,7 @@ int rig_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift)
  *
  *      SEE ALSO: rig_set_rptr_shift()
  */
-int rig_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
+int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
 		if (!rig || !rig->caps || !rptr_shift)
 			return -RIG_EINVAL;
@@ -619,12 +627,13 @@ int rig_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
 		if (rig->caps->get_rptr_shift == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_rptr_shift(rig, rptr_shift);
+			return rig->caps->get_rptr_shift(rig, vfo, rptr_shift);
 }
 
 /**
  *      rig_set_rptr_offs - set the repeater offset
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rptr_offs:	The VFO to set to
  *
  *      The rig_set_rptr_offs() function sets the current repeater offset.
@@ -636,7 +645,7 @@ int rig_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
  *      SEE ALSO: rig_get_rptr_offs()
  */
 
-int rig_set_rptr_offs(RIG *rig, unsigned long rptr_offs)
+int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -644,12 +653,13 @@ int rig_set_rptr_offs(RIG *rig, unsigned long rptr_offs)
 		if (rig->caps->set_rptr_offs == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_rptr_offs(rig, rptr_offs);
+			return rig->caps->set_rptr_offs(rig, vfo, rptr_offs);
 }
 
 /**
  *      rig_get_rptr_offs - get the current repeater offset
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rptr_offs:	The location where to store the current repeater offset
  *
  *      The rig_get_rptr_offs() function retrieves the current repeater offset.
@@ -661,7 +671,7 @@ int rig_set_rptr_offs(RIG *rig, unsigned long rptr_offs)
  *      SEE ALSO: rig_set_rptr_offs()
  */
 
-int rig_get_rptr_offs(RIG *rig, unsigned long *rptr_offs)
+int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
 		if (!rig || !rig->caps || !rptr_offs)
 			return -RIG_EINVAL;
@@ -669,13 +679,14 @@ int rig_get_rptr_offs(RIG *rig, unsigned long *rptr_offs)
 		if (rig->caps->get_rptr_offs == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_rptr_offs(rig, rptr_offs);
+			return rig->caps->get_rptr_offs(rig, vfo, rptr_offs);
 }
 
 
 /**
  *      rig_set_split_freq - set the split frequencies
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rx_freq:	The receive split frequency to set to
  *      @tx_freq:	The transmit split frequency to set to
  *
@@ -688,7 +699,7 @@ int rig_get_rptr_offs(RIG *rig, unsigned long *rptr_offs)
  *      SEE ALSO: rig_get_split_freq()
  */
 
-int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
+int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -696,12 +707,13 @@ int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
 		if (rig->caps->set_split_freq == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_split_freq(rig, rx_freq, tx_freq);
+			return rig->caps->set_split_freq(rig, vfo, rx_freq, tx_freq);
 }
 
 /**
  *      rig_get_split_freq - get the current split frequencies
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rx_freq:	The location where to store the current receive split frequency
  *      @tx_freq:	The location where to store the current receive split frequency
  *
@@ -714,7 +726,7 @@ int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
  *
  *      SEE ALSO: rig_set_split_freq()
  */
-int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
+int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 {
 		if (!rig || !rig->caps || !rx_freq || !tx_freq)
 			return -RIG_EINVAL;
@@ -722,14 +734,14 @@ int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
 		if (rig->caps->get_split_freq == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_split_freq(rig, rx_freq, tx_freq);
+			return rig->caps->get_split_freq(rig, vfo, rx_freq, tx_freq);
 }
-
 
 
 /**
  *      rig_set_split - set the split mode
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @split:	The split mode to set to
  *
  *      The rig_set_split() function sets the current split mode.
@@ -740,7 +752,7 @@ int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
  *
  *      SEE ALSO: rig_get_split()
  */
-int rig_set_split(RIG *rig, split_t split)
+int rig_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -748,12 +760,13 @@ int rig_set_split(RIG *rig, split_t split)
 		if (rig->caps->set_split == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_split(rig, split);
+			return rig->caps->set_split(rig, vfo, split);
 }
 
 /**
  *      rig_get_split - get the current split mode
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @split:	The location where to store the current split mode
  *
  *      The rig_get_split() function retrieves the current split mode.
@@ -764,7 +777,7 @@ int rig_set_split(RIG *rig, split_t split)
  *
  *      SEE ALSO: rig_set_split()
  */
-int rig_get_split(RIG *rig, split_t *split)
+int rig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
 		if (!rig || !rig->caps || !split)
 			return -RIG_EINVAL;
@@ -772,12 +785,13 @@ int rig_get_split(RIG *rig, split_t *split)
 		if (rig->caps->get_split == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_split(rig, split);
+			return rig->caps->get_split(rig, vfo, split);
 }
 
 /**
  *      rig_set_rit - set the RIT
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rit:	The RIT offset to adjust to
  *
  *      The rig_set_rit() function sets the current RIT offset.
@@ -790,7 +804,7 @@ int rig_get_split(RIG *rig, split_t *split)
  *      SEE ALSO: rig_get_rit()
  */
 
-int rig_set_rit(RIG *rig, signed long rit)
+int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -798,12 +812,13 @@ int rig_set_rit(RIG *rig, signed long rit)
 		if (rig->caps->set_rit == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_rit(rig, rit);
+			return rig->caps->set_rit(rig, vfo, rit);
 }
 
 /**
  *      rig_get_rit - get the current RIT offset
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @rit:	The location where to store the current RIT offset
  *
  *      The rig_get_rit() function retrieves the current RIT offset.
@@ -815,7 +830,7 @@ int rig_set_rit(RIG *rig, signed long rit)
  *      SEE ALSO: rig_set_rit()
  */
 
-int rig_get_rit(RIG *rig, signed long *rit)
+int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
 		if (!rig || !rig->caps || !rit)
 			return -RIG_EINVAL;
@@ -823,7 +838,7 @@ int rig_get_rit(RIG *rig, signed long *rit)
 		if (rig->caps->get_rit == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_rit(rig, rit);
+			return rig->caps->get_rit(rig, vfo, rit);
 }
 
 
@@ -831,6 +846,7 @@ int rig_get_rit(RIG *rig, signed long *rit)
 /**
  *      rig_set_ts - set the Tuning Step
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @ts:	The tuning step to set to
  *
  *      The rig_set_rs() function sets the Tuning Step.
@@ -842,7 +858,7 @@ int rig_get_rit(RIG *rig, signed long *rit)
  *      SEE ALSO: rig_get_ts()
  */
 
-int rig_set_ts(RIG *rig, unsigned long ts)
+int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -850,12 +866,13 @@ int rig_set_ts(RIG *rig, unsigned long ts)
 		if (rig->caps->set_ts == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_ts(rig, ts);
+			return rig->caps->set_ts(rig, vfo, ts);
 }
 
 /**
  *      rig_get_ts - get the current Tuning Step
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @ts:	The location where to store the current tuning step
  *
  *      The rig_get_ts() function retrieves the current tuning step.
@@ -867,7 +884,7 @@ int rig_set_ts(RIG *rig, unsigned long ts)
  *      SEE ALSO: rig_set_ts()
  */
 
-int rig_get_ts(RIG *rig, unsigned long *ts)
+int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 		if (!rig || !rig->caps || !ts)
 			return -RIG_EINVAL;
@@ -875,7 +892,7 @@ int rig_get_ts(RIG *rig, unsigned long *ts)
 		if (rig->caps->get_ts == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_ts(rig, ts);
+			return rig->caps->get_ts(rig, vfo, ts);
 }
 
 /**
@@ -967,6 +984,7 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmod
 /**
  *      rig_set_ctcss - set CTCSS
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @tone:	The tone to set to
  *
  *      The rig_set_ctcss() function sets the current Continuous Tone
@@ -983,7 +1001,7 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmod
  *      SEE ALSO: rig_get_ctcss(), rig_set_dcs(), rig_get_dcs()
  */
 
-int rig_set_ctcss(RIG *rig, unsigned int tone)
+int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -991,7 +1009,7 @@ int rig_set_ctcss(RIG *rig, unsigned int tone)
 		if (rig->caps->set_ctcss == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_ctcss(rig, tone);
+			return rig->caps->set_ctcss(rig, vfo, tone);
 }
 
 /*
@@ -1002,6 +1020,7 @@ int rig_set_ctcss(RIG *rig, unsigned int tone)
 /**
  *      rig_get_ctcss - get the current CTCSS
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @tone:	The location where to store the current tone
  *
  *      The rig_get_ctcss() function retrieves the current Continuous Tone
@@ -1017,7 +1036,7 @@ int rig_set_ctcss(RIG *rig, unsigned int tone)
  *
  *      SEE ALSO: rig_set_ctcss(), rig_set_dcs(), rig_get_dcs()
  */
-int rig_get_ctcss(RIG *rig, unsigned int *tone)
+int rig_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
 {
 		if (!rig || !rig->caps || !tone)
 			return -RIG_EINVAL;
@@ -1025,12 +1044,13 @@ int rig_get_ctcss(RIG *rig, unsigned int *tone)
 		if (rig->caps->get_ctcss == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_ctcss(rig, tone);
+			return rig->caps->get_ctcss(rig, vfo, tone);
 }
 
 /**
  *      rig_set_dcs - set the current DCS
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @code:	The tone to set to
  *
  *      The rig_set_dcs() function sets the current Digitally-Coded Squelch
@@ -1043,7 +1063,7 @@ int rig_get_ctcss(RIG *rig, unsigned int *tone)
  *      SEE ALSO: rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
  */
 
-int rig_set_dcs(RIG *rig, unsigned int code)
+int rig_set_dcs(RIG *rig, vfo_t vfo, unsigned int code)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1051,12 +1071,13 @@ int rig_set_dcs(RIG *rig, unsigned int code)
 		if (rig->caps->set_dcs == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_dcs(rig, code);
+			return rig->caps->set_dcs(rig, vfo, code);
 }
 
 /**
  *      rig_get_dcs - get the current DCS
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @code:	The location where to store the current tone
  *
  *      The rig_get_dcs() function retrieves the current 
@@ -1068,7 +1089,7 @@ int rig_set_dcs(RIG *rig, unsigned int code)
  *
  *      SEE ALSO: rig_get_dcs(), rig_set_ctcss(), rig_get_ctcss()
  */
-int rig_get_dcs(RIG *rig, unsigned int *code)
+int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code)
 {
 		if (!rig || !rig->caps || !code)
 			return -RIG_EINVAL;
@@ -1076,12 +1097,13 @@ int rig_get_dcs(RIG *rig, unsigned int *code)
 		if (rig->caps->get_dcs == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_dcs(rig, code);
+			return rig->caps->get_dcs(rig, vfo, code);
 }
 
 /**
  *      rig_set_ctcss_sql - set CTCSS squelch
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @tone:	The PL tone to set the squelch to
  *
  *      The rig_set_ctcss_sql() function sets the current Continuous Tone
@@ -1098,7 +1120,7 @@ int rig_get_dcs(RIG *rig, unsigned int *code)
  *      SEE ALSO: rig_get_ctcss_sql(), rig_set_ctcss()
  */
 
-int rig_set_ctcss_sql(RIG *rig, unsigned int tone)
+int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1106,12 +1128,13 @@ int rig_set_ctcss_sql(RIG *rig, unsigned int tone)
 		if (rig->caps->set_ctcss_sql == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_ctcss_sql(rig, tone);
+			return rig->caps->set_ctcss_sql(rig, vfo, tone);
 }
 
 /**
  *      rig_get_ctcss_sql - get the current CTCSS squelch
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @tone:	The location where to store the current tone
  *
  *      The rig_get_ctcss_sql() function retrieves the current Continuous Tone
@@ -1127,7 +1150,7 @@ int rig_set_ctcss_sql(RIG *rig, unsigned int tone)
  *
  *      SEE ALSO: rig_set_ctcss_sql(), rig_get_ctcss()
  */
-int rig_get_ctcss_sql(RIG *rig, unsigned int *tone)
+int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 {
 		if (!rig || !rig->caps || !tone)
 			return -RIG_EINVAL;
@@ -1135,12 +1158,13 @@ int rig_get_ctcss_sql(RIG *rig, unsigned int *tone)
 		if (rig->caps->get_ctcss_sql == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_ctcss_sql(rig, tone);
+			return rig->caps->get_ctcss_sql(rig, vfo, tone);
 }
 
 /**
  *      rig_set_dcs_sql - set the current DCS
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @code:	The tone to set to
  *
  *      The rig_set_dcs_sql() function sets the current Digitally-Coded Squelch
@@ -1153,7 +1177,7 @@ int rig_get_ctcss_sql(RIG *rig, unsigned int *tone)
  *      SEE ALSO: rig_get_dcs_sql(), rig_set_dcs()
  */
 
-int rig_set_dcs_sql(RIG *rig, unsigned int code)
+int rig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1161,12 +1185,13 @@ int rig_set_dcs_sql(RIG *rig, unsigned int code)
 		if (rig->caps->set_dcs_sql == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_dcs_sql(rig, code);
+			return rig->caps->set_dcs_sql(rig, vfo, code);
 }
 
 /**
  *      rig_get_dcs_sql - get the current DCS
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @code:	The location where to store the current tone
  *
  *      The rig_get_dcs_sql() function retrieves the current 
@@ -1178,7 +1203,7 @@ int rig_set_dcs_sql(RIG *rig, unsigned int code)
  *
  *      SEE ALSO: rig_get_dcs_sql(), rig_get_dcs()
  */
-int rig_get_dcs_sql(RIG *rig, unsigned int *code)
+int rig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 {
 		if (!rig || !rig->caps || !code)
 			return -RIG_EINVAL;
@@ -1186,7 +1211,7 @@ int rig_get_dcs_sql(RIG *rig, unsigned int *code)
 		if (rig->caps->get_dcs_sql == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_dcs_sql(rig, code);
+			return rig->caps->get_dcs_sql(rig, vfo, code);
 }
 
 
@@ -1274,6 +1299,7 @@ RIG *rig_probe(const char *port_path)
 /**
  *      rig_set_level - set a radio level setting
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @level:	The level setting
  *      @val:	The value to set the level setting to
  *
@@ -1287,7 +1313,7 @@ RIG *rig_probe(const char *port_path)
  *
  *      SEE ALSO: rig_has_set_level(), rig_get_level()
  */
-int rig_set_level(RIG *rig, setting_t level, value_t val)
+int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1295,12 +1321,13 @@ int rig_set_level(RIG *rig, setting_t level, value_t val)
 		if (rig->caps->set_level == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_level(rig, level, val);
+			return rig->caps->set_level(rig, vfo, level, val);
 }
 
 /**
  *      rig_get_level - get the level of a level
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @level:	The level setting
  *      @val:	The location where to store the value of @level
  *
@@ -1314,7 +1341,7 @@ int rig_set_level(RIG *rig, setting_t level, value_t val)
  *
  *      SEE ALSO: rig_has_level(), rig_set_level()
  */
-int rig_get_level(RIG *rig, setting_t level, value_t *val)
+int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 		if (!rig || !rig->caps || !val)
 			return -RIG_EINVAL;
@@ -1322,7 +1349,7 @@ int rig_get_level(RIG *rig, setting_t level, value_t *val)
 		if (rig->caps->get_level == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_level(rig, level, val);
+			return rig->caps->get_level(rig, vfo, level, val);
 }
 
 /**
@@ -1404,6 +1431,7 @@ setting_t rig_has_func(RIG *rig, setting_t func)
 /**
  *      rig_set_func - activate/desactivate functions of radio
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @func:	The functions to activate
  *      @status:	The status (on or off) to set to
  *
@@ -1416,7 +1444,7 @@ setting_t rig_has_func(RIG *rig, setting_t func)
  *      SEE ALSO: rig_get_func()
  */
 
-int rig_set_func(RIG *rig, setting_t func, int status)
+int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1424,12 +1452,13 @@ int rig_set_func(RIG *rig, setting_t func, int status)
 		if (rig->caps->set_func == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_func(rig, func, status);
+			return rig->caps->set_func(rig, vfo, func, status);
 }
 
 /**
  *      rig_get_func - get the status of functions of the radio
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @func:	The location where to store the function status
  *
  *      The rig_get_func() function retrieves the status of functions
@@ -1443,7 +1472,7 @@ int rig_set_func(RIG *rig, setting_t func, int status)
  *
  *      SEE ALSO: rig_set_func()
  */
-int rig_get_func(RIG *rig, setting_t *func)
+int rig_get_func(RIG *rig, vfo_t vfo, setting_t *func)
 {
 		if (!rig || !rig->caps || !func)
 			return -RIG_EINVAL;
@@ -1451,12 +1480,13 @@ int rig_get_func(RIG *rig, setting_t *func)
 		if (rig->caps->get_func == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_func(rig, func);
+			return rig->caps->get_func(rig, vfo, func);
 }
 
 /**
  *      rig_set_mem - set the current memory channel number
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @ch:	The memory channel number
  *
  *      The rig_set_mem() function sets the current memory channel number.
@@ -1470,7 +1500,7 @@ int rig_get_func(RIG *rig, setting_t *func)
  *      SEE ALSO: rig_get_mem()
  */
 
-int rig_set_mem(RIG *rig, int ch)
+int rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1478,12 +1508,13 @@ int rig_set_mem(RIG *rig, int ch)
 		if (rig->caps->set_mem == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_mem(rig, ch);
+			return rig->caps->set_mem(rig, vfo, ch);
 }
 
 /**
  *      rig_get_mem - get the current memory channel number
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @ch:	The location where to store the current memory channel number
  *
  *      The rig_get_mem() function retrieves the current memory channel number.
@@ -1496,7 +1527,7 @@ int rig_set_mem(RIG *rig, int ch)
  *
  *      SEE ALSO: rig_set_mem()
  */
-int rig_get_mem(RIG *rig, int *ch)
+int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 		if (!rig || !rig->caps || !ch)
 			return -RIG_EINVAL;
@@ -1504,12 +1535,13 @@ int rig_get_mem(RIG *rig, int *ch)
 		if (rig->caps->get_mem == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_mem(rig, ch);
+			return rig->caps->get_mem(rig, vfo, ch);
 }
 
 /**
  *      rig_mv_ctl - perform Memory/VFO operations
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @op:	The Memory/VFO operation to perform
  *
  *      The rig_mv_ctl() function performs Memory/VFO operation.
@@ -1521,7 +1553,7 @@ int rig_get_mem(RIG *rig, int *ch)
  *
  */
 
-int rig_mv_ctl(RIG *rig, mv_op_t op)
+int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1529,12 +1561,13 @@ int rig_mv_ctl(RIG *rig, mv_op_t op)
 		if (rig->caps->mv_ctl == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->mv_ctl(rig, op);
+			return rig->caps->mv_ctl(rig, vfo, op);
 }
 
 /**
  *      rig_set_bank - set the current memory bank
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @bank:	The memory bank
  *
  *      The rig_set_bank() function sets the current memory bank.
@@ -1548,7 +1581,7 @@ int rig_mv_ctl(RIG *rig, mv_op_t op)
  *      SEE ALSO: rig_set_mem()
  */
 
-int rig_set_bank(RIG *rig, int bank)
+int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -1556,7 +1589,7 @@ int rig_set_bank(RIG *rig, int bank)
 		if (rig->caps->set_bank == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->set_bank(rig, bank);
+			return rig->caps->set_bank(rig, vfo, bank);
 }
 
 
@@ -1589,6 +1622,7 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 /**
  *      rig_get_channel - get channel data
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @chan:	The location where to store the channel data
  *
  *      The rig_get_channel() function retrieves the data associated 
@@ -1648,6 +1682,7 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
 /**
  *      rig_set_trn - control the transceive mode 
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @trn:	The transceive status to set to
  *
  *      The rig_set_trn() function enable/disable the transceive
@@ -1660,7 +1695,7 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
  *      SEE ALSO: rig_get_trn()
  */
 
-int rig_set_trn(RIG *rig, int trn)
+int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
 {
 		int status;
 
@@ -1677,7 +1712,7 @@ int rig_set_trn(RIG *rig, int trn)
 				 */
 				status = add_trn_rig(rig);
 				if (rig->caps->set_trn)
-						return rig->caps->set_trn(rig, RIG_TRN_ON);
+						return rig->caps->set_trn(rig, vfo, RIG_TRN_ON);
 				else
 						return status;
 			} else {
@@ -1686,7 +1721,7 @@ int rig_set_trn(RIG *rig, int trn)
 		} else {
 				status = remove_trn_rig(rig);
 				if (rig->caps->set_trn)
-						return rig->caps->set_trn(rig, RIG_TRN_OFF);
+						return rig->caps->set_trn(rig, vfo, RIG_TRN_OFF);
 				else
 						return status;
 		}
@@ -1697,6 +1732,7 @@ int rig_set_trn(RIG *rig, int trn)
 /**
  *      rig_get_trn - get the current transceive mode
  *      @rig:	The rig handle
+ *      @vfo:	The target VFO
  *      @trn:	The location where to store the current transceive mode
  *
  *      The rig_get_trn() function retrieves the current status
@@ -1709,7 +1745,7 @@ int rig_set_trn(RIG *rig, int trn)
  *
  *      SEE ALSO: rig_set_trn()
  */
-int rig_get_trn(RIG *rig, int *trn)
+int rig_get_trn(RIG *rig, vfo_t vfo, int *trn)
 {
 		if (!rig || !rig->caps || !trn)
 			return -RIG_EINVAL;
@@ -1717,7 +1753,7 @@ int rig_get_trn(RIG *rig, int *trn)
 		if (rig->caps->get_trn == NULL)
 			return -RIG_ENAVAIL;
 		else
-			return rig->caps->get_trn(rig, trn);
+			return rig->caps->get_trn(rig, vfo, trn);
 }
 
 /**

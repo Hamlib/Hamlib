@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.2 2000-12-04 23:39:17 f4cfe Exp $  
+ * $Id: aor.c,v 1.3 2000-12-05 22:01:00 f4cfe Exp $  
  *
  *
  *
@@ -115,7 +115,7 @@ int aor_close(RIG *rig)
  * aor_set_freq
  * Assumes rig!=NULL
  */
-int aor_set_freq(RIG *rig, freq_t freq)
+int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		unsigned char freqbuf[16], ackbuf[16];
 		int freq_len,ack_len;
@@ -141,7 +141,7 @@ int aor_set_freq(RIG *rig, freq_t freq)
  * aor_get_freq
  * Assumes rig!=NULL, freq!=NULL
  */
-int aor_get_freq(RIG *rig, freq_t *freq)
+int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		unsigned char freqbuf[16];
 		char *rfp;
@@ -159,7 +159,7 @@ int aor_get_freq(RIG *rig, freq_t *freq)
  * aor_set_mode
  * Assumes rig!=NULL
  */
-int aor_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
+int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		unsigned char mdbuf[16],ackbuf[16];
 		int mdbuf_len,ack_len,aormode;
@@ -215,7 +215,7 @@ int aor_set_mode(RIG *rig, rmode_t mode, pbwidth_t width)
  * aor_get_mode
  * Assumes rig!=NULL, mode!=NULL
  */
-int aor_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
+int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 		unsigned char ackbuf[16];
 		int ack_len;
@@ -264,7 +264,7 @@ int aor_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width)
  * aor_set_ts
  * Assumes rig!=NULL
  */
-int aor_set_ts(RIG *rig, unsigned long ts)
+int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 		unsigned char tsbuf[16],ackbuf[16];
 		int ts_len, ack_len;
@@ -314,6 +314,5 @@ int init_aor(void *be_handle)
 
 		return RIG_OK;
 }
-
 
 

@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.10 2000-12-04 23:39:17 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.11 2000-12-05 22:01:03 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -142,7 +142,9 @@ enum vfo_e {
 	RIG_VFO_SAT,
 	RIG_VFO_A = RIG_VFO_MAIN,
 	RIG_VFO_B = RIG_VFO_SUB,
-	RIG_VFO_C = RIG_VFO_SAT
+	RIG_VFO_C = RIG_VFO_SAT,
+	RIG_VFO_CURR,		/* current VFO */
+	RIG_VFO_ALL			/* apply to all VFO (when used as target) */
 };
 
 typedef enum vfo_e vfo_t;
@@ -266,9 +268,11 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 
 
 /*
- * frequency type in Hz, must be >32bits for SHF! 
+ * freq_t: frequency type in Hz, must be >32bits for SHF! 
+ * shortfreq_t: frequency on 31bits, suitable for offsets, shifts, etc..
  */
 typedef long long freq_t;
+typedef signed long shortfreq_t;
 
 #define Hz(f)	((freq_t)(f))
 #define KHz(f)	((freq_t)((f)*1000))
@@ -281,6 +285,7 @@ typedef long long freq_t;
 #define mW(p)	 ((int)(p))
 #define Watts(p) ((int)((p)*1000))
 #define KW(p)	 ((int)((p)*1000000L))
+#define MW(p)	 ((int)((p)*1000000000L))	/* geeez! :) */
 
 typedef unsigned int rmode_t;	/* radio mode  */
 
@@ -325,7 +330,7 @@ typedef struct freq_range_list freq_range_t;
  */
 struct tuning_step_list {
   rmode_t modes;	/* bitwise OR'ed RIG_MODE_* */
-  unsigned long ts;		/* tuning step in Hz */
+  shortfreq_t ts;		/* tuning step in Hz */
 };
 
 
@@ -340,12 +345,13 @@ struct channel {
   int channel_num;
   freq_t freq;
   rmode_t mode;
+  pbwidth_t width;
   vfo_t vfo;
   int power;	/* in mW */
   int att;	/* in db */
   int preamp;	/* in db */
   int ant;	/* antenna number */
-  unsigned long tuning_step;	/* */
+  shortfreq_t tuning_step;	/* */
   unsigned char channel_desc[MAXCHANDESC];
 };
 
@@ -405,7 +411,7 @@ struct rig_caps {
   int (*rig_init)(RIG *rig);	/* setup *priv */
   int (*rig_cleanup)(RIG *rig);
   int (*rig_open)(RIG *rig);	/* called when port just opened */
-  int (*rig_close)(RIG *rig);	/* called before port is to close */
+  int (*rig_close)(RIG *rig);	/* called before port is to be closed */
   int (*rig_probe)(RIG *rig); /* Experimental: may work.. */
   
   /*
@@ -413,44 +419,44 @@ struct rig_caps {
    *  List Set/Get functions pairs
    */
   
-  int (*set_freq)(RIG *rig, freq_t freq); /* select freq */
-  int (*get_freq)(RIG *rig, freq_t *freq); /* get freq */
+  int (*set_freq)(RIG *rig, vfo_t vfo, freq_t freq); /* select freq */
+  int (*get_freq)(RIG *rig, vfo_t vfo, freq_t *freq); /* get freq */
 
-  int (*set_mode)(RIG *rig, rmode_t mode, pbwidth_t width); /* select mode */
-  int (*get_mode)(RIG *rig, rmode_t *mode, pbwidth_t *width); /* get mode */
+  int (*set_mode)(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+  int (*get_mode)(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
 
   int (*set_vfo)(RIG *rig, vfo_t vfo); /* select vfo (A,B, etc.) */
   int (*get_vfo)(RIG *rig, vfo_t *vfo); /* get vfo */
 
-  int (*set_ptt)(RIG *rig, ptt_t ptt); /* ptt on/off */
-  int (*get_ptt)(RIG *rig, ptt_t *ptt); /* get ptt status */
+  int (*set_ptt)(RIG *rig, vfo_t vfo, ptt_t ptt); /* ptt on/off */
+  int (*get_ptt)(RIG *rig, vfo_t vfo, ptt_t *ptt); /* get ptt status */
 
-  int (*set_rptr_shift)(RIG *rig, rptr_shift_t rptr_shift);	/* set repeater shift */
-  int (*get_rptr_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
+  int (*set_rptr_shift)(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);	/* set repeater shift */
+  int (*get_rptr_shift)(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);	/* get repeater shift */
 
-  int (*set_rptr_offs)(RIG *rig, unsigned long offs);/*set duplex offset freq*/
-  int (*get_rptr_offs)(RIG *rig, unsigned long *offs);/*get duplex offset freq*/
+  int (*set_rptr_offs)(RIG *rig, vfo_t vfo, shortfreq_t offs);/*set duplex offset freq*/
+  int (*get_rptr_offs)(RIG *rig, vfo_t vfo, shortfreq_t *offs);/*get duplex offset freq*/
 
-  int (*set_split_freq)(RIG *rig, freq_t rx_freq, freq_t tx_freq);
-  int (*get_split_freq)(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
-  int (*set_split)(RIG *rig, split_t split);
-  int (*get_split)(RIG *rig, split_t *split);
+  int (*set_split_freq)(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
+  int (*get_split_freq)(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
+  int (*set_split)(RIG *rig, vfo_t vfo, split_t split);
+  int (*get_split)(RIG *rig, vfo_t vfo, split_t *split);
 
-  int (*set_rit)(RIG *rig, signed long rit);
-  int (*get_rit)(RIG *rig, signed long *rit);
+  int (*set_rit)(RIG *rig, vfo_t vfo, shortfreq_t rit);
+  int (*get_rit)(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
-  int (*set_ts)(RIG *rig, unsigned long ts); /* set tuning step */
-  int (*get_ts)(RIG *rig, unsigned long *ts); /* get tuning step */
+  int (*set_ts)(RIG *rig, vfo_t vfo, shortfreq_t ts); /* set tuning step */
+  int (*get_ts)(RIG *rig, vfo_t vfo, shortfreq_t *ts); /* get tuning step */
 
-  int (*set_dcs)(RIG *rig, unsigned int code);
-  int (*get_dcs)(RIG *rig, unsigned int *code);
-  int (*set_ctcss)(RIG *rig, unsigned int tone);
-  int (*get_ctcss)(RIG *rig, unsigned int *tone);
+  int (*set_dcs)(RIG *rig, vfo_t vfo, unsigned int code);
+  int (*get_dcs)(RIG *rig, vfo_t vfo, unsigned int *code);
+  int (*set_ctcss)(RIG *rig, vfo_t vfo, unsigned int tone);
+  int (*get_ctcss)(RIG *rig, vfo_t vfo, unsigned int *tone);
 
-  int (*set_dcs_sql)(RIG *rig, unsigned int code);
-  int (*get_dcs_sql)(RIG *rig, unsigned int *code);
-  int (*set_ctcss_sql)(RIG *rig, unsigned int tone);
-  int (*get_ctcss_sql)(RIG *rig, unsigned int *tone);
+  int (*set_dcs_sql)(RIG *rig, vfo_t vfo, unsigned int code);
+  int (*get_dcs_sql)(RIG *rig, vfo_t vfo, unsigned int *code);
+  int (*set_ctcss_sql)(RIG *rig, vfo_t vfo, unsigned int tone);
+  int (*get_ctcss_sql)(RIG *rig, vfo_t vfo, unsigned int *tone);
 
   /*
    * It'd be nice to have a power2mW and mW2power functions
@@ -464,19 +470,19 @@ struct rig_caps {
   int (*set_poweron)(RIG *rig);
   int (*set_poweroff)(RIG *rig);
 
-  int (*set_level)(RIG *rig, setting_t level, value_t val);/* set level setting */
-  int (*get_level)(RIG *rig, setting_t level, value_t *val);/* set level setting*/
+  int (*set_level)(RIG *rig, vfo_t vfo, setting_t level, value_t val);/* set level setting */
+  int (*get_level)(RIG *rig, vfo_t vfo, setting_t level, value_t *val);/* set level setting*/
 
-  int (*set_func)(RIG *rig, setting_t func, int status); /* activate the function(s) */
-  int (*get_func)(RIG *rig, setting_t *func); /* get the setting from rig */
+  int (*set_func)(RIG *rig, vfo_t vfo, setting_t func, int status); /* activate the function(s) */
+  int (*get_func)(RIG *rig, vfo_t vfo, setting_t *func); /* get the setting from rig */
 
-  int (*set_bank)(RIG *rig, int bank);			/* set memory bank number */
-  int (*set_mem)(RIG *rig, int ch);			/* set memory channel number */
-  int (*get_mem)(RIG *rig, int *ch);		/* get memory channel number */
-  int (*mv_ctl)(RIG *rig, mv_op_t op);		/* Mem/VFO operation */
+  int (*set_bank)(RIG *rig, vfo_t vfo, int bank);			/* set memory bank number */
+  int (*set_mem)(RIG *rig, vfo_t vfo, int ch);			/* set memory channel number */
+  int (*get_mem)(RIG *rig, vfo_t vfo, int *ch);		/* get memory channel number */
+  int (*mv_ctl)(RIG *rig, vfo_t vfo, mv_op_t op);		/* Mem/VFO operation */
 
-  int (*set_trn)(RIG *rig, int trn);	/* activate transceive mode on radio */
-  int (*get_trn)(RIG *rig, int *trn);	/* PCR-1000 can do that, ICR75 too */
+  int (*set_trn)(RIG *rig, vfo_t vfo, int trn);	/* activate transceive mode on radio */
+  int (*get_trn)(RIG *rig, vfo_t vfo, int *trn);	/* PCR-1000 can do that, ICR75 too */
 
 
   int (*decode_event)(RIG *rig);	/* When transceive on, find out which callback to call, and call it */
@@ -545,10 +551,10 @@ struct rig_state {
  * So far, Icoms are able to do that in Transceive mode, and PCR-1000 too.
  */
 struct rig_callbacks {
-	int (*freq_event)(RIG *rig, freq_t freq); 
-	int (*mode_event)(RIG *rig, rmode_t mode, pbwidth_t width); 
+	int (*freq_event)(RIG *rig, vfo_t vfo, freq_t freq); 
+	int (*mode_event)(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); 
 	int (*vfo_event)(RIG *rig, vfo_t vfo); 
-	int (*ptt_event)(RIG *rig, ptt_t mode); 
+	int (*ptt_event)(RIG *rig, vfo_t vfo, ptt_t mode); 
 	/* etc.. */
 };
 
@@ -574,51 +580,51 @@ extern int rig_open(RIG *rig);
    *  List Set/Get functions pairs
    */
 
-extern int rig_set_freq(RIG *rig, freq_t freq); /* select freq */
-extern int rig_get_freq(RIG *rig, freq_t *freq); /* get freq */
+extern int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq); /* select freq */
+extern int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq); /* get freq */
 
-extern int rig_set_mode(RIG *rig, rmode_t mode, pbwidth_t width); /* select mode */
-extern int rig_get_mode(RIG *rig, rmode_t *mode, pbwidth_t *width); /* get mode */
+extern int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
+extern int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
 
 extern int rig_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 extern int rig_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
-extern int rig_set_ptt(RIG *rig, ptt_t ptt); /* ptt on/off */
-extern int rig_get_ptt(RIG *rig, ptt_t *ptt); /* get ptt status */
+extern int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt); /* ptt on/off */
+extern int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt); /* get ptt status */
 
-extern int rig_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift); /* set repeater shift */
-extern int rig_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift); /* get repeater shift */
-extern int rig_set_rptr_offs(RIG *rig, unsigned long rptr_offs); /* set repeater offset */
-extern int rig_get_rptr_offs(RIG *rig, unsigned long *rptr_offs); /* get repeater offset */
+extern int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift); /* set repeater shift */
+extern int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift); /* get repeater shift */
+extern int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs); /* set repeater offset */
+extern int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs); /* get repeater offset */
 
-extern int rig_set_ctcss(RIG *rig, unsigned int tone);
-extern int rig_get_ctcss(RIG *rig, unsigned int *tone);
-extern int rig_set_dcs(RIG *rig, unsigned int code);
-extern int rig_get_dcs(RIG *rig, unsigned int *code);
+extern int rig_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone);
+extern int rig_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone);
+extern int rig_set_dcs(RIG *rig, vfo_t vfo, unsigned int code);
+extern int rig_get_dcs(RIG *rig, vfo_t vfo, unsigned int *code);
 
-extern int rig_set_ctcss_sql(RIG *rig, unsigned int tone);
-extern int rig_get_ctcss_sql(RIG *rig, unsigned int *tone);
-extern int rig_set_dcs_sql(RIG *rig, unsigned int code);
-extern int rig_get_dcs_sql(RIG *rig, unsigned int *code);
+extern int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone);
+extern int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone);
+extern int rig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code);
+extern int rig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code);
 
-extern int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq);
-extern int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
-extern int rig_set_split(RIG *rig, split_t split);
-extern int rig_get_split(RIG *rig, split_t *split);
+extern int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
+extern int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
+extern int rig_set_split(RIG *rig, vfo_t vfo, split_t split);
+extern int rig_get_split(RIG *rig, vfo_t vfo, split_t *split);
 
-extern int rig_set_rit(RIG *rig, signed long rit);
-extern int rig_get_rit(RIG *rig, signed long *rit);
+extern int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+extern int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
-extern int rig_set_ts(RIG *rig, unsigned long ts); /* set tuning step */
-extern int rig_get_ts(RIG *rig, unsigned long *ts); /* get tuning step */
+extern int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts); /* set tuning step */
+extern int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts); /* get tuning step */
 
 extern int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
 extern int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 
-extern int rig_set_level(RIG *rig, setting_t level, value_t val);
-extern int rig_get_level(RIG *rig, setting_t level, value_t *val);
+extern int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+extern int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
-#define rig_get_strength(r,s) rig_get_level((r), RIG_LEVEL_STRENGTH, (value_t*)(s))
+#define rig_get_strength(r,v,s) rig_get_level((r),(v),RIG_LEVEL_STRENGTH, (value_t*)(s))
 
 extern int rig_set_poweron(RIG *rig);
 extern int rig_set_poweroff(RIG *rig);
@@ -634,19 +640,19 @@ extern setting_t rig_has_level(RIG *rig, setting_t level);
 extern setting_t rig_has_set_level(RIG *rig, setting_t level);
 
 extern setting_t rig_has_func(RIG *rig, setting_t func);	/* is part of capabilities? */
-extern int rig_set_func(RIG *rig, setting_t func, int status);	/* activate the function(s) */
-extern int rig_get_func(RIG *rig, setting_t *func); /* get the setting from rig */
+extern int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);	/* activate the function(s) */
+extern int rig_get_func(RIG *rig, vfo_t vfo, setting_t *func); /* get the setting from rig */
 
-extern int rig_set_bank(RIG *rig, int bank);	/* set memory bank number */
-extern int rig_set_mem(RIG *rig, int ch);		/* set memory channel number */
-extern int rig_get_mem(RIG *rig, int *ch);		/* get memory channel number */
-extern int rig_mv_ctl(RIG *rig, mv_op_t op);	/* Mem/VFO operation */
+extern int rig_set_bank(RIG *rig, vfo_t vfo, int bank);	/* set memory bank number */
+extern int rig_set_mem(RIG *rig, vfo_t vfo, int ch);		/* set memory channel number */
+extern int rig_get_mem(RIG *rig, vfo_t vfo, int *ch);		/* get memory channel number */
+extern int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);	/* Mem/VFO operation */
 
 extern int rig_set_channel(RIG *rig, const channel_t *chan);
 extern int rig_get_channel(RIG *rig, channel_t *chan);
 
-extern int rig_set_trn(RIG *rig, int trn); /* activate the transceive mode */
-extern int rig_get_trn(RIG *rig, int *trn);
+extern int rig_set_trn(RIG *rig, vfo_t vfo, int trn); /* activate the transceive mode */
+extern int rig_get_trn(RIG *rig, vfo_t vfo, int *trn);
 
 
 extern unsigned char *rig_get_info(RIG *rig);
@@ -670,5 +676,4 @@ int rig_list_foreach(int (*cfunc)(const struct rig_caps*,void*),void *data);
 int rig_load_backend(const char *be_name);
 
 #endif /* _RIG_H */
-
 
