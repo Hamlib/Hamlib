@@ -2,17 +2,14 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft890.c - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
- *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
+ *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-890 using the "CAT" interface
- * Documentation can be found online at:
- * http://www.yaesu.com/amateur/pdf/manuals/ft_890.pdf
- * pages 86 to 90
  *
  *
- * $Id: ft890.c,v 1.1 2003-03-09 04:43:38 n0nb Exp $
+ * $Id: ft890.c,v 1.2 2003-03-24 12:18:42 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -53,13 +50,15 @@
 /*
  * Functions considered to be Beta code (2003-03-04):
  *
- * Functions considered to be Alpha code (2003-03-06):
+ * Functions considered to be Alpha code (2003-03-23):
  * set_freq
  * get_freq
  * set_mode
  * get_mode
  * set_vfo
  * get_vfo
+ * set_ptt
+ * get_ptt
  * set_split
  * get_split
  *
@@ -72,6 +71,7 @@
  * get_rit
  *
  */
+
 
 /* Private helper function prototypes */
 
@@ -86,6 +86,8 @@ static int ft890_send_dynamic_cmd(RIG *rig, unsigned char ci,
 static int ft890_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq);
 
 static int ft890_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit);
+
+
 /*
  * Native ft890 cmd set prototypes. These are READ ONLY as each
  * rig instance will copy from these and modify if required.
@@ -109,6 +111,8 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set display freq */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* mode set */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* update interval/pacing */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* PTT off */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0f } }, /* PTT on */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x10 } }, /* Status Update Data--Memory Channel Number (1 byte) */
   { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* Status Update Data--Current operating data for VFO/Memory (19 bytes) */
   { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* Status Update DATA--VFO A and B Data (18 bytes) */
@@ -136,6 +140,7 @@ struct ft890_priv_data {
   unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
   yaesu_cmd_set_t pcs[FT890_NATIVE_SIZE];   /* private cmd set */
   unsigned char update_data[FT890_ALL_DATA_LENGTH]; /* returned data--max value, some are less */
+  unsigned char current_mem;                   /* private memory channel number */
 };
 
 /*
@@ -148,11 +153,11 @@ const struct rig_caps ft890_caps = {
   .rig_model =          RIG_MODEL_FT890,
   .model_name =         "FT-890",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.1",
+  .version =            "0.0.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_NEW,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
-  .ptt_type =           RIG_PTT_NONE,
+  .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_NONE,
   .port_type =          RIG_PORT_SERIAL,
   .serial_rate_min =    4800,
@@ -182,7 +187,7 @@ const struct rig_caps ft890_caps = {
   .transceive =         RIG_TRN_OFF,        /* Yaesus have to be polled, sigh */
   .bank_qty =           0,
   .chan_desc_sz =       0,
-  .chan_list =          { RIG_CHAN_END, },  /* FIXME: memory channel list: 122 (!) */
+  .chan_list =          { RIG_CHAN_END, },  /* FIXME: memory channel list: 32 */
 
   .rx_range_list1 =     {
     {kHz(100), MHz(30), FT890_ALL_RX_MODES, -1, -1, FT890_VFO_ALL, FT890_ANTS},   /* General coverage + ham */
@@ -247,6 +252,8 @@ const struct rig_caps ft890_caps = {
   .get_mode =           ft890_get_mode,
   .set_vfo =            ft890_set_vfo,
   .get_vfo =            ft890_get_vfo,
+  .set_ptt =            ft890_set_ptt,
+  .get_ptt =            ft890_get_ptt,
   .set_split =          ft890_set_split,
   .get_split =          ft890_get_split,
 //  .set_split_freq =     ft890_set_split_freq,
@@ -270,7 +277,7 @@ const struct rig_caps ft890_caps = {
  */
 
 /*
- * _init 
+ * rig_init
  *
  */
 
@@ -302,7 +309,8 @@ static int ft890_init(RIG *rig) {
 
 
 /*
- * ft890_cleanup routine
+ * rig_cleanup
+ *
  * the serial port is closed by the frontend
  *
  */
@@ -323,7 +331,7 @@ static int ft890_cleanup(RIG *rig) {
 
 
 /*
- * ft890_open  routine
+ * rig_open
  * 
  */
 
@@ -344,20 +352,9 @@ static int ft890_open(RIG *rig) {
             __func__, rig_s->rigport.write_delay);
   rig_debug(RIG_DEBUG_TRACE, "%s: post_write_delay = %i msec\n",
             __func__, rig_s->rigport.post_write_delay);
-
-  /* TODO */
-
-  /* Copy native cmd PACING to private cmd storage area */
-//  memcpy(&priv->p_cmd, &ncmd[FT890_NATIVE_PACING].nseq, YAESU_CMD_LENGTH);
-
-  /* get pacing value, and store in private cmd */
-//  priv->p_cmd[P1] = priv->pacing;
-
   rig_debug(RIG_DEBUG_TRACE,
             "%s: read pacing = %i\n", __func__, priv->pacing);
 
-//  err = write_block(&rig_s->rigport, (unsigned char *) priv->p_cmd,
-  //                    YAESU_CMD_LENGTH);
   err = ft890_send_dynamic_cmd(rig, FT890_NATIVE_PACING,
                                priv->pacing, 0, 0, 0);
   if (err != RIG_OK)
@@ -368,7 +365,7 @@ static int ft890_open(RIG *rig) {
 
 
 /*
- * ft890_close  routine
+ * rig_close
  * 
  */
 
@@ -384,9 +381,13 @@ static int ft890_close(RIG *rig) {
 
 
 /*
- * set freq for a given VFO
+ * rig_set_freq
+ *
+ * Set frequency for a given VFO
  *
  * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
+ * If vfo differs from stored value then VFO will be set to the
+ * passed vfo.
  *
  */
 
@@ -408,25 +409,11 @@ static int ft890_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     vfo = priv->current_vfo;    /* from previous vfo cmd */
     rig_debug(RIG_DEBUG_TRACE, "%s: priv->current_vfo = 0x%02x\n",
               __func__, vfo);
-  }
-
-  switch(vfo) {
-  case RIG_VFO_A:               /* force main display to VFO */
-  case RIG_VFO_VFO:
-    err = ft890_set_vfo(rig, RIG_VFO_A);
+  } else if (vfo != priv->current_vfo) {
+    /* force a VFO change if requested vfo value differs from stored value */
+    err = ft890_set_vfo(rig, vfo);
     if (err != RIG_OK)
       return err;
-    break;
-  case RIG_VFO_B:
-    err = ft890_set_vfo(rig, RIG_VFO_B);
-    if (err != RIG_OK)
-      return err;
-    break;
-  case RIG_VFO_MEM:             /* MEM TUNE or user doesn't care */
-  case RIG_VFO_MAIN:            /* FIXME: Will reset active VFO freq! */
-    break;
-  default:
-    return -RIG_EINVAL;         /* sorry, unsupported VFO */
   }
 
   err = ft890_send_dial_freq(rig, FT890_NATIVE_FREQ_SET, freq);
@@ -438,6 +425,8 @@ static int ft890_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 
 /*
+ * rig_get_freq
+ *
  * Return Freq for a given VFO
  *
  */
@@ -493,7 +482,7 @@ static int ft890_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   p = &priv->update_data[offset];
 
   /* big endian integer */
-  f = (((p[0]<<8) + p[1])<<8) + p[2];
+  f = ((((p[0]<<8) + p[1])<<8) + p[2]) * 10;
 
   rig_debug(RIG_DEBUG_TRACE,
             "%s: freq = %lli Hz for vfo 0x%02x\n", __func__, f, vfo);
@@ -505,6 +494,8 @@ static int ft890_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 
 /*
+ * rig_set_mode
+ *
  * set mode and passband: eg AM, CW etc for a given VFO
  *
  * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
@@ -610,7 +601,9 @@ static int ft890_set_mode(RIG *rig, vfo_t vfo, rmode_t mode,
 
 
 /*
- * get mode : eg AM, CW etc for a given VFO
+ * rig_get_mode
+ *
+ * get mode eg AM, CW etc for a given VFO
  *
  */
 
@@ -721,6 +714,8 @@ static int ft890_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) 
 
 
 /*
+ * rig_set_vfo
+ *
  * set vfo and store requested vfo for later RIG_VFO_CURR
  * requests.
  *
@@ -746,9 +741,9 @@ static int ft890_set_vfo(RIG *rig, vfo_t vfo) {
               "%s: priv->current_vfo = 0x%02x\n", __func__, vfo);
   }
 
+  /* FIXME: Include support for RIG_VFO_MAIN */
   switch(vfo) {
   case RIG_VFO_A:
-  case RIG_VFO_VFO:
     cmd_index = FT890_NATIVE_VFO_A;
     priv->current_vfo = vfo;    /* update active VFO */
     break;
@@ -756,9 +751,24 @@ static int ft890_set_vfo(RIG *rig, vfo_t vfo) {
     cmd_index = FT890_NATIVE_VFO_B;
     priv->current_vfo = vfo;
     break;
+  case RIG_VFO_MEM:
+    /* reset to memory channel stored by previous get_vfo
+     * The recall mem channel command uses 0x01 though 0x20
+     */
+    err = ft890_send_dynamic_cmd(rig, FT890_NATIVE_RECALL_MEM,
+                                 (priv->current_mem + 1), 0, 0, 0);
+    if (err != RIG_OK)
+      return err;
+
+    priv->current_vfo = vfo;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: set mem channel = 0x%02x\n",
+              __func__, priv->current_mem);
+    return RIG_OK;
   default:
     return -RIG_EINVAL;         /* sorry, wrong VFO */
   }
+
   rig_debug(RIG_DEBUG_TRACE, "%s: set cmd_index = %i\n", __func__, cmd_index);
   
   err = ft890_send_static_cmd(rig, cmd_index);
@@ -770,6 +780,8 @@ static int ft890_set_vfo(RIG *rig, vfo_t vfo) {
 
 
 /*
+ * rig_get_vfo
+ *
  * get current RX vfo/mem and store requested vfo for
  * later RIG_VFO_CURR requests plus pass the tested vfo/mem
  * back to the frontend.
@@ -832,6 +844,20 @@ static int ft890_get_vfo(RIG *rig, vfo_t *vfo) {
     case SF_MR:
       *vfo = RIG_VFO_MEM;
       priv->current_vfo = RIG_VFO_MEM;
+
+      /*
+       * Per Hamlib policy capture and store memory channel number
+       * for future set_vfo command.
+       */
+      err = ft890_get_update_data(rig, FT890_NATIVE_MEM_CHNL,
+                                  FT890_MEM_CHNL_LENGTH);
+      if (err != RIG_OK)
+        return err;
+
+      priv->current_mem = priv->update_data[FT890_SUMO_MEM_CHANNEL];
+
+      rig_debug(RIG_DEBUG_TRACE, "%s: stored mem channel = 0x%02x\n",
+                __func__, priv->current_mem);
       break;
     default:                      /* Oops! */
       return -RIG_EINVAL;         /* sorry, wrong current VFO */
@@ -845,10 +871,111 @@ static int ft890_get_vfo(RIG *rig, vfo_t *vfo) {
 
 
 /*
+ * rig_set_ptt
+ *
+ * set the '890 into TX mode
+ *
+ * vfo is respected by calling ft890_set_vfo if
+ * passed vfo != priv->current_vfo
+ *
+ */
+
+static int ft890_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
+  struct ft890_priv_data *priv;
+  unsigned char cmd_index;
+  int err;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  priv = (struct ft890_priv_data *)rig->state.priv;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed ptt = 0x%02x\n", __func__, ptt);
+
+  if (vfo == RIG_VFO_CURR) {
+    vfo = priv->current_vfo;    /* from previous vfo cmd */
+    rig_debug(RIG_DEBUG_TRACE,
+              "%s: priv->current_vfo = 0x%02x\n", __func__, vfo);
+  } else if (vfo != priv->current_vfo) {
+    ft890_set_vfo(rig, vfo);
+  }
+
+  switch (ptt) {
+  case RIG_PTT_OFF:
+    cmd_index = FT890_NATIVE_PTT_OFF;
+    break;
+  case RIG_PTT_ON:
+    cmd_index = FT890_NATIVE_PTT_ON;
+    break;
+  default:
+    return -RIG_EINVAL;         /* wrong PTT state! */
+  }
+
+  err = ft890_send_static_cmd(rig, cmd_index);
+  if (err != RIG_OK)
+    return err;
+
+  return RIG_OK;
+}
+
+
+/*
+ * rig_get_ptt
+ *
+ * get current PTT status
+ *
+ */
+
+static int ft890_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
+  struct ft890_priv_data *priv;
+  unsigned char status_2;           /* ft890 status flag 2 */
+  unsigned char stat_ptt;           /* status tests */
+  int err;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+  
+  priv = (struct ft890_priv_data *)rig->state.priv;
+
+  /* Get flags for VFO status */
+  err = ft890_get_update_data(rig, FT890_NATIVE_READ_FLAGS,
+                              FT890_STATUS_FLAGS_LENGTH);
+  if (err != RIG_OK)
+    return err;
+  
+  status_2 = priv->update_data[FT890_SUMO_DISPLAYED_STATUS_2];
+  stat_ptt = status_2 & SF_PTT_MASK;    /* get PTT active bit */
+
+  rig_debug(RIG_DEBUG_TRACE,
+            "%s: ptt status_2 = 0x%02x\n", __func__, status_2);
+
+  switch (stat_ptt) {
+  case SF_PTT_OFF:
+    *ptt = RIG_PTT_OFF;
+    break;
+  case SF_PTT_ON:
+    *ptt = RIG_PTT_ON;
+    break;
+  default:                      /* Oops! */
+    return -RIG_EINVAL;         /* Invalid PTT bit?! */
+  }
+
+  return RIG_OK;
+}
+
+
+/*
+ * rig_set_split
+ *
  * set the '890 into split TX/RX mode
  *
  * VFO cannot be set as the set split on command only changes the
- * TX to the sub display.  Setting split off returns the TX to the
+ * TX to the other VFO.  Setting split off returns the TX to the
  * main display.
  *
  */
@@ -885,6 +1012,8 @@ static int ft890_set_split(RIG *rig, vfo_t vfo, split_t split) {
 
 
 /*
+ * rig_get_split
+ *
  * Get whether the '890 is in split mode
  *
  * vfo value is not used
@@ -910,9 +1039,9 @@ static int ft890_get_split(RIG *rig, vfo_t vfo, split_t *split) {
                               FT890_STATUS_FLAGS_LENGTH);
   if (err != RIG_OK)
     return err;
-  
-  status_0 = priv->update_data[FT890_SUMO_DISPLAYED_STATUS_0];
-  status_0 &= SF_SPLIT;             /* get Split active bit */
+
+  /* get Split active bit */
+  status_0 = SF_SPLIT & priv->update_data[FT890_SUMO_DISPLAYED_STATUS_0];
 
   rig_debug(RIG_DEBUG_TRACE,
             "%s: split status_0 = 0x%02x\n", __func__, status_0);

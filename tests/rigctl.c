@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.39 2002-11-28 22:25:46 fillods Exp $  
+ * $Id: rigctl.c,v 1.40 2003-03-24 12:18:42 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -151,12 +151,12 @@ declare_proto_rig(get_ant);
  *	Available alphabetic letters: -.--------K-----*-----W-YZ
  */
 struct test_table test_list[] = {
-		{ 'F', "set_freq", set_freq, ARG_IN, "Frequency" },
-		{ 'f', "get_freq", get_freq, ARG_OUT, "Frequency" },
+		{ 'F', "set_freq", set_freq, ARG_IN, "Frequency", "VFO" },
+		{ 'f', "get_freq", get_freq, ARG_IN1|ARG_OUT2, "VFO", "Frequency" },
 		{ 'J', "set_rit", set_rit, ARG_IN, "RIT" },
 		{ 'j', "get_rit", get_rit, ARG_OUT, "RIT" },
-		{ 'M', "set_mode", set_mode, ARG_IN, "Mode", "Passband" },
-		{ 'm', "get_mode", get_mode, ARG_OUT, "Mode", "Passband" },
+		{ 'M', "set_mode", set_mode, ARG_IN, "Mode", "Passband", "VFO" },
+		{ 'm', "get_mode", get_mode, ARG_IN1|ARG_OUT, "VFO", "Mode", "Passband" },
 		{ 'V', "set_vfo", set_vfo, ARG_IN, "VFO" },
 		{ 'v', "get_vfo", get_vfo, ARG_OUT, "VFO" },
 		{ 'T', "set_ptt", set_ptt, ARG_IN, "PTT" },
@@ -194,9 +194,9 @@ struct test_table test_list[] = {
 		{ 'B', "set_bank", set_bank, ARG_IN, "Bank" },
 		{ '_', "get_info", get_info, ARG_OUT, "Info" },
 		{ '2', "power2mW", power2mW },
-		{ 0x80, "dump_caps", dump_caps },
-		{ 0x81, "set_xit", set_xit, ARG_IN, "XIT" },
-		{ 0x82, "get_xit", get_xit, ARG_OUT, "XIT" },
+		{ '1', "dump_caps", dump_caps },
+		{ '3', "set_xit", set_xit, ARG_IN, "XIT" },
+		{ '4', "get_xit", get_xit, ARG_OUT, "XIT" },
 		{ 0x83, "set_ant", set_ant, ARG_IN, "Antenna" },
 		{ 0x84, "get_ant", get_ant, ARG_OUT, "Antenna" },
 		{ 0x00, "", NULL },
@@ -737,21 +737,30 @@ int set_conf(RIG *my_rig, char *conf_parms)
 declare_proto_rig(set_freq)
 {
 		freq_t freq;
+        vfo_t vfo;
 
 		sscanf(arg1, "%lld", &freq);
-		return rig_set_freq(rig, RIG_VFO_CURR, freq);
+        vfo = parse_vfo(arg2);
+        if (vfo == RIG_VFO_NONE)
+          return -RIG_EINVAL;
+		return rig_set_freq(rig, vfo, freq);
 }
 
 declare_proto_rig(get_freq)
 {
 		int status;
 		freq_t freq;
+		vfo_t vfo;
 
-		status = rig_get_freq(rig, RIG_VFO_CURR, &freq);
+        vfo = parse_vfo(arg1);
+        if (vfo == RIG_VFO_NONE)
+          return -RIG_EINVAL;
+
+		status = rig_get_freq(rig, vfo, &freq);
 		if (status != RIG_OK)
 				return status;
 		if (interactive)
-			printf("%s: ", cmd->arg1); /* i.e. "Frequency" */
+			printf("%s: ", cmd->arg2); /* i.e. "Frequency" */
 		printf("%lld\n", freq);
 		return status;
 }
@@ -760,7 +769,7 @@ declare_proto_rig(set_rit)
 {
 		shortfreq_t rit;
 
-		sscanf(arg1, "%ld", &rit);
+        sscanf(arg1, "%ld", &rit);
 		return rig_set_rit(rig, RIG_VFO_CURR, rit);
 }
 
@@ -805,10 +814,14 @@ declare_proto_rig(set_mode)
 {
 		rmode_t mode;
 		pbwidth_t width;
+		vfo_t vfo;
 
 		mode = parse_mode(arg1);
 		sscanf(arg2, "%d", (int*)&width);
-		return rig_set_mode(rig, RIG_VFO_CURR, mode, width);
+        vfo = parse_vfo(arg3);
+        if (vfo == RIG_VFO_NONE)
+          return -RIG_EINVAL;
+		return rig_set_mode(rig, vfo, mode, width);
 }
 
 
@@ -816,16 +829,20 @@ declare_proto_rig(get_mode)
 {
 		int status;
 		rmode_t mode;
-		pbwidth_t width;
+        pbwidth_t width;
+        vfo_t vfo;
 
-		status = rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
+        vfo = parse_vfo(arg1);
+        if (vfo == RIG_VFO_NONE)
+          return -RIG_EINVAL;
+		status = rig_get_mode(rig, vfo, &mode, &width);
 		if (status != RIG_OK)
 				return status;
 		if (interactive)
-			printf("%s: ", cmd->arg1);
+			printf("%s: ", cmd->arg2);
 		printf("%s\n", strrmode(mode));
 		if (interactive)
-			printf("%s: ", cmd->arg2);
+			printf("%s: ", cmd->arg3);
 		printf("%ld\n", width);
 		return status;
 }

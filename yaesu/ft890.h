@@ -2,14 +2,14 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft890.h - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
- *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
+ *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-890 using the "CAT" interface
  *
  *
- *    $Id: ft890.h,v 1.1 2003-03-09 04:43:38 n0nb Exp $  
+ *    $Id: ft890.h,v 1.2 2003-03-24 12:18:42 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@
 /* Timing values in mS */
 
 #define FT890_PACING_INTERVAL                5
-#define FT890_PACING_DEFAULT_VALUE           1
+#define FT890_PACING_DEFAULT_VALUE           0
 #define FT890_WRITE_DELAY                    50
 
 
@@ -121,6 +121,8 @@ enum ft890_native_cmd_e {
   FT890_NATIVE_FREQ_SET,
   FT890_NATIVE_MODE_SET,
   FT890_NATIVE_PACING,
+  FT890_NATIVE_PTT_OFF,
+  FT890_NATIVE_PTT_ON,
   FT890_NATIVE_MEM_CHNL,
   FT890_NATIVE_OP_DATA,
   FT890_NATIVE_VFO_DATA,
@@ -182,14 +184,26 @@ typedef enum ft890_native_cmd_e ft890_native_cmd_t;
 #define FT890_SUMO_DISPLAYED_STATUS_0   0x00    /* Status flag byte 0 */
 #define SF_GC       (1<<1)              /* General Coverage Reception selected */
 #define SF_SPLIT    (1<<2)              /* Split active */
+#define SF_MCK      (1<<3)              /* memory Checking in progress */
 #define SF_MT       (1<<4)              /* Memory Tuning in progress */
 #define SF_MR       (1<<5)              /* Memory Mode selected */
-#define SF_VFOA     (0x80)              /* bit 7 set, bit 6 clear, VFO A */
-#define SF_VFOB     (0xc0)              /* bit 7 set, bit 6 set, VFO B */
-#define SF_VFO_MASK (SF_VFOA|SF_VFOB)   /* bits 6 and 7 */
-#define SF_MEM_MASK (SF_MT|SF_MR)       /* bits 4 and 5 */
+#define SF_A        (0<<6)              /* bit 6 clear, VFO A */
+#define SF_B        (1<<6)              /* bit 6 set, VFO B */
+#define SF_VFO      (1<<7)              /* bit 7 set, VFO A or B active */
+
+#define SF_VFOA     (SF_VFO|SF_A)       /* bit 7 set, bit 6 clear, VFO A */
+#define SF_VFOB     (SF_VFO|SF_B)       /* bit 7 set, bit 6 set, VFO B */
+#define SF_VFO_MASK (SF_VFOB)           /* bits 6 and 7 */
+#define SF_MEM_MASK (SF_MCK|SF_MT|SF_MR)    /* bits 3, 4 and 5 */
+
 
 #define FT890_SUMO_DISPLAYED_STATUS_1   0x01    /* Status flag byte 1 */
+
+
+#define FT890_SUMO_DISPLAYED_STATUS_2   0x02    /* Status flag byte 1 */
+#define SF_PTT_OFF  (0<<7)              /* bit 7 set, PTT open */
+#define SF_PTT_ON   (1<<7)              /* bit 7 set, PTT closed */
+#define SF_PTT_MASK (SF_PTT_ON)
 
 /*
  * Offsets for VFO record retrieved via 0x10 P1 = 02, 03, 04
@@ -217,6 +231,7 @@ typedef enum ft890_native_cmd_e ft890_native_cmd_t;
  *
  */
 
+#define FT890_SUMO_MEM_CHANNEL          0x00    /* Memory Channel from 0xfa, P1 = 1 */
 #define FT890_SUMO_DISPLAYED_FREQ       0x02    /* Current main display, can be VFO A, Memory data, Memory tune (3 bytes) */
 #define FT890_SUMO_DISPLAYED_CLAR       0x05    /* RIT offset -- current display */
 #define FT890_SUMO_DISPLAYED_MODE       0x07    /* Current main display mode */
@@ -290,6 +305,9 @@ static int ft890_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int ft890_set_vfo(RIG *rig, vfo_t vfo);
 static int ft890_get_vfo(RIG *rig, vfo_t *vfo);
 
+static int ft890_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft890_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+
 static int ft890_set_split(RIG *rig, vfo_t vfo, split_t split);
 static int ft890_get_split(RIG *rig, vfo_t vfo, split_t *split);
 
@@ -304,5 +322,6 @@ static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit); */
 
 /* static int ft890_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 static int ft890_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit); */
+
 
 #endif /* _FT890_H */
