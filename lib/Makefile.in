@@ -75,10 +75,8 @@ INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LIBLTDL = @LIBLTDL@
-LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MATH_LIBS = @MATH_LIBS@
 NET = @NET@
@@ -99,6 +97,7 @@ TCL_SRC_DIR = @TCL_SRC_DIR@
 VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
+cf_with_perl = @cf_with_perl@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
@@ -107,7 +106,7 @@ EXTRA_DIST = getopt.c getopt.h getopt_long.c usleep.c
 noinst_LTLIBRARIES = libmisc.la
 
 libmisc_la_SOURCES = 
-libmisc_la_LIBADD = @LTLIBOBJS@
+libmisc_la_LIBADD = @LIBOBJS@
 subdir = lib
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -115,7 +114,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
 libmisc_la_LDFLAGS =
-libmisc_la_DEPENDENCIES = @LTLIBOBJS@
+libmisc_la_DEPENDENCIES = @LIBOBJS@
 am_libmisc_la_OBJECTS =
 libmisc_la_OBJECTS = $(am_libmisc_la_OBJECTS)
 
@@ -125,8 +124,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/getopt_long.Plo $(DEPDIR)/trunc.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/usleep.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/getopt_long.Po $(DEPDIR)/trunc.Po \
+@AMDEP_TRUE@	$(DEPDIR)/usleep.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -171,9 +170,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/getopt_long.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/trunc.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/usleep.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/getopt_long.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/trunc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/usleep.Po@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
