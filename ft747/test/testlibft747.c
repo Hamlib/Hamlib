@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.6 2000-07-30 05:04:04 javabear Exp $  
+ * $Id: testlibft747.c,v 1.7 2000-07-30 05:05:10 javabear Exp $  
  *
  */
 

@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.5 2000-07-30 04:38:33 javabear Exp $  
+ * $Id: serial.c,v 1.6 2000-07-30 05:08:24 javabear Exp $  
  *
  */
 
@@ -185,7 +185,6 @@ int write_block(int fd, unsigned char *txbuffer) {
 int read_sleep(int fd, unsigned char *rxbuffer, int num ) {  
   int bytes = 0;
   int n = 0;
-  int i;
 
   printf("serial:read_sleep called with num = %i \n",num);
 

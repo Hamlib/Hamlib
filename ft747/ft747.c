@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.6 2000-07-30 04:02:56 javabear Exp $  
+ * $Id: ft747.c,v 1.7 2000-07-30 05:06:24 javabear Exp $  
  *
  */
 
@@ -171,7 +171,7 @@ void cmd_set_ptt_on(int fd) {
  */
 
 void cmd_get_update_store(int fd, unsigned char *buffer) {
-  int i,n;			/* counters */
+  int n;			/* counter */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
 

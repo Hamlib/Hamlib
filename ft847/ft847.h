@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.7 2000-07-30 00:29:52 javabear Exp $  
+ *    $Id: ft847.h,v 1.8 2000-07-30 05:09:51 javabear Exp $  
  */
 
 /*
@@ -65,12 +65,14 @@ int rig_close(int fd);
  *
  */
 
-void cmd_cat_on(int fd);
-void cmd_cat_off(int fd);
-void cmd_ptt_on(int fd);
-void cmd_ptt_off(int fd);
-void cmd_sat_on(int fd);
-void cmd_sat_off(int fd);
+void cmd_set_cat_on(int fd);
+void cmd_set_cat_off(int fd);
+
+void cmd_set_ptt_on(int fd);
+void cmd_set_ptt_off(int fd);
+
+void cmd_set_sat_on(int fd);
+void cmd_set_sat_off(int fd);
 
 void cmd_set_freq_main_vfo(int fd, unsigned char d1,  unsigned char d2,
 			   unsigned char d3, unsigned char d4);
@@ -124,6 +126,17 @@ long int cmd_get_freq_mode_status_sat_tx_vfo(int fd, unsigned char *mode);
  */
 
 void cmd_set_freq_main_vfo_hz(int fd,long int freq, unsigned char mode);
-void cmd_set_freq_main_sat_rx_hz(int fd,long int freq, unsigned char mode);
-void cmd_set_freq_main_sat_tx_hz(int fd,long int freq, unsigned char mode);
+void cmd_set_freq_sat_rx_vfo_hz(int fd,long int freq, unsigned char mode);
+void cmd_set_freq_sat_tx_vfo_hz(int fd,long int freq, unsigned char mode);
+
+
+
+
+
+
+
+
+
+
+
 
