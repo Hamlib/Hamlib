@@ -9,7 +9,7 @@
 export DH_COMPAT=3
 
 # shared library versions, option 1
-version=1.1.1
+version=1.1.2
 major=1
 # option 2, assuming the library is created as src/.libs/libfoo.so.2.0.5 or so
 #version=`ls src/.libs/lib*.so.* | \
@@ -31,6 +31,7 @@ build-stamp:
 
 	# Add here commands to compile the package.
 	$(MAKE)
+	$(MAKE) -C doc doc
 
 	touch build-stamp
 
@@ -51,15 +52,24 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/tmp
-	$(MAKE) install prefix=$(CURDIR)/debian/tmp
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
 
 	# Move the appropriate files into the development package..
 	mv $(CURDIR)/debian/tmp/lib/libhamlib.so $(CURDIR)/debian/hamlib-dev/usr/lib/
 	mv $(CURDIR)/debian/tmp/lib/*.a $(CURDIR)/debian/hamlib-dev/usr/lib/
-	mv $(CURDIR)/debian/tmp/include/*.h $(CURDIR)/debian/hamlib-dev/usr/include/
+	mv $(CURDIR)/debian/tmp/include/hamlib $(CURDIR)/debian/hamlib-dev/usr/include/
 
 	# Move the appropriate files into the runtime package..
 	mv $(CURDIR)/debian/tmp/lib/*.so $(CURDIR)/debian/hamlib1/usr/lib/
+	mv $(CURDIR)/debian/tmp/lib/*.la $(CURDIR)/debian/hamlib1/usr/lib/
+
+	# Move the appropriate files into the documentation package..
+	mv $(CURDIR)/doc/html $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
+	mv $(CURDIR)/doc/latex $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/
+
+	# Move the appropriate files into the utils package..
+	mv $(CURDIR)/debian/tmp/bin/rigctl $(CURDIR)/debian/hamlib-utils/usr/bin/
+	mv $(CURDIR)/debian/tmp/share/man/man1/rigctl.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -69,8 +79,8 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_movefiles
 
+#	dh_movefiles
 #	dh_installdebconf	
 	dh_installdocs
 #	dh_installexamples
@@ -81,7 +91,7 @@ binary-arch: build install
 #	dh_installmime
 #	dh_installinit
 #	dh_installcron
-	dh_installman
+#	dh_installman
 #	dh_installinfo
 #	dh_undocumented
 	dh_installchangelogs ChangeLog
@@ -89,7 +99,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -Xaor -Xdummy -Xicom -Xkenwood -Xpcr -Xft747 -Xft847 -Xwinradio
+	dh_makeshlibs -Xalinco -Xaor -Xdummy -Xicom -Xkachina -Xkenwood -Xpcr -Xtentec -Xuniden -Xwinradio -Xyaesu
 	dh_installdeb
 #	dh_perl
 	dh_shlibdeps

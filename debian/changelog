@@ -1,9 +1,38 @@
-hamlib (1.1.1-1.1) unstable; urgency=low
+hamlib (1.1.2-5) unstable; urgency=low
 
-  * Non-maintainer upload.
-  * Run libtoolize to get support for new architectures.  Closes: #104602
+  * Updated section details to prevents overrides message.
 
- -- LaMont Jones <lamont@debian.org>  Fri, 13 Jul 2001 16:41:45 -0600
+ -- Terry Dawson <terry@animats.net>  Sat, 29 Dec 2001 18:53:26 +1000
+
+hamlib (1.1.2-4) unstable; urgency=low
+
+  * Corrected spelling mistake in package description.
+  * (Closes: #124717)
+  * (Closes: #124718)
+  * (Closes: #124719)
+
+ -- Terry Dawson <terry@animats.net>  Fre, 28 Dec 2001 20:12:50 +1000
+
+hamlib (1.1.2-3) unstable; urgency=low
+
+  * Ensured that shared library .la files are installed correctly, thanks Joop.
+  * (Closes: #123009)
+  * (Closes: #123010)
+
+ -- Terry Dawson <terry@animats.net>  Sun, 12 Dec 2001 20:35:02 +1000
+
+hamlib (1.1.2-2) unstable; urgency=low
+
+  * Removed spurious include of eti.h, thanks James. (Closes: #114128)
+
+ -- Terry Dawson <terry@animats.net>  Tue, 02 Oct 2001 18:58:43 +1000
+
+hamlib (1.1.2-1) unstable; urgency=low
+
+  * New upstream release. (Closes: #104602)
+
+ -- Terry Dawson <terry@animats.net>  Sun, 24 Sep 2001 21:44:56 +1000
+
 
 hamlib (1.1.1-1) unstable; urgency=low
 

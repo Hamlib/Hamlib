@@ -2,11 +2,12 @@ Source: hamlib
 Section: hamradio
 Priority: optional
 Maintainer: Terry Dawson <terry@animats.net>
-Build-Depends: debhelper (>> 3.0.0), autoconf, automake, libtool
+Build-Depends: debhelper (>> 3.0.0), autoconf, automake, libtool, doxygen
 Standards-Version: 3.5.2
 
 Package: hamlib-dev
 Architecture: any
+Section: devel
 Depends: hamlib1 (= ${Source-Version}), libc6-dev
 Description: Development library to control radio transcievers and receivers.
  Most recent amateur radio transceivers allow external control of their
@@ -18,11 +19,13 @@ Description: Development library to control radio transcievers and receivers.
  interface that applications can talk to and translating that into the
  appropriate commands required by the radio in use.
  .
- This package provides the development library. If you wish to run applications
- developed using this library you'll need the 'hamlib' package.
+ This package provides the development library with both C and C++ bindings.
+ If you wish to run applications developed using this library you'll need the
+ 'hamlib1' package.
 
 Package: hamlib1
 Architecture: any
+Section: libs
 Depends: ${shlibs:Depends}
 Description: Run-time library to control radio transcievers and receivers.
  Most recent amateur radio transceivers allow external control of their
@@ -36,3 +39,35 @@ Description: Run-time library to control radio transcievers and receivers.
  .
  This package provides the run-time form of the library. If you wish to
  develop software using this library you need the 'hamlib-dev' package.
+
+Package: hamlib-utils
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Utilities to support the hamlib radio control library.
+ Most recent amateur radio transceivers allow external control of their
+ functions through a computer interface. Unfortunately, control commands are
+ not always consistent across a manufacturer's product line and each
+ manufacturer's product line differs greatly from its competitors.
+ .
+ This library addresses that issue by providing a standardised programming
+ interface that applications can talk to and translating that into the
+ appropriate commands required by the radio in use.
+ .
+ This package provides a command-line utility to test the hamlib library and
+ to control transceivers if you're short of anything more sophisticated.
+
+Package: hamlib-doc
+Architecture: any
+Section: doc
+Suggests: www-browser
+Description: Documentation for the hamlib radio control library.
+ Most recent amateur radio transceivers allow external control of their
+ functions through a computer interface. Unfortunately, control commands are
+ not always consistent across a manufacturer's product line and each
+ manufacturer's product line differs greatly from its competitors.
+ .
+ This library addresses that issue by providing a standardised programming
+ interface that applications can talk to and translating that into the
+ appropriate commands required by the radio in use.
+ .
+ This package provides the developers documentation for the API.
