@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.12 2001-06-04 17:01:21 f4cfe Exp $  
+ * $Id: frame.c,v 1.13 2001-06-10 22:25:50 f4cfe Exp $  
  *
  *
  *
@@ -92,13 +92,16 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * payload can be NULL if payload_len == 0
  * subcmd can be equal to -1 (no subcmd wanted)
+ *
+ * return RIG_OK if transaction completed, 
+ * or a negative value otherwise indicating the error.
  */
 int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char buf[16];
-		int frm_len;
+		int frm_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -109,7 +112,12 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		/* 
 		 * should check return code and that write wrote cmd_len chars! 
 		 */
-		write_block(&rs->rigport, buf, frm_len);
+		Hold_Decode(rig);
+		retval = write_block(&rs->rigport, buf, frm_len);
+		if (retval != RIG_OK) {
+				Unhold_Decode(rig);
+				return retval;
+		}
 
 		/*
 		 * read what we just sent, because TX and RX are looped,
@@ -120,8 +128,11 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 * 			up to rs->retry times.
 		 */
 
-		Hold_Decode(rig);
-		read_icom_block(&rs->rigport, buf, frm_len);
+		retval = read_icom_block(&rs->rigport, buf, frm_len);
+		if (retval != frm_len) {
+				Unhold_Decode(rig);
+				return retval < 0 ? retval : -RIG_EPROTO;
+		}
 
 		/*
 		 * wait for ACK ... 
@@ -130,6 +141,11 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 */
 		frm_len = read_icom_frame(&rs->rigport, buf);
 		Unhold_Decode(rig);
+		if (frm_len < 0) {
+				return frm_len;
+		} else if (frm_len < ACKFRMLEN) {
+				return  -RIG_EPROTO;
+		}
 
 		*data_len = frm_len-(ACKFRMLEN-1);
 		memcpy(data, buf+4, *data_len);
@@ -150,7 +166,7 @@ int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count)
 {
 		int i;
 
-		fread_block(p, rxbuffer, count);
+		i = fread_block(p, rxbuffer, count);
 
 #if 0
 		for (i=0; i<count; i++) {
@@ -162,7 +178,7 @@ int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count)
 			fread_block(stream, rxbuffer+i, count-i, timeout);
 		}
 #endif
-		return count;	/* duh! */
+		return i;	/* duh! */
 }
 
 /*
@@ -173,21 +189,25 @@ int read_icom_block(port_t *p, unsigned char *rxbuffer, size_t count)
  */
 int read_icom_frame(port_t *p, unsigned char rxbuffer[])
 {
-		int i;
+		int i, count;
 
 		/*
 		 * ACKFRMLEN is supposed to be the smallest frame
 		 * we can expected on the CI-V bus
-		 * FIXME: a COL is smaller!!
+		 * FIXME: a COLlision is smaller!!
 		 */
-		fread_block(p, rxbuffer, ACKFRMLEN);
+		count = fread_block(p, rxbuffer, ACKFRMLEN);
+		if (count != ACKFRMLEN)
+				return count;
 
 		/*
 		 * buffered read are quite helpful here!
 		 * However, an automate with a state model would be more efficient..
 		 */
 		for (i=ACKFRMLEN; rxbuffer[i-1]!=FI; i++) {
-			fread_block(p, rxbuffer+i, 1);
+			count = fread_block(p, rxbuffer+i, 1);
+			if (count != 1)
+					return i;
 		}
 
 		return i;
