@@ -4,7 +4,7 @@
  * This program output swr curve value
  * using Hamlib.
  *
- * $Id: rigswr.c,v 1.1 2004-06-14 20:13:35 f4dwv Exp $  
+ * $Id: rigswr.c,v 1.2 2004-06-14 22:22:31 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -38,21 +38,6 @@
 
 #include <hamlib/rig.h>
 #include "misc.h"
-#include "sprintflst.h"
-
-#ifdef _WIN32
-#define LLFMT "L"
-#else
-#define LLFMT "ll"
-#endif
-
-#define MAXNAMSIZ 32
-#define MAXNBOPT 100	/* max number of different options */
-
-
-/* 
- * external prototype
- */
 
 
 /* 
@@ -67,7 +52,7 @@ int set_conf(RIG *rig, char *conf_parms);
  * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
-#define SHORT_OPTIONS "m:r:s:c:C:avhV"
+#define SHORT_OPTIONS "m:r:s:c:C:p:P:vhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -75,7 +60,8 @@ static struct option long_options[] =
 	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
 	{"set-conf", 1, 0, 'C'},
-	{"all",  0, 0, 'a'},
+	{"ptt-file", 1, 0, 'p'},
+	{"ptt-type", 1, 0, 'P'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -84,7 +70,6 @@ static struct option long_options[] =
 
 #define MAXCONFLEN 128
 
-int all;
 
 int main (int argc, char *argv[])
 { 
@@ -94,12 +79,14 @@ int main (int argc, char *argv[])
 	int retcode;		/* generic return code from functions */
 
 	int verbose = 0;
-	const char *rig_file=NULL;
+	const char *rig_file=NULL, *ptt_file=NULL;
+	ptt_type_t ptt_type = RIG_PTT_NONE;
 	int serial_rate = 0;
 	char *civaddr = NULL;	/* NULL means no need to set conf */
 	char conf_parms[MAXCONFLEN] = "";
 	freq_t freq,freqstop;
 	freq_t step=kHz(100);
+	value_t pwr;
 
 	while(1) {
 		int c;
@@ -154,8 +141,30 @@ int main (int argc, char *argv[])
 							strcat(conf_parms, ",");
 					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
 					break;
-			case 'a':
-					all++;
+			case 'p':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					ptt_file = optarg;
+					break;
+			case 'P':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					if (!strcmp(optarg, "RIG"))
+						ptt_type = RIG_PTT_RIG;
+					else if (!strcmp(optarg, "DTR"))
+						ptt_type = RIG_PTT_SERIAL_DTR;
+					else if (!strcmp(optarg, "RTS"))
+						ptt_type = RIG_PTT_SERIAL_RTS;
+					else if (!strcmp(optarg, "PARALLEL"))
+						ptt_type = RIG_PTT_PARALLEL;
+					else if (!strcmp(optarg, "NONE"))
+						ptt_type = RIG_PTT_NONE;
+					else
+						ptt_type = atoi(optarg);
 					break;
 			case 'v':
 					verbose++;
@@ -168,7 +177,7 @@ int main (int argc, char *argv[])
 
 	rig_set_debug(verbose<2 ? RIG_DEBUG_WARN: verbose);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "rigmem, %s\n", hamlib_version);
+	rig_debug(RIG_DEBUG_VERBOSE, "rigswr, %s\n", hamlib_version);
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
 					"<hamlib-developer@lists.sourceforge.net>\n\n");
 
@@ -192,6 +201,11 @@ int main (int argc, char *argv[])
 		exit(2);
 	}
 
+	if (ptt_type != RIG_PTT_NONE)
+		rig->state.pttport.type.ptt = ptt_type;
+	if (ptt_file)
+		strncpy(rig->state.pttport.pathname, ptt_file, FILPATHLEN);
+
 	if (rig_file)
 		strncpy(rig->state.rigport.pathname, rig_file, FILPATHLEN);
 
@@ -200,6 +214,15 @@ int main (int argc, char *argv[])
 		rig->state.rigport.parm.serial.rate = serial_rate;
 	if (civaddr)
         	rig_set_conf(rig, rig_token_lookup(rig, "civaddr"), civaddr);
+
+
+	if(!rig_has_get_level(rig,RIG_LEVEL_SWR) ||
+			rig->state.pttport.type.ptt == RIG_PTT_NONE) {
+	 	fprintf(stderr,"rig backend for %s could not get SWR"
+				"or has unsufficient capability\nSorry\n",
+				rig->caps->model_name);
+		exit(3);
+	}
 
 	retcode = rig_open(rig);
 	if (retcode != RIG_OK) {
@@ -211,18 +234,16 @@ int main (int argc, char *argv[])
 			printf("Opened rig model %d, '%s'\n", rig->caps->rig_model,
 							rig->caps->model_name);
 
-	if((rig->caps->has_get_level & RIG_LEVEL_SWR) ==0) {
-	 	fprintf(stderr,"rig backend for  %s could not get SWR\nSorry\n", rig->caps->model_name);
-		exit(2);
-	}
-
 	freq=atof(argv[optind++]);
 	freqstop=atof(argv[optind++]);
 	if (optind < argc) 
 		step=atof(argv[optind]);
 	
 	rig_set_freq(rig,RIG_VFO_CURR,freq);
-	rig_set_mode(rig,RIG_VFO_CURR,RIG_MODE_CW,Hz(500));
+	rig_set_mode(rig,RIG_VFO_CURR,RIG_MODE_CW,RIG_PASSBAND_NORMAL);
+
+	pwr.f = 0.25;	/* 25% of RF POWER */
+	rig_set_level(rig,RIG_VFO_CURR,RIG_LEVEL_RFPOWER,pwr);
 
 	while(freq<=freqstop) {
 		value_t swr;
@@ -237,6 +258,8 @@ int main (int argc, char *argv[])
 		rig_set_freq(rig,RIG_VFO_CURR,freq);
 	}
 
+	rig_close(rig);
+
 	return 0;
 }
 
@@ -244,13 +267,13 @@ int main (int argc, char *argv[])
 
 void version()
 {
-		printf("rigmem, %s\n\n", hamlib_version);
+		printf("rigswr, %s\n\n", hamlib_version);
 		printf("%s\n", hamlib_copyright);
 }
 
 void usage()
 {
-		printf("Usage: rigmem [OPTION]... D...FILE\n"
+		printf("Usage: rigswr [OPTION]... start_freq stop_freq [freq_step]\n"
 		   "Output SWR vs Frequency.\n\n");
 
 
@@ -260,7 +283,8 @@ void usage()
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
-	"  -a, --all                  bypass mem_caps, apply to all fields of channel_t\n"
+	"  -p, --ptt-file=DEVICE      set device of the PTT device to operate on\n"
+	"  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n"
