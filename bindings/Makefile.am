@@ -1,47 +1,112 @@
 
-# hamlibtcl, hamlibperl, etc. are temproray modules names
-# They will be generated in separate subdirs in the future
-
+# Hamlib bindings using SWIG
 # more information on swig at http://www.swig.org
+#
+# note:
+#  - VPATH building does not work yet
+#  - Tcl install procedure is not complete yet
 
-#lib_LTLIBRARIES = @BINDING_LA@
-#EXTRA_LTLIBRARIES = hamlibperl.la hamlibtcl.la
-lib_LTLIBRARIES = hamlibperl.la hamlibtcl.la
+SWIG=swig
 
-INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ -I@TCL_SRC_DIR@/generic -I$(top_srcdir)/bindings
+#INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ -I@TCL_SRC_DIR@/generic -I$(top_srcdir)/bindings
+INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings -I@TCL_SRC_DIR@/generic
 
+##########################################
 # Perl binding
-#hamlibperl_la_INCLUDE = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@
-
-nodist_hamlibperl_la_SOURCES = hamlibperl_wrap.c
-hamlibperl_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlibperl_la_LIBADD = $(top_builddir)/src/libhamlib.la
-
-BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c
-DISTCLEANFILES = hamlibperl_wrap.c hamlibtcl_wrap.c
 
 hamlibperl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
-	swig -perl5 -shadow @INCLUDES@ -I$(top_srcdir)/bindings -o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(SWIG) -perl5 -shadow @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
+			`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+
+# Add  LIB="$(libdir)"  to install in private place
+Hamlib-pl.mk: Makefile.PL
+	perl Makefile.PL MAKEFILE=Hamlib-pl.mk INST_MAN3DIR="$(mandir)" \
+			INC="$(INCLUDES)"  \
+			OBJECT="hamlibperl_wrap.o" VERSION="$(PACKAGE_VERSION)" \
+			LIBS="-L$(top_builddir)/src/.libs -lhamlib"
+
+all-perl: Hamlib-pl.mk hamlibperl_wrap.c
+	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk all
+
+check-perl: all-perl
+	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk test
+
+clean-perl: Hamlib-pl.mk
+	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk clean
+
+distclean-perl: Hamlib-pl.mk
+	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distclean
+
+distcheck-perl: Hamlib-pl.mk
+	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distcheck
+
+install-perl: Hamlib-pl.mk
+	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk install
 
 
+##########################################
 # Tcl binding
-#hamlibtcl_la_INCLUDE = @INCLUDES@ -I@TCL_SRC_DIR@/generic
+
+lib_LTLIBRARIES = hamlibtcl.la
+
+PKG_VER=1.0 # $(PACKAGE_VERSION) 
+TCL_SHLIB_SUFFIX=".so"
+DLL=hamlibtcl$(PKG_VER)$(TCL_SHLIB_SUFFIX)
 
 nodist_hamlibtcl_la_SOURCES = hamlibtcl_wrap.c
 hamlibtcl_la_LDFLAGS = -no-undefined -module -avoid-version @TCL_LIB_SPEC@
 hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
+pkgIndex.tcl:
+	echo 'package ifneeded Hamlib $(PKG_VER) [list load [file join $$dir $(DLL)] Hamlib]' > pkgIndex.tcl
+
 hamlibtcl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
-	swig -tcl @INCLUDES@ -I$(top_srcdir)/bindings -o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+	$(SWIG) -tcl -pkgversion $(PKG_VER) @INCLUDES@ -I$(top_srcdir)/bindings -o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+
+$(DLL): hamlibtcl.la
+	rm -f $@ ; cp .libs/hamlibtcl.so $@
+
+all-tcl: $(DLL) pkgIndex.tcl
+PACKAGEDIR      = $(TCL_EXEC_PREFIX)/lib/$(PACKAGE)
+
+install-tcl: all-tcl
+#	if test ! -d $(PACKAGEDIR); then mkdir $(PACKAGEDIR); fi
+#	$(INSTALL_PROGRAM) $(DLL) $(PACKAGEDIR)/$(DLL)
+#	$(INSTALL_DATA) pkgIndex.tcl $(PACKAGEDIR)/pkgIndex.tcl
+#	$(INSTALL_DATA) $(MANN) $(MAN_INSTALL_DIR)/
+
+test-tcl: all-tcl
+	TCLLIBPATH=`pwd` ./tcltest.tcl
+clean-tcl:
+	rm -f pkgIndex.tcl $(DLL)
+distclean-tcl: clean-tcl
+
+##########################################
+
+all-local: all-perl all-tcl
+
+check-local: check-perl check-tcl
+clean-local: clean-perl clean-tcl
+distclean-local: distclean-perl distclean-tcl
+distcheck-local: distcheck-perl
+install-exec-local: install-perl install-tcl
+
+
 
 rig.swg: $(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
 rotator.swg: $(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h
 
 hamlib.swg: ignore.swg rig.swg rotator.swg
 
-EXTRA_DIST = hamlib.swg ignore.swg rig.swg rotator.swg \
-			perltest.pl tcltest.tcl
 
-CLEANFILES = hamlibperl_wrap.c hamlib.pm hamlibtcl_wrap.c
+EXTRA_DIST = hamlib.swg ignore.swg rig.swg rotator.swg \
+			Makefile.PL perltest.pl tcltest.tcl
+
+BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c
+
+DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
+
+CLEANFILES = hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
+		hamlibtcl_wrap.c pkgIndex.tcl
 
 noinst_SCRIPTS = perltest.pl tcltest.tcl
