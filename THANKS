@@ -19,9 +19,12 @@ Icom CI-V backend
 * Simon Collings, RS-232 Interfacing for Receiver Control
     URL: http://www.scnt01426.pwp.blueyonder.co.uk/Articles/RS-232/RS-232.htm
 
+* Kai Altenfelder <ka@suse.de> for supporting us and providing documentation
+
 Icom PCR backend
------------------
+----------------
 
 * Ghetto's team, PCR-1000 ICOM receiver
 	URL: http://www.philtered.net/icomlib.phtml
+
 
