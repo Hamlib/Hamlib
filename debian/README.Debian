@@ -1,7 +1,10 @@
 hamlib for Debian
 -----------------
 
-This is an unofficial debian package. The debian maintainer for
-hamlib is Terry Dawson <terry@animats.net>
+Questions about hamlib can be asked on the hamlib-developer mailing list,
+see: https://lists.sourceforge.net/lists/listinfo/hamlib-developer
+
+The previous maintainer for the hamlib debian package was Terry Dawson,
+VK2KTJ <terry@animats.net>. 
 
 Joop Stakenborg <pa3aba@debian.org>, Fri, 21 Mar 2003 20:55:10 +0100

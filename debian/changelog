@@ -1,6 +1,8 @@
-hamlib (1.1.4-0.1) unstable; urgency=low
+hamlib (1.1.4-1) unstable; urgency=low
 
-  * Non-maintainer check for building hamlib on debian/unstable.
+  * New upstream.
+  * New maintainer, see:
+    http://lists.debian.org/debian-hams/2003/debian-hams-200304/msg00018.html
 
  -- Joop Stakenborg <pa3aba@debian.org>  Fri,  8 Nov 2002 17:28:44 +0100
 
