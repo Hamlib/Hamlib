@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGD "8" "October 07, 2001" "Hamlib"
+.TH RIGD "8" "August 23, 2002" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -50,10 +50,12 @@ to operate on.
 .TP
 .B \-p, --ptt-type=type
 Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
+Supported types are RIG, DTR, RTS, PARALLEL, NONE.
 .TP
 .B \-d, --dcd-type=type
 Use \fBtype\fP device as the kind of the Data Carrier Detect device 
 to operate on.
+Supported types are RIG, DSR, CTS, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
@@ -84,13 +86,16 @@ Written by Stephane Fillod.
 No authentication whatsoever. Could be done through domain restriction though.
 Please ask if stronger security needed.
 .PP
+No more than one rig can be controlled on a system. rpc.rigd does not
+support multi-rigs (hint: run rpc.rigd on a different port).
+.PP
 This almost empty section...
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@users.sourceforge.net>.
 .br
 I'm already aware of the bug in the previous section :-)
 .SH COPYRIGHT
-Copyright \(co 2000,2001 Stephane Fillod.
+Copyright \(co 2000-2002 Stephane Fillod.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY

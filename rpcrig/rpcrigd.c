@@ -1,10 +1,10 @@
 /*
- * rpcrigd - (C) Stephane Fillod 2001
+ * rpcrigd - (C) Stephane Fillod 2001-2002
  *
  * This program let programs control a radio through
  * the mean of RPC services using Hamlib.
  *
- * $Id: rpcrigd.c,v 1.3 2002-08-16 17:43:02 fillods Exp $  
+ *	$Id: rpcrigd.c,v 1.4 2002-08-23 19:55:53 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -174,14 +174,36 @@ main (int argc, char *argv[])
 							usage();	/* wrong arg count */
 							exit(1);
 					}
-					ptt_type = atoi(optarg);
+                                        if (!strcmp(optarg, "RIG"))
+						ptt_type = RIG_PTT_RIG;
+					else if (!strcmp(optarg, "DTR"))
+						ptt_type = RIG_PTT_SERIAL_DTR;
+					else if (!strcmp(optarg, "RTS"))
+						ptt_type = RIG_PTT_SERIAL_RTS;
+					else if (!strcmp(optarg, "PARALLEL"))
+						ptt_type = RIG_PTT_PARALLEL;
+					else if (!strcmp(optarg, "NONE"))
+						ptt_type = RIG_PTT_NONE;
+					else
+						ptt_type = atoi(optarg);
 					break;
 			case 'D':
 					if (!optarg) {
 							usage();	/* wrong arg count */
 							exit(1);
 					}
-					dcd_type = atoi(optarg);
+                                        if (!strcmp(optarg, "RIG"))
+						dcd_type = RIG_DCD_RIG;
+					else if (!strcmp(optarg, "DSR"))
+						dcd_type = RIG_DCD_SERIAL_DSR;
+					else if (!strcmp(optarg, "CTS"))
+						dcd_type = RIG_DCD_SERIAL_CTS;
+					else if (!strcmp(optarg, "PARALLEL"))
+						dcd_type = RIG_DCD_PARALLEL;
+					else if (!strcmp(optarg, "NONE"))
+						dcd_type = RIG_DCD_NONE;
+					else
+						dcd_type = atoi(optarg);
 					break;
 			case 'c':
 					if (!optarg) {
@@ -314,7 +336,7 @@ void rigd_exit()
 
 void usage()
 {
-		printf("Usage: rpc.rigd [OPTION]... [COMMAND]...\n"
+		printf("Usage: rpc.rigd [OPTION]...\n"
 		   "Offer RPC services to remotely control a connected radio transceiver or receiver.\n\n");
 
 		printf(
