@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.25 2002-03-06 21:09:25 fillods Exp $
+ *		$Id: riglist.h,v 1.26 2002-04-23 19:47:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -84,6 +84,7 @@
 #define RIG_MODEL_THD7AG RIG_MAKE_MODEL(RIG_KENWOOD, 18)
 #define RIG_MODEL_THF6A RIG_MAKE_MODEL(RIG_KENWOOD, 19)
 #define RIG_MODEL_THF7E RIG_MAKE_MODEL(RIG_KENWOOD, 20)
+#define RIG_MODEL_K2 RIG_MAKE_MODEL(RIG_KENWOOD, 21)
 
 	/*
 	 * Icom
