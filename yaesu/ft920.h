@@ -6,7 +6,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.1 2002-10-28 04:53:05 n0nb Exp $  
+ *    $Id: ft920.h,v 1.2 2002-10-29 23:53:39 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -168,8 +168,8 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define FT920_SUMO_DISPLAYED_MODE             0x18    
 #define FT920_SUMO_DISPLAYED_STATUS           0x00    
 #define FT920_SUMO_DISPLAYED_FREQ             0x01    
-#define FT920_SUMO_VFO_A_FREQ                 0x09
-#define FT920_SUMO_VFO_B_FREQ                 0x11
+#define FT920_SUMO_VFO_A_FREQ                 0x01
+#define FT920_SUMO_VFO_B_FREQ                 0x0f
     
 
 
