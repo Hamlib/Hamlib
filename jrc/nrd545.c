@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: nrd545.c,v 1.1 2001-12-17 22:40:34 fillods Exp $
+ *		$Id: nrd545.c,v 1.2 2001-12-20 23:03:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,6 +34,7 @@
 
 #define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL)
 
+/* FIXME: add more from "U" command */
 #define NRD545_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
 #define NRD545_VFO (RIG_VFO_A)
@@ -80,7 +81,7 @@ has_get_func: NRD545_FUNC,
 has_set_func: NRD545_FUNC,
 has_get_level: NRD545_LEVEL,
 has_set_level: RIG_LEVEL_SET(NRD545_LEVEL),
-has_get_parm: NRD545_PARM,
+has_get_parm: RIG_PARM_TIME,
 has_set_parm: RIG_PARM_SET(NRD545_PARM),
 level_gran: {},                 /* FIXME: granularity */
 parm_gran: {},
@@ -93,6 +94,8 @@ max_xit: Hz(0),
 max_ifshift: kHz(2.3),
 targetable_vfo: 0,
 transceive: RIG_TRN_RIG,
+vfo_ops: RIG_OP_FROM_VFO,
+scan_ops: RIG_SCAN_STOP|RIG_SCAN_SLCT,
 bank_qty:  0,
 chan_desc_sz: 0,
 
@@ -144,11 +147,16 @@ set_func: jrc_set_func,
 get_func: jrc_get_func,
 set_level: jrc_set_level,
 get_level: jrc_get_level,
+set_parm: jrc_set_parm,
+get_parm: jrc_get_parm,
 get_dcd: jrc_get_dcd,
 set_trn: jrc_set_trn,
-set_powerstat: jrc_set_powerstat,
 reset: jrc_reset,
 set_mem: jrc_set_mem,
+vfo_op: jrc_vfo_op,
+scan: jrc_scan,
+set_powerstat: jrc_set_powerstat,
+decode_event: jrc_decode_event,
 
 };
 

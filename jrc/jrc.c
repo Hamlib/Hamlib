@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: jrc.c,v 1.2 2001-12-20 08:02:01 fillods Exp $
+ *		$Id: jrc.c,v 1.3 2001-12-20 23:03:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -162,7 +162,7 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		freqbuf[freq_len-1] = '\0';
 
 		/* extract freq */
-		sscanf(freqbuf+1, "%Lu", freq);
+		sscanf(freqbuf+1, "%llu", freq);
 
 		return RIG_OK;
 }
@@ -186,6 +186,7 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_FM:       amode = MD_FM; break;
 			case RIG_MODE_AM:       amode = MD_AM; break;
 			case RIG_MODE_RTTY:		amode = MD_RTTY; break;
+			case RIG_MODE_WFM:		amode = MD_WFM; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,
 								"jrc_set_mode: unsupported mode %d\n",
@@ -543,6 +544,92 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 }
 
 /*
+ * jrc_set_parm
+ * Assumes rig!=NULL
+ * FIXME: cannot support PREAMP and ATT both at same time (make sens though)
+ */
+int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+		int cmd_len;
+		char cmdbuf[32];
+		int minutes;
+
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
+		switch (parm) {
+		case RIG_PARM_BACKLIGHT:
+			cmd_len = sprintf(cmdbuf, "AA%d" EOM, val.f>0.5?0:1);
+
+			return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+		case RIG_PARM_BEEP:
+			cmd_len = sprintf(cmdbuf, "U%03d" EOM, val.i?101:100);
+
+			return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+		case RIG_PARM_TIME:
+			minutes = val.i/60;
+			cmd_len = sprintf(cmdbuf, "R1%02d%02d" EOM, 
+							minutes/60, minutes%60);
+
+			return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported set_parm %d\n", parm);
+			return -RIG_EINVAL;
+		}
+
+		return RIG_OK;
+}
+
+
+/*
+ * jrc_get_parm
+ * Assumes rig!=NULL, val!=NULL
+ */
+int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
+{
+ 		struct jrc_priv_caps *priv;
+		int retval, lvl_len, i;
+		char lvlbuf[32];
+
+		priv = (struct jrc_priv_caps*)rig->caps->priv;
+
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
+		switch (parm) {
+		case RIG_PARM_TIME:
+			retval = jrc_transaction (rig, "R0" EOM, 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			/* "Rhhmmss"CR */
+			if (lvl_len != 7) {
+				rig_debug(RIG_DEBUG_ERR,"jrc_get_parm: wrong answer"
+								"len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+			}
+
+			/* convert ASCII to numeric 0..9 */
+			for (i=1; i<7; i++) {
+					lvlbuf[i] -= '0';
+			}
+			val->i = ((10*lvlbuf[1] + lvlbuf[2])*60 +	/* hours */
+						10*lvlbuf[3] + lvlbuf[4])*60 +	/* minutes */
+							10*lvlbuf[5] + lvlbuf[6];	/* secondes */
+			break;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get_parm %d\n", parm);
+			return -RIG_EINVAL;
+		}
+
+		return RIG_OK;
+}
+
+/*
  * jrc_get_dcd
  * Assumes rig!=NULL, dcd!=NULL
  */
@@ -635,6 +722,149 @@ int jrc_set_mem(RIG *rig, vfo_t vfo, int ch)
 		/* don't care about the Automatic reponse from receiver */
 
 		return jrc_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
+}
+
+/*
+ * jrc_vfo_op
+ * Assumes rig!=NULL
+ */
+int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+		const char *cmd;
+
+		switch(op) {
+			case RIG_OP_FROM_VFO: cmd="E1" EOM; break;
+			default: 
+				rig_debug(RIG_DEBUG_ERR,"jrc_vfo_op: unsupported op %#x\n",
+								op);
+				return -RIG_EINVAL;
+		}
+
+		return jrc_transaction (rig, cmd, 3, NULL, NULL);
+}
+
+
+/*
+ * jrc_scan, scan operation
+ * Assumes rig!=NULL
+ *
+ * Not really a scan operation so speaking. 
+ * You just make the rig increment frequency of decrement continuously,
+ * depending on the sign of ch.
+ * However, using DCD sensing, followed by a stop, you get it.
+ */
+int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
+{
+		const char *scan_cmd = "";
+
+		switch(scan) {
+			case RIG_SCAN_STOP:
+					scan_cmd = "Y0" EOM;
+					break;
+			case RIG_SCAN_SLCT:
+					scan_cmd = ch > 0 ? "Y+" EOM : "Y-" EOM;
+					break;
+			default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported scan %#x", scan);
+				return -RIG_EINVAL;
+		}
+
+		return jrc_transaction (rig, scan_cmd, 3, NULL, NULL);
+}
+
+static int jrc2rig_mode(RIG *rig, char jmode, char jwidth, 
+				rmode_t *mode, pbwidth_t *width)
+{
+		switch (jmode) {
+		case MD_CW:		*mode = RIG_MODE_CW; break;
+		case MD_USB:	*mode = RIG_MODE_USB; break;
+		case MD_LSB:	*mode = RIG_MODE_LSB; break;
+		case MD_FM:		*mode = RIG_MODE_FM; break;
+		case MD_AM:		*mode = RIG_MODE_AM; break;
+		case MD_RTTY:	*mode = RIG_MODE_RTTY; break;
+		case MD_WFM:	*mode = RIG_MODE_WFM; break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,
+							"jrc_set_mode: unsupported mode %c\n",
+							jmode);
+			*mode = RIG_MODE_NONE;
+			return -RIG_EINVAL;
+		}
+
+		/*
+		 * determine passband
+		 */
+		switch (jwidth) {
+		case '0':
+				*width = rig_passband_wide(rig, *mode);
+				break;
+		case '1':
+				*width = rig_passband_normal(rig, *mode);
+				break;
+		case '2':
+				*width = rig_passband_narrow(rig, *mode);
+				break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,
+							"jrc_set_mode: unsupported width %c\n",
+							jwidth);
+			*width = RIG_PASSBAND_NORMAL;
+			return -RIG_EINVAL;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * jrc_decode is called by sa_sigio, when some asynchronous
+ * data has been received from the rig
+ */
+int jrc_decode_event(RIG *rig)
+{
+		struct rig_state *rs;
+		freq_t freq;
+		rmode_t mode;
+		pbwidth_t width; 
+		int count;
+		char buf[32];
+
+		rig_debug(RIG_DEBUG_VERBOSE, "jrc: jrc_decode called\n");
+
+		rs = &rig->state;
+
+		/* "Iabdfg"CR */
+#define SETUP_STATUS_LEN 17
+
+		count = fread_block(&rs->rigport, buf, SETUP_STATUS_LEN);
+		if (count < 0) {
+			rig_debug(RIG_DEBUG_ERR, "jrc: fread_block failed: %s\n",
+							strerror(errno));
+			return -RIG_EIO;
+		}
+		buf[31] = '\0';	/* stop run away.. */
+
+		if (buf[0] != 'I') {
+			rig_debug(RIG_DEBUG_WARN, "jrc: unexpected data: %s\n",
+							buf);
+			return -RIG_EPROTO;
+		}
+
+		/*
+		 * TODO: Attenuator and AGC change notification.
+		 */
+
+		if (rig->callbacks.freq_event) {
+			buf[14] = '\0';	/* side-effect: destroy AGC first digit! */
+			sscanf(buf+4, "%lld", &freq);
+			return rig->callbacks.freq_event(rig,RIG_VFO_CURR,freq);
+		}
+
+		if (rig->callbacks.mode_event) {
+			jrc2rig_mode(rig, buf[3], buf[2], &mode, &width);
+			return rig->callbacks.mode_event(rig,RIG_VFO_CURR,mode,width);
+		}
+
+		return RIG_OK;
 }
 
 
