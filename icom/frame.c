@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: frame.c,v 1.15 2002-03-05 00:39:30 fillods Exp $
+ *		$Id: frame.c,v 1.16 2002-03-10 23:44:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -216,15 +216,24 @@ int read_icom_frame(port_t *p, unsigned char rxbuffer[])
 
 
 /*
+ * convert mode and width as expressed by Hamlib frontend
+ * to mode and passband data understandable by a CI-V rig
+ *
+ * if pd == -1, no passband data is to be sent
+ *
+ * return RIG_OK if everything's fine, negative value otherwise
+ *
  * TODO: be more exhaustive
  * assumes rig!=NULL
  */
-unsigned short rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width)
+int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width, 
+				unsigned char *md, char *pd)
 {
-		int icmode, icmode_ext;
-		pbwidth_t norm_width;
+		unsigned char icmode;
+		char icmode_ext;
+		pbwidth_t medium_width;
 
-		icmode_ext = 0;
+		icmode_ext = -1;
 
 		switch (mode) {
 		case RIG_MODE_AM:	icmode = S_AM; break;
@@ -236,43 +245,45 @@ unsigned short rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width)
 		case RIG_MODE_WFM:	icmode = S_WFM; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Hamlib mode %d\n",mode);
-			icmode = 0xff;
+			return -RIG_EINVAL;
 		}
 
-		norm_width = rig_passband_normal(rig, mode);
-		if (width == norm_width || width == RIG_PASSBAND_NORMAL)
-				icmode_ext = 0x00;
-		else if (width < norm_width)
-				icmode_ext = 0x02;
+		medium_width = rig_passband_normal(rig, mode);
+		if (width == medium_width || width == RIG_PASSBAND_NORMAL)
+				icmode_ext = -1;	/* medium, no passband data */
+		else if (width < medium_width)
+				icmode_ext = PD_NARROW;
 		else
-				icmode_ext = 0x01;
+				icmode_ext = PD_WIDE;
 
 		if (rig->caps->rig_model == RIG_MODEL_ICR7000) {
 				if (mode == RIG_MODE_USB || mode == RIG_MODE_LSB) {
-						icmode = S_AM;
+						icmode = S_R7000_SSB;
 						icmode_ext = 0x00;
-				} else if (mode == RIG_MODE_AM && icmode_ext == 0x00) {
-						icmode_ext = 0x01;	/* default to Wide */
+				} else if (mode == RIG_MODE_AM && icmode_ext == -1) {
+						icmode_ext = PD_WIDE;	/* default to Wide */
 				}
 		}
 		
-		return (icmode_ext<<8 | icmode);
+		*md = icmode;
+		*pd = icmode_ext;
+		return RIG_OK;
 }
 
 /*
  * assumes rig!=NULL, mode!=NULL, width!=NULL
  */
-void icom2rig_mode(RIG *rig, unsigned short icmode, rmode_t *mode, pbwidth_t *width)
+void icom2rig_mode(RIG *rig, unsigned char md, char pd, rmode_t *mode, pbwidth_t *width)
 {
 		*width = RIG_PASSBAND_NORMAL;
 
-		switch (icmode & 0xff) {
+		switch (md) {
 		case S_AM:	*mode = RIG_MODE_AM; break;
 		case S_CW:	*mode = RIG_MODE_CW; break;
 		case S_FM:	if (rig->caps->rig_model == RIG_MODEL_ICR7000
-									&& ((icmode>>8) & 0xff) == 0x00) {
+									&& pd == 0x00) {
 							*mode = RIG_MODE_USB;
-							*width = rig_passband_normal(rig, *mode);
+							*width = rig_passband_normal(rig, RIG_MODE_USB);
 							return;
 					} else
 							*mode = RIG_MODE_FM;
@@ -285,16 +296,16 @@ void icom2rig_mode(RIG *rig, unsigned short icmode, rmode_t *mode, pbwidth_t *wi
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode %#.2x\n",
-							icmode);
+							md);
 			*mode = RIG_MODE_NONE;
 		}
-		switch ((icmode>>8) & 0xff) {
+		switch (pd) {
 			case 0x00: *width = rig_passband_narrow(rig, *mode); break;
 			case 0x01: *width = rig_passband_normal(rig, *mode); break;
 			case 0x02: *width = rig_passband_wide(rig, *mode); break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n",
-							icmode);
+							pd);
 			*width = RIG_PASSBAND_NORMAL;
 		}
 }

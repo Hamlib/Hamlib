@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.55 2002-03-06 21:10:56 fillods Exp $
+ *		$Id: icom.c,v 1.56 2002-03-10 23:44:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -418,17 +418,19 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char ackbuf[16],icmode_ext[1];
-		int ack_len, icmode, retval;
+		unsigned char ackbuf[16];
+		char icmode, icmode_ext;
+		int ack_len, retval, err;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		icmode = rig2icom_mode(rig, mode,width);
+		err = rig2icom_mode(rig, mode, width, &icmode, &icmode_ext);
+		if (err < 0)
+				return err;
 
-		icmode_ext[0] = (icmode>>8) & 0xff;
-		retval = icom_transaction (rig, C_SET_MODE, icmode & 0xff, icmode_ext,
-						icmode_ext[0]?1:0, ackbuf, &ack_len);
+		retval = icom_transaction (rig, C_SET_MODE, icmode, &icmode_ext,
+						icmode_ext == -1 ? 0 : 1, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
 
@@ -474,7 +476,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 				return -RIG_ERJCTED;
 		}
 
-		icom2rig_mode(rig, modebuf[1]| modebuf[2]<<8, mode, width);
+		icom2rig_mode(rig, modebuf[1], modebuf[2], mode, width);
 
 		return RIG_OK;
 }
@@ -1877,7 +1879,8 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 		struct rig_state *rs;
 		unsigned char chanbuf[24], ackbuf[16];
 		int chan_len, freq_len, ack_len, retval;
-		int icmode;
+		char icmode, icmode_ext;
+		int err;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -1894,9 +1897,13 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 
 		chan_len = 3+freq_len+1;
 
-		icmode = rig2icom_mode(rig, chan->mode, RIG_PASSBAND_NORMAL);/* FIXME */
-		chanbuf[chan_len++] = icmode&0xff;
-		chanbuf[chan_len++] = icmode>>8;
+		err = rig2icom_mode(rig, chan->mode, RIG_PASSBAND_NORMAL,
+						&icmode, &icmode_ext);/* FIXME */
+		if (err != RIG_OK)
+				return err;
+
+		chanbuf[chan_len++] = icmode;
+		chanbuf[chan_len++] = icmode_ext;	/* FIXME */
 
 		to_bcd_be(chanbuf+chan_len++,
 						chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i, 2);
@@ -1965,7 +1972,7 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 
 		chan_len = 4+freq_len+1;
 
-		icom2rig_mode(rig, chanbuf[chan_len] | chanbuf[chan_len+1],
+		icom2rig_mode(rig, chanbuf[chan_len], chanbuf[chan_len+1],
 						&chan->mode, &width);
 		chan_len += 2;
 		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i =
@@ -2294,7 +2301,7 @@ int icom_decode_event(RIG *rig)
 				break;
 		case C_SND_MODE:
 				if (rig->callbacks.mode_event) {
-					icom2rig_mode(rig, buf[5]| buf[6]<<8, &mode, &width);
+					icom2rig_mode(rig, buf[5], buf[6], &mode, &width);
 					return rig->callbacks.mode_event(rig, RIG_VFO_CURR,
 									mode, width,
 									rig->callbacks.mode_arg);
@@ -2420,6 +2427,7 @@ int initrigs_icom(void *be_handle)
 		rig_register(&icall_caps);
 
 		rig_register(&os535_caps);
+		rig_register(&os456_caps);
 
 		return RIG_OK;
 }
