@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.8 2000-07-29 20:30:33 javabear Exp $  
+ * $Id: ft847.c,v 1.9 2000-07-29 23:11:48 javabear Exp $  
  *
  */
 
@@ -25,6 +25,7 @@
 static unsigned char datain[5]; /* data read from rig */
 
 static long int  calc_freq_from_packed4(unsigned char *in);
+static char calc_packed_from_char(unsigned char dec );
 
 
 
@@ -97,13 +98,21 @@ void cmd_sat_off(int fd) {
 void cmd_set_freq_main_vfo(int fd, unsigned char d1,  unsigned char d2, 
 			   unsigned char d3, unsigned char d4) {
 
+  int i;
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x01 }; /* set freq, main vfo*/
+
 
   data[0] = d1;
   data[1] = d2;
   data[2] = d3;
   data[3] = d4;
+
+  for(i=0; i<5; i++) {
+    printf("data = %.2x \n", data[i]);
+  }
   write_block(fd,data);
+  printf("cmd_set_freq_main_vfo called \n");
+
 }
 
 void cmd_set_freq_sat_rx_vfo(int fd, unsigned char d1,  unsigned char d2, 
@@ -349,14 +358,37 @@ long int cmd_get_freq_mode_status_sat_tx_vfo(int fd, unsigned char *mode) {
 
 
 /*
- * Set frequency in Hz.
+ * Set frequency in Hz and mode.
  *
  */
 
-void cmd_set_freq_main_vfo_hz(unsigned long int freq) {
+void cmd_set_freq_main_vfo_hz(int fd,long int freq, unsigned char mode) {
   unsigned char d1,d2,d3,d4;
+  long int f1,f2,f3,f4;
+  long int testf;
 
- 
+  freq = freq / 10;		/* yaesu ft847  only accepts 10Hz resolution */
+
+  f1 = freq / 1000000;		                             /* get 100 Mhz/10 Mhz part */
+  f2 = (freq - (f1 * 1000000)) / 10000;	                     /* get 1Mhz/100Khz part */
+  f3 = (freq - (f1 * 1000000) - (f2 * 10000)) / 100;         /* get 10khz/1khz part */
+  f4 = (freq - (f1 * 1000000) - (f2 * 10000) - (f3 * 100));  /* get 10khz/1khz part */
+
+  printf("Decimal: f1 = %ld, f2 = %ld, f3 = %ld, f4 = %ld \n", f1,f2,f3,f4);
+  printf("Decimal: f1 = %.2ld, f2 = %.2ld, f3 = %.2ld, f4 = %.2ld \n", f1,f2,f3,f4);
+
+  testf = f1*1000000 + f2*10000 + f3*100 +f4;
+  printf("testf = %ld \n",testf);
+
+  d1 = calc_packed_from_char(f1);
+  d2 = calc_packed_from_char(f2);
+  d3 = calc_packed_from_char(f3);
+  d4 = calc_packed_from_char(f4);
+
+  cmd_set_opmode_main_vfo(fd,mode); /* set mode first, otherwise previous CW mode */
+				    /* causes offset for next freq set command */
+
+  cmd_set_freq_main_vfo(fd,d1,d2,d3,d4); /* set freq */
 
 }
 
@@ -387,6 +419,29 @@ static long int  calc_freq_from_packed4(unsigned char *in) {
      
   return f;			/* Hz */
 }
+
+/*
+ * Convert char to packed decimal
+ * eg: 33 (0x21) => 0x33
+ *
+ */
+
+static char calc_packed_from_char(unsigned char dec ) {
+ 
+  char d1,d2,pkd;
+
+  d1 = dec/10;
+  d2 = dec - (d1 * 10);
+
+  pkd = (d1*16)+d2;
+
+  printf("dec  = %i \n", dec);
+  printf("dec  = %x \n", dec);
+  printf("dec (packed)  = %.2x \n", pkd);
+ 
+  return pkd;
+}
+
 
 
 
