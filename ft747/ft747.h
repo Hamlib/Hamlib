@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.9 2000-09-23 00:34:42 javabear Exp $  
+ *    $Id: ft747.h,v 1.10 2000-09-24 03:36:47 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 #ifndef _FT747_H
 #define _FT747_H 1
 
-
+#define FT747_CMD_LENGTH      5
 
 /*
  * future - private data
@@ -41,21 +41,25 @@ struct ft747_priv_data {
   int dummy;			/* for test */
 };
 
-
-
 /* 
  * API local implementation 
  */
 
 int ft747_init(RIG *rig);
 int ft747_cleanup(RIG *rig);
-int ft747_set_freq(RIG *rig, freq_t freq);
 
-  /*
-    int (*set_freq)(RIG *rig, freq_t freq);
-    int (*set_mode)(RIG *rig, rig_mode_t mode);
-    int (*set_vfo)(RIG *rig, rig_vfo_t vfo);
-  */
+int ft747_set_freq(RIG *rig, freq_t freq);
+int ft747_get_freq(RIG *rig, freq_t *freq);
+
+int ft747_set_mode(RIG *rig, rmode_t mode); /* select mode */
+int ft747_get_mode(RIG *rig, rmode_t *mode); /* get mode */
+
+int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
+int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+
+int ft747_set_ptt(RIG *rig, ptt_t ptt);
+int ft747_get_ptt(RIG *rig, ptt_t *ptt);
+
 
 /*
  * Allow TX commands to be disabled
