@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.42 2001-06-26 20:55:28 f4cfe Exp $
+ *	$Id: rig.h,v 1.43 2001-06-27 17:32:47 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -768,10 +768,10 @@ struct rig_caps {
   int (*set_rptr_offs)(RIG *rig, vfo_t vfo, shortfreq_t offs);
   int (*get_rptr_offs)(RIG *rig, vfo_t vfo, shortfreq_t *offs);
 
-  int (*set_split_freq)(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
-  int (*get_split_freq)(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
-  int (*set_split_mode)(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width);
-  int (*get_split_mode)(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width);
+  int (*set_split_freq)(RIG *rig, vfo_t vfo, freq_t tx_freq);
+  int (*get_split_freq)(RIG *rig, vfo_t vfo, freq_t *tx_freq);
+  int (*set_split_mode)(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+  int (*get_split_mode)(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
   int (*set_split)(RIG *rig, vfo_t vfo, split_t split);
   int (*get_split)(RIG *rig, vfo_t vfo, split_t *split);
 
@@ -1054,10 +1054,10 @@ extern HAMLIB_EXPORT(int) rig_get_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, 
 extern HAMLIB_EXPORT(int) rig_set_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
 extern HAMLIB_EXPORT(int) rig_get_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
-extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq));
-extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq));
-extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width));
-extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width));
+extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t tx_freq));
+extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *tx_freq));
+extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width));
+extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width));
 extern HAMLIB_EXPORT(int) rig_set_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t split));
 extern HAMLIB_EXPORT(int) rig_get_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t *split));
 

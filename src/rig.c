@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.37 2001-06-26 20:55:28 f4cfe Exp $
+   $Id: rig.c,v 1.38 2001-06-27 17:32:47 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -1334,7 +1334,6 @@ int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  *      rig_set_split_freq - set the split frequencies
  *      @rig:	The rig handle
  *      @vfo:	The target VFO
- *      @rx_freq:	The receive split frequency to set to
  *      @tx_freq:	The transmit split frequency to set to
  *
  *      The rig_set_split_freq() function sets the split frequencies.
@@ -1346,7 +1345,7 @@ int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  *      SEE ALSO: rig_get_split_freq()
  */
 
-int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
+int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1362,7 +1361,7 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->set_split_freq(rig, vfo, rx_freq, tx_freq);
+			return caps->set_split_freq(rig, vfo, tx_freq);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -1371,7 +1370,7 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->set_split_freq(rig, vfo, rx_freq, tx_freq);
+		retcode = caps->set_split_freq(rig, vfo, tx_freq);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -1380,7 +1379,6 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
  *      rig_get_split_freq - get the current split frequencies
  *      @rig:	The rig handle
  *      @vfo:	The target VFO
- *      @rx_freq:	The location where to store the current receive split frequency
  *      @tx_freq:	The location where to store the current transmit split frequency
  *
  *      The rig_get_split_freq() function retrieves the current split
@@ -1392,13 +1390,13 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
  *
  *      SEE ALSO: rig_set_split_freq()
  */
-int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
+int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 		const struct rig_caps *caps;
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !rx_freq || !tx_freq)
+		if (!rig || !rig->caps || !tx_freq)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1408,7 +1406,7 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->get_split_freq(rig, vfo, rx_freq, tx_freq);
+			return caps->get_split_freq(rig, vfo, tx_freq);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -1417,7 +1415,7 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->get_split_freq(rig, vfo, rx_freq, tx_freq);
+		retcode = caps->get_split_freq(rig, vfo, tx_freq);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -1426,8 +1424,6 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
  *      rig_set_split_mode - set the split modes
  *      @rig:	The rig handle
  *      @vfo:	The target VFO
- *      @rx_mode:	The receive split mode to set to
- *      @rx_width:	The receive split width to set to
  *      @tx_mode:	The transmit split mode to set to
  *      @tx_width:	The transmit split width to set to
  *
@@ -1440,7 +1436,7 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
  *      SEE ALSO: rig_get_split_mode()
  */
 
-int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width)
+int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1456,8 +1452,7 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width,
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->set_split_mode(rig, vfo, rx_mode, rx_width, 
-							tx_mode, tx_width);
+			return caps->set_split_mode(rig, vfo, tx_mode, tx_width);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -1466,8 +1461,7 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width,
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->set_split_mode(rig, vfo, rx_mode, rx_width,
-						tx_mode, tx_width);
+		retcode = caps->set_split_mode(rig, vfo, tx_mode, tx_width);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -1476,8 +1470,6 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width,
  *      rig_get_split_mode - get the current split modes
  *      @rig:	The rig handle
  *      @vfo:	The target VFO
- *      @rx_mode:	The location where to store the current receive split mode
- *      @rx_width:	The location where to store the current receive split width
  *      @tx_mode:	The location where to store the current transmit split mode
  *      @tx_width:	The location where to store the current transmit split width
  *
@@ -1490,14 +1482,13 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width,
  *
  *      SEE ALSO: rig_set_split_mode()
  */
-int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width)
+int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
 		const struct rig_caps *caps;
 		int retcode;
 		vfo_t curr_vfo;
 
-		if (!rig || !rig->caps || !rx_mode || !rx_width || 
-						!tx_mode || !tx_width)
+		if (!rig || !rig->caps || !tx_mode || !tx_width)
 			return -RIG_EINVAL;
 
 		caps = rig->caps;
@@ -1507,8 +1498,7 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_widt
 
 		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
 										vfo == rig->state.current_vfo)
-			return caps->get_split_mode(rig, vfo, rx_mode, rx_width,
-							tx_mode, tx_width);
+			return caps->get_split_mode(rig, vfo, tx_mode, tx_width);
 
 		if (!caps->set_vfo)
 			return -RIG_ENTARGET;
@@ -1517,8 +1507,7 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_widt
 		if (retcode != RIG_OK)
 				return retcode;
 
-		retcode = caps->get_split_mode(rig, vfo, rx_mode, rx_width,
-						tx_mode, tx_width);
+		retcode = caps->get_split_mode(rig, vfo, tx_mode, tx_width);
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
@@ -3521,9 +3510,8 @@ int rig_save_channel(RIG *rig, channel_t *chan)
   rig_get_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width);
   rig_get_split(rig, RIG_VFO_CURR, &chan->split);
   if (chan->split != RIG_SPLIT_OFF) {
-  	rig_get_split_freq(rig, RIG_VFO_CURR, &chan->freq, &chan->tx_freq);
-  	rig_get_split_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width, 
-					&chan->tx_mode, &chan->tx_width);
+  	rig_get_split_freq(rig, RIG_VFO_CURR, &chan->tx_freq);
+  	rig_get_split_mode(rig, RIG_VFO_CURR, &chan->tx_mode, &chan->tx_width);
   }
   rig_get_rptr_shift(rig, RIG_VFO_CURR, &chan->rptr_shift);
   rig_get_rptr_offs(rig, RIG_VFO_CURR, &chan->rptr_offs);
@@ -3587,9 +3575,8 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
   rig_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
   rig_set_split(rig, RIG_VFO_CURR, chan->split);
   if (chan->split != RIG_SPLIT_OFF) {
-  	rig_set_split_freq(rig, RIG_VFO_CURR, chan->freq, chan->tx_freq);
-  	rig_set_split_mode(rig, RIG_VFO_CURR, chan->mode, chan->width, 
-					chan->tx_mode, chan->tx_width);
+  	rig_set_split_freq(rig, RIG_VFO_CURR, chan->tx_freq);
+  	rig_set_split_mode(rig, RIG_VFO_CURR, chan->tx_mode, chan->tx_width);
   }
   rig_set_rptr_shift(rig, RIG_VFO_CURR, chan->rptr_shift);
   rig_set_rptr_offs(rig, RIG_VFO_CURR, chan->rptr_offs);

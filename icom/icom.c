@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.32 2001-06-26 20:55:28 f4cfe Exp $  
+ * $Id: icom.c,v 1.33 2001-06-27 17:32:47 f4cfe Exp $  
  *
  *
  *
@@ -1080,14 +1080,22 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  * 	icom_set_vfo,icom_set_freq works for this rig
  * FIXME: status
  */
-int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
+int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 		int status;
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
-		status |= icom_set_freq(rig, RIG_VFO_CURR, tx_freq);
-		status |= icom_set_vfo(rig, RIG_VFO_A);
-		status |= icom_set_freq(rig, RIG_VFO_CURR, rx_freq);
+		if (status != RIG_OK)
+				return status;
+
+		status = icom_set_freq(rig, RIG_VFO_CURR, tx_freq);
+		if (status != RIG_OK)
+				return status;
+
+		status = icom_set_vfo(rig, RIG_VFO_A);
+		if (status != RIG_OK)
+				return status;
+
 
 		return status;
 }
@@ -1098,14 +1106,21 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
  * 	icom_set_vfo,icom_get_freq works for this rig
  * FIXME: status
  */
-int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
+int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 		int status;
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
-		status |= icom_get_freq(rig, RIG_VFO_CURR, tx_freq);
-		status |= icom_set_vfo(rig, RIG_VFO_A);
-		status |= icom_get_freq(rig, RIG_VFO_CURR, rx_freq);
+		if (status != RIG_OK)
+				return status;
+
+		status = icom_get_freq(rig, RIG_VFO_CURR, tx_freq);
+		if (status != RIG_OK)
+				return status;
+
+		status = icom_set_vfo(rig, RIG_VFO_A);
+		if (status != RIG_OK)
+				return status;
 
 		return status;
 }
@@ -1116,14 +1131,21 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
  * 	icom_set_vfo,icom_set_mode works for this rig
  * FIXME: status
  */
-int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width)
+int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
 		int status;
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
-		status |= icom_set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
-		status |= icom_set_vfo(rig, RIG_VFO_A);
-		status |= icom_set_mode(rig, RIG_VFO_CURR, rx_mode, rx_width);
+		if (status != RIG_OK)
+				return status;
+
+		status = icom_set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		if (status != RIG_OK)
+				return status;
+
+		status = icom_set_vfo(rig, RIG_VFO_A);
+		if (status != RIG_OK)
+				return status;
 
 		return status;
 }
@@ -1135,14 +1157,21 @@ int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width
  * 	icom_set_vfo,icom_get_mode works for this rig
  * FIXME: status
  */
-int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width)
+int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
 		int status;
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
+		if (status != RIG_OK)
+				return status;
+
 		status |= icom_get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		if (status != RIG_OK)
+				return status;
+
 		status |= icom_set_vfo(rig, RIG_VFO_A);
-		status |= icom_get_mode(rig, RIG_VFO_CURR, rx_mode, rx_width);
+		if (status != RIG_OK)
+				return status;
 
 		return status;
 }

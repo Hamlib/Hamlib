@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.16 2001-06-26 20:55:28 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.17 2001-06-27 17:32:47 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -119,8 +119,8 @@ struct test_table test_list[] = {
 		{ 'c', "get_ctcss", get_ctcss, "CTCSS tone" },
 		{ 'D', "set_dcs", set_dcs, "DCS code" },
 		{ 'd', "get_dcs", get_dcs, "DCS code" },
-		{ 'I', "set_split_freq", set_split_freq, "Rx frequency", "Tx frequency" },
-		{ 'i', "get_split_freq", get_split_freq, "Rx frequency", "Tx frequency" },
+		{ 'I', "set_split_freq", set_split_freq, "Tx frequency" },
+		{ 'i', "get_split_freq", get_split_freq, "Tx frequency" },
 		{ 'S', "set_split", set_split, "Split mode" },
 		{ 's', "get_split", get_split, "Split mode" },
 		{ 'N', "set_ts", set_ts, "Tuning step" },
@@ -513,25 +513,21 @@ declare_proto_rig(get_dcs)
 
 declare_proto_rig(set_split_freq)
 {
-		freq_t rxfreq,txfreq;
+		freq_t txfreq;
 
-		sscanf(arg2, "%lld", &rxfreq);
-		sscanf(arg2, "%lld", &txfreq);
-		return rig_set_split_freq(rig, RIG_VFO_CURR, rxfreq, txfreq);
+		sscanf(arg1, "%lld", &txfreq);
+		return rig_set_split_freq(rig, RIG_VFO_CURR, txfreq);
 }
 
 
 declare_proto_rig(get_split_freq)
 {
 		int status;
-		freq_t rxfreq,txfreq;
+		freq_t txfreq;
 
-		status = rig_get_split_freq(rig, RIG_VFO_CURR, &rxfreq, &txfreq);
+		status = rig_get_split_freq(rig, RIG_VFO_CURR, &txfreq);
 		if (interactive)
 			printf("%s: ", cmd->name1);
-		printf("%lld\n", rxfreq);
-		if (interactive)
-			printf("%s: ", cmd->name2);
 		printf("%lld\n", txfreq);
 		return status;
 }

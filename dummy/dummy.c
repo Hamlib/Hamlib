@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.12 2001-06-20 06:08:21 f4cfe Exp $
+ *	$Id: dummy.c,v 1.13 2001-06-27 17:32:47 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -323,7 +323,7 @@ static int dummy_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 }
 
 
-static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
+static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -331,21 +331,21 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_f
 }
 
 
-static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
+static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
   return RIG_OK;
 }
 
-static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width)
+static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
   return RIG_OK;
 }
 
-static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width)
+static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 

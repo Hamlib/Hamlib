@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *	$Id: alinco.c,v 1.3 2001-06-12 07:07:10 f4cfe Exp $  
+ *	$Id: alinco.c,v 1.4 2001-06-27 17:32:47 f4cfe Exp $  
  *
  *
  *
@@ -388,7 +388,7 @@ int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split)
  * alinco_set_split_freq
  * Assumes rig!=NULL
  */
-int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
+int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 		char freqbuf[16];
 		int freq_len;
@@ -397,10 +397,6 @@ int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
 		/* max 10 digits */
 		if (tx_freq >= GHz(10))
 				return -RIG_EINVAL;
-
-		retval = alinco_set_freq(rig, vfo, rx_freq);
-		if (retval != RIG_OK)
-				return retval;
 
 		/* at least 6 digits */
 		freq_len = sprintf(freqbuf, AL CMD_TXFREQ "%06Ld" EOM, tx_freq);
@@ -414,7 +410,7 @@ int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq)
  * alinco_get_split_freq
  * Assumes rig!=NULL, rx_freq!=NULL, tx_freq!=NULL
  */
-int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
+int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 		int retval;
 		char freqbuf[32];
@@ -426,10 +422,6 @@ int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 		/* extract TX freq first, as RX kills freqbuf[16] */
 		freqbuf[26] = '\0';
 		sscanf(freqbuf+16, "%Ld", tx_freq);
-
-		/* extract RX freq */
-		freqbuf[16] = '\0';
-		sscanf(freqbuf+6, "%Ld", rx_freq);
 
 		return RIG_OK;
 }

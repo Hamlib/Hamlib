@@ -6,7 +6,7 @@
  * via serial interface to a Alinco radio.
  *
  *
- *    $Id: alinco.h,v 1.3 2001-06-20 06:08:21 f4cfe Exp $  
+ *    $Id: alinco.h,v 1.4 2001-06-27 17:32:47 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -51,8 +51,8 @@ int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int alinco_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int alinco_set_split(RIG *rig, vfo_t vfo, split_t split);
 int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split);
-int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
-int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
+int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int alinco_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
