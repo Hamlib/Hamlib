@@ -3,7 +3,7 @@
  *  Copyright (C) 2001 pab@users.sourceforge.net
  *  Derived from hamlib code (C) 2000-2003 Stephane Fillod.
  *
- *	$Id: winradio.c,v 1.18 2003-04-16 22:30:43 fillods Exp $
+ *	$Id: winradio.c,v 1.19 2003-09-07 14:07:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -236,6 +236,7 @@ DECLARE_INITRIG_BACKEND(winradio)
 
 	rig_register(&wr1000_caps);
 	rig_register(&wr1500_caps);
+	rig_register(&wr1550_caps);
 	rig_register(&wr3100_caps);
 	rig_register(&wr3150_caps);
 	rig_register(&wr3500_caps);
