@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface.
  *
- * $Id: serial.c,v 1.4 2000-10-23 19:58:14 f4cfe Exp $  
+ * $Id: serial.c,v 1.5 2001-01-28 22:18:09 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -506,5 +506,39 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
   rig_debug(RIG_DEBUG_TRACE,"RX %d bytes\n",total_count);
   dump_hex(rxbuffer, total_count);
   return total_count;			/* return bytes count read */
+}
+
+/*
+ * TODO: split ptt_set in ser_ptt_set and par_ptt_set
+ * +ser_ptt_open/ser_ptt_close & par_ptt_open/par_ptt_close
+ */
+int ptt_set(int fd, ptt_type_t ptt_type, int pttx)
+{
+		unsigned char y;
+
+		switch(ptt_type) {
+		case RIG_PTT_SERIAL_RTS:
+			y = TIOCM_RTS;
+			return ioctl(fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
+
+		case RIG_PTT_SERIAL_DTR:
+			return -RIG_ENIMPL;
+			y = TIOCM_DTR;
+			return ioctl(fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
+
+#ifdef LINUX	/* Have PPdev */
+		case RIG_PTT_PARALLEL:
+				{
+					unsigned char reg;
+
+					reg = !!pttx;
+					return ioctl(fd, PPWDATA, &reg);
+				}
+#endif
+		default:
+				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",ptt_type);
+				return -RIG_EINVAL;
+		}
+		return 0;
 }
 
