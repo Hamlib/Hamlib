@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.30 2002-11-12 00:16:28 fillods Exp $
+ *	$Id: dummy.c,v 1.31 2003-02-23 22:43:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -785,6 +785,9 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
+  int ret;
+  freq_t freq;
+  shortfreq_t ts;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
 				  strvfop(op));
@@ -853,7 +856,23 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 					mem_chan->vfo = RIG_VFO_MEM;
 			  }
 			  break;
-	  default:
+	case RIG_OP_UP:
+		ret = dummy_get_freq(rig, vfo, &freq);
+		if (!ret) break;
+		ret = dummy_get_ts(rig, vfo, &ts);
+		if (!ret) break;
+		ret = dummy_set_freq(rig, vfo, freq+ts);	/* up */
+		break;
+        case RIG_OP_DOWN:
+		ret = dummy_get_freq(rig, vfo, &freq);
+		if (!ret) break;
+		ret = dummy_get_ts(rig, vfo, &ts);
+		if (!ret) break;
+		ret = dummy_set_freq(rig, vfo, freq-ts);	/* down */
+		break;
+
+	default:
+		break;
   }
 
   return RIG_OK;
@@ -1041,7 +1060,7 @@ const struct rig_caps dummy_caps = {
 		    .low_power=-1,.high_power=-1,RIG_VFO_A|RIG_VFO_B},
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
-  .tuning_steps =  { {DUMMY_MODES,1}, RIG_TS_END, },
+  .tuning_steps =  { {DUMMY_MODES,1}, {DUMMY_MODES,RIG_TS_ANY}, RIG_TS_END, },
   .filters =  {
 	{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.4)},
 	{RIG_MODE_CW, Hz(500)},
