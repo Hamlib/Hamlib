@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.3 2001-01-28 22:24:27 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.4 2001-01-30 22:59:22 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -512,7 +512,7 @@ int main (int argc, char *argv[])
 					"<TD>Set PTT</TD><TD>Get PTT</TD>"
 					"<TD>Set rptr shift</TD><TD>Get rptr shift</TD>"
 					"<TD>Set rptr offs</TD><TD>Get rptr offs</TD>"
-					"<TD>Set split f.</TD><TD>Get split f.</TD>"
+					"<TD>Set split frq</TD><TD>Get split frq</TD>"
 					"<TD>Set split</TD><TD>Get split</TD>"
 					"<TD>Set ts</TD><TD>Get ts</TD>"
 					"<TD>Set CTCSS</TD><TD>Get CTCSS</TD>"
@@ -538,7 +538,7 @@ int main (int argc, char *argv[])
 					"<TD>MON</TD><TD>MN</TD>"
 					"<TD>RFN</TD>"
 					"</TR>\n");
-	set_or_get = 0;
+	set_or_get = 1;
 	status = rig_list_foreach(print_caps_func,&set_or_get);
 	printf("</TABLE>\n");
 
@@ -557,9 +557,9 @@ int main (int argc, char *argv[])
 					"<TD>Mic gain</TD><TD>Key speed</TD>"
 					"<TD>Notch</TD><TD>Comp</TD>"
 					"<TD>AGC</TD><TD>BKin delay</TD>"
-					"<TD>Balance</TD><TD>Ann</TD>"
+					"<TD>Bal</TD><TD>Ann</TD>"
 					"<TD>SWR</TD><TD>ALC</TD>"
-					"<TD>SQLstat</TD><TD>SMeter</TD>"
+					"<TD>SQL stat</TD><TD>SMeter</TD>"
 					"</TR>\n");
 	set_or_get = 1;
 	status = rig_list_foreach(print_caps_level,&set_or_get);
@@ -580,9 +580,9 @@ int main (int argc, char *argv[])
 					"<TD>Mic gain</TD><TD>Key speed</TD>"
 					"<TD>Notch</TD><TD>Comp</TD>"
 					"<TD>AGC</TD><TD>BKin delay</TD>"
-					"<TD>Balance</TD><TD>Ann</TD>"
+					"<TD>Bal</TD><TD>Ann</TD>"
 					"<TD>SWR</TD><TD>ALC</TD>"
-					"<TD>SQLstat</TD><TD>SMeter</TD>"
+					"<TD>SQL stat</TD><TD>SMeter</TD>"
 					"</TR>\n");
 	set_or_get = 0;
 	status = rig_list_foreach(print_caps_level,&set_or_get);
