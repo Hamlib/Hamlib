@@ -8,11 +8,11 @@ GENERAL PROJECT TODO
 2. Write More extensive Test Suites
 3. Document API's
 4. Document Limitations/Assumptions.
-5. Build top level Makefile for maintenance  [started]
+5. Build top level Makefile for maintenance  [ongoing]
 6. Encourage people to build cool GUI's using
    our libs. (any GTK wiz's out here ..)
 7. Move common routines to a common area
-   and avoid duplication. 	[started]
+   and avoid duplication. 	[ongoing]
 8. More safe checking during function calls.
  
 10. Improve Makefiles (autoconf?)
@@ -27,6 +27,11 @@ GENERAL PROJECT TODO
 	see common/API_Candidates file.
 
 15. Handle retransmissions (no more than n) if timeout
+16. Write .spec (rpm) and .deb (debian) package files
+17. Add support for a configurable debug level (none, function calls, 
+	packet traces) [started]
+17. In serial.c (and non serial too), use buffered IO instead of read/write,
+	for better performance. Use flushing with fwrite.
 
 DONE
 ----
