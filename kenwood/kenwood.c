@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.26 2002-01-06 17:47:23 fillods Exp $
+ *		$Id: kenwood.c,v 1.27 2002-01-07 17:54:23 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1045,6 +1045,59 @@ rig_model_t probe_kenwood(port_t *port)
 	return RIG_MODEL_NONE;
 }
 
+
+/* kenwood_init
+ *
+ * Basically, it sets up *priv
+ * REM: serial port is already open (rig->state.rigport.fd)
+ */
+int kenwood_init(RIG *rig)
+{
+    const struct rig_caps *caps;
+    const struct kenwood_priv_caps *priv_caps;
+    struct kenwood_priv_data *priv;
+    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+
+    if (!rig || !rig->caps)
+        return -RIG_EINVAL;
+
+    caps = rig->caps;
+    if (!caps->priv)
+        return -RIG_ECONF;
+
+    priv_caps = (const struct kenwood_priv_caps *) caps->priv;
+
+#if 0   /* No private data for Kenwood backends */
+    priv = (struct kenwood_priv_data *)malloc(sizeof(struct kenwood_priv_data));
+    if (!priv) {
+        /* whoops! memory shortage! */
+        return -RIG_ENOMEM;
+    }
+
+    rig->state.priv = (void *)priv;
+    /* Assign default values */
+    priv->dummy = -1;  // placeholder for real entries.
+#endif
+
+    return RIG_OK;
+}
+
+/* kenwood_cleanup
+ * the serial port is closed by the frontend
+ */
+int kenwood_cleanup(RIG *rig)
+{
+    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+
+    if (!rig)
+        return -RIG_EINVAL;
+
+    if (rig->state.priv)
+        free(rig->state.priv);
+    rig->state.priv = NULL;
+
+    return RIG_OK;
+}
 
 /*
  * initrigs_kenwood is called by rig_backend_load
