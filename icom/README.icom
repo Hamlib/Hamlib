@@ -17,9 +17,10 @@ Status
 ------
 
 This is a WIP.
-Handles 1% of all opcodes
+Handles 30% of all opcodes.
 Right now, this is just example of how a backend should glue
-with the generic rig API.
+with the generic rig API. Some simple primitives work,
+some other are coded, but untested yet.
 
 This lib should/will support the ic706, ic706mkII, ic706mkIIG, and
 any other CI-V rig.
@@ -27,7 +28,7 @@ any other CI-V rig.
 Warnings
 --------
 
-1. NOTHING IS WORKING, this is WIP.
+1. NOTHING IS WORKING, this is a WIP.
 
 
 Contributors
