@@ -1,9 +1,9 @@
 /*
- * dumpcaps.c - Copyright (C) 2000 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000,2001 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.21 2001-05-04 22:45:57 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.22 2001-05-08 09:11:32 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -33,12 +33,14 @@
 
 static char *decode_modes(rmode_t modes);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
+int ts_sanity_check(const struct tuning_step_list tuning_step[]);
 
 int main (int argc, char *argv[])
 { 
 	const struct rig_caps *caps;
 	int status,i;
 	char freqbuf[20];
+	int backend_warnings=0;
 
 	if (argc != 2) {
 			fprintf(stderr,"%s <rig_num>\n",argv[0]);
@@ -92,6 +94,7 @@ int main (int argc, char *argv[])
 			break;
 	default:
 			printf("Unknown\n");
+			backend_warnings++;
 	}
 	printf("Rig type:\t");
 	switch (caps->rig_type) {
@@ -121,6 +124,7 @@ int main (int argc, char *argv[])
 			break;
 	default:
 			printf("Unknown\n");
+			backend_warnings++;
 	}
 
 	printf("PTT type:\t");
@@ -142,6 +146,7 @@ int main (int argc, char *argv[])
 			break;
 	default:
 			printf("Unknown\n");
+			backend_warnings++;
 	}
 
 	printf("DCD type:\t");
@@ -163,6 +168,7 @@ int main (int argc, char *argv[])
 			break;
 	default:
 			printf("Unknown\n");
+			backend_warnings++;
 	}
 
 	printf("Port type:\t");
@@ -181,6 +187,7 @@ int main (int argc, char *argv[])
 			break;
 	default:
 			printf("Unknown\n");
+			backend_warnings++;
 	}
 
 	printf("Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
@@ -203,6 +210,10 @@ int main (int argc, char *argv[])
 	printf("Max RIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_rit/1000, caps->max_rit%1000,
 					caps->max_rit/1000, caps->max_rit%1000);
+
+	printf("Max XIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
+					caps->max_xit/1000, caps->max_xit%1000,
+					caps->max_xit/1000, caps->max_xit%1000);
 
 	printf("Max IF-SHIFT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_ifshift/1000, caps->max_ifshift%1000,
@@ -267,9 +278,6 @@ int main (int argc, char *argv[])
 	if (caps->has_get_level!=0) {
 		if (caps->has_get_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
 		if (caps->has_get_level&RIG_LEVEL_ATT) printf("ATT ");
-#if 0
-		if (caps->has_get_level&RIG_LEVEL_ANT) printf("ANT ");	/* deprecated */
-#endif
 		if (caps->has_get_level&RIG_LEVEL_AF) printf("AF ");
 		if (caps->has_get_level&RIG_LEVEL_RF) printf("RF ");
 		if (caps->has_get_level&RIG_LEVEL_SQL) printf("SQL ");
@@ -287,9 +295,7 @@ int main (int argc, char *argv[])
 		if (caps->has_get_level&RIG_LEVEL_AGC) printf("AGC ");
 		if (caps->has_get_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
 		if (caps->has_get_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
-#if 0
-		if (caps->has_get_level&RIG_LEVEL_ANN) printf("ANN ");	/* deprecated */
-#endif
+
 		if (caps->has_get_level&RIG_LEVEL_SWR) printf("SWR ");
 		if (caps->has_get_level&RIG_LEVEL_ALC) printf("ALC ");
 		if (caps->has_get_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
@@ -322,20 +328,43 @@ int main (int argc, char *argv[])
 		if (caps->has_set_level&RIG_LEVEL_AGC) printf("AGC ");
 		if (caps->has_set_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
 		if (caps->has_set_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
-#if 0
-		if (caps->has_set_level&RIG_LEVEL_ANN) printf("ANN ");	/* deprecated */
-#endif
 
-		/*
-		 * TODO: should warn here, these ones are not settable!!
-		 */
 		if (caps->has_set_level&RIG_LEVEL_SWR) printf("SWR ");
 		if (caps->has_set_level&RIG_LEVEL_ALC) printf("ALC ");
 		if (caps->has_set_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
 		if (caps->has_set_level&RIG_LEVEL_STRENGTH) printf("STRENGTH ");
 		printf("\n");
+		if (caps->has_set_level&RIG_LEVEL_READONLY_LIST) {
+				printf("Warning: backend can set readonly levels!\n");
+				backend_warnings++;
+		}
 	} else
 			printf("none\n");
+
+	printf("Get parameters: ");
+	if (caps->has_get_parm!=0) {
+		if (caps->has_get_parm&RIG_PARM_ANN) printf("ANN ");
+		if (caps->has_get_parm&RIG_PARM_APO) printf("APO ");
+		if (caps->has_get_parm&RIG_PARM_BACKLIGHT) printf("BACKLIGHT ");
+		if (caps->has_get_parm&RIG_PARM_BEEP) printf("BEEP ");
+		if (caps->has_get_parm&RIG_PARM_TIME) printf("TIME ");
+		if (caps->has_get_parm&RIG_PARM_BAT) printf("BAT ");
+		printf("\n");
+	} else
+			printf("none\n");
+
+	printf("Set parameters: ");
+	if (caps->has_set_parm!=0) {
+		if (caps->has_set_parm&RIG_PARM_ANN) printf("ANN ");
+		if (caps->has_set_parm&RIG_PARM_APO) printf("APO ");
+		if (caps->has_set_parm&RIG_PARM_BACKLIGHT) printf("BACKLIGHT ");
+		if (caps->has_set_parm&RIG_PARM_BEEP) printf("BEEP ");
+		if (caps->has_set_parm&RIG_PARM_TIME) printf("TIME ");
+		if (caps->has_set_parm&RIG_PARM_BAT) printf("BAT ");
+		printf("\n");
+	} else
+			printf("none\n");
+
 
 #if 0
 	/* FIXME: use rig->state.vfo_list instead */
@@ -357,13 +386,17 @@ int main (int argc, char *argv[])
 /* TODO: print rx/tx ranges here */
 	status = range_sanity_check(caps->tx_range_list1,0);
 	printf("TX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
+	if (status) backend_warnings++;
 	status = range_sanity_check(caps->rx_range_list1,1);
 	printf("RX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
+	if (status) backend_warnings++;
 
 	status = range_sanity_check(caps->tx_range_list2,0);
 	printf("TX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
+	if (status) backend_warnings++;
 	status = range_sanity_check(caps->rx_range_list2,1);
 	printf("RX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
+	if (status) backend_warnings++;
 
 	printf("Tuning steps:");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
@@ -371,9 +404,14 @@ int main (int argc, char *argv[])
 			printf("\n\t%s:   \t%s", freqbuf,
 							decode_modes(caps->tuning_steps[i].modes));
 	}
-	if (i==0)
+	if (i==0) {
 			printf(" none! This backend might be bogus!");
+			backend_warnings++;
+	}
 	printf("\n");
+	status = ts_sanity_check(caps->tuning_steps);
+	printf("Tuning steps status:\t%s (%d)\n",status?"Bad":"OK",status);
+	if (status) backend_warnings++;
 
 	printf("Filters:");
 	for (i=0; i<FLTLSTSIZ && caps->filters[i].modes; i++) {
@@ -381,8 +419,10 @@ int main (int argc, char *argv[])
 			printf("\n\t%s:   \t%s", freqbuf,
 							decode_modes(caps->filters[i].modes));
 	}
-	if (i==0)
+	if (i==0) {
 			printf(" none! This backend might be bogus!");
+			backend_warnings++;
+	}
 	printf("\n");
 
 	printf("Has priv data:\t%c\n",caps->priv!=NULL?'Y':'N');
@@ -412,6 +452,8 @@ int main (int argc, char *argv[])
 	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
 	printf("Can set RIT:\t%c\n",caps->set_rit!=NULL?'Y':'N');
 	printf("Can get RIT:\t%c\n",caps->get_rit!=NULL?'Y':'N');
+	printf("Can set XIT:\t%c\n",caps->set_xit!=NULL?'Y':'N');
+	printf("Can get XIT:\t%c\n",caps->get_xit!=NULL?'Y':'N');
 	printf("Can set CTCSS:\t%c\n",caps->set_ctcss!=NULL?'Y':'N');
 	printf("Can get CTCSS:\t%c\n",caps->get_ctcss!=NULL?'Y':'N');
 	printf("Can set DCS:\t%c\n",caps->set_dcs!=NULL?'Y':'N');
@@ -442,7 +484,9 @@ int main (int argc, char *argv[])
 	printf("Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
 	
 
-	return 0;
+	printf("\nOverall backend warnings: %d\n", backend_warnings);
+
+	return backend_warnings;
 }
 
 
@@ -480,7 +524,6 @@ static char *decode_modes(rmode_t modes)
  * ->fprintf(stderr,)!
  *
  * TODO: array is sorted in ascending freq order
- * TODO2: do as well for ts_sanity_check()
  */
 int range_sanity_check(const struct freq_range_list range_list[], int rx)
 {
@@ -504,6 +547,35 @@ int range_sanity_check(const struct freq_range_list range_list[], int rx)
 			}
 	}
 	if (i == FRQRANGESIZ)
+			return -4;
+
+	return 0;
+}
+
+/* 
+ * check for:
+ * - steps sorted in ascending order return_code=-1
+ * - modes are not 0		return_code=-2
+ * - array is ended by a {0,0,0,0,0} element (before boundary) rc=-4
+ *
+ * TODO: array is sorted in ascending freq order
+ */
+int ts_sanity_check(const struct tuning_step_list tuning_step[])
+{
+	int i;
+	shortfreq_t last_ts;
+
+	last_ts = 0;
+	for (i=0; i<TSLSTSIZ; i++) {
+			if (tuning_step[i].modes == 0 && tuning_step[i].ts == 0)
+					break;
+			if (tuning_step[i].ts < last_ts)
+					return -1;
+			if (tuning_step[i].modes == 0)
+					return -2;
+			last_ts = tuning_step[i].ts;
+	}
+	if (i == TSLSTSIZ)
 			return -4;
 
 	return 0;
