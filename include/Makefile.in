@@ -96,7 +96,11 @@ install_sh = @install_sh@
 includedir = @includedir@/hamlib
 
 noinst_HEADERS = config.h
-include_HEADERS = hamlib/rig.h hamlib/riglist.h hamlib/rig_dll.h hamlib/rigclass.h
+
+# Should be nobase_include_HEADERS
+include_HEADERS = hamlib/rig.h hamlib/riglist.h hamlib/rig_dll.h \
+		hamlib/rotator.h hamlib/rigclass.h
+
 subdir = include
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
