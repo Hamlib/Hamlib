@@ -9,6 +9,9 @@ AM_MAINTAINER_MODE
 # Minimum Autoconf version required.
 AC_PREREQ(2.50)
 
+dnl Pick up the Hamlib macros.
+AM_ACLOCAL_INCLUDE(macros)
+
 dnl directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
 AC_SUBST(hamlibdocdir)
@@ -40,7 +43,7 @@ AC_CHECK_HEADERS([windows.h winioctl.h winbase.h])
 AM_SYS_POSIX_TERMIOS
 
 INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
-CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+#CPPFLAGS="${CPPFLAGS} -D_ISOC99_SOURCE"
 if test "${ac_cv_c_compiler_gnu}" = "yes"; then
   CFLAGS="${CFLAGS} -Wall"
 fi
@@ -189,13 +192,20 @@ fi
 
 dnl Check if perl-binding not wanted, default is to not build it
 
-AC_CHECK_PROG(cf_with_perl, h2xs, [yes], [no])
+SC_PATH_PERLINC
+if test x"${no_perl}" = x; then
+	cf_with_perl=yes
+else
+	cf_with_perl=no
+fi
+
+#AC_CHECK_PROG(cf_with_perl, h2xs, [yes], [no])
 
 AC_MSG_CHECKING(whether to build perl binding and demo)
 AC_ARG_WITH(perl-binding,
         [  --with-perl-binding   build perl binding and demo],
         [cf_with_perl_binding=$withval],
-        [cf_with_perl_binding=no])
+        [cf_with_perl_binding=$cf_with_perl])
 AC_MSG_RESULT($cf_with_perl_binding)
 
 if test "${cf_with_perl_binding}" = "yes" ; then
@@ -261,8 +271,7 @@ esac
 
 # assumes we have libgnuradio, libfftw
 if test "${cf_with_cxx}" = "yes" ; then
-AC_CHECK_HEADERS([VrMultiTask.h])
-#AC_CHECK_LIB([gnuradio],[], [], [], [-lfftw -lrfftw])
+  PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.5)
   AC_MSG_CHECKING(whether to build gnuradio backend)
   AC_ARG_WITH(gnuradio,
         [  --with-gnuradio	build gnuradio backend],
@@ -272,16 +281,11 @@ AC_CHECK_HEADERS([VrMultiTask.h])
 
   if test "${cf_with_gnuradio}" = "yes" ; then
 	BACKEND_LIST="$BACKEND_LIST gnuradio"
-
-	# fix almost hardcoded path...
-	grpath="../../gnuradio-0.3"
-	#GNURADIO_LIBS="-L. -L${grpath}/src/gnu/lib -lgnuradio -lrfftw -lfftw"
-	GNURADIO_LIBS="${grpath}/src/gnu/lib/libgnuradio.la -lstdc++"
-	GNURADIO_FLAGS="-DUSE_LIBGXX_INLINES -D_REENTRANT -DPARANOID=1 -DCACHESIZE=262144 -I${grpath}/src/gnu/lib/gr -I${grpath}/src/gnu/lib/grio -I${grpath}/src/gnu/lib/grgui -I${grpath}/src/gnu/lib/dtv -I${grpath}/src/pspectra/lib/vr -I${grpath}/src/pspectra/lib/vrp -I${grpath}/src/pspectra/lib/vrio"
   fi
 fi
+
+AC_SUBST(GNURADIO_CFLAGS)
 AC_SUBST(GNURADIO_LIBS)
-AC_SUBST(GNURADIO_FLAGS)
 
 
 # RPCRig must be the last one added to BACKEND_LIST 
@@ -326,7 +330,10 @@ AC_SUBST(BINDING_LIST)
 
 AC_SUBST(INCLUDES)
 
+#tcl/Makefile
+#perl/Makefile
 AC_CONFIG_FILES([Makefile
+macros/Makefile
 include/Makefile
 lib/Makefile
 dummy/Makefile
@@ -348,14 +355,12 @@ rpcrig/Makefile
 rpcrot/Makefile
 src/Makefile
 c++/Makefile
-tcl/Makefile
 kylix/Makefile
-perl/Makefile
 bindings/Makefile
 tests/Makefile
 doc/Makefile
-hamlib.spec],
-[ chmod +x tcl/tcltest.tcl ]
+hamlib.pc
+hamlib.spec]
 )
 AC_OUTPUT
 
