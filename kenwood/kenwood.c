@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.46 2002-09-13 19:57:39 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.47 2002-09-15 22:22:39 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -621,6 +621,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		level_len = sprintf(levelbuf, "SQ%03d;", kenwood_val);
 		break;
 
+		case RIG_LEVEL_AGC:
+		level_len = sprintf(levelbuf, "GT%03d;", kenwood_val);
+		break;
+
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
 			return -RIG_EINVAL;
@@ -674,7 +678,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		unsigned char lvlbuf[50];
 		int lvl_len, retval;
 		int lvl;
-		int i;
+		int i, ret, agclevel;
 
 		lvl_len = 50;
 		/* Optimize:
@@ -749,7 +753,13 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return get_kenwood_level(rig, "MG;", 3, &val->f);
 
 		case RIG_LEVEL_AGC:
-			return get_kenwood_level(rig, "GT;", 3, &val->f);
+			ret = get_kenwood_level(rig, "GT;", 3, &val->f);
+			agclevel = 255 * val->f;
+			if (agclevel == 0) val->i = 0;
+			else if (agclevel < 85) val->i = 1;
+			else if (agclevel < 170) val->i = 2;
+			else if (agclevel <= 255) val->i = 3;
+			return ret;
 
 		case RIG_LEVEL_IF:
 		case RIG_LEVEL_APF:
