@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.4 2000-10-16 22:30:32 f4cfe Exp $  
+ * $Id: frame.c,v 1.5 2000-11-01 23:21:47 f4cfe Exp $  
  *
  *
  *
@@ -80,54 +80,6 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
 		i += data_len;
 	}
 
-	frame[i++] = FI;		/* EOM code */
-
-	return i;
-}
-
-int make_cmd_frame_freq(char frame[], char re_id, char cmd, int subcmd, freq_t freq, int ic731_mode)
-{
-	int freq_len;
-	int i = 0;
-
-	frame[i++] = PAD;	/* give old rigs a chance to flush their rx buffers */
-	frame[i++] = PR;	/* Preamble code */
-	frame[i++] = PR;
-	frame[i++] = re_id;
-	frame[i++] = CTRLID;
-	frame[i++] = cmd;
-	if (subcmd != -1)
-			frame[i++] = subcmd & 0xff;
-
-	freq_len = ic731_mode ? 4:5;
-	to_bcd(frame+i, freq, freq_len*2);	/* to_bcd requires nibble len */
-
-	i += freq_len;
-	frame[i++] = FI;		/* EOM code */
-
-	return i;
-}
-
-/*
- * for C_SET_MEM, subcmd=-1
- */
-int 
-make_cmd_frame_chan(char frame[], char re_id, char cmd, int subcmd, int chan)
-{
-	int i = 0;
-
-	frame[i++] = PAD;	/* give old rigs a chance to flush their rx buffers */
-	frame[i++] = PR;	/* Preamble code */
-	frame[i++] = PR;
-	frame[i++] = re_id;
-	frame[i++] = CTRLID;
-	frame[i++] = cmd;
-	if (subcmd != -1)
-			frame[i++] = subcmd & 0xff;
-
-	to_bcd(frame+i, (freq_t)chan, 4);	/* to_bcd requires nibble len */
-
-	i += 2;		/* channel number is on 4 digits = 2 octets */
 	frame[i++] = FI;		/* EOM code */
 
 	return i;
@@ -216,7 +168,7 @@ int read_icom_block(FILE *stream, unsigned char *rxbuffer, size_t count, int tim
 /*
  * read_icom_frame
  * read a whole CI-V frame (until 0xfd is encountered)
- * TODO: strips pading/collisions
+ * TODO: strips padding/collisions
  * FIXME: check return codes/bytes read
  */
 int read_icom_frame(FILE *stream, unsigned char rxbuffer[], int timeout)
@@ -291,6 +243,7 @@ rmode_t icom2hamlib_mode(unsigned short icmode)
 		case S_USB:	mode = RIG_MODE_USB; break;
 		case S_LSB:	mode = RIG_MODE_LSB; break;
 		case S_RTTY:	mode = RIG_MODE_RTTY; break;
+		case 0xff:	mode = 0; break;	/* blank mem channel */
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode %#.2x\n",
