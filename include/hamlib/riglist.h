@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.23 2002-01-27 14:51:23 fillods Exp $
+ *		$Id: riglist.h,v 1.24 2002-03-05 00:45:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -143,14 +143,14 @@
 	/*
 	 * Optoelectronics (CI-V)
 	 */
-#define RIG_MODEL_MINISCOUT RIG_MAKE_MODEL(RIG_ICOM, 44)
-#define RIG_MODEL_XPLORER RIG_MAKE_MODEL(RIG_ICOM, 45)
+#define RIG_MODEL_MINISCOUT RIG_MAKE_MODEL(RIG_ICOM, 48)
+#define RIG_MODEL_XPLORER RIG_MAKE_MODEL(RIG_ICOM, 49)
 
 	/*
 	 * TenTec (CI-V)
 	 */
-#define RIG_MODEL_OMNIVI RIG_MAKE_MODEL(RIG_ICOM, 46)
-#define RIG_MODEL_OMNIVIP RIG_MAKE_MODEL(RIG_ICOM, 47) /* OMNI-IV+ */
+#define RIG_MODEL_OMNIVI RIG_MAKE_MODEL(RIG_ICOM, 50)
+#define RIG_MODEL_OMNIVIP RIG_MAKE_MODEL(RIG_ICOM, 51) /* OMNI-IV+ */
 
 	/*
 	 * Icom PCR
