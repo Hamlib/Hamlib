@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.4 2000-10-23 19:55:11 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.5 2000-11-28 22:28:30 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -53,19 +53,20 @@ enum rig_model_e {
 	/*
 	 * Kenwood
 	 */
-	RIG_MODEL_TS570D,
-	RIG_MODEL_TS870S,
-	RIG_MODEL_TS850,
-	RIG_MODEL_TS950,
-	RIG_MODEL_TS711,
-	RIG_MODEL_TS811,
-	RIG_MODEL_TS940,
-	RIG_MODEL_TS440,
-	RIG_MODEL_TSR5000,
-	RIG_MODEL_TS450S,
-	RIG_MODEL_TS690S,
-	RIG_MODEL_TS950SDX,
 	RIG_MODEL_TS50,
+	RIG_MODEL_TS440,
+	RIG_MODEL_TS450S,
+	RIG_MODEL_TS570D,
+	RIG_MODEL_TS690S,
+	RIG_MODEL_TS711,
+	RIG_MODEL_TS790,
+	RIG_MODEL_TS811,
+	RIG_MODEL_TS850,
+	RIG_MODEL_TS870S,
+	RIG_MODEL_TS940,
+	RIG_MODEL_TS950,
+	RIG_MODEL_TS950SDX,
+	RIG_MODEL_R5000,
 
 	/*
 	 * Icom
@@ -174,6 +175,7 @@ enum rig_model_e {
 	 * Lowe
 	 */
 	RIG_MODEL_HF150,
+	RIG_MODEL_HF225,
 	RIG_MODEL_HF250,
 
 	/*
@@ -197,6 +199,13 @@ enum rig_model_e {
 	RIG_MODEL_EK891,
 	RIG_MODEL_EK895,
 	RIG_MODEL_EK070,
+
+	/*
+	 * Skanti
+	 */
+	RIG_MODEL_TRP7000,
+	RIG_MODEL_TRP8000,
+	RIG_MODEL_TRP9000,
 
 	RIG_MODEL_KWZ30,	/* KNEISNER +DOERING */
 	RIG_MODEL_E1800,	/* DASA-Telefunken */
