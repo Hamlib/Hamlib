@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.6 2000-10-10 21:58:31 f4cfe Exp $  
+ * $Id: icom.c,v 1.7 2000-10-16 22:34:22 f4cfe Exp $  
  *
  *
  *
@@ -145,46 +145,46 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC706, 0x48 },
 		{ RIG_MODEL_IC706MKII, 0x4e },
 		{ RIG_MODEL_IC706MKIIG, 0x58 },
-		{ RIG_MODEL_IC1271, 0x24 },
-		{ RIG_MODEL_IC1275, 0x18 },
 		{ RIG_MODEL_IC271, 0x20 },
 		{ RIG_MODEL_IC275, 0x10 },
 		{ RIG_MODEL_IC375, 0x12 },
 		{ RIG_MODEL_IC471, 0x22 },
 		{ RIG_MODEL_IC475, 0x14 },
 		{ RIG_MODEL_IC575, 0x16 },
+		{ RIG_MODEL_IC707, 0x3e },
 		{ RIG_MODEL_IC725, 0x28 },
 		{ RIG_MODEL_IC726, 0x30 },
+		{ RIG_MODEL_IC728, 0x38 },
+		{ RIG_MODEL_IC729, 0x3a },
 		{ RIG_MODEL_IC731, 0x04 },
 		{ RIG_MODEL_IC735, 0x04 },
+		{ RIG_MODEL_IC736, 0x40 },
+		{ RIG_MODEL_IC746, 0x56 },
+		{ RIG_MODEL_IC737, 0x3c },
+		{ RIG_MODEL_IC738, 0x44 },
 		{ RIG_MODEL_IC751, 0x1c },
 		{ RIG_MODEL_IC751A, 0x1c },
 		{ RIG_MODEL_IC756, 0x50 },
+		{ RIG_MODEL_IC756PRO, 0x5c },
 		{ RIG_MODEL_IC761, 0x1e },
 		{ RIG_MODEL_IC765, 0x2c },
 		{ RIG_MODEL_IC775, 0x46 },
 		{ RIG_MODEL_IC781, 0x26 },
+		{ RIG_MODEL_IC820, 0x42 },
 		{ RIG_MODEL_IC821, 0x4c },
 		{ RIG_MODEL_IC821H, 0x4c },
 		{ RIG_MODEL_IC970, 0x2e },
-		{ RIG_MODEL_ICR7000, 0x08 },
+		{ RIG_MODEL_IC1271, 0x24 },
+		{ RIG_MODEL_IC1275, 0x18 },
 		{ RIG_MODEL_ICR71, 0x1a },
-		{ RIG_MODEL_ICR7100, 0x34 },
 		{ RIG_MODEL_ICR72, 0x32 },
+		{ RIG_MODEL_ICR75, 0x5a },
+		{ RIG_MODEL_ICR7000, 0x08 },
+		{ RIG_MODEL_ICR7100, 0x34 },
 		{ RIG_MODEL_ICR8500, 0x4a },
 		{ RIG_MODEL_ICR9000, 0x2a },
-		{ RIG_MODEL_ICR75, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC707, UNKNOWN_ADDR },
+		{ RIG_MODEL_MINISCOUT, 0x94 },
 		{ RIG_MODEL_IC718, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC728, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC729, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC731, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC736, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC737, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC738, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC746, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC756PRO, UNKNOWN_ADDR },
-		{ RIG_MODEL_IC820, UNKNOWN_ADDR },
 		{ -1, 0 },
 };
 
@@ -434,41 +434,161 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
 /*
  * icom_get_strength
- * Assumes rig!=NULL, rig->state.priv!=NULL, freq!=NULL
+ * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_get_strength(RIG *rig, int *strength)
+int icom_set_level(RIG *rig, setting_t set, value_t val)
+{
+			return -RIG_ENIMPL;
+}
+
+/*
+ * icom_get_strength
+ * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ */
+int icom_get_level(RIG *rig, setting_t set, value_t *val)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
-		unsigned char strbuf[16];
-		int str_len;
-		float str;
+		unsigned char lvlbuf[16];
+		int lvl_len;
+		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
+		int icom_val;
 
 		rig_s = &rig->state;
 		priv = (struct icom_priv_data*)rig_s->priv;
 
-		icom_transaction (rig, C_RD_SQSM, S_SML, NULL, 0, strbuf, &str_len);
+
+		switch (set) {
+		case RIG_LEVEL_PREAMP:
+			lvl_cn = C_CTL_FUNC;
+			lvl_sc = S_FUNC_PAMP;
+			break;
+		case RIG_LEVEL_ATT:
+			lvl_cn = C_CTL_ATT;
+			lvl_sc = -1;
+			break;
+		case RIG_LEVEL_ANT:
+			lvl_cn = C_CTL_ANT;
+			lvl_sc = -1;
+			break;
+		case RIG_LEVEL_AF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_AF;
+			break;
+		case RIG_LEVEL_RF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_RF;
+			break;
+		case RIG_LEVEL_SQL:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_SQL;
+			break;
+		case RIG_LEVEL_IF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_IF;
+			break;
+		case RIG_LEVEL_APF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_APF;
+			break;
+		case RIG_LEVEL_NR:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_NR;
+			break;
+		case RIG_LEVEL_PBT_IN:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_PBTIN;
+			break;
+		case RIG_LEVEL_PBT_OUT:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_PBTOUT;
+			break;
+		case RIG_LEVEL_CWPITCH:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_CWPITCH;
+			break;
+		case RIG_LEVEL_RFPOWER:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_RFPOWER;
+			break;
+		case RIG_LEVEL_MICGAIN:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_MICGAIN;
+			break;
+		case RIG_LEVEL_KEYSPD:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_KEYSPD;
+			break;
+		case RIG_LEVEL_NOTCHF:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_NOTCHF;
+			break;
+		case RIG_LEVEL_COMP:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_COMP;
+			break;
+		case RIG_LEVEL_AGC:
+			lvl_cn = C_CTL_FUNC;
+			lvl_sc = S_FUNC_AGC;
+			break;
+		case RIG_LEVEL_BKINDL:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_BKINDL;
+			break;
+		case RIG_LEVEL_BALANCE:
+			lvl_cn = C_CTL_LVL;
+			lvl_sc = S_LVL_BALANCE;
+			break;
+		case RIG_LEVEL_ANN:
+			lvl_cn = C_CTL_ANN;
+			lvl_sc = -1;
+			break;
+
+		case RIG_LEVEL_SQLSTAT:
+			lvl_cn = C_RD_SQSM;
+			lvl_sc = S_SQL;
+			break;
+		case RIG_LEVEL_STRENGTH:
+			lvl_cn = C_RD_SQSM;
+			lvl_sc = S_SML;
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get level %d", set);
+			return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0, lvlbuf, &lvl_len);
 
 		/*
 		 * strbuf should contain Cn,Sc,Data area
 		 */
-		str_len-=2;
-		if (str_len != 2) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_strength: wrong frame len=%d\n",
-								str_len);
+		lvl_len-=2;
+#if 0
+		if (lvl_len != 2) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_level: wrong frame len=%d\n",
+								lvl_len);
 				return -RIG_EPROTO;
 		}
+#endif
 
 		/*	
 		 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
 		 * (from_bcd is little endian)
 		 */
-		str = (strbuf[2]&0x0f)*100+ (strbuf[3]>>4)*10 + (strbuf[3]&0x0f);
-#ifndef DONT_WANT_STR_DB
-		/* translate it to dBs */
-		str = (str-47)*114/(223-47);
+		icom_val = from_bcd_be(lvlbuf+2, lvl_len*2);
+
+#define STR_FLOOR 44.0
+#define STR_CEILING 223.0
+#define STR_MAX 114.0	/* S9+60db */
+#ifndef max
+#define max(a,b) ((a)>(b)?(a):(b))
 #endif
-		*strength = rint(str);
+		/* translate to db */
+		if (set == RIG_LEVEL_STRENGTH)
+			val->i = rint(STR_MAX/(STR_CEILING-STR_FLOOR)*max(icom_val-STR_FLOOR,0));
+		else
+			val->i = icom_val;
+		rig_debug(RIG_DEBUG_VERBOSE,"%d %d %d\n",lvl_len,icom_val,val->i);
 
 		return RIG_OK;
 }
@@ -688,6 +808,102 @@ int icom_get_ts(RIG *rig, unsigned long *ts)
 		if (i >= TSLSTSIZ) {
 				return -RIG_EPROTO;	/* not found, unsupported */
 		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_set_channel
+ * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ */
+int icom_set_channel(RIG *rig, const channel_t *chan)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char chanbuf[24], ackbuf[16];
+		int chan_len,freq_len,ack_len;
+		int icmode;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		to_bcd_be(chanbuf,chan->channel_num,4);
+
+		chanbuf[2] = S_MEM_CNTNT_SLCT;
+
+		freq_len = priv->civ_731_mode ? 4:5;
+		/*	
+		 * to_bcd requires nibble len
+		 */
+		to_bcd(chanbuf+3, chan->freq, freq_len*2);
+
+		chan_len = 3+freq_len+1;
+
+		icmode = hamlib2icom_mode(chan->mode);
+		chanbuf[chan_len++] = icmode&0xff;
+		chanbuf[chan_len++] = icmode>>8;
+		to_bcd_be(chanbuf+chan_len++,chan->att,2);
+		to_bcd_be(chanbuf+chan_len++,chan->preamp,2);
+		to_bcd_be(chanbuf+chan_len++,chan->ant,2);
+		memset(chanbuf+chan_len, 0, 8);
+		strncpy(chanbuf+chan_len, chan->channel_desc, 8);
+		chan_len += 8;
+
+		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_channel: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_get_channel
+ * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
+ */
+int icom_get_channel(RIG *rig, channel_t *chan)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char chanbuf[24];
+		int chan_len,freq_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		to_bcd_be(chanbuf,chan->channel_num,4);
+		chan_len = 2;
+
+		freq_len = priv->civ_731_mode ? 4:5;
+
+		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len, chanbuf, &chan_len);
+
+		/*
+		 * freqbuf should contain Cn,Data area
+		 */
+		chan_len--;
+		if (freq_len != freq_len+16) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_channel: wrong frame len=%d\n",
+								chan_len);
+				return -RIG_ERJCTED;
+		}
+
+		/*	
+		 * from_bcd requires nibble len
+		 */
+		chan->freq = from_bcd(chanbuf+4, freq_len*2);
+
+		chan_len = 4+freq_len+1;
+
+		chan->mode = icom2hamlib_mode(chanbuf[chan_len] | chanbuf[chan_len+1]);
+		chan_len += 2;
+		chan->att = from_bcd_be(chanbuf+chan_len++,2);
+		chan->preamp = from_bcd_be(chanbuf+chan_len++,2);
+		chan->ant = from_bcd_be(chanbuf+chan_len++,2);
+		strncpy(chan->channel_desc, chanbuf+chan_len, 8);
 
 		return RIG_OK;
 }
