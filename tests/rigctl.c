@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.38 2002-10-07 21:50:54 fillods Exp $  
+ * $Id: rigctl.c,v 1.39 2002-11-28 22:25:46 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -94,6 +94,8 @@ declare_proto_rig(set_freq);
 declare_proto_rig(get_freq);
 declare_proto_rig(set_rit);
 declare_proto_rig(get_rit);
+declare_proto_rig(set_xit);
+declare_proto_rig(get_xit);
 declare_proto_rig(set_mode);
 declare_proto_rig(get_mode);
 declare_proto_rig(set_vfo);
@@ -135,13 +137,15 @@ declare_proto_rig(set_trn);
 declare_proto_rig(get_trn);
 declare_proto_rig(get_info);
 declare_proto_rig(dump_caps);
+declare_proto_rig(set_ant);
+declare_proto_rig(get_ant);
 
 
 
 /*
  * convention: upper case cmd is set, lowercase is get
  *
- * TODO: add missing rig_set_/rig_get_: [rx]it, ant, sql, dcd, etc.
+ * TODO: add missing rig_set_/rig_get_: sql, dcd, etc.
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
  *
  *	Available alphabetic letters: -.--------K-----*-----W-YZ
@@ -191,6 +195,10 @@ struct test_table test_list[] = {
 		{ '_', "get_info", get_info, ARG_OUT, "Info" },
 		{ '2', "power2mW", power2mW },
 		{ 0x80, "dump_caps", dump_caps },
+		{ 0x81, "set_xit", set_xit, ARG_IN, "XIT" },
+		{ 0x82, "get_xit", get_xit, ARG_OUT, "XIT" },
+		{ 0x83, "set_ant", set_ant, ARG_IN, "Antenna" },
+		{ 0x84, "get_ant", get_ant, ARG_OUT, "Antenna" },
 		{ 0x00, "", NULL },
 
 };
@@ -767,6 +775,28 @@ declare_proto_rig(get_rit)
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%ld\n", rit);
+		return status;
+}
+
+declare_proto_rig(set_xit)
+{
+		shortfreq_t xit;
+
+		sscanf(arg1, "%ld", &xit);
+		return rig_set_xit(rig, RIG_VFO_CURR, xit);
+}
+
+declare_proto_rig(get_xit)
+{
+		int status;
+		shortfreq_t xit;
+
+		status = rig_get_xit(rig, RIG_VFO_CURR, &xit);
+		if (status != RIG_OK)
+				return status;
+		if (interactive)
+			printf("%s: ", cmd->arg1);
+		printf("%ld\n", xit);
 		return status;
 }
 
@@ -1502,6 +1532,28 @@ declare_proto_rig(dump_caps)
 		dumpcaps(rig);
 
 		return RIG_OK;
+}
+
+declare_proto_rig(set_ant)
+{
+	ant_t ant;
+
+	sscanf(arg1, "%d", &ant);
+	return rig_set_ant(rig, RIG_VFO_CURR, rig_idx2setting(ant));
+}
+
+declare_proto_rig(get_ant)
+{
+	int status;
+	ant_t ant;
+
+	status = rig_get_ant(rig, RIG_VFO_CURR, &ant);
+	if (status != RIG_OK)
+		return status;
+	if (interactive)
+		printf("%s: ", cmd->arg1);
+	printf("%d\n", rig_setting2idx(ant));
+	return status;
 }
 
 
