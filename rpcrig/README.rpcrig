@@ -1,0 +1,105 @@
+				************
+				* rpc.rigd *
+				************
+
+	This is a simple HOWTO for the running rpc.rigd and connecting
+	to it.  I've only just started playing with it and have not
+	tried anything special.
+
+	First, I could not get hamlib-1.1.3 to work.  I didn't try
+	very hard since the CVS source works.  If it works for you
+	let somebody know.
+
+	rpc.rigd is a daemon that connects to your rig.  It works
+	much like your modem dialup except it connects to your
+	Ham rig instead of the phone (yea, I liked the sound of
+	that too).
+
+	I'll describe the simple configuration I have and use
+	it for all descriptions.
+		laptop:	-connected to rig via serial
+			-connected to second computer via ethernet
+
+		computer:
+			-connected to ethernet
+			-much faster that laptop
+
+	I'll call the login for each rig "hamrig" and the domain
+	super.tux.  Thus we have "hamrig@cpu1.super.tux" and
+	"hamrig@laptop.super.tux".
+
+Quickstart:
+	Login to hamrig@laptop.super.tux which has the serial
+	connected to your rig--the infamous MoonMelter.  Issue
+	the following command substituting the "correct" info:
+
+		cd hamlib/rpcrig
+		./rpc.rigd -m 214 -r /dev/ttyS1 -vvvvv &
+
+	Now login to hamrig@cpu1.super.tux and issue the
+	following:
+
+		rigctl -m 1901 -r laptop.super.tux -vvvvv
+
+	You should see your rig identified and a bunch of debug
+	information.
+
+Explaination:
+	You must have compiled and installed Hamlib libraries,
+	and the network must be up and running.
+
+	The binary for rpcrig is "hamlib/rpcrig/rpc.rigd".  It
+	currently only lives there so change directory to rpcrig/
+	and look for it.  If you use VPATH you just change the
+	hamlib/ with VPATH/ and look there.  I *always* use VPATH
+	so I use cd cvs/rpcrig/ where cvs/ is my VPATH.  If you
+	do:
+
+		../hamlib/configure
+
+	instead of:
+
+		./configure
+
+	then you are using VPATH.
+
+myrig@laptop.super.tux:
+	The -m 214 on the first command selects the Kenwood TS-2000
+	so you would do 'listrigs' to view the list and find your
+	rig (the MoonMelter requires secret codes an such and is
+	not listed--hi).  You would find your rig and use the
+	number listed (e.g. 123 for ABC corporation's "AsEasyAs"
+	rig).  The -r /dev/ttyS1 is the serial port I use.  You
+	will have to sort this out.  Also, the serial device may
+	be write protected.  If you get errors check that first.
+
+myrig@cpu1.super.tux:
+	The -m 1901 is the same for everybody.  It is the rpcrig
+	and must be used as shown.  The -r laptop.super.tux will
+	be your host and domain (but not the user).  If your linux
+	doesn't have an /etc/services entry for rpc you need to
+	do two things:
+
+		1) change to reasonable distribution of linux (hi)
+		2) read the related howto and add rpc services.
+
+	Mine worked the first time I tried it after Stephane
+	posted the command info on the developer's list.  So don't
+	worry too much if it don't work the first attempt.  Several
+	thing must be working just like telnet, ssh, or whatever.
+
+	The -vvvvv is just to enable debugging messages.  When you
+	try the the first few times or report error use this (5 'v')
+	make sure it is used.
+
+	I hope this helps.  I've also included rpcrig.status which
+	lists the commands that worked for me on the TS-2000.  This
+	will help you to determine if you have problems.
+
+	Also, ssh or telent to hamrig@laptop.super.tux and run
+	rigctl there using your rig options.  This must be working
+	first!
+
+	73's
+
+	Dale E. Edmons, KD7ENI
