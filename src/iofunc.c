@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.10 2003-10-01 19:44:00 fillods Exp $
+ *	$Id: iofunc.c,v 1.11 2003-10-17 22:53:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,6 +42,7 @@
 #include "win32termios.h"
 #define read win32_serial_read
 #define write win32_serial_write
+#define select win32_serial_select
 #endif
 
 /*

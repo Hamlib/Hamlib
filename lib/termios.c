@@ -3,18 +3,21 @@
 #endif
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
-#ifdef TRENT_IS_HERE
-#define TRACE
-#define DEBUG
-#define DEBUG_MW
-#ifdef DEBUG_MW
-	extern void mexWarMsgTxt( const char * );
-	extern void mexPrintf( const char *, ... );
-#endif /* DEBUG_MW */
-#endif /* TRENT_IS_HERE */
+
+#undef DEBUG
+#undef TRACE
+
+#ifdef DEBUG
+#define DEBUG_VERBOSE
+#define DEBUG_ERRORS
+#define report(a) fprintf(stderr,a)
+#define report_warning(a) fprintf(stderr,a)
+#define report_error(a) fprintf(stderr,a)
+#else
 #define report(a) do {} while (0)
 #define report_warning(a) do {} while (0)
 #define report_error(a) do {} while (0)
+#endif /* DEBUG */
 /*-------------------------------------------------------------------------
 |   rxtx is a native interface to serial ports in java.
 |   Copyright 1997-2002 by Trent Jarvi taj@www.linux.org.uk.
@@ -43,6 +46,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
+#include <limits.h>
 #include "win32termios.h"
 
 /*
@@ -2252,6 +2256,7 @@ int tcsetattr( int fd, int when, struct termios *s_termios )
 	DCB dcb;
 	COMMTIMEOUTS timeouts;
 	struct termios_list *index;
+	char message[80];
 
 	ENTER( "tcsetattr" );
 	if ( fd <= 0 )
@@ -3148,6 +3153,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	struct termios_list *index;
 	char message[80];
 	COMSTAT Stat;
+	int ret;
 
 	ENTER( "serial_select" );
 	if ( fd <= 0 )
@@ -3157,6 +3163,21 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	}
 
 	index = find_port( fd );
+
+	if ( !index )
+		goto fail;
+
+#define DATA_AVAILABLE     1
+
+        //nativeSetEventFlag( fd, SerialPortEvent.DATA_AVAILABLE, enable );
+	if (readfds) {
+		int eventflags[12];
+		memset(eventflags, 0, sizeof(eventflags));
+
+		eventflags[DATA_AVAILABLE] = 1;
+		termios_setflags( fd, eventflags );
+	}
+
 	if ( !index || !index->event_flag )
 	{
 		/* still setting up the port? hold off for a Sec so
@@ -3166,13 +3187,43 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		   usleep(1000000)
 		*/
 		usleep(10000);
+		LEAVE( "serial_uselect" );
 		return(0);
 	}
 
 	ResetEvent( index->wol.hEvent );
 	ResetEvent( index->sol.hEvent );
 	ResetEvent( index->rol.hEvent );
-	ClearErrors( index, &Stat );
+	ret = ClearErrors( index, &Stat );
+#if 1
+	if ( ret == 0 ) {
+		goto fail;
+	}
+	/* look only after read */
+	if (readfds && !writefds && !exceptfds) {
+		int timeout_usec = timeout ? timeout->tv_sec*1000000 + timeout->tv_usec : INT_MAX;
+
+		while (timeout_usec > 0) {
+			sprintf( message, "wait for data in read buffer%d\n", Stat.cbInQue );
+			report( message );
+
+			if (Stat.cbInQue != 0) {
+				goto end;
+			}
+
+			usleep(10000);
+			/* FIXME: not very accurate wrt process time */
+			timeout_usec -= 10000;
+
+			report( "sleep...\n" );
+
+			ret = ClearErrors( index, &Stat );
+			if ( ret == 0 ) {
+				goto fail;
+			}
+		}
+	}
+#endif
 	while ( wait == WAIT_TIMEOUT && index->sol.hEvent )
 	{
 		if( index->interrupt == 1 )
@@ -3211,7 +3262,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 	}
 end:
 	/*  You may want to chop this out for lower latency */
-	usleep(1000)
+	usleep(1000);
 	LEAVE( "serial_select" );
 	return( 1 );
 timeout:

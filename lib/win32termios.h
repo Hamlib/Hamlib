@@ -124,7 +124,7 @@ int win32_serial_write(int fd, const char *Str, int length);
  */
 #ifndef __LCC__
 int win32_serial_select(int, struct fd_set *, struct fd_set *, struct fd_set *, struct timeval *);
-#define select win32_serial_select
+#define SELECT win32_serial_select
 #endif
 
 #define OPEN win32_serial_open

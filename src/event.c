@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.22 2003-09-07 18:30:28 fillods Exp $
+ *	$Id: event.c,v 1.23 2003-10-17 22:53:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,6 +47,7 @@
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #include "win32termios.h"
+#define select win32_serial_select
 #endif
 
 #ifndef DOC_HIDDEN
