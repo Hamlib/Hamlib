@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Elektor DRM receiver description
  *  Copyright (c) 2004 by Stephane Fillod
  *
- *	$Id: elektor304.c,v 1.1 2004-04-16 20:29:51 fillods Exp $
+ *	$Id: elektor304.c,v 1.2 2004-08-01 23:14:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -84,7 +84,7 @@ const struct rig_caps elektor304_caps = {
 .rig_model =  RIG_MODEL_ELEKTOR304,
 .model_name = "Elektor 3/04",
 .mfg_name =  "Elektor",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "GPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
