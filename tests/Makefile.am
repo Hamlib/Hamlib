@@ -5,7 +5,7 @@ DEJATOOL = testfreq testbcd testloc rigctl
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigmem rigswr rotctl
-man_MANS = rigctl.1 rigmem.1 rigswr.1 iotctl.1
+man_MANS = rigctl.1 rigmem.1 rigswr.1 rotctl.1
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench @RIGMATRIX@
 
