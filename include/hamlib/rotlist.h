@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rotators
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.5 2002-11-12 00:11:54 fillods Exp $
+ *	$Id: rotlist.h,v 1.6 2002-11-28 22:24:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -92,6 +92,16 @@
 #define ROT_MODEL_EASYCOMM1 ROT_MAKE_MODEL(ROT_EASYCOMM, 1)
 #define ROT_MODEL_EASYCOMM2 ROT_MAKE_MODEL(ROT_EASYCOMM, 2)
 
+/*! \def ROT_MODEL_FODTRACK
+ *  \brief A macro that returns the model number of the Fodtrack backend.
+ *
+ *  The Fodtrack backend can be used with rotators that support the
+ *  FODTRACK Standard.
+ */
+#define ROT_FODTRACK 3
+#define ROT_BACKEND_FODTRACK "fodtrack"
+#define ROT_MODEL_FODTRACK ROT_MAKE_MODEL(ROT_FODTRACK, 1)
+
 
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
@@ -110,6 +120,7 @@ typedef int rot_model_t;
 		{ ROT_DUMMY, ROT_BACKEND_DUMMY }, \
 		{ ROT_RPC, ROT_BACKEND_RPC }, \
 		{ ROT_EASYCOMM, ROT_BACKEND_EASYCOMM }, \
+		{ ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
 		{ 0, NULL }, /* end */  \
 }
 

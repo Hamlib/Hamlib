@@ -264,6 +264,8 @@ case "$host_os" in
  linux-gnu*)
  # Winradio only under Linux (until someone port it on other os)
  BACKEND_LIST="$BACKEND_LIST winradio"
+ # TODO: support parallel port interface on other systems too
+ ROT_BACKEND_LIST="$ROT_BACKEND_LIST fodtrack"
  ;;
  *) 
 esac
@@ -372,6 +374,7 @@ jrc/Makefile
 drake/Makefile
 gnuradio/Makefile
 easycomm/Makefile
+fodtrack/Makefile
 rpcrig/Makefile
 rpcrot/Makefile
 src/Makefile
