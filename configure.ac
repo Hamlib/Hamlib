@@ -131,10 +131,10 @@ AC_SUBST(MATH_LIBS)
 AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS([atexit snprintf select gettimeofday memmove memset])
+AC_CHECK_FUNCS([atexit snprintf select memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
 AC_CHECK_FUNCS([cfmakeraw setitimer])
-AC_REPLACE_FUNCS([getopt_long usleep])
+AC_REPLACE_FUNCS([getopt_long usleep gettimeofday])
 AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
