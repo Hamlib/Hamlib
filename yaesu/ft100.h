@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.1 2002-02-26 01:18:48 fillods Exp $  
+ *    $Id: ft100.h,v 1.2 2002-03-04 13:01:06 avflinsch Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 #define _FT100_H 1
 
 #define FT100_WRITE_DELAY                    0
-#define FT100_POST_WRITE_DELAY               300
+#define FT100_POST_WRITE_DELAY               100     /* max is 200ms */
 #define FT100_DEFAULT_READ_TIMEOUT           2000
 
 enum ft100_native_cmd_e {
@@ -47,11 +47,13 @@ enum ft100_native_cmd_e {
   FT100_NATIVE_CAT_SET_MODE_AM,
   FT100_NATIVE_CAT_SET_MODE_FM,
   FT100_NATIVE_CAT_SET_MODE_DIG,
-  FT100_NATIVE_CAT_SET_MODE_PKT,
+  FT100_NATIVE_CAT_SET_MODE_WFM,
   FT100_NATIVE_CAT_CLAR_ON,
   FT100_NATIVE_CAT_CLAR_OFF,
   FT100_NATIVE_CAT_SET_CLAR_FREQ,
   FT100_NATIVE_CAT_SET_VFOAB,
+  FT100_NATIVE_CAT_SET_VFOA,
+  FT100_NATIVE_CAT_SET_VFOB,   
   FT100_NATIVE_CAT_SPLIT_ON,
   FT100_NATIVE_CAT_SPLIT_OFF,
   FT100_NATIVE_CAT_SET_RPT_SHIFT_MINUS,
@@ -93,20 +95,40 @@ int ft100_init(RIG *rig);
 int ft100_open(RIG *rig);
 int ft100_cleanup(RIG *rig);
 int ft100_close(RIG *rig);
+
 int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
 int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
 int ft100_set_vfo(RIG *rig, vfo_t vfo);
 int ft100_get_vfo(RIG *rig, vfo_t *vfo);
+
 int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+
 int ft100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
 int ft100_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int ft100_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+
 int ft100_set_parm(RIG *rig, setting_t parm, value_t val);
 int ft100_get_parm(RIG *rig, setting_t parm, value_t *val);
+
+int ft100_set_split(RIG *rig, vfo_t vfo, split_t split);
+int ft100_get_split(RIG *rig, vfo_t vfo, split_t *split);
+
+int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
+int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);			 
+
+int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
+
+int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+
 
 #endif /* _FT100_H */
 
