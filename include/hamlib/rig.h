@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.90 2003-12-24 09:07:52 fillods Exp $
+ *	$Id: rig.h,v 1.91 2004-01-15 23:04:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -254,12 +254,10 @@ typedef enum {
 
 /**
  * \brief Frequency type,
- * Frequency type unit in Hz, able to hold SHF frequencies (64bits).
- * This type holds an integer number of Hertz.
- * Hamlib has no support yet for fractional number of Hertz.
+ * Frequency type unit in Hz, able to hold SHF frequencies.
  */
-typedef signed long long freq_t;
-#define FREQFMT "lli"
+typedef double freq_t;
+#define FREQFMT "lf"
 
 /**
  * \brief Short frequency type
@@ -622,9 +620,9 @@ enum rig_parm_e {
  * \brief Setting
  *
  * This can be a func, a level or a parm.
- * Each bit designate one of them, let's hope 64 bits will be enough.
+ * Each bit designate one of them.
  */
-typedef unsigned long long setting_t;
+typedef unsigned long setting_t;
 
 /*
  * tranceive mode, ie. the rig notify the host of any event,
