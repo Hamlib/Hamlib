@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.3 2004-07-05 14:38:34 t_mills Exp $
+ *	$Id: ar3030.c,v 1.4 2004-07-16 11:47:40 t_mills Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,6 +48,7 @@ static int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ar3030_get_channel(RIG *rig, channel_t *chan);
 static int ar3030_init(RIG *rig);
 static int ar3030_cleanup(RIG *rig);
+static int ar3030_close(RIG *rig);
 static int ar3030_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 struct ar3030_priv_data {
@@ -174,6 +175,7 @@ const struct rig_caps ar3030_caps = {
 
 .rig_init = ar3030_init,
 .rig_cleanup = ar3030_cleanup,
+.rig_close = ar3030_close,
 
 .set_freq =  ar3030_set_freq,
 .get_freq =  ar3030_get_freq,
@@ -262,6 +264,14 @@ int ar3030_cleanup(RIG *rig)
 	return RIG_OK;
 }
 
+int ar3030_close(RIG *rig)
+{
+  int retval;
+
+  retval = ar3030_transaction (rig, "Q" EOM, strlen("Q" EOM), NULL, NULL);
+
+  return retval;
+}
 
 int ar3030_set_vfo(RIG *rig, vfo_t vfo)
 {
@@ -409,7 +419,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return -RIG_EPROTO;
 	}
 
-	*width = buf[6] == '1' ? rig_passband_narrow(rig, *mode) : 
+	*width = buf[9] == '1' ? rig_passband_narrow(rig, *mode) : 
 					rig_passband_normal(rig, *mode);
 
 	return RIG_OK;
