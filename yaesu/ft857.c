@@ -13,7 +13,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.c,v 1.3 2003-09-21 11:08:06 fillods Exp $  
+ *    $Id: ft857.c,v 1.4 2003-10-01 19:34:08 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -285,15 +285,6 @@ const struct rig_caps ft857_caps = {
 }; 
 
 /* ---------------------------------------------------------------------- */
-
-int init_ft857(void *be_handle)
-{
-  rig_debug(RIG_DEBUG_VERBOSE, "ft857: _init called\n");
-
-  rig_register(&ft857_caps);
-  
-  return RIG_OK;
-}
 
 int ft857_init(RIG *rig)
 {

@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.10 2003-04-07 22:42:00 fillods Exp $  
+ *    $Id: ft100.c,v 1.11 2003-10-01 19:34:07 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  	/* String function definitions */
 #include <unistd.h>  	/* UNIX standard function definitions */
@@ -296,15 +297,6 @@ const struct rig_caps ft100_caps = {
   .set_parm = 		NULL,
   .get_parm = 		NULL,
 }; 
-
-
-int init_ft100(void *be_handle) {
-  rig_debug(RIG_DEBUG_VERBOSE, "ft100: _init called\n");
-
-  rig_register(&ft100_caps);
-  
-  return RIG_OK;
-}
 
 
 int ft100_init(RIG *rig) {

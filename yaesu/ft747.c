@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.19 2003-04-07 22:42:02 fillods Exp $  
+ * $Id: ft747.c,v 1.20 2003-10-01 19:34:08 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -793,19 +793,6 @@ static int ft747_get_update_data(RIG *rig) {
   return 0;
 
 }
-
-
-
-/*
- * init_ft747 is called by rig_backend_load
- */
-
-int init_ft747(void *be_handle) {
-  rig_debug(RIG_DEBUG_VERBOSE, "ft747: _init called\n");
-  rig_register(&ft747_caps); 
-  return RIG_OK;
-}
-
 
 
 /*

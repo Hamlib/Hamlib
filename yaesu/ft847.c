@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.24 2003-08-11 21:21:40 fillods Exp $  
+ * $Id: ft847.c,v 1.25 2003-10-01 19:34:08 fillods Exp $  
  *
  *
  *
@@ -773,20 +773,4 @@ int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   return -RIG_ENIMPL;
 
 }
-
-
-
-/*
- * init_ft847 is called by rig_backend_load
- */
-
-int init_ft847(void *be_handle) {
-  rig_debug(RIG_DEBUG_VERBOSE, "ft847: _init called\n");
-
-  rig_register(&ft847_caps);
-  
-  return RIG_OK;
-}
-
-
 

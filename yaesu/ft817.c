@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.c,v 1.8 2003-04-07 22:42:04 fillods Exp $  
+ *    $Id: ft817.c,v 1.9 2003-10-01 19:34:08 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -244,15 +244,6 @@ const struct rig_caps ft817_caps = {
   .set_parm = 		NULL,
   .get_parm = 		NULL,
 }; 
-
-
-int init_ft817(void *be_handle) {
-  rig_debug(RIG_DEBUG_VERBOSE, "ft817: _init called\n");
-
-  rig_register(&ft817_caps);
-  
-  return RIG_OK;
-}
 
 
 int ft817_init(RIG *rig) {
