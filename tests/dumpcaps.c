@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.8 2001-01-05 18:22:40 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.9 2001-01-28 22:21:00 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@ int main (int argc, char *argv[])
   	status = rig_load_backend("icom");
 	status |= rig_load_backend("ft747");
 	status |= rig_load_backend("ft847");
+	status |= rig_load_backend("kenwood");
 	status |= rig_load_backend("aor");
 
 	if (status != RIG_OK ) {
@@ -119,8 +120,11 @@ int main (int argc, char *argv[])
 	case RIG_PTT_PARALLEL:
 			printf("thru parallel port (DATA0)\n");
 			break;
-	case RIG_PTT_SERIAL:
+	case RIG_PTT_SERIAL_RTS:
 			printf("thru serial port (CTS/RTS)\n");
+			break;
+	case RIG_PTT_SERIAL_DTR:
+			printf("thru serial port (DTR/DSR)\n");
 			break;
 	case RIG_PTT_NONE:
 			printf("None\n");
@@ -159,9 +163,81 @@ int main (int argc, char *argv[])
 		if (caps->has_func&RIG_FUNC_FBKIN) printf("FBKIN ");
 		if (caps->has_func&RIG_FUNC_ANF) printf("ANF ");
 		if (caps->has_func&RIG_FUNC_NR) printf("NR ");
+		if (caps->has_func&RIG_FUNC_AIP) printf("AIP ");
+		if (caps->has_func&RIG_FUNC_APF) printf("APF ");
+		if (caps->has_func&RIG_FUNC_MON) printf("MON ");
+		if (caps->has_func&RIG_FUNC_MN) printf("MN ");
+		if (caps->has_func&RIG_FUNC_RFN) printf("RFN ");
 		printf("\n");
 	} else
 			printf("none\n");
+
+	printf("Get level: ");
+	if (caps->has_level!=0) {
+		if (caps->has_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
+		if (caps->has_level&RIG_LEVEL_ATT) printf("ATT ");
+		if (caps->has_level&RIG_LEVEL_ANT) printf("ANT ");
+		if (caps->has_level&RIG_LEVEL_AF) printf("AF ");
+		if (caps->has_level&RIG_LEVEL_RF) printf("RF ");
+		if (caps->has_level&RIG_LEVEL_SQL) printf("SQL ");
+		if (caps->has_level&RIG_LEVEL_IF) printf("IF ");
+		if (caps->has_level&RIG_LEVEL_APF) printf("APF ");
+		if (caps->has_level&RIG_LEVEL_NR) printf("NR ");
+		if (caps->has_level&RIG_LEVEL_PBT_IN) printf("PBT_IN ");
+		if (caps->has_level&RIG_LEVEL_PBT_OUT) printf("PBT_OUT ");
+		if (caps->has_level&RIG_LEVEL_CWPITCH) printf("CWPITCH ");
+		if (caps->has_level&RIG_LEVEL_RFPOWER) printf("RFPOWER ");
+		if (caps->has_level&RIG_LEVEL_MICGAIN) printf("MICGAIN ");
+		if (caps->has_level&RIG_LEVEL_KEYSPD) printf("KEYSPD ");
+		if (caps->has_level&RIG_LEVEL_NOTCHF) printf("NOTCHF ");
+		if (caps->has_level&RIG_LEVEL_COMP) printf("COMP ");
+		if (caps->has_level&RIG_LEVEL_AGC) printf("AGC ");
+		if (caps->has_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
+		if (caps->has_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
+		if (caps->has_level&RIG_LEVEL_ANN) printf("ANN ");
+		if (caps->has_level&RIG_LEVEL_SWR) printf("SWR ");
+		if (caps->has_level&RIG_LEVEL_ALC) printf("ALC ");
+		if (caps->has_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
+		if (caps->has_level&RIG_LEVEL_STRENGTH) printf("STRENGTH ");
+		printf("\n");
+	} else
+			printf("none\n");
+
+	printf("Set level: ");
+	if (caps->has_set_level!=0) {
+		if (caps->has_set_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
+		if (caps->has_set_level&RIG_LEVEL_ATT) printf("ATT ");
+		if (caps->has_set_level&RIG_LEVEL_ANT) printf("ANT ");
+		if (caps->has_set_level&RIG_LEVEL_AF) printf("AF ");
+		if (caps->has_set_level&RIG_LEVEL_RF) printf("RF ");
+		if (caps->has_set_level&RIG_LEVEL_SQL) printf("SQL ");
+		if (caps->has_set_level&RIG_LEVEL_IF) printf("IF ");
+		if (caps->has_set_level&RIG_LEVEL_APF) printf("APF ");
+		if (caps->has_set_level&RIG_LEVEL_NR) printf("NR ");
+		if (caps->has_set_level&RIG_LEVEL_PBT_IN) printf("PBT_IN ");
+		if (caps->has_set_level&RIG_LEVEL_PBT_OUT) printf("PBT_OUT ");
+		if (caps->has_set_level&RIG_LEVEL_CWPITCH) printf("CWPITCH ");
+		if (caps->has_set_level&RIG_LEVEL_RFPOWER) printf("RFPOWER ");
+		if (caps->has_set_level&RIG_LEVEL_MICGAIN) printf("MICGAIN ");
+		if (caps->has_set_level&RIG_LEVEL_KEYSPD) printf("KEYSPD ");
+		if (caps->has_set_level&RIG_LEVEL_NOTCHF) printf("NOTCHF ");
+		if (caps->has_set_level&RIG_LEVEL_COMP) printf("COMP ");
+		if (caps->has_set_level&RIG_LEVEL_AGC) printf("AGC ");
+		if (caps->has_set_level&RIG_LEVEL_BKINDL) printf("BKINDL ");
+		if (caps->has_set_level&RIG_LEVEL_BALANCE) printf("BALANCE ");
+		if (caps->has_set_level&RIG_LEVEL_ANN) printf("ANN ");
+
+		/*
+		 * TODO: shoudl warn here, these ones are not settable!!
+		 */
+		if (caps->has_set_level&RIG_LEVEL_SWR) printf("SWR ");
+		if (caps->has_set_level&RIG_LEVEL_ALC) printf("ALC ");
+		if (caps->has_set_level&RIG_LEVEL_SQLSTAT) printf("SQLSTAT ");
+		if (caps->has_set_level&RIG_LEVEL_STRENGTH) printf("STRENGTH ");
+		printf("\n");
+	} else
+			printf("none\n");
+
 
 	printf("Number of channels:\t%d\n",caps->chan_qty);
 
