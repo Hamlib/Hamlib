@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.10 2005-04-04 18:08:18 aa6e Exp $
+ *	$Id: orion.c,v 1.11 2005-04-05 13:52:42 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,7 @@
  * Calibrated S-meter response with signal generator.
  * Read re-tries implemented.
  * Added RIG_LEVEL_CWPITCH, RIG_LEVEL_KEYSPD, send_morse()
+ * Added RIG_FUNC_TUNER, RIG_FUNC_LOCK and RIG_FUNC_VOX, fixed MEM_CAP.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -49,18 +50,15 @@
 #include "tentec.h"
 
 /*
- * Mem caps, to be checked..
- * Orion stores: for either A or B VFO - F, Mode (USB/CW/...), Bandwidth
+ * Orion mem channel holds a freq, mode, and bandwidth.
+ * May be captured from VFO A or B and applied to VFO A or B.
+ * It cannot directly be read or written from the computer! 
  */
  
 #define TT565_MEM_CAP {        \
 	.freq = 1,      \
 	.mode = 1,      \
 	.width = 1,     \
-	.tx_freq = 1,	\
-	.tx_mode = 1,	\
-	.tx_width = 1,	\
-	.split = 1,	\
 }
 
 static int tt565_init(RIG *rig);
@@ -89,6 +87,8 @@ static int tt565_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val);
 static int tt565_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t *val);
 static const char* tt565_get_info(RIG *rig);
 static int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+static int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+static int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 struct tt565_priv_data {
 	int ch;		/* mem */
@@ -100,7 +100,7 @@ struct tt565_priv_data {
 			RIG_MODE_RTTY|RIG_MODE_AM)
 #define TT565_RXMODES (TT565_MODES)
 
-#define TT565_FUNCS (RIG_FUNC_LOCK|RIG_FUNC_TUNER)
+#define TT565_FUNCS (RIG_FUNC_LOCK|RIG_FUNC_TUNER|RIG_FUNC_VOX)
 
 #define TT565_LEVELS (RIG_LEVEL_RAWSTR|/*RIG_LEVEL_NB|*/ \
 				RIG_LEVEL_CWPITCH| \
@@ -273,6 +273,8 @@ const struct rig_caps tt565_caps = {
 .reset =  tt565_reset,
 .get_info =  tt565_get_info,
 .send_morse = tt565_send_morse,
+.get_func = tt565_get_func,
+.set_func = tt565_set_func,
 
 .str_cal = TT565_STR_CAL,
 };
@@ -1375,7 +1377,7 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 	msg_len = strlen(msg);
 	if (msg_len > 20) msg_len = 20;	/* sanity limit 20 chars */
 
-/* Orion can queue up to 20 characters.  
+/* Orion can queue up to about 20 characters.  
  * We could batch a longer message into 20 char chunks, but there is no
  * simple way to tell if message has completed.  We could calculate a
  * duration based on keyer speed and the text that was sent, but
@@ -1393,4 +1395,78 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 	return RIG_OK;
 }
 
+int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+	unsigned char fcmdbuf[16];
+	int retval, fcmdlen;
+
+	if (vfo != RIG_VFO_CURR)
+		return -RIG_EINVAL;
+
+	switch (func) {
+	case RIG_FUNC_TUNER:
+		fcmdlen = sprintf(fcmdbuf,"*TT%c" EOM, !status ? 0:1);
+		break;
+
+	case RIG_FUNC_VOX:
+		fcmdlen = sprintf(fcmdbuf,"*TV%c" EOM, !status ? 0:1);
+		break;
+
+	case RIG_FUNC_LOCK:
+		fcmdlen = sprintf(fcmdbuf,"*%c%c" EOM,
+			which_vfo(rig, vfo),
+			!status ? 'U' : 'L' );
+		break;
+
+	default:
+                rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
+                return -RIG_EINVAL;
+	}	
+        retval = tt565_transaction(rig, fcmdbuf, fcmdlen, NULL, NULL);
+
+        if (retval != RIG_OK)
+                return retval;
+	return RIG_OK;
+}
+
+int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+	unsigned char fcmdbuf[16], frespbuf[16];
+	int retval, fcmdlen, fresplen;
+
+	if (vfo != RIG_VFO_CURR)
+		return -RIG_EINVAL;
+
+	switch (func) {
+	case RIG_FUNC_TUNER:
+		fcmdlen = sprintf(fcmdbuf, "?TT" EOM);
+		break;
+
+	case RIG_FUNC_VOX:
+		fcmdlen = sprintf(fcmdbuf, "?TV" EOM);
+		break;
+
+	case RIG_FUNC_LOCK:
+		fcmdlen = sprintf(fcmdbuf, "?%cU" EOM, 
+			which_vfo(rig, vfo) );
+		/* needs special treatment */
+		fresplen = sizeof(frespbuf);
+		retval = tt565_transaction(rig, fcmdbuf, fcmdlen, 
+			frespbuf, &fresplen);
+		if (retval != RIG_OK)
+			return retval;
+		/* response is @AL @AU or @BL @BU */
+		*status = frespbuf[ 2 ] == 'L' ? 1:0;
+		return RIG_OK;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
+		return -RIG_EINVAL;
+	}
+	fresplen = sizeof(frespbuf);
+	retval = tt565_transaction(rig, fcmdbuf, fcmdlen, frespbuf, &fresplen);
+	if (retval != RIG_OK)
+		return retval;
+	*status = frespbuf[ 3 ] == '1' ? 1:0;
+	return RIG_OK;
+}
 /* End of orion.c */
