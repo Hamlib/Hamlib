@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.19 2001-02-27 22:56:23 f4cfe Exp $
+ *	$Id: rig.h,v 1.20 2001-03-01 00:23:14 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,11 @@
 #include <sys/time.h>		/* required for struct timeval */
 
 extern const char hamlib_version[];
+
+extern const int full_ctcss_list[];
+extern const int full_dcs_list[];
+#define CTCSS_LIST_SIZE (sizeof(full_ctcss_list)/sizeof(int)-1)
+#define DCS_LIST_SIZE (sizeof(full_dcs_list)/sizeof(int)-1)
 
 /*
  * Error codes that can be returned by the Hamlib functions
@@ -247,7 +252,11 @@ enum mem_vfo_op_e {
 typedef enum mem_vfo_op_e mv_op_t;
 
 
-/* When optional speech synthesizer is installed */
+/*
+ * When optional speech synthesizer is installed 
+ * what about RIG_ANN_ENG and RIG_ANN_JAPAN? and RIG_ANN_CW?
+ */
+
 enum ann_e {
 		RIG_ANN_OFF = 0,
 		RIG_ANN_FREQ,
@@ -310,6 +319,20 @@ typedef union value_u value_t;
 #define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
 
 
+/*
+ * Parameters are settings that are not VFO specific
+ */
+#define RIG_PARM_NONE		0
+#define RIG_PARM_ANN		(1<<0)	/* "Announce" level, see ann_t */
+#define RIG_PARM_APO		(1<<1)	/* Auto power off, int in minute */
+#define RIG_PARM_BACKLIGHT	(1<<2)	/* LCD light, float [0.0..1.0] */
+#define RIG_PARM_BEEP		(1<<4)	/* Beep on keypressed, int (0,1) */
+
+#define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT)
+
+#define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
+
+
 typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 
 /*
@@ -340,6 +363,7 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 #define RIG_FUNC_MON     	(1<<12)		/* Monitor? (Icom) */
 #define RIG_FUNC_MN     	(1<<13)		/* Manual Notch (Icom) */
 #define RIG_FUNC_RFN     	(1<<14)		/* RTTY Filter Notch (Icom) */
+#define RIG_FUNC_ARO     	(1<<15)		/* Auto Repeater Offset */
 
 
 /*
@@ -393,6 +417,7 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define TSLSTSIZ 20			/* max tuning step list size, zero ended */
 #define FLTLSTSIZ 16		/* max mode/filter list size, zero ended */
 #define MAXDBLSTSIZ 8		/* max preamp/att levels supported, zero ended */
+#define CHANLSTSIZ 16		/* max mem_list size, zero ended */
 
 #define RIG_DBLST_END 0		/* end marker in a preamp/att level list */
 /*
@@ -442,6 +467,7 @@ struct filter_list {
  * Convenience struct, describes a freq/vfo/mode combo 
  * Also useful for memory handling -- FS
  *
+ * TODO: skip flag, split, shift, etc.
  */
 
 struct channel {
@@ -455,10 +481,47 @@ struct channel {
   int preamp;	/* in dB */
   int ant;	/* antenna number */
   shortfreq_t tuning_step;	/* */
+  shortfreq_t rit;	/* */
+  setting_t funcs;
+  int ctcss;
+  int ctcss_sql;
+  int dcs;
+  int dcs_sql;
   unsigned char channel_desc[MAXCHANDESC];
 };
 
 typedef struct channel channel_t;
+
+/* 
+ * chan_t is used to describe what memory your rig is equipped with
+ * cf. chan_list field in caps
+ * Example for the Ic706MkIIG (99 memory channels, 2 scan edges, 2 call chans):
+ * 	chan_t chan_list[] = {
+ * 		{ 1, 99, RIG_MTYPE_MEM, 0 },
+ * 		{ 100, 103, RIG_MTYPE_EDGE, 0 },
+ * 		{ 104, 105, RIG_MTYPE_CALL, 0 },
+ * 		RIG_CHAN_END
+ * 	}
+ */
+enum chan_type_e {
+		RIG_MTYPE_NONE=0,
+		RIG_MTYPE_MEM,			/* regular */
+		RIG_MTYPE_EDGE,			/* scan edge */
+		RIG_MTYPE_CALL,			/* call channel */
+		RIG_MTYPE_MEMOPAD		/* inaccessible on Icom, what about others? */
+};
+
+struct chan_list {
+		int start;			/* rig memory channel _number_ */
+		int end;
+		enum chan_type_e type;	/* among EDGE, MEM, CALL, .. */
+		int reserved;			/* don't know yet, maybe smthing like flags */
+};
+
+#define RIG_CHAN_END     {0,0,0,0}
+
+typedef struct chan_list chan_t;
+
 
 /* Basic rig type, can store some useful
 * info about different radios. Each lib must
@@ -507,6 +570,11 @@ struct rig_caps {
   setting_t has_set_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
   setting_t has_get_level;		/* bitwise OR'ed RIG_LEVEL_* */
   setting_t has_set_level;		/* bitwise OR'ed RIG_LEVEL_* */
+  setting_t has_get_parm;		/* bitwise OR'ed RIG_PARM_* */
+  setting_t has_set_parm;		/* bitwise OR'ed RIG_PARM_* */
+
+  const int *ctcss_list;    /* points to a 0 terminated array, */
+  const int *dcs_list;		/* may be NULL */
 
   int preamp[MAXDBLSTSIZ];		/* in dB, 0 terminated */
   int attenuator[MAXDBLSTSIZ];	/* in dB, 0 terminated */
@@ -518,8 +586,10 @@ struct rig_caps {
   int transceive;	/* the rig is able to generate events, to be used by callbacks */
 
   int chan_qty;		/* number of channels */
-  int bank_qty;		/* number of channels */
+  int bank_qty;		/* number of banks */
   int chan_desc_sz;   /* memory channel size, 0 if none */
+
+  chan_t chan_list[CHANLSTSIZ];		/* channel list, zero ended */
 
   freq_range_t rx_range_list1[FRQRANGESIZ];	/* ITU region 1 */
   freq_range_t tx_range_list1[FRQRANGESIZ];
@@ -599,16 +669,17 @@ struct rig_caps {
   int (*set_poweron)(RIG *rig);
   int (*set_poweroff)(RIG *rig);
 
-  int (*set_ann)(RIG *rig, ann_t ann);	/* announce */
-  int (*get_ann)(RIG *rig, ann_t *ann);
   int (*set_ant)(RIG *rig, vfo_t vfo, ant_t ant);	/* antenna */
   int (*get_ant)(RIG *rig, vfo_t vfo, ant_t *ant);
 
   int (*set_level)(RIG *rig, vfo_t vfo, setting_t level, value_t val);/* set level setting */
-  int (*get_level)(RIG *rig, vfo_t vfo, setting_t level, value_t *val);/* set level setting*/
+  int (*get_level)(RIG *rig, vfo_t vfo, setting_t level, value_t *val);/* get level setting*/
 
   int (*set_func)(RIG *rig, vfo_t vfo, setting_t func, int status); /* activate the function(s) */
   int (*get_func)(RIG *rig, vfo_t vfo, setting_t func, int *status); /* get the setting from rig */
+
+  int (*set_parm)(RIG *rig, setting_t parm, value_t val);/* set parameter */
+  int (*get_parm)(RIG *rig, setting_t parm, value_t *val);/* get parameter */
 
   int (*set_bank)(RIG *rig, vfo_t vfo, int bank);			/* set memory bank number */
   int (*set_mem)(RIG *rig, vfo_t vfo, int ch);			/* set memory channel number */
@@ -698,6 +769,8 @@ struct rig_state {
   setting_t has_set_func;		/* updatable, e.g. for optional DSP, etc. */
   setting_t has_get_level;
   setting_t has_set_level;
+  setting_t has_get_parm;
+  setting_t has_set_parm;
 
   /*
    * Pointer to private data
@@ -800,6 +873,9 @@ extern int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 #define rig_get_strength(r,v,s) rig_get_level((r),(v),RIG_LEVEL_STRENGTH, (value_t*)(s))
 
+extern int rig_set_parm(RIG *rig, setting_t parm, value_t val);
+extern int rig_get_parm(RIG *rig, setting_t parm, value_t *val);
+
 extern int rig_set_poweron(RIG *rig);
 extern int rig_set_poweroff(RIG *rig);
 
@@ -810,13 +886,14 @@ extern int rig_cleanup(RIG *rig);
 
 extern RIG *rig_probe(const char *rig_path);
 
-extern int rig_set_ann(RIG *rig, ann_t ann);	/* announce */
-extern int rig_get_ann(RIG *rig, ann_t *ann);
 extern int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant);	/* antenna */
 extern int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
 
 extern setting_t rig_has_get_level(RIG *rig, setting_t level);
 extern setting_t rig_has_set_level(RIG *rig, setting_t level);
+
+extern setting_t rig_has_get_parm(RIG *rig, setting_t parm);
+extern setting_t rig_has_set_parm(RIG *rig, setting_t parm);
 
 extern setting_t rig_has_get_func(RIG *rig, setting_t func);
 extern setting_t rig_has_set_func(RIG *rig, setting_t func);
