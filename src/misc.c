@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.30 2003-12-03 01:32:35 n0nb Exp $
+ *	$Id: misc.c,v 1.31 2003-12-24 09:07:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -307,6 +307,9 @@ static struct {
 	{ RIG_MODE_RTTY, "RTTY" },
 	{ RIG_MODE_RTTYR, "RTTYR" },
 	{ RIG_MODE_WFM, "WFM" },
+	{ RIG_MODE_PKTLSB, "PKTLSB" },
+	{ RIG_MODE_PKTUSB, "PKTUSB" },
+	{ RIG_MODE_PKTFM, "PKTFM" },
 	{ RIG_MODE_NONE, "" },
 };
 

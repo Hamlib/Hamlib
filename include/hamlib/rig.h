@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.89 2003-11-19 07:32:10 fillods Exp $
+ *	$Id: rig.h,v 1.90 2003-12-24 09:07:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -696,7 +696,10 @@ typedef enum {
 	RIG_MODE_WFM =   	(1<<6),	/*!< broadcast wide FM */
 	RIG_MODE_CWR =   	(1<<7),	/*!< CW reverse sideband */
 	RIG_MODE_RTTYR =	(1<<8),	/*!< RTTY reverse sideband */
-	RIG_MODE_AMS =    	(1<<9)	/*!< Amplitude Modulation Synchronous */
+	RIG_MODE_AMS =    	(1<<9),	/*!< Amplitude Modulation Synchronous */
+	RIG_MODE_PKTLSB =       (1<<10),/*!< Packet/Digital LSB mode (dedicated port) */
+	RIG_MODE_PKTUSB =       (1<<11),/*!< Packet/Digital USB mode (dedicated port) */
+	RIG_MODE_PKTFM =        (1<<12) /*!< Packet/Digital FM mode (dedicated port) */
 } rmode_t;
 
 /** \brief macro for backends, no to be used by rig_set_mode et al. */
