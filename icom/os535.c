@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan535
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: os535.c,v 1.4 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: os535.c,v 1.5 2003-05-19 06:57:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,12 +27,12 @@
 #include <hamlib/rig.h>
 #include "icom.h"
 #include "tones.h"
+#include "optoscan.h"
 
+extern struct confparams opto_ext_parms[];
 
 #define OS535_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
-
 #define OS535_VFO_ALL (RIG_VFO_A)
-
 #define OS535_LEVELS (RIG_LEVEL_STRENGTH)
 
 #define OS535_STR_CAL { 2, { \

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.5 2003-04-09 06:43:54 fillods Exp $
+ *	$Id: optoscan.c,v 1.6 2003-05-19 06:57:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +38,22 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
+#include "optoscan.h"
 
+
+const struct confparams opto_ext_parms[] = {
+  { TOK_TAPECNTL, "tapecntl", "Toggle Tape Switch", "Toggles built in tape switch", 0, RIG_CONF_CHECKBUTTON, {} },
+  { TOK_5KHZWIN,  "5khzwin", "Toggle 5kHz Search Window", "Toggles 5kHz search window", 0, RIG_CONF_CHECKBUTTON, {} },
+  { TOK_SPEAKER,  "speaker", "Toggle speaker audio", "Toggles speaker audio", 0, RIG_CONF_CHECKBUTTON, {} },
+  { TOK_AUDIO, "audio", "Audio present", "Audio present", NULL, RIG_CONF_CHECKBUTTON, {} },
+  { TOK_DTMFPEND, "dtmfpend", "DTMF Digit Pending", "DTMF Digit Pending", NULL, RIG_CONF_CHECKBUTTON, {} },
+  { TOK_DTMFOVRR, "dtmfovrr", "DTMF Buffer Overflow", "DTMF Buffer Overflow", NULL, RIG_CONF_CHECKBUTTON, {} },
+  { TOK_CTCSSACT, "ctcssact", "CTCSS Tone Active", "CTCSS Tone Active", NULL, RIG_CONF_CHECKBUTTON, {} },
+  { TOK_DCSACT,   "dcsact", "DCS Code Active", "DCS Code Active", NULL, RIG_CONF_CHECKBUTTON, {} }, 
+  { RIG_CONF_END, NULL, }
+};
+
+static int optoscan_get_status_block(RIG *rig, struct optostat *status_block);
 
 /*
  * optoscan_open
@@ -241,4 +256,305 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 		  }
 
         return RIG_OK;
+}
+
+/*
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int optoscan_set_ext_parm(RIG *rig, token_t token, value_t val)
+{
+	unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+	int ack_len, val_len;
+	int retval,subcode;
+
+	memset(epbuf,0,MAXFRAMELEN);
+	memset(ackbuf,0,MAXFRAMELEN);
+
+	val_len = 1;
+
+	switch(token) {
+	case TOK_TAPECNTL:
+	  if( val.i == 0 ) {
+	    subcode = S_OPTO_TAPE_OFF;
+	  }
+	  else {
+	    subcode = S_OPTO_TAPE_ON;
+	  }
+	  break;
+	case TOK_5KHZWIN:
+	  if( val.i == 0 ) {
+	    subcode = S_OPTO_5KSCOFF;
+	  }
+	  else {
+	    subcode = S_OPTO_5KSCON;
+	  }
+	  break;
+	case TOK_SPEAKER:
+	  if( val.i == 0 ) {
+	    subcode = S_OPTO_SPKROFF;
+	  }
+	  else {
+	    subcode = S_OPTO_SPKRON;
+	  }
+	  break;
+	default:
+	  return -RIG_EINVAL;
+	}
+
+	retval = icom_transaction (rig, C_CTL_MISC, subcode, epbuf, 0,
+						ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		rig_debug(RIG_DEBUG_ERR, "%s: ack NG (%#.2x), "
+			"len=%d\n", __FUNCTION__, ackbuf[0], ack_len);
+		return -RIG_ERJCTED;
+	}
+	
+	return RIG_OK;
+}
+
+/*
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *  and val points to a buffer big enough to hold the conf value.
+ */
+int optoscan_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+  struct optostat status_block;
+  int retval;
+
+  retval = optoscan_get_status_block(rig,&status_block);
+
+  if (retval != RIG_OK)
+    return retval;
+  
+  switch(token) {
+  case TOK_TAPECNTL:
+    val->i = status_block.tape_enabled;
+    break;
+  case TOK_5KHZWIN:
+    val->i = status_block.fivekhz_enabled;
+    break;
+  case TOK_SPEAKER:
+    val->i = status_block.speaker_enabled;
+    break;
+  case TOK_AUDIO:
+    val->i = status_block.audio_present;
+    break;
+  case TOK_DTMFPEND:
+    val->i = status_block.DTMF_pending;
+    break;
+  case TOK_DTMFOVRR:
+    val->i = status_block.DTMF_overrun;
+    break;
+  case TOK_CTCSSACT:
+    val->i = status_block.CTCSS_active;
+    break;
+  case TOK_DCSACT:
+    val->i = status_block.DCS_active;
+    break;
+  default:
+    return -RIG_ENIMPL;
+  }
+
+  return RIG_OK;
+}
+
+/*
+ * optoscan_set_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int optoscan_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+		unsigned char lvlbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+		int ack_len;
+		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
+		int icom_val;
+		int retval;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+		memset(lvlbuf,0,MAXFRAMELEN);
+
+		/*
+		 * So far, levels of float type are in [0.0..1.0] range
+		 */
+		if (RIG_LEVEL_IS_FLOAT(level))
+				icom_val = val.f * 255;
+		else
+				icom_val = val.i;
+
+		switch (level) {
+		case RIG_LEVEL_AF:
+			lvl_cn = C_CTL_MISC;
+			if( icom_val == 0 ) {
+			  lvl_sc = S_OPTO_SPKROFF;
+			}
+			else {
+			  lvl_sc = S_OPTO_SPKRON;
+			}
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
+			return -RIG_EINVAL;
+		}
+
+		retval = icom_transaction (rig, lvl_cn, lvl_sc, lvlbuf, 0,
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"optoscan_set_level: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * optoscan_get_level
+ * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ */
+int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  struct optostat status_block;
+  struct icom_priv_data *priv;
+  struct rig_state *rs;
+  unsigned char lvlbuf[MAXFRAMELEN];
+  int lvl_len;
+  int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
+  int icom_val;
+  int cmdhead;
+  int retval;
+  
+  rs = &rig->state;
+  priv = (struct icom_priv_data*)rs->priv;
+  
+  if( level != RIG_LEVEL_AF )
+    {
+      switch (level) {
+      case RIG_LEVEL_STRENGTH:
+	lvl_cn = C_RD_SQSM;
+	lvl_sc = S_SML;
+	break;
+      case RIG_LEVEL_SQLSTAT:
+	lvl_cn = C_RD_SQSM;
+	lvl_sc = S_SQL;
+	break;
+      default:
+	rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+	return -RIG_EINVAL;
+      }
+      
+      retval = icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0,
+				 lvlbuf, &lvl_len);
+      if (retval != RIG_OK)
+	return retval;
+      
+      /*
+       * strbuf should contain Cn,Sc,Data area
+       */
+      cmdhead = (lvl_sc == -1) ? 1:2;
+      lvl_len -= cmdhead;
+      
+      if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
+	rig_debug(RIG_DEBUG_ERR,"optoscan_get_level: ack NG (%#.2x), "
+		  "len=%d\n", lvlbuf[0],lvl_len);
+	return -RIG_ERJCTED;
+      }
+      
+      /*
+       * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
+       * (from_bcd is little endian)
+       */
+      icom_val = from_bcd_be(lvlbuf+cmdhead, lvl_len*2);
+    }
+  else /* level == RIG_LEVEL_AF */
+    {
+      retval = optoscan_get_status_block(rig,&status_block);
+      
+      if (retval != RIG_OK)
+	return retval;
+      
+      icom_val = 0;
+      if( status_block.speaker_enabled == 1 )
+	icom_val = 255;
+    }
+  
+  switch (level) {
+  case RIG_LEVEL_STRENGTH:
+    val->i = rig_raw2val(icom_val, &priv->str_cal);
+    break;
+  case RIG_LEVEL_SQLSTAT:
+    /*
+     * 0x00=sql closed, 0x01=sql open
+     */
+    val->i = icom_val;
+    break;
+  default:
+    if (RIG_LEVEL_IS_FLOAT(level))
+      val->f = (float)icom_val/255;
+    else
+      val->i = icom_val;
+  }
+  
+  rig_debug(RIG_DEBUG_TRACE,"optoscan_get_level: %d %d %d %f\n", lvl_len,
+	    icom_val, val->i, val->f);
+  
+  return RIG_OK;
+}
+
+
+/*
+ * Assumes rig!=NULL, status_block !=NULL
+ */
+static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
+{
+  int retval, ack_len;
+  unsigned char ackbuf[MAXFRAMELEN];
+
+  memset(status_block,0,sizeof(struct optostat));
+
+  retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_RDSTAT, NULL, 0,
+			     ackbuf, &ack_len);
+  
+  if (retval != RIG_OK)
+    return retval;
+  
+  if (ack_len != 4 ) {
+    rig_debug(RIG_DEBUG_ERR,"optoscan_get_status_block: ack NG (%#.2x), "
+	      "len=%d\n", ackbuf[0], ack_len);
+    return -RIG_ERJCTED;
+  }
+  
+  if( ackbuf[2] & 1 )  status_block->remote_control = 1;  
+  if( ackbuf[2] & 2 )  status_block->DTMF_pending = 1;
+  if( ackbuf[2] & 4 )  status_block->DTMF_overrun = 1;
+  if( ackbuf[2] & 16 ) status_block->squelch_open = 1;
+  if( ackbuf[2] & 32 ) status_block->CTCSS_active = 1;
+  if( ackbuf[2] & 64 ) status_block->DCS_active = 1;
+
+  if( ackbuf[3] & 1 )  status_block->tape_enabled = 1;
+  if( ackbuf[3] & 2 )  status_block->speaker_enabled = 1;
+  if( ackbuf[3] & 4 )  status_block->fivekhz_enabled = 1;
+  if( ackbuf[3] & 16 ) status_block->audio_present = 1;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"remote_control     = %d\n",status_block->remote_control);
+  rig_debug(RIG_DEBUG_VERBOSE,"DTMF_pending       = %d\n",status_block->DTMF_pending);
+  rig_debug(RIG_DEBUG_VERBOSE,"DTMF_overrun       = %d\n",status_block->DTMF_overrun);
+  rig_debug(RIG_DEBUG_VERBOSE,"squelch_open       = %d\n",status_block->squelch_open);
+  rig_debug(RIG_DEBUG_VERBOSE,"CTCSS_active       = %d\n",status_block->CTCSS_active);
+  rig_debug(RIG_DEBUG_VERBOSE,"DCS_active         = %d\n",status_block->DCS_active);
+  rig_debug(RIG_DEBUG_VERBOSE,"tape_enabled       = %d\n",status_block->tape_enabled );
+  rig_debug(RIG_DEBUG_VERBOSE,"speaker_enabled    = %d\n",status_block->speaker_enabled);
+  rig_debug(RIG_DEBUG_VERBOSE,"fivekhz_enabled    = %d\n",status_block->fivekhz_enabled);
+  rig_debug(RIG_DEBUG_VERBOSE,"audio_present      = %d\n",status_block->audio_present);
+
+  return RIG_OK;
 }

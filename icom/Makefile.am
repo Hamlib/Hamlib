@@ -8,4 +8,4 @@ hamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c optoscan.c
 hamlib_icom_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_icom_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
-noinst_HEADERS = frame.h icom.h icom_defs.h
+noinst_HEADERS = frame.h icom.h icom_defs.h optoscan.h

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan456
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: os456.c,v 1.4 2003-04-26 09:54:49 fillods Exp $
+ *	$Id: os456.c,v 1.5 2003-05-19 06:57:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,13 +27,14 @@
 #include <hamlib/rig.h>
 #include "icom.h"
 #include "tones.h"
+#include "token.h"
+#include "optoscan.h"
 
+extern struct confparams opto_ext_parms[];
 
 #define OS456_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
-
 #define OS456_VFO_ALL (RIG_VFO_A)
-
-#define OS456_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define OS456_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF)
 
 /*
  * The signal strength data is in the form of two bytes, each consisting 
@@ -87,7 +88,7 @@ const struct rig_caps os456_caps = {
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
 .has_get_level =  OS456_LEVELS,
-.has_set_level =  RIG_LEVEL_NONE,
+.has_set_level =  RIG_LEVEL_AF,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
 .level_gran =  {},
@@ -150,7 +151,6 @@ const struct rig_caps os456_caps = {
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
 
-.get_level =  icom_get_level,
 .get_dcd =  icom_get_dcd,
 
 .decode_event =  icom_decode_event,
@@ -160,6 +160,13 @@ const struct rig_caps os456_caps = {
 .get_ctcss_tone = optoscan_get_ctcss_tone,
 .get_dcs_code = optoscan_get_dcs_code,
 .recv_dtmf = optoscan_recv_dtmf,
+
+.extparms = opto_ext_parms,
+.set_ext_parm = optoscan_set_ext_parm,
+.get_ext_parm = optoscan_get_ext_parm,
+
+.set_level = optoscan_set_level,
+.get_level = optoscan_get_level,
 
 };
 
