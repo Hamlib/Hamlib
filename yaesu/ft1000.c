@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000.c,v 1.2 2002-11-25 23:54:30 fillods Exp $
+ *	$Id: ft1000.c,v 1.3 2002-11-28 22:29:20 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,6 +45,7 @@
 #include <bandplan.h>
 #include "serial.h"
 #include "misc.h"
+#include "cal.h"
 #include "yaesu.h"
 #include "ft1000.h"
 
@@ -71,10 +72,10 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* select vfo A */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* select vfo B */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* copy memory data to vfo A */
-/*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, */ /* clarifier operations */
-/*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, */ /* RX clarifier on */
-/*  { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, */ /* TX clarifier on */
-/*  { 1, { 0x00, 0x00, 0x00, 0x81, 0x09 } }, */ /* TX clarifier on */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* RX clarifier on */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, /* RX clarifier off */
+  { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, /* TX clarifier on */
+  { 1, { 0x00, 0x00, 0x00, 0x81, 0x09 } }, /* TX clarifier off */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set VFOA freq */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x8a } }, /* set VFOB freq */
 
@@ -108,6 +109,8 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* status update VFO A & B update */
   { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* status update operating data */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0xFA } }, /* Read status flags */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0xF0 } }, /* PTT OFF */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0xF0 } }, /* PTT ON */
 /*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* keyer commands */
 /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
 /*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* tuner on */
@@ -157,6 +160,24 @@ const tone_t ft1000mp_ctcss_list[] = {
 		.rptr_shift = 1,        \
 		.flags = 1, \
 	}
+
+
+#define FT1000MP_STR_CAL { 12, \
+	{ \
+		{   0, -60 }, \
+		{  17, -54 }, /* S0 */ \
+		{  17, -48 }, \
+		{  34, -42 }, \
+		{  51, -36 }, \
+		{  68, -30 }, \
+		{  85, -24 }, \
+		{ 102, -18 }, \
+		{ 119, -12 }, \
+		{ 136, -6 }, \
+		{ 160, 0 },  /* S9 */ \
+		{ 255, 60 }  /* +60 */ \
+	} }
+
 /*
  * future - private data
  *
@@ -169,6 +190,7 @@ struct ft1000mp_priv_data {
   unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
   yaesu_cmd_set_t pcs[FT1000MP_NATIVE_SIZE];  /* private cmd set */
   unsigned char update_data[2*FT1000MP_STATUS_UPDATE_LENGTH];/* returned data--max value, some are less */
+  cal_table_t str_cal;
 };
 
 
@@ -291,6 +313,14 @@ const struct rig_caps ft1000mp_caps = {
   .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
   .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
 
+  .get_rit =            ft1000mp_get_rit,
+  .set_rit =            ft1000mp_set_rit,
+  .get_xit =            ft1000mp_get_xit,
+  .set_xit =            ft1000mp_set_xit,
+
+  .get_level =          ft1000mp_get_level,
+  .set_ptt =            ft1000mp_set_ptt,
+
   /* TODO: the remaining ... */
 };
 
@@ -302,11 +332,10 @@ const struct rig_caps ft1000mp_caps = {
 
 int ft1000mp_init(RIG *rig) {
   struct ft1000mp_priv_data *p;
+  cal_table_t cal = FT1000MP_STR_CAL;
   
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_init called \n");
 
-  if (!rig)
-    return -RIG_EINVAL;
   
   p = (struct ft1000mp_priv_data*)malloc(sizeof(struct ft1000mp_priv_data));
   if (!p)                       /* whoops! memory shortage! */
@@ -321,6 +350,8 @@ int ft1000mp_init(RIG *rig) {
   p->pacing = FT1000MP_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
   p->read_update_delay = FT1000MP_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
   p->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
+  memcpy(&p->str_cal, &cal, sizeof(cal));
+
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -337,8 +368,6 @@ int ft1000mp_cleanup(RIG *rig) {
 
   rig_debug(RIG_DEBUG_VERBOSE, "ft1000mp: ft1000mp_cleanup called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
   
   if (rig->state.priv)
     free(rig->state.priv);
@@ -359,9 +388,6 @@ int ft1000mp_open(RIG *rig) {
   unsigned char *cmd;           /* points to sequence to send */
  
   rig_debug(RIG_DEBUG_VERBOSE, "ft1000mp: ft1000mp_open called\n");
-
-  if (!rig)
-    return -RIG_EINVAL;
 
   rig_s = &rig->state;
   p = (struct ft1000mp_priv_data *)rig_s->priv;
@@ -389,11 +415,6 @@ int ft1000mp_open(RIG *rig) {
 
 
 
-/*
- * Example of wrapping backend function inside frontend API
- *
- */
-
 int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct rig_state *rig_s;
   struct ft1000mp_priv_data *p;
@@ -402,8 +423,6 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_freq called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
 
   p = (struct ft1000mp_priv_data*)rig->state.priv;
 
@@ -459,8 +478,6 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_freq called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
   
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
 
@@ -507,8 +524,6 @@ int ft1000mp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_set_mode called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
 
   /* frontend sets VFO for us */
 
@@ -571,8 +586,6 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_mode called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
   
   priv = (struct ft1000mp_priv_data*)rig->state.priv;
 
@@ -654,8 +667,6 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_vfo called %s\n", strvfo(vfo));
 
-  if (!rig)
-    return -RIG_EINVAL;
   
   p = (struct ft1000mp_priv_data*)rig->state.priv;
   rig_s = &rig->state;
@@ -713,8 +724,6 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_vfo called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
   
   p = (struct ft1000mp_priv_data*)rig->state.priv;
 
@@ -738,6 +747,264 @@ int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo) {
 
 
 /*
+ * set_rit only support vfo = RIG_VFO_CURR
+ */
+int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
+  struct rig_state *rs;
+  struct ft1000mp_priv_data *priv;
+  unsigned char *cmd;           /* points to sequence to send */
+
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_rit called\n");
+
+  rs = &rig->state;
+  priv = (struct ft1000mp_priv_data*)rs->priv;
+
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %li Hz \n", rit);
+
+  /* 
+   * Copy native cmd freq_set to private cmd storage area 
+   */
+  memcpy(&priv->p_cmd,&ncmd[FT1000MP_NATIVE_RIT_ON].nseq,YAESU_CMD_LENGTH);
+
+  to_bcd(priv->p_cmd, labs(rit)/10, 4);   /* store bcd format in in p_cmd */
+  priv->p_cmd[2] = rit >= 0 ? 0x00 : 0xff;
+
+  cmd = priv->p_cmd;               /* get native sequence */
+  write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+
+  return RIG_OK;
+}
+
+
+/*
+ * Return RIT for a given VFO
+ *
+ */
+
+int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
+  struct ft1000mp_priv_data *priv;
+  unsigned char *p;
+  shortfreq_t f;
+  int cmd_index, len, retval;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_rit called\n");
+
+  priv = (struct ft1000mp_priv_data*)rig->state.priv;
+
+  if (vfo == RIG_VFO_CURR)
+	  vfo = priv->current_vfo;
+
+  if (vfo == RIG_VFO_A || vfo == RIG_VFO_B) {
+  	cmd_index = FT1000MP_NATIVE_VFO_UPDATE;
+  	len = 2*FT1000MP_STATUS_UPDATE_LENGTH;
+  } else {
+	  /* RIG_VFO_CURR or RIG_VFO_MEM */
+  	cmd_index = FT1000MP_NATIVE_CURR_VFO_UPDATE;
+  	len = FT1000MP_STATUS_UPDATE_LENGTH;
+  }
+
+  /*
+   * get record from rig
+   */
+  retval = ft1000mp_get_update_data(rig, cmd_index, len);
+  if (retval < 0)
+	  return retval;
+
+  if (vfo == RIG_VFO_B)
+    p = &priv->update_data[FT1000MP_SUMO_VFO_B_CLAR];
+  else
+    p = &priv->update_data[FT1000MP_SUMO_VFO_A_CLAR]; /* CURR_VFO has VFOA offset */
+
+  /* big endian integer, kinda */
+  if (p[0] & 0x80)
+  	f = (p[0]<<8) + p[1] - 65536;
+  else
+  	f = (p[0]<<8) + p[1];
+
+  f = f*10/16;
+
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %lli Hz for VFO [%x]\n", f, vfo);
+
+  *rit = f;		/* return diplayed frequency */
+
+  return RIG_OK;
+}
+
+
+/*
+ * set_xit only support vfo = RIG_VFO_CURR
+ */
+int ft1000mp_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
+  struct rig_state *rs;
+  struct ft1000mp_priv_data *priv;
+  unsigned char *cmd;           /* points to sequence to send */
+
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_xit called\n");
+
+  rs = &rig->state;
+  priv = (struct ft1000mp_priv_data*)rs->priv;
+
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %li Hz \n", xit);
+
+  /* 
+   * Copy native cmd freq_set to private cmd storage area 
+   */
+  memcpy(&priv->p_cmd,&ncmd[FT1000MP_NATIVE_XIT_ON].nseq,YAESU_CMD_LENGTH);
+
+  to_bcd(priv->p_cmd, labs(xit)/10, 4);   /* store bcd format in in p_cmd */
+  priv->p_cmd[2] = xit >= 0 ? 0x00 : 0xff;
+
+  cmd = priv->p_cmd;               /* get native sequence */
+  write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+
+  return RIG_OK;
+}
+
+
+/*
+ * Return XIT for a given VFO
+ *
+ */
+
+int ft1000mp_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
+  struct ft1000mp_priv_data *priv;
+  unsigned char *p;
+  shortfreq_t f;
+  int cmd_index, len, retval;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_xit called\n");
+
+  priv = (struct ft1000mp_priv_data*)rig->state.priv;
+
+  if (vfo == RIG_VFO_CURR)
+	  vfo = priv->current_vfo;
+
+  if (vfo == RIG_VFO_A || vfo == RIG_VFO_B) {
+  	cmd_index = FT1000MP_NATIVE_VFO_UPDATE;
+  	len = 2*FT1000MP_STATUS_UPDATE_LENGTH;
+  } else {
+	  /* RIG_VFO_CURR or RIG_VFO_MEM */
+  	cmd_index = FT1000MP_NATIVE_CURR_VFO_UPDATE;
+  	len = FT1000MP_STATUS_UPDATE_LENGTH;
+  }
+
+  /*
+   * get record from rig
+   */
+  retval = ft1000mp_get_update_data(rig, cmd_index, len);
+  if (retval < 0)
+	  return retval;
+
+  if (vfo == RIG_VFO_B)
+    p = &priv->update_data[FT1000MP_SUMO_VFO_B_CLAR];
+  else
+    p = &priv->update_data[FT1000MP_SUMO_VFO_A_CLAR]; /* CURR_VFO has VFOA offset */
+
+  /* big endian integer, kinda */
+  if (p[0] & 0x80)
+  	f = (p[0]<<8) + p[1] - 65536;
+  else
+  	f = (p[0]<<8) + p[1];
+
+  f = f*10/16;
+
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %lli Hz for VFO [%x]\n", f, vfo);
+
+  *xit = f;		/* return diplayed frequency */
+
+  return RIG_OK;
+}
+
+int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	struct ft1000mp_priv_data *priv;
+	struct rig_state *rs;
+	unsigned char lvl_data[YAESU_CMD_LENGTH];
+	int m;
+	int retval;
+
+	rs = &rig->state;
+	priv = (struct ft1000mp_priv_data*)rs->priv;
+
+
+	/* Optimize:
+	 *   sort the switch cases with the most frequent first
+	 */
+	switch (level) {
+	case RIG_LEVEL_STRENGTH:
+  		if (vfo == RIG_VFO_CURR)
+			  vfo = priv->current_vfo;
+
+		m = vfo == RIG_VFO_B ? 0x01 : 0x00;
+		break;
+	case RIG_LEVEL_RFPOWER:
+		m = 0x80;
+		break;
+	case RIG_LEVEL_ALC:
+		m = 0x81;
+		break;
+	case RIG_LEVEL_COMP:
+		m = 0x83;
+		break;
+	case RIG_LEVEL_SWR:
+		m = 0x85;
+		break;
+	case RIG_LEVEL_MICGAIN:	/* not sure ... */
+		m = 0x86;
+		break;
+	case RIG_LEVEL_CWPITCH:
+		m = 0xf1;
+		break;
+	case RIG_LEVEL_IF:	/* not sure ... */
+		m = 0xf3;
+		break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+		return -RIG_EINVAL;
+	}
+
+	memset(&priv->p_cmd, m, YAESU_CMD_LENGTH-1);
+	priv->p_cmd[4] = 0xf7;
+
+	write_block(&rs->rigport, priv->p_cmd, YAESU_CMD_LENGTH);
+
+	retval = read_block(&rs->rigport, lvl_data, YAESU_CMD_LENGTH);
+	if (retval != YAESU_CMD_LENGTH) {
+		rig_debug(RIG_DEBUG_ERR,"ft1000mp_get_level: ack NG %d", retval);
+		return retval;
+	}
+
+	switch (level) {
+	case RIG_LEVEL_STRENGTH:
+		val->i = rig_raw2val(lvl_data[0], &priv->str_cal);
+		break;
+	default:
+		if (RIG_LEVEL_IS_FLOAT(level))
+			val->f = (float)lvl_data[0]/255;
+		else
+			val->i = lvl_data[0];
+	}
+
+	rig_debug(RIG_DEBUG_TRACE,"ft1000mp_get_level: %d %d %f\n", lvl_data[0],
+					val->i, val->f);
+
+	return RIG_OK;
+}
+
+int ft1000mp_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
+  unsigned char cmd_index;      /* index of sequence to send */
+
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_ptt called %d\n", ptt);
+  
+  cmd_index = ptt ? FT1000MP_NATIVE_PTT_ON : FT1000MP_NATIVE_PTT_OFF; 
+
+  ft1000mp_send_priv_cmd(rig,cmd_index);
+
+  return RIG_OK;
+
+}
+
+/*
  * private helper function. Retrieves update data from rig.
  * using buffer indicated in *priv struct.
  * Extended to be command agnostic as 1000mp has several ways to
@@ -756,8 +1023,6 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci, unsigned char rl
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_get_update_data called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
   
   p = (struct ft1000mp_priv_data*)rig->state.priv;
   rig_s = &rig->state;
@@ -787,8 +1052,6 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci) {
  
   rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: ft1000mp_send_priv_cmd called\n");
 
-  if (!rig)
-    return -RIG_EINVAL;
 
 
   p = (struct ft1000mp_priv_data*)rig->state.priv;

@@ -5,7 +5,7 @@
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
  *
- *    $Id: ft1000.h,v 1.2 2002-11-25 23:54:30 fillods Exp $  
+ *    $Id: ft1000.h,v 1.3 2002-11-28 22:29:20 fillods Exp $  
  *
  *
  *   This library is free software; you can redistribute it and/or modify
@@ -76,6 +76,10 @@ enum ft1000mp_native_cmd_e {
   FT1000MP_NATIVE_VFO_A,
   FT1000MP_NATIVE_VFO_B,
   FT1000MP_NATIVE_M_TO_VFO,
+  FT1000MP_NATIVE_RIT_ON,
+  FT1000MP_NATIVE_RIT_OFF,
+  FT1000MP_NATIVE_XIT_ON,
+  FT1000MP_NATIVE_XIT_OFF,
   FT1000MP_NATIVE_FREQA_SET,
   FT1000MP_NATIVE_FREQB_SET,
   FT1000MP_NATIVE_MODE_SET_LSB,
@@ -94,6 +98,8 @@ enum ft1000mp_native_cmd_e {
   FT1000MP_NATIVE_VFO_UPDATE,
   FT1000MP_NATIVE_CURR_VFO_UPDATE,
   FT1000MP_NATIVE_UPDATE,
+  FT1000MP_NATIVE_PTT_OFF,
+  FT1000MP_NATIVE_PTT_ON,
   FT1000MP_NATIVE_SIZE            /* end marker, value indicates number of */
 				                /* native cmd entries */
 
@@ -173,6 +179,8 @@ typedef enum ft1000mp_native_cmd_e ft1000mp_native_cmd_t;
 #define FT1000MP_SUMO_DISPLAYED_FREQ             0x01    
 #define FT1000MP_SUMO_VFO_A_FREQ                 0x01
 #define FT1000MP_SUMO_VFO_B_FREQ                 0x11
+#define FT1000MP_SUMO_VFO_A_CLAR                 0x05
+#define FT1000MP_SUMO_VFO_B_CLAR                 0x15
 #define FT1000MP_SUMO_VFO_A_MODE                 0x07
 #define FT1000MP_SUMO_VFO_B_MODE                 0x17
     
@@ -197,5 +205,12 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* 
 int ft1000mp_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 int ft1000mp_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
+int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+int ft1000mp_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+int ft1000mp_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+
+int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int ft1000mp_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 
 #endif /* _FT1000MP_H */
