@@ -7,7 +7,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.24 2001-12-21 09:48:51 fillods Exp $  
+ * $Id: rigctl.c,v 1.25 2001-12-26 23:34:56 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -372,7 +372,7 @@ int main (int argc, char *argv[])
 			exit(2);
 	}
 
-	retcode = set_conf(my_rig, conf_parms) != RIG_OK;
+	retcode = set_conf(my_rig, conf_parms);
 	if (retcode != RIG_OK) {
 			fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
 			exit(2);
@@ -405,7 +405,8 @@ int main (int argc, char *argv[])
 			rig_token_foreach(my_rig, print_conf_list, (rig_ptr_t)my_rig);
 	}
 
-	if ((retcode = rig_open(my_rig)) != RIG_OK) {
+	retcode = rig_open(my_rig);
+	if (retcode != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
 			exit(2);
 	}
@@ -668,6 +669,8 @@ declare_proto_rig(get_freq)
 		freq_t freq;
 
 		status = rig_get_freq(rig, RIG_VFO_CURR, &freq);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1); /* i.e. "Frequency" */
 		printf("%lld", freq);
@@ -692,6 +695,8 @@ declare_proto_rig(get_mode)
 		pbwidth_t width;
 
 		status = rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%s\n", strmode(mode));
@@ -717,6 +722,8 @@ declare_proto_rig(get_vfo)
 		vfo_t vfo;
 
 		status = rig_get_vfo(rig, &vfo);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%s\n", strvfo(vfo));
@@ -739,6 +746,8 @@ declare_proto_rig(get_ptt)
 		ptt_t ptt;
 
 		status = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", ptt);
@@ -761,6 +770,8 @@ declare_proto_rig(get_rptr_shift)
 		rptr_shift_t rptr_shift;
 
 		status = rig_get_rptr_shift(rig, RIG_VFO_CURR, &rptr_shift);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%s\n", strptrshift(rptr_shift));
@@ -783,6 +794,8 @@ declare_proto_rig(get_rptr_offs)
 		unsigned long rptr_offs;
 
 		status = rig_get_rptr_offs(rig, RIG_VFO_CURR, &rptr_offs);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%ld\n", rptr_offs);
@@ -805,6 +818,8 @@ declare_proto_rig(get_ctcss_tone)
 		tone_t tone;
 
 		status = rig_get_ctcss_tone(rig, RIG_VFO_CURR, &tone);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", tone);
@@ -827,6 +842,8 @@ declare_proto_rig(get_dcs_code)
 		tone_t code;
 
 		status = rig_get_dcs_code(rig, RIG_VFO_CURR, &code);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", code);
@@ -849,6 +866,8 @@ declare_proto_rig(get_split_freq)
 		freq_t txfreq;
 
 		status = rig_get_split_freq(rig, RIG_VFO_CURR, &txfreq);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%lld\n", txfreq);
@@ -873,6 +892,8 @@ declare_proto_rig(get_split_mode)
 		pbwidth_t width;
 
 		status = rig_get_split_mode(rig, RIG_VFO_CURR, &mode, &width);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%s\n", strmode(mode));
@@ -898,6 +919,8 @@ declare_proto_rig(get_split)
 		split_t split;
 
 		status = rig_get_split(rig, RIG_VFO_CURR, &split);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", split);
@@ -920,6 +943,8 @@ declare_proto_rig(get_ts)
 		unsigned long ts;
 
 		status = rig_get_ts(rig, RIG_VFO_CURR, &ts);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%ld\n", ts);
@@ -969,6 +994,8 @@ declare_proto_rig(get_level)
 
 		level = parse_level(arg1);
 		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		if (RIG_LEVEL_IS_FLOAT(level))
@@ -985,24 +1012,22 @@ declare_proto_rig(set_func)
 		setting_t func;
 		int func_stat;
 
-		func = parse_level(arg1);
+		func = parse_func(arg1);
 		sscanf(arg2, "%d", (int*)&func_stat);
 		return rig_set_func(rig, RIG_VFO_CURR, func, func_stat);
 }
 
 
-/*
- * TODO: if rig_get_func fails, do not printf
- *		fix all other get_* calls in rigctl..
- */
 declare_proto_rig(get_func)
 {
 		int status;
 		setting_t func;
 		int func_stat;
 
-		func = parse_level(arg1);
+		func = parse_func(arg1);
 		status = rig_get_func(rig, RIG_VFO_CURR, func, &func_stat);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%d\n", func_stat);
@@ -1032,6 +1057,8 @@ declare_proto_rig(get_parm)
 
 		parm = parse_parm(arg1);
 		status = rig_get_parm(rig, parm, &val);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		if (RIG_LEVEL_IS_FLOAT(parm))
@@ -1067,6 +1094,8 @@ declare_proto_rig(get_mem)
 		int ch;
 
 		status = rig_get_mem(rig, RIG_VFO_CURR, &ch);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", ch);
@@ -1105,6 +1134,8 @@ declare_proto_rig(get_channel)
 
 		sscanf(arg1, "%d", &chan.channel_num);
 		status = rig_get_channel(rig, &chan);
+		if (status != RIG_OK)
+				return status;
 		/* TODO: dump data here */
 		return status;
 }
@@ -1125,6 +1156,8 @@ declare_proto_rig(get_trn)
 		int trn;
 
 		status = rig_get_trn(rig, &trn);
+		if (status != RIG_OK)
+				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", trn);
