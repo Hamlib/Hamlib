@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.55 2001-12-26 23:38:24 fillods Exp $
+ *		$Id: rig.h,v 1.56 2002-01-07 17:57:28 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -535,7 +535,7 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_ABM     	(1<<21)		/* Auto Band Mode */
 #define RIG_FUNC_BC     	(1<<22)		/* Beat Canceller */
 #define RIG_FUNC_MBC     	(1<<23)		/* Manual Beat Canceller */
-
+#define RIG_FUNC_LMP        (1<<24)     /* LCD lamp ON/OFF */
 
 /*
  * power unit macros, converts to mW
