@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.5 2003-12-23 13:32:11 bwulf Exp $
+ * $Id: ft990.c,v 1.6 2003-12-23 13:46:20 bwulf Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1788,7 +1788,7 @@ switch(vfo) {
   // AM bandwidth for 2400Hz and 6000Hz are interchanged.
   switch(*fl & 0x7f) {
     case FT990_BW_F2400:
-      if (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM)
+      if (*mode == RIG_MODE_FM /*|| *mode == RIG_MODE_PKTFM*/)
         *width = 8000;
       else if (*mode == RIG_MODE_AM) // <- FT990 firmware bug?
         *width = 6000;
