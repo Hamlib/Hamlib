@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.84 2005-02-02 19:32:16 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.85 2005-02-02 20:04:58 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -637,7 +637,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 /* 
  * assumes f!=NULL
  */
-static int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f)
+int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f)
 {
 	unsigned char lvlbuf[50];
 	int lvl_len, retval;
