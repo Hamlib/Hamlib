@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backend
  * 	as well as by the frontend.
  *
- * $Id: misc.c,v 1.4 2000-12-22 01:16:17 javabear Exp $  
+ * $Id: misc.c,v 1.5 2001-04-24 19:52:28 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -222,4 +222,31 @@ void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 		}
 }
 
+
+/*
+ * rig_freq_snprintf
+ * pretty print frequencies
+ * str must be long enough. max can be as long as 17 chars
+ */
+int freq_sprintf(char *str, freq_t freq)
+{
+		double f;
+		char *hz;
+
+		if (freq >= GHz(1)) {
+				hz = "GHz";
+				f = (double)freq/GHz(1);
+		} else if (freq >= MHz(1)) {
+				hz = "MHz";
+				f = (double)freq/MHz(1);
+		} else if (freq >= kHz(1)) {
+				hz = "kHz";
+				f = (double)freq/kHz(1);
+		} else {
+				hz = "Hz";
+				f = (double)freq;
+		}
+
+		return sprintf (str, "%g%s", f, hz);
+}
 

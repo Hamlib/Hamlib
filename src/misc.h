@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backends
  * 	as well as by the frontend.
  *
- *    $Id: misc.h,v 1.4 2000-12-22 01:16:17 javabear Exp $  
+ *    $Id: misc.h,v 1.5 2001-04-24 19:52:28 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -61,6 +61,9 @@ unsigned long long from_bcd(const unsigned char bcd_data[], int bcd_len);
  */
 unsigned char *to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
 unsigned long long from_bcd_be(const unsigned char bcd_data[], int bcd_len);
+
+int freq_sprintf(char *str, freq_t freq);
+
 
 #endif /* _MISC_H */
 
