@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.7 2003-03-24 23:08:28 fillods Exp $
+ *	$Id: thf7.c,v 1.8 2003-08-15 01:05:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,6 +50,8 @@ const struct kenwood_priv_caps  thf7_priv_caps  = {
 
 /*
  * th-f7e rig capabilities.
+ *
+ * Manual: http://www.mods.dk/select.php3?id=2754&radio=kenwood&model=TH-F7
  */
 const struct rig_caps thf7e_caps = {
 .rig_model =  RIG_MODEL_THF7E,
