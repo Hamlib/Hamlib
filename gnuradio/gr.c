@@ -1,8 +1,8 @@
 /*
  *  Hamlib GNUradio backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gr.c,v 1.2 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: gr.c,v 1.3 2003-02-09 22:49:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,27 +30,35 @@
 
 /*
  * GNU Radio (hacking version) rig capabilities.
+ *
+ * simple backend with a chirp source.
  */
 
 #define GR_FUNC  RIG_FUNC_NONE
-#define GR_LEVEL RIG_LEVEL_NONE
+#define GR_LEVEL (RIG_LEVEL_AF|RIG_LEVEL_RF)
 #define GR_PARM  RIG_PARM_NONE
 #define GR_VFO_OP  RIG_OP_NONE
 #define GR_SCAN	RIG_SCAN_NONE
 
-#define GR_MODES (RIG_MODE_WFM)
+#define GR_MODES (RIG_MODE_WFM|RIG_MODE_FM|RIG_MODE_SSB)
 
-#define GR_VFO RIG_VFO_A
+#define GR_VFO (RIG_VFO_A|RIG_VFO_B)
+
+static const struct gnuradio_priv_caps gr_priv_caps = {
+	.tuner_model = RIG_MODEL_DUMMY,
+	.input_rate = MHz(10),	/* whatever */
+	.IF_center_freq = MHz(5),	/* whatever */
+};
 
 const struct rig_caps gr_caps = {
   .rig_model =      RIG_MODEL_GNURADIO,
   .model_name =     "GNU Radio dev",
   .mfg_name =       "GNU",
-  .version =        "0.1",
+  .version =        "0.1.1",
   .copyright = 	 "GPL",
   .status =         RIG_STATUS_ALPHA,
   .rig_type =       RIG_TYPE_PCRECEIVER,
-  .targetable_vfo = 	 0,
+  .targetable_vfo = 	 RIG_TARGETABLE_ALL,
   .ptt_type =       RIG_PTT_RIG,
   .dcd_type =       RIG_DCD_RIG,
   .port_type =      RIG_PORT_NONE,
@@ -75,19 +83,26 @@ const struct rig_caps gr_caps = {
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
   .tuning_steps =  { {GR_MODES,1}, RIG_TS_END, },
-  .priv =  NULL,	/* priv */
+  .priv =  (void*)&gr_priv_caps,
 
   .rig_init =     gr_init,
   .rig_cleanup =  gr_cleanup,
   .rig_open =     gr_open,
   .rig_close =    gr_close,
 
+  .set_conf =     gnuradio_set_conf,
+  .get_conf =     gnuradio_get_conf,
+
   .set_freq =     gr_set_freq,
   .get_freq =     gr_get_freq,
 
+  .set_vfo =      gr_set_vfo,
   .get_vfo =      gr_get_vfo,
   .set_mode =     gr_set_mode,
   .get_mode =     gr_get_mode,
+
+  .set_level =	  gnuradio_set_level,
+  .get_level =	  gnuradio_get_level,
 };
 
 
