@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.21 2000-10-01 23:50:46 javabear Exp $  
+ * $Id: ft847.c,v 1.22 2000-10-08 21:57:40 f4cfe Exp $  
  *
  *
  *
@@ -35,8 +35,8 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 
-#include "rig.h"
-#include "riglist.h"
+#include <hamlib/rig.h>
+#include <hamlib/riglist.h>
 #include "serial.h"
 #include "ft847.h"
 
@@ -69,7 +69,7 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
 const struct rig_caps ft847_caps = {
   RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", RIG_STATUS_ALPHA,
   RIG_TYPE_TRANSCEIVER,RIG_PTT_NONE, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 50, 100, 0, FT847_FUNC_ALL, 78,
+  RIG_HANDSHAKE_NONE, 50, 100, 0, FT847_FUNC_ALL, 78, RIG_TRN_OFF,
   { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
     {420000000,512000000,FT847_ALL_RX_MODES,-1,-1},
@@ -211,7 +211,6 @@ int ft847_open(RIG *rig) {
   write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay);  
   return RIG_OK;
 }
-
 
 /*
  * ft847_close  routine
@@ -934,3 +933,17 @@ static int is_in_list(int *list, int list_length, int value) {
 
 
 #endif /* 0 */
+
+
+/*
+ * init_ft847 is called by rig_backend_load
+ */
+int init_ft847(void *be_handle)
+{
+		rig_debug(RIG_DEBUG_VERBOSE, "ft847: _init called\n");
+
+		rig_register(&ft847_caps);
+
+		return RIG_OK;
+}
+

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.14 2000-10-02 00:02:03 javabear Exp $  
+ * $Id: ft747.c,v 1.15 2000-10-08 21:57:39 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -39,8 +39,8 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 
-#include "rig.h"
-#include "riglist.h"
+#include <hamlib/rig.h>
+#include <hamlib/riglist.h>
 #include "serial.h"
 #include "ft747.h"
 
@@ -76,7 +76,7 @@ int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
 const struct rig_caps ft747_caps = {
   RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", RIG_STATUS_ALPHA,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 50, 2000, 0,FT747_FUNC_ALL,20,
+  RIG_HANDSHAKE_NONE, 50, 2000, 0,FT747_FUNC_ALL,20,RIG_TRN_OFF,
   { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   
   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
@@ -475,5 +475,16 @@ void ft747_cmd_get_update_store(int fd, unsigned char *buffer) {
 
 
 
+/*
+ * init_ft747 is called by rig_backend_load
+ */
+int init_ft747(void *be_handle)
+{
+		rig_debug(RIG_DEBUG_VERBOSE, "ft747: _init called\n");
+
+		rig_register(&ft747_caps);
+
+		return RIG_OK;
+}
 
 
