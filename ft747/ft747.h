@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.1 2000-07-18 20:54:28 frank Exp $  
+ *    $Id: ft747.h,v 1.2 2000-07-27 00:42:09 javabear Exp $  
  */
 
 
@@ -16,7 +16,7 @@
  *
  */
 
-#define TX_DISABLED
+#undef TX_ENABLED
 
 
 /* MODES - when setting modes via cmd_mode_set() */
@@ -70,9 +70,8 @@ const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 2
  * Visible functions in shared lib.
  *
  */
-
-int open_port(char *serial_port); /* return fd or -1 on error */
-int close_port(int fd);		  /* close port using fd */
+int rig_open(char *serial_port); /* return fd or -1 on error */
+int rig_close(int fd);		 /* close port using fd */
 
 void cmd_split_yes(int fd);
 void cmd_split_no(int fd);
