@@ -36,7 +36,7 @@ AC_MINGW32
 AC_EXEEXT
 AC_OBJEXT
 
-INCLUDES="${INCLUDES} -I\$(top_srcdir)/src"
+INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 if test "${ac_cv_prog_gcc}" = "yes"; then
   CFLAGS="${CFLAGS} -Wall"
@@ -186,6 +186,7 @@ aor/Makefile
 kenwood/Makefile
 winradio/Makefile
 pcr/Makefile
+alinco/Makefile
 src/Makefile
 tests/Makefile
 doc/Makefile])

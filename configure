@@ -1883,7 +1883,7 @@ OBJEXT=$ac_cv_objext
 ac_objext=$ac_cv_objext
 
 
-INCLUDES="${INCLUDES} -I\$(top_srcdir)/src"
+INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 if test "${ac_cv_prog_gcc}" = "yes"; then
   CFLAGS="${CFLAGS} -Wall"
@@ -6736,6 +6736,7 @@ aor/Makefile
 kenwood/Makefile
 winradio/Makefile
 pcr/Makefile
+alinco/Makefile
 src/Makefile
 tests/Makefile
 doc/Makefile include/config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
@@ -6875,6 +6876,7 @@ aor/Makefile
 kenwood/Makefile
 winradio/Makefile
 pcr/Makefile
+alinco/Makefile
 src/Makefile
 tests/Makefile
 doc/Makefile"}
