@@ -1,10 +1,10 @@
 /*
- * frg100.c - (C) Stephane Fillod 2002-2004
+ * frg100.c - (C) Stephane Fillod 2002-2005
  *
  * This shared library provides an API for communicating
  * via serial interface to an FRG-100 using the "CAT" interface
  *
- *	$Id: frg100.c,v 1.3 2004-11-15 15:21:11 fillods Exp $
+ *	$Id: frg100.c,v 1.4 2005-02-26 22:30:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,7 +88,7 @@ const struct rig_caps frg100_caps = {
   .rig_model =          RIG_MODEL_FRG100,
   .model_name =         "FRG-100",
   .mfg_name =           "Yaesu",
-  .version =            "0.2",
+  .version =            "0.3",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_BETA,
   .rig_type =           RIG_TYPE_RECEIVER,
@@ -312,9 +312,9 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
   case RIG_MODE_FM:
   	if (width != RIG_PASSBAND_NORMAL ||
 		  width < rig_passband_normal(rig, mode))
-		md = MODE_AMN;
+		md = MODE_FMN;
 	else
-		md = MODE_AMW;
+		md = MODE_FMW;
 	break;
   case RIG_MODE_CW:	
   	if (width != RIG_PASSBAND_NORMAL ||
