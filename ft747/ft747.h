@@ -4,10 +4,10 @@
  * ft747.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  * This shared library provides an API for communicating
  * via serial interface to an FT-747GX using the "CAT" interface
- * box (FIF-232C) or similar
+ * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.11 2000-10-02 00:01:01 javabear Exp $  
+ *    $Id: ft747.h,v 1.12 2000-10-08 22:58:02 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,69 @@
 #ifndef _FT747_H
 #define _FT747_H 1
 
-#define FT747_CMD_LENGTH      5
+#define FT747_CMD_LENGTH                     5
+#define FT747_STATUS_UPDATE_DATA_LENGTH      345
+
+#define FT747_PACING_INTERVAL                5 
+#define FT747_PACING_DEFAULT_VALUE           0 
+
+/* Rough safe value for default timeout */
+
+#define FT747_DEFAULT_READ_TIMEOUT  345 * ( 3 + (FT747_PACING_INTERVAL * FT747_PACING_DEFAULT_VALUE))
+
+
+/*
+ * 8N2 and 1 start bit = 11 bits at 4800 bps => effective byte rate = 1 byte in 2.2917 msec
+ * => 345 bytes in 790 msec
+ *
+ * delay for 1 byte = 2.2917 + (pace_interval * 5) 
+ *
+ * pace_interval          time to read 345 bytes
+ * ------------           ----------------------
+ *
+ *     0                       790 msec           
+ *     1                       2515 msec
+ *     2                       4240 msec
+ *    255                      441 sec => 7 min 21 seconds
+ *
+ */
+
+
+/* MODES - when setting modes via cmd_mode_set() */
+
+#define MODE_SET_LSB    0x00
+#define MODE_SET_USB    0x01
+#define MODE_SET_CWW    0x02
+#define MODE_SET_CWN    0x03
+#define MODE_SET_AMW    0x04
+#define MODE_SET_AMN    0x05
+#define MODE_SET_FMW    0x06
+#define MODE_SET_FMN    0x07
+
+
+/*
+ * Mode Bitmap. Bits 5 and 6 unused
+ * When READING modes
+ */
+
+#define MODE_FM     0x01
+#define MODE_AM     0x02
+#define MODE_CW     0x04
+#define MODE_FMN    0x81
+#define MODE_AMN    0x82
+#define MODE_CWN    0x84
+#define MODE_USB    0x08
+#define MODE_LSB    0x10
+#define MODE_NAR    0x80   
+
+
+/*
+ * Some useful offsets in the status update map
+ *
+ */
+
+#define FT747_STATUS_UPDATE_MODE_OFFSET   0x18    
+
 
 /*
  * future - private data
@@ -38,7 +100,9 @@
  */
 
 struct ft747_priv_data {
-  int dummy;			/* for test */
+  unsigned char pacing;		/* pacing value */
+  unsigned int read_update_delay;	/* depends on pacing value */
+  unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
 };
 
 /* 
@@ -53,8 +117,8 @@ int ft747_close(RIG *rig);
 int ft747_set_freq(RIG *rig, freq_t freq);
 int ft747_get_freq(RIG *rig, freq_t *freq);
 
-int ft747_set_mode(RIG *rig, rmode_t mode); /* select mode */
-int ft747_get_mode(RIG *rig, rmode_t *mode); /* get mode */
+int ft747_set_mode(RIG *rig, rmode_t rmode); /* select mode */
+int ft747_get_mode(RIG *rig, rmode_t *rmode); /* get mode */
 
 int ft747_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
@@ -78,18 +142,6 @@ int ft747_get_ptt(RIG *rig, ptt_t *ptt);
 #undef TX_ENABLED
 
 
-/* MODES - when setting modes via cmd_mode_set() */
-
-#define MODE_SET_LSB    0x00
-#define MODE_SET_USB    0x01
-#define MODE_SET_CWW    0x02
-#define MODE_SET_CWN    0x03
-#define MODE_SET_AMW    0x04
-#define MODE_SET_AMN    0x05
-#define MODE_SET_FMW    0x06
-#define MODE_SET_FMN    0x07
-
-
 /*
  * Status Flags
  */
@@ -109,13 +161,15 @@ int ft747_get_ptt(RIG *rig, ptt_t *ptt);
  * When reading modes
  */
 
-#define MODE_FM    0x01
-#define MODE_AM    0x02
-#define MODE_CW    0x04
-
-#define MODE_USB   0x08
-#define MODE_LSB   0x10
-#define MODE_NAR   0x80
+#define MODE_FM     0x01
+#define MODE_AM     0x02
+#define MODE_CW     0x04
+#define MODE_FMN    0x81
+#define MODE_AMN    0x82
+#define MODE_CWN    0x84
+#define MODE_USB    0x08
+#define MODE_LSB    0x10
+#define MODE_NAR    0x80	/* narrow bit set only */
 
 /*
  * Map band data value to band.
