@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: iofunc.c,v 1.2 2002-03-10 23:41:39 fillods Exp $
+ *		$Id: iofunc.c,v 1.3 2002-03-12 19:28:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -290,7 +290,7 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
   tv_timeout.tv_sec = p->timeout/1000;
   tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
-  while (total_count < rxmax) {
+  while (total_count < rxmax-1) {
 		tv = tv_timeout;	/* select may have updated it */
 
 		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
