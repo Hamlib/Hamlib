@@ -6,7 +6,7 @@ if WINRADIO
 lib_LTLIBRARIES = libhamlib-winradio.la
 libhamlib_winradio_la_SOURCES = winradio.c $(WRSRCLIST)
 #libhamlib_winradio_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
+#libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
 #EXTRA_LTLIBRARIES = libhamlib-winradio.la
 
 #lib_LIBRARIES = @LIBWINRADIO@
