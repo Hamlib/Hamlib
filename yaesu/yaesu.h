@@ -4,7 +4,7 @@
  * yaesu.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  * Common yaesu declarations for hamlib
  *
- * 	$Id: yaesu.h,v 1.5 2001-06-15 07:08:37 f4cfe Exp $	
+ * 	$Id: yaesu.h,v 1.6 2001-11-12 21:59:38 f4cfe Exp $	
  *
  *
  *
@@ -45,8 +45,8 @@ struct yaesu_cmd_set {
 
 typedef struct yaesu_cmd_set yaesu_cmd_set_t; 
 
-const struct rig_caps ft747_caps;
-const struct rig_caps ft847_caps;
+extern const struct rig_caps ft747_caps;
+extern const struct rig_caps ft847_caps;
 
 extern HAMLIB_EXPORT(int) init_yaesu(void *be_handle);
 
