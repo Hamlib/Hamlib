@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.6 2000-07-29 02:39:15 javabear Exp $  
+ * $Id: testlibft847.c,v 1.7 2000-07-29 20:31:30 javabear Exp $  
  *
  */
 
@@ -125,7 +125,9 @@ static void decode_mode(unsigned char mode) {
 
 static int test(fd) {
   unsigned char data1;
+  unsigned char mode;
   int i;
+  long int frq;			/* freq */
 
   cmd_cat_off(fd);		/* cat off */
   sleep(1);
@@ -146,7 +148,9 @@ static int test(fd) {
     data1 = cmd_get_rx_status(fd);
     decode_rx_status_flags(data1);
     sleep(1);
-    cmd_get_freq_mode_status_main_vfo(fd);
+    frq = cmd_get_freq_mode_status_main_vfo(fd, &mode);
+    printf("freq = %ld Hz and mode = %x \n",frq, mode );
+
     sleep(1);   
   }
   cmd_cat_off(fd);		/* cat off */
