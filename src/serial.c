@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.35 2003-08-20 07:22:40 fillods Exp $
+ *	$Id: serial.c,v 1.36 2003-08-25 22:35:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,6 +58,7 @@
 /* for CTS/RTS and DTR/DSR control under Win32 --SF */
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
+#include "par_nt.h"
 #endif
 #ifdef HAVE_WINIOCTL_H
 #include <winioctl.h>
@@ -444,8 +445,19 @@ int ser_set_rts(port_t *p, int state)
 		 */
 	return !EscapeCommFunction(p->handle, state ? SETRTS : CLRRTS);
 #else
-	unsigned char y = TIOCM_RTS;
+	unsigned int y = TIOCM_RTS;
+#if defined(TIOCMBIS) && defined(TIOCMBIC)
 	return ioctl(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+#else
+	if (ioctl(p->fd, TIOCMGET, &y) < 0) {
+		return -RIG_EIO;
+	}
+	if (state)
+		y |= TIOCM_RTS;
+	else
+		y &= ~TIOCM_RTS;
+	return ioctl(p->fd, state ? TIOCMSET, &y);
+#endif
 #endif
 }
 
@@ -472,8 +484,19 @@ int ser_set_dtr(port_t *p, int state)
 #if defined(WIN32)
 	return !EscapeCommFunction(p->handle, state ? SETDTR : CLRDTR);
 #else
-	unsigned char y = TIOCM_DTR;
+	unsigned int y = TIOCM_DTR;
+#if defined(TIOCMBIS) && defined(TIOCMBIC)
 	return ioctl(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+#else
+	if (ioctl(p->fd, TIOCMGET, &y) < 0) {
+		return -RIG_EIO;
+	}
+	if (state)
+		y |= TIOCM_DTR;
+	else
+		y &= ~TIOCM_DTR;
+	return ioctl(p->fd, state ? TIOCMSET, &y);
+#endif
 #endif
 }
 
@@ -484,7 +507,7 @@ int ser_get_dtr(port_t *p, int *state)
   return -RIG_ENIMPL;
 #else
   int status;
-  unsigned char y;
+  unsigned int y;
   status = ioctl(p->fd, TIOCMGET, &y);
   *state = (y & TIOCM_DTR) ? RIG_PTT_ON:RIG_PTT_OFF;
   return status;
@@ -559,7 +582,7 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 #else
 		case RIG_DCD_SERIAL_CTS:
 			{
-				unsigned char y;
+				unsigned int y;
 				int status;
 
 				status = ioctl(p->fd, TIOCMGET, &y);
@@ -569,7 +592,7 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 
 		case RIG_DCD_SERIAL_DSR:
 			{
-				unsigned char y;
+				unsigned int y;
 				int status;
 
 				status = ioctl(p->fd, TIOCMGET, &y);
@@ -594,75 +617,160 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
  * void parport_cleanup() { ioctl(fd, PPRELEASE); }
  */
 
-int par_open(port_t *p)
+int par_open(port_t *port)
 {
-		int fd;
+	int fd;
 
-		fd = open(p->pathname, O_RDWR);
-		if (fd < 0) {
-			rig_debug(RIG_DEBUG_VERBOSE, "Opening device \"%s\": %s\n", p->pathname, strerror(errno));
-			return -RIG_EIO;
-		}
+	if (!port->pathname)
+		return -RIG_EINVAL;
+
 #ifdef HAVE_LINUX_PPDEV_H
-		if (ioctl(fd, PPCLAIM) < 0) {
-			rig_debug(RIG_DEBUG_VERBOSE, "Claiming device \"%s\": %s\n", p->pathname, strerror(errno));
-			close(fd);
-			return -RIG_EIO;
-		}
+	fd = open(port->pathname, O_RDWR);
+	if (fd < 0) {
+		rig_debug(RIG_DEBUG_VERBOSE, "Opening device \"%s\": %s\n", port->pathname, strerror(errno));
+		return -RIG_EIO;
+	}
+	if (ioctl(fd, PPCLAIM) < 0) {
+		rig_debug(RIG_DEBUG_VERBOSE, "Claiming device \"%s\": %s\n", port->pathname, strerror(errno));
+		close(fd);
+		return -RIG_EIO;
+	}
+#elif defined(WIN32)
+	fd = (int)CreateFile(port->pathname, GENERIC_READ | GENERIC_WRITE,
+		0, NULL, OPEN_EXISTING, 0, NULL);
+	if (fd == (int)INVALID_HANDLE_VALUE) {
+		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\"\n", port->pathname);
+		CloseHandle((HANDLE)fd);
+		return -RIG_EIO;
+	}
+#else
+	return -RIG_ENIMPL;
 #endif
-		p->fd = fd;
-		return fd;
+	port->fd = fd;
+	return fd;
 }
 
-int par_close(port_t *p)
+int par_close(port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
-		ioctl(p->fd, PPRELEASE);
+		ioctl(port->fd, PPRELEASE);
+#elif defined(WIN32)
+		CloseHandle((HANDLE)(port->fd));
+		return RIG_OK;
 #endif
-		return close(p->fd);
+		return close(port->fd);
 }
 
-int par_write_data(port_t *p, unsigned char data)
+int par_write_data(port_t *port, unsigned char data)
 {
+#ifdef HAVE_LINUX_PPDEV_H
 	int status;
-#ifdef HAVE_LINUX_PPDEV_H
-	status = ioctl(p->fd, PPWDATA, &data);
+	status = ioctl(port->fd, PPWDATA, &data);
 	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(WIN32)
+	unsigned int dummy;
+
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_DATA, &data, sizeof(data), 
+			NULL, 0, (LPDWORD)&dummy, NULL))) {
+		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+	}
 #endif
 	return -RIG_ENIMPL;
 }
 
-int par_read_data(port_t *p, unsigned char *data)
+int par_read_data(port_t *port, unsigned char *data)
 {
-	int status;
 #ifdef HAVE_LINUX_PPDEV_H
-	status = ioctl(p->fd, PPRDATA, data);
+	int status;
+	status = ioctl(port->fd, PPRDATA, data);
 	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(WIN32)
+	char ret;
+	unsigned int dummy;
+
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret, 
+          		sizeof(ret), (LPDWORD)&dummy, NULL))) {
+		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+	}
+
+  	return ret ^ S1284_INVERTED;
 #endif
 	return -RIG_ENIMPL;
 }
 
 
-int par_write_control(port_t *p, unsigned char control)
+int par_write_control(port_t *port, unsigned char control)
 {
-	int status;
 #ifdef HAVE_LINUX_PPDEV_H
-	status = ioctl(p->fd, PPWCONTROL, &control);
+	int status;
+	status = ioctl(port->fd, PPWCONTROL, &control);
 	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(WIN32)
+  unsigned char ctr = control;
+  unsigned char dummyc;
+  unsigned int dummy;
+  const unsigned char wm = (C1284_NSTROBE |
+			    C1284_NAUTOFD |
+			    C1284_NINIT |
+			    C1284_NSELECTIN);
+
+  if (ctr & 0x20)
+    {
+      rig_debug (RIG_DEBUG_WARN, "use ieee1284_data_dir to change data line direction!\n");
+    }
+
+  /* Deal with inversion issues. */
+  ctr ^= wm & C1284_INVERTED;
+  ctr = (ctr & ~wm) ^ (ctr & wm);
+  if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, &ctr, 
+          sizeof(ctr), &dummyc, sizeof(dummyc), (LPDWORD)&dummy, NULL))) {
+      rig_debug(RIG_DEBUG_ERR,"frob_control: DeviceIoControl failed!\n");
+  }
+  return RIG_OK;
 #endif
 	return -RIG_ENIMPL;
 }
 
-int par_read_control(port_t *p, unsigned char *control)
+int par_read_control(port_t *port, unsigned char *control)
 {
-	int status;
 #ifdef HAVE_LINUX_PPDEV_H
-	status = ioctl(p->fd, PPRCONTROL, control);
+	int status;
+	status = ioctl(port->fd, PPRCONTROL, control);
 	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(WIN32)
+	char ret;
+	unsigned int dummy;
+
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, NULL, 0, &ret, 
+			sizeof(ret), (LPDWORD)&dummy, NULL))) {
+		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+	}
+
+	*control = ret ^ S1284_INVERTED;
 #endif
 	return -RIG_ENIMPL;
 }
 
+
+int par_read_status(port_t *port, unsigned char *status)
+{
+#ifdef HAVE_LINUX_PPDEV_H
+	int ret;
+	ret = ioctl(port->fd, PPRSTATUS, status);
+	return ret == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(WIN32)
+	unsigned char ret;
+	unsigned int dummy;
+
+	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret, 
+			sizeof(ret), (LPDWORD)&dummy, NULL))) {
+		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+	}
+
+	*status = ret ^ S1284_INVERTED;
+#endif
+	return -RIG_ENIMPL;
+}
 
 
 
