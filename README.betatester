@@ -20,45 +20,45 @@ so it's better to test from latest cvs version of the code.
 And depending on feedback you made, developers can commit a fix
 of a patch, so you can try out the change right after, without
 waiting for the next official version.
-So to proceed, you will have first to check out latest sources from cvs,
-then rebuild the Hamlib package and finally test it with your rig.
+
+So to proceed, you will have first to obtain either a snapshot or 
+a check out of the latest sources from cvs, then rebuild the Hamlib 
+package and finally test it with your rig.
 Don't worry, it's much simpler than what it looks, despite the size of the
 package.
 Pre-requisite:
- - live internet access
- - cvs
- - gcc toolchain
+ - some kind of internet access
+ - POSIXish compiler toolchain
  
 So here we go:
 
-* anonymous (pserver) cvs checkout:
+* snapshots:
 
-  cvs -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib login
-  cvs -z3 -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib co hamlib
+Download the latest snapshot from http://www.hamlib.org/bleeding-edge/
+You'll find tar balls with names like hamlib-1.1.4-cvs-021021.tar.gz,
+i.e. a check out made 21-10-02, ready for building.
+If you cannot afford the cvs checkout, and want a more recent snapshot,
+just ask for it on the hamlib-developer mailing list.
 
-When prompted for a password for anonymous, simply press the Enter key.
-The check out has only to be done the first time. In the case you don't
-have cvs access through your firewall, but http gets through, daily
-cvs snapshots are available. The previous commands can be replaced
-by the following:
+* cvs checkout:
 
-	wget http://cvs.sf.net/cvstarballs/hamlib-cvsroot.tar.gz
-	tar zxvf hamlib-cvsroot.tar.gz
-	mv hamlib hroot
-	export CVSROOT=`pwd`/hroot
-	cvs co hamlib
+Please read the begining of README.developer file, especially how
+to obtain a cvs checkout, what are the required tools versions
+(very important or make won't even work!), and how to deal with autogen.sh.
 
-After the initial retrieval, whenever you want to update your local
-version, issue the following command in the root directory of hamlib.
+* build
+Reading the INSTALL file in top directory will explain you more verbosely
+to do the following commands. 
 
-  cvs -z3 -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib update -d
+	./configure --disable-static --prefix=/some/where
+	make
+	make install
 
-Tip: 
-I use the following alias:
-alias hcvs='cvs -z3  -d:pserver:anonymous@cvs.hamlib.sf.net:/cvsroot/hamlib'
-This way, I just have to do "hcvs update -d" whenever I want to keep to
-date.
+The prefix argument is optionnal. The --disable-static speeds up
+compilation if you don't plan to use static libraries.
 
+
+* Structure
 For the braves who want to peruse the contents, here's what all the
 subdirectories are for:
 
@@ -80,26 +80,12 @@ include:		non-distributed header files go there
 src:			Hamlib frontend source directory
 tests:			rigctl/rotctl and various C programs for testing
 
-* build
-Reading the INSTALL file in top directory will explain you more verbosely
-to do the following commands
-
-	chmod +x autogen.sh
-	./autogen.sh
-	./configure --config-cache --disable-static --prefix=/some/where
-	make
-	make install
-
-The prefix argument is optionnal. The --disable-static speeds up
-compilation if you don't plan to use static libraries.
-
-NOTE: autogen.sh has only to be run the first time after a fresh checkout.
-
 * testing Hamlib
 
 Don't attempt to test Hamlib from source directory unless you're a
 developper and you understand what are the side effect of *not* installing
-freshly generated objects.
+freshly generated objects (basically having to mess with LD_LIBRARY_PATH
+and .libs).
 
 So here we go. First of all, identify your rig model id.
 Make sure /some/where/bin is in your PATH, rigctl has to be reachable.
@@ -169,7 +155,7 @@ Tip: traces can be hard to cut and paste sometimes. In that case,
 	Script done, file is my_rig_traces.txt
 	$
 
-And then send my_rig_traces.txt to hamlib-developer.
+And then send my_rig_traces.txt to hamlib-developer mailing list.
 
 
 Okay fellows, test as much as you can, in the weirdest situations if
@@ -178,6 +164,6 @@ and other nasty bugs.
 Needless to say, patchs are also very welcome :-)
 
 
-Jan 25, 2002
+Oct 29, 2002
 Stephane - F8CFE
 
