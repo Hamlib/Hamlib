@@ -13,7 +13,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.56 2002-02-27 23:34:02 fillods Exp $
+ *		$Id: rig.c,v 1.57 2002-03-14 23:06:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -3492,27 +3492,34 @@ int rig_save_channel(RIG *rig, channel_t *chan)
   rig_get_vfo(rig, &chan->vfo);
   rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
   rig_get_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width);
+
+  chan->split = RIG_SPLIT_OFF;
   rig_get_split(rig, RIG_VFO_CURR, &chan->split);
   if (chan->split != RIG_SPLIT_OFF) {
   	rig_get_split_freq(rig, RIG_VFO_CURR, &chan->tx_freq);
   	rig_get_split_mode(rig, RIG_VFO_CURR, &chan->tx_mode, &chan->tx_width);
+  } else {
+  	chan->tx_freq = chan->freq;
+  	chan->tx_mode = chan->mode;
+	chan->tx_width = chan->width;
   }
   rig_get_rptr_shift(rig, RIG_VFO_CURR, &chan->rptr_shift);
   rig_get_rptr_offs(rig, RIG_VFO_CURR, &chan->rptr_offs);
-
-  for (i=0; i<RIG_SETTING_MAX; i++)
-  	rig_get_level(rig, RIG_VFO_CURR, rig_idx2setting(i), &chan->levels[i]);
 
   rig_get_ant(rig, RIG_VFO_CURR, &chan->ant);
   rig_get_ts(rig, RIG_VFO_CURR, &chan->tuning_step);
   rig_get_rit(rig, RIG_VFO_CURR, &chan->rit);
   rig_get_xit(rig, RIG_VFO_CURR, &chan->xit);
 
+  for (i=0; i<RIG_SETTING_MAX; i++)
+	if (RIG_LEVEL_SET(rig_idx2setting(i)))
+  		rig_get_level(rig, RIG_VFO_CURR, rig_idx2setting(i), &chan->levels[i]);
+
   chan->funcs = 0;
   for (i=0; i<RIG_SETTING_MAX; i++) {
   	int fstatus;
-  	rig_get_func(rig, RIG_VFO_CURR, rig_idx2setting(i), &fstatus);
-	chan->funcs |= fstatus? rig_idx2setting(i) : 0;
+  	if (rig_get_func(rig, RIG_VFO_CURR, rig_idx2setting(i), &fstatus) == RIG_OK)
+		chan->funcs |= fstatus ? rig_idx2setting(i) : 0;
   }
 
   rig_get_ctcss_tone(rig, RIG_VFO_CURR, &chan->ctcss_tone);
@@ -3586,6 +3593,9 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
  *
  *  Sets the data associated with a channel. 
  *  See #channel_t for more information.
+ *  The rig_set_channel is supposed to have no impact on the current VFO
+ *  and memory number selected. Depending on backend and rig capabilities,
+ *  the chan struct may not be set completely.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -3596,30 +3606,57 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
 
 int rig_set_channel(RIG *rig, const channel_t *chan)
 {
-		channel_t curr_chan;
-		int curr_chan_num;
+		struct rig_caps *rc;
+		int curr_chan_num, get_mem_status;
 		vfo_t curr_vfo;
+#ifdef PARANOID_CHANNEL_HANDLING
+		channel_t curr_chan;
+#endif
 
 		if (CHECK_RIG_ARG(rig) || !chan)
 			return -RIG_EINVAL;
 
 		/*
-		 * if not available, emulate it
+		 * TODO: check chan->channel_num is valid
 		 */
-		if (rig->caps->set_channel == NULL) {
- 			rig_save_channel(rig, &curr_chan);
-			curr_vfo = rig->state.current_vfo;
-			rig_set_vfo(rig, RIG_VFO_MEM);
-			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
-			rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
-			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
-			rig_restore_channel(rig, chan);
-			rig_set_vfo(rig, curr_vfo);
-			rig_restore_channel(rig, &curr_chan);
- 			return RIG_OK;
-		}
 
-		return rig->caps->set_channel(rig, chan);
+		rc = rig->caps;
+
+		if (!rc->set_channel)
+			return rc->set_channel(rig, chan);
+
+		/*
+		 * if not available, emulate it
+		 * Optional: get_vfo, set_vfo,
+		 * TODO: check return codes
+		 */
+		if (!rc->set_mem)
+				return -RIG_ENAVAIL;
+
+		/* may be needed if the restore_channel has some side effects */
+#ifdef PARANOID_CHANNEL_HANDLING
+		rig_save_channel(rig, &curr_chan);
+#endif
+
+		if (rig_get_vfo(rig, &curr_vfo) != RIG_OK)
+			curr_vfo = rig->state.current_vfo;
+		rig_set_vfo(rig, RIG_VFO_MEM);
+		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
+
+		rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+		rig_restore_channel(rig, chan);
+
+		/* restore current memory number */
+		if (get_mem_status == RIG_OK)
+			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+
+		rig_set_vfo(rig, curr_vfo);
+
+#ifdef PARANOID_CHANNEL_HANDLING
+		rig_restore_channel(rig, &curr_chan);
+#endif
+
+ 		return RIG_OK;
 }
 
 /**
@@ -3629,6 +3666,9 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  *
  *  Retrieves the data associated with the channel \a chan->channel_num. 
  *  See #channel_t for more information.
+ *  The rig_get_channel is supposed to have no impact on the current VFO
+ *  and memory number selected. Depending on backend and rig capabilities,
+ *  the chan struct may not be filled in completely.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -3638,38 +3678,57 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  */
 int rig_get_channel(RIG *rig, channel_t *chan)
 {
-#if 0
+		struct rig_caps *rc;
+		int curr_chan_num, get_mem_status;
+		vfo_t curr_vfo;
+#ifdef PARANOID_CHANNEL_HANDLING
 		channel_t curr_chan;
-		int curr_chan_num;
 #endif
 
 		if (CHECK_RIG_ARG(rig) || !chan)
 			return -RIG_EINVAL;
 
 		/*
-		 * if not available, emulate it
+		 * TODO: check chan->channel_num is valid
 		 */
-		if (rig->caps->get_channel == NULL) {
-#if 0
-			rig_save_channel(rig, &curr_chan);
+
+		rc = rig->caps;
+
+		if (rc->get_channel)
+			return rc->get_channel(rig, chan);
+
+		/*
+		 * if not available, emulate it
+		 * Optional: get_vfo, set_vfo
+		 * TODO: check return codes
+		 */
+		if (!rc->set_mem)
+				return -RIG_ENAVAIL;
+
+		/* may be needed if the restore_channel has some side effects */
+#ifdef PARANOID_CHANNEL_HANDLING
+		rig_save_channel(rig, &curr_chan);
 #endif
 
-			rig_set_vfo(rig, RIG_VFO_MEM);
+		if (rig_get_vfo(rig, &curr_vfo) != RIG_OK)
+			curr_vfo = rig->state.current_vfo;
+		rig_set_vfo(rig, RIG_VFO_MEM);
+		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 
-#if 0
-			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
-#endif
-			rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
-			rig_save_channel(rig, chan);
-#if 0
+		rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
+		rig_save_channel(rig, chan);
+
+		/* restore current memory number */
+		if (get_mem_status == RIG_OK)
 			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
-			rig_restore_channel(rig, &curr_chan);
+
+		rig_set_vfo(rig, curr_vfo);
+
+#ifdef PARANOID_CHANNEL_HANDLING
+		rig_restore_channel(rig, &curr_chan);
 #endif
 
- 			return RIG_OK;
-		}
-
-		return rig->caps->get_channel(rig, chan);
+		return RIG_OK;
 }
 
 /**
@@ -3866,7 +3925,7 @@ int rig_set_trn(RIG *rig, int trn)
 				 * TODO: check error codes et al.
 				 */
 				status = add_trn_rig(rig);
-				if (caps->set_trn)
+				if (status == RIG_OK && caps->set_trn)
 						return caps->set_trn(rig, RIG_TRN_RIG);
 				else
 						return status;
