@@ -1,0 +1,7 @@
+hamlib for Debian
+-----------------
+
+This package has been compiled without WinRadio support.
+If this causes you grief, let me know.
+
+ -- Terry Dawson <terry@animats.net>, Sun, 24 Jun 2001 22:02:12 +1000

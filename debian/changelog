@@ -1,0 +1,16 @@
+hamlib (1.1.1-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Run libtoolize to get support for new architectures.  Closes: #104602
+
+ -- LaMont Jones <lamont@debian.org>  Fri, 13 Jul 2001 16:41:45 -0600
+
+hamlib (1.1.1-1) unstable; urgency=low
+
+  * Initial Release. (Closes: #102342)
+
+ -- Terry Dawson <terry@animats.net>  Sun, 24 Jun 2001 22:02:12 +1000
+
+Local variables:
+mode: debian-changelog
+End:

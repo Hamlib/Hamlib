@@ -1,0 +1,38 @@
+Source: hamlib
+Section: hamradio
+Priority: optional
+Maintainer: Terry Dawson <terry@animats.net>
+Build-Depends: debhelper (>> 3.0.0), autoconf, automake, libtool
+Standards-Version: 3.5.2
+
+Package: hamlib-dev
+Architecture: any
+Depends: hamlib1 (= ${Source-Version}), libc6-dev
+Description: Development library to control radio transcievers and receivers.
+ Most recent amateur radio transceivers allow external control of their
+ functions through a computer interface. Unfortunately, control commands are
+ not always consistent across a manufacturer's product line and each
+ manufacturer's product line differs greatly from its competitors.
+ .
+ This library addresses that issue by providing a standardised programming
+ interface that applications can talk to and translating that into the
+ appropriate commands required by the radio in use.
+ .
+ This package provides the development library. If you wish to run applications
+ developed using this library you'll need the 'hamlib' package.
+
+Package: hamlib1
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Run-time library to control radio transcievers and receivers.
+ Most recent amateur radio transceivers allow external control of their
+ functions through a computer interface. Unfortunately, control commands are
+ not always consistent across a manufacturer's product line and each
+ manufacturer's product line differs greatly from its competitors.
+ .
+ This library addresses that issue by providing a standardised programming
+ interface that applications can talk to and translating that into the
+ appropriate commands required by the radio in use.
+ .
+ This package provides the run-time form of the library. If you wish to
+ develop software using this library you need the 'hamlib-dev' package.
