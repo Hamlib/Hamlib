@@ -2,15 +2,29 @@
 You will find in the tests/ subdirectory various programs to exercise
 the Hamlib library.
 Most of the time, you will have to make sure that the backend for
-your rig is loaded at the begining of the main() by rig_load_backend(),
-and rig_init() initialize for your rig type. Check also that
-the program is setup for your rig path (strncpy(my_rig->state.rig_path, etc.)
+your rig is loaded by passing the model number of your rig by argument.
+If you don't know the number, listrigs can give it to you,
+"rigctl --list" will also output something like this:
+
+	Rig#	Mfg           Model           Vers.
+	1		Hamlib        Dummy           0.1
+	1506	Winradio      WR-3500         0.6
+	210		Kenwood       TS-870S         0.1
+	311		Icom          IC-706MkIIG     0.2
+	105		Yaesu         FT-747GX        0.1
+	[etc.]
+
+In any case, you are encouraged to checked for correct initialization
+by reading the source code, at the begining of the main(). Check also 
+that the program is setup for your rig path strncpy(my_rig->state.rig_path...
 
 dumpcaps  -	Output the caps contents of a rig 
+dumpmem   -	Dump the memory contents of the rig 
 listrigs  -	Condensed list of all the models supported by backends
 rigmatrix -	Output the HTML table of supported rigs, with .png files for freqs
 testbcd   -	Simple program to test BCD conversion, takes a number as arg.
 testfreq  -	Simple program to test Freq conversion, takes a number as arg.
-testrig   -	Sample program calling common API calls
-testtrn   -	Sample program using event notification
-rigctl	  -	Combined tool to execute any call of the API
+testrig   -	Sample program calling common API calls, uses rig_probe
+testtrn   -	Sample program using event notification (transceive mode)
+rigctl	  -	Combined tool to execute any call of the API, see man page
+
