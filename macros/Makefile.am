@@ -8,7 +8,7 @@ MACROS = \
 	gr_pwin32.m4 \
 	gr_swig.m4 \
 	libtool.m4 \
-	libxml.m4 \
+	libxml2.m4 \
 	ltdl.m4 \
 	pkg.m4 \
 	perl.m4 \

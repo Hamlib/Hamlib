@@ -20,7 +20,7 @@ EXTRA_PROGRAMS = rigmatrix
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
 DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 
-rigmem_CFLAGS = $(AM_CFLAGS) @XML_CFLAGS@
+rigmem_CFLAGS = $(AM_CFLAGS) @XML_CPPFLAGS@
 
 ## Linker options
 listrigs_LDFLAGS = @BACKENDLNK@
