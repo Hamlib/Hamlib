@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.16 2001-02-11 23:04:54 f4cfe Exp $
+ *	$Id: rig.h,v 1.17 2001-02-14 23:51:44 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -162,6 +162,27 @@ enum passband_width_e {
 
 typedef enum passband_width_e pbwidth_t;
 
+enum dcd_e {
+	RIG_DCD_OFF = 0,	/* squelch closed */
+	RIG_DCD_ON			/* squelch open */
+};
+
+typedef enum dcd_e dcd_t;
+
+enum dcd_type_e {
+	RIG_DCD_NONE = 0,			/* not available */
+	RIG_DCD_RIG,				/* i.e. has get_dcd cap */
+	RIG_DCD_SERIAL_DSR,
+	RIG_DCD_SERIAL_CTS,
+	RIG_DCD_PARALLEL,			/* DCD comes from ?? DATA1? STROBE? */
+#ifdef TODO_MORE_DCD
+	RIG_DCD_PTT			/* follow ptt_type, i.e. ptt=RTS -> dcd=CTS on same line --SF */
+#endif
+};
+
+typedef enum dcd_type_e dcd_type_t;
+
+
 enum ptt_e {
 	RIG_PTT_OFF = 0,
 	RIG_PTT_ON
@@ -174,7 +195,7 @@ enum ptt_type_e {
 	RIG_PTT_RIG,				/* legacy PTT */
 	RIG_PTT_SERIAL_DTR,
 	RIG_PTT_SERIAL_RTS,
-	RIG_PTT_PARALLEL,			/* PTT accessed through DATA0 */
+	RIG_PTT_PARALLEL			/* PTT accessed through DATA0 */
 };
 
 typedef enum ptt_type_e ptt_type_t;
@@ -254,7 +275,7 @@ typedef union value_u value_t;
 		/* These ones are not settable */
 #define RIG_LEVEL_SWR		(1<<28)	/* SWR, arg float */
 #define RIG_LEVEL_ALC		(1<<29)	/* ALC, arg float */
-#define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0) */
+#define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 #define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (dB) */
 
 typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
@@ -297,9 +318,11 @@ typedef long long freq_t;
 typedef signed long shortfreq_t;
 
 #define Hz(f)	((freq_t)(f))
-#define KHz(f)	((freq_t)((f)*1000))
+#define kHz(f)	((freq_t)((f)*1000))
 #define MHz(f)	((freq_t)((f)*1000000L))
 #define GHz(f)	((freq_t)((f)*1000000000LL))
+
+#define RIG_FREQ_NONE Hz(0)
 
 /*
  * power unit macros, converts to mW
@@ -307,7 +330,7 @@ typedef signed long shortfreq_t;
 #define mW(p)	 ((int)(p))
 #define Watts(p) ((int)((p)*1000))
 #define W(p)	 Watts(p)
-#define KW(p)	 ((int)((p)*1000000L))
+#define kW(p)	 ((int)((p)*1000000L))
 #define MW(p)	 ((int)((p)*1000000000LL))	/* geeez! :-) */
 
 typedef unsigned int rmode_t;	/* radio mode  */
@@ -324,7 +347,10 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define RIG_MODE_LSB	(1<<3)
 #define RIG_MODE_RTTY	(1<<4)
 #define RIG_MODE_FM    	(1<<5)
+#define RIG_MODE_WFM   	(1<<6)	/* after all, Wide FM is a mode on its own */
 
+/* macro for backends, no to be used by rig_set_mode et al. */
+#define RIG_MODE_SSB  	(RIG_MODE_USB|RIG_MODE_LSB)
 
 
 #define RIGNAMSIZ 30
@@ -333,10 +359,10 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define FRQRANGESIZ 30
 #define MAXCHANDESC 30		/* describe channel eg: "WWV 5Mhz" */
 #define TSLSTSIZ 20			/* max tuning step list size, zero ended */
+#define FLTLSTSIZ 16		/* max mode/filter list size, zero ended */
 #define MAXDBLSTSIZ 8		/* max preamp/att levels supported, zero ended */
 
 #define RIG_DBLST_END 0		/* end marker in a preamp/att level list */
-
 /*
  * Put together a bunch of this struct in an array to define 
  * what your rig have access to 
@@ -365,6 +391,19 @@ struct tuning_step_list {
 };
 
 #define RIG_TS_END     {0,0}
+
+/*
+ * Lists the filters available for each mode
+ * If more than one filter is available for a given mode,
+ *  the first entry in the array will be the default
+ *  filter to use for this mode (cf rig_set_mode).
+ */
+struct filter_list {
+  rmode_t modes;	/* bitwise OR'ed RIG_MODE_* */
+  shortfreq_t width;		/* passband width in Hz */
+};
+
+#define RIG_FLT_END     {0,0}
 
 
 /* 
@@ -414,8 +453,11 @@ struct rig_caps {
   char version[RIGVERSIZ]; /* driver version, eg "0.5" */
   const char *copyright; /* author and copyright, eg "(c) 2001 Joe Bar, GPL" */
   enum rig_status_e status; /* among ALPHA, BETA, STABLE, NEW  */
+
   enum rig_type_e rig_type;
   enum ptt_type_e ptt_type;	/* how we will key the rig */
+  enum dcd_type_e dcd_type;	/* how we know squelch status */
+  enum rig_port_e port_type;	/* hint about common port type (e.g. serial, device, etc. */
 
   int serial_rate_min; /* eg 4800 */
   int serial_rate_max; /* eg 9600 */
@@ -452,6 +494,8 @@ struct rig_caps {
   freq_range_t tx_range_list2[FRQRANGESIZ];
   struct tuning_step_list tuning_steps[TSLSTSIZ];
 
+  struct filter_list filters[FLTLSTSIZ];	/* mode/filter table at -6dB */
+
   /*
    * Rig Admin API
    *
@@ -479,6 +523,7 @@ struct rig_caps {
 
   int (*set_ptt)(RIG *rig, vfo_t vfo, ptt_t ptt); /* ptt on/off */
   int (*get_ptt)(RIG *rig, vfo_t vfo, ptt_t *ptt); /* get ptt status */
+  int (*get_dcd)(RIG *rig, vfo_t vfo, dcd_t *dcd); /* get squelch status */
 
   int (*set_rptr_shift)(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);	/* set repeater shift */
   int (*get_rptr_shift)(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);	/* get repeater shift */
@@ -586,6 +631,8 @@ struct rig_state {
   int retry;		/* maximum number of retries, 0 to disable */
 
   enum ptt_type_e ptt_type;	/* how we will key the rig */
+  enum dcd_type_e dcd_type;
+
   char ptt_path[FILPATHLEN];	/* path to the keying device (serial,//) */
   char rig_path[FILPATHLEN]; /* serial port/network path(host:port) */
   double vfo_comp;				/* VFO compensation in PPM, 0.0 to disable */
@@ -601,6 +648,8 @@ struct rig_state {
   int itu_region;
   freq_range_t rx_range_list[FRQRANGESIZ];	/* these ones can be updated */
   freq_range_t tx_range_list[FRQRANGESIZ];
+
+  struct filter_list filters[FLTLSTSIZ];	/* mode/filter table at -6dB */
 
   shortfreq_t max_rit;	/* max absolute RIT */
 
@@ -637,6 +686,7 @@ struct rig_callbacks {
 	int (*mode_event)(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); 
 	int (*vfo_event)(RIG *rig, vfo_t vfo); 
 	int (*ptt_event)(RIG *rig, vfo_t vfo, ptt_t mode); 
+	int (*dcd_event)(RIG *rig, vfo_t vfo, dcd_t mode); 
 	/* etc.. */
 };
 
@@ -673,6 +723,8 @@ extern int rig_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
 extern int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt); /* ptt on/off */
 extern int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt); /* get ptt status */
+
+extern int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd); /* get dcd status */
 
 extern int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift); /* set repeater shift */
 extern int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift); /* get repeater shift */
