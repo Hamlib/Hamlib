@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan535
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: os535.c,v 1.2 2002-03-07 22:58:47 fillods Exp $
+ *		$Id: os535.c,v 1.3 2002-05-28 21:34:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,7 +61,7 @@ model_name:"OptoScan535",
 mfg_name: "Optoelectronics", 
 version: "0.2", 
 copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
+status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_SCANNER,
 ptt_type: RIG_PTT_NONE,
 dcd_type: RIG_DCD_NONE,
