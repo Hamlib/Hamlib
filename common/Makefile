@@ -22,16 +22,15 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # 
 #
-# Simple  Make file for common parts, and modified to create 
+# Simple  Makefile for common parts, and modified to create 
 # libhamlib.so -- FS
 #
 #
 #
-#	$Id: Makefile,v 1.8 2000-09-24 23:49:28 javabear Exp $	
+#	$Id: Makefile,v 1.9 2000-09-24 23:51:05 javabear Exp $	
 #
 #
 
-BACKEND_INCLUDE	=	../ft747/include
 
 INSTALL_LIBDIR		=	./lib/
 INSTALL_INCLUDEDIR	=	./include/
@@ -75,6 +74,7 @@ install_lib:
 	cd $(INSTALL_LIBDIR); ln -s $(LIB_SONAME) $(LIB_NAME)
 
 # install hamlib headers in INSTALL_INCLUDEDIR
+
 
 .PHONY:	install_header
 install_header:
