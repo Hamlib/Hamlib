@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.8 2000-10-23 19:48:12 f4cfe Exp $  
+ * $Id: icom.c,v 1.9 2000-10-29 16:25:56 f4cfe Exp $  
  *
  *
  *
@@ -326,6 +326,16 @@ int icom_get_freq(RIG *rig, freq_t *freq)
 		 * freqbuf should contain Cn,Data area
 		 */
 		freq_len--;
+
+		/*
+		 * is it a blank mem channel ?
+		 */
+		if (freq_len == 1 && freqbuf[0] == 0xff) {
+			*freq = -1;
+
+			return RIG_OK;
+		}
+
 		if (freq_len != (priv->civ_731_mode ? 4:5)) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
 								freq_len);
@@ -737,6 +747,188 @@ int icom_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift)
 }
 
 /*
+ * icom_set_rptr_offs
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_rptr_offs(RIG *rig, unsigned long rptr_offs)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char offsbuf[16],ackbuf[16];
+		int ack_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		/*
+		 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF 
+		 */
+		to_bcd(offsbuf, rptr_offs/100, OFFS_LEN*2);
+
+		icom_transaction (rig, C_SET_OFFS, -1, offsbuf, OFFS_LEN, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_offs: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+
+/*
+ * icom_get_rptr_offs
+ * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_offs!=NULL
+ */
+int icom_get_rptr_offs(RIG *rig, unsigned long *rptr_offs)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char offsbuf[16];
+		int offs_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		icom_transaction (rig, C_RD_OFFS, -1, NULL, 0, offsbuf, &offs_len);
+
+		/*
+		 * offsbuf should contain Cn
+		 */
+		offs_len--;
+		if (offs_len != OFFS_LEN) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_rptr_offs: wrong frame len=%d\n",
+								offs_len);
+				return -RIG_ERJCTED;
+		}
+
+		/*
+		 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF 
+		 */
+		*rptr_offs = from_bcd(offsbuf+1, offs_len*2)*100;
+
+		return RIG_OK;
+}
+
+
+/*
+ * icom_set_split_freq
+ * Assumes rig!=NULL, rig->state.priv!=NULL, 
+ * 	icom_set_vfo,icom_set_freq works for this rig
+ * FIXME: status
+ */
+int icom_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
+{
+		int status;
+
+		status = icom_set_vfo(rig, RIG_VFO_B);
+		status |= icom_set_freq(rig, tx_freq);
+		status |= icom_set_vfo(rig, RIG_VFO_A);
+		status |= icom_set_freq(rig, rx_freq);
+
+		return status;
+}
+
+/*
+ * icom_get_split_freq
+ * Assumes rig!=NULL, rig->state.priv!=NULL, rx_freq!=NULL, tx_freq!=NULL
+ * 	icom_set_vfo,icom_get_freq works for this rig
+ * FIXME: status
+ */
+int icom_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
+{
+		int status;
+
+		status = icom_set_vfo(rig, RIG_VFO_B);
+		status |= icom_get_freq(rig, tx_freq);
+		status |= icom_set_vfo(rig, RIG_VFO_A);
+		status |= icom_get_freq(rig, rx_freq);
+
+		return status;
+}
+
+/*
+ * icom_set_split
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_split(RIG *rig, split_t split)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char ackbuf[16];
+		int ack_len;
+		int split_sc;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		switch (split) {
+		case RIG_SPLIT_OFF:
+			split_sc = S_SPLT_OFF;
+			break;
+		case RIG_SPLIT_ON:
+			split_sc = S_SPLT_ON;
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported split %d", split);
+			return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_split: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+
+/*
+ * icom_get_split
+ * Assumes rig!=NULL, rig->state.priv!=NULL, split!=NULL
+ */
+int icom_get_split(RIG *rig, split_t *split)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char splitbuf[16];
+		int split_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, splitbuf, &split_len);
+
+		/*
+		 * splitbuf should contain Cn,Sc
+		 */
+		split_len--;
+		if (split_len != 1) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_split: wrong frame len=%d\n",
+								split_len);
+				return -RIG_ERJCTED;
+		}
+
+		switch (splitbuf[1]) {
+		case S_SPLT_OFF:
+			*split = RIG_SPLIT_OFF;
+			break;
+		case S_SPLT_ON:
+			*split = RIG_SPLIT_ON;
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported split %d", splitbuf[1]);
+			return -RIG_EPROTO;
+		}
+
+		return RIG_OK;
+}
+
+/*
  * icom_set_ts
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
@@ -964,8 +1156,8 @@ int icom_set_mem(RIG *rig, int ch)
 		rig_s = &rig->state;
 		priv = (struct icom_priv_data*)rig_s->priv;
 
-		to_bcd_be(membuf, ch, 2);
-		icom_transaction (rig, C_SET_MEM, -1, membuf, 2, ackbuf, &ack_len);
+		to_bcd_be(membuf, ch, CHAN_NB_LEN*2);
+		icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_mem: ack NG (%#.2x),
@@ -991,8 +1183,8 @@ int icom_set_bank(RIG *rig, int bank)
 		rig_s = &rig->state;
 		priv = (struct icom_priv_data*)rig_s->priv;
 
-		to_bcd_be(bankbuf, bank, 2);
-		icom_transaction (rig, C_SET_MEM, S_BANK, bankbuf, 2, ackbuf, &ack_len);
+		to_bcd_be(bankbuf, bank, BANK_NB_LEN*2);
+		icom_transaction (rig, C_SET_MEM, S_BANK, bankbuf, CHAN_NB_LEN, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_bank: ack NG (%#.2x),
@@ -1065,13 +1257,11 @@ int icom_mv_ctl(RIG *rig, mv_op_t op)
 
 		icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
 
-#if 0
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_mem: ack NG (%#.2x),
+				rig_debug(RIG_DEBUG_ERR,"icom_mv_ctl: ack NG (%#.2x),
 								len=%d\n", ackbuf[0], ack_len);
 				return -RIG_ERJCTED;
 		}
-#endif
 
 		return RIG_OK;
 }
