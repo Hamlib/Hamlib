@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - token header
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *		$Id: token.h,v 1.1 2002-01-27 14:48:49 fillods Exp $
+ *	$Id: token.h,v 1.2 2003-02-23 22:38:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,6 +47,8 @@
 #define TOK_STOP_BITS	TOKEN_FRONTEND(22)
 #define TOK_PARITY		TOKEN_FRONTEND(23)
 #define TOK_HANDSHAKE	TOKEN_FRONTEND(24)
+#define TOK_RTS_STATE	TOKEN_FRONTEND(25)
+#define TOK_DTR_STATE	TOKEN_FRONTEND(26)
 
 /*
  * rig specific tokens

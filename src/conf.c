@@ -3,13 +3,13 @@
  * \ingroup rig
  * \brief Rig configuration interface
  * \author Stephane Fillod
- * \date 2000-2002
+ * \date 2000-2003
  */
 /*
  *  Hamlib Interface - configuration interface
- *  Copyright (c) 2000,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.8 2002-11-04 22:21:42 fillods Exp $
+ *	$Id: conf.c,v 1.9 2003-02-23 22:38:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -92,6 +92,14 @@ static const struct confparams frontend_cfg_params[] = {
 			"VFO compensation in ppm",
 			"0", RIG_CONF_NUMERIC, { .n = { 0.0, 1000.0, .001 } }
 	},
+	{ TOK_RTS_STATE, "rts_state", "RTS state", 
+			"Serial port set state of RTS signal for external powering",
+			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
+	},
+	{ TOK_DTR_STATE, "dtr_state", "DTR state", 
+			"Serial port set state of DTR signal for external powering",
+			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
+	},
 
 	{ RIG_CONF_END, NULL, }
 };
@@ -152,6 +160,28 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
 				else if (!strncmp(val, "Hardware", 8))
 					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
+				else 
+						return -RIG_EINVAL;
+				break;
+
+		case TOK_RTS_STATE:
+				if (!strcmp(val, "Unset"))
+					rs->rigport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
+				else if (!strcmp(val, "ON"))
+					rs->rigport.parm.serial.rts_state = RIG_SIGNAL_ON;
+				else if (!strcmp(val, "OFF"))
+					rs->rigport.parm.serial.rts_state = RIG_SIGNAL_OFF;
+				else 
+						return -RIG_EINVAL;
+				break;
+
+		case TOK_DTR_STATE:
+				if (!strcmp(val, "Unset"))
+					rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
+				else if (!strcmp(val, "ON"))
+					rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_ON;
+				else if (!strcmp(val, "OFF"))
+					rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_OFF;
 				else 
 						return -RIG_EINVAL;
 				break;
@@ -242,6 +272,26 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 				case RIG_HANDSHAKE_NONE: s = "None"; break;
 				case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
 				case RIG_HANDSHAKE_HARDWARE: s = "Hardware"; break;
+				default: return -RIG_EINVAL;
+				}
+				strcpy(val, s);
+				break;
+
+		case TOK_RTS_STATE:
+				switch (rs->rigport.parm.serial.rts_state) {
+				case RIG_SIGNAL_UNSET: s = "Unset"; break;
+				case RIG_SIGNAL_ON: s = "ON"; break;
+				case RIG_SIGNAL_OFF: s = "OFF"; break;
+				default: return -RIG_EINVAL;
+				}
+				strcpy(val, s);
+				break;
+
+		case TOK_DTR_STATE:
+				switch (rs->rigport.parm.serial.dtr_state) {
+				case RIG_SIGNAL_UNSET: s = "Unset"; break;
+				case RIG_SIGNAL_ON: s = "ON"; break;
+				case RIG_SIGNAL_OFF: s = "OFF"; break;
 				default: return -RIG_EINVAL;
 				}
 				strcpy(val, s);

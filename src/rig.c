@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.66 2003-01-29 22:31:18 fillods Exp $
+ *	$Id: rig.c,v 1.67 2003-02-23 22:38:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,7 +26,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2002
+ * \date 2000-2003
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
@@ -380,6 +380,21 @@ int rig_open(RIG *rig)
 				status = serial_open(&rs->rigport);
 				if (status != 0)
 						return status;
+				if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
+						rs->rigport.type.ptt != RIG_PTT_SERIAL_RTS &&
+						rs->rigport.parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
+					status = ser_set_rts(&rs->rigport, 
+							rs->rigport.parm.serial.rts_state == RIG_SIGNAL_ON);
+				}
+				if (status != 0)
+					return status;
+				if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET &&
+						rs->rigport.type.ptt != RIG_PTT_SERIAL_DTR) {
+					status = ser_set_dtr(&rs->rigport, 
+							rs->rigport.parm.serial.dtr_state == RIG_SIGNAL_ON);
+				}
+				if (status != 0)
+					return status;
 				break;
 
 		case RIG_PORT_DEVICE:
