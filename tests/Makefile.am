@@ -2,7 +2,7 @@
 bin_PROGRAMS = rigctl
 man_MANS = rigctl.1
 
-noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp @RIGMATRIX@
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp testloc @RIGMATRIX@
 
 EXTRA_PROGRAMS = rigmatrix
 
@@ -17,9 +17,13 @@ dumpmem_LDFLAGS = @BACKENDLNK@
 testcaps_LDFLAGS = @BACKENDLNK@
 testrig_LDFLAGS = @BACKENDLNK@
 testtrn_LDFLAGS = @BACKENDLNK@
-testbcd_LDFLAGS = @BACKENDLNK@
 testfreq_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
+ 
+# temporary hack
+testbcd_LDFLAGS = -dlpreopen self
+testloc_LDFLAGS = -dlpreopen self
+ 
 # rigmatrix needs also libgd
 rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
 testcpp_LDADD = ../c++/libhamlib++.la
@@ -37,18 +41,9 @@ rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
 
-## Source list
-testrig_SOURCES = testrig.c
-testtrn_SOURCES = testtrn.c
-testbcd_SOURCES = testbcd.c
-testfreq_SOURCES = testfreq.c
-dumpcaps_SOURCES = dumpcaps.c
-dumpmem_SOURCES = dumpmem.c
-testcaps_SOURCES = testcaps.c
-listrigs_SOURCES = listrigs.c
-rigctl_SOURCES = rigctl.c
-rigmatrix_SOURCES = rigmatrix.c
+## Non implicit sources
 testcpp_SOURCES = testcpp.cc
+
 
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	mkdir -p html
