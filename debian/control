@@ -9,7 +9,7 @@ Package: hamlib1
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}
-Description: Run-time library to control radio transcievers and receivers.
+Description: Run-time library to control radio transcievers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -26,7 +26,7 @@ Package: hamlib-dev
 Architecture: any
 Section: devel
 Depends: hamlib1 (= ${Source-Version}), libc6-dev
-Description: Development library to control radio transcievers and receivers.
+Description: Development library to control radio transcievers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -43,7 +43,7 @@ Description: Development library to control radio transcievers and receivers.
 Package: hamlib-utils
 Architecture: any
 Depends: ${shlibs:Depends}
-Description: Utilities to support the hamlib radio control library.
+Description: Utilities to support the hamlib radio control library
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -60,7 +60,7 @@ Package: hamlib-doc
 Architecture: any
 Section: doc
 Suggests: www-browser
-Description: Documentation for the hamlib radio control library.
+Description: Documentation for the hamlib radio control library
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
