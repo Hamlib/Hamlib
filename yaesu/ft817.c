@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.c,v 1.1 2001-12-15 03:19:39 aa1vl Exp $  
+ *    $Id: ft817.c,v 1.2 2001-12-15 04:09:16 aa1vl Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -109,7 +109,7 @@ const struct rig_caps ft817_caps = {
   mfg_name:		"Yaesu", 
   version:		"0.1", 
   copyright:		"GPL",
-  status:		RIG_STATUS_UNTESTED,
+  status:		RIG_STATUS_ALPHA,
   rig_type:		RIG_TYPE_TRANSCEIVER,
   ptt_type:		RIG_PTT_RIG,
   dcd_type:		RIG_DCD_NONE,
