@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.2 2000-09-19 07:04:05 f4cfe Exp $  
+ * $Id: icom.c,v 1.3 2000-09-21 06:46:13 f4cfe Exp $  
  *
  *
  *
@@ -69,12 +69,12 @@ int icom_init(RIG *rig)
 		int i;
 
 		if (!rig)
-				return RIG_EINVAL;
+				return -RIG_EINVAL;
 
 		p = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
 		if (!p) {
 				/* whoops! memory shortage! */
-				return RIG_ENOMEM;
+				return -RIG_ENOMEM;
 		}
 		/* TODO: CI-V address should be customizable */
 
@@ -108,7 +108,7 @@ int icom_init(RIG *rig)
 int icom_cleanup(RIG *rig)
 {
 		if (!rig)
-				return RIG_EINVAL;
+				return -RIG_EINVAL;
 
 		if (rig->state.priv)
 				free(rig->state.priv);
@@ -216,7 +216,7 @@ int icom_set_freq(RIG *rig, freq_t freq)
 		int frm_len;
 
 		if (!rig)
-				return RIG_EINVAL;
+				return -RIG_EINVAL;
 
 		p = (struct icom_priv_data*)rig->state.priv;
 		rig_s = &rig->state;
@@ -235,7 +235,7 @@ int icom_set_freq(RIG *rig, freq_t freq)
 		read_icom_block(rig_s->fd, buf, ACKFRMLEN, rig_s->timeout);
 
 		if (buf[5] != ACK) {
-				return RIG_ERJCTED;
+				return -RIG_ERJCTED;
 		}
 
 		/*

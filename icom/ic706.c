@@ -6,7 +6,7 @@
  * via serial interface to an IC-706 using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.1 2000-09-16 01:46:13 f4cfe Exp $  
+ * $Id: ic706.c,v 1.2 2000-09-21 06:46:13 f4cfe Exp $  
  *
  *
  *
@@ -39,15 +39,18 @@
 #include <riglist.h>
 #include "icom.h"
 
-static int ic706_init(RIG *rig);
 
 #define IC706_ALL_RX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_WFM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
+#define IC706_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM|RIG_MODE_NFM|RIG_MODE_NAM)
+#define IC706_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_CWR)
 
 /* tx doesn't have WFM.
  * 100W in all modes but AM (40W)
  */ 
 #define IC706_OTHER_TX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_RTTY| RIG_MODE_FM| RIG_MODE_NFM| RIG_MODE_NAM| RIG_MODE_CWR)
 #define IC706_AM_TX_MODES (RIG_MODE_AM| RIG_MODE_NAM)
+
+#define IC706_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
 
 /*
  * ic706 rigs capabilities.
@@ -56,8 +59,8 @@ static int ic706_init(RIG *rig);
  */
 const struct rig_caps ic706_caps = {
   RIG_MODEL_IC706, "IC-706", "Icom", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_MOBILE, 1200, 57600, 8, 1, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 2000, 3, 0,
+  RIG_TYPE_MOBILE, RIG_PTT_NONE, 1200, 57600, 8, 1, RIG_PARITY_NONE, 
+  RIG_HANDSHAKE_NONE, 0, 2000, 3, IC706_FUNC_ALL, 101,
   { {30000,199999999,IC706_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   { {1800000,1999999,IC706_OTHER_TX_MODES,5000,100000},	/* 100W class */
     {1800000,1999999,IC706_AM_TX_MODES,2000,40000},	/* 40W class */
@@ -82,14 +85,28 @@ const struct rig_caps ic706_caps = {
     {144000000,148000000,IC706_OTHER_TX_MODES,5000,20000}, /* not sure.. */
     {144000000,148000000,IC706_AM_TX_MODES,2000,8000}, /* anyone? */
 	{0,0,0,0,0} },
-  ic706_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  icom_set_freq_main_vfo_hz
+	{{IC706_1HZ_TS_MODES,1},
+	 {IC706_ALL_RX_MODES,10},
+	 {IC706_ALL_RX_MODES,100},
+	 {IC706_ALL_RX_MODES,KHz(1)},
+	 {IC706_ALL_RX_MODES,KHz(5)},
+	 {IC706_ALL_RX_MODES,KHz(9)},
+	 {IC706_ALL_RX_MODES,KHz(10)},
+	 {IC706_ALL_RX_MODES,12500},
+	 {IC706_ALL_RX_MODES,KHz(20)},
+	 {IC706_ALL_RX_MODES,KHz(25)},
+	 {IC706_ALL_RX_MODES,KHz(100)},
+	 {IC706_1MHZ_TS_MODES,MHz(1)},
+	 {0,0}
+	},
+  icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
+  icom_set_freq, NULL,
 };
 
 const struct rig_caps ic706mkiig_caps = {
   RIG_MODEL_IC706MKIIG, "IC-706MKIIG", "Icom", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_MOBILE, 1200, 57600, 8, 1, RIG_PARITY_NONE,
-  RIG_HANDSHAKE_NONE, 2000, 3, 0,
+  RIG_TYPE_MOBILE, RIG_PTT_NONE, 1200, 57600, 8, 1, RIG_PARITY_NONE, 
+  RIG_HANDSHAKE_NONE, 0, 2000, 3, IC706_FUNC_ALL|RIG_FUNC_NR|RIG_FUNC_ANF, 101,
   { {30000,199999999,IC706_ALL_RX_MODES,-1,-1},	/* this trx also has UHF */
  	{400000000,470000000,IC706_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, },
   { {1800000,1999999,IC706_OTHER_TX_MODES,5000,100000},	/* 100W class */
@@ -117,46 +134,27 @@ const struct rig_caps ic706mkiig_caps = {
     {430000000,450000000,IC706_OTHER_TX_MODES,5000,20000},
     {430000000,450000000,IC706_AM_TX_MODES,2000,8000},
 	{0,0,0,0,0}, },
-  ic706_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  icom_set_freq_main_vfo_hz
+	{{IC706_1HZ_TS_MODES,1},
+	 {IC706_ALL_RX_MODES,10},
+	 {IC706_ALL_RX_MODES,100},
+	 {IC706_ALL_RX_MODES,KHz(1)},
+	 {IC706_ALL_RX_MODES,KHz(5)},
+	 {IC706_ALL_RX_MODES,KHz(9)},
+	 {IC706_ALL_RX_MODES,KHz(10)},
+	 {IC706_ALL_RX_MODES,12500},
+	 {IC706_ALL_RX_MODES,KHz(20)},
+	 {IC706_ALL_RX_MODES,KHz(25)},
+	 {IC706_ALL_RX_MODES,KHz(100)},
+	 {IC706_1MHZ_TS_MODES,MHz(1)},
+	 {0,0}
+	},
+  icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
+  icom_set_freq, NULL, 
 };
 
-
-/* this struct in an array could lead 
- * to an Icom generic ic_init function
- */
-static const struct icom_priv_data ic706_priv = { 0x58, 0};
 
 /*
  * Function definitions below
  */
-
-/*
- * setup *priv 
- * serial port is already open (rig->state->fd)
- */
-static int ic706_init(RIG *rig)
-{
-		struct icom_priv_data *p;
-
-		if (!rig)
-				return -1;
-
-		p = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
-		if (!p) {
-				/* whoops! memory shortage! */
-				return -2;
-		}
-		/* TODO: CI-V address should be customizable */
-
-		/* init the priv_data from static struct 
-		 *          + override with rig-specific preferences
-		 */
-		*p = ic706_priv;
-
-		rig->state.priv = (void*)p;
-
-		return 0;
-}
 
 
