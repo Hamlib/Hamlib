@@ -13,20 +13,20 @@ DISTCLEANFILES = $(BUILT_SOURCES)
 # needed for backward compatibility on Solaris.
 AM_CFLAGS = $(CFLAGS) -DPORTMAP
 
-# The RPC server
-sbin_PROGRAMS = rpc.rotd
-rpc_rotd_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
-rpc_rotd_SOURCES = rpcrotd.c rpcrot_proc.c
-nodist_rpc_rotd_SOURCES = rpcrot_svc.c rpcrot_xdr.c rpcrot.h
-rpc_rotd_LDFLAGS = @ROT_BACKENDLNK@
-man_MANS = rpc.rotd.8
-
 # The RPC backend
 lib_LTLIBRARIES = hamlib-rpcrot.la
 hamlib_rpcrot_la_SOURCES = rpcrot_backend.c rpcrot_backend.h
 nodist_hamlib_rpcrot_la_SOURCES = rpcrot_clnt.c rpcrot_xdr_lt.c rpcrot.h
 hamlib_rpcrot_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_rpcrot_la_LIBADD = $(top_builddir)/src/libhamlib.la @NET_LIBS@
+
+# The RPC server
+sbin_PROGRAMS = rpc.rotd
+rpc_rotd_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@ hamlib-rpcrot.la
+rpc_rotd_SOURCES = rpcrotd.c rpcrot_proc.c
+nodist_rpc_rotd_SOURCES = rpcrot_svc.c rpcrot_xdr.c rpcrot.h
+rpc_rotd_LDFLAGS = @ROT_BACKENDLNK@
+man_MANS = rpc.rotd.8
 
 
 EXTRA_DIST = rpcrot.x $(man_MANS)

@@ -13,20 +13,20 @@ DISTCLEANFILES = $(BUILT_SOURCES)
 # needed for backward compatibility on Solaris.
 AM_CFLAGS = $(CFLAGS) -DPORTMAP
 
-# The RPC server
-sbin_PROGRAMS = rpc.rigd
-rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-rpc_rigd_SOURCES = rpcrigd.c rpcrig_proc.c
-nodist_rpc_rigd_SOURCES = rpcrig_svc.c rpcrig_xdr.c rpcrig.h
-rpc_rigd_LDFLAGS = @BACKENDLNK@
-man_MANS = rpc.rigd.8
-
 # The RPC backend
 lib_LTLIBRARIES = hamlib-rpcrig.la
 hamlib_rpcrig_la_SOURCES = rpcrig_backend.c rpcrig_backend.h
 nodist_hamlib_rpcrig_la_SOURCES = rpcrig_clnt.c rpcrig_xdr_lt.c rpcrig.h
 hamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_rpcrig_la_LIBADD = $(top_builddir)/src/libhamlib.la @NET_LIBS@
+
+# The RPC server
+sbin_PROGRAMS = rpc.rigd
+rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@ hamlib-rpcrig.la
+rpc_rigd_SOURCES = rpcrigd.c rpcrig_proc.c
+nodist_rpc_rigd_SOURCES = rpcrig_svc.c rpcrig_xdr.c rpcrig.h
+rpc_rigd_LDFLAGS = @BACKENDLNK@
+man_MANS = rpc.rigd.8
 
 EXTRA_DIST = rpcrig.x $(man_MANS)
 
