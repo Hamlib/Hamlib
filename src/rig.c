@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.4 2000-10-10 22:11:48 f4cfe Exp $
+   $Id: rig.c,v 1.5 2000-10-16 22:08:51 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -292,6 +292,37 @@ int rig_get_mode(RIG *rig, rmode_t *mode)
 			return rig->caps->get_mode(rig, mode);
 }
 
+/*
+ * rig_set_passband
+ *
+ */
+
+int rig_set_passband(RIG *rig, pbwidth_t width)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_passband == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_passband(rig, width);
+}
+
+/*
+ * rig_get_passband
+ *
+ */
+
+int rig_get_passband(RIG *rig, pbwidth_t *width)
+{
+		if (!rig || !rig->caps || !width)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_passband == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_passband(rig, width);
+}
 
 /*
  * rig_set_vfo
@@ -404,11 +435,111 @@ int rig_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift)
 		if (!rig || !rig->caps || !rptr_shift)
 			return -RIG_EINVAL;
 
-		if (rig->caps->get_ts == NULL)
+		if (rig->caps->get_rpt_shift == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_rpt_shift(rig, rptr_shift);
 }
+
+/*
+ * rig_set_rpt_offs
+ * Set the repeater offset
+ */
+
+int rig_set_rpt_offs(RIG *rig, unsigned long rptr_offs)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_rpt_offs == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_rpt_offs(rig, rptr_offs);
+}
+
+/*
+ * rig_get_rpt_offs
+ * Get the current repeater offset
+ */
+
+int rig_get_rpt_offs(RIG *rig, unsigned long *rptr_offs)
+{
+		if (!rig || !rig->caps || !rptr_offs)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_rpt_offs == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_rpt_offs(rig, rptr_offs);
+}
+
+
+/*
+ * rig_set_split_freq
+ * Set the split frequencies
+ */
+
+int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_split_freq == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_split_freq(rig, rx_freq, tx_freq);
+}
+
+/*
+ * rig_get_split_freq
+ * Get the current split frequencies
+ */
+
+int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq)
+{
+		if (!rig || !rig->caps || !rx_freq || !tx_freq)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_split_freq == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_split_freq(rig, rx_freq, tx_freq);
+}
+
+
+
+/*
+ * rig_set_split
+ * Set the split mode
+ */
+
+int rig_set_split(RIG *rig, split_t split)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_split == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_split(rig, split);
+}
+
+/*
+ * rig_get_split
+ * Get the current split mode
+ */
+
+int rig_get_split(RIG *rig, split_t *split)
+{
+		if (!rig || !rig->caps || !split)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_split == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_split(rig, split);
+}
+
 
 
 
@@ -444,7 +575,7 @@ int rig_get_ts(RIG *rig, unsigned long *ts)
 			return rig->caps->get_ts(rig, ts);
 }
 
-
+#if 0
 /*
  * rig_set_power
  * NB: power must be on a [0.0 .. 1.0] scale
@@ -477,6 +608,7 @@ int rig_get_power(RIG *rig, float *power)
 		else
 			return rig->caps->get_power(rig, power);
 }
+#endif
 
 /*
  * rig_power2mW
@@ -530,6 +662,7 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, mode
 			return rig->caps->mW2power(rig, power, mwpower, freq, mode);
 }
 
+#if 0
 
 /*
  * rig_set_volume
@@ -599,7 +732,120 @@ int rig_get_squelch(RIG *rig, float *sql)
 }
 
 /*
- * rig_set_tonesq
+ * rig_get_squelch_status
+ * Read squelch status (open/closed)
+ */
+
+int rig_get_squelch_status(RIG *rig, int *sql_status)
+{
+		if (!rig || !rig->caps || !sql_status)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_squelch_status == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_squelch_status(rig, sql_status);
+}
+
+/*
+ * rig_set_ant
+ * Set antenna number
+ */
+
+int rig_set_ant(RIG *rig, int ant)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_ant == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_ant(rig, ant);
+}
+
+/*
+ * rig_get_ant
+ * Read squelch condition
+ */
+
+int rig_get_ant(RIG *rig, int *ant)
+{
+		if (!rig || !rig->caps || !ant)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_ant == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_ant(rig, ant);
+}
+
+/*
+ * rig_set_att
+ * Set attenuator (db)
+ */
+
+int rig_set_att(RIG *rig, int att)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_att == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_att(rig, att);
+}
+
+/*
+ * rig_get_att
+ * Read attenuator (db)
+ */
+
+int rig_get_att(RIG *rig, int *att)
+{
+		if (!rig || !rig->caps || !att)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_att == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_att(rig, att);
+}
+
+/*
+ * rig_set_preamp
+ * Set preamp (db)
+ */
+
+int rig_set_preamp(RIG *rig, int preamp)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_preamp == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_preamp(rig, preamp);
+}
+
+/*
+ * rig_get_preamp
+ * Read preamp (db)
+ */
+
+int rig_get_preamp(RIG *rig, int *preamp)
+{
+		if (!rig || !rig->caps || !preamp)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_preamp == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_preamp(rig, preamp);
+}
+#endif
+
+/*
+ * rig_set_ctcss
  * Set CTCSS.
  * NB: tone is NOT in HZ, but in tenth of Hz!
  * Exemple: If you want to set subaudible tone of 88.5, then pass 885
@@ -607,36 +853,36 @@ int rig_get_squelch(RIG *rig, float *sql)
  * Also, if you want to disable Tone squelch, set tone to 0.
  */
 
-int rig_set_tonesq(RIG *rig, unsigned int tone)
+int rig_set_ctcss(RIG *rig, unsigned int tone)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
 
-		if (rig->caps->set_tonesq == NULL)
+		if (rig->caps->set_ctcss == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
-			return rig->caps->set_tonesq(rig, tone);
+			return rig->caps->set_ctcss(rig, tone);
 }
 
 /*
- * rig_get_tonesq
+ * rig_get_ctcss
  * Read CTCSS
  * NB: tone is NOT in HZ, but in tenth of Hz!
  */
 
-int rig_get_tonesq(RIG *rig, unsigned int *tone)
+int rig_get_ctcss(RIG *rig, unsigned int *tone)
 {
 		if (!rig || !rig->caps || !tone)
 			return -RIG_EINVAL;
 
-		if (rig->caps->get_tonesq == NULL)
+		if (rig->caps->get_ctcss == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
-			return rig->caps->get_tonesq(rig, tone);
+			return rig->caps->get_ctcss(rig, tone);
 }
 
 /*
- * rig_set_tone
+ * rig_set_dcs
  * Set subaudible tone to access a repeater.
  * NB: tone is NOT in HZ, but in tenth of Hz!
  * Exemple: If you want to set subaudible tone of 88.5, then pass 885
@@ -644,35 +890,36 @@ int rig_get_tonesq(RIG *rig, unsigned int *tone)
  * Also, if you want to disable Tone generation, set tone to 0.
  */
 
-int rig_set_tone(RIG *rig, unsigned int tone)
+int rig_set_dcs(RIG *rig, unsigned int tone)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
 
-		if (rig->caps->set_tone == NULL)
+		if (rig->caps->set_dcs == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
-			return rig->caps->set_tone(rig, tone);
+			return rig->caps->set_dcs(rig, tone);
 }
 
 /*
- * rig_get_tone
+ * rig_get_dcs
  * Read current subaudible tone to access a repeater.
  * NB: tone is NOT in HZ, but in tenth of Hz!
  */
 
-int rig_get_tone(RIG *rig, unsigned int *tone)
+int rig_get_dcs(RIG *rig, unsigned int *tone)
 {
 		if (!rig || !rig->caps || !tone)
 			return -RIG_EINVAL;
 
-		if (rig->caps->get_tone == NULL)
+		if (rig->caps->get_dcs == NULL)
 			return -RIG_ENAVAIL;	/* not implemented */
 		else
-			return rig->caps->get_tone(rig, tone);
+			return rig->caps->get_dcs(rig, tone);
 }
 
 
+#if 0
 /*
  * rig_get_strength
  * read S-meter level
@@ -689,6 +936,7 @@ int rig_get_strength(RIG *rig, int *strength)
 		else
 			return rig->caps->get_strength(rig, strength);
 }
+#endif
 
 /*
  * rig_set_poweron
@@ -817,12 +1065,67 @@ RIG *rig_probe(const char *port_path)
 }
 #endif
 
+/*
+ * rig_set_level
+ */
+int rig_set_level(RIG *rig, setting_t set, value_t val)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_level == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_level(rig, set, val);
+}
+
+/*
+ * rig_get_level
+ */
+
+int rig_get_level(RIG *rig, setting_t set, value_t *val)
+{
+		if (!rig || !rig->caps || !val)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_level == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_level(rig, set, val);
+}
+
+/*
+ * "macro" to check if a rig can *get* a level setting,
+ * example:  if (rig_has_set_level(my_rig, RIG_LVL_STRENGTH)) disp_Smeter();
+ */
+int rig_has_level(RIG *rig, setting_t level)
+{
+		if (!rig || !rig->caps)
+				return -1;
+
+		return (rig->caps->has_level & level);
+}
+
+
+/*
+ * "macro" to check if a rig can *set* a level setting,
+ * example:  if (rig_has_set_level(my_rig, RIG_LVL_RFPOWER)) crank_tx();
+ */
+int rig_has_set_level(RIG *rig, setting_t level)
+{
+		if (!rig || !rig->caps)
+				return -1;
+
+		return (rig->caps->has_set_level & level);
+}
+
+
 
 /*
  * "macro" to check if a rig has a function,
  * example:  if (rig_has_func(my_rig, RIG_FUNC_FAGC)) disp_fagc_button();
  */
-int rig_has_func(RIG *rig, unsigned long func)
+int rig_has_func(RIG *rig, setting_t func)
 {
 		if (!rig || !rig->caps)
 				return -1;
@@ -834,7 +1137,7 @@ int rig_has_func(RIG *rig, unsigned long func)
  * rig_set_func
  */
 
-int rig_set_func(RIG *rig, unsigned long func)
+int rig_set_func(RIG *rig, setting_t func)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -851,7 +1154,7 @@ int rig_set_func(RIG *rig, unsigned long func)
  * and return their status.
  */
 
-int rig_get_func(RIG *rig, unsigned long *func)
+int rig_get_func(RIG *rig, setting_t *func)
 {
 		if (!rig || !rig->caps || !func)
 			return -RIG_EINVAL;
@@ -862,7 +1165,86 @@ int rig_get_func(RIG *rig, unsigned long *func)
 			return rig->caps->get_func(rig, func);
 }
 
+/*
+ * rig_set_mem
+ * Set memory channel number.
+ * Should not be obliged to be in memory mode. Depends on rig. YMMV.
+ */
 
+int rig_set_mem(RIG *rig, int ch)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_mem == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_mem(rig, ch);
+}
+
+/*
+ * rig_get_mem
+ * Get memory channel number
+ * Should not be obliged to be in memory mode. Depends on rig. YMMV.
+ */
+
+int rig_get_mem(RIG *rig, int *ch)
+{
+		if (!rig || !rig->caps || !ch)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_mem == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_mem(rig, ch);
+}
+
+/*
+ * rig_mv_ctl
+ * Memory/VFO operations, cf mv_op_t enum
+ */
+
+int rig_mv_ctl(RIG *rig, mv_op_t op)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->mv_ctl == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->mv_ctl(rig, op);
+}
+
+/*
+ * rig_set_channel
+ */
+
+int rig_set_channel(RIG *rig, const channel_t *chan)
+{
+		if (!rig || !rig->caps || !chan)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_channel == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_channel(rig, chan);
+}
+
+/*
+ * rig_get_channel
+ * The channel to get data about is stored in chan->channel_num
+ */
+
+int rig_get_channel(RIG *rig, channel_t *chan)
+{
+		if (!rig || !rig->caps || !chan)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_channel == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->get_channel(rig, chan);
+}
 
 /*
  * rig_get_range returns a pointer to the freq_range_t
