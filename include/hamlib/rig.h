@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.25 2001-04-22 13:54:48 f4cfe Exp $
+ *	$Id: rig.h,v 1.26 2001-04-22 14:45:31 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -164,7 +164,7 @@ typedef signed long shortfreq_t;
 #define RIG_FREQ_NONE Hz(0)
 
 
-#if 1
+#ifdef RIG_VFO_OLDTIME
 enum vfo_e {
 	RIG_VFO_MAIN = 0,
 	RIG_VFO_SUB,
@@ -180,13 +180,35 @@ typedef enum vfo_e vfo_t;
 
 #else
 
-#define RIG_VFO_CURR	0	/* current VFO */
-#define RIG_VFO_A	(1<<0)
-#define RIG_VFO_B	(1<<1)
-#define RIG_VFO_C	(1<<2)
-#define RIG_VFO_MAIN	RIG_VFO_A
-#define RIG_VFO_SUB 	RIG_VFO_B
-#define RIG_VFO_SAT 	RIG_VFO_C
+#define RIG_VFO_CURR    0       /* current "tunable channel"/VFO */
+#define RIG_VFO_ALL		-1		/* apply to all VFO (when used as target) */
+
+#define RIG_VFO1 (1<<0)
+#define RIG_VFO2 (1<<1)
+#define RIG_CTRL_MAIN 1
+#define RIG_CTRL_SUB 2
+
+/*
+ * one byte per "tunable channel":
+ *
+ *    MSB           LSB
+ *     8             1
+ *    +-+-+-+-+-+-+-+-+
+ *    | |             |
+ *    CTL     VFO
+ */
+
+/* How to call it? "tunable channel"? Control band? */
+#define RIG_CTRL_BAND(band,vfo) ( 1<<(8*((band)-1)) | (vfo)<<(8*((band)-1)) )
+
+				 /* macros */
+#define RIG_VFO_A (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO1))
+#define RIG_VFO_B (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO2))
+#define RIG_VFO_C (RIG_CTRL_BAND(RIG_CTRL_SUB, RIG_VFO1))
+#define RIG_VFO_MAIN (RIG_CTRL_BAND(RIG_CTRL_MAIN, RIG_VFO_CURR))
+#define RIG_VFO_SUB  (RIG_CTRL_BAND(RIG_CTRL_SUB, RIG_VFO_CURR))
+
+
 /*
  * could RIG_VFO_ALL be useful?
  * i.e. apply to all VFO, when used as target
@@ -457,10 +479,11 @@ struct freq_range_list {
   rmode_t modes;	/* bitwise OR'ed RIG_MODE_* */
   int low_power;	/* in mW, -1 for no power (ie. rx list) */
   int high_power;	/* in mW, -1 for no power (ie. rx list) */
+  vfo_t vfo;		/* VFOs that can access this range */
 };
 typedef struct freq_range_list freq_range_t;
 
-#define RIG_FRNG_END     {0,0,0,0,0}
+#define RIG_FRNG_END     {0,0,0,0,0,0}
 
 #define RIG_ITU_REGION1 1
 #define RIG_ITU_REGION2 2
