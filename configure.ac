@@ -290,7 +290,7 @@ case "$host_os" in
  # TODO: support parallel port interface on other systems too
  if test "${ac_cv_header_linux_ppdev_h}" = "yes"; then
    ROT_BACKEND_LIST="$ROT_BACKEND_LIST fodtrack"
-   RIG_BACKEND_LIST="$RIG_BACKEND_LIST flexradio"
+   BACKEND_LIST="$BACKEND_LIST flexradio"
  fi
  ;;
  *) 
