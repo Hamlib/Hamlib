@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.78 2003-10-01 19:40:15 fillods Exp $
+ *	$Id: icom.c,v 1.79 2003-10-24 22:59:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2556,6 +2556,8 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic735_caps);
 	rig_register(&ic736_caps);
 	rig_register(&ic737_caps);
+	rig_register(&ic746_caps);
+	rig_register(&ic746pro_caps);
 	rig_register(&ic775_caps);
 	rig_register(&ic756_caps);
 	rig_register(&ic756pro_caps);
