@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.10 2004-09-07 21:54:13 fillods Exp $
+ *	$Id: ic756.c,v 1.11 2004-09-25 14:33:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -91,7 +91,7 @@ const struct rig_caps ic756_caps = {
 .rig_model =  RIG_MODEL_IC756,
 .model_name = "IC-756", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -234,7 +234,7 @@ const struct rig_caps ic756pro_caps = {
 .rig_model =  RIG_MODEL_IC756PRO,
 .model_name = "IC-756PRO", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -423,7 +423,7 @@ const struct rig_caps ic756pro2_caps = {
 .rig_model =  RIG_MODEL_IC756PROII,
 .model_name = "IC-756PROII", 
 .mfg_name =  "Icom", 
-.version =  "0.3", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -641,4 +641,166 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 	}
 	return RIG_OK;
 }
+
+
+
+/*
+ * ic756proIII rig capabilities.
+ *
+ * TODO: check every paramters,
+ * 		add antenna capabilities
+ */
+static const struct icom_priv_caps ic756pro3_priv_caps = { 
+		0x6e,	/* default address */
+		0,		/* 731 mode */
+		ic756_ts_sc_list
+};
+
+
+#define IC756PROIII_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC756PROIII_1HZ_TS_MODES IC756PROIII_ALL_RX_MODES
+#define IC756PROIII_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC756PROIII_AM_TX_MODES (RIG_MODE_AM)
+
+
+const struct rig_caps ic756pro3_caps = {
+.rig_model =  RIG_MODEL_IC756PROIII,
+.model_name = "IC-756PROIII", 
+.mfg_name =  "Icom", 
+.version =  BACKEND_VER, 
+.copyright =  "LGPL",
+.status =  RIG_STATUS_NEW,
+.rig_type =  RIG_TYPE_TRANSCEIVER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_RIG,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  300,
+.serial_rate_max =  19200,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  200,
+.retry =  3, 
+.has_get_func =  IC756PRO_FUNC_ALL,
+.has_set_func =  IC756PRO_FUNC_ALL, 
+.has_get_level =  IC756PRO_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
+.has_get_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
+.level_gran = {
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+},
+.parm_gran =  {},
+.extparms =  ic756pro2_ext_parms,
+.ctcss_list =  common_ctcss_list,
+.dcs_list =  NULL,
+.preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC */
+.attenuator =   { 6, 12, 18, 20, RIG_DBLST_END, },
+.max_rit =  Hz(9999),
+.max_xit =  Hz(9999),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.vfo_ops =  IC756_VFO_OPS,
+.scan_ops =  IC756_SCAN_OPS,
+.transceive =  RIG_TRN_RIG,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+.chan_list =  {
+	   {   1,  99, RIG_MTYPE_MEM  },
+	   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+	   RIG_CHAN_END,
+	},
+
+.rx_range_list1 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
+	RIG_FRNG_END, },
+.tx_range_list1 =   {
+	FRQ_RNG_HF(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_6m(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_HF(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_6m(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+    	RIG_FRNG_END, },
+
+.rx_range_list2 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
+	RIG_FRNG_END, },
+.tx_range_list2 =  {
+	FRQ_RNG_HF(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_6m(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_HF(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_6m(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+    	RIG_FRNG_END, },
+
+.tuning_steps = 	{
+	 {IC756PROIII_1HZ_TS_MODES,1},
+	 {IC756PROIII_ALL_RX_MODES,kHz(1)},
+	 {IC756PROIII_ALL_RX_MODES,kHz(5)},
+	 {IC756PROIII_ALL_RX_MODES,kHz(9)},
+	 {IC756PROIII_ALL_RX_MODES,kHz(10)},
+	 RIG_TS_END,
+	},
+	/* mode/filter list, remember: order matters! */
+.filters = 	{
+	{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
+	{RIG_MODE_CW, Hz(500)},
+	{RIG_MODE_AM, kHz(6)},
+	{RIG_MODE_AM, kHz(2.4)},
+	{RIG_MODE_FM, kHz(15)},
+	{RIG_MODE_FM, kHz(8)},
+	RIG_FLT_END,
+	},
+.str_cal = IC756PRO_STR_CAL,
+
+.cfgparams =  icom_cfg_params,
+.set_conf =  icom_set_conf,
+.get_conf =  icom_get_conf,
+
+.priv =  (void*)&ic756pro3_priv_caps,
+.rig_init =   icom_init,
+.rig_cleanup =   icom_cleanup,
+.rig_open =  NULL,
+.rig_close =  NULL,
+
+.set_freq =  icom_set_freq,
+.get_freq =  icom_get_freq,
+.set_mode =  icom_set_mode,
+.get_mode =  icom_get_mode,
+.set_vfo =  icom_set_vfo,
+.set_ant =  icom_set_ant,
+.get_ant =  icom_get_ant,
+
+.decode_event =  icom_decode_event,
+.set_level =  icom_set_level,
+.get_level =  icom_get_level,
+.set_func =  icom_set_func,
+.get_func =  icom_get_func,
+.set_mem =  icom_set_mem,
+.vfo_op =  icom_vfo_op,
+.scan =  icom_scan,
+.set_ptt =  icom_set_ptt,
+.get_ptt =  icom_get_ptt,
+.get_dcd =  icom_get_dcd,
+.set_ts =  icom_set_ts,
+.get_ts =  icom_get_ts,
+.set_rptr_shift =  icom_set_rptr_shift,
+.get_rptr_shift =  icom_get_rptr_shift,
+.set_rptr_offs =  icom_set_rptr_offs,
+.get_rptr_offs =  icom_get_rptr_offs,
+.set_ctcss_tone =  icom_set_ctcss_tone,
+.get_ctcss_tone =  icom_get_ctcss_tone,
+.set_ctcss_sql =  icom_set_ctcss_sql,
+.get_ctcss_sql =  icom_get_ctcss_sql,
+.set_split_freq =  icom_set_split_freq,
+.get_split_freq =  icom_get_split_freq,
+.set_split_mode =  icom_set_split_mode,
+.get_split_mode =  icom_get_split_mode,
+.set_split_vfo =  icom_set_split_vfo,
+.get_split_vfo =  icom_get_split_vfo,
+
+.set_ext_parm =  ic756pro2_set_ext_parm,
+.get_ext_parm =  ic756pro2_get_ext_parm,
+};
+
 

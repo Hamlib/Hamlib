@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.68 2004-08-21 23:53:39 fillods Exp $
+ *	$Id: icom.h,v 1.69 2004-09-25 14:33:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,6 +30,8 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+
+#define BACKEND_VER "0.3"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -176,15 +178,19 @@ extern const struct rig_caps ic746pro_caps;
 extern const struct rig_caps ic756_caps;
 extern const struct rig_caps ic756pro_caps;
 extern const struct rig_caps ic756pro2_caps;
+extern const struct rig_caps ic756pro3_caps;
 extern const struct rig_caps ic751_caps;
 extern const struct rig_caps ic761_caps;
 extern const struct rig_caps ic765_caps;
 extern const struct rig_caps ic775_caps;
+extern const struct rig_caps ic78_caps;
+extern const struct rig_caps ic7800_caps;
 extern const struct rig_caps ic781_caps;
 extern const struct rig_caps ic821h_caps;
 extern const struct rig_caps ic910_caps;
 extern const struct rig_caps ic970_caps;
 extern const struct rig_caps icr10_caps;
+extern const struct rig_caps icr20_caps;
 extern const struct rig_caps icr71_caps;
 extern const struct rig_caps icr72_caps;
 extern const struct rig_caps icr75_caps;

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.90 2004-09-07 21:54:20 fillods Exp $
+ *	$Id: icom.c,v 1.91 2004-09-25 14:33:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -232,9 +232,11 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC756, 0x50 },
 		{ RIG_MODEL_IC756PRO, 0x5c },
 		{ RIG_MODEL_IC756PROII, 0x64 },
+		{ RIG_MODEL_IC756PROIII, 0x6e },
 		{ RIG_MODEL_IC761, 0x1e },
 		{ RIG_MODEL_IC765, 0x2c },
 		{ RIG_MODEL_IC775, 0x46 },
+		{ RIG_MODEL_IC7800, 0x6a },
 		{ RIG_MODEL_IC781, 0x26 },
 		{ RIG_MODEL_IC820, 0x42 },
 		{ RIG_MODEL_IC821, 0x4c },
@@ -244,6 +246,7 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC1271, 0x24 },
 		{ RIG_MODEL_IC1275, 0x18 },
 		{ RIG_MODEL_ICR10, 0x52 },
+		{ RIG_MODEL_ICR20, 0x6c },
 		{ RIG_MODEL_ICR71, 0x1a },
 		{ RIG_MODEL_ICR72, 0x32 },
 		{ RIG_MODEL_ICR75, 0x5a },
@@ -2044,8 +2047,8 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 		res_len -= cmdhead;
 
 		if (resbuf[0] != ACK && resbuf[0] != prm_cn) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_level: ack NG (%#.2x), "
-								"len=%d\n", resbuf[0],res_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), "
+							"len=%d\n", __FUNCTION__,resbuf[0],res_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -2071,8 +2074,8 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 				val->i = icom_val;
 		}
 
-		rig_debug(RIG_DEBUG_TRACE,"icom_get_parm: %d %d %d %f\n", res_len,
-						icom_val, val->i, val->f);
+		rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
+				__FUNCTION__, res_len, icom_val, val->i, val->f);
 
 		return RIG_OK;
 }
@@ -2870,7 +2873,10 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic756_caps);
 	rig_register(&ic756pro_caps);
 	rig_register(&ic756pro2_caps);
+	rig_register(&ic756pro3_caps);
 	rig_register(&ic765_caps);
+	rig_register(&ic78_caps);
+	rig_register(&ic7800_caps);
 	rig_register(&ic781_caps);
 	rig_register(&ic707_caps);
 	rig_register(&ic728_caps);
@@ -2880,6 +2886,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic970_caps);
 
         rig_register(&icr10_caps);
+        rig_register(&icr20_caps);
         rig_register(&icr71_caps);
         rig_register(&icr72_caps);
         rig_register(&icr75_caps);
