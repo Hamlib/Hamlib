@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.6 2000-10-23 19:53:03 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.7 2000-10-29 16:29:07 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -282,6 +282,7 @@ typedef long long freq_t;
 typedef unsigned int rmode_t;	/* radio mode  */
 
 /* Do not use an enum since this will be used w/ rig_mode_t bit fields */
+#define RIG_MODE_NONE  	0
 #define RIG_MODE_AM    	(1<<0)
 #define RIG_MODE_CW    	(1<<1)
 #define RIG_MODE_USB	(1<<2)	 /* select somewhere else the filters ? */
@@ -610,8 +611,6 @@ extern int rig_get_split(RIG *rig, split_t *split);
 extern int rig_set_ts(RIG *rig, unsigned long ts); /* set tuning step */
 extern int rig_get_ts(RIG *rig, unsigned long *ts); /* get tuning step */
 
-extern int rig_set_power(RIG *rig, float power);
-extern int rig_get_power(RIG *rig, float *power);
 extern int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
 extern int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 
