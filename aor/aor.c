@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - main file
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.26 2003-10-20 22:15:01 fillods Exp $
+ *	$Id: aor.c,v 1.27 2004-04-16 19:58:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -515,6 +515,7 @@ DECLARE_INITRIG_BACKEND(aor)
 		rig_register(&ar8000_caps);
 		rig_register(&ar5000_caps);
 		rig_register(&ar3000a_caps);
+		rig_register(&ar7030_caps);
 
 		return RIG_OK;
 }
