@@ -9,7 +9,7 @@
  * supports the Hy-Gain DCU-1.
  *
  *
- *    $Id: rotorez.h,v 1.2 2003-01-12 14:29:14 n0nb Exp $
+ *    $Id: rotorez.h,v 1.3 2003-02-13 03:08:00 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@
 #ifndef _ROT_ROTOREZ_H
 #define _ROT_ROTOREZ_H 1
 
-#define AZ_READ_LEN 3
+#define AZ_READ_LEN 4
 
 extern const struct rot_caps rotorez_rot_caps;
 extern const struct rot_caps rotorcard_rot_caps;

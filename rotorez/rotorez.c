@@ -8,8 +8,11 @@
  * the Idiom Press Rotor-EZ or RotorCard interface.  It also
  * supports the Hy-Gain DCU-1.
  *
+ * Rotor-EZ is a trademark of Idiom Press
+ * Hy-Gain is a trademark of MFJ Enterprises
  *
- *    $Id: rotorez.c,v 1.3 2003-01-12 14:59:46 n0nb Exp $
+ *
+ *    $Id: rotorez.c,v 1.4 2003-02-13 03:07:59 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -201,7 +204,7 @@ const struct rot_caps dcu_rot_caps = {
 static int rotorez_rot_init(ROT *rot) {
   struct rotorez_rot_priv_data *priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "rotorez: %s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rot)
     return -RIG_EINVAL;
@@ -226,7 +229,7 @@ static int rotorez_rot_init(ROT *rot) {
 
 static int rotorez_rot_cleanup(ROT *rot) {
 
-  rig_debug(RIG_DEBUG_VERBOSE, "rotorez: %s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rot)
     return -RIG_EINVAL;
@@ -250,7 +253,7 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
   unsigned char execstr[5] = "AM1;";
   int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "rotorez: %s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rot)
     return -RIG_EINVAL;
@@ -277,16 +280,18 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 /*
  * Get position
  * Returns current azimuth position in whole degrees.
- * Range is an integer, 0 to 359 degrees
+ * Range returned from Rotor-EZ is an integer, 0 to 359 degrees
+ * Elevation is set to 0
  */
 
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
   struct rot_state *rs;
   unsigned char cmdstr[5] = "AI1;";
-  unsigned char az[4];
+  unsigned char az[5];          /* read azimuth string */
+  azimuth_t tmp = 0;
   int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "rotorez: %s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rot)
     return -RIG_EINVAL;
@@ -300,11 +305,24 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
   if (err != AZ_READ_LEN)
     return -RIG_ETRUNC;
 
-  *azimuth = (azimuth_t)atof(az);
-  if (*azimuth < 0 || *azimuth > 359)
+  /*
+   * Rotor-EZ returns a four octet string consisting of a ';' followed
+   * by three octets containing the rotor's position in degrees.  The
+   * semi-colon is ignored when passing the string to atof().
+   */
+  az[4] = NULL;                 /* NULL terminated string */
+  tmp = (azimuth_t)atof((az + 1));
+  rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
+            __func__, (az + 1), tmp);
+
+  if (tmp < 0 || tmp > 359)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_TRACE, "rotorez: azimuth = %.1f degrees\n", *azimuth);
+  *azimuth = tmp;
+  *elevation = 0;               /* assume aiming at the horizon */
+  rig_debug(RIG_DEBUG_TRACE,
+            "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
+            __func__, *azimuth, *elevation);
 
   return RIG_OK;
 }
@@ -318,7 +336,7 @@ static int rotorez_rot_stop(ROT *rot) {
   unsigned char cmdstr[2] = ";";
   int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "rotorez: %s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rot)
     return -RIG_EINVAL;
@@ -339,7 +357,7 @@ static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr) {
   struct rot_state *rs;
   int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "rotorez: %s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   if (!rot)
     return -RIG_EINVAL;
@@ -358,7 +376,7 @@ static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr) {
  */
 
 int initrots_rotorez(void *be_handle) {
-  rig_debug(RIG_DEBUG_VERBOSE, "rotorez: %s called\n", __func__);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
   rot_register(&rotorez_rot_caps);
   rot_register(&rotorcard_rot_caps);
