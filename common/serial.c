@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.3 2000-07-30 02:00:49 javabear Exp $  
+ * $Id: serial.c,v 1.4 2000-07-30 03:57:19 javabear Exp $  
  *
  */
 
@@ -19,6 +19,7 @@
 #include <sys/ioctl.h>
 #include "serial.h"
 
+static void dump_hex(unsigned char *ptr, int size, int width);
 
 /*
  * Open serial port 
@@ -152,22 +153,18 @@ void pause2() {
  *
  */
 
-int write_block(int fd, unsigned char *data) {
+int write_block(int fd, unsigned char *txbuffer) {
   int i;
-
-  printf("write_block data =  ");
 
   for (i=0; i<5; i++) {
 
-    if(write(fd, &data[i] , 1) < 0) {
+    if(write(fd, &txbuffer[i] , 1) < 0) {
       fputs("write() of  byte failed!\n", stderr);
       return -1;
     }
-    printf(" 0x%.2x ", data[i]);
-
     pause2();			/* 50 msec */
   }
-  printf("\n");
+  dump_hex(txbuffer,5,16);
   
   return 0;
 }
@@ -190,7 +187,7 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num ) {
   int n = 0;
   int i;
 
-  printf("read_sleep called with num = %i \n",num);
+  printf("serial:read_sleep called with num = %i \n",num);
 
   while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
@@ -200,18 +197,46 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num ) {
     sleep(1);			/* wait 1 second and try again */
   }
 
-  printf("\n");
   /* this should not block now */
   
   n = read(fd,rxbuffer,num);	/* grab num bytes from rig */
 
-  printf("read_sleep data = ");
-  for(i=0; i<n; i++) {
-    printf("0x%.2x ",rxbuffer[i]);
-  }
-
-  printf("\n");  
-  printf("\nread_sleep: n = %i \n",n);
-
+  dump_hex(rxbuffer,num,16);
   return n;			/* return bytes read */
 }
+
+
+
+/*
+ * Do a hex dump of the unsigned char array.
+ */
+
+static void dump_hex(unsigned char *ptr, int size, int width) {
+  int i =0;
+
+  printf("\n");
+  printf("serial: Memory Dump: size = %i, width = %i .\n",size,width);
+
+  for(i=0; i<size; i++) {
+    if (i % width == 0) {
+      printf("\n");
+      printf("0x%.4x  ",i);
+    }
+    printf(" 0x%.2x", *(ptr+i));
+
+  }
+  printf("\n");
+
+  return;
+} 
+
+
+
+
+
+
+
+
+
+
+
