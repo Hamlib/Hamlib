@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.40 2003-11-16 17:34:00 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.41 2003-12-04 23:18:49 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -248,20 +248,19 @@ int dumpcaps (RIG* rig)
 	rig_ext_parm_foreach(rig, print_ext, NULL);
 	printf("\n");
 
-#if 0
-	/* FIXME: use rig->state.vfo_list instead */
-	printf("VFO list: ");
-	if (caps->vfo_list!=0) {
-		if ((caps->vfo_list&RIG_VFO_A)==RIG_VFO_A) printf("VFOA ");
-		if ((caps->vfo_list&RIG_VFO_B)==RIG_VFO_A) printf("VFOB ");
-		if ((caps->vfo_list&RIG_VFO_C)==RIG_VFO_A) printf("VFOC ");
-		printf("\n");
-	} else {
-			printf(" none! This backend might be bogus!\n");
-	}
 
-	printf("Number of channels:\t%d\n", caps->chan_qty);
-#endif
+	if (rig->state.vfo_list!=0)
+		sprintf_vfo(prntbuf, rig->state.vfo_list);
+	else
+		strcpy(prntbuf," none! This backend might be bogus!\n");
+	printf("VFO list: %s\n", prntbuf);
+
+	sprintf_vfop(prntbuf, caps->vfo_ops);
+	printf("VFO Ops: %s\n", prntbuf);
+
+	sprintf_scan(prntbuf, caps->scan_ops);
+	printf("Scan Ops: %s\n", prntbuf);
+
 	printf("Number of banks:\t%d\n", caps->bank_qty);
 	printf("Memory name desc size:\t%d\n", caps->chan_desc_sz);
 

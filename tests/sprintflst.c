@@ -2,7 +2,7 @@
  *  Hamlib Interface - sprintf toolbox
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: sprintflst.c,v 1.1 2003-11-16 16:58:35 fillods Exp $
+ *	$Id: sprintflst.c,v 1.2 2003-12-04 23:18:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,6 +38,33 @@
 #include "misc.h"
 
 #define DUMMY_ALL 0x7ffffffffffffffLL
+
+int sprintf_vfo(char *str, vfo_t vfo)
+{
+		int i, len=0;
+		const char *sv;
+
+		*str = '\0';
+		if (vfo == RIG_VFO_NONE)
+				return 0;
+		sv = strvfo(vfo & RIG_VFO_CURR);
+		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
+		sv = strvfo(vfo & RIG_VFO_MEM);
+		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
+		sv = strvfo(vfo & RIG_VFO_VFO);
+		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
+		sv = strvfo(vfo & RIG_VFO_MAIN);
+		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
+		sv = strvfo(vfo & RIG_VFO_SUB);
+		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
+
+		for (i=0; i<16; i++) {
+			sv = strvfo(vfo & RIG_VFO_N(i));
+			if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
+		}
+
+		return len;
+}
 
 int sprintf_mode(char *str, rmode_t mode)
 {
