@@ -12,7 +12,7 @@
  * Hy-Gain is a trademark of MFJ Enterprises
  *
  *
- *    $Id: rotorez.c,v 1.4 2003-02-13 03:07:59 n0nb Exp $
+ *    $Id: rotorez.c,v 1.5 2003-02-27 03:47:47 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -80,7 +80,7 @@ const struct rot_caps rotorez_rot_caps = {
   .rot_model =          ROT_MODEL_ROTOREZ,
   .model_name =         "Rotor-EZ",
   .mfg_name =           "Idiom Press",
-  .version =            "0.1.0",
+  .version =            "0.1.2",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_NEW,
   .rot_type =           ROT_TYPE_OTHER,
@@ -108,6 +108,7 @@ const struct rot_caps rotorez_rot_caps = {
   .set_position =       rotorez_rot_set_position,
   .get_position =       rotorez_rot_get_position,
   .stop =               rotorez_rot_stop,
+  .set_conf =           rotorez_rot_set_conf,
 
 };
 
@@ -120,7 +121,7 @@ const struct rot_caps rotorcard_rot_caps = {
   .rot_model =          ROT_MODEL_ROTORCARD,
   .model_name =         "RotorCard",
   .mfg_name =           "Idiom Press",
-  .version =            "0.1.0",
+  .version =            "0.1.2",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_NEW,
   .rot_type =           ROT_TYPE_OTHER,
@@ -148,6 +149,7 @@ const struct rot_caps rotorcard_rot_caps = {
   .set_position =       rotorez_rot_set_position,
   .get_position =       rotorez_rot_get_position,
   .stop =               rotorez_rot_stop,
+  .set_conf =           rotorez_rot_set_conf,
 
 };
 
@@ -160,7 +162,7 @@ const struct rot_caps dcu_rot_caps = {
   .rot_model =          ROT_MODEL_DCU,
   .model_name =         "DCU-1/DCU-1X",
   .mfg_name =           "Hy-Gain",
-  .version =            "0.1.0",
+  .version =            "0.1.2",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_NEW,
   .rot_type =           ROT_TYPE_OTHER,
@@ -288,6 +290,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
   struct rot_state *rs;
   unsigned char cmdstr[5] = "AI1;";
   unsigned char az[5];          /* read azimuth string */
+  char *p;
   azimuth_t tmp = 0;
   int err;
 
@@ -310,10 +313,11 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
    * by three octets containing the rotor's position in degrees.  The
    * semi-colon is ignored when passing the string to atof().
    */
-  az[4] = NULL;                 /* NULL terminated string */
-  tmp = (azimuth_t)atof((az + 1));
+  az[4] = 0x00;                 /* NULL terminated string */
+  p = az + 1;                   /* advance past leading ';' */
+  tmp = (azimuth_t)atof(p);
   rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
-            __func__, (az + 1), tmp);
+            __func__, p, tmp);
 
   if (tmp < 0 || tmp > 359)
     return -RIG_EINVAL;
@@ -346,6 +350,42 @@ static int rotorez_rot_stop(ROT *rot) {
     return err;
 
   return RIG_OK;
+}
+
+
+/*
+ * Send configuration character
+ *
+ * token is ignored
+ * Rotor-EZ interface will act on these commands immediately --
+ * no other command or command terminator is needed
+ */
+
+static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val) {
+  int err;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rot)
+    return -RIG_EINVAL;
+
+  switch(*val) {
+  case 'E':             /* Enable endpoint option */
+  case 'e':             /* Disable endpoint option */
+  case 'J':             /* Enable jam protection */
+  case 'j':             /* Disable jam protection -- not recommended */
+  case 'O':             /* Enable overshoot option */
+  case 'o':             /* Disable overshoot option */
+  case 'S':             /* Enable unstick option */
+  case 's':             /* Disable unstick option */
+    err = rotorez_send_priv_cmd(rot, val);
+    if (err != RIG_OK)
+      return err;
+  
+    return RIG_OK;
+  default:
+    return -RIG_EINVAL;
+  }
 }
 
 

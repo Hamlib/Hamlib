@@ -1,0 +1,45 @@
+Quirks, known bugs, and other notes.
+====================================
+
+$Id: README.rotorez,v 1.1 2003-02-27 03:47:47 n0nb Exp $
+
+In this document I'll try to describe the behavior of the Idiom Press
+Rotor-EZ and RotorCard interfaces as well as the HyGain DCU-1/DCU-1X control
+units with Hamlib.  For background information see rotorez/rotorez.txt.
+
+The Idiom Press interfaces are the most capable of the units supported by
+this backend and all available commands are supported by these units at this
+time.  The HyGain control units only support a subset of the command set
+involving rotor positioning.
+
+This document is organized by Hamlib function calls and documents observed
+behavior with each call.
+
+rot_set_position
+    *   Fractional values passed for azimuth are dropped. i.e. 180.6 becomes
+        180 while a value greater than 359.4999 is converted to 0 for DCU1/
+        DCU-1X compatibility.
+    *   Allowed range for azimuth is 0 to 360.
+    *   Values passed for elevation are ignored.  The protocol only supports
+        azimuthal positioning
+        
+rot_set_position
+    *   Position reading is returned in whole degrees from 0 to 359.
+    *   Not supported by DCU-1/DCU-1X.
+    
+rotorez_rot_stop
+    *   Causes immediate cessation of rotor positioning.
+    *   Not supported by DCU-1/DCU-1X.
+
+rot_set_conf
+    *   Accepts one of E, e, J, j, O, o, S, and s (see rotorez/rotorez.txt)
+        in *val.
+    *   The value in token is not used by the backend and may be safely 
+        set to TOK_BACKEND_NONE.
+    *   Not supported by DCU-1/DCU-1X.
+
+BUGS
+    Please report all bugs to <hamlib-developer@users.sourceforge.net>
+    
+Nate Bargmann n0nb at arrl.net
+

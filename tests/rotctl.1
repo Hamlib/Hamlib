@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "September 22, 2002" "Hamlib"
+.TH ROTCTL "1" "February 26, 2003" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -30,10 +30,10 @@ interactive mode if none provided in command line.
 .\" respectively.
 Keep in mind that \fBHamlib\fP is still ALPHA level software. 
 A lof of stuff hasn't been tested thoroughly, and the API may change
-without publicised notice. Please report bugs and feedback at
+without publicized notice. Please report bugs and feedback at
 the e-mail address given in the REPORTING BUGS section.
 .SH OPTIONS
-This program follow the usual GNU command line syntax, with long
+This program follows the usual GNU command line syntax, with long
 options starting with two dashes (`-').
 A summary of options is included below.
 .TP
@@ -41,10 +41,12 @@ A summary of options is included below.
 Select rotator model number. See model list.
 .TP
 .B \-r, --rot-file=device
-Use \fBdevice\fP as the file name of the rotator to operate.
+Use \fBdevice\fP as the file name of the rotator to operate. Default is
+\fB/dev/rotator\fP (may be a symbolic link to the actual device).
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fBbaud\fP rate. Uses maximal rotator speed as default.
+Set serial speed to \fBbaud\fP rate. Uses maximum serial speed from rotator 
+backend capabilites as default.
 .TP
 .B \-L, \-\-show-conf
 List all config parameters.
@@ -63,7 +65,10 @@ Show summary of options and exit.
 .TP
 .B \-V, \-\-version
 Show version of program and exit.
-
+.PP
+\fBNOTE!\fP Some options may not be implemented by a given backend and will
+return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+and \fI\-\-show-conf\fP options.
 .SH COMMANDS
 Commands can be entered either as a single char, or as a long command name.
 Basically, the commands do not take a dash in front of them, as
@@ -97,6 +102,10 @@ Reset the rotator.
 .B M, move
 Move the rotator in a spesific direction.
 .TP
+.B C, set_conf
+Set a configuration parameter.  It is safe to give "Token" a value of '0'
+(zero).  "Value" may be a string up to 20 characters.
+.TP
 .B _, get_info
 Get misc information on the rotator.
 
@@ -115,7 +124,7 @@ Report bugs to <hamlib-developer@users.sourceforge.net>.
 .br
 I'm already aware of the bug in the previous section :-)
 .SH COPYRIGHT
-Copyright \(co 2000-2002 Stephane Fillod.
+Copyright \(co 2000-2003 Stephane Fillod.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
