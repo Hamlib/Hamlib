@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.29 2001-04-28 12:47:54 f4cfe Exp $
+ *	$Id: rig.h,v 1.30 2001-05-04 22:34:33 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@
 extern const char hamlib_version[];
 
 extern const int full_ctcss_list[];
+extern const int common_ctcss_list[];
 extern const int full_dcs_list[];
 #define CTCSS_LIST_SIZE (sizeof(full_ctcss_list)/sizeof(int)-1)
 #define DCS_LIST_SIZE (sizeof(full_dcs_list)/sizeof(int)-1)
@@ -312,6 +313,7 @@ typedef enum mem_vfo_op_e mv_op_t;
  * what about RIG_ANN_ENG and RIG_ANN_JAPAN? and RIG_ANN_CW?
  */
 
+#if 0
 enum ann_e {
 		RIG_ANN_OFF = 0,
 		RIG_ANN_FREQ,
@@ -319,6 +321,16 @@ enum ann_e {
 		RIG_ANN_ALL
 };
 typedef enum ann_e ann_t;
+#else
+
+#define RIG_ANN_NONE	0
+#define RIG_ANN_OFF 	RIG_ANN_NONE
+#define RIG_ANN_FREQ	(1<<0)
+#define RIG_ANN_RXMODE	(1<<1)
+#define RIG_ANN_ALL 	(1<<2)
+typedef long ann_t;
+
+#endif
 
 /* Antenna number */
 typedef int ant_t;
@@ -395,13 +407,16 @@ typedef union value_u value_t;
 #define RIG_PARM_APO		(1<<1)	/* Auto power off, int in minute */
 #define RIG_PARM_BACKLIGHT	(1<<2)	/* LCD light, float [0.0..1.0] */
 #define RIG_PARM_BEEP		(1<<4)	/* Beep on keypressed, int (0,1) */
-#define RIG_PARM_TIME		(1<<5)	/* hh:mm:ss, int in seconds */
+#define RIG_PARM_TIME		(1<<5)	/* hh:mm:ss, int in seconds from 00:00:00 */
+#define RIG_PARM_BAT		(1<<6)	/* battery level, float [0.0..1.0] */
 
-#define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT)
+#define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT)
+#define RIG_PARM_READONLY_LIST (RIG_PARM_BAT)
 
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
+#define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 
-
+#define RIG_SETTING_MAX 64
 typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 
 /*
@@ -429,7 +444,7 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_NR     	(1<<9)		/* Noise Reduction (DSP) */
 #define RIG_FUNC_AIP     	(1<<10)		/* AIP (Kenwood) */
 #define RIG_FUNC_APF     	(1<<11)		/* Auto Passband Filter */
-#define RIG_FUNC_MON     	(1<<12)		/* Monitor? (Icom) */
+#define RIG_FUNC_MON     	(1<<12)		/* Monitor? (Icom), same as FUNC_REV? */
 #define RIG_FUNC_MN     	(1<<13)		/* Manual Notch (Icom) */
 #define RIG_FUNC_RNF     	(1<<14)		/* RTTY Filter Notch (Icom) */
 #define RIG_FUNC_ARO     	(1<<15)		/* Auto Repeater Offset */
@@ -535,19 +550,31 @@ struct channel {
   freq_t freq;
   rmode_t mode;
   pbwidth_t width;
+  freq_t tx_freq;
+  rmode_t tx_mode;
+  pbwidth_t tx_width;
+  split_t split;
+  rptr_shift_t rptr_shift;
+  shortfreq_t rptr_offs;
   vfo_t vfo;
-  int power;	/* in mW */
+#if 0
+  /* hfpower, att, preamp to be removed soon */
+  int hfpower;
   int att;	/* in dB */
   int preamp;	/* in dB */
+#endif
+
   int ant;	/* antenna number */
-  shortfreq_t tuning_step;	/* */
-  shortfreq_t rit;	/* */
+  shortfreq_t tuning_step;
+  shortfreq_t rit;
+  shortfreq_t xit;
   setting_t funcs;
+  value_t levels[RIG_SETTING_MAX];
   int ctcss;
   int ctcss_sql;
   int dcs;
   int dcs_sql;
-  unsigned char channel_desc[MAXCHANDESC];
+  char channel_desc[MAXCHANDESC];
 };
 
 typedef struct channel channel_t;
@@ -634,22 +661,23 @@ struct rig_caps {
   setting_t has_get_parm;		/* bitwise OR'ed RIG_PARM_* */
   setting_t has_set_parm;		/* bitwise OR'ed RIG_PARM_* */
 
+  int level_gran[RIG_SETTING_MAX];		/* level granularity */
+  int parm_gran[RIG_SETTING_MAX];		/* parm granularity */
+
   const int *ctcss_list;    /* points to a 0 terminated array, */
   const int *dcs_list;		/* may be NULL */
 
   int preamp[MAXDBLSTSIZ];		/* in dB, 0 terminated */
   int attenuator[MAXDBLSTSIZ];	/* in dB, 0 terminated */
 
-  const char *dtmf_digits;	/* ASCIIZ string of supported digits */
-
   shortfreq_t max_rit;	/* max absolute RIT */
+  shortfreq_t max_xit;	/* max absolute XIT */
   shortfreq_t max_ifshift;	/* max absolute IF-SHIFT */
 
-  int vfo_list;
+  ann_t announces;	/* freq/mode announce ability */
   int targetable_vfo;
   int transceive;	/* the rig is able to generate events, to be used by callbacks */
 
-  int chan_qty;		/* number of channels */
   int bank_qty;		/* number of banks */
   int chan_desc_sz;   /* memory channel size, 0 if none */
 
@@ -674,7 +702,6 @@ struct rig_caps {
   int (*rig_cleanup)(RIG *rig);
   int (*rig_open)(RIG *rig);	/* called when port just opened */
   int (*rig_close)(RIG *rig);	/* called before port is to be closed */
-  int (*rig_probe)(RIG *rig); /* Experimental: may work.. */
   
   /*
    *  General API commands, from most primitive to least.. :()
@@ -709,6 +736,8 @@ struct rig_caps {
 
   int (*set_rit)(RIG *rig, vfo_t vfo, shortfreq_t rit);
   int (*get_rit)(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+  int (*set_xit)(RIG *rig, vfo_t vfo, shortfreq_t xit);
+  int (*get_xit)(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 
   int (*set_ts)(RIG *rig, vfo_t vfo, shortfreq_t ts); /* set tuning step */
   int (*get_ts)(RIG *rig, vfo_t vfo, shortfreq_t *ts); /* get tuning step */
@@ -823,9 +852,13 @@ struct rig_state {
 
   struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
 
+  chan_t chan_list[CHANLSTSIZ];		/* channel list, zero ended */
+
   shortfreq_t max_rit;	/* max absolute RIT */
+  shortfreq_t max_xit;	/* max absolute XIT */
   shortfreq_t max_ifshift;	/* max absolute IF-SHIFT */
 
+  ann_t announces;
   int vfo_list;
 
   int preamp[MAXDBLSTSIZ];			/* in dB, 0 terminated */
@@ -837,6 +870,8 @@ struct rig_state {
   setting_t has_set_level;
   setting_t has_get_parm;
   setting_t has_set_parm;
+
+  int level_gran[RIG_SETTING_MAX];		/* level granularity */
 
   /*
    * Pointer to private data
@@ -927,6 +962,8 @@ extern int rig_get_split(RIG *rig, vfo_t vfo, split_t *split);
 
 extern int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 extern int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+extern int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+extern int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 
 extern int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts); /* set tuning step */
 extern int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts); /* get tuning step */
@@ -980,7 +1017,9 @@ extern int rig_set_mem(RIG *rig, vfo_t vfo, int ch);		/* set memory channel numb
 extern int rig_get_mem(RIG *rig, vfo_t vfo, int *ch);		/* get memory channel number */
 extern int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);	/* Mem/VFO operation */
 
-extern int rig_set_channel(RIG *rig, const channel_t *chan);
+extern int rig_restore_channel(RIG *rig, const channel_t *chan); /* curr VFO */
+extern int rig_save_channel(RIG *rig, channel_t *chan);
+extern int rig_set_channel(RIG *rig, const channel_t *chan);	/* mem */
 extern int rig_get_channel(RIG *rig, channel_t *chan);
 
 extern int rig_set_trn(RIG *rig, vfo_t vfo, int trn); /* activate the transceive mode */
@@ -997,6 +1036,8 @@ extern pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode);
 extern pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode);
 
 extern const char *rigerror(int errnum);
+
+extern int rig_setting2idx(setting_t s);
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
