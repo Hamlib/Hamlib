@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R75
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.5 2004-09-05 00:38:06 fineware Exp $
+ *	$Id: icr75.c,v 1.6 2004-09-06 17:43:24 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -141,7 +141,7 @@ const struct rig_caps icr75_caps = {
 },
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
-.preamp =   { 20, RIG_DBLST_END, },	/* TBC */
+.preamp =   { 10, 20, RIG_DBLST_END, },	/* TBC */
 .attenuator =   { 20, RIG_DBLST_END, },	/* TBC */
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
