@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.3 2000-12-04 23:39:18 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.4 2000-12-05 22:04:44 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -205,7 +205,7 @@ static int set_freq(RIG *rig)
 
 		printf("Frequency: ");
 		scanf("%Ld", &freq);
-		return rig_set_freq(rig, freq);
+		return rig_set_freq(rig, RIG_VFO_CURR, freq);
 }
 
 static int get_freq(RIG *rig)
@@ -213,7 +213,7 @@ static int get_freq(RIG *rig)
 		int status;
 		freq_t freq;
 
-		status = rig_get_freq(rig, &freq);
+		status = rig_get_freq(rig, RIG_VFO_CURR, &freq);
 		printf("Frequency: %Ld\n", freq);
 		return status;
 }
@@ -227,7 +227,7 @@ static int set_mode(RIG *rig)
 		scanf("%d", &mode);
 		printf("Passband: ");
 		scanf("%d", (int*)&width);
-		return rig_set_mode(rig, mode, width);
+		return rig_set_mode(rig, RIG_VFO_CURR, mode, width);
 }
 
 
@@ -237,7 +237,7 @@ static int get_mode(RIG *rig)
 		rmode_t mode;
 		pbwidth_t width;
 
-		status = rig_get_mode(rig, &mode, &width);
+		status = rig_get_mode(rig, RIG_VFO_CURR, &mode, &width);
 		printf("Mode: %d\nPassband: %d\n", mode, width);
 		return status;
 }
@@ -270,7 +270,7 @@ static int set_ptt(RIG *rig)
 
 		printf("PTT: ");
 		scanf("%d", (int*)&ptt);
-		return rig_set_ptt(rig, ptt);
+		return rig_set_ptt(rig, RIG_VFO_CURR, ptt);
 }
 
 
@@ -279,7 +279,7 @@ static int get_ptt(RIG *rig)
 		int status;
 		ptt_t ptt;
 
-		status = rig_get_ptt(rig, &ptt);
+		status = rig_get_ptt(rig, RIG_VFO_CURR, &ptt);
 		printf("PTT: %d\n", ptt);
 		return status;
 }
@@ -291,7 +291,7 @@ static int set_rptr_shift(RIG *rig)
 
 		printf("Repeater shift: ");
 		scanf("%d", (int*)&rptr_shift);
-		return rig_set_rptr_shift(rig, rptr_shift);
+		return rig_set_rptr_shift(rig, RIG_VFO_CURR, rptr_shift);
 }
 
 
@@ -300,7 +300,7 @@ static int get_rptr_shift(RIG *rig)
 		int status;
 		rptr_shift_t rptr_shift;
 
-		status = rig_get_rptr_shift(rig, &rptr_shift);
+		status = rig_get_rptr_shift(rig, RIG_VFO_CURR, &rptr_shift);
 		printf("Repeater shift: %d\n", rptr_shift);
 		return status;
 }
@@ -312,7 +312,7 @@ static int set_rptr_offs(RIG *rig)
 
 		printf("Repeater shift offset: ");
 		scanf("%ld", &rptr_offs);
-		return rig_set_rptr_offs(rig, rptr_offs);
+		return rig_set_rptr_offs(rig, RIG_VFO_CURR, rptr_offs);
 }
 
 
@@ -321,7 +321,7 @@ static int get_rptr_offs(RIG *rig)
 		int status;
 		unsigned long rptr_offs;
 
-		status = rig_get_rptr_offs(rig, &rptr_offs);
+		status = rig_get_rptr_offs(rig, RIG_VFO_CURR, &rptr_offs);
 		printf("Repeater shift offset: %ld\n", rptr_offs);
 		return status;
 }
@@ -333,7 +333,7 @@ static int set_ctcss(RIG *rig)
 
 		printf("CTCSS tone: ");
 		scanf("%d", &tone);
-		return rig_set_ctcss(rig, tone);
+		return rig_set_ctcss(rig, RIG_VFO_CURR, tone);
 }
 
 
@@ -342,7 +342,7 @@ static int get_ctcss(RIG *rig)
 		int status;
 		unsigned int tone;
 
-		status = rig_get_ctcss(rig, &tone);
+		status = rig_get_ctcss(rig, RIG_VFO_CURR, &tone);
 		printf("CTCSS tone: %d\n", tone);
 		return status;
 }
@@ -354,7 +354,7 @@ static int set_dcs(RIG *rig)
 
 		printf("DCS code: ");
 		scanf("%d", &code);
-		return rig_set_dcs(rig, code);
+		return rig_set_dcs(rig, RIG_VFO_CURR, code);
 }
 
 
@@ -363,7 +363,7 @@ static int get_dcs(RIG *rig)
 		int status;
 		unsigned int code;
 
-		status = rig_get_dcs(rig, &code);
+		status = rig_get_dcs(rig, RIG_VFO_CURR, &code);
 		printf("DCS code: %d\n", code);
 		return status;
 }
@@ -377,7 +377,7 @@ static int set_split_freq(RIG *rig)
 		scanf("%Ld", &rxfreq);
 		printf("Transmit frequency: ");
 		scanf("%Ld", &txfreq);
-		return rig_set_split_freq(rig, rxfreq, txfreq);
+		return rig_set_split_freq(rig, RIG_VFO_CURR, rxfreq, txfreq);
 }
 
 
@@ -386,7 +386,7 @@ static int get_split_freq(RIG *rig)
 		int status;
 		freq_t rxfreq,txfreq;
 
-		status = rig_get_split_freq(rig, &rxfreq, &txfreq);
+		status = rig_get_split_freq(rig, RIG_VFO_CURR, &rxfreq, &txfreq);
 		printf("Receive frequency: %Ld\n", rxfreq);
 		printf("Transmit frequency: %Ld\n", txfreq);
 		return status;
@@ -399,7 +399,7 @@ static int set_split(RIG *rig)
 
 		printf("Split mode: ");
 		scanf("%d", (int*)&split);
-		return rig_set_split(rig, split);
+		return rig_set_split(rig, RIG_VFO_CURR, split);
 }
 
 
@@ -408,7 +408,7 @@ static int get_split(RIG *rig)
 		int status;
 		split_t split;
 
-		status = rig_get_split(rig, &split);
+		status = rig_get_split(rig, RIG_VFO_CURR, &split);
 		printf("Split mode: %d\n", split);
 		return status;
 }
@@ -420,7 +420,7 @@ static int set_ts(RIG *rig)
 
 		printf("Tuning step: ");
 		scanf("%ld", &ts);
-		return rig_set_ts(rig, ts);
+		return rig_set_ts(rig, RIG_VFO_CURR, ts);
 }
 
 
@@ -429,7 +429,7 @@ static int get_ts(RIG *rig)
 		int status;
 		unsigned long ts;
 
-		status = rig_get_ts(rig, &ts);
+		status = rig_get_ts(rig, RIG_VFO_CURR, &ts);
 		printf("Tuning step: %ld\n", ts);
 		return status;
 }
@@ -484,7 +484,7 @@ static int set_bank(RIG *rig)
 
 		printf("Bank: ");
 		scanf("%d", &bank);
-		return rig_set_bank(rig, bank);
+		return rig_set_bank(rig, RIG_VFO_CURR, bank);
 }
 
 
@@ -494,7 +494,7 @@ static int set_mem(RIG *rig)
 
 		printf("Memory#: ");
 		scanf("%d", &ch);
-		return rig_set_mem(rig, ch);
+		return rig_set_mem(rig, RIG_VFO_CURR, ch);
 }
 
 
@@ -503,7 +503,7 @@ static int get_mem(RIG *rig)
 		int status;
 		int ch;
 
-		status = rig_get_mem(rig, &ch);
+		status = rig_get_mem(rig, RIG_VFO_CURR, &ch);
 		printf("Memory#: %d\n", ch);
 		return status;
 }
@@ -515,7 +515,7 @@ static int mv_ctl(RIG *rig)
 
 		printf("Mem/VFO op: ");
 		scanf("%d", (int*)&op);
-		return rig_mv_ctl(rig, op);
+		return rig_mv_ctl(rig, RIG_VFO_CURR, op);
 }
 
 
@@ -537,7 +537,7 @@ static int set_trn(RIG *rig)
 
 		printf("Transceive: ");
 		scanf("%d", &trn);
-		return rig_set_trn(rig, trn);
+		return rig_set_trn(rig, RIG_VFO_CURR, trn);
 }
 
 
@@ -546,7 +546,7 @@ static int get_trn(RIG *rig)
 		int status;
 		int trn;
 
-		status = rig_get_trn(rig, &trn);
+		status = rig_get_trn(rig, RIG_VFO_CURR, &trn);
 		printf("Transceive: %d\n", trn);
 		return status;
 }

@@ -5,6 +5,7 @@
 #include <hamlib/rig.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #define SERIAL_PORT "/dev/ttyS0"
 
@@ -71,24 +72,24 @@ int main ()
 	 * Lets try some frequencies
 	 */
 	
-	retcode = rig_set_freq(my_rig, 28350125); /* 10m */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 28350125); /* 10m */
 	sleep(2);
-	retcode = rig_set_freq(my_rig, 21235175); /* 15m  */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 21235175); /* 15m  */
 	sleep(2);
-	retcode = rig_set_freq(my_rig, 770000); /* KAAM */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 770000); /* KAAM */
 	sleep(2);
-	retcode = rig_set_freq(my_rig, 7250100); /* 40m  */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 7250100); /* 40m  */
 	sleep(2);
-	retcode = rig_set_freq(my_rig, 3980000); /* 80m  */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 3980000); /* 80m  */
 	sleep(2);
-	retcode = rig_set_freq(my_rig, 1875000); /* 160m  */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 1875000); /* 160m  */
 	sleep(2);
-	retcode = rig_set_freq(my_rig, 14250375); /* cq de vk3fcs */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 14250375); /* cq de vk3fcs */
 	sleep(2);
 #if 0
-	retcode = rig_set_freq(my_rig, 145100000); /* 2m  */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 145100000); /* 2m  */
 	sleep(2);
-	retcode = rig_set_freq(my_rig, 435125000); /* 70cm  */
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 435125000); /* 70cm  */
 	sleep(2);
 #endif
 
@@ -96,7 +97,7 @@ int main ()
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
 	} 
 
-	retcode = rig_set_mode(my_rig, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
+	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_mode: error = %s \n", rigerror(retcode));
@@ -115,7 +116,7 @@ int main ()
 	  printf("rig_get_vfo: error =  %s \n", rigerror(retcode));
 	}
 
-	retcode = rig_get_freq(my_rig, &freq);
+	retcode = rig_get_freq(my_rig, RIG_VFO_CURR, &freq);
 	
 	if (retcode == RIG_OK ) {
 	  printf("rig_get_freq: freq = %Li \n", freq);
@@ -123,7 +124,7 @@ int main ()
 	  printf("rig_get_freq: error =  %s \n", rigerror(retcode));
 	}
 
-	retcode = rig_get_mode(my_rig, &rmode, &width);
+	retcode = rig_get_mode(my_rig, RIG_VFO_CURR, &rmode, &width);
 
 	if (retcode == RIG_OK ) {
 	  printf("rig_get_mode: mode = %i \n", rmode);
@@ -131,7 +132,7 @@ int main ()
 	  printf("rig_get_mode: error =  %s \n", rigerror(retcode));
 	}
 
-	retcode = rig_get_strength(my_rig, &strength);
+	retcode = rig_get_strength(my_rig, RIG_VFO_CURR, &strength);
 
 	if (retcode == RIG_OK ) {
 	  printf("rig_get_strength: strength = %i \n", strength);
@@ -147,15 +148,4 @@ int main ()
 
 	return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
 

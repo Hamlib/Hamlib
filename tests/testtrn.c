@@ -9,7 +9,7 @@
 
 #define SERIAL_PORT "/dev/ttyS0"
 
-int myfreq_event(RIG *rig, freq_t freq)
+int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		printf("Rig changed freq to %LiHz\n",freq);
 		return 0;
@@ -53,7 +53,7 @@ int main ()
 	 */
 	
 
-	retcode = rig_set_freq(my_rig, 439700000);
+	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 439700000);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
@@ -61,7 +61,7 @@ int main ()
 
 	my_rig->callbacks.freq_event = myfreq_event;
 
-	retcode = rig_set_trn(my_rig, RIG_TRN_ON);
+	retcode = rig_set_trn(my_rig, RIG_VFO_CURR, RIG_TRN_ON);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_trn: error = %s \n", rigerror(retcode));
