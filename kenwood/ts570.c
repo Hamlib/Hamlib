@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS570 description
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: ts570.c,v 1.4 2001-12-16 11:17:42 fillods Exp $
+ *		$Id: ts570.c,v 1.5 2002-01-03 21:45:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,7 +27,6 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include "kenwood.h"
 
 
@@ -190,8 +189,10 @@ set_ctcss_tone: kenwood_set_ctcss_tone,
 get_ctcss_tone: kenwood_get_ctcss_tone,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
-get_level: kenwood_get_level,
+set_func: kenwood_set_func,
 get_func: kenwood_get_func,
+set_level: kenwood_set_level,
+get_level: kenwood_get_level,
 set_powerstat: kenwood_set_powerstat,
 get_powerstat: kenwood_get_powerstat,
 reset: kenwood_reset,
@@ -345,8 +346,10 @@ set_ctcss_tone: kenwood_set_ctcss_tone,
 get_ctcss_tone: kenwood_get_ctcss_tone,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
-get_level: kenwood_get_level,
+set_func: kenwood_set_func,
 get_func: kenwood_get_func,
+set_level: kenwood_set_level,
+get_level: kenwood_get_level,
 set_powerstat: kenwood_set_powerstat,
 get_powerstat: kenwood_get_powerstat,
 reset: kenwood_reset,

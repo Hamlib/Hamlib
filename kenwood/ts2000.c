@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS2000 description
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: ts2000.c,v 1.2 2001-12-16 11:17:42 fillods Exp $
+ *		$Id: ts2000.c,v 1.3 2002-01-03 21:45:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,17 +24,7 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include "kenwood.h"
 
 
@@ -227,11 +217,20 @@ set_ctcss_tone: kenwood_set_ctcss_tone,
 get_ctcss_tone: kenwood_get_ctcss_tone,
 set_ptt: kenwood_set_ptt,
 get_dcd: kenwood_get_dcd,
+set_func: kenwood_set_func,
+get_func: kenwood_get_func,
+set_level: kenwood_set_level,
 get_level: kenwood_get_level,
 set_powerstat: kenwood_set_powerstat,
 get_powerstat: kenwood_get_powerstat,
 reset: kenwood_reset,
 send_morse: kenwood_send_morse,
+vfo_op: kenwood_vfo_op,
+set_mem: kenwood_set_mem,
+get_mem: kenwood_get_mem,
+set_trn: kenwood_set_trn,
+get_trn: kenwood_get_trn,
+get_info: kenwood_get_info,
 
 };
 
