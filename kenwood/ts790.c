@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.9 2002-09-13 19:00:36 pa4tu Exp $
+ *	$Id: ts790.c,v 1.10 2002-11-04 22:40:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -95,7 +95,7 @@ const struct rig_caps ts790_caps = {
 .chan_desc_sz =  0,
 
 	/* FIXME: split memories, call channel, etc. */
-.chan_list =  { {  1, 59, RIG_MTYPE_MEM,  0 },
+.chan_list =  { {  1, 59, RIG_MTYPE_MEM },
 			 RIG_CHAN_END,
 		   },
 

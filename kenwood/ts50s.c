@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS50 description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *	$Id: ts50s.c,v 1.9 2002-09-13 19:00:36 pa4tu Exp $
+ *	$Id: ts50s.c,v 1.10 2002-11-04 22:40:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -95,8 +95,8 @@ const struct rig_caps ts50s_caps = {
 
 
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM,  0 },
-			{ 90, 99, RIG_MTYPE_EDGE, 0 },
+			{  0, 89, RIG_MTYPE_MEM  },
+			{ 90, 99, RIG_MTYPE_EDGE },
 		  	RIG_CHAN_END,
 		   },
 .rx_range_list1 =  { 

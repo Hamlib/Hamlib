@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *  Caps submitted by Chuck Gilkes WD0FCL/4
  *
- *	$Id: ic718.c,v 1.2 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: ic718.c,v 1.3 2002-11-04 22:40:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -103,8 +103,8 @@ const struct rig_caps ic718_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		   {   1,  99, RIG_MTYPE_MEM, 0 },
-		   { 100, 101, RIG_MTYPE_EDGE, 0 },    /* two by two */
+		   {   1,  99, RIG_MTYPE_MEM  },
+		   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
 		     RIG_CHAN_END,
 		},
 

@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.6 2002-09-21 13:54:24 fillods Exp $
+ *      $Id: ic910.c,v 1.7 2002-11-04 22:40:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,7 +69,7 @@ static int compareFrequencies (RIG* rig, freq_t freq1, freq_t freq2) {
             freq1 <= rig->caps->rx_range_list1[freq1band].end)
             break;
         ++freq1band;
-    	fprintf(stderr, "%i\n", freq1band);
+    	//fprintf(stderr, "%i\n", freq1band);
     }
 
     while (rig->caps->rx_range_list1[freq2band].start!=noband.start) {
@@ -247,9 +247,9 @@ const struct rig_caps ic910_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-    {   1,  99, RIG_MTYPE_MEM,   0 },
-    { 100, 105, RIG_MTYPE_EDGE,  0 },
-    { 106, 106, RIG_MTYPE_CALL,  0 },
+    {   1,  99, RIG_MTYPE_MEM  },
+    { 100, 105, RIG_MTYPE_EDGE },
+    { 106, 106, RIG_MTYPE_CALL },
     RIG_CHAN_END, },
 
 .rx_range_list1 =   {  /* USA */

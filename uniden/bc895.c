@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - BC895 description
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: bc895.c,v 1.2 2002-08-16 17:43:02 fillods Exp $
+ *	$Id: bc895.c,v 1.3 2002-11-04 22:40:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -86,7 +86,7 @@ const struct rig_caps bc895_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		{ 1, 300, RIG_MTYPE_MEM, 0 },
+		{ 1, 300, RIG_MTYPE_MEM },
 		RIG_CHAN_END,
 	},
 

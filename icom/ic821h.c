@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *      $Id: ic821h.c,v 1.2 2002-08-16 17:43:01 fillods Exp $
+ *      $Id: ic821h.c,v 1.3 2002-11-04 22:40:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -97,8 +97,8 @@ const struct rig_caps ic821h_caps = {
 
 .chan_list =  {
                    /* FIXME: Each band has 80 channels (2*80) */
-                   {   1,  80, RIG_MTYPE_MEM,   0 },
-                   {  81,  82, RIG_MTYPE_EDGE,  0 },
+                   {   1,  80, RIG_MTYPE_MEM  },
+                   {  81,  82, RIG_MTYPE_EDGE },
 				   RIG_CHAN_END,
 		},
 

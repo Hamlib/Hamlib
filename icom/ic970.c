@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-970 and variations
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ic970.c,v 1.2 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: ic970.c,v 1.3 2002-11-04 22:40:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -91,9 +91,9 @@ const struct rig_caps ic970_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		   {   1,  99, RIG_MTYPE_MEM,   0 },
-		   { 100, 101, RIG_MTYPE_EDGE,  0 },
-		   { 102, 102, RIG_MTYPE_CALL,  0 },
+		   {   1,  99, RIG_MTYPE_MEM  },
+		   { 100, 101, RIG_MTYPE_EDGE },
+		   { 102, 102, RIG_MTYPE_CALL },
 		   RIG_CHAN_END,
 		},
 

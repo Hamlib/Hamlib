@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.14 2002-09-21 13:52:09 fillods Exp $
+ *	$Id: ts570.c,v 1.15 2002-11-04 22:40:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -98,8 +98,8 @@ const struct rig_caps ts570s_caps = {
 
 
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM,  0 },
-			{ 90, 99, RIG_MTYPE_EDGE, 0 },
+			{  0, 89, RIG_MTYPE_MEM  },
+			{ 90, 99, RIG_MTYPE_EDGE },
 		  	RIG_CHAN_END,
 		   },
 .rx_range_list1 =  { 
@@ -265,8 +265,8 @@ const struct rig_caps ts570d_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM,  0 },
-			{ 90, 99, RIG_MTYPE_EDGE, 0 },
+			{  0, 89, RIG_MTYPE_MEM  },
+			{ 90, 99, RIG_MTYPE_EDGE },
 		  	RIG_CHAN_END,
 		   },
 .rx_range_list1 =  { 

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS440 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts440.c,v 1.7 2002-09-13 19:00:36 pa4tu Exp $
+ *	$Id: ts440.c,v 1.8 2002-11-04 22:40:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -100,7 +100,7 @@ const struct rig_caps ts440_caps = {
 .chan_desc_sz =  0,
 
 
-.chan_list =  { {   0,  99, RIG_MTYPE_MEM, 0 },
+.chan_list =  { {   0,  99, RIG_MTYPE_MEM },
 	     RIG_CHAN_END, },
 
 .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */

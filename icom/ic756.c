@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.5 2002-10-07 21:48:11 fillods Exp $
+ *	$Id: ic756.c,v 1.6 2002-11-04 22:40:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -128,8 +128,8 @@ const struct rig_caps ic756_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-				   {   1,  99, RIG_MTYPE_MEM,  0 },
-				   { 100, 101, RIG_MTYPE_EDGE, 0 },    /* two by two */
+				   {   1,  99, RIG_MTYPE_MEM  },
+				   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
 				   RIG_CHAN_END,
 		},
 
@@ -276,8 +276,8 @@ const struct rig_caps ic756pro_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-				   {   1,  99, RIG_MTYPE_MEM,  0 },
-				   { 100, 101, RIG_MTYPE_EDGE, 0 },    /* two by two */
+				   {   1,  99, RIG_MTYPE_MEM  },
+				   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
 				   RIG_CHAN_END,
 		},
 
@@ -465,8 +465,8 @@ const struct rig_caps ic756pro2_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-	   {   1,  99, RIG_MTYPE_MEM,  0 },
-	   { 100, 101, RIG_MTYPE_EDGE, 0 },    /* two by two */
+	   {   1,  99, RIG_MTYPE_MEM  },
+	   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
 	   RIG_CHAN_END,
 	},
 

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.5 2002-08-16 17:43:02 fillods Exp $
+ *	$Id: thf7.c,v 1.6 2002-11-04 22:40:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -93,7 +93,7 @@ const struct rig_caps thf7e_caps = {
 .chan_desc_sz =  0,
 
 
-.chan_list =  { {  1,  435, RIG_MTYPE_MEM, 0 },
+.chan_list =  { {  1,  435, RIG_MTYPE_MEM },
 			 RIG_CHAN_END,
 		   },	/* FIXME: memory channel list: 435? memories */
 
