@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.39 2001-06-12 23:59:21 f4cfe Exp $
+ *	$Id: rig.h,v 1.40 2001-06-15 06:59:47 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,9 @@
 #include <stdio.h>		/* required for FILE definition */
 #include <sys/time.h>		/* required for struct timeval */
 
+#if defined(__CYGWIN__) || defined(_WIN32)
+#include <windows.h>	/* HANDLE definition */
+#endif
 
 /* __BEGIN_DECLS should be used at the beginning of your declarations,
  * so that C++ compilers don't mangle their names.  Use __END_DECLS at
@@ -846,7 +849,7 @@ typedef struct {
   } type;
   int fd;
   FILE *stream;
-#ifdef _WIN32
+#if defined(__CYGWIN__) || defined(_WIN32)
   HANDLE handle;		/* for serial special handling (PTT,DCD,..) */
 #endif
 
@@ -959,6 +962,11 @@ struct rig_state {
    */
   rig_ptr_t priv;
   
+  /*
+   * internal use by hamlib++ for event handling
+   */
+  rig_ptr_t obj;
+
   /* etc... */
 };
 
