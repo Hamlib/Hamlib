@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.14 2001-03-01 21:22:03 f4cfe Exp $  
+ *    $Id: icom.h,v 1.15 2001-03-02 18:39:42 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -75,6 +75,10 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
 int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone);
+int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone);
+int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone);
+int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone);
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank);
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch);
 int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);
@@ -84,14 +88,15 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int icom_set_channel(RIG *rig, const channel_t *chan);
 int icom_get_channel(RIG *rig, channel_t *chan);
-int icom_set_poweron(RIG *rig);
-int icom_set_poweroff(RIG *rig);
+int icom_set_powerstat(RIG *rig, powerstat_t status);
+int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_decode_event(RIG *rig);
 
 extern const struct rig_caps ic706_caps;
 extern const struct rig_caps ic706mkii_caps;
 extern const struct rig_caps ic706mkiig_caps;
 extern const struct rig_caps icr8500_caps;
+extern const struct rig_caps icall_caps;
 
 extern int init_icom(void *be_handle);
 
