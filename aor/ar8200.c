@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ar8200.c,v 1.2 2001-01-05 18:18:17 f4cfe Exp $  
+ * $Id: ar8200.c,v 1.3 2001-02-11 23:11:29 f4cfe Exp $  
  *
  *
  *
@@ -41,7 +41,7 @@
 #include "aor.h"
 
 
-#define AR8200_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_FM)
+#define AR8200_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_FM)
 
 #define AR8200_FUNC_ALL (RIG_FUNC_TSQL)
 
@@ -53,29 +53,39 @@
  * Also this struct is READONLY!
  */
 const struct rig_caps ar8200_caps = {
-  RIG_MODEL_AR8200, "AR8200", "AOR", "0.1", RIG_STATUS_UNTESTED,
-  RIG_TYPE_SCANNER, RIG_PTT_NONE, 9600, 19200, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_XONXOFF, 0, 0, 2000, 3, AR8200_FUNC_ALL, AR8200_LEVEL_ALL,
-  AR8200_LEVEL_ALL, 0, 1000, RIG_TRN_ON,
+  RIG_MODEL_AR8200, "AR8200", "AOR", "0.1", "GPL",
+  RIG_STATUS_UNTESTED, RIG_TYPE_SCANNER, 
+  RIG_PTT_NONE, 9600, 19200, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_XONXOFF,
+  0, 0, 200, 3, 
+  RIG_FUNC_NONE, AR8200_FUNC_ALL, AR8200_LEVEL_ALL, AR8200_LEVEL_ALL,
+  { RIG_DBLST_END, },
+  { RIG_DBLST_END, },
+  0,
+  0, RIG_TRN_ON,
+  1000, 0, 0,
+
+  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+  { RIG_FRNG_END, },
   {
-	{KHz(100),MHz(2040),AR8200_ALL_MODES,-1,-1},
-	{0,0,0,0,0},
+	{KHz(100),MHz(2040),AR8200_MODES,-1,-1},
+	RIG_FRNG_END,
   }, /* rx range */
-  { {0,0,0,0,0} },	/* no tx range, this is a scanner! */
-	{
-	 {AR8200_ALL_MODES,50},
-	 {AR8200_ALL_MODES,100},
-	 {AR8200_ALL_MODES,KHz(1)},
-	 {AR8200_ALL_MODES,KHz(5)},
-	 {AR8200_ALL_MODES,KHz(9)},
-	 {AR8200_ALL_MODES,KHz(10)},
-	 {AR8200_ALL_MODES,12500},
-	 {AR8200_ALL_MODES,KHz(20)},
-	 {AR8200_ALL_MODES,KHz(25)},
-	 {AR8200_ALL_MODES,KHz(100)},
-	 {AR8200_ALL_MODES,MHz(1)},
-	 {AR8200_ALL_MODES,0},	/* any tuning step */
-	 {0,0}
+  { RIG_FRNG_END, },	/* no tx range, this is a scanner! */
+
+  {
+	 {AR8200_MODES,50},
+	 {AR8200_MODES,100},
+	 {AR8200_MODES,KHz(1)},
+	 {AR8200_MODES,KHz(5)},
+	 {AR8200_MODES,KHz(9)},
+	 {AR8200_MODES,KHz(10)},
+	 {AR8200_MODES,12500},
+	 {AR8200_MODES,KHz(20)},
+	 {AR8200_MODES,KHz(25)},
+	 {AR8200_MODES,KHz(100)},
+	 {AR8200_MODES,MHz(1)},
+	 {AR8200_MODES,0},	/* any tuning step */
+	 RIG_TS_END,
 	},
   NULL, NULL, NULL, aor_close, NULL /* probe not supported yet */,
   aor_set_freq, aor_get_freq, aor_set_mode, aor_get_mode, NULL,

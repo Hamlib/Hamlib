@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.1 2001-02-07 23:54:14 f4cfe Exp $
+ *		$Id: winradio.c,v 1.2 2001-02-11 23:13:13 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -45,9 +45,12 @@
 #include <linradio/wrapi.h>
 #include <linradio/radio_ioctl.h>
 
+#define DEFAULT_WINRADIO_PATH "/dev/winradio0"
 
 static int wr_rig_init(RIG *rig) {
   rig->state.port_type = RIG_PORT_DEVICE;
+  strncpy(rig->state.rig_path, DEFAULT_WINRADIO_PATH, FILPATHLEN);
+
   return RIG_OK;
 }
 
@@ -157,6 +160,9 @@ static int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
   }   
 }
 
+/*
+ * FIXME: static buf does not allow reentrancy!
+ */
 static unsigned char *wr_get_info(RIG *rig) {
   static char buf[100];
   if ( ioctl(rig->state.fd, RADIO_GET_DESCR, buf) < 0 ) return "?";
@@ -179,19 +185,22 @@ const struct rig_caps wr1500_caps = {
   model_name:    "WR-1500",
   mfg_name:      "Winradio",
   version:       "0.6",
+  copyright:	 "GPL?",
   status:        RIG_STATUS_NEW,
-  rig_type:      RIG_TYPE_RECEIVER,
+  rig_type:      RIG_TYPE_PCRECEIVER,
   targetable_vfo:	 0,
   ptt_type:      RIG_PTT_NONE,
-  has_func:      WR1500_FUNC,
-  has_level:     WR1500_LEVEL,
+  has_get_func:  WR1500_FUNC,
+  has_set_func:  WR1500_FUNC,
+  has_get_level: WR1500_LEVEL,
   has_set_level: WR1500_SET_LEVEL,
   transceive:    RIG_TRN_OFF,
-  rx_range_list: { {start:KHz(150),end:MHz(1500),modes:WR1500_MODES,
+  attenuator:    { 20, RIG_DBLST_END, },
+  rx_range_list2: { {start:KHz(150),end:MHz(1500),modes:WR1500_MODES,
 		    low_power:-1,high_power:-1},
-		   {0,}, },
-  tx_range_list: { {0,}, },
-  tuning_steps: { {WR1500_MODES,1}, {0,} },
+		    RIG_FRNG_END, },
+  tx_range_list2: { RIG_FRNG_END, },
+  tuning_steps: { {WR1500_MODES,1}, RIG_TS_END, },
 
   rig_init:    wr_rig_init,
   /*

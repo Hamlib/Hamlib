@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.4 2001-01-07 23:02:09 javabear Exp $  
+ * $Id: ft847.c,v 1.5 2001-02-11 23:13:13 f4cfe Exp $  
  *
  *
  *
@@ -183,14 +183,24 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 
 const struct rig_caps ft847_caps = {
-  RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_TRANSCEIVER,RIG_PTT_RIG, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE,FT847_WRITE_DELAY ,FT847_POST_WRITE_DELAY, 100, 0, FT847_FUNC_ALL, 0, 0, 1, 78, RIG_TRN_OFF,
+  RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", "GPL?",
+  RIG_STATUS_ALPHA, RIG_TYPE_TRANSCEIVER,
+  RIG_PTT_RIG, 4800, 57600, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE,
+  FT847_WRITE_DELAY, FT847_POST_WRITE_DELAY, 100, 0,
+  RIG_FUNC_NONE, FT847_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
+  { RIG_DBLST_END, },	/* FIXME! */
+  { RIG_DBLST_END, },
+  9999,
+  1, RIG_TRN_OFF,
+  78, 0, 0,
+
+  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+  { RIG_FRNG_END, },
   { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
     {420000000,512000000,FT847_ALL_RX_MODES,-1,-1},
 
-    {0,0,0,0,0}, }, /* rx range end */
+    RIG_FRNG_END, }, /* rx range end */
 
   { {1800000,1999999,FT847_OTHER_TX_MODES,5000,100000},	/* 5-100W class */
     {1800000,1999999,FT847_AM_TX_MODES,1000,25000},	/* 1-5W class */
@@ -228,7 +238,7 @@ const struct rig_caps ft847_caps = {
     {430000000,44000000,FT847_OTHER_TX_MODES,1000,50000}, /* check range */
     {430000000,440000000,FT847_AM_TX_MODES,1000,12500},
 
-    {0,0,0,0,0} },
+    RIG_FRNG_END, },
 
   { {FT847_SSB_CW_RX_MODES,1}, /* normal */
     {FT847_SSB_CW_RX_MODES,10}, /* fast */
@@ -238,7 +248,7 @@ const struct rig_caps ft847_caps = {
     {FT847_AM_FM_RX_MODES,10}, /* normal */
     {FT847_AM_FM_RX_MODES,100}, /* fast  */
         
-    {0,0},
+    RIG_TS_END,
   },  
   ft847_init, 
   ft847_cleanup, 

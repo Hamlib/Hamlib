@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.4 2001-01-06 06:49:40 javabear Exp $  
+ * $Id: ft747.c,v 1.5 2001-02-11 23:13:13 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -126,10 +126,20 @@ static const yaesu_cmd_set_t ncmd[] = {
  */
 
 const struct rig_caps ft747_caps = {
-  RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_MOBILE, RIG_PTT_RIG, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,FT747_FUNC_ALL,0,0,0,20,RIG_TRN_OFF,
-  { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
+  RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", "GPL?",
+  RIG_STATUS_ALPHA, RIG_TYPE_MOBILE, 
+  RIG_PTT_RIG, 4800, 4800, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
+  FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,
+  FT747_FUNC_ALL, FT747_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
+  { RIG_DBLST_END, },	/* FIXME! */
+  { RIG_DBLST_END, },
+  9999,
+  0, RIG_TRN_OFF,
+  20, 0, 0,
+
+  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+  { RIG_FRNG_END, },
+  { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, RIG_FRNG_END, }, /* rx range */
   
   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
     {1500000,1999900,FT747_AM_TX_MODES,2000,25000},	/* 25W class */
@@ -158,7 +168,7 @@ const struct rig_caps ft747_caps = {
     {28000000,29999900,FT747_OTHER_TX_MODES,5000,100000},
     {28000000,29999900,FT747_AM_TX_MODES,2000,25000},
     
-    {0,0,0,0,0} },
+    RIG_FRNG_END, },
   
   { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
     {FT747_SSB_CW_RX_MODES,2500}, /* fast on */
@@ -169,7 +179,7 @@ const struct rig_caps ft747_caps = {
     {FT747_FM_RX_MODES,KHz(5)}, /* fast off */
     {FT747_FM_RX_MODES,12500}, /* fast on */
     
-    {0,0}
+    RIG_TS_END,
   },  
   ft747_init, 
   ft747_cleanup, 

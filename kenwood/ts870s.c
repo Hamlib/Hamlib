@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.4 2001-02-07 23:43:03 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.5 2001-02-11 23:13:13 f4cfe Exp $  
  *
  *
  *
@@ -56,13 +56,22 @@
  * RIT: Variable Range ±9.99 kHz
  */
 const struct rig_caps ts870s_caps = {
-  RIG_MODEL_TS870S, "TS-870S", "Kenwood", "0.1", RIG_STATUS_UNTESTED,
-  RIG_TYPE_TRANSCEIVER, RIG_PTT_RIG, 1200, 57600, 8, 1, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 0, 0, 2000, 3, TS870S_FUNC_ALL, TS870S_LEVEL_ALL,
-  TS870S_LEVEL_ALL, 0, 1000, RIG_TRN_ON,
+  RIG_MODEL_TS870S, "TS-870S", "Kenwood", "0.1", "GPL",
+  RIG_STATUS_UNTESTED, RIG_TYPE_TRANSCEIVER, 
+  RIG_PTT_RIG, 1200, 57600, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
+  0, 0, 200, 3, 
+  RIG_FUNC_NONE, TS870S_FUNC_ALL, TS870S_LEVEL_ALL, TS870S_LEVEL_ALL, 
+  { RIG_DBLST_END, },	/* FIXME! */
+  { RIG_DBLST_END, },
+  9999,
+  0, RIG_TRN_ON,
+  1000, 0, 0,
+
+  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+  { RIG_FRNG_END, },
   {
 	{KHz(100),MHz(30),TS870S_ALL_MODES,-1,-1},
-	{0,0,0,0,0},
+	RIG_FRNG_END,
   }, /* rx range */
   {
     {KHz(1800),MHz(2)-1,TS870S_OTHER_TX_MODES,5000,100000},	/* 100W class */
@@ -82,9 +91,10 @@ const struct rig_caps ts870s_caps = {
     {KHz(24890),KHz(24990),TS870S_OTHER_TX_MODES,5000,100000},
     {KHz(24890),KHz(24990),TS870S_AM_TX_MODES,2000,25000},
     {MHz(28),KHz(29700),TS870S_OTHER_TX_MODES,5000,100000},
-    {MHz(28),KHz(29700),TS870S_AM_TX_MODES,2000,25000}
+    {MHz(28),KHz(29700),TS870S_AM_TX_MODES,2000,25000},
+	RIG_FRNG_END,
   }, /* tx range */
-	{
+  {
 	 {TS870S_ALL_MODES,50},
 	 {TS870S_ALL_MODES,100},
 	 {TS870S_ALL_MODES,KHz(1)},
@@ -97,7 +107,7 @@ const struct rig_caps ts870s_caps = {
 	 {TS870S_ALL_MODES,KHz(100)},
 	 {TS870S_ALL_MODES,MHz(1)},
 	 {TS870S_ALL_MODES,0},	/* any tuning step */
-	 {0,0}
+	 RIG_TS_END,
 	},
   NULL, NULL, NULL, NULL, NULL /* probe not supported yet */,
   kenwood_set_freq, kenwood_get_freq, kenwood_set_mode, kenwood_get_mode, NULL,
