@@ -8,7 +8,7 @@ LDADD = ../src/libhamlib.la
 DEPENDENCIES = ../src/libhamlib.la 
 
 # The RPC server
-bin_PROGRAMS = rpc.rigd
+sbin_PROGRAMS = rpc.rigd
 rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rpc_rigd_SOURCES = $(RPCRIG_SVC)
 rpc_rigd_LDFLAGS = @BACKENDLNK@
