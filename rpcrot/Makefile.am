@@ -4,8 +4,8 @@
 # Note: automake complains rpcrot_xdr.c is generated both with and
 #  without libtool, hence the copy rpcrot_xdr_lt.c
 
-LDADD = ../src/libhamlib.la ../lib/libmisc.la @NET_LIBS@
-DEPENDENCIES = ../src/libhamlib.la 
+LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la @NET_LIBS@
+DEPENDENCIES = $(top_builddir)/src/libhamlib.la 
 
 BUILT_SOURCES  = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
 DISTCLEANFILES = rpcrot_xdr.c rpcrot_svc.c  rpcrot_xdr_lt.c rpcrot_clnt.c  rpcrot.h
@@ -23,7 +23,7 @@ lib_LTLIBRARIES = hamlib-rpcrot.la
 hamlib_rpcrot_la_SOURCES = rpcrot_backend.c rpcrot_backend.h
 nodist_hamlib_rpcrot_la_SOURCES = rpcrot_xdr_lt.c rpcrot_clnt.c rpcrot.h
 hamlib_rpcrot_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_rpcrot_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
+hamlib_rpcrot_la_LIBADD = $(top_builddir)/src/libhamlib.la @NET_LIBS@
 
 
 EXTRA_DIST = rpcrot.x $(man_MANS)

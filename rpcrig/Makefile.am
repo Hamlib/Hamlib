@@ -4,8 +4,8 @@
 # Note: automake complains rpcrig_xdr.c is generated both with and 
 #  without libtool, hence the copy rpcrig_xdr_lt.c
 
-LDADD = ../src/libhamlib.la ../lib/libmisc.la @NET_LIBS@
-DEPENDENCIES = ../src/libhamlib.la 
+LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la @NET_LIBS@
+DEPENDENCIES = $(top_builddir)/src/libhamlib.la 
 
 BUILT_SOURCES  = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
 DISTCLEANFILES = rpcrig_xdr.c rpcrig_svc.c  rpcrig_xdr_lt.c rpcrig_clnt.c  rpcrig.h
@@ -23,7 +23,7 @@ lib_LTLIBRARIES = hamlib-rpcrig.la
 hamlib_rpcrig_la_SOURCES = rpcrig_backend.c rpcrig_backend.h
 nodist_hamlib_rpcrig_la_SOURCES = rpcrig_xdr_lt.c rpcrig_clnt.c rpcrig.h
 hamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_rpcrig_la_LIBADD = ../src/libhamlib.la @NET_LIBS@
+hamlib_rpcrig_la_LIBADD = $(top_builddir)/src/libhamlib.la @NET_LIBS@
 
 EXTRA_DIST = rpcrig.x $(man_MANS)
 

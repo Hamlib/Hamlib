@@ -16,8 +16,8 @@ rigctl_SOURCES = rigctl.c dumpcaps.c
 EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
-LDADD = ../src/libhamlib.la ../lib/libmisc.la
-DEPENDENCIES = ../src/libhamlib.la
+LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
+DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 
 ## Linker options
 listrigs_LDFLAGS = @BACKENDLNK@

@@ -15,12 +15,12 @@ INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ -I@TCL_SRC_DIR@/generic -I$(t
 
 nodist_hamlibperl_la_SOURCES = hamlibperl_wrap.c
 hamlibperl_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlibperl_la_LIBADD = ../src/libhamlib.la
+hamlibperl_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c
 DISTCLEANFILES = hamlibperl_wrap.c hamlibtcl_wrap.c
 
-hamlibperl_wrap.c: hamlib.swg $(srcdir)/../include/hamlib/rig.h
+hamlibperl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
 	swig -perl5 -shadow @INCLUDES@ -I$(top_srcdir)/bindings -o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
 
@@ -29,17 +29,19 @@ hamlibperl_wrap.c: hamlib.swg $(srcdir)/../include/hamlib/rig.h
 
 nodist_hamlibtcl_la_SOURCES = hamlibtcl_wrap.c
 hamlibtcl_la_LDFLAGS = -no-undefined -module -avoid-version @TCL_LIB_SPEC@
-hamlibtcl_la_LIBADD = ../src/libhamlib.la
+hamlibtcl_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
-hamlibtcl_wrap.c: hamlib.swg $(srcdir)/../include/hamlib/rig.h
+hamlibtcl_wrap.c: hamlib.swg $(top_srcdir)/include/hamlib/rig.h
 	swig -tcl @INCLUDES@ -I$(top_srcdir)/bindings -o $@ `test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
 
-rig.swg: ../include/hamlib/rig.h ../include/hamlib/riglist.h
-rotator.swg: ../include/hamlib/rotator.h ../include/hamlib/rotlist.h
+rig.swg: $(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
+rotator.swg: $(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h
 
 hamlib.swg: ignore.swg rig.swg rotator.swg
 
-EXTRA_DIST = hamlib.swg ignore.swg rig.swg rotator.swg
+EXTRA_DIST = hamlib.swg ignore.swg rig.swg rotator.swg \
+			perltest.pl tcltest.tcl
 
 CLEANFILES = hamlibperl_wrap.c hamlib.pm hamlibtcl_wrap.c
 
+noinst_SCRIPTS = perltest.pl tcltest.tcl

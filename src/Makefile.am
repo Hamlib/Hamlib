@@ -7,7 +7,7 @@ lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = $(RIGSRC)
 libhamlib_la_LDFLAGS = -no-undefined -release @VERSION@ -version-info 1:0:0
 libhamlib_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS) -DHAMLIB_MODULE_DIR=\"$(libdir)\"
-libhamlib_la_LIBADD = @LIBLTDL@ ../lib/libmisc.la @MATH_LIBS@
+libhamlib_la_LIBADD = @LIBLTDL@ $(top_builddir)/lib/libmisc.la @MATH_LIBS@
 
 noinst_HEADERS = event.h misc.h serial.h iofunc.h cal.h tones.h \
 				rot_conf.h token.h idx_builtin.h
