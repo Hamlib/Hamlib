@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.85 2005-02-02 20:04:58 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.86 2005-02-13 00:22:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -798,6 +798,10 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 		case RIG_FUNC_VOX:
 		fct_len = sprintf(fctbuf,"VX%c;", (0==status)?'0':'1');
+		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+		case RIG_FUNC_FAGC:
+		fct_len = sprintf(fctbuf,"GT00%c;", (0==status)? '4':'2');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
 		case RIG_FUNC_NR:
