@@ -1,8 +1,8 @@
 /*
  *  Hamlib Alinco backend - DX77 description
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.13 2004-09-26 08:35:03 fillods Exp $
+ *	$Id: dx77.c,v 1.14 2005-04-03 19:35:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -79,7 +79,7 @@ const struct rig_caps dx77_caps = {
 .rig_model =  RIG_MODEL_DX77,
 .model_name = "DX-77",
 .mfg_name =  "Alinco",
-.version =  "0.4",
+.version =  "0.5",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
