@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backend
  * 	as well as by the frontend.
  *
- * $Id: misc.c,v 1.6 2001-05-04 22:41:22 f4cfe Exp $  
+ * $Id: misc.c,v 1.7 2001-06-02 17:56:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif                                                                                                      
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -206,7 +210,7 @@ int rig_need_debug(enum rig_debug_level_e debug_level)
 /*
  * rig_debug
  * Debugging messages are done through stderr
- * TODO: add syslog suport if needed
+ * TODO: add syslog support if needed
  */
 void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 {

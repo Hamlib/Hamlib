@@ -2,15 +2,15 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
  * serial.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com), 
- * 				  Stephane Fillod 2000
+ * 				  Stephane Fillod 2000,2001
  * Provides useful routines for read/write serial data for communicating
  * via serial interface.
  *
- * Parts of the PTT handling are inspired from soundmodem, an excellent
- * packet softmodem written by Thomas Sailer, HB9JNX.
+ * Parts of the PTT handling are derived from soundmodem, an excellent
+ * ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.9 2001-02-15 00:00:11 f4cfe Exp $  
+ *	$Id: serial.c,v 1.10 2001-06-02 17:56:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -53,9 +53,10 @@
 #include <sgtty.h>
 #endif
 
-#ifdef __CYGWIN32__
-/* include <winsock.h>	for FIONREAD?? */
-/* TODO: have a look in <winbase.h> for CTS/RTS and DTR/DSR control --SF */
+#ifdef _WIN32
+/* for CTS/RTS and DTR/DSR control --SF */
+#include <windows.h>
+#include <winioctl.h>
 #endif
 
 #include <hamlib/rig.h>
@@ -156,6 +157,9 @@ int serial_open(struct rig_state *rs) {
     break;
   case 57600:
 	speed = B57600;		/* cool.. */
+    break;
+  case 115200:
+	speed = B115200;	/* awsome! */
     break;
   default:
     rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported rate specified: %d\n", 
@@ -349,6 +353,8 @@ int serial_open(struct rig_state *rs) {
  *
  */
 
+/* please, use read_block instead, and forget about non-portable FIONREAD */
+#ifdef WANT_DEPRECATED_READSLEEP
 
 int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {  
   int bytes = 0;
@@ -371,6 +377,8 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {
   dump_hex(rxbuffer,num);
   return n;			/* return bytes read */
 }
+
+#endif	/* WANT_DEPRECATED_READSLEEP */
 
 /*
  * Write a block of count characters to file descriptor,
@@ -585,10 +593,32 @@ int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout
  * assumes: rs is not NULL
  */
 
+#ifdef _WIN32
+int ser_ptt_open(struct rig_state *rs)
+{
+	const char *path = rs->ptt_path;
+	HANDLE h;
+	DCB dcb;
+
+	h = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	if (h == INVALID_HANDLE_VALUE) {
+		rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n", path);
+		return -1;
+	}
+	/* Check if it is a comm device */
+	if (!GetCommState(h, &dcb)) {
+		rig_debug(RIG_DEBUG_ERR, "Device \"%s\" not a COM device\n", path);
+		CloseHandle(h);
+		return -1;
+	} 
+	return (int)h;
+}
+#else
 int ser_ptt_open(struct rig_state *rs)
 {
 		return open(rs->ptt_path, O_RDWR | O_NOCTTY);
 }
+#endif
 
 /*
  * TODO: to be called before exiting: atexit(parport_cleanup)
@@ -611,6 +641,14 @@ int ser_ptt_set(struct rig_state *rs, ptt_t pttx)
 		unsigned char y;
 
 		switch(rs->ptt_type) {
+#ifdef _WIN32
+/* TODO: log error with 0x%lx GetLastError() */
+		case RIG_PTT_SERIAL_RTS:
+			return !EscapeCommFunction((HANDLE)rs->ptt_fd, pttx ? SETRTS : CLRRTS);
+
+		case RIG_PTT_SERIAL_DTR:
+			return !EscapeCommFunction((HANDLE)rs->ptt_fd, pttx ? SETDTR : CLRDTR);
+#else
 		case RIG_PTT_SERIAL_RTS:
 			y = TIOCM_RTS;
 			return ioctl(rs->ptt_fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
@@ -618,6 +656,7 @@ int ser_ptt_set(struct rig_state *rs, ptt_t pttx)
 		case RIG_PTT_SERIAL_DTR:
 			y = TIOCM_DTR;
 			return ioctl(rs->ptt_fd, pttx ? TIOCMBIS : TIOCMBIC, &y);
+#endif
 
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
@@ -656,6 +695,8 @@ int ser_ptt_get(struct rig_state *rs, ptt_t *pttx)
 		int status;
 
 		switch(rs->ptt_type) {
+#ifdef _WIN32
+#else
 		case RIG_PTT_SERIAL_RTS:
 			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
 			*pttx = y & TIOCM_RTS ? RIG_PTT_ON:RIG_PTT_OFF;
@@ -666,7 +707,7 @@ int ser_ptt_get(struct rig_state *rs, ptt_t *pttx)
 			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
 			*pttx = y & TIOCM_DTR ? RIG_PTT_ON:RIG_PTT_OFF;
 			return status;
-
+#endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
 								rs->ptt_type);
@@ -711,6 +752,8 @@ int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx)
 		int status;
 
 		switch(rs->dcd_type) {
+#ifdef _WIN32
+#else
 		case RIG_DCD_SERIAL_CTS:
 			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
 			*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
@@ -721,7 +764,7 @@ int ser_dcd_get(struct rig_state *rs, dcd_t *dcdx)
 			status = ioctl(rs->ptt_fd, TIOCMGET, &y);
 			*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
 			return status;
-
+#endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
 								rs->dcd_type);
@@ -757,10 +800,17 @@ int par_dcd_get(struct rig_state *rs, dcd_t *dcdx)
 		return RIG_OK;
 }
 
+#ifdef _WIN32
+int ser_ptt_close(struct rig_state *rs)
+{
+		return CloseHandle((HANDLE)rs->ptt_fd);
+}
+#else
 int ser_ptt_close(struct rig_state *rs)
 {
 		return close(rs->ptt_fd);
 }
+#endif
 
 int par_ptt_close(struct rig_state *rs)
 {

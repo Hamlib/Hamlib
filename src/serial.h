@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.5 2001-02-15 00:00:11 f4cfe Exp $  
+ *    $Id: serial.h,v 1.6 2001-06-02 17:56:37 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,7 +33,9 @@
 
 int serial_open(struct rig_state *rs);
 
+#if 0
 int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay);
+#endif
 int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
 int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay, int post_write_delay);
 int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout);
