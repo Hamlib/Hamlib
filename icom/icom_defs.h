@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.1 2000-09-16 01:45:00 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.2 2000-09-19 07:06:19 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,13 +31,15 @@
 /*
  *  CI-V frame codes
  */
-#define PR	0xfe		/* Preamble code */
+#define PR		0xfe		/* Preamble code */
 #define CTRLID	0xe0		/* Controllers's default address */
-#define FI	0xfd		/* End of message code */
-#define ACK	0xfb		/* OK code */
-#define NAK	0xfa		/* NG code */
-#define PAD	0xff		/* Transmit padding */
+#define FI		0xfd		/* End of message code */
+#define ACK		0xfb		/* OK code */
+#define NAK		0xfa		/* NG code */
+#define COL		0xfc		/* CI-V bus collision detected */
+#define PAD		0xff		/* Transmit padding */
 
+#define ACKFRMLEN	6		/* reply frame length */
 
 /*
  * Cn controller commands
@@ -67,7 +69,7 @@
 #define C_SET_TS	0x10		/* Set tuning step, Sc */
 #define C_SET_ATT	0x11		/* Set attenuator, Sc */
 #define C_SET_ANT	0x12		/* Set antenna, Sc */
-#define C_CTL_ANN	0x13		/* Control announce, Sc */
+#define C_CTL_ANN	0x13		/* Control announce (speech synth.), Sc */
 #define C_SET_AFRF	0x14		/* Set AF/RF/squelch, Sc */
 #define C_RD_SQSM	0x15		/* Read squelch condiction/S-meter level, Sc */
 #define C_SET_FUNC	0x16		/* Function settings (AGC,NB,etc.), Sc */
@@ -119,16 +121,21 @@
 /*
  * Set Attenuator (C_SET_ATT) subcommands
  */
+#define S_ATT_RD	0x00		/* Without subcommand, reads out setting */
 #define S_ATT_OFF	0x00		/* Off */
+#define S_ATT_6dB	0x06		/* 6 dB, IC-756Pro */
 #define S_ATT_10dB	0x10		/* 10 dB */
+#define S_ATT_12dB	0x12		/* 12 dB, IC-756Pro */
+#define S_ATT_18dB	0x18		/* 18 dB, IC-756Pro */
 #define S_ATT_20dB	0x20		/* 20 dB */
-#define S_ATT_30dB	0x30		/* 30 dB */
+#define S_ATT_30dB	0x30		/* 30 dB, or Att on for IC-R75 */
 
 /*
  * Set antenna (C_SET_ANT) subcommands
  */
-#define S_ANT1	0x00		/* Antenna 1 */
-#define S_ANT2	0x01		/* Antenna 2 */
+#define S_ANT_RD	0x00		/* Without subcommand, reads out setting */
+#define S_ANT1		0x00		/* Antenna 1 */
+#define S_ANT2		0x01		/* Antenna 2 */
 
 /*
  * Announce control (C_CTL_ANN) subcommands
