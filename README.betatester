@@ -75,7 +75,8 @@ lib:			library for functions missing on your system
 libltdl:		wrapper for shared module loader
 debian:			debian package scripts
 doc:			documentation base and scripts to extract from src
-include:		exported header files go there
+include/hamlib:		exported header files go here
+include:		non-distributed header files go there
 src:			Hamlib frontend source directory
 tests:			rigctl/rotctl and various C programs for testing
 
@@ -83,7 +84,7 @@ tests:			rigctl/rotctl and various C programs for testing
 Reading the INSTALL file in top directory will explain you more verbosely
 to do the following commands
 
-	./configure --disable-static --prefix=/some/where
+	./configure --config-cache --disable-static --prefix=/some/where
 	make
 	make install
 
@@ -126,6 +127,13 @@ Most wanted functions to be tested are:
 'M'	set mode (AM,FM,CW,USB,etc. and passband width in Hz)
 'v'	get vfo
 'V'	set vfo (VFOA, VFOB, etc.)
+
+f,F     get_freq/set_freq       try various (<1MHz, <30Mhz and >1GHz)
+v,V     get_vfo/set_vfo         VFOA, VFOB
+m,M     get_mode/set_mode       FM, USB, LSB, CW, WFM, etc.
+                                passband is in Hz (pass 0 for default)
+G       vfo_op                  UP, DOWN
+_       get_info                should give remote Id and firmware vers
 
 NB: some functions may not be implemented in the backend of
 simply not available on this rig.
