@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.17 2005-01-16 18:19:29 fillods Exp $
+ *	$Id: ts2000.c,v 1.18 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -74,7 +74,7 @@ const struct rig_caps ts2000_caps = {
 .rig_model =  RIG_MODEL_TS2000,
 .model_name = "TS-2000",
 .mfg_name =  "Kenwood",
-.version =  "0.2.1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

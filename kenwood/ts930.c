@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS930 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts930.c,v 1.2 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: ts930.c,v 1.3 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,7 +58,7 @@ const struct rig_caps ts930_caps = {
 .rig_model =  RIG_MODEL_TS930,
 .model_name = "TS-930",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS440 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts440.c,v 1.11 2004-06-13 12:36:51 fillods Exp $
+ *	$Id: ts440.c,v 1.12 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,7 +63,7 @@ const struct rig_caps ts440_caps = {
 .rig_model =  RIG_MODEL_TS440,
 .model_name = "TS-440",
 .mfg_name =  "Kenwood",
-.version =  "0.4",
+.version =  BACKEND_VER IC10_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - BC245 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: bc245.c,v 1.1 2004-02-08 16:59:48 fillods Exp $
+ *	$Id: bc245.c,v 1.2 2005-04-03 20:23:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,7 +49,7 @@ const struct rig_caps bc245_caps = {
 .rig_model =  RIG_MODEL_BC245,
 .model_name = "BC245xlt",
 .mfg_name =  "Uniden",
-.version =  "0.1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRUNKSCANNER,

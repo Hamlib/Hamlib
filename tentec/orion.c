@@ -1,8 +1,8 @@
 /*
  *  Hamlib TenTenc backend - TT-565 description
- *  Copyright (c) 2004-2005 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.8 2005-04-03 15:54:01 fillods Exp $
+ *	$Id: orion.c,v 1.9 2005-04-03 20:21:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -209,7 +209,7 @@ const struct rig_caps tt565_caps = {
 .rig_model =  RIG_MODEL_TT565,
 .model_name = "TT-565 Orion",
 .mfg_name =  "Ten-Tec",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

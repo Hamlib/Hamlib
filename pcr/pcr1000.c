@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - PCR-1000 description
  *  Copyright (c) 2001-2003 by Stephane Fillod and Darren Hatcher
  *
- *	$Id: pcr1000.c,v 1.9 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: pcr1000.c,v 1.10 2005-04-03 20:18:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,7 +48,7 @@ const struct rig_caps pcr1000_caps = {
 .rig_model = RIG_MODEL_PCR1000,
 .model_name = "IC-PCR1000",
 .mfg_name = "Icom",
-.version = "0.1",
+.version = BACKEND_VER,
 .copyright = "LGPL",
 .status = RIG_STATUS_ALPHA,
 .rig_type = RIG_TYPE_PCRECEIVER,

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS690 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts690.c,v 1.2 2004-11-15 16:51:30 fillods Exp $
+ *	$Id: ts690.c,v 1.3 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,7 +76,7 @@ const struct rig_caps ts690s_caps = {
 .rig_model =  RIG_MODEL_TS690S,
 .model_name = "TS-690S",
 .mfg_name =  "Kenwood",
-.version =  "0.3",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH handheld header
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: th.h,v 1.9 2004-11-11 17:51:53 f4dwv Exp $
+ *	$Id: th.h,v 1.10 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -22,6 +22,8 @@
 #ifndef __TH_H__
 #define __TH_H__ 1
 #include "idx_builtin.h"
+
+#define TH_VER "0.2"
 
 extern int th_transaction (RIG *rig, const char *cmdstr, char *data, size_t datasize);
 extern int th_decode_event (RIG *rig);

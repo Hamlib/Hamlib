@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.16 2005-02-24 22:35:19 fillods Exp $
+ *	$Id: thg71.c,v 1.17 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -78,7 +78,7 @@ const struct rig_caps thg71_caps = {
 .rig_model =  RIG_MODEL_THG71,
 .model_name = "TH-G71",
 .mfg_name =  "Kenwood",
-.version =  "0.1",
+.version =  TH_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_HANDHELD,

@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - BC895 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: bc895.c,v 1.4 2003-10-01 19:32:03 fillods Exp $
+ *	$Id: bc895.c,v 1.5 2005-04-03 20:23:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,7 +49,7 @@ const struct rig_caps bc895_caps = {
 .rig_model =  RIG_MODEL_BC895,
 .model_name = "BC895xlt",
 .mfg_name =  "Uniden",
-.version =  "0.1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRUNKSCANNER,

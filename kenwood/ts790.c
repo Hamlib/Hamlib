@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.13 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: ts790.c,v 1.14 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,7 +59,7 @@ const struct rig_caps ts790_caps = {
 .rig_model =  RIG_MODEL_TS790,
 .model_name = "TS-790",
 .mfg_name =  "Kenwood",
-.version =  "0.2.1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

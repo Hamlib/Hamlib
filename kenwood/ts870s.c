@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.44 2005-02-24 22:35:24 fillods Exp $
+ *	$Id: ts870s.c,v 1.45 2005-04-03 20:17:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -373,7 +373,7 @@ const struct rig_caps ts870s_caps = {
 .rig_model =  RIG_MODEL_TS870S,
 .model_name = "TS-870S",
 .mfg_name =  "Kenwood",
-.version =  "0.4.2",
+.version =  BACKEND_VER ".0",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

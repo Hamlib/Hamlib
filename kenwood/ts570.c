@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.22 2005-02-24 22:39:11 fillods Exp $
+ *	$Id: ts570.c,v 1.23 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -251,7 +251,7 @@ const struct rig_caps ts570s_caps = {
 .rig_model =  RIG_MODEL_TS570S,
 .model_name = "TS-570S",
 .mfg_name =  "Kenwood",
-.version =  "0.2.2",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -424,7 +424,7 @@ const struct rig_caps ts570d_caps = {
 .rig_model =  RIG_MODEL_TS570D,
 .model_name = "TS-570D",
 .mfg_name =  "Kenwood",
-.version =  "0.2.2",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

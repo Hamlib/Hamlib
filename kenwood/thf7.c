@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.12 2004-09-26 08:35:04 fillods Exp $
+ *	$Id: thf7.c,v 1.13 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,7 +59,7 @@ const struct rig_caps thf7e_caps = {
 .rig_model =  RIG_MODEL_THF7E,
 .model_name = "TH-F7E",
 .mfg_name =  "Kenwood",
-.version =  "0.1.1",
+.version =  TH_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_HANDHELD,

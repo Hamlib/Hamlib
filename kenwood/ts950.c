@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS950 description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: ts950.c,v 1.13 2004-09-26 08:35:04 fillods Exp $
+ *	$Id: ts950.c,v 1.14 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,7 +55,7 @@ const struct rig_caps ts950sdx_caps = {
 .rig_model =  RIG_MODEL_TS950SDX,
 .model_name = "TS-950SDX",
 .mfg_name =  "Kenwood",
-.version =  "0.2.5",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

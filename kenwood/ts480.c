@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.3 2004-12-14 07:37:58 jrinas Exp $
+ *	$Id: ts480.c,v 1.4 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -375,7 +375,7 @@ const struct rig_caps ts480_caps = {
   .rig_model = RIG_MODEL_TS480,
   .model_name = "TS-480",
   .mfg_name = "Kenwood",
-  .version = "0.0.1",
+  .version = BACKEND_VER ".0",
   .copyright = "LGPL",
   .status = RIG_STATUS_NEW,
   .rig_type = RIG_TYPE_TRANSCEIVER,
