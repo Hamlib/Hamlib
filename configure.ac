@@ -177,7 +177,7 @@ AC_ARG_WITH(cxx-binding,
 AC_MSG_RESULT($cf_with_cxx_binding)
 
 if test "${cf_with_cxx_binding}" = "yes" ; then
-  BINDING_LIST="$BINDING_LIST c++"
+  BINDING_LIST="${BINDING_LIST} c++"
 fi
 
 dnl Check if perl-binding not wanted, default is to not build it
@@ -192,7 +192,7 @@ AC_ARG_WITH(perl-binding,
 AC_MSG_RESULT($cf_with_perl_binding)
 
 if test "${cf_with_perl_binding}" = "yes" ; then
-  BINDING_LIST="$BINDING_LIST perl"
+  BINDING_LIST="${BINDING_LIST} perl"
 fi
 
 dnl Check if kylix-binding wanted, REM: nothing to build yet
@@ -206,7 +206,7 @@ AC_ARG_WITH(kylix-binding,
 AC_MSG_RESULT($cf_with_kylix_binding)
 
 if test "${cf_with_kylix_binding}" = "yes" ; then
-  BINDING_LIST="$BINDING_LIST kylix"
+  BINDING_LIST="${BINDING_LIST} kylix"
 fi
 
 
@@ -227,7 +227,7 @@ AC_ARG_WITH(tcl-binding,
 AC_MSG_RESULT($cf_with_tcl_binding)
 
 if test "${cf_with_tcl_binding}" = "yes" ; then
-  BINDING_LIST="$BINDING_LIST tcl"
+  BINDING_LIST="${BINDING_LIST} tcl"
 fi
 AC_SUBST(TCL_LIB_SPEC)
 
@@ -305,6 +305,12 @@ AC_SUBST(ROT_BACKEND_LIST)
 AC_SUBST(ROT_BACKENDLNK)
 AC_SUBST(ROT_BACKENDEPS)
 
+for bi in ${BINDING_LIST} ; do
+    if test "${bi}" != "c++" -a "${bi}" != "kylix" ; then
+    	BINDING_LA="${BINDING_LA} hamlib${bi}.la"
+    fi
+done
+AC_SUBST(BINDING_LA)
 AC_SUBST(BINDING_LIST)
 
 AC_SUBST(INCLUDES)
@@ -334,8 +340,11 @@ c++/Makefile
 tcl/Makefile
 kylix/Makefile
 perl/Makefile
+bindings/Makefile
 tests/Makefile
 doc/Makefile
-hamlib.spec])
+hamlib.spec],
+[ chmod +x tcl/tcltest.tcl ]
+)
 AC_OUTPUT
 
