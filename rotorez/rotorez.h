@@ -9,7 +9,7 @@
  * supports the Hy-Gain DCU-1.
  *
  *
- *    $Id: rotorez.h,v 1.3 2003-02-13 03:08:00 n0nb Exp $
+ *    $Id: rotorez.h,v 1.4 2003-02-27 03:50:03 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -51,6 +51,8 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
 
 static int rotorez_rot_stop(ROT *rot);
+
+static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val);
 
 #endif  /* _ROT_ROTOREZ_H */
 
