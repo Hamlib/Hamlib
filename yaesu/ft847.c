@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.2 2001-01-04 07:03:58 javabear Exp $  
+ * $Id: ft847.c,v 1.3 2001-01-06 06:49:40 javabear Exp $  
  *
  *
  *
@@ -185,7 +185,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 const struct rig_caps ft847_caps = {
   RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", RIG_STATUS_ALPHA,
   RIG_TYPE_TRANSCEIVER,RIG_PTT_RIG, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE,FT847_WRITE_DELAY ,FT847_POST_WRITE_DELAY, 100, 0, FT847_FUNC_ALL, 0, 0, 78, RIG_TRN_OFF,
+  RIG_HANDSHAKE_NONE,FT847_WRITE_DELAY ,FT847_POST_WRITE_DELAY, 100, 0, FT847_FUNC_ALL, 0, 0, 1, 78, RIG_TRN_OFF,
   { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
     {420000000,512000000,FT847_ALL_RX_MODES,-1,-1},
@@ -452,6 +452,11 @@ int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 
 
+
+/*
+ * TODO -- add other VFO's
+ *
+ */
 
 int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char cmd_index;	/* index of sequence to send */

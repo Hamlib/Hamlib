@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.3 2001-01-05 02:03:33 javabear Exp $  
+ * $Id: ft747.c,v 1.4 2001-01-06 06:49:40 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -128,7 +128,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 const struct rig_caps ft747_caps = {
   RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", RIG_STATUS_ALPHA,
   RIG_TYPE_MOBILE, RIG_PTT_RIG, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,FT747_FUNC_ALL,0,0,20,RIG_TRN_OFF,
+  RIG_HANDSHAKE_NONE, FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,FT747_FUNC_ALL,0,0,0,20,RIG_TRN_OFF,
   { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   
   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
@@ -305,8 +305,11 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq = %Li Hz \n", freq);
 
-  ft747_set_vfo(rig, vfo);	/* select VFO first , new API */
+  /* frontend sets VFO now , if targetable_vfo = 0 */
 
+#if 0
+  ft747_set_vfo(rig, vfo);	/* select VFO first , new API */
+#endif
 
   /* 
    * Copy native cmd freq_set to private cmd storage area 
@@ -376,8 +379,12 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
   if (!rig)
     return -RIG_EINVAL;
 
-  ft747_set_vfo(rig, vfo);	/* select VFO first , new API */
-  
+  /* frontend sets VFO now , if targetable_vfo = 0 */
+
+#if 0
+  ft747_set_vfo(rig, vfo);	/* select VFO first , new API */ 
+#endif
+
   /* 
    * translate mode from generic to ft747 specific
    */
@@ -596,13 +603,18 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
 
 }
 
+
 int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   unsigned char cmd_index;	/* index of sequence to send */
 
   if (!rig)
     return -RIG_EINVAL;
+
+  /* frontend sets VFO now , if targetable_vfo = 0 */
   
+#if 0
   ft747_set_vfo(rig,vfo);	/* select VFO first */
+#endif
 
   switch(ptt) {
   case RIG_PTT_OFF:
