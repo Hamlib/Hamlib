@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: alinco.c,v 1.9 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: alinco.c,v 1.10 2001-12-19 03:35:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,8 +38,6 @@
 #include <serial.h>
 #include <misc.h>
 #include <cal.h>
-
-#include "tone_tbl.h"
 
 #include "alinco.h"
 
@@ -550,7 +548,7 @@ int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 /*
  * alinco_set_level
  * Assumes rig!=NULL
- * FIXME: cannot support PREAMP and ATT both at same time (make sens though)
+ * FIXME: cannot support PREAMP and ATT both at same time (make sense though)
  */
 int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {

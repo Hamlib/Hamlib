@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.h,v 1.33 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: icom.h,v 1.34 2001-12-19 03:35:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,6 +25,7 @@
 
 #include <hamlib/rig.h>
 #include <cal.h>
+#include <tones.h>
 
 /*
  * defines used by comp_cal_str in rig.c 
@@ -61,7 +62,6 @@ extern const struct ts_sc_list r7100_ts_sc_list[];
 extern const struct ts_sc_list ic756_ts_sc_list[];
 extern const struct ts_sc_list ic706_ts_sc_list[];
 
-extern const tone_t common_ctcss_list[];
 
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);

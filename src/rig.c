@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.48 2001-12-16 11:17:42 fillods Exp $
+ *		$Id: rig.c,v 1.49 2001-12-19 03:35:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,8 +48,6 @@
 #include "event.h"
 #include "conf.h"
 
-#include "tone_tbl.h"
-	
 /**
  * \brief Hamlib release number
  */

@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: alinco.h,v 1.8 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: alinco.h,v 1.9 2001-12-19 03:35:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,12 +25,11 @@
 
 #include <hamlib/rig.h>
 #include <cal.h>
+#include <tones.h>
 
 struct alinco_priv_caps {
 	cal_table_t str_cal;
 };
-
-extern const tone_t common_ctcss_list[];
 
 int alinco_set_vfo(RIG *rig, vfo_t vfo);
 int alinco_get_vfo(RIG *rig, vfo_t *vfo);
