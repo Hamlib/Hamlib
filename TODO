@@ -32,11 +32,12 @@ GENERAL PROJECT TODO
 	packet traces) [started]
 17. In serial.c (and non serial too), use buffered IO instead of read/write,
 	for better performance. Use flushing with fwrite.
-18. Get CVS updates mailed to out hamlib-cvs-digest list
 
 DONE
 ----
 
 9. If read from rig takes > "n" seconds, then no longer
    block on read, just return error. 
+
+18. Get CVS updates mailed to our hamlib-cvs-digest list
 
