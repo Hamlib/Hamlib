@@ -8,13 +8,8 @@
 # include <winbase.h>
 #endif
 
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-
-#ifndef timezone
-struct timezone {
-	int  tz_minuteswest;
-	int  tz_dsttime;
-};
 #endif
 
 /* 

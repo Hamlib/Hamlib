@@ -45,24 +45,23 @@ Cambridge, MA 02139, USA.  */
 #endif
 
 /* Sleep USECONDS microseconds, or until a previously set timer goes off.  */
-unsigned int
-usleep (unsigned int useconds)
+int
+usleep (unsigned long useconds)
 {
 #ifdef apollo
   /* The usleep function does not work under the SYS5.3 environment.
      Use the Domain/OS time_$wait call instead. */
   time_$wait (time_$relative, DomainTime100mS, &DomainStatus);
-#elif defined(WIN32) && !defined(__CYGWIN__)
+#elif defined(HAVE_SSLEEP)	/* Win32 */
   Sleep( useconds/1000 );
-  return 0;
 #else
   struct timeval delay;
 
   delay.tv_sec = 0;
   delay.tv_usec = useconds;
   select (0, 0, 0, 0, &delay);
-  return 0;
 #endif
+  return 0;
 }
 
 #endif /* !HAVE_USLEEP */

@@ -2,7 +2,7 @@
  *  Hamlib Interface - plugin registration
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: register.h,v 1.2 2003-09-23 22:52:52 fillods Exp $
+ *	$Id: register.h,v 1.3 2003-11-16 22:15:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -22,9 +22,6 @@
 #ifndef _REGISTER_H
 #define _REGISTER_H 1
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include <hamlib/rig.h>
 #include <hamlib/rotator.h>
