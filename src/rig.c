@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.21 2001-03-01 00:30:58 f4cfe Exp $
+   $Id: rig.c,v 1.22 2001-03-02 18:41:46 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -293,6 +293,7 @@ RIG *rig_init(rig_model_t rig_model)
 		rs->has_set_parm = caps->has_set_parm;
 
 		rs->max_rit = caps->max_rit;
+		rs->max_ifshift = caps->max_ifshift;
 
 		rs->fd = -1;
 		rs->ptt_fd = -1;
@@ -2214,52 +2215,59 @@ int rig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 
 
 /**
- *      rig_set_poweron - turn on the radio
+ *      rig_set_powerstat - turn on/off the radio
  *      @rig:	The rig handle
+ *      @status:	The status to set to
  *
- *      The rig_set_poweron() function turns on the radio.
+ *      The rig_set_powerstat() function turns on/off the radio.
+ *      See %RIG_POWER_ON, %RIG_POWER_OFF and %RIG_POWER_STANDBY defines
+ *      for the @status.
  *
- *      RETURN VALUE: The rig_set_poweron() function returns %RIG_OK
+ *      RETURN VALUE: The rig_set_powerstat() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
  *      if an error occured (in which case, cause is set appropriately).
  *
- *      SEE ALSO: rig_set_poweroff()
+ *      SEE ALSO: rig_get_powerstat()
  */
 
-int rig_set_poweron(RIG *rig)
+int rig_set_powerstat(RIG *rig, powerstat_t status)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
 
-		if (rig->caps->set_poweron == NULL)
+		if (rig->caps->set_powerstat == NULL)
 			return -RIG_ENAVAIL;
 
-		return rig->caps->set_poweron(rig);
+		return rig->caps->set_powerstat(rig, status);
 }
 
 /**
- *      rig_set_poweroff - turn off the radio
+ *      rig_get_powerstat - get the on/off status of the radio
  *      @rig:	The rig handle
+ *      @status:	The locatation where to store the current status
  *
- *      The rig_set_poweroff() function turns off the radio.
+ *      The rig_get_powerstat() function retrieve the status of the radio.
+ *      See %RIG_POWER_ON, %RIG_POWER_OFF and %RIG_POWER_STANDBY defines
+ *      for the @status.
  *
- *      RETURN VALUE: The rig_set_poweroff() function returns %RIG_OK
+ *      RETURN VALUE: The rig_get_powerstat() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
  *      if an error occured (in which case, cause is set appropriately).
  *
- *      SEE ALSO: rig_set_poweron()
+ *      SEE ALSO: rig_set_powerstat()
  */
 
-int rig_set_poweroff(RIG *rig)
+int rig_get_powerstat(RIG *rig, powerstat_t *status)
 {
-		if (!rig || !rig->caps)
+		if (!rig || !rig->caps || !status)
 			return -RIG_EINVAL;
 
-		if (rig->caps->set_poweroff == NULL)
+		if (rig->caps->get_powerstat == NULL)
 			return -RIG_ENAVAIL;
 
-		return rig->caps->set_poweroff(rig);
+		return rig->caps->get_powerstat(rig, status);
 }
+
 
 
 
@@ -2849,6 +2857,98 @@ int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
+
+/**
+ *      rig_send_dtmf - send DTMF digits
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @digits:	Digits to be send
+ *
+ *      The rig_send_dtmf() function sends DTMF digits.
+ *      See DTMF change speed, etc. (TODO).
+ *
+ *      RETURN VALUE: The rig_send_dtmf() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ */
+
+int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps || !digits)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->send_dtmf == NULL)
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->send_dtmf(rig, vfo, digits);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->send_dtmf(rig, vfo, digits);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
+/**
+ *      rig_recv_dtmf - receive DTMF digits
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @digits:	Location where the digits are to be stored 
+ *      @length:	in: max length of buffer, out: number really read.
+ *
+ *      The rig_recv_dtmf() function receive DTMF digits (not blocking).
+ *      See DTMF change speed, etc. (TODO).
+ *
+ *      RETURN VALUE: The rig_recv_dtmf() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ */
+
+int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
+{
+		const struct rig_caps *caps;
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps || !digits || !length)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		if (caps->recv_dtmf == NULL)
+			return -RIG_ENAVAIL;
+
+		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return caps->recv_dtmf(rig, vfo, digits, length);
+
+		if (!caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = caps->recv_dtmf(rig, vfo, digits, length);
+		caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
 
 /**
  *      rig_set_bank - set the current memory bank
