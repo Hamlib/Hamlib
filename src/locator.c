@@ -2,16 +2,16 @@
  * \file src/locator.c
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
- * \date 2000-2001
+ * \date 2000-2002
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - locator and bearing conversion calls
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: locator.c,v 1.2 2001-12-28 20:33:27 fillods Exp $
+ *	$Id: locator.c,v 1.3 2002-08-22 23:42:20 fillods Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle, 
  *	by S. R. Sampson, N5OWK.
@@ -73,7 +73,10 @@
  */
 double dms2dec(int degrees, int minutes, int seconds)
 {
+	if (degrees >= 0)
 		return (double)degrees + (double)minutes/60. + (double)seconds/3600.;
+	else
+		return (double)degrees + 1. - (double)minutes/60. - (double)seconds/3600.;
 }
 
 /**
@@ -108,7 +111,6 @@ void dec2dms(double dec, int *degrees, int *minutes, int *seconds)
 		sec = (int)floor(st);
 		if (deg < 0 && sec != 0) 
 				sec = 60 - sec;
-
 		*degrees = deg;
 		*minutes = min;
 		*seconds = sec;
@@ -159,12 +161,12 @@ int locator2longlat(double *longitude, double *latitude, const char *locator)
 	}
 
 	*longitude = 20.0 * (loc[0]-'A') - 180.0 + 2.0 * (loc[2]-'0') + 
-										(loc[4]-'A')/12.0;
+							(loc[4]-'A')/12.0;
 	if (loc[0] <= 'I' && (loc[2] != '0' || loc[4] != 'A'))
 			*longitude += 1;
 
 	*latitude = 10.0 * (loc[1]-'A') - 90.0 + (loc[3]-'0') + 
-										(loc[5]-'A')/24.0;
+							(loc[5]-'A')/24.0;
 
 	return 0;
 }
@@ -185,48 +187,51 @@ int locator2longlat(double *longitude, double *latitude, const char *locator)
 void longlat2locator(double longitude, double latitude, char *locator)
 {
 	double tmp;
+	int deg, min, sec;
 
-	tmp = longitude + 180.;
+	tmp = fmod(longitude, 360) + 180.;
+
 	locator[0] = 'A' + (int)floor(tmp/20.);
 	tmp = fmod(tmp, 20.);
 	locator[2] = '0' + (int)floor(tmp/2.);
-	tmp = 12.5*fmod(tmp, 2.);
+	tmp = 12.*fabs(floor(longitude)-longitude);
 	locator[4] = 'A' + (int)floor(tmp);
 
-	tmp = latitude + 90.;
-	locator[1] = 'A' + (int)(tmp/10.);
+	tmp = fmod(latitude, 360) + 90.;
+
+	locator[1] = 'A' + (int)floor(tmp/10.);
 	tmp = fmod(tmp, 10.);
-	locator[3] = '0' + (int)tmp;
-	tmp = 25. * (tmp - trunc(tmp));
-	locator[5] = 'A' + (int)tmp;
+	locator[3] = '0' + (int)floor(tmp);
+	tmp = 25. * fabs(floor(latitude)-latitude);
+	locator[5] = 'A' + (int)floor(tmp);
 }
 
 
 /**
- * \brief Calculate the bearing and azimuth between two points.
+ * \brief Calculate the distance and bearing between two points.
  * \param lon1	The local longitude, decimal degrees
  * \param lat1	The local latitude, decimal degrees
  * \param lon2	The remote longitude, decimal degrees
  * \param lat2	The remote latitude, decimal degrees
- * \param bearing	The location where to store the bearing
- * \param azimuth	The location where to store the azimuth
+ * \param distance	The location where to store the distance
+ * \param azimuth	The location where to store the bearing
  *
  *  Calculate the QRB between \a lat1,\a lat1 and
- *  \a lon2,\a lat2, and return the bearing in kilometers and
+ *  \a lon2,\a lat2, and return the distance in kilometers and
  *  azimuth in decimal degrees for the short path.
  *
  *	This version also takes into consideration the two points 
  *	being close enough to be in the near-field, and the antipodal points, 
  *	which are easily calculated.
  *
- * \sa bearing_long_path(), azimuth_long_path()
+ * \sa distance_long_path(), azimuth_long_path()
  */
 int qrb(double lon1, double lat1, double lon2, double lat2,
-				double *bearing, double *azimuth)
+				double *distance, double *azimuth)
 {
 	double delta_long, tmp, arc, cosaz, az;
 
-	if (!bearing || !azimuth)
+	if (!distance || !azimuth)
 			return -1;
 
 	if ((lat1 > 90.0 || lat1 < -90.0) || (lat2 > 90.0 || lat2 < -90.0))
@@ -261,7 +266,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 
 	if (tmp > .999999)  {
 		/* Station points coincide, use an Omni! */
-			*bearing = 0.0;
+			*distance = 0.0;
 			*azimuth = 0.0;
 		return 0;
 	}
@@ -274,7 +279,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 		 * and you get 10800 nm, or whatever units...
 		 */
 
-		*bearing = 180.0*ARC_IN_KM;
+		*distance = 180.0*ARC_IN_KM;
 		*azimuth = 0.0;
 		return 0;
 	}
@@ -289,7 +294,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 
 	/* Short Path */
 
-	*bearing = ARC_IN_KM * RADIAN * arc;
+	*distance = ARC_IN_KM * RADIAN * arc;
 
 	/*
 	 * Long Path
@@ -320,9 +325,9 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 	return 0;
 }
 
-double bearing_long_path(double bearing)
+double distance_long_path(double distance)
 {
-	 return (ARC_IN_KM * 360.0) - bearing;
+	 return (ARC_IN_KM * 360.0) - distance;
 }
 
 double azimuth_long_path(double azimuth)

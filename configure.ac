@@ -70,8 +70,6 @@ dnl Checks for libraries.
 AC_CHECK_FUNC(sin, [MATH_LIBS=""], [MATH_LIBS="-lm"])
 AC_CHECK_LIB(ieee, main, [MATH_LIBS="-lieee $MATH_LIBS"], [], [])
 
-# trunc is part of C99 only
-AC_CHECK_LIB([c], [trunc], [], [AC_LIBOBJ(trunc)], [$MATH_LIBS])
 #--------------------------------------------------------------------
 # Interactive UNIX requires -linet instead of -lsocket, plus it
 # needs net/errno.h to define the socket-related error codes.
@@ -309,7 +307,6 @@ AC_SUBST(ROT_BACKENDEPS)
 
 AC_SUBST(BINDING_LIST)
 
-AC_LIBSOURCES([trunc.c])
 AC_SUBST(INCLUDES)
 
 AC_CONFIG_FILES([Makefile
