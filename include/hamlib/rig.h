@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.87 2003-10-20 22:15:01 fillods Exp $
+ *	$Id: rig.h,v 1.88 2003-11-16 17:36:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -131,6 +131,7 @@ typedef struct rig RIG;
 #define FLTLSTSIZ 16		/* max mode/filter list size, zero ended */
 #define MAXDBLSTSIZ 8		/* max preamp/att levels supported, zero ended */
 #define CHANLSTSIZ 16		/* max mem_list size, zero ended */
+#define MAX_CAL_LENGTH 32	/* max calibration plots in cal_table_t */
 
 
 /**
@@ -577,15 +578,16 @@ enum rig_level_e {
 	RIG_LEVEL_ANTIVOX =	(1<<22),/*!< anti-VOX level, arg float [0.0 .. 1.0] */
 
 		/*!< These ones are not settable */
+	RIG_LEVEL_RAWSTR =	(1<<26),/*!< Raw (A/D) value for signal strength, specific to each rig, arg int */
 	RIG_LEVEL_SQLSTAT =	(1<<27),/*!< SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 	RIG_LEVEL_SWR =		(1<<28),/*!< SWR, arg float */
 	RIG_LEVEL_ALC =		(1<<29),/*!< ALC, arg float */
-	RIG_LEVEL_STRENGTH =	(1<<30) /*!< Signal strength, arg int (dB) */
+	RIG_LEVEL_STRENGTH =	(1<<30) /*!< Effective (calibrated) signal strength relative to S9, arg int (dB) */
 };
 
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
 
-#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SQLSTAT|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH)
+#define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SQLSTAT|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR)
 
 #define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
 #define RIG_LEVEL_SET(l) ((l)&~RIG_LEVEL_READONLY_LIST)
@@ -933,8 +935,51 @@ struct chan_list {
 /** \brief chan_t type */
 typedef struct chan_list chan_t;
 
+/**
+ * \brief level/parm granularity definition
+ *
+ * The granularity is undefined if min=0, max=0, and step=0.
+ *
+ * For float settings, if min.f=0 and max.f=0 (and step.f!=0),
+ * max.f is assumed to be actually equal to 1.0.
+ *
+ * If step=0 (and min and/or max are not null), then this means step
+ * can have maximum resolution, depending on type (int or float).
+ */
+struct gran {
+	value_t min;		/*!< Minimum value */
+	value_t max;		/*!< Maximum value */
+	value_t step;		/*!< Step */
+};
+
 /** \brief gran_t type */
-typedef	float gran_t;
+typedef	struct gran gran_t;
+
+
+/** \brief Calibration table struct */
+struct cal_table {
+	int size;	/*!< number of plots in the table */
+	struct {
+		int raw;	/*!< raw (A/D) value, as returned by \a RIG_LEVEL_RAWSTR */
+		int val;	/*!< associated value, basically the measured dB value */
+	} table[MAX_CAL_LENGTH];	/*!< table of plots */
+};
+
+/**
+ * \brief calibration table type
+ *
+ * cal_table_t is a data type suited to hold linear calibration.
+ * cal_table_t.size tell the number of plot cal_table_t.table contains.
+ *
+ * If a value is below or equal to cal_table_t.table[0].raw, 
+ * rig_raw2val() will return cal_table_t.table[0].val.
+ *
+ * If a value is greater or equal to cal_table_t.table[cal_table_t.size-1].raw, 
+ * rig_raw2val() will return cal_table_t.table[cal_table_t.size-1].val.
+ */
+typedef struct cal_table cal_table_t;
+
+#define EMPTY_STR_CAL { 0, { { 0, 0 }, } }
 
 
 /**
@@ -1021,6 +1066,8 @@ struct rig_caps {
 
   struct tuning_step_list tuning_steps[TSLSTSIZ];	/*!< Tuning step list */
   struct filter_list filters[FLTLSTSIZ];		/*!< mode/filter table, at -6dB */
+
+  cal_table_t str_cal;				/*!< S-meter calibration table */
 
   const struct confparams *cfgparams;            /*!< Configuration parametres. */
   const rig_ptr_t priv;                          /*!< Private data. */
@@ -1219,6 +1266,8 @@ struct rig_state {
   struct tuning_step_list tuning_steps[TSLSTSIZ];	/*!< Tuning step list */
 
   struct filter_list filters[FLTLSTSIZ];	/*!< Mode/filter table, at -6dB */
+
+  cal_table_t str_cal;				/*!< S-meter calibration table */
 
   chan_t chan_list[CHANLSTSIZ];	/*!< Channel list, zero ended */
 
