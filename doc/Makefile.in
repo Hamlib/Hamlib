@@ -189,6 +189,14 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
+# hamlib-doc -man $(find -name '*.c' '*.h') | split-man.pl /tmp/man
+# FIXME: this might be broken with VPATH make
+hamlib-doc-man: ../src/rig.c hamlib-doc split-man.pl
+	./hamlib-doc -man ../src/rig.c | ./split-man.pl man/
+
+hamlib-doc-html: ../src/rig.c hamlib-doc
+	./hamlib-doc -html ../src/rig.c > html/hamlib.html
+
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
