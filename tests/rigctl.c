@@ -1,13 +1,11 @@
 /*
- * hamlib - (C) 2000 Frank Singleton and Stephane Fillod
- *
- * rigctl.c - (C) Stephane Fillod 2000,2001
+ * rigctl.c - (C) Stephane Fillod 2000,2001,2002
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.26 2002-01-09 23:09:10 fillods Exp $  
+ * $Id: rigctl.c,v 1.27 2002-01-22 00:56:13 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -78,15 +76,6 @@ void version();
 void list_models();
 static int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(RIG *my_rig, char *conf_parms);
-
-rmode_t parse_mode(const char *s);
-vfo_t parse_vfo(const char *s);
-setting_t parse_func(const char *s);
-setting_t parse_level(const char *s);
-setting_t parse_parm(const char *s);
-vfo_op_t parse_vfo_op(const char *s);
-scan_t parse_scan(const char *s);
-rptr_shift_t parse_rptr_shift(const char *s);
 
 #define declare_proto_rig(f) static int (f)(RIG *rig, int interactive, \
 			const struct test_table *cmd, const char *arg1, \
@@ -677,7 +666,7 @@ declare_proto_rig(get_freq)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1); /* i.e. "Frequency" */
-		printf("%lld", freq);
+		printf("%lld\n", freq);
 		return status;
 }
 
@@ -706,7 +695,7 @@ declare_proto_rig(get_mode)
 		printf("%s\n", strmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
-		printf("%ld", width);
+		printf("%ld\n", width);
 		return status;
 }
 
@@ -903,7 +892,7 @@ declare_proto_rig(get_split_mode)
 		printf("%s\n", strmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
-		printf("%ld", width);
+		printf("%ld\n", width);
 		return status;
 }
 
@@ -1044,7 +1033,7 @@ declare_proto_rig(set_parm)
 		value_t val;
 
 		parm = parse_parm(arg1);
-		if (RIG_LEVEL_IS_FLOAT(parm))
+		if (RIG_PARM_IS_FLOAT(parm))
 			sscanf(arg2, "%f", &val.f);
 		else
 			sscanf(arg2, "%d", &val.i);
@@ -1065,7 +1054,7 @@ declare_proto_rig(get_parm)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg2);
-		if (RIG_LEVEL_IS_FLOAT(parm))
+		if (RIG_PARM_IS_FLOAT(parm))
 			printf("%f\n", val.f);
 		else
 			printf("%d\n", val.i);
@@ -1177,211 +1166,5 @@ declare_proto_rig(get_info)
 			printf("%s: ", cmd->arg1);
 		printf("%s\n", s ? s : "None");
 		return RIG_OK;
-}
-
-/* ********************************************************** */
-
-static struct { 
-		rmode_t mode;
-		const char *str;
-} mode_str[] = {
-	{ RIG_MODE_AM, "AM" },
-	{ RIG_MODE_FM, "FM" },
-	{ RIG_MODE_CW, "CW" },
-	{ RIG_MODE_USB, "USB" },
-	{ RIG_MODE_LSB, "LSB" },
-	{ RIG_MODE_RTTY, "RTTY" },
-	{ RIG_MODE_WFM, "WFM" },
-	{ RIG_MODE_NONE, NULL },
-};
-
-
-rmode_t parse_mode(const char *s)
-{
-	int i;
-
-	for (i=0 ; mode_str[i].str != NULL; i++)
-			if (!strcmp(s, mode_str[i].str))
-					return mode_str[i].mode;
-	return RIG_MODE_NONE;
-}
-
-static struct { 
-		vfo_t vfo ;
-		const char *str;
-} vfo_str[] = {
-		{ RIG_VFO_A, "VFOA" },
-		{ RIG_VFO_B, "VFOB" },
-		{ RIG_VFO_C, "VFOC" },
-		{ RIG_VFO_CURR, "currVFO" },
-		{ RIG_VFO_ALL, "allVFO" },
-		{ RIG_VFO_MEM, "MEM" },
-		{ RIG_VFO_VFO, "VFO" },
-		{ RIG_VFO_MAIN, "Main" },
-		{ RIG_VFO_SUB, "Sub" },
-		{ RIG_VFO_NONE, NULL },
-};
-
-vfo_t parse_vfo(const char *s)
-{
-	int i;
-
-	for (i=0 ; vfo_str[i].str != NULL; i++)
-			if (!strcmp(s, vfo_str[i].str))
-					return vfo_str[i].vfo;
-	return RIG_VFO_NONE;
-}
-
-
-static struct { 
-		setting_t func; 
-		const char *str;
-} func_str[] = {
-	{ RIG_FUNC_FAGC, "FAGC" },
-	{ RIG_FUNC_NB, "NB" },
-	{ RIG_FUNC_COMP, "COMP" },
-	{ RIG_FUNC_TONE, "TONE" },
-	{ RIG_FUNC_TSQL, "TSQL" },
-	{ RIG_FUNC_SBKIN, "SBKIN" },
-	{ RIG_FUNC_FBKIN, "FBKIN" },
-	{ RIG_FUNC_ANF, "ANF" },
-	{ RIG_FUNC_NR, "NR" },
-	{ RIG_FUNC_AIP, "AIP" },
-	{ RIG_FUNC_MON, "MON" },
-	{ RIG_FUNC_MN, "MN" },
-	{ RIG_FUNC_RNF, "RNF" },
-	{ RIG_FUNC_NONE, NULL },
-};
-
-setting_t parse_func(const char *s)
-{
-	int i;
-
-	for (i=0 ; func_str[i].str != NULL; i++)
-			if (!strcmp(s, func_str[i].str))
-					return func_str[i].func;
-	return RIG_FUNC_NONE;
-}
-
-static struct { 
-		setting_t level;
-		const char *str;
-} level_str[] = {
-	{ RIG_LEVEL_PREAMP, "PREAMP" },
-	{ RIG_LEVEL_ATT, "ATT" },
-	{ RIG_LEVEL_AF, "AF" },
-	{ RIG_LEVEL_RF, "RF" },
-	{ RIG_LEVEL_SQL, "SQL" },
-	{ RIG_LEVEL_IF, "IF" },
-	{ RIG_LEVEL_APF, "APF" },
-	{ RIG_LEVEL_NR, "NR" },
-	{ RIG_LEVEL_PBT_IN, "PBT_IN" },
-	{ RIG_LEVEL_PBT_OUT, "PBT_OUT" },
-	{ RIG_LEVEL_CWPITCH, "CWPITCH" },
-	{ RIG_LEVEL_RFPOWER, "RFPOWER" },
-	{ RIG_LEVEL_MICGAIN, "MICGAIN" },
-	{ RIG_LEVEL_KEYSPD, "KEYSPD" },
-	{ RIG_LEVEL_NOTCHF, "NOTCHF" },
-	{ RIG_LEVEL_COMP, "COMP" },
-	{ RIG_LEVEL_AGC, "AGC" },
-	{ RIG_LEVEL_BKINDL, "BKINDL" },
-	{ RIG_LEVEL_BALANCE, "BAL" },
-
-	{ RIG_LEVEL_SWR, "SWR" },
-	{ RIG_LEVEL_ALC, "ALC" },
-	{ RIG_LEVEL_SQLSTAT, "SQLSTAT" },
-	{ RIG_LEVEL_STRENGTH, "STRENGTH" },
-	{ RIG_LEVEL_NONE, NULL },
-};
-
-setting_t parse_level(const char *s)
-{
-	int i;
-
-	for (i=0 ; level_str[i].str != NULL; i++)
-			if (!strcmp(s, level_str[i].str))
-					return level_str[i].level;
-	return RIG_LEVEL_NONE;
-}
-
-static struct { 
-		setting_t parm;
-		const char *str;
-} parm_str[] = {
-	{ RIG_PARM_ANN, "ANN" },
-	{ RIG_PARM_APO, "APO" },
-	{ RIG_PARM_BACKLIGHT, "BACKLIGHT" },
-	{ RIG_PARM_BEEP, "BEEP" },
-	{ RIG_PARM_TIME, "TIME" },
-	{ RIG_PARM_BAT, "BAT" },
-	{ RIG_PARM_NONE, NULL },
-};
-
-setting_t parse_parm(const char *s)
-{
-	int i;
-
-	for (i=0 ; parm_str[i].str != NULL; i++)
-			if (!strcmp(s, parm_str[i].str))
-					return parm_str[i].parm;
-	return RIG_PARM_NONE;
-}
-
-static struct { 
-		vfo_op_t vfo_op;
-		const char *str;
-} vfo_op_str[] = {
-	{ RIG_OP_CPY, "CPY" },
-	{ RIG_OP_XCHG, "XCHG" },
-	{ RIG_OP_FROM_VFO, "FROM_VFO" },
-	{ RIG_OP_TO_VFO, "TO_VFO" },
-	{ RIG_OP_MCL, "MCL" },
-	{ RIG_OP_UP, "UP" },
-	{ RIG_OP_DOWN, "DOWN" },
-	{ RIG_OP_BAND_UP, "BAND_UP" },
-	{ RIG_OP_BAND_DOWN, "BAND_DOWN" },
-	{ RIG_OP_NONE, NULL },
-};
-
-vfo_op_t parse_vfo_op(const char *s)
-{
-	int i;
-
-	for (i=0 ; vfo_op_str[i].str != NULL; i++)
-			if (!strcmp(s, vfo_op_str[i].str))
-					return vfo_op_str[i].vfo_op;
-	return RIG_OP_NONE;
-}
-
-static struct { 
-		scan_t scan;
-		const char *str;
-} scan_str[] = {
-	{ RIG_SCAN_STOP, "STOP" },
-	{ RIG_SCAN_MEM, "MEM" },
-	{ RIG_SCAN_SLCT, "SLCT" },
-	{ RIG_SCAN_PRIO, "PRIO" },
-	{ RIG_SCAN_DELTA, "DELTA" },
-	{ RIG_SCAN_NONE, NULL },
-};
-
-scan_t parse_scan(const char *s)
-{
-	int i;
-
-	for (i=0 ; scan_str[i].str != NULL; i++)
-			if (!strcmp(s, scan_str[i].str))
-					return scan_str[i].scan;
-	return RIG_SCAN_NONE;
-}
-
-rptr_shift_t parse_rptr_shift(const char *s)
-{
-	if (!strcmp(s, "+"))
-			return RIG_RPT_SHIFT_PLUS;
-	else if (!strcmp(s, "-"))
-			return RIG_RPT_SHIFT_MINUS;
-	else
-			return RIG_RPT_SHIFT_NONE;
 }
 
