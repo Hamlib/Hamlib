@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.8 2000-09-16 23:15:42 javabear Exp $  
+ *    $Id: ft747.h,v 1.9 2000-09-23 00:34:42 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ struct ft747_priv_data {
 
 int ft747_init(RIG *rig);
 int ft747_cleanup(RIG *rig);
-int cmd_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
+int ft747_set_freq(RIG *rig, freq_t freq);
 
   /*
     int (*set_freq)(RIG *rig, freq_t freq);
