@@ -5,44 +5,79 @@ General Guidelines.
 
 0. The top level directory looks like thus.
 
-|-- RCS
+[frank@kirk hamlib]$ tree -d
+.
+|-- CVS
+|-- common
+|   `-- CVS
 |-- ft1000
+|   `-- CVS
 |-- ft1000d
+|   `-- CVS
 |-- ft747
-|   |-- RCS
+|   |-- CVS
 |   |-- include
+|   |   `-- CVS
 |   |-- lib
+|   |   `-- CVS
 |   `-- test
-|       `-- RCS
+|       `-- CVS
 |-- ft840
+|   `-- CVS
 |-- ft847
+|   |-- CVS
+|   |-- include
+|   |   `-- CVS
+|   |-- lib
+|   |   `-- CVS
+|   `-- test
+|       `-- CVS
 |-- ft920
+|   `-- CVS
 |-- ts570d
+|   `-- CVS
 |-- ts870s
-`-- ts950  
+|   `-- CVS
+`-- ts950
+    `-- CVS    
 
 1.Every new shared lib should be created autonomously
   within its own directory. eg ft747/ for libft747.so
 
 2. Every lib should have the following structure
+[frank@kirk ft747]$ tree
 
-ft747/
+.
+|-- CVS
+|   |-- Entries
+|   |-- Entries.Log
+|   |-- Repository
+|   `-- Root
 |-- Makefile
-|-- RCS
 |-- README.ft747
 |-- TODO.ft747
 |-- ft747.c
 |-- ft747.h
 |-- include
+|   `-- CVS
+|       |-- Entries
+|       |-- Repository
+|       `-- Root
 |-- lib
+|   `-- CVS
+|       |-- Entries
+|       |-- Repository
+|       `-- Root
 `-- test
+    |-- CVS
+    |   |-- Entries
+    |   |-- Repository
+    |   `-- Root
     |-- Makefile
-    |-- RCS
-    |-- RESULT.example	
     |-- testlibft747.c
-    `-- testlibft747.h 
+    `-- testlibft747.h
 
-3. Use the ft747 tree for examples of coding style. If there
+3. Use the ft847 tree for examples of coding style. If there
    are any glaring problems,let me know..
 
 4. The "test" directory should contain source code of the
@@ -72,7 +107,8 @@ ft747/
 9. Your header file (eg ft747.h, ft847.h etc) documents
    your API, so please describe it so others can understand.
    If this cannot be done, I may consider an "API.xxx" that
-   decsribes the API (eg: API.ft747 )
+   decsribes the API (eg: API.ft847 )
 
 10. ...
+
 
