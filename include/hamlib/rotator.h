@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.4 2002-09-08 22:27:32 fillods Exp $
+ *	$Id: rotator.h,v 1.5 2002-11-09 13:09:02 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,16 @@
 #include <time.h>		/* required for time_t definition */
 
 
+/*! \file rotator.h
+ *  \ingroup rot
+ *  \brief Hamlib rotator data structures.
+ *
+ *  This file contains the data structures and definitions for the Hamlib rotator API.
+ *  see the rotator.c file for more details on the rotator API.
+ */
+
+
+
 __BEGIN_DECLS
 
 /* Forward struct references */
@@ -36,19 +46,99 @@ __BEGIN_DECLS
 struct rot;
 struct rot_state;
 
+/*! \typedef typedef struct rot ROT
+ *  \brief Rotator structure definition (see rot for details).
+ */
 typedef struct rot ROT;
 
+
+/*! \typedef typedef float elevation_t
+ *  \brief Type definition for elevation.
+ *
+ *  The elevation_t type is used as parameter for the
+ *  rot_set_position() and rot_get_position() functions.
+ */
+/*! \typedef typedef float azimuth_t
+ *  \brief Type definition for azimuth.
+ *
+ *  The azimuth_t type is used as parameter for the
+ *  rot_set_position() and rot_get_position() functions.
+ */
 typedef float elevation_t;
 typedef float azimuth_t;
 
+
+/*! \typedef typedef int rot_reset_t
+ *  \brief Type definition for rotator reset.
+ *
+ *  The rot_reset_t type is used as parameter for
+ *  the rot_reset() API function.
+ */
 typedef int rot_reset_t;
 
 
+/*! \def ROT_FLAG_AZIMUTH
+ *  \brief A macro that returns the azimuth flag.
+ */
+/*! \def ROT_FLAG_ELEVATION
+ *  \brief A macro that returns the elevation flag.
+ */
 #define ROT_FLAG_AZIMUTH		(1<<1)
 #define ROT_FLAG_ELEVATION		(1<<2)
 
 #define ROT_TYPE_OTHER		    0
 
+
+/*! \def ROT_MOVE_UP
+ *  \brief A macro that returns the flag for the \b UP direction.
+ *
+ *  This macro defines the value of the \b UP direction which can be
+ *  used with the rot_move() function.
+ *
+ *  \sa rot_move(), ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, ROT_MOVE_RIGHT, ROT_MOVE_CW
+ */
+/*! \def ROT_MOVE_DOWN
+ *  \brief A macro that returns the flag for the \b DOWN direction.
+ *
+ *  This macro defines the value of the \b DOWN direction which can be
+ *  used with the rot_move() function.
+ *
+ *  \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_LEFT, ROT_MOVE_CCW, ROT_MOVE_RIGHT, ROT_MOVE_CW
+*/
+/*! \def ROT_MOVE_LEFT
+ *  \brief A macro that returns the flag for the \b LEFT direction.
+ *
+ *  This macro defines the value of the \b LEFT direction which can be
+ *  used with the rot_move function.
+ *
+ *  \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_CCW, ROT_MOVE_RIGHT, ROT_MOVE_CW
+ */
+/*! \def ROT_MOVE_CCW
+ *  \brief A macro that returns the flag for the \b counterclockwise direction.
+ *
+ *  This macro defines the value of the \b counterclockwise direction which
+ *  can be used with the rot_move() function. This value is equivalent to
+ *  ROT_MOVE_LEFT .
+ *
+ *  \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_RIGHT, ROT_MOVE_CW
+ */
+/*! \def ROT_MOVE_RIGHT
+ *  \brief A macro that returns the flag for the \b RIGHT direction.
+ *
+ *  This macro defines the value of the \b RIGHT direction which can be used
+ *  with the rot_move() function.
+ *
+ *  \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, ROT_MOVE_CW
+ */
+/*! \def ROT_MOVE_CW
+ *  \brief A macro that returns the flag for the \b clockwise direction.
+ *
+ *  This macro defines the value of the \b clockwise direction wich can be
+ *  used with the rot_move() function. This value is equivalent to
+ *  ROT_MOVE_RIGHT .
+ *
+ *  \sa rot_move(), ROT_MOVE_UP, ROT_MOVE_DOWN, ROT_MOVE_LEFT, ROT_MOVE_CCW, ROT_MOVE_RIGHT
+ */
 #define ROT_MOVE_UP             (1<<1)
 #define ROT_MOVE_DOWN           (1<<2)
 #define ROT_MOVE_LEFT           (1<<3)
@@ -62,9 +152,13 @@ typedef int rot_reset_t;
  * useful enquiries about capablilities.
  */
 
-/*
+/*!
+ * Rotator Caps
+ * \struct rot_caps
+ * \brief Rotator data structure.
+ *
  * The main idea of this struct is that it will be defined by the backend
- * rig driver, and will remain readonly for the application.
+ * rotator driver, and will remain readonly for the application.
  * Fields that need to be modifiable by the application are
  * copied into the struct rot_state, which is a kind of private
  * of the ROT instance.
@@ -75,40 +169,40 @@ typedef int rot_reset_t;
  *     their caps.
  */
 struct rot_caps {
-  rot_model_t rot_model;
-  const char *model_name;
-  const char *mfg_name;
-  const char *version;
-  const char *copyright;
-  enum rig_status_e status;
+  rot_model_t rot_model;                         /*!< Rotator model. */
+  const char *model_name;                        /*!< Model name. */
+  const char *mfg_name;                          /*!< Manufacturer. */
+  const char *version;                           /*!< Driver version. */
+  const char *copyright;                         /*!< Copyright info. */
+  enum rig_status_e status;                      /*!< Driver status. */
 
-  int rot_type;
-  enum rig_port_e port_type;
+  int rot_type;                                  /*!< Rotator type. */
+  enum rig_port_e port_type;                     /*!< Type of communication port. */
 
-  int serial_rate_min;
-  int serial_rate_max;
-  int serial_data_bits;
-  int serial_stop_bits;
-  enum serial_parity_e serial_parity;
-  enum serial_handshake_e serial_handshake;
+  int serial_rate_min;                           /*!< Minimal serial speed. */
+  int serial_rate_max;                           /*!< Maximal serial speed. */
+  int serial_data_bits;                          /*!< Number of data bits. */
+  int serial_stop_bits;                          /*!< Number of stop bits. */
+  enum serial_parity_e serial_parity;            /*!< Parity. */
+  enum serial_handshake_e serial_handshake;      /*!< Handshake. */
 
-  int write_delay;
-  int post_write_delay;
-  int timeout;
-  int retry;
+  int write_delay;                               /*!< Write delay. */
+  int post_write_delay;                          /*!< Post-write delay. */
+  int timeout;                                   /*!< Timeout. */
+  int retry;                                     /*!< Retry (boolean?). */
 
   /*
    * Movement range, az is relative to North
    * negative values allowed for overlap
    */
-  azimuth_t min_az;
-  azimuth_t max_az;
-  elevation_t min_el;
-  elevation_t max_el;
+  azimuth_t min_az;                              /*!< Lower limit for azimuth (relative to North). */
+  azimuth_t max_az;                              /*!< Upper limit for azimuth (relative to North). */
+  elevation_t min_el;                            /*!< Lower limit for elevation. */
+  elevation_t max_el;                            /*!< Upper limit for elevation. */
 
 
-  const struct confparams *cfgparams;
-  const rig_ptr_t priv;
+  const struct confparams *cfgparams;            /*!< Configuration parametres. */
+  const rig_ptr_t priv;                          /*!< Private data. */
 
   /*
    * Rot Admin API
@@ -143,8 +237,10 @@ struct rot_caps {
 };
 
 
-/* 
+/*! 
  * Rotator state
+ * \struct rot_state
+ * \brief Live data and customized fields.
  *
  * This struct contains live data, as well as a copy of capability fields
  * that may be updated (ie. customized)
@@ -156,37 +252,45 @@ struct rot_state {
 	/*
 	 * overridable fields
 	 */
-  azimuth_t min_az;
-  azimuth_t max_az;
-  elevation_t min_el;
-  elevation_t max_el;
+  azimuth_t min_az;            /*!< Lower limit for azimuth (overridable). */
+  azimuth_t max_az;            /*!< Upper limit for azimuth (overridable). */
+  elevation_t min_el;          /*!< Lower limit for elevation (overridable). */                    
+  elevation_t max_el;          /*!< Upper limit for elevation (overridable). */
 
 	/*
 	 * non overridable fields, internal use
 	 */
-  port_t rotport;
+  port_t rotport;             /*!< Rotator port (internal use). */
 
-  int comm_state;	/* opened or not */
+  int comm_state;	      /*!< Comm port state, opened/closed. */
   /*
    * Pointer to private data
    */
-  rig_ptr_t priv;
+  rig_ptr_t priv;             /*!< Pointer to private data. */
   
   /*
    * internal use by hamlib++ for event handling
    */
-  rig_ptr_t obj;
+  rig_ptr_t obj;              /*!< Internal use by hamlib++ for event handling. */
 
   /* etc... */
 };
 
-/* 
- * struct rot is the master data structure, 
+/**
+ * Rotator structure
+ * \struct rot
+ * \brief This is the master data structure, 
  * acting as a handle for the controlled rotator.
+ *
+ * This is the master data structure, acting as a handle for the controlled
+ * rotator. A pointer to this structure is returned by the rot_init() API
+ * function and is passed as a parameter to every rotator specific API call.
+ *
+ * \sa rot_init(), rot_caps, rot_state
  */
 struct rot {
-	struct rot_caps *caps;
-	struct rot_state state;
+	struct rot_caps *caps;      /*!< Rotator caps. */
+	struct rot_state state;     /*!< Rotator state. */
 };
 
 /* --------------- API function prototypes -----------------*/
@@ -247,6 +351,14 @@ extern HAMLIB_EXPORT(void) dec2dms HAMLIB_PARAMS((double dec, int *degrees,
 						int *minutes, int *seconds));
 
 
+/*! \def rot_debug
+ *  \brief Convenience definition for debug level.
+ *
+ *  This is just as convenience definition of the rotator debug level,
+ *  and is the same as for the rig debug level.
+ *
+ *  \sa rig_debug
+ */
 #define rot_debug rig_debug
 
 __END_DECLS
