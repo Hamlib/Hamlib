@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.10 2003-01-17 04:43:50 n0nb Exp $  
+ *    $Id: ft920.h,v 1.11 2003-01-19 04:48:00 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -32,8 +32,10 @@
 #ifndef _FT920_H
 #define _FT920_H 1
 
-#define FT920_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define TRUE    1
+#define FALSE   0
 
+#define FT920_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
 /* Receiver caps */
 
