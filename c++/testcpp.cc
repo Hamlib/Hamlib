@@ -3,7 +3,7 @@
  * Hamlib sample C++ program
  */
 
-#include <iostream.h>
+#include <iostream>
 #include <hamlib/rigclass.h>
 
 int main(int argc, char* argv[])
@@ -13,8 +13,8 @@ int main(int argc, char* argv[])
 	try {
 		myRig.open();
 		myRig.setFreq(MHz(144));
-		cout << myRig.getLevelI(RIG_LEVEL_STRENGTH) << "dB" << endl;
-		cout << "Modes for freq 14.332: " << myRig.RngRxModes(MHz(14.332)) << endl;
+		std::cout << myRig.getLevelI(RIG_LEVEL_STRENGTH) << "dB" << std::endl;
+		std::cout << "Modes for freq 14.332: " << myRig.RngRxModes(MHz(14.332)) << std::endl;
 		myRig.close();
 	}
 	catch (const RigException &Ex) {
