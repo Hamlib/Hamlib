@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.3 2003-11-29 13:36:30 f4dwv Exp $
+ *	$Id: thg71.c,v 1.4 2003-11-30 20:27:01 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -52,11 +52,11 @@
 
 #define THG71_CHANNEL_CAPS \
 .freq=1,\
+.mode=1,\
+.width=1,\
 .tuning_step=1,\
 .rptr_shift=1,\
 .rptr_offs=1,\
-.ctcss_tone=1,\
-.ctcss_sql=1,\
 .channel_desc=1
 
 
@@ -302,7 +302,7 @@ int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       case RIG_VFO_A: break;
 	  default:
         rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-		return -RIG_EINVAL;
+		return -RIG_EVFO;
 	}
 
 	/* try to guess from frequency */
@@ -341,7 +341,7 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-            return -RIG_EINVAL;
+            return -RIG_EVFO;
         }
 
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
@@ -373,7 +373,7 @@ int thg71_get_vfo (RIG *rig, vfo_t *vfo)
 		break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
-            return -RIG_EINVAL;
+            return -RIG_EVFO;
 	}
 	return RIG_OK;
 }
@@ -420,6 +420,13 @@ int thg71_get_channel(RIG *rig, channel_t *chan)
     chan->freq=(freq_t)freq;
     chan->vfo=RIG_VFO_MEM;
     chan->tuning_step=rig->state.tuning_steps[step].ts;
+    if(freq <MHz(136) )  {
+		chan->mode=RIG_MODE_AM;
+		chan->width=kHz(9);
+    } else {
+		chan->mode=RIG_MODE_FM;
+		chan->width=kHz(12);
+    }
     switch(shift) {
 	case 0 :
 		chan->rptr_shift=RIG_RPT_SHIFT_NONE;
@@ -478,9 +485,15 @@ int thg71_set_channel(RIG *rig, const channel_t *chan)
     }
     offset=chan->rptr_offs;
     
-    sprintf(membuf, "MR 0,0,%03d,%011lld,%d,%d,0,0,0,,0,,0,%09lld",
+    sprintf(membuf, "MW 0,0,%03d,%011lld,%d,%d,0,0,0,,09,,09,%09lld,0"EOM,
                                   chn, freq, step, shift, offset);
 
+    retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        	return retval;
+
+    ack_len=ACKBUF_LEN;
+    sprintf(membuf,"MNA 0,%03d,%s"EOM,chan->channel_num,chan->channel_desc);
     retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
