@@ -99,10 +99,11 @@ TCL_SRC_DIR = @TCL_SRC_DIR@
 VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
+cf_with_perl = @cf_with_perl@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-AORSRCLIST = ar8200.c ar8000.c
+AORSRCLIST = ar8200.c ar8000.c ar5000.c
 
 lib_LTLIBRARIES = libhamlib-aor.la
 libhamlib_aor_la_SOURCES = $(AORSRCLIST) aor.c
@@ -117,7 +118,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_aor_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_aor_la_OBJECTS = ar8200.lo ar8000.lo aor.lo
+am_libhamlib_aor_la_OBJECTS = ar8200.lo ar8000.lo ar5000.lo aor.lo
 libhamlib_aor_la_OBJECTS = $(am_libhamlib_aor_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -126,8 +127,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/aor.Plo $(DEPDIR)/ar8000.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ar8200.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/aor.Plo $(DEPDIR)/ar5000.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ar8000.Plo $(DEPDIR)/ar8200.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -191,6 +192,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/aor.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ar5000.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ar8000.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ar8200.Plo@am__quote@
 
