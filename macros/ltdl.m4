@@ -21,7 +21,7 @@
 ## the same distribution terms that you use for the rest of that program.
 
 # serial 6 AC_LIB_LTDL
-# Debian $Rev: 82 $
+# Debian $Rev: 214 $
 
 # AC_WITH_LTDL
 # ------------
@@ -160,7 +160,7 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
     # at 6.2 and later dlopen does load deplibs.
     libltdl_cv_sys_dlopen_deplibs=yes
     ;;
-  netbsd*)
+  netbsd* | netbsdelf*-gnu)
     libltdl_cv_sys_dlopen_deplibs=yes
     ;;
   openbsd*)
@@ -208,7 +208,7 @@ AC_CACHE_CHECK([which extension is used for loadable modules],
   [libltdl_cv_shlibext],
 [
 module=yes
-eval libltdl_cv_shlibext=$shrext
+eval libltdl_cv_shlibext=$shrext_cmds
   ])
 if test -n "$libltdl_cv_shlibext"; then
   AC_DEFINE_UNQUOTED(LTDL_SHLIB_EXT, "$libltdl_cv_shlibext",
