@@ -1,15 +1,16 @@
 hamlib - (C) Frank Singleton 2000
 
-TODO.<your rig> - (C) <your name> 2000
-This shared library provides an API for communicating
-via serial interface to a <your rig> using the <your interface> interface.
 
-TODO
-----
+GENERAL PROJECT TODO
+-------------------
 
-1. Complete pcodes
-2. Write More extensive Test Suite
-3. Document API
+1. Implement more interfaces
+2. Write More extensive Test Suites
+3. Document API's
 4. Document Limitations/Assumptions.
-5.
+5. Buld top level Makefile for maintenance
+6. Encourage people to build cool GUI's using
+   our libs. (any GTK wiz's out here ..)
+7. more to come....
+
 
