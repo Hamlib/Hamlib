@@ -267,7 +267,9 @@ case "$host_os" in
  # Winradio only under Linux (until someone port it on other os)
  BACKEND_LIST="$BACKEND_LIST winradio"
  # TODO: support parallel port interface on other systems too
- ROT_BACKEND_LIST="$ROT_BACKEND_LIST fodtrack"
+ if test "${ac_cv_header_linux_ppdev_h}" = "yes"; then
+   ROT_BACKEND_LIST="$ROT_BACKEND_LIST fodtrack"
+ fi
  ;;
  *) 
 esac
@@ -282,7 +284,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_gnuradio)
 
   if test "${cf_with_gnuradio}" = "yes" ; then
-  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.6)
+  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.7)
 	BACKEND_LIST="$BACKEND_LIST gnuradio"
   fi
  
