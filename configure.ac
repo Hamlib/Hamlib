@@ -168,8 +168,8 @@ if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
  BACKEND_LIST="$BACKEND_LIST rpcrig"
 fi
 
-# Preopen self for static version
-BACKENDLNK="-dlpreopen self"
+# dlopen force or preopen self for static version ?
+BACKENDLNK="-dlopen force"
 for be in ${BACKEND_LIST} ; do
 	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
 	BACKENDEPS="${BACKENDEPS} ../${be}/libhamlib-${be}.la"
