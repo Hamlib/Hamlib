@@ -1,5 +1,5 @@
 /*
- * hamlib - (C) Stephane Fillod 2002, 2003 (fillods at users.sourceforge.net)
+ * hamlib - (C) Stephane Fillod 2002-2004 (fillods at users.sourceforge.net)
  *
  * ft990.c - (C) Berndt Josef Wulf (wulf at ping.net.au)
  *
@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.12 2004-09-22 13:56:50 bwulf Exp $
+ * $Id: ft990.c,v 1.13 2004-09-26 17:36:42 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -2310,7 +2310,7 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
   // This should be the responsibility of the frontend
   temp1 = chan->channel_num;
   temp2 = chan->vfo;
-  bzero(chan,sizeof(channel_t));
+  memset(chan,0,sizeof(channel_t));
   chan->channel_num = temp1;
   chan->vfo = temp2;
 
