@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.17 2001-04-28 12:38:02 f4cfe Exp $  
+ *    $Id: icom.h,v 1.18 2001-05-04 22:40:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -58,8 +58,6 @@ struct icom_priv_data {
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	cal_table_t str_cal;
 };
-
-extern const int icom_ctcss_list[];
 
 extern const struct ts_sc_list r8500_ts_sc_list[];
 extern const struct ts_sc_list ic737_ts_sc_list[];

@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.24 2001-04-28 12:38:02 f4cfe Exp $  
+ * $Id: icom.c,v 1.25 2001-05-04 22:40:37 f4cfe Exp $  
  *
  *
  *
@@ -186,20 +186,6 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_MINISCOUT, 0x94 },
 		{ RIG_MODEL_IC718, 0x36 },	/* need confirmation */
 		{ -1, 0 },
-};
-
-/*
- * 50 CTCSS sub-audible tones, from 67.0Hz to 254.1Hz
- * Don't even think about changing a bit of this array, several
- * rigs depend on it. If you need to, create a copy for your caps. --SF
- */
-const int icom_ctcss_list[] = {
-		670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
-		948,  974, 1000, 1035, 1072, 1109, 1148, 1188,  1230, 1273,
-		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
-		1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
-		2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
-		0,
 };
 
 /*
@@ -907,6 +893,7 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 /*
  * icom_get_rptr_shift
  * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_shift!=NULL
+ * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF
  */
 int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
@@ -1205,6 +1192,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 /*
  * icom_get_ts
  * Assumes rig!=NULL, rig->caps->priv!=NULL, ts!=NULL
+ * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF
  */
 int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
@@ -1621,14 +1609,22 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 		icmode = rig2icom_mode(rig, chan->mode, RIG_PASSBAND_NORMAL);/* FIXME */
 		chanbuf[chan_len++] = icmode&0xff;
 		chanbuf[chan_len++] = icmode>>8;
+#if 0
 		to_bcd_be(chanbuf+chan_len++,chan->att,2);
 		to_bcd_be(chanbuf+chan_len++,chan->preamp,2);
+#else
+		to_bcd_be(chanbuf+chan_len++,
+						chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i, 2);
+		to_bcd_be(chanbuf+chan_len++,
+						chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i, 2);
+#endif
 		to_bcd_be(chanbuf+chan_len++,chan->ant,2);
 		memset(chanbuf+chan_len, 0, 8);
 		strncpy(chanbuf+chan_len, chan->channel_desc, 8);
 		chan_len += 8;
 
-		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len, ackbuf, &ack_len);
+		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len,
+						ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_channel: ack NG (%#.2x), "
@@ -1660,7 +1656,8 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 
 		freq_len = priv->civ_731_mode ? 4:5;
 
-		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len, chanbuf, &chan_len);
+		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len, 
+						chanbuf, &chan_len);
 
 		/*
 		 * freqbuf should contain Cn,Data area
@@ -1682,8 +1679,10 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 		icom2rig_mode(rig, chanbuf[chan_len] | chanbuf[chan_len+1], 
 						&chan->mode, &width);
 		chan_len += 2;
-		chan->att = from_bcd_be(chanbuf+chan_len++,2);
-		chan->preamp = from_bcd_be(chanbuf+chan_len++,2);
+		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 
+				from_bcd_be(chanbuf+chan_len++,2);
+		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 
+				from_bcd_be(chanbuf+chan_len++,2);
 		chan->ant = from_bcd_be(chanbuf+chan_len++,2);
 		strncpy(chan->channel_desc, chanbuf+chan_len, 8);
 
