@@ -32,7 +32,7 @@ dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
-AC_CHECK_HEADERS([stdlib.h values.h])
+AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h unistd.h getopt.h errno.h])
 AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h])
 AC_CHECK_HEADERS([windows.h winioctl.h winbase.h])
@@ -168,11 +168,15 @@ AC_SUBST(LIBOBJS)
 case "$host_os" in
  linux-gnu*)
  # Winradio only under Linux (until someone port it on other os)
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina rpcrig"
+ BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina"
  ;;
  *) 
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina rpcrig"
+ BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina"
 esac
+
+if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
+ BACKEND_LIST="$BACKEND_LIST rpcrig"
+fi
 
 for be in ${BACKEND_LIST} ; do
 	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
