@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.24 2004-12-22 16:06:00 f4dwv Exp $
+ *	$Id: th.c,v 1.25 2004-12-28 12:58:51 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1111,7 +1111,7 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         return RIG_OK;
 }
 
-/* get and set channel tested on thg71 and tmv7	*/
+/* get and set channel tested on thg71   	*/
 /* must work on other th and tm kenwood rigs	*/
 /* Beware : special numbering scheme :		*/
 /* 0-199 : normal memories			*/
