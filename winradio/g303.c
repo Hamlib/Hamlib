@@ -2,7 +2,7 @@
  *  Hamlib WiNRADiO backend - WR-G303 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: g303.c,v 1.2 2004-08-08 21:38:02 fillods Exp $
+ *	$Id: g303.c,v 1.3 2004-08-16 22:33:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -123,7 +123,7 @@ const struct rig_caps g303_caps = {
   .rig_model =      RIG_MODEL_G303,
   .model_name =     "WR-G303",
   .mfg_name =       "Winradio",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	    "LGPL",	/* This wrapper, not the G3 DLL */
   .status =         RIG_STATUS_UNTESTED,
   .rig_type =       RIG_TYPE_PCRECEIVER,
