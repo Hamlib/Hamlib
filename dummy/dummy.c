@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.6 2001-05-04 22:37:35 f4cfe Exp $
+ *	$Id: dummy.c,v 1.7 2001-05-08 09:08:59 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -321,6 +321,19 @@ static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx
   return RIG_OK;
 }
 
+static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
+
+static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
 
 static int dummy_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
@@ -337,7 +350,6 @@ static int dummy_get_split(RIG *rig, vfo_t vfo, split_t *split)
   return RIG_OK;
 }
 
-
 static int dummy_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
@@ -347,6 +359,22 @@ static int dummy_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 
 static int dummy_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
+
+
+static int dummy_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
+
+
+static int dummy_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -537,6 +565,27 @@ static unsigned char *dummy_get_info(RIG *rig)
 }
 
 
+static int dummy_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
+
+static int dummy_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
+
+static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+
+  return RIG_OK;
+}
+
 
 
 /*
@@ -584,9 +633,6 @@ const struct rig_caps dummy_caps = {
   rig_cleanup: dummy_cleanup,
   rig_open:    dummy_open,
   rig_close:   dummy_close,
-#if 0
-  rig_probe:   dummy_probe,
-#endif
 
   set_freq:    dummy_set_freq,
   get_freq:    dummy_get_freq,
@@ -624,24 +670,27 @@ const struct rig_caps dummy_caps = {
   get_dcs_sql:	dummy_get_dcs_sql,
   set_split_freq:	dummy_set_split_freq,
   get_split_freq:	dummy_get_split_freq,
+  set_split_mode:	dummy_set_split_mode,
+  get_split_mode:	dummy_get_split_mode,
   set_split:	dummy_set_split,
   get_split:	dummy_get_split,
   set_rit:	dummy_set_rit,
   get_rit:	dummy_get_rit,
+  set_xit:	dummy_set_xit,
+  get_xit:	dummy_get_xit,
   set_ts:	dummy_set_ts,
   get_ts:	dummy_get_ts,
   power2mW:	dummy_power2mW,
   mW2power:	dummy_mW2power,
-#if 0
-  set_ann:	dummy_set_ann,
-  get_ann:	dummy_get_ann,
-#endif
   set_ant:	dummy_set_ant,
   get_ant:	dummy_get_ant,
   set_bank:	dummy_set_bank,
   set_mem:	dummy_set_mem,
   get_mem:	dummy_get_mem,
   mv_ctl:	dummy_mv_ctl,
+  send_dtmf: dummy_send_dtmf,
+  recv_dtmf: dummy_recv_dtmf,
+  send_morse: dummy_send_morse,
   set_channel:	dummy_set_channel,
   get_channel:	dummy_get_channel,
   set_trn:	dummy_set_trn,
