@@ -1,0 +1,31 @@
+hamlib for Borland's Kylix
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This is a Kylix binding for use with Hamlib.  Binding consists of three files:
+
+hamlib_rigapi.pas :
+
+    This file have the same function as `rig.h' for the C language.  This 
+    file should also be kept synchronized with `rig.h`.
+
+hamlib_rotapi.pas
+
+    This file have the same function as `rotator.h' for the C language. This 
+    file should be kept synchronized with 'rotator.h'.
+
+HamlibComponents.pas
+
+    This file contain two components that encapsulate the rig and rotator 
+    frontends.  It is very simular to the C++ class.
+
+  
+A simple test program is included in the tests/ directory.  It implements
+a selection dialog and a very simple Radio Control dialog.
+
+This binding was develop with Borland Kylix Open Edition Ver 2.0. Open Edition
+is freely downloadable from Borland's website for use with GPL projects.
+ http://www.borland.com/kylix/
+
+Contributors:
+    Francois Retief     <fgretief@sun.ac.za>
+

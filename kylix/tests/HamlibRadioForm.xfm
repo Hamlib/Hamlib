@@ -1,0 +1,165 @@
+object RadioForm: TRadioForm
+  Left = 190
+  Top = 208
+  Width = 400
+  Height = 157
+  HorzScrollBar.Range = 379
+  VertScrollBar.Range = 145
+  ActiveControl = FreqEdit_vfoa
+  Caption = 'Radio'
+  Color = clBackground
+  PixelsPerInch = 78
+  TextHeight = 20
+  TextWidth = 8
+  object FreqPanel_vfoa: TPanel
+    Left = 8
+    Top = 8
+    Width = 289
+    Height = 65
+    TabOrder = 0
+    object FreqEdit_vfoa: TEdit
+      Left = 80
+      Top = 16
+      Width = 121
+      Height = 30
+      Font.Color = clBlack
+      Font.Height = 20
+      Font.Name = 'Helvetica'
+      Font.Pitch = fpVariable
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+      Text = '145.825000'
+    end
+    object FreqLabel_vfoa: TLabel
+      Left = 8
+      Top = 24
+      Width = 63
+      Height = 22
+      Caption = 'VFO A:'
+      Font.Color = clBlack
+      Font.Height = 20
+      Font.Name = 'Helvetica'
+      Font.Pitch = fpVariable
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label2: TLabel
+      Left = 208
+      Top = 24
+      Width = 39
+      Height = 22
+      Caption = 'MHz'
+      Font.Color = clBlack
+      Font.Height = 20
+      Font.Name = 'Helvetica'
+      Font.Pitch = fpVariable
+      Font.Style = []
+      ParentFont = False
+    end
+    object FreqUpButton_vfoA: TButton
+      Left = 256
+      Top = 0
+      Width = 35
+      Height = 33
+      Caption = 'up'
+      TabOrder = 3
+      OnClick = FreqButton_Click
+    end
+    object FreqDnButton_vfoa: TButton
+      Left = 256
+      Top = 32
+      Width = 33
+      Height = 33
+      Caption = 'dn'
+      TabOrder = 4
+      OnClick = FreqButton_Click
+    end
+  end
+  object Panel1: TPanel
+    Left = 8
+    Top = 80
+    Width = 289
+    Height = 65
+    Caption = 'Panel1'
+    TabOrder = 1
+    object FreqLabel_vfob: TLabel
+      Left = 8
+      Top = 24
+      Width = 63
+      Height = 22
+      Caption = 'VFO B:'
+      Font.Color = clBlack
+      Font.Height = 20
+      Font.Name = 'Helvetica'
+      Font.Pitch = fpVariable
+      Font.Style = []
+      ParentFont = False
+    end
+    object FreqEdit_vfob: TEdit
+      Left = 80
+      Top = 16
+      Width = 121
+      Height = 30
+      Font.Color = clBlack
+      Font.Height = 20
+      Font.Name = 'Helvetica'
+      Font.Pitch = fpVariable
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      Text = '436.250000'
+    end
+    object MHzLabel_vfob: TLabel
+      Left = 208
+      Top = 24
+      Width = 39
+      Height = 22
+      Caption = 'MHz'
+      Font.Color = clBlack
+      Font.Height = 20
+      Font.Name = 'Helvetica'
+      Font.Pitch = fpVariable
+      Font.Style = []
+      ParentFont = False
+    end
+    object FreqUpButton_vfob: TButton
+      Left = 256
+      Top = 0
+      Width = 35
+      Height = 33
+      Caption = 'up'
+      TabOrder = 3
+      OnClick = FreqButton_Click
+    end
+    object FreqDnButton_vfob: TButton
+      Left = 256
+      Top = 32
+      Width = 35
+      Height = 33
+      Caption = 'dn'
+      TabOrder = 4
+      OnClick = FreqButton_Click
+    end
+  end
+  object CloseButton: TButton
+    Left = 304
+    Top = 56
+    Width = 75
+    Height = 25
+    Caption = '&Close'
+    Default = True
+    ModalResult = 1
+    TabOrder = 2
+  end
+  object MagicCheckButton: TButton
+    Left = 328
+    Top = 120
+    Width = 49
+    Height = 25
+    Caption = 'check'
+    Enabled = False
+    TabOrder = 3
+    OnClick = MagicCheckButtonClick
+  end
+end

@@ -1,0 +1,78 @@
+object HamlibTestForm: THamlibTestForm
+  Left = 190
+  Top = 110
+  Width = 428
+  Height = 267
+  VertScrollBar.Range = 113
+  ActiveControl = RigButton
+  Caption = 'Hamlib Tests'
+  Color = clBackground
+  PixelsPerInch = 104
+  TextHeight = 20
+  TextWidth = 8
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 428
+    Height = 113
+    Align = alTop
+    TabOrder = 0
+    object Panel2: TPanel
+      Left = 1
+      Top = 1
+      Width = 112
+      Height = 111
+      Align = alLeft
+      TabOrder = 0
+      object RigButton: TButton
+        Left = 8
+        Top = 8
+        Width = 89
+        Height = 25
+        Caption = 'Radio'
+        TabOrder = 0
+        OnClick = RigButtonClick
+      end
+      object RotatorButton: TButton
+        Left = 8
+        Top = 40
+        Width = 89
+        Height = 25
+        Caption = 'Rotator'
+        TabOrder = 1
+        OnClick = RotatorButtonClick
+      end
+      object APIcheckButton: TButton
+        Left = 8
+        Top = 72
+        Width = 89
+        Height = 25
+        Caption = 'API check'
+        TabOrder = 2
+        OnClick = APIcheckButtonClick
+      end
+    end
+    object AboutLabel: TLabel
+      Left = 120
+      Top = 24
+      Width = 297
+      Height = 49
+      AutoSize = False
+      Caption = 
+        'This is a very simple test application to verify some of the Ham' +
+        'lib features.'
+      WordWrap = True
+    end
+  end
+  object Memo1: TMemo
+    Left = 0
+    Top = 113
+    Width = 428
+    Height = 154
+    Align = alClient
+    Lines.Strings = (
+      'Demo & Test Program')
+    ScrollBars = ssAutoBoth
+    TabOrder = 1
+  end
+end

@@ -1,0 +1,72 @@
+object ModelSelectionDlg: TModelSelectionDlg
+  Left = 190
+  Top = 157
+  Width = 423
+  Height = 297
+  HorzScrollBar.Range = 105
+  ActiveControl = ListView
+  Caption = 'Select a model:'
+  Color = clBackground
+  Position = poMainFormCenter
+  PixelsPerInch = 78
+  TextHeight = 20
+  TextWidth = 8
+  object BtnPanel: TPanel
+    Left = 318
+    Top = 0
+    Width = 105
+    Height = 297
+    Align = alRight
+    BevelOuter = bvNone
+    TabOrder = 0
+    object OkBtn: TButton
+      Left = 15
+      Top = 24
+      Width = 75
+      Height = 25
+      Caption = '&Ok'
+      Default = True
+      ModalResult = 1
+      TabOrder = 0
+    end
+    object CancelBtn: TButton
+      Left = 15
+      Top = 64
+      Width = 75
+      Height = 25
+      Cancel = True
+      Caption = '&Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+  end
+  object ListView: TListView
+    Left = 0
+    Top = 0
+    Width = 318
+    Height = 297
+    Align = alClient
+    BorderStyle = bsSunkenPanel
+    Columns = <
+      item
+        Caption = 'Manufacturer'
+        Width = 120
+      end
+      item
+        Caption = 'Model'
+        Width = 95
+      end
+      item
+        Caption = 'Version'
+        Width = 80
+      end>
+    Items.Data = {
+      3E00000001000000FFFFFFFFFFFFFFFFFFFFFFFF02000000000000000E48616D
+      6C69622054657374696E670544756D6D7903302E30FFFFFFFFFFFFFFFF00}
+    RowSelect = True
+    ShowColumnSortIndicators = True
+    Sorted = True
+    TabOrder = 1
+    ViewStyle = vsReport
+  end
+end
