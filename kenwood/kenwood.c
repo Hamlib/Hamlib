@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.28 2002-01-09 23:14:48 fillods Exp $
+ *		$Id: kenwood.c,v 1.29 2002-01-19 18:56:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -398,7 +398,39 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-		return -RIG_ENIMPL;
+		unsigned char levelbuf[16], ackbuf[16];
+		int level_len, ack_len = 0, retval;
+		int kenwood_val;
+
+		if (RIG_LEVEL_IS_FLOAT(level))
+				kenwood_val = val.f * 255;
+		else
+				kenwood_val = val.i;
+
+		switch (level) {
+		case RIG_LEVEL_AF:
+		level_len = sprintf(levelbuf, "AG%03d;", kenwood_val);
+		break;
+
+		case RIG_LEVEL_RF:
+		level_len = sprintf(levelbuf, "RG%03d;", kenwood_val);
+		break;
+
+		case RIG_LEVEL_SQL:
+		level_len = sprintf(levelbuf, "SQ%03d;", kenwood_val);
+		break;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
+			return -RIG_EINVAL;
+		}
+
+		retval = kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+
+		if (retval != RIG_OK)
+				return retval;
+
+		return RIG_OK;
 }
 
 /* 
@@ -504,6 +536,9 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_MICGAIN:
 			return get_kenwood_level(rig, "MG;", 3, &val->f);
 
+		case RIG_LEVEL_AGC:
+			return get_kenwood_level(rig, "GT;", 3, &val->f);
+
 		case RIG_LEVEL_IF:
 		case RIG_LEVEL_APF:
 		case RIG_LEVEL_NR:
@@ -513,9 +548,6 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_KEYSPD:
 		case RIG_LEVEL_NOTCHF:
 		case RIG_LEVEL_COMP:
-		case RIG_LEVEL_AGC:
-			return get_kenwood_level(rig, "GT;", 3, &val->f);
-    
 		case RIG_LEVEL_BKINDL:
 		case RIG_LEVEL_BALANCE:
 			return -RIG_ENIMPL;
