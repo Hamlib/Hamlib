@@ -2,11 +2,14 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
  *
  * ft920.h - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
+ *           (C) Nate Bargmann 2002 (n0nb@arrl.net)
+ *           (C) Stephane Fillod 2002 (fillods@users.sourceforge.net)
+ *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.2 2002-10-29 23:53:39 fillods Exp $  
+ *    $Id: ft920.h,v 1.3 2002-10-31 01:00:30 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,14 +32,15 @@
 #ifndef _FT920_H
 #define _FT920_H 1
 
-#define FT920_STATUS_UPDATE_DATA_LENGTH      28
+#define FT920_STATUS_UPDATE_DATA_LENGTH      8          /* 0xfa return size */
+#define FT920_VFO_UPDATE_DATA_LENGTH         28         /* 0x10 P1 = 03 return size */
 
 #define FT920_PACING_INTERVAL                5 
-#define FT920_PACING_DEFAULT_VALUE           0 
+#define FT920_PACING_DEFAULT_VALUE           1
 #define FT920_WRITE_DELAY                    50
 
 
-/* Sequential fast writes confuse my FT920 without this delay */
+/* Delay sequential fast writes */
 
 #define FT920_POST_WRITE_DELAY               5
 
@@ -74,27 +78,24 @@ enum ft920_native_cmd_e {
   FT_920_NATIVE_SPLIT_ON,
   FT_920_NATIVE_RECALL_MEM,
   FT_920_NATIVE_VFO_TO_MEM,
-//  FT_920_NATIVE_DLOCK_OFF,
-//  FT_920_NATIVE_DLOCK_ON,
   FT_920_NATIVE_VFO_A,
   FT_920_NATIVE_VFO_B,
   FT_920_NATIVE_M_TO_VFO,
-//  FT_920_NATIVE_UP_500K,
-//  FT_920_NATIVE_DOWN_500K,
-//  FT_920_NATIVE_CLARIFY_OFF,
-//  FT_920_NATIVE_CLARIFY_ON,
   FT_920_NATIVE_FREQ_SET,
   FT_920_NATIVE_MODE_SET_LSB,
   FT_920_NATIVE_MODE_SET_USB,
-  FT_920_NATIVE_MODE_SET_CWW,
-  FT_920_NATIVE_MODE_SET_CWN,
+  FT_920_NATIVE_MODE_SET_CW_USB,
+  FT_920_NATIVE_MODE_SET_CW_LSB,
   FT_920_NATIVE_MODE_SET_AMW,
   FT_920_NATIVE_MODE_SET_AMN,
   FT_920_NATIVE_MODE_SET_FMW,
   FT_920_NATIVE_MODE_SET_FMN,
+  FT_920_NATIVE_MODE_SET_DATA_LSB,
+  FT_920_NATIVE_MODE_SET_DATA_LSB1,
+  FT_920_NATIVE_MODE_SET_DATA_USB,
+  FT_920_NATIVE_MODE_SET_DATA_FM,
   FT_920_NATIVE_PACING,
-//  FT_920_NATIVE_PTT_OFF,
-//  FT_920_NATIVE_PTT_ON,
+  FT_920_NATIVE_VFO_UPDATE,
   FT_920_NATIVE_UPDATE,
   FT_920_NATIVE_SIZE		/* end marker, value indicates number of */
 				/* native cmd entries */
@@ -190,10 +191,6 @@ int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get
 
 int ft920_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 int ft920_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
-
-// int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-// int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-
 
 
 /*

@@ -3,6 +3,7 @@
  *
  * ft920.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *           (C) Nate Bargmann 2002 (n0nb@arrl.net)
+ *           (C) Stephane Fillod 2002 (fillods@users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
@@ -11,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.2 2002-10-29 23:47:37 fillods Exp $
+ * $Id: ft920.c,v 1.3 2002-10-31 01:00:29 n0nb Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -51,7 +52,7 @@
 
 /* Private helper function prototypes */
 
-static int ft920_get_update_data(RIG *rig);
+static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl);
 static int ft920_send_priv_cmd(RIG *rig, unsigned char ci);
 
 /* Native ft920 cmd set prototypes. These are READ ONLY as each */
@@ -60,60 +61,53 @@ static int ft920_send_priv_cmd(RIG *rig, unsigned char ci);
 /* Incomplete sequences (0) must be completed with extra parameters */
 /* eg: mem number, or freq etc.. */
 
-static const yaesu_cmd_set_t ncmd[] = { 
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split = off */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split = on */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* recall memory */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* memory operations */
-//  { 1, { 0x00, 0x00, 0x00, 0x00, 0x04 } }, /* dial lock = off */
-//  { 1, { 0x00, 0x00, 0x00, 0x01, 0x04 } }, /* dial lock = on */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* select vfo A */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* select vfo B */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* copy memory data to vfo A */
-//  { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* up 500 khz */
-//  { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* down 500 khz */
-//  { 0, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* clarifier operations */
-//  { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, /* RX clarifier on */
-//  { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, /* TX clarifier on */
-//  { 1, { 0x00, 0x00, 0x00, 0x81, 0x09 } }, /* TX clarifier on */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set freq */
+static const yaesu_cmd_set_t ncmd[] =	{
+	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split = off */
+	{ 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split = on */
+	{ 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* recall memory */
+	{ 0, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* memory operations */
+	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* select vfo A */
+	{ 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* select vfo B */
+	{ 0, { 0x00, 0x00, 0x00, 0x00, 0x06 } }, /* copy memory data to vfo A */
+/*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, */ /* clarifier operations */
+/*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, */ /* RX clarifier on */
+/*  { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, */ /* TX clarifier on */
+/*  { 1, { 0x00, 0x00, 0x00, 0x81, 0x09 } }, */ /* TX clarifier on */
+	{ 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set freq */
 
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* vfo A mode set LSB */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* vfo A mode set USB */
-  { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* vfo A mode set CW-USB */
-  { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* vfo A mode set CW-LSB */
-  { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* vfo A mode set AM */
-  { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* vfo A mode set AM */
-  { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* vfo A mode set FM */
-  { 1, { 0x00, 0x00, 0x00, 0x07, 0x0c } }, /* vfo A mode set FMN */
-//  { 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* vfo A mode set DATA-LSB */
-//  { 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* vfo A mode set DATA-LSB */
-//  { 1, { 0x00, 0x00, 0x00, 0x0a, 0x0c } }, /* vfo A mode set DATA-USB */
-//  { 1, { 0x00, 0x00, 0x00, 0x0b, 0x0c } }, /* vfo A mode set DATA-FM */
+	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* vfo A mode set LSB */
+	{ 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* vfo A mode set USB */
+	{ 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* vfo A mode set CW-USB */
+	{ 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* vfo A mode set CW-LSB */
+	{ 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* vfo A mode set AM */
+	{ 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* vfo A mode set AM */
+	{ 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* vfo A mode set FM */
+	{ 1, { 0x00, 0x00, 0x00, 0x07, 0x0c } }, /* vfo A mode set FMN */
+	{ 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* vfo A mode set DATA-LSB */
+	{ 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* vfo A mode set DATA-LSB */
+	{ 1, { 0x00, 0x00, 0x00, 0x0a, 0x0c } }, /* vfo A mode set DATA-USB */
+	{ 1, { 0x00, 0x00, 0x00, 0x0b, 0x0c } }, /* vfo A mode set DATA-FM */
 
-//  { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, /* vfo B mode set LSB */
-//  { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, /* vfo B mode set USB */
-//  { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, /* vfo B mode set CW-USB */
-//  { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, /* vfo B mode set CW-LSB */
-//  { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, /* vfo B mode set AM */
-//  { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, /* vfo B mode set AM */
-//  { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, /* vfo B mode set FM */
-//  { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, /* vfo B mode set FMN */
-//  { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, /* vfo B mode set DATA-LSB */
-//  { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, /* vfo B mode set DATA-LSB */
-//  { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, /* vfo B mode set DATA-USB */
-//  { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, /* vfo B mode set DATA-FM */
+/*  { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, */ /* vfo B mode set LSB */
+/*  { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, */ /* vfo B mode set USB */
+/*  { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, */ /* vfo B mode set CW-USB */
+/*  { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, */ /* vfo B mode set CW-LSB */
+/*  { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, */ /* vfo B mode set AM */
+/*  { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, */ /* vfo B mode set AM */
+/*  { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, */ /* vfo B mode set FM */
+/*  { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, */ /* vfo B mode set FMN */
+/*  { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, */ /* vfo B mode set DATA-LSB */
+/*  { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, */ /* vfo B mode set DATA-LSB */
+/*  { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, */ /* vfo B mode set DATA-USB */
+/*  { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, */ /* vfo B mode set DATA-FM */
 
-  { 1, { 0x00, 0x00, 0x00, 0x05, 0x0e } }, /* update interval/pacing --hard coded for now */
-//  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* ptt off */
-//  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0f } }, /* ptt on */
-  { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* status update VFO A & B update (28 bytes) hard coded for now */
-//  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, /* keyer commands */
-//  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, /* tuner off */
-//  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, /* tuner on */
-//  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, /* tuner start*/
-
-
+	{ 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* update interval/pacing */
+	{ 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* status update VFO A & B update (28 bytes) hard coded for now */
+	{ 1, { 0x00, 0x00, 0x00, 0x01, 0xFA } }, /* Read status flags */
+/*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* keyer commands */
+/*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
+/*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* tuner on */
+/*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, */ /* tuner start*/
 
 };
 
@@ -148,12 +142,12 @@ static const yaesu_cmd_set_t ncmd[] = {
  */
 
 struct ft920_priv_data {
-  unsigned char pacing;		/* pacing value */
-  unsigned int read_update_delay;	 /* depends on pacing value */
-  unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
+  unsigned char pacing;			 /* pacing value */
+  unsigned int read_update_delay;        /* depends on pacing value */
+  unsigned char current_vfo;	         /* active VFO from last cmd */
   unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
-  yaesu_cmd_set_t pcs[FT_920_NATIVE_SIZE];		/* private cmd set */
-  unsigned char update_data[FT920_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
+  yaesu_cmd_set_t pcs[FT_920_NATIVE_SIZE];		      /* private cmd set */
+  unsigned char update_data[FT920_VFO_UPDATE_DATA_LENGTH]; /* returned data--max value, some are less */
 };
 
 
@@ -163,127 +157,135 @@ struct ft920_priv_data {
  */
 
 const struct rig_caps ft920_caps = {
-  .rig_model =        RIG_MODEL_FT920, 
-  .model_name =       "FT-920",
-  .mfg_name =         "Yaesu", 
-  .version =           "0.0.1",
-  .copyright =         "GPL",
-  .status =            RIG_STATUS_ALPHA, 
-  .rig_type =          RIG_TYPE_TRANSCEIVER,
-  .ptt_type =          RIG_PTT_NONE,
-  .dcd_type =          RIG_DCD_NONE,
-  .port_type =         RIG_PORT_SERIAL,
-  .serial_rate_min =   4800,
-  .serial_rate_max =   4800,
-  .serial_data_bits =  8,
-  .serial_stop_bits =  2,
-  .serial_parity =     RIG_PARITY_NONE,
-  .serial_handshake =  RIG_HANDSHAKE_NONE,
-  .write_delay =       FT920_WRITE_DELAY,
-  .post_write_delay =  FT920_POST_WRITE_DELAY,
-  .timeout =           2000,
-  .retry =             0,
-  .has_get_func =      FT920_FUNC_ALL,
-  .has_set_func =      FT920_FUNC_ALL,
-  .has_get_level =     RIG_LEVEL_NONE,
-  .has_set_level =     RIG_LEVEL_NONE,
-  .has_get_parm =      RIG_PARM_NONE,
-  .has_set_parm =      RIG_PARM_NONE,
-  .ctcss_list =        NULL,
-  .dcs_list =          NULL,
-  .preamp =            { RIG_DBLST_END, },
-  .attenuator =        { RIG_DBLST_END, },
-  .max_rit =           Hz(9999),
-  .max_xit =           Hz(0),
-  .max_ifshift =       Hz(0),
-  .targetable_vfo =    0,
-  .transceive =        RIG_TRN_OFF,
-  .bank_qty =          0,
-  .chan_desc_sz =      0,
-  .chan_list =         { RIG_CHAN_END, },	/* FIXME: memory channel list:20 */
+    .rig_model =       	RIG_MODEL_FT920,
+    .model_name =      	"FT-920",
+    .mfg_name =		"Yaesu",
+    .version =		"0.0.2",
+    .copyright =       	"GPL",
+    .status =		RIG_STATUS_ALPHA,
+    .rig_type =		RIG_TYPE_TRANSCEIVER,
+    .ptt_type =		RIG_PTT_NONE,
+    .dcd_type =		RIG_DCD_NONE,
+    .port_type =       	RIG_PORT_SERIAL,
+    .serial_rate_min =	4800,
+    .serial_rate_max =	4800,
+    .serial_data_bits =	8,
+    .serial_stop_bits =	2,
+    .serial_parity =	RIG_PARITY_NONE,
+    .serial_handshake =	RIG_HANDSHAKE_NONE,
+    .write_delay =     	FT920_WRITE_DELAY,
+    .post_write_delay =	FT920_POST_WRITE_DELAY,
+    .timeout =		2000,
+    .retry =		0,
+    .has_get_func =    	FT920_FUNC_ALL,
+    .has_set_func =    	FT920_FUNC_ALL,
+    .has_get_level =	RIG_LEVEL_NONE,
+    .has_set_level =	RIG_LEVEL_NONE,
+    .has_get_parm =    	RIG_PARM_NONE,
+    .has_set_parm =    	RIG_PARM_NONE,
+    .ctcss_list =      	NULL,
+    .dcs_list =		NULL,
+    .preamp =		{ RIG_DBLST_END, },
+    .attenuator =      	{ RIG_DBLST_END, },
+    .max_rit =		Hz(9999),
+    .max_xit =		Hz(9999),
+    .max_ifshift =     	Hz(0),
+    .targetable_vfo =	0,
+    .transceive =      	RIG_TRN_OFF,
+    .bank_qty =		0,
+    .chan_desc_sz =    	0,
+    .chan_list =       	{ RIG_CHAN_END, },	/* FIXME: memory channel list: 122 (!) */
 
-  .rx_range_list1 =    { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+    .rx_range_list1 =	{ RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
 
-  .tx_range_list1 =    { RIG_FRNG_END, },
+    .tx_range_list1 =	{ RIG_FRNG_END, },
 
-  .rx_range_list2 =    { { .start = kHz(100), .end = 29999900, 
-			.modes = FT920_ALL_RX_MODES,.low_power = -1,.high_power = -1}, 
-		      RIG_FRNG_END, }, /* rx range */
+    .rx_range_list2 =	{
+        {kHz(100),	MHz(30),	FT920_ALL_RX_MODES, -1, -1 },   /* General coverage + ham */
+	{MHz(48),	MHz(56),	FT920_ALL_RX_MODES, -1, -1 },   /* 6m! */
+	RIG_FRNG_END,
+    }, /* Region 2 rx ranges */
 
-  .tx_range_list2 =    { {kHz(1500),1999900,FT920_OTHER_TX_MODES,.low_power = 5000,.high_power = 100000},	/* 100W class */ 
-
-    {.start = kHz(1500),.end = 1999900,FT920_AM_TX_MODES,.low_power = 2000,.high_power = 25000},	/* 25W class */
+    .tx_range_list2 =	{
+        {MHz(1.8),	MHz(1.99999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},	/* 100W class */
+	{MHz(1.8),	MHz(1.99999),	FT920_AM_TX_MODES,     	W(2),	W(25)},		/* 25W class */
     
-    {.start = kHz(3500),3999900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = kHz(3500),3999900,FT920_AM_TX_MODES,2000,25000},
+	{MHz(3.5),     	MHz(3.99999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(3.5),     	MHz(3.99999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
     
-    {.start = kHz(7000),7499900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = kHz(7000),7499900,FT920_AM_TX_MODES,2000,25000},
+	{MHz(7),       	MHz(7.29999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(7),       	MHz(7.29999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
+
+	{MHz(10.1),    	MHz(10.14999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(10.1),    	MHz(10.14999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
     
-    {.start = MHz(10),10499900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(10),10499900,FT920_AM_TX_MODES,2000,25000},
+	{MHz(14),      	MHz(14.34999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(14),      	MHz(14.34999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
     
-    {.start = MHz(14),14499900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(14),14499900,FT920_AM_TX_MODES,2000,25000},
+	{MHz(18.068),	MHz(18.16799),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(18.068),	MHz(18.16799),	FT920_AM_TX_MODES,     	W(2),	W(25)},
     
-    {.start = MHz(18),18499900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(18),18499900,FT920_AM_TX_MODES,2000,25000},
+	{MHz(21),	MHz(21.44999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(21),	MHz(21.44999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
     
-    {.start = MHz(21),21499900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(21),21499900,FT920_AM_TX_MODES,2000,25000},
+	{MHz(24.89),	MHz(24.98999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(24.89),	MHz(24.98999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
     
-    {.start = kHz(24500),24999900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = kHz(24500),24999900,FT920_AM_TX_MODES,2000,25000},
+	{MHz(28),	MHz(29.69999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(28),	MHz(29.69999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
     
-    {.start = MHz(28),29999900,FT920_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(28),29999900,FT920_AM_TX_MODES,2000,25000},
-    
-    RIG_FRNG_END, },
+	{MHz(50),	MHz(53.99999),	FT920_OTHER_TX_MODES,	W(5),	W(100)},
+	{MHz(50),	MHz(53.99999),	FT920_AM_TX_MODES,     	W(2),	W(25)},
 
+	RIG_FRNG_END,
+    },  /* region 2 TX ranges */
 
-  
-  .tuning_steps =    { {FT920_SSB_CW_RX_MODES,25}, /* fast off */
-		    {FT920_SSB_CW_RX_MODES,2500}, /* fast on */
-		    
-		    {FT920_AM_RX_MODES,kHz(1)}, /* fast off */
-		    {FT920_AM_RX_MODES,kHz(10)}, /* fast on */
-		    
-		    {FT920_FM_RX_MODES,kHz(5)}, /* fast off */
-		    {FT920_FM_RX_MODES,12500}, /* fast on */
-		    
-		    RIG_TS_END,
-  },  
+    .tuning_steps =	{
+        {FT920_SSB_CW_RX_MODES,	Hz(10)},	/* Normal */
+	{FT920_SSB_CW_RX_MODES,	Hz(100)},	/* Fast */
 
-      /* mode/filter list, .remember =  order matters! */
+	{FT920_AM_RX_MODES,	Hz(100)},	/* Normal */
+	{FT920_AM_RX_MODES,	kHz(1)},	/* Fast */
 
-  .filters =    { {RIG_MODE_SSB, kHz(2.2)}, /* standard SSB filter bandwidth */
-	       {RIG_MODE_CW, kHz(1.8)},	/* normal CW filter */
-	       {RIG_MODE_CW, kHz(0.5)},	/* CW filter with narrow selection */
-	       {RIG_MODE_AM, kHz(6)},	/* normal AM filter */
-	       {RIG_MODE_AM, kHz(2.4)},	/* AM filter with narrow selection */
-	       {RIG_MODE_FM, kHz(8)},	/* FM with optional FM unit */
-	       {RIG_MODE_WFM, kHz(19)},	/* WideFM, with optional FM unit. */
+	{FT920_FM_RX_MODES,	Hz(100)},	/* Normal */
+	{FT920_FM_RX_MODES,	kHz(1)}, 	/* Fast */
 
-	       RIG_FLT_END,
-  },
+        RIG_TS_END,
 
+	/* The FT-920 has a Fine tuning step which increments in 1 Hz steps
+	 * for SSB_CW_RX_MODES, and 10 Hz steps for AM_RX_MODES and
+	 * FM_RX_MODES.  It doesn't appear that anything finer than 10 Hz
+	 * is available through the CAT interface, however. -N0NB
+         */
+    },
 
-  .priv =   NULL, /* private data */
+    /* mode/filter list, .remember =  order matters! */
 
-  .rig_init =   ft920_init, 
-  .rig_cleanup =    ft920_cleanup, 
-  .rig_open =   ft920_open,				/* port opened */
-  .rig_close =  ft920_close,				/* port closed */
+    .filters =	{
+        {RIG_MODE_SSB,	kHz(2.4)},	/* standard SSB filter bandwidth */
+	{RIG_MODE_CW,	kHz(2.4)},	/* normal CW filter */
+	{RIG_MODE_CW,	kHz(0.5)},	/* CW filter with narrow selection (must be installed!) */
+	{RIG_MODE_AM,	kHz(15)},	/* normal AM filter (stock radio has no AM filter!) */
+	{RIG_MODE_AM,	kHz(2.4)},	/* AM filter with narrow selection (SSB filter switched in) */
+	{RIG_MODE_FM,	kHz(12)},	/* FM with optional FM unit */
+	{RIG_MODE_WFM,	kHz(12)},	/* WideFM, with optional FM unit. */
 
-  .set_freq =   ft920_set_freq,		/* set freq */
-  .get_freq =   ft920_get_freq,		/* get freq */
-  .set_mode =   ft920_set_mode,		/* set mode */
-  .get_mode =   ft920_get_mode,		/* get mode */
-  .set_vfo =    ft920_set_vfo,		/* set vfo */
+	RIG_FLT_END,
+    },
 
-  .get_vfo =    ft920_get_vfo,		/* get vfo */
-//  .set_ptt =    ft920_set_ptt,		/* set ptt */
-//  .get_ptt =    ft920_get_ptt,		/* get ptt */
+    .priv =		NULL,			/* private data */
+
+    .rig_init =		ft920_init,
+    .rig_cleanup =	ft920_cleanup,
+    .rig_open =		ft920_open,		/* port opened */
+    .rig_close =	ft920_close,		/* port closed */
+
+    .set_freq =		ft920_set_freq,		/* set freq */
+    .get_freq =		ft920_get_freq,		/* get freq */
+    .set_mode =		ft920_set_mode,		/* set mode */
+    .get_mode =		ft920_get_mode,		/* get mode */
+    .set_vfo =		ft920_set_vfo,		/* set vfo */
+    .get_vfo =		ft920_get_vfo,		/* get vfo */
 
 };
 
@@ -304,7 +306,7 @@ int ft920_init(RIG *rig) {
   if (!p)			/* whoops! memory shortage! */    
     return -RIG_ENOMEM;
   
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920:ft920_init called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_init called \n");
 
   /* 
    * Copy native cmd set to private cmd storage area 
@@ -354,9 +356,9 @@ int ft920_open(RIG *rig) {
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920:rig_open: write_delay = %i msec \n", 
+  rig_debug(RIG_DEBUG_VERBOSE,"ft920: rig_open: write_delay = %i msec \n",
 				  rig_s->rigport.write_delay);
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920:rig_open: post_write_delay = %i msec \n", 
+  rig_debug(RIG_DEBUG_VERBOSE,"ft920: rig_open: post_write_delay = %i msec \n",
 				  rig_s->rigport.post_write_delay);
 
   
@@ -376,7 +378,7 @@ int ft920_close(RIG *rig) {
   if (!rig)
     return -RIG_EINVAL;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920:ft920_close called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_close called \n");
 
   return RIG_OK;
 }
@@ -436,14 +438,14 @@ int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   unsigned char *p;
   freq_t f;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920:ft920_get_freq called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_get_freq called\n");
 
   if (!rig)
     return -RIG_EINVAL;
   
   priv = (struct ft920_priv_data*)rig->state.priv;
 
-  ft920_get_update_data(rig);	/* get whole shebang from rig */
+  ft920_get_update_data(rig, FT_920_NATIVE_VFO_UPDATE, FT920_VFO_UPDATE_DATA_LENGTH);	/* get VFO record from rig*/
 
   if (vfo == RIG_VFO_CURR )
     vfo = priv->current_vfo;	/* from previous vfo cmd */
@@ -462,7 +464,7 @@ int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   /* big endian integer */
   f = (((((p[0]<<8) + p[1])<<8) + p[2])<<8) + p[3];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920:  freq = %lli Hz  for VFO = %u \n", f, vfo);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft920: freq = %lli Hz for VFO = %u\n", f, vfo);
 
   *freq = f;			/* return diplayed frequency */
 
@@ -498,7 +500,7 @@ int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
     cmd_index = FT_920_NATIVE_MODE_SET_AMW;
     break;
   case RIG_MODE_CW:
-    cmd_index = FT_920_NATIVE_MODE_SET_CWW;
+    cmd_index = FT_920_NATIVE_MODE_SET_CW_USB;
     break;
   case RIG_MODE_USB:
     cmd_index = FT_920_NATIVE_MODE_SET_USB;
@@ -571,7 +573,8 @@ int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   
   p = (struct ft920_priv_data*)rig->state.priv;
 
-  ft920_get_update_data(rig);	/* get whole shebang from rig */
+  /* FIXME: wrong command for mode--is part of VFO record -N0NB */
+  ft920_get_update_data(rig, FT_920_NATIVE_UPDATE, FT920_STATUS_UPDATE_DATA_LENGTH);
   
   mymode = p->update_data[FT920_SUMO_DISPLAYED_MODE];
   mymode &= MODE_MASK; /* mask out bits 5 and 6 */
@@ -686,7 +689,8 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
   
   p = (struct ft920_priv_data*)rig->state.priv;
 
-  ft920_get_update_data(rig);	/* get whole shebang from rig */
+  /* Get flags for VFO status */
+  ft920_get_update_data(rig, FT_920_NATIVE_UPDATE, FT920_STATUS_UPDATE_DATA_LENGTH);
   
   status = p->update_data[FT920_SUMO_DISPLAYED_STATUS];
   status &= SF_VFOAB; /* check VFO bit*/
@@ -713,11 +717,15 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
 /*
  * private helper function. Retrieves update data from rig.
  * using pacing value and buffer indicated in *priv struct.
+ * Extended to be command agnostic as 920 has several ways to
+ * get data and several ways to return it.
  *
  * need to use this when doing ft920_get_* stuff
+ *
+ * Variables:  ci = command index, rl = read length of returned data
  */
 
-static int ft920_get_update_data(RIG *rig) {
+static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
   struct rig_state *rig_s;
   struct ft920_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
@@ -733,7 +741,7 @@ static int ft920_get_update_data(RIG *rig) {
    * Copy native cmd PACING  to private cmd storage area 
    */
 
-  memcpy(&p->p_cmd,&ncmd[FT_920_NATIVE_PACING].nseq,YAESU_CMD_LENGTH);  
+  memcpy(&p->p_cmd, &ncmd[FT_920_NATIVE_PACING].nseq, YAESU_CMD_LENGTH);
   p->p_cmd[3] = p->pacing;		/* get pacing value, and store in private cmd */
   rig_debug(RIG_DEBUG_VERBOSE,"ft920: read pacing = %i \n",p->pacing);
 
@@ -744,11 +752,9 @@ static int ft920_get_update_data(RIG *rig) {
 
   /* send UPDATE comand to fetch data*/
 
-  ft920_send_priv_cmd(rig,FT_920_NATIVE_UPDATE);
+  ft920_send_priv_cmd(rig, ci);
 
-  /*    n = read_sleep(rig_s->fd,p->update_data, FT920_STATUS_UPDATE_DATA_LENGTH, FT920_DEFAULT_READ_TIMEOUT);  */
-  n = read_block(&rig_s->rigport, p->update_data, 
-				  FT920_STATUS_UPDATE_DATA_LENGTH); 
+  n = read_block(&rig_s->rigport, p->update_data, rl);
 
   return 0;
 
