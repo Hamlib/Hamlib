@@ -1,32 +1,25 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *  Hamlib Interface - serial communication low-level support
+ *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Parts of the PTT handling are derived from soundmodem, an excellent
+ *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- * serial.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com), 
- * 				  Stephane Fillod 2000,2001
- * Provides useful routines for read/write serial data for communicating
- * via serial interface.
+ *		$Id: serial.c,v 1.16 2001-07-13 19:08:15 f4cfe Exp $
  *
- * Parts of the PTT handling are derived from soundmodem, an excellent
- * ham packet softmodem written by Thomas Sailer, HB9JNX.
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
  *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
  *
- *	$Id: serial.c,v 1.15 2001-06-15 07:08:37 f4cfe Exp $  
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
  */
 
 #ifdef HAVE_CONFIG_H

@@ -1,28 +1,28 @@
-/*  hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+/*
+ *  Hamlib tcl/tk bindings - main file
+ *  Copyright (c) 2001 by Stephane Fillod
  *
- * hamlibtcl.c - Copyright (C) 2001 Stephane Fillod
- * This program defines the Hamlib API and rig capabilities structures that
- * will be used for obtaining rig capabilities. TCL bindings.
+ *		$Id: hamlibtcl.c,v 1.2 2001-07-13 19:08:15 f4cfe Exp $
  *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
  *
- *	$Id: hamlibtcl.c,v 1.1 2001-06-20 06:02:56 f4cfe Exp $
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
  *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <string.h>
 #include <tcl.h>

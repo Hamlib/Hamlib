@@ -1,29 +1,24 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *  Hamlib Interface - toolbox header
+ *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- * misc.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com), 
- * 				Stephane Fillod 2001
- * Provides useful routines for data handling, used by backends
- * 	as well as by the frontend.
+ *		$Id: misc.h,v 1.8 2001-07-13 19:08:15 f4cfe Exp $
  *
- *    $Id: misc.h,v 1.7 2001-06-15 07:08:37 f4cfe Exp $  
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
  */
-
 
 #ifndef _MISC_H
 #define _MISC_H 1

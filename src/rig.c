@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.40 2001-07-01 11:46:17 f4cfe Exp $
+ *		$Id: rig.c,v 1.41 2001-07-13 19:08:15 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,9 +50,17 @@
 
 /**
  * \brief Hamlib release number
- * \todo Should we include copyright here too?
  */
 const char hamlib_version[] = "Hamlib version " VERSION;
+
+/**
+ * \brief Hamlib copyright notice
+ */
+const char hamlib_copyright[] = 
+	"Copyright (C) 2000, 2001 Stephane Fillod and Frank Singleton\n"
+	"This is free software; see the source for copying conditions.\n"
+	"There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A\n"
+	"PARTICULAR PURPOSE.";
 
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"

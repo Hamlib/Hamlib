@@ -1,30 +1,28 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *  Hamlib CI-V backend - Do it all Icom description for debugging
+ *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- * icall.c - Copyright (C) 2000,2001 Stephane Fillod
- * This shared library provides an API for communicating
- * via serial interface to a virtual do-it-all Icom (for debug purpose)
- * using the "CI-V" interface.
+ *		$Id: icall.c,v 1.7 2001-07-13 19:08:15 f4cfe Exp $
  *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
  *
- * 		$Id: icall.c,v 1.6 2001-07-01 11:46:17 f4cfe Exp $  
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
  *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -70,7 +68,7 @@ rig_model: RIG_MODEL_ICALL,
 model_name:"IC-DoItAll",
 mfg_name: "Icom",
 version: "0.2",
-copyright: "GPL",
+copyright: "LGPL",
 status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_RIG,

@@ -4,7 +4,7 @@
  * like the passband info..
  *
  *
- *    $Id: testcaps.c,v 1.2 2001-06-04 21:17:53 f4cfe Exp $  
+ *    $Id: testcaps.c,v 1.3 2001-07-13 19:08:15 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ static char *decode_modes(rmode_t modes);
 int main (int argc, char *argv[])
 { 
 	const struct rig_caps *caps;
-	int status, i;
+	int i;
 	char freqbuf[20];
 	RIG *pbrig;
 

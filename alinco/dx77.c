@@ -1,30 +1,28 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *  Hamlib Alinco backend - DX77 description
+ *  Copyright (c) 2001 by Stephane Fillod
  *
- * dx77.c - Copyright (C) 2001 Stephane Fillod
- * This shared library provides an API for communicating
- * via serial interface to a Alinco radio.
+ *		$Id: dx77.c,v 1.3 2001-07-13 19:08:14 f4cfe Exp $
  *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
  *
- *	$Id: dx77.c,v 1.2 2001-07-01 11:46:17 f4cfe Exp $  
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
  *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -93,7 +91,7 @@ rig_model: RIG_MODEL_DX77,
 model_name:"DX-77",
 mfg_name: "Alinco",
 version: "0.1",
-copyright: "GPL",
+copyright: "LGPL",
 status: RIG_STATUS_UNTESTED,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_NONE,

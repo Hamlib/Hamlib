@@ -1,30 +1,28 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *  Hamlib Kenwood backend - TS570 description
+ *  Copyright (c) 2001 by Stephane Fillod
  *
- * ts570.c - Copyright (C) 2001 Stephane Fillod
- * This shared library provides an API for communicating
- * via serial interface to a Kenwood radio
- * using the serial interface.
+ *		$Id: ts570.c,v 1.3 2001-07-13 19:08:15 f4cfe Exp $
  *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
  *
- *	$Id: ts570.c,v 1.2 2001-07-01 11:46:17 f4cfe Exp $  
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
  *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
 
@@ -57,7 +55,7 @@ rig_model: RIG_MODEL_TS570S,
 model_name:"TS-570S",
 mfg_name: "Kenwood",
 version: "0.1",
-copyright: "GPL",
+copyright: "LGPL",
 status: RIG_STATUS_UNTESTED,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_RIG,
@@ -217,7 +215,7 @@ rig_model: RIG_MODEL_TS570D,
 model_name:"TS-570D",
 mfg_name: "Kenwood",
 version: "0.1",
-copyright: "GPL",
+copyright: "LGPL",
 status: RIG_STATUS_UNTESTED,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_RIG,
