@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - graudio/any rig
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: graudio.c,v 1.1 2003-02-09 22:46:00 fillods Exp $
+ *	$Id: graudio.c,v 1.2 2003-04-06 18:50:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,10 +36,13 @@
 #define GRAUDIO_FUNC  RIG_FUNC_NONE
 #define GRAUDIO_LEVEL (RIG_LEVEL_AF|RIG_LEVEL_RF)
 #define GRAUDIO_PARM  RIG_PARM_NONE
-#define GRAUDIO_VFO_OP  RIG_OP_NONE
+#define GRAUDIO_VFO_OP  (RIG_OP_UP|RIG_OP_DOWN)
 #define GRAUDIO_SCAN	RIG_SCAN_NONE
 
-#define GRAUDIO_MODES (RIG_MODE_WFM|RIG_MODE_FM|RIG_MODE_SSB)
+/*
+ * GNU Radio Audio has no WFM mode because bandwidth is too wide!
+ */
+#define GRAUDIO_MODES (RIG_MODE_FM|RIG_MODE_SSB)
 
 #define GRAUDIO_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -82,7 +85,15 @@ const struct rig_caps graudio_caps = {
 		    .low_power=-1,.high_power=-1,GRAUDIO_VFO},
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
-  .tuning_steps =  { {GRAUDIO_MODES,1}, RIG_TS_END, },
+  .tuning_steps =  { {GRAUDIO_MODES,1}, {GRAUDIO_MODES,RIG_TS_ANY}, RIG_TS_END, },
+  .filters =      {
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
+		{RIG_MODE_AM, kHz(8)},
+		{RIG_MODE_FM, kHz(15)},
+		{GRAUDIO_MODES, RIG_FLT_ANY},
+		RIG_FLT_END,
+  },
+
   .priv =  (void*)&graudio_priv_caps,
 
   .rig_init =     gr_init,
@@ -90,6 +101,7 @@ const struct rig_caps graudio_caps = {
   .rig_open =     graudio_open,
   .rig_close =    gr_close,
 
+  .cfgparams =    gnuradio_cfg_params,
   .set_conf =     gnuradio_set_conf,
   .get_conf =     gnuradio_get_conf,
 
@@ -103,5 +115,11 @@ const struct rig_caps graudio_caps = {
 
   .set_level =	  gnuradio_set_level,
   .get_level =	  gnuradio_get_level,
+
+  .set_rit =	  gnuradio_set_rit,
+  .get_rit =	  gnuradio_get_rit,
+  .set_ts =	  gnuradio_set_ts,
+  .get_ts =	  gnuradio_get_ts,
+  .vfo_op =	  gnuradio_vfo_op,
 };
 

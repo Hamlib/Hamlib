@@ -83,7 +83,9 @@ int main(int argc, char *argv[])
   guimain->start();
 
   while (1) {
+  pthread_mutex_lock(&priv->mutex_process);
     guimain->processEvents(10 /*ms*/);
+  pthread_mutex_unlock(&priv->mutex_process);
     //priv->m->process();
   }
 

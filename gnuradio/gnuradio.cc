@@ -3,7 +3,7 @@
  *  Hamlib GNUradio backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gnuradio.cc,v 1.3 2003-02-09 23:02:26 fillods Exp $
+ *	$Id: gnuradio.cc,v 1.4 2003-04-06 18:50:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,13 +41,19 @@
 
 #include <VrConnect.h>
 #include <VrMultiTask.h>
-/* SSB */
-#include <GrSSBMod.h>
-#include <GrHilbert.h>
-/* FM */
-#include <VrComplexFIRfilter.h>
-#include <VrQuadratureDemod.h>
-#include <VrRealFIRfilter.h>
+#include <GrFreqXlatingFIRfilterSCF.h>
+#include <GrFreqXlatingFIRfilterCCF.h>
+#include <GrFIRfilterFSF.h>
+#include <GrFIRfilterFFF.h>
+#include <VrQuadratureDemod.h>	/* FM */
+//#include <VrAmplitudeDemod.h>	/* AM */
+/* SSB mod */
+//#include <GrSSBMod.h>
+//#include <GrHilbert.h>
+
+#include <gr_firdes.h>
+#include <gr_fir_builderF.h>
+
 
 /* Chirp param's */
 #define CARRIER_FREQ	          	        1.070e6	// AM 1070
@@ -71,12 +77,19 @@
 #include "gr_priv.h"	// struct gnuradio_priv_data
 
 
+/*
+ * TODO: fft scope, with ext_level to display them
+ */
+
 #define TOK_TUNER_MODEL TOKEN_BACKEND(1)
 
 const struct confparams gnuradio_cfg_params[] = {
 	{ TOK_TUNER_MODEL, "tuner_model", "Tuner model", "Hamlib rig tuner model number",
 		"1" /* RIG_MODEL_DUMMY */, RIG_CONF_NUMERIC, { /* .n = */ { 0, INT_MAX, 1 } }
 	},
+	/*
+	 * TODO: IF_center_freq, input_rate, etc.
+	 */
 	{ RIG_CONF_END, NULL, }
 };
 
@@ -131,7 +144,7 @@ int gr_init(RIG *rig)
   priv->need_fixer = 0;
 
   for (i=0; i<NUM_CHAN; i++) {
-  	init_chan(rig, RIG_CTRL_BAND(RIG_CTRL_MAIN,i), &priv->chans[i]);
+  	init_chan(rig, RIG_VFO_N(i), &priv->chans[i]);
 	priv->chans[i].levels[rig_setting2idx(RIG_LEVEL_AF)].f = 1.0;
 	priv->chans[i].levels[rig_setting2idx(RIG_LEVEL_RF)].f = 1.0;
   }
@@ -256,9 +269,11 @@ int gr_open(RIG *rig)
   
   // --> short
 
+  priv->source = new VrFileSource<short>(priv->input_rate, "/tmp/fm95_5_half.dat", true);
   // Chirp
   if (!priv->source)
   	priv->source = new VrSigSource<IOTYPE>(priv->input_rate, VR_SIN_WAVE, CARRIER_FREQ, AMPLITUDE);
+  //new VrChirpSource<IOTYPE>(priv->input_rate, AMPLITUDE, 4);
   /* VrFileSource (double sampling_freq, const char *file, bool repeat = false) */
   //priv->source = new VrFileSource<short>(priv->input_rate, "microtune_source.sw", true);
 
@@ -280,6 +295,9 @@ int gr_open(RIG *rig)
 
   /* or set it to MODE_NONE? */
   //gr_set_mode(rig, RIG_VFO_CURR, RIG_MODE_WFM, RIG_PASSBAND_NORMAL);
+  if (priv->tuner_model == RIG_MODEL_DUMMY) {
+	  gr_set_freq(rig, RIG_VFO_CURR, priv->IF_center_freq);
+  }
 
   priv->do_process = 1;
 
@@ -300,7 +318,7 @@ int gr_open(RIG *rig)
 
 
 /* TODO: error checking of new */
-static int mc4020_open(RIG *rig)
+int mc4020_open(RIG *rig)
 {
 	struct gnuradio_priv_data *priv = (struct gnuradio_priv_data*)rig->state.priv;
 
@@ -314,7 +332,7 @@ static int mc4020_open(RIG *rig)
 /*
  * sound card source override
  */
-static int graudio_open(RIG *rig)
+int graudio_open(RIG *rig)
 {
 	struct gnuradio_priv_data *priv = (struct gnuradio_priv_data*)rig->state.priv;
 
@@ -397,6 +415,57 @@ static int vfo2chan_num(RIG *rig, vfo_t vfo)
 }
 
 /*
+ * tuner_freq is the display freq on tuner of the IF in digital domain
+ * freq is the desired freq
+ */
+static int update_freq(RIG *rig, unsigned chan_num, freq_t tuner_freq, freq_t freq)
+{
+  struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
+  channel_t *chan = &priv->chans[chan_num];
+  struct mod_data *mod = &priv->mods[chan_num];
+  double freq_offset;
+
+  /*
+   * In case the tuner is not a real tuner
+   */
+  if (priv->tuner_model == RIG_MODEL_DUMMY)
+	  tuner_freq = priv->IF_center_freq;
+
+  freq_offset = (double) (freq - tuner_freq);
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: %lld %lld freq_offset=%g\n",
+		  __FUNCTION__, tuner_freq, freq, freq_offset);
+
+  if (freq_offset == 0)
+	  return RIG_OK;	/* nothing to do */
+
+  /* TODO: change mode plumbing (don't forget locking!)
+   * workaround?: set_mode(NONE), set_mode(previous)
+   */
+  pthread_mutex_lock(&priv->mutex_process);
+  switch (chan->mode) {
+  case RIG_MODE_WFM:
+  case RIG_MODE_FM:
+  case RIG_MODE_USB:
+	  /* not so sure about if setCenter_Freq is the Right thing to do(tm). */
+	mod->chan_filter->setCenterFreq(priv->IF_center_freq + freq_offset);
+	break;
+	/*
+	 * set_freq for SSB mod
+	 * mod->ssb.shifter->set_freq(2*M_PI*freq_offset/(double)priv->input_rate);
+	 */
+  case RIG_MODE_NONE:
+	break;  
+  default:
+	  rig_debug(RIG_DEBUG_WARN, "%s: mode %s unimplemented!\n",
+			  __FUNCTION__, strrmode(chan->mode));
+	  break;
+  }
+  pthread_mutex_unlock(&priv->mutex_process);
+
+  return RIG_OK;
+}
+
+/*
  * rig_set_freq is a good candidate for the GNUradio GUI setFrequency callback?
  */
 int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -404,14 +473,12 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
   int chan_num = vfo2chan_num(rig, vfo);
   channel_t *chan = &priv->chans[chan_num];
-  union mod_data *mod = &priv->mods[chan_num];
   freq_t tuner_freq;
-  double freq_offset;
-  int ret;
+  int ret, i;
   char fstr[20];
 
   sprintf_freq(fstr, freq);
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", 
+  rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n", 
  			__FUNCTION__, strvfo(vfo), fstr);
 
   ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
@@ -422,56 +489,35 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
    * TODO: with several VFO's, center the IF inbetween if out of window
    */
   if (freq < tuner_freq || 
-		  freq /* + mode_width */ > tuner_freq+priv->input_rate/2) {
-
-	  /* do not set tuner to freq, but center it */
-	  ret = rig_set_freq(priv->tuner, RIG_VFO_CURR, freq + priv->input_rate/4);
+		  freq /* + mode_width */ > tuner_freq+GR_MAX_FREQUENCY(priv)) {
+	  /*
+	   * do not set tuner to freq, but center it
+	   */
+	  ret = rig_set_freq(priv->tuner, RIG_VFO_CURR, freq + GR_MAX_FREQUENCY(priv)/2);
 	  if (ret != RIG_OK)
 		  return ret;
-	  /* query freq right back, because wanted freq may not be real freq,
-	   * because of resolution of tuner */
+	  /*
+	   * query freq right back, because wanted freq may not be real freq,
+	   * because of resolution of tuner
+	   */
   	  ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
 	  if (ret != RIG_OK)
 		return ret;
-  }
-  /*
-   * In case the tuner is not a real tuner
-   */
-  if (priv->tuner_model == RIG_MODEL_DUMMY)
-	  tuner_freq = 0;
 
-  freq_offset = (double) (tuner_freq - freq);
-  rig_debug(RIG_DEBUG_VERBOSE, "%s: %lld %lld freq_offset=%g\n",
-		  __FUNCTION__, tuner_freq, freq, freq_offset);
-
-  /* TODO: change mode plumbing (don't forget locking!)
-   * workaround?: set_mode(NONE), set_mode(previous)
-   */
-  pthread_mutex_lock(&priv->mutex_process);
-  switch (chan->mode) {
-  case RIG_MODE_WFM:
-  case RIG_MODE_FM:
-	  /* not so sure about if setCenter_Freq is the Right thing to do(tm). */
-	mod->fm.chan_filter_1->setCenter_Freq(priv->IF_center_freq - freq_offset);
-	break;
-
-  case RIG_MODE_USB:
-	  {
-	mod->ssb.shifter->set_freq(2*M_PI*freq_offset/(double)priv->input_rate);
-	break;
+	  /*
+	   * tuner freq changed, so adjust frequency offset of other channels
+	   */
+	  for (i = 0; i<NUM_CHAN; i++) {
+		  if (i != chan_num)
+  			update_freq(rig, i, tuner_freq, priv->chans[i].freq);
 	  }
-  case RIG_MODE_NONE:
-	break;  
-  default:
-	  rig_debug(RIG_DEBUG_WARN, "%s: mode % unimplemented!\n",
-			  __FUNCTION__, strrmode(chan->mode));
-	  break;
   }
-  pthread_mutex_unlock(&priv->mutex_process);
 
-  chan->freq = freq;
+  ret = update_freq(rig, chan_num, tuner_freq, freq);
+  if (ret == RIG_OK)
+  	chan->freq = freq;
 
-  return RIG_OK;
+  return ret;
 }
 
 
@@ -497,18 +543,25 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
   int chan_num = vfo2chan_num(rig, vfo);
   channel_t *chan = &priv->chans[chan_num];
-  union mod_data *mod = &priv->mods[chan_num];
+  struct mod_data *mod = &priv->mods[chan_num];
   char buf[16];
   freq_t tuner_freq;
   int ret = RIG_OK;
   double freq_offset;
 
+  if (width == RIG_PASSBAND_NORMAL)
+	  width = rig_passband_normal(rig, mode);
   sprintf_freq(buf, width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", 
   		__FUNCTION__, strvfo(vfo), strrmode(mode), buf);
 
   if (mode == chan->mode && width == chan->width)
 	  return RIG_OK;
+
+  /*
+   * TODO: check if only change in width
+   */
+
 
   ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
   if (ret != RIG_OK)
@@ -519,7 +572,7 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (priv->tuner_model == RIG_MODEL_DUMMY)
 	  tuner_freq = 0;
 
-  freq_offset = (double) (tuner_freq - chan->freq);
+  freq_offset = (double) (chan->freq - tuner_freq);
   rig_debug(RIG_DEBUG_VERBOSE, "%s: freq_offset=%g\n",
 		  __FUNCTION__, freq_offset);
 
@@ -531,62 +584,209 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   	switch (chan->mode) {
 	  case RIG_MODE_FM:
 	  case RIG_MODE_WFM:
-		delete mod->fm.audio_filter_1;
-		delete mod->fm.fm_demod_1;
-		delete mod->fm.chan_filter_1;
+		delete mod->demod.wfm.demod;
+		delete mod->chan_filter;
+		delete mod->audio_filter;
 		break;
 	  case RIG_MODE_USB:
-		delete mod->ssb.hilb;
-		delete mod->ssb.shifter;
+		delete mod->audio_filter;
+		delete mod->chan_filter;
 		break;
+	  case RIG_MODE_AM:
+		delete mod->chan_filter;
+		delete mod->audio_filter;
 	  default:
 		break;
 	  }
   }
 
   /* TODO: if same mode, but different width, then adapt */
+ 
+  priv->m->stop();
 
   switch (mode) {
-  case RIG_MODE_FM:	/* is there a difference ? */
+  case RIG_MODE_FM:
+	  {
+  mod->CFIRdecimate = 20;
+  mod->CFIRdecimate2 = 25;
+  mod->RFIRdecimate = 5;
+
+const float channelSpacing = 80e3;
+const float demodBW = 3e3;
+const float TAU = 75e-6;  // 75us in US, 50us in EUR  
+
+const int quadRate = priv->input_rate / mod->CFIRdecimate / mod->CFIRdecimate2;
+const int audioRate = quadRate / mod->RFIRdecimate;
+
+   
+    // 
+    // design first stage selection filter
+    //
+    
+    // width of transition band.
+    //
+    // We make this twice as wide as you would think.  This allows
+    // some aliasing, but it's outside our final bandwidth, determined
+    // by the next filter
+
+    float transition_width = (priv->input_rate / mod->CFIRdecimate - width);
+
+    vector<float> cs1_coeffs =
+      gr_firdes::low_pass (1.0,				// gain
+			   priv->input_rate,			// sampling rate
+			   width / 2,		// low-pass cutoff freq
+			   transition_width,
+			   gr_firdes::WIN_HANN);
+    
+    cerr << "Number of cs1_coeffs: " << cs1_coeffs.size () << endl;
+    
+    //
+    // design second stage channel selection filter
+    //
+    // This is the one that we tune
+    //
+    vector<float> cs2_coeffs =
+      gr_firdes::low_pass (1.0,
+			   priv->input_rate / mod->CFIRdecimate,
+			   width / 2,
+			   (channelSpacing - width) / 2,
+			   gr_firdes::WIN_HANN);
+    
+    cerr << "Number of cs2_coeffs: " << cs2_coeffs.size () << endl;
+    
+    //
+    // design audio filter
+    //
+    vector<float> audio_coeffs =
+      gr_firdes::band_pass (1e3,			// gain
+			    quadRate,			// sampling rate
+			    300,
+			    demodBW,
+			    250,
+			    gr_firdes::WIN_HAMMING);
+    
+    cerr << "Number of audio_coeffs: " << audio_coeffs.size () << endl;
+    
+    //
+    // design demphasis filter
+    //
+    vector<double> fftaps = vector<double>(2);
+    vector<double> fbtaps = vector<double>(2);
+    
+    fftaps[0] = 1 - exp(-1/(TAU*audioRate));
+    fftaps[1] = 0;
+    fbtaps[0] = 0;
+    fbtaps[1] = exp(-1/TAU/priv->input_rate*50);;
+
+    // 
+    // now instantiate the modules
+    //
+
+    // short --> VrComplex
+    mod->chan_filter = 
+    		new GrFreqXlatingFIRfilterSCF (mod->CFIRdecimate,
+						cs1_coeffs,
+						priv->IF_center_freq - freq_offset);
+    
+    // VrComplex --> VrComplex
+    mod->demod.fm.chan2_filter = 
+    		new GrFreqXlatingFIRfilterCCF (mod->CFIRdecimate2, cs2_coeffs, 0);
+   
+
+    // VrComplex --> float
+    mod->demod.fm.demod = new VrQuadratureDemod<float>(1);
+    
+
+    // float --> float
+    mod->audioF_filter = new GrFIRfilterFFF (mod->RFIRdecimate, audio_coeffs);
+    
+    // float --> float
+    mod->demod.fm.deemph =
+      new GrIIRfilter<float,float,double> (1,fftaps,fbtaps); 
+    
+    // float --> short
+    mod->demod.fm.cfs = new GrConvertFS ();
+    
+    //connect the modules together
+    
+	NWO_CONNECT (GR_SOURCE(priv), mod->chan_filter);
+	NWO_CONNECT (mod->chan_filter, mod->demod.fm.chan2_filter);
+	NWO_CONNECT (mod->demod.fm.chan2_filter, mod->demod.fm.demod);
+	NWO_CONNECT (mod->demod.fm.demod, mod->audioF_filter);
+	NWO_CONNECT (mod->audioF_filter, mod->demod.fm.deemph);
+	NWO_CONNECT (mod->demod.fm.deemph, mod->demod.fm.cfs);
+	NWO_CONNECT (mod->demod.fm.cfs, priv->sink);
+
+	break;
+	  }
+
   case RIG_MODE_WFM:
 	  {
-  mod->fm.chanTaps = 75;
-  mod->fm.CFIRdecimate = 125;
-  mod->fm.chanGain = 2.0;
-  mod->fm.FMdemodGain = 2200;
-  mod->fm.RFIRdecimate = 5;
-  mod->fm.ifTaps = 50;
-  mod->fm.ifGain = 1.0;
-	const int quadRate = priv->input_rate / mod->fm.CFIRdecimate;
-	const int audioRate = quadRate / mod->fm.RFIRdecimate;
+  mod->CFIRdecimate = 125;
+  mod->RFIRdecimate = 5;
+
+	const int quadRate = priv->input_rate / mod->CFIRdecimate;
+	const int audioRate = quadRate / mod->RFIRdecimate;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "Input Sampling Rate: %d\n", priv->input_rate);
+	rig_debug(RIG_DEBUG_VERBOSE, "Complex FIR decimation factor: %d\n", mod->CFIRdecimate);
+	rig_debug(RIG_DEBUG_VERBOSE, "QuadDemod Sampling Rate: %d\n", quadRate);
+	rig_debug(RIG_DEBUG_VERBOSE, "Real FIR decimation factor: %d\n", mod->RFIRdecimate);
+	rig_debug(RIG_DEBUG_VERBOSE, "Audio Sampling Rate: %d\n", audioRate);
+
+ 
+    // build channel filter
+    //
+    // note that the totally bogus transition width is because
+    // we don't have enough mips right now to really do the right thing.
+    // This results in a filter with 83 taps, which is just a few
+    // more than the original 75 in microtune_fm_demo.
+     vector<float> channel_coeffs =
+      gr_firdes::low_pass (1.0,				// gain
+			   priv->input_rate,		// sampling rate
+			   width,			// low-pass cutoff: freq 250e3
+			   8*100e3,			// width of transition band
+			   gr_firdes::WIN_HAMMING);
+
+	rig_debug(RIG_DEBUG_VERBOSE, "Number of channel_coeffs: %d\n", channel_coeffs.size ());
+  
+    // short --> VrComplex
+    mod->chan_filter = 
+	    new GrFreqXlatingFIRfilterSCF(mod->CFIRdecimate, channel_coeffs, 
+			    priv->IF_center_freq - freq_offset);
+
+
+    // float --> short
+    double width_of_transition_band = audioRate / 32;
+    vector<float> audio_coeffs =
+      gr_firdes::low_pass (1.0,				// gain
+			   quadRate,			// sampling rate
+			   audioRate/2 - width_of_transition_band, // low-pass cutoff freq
+			   width_of_transition_band,
+			   gr_firdes::WIN_HAMMING);
+
+	rig_debug(RIG_DEBUG_VERBOSE, "Number of audio_coeffs: %d\n", audio_coeffs.size ());
+	rig_debug(RIG_DEBUG_VERBOSE, "Low-pass cutoff freq: %d\n", audioRate/2 - (int)width_of_transition_band);
+  
+    mod->audio_filter = 
+      new GrFIRfilterFSF(mod->RFIRdecimate, audio_coeffs);
+
+  	mod->demod.wfm.FMdemodGain = 2200;
 	float volume = chan->levels[rig_setting2idx(RIG_LEVEL_AF)].f;
 
 	//
 	// setup Wide FM demodulator chain
 	//
-	
-	// short --> VrComplex
-	mod->fm.chan_filter_1 = new VrComplexFIRfilter<short>(mod->fm.CFIRdecimate, mod->fm.chanTaps,
-				  priv->IF_center_freq - freq_offset,
-				  mod->fm.chanGain);
+    // VrComplex --> float
+    mod->demod.wfm.demod =
+      new VrQuadratureDemod<float>(volume * mod->demod.wfm.FMdemodGain);
 
-	// VrComplex --> float
-	mod->fm.fm_demod_1 = new VrQuadratureDemod<float>(volume * mod->fm.FMdemodGain);
+    //connect the modules together
 
-	// float --> short
-	mod->fm.audio_filter_1 = new VrRealFIRfilter<float,short>(mod->fm.RFIRdecimate, audioRate/2,
-				     mod->fm.ifTaps, mod->fm.ifGain);
-
-	//connect the modules together
-
-	NWO_CONNECT (GR_SOURCE(priv), mod->fm.chan_filter_1);
-	NWO_CONNECT (mod->fm.chan_filter_1, mod->fm.fm_demod_1);
-	NWO_CONNECT (mod->fm.fm_demod_1, mod->fm.audio_filter_1);
-	NWO_CONNECT (mod->fm.audio_filter_1, priv->sink);
-
-  	priv->m->stop();
-  	priv->m->add (priv->sink);
-  	priv->m->start();
+	NWO_CONNECT (GR_SOURCE(priv), mod->chan_filter);
+	NWO_CONNECT (mod->chan_filter, mod->demod.wfm.demod);
+	NWO_CONNECT (mod->demod.wfm.demod, mod->audio_filter);
+	NWO_CONNECT (mod->audio_filter, priv->sink);
 
 	break;
 	  }
@@ -595,25 +795,46 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	  {
 	float rf_gain = chan->levels[rig_setting2idx(RIG_LEVEL_RF)].f;
 
-	/* SSB is a WIP
-	 * I guess we're missing a low pass filter?
-	 */
 
+#if 0
+	 //SSB mod:
 	mod->ssb.hilb = new GrHilbert<short>(31);	/* what's that 31? */
 	mod->ssb.shifter = new GrSSBMod<short>(2*M_PI*freq_offset/(double)priv->input_rate,
 			rf_gain);
+#endif
 
 	//connect the modules together
-	NWO_CONNECT (GR_SOURCE(priv), mod->ssb.hilb);
-	NWO_CONNECT (mod->ssb.hilb, mod->ssb.shifter);
-	NWO_CONNECT (mod->ssb.shifter, priv->sink);
-
-  	priv->m->stop();
-  	priv->m->add (priv->sink);
-  	priv->m->start();
+	NWO_CONNECT (GR_SOURCE(priv), mod->chan_filter);
+	NWO_CONNECT (mod->chan_filter, mod->demod.fm.demod);
+	NWO_CONNECT (mod->demod.fm.demod, mod->audio_filter);
+	NWO_CONNECT (mod->audio_filter, priv->sink);
 
 	break;
 	  }
+
+#if 0
+  case RIG_MODE_AM:
+	  {
+	float volume = chan->levels[rig_setting2idx(RIG_LEVEL_AF)].f;
+
+	//
+	// setup Wide FM demodulator chain
+	//
+
+    // VrComplex --> float
+    mod->am.demod =
+      new VrAmplitudeDemod<float>(0.0, 0.05);
+
+    //connect the modules together
+
+	NWO_CONNECT (GR_SOURCE(priv), mod->chan_filter);
+	NWO_CONNECT (mod->chan_filter, mod->am.demod);
+	NWO_CONNECT (mod->am.demod, mod->audio_filter);
+	NWO_CONNECT (mod->audio_filter, priv->sink);
+
+	break;
+	  }
+#endif
 
   case RIG_MODE_NONE:
 	  /* ez */
@@ -622,6 +843,10 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   default:
 	  ret = -RIG_EINVAL;
   }
+
+  priv->m->add (priv->sink);
+  priv->m->start();
+
 
   pthread_mutex_unlock(&priv->mutex_process);
 
@@ -676,7 +901,7 @@ int gr_get_vfo(RIG *rig, vfo_t *vfo)
   return RIG_OK;
 }
 
-static int set_rf_gain(RIG *rig, channel_t *chan, union mod_data *mod, float gain)
+static int set_rf_gain(RIG *rig, channel_t *chan, struct mod_data *mod, float gain)
 {
   struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
 
@@ -684,16 +909,16 @@ static int set_rf_gain(RIG *rig, channel_t *chan, union mod_data *mod, float gai
   switch (chan->mode) {
   case RIG_MODE_USB:
 	  {
-	mod->ssb.shifter->set_gain(gain);
+	//mod->ssb.shifter->set_gain(gain);
 	break;
 	  }
   case RIG_MODE_NONE:
 	break;  
   case RIG_MODE_WFM:
   case RIG_MODE_FM:
-	  /* chan_filter_1/VrComplexFIRfilter is missing a setGain method! */
+	  /* chan_filter/VrComplexFIRfilter is missing a setGain method! */
   default:
-	  rig_debug(RIG_DEBUG_WARN, "%s: mode % unimplemented!\n",
+	  rig_debug(RIG_DEBUG_WARN, "%s: mode %s unimplemented!\n",
 			  __FUNCTION__, strrmode(chan->mode));
 	  break;
   }
@@ -711,7 +936,7 @@ int gnuradio_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
   struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
   int chan_num = vfo2chan_num(rig, vfo);
   channel_t *chan = &priv->chans[chan_num];
-  union mod_data *mod = &priv->mods[chan_num];
+  struct mod_data *mod = &priv->mods[chan_num];
   char lstr[32];
   int idx;
   int ret = RIG_OK;
@@ -733,7 +958,7 @@ int gnuradio_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	ret = set_rf_gain(rig, chan, mod, val.f);
 	break;
   default:
-	rig_debug(RIG_DEBUG_WARN, "%s: level % unimplemented!\n",
+	rig_debug(RIG_DEBUG_WARN, "%s: level %s unimplemented!\n",
 			  __FUNCTION__, strlevel(level));
 	break;
   }
@@ -759,6 +984,97 @@ int gnuradio_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   return RIG_OK;
 }
 
+
+/*
+ * TODO: change BFO...
+ */
+int gnuradio_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+  struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
+  int chan_num = vfo2chan_num(rig, vfo);
+  channel_t *chan = &priv->chans[chan_num];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+
+  chan->rit = rit;
+
+  return RIG_OK;
+}
+
+
+int gnuradio_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
+  struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
+  int chan_num = vfo2chan_num(rig, vfo);
+  channel_t *chan = &priv->chans[chan_num];
+
+  *rit = chan->rit;
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+
+  return RIG_OK;
+}
+
+
+/*
+ * nothing much to be done but remembering
+ */
+int gnuradio_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
+{
+  struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
+  int chan_num = vfo2chan_num(rig, vfo);
+  channel_t *chan = &priv->chans[chan_num];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  chan->tuning_step = ts;
+
+  return RIG_OK;
+}
+
+
+int gnuradio_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+{
+  struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
+  int chan_num = vfo2chan_num(rig, vfo);
+  channel_t *chan = &priv->chans[chan_num];
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+  *ts = chan->tuning_step;
+
+  return RIG_OK;
+}
+
+
+int gnuradio_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+  freq_t freq;
+  shortfreq_t ts;
+  int ret = RIG_OK;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
+				  strvfop(op));
+
+  switch (op) {
+  case RIG_OP_UP:
+	  ret = gr_get_freq(rig, vfo, &freq);
+	  if (ret != RIG_OK) break;
+	  ret = gnuradio_get_ts(rig, vfo, &ts);
+	  if (ret != RIG_OK) break;
+	  ret = gr_set_freq(rig, vfo, freq+ts);	/* up */
+	  break;
+  case RIG_OP_DOWN:
+	  ret = gr_get_freq(rig, vfo, &freq);
+	  if (ret != RIG_OK) break;
+	  ret = gnuradio_get_ts(rig, vfo, &ts);
+	  if (ret != RIG_OK) break;
+	  ret = gr_set_freq(rig, vfo, freq-ts);	/* down */
+	  break;
+  default:
+	  break;
+  }
+
+  return ret;
+}
+
 int initrigs_gnuradio(void *be_handle)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "gnuradio: _init called\n");
@@ -770,3 +1086,57 @@ int initrigs_gnuradio(void *be_handle)
 	return RIG_OK;
 }
 
+#if 0
+    VrGUI *guimain = 0;
+    VrGUILayout *horiz = 0;
+    VrGUILayout *vert = 0;
+
+
+    if (use_gui_p){
+      guimain = new VrGUI(argc, argv);
+      horiz = guimain->top->horizontal();
+      vert = horiz->vertical();
+    }
+
+    VrSink<VrComplex> *fft_sink1 = 0;
+    VrSink<float> *fft_sink2 = 0;
+    VrSink<short> *fft_sink3 = 0;
+
+    if (use_gui_p){
+      // sink1 is channel filter output
+      fft_sink1 = new GrFFTSink<VrComplex>(vert, 50, 130, 512);
+
+      // sink2 is fm demod output
+      fft_sink2 = new GrFFTSink<float>(vert, 40, 140, 512);
+
+      // sink3 is audio output
+      fft_sink3 = new GrFFTSink<short>(horiz, 40, 140, 512);
+    }
+
+    if (use_gui_p)
+      NWO_CONNECT (chan_filter, fft_sink1);
+
+    if (use_gui_p)
+      NWO_CONNECT (demod, fft_sink2);
+
+    if (use_gui_p)
+      NWO_CONNECT (audio_filter, fft_sink3);
+
+    VrMultiTask *m = new VrMultiTask ();
+    if (use_gui_p){
+      m->add (fft_sink1);
+      m->add (fft_sink3);
+      m->add (fft_sink2);
+    }
+
+    m->add (final_sink);
+
+        if (use_gui_p)
+      guimain->start ();
+
+    
+    while (1){
+      if (use_gui_p)
+	guimain->processEvents(10 /*ms*/);
+
+#endif

@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - gnuradio priv structure
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gr_priv.h,v 1.3 2003-02-09 22:54:15 fillods Exp $
+ *	$Id: gr_priv.h,v 1.4 2003-04-06 18:50:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,13 +27,17 @@
 #include <VrSink.h>
 #include <VrMultiTask.h>
 #include <VrFixOffset.h>
-/* FM */
-#include <VrComplexFIRfilter.h>
-#include <VrQuadratureDemod.h>
-#include <VrRealFIRfilter.h>
-/* SSB */
-#include <GrSSBMod.h>
-#include <GrHilbert.h>
+#include <GrFreqXlatingFIRfilterSCF.h>
+#include <GrFreqXlatingFIRfilterCCF.h>
+#include <GrFIRfilterFSF.h>
+#include <VrQuadratureDemod.h>	/* FM */
+//#include <VrAmplitudeDemod.h>	/* AM */
+#include <GrIIRfilter.h>
+#include <GrConvertFS.h>
+
+/* SSB mod */
+//#include <GrSSBMod.h>
+//#include <GrHilbert.h>
 
 #include <pthread.h>
 
@@ -41,30 +45,42 @@
 
 #define IOTYPE short
 
-union mod_data {
+struct mod_data {
+	union {
 	struct {
-		/* (W)FM demod */
-		VrComplexFIRfilter<short> *chan_filter_1;
-		VrQuadratureDemod<float> *fm_demod_1;
-		VrRealFIRfilter<float,short> *audio_filter_1;
-
-		/* these levels, if not in RIG_LEVEL's already,
-		 * are good candidates for rig_set_ext_level
-		 */
-		int CFIRdecimate;
-		int chanTaps;
-		float chanGain;
+		/* FM demod */
+		VrQuadratureDemod<float> *demod;
 		float FMdemodGain;
-		int RFIRdecimate;
-		int ifTaps;
-		float ifGain;	/* LEVEL_RF? */
+		GrFreqXlatingFIRfilterCCF *chan2_filter;
+		GrIIRfilter<float,float,double> *deemph;
+		GrConvertFS *cfs;
 	} fm;
+	struct {
+		/* WFM demod */
+		VrQuadratureDemod<float> *demod;
+		float FMdemodGain;
+	} wfm;
+#if 0
+	struct {
+		/* AM demod */
+		VrAmplitudeDemod<float> *demod;
+	} am;
+#endif
 
 	struct {
-		/* SSB demod */
+		/* SSB mod */
+#if 0
 		GrHilbert<short> *hilb;
 		GrSSBMod<short> *shifter;
+#endif
 	} ssb;
+	} demod;
+	int CFIRdecimate;
+	int CFIRdecimate2;
+	int RFIRdecimate;
+	GrFreqXlatingFIRfilterSCF *chan_filter;
+	GrFIRfilterFSF *audio_filter;
+	GrFIRfilterFFF *audioF_filter;
 };
 
 #define NUM_CHAN 2	/* VFO A and VFO B */
@@ -93,9 +109,12 @@ struct gnuradio_priv_data {
 	pthread_mutex_t mutex_process;
 	volatile int do_process;	/*< flag to tell process thread to stop */
 
-	union mod_data mods[NUM_CHAN];	/*< Modulation objects and stuff, one per channel */
+	struct mod_data mods[NUM_CHAN];	/*< Modulation objects and stuff, one per channel */
 };
 
-#define GR_SOURCE(priv) ((priv)->need_fixer?(priv)->offset_fixer:(priv)->source)
+//#define GR_SOURCE(priv) ((priv)->need_fixer?(priv)->offset_fixer:(priv)->source)
+#define GR_SOURCE(priv) ((priv)->offset_fixer)
+
+#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate/2)
 
 #endif	/* _GR_PRIV_H */
