@@ -1,4 +1,4 @@
-EXTRA_DIST = PLAN TODO LICENSE
+EXTRA_DIST = PLAN TODO LICENSE hamlib.spec
 SUBDIRS = include lib libltdl src icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec c++ tcl tests doc
 
 INCLUDES = $(INCLTDL)
