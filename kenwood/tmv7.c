@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.6 2004-12-28 11:08:00 f4dwv Exp $
+ *	$Id: tmv7.c,v 1.7 2004-12-28 12:59:41 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -133,8 +133,8 @@ const struct rig_caps tmv7_caps = {
 
 
 .chan_list =  { 
-		{  1,  90, RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* normal MEM VHF */
-		{ 91,  180, RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* normal MEM UHF */
+		{  1, 90 , RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* normal MEM VHF */
+		{ 101, 190, RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* normal MEM UHF */
 		{  201,206, RIG_MTYPE_EDGE , {TMV7_CHANNEL_CAPS}}, /* L MEM */
 		{  211,216, RIG_MTYPE_EDGE , {TMV7_CHANNEL_CAPS}}, /* U MEM */
 		{  221,222, RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* Call V/U */
@@ -639,9 +639,9 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 
     if(chan->channel_num<200) {
 	    if(chan->channel_num<100)
-	    	sprintf(membuf,"MNA 0,%03d"EOM,chan->channel_num,chan->channel_desc);
+	    	sprintf(membuf,"MNA 0,%03d,%s"EOM,chan->channel_num,chan->channel_desc);
 	    else
-	    	sprintf(membuf,"MNA 1,%03d"EOM,chan->channel_num-100,chan->channel_desc);
+	    	sprintf(membuf,"MNA 1,%03d,%s"EOM,chan->channel_num-100,chan->channel_desc);
     	ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
