@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.49 2001-07-25 21:55:59 f4cfe Exp $
+ *		$Id: rig.h,v 1.50 2001-08-08 06:07:20 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -154,6 +154,7 @@ enum serial_handshake_e {
 };
 
 
+#if 0
 enum rig_type_e {
 	RIG_TYPE_TRANSCEIVER = 0,	/* aka base station */
 	RIG_TYPE_HANDHELD,
@@ -166,6 +167,33 @@ enum rig_type_e {
 	/* etc. */
 	RIG_TYPE_OTHER
 };
+#else
+
+#define RIG_FLAG_RECEIVER		(1<<1)
+#define RIG_FLAG_TRANSMITTER	(1<<2)
+#define RIG_FLAG_SCANNER		(1<<3)
+
+#define RIG_FLAG_MOBILE			(1<<4)
+#define RIG_FLAG_HANDHELD		(1<<5)
+#define RIG_FLAG_COMPUTER		(1<<6)
+#define RIG_FLAG_TRUNKING		(1<<7)
+#define RIG_FLAG_APRS			(1<<8)
+#define RIG_FLAG_TNC			(1<<9)
+
+#define RIG_FLAG_TRANSCEIVER (RIG_FLAG_RECEIVER|RIG_FLAG_TRANSMITTER)
+#define RIG_TYPE_MASK (RIG_FLAG_TRANSCEIVER|RIG_FLAG_SCANNER|RIG_FLAG_MOBILE|RIG_FLAG_HANDHELD|RIG_FLAG_COMPUTER|RIG_FLAG_TRUNKING)
+
+#define RIG_TYPE_OTHER		0
+#define RIG_TYPE_TRANSCEIVER	RIG_FLAG_TRANSCEIVER
+#define RIG_TYPE_HANDHELD	(RIG_FLAG_TRANSCEIVER|RIG_FLAG_HANDHELD)
+#define RIG_TYPE_MOBILE		(RIG_FLAG_TRANSCEIVER|RIG_FLAG_MOBILE)
+#define RIG_TYPE_RECEIVER	RIG_FLAG_RECEIVER
+#define RIG_TYPE_PCRECEIVER	(RIG_FLAG_COMPUTER|RIG_FLAG_RECEIVER)
+#define RIG_TYPE_SCANNER	(RIG_FLAG_SCANNER|RIG_FLAG_RECEIVER)
+#define RIG_TYPE_TRUNKSCANNER	(RIG_TYPE_SCANNER|RIG_FLAG_TRUNKING)
+#define RIG_TYPE_COMPUTER	(RIG_FLAG_TRANSCEIVER|RIG_FLAG_COMPUTER)
+
+#endif
 
 /*
  * Development status of the backend 
@@ -696,7 +724,7 @@ struct rig_caps {
   const char *copyright;
   enum rig_status_e status;
 
-  enum rig_type_e rig_type;
+  int rig_type;
   enum ptt_type_e ptt_type;
   enum dcd_type_e dcd_type;
   enum rig_port_e port_type;
