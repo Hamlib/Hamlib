@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.15 2000-09-23 02:45:20 javabear Exp $  
+ * $Id: serial.c,v 1.16 2000-09-28 00:43:15 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -92,6 +92,9 @@ int serial_open(struct rig_state *rs) {
     break;
   case 1200:
 	speed = B1200;
+    break;
+  case 2400:
+	speed = B2400;
     break;
   case 4800:
 	speed = B4800;
