@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *    $Id: kenwood.h,v 1.3 2001-05-15 22:05:26 f4cfe Exp $  
+ *    $Id: kenwood.h,v 1.4 2001-05-22 21:59:26 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -43,6 +43,8 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
 int kenwood_reset(RIG *rig, reset_t reset);
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 
 int kenwood_set_trn(RIG *rig, vfo_t vfo, int trn);
 int kenwood_get_trn(RIG *rig, vfo_t vfo, int *trn);

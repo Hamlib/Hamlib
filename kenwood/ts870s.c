@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.13 2001-05-15 22:05:26 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.14 2001-05-22 21:59:26 f4cfe Exp $  
  *
  *
  *
@@ -66,7 +66,7 @@ mfg_name: "Kenwood",
 version: "0.1",
 copyright: "GPL",
 status: RIG_STATUS_UNTESTED,
-rig_type: RIG_TYPE_RECEIVER,
+rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_RIG,
 dcd_type: RIG_DCD_RIG,
 port_type: RIG_PORT_SERIAL,
@@ -165,6 +165,8 @@ set_vfo: kenwood_set_vfo,
 get_vfo: kenwood_get_vfo,
 set_ctcss: kenwood_set_ctcss,
 get_ctcss: kenwood_get_ctcss,
+set_ptt: kenwood_set_ptt,
+get_dcd: kenwood_get_dcd,
 get_level: kenwood_get_level,
 set_powerstat: kenwood_set_powerstat,
 get_powerstat: kenwood_get_powerstat,

@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- * $Id: kenwood.c,v 1.5 2001-05-15 22:05:26 f4cfe Exp $  
+ * $Id: kenwood.c,v 1.6 2001-05-22 21:59:26 f4cfe Exp $  
  *
  *
  *
@@ -490,7 +490,7 @@ int kenwood_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
 								 
 	caps = rig->caps;
 
-/* TODO: replace 200 by something like RIGTONEMAX, fix also icom backend */
+/* TODO: replace 200 by something like RIGTONEMAX */
 	for (i = 0; caps->ctcss_list[i] != 0 && i<200; i++) {
 			if (caps->ctcss_list[i] == tone)
 					break;
@@ -555,7 +555,7 @@ int kenwood_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
  * Assumes rig!=NULL
  * TODO: kenwood_get_ptt reading P8 field returned by IF;
  */
-int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		unsigned char ackbuf[16];
 		int ack_len;
@@ -571,7 +571,7 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  * kenwood_get_dcd
  * Assumes rig!=NULL, dcd!=NULL
  */
-int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 	unsigned char busybuf[16];
 	int busy_len;
