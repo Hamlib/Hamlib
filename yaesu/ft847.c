@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.28 2004-05-17 21:09:41 fillods Exp $  
+ * $Id: ft847.c,v 1.29 2004-11-17 22:02:03 fillods Exp $  
  *
  *
  *
@@ -184,7 +184,7 @@ const struct rig_caps ft847_caps = {
 .rig_model =  RIG_MODEL_FT847,
 .model_name = "FT-847", 
 .mfg_name =  "Yaesu", 
-.version =  "0.1", 
+.version =  "0.1.1", 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -664,7 +664,13 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     case RIG_MODE_CW:
       cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN;
       break;
+    case RIG_MODE_USB:
+    case RIG_MODE_LSB:
+      break;
     default:
+      rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode/width: %s/%d, narrow: %d\n",
+		      __FUNCTION__, rig_strrmode(mode), width, 
+		      rig_passband_narrow(rig, mode));
       return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
     }
   } else {
