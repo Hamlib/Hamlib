@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.76 2003-04-26 09:54:49 fillods Exp $
+ *	$Id: icom.c,v 1.77 2003-06-22 19:40:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2478,6 +2478,55 @@ DECLARE_PROBERIG_BACKEND(icom)
 							"with CI-V ID %#x, please report to Hamlib "
 							"developers.\n", civ_id);
 		}
+
+		/*
+		 * Try to identify OptoScan
+		 */
+		for (civ_addr=0x80; civ_addr<=0x8f; civ_addr++) {
+
+			frm_len = make_cmd_frame(buf, civ_addr, C_CTL_MISC, S_OPTO_RDID,
+							NULL, 0);
+
+			serial_flush(port);
+			write_block(port, buf, frm_len);
+
+			/* read out the bytes we just sent
+		 	* TODO: check this is what we expect
+		 	*/
+			frm_len = read_icom_frame(port, buf);
+
+			/* this is the reply */
+			frm_len = read_icom_frame(port, buf);
+
+			/* timeout.. nobody's there */
+			if (frm_len <= 0)
+					continue;
+
+			/* wrong protocol? */
+			if (frm_len != 7 || buf[4] != C_CTL_MISC || buf[5] != S_OPTO_RDID) {
+				continue;
+			}
+
+			rig_debug(RIG_DEBUG_VERBOSE, "%s, found OptoScan%c%c%c, software version %d.%d, "
+					"interface version %d.%d, at %#x\n",
+					__FUNCTION__,
+					buf[2], buf[3], buf[4],
+					buf[5] >> 4, buf[5] & 0xf,
+					buf[6] >> 4, buf[6] & 0xf,
+					civ_addr);
+
+			if (buf[6] == '5' && buf[7] == '3' && buf[8] == '5')
+				model = RIG_MODEL_OS535;
+			else if (buf[6] == '4' && buf[7] == '5' && buf[8] == '6')
+				model = RIG_MODEL_OS456;
+			else
+				continue;
+
+			if (cfunc)
+				(*cfunc)(port, model, data);
+			break;
+		}
+
 		close(port->fd);
 
 		/*
