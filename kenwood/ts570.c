@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.17 2002-12-21 00:30:25 pa4tu Exp $
+ *	$Id: ts570.c,v 1.18 2002-12-21 12:08:06 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -95,7 +95,9 @@ int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 /* 
  * Use FW (Filter Width) for CW and RTTY, 
- * SL (dsp Slope Low cut-off)  for all the other modes
+ * SL (dsp Slope Low cut-off)  for all the other modes.
+ * This is how it works on the TS870S, which does not have SL/SH commands.
+ * TODO: combine SL and SH to set/read bandwidth....
  */
   switch (*mode) 
   {
