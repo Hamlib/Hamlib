@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.47 2004-09-12 21:27:16 fillods Exp $
+ *	$Id: riglist.h,v 1.48 2004-09-25 14:32:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -172,6 +172,9 @@
 #define RIG_MODEL_IC756PROII RIG_MAKE_MODEL(RIG_ICOM, 47)
 #define RIG_MODEL_ICID1 RIG_MAKE_MODEL(RIG_ICOM, 54)
 #define RIG_MODEL_IC703 RIG_MAKE_MODEL(RIG_ICOM, 55)
+#define RIG_MODEL_IC7800 RIG_MAKE_MODEL(RIG_ICOM, 56)
+#define RIG_MODEL_IC756PROIII RIG_MAKE_MODEL(RIG_ICOM, 57)
+#define RIG_MODEL_ICR20 RIG_MAKE_MODEL(RIG_ICOM, 58)
 
 	/*
 	 * Optoelectronics (CI-V)
