@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000.c,v 1.1 2002-11-21 23:09:28 fillods Exp $
+ *	$Id: ft1000.c,v 1.2 2002-11-25 23:54:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -182,9 +182,9 @@ const struct rig_caps ft1000mp_caps = {
   .rig_model =          RIG_MODEL_FT1000MP,
   .model_name =         "MARK-V FT-1000MP",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.4",
+  .version =            "0.0.5",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_NEW,
+  .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_RIG,
@@ -486,8 +486,8 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   else
     p = &priv->update_data[FT1000MP_SUMO_VFO_A_FREQ]; /* CURR_VFO has VFOA offset */
 
-  /* little endian BCD */
-  f = from_bcd(p, 8) * 10;
+  /* big endian integer, kinda */
+  f = ((((((p[0]<<8) + p[1])<<8) + p[2])<<8) + p[3])*10/16;
 
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %lli Hz for VFO [%x]\n", f, vfo);
 
@@ -595,7 +595,7 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   if (vfo == RIG_VFO_B)
     mymode = priv->update_data[FT1000MP_SUMO_VFO_B_MODE];
   else
-    mymode = priv->update_data[FT1000MP_SUMO_VFO_A_MODE]; /* CURR_VFO has VFOA offset */
+    mymode = priv->update_data[FT1000MP_SUMO_VFO_A_MODE]; /* CURR_VFO is VFOA offset */
 
  
   rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mymode = %x (before)\n", mymode);
@@ -606,29 +606,25 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   /* 
    * translate mode from ft1000mp to generic.
    * TODO: Add DATA, and Narrow modes.  CW on LSB? -N0NB
-   *
-   * FIXME: don't know bit order. manual is not reliable!! -F8CFE
    */
   switch(mymode) {
-  case MODE_FM:
-    (*mode) = RIG_MODE_FM;
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = FM\n");
-    break;
-  case MODE_AM:
-    (*mode) = RIG_MODE_AM;
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = AM\n");
-    break;
-  case MODE_CW_U:
-    (*mode) = RIG_MODE_CW;
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = CW_U\n");
+  case MODE_CW:
+    *mode = RIG_MODE_CW;
     break;
   case MODE_USB:
-    (*mode) = RIG_MODE_USB;
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = USB\n");
+    *mode = RIG_MODE_USB;
     break;
   case MODE_LSB:
-    (*mode) = RIG_MODE_LSB;
-    rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = LSB\n");
+    *mode = RIG_MODE_LSB;
+    break;
+  case MODE_AM:
+    *mode = RIG_MODE_AM;
+    break;
+  case MODE_FM:
+    *mode = RIG_MODE_FM;
+    break;
+  case MODE_RTTY:
+    *mode = RIG_MODE_RTTY;
     break;
 
   default:
@@ -636,6 +632,9 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
     break; 
   }
  
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = %s\n", strrmode(*mode));
+
+  /* TODO: set real IF filter selection */
   *width = RIG_PASSBAND_NORMAL;
 
   return RIG_OK;
@@ -653,7 +652,7 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
   struct ft1000mp_priv_data *p;
   unsigned char cmd_index = 0;      /* index of sequence to send */
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_vfo called\n");
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_vfo called %s\n", strvfo(vfo));
 
   if (!rig)
     return -RIG_EINVAL;
@@ -686,7 +685,7 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
     break;
   case RIG_VFO_CURR:
     	/* do nothing, we're already at it! */
-    break;
+    return RIG_OK;
   default:
     rig_debug(RIG_DEBUG_VERBOSE,"ft1000mp: Unknown default VFO %d\n", vfo);
     return -RIG_EINVAL;         /* sorry, wrong VFO */
@@ -770,18 +769,6 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci, unsigned char rl
 
   return n;
 
-}
-
-
-/*
- * init_ft1000mp is called by rig_backend_load
- *
- */
-
-int init_ft1000mp(void *be_handle) {
-  rig_debug(RIG_DEBUG_VERBOSE, "ft1000mp: _init called\n");
-  rig_register(&ft1000mp_caps); 
-  return RIG_OK;
 }
 
 

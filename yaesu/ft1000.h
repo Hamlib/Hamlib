@@ -5,7 +5,7 @@
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
  *
- *    $Id: ft1000.h,v 1.1 2002-11-21 23:09:28 fillods Exp $  
+ *    $Id: ft1000.h,v 1.2 2002-11-25 23:54:30 fillods Exp $  
  *
  *
  *   This library is free software; you can redistribute it and/or modify
@@ -128,27 +128,15 @@ typedef enum ft1000mp_native_cmd_e ft1000mp_native_cmd_t;
  */
 
 #define MODE_LSB     0x00
-#define MODE_CW_L    0x01
-#define MODE_AM      0x02
-#define MODE_FM      0x03
-#define MODE_DATA_L  0x04
-#define MODE_DATA_U  0x05
-#define MODE_DATA_F  0x06
-#define MODE_USB     0x40
-#define MODE_CW_U    0x41
-/* Narrow filter selected */
-#define MODE_LSBN    0x80
-#define MODE_CW_LN   0x81
-#define MODE_AMN     0x82
-#define MODE_FMN     0x83
-#define MODE_DATA_LN 0x84
-#define MODE_DATA_UN 0x85
-#define MODE_DATA_FN 0x86
-#define MODE_USBN    0xc0
-#define MODE_CW_UN   0xc1
+#define MODE_USB     0x01
+#define MODE_CW      0x02
+#define MODE_AM      0x03
+#define MODE_FM      0x04
+#define MODE_RTTY    0x05
+#define MODE_PKT     0x06
 
-/* relevent bits: 5,6,7 */
-#define MODE_MASK   0xe0
+/* relevant bits: 5,6,7 */
+#define MODE_MASK   0x07
 
 
 /*
