@@ -26,6 +26,14 @@ AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
+AC_PROG_CXX
+AC_MSG_CHECKING(if you want to build C++ binding and demo)
+AC_ARG_WITH(cxx-binding,
+        [  --without-cxx-binding   do not build C++ binding and demo],
+        [cf_with_cxx_binding=$withval],
+        [cf_with_cxx_binding=$cf_with_cxx])
+AC_MSG_RESULT($cf_with_cxx_binding)
+
 AC_CHECK_PROG(RANLIB, ranlib, ranlib, :)
 AC_CHECK_PROG(DLLTOOL, dlltool, dlltool, dlltool)
 AC_CHECK_PROG(AS, as, as, as, as)
@@ -40,6 +48,9 @@ INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 if test "${ac_cv_prog_gcc}" = "yes"; then
   CFLAGS="${CFLAGS} -Wall"
+fi
+if test "${ac_cv_prog_gxx}" = "yes"; then
+  CXXFLAGS="${CXXFLAGS} -Wall"
 fi
 
 dnl Checks for header files.
@@ -189,6 +200,7 @@ winradio/Makefile
 pcr/Makefile
 alinco/Makefile
 src/Makefile
+c++/Makefile
 tests/Makefile
 doc/Makefile])
 
