@@ -2,7 +2,7 @@
  *  Hamlib bindings - Rig interface
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: rig.swg,v 1.3 2002-10-07 21:44:51 fillods Exp $
+ *	$Id: rig.swg,v 1.4 2002-10-08 21:54:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,25 @@ typedef struct Rig {
 %}
 
 #define MAX_STATIC 256
+
+%extend channel {
+	channel(vfo_t vfo = RIG_VFO_CURR, int ch = 0) {
+		channel_t *chan;
+
+		chan = (channel_t*)malloc(sizeof(channel_t));
+		if (!chan)
+			return NULL;
+		memset(chan, 0, sizeof(channel_t));
+		chan->vfo = vfo;
+		chan->channel_num = ch;
+		return chan;
+	}
+	~channel (void) {
+		/* TODO: free up ext_levels */
+		free(self);
+	}
+}
+
 
 /*
  * decalre wrapper method with one argument besides RIG* and optional no target vfo
@@ -282,7 +301,6 @@ typedef struct Rig {
 #define _VFO_DECL
 	METHOD1(set_vfo, vfo_t)		/* particular case */
 	METHOD1(set_powerstat, powerstat_t)
-	METHOD1(set_channel, const_channel_t_p)
 	METHOD1(set_trn, int)
 	METHOD1(has_set_level, setting_t)
 	METHOD1(has_set_parm, setting_t)
@@ -353,17 +371,25 @@ typedef struct Rig {
 	//METHOD2GET(get_ext_parm, token_t, value_t)
 
 
+	void set_channel(const struct channel *chan) {
+		self->error_status = rig_set_channel(self->rig, chan);
+	}
+
+	void get_channel(struct channel *chan) {
+		self->error_status = rig_get_channel(self->rig, chan);
+		/* TODO: handle ext_level's */
+	}
+
 	/* get_channel() returns current VFO data
 	 * get_channel(10) returns content of memory #10
 	 * get_channel(0, RIG_VFO_A) returns VFO A data
 	 */
-	const channel_t *get_channel(int channel_num = INT_MAX, vfo_t vfo = RIG_VFO_MEM) {
-		static channel_t chan;
-		chan.channel_num = channel_num;
-		chan.vfo = channel_num != INT_MAX ? vfo : RIG_VFO_CURR;
-		self->error_status = rig_get_channel(self->rig, &chan);
+	struct channel *get_channel(int channel_num = INT_MAX, vfo_t vfo = RIG_VFO_MEM) {
+		channel_t *chan;
+		chan = new_channel(channel_num, channel_num != INT_MAX ? vfo : RIG_VFO_CURR);
+		self->error_status = rig_get_channel(self->rig, chan);
 		/* TODO: copy ext_level's */
-		return &chan;
+		return chan;
 	}
 
 	const char *get_conf(token_t tok) {

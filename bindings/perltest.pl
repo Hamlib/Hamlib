@@ -11,6 +11,7 @@ hamlib::rig_set_debug($hamlib::RIG_DEBUG_TRACE);
 $rig = new hamlib::Rig($hamlib::RIG_MODEL_DUMMY);
 $rig->open();
 
+# 1073741944 is token value for "itu_region"
 $rpath = $rig->get_conf("rig_pathname");
 $region = $rig->get_conf(1073741944);
 print "get_conf: path=\"$rpath\", ITU region=$region\n";
@@ -42,24 +43,26 @@ print "level: $lvl\n";
 
 $chan = new hamlib::Chan($hamlib::RIG_VFO_A);
 
-$rig->get_channel(\$chan);
+$rig->get_channel($chan);
+print "get_channel status: $rig->{error_status}\n";
 
-print "VFO: $chan->{fields}->{vfo}, $chan->{fields}->{freq}\n";
+print "VFO: $chan->{vfo}, $chan->{freq}\n";
 
 $rig->close();
 
-($long1, $lat1) = locator2longlat("IN98EC");
-($long2, $lat2) = locator2longlat("DM33DX");
-$loc1 = longlat2locator($long1, $lat1);
-$loc2 = longlat2locator($long2, $lat2);
+# TODO:
+($long1, $lat1) = hamlib::locator2longlat("IN98EC");
+($long2, $lat2) = hamlib::locator2longlat("DM33DX");
+$loc1 = hamlib::longlat2locator($long1, $lat1);
+$loc2 = hamlib::longlat2locator($long2, $lat2);
 print "Loc1: $loc1\n";
 print "Loc2: $loc2\n";
 
-($dist, $az) = qrb($long1, $lat1, $long2, $lat2);
-$longpath = distance_long_path($dist);
+($dist, $az) = hamlib::qrb($long1, $lat1, $long2, $lat2);
+$longpath = hamlib::distance_long_path($dist);
 print "Distance: $dist km, long path: $longpath\n";
-($deg, $min, $sec) = dec2dms($az);
-$az2 = dms2dec($deg, $min, $sec);
+($deg, $min, $sec) = hamlib::dec2dms($az);
+$az2 = hamlib::dms2dec($deg, $min, $sec);
 print "Bearing: $az, $deg° $min' $sec\", recoded: $az2\n"
 
 

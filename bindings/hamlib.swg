@@ -6,7 +6,7 @@
  *  Hamlib bindings - swig interface file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: hamlib.swg,v 1.3 2002-10-07 21:44:51 fillods Exp $
+ *	$Id: hamlib.swg,v 1.4 2002-10-08 21:54:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,6 +39,8 @@
  * symbols that won't be wrapped
  */
 %include "ignore.swg"
+
+%rename(Chan) channel;
 
 %include <hamlib/rig_dll.h>
 
