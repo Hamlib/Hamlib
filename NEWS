@@ -1,8 +1,18 @@
 Hamlib -- History of visible changes.
 
-Copyright (C) 2000-2004  Stephane Fillod, Frank Singleton and others
+Copyright (C) 2000-2005  Stephane Fillod, Frank Singleton and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
+
+
+Version 1.2.4
+	2005-04-03
+	* frontend API: port_t renamed as hamlib_port_t
+	* new models: TS-480, VR5000, FT1000MkV Fld
+	* fixes: TS-570S, AR7030, AR3000A, Orion, FT-897, IC746
+	* port: fixed 64bit int handling which potentially fixes backends
+		kenwood/alinco/pcr/uniden/aor/jrc/tentec, 
+		added xBSD parallel port support
 
 Version 1.2.3
 	2004-11-17
