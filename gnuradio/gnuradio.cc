@@ -3,7 +3,7 @@
  *  Hamlib GNUradio backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gnuradio.cc,v 1.5 2003-09-23 22:54:56 fillods Exp $
+ *	$Id: gnuradio.cc,v 1.6 2003-09-28 15:59:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,10 +30,10 @@
  */
 
 #include <VrSigSource.h>
-#include <VrAudioSource.h>
+#include <GrAudioSource.h>
 #include <VrFileSource.h>
 #include <VrNullSink.h>
-#include <VrAudioSink.h>
+#include <GrAudioSink.h>
 #include <VrFileSink.h>
 
 #include <VrFixOffset.h>
@@ -46,10 +46,8 @@
 #include <GrFIRfilterFSF.h>
 #include <GrFIRfilterFFF.h>
 #include <VrQuadratureDemod.h>	/* FM */
-//#include <VrAmplitudeDemod.h>	/* AM */
-/* SSB mod */
-//#include <GrSSBMod.h>
-//#include <GrHilbert.h>
+#include <GrMagnitude.h>	/* AM */
+#include <GrSSBMod.h>		/* SSB */
 
 #include <gr_firdes.h>
 #include <gr_fir_builderF.h>
@@ -58,6 +56,9 @@
 /* Chirp param's */
 #define CARRIER_FREQ	          	        1.070e6	// AM 1070
 #define AMPLITUDE				3000
+
+#define AUDIO_IN	"/dev/dsp"
+#define AUDIO_OUT	"/dev/dsp1"
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -270,24 +271,30 @@ int gr_open(RIG *rig)
   
   // --> short
 
-  priv->source = new VrFileSource<short>(priv->input_rate, "/tmp/fm95_5_half.dat", true);
+#if 0
+  if (!priv->source) {
+  	priv->source = new VrFileSource<short>(priv->input_rate, "/tmp/fm95_5_half.dat", true);
+  	priv->need_fixer = 1;
+  }
   // Chirp
   if (!priv->source)
   	priv->source = new VrSigSource<IOTYPE>(priv->input_rate, VR_SIN_WAVE, CARRIER_FREQ, AMPLITUDE);
+#endif
   //new VrChirpSource<IOTYPE>(priv->input_rate, AMPLITUDE, 4);
   /* VrFileSource (double sampling_freq, const char *file, bool repeat = false) */
   //priv->source = new VrFileSource<short>(priv->input_rate, "microtune_source.sw", true);
 
   // short --> short
-  priv->need_fixer = 1;
-  priv->offset_fixer = new VrFixOffset<short,short>();
-  NWO_CONNECT (priv->source, priv->offset_fixer);
+  if (priv->need_fixer) {
+  	priv->offset_fixer = new VrFixOffset<short,short>();
+	  NWO_CONNECT (priv->source, priv->offset_fixer);
+  }
 
-  priv->sink = new VrAudioSink<short>();
+  priv->sink = new GrAudioSink<float>(1,AUDIO_IN);
 
   /* ** Sink ** */
   if (!priv->sink)
-  	priv->sink = new VrNullSink<short>();
+  	priv->sink = new VrNullSink<float>();
   //priv->sink = new VrFileSink<short>("microtune_audio.sw");
 
   priv->m = new VrMultiTask ();
@@ -324,13 +331,16 @@ int mc4020_open(RIG *rig)
 	struct gnuradio_priv_data *priv = (struct gnuradio_priv_data*)rig->state.priv;
 
 	/* input sample rate from PCI-DAS4020/12: 20000000  */
+#if 0
 	priv->source = make_GrMC4020SourceS(priv->input_rate, MCC_CH3_EN | MCC_ALL_1V);
+#endif
 
 	return gr_open(rig);
 }
 
 
 /*
+ * graudio, mono
  * sound card source override
  */
 int graudio_open(RIG *rig)
@@ -339,8 +349,27 @@ int graudio_open(RIG *rig)
 
 	/*
 	 * assumes sound card is full duplex!
+	 * mono source
 	 */
-	priv->source =  new VrAudioSource<short>(priv->input_rate);
+	priv->source =  new GrAudioSource<VrComplex>(priv->input_rate, 1,1,AUDIO_OUT);
+
+	return gr_open(rig);
+}
+
+
+/*
+ * graudio I&Q, stereo
+ * sound card source override
+ */
+int graudioiq_open(RIG *rig)
+{
+	struct gnuradio_priv_data *priv = (struct gnuradio_priv_data*)rig->state.priv;
+
+	/*
+	 * assumes sound card is full duplex!
+	 * I&Q source
+	 */
+	priv->source =  new GrAudioSource<VrComplex>(priv->input_rate, 2,1, AUDIO_OUT);
 
 	return gr_open(rig);
 }
@@ -442,6 +471,7 @@ static int update_freq(RIG *rig, unsigned chan_num, freq_t tuner_freq, freq_t fr
   /* TODO: change mode plumbing (don't forget locking!)
    * workaround?: set_mode(NONE), set_mode(previous)
    */
+
   pthread_mutex_lock(&priv->mutex_process);
   switch (chan->mode) {
   case RIG_MODE_WFM:
@@ -583,19 +613,21 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (chan->mode != RIG_MODE_NONE && mode != chan->mode) {
 
   	switch (chan->mode) {
-	  case RIG_MODE_FM:
+#if 0
 	  case RIG_MODE_WFM:
 		delete mod->demod.wfm.demod;
 		delete mod->chan_filter;
 		delete mod->audio_filter;
 		break;
+#endif
+	  case RIG_MODE_FM:
 	  case RIG_MODE_USB:
-		delete mod->audio_filter;
-		delete mod->chan_filter;
-		break;
+	  case RIG_MODE_LSB:
 	  case RIG_MODE_AM:
-		delete mod->chan_filter;
-		delete mod->audio_filter;
+		delete mod->mixer;
+		delete mod->demod;
+		delete mod->gainstage;
+		break;
 	  default:
 		break;
 	  }
@@ -606,6 +638,7 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   priv->m->stop();
 
   switch (mode) {
+#if 0
   case RIG_MODE_FM:
 	  {
   mod->CFIRdecimate = 20;
@@ -720,7 +753,8 @@ const int audioRate = quadRate / mod->RFIRdecimate;
 
 	break;
 	  }
-
+#endif
+#if 0
   case RIG_MODE_WFM:
 	  {
   mod->CFIRdecimate = 125;
@@ -791,59 +825,68 @@ const int audioRate = quadRate / mod->RFIRdecimate;
 
 	break;
 	  }
-
+#endif
   case RIG_MODE_USB:
 	  {
 	float rf_gain = chan->levels[rig_setting2idx(RIG_LEVEL_RF)].f;
+	float low_cutoff = 300;
+	float high_cutoff = low_cutoff+width;
+	mod->centerfreq = (freq_t)(priv->IF_center_freq + low_cutoff + width/2);
 
+	/* GrSSBMod<short>(2*M_PI*freq_offset/(double)priv->input_rate, rf_gain); */
 
-#if 0
-	 //SSB mod:
-	mod->ssb.hilb = new GrHilbert<short>(31);	/* what's that 31? */
-	mod->ssb.shifter = new GrSSBMod<short>(2*M_PI*freq_offset/(double)priv->input_rate,
-			rf_gain);
-#endif
-
-	//connect the modules together
-	NWO_CONNECT (GR_SOURCE(priv), mod->chan_filter);
-	NWO_CONNECT (mod->chan_filter, mod->demod.fm.demod);
-	NWO_CONNECT (mod->demod.fm.demod, mod->audio_filter);
-	NWO_CONNECT (mod->audio_filter, priv->sink);
+	mod->demod = new GrSSBMod<float>(2*M_PI*(low_cutoff+width/2)/(double)priv->input_rate,rf_gain);
 
 	break;
 	  }
-
-#if 0
   case RIG_MODE_AM:
 	  {
 	float volume = chan->levels[rig_setting2idx(RIG_LEVEL_AF)].f;
 
-	//
-	// setup Wide FM demodulator chain
-	//
-
-    // VrComplex --> float
-    mod->am.demod =
-      new VrAmplitudeDemod<float>(0.0, 0.05);
-
-    //connect the modules together
-
-	NWO_CONNECT (GR_SOURCE(priv), mod->chan_filter);
-	NWO_CONNECT (mod->chan_filter, mod->am.demod);
-	NWO_CONNECT (mod->am.demod, mod->audio_filter);
-	NWO_CONNECT (mod->audio_filter, priv->sink);
+	mod->centerfreq = priv->IF_center_freq;
+    	// VrComplex --> float
+	mod->demod = new GrMagnitude<VrComplex,float>();
 
 	break;
 	  }
-#endif
+
+  case RIG_MODE_FM:
+	  {
+	float volume = chan->levels[rig_setting2idx(RIG_LEVEL_AF)].f;
+
+	mod->centerfreq = kHz(10);
+    	// VrComplex --> float
+	mod->demod = new VrQuadratureDemod<float>(1);
+
+	break;
+	  }
 
   case RIG_MODE_NONE:
 	  /* ez */
-	break;  
+	chan->mode = mode;
+  	pthread_mutex_unlock(&priv->mutex_process);
+	return ret;
 
   default:
 	  ret = -RIG_EINVAL;
   }
+
+  // change_filt();
+     vector<float> channel_coeffs =
+      gr_firdes::low_pass (1.0,				// gain
+			   priv->input_rate,		// sampling rate
+			   width/2,			// low-pass cutoff freq
+			   300,				// width of transition band
+			   gr_firdes::WIN_HAMMING);
+
+  mod->mixer = new GrFreqXlatingFIRfilterCCF (1, channel_coeffs, mod->centerfreq);
+  mod->gainstage = new VrAmp<float,float>(1);
+
+  NWO_CONNECT (GR_SOURCE(priv), mod->mixer);
+  NWO_CONNECT (mod->mixer, mod->demod);
+  NWO_CONNECT (mod->demod, mod->gainstage);
+  NWO_CONNECT (mod->gainstage, priv->sink);
+
 
   priv->m->add (priv->sink);
   priv->m->start();
@@ -1083,61 +1126,8 @@ DECLARE_INITRIG_BACKEND(gnuradio)
 	rig_register(&gr_caps);
 	rig_register(&mc4020_caps);
 	rig_register(&graudio_caps);
+	rig_register(&graudioiq_caps);
 
 	return RIG_OK;
 }
 
-#if 0
-    VrGUI *guimain = 0;
-    VrGUILayout *horiz = 0;
-    VrGUILayout *vert = 0;
-
-
-    if (use_gui_p){
-      guimain = new VrGUI(argc, argv);
-      horiz = guimain->top->horizontal();
-      vert = horiz->vertical();
-    }
-
-    VrSink<VrComplex> *fft_sink1 = 0;
-    VrSink<float> *fft_sink2 = 0;
-    VrSink<short> *fft_sink3 = 0;
-
-    if (use_gui_p){
-      // sink1 is channel filter output
-      fft_sink1 = new GrFFTSink<VrComplex>(vert, 50, 130, 512);
-
-      // sink2 is fm demod output
-      fft_sink2 = new GrFFTSink<float>(vert, 40, 140, 512);
-
-      // sink3 is audio output
-      fft_sink3 = new GrFFTSink<short>(horiz, 40, 140, 512);
-    }
-
-    if (use_gui_p)
-      NWO_CONNECT (chan_filter, fft_sink1);
-
-    if (use_gui_p)
-      NWO_CONNECT (demod, fft_sink2);
-
-    if (use_gui_p)
-      NWO_CONNECT (audio_filter, fft_sink3);
-
-    VrMultiTask *m = new VrMultiTask ();
-    if (use_gui_p){
-      m->add (fft_sink1);
-      m->add (fft_sink3);
-      m->add (fft_sink2);
-    }
-
-    m->add (final_sink);
-
-        if (use_gui_p)
-      guimain->start ();
-
-    
-    while (1){
-      if (use_gui_p)
-	guimain->processEvents(10 /*ms*/);
-
-#endif

@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gnuradio.h,v 1.4 2003-04-16 22:30:40 fillods Exp $
+ *	$Id: gnuradio.h,v 1.5 2003-09-28 15:59:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,12 +58,14 @@ int gnuradio_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
 int mc4020_open(RIG *rig);
 int graudio_open(RIG *rig);
+int graudioiq_open(RIG *rig);
 
 extern const struct confparams gnuradio_cfg_params[];
 
 extern const struct rig_caps gr_caps;
 extern const struct rig_caps mc4020_caps;
 extern const struct rig_caps graudio_caps;
+extern const struct rig_caps graudioiq_caps;
 
 __END_DECLS
 

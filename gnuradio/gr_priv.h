@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - gnuradio priv structure
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: gr_priv.h,v 1.4 2003-04-06 18:50:21 fillods Exp $
+ *	$Id: gr_priv.h,v 1.5 2003-09-28 15:59:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,6 +34,7 @@
 //#include <VrAmplitudeDemod.h>	/* AM */
 #include <GrIIRfilter.h>
 #include <GrConvertFS.h>
+#include <VrAmp.h>
 
 /* SSB mod */
 //#include <GrSSBMod.h>
@@ -46,35 +47,11 @@
 #define IOTYPE short
 
 struct mod_data {
-	union {
-	struct {
-		/* FM demod */
-		VrQuadratureDemod<float> *demod;
-		float FMdemodGain;
-		GrFreqXlatingFIRfilterCCF *chan2_filter;
-		GrIIRfilter<float,float,double> *deemph;
-		GrConvertFS *cfs;
-	} fm;
-	struct {
-		/* WFM demod */
-		VrQuadratureDemod<float> *demod;
-		float FMdemodGain;
-	} wfm;
-#if 0
-	struct {
-		/* AM demod */
-		VrAmplitudeDemod<float> *demod;
-	} am;
-#endif
+	freq_t centerfreq;
+	GrFreqXlatingFIRfilterCCF *mixer;
+	VrAmp<float,float> *gainstage;
+	VrSigProc *demod;
 
-	struct {
-		/* SSB mod */
-#if 0
-		GrHilbert<short> *hilb;
-		GrSSBMod<short> *shifter;
-#endif
-	} ssb;
-	} demod;
 	int CFIRdecimate;
 	int CFIRdecimate2;
 	int RFIRdecimate;
@@ -99,9 +76,9 @@ struct gnuradio_priv_data {
 	shortfreq_t input_rate;
 	shortfreq_t IF_center_freq;
 
-	VrSource<IOTYPE> *source;	/*< IF source */
+	VrSource<VrComplex> *source;	/*< IF source */
 	VrFixOffset<IOTYPE,IOTYPE> *offset_fixer;	/*< some sources need it */
-	VrSink<short> *sink;		/*< Audio sink */
+	VrSink<float> *sink;		/*< Audio sink */
 	VrMultiTask *m;
 	int need_fixer;		/*< always need Offset fixer ? */
 
@@ -113,8 +90,10 @@ struct gnuradio_priv_data {
 };
 
 //#define GR_SOURCE(priv) ((priv)->need_fixer?(priv)->offset_fixer:(priv)->source)
-#define GR_SOURCE(priv) ((priv)->offset_fixer)
+//#define GR_SOURCE(priv) ((priv)->offset_fixer)
+#define GR_SOURCE(priv) ((priv)->source)
 
-#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate/2)
+//#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate/2)
+#define GR_MAX_FREQUENCY(priv) ((priv)->input_rate)
 
 #endif	/* _GR_PRIV_H */
