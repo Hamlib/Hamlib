@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.19 2004-08-10 22:41:41 fillods Exp $  
+ *    $Id: rigmatrix.c,v 1.20 2004-08-29 18:21:26 fineware Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -556,7 +556,7 @@ int main (int argc, char *argv[])
 	pbuf = prntbuf;
 	for (i = 0; i < 60; i++) {
 			setting_t func = rig_idx2setting(i);
-			const char *s = strfunc(func);
+			const char *s = rig_strfunc(func);
 			if (!s)
 					continue;
 			bitmap_func |= func;
@@ -586,7 +586,7 @@ int main (int argc, char *argv[])
 	pbuf = prntbuf;
 	for (i = 0; i < 60; i++) {
 			setting_t level = rig_idx2setting(i);
-			const char *s = strlevel(level);
+			const char *s = rig_strlevel(level);
 			if (!s)
 					continue;
 			bitmap_level |= level;
@@ -616,7 +616,7 @@ int main (int argc, char *argv[])
 	pbuf = prntbuf;
 	for (i = 0; i < 60; i++) {
 			setting_t parm = rig_idx2setting(i);
-			const char *s = strparm(parm);
+			const char *s = rig_strparm(parm);
 			if (!s)
 					continue;
 			bitmap_parm |= parm;
