@@ -51,9 +51,14 @@ AC_CHECK_TYPES([struct timezone, ssize_t],[],[],[
 dnl Checks for replacements
 AC_REPLACE_FUNCS([getopt getopt_long usleep gettimeofday])
 
-AC_CHECK_FUNC(Sleep,
-	[ AC_DEFINE(HAVE_SSLEEP,1,[Define to 1 if you have win32 Sleep]) ],
-	[], [])
+AC_MSG_CHECKING(for Sleep)
+AC_TRY_LINK([	#include <windows.h>
+		#include <winbase.h>
+		], [ Sleep(0); ],	
+		[AC_DEFINE(HAVE_SSLEEP,1,[Define to 1 if you have win32 Sleep])
+		AC_MSG_RESULT(yes)],
+		AC_MSG_RESULT(no)
+		)
 
 AH_BOTTOM(
 [
