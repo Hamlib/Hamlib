@@ -12,7 +12,7 @@
 
 int main (int argc, char *argv[])
 {
-	char b[5];
+	unsigned char b[5];
 	freq_t f=0;
 
 	if (argc != 2) {
