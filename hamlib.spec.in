@@ -19,6 +19,10 @@ BuildRequires: /bin/sh, automake >= 1.4, libtool >= 1.4, fileutils, findutils
 
 %changelog
 
+* Tue Oct 08 2003 Joop Stakenborg
+- Fix 'make rpm' again by disabling c++ bindings.
+- rotclass.h and rigclass.h go into the devel package for now (FIXME)
+
 * Wed Jan 15 2003 Joop Stakenborg
 - Fix the spec file for 1.1.4CVS
 - 'make rpm' should work now
@@ -98,7 +102,7 @@ Requires: hamlib
 %setup
 %build
 
-./configure --prefix=%prefix
+./configure --prefix=%prefix --without-cxx-binding
 make CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" all
 
 %install
@@ -181,6 +185,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644, root, root, 755)
 
 %{prefix}/include/hamlib/rig.h
+%{prefix}/include/hamlib/rigclass.h
+%{prefix}/include/hamlib/rotclass.h
 %{prefix}/include/hamlib/rig_dll.h
 %{prefix}/include/hamlib/riglist.h
 %{prefix}/include/hamlib/rotator.h
