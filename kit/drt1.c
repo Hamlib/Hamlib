@@ -1,8 +1,8 @@
 /*
- *  Hamlib KIT backend - Sat-Schneider DRT1 DRM receiver description
+ *  Hamlib KIT backend - Sat-Schneider DRT1/SAD1 DRM receiver description
  *  Copyright (c) 2004 by Stephane Fillod
  *
- *	$Id: drt1.c,v 1.1 2004-08-19 21:02:47 fillods Exp $
+ *	$Id: drt1.c,v 1.2 2004-11-27 13:40:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -47,7 +47,7 @@
 #define OSCFREQ 	MHz(45.012)
 #define IFMIXFREQ	MHz(45)
 #define REFMULT 	8
-#define CHARGE_PUMP_CURRENT	75
+#define CHARGE_PUMP_CURRENT	150
 
 struct drt1_priv_data {
 	freq_t osc_freq;
@@ -71,7 +71,7 @@ static const struct confparams drt1_cfg_params[] = {
 			"8", RIG_CONF_NUMERIC, { .n = { 4, 20, 1 } }
 	},
 	{ TOK_PUMPCRNT, "pump_current", "Charge pump current", "Charge pump current in uA",
-			"75", RIG_CONF_NUMERIC, { .n = { 75, 150, 25 } }
+			"150", RIG_CONF_NUMERIC, { .n = { 75, 150, 25 } }
 	},
 	{ RIG_CONF_END, NULL, }
 };
@@ -83,7 +83,7 @@ static int drt1_set_conf(RIG *rig, token_t token, const char *val);
 static int drt1_get_conf(RIG *rig, token_t token, char *val);
 
 /*
- * Sat-Service Schneider DRM tuner.
+ * SAT-Service Schneider DRM tuner.
  *
  * The receiver is controlled via the TX, RTS and DTR pins of the serial port.
  */
@@ -91,10 +91,10 @@ static int drt1_get_conf(RIG *rig, token_t token, char *val);
 const struct rig_caps drt1_caps = {
 .rig_model =  RIG_MODEL_DRT1,
 .model_name = "DRT1",
-.mfg_name =  "Sat-Schneider",
-.version =  "0.1",
+.mfg_name =  "SAT-Schneider",
+.version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
