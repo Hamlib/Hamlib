@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.5 2000-09-16 01:23:38 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.6 2000-09-16 21:23:06 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ typedef struct rig RIG;
 
 enum rig_port_e {
 	RIG_PORT_SERIAL = 0,
-	RIG_PORT_NETOWRK
+	RIG_PORT_NETWORK
 };
 
 enum serial_parity_e {
@@ -94,11 +94,16 @@ enum rig_rptr_shift_e {
 	RIG_RPT_SHIFT_PLUS
 }
 
+typedef enum rig_rptr_shift_e rig_rptr_shift_t;
+
 enum rig_vfo_e {
 	RIG_VFO_MAIN = 0,
 	RIG_VFO_RX,
 	RIG_VFO_TX,
-	RIG_VFO_SUB
+	RIG_VFO_SUB,
+	RIG_VFO_SAT_RX,
+	RIG_VFO_SAT_TX
+
 };
 
 typedef enum rig_vfo_e rig_vfo_t;
@@ -111,12 +116,12 @@ typedef long long freq_t;
 typedef unsigned int rig_mode_t;
 
 /* Do not use an enum since this will be used w/ rig_mode_t bit fields */
-#define RIG_MODE_AM		(1<<0)
-#define RIG_MODE_CW		(1<<1)
+#define RIG_MODE_AM    	(1<<0)
+#define RIG_MODE_CW    	(1<<1)
 #define RIG_MODE_USB	(1<<2)	 /* select somewhere else the filters ? */
 #define RIG_MODE_LSB	(1<<3)
 #define RIG_MODE_RTTY	(1<<4)
-#define RIG_MODE_FM		(1<<5)
+#define RIG_MODE_FM    	(1<<5)
 #define RIG_MODE_NFM	(1<<6)	/* should we distinguish modes w/ filers? */
 #define RIG_MODE_WFM	(1<<7)
 #define RIG_MODE_NAM	(1<<8)	/* Narrow AM */
@@ -176,12 +181,22 @@ struct rig_caps {
 	int retry;		/* maximum number of retries, 0 to disable */
 	struct freq_range_list rx_range_list[FRQRANGESIZ];
 	struct freq_range_list tx_range_list[FRQRANGESIZ];
+
 	int (*rig_init)(RIG *rig);	/* setup *priv */
 	int (*rig_cleanup)(RIG *rig);
 	int (*rig_open)(RIG *rig);	/* called when port just opened */
 	int (*rig_close)(RIG *rig);	/* called before port is to close */
 	int (*rig_probe)(RIG *rig); /* Experimental: may work.. */
+  
+       /* cmd API below */
 	int (*set_freq_main_vfo_hz)(RIG *rig, freq_t freq, rig_mode_t mode);
+
+  /*
+    int (*set_freq)(RIG *rig, freq_t freq);
+    int (*set_mode)(RIG *rig, rig_mode_t mode);
+    int (*set_vfo)(RIG *rig, rig_vfo_t vfo);
+  */
+
 /* etc... */
 
 };
