@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.44 2004-03-20 10:25:36 fillods Exp $
+ *	$Id: riglist.h,v 1.45 2004-04-16 20:01:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -306,7 +306,7 @@
 #define RIG_MODEL_TRP9000 RIG_MAKE_MODEL(RIG_SKANTI, 3)
 
 	/*
-	 * WiNRADiO/LinRADiO, by Rosetta Labs
+	 * WiNRADiO/LinRADiO
 	 */
 #define RIG_WINRADIO 15
 #define RIG_BACKEND_WINRADIO "winradio"
@@ -317,6 +317,7 @@
 #define RIG_MODEL_WR3150 RIG_MAKE_MODEL(RIG_WINRADIO, 5)
 #define RIG_MODEL_WR3500 RIG_MAKE_MODEL(RIG_WINRADIO, 6)
 #define RIG_MODEL_WR3700 RIG_MAKE_MODEL(RIG_WINRADIO, 7)
+#define RIG_MODEL_G303 RIG_MAKE_MODEL(RIG_WINRADIO, 8)
 
 	/*
 	 * Ten Tec
@@ -399,6 +400,13 @@
 #define RIG_BACKEND_RFT "rft"
 #define RIG_MODEL_EKD500 RIG_MAKE_MODEL(RIG_RFT, 1)
 
+	/*
+	 * Various kits
+	 */
+#define RIG_KIT 25
+#define RIG_BACKEND_KIT "kit"
+#define RIG_MODEL_ELEKTOR304 RIG_MAKE_MODEL(RIG_KIT, 1)
+
 
 	/*
 	 * TODO:
@@ -446,6 +454,7 @@ typedef int rig_model_t;
 		{ RIG_TAPR, RIG_BACKEND_TAPR }, \
 		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
 		{ RIG_RFT, RIG_BACKEND_RFT }, \
+		{ RIG_KIT, RIG_BACKEND_KIT }, \
 		{ 0, NULL }, /* end */  \
 }
 
