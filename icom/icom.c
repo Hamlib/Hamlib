@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.19 2001-03-01 21:21:23 f4cfe Exp $  
+ * $Id: icom.c,v 1.20 2001-03-02 18:33:27 f4cfe Exp $  
  *
  *
  *
@@ -406,6 +406,10 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 /*
  * icom_get_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL, mode!=NULL, width!=NULL
+ *
+ * TODO: some IC781's, when sending mode info, in wide filter mode, no
+ * 	width data is send along, making the frame 1 byte short.
+ * 	(Thank to Mel, VE2DC for this info)
  */
 int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -1436,6 +1440,179 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 }
 
 /*
+ * icom_set_ctcss
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Warning! This is untested stuff! May work at least on 756PRO and IC746.
+ * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
+ */
+int icom_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone)
+{
+		const struct rig_caps *caps;
+		unsigned char tonebuf[16], ackbuf[16];
+		int tone_len, ack_len;
+		int i;
+
+		caps = rig->caps;
+
+		/*
+		 * I don't have documentation for this function,
+		 * and I can't experiment (no hardware), so let's guess.
+		 * Most probably, it might be the index of the CTCSS subaudible
+		 * tone, and not the tone itself, starting from zero. 
+		 *
+		 * Something in the range of 00..51, BCD big endian
+		 * Please someone let me know if it works this way. --SF
+		 */
+		for (i = 0; caps->ctcss_list[i] != 0 && i<200; i++) {
+				if (caps->ctcss_list[i] == tone)
+						break;
+		}
+		if (caps->ctcss_list[i] != tone)
+				return -RIG_EINVAL;
+
+		tone_len = 1;
+		to_bcd_be(tonebuf, (long long)caps->ctcss_list[i], tone_len*2);
+
+		icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, tonebuf, tone_len, 
+												ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ctcss: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_get_ctcss
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone)
+{
+		const struct rig_caps *caps;
+		unsigned char tonebuf[16];
+		int tone_len, tone_idx;
+		int i;
+
+		caps = rig->caps;
+
+		/*
+		 * see icom_set_ctcss for discussion on the untested status!
+		 */
+
+		icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, NULL, 0, 
+												tonebuf, &tone_len);
+
+		if (tone_len != 3) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss: ack NG (%#.2x), "
+								"len=%d\n", tonebuf[0], tone_len);
+				return -RIG_ERJCTED;
+		}
+
+		tone_len -= 2;
+		tone_idx = from_bcd_be(tonebuf, tone_len*2);
+
+		/* check this tone exists. That's better than nothing. */
+		for (i = 0; i<=tone_idx; i++) {
+				if (caps->ctcss_list[i] == 0) {
+						rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss: CTCSS NG "
+								"(%#.2x)\n", tonebuf[2]);
+						return -RIG_EPROTO;
+				}
+		}
+		*tone = caps->ctcss_list[tone_idx];
+
+		return RIG_OK;
+}
+
+/*
+ * icom_set_ctcss_sql
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Warning! This is untested stuff! May work at least on 756PRO and IC746.
+ * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
+ */
+int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
+{
+		const struct rig_caps *caps;
+		unsigned char tonebuf[16], ackbuf[16];
+		int tone_len, ack_len;
+		int i;
+
+		caps = rig->caps;
+
+		/*
+		 * see icom_set_ctcss for discussion on the untested status!
+		 */
+
+		for (i = 0; caps->ctcss_list[i] != 0 && i<200; i++) {
+				if (caps->ctcss_list[i] == tone)
+						break;
+		}
+		if (caps->ctcss_list[i] != tone)
+				return -RIG_EINVAL;
+
+		tone_len = 1;
+		to_bcd_be(tonebuf, (long long)caps->ctcss_list[i], tone_len*2);
+
+		icom_transaction(rig, C_SET_TONE, S_TONE_SQL, tonebuf, tone_len, 
+												ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ctcss_sql: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_get_ctcss_sql
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
+{
+		const struct rig_caps *caps;
+		unsigned char tonebuf[16];
+		int tone_len, tone_idx;
+		int i;
+
+		caps = rig->caps;
+
+		/*
+		 * see icom_set_ctcss for discussion on the untested status!
+		 */
+
+		icom_transaction(rig, C_SET_TONE, S_TONE_SQL, NULL, 0, 
+												tonebuf, &tone_len);
+
+		if (tone_len != 3) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_sql: ack NG (%#.2x), "
+								"len=%d\n", tonebuf[0], tone_len);
+				return -RIG_ERJCTED;
+		}
+
+		tone_len -= 2;
+		tone_idx = from_bcd_be(tonebuf, tone_len*2);
+
+		/* check this tone exists. That's better than nothing. */
+		for (i = 0; i<=tone_idx; i++) {
+				if (caps->ctcss_list[i] == 0) {
+						rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_sql: CTCSS NG "
+								"(%#.2x)\n", tonebuf[2]);
+						return -RIG_EPROTO;
+				}
+		}
+		*tone = caps->ctcss_list[tone_idx];
+
+		return RIG_OK;
+}
+
+/*
  * icom_set_channel
  * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
  * TODO: still a WIP --SF
@@ -1536,20 +1713,22 @@ int icom_get_channel(RIG *rig, channel_t *chan)
 }
 
 
-
 /*
- * icom_set_poweron
+ * icom_set_powerstat
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_poweron(RIG *rig)
+int icom_set_powerstat(RIG *rig, powerstat_t status)
 {
 		unsigned char ackbuf[16];
 		int ack_len;
+		int pwr_sc;
 
-		icom_transaction(rig, C_SET_PWR, S_PWR_ON, NULL, 0, ackbuf, &ack_len);
+		pwr_sc = status==RIG_POWER_ON ? S_PWR_ON:S_PWR_OFF;
+
+		icom_transaction(rig, C_SET_PWR, pwr_sc, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_poweron: ack NG (%#.2x), "
+				rig_debug(RIG_DEBUG_ERR,"icom_set_powerstat: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
@@ -1558,24 +1737,26 @@ int icom_set_poweron(RIG *rig)
 }
 
 /*
- * icom_set_poweroff
+ * icom_get_powerstat
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_set_poweroff(RIG *rig)
+int icom_get_powerstat(RIG *rig, powerstat_t *status)
 {
 		unsigned char ackbuf[16];
 		int ack_len;
 
-		icom_transaction(rig, C_SET_PWR, S_PWR_OFF, NULL, 0, ackbuf, &ack_len);
+		icom_transaction(rig, C_SET_PWR, -1, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_poweroff: ack NG (%#.2x), "
+				rig_debug(RIG_DEBUG_ERR,"icom_get_powerstat: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
+		*status = ackbuf[1] == S_PWR_ON ? RIG_POWER_ON : RIG_POWER_OFF;
 
 		return RIG_OK;
 }
+
 
 /*
  * icom_set_mem
@@ -1769,6 +1950,8 @@ int init_icom(void *be_handle)
 		rig_register(&ic706mkiig_caps);
 
 		rig_register(&icr8500_caps);
+
+		rig_register(&icall_caps);
 
 		return RIG_OK;
 }
