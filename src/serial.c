@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.16 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: serial.c,v 1.17 2001-07-25 21:59:55 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -101,14 +101,14 @@ int serial_open(port_t *rp) {
   /*
    * Open in Non-blocking mode. Watch for EAGAIN errors!
    */
-  fd = open(rp->path, O_RDWR | O_NOCTTY | O_NDELAY);
+  fd = open(rp->pathname, O_RDWR | O_NOCTTY | O_NDELAY);
 
   if (fd == -1) {
     
     /* Could not open the port. */
     
     rig_debug(RIG_DEBUG_ERR, "serial_open: Unable to open %s - %s\n", 
-						rp->path, strerror(errno));
+						rp->pathname, strerror(errno));
     return -RIG_EIO;
   }
  
@@ -612,7 +612,7 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
 #if defined(_WIN32) || defined(__CYGWIN__)
 int ser_open(port_t *p)
 {
-	const char *path = p->path;
+	const char *path = p->pathname;
 	HANDLE h;
 	DCB dcb;
 
@@ -634,7 +634,7 @@ int ser_open(port_t *p)
 #else
 int ser_open(port_t *p)
 {
-		return (p->fd = open(p->path, O_RDWR | O_NOCTTY));
+		return (p->fd = open(p->pathname, O_RDWR | O_NOCTTY));
 }
 #endif
 
@@ -774,7 +774,7 @@ int par_open(port_t *p)
 {
 		int fd;
 
-		fd = open(p->path, O_RDWR);
+		fd = open(p->pathname, O_RDWR);
 #ifdef HAVE_LINUX_PPDEV_H
 		ioctl(fd, PPCLAIM);
 #endif

@@ -37,7 +37,7 @@ int main (int argc, char *argv[])
 			myport.parm.serial.stop_bits = 1;
 			myport.parm.serial.parity = RIG_PARITY_NONE;
 			myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-			strncpy(myport.path, SERIAL_PORT, FILPATHLEN);
+			strncpy(myport.pathname, SERIAL_PORT, FILPATHLEN);
 
 			rig_load_all_backends();
 			myrig_model = rig_probe(&myport);
@@ -53,7 +53,7 @@ int main (int argc, char *argv[])
 		exit(1); /* whoops! something went wrong (mem alloc?) */
 	}
 
-	strncpy(my_rig->state.rigport.path,SERIAL_PORT,FILPATHLEN);
+	strncpy(my_rig->state.rigport.pathname,SERIAL_PORT,FILPATHLEN);
 
 	retcode = rig_open(my_rig);
 	if (retcode != RIG_OK) {

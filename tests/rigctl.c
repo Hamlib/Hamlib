@@ -7,7 +7,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.19 2001-07-20 11:09:26 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.20 2001-07-25 21:59:55 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -309,7 +309,7 @@ int main (int argc, char *argv[])
 	}
 
 	if (rig_file)
-		strncpy(my_rig->state.rigport.path, rig_file, FILPATHLEN);
+		strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN);
 
 	/* 
 	 * ex: RIG_PTT_PARALLEL and /dev/parport0
@@ -319,9 +319,9 @@ int main (int argc, char *argv[])
 	if (dcd_type != RIG_DCD_NONE)
 		my_rig->state.dcdport.type.dcd = dcd_type;
 	if (ptt_file)
-		strncpy(my_rig->state.pttport.path, ptt_file, FILPATHLEN);
+		strncpy(my_rig->state.pttport.pathname, ptt_file, FILPATHLEN);
 	if (dcd_file)
-		strncpy(my_rig->state.dcdport.path, dcd_file, FILPATHLEN);
+		strncpy(my_rig->state.dcdport.pathname, dcd_file, FILPATHLEN);
 
 	if ((retcode = rig_open(my_rig)) != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));

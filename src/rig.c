@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.42 2001-07-21 13:00:03 f4cfe Exp $
+ *		$Id: rig.c,v 1.43 2001-07-25 21:59:55 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -280,7 +280,7 @@ RIG *rig_init(rig_model_t rig_model)
 		rs = &rig->state;
 
 		rs->rigport.type.rig = caps->port_type; /* default from caps */
-		strncpy(rs->rigport.path, DEFAULT_SERIAL_PORT, FILPATHLEN);
+		strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
 		rs->rigport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
 		rs->rigport.parm.serial.data_bits = caps->serial_data_bits;
 		rs->rigport.parm.serial.stop_bits = caps->serial_stop_bits;
@@ -398,7 +398,7 @@ int rig_open(RIG *rig)
 				break;
 
 		case RIG_PORT_DEVICE:
-				status = open(rig->state.rigport.path, O_RDWR, 0);
+				status = open(rig->state.rigport.pathname, O_RDWR, 0);
 				if (status < 0)
 						return -RIG_EIO;
 				rig->state.rigport.fd = status;
@@ -426,13 +426,13 @@ int rig_open(RIG *rig)
 				rig->state.pttport.fd = ser_open(&rig->state.pttport);
 				if (rig->state.pttport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-								rig->state.pttport.path);
+								rig->state.pttport.pathname);
 				break;
 		case RIG_PTT_PARALLEL:
 				rig->state.pttport.fd = par_open(&rig->state.pttport);
 				if (rig->state.pttport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-								rig->state.pttport.path);
+								rig->state.pttport.pathname);
 				break;
 		default:
 				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
@@ -448,13 +448,13 @@ int rig_open(RIG *rig)
 				rig->state.dcdport.fd = ser_open(&rig->state.dcdport);
 				if (rig->state.dcdport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-								rig->state.dcdport.path);
+								rig->state.dcdport.pathname);
 				break;
 		case RIG_DCD_PARALLEL:
 				rig->state.dcdport.fd = par_open(&rig->state.dcdport);
 				if (rig->state.dcdport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-								rig->state.dcdport.path);
+								rig->state.dcdport.pathname);
 				break;
 		default:
 				rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",

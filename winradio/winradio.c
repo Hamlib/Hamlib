@@ -3,7 +3,7 @@
  *  Copyright (C) 2001 pab@users.sourceforge.net
  *  Derived from hamlib code (C) 2000,2001 Stephane Fillod.
  *
- *		$Id: winradio.c,v 1.13 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: winradio.c,v 1.14 2001-07-25 21:59:55 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,7 +57,7 @@
 
 int wr_rig_init(RIG *rig) {
   rig->state.rigport.type.rig = RIG_PORT_DEVICE;
-  strncpy(rig->state.rigport.path, DEFAULT_WINRADIO_PATH, FILPATHLEN);
+  strncpy(rig->state.rigport.pathname, DEFAULT_WINRADIO_PATH, FILPATHLEN);
 
   return RIG_OK;
 }
