@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.44 2003-08-17 22:39:07 fillods Exp $  
+ * $Id: rigctl.c,v 1.45 2003-08-25 22:38:08 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +40,11 @@
 #include <hamlib/rig.h>
 #include "misc.h"
 
-
+#ifdef _WIN32
+#define LLFMT "Ll"
+#else
+#define LLFMT "L"
+#endif
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100	/* max number of different options */
@@ -780,7 +784,7 @@ declare_proto_rig(set_freq)
 {
 		freq_t freq;
 
-		sscanf(arg1, "%lld", &freq);
+		sscanf(arg1, "%"LLFMT"d", &freq);
 		return rig_set_freq(rig, vfo, freq);
 }
 
@@ -1017,7 +1021,7 @@ declare_proto_rig(set_split_freq)
 {
 		freq_t txfreq;
 
-		sscanf(arg1, "%lld", &txfreq);
+		sscanf(arg1, "%"LLFMT"d", &txfreq);
 		return rig_set_split_freq(rig, vfo, txfreq);
 }
 
@@ -1128,7 +1132,7 @@ declare_proto_rig(power2mW)
 		printf("Power [0.0 .. 1.0]: ");
 		scanf("%f", &power);
 		printf("Frequency: ");
-		scanf("%lld", &freq);
+		scanf("%"LLFMT"d", &freq);
 		printf("Mode: ");
 		scanf("%d", &mode);
 		status = rig_power2mW(rig, &mwp, power, freq, mode);
