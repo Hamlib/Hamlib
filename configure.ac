@@ -272,7 +272,7 @@ case "$host_os" in
  *) 
 esac
 
-# assumes we have libgnuradio, libfftw
+# FIXME: check for presence of libgnuradio, libfftw
 if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_CHECKING(whether to build gnuradio backend)
   AC_ARG_WITH(gnuradio,
@@ -285,6 +285,20 @@ if test "${cf_with_cxx}" = "yes" ; then
   	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.5)
 	BACKEND_LIST="$BACKEND_LIST gnuradio"
   fi
+ 
+  # So far, microtune has only support on Linux x86.
+  # BTW, any platform with a parallel support may support it in the future
+
+  AC_MSG_CHECKING(whether to build microtune backend)
+  AC_ARG_WITH(microtune,
+        [  --with-microtune	build microtune backend],
+        [cf_with_microtune=$withval],
+        [cf_with_microtune="no"])
+  AC_MSG_RESULT($cf_with_microtune)
+
+  if test "${cf_with_microtune}" = "yes" ; then
+	BACKEND_LIST="$BACKEND_LIST microtune"
+  fi
 fi
 
 AC_SUBST(GNURADIO_CFLAGS)
@@ -296,13 +310,19 @@ AC_MSG_CHECKING(whether to build rpc backends)
 # RPCRig must be the last one added to BACKEND_LIST 
 # because it links against other backends (build order)
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" -a "${cf_with_rpcgen}" = "yes"; then
+	cf_with_rpc=yes
+else
+	cf_with_rpc=no
+fi
+AC_ARG_WITH(rpc-backends,
+        [  --without-rpc-backends   do not build rpcrig and rpcrot backends],
+        [cf_with_rpc_backends=$withval],
+        [cf_with_rpc_backends=$cf_with_rpc])
+AC_MSG_RESULT($cf_with_rpc_backends)
+if test "${cf_with_rpc_backends}" = "yes"; then
     BACKEND_LIST="$BACKEND_LIST rpcrig"
     ROT_BACKEND_LIST="$ROT_BACKEND_LIST rpcrot"
-    AC_MSG_RESULT([yes])
-else
-    AC_MSG_RESULT([no])
 fi
-
 
 # dlopen force or preopen self for static version ?
 BACKENDLNK="-dlopen force"
@@ -386,6 +406,7 @@ bindings/Makefile
 tests/Makefile
 doc/Makefile
 rotorez/Makefile
+microtune/Makefile
 hamlib.pc
 hamlib.spec]
 )
