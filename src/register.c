@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: register.c,v 1.12 2001-12-16 20:02:12 fillods Exp $
+ *		$Id: register.c,v 1.13 2001-12-19 03:54:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -295,9 +295,9 @@ int rig_load_backend(const char *be_name)
 	/*
 	 * add hamlib directory here
 	 */
-	snprintf (libname, sizeof (libname), PREFIX"%s"POSTFIX, be_name);
+	snprintf (libname, sizeof (libname), PREFIX"%s", be_name);
 
-	be_handle = lt_dlopen (libname);
+	be_handle = lt_dlopenext (libname);
 
 	/*
 	 * external module not found? try dlopenself for backends 
