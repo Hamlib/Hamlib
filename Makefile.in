@@ -87,6 +87,9 @@ OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
+ROT_BACKENDEPS = @ROT_BACKENDEPS@
+ROT_BACKENDLNK = @ROT_BACKENDLNK@
+ROT_BACKEND_LIST = @ROT_BACKEND_LIST@
 STRIP = @STRIP@
 VERSION = @VERSION@
 am__include = @am__include@
@@ -99,7 +102,9 @@ aclocal_DATA = hamlib.m4
 
 EXTRA_DIST = PLAN TODO LICENSE hamlib.m4
 
-SUBDIRS = include lib libltdl src @BACKEND_LIST@ c++ tcl tests doc
+SUBDIRS = include lib libltdl src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
+          c++ tcl tests doc
+
 
 DIST_SUBDIRS = include lib libltdl src c++ tcl tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
