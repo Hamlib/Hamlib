@@ -9939,7 +9939,7 @@ for be in ${BACKEND_LIST} ; do
 	BACKENDEPS="${BACKENDEPS} ../${be}/libhamlib-${be}.la"
 done
 
-ac_config_files="$ac_config_files Makefile include/Makefile include/hamlib/Makefile lib/Makefile dummy/Makefile yaesu/Makefile icom/Makefile aor/Makefile kenwood/Makefile winradio/Makefile winradio/linradio/Makefile pcr/Makefile alinco/Makefile uniden/Makefile tentec/Makefile kachina/Makefile rpc/Makefile src/Makefile c++/Makefile tcl/Makefile tests/Makefile doc/Makefile hamlib.spec"
+ac_config_files="$ac_config_files Makefile include/Makefile include/hamlib/Makefile lib/Makefile dummy/Makefile yaesu/Makefile icom/Makefile aor/Makefile kenwood/Makefile winradio/Makefile winradio/linradio/Makefile pcr/Makefile alinco/Makefile uniden/Makefile tentec/Makefile kachina/Makefile rpcrig/Makefile src/Makefile c++/Makefile tcl/Makefile tests/Makefile doc/Makefile hamlib.spec"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -10276,7 +10276,7 @@ do
   "uniden/Makefile" ) CONFIG_FILES="$CONFIG_FILES uniden/Makefile" ;;
   "tentec/Makefile" ) CONFIG_FILES="$CONFIG_FILES tentec/Makefile" ;;
   "kachina/Makefile" ) CONFIG_FILES="$CONFIG_FILES kachina/Makefile" ;;
-  "rpc/Makefile" ) CONFIG_FILES="$CONFIG_FILES rpc/Makefile" ;;
+  "rpcrig/Makefile" ) CONFIG_FILES="$CONFIG_FILES rpcrig/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "c++/Makefile" ) CONFIG_FILES="$CONFIG_FILES c++/Makefile" ;;
   "tcl/Makefile" ) CONFIG_FILES="$CONFIG_FILES tcl/Makefile" ;;
