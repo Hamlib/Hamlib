@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - SDR-1000
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.2 2003-09-28 15:36:57 fillods Exp $
+ *	$Id: sdr1k.c,v 1.3 2003-10-07 22:21:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,9 +27,7 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -50,16 +48,36 @@ static int sdr1k_set_ptt (RIG *rig, vfo_t vfo, ptt_t ptt);
 
 typedef enum { L_EXT = 0, L_BAND = 1, L_DDS0 = 2, L_DDS1 = 3 } latch_t;
 
-static void write_latch (RIG *rig, latch_t which, int value, int mask);
-static void write_reg (RIG *rig, int addr, int data);
-static void set_bit (RIG *rig, latch_t reg, int bit, int state);
+#define TR	0x40
+#define MUTE	0x80
+#define GAIN	0x80
+#define WRB	0x40
+#define RESET	0x80
+
+/* DDS Control Constants */
+#define COMP_PD		0x10	/* DDS Comparator power down */
+#define DIG_PD		0x01	/* DDS Digital Power down */
+#define BYPASS_PLL	0x20	/* Bypass DDS PLL */
+#define INT_IOUD	0x01	/* Internal IO Update */
+#define OSK_EN		0x20	/* Offset Shift Keying enable */
+#define OSK_INT		0x10	/* Offset Shift Keying */
+#define BYPASS_SINC	0x40	/* Bypass Inverse Sinc Filter */
+#define PLL_RANGE	0x40	/* Set PLL Range */
+
+static int write_latch (RIG *rig, latch_t which, unsigned value, unsigned mask);
+static int dds_write_reg (RIG *rig, unsigned addr, unsigned data);
+static int set_bit (RIG *rig, latch_t reg, unsigned bit, unsigned state);
 
 
 #define DEFAULT_XTAL MHz(200)
+#define DEFAULT_PLL_MULT 1
+#define DEFAULT_DAC_MULT 4095
 
 struct sdr1k_priv_data {
-  int	shadow[4];	/* shadow latches */
+  unsigned	shadow[4];	/* shadow latches */
+  freq_t	dds_freq;	/* current freq */
   freq_t	xtal;		/* base XTAL */
+  int	pll_mult;		/* PLL mult */
 };
 
 
@@ -95,14 +113,18 @@ struct sdr1k_priv_data {
  *      assert (pin < 8 and pin > 0), "Out of range 1..7"
  *      self.set_bit(0, pin-1, on)
  *
- *    set_conf(XTAL)
+ *    def read_input_pin
+ *
+ *    set_conf(XTAL,PLL_mult,spur_red)
+ *
+ *    What about IOUD_Clock?
  */
 
 const struct rig_caps sdr1k_rig_caps = {
   .rig_model =      RIG_MODEL_SDR1000,
   .model_name =     "SDR-1000",
   .mfg_name =       "Flex-radio",
-  .version =        "0.1.1",
+  .version =        "0.1.2",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_NEW,
   .rig_type =       RIG_TYPE_TUNER,
@@ -124,7 +146,7 @@ const struct rig_caps sdr1k_rig_caps = {
   .vfo_ops = 	 RIG_OP_NONE,
   .transceive =     RIG_TRN_OFF,
   .attenuator =     { RIG_DBLST_END, },
-  .preamp = 	 { 20, RIG_DBLST_END, },
+  .preamp = 	 { 14, RIG_DBLST_END, },
 
   .rx_range_list1 =  { {.start=Hz(1),.end=MHz(65),.modes=SDR1K_MODES,
 		    .low_power=-1,.high_power=-1,SDR1K_VFO},
@@ -187,8 +209,9 @@ int sdr1k_init(RIG *rig)
 		return -RIG_ENOMEM;
 	}
 
-	rig->state.current_freq = RIG_FREQ_NONE;
+	priv->dds_freq = RIG_FREQ_NONE;
 	priv->xtal = DEFAULT_XTAL;
+	priv->pll_mult = DEFAULT_PLL_MULT;
 
 	rig->state.priv = (void*)priv;
 
@@ -197,7 +220,8 @@ int sdr1k_init(RIG *rig)
 
 static void pdelay(RIG *rig)
 {
-	usleep(1);
+	unsigned char r;
+	par_read_data(&rig->state.rigport, &r);	/* ~1us */
 }
 
 int sdr1k_open(RIG *rig)
@@ -211,15 +235,12 @@ int sdr1k_open(RIG *rig)
 
 	sdr1k_reset(rig, 1);
 
-	write_latch (rig, L_DDS1, 0x00, 0xC0); /* Reset low, WRS/ low */
-	write_reg (rig, 0x20, 0x40);
-
 	return RIG_OK;
 }
 
 int sdr1k_close(RIG *rig)
 {
-	/* place holder.. */
+	/* TODO: release relays? */
 
 	return RIG_OK;
 }
@@ -236,11 +257,9 @@ int sdr1k_cleanup(RIG *rig)
 	return RIG_OK;
 }
 
-int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int set_band(RIG *rig, freq_t freq)
 {
-	struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
-	int i, band;
-	double ftw;
+	int band, ret;
 
 	/* set_band */
         if (freq <= MHz(2.25))
@@ -256,65 +275,136 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	else
 		band = 5;
 
+	ret = write_latch (rig, L_BAND, 1 << band, 0x3f);
+
 	rig_debug(RIG_DEBUG_VERBOSE, "%s %lld band %d\n", __FUNCTION__, freq, band);
 
-	write_latch (rig, L_BAND, 1 << band, 0x3f);
+	return ret;
+}
 
-	ftw = (double)freq / priv->xtal ;
+/*
+ * set DDS frequency.
+ * NB: due to spur reduction, effective frequency might not be the expected one
+ */
+int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+	struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
+	int i;
+	double ftw;
+	double DDS_step_size;
+	freq_t frqval;
+	int spur_red = 1;
+	int ret;
 
-	for (i = 0; i<6; i++) {
-		int word;
+	ret = set_band(rig, freq);
+	if (ret != RIG_OK)
+		return ret;
 
-		word = (int)(ftw * 256);
-		ftw = ftw*256 - word;
-		rig_debug(RIG_DEBUG_TRACE, "DDS %d [%02x]\n", i, word);
-		write_reg (rig, 4+i, word);
+	/* Calculate DDS step for spu reduction
+	 * DDS steps = 3051.7578125Hz
+	 */
+	DDS_step_size = ((double)priv->xtal * priv->pll_mult ) / 65536;
+	rig_debug(RIG_DEBUG_VERBOSE, "%s DDS step size %g %g %g\n", __FUNCTION__, DDS_step_size, (double)freq / DDS_step_size,
+			rint((double)freq / DDS_step_size));
+	if (spur_red)
+		frqval = (freq_t) (DDS_step_size * rint((double)freq / DDS_step_size));
+	else
+		frqval = freq;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s curr %lld frqval %lld\n", __FUNCTION__, freq, frqval);
+
+	if (priv->dds_freq == frqval) {
+		return RIG_OK;
 	}
 
-	return RIG_OK;
+	/*** */
+	ftw = (double)frqval / priv->xtal ;
+
+	for (i = 0; i<6; i++) {
+		unsigned word;
+
+		if (spur_red && i==2)
+			word = 128;
+		else if (spur_red && i>2)
+			word = 0;
+		else {
+			word = (unsigned)(ftw * 256);
+			ftw = ftw*256 - word;
+		}
+		rig_debug(RIG_DEBUG_TRACE, "DDS %d [%02x]\n", i, word);
+
+		ret = dds_write_reg (rig, 4+i, word);
+		if (ret != RIG_OK)
+			return ret;
+	}
+
+	priv->dds_freq = frqval;
+
+	return ret;
 }
 
 int sdr1k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	*freq = rig->state.current_freq;
+	struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
+
+	*freq = priv->dds_freq;
+	rig_debug(RIG_DEBUG_TRACE,"%s: %lld\n", __FUNCTION__, priv->dds_freq);
+
 	return RIG_OK;
 }
 
+/* Set DAC multiplier value */
+static int DAC_mult(RIG *rig, unsigned mult)
+{
+	rig_debug(RIG_DEBUG_TRACE, "DAC [%02x,%02x]\n", mult>>8, mult&0xff);
 
+	/* Output Shape Key I Mult */
+	dds_write_reg (rig, 0x21, mult >> 8);
+	dds_write_reg (rig, 0x22, mult & 0xff);
+
+	/* Output Shape Key Q Mult */
+	dds_write_reg (rig, 0x23, mult >> 8);
+	dds_write_reg (rig, 0x24, mult & 0xff);
+
+	return RIG_OK;
+}
 
 int sdr1k_reset (RIG *rig, reset_t reset)
 {
-  port_t *pport = &rig->state.rigport;
-
-  par_lock (pport);
-  par_write_control (pport, 0x0F);
-  pdelay(rig);
-  par_unlock (pport);
-  write_latch (rig, L_EXT,  0x00, 0xff);
+  /* Reset all Latches (relays off) */
   write_latch (rig, L_BAND, 0x00, 0xff);
-  write_latch (rig, L_DDS0, 0x80, 0xff);	/* hold DDS in reset */
   write_latch (rig, L_DDS1, 0x00, 0xff);
+  write_latch (rig, L_DDS0, 0x00, 0xff);
+  write_latch (rig, L_EXT,  0x00, 0xff);
+
+  /* Reset DDS */
+  write_latch (rig, L_DDS1, RESET|WRB, 0xff);	/* reset the DDS chip */
+  write_latch (rig, L_DDS1, WRB, 0xff);		/* leave WRB high */
+
+  dds_write_reg (rig, 0x1d, COMP_PD);		/* Power down comparator */
+  /* TODO: add PLL multiplier property and logic */
+  dds_write_reg (rig, 0x1e, BYPASS_PLL);	/* Bypass PLL */
+
+  dds_write_reg (rig, 0x20, BYPASS_SINC|OSK_EN);/* Bypass Inverse Sinc and enable DAC */
+  DAC_mult(rig, DEFAULT_DAC_MULT);	/* Set DAC multiplier value */
 
   return RIG_OK;
 }
 
 int sdr1k_set_ptt (RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	set_bit(rig, 1, 6, ptt == RIG_PTT_ON);
-
-	return RIG_OK;
+	return set_bit(rig, L_BAND, 6, ptt == RIG_PTT_ON);
 }
   
 
-
-void
-write_latch (RIG *rig, latch_t which, int value, int mask)
+int
+write_latch (RIG *rig, latch_t which, unsigned value, unsigned mask)
 {
   struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
   port_t *pport = &rig->state.rigport;
 
-  if (!(0 <= which && which <= 3))
-    return;
+  if (!(L_EXT <= which && which <= L_DDS1))
+    return -RIG_EINVAL;
   
   par_lock (pport);
   priv->shadow[which] = (priv->shadow[which] & ~mask) | (value & mask);
@@ -325,25 +415,44 @@ write_latch (RIG *rig, latch_t which, int value, int mask)
   par_write_control (pport, 0x0F);
   pdelay(rig);
   par_unlock (pport);
+
+  return RIG_OK;
 }
 
 
-void
-write_reg (RIG *rig, int addr, int data)
+int
+dds_write_reg (RIG *rig, unsigned addr, unsigned data)
 {
+#if 0
 	write_latch (rig, L_DDS1, addr & 0x3f, 0x3f);
 	write_latch (rig, L_DDS0, data, 0xff);
 	write_latch (rig, L_DDS1, 0x40, 0x40);
 	write_latch (rig, L_DDS1, 0x00, 0x40);
+#else
+	/* set up data bits */
+	write_latch (rig, L_DDS0, data, 0xff);
+
+	/* set up address bits with WRB high */
+	//write_latch (rig, L_DDS1, addr & 0x3f, 0x3f);
+	write_latch (rig, L_DDS1, WRB | addr, 0xff);
+
+	/* send write command with WRB low */
+	write_latch (rig, L_DDS1, addr, 0xff);
+
+	/* return WRB high */
+	write_latch (rig, L_DDS1, WRB, 0xff);
+#endif
+
+	return RIG_OK;
 }
 
-void
-set_bit (RIG *rig, latch_t reg, int bit, int state)
+int
+set_bit (RIG *rig, latch_t reg, unsigned bit, unsigned state)
 {
-	int val;
+	unsigned val;
 	
 	val = state ? 1<<bit : 0;
 
-	write_latch (rig, reg, val, 1<<bit);
+	return write_latch (rig, reg, val, 1<<bit);
 }
 
