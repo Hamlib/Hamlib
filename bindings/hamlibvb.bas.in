@@ -75,28 +75,28 @@ Declare Function rig_set_debug Lib "hamlib@ABI_VERSION@.dll" (ByVal debug_level 
 
 
 Declare Function rig_init Lib "hamlib@ABI_VERSION@.dll" (ByVal rig_model As Long) _
-    As Object
-Declare Function rig_open Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object) _
     As Long
-Declare Function rig_close Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object) _
+Declare Function rig_open Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long) _
     As Long
-Declare Function rig_cleanup Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object) _
+Declare Function rig_close Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long) _
     As Long
-
-
-
-Declare Function rig_set_freq Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object, ByVal vfo as Long, ByVal freq As Double) _
-    As Long
-Declare Function rig_get_freq Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object, ByVal vfo as Long, freq As Double) _
+Declare Function rig_cleanup Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long) _
     As Long
 
-Declare Function rig_set_mode Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object, ByVal vfo as Long, ByVal mode As RMode_t, ByVal width As Long) _
+
+
+Declare Function rig_set_freq Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long, ByVal vfo as Long, ByVal freq As Double) _
     As Long
-Declare Function rig_get_mode Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object, ByVal vfo as Long, mode As RMode_t, width As Long) _
+Declare Function rig_get_freq Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long, ByVal vfo as Long, ByRef freq As Double) _
     As Long
 
-Declare Function rig_set_vfo Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object, ByVal vfo as Long) _
+Declare Function rig_set_mode Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long, ByVal vfo as Long, ByVal mode As RMode_t, ByVal width As Long) _
     As Long
-Declare Function rig_get_vfo Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Object, vfop as Long) _
+Declare Function rig_get_mode Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long, ByVal vfo as Long, ByRef mode As RMode_t, ByRef width As Long) _
+    As Long
+
+Declare Function rig_set_vfo Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long, ByVal vfo as Long) _
+    As Long
+Declare Function rig_get_vfo Lib "hamlib@ABI_VERSION@.dll" (ByVal RIGptr As Long, ByRef vfop as Long) _
     As Long
 
