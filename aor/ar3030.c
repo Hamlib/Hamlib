@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.7 2005-01-24 23:03:52 fillods Exp $
+ *	$Id: ar3030.c,v 1.8 2005-04-03 19:40:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -100,7 +100,7 @@ const struct rig_caps ar3030_caps = {
 .rig_model =  RIG_MODEL_AR3030,
 .model_name = "AR3030",
 .mfg_name =  "AOR",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
