@@ -221,6 +221,9 @@ hpux*) # Its linker distinguishes data from code symbols
 irix* | nonstopux*)
   symcode='[[BCDEGRST]]'
   ;;
+osf*)
+  symcode='[[BCDEGQRST]]'
+  ;;
 solaris* | sysv5*)
   symcode='[[BDT]]'
   ;;
@@ -317,7 +320,7 @@ EOF
 	  save_CFLAGS="$CFLAGS"
 	  LIBS="conftstm.$ac_objext"
 	  CFLAGS="$CFLAGS$no_builtin_flag"
-	  if AC_TRY_EVAL(ac_link) && test -s conftest; then
+	  if AC_TRY_EVAL(ac_link) && test -s conftest$ac_exeext; then
 	    pipe_works=yes
 	  fi
 	  LIBS="$save_LIBS"
@@ -1461,10 +1464,12 @@ else
       # need to do runtime linking.
       case $host_os in aix4.[[23]]|aix4.[[23]].*|aix5*)
 	for ld_flag in $LDFLAGS; do
-	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
+	  case $ld_flag in
+	  *-brtl*)
 	    aix_use_runtimelinking=yes
 	    break
-	  fi
+	  ;;
+	  esac
 	done
       esac
 
@@ -1580,7 +1585,7 @@ else
     #        cross-compilation, but unfortunately the echo tests do not
     #        yet detect zsh echo's removal of \ escapes.  Also zsh mangles
     #	     `"' quotes if we put them in here... so don't!
-    archive_cmds='$nonopt $(test .$module = .yes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs$linker_flags -install_name $rpath/$soname $verstring'
+    archive_cmds='$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs && $CC $(test .$module = .yes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib ${lib}-master.o $deplibs$linker_flags $(test .$module != .yes && echo -install_name $rpath/$soname $verstring)'
     # We need to add '_' to the symbols in $export_symbols first
     #archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols'
     hardcode_direct=yes
@@ -1635,10 +1640,11 @@ else
   irix5* | irix6* | nonstopux*)
     if test "$GCC" = yes; then
       archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags ${wl}-soname ${wl}$soname `test -n "$verstring" && echo ${wl}-set_version ${wl}$verstring` ${wl}-update_registry ${wl}${output_objdir}/so_locations -o $lib'
+      hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     else
       archive_cmds='$LD -shared $libobjs $deplibs $linker_flags -soname $soname `test -n "$verstring" && echo -set_version $verstring` -update_registry ${output_objdir}/so_locations -o $lib'
+      hardcode_libdir_flag_spec='-rpath $libdir'
     fi
-    hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     hardcode_libdir_separator=:
     link_all_deplibs=yes
     ;;
@@ -1666,7 +1672,7 @@ else
     hardcode_direct=yes
     hardcode_shlibpath_var=no
     if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`" || test "$host_os-$host_cpu" = "openbsd2.8-powerpc"; then
-      archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $linker_flags'
+      archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
       hardcode_libdir_flag_spec='${wl}-rpath,$libdir'
       export_dynamic_flag_spec='${wl}-E'
     else
@@ -1676,7 +1682,7 @@ else
 	hardcode_libdir_flag_spec='-R$libdir'
         ;;
       *)
-        archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $linker_flags'
+        archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
         hardcode_libdir_flag_spec='${wl}-rpath,$libdir'
         ;;
       esac
@@ -1957,6 +1963,9 @@ aix3*)
 
 aix4* | aix5*)
   version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  hardcode_into_libs=yes
   if test "$host_cpu" = ia64; then
     # AIX 5 supports IA64
     library_names_spec='${libname}${release}.so$major ${libname}${release}.so$versuffix $libname.so'
@@ -1995,6 +2004,7 @@ aix4* | aix5*)
     fi
     shlibpath_var=LIBPATH
   fi
+  hardcode_into_libs=yes
   ;;
 
 amigaos*)
@@ -2042,7 +2052,7 @@ cygwin* | mingw* | pw32*)
     ;;
   yes,mingw*)
     library_names_spec='${libname}`echo ${release} | sed -e 's/[[.]]/-/g'`${versuffix}.dll'
-    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/;/ /g"`
+    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/;/ /g" -e "s,=/,/,g"`
     ;;
   yes,pw32*)
     library_names_spec='`echo ${libname} | sed -e 's/^lib/pw/'``echo ${release} | sed -e 's/[.]/-/g'`${versuffix}.dll'
@@ -2072,6 +2082,18 @@ darwin* | rhapsody*)
 
 freebsd1*)
   dynamic_linker=no
+  ;;
+
+freebsd*-gnu*)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
+  soname_spec='${libname}${release}.so$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='GNU/FreeBSD ld.so'
   ;;
 
 freebsd*)
@@ -2239,11 +2261,13 @@ os2*)
 osf3* | osf4* | osf5*)
   version_type=osf
   need_version=no
-  soname_spec='${libname}${release}.so'
-  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so $libname.so'
+  need_lib_prefix=no
+  soname_spec='${libname}${release}.so$major'
+  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
   shlibpath_var=LD_LIBRARY_PATH
   sys_lib_search_path_spec="/usr/shlib /usr/ccs/lib /usr/lib/cmplrs/cc /usr/lib /usr/local/lib /var/shlib"
   sys_lib_dlsearch_path_spec="$sys_lib_search_path_spec"
+  hardcode_into_libs=yes
   ;;
 
 sco3.2v5*)
@@ -3295,7 +3319,7 @@ test -n "$reload_flag" && reload_flag=" $reload_flag"
 # AC_DEPLIBS_CHECK_METHOD - how to check for library dependencies
 #  -- PORTME fill in with the dynamic library characteristics
 AC_DEFUN([AC_DEPLIBS_CHECK_METHOD],
-[AC_CACHE_CHECK([how to recognise dependant libraries],
+[AC_CACHE_CHECK([how to recognise dependent libraries],
 lt_cv_deplibs_check_method,
 [lt_cv_file_magic_cmd='$MAGIC_CMD'
 lt_cv_file_magic_test_file=
@@ -3664,7 +3688,7 @@ $debug ||
     # Check for GNU sed and select it if it is found.
     if "${_sed}" --version 2>&1 < /dev/null | egrep '(GNU)' > /dev/null; then
       lt_cv_path_SED=${_sed}
-      break;
+      break
     fi
     while true; do
       cat "$tmp/sed.in" "$tmp/sed.in" >"$tmp/sed.tmp"
@@ -3767,7 +3791,7 @@ AC_CONFIG_SUBDIRS([libltdl])
 # -----------
 # Perform all the checks necessary for compilation of the ltdl objects
 #  -- including compiler checks and header checks.
-AC_DEFUN(AC_LIB_LTDL,
+AC_DEFUN([AC_LIB_LTDL],
 [AC_PREREQ(2.13)
 AC_REQUIRE([AC_PROG_CC])
 AC_REQUIRE([AC_C_CONST])
@@ -3800,7 +3824,7 @@ AC_CHECK_FUNCS([memmove strcmp])
 
 # AC_LTDL_ENABLE_INSTALL
 # ----------------------
-AC_DEFUN(AC_LTDL_ENABLE_INSTALL,
+AC_DEFUN([AC_LTDL_ENABLE_INSTALL],
 [AC_ARG_ENABLE(ltdl-install,
 [  --enable-ltdl-install   install libltdl])
 
@@ -3810,14 +3834,17 @@ AM_CONDITIONAL(CONVENIENCE_LTDL, test x"${enable_ltdl_convenience-no}" != xno)
 
 # AC_LTDL_SYS_DLOPEN_DEPLIBS
 # --------------------------
-AC_DEFUN(AC_LTDL_SYS_DLOPEN_DEPLIBS,
+AC_DEFUN([AC_LTDL_SYS_DLOPEN_DEPLIBS],
 [AC_REQUIRE([AC_CANONICAL_HOST])
 AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
 	libltdl_cv_sys_dlopen_deplibs, [dnl
 	# PORTME does your system automatically load deplibs for dlopen()?
 	libltdl_cv_sys_dlopen_deplibs=unknown
 	case "$host_os" in
-	linux*)
+        hpux10*|hpux11*)
+          libltdl_cv_sys_dlopen_deplibs=yes
+          ;;
+	linux*|freebsd*-gnu*)
 	  libltdl_cv_sys_dlopen_deplibs=yes
 	  ;;
 	netbsd*)
@@ -3839,7 +3866,7 @@ fi
 
 # AC_LTDL_SHLIBEXT
 # ----------------
-AC_DEFUN(AC_LTDL_SHLIBEXT,
+AC_DEFUN([AC_LTDL_SHLIBEXT],
 [AC_REQUIRE([_LT_AC_LTCONFIG_HACK])
 AC_CACHE_CHECK([which extension is used for shared libraries],
   libltdl_cv_shlibext,
@@ -3859,7 +3886,7 @@ fi
 
 # AC_LTDL_SHLIBPATH
 # -----------------
-AC_DEFUN(AC_LTDL_SHLIBPATH,
+AC_DEFUN([AC_LTDL_SHLIBPATH],
 [AC_REQUIRE([_LT_AC_LTCONFIG_HACK])
 AC_CACHE_CHECK([which variable specifies run-time library path],
   libltdl_cv_shlibpath_var, [libltdl_cv_shlibpath_var="$shlibpath_var"])
@@ -3871,7 +3898,7 @@ fi
 
 # AC_LTDL_SYSSEARCHPATH
 # ---------------------
-AC_DEFUN(AC_LTDL_SYSSEARCHPATH,
+AC_DEFUN([AC_LTDL_SYSSEARCHPATH],
 [AC_REQUIRE([_LT_AC_LTCONFIG_HACK])
 AC_CACHE_CHECK([for the default library search path],
   libltdl_cv_sys_search_path, [libltdl_cv_sys_search_path="$sys_lib_dlsearch_path_spec"])
@@ -3895,7 +3922,7 @@ fi
 
 # AC_LTDL_OBJDIR
 # --------------
-AC_DEFUN(AC_LTDL_OBJDIR,
+AC_DEFUN([AC_LTDL_OBJDIR],
 [AC_CACHE_CHECK([for objdir],
   libltdl_cv_objdir, [libltdl_cv_objdir="$objdir"
 if test -n "$objdir"; then
@@ -3917,7 +3944,7 @@ AC_DEFINE_UNQUOTED(LTDL_OBJDIR, "$libltdl_cv_objdir/",
 
 # AC_LTDL_DLPREOPEN
 # -----------------
-AC_DEFUN(AC_LTDL_DLPREOPEN,
+AC_DEFUN([AC_LTDL_DLPREOPEN],
 [AC_REQUIRE([AC_LIBTOOL_SYS_GLOBAL_SYMBOL_PIPE])dnl
 AC_CACHE_CHECK([whether libtool supports -dlopen/-dlpreopen],
        libltdl_cv_preloaded_symbols, [dnl
@@ -3935,7 +3962,7 @@ fi
 
 # AC_LTDL_DLLIB
 # -------------
-AC_DEFUN(AC_LTDL_DLLIB,
+AC_DEFUN([AC_LTDL_DLLIB],
 [LIBADD_DL=
 AC_SUBST(LIBADD_DL)
 
@@ -3982,7 +4009,7 @@ fi
 
 # AC_LTDL_SYMBOL_USCORE
 # ---------------------
-AC_DEFUN(AC_LTDL_SYMBOL_USCORE,
+AC_DEFUN([AC_LTDL_SYMBOL_USCORE],
 [dnl does the compiler prefix global symbols with an underscore?
 AC_REQUIRE([AC_LIBTOOL_SYS_GLOBAL_SYMBOL_PIPE])dnl
 AC_MSG_CHECKING([for _ prefix in compiled symbols])
@@ -4021,7 +4048,7 @@ AC_MSG_RESULT($ac_cv_sys_symbol_underscore)
 
 # AC_LTDL_DLSYM_USCORE
 # --------------------
-AC_DEFUN(AC_LTDL_DLSYM_USCORE,
+AC_DEFUN([AC_LTDL_DLSYM_USCORE],
 [AC_REQUIRE([AC_LTDL_SYMBOL_USCORE])dnl
 if test x"$ac_cv_sys_symbol_underscore" = xyes; then
   if test x"$ac_cv_func_dlopen" = xyes ||
