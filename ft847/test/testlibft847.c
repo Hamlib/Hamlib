@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.3 2000-07-26 00:09:29 javabear Exp $  
+ * $Id: testlibft847.c,v 1.4 2000-07-26 00:37:26 javabear Exp $  
  *
  */
 
@@ -32,9 +32,9 @@ static unsigned char datain[5]; /* data read from rig */
 static void decode_rx_status_flags(unsigned char rxflag) {
 
   if((rxflag & RXSF_PTT_STATUS) != 0 ) {
-    printf("PTT = ON (TX) \n");
-  } else {
     printf("PTT = OFF (RX) \n");
+  } else {
+    printf("PTT = ON (TX) \n");
   }
 
   printf("PO/ALC Meter Data = %i \n", rxflag & RXSF_POALC_METER_MASK);
@@ -153,6 +153,10 @@ static int test(fd) {
   cmd_sat_on(fd);		/* sat mode on */
   sleep(1);
   cmd_sat_off(fd);		/* sat mode off */
+  sleep(1);
+
+  data1 = cmd_get_rx_status(fd);
+  decode_rx_status_flags(data1);
   sleep(1);
   cmd_cat_off(fd);		/* cat off */
     
