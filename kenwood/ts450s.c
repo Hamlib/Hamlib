@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.14 2002-12-20 09:49:14 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.15 2002-12-20 10:37:30 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,9 +72,6 @@ static int ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return -RIG_ERJCTED;
   }
 
-  /* this rig does not have a command for reading IF bandwidth */
-  *width = rig_passband_normal(rig, *mode);
-
   switch (infobuf[29]) {
     case MD_CW:		*mode = RIG_MODE_CW; break;
     case MD_USB:	*mode = RIG_MODE_USB; break;
@@ -90,6 +87,10 @@ static int ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	"unsupported mode '%c'\n", infobuf[29]);
     return -RIG_EINVAL;
   }
+
+  /* this rig does not have a command for reading IF bandwidth */
+  *width = rig_passband_normal(rig, *mode);
+
   return RIG_OK;
 }
 
@@ -154,7 +155,7 @@ const struct rig_caps ts450s_caps = {
 .rig_model =  RIG_MODEL_TS450S,
 .model_name = "TS-450S",
 .mfg_name =  "Kenwood",
-.version =  "0.2.2",
+.version =  "0.2.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
