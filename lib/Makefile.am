@@ -1,4 +1,5 @@
-EXTRA_DIST = getopt.c getopt.h getopt_long.c usleep.c
+EXTRA_DIST = getopt.c getopt.h getopt_long.c usleep.c \
+		termios.c win32termios.h
 
 noinst_LTLIBRARIES = libmisc.la
 
