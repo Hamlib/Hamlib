@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.34 2003-05-12 22:27:19 fillods Exp $
+ *	$Id: riglist.h,v 1.35 2003-06-22 19:37:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -257,6 +257,7 @@
 #define RIG_MODEL_HF150 RIG_MAKE_MODEL(RIG_LOWE, 1)
 #define RIG_MODEL_HF225 RIG_MAKE_MODEL(RIG_LOWE, 2)
 #define RIG_MODEL_HF250 RIG_MAKE_MODEL(RIG_LOWE, 3)
+#define RIG_MODEL_HF235 RIG_MAKE_MODEL(RIG_LOWE, 4)
 
 	/*
 	 * Racal
@@ -374,11 +375,11 @@
 #define RIG_MODEL_TAPR_DSP10 RIG_MAKE_MODEL(RIG_TAPR, 1)
 
 	/*
-	 * TAPR
+	 * Flex-radio
 	 */
-#define RIG_FLEXRADIO 22
+#define RIG_FLEXRADIO 23
 #define RIG_BACKEND_FLEXRADIO "flexradio"
-#define RIG_MODEL_FLEXRADIO_SDR1000 RIG_MAKE_MODEL(RIG_FLEXRADIO, 1)
+#define RIG_MODEL_SDR1000 RIG_MAKE_MODEL(RIG_FLEXRADIO, 1)
 
 
 	/*
