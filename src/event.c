@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.17 2003-05-03 13:17:25 fillods Exp $
+ *	$Id: event.c,v 1.18 2003-06-21 11:10:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@ int add_trn_rig(RIG *rig)
 
 	sigemptyset(&act.sa_mask);
 
-#ifdef HAVE_SIGINFO_T
+#if defined(HAVE_SIGINFO_T) && defined(SA_SIGINFO)
 	act.sa_flags = SA_SIGINFO;
 #else
 	act.sa_flags = 0;
