@@ -7,9 +7,9 @@
  * box (FIF-232C) or similar.
  *
  *
- *    $Id: testlibft747.h,v 1.1 2000-07-18 20:55:08 frank Exp $  
+ *    $Id: testlibft747.h,v 1.2 2000-07-27 00:49:55 javabear Exp $  
  */
 
 
-#define SERIAL_PORT       "/dev/ttyS1"
+#define SERIAL_PORT       "/dev/ttyS0"
 
