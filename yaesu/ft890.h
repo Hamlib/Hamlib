@@ -1,0 +1,308 @@
+/*
+ * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
+ *
+ * ft890.h - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
+ *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
+ *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
+ *
+ * This shared library provides an API for communicating
+ * via serial interface to an FT-890 using the "CAT" interface
+ *
+ *
+ *    $Id: ft890.h,v 1.1 2003-03-09 04:43:38 n0nb Exp $  
+ *
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *
+ */
+
+
+#ifndef _FT890_H
+#define _FT890_H 1
+
+#define TRUE    1
+#define FALSE   0
+
+#define FT890_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+
+/* Receiver caps */
+
+#define FT890_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT890_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT890_AM_RX_MODES (RIG_MODE_AM)
+#define FT890_FM_RX_MODES (RIG_MODE_FM)
+
+
+/* TX caps */
+
+#define FT890_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB ) /* 100 W class */
+#define FT890_AM_TX_MODES (RIG_MODE_AM )    /* set 25W max */
+#define FT890_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN) /* fix */
+
+
+/* Other features */
+
+#define FT890_ANTS 0
+
+/* Returned data length in bytes */
+
+#define FT890_MEM_CHNL_LENGTH           1       /* 0x10 P1 = 01 return size */
+#define FT890_OP_DATA_LENGTH            19      /* 0x10 P1 = 03 return size */
+#define FT890_VFO_DATA_LENGTH           18      /* 0x10 P1 = 03 return size -- A & B returned */
+#define FT890_MEM_CHNL_DATA_LENGTH      19      /* 0x10 P1 = 04, P4 = 0x01-0x20 return size */
+#define FT890_STATUS_FLAGS_LENGTH       5       /* 0xfa return size */
+#define FT890_ALL_DATA_LENGTH           649     /* 0x10 P1 = 00 return size */
+
+/* Timing values in mS */
+
+#define FT890_PACING_INTERVAL                5
+#define FT890_PACING_DEFAULT_VALUE           1
+#define FT890_WRITE_DELAY                    50
+
+
+/* Delay sequential fast writes */
+
+#define FT890_POST_WRITE_DELAY               5
+
+
+/* Rough safe value for default timeout */
+
+#define FT890_DEFAULT_READ_TIMEOUT  649 * ( 5 + (FT890_PACING_INTERVAL * FT890_PACING_DEFAULT_VALUE))
+
+/* BCD coded frequency length */
+#define FT890_BCD_DIAL  8
+#define FT890_BCD_RIT   3
+
+
+/*
+ * 8N2 and 1 start bit = 11 bits at 4800 bps => effective byte
+ * rate = 1 byte in 2.2917 msec => 649 bytes in 1487 msec
+ *
+ * delay for 28 bytes = (2.2917 + pace_interval) * 28
+ *
+ * pace_interval          time to read 28 bytes
+ * ------------           ----------------------
+ *
+ *     0                       1487 msec
+ *     1                       2136 msec    (backend default)
+ *     2                       2785 msec
+ *     5                       4732 msec
+ *    255                      167 sec
+ *
+ */
+
+
+/*
+ * Native FT890 functions. More to come :-)
+ *
+ */
+
+enum ft890_native_cmd_e {
+  FT890_NATIVE_SPLIT_OFF = 0,
+  FT890_NATIVE_SPLIT_ON,
+  FT890_NATIVE_RECALL_MEM,
+  FT890_NATIVE_VFO_TO_MEM,
+  FT890_NATIVE_VFO_A,
+  FT890_NATIVE_VFO_B,
+  FT890_NATIVE_MEM_TO_VFO,
+  FT890_NATIVE_CLARIFIER_OPS,
+  FT890_NATIVE_FREQ_SET,
+  FT890_NATIVE_MODE_SET,
+  FT890_NATIVE_PACING,
+  FT890_NATIVE_MEM_CHNL,
+  FT890_NATIVE_OP_DATA,
+  FT890_NATIVE_VFO_DATA,
+  FT890_NATIVE_MEM_CHNL_DATA,
+  FT890_NATIVE_READ_FLAGS,
+  FT890_NATIVE_SIZE             /* end marker, value indicates number of */
+				                /* native cmd entries */
+};
+
+typedef enum ft890_native_cmd_e ft890_native_cmd_t;
+
+
+/*
+ * Internal MODES - when setting modes via FT890_NATIVE_MODE_SET
+ *
+ */
+
+#define MODE_SET_LSB    0x00
+#define MODE_SET_USB    0x01
+#define MODE_SET_CW_W   0x02
+#define MODE_SET_CW_N   0x03
+#define MODE_SET_AM_W   0x04
+#define MODE_SET_AM_N   0x05
+#define MODE_SET_FM     0x06
+
+
+/*
+ * Internal Clarifier parms - when setting clarifier via
+ * FT890_NATIVE_CLARIFIER_OPS
+ *
+ */
+
+/* P1 values */
+#define CLAR_RX_OFF     0x00
+#define CLAR_RX_ON      0x01
+#define CLAR_TX_OFF     0x80
+#define CLAR_TX_ON      0x81
+#define CLAR_SET_FREQ   0xff
+
+/* P2 values */
+#define CLAR_OFFSET_PLUS    0x00
+#define CLAR_OFFSET_MINUS   0xff
+
+
+/*
+ * Some useful offsets in the status update flags (offset)
+ * SUMO--Status Update Memory Offset?
+ *
+ * SF_ bit tests are now grouped with flag bytes for ease of reference
+ *
+ * FIXME: complete flags and bits
+ *
+ * CAT command 0xFA requests the FT-890 to return its status flags.
+ * These flags consist of 3 bytes (plus 2 filler bytes) and are documented
+ * in the FT-890 manual on page 33.
+ *
+ */
+
+#define FT890_SUMO_DISPLAYED_STATUS_0   0x00    /* Status flag byte 0 */
+#define SF_GC       (1<<1)              /* General Coverage Reception selected */
+#define SF_SPLIT    (1<<2)              /* Split active */
+#define SF_MT       (1<<4)              /* Memory Tuning in progress */
+#define SF_MR       (1<<5)              /* Memory Mode selected */
+#define SF_VFOA     (0x80)              /* bit 7 set, bit 6 clear, VFO A */
+#define SF_VFOB     (0xc0)              /* bit 7 set, bit 6 set, VFO B */
+#define SF_VFO_MASK (SF_VFOA|SF_VFOB)   /* bits 6 and 7 */
+#define SF_MEM_MASK (SF_MT|SF_MR)       /* bits 4 and 5 */
+
+#define FT890_SUMO_DISPLAYED_STATUS_1   0x01    /* Status flag byte 1 */
+
+/*
+ * Offsets for VFO record retrieved via 0x10 P1 = 02, 03, 04
+ *
+ * The FT-890 returns frequency and mode data via three seperate commands.
+ * CAT command 0x10, P1 = 02 returns the current main and sub displays' data (19 bytes)
+ * CAT command 0x10, P1 = 03 returns VFO A & B data  (18 bytes)
+ * CAT command 0x10, P1 = 04, P4 = 0x01-0x20 returns memory channel data (19 bytes)
+ * In all cases the format is (from the FT-890 manual page 32):
+ *
+ * Offset       Value
+ * 0x00         Band Selection          (BPF selection: 0x00 - 0x30 (bit 7 =1 on a blanked memory))
+ * 0x01         Operating Frequency     (Hex value of display--Not BCD!)
+ * 0x04         Clarifier Offset        (signed value between -999d (0xfc19) and +999d (0x03e7))
+ * 0x06         Mode Data
+ * 0x07         CTCSS tone code         (0x00 - 0x20)
+ * 0x08         Flags                   (Operating flags -- manual page 33)
+ *
+ * Memory Channel data has the same layout and offsets as the operating
+ * data record.
+ * When either of the 19 byte records is read (P1 = 02, 04), the offset is
+ * +1 as the leading byte is the memory channel number.
+ * The VFO data command (P1 = 03) returns 18 bytes and the VFO B data has
+ * the same layout, but the offset starts at 0x09 and continues through 0x12
+ *
+ */
+
+#define FT890_SUMO_DISPLAYED_FREQ       0x02    /* Current main display, can be VFO A, Memory data, Memory tune (3 bytes) */
+#define FT890_SUMO_DISPLAYED_CLAR       0x05    /* RIT offset -- current display */
+#define FT890_SUMO_DISPLAYED_MODE       0x07    /* Current main display mode */
+#define FT890_SUMO_DISPLAYED_FLAG       0x09
+
+#define FT890_SUMO_VFO_A_FREQ           0x01    /* VFO A frequency, not necessarily currently displayed! */
+#define FT890_SUMO_VFO_A_CLAR           0x04    /* RIT offset -- VFO A */
+#define FT890_SUMO_VFO_A_MODE           0x06    /* VFO A mode, not necessarily currently displayed! */
+#define FT890_SUMO_VFO_A_FLAG           0x08
+
+#define FT890_SUMO_VFO_B_FREQ           0x0a    /* Current sub display && VFO B */
+#define FT890_SUMO_VFO_B_CLAR           0x0d    /* RIT offset -- VFO B */
+#define FT890_SUMO_VFO_B_MODE           0x0f    /* Current sub display && VFO B */
+#define FT890_SUMO_VFO_B_FLAG           0x11
+
+/*
+ * Narrow filter selection flag from offset 0x08 or 0x11
+ * in VFO/Memory Record
+ *
+ * used when READING modes from FT-890
+ *
+ */
+
+#define FLAG_AM_N   (1<<6)
+#define FLAG_CW_N   (1<<7)
+#define FLAG_MASK   (FLAG_AM_N|FLAG_CW_N)
+
+/*
+ * Mode Bitmap from offset 0x06 or 0x0f in VFO/Memory Record.
+ *
+ * used when READING modes from FT-890
+ *
+ */
+
+#define MODE_LSB     0x00
+#define MODE_USB     0x01
+#define MODE_CW      0x02
+#define MODE_AM      0x03
+#define MODE_FM      0x04
+
+/* All relevant bits */
+#define MODE_MASK   (MODE_LSB|MODE_USB|MODE_CW|MODE_AM|MODE_FM)
+
+
+/*
+ * Command string parameter offsets
+ */
+
+#define P1  3
+#define P2  2
+#define P3  1
+#define P4  0
+
+
+/* 
+ * API local implementation
+ *
+ */
+
+static int ft890_init(RIG *rig);
+static int ft890_cleanup(RIG *rig);
+static int ft890_open(RIG *rig);
+static int ft890_close(RIG *rig);
+
+static int ft890_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft890_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+static int ft890_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft890_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
+static int ft890_set_vfo(RIG *rig, vfo_t vfo);
+static int ft890_get_vfo(RIG *rig, vfo_t *vfo);
+
+static int ft890_set_split(RIG *rig, vfo_t vfo, split_t split);
+static int ft890_get_split(RIG *rig, vfo_t vfo, split_t *split);
+
+/* static int ft890_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+static int ft890_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq); */
+
+/* static int ft890_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+static int ft890_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width); */
+
+/* static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit); */
+
+/* static int ft890_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+static int ft890_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit); */
+
+#endif /* _FT890_H */
