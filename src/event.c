@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: event.c,v 1.2 2001-02-11 23:15:38 f4cfe Exp $
+   $Id: event.c,v 1.3 2001-03-04 13:06:36 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ int foreach_opened_rig(int (*cfunc)(RIG *, void *),void *data);
 /*
  * add_trn_rig
  * not exported in Hamlib API.
- * Assumes rig->caps->transceive == RIG_TRN_ON
+ * Assumes rig->caps->transceive == RIG_TRN_RIG
  */
 int add_trn_rig(RIG *rig)
 {
@@ -86,7 +86,7 @@ int add_trn_rig(RIG *rig)
 /*
  * remove_trn_rig
  * not exported in Hamlib API.
- * Assumes rig->caps->transceive == RIG_TRN_ON
+ * Assumes rig->caps->transceive == RIG_TRN_RIG
  */
 int remove_trn_rig(RIG *rig)
 {

@@ -6,7 +6,7 @@
  * via serial interface to an Icom PCR-1000.
  *
  *
- *	$Id: pcr1000.c,v 1.1 2001-03-02 18:26:18 f4cfe Exp $  
+ *	$Id: pcr1000.c,v 1.2 2001-03-04 13:06:36 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -63,7 +63,7 @@ const struct rig_caps pcr1000_caps = {
   "0123456789ABCDEF",
   Hz(0), kHz(1.2),	/* RIT, IF-SHIFT */
   0,			/* FIXME: VFO list */
-  0, RIG_TRN_ON,
+  0, RIG_TRN_RIG,
   0, 0, 0,
 
   { RIG_CHAN_END, },	/* no memory channel list: this is a PC receiver */

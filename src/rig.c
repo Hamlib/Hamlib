@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.22 2001-03-02 18:41:46 f4cfe Exp $
+   $Id: rig.c,v 1.23 2001-03-04 13:06:36 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -3112,14 +3112,14 @@ int rig_set_trn(RIG *rig, vfo_t vfo, int trn)
 		if (rig->state.transceive == RIG_TRN_OFF)
 			return -RIG_ENAVAIL;
 
-		if (trn == RIG_TRN_ON) {
+		if (trn == RIG_TRN_RIG) {
 			if (rig->state.transceive) {
 				/*
 				 * TODO: check error codes et al.
 				 */
 				status = add_trn_rig(rig);
 				if (caps->set_trn)
-						return caps->set_trn(rig, vfo, RIG_TRN_ON);
+						return caps->set_trn(rig, vfo, RIG_TRN_RIG);
 				else
 						return status;
 			} else {

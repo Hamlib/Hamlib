@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.22 2001-03-02 18:46:27 f4cfe Exp $
+ *	$Id: rig.h,v 1.23 2001-03-04 13:04:46 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -351,7 +351,7 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
  * like freq changed, mode changed, etc.
  */
 #define	RIG_TRN_OFF 0
-#define	RIG_TRN_ON 1
+#define	RIG_TRN_RIG 1
 #define	RIG_TRN_POLL 2
 
 
@@ -613,7 +613,7 @@ struct rig_caps {
 
   struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
 
-  void *priv;	/* 51 area, useful when having different models in a backend */
+  const void *priv;	/* 51 area, useful when having different models in a backend */
 
   /*
    * Rig Admin API

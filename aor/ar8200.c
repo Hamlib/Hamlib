@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ar8200.c,v 1.7 2001-03-02 18:35:18 f4cfe Exp $  
+ * $Id: ar8200.c,v 1.8 2001-03-04 13:06:36 f4cfe Exp $  
  *
  *
  *
@@ -66,7 +66,7 @@ const struct rig_caps ar8200_caps = {
   NULL,
   Hz(0), Hz(0),	/* RIT, IF-SHIFT */
   0,	/* FIXME: VFO list */
-  0, RIG_TRN_ON,
+  0, RIG_TRN_RIG,
   1000, 0, 0,
 
   { RIG_CHAN_END, },	/* FIXME: memory channel list */
