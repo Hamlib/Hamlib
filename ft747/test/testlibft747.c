@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.3 2000-07-28 03:09:08 javabear Exp $  
+ * $Id: testlibft747.c,v 1.4 2000-07-29 00:50:45 javabear Exp $  
  *
  */
 
@@ -97,19 +97,20 @@ static void decode_mode_bit_map(unsigned char mbm) {
   printf("mbm = %x, mode = %x \n",mbm, mode);
 
   switch(mode) {
-  case 1:
+  case MODE_FM:
     printf("Current Mode = FM \n");
     break;
-  case 2:
+  case MODE_AM:
     printf("Current Mode = AM \n");
     break;
-  case 4:
+  case MODE_CW:
     printf("Current Mode = CW \n");
+    printf("MODE_CW = %i \n", MODE_CW);
     break;
-  case 8:
+  case MODE_USB:
     printf("Current Mode = USB \n");
     break;
-  case 16:
+  case MODE_LSB:
     printf("Current Mode = LSB \n");
     break;
   default:
@@ -162,8 +163,7 @@ static void dump_hex(unsigned char *ptr, int size, int length) {
  */
 
 static int test(fd) {
-  int n,i;
-  int bytes = 0;
+  int i;
   struct ft747_update_data *header;
 
   cmd_set_split_yes(fd);
