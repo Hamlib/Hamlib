@@ -11,7 +11,7 @@
  *  Hamlib C++ bindings - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.cc,v 1.8 2002-02-27 23:25:42 fillods Exp $
+ *		$Id: rigclass.cc,v 1.9 2002-07-09 22:17:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -632,16 +632,6 @@ int Rig::getMem (vfo_t vfo = RIG_VFO_CURR)
 	CHECK_RIG( rig_get_mem(theRig, vfo, &mem) );
 
 	return mem;
-}
-
-void Rig::saveChannel (channel_t *chan)
-{
-	CHECK_RIG( rig_save_channel(theRig, chan) );
-}
-
-void Rig::restoreChannel (const channel_t *chan)
-{
-	CHECK_RIG( rig_restore_channel(theRig, chan) );
 }
 
 void Rig::setChannel (const channel_t *chan)

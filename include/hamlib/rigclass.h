@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.9 2002-02-27 23:22:31 fillods Exp $
+ *		$Id: rigclass.h,v 1.10 2002-07-09 22:17:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -122,8 +122,6 @@ public:
   void setMem (int ch, vfo_t vfo = RIG_VFO_CURR);
   int getMem (vfo_t vfo = RIG_VFO_CURR);
 
-  void restoreChannel (const channel_t *chan);
-  void saveChannel (channel_t *chan);
   void setChannel (const channel_t *chan);
   void getChannel (channel_t *chan);
 

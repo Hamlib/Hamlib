@@ -13,7 +13,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.59 2002-07-09 20:40:28 fillods Exp $
+ *	$Id: rig.c,v 1.60 2002-07-09 22:17:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -3605,23 +3605,36 @@ int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 		return retcode;
 }
 
-/**
- * \brief save all the data associated with current VFO
- * \param rig	The rig handle
- * \param chan	The location where to store the channel data
- *
- *  Gets all the data associated with current VFO. 
- *  See #channel_t for more information.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \todo return code checking
- * \sa rig_get_channel()
+/*
+ * call on every ext_levels of a rig
  */
+static int generic_retr_extl(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
+{
+	channel_t *chan = (channel_t *)ptr;
+	struct ext_list *p;
+	unsigned el_size = 0;
 
-int rig_save_channel(RIG *rig, channel_t *chan)
+	if (chan->ext_levels == NULL)
+		p = chan->ext_levels = malloc(2*sizeof(struct ext_list));
+	else {
+		for (p = chan->ext_levels; !RIG_IS_EXT_END(*p); p++)
+			el_size += sizeof(struct ext_list);
+		chan->ext_levels = realloc(chan->ext_levels,
+				el_size+sizeof(struct ext_list));
+	}
+
+	p->token = cfp->token;
+	rig_get_ext_level(rig, RIG_VFO_CURR, p->token, &p->val);
+	p++;
+	p->token = 0;	/* RIG_EXT_END */
+
+	return 1;	/* process them all */
+}
+
+/*
+ * stores current VFO state into chan by emulating rig_get_channel
+ */
+int generic_save_channel(RIG *rig, channel_t *chan)
 {
   int i;
   int chan_num;
@@ -3672,28 +3685,19 @@ int rig_save_channel(RIG *rig, channel_t *chan)
   rig_get_dcs_sql(rig, RIG_VFO_CURR, &chan->dcs_sql);
 /* rig_get_mem_name(rig, RIG_VFO_CURR, chan->channel_desc); */
 
-	return RIG_OK;
+  rig_ext_level_foreach(rig, generic_retr_extl, (rig_ptr_t)chan);
+
+  return RIG_OK;
 }
 
-/**
- * \brief restore all the data associated with current VFO
- * \param rig	The rig handle
- * \param chan	The location where to store the channel data
- *
- *  Sets all the data associated with current VFO. 
- *  See #channel_t for more information.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \todo return code checking
- * \sa rig_get_channel()
- */
 
-int rig_restore_channel(RIG *rig, const channel_t *chan)
+/*
+ * Restores chan into current VFO state by emulating rig_set_channel
+ */
+int generic_restore_channel(RIG *rig, const channel_t *chan)
 {
   int i;
+  struct ext_list *p;
 
   if (CHECK_RIG_ARG(rig) || !chan)
 	return -RIG_EINVAL;
@@ -3726,7 +3730,10 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
   rig_set_dcs_sql(rig, RIG_VFO_CURR, chan->dcs_sql);
 /* rig_set_mem_name(rig, RIG_VFO_CURR, chan->channel_desc); */
 
-	return RIG_OK;
+  for (p = chan->ext_levels; !RIG_IS_EXT_END(*p); p++)
+	  rig_set_ext_level(rig, RIG_VFO_CURR, p->token, p->val);
+
+  return RIG_OK;
 }
 
 
@@ -3735,7 +3742,9 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
  * \param rig	The rig handle
  * \param chan	The location of data to set for this channel
  *
- *  Sets the data associated with a channel. 
+ *  Sets the data associated with a channel. This channel can either
+ *  be the state of a VFO specified by \a chan->vfo, or a memory channel
+ *  specified with \a chan->vfo = RIG_VFO_MEM and \a chan->channel_num.
  *  See #channel_t for more information.
  *  The rig_set_channel is supposed to have no impact on the current VFO
  *  and memory number selected. Depending on backend and rig capabilities,
@@ -3750,57 +3759,71 @@ int rig_restore_channel(RIG *rig, const channel_t *chan)
 
 int rig_set_channel(RIG *rig, const channel_t *chan)
 {
-		struct rig_caps *rc;
-		int curr_chan_num, get_mem_status;
-		vfo_t curr_vfo;
+	struct rig_caps *rc;
+	int curr_chan_num, get_mem_status = RIG_OK;
+	vfo_t curr_vfo;
+	vfo_t vfo; /* requested vfo */
+	int retcode;
 #ifdef PARANOID_CHANNEL_HANDLING
-		channel_t curr_chan;
+	channel_t curr_chan;
 #endif
 
-		if (CHECK_RIG_ARG(rig) || !chan)
-			return -RIG_EINVAL;
+	if (CHECK_RIG_ARG(rig) || !chan)
+		return -RIG_EINVAL;
 
-		/*
-		 * TODO: check chan->channel_num is valid
-		 */
+	/*
+	 * TODO: check chan->channel_num is valid
+	 */
 
-		rc = rig->caps;
+	rc = rig->caps;
 
-		if (!rc->set_channel)
-			return rc->set_channel(rig, chan);
+	if (rc->set_channel)
+		return rc->set_channel(rig, chan);
 
-		/*
-		 * if not available, emulate it
-		 * Optional: get_vfo, set_vfo,
-		 * TODO: check return codes
-		 */
-		if (!rc->set_mem)
-				return -RIG_ENAVAIL;
+	/*
+	 * if not available, emulate it
+	 * Optional: get_vfo, set_vfo,
+	 * TODO: check return codes
+	 */
 
-		/* may be needed if the restore_channel has some side effects */
+	vfo = chan->vfo;
+	if (vfo == RIG_VFO_MEM && !rc->set_mem)
+		return -RIG_ENAVAIL;
+
+	if (vfo == RIG_VFO_CURR)
+		return generic_restore_channel(rig, chan);
+
+	if (!rc->set_vfo)
+		return -RIG_ENTARGET;
+
+	curr_vfo = rig->state.current_vfo;
+	/* may be needed if the restore_channel has some side effects */
 #ifdef PARANOID_CHANNEL_HANDLING
-		rig_save_channel(rig, &curr_chan);
+	generic_save_channel(rig, &curr_chan);
 #endif
 
-		if (rig_get_vfo(rig, &curr_vfo) != RIG_OK)
-			curr_vfo = rig->state.current_vfo;
-		rig_set_vfo(rig, RIG_VFO_MEM);
+	if (vfo == RIG_VFO_MEM)
 		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 
+	retcode = rc->set_vfo(rig, vfo);
+	if (retcode != RIG_OK)
+		return retcode;
+
+	if (vfo == RIG_VFO_MEM)
 		rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
-		rig_restore_channel(rig, chan);
 
-		/* restore current memory number */
-		if (get_mem_status == RIG_OK)
-			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+	retcode = generic_restore_channel(rig, chan);
 
-		rig_set_vfo(rig, curr_vfo);
+	/* restore current memory number */
+	if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK)
+		rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+
+	rig_set_vfo(rig, curr_vfo);
 
 #ifdef PARANOID_CHANNEL_HANDLING
-		rig_restore_channel(rig, &curr_chan);
+	generic_restore_channel(rig, &curr_chan);
 #endif
-
- 		return RIG_OK;
+	return retcode;
 }
 
 /**
@@ -3808,11 +3831,17 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  * \param rig	The rig handle
  * \param chan	The location where to store the channel data
  *
- *  Retrieves the data associated with the channel \a chan->channel_num. 
+ *  Retrieves the data associated with a channel. This channel can either
+ *  be the state of a VFO specified by \a chan->vfo, or a memory channel
+ *  specified with \a chan->vfo = RIG_VFO_MEM and \a chan->channel_num.
  *  See #channel_t for more information.
  *  The rig_get_channel is supposed to have no impact on the current VFO
  *  and memory number selected. Depending on backend and rig capabilities,
  *  the chan struct may not be filled in completely.
+ *
+ *  Note: chan->ext_levels is a pointer to a newly mallocated memory. 
+ *  This is the responsability of the caller to manage and eventually
+ *  free it.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -3822,57 +3851,70 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  */
 int rig_get_channel(RIG *rig, channel_t *chan)
 {
-		struct rig_caps *rc;
-		int curr_chan_num, get_mem_status;
-		vfo_t curr_vfo;
+	struct rig_caps *rc;
+	int curr_chan_num, get_mem_status = RIG_OK;
+	vfo_t curr_vfo;
+	vfo_t vfo;	/* requested vfo */
+	int retcode;
 #ifdef PARANOID_CHANNEL_HANDLING
-		channel_t curr_chan;
+	channel_t curr_chan;
 #endif
 
-		if (CHECK_RIG_ARG(rig) || !chan)
-			return -RIG_EINVAL;
+	if (CHECK_RIG_ARG(rig) || !chan)
+		return -RIG_EINVAL;
 
-		/*
-		 * TODO: check chan->channel_num is valid
-		 */
+	/*
+	 * TODO: check chan->channel_num is valid
+	 */
 
-		rc = rig->caps;
+	rc = rig->caps;
 
-		if (rc->get_channel)
-			return rc->get_channel(rig, chan);
+	if (rc->get_channel)
+		return rc->get_channel(rig, chan);
 
-		/*
-		 * if not available, emulate it
-		 * Optional: get_vfo, set_vfo
-		 * TODO: check return codes
-		 */
-		if (!rc->set_mem)
-				return -RIG_ENAVAIL;
+	/*
+	 * if not available, emulate it
+	 * Optional: get_vfo, set_vfo
+	 * TODO: check return codes
+	 */
+	vfo = chan->vfo;
+	if (vfo == RIG_VFO_MEM && !rc->set_mem)
+		return -RIG_ENAVAIL;
 
-		/* may be needed if the restore_channel has some side effects */
+	if (vfo == RIG_VFO_CURR)
+		return generic_restore_channel(rig, chan);
+
+	if (!rc->set_vfo)
+		return -RIG_ENTARGET;
+
+	curr_vfo = rig->state.current_vfo;
+	/* may be needed if the restore_channel has some side effects */
 #ifdef PARANOID_CHANNEL_HANDLING
-		rig_save_channel(rig, &curr_chan);
+	generic_save_channel(rig, &curr_chan);
 #endif
 
-		if (rig_get_vfo(rig, &curr_vfo) != RIG_OK)
-			curr_vfo = rig->state.current_vfo;
-		rig_set_vfo(rig, RIG_VFO_MEM);
+	if (vfo == RIG_VFO_MEM)
 		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 
+	retcode = rc->set_vfo(rig, vfo);
+	if (retcode != RIG_OK)
+		return retcode;
+
+	if (vfo == RIG_VFO_MEM)
 		rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
-		rig_save_channel(rig, chan);
 
-		/* restore current memory number */
-		if (get_mem_status == RIG_OK)
-			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+	retcode = generic_save_channel(rig, chan);
 
-		rig_set_vfo(rig, curr_vfo);
+	/* restore current memory number */
+	if (vfo == RIG_VFO_MEM && get_mem_status == RIG_OK)
+		rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
+
+	rig_set_vfo(rig, curr_vfo);
 
 #ifdef PARANOID_CHANNEL_HANDLING
-		rig_restore_channel(rig, &curr_chan);
+	generic_restore_channel(rig, &curr_chan);
 #endif
-
-		return RIG_OK;
+	return retcode;
 }
 
 /**
