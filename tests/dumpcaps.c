@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.4 2000-10-16 22:13:05 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.5 2000-10-22 16:14:53 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -180,10 +180,10 @@ int main (int argc, char *argv[])
 	printf("Can get vfo:\t%c\n",caps->get_vfo!=NULL?'Y':'N');
 	printf("Can set ptt:\t%c\n",caps->set_ptt!=NULL?'Y':'N');
 	printf("Can get ptt:\t%c\n",caps->get_ptt!=NULL?'Y':'N');
-	printf("Can set repeater duplex:\t%c\n",caps->set_rpt_shift!=NULL?'Y':'N');
-	printf("Can get repeater duplex:\t%c\n",caps->get_rpt_shift!=NULL?'Y':'N');
-	printf("Can set repeater offset:\t%c\n",caps->set_rpt_offs!=NULL?'Y':'N');
-	printf("Can get repeater offset:\t%c\n",caps->get_rpt_offs!=NULL?'Y':'N');
+	printf("Can set repeater duplex:\t%c\n",caps->set_rptr_shift!=NULL?'Y':'N');
+	printf("Can get repeater duplex:\t%c\n",caps->get_rptr_shift!=NULL?'Y':'N');
+	printf("Can set repeater offset:\t%c\n",caps->set_rptr_offs!=NULL?'Y':'N');
+	printf("Can get repeater offset:\t%c\n",caps->get_rptr_offs!=NULL?'Y':'N');
 	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
 	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
 	printf("Can set power on:\t%c\n",caps->set_poweron!=NULL?'Y':'N');
