@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.15 2001-11-14 18:31:51 f4cfe Exp $  
+ * $Id: ft847.c,v 1.16 2001-11-19 21:12:19 f4cfe Exp $  
  *
  *
  *
@@ -161,8 +161,8 @@ static const yaesu_cmd_set_t ncmd[] = {
  */
 
 
-#define FT847_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
-#define FT847_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT847_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
+#define FT847_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_SSB)
 #define FT847_AM_FM_RX_MODES (RIG_MODE_AM|RIG_MODE_FM)
 
 /* tx doesn't have WFM.
@@ -170,7 +170,7 @@ static const yaesu_cmd_set_t ncmd[] = {
  * 50W in 2m/70cm (12.5 watts AM carrier)
  */ 
 
-#define FT847_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define FT847_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define FT847_AM_TX_MODES (RIG_MODE_AM)
 
 #define FT847_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
