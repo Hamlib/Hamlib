@@ -8,15 +8,18 @@ GENERAL PROJECT TODO
 2. Write More extensive Test Suites
 3. Document API's
 4. Document Limitations/Assumptions.
-5. Build top level Makefile for maintenance
+5. Build top level Makefile for maintenance * started *
 6. Encourage people to build cool GUI's using
    our libs. (any GTK wiz's out here ..)
 7. Move common routines to a common area
-   and avoid duplication.
+   and avoid duplication. * started *
 8. More safe checking during function calls.
  
 9. If read from rig takes > "n" seconds, then no longer
    block on read, just return error. 
 
 
+10. Improve Makefiles
+
+11. Add some scanning routines
 
