@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.5 2000-07-29 20:26:59 javabear Exp $  
+ *    $Id: ft847.h,v 1.6 2000-07-29 23:12:57 javabear Exp $  
  */
 
 /*
@@ -115,9 +115,9 @@ long int cmd_get_freq_mode_status_sat_tx_vfo(int fd, unsigned char *mode);
 
 
 /*
- * Set frequency in Hz.
+ * Set frequency in Hz and mode
  *
  */
 
-void cmd_set_freq_main_vfo_hz(unsigned long int freq);
+void cmd_set_freq_main_vfo_hz(int fd,long int freq, unsigned char mode);
 
