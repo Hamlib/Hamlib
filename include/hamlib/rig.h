@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.48 2001-07-21 13:00:03 f4cfe Exp $
+ *		$Id: rig.h,v 1.49 2001-07-25 21:55:59 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -315,23 +315,6 @@ enum reset_e {
 typedef enum reset_e reset_t;
 
 
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-enum mem_vfo_op_e {
-	RIG_MVOP_VFO_MODE = 0,
-	RIG_MVOP_MEM_MODE,
-	RIG_MVOP_VFO_CPY,		/* VFO A = VFO B */
-	RIG_MVOP_VFO_XCHG,		/* Exchange VFO A/B */
-	RIG_MVOP_DUAL_OFF,		/* Dual watch off */
-	RIG_MVOP_DUAL_ON,		/* Dual watch on */
-	RIG_MVOP_FROM_VFO,		/* VFO->MEM */
-	RIG_MVOP_TO_VFO,		/* MEM->VFO */
-	RIG_MVOP_MCL			/* Memory clear */
-};
-
-typedef enum mem_vfo_op_e mv_op_t;
-
-#else
-
 /* VFO/MEM mode are set by set_vfo */
 #define RIG_OP_NONE	0
 #define RIG_OP_CPY		(1<<0)		/* VFO A = VFO B */
@@ -352,7 +335,6 @@ typedef enum mem_vfo_op_e mv_op_t;
 
 typedef long vfo_op_t;
 
-#endif	/* WANT_OLD_VFO_TO_BE_REMOVED */
 
 
 #define RIG_SCAN_NONE	0L
@@ -520,18 +502,18 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_VOX    	(1<<3)		/* VOX */
 #define RIG_FUNC_TONE    	(1<<4)		/* Tone */
 #define RIG_FUNC_TSQL    	(1<<5)		/* may require a tone field */
-#define RIG_FUNC_SBKIN    	(1<<6)		/* Semi Break-in (is it the rigth name?) */
+#define RIG_FUNC_SBKIN    	(1<<6)		/* Semi Break-in */
 #define RIG_FUNC_FBKIN    	(1<<7)		/* Full Break-in, for CW mode */
 #define RIG_FUNC_ANF    	(1<<8)		/* Automatic Notch Filter (DSP) */
 #define RIG_FUNC_NR     	(1<<9)		/* Noise Reduction (DSP) */
 #define RIG_FUNC_AIP     	(1<<10)		/* AIP (Kenwood) */
 #define RIG_FUNC_APF     	(1<<11)		/* Auto Passband Filter */
-#define RIG_FUNC_MON     	(1<<12)		/* Monitor? (Icom), same as FUNC_REV? */
+#define RIG_FUNC_MON     	(1<<12)		/* Monitor transmitted signal, != rev */
 #define RIG_FUNC_MN     	(1<<13)		/* Manual Notch (Icom) */
 #define RIG_FUNC_RNF     	(1<<14)		/* RTTY Filter Notch (Icom) */
 #define RIG_FUNC_ARO     	(1<<15)		/* Auto Repeater Offset */
 #define RIG_FUNC_LOCK     	(1<<16)		/* Lock */
-#define RIG_FUNC_MUTE     	(1<<17)		/* Mute, could be emulated by LELVE_AF*/
+#define RIG_FUNC_MUTE     	(1<<17)		/* Mute, could be emulated by LEVEL_AF*/
 #define RIG_FUNC_VSC     	(1<<18)		/* Voice Scan Control */
 #define RIG_FUNC_REV     	(1<<19)		/* Reverse tx and rx freqs */
 #define RIG_FUNC_SQL     	(1<<20)		/* Turn Squelch Monitor on/off*/
@@ -708,9 +690,9 @@ typedef struct chan_list chan_t;
  */
 struct rig_caps {
   rig_model_t rig_model;
-  char model_name[RIGNAMSIZ];
-  char mfg_name[RIGNAMSIZ];
-  char version[RIGVERSIZ];
+  const char *model_name;
+  const char *mfg_name;
+  const char *version;
   const char *copyright;
   enum rig_status_e status;
 
@@ -867,11 +849,7 @@ struct rig_caps {
   int (*set_bank)(RIG *rig, vfo_t vfo, int bank);
   int (*set_mem)(RIG *rig, vfo_t vfo, int ch);
   int (*get_mem)(RIG *rig, vfo_t vfo, int *ch);
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-  int (*mv_ctl)(RIG *rig, vfo_t vfo, mv_op_t op);
-#else
   int (*vfo_op)(RIG *rig, vfo_t vfo, vfo_op_t op);
-#endif
   int (*scan)(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 
   int (*set_trn)(RIG *rig, vfo_t vfo, int trn);
@@ -914,7 +892,7 @@ typedef struct {
   int timeout;	/* in ms */
   int retry;		/* maximum number of retries, 0 to disable */
 
-  char path[FILPATHLEN];
+  char pathname[FILPATHLEN];
   union {
 		  struct {
     		int rate;
@@ -927,7 +905,7 @@ typedef struct {
 			int pin;
 		  } parallel;
 		  struct {
-				  /* place holder? */
+				  /* place holder */
 		  } device;
 #ifdef NET
 		  struct {
@@ -947,35 +925,9 @@ typedef struct {
  * not be initialized like caps are.
  */
 struct rig_state {
-#ifdef WANT_OLD_PORT_STUFF
-  enum rig_port_e port_type;	/* serial, network, etc. */
-
-  int serial_rate;
-  int serial_data_bits; /* eg 8 */
-  int serial_stop_bits; /* eg 2 */
-  enum serial_parity_e serial_parity; /* */
-  enum serial_handshake_e serial_handshake; /* */
-
-  int write_delay;        /* delay in ms between each byte sent out */
-  int post_write_delay;		/* for some yaesu rigs */
-  struct timeval post_write_date;		/* hamlib internal use */
-  int timeout;	/* in ms */
-  int retry;		/* maximum number of retries, 0 to disable */
-
-  enum ptt_type_e ptt_type;	/* how we will key the rig */
-  enum dcd_type_e dcd_type;
-
-  char ptt_path[FILPATHLEN];	/* path to the keying device (serial,//) */
-  char rig_path[FILPATHLEN]; /* serial port/network path(host:port) */
-
-  int fd;	/* serial port/socket file handle */
-  int ptt_fd;	/* ptt port file handle */
-  FILE *stream;	/* serial port/socket (buffered) stream handle */
-#else
   port_t rigport;
   port_t pttport;
   port_t dcdport;
-#endif
 
   double vfo_comp;				/* VFO compensation in PPM, 0.0 to disable */
 
@@ -1163,12 +1115,8 @@ extern HAMLIB_EXPORT(int) rig_send_morse HAMLIB_PARAMS((RIG *rig, vfo_t vfo, con
 extern HAMLIB_EXPORT(int) rig_set_bank HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int bank));
 extern HAMLIB_EXPORT(int) rig_set_mem HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int ch));
 extern HAMLIB_EXPORT(int) rig_get_mem HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int *ch));
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-extern HAMLIB_EXPORT(int) rig_mv_ctl HAMLIB_PARAMS((RIG *rig, vfo_t vfo, mv_op_t op));
-#else
 extern HAMLIB_EXPORT(int) rig_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_t vfo, vfo_op_t op));
 extern HAMLIB_EXPORT(vfo_op_t) rig_has_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_op_t op));
-#endif
 extern HAMLIB_EXPORT(int) rig_scan HAMLIB_PARAMS((RIG *rig, vfo_t vfo, scan_t scan, int ch));
 extern HAMLIB_EXPORT(scan_t) rig_has_scan HAMLIB_PARAMS((RIG *rig, scan_t scan));
 
