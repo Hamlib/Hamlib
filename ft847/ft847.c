@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.7 2000-07-29 02:38:22 javabear Exp $  
+ * $Id: ft847.c,v 1.8 2000-07-29 20:30:33 javabear Exp $  
  *
  */
 
@@ -23,6 +23,10 @@
 #include "ft847.h"
 
 static unsigned char datain[5]; /* data read from rig */
+
+static long int  calc_freq_from_packed4(unsigned char *in);
+
+
 
 /*
  * Function definitions below
@@ -284,68 +288,61 @@ unsigned char cmd_get_tx_status(int fd) {
 }
 
 /*
- * Get freq and mode data from the RIG main VFO...only 1 byte
+ * Get freq and mode data from the RIG main VFO...only 5 bytes
  *
  */
 
-unsigned char cmd_get_freq_mode_status_main_vfo(int fd) {
-  int n;			/* counters */
-  unsigned char sfreq[8];
+long int cmd_get_freq_mode_status_main_vfo(int fd, unsigned char *mode) {
   long int f;
-
+  
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x03 }; /* get freq and mode status */
 								  /* main vfo*/
-
   write_block(fd,data);
-  n = read_sleep(fd,datain,5);	/* wait and read for 1 byte to be read */
-
-  printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  datain[0], datain[1], datain[2],datain[3],datain[4]);
-  sprintf(sfreq,"%.2x%.2x%.2x%.2x",datain[0], datain[1], datain[2],datain[3]);
-  f = atol(sfreq);
-  f = f *10;
-  printf("f = %ld Hz\n",f );
+  read_sleep(fd,datain,5);	/* wait and read for 5 byte to be read */
+  f = calc_freq_from_packed4(datain); /* 1st 4 bytes */
+  *mode = datain[4];		      /* last byte */
   
-  return datain[0];
+  return f;			/* return freq in Hz */
 
 }
 
 /*
- * Get freq and mode data from the RIG  sat RX vfo ...only 1 byte
+ * Get freq and mode data from the RIG  sat RX vfo ...only 5 bytes
  *
  */
 
-unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
-  int n;			/* counters */
+long int cmd_get_freq_mode_status_sat_rx_vfo(int fd, unsigned char *mode ) {
+  long int f;
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x13 }; /* get freq and mode status */
 								  /* sat rx vfo*/
-
   write_block(fd,data);
-  n = read_sleep(fd,datain,5);	/* wait and read for 1 byte to be read */
-
+  read_sleep(fd,datain,5);	/* wait and read for 5 byte to be read */
+  f = calc_freq_from_packed4(datain); /* 1st 4 bytes */
+  *mode = datain[4];		      /* last byte */
+  
   printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  datain[0], datain[1], datain[2],datain[3],datain[4]); 
 
-  return datain[0];
+  return f;			/* return freq in Hz */
 
 }
 
 /*
- * Get freq and mode data from the RIG sat TX VFO...only 1 byte
+ * Get freq and mode data from the RIG sat TX VFO...only 5 bytes
  *
  */
 
-unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd) {
-  int n;			/* counters */
+long int cmd_get_freq_mode_status_sat_tx_vfo(int fd, unsigned char *mode) {
+  long int f;
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x23 }; /* get freq and mode status */
 								  /* sat tx vfo*/
-
   write_block(fd,data);
-  n = read_sleep(fd,datain,5);	/* wait and read for 1 byte to be read */
+  read_sleep(fd,datain,5);	/* wait and read for 5 byte to be read */
+  f = calc_freq_from_packed4(datain); /* 1st 4 bytes */
+  *mode = datain[4];		      /* last byte */
 
-  printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  datain[0], datain[1], datain[2],datain[3],datain[4]); 
-
-  return datain[0];
+  return f;			/* return freq in Hz */
 
 }
 
@@ -361,6 +358,34 @@ void cmd_set_freq_main_vfo_hz(unsigned long int freq) {
 
  
 
+}
+
+
+/*
+ * Private helper functions....
+ *
+ */
+
+
+/*
+ * Decode decimal from packed decimal (4 bytes, 8 digits) 
+ * and return frequency in Hz.
+ *
+ */
+
+static long int  calc_freq_from_packed4(unsigned char *in) {
+  long int f;			/* frequnecy in Hz */
+  unsigned char sfreq[9];	/* 8 digits + \0 */
+
+  printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  datain[0], datain[1], datain[2],datain[3],datain[4]); 
+
+  snprintf(sfreq,9,"%.2x%.2x%.2x%.2x",in[0], in[1], in[2], in[3]);
+  f = atol(sfreq);
+  f = f *10;			/* yaesu returns freq to 10 Hz, so must */
+				/* scale to return Hz*/
+  printf("frequency = %ld  Hz\n",  f); 
+     
+  return f;			/* Hz */
 }
 
 
