@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - provides registering for dynamically loadable backends.
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *		$Id: register.c,v 1.17 2002-11-04 22:27:49 fillods Exp $
+ *	$Id: register.c,v 1.18 2003-03-10 08:26:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,7 +53,7 @@
 static struct {
 	int be_num;
 	const char *be_name;
-    rig_model_t (*be_probe)(port_t *);
+	rig_model_t (* be_probe_all)(port_t*, rig_probe_func_t, rig_ptr_t);
 } rig_backend_list[RIG_BACKEND_MAX] = RIG_BACKEND_LIST;
 
 
@@ -221,23 +221,46 @@ int rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),rig_ptr_t d
 	return RIG_OK;
 }
 
+static int dummy_rig_probe(port_t *p, rig_model_t model, rig_ptr_t data)
+{
+	rig_debug(RIG_DEBUG_TRACE, "Found rig, model %d\n", model);
+	return RIG_OK;
+}
+
 /*
- * rig_probe_all
+ * rig_probe_first
  * called straight by rig_probe
  */
-rig_model_t rig_probe_all(port_t *p)
+rig_model_t rig_probe_first(port_t *p)
 {
 	int i;
-	rig_model_t rig_model;
+	rig_model_t model;
 
 	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
-			if (rig_backend_list[i].be_probe) {
-					rig_model = (*rig_backend_list[i].be_probe)(p);
-					if (rig_model != RIG_MODEL_NONE)
-							return rig_model;
-			}
+		if (rig_backend_list[i].be_probe_all) {
+			model = (*rig_backend_list[i].be_probe_all)(p, dummy_rig_probe, NULL);
+			/* stop at first one found */
+			if (model != RIG_MODEL_NONE)
+				return model;
+		}
 	}
 	return RIG_MODEL_NONE;
+}
+
+/*
+ * rig_probe_all_backends
+ * called straight by rig_probe_all
+ */
+int rig_probe_all_backends(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
+{
+	int i;
+
+	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
+		if (rig_backend_list[i].be_probe_all) {
+			(*rig_backend_list[i].be_probe_all)(p, cfunc, data);
+		}
+	}
+	return RIG_OK;
 }
 
 
@@ -275,7 +298,7 @@ int rig_load_backend(const char *be_name)
 	int status;
 	char libname[PATH_MAX];
 	char initfname[MAXFUNCNAMELEN]  = "initrigs_";
-	char probefname[MAXFUNCNAMELEN] = "proberigs_";
+	char probefname[MAXFUNCNAMELEN] = "probeallrigs_";
 	int i;
 
 	/*
@@ -340,7 +363,7 @@ int rig_load_backend(const char *be_name)
 	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
 		if (!strncmp(be_name, rig_backend_list[i].be_name, 64)) {
     			strncat(probefname, be_name, MAXFUNCNAMELEN);
-    			rig_backend_list[i].be_probe = (rig_model_t (*)(port_t *))
+    			rig_backend_list[i].be_probe_all = (rig_probe_func_t)
 						lt_dlsym (be_handle, probefname);
 				break;
 		}

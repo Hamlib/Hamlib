@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.67 2003-02-23 22:38:54 fillods Exp $
+ *	$Id: rig.c,v 1.68 2003-03-10 08:26:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2227,7 +2227,7 @@ int rig_reset(RIG *rig, reset_t reset)
  * \brief try to guess a rig
  * \param port		A pointer describing a port linking the host to the rig
  *
- *  Try to guess what is the model of rig pointed to by port. 
+ *  Try to guess what is the model of the first rig attached to the port. 
  *  It can be very buggy, and mess up the radio at the other end.
  *  (but fun if it works!)
  *
@@ -2239,10 +2239,35 @@ int rig_reset(RIG *rig, reset_t reset)
  */
 rig_model_t rig_probe(port_t *port)
 {
-		if (!port)
-				return RIG_MODEL_NONE;
+	if (!port)
+		return RIG_MODEL_NONE;
 
-		return rig_probe_all(port);
+	return rig_probe_first(port);
+}
+
+/**
+ * \brief try to guess rigs
+ * \param port	A pointer describing a port linking the host to the rigs
+ * \param cfunc	Function to be called each time a rig is found
+ * \param data	Arbitrary data passed to cfunc
+ *
+ *  Try to guess what are the model of all rigs attached to the port. 
+ *  It can be very buggy, and mess up the radio at the other end.
+ *  (but fun if it works!)
+ *
+ * \warning this is really Experimental, It has been tested only
+ * with IC-706MkIIG. any feedback welcome! --SF
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ */
+int rig_probe_all(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+{
+	if (!port)
+		return -RIG_EINVAL;
+
+	return rig_probe_all_backends(port, cfunc, data);
 }
 
 /**

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main file
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.57 2003-01-29 22:25:16 fillods Exp $
+ *	$Id: kenwood.c,v 1.58 2003-03-10 08:26:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1312,32 +1312,50 @@ const char* kenwood_get_info(RIG *rig)
 #define IDBUFSZ 16
 
 /*
- * probe_kenwood
+ * proberigs_kenwood
+ *
+ * Notes:
+ * There's only one rig possible per port.
  */
-rig_model_t probe_kenwood(port_t *port)
+rig_model_t probeallrigs_kenwood(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 {
 	unsigned char idbuf[IDBUFSZ];
 	int id_len, i, k_id;
 	int retval;
+	int rates[] = { 57600, 9600, 4800, 0 };	/* possible baud rates */
+	int rates_idx;
 
 	if (!port)
-			return RIG_MODEL_NONE;
+		return RIG_MODEL_NONE;
+
+	if (port->type.rig != RIG_PORT_SERIAL)
+		return RIG_MODEL_NONE;
 
 	port->write_delay = port->post_write_delay = 0;
-	port->timeout = 50;
+	port->parm.serial.stop_bits = 2;
 	port->retry = 1;
 
-	retval = serial_open(port);
-	if (retval != RIG_OK)
+	/*
+	 * try for all different baud rates
+	 */
+	for (rates_idx = 0; rates[rates_idx]; rates_idx++) {
+		port->parm.serial.rate = rates[rates_idx];
+		port->timeout = 2*1000/rates[rates_idx] + 50;
+	
+		retval = serial_open(port);
+		if (retval != RIG_OK)
 			return RIG_MODEL_NONE;
+	
+		retval = write_block(port, "ID;", 3);
+		id_len = read_string(port, idbuf, IDBUFSZ, EOM_KEN EOM_TH, strlen(EOM_KEN EOM_TH));
+		close(port->fd);
 
-	retval = write_block(port, "ID;", 3);
-    id_len = read_string(port, idbuf, IDBUFSZ, EOM_KEN EOM_TH, 2);
+		if (retval != RIG_OK || id_len < 0)
+			continue;
+	}
 
-	close(port->fd);
-
-	if (retval != RIG_OK)
-			return RIG_MODEL_NONE;
+	if (retval != RIG_OK || id_len < 0 || !strcmp(idbuf, "ID;"))
+		return RIG_MODEL_NONE;
 
 	/* 
 	 * reply should be something like 'IDxxx;'
@@ -1356,6 +1374,8 @@ rig_model_t probe_kenwood(port_t *port)
 			if (!strncmp(kenwood_id_string_list[i].id, idbuf+2, 16)) {
 					rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: "
 									"found %s\n", idbuf+2);
+					if (cfunc)
+						(*cfunc)(port, kenwood_id_string_list[i].model, data);
 					return kenwood_id_string_list[i].model;
 			}
 	}
@@ -1381,6 +1401,8 @@ rig_model_t probe_kenwood(port_t *port)
 		 */
 		if (id_len == 4 || !strcmp(idbuf, "K2")) {
 			rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: found K2\n");
+			if (cfunc)
+				(*cfunc)(port, RIG_MODEL_K2, data);
 			return RIG_MODEL_K2;
 		}
 	}
@@ -1389,6 +1411,8 @@ rig_model_t probe_kenwood(port_t *port)
 		if (kenwood_id_list[i].id == k_id) {
 			rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: "
 							"found %03d\n", k_id);
+			if (cfunc)
+				(*cfunc)(port, kenwood_id_list[i].model, data);
 			return kenwood_id_list[i].model;
 		}
 	}

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.26 2002-11-13 20:35:18 fillods Exp $
+ *	$Id: kenwood.h,v 1.27 2003-03-10 08:26:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -96,7 +96,7 @@ extern const struct rig_caps thf7e_caps;
 extern const struct rig_caps k2_caps;
 
 extern BACKEND_EXPORT(int) initrigs_kenwood(void *be_handle);
-extern BACKEND_EXPORT(rig_model_t) proberigs_kenwood(port_t *port);
+extern BACKEND_EXPORT(rig_model_t) probeallrigs_kenwood(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data);
 
 
 #endif /* _KENWOOD_H */

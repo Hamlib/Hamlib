@@ -1,8 +1,8 @@
 /*
  *  Hamlib Drake backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.2 2002-10-20 20:46:32 fillods Exp $
+ *	$Id: drake.c,v 1.3 2003-03-10 08:26:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -221,7 +221,7 @@ int initrigs_drake(void *be_handle)
 /*
  * probe_drake
  */
-rig_model_t probe_drake(port_t *port)
+rig_model_t probeallrigs_drake(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 {
 	static unsigned char idbuf[BUFSZ];
 	int retval, id_len;
@@ -229,6 +229,10 @@ rig_model_t probe_drake(port_t *port)
 	if (!port)
 		return RIG_MODEL_NONE;
 
+	if (port->type.rig != RIG_PORT_SERIAL)
+		return RIG_MODEL_NONE;
+
+	port->parm.serial.rate = r8b_caps.serial_rate_max;
 	port->write_delay = port->post_write_delay = 0;
 	port->timeout = 50;
 	port->retry = 1;
@@ -242,19 +246,22 @@ rig_model_t probe_drake(port_t *port)
 
 	close(port->fd);
 
-	if (retval != RIG_OK)
+	if (retval != RIG_OK || id_len <= 0 || id_len >= BUFSZ)
 		return RIG_MODEL_NONE;
 
 	idbuf[id_len] = '\0';
 
-
-	if (!strcmp(idbuf, "R8B"))
+	if (!strcmp(idbuf, "R8B")) {
+		if (cfunc)
+			(*cfunc)(port, RIG_MODEL_DKR8B, data);
 		return RIG_MODEL_DKR8B;
+	}
 
 	/*
 	 * not found... 
 	 */
-	rig_debug(RIG_DEBUG_VERBOSE,"probe_drake: found unknown device "
+	if (memcmp(idbuf, "ID" EOM, 3)) /* catch loopback serial */
+		rig_debug(RIG_DEBUG_VERBOSE,"probe_drake: found unknown device "
 				"with ID '%s', please report to Hamlib "
 				"developers.\n", idbuf);
 
