@@ -1,9 +1,9 @@
 /*
- * printcaps.c - Copyright (C) 2000 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: printcaps.c,v 1.1 2000-10-01 12:52:17 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.1 2000-10-08 21:21:31 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <rig.h>
+#include <hamlib/rig.h>
 
 
 static char *decode_modes(rmode_t modes);
@@ -41,6 +41,12 @@ int main (int argc, char *argv[])
 	if (argc != 2) {
 			fprintf(stderr,"%s <rig_num>\n",argv[0]);
 			exit(1);
+	}
+
+	status = rig_load_backend("icom");
+	if (status != RIG_OK ) {
+		printf("rig_load_backend: error = %s \n", rigerror(status));
+		exit(3);
 	}
 
 	caps = rig_get_caps(atoi(argv[1]));
@@ -67,6 +73,9 @@ int main (int argc, char *argv[])
 			break;
 	case RIG_STATUS_STABLE:
 			printf("Stable\n");
+			break;
+	case RIG_STATUS_BUGGY:
+			printf("Buggy\n");
 			break;
 	case RIG_STATUS_NEW:
 			printf("New\n");
