@@ -1,6 +1,6 @@
-EXTRA_DIST = getopt.c getopt.h getopt1.c usleep.c
+EXTRA_DIST = getopt.c getopt.h getopt_long.c usleep.c
 
-noinst_LIBRARIES = libmisc.a
+noinst_LTLIBRARIES = libmisc.la
 
-libmisc_a_SOURCES = 
-libmisc_a_LIBADD = @LIBOBJS@
+libmisc_la_SOURCES = 
+libmisc_la_LIBADD = @LTLIBOBJS@
