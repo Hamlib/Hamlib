@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.9 2004-06-04 21:48:05 fillods Exp $
+ *	$Id: drake.c,v 1.10 2004-08-08 20:14:03 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
+#include "cal.h"
 #include "register.h"
 
 #include "drake.h"
@@ -118,8 +119,8 @@ int drake_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char freqbuf[16], ackbuf[16];
 	int freq_len, ack_len, retval;
 
-	/* 
-	 * 10Hz resolution 
+	/*
+	 * 10Hz resolution
 	 * TODO: round nearest?
 	 */
 	freq_len = sprintf(freqbuf,"F%07d" EOM, (unsigned int)freq/10);
@@ -143,7 +144,7 @@ int drake_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		retval = drake_transaction (rig, "RF" EOM, 3, freqbuf, &freq_len);
 		if (retval != RIG_OK)
 		  return retval;
-				
+
 		/* RA command returns *fffff.ff*mHz<CR> */
 		if (freq_len != 15) {
 		  rig_debug(RIG_DEBUG_ERR,"drake_get_freq: wrong answer %s, "
@@ -177,7 +178,7 @@ int drake_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_VFO:
 	case RIG_VFO_A: vfo_function = 'A'; break;
 	case RIG_VFO_B: vfo_function = 'B'; break;
-	default: 
+	default:
 		rig_debug(RIG_DEBUG_ERR,"drake_set_vfo: unsupported VFO %d\n",
 							vfo);
 		return -RIG_EINVAL;
@@ -215,13 +216,13 @@ int drake_get_vfo(RIG *rig, vfo_t *vfo)
 	switch(cvfo){
 	case '0':
 	case '1':
-	case '2': 
+	case '2':
 	case '3':
 	case '4':
-	case '5': 
+	case '5':
 	case '6':
 	case '7': *vfo = RIG_VFO_B; break;
-	case '8': 
+	case '8':
 	case '9':
 	case ':':
 	case ';':
@@ -326,9 +327,9 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	csynch = mdbuf[5];
 
 	switch(cwidth){
-	case '0': 
+	case '0':
 	case '8': *width = s_Hz(500); break;
-	case '1': 
+	case '1':
 	case '9': *width = s_Hz(1800); break;
 	case '2':
 	case ':': *width = s_Hz(2300); break;
@@ -343,7 +344,7 @@ int drake_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	  *width = RIG_PASSBAND_NORMAL;
 	  return -RIG_EINVAL;
 	}
-	
+
 	if (cwidth=='0'||cwidth=='1'||cwidth=='2'||cwidth=='3'||cwidth=='4'){
 	  switch(cmode){
 	  case '0':
@@ -433,9 +434,9 @@ int drake_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 	case '1':
 	case '2': *ant = RIG_ANT_1; break;
 	case '4':
-	case '5': 
+	case '5':
 	case '6': *ant = RIG_ANT_3; break;
-	case '8': 
+	case '8':
 	case '9':
 	case ':': *ant = RIG_ANT_2; break;
 	default :
@@ -483,11 +484,11 @@ int drake_get_mem(RIG *rig, vfo_t vfo, int *ch)
 	}
 
 	mdbuf[4] = '\0';
-	
+
 	/* extract channel no */
 	sscanf(mdbuf+1, "%03d", &chan);
 	*ch = chan;
-	
+
 	return RIG_OK;
 }
 
@@ -633,14 +634,14 @@ int drake_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	int lvl_len, retval;
-        char lvlbuf[BUFSZ];
-        char mc;
+	char lvlbuf[BUFSZ];
+	char mc;
 
-	if (level != RIG_LEVEL_RAWSTR) { 
+	if ((level != RIG_LEVEL_RAWSTR)&&(level != RIG_LEVEL_STRENGTH)) {
 	  retval = drake_transaction (rig, "RM" EOM, 3, lvlbuf, &lvl_len);
 	  if (retval != RIG_OK)
 	    return retval;
-	  
+
 	  if (lvl_len != 8) {
 	    rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer %s, "
 		      "len=%d\n", lvlbuf, lvl_len);
@@ -653,7 +654,7 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  retval = drake_transaction (rig, "RSS" EOM, 4, lvlbuf, &lvl_len);
 	  if (retval != RIG_OK)
 	    return retval;
-	  
+
 	  if (lvl_len != 5) {
 	    rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer"
 		      "len=%d\n", lvl_len);
@@ -662,7 +663,22 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	  lvlbuf[3] = '\0';
 	  val->i =  strtol(lvlbuf+1, (char **)NULL, 16);
-	  break;		  
+	  break;
+	case RIG_LEVEL_STRENGTH:
+	  retval = drake_transaction (rig, "RSS" EOM, 4, lvlbuf, &lvl_len);
+	  if (retval != RIG_OK)
+	    return retval;
+
+	  if (lvl_len != 5) {
+	    rig_debug(RIG_DEBUG_ERR,"drake_get_level: wrong answer"
+		      "len=%d\n", lvl_len);
+	    return -RIG_ERJCTED;
+	  }
+
+	  lvlbuf[3] = '\0';
+	  int ss =  strtol(lvlbuf+1, (char **)NULL, 16);
+	  val->i = (int)rig_raw2val(ss,&rig->caps->str_cal);
+	  break;
 	case RIG_LEVEL_PREAMP:
 	  mc = lvlbuf[2];
 	  if (mc=='8'||mc=='9'||mc==':'||mc==';')
@@ -808,7 +824,7 @@ DECLARE_PROBERIG_BACKEND(drake)
 	}
 
 	/*
-	 * not found... 
+	 * not found...
 	 */
 	if (memcmp(idbuf, "ID" EOM, 3)) /* catch loopback serial */
 		rig_debug(RIG_DEBUG_VERBOSE,"probe_drake: found unknown device "

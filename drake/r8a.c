@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8A description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: r8a.c,v 1.2 2004-06-04 21:48:05 fillods Exp $
+ *	$Id: r8a.c,v 1.3 2004-08-08 20:14:25 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,7 @@
 
 #define R8A_FUNC (RIG_FUNC_MN|RIG_FUNC_LOCK|RIG_FUNC_NB)
 
-#define R8A_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR)
+#define R8A_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
 #define R8A_PARM_ALL (RIG_PARM_TIME)
 
@@ -43,6 +43,25 @@
 #define R8A_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_MCL|RIG_OP_CPY)
 
 #define R8A_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
+
+#define R8A_STR_CAL { 16, { \
+		{   0, -60 }, \
+		{   1, -48 }, \
+		{  11, -42 }, \
+		{  27, -36 }, \
+		{  39, -30 }, \
+		{  51, -24 }, \
+		{  64, -18 }, \
+		{  80, -12 }, \
+		{  97, -6 }, \
+		{ 116,  0 }, \
+		{ 138, 10 }, \
+		{ 163, 20 }, \
+		{ 195, 30 }, \
+		{ 217, 40 }, \
+		{ 228, 50 }, \
+		{ 255, 60 }, \
+	} }
 
 /*
  * R-8A rig capabilities.
@@ -99,7 +118,7 @@ const struct rig_caps r8a_caps = {
 		RIG_CHAN_END
 	},
 
-.rx_range_list1 =  { 
+.rx_range_list1 =  {
 	{kHz(100),MHz(30),R8A_MODES,-1,-1,R8A_VFO,R8A_ANTS},
 	RIG_FRNG_END,
   },
@@ -119,14 +138,15 @@ const struct rig_caps r8a_caps = {
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.3)},	/* normal */
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(6)},	/* wide */
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(4)},
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(1.8)},	/* narrow */
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, Hz(500)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(2.3)},	/* normal */
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(6)},	/* wide */
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(4)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, kHz(1.8)},	/* narrow */
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS, Hz(500)},
 		{RIG_MODE_FM, kHz(12)},
 		RIG_FLT_END,
 	},
+.str_cal = R8A_STR_CAL,
 .priv =  NULL,
 
 .rig_init = drake_init,
