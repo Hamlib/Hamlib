@@ -1,4 +1,4 @@
-noinst_HEADERS = config.h
+noinst_HEADERS = config.h bandplan.h
 
 includedir = @includedir@/hamlib
 
