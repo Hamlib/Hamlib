@@ -2,7 +2,7 @@
 bin_PROGRAMS = rigctl rotctl
 man_MANS = rigctl.1 rotctl.1
 
-noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp testloc @RIGMATRIX@
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testloc @RIGMATRIX@
 
 EXTRA_PROGRAMS = rigmatrix
 
@@ -27,8 +27,6 @@ testloc_LDFLAGS = -dlpreopen self
  
 # rigmatrix needs also libgd
 rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
-testcpp_LDADD = ../c++/libhamlib++.la
-testcpp_LDFLAGS = @BACKENDLNK@
 
 ## Dependencies
 
@@ -41,10 +39,7 @@ listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rotctl_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
-testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
 
-## Non implicit sources
-testcpp_SOURCES = testcpp.cc
 
 
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
