@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.37 2003-09-21 17:05:58 fillods Exp $
+ *	$Id: riglist.h,v 1.38 2003-10-07 22:11:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -375,7 +375,7 @@
 	 */
 #define RIG_TAPR 22
 #define RIG_BACKEND_TAPR "tapr"
-#define RIG_MODEL_TAPR_DSP10 RIG_MAKE_MODEL(RIG_TAPR, 1)
+#define RIG_MODEL_DSP10 RIG_MAKE_MODEL(RIG_TAPR, 1)
 
 	/*
 	 * Flex-radio
@@ -386,11 +386,18 @@
 
 
 	/*
+	 * VEB Funkwerk Köpenick RFT
+	 */
+#define RIG_RFT 24
+#define RIG_BACKEND_RFT "rft"
+#define RIG_MODEL_EKD500 RIG_MAKE_MODEL(RIG_RFT, 1)
+
+
+	/*
 	 * TODO:
 		RIG_MODEL_KWZ30,	KNEISNER +DOERING
 		RIG_MODEL_E1800,	DASA-Telefunken
-		RIG_EKD500,	RFT
-		RIG_W41PC (ISA card) Wavecom
+		etc.
 	*/
 
 /*! \typedef typedef int rig_model_t
@@ -431,6 +438,7 @@ typedef int rig_model_t;
 		{ RIG_MICROTUNE, RIG_BACKEND_MICROTUNE }, \
 		{ RIG_TAPR, RIG_BACKEND_TAPR }, \
 		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
+		{ RIG_RFT, RIG_BACKEND_RFT }, \
 		{ 0, NULL }, /* end */  \
 }
 
