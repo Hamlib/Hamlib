@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.82 2003-11-16 17:28:29 fillods Exp $
+ *	$Id: icom.c,v 1.83 2003-12-04 23:27:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -532,6 +532,9 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
+
+		if (vfo == RIG_VFO_CURR)
+			return RIG_OK;
 
 		switch(vfo) {
 		case RIG_VFO_A: icvfo = S_VFOA; break;
@@ -1259,10 +1262,29 @@ int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  * Assumes rig!=NULL, rig->state.priv!=NULL,
  * 	icom_set_vfo,icom_set_freq works for this rig
  * FIXME: status
+ *
+ * Assumes also that the current VFO is the rx VFO.
  */
 int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 		int status;
+
+		/* This method works also in memory mode(RIG_VFO_MEM) */
+		if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_set_freq(rig, RIG_VFO_CURR, tx_freq);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			return 0;
+		}
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
 		if (status != RIG_OK)
@@ -1276,7 +1298,6 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 		if (status != RIG_OK)
 				return status;
 
-
 		return status;
 }
 
@@ -1289,6 +1310,23 @@ int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 		int status;
+
+		/* This method works also in memory mode(RIG_VFO_MEM) */
+		if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_get_freq(rig, RIG_VFO_CURR, tx_freq);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			return 0;
+		}
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
 		if (status != RIG_OK)
@@ -1314,6 +1352,23 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
 		int status;
+
+		/* This method works also in memory mode(RIG_VFO_MEM) */
+		if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			return 0;
+		}
 
 		status = icom_set_vfo(rig, RIG_VFO_B);
 		if (status != RIG_OK)
@@ -1341,15 +1396,32 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wid
 {
 		int status;
 
+		/* This method works also in memory mode(RIG_VFO_MEM) */
+		if (rig_has_vfo_op(rig, RIG_OP_XCHG)) {
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+			if (status != RIG_OK)
+				return status;
+
+			status = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+			if (status != RIG_OK)
+				return status;
+
+			return 0;
+		}
+
 		status = icom_set_vfo(rig, RIG_VFO_B);
 		if (status != RIG_OK)
 				return status;
 
-		status |= icom_get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		status = icom_get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
 		if (status != RIG_OK)
 				return status;
 
-		status |= icom_set_vfo(rig, RIG_VFO_A);
+		status = icom_set_vfo(rig, RIG_VFO_A);
 		if (status != RIG_OK)
 				return status;
 
@@ -1380,7 +1452,7 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 			split_sc = S_SPLT_ON;
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported split %d", split);
+			rig_debug(RIG_DEBUG_ERR,"%s: Unsupported split %d", __FUNCTION__, split);
 			return -RIG_EINVAL;
 		}
 
@@ -1398,9 +1470,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 		return RIG_OK;
 }
 
-
 /*
- * icom_get_split
+ * icom_get_split_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL, split!=NULL
  */
 int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
@@ -1423,8 +1494,8 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 		 */
 		split_len--;
 		if (split_len != 1) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_split: wrong frame len=%d\n",
-								split_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: wrong frame len=%d\n",
+						__FUNCTION__, split_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1438,6 +1509,36 @@ int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported split %d", splitbuf[1]);
 			return -RIG_EPROTO;
+		}
+
+		return RIG_OK;
+}
+
+
+/*
+ * icom_mem_get_split_vfo
+ * Assumes rig!=NULL, rig->state.priv!=NULL, split!=NULL
+ */
+int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+		int retval;
+
+		/* this hacks works only when in memory mode
+		 * I have no clue how to detect split in regular VFO mode
+		 */
+		if (rig->state.current_vfo != RIG_VFO_MEM)
+			return -RIG_ENAVAIL;
+
+		retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+		if (retval == RIG_OK) {
+			*split = RIG_SPLIT_ON;
+			/* get it back to normal */
+			retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
+		} else if (retval == -RIG_ERJCTED) {
+			*split = RIG_SPLIT_OFF;
+		} else {
+			/* this is really an error! */
+			return retval;
 		}
 
 		return RIG_OK;
@@ -2115,16 +2216,6 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		mv_len = 0;
 
 		switch(op) {
-#if 0
-			case RIG_MVOP_VFO_MODE:
-				mv_cn = C_SET_VFO;
-				mv_sc = -1;
-				break;
-			case RIG_MVOP_MEM_MODE:
-				mv_cn = C_SET_MEM;
-				mv_sc = -1;
-				break;
-#endif
 			case RIG_OP_CPY:
 				mv_cn = C_SET_VFO;
 				mv_sc = S_BTOA;
