@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.14 2004-02-01 22:29:23 fillods Exp $  
+ *    $Id: ft100.c,v 1.15 2005-01-24 23:04:29 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -399,7 +399,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq = %"FREQFMT" Hz \n", freq);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq = %"PRIfreq" Hz \n", freq);
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: vfo =%i \n", vfo);
 
   if( ( vfo != RIG_VFO_CURR ) &&
@@ -423,7 +423,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   to_bcd(p->p_cmd,freq,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq after conversion = %"FREQFMT" Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq after conversion = %"PRIfreq" Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
   write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
@@ -465,7 +465,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    d1=strtol(freq_str,NULL,16);
    d2=(d1*1.25); 		/* fixed 10Hz bug by OH2MMY */
    
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%"FREQFMT" d2=%"FREQFMT"\n",d1,d2);
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%"PRIfreq" d2=%"PRIfreq"\n",d1,d2);
    
    sprintf(sfreq,"%8lli",(long long)d2);
    

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Rotator backend - SDR-1000
- *  Copyright (c) 2003-2004 by Stephane Fillod
+ *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.7 2004-10-02 20:37:24 fillods Exp $
+ *	$Id: sdr1k.c,v 1.8 2005-01-24 23:03:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -122,7 +122,7 @@ const struct rig_caps sdr1k_rig_caps = {
   .rig_model =      RIG_MODEL_SDR1000,
   .model_name =     "SDR-1000",
   .mfg_name =       "Flex-radio",
-  .version =        "0.1.2",
+  .version =        "0.2",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_NEW,
   .rig_type =       RIG_TYPE_TUNER,
@@ -275,7 +275,7 @@ static int set_band(RIG *rig, freq_t freq)
 
 	ret = write_latch (rig, L_BAND, 1 << band, 0x3f);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s %lld band %d\n", __FUNCTION__, (long long)freq, band);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s %"PRIll" band %d\n", __FUNCTION__, (long long)freq, band);
 
 	return ret;
 }
@@ -309,7 +309,7 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	else
 		frqval = freq;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s curr %lld frqval %lld\n", __FUNCTION__, (long long)freq, (long long)frqval);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s curr %"PRIll" frqval %"PRIll"\n", __FUNCTION__, (long long)freq, (long long)frqval);
 
 	if (priv->dds_freq == frqval) {
 		return RIG_OK;
@@ -346,7 +346,7 @@ int sdr1k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
 
 	*freq = priv->dds_freq;
-	rig_debug(RIG_DEBUG_TRACE,"%s: %lld\n", __FUNCTION__, (long long)priv->dds_freq);
+	rig_debug(RIG_DEBUG_TRACE,"%s: %"PRIll"\n", __FUNCTION__, (long long)priv->dds_freq);
 
 	return RIG_OK;
 }

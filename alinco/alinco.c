@@ -1,8 +1,8 @@
 /*
  *  Hamlib Alinco backend - main file
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.24 2004-09-26 08:34:53 fillods Exp $
+ *	$Id: alinco.c,v 1.25 2005-01-24 23:03:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -254,7 +254,7 @@ int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 		/* extract RX freq */
 		freqbuf[16] = '\0';
-		sscanf(freqbuf+6, "%"FREQFMT, freq);
+		sscanf(freqbuf+6, "%"SCNfreq, freq);
 
 		return RIG_OK;
 }
@@ -431,7 +431,7 @@ int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
 		/* extract TX freq first, as RX kills freqbuf[16] */
 		freqbuf[26] = '\0';
-		sscanf(freqbuf+16, "%"FREQFMT, tx_freq);
+		sscanf(freqbuf+16, "%"SCNfreq, tx_freq);
 
 		return RIG_OK;
 }

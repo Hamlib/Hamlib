@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: misc.h,v 1.17 2004-05-17 21:09:44 fillods Exp $
+ *	$Id: misc.h,v 1.18 2005-01-24 23:03:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -66,7 +66,36 @@ extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
 /* check if it's any of CR or LF */
 #define isreturn(c) ((c) == 10 || (c) == 13)
 
+
+/* needs config.h included beforehand in .c file */
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
+
+#ifdef PRId64 
+/** \brief printf(3) format to be used for long long (64bits) type */
+#define PRIll PRId64 
+#else
+#ifdef FBSD4
+#define PRIll "qd"
+#else
+#define PRIll "lld"
+#endif
+#endif
+
+#ifdef SCNd64 
+/** \brief scanf(3) format to be used for long long (64bits) type */
+#define SCNll SCNd64 
+#else
+#ifdef FBSD4
+#define SCNll "qd"
+#else
+#define SCNll "lld"
+#endif
+#endif
+
+
+
 __END_DECLS
 
 #endif /* _MISC_H */
-

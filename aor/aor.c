@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - main file
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.29 2004-09-07 20:40:20 fillods Exp $
+ *	$Id: aor.c,v 1.30 2005-01-24 23:03:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -128,7 +128,7 @@ int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 				lowhz = 100;
 		f = f*100 + lowhz;
 
-		freq_len = sprintf(freqbuf,"RF%010lld" EOM, f);
+		freq_len = sprintf(freqbuf,"RF%010"PRIll EOM, f);
 
 		retval = aor_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
@@ -146,7 +146,6 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		char *rfp;
 		int freq_len, retval;
 		unsigned char freqbuf[BUFSZ];
-		long long f;
 
 		retval = aor_transaction (rig, "RX" EOM, 3, freqbuf, &freq_len);
 		if (retval != RIG_OK)
@@ -159,8 +158,7 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			return -RIG_EPROTO;
 		}
 
-		sscanf(rfp+2,"%lld", &f);
-		*freq = f;
+		sscanf(rfp+2,"%"SCNfreq, &freq);
 
 		return RIG_OK;
 }

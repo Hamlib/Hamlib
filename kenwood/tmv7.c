@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TM-V7 description
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.7 2004-12-28 12:59:41 f4dwv Exp $
+ *	$Id: tmv7.c,v 1.8 2005-01-24 23:04:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -229,7 +229,7 @@ int tmv7_decode_event (RIG *rig)
         freq_t freq, offset;
         int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
-        retval = sscanf(asyncbuf, "BUF 0,%"FREQFMT",%d,%d,%d,%d,%d,,%d,,%d,%"FREQFMT,
+        retval = sscanf(asyncbuf, "BUF 0,%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq,
                                   &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset);
         if (retval != 11) {
@@ -237,7 +237,7 @@ int tmv7_decode_event (RIG *rig)
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"FREQFMT" Hz, mode %d)\n", __FUNCTION__, freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __FUNCTION__, freq);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
@@ -401,7 +401,7 @@ int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (retval != RIG_OK)
         return retval;
 
-    sscanf(ackbuf,"FQ %"FREQFMT",%d",&freq,&step);
+    sscanf(ackbuf,"FQ %"SCNfreq",%d",&freq,&step);
 
     if(freq <MHz(137) )  {
 		*mode=RIG_MODE_AM;
@@ -473,7 +473,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
         	return retval;
 
     strcpy(scf,req);
-    strcat(scf,",%"FREQFMT",%d,%d,%d,%d,0,%d,%d,000,%d,,0");
+    strcat(scf,",%"SCNfreq",%d,%d,%d,%d,0,%d,%d,000,%d,,0");
     retval = sscanf(ackbuf, scf,
                     &freq, &step, &shift, &rev, &tone,
                     &ctcss, &tonefq, &ctcssfq);
@@ -515,7 +515,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval == RIG_OK) {
     		strcpy(scf,req);
-    		strcat(scf,",%"FREQFMT",%d");
+    		strcat(scf,",%"SCNfreq",%d");
     		retval = sscanf(ackbuf, scf, &freq, &step);
 		chan->tx_freq=freq;
 	}

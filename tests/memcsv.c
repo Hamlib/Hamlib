@@ -1,10 +1,10 @@
 /*
- * memcsv.c - (C) Stephane Fillod 2003-2004
+ * memcsv.c - (C) Stephane Fillod 2003-2005
  *
  * This program exercises the backup and restore of a radio
  * using Hamlib. CSV primitives
  *
- * $Id: memcsv.c,v 1.5 2004-12-27 12:53:02 f4dwv Exp $  
+ * $Id: memcsv.c,v 1.6 2005-01-24 23:04:21 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -291,7 +291,7 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f,"%d;",chan->ant);
 	}
 	if (mem_caps->freq) {
-		fprintf(f,"%"FREQFMT";",chan->freq);
+		fprintf(f,"%"PRIfreq";",chan->freq);
 	}
 	if (mem_caps->mode) {
 		fprintf(f, "%s;", rig_strrmode(chan->mode));
@@ -300,7 +300,7 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f,"%d;",(int)chan->width);
 	}
 	if (mem_caps->tx_freq) {
-		fprintf(f,"%"FREQFMT";",chan->tx_freq);
+		fprintf(f,"%"PRIfreq";",chan->tx_freq);
 	}
 	if (mem_caps->tx_mode) {
 		fprintf(f, "%s;", rig_strrmode(chan->tx_mode));
@@ -330,7 +330,7 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f,"%d;",(int)chan->xit);
 	}
 	if (mem_caps->funcs) {
-		fprintf(f,"%llx;",(long long)chan->funcs);
+		fprintf(f,"%lx;",chan->funcs);
 	}
 	if (mem_caps->ctcss_tone) {
 		fprintf(f,"%d;",chan->ctcss_tone);

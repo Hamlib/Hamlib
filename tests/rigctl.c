@@ -1,11 +1,11 @@
 /*
- * rigctl.c - (C) Stephane Fillod 2000-2004
+ * rigctl.c - (C) Stephane Fillod 2000-2005
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.52 2004-10-02 10:33:21 fillods Exp $  
+ * $Id: rigctl.c,v 1.53 2005-01-24 23:04:26 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -801,7 +801,7 @@ declare_proto_rig(set_freq)
 {
 		freq_t freq;
 
-		sscanf(arg1, "%"FREQFMT, &freq);
+		sscanf(arg1, "%"SCNfreq, &freq);
 		return rig_set_freq(rig, vfo, freq);
 }
 
@@ -1038,7 +1038,7 @@ declare_proto_rig(set_split_freq)
 {
 		freq_t txfreq;
 
-		sscanf(arg1, "%"FREQFMT, &txfreq);
+		sscanf(arg1, "%"SCNfreq, &txfreq);
 		return rig_set_split_freq(rig, vfo, txfreq);
 }
 
@@ -1149,7 +1149,7 @@ declare_proto_rig(power2mW)
 		printf("Power [0.0 .. 1.0]: ");
 		scanf("%f", &power);
 		printf("Frequency: ");
-		scanf("%"FREQFMT, &freq);
+		scanf("%"SCNfreq, &freq);
 		printf("Mode: ");
 		scanf("%d", &mode);
 		status = rig_power2mW(rig, &mwp, power, freq, mode);

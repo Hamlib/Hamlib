@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR3030 description
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.6 2004-09-07 20:37:41 fillods Exp $
+ *	$Id: ar3030.c,v 1.7 2005-01-24 23:03:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -347,7 +347,7 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	rfp = strchr(freqbuf, 'F');
 	if (!rfp)
 		return -RIG_EPROTO;
-	sscanf(rfp+1,"%"FREQFMT, freq);
+	sscanf(rfp+1,"%"SCNfreq, freq);
 
 	return RIG_OK;
 }
@@ -585,7 +585,7 @@ int ar3030_get_channel(RIG *rig, channel_t *chan)
 		return RIG_OK;
 	}
 
-	sscanf(infobuf+14,"%"FREQFMT, &chan->freq);
+	sscanf(infobuf+14,"%"SCNfreq, &chan->freq);
 	chan->freq *= 10;
 
 	switch (infobuf[22]) {

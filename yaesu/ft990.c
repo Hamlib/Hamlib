@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.13 2004-09-26 17:36:42 fillods Exp $
+ * $Id: ft990.c,v 1.14 2005-01-24 23:04:35 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -403,7 +403,7 @@ int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     return -RIG_EINVAL;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"FREQFMT" Hz\n", __func__, freq);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
   // Frequency range sanity check
   if (freq < 100000 || freq > 30000000)
@@ -503,7 +503,7 @@ int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   rig_debug(RIG_DEBUG_TRACE, "%s: p0=0x%02x p1=0x%02x p2=0x%02x\n",
             __func__, p[0], p[1], p[2]);
   rig_debug(RIG_DEBUG_TRACE,
-            "%s: freq = %"FREQFMT" Hz for vfo 0x%02x\n", __func__, f, vfo);
+            "%s: freq = %"PRIfreq" Hz for vfo 0x%02x\n", __func__, f, vfo);
 
   // Frequency sanity check
   if (f<100000 || f>30000000)
@@ -2620,7 +2620,7 @@ int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
     return -RIG_EINVAL;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: passed ci = 0x%02x\n", __func__, ci);
-  rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"FREQFMT" Hz\n", __func__, freq);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
   priv = (struct ft990_priv_data *)rig->state.priv;
 

@@ -14,7 +14,7 @@ int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
 		int *count_ptr = (int *) arg;
 
-		printf("Rig changed freq to %"FREQFMT"Hz\n", freq);
+		printf("Rig changed freq to %"PRIfreq"Hz\n", freq);
 		*count_ptr += 1;
 
 		return 0;

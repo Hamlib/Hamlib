@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH handheld primitives
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: th.c,v 1.25 2004-12-28 12:58:51 f4dwv Exp $
+ *	$Id: th.c,v 1.26 2005-01-24 23:04:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -81,7 +81,7 @@ th_decode_event (RIG *rig)
         rmode_t mode;
         int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
-        retval = sscanf(asyncbuf, "BUF %d,%"FREQFMT",%d,%d,%d,%d,%d,,%d,,%d,%"FREQFMT",%d",
+        retval = sscanf(asyncbuf, "BUF %d,%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq",%d",
                                   &vfo, &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset, &mode);
 
@@ -1162,7 +1162,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
         	return retval;
 
     strcpy(scf,req);
-    strcat(scf,",%"FREQFMT",%d,%d,%d,%d,%d,,%d,,%d,%"FREQFMT);
+    strcat(scf,",%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq);
     retval = sscanf(ackbuf, scf,
                     &freq, &step, &shift, &rev, &tone,
                     &ctcss, &tonefq, &ctcssfq, &offset);
@@ -1207,7 +1207,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval == RIG_OK) {
     		strcpy(scf,req);
-    		strcat(scf,",%"FREQFMT",%d");
+    		strcat(scf,",%"SCNfreq",%d");
     		retval = sscanf(ackbuf, scf, &freq, &step);
 		chan->tx_freq=freq;
 	}

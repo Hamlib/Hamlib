@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.100 2004-09-25 14:31:38 fillods Exp $
+ *	$Id: rig.h,v 1.101 2005-01-24 23:03:22 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -252,7 +252,11 @@ typedef enum {
  * Frequency type unit in Hz, able to hold SHF frequencies.
  */
 typedef double freq_t;
-#define FREQFMT "lf"
+/** \brief printf(3) format to be used for freq_t type */
+#define PRIfreq "f"
+/** \brief scanf(3) format to be used for freq_t type */
+#define SCNfreq "lf"
+#define FREQFMT SCNfreq
 
 /**
  * \brief Short frequency type
@@ -579,7 +583,7 @@ enum rig_level_e {
 		/*!< These ones are not settable */
 	RIG_LEVEL_RAWSTR =	(1<<26),/*!< Raw (A/D) value for signal strength, specific to each rig, arg int */
 	RIG_LEVEL_SQLSTAT =	(1<<27),/*!< SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
-	RIG_LEVEL_SWR =		(1<<28),/*!< SWR, arg float */
+	RIG_LEVEL_SWR =		(1<<28),/*!< SWR, arg float [0.0..infinite] */
 	RIG_LEVEL_ALC =		(1<<29),/*!< ALC, arg float */
 	RIG_LEVEL_STRENGTH =	(1<<30) /*!< Effective (calibrated) signal strength relative to S9, arg int (dB) */
 	/*RIG_LEVEL_BWC =		(1<<31)*/ /*!< Bandwidth Control, arg int (Hz) */

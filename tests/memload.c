@@ -2,7 +2,7 @@
  * memload.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memload.c,v 1.4 2004-05-17 21:09:45 fillods Exp $  
+ *	$Id: memload.c,v 1.5 2005-01-24 23:04:24 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -147,7 +147,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	if (rig->state.chan_list[i].mem_caps.freq) {
 		prop=xmlGetProp(node, "freq");
 		if(prop!=NULL) 
-			sscanf(prop,"%"FREQFMT,&chan->freq);
+			sscanf(prop,"%"SCNfreq,&chan->freq);
 	}
 	if (rig->state.chan_list[i].mem_caps.mode) {
 		prop=xmlGetProp(node, "mode");
@@ -162,7 +162,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	if (rig->state.chan_list[i].mem_caps.tx_freq) {
 		prop=xmlGetProp(node, "tx_freq");
 		if(prop!=NULL) 
-			sscanf(prop,"%"FREQFMT,&chan->tx_freq);
+			sscanf(prop,"%"SCNfreq,&chan->tx_freq);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_mode) {
 		prop=xmlGetProp(node, "tx_mode");

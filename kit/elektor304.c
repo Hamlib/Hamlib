@@ -1,8 +1,8 @@
 /*
  *  Hamlib KIT backend - Elektor DRM receiver description
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: elektor304.c,v 1.4 2004-08-23 20:31:35 fillods Exp $
+ *	$Id: elektor304.c,v 1.5 2005-01-24 23:04:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -196,10 +196,10 @@ int elektor304_set_conf(RIG *rig, token_t token, const char *val)
 
 	switch(token) {
 		case TOK_OSCFREQ:
-			sscanf(val, "%"FREQFMT, &priv->osc_freq);
+			sscanf(val, "%"SCNfreq, &priv->osc_freq);
 			break;
 		case TOK_IFMIXFREQ:
-			sscanf(val, "%"FREQFMT, &priv->if_mix_freq);
+			sscanf(val, "%"SCNfreq, &priv->if_mix_freq);
 			break;
 		default:
 			return -RIG_EINVAL;
@@ -220,10 +220,10 @@ int elektor304_get_conf(RIG *rig, token_t token, char *val)
 
 	switch(token) {
 		case TOK_OSCFREQ:
-			sprintf(val, "%"FREQFMT, priv->osc_freq);
+			sprintf(val, "%"PRIfreq, priv->osc_freq);
 			break;
 		case TOK_IFMIXFREQ:
-			sprintf(val, "%"FREQFMT, priv->if_mix_freq);
+			sprintf(val, "%"PRIfreq, priv->if_mix_freq);
 			break;
 		default:
 			return -RIG_EINVAL;

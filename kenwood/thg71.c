@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH-G71 description
- *  Copyright (c) 2003-2004 by Stephane Fillod
+ *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.14 2004-12-06 22:16:55 f4dwv Exp $
+ *	$Id: thg71.c,v 1.15 2005-01-24 23:04:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -199,7 +199,7 @@ int thg71_decode_event (RIG *rig)
         freq_t freq, offset;
         int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
-        retval = sscanf(asyncbuf, "BUF 0,%"FREQFMT",%d,%d,%d,%d,%d,,%d,,%d,%"FREQFMT,
+        retval = sscanf(asyncbuf, "BUF 0,%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq,
                                   &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset);
         if (retval != 11) {
@@ -207,7 +207,7 @@ int thg71_decode_event (RIG *rig)
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"FREQFMT" Hz, mode %d)\n", __FUNCTION__, freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __FUNCTION__, freq);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
@@ -311,7 +311,7 @@ int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (retval != RIG_OK)
         return retval;
 
-    sscanf(ackbuf,"FQ %"FREQFMT",%d",&freq,&step);
+    sscanf(ackbuf,"FQ %"SCNfreq",%d",&freq,&step);
 
     if(freq <MHz(136) )  {
 		*mode=RIG_MODE_AM;

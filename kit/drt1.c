@@ -1,8 +1,8 @@
 /*
  *  Hamlib KIT backend - Sat-Schneider DRT1/SAD1 DRM receiver description
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: drt1.c,v 1.2 2004-11-27 13:40:58 fillods Exp $
+ *	$Id: drt1.c,v 1.3 2005-01-24 23:04:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -206,13 +206,13 @@ int drt1_set_conf(RIG *rig, token_t token, const char *val)
 
 	switch(token) {
 		case TOK_OSCFREQ:
-			sscanf(val, "%"FREQFMT, &priv->osc_freq);
+			sscanf(val, "%"SCNfreq, &priv->osc_freq);
 			break;
 		case TOK_REFMULT:
 			sscanf(val, "%d", &priv->ref_mult);
 			break;
 		case TOK_IFMIXFREQ:
-			sscanf(val, "%"FREQFMT, &priv->if_mix_freq);
+			sscanf(val, "%"SCNfreq, &priv->if_mix_freq);
 			break;
 		case TOK_PUMPCRNT:
 			sscanf(val, "%d", &priv->pump_crrnt);
@@ -236,13 +236,13 @@ int drt1_get_conf(RIG *rig, token_t token, char *val)
 
 	switch(token) {
 		case TOK_OSCFREQ:
-			sprintf(val, "%"FREQFMT, priv->osc_freq);
+			sprintf(val, "%"PRIfreq, priv->osc_freq);
 			break;
 		case TOK_REFMULT:
 			sprintf(val, "%d", priv->ref_mult);
 			break;
 		case TOK_IFMIXFREQ:
-			sprintf(val, "%"FREQFMT, priv->if_mix_freq);
+			sprintf(val, "%"PRIfreq, priv->if_mix_freq);
 			break;
 		case TOK_PUMPCRNT:
 			sprintf(val, "%d", priv->pump_crrnt);

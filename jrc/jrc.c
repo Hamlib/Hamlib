@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - main file
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.19 2004-09-26 08:35:03 fillods Exp $
+ *	$Id: jrc.c,v 1.20 2005-01-24 23:03:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -139,7 +139,6 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		struct jrc_priv_caps *priv = (struct jrc_priv_caps*)rig->caps->priv;
 		int freq_len, retval;
 		char freqbuf[BUFSZ];
-		long long f;
 
 		//note: JRCs use "I" to get information
 		retval = jrc_transaction (rig, "I" EOM, 2, freqbuf, &freq_len);
@@ -155,8 +154,7 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		freqbuf[4+priv->max_freq_len] = '\0';
 
 		/* extract freq */
-		sscanf(freqbuf+4, "%llu", &f);
-		*freq = f;
+		sscanf(freqbuf+4, "%"SCNfreq, freq);
 
 		return RIG_OK;
 }
@@ -1347,12 +1345,10 @@ int jrc_decode_event(RIG *rig)
 		 */
 
 		if (rig->callbacks.freq_event) {
-		  long long f;
 
 		  //buf[14] = '\0';	/* side-effect: destroy AGC first digit! */
 		  buf[4+priv->max_freq_len] = '\0';	/* side-effect: destroy AGC first digit! */
-		  sscanf(buf+4, "%lld", &f);
-		  freq = f;
+		  sscanf(buf+4, "%"SCNfreq, &freq);
 		  return rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq,
 						   rig->callbacks.freq_arg);
 		}
