@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-275 and variations
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: ic275.c,v 1.1 2001-11-28 22:00:06 fillods Exp $
+ *		$Id: ic275.c,v 1.2 2002-07-01 22:08:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,13 +63,13 @@ model_name:"IC-275",
 mfg_name: "Icom", 
 version: "0.2", 
 copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
+status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_NONE,
 dcd_type: RIG_DCD_NONE,
 port_type: RIG_PORT_SERIAL,
 serial_rate_min: 1200,
-serial_rate_max: 1200,
+serial_rate_max: 9600,
 serial_data_bits: 8,
 serial_stop_bits: 1,
 serial_parity: RIG_PARITY_NONE,
