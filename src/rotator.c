@@ -11,7 +11,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rotator.c,v 1.3 2002-01-07 17:28:36 fgretief Exp $
+ *		$Id: rotator.c,v 1.4 2002-01-16 17:06:59 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -457,8 +457,8 @@ int rot_get_conf(ROT *rot, token_t token, char *val)
  *
  * Sets the azimuth and elevation of the rotator.
  *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
+ * \return RIG_OK if the operation has been sucessful, otherwise
+ * a negative value if an error occured (in which case, cause is
  * set appropriately).
  *
  * \sa rot_get_position()
@@ -597,6 +597,29 @@ int rot_reset (ROT *rot, rot_reset_t reset)
 		return caps->reset(rot, reset);
 }
 
+/**
+ * \brief move the rotator in the spesified direction
+ * \param rot   The rot handle
+ * \param direction   Direction of movement
+ * \param speed   Speed of movement
+ *
+ * Move the rotator in the spesified direction. The speed is a value
+ * between 1 and 100.
+ */
+int rot_move (ROT *rot, int direction, int speed)
+{
+        const struct rot_caps *caps;
+
+        if (!rot || !rot->caps)
+            return -RIG_EINVAL;
+
+        caps = rot->caps;
+
+        if (caps->move == NULL)
+            return -RIG_ENAVAIL;
+
+        return caps->move(rot, direction, speed);
+}
 
 /**
  * \brief get general information from the rotator

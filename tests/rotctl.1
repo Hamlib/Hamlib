@@ -43,20 +43,6 @@ Select rotator model number. See model list.
 .B \-r, --rot-file=device
 Use \fBdevice\fP as the file name of the rotator to operate.
 .TP
-.B \-p, --ptt-file=device
-Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on.
-.TP
-.B \-d, --dcd-file=device
-Use \fBdevice\fP as the file name of the Data Carrier Detect device 
-to operate on.
-.TP
-.B \-p, --ptt-type=type
-Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
-.TP
-.B \-d, --dcd-type=type
-Use \fBtype\fP device as the kind of the Data Carrier Detect device 
-to operate on.
-.TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fBbaud\fP rate. Uses maximal rotator speed as default.
 .TP
@@ -107,6 +93,9 @@ Stop the rotator.
 .TP
 .B R, reset
 Reset the rotator.
+.TP
+.B M, move
+Move the rotator in a spesific direction.
 .TP
 .B _, get_info
 Get misc information on the rotator.

@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rotctl.c,v 1.2 2002-01-14 07:00:55 fillods Exp $  
+ * $Id: rotctl.c,v 1.3 2002-01-16 17:08:31 fgretief Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -96,6 +96,7 @@ declare_proto_rot(get_position);
 declare_proto_rot(stop);
 declare_proto_rot(park);
 declare_proto_rot(reset);
+declare_proto_rot(move);
 declare_proto_rot(get_info);
 
 
@@ -110,6 +111,7 @@ struct test_table test_list[] = {
 		{ 'K', "park", park, ARG_NONE, },
 		{ 'S', "stop", stop, ARG_NONE, },
 		{ 'R', "reset", reset, ARG_IN, "Reset" },
+        { 'M', "move", move, ARG_IN, "Direction", "Speed" },
 		{ '_', "get_info", get_info, ARG_OUT, "Info" },
 		{ 0x00, "", NULL },
 
@@ -580,4 +582,13 @@ declare_proto_rot(get_info)
 		return RIG_OK;
 }
 
+declare_proto_rot(move)
+{
+        int direction;
+        int speed;
+
+        sscanf(arg1, "%d", &direction);
+		sscanf(arg2, "%d", &speed);
+		return rot_move(rot, direction, speed);
+}
 
