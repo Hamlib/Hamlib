@@ -11,7 +11,7 @@
  *  Hamlib C++ bindings - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.cc,v 1.6 2001-12-20 07:46:12 fillods Exp $
+ *		$Id: rigclass.cc,v 1.7 2001-12-27 21:50:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -78,6 +78,30 @@ void Rig::open(void) {
 void Rig::close(void) {
 	CHECK_RIG( rig_close(theRig) );
 }
+
+void Rig::setConf(token_t token, const char *val)
+{
+	CHECK_RIG( rig_set_conf(theRig, token, val) );
+}
+void Rig::setConf(const char *name, const char *val)
+{
+	CHECK_RIG( rig_set_conf(theRig, tokenLookup(name), val) );
+}
+
+void Rig::getConf(token_t token, char *val)
+{
+	CHECK_RIG( rig_get_conf(theRig, token, val) );
+}
+void Rig::getConf(const char *name, char *val)
+{
+	CHECK_RIG( rig_get_conf(theRig, tokenLookup(name), val) );
+}
+
+token_t Rig::tokenLookup(const char *name)
+{
+	return rig_token_lookup(theRig, name);
+}
+
 
 void Rig::setFreq(freq_t freq, vfo_t vfo) {
 	CHECK_RIG( rig_set_freq(theRig, vfo, freq) );
@@ -202,6 +226,67 @@ float Rig::getLevelF(setting_t level, vfo_t vfo)
 	return val.f;
 }
 
+void Rig::setParm(setting_t parm, int vali)
+{
+	value_t val;
+
+	val.i = vali;
+	CHECK_RIG( rig_set_parm(theRig, parm, val) );
+}
+
+void Rig::setParm(setting_t parm, float valf)
+{
+	value_t val;
+
+	val.f = valf;
+	CHECK_RIG( rig_set_parm(theRig, parm, val) );
+}
+
+
+void Rig::getParm(setting_t parm, int& vali)
+{
+	value_t val;
+
+	if (RIG_LEVEL_IS_FLOAT(parm))
+		THROW(new RigException (-RIG_EINVAL));
+
+	CHECK_RIG( rig_get_parm(theRig, parm, &val) );
+	vali = val.i;
+}
+
+void Rig::getParm(setting_t parm, float& valf)
+{
+	value_t val;
+
+	if (!RIG_LEVEL_IS_FLOAT(parm))
+		THROW(new RigException (-RIG_EINVAL));
+
+	CHECK_RIG( rig_get_parm(theRig, parm, &val) );
+	valf = val.f;
+}
+
+int Rig::getParmI(setting_t parm)
+{
+	value_t val;
+
+	if (RIG_LEVEL_IS_FLOAT(parm))
+		THROW(new RigException (-RIG_EINVAL));
+
+	CHECK_RIG( rig_get_parm(theRig, parm, &val) );
+	return val.i;
+}
+
+float Rig::getParmF(setting_t parm)
+{
+	value_t val;
+
+	if (!RIG_LEVEL_IS_FLOAT(parm))
+		THROW(new RigException (-RIG_EINVAL));
+
+	CHECK_RIG( rig_get_parm(theRig, parm, &val) );
+	return val.f;
+}
+
 void Rig::setSplitFreq(freq_t tx_freq, vfo_t vfo) {
 	CHECK_RIG( rig_set_split_freq(theRig, vfo, tx_freq) );
 }
@@ -239,13 +324,22 @@ split_t Rig::getSplit(vfo_t vfo) {
 	return split;
 }
 
-setting_t Rig::hasGetLevel (setting_t level)
+bool Rig::hasGetLevel (setting_t level)
 {
-	return rig_has_get_level(theRig, level);
+	return rig_has_get_level(theRig, level) == level;
 }
-setting_t Rig::hasSetLevel (setting_t level)
+bool Rig::hasSetLevel (setting_t level)
 {
-	return rig_has_set_level(theRig, level);
+	return rig_has_set_level(theRig, level) == level;
+}
+
+bool Rig::hasGetParm (setting_t parm)
+{
+	return rig_has_get_parm(theRig, parm) == parm;
+}
+bool Rig::hasSetParm (setting_t parm)
+{
+	return rig_has_set_parm(theRig, parm) == parm;
 }
 
 const char *Rig::getInfo (void)
@@ -310,6 +404,63 @@ shortfreq_t Rig::getTs (vfo_t vfo = RIG_VFO_CURR)
 	return ts;
 }
 
+void Rig::setCTCSS (tone_t tone, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_ctcss_tone(theRig, vfo, tone) );
+}
+
+tone_t Rig::getCTCSS (vfo_t vfo = RIG_VFO_CURR)
+{
+	tone_t tone;
+
+	CHECK_RIG( rig_get_ctcss_tone(theRig, vfo, &tone) );
+
+	return tone;
+}
+
+void Rig::setDCS (tone_t code, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_dcs_code(theRig, vfo, code) );
+}
+
+tone_t Rig::getDCS (vfo_t vfo = RIG_VFO_CURR)
+{
+	tone_t code;
+
+	CHECK_RIG( rig_get_dcs_code(theRig, vfo, &code) );
+
+	return code;
+}
+
+void Rig::setCTCSSsql (tone_t tone, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_ctcss_sql(theRig, vfo, tone) );
+}
+
+tone_t Rig::getCTCSSsql (vfo_t vfo = RIG_VFO_CURR)
+{
+	tone_t tone;
+
+	CHECK_RIG( rig_get_ctcss_sql(theRig, vfo, &tone) );
+
+	return tone;
+}
+
+void Rig::setDCSsql (tone_t code, vfo_t vfo = RIG_VFO_CURR)
+{
+	CHECK_RIG( rig_set_dcs_sql(theRig, vfo, code) );
+}
+
+tone_t Rig::getDCSsql (vfo_t vfo = RIG_VFO_CURR)
+{
+	tone_t code;
+
+	CHECK_RIG( rig_get_dcs_sql(theRig, vfo, &code) );
+
+	return code;
+}
+
+
 void Rig::setFunc (setting_t func, bool status, vfo_t vfo = RIG_VFO_CURR)
 {
 	CHECK_RIG( rig_set_func(theRig, vfo, func, status? 1:0) );
@@ -324,6 +475,87 @@ bool Rig::getFunc (setting_t func, vfo_t vfo = RIG_VFO_CURR)
 	return status ? true : false;
 }
 
+void Rig::VFOop (vfo_op_t op, vfo_t vfo)
+{
+	CHECK_RIG( rig_vfo_op(theRig, vfo, op) );
+}
+
+bool Rig::hasVFOop (vfo_op_t op)
+{
+	return rig_has_vfo_op(theRig, op)==op;
+}
+
+void Rig::scan (scan_t scan, int ch, vfo_t vfo)
+{
+	CHECK_RIG( rig_scan(theRig, vfo, scan, ch) );
+}
+
+bool Rig::hasScan (scan_t scan)
+{
+	return rig_has_scan(theRig, scan)==scan;
+}
+
+
+void Rig::setRit(shortfreq_t rit, vfo_t vfo)
+{
+	CHECK_RIG(rig_set_rit(theRig, vfo, rit));
+}
+
+shortfreq_t Rig::getRit(vfo_t vfo)
+{
+	shortfreq_t rit;
+
+	CHECK_RIG( rig_get_rit(theRig, vfo, &rit) );
+
+	return rit;
+}
+
+void Rig::setXit(shortfreq_t xit, vfo_t vfo)
+{
+	CHECK_RIG(rig_set_xit(theRig, vfo, xit));
+}
+
+shortfreq_t Rig::getXit(vfo_t vfo)
+{
+	shortfreq_t xit;
+
+	CHECK_RIG( rig_get_xit(theRig, vfo, &xit) );
+
+	return xit;
+}
+
+void Rig::setAnt(ant_t ant, vfo_t vfo)
+{
+	CHECK_RIG(rig_set_ant(theRig, vfo, ant));
+}
+
+ant_t Rig::getAnt(vfo_t vfo)
+{
+	ant_t ant;
+
+	CHECK_RIG( rig_get_ant(theRig, vfo, &ant) );
+
+	return ant;
+}
+
+void Rig::sendDtmf(const char *digits, vfo_t vfo)
+{
+	CHECK_RIG(rig_send_dtmf(theRig, vfo, digits));
+}
+
+int Rig::recvDtmf(char *digits, vfo_t vfo)
+{
+	int len;
+
+	CHECK_RIG( rig_recv_dtmf(theRig, vfo, digits, &len) );
+
+	return len;
+}
+
+void Rig::sendMorse(const char *msg, vfo_t vfo)
+{
+	CHECK_RIG(rig_send_morse(theRig, vfo, msg));
+}
 
 
 shortfreq_t Rig::getResolution (rmode_t mode)
@@ -400,6 +632,26 @@ int Rig::getMem (vfo_t vfo = RIG_VFO_CURR)
 	CHECK_RIG( rig_get_mem(theRig, vfo, &mem) );
 
 	return mem;
+}
+
+void Rig::saveChannel (channel_t *chan)
+{
+	CHECK_RIG( rig_save_channel(theRig, chan) );
+}
+
+void Rig::restoreChannel (const channel_t *chan)
+{
+	CHECK_RIG( rig_restore_channel(theRig, chan) );
+}
+
+void Rig::setChannel (const channel_t *chan)
+{
+	CHECK_RIG( rig_set_channel(theRig, chan) );
+}
+
+void Rig::getChannel (channel_t *chan)
+{
+	CHECK_RIG( rig_get_channel(theRig, chan) );
 }
 
 

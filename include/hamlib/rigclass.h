@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.7 2001-12-20 07:46:12 fillods Exp $
+ *		$Id: rigclass.h,v 1.8 2001-12-27 21:50:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,6 +45,12 @@ public:
   // This method close the communication port to the rig
   void close(void);
 
+  void setConf(token_t token, const char *val);
+  void setConf(const char *name, const char *val);
+  void getConf(token_t token, char *val);
+  void getConf(const char *name, char *val);
+  token_t tokenLookup(const char *name);
+
   void setFreq(freq_t freq, vfo_t vfo = RIG_VFO_CURR);
   freq_t getFreq(vfo_t vfo = RIG_VFO_CURR);
   void setMode(rmode_t, pbwidth_t width = RIG_PASSBAND_NORMAL, vfo_t vfo = RIG_VFO_CURR);
@@ -62,8 +68,28 @@ public:
   void getLevel(setting_t level, float& valf, vfo_t vfo = RIG_VFO_CURR);
   int getLevelI(setting_t level, vfo_t vfo = RIG_VFO_CURR);
   float getLevelF(setting_t level, vfo_t vfo = RIG_VFO_CURR);
-  setting_t hasGetLevel (setting_t level);
-  setting_t hasSetLevel (setting_t level);
+  bool hasGetLevel (setting_t level);
+  bool hasSetLevel (setting_t level);
+
+  void setParm(setting_t parm, int vali);
+  void setParm(setting_t parm, float valf);
+  void getParm(setting_t parm, int& vali);
+  void getParm(setting_t parm, float& valf);
+  int getParmI(setting_t parm);
+  float getParmF(setting_t parm);
+  bool hasGetParm (setting_t parm);
+  bool hasSetParm (setting_t parm);
+
+  void setFunc (setting_t func, bool status, vfo_t vfo = RIG_VFO_CURR);
+  bool getFunc (setting_t func, vfo_t vfo = RIG_VFO_CURR);
+  bool hasGetFunc (setting_t func);
+  bool hasSetFunc (setting_t func);
+
+  void VFOop(vfo_op_t op, vfo_t vfo = RIG_VFO_CURR);
+  bool hasVFOop (vfo_op_t op);
+
+  void scan(scan_t scan, int ch, vfo_t vfo = RIG_VFO_CURR);
+  bool hasScan (scan_t scan);
 
   const char *getInfo (void);
   pbwidth_t passbandNormal (rmode_t);
@@ -76,8 +102,17 @@ public:
   shortfreq_t getRptrOffs (vfo_t vfo = RIG_VFO_CURR);
   void setTs (shortfreq_t ts, vfo_t vfo = RIG_VFO_CURR);
   shortfreq_t getTs (vfo_t vfo = RIG_VFO_CURR);
-  void setFunc (setting_t func, bool status, vfo_t vfo = RIG_VFO_CURR);
-  bool getFunc (setting_t func, vfo_t vfo = RIG_VFO_CURR);
+
+  void setCTCSS (tone_t tone, vfo_t vfo = RIG_VFO_CURR);
+  tone_t getCTCSS (vfo_t vfo = RIG_VFO_CURR);
+  void setDCS (tone_t code, vfo_t vfo = RIG_VFO_CURR);
+  tone_t getDCS (vfo_t vfo = RIG_VFO_CURR);
+
+  void setCTCSSsql (tone_t tone, vfo_t vfo = RIG_VFO_CURR);
+  tone_t getCTCSSsql (vfo_t vfo = RIG_VFO_CURR);
+  void setDCSsql (tone_t tone, vfo_t vfo = RIG_VFO_CURR);
+  tone_t getDCSsql (vfo_t vfo = RIG_VFO_CURR);
+
 
   unsigned int power2mW (float power, freq_t freq, rmode_t mode);
   float mW2power (unsigned int mwpower, freq_t freq, rmode_t mode);
@@ -86,6 +121,12 @@ public:
   void setBank (int bank, vfo_t vfo = RIG_VFO_CURR);
   void setMem (int ch, vfo_t vfo = RIG_VFO_CURR);
   int getMem (vfo_t vfo = RIG_VFO_CURR);
+
+  void restoreChannel (const channel_t *chan);
+  void saveChannel (channel_t *chan);
+  void setChannel (const channel_t *chan);
+  void getChannel (channel_t *chan);
+
   void setPowerStat (powerstat_t status);
   powerstat_t getPowerStat (void);
   rmode_t RngRxModes (freq_t freq);
@@ -98,11 +139,21 @@ public:
   void setSplit(split_t split, vfo_t vfo = RIG_VFO_CURR);
   split_t getSplit(vfo_t vfo = RIG_VFO_CURR);
 
+  void setRit  (shortfreq_t rit, vfo_t vfo = RIG_VFO_CURR);
+  shortfreq_t getRit  (vfo_t vfo = RIG_VFO_CURR);
+  void setXit  (shortfreq_t xit, vfo_t vfo = RIG_VFO_CURR);
+  shortfreq_t getXit  (vfo_t vfo = RIG_VFO_CURR);
+
+  void setAnt  (ant_t ant, vfo_t vfo = RIG_VFO_CURR);
+  ant_t getAnt  (vfo_t vfo = RIG_VFO_CURR);
+
+  void sendDtmf  (const char *digits, vfo_t vfo = RIG_VFO_CURR);
+  int recvDtmf  (char *digits, vfo_t vfo = RIG_VFO_CURR);
+  void sendMorse  (const char *msg, vfo_t vfo = RIG_VFO_CURR);
+
 
   shortfreq_t getResolution (rmode_t mode);
   void reset (reset_t reset);
-  bool hasGetFunc (setting_t func);
-  bool hasSetFunc (setting_t func);
 
   // callbacks available in your derived object
   virtual int FreqEvent(vfo_t, freq_t) const {
@@ -124,55 +175,6 @@ public:
 
 };
  
-
-
-
-#if 0
-extern HAMLIB_EXPORT(int) rig_set_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
-extern HAMLIB_EXPORT(int) rig_get_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
-extern HAMLIB_EXPORT(int) rig_set_dcs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
-extern HAMLIB_EXPORT(int) rig_get_dcs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
-
-extern HAMLIB_EXPORT(int) rig_set_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
-extern HAMLIB_EXPORT(int) rig_get_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
-extern HAMLIB_EXPORT(int) rig_set_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
-extern HAMLIB_EXPORT(int) rig_get_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
-
-
-extern HAMLIB_EXPORT(int) rig_set_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rit));
-extern HAMLIB_EXPORT(int) rig_get_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rit));
-extern HAMLIB_EXPORT(int) rig_set_xit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t xit));
-extern HAMLIB_EXPORT(int) rig_get_xit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *xit));
-
-
-
-
-#define rig_get_strength(r,v,s) rig_get_level((r),(v),RIG_LEVEL_STRENGTH, (value_t*)(s))
-
-extern HAMLIB_EXPORT(int) rig_set_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t val));
-extern HAMLIB_EXPORT(int) rig_get_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t *val));
-
-extern HAMLIB_EXPORT(int) rig_set_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t ant));	/* antenna */
-extern HAMLIB_EXPORT(int) rig_get_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t *ant));
-
-
-extern HAMLIB_EXPORT(setting_t) rig_has_get_parm HAMLIB_PARAMS((RIG *rig, setting_t parm));
-extern HAMLIB_EXPORT(setting_t) rig_has_set_parm HAMLIB_PARAMS((RIG *rig, setting_t parm));
-
-extern HAMLIB_EXPORT(int) rig_send_dtmf HAMLIB_PARAMS((RIG *rig, vfo_t vfo, const char *digits));
-extern HAMLIB_EXPORT(int) rig_recv_dtmf HAMLIB_PARAMS((RIG *rig, vfo_t vfo, char *digits, int *length));
-extern HAMLIB_EXPORT(int) rig_send_morse HAMLIB_PARAMS((RIG *rig, vfo_t vfo, const char *msg));
-
-extern HAMLIB_EXPORT(int) rig_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_t vfo, vfo_op_t op));
-extern HAMLIB_EXPORT(vfo_op_t) rig_has_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_op_t op));
-
-extern HAMLIB_EXPORT(int) rig_restore_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan)); /* curr VFO */
-extern HAMLIB_EXPORT(int) rig_save_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));
-extern HAMLIB_EXPORT(int) rig_set_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan));	/* mem */
-extern HAMLIB_EXPORT(int) rig_get_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));
-
-
-#endif 
 
 
 #ifdef __GNUG__
