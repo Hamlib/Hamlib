@@ -68,6 +68,12 @@
 /* Define if you have the <linradio/wrapi.h> header file.  */
 #undef HAVE_LINRADIO_WRAPI_H
 
+/* Define if you have the <linux/ppdev.h> header file.  */
+#undef HAVE_LINUX_PPDEV_H
+
+/* Define if you have the <sys/ioccom.h> header file.  */
+#undef HAVE_SYS_IOCCOM_H
+
 /* Define if you have the <sys/ioctl.h> header file.  */
 #undef HAVE_SYS_IOCTL_H
 
@@ -86,20 +92,14 @@
 /* Define if you have the gd library (-lgd).  */
 #undef HAVE_LIBGD
 
-/* Define if you have the intl library (-lintl).  */
-#undef HAVE_LIBINTL
-
 /* Define if you have the m library (-lm).  */
 #undef HAVE_LIBM
 
-/* Define if you have the nsl library (-lnsl).  */
-#undef HAVE_LIBNSL
-
-/* Define if you have the socket library (-lsocket).  */
-#undef HAVE_LIBSOCKET
-
 /* Define if you have the syslog library (-lsyslog).  */
 #undef HAVE_LIBSYSLOG
+
+/* Define if you have the z library (-lz).  */
+#undef HAVE_LIBZ
 
 /* Name of package */
 #undef PACKAGE

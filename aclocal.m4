@@ -126,6 +126,94 @@ done<<>>dnl>>)
 changequote([,]))])
 
 
+# serial 1
+
+# @defmac AC_PROG_CC_STDC
+# @maindex PROG_CC_STDC
+# @ovindex CC
+# If the C compiler in not in ANSI C mode by default, try to add an option
+# to output variable @code{CC} to make it so.  This macro tries various
+# options that select ANSI C on some system or another.  It considers the
+# compiler to be in ANSI C mode if it handles function prototypes correctly.
+#
+# If you use this macro, you should check after calling it whether the C
+# compiler has been set to accept ANSI C; if not, the shell variable
+# @code{am_cv_prog_cc_stdc} is set to @samp{no}.  If you wrote your source
+# code in ANSI C, you can make an un-ANSIfied copy of it by using the
+# program @code{ansi2knr}, which comes with Ghostscript.
+# @end defmac
+
+AC_DEFUN(AM_PROG_CC_STDC,
+[AC_REQUIRE([AC_PROG_CC])
+AC_BEFORE([$0], [AC_C_INLINE])
+AC_BEFORE([$0], [AC_C_CONST])
+dnl Force this before AC_PROG_CPP.  Some cpp's, eg on HPUX, require
+dnl a magic option to avoid problems with ANSI preprocessor commands
+dnl like #elif.
+dnl FIXME: can't do this because then AC_AIX won't work due to a
+dnl circular dependency.
+dnl AC_BEFORE([$0], [AC_PROG_CPP])
+AC_MSG_CHECKING(for ${CC-cc} option to accept ANSI C)
+AC_CACHE_VAL(am_cv_prog_cc_stdc,
+[am_cv_prog_cc_stdc=no
+ac_save_CC="$CC"
+# Don't try gcc -ansi; that turns off useful extensions and
+# breaks some systems' header files.
+# AIX			-qlanglvl=ansi
+# Ultrix and OSF/1	-std1
+# HP-UX			-Aa -D_HPUX_SOURCE
+# SVR4			-Xc -D__EXTENSIONS__
+for ac_arg in "" -qlanglvl=ansi -std1 "-Aa -D_HPUX_SOURCE" "-Xc -D__EXTENSIONS__"
+do
+  CC="$ac_save_CC $ac_arg"
+  AC_TRY_COMPILE(
+[#include <stdarg.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+/* Most of the following tests are stolen from RCS 5.7's src/conf.sh.  */
+struct buf { int x; };
+FILE * (*rcsopen) (struct buf *, struct stat *, int);
+static char *e (p, i)
+     char **p;
+     int i;
+{
+  return p[i];
+}
+static char *f (char * (*g) (char **, int), char **p, ...)
+{
+  char *s;
+  va_list v;
+  va_start (v,p);
+  s = g (p, va_arg (v,int));
+  va_end (v);
+  return s;
+}
+int test (int i, double x);
+struct s1 {int (*f) (int a);};
+struct s2 {int (*f) (double a);};
+int pairnames (int, char **, FILE *(*)(struct buf *, struct stat *, int), int, int);
+int argc;
+char **argv;
+], [
+return f (e, argv, 0) != argv[0]  ||  f (e, argv, 1) != argv[1];
+],
+[am_cv_prog_cc_stdc="$ac_arg"; break])
+done
+CC="$ac_save_CC"
+])
+if test -z "$am_cv_prog_cc_stdc"; then
+  AC_MSG_RESULT([none needed])
+else
+  AC_MSG_RESULT($am_cv_prog_cc_stdc)
+fi
+case "x$am_cv_prog_cc_stdc" in
+  x|xno) ;;
+  *) CC="$CC $am_cv_prog_cc_stdc" ;;
+esac
+])
+
+
 # serial 40 AC_PROG_LIBTOOL
 AC_DEFUN(AC_PROG_LIBTOOL,
 [AC_REQUIRE([AC_LIBTOOL_SETUP])dnl
@@ -139,7 +227,7 @@ LD="$LD" LDFLAGS="$LDFLAGS" LIBS="$LIBS" \
 LN_S="$LN_S" NM="$NM" RANLIB="$RANLIB" \
 DLLTOOL="$DLLTOOL" AS="$AS" OBJDUMP="$OBJDUMP" \
 ${CONFIG_SHELL-/bin/sh} $ac_aux_dir/ltconfig --no-reexec \
-$libtool_flags --no-verify $ac_aux_dir/ltmain.sh $host \
+$libtool_flags --no-verify $ac_aux_dir/ltmain.sh $lt_target \
 || AC_MSG_ERROR([libtool configure failed])
 
 # Reload cache, that may have been modified by ltconfig
@@ -171,13 +259,13 @@ AC_REQUIRE([AC_PROG_NM])dnl
 AC_REQUIRE([AC_PROG_LN_S])dnl
 dnl
 
+case "$target" in
+NONE) lt_target="$host" ;;
+*) lt_target="$target" ;;
+esac
+
 # Check for any special flags to pass to ltconfig.
-#
-# the following will cause an existing older ltconfig to fail, so
-# we ignore this at the expense of the cache file... Checking this 
-# will just take longer ... bummer!
-#libtool_flags="--cache-file=$cache_file"
-#
+libtool_flags="--cache-file=$cache_file"
 test "$enable_shared" = no && libtool_flags="$libtool_flags --disable-shared"
 test "$enable_static" = no && libtool_flags="$libtool_flags --disable-static"
 test "$enable_fast_install" = no && libtool_flags="$libtool_flags --disable-fast-install"
@@ -194,7 +282,7 @@ test x"$silent" = xyes && libtool_flags="$libtool_flags --silent"
 
 # Some flags need to be propagated to the compiler or linker for good
 # libtool support.
-case "$host" in
+case "$lt_target" in
 *-*-irix6*)
   # Find out which ABI we are using.
   echo '[#]line __oline__ "configure"' > conftest.$ac_ext
@@ -410,7 +498,6 @@ else
   AC_MSG_RESULT(no)
 fi
 test -z "$LD" && AC_MSG_ERROR([no acceptable ld found in \$PATH])
-AC_SUBST(LD)
 AC_PROG_LD_GNU
 ])
 
@@ -456,14 +543,13 @@ else
 fi])
 NM="$ac_cv_path_NM"
 AC_MSG_RESULT([$NM])
-AC_SUBST(NM)
 ])
 
 # AC_CHECK_LIBM - check for math library
 AC_DEFUN(AC_CHECK_LIBM,
 [AC_REQUIRE([AC_CANONICAL_HOST])dnl
 LIBM=
-case "$host" in
+case "$lt_target" in
 *-*-beos* | *-*-cygwin*)
   # These system don't have libm
   ;;
@@ -478,31 +564,35 @@ esac
 ])
 
 # AC_LIBLTDL_CONVENIENCE[(dir)] - sets LIBLTDL to the link flags for
-# the libltdl convenience library, adds --enable-ltdl-convenience to
-# the configure arguments.  Note that LIBLTDL is not AC_SUBSTed, nor
-# is AC_CONFIG_SUBDIRS called.  If DIR is not provided, it is assumed
-# to be `${top_builddir}/libltdl'.  Make sure you start DIR with
-# '${top_builddir}/' (note the single quotes!) if your package is not
-# flat, and, if you're not using automake, define top_builddir as
-# appropriate in the Makefiles.
+# the libltdl convenience library and INCLTDL to the include flags for
+# the libltdl header and adds --enable-ltdl-convenience to the
+# configure arguments.  Note that LIBLTDL and INCLTDL are not
+# AC_SUBSTed, nor is AC_CONFIG_SUBDIRS called.  If DIR is not
+# provided, it is assumed to be `libltdl'.  LIBLTDL will be prefixed
+# with '${top_builddir}/' and INCLTDL will be prefixed with
+# '${top_srcdir}/' (note the single quotes!).  If your package is not
+# flat and you're not using automake, define top_builddir and
+# top_srcdir appropriately in the Makefiles.
 AC_DEFUN(AC_LIBLTDL_CONVENIENCE, [AC_BEFORE([$0],[AC_LIBTOOL_SETUP])dnl
   case "$enable_ltdl_convenience" in
   no) AC_MSG_ERROR([this package needs a convenience libltdl]) ;;
   "") enable_ltdl_convenience=yes
       ac_configure_args="$ac_configure_args --enable-ltdl-convenience" ;;
   esac
-  LIBLTDL=ifelse($#,1,$1,['${top_builddir}/libltdl'])/libltdlc.la
-  INCLTDL=ifelse($#,1,-I$1,['-I${top_builddir}/libltdl'])
+  LIBLTDL='${top_builddir}/'ifelse($#,1,[$1],['libltdl'])/libltdlc.la
+  INCLTDL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
 ])
 
 # AC_LIBLTDL_INSTALLABLE[(dir)] - sets LIBLTDL to the link flags for
-# the libltdl installable library, and adds --enable-ltdl-install to
-# the configure arguments.  Note that LIBLTDL is not AC_SUBSTed, nor
-# is AC_CONFIG_SUBDIRS called.  If DIR is not provided, it is assumed
-# to be `${top_builddir}/libltdl'.  Make sure you start DIR with
-# '${top_builddir}/' (note the single quotes!) if your package is not
-# flat, and, if you're not using automake, define top_builddir as
-# appropriate in the Makefiles.
+# the libltdl installable library and INCLTDL to the include flags for
+# the libltdl header and adds --enable-ltdl-install to the configure
+# arguments.  Note that LIBLTDL and INCLTDL are not AC_SUBSTed, nor is
+# AC_CONFIG_SUBDIRS called.  If DIR is not provided and an installed
+# libltdl is not found, it is assumed to be `libltdl'.  LIBLTDL will
+# be prefixed with '${top_builddir}/' and INCLTDL will be prefixed
+# with '${top_srcdir}/' (note the single quotes!).  If your package is
+# not flat and you're not using automake, define top_builddir and
+# top_srcdir appropriately in the Makefiles.
 # In the future, this macro may have to be called after AC_PROG_LIBTOOL.
 AC_DEFUN(AC_LIBLTDL_INSTALLABLE, [AC_BEFORE([$0],[AC_LIBTOOL_SETUP])dnl
   AC_CHECK_LIB(ltdl, main,
@@ -515,8 +605,8 @@ AC_DEFUN(AC_LIBLTDL_INSTALLABLE, [AC_BEFORE([$0],[AC_LIBTOOL_SETUP])dnl
   ])
   if test x"$enable_ltdl_install" = x"yes"; then
     ac_configure_args="$ac_configure_args --enable-ltdl-install"
-    LIBLTDL=ifelse($#,1,$1,['${top_builddir}/libltdl'])/libltdl.la
-    INCLTDL=ifelse($#,1,-I$1,['-I${top_builddir}/libltdl'])
+    LIBLTDL='${top_builddir}/'ifelse($#,1,[$1],['libltdl'])/libltdl.la
+    INCLTDL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
   else
     ac_configure_args="$ac_configure_args --enable-ltdl-install=no"
     LIBLTDL="-lltdl"
@@ -535,4 +625,17 @@ AC_DEFUN(AM_PROG_NM, [indir([AC_PROG_NM])])dnl
 
 dnl This is just to silence aclocal about the macro not being used
 ifelse([AC_DISABLE_FAST_INSTALL])dnl
+
+# Define a conditional.
+
+AC_DEFUN(AM_CONDITIONAL,
+[AC_SUBST($1_TRUE)
+AC_SUBST($1_FALSE)
+if $2; then
+  $1_TRUE=
+  $1_FALSE='#'
+else
+  $1_TRUE='#'
+  $1_FALSE=
+fi])
 
