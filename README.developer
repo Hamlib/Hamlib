@@ -213,7 +213,7 @@ Patches are welcome too!
 So far, Hamlib has been tested under the following systems:
 (if your system is not present, please report to mailing list)
 
-	* Debian potato/sid i386
+	* Debian potato/sarge/sid i386
 	* Debian sid mipsel
 	* RedHat i386
 	* Slackware i386
@@ -307,7 +307,7 @@ like this. The error checking is removed for simplicity.
 
 8. Coding guidelines
    Contributed code to the Hamlib frontend must be released under the LGPL.
-   Contributed code to Hamlib backends must be follow backend current license.
+   Contributed code to Hamlib backends must follow backend current license.
    Needless to say, the LGPL is the license of choice.
    End user applications like rigctl, rotctl and RPC daemons should be released
    under the GPL, so any contributed code must follow the rule.
