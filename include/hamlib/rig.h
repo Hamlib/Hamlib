@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.85 2003-08-25 22:28:51 fillods Exp $
+ *	$Id: rig.h,v 1.86 2003-10-01 19:50:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,13 +24,10 @@
 #define _RIG_H 1
 
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
-#include <stdio.h>		/* required for FILE definition */
 #include <sys/time.h>		/* required for struct timeval */
 
 #if defined(__CYGWIN__) || defined(_WIN32)
 #include <windows.h>		/* HANDLE definition */
-#else
-#include <sys/socket.h>		/* required for struct sockaddr */
 #endif
 
 /*! \file rig.h
@@ -1159,7 +1156,6 @@ typedef struct {
 	dcd_type_t dcd;		/*!< DCD port type */
   } type;
   int fd;			/*!< File descriptor */
-  FILE *stream;			/*!< FILE stream handle */
 #if defined(__CYGWIN__) || defined(_WIN32)
   HANDLE handle;		/*!< Win32 handle for serial special handling (PTT,DCD,..) */
 #endif
@@ -1185,10 +1181,7 @@ typedef struct {
 		int pin;	/*!< Parrallel port pin number */
 	} parallel;		/*!< parallel attributes */
 	struct {
-#if defined(__CYGWIN__) || defined(_WIN32)
-#else
-		struct sockaddr saddr;	/*!< Dest socket address */
-#endif
+		/* place holder */
 	} network;		/*!< Network attributes */
   } parm;			/*!< Port parameter union */
 } port_t;
