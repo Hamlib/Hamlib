@@ -81,11 +81,11 @@ WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
 lib_LTLIBRARIES = libhamlib.la
-libhamlib_la_SOURCES = rig.c  serial.c misc.c register.c event.c
+libhamlib_la_SOURCES = rig.c serial.c misc.c register.c event.c cal.c
 libhamlib_la_LDFLAGS = -release @VERSION@
 lib_LIBRARIES = libhamlib.a
-libhamlib_a_SOURCES = rig.c serial.c misc.c register.c event.c
-noinst_HEADERS = event.h misc.h serial.h
+libhamlib_a_SOURCES = rig.c serial.c misc.c register.c event.c cal.c
+noinst_HEADERS = event.h misc.h serial.h cal.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
 CONFIG_CLEAN_FILES = 
@@ -97,12 +97,13 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_a_LIBADD = 
-libhamlib_a_OBJECTS =  rig.o serial.o misc.o register.o event.o
+libhamlib_a_OBJECTS =  rig.o serial.o misc.o register.o event.o cal.o
 AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_la_LIBADD = 
-libhamlib_la_OBJECTS =  rig.lo serial.lo misc.lo register.lo event.lo
+libhamlib_la_OBJECTS =  rig.lo serial.lo misc.lo register.lo event.lo \
+cal.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -117,8 +118,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/event.P .deps/misc.P .deps/register.P .deps/rig.P \
-.deps/serial.P
+DEP_FILES =  .deps/cal.P .deps/event.P .deps/misc.P .deps/register.P \
+.deps/rig.P .deps/serial.P
 SOURCES = $(libhamlib_a_SOURCES) $(libhamlib_la_SOURCES)
 OBJECTS = $(libhamlib_a_OBJECTS) $(libhamlib_la_OBJECTS)
 
