@@ -4,7 +4,7 @@
  * yaesu.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  * Common yaesu declarations for hamlib
  *
- * 	$Id: yaesu.h,v 1.3 2000-12-22 04:59:17 javabear Exp $	
+ * 	$Id: yaesu.h,v 1.4 2001-06-04 21:07:17 f4cfe Exp $	
  *
  *
  *
@@ -45,5 +45,7 @@ struct yaesu_cmd_set {
 
 typedef struct yaesu_cmd_set yaesu_cmd_set_t; 
 
+const struct rig_caps ft747_caps;
+const struct rig_caps ft847_caps;
 
 #endif /* _YAESU_H */

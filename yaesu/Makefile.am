@@ -1,9 +1,12 @@
-lib_LTLIBRARIES = libhamlib-ft747.la libhamlib-ft847.la
-libhamlib_ft747_la_SOURCES = ft747.c 
-libhamlib_ft847_la_SOURCES = ft847.c
-libhamlib_ft747_la_LDFLAGS = -avoid-version # -module
-libhamlib_ft847_la_LDFLAGS = -avoid-version # -module
-lib_LIBRARIES = libhamlib-ft747.a libhamlib-ft847.a
-libhamlib_ft747_a_SOURCES = ft747.c
-libhamlib_ft847_a_SOURCES = ft847.c
+YAESUSRC = ft747.c ft847.c
+
+lib_LTLIBRARIES = libhamlib-yaesu.la
+libhamlib_yaesu_la_SOURCES = yaesu.c $(YAESUSRC)
+libhamlib_yaesu_la_LDFLAGS = -avoid-version # -module
+libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
+
+lib_LIBRARIES = libhamlib-yaesu.a
+libhamlib_yaesu_a_SOURCES = yaesu.c $(YAESUSRC)
+libhamlib_yaesu_a_LIBADD = ../src/libhamlib.la
+
 noinst_HEADERS = ft747.h ft847.h yaesu.h
