@@ -27,16 +27,14 @@ int main ()
 
 	printf("Port %s opened ok\n", SERIAL_PORT);
 
-/*  	cmd_set_freq(my_rig, 439700000, RIG_MODE_FM, RIG_VFO_MAIN); */
-
 	/*
 	 * Example of setting rig Main VFO to 439.700 Mhz FM -- FS
 	 *
 	 */
 
-	cmd_set_vfo(my_rig, RIG_VFO_MAIN);
-	cmd_set_freq(my_rig, 439700000);
-	cmd_set_mode(my_rig, RIG_MODE_FM);
+	rig_set_vfo(my_rig, RIG_VFO_MAIN);
+	rig_set_freq(my_rig, 439700000);
+	rig_set_mode(my_rig, RIG_MODE_FM);
 
 
 	rig_close(my_rig); /* close port */
@@ -46,9 +44,5 @@ int main ()
 
 	return 0;
 }
-
-
-
-
 
 
