@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.26 2001-04-22 14:45:31 f4cfe Exp $
+ *	$Id: rig.h,v 1.27 2001-04-24 19:51:46 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -981,6 +981,10 @@ extern unsigned char *rig_get_info(RIG *rig);
 
 extern const struct rig_caps *rig_get_caps(rig_model_t rig_model);
 const freq_range_t *rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode);
+
+extern pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode);
+extern pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode);
+extern pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode);
 
 extern const char *rigerror(int errnum);
 
