@@ -53,5 +53,6 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	#for f in `./listrigs | tail +2 | cut -f1` ; do ./dumpcaps $f > html/model$1.txt ; done
 	# ./listrigs | awk 'NR!=1 { system("./dumpcaps $1 > html/model$1.txt") }'
 
-noinst_DATA = rigmatrix_head.html
+pkgdata_DATA = rigmatrix_head.html
+EXTRA_DIST = rigmatrix_head.html
 
