@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - R5000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: r5000.c,v 1.1 2004-05-02 17:13:33 fillods Exp $
+ *	$Id: r5000.c,v 1.2 2004-06-13 12:38:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,20 +32,24 @@
 
 
 #define R5000_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
-#define R5000_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
-#define R5000_AM_TX_MODES RIG_MODE_AM
 
-#define R5000_FUNC_ALL RIG_FUNC_LOCK
+#define R5000_FUNC_ALL (RIG_FUNC_LOCK)
 
 #define R5000_LEVEL_ALL RIG_LEVEL_NONE
 
-#define R5000_VFO (RIG_VFO_A|RIG_VFO_B)
+#define R5000_PARM_ALL (RIG_PARM_TIME)
+
+#define R5000_VFO (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define R5000_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
+
 #define R5000_SCAN_OPS (RIG_SCAN_VFO)
 
+#define R5000_ANTS (RIG_ANT_1|RIG_ANT_2)
+
 static const struct kenwood_priv_caps  r5000_priv_caps  = {
-		.cmdtrm =  EOM_KEN,
+	.cmdtrm =  EOM_KEN,
+	.if_len =  33,
 };
 
 /*
@@ -57,40 +61,39 @@ const struct rig_caps r5000_caps = {
 .rig_model =  RIG_MODEL_R5000,
 .model_name = "R-5000",
 .mfg_name =  "Kenwood",
-.version =  "0.3",
+.version =  "0.4",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  1200,
+.serial_rate_min =  4800,
 .serial_rate_max =  4800,
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
-.post_write_delay =  0,
-.timeout =  200,
+.post_write_delay =  2,
+.timeout =  400,
 .retry =  3,
 
-.has_get_func =  RIG_FUNC_NONE,
+.has_get_func =  R5000_FUNC_ALL,
 .has_set_func =  R5000_FUNC_ALL,
 .has_get_level =  R5000_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(R5000_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE, 
-.level_gran =  {},
+.has_get_parm =  R5000_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(R5000_PARM_ALL), 
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
-.max_rit =  Hz(9990),
-.max_xit =  0,
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
-.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.targetable_vfo = RIG_TARGETABLE_FREQ,
 .vfo_ops =  R5000_VFO_OPS,
 .scan_ops =  R5000_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
@@ -112,9 +115,7 @@ const struct rig_caps r5000_caps = {
 	{MHz(108),MHz(174),R5000_ALL_MODES,-1,-1,R5000_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
-.tx_range_list2 =  {
-	RIG_FRNG_END,
-  }, /* tx range */
+.tx_range_list2 =  { RIG_FRNG_END, }, /* tx range */
 
 .tuning_steps =  {
 	 {R5000_ALL_MODES,10},
@@ -129,24 +130,29 @@ const struct rig_caps r5000_caps = {
 	},
 .priv =  (void *)&r5000_priv_caps,
 
-.set_freq =  kenwood_set_freq,
+.set_freq =  ic10_set_freq,
 .get_freq =  ic10_get_freq,
-.set_rit =  kenwood_set_rit,
-.get_rit =  kenwood_get_rit,
-.set_xit =  kenwood_set_xit,
-.get_xit =  kenwood_get_xit,
-.set_mode =  kenwood_set_mode,
+.set_mode =  ic10_set_mode,
 .get_mode =  ic10_get_mode,
 .set_vfo =  ic10_set_vfo,
 .get_vfo =  ic10_get_vfo,
-.set_func =  kenwood_set_func,
-.vfo_op =  kenwood_vfo_op,
-.set_mem =  kenwood_set_mem,
+.set_func =  ic10_set_func,
+.get_func =  ic10_get_func,
+.set_parm =  ic10_set_parm,
+.get_parm =  ic10_get_parm,
+.set_ant =  ic10_set_ant,
+.get_ant =  ic10_get_ant,
+.set_mem =  ic10_set_mem,
 .get_mem =  ic10_get_mem,
-.set_trn =  kenwood_set_trn,
-.scan =  kenwood_scan,
-.set_channel = ic10_set_channel,
-.get_channel = ic10_get_channel,
+.vfo_op =  ic10_vfo_op,
+.set_trn =  ic10_set_trn,
+.get_trn =  ic10_get_trn,
+.scan =  ic10_scan,
+.set_channel =  ic10_set_channel,
+.get_channel =  ic10_get_channel,
+.set_powerstat =  ic10_set_powerstat,
+.get_powerstat =  ic10_get_powerstat,
+.get_info = ic10_get_info,
 .decode_event = ic10_decode_event,
 
 };
