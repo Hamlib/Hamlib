@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.13 2004-05-03 22:34:14 fillods Exp $
+ *	$Id: tentec.c,v 1.14 2004-05-26 21:30:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -340,17 +340,19 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	 */
 	switch (level) {
 	case RIG_LEVEL_AGC:
-		cmd_len = sprintf(cmdbuf, "G%c" EOM, val.f<0.4 ? '1' : (
-									val.f>0.6 ? '3' : '2') );
+		/* default to MEDIUM */
+		cmd_len = sprintf(cmdbuf, "G%c" EOM,
+				val.i==RIG_AGC_SLOW ? '1' : (
+				val.i==RIG_AGC_FAST ? '3' : '2' ) );
 		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
 		if (retval == RIG_OK)
-				priv->agc = val.f;
+			priv->agc = val.i;
 		return retval;
 	case RIG_LEVEL_AF:
 		/* FIXME: support also separate Lineout setting 
 		 * -> need to create RIG_LEVEL_LINEOUT ?
 		 */
-		cmd_len = sprintf(cmdbuf, "C%c%c" EOM, 0, (int)(val.f*63));
+		cmd_len = sprintf(cmdbuf, "C\x7f%c" EOM, (int)(val.f*63));
 		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
 		if (retval == RIG_OK) 
 				priv->lnvol = priv->spkvol = val.f;
@@ -400,7 +402,7 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_AGC:
-		val->f = priv->agc;
+		val->i = priv->agc;
 		break;
 
 	case RIG_LEVEL_AF:
