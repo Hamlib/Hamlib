@@ -2,8 +2,8 @@ Source: hamlib
 Section: hamradio
 Priority: optional
 Maintainer: Terry Dawson <terry@animats.net>
-Build-Depends: debhelper (>> 3.0.0), autoconf (>=2.50), automake1.7 (>=1.7), libtool, doxygen
-Standards-Version: 3.5.2
+Build-Depends: debhelper (>> 3.0.0), doxygen
+Standards-Version: 3.5.7
 
 Package: hamlib1
 Architecture: any
