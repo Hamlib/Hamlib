@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ar8200.c,v 1.6 2001-03-01 00:26:19 f4cfe Exp $  
+ * $Id: ar8200.c,v 1.7 2001-03-02 18:35:18 f4cfe Exp $  
  *
  *
  *
@@ -63,7 +63,8 @@ const struct rig_caps ar8200_caps = {
   NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { RIG_DBLST_END, },
   { RIG_DBLST_END, },
-  0,
+  NULL,
+  Hz(0), Hz(0),	/* RIT, IF-SHIFT */
   0,	/* FIXME: VFO list */
   0, RIG_TRN_ON,
   1000, 0, 0,
@@ -103,7 +104,7 @@ const struct rig_caps ar8200_caps = {
   NULL, NULL, NULL, aor_close, NULL /* probe not supported yet */,
   aor_set_freq, aor_get_freq, aor_set_mode, aor_get_mode, NULL,
 set_ts: aor_set_ts,
-set_poweroff: aor_set_poweroff,
+set_powerstat: aor_set_powerstat,
 };
 
 /*

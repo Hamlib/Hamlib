@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: icr8500.c,v 1.6 2001-03-01 00:26:19 f4cfe Exp $  
+ * $Id: icr8500.c,v 1.7 2001-03-02 18:35:18 f4cfe Exp $  
  *
  *
  *
@@ -63,7 +63,8 @@ const struct rig_caps icr8500_caps = {
   NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
-  9999,
+  NULL,
+  Hz(9999), Hz(0),	/* RIT, IF-SHIFT */
   0,			/* FIXME: VFO list */
   0, RIG_TRN_ON,
   999, 12, 0,
