@@ -2,7 +2,7 @@
  *  Hamlib bindings - Rig interface
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rig.swg,v 1.6 2003-04-06 18:48:36 fillods Exp $
+ *	$Id: rig.swg,v 1.7 2004-01-15 22:40:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,6 +59,8 @@ typedef struct Rig {
 #define METHOD1(f, t1) void f (t1 _##t1  _VFO_DECL) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1); }
 #define METHOD2(f, t1, t2) void f (t1 _##t1##_1, t2 _##t2##_2  _VFO_DECL) \
+				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
+#define METHOD2_INIT(f, t1, t2, i2) void f (t1 _##t1##_1, t2 _##t2##_2 = i2  _VFO_DECL) \
 				{ self->error_status = rig_##f(self->rig  _VFO_ARG, _##t1##_1, _##t2##_2); }
 
 /*
@@ -257,7 +259,7 @@ typedef struct Rig {
 #define _VFO_DECL	,vfo_t vfo = RIG_VFO_CURR
 
 	METHOD1(set_freq, freq_t)
-	METHOD2(set_mode, rmode_t, pbwidth_t)
+	METHOD2_INIT(set_mode, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
 	METHOD1(set_ptt, ptt_t)
 	METHOD1(set_rptr_shift, rptr_shift_t)
 	METHOD1(set_rptr_offs, shortfreq_t)
@@ -266,7 +268,7 @@ typedef struct Rig {
 	METHOD1(set_ctcss_sql, tone_t)
 	METHOD1(set_dcs_sql, tone_t)
 	METHOD1(set_split_freq, freq_t)
-	METHOD2(set_split_mode, rmode_t, pbwidth_t)
+	METHOD2_INIT(set_split_mode, rmode_t, pbwidth_t, RIG_PASSBAND_NORMAL)
 	METHOD2(set_split_vfo, split_t, vfo_t)
 	METHOD1(set_rit, shortfreq_t)
 	METHOD1(set_xit, shortfreq_t)
@@ -293,7 +295,7 @@ typedef struct Rig {
 	METHODSTRGET(level)
 
 	/*
-	 * these ones do not take a vfo arg
+	 * these ones take no vfo arg
 	 */
 #undef _VFO_ARG
 #undef _VFO_DECL
