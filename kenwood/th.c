@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.18 2004-03-20 16:48:34 f4dwv Exp $
+ *	$Id: th.c,v 1.19 2004-03-21 16:55:28 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -368,11 +368,12 @@ th_set_vfo (RIG *rig, vfo_t vfo)
 int
 th_get_vfo (RIG *rig, vfo_t *vfo)
 {
-    char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    char cmdbuf[16], ackbuf[ACKBUF_LEN],vfoc;
+    int retval,ack_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
+    ack_len=ACKBUF_LEN;
     retval = kenwood_transaction (rig, "BC" EOM, 3, ackbuf, &ack_len);
     if (retval != RIG_OK)
         return retval;
@@ -382,7 +383,8 @@ th_get_vfo (RIG *rig, vfo_t *vfo)
         return -RIG_ERJCTED;
     }
 
-    switch (ackbuf[3]) {
+    vfoc=ackbuf[3];
+    switch (vfoc) {
         case '0': *vfo = RIG_VFO_A; break;
         case '1': *vfo = RIG_VFO_B; break;
         default:
@@ -390,7 +392,29 @@ th_get_vfo (RIG *rig, vfo_t *vfo)
             return -RIG_EVFO;
     }
 
-	return RIG_OK;
+    sprintf(cmdbuf,"VMC %c" EOM,vfoc);
+    ack_len=ACKBUF_LEN;
+    retval = kenwood_transaction (rig, cmdbuf, strlen(cmdbuf), ackbuf, &ack_len);
+    if (retval != RIG_OK)
+        return retval;
+
+    if (ack_len < 8 ) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
+        return -RIG_ERJCTED;
+    }
+    switch(ackbuf[6]) {
+	case '0' :
+	case '1' :
+		break;
+	case '2' :
+		*vfo = RIG_VFO_MEM;
+		break;
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VFO value '%c'\n", __FUNCTION__, ackbuf[6]);
+            return -RIG_EVFO;
+     }
+
+     return RIG_OK;
 }
 
 
@@ -440,12 +464,12 @@ th_get_trn (RIG *rig, int *trn)
 	return RIG_OK;
 }
 
+
 /*
  * th_get_kenwood_func
  * Assumes rig!=NULL, status!=NULL
  */
-int
-th_get_kenwood_func (RIG *rig, const char *cmd, int *status)
+static int th_get_kenwood_func (RIG *rig, const char *cmd, int *status)
 {
     char ackbuf[ACKBUF_LEN];
     int retval,ack_len=ACKBUF_LEN;
@@ -479,12 +503,8 @@ th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     /* FIXME: What about the VFO? */
 
-    /* Optimize:
-     *   sort the switch cases with the most frequent first
-     */
     switch (func) {
-        case RIG_FUNC_MON:  /* which one? */
-        case RIG_FUNC_SQL:
+        case RIG_FUNC_MON:
             return th_get_kenwood_func(rig, "MON" EOM, status);
         case RIG_FUNC_TONE:
             return th_get_kenwood_func(rig, "TO" EOM, status);
@@ -498,24 +518,86 @@ th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status)
             return th_get_kenwood_func(rig, "AIP" EOM, status);
         case RIG_FUNC_LOCK:
             return th_get_kenwood_func(rig, "LK" EOM, status);
+        default:
+            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported function %#x", __FUNCTION__, func);
+            return -RIG_EINVAL;
+    }
+    return RIG_OK;
+}
 
-        case RIG_FUNC_FAGC:
-        case RIG_FUNC_NB:
-        case RIG_FUNC_COMP:
-        case RIG_FUNC_VOX:
-        case RIG_FUNC_SBKIN:
-        case RIG_FUNC_FBKIN:
-        case RIG_FUNC_ANF:
-        case RIG_FUNC_NR:
-        case RIG_FUNC_APF:
-        case RIG_FUNC_MN:
-        case RIG_FUNC_RNF:
-        case RIG_FUNC_MUTE:
-        case RIG_FUNC_VSC:
-        case RIG_FUNC_ABM:
-        case RIG_FUNC_BC:
-        case RIG_FUNC_MBC:
-            return -RIG_ENAVAIL;
+/* --------------------------------------------------------------------- */
+static int th_tburst(RIG *rig, vfo_t vfo, int status)
+{
+    char ackbuf[ACKBUF_LEN];
+    int retval,ack_len=ACKBUF_LEN;
+
+    if(status==1) {
+    retval = kenwood_transaction(rig, "TT"EOM, 3, ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        	return retval;
+
+	return RIG_OK;
+    }
+    if(status==0) {
+	return rig_set_ptt(rig,vfo,RIG_PTT_OFF);
+    }
+    return -RIG_EINVAL;
+}
+
+/*
+ * th_set_kenwood_func
+ * Assumes rig!=NULL, status!=NULL
+ */
+static int th_set_kenwood_func (RIG *rig, const char *cmd, int status)
+{
+    char trbuf[16], ackbuf[ACKBUF_LEN];
+    int retval,ack_len=ACKBUF_LEN;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+
+    strncpy(trbuf,cmd,16);
+    strncat(trbuf,(status)?" 1":" 0",16);
+    strncat(trbuf,EOM,16);
+    retval = kenwood_transaction (rig, cmd, strlen(cmd), ackbuf, &ack_len);
+    if (retval != RIG_OK)
+        return retval;
+
+    if (ack_len < 4 ) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
+        return -RIG_ERJCTED;
+	}
+	return RIG_OK;
+};
+
+
+/*
+ * th_get_func
+ * Assumes rig!=NULL, status!=NULL
+ */
+int
+th_set_func (RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __FUNCTION__, func);
+
+    /* FIXME: What about the VFO? */
+
+    switch (func) {
+        case RIG_FUNC_MON:
+            return th_set_kenwood_func(rig, "MON", status);
+        case RIG_FUNC_TONE:
+            return th_set_kenwood_func(rig, "TO", status);
+        case RIG_FUNC_TSQL:
+            return th_set_kenwood_func(rig, "CT", status);
+        case RIG_FUNC_REV:
+            return th_set_kenwood_func(rig, "REV", status);
+        case RIG_FUNC_ARO:
+            return th_set_kenwood_func(rig, "ARO", status);
+        case RIG_FUNC_AIP:
+            return th_set_kenwood_func(rig, "AIP", status);
+        case RIG_FUNC_LOCK:
+            return th_set_kenwood_func(rig, "LK", status);
+        case RIG_FUNC_TBURST:
+            return th_tburst(rig, vfo, status);
         default:
             rig_debug(RIG_DEBUG_ERR,"%s: Unsupported function %#x", __FUNCTION__, func);
             return -RIG_EINVAL;
@@ -602,23 +684,39 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (retval != RIG_OK)
 			return retval;
 
-            retval = sscanf(ackbuf, "SQ %d,%d", &v, &l);
-            if (retval != 2 || l < 0 || l > 5) {
+            retval = sscanf(ackbuf, "SQ %d,%x", &v, &l);
+            if (retval != 2 || l < 0 || l > 32) {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
             }
 
             /* range [0.0 ... 1.0] */
-            val->f = l / 5.0;
+            val->f = l / 32.0;
 		break;
 
-        case RIG_LEVEL_RFPOWER:
-            sprintf(lvlbuf, "PC 0" EOM); /* only VHF power ... */
+        case RIG_LEVEL_AF:
+            sprintf(lvlbuf, "AG %c" EOM, vch);
             retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
 
-            retval = sscanf(ackbuf, "PC 0,%d", &l);
+            retval = sscanf(ackbuf, "AG %d,%x", &v, &l);
+            if (retval != 2 || l < 0 || l > 32) {
+                rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
+                return -RIG_ERJCTED;
+            }
+
+            /* range [0.0 ... 1.0] */
+            val->f = l / 32.0;
+		break;
+
+        case RIG_LEVEL_RFPOWER:
+            sprintf(lvlbuf, "PC %c" EOM,vch); 
+            retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
+		if (retval != RIG_OK)
+			return retval;
+
+            retval = sscanf(ackbuf, "PC %d,%d", &v, &l);
             if (retval != 1 || l < 0 || l > 3) {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
@@ -657,13 +755,25 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
             return -RIG_EVFO;
 	}
 
-    if(level!=RIG_LEVEL_RFPOWER)
+    switch(level) {
+
+	case RIG_LEVEL_RFPOWER :
+	    sprintf(lvlbuf, "PC %c,%d" EOM, vch,3-(int)(val.f*3.0));
+	    retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
+	    return retval;
+	case RIG_LEVEL_SQL :
+	    sprintf(lvlbuf, "SQ %c,%02x" EOM, vch,(int)(val.f*32.0));
+	    retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
+	    return retval;
+	case RIG_LEVEL_AF :
+	    sprintf(lvlbuf, "AG %c,%02x" EOM, vch,(int)(val.f*32.0));
+	    retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
+	    return retval;
+        default:
+            rig_debug(RIG_DEBUG_ERR,"%s: Unsupported Level %d", __FUNCTION__, level);
             return -RIG_EINVAL;
-
-    sprintf(lvlbuf, "PC 0,%d" EOM, 3-(int)(val.f*3.0)); /* only VHF power ... */
-    retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
-
-    return retval;
+    }
+    return RIG_OK;
 }
 
 #ifndef RIG_TONEMAX
@@ -872,6 +982,32 @@ th_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	return RIG_OK;
 }
 
+int
+th_set_powerstat(RIG *rig, powerstat_t status)
+{
+        unsigned char *membuf;
+        int retval;
+
+        rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+
+        switch(status) {
+         case RIG_POWER_ON :
+                membuf="PS 1" EOM;
+                break;
+         case RIG_POWER_OFF :
+                membuf="PS 0" EOM;
+                break;
+         default:
+                return -RIG_EINVAL;
+        }
+
+        retval = kenwood_transaction(rig, membuf, strlen(membuf), NULL, NULL);
+        if (retval != RIG_OK)
+                return retval;
+
+	return RIG_OK;
+}
+
 int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
         unsigned char *membuf, ackbuf[ACKBUF_LEN];
@@ -934,6 +1070,9 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
                		break;
 		case RIG_OP_DOWN:
                 	membuf="DW" EOM;
+               		break;
+		case RIG_OP_TO_VFO:
+                	membuf="MSH" EOM;
                		break;
 		default:
                 	return -RIG_EINVAL;
