@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.h,v 1.16 2002-01-03 21:42:53 fillods Exp $
+ *		$Id: kenwood.h,v 1.17 2002-01-07 17:51:52 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,9 +23,26 @@
 #ifndef _KENWOOD_H
 #define _KENWOOD_H 1
 
+struct kenwood_priv_caps {
+    /* read-only values */
+    const char *cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
+    /* changable values */
+        // nothing
+};
+
+#if 0  /* No private data for Kenwood backends. */
+struct kenwood_priv_data {
+    int dummy;  // placeholder for real entries.
+};
+#endif
+
+extern int kenwood_init(RIG *rig);
+extern int kenwood_cleanup(RIG *rig);
+
+
 extern const int kenwood38_ctcss_list[];
 
-int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, 
+int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 				int *data_len);
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
