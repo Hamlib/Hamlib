@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.15 2005-01-25 00:22:14 fillods Exp $
+ * $Id: ft990.c,v 1.16 2005-02-25 11:32:31 bwulf Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -2272,7 +2272,7 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
   switch(chan->vfo) {
     case RIG_VFO_MEM:
       if(chan->channel_num < 0 && chan->channel_num > 90)
-        return RIG_EINVAL;
+        return -RIG_EINVAL;
 
       // On channel=0 get current or last used memory channel
       if(chan->channel_num == 0) {
