@@ -1,9 +1,10 @@
 /*
  * rigmatric.c - Copyright (C) 2000 Stephane Fillod
  * This program generates the supported rig matrix in HTML format.
+ * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.2 2001-01-05 18:22:40 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.3 2001-01-28 22:24:27 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +23,6 @@
  * 
  */
 
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -31,7 +31,6 @@
 #include <gd.h>
 #include <gdfontg.h>
 #include <gdfonts.h>
-
 
 #include <hamlib/rig.h>
 
@@ -93,12 +92,21 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 	}
 	printf("</TD><TD><A HREF=\"#rng%d\">range</A></TD>"
 					"<TD><A HREF=\"#parms%d\">parms</A></TD>"
-					"<TD><A HREF=\"#caps%d\">caps</A></TD></TR>\n",
-					caps->rig_model, caps->rig_model, caps->rig_model);
+					"<TD><A HREF=\"#caps%d\">caps</A></TD>"
+					"<TD><A HREF=\"#setfunc%d\">func</A></TD>"
+					"<TD><A HREF=\"#getlevel%d\">levels</A></TD>"
+					"<TD><A HREF=\"#setlevel%d\">set levels</A></TD>"
+					"</TR>\n",
+					caps->rig_model, caps->rig_model, caps->rig_model,
+					caps->rig_model, caps->rig_model, caps->rig_model
+					);
 
 	return 1;	/* !=0, we want them all ! */
 }
 
+/*
+ * IO params et al.
+ */
 int print_caps_parms(const struct rig_caps *caps, void *data)
 {
 	printf("<A NAME=\"parms%d\"><TR><TD>%s</TD><TD>", 
@@ -112,7 +120,8 @@ int print_caps_parms(const struct rig_caps *caps, void *data)
 	case RIG_PTT_PARALLEL:
 			printf("parallel");
 			break;
-	case RIG_PTT_SERIAL:
+	case RIG_PTT_SERIAL_RTS:
+	case RIG_PTT_SERIAL_DTR:
 			printf("serial");
 			break;
 	case RIG_PTT_NONE:
@@ -138,14 +147,18 @@ int print_caps_parms(const struct rig_caps *caps, void *data)
 	return 1;
 }
 
+/* used by print_caps_caps and print_caps_level */
+#define print_yn(fn) printf("<TD>%c</TD>", (fn) ? 'Y':'N')
+
+/*
+ * backend functions definied
+ */
 int print_caps_caps(const struct rig_caps *caps, void *data)
 {
 	printf("<A NAME=\"caps%d\"><TR><TD>%s</TD>", 
 					caps->rig_model,
 					caps->model_name);
 	
-#define print_yn(fn) printf("<TD>%c</TD>", (fn) ? 'Y':'N')
-
 	/* targetable_vfo is not a function, but a boolean */
 	print_yn(caps->targetable_vfo);
 
@@ -182,6 +195,98 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 	return 1;
 }
 
+/*
+ * Get/Set level abilities
+ */
+int print_caps_level(const struct rig_caps *caps, void *data)
+{
+	setting_t level;
+
+	if (!data)
+			return 0;
+
+	level = (*(int*)data)? caps->has_set_level : caps->has_level;
+
+	printf("<A NAME=\"%slevel%d\"><TR><TD>%s</TD>", 
+					(*(int*)data)? "set":"get",
+					caps->rig_model,
+					caps->model_name);
+	
+	print_yn(level & RIG_LEVEL_PREAMP);
+	print_yn(level & RIG_LEVEL_ATT);
+	print_yn(level & RIG_LEVEL_ANT);
+	print_yn(level & RIG_LEVEL_AF);
+	print_yn(level & RIG_LEVEL_RF);
+	print_yn(level & RIG_LEVEL_SQL);
+	print_yn(level & RIG_LEVEL_IF);
+	print_yn(level & RIG_LEVEL_APF);
+	print_yn(level & RIG_LEVEL_NR);
+	print_yn(level & RIG_LEVEL_PBT_IN);
+	print_yn(level & RIG_LEVEL_PBT_OUT);
+	print_yn(level & RIG_LEVEL_CWPITCH);
+	print_yn(level & RIG_LEVEL_RFPOWER);
+	print_yn(level & RIG_LEVEL_MICGAIN);
+	print_yn(level & RIG_LEVEL_KEYSPD);
+	print_yn(level & RIG_LEVEL_NOTCHF);
+	print_yn(level & RIG_LEVEL_COMP);
+	print_yn(level & RIG_LEVEL_AGC);
+	print_yn(level & RIG_LEVEL_BKINDL);
+	print_yn(level & RIG_LEVEL_BALANCE);
+	print_yn(level & RIG_LEVEL_ANN);
+
+	/* get only levels */
+	print_yn(level & RIG_LEVEL_SWR);
+	print_yn(level & RIG_LEVEL_ALC);
+	print_yn(level & RIG_LEVEL_SQLSTAT);
+	print_yn(level & RIG_LEVEL_STRENGTH);
+
+	printf("</TR></A>\n");
+
+	return 1;
+}
+
+/*
+ * Get/Set func abilities
+ */
+int print_caps_func(const struct rig_caps *caps, void *data)
+{
+	setting_t func;
+
+	if (!data)
+			return 0;
+
+	func = caps->has_func;
+
+	printf("<A NAME=\"%sfunc%d\"><TR><TD>%s</TD>", 
+					(*(int*)data)? "set":"get",
+					caps->rig_model,
+					caps->model_name);
+	
+	print_yn(func & RIG_FUNC_FAGC);
+	print_yn(func & RIG_FUNC_NB);
+	print_yn(func & RIG_FUNC_COMP);
+	print_yn(func & RIG_FUNC_VOX);
+	print_yn(func & RIG_FUNC_TONE);
+	print_yn(func & RIG_FUNC_TSQL);
+	print_yn(func & RIG_FUNC_SBKIN);
+	print_yn(func & RIG_FUNC_FBKIN);
+	print_yn(func & RIG_FUNC_ANF);
+	print_yn(func & RIG_FUNC_NR);
+	print_yn(func & RIG_FUNC_AIP);
+	print_yn(func & RIG_FUNC_APF);
+	print_yn(func & RIG_FUNC_MON);
+	print_yn(func & RIG_FUNC_MN);
+	print_yn(func & RIG_FUNC_RFN);
+
+	printf("</TR></A>\n");
+
+	return 1;
+}
+
+
+/*
+ * inlined PNG graphics
+ */
 int print_caps_range(const struct rig_caps *caps, void *data)
 {
 	create_png_range(caps->rx_range_list, caps->tx_range_list, caps->rig_model);
@@ -342,6 +447,7 @@ int main (int argc, char *argv[])
 { 
 	int status;
 	time_t gentime;
+	int set_or_get;
 
 	status = rig_load_backend("icom");
 	if (status != RIG_OK ) {
@@ -358,6 +464,11 @@ int main (int argc, char *argv[])
 		printf("rig_load_backend: ft847 error = %s \n", rigerror(status));
 		exit(3);
 	}
+	status = rig_load_backend("kenwood");
+	if (status != RIG_OK ) {
+		printf("rig_load_backend: kenwood error = %s \n", rigerror(status));
+		exit(3);
+	}
 	status = rig_load_backend("aor");
 	if (status != RIG_OK ) {
 		printf("rig_load_backend: aor error = %s \n", rigerror(status));
@@ -367,7 +478,11 @@ int main (int argc, char *argv[])
 	printf("<TABLE BORDER=1>");
 	printf("<TR><TD>Model</TD><TD>Mfg</TD><TD>Vers.</TD><TD>Status</TD>"
 					"<TD>Type</TD><TD>Freq. range</TD><TD>Parameters</TD>"
-					"<TD>Capabilities</TD></TR>\n");
+					"<TD>Capabilities</TD>"
+					"<TD>Has func</TD>"
+					"<TD>Get level</TD>"
+					"<TD>Set level</TD>"
+					"</TR>\n");
 	status = rig_list_foreach(print_caps_sum,NULL);
 	printf("</TABLE>\n");
 
@@ -409,6 +524,69 @@ int main (int argc, char *argv[])
 	status = rig_list_foreach(print_caps_caps,NULL);
 	printf("</TABLE>\n");
 
+	printf("<P>");
+
+	printf("Has func");
+	printf("<TABLE BORDER=1>\n");
+	printf("<TR><TD>Model</TD>"
+					"<TD>FAGC</TD><TD>NB</TD>"
+					"<TD>COMP</TD><TD>VOX</TD>"
+					"<TD>TONE</TD><TD>TSQL</TD>"
+					"<TD>SBKIN</TD><TD>FBKIN</TD>"
+					"<TD>ANF</TD><TD>NR</TD>"
+					"<TD>AIP</TD><TD>APF</TD>"
+					"<TD>MON</TD><TD>MN</TD>"
+					"<TD>RFN</TD>"
+					"</TR>\n");
+	set_or_get = 0;
+	status = rig_list_foreach(print_caps_func,&set_or_get);
+	printf("</TABLE>\n");
+
+	printf("<P>");
+
+	printf("Set level");
+	printf("<TABLE BORDER=1>\n");
+	printf("<TR><TD>Model</TD>"
+					"<TD>Preamp</TD><TD>Att</TD>"
+					"<TD>Ant</TD>"
+					"<TD>AF</TD><TD>RF</TD>"
+					"<TD>SQL</TD><TD>IF</TD>"
+					"<TD>APF</TD><TD>NR</TD>"
+					"<TD>PBT IN</TD><TD>PBT OUT</TD>"
+					"<TD>CW pitch</TD><TD>RF Power</TD>"
+					"<TD>Mic gain</TD><TD>Key speed</TD>"
+					"<TD>Notch</TD><TD>Comp</TD>"
+					"<TD>AGC</TD><TD>BKin delay</TD>"
+					"<TD>Balance</TD><TD>Ann</TD>"
+					"<TD>SWR</TD><TD>ALC</TD>"
+					"<TD>SQLstat</TD><TD>SMeter</TD>"
+					"</TR>\n");
+	set_or_get = 1;
+	status = rig_list_foreach(print_caps_level,&set_or_get);
+	printf("</TABLE>\n");
+
+	printf("<P>");
+
+	printf("Get level");
+	printf("<TABLE BORDER=1>\n");
+	printf("<TR><TD>Model</TD>"
+					"<TD>Preamp</TD><TD>Att</TD>"
+					"<TD>Ant</TD>"
+					"<TD>AF</TD><TD>RF</TD>"
+					"<TD>SQL</TD><TD>IF</TD>"
+					"<TD>APF</TD><TD>NR</TD>"
+					"<TD>PBT IN</TD><TD>PBT OUT</TD>"
+					"<TD>CW pitch</TD><TD>RF Power</TD>"
+					"<TD>Mic gain</TD><TD>Key speed</TD>"
+					"<TD>Notch</TD><TD>Comp</TD>"
+					"<TD>AGC</TD><TD>BKin delay</TD>"
+					"<TD>Balance</TD><TD>Ann</TD>"
+					"<TD>SWR</TD><TD>ALC</TD>"
+					"<TD>SQLstat</TD><TD>SMeter</TD>"
+					"</TR>\n");
+	set_or_get = 0;
+	status = rig_list_foreach(print_caps_level,&set_or_get);
+	printf("</TABLE>\n");
 
 	printf("<P>");
 
