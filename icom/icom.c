@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.87 2004-08-21 23:53:39 fillods Exp $
+ *	$Id: icom.c,v 1.88 2004-08-27 01:49:38 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -452,7 +452,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
 		unsigned char ackbuf[MAXFRAMELEN];
-		unsigned char icmode; 
+		unsigned char icmode;
 		signed char icmode_ext;
 		int ack_len, retval, err;
 
@@ -614,16 +614,13 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				case RIG_LEVEL_NR:
 					icom_val = val.f * 240;
 					break;
-				case RIG_LEVEL_CWPITCH:
-					icom_val = ((float)val.i - 300.0) / 600.0 * 255;
-					break;
 				case RIG_LEVEL_PBT_IN:
 				case RIG_LEVEL_PBT_OUT:
 					icom_val = (val.f / 10.0) + 128;
 					if (icom_val > 255)
 						icom_val = 255;
 					break;
-				default: 
+				default:
 					break;
 			}
 		}
@@ -700,6 +697,14 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		case RIG_LEVEL_CWPITCH:
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_CWPITCH;
+			/* use 'set mode' call for CWPITCH on IC-R75*/
+			if (rig->caps->rig_model == RIG_MODEL_ICR75) {
+				lvl_cn = C_CTL_MEM;
+				lvl_sc = S_MEM_MODE_SLCT;
+				lvl_len = 3;
+				lvlbuf[0] = S_PRM_CWPITCH;
+				to_bcd_be(lvlbuf+1, (long long)icom_val, 4);
+			}
 			break;
 		case RIG_LEVEL_RFPOWER:
 			lvl_cn = C_CTL_LVL;
@@ -776,8 +781,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char lvlbuf[MAXFRAMELEN];
-		int lvl_len;
+		unsigned char lvlbuf[MAXFRAMELEN], lvl2buf[MAXFRAMELEN];
+		int lvl_len, lvl2_len;
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
 		int cmdhead;
@@ -786,7 +791,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-
+		lvl2_len = 0;
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
 		 */
@@ -843,6 +848,13 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		case RIG_LEVEL_CWPITCH:
 			lvl_cn = C_CTL_LVL;
 			lvl_sc = S_LVL_CWPITCH;
+			/* use 'set mode' call for CWPITCH on IC-R75*/
+			if (rig->caps->rig_model == RIG_MODEL_ICR75) {
+				lvl_cn = C_CTL_MEM;
+				lvl_sc = S_MEM_MODE_SLCT;
+				lvl2_len = 1;
+				lvl2buf[0] = S_PRM_CWPITCH;
+			}
 			break;
 		case RIG_LEVEL_RFPOWER:
 			lvl_cn = C_CTL_LVL;
@@ -893,7 +905,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return -RIG_EINVAL;
 		}
 
-		retval = icom_transaction (rig, lvl_cn, lvl_sc, NULL, 0,
+		/* use lvl2buf and lvl2_len for 'set mode' subcommand */
+		retval = icom_transaction (rig, lvl_cn, lvl_sc, lvl2buf, lvl2_len,
 						lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -903,6 +916,11 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		 */
 		cmdhead = (lvl_sc == -1) ? 1:2;
 		lvl_len -= cmdhead;
+		/* back off one char since first char in buffer is now 'set mode' subcommand */
+		if ((rig->caps->rig_model == RIG_MODEL_ICR75)&&(level==RIG_LEVEL_CWPITCH)){
+			cmdhead = 3;
+			lvl_len--;
+		}
 
 		if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_level: ack NG (%#.2x), "
@@ -955,21 +973,18 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				case RIG_LEVEL_NR:
 					val->f = (float)icom_val / 240;
 					break;
-				case RIG_LEVEL_CWPITCH:
-					val->i = ((float)icom_val / 255.0 * 600.0) + 300.0;
-					break;
 				case RIG_LEVEL_PBT_IN:
 				case RIG_LEVEL_PBT_OUT:
 					if (icom_val == 255)
 						val->f = 1280.0;
-					else	
+					else
 						val->f = (float)(icom_val - 128) * 10.0;
 					break;
-				default: 
+				default:
 					break;
 			}
-		}		
-		
+		}
+
 		rig_debug(RIG_DEBUG_TRACE,"icom_get_level: %d %d %d %f\n", lvl_len,
 						icom_val, val->i, val->f);
 
@@ -2282,16 +2297,16 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
 		/* r75 has no way to get power status, so fake it */
 		if (rig->caps->rig_model == RIG_MODEL_ICR75) {
 			retval = icom_transaction(rig, C_RD_MODE, -1, NULL, 0,
-									ackbuf, &ack_len);			
+									ackbuf, &ack_len);
 			if (retval != RIG_OK)
 				return retval;
-			
-			*status = ((ack_len == 3)&&(ackbuf[0] == C_RD_MODE)) ? 
+
+			*status = ((ack_len == 3)&&(ackbuf[0] == C_RD_MODE)) ?
 						RIG_POWER_ON : RIG_POWER_OFF;
-						
+
 			return RIG_OK;
 		}
-	
+
 		retval = icom_transaction(rig, C_SET_PWR, -1, NULL, 0,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
@@ -2707,8 +2722,8 @@ DECLARE_PROBERIG_BACKEND(icom)
 		/*
 		 * try all possible addresses on the CI-V bus
 		 * FIXME: actualy, old rigs do not support C_RD_TRXID cmd!
-		 * 		Try to be smart, and deduce model depending 
-		 * 		on freq range, return address, and 
+		 * 		Try to be smart, and deduce model depending
+		 * 		on freq range, return address, and
 		 * 		available commands.
 		 */
 		for (civ_addr=0x01; civ_addr<=0x7f; civ_addr++) {

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.15 2004-08-21 23:53:39 fillods Exp $
+ *		$Id: icom_defs.h,v 1.16 2004-08-27 01:49:38 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -313,6 +313,7 @@
  * C_CTL_MODE	Misc CI-V Mode settings
  */
 #define S_PRM_BEEP		0x02
+#define S_PRM_CWPITCH	0x10
 #define S_PRM_LANG		0x15
 #define S_PRM_BACKLT	0x21
 #define S_PRM_SLEEP		0x32

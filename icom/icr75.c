@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R75
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.3 2004-08-21 23:53:39 fillods Exp $
+ *	$Id: icr75.c,v 1.4 2004-08-27 01:49:38 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -130,9 +130,10 @@ const struct rig_caps icr75_caps = {
 .has_set_parm =  RIG_PARM_SET(ICR75_PARM_ALL),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
-	[LVL_PBT_IN] = { .min = { .f = -1280 }, .max = { .f = +1280 } },
-	[LVL_PBT_OUT] = { .min = { .f = -1280 }, .max = { .f = +1280 } },
-	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 } },
+	[LVL_PBT_IN] = { .min = { .f = -1280 }, .max = { .f = +1280 }, .step = { .f = 15 } },
+	[LVL_PBT_OUT] = { .min = { .f = -1280 }, .max = { .f = +1280 }, .step = { .f = 15 } },
+	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 900 }, .step = { .i = 10 } },
+	[LVL_NR] = { .min = { .f = 0.0 }, .max = { .f = 1.0 }, .step = { .f = 0.066666667 } },
 },
 .parm_gran =  {
 	[PARM_APO] = { .min = { .i = 1 }, .max = { .i = 1439} },
