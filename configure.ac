@@ -154,7 +154,7 @@ fi
 AC_SUBST(NET)
 
 
-BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc easycomm"
 
 case "$host_os" in
  linux-gnu*)
@@ -165,7 +165,7 @@ case "$host_os" in
 esac
 
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
- BACKEND_LIST="$BACKEND_LIST rpcrig"
+ BACKEND_LIST="$BACKEND_LIST rpcrig rpcrot"
 fi
 
 # dlopen force or preopen self for static version ?
@@ -198,7 +198,9 @@ uniden/Makefile
 tentec/Makefile
 kachina/Makefile
 jrc/Makefile
+easycomm/Makefile
 rpcrig/Makefile
+rpcrot/Makefile
 src/Makefile
 c++/Makefile
 tcl/Makefile
