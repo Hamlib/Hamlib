@@ -21,6 +21,7 @@
 ## the same distribution terms that you use for the rest of that program.
 
 # serial 6 AC_LIB_LTDL
+# Debian $Rev: 42 $
 
 # AC_WITH_LTDL
 # ------------
@@ -142,6 +143,9 @@ AC_CACHE_CHECK([whether deplibs are loaded by dlopen],
     # If you are looking for one http://www.opendarwin.org/projects/dlcompat
     libltdl_cv_sys_dlopen_deplibs=yes
     ;;   
+  kfreebsd*-gnu)
+    libltdl_cv_sys_dlopen_deplibs=yes
+    ;;
   gnu*)
     libltdl_cv_sys_dlopen_deplibs=yes
     ;;

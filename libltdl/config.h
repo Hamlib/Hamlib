@@ -2,22 +2,22 @@
 /* config-h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the `argz_append' function. */
-#define HAVE_ARGZ_APPEND 1
+/* #undef HAVE_ARGZ_APPEND */
 
 /* Define to 1 if you have the `argz_create_sep' function. */
-#define HAVE_ARGZ_CREATE_SEP 1
+/* #undef HAVE_ARGZ_CREATE_SEP */
 
 /* Define to 1 if you have the <argz.h> header file. */
-#define HAVE_ARGZ_H 1
+/* #undef HAVE_ARGZ_H */
 
 /* Define to 1 if you have the `argz_insert' function. */
-#define HAVE_ARGZ_INSERT 1
+/* #undef HAVE_ARGZ_INSERT */
 
 /* Define to 1 if you have the `argz_next' function. */
-#define HAVE_ARGZ_NEXT 1
+/* #undef HAVE_ARGZ_NEXT */
 
 /* Define to 1 if you have the `argz_stringify' function. */
-#define HAVE_ARGZ_STRINGIFY 1
+/* #undef HAVE_ARGZ_STRINGIFY */
 
 /* Define to 1 if you have the <assert.h> header file. */
 #define HAVE_ASSERT_H 1
@@ -42,10 +42,10 @@
 /* #undef HAVE_DLD_H */
 
 /* Define to 1 if you have the `dlerror' function. */
-#define HAVE_DLERROR 1
+/* #undef HAVE_DLERROR */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-#define HAVE_DLFCN_H 1
+/* #undef HAVE_DLFCN_H */
 
 /* Define to 1 if you have the <dl.h> header file. */
 /* #undef HAVE_DL_H */
@@ -57,7 +57,7 @@
 #define HAVE_ERRNO_H 1
 
 /* Define to 1 if the system has the type `error_t'. */
-#define HAVE_ERROR_T 1
+/* #undef HAVE_ERROR_T */
 
 /* Define to 1 if you have the `index' function. */
 /* #undef HAVE_INDEX */
@@ -66,7 +66,7 @@
 #define HAVE_INTTYPES_H 1
 
 /* Define if you have the libdl library or equivalent. */
-#define HAVE_LIBDL 1
+/* #undef HAVE_LIBDL */
 
 /* Define to 1 if you have the <mach-o/dyld.h> header file. */
 /* #undef HAVE_MACH_O_DYLD_H */
@@ -146,7 +146,7 @@
 #define HAVE_UNISTD_H 1
 
 /* Define if the OS needs help to load dependent libraries for dlopen(). */
-/* #undef LTDL_DLOPEN_DEPLIBS */
+#define LTDL_DLOPEN_DEPLIBS 1
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
@@ -154,10 +154,10 @@
 
 /* Define to the name of the environment variable that determines the dynamic
    library search path. */
-#define LTDL_SHLIBPATH_VAR "LD_LIBRARY_PATH"
+#define LTDL_SHLIBPATH_VAR "PATH"
 
 /* Define to the extension used for shared libraries, say, ".so". */
-#define LTDL_SHLIB_EXT ".so"
+#define LTDL_SHLIB_EXT ".dll"
 
 /* Define to the system default library search path. */
 #define LTDL_SYSSEARCHPATH "/lib:/usr/lib"
@@ -187,7 +187,7 @@
 /* #undef const */
 
 /* Define to a type to use for `error_t' if it is not otherwise available. */
-/* #undef error_t */
+#define error_t int
 
 /* Define as `__inline' if that's what the C compiler calls it, or to nothing
    if it is not supported. */
