@@ -9,7 +9,7 @@ hamlib_gnuradio_la_LDFLAGS = -no-undefined -module -avoid-version
 # requires libgnuradio, libfftw and c++
 hamlib_gnuradio_la_LIBADD = $(top_builddir)/src/libhamlib.la @GNURADIO_LIBS@ -lstdc++ -lpthread
 
-noinst_HEADERS = gnuradio.h gr_priv.h demod.h nfm.h am.h
+noinst_HEADERS = gnuradio.h gr_priv.h demod.h nfm.h am.h ssb.h wfm.h
 
 
 check_PROGRAMS = testgr
