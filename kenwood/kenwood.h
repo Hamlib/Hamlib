@@ -1,12 +1,12 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * kenwood.h - Copyright (C) 2000 Stephane Fillod
+ * kenwood.h - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to a Kenwood radio.
  *
  *
- *    $Id: kenwood.h,v 1.2 2001-03-04 13:08:33 f4cfe Exp $  
+ *    $Id: kenwood.h,v 1.3 2001-05-15 22:05:26 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,11 +28,21 @@
 #ifndef _KENWOOD_H
 #define _KENWOOD_H 1
 
+extern const int kenwood38_ctcss_list[];
 
+int kenwood_set_vfo(RIG *rig, vfo_t vfo);
+int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int kenwood_set_ctcss(RIG *rig, vfo_t vfo, unsigned int tone);
+int kenwood_get_ctcss(RIG *rig, vfo_t vfo, unsigned int *tone);
+int kenwood_set_powerstat(RIG *rig, powerstat_t status);
+int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
+int kenwood_reset(RIG *rig, reset_t reset);
+int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 
 int kenwood_set_trn(RIG *rig, vfo_t vfo, int trn);
 int kenwood_get_trn(RIG *rig, vfo_t vfo, int *trn);

@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.12 2001-05-04 22:37:35 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.13 2001-05-15 22:05:26 f4cfe Exp $  
  *
  *
  *
@@ -47,7 +47,7 @@
 
 #define TS870S_FUNC_ALL (RIG_FUNC_TSQL)
 
-#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -68,7 +68,7 @@ copyright: "GPL",
 status: RIG_STATUS_UNTESTED,
 rig_type: RIG_TYPE_RECEIVER,
 ptt_type: RIG_PTT_RIG,
-dcd_type: RIG_DCD_NONE,
+dcd_type: RIG_DCD_RIG,
 port_type: RIG_PORT_SERIAL,
 serial_rate_min: 1200,
 serial_rate_max: 57600,
@@ -81,7 +81,7 @@ post_write_delay: 0,
 timeout: 200,
 retry: 3,
 
-has_get_func: RIG_FUNC_NONE,
+has_get_func: TS870S_FUNC_ALL,
 has_set_func: TS870S_FUNC_ALL,
 has_get_level: TS870S_LEVEL_ALL,
 has_set_level: RIG_LEVEL_SET(TS870S_LEVEL_ALL),
@@ -89,10 +89,10 @@ has_get_parm: RIG_PARM_NONE,
 has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
 level_gran: {},                 /* FIXME: granularity */
 parm_gran: {},
-ctcss_list: NULL,   /* FIXME: CTCSS/DCS list */
+ctcss_list: kenwood38_ctcss_list,
 dcs_list: NULL,
-preamp:  { RIG_DBLST_END, },
-attenuator:  { RIG_DBLST_END, },
+preamp:  { RIG_DBLST_END, },	/* FIXME: preamp list */
+attenuator:  { 6, 12, 18, RIG_DBLST_END, },
 max_rit: Hz(9999),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
@@ -161,11 +161,19 @@ set_freq: kenwood_set_freq,
 get_freq: kenwood_get_freq,
 set_mode: kenwood_set_mode,
 get_mode: kenwood_get_mode,
+set_vfo: kenwood_set_vfo,
+get_vfo: kenwood_get_vfo,
+set_ctcss: kenwood_set_ctcss,
+get_ctcss: kenwood_get_ctcss,
+get_level: kenwood_get_level,
+set_powerstat: kenwood_set_powerstat,
+get_powerstat: kenwood_get_powerstat,
+reset: kenwood_reset,
+send_morse: kenwood_send_morse,
 
 };
 
 /*
  * Function definitions below
  */
-
 
