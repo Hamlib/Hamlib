@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.15 2003-04-02 07:24:28 fillods Exp $
+ *	$Id: event.c,v 1.16 2003-04-16 22:33:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,7 +31,9 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>

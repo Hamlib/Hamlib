@@ -3,13 +3,13 @@
  * \ingroup rig
  * \brief CTCSS and DCS interface and tables
  * \author Stephane Fillod
- * \date 2000-2002
+ * \date 2000-2003
  */
 /*
  *  Hamlib Interface - CTCSS and DCS interface and tables
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: tones.c,v 1.3 2002-11-04 22:21:42 fillods Exp $
+ *	$Id: tones.c,v 1.4 2003-04-16 22:33:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,19 +31,15 @@
 #include "config.h"
 #endif
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
+#include "tones.h"
+
+#if !defined(_WIN32) && !defined(__CYGWIN__)
 
 /**
  * 52 CTCSS sub-audible tones
  */
-const tone_t full_ctcss_list[] = {
-	 600,  670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
-	 948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1200, 1230, 1273,
-	1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
-	1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
-	2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
-	0,
-};
+const tone_t full_ctcss_list[] = { FULL_CTCSS_LIST };
 
 /**
  * 50 CTCSS sub-audible tones, from 67.0Hz to 254.1Hz
@@ -52,30 +48,14 @@ const tone_t full_ctcss_list[] = {
  * backends depend on it. If you need to, create a copy for your 
  * own caps. --SF
  */
-const tone_t common_ctcss_list[] = {
-	 670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
-	 948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,
-	1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
-	1713, 1738, 1773, 1799, 1835, 1862, 1899, 1928, 1966, 1995,
-	2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418, 2503, 2541,
-	0,
-};
+const tone_t common_ctcss_list[] = { COMMON_CTCSS_LIST };
 
 /**
  * 106 DCS codes
  */
-const tone_t full_dcs_list[] = {
-	 17,  23,  25,  26,  31,  32,  36,  43,  47,  50,  51,  53, 
-	 54,  65,  71,  72,  73,  74, 114, 115, 116, 122, 125, 131, 
-	132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174, 205, 
-	212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255, 261, 
-	263, 265, 266, 271, 274, 306, 311, 315, 325, 331, 332, 343, 
-	346, 351, 356, 364, 365, 371, 411, 412, 413, 423, 431, 432, 
-	445, 446, 452, 454, 455, 462, 464, 465, 466, 503, 506, 516, 
-	523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654, 
-	662, 664, 703, 712, 723, 731, 732, 734, 743, 754, 
-	0,
-};
+const tone_t full_dcs_list[] = { FULL_DCS_LIST };
+
+#endif
 
 
 #ifndef DOC_HIDDEN

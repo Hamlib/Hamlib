@@ -1,4 +1,4 @@
-/* $Id: rig_dll.h,v 1.6 2002-11-14 19:27:34 fillods Exp $ */
+/* $Id: rig_dll.h,v 1.7 2003-04-16 22:33:18 fillods Exp $ */
 
 
 /*
@@ -44,18 +44,25 @@
 
 
 #if defined(__CYGWIN__)
-#  undef BACKEND_EXPORT_VAR
+#  undef HAMLIB_IMPEXP
+#  undef BACKEND_IMPEXP
+#  undef HAMLIB_API
+#  undef HAMLIB_EXPORT
 #  undef HAMLIB_EXPORT_VAR
+#  undef BACKEND_EXPORT
+#  undef BACKEND_EXPORT_VAR
 #  ifdef DLL_EXPORT
+#    define HAMLIB_API __cdecl
 #    ifdef IN_HAMLIB
-#      define BACKEND_EXPORT_VAR(type) __declspec(dllexport) type
-#      define HAMLIB_EXPORT_VAR(type) __declspec(dllexport) type
+#      define BACKEND_IMPEXP __declspec(dllexport)
+#      define HAMLIB_IMPEXP __declspec(dllexport)
 #    else
-#      define BACKEND_EXPORT_VAR(type) __declspec(dllimport) type
-		/* FIXME: HAMLIB_EXPORT_VAR import */
+#      define BACKEND_IMPEXP __declspec(dllexport)
+#      define HAMLIB_IMPEXP __declspec(dllimport)
 #    endif
 #  else
-	 /* must be static build, no directive */
+#      define HAMLIB_IMPEXP __declspec(dllimport)
+	 /* must be static build, no directive? */
 #  endif
 #endif
 
@@ -82,3 +89,14 @@
 #if !defined(BACKEND_EXPORT_VAR)
 #  define BACKEND_EXPORT_VAR(type) BACKEND_IMPEXP type
 #endif
+
+#ifdef DECLARE_RIG_BACKEND
+#undef DECLARE_RIG_BACKEND
+#define DECLARE_RIG_BACKEND(backend) extern BACKEND_EXPORT(int) initrigs##API_VER##_##backend(void *be_handle)
+#endif
+
+#ifdef DECLARE_PROBERIG_BACKEND
+#undef DECLARE_PROBERIG_BACKEND
+#define DECLARE_PROBERIG_BACKEND(backend) extern BACKEND_EXPORT(rig_model_t) probeallrigs##API_VER##_##backend(port_t *p, rig_probe_func_t cfunc, rig_ptr_t data)
+#endif
+

@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.78 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: rig.h,v 1.79 2003-04-16 22:33:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,10 +26,11 @@
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
 #include <stdio.h>		/* required for FILE definition */
 #include <sys/time.h>		/* required for struct timeval */
-#include <sys/socket.h>		/* required for struct sockaddr */
 
 #if defined(__CYGWIN__) || defined(_WIN32)
 #include <windows.h>		/* HANDLE definition */
+#else
+#include <sys/socket.h>		/* required for struct sockaddr */
 #endif
 
 /*! \file rig.h
@@ -58,7 +59,7 @@
  * that don't understand ANSI C prototypes still work, and ANSI C
  * compilers can issue warnings about type mismatches. */
 #undef HAMLIB_PARAMS
-#if defined (__STDC__) || defined (_AIX) || (defined (__mips) && defined (_SYSTYPE_SVR4)) || defined(__CYGWIN__) || defined(__cplusplus)
+#if defined (__STDC__) || defined (_AIX) || (defined (__mips) && defined (_SYSTYPE_SVR4)) || defined(__CYGWIN__) || defined(_WIN32) || defined(__cplusplus)
 # define HAMLIB_PARAMS(protos) protos
 # define rig_ptr_t     void*
 #else
@@ -1179,7 +1180,10 @@ typedef struct {
 		int pin;	/*!< Parrallel port pin number */
 	} parallel;		/*!< parallel attributes */
 	struct {
+#if defined(__CYGWIN__) || defined(_WIN32)
+#else
 		struct sockaddr saddr;	/*!< Dest socket address */
+#endif
 	} network;		/*!< Network attributes */
   } parm;			/*!< Port parameter union */
 } port_t;
