@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - SDR-1000
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.3 2003-10-07 22:21:57 fillods Exp $
+ *	$Id: sdr1k.c,v 1.4 2003-11-16 17:22:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,6 +45,7 @@ static int sdr1k_open(RIG *rig);
 static int sdr1k_close(RIG *rig);
 static int sdr1k_cleanup(RIG *rig);
 static int sdr1k_set_ptt (RIG *rig, vfo_t vfo, ptt_t ptt);
+static int sdr1k_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val);
 
 typedef enum { L_EXT = 0, L_BAND = 1, L_DDS0 = 2, L_DDS1 = 3 } latch_t;
 
@@ -98,10 +99,7 @@ struct sdr1k_priv_data {
  * SDR-1000 rig capabilities.
  *
  *
- * TODO: set_gain?  RIG_FUNC_MUTE, set_external_pin?
- *
- *    def set_gain (self, high):
- *      self.set_bit(0, 7, high)
+ * TODO: RIG_FUNC_MUTE, set_external_pin?
  *
  *    def set_mute (self, mute = 1):
  *      self.set_bit(1, 7, mute)
@@ -180,7 +178,7 @@ const struct rig_caps sdr1k_rig_caps = {
   .get_freq =     sdr1k_get_freq,
   .set_ptt  =     sdr1k_set_ptt,
   .reset    =     sdr1k_reset,
-//  .set_level=     sdr1k_set_level,
+  .set_level=     sdr1k_set_level,
 //  .set_func =     sdr1k_set_func,
 
 };
@@ -394,6 +392,20 @@ int sdr1k_reset (RIG *rig, reset_t reset)
 int sdr1k_set_ptt (RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 	return set_bit(rig, L_BAND, 6, ptt == RIG_PTT_ON);
+}
+  
+
+int sdr1k_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	rig_debug(RIG_DEBUG_TRACE,"%s: %s %d\n", __FUNCTION__, strlevel(level), val.i);
+
+	switch (level) {
+	case RIG_LEVEL_PREAMP:
+ 		return set_bit(rig, L_EXT, 7, !(val.i == rig->caps->preamp[0]));
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
 }
   
 
