@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.9 2002-11-28 22:33:48 fillods Exp $
+ *	$Id: rotator.c,v 1.10 2003-01-29 23:00:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -262,8 +262,6 @@ int rot_open(ROT *rot)
 		const struct rot_caps *caps;
 		struct rot_state *rs;
 		int status;
-		azimuth_t az;
-		elevation_t el;
 
 		rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_open called \n");
 
@@ -321,15 +319,9 @@ int rot_open(ROT *rot)
 		if (caps->rot_open != NULL) {
 				status = caps->rot_open(rot);	
 				if (status != RIG_OK) {
-						rot_close(rot);
 						return status;
 				}
 		}
-
-		/*
-		 * trigger state->current_az/current_el first retrieval
-		 */
-		rot_get_position(rot, &az, &el);
 
 		return RIG_OK;
 }
