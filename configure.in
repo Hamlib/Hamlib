@@ -161,6 +161,23 @@ AC_SUBST(WINRADIODEPS)
 AC_SUBST(LIBWINRADIO)
 AC_SUBST(LTLIBWINRADIO)
 
+dnl Check if tcl includes are there, so we can enable HamlibTCL
+
+AC_CHECK_HEADERS(tcl8.2/tcl.h)
+if test "${ac_cv_header_tcl8_2_tcl_h}" = "no" ; then
+  echo "disabling HamlibTCL support"
+  LIBHAMLIBTCL=
+  LTHAMLIBTCL=
+else
+  echo "enabling HamlibTCL support"
+  LIBHAMLIBTCL=libhamlibtcl.a
+  LTHAMLIBTCL=libhamlibtcl.la
+fi
+AM_CONDITIONAL(HAMLIBTCL, test x$LTHAMLIBTCL != x)
+AC_SUBST(LIBHAMLIBTCL)
+AC_SUBST(LTHAMLIBTCL)
+
+
 
 AC_SUBST(INCLUDES)
 
@@ -201,6 +218,7 @@ pcr/Makefile
 alinco/Makefile
 src/Makefile
 c++/Makefile
+tcl/Makefile
 tests/Makefile
 doc/Makefile])
 

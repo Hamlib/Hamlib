@@ -86,6 +86,9 @@
 /* Define if you have the <sys/time.h> header file.  */
 #undef HAVE_SYS_TIME_H
 
+/* Define if you have the <tcl8.2/tcl.h> header file.  */
+#undef HAVE_TCL8_2_TCL_H
+
 /* Define if you have the <term.h> header file.  */
 #undef HAVE_TERM_H
 
