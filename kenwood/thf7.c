@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH-F7 description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.10 2004-03-21 18:25:54 f4dwv Exp $
+ *	$Id: thf7.c,v 1.11 2004-06-13 12:35:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -137,10 +137,6 @@ const struct rig_caps thf7e_caps = {
 		RIG_FLT_END,
 	},
 .priv =  (void *)&thf7_priv_caps,
-.rig_init =  kenwood_init,
-.rig_cleanup =  kenwood_cleanup,
-.rig_open =  NULL,
-.rig_close =  NULL,
 
 .set_freq =  th_set_freq,
 .get_freq =  th_get_freq,
