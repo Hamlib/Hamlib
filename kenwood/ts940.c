@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS940 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts940.c,v 1.2 2004-05-02 17:17:31 fillods Exp $
+ *	$Id: ts940.c,v 1.3 2004-05-17 21:01:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,7 @@
 
 #define TS940_LEVEL_ALL RIG_LEVEL_NONE
 
-#define TS940_VFO (RIG_VFO_A|RIG_VFO_B)
+#define TS940_VFO (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 #define TS940_ANTS (0)
 
 #define TS940_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
@@ -74,8 +74,8 @@ const struct rig_caps ts940_caps = {
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  0,
-.post_write_delay =  0,
+.write_delay =  100,
+.post_write_delay =  150,
 .timeout =  200,
 .retry =  3,
 
@@ -128,21 +128,14 @@ const struct rig_caps ts940_caps = {
   }, /* tx range */
 
 .tuning_steps =  {		/* FIXME: TBC */
-	 {TS940_ALL_MODES,50},
-	 {TS940_ALL_MODES,100},
-	 {TS940_ALL_MODES,kHz(1)},
-	 {TS940_ALL_MODES,kHz(5)},
-	 {TS940_ALL_MODES,kHz(9)},
-	 {TS940_ALL_MODES,kHz(10)},
-	 {TS940_ALL_MODES,12500},
-	 {TS940_ALL_MODES,kHz(20)},
-	 {TS940_ALL_MODES,kHz(25)},
+	 {TS940_ALL_MODES,10},
 	 {TS940_ALL_MODES,kHz(100)},
 	 {TS940_ALL_MODES,MHz(1)},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
+		{RIG_MODE_CW, Hz(500)},
 		{RIG_MODE_AM, kHz(6)},
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.4)},
 		{RIG_MODE_FM, kHz(12)},
