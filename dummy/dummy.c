@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: dummy.c,v 1.15 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: dummy.c,v 1.16 2001-08-08 06:04:48 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -534,21 +534,12 @@ static int dummy_get_mem(RIG *rig, vfo_t vfo, int *ch)
 }
 
 
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-static int dummy_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
-
-  return RIG_OK;
-}
-#else
 static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
   return RIG_OK;
 }
-#endif
 
 static int dummy_set_channel(RIG *rig, const channel_t *chan)
 {
@@ -711,11 +702,7 @@ const struct rig_caps dummy_caps = {
   set_bank:	dummy_set_bank,
   set_mem:	dummy_set_mem,
   get_mem:	dummy_get_mem,
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-  mv_ctl:	dummy_mv_ctl,
-#else
   vfo_op:	dummy_vfo_op,
-#endif
   send_dtmf: dummy_send_dtmf,
   recv_dtmf: dummy_recv_dtmf,
   send_morse: dummy_send_morse,

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-706 and variations
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: ic706.c,v 1.25 2001-07-21 13:00:03 f4cfe Exp $
+ *		$Id: ic706.c,v 1.26 2001-08-08 06:04:48 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -459,11 +459,7 @@ get_level: icom_get_level,
 set_func: icom_set_func,
 get_func: icom_get_func,
 set_mem: icom_set_mem,
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-mv_ctl: icom_mv_ctl,
-#else
 vfo_op: icom_vfo_op,
-#endif
 scan: icom_scan,
 set_ptt: icom_set_ptt,
 get_ptt: icom_get_ptt,

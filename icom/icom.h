@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.h,v 1.26 2001-07-21 13:00:03 f4cfe Exp $
+ *		$Id: icom.h,v 1.27 2001-08-08 06:04:48 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,11 +89,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank);
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch);
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op);
-#else
 int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
-#endif
 int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);

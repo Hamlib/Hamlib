@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.43 2001-07-25 21:59:55 f4cfe Exp $
+ *		$Id: rig.c,v 1.44 2001-08-08 06:04:49 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -3133,53 +3133,6 @@ int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 		return retcode;
 }
 
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-/**
- *      rig_mv_ctl - perform Memory/VFO operations
- * \param rig	The rig handle
- * \param vfo	The target VFO
- * \param op	The Memory/VFO operation to perform
- *
- *  Performs Memory/VFO operation.
- *  See #mv_op_t for more information.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- */
-
-int rig_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
-{
-		const struct rig_caps *caps;
-		int retcode;
-		vfo_t curr_vfo;
-
-		if (!rig || !rig->caps)
-			return -RIG_EINVAL;
-
-		caps = rig->caps;
-
-		if (caps->mv_ctl == NULL)
-			return -RIG_ENAVAIL;
-
-		if (caps->targetable_vfo || vfo == RIG_VFO_CURR ||
-										vfo == rig->state.current_vfo)
-			return caps->mv_ctl(rig, vfo, op);
-
-		if (!caps->set_vfo)
-			return -RIG_ENTARGET;
-		curr_vfo = rig->state.current_vfo;
-		retcode = caps->set_vfo(rig, vfo);
-		if (retcode != RIG_OK)
-				return retcode;
-
-		retcode = caps->mv_ctl(rig, vfo, op);
-		caps->set_vfo(rig, curr_vfo);
-		return retcode;
-}
-#else
-
 /**
  * \brief check retrieval ability of VFO operations
  * \param rig	The rig handle
@@ -3249,7 +3202,6 @@ int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
-#endif	/* WANT_OLD_VFO_TO_BE_REMOVED */
 
 /**
  * \brief check availability of scaning functions
@@ -3654,21 +3606,13 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 		 */
 		if (rig->caps->set_channel == NULL) {
  			rig_save_channel(rig, &curr_chan);
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
-#else
 			curr_vfo = rig->state.current_vfo;
 			rig_set_vfo(rig, RIG_VFO_MEM);
-#endif
 			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 			rig_set_mem(rig, RIG_VFO_CURR, chan->channel_num);
 			rig_set_mem(rig, RIG_VFO_CURR, curr_chan_num);
 			rig_restore_channel(rig, chan);
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_VFO_MODE);
-#else
 			rig_set_vfo(rig, curr_vfo);
-#endif
 			rig_restore_channel(rig, &curr_chan);
  			return RIG_OK;
 		}
@@ -3708,11 +3652,7 @@ int rig_get_channel(RIG *rig, channel_t *chan)
 			rig_save_channel(rig, &curr_chan);
 #endif
 
-#ifdef WANT_OLD_VFO_TO_BE_REMOVED
-			rig_mv_ctl(rig, RIG_VFO_CURR, RIG_MVOP_MEM_MODE);
-#else
 			rig_set_vfo(rig, RIG_VFO_MEM);
-#endif
 
 #if 0
 			rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
