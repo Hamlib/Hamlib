@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.33 2004-08-08 19:42:58 fillods Exp $
+ *	$Id: misc.c,v 1.34 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -97,7 +97,7 @@ void dump_hex(const unsigned char ptr[], size_t size)
  * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
  */
 unsigned char *
-to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
+HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
 {
 	int i;
 	unsigned char a;
@@ -126,7 +126,7 @@ to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
  *
  * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
  */
-unsigned long long from_bcd(const unsigned char bcd_data[], unsigned bcd_len)
+unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned bcd_len)
 {
 	int i;
 	freq_t f = 0;
@@ -148,7 +148,7 @@ unsigned long long from_bcd(const unsigned char bcd_data[], unsigned bcd_len)
  * Same as to_bcd, but in Big Endian mode
  */
 unsigned char *
-to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
+HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
 {
 	int i;
 	unsigned char a;
@@ -175,7 +175,7 @@ to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
 /*
  * Same as from_bcd, but in Big Endian mode
  */
-unsigned long long from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len)
+unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len)
 {
 	int i;
 	freq_t f = 0;
@@ -198,7 +198,7 @@ unsigned long long from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len)
  * rig_set_debug
  * Change the current debug level
  */
-void rig_set_debug(enum rig_debug_level_e debug_level)
+void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
 {
 		rig_debug_level = debug_level;
 }
@@ -207,7 +207,7 @@ void rig_set_debug(enum rig_debug_level_e debug_level)
  * rig_need_debug
  * Usefull for dump_hex, etc.
  */
-int rig_need_debug(enum rig_debug_level_e debug_level)
+int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 {
 		return (debug_level <= rig_debug_level);
 }
@@ -217,7 +217,7 @@ int rig_need_debug(enum rig_debug_level_e debug_level)
  * Debugging messages are done through stderr
  * TODO: add syslog support if needed
  */
-void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
+void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 {
 		va_list ap;
 
@@ -240,7 +240,7 @@ void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
  * pretty print frequencies
  * str must be long enough. max can be as long as 17 chars
  */
-int sprintf_freq(char *str, freq_t freq)
+int HAMLIB_API sprintf_freq(char *str, freq_t freq)
 {
 		double f;
 		char *hz;
@@ -262,7 +262,7 @@ int sprintf_freq(char *str, freq_t freq)
 		return sprintf (str, "%g %s", f, hz);
 }
 
-const char *rig_strptrshift(rptr_shift_t shift)
+const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
 {
 	switch (shift) {
 	case RIG_RPT_SHIFT_MINUS: return "+";
@@ -273,7 +273,7 @@ const char *rig_strptrshift(rptr_shift_t shift)
 	return NULL;
 }
 
-const char *rig_strstatus(enum rig_status_e status)
+const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 {
 	switch (status) {
 	case RIG_STATUS_ALPHA:
@@ -317,7 +317,7 @@ static struct {
 };
 
 
-rmode_t rig_parse_mode(const char *s)
+rmode_t HAMLIB_API rig_parse_mode(const char *s)
 {
 	int i;
 
@@ -327,7 +327,7 @@ rmode_t rig_parse_mode(const char *s)
 	return RIG_MODE_NONE;
 }
 
-const char * rig_strrmode(rmode_t mode)
+const char * HAMLIB_API rig_strrmode(rmode_t mode)
 {
 	int i;
 
@@ -357,7 +357,7 @@ static struct {
 		{ RIG_VFO_NONE, "" },
 };
 
-vfo_t rig_parse_vfo(const char *s)
+vfo_t HAMLIB_API rig_parse_vfo(const char *s)
 {
 	int i;
 
@@ -367,7 +367,7 @@ vfo_t rig_parse_vfo(const char *s)
 	return RIG_VFO_NONE;
 }
 
-const char *rig_strvfo(vfo_t vfo)
+const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 {
 	int i;
 
@@ -417,7 +417,7 @@ static struct {
 	{ RIG_FUNC_NONE, "" },
 };
 
-setting_t rig_parse_func(const char *s)
+setting_t HAMLIB_API rig_parse_func(const char *s)
 {
 	int i;
 
@@ -427,7 +427,7 @@ setting_t rig_parse_func(const char *s)
 	return RIG_FUNC_NONE;
 }
 
-const char *rig_strfunc(setting_t func)
+const char * HAMLIB_API rig_strfunc(setting_t func)
 {
 	int i;
 
@@ -477,7 +477,7 @@ static struct {
 	{ RIG_LEVEL_NONE, "" },
 };
 
-setting_t rig_parse_level(const char *s)
+setting_t HAMLIB_API rig_parse_level(const char *s)
 {
 	int i;
 
@@ -487,7 +487,7 @@ setting_t rig_parse_level(const char *s)
 	return RIG_LEVEL_NONE;
 }
 
-const char *rig_strlevel(setting_t level)
+const char * HAMLIB_API rig_strlevel(setting_t level)
 {
 	int i;
 
@@ -515,7 +515,7 @@ static struct {
 	{ RIG_PARM_NONE, "" },
 };
 
-setting_t rig_parse_parm(const char *s)
+setting_t HAMLIB_API rig_parse_parm(const char *s)
 {
 	int i;
 
@@ -525,7 +525,7 @@ setting_t rig_parse_parm(const char *s)
 	return RIG_PARM_NONE;
 }
 
-const char *rig_strparm(setting_t parm)
+const char * HAMLIB_API rig_strparm(setting_t parm)
 {
 	int i;
 
@@ -560,7 +560,7 @@ static struct {
 	{ RIG_OP_NONE, "" },
 };
 
-vfo_op_t rig_parse_vfo_op(const char *s)
+vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 {
 	int i;
 
@@ -570,7 +570,7 @@ vfo_op_t rig_parse_vfo_op(const char *s)
 	return RIG_OP_NONE;
 }
 
-const char *rig_strvfop(vfo_op_t op)
+const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 {
 	int i;
 
@@ -600,7 +600,7 @@ static struct {
 	{ RIG_SCAN_NONE, "" },
 };
 
-scan_t rig_parse_scan(const char *s)
+scan_t HAMLIB_API rig_parse_scan(const char *s)
 {
 	int i;
 
@@ -613,7 +613,7 @@ scan_t rig_parse_scan(const char *s)
 	return RIG_SCAN_NONE;
 }
 
-const char *rig_strscan(scan_t rscan)
+const char * HAMLIB_API rig_strscan(scan_t rscan)
 {
 	int i;
 
@@ -628,7 +628,7 @@ const char *rig_strscan(scan_t rscan)
 }
 
 
-rptr_shift_t rig_parse_rptr_shift(const char *s)
+rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 {
 	if (strcmp(s, "+") == 0)
 		return RIG_RPT_SHIFT_PLUS;

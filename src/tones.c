@@ -9,7 +9,7 @@
  *  Hamlib Interface - CTCSS and DCS interface and tables
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: tones.c,v 1.6 2004-08-16 22:34:25 fillods Exp $
+ *	$Id: tones.c,v 1.7 2004-10-02 10:32:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -87,7 +87,7 @@ const tone_t full_dcs_list[] = { FULL_DCS_LIST };
  * \sa rig_get_ctcss_tone(), rig_set_ctcss_sql()
  */
 
-int rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
+int HAMLIB_API rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -136,7 +136,7 @@ int rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
  *
  * \sa rig_set_ctcss_tone(), rig_get_ctcss_sql()
  */
-int rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
+int HAMLIB_API rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -181,7 +181,7 @@ int rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
  * \sa rig_get_dcs_code(), rig_set_dcs_sql()
  */
 
-int rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
+int HAMLIB_API rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -225,7 +225,7 @@ int rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
  *
  * \sa rig_set_dcs_code(), rig_get_dcs_sql()
  */
-int rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
+int HAMLIB_API rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -275,7 +275,7 @@ int rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
  * \sa rig_get_ctcss_sql(), rig_set_ctcss_tone()
  */
 
-int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
+int HAMLIB_API rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -324,7 +324,7 @@ int rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
  *
  * \sa rig_set_ctcss_sql(), rig_get_ctcss_tone()
  */
-int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
+int HAMLIB_API rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -369,7 +369,7 @@ int rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
  * \sa rig_get_dcs_sql(), rig_set_dcs_code()
  */
 
-int rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
+int HAMLIB_API rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -413,7 +413,7 @@ int rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
  *
  * \sa rig_set_dcs_sql(), rig_get_dcs_code()
  */
-int rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
+int HAMLIB_API rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 {
 	const struct rig_caps *caps;
 	int retcode;

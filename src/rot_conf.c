@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - rotator configuration interface
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_conf.c,v 1.3 2002-08-16 17:43:02 fillods Exp $
+ *	$Id: rot_conf.c,v 1.4 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -262,7 +262,7 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
  * executes cfunc on all the elements stored in the conf table
  * start first with backend conf table, then finish with frontend table
  */
-int rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
+int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
 	const struct confparams *cfp;
 
@@ -285,7 +285,7 @@ int rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_
  * lookup backend config table first, then fall back to frontend.
  * TODO: should use Lex to speed it up, strcmp hurts!
  */
-const struct confparams *rot_confparam_lookup(ROT *rot, const char *name)
+const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot, const char *name)
 {
 		const struct confparams *cfp;
 
@@ -303,7 +303,7 @@ const struct confparams *rot_confparam_lookup(ROT *rot, const char *name)
 /*
  * Simple lookup returning token id assicated with name
  */
-token_t rot_token_lookup(ROT *rot, const char *name)
+token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 {
 		const struct confparams *cfp;
 

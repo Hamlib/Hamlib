@@ -14,7 +14,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.15 2004-08-16 22:34:25 fillods Exp $
+ *	$Id: locator.c,v 1.16 2004-10-02 10:32:08 fillods Exp $
  *
  *  Code to determine bearing and range was taken from the Great Circle,
  *  by S. R. Sampson, N5OWK.
@@ -127,7 +127,7 @@ const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
  * \sa dec2dms()
  */
 
-double dms2dec(int degrees, int minutes, double seconds, int sw) {
+double HAMLIB_API dms2dec(int degrees, int minutes, double seconds, int sw) {
 	double st;
 
 	if (degrees < 0)
@@ -167,7 +167,7 @@ double dms2dec(int degrees, int minutes, double seconds, int sw) {
  * \sa dec2dmmm()
  */
 
-double dmmm2dec(int degrees, double minutes, int sw) {
+double HAMLIB_API dmmm2dec(int degrees, double minutes, int sw) {
 	double st;
 
 	if (degrees < 0)
@@ -211,7 +211,7 @@ double dmmm2dec(int degrees, double minutes, int sw) {
  * \sa dms2dec()
  */
 
-int dec2dms(double dec, int *degrees, int *minutes, double *seconds, int *sw) {
+int HAMLIB_API dec2dms(double dec, int *degrees, int *minutes, double *seconds, int *sw) {
 	int deg, min;
 	double st;
 
@@ -287,7 +287,7 @@ int dec2dms(double dec, int *degrees, int *minutes, double *seconds, int *sw) {
  * \sa dmmm2dec()
  */
 
-int dec2dmmm(double dec, int *degrees, double *minutes, int *sw) {
+int HAMLIB_API dec2dmmm(double dec, int *degrees, double *minutes, int *sw) {
 	int r, min;
 	double sec;
 
@@ -332,7 +332,7 @@ int dec2dmmm(double dec, int *degrees, double *minutes, int *sw) {
 
 /* begin dph */
 
-int locator2longlat(double *longitude, double *latitude, const char *locator) {
+int HAMLIB_API locator2longlat(double *longitude, double *latitude, const char *locator) {
 	int x_or_y, paircount;
 	int locvalue, pair;
 	double xy[2], minutes;
@@ -403,7 +403,7 @@ int locator2longlat(double *longitude, double *latitude, const char *locator) {
 
 /* begin dph */
 
-int longlat2locator(double longitude, double latitude, char *locator, int pair_count) {
+int HAMLIB_API longlat2locator(double longitude, double latitude, char *locator, int pair_count) {
 	int x_or_y, pair, locvalue;
 	double tmp;
 
@@ -460,7 +460,7 @@ int longlat2locator(double longitude, double latitude, char *locator, int pair_c
  * \sa distance_long_path(), azimuth_long_path()
  */
 
-int qrb(double lon1, double lat1, double lon2, double lat2, double *distance, double *azimuth) {
+int HAMLIB_API qrb(double lon1, double lat1, double lon2, double lat2, double *distance, double *azimuth) {
 	double delta_long, tmp, arc, az;
 
 	/* bail if NULL pointers passed */
@@ -559,7 +559,7 @@ int qrb(double lon1, double lat1, double lon2, double lat2, double *distance, do
  * \sa qrb()
  */
 
-double distance_long_path(double distance) {
+double HAMLIB_API distance_long_path(double distance) {
 	 return (ARC_IN_KM * 360.0) - distance;
 }
 
@@ -575,6 +575,6 @@ double distance_long_path(double distance) {
  * \sa qrb()
  */
 
-double azimuth_long_path(double azimuth) {
+double HAMLIB_API azimuth_long_path(double azimuth) {
 	return 360.0 - azimuth;
 }

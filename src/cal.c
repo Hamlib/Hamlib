@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - calibration routines
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *		$Id: cal.c,v 1.4 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: cal.c,v 1.5 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,7 +39,7 @@
  */
 
 
-float rig_raw2val(int rawval, const cal_table_t *cal)
+float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 {
 #ifdef WANT_CHEAP_WNO_FP
 	float interpolation;

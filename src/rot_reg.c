@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - provides registering for dynamically loadable backends.
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_reg.c,v 1.6 2003-04-16 22:30:38 fillods Exp $
+ *	$Id: rot_reg.c,v 1.7 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@ static int rot_lookup_backend(rot_model_t rot_model);
 /*
  * Basically, this is a hash insert function that doesn't check for dup!
  */
-int rot_register(const struct rot_caps *caps)
+int HAMLIB_API rot_register(const struct rot_caps *caps)
 {
 		int hval;
 		struct rot_list *p;
@@ -115,7 +115,7 @@ int rot_register(const struct rot_caps *caps)
  * ie. rot_hash_table lookup
  */
 
-const struct rot_caps *rot_get_caps(rot_model_t rot_model)
+const struct rot_caps * HAMLIB_API rot_get_caps(rot_model_t rot_model)
 {
 		struct rot_list *p;
 
@@ -149,7 +149,7 @@ static int rot_lookup_backend(rot_model_t rot_model)
  * and if not loaded already, load it!
  * This permits seamless operation in rot_init.
  */
-int rot_check_backend(rot_model_t rot_model)
+int HAMLIB_API rot_check_backend(rot_model_t rot_model)
 {
 		const struct rot_caps *caps;
 		int be_idx;
@@ -180,7 +180,7 @@ int rot_check_backend(rot_model_t rot_model)
 
 
 
-int rot_unregister(rot_model_t rot_model)
+int HAMLIB_API rot_unregister(rot_model_t rot_model)
 {
 		int hval;
 		struct rot_list *p,*q;
@@ -205,7 +205,7 @@ int rot_unregister(rot_model_t rot_model)
  * rot_list_foreach
  * executes cfunc on all the elements stored in the rot hash list
  */
-int rot_list_foreach(int (*cfunc)(const struct rot_caps*, rig_ptr_t),rig_ptr_t data)
+int HAMLIB_API rot_list_foreach(int (*cfunc)(const struct rot_caps*, rig_ptr_t),rig_ptr_t data)
 {
 	struct rot_list *p;
 	int i;
@@ -225,7 +225,7 @@ int rot_list_foreach(int (*cfunc)(const struct rot_caps*, rig_ptr_t),rig_ptr_t d
  * rot_probe_all
  * called straight by rot_probe
  */
-rot_model_t rot_probe_all(port_t *p)
+rot_model_t HAMLIB_API rot_probe_all(port_t *p)
 {
 	int i;
 	rot_model_t rot_model;
@@ -257,7 +257,7 @@ int rot_load_all_backends()
  * rot_load_backend
  * Dynamically load a rot backend through dlopen mechanism
  */
-int rot_load_backend(const char *be_name)
+int HAMLIB_API rot_load_backend(const char *be_name)
 {
 # define PREFIX "hamlib-"
 

@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.80 2004-08-01 23:12:58 fillods Exp $
+ *	$Id: rig.c,v 1.81 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -206,7 +206,7 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t), rig_ptr_t data)
  *
  * \todo support gettext/localization
  */
-const char *rigerror(int errnum)
+const char * HAMLIB_API rigerror(int errnum)
 {
 		errnum = abs(errnum);
 		if (errnum > ERROR_TBL_SZ)
@@ -227,7 +227,7 @@ const char *rigerror(int errnum)
  * \sa rig_cleanup(), rig_open()
  */
 
-RIG *rig_init(rig_model_t rig_model)
+RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 {
 		RIG *rig;
 		const struct rig_caps *caps;
@@ -392,7 +392,7 @@ RIG *rig_init(rig_model_t rig_model)
  * \sa rig_init(), rig_close()
  */
 
-int rig_open(RIG *rig)
+int HAMLIB_API rig_open(RIG *rig)
 {
 		const struct rig_caps *caps;
 		struct rig_state *rs;
@@ -553,7 +553,7 @@ int rig_open(RIG *rig)
  * \sa rig_cleanup(), rig_open()
  */
 
-int rig_close(RIG *rig)
+int HAMLIB_API rig_close(RIG *rig)
 {
 	const struct rig_caps *caps;
 	struct rig_state *rs;
@@ -654,7 +654,7 @@ int rig_close(RIG *rig)
  * \sa rig_init(), rig_close()
  */
 
-int rig_cleanup(RIG *rig)
+int HAMLIB_API rig_cleanup(RIG *rig)
 {
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_cleanup called \n");
 
@@ -694,7 +694,7 @@ int rig_cleanup(RIG *rig)
  * \sa rig_get_freq()
  */
 
-int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+int HAMLIB_API rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -749,7 +749,7 @@ int rig_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  * \sa rig_set_freq()
  */
 
-int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+int HAMLIB_API rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -805,7 +805,7 @@ int rig_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  * \sa rig_get_mode()
  */
 
-int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+int HAMLIB_API rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -864,7 +864,7 @@ int rig_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  * \sa rig_set_mode()
  */
 
-int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+int HAMLIB_API rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -916,7 +916,7 @@ int rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  * \sa rig_passband_narrow(), rig_passband_wide()
  */
 
-pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode)
+pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 {
 		const struct rig_state *rs;
 		int i;
@@ -950,7 +950,7 @@ pbwidth_t rig_passband_normal(RIG *rig, rmode_t mode)
  * \sa rig_passband_normal(), rig_passband_wide()
  */
 
-pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode)
+pbwidth_t HAMLIB_API rig_passband_narrow(RIG *rig, rmode_t mode)
 {
 		const struct rig_state *rs;
 		pbwidth_t normal;
@@ -992,7 +992,7 @@ pbwidth_t rig_passband_narrow(RIG *rig, rmode_t mode)
  * \sa rig_passband_narrow(), rig_passband_normal()
  */
 
-pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode)
+pbwidth_t HAMLIB_API rig_passband_wide(RIG *rig, rmode_t mode)
 {
 		const struct rig_state *rs;
 		pbwidth_t normal;
@@ -1035,7 +1035,7 @@ pbwidth_t rig_passband_wide(RIG *rig, rmode_t mode)
  * \sa rig_get_vfo()
  */
 
-int rig_set_vfo(RIG *rig, vfo_t vfo)
+int HAMLIB_API rig_set_vfo(RIG *rig, vfo_t vfo)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1070,7 +1070,7 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
  * \sa rig_set_vfo()
  */
 
-int rig_get_vfo(RIG *rig, vfo_t *vfo)
+int HAMLIB_API rig_get_vfo(RIG *rig, vfo_t *vfo)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1103,7 +1103,7 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
  *
  * \sa rig_get_ptt()
  */
-int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1167,7 +1167,7 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  *
  * \sa rig_set_ptt()
  */
-int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {	
 		const struct rig_caps *caps;
 		int retcode;
@@ -1231,7 +1231,7 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  * set appropriately).
  *
  */
-int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+int HAMLIB_API rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {	
 		const struct rig_caps *caps;
 		int retcode;
@@ -1298,7 +1298,7 @@ int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  *
  * \sa rig_get_rptr_shift()
  */
-int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
+int HAMLIB_API rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1342,7 +1342,7 @@ int rig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
  *
  * \sa rig_set_rptr_shift()
  */
-int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
+int HAMLIB_API rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1387,7 +1387,7 @@ int rig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
  * \sa rig_get_rptr_offs()
  */
 
-int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
+int HAMLIB_API rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1432,7 +1432,7 @@ int rig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
  * \sa rig_set_rptr_offs()
  */
 
-int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
+int HAMLIB_API rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1478,7 +1478,7 @@ int rig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
  * \sa rig_get_split_freq()
  */
 
-int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
+int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1522,7 +1522,7 @@ int rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
  *
  * \sa rig_set_split_freq()
  */
-int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1568,7 +1568,7 @@ int rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  * \sa rig_get_split_mode()
  */
 
-int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1613,7 +1613,7 @@ int rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
  *
  * \sa rig_set_split_mode()
  */
-int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1659,7 +1659,7 @@ int rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_widt
  *
  * \sa rig_get_split_vfo()
  */
-int rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+int HAMLIB_API rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1704,7 +1704,7 @@ int rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  *
  * \sa rig_set_split_vfo()
  */
-int rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+int HAMLIB_API rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1749,7 +1749,7 @@ int rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
  * \sa rig_get_rit()
  */
 
-int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+int HAMLIB_API rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1794,7 +1794,7 @@ int rig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  * \sa rig_set_rit()
  */
 
-int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+int HAMLIB_API rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1839,7 +1839,7 @@ int rig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  * \sa rig_get_xit()
  */
 
-int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+int HAMLIB_API rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1884,7 +1884,7 @@ int rig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
  * \sa rig_set_xit()
  */
 
-int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+int HAMLIB_API rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1931,7 +1931,7 @@ int rig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
  * \sa rig_get_ts()
  */
 
-int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
+int HAMLIB_API rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -1976,7 +1976,7 @@ int rig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
  * \sa rig_set_ts()
  */
 
-int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
+int HAMLIB_API rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2025,7 +2025,7 @@ int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  * \sa rig_get_ant()
  */
 
-int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+int HAMLIB_API rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2070,7 +2070,7 @@ int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
  * \sa rig_set_ant()
  */
 
-int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+int HAMLIB_API rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2122,7 +2122,7 @@ int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
  *
  * \sa rig_mW2power()
  */
-int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
+int HAMLIB_API rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
 {
 		const freq_range_t *txrange;
 
@@ -2163,7 +2163,7 @@ int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmod
  *
  * \sa rig_power2mW()
  */
-int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
+int HAMLIB_API rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
 {
 		const freq_range_t *txrange;
 
@@ -2201,7 +2201,7 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmod
  * has been sucessful, otherwise a negative value if an error occured.
  *
  */
-shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode)
+shortfreq_t HAMLIB_API rig_get_resolution(RIG *rig, rmode_t mode)
 {
 		const struct rig_state *rs;
 		int i;
@@ -2236,7 +2236,7 @@ shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode)
  * \sa rig_get_powerstat()
  */
 
-int rig_set_powerstat(RIG *rig, powerstat_t status)
+int HAMLIB_API rig_set_powerstat(RIG *rig, powerstat_t status)
 {
 		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
@@ -2262,7 +2262,7 @@ int rig_set_powerstat(RIG *rig, powerstat_t status)
  * \sa rig_set_powerstat()
  */
 
-int rig_get_powerstat(RIG *rig, powerstat_t *status)
+int HAMLIB_API rig_get_powerstat(RIG *rig, powerstat_t *status)
 {
 		if (CHECK_RIG_ARG(rig) || !status)
 			return -RIG_EINVAL;
@@ -2288,7 +2288,7 @@ int rig_get_powerstat(RIG *rig, powerstat_t *status)
  *
  */
 
-int rig_reset(RIG *rig, reset_t reset)
+int HAMLIB_API rig_reset(RIG *rig, reset_t reset)
 {
 		if (CHECK_RIG_ARG(rig))
 			return -RIG_EINVAL;
@@ -2315,7 +2315,7 @@ extern int rig_probe_all_backends(port_t *p, rig_probe_func_t cfunc, rig_ptr_t d
  * \return the rig model id according to the rig_model_t type if found, 
  * otherwise RIG_MODEL_NONE if unable to determine rig model.
  */
-rig_model_t rig_probe(port_t *port)
+rig_model_t HAMLIB_API rig_probe(port_t *port)
 {
 	if (!port)
 		return RIG_MODEL_NONE;
@@ -2340,7 +2340,7 @@ rig_model_t rig_probe(port_t *port)
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  */
-int rig_probe_all(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
+int HAMLIB_API rig_probe_all(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
 {
 	if (!port)
 		return -RIG_EINVAL;
@@ -2364,7 +2364,7 @@ int rig_probe_all(port_t *port, rig_probe_func_t cfunc, rig_ptr_t data)
  *
  * \sa rig_vfo_op()
  */
-vfo_op_t rig_has_vfo_op(RIG *rig, vfo_op_t op)
+vfo_op_t HAMLIB_API rig_has_vfo_op(RIG *rig, vfo_op_t op)
 {
 		if (!rig || !rig->caps)
 				return 0;
@@ -2388,7 +2388,7 @@ vfo_op_t rig_has_vfo_op(RIG *rig, vfo_op_t op)
  * \sa rig_has_vfo_op()
  */
 
-int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+int HAMLIB_API rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2434,7 +2434,7 @@ int rig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  *
  * \sa rig_scan()
  */
-scan_t rig_has_scan(RIG *rig, scan_t scan)
+scan_t HAMLIB_API rig_has_scan(RIG *rig, scan_t scan)
 {
 		if (!rig || !rig->caps)
 				return 0;
@@ -2459,7 +2459,7 @@ scan_t rig_has_scan(RIG *rig, scan_t scan)
  * \sa rig_has_scan()
  */
 
-int rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
+int HAMLIB_API rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2505,7 +2505,7 @@ int rig_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
  *
  */
 
-int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
+int HAMLIB_API rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2551,7 +2551,7 @@ int rig_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
  *
  */
 
-int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
+int HAMLIB_API rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2596,7 +2596,7 @@ int rig_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
  *
  */
 
-int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
+int HAMLIB_API rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
 		const struct rig_caps *caps;
 		int retcode;
@@ -2641,7 +2641,7 @@ int rig_send_morse(RIG *rig, vfo_t vfo, const char *msg)
  *
  */
 const freq_range_t *
-rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
+HAMLIB_API rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
 {
 	int i;
 
@@ -2669,7 +2669,7 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
  * if the operation has been sucessful, otherwise NULL if an error occured
  * or get_info not part of capabilities.
  */
-const char* rig_get_info(RIG *rig)
+const char* HAMLIB_API rig_get_info(RIG *rig)
 {
 		if (CHECK_RIG_ARG(rig))
 			return NULL;

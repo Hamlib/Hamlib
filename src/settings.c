@@ -12,7 +12,7 @@
  *  Hamlib Interface - func/level/parm
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.4 2004-08-16 22:34:25 fillods Exp $
+ *	$Id: settings.c,v 1.5 2004-10-02 10:32:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -70,7 +70,7 @@
  *
  * \sa rig_has_set_level(), rig_get_level()
  */
-int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -124,7 +124,7 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  *
  * \sa rig_has_get_level(), rig_set_level()
  */
-int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -186,7 +186,7 @@ int rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  *
  * \sa rig_has_set_parm(), rig_get_parm()
  */
-int rig_set_parm(RIG *rig, setting_t parm, value_t val)
+int HAMLIB_API rig_set_parm(RIG *rig, setting_t parm, value_t val)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -213,7 +213,7 @@ int rig_set_parm(RIG *rig, setting_t parm, value_t val)
  *
  * \sa rig_has_get_parm(), rig_set_parm()
  */
-int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
+int HAMLIB_API rig_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
 	if (CHECK_RIG_ARG(rig) || !val)
 		return -RIG_EINVAL;
@@ -240,7 +240,7 @@ int rig_get_parm(RIG *rig, setting_t parm, value_t *val)
  *
  * \sa rig_has_set_level(), rig_get_level()
  */
-setting_t rig_has_get_level(RIG *rig, setting_t level)
+setting_t HAMLIB_API rig_has_get_level(RIG *rig, setting_t level)
 {
 	if (!rig || !rig->caps)
 		return 0;
@@ -265,7 +265,7 @@ setting_t rig_has_get_level(RIG *rig, setting_t level)
  *
  * \sa rig_has_get_level(), rig_set_level()
  */
-setting_t rig_has_set_level(RIG *rig, setting_t level)
+setting_t HAMLIB_API rig_has_set_level(RIG *rig, setting_t level)
 {
 	if (!rig || !rig->caps)
 		return 0;
@@ -289,7 +289,7 @@ setting_t rig_has_set_level(RIG *rig, setting_t level)
  *
  * \sa rig_has_set_parm(), rig_get_parm()
  */
-setting_t rig_has_get_parm(RIG *rig, setting_t parm)
+setting_t HAMLIB_API rig_has_get_parm(RIG *rig, setting_t parm)
 {
 	if (!rig || !rig->caps)
 		return 0;
@@ -314,7 +314,7 @@ setting_t rig_has_get_parm(RIG *rig, setting_t parm)
  *
  * \sa rig_has_get_parm(), rig_set_parm()
  */
-setting_t rig_has_set_parm(RIG *rig, setting_t parm)
+setting_t HAMLIB_API rig_has_set_parm(RIG *rig, setting_t parm)
 {
 	if (!rig || !rig->caps)
 		return 0;
@@ -338,7 +338,7 @@ setting_t rig_has_set_parm(RIG *rig, setting_t parm)
  *
  * \sa rig_has_set_func(), rig_get_func()
  */
-setting_t rig_has_get_func(RIG *rig, setting_t func)
+setting_t HAMLIB_API rig_has_get_func(RIG *rig, setting_t func)
 {
 	if (!rig || !rig->caps)
 		return 0;
@@ -362,7 +362,7 @@ setting_t rig_has_get_func(RIG *rig, setting_t func)
  *
  * \sa rig_set_func(), rig_has_get_func()
  */
-setting_t rig_has_set_func(RIG *rig, setting_t func)
+setting_t HAMLIB_API rig_has_set_func(RIG *rig, setting_t func)
 {
 	if (!rig || !rig->caps)
 		return 0;
@@ -389,7 +389,7 @@ setting_t rig_has_set_func(RIG *rig, setting_t func)
  * \sa rig_get_func()
  */
 
-int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -438,7 +438,7 @@ int rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  *
  * \sa rig_set_func()
  */
-int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -483,7 +483,7 @@ int rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  *
  * \sa rig_get_ext_level()
  */
-int rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+int HAMLIB_API rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -528,7 +528,7 @@ int rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
  *
  * \sa rig_set_ext_level()
  */
-int rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+int HAMLIB_API rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -572,7 +572,7 @@ int rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
  *
  * \sa rig_get_ext_parm()
  */
-int rig_set_ext_parm(RIG *rig, token_t token, value_t val)
+int HAMLIB_API rig_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -597,7 +597,7 @@ int rig_set_ext_parm(RIG *rig, token_t token, value_t val)
  *
  * \sa rig_set_ext_parm()
  */
-int rig_get_ext_parm(RIG *rig, token_t token, value_t *val)
+int HAMLIB_API rig_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
 	if (CHECK_RIG_ARG(rig) || !val)
 		return -RIG_EINVAL;
@@ -618,7 +618,7 @@ int rig_get_ext_parm(RIG *rig, token_t token, value_t *val)
  * \return the index such that 2^n is the setting, otherwise 0
  * if the setting was not found.
  */
-int rig_setting2idx(setting_t s)
+int HAMLIB_API rig_setting2idx(setting_t s)
 {
 	int i;
 

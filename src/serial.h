@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - serial communication header
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *		$Id: serial.h,v 1.23 2004-04-16 20:04:11 fillods Exp $
+ *		$Id: serial.h,v 1.24 2004-10-02 10:32:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +42,7 @@ extern HAMLIB_EXPORT(int) ser_set_rts(port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_get_rts(port_t *p, int *state);
 extern HAMLIB_EXPORT(int) ser_set_brk(port_t *p, int state);
 extern HAMLIB_EXPORT(int) ser_set_dtr(port_t *p, int state);
-int ser_get_dtr(port_t *p, int *state);
+extern HAMLIB_EXPORT(int) ser_get_dtr(port_t *p, int *state);
 extern HAMLIB_EXPORT(int) ser_get_dcd(port_t *p, int *state);
 int par_open(port_t *p);
 int par_close(port_t *p);

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - event handling
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.23 2003-10-17 22:53:54 fillods Exp $
+ *	$Id: event.c,v 1.24 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -375,7 +375,7 @@ static RETSIGTYPE sa_sigalrmhandler(int signum)
  * \sa rig_set_trn()
  */
 
-int rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -401,7 +401,7 @@ int rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
  * \sa rig_set_trn()
  */
 
-int rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -427,7 +427,7 @@ int rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
  * \sa rig_set_trn()
  */
 
-int rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -453,7 +453,7 @@ int rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
  * \sa rig_set_trn()
  */
 
-int rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -479,7 +479,7 @@ int rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
  * \sa rig_set_trn()
  */
 
-int rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -507,7 +507,7 @@ int rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
  * \sa rig_set_trn()
  */
 
-int rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -532,7 +532,7 @@ int rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
  * \sa rig_get_trn()
  */
 
-int rig_set_trn(RIG *rig, int trn)
+int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -627,7 +627,7 @@ int rig_set_trn(RIG *rig, int trn)
  *
  * \sa rig_set_trn()
  */
-int rig_get_trn(RIG *rig, int *trn)
+int HAMLIB_API rig_get_trn(RIG *rig, int *trn)
 {
 	if (CHECK_RIG_ARG(rig) || !trn)
 		return -RIG_EINVAL;

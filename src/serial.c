@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.40 2004-08-01 23:13:17 fillods Exp $
+ *	$Id: serial.c,v 1.41 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -117,7 +117,7 @@
  *
  */
 
-int serial_open(port_t *rp) {
+int HAMLIB_API serial_open(port_t *rp) {
 
   int fd;				/* File descriptor for the port */
   int err;
@@ -151,7 +151,7 @@ int serial_open(port_t *rp) {
 }
 
 
-int serial_setup(port_t *rp)
+int HAMLIB_API serial_setup(port_t *rp)
 {
   int fd;
   /* There's a lib replacement for termios under Mingw */
@@ -392,7 +392,7 @@ int serial_setup(port_t *rp)
  * Flush all characters waiting in RX buffer.
  */
 
-int serial_flush( port_t *p )
+int HAMLIB_API serial_flush( port_t *p )
 {
   tcflush(p->fd, TCIFLUSH);
 
@@ -409,7 +409,7 @@ int ser_close(port_t *p)
 	return CLOSE(p->fd);
 }
 
-int ser_set_rts(port_t *p, int state)
+int HAMLIB_API ser_set_rts(port_t *p, int state)
 {
 	unsigned int y = TIOCM_RTS;
 
@@ -431,7 +431,7 @@ int ser_set_rts(port_t *p, int state)
  * assumes state not NULL
  * p is supposed to be &rig->state.rigport
  */
-int ser_get_rts(port_t *p, int *state)
+int HAMLIB_API ser_get_rts(port_t *p, int *state)
 {
   int status;
   unsigned int y;
@@ -440,7 +440,7 @@ int ser_get_rts(port_t *p, int *state)
   return RIG_OK;
 }
 
-int ser_set_dtr(port_t *p, int state)
+int HAMLIB_API ser_set_dtr(port_t *p, int state)
 {
 	unsigned int y = TIOCM_DTR;
 
@@ -458,7 +458,7 @@ int ser_set_dtr(port_t *p, int state)
 #endif
 }
 
-int ser_get_dtr(port_t *p, int *state)
+int HAMLIB_API ser_get_dtr(port_t *p, int *state)
 {
   int status;
   unsigned int y;
@@ -467,7 +467,7 @@ int ser_get_dtr(port_t *p, int *state)
   return status;
 }
 
-int ser_set_brk(port_t *p, int state)
+int HAMLIB_API ser_set_brk(port_t *p, int state)
 {
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
 	return IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0 );
@@ -480,7 +480,7 @@ int ser_set_brk(port_t *p, int state)
  * assumes state not NULL
  * p is supposed to be &rig->state.rigport
  */
-int ser_get_dcd(port_t *p, int *state)
+int HAMLIB_API ser_get_dcd(port_t *p, int *state)
 {
   int status;
   unsigned int y;
@@ -616,7 +616,7 @@ int par_close(port_t *port)
 	return close(port->fd);
 }
 
-int par_write_data(port_t *port, unsigned char data)
+int HAMLIB_API par_write_data(port_t *port, unsigned char data)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -633,7 +633,7 @@ int par_write_data(port_t *port, unsigned char data)
 	return -RIG_ENIMPL;
 }
 
-int par_read_data(port_t *port, unsigned char *data)
+int HAMLIB_API par_read_data(port_t *port, unsigned char *data)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -654,7 +654,7 @@ int par_read_data(port_t *port, unsigned char *data)
 }
 
 
-int par_write_control(port_t *port, unsigned char control)
+int HAMLIB_API par_write_control(port_t *port, unsigned char control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -687,7 +687,7 @@ int par_write_control(port_t *port, unsigned char control)
 	return -RIG_ENIMPL;
 }
 
-int par_read_control(port_t *port, unsigned char *control)
+int HAMLIB_API par_read_control(port_t *port, unsigned char *control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
@@ -710,7 +710,7 @@ int par_read_control(port_t *port, unsigned char *control)
 }
 
 
-int par_read_status(port_t *port, unsigned char *status)
+int HAMLIB_API par_read_status(port_t *port, unsigned char *status)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	int ret;
@@ -733,7 +733,7 @@ int par_read_status(port_t *port, unsigned char *status)
 }
 
 
-int par_lock(port_t *port)
+int HAMLIB_API par_lock(port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	if (ioctl(port->fd, PPCLAIM) < 0) {
@@ -747,7 +747,7 @@ int par_lock(port_t *port)
 	return -RIG_ENIMPL;
 }
 
-int par_unlock(port_t *port)
+int HAMLIB_API par_unlock(port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
 	if (ioctl(port->fd, PPRELEASE) < 0) {

@@ -9,7 +9,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.11 2004-08-16 22:34:25 fillods Exp $
+ *	$Id: conf.c,v 1.12 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -334,7 +334,7 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
  * a negative value if an error occured (in which case, cause is 
  * set appropriately).
  */
-int rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
+int HAMLIB_API rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
 	const struct confparams *cfp;
 
@@ -360,7 +360,7 @@ int rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_
  *
  * \return a pointer to the confparams struct if found, otherwise NULL.
  */
-const struct confparams *rig_confparam_lookup(RIG *rig, const char *name)
+const struct confparams * HAMLIB_API rig_confparam_lookup(RIG *rig, const char *name)
 {
 		const struct confparams *cfp;
 
@@ -384,7 +384,7 @@ const struct confparams *rig_confparam_lookup(RIG *rig, const char *name)
  *
  * \return the token id if found, otherwise RIG_CONF_END
  */
-token_t rig_token_lookup(RIG *rig, const char *name)
+token_t HAMLIB_API rig_token_lookup(RIG *rig, const char *name)
 {
 		const struct confparams *cfp;
 
@@ -409,7 +409,7 @@ token_t rig_token_lookup(RIG *rig, const char *name)
  *
  * \sa rig_get_conf()
  */
-int rig_set_conf(RIG *rig, token_t token, const char *val)
+int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
 {
 		if (!rig || !rig->caps)
 			return -RIG_EINVAL;
@@ -438,7 +438,7 @@ int rig_set_conf(RIG *rig, token_t token, const char *val)
  *
  * \sa rig_set_conf()
  */
-int rig_get_conf(RIG *rig, token_t token, char *val)
+int HAMLIB_API rig_get_conf(RIG *rig, token_t token, char *val)
 {
 		if (!rig || !rig->caps || !val)
 			return -RIG_EINVAL;

@@ -12,7 +12,7 @@
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.3 2004-08-16 22:34:25 fillods Exp $
+ *	$Id: mem.c,v 1.4 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -68,7 +68,7 @@
  * \sa rig_get_mem()
  */
 
-int rig_set_mem(RIG *rig, vfo_t vfo, int ch)
+int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -114,7 +114,7 @@ int rig_set_mem(RIG *rig, vfo_t vfo, int ch)
  *
  * \sa rig_set_mem()
  */
-int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
+int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -162,7 +162,7 @@ int rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
  * \sa rig_set_mem()
  */
 
-int rig_set_bank(RIG *rig, vfo_t vfo, int bank)
+int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
 	const struct rig_caps *caps;
 	int retcode;
@@ -349,7 +349,7 @@ int generic_restore_channel(RIG *rig, const channel_t *chan)
  * \sa rig_get_channel()
  */
 
-int rig_set_channel(RIG *rig, const channel_t *chan)
+int HAMLIB_API rig_set_channel(RIG *rig, const channel_t *chan)
 {
 	struct rig_caps *rc;
 	int curr_chan_num, get_mem_status = RIG_OK;
@@ -455,7 +455,7 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
  *
  * \sa rig_set_channel()
  */
-int rig_get_channel(RIG *rig, channel_t *chan)
+int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
 {
 	struct rig_caps *rc;
 	int curr_chan_num, get_mem_status = RIG_OK;

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - provides registering for dynamically loadable backends.
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: register.c,v 1.20 2003-04-16 22:30:38 fillods Exp $
+ *	$Id: register.c,v 1.21 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@ static int rig_lookup_backend(rig_model_t rig_model);
 /*
  * Basically, this is a hash insert function that doesn't check for dup!
  */
-int rig_register(const struct rig_caps *caps)
+int HAMLIB_API rig_register(const struct rig_caps *caps)
 {
 		int hval;
 		struct rig_list *p;
@@ -115,7 +115,7 @@ int rig_register(const struct rig_caps *caps)
  * ie. rig_hash_table lookup
  */
 
-const struct rig_caps *rig_get_caps(rig_model_t rig_model)
+const struct rig_caps * HAMLIB_API rig_get_caps(rig_model_t rig_model)
 {
 		struct rig_list *p;
 
@@ -149,7 +149,7 @@ static int rig_lookup_backend(rig_model_t rig_model)
  * and if not loaded already, load it!
  * This permits seamless operation in rig_init.
  */
-int rig_check_backend(rig_model_t rig_model)
+int HAMLIB_API rig_check_backend(rig_model_t rig_model)
 {
 		const struct rig_caps *caps;
 		int be_idx;
@@ -180,7 +180,7 @@ int rig_check_backend(rig_model_t rig_model)
 
 
 
-int rig_unregister(rig_model_t rig_model)
+int HAMLIB_API rig_unregister(rig_model_t rig_model)
 {
 		int hval;
 		struct rig_list *p,*q;
@@ -205,7 +205,7 @@ int rig_unregister(rig_model_t rig_model)
  * rig_list_foreach
  * executes cfunc on all the elements stored in the rig hash list
  */
-int rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),rig_ptr_t data)
+int HAMLIB_API rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),rig_ptr_t data)
 {
 	struct rig_list *p;
 	int i;
@@ -280,7 +280,7 @@ int rig_load_all_backends()
  * rig_load_backend
  * Dynamically load a rig backend through dlopen mechanism
  */
-int rig_load_backend(const char *be_name)
+int HAMLIB_API rig_load_backend(const char *be_name)
 {
 # define PREFIX "hamlib-"
 

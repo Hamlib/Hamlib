@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - extrq parameter interface
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ext.c,v 1.2 2002-09-18 21:19:39 fillods Exp $
+ *	$Id: ext.c,v 1.3 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,7 @@
  * rig_ext_level_foreach
  * executes cfunc on all the elements stored in the extlevels table
  */
-int rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
+int HAMLIB_API rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
 	const struct confparams *cfp;
 
@@ -58,7 +58,7 @@ int rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams 
  * rig_ext_parm_foreach
  * executes cfunc on all the elements stored in the extparms table
  */
-int rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
+int HAMLIB_API rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
 	const struct confparams *cfp;
 
@@ -82,7 +82,7 @@ int rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *
  * Returns NULL if nothing found
  * TODO: should use Lex to speed it up, strcmp hurts!
  */
-const struct confparams *rig_ext_lookup(RIG *rig, const char *name)
+const struct confparams * HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
 {
 	const struct confparams *cfp;
 
@@ -101,7 +101,7 @@ const struct confparams *rig_ext_lookup(RIG *rig, const char *name)
 /*
  * Simple lookup returning token id assicated with name
  */
-token_t rig_ext_token_lookup(RIG *rig, const char *name)
+token_t HAMLIB_API rig_ext_token_lookup(RIG *rig, const char *name)
 {
 	const struct confparams *cfp;
 

@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.14 2004-08-16 22:34:25 fillods Exp $
+ *	$Id: rotator.c,v 1.15 2004-10-02 10:32:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -160,7 +160,7 @@ int foreach_opened_rot(int (*cfunc)(ROT *, rig_ptr_t), rig_ptr_t data)
  * \sa rot_cleanup(), rot_open()
  */
 
-ROT *rot_init(rot_model_t rot_model)
+ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 {
 		ROT *rot;
 		const struct rot_caps *caps;
@@ -265,7 +265,7 @@ ROT *rot_init(rot_model_t rot_model)
  * \sa rot_init(), rot_close()
  */
 
-int rot_open(ROT *rot)
+int HAMLIB_API rot_open(ROT *rot)
 {
 		const struct rot_caps *caps;
 		struct rot_state *rs;
@@ -347,7 +347,7 @@ int rot_open(ROT *rot)
  * \sa rot_cleanup(), rot_open()
  */
 
-int rot_close(ROT *rot)
+int HAMLIB_API rot_close(ROT *rot)
 {
 		const struct rot_caps *caps;
 		struct rot_state *rs;
@@ -406,7 +406,7 @@ int rot_close(ROT *rot)
  * \sa rot_init(), rot_close()
  */
 
-int rot_cleanup(ROT *rot)
+int HAMLIB_API rot_cleanup(ROT *rot)
 {
 		rot_debug(RIG_DEBUG_VERBOSE,"rot:rot_cleanup called \n");
 
@@ -445,7 +445,7 @@ int rot_cleanup(ROT *rot)
  *
  * \sa rot_get_conf()
  */
-int rot_set_conf(ROT *rot, token_t token, const char *val)
+int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
 {
 		if (!rot || !rot->caps)
 			return -RIG_EINVAL;
@@ -473,7 +473,7 @@ int rot_set_conf(ROT *rot, token_t token, const char *val)
  *
  * \sa rot_set_conf()
  */
-int rot_get_conf(ROT *rot, token_t token, char *val)
+int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val)
 {
 		if (!rot || !rot->caps || !val)
 			return -RIG_EINVAL;
@@ -502,7 +502,7 @@ int rot_get_conf(ROT *rot, token_t token, char *val)
  * \sa rot_get_position()
  */
 
-int rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevation)
+int HAMLIB_API rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevation)
 {
 		const struct rot_caps *caps;
 		const struct rot_state *rs;
@@ -538,7 +538,7 @@ int rot_set_position (ROT *rot, azimuth_t azimuth, elevation_t elevation)
  * \sa rot_set_position()
  */
 
-int rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elevation)
+int HAMLIB_API rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elevation)
 {
 		const struct rot_caps *caps;
 
@@ -565,7 +565,7 @@ int rot_get_position (ROT *rot, azimuth_t *azimuth, elevation_t *elevation)
  *
  */
 
-int rot_park (ROT *rot)
+int HAMLIB_API rot_park (ROT *rot)
 {
 		const struct rot_caps *caps;
 
@@ -592,7 +592,7 @@ int rot_park (ROT *rot)
  *
  */
 
-int rot_stop (ROT *rot)
+int HAMLIB_API rot_stop (ROT *rot)
 {
 		const struct rot_caps *caps;
 
@@ -620,7 +620,7 @@ int rot_stop (ROT *rot)
  *
  */
 
-int rot_reset (ROT *rot, rot_reset_t reset)
+int HAMLIB_API rot_reset (ROT *rot, rot_reset_t reset)
 {
 		const struct rot_caps *caps;
 
@@ -644,7 +644,7 @@ int rot_reset (ROT *rot, rot_reset_t reset)
  * Move the rotator in the specified direction. The speed is a value
  * between 1 and 100.
  */
-int rot_move (ROT *rot, int direction, int speed)
+int HAMLIB_API rot_move (ROT *rot, int direction, int speed)
 {
         const struct rot_caps *caps;
 
@@ -670,7 +670,7 @@ int rot_move (ROT *rot, int direction, int speed)
  * if the operation has been sucessful, otherwise NULL if an error occured
  * or get_info not part of capabilities.
  */
-const char* rot_get_info(ROT *rot)
+const char* HAMLIB_API rot_get_info(ROT *rot)
 {
 		if (CHECK_ROT_ARG(rot))
 			return NULL;
