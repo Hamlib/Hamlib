@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.42 2002-09-04 14:36:11 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.43 2002-09-04 15:08:23 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -951,20 +951,19 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 								 
 	caps = rig->caps;
 
-	/* TODO: replace menu no 57 by a define */
-	
 	tone_len = 50;
-	retval = kenwood_transaction (rig, "EX057;", 6, tonebuf, &tone_len);
+	retval = kenwood_transaction (rig, "IF;", 3, tonebuf, &tone_len);
 	if (retval != RIG_OK)
 		return retval;
 
-	if (tone_len != 10) {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss_tone: unexpected reply "
-							"'%s', len=%d\n", tonebuf, tone_len);
-			return -RIG_ERJCTED;
+	if (tone_len != 38 || tonebuf[1] != 'F') {
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctss_tone: wrong answer len=%d\n",
+						tone_len);
+		return -RIG_ERJCTED;
 	}
 
-	sscanf(tonebuf+5, "%u", (int*)&tone_idx);
+	tonebuf[36] = '\0';
+	tone_idx = atoi(&tonebuf[34]);
 
 	if (tone_idx == 0) {
 			rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss_tone: Unexpected CTCSS "
