@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.11 2002-12-15 22:12:06 fillods Exp $
+ *	$Id: ts790.c,v 1.12 2003-04-06 18:53:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 /* func and levels to be checked */
 #define TS790_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_LOCK|RIG_FUNC_MUTE)
 
-#define TS790_LEVEL_ALL (RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER)
+#define TS790_LEVEL_ALL (RIG_LEVEL_STRENGTH)
 
 #define TS790_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -48,7 +48,8 @@ static const struct kenwood_priv_caps  ts790_priv_caps  = {
 /*
  * ts790 rig capabilities.
  *
- * TODO: antenna caps
+ * TODO: ts790_set_channel, ts790_get_channel
+ * get_split, set_split, get_ts, scan, ctcss_sql, set_rptr_shift
  *
  * part of infos comes from .http = //www.kenwood.net/
  */
@@ -56,19 +57,19 @@ const struct rig_caps ts790_caps = {
 .rig_model =  RIG_MODEL_TS790,
 .model_name = "TS-790",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  1200,
+.serial_rate_min =  4800,
 .serial_rate_max =  4800,
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
+.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  1000,
@@ -79,16 +80,16 @@ const struct rig_caps ts790_caps = {
 .has_get_level =  TS790_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(TS790_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.has_set_parm =  RIG_PARM_NONE,
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
 .vfo_ops =  TS790_VFO_OP,
 .ctcss_list =  kenwood38_ctcss_list,
 .preamp =   { RIG_DBLST_END, },
-.attenuator =   { 12, RIG_DBLST_END, },
+.attenuator =   { /* 12, */ RIG_DBLST_END, },
 .max_rit =  kHz(9.9),	/* this is for FM, SSB/CW is 1.9kHz */
 .max_xit =  0,
-.max_ifshift =  900,
+.max_ifshift =  0,
 .targetable_vfo =  RIG_TARGETABLE_FREQ,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
@@ -167,8 +168,6 @@ const struct rig_caps ts790_caps = {
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
-.set_xit =  kenwood_set_xit,
-.get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
@@ -187,10 +186,7 @@ const struct rig_caps ts790_caps = {
 .get_mem =  kenwood_get_mem,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
-.set_powerstat =  kenwood_set_powerstat,
-.get_powerstat =  kenwood_get_powerstat,
 .get_info =  kenwood_get_info,
-.reset =  kenwood_reset,
 
 };
 
