@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: th.c,v 1.2 2001-12-20 22:59:08 fillods Exp $
+ *		$Id: th.c,v 1.3 2002-01-02 23:41:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,7 +62,7 @@ int th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 int th_set_vfo(RIG *rig, vfo_t vfo)
 {
 		unsigned char ackbuf[24];
-		int ack_len, retval;
+		int retval, ack_len = 0;
 
 			/*
 			 * FIXME: vfo==RIG_VFO_CURR
@@ -93,11 +93,20 @@ int th_set_vfo(RIG *rig, vfo_t vfo)
 int th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 		unsigned char freqbuf[24], ackbuf[24];
-		int freq_len, ack_len, retval;
+		int retval, freq_len, ack_len = 0;
+		memset(ackbuf, 0, sizeof(ackbuf)); /* for alpha debugging only */
 
 		freq_len = sprintf(freqbuf,"FQ %011Ld,0" EOM, freq);
-
 		retval = kenwood_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
+
+		rig_debug(RIG_DEBUG_TRACE, "Ack msg: (%i) %s\n", ack_len, ackbuf); /* for alpha debugging only */
+
+		/* FIXME: ack_len returns with zero even when many data is read. 
+		 * 		  (something wrong with kenwook_transaction)  2001-12-30 fgr.
+		 */
+		if ((ackbuf[0] == 'N') && (ackbuf[1] == '\n')) {
+			return -RIG_ERJCTED;
+		}
 
 		return retval;
 }
@@ -109,7 +118,8 @@ int th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		unsigned char freqbuf[24];
-		int freq_len, retval;
+		int retval, freq_len = 0;
+		rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
 
 		retval = kenwood_transaction (rig, "FQ" EOM, 3, freqbuf, &freq_len);
 		if (retval != RIG_OK)
@@ -127,7 +137,7 @@ int th_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		unsigned char mdbuf[24],ackbuf[24];
-		int mdbuf_len, ack_len, kmode, retval;
+		int retval, kmode, mdbuf_len, ack_len = 0;
 
 		switch (mode) {
 			case RIG_MODE_FM:	kmode = MD_FM; break;
@@ -154,17 +164,23 @@ int th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-		int ack_len, retval;
+		int retval, ack_len = 0;
 		unsigned char ackbuf[24];
 
 		retval = kenwood_transaction (rig, "MD" EOM, 3, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
 
-		if (ack_len != 5) {
-				rig_debug(RIG_DEBUG_ERR,"th_get_mode: ack NG, len=%d\n",
-								ack_len);
-				return -RIG_ERJCTED;
+//		if (ack_len != 5) {  /* ack_len does not work. */
+		if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
+			rig_debug(RIG_DEBUG_ERR,"th_get_mode: ack NG, len=%d\n",ack_len);
+			return -RIG_ERJCTED;
+		}
+
+		if (ackbuf[0] != 'M' || ackbuf[1] != 'D' || ackbuf[2] != ' ') {
+			rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unknown replay (%i) %s\n",
+													ack_len, ackbuf);
+			return -RIG_ERJCTED;
 		}
 
 		*width = RIG_PASSBAND_NORMAL;	/* FIXME */
@@ -177,7 +193,7 @@ int th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			case MD_CW:		*mode = RIG_MODE_CW; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,"th_get_mode: "
-								"unsupported mode %d\n", ackbuf[3]);
+								"unsupported mode '%c'\n", ackbuf[3]);
 				return -RIG_EINVAL;
 		}
 
@@ -195,7 +211,7 @@ int th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[24], ackbuf[24];
-	int tone_len, ack_len;
+	int tone_len, ack_len = 0;
 	int i;
 								 
 	caps = rig->caps;
@@ -222,18 +238,21 @@ int th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[24];
-	int tone_len, i, retval;
+	int i, retval, tone_len = 0;
 	unsigned int tone_idx;
-								 
+
+	memset(tonebuf, 0, sizeof(tonebuf));    /* for terminating zero of string */
+
 	caps = rig->caps;
 
 	/* TODO: replace menu no 57 by a define */
-	
+
 	retval = kenwood_transaction (rig, "TN" EOM, 3, tonebuf, &tone_len);
 	if (retval != RIG_OK)
 		return retval;
 
-	if (tone_len != 10) {
+	//if (tone_len != 10) {
+	if (tonebuf[0] != 'T' || tonebuf[1] != 'N') {
 			rig_debug(RIG_DEBUG_ERR,"th_get_ctcss_tone: unexpected reply "
 							"'%s', len=%d\n", tonebuf, tone_len);
 			return -RIG_ERJCTED;
@@ -246,9 +265,9 @@ int th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 							"no (%04d)\n", tone_idx);
 			return -RIG_EPROTO;
 	}
-		
+
 	/* check this tone exists. That's better than nothing. */
-	for (i = 0; i<tone_idx; i++) {
+	for (i = 0; i < tone_idx; i++) {
 		if (caps->ctcss_list[i] == 0) {
 			rig_debug(RIG_DEBUG_ERR,"th_get_ctcss_tone: CTCSS NG "
 					"(%04d)\n", tone_idx);
