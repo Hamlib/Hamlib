@@ -282,7 +282,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_gnuradio)
 
   if test "${cf_with_gnuradio}" = "yes" ; then
-  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.5)
+  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.6)
 	BACKEND_LIST="$BACKEND_LIST gnuradio"
   fi
  
