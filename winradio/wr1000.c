@@ -1,8 +1,8 @@
 /*
  *  Hamlib WiNRADiO backend - WR1000 description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: wr1000.c,v 1.4 2003-10-01 19:32:03 fillods Exp $
+ *	$Id: wr1000.c,v 1.5 2004-04-16 20:06:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,15 +20,13 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "winradio.h"
 
+
+#ifdef WINRADIO_IOCTL
 
 /*
  * Winradio rigs capabilities.
@@ -110,3 +108,4 @@ const struct rig_caps wr1000_caps = {
   .get_info =      wr_get_info,
 };
 
+#endif	/* WINRADIO_IOCTL */

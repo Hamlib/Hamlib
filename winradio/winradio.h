@@ -2,7 +2,7 @@
  *  Hamlib WiNRADiO backend - main header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: winradio.h,v 1.8 2003-04-16 22:30:43 fillods Exp $
+ *	$Id: winradio.h,v 1.9 2004-04-16 20:06:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -22,6 +22,17 @@
 
 #ifndef _WINRADIO_H
 #define _WINRADIO_H 1
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+/*
+ * So far, only Linux has Linradio support through ioctl,
+ * until someone port it to some other OS...
+ */
+#ifdef HAVE_IOCTL
+#define WINRADIO_IOCTL
+#endif
 
 #include <hamlib/rig.h>
 
@@ -45,5 +56,6 @@ extern const struct rig_caps wr3100_caps;
 extern const struct rig_caps wr3150_caps;
 extern const struct rig_caps wr3500_caps;
 extern const struct rig_caps wr3700_caps;
+extern const struct rig_caps g303_caps;
 
 #endif /* _WINRADIO_H */
