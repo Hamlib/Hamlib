@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.5 2000-08-19 04:07:00 javabear Exp $  
+ *    $Id: ft747.h,v 1.6 2000-09-04 03:58:06 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -89,6 +89,7 @@ const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 2
  */
 int rig_open(char *serial_port); /* return fd or -1 on error */
 int rig_close(int fd);		 /* close port using fd */
+struct rig_caps *rig_get_caps(); /* return ptr to capabilities */
 
 /*
  * set commands
