@@ -1,3 +1,4058 @@
+2003-04-28 08:34  fillods
+
+	* INSTALL, NEWS, README, README.developer: updates before release
+
+2003-04-28 00:15  fillods
+
+	* include/hamlib/rig.h, src/rig.c: doxygen fixes
+
+2003-04-28 00:14  fillods
+
+	* include/hamlib/rotator.h: added ROT_RESET_ALL
+
+2003-04-26 11:54  fillods
+
+	* icom/: frame.c, frame.h, icom.c, os456.c: OS456 has no passband
+	data in set_mode/get_mode
+
+2003-04-24 00:17  fillods
+
+	* bindings/Makefile.am: VPATH build fix, tcl build fix
+
+2003-04-24 00:15  fillods
+
+	* configure.ac: re-enable c++ binding, fix tcl build, bindings
+	build requires perl *and* tcl
+
+2003-04-23 23:06  fillods
+
+	* src/rotator.c: typo
+
+2003-04-23 23:05  fillods
+
+	* rpcrig/Makefile.am, rpcrot/Makefile.am: Tell rpcgen to generate
+	code in ANSI C, with conventional stub names
+
+2003-04-23 22:57  fillods
+
+	* macros/libtool.m4: upgrade libtool-1.5
+
+2003-04-23 22:13  fillods
+
+	* include/hamlib/rig_dll.h, src/tones.h: Cygwin fixes
+
+2003-04-22 21:31  fillods
+
+	* rpcrig/: rpcrig.x, rpcrig_backend.c, rpcrig_proc.c: shadowed
+	struct declaration fixup
+
+2003-04-20 20:39  pa4tu
+
+	* debian/: README.Debian, rules, changelog: fix the debian build
+	script, new maintainer
+
+2003-04-19 15:47  fillods
+
+	* libltdl/acinclude.m4, libltdl/configure.in, libltdl/stamp-h,
+	libltdl/stamp-h.in, libltdl/COPYING.LIB, libltdl/Makefile.am,
+	libltdl/README, libltdl/aclocal.m4, libltdl/config-h.in,
+	libltdl/config.guess, libltdl/config.sub, libltdl/configure,
+	libltdl/install-sh, libltdl/ltmain.sh, libltdl/mkinstalldirs,
+	libltdl/Makefile.in, libltdl/config.h, libltdl/configure.ac,
+	libltdl/ltdl.c, libltdl/missing, configure.ac, ltmain.sh,
+	macros/Makefile.am, macros/ltdl.m4, src/rig.c: upgrade to libtool
+	1.5
+
+2003-04-19 13:49  fillods
+
+	* src/serial.c: speed_t requires termios
+
+2003-04-19 13:49  fillods
+
+	* src/tones.h: oops, allow build on win32
+
+2003-04-19 13:48  fillods
+
+	* include/hamlib/rig_dll.h: don't forget mingw
+
+2003-04-17 00:33  fillods
+
+	* include/hamlib/rig.h, include/hamlib/rig_dll.h, src/event.c,
+	src/serial.c, src/tones.c, src/tones.h: * portability fixes * On
+	some arch (win32), backends cannot use exported global variables as
+	initializers
+
+2003-04-17 00:30  fillods
+
+	* configure.ac, alinco/alinco.c, alinco/alinco.h, aor/aor.c,
+	src/Makefile.am, src/register.c, src/register.h, src/rot_reg.c,
+	aor/aor.h, drake/drake.c, drake/drake.h, dummy/dummy.c,
+	dummy/dummy.h, dummy/rot_dummy.c, dummy/rot_dummy.h,
+	easycomm/easycomm.c, easycomm/easycomm.h, fodtrack/fodtrack.c,
+	fodtrack/fodtrack.h, gnuradio/gnuradio.h, icom/icom.c, icom/icom.h,
+	jrc/jrc.c, jrc/jrc.h, kachina/kachina.c, kachina/kachina.h,
+	kenwood/kenwood.c, kenwood/kenwood.h, microtune/microtune.h,
+	microtune/module_4937.c, pcr/pcr.c, pcr/pcr.h, rotorez/rotorez.c,
+	rotorez/rotorez.h, rpcrig/rpcrig_backend.c,
+	rpcrig/rpcrig_backend.h, rpcrot/rpcrot_backend.c, tentec/tentec.c,
+	tentec/tentec.h, uniden/uniden.c, uniden/uniden.h,
+	winradio/winradio.c, winradio/winradio.h, yaesu/yaesu.c,
+	yaesu/yaesu.h: * added ABI VERSION to backend entry point symbol
+	name
+
+2003-04-15 00:17  n0nb
+
+	* yaesu/: ft900.c, ft900.h: 2003-04-14:
+	
+		Update:
+			Upload missing ft900.[ch]  (sheepish grin)
+
+2003-04-14 05:05  n0nb
+
+	* yaesu/: Makefile.am, yaesu.c, yaesu.h: 2003-04-13:
+	
+		Updated:
+			Makefile.am, yaesu.h, yaesu.c--addition of FT-900
+	backend
+		New:
+			ft900.h, ft900.c--basically a carbon copy of the
+	ft890
+			backend.
+
+2003-04-12 15:00  n0nb
+
+	* yaesu/: ft890.c, ft890.h: 2003-04-12:
+	
+		Update:
+			Added suport to ft890 for rig_vfo_op RIG_OP_TUNE
+	for
+			tuner start command.
+
+2003-04-10 20:25  fillods
+
+	* AUTHORS: added Michael
+
+2003-04-09 08:43  fillods
+
+	* icom/optoscan.c: should always compile test before commit...
+
+2003-04-09 08:37  fillods
+
+	* icom/: icom.h, optoscan.c, os456.c: Patch from Michael Smith for
+	the OS456: - adds SQL status and signal strength support - fixes
+	the signal strength scaling - adds code to support
+	get_ctcss_tone(), get_dcs_code() and rig_recv_dtmf()
+
+2003-04-08 00:41  fillods
+
+	* alinco/alinco.c, aor/aor.c, dummy/dummy.c, dummy/rot_dummy.c,
+	easycomm/easycomm.c, fodtrack/fodtrack.c, icom/frame.c,
+	icom/icom.c, icom/optoscan.c, jrc/jrc.c, kachina/kachina.c,
+	kenwood/kenwood.c, kenwood/th.c, pcr/pcr.c, rotorez/rotorez.c,
+	drake/drake.c, rpcrig/rpcrig_backend.c, rpcrot/rpcrot_backend.c,
+	src/iofunc.c, tentec/tentec.c, uniden/uniden.c,
+	winradio/winradio.c, yaesu/ft100.c, yaesu/ft1000mp.c,
+	yaesu/ft747.c, yaesu/ft817.c, yaesu/ft847.c, yaesu/ft890.c,
+	yaesu/ft920.c, yaesu/yaesu.c: fix headers
+
+2003-04-07 22:54  fillods
+
+	* tests/rotctl.c: misc fixes
+
+2003-04-07 22:47  fillods
+
+	* macros/tcl.m4: added default cygwin dir
+
+2003-04-06 20:53  fillods
+
+	* kenwood/ts790.c: ongoing work
+
+2003-04-06 20:52  fillods
+
+	* bindings/hamlib.swg: hamlib -> Hamlib
+
+2003-04-06 20:50  fillods
+
+	* gnuradio/: gnuradio.cc, gnuradio.h, gr.c, gr_priv.h, graudio.c,
+	mc4020.c, testgr.cc: WIP
+
+2003-04-06 20:48  fillods
+
+	* bindings/rig.swg: adopt new split_vfo
+
+2003-04-06 20:45  fillods
+
+	* bindings/perltest.pl: hamlib -> Hamlib
+
+2003-04-06 20:44  fillods
+
+	* bindings/Makefile.PL: initial release
+
+2003-04-06 20:43  fillods
+
+	* bindings/Makefile.am: Reworked. Use perl install helper
+
+2003-04-06 20:40  fillods
+
+	* alinco/alinco.c, alinco/alinco.h, alinco/dx77.c, c++/rigclass.cc,
+	dummy/dummy.c, icom/ic706.c, icom/ic718.c, icom/ic725.c,
+	icom/ic736.c, icom/ic737.c, icom/ic756.c, icom/icom.c, icom/icom.h,
+	include/hamlib/rig.h, include/hamlib/rigclass.h, rpcrig/rpcrig.x,
+	rpcrig/rpcrig_backend.c, rpcrig/rpcrig_proc.c, src/mem.c,
+	src/rig.c, tests/dumpcaps.c, tests/rigctl.1, tests/rigctl.c,
+	yaesu/ft100.c, yaesu/ft100.h, yaesu/ft817.c, yaesu/ft890.c,
+	yaesu/ft890.h, yaesu/ft920.c, yaesu/ft920.h: Adopt new split_vfo
+	handling. Basically, rename set_split/get_split to
+	set_split_vfo/get_split_vfo, and take an extra transmit vfo arg. 
+	Ascending compatibility is retained at the API frontend level. 
+	NOTE: only function name has changed. The backends do not implement
+	necessarily the new semantic (the extra tx vfo is just ignored).
+
+2003-04-06 20:34  fillods
+
+	* src/register.c: misc warning silencing
+
+2003-04-06 20:30  fillods
+
+	* c++/testcpp.cc: misc fixes
+
+2003-04-05 06:13  n0nb
+
+	* doc/README.ft890, yaesu/ft890.c, yaesu/ft890.h: 2003-04-04:
+	
+		Updated:
+			Implemented RIT functions, setting and reading PTT
+	status
+			as well as (rudimentary) reading S-meter level.
+	
+		New:
+			README.ft890
+
+2003-04-02 09:24  fillods
+
+	* src/event.c: allow build on solaris
+
+2003-03-28 00:51  fillods
+
+	* tests/rigctl.1: misc update
+
+2003-03-28 00:45  fillods
+
+	* src/settings.c: fix broken documentation about set_func/get_func
+
+2003-03-28 00:44  fillods
+
+	* tests/rigctl.c: added ability to specify target vfo for each cmd
+	when -o option is passed on command line
+
+2003-03-25 00:08  fillods
+
+	* kenwood/: th.c, th.h, thd7.c, thf7.c: Removed RIG_FUNC_LMP in
+	favor of RIG_PARM_BACKLIGHT
+
+2003-03-25 00:07  fillods
+
+	* src/misc.c: added RIG_FUNC_TUNER and RIG_OP_TUNE
+
+2003-03-25 00:06  fillods
+
+	* include/hamlib/rig.h: added RIG_FUNC_TUNER, RIG_OP_TUNE. Removed
+	RIG_FUNC_LMP in favor of RIG_PARM_BACKLIGHT
+
+2003-03-24 13:18  n0nb
+
+	* tests/rigctl.c, yaesu/ft890.c, yaesu/ft890.h: 2003-03-24:
+	
+		Update:
+			Fixed a stupid error in ft890_get_freq that caused
+	returned
+			freq to be divided by 10.
+			Added two new functions, set_ptt and get_ptt to set
+	rig
+			into and out of TX mode and query PTT status.
+			Modified ft890_set_freq to check passed vfo against
+	stored
+			value and update rig only if passed vfo differs.
+
+2003-03-21 20:56  pa4tu
+
+	* debian/README.Debian: unofficial
+
+2003-03-21 20:53  pa4tu
+
+	* debian/rules: update debian build for rotorez and fodtrack, minor
+	fixes
+
+2003-03-20 00:44  fillods
+
+	* tests/dumpcaps.c: misc update after rig.h change
+
+2003-03-20 00:41  fillods
+
+	* include/hamlib/rig.h: cleanups, converted define's to enum's w/
+	initializers bringing in doxygen comments
+
+2003-03-16 00:58  fillods
+
+	* kenwood/kenwood.c, include/hamlib/riglist.h, kenwood/Makefile.am,
+	kenwood/kenwood.h, kenwood/ts930.c: added TS-930
+
+2003-03-10 09:40  fillods
+
+	* include/hamlib/rig.h: reworked rig discovery (probe) API and cast
+	a vfo_t rewrite
+
+2003-03-10 09:26  fillods
+
+	* yaesu/: ft100.c, ft817.c, ft847.h: misc fixes of macros should
+	not be used or incorrect type
+
+2003-03-10 09:26  fillods
+
+	* drake/drake.c, drake/drake.h, icom/icom.c, icom/icom.h,
+	kenwood/kenwood.c, kenwood/kenwood.h, src/register.c, src/rig.c:
+	allow discovery(probe) of more than one rig attached to a port,
+	fixes
+
+2003-03-09 05:43  n0nb
+
+	* yaesu/: Makefile.am, ft890.c, ft890.h, yaesu.c, yaesu.h:
+	2003-03-08
+	
+		Added:
+			New backend for Yaesu FT-890/FT-890AT
+
+2003-03-03 21:16  dedmons
+
+	* kenwood/ts2000.txt: Corrected function name from levels() to
+	func().  Big oops!
+
+2003-03-02 22:50  dedmons
+
+	* tests/testts2k.c: Got set/get_channel routines working.  Still
+	have some fields to fix, but it'll write and read the memory now.
+
+2003-03-01 23:06  dedmons
+
+	* include/hamlib/rig_newvfo.h, tests/testts2k.c: 1) Have ts2k.c
+	passing tests/testts2k again.  2) Working on getting get/set
+	channel to pass simple test.  Added    'channel_t *next' to
+	rig_newvfo.h so a channel may be a list of one or    more
+	channel_t's (e.g. split and other complex modes).  3) Added channel
+	test to testts2k.  4) tsctl still don't work with updates from
+	Hamlib Main branch.  I still	need to finish the grammar in
+	tests/rc so the testcmd command line	will work for hamlib
+	commands.  (Real cool when it works.)
+
+2003-02-27 12:45  dedmons
+
+	* include/hamlib/rig_newvfo.h, tests/Makefile.in: Several new
+	functions available in ts2k.c using ts2k_cmds.c rig calls.  Almost
+	back to original functionality.  Added Mem/Vfo split in
+	rig_newvfo.h to support this mode on TS-2000 eventually.
+
+2003-02-27 04:50  n0nb
+
+	* rotorez/rotorez.h: 2003-02-26:
+	
+		Updated:
+			rotorez.h for rot_set_conf support
+
+2003-02-27 04:47  n0nb
+
+	* doc/README.rotorez, rotorez/rotorez.c, tests/rotctl.1,
+	tests/rotctl.c: 2003-02-26
+	
+		Added:
+			doc/README.rotorez -- backend to API document
+		Updated:
+			Added rot_set_conf support to rotorez.c
+			Added interactive support for rot_set_conf in
+	rotctl.c
+			Updated rotctl.1 for changes.
+
+2003-02-26 20:00  dedmons
+
+	* libltdl/Makefile.in, tests/Makefile.am: Updates to ts2k.c. 
+	Complete rewrite of module using new ts2k_cmds.c which implement
+	the entire TS-2000 command set.
+
+2003-02-25 17:15  dedmons
+
+	* icom/ic725.c: One last file, I hope!
+
+2003-02-25 16:59  dedmons
+
+	* tests/tree.h: file tree.h was initially added on branch
+	branch_ts2k.
+
+2003-02-25 16:59  dedmons
+
+	* tests/lex.rig_yy.c: file lex.rig_yy.c was initially added on
+	branch branch_ts2k.
+
+2003-02-25 16:59  dedmons
+
+	* Segfault-award, debian/hamlib-doc.dirs, debian/hamlib-utils.dirs,
+	debian/hamlib-utils.files, doc/README.ft920, gnuradio/gnuradio.cc,
+	gnuradio/graudio.c, gnuradio/mc4020.c, icom/ic737.c,
+	include/bandplan.h, src/idx_builtin.h, tests/lex.rig_yy.c,
+	tests/tree.h: More syncing branch_ts2k with Main.
+
+2003-02-25 16:34  dedmons
+
+	* microtune/Makefile.in: file Makefile.in was initially added on
+	branch branch_ts2k.
+
+2003-02-25 16:34  dedmons
+
+	* microtune/Makefile.am, microtune/Makefile.in,
+	microtune/givelp1.cc, microtune/i2c.cc, microtune/i2c.h,
+	microtune/i2cio.cc, microtune/i2cio.h, microtune/i2cio_pp.cc,
+	microtune/i2cio_pp.h, microtune/microtune.cc,
+	microtune/microtune.h, microtune/microtune_4937.cc,
+	microtune/microtune_4937.h, microtune/microtune_eval_board.cc,
+	microtune/microtune_eval_board.h,
+	microtune/microtune_eval_board_defs.h, microtune/module_4937.c,
+	microtune/ppio.cc, microtune/ppio.h, yaesu/ft1000mp.c,
+	yaesu/ft1000mp.h, yaesu/ft920.c, yaesu/ft920.h: Bringing more of
+	branch_ts2k up-to-date with Main.
+
+2003-02-25 07:31  dedmons
+
+	* macros/: Makefile.am, Makefile.in, aclocal-include.m4,
+	libtool.m4, perl.m4, pkg.m4, tcl.m4: This directory keeps getting
+	skipped.  Next time I'll remember -R...
+
+2003-02-25 07:31  dedmons
+
+	* macros/Makefile.in: file Makefile.in was initially added on
+	branch branch_ts2k.
+
+2003-02-25 07:00  dedmons
+
+	* bindings/Makefile.in, fodtrack/Makefile.in, rotorez/Makefile.in:
+	file Makefile.in was initially added on branch branch_ts2k.
+
+2003-02-25 07:00  dedmons
+
+	* alinco/Makefile.am, alinco/Makefile.in, alinco/alinco.c,
+	alinco/alinco.h, alinco/dx77.c, aor/Makefile.am, aor/Makefile.in,
+	aor/aor.c, aor/aor.h, aor/ar5000.c, aor/ar8000.c, aor/ar8200.c,
+	bindings/Makefile.am, bindings/Makefile.in, bindings/hamlib.swg,
+	bindings/ignore.swg, bindings/perltest.pl, bindings/rig.swg,
+	bindings/rotator.swg, bindings/tcltest.tcl, c++/Makefile.in,
+	c++/rigclass.cc, c++/rotclass.cc, debian/hamlib-dev.dirs,
+	doc/Makefile.in, doc/hamlib.cfg, doc/index.doxygen,
+	drake/Makefile.am, drake/Makefile.in, drake/drake.c, drake/drake.h,
+	drake/r8b.c, dummy/Makefile.am, dummy/Makefile.in, dummy/dummy.c,
+	dummy/dummy.h, dummy/rot_dummy.c, dummy/rot_dummy.h,
+	easycomm/Makefile.am, easycomm/Makefile.in, easycomm/easycomm.c,
+	easycomm/easycomm.h, fodtrack/Makefile.am, fodtrack/Makefile.in,
+	fodtrack/fodtrack.c, fodtrack/fodtrack.h, gnuradio/Makefile.am,
+	gnuradio/Makefile.in, gnuradio/gnuradio.h, gnuradio/gr.c,
+	gnuradio/gr_priv.h, gnuradio/testgr.cc, icom/Makefile.am,
+	icom/Makefile.in, icom/frame.c, icom/ic275.c, icom/ic475.c,
+	icom/ic706.c, icom/ic718.c, icom/ic735.c, icom/ic756.c,
+	icom/ic775.c, icom/ic821h.c, icom/ic910.c, icom/ic970.c,
+	icom/icall.c, icom/icom.c, icom/icom.h, icom/icr7000.c,
+	icom/icr8500.c, icom/omni.c, icom/os456.c, icom/os535.c,
+	include/Makefile.am, include/hamlib/rig.h,
+	include/hamlib/rig_dll.h, include/hamlib/rigclass.h,
+	include/hamlib/riglist.h, include/hamlib/rotator.h,
+	include/hamlib/rotlist.h, jrc/Makefile.am, jrc/Makefile.in,
+	jrc/jrc.c, jrc/jrc.h, jrc/nrd545.c, kachina/505dsp.c,
+	kachina/Makefile.am, kachina/Makefile.in, kachina/kachina.c,
+	kachina/kachina.h, kenwood/k2.c, kenwood/kenwood.c,
+	kenwood/kenwood.h, kenwood/th.c, kenwood/thd7.c, kenwood/thf7.c,
+	kenwood/ts2000.c, kenwood/ts2000.h, kenwood/ts440.c,
+	kenwood/ts450s.c, kenwood/ts50s.c, kenwood/ts570.c,
+	kenwood/ts790.c, kenwood/ts850.c, kenwood/ts870s.c,
+	kenwood/ts950.c, kylix/Makefile.in, lib/Makefile.am,
+	lib/Makefile.in, lib/getopt.c, lib/getopt_long.c,
+	libltdl/Makefile.in, libltdl/acinclude.m4, libltdl/aclocal.m4,
+	libltdl/config-h.in, libltdl/configure, libltdl/ltdl.c,
+	pcr/Makefile.am, pcr/Makefile.in, pcr/pcr.c, pcr/pcr.h,
+	pcr/pcr100.c, pcr/pcr1000.c, perl/Makefile.in, rotorez/Makefile.am,
+	rotorez/Makefile.in, rotorez/rotorez.c, rotorez/rotorez.h,
+	rotorez/rotorez.txt, rpcrig/Makefile.am, rpcrig/Makefile.in,
+	rpcrig/rpc.rigd.8, rpcrig/rpcrig.x, rpcrig/rpcrig_backend.c,
+	rpcrig/rpcrig_proc.c, rpcrig/rpcrigd.c, rpcrot/Makefile.in,
+	rpcrot/rpcrot.h, rpcrot/rpcrot.x, rpcrot/rpcrot_backend.c,
+	rpcrot/rpcrot_backend.h, rpcrot/rpcrot_clnt.c,
+	rpcrot/rpcrot_proc.c, rpcrot/rpcrot_svc.c, rpcrot/rpcrot_xdr.c,
+	rpcrot/rpcrotd.c, src/Makefile.in, src/cal.c, src/cal.h,
+	src/conf.c, src/conf.h, src/event.c, src/ext.c, src/iofunc.c,
+	src/iofunc.h, src/locator.c, src/misc.c, src/misc.h,
+	src/register.c, src/rig.c, src/rot_conf.c, src/rot_conf.h,
+	src/rot_reg.c, src/rotator.c, src/serial.c, src/serial.h,
+	src/token.h, src/tones.c, src/tones.h, tcl/Makefile.in,
+	tcl/hamlibtcl.c, tcl/tclrig.c, tcl/tclrig.h, tcl/tclrot.c,
+	tcl/tclrot.h, tentec/Makefile.am, tentec/Makefile.in,
+	tentec/pegasus.c, tentec/rx320.c, tentec/tentec.c, tentec/tentec.h,
+	tests/Makefile.am, tests/Makefile.am.ts2k, tests/Makefile.in,
+	tests/dumpcaps.c, tests/dumpmem.c, tests/listrigs.c,
+	tests/rigctl.1, tests/rigctl.c, tests/rigmatrix.c, tests/rotctl.1,
+	tests/rotctl.c, tests/testbcd.c, tests/testcmd.c, tests/testloc.c,
+	tests/testvfo.c, tests/tsctl.c, uniden/Makefile.am,
+	uniden/Makefile.in, uniden/bc895.c, uniden/uniden.c,
+	uniden/uniden.h, winradio/Makefile.am, winradio/Makefile.in,
+	winradio/winradio.c, winradio/winradio.h, winradio/wr1000.c,
+	winradio/wr1500.c, winradio/wr1550.c, winradio/wr3100.c,
+	winradio/wr3150.c, winradio/wr3500.c, winradio/wr3700.c,
+	yaesu/Makefile.am, yaesu/Makefile.in, yaesu/ft100.c, yaesu/ft100.h,
+	yaesu/ft747.c, yaesu/ft747.h, yaesu/ft817.c, yaesu/ft817.h,
+	yaesu/ft847.c, yaesu/ft847.h, yaesu/yaesu.c, yaesu/yaesu.h:
+	Hopefully this is the last.  Copied files missing or outofdate with
+	current hamlib Main.  --Dale, kd7eni
+
+2003-02-25 06:11  dedmons
+
+	* tests/rigcmd.c: file rigcmd.c was initially added on branch
+	branch_ts2k.
+
+2003-02-25 06:11  dedmons
+
+	* tests/lex_hamlib.h: file lex_hamlib.h was initially added on
+	branch branch_ts2k.
+
+2003-02-25 06:11  dedmons
+
+	* tests/lex_rigs.h: file lex_rigs.h was initially added on branch
+	branch_ts2k.
+
+2003-02-25 06:11  dedmons
+
+	* tests/lex_rotors.h: file lex_rotors.h was initially added on
+	branch branch_ts2k.
+
+2003-02-25 06:11  dedmons
+
+	* tests/Makefile.am.ts2k: file Makefile.am.ts2k was initially added
+	on branch branch_ts2k.
+
+2003-02-25 06:11  dedmons
+
+	* tests/lex_keywords.h: file lex_keywords.h was initially added on
+	branch branch_ts2k.
+
+2003-02-25 06:11  dedmons
+
+	* kenwood/k2.c, tests/Makefile.am, tests/Makefile.am.ts2k,
+	tests/lex_hamlib.h, tests/lex_keywords.h, tests/lex_rigs.h,
+	tests/lex_rotors.h, tests/rigcmd.c: New stuff that didn't get
+	updated.
+
+2003-02-25 05:48  dedmons
+
+	* hamlib.pc.in: autogen.sh couldn't find hamlib.pc.in.
+
+2003-02-25 05:24  dedmons
+
+	* Makefile.am, README.betatester, README.developer, autogen.sh,
+	configure.ac, hamlib.spec.in, ltmain.sh, missing, mkinstalldirs:
+	Hopefully, I've got things copied over correctly.  Much of this
+	stuff won't affect me regardless of version.  I'll check later, but
+	they should closely match -r Main.
+
+2003-02-25 05:13  dedmons
+
+	* include/hamlib/: rig.h, rig_dll.h, rig_newvfo.h, rigclass.h,
+	riglist.h, rotator.h, rotlist.h: rig.h now has hooks into
+	rig_newvfo.h.  This allows selection of old and new style of vfo_t.
+	 The remainder only updates branch_ts2k with current CVS.
+
+2003-02-25 05:06  dedmons
+
+	* tests/: rig.tab.c, rig.tab.h, rigcmd.h, testts2k.c: See
+	especially the parser in tests/rc.  Still working on satisfactory
+	and unambiguise grammar.  --Dale
+
+2003-02-25 04:58  dedmons
+
+	* kenwood/: Makefile.am, Makefile.in, README.ts2k, kenwood.c,
+	kenwood.h, th.c, thd7.c, thf7.c, ts2000.c, ts2000.h, ts2k.c,
+	ts2k.h, ts2k.status, ts2k_mdata.c, ts2k_menu.c, ts2k_menu.h,
+	ts440.c, ts450s.c, ts50s.c, ts570.c, ts790.c, ts850.c, ts870s.c,
+	ts950.c: This should have kenwood/* up-to-date with Main, with
+	minor changes.
+
+2003-02-24 23:27  fillods
+
+	* aor/: aor.c, aor.h, ar5000.c: patch from Chuck N2POR fixing
+	End-of-message and a potential seg fault in get_freq. Added
+	get_level/set_level support for ATT, and moved mode handling for
+	AR5000
+
+2003-02-24 21:55  fillods
+
+	* tests/: Makefile.am, rig_bench.c: added rig_bench app to measure
+	get_freq/get_mode speed
+
+2003-02-23 23:43  fillods
+
+	* dummy/dummy.c: make use of TS_ANY, added 2 new vfo_op: UP/DOWN
+
+2003-02-23 23:41  fillods
+
+	* tests/dumpcaps.c: report tuning_step ANY (free form) and filter
+	ANY caps
+
+2003-02-23 23:38  fillods
+
+	* src/: conf.c, rig.c, token.h: added support for set DTR/RTS
+	state, useful to power external device from the serial port
+
+2003-02-23 23:36  fillods
+
+	* src/: serial.c, serial.h: extract set_dtr/set_rts to serve
+	multiple purposes
+
+2003-02-23 23:34  fillods
+
+	* include/hamlib/rig.h: * made RIG_VFO_CURR different than
+	RIG_VFO_NONE * added RIG_TS_ANY, RIG_FLT_ANY for free form
+	tuning_step and filters * added support for set RTS/DTR state of
+	the serial port
+
+2003-02-23 19:43  fillods
+
+	* configure.ac: * gnuradio backend requires GNU Radio >= 0.7 with
+	new FIR API * fodtrack backend needs linux/ppdev.h support (2.4+
+	kernels)
+
+2003-02-20 00:56  fillods
+
+	* icom/: Makefile.am, ic736.c, icom.c, icom.h: added IC-736
+
+2003-02-14 16:23  avflinsch
+
+	* yaesu/ft100.c: [no log message]
+
+2003-02-13 23:17  fillods
+
+	* aor/: Makefile.am, aor.c, aor.h, ar3000.c: added initial support
+	for the AR3000A
+
+2003-02-13 04:07  n0nb
+
+	* rotorez/: rotorez.c, rotorez.h: 2003-02-12:
+	
+		Update:
+			Fixed read bug where Rotor-EZ is apparently
+	returning the
+			azimuth string prepended with a semi-colon.  Thanks
+	to
+			Orv W6BI for testing the code.
+
+2003-02-10 00:06  fillods
+
+	* gnuradio/testgr.cc: some fixes, still to scope
+
+2003-02-10 00:02  fillods
+
+	* gnuradio/gnuradio.cc: * 2 demodulators are WIP: (W)FM and SSB *
+	MultiTask->process runs on its own thread within Hamlib backend,   
+	  thus no need to compile GNUradio with -DTHREAD=1.  * Appropriate
+	locking to gurantee GNUradio coherency wrt multithreading.  *
+	support for tuner control through Hamlib! The rig model number	
+	can be set through set_conf * made backend fully vfo targetable *
+	added set_level/get_level support. setting RIG_LEVEL_RF works!
+
+2003-02-09 23:54  fillods
+
+	* gnuradio/gr_priv.h: MultiTask in separate thread, support for
+	tuner control through Hamlib, per channel modulation data
+
+2003-02-09 23:50  fillods
+
+	* include/hamlib/riglist.h: added GRAUDIO model (sound card source
+	GNUradio)
+
+2003-02-09 23:49  fillods
+
+	* gnuradio/gr.c: can do vfo target, has set_level, and some priv
+	capabilities
+
+2003-02-09 23:47  fillods
+
+	* gnuradio/gnuradio.h: new calls and struct
+
+2003-02-09 23:46  fillods
+
+	* gnuradio/Makefile.am: added MC4020/graudio sources, gnuradio.cc
+	now multithreaded, and some testgr fixes
+
+2003-02-09 23:46  fillods
+
+	* gnuradio/: graudio.c, mc4020.c: Initial release
+
+2003-02-09 23:43  fillods
+
+	* configure.ac: gnuradio backend requires lib version 0.6
+
+2003-01-30 00:06  fillods
+
+	* microtune/: givelp1.cc, i2c.cc, i2c.h, i2cio.cc, i2cio.h,
+	Makefile.am, i2cio_pp.cc, i2cio_pp.h, microtune.cc, microtune.h,
+	microtune_4937.cc, microtune_4937.h, microtune_eval_board.cc,
+	microtune_eval_board.h, microtune_eval_board_defs.h, module_4937.c,
+	ppio.cc, ppio.h: Initial release
+
+2003-01-30 00:04  fillods
+
+	* Makefile.am: added microtune backend
+
+2003-01-30 00:02  fillods
+
+	* configure.ac: * added microtune backend * added
+	--without-rpc-backends to explicitly disable RPC build (in case  
+	of compilation trouble)
+
+2003-01-30 00:00  fillods
+
+	* src/rotator.c: fix a potential seg fault on backend open failure,
+	removed useless rot_get_position in open
+
+2003-01-29 23:31  fillods
+
+	* src/rig.c: fix a potential seg fault on backend open failure,
+	initialize state.current_vfo appropriately
+
+2003-01-29 23:31  fillods
+
+	* include/hamlib/riglist.h: added microtune in backend list
+
+2003-01-29 23:25  fillods
+
+	* kenwood/kenwood.c: added TS790 ID
+
+2003-01-19 05:47  n0nb
+
+	* doc/README.ft920, yaesu/ft920.c, yaesu/ft920.h: 2003-01-18
+	
+		Updated:
+			More code cleanups.  Updated README.ft920 to
+	reflect
+			latest backend status.
+
+2003-01-17 05:43  n0nb
+
+	* yaesu/: ft920.c, ft920.h: 2003-01-16
+	
+		Update:
+			Rewrote most of the backend functions to work with
+	passed RIG_VFO values.
+			Wrote three more helper functions to clean up main
+	code.
+			Added set/get rit/xit functions.
+
+2003-01-15 20:42  pa4tu
+
+	* hamlib.spec.in: a working spec file
+
+2003-01-15 20:39  pa4tu
+
+	* configure.ac: make rpm will fail with a '-' in the version number
+
+2003-01-15 20:37  pa4tu
+
+	* Makefile.am: need hamlib.spec for 'make rpm'
+
+2003-01-12 18:02  pa4tu
+
+	* configure.ac, Makefile.am: add rpm support
+
+2003-01-12 15:59  n0nb
+
+	* rotorez/rotorez.c: 2003-01-12
+	
+		Updated:
+			Added check for values greater than 359.4999 and
+	adjust
+			it to 0 for compatibility with DCU-1
+
+2003-01-12 15:29  n0nb
+
+	* include/hamlib/rotlist.h, rotorez/rotorez.c, rotorez/rotorez.h,
+	rotorez/rotorez.txt: 2003-01-12
+	
+		Updated:
+			Implemented basic functions for rotorez backend
+	
+		Added:
+			Text file describing extended DCU protocol used by
+			rotorez backend
+
+2003-01-11 01:48  n0nb
+
+	* Makefile.am, configure.ac, include/hamlib/rotlist.h: 2003-01-10
+	
+		Update:
+			Updated build files for rotorez backend.
+
+2003-01-11 01:47  n0nb
+
+	* rotorez/: Makefile.am, rotorez.c, rotorez.h: 2003-01-10
+	
+		New:
+			Adding files for initial rotorez build.  Will
+	build,
+			but no functionality.
+
+2003-01-07 04:40  n0nb
+
+	* yaesu/ft920.c: 2003-01-06
+	
+		Updated:
+			Bumped version in ft920.c to 0.1.3
+
+2003-01-07 04:32  n0nb
+
+	* doc/README.ft920, yaesu/ft920.c, yaesu/ft920.h: 2003-01-06
+	
+		Updated:
+			Added set/get_split_freq/mode support to FT-920
+	backend.
+			Added error handling in ft920.c to pass errors from
+	called
+			functions to main library.
+
+2003-01-06 23:13  fillods
+
+	* tests/Makefile.am: testfreq doesn't need backends
+
+2003-01-06 23:12  fillods
+
+	* kenwood/ts870s.c: added missing header
+
+2003-01-06 23:08  fillods
+
+	* src/misc.c: added RTTYR/CWR, cleanup
+
+2003-01-06 23:06  fillods
+
+	* icom/icom.c: * fix undefined signed char overflow * icom_get_freq
+	to be more tolerant on freq len (4 or 5), regardless of
+	civ_731_mode
+
+2003-01-06 23:04  fillods
+
+	* icom/frame.c: fix undefined signed char overflow
+
+2002-12-26 15:32  fillods
+
+	* icom/icom.h: added basic mem_cap definition
+
+2002-12-26 12:43  fillods
+
+	* icom/ic725.c: misc fixes
+
+2002-12-23 15:20  fillods
+
+	* icom/: Makefile.am, ic725.c, icom.c, icom.h: added IC725 initial
+	support
+
+2002-12-22 14:52  pa4tu
+
+	* kenwood/kenwood.c: minor bug
+
+2002-12-22 14:51  pa4tu
+
+	* kenwood/ts450s.c: should use kenwood_get_freq
+
+2002-12-21 16:34  pa4tu
+
+	* kenwood/ts450s.c: set_level for this rig
+
+2002-12-21 14:48  pa4tu
+
+	* kenwood/ts870s.c: more modes
+
+2002-12-21 14:46  pa4tu
+
+	* kenwood/kenwood.c: cleanups
+
+2002-12-21 14:41  pa4tu
+
+	* kenwood/ts450s.c: add get_level
+
+2002-12-21 13:35  pa4tu
+
+	* kenwood/kenwood.c: correct rit
+
+2002-12-21 13:08  pa4tu
+
+	* kenwood/ts570.c: some comments
+
+2002-12-21 01:30  pa4tu
+
+	* kenwood/ts570.c: filters
+
+2002-12-21 01:23  pa4tu
+
+	* kenwood/ts570.c: get_mode and set_mode for this rig
+
+2002-12-21 00:44  pa4tu
+
+	* kenwood/ts870s.c: more filters
+
+2002-12-20 17:13  pa4tu
+
+	* kenwood/ts870s.c: cw filters for normal, narrow and wide
+
+2002-12-20 16:43  pa4tu
+
+	* kenwood/ts870s.c: use FW command to set bandpass
+
+2002-12-20 12:00  pa4tu
+
+	* debian/rules: one last lintian fix
+
+2002-12-20 11:52  pa4tu
+
+	* debian/: rules, control, copyright: various lintian fixes
+
+2002-12-20 11:39  pa4tu
+
+	* kenwood/kenwood.c: use rig_passband_normal here
+
+2002-12-20 11:37  pa4tu
+
+	* kenwood/ts450s.c: passband should be calculated after mode is set
+
+2002-12-20 11:35  pa4tu
+
+	* kenwood/ts870s.c: retrieve passband with FW command
+
+2002-12-20 10:49  pa4tu
+
+	* kenwood/ts450s.c: this rig does not have a command for reading IF
+	bandwidth
+
+2002-12-19 12:00  pa4tu
+
+	* kenwood/kenwood.c, src/misc.c: add CWR and RTTYR
+
+2002-12-17 23:46  fillods
+
+	* kenwood/ts450s.c: filter list fix
+
+2002-12-17 13:08  pa4tu
+
+	* kenwood/ts450s.c: minor bugfix, bump to beta
+
+2002-12-16 23:06  fillods
+
+	* configure.ac, rpcrig/Makefile.am, rpcrig/rpcrig_backend.c,
+	rpcrig/rpcrigd.c, rpcrot/Makefile.am, rpcrot/rpcrot_backend.c,
+	rpcrot/rpcrotd.c: Solaris RPC portability fix
+
+2002-12-16 23:02  fillods
+
+	* include/hamlib/rig.h: added reverse sideband modes
+
+2002-12-16 19:44  fillods
+
+	* kenwood/kenwood.c: added new ID; for autoprobe
+
+2002-12-16 16:36  pa4tu
+
+	* kenwood/ts450s.c: ts450s uses IF command for get_vfo, get_freq
+	and get_mode
+
+2002-12-15 23:12  fillods
+
+	* kenwood/ts790.c: misc comm fix
+
+2002-12-01 22:49  fillods
+
+	* yaesu/: Makefile.am, ft1000.c, ft1000.h, ft1000mp.c, ft1000mp.h:
+	renamed ft1000 files to ft1000mp in order to avoid future clash
+
+2002-12-01 04:35  n0nb
+
+	* README.developer: 2002-11-30
+	
+		Update:
+			Added sarge to list of tested Debian systems.
+
+2002-12-01 04:08  n0nb
+
+	* yaesu/: ft100.c, ft100.h, ft747.c, ft747.h, ft817.c, ft817.h,
+	ft847.c, ft847.h, yaesu.c, yaesu.h: 2002-11-30
+	
+		Update:
+			Changed license boilerplate to LGPL after securing
+	permission
+			from Frank Singleton and Chris Karpinsky.
+
+2002-11-28 23:45  fillods
+
+	* autogen.sh: grr
+
+2002-11-28 23:38  fillods
+
+	* include/hamlib/rig.h: - doxygen update - RIG_DEBUG_* are now
+	enum's - new RIG_PORT_PARALLEL - new RIG_TYPE_TUNER -
+	RIG_VFO_UPLINK/RIG_VFO_DOWNLINK have been renamed to
+	RIG_VFO_TX/RIG_VFO_RX - new RIG_ANT_1, RIG_ANT_2, etc.
+
+2002-11-28 23:34  fillods
+
+	* README.developer: misc fixes
+
+2002-11-28 23:33  fillods
+
+	* src/: rotator.c, serial.c: fixes to allow new RIG_PORT_PARALLEL
+
+2002-11-28 23:32  fillods
+
+	* src/rig.c: misc update
+
+2002-11-28 23:31  fillods
+
+	* autogen.sh: Gentoo needs the WANT_AUTOCONF_2_5
+
+2002-11-28 23:29  fillods
+
+	* yaesu/: ft1000.c, ft1000.h: more work on the MARK-V FT1000MP: -
+	set_rit/get_rit - set_xit/get_xit - get_level - set_ptt
+	
+	to be tested..
+
+2002-11-28 23:27  fillods
+
+	* tests/dumpcaps.c: misc update
+
+2002-11-28 23:25  fillods
+
+	* tests/: rigctl.1, rigctl.c: added set/get xit and ant
+
+2002-11-28 23:24  fillods
+
+	* Makefile.am, configure.ac, fodtrack/Makefile.am,
+	fodtrack/fodtrack.c, fodtrack/fodtrack.h, include/hamlib/rotlist.h:
+	added fodtrack rotator initial support
+
+2002-11-26 00:54  fillods
+
+	* yaesu/: ft1000.c, ft1000.h: fix get_freq, set_vfo(CURR), and
+	get_mode
+
+2002-11-23 15:09  n0nb
+
+	* doc/README.ft920, yaesu/ft920.c, yaesu/ft920.h: 2002-11-23
+	
+		New:
+			Added doc/README.ft920 to document FT-920 behavior
+	with
+			Hamlib.
+	
+		Updated:
+			Added support for rig_set_split and rig_get_split
+
+2002-11-22 04:04  n0nb
+
+	* yaesu/: ft920.c, ft920.h: 2002-11-21
+	
+		Update:
+			Corrected problem with "NULL pointer" in
+	ft920_get_vfo
+			Updated rx/tx ranges for regions 1 & 2 with
+	bandplan.h
+			Changed license in ft920.c/h to LGPL
+			Bumped backend version to 0.1.2
+
+2002-11-22 00:09  fillods
+
+	* yaesu/: Makefile.am, ft1000.c, ft1000.h, yaesu.c, yaesu.h: added
+	initial support for the MARK-V FT-1000MP
+
+2002-11-22 00:06  fillods
+
+	* yaesu/ft920.c: little fix to make gcc-3.x happy
+
+2002-11-16 15:05  fillods
+
+	* icom/: Makefile.am, ic737.c, icom.c, icom.h: added IC 737 support
+
+2002-11-16 15:05  fillods
+
+	* include/: bandplan.h, Makefile.am: bandplan.h gathers couple
+	handy macros to declare freq_range's in model capabilities
+
+2002-11-16 05:12  n0nb
+
+	* yaesu/ft920.c: 2002-11-15:
+	
+		Update:
+			Fixed targetable VFO and other typographical
+	cleanups.
+			Bumped backend version to 0.1.1
+
+2002-11-15 14:15  n0nb
+
+	* yaesu/: ft920.c, ft920.h: 2002-11-15:
+	
+		Update:
+			In ft920.c get_freq, set_freq, get_mode, set_mode,
+			get_vfo, set_vfo should be complete enough to
+	consider
+			them in beta state.
+	
+			Advanced ft920 backend version to 0.1.0
+
+2002-11-14 20:27  fillods
+
+	* bindings/rig.swg: make swig 1.3.16 happy wrt preprocessor pass
+	time
+
+2002-11-14 20:27  fillods
+
+	* include/hamlib/: rig_dll.h, rigclass.h: gcc 3.x fixes
+
+2002-11-13 21:38  fillods
+
+	* Makefile.am, alinco/Makefile.am, aor/Makefile.am,
+	bindings/Makefile.am, c++/Makefile.am, drake/Makefile.am,
+	dummy/Makefile.am, easycomm/Makefile.am, gnuradio/Makefile.am,
+	icom/Makefile.am, jrc/Makefile.am, kachina/Makefile.am,
+	pcr/Makefile.am, rpcrig/Makefile.am, rpcrot/Makefile.am,
+	src/Makefile.am, tentec/Makefile.am, tests/Makefile.am,
+	uniden/Makefile.am, winradio/Makefile.am, yaesu/Makefile.am: misc
+	Makefile fixes
+
+2002-11-13 21:36  fillods
+
+	* README.developer: automake requirement and autogen.sh fixup
+
+2002-11-13 21:35  fillods
+
+	* kenwood/: k2.c, Makefile.am, kenwood.c, kenwood.h: added initial
+	support for Elecraft K2
+
+2002-11-12 01:16  fillods
+
+	* dummy/dummy.c: reflect rig.h changes
+
+2002-11-12 01:15  fillods
+
+	* include/hamlib/: rig.h, riglist.h: first take at doxygenization,
+	always enable NET port
+
+2002-11-12 01:12  fillods
+
+	* doc/hamlib.cfg: doxygenized rig.h and riglist.h
+
+2002-11-12 01:11  fillods
+
+	* include/hamlib/: rotator.h, rotlist.h: typo's
+
+2002-11-12 01:11  fillods
+
+	* configure.ac: always enable NET port
+
+2002-11-09 14:11  csete
+
+	* doc/hamlib.cfg: Added rotator.h and rotlist.h to the input list.
+
+2002-11-09 14:09  csete
+
+	* include/hamlib/: rotator.h, rotlist.h: Added doxygen comments.
+
+2002-11-09 09:11  pa4tu
+
+	* debian/: control, rules: remove some build dependencies and don't
+	call autogen.sh
+
+2002-11-08 20:26  pa4tu
+
+	* debian/rules: cleanup
+
+2002-11-08 20:25  pa4tu
+
+	* debian/rules: we don't have to call configure twice
+
+2002-11-08 20:22  pa4tu
+
+	* debian/: hamlib-doc.dirs, rules: build the documentation package
+
+2002-11-08 20:15  pa4tu
+
+	* debian/rules: INSTALL file not used
+
+2002-11-08 20:06  pa4tu
+
+	* debian/: control, rules: make building easier, call autogen.sh
+
+2002-11-08 19:43  pa4tu
+
+	* debian/control: move hamlib1 to the top so the documentations
+	gets installed correctly
+
+2002-11-08 19:41  pa4tu
+
+	* debian/rules: don't create shlibs file for drake, jrc and
+	easycomm libraries
+
+2002-11-08 19:34  pa4tu
+
+	* debian/: hamlib-dev.dirs, rules: include pkgconfig support
+
+2002-11-08 19:28  pa4tu
+
+	* debian/: hamlib-utils.dirs, rules: include rpc.rigd and rpc.rotd
+
+2002-11-08 19:24  pa4tu
+
+	* debian/rules: move .la, .a, .so files to the correct package
+
+2002-11-08 18:55  pa4tu
+
+	* debian/rules: versioning not used
+
+2002-11-08 18:51  pa4tu
+
+	* debian/rules: do not install the old changelog
+
+2002-11-08 17:45  pa4tu
+
+	* debian/rules: correct the path for copying files in the
+	apropriate package
+
+2002-11-08 17:30  pa4tu
+
+	* debian/changelog: make this NMU for now
+
+2002-11-08 17:28  pa4tu
+
+	* debian/: hamlib-doc.dirs, hamlib-utils.dirs, hamlib-utils.files:
+	initial checkin
+
+2002-11-08 17:25  pa4tu
+
+	* debian/: conffiles.ex, manpage.1.ex, postinst.ex, postrm.ex,
+	preinst.ex, prerm.ex, watch.ex: remove template files
+
+2002-11-08 17:22  pa4tu
+
+	* debian/: changelog, control, docs, rules: getting in sync with
+	the debian 1.1.2 package
+
+2002-11-07 14:21  n0nb
+
+	* bindings/perltest.pl: 2002-11-07
+	
+		Update:
+			Fixed path in hint on making perltest.pl work.
+
+2002-11-05 22:54  fillods
+
+	* winradio/linradio/: radio_ioctl.h, wrapi.h: updated to
+	linradio-toolkit-0.7
+
+2002-11-05 22:33  fillods
+
+	* tcl/: hamlibtcl.c, tclrig.h, tclrot.c, tclrot.h, Makefile.am,
+	tclrig.c, tcltest.tcl: deprecated, use swig bindings/ instead
+
+2002-11-05 22:30  fillods
+
+	* perl/: Changes, Hamlib.pm, MANIFEST, README, test.pl, typemap,
+	Hamlib.xs: deprecated, use swig bindings/ instead
+
+2002-11-04 23:40  fillods
+
+	* alinco/dx77.c, icom/ic275.c, icom/ic475.c, icom/ic706.c,
+	icom/ic718.c, icom/ic735.c, icom/ic756.c, icom/ic775.c,
+	icom/ic821h.c, icom/ic910.c, icom/ic970.c, icom/icr7000.c,
+	jrc/nrd545.c, kenwood/thd7.c, kenwood/thf7.c, kenwood/ts440.c,
+	kenwood/ts50s.c, kenwood/ts570.c, kenwood/ts790.c, kenwood/ts850.c,
+	kenwood/ts870s.c, kenwood/ts950.c, uniden/bc895.c: fix to account
+	for struct chan_list change
+
+2002-11-04 23:37  fillods
+
+	* src/: locator.c, rotator.c: misc doxygen fix
+
+2002-11-04 23:36  fillods
+
+	* dummy/dummy.c: added mem_cap, missing filters, and first dummy
+	level_gran
+
+2002-11-04 23:32  fillods
+
+	* include/hamlib/rig.h: * added VFO_UPLINK and VFO_DOWNLINK
+	(backend-wise) aliases * added channel_caps * added gran_t for
+	levels and parm's
+
+2002-11-04 23:28  fillods
+
+	* tests/dumpcaps.c: dump chan_caps
+
+2002-11-04 23:27  fillods
+
+	* src/: register.c, rot_reg.c: libhamlib-backend.so.x.y.z ->
+	hamlib-backend.so
+
+2002-11-04 23:26  fillods
+
+	* icom/icom.h: remove icall, added mem_cap initializer
+
+2002-11-04 23:25  fillods
+
+	* icom/: icall.c, icom.c: remove icall
+
+2002-11-04 23:23  fillods
+
+	* src/idx_builtin.h: initial release
+
+2002-11-04 23:21  fillods
+
+	* src/rig.c, src/conf.c, src/mem.c, src/settings.c, src/tones.c,
+	doc/hamlib.cfg: split rig.c
+
+2002-11-04 23:19  fillods
+
+	* alinco/Makefile.am, aor/Makefile.am, drake/Makefile.am,
+	dummy/Makefile.am, easycomm/Makefile.am, gnuradio/Makefile.am,
+	icom/Makefile.am, jrc/Makefile.am, kachina/Makefile.am,
+	kenwood/Makefile.am, pcr/Makefile.am, rpcrig/Makefile.am,
+	rpcrot/Makefile.am, tentec/Makefile.am, uniden/Makefile.am,
+	winradio/Makefile.am, yaesu/Makefile.am: libhamlib-backend.so.x.y.z
+	-> hamlib-backend.so, avoid version info for modules
+
+2002-11-04 23:18  fillods
+
+	* src/Makefile.am: bump version info, split rig.c
+
+2002-11-04 23:17  fillods
+
+	* c++/Makefile.am: bump version info, testcpp is TEST
+
+2002-11-04 23:16  fillods
+
+	* bindings/Makefile.am: VPATH build, avoid version on modules
+
+2002-11-04 23:14  fillods
+
+	* configure.ac: * libhamlib-backend.so.x.y.z -> hamlib-backend.so *
+	check swig version is at least 1.3.14 * more C99 checks (array
+	initializer)
+
+2002-11-04 23:11  fillods
+
+	* src/conf.h: since the move into conf.c, protos in header are
+	useless
+
+2002-11-04 06:16  n0nb
+
+	* yaesu/: ft920.c, ft920.h: 2002-11-03
+	
+		Update:
+			Miscellaneous formating cleanup.
+
+2002-11-01 05:39  n0nb
+
+	* yaesu/: ft920.c, ft920.h: 2002-10-31 (Spooky release)
+	
+		Update:
+			Completed basic operation of all functions in
+	ft920.*
+
+2002-10-31 02:43  fillods
+
+	* rpcrig/Makefile.am, bindings/Makefile.am, rpcrot/Makefile.am:
+	VPATH and distcheck fixes
+
+2002-10-31 02:00  n0nb
+
+	* yaesu/: ft920.c, ft920.h: 2002-10-30
+	
+		Update:
+			Merged my changes in ft920.c, .h with Stephane's
+	get_freq
+			update.  Will get and set frequency and not much
+	else!
+
+2002-10-31 01:47  fillods
+
+	* bindings/Makefile.am: do not distribute swig'generated files
+
+2002-10-31 01:26  fillods
+
+	* configure.ac: check for rpcgen, add -no-cpp-precomp on Mac OS X,
+	cleanup
+
+2002-10-31 01:23  fillods
+
+	* tests/Makefile.am: user app need libmisc, in case of
+
+2002-10-31 01:22  fillods
+
+	* rpcrig/Makefile.am, rpcrot/Makefile.am: do not include
+	rpcgen'erated files in dist, and make the rules more BSD friendly
+
+2002-10-31 01:16  fillods
+
+	* lib/: Makefile.am, getopt.c, getopt_long.c: portability fixes,
+	will have to better fix the getopt_long
+
+2002-10-31 00:39  fillods
+
+	* rpcrot/rpcrotd.c: fix include order
+
+2002-10-30 00:53  fillods
+
+	* yaesu/ft920.h: fix to make get_freq work for the ft920 (different
+	than ft847)
+
+2002-10-30 00:47  fillods
+
+	* yaesu/ft920.c: fix to make get_freq work for the ft920 (different
+	than ft847)
+
+2002-10-29 23:48  fillods
+
+	* yaesu/Makefile.am: missing ft920 header for dist
+
+2002-10-29 23:43  fillods
+
+	* autogen.sh: customize the script to your own needs!
+
+2002-10-29 23:38  fillods
+
+	* missing, mkinstalldirs: updated to automake-1.7
+
+2002-10-29 23:27  fillods
+
+	* gnuradio/Makefile.am: automake fix
+
+2002-10-29 23:18  fillods
+
+	* macros/Makefile.am: missed
+
+2002-10-29 23:14  fillods
+
+	* README.betatester, README.developer: more info on autogen.sh,
+	moved cvs checkout info from README.betatester to README.developer
+
+2002-10-29 23:10  fillods
+
+	* macros/libtool.m4, ltmain.sh, libltdl/acinclude.m4,
+	libltdl/aclocal.m4, libltdl/config-h.in, libltdl/configure,
+	libltdl/ltdl.c, libltdl/Makefile.in: updated to libtool-1.4.3
+
+2002-10-28 05:53  n0nb
+
+	* yaesu/: Makefile.am, ft920.c, ft920.h, yaesu.c, yaesu.h:
+	2002-10-27
+	
+		New:
+			ft920.c, ft920.h -- very very immature attempt at
+	FT-920
+			control.  Code can send simple query to rig but
+	cannot
+			properly decode returned data.	Much more work is
+	needed.
+	
+		Updated:
+			Makefile.am, yaesu.c, yaesu.h -- necessary changes
+	for
+			ft920.
+
+2002-10-22 22:24  fillods
+
+	* kenwood/kenwood.c: fix for *BSD portability
+
+2002-10-20 22:46  fillods
+
+	* drake/: drake.c, drake.h, r8b.c: initial basic support for R8B
+	(untested)
+
+2002-10-09 00:37  fillods
+
+	* configure.ac: check for gnuradio pkg data only upon request
+
+2002-10-08 23:54  fillods
+
+	* bindings/: hamlib.swg, perltest.pl, rig.swg: added intial channel
+	support
+
+2002-10-07 23:57  fillods
+
+	* src/: misc.c, misc.h: fixed a bug with even numbers of digits in
+	BCD conversion
+
+2002-10-07 23:55  fillods
+
+	* c++/Makefile.am, tests/Makefile.am: build only when requested
+
+2002-10-07 23:52  fillods
+
+	* rpcrig/rpc.rigd.8, tests/rotctl.1: updated man pages
+
+2002-10-07 23:50  fillods
+
+	* tests/rigctl.c: handle every parameter cases for get_channel
+
+2002-10-07 23:49  fillods
+
+	* include/hamlib/rig.h: misc addition to make compilers happy
+
+2002-10-07 23:48  fillods
+
+	* icom/ic756.c: ext_parm name change
+
+2002-10-07 23:46  fillods
+
+	* gnuradio/: Makefile.am, gr_priv.h, testgr.cc: some fixes for
+	gnuradio 0.5
+
+2002-10-07 23:44  fillods
+
+	* bindings/: Makefile.am, hamlib.swg, ignore.swg, perltest.pl,
+	rig.swg, rotator.swg, tcltest.tcl: more work on swig bindings,
+	nearly every calls supported, some chan wrapping missing, and also
+	lists
+
+2002-10-07 23:40  fillods
+
+	* Makefile.am, configure.ac: tcl and perl subdir are gone in favor
+	of bindings, added pkg support, fixed from gnuradio stuff
+
+2002-10-07 23:35  fillods
+
+	* macros/Makefile.am, macros/aclocal-include.m4, macros/libtool.m4,
+	macros/perl.m4, macros/pkg.m4, macros/tcl.m4, hamlib.pc.in: initial
+	release
+
+2002-10-03 22:13  fillods
+
+	* dummy/dummy.c: improved chan support
+
+2002-09-30 16:55  dl1nc
+
+	* Segfault-award: typo fixed
+
+2002-09-29 22:18  fillods
+
+	* src/event.c: fix typo
+
+2002-09-29 21:40  fillods
+
+	* Segfault-award, src/event.c: bug fix with non file oriented rigs
+
+2002-09-24 23:45  fillods
+
+	* tests/rotctl.c: fix for 8 bits cmd IDs
+
+2002-09-24 23:42  fillods
+
+	* doc/hamlib.cfg, doc/index.doxygen, src/locator.c, src/rig.c,
+	src/rotator.c: cleanup doxygen warnings
+
+2002-09-24 00:33  fillods
+
+	* doc/hamlib-doc: removed deprecated script, we're now using
+	doxygen/DocBook
+
+2002-09-24 00:27  fillods
+
+	* doc/hamlib.css: moved from html/
+
+2002-09-22 13:41  fillods
+
+	* c++/rigclass.cc, include/hamlib/rigclass.h: misc fix for picky
+	compilers
+
+2002-09-22 13:39  fillods
+
+	* README.betatester: mention to run autogen.sh after checkout
+
+2002-09-22 13:39  fillods
+
+	* rpcrig/rpc.rigd.8, rpcrot/rpc.rotd.8, tests/rigctl.1: list
+	verbose levels
+
+2002-09-21 15:54  fillods
+
+	* Segfault-award: Initial release
+
+2002-09-21 15:54  fillods
+
+	* icom/ic910.c: update (band swapping, pream/att, ..) by Luc LX2GT
+
+2002-09-21 15:52  fillods
+
+	* kenwood/ts570.c: fix missing initialization, thx goes to Dave
+	WB5NHL
+
+2002-09-18 23:19  fillods
+
+	* src/ext.c: fix bug with empty ext list
+
+2002-09-18 23:19  fillods
+
+	* icom/icom.c: fix for LEVEL_ATT, reported by lx2gt
+
+2002-09-16 08:50  fillods
+
+	* bindings/: hamlib.swg, rig.swg, rotator.swg: added error checking
+	through exception
+
+2002-09-16 00:35  pa4tu
+
+	* kenwood/kenwood.c: fix set_level_agc
+
+2002-09-16 00:22  pa4tu
+
+	* kenwood/kenwood.c: fix get_level_agc
+
+2002-09-13 21:57  pa4tu
+
+	* kenwood/kenwood.c: nothing returned by the rig for these commands
+
+2002-09-13 21:00  pa4tu
+
+	* kenwood/: ts2000.c, ts440.c, ts450s.c, ts50s.c, ts570.c, ts790.c,
+	ts850.c, ts870s.c, ts950.c: bump version numbers
+
+2002-09-13 09:01  fillods
+
+	* rpcrig/rpcrig.x, rpcrot/rpcrot.x: include config.h
+
+2002-09-13 08:58  fillods
+
+	* rpcrig/rpc.rigd.8, rpcrig/rpcrig_backend.c, rpcrig/rpcrigd.c,
+	rpcrot/rpc.rotd.8, rpcrot/rpcrot_backend.c, rpcrot/rpcrotd.c: added
+	ability to change RPC program number
+
+2002-09-11 23:33  fillods
+
+	* Makefile.am, configure.ac: check for C99 struct intializer
+	support, and enter bindings/ subdir only if swig is installed
+
+2002-09-11 23:32  fillods
+
+	* kenwood/Makefile.am: because of round()
+
+2002-09-11 23:32  fillods
+
+	* icom/ic910.c: dual band handling contributed by Luc LX2GT
+
+2002-09-11 23:30  fillods
+
+	* icom/icom.c: fix stupid bug in icom_set_func that was inverting
+	status + wrong frame len checking, thank goes to Luc LX2GT
+
+2002-09-10 08:43  fillods
+
+	* README.developer: GNU make needed
+
+2002-09-09 00:45  fillods
+
+	* src/serial.c: BSD port fix
+
+2002-09-09 00:33  fillods
+
+	* Makefile.am, configure.ac: added swig bindings
+
+2002-09-09 00:31  fillods
+
+	* bindings/: Makefile.am, hamlib.swg, ignore.swg, perltest.pl,
+	rig.swg, rotator.swg, tcltest.tcl: Initial release
+
+2002-09-09 00:30  fillods
+
+	* src/event.c: BSD port fix, by ke4rjq
+
+2002-09-09 00:27  fillods
+
+	* include/hamlib/rotator.h: function name fix to reflect locator.c
+	changes
+
+2002-09-07 17:13  fillods
+
+	* icom/ic910.c: fix on freq len
+
+2002-09-06 16:12  fillods
+
+	* tests/testbcd.c: fixed a bug with long long int, accepts an extra
+	arg for number of digits
+
+2002-09-06 16:07  fillods
+
+	* tests/: rigctl.c, Makefile.am, dumpcaps.c, rigctl.1, testcaps.c:
+	merged testcaps and dumpcaps into rigctl, added -u option
+	(dumpcaps) to rigctl
+
+2002-09-06 16:05  fillods
+
+	* tentec/tentec.c: fixed a segfault bug in init
+
+2002-09-06 12:43  fillods
+
+	* tests/: rigctl.c, rotctl.c: added ability to enter long command
+	names in interactive mode, by prefixing them with a \
+
+2002-09-05 20:20  fillods
+
+	* src/serial.c: fix to make it build on *BSD, and maybe others
+
+2002-09-04 19:56  pa4tu
+
+	* kenwood/ts950.c: bring rig in sync with other kenwood rigs
+
+2002-09-04 19:52  pa4tu
+
+	* kenwood/: ts570.c, ts790.c: bring rig in sync with other kenwood
+	rigs
+
+2002-09-04 19:47  pa4tu
+
+	* kenwood/: ts450s.c, ts50s.c: bring rig in sync with other kenwood
+	rigs
+
+2002-09-04 19:43  pa4tu
+
+	* kenwood/ts440.c: add set_level and get_level
+
+2002-09-04 19:32  pa4tu
+
+	* kenwood/: kenwood.c, kenwood.h, ts2000.c, ts440.c, ts450s.c,
+	ts50s.c, ts570.c, ts790.c, ts850.c, ts870s.c, ts950.c: add xit
+	capabilities
+
+2002-09-04 17:10  pa4tu
+
+	* kenwood/kenwood.c: typo
+
+2002-09-04 17:08  pa4tu
+
+	* kenwood/kenwood.c: fix get_ctcss_tone by using IF command
+
+2002-09-04 16:36  pa4tu
+
+	* kenwood/kenwood.c: explain set_rit
+
+2002-09-04 16:31  pa4tu
+
+	* kenwood/ts870s.c: send_morse added
+
+2002-09-04 16:26  pa4tu
+
+	* kenwood/ts2000.c: add rit capabilities
+
+2002-09-03 20:58  pa4tu
+
+	* kenwood/ts440.c: bring comands in sync with other kenwood rigs
+
+2002-09-03 20:53  pa4tu
+
+	* kenwood/: kenwood.c, kenwood.h, ts450s.c, ts50s.c, ts570.c,
+	ts790.c, ts850.c, ts870s.c, ts950.c: add rit capabilities
+
+2002-09-03 18:12  pa4tu
+
+	* rpcrig/Makefile.am, rpcrot/Makefile.am: fix_compilation
+
+2002-09-02 16:42  csete
+
+	* doc/hamlib.cfg: Modified to use new stylesheet.
+
+2002-09-02 00:23  fillods
+
+	* src/: locator.c, rig.c: fixed typo
+
+2002-09-02 00:21  fillods
+
+	* configure.ac: needed for BSD systems
+
+2002-08-27 00:33  fillods
+
+	* pcr/: pcr.c, pcr.h, pcr1000.c: patch from Darren G0WCW
+
+2002-08-27 00:31  fillods
+
+	* perl/Hamlib.xs: implemented more calls
+
+2002-08-26 23:26  fillods
+
+	* dummy/dummy.c, gnuradio/gnuradio.cc, src/misc.c, src/misc.h,
+	tcl/tclrig.c, tests/rigctl.c: WARNING: renamed strmode to strrmode
+	because the symbol is already in use on BSD systems
+
+2002-08-24 12:50  fillods
+
+	* rpcrig/rpcrig.h, rpcrig/rpcrig_clnt.c, rpcrig/rpcrig_svc.c,
+	rpcrig/rpcrig_xdr.c, rpcrot/rpcrot.h, rpcrot/rpcrot_clnt.c,
+	rpcrot/rpcrot_svc.c, rpcrot/rpcrot_xdr.c: remove autogenerated
+	files from cvs rep
+
+2002-08-23 22:01  fillods
+
+	* rpcrig/: rpcrig.h, rpcrig.x, rpcrig_backend.c, rpcrig_clnt.c,
+	rpcrig_proc.c, rpcrig_svc.c, rpcrig_xdr.c: implemented more calls
+
+2002-08-23 21:55  fillods
+
+	* rpcrig/: rpc.rigd.8, rpcrigd.c: ptt_type and dcd_type options now
+	accept keywords
+
+2002-08-23 01:44  fillods
+
+	* tests/: rigctl.1, rigctl.c: added transceive Event reporting,
+	ptt_type and dcd_type options now accept keywords
+
+2002-08-23 01:42  fillods
+
+	* configure.ac, lib/trunc.c, src/locator.c, tests/testloc.c: fixed
+	locator and dms conversion and also got rid of trunc usage, fixed
+	misnamed 'bearing' references
+
+2002-08-20 00:17  fillods
+
+	* icom/icom.c, icom/icom.h, icom/omni.c, tests/rigctl.c: patch from
+	Rein PA0RCT implementing icom_set_rit, and ability to call
+	rig_set_rit from rigctl
+
+2002-08-16 19:43  fillods
+
+	* alinco/dx77.c, aor/ar5000.c, aor/ar8000.c, aor/ar8200.c,
+	drake/r8b.c, dummy/dummy.c, dummy/rot_dummy.c, easycomm/easycomm.c,
+	gnuradio/gr.c, icom/ic275.c, icom/ic475.c, icom/ic706.c,
+	icom/ic718.c, icom/ic735.c, icom/ic756.c, icom/ic775.c,
+	icom/ic821h.c, icom/ic910.c, icom/ic970.c, icom/icall.c,
+	icom/icom.c, icom/icr7000.c, icom/icr8500.c, icom/omni.c,
+	icom/os456.c, icom/os535.c, jrc/nrd545.c, kachina/505dsp.c,
+	kenwood/th.c, kenwood/thd7.c, kenwood/thf7.c, kenwood/ts2000.c,
+	kenwood/ts440.c, kenwood/ts450s.c, kenwood/ts50s.c,
+	kenwood/ts570.c, kenwood/ts790.c, kenwood/ts850.c,
+	kenwood/ts870s.c, kenwood/ts950.c, pcr/pcr100.c, pcr/pcr1000.c,
+	rpcrig/rpcrig_backend.c, rpcrig/rpcrigd.c, rpcrot/rpcrot_backend.c,
+	rpcrot/rpcrot_proc.c, src/conf.c, src/rot_conf.c, tentec/pegasus.c,
+	tentec/rx320.c, uniden/bc895.c, winradio/wr1000.c,
+	winradio/wr1500.c, winradio/wr1550.c, winradio/wr3100.c,
+	winradio/wr3150.c, winradio/wr3500.c, winradio/wr3700.c,
+	yaesu/ft100.c, yaesu/ft747.c, yaesu/ft817.c, yaesu/ft847.c:
+	converted to C99 intialization style
+
+2002-08-02 12:00  dedmons
+
+	* tests/tsctl.c: Some bugfixes here instead of rigctl.c.
+
+2002-08-02 12:00  dedmons
+
+	* tests/tsctl.c: file tsctl.c was initially added on branch
+	branch_ts2k.
+
+2002-08-02 11:29  dedmons
+
+	* tests/rig.tab.h: file rig.tab.h was initially added on branch
+	branch_ts2k.
+
+2002-08-02 11:29  dedmons
+
+	* tests/rig.tab.c: file rig.tab.c was initially added on branch
+	branch_ts2k.
+
+2002-08-02 11:29  dedmons
+
+	* tests/rigcmd.h: file rigcmd.h was initially added on branch
+	branch_ts2k.
+
+2002-08-02 11:29  dedmons
+
+	* include/hamlib/rig_newvfo.h, kenwood/ts2000.c, kenwood/ts2k.c,
+	kenwood/ts2k.h, kenwood/ts2k_menu.c, src/misc.c, tests/Makefile.am,
+	tests/Makefile.in, tests/rig.tab.c, tests/rig.tab.h,
+	tests/rigcmd.h, tests/rigctl.c, tests/testcmd.c, tests/ts2k.tab.c,
+	tests/ts2k.tab.h: Updated parser, new base.y for testing, renamed
+	parser stuff to rig_yy...
+
+2002-07-26 14:19  dedmons
+
+	* src/misc.c: I believe this is a proper merge.
+
+2002-07-26 11:56  dedmons
+
+	* tests/: Makefile.am, Makefile.in: Removed test program.  It
+	duplicated rigctl.
+
+2002-07-26 11:53  dedmons
+
+	* kenwood/ts440.c, src/ext.c: Forgot these two files.  No wonder it
+	wouldn't compile after checkout.
+
+2002-07-26 11:41  dedmons
+
+	* drake/: Makefile.am, Makefile.in, drake.c, drake.h, r8b.c:
+	Finally...
+
+2002-07-26 11:41  dedmons
+
+	* drake/Makefile.in: file Makefile.in was initially added on branch
+	branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* tests/testcmd.c: file testcmd.c was initially added on branch
+	branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* gnuradio/Makefile.in: file Makefile.in was initially added on
+	branch branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* tests/lex.ts2k_yy.c: file lex.ts2k_yy.c was initially added on
+	branch branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* include/hamlib/rig_newvfo.h: file rig_newvfo.h was initially
+	added on branch branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* kenwood/ts2k_mdata.c: file ts2k_mdata.c was initially added on
+	branch branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* tests/ts2k.tab.c: file ts2k.tab.c was initially added on branch
+	branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* tests/testptt.c: file testptt.c was initially added on branch
+	branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* tests/testts2k.c: file testts2k.c was initially added on branch
+	branch_ts2k.
+
+2002-07-26 11:09  dedmons
+
+	* autogen.sh, gnuradio/Makefile.am, gnuradio/Makefile.in,
+	gnuradio/gnuradio.h, gnuradio/gr.c, gnuradio/gr_priv.h,
+	gnuradio/testgr.cc, include/hamlib/rig_newvfo.h, kenwood/ts2000.h,
+	kenwood/ts2k_mdata.c, tests/lex.ts2k_yy.c, tests/testcmd.c,
+	tests/testptt.c, tests/testts2k.c, tests/ts2k.tab.c,
+	tests/ts2k.tab.h: actually added files this time
+
+2002-07-26 11:09  dedmons
+
+	* tests/ts2k.tab.h: file ts2k.tab.h was initially added on branch
+	branch_ts2k.
+
+2002-07-26 10:53  dedmons
+
+	* Makefile.am, configure.ac, alinco/Makefile.in, aor/Makefile.in,
+	c++/Makefile.in, c++/rigclass.cc, doc/Makefile.in,
+	dummy/Makefile.in, dummy/dummy.c, dummy/rot_dummy.c,
+	easycomm/Makefile.in, icom/Makefile.in, icom/ic275.c, icom/ic475.c,
+	icom/ic756.c, icom/icom.c, icom/icom.h, include/hamlib/rig.h,
+	include/hamlib/rigclass.h, include/hamlib/riglist.h,
+	jrc/Makefile.in, kachina/Makefile.in, kenwood/Makefile.am,
+	kenwood/Makefile.in, kenwood/kenwood.c, kenwood/kenwood.h,
+	kenwood/th.c, kenwood/ts2000.c, kenwood/ts2k.c, kenwood/ts2k.h,
+	kenwood/ts2k.status, kenwood/ts2k_menu.c, kenwood/ts2k_menu.h,
+	kylix/Makefile.in, lib/Makefile.in, libltdl/Makefile.in,
+	pcr/Makefile.in, perl/Hamlib.xs, perl/Makefile.in,
+	rpcrig/Makefile.am, rpcrig/Makefile.in, rpcrig/rpcrig_backend.c,
+	rpcrig/rpcrig_proc.c, rpcrot/Makefile.am, rpcrot/Makefile.in,
+	src/Makefile.am, src/Makefile.in, src/iofunc.c, src/misc.c,
+	src/misc.h, src/rig.c, tcl/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.am, tests/Makefile.in, tests/dumpcaps.c,
+	tests/dumpmem.c, tests/listrigs.c, tests/rigctl.c,
+	tests/rigmatrix.c, tests/rotctl.c, tests/testcaps.c,
+	tests/testrig.c, tests/tests.h, tests/testtrn.c,
+	uniden/Makefile.in, winradio/Makefile.in,
+	winradio/linradio/wrapi.h, yaesu/Makefile.in: 1) Updated
+	branch_ts2k with respect to HEAD.  2) Working ts2k_menu.  (only in
+	RIG_MODEL_TS2K) 3) Split TS-2000 into experimental and standard
+	versions:    RIG_MODEL_TS2000 = standard, RIG_MODEL_TS2K =
+	experimental.  4) Basic command parser in tests/rc.  Will
+	open/close rig or copy a    freq from one rig/vfo to another
+	rig/vfo.  Very cool.  Very basic.     Very experimental.  5) Added
+	test programs.	   a) testcmd - calls parser (no command prompt
+	yet!)	  b) testts2k - replacement for testrig (with trivial
+	modification)	  c) testptt - testts2k/testrig should not
+	transmit.  TX stuff in testptt.  6) Used crowbar to merge HEAD into
+	branch_ts2k.  Working on clean-up.  7) I'm sure I've forgotten or
+	neglected to mention some other stuff.
+
+2002-07-12 00:13  fillods
+
+	* perl/Hamlib.xs: remove deprecated functions
+
+2002-07-10 23:45  fillods
+
+	* kenwood/: kenwood.c, kenwood.h, ts440.c: fix set_vfo/get_vfo for
+	TS-440
+
+2002-07-10 23:34  fillods
+
+	* tests/: dumpmem.c, rigctl.c: fixed support for new vfo param in
+	get_channel
+
+2002-07-10 23:30  fillods
+
+	* src/rig.c: fix dangerous typo in case of get_channel emulation
+
+2002-07-10 22:42  dedmons
+
+	* src/: misc.c, rig.c: Added verbose bitmask printing to strvfo. 
+	#define selectable.
+
+2002-07-10 22:35  dedmons
+
+	* tests/: Makefile.am, Makefile.in, dumpcaps.c, dumpmem.c,
+	listrigs.c, rigctl.c, rigmatrix.c, rotctl.c, testcaps.c, testrig.c,
+	tests.h, testtrn.c, testvfo.c: Added test for new vfo_t stuff.
+
+2002-07-10 22:35  dedmons
+
+	* tests/testvfo.c: file testvfo.c was initially added on branch
+	branch_ts2k.
+
+2002-07-10 22:35  dedmons
+
+	* tests/tests.h: file tests.h was initially added on branch
+	branch_ts2k.
+
+2002-07-10 22:28  dedmons
+
+	* kenwood/: ts2k.c, ts2k.h: Major revision of ts2k.c.
+
+2002-07-10 00:18  fillods
+
+	* src/misc.c: added FUNC_TBURST
+
+2002-07-10 00:17  fillods
+
+	* include/hamlib/rig.h, include/hamlib/rigclass.h, src/rig.c,
+	c++/rigclass.cc: - removed rig_save_channel and rig_restore_channel
+	from API - rig_set_channel and rig_get_channel can now target VFO,
+	besides memories - emulation of set_channel and get_channel has
+	been kept in generic routines.	  Added in these routines the
+	support for ext_levels.
+
+2002-07-09 22:43  fillods
+
+	* icom/: ic756.c, icom.c, icom.h: added IC756PROII caps with basic
+	"extra" parm support
+
+2002-07-09 22:40  fillods
+
+	* include/hamlib/rig.h, src/Makefile.am, src/rig.c, tests/rigctl.c:
+	added "extra" level and "extra" parm support
+
+2002-07-09 22:36  fillods
+
+	* src/ext.c: Initial release
+
+2002-07-09 00:53  fillods
+
+	* dummy/dummy.c, dummy/rot_dummy.c, kenwood/kenwood.c,
+	kenwood/th.c, rpcrig/rpcrig_backend.c, rpcrig/rpcrig_proc.c,
+	src/iofunc.c, winradio/linradio/wrapi.h: gcc3 fixes
+
+2002-07-09 00:20  fillods
+
+	* include/hamlib/rig.h, kenwood/Makefile.am, kenwood/ts2000.c,
+	src/misc.c: Temporarily roll back ts2k experimental patches, esp.
+	the VFO bits kept: - indentation - new PARM_KEYLIGHT, SCAN_VFO -
+	new scan_group field in struct channel - added RIG_CHFLAG's ts2k
+	stuff in 'branch_ts2k' will be merged later
+
+2002-07-09 00:14  fillods
+
+	* Makefile.am, configure.ac: added Drake backend
+
+2002-07-09 00:10  fillods
+
+	* drake/: Makefile.am, drake.c, drake.h, r8b.c: Initial release of
+	skeleton for Drake backend
+
+2002-07-09 00:09  fillods
+
+	* include/hamlib/riglist.h: added Drake R-8B
+
+2002-07-07 02:24  dedmons
+
+	* doc/rig.status: Space format file to fill-in so particular rig's
+	status is known.  (e.g. see kenwood/ts2k.status)  Lost
+	rpcrig.status.	Will redo it.
+
+2002-07-07 02:24  dedmons
+
+	* doc/rig.status: file rig.status was initially added on branch
+	branch_ts2k.
+
+2002-07-06 18:53  dedmons
+
+	* rpcrig/README.rpcrig: Quick and dirty HOWTO for rpcrig.  It
+	worked for me last I checked!
+
+2002-07-06 18:53  dedmons
+
+	* rpcrig/README.rpcrig: file README.rpcrig was initially added on
+	branch branch_ts2k.
+
+2002-07-06 18:51  dedmons
+
+	* kenwood/: ts2000.c, ts2k.h, ts2k_menu.c, ts2k_menu.h: Rearranged
+	headers some.  Failed attempt to add menus to ts2k.
+
+2002-07-06 18:48  dedmons
+
+	* kenwood/ts2k.c: General cleanup + bugfixes.
+
+2002-07-06 17:50  dedmons
+
+	* kenwood/ts2k.status: Trivial change to check "-r branch_ts2k".
+
+2002-07-06 11:31  fillods
+
+	* configure.ac: added gnuradio backend, bumped version number, misc
+	fix for recent LIBTOOL
+
+2002-07-06 11:30  fillods
+
+	* Makefile.am: added gnuradio backend
+
+2002-07-06 11:27  fillods
+
+	* gnuradio/: Makefile.am, gnuradio.cc, gnuradio.h, gr.c, gr_priv.h,
+	testgr.cc: Initial alpha release
+
+2002-07-06 11:26  fillods
+
+	* src/misc.h: misc fix for C++
+
+2002-07-06 11:24  fillods
+
+	* include/hamlib/riglist.h: added GNUradio models
+
+2002-07-06 11:24  fillods
+
+	* rpcrig/Makefile.am, rpcrot/Makefile.am: build fix
+
+2002-07-06 01:22  fillods
+
+	* kenwood/: Makefile.am, kenwood.c, kenwood.h, ts440.c: added TS440
+	caps
+
+2002-07-03 15:53  dl1nc
+
+	* autogen.sh: fixed it
+
+2002-07-03 15:50  dl1nc
+
+	* autogen.sh: [no log message]
+
+2002-07-02 20:03  fillods
+
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, easycomm/Makefile.in,
+	icom/Makefile.in, jrc/Makefile.in, kachina/Makefile.in,
+	kenwood/Makefile.in, kylix/Makefile.in, lib/Makefile.in,
+	pcr/Makefile.in, perl/Makefile.in, rpcrig/Makefile.in,
+	rpcrot/Makefile.in, src/Makefile.in, tcl/Makefile.in,
+	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: removed autogenerated
+	files, use autogen.sh instead
+
+2002-07-02 00:11  fillods
+
+	* autogen.sh: Initial release
+
+2002-07-02 00:08  fillods
+
+	* icom/: ic275.c, ic475.c: update max serial speed the rig can do
+	(dip-switches inside the rig)
+
+2002-06-30 13:32  dedmons
+
+	* kenwood/Makefile.in: Had to re-run automake kenwood/Makefile.
+
+2002-06-30 12:20  dedmons
+
+	* kenwood/: ts2000.c, ts2000.h: Changed name back to original.
+
+2002-06-30 12:17  dedmons
+
+	* include/hamlib/rig.h, kenwood/Makefile.am, kenwood/ts2k.c,
+	kenwood/ts2k.h, kenwood/ts2k_menu.c, src/misc.c: Added working
+	TS-2000 files.	There are some changes left out but this is the
+	minimum I could commit and have a functional rig.  The cost is that
+	I've broken kylix and others that duplicate rig.h.  I'm in the
+	process of repairing the damage.  Please be patient.  I hope a day
+	or so, but am asking for up to a week.	E-mail me about *anything*
+	you find broken.  Kylix (and similar) is (are) known to not work.
+
+2002-06-29 11:58  dedmons
+
+	* kenwood/README.ts2k: Updated status.
+
+2002-06-29 11:54  dedmons
+
+	* kenwood/: Makefile.am, Makefile.in, ts2k.c, ts2k.h: Temp kludge
+	to make ts2k.c compile (keeps Hamlib from compiling!).
+
+2002-06-29 11:16  dedmons
+
+	* kenwood/Makefile.am: Wouldn't compile.  Removed ts2k.c.  Haven't
+	got all new rig.h stuff removed.
+
+2002-06-29 11:04  dedmons
+
+	* kenwood/ts2000.c: Renamed new ts2000.c to ts2000.h
+
+2002-06-29 10:56  dedmons
+
+	* kenwood/README.ts2k: Corrected status to CVS branch.
+
+2002-06-29 10:47  dedmons
+
+	* kenwood/ts2k.status: Changes often, so added status.	Will delete
+	when things stabilize.
+
+2002-06-29 10:42  dedmons
+
+	* kenwood/ts2k.c: Bring code more in line with CVS code.
+
+2002-06-29 10:40  dedmons
+
+	* kenwood/ts2000.h: Renamed ts2000.c.new ts2000.h
+
+2002-06-29 10:39  dedmons
+
+	* kenwood/README.ts2k: New file.
+
+2002-06-29 10:38  dedmons
+
+	* kenwood/: ts2k_menu.c, ts2k_menu.h: Start of rig menuing
+	functions.
+
+2002-06-29 10:20  dedmons
+
+	* kenwood/Makefile.am: Changed ts2000.c to ts2000.h.
+
+2002-06-29 10:18  dedmons
+
+	* kenwood/ts2k.c: Bring ts2k.c more in line with current CVS.
+
+2002-06-27 11:16  dedmons
+
+	* kenwood/: Makefile.am, ts2000.c.orig: Copied too much stuff,
+	backed out what I broke.
+
+2002-06-27 10:55  dedmons
+
+	* kenwood/: Makefile.am, README.ts2k, ts2000.c, ts2000.c.orig,
+	ts2k.c, ts2k.h: Started TS-2000 update/overhaul --Dale
+
+2002-06-26 22:44  dedmons
+
+	* tests/rigctl.c: Added comments to commandline in rigctl (second
+	time) --Dale
+
+2002-06-19 19:33  fillods
+
+	* kenwood/ts2000.txt: initial release
+
+2002-06-17 23:00  fillods
+
+	* hamlib.spec.in: preliminary work for 1.1.3 release
+
+2002-06-17 22:59  fillods
+
+	* THANKS, lib/Makefile.am, src/iofunc.c, src/misc.c,
+	tcl/tcltest.tcl, tests/testtrn.c: misc
+
+2002-06-17 22:56  fillods
+
+	* libltdl/COPYING.LIB, libltdl/acinclude.m4, libltdl/aclocal.m4,
+	libltdl/config-h.in, libltdl/configure, libltdl/ltdl.c, ltmain.sh:
+	updated to libtool-1.4.2-6
+
+2002-06-17 22:53  fillods
+
+	* include/hamlib/riglist.h: added IC7400
+
+2002-06-17 22:52  fillods
+
+	* README: misc update before release
+
+2002-06-17 22:51  fillods
+
+	* NEWS: 1.1.3 release
+
+2002-06-05 00:41  fillods
+
+	* icom/omni.c: CI-V address fix, this rig looks like a IC-735
+
+2002-05-31 20:25  fillods
+
+	* icom/: Makefile.am, Makefile.in: added OMNI VI+
+
+2002-05-30 19:38  fillods
+
+	* icom/: icom.c, icom.h, omni.c: added OMNI VI+, basic support only
+
+2002-05-28 23:45  fillods
+
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, easycomm/Makefile.in,
+	icom/Makefile.in, jrc/Makefile.in, kachina/Makefile.in,
+	kenwood/Makefile.in, kylix/Makefile.in, lib/Makefile.in,
+	pcr/Makefile.in, perl/Makefile.in, rpcrig/Makefile.in,
+	rpcrot/Makefile.in, src/Makefile.in, tcl/Makefile.in,
+	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: regenerated
+
+2002-05-28 23:43  fillods
+
+	* AUTHORS: thanks to all of you guys
+
+2002-05-28 23:39  fillods
+
+	* README.betatester: misc addition
+
+2002-05-28 23:35  fillods
+
+	* icom/ic706.c: cleanup, LEVEL_STRENGTH is now the S-meter level
+
+2002-05-28 23:34  fillods
+
+	* icom/os535.c: status update
+
+2002-05-28 23:33  fillods
+
+	* hamlib.m4: cloned from Alsa project, still not thouroughly tested
+
+2002-05-28 23:32  fillods
+
+	* configure.ac: disabled perl default building, and also changes to
+	make autoconf-2.53 happy
+
+2002-05-28 23:28  fillods
+
+	* README.developer: much needed update on lib arch
+
+2002-04-24 00:04  fillods
+
+	* tests/rigctl.c: misc fix in labels
+
+2002-04-24 00:03  fillods
+
+	* src/iofunc.c: dump hex buffer even in error cases
+
+2002-04-24 00:01  fillods
+
+	* icom/: icall.c, icr8500.c: no support for icr75_get/set_channel
+	on this model
+
+2002-04-23 23:59  fillods
+
+	* icom/icom.h: renamed function to appropriate model
+
+2002-04-23 23:56  fillods
+
+	* yaesu/ft100.c: obvious fix for dcs functions. Please test and
+	report
+
+2002-04-23 23:55  fillods
+
+	* tests/rigctl.1: be more explicit about parameter description
+
+2002-04-23 23:53  fillods
+
+	* src/misc.c: misc adding to parse/str helpers
+
+2002-04-23 23:49  fillods
+
+	* icom/ic910.c, icom/icom.c, include/hamlib/rig.h: converted
+	RIG_SCAN_RESUME_ON/OFF to more appropriate RIG_FUNC_RESUME
+
+2002-04-23 21:47  fillods
+
+	* include/hamlib/riglist.h: added K2
+
+2002-04-23 21:46  fillods
+
+	* doc/NOTES: [no log message]
+
+2002-03-26 09:05  fillods
+
+	* pcr/pcr.c: temporary fix: read_block instead of read_string to
+	make initialization to work, added UK code info
+
+2002-03-25 01:19  pa4tu
+
+	* kenwood/: ts570.c, ts790.c, ts850.c, ts950.c: add
+	RIG_LEVEL_RFPOWER
+
+2002-03-25 01:16  pa4tu
+
+	* kenwood/: ts2000.c, ts450s.c, ts50s.c: add RIG_LEVEL_RFPOWER
+
+2002-03-25 01:12  pa4tu
+
+	* kenwood/: kenwood.c, ts870s.c: add RIG_LEVEL_RFPOWER
+
+2002-03-19 00:04  fillods
+
+	* icom/: frame.c, frame.h, icom.c: better collision handling, patch
+	from Chuck N2POR
+
+2002-03-18 23:59  fillods
+
+	* include/hamlib/rig.h, src/rig.c: added new error codes
+
+2002-03-15 23:58  pa4tu
+
+	* kenwood/kenwood.c: fix signal strength
+
+2002-03-15 20:43  fillods
+
+	* kenwood/kenwood.c: fix needed after previous commit. with new
+	kenwood_transaction, the max receive buffer size must be passed.
+	Also included a fix for rig_get_strenght in range expected by
+	frontend (0 = S9).
+
+2002-03-15 14:04  fillods
+
+	* icom/icom.c: fixes to handle old rigs (mode and mem)
+
+2002-03-15 14:03  fillods
+
+	* icom/ic735.c: IC-735 fixes, thanks to traces from Darren G0WCW
+
+2002-03-15 00:06  fillods
+
+	* src/rig.c: various fixes associated with get_channel and
+	set_channel
+
+2002-03-14 00:56  fillods
+
+	* pcr/pcr.c: protocol fix: PCR always send a short ack, whatever
+	the response can be. So eat it.
+
+2002-03-14 00:42  fillods
+
+	* kenwood/: kenwood.c, kenwood.h, th.c, th.h, thd7.c, thf7.c,
+	ts2000.c, ts450s.c, ts50s.c, ts570.c, ts790.c, ts850.c, ts870s.c,
+	ts950.c: factorized th_transaction with kenwood_transaction, killed
+	thd7_* functions and share with th breed rigs
+
+2002-03-14 00:37  fillods
+
+	* alinco/alinco.c, aor/aor.c, jrc/jrc.c, kachina/kachina.c,
+	pcr/pcr.c, tentec/tentec.c, uniden/uniden.c: replaced fread_block
+	in favor of the more intelligent read_string, added some
+	serial_flush
+
+2002-03-12 20:28  fillods
+
+	* src/iofunc.c: fix a bug introduced by previous commit
+
+2002-03-12 14:27  avflinsch
+
+	* yaesu/ft100.h: 
+	added getinfo func hdr
+
+2002-03-12 14:02  avflinsch
+
+	* yaesu/ft100.c: 
+	added get frequency to ft100 code
+
+2002-03-12 00:28  fillods
+
+	* icom/: frame.c, frame.h, icom.c: read_icom_block is gone, in
+	favor of read_string. Thanks to Chuck Hemker.
+
+2002-03-11 00:44  fillods
+
+	* icom/: frame.c, frame.h, icom.c: reworked rig2icom_mode and
+	icom2rig_mode to better handle cases with no passband data
+
+2002-03-11 00:41  fillods
+
+	* easycomm/easycomm.c, kenwood/th.c, src/iofunc.c, src/iofunc.h:
+	handle nul char in stopset
+
+2002-03-11 00:39  fillods
+
+	* icom/icom_defs.h: added IC-R7000 defs
+
+2002-03-11 00:36  fillods
+
+	* icom/Makefile.in: regenerated
+
+2002-03-11 00:36  fillods
+
+	* icom/: Makefile.am, icom.h: added OptoScan 456
+
+2002-03-11 00:36  fillods
+
+	* icom/os456.c: Initial release
+
+2002-03-07 23:58  fillods
+
+	* icom/: optoscan.c, os535.c: misc fixes as suggested by John R.
+	Marshall
+
+2002-03-07 23:50  fillods
+
+	* pcr/pcr1000.c: various fixes to bring this rig in alpha stage
+
+2002-03-07 23:49  fillods
+
+	* src/: serial.c, serial.h: split serial_open in open and
+	serial_setup
+
+2002-03-07 23:48  fillods
+
+	* pcr/: pcr.c, pcr.h: bug fixes, added pcr_open and pcr_close
+
+2002-03-06 23:55  fillods
+
+	* yaesu/Makefile.in, perl/Makefile.in: regenerated
+
+2002-03-06 23:55  fillods
+
+	* perl/Makefile.am: moved files from Hamlib/ subdir to this
+	directory, and passed more args to perl Makefile creation to make
+	VPATH happy
+
+2002-03-06 23:55  fillods
+
+	* yaesu/Makefile.am: misc build fix
+
+2002-03-06 23:48  fillods
+
+	* perl/Hamlib/: Changes, Hamlib.pm, Hamlib.xs, MANIFEST,
+	Makefile.PL, README, test.pl, typemap: moved to ..
+
+2002-03-06 23:46  fillods
+
+	* perl/: Changes, Hamlib.pm, Hamlib.xs, MANIFEST, Makefile.PL,
+	README, test.pl, typemap: moved from Hamlib/ subdir, to make VPATH
+	working easier
+
+2002-03-06 22:11  fillods
+
+	* icom/Makefile.in: regenerated
+
+2002-03-06 22:11  fillods
+
+	* icom/icom_defs.h: added OptoScan extension defines
+
+2002-03-06 22:10  fillods
+
+	* icom/: Makefile.am, icom.c, icom.h: added OptoScan535
+
+2002-03-06 22:10  fillods
+
+	* icom/: optoscan.c, os535.c: Initial release
+
+2002-03-06 22:09  fillods
+
+	* include/hamlib/riglist.h: added OS535 and OS456 ids
+
+2002-03-06 00:33  fillods
+
+	* icom/Makefile.in: regenerated
+
+2002-03-06 00:31  fillods
+
+	* icom/: Makefile.am, icom.c, icom.h: added IC-718, patch from
+	Chuck Gilkes WD0FCL/4
+
+2002-03-06 00:26  fillods
+
+	* icom/ic718.c: Initial release
+
+2002-03-06 00:25  fillods
+
+	* kenwood/Makefile.in: regenerated
+
+2002-03-05 21:23  fillods
+
+	* kenwood/: Makefile.am, kenwood.c, kenwood.h: added TS-850
+
+2002-03-05 21:23  fillods
+
+	* kenwood/ts850.c: Initial release
+
+2002-03-05 01:49  fillods
+
+	* icom/icr7000.c: numerous fixes reported by Chuck N2POR
+
+2002-03-05 01:45  fillods
+
+	* include/hamlib/riglist.h: fixed stupid copy-paste model id
+	duplicates
+
+2002-03-05 01:43  fillods
+
+	* include/hamlib/rig.h: fixed the kHz/MHz/GHz macros so it works
+	with doubles and >2GHz integers
+
+2002-03-05 01:41  fillods
+
+	* icom/icom.c: fixed a bug detecting empty channel freq
+
+2002-03-05 01:39  fillods
+
+	* icom/frame.c: flush serial before icom_transaction, added
+	workarounds for IC-R7000 mode/bandwidth
+
+2002-03-04 21:28  fillods
+
+	* icom/Makefile.in: regenerated
+
+2002-03-04 21:23  fillods
+
+	* icom/: icom.c, icom.h, Makefile.am: added IC-970
+
+2002-03-04 21:22  fillods
+
+	* icom/ic970.c: Initial release
+
+2002-03-04 14:28  avflinsch
+
+	* yaesu/yaesu_tones.h: new file, list of tones/codes and sequence
+	used by various yaesu rigs
+
+2002-03-04 14:16  avflinsch
+
+	* tests/rigctl.1: fixed various command options
+
+2002-03-04 14:01  avflinsch
+
+	* yaesu/ft100.h: initial release
+
+2002-03-04 14:00  avflinsch
+
+	* yaesu/ft100.c: Initial release
+
+2002-03-04 13:57  avflinsch
+
+	* kylix/HamlibComponents.pas: Initial changes for ft100
+
+2002-02-28 12:00  fgretief
+
+	* include/hamlib/rig.h: Added constants for the IC-910 rig.
+
+2002-02-28 11:59  fgretief
+
+	* icom/: Makefile.am, Makefile.in, ic910.c, icom.c, icom.h,
+	icom_defs.h: Added IC-910 rig.
+
+2002-02-28 00:34  fillods
+
+	* src/rig.c: added functions to install event callbacks with its
+	private data pointer
+
+2002-02-28 00:25  fillods
+
+	* jrc/jrc.c, c++/rigclass.cc, kenwood/th.c, tests/testtrn.c: added
+	a private data pointer argument to event callbacks
+
+2002-02-28 00:22  fillods
+
+	* include/hamlib/: rig.h, rigclass.h: API hazard: added a private
+	data pointer argument to event callbacks
+
+2002-02-28 00:19  fillods
+
+	* icom/icr8500.c: fix missing set_conf/get_conf ability
+
+2002-02-28 00:18  fillods
+
+	* aor/Makefile.in, icom/Makefile.in: regenerated
+
+2002-02-28 00:17  fillods
+
+	* aor/: Makefile.am, aor.c, aor.h: added AR5000
+
+2002-02-28 00:17  fillods
+
+	* icom/: Makefile.am, icom.c, icom.h: added IC-R7000
+
+2002-02-28 00:15  fillods
+
+	* aor/ar5000.c, icom/icr7000.c: Initial release
+
+2002-02-27 21:21  pa4tu
+
+	* kenwood/kenwood.c: additional protocol checks and cleanups
+
+2002-02-26 22:25  fillods
+
+	* src/Makefile.in: regenerated
+
+2002-02-26 22:23  fillods
+
+	* src/: Makefile.am, register.c, rot_reg.c: added HAMLIB_MODULE_DIR
+	so there's no more need for LD_LIBRARY_PATH setting for backend
+	module path
+
+2002-02-26 02:20  fillods
+
+	* yaesu/Makefile.in: regenerated
+
+2002-02-26 02:20  fillods
+
+	* yaesu/: Makefile.am, yaesu.c, yaesu.h: added FT-100
+
+2002-02-26 02:18  fillods
+
+	* yaesu/: ft100.c, ft100.h: Initial release, cloned from ft817
+
+2002-02-19 09:34  pa4tu
+
+	* kenwood/: ts950.c, ts50s.c: add get_ptt for this rig
+
+2002-02-19 09:30  pa4tu
+
+	* kenwood/: ts2000.c, ts570.c, ts790.c: add get_ptt for this rig
+
+2002-02-18 19:27  pa4tu
+
+	* kenwood/ts870s.c: enable get_ptt for this rig
+
+2002-02-18 19:25  pa4tu
+
+	* kenwood/: kenwood.c, kenwood.h: first implementation of
+	kenwood_get_ptt
+
+2002-02-15 16:09  fillods
+
+	* tcl/tclrig.c: more calls
+
+2002-02-15 01:14  fillods
+
+	* tcl/tclrig.c: added set_level/get_level, get_func/set_func and
+	set_parm/get_parm
+
+2002-02-15 01:12  fillods
+
+	* dummy/dummy.c: fix in get_level/get_level and get_parm/get_parm,
+	added support for VFOA/VFOB, memory channel and vfo_ops
+
+2002-02-12 23:15  fillods
+
+	* src/tones.c: added doxygen header
+
+2002-02-12 23:14  fillods
+
+	* perl/Hamlib/: Hamlib.pm, Hamlib.xs, test.pl, typemap: first
+	working version, with everyday use basic functions
+
+2002-02-12 23:11  fillods
+
+	* perl/Makefile.am: integration of Perl build with autotools. VPATH
+	still not okay
+
+2002-02-12 23:10  fillods
+
+	* doc/index.doxygen: Initial release
+
+2002-02-12 23:10  fillods
+
+	* doc/hamlib.cfg: misc fixes
+
+2002-02-12 23:09  fillods
+
+	* doc/Makefile.in, perl/Makefile.in: regenerated
+
+2002-02-12 23:08  fillods
+
+	* doc/Makefile.am: misc fix
+
+2002-02-09 22:59  fillods
+
+	* perl/Hamlib/: Changes, Hamlib.pm, Hamlib.xs, MANIFEST,
+	Makefile.PL, README, test.pl, typemap: Initial release
+
+2002-02-09 22:55  fillods
+
+	* Makefile.am, configure.ac: added early perl binding
+
+2002-02-09 22:55  fillods
+
+	* perl/: Makefile.am, Makefile.in: Initial release
+
+2002-01-29 23:05  fillods
+
+	* tests/rigmatrix.c: many fixes, mainly no need any more to
+	explicitly list all the FUNC's, LEVEL's and PARM's
+
+2002-01-29 23:04  fillods
+
+	* tests/dumpcaps.c: print more caps
+
+2002-01-29 23:04  fillods
+
+	* tests/Makefile.in: regenerated
+
+2002-01-29 23:03  fillods
+
+	* tests/Makefile.am: ignore dumpcaps return value
+
+2002-01-29 23:00  fillods
+
+	* lib/Makefile.in: regenerated
+
+2002-01-29 22:59  fillods
+
+	* src/misc.c: misc fixes
+
+2002-01-29 22:56  fillods
+
+	* doc/hamlib.cfg: added doxygen'ed files
+
+2002-01-29 22:56  fillods
+
+	* doc/Makefile.in: regenerated
+
+2002-01-29 22:55  fillods
+
+	* doc/Makefile.am: misc cleanup
+
+2002-01-29 22:53  fillods
+
+	* configure.ac: check for trunc, fixed various AC_CHECK_FUNC and
+	AC_CHECK_LIB, and continue even if tcl not found
+
+2002-01-29 22:50  fillods
+
+	* lib/trunc.c: Initial release, to be fixed\!
+
+2002-01-28 13:39  pa4tu
+
+	* kenwood/README.kenwood: update (kenwood is not a WIP anymore)
+
+2002-01-28 00:59  fillods
+
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, easycomm/Makefile.in,
+	icom/Makefile.in, jrc/Makefile.in, kachina/Makefile.in,
+	kenwood/Makefile.in, kylix/Makefile.in, lib/Makefile.in,
+	pcr/Makefile.in, rpcrig/Makefile.in, rpcrot/Makefile.in,
+	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
+	yaesu/Makefile.in: regenerated
+
+2002-01-28 00:58  fillods
+
+	* tests/rigctl.c: implemented get_chan 'h' command
+
+2002-01-28 00:55  fillods
+
+	* tests/: dumpmem.c, testcaps.c: renamed freq_sprintf to
+	sprintf_freq
+
+2002-01-28 00:54  fillods
+
+	* tests/dumpcaps.c: code cleanup thanks to factorisation
+
+2002-01-28 00:53  fillods
+
+	* tcl/Makefile.am: added TCL libs and inc dirs
+
+2002-01-28 00:52  fillods
+
+	* src/Makefile.am: added MATH_LIBS
+
+2002-01-28 00:51  fillods
+
+	* rpcrig/Makefile.am, rpcrot/Makefile.am: added NET_LIBS
+
+2002-01-28 00:49  fillods
+
+	* dummy/dummy.c: renamed freq_sprintf to sprintf_freq
+
+2002-01-28 00:47  fillods
+
+	* src/: misc.c, misc.h: added more str and sprintf funcs, renamed
+	freq_sprintf to sprintf_freq
+
+2002-01-28 00:46  fillods
+
+	* include/hamlib/rig.h: misc fixes, added some more fields to
+	channel_t
+
+2002-01-28 00:43  fillods
+
+	* configure.ac: optional binding cleanups, --enable-rigmatrix
+	changed to --with-rigmatrix, autoconf math and net libs
+
+2002-01-27 15:55  fillods
+
+	* src/: conf.c, conf.h, rig.c, rot_conf.c, rot_conf.h, rotator.c:
+	token defines moved to token.h
+
+2002-01-27 15:53  fillods
+
+	* src/Makefile.in: regenerated
+
+2002-01-27 15:52  fillods
+
+	* src/Makefile.am: added token.h
+
+2002-01-27 15:52  fillods
+
+	* include/hamlib/rig.h: token stuff moved to src/token.h
+
+2002-01-27 15:51  fillods
+
+	* include/hamlib/riglist.h: added new Icom rigs
+
+2002-01-27 15:51  fillods
+
+	* icom/icom.h: added new tuning step lists
+
+2002-01-27 15:50  fillods
+
+	* icom/icom.c: misc fixes, added new tuning step lists and new CI-V
+	addresses
+
+2002-01-27 15:48  fillods
+
+	* src/token.h: Initial release
+
+2002-01-27 15:47  fillods
+
+	* icom/ic756.c: misc fix
+
+2002-01-27 15:47  fillods
+
+	* c++/Makefile.in: regenerated
+
+2002-01-27 15:46  fillods
+
+	* Makefile.am: added README files
+
+2002-01-27 15:45  fillods
+
+	* c++/: Makefile.am, testcpp.cc: testcpp moved from ../tests
+
+2002-01-27 15:45  fillods
+
+	* tests/Makefile.am: testcpp moved to ../c++
+
+2002-01-27 15:43  fillods
+
+	* tests/testcpp.cc: moved to ../c++
+
+2002-01-25 00:37  fillods
+
+	* kenwood/Makefile.in: regenerated
+
+2002-01-25 00:37  fillods
+
+	* tests/rigctl.1: clarification on the CI-V address
+
+2002-01-25 00:37  fillods
+
+	* icom/icom.c: accept hexadecimal CI-V id
+
+2002-01-25 00:36  fillods
+
+	* kenwood/: Makefile.am, kenwood.c, kenwood.h: added TS-790
+
+2002-01-25 00:35  fillods
+
+	* README.betatester: Initial release
+
+2002-01-25 00:35  fillods
+
+	* kenwood/ts790.c: initial release
+
+2002-01-24 02:41  fillods
+
+	* include/hamlib/riglist.h: added FT-100
+
+2002-01-23 03:53  aa1vl
+
+	* yaesu/ft817.h: increased post write delay to 300
+
+2002-01-22 22:17  fillods
+
+	* src/serial.c: call cfmakeraw only when available
+
+2002-01-22 22:16  fillods
+
+	* Makefile.am, configure.ac: prepare the list of bindings to be
+	flexible
+
+2002-01-22 22:13  fillods
+
+	* tcl/Makefile.in: regenerated
+
+2002-01-22 22:12  fillods
+
+	* tcl/Makefile.am: cleanup
+
+2002-01-22 22:11  fillods
+
+	* kylix/: Makefile.am, Makefile.in: Initial revision
+
+2002-01-22 02:03  fillods
+
+	* tcl/tcltest.tcl: display returned value
+
+2002-01-22 01:56  fillods
+
+	* tests/rigctl.c: moved parse funcs to src/misc.c, and fixed a bug
+	with set_parm/get_parm
+
+2002-01-22 01:53  fillods
+
+	* tcl/Makefile.in: regenerated
+
+2002-01-22 01:53  fillods
+
+	* tcl/hamlibtcl.c: split rig and rot commands into tclrig.c and
+	tclrot.c
+
+2002-01-22 01:51  fillods
+
+	* tcl/Makefile.am: added tclrig.c tclrot.c; some cleanup to be
+	scheduled
+
+2002-01-22 01:50  fillods
+
+	* src/: misc.c, misc.h: added new strvfop/strscan and parse
+	functions from rigctl
+
+2002-01-22 01:48  fillods
+
+	* rpcrot/rpcrot_backend.c: added rpcrot_move cap
+
+2002-01-22 01:43  fillods
+
+	* dummy/dummy.c: be more capable and more verbose, and use
+	channel_t to store current parameters
+
+2002-01-22 01:34  fillods
+
+	* tcl/: tclrig.c, tclrig.h, tclrot.c, tclrot.h: Initial release
+
+2002-01-21 09:30  fillods
+
+	* src/: rig.c, rotator.c: check communication is opened
+
+2002-01-20 14:29  fillods
+
+	* src/Makefile.in: regenerated
+
+2002-01-19 19:56  fillods
+
+	* kenwood/kenwood.c: kenwood_set_level first implementation, by
+	Joop PA4TU
+
+2002-01-19 19:51  fillods
+
+	* src/Makefile.am: fix typo
+
+2002-01-17 05:09  n0nb
+
+	* doc/sgml/: README.txt, hamlib-doc.dsl, hamlib-doc.sgml,
+	intro.sgml: 16 January 2002:
+	
+	Modified: hamlib-doc.dsl -- tweaked print output hamlib-doc.sgml --
+	minor title and revremarks edit intro.sgml -- minor edits to track
+	hamlib versions better
+	
+	Removed: README.txt -- will return as README.docbook
+	
+	- N0NB
+
+2002-01-17 00:37  fillods
+
+	* rpcrot/: rpcrot_clnt.c, rpcrot_svc.c, rpcrot_xdr.c: header path
+	fix
+
+2002-01-17 00:36  fillods
+
+	* c++/Makefile.in, src/Makefile.in, tests/Makefile.in: regenerated
+
+2002-01-17 00:34  fillods
+
+	* tests/Makefile.am: rot backend fix
+
+2002-01-17 00:11  fillods
+
+	* Makefile.am, configure.ac: added kylix binding subdir
+
+2002-01-17 00:04  fillods
+
+	* doc/hamlib.cfg: added rotator source
+
+2002-01-16 23:58  fillods
+
+	* src/: serial.c, serial.h, Makefile.am: non-serial parts of
+	serial.[ch] moved to iofunc.[ch]
+
+2002-01-16 23:56  fillods
+
+	* src/: iofunc.c, iofunc.h: parts moved from serial.[ch]
+
+2002-01-16 23:44  fillods
+
+	* c++/Makefile.am, include/Makefile.am: added Rotator class
+
+2002-01-16 23:43  fillods
+
+	* c++/rotclass.cc, include/hamlib/rotclass.h: Initial release
+
+2002-01-16 20:18  fgretief
+
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, easycomm/Makefile.in,
+	icom/Makefile.in, jrc/Makefile.in, kachina/Makefile.in,
+	kenwood/Makefile.in, lib/Makefile.in, libltdl/config-h.in,
+	pcr/Makefile.in, rpcrig/Makefile.in, rpcrot/Makefile.in,
+	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
+	yaesu/Makefile.in: regenerated
+
+2002-01-16 20:17  fgretief
+
+	* Makefile.am, configure.ac, rpcrot/Makefile.am: Fixed circular
+	dependency for rpc.rigd and rpc.rotd
+
+2002-01-16 18:12  fgretief
+
+	* Makefile.am, configure.ac: Added easycomm and rpcrot backends
+
+2002-01-16 18:06  fgretief
+
+	* src/rotator.c, tests/rotctl.1, tests/rotctl.c: Added rot_move
+	function
+
+2002-01-16 18:03  fgretief
+
+	* include/hamlib/rotlist.h: Fix macro name
+
+2002-01-16 17:52  fgretief
+
+	* include/hamlib/rotator.h: Added rot_move function
+
+2002-01-16 17:46  fgretief
+
+	* kylix/hamlib_rotapi.pas, dummy/rot_dummy.c: Added rot_move
+	function
+
+2002-01-16 17:45  fgretief
+
+	* rpcrot/: Makefile.am, Makefile.in, rpc.rotd.8, rpcrot.h,
+	rpcrot.x, rpcrot_backend.c, rpcrot_backend.h, rpcrot_clnt.c,
+	rpcrot_proc.c, rpcrot_svc.c, rpcrot_xdr.c, rpcrotd.c: New RPC
+	backend for rotators
+
+2002-01-16 17:35  fgretief
+
+	* easycomm/: Makefile.am, Makefile.in, easycomm.c, easycomm.h,
+	easycomm.txt: New backend for rotators
+
+2002-01-15 08:40  fillods
+
+	* libltdl/: acinclude.m4, aclocal.m4, configure, ltdl.c: upgrade to
+	libtool-1.4.2a-4
+
+2002-01-15 05:13  n0nb
+
+	* doc/sgml/: genindex.sgml, hamlib-doc.dsl, hamlib-doc.sgml,
+	reference.sgml: 15 January 2002:
+	
+	Update hamlib-doc.dsl stylesheet.  Update hamlib-doc.sgml for
+	version 1.1.3 and 2002 copyright.  Cut out API content in
+	reference.sgml as this is now handled by the Doxygen package.
+	
+	Added genindex.sgml for Index framework.
+	
+	-- N0NB
+
+2002-01-14 11:29  fgretief
+
+	* kylix/: HamlibComponents.pas, README, hamlib_rigapi.pas,
+	hamlib_rotapi.pas, tests/DemoProject.dpr, tests/DemoProject.res,
+	tests/HamlibRadioForm.pas, tests/HamlibRadioForm.xfm,
+	tests/HamlibSelectionDlg.pas, tests/HamlibSelectionDlg.xfm,
+	tests/TestForm.pas, tests/TestForm.xfm: Initial commit of Kylix
+	binding
+
+2002-01-14 08:00  fillods
+
+	* tests/: rotctl.1, rotctl.c: added get_info
+
+2002-01-10 00:14  fillods
+
+	* kenwood/: kenwood.c, ts870s.c: patch from Joop PA4TU: implemented
+	set_func and fixed FAGC
+
+2002-01-10 00:11  fillods
+
+	* aor/: aor.c, aor.h, ar8000.c, ar8200.c: added set_vfo/get_vfo,
+	vfo_op, get_info and other fixes
+
+2002-01-10 00:09  fillods
+
+	* tests/: rigctl.1, rigctl.c: added get_info
+
+2002-01-10 00:08  fillods
+
+	* include/hamlib/rig.h: added new VFO_OPs
+
+2002-01-08 08:28  fillods
+
+	* kenwood/ts870s.c: misc caps fix
+
+2002-01-07 19:18  fgretief
+
+	* src/rig.c: check trn state of rig in rig_open.
+
+2002-01-07 18:57  fgretief
+
+	* include/hamlib/rig.h: Added a new function:  LCD Lamp ON/OFF (for
+	Kenwood TH-7DA)
+
+2002-01-07 18:54  fgretief
+
+	* kenwood/kenwood.c: added a kenwood_init and _cleanup routine for
+	priv caps & priv data.
+
+2002-01-07 18:51  fgretief
+
+	* kenwood/kenwood.h: add private caps to store the termination
+	character of Kenwood rigs commands.
+
+2002-01-07 18:48  fgretief
+
+	* kenwood/: th.c, th.h: Changed to a new transaction function and
+	adde quite a few commands.
+
+2002-01-07 18:46  fgretief
+
+	* kenwood/thd7.c: add private caps and more commands.
+
+2002-01-07 18:43  fgretief
+
+	* kenwood/thf7.c: added private caps for rig termination character
+
+2002-01-07 18:41  fgretief
+
+	* src/misc.c: Added code to hexdump to right align ASCII dump
+	column
+
+2002-01-07 18:28  fgretief
+
+	* src/rotator.c: Corrected some comments
+
+2002-01-07 18:14  fgretief
+
+	* src/: serial.c, serial.h: Added read_serial function to read
+	strings from a port.
+
+2002-01-06 18:50  fillods
+
+	* tentec/rx320.c: cleanup
+
+2002-01-06 18:50  fillods
+
+	* tcl/Makefile.in, tentec/Makefile.in: regenerated
+
+2002-01-06 18:49  fillods
+
+	* tentec/: Makefile.am, tentec.c, tentec.h: added Pegasus and
+	tentec_trx_open
+
+2002-01-06 18:49  fillods
+
+	* tcl/Makefile.am: fixed missing hamlib.so dependancy
+
+2002-01-06 18:47  fillods
+
+	* tentec/pegasus.c: Initial release
+
+2002-01-06 18:47  fillods
+
+	* kenwood/kenwood.c: get_level fixes, thanks to Joop PA4TU
+
+2002-01-03 22:45  fillods
+
+	* kenwood/: ts2000.c, ts450s.c, ts570.c, ts870s.c: rig specs fixes
+
+2002-01-03 22:43  fillods
+
+	* kenwood/Makefile.in: regenerated
+
+2002-01-03 22:42  fillods
+
+	* kenwood/: Makefile.am, kenwood.c, kenwood.h: added TS-50S and
+	TS-950SDX
+
+2002-01-03 22:41  fillods
+
+	* kenwood/: ts50s.c, ts950.c: Initial release
+
+2002-01-03 00:41  fillods
+
+	* kenwood/: th.c, thd7.c: fixes from Francois to make the TH-D7 to
+	work
+
+2002-01-03 00:41  fillods
+
+	* src/: register.c, rot_reg.c: disabled static linked-in backends
+	until better solution
+
+2002-01-03 00:38  fillods
+
+	* kenwood/kenwood.c: kenwood_get_mode fix
+
+2001-12-28 21:38  fillods
+
+	* src/rot_reg.c: rotator backend init symbol changed
+
+2001-12-28 21:36  fillods
+
+	* tests/Makefile.in: regenerated
+
+2001-12-28 21:36  fillods
+
+	* tests/testloc.c: misc fixes
+
+2001-12-28 21:35  fillods
+
+	* tests/Makefile.am: added rotctl: rotator control
+
+2001-12-28 21:34  fillods
+
+	* src/rotator.c: fixes, added some more wrappers
+
+2001-12-28 21:34  fillods
+
+	* tests/: rotctl.1, rotctl.c: Initial release
+
+2001-12-28 21:33  fillods
+
+	* src/locator.c: added doxygen comments, made locator convertion to
+	work, caution: not very well tested
+
+2001-12-28 21:32  fillods
+
+	* rpcrig/rpc.rigd.8: misc fix
+
+2001-12-28 21:30  fillods
+
+	* include/hamlib/: rotator.h, rotlist.h: fixes
+
+2001-12-28 21:29  fillods
+
+	* dummy/Makefile.in: regenerated
+
+2001-12-28 21:29  fillods
+
+	* dummy/Makefile.am: added dummy rotator
+
+2001-12-28 21:29  fillods
+
+	* dummy/: rot_dummy.c, rot_dummy.h: Initial release
+
+2001-12-28 21:28  fillods
+
+	* alinco/alinco.c, alinco/alinco.h, src/register.c, aor/aor.c,
+	aor/aor.h, dummy/dummy.c, dummy/dummy.h, icom/icom.c, icom/icom.h,
+	jrc/jrc.c, jrc/jrc.h, kachina/kachina.c, kachina/kachina.h,
+	kenwood/kenwood.c, kenwood/kenwood.h, pcr/pcr.c, pcr/pcr.h,
+	rpcrig/rpcrig_backend.c, rpcrig/rpcrig_backend.h, tentec/tentec.c,
+	tentec/tentec.h, uniden/uniden.c, uniden/uniden.h,
+	winradio/winradio.c, winradio/winradio.h, yaesu/yaesu.c,
+	yaesu/yaesu.h: warning: backend module breakage: symbol changed:
+	init_ -> initrigs_
+
+2001-12-27 23:03  fillods
+
+	* tests/Makefile.in: regenerated
+
+2001-12-27 23:02  fillods
+
+	* tests/Makefile.am: various cleanup and testloc added
+
+2001-12-27 23:01  fillods
+
+	* tests/testloc.c: Initial release
+
+2001-12-27 23:00  fillods
+
+	* src/serial.c: misc cleanup
+
+2001-12-27 23:00  fillods
+
+	* src/rig.c: backend init time failure fix and other misc fixes
+
+2001-12-27 22:59  fillods
+
+	* rpcrig/rpcrig.h: regenerated
+
+2001-12-27 22:56  fillods
+
+	* src/Makefile.in, rpcrig/rpcrig_clnt.c, rpcrig/rpcrig_svc.c,
+	rpcrig/rpcrig_xdr.c: regenerated
+
+2001-12-27 22:56  fillods
+
+	* rpcrig/: rpcrig_backend.c, rpcrig_proc.c: more data passed by
+	rigstate_1
+
+2001-12-27 22:52  fillods
+
+	* rpcrig/rpcrig.x: more data passed by rigstate_1
+
+2001-12-27 22:50  fillods
+
+	* src/Makefile.am: added rotator frontend files
+
+2001-12-27 22:50  fillods
+
+	* c++/rigclass.cc, include/hamlib/rigclass.h: augmented C++ API
+
+2001-12-27 22:46  fillods
+
+	* src/: locator.c, rot_conf.c, rot_conf.h, rot_reg.c, rotator.c:
+	Initial release
+
+2001-12-27 22:45  fillods
+
+	* include/Makefile.am: added rotlist.h
+
+2001-12-27 22:42  fillods
+
+	* configure.ac: dlopen force works better
+
+2001-12-27 22:41  fillods
+
+	* include/hamlib/: rotator.h, rotlist.h: Initial release
+
+2001-12-27 22:41  fillods
+
+	* include/Makefile.am: added rotator includes
+
+2001-12-27 00:47  fillods
+
+	* src/rig.c: fix with backend open failure case, and misc update
+
+2001-12-27 00:45  fillods
+
+	* src/conf.h: put token id's apart
+
+2001-12-27 00:45  fillods
+
+	* src/conf.c: more config params
+
+2001-12-27 00:44  fillods
+
+	* rpcrig/: rpcrig_clnt.c, rpcrig_svc.c, rpcrig_xdr.c: regenerated
+
+2001-12-27 00:43  fillods
+
+	* rpcrig/rpcrig_backend.h: hack, to be refined
+
+2001-12-27 00:42  fillods
+
+	* rpcrig/: rpcrig_backend.c, rpcrig_proc.c: implemented many more
+	wrappers
+
+2001-12-27 00:40  fillods
+
+	* rpcrig/rpcrig.x: major development
+
+2001-12-27 00:39  fillods
+
+	* rpcrig/: Makefile.in, rpcrig.h: regenerated
+
+2001-12-27 00:39  fillods
+
+	* rpcrig/Makefile.am: rpc.rigd belongs to sbin
+
+2001-12-27 00:38  fillods
+
+	* include/hamlib/rig.h: misc cleanup
+
+2001-12-27 00:37  fillods
+
+	* dummy/dummy.c: let the dummy backend think it can do more
+
+2001-12-27 00:37  fillods
+
+	* AUTHORS: added Bob and Francois
+
+2001-12-27 00:35  fillods
+
+	* tests/Makefile.in: regenerated
+
+2001-12-27 00:34  fillods
+
+	* tests/: rigctl.1, rigctl.c: added --serial-speed, --show-conf and
+	--set-conf options, plus misc fixes
+
+2001-12-27 00:33  fillods
+
+	* tests/Makefile.am: misc fix
+
+2001-12-27 00:33  fillods
+
+	* rpcrig/: rpc.rigd.8, rpcrigd.c: added --serial-speed and
+	--set-conf options, plus misc fixes
+
+2001-12-27 00:30  fillods
+
+	* Makefile.am, configure.ac: misc fixes
+
+2001-12-21 10:48  fillods
+
+	* tests/rigctl.c: added --serial-speed arg
+
+2001-12-21 00:07  fillods
+
+	* icom/Makefile.in: regenerated
+
+2001-12-21 00:07  fillods
+
+	* icom/: icom.c, icom.h, Makefile.am: added IC-821H
+
+2001-12-21 00:04  fillods
+
+	* icom/ic821h.c: Initial revision from Francois Retief's patch
+
+2001-12-21 00:03  fillods
+
+	* jrc/: jrc.c, jrc.h, nrd545.c: added
+	scan,set_parm/get_parm,decode_event and vfo_op calls
+
+2001-12-20 23:59  fillods
+
+	* alinco/alinco.c, aor/aor.c, kenwood/kenwood.c, kenwood/th.c,
+	tests/rigctl.c, tests/testrig.c, tests/testtrn.c, yaesu/ft747.c,
+	yaesu/ft817.c, yaesu/ft847.c: misc sscanf format fix
+
+2001-12-20 09:02  fillods
+
+	* kachina/: 505dsp.c, kachina.c, kachina.h: cleanups
+
+2001-12-20 09:02  fillods
+
+	* jrc/: jrc.c, jrc.h: removed useless vfo arg to set_trn/get_trn
+	funcs
+
+2001-12-20 08:51  fillods
+
+	* tests/rigctl.c: no more obscure numeric parameters, new commands,
+	ability to set-conf/show-conf
+
+2001-12-20 08:48  fillods
+
+	* src/: misc.c, misc.h: misc adjunction
+
+2001-12-20 08:47  fillods
+
+	* src/conf.c: added rig_token_foreach for conf table perusing
+
+2001-12-20 08:46  fillods
+
+	* c++/rigclass.cc, dummy/dummy.c, include/hamlib/rigclass.h,
+	kenwood/kenwood.c, kenwood/kenwood.h, rpcrig/rpcrig_backend.c,
+	src/rig.c, tests/testtrn.c: removed useless vfo arg to
+	set_trn/get_trn funcs
+
+2001-12-20 08:42  fillods
+
+	* include/hamlib/rig.h: removed useless vfo arg to set_trn/get_trn
+	funcs, added rig_token_foreach for conf
+
+2001-12-19 04:55  fillods
+
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, icom/Makefile.in,
+	jrc/Makefile.in, kachina/Makefile.in, kenwood/Makefile.in,
+	lib/Makefile.in, pcr/Makefile.in, rpcrig/Makefile.in,
+	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
+	yaesu/Makefile.in: regenerated
+
+2001-12-19 04:54  fillods
+
+	* src/register.c: prefer dlopenext to dlopen
+
+2001-12-19 04:37  fillods
+
+	* include/hamlib/rig_dll.h: getting closer to win32 build, not
+	arrived though
+
+2001-12-19 04:35  fillods
+
+	* alinco/alinco.c, alinco/alinco.h, icom/icom.c, icom/icom.h,
+	src/rig.c: tones fixes
+
+2001-12-19 04:31  fillods
+
+	* alinco/Makefile.am, aor/Makefile.am, c++/Makefile.am,
+	dummy/Makefile.am, icom/Makefile.am, jrc/Makefile.am,
+	kachina/Makefile.am, kenwood/Makefile.am, pcr/Makefile.am,
+	rpcrig/Makefile.am, src/Makefile.am, tentec/Makefile.am,
+	uniden/Makefile.am, yaesu/Makefile.am: cleaned up static build and
+	flags, introduced lib version 0:0:0
+
+2001-12-19 04:29  fillods
+
+	* lib/Makefile.am: LIBOBJS cleanup and made libmisc a convenience
+	lib
+
+2001-12-19 04:28  fillods
+
+	* tests/Makefile.am: build flags cleanup
+
+2001-12-19 04:27  fillods
+
+	* tcl/Makefile.am: cleanup, more to be done
+
+2001-12-19 04:26  fillods
+
+	* winradio/Makefile.am: merged in linradio subdir Makefile.am
+
+2001-12-19 04:25  fillods
+
+	* include/Makefile.am: merged in hamlib subdir Makefile.am
+
+2001-12-19 04:24  fillods
+
+	* configure.ac: added maintainer mode, LIBOBJS cleanup and made
+	libmisc a convenience lib, added -dlopen force to make dlopen work
+	with static build, and removed some overkill Makefiles
+
+2001-12-19 04:20  fillods
+
+	* Makefile.am: misc cleanup
+
+2001-12-19 04:18  fillods
+
+	* src/: tones.c, tones.h: coming from tone_tbl.h
+
+2001-12-19 04:14  fillods
+
+	* lib/getopt_long.c: coming from getopt1.c
+
+2001-12-19 04:13  fillods
+
+	* include/hamlib/: Makefile.am, Makefile.in: removed overkill
+	Makefiles
+
+2001-12-19 04:09  fillods
+
+	* winradio/linradio/: Makefile.am, Makefile.in: removed overkill
+	Makefiles
+
+2001-12-19 04:06  fillods
+
+	* lib/getopt1.c: renamed to getopt_long.c
+
+2001-12-19 04:05  fillods
+
+	* src/tone_tbl.h: split to tones.c and tones.h
+
+2001-12-17 23:58  fillods
+
+	* tests/testcpp.cc: misc test added
+
+2001-12-17 23:43  fillods
+
+	* src/tone_tbl.h: misc change in comments
+
+2001-12-17 23:42  fillods
+
+	* src/serial.h: backout dup prototype
+
+2001-12-17 23:41  fillods
+
+	* configure.ac: added JRC backend
+
+2001-12-17 23:40  fillods
+
+	* jrc/: Makefile.am, Makefile.in, jrc.c, jrc.h, nrd545.c: Initial
+	release
+
+2001-12-16 21:02  fillods
+
+	* src/serial.h: misc fix
+
+2001-12-16 21:02  fillods
+
+	* src/register.c: make static really work
+
+2001-12-16 12:24  fillods
+
+	* dummy/dummy.c: static/dynamic build fixes and make use of str
+	functions
+
+2001-12-16 12:24  fillods
+
+	* src/: misc.c, misc.h: static/dynamic build fixes and added str
+	functions
+
+2001-12-16 12:19  fillods
+
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	dummy/Makefile.in, icom/Makefile.in, kachina/Makefile.in,
+	kenwood/Makefile.in, pcr/Makefile.in, rpcrig/Makefile.in,
+	src/Makefile.in, tentec/Makefile.in, tests/Makefile.in,
+	uniden/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in:
+	regenerated
+
+2001-12-16 12:18  fillods
+
+	* c++/rigclass.cc, include/hamlib/rigclass.h: static/dynamic build
+	fixes and added split wrappers
+
+2001-12-16 12:17  fillods
+
+	* include/hamlib/rig.h, kenwood/thd7.c, kenwood/thf7.c,
+	kenwood/ts2000.c, kenwood/ts450s.c, kenwood/ts570.c,
+	kenwood/ts870s.c, src/rig.c, yaesu/ft847.c: finer grained
+	targetable vfo cap
+
+2001-12-16 12:14  fillods
+
+	* alinco/alinco.c, alinco/alinco.h, aor/aor.c, aor/aor.h,
+	dummy/dummy.h, icom/icom.c, icom/icom.h, include/hamlib/rig_dll.h,
+	kenwood/kenwood.c, kenwood/kenwood.h, pcr/pcr.c, pcr/pcr.h,
+	rpcrig/rpcrig_backend.c, rpcrig/rpcrig_backend.h,
+	rpcrig/rpcrig_proc.c, src/cal.c, src/conf.c, src/event.c,
+	src/register.c, src/serial.c, src/tone_tbl.h, tentec/tentec.c,
+	tentec/tentec.h, uniden/uniden.c, uniden/uniden.h,
+	winradio/winradio.c, winradio/winradio.h, yaesu/yaesu.c,
+	yaesu/yaesu.h: static/dynamic build fixes
+
+2001-12-16 12:07  fillods
+
+	* alinco/Makefile.am, aor/Makefile.am, c++/Makefile.am,
+	dummy/Makefile.am, icom/Makefile.am, kachina/Makefile.am,
+	kenwood/Makefile.am, pcr/Makefile.am, rpcrig/Makefile.am,
+	src/Makefile.am, tentec/Makefile.am, tests/Makefile.am,
+	uniden/Makefile.am, winradio/Makefile.am, yaesu/Makefile.am:
+	static/dynamic build fixes
+
+2001-12-16 12:03  fillods
+
+	* AUTHORS: the more, the merrier
+
+2001-12-15 05:09  aa1vl
+
+	* yaesu/ft817.c: bump the backend status to ALPHA
+
+2001-12-15 04:23  aa1vl
+
+	* yaesu/: yaesu.c, yaesu.h: add ft817
+
+2001-12-15 04:22  aa1vl
+
+	* yaesu/Makefile.am: add ft817.*
+
+2001-12-15 04:19  aa1vl
+
+	* yaesu/: ft817.c, ft817.h: initial stab at this for the Yaesu
+	FT-817
+
+2001-12-15 04:13  aa1vl
+
+	* src/: serial.c, serial.h: add serial_flush() method to clean rx
+	buffer
+
+2001-12-12 23:03  fillods
+
+	* kenwood/kenwood.c: fix silly bug in kenwood_get_mode
+
+2001-12-11 23:04  fillods
+
+	* yaesu/: ft747.c, ft847.c: license clarification
+
+2001-12-11 22:58  fillods
+
+	* kenwood/: Makefile.am, Makefile.in, kenwood.c, kenwood.h: added
+	TS-2000
+
+2001-12-11 22:58  fillods
+
+	* kenwood/ts2000.c: Initial version
+
+2001-12-09 15:13  fillods
+
+	* configure.ac: bumped version number
+
+2001-12-09 15:05  fillods
+
+	* libltdl/Makefile.am, libltdl/Makefile.in, libltdl/acinclude.m4,
+	libltdl/aclocal.m4, libltdl/config-h.in, libltdl/config.h,
+	libltdl/configure, libltdl/ltdl.c, ltmain.sh: update to
+	libtool-1.4.2a
+
+2001-11-28 23:10  fillods
+
+	* icom/: icom.c, icom.h: added IC-275 and IC-475
+
+2001-11-28 23:02  fillods
+
+	* icom/: icom.c, icom.h, Makefile.am, Makefile.in: added IC-275 and
+	IC-475
+
+2001-11-28 23:00  fillods
+
+	* icom/: ic275.c, ic475.c: Initial release
+
+2001-11-19 23:08  f4cfe
+
+	* include/hamlib/riglist.h: added FT817 id
+
+2001-11-19 22:12  f4cfe
+
+	* yaesu/ft847.c: misc fix: no RTTY on ft847
+
+2001-11-18 15:16  f4cfe
+
+	* dummy/dummy.c: return last set freq/mode/width
+
+2001-11-14 19:31  f4cfe
+
+	* yaesu/ft847.c: added get_freq and get_mode, fixed set_mode with
+	passband
+
+2001-11-14 19:30  f4cfe
+
+	* yaesu/: Makefile.am, Makefile.in: another misc fix
+
+2001-11-14 19:29  f4cfe
+
+	* aor/aor.c: fix stupid typo
+
+2001-11-12 23:12  f4cfe
+
+	* libltdl/: acinclude.m4, aclocal.m4, configure: back out
+	mysterious hack for Darwin that is not working so well
+
+2001-11-12 23:00  f4cfe
+
+	* yaesu/Makefile.in: regenerated
+
+2001-11-12 22:59  f4cfe
+
+	* yaesu/: Makefile.am, yaesu.h: misc link fixes
+
+2001-11-12 22:57  f4cfe
+
+	* configure.ac: added missing libmisc include
+
+2001-11-10 22:00  f4cfe
+
+	* include/hamlib/riglist.h: added new Kenwood H-Ts
+
+2001-11-10 21:37  f4cfe
+
+	* libltdl/: acinclude.m4, aclocal.m4, configure: mysterious fix
+	coming from libtool mailing list, to workaround an obscure problem
+	on Darwin systems
+
+2001-11-09 16:47  f4cfe
+
+	* kenwood/Makefile.in: regenerated
+
+2001-11-09 16:46  f4cfe
+
+	* kenwood/Makefile.am: added TH-F7E and share code with TH-D7
+
+2001-11-09 16:45  f4cfe
+
+	* kenwood/thd7.c: share code with the TH-F7
+
+2001-11-09 16:44  f4cfe
+
+	* kenwood/: kenwood.c, kenwood.h, thf7.c: added TH-F7E, preliminary
+	tested ok
+
+2001-11-09 16:42  f4cfe
+
+	* kenwood/: th.c, th.h: factorised code for TH-D7 and TH-F/TH-F7
+	handhelds, initial release
+
+2001-11-08 08:38  f4cfe
+
+	* c++/rigclass.cc, include/hamlib/rigclass.h: added 2 news calls
+
+2001-10-30 08:17  f4cfe
+
+	* yaesu/ft847.c: added filter list
+
+2001-10-25 23:22  f4cfe
+
+	* src/rig.c: fix double close() issue
+
+2001-10-22 22:34  f4cfe
+
+	* alinco/Makefile.in, c++/Makefile.in, doc/Makefile.in,
+	dummy/Makefile.in, icom/Makefile.in, kachina/Makefile.in,
+	lib/Makefile.in, pcr/Makefile.in, tcl/Makefile.in,
+	tentec/Makefile.in, include/hamlib/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, winradio/linradio/Makefile.in,
+	yaesu/Makefile.in: regenerated
+
+2001-10-22 22:33  f4cfe
+
+	* alinco/Makefile.am, c++/Makefile.am, dummy/Makefile.am,
+	icom/Makefile.am, kachina/Makefile.am, pcr/Makefile.am,
+	tentec/Makefile.am, uniden/Makefile.am, winradio/Makefile.am,
+	yaesu/Makefile.am: misc dep update
+
+2001-10-22 22:23  f4cfe
+
+	* aor/: Makefile.am, Makefile.in, aor.c, aor.h: added AR8000
+
+2001-10-22 22:22  f4cfe
+
+	* aor/ar8000.c: Initial release
+
+2001-10-18 22:43  f4cfe
+
+	* kenwood/: Makefile.am, Makefile.in, kenwood.c, kenwood.h: added
+	TH-D7A
+
+2001-10-18 22:42  f4cfe
+
+	* kenwood/thd7.c: Initial release
+
+2001-10-18 22:41  f4cfe
+
+	* rpcrig/Makefile.in, src/Makefile.in: regenerated
+
+2001-10-18 22:39  f4cfe
+
+	* src/Makefile.am: misc dist fix
+
+2001-10-18 22:38  f4cfe
+
+	* configure.ac: enable rpcrig only when RPC are available
+
+2001-10-18 19:51  f4cfe
+
+	* kachina/505dsp.c: ctcss table
+
+2001-10-16 23:18  f4cfe
+
+	* include/hamlib/rig.h, src/rig.c: added open/not open flag
+
+2001-10-16 23:15  f4cfe
+
+	* configure.ac: fix typo
+
+2001-10-16 21:29  f4cfe
+
+	* rpcrig/: Makefile.am, Makefile.in, rpc.rigd.8, rpcrig.h,
+	rpcrig.x, rpcrig_backend.c, rpcrig_backend.h, rpcrig_clnt.c,
+	rpcrig_proc.c, rpcrig_svc.c, rpcrig_xdr.c, rpcrigd.c: moved from
+	../rpc
+
+2001-10-16 21:26  f4cfe
+
+	* tests/Makefile.in, src/Makefile.in: regenerated
+
+2001-10-16 21:25  f4cfe
+
+	* configure.ac: more flexible management of the list of backends,
+	prepare work for optional. also fix a bug which would link binaries
+	against libgd,libz even when not needed.
+
+2001-10-16 21:24  f4cfe
+
+	* Makefile.am, tests/Makefile.am: more flexible management of the
+	list of backends, prepare work for optional
+
+2001-10-16 21:19  f4cfe
+
+	* alinco/alinco.c, alinco/alinco.h, icom/icom.c, icom/icom.h,
+	include/hamlib/rig.h, src/rig.c: do not export ctcss and dcs data
+	lists if dll does not support it (eg. win32), and then, workaround
+	this
+
+2001-10-16 21:15  f4cfe
+
+	* src/tone_tbl.h: Initial release
+
+2001-10-07 23:53  f4cfe
+
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, icom/Makefile.in,
+	include/hamlib/Makefile.in, kachina/Makefile.in,
+	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
+	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
+	winradio/linradio/Makefile.in, yaesu/Makefile.in: regenerated
+	(automake 1.5 upgrade)
+
+2001-10-07 23:50  f4cfe
+
+	* include/hamlib/riglist.h: declared rpc backend, couple of THD7
+	and IC-910
+
+2001-10-07 23:49  f4cfe
+
+	* tests/Makefile.am: added rpc backend
+
+2001-10-07 23:48  f4cfe
+
+	* icom/icom.c: added IC-910 ID
+
+2001-10-07 23:47  f4cfe
+
+	* aor/ar8200.c, icom/ic706.c, icom/icall.c, icom/icr8500.c: forgot
+	WFM mode
+
+2001-10-07 23:44  f4cfe
+
+	* Makefile.am, configure.ac: added rpc backend
+
+2001-10-02 10:16  terry
+
+	* include/hamlib/rigclass.h: Removed apparently spurious #include
+	eti.h, ref: debian bug #114128
+
+2001-09-26 00:05  n0nb
+
+	* doc/sgml/: README.txt, hamlib-doc.dsl: 25 Sep 2001
+	
+	Added README.txt hamlib-doc.dsl 	-- Forgot these on SGML
+	commit...
+
+2001-09-25 05:53  n0nb
+
+	* doc/sgml/: backend.sgml, hamlib-doc.sgml, internals.sgml,
+	intro.sgml, preface.sgml, reference.sgml, using.sgml: 24 Sep 2001
+	
+	Added Hamlib manual SGML source files to CVS.
+
+2001-09-23 13:03  f4cfe
+
+	* ChangeLog: regenerated for 1.1.2
+
 2001-09-23 12:45  f4cfe
 
 	* ChangeLog: regenerated
@@ -43,23 +4098,18 @@
 
 	* README: compiling note
 
-2001-09-20 23:17  f4cfe
-
-	* API: outdated
-
 2001-09-20 00:04  f4cfe
 
 	* winradio/linradio/Makefile.in: regenerated
 
 2001-09-20 00:01  f4cfe
 
-	* configure, Makefile.in, alinco/Makefile.in, aor/Makefile.in,
-	c++/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
-	include/Makefile.in, include/config.h.in, kenwood/Makefile.in,
-	lib/Makefile.in, pcr/Makefile.in, src/Makefile.in, tcl/Makefile.in,
-	tentec/Makefile.in, tests/Makefile.in, include/hamlib/Makefile.in,
-	uniden/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in,
-	aclocal.m4: regenerated
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, kachina/Makefile.in,
+	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
+	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.in, include/hamlib/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: regenerated
 
 2001-09-20 00:00  f4cfe
 
@@ -113,42 +4163,22 @@
 
 	* src/event.c: added signal/siginfo detection
 
-2001-08-22 23:08  f4cfe
-
-	* configure, include/config.h.in: regenerated
-
 2001-08-22 23:05  f4cfe
 
 	* configure.ac: added signal/siginfo detection
-
-2001-08-13 01:32  f4cfe
-
-	* ltconfig: deprecated by libtool-1.4b
-
-2001-08-13 01:27  f4cfe
-
-	* configure, Makefile.in: regenerated
 
 2001-08-13 01:19  f4cfe
 
 	* libltdl/config.h, alinco/Makefile.in, aor/Makefile.in,
 	c++/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
-	include/hamlib/Makefile.in, icom/Makefile.in, include/Makefile.in,
-	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
-	uniden/Makefile.in, yaesu/Makefile.in: regenerated
-
-2001-08-13 01:15  f4cfe
-
-	* include/config.h.in: regenerated
+	include/hamlib/Makefile.in, icom/Makefile.in, kenwood/Makefile.in,
+	lib/Makefile.in, pcr/Makefile.in, src/Makefile.in, tcl/Makefile.in,
+	tentec/Makefile.in, uniden/Makefile.in, yaesu/Makefile.in:
+	regenerated
 
 2001-08-13 01:12  f4cfe
 
 	* ltmain.sh: libtool-1.4b-2
-
-2001-08-13 01:05  f4cfe
-
-	* config.guess, config.sub: autotools-dev 20010809.1
 
 2001-08-13 01:01  f4cfe
 
@@ -186,11 +4216,9 @@
 
 2001-08-13 00:51  f4cfe
 
-	* winradio/linradio/: Makefile.am, Makefile.in: Initial release
-
-2001-08-08 23:59  f4cfe
-
-	* aclocal.m4, configure: regenerated with newer version
+	* winradio/linradio/Makefile.am, winradio/linradio/Makefile.in,
+	kachina/505dsp.c, kachina/Makefile.am, kachina/Makefile.in,
+	kachina/kachina.c, kachina/kachina.h: Initial release
 
 2001-08-08 23:47  f4cfe
 
@@ -246,24 +4274,19 @@
 
 2001-08-05 14:00  terry
 
-	* include/config.h.in, libltdl/Makefile.am, libltdl/Makefile.in,
-	libltdl/acinclude.m4, libltdl/aclocal.m4, libltdl/configure,
-	libltdl/ltdl.c, libltdl/ltdl.h: re-ran libtoolize to pick up new
+	* libltdl/: Makefile.am, Makefile.in, acinclude.m4, aclocal.m4,
+	configure, ltdl.c, ltdl.h: re-ran libtoolize to pick up new
 	archictures, re: Debian Bug#104602
 
 2001-08-05 07:43  terry
 
-	* Makefile.in, configure, ltconfig, libltdl/aclocal.m4: re-ran
-	libtoolize to pick up new archictures, re: Debian Bug#104602
+	* libltdl/aclocal.m4: re-ran libtoolize to pick up new archictures,
+	re: Debian Bug#104602
 
 2001-08-05 03:27  terry
 
-	* aclocal.m4, config.guess, config.sub, ltmain.sh: re-ran
-	libtoolize to pick up new archictures, re: Debian Bug#104602
-
-2001-07-26 00:01  f4cfe
-
-	* configure: regenerated with autoconf 2.52
+	* ltmain.sh: re-ran libtoolize to pick up new archictures, re:
+	Debian Bug#104602
 
 2001-07-25 23:59  f4cfe
 
@@ -288,9 +4311,9 @@
 	* include/hamlib/rig.h: 'path' field renamed in port_t, misc
 	cleanup
 
-2001-07-21 15:10  f4cfe
+2001-07-21 15:11  f4cfe
 
-	* include/: config.h.in, hamlib/Makefile.in: regenerated
+	* include/hamlib/Makefile.in: regenerated
 
 2001-07-21 15:10  f4cfe
 
@@ -302,13 +4325,12 @@
 
 2001-07-21 15:06  f4cfe
 
-	* Makefile.in, alinco/Makefile.in, aor/Makefile.in,
-	c++/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
-	icom/Makefile.in, include/Makefile.in, kenwood/Makefile.in,
-	lib/Makefile.in, libltdl/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
-	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
-	yaesu/Makefile.in: regenerated
+	* alinco/Makefile.in, aor/Makefile.in, c++/Makefile.in,
+	doc/Makefile.in, dummy/Makefile.in, icom/Makefile.in,
+	kenwood/Makefile.in, lib/Makefile.in, libltdl/Makefile.in,
+	pcr/Makefile.in, src/Makefile.in, tcl/Makefile.in,
+	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: regenerated
 
 2001-07-21 15:03  f4cfe
 
@@ -328,10 +4350,6 @@
 	* icom/ic706.c, icom/icom.c, icom/icom.h, include/hamlib/rig.h,
 	src/Makefile.am, src/rig.c: added set/get_conf support
 
-2001-07-21 14:57  f4cfe
-
-	* configure: regenerated with autoconf 2.50
-
 2001-07-21 14:56  f4cfe
 
 	* Makefile.am: added spec file
@@ -343,10 +4361,6 @@
 2001-07-21 14:55  f4cfe
 
 	* src/: conf.c, conf.h: Initial release
-
-2001-07-21 14:54  f4cfe
-
-	* configure.in: renamed to configure.ac
 
 2001-07-21 14:52  f4cfe
 
@@ -380,12 +4394,11 @@
 
 2001-07-14 18:46  f4cfe
 
-	* Makefile.in, configure, tests/Makefile.in: regenerated
+	* tests/Makefile.in: regenerated
 
 2001-07-14 18:45  f4cfe
 
-	* Makefile.am, configure.in, tests/Makefile.am: added uniden and
-	tentec backends
+	* Makefile.am, tests/Makefile.am: added uniden and tentec backends
 
 2001-07-14 18:42  f4cfe
 
@@ -510,14 +4523,9 @@
 	* tcl/: Makefile.am, Makefile.in, hamlibtcl.c, tcltest.tcl: initial
 	release
 
-2001-06-20 07:58  f4cfe
-
-	* Makefile.in, configure: regenerated
-
 2001-06-20 07:56  f4cfe
 
-	* Makefile.am, configure.in, include/config.h.in: added tcl
-	bindings
+	* Makefile.am: added tcl bindings
 
 2001-06-18 22:17  f4cfe
 
@@ -535,10 +4543,9 @@
 2001-06-15 09:15  f4cfe
 
 	* alinco/Makefile.in, aor/Makefile.in, doc/Makefile.in,
-	dummy/Makefile.in, icom/Makefile.in, include/Makefile.in,
-	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in:
-	regenerated
+	dummy/Makefile.in, icom/Makefile.in, kenwood/Makefile.in,
+	lib/Makefile.in, pcr/Makefile.in, src/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: regenerated
 
 2001-06-15 09:08  f4cfe
 
@@ -570,10 +4577,6 @@
 
 	* include/hamlib/: Makefile.am, Makefile.in: added C++ bindings
 
-2001-06-15 08:57  f4cfe
-
-	* Makefile.in, configure: regenerated
-
 2001-06-15 08:56  f4cfe
 
 	* c++/Makefile.am, c++/Makefile.in, c++/rigclass.cc,
@@ -581,7 +4584,7 @@
 
 2001-06-15 08:55  f4cfe
 
-	* Makefile.am, configure.in: added C++ bindings
+	* Makefile.am: added C++ bindings
 
 2001-06-13 02:06  f4cfe
 
@@ -589,24 +4592,20 @@
 
 2001-06-13 02:02  f4cfe
 
-	* configure, alinco/Makefile.in, aor/Makefile.in, doc/Makefile.in,
-	dummy/Makefile.in, icom/Makefile.in, include/Makefile.in,
-	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, tests/Makefile.in, winradio/Makefile.in,
-	yaesu/Makefile.in: * regenerated
+	* alinco/Makefile.in, aor/Makefile.in, doc/Makefile.in,
+	dummy/Makefile.in, icom/Makefile.in, kenwood/Makefile.in,
+	lib/Makefile.in, pcr/Makefile.in, src/Makefile.in,
+	tests/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in: *
+	regenerated
 
 2001-06-13 01:59  f4cfe
 
-	* configure.in, alinco/Makefile.am, aor/Makefile.am,
-	dummy/Makefile.am, icom/Makefile.am, include/hamlib/Makefile.am,
-	include/hamlib/rig.h, include/hamlib/rig_dll.h,
-	kenwood/Makefile.am, pcr/Makefile.am, src/Makefile.am, src/cal.h,
-	src/misc.h, src/serial.c, src/serial.h, winradio/Makefile.am,
-	yaesu/Makefile.am: * more win32 portability stuff
-
-2001-06-13 01:55  f4cfe
-
-	* Makefile.in: automake update to 1.4-p4
+	* alinco/Makefile.am, aor/Makefile.am, dummy/Makefile.am,
+	icom/Makefile.am, include/hamlib/Makefile.am, include/hamlib/rig.h,
+	include/hamlib/rig_dll.h, kenwood/Makefile.am, pcr/Makefile.am,
+	src/Makefile.am, src/cal.h, src/misc.h, src/serial.c, src/serial.h,
+	winradio/Makefile.am, yaesu/Makefile.am: * more win32 portability
+	stuff
 
 2001-06-12 09:09  f4cfe
 
@@ -619,17 +4618,17 @@
 
 2001-06-11 02:43  f4cfe
 
-	* Makefile.in, configure, alinco/Makefile.in, aor/Makefile.in,
-	dummy/Makefile.in, icom/Makefile.in, kenwood/Makefile.in,
-	pcr/Makefile.in, src/Makefile.in, tests/Makefile.in,
-	winradio/Makefile.in, yaesu/Makefile.in: regenerated
+	* alinco/Makefile.in, aor/Makefile.in, dummy/Makefile.in,
+	icom/Makefile.in, kenwood/Makefile.in, pcr/Makefile.in,
+	src/Makefile.in, tests/Makefile.in, winradio/Makefile.in,
+	yaesu/Makefile.in: regenerated
 
 2001-06-11 02:41  f4cfe
 
-	* configure.in, alinco/Makefile.am, aor/Makefile.am,
-	dummy/Makefile.am, icom/Makefile.am, include/hamlib/rig.h,
-	kenwood/Makefile.am, pcr/Makefile.am, src/Makefile.am, src/event.c,
-	src/register.c, src/rig.c, tests/Makefile.am, winradio/Makefile.am,
+	* alinco/Makefile.am, aor/Makefile.am, dummy/Makefile.am,
+	icom/Makefile.am, include/hamlib/rig.h, kenwood/Makefile.am,
+	pcr/Makefile.am, src/Makefile.am, src/event.c, src/register.c,
+	src/rig.c, tests/Makefile.am, winradio/Makefile.am,
 	yaesu/Makefile.am: more portability stuff
 
 2001-06-11 00:31  f4cfe
@@ -671,8 +4670,7 @@
 
 2001-06-04 23:24  f4cfe
 
-	* Makefile.am, Makefile.in, configure, configure.in: added alinco
-	subdir
+	* Makefile.am: added alinco subdir
 
 2001-06-04 23:18  f4cfe
 
@@ -794,10 +4792,6 @@
 
 	* include/hamlib/riglist.h: new winradio models
 
-2001-06-02 19:47  f4cfe
-
-	* include/config.h.in: regenerated
-
 2001-06-02 19:46  f4cfe
 
 	* libltdl/: COPYING.LIB, Makefile.am, Makefile.in, acconfig.h,
@@ -812,21 +4806,14 @@
 
 2001-06-02 19:40  f4cfe
 
-	* Makefile.in, configure, aor/Makefile.in, doc/Makefile.in,
-	dummy/Makefile.in, icom/Makefile.in, include/Makefile.in,
-	include/hamlib/Makefile.in, kenwood/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, tests/Makefile.in, winradio/Makefile.in,
-	yaesu/Makefile.in: regenerated
-
-2001-06-02 19:37  f4cfe
-
-	* configure.in: next will be 1.1.2, winradio cleanup, added
-	ltdl&libmisc helpers
+	* aor/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
+	icom/Makefile.in, include/hamlib/Makefile.in, kenwood/Makefile.in,
+	pcr/Makefile.in, src/Makefile.in, tests/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: regenerated
 
 2001-06-02 19:35  f4cfe
 
-	* aclocal.m4, config.guess, config.sub, ltmain.sh: upgraded to
-	automake 1.4-p2
+	* ltmain.sh: upgraded to automake 1.4-p2
 
 2001-06-02 19:30  f4cfe
 
@@ -1067,7 +5054,7 @@
 
 2001-03-20 23:17  f4cfe
 
-	* API, README.developer: * outdated doc
+	* README.developer: * outdated doc
 
 2001-03-20 23:16  f4cfe
 
@@ -1190,9 +5177,8 @@
 
 2001-03-02 19:28  f4cfe
 
-	* Makefile.am, Makefile.in, configure, configure.in,
-	tests/Makefile.am, tests/Makefile.in: * added new 'pcr' backend
-	(Icom PCR1000)
+	* Makefile.am, tests/Makefile.am, tests/Makefile.in: * added new
+	'pcr' backend (Icom PCR1000)
 
 2001-03-02 19:26  f4cfe
 
@@ -1413,18 +5399,6 @@
 	* include/hamlib/riglist.h: * added new RIG_MODEL_DUMMY; NB
 	RIG_MODEL_FT847 constant is no more equal to 0
 
-2001-02-14 02:04  f4cfe
-
-	* include/config.h.in: * regenerated
-
-2001-02-14 02:04  f4cfe
-
-	* configure: * regenerated (new backend)
-
-2001-02-14 02:03  f4cfe
-
-	* configure.in: * added new 'dummy' backend\n* misc update
-
 2001-02-14 02:02  f4cfe
 
 	* Makefile.am: * added new 'dummy' backend, for debugging purpose
@@ -1432,11 +5406,11 @@
 
 2001-02-14 02:01  f4cfe
 
-	* Makefile.in, aor/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
-	icom/Makefile.in, include/Makefile.in, kenwood/Makefile.in,
-	src/Makefile.in, tests/Makefile.in, winradio/Makefile.in,
-	yaesu/Makefile.in, include/hamlib/Makefile.in: * add missing files.
-	Hopefuly, checkouts should compile fine now.
+	* aor/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
+	icom/Makefile.in, kenwood/Makefile.in, src/Makefile.in,
+	tests/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in,
+	include/hamlib/Makefile.in: * add missing files. Hopefuly,
+	checkouts should compile fine now.
 
 2001-02-14 01:59  f4cfe
 
@@ -1525,10 +5499,6 @@
 
 	* THANKS: * credits
 
-2001-02-10 00:13  f4cfe
-
-	* README.license: * duplicate
-
 2001-02-10 00:11  f4cfe
 
 	* tests/testfreq.c: * Initial release
@@ -1563,17 +5533,6 @@
 
 	* include/hamlib/rig.h: * added hamlib_version constant
 
-2001-02-10 00:01  f4cfe
-
-	* aclocal.m4, configure, include/config.h.in: * regenerated
-
-2001-02-10 00:00  f4cfe
-
-	* configure.in: * check more stuff (includes, libs, etc.) * added
-	--enable-rigmatrix option. Now, default behaviour is to NOT
-	generate   rigmatrix tool. autodetection still not perfect.  *
-	shuffled a little bit the autoconf directives
-
 2001-02-09 23:56  f4cfe
 
 	* Makefile.am: * add missing file in dist
@@ -1591,18 +5550,9 @@
 
 	* tests/Makefile.am: * added winradio optional support
 
-2001-02-08 00:51  f4cfe
-
-	* configure: * regenerated after linradio check
-
 2001-02-08 00:49  f4cfe
 
 	* Makefile.am: * added optional winradio subdir
-
-2001-02-08 00:48  f4cfe
-
-	* configure.in: * check if linradio include files are installed and
-	enable WiNRADiO support accordingly
 
 2001-02-08 00:45  f4cfe
 
@@ -1617,11 +5567,6 @@
 2001-02-08 00:43  f4cfe
 
 	* kenwood/ts870s.c: * added TX range, plus RTTY cap fixup
-
-2001-02-08 00:41  f4cfe
-
-	* include/config.h.in: * regenerated after linradio checking in
-	configure
 
 2001-02-08 00:40  f4cfe
 
@@ -1769,7 +5714,7 @@
 
 2001-01-04 06:41  javabear
 
-	* Makefile.am, configure.in: common yaesu handling
+	* Makefile.am: common yaesu handling
 
 2001-01-04 06:39  javabear
 
@@ -1779,11 +5724,6 @@
 2001-01-04 05:42  javabear
 
 	* yaesu/Makefile.am: Initial yaesu Makefile
-
-2001-01-04 00:14  f4cfe
-
-	* configure.in: * bumped version number to 1.1.1 * added kenwood
-	sub-Makefile
 
 2001-01-04 00:10  f4cfe
 
@@ -1858,10 +5798,6 @@
 	* tests/testrig.c: * [sg]et_mode is now responsible for
 	setting/getting the passband
 
-2000-12-05 00:45  f4cfe
-
-	* include/config.h.in: * regenerated due to added libgd option
-
 2000-12-05 00:39  f4cfe
 
 	* aor/aor.c, aor/aor.h, icom/frame.c, icom/frame.h, icom/icom.c,
@@ -1876,14 +5812,6 @@
 2000-12-05 00:28  f4cfe
 
 	* doc/NOTES: Initial release
-
-2000-11-28 23:38  f4cfe
-
-	* configure: * regenerate (libgd check)
-
-2000-11-28 23:36  f4cfe
-
-	* configure.in: * check for libgd, and build rigmatrix accordingly
 
 2000-11-28 23:35  f4cfe
 
@@ -1964,7 +5892,7 @@
 
 2000-11-02 00:16  f4cfe
 
-	* Makefile.am, configure, configure.in: * added new AOR backend
+	* Makefile.am: * added new AOR backend
 
 2000-10-30 22:45  f4cfe
 
@@ -2008,11 +5936,6 @@
 
 	* doc/Makefile.am: * include scripts in the distribution. I don't
 	know why noinst_SCRIPTS doesn't do it by itself
-
-2000-10-29 11:15  f4cfe
-
-	* configure, configure.in: * Added include paths so 'make
-	distcheck' works
 
 2000-10-23 21:59  f4cfe
 
@@ -2093,11 +6016,6 @@
 
 	* icom/Makefile.am: * added -avoid-version to LDFLAGS for dlopen
 	modules
-
-2000-10-22 17:53  f4cfe
-
-	* configure.in: * added DLTOOL check * added automaked include/ and
-	doc/ subdirectories
 
 2000-10-22 17:50  f4cfe
 
@@ -2242,9 +6160,9 @@
 
 2000-10-09 03:17  javabear
 
-	* aclocal.m4, configure, icom/frame.c, icom/ic706.c,
-	include/hamlib/rig.h, src/rig.c, src/serial.c, src/serial.h,
-	tests/dumpcaps.c, tests/testrig.c: added post_write_delay
+	* icom/frame.c, icom/ic706.c, include/hamlib/rig.h, src/rig.c,
+	src/serial.c, src/serial.h, tests/dumpcaps.c, tests/testrig.c:
+	added post_write_delay
 
 2000-10-08 23:48  f4cfe
 
@@ -2316,16 +6234,6 @@
 	receiving EOM), * added hamlib2icom_modeand icom2hamlib_mode
 	functions to convert from one representation to another
 
-2000-10-08 23:24  f4cfe
-
-	* configure.in: include/rig.h moved to include/hamlib/rig.h, added
-	version defines
-
-2000-10-08 23:23  f4cfe
-
-	* configure: regenrated from configure.in (mainly include/rig.h
-	moved to include/hamlib/rig.h)
-
 2000-10-08 23:21  f4cfe
 
 	* tests/: dumpcaps.c, printcaps.c: printcaps renamed to dumpcaps
@@ -2334,11 +6242,6 @@
 
 	* lib/usleep.c, src/event.c, src/event.h, src/register.c,
 	tests/listrigs.c, tests/testtrn.c: Initial release
-
-2000-10-08 23:16  f4cfe
-
-	* include/: rig.h, riglist.h: include files moved again (to
-	include/hamlib)
 
 2000-10-08 23:15  f4cfe
 
@@ -2358,7 +6261,7 @@
 
 2000-10-01 16:28  f4cfe
 
-	* icom/Makefile, Makefile: Deprecated by autoconf/automake
+	* icom/Makefile: Deprecated by autoconf/automake
 
 2000-10-01 16:24  f4cfe
 
@@ -2372,15 +6275,9 @@
 
 	* tests/: Makefile.am, printcaps.c, testbcd.c: Initial release
 
-2000-10-01 14:45  f4cfe
-
-	* include/: rig.h, riglist.h: Moved from ../common
-
 2000-10-01 14:41  f4cfe
 
-	* config.guess, Makefile.am, aclocal.m4, config.sub, configure,
-	configure.in, install-sh, ltconfig, ltmain.sh, missing,
-	mkinstalldirs, include/config.h.in: Initial release
+	* Makefile.am, ltmain.sh, missing, mkinstalldirs: Initial release
 
 2000-10-01 14:37  f4cfe
 
@@ -2419,11 +6316,6 @@
 
 	* src/: misc.c, misc.h: Initial release, functions gathered from
 	serial.c and others
-
-2000-09-25 02:02  javabear
-
-	* Makefile: removed "make verify". Added reference to
-	common/Makefile
 
 2000-09-24 04:19  javabear
 
@@ -2482,7 +6374,7 @@
 
 2000-09-14 02:48  f4cfe
 
-	* API, COPYING, PLAN: file creation, basically scratch notes
+	* COPYING, PLAN: file creation, basically scratch notes
 
 2000-09-04 17:11  javabear
 
@@ -2493,14 +6385,6 @@
 	* README, README.developer: Updated docs to point to 
 	http://sourceforge.net/projects/hamlib/ and added a C code snippet
 	on how to use the API.
-
-2000-08-19 18:21  javabear
-
-	* README.license: included full GPL license
-
-2000-08-19 05:14  javabear
-
-	* README.license: added README.license for GPL
 
 2000-07-30 01:15  javabear
 
@@ -2513,10 +6397,6 @@
 2000-07-25 02:46  javabear
 
 	* TODO: add some things
-
-2000-07-25 02:34  javabear
-
-	* Makefile: initial top level makefile
 
 2000-07-18 23:46  frank
 
