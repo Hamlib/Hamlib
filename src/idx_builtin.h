@@ -2,7 +2,7 @@
  *  Hamlib Interface - setting2idx for builtin constants
  *  Copyright (c) 2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: idx_builtin.h,v 1.2 2003-11-16 17:14:44 fillods Exp $
+ *	$Id: idx_builtin.h,v 1.3 2004-09-14 22:14:23 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -135,6 +135,7 @@
 #define LVL_SWR		setting2idx_builtin(RIG_LEVEL_SWR)
 #define LVL_ALC		setting2idx_builtin(RIG_LEVEL_ALC)
 #define LVL_STRENGTH	setting2idx_builtin(RIG_LEVEL_STRENGTH)
+/*#define LVL_BWC		setting2idx_builtin(RIG_LEVEL_BWC)*/
 
 #define PARM_ANN	setting2idx_builtin(RIG_PARM_ANN)
 #define PARM_APO	setting2idx_builtin(RIG_PARM_APO)
