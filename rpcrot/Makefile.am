@@ -37,22 +37,23 @@ rpcrot.h: Makefile rpcrot.x
 	rm -f $@
 	$(RPCGEN) -h -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
 
+# Need to chdir in source dir, otherwise rpcgen hardcodes header path. sigh.
 rpcrot_clnt.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -l -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	cd $(srcdir) && $(RPCGEN) -l -C rpcrot.x -o $(top_builddir)/rpcrot/$@
 
 rpcrot_svc.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -m -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	cd $(srcdir) && $(RPCGEN) -m -C rpcrot.x -o $(top_builddir)/rpcrot/$@
 
 # note:
 # we need 2 rpcrot_xdr.c's: one for static rpcrot deamon, one for lt backend
 
 rpcrot_xdr.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -c -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	cd $(srcdir) && $(RPCGEN) -c -C rpcrot.x -o $(top_builddir)/rpcrot/$@
 
 rpcrot_xdr_lt.c: Makefile rpcrot.x
 	rm -f $@
-	$(RPCGEN) -c -C `test -f rpcrot.x || echo '$(srcdir)/'`rpcrot.x -o $@
+	cd $(srcdir) && $(RPCGEN) -c -C rpcrot.x -o $(top_builddir)/rpcrot/$@
 
