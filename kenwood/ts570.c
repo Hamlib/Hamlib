@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.13 2002-09-13 19:00:36 pa4tu Exp $
+ *	$Id: ts570.c,v 1.14 2002-09-21 13:52:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -225,7 +225,7 @@ const struct rig_caps ts570d_caps = {
 .rig_model =  RIG_MODEL_TS570D,
 .model_name = "TS-570D",
 .mfg_name =  "Kenwood",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -344,7 +344,7 @@ const struct rig_caps ts570d_caps = {
 		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
-.priv =  NULL,
+.priv =  (void *)&ts570_priv_caps,
 
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
@@ -358,19 +358,21 @@ const struct rig_caps ts570d_caps = {
 .get_vfo =  kenwood_get_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
+.get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
 .set_func =  kenwood_set_func,
 .get_func =  kenwood_get_func,
 .set_level =  kenwood_set_level,
 .get_level =  kenwood_get_level,
-.set_powerstat =  kenwood_set_powerstat,
-.get_powerstat =  kenwood_get_powerstat,
-.reset =  kenwood_reset,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
-.send_morse =  kenwood_send_morse,
+.set_trn =  kenwood_set_trn,
+.get_trn =  kenwood_get_trn,
+.set_powerstat =  kenwood_set_powerstat,
+.get_powerstat =  kenwood_get_powerstat,
+.reset =  kenwood_reset,
 
 };
 
