@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.18 2000-12-11 04:19:10 javabear Exp $  
+ *    $Id: ft747.h,v 1.19 2000-12-13 01:26:08 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -94,10 +94,12 @@ enum ft747_native_cmd_e {
   FT_747_NATIVE_MODE_SET_AMN,
   FT_747_NATIVE_MODE_SET_FMW,
   FT_747_NATIVE_MODE_SET_FMN,
-  FT_747_NATIVE_MODE_PACING,
-  FT_747_NATIVE_MODE_PTT_OFF,
-  FT_747_NATIVE_MODE_PTT_ON,
-  FT_747_NATIVE_MODE_UPDATE
+  FT_747_NATIVE_PACING,
+  FT_747_NATIVE_PTT_OFF,
+  FT_747_NATIVE_PTT_ON,
+  FT_747_NATIVE_UPDATE,
+  FT_747_NATIVE_SIZE		/* end marker, value indicates number of */
+				/* native cmd entries */
 
 };
 
@@ -105,7 +107,7 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
 
 
 /*
- * Data structure for FT747 native cmd set
+ * Basic Data structure for FT747 native cmd set
  */
 
 struct ft747_cmd_set {
@@ -113,60 +115,8 @@ struct ft747_cmd_set {
   unsigned char nseq[5];	/* native cmd sequence */
 };
 
-/*  typedef struct ft747_cmd_set ft747_cmd_set_t; */
+typedef struct ft747_cmd_set ft747_cmd_set_t; 
 
-#if 0
-#define  FT_747_NATIVE_SPLIT_OFF        0
-#define  FT_747_NATIVE_SPLIT_ON         1
-#define  FT_747_NATIVE_RECALL_MEM       2
-#define  FT_747_NATIVE_VFO_TO_MEM       3
-#define  FT_747_NATIVE_DLOCK_OFF        4
-#define  FT_747_NATIVE_DLOCK_ON         5
-#define  FT_747_NATIVE_VFO_A            6
-#define  FT_747_NATIVE_VFO_B            7
-
-#define  FT_747_NATIVE_M_TO_VFO         9
-#define  FT_747_NATIVE_UP_500K          9
-#define  FT_747_NATIVE_DOWN_500K        10
-#define  FT_747_NATIVE_CLARIFY_OFF      12
-#define  FT_747_NATIVE_CLARIFY_ON       12
-#define  FT_747_NATIVE_FREQ_SET         13
-
-#define  FT_747_NATIVE_MODE_SET_LSB     14
-#define  FT_747_NATIVE_MODE_SET_USB     15
-#define  FT_747_NATIVE_MODE_SET_CWW     16
-#define  FT_747_NATIVE_MODE_SET_CWN     17
-#define  FT_747_NATIVE_MODE_SET_AMW     18
-#define  FT_747_NATIVE_MODE_SET_AMN     19
-#define  FT_747_NATIVE_MODE_SET_FMW     20
-#define  FT_747_NATIVE_MODE_SET_FMN     20
-
-#define  FT_747_NATIVE_MODE_PACING      21
-#define  FT_747_NATIVE_MODE_PTT_OFF     22
-#define  FT_747_NATIVE_MODE_PTT_ON      23
-#define  FT_747_NATIVE_MODE_UPDATE      24
-
-
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-     
 
 
 /* Internal MODES - when setting modes via cmd_mode_set() */
@@ -247,7 +197,8 @@ struct ft747_priv_data {
   unsigned char pacing;		/* pacing value */
   unsigned int read_update_delay;	 /* depends on pacing value */
   unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
-  unsigned char p_cmd[FT747_CMD_LENGTH]; /* private copy of constructed CAT cmd */
+  unsigned char p_cmd[FT747_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
+  ft747_cmd_set_t pcs[FT_747_NATIVE_SIZE];		/* private cmd set */
   unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
 };
 

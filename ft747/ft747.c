@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.25 2000-12-11 04:19:10 javabear Exp $  
+ * $Id: ft747.c,v 1.26 2000-12-13 01:26:08 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
  */
-
 
 
 /*
@@ -62,10 +61,10 @@ static int ft747_get_update_data(RIG *rig);
 /* Native ft747 cmd set prototypes. These are READ ONLY as each */
 /* rig instance will copy from these and modify if required . */
 /* Complete sequences (1) can be read and used directly as a cmd sequence . */
-/* Incomplete sequences (0) must be copied to priv data and completed */
-/* there. */
+/* Incomplete sequences (0) must be completed with extra parameters */
+/* eg: mem number, or freq etc.. */
 
-static const struct ft747_cmd_set ncmd[] = { 
+static const ft747_cmd_set_t ncmd[] = { 
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split = off */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split = on */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* recall memory*/
@@ -218,10 +217,11 @@ int ft747_init(RIG *rig) {
   
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_init called \n");
 
-  /* init the priv_data from static struct 
-   *          + override with rig-specific preferences
+  /* 
+   * Copy native cmd set to private cmd storage area 
    */
-  
+
+  memcpy(p->pcs,ncmd,sizeof(ncmd));
 
   /* TODO: read pacing from preferences */
 
@@ -302,36 +302,34 @@ int ft747_close(RIG *rig) {
 int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-
-  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x0a }; /* set freq */
-  static unsigned char bcd[] = { 0,0,0,0 }; /* set freq */
-
-  int i;
+  unsigned char *cmd;		/* points to sequence to send */
 
   if (!rig)
     return -RIG_EINVAL;
-  
+
+
   p = (struct ft747_priv_data*)rig->state.priv;
+
   rig_s = &rig->state;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq = %Li Hz \n", freq);
 
   ft747_set_vfo(rig, vfo);	/* select VFO first , new API */
 
-  to_bcd(bcd,freq,8);
 
-  dump_hex(bcd,4);		/* just checking */
+  /* 
+   * Copy native cmd freq_set to private cmd storage area 
+   */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %Li Hz \n", from_bcd(bcd,8));
+  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_FREQ_SET].nseq,FT747_CMD_LENGTH);  
 
-  to_bcd(bcd,freq/10,8);	/* must pass as multiple of 10 Hz to ft747 yuk , see TODO -- FS*/
+  to_bcd(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
+				/* TODO -- fix 10Hz resolution -- FS */
 
-  for(i=0; i<4; i++) {
-    cmd[i] = bcd[i];		/* add bcd coded freq to cmd */
-  }
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %Li Hz \n", from_bcd(p->p_cmd,8)* 10 );
 
+  cmd = p->p_cmd; /* get native sequence */
   write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-
 
   return RIG_OK;
 }
@@ -382,10 +380,8 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-
-  unsigned char mymode;		/* ft747 mode value */
-
-  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x0c }; /* mode set */
+  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char cmd_index;	/* index of sequence to send */
 
   if (!rig)
     return -RIG_EINVAL;
@@ -403,21 +399,20 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
   switch(mode) {
   case RIG_MODE_AM:
-    mymode = MODE_SET_AMW;
+    cmd_index = FT_747_NATIVE_MODE_SET_AMW;
     break;
   case RIG_MODE_CW:
-    mymode = MODE_SET_CWW;
+    cmd_index = FT_747_NATIVE_MODE_SET_CWW;
     break;
   case RIG_MODE_USB:
-    mymode = MODE_SET_USB;
+    cmd_index = FT_747_NATIVE_MODE_SET_USB;
     break;
   case RIG_MODE_LSB:
-    mymode = MODE_SET_LSB;
+    cmd_index = FT_747_NATIVE_MODE_SET_LSB;
     break;
   case RIG_MODE_FM:
-    mymode = MODE_SET_FMW;
+    cmd_index = FT_747_NATIVE_MODE_SET_FMW;
     break;
-
   default:
     return -RIG_EINVAL;		/* sorry, wrong MODE */
   }
@@ -428,19 +423,40 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
    */
 
   switch(width) {
-  case RIG_PASSBAND_NORMAL:	/* easy  case */
+  case RIG_PASSBAND_NORMAL:	/* easy  case , no change to native sequence */
     break;
-  case RIG_PASSBAND_NARROW:	/* must set narrow */
-    mymode |= MODE_NAR;
-    break;
+
   case RIG_PASSBAND_WIDE:
-    return -RIG_EINVAL;		/* sorry, wrong WIDTH */
+    return -RIG_EINVAL;		/* sorry, WIDE WIDTH is not supported */
 
+  case RIG_PASSBAND_NARROW:	/* must set narrow */
+    switch(mode) {
+    case RIG_MODE_AM:
+      cmd_index = FT_747_NATIVE_MODE_SET_AMN;
+      break;
+    case RIG_MODE_FM:
+      cmd_index = FT_747_NATIVE_MODE_SET_FMN;
+      break;
+    case RIG_MODE_CW:
+      cmd_index = FT_747_NATIVE_MODE_SET_CWN;
+      break;
+    default:
+      return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
+    }
+    break;
+
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong WIDTH requested  */    
   }
+  
+  /*
+   * phew! now send cmd to rig
+   */ 
 
-  cmd[3] = mymode;
+  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
   write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: rig specific mode = %x \n", mymode);
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: cmd_index = %i \n", cmd_index);
 
   return RIG_OK;		/* good */
   
@@ -459,7 +475,7 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   ft747_get_update_data(rig);	/* get whole shebang from rig */
   
   mymode = p->update_data[FT747_SUMO_DISPLAYED_MODE];
-  mymode = mymode & MODE_MASK; /* mask out bits 5 and 6 */
+  mymode &= MODE_MASK; /* mask out bits 5 and 6 */
   
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: mymode = %x \n", mymode);
 
@@ -508,7 +524,10 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 int ft747_set_vfo(RIG *rig, vfo_t vfo) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-  static unsigned char cmd[] = { 0x00, 0x00, 0x00, 0x00, 0x05 }; /* select vfo A/B/Current */
+
+  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char cmd_index;	/* index of sequence to send */
+
 
   if (!rig)
     return -RIG_EINVAL;
@@ -524,33 +543,40 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
 
   switch(vfo) {
   case RIG_VFO_A:
-    cmd[3] = FT747_VFO_A; 
-    write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+    cmd_index = FT_747_NATIVE_VFO_A;
     p->current_vfo = vfo;		/* update active VFO */
-    return RIG_OK;
+    break;
   case RIG_VFO_B:
-    cmd[3] = FT747_VFO_B;
-    write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+    cmd_index = FT_747_NATIVE_VFO_B;
     p->current_vfo = vfo;		/* update active VFO */
-    return RIG_OK;
+    break;
   case RIG_VFO_CURR:
     switch(p->current_vfo) {	/* what is my active VFO ? */
     case RIG_VFO_A:
-      cmd[3] = FT747_VFO_A; 
-      write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-      return RIG_OK;
+      cmd_index = FT_747_NATIVE_VFO_A;
+      break;
     case RIG_VFO_B:
-      cmd[3] = FT747_VFO_B; 
-      write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-      return RIG_OK;
+      cmd_index = FT_747_NATIVE_VFO_B;
+      break;
     default:
       rig_debug(RIG_DEBUG_VERBOSE,"ft747: Unknown default VFO \n");
-      return -RIG_EINVAL;		/* sorry, wrong VFO */
+      return -RIG_EINVAL;		/* sorry, wrong current VFO */
     }
-    
+
+    break;
+
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
+  
+  /*
+   * phew! now send cmd to rig
+   */ 
+
+  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
+  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+
+  return RIG_OK;
 
 }
 
@@ -591,6 +617,8 @@ int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
+  unsigned char cmd_index;	/* index of sequence to send */
+
 
   if (!rig)
     return -RIG_EINVAL;
@@ -603,16 +631,22 @@ int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
 
   switch(ptt) {
   case RIG_PTT_OFF:
-    cmd = (unsigned char *)&ncmd[FT_747_NATIVE_MODE_PTT_OFF].nseq; /* get native sequence */
+    cmd_index = FT_747_NATIVE_PTT_OFF;
     break;
   case RIG_PTT_ON:
-    cmd = (unsigned char *)&ncmd[FT_747_NATIVE_MODE_PTT_ON].nseq;
+    cmd_index = FT_747_NATIVE_PTT_ON;
     break;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
+  /*
+   * phew! now send cmd to rig
+   */ 
+
+  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
   write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
+
   return RIG_OK;		/* good */
 }
 
@@ -853,8 +887,6 @@ void ft747_cmd_get_update_store(int fd, unsigned char *buffer) {
 }
 
 
-#endif
-
 
 /*
  * Private helper cmd to copy a native cmd sequence to priv
@@ -867,6 +899,9 @@ static void build_cmd(unsigned char *dst, int command){
   }
   return;
 }
+#endif
+
+
 
 
 /*
