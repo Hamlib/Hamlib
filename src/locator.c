@@ -11,7 +11,7 @@
  *  Hamlib Interface - locator and bearing conversion calls
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: locator.c,v 1.3 2002-08-22 23:42:20 fillods Exp $
+ *	$Id: locator.c,v 1.4 2002-09-01 22:23:49 fillods Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle, 
  *	by S. R. Sampson, N5OWK.
@@ -61,7 +61,7 @@
  * \brief Convert DMS angle to decimal representation
  * \param degrees	Degrees
  * \param minutes	Minutes
- * \param degrees	Seconds
+ * \param seconds	Seconds
  *
  *  Convert degree/minute/second angle to a decimal representation.
  *  Degrees >360, minutes > 60, and seconds > 60 are allowed, but
@@ -84,7 +84,7 @@ double dms2dec(int degrees, int minutes, int seconds)
  * \param dec	Decimal angle
  * \param degrees	The location where to store the degrees
  * \param minutes	The location where to store the minutes
- * \param degrees	The location where to store the seconds
+ * \param seconds	The location where to store the seconds
  *
  *  Convert decimal angle into its degree/minute/second representation.
  *  Upon return dec2dms guarantees -180<=degrees<180,
@@ -187,7 +187,6 @@ int locator2longlat(double *longitude, double *latitude, const char *locator)
 void longlat2locator(double longitude, double latitude, char *locator)
 {
 	double tmp;
-	int deg, min, sec;
 
 	tmp = fmod(longitude, 360) + 180.;
 

@@ -13,7 +13,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.61 2002-07-10 21:30:47 fillods Exp $
+ *	$Id: rig.c,v 1.62 2002-09-01 22:23:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -3954,7 +3954,7 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
  * \brief set the callback for freq events
  * \param rig	The rig handle
  * \param cb	The callback to install
- * \param trn	A Pointer to some private data to pass later on to the callback
+ * \param arg	A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for freq events, to be called when in transceive mode.
  *
@@ -3980,7 +3980,7 @@ int rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
  * \brief set the callback for mode events
  * \param rig	The rig handle
  * \param cb	The callback to install
- * \param trn	A Pointer to some private data to pass later on to the callback
+ * \param arg	A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for mode events, to be called when in transceive mode.
  *
@@ -4006,7 +4006,7 @@ int rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
  * \brief set the callback for vfo events
  * \param rig	The rig handle
  * \param cb	The callback to install
- * \param trn	A Pointer to some private data to pass later on to the callback
+ * \param arg	A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for vfo events, to be called when in transceive mode.
  *
@@ -4032,7 +4032,7 @@ int rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
  * \brief set the callback for ptt events
  * \param rig	The rig handle
  * \param cb	The callback to install
- * \param trn	A Pointer to some private data to pass later on to the callback
+ * \param arg	A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for ptt events, to be called when in transceive mode.
  *
@@ -4058,7 +4058,7 @@ int rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
  * \brief set the callback for dcd events
  * \param rig	The rig handle
  * \param cb	The callback to install
- * \param trn	A Pointer to some private data to pass later on to the callback
+ * \param arg	A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for dcd events, to be called when in transceive mode.
  *
@@ -4083,7 +4083,6 @@ int rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
 /**
  * \brief control the transceive mode 
  * \param rig	The rig handle
- * \param vfo	The target VFO
  * \param trn	The transceive status to set to
  *
  *  Enable/disable the transceive handling of a rig and kick off async mode.
@@ -4135,7 +4134,6 @@ int rig_set_trn(RIG *rig, int trn)
 /**
  * \brief get the current transceive mode
  * \param rig	The rig handle
- * \param vfo	The target VFO
  * \param trn	The location where to store the current transceive mode
  *
  *  Retrieves the current status of the transceive mode, i.e. if radio 
