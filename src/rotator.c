@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.10 2003-01-29 23:00:56 fillods Exp $
+ *	$Id: rotator.c,v 1.11 2003-04-23 21:06:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -634,12 +634,12 @@ int rot_reset (ROT *rot, rot_reset_t reset)
 }
 
 /**
- * \brief move the rotator in the spesified direction
+ * \brief move the rotator in the specified direction
  * \param rot   The rot handle
  * \param direction   Direction of movement
  * \param speed   Speed of movement
  *
- * Move the rotator in the spesified direction. The speed is a value
+ * Move the rotator in the specified direction. The speed is a value
  * between 1 and 100.
  */
 int rot_move (ROT *rot, int direction, int speed)
