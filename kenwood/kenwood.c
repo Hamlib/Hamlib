@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.55 2002-12-21 13:46:05 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.56 2002-12-22 13:52:21 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -433,7 +433,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		case RIG_VFO_B: vfo_letter = 'B'; break;
 		case RIG_VFO_C: vfo_letter = 'C'; break;
 		default: 
-			rig_debug(RIG_DEBUG_ERR,"kenwood_set_freq: unsupported VFO %d\n",
+			rig_debug(RIG_DEBUG_ERR,"kenwood_get_freq: unsupported VFO %d\n",
 								vfo);
 			return -RIG_EINVAL;
 		}
