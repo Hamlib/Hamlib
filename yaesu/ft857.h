@@ -1,14 +1,18 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * ft857.h derivated from:
+ * ft857.h - (C) Tomi Manninen 2003 (oh2bns@sral.fi)
+ *
+ *  ...derived but heavily modified from:
+ *
  * ft817.h - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
+ *
  * This shared library provides an API for communicating
  * via serial interface to an FT-817 using the "CAT" interface.
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.h,v 1.1 2003-08-11 21:20:35 fillods Exp $  
+ *    $Id: ft857.h,v 1.2 2003-08-27 07:39:05 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -30,12 +34,46 @@
 #ifndef _FT857_H
 #define _FT857_H 1
 
-#define FT857_WRITE_DELAY                    0
-#define FT857_POST_WRITE_DELAY               300
-#define FT857_DEFAULT_READ_TIMEOUT           2000
+/*
+ * No need to wait between written characters.
+ */
+#define FT857_WRITE_DELAY		0
+
+/*
+ * Wait 'delay' milliseconds after writing a command sequence.
+ *
+ * Setting this to zero means no delay but wait for an acknowledgement
+ * from the rig after a command. This is undocumented but seems to work.
+ * It's also the most optimal way as long as it works...
+ *
+ * A non-zero value disables waiting for the ack. Processing a command
+ * seems to take about 60 ms so set this to 80 or so to be safe.
+ */
+#define FT857_POST_WRITE_DELAY		0
+
+/*
+ * Read timeout.
+ */
+#define FT857_TIMEOUT			100
+
+/*
+ * The time the TX, RX and FREQ/MODE status are cached (in millisec).
+ * This optimises the common case of doing eg. rig_get_freq() and
+ * rig_get_mode() in a row.
+ *
+ * The timeout is deliberately set lower than the time taken to process
+ * a single command (~ 60 ms) so that a sequence
+ *
+ *   rig_get_freq();
+ *   rig_set_freq();
+ *   rig_get_freq();
+ *
+ * doesn't return a bogus (cached) value in the last rig_get_freq().
+ */
+#define FT857_CACHE_TIMEOUT		50
+
 
 enum ft857_native_cmd_e {
-
   FT857_NATIVE_CAT_LOCK_ON = 0,
   FT857_NATIVE_CAT_LOCK_OFF,
   FT857_NATIVE_CAT_PTT_ON,
@@ -47,6 +85,7 @@ enum ft857_native_cmd_e {
   FT857_NATIVE_CAT_SET_MODE_CWR,
   FT857_NATIVE_CAT_SET_MODE_AM,
   FT857_NATIVE_CAT_SET_MODE_FM,
+  FT857_NATIVE_CAT_SET_MODE_FM_N,
   FT857_NATIVE_CAT_SET_MODE_DIG,
   FT857_NATIVE_CAT_SET_MODE_PKT,
   FT857_NATIVE_CAT_CLAR_ON,
@@ -59,20 +98,18 @@ enum ft857_native_cmd_e {
   FT857_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
   FT857_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
   FT857_NATIVE_CAT_SET_RPT_OFFSET,
-/* fix me */
   FT857_NATIVE_CAT_SET_DCS_ON,
+  FT857_NATIVE_CAT_SET_DCS_DEC_ON,
+  FT857_NATIVE_CAT_SET_DCS_ENC_ON,
+  FT857_NATIVE_CAT_SET_CTCSS_ON,
+  FT857_NATIVE_CAT_SET_CTCSS_DEC_ON,
   FT857_NATIVE_CAT_SET_CTCSS_ENC_ON,
-  FT857_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON,
   FT857_NATIVE_CAT_SET_CTCSS_DCS_OFF,
-/* em xif */
   FT857_NATIVE_CAT_SET_CTCSS_FREQ,
   FT857_NATIVE_CAT_SET_DCS_CODE,
   FT857_NATIVE_CAT_GET_RX_STATUS,
   FT857_NATIVE_CAT_GET_TX_STATUS,
   FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS,
-  FT857_NATIVE_CAT_PWR_WAKE,
-  FT857_NATIVE_CAT_PWR_ON,
-  FT857_NATIVE_CAT_PWR_OFF,
   FT857_NATIVE_SIZE		/* end marker */
 };
 
@@ -81,12 +118,19 @@ typedef enum ft857_native_cmd_e ft857_native_cmd_t;
 
 
 struct ft857_priv_data {
-  unsigned char current_vfo;
-  unsigned char p_cmd[YAESU_CMD_LENGTH];
   yaesu_cmd_set_t pcs[FT857_NATIVE_SIZE];  /* TODO:  why? */
+
+  /* rx status */
+  struct timeval rx_status_tv;
   unsigned char rx_status;
+
+  /* tx status */
+  struct timeval tx_status_tv;
   unsigned char tx_status;
-  unsigned char freq_mode_status;
+       
+  /* freq & mode status */
+  struct timeval fm_status_tv;
+  unsigned char fm_status[YAESU_CMD_LENGTH];
 };
 
 
@@ -98,24 +142,23 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int ft857_set_vfo(RIG *rig, vfo_t vfo);
-int ft857_get_vfo(RIG *rig, vfo_t *vfo);
+// int ft857_set_vfo(RIG *rig, vfo_t vfo);
+// int ft857_get_vfo(RIG *rig, vfo_t *vfo);
 int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-int ft857_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+// int ft857_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-int ft857_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int ft857_set_parm(RIG *rig, setting_t parm, value_t val);
-int ft857_get_parm(RIG *rig, setting_t parm, value_t *val);
+// int ft857_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+// int ft857_set_parm(RIG *rig, setting_t parm, value_t val);
+// int ft857_get_parm(RIG *rig, setting_t parm, value_t *val);
+int ft857_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+int ft857_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t code);
+int ft857_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+int ft857_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+int ft857_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+
 
 #endif /* _FT857_H */
-
-
-
-
-
-
-
-
-
