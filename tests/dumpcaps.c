@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.14 2001-02-27 23:04:35 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.15 2001-03-01 21:23:32 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -230,7 +230,7 @@ int main (int argc, char *argv[])
 		if (caps->has_get_func&RIG_FUNC_APF) printf("APF ");
 		if (caps->has_get_func&RIG_FUNC_MON) printf("MON ");
 		if (caps->has_get_func&RIG_FUNC_MN) printf("MN ");
-		if (caps->has_get_func&RIG_FUNC_RFN) printf("RFN ");
+		if (caps->has_get_func&RIG_FUNC_RNF) printf("RNF ");
 		printf("\n");
 	} else
 			printf("none\n");
@@ -251,7 +251,7 @@ int main (int argc, char *argv[])
 		if (caps->has_set_func&RIG_FUNC_APF) printf("APF ");
 		if (caps->has_set_func&RIG_FUNC_MON) printf("MON ");
 		if (caps->has_set_func&RIG_FUNC_MN) printf("MN ");
-		if (caps->has_set_func&RIG_FUNC_RFN) printf("RFN ");
+		if (caps->has_set_func&RIG_FUNC_RNF) printf("RNF ");
 		printf("\n");
 	} else
 			printf("none\n");

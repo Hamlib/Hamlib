@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.8 2001-02-15 00:01:35 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.9 2001-03-01 21:23:32 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -328,7 +328,7 @@ int print_caps_func(const struct rig_caps *caps, void *data)
 	print_yn(func & RIG_FUNC_APF);
 	print_yn(func & RIG_FUNC_MON);
 	print_yn(func & RIG_FUNC_MN);
-	print_yn(func & RIG_FUNC_RFN);
+	print_yn(func & RIG_FUNC_RNF);
 
 	printf("</TR></A>\n");
 
@@ -594,7 +594,7 @@ int main (int argc, char *argv[])
 					"<TD>ANF</TD><TD>NR</TD>"
 					"<TD>AIP</TD><TD>APF</TD>"
 					"<TD>MON</TD><TD>MN</TD>"
-					"<TD>RFN</TD>"
+					"<TD>RNF</TD>"
 					"</TR>\n");
 	set_or_get = 1;
 	status = rig_list_foreach(print_caps_func,&set_or_get);
@@ -612,7 +612,7 @@ int main (int argc, char *argv[])
 					"<TD>ANF</TD><TD>NR</TD>"
 					"<TD>AIP</TD><TD>APF</TD>"
 					"<TD>MON</TD><TD>MN</TD>"
-					"<TD>RFN</TD>"
+					"<TD>RNF</TD>"
 					"</TR>\n");
 	set_or_get = 0;
 	status = rig_list_foreach(print_caps_func,&set_or_get);

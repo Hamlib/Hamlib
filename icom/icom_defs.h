@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.7 2001-01-28 22:10:14 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.8 2001-03-01 21:22:44 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -223,7 +223,7 @@
 #define S_FUNC_VOX	0x46		/* VOX setting */
 #define S_FUNC_BKIN	0x47		/* BK-IN setting */
 #define S_FUNC_MN	0x48		/* Manual notch setting */
-#define S_FUNC_RFN	0x49		/* RTTY Filter Notch setting */
+#define S_FUNC_RNF	0x49		/* RTTY Filter Notch setting */
 
 /*
  * Transceiver ID (C_RD_TRXID) subcommands
