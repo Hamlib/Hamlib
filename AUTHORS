@@ -11,9 +11,10 @@ Contributors:
 
 Backends:
 
- icom:		Stephane Fillod
- ft747:		Frank Singleton
- ft847:		Frank Singleton
+ ft747: 		Frank Singleton
+ ft847: 		Frank Singleton
+ winradio:		Pascal Brisset
+ icom&others:	Stephane Fillod
 
 Frontends:
 
@@ -22,3 +23,4 @@ email addresses:
 
 Frank Singleton <vk3fcs@ix.netcom.com>
 Stephane Fillod <f4cfe@users.sourceforge.net>
+Pascal Brisset <pab@users.sourceforge.net>
