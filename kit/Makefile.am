@@ -1,4 +1,4 @@
-KITSRCLIST = elektor304.c
+KITSRCLIST = elektor304.c drt1.c
 
 lib_LTLIBRARIES = hamlib-kit.la
 hamlib_kit_la_SOURCES = $(KITSRCLIST) kit.c
