@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.4 2000-07-29 00:50:45 javabear Exp $  
+ * $Id: testlibft747.c,v 1.5 2000-07-30 04:05:35 javabear Exp $  
  *
  */
 
@@ -140,23 +140,7 @@ static void decode_band_data(unsigned char data) {
 
 }
 
-/*
- * Do a hex dump of the unsigned car array.
- */
 
-static void dump_hex(unsigned char *ptr, int size, int length) {
-  int i;
-
-  printf("Memory Dump \n\n");
-  for(i=0; i<size; i++) {
-    printf(" 0x%2.2x", *(ptr+i));
-    if (i % length == 15) {
-      printf("\n");
-    }
-  }
-  printf("\n\n");
-
-} 
 
 /*
  * Simple test to see if we are talking to the RIG.
@@ -194,13 +178,9 @@ static int test(fd) {
 
   cmd_get_update_store(fd,datain); /* read (sleep)  and store in datain */
 
-  for(i=0; i<345; i++) {
-    printf("i = %i ,datain[i] = %x \n", i, datain[i]);
-  }
-
   header = (struct ft747_update_data *) &datain;	/* overlay header onto datain */
 
-  printf("Frequency = %x.%x%x%x \n", header->displayed_freq[1],
+  printf("Frequency = %x.%.2x%.2x%.2x \n", header->displayed_freq[1],
 	 header->displayed_freq[2],
 	 header->displayed_freq[3],
 	 header->displayed_freq[4]
@@ -211,7 +191,6 @@ static int test(fd) {
   decode_mode_bit_map(datain[24]); /* decode mode bit map */
   decode_band_data(datain[6]); /* decode current band data */
 
-  dump_hex(datain, 345, 16);	/* do a hex dump */
 
   return 0;
 }
