@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.11 2003-10-01 19:34:07 fillods Exp $  
+ *    $Id: ft100.c,v 1.12 2003-12-22 17:56:46 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -141,12 +141,12 @@ static const yaesu_cmd_set_t ncmd[] = {
    
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x10 } }, /* read status block */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* read meter block */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0xfa } }  /* read flags block */ 
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0xfa } }  /* read flags block */ 
 };
 
 
-#define FT100_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
-#define FT100_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT100_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define FT100_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT100_AM_FM_RX_MODES (RIG_MODE_AM|RIG_MODE_FM)
 
 #define FT100_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
@@ -255,9 +255,9 @@ const struct rig_caps ft100_caps = {
   .set_freq = 		ft100_set_freq,
   .get_freq = 		ft100_get_freq,
   .set_mode = 		ft100_set_mode,
-  .get_mode = 		NULL,
-  .set_vfo = 		NULL,
-  .get_vfo = 		NULL,
+  .get_mode = 		ft100_get_mode,
+  .set_vfo = 		ft100_set_vfo,
+  .get_vfo = 		ft100_get_vfo,
   .set_ptt = 	        ft100_set_ptt,
   .get_ptt = 		NULL,
   .get_dcd = 		NULL,
@@ -315,7 +315,8 @@ int ft100_init(RIG *rig) {
 
   memcpy(p->pcs,ncmd,sizeof(ncmd));
 
-  p->current_vfo = RIG_VFO_A;	/* no clue which VFO is active, so guess VFO 1 */
+  p->current_vfo = RIG_VFO_A; /* no clue which VFO is active, so guess VFO 1 */
+
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -417,6 +418,8 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   memcpy(p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
 
+  /* fixed 10Hz bug by OH2MMY */
+  freq = (int)freq/10;
   to_bcd(p->p_cmd,freq,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
 
@@ -460,7 +463,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
         strcat(freq_str, CFREQ_TBL[(int)ft100_status.freq[i]]);
    
    d1=strtol(freq_str,NULL,16);
-   d2=(d1*1.25)/10;
+   d2=(d1*1.25); 		/* fixed 10Hz bug by OH2MMY */
    
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%lld d2=%lld\n",d1,d2);
    
@@ -472,10 +475,6 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    
    return RIG_OK;
 }
-
-
-
-
 
 int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char cmd_index;	/* index of sequence to send */
@@ -515,21 +514,29 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   return ft100_send_priv_cmd(rig,cmd_index);
 }
 
+
+
+/*  ft100_get_mode fixed by OH2MMY 
+ *  Still answers wrong if on AM. Bug in rig's firmware?
+ *  The rig answers something weird then, not what the manual says
+ *  and the answer is different every time. Other modes do work.
+ */
+
 int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
   int n = 0;
-  unsigned char data[ YAESU_CMD_LENGTH ];
+  unsigned char data[ sizeof(FT100_STATUS_INFO) ];
 
   if( !rig )  return -RIG_EINVAL;
   if( !mode )  return -RIG_EINVAL;
   if( !width )  return -RIG_EINVAL;
 
   serial_flush( &rig->state.rigport );
-  ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_GET_FREQ_MODE_STATUS );
-  n = read_block( &rig->state.rigport, data, YAESU_CMD_LENGTH );
-  if( n == YAESU_CMD_LENGTH ) {
 
-    switch( data[4] ) {
+  ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_STATUS );
+  n = read_block( &rig->state.rigport, data, sizeof(FT100_STATUS_INFO) );
+  
+    switch( data[5] & 0x0f ) {
     case 0x00:
       *mode = RIG_MODE_LSB;
       break;
@@ -544,24 +551,46 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
       break;
     case 0x04:
       *mode = RIG_MODE_AM;
-      break;
-    case 0x08:
-      *mode = RIG_MODE_FM;
-      break;
-    case 0x0a:
+      break; 
+    case 0x05:
       *mode = RIG_MODE_RTTY;
       break;
+    case 0x06:
+      *mode = RIG_MODE_FM;
+      break;
+    case 0x07:
+      *mode = RIG_MODE_FM;
+      break; 
     default:
       *mode = RIG_MODE_NONE;
     };
 
-    *width = RIG_PASSBAND_NORMAL;  /* TODO: be a bit more creative? */
-    return RIG_OK;
-  }
+    switch( data[5] >> 4 ) {
+    case 0x00:
+      *width = Hz(6000);
+      break;
+    case 0x01:
+      *width = Hz(2400);
+      break;
+    case 0x02:
+      *width = Hz(500);
+      break;
+    case 0x03:
+      *width = Hz(300);
+      break;
+    default:
+      *width = RIG_PASSBAND_NORMAL;
+    };
 
-  return -RIG_EIO;
+    return RIG_OK;
 }
 
+
+
+/*  Function ft100_set_vfo fixed by OH2MMY 
+ *  Split doesn't work because there's no native command for that.
+ *  Maybe will fix it later.
+ */
 
 int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
@@ -571,9 +600,17 @@ int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
   switch(vfo) {
   case RIG_VFO_A:
+    if( p->current_vfo != vfo ) {
+      if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOB ) == RIG_OK ) {
+        p->current_vfo = vfo;
+      } else {
+        return -RIG_ERJCTED;
+      }
+    }
+    break;
   case RIG_VFO_B:
     if( p->current_vfo != vfo ) {
-      if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOAB ) == RIG_OK ) {
+      if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOA ) == RIG_OK ) {
         p->current_vfo = vfo;
       } else {
         return -RIG_ERJCTED;
@@ -589,13 +626,35 @@ int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
 
 
+/*  Function ft100_get_vfo written again by OH2MMY
+ *  Tells the right answer if in VFO mode.
+ *  TODO: handle memory modes.
+ */
+
 int ft100_get_vfo(RIG *rig, vfo_t *vfo) {
+
+  struct ft100_priv_data *priv;
+  unsigned char ft100_flags[ sizeof(FT100_FLAG_INFO) ];
+  int n;
 
   if( !rig )  return -RIG_EINVAL;
   if( !vfo )  return -RIG_EINVAL;
   
-  /* No cmd to get vfo, return last-known value */
-  *vfo = ((struct ft100_priv_data*)rig->state.priv)->current_vfo;
+  priv = (struct ft100_priv_data *)rig->state.priv;
+
+  serial_flush( &rig->state.rigport );
+
+  ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_FLAGS );
+  n = read_block( &rig->state.rigport, ft100_flags, sizeof(FT100_FLAG_INFO) );
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: read flags=%i \n",n);
+
+  if ((ft100_flags[1] & 4) == 4) {
+    *vfo = RIG_VFO_B;
+    priv->current_vfo = RIG_VFO_B;
+  } else {
+    *vfo = RIG_VFO_A;
+    priv->current_vfo = RIG_VFO_B;
+  }
 
   return RIG_OK;
 }
@@ -811,9 +870,10 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
 /*
  * okie dokie here....
  * get everything, let the calling function figure out what it needs
- * 
+ *  
+ * Flags read added by OH2MMY
+ *
  */
-
 int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags)
 {
    unsigned char cmd_index;
@@ -831,6 +891,10 @@ int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *
    n = read_block( &rig->state.rigport, ft100_meter, sizeof(FT100_METER_INFO));  
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: read meters=%i \n",n);
    
+   cmd_index=FT100_NATIVE_CAT_READ_FLAGS;
+   ft100_send_priv_cmd(rig,cmd_index);
+   n = read_block( &rig->state.rigport, ft100_flags, sizeof(FT100_FLAG_INFO));
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read flags=%i \n",n);
    
    return RIG_OK;
 }
