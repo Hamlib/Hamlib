@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.60 2003-11-05 20:40:27 fillods Exp $
+ *	$Id: icom.h,v 1.61 2003-11-10 16:01:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -162,6 +162,7 @@ extern const struct rig_caps ic706mkii_caps;
 extern const struct rig_caps ic706mkiig_caps;
 extern const struct rig_caps ic718_caps;
 extern const struct rig_caps ic725_caps;
+extern const struct rig_caps ic726_caps;
 extern const struct rig_caps ic735_caps;
 extern const struct rig_caps ic736_caps;
 extern const struct rig_caps ic737_caps;
@@ -171,13 +172,16 @@ extern const struct rig_caps ic746pro_caps;
 extern const struct rig_caps ic756_caps;
 extern const struct rig_caps ic756pro_caps;
 extern const struct rig_caps ic756pro2_caps;
+extern const struct rig_caps ic765_caps;
 extern const struct rig_caps ic775_caps;
+extern const struct rig_caps ic781_caps;
 extern const struct rig_caps ic821h_caps;
 extern const struct rig_caps ic910_caps;
 extern const struct rig_caps ic970_caps;
 extern const struct rig_caps icr7000_caps;
 extern const struct rig_caps icr8500_caps;
 extern const struct rig_caps ic275_caps;
+extern const struct rig_caps ic471_caps;
 extern const struct rig_caps ic475_caps;
 
 extern const struct rig_caps omnivip_caps;
