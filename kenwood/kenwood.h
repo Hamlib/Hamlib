@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.h,v 1.9 2001-08-08 21:32:25 f4cfe Exp $
+ *		$Id: kenwood.h,v 1.10 2001-10-18 20:43:13 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,6 +25,8 @@
 
 extern const int kenwood38_ctcss_list[];
 
+int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, 
+				int *data_len);
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -55,6 +57,7 @@ extern const struct rig_caps ts450s_caps;
 extern const struct rig_caps ts570d_caps;
 extern const struct rig_caps ts570s_caps;
 extern const struct rig_caps ts870s_caps;
+extern const struct rig_caps thd7a_caps;
 
 extern HAMLIB_EXPORT(int) init_kenwood(void *be_handle);
 extern HAMLIB_EXPORT(rig_model_t) probe_kenwood(port_t *port);

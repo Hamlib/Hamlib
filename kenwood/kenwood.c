@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.15 2001-08-08 21:32:25 f4cfe Exp $
+ *		$Id: kenwood.c,v 1.16 2001-10-18 20:43:13 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -70,6 +70,12 @@ struct kenwood_id {
 	int id;
 };
 
+struct kenwood_id_string {
+	rig_model_t model;
+	const char *id;
+};
+
+
 #define UNKNOWN_ID -1
 
 /*
@@ -87,6 +93,13 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_TS2000, 19 },
 	{ RIG_MODEL_NONE, UNKNOWN_ID },	/* end marker */
 };
+
+static const struct kenwood_id_string kenwood_id_string_list[] = {
+	{ RIG_MODEL_THD7A,  "TH-D7" },
+	{ RIG_MODEL_THD7AG, "TH-D7G" },
+	{ RIG_MODEL_NONE, NULL },	/* end marker */
+};
+
 
 /*
  * 38 CTCSS sub-audible tones
@@ -971,13 +984,25 @@ rig_model_t probe_kenwood(port_t *port)
 	/* 
 	 * reply should be something like 'IDxxx;'
 	 */
-	if (id_len != 6) {
-			idbuf[6] = '\0';
+	if (id_len != 5 || id_len != 6) {
+			idbuf[7] = '\0';
 			rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: protocol error,"
 							" expected %d, received %d: %s\n",
 							6, id_len, idbuf);
 			return RIG_MODEL_NONE;
 	}
+
+
+	/* first, try ID string */
+	for (i=0; kenwood_id_string_list[i].model != RIG_MODEL_NONE; i++) {
+			if (!strncmp(kenwood_id_string_list[i].id, idbuf+2, 16)) {
+					rig_debug(RIG_DEBUG_VERBOSE,"probe_kenwood: "
+									"found %s\n", idbuf+2);
+					return kenwood_id_string_list[i].model;
+			}
+	}
+
+	/* then, try ID numbers */
 
 	k_id = atoi(idbuf+2);
 
@@ -1011,6 +1036,7 @@ int init_kenwood(void *be_handle)
 		rig_register(&ts570d_caps);
 		rig_register(&ts570s_caps);
 		rig_register(&ts870s_caps);
+		rig_register(&thd7a_caps);
 
 		return RIG_OK;
 }
