@@ -15,8 +15,8 @@
 int main (int argc, char *argv[]) {
 	char recodedloc[13], *loc1, *loc2;
 	double lon1 = 0, lat1, lon2, lat2;
-	double distance, az, sec;
-	int deg, min;
+	double distance, az, min, sec;
+        float deg;
 	int retcode, locator_length;
 
 	if (argc < 3) {
@@ -36,12 +36,12 @@ int main (int argc, char *argv[]) {
 	}
 
 	dec2dms(lon1, &deg, &min, &sec);
-	printf("  Longitude:   %f, %d° %d' %.2f\"\n", lon1, deg, min, sec);
+	printf("  Longitude:   %f, %.0f° %.0f' %.2f\"\n", lon1, deg, min, sec);
 	lon1 = dms2dec(deg, min, sec);
 	printf("  Recoded lon: %f\n", lon1);
 
 	dec2dms(lat1, &deg, &min, &sec);
-	printf("  Latitude:    %f, %d° %d' %.2f\"\n", lat1, deg, min, sec);
+	printf("  Latitude:    %f, %.0f° %.0f' %.2f\"\n", lat1, deg, min, sec);
 	lat1 = dms2dec(deg, min, sec);
 	printf("  Recoded lat: %f\n", lat1);
 
@@ -63,12 +63,12 @@ int main (int argc, char *argv[]) {
 	}
 
 	dec2dms(lon2, &deg, &min, &sec);
-	printf("  Longitude:   %f, %d° %d' %.2f\"\n", lon2, deg, min, sec);
+	printf("  Longitude:   %f, %.0f° %.0f' %.2f\"\n", lon2, deg, min, sec);
 	lon2 = dms2dec(deg, min, sec);
 	printf("  Recoded lon: %f\n", lon2);
 
 	dec2dms(lat2, &deg, &min, &sec);
-	printf("  Latitude:    %f, %d° %d' %.2f\"\n", lat2, deg, min, sec);
+	printf("  Latitude:    %f, %.0f° %.0f' %.2f\"\n", lat2, deg, min, sec);
 	lat2 = dms2dec(deg, min, sec);
 	printf("  Recoded lat: %f\n", lat2);
 
@@ -86,7 +86,7 @@ int main (int argc, char *argv[]) {
 	}
 	dec2dms(az, &deg, &min, &sec);
 	printf("\nDistance: %.2fkm\n", distance);
-	printf("Bearing: %f, %d° %d' %.2f\"\n", az, deg, min, sec);
+	printf("Bearing: %f, %.0f° %.0f' %.2f\"\n", az, deg, min, sec);
 
 	exit(0);
 }

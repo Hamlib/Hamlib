@@ -14,7 +14,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.9 2003-08-21 20:22:06 n0nb Exp $
+ *	$Id: locator.c,v 1.10 2003-09-11 01:04:14 n0nb Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle,
  *	by S. R. Sampson, N5OWK.
@@ -116,11 +116,14 @@ const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
  *
  * \sa dec2dms()
  */
-double dms2dec(int degrees, int minutes, double seconds) {
-	if (degrees >= 0)
-		return (double)degrees + (double)minutes/60. + seconds/3600.;
-	else
-		return (double)degrees - (double)minutes/60. - seconds/3600.;
+
+double dms2dec(float degrees, double minutes, double seconds) {
+	double s, st;
+
+        s = copysign(1.0, (double)degrees);
+	st = fabs((double)degrees);
+
+	return copysign((st + minutes / 60. + seconds / 3600.), s);
 }
 
 /**
@@ -135,14 +138,16 @@ double dms2dec(int degrees, int minutes, double seconds) {
  *  When passed a value < -180 or > 180, the sign will be reversed
  *  and the value constrained to => -180 and <= 180 before conversion.
  *
- *  Upon return dec2dms guarantees -180<=degrees<180,
- *  0<=minutes<60, and 0<=seconds<60.
+ *  Upon return dec2dms guarantees -180 <= degrees < 180,
+ *  0 <= minutes < 60, and 0 <= seconds < 60.
  *
  * \sa dms2dec()
  */
-void dec2dms(double dec, int *degrees, int *minutes, double *seconds) {
-	int deg, min, is_neg = 0;
-	double st;
+
+void dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
+	int is_neg = 0;
+        float deg;
+	double st, min;
 
 	if (!degrees || !minutes || !seconds)
 		return;
@@ -175,13 +180,13 @@ void dec2dms(double dec, int *degrees, int *minutes, double *seconds) {
 	 */
 	st = fabs(st);
 
-	deg = (int)floor(st);
-	st  = 60. * (st-(double)deg);
-	min = (int)floor(st);
-	st  = 60. * (st-(double)min);
+	deg = (float)floor(st);
+	st  = 60. * (st - (double)deg);
+	min = floor(st);
+	st  = 60. * (st - min);
 
 	/* set *degrees to original sign passed to dec */
-	(is_neg == 1) ? (*degrees = deg * -1) : (*degrees = deg);
+	(is_neg == 1) ? (*degrees = -deg) : (*degrees = deg);
 
 	*minutes = min;
 	*seconds = st;
