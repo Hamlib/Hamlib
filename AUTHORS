@@ -80,6 +80,9 @@ C: Leigh Klotz WA5ZNU
 [kenwood: TS-480SAT]
 M: Juergen Rinas DC3BW
 
+[kenwood: TS-570]
+M: Rob Frohne, KL7NA
+
 [kenwood: R-5000]
 M: Mark J. Fine
 
@@ -126,22 +129,25 @@ C: Pascal Brisset
 [yeasu: ft100]
 M: Alex V Flinsch, KC2IVL
 
-[yeasu: ft747]
+[yaesu: ft747]
 M:
 C: Frank Singleton, VK3FCS
 
-[yeasu: ft817]
+[yaesu: ft817]
 M: Chris Karpinsky, AA1VL
 
-[yeasu: ft847]
+[yaesu: ft847]
 M: Jim Jerzycke, KQ6EA
 C: Frank Singleton, VK3FCS
 
-[yeasu: ft920, ft890, ft900]
+[yaesu: ft920, ft890, ft900]
 M: Nate Bargmann, N0NB
 
-[yeasu: ft990]
+[yaesu: ft990]
 M: Berndt Josef Wulf, VK5ABN
+
+[yaesu: VR-5000]
+M: Jacob Heder
 
 
 Rotators
