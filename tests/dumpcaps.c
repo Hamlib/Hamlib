@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.22 2001-05-08 09:11:32 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.23 2001-05-08 16:41:52 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@
 
 
 static char *decode_modes(rmode_t modes);
+static const char *decode_mtype(enum chan_type_e type);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
 
@@ -72,6 +73,7 @@ int main (int argc, char *argv[])
 	printf("Model name:\t%s\n",caps->model_name);
 	printf("Mfg name:\t%s\n",caps->mfg_name);
 	printf("Backend version:\t%s\n",caps->version);
+	printf("Backend copyright:\t%s\n",caps->copyright);
 	printf("Backend status:\t");
 	switch (caps->status) {
 	case RIG_STATUS_ALPHA:
@@ -207,6 +209,10 @@ int main (int argc, char *argv[])
 	printf("Has targetable VFO: %s\n",
 					caps->targetable_vfo?"yes":"no");
 
+	printf("Has transceive: %s\n",
+					caps->transceive?"yes":"no");
+
+	printf("Announce: 0x%lx\n", caps->announces);
 	printf("Max RIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_rit/1000, caps->max_rit%1000,
 					caps->max_rit/1000, caps->max_rit%1000);
@@ -308,9 +314,6 @@ int main (int argc, char *argv[])
 	if (caps->has_set_level!=0) {
 		if (caps->has_set_level&RIG_LEVEL_PREAMP) printf("PREAMP ");
 		if (caps->has_set_level&RIG_LEVEL_ATT) printf("ATT ");
-#if 0
-		if (caps->has_set_level&RIG_LEVEL_ANT) printf("ANT ");	/* deprecated */
-#endif
 		if (caps->has_set_level&RIG_LEVEL_AF) printf("AF ");
 		if (caps->has_set_level&RIG_LEVEL_RF) printf("RF ");
 		if (caps->has_set_level&RIG_LEVEL_SQL) printf("SQL ");
@@ -382,6 +385,16 @@ int main (int argc, char *argv[])
 #endif
 	printf("Number of banks:\t%d\n", caps->bank_qty);
 	printf("Memory name desc size:\t%d\n", caps->chan_desc_sz);
+
+	printf("Memories:");
+	for (i=0; i<CHANLSTSIZ && caps->chan_list[i].type; i++) {
+			printf("\n\t%d..%d:   \t%s", caps->chan_list[i].start,
+							caps->chan_list[i].end,
+							decode_mtype(caps->chan_list[i].type));
+	}
+	if (i == 0)
+		printf(" none");
+	printf("\n");
 
 /* TODO: print rx/tx ranges here */
 	status = range_sanity_check(caps->tx_range_list1,0);
@@ -512,6 +525,17 @@ static char *decode_modes(rmode_t modes)
 	return buf;
 }
 
+static const char *decode_mtype(enum chan_type_e type)
+{
+		switch(type) {
+				case RIG_MTYPE_NONE: return "NONE";
+				case RIG_MTYPE_MEM: return "MEM";
+				case RIG_MTYPE_EDGE: return "EDGE";
+				case RIG_MTYPE_CALL: return "CALL";
+				case RIG_MTYPE_MEMOPAD: return "MEMOPAD";
+				default: return "UNKNOWN";
+		}
+}
 
 /* 
  * check for:
@@ -564,16 +588,20 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
 {
 	int i;
 	shortfreq_t last_ts;
+	rmode_t last_modes;
 
 	last_ts = 0;
+	last_modes = RIG_MODE_NONE;
 	for (i=0; i<TSLSTSIZ; i++) {
 			if (tuning_step[i].modes == 0 && tuning_step[i].ts == 0)
 					break;
-			if (tuning_step[i].ts < last_ts)
+			if (tuning_step[i].ts < last_ts && 
+							last_modes == tuning_step[i].modes)
 					return -1;
 			if (tuning_step[i].modes == 0)
 					return -2;
 			last_ts = tuning_step[i].ts;
+			last_modes = tuning_step[i].modes;
 	}
 	if (i == TSLSTSIZ)
 			return -4;
