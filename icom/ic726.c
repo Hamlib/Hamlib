@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-726 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic726.c,v 1.2 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: ic726.c,v 1.3 2004-02-08 17:01:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,7 +61,7 @@ const struct rig_caps ic726_caps = {
 .rig_model =  RIG_MODEL_IC726,
 .model_name = "IC-726", 
 .mfg_name =  "Icom", 
-.version =  "0.2.1", 
+.version =  "0.2.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -107,7 +107,7 @@ const struct rig_caps ic726_caps = {
 
 .rx_range_list1 =   {
 	{kHz(500),MHz(30),IC726_ALL_RX_MODES,-1,-1,IC726_VFO_ALL},
-	{kHz(50),MHz(54),IC726_ALL_RX_MODES,-1,-1,IC726_VFO_ALL},
+	{MHz(50),MHz(54),IC726_ALL_RX_MODES,-1,-1,IC726_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list1 =  {
 	FRQ_RNG_HF(1,IC726_OTHER_TX_MODES, W(10),W(100),IC726_VFO_ALL,IC726_ANTS),
@@ -118,7 +118,7 @@ const struct rig_caps ic726_caps = {
 
 .rx_range_list2 =   {
 	{kHz(500),MHz(30),IC726_ALL_RX_MODES,-1,-1,IC726_VFO_ALL},
-	{kHz(50),MHz(54),IC726_ALL_RX_MODES,-1,-1,IC726_VFO_ALL},
+	{MHz(50),MHz(54),IC726_ALL_RX_MODES,-1,-1,IC726_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list2 =  {
 	FRQ_RNG_HF(2,IC726_OTHER_TX_MODES, W(10),W(100),IC726_VFO_ALL,IC726_ANTS),
