@@ -1,0 +1,87 @@
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook V3.1//EN" [
+<!ENTITY preface SYSTEM "preface.sgml">
+<!ENTITY intro SYSTEM "intro.sgml">
+<!ENTITY using SYSTEM "using.sgml">
+<!ENTITY reference SYSTEM "reference.sgml">
+<!ENTITY backend SYSTEM "backend.sgml">
+<!ENTITY internals SYSTEM "internals.sgml">
+<!ENTITY curver "1.1.0 (ALPHA)">
+]>
+  <book>
+    <bookinfo>
+      <title>Ham Radio Control Libraries</title>
+      <subtitle>API Reference for Version &curver;</subtitle>
+      <author>
+	<firstname>Nathan</firstname>
+	<surname>Bargmann</surname>
+      </author>
+      <address>
+	<email>n0nb@networksplus.net</email>
+      </address>
+      <pubdate>23 September 2001</pubdate>
+      <copyright>
+	<year>2000</year>
+	<year>2001</year>
+	<holder>Frank Singleton, VK3FCS &amp; KM5WS; Stephane Fillod, F4CFE;
+	Nate Bargmann, N0NB</holder>
+      </copyright>
+      <legalnotice id="legalnotice">
+	<title>Hamlib-doc - Ham Radio Control Libraries Documentation</title>
+
+	<para>Copyright (C) 2000-2001 Stephane Fillod, Frank Singleton, Nate 
+	Bargmann.  This documentation file is part of the Hamlib 
+	package.</para>
+
+	<para>Hamlib-doc is free software; you can redistribute it and/or 
+	modify it under the terms of the GNU General Public License as 
+	published by the Free Software Foundation; either version 2 of the 
+	License, or (at your option) any later version.</para>
+	
+	<para>Hamlib-doc is distributed in the hope that it will be useful, 
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY	or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+	General Public License for more details.</para>
+	
+	<para>You should have received a copy of the GNU General Public 
+	License	along with Hamlib-doc; see the file COPYING.  If not, write 
+	to the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
+	MA 02139, USA.</para>
+      </legalnotice>
+      <abstract>
+	<title>Abstract</title>
+	<para>Demonstrate the need for Hamlib, document the Hamlib API, provide
+	an introduction to writing a program using Hamlib, and provide an
+	introduction to authoring a backend library to control a radio or other
+	device.</para>
+      </abstract>
+      <revhistory>
+	<revision>
+	  <revnumber>0.1.1</revnumber>
+	  <date>23 September 2001</date>
+	  <authorinitials>nfb</authorinitials>
+	  <revremark>Final final draft for &curver;</revremark>
+	</revision>
+	<revision>
+	  <revnumber>0.1.0</revnumber>
+	  <date>24 February 2001</date>
+	  <authorinitials>nfb</authorinitials>
+	  <revremark>Final draft for &curver;</revremark>
+	</revision>
+	<revision>
+	  <revnumber>0.0.1</revnumber>
+	  <date>4 February 2001</date>
+	  <authorinitials>nfb</authorinitials>
+	  <revremark>Rough draft of Preface and Chapter 1.  Posted on the
+	  Web for critique</revremark>
+	</revision>
+      </revhistory>
+    </bookinfo>
+    &preface;
+    &intro;
+<!-- Comment out unstarted chapters for 1.1.0 (ALPHA) -->
+<!--    &using; -->
+    &reference;
+<!--    &backend; -->
+<!--    &internals; -->
+  </book>
+

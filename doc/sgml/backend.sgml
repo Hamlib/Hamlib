@@ -1,0 +1,11 @@
+<chapter id="backend">
+  <title>Writing a backend for hamlib</title>
+  <para></para>
+</chapter>
+
+<!-- 
+Local Variables:
+mode: sgml
+sgml-parent-document: ("hamlib.sgml" "book" "chapter")
+End:
+-->

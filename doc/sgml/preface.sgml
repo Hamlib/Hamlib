@@ -1,0 +1,64 @@
+<preface id="preface">
+  <title>Preface</title>
+  <para>The Personal Computer has arguably become as prominent of a fixture
+  in the modern hamshack as HF transceivers and handheld radios.  The first
+  PCs hams used combined with an interface also known as a terminal unit, 
+  <acronym>TU</acronym>, replaced the noisy mechanical radio teletype, 
+  <acronym>RTTY</acronym>, machines.  Gradually, other uses became apparent
+  for the hamshack PC such as logging contact information, operating newer 
+  digital modes such as <acronym>AMTOR</acronym>, a forward error correcting
+  (<acronym>FEC</acronym>) mode of <acronym>RTTY</acronym>, and packet, an
+  error checked way of transfering binary data between computers.</para>
+
+  <para>In the mid to late 1980s radio manufacturers began to offer computer
+  control capability to their offerings.  Now the shack PC had one more duty
+  added to its repertoire.  However, the amount of control over a given
+  radio's capability by computer control was often much less than from the
+  front panel.  In large part was due to many analog controls on the front
+  panel that weren't under control of the radio's <acronym>CPU</acronym>.  
+  Thus most radio control has been limited to control of frequency values 
+  of the variable frequency
+  oscillators, <acronym>VFO</acronym>, and recalling and setting the radio's
+  memory channels.</para>
+
+  <para>More recent models have more of the front panel controls under the
+  supervision of the radio's <acronym>CPU</acronym>, consequently 
+  manufacturers have enabled more control of the radio's functions through
+  the computer interface.  This has created an explosion of command functions
+  not just between the different manufacturers, but also among a given 
+  manufacturer's product line.  There may also exist subtle differences in
+  later versions of a given model.</para>
+
+  <para>For the software author wishing to incorporate even the most basic of
+  radio control functions, the task is daunting.  Even the long lived logging
+  program <trademark>CT</trademark> by Ken Wolff, K1EA has reports of subtle
+  bugs in one radio model or another (this is not intended as a knock of Ken 
+  or his effort, rather it is an observation of the complexity of supporting
+  a multitude of radios in a monolithic program by one or a few authors).  Is
+  every programmer doomed to recreate radio control themselves with varying
+  degrees of success?  The answer is, no! </para>
+
+  <para>Enter the Hamlib project.  Hamlib aims to provide application authors
+  with a single application programming interface, <acronym>API</acronym>,
+  regardless of the actual radio in use.  Thus Hamlib is not an end user
+  application, but is a middle software layer that acts as a translator 
+  between the <acronym>API</acronym> and the specific radio commands.</para>
+
+  <para>This manual will attempt to explain in detail the Hamlib <acronym>API
+  </acronym>, how to use Hamlib for writing radio control software, how to
+  write a radio backend library, and an overview of Hamlib's structure and
+  design.</para>
+  
+  <para>Finally, Hamlib is Free Software licensed under the GNU Public
+  License, <acronym>GPL</acronym>, version 2.  This will have certain 
+  implications if you are a software author considering using Hamlib as a
+  part of your project.  Consult the COPYING file in the base directory of
+  the Hamlib source distribution for more details.</para>
+</preface>
+
+<!-- 
+Local Variables:
+mode: sgml
+sgml-parent-document: ("hamlib.sgml" "book" "preface") 
+End:
+-->
