@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.3 2000-07-27 01:01:32 javabear Exp $  
+ * $Id: ft747.c,v 1.4 2000-07-28 00:57:29 javabear Exp $  
  *
  */
 
@@ -182,29 +182,12 @@ void cmd_update(int fd) {
  */
 
 void cmd_update_store(int fd, unsigned char *buffer) {
-  int bytes;			/* read from rig */
   int i,n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x10 }; /* request update from rig */
   write_block(fd,data);
-
-  /*
-   * Sleep regularly until the buffer contains all 345 bytes
-   * This should handle most values used for pacing.
-   */
-
-  bytes = 0;
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    printf("bytes  = %i\n", bytes);
-    if (bytes == 345)
-      break;
-    sleep(1);			/* wait 1 second */
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,datain,345);		/* grab 345 bytes from rig */
+ 
+  n = read_sleep(fd,datain,345);	/* wait and read for 345 bytes to be read */
 
   for(i=0; i<n; i++) {
     printf("i = %i ,datain[i] = %x \n", i, datain[i]);
