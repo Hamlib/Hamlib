@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.3 2000-07-28 03:05:18 javabear Exp $  
+ *    $Id: ft747.h,v 1.4 2000-07-29 00:52:28 javabear Exp $  
  */
 
 
@@ -21,28 +21,28 @@
 
 /* MODES - when setting modes via cmd_mode_set() */
 
-const int MODE_SET_LSB  =  0x00;
-const int MODE_SET_USB  =  0x01;
-const int MODE_SET_CWW  =  0x02;
-const int MODE_SET_CWN  =  0x03;
-const int MODE_SET_AMW  =  0x04;
-const int MODE_SET_AMN  =  0x05;
-const int MODE_SET_FMW  =  0x06;
-const int MODE_SET_FMN  =  0x07;
+#define MODE_SET_LSB    0x00
+#define MODE_SET_USB    0x01
+#define MODE_SET_CWW    0x02
+#define MODE_SET_CWN    0x03
+#define MODE_SET_AMW    0x04
+#define MODE_SET_AMN    0x05
+#define MODE_SET_FMW    0x06
+#define MODE_SET_FMN    0x07
 
 
 /*
  * Status Flags
  */
 
-const int SF_DLOCK  = (1<<0);
-const int SF_SPLIT  = (1<<1);
-const int SF_CLAR   = (1<<2);
-const int SF_VFOAB  = (1<<3);
-const int SF_VFOMR  = (1<<4);
-const int SF_RXTX   = (1<<5);
-const int SF_RESV   = (1<<6);
-const int SF_PRI    = (1<<7);
+#define SF_DLOCK   0x01
+#define SF_SPLIT   0x02
+#define SF_CLAR    0x04
+#define SF_VFOAB   0x08
+#define SF_VFOMR   0x10
+#define SF_RXTX    0x20
+#define SF_RESV    0x40
+#define SF_PRI     0x80
 
 
 /*
@@ -50,12 +50,13 @@ const int SF_PRI    = (1<<7);
  * When reading modes
  */
 
-const int MODE_FM   = (1<<0);
-const int MODE_AM   = (1<<1);
-const int MODE_CW   = (1<<2);
-const int MODE_USB  = (1<<3);
-const int MODE_LSB  = (1<<4);
-const int MODE_NAR  = (1<<7);
+#define MODE_FM    0x01
+#define MODE_AM    0x02
+#define MODE_CW    0x04
+
+#define MODE_USB   0x08
+#define MODE_LSB   0x10
+#define MODE_NAR   0x80
 
 /*
  * Map band data value to band.
