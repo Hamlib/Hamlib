@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.17 2001-07-25 21:59:55 f4cfe Exp $
+ *		$Id: serial.c,v 1.18 2001-08-22 21:12:09 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -46,10 +46,14 @@
 #include <sgtty.h>
 #endif
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-/* for CTS/RTS and DTR/DSR control --SF */
+/* for CTS/RTS and DTR/DSR control under Win32 --SF */
+#ifdef HAVE_WINDOWS_H
 #include <windows.h>
+#endif
+#ifdef HAVE_WINIOCTL_H
 #include <winioctl.h>
+#endif
+#ifdef HAVE_WINBASE_H
 #include <winbase.h>
 #endif
 
