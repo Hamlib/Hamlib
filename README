@@ -1,5 +1,5 @@
 hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
-and (C) Stephane Fillod 2000-2002
+and (C) Stephane Fillod 2000-2003
 
 The purpose of this project is to provide stable, flexible,
 shared libraries that enable quicker development of Amateur
@@ -35,10 +35,10 @@ libhamlib.so -  frontend lib that provides generic API
 Backend Examples are:
 ---------------------
  
-1.libhamlib-yaesu.so will provide connectivity to Yaesu
+1.hamlib-yaesu.so will provide connectivity to Yaesu
   FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
 
-2. libhamlib-xxxx.so will provide connectivity to the Wiz-bang
+2. hamlib-xxxx.so will provide connectivity to the Wiz-bang
    moon-melter 101A (yikes..)
 
 Hamlib will also enable developers to develop
@@ -56,8 +56,8 @@ Hamlib is entirely developped using GNU tools, under various Linux systems.
 That is, if you want to take part in the development of Hamlib, 
 you'll need at least the following tools:
 	* autoconf > 2.50
-	* automake > 1.5
-	* libtool  > 1.4.2
+	* automake > 1.7
+	* libtool  > 1.5
 	* doxygen
 	* cvs and ssh to connect to http://sourceforge.net/
 

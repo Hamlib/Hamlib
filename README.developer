@@ -1,5 +1,5 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
-	and Stephane Fillod 2000-2002
+	and Stephane Fillod 2000-2003
 
 Take a look at http://sourceforge.net/projects/hamlib/
 Here you will find a mail list, and the latest CVS releases.
@@ -31,10 +31,10 @@ libhamlib.so -  frontend lib that provides generic API
 Backend Examples are:
 ---------------------
  
-1.libhamlib-yaesu.so will provide connectivity to Yaesu
+1.hamlib-yaesu.so will provide connectivity to Yaesu
   FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
 
-2. libhamlib-xxxx.so will provide connectivity to the Wiz-bang
+2. hamlib-xxxx.so will provide connectivity to the Wiz-bang
    moon-melter 101A (yikes..)
 
 Hamlib also enables developers to develop professional looking 
@@ -53,14 +53,18 @@ General Guidelines.
 [fillods@charybde hamlib]$ tree -d
 |-- alinco
 |-- aor
+|-- bindings
 |-- c++
 |-- debian
 |-- doc
 |   |-- html
 |   |-- man
 |   `-- sgml
+|-- drake
 |-- dummy
 |-- easycomm
+|-- fodtrack
+|-- gnuradio
 |-- icom
 |   |-- lib
 |   `-- test
@@ -73,13 +77,13 @@ General Guidelines.
 |   `-- tests
 |-- lib
 |-- libltdl
+|-- macros
+|-- microtune
 |-- pcr
-|-- perl
-|   `-- Hamlib
+|-- rotorez
 |-- rpcrig
 |-- rpcrot
 |-- src
-|-- tcl
 |-- tentec
 |-- tests
 |   `-- html
@@ -137,8 +141,8 @@ version or you won't even be able to build from the cvs checkout.
 * Gnu C or any C99 compliant compiler		# gcc --version
 * Gnu make  (or any modern one, BSD okay)	# make --version
 * autoconf		 2.54			# autoconf --version
-* automake		 1.5			# automake --version
-* libtool		 1.4.2			# libtool --version
+* automake		 1.7			# automake --version
+* libtool		 1.5			# libtool --version
 * cvs and ssh for connection to cvs.hamlib.sourceforge.net
 
 Optional:
@@ -156,7 +160,7 @@ Documentation:
 Note: 
 Some systems can have several versions of the autotools installed.
 In that case, autoconf may be called "autoconf2.50", autoheader "autoheader2.50",
-and automake "automake-1.5", aclocal "aclocal-1.5" or upper version.
+and automake "automake-1.7", aclocal "aclocal-1.7" or upper version.
 
 IMPORTANT: If autoconf or automake are installed on your system, 
 make sure they are matching *at least* the version shown above.
@@ -216,10 +220,12 @@ So far, Hamlib has been tested under the following systems:
 	* Debian potato/sarge/sid i386
 	* Debian sid mipsel
 	* RedHat i386
+	* Linux ppc
 	* Slackware i386
 	* FreeBSD
-	* win32: builds under Cygwin, module loading still broken
-	* Some work started under Darwin (issues with libtool)
+	* Solaris 2.6
+	* win32: Cygwin
+	* should work under Darwin (untested lately)
 
 
 2. How to add a new backend

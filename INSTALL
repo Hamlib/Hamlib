@@ -159,3 +159,17 @@ find the X include and library files automatically, but if it doesn't,
 you can use the `configure' options `--x-includes=DIR' and
 `--x-libraries=DIR' to specify their locations.
 
+Hamlib specific Features
+========================
+
+   Should you encounter any problem with the build of the C++ binding,
+you can disable this optional part by passing `--without-cxx-binding'
+to the configure script.
+
+   Any problem encountered with the perl, tcl or swig tool can be
+disabled by passing `--without-tcl' and `--without-perl-binding'.
+
+   Some platfroms may have trouble compiling the RPC support (e.g. Mac OS X).
+in such a case, the rpcrig and rpcrot backends may be disabled 
+with the `--without-rpc-backends' option.
+

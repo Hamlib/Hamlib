@@ -1,8 +1,18 @@
 Hamlib -- History of visible changes.
 
-Copyright (C) 2000-2002  Stephane Fillod, Frank Singleton and others
+Copyright (C) 2000-2003  Stephane Fillod, Frank Singleton and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
+
+Version 1.1.4
+	2003-04-28
+	* new backends: Drake (R8B), GNU Radio (experimental), microtune, 
+	  and many new rig models
+	* new rotator backends: fodtrack, rotorez
+	* better doxygenized documentation
+	* reworked perl and tcl bindings using swig
+	* vfo_t rework
+	* gcc-3.x compilance
 
 Version 1.1.3
 	2002-06-17
