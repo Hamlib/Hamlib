@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.35 2003-10-01 19:31:55 fillods Exp $
+ *	$Id: dummy.c,v 1.36 2003-11-16 17:20:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1039,7 +1039,7 @@ const struct rig_caps dummy_caps = {
   .has_set_level =  RIG_LEVEL_SET(DUMMY_LEVEL),
   .has_get_parm = 	 DUMMY_PARM,
   .has_set_parm = 	 RIG_PARM_SET(DUMMY_PARM),
-  .level_gran =		{ [LVL_CWPITCH] = 10 },
+  .level_gran =		{ [LVL_CWPITCH].step.i = 10 },
   .ctcss_list = 	 common_ctcss_list,
   .dcs_list =   	 full_dcs_list,
   .chan_list = 	 {
