@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: rot_reg.c,v 1.4 2002-02-26 21:23:45 fillods Exp $
+ *		$Id: rot_reg.c,v 1.5 2002-11-04 22:27:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -266,7 +266,7 @@ int rot_load_backend(const char *be_name)
 # define PREFIX "cyghamlib-"
 # define POSTFIX ".dll"
 #else
-# define PREFIX "libhamlib-"
+# define PREFIX "hamlib-"
 # define POSTFIX ".la"
 #endif
 
