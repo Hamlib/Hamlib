@@ -3,7 +3,7 @@
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.3 2001-01-28 22:21:48 f4cfe Exp $  
+ *    $Id: listrigs.c,v 1.4 2001-02-07 23:45:59 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -113,6 +113,7 @@ int main (int argc, char *argv[])
 		printf("rig_load_backend: aor error = %s \n", rigerror(status));
 		exit(3);
 	}
+	rig_load_backend("winradio");	/* may not be compiled .. */
 
 	printf("Rig#\tMfg\tModel       \tVers.\tStatus\tType\n");
 	status = rig_list_foreach(print_caps_sum,NULL);

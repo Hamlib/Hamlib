@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.9 2001-01-28 22:21:00 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.10 2001-02-07 23:45:59 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ int main (int argc, char *argv[])
 	status |= rig_load_backend("ft847");
 	status |= rig_load_backend("kenwood");
 	status |= rig_load_backend("aor");
+	rig_load_backend("winradio");   /* may not be compiled ... */
 
 	if (status != RIG_OK ) {
 		printf("rig_load_backend: error = %s \n", rigerror(status));

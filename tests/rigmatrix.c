@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.4 2001-01-30 22:59:22 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.5 2001-02-07 23:45:59 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -474,6 +474,7 @@ int main (int argc, char *argv[])
 		printf("rig_load_backend: aor error = %s \n", rigerror(status));
 		exit(3);
 	}
+	rig_load_backend("winradio");	/* may not be compiled ... */
 
 	printf("<TABLE BORDER=1>");
 	printf("<TR><TD>Model</TD><TD>Mfg</TD><TD>Vers.</TD><TD>Status</TD>"
