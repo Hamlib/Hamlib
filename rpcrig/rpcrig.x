@@ -2,7 +2,7 @@
 % *  Hamlib Interface - RPC definitions
 % *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *
-% *	$Id: rpcrig.x,v 1.9 2004-01-15 23:17:35 fillods Exp $
+% *	$Id: rpcrig.x,v 1.10 2005-03-28 09:37:24 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -63,6 +63,10 @@ typedef int tone_x;
 typedef long scan_x;
 typedef long reset_x;
 typedef long powerstat_x;
+
+%#if __APPLE__
+%static int _rpcsvcdirty;
+%#endif
 
 struct mode_s {
 	rmode_x mode;

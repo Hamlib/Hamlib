@@ -3,7 +3,7 @@
 % *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *  Contributed by Francois Retief <fgretief@sun.ac.za>
 % *
-% *	$Id: rpcrot.x,v 1.2 2002-09-13 07:01:54 fillods Exp $
+% *	$Id: rpcrot.x,v 1.3 2005-03-28 09:37:24 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,10 @@
 %#include <rpc/xdr.h>
 %#include <hamlib/rotator.h>
 #endif
+
+%#if __APPLE__
+%static int _rpcsvcdirty;
+%#endif
 
 /* ************************************************************************* */
 
