@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.5 2002-11-04 05:16:19 n0nb Exp $
+ * $Id: ft920.c,v 1.6 2002-11-15 13:15:25 n0nb Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -49,6 +49,17 @@
 #include "ft920.h"
 
 
+/*
+ * Functions considered to be Beta code (2002-11-15):
+ * set_vfo
+ * get_vfo
+ * set_freq
+ * get_freq
+ * set_mode
+ * get_mode
+ *
+ */
+
 /* Private helper function prototypes */
 
 static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl);
@@ -60,6 +71,8 @@ static int ft920_send_priv_cmd(RIG *rig, unsigned char ci);
  * Complete sequences (1) can be read and used directly as a cmd sequence.
  * Incomplete sequences (0) must be completed with extra parameters
  * eg: mem number, or freq etc..
+ *
+ * TODO: Shorten this static array with parameter substitution -N0NB
  *
  */
 
@@ -75,36 +88,40 @@ static const yaesu_cmd_set_t ncmd[] = {
 /*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x09 } }, */ /* RX clarifier on */
 /*  { 1, { 0x00, 0x00, 0x00, 0x80, 0x09 } }, */ /* TX clarifier on */
 /*  { 1, { 0x00, 0x00, 0x00, 0x81, 0x09 } }, */ /* TX clarifier on */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set freq */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set vfo A freq */
 
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* vfo A mode set LSB */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* vfo A mode set USB */
   { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* vfo A mode set CW-USB */
   { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* vfo A mode set CW-LSB */
   { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* vfo A mode set AM */
-  { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* vfo A mode set AM */
   { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* vfo A mode set FM */
   { 1, { 0x00, 0x00, 0x00, 0x07, 0x0c } }, /* vfo A mode set FMN */
   { 1, { 0x00, 0x00, 0x00, 0x08, 0x0c } }, /* vfo A mode set DATA-LSB */
-  { 1, { 0x00, 0x00, 0x00, 0x09, 0x0c } }, /* vfo A mode set DATA-LSB */
   { 1, { 0x00, 0x00, 0x00, 0x0a, 0x0c } }, /* vfo A mode set DATA-USB */
   { 1, { 0x00, 0x00, 0x00, 0x0b, 0x0c } }, /* vfo A mode set DATA-FM */
 
-/*  { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, */ /* vfo B mode set LSB */
-/*  { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, */ /* vfo B mode set USB */
-/*  { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, */ /* vfo B mode set CW-USB */
-/*  { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, */ /* vfo B mode set CW-LSB */
-/*  { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, */ /* vfo B mode set AM */
-/*  { 1, { 0x00, 0x00, 0x00, 0x85, 0x0c } }, */ /* vfo B mode set AM */
-/*  { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, */ /* vfo B mode set FM */
-/*  { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, */ /* vfo B mode set FMN */
-/*  { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, */ /* vfo B mode set DATA-LSB */
-/*  { 1, { 0x00, 0x00, 0x00, 0x89, 0x0c } }, */ /* vfo B mode set DATA-LSB */
-/*  { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, */ /* vfo B mode set DATA-USB */
-/*  { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, */ /* vfo B mode set DATA-FM */
+  { 1, { 0x00, 0x00, 0x00, 0x80, 0x0c } }, /* vfo B mode set LSB */
+  { 1, { 0x00, 0x00, 0x00, 0x81, 0x0c } }, /* vfo B mode set USB */
+  { 1, { 0x00, 0x00, 0x00, 0x82, 0x0c } }, /* vfo B mode set CW-USB */
+  { 1, { 0x00, 0x00, 0x00, 0x83, 0x0c } }, /* vfo B mode set CW-LSB */
+  { 1, { 0x00, 0x00, 0x00, 0x84, 0x0c } }, /* vfo B mode set AM */
+  { 1, { 0x00, 0x00, 0x00, 0x86, 0x0c } }, /* vfo B mode set FM */
+  { 1, { 0x00, 0x00, 0x00, 0x87, 0x0c } }, /* vfo B mode set FMN */
+  { 1, { 0x00, 0x00, 0x00, 0x88, 0x0c } }, /* vfo B mode set DATA-LSB */
+  { 1, { 0x00, 0x00, 0x00, 0x8a, 0x0c } }, /* vfo B mode set DATA-USB */
+  { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, /* vfo B mode set DATA-FM */
 
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* update interval/pacing */
-  { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* status update VFO A & B update (28 bytes) hard coded for now */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x10 } }, /* Status Update Data--Memory Channel Number (1 byte) */
+  { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* Status Update Data--Current operating data for VFO/Memory (28 bytes) */
+  { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* Status Update DATA--VFO A and B Data (28 bytes) */
+  { 0, { 0x00, 0x00, 0x00, 0x04, 0x10 } }, /* Status Update Data--Memory Channel Data (14 bytes) P4 = 0x00-0x89 Memory Channel Number */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x8a } }, /* set vfo B frequency */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x8c } }, /* VFO A wide filter */
+  { 1, { 0x00, 0x00, 0x00, 0x02, 0x8c } }, /* VFO A narrow filter */
+  { 1, { 0x00, 0x00, 0x00, 0x80, 0x8c } }, /* VFO B wide filter */
+  { 1, { 0x00, 0x00, 0x00, 0x82, 0x8c } }, /* VFO B narrow filter */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0xFA } }, /* Read status flags */
 /*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* keyer commands */
 /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
@@ -115,25 +132,6 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 
 /*
- * Receiver caps 
- */
-
-#define FT920_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
-#define FT920_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
-#define FT920_AM_RX_MODES (RIG_MODE_AM)
-#define FT920_FM_RX_MODES (RIG_MODE_FM)
-
-
-/* 
- * TX caps
- */ 
-
-#define FT920_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB ) /* 100 W class */
-#define FT920_AM_TX_MODES (RIG_MODE_AM )    /* set 25W max */
-#define FT920_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN) /* fix */
-
-
-/*
  * future - private data
  *
  */
@@ -141,10 +139,10 @@ static const yaesu_cmd_set_t ncmd[] = {
 struct ft920_priv_data {
   unsigned char pacing;                     /* pacing value */
   unsigned int read_update_delay;           /* depends on pacing value */
-  unsigned char current_vfo;                /* active VFO from last cmd */
+  vfo_t current_vfo;                        /* active VFO from last cmd */
   unsigned char p_cmd[YAESU_CMD_LENGTH];    /* private copy of 1 constructed CAT cmd */
-  yaesu_cmd_set_t pcs[FT_920_NATIVE_SIZE];  /* private cmd set */
-  unsigned char update_data[FT920_VFO_UPDATE_DATA_LENGTH];/* returned data--max value, some are less */
+  yaesu_cmd_set_t pcs[FT920_NATIVE_SIZE];  /* private cmd set */
+  unsigned char update_data[FT920_VFO_DATA_LENGTH];/* returned data--max value, some are less */
 };
 
 
@@ -158,7 +156,7 @@ const struct rig_caps ft920_caps = {
   .rig_model =          RIG_MODEL_FT920,
   .model_name =         "FT-920",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.2",
+  .version =            "0.1.0",
   .copyright =          "GPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -199,42 +197,42 @@ const struct rig_caps ft920_caps = {
   .tx_range_list1 =     { RIG_FRNG_END, },
 
   .rx_range_list2 =     {
-    {kHz(100),  MHz(30),    FT920_ALL_RX_MODES, -1, -1 },   /* General coverage + ham */
-    {MHz(48),   MHz(56),    FT920_ALL_RX_MODES, -1, -1 },   /* 6m! */
+    {kHz(100),  MHz(30),   FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL},   /* General coverage + ham */
+    {MHz(48),   MHz(56),   FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL},   /* 6m! */
 
     RIG_FRNG_END,
   }, /* Region 2 rx ranges */
 
   .tx_range_list2 =     {
-    {MHz(1.8),      MHz(1.99999),   FT920_OTHER_TX_MODES,   W(5),   W(100)},    /* 100W class */
-    {MHz(1.8),      MHz(1.99999),   FT920_AM_TX_MODES,      W(2),   W(25)},     /* 25W class */
+    {kHz(1800),     Hz(1999990),   FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},    /* 100W class */
+    {kHz(1800),     Hz(1999990),   FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},    /* 25W class */
     
-    {MHz(3.5),      MHz(3.99999),   FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(3.5),      MHz(3.99999),   FT920_AM_TX_MODES,      W(2),   W(25)},
+    {kHz(3500),     Hz(3999990),   FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
+    {kHz(3500),     Hz(3999990),   FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
     
-    {MHz(7),        MHz(7.29999),   FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(7),        MHz(7.29999),   FT920_AM_TX_MODES,      W(2),   W(25)},
+    {MHz(7),        Hz(7299990),   FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
+    {MHz(7),        Hz(7299990),   FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
 
-    {MHz(10.1),     MHz(10.14999),  FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(10.1),     MHz(10.14999),  FT920_AM_TX_MODES,      W(2),   W(25)},
+    {kHz(10100),    Hz(10149990),  FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
+    {kHz(10100),    Hz(10149990),  FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
     
-    {MHz(14),       MHz(14.34999),  FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(14),       MHz(14.34999),  FT920_AM_TX_MODES,      W(2),   W(25)},
+    {MHz(14),       Hz(14349990),  FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
+    {MHz(14),       Hz(14349990),  FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
     
-    {MHz(18.068),   MHz(18.16799),  FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(18.068),   MHz(18.16799),  FT920_AM_TX_MODES,      W(2),   W(25)},
+    {kHz(18068),    Hz(18167990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
+    {kHz(18068),    Hz(18167990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
     
-    {MHz(21),       MHz(21.44999),  FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(21),       MHz(21.44999),  FT920_AM_TX_MODES,      W(2),   W(25)},
+    {MHz(21),       Hz(21449990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
+    {MHz(21),       Hz(21449990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
     
-    {MHz(24.89),    MHz(24.98999),  FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(24.89),    MHz(24.98999),  FT920_AM_TX_MODES,      W(2),   W(25)},
+    {kHz(24890),    Hz(24989990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
+    {kHz(24890),    Hz(24989990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
     
-    {MHz(28),       MHz(29.69999),  FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(28),       MHz(29.69999),  FT920_AM_TX_MODES,      W(2),   W(25)},
+    {MHz(28),       Hz(29699990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
+    {MHz(28),       Hz(29699990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
     
-    {MHz(50),       MHz(53.99999),  FT920_OTHER_TX_MODES,   W(5),   W(100)},
-    {MHz(50),       MHz(53.99999),  FT920_AM_TX_MODES,      W(2),   W(25)},
+    {MHz(50),       Hz(53999990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
+    {MHz(50),       Hz(53999990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
 
     RIG_FRNG_END,
   },    /* region 2 TX ranges */
@@ -269,6 +267,8 @@ const struct rig_caps ft920_caps = {
     {RIG_MODE_AM,   kHz(2.4)},  /* AM filter with narrow selection (SSB filter switched in) */
     {RIG_MODE_FM,   kHz(12)},   /* FM with optional FM unit */
     {RIG_MODE_WFM,  kHz(12)},   /* WideFM, with optional FM unit. */
+    {RIG_MODE_RTTY, kHz(1.8)},  /* Alias of MODE_DATA_L */
+    {RIG_MODE_RTTY, kHz(0.5)},  /* Alias of MODE_DATA_LN */
 
     RIG_FLT_END,
   },
@@ -296,27 +296,27 @@ const struct rig_caps ft920_caps = {
  */
 
 int ft920_init(RIG *rig) {
-  struct ft920_priv_data *p;
+  struct ft920_priv_data *priv;
   
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_init called \n");
+  rig_debug(RIG_DEBUG_VERBOSE, "ft920: ft920_init called\n");
 
   if (!rig)
     return -RIG_EINVAL;
   
-  p = (struct ft920_priv_data*)malloc(sizeof(struct ft920_priv_data));
-  if (!p)                       /* whoops! memory shortage! */
+  priv = (struct ft920_priv_data*)malloc(sizeof(struct ft920_priv_data));
+  if (!priv)                       /* whoops! memory shortage! */
     return -RIG_ENOMEM;
   
   /*
    * Copy native cmd set to private cmd storage area 
    */
-  memcpy(p->pcs,ncmd,sizeof(ncmd));
+  memcpy(priv->pcs, ncmd, sizeof(ncmd));
 
   /* TODO: read pacing from preferences */
-  p->pacing = FT920_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-  p->read_update_delay = FT920_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-  p->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
-  rig->state.priv = (void*)p;
+  priv->pacing = FT920_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
+  priv->read_update_delay = FT920_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
+  priv->current_vfo =  RIG_VFO_A;  /* default to VFO_A ? */
+  rig->state.priv = (void*)priv;
   
   return RIG_OK;
 }
@@ -374,6 +374,7 @@ int ft920_open(RIG *rig) {
  * ft920_close  routine
  * 
  */
+
 int ft920_close(RIG *rig) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_close called\n");
@@ -386,13 +387,16 @@ int ft920_close(RIG *rig) {
 
 
 /*
- * Example of wrapping backend function inside frontend API
+ * set freq : for a given VFO
+ *
+ * If vfo is not given or is set to RIG_VFO_CUR then vfo
+ * from priv_data is used.
  *
  */
 
 int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct rig_state *rig_s;
-  struct ft920_priv_data *p;
+  struct ft920_priv_data *priv;
   unsigned char *cmd;           /* points to sequence to send */
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_set_freq called\n");
@@ -400,31 +404,51 @@ int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   if (!rig)
     return -RIG_EINVAL;
 
-  p = (struct ft920_priv_data*)rig->state.priv;
+  priv = (struct ft920_priv_data*)rig->state.priv;
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft920: requested freq = %lli Hz \n", freq);
+  rig_debug(RIG_DEBUG_TRACE,"ft920: set_freq: requested freq = %lli Hz \n", freq);
 
-  /* frontend sets VFO now , if targetable_vfo = 0 */
+  if (vfo == RIG_VFO_CURR )
+    vfo = priv->current_vfo;    /* from previous vfo cmd */
+  rig_debug(RIG_DEBUG_TRACE,
+            "ft920: set_freq: priv->current_vfo = 0x%x\n", vfo);
 
-#if 0
-  ft920_set_vfo(rig, vfo);      /* select VFO first , new API */
-#endif
+  switch(vfo) {
+  case RIG_VFO_A:
+  case RIG_VFO_MEM:
+    /*
+     * Copy native cmd freq_set to private cmd storage area 
+     */
+    memcpy(&priv->p_cmd, &ncmd[FT920_NATIVE_VFO_A_FREQ_SET].nseq,
+           YAESU_CMD_LENGTH);
+  
+    to_bcd(priv->p_cmd, freq/10, 8);    /* store bcd format in in p_cmd */
 
-  /* 
-   * Copy native cmd freq_set to private cmd storage area 
-   */
-  memcpy(&p->p_cmd,&ncmd[FT_920_NATIVE_FREQ_SET].nseq,YAESU_CMD_LENGTH);
+    rig_debug(RIG_DEBUG_TRACE,
+              "ft920: set_freq: requested freq after conversion = %lli Hz\n",
+              from_bcd(priv->p_cmd, 8)* 10);
+  
+    cmd = priv->p_cmd;          /* get native sequence */
+    write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+    break;
+  case RIG_VFO_B:
+    memcpy(&priv->p_cmd, &ncmd[FT920_NATIVE_VFO_B_FREQ_SET].nseq,
+           YAESU_CMD_LENGTH);
+  
+    to_bcd(priv->p_cmd, freq/10, 8);    /* store bcd format in in p_cmd */
 
-  to_bcd(p->p_cmd,freq/10,8);   /* store bcd format in in p_cmd */
-                                /* TODO -- fix 10Hz resolution -- FS */
-
-  rig_debug(RIG_DEBUG_TRACE,"ft920: requested freq after conversion = %lli Hz\n",
-            from_bcd(p->p_cmd,8)* 10 );
-
-  cmd = p->p_cmd;               /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+    rig_debug(RIG_DEBUG_TRACE,
+              "ft920: set_freq: requested freq after conversion = %lli Hz\n",
+              from_bcd(priv->p_cmd, 8)* 10);
+  
+    cmd = priv->p_cmd;          /* get native sequence */
+    write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+    break;
+  default:
+    return -RIG_EINVAL;         /* sorry, wrong VFO */
+  }
 
   return RIG_OK;
 }
@@ -440,28 +464,37 @@ int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   unsigned char *p;
   freq_t f;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_get_freq called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "ft920: get_freq called\n");
+  rig_debug(RIG_DEBUG_TRACE, "ft920: get_freq: vfo = [0x%x]\n", vfo);
 
   if (!rig)
     return -RIG_EINVAL;
   
   priv = (struct ft920_priv_data*)rig->state.priv;
 
-  /* get VFO record from rig*/
-  ft920_get_update_data(rig, FT_920_NATIVE_VFO_UPDATE,
-                        FT920_VFO_UPDATE_DATA_LENGTH);
-
   if (vfo == RIG_VFO_CURR )
     vfo = priv->current_vfo;    /* from previous vfo cmd */
+  rig_debug(RIG_DEBUG_TRACE,
+            "ft920: get_freq: priv->current_vfo = [0x%x]\n", vfo);
 
   switch(vfo) {
   case RIG_VFO_A:
+    ft920_get_update_data(rig, FT920_NATIVE_VFO_DATA,
+                          FT920_VFO_DATA_LENGTH);
     p = &priv->update_data[FT920_SUMO_VFO_A_FREQ];
-    rig_debug(RIG_DEBUG_TRACE,"ft920: VFO A [%x]\n", vfo);
+    rig_debug(RIG_DEBUG_TRACE,"ft920: get_freq: VFO A [0x%x]\n", vfo);
     break;
   case RIG_VFO_B:
+    ft920_get_update_data(rig, FT920_NATIVE_VFO_DATA,
+                          FT920_VFO_DATA_LENGTH);
     p = &priv->update_data[FT920_SUMO_VFO_B_FREQ];
-    rig_debug(RIG_DEBUG_TRACE,"ft920: VFO B [%x]\n", vfo);
+    rig_debug(RIG_DEBUG_TRACE,"ft920: get_freq: VFO B [0x%x]\n", vfo);
+    break;
+  case RIG_VFO_MEM:
+    ft920_get_update_data(rig, FT920_NATIVE_OP_DATA,
+                          FT920_VFO_DATA_LENGTH);
+    p = &priv->update_data[FT920_SUMO_DISPLAYED_FREQ];
+    rig_debug(RIG_DEBUG_TRACE,"ft920: get_freq: QMB/MEM TUNE/MEM RECALL [0x%x]\n", vfo);
     break;
   default:
     return -RIG_EINVAL;         /* sorry, wrong VFO */
@@ -470,7 +503,7 @@ int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   /* big endian integer */
   f = (((((p[0]<<8) + p[1])<<8) + p[2])<<8) + p[3];
 
-  rig_debug(RIG_DEBUG_TRACE,"ft920: freq = %lli Hz for VFO [%x]\n", f, vfo);
+  rig_debug(RIG_DEBUG_TRACE,"ft920: get_freq: freq = %lli Hz for VFO [0x%x]\n", f, vfo);
 
   *freq = f;                    /* return diplayed frequency */
 
@@ -481,9 +514,13 @@ int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 /*
  * set mode : eg AM, CW etc for a given VFO
  *
+ * If vfo is not given or is set to RIG_VFO_CUR then vfo
+ * from priv_data is used.
+ *
  */
 
 int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
+  struct ft920_priv_data *priv;
   unsigned char cmd_index;      /* index of sequence to send */
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_set_mode called\n");
@@ -491,82 +528,150 @@ int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
   if (!rig)
     return -RIG_EINVAL;
 
+  priv = (struct ft920_priv_data*)rig->state.priv;
+
   /* frontend sets VFO now , if targetable_vfo = 0 */
 
 #if 0
   ft920_set_vfo(rig, vfo);      /* select VFO first , new API */
 #endif
 
-  rig_debug(RIG_DEBUG_TRACE,"ft920: generic mode = %x\n", mode);
+  rig_debug(RIG_DEBUG_TRACE,"ft920: set_mode: generic mode = [0x%x]\n", mode);
+
+  if (vfo == RIG_VFO_CURR )
+    vfo = priv->current_vfo;    /* from previous vfo cmd */
+  rig_debug(RIG_DEBUG_TRACE,"ft920: set_mode: vfo  = [0x%x]\n", vfo);
 
   /* 
    * translate mode from generic to ft920 specific
    */
-  switch(mode) {
-  case RIG_MODE_AM:
-    cmd_index = FT_920_NATIVE_MODE_SET_AMW;
-    break;
-  case RIG_MODE_CW:
-    cmd_index = FT_920_NATIVE_MODE_SET_CW_USB;
-    break;
-  case RIG_MODE_USB:
-    cmd_index = FT_920_NATIVE_MODE_SET_USB;
-    break;
-  case RIG_MODE_LSB:
-    cmd_index = FT_920_NATIVE_MODE_SET_LSB;
-    break;
-  case RIG_MODE_FM:
-    cmd_index = FT_920_NATIVE_MODE_SET_FMW;
-    break;
-  default:
-    return -RIG_EINVAL;         /* sorry, wrong MODE */
-  }
-
-
-  /*
-   * Now set width
-   */
-  /* FIXME: so far setting passband is buggy, only 0 is accepted -N0NB */
-  switch(width) {
-  case RIG_PASSBAND_NORMAL:     /* easy  case , no change to native sequence */
-    break;
-
-#ifdef RIG_PASSBAND_OLDTIME
-  case RIG_PASSBAND_WIDE:
-    return -RIG_EINVAL;         /* sorry, WIDE WIDTH is not supported */
-
-  case RIG_PASSBAND_NARROW:     /* must set narrow */
+  switch(vfo){
+  case RIG_VFO_A:
+  case RIG_VFO_MEM:
     switch(mode) {
     case RIG_MODE_AM:
-      cmd_index = FT_920_NATIVE_MODE_SET_AMN;
-      break;
-    case RIG_MODE_FM:
-      cmd_index = FT_920_NATIVE_MODE_SET_FMN;
+      cmd_index = FT920_NATIVE_VFO_A_MODE_SET_AM;
       break;
     case RIG_MODE_CW:
-      cmd_index = FT_920_NATIVE_MODE_SET_CWN;
+      cmd_index = FT920_NATIVE_VFO_A_MODE_SET_CW_USB;
+      break;
+    case RIG_MODE_USB:
+      cmd_index = FT920_NATIVE_VFO_A_MODE_SET_USB;
+      break;
+    case RIG_MODE_LSB:
+      cmd_index = FT920_NATIVE_VFO_A_MODE_SET_LSB;
+      break;
+    case RIG_MODE_FM:
+      cmd_index = FT920_NATIVE_VFO_A_MODE_SET_FMW;
+      break;
+    case RIG_MODE_RTTY:
+      cmd_index = FT920_NATIVE_VFO_A_MODE_SET_DATA_LSB;
       break;
     default:
-      return -RIG_EINVAL;       /* sorry, wrong MODE/WIDTH combo  */
+      return -RIG_EINVAL;       /* sorry, wrong MODE */
     }
-    break;
-#else
-  /* TODO! */
-#endif
+  
+    ft920_send_priv_cmd(rig, cmd_index);
+    rig_debug(RIG_DEBUG_TRACE,"ft920: set_mode: cmd_index = [%i]\n", cmd_index);
+  
+    /*
+     * Now set width (shamelessly stolen from ft847.c :)
+     *
+     * My FT-920 lacks a narrow SSB filter, is this a problem? -N0NB
+     *
+     * Yeah, it's ugly...
+     *
+     */
+    if (width == RIG_PASSBAND_NORMAL ||
+        width == rig_passband_normal(rig, mode)) {
+      cmd_index = FT920_NATIVE_VFO_A_PASSBAND_WIDE;
+    } else {
+      if (width == rig_passband_narrow(rig, mode)) {
+        switch(mode) {
+        case RIG_MODE_LSB:
+        case RIG_MODE_CW:
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_RTTY:
+          cmd_index = FT920_NATIVE_VFO_A_PASSBAND_NAR;
+          break;
+        default:
+          return -RIG_EINVAL;   /* sorry, wrong MODE/WIDTH combo  */
+        }
+      } else {
+        if (width != RIG_PASSBAND_NORMAL &&
+            width != rig_passband_normal(rig, mode)) {
+          return -RIG_EINVAL;   /* sorry, wrong MODE/WIDTH combo  */
+        }
+      }
+    }
 
+    ft920_send_priv_cmd(rig,cmd_index);
+    rig_debug(RIG_DEBUG_TRACE,"ft920: set_mode: cmd_index = [%i]\n", cmd_index);
+
+    break;
+
+  /* Now VFO B */
+  case RIG_VFO_B:
+    switch(mode) {
+    case RIG_MODE_AM:
+      cmd_index = FT920_NATIVE_VFO_B_MODE_SET_AM;
+      break;
+    case RIG_MODE_CW:
+      cmd_index = FT920_NATIVE_VFO_B_MODE_SET_CW_USB;
+      break;
+    case RIG_MODE_USB:
+      cmd_index = FT920_NATIVE_VFO_B_MODE_SET_USB;
+      break;
+    case RIG_MODE_LSB:
+      cmd_index = FT920_NATIVE_VFO_B_MODE_SET_LSB;
+      break;
+    case RIG_MODE_FM:
+      cmd_index = FT920_NATIVE_VFO_B_MODE_SET_FMW;
+      break;
+    case RIG_MODE_RTTY:
+      cmd_index = FT920_NATIVE_VFO_B_MODE_SET_DATA_LSB;
+      break;
+    default:
+      return -RIG_EINVAL;
+    }
+  
+    ft920_send_priv_cmd(rig, cmd_index);
+    rig_debug(RIG_DEBUG_TRACE,"ft920: set_mode: cmd_index = [%i]\n", cmd_index);
+  
+    if (width == RIG_PASSBAND_NORMAL ||
+        width == rig_passband_normal(rig, mode)) {
+      cmd_index = FT920_NATIVE_VFO_B_PASSBAND_WIDE;
+    } else {
+      if (width == rig_passband_narrow(rig, mode)) {
+        switch(mode) {
+        case RIG_MODE_LSB:
+        case RIG_MODE_CW:
+        case RIG_MODE_AM:
+        case RIG_MODE_FM:
+        case RIG_MODE_RTTY:
+          cmd_index = FT920_NATIVE_VFO_B_PASSBAND_NAR;
+          break;
+        default:
+          return -RIG_EINVAL;
+        }
+      } else {
+        if (width != RIG_PASSBAND_NORMAL &&
+            width != rig_passband_normal(rig, mode)) {
+          return -RIG_EINVAL;
+        }
+      }
+    }
+
+    ft920_send_priv_cmd(rig,cmd_index);
+    rig_debug(RIG_DEBUG_TRACE,"ft920: set_mode: cmd_index = [%i]\n", cmd_index);
+
+    break;
   default:
-    return -RIG_EINVAL;         /* sorry, wrong WIDTH requested  */
+    return -RIG_EINVAL;         /* sorry, wrong VFO */
   }
 
-  /*
-   * phew! now send cmd to rig
-   */ 
-  ft920_send_priv_cmd(rig,cmd_index);
-
-  rig_debug(RIG_DEBUG_TRACE,"ft920: cmd_index = %i\n", cmd_index);
-
   return RIG_OK;                /* good */
-  
 }
 
 
@@ -576,52 +681,103 @@ int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
  */
 
 int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
-  struct ft920_priv_data *p;
+  struct ft920_priv_data *priv;
   unsigned char mymode;         /* ft920 mode */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_get_mode called\n");
+  rig_debug(RIG_DEBUG_VERBOSE,"ft920: get_mode called\n");
 
   if (!rig)
     return -RIG_EINVAL;
   
-  p = (struct ft920_priv_data*)rig->state.priv;
+  priv = (struct ft920_priv_data*)rig->state.priv;
 
-  /*
-   * FIXME: Command passed is for VFO A & B, there should
-   * be a complement for current display. e.g. mem tune -N0NB
-   */
-  ft920_get_update_data(rig, FT_920_NATIVE_VFO_UPDATE,
-                        FT920_VFO_UPDATE_DATA_LENGTH);
-  
-  mymode = p->update_data[FT920_SUMO_DISPLAYED_MODE];
-  mymode &= MODE_MASK;          /* mask out bits 4, 5 and 6 */
-  
-  rig_debug(RIG_DEBUG_TRACE,"ft920: mymode = %x\n", mymode);
+  if (vfo == RIG_VFO_CURR )
+    vfo = priv->current_vfo;    /* from previous vfo cmd */
+  rig_debug(RIG_DEBUG_TRACE,"ft920: get_mode: VFO [0x%x]\n", vfo);
+
+  switch(vfo) {
+  case RIG_VFO_A:
+    ft920_get_update_data(rig, FT920_NATIVE_VFO_DATA,
+                          FT920_VFO_DATA_LENGTH);
+    mymode = priv->update_data[FT920_SUMO_DISPLAYED_MODE];
+    mymode &= MODE_MASK;          /* mask out bits 4, 5 and 6 */
+    break;
+  case RIG_VFO_B:
+    ft920_get_update_data(rig, FT920_NATIVE_VFO_DATA,
+                          FT920_VFO_DATA_LENGTH);
+    mymode = priv->update_data[FT920_SUMO_VFO_B_MODE];
+    mymode &= MODE_MASK;
+    break;
+  case RIG_VFO_MEM:
+    ft920_get_update_data(rig, FT920_NATIVE_OP_DATA,
+                          FT920_VFO_DATA_LENGTH);
+    mymode = priv->update_data[FT920_SUMO_DISPLAYED_MODE];
+    mymode &= MODE_MASK;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+  rig_debug(RIG_DEBUG_TRACE,"ft920: get_mode: mymode = [0x%x]\n", mymode);
+
+  *width = RIG_PASSBAND_NORMAL;
 
   /* 
    * translate mode from ft920 to generic.
-   * TODO: Add DATA, and Narrow modes.  CW on LSB? -N0NB
+   *
+   * FIXME: FT-920 has 3 DATA modes, LSB, USB, and FM
+   * do we need more bit fields in rmode_t? -N0NB
+   *
    */
   switch(mymode) {
-  case MODE_FM:
-    (*mode) = RIG_MODE_FM;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: mode = FM\n");
-    break;
-  case MODE_AM:
-    (*mode) = RIG_MODE_AM;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: mode = AM\n");
-    break;
-  case MODE_CW_U:
-    (*mode) = RIG_MODE_CW;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: mode = CW_U\n");
+  case MODE_USBN:
+    *width = rig_passband_narrow(rig, RIG_MODE_USB);
+    *mode = RIG_MODE_USB;
     break;
   case MODE_USB:
-    (*mode) = RIG_MODE_USB;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: mode = USB\n");
+    *mode = RIG_MODE_USB;
+    *width = rig_passband_normal(rig, RIG_MODE_USB);
+    break;
+  case MODE_LSBN:
+    *width = rig_passband_narrow(rig, RIG_MODE_LSB);
+    *mode = RIG_MODE_LSB;
     break;
   case MODE_LSB:
-    (*mode) = RIG_MODE_LSB;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: mode = LSB\n");
+    *mode = RIG_MODE_LSB;
+    *width = rig_passband_normal(rig, RIG_MODE_LSB);
+    break;
+  case MODE_CW_UN:
+  case MODE_CW_LN:
+    *width = rig_passband_narrow(rig, RIG_MODE_CW);
+    *mode = RIG_MODE_CW;
+    break;
+  case MODE_CW_U:
+  case MODE_CW_L:
+    *mode = RIG_MODE_CW;
+    *width = rig_passband_normal(rig, RIG_MODE_CW);
+    break;
+  case MODE_AMN:
+    *width = rig_passband_narrow(rig, RIG_MODE_AM);
+    *mode = RIG_MODE_AM;
+    break;
+  case MODE_AM:
+    *mode = RIG_MODE_AM;
+    *width = rig_passband_normal(rig, RIG_MODE_AM);
+    break;
+  case MODE_FMN:
+    *width = rig_passband_narrow(rig, RIG_MODE_FM);
+    *mode = RIG_MODE_FM;
+    break;
+  case MODE_FM:
+    *mode = RIG_MODE_FM;
+    *width = rig_passband_normal(rig, RIG_MODE_FM);
+    break;
+  case MODE_DATA_LN:
+    *width = rig_passband_narrow(rig, RIG_MODE_RTTY);
+    *mode = RIG_MODE_RTTY;
+    break;
+  case MODE_DATA_L:
+    *mode = RIG_MODE_RTTY;
+    *width = rig_passband_normal(rig, RIG_MODE_RTTY);
     break;
 
   default:
@@ -640,8 +796,7 @@ int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
  */
 
 int ft920_set_vfo(RIG *rig, vfo_t vfo) {
-  struct rig_state *rig_s;
-  struct ft920_priv_data *p;
+  struct ft920_priv_data *priv;
   unsigned char cmd_index;      /* index of sequence to send */
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_set_vfo called\n");
@@ -649,106 +804,117 @@ int ft920_set_vfo(RIG *rig, vfo_t vfo) {
   if (!rig)
     return -RIG_EINVAL;
   
-  p = (struct ft920_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
-  
-  
-  /* 
-   * TODO : check for errors -- FS
-   */
+  priv = (struct ft920_priv_data*)rig->state.priv;
+
+  rig_debug(RIG_DEBUG_TRACE, "ft920: set_vfo: vfo = [0x%x]\n", vfo);
+
   switch(vfo) {
   case RIG_VFO_A:
-    cmd_index = FT_920_NATIVE_VFO_A;
-    p->current_vfo = vfo;       /* update active VFO */
-    rig_debug(RIG_DEBUG_TRACE,"ft920: vfo == RIG_VFO_A\n");
+    cmd_index = FT920_NATIVE_VFO_A;
+    priv->current_vfo = vfo;    /* update active VFO */
     break;
   case RIG_VFO_B:
-    cmd_index = FT_920_NATIVE_VFO_B;
-    p->current_vfo = vfo;       /* update active VFO */
-    rig_debug(RIG_DEBUG_TRACE,"ft920: vfo == RIG_VFO_B\n");
+    cmd_index = FT920_NATIVE_VFO_B;
+    priv->current_vfo = vfo;
     break;
   case RIG_VFO_CURR:
-    switch(p->current_vfo) {    /* what is my active VFO ? */
+    switch(priv->current_vfo) { /* what is my active VFO ? */
     case RIG_VFO_A:
-      cmd_index = FT_920_NATIVE_VFO_A;
-      rig_debug(RIG_DEBUG_TRACE,"ft920: vfo == RIG_VFO_CURR:RIG_VFO_A\n");
+      cmd_index = FT920_NATIVE_VFO_A;
       break;
     case RIG_VFO_B:
-      cmd_index = FT_920_NATIVE_VFO_B;
-      rig_debug(RIG_DEBUG_TRACE,"ft920: vfo == RIG_VFO_CURR:RIG_VFO_B\n");
+      cmd_index = FT920_NATIVE_VFO_B;
       break;
-    default:
-      rig_debug(RIG_DEBUG_TRACE,"ft920: Unknown default VFO \n");
-      return -RIG_EINVAL;       /* sorry, wrong current VFO */
     }
-
     break;
-
   default:
     return -RIG_EINVAL;         /* sorry, wrong VFO */
+    rig_debug(RIG_DEBUG_TRACE, "ft920: set_vfo: Unknown default VFO\n");
   }
   
-  /*
-   * phew! now send cmd to rig
-   */ 
-  ft920_send_priv_cmd(rig,cmd_index);
+  ft920_send_priv_cmd(rig, cmd_index);
 
   return RIG_OK;
-
 }
 
 
 /*
- * get vfo and store requested vfo for later RIG_VFO_CURR
- * requests.
+ * get current RX vfo/mem and store requested vfo for
+ * later RIG_VFO_CURR requests plus pass the tested vfo/mem
+ * back to the frontend.
  *
  */
 
 int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
-  struct ft920_priv_data *p;
-  unsigned char status;         /* ft920 status flag */
+  struct ft920_priv_data *priv;
+  unsigned char status_0;           /* ft920 status flag 0 */
+  unsigned char status_1;           /* ft920 status flag 1 */
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_get_vfo called\n");
 
   if (!rig)
     return -RIG_EINVAL;
   
-  p = (struct ft920_priv_data*)rig->state.priv;
+  priv = (struct ft920_priv_data*)rig->state.priv;
 
   /* Get flags for VFO status */
-  ft920_get_update_data(rig, FT_920_NATIVE_UPDATE,
-                        FT920_STATUS_UPDATE_DATA_LENGTH);
+  ft920_get_update_data(rig, FT920_NATIVE_STATUS_FLAGS,
+                        FT920_STATUS_FLAGS_LENGTH);
   
-  status = p->update_data[FT920_SUMO_DISPLAYED_STATUS];
-  status &= SF_VFOAB;           /* check VFO bit*/
+  status_0 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_0];
+  status_0 &= SF_VFOAB;             /* get VFO B (sub display) active bits */
+
+  status_1 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_1];
+  status_1 &= SF_VFO_MASK;          /* get VFO/MEM (main display) active bits */
   
-  rig_debug(RIG_DEBUG_TRACE,"ft920: vfo status = %x\n", status);
+  rig_debug(RIG_DEBUG_TRACE,
+            "ft920: get_vfo: vfo status_0 = [0x%x]\n", status_0);
+  rig_debug(RIG_DEBUG_TRACE,
+            "ft920: get_vfo: vfo status_1 = [0x%x]\n", status_1);
 
   /* 
    * translate vfo status from ft920 to generic.
+   *
+   * Figuring out whether VFO B is the active RX vfo is tough as
+   * Status Flag 0 bits 0 & 1 contain this information.  Testing
+   * Status Flag 1 only gives us the state of the main display.
+   *
    */
-  switch (status) {
+  switch (status_0) {
   case SF_VFOAB:
     (*vfo) = RIG_VFO_B;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: TX/RX VFO B = %x\n", status);
-    return RIG_OK; 
-  case SF_SPLITB:               /* FIXME: Split operation, RX on VFO B */
+    priv->current_vfo = RIG_VFO_B;
+    return RIG_OK;
+  case SF_SPLITB:               /* Split operation, RX on VFO B */
     (*vfo) = RIG_VFO_B;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: Split: RX VFO B = %x\n", status);
+    priv->current_vfo = RIG_VFO_B;
     return RIG_OK;
-  case SF_SPLITA:               /* FIXME: Split operation, RX on VFO A */
-    (*vfo) = RIG_VFO_A;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: Split: RX VFO A= %x\n", status);
+  }
+    /*
+     * Okay now test for the active MEM/VFO status of the main display
+     *
+     */
+  switch (status_1) {
+  case SF_QMB:
+  case SF_MT:
+  case SF_MR:
+    (*vfo) = RIG_VFO_MEM;
+    priv->current_vfo = RIG_VFO_MEM;
     return RIG_OK;
-  case NULL:                    /* FIXME: Split operation, RX on VFO B */
-    (*vfo) = RIG_VFO_A;
-    rig_debug(RIG_DEBUG_TRACE,"ft920: TX/RX VFO A = %x\n", status);
-    return RIG_OK;
+  case SF_VFO:
+    switch (status_0){
+    case SF_SPLITA:             /* Split operation, RX on VFO A */
+      (*vfo) = RIG_VFO_A;
+      priv->current_vfo = RIG_VFO_A;
+      return RIG_OK;
+    case NULL:
+      (*vfo) = RIG_VFO_A;
+      priv->current_vfo = RIG_VFO_A;
+      return RIG_OK;
+    }
   default:                      /* Oops! */
-    rig_debug(RIG_DEBUG_TRACE,"ft920: Unknown default VFO %x\n", status);
     return -RIG_EINVAL;         /* sorry, wrong current VFO */
   }
-
 }
 
 
@@ -770,7 +936,7 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
   unsigned char *cmd;           /* points to sequence to send */
   int n;                        /* for read_  */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_get_update_data called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "ft920: get_update_data called\n");
 
   if (!rig)
     return -RIG_EINVAL;
@@ -781,10 +947,10 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
   /* 
    * Copy native cmd PACING  to private cmd storage area 
    */
-
-  memcpy(&p->p_cmd, &ncmd[FT_920_NATIVE_PACING].nseq, YAESU_CMD_LENGTH);
+  memcpy(&p->p_cmd, &ncmd[FT920_NATIVE_PACING].nseq, YAESU_CMD_LENGTH);
   p->p_cmd[3] = p->pacing;      /* get pacing value, and store in private cmd */
-  rig_debug(RIG_DEBUG_TRACE,"ft920: read pacing = %i\n",p->pacing);
+  rig_debug(RIG_DEBUG_TRACE,
+            "ft920: get_update_data: read pacing = [%i]\n", p->pacing);
 
   /* send PACING cmd to rig  */
   cmd = p->p_cmd;
@@ -794,14 +960,17 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
   ft920_send_priv_cmd(rig, ci);
 
   n = read_block(&rig_s->rigport, p->update_data, rl);
+  rig_debug(RIG_DEBUG_TRACE,
+            "ft920: get_update_data: read %i bytes\n", n);
 
   return 0;
-
 }
 
 
 /*
  * init_ft920 is called by rig_backend_load
+ *
+ * Is this redundant to initrigs_yaesu? -N0NB
  *
  */
 
@@ -825,7 +994,7 @@ static int ft920_send_priv_cmd(RIG *rig, unsigned char ci) {
   unsigned char *cmd;           /* points to sequence to send */
   unsigned char cmd_index;      /* index of sequence to send */
  
-  rig_debug(RIG_DEBUG_VERBOSE,"ft920: ft920_send_priv_cmd called\n");
+  rig_debug(RIG_DEBUG_VERBOSE, "ft920: send_priv_cmd called\n");
 
   if (!rig)
     return -RIG_EINVAL;
@@ -837,7 +1006,8 @@ static int ft920_send_priv_cmd(RIG *rig, unsigned char ci) {
   cmd_index = ci;               /* get command */
 
   if (! p->pcs[cmd_index].ncomp) {
-    rig_debug(RIG_DEBUG_TRACE,"ft920: Attempt to send incomplete sequence\n");
+    rig_debug(RIG_DEBUG_TRACE,
+              "ft920: send_priv_cmd: Attempt to send incomplete sequence\n");
     return -RIG_EINVAL;
   }
 
@@ -845,5 +1015,4 @@ static int ft920_send_priv_cmd(RIG *rig, unsigned char ci) {
   write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
   
   return RIG_OK;
-
 }
