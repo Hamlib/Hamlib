@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.5 2003-12-02 22:47:56 f4dwv Exp $
+ *	$Id: thg71.c,v 1.6 2003-12-02 23:26:01 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -536,23 +536,25 @@ int thg71_set_channel(RIG *rig, const channel_t *chan)
     }
     offset=chan->rptr_offs;
     
-    for (tone = 0; rig->caps->ctcss_list[tone] != 0 && tone < RIG_TONEMAX; tone++) {
-		if (rig->caps->ctcss_list[tone] == chan->ctcss_tone)
-			break;
-	}
-    if(rig->caps->ctcss_list[tone]==0) {
+    if(chan->ctcss_tone==0) {
 	 tone=0;tonefq=9;
     } else {
-	 tone=1;tonefq=tone==0?1:tone+2;
-    }
-    for (ctcss = 0; rig->caps->ctcss_list[ctcss] != 0 && ctcss < RIG_TONEMAX; ctcss++) {
-		if (rig->caps->ctcss_list[ctcss] == chan->ctcss_sql)
+	 tone=1;
+    	for (tonefq = 0; rig->caps->ctcss_list[tonefq] != 0 && tonefq < RIG_TONEMAX; tonefq++) {
+		if (rig->caps->ctcss_list[tonefq] == chan->ctcss_tone)
 			break;
 	}
-    if(rig->caps->ctcss_list[ctcss]==0) {
+	tonefq=tonefq==0?1:tonefq+2;
+    }
+    if(chan->ctcss_sql==0) {
 	ctcss=0;ctcssfq=9;
     } else {
-	 ctcss=1;ctcssfq=ctcss==0?1:ctcss+2;
+	 ctcss=1;
+    	for (ctcssfq = 0; rig->caps->ctcss_list[ctcssfq] != 0 && ctcssfq < RIG_TONEMAX; ctcssfq++) {
+		if (rig->caps->ctcss_list[ctcssfq] == chan->ctcss_sql)
+			break;
+	}
+	 ctcssfq=ctcssfq==0?1:ctcssfq+2;
     }
 
     if(chan->channel_num<200)
