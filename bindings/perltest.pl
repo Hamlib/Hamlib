@@ -8,6 +8,10 @@ print "FM: $Hamlib::RIG_MODE_FM\n";
 Hamlib::rig_set_debug($Hamlib::RIG_DEBUG_TRACE);
 
 $rig = new Hamlib::Rig($Hamlib::RIG_MODEL_DUMMY);
+
+# replace "/dev/Rig" with your path to serial port
+$rig->set_conf("rig_pathname","/dev/Rig");
+
 $rig->open();
 
 # 1073741944 is token value for "itu_region"
@@ -58,7 +62,7 @@ print "Loc2: $loc2\n";
 
 ($dist, $az) = Hamlib::qrb($long1, $lat1, $long2, $lat2);
 $longpath = Hamlib::distance_long_path($dist);
-print "Distance: $dist km, long path: $longpath\n";
+print "Distance: $dist km, azimuth $az, long path: $longpath\n";
 ($deg, $min, $sec) = Hamlib::dec2dms($az);
 $az2 = Hamlib::dms2dec($deg, $min, $sec);
 print "Bearing: $az, $deg° $min' $sec\", recoded: $az2\n"
