@@ -26,9 +26,8 @@
 #include <fcntl.h>
 
 
-#include <rig.h>
-#include <riglist.h>
-
+#include "rig.h"
+#include "riglist.h"
 #include "serial.h"
 
 
@@ -42,7 +41,7 @@
  */
 
 static const struct rig_caps *rig_base[] = { 
-	&ft847_caps, &ic706_caps, &ic706mkiig_caps, /* ... */ NULL, };
+	&ft747_caps, &ic706_caps, &ic706mkiig_caps, /* ... */ NULL, };
 
 
 RIG *rig_init(rig_model_t rig_model)
@@ -116,7 +115,7 @@ int rig_open(RIG *rig)
 						return status;
 				break;
 
-		case RIG_PORT_NETOWRK:	/* not implemented yet! */
+		case RIG_PORT_NETWORK:	/* not implemented yet! */
 		default:
 				return -3;
 		}
