@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.16 2000-10-09 01:17:19 javabear Exp $  
+ *    $Id: ft847.h,v 1.17 2000-12-17 22:14:19 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -44,12 +44,140 @@
 
 
 /*
- * future - private data
+ * Native FT847 functions. This is what I have to work with :-)
+ *
+ */
+
+enum ft847_native_cmd_e {
+
+  /* Set commands to the rig */
+
+  FT_847_NATIVE_CAT_ON = 0,
+  FT_847_NATIVE_CAT_OFF,
+
+  FT_847_NATIVE_CAT_PTT_ON,
+  FT_847_NATIVE_CAT_PTT_OFF,
+
+  FT_847_NATIVE_CAT_SAT_MODE_ON,
+  FT_847_NATIVE_CAT_SAT_MODE_OFF,
+
+  FT_847_NATIVE_CAT_SET_FREQ_MAIN,
+  FT_847_NATIVE_CAT_SET_FREQ_SAT_RX_VFO,
+  FT_847_NATIVE_CAT_SET_FREQ_SAT_TX_VFO,
+
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_LSB, /* MAIN VFO */
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_USB,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CW,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWR,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_AM,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_FM,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWN,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_CWRN,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN,
+  FT_847_NATIVE_CAT_SET_MODE_MAIN_FMN,
+
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_LSB, /* SAT RX VFO */
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_USB,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CW,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWR,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_CWRN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_AMN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_RX_FMN,
+
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_LSB, /* SAT TX VFO */
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_USB,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CW,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWR,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FM,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_CWRN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_AMN,
+  FT_847_NATIVE_CAT_SET_MODE_SAT_TX_FMN,
+
+  FT_847_NATIVE_CAT_SET_DCS_ON_MAIN, /* MAIN CTCSS/DCS */
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_MAIN,
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_MAIN,
+  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_MAIN,
+
+  FT_847_NATIVE_CAT_SET_DCS_ON_SAT_RX, /* SAT RX CTCSS/DCS */
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_RX,
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_RX,
+  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_RX,
+
+  FT_847_NATIVE_CAT_SET_DCS_ON_SAT_TX, /* SAT TX CTCSS/DCS */
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_SAT_TX,
+  FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_SAT_TX,
+  FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_SAT_TX,
+
+  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_MAIN, /* CTCSS Freq */
+  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_RX,
+  FT_847_NATIVE_CAT_SET_CTCSS_FREQ_SAT_TX,
+
+  FT_847_NATIVE_CAT_SET_DCS_CODE_MAIN, /* DCS code */
+  FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_RX,
+  FT_847_NATIVE_CAT_SET_DCS_CODE_SAT_TX,
+
+  FT_847_NATIVE_CAT_SET_RPT_SHIFT_MINUS, /* RPT SHIFT */
+  FT_847_NATIVE_CAT_SET_RPT_SHIFT_PLUS,
+  FT_847_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX,
+
+  FT_847_NATIVE_CAT_SET_RPT_OFFSET, /* RPT Offset frequency */
+
+  /* Get info from the rig */
+
+  FT_847_NATIVE_CAT_GET_RX_STATUS,
+  FT_847_NATIVE_CAT_GET_TX_STATUS,
+
+  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_MAIN,
+  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_RX,
+  FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_TX,
+
+  FT_847_NATIVE_SIZE		/* end marker, value indicates number of */
+				/* native cmd entries */
+
+};
+
+typedef enum ft847_native_cmd_e ft847_native_cmd_t;
+
+
+/*
+ * TODO -- Move this to common yaesu.h file -- FS
+ *
+ */
+
+/*
+ * Basic Data structure for FT847 native cmd set
+ */
+
+
+
+struct ft847_cmd_set {
+  unsigned char ncomp;		/* 1 = complete, 0 = incomplete, needs extra info */
+  unsigned char nseq[5];	/* native cmd sequence */
+};
+
+typedef struct ft847_cmd_set ft847_cmd_set_t; 
+
+
+
+/*
+ * ft847 instance - private data
  *
  */
 
 struct ft847_priv_data {
-  int dummy;			/* for test */
+  unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A, SAT_RX, SAT_TX */
+  ft847_cmd_set_t pcs[FT_847_NATIVE_SIZE];		/* private cmd set */
+  unsigned char tx_status;	/* tx returned data */
+  unsigned char rx_status;	/* rx returned data */
+  unsigned char fm_status_main; /* freq and mode ,returned data */
+  unsigned char fm_status_satrx; /* freq and mode ,returned data */
+  unsigned char fm_status_sattx; /* freq and mode ,returned data */
+
 };
 
 

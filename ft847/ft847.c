@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.24 2000-10-16 22:27:12 f4cfe Exp $  
+ * $Id: ft847.c,v 1.25 2000-12-17 22:14:18 javabear Exp $  
  *
  *
  *
@@ -26,6 +26,13 @@
  * 
  */
 
+
+/*
+ * TODO - Remove static stuff, see ft747 for new style.
+ *
+ */
+
+
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
@@ -41,7 +48,62 @@
 #include "ft847.h"
 
 /* prototypes */
-int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
+
+
+/* Native ft847 cmd set prototypes. These are READ ONLY as each */
+/* rig instance will copy from these and modify if required . */
+/* Complete sequences (1) can be read and used directly as a cmd sequence . */
+/* Incomplete sequences (0) must be completed with extra parameters */
+/* eg: mem number, or freq etc.. */
+
+static const ft847_cmd_set_t ncmd[] = { 
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* CAT = On */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x80 } }, /* CAT = Off */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* ptt on */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x88 } }, /* ptt off */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x4e } }, /* sat mode on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x8e } }, /* sat mode off */
+
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* set freq main */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x11 } }, /* set freq sat rx */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x21 } }, /* set freq sat tx */
+
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main LSB */
+  { 1, { 0x01, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main USB */
+  { 1, { 0x02, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main CW */
+  { 1, { 0x03, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main CWR */
+  { 1, { 0x04, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main AM */
+  { 1, { 0x08, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main FM */
+  { 1, { 0x82, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main CWN */
+  { 1, { 0x83, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main CWRN */
+  { 1, { 0x84, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main AMN */
+  { 1, { 0x88, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main FMN */
+
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx LSB */
+  { 1, { 0x01, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx USB */
+  { 1, { 0x02, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx CW */
+  { 1, { 0x03, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx CWR */
+  { 1, { 0x04, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx AM */
+  { 1, { 0x08, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx FM */
+  { 1, { 0x82, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx CWN */
+  { 1, { 0x83, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx CWRN */
+  { 1, { 0x84, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx AMN */
+  { 1, { 0x88, 0x00, 0x00, 0x00, 0x17 } }, /* mode set sat rx FMN */
+
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx LSB */
+  { 1, { 0x01, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx USB */
+  { 1, { 0x02, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx CW */
+  { 1, { 0x03, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx CWR */
+  { 1, { 0x04, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx AM */
+  { 1, { 0x08, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx FM */
+  { 1, { 0x82, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx CWN */
+  { 1, { 0x83, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx CWRN */
+  { 1, { 0x84, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx AMN */
+  { 1, { 0x88, 0x00, 0x00, 0x00, 0x27 } }, /* mode set sat tx FMN */
+
+  /* TODO - Add missing elements */
+
+};
 
 
 /* 
@@ -144,13 +206,6 @@ const struct rig_caps ft847_caps = {
   NULL,
 };
 
-/*  
- * Init some private data
- */
-
-static const struct ft847_priv_data ft847_priv = { 847 }; /* dummy atm */
-
-
 
 /*
  * Function definitions below
@@ -172,15 +227,11 @@ int ft847_init(RIG *rig) {
 				/* whoops! memory shortage! */
     return -RIG_ENOMEM;
   }
-  
-  /* init the priv_data from static struct 
-   *          + override with rig-specific preferences
-   */
-  *p = ft847_priv;
-  
+
+
+
+
   rig->state.priv = (void*)p;
-
-
   
   return RIG_OK;
 }
