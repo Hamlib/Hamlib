@@ -2,7 +2,7 @@
    register.c  - Copyright (C) 2000 Stephane Fillod and Frank Singleton
    Provides registering for dynamically loadable backends.
 
-   $Id: register.c,v 1.2 2001-02-11 23:15:38 f4cfe Exp $
+   $Id: register.c,v 1.3 2001-02-14 01:06:53 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -186,7 +186,14 @@ int rig_load_backend(const char *be_name)
 		snprintf (libname, sizeof (libname), PREFIX"%s"POSTFIX,
 							                  be_name /* , V_MAJOR */);
 
+#ifdef __CYGWIN32__
+		/*
+		 * backends are statically linked, open executable
+		 */
+		be_handle = dlopen (NULL, mode);
+#else
 		be_handle = dlopen (libname, mode);
+#endif
 		if (!be_handle) {
 			rig_debug(RIG_DEBUG_ERR, "rig: dlopen() failed (%s)\n",
 							dlerror());
@@ -194,11 +201,11 @@ int rig_load_backend(const char *be_name)
 	    }
 
 
-		strcat(initfuncname, be_name);
+	    strcat(initfuncname, be_name);
 	    be_init = (int (*)(void *)) dlsym (be_handle, initfuncname);
 		if (!be_init) {
 				rig_debug(RIG_DEBUG_ERR, "rig: dlsym(%s) failed (%s)\n",
-							initfuncname, strerror (errno));
+							initfuncname, dlerror());
 				dlclose(be_handle);
 				return -RIG_EINVAL;
 		}
@@ -212,7 +219,7 @@ int rig_load_backend(const char *be_name)
 #else /* HAVE_DLOPEN */
     rig_debug(RIG_DEBUG_ERR, "rig_backend_load: ignoring attempt to load `%s'; no dl support\n",
 					      be_name);
-	  return -RIG_ENOIMPL;
+    return -RIG_ENIMPL;
 #endif /* HAVE_DLOPEN */
 }
 
