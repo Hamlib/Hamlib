@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: register.c,v 1.18 2003-03-10 08:26:09 fillods Exp $
+ *	$Id: register.c,v 1.19 2003-04-06 18:34:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -221,7 +221,7 @@ int rig_list_foreach(int (*cfunc)(const struct rig_caps*, rig_ptr_t),rig_ptr_t d
 	return RIG_OK;
 }
 
-static int dummy_rig_probe(port_t *p, rig_model_t model, rig_ptr_t data)
+static int dummy_rig_probe(const port_t *p, rig_model_t model, rig_ptr_t data)
 {
 	rig_debug(RIG_DEBUG_TRACE, "Found rig, model %d\n", model);
 	return RIG_OK;
@@ -238,7 +238,7 @@ rig_model_t rig_probe_first(port_t *p)
 
 	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
 		if (rig_backend_list[i].be_probe_all) {
-			model = (*rig_backend_list[i].be_probe_all)(p, dummy_rig_probe, NULL);
+			model = (*rig_backend_list[i].be_probe_all)(p, dummy_rig_probe, (rig_ptr_t)NULL);
 			/* stop at first one found */
 			if (model != RIG_MODEL_NONE)
 				return model;
@@ -363,7 +363,8 @@ int rig_load_backend(const char *be_name)
 	for (i=0; i<RIG_BACKEND_MAX && rig_backend_list[i].be_name; i++) {
 		if (!strncmp(be_name, rig_backend_list[i].be_name, 64)) {
     			strncat(probefname, be_name, MAXFUNCNAMELEN);
-    			rig_backend_list[i].be_probe_all = (rig_probe_func_t)
+    			rig_backend_list[i].be_probe_all = 
+				(rig_model_t (*)(port_t*, rig_probe_func_t, rig_ptr_t))
 						lt_dlsym (be_handle, probefname);
 				break;
 		}
