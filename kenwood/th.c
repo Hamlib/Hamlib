@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.16 2003-12-02 22:45:43 f4dwv Exp $
+ *	$Id: th.c,v 1.17 2004-01-15 22:03:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -662,9 +662,8 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
     sprintf(lvlbuf, "PC 0,%d" EOM, 3-(int)(val.f*3.0)); /* only VHF power ... */
     retval = kenwood_transaction (rig, lvlbuf, strlen(lvlbuf), ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
 
+    return retval;
 }
 
 #ifndef RIG_TONEMAX
