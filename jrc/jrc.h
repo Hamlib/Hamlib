@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main header
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.h,v 1.7 2004-05-19 08:57:50 fillods Exp $
+ *	$Id: jrc.h,v 1.8 2004-06-04 21:48:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,6 +53,7 @@ int jrc_set_trn(RIG *rig, int trn);
 int jrc_set_mem(RIG *rig, vfo_t vfo, int ch);
 int jrc_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int jrc_set_powerstat(RIG *rig, powerstat_t status);
+int jrc_get_powerstat(RIG *rig, powerstat_t *status);
 int jrc_reset(RIG *rig, reset_t reset);
 int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);

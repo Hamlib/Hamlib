@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.12 2004-05-19 08:57:45 fillods Exp $
+ *	$Id: jrc.c,v 1.13 2004-06-04 21:48:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -535,19 +535,43 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  return -RIG_ENIMPL;	/* get_dcd ? */
 
 		case RIG_LEVEL_ATT:
-		  //retval = jrc_transaction (rig, "A" EOM, 2, lvlbuf, &lvl_len);
 		  retval = jrc_transaction (rig, "I" EOM, 2, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
 
-		  //if (lvl_len != 3) {
-		if (lvlbuf[0] != 'I' || lvl_len != priv->info_len) {
+		  if (lvlbuf[0] != 'I' || lvl_len != priv->info_len) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
 		    return -RIG_ERJCTED;
 		  }
 
 		  val->i = lvlbuf[1] == '1' ? 20 : 0;
+		  break;
+
+		case RIG_LEVEL_AGC:
+		  retval = jrc_transaction (rig, "I" EOM, 2, lvlbuf, &lvl_len);
+		  if (retval != RIG_OK)
+		    return retval;
+
+		  if (lvlbuf[0] != 'I' || lvl_len != priv->info_len) {
+		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
+			      "len=%d\n", lvl_len);
+		    return -RIG_ERJCTED;
+		  }
+
+		  lvlbuf[priv->info_len-1] = '\0';
+
+		  if (priv->info_len==14) {
+		    switch (lvlbuf[priv->info_len-2]){
+		    case '0' : val->i = RIG_AGC_SLOW; break;
+		    case '1' : val->i = RIG_AGC_FAST; break;
+		    case '2' : val->i = RIG_AGC_OFF; break;
+		    default : val->i = RIG_AGC_FAST;
+		    }
+		  }
+		  else {
+		    val->i = atoi(lvlbuf+priv->info_len-4);
+		  }
 		  break;
 
 		case RIG_LEVEL_RF:
@@ -640,7 +664,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  if (retval != RIG_OK)
 		    return retval;
 		  
-		if (lvlbuf[0] != 'P' || lvl_len != priv->pbs_info_len) {
+		  if (lvlbuf[0] != 'P' || lvl_len != priv->pbs_info_len) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_level: wrong answer"
 			      "len=%d\n", lvl_len);
 		    return -RIG_ERJCTED;
@@ -684,7 +708,6 @@ int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
 
 		case RIG_PARM_BEEP:
 
-		  //cmd_len = sprintf(cmdbuf, "U%03d" EOM, val.i?101:100);
 		  cmd_len = sprintf(cmdbuf, "U%0*d" EOM, priv->beep_len, priv->beep + val.i?1:0);
 		  
 		  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
@@ -710,8 +733,11 @@ int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
  */
 int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
+		struct jrc_priv_caps *priv = (struct jrc_priv_caps*)rig->caps->priv;
                 int retval, lvl_len, i;
 		char lvlbuf[BUFSZ];
+		char cmdbuf[BUFSZ];
+		int cmd_len;
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -739,17 +765,18 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 		  break;
 		  
 		case RIG_PARM_BEEP:
-		  retval = jrc_transaction (rig, "U9" EOM, 3, lvlbuf, &lvl_len);
+		  cmd_len = sprintf(cmdbuf, "U%d" EOM, priv->beep/10);  
+		  retval = jrc_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		  if (retval != RIG_OK)
 		    return retval;
 		  
-		  if (lvl_len != 4) {
+		  if (lvl_len != priv->beep_len+2) {
 		    rig_debug(RIG_DEBUG_ERR,"jrc_get_parm: wrong answer"
 			      "len=%d\n", lvl_len);
 		    return -RIG_ERJCTED;
 		  }
 
-		  val->i = lvlbuf[2] == 0 ? 0 : 1;
+		  val->i = lvlbuf[priv->beep_len] == 0 ? 0 : 1;
 		  break;
 		  
 		default:
@@ -809,6 +836,30 @@ int jrc_set_powerstat(RIG *rig, powerstat_t status)
 		pwr_len = sprintf(pwrbuf, "T%d" EOM, status==RIG_POWER_ON?1:0);
 
 		return jrc_transaction (rig, pwrbuf, pwr_len, NULL, NULL);
+}
+
+/*
+ * jrc_get_powerstat
+ * Assumes rig!=NULL
+ */
+int jrc_get_powerstat(RIG *rig, powerstat_t *status)
+//powerstat_t jrc_get_powerstat(RIG *rig)
+{
+		char pwrbuf[BUFSZ];
+		int pwr_len, retval;
+
+		retval = jrc_transaction (rig, "T" EOM, 2, pwrbuf, &pwr_len);
+		if (retval != RIG_OK)
+		  return retval;
+
+		if (pwr_len != 3) {
+		  rig_debug(RIG_DEBUG_ERR,"jrc_get_powerstat: wrong answer %s, "
+			    "len=%d\n", pwrbuf, pwr_len);
+		  return -RIG_ERJCTED;
+		}
+		*status = pwrbuf[1] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
+
+		return RIG_OK;
 }
 
 /*

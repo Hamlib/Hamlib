@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-535 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd535.c,v 1.3 2004-05-19 08:57:50 fillods Exp $
+ *	$Id: nrd535.c,v 1.4 2004-06-04 21:48:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -91,7 +91,7 @@ const struct rig_caps nrd535_caps = {
 .mfg_name =  "JRC",
 .version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -115,6 +115,9 @@ const struct rig_caps nrd535_caps = {
 .has_set_parm =  RIG_PARM_SET(NRD535_PARM),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_ATT] = { .min = { .i = 0 }, .max = { .i = 20 } },
+	[LVL_IF] = { .min = { .i = -2000 }, .max = { .i = 2000 } },
+	[LVL_CWPITCH] = { .min = { .i = -5000 }, .max = { .i = 5000 } },
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,
@@ -184,6 +187,7 @@ const struct rig_caps nrd535_caps = {
 .vfo_op =  jrc_vfo_op,
 .scan =  jrc_scan,
 .set_powerstat =  jrc_set_powerstat,
+.get_powerstat =  jrc_get_powerstat,
 .decode_event =  jrc_decode_event,
 
 };

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Drake backend - R-8A description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: r8a.c,v 1.1 2004-03-10 23:32:01 fillods Exp $
+ *	$Id: r8a.c,v 1.2 2004-06-04 21:48:05 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,9 +34,9 @@
 
 #define R8A_FUNC (RIG_FUNC_MN|RIG_FUNC_LOCK|RIG_FUNC_NB)
 
-#define R8A_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC)
+#define R8A_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR)
 
-#define R8A_PARM_ALL (RIG_PARM_NONE)
+#define R8A_PARM_ALL (RIG_PARM_TIME)
 
 #define R8A_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -55,9 +55,9 @@ const struct rig_caps r8a_caps = {
 .rig_model =  RIG_MODEL_DKR8A,
 .model_name = "R-8A",
 .mfg_name =  "Drake",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,		/* and only basic support */
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -95,7 +95,7 @@ const struct rig_caps r8a_caps = {
 .vfo_ops =  R8A_VFO_OPS,
 
 .chan_list =  {
-		{   0,  999, RIG_MTYPE_MEM },
+		{   0,  439, RIG_MTYPE_MEM },
 		RIG_CHAN_END
 	},
 
@@ -133,16 +133,22 @@ const struct rig_caps r8a_caps = {
 .rig_cleanup = drake_cleanup,
 
 .set_freq =  drake_set_freq,
+.get_freq =  drake_get_freq,
 .set_vfo =  drake_set_vfo,
+.get_vfo =  drake_get_vfo,
 .set_mode =  drake_set_mode,
-
-.set_ant =  drake_set_ant,
-.set_mem = drake_set_mem,
-.vfo_op = drake_vfo_op,
+.get_mode =  drake_get_mode,
 .set_func = drake_set_func,
+.get_func = drake_get_func,
 .set_level = drake_set_level,
+.get_level = drake_get_level,
+.set_ant =  drake_set_ant,
+.get_ant =  drake_get_ant,
+.set_mem = drake_set_mem,
+.get_mem = drake_get_mem,
+.vfo_op = drake_vfo_op,
 .set_powerstat = drake_set_powerstat,
-
+.get_powerstat = drake_get_powerstat,
 .get_info =  drake_get_info,
 
 };
