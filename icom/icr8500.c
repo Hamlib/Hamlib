@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R8500 description
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icr8500.c,v 1.13 2001-10-07 21:48:02 f4cfe Exp $
+ *		$Id: icr8500.c,v 1.14 2002-02-27 23:19:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -139,6 +139,10 @@ filters: {
 		{RIG_MODE_WFM, kHz(230)},
 		RIG_FLT_END,
 	},
+
+cfgparams: icom_cfg_params,
+set_conf: icom_set_conf,
+get_conf: icom_get_conf,
 
 priv: (void*)&icr8500_priv_caps,
 rig_init:  icom_init,
