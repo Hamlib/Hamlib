@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: register.c,v 1.9 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: register.c,v 1.10 2001-09-19 21:58:33 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -268,8 +268,9 @@ int rig_load_backend(const char *be_name)
 # define POSTFIX ".dll"
 #else
 # define PREFIX "libhamlib-"
-# define POSTFIX ".so"
+# define POSTFIX ".la"
 #endif
+
 	lt_dlhandle be_handle;
     int (*be_init)(rig_ptr_t);
 	int status;
@@ -281,7 +282,7 @@ int rig_load_backend(const char *be_name)
 	/*
 	 * lt_dlinit may be called several times
 	 */
-#if 0
+#ifdef	HAVE_PRELOADED_SYMBOLS
 	LTDL_SET_PRELOADED_SYMBOLS();
 #endif
 	status = lt_dlinit();
