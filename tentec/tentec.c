@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.9 2003-05-05 10:46:43 fillods Exp $
+ *	$Id: tentec.c,v 1.10 2003-05-12 22:29:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -447,11 +447,12 @@ const char *tentec_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(tentec)
 {
-		rig_debug(RIG_DEBUG_VERBOSE, "tentec: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "tentec: _init called\n");
 
-		rig_register(&tt550_caps);
-		rig_register(&rx320_caps);
+	rig_register(&tt550_caps);
+	rig_register(&tt516_caps);
+	rig_register(&rx320_caps);
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
