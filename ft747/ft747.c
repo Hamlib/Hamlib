@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.23 2000-12-09 02:01:59 javabear Exp $  
+ * $Id: ft747.c,v 1.24 2000-12-09 21:48:52 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -499,12 +499,10 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
     case RIG_VFO_A:
       cmd[3] = FT747_VFO_A; 
       write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-      p->current_vfo = RIG_VFO_A;		/* update active VFO */
       return RIG_OK;
     case RIG_VFO_B:
       cmd[3] = FT747_VFO_B; 
       write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
-      p->current_vfo = RIG_VFO_B;		/* update active VFO */
       return RIG_OK;
     default:
       rig_debug(RIG_DEBUG_VERBOSE,"ft747: Unknown default VFO \n");
@@ -514,6 +512,7 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
+
 }
 
 
@@ -529,7 +528,7 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
   ft747_get_update_data(rig);	/* get whole shebang from rig */
   
   status = p->update_data[FT747_SUMO_DISPLAYED_STATUS];
-  status = status & SF_VFOAB; /* check VFO bit*/
+  status &= SF_VFOAB; /* check VFO bit*/
   
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: vfo status = %x \n", status);
 
