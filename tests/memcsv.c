@@ -1,10 +1,10 @@
 /*
- * memcsv.c - (C) Stephane Fillod 2003
+ * memcsv.c - (C) Stephane Fillod 2003-2004
  *
  * This program exercises the backup and restore of a radio
  * using Hamlib. CSV primitives
  *
- * $Id: memcsv.c,v 1.3 2004-01-15 22:43:59 fillods Exp $  
+ * $Id: memcsv.c,v 1.4 2004-05-17 21:09:45 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -144,7 +144,7 @@ int csv_parm_save (RIG *rig, const char *outfilename)
 		return -1;
 
 	for (i = 0; i < RIG_SETTING_MAX; i++) {
-		const char *ms = strparm(get_parm & rig_idx2setting(i));
+		const char *ms = rig_strparm(get_parm & rig_idx2setting(i));
 		if (!ms || !ms[0])
 			continue;
 		fprintf(f, "%s;", ms);
@@ -158,7 +158,7 @@ int csv_parm_save (RIG *rig, const char *outfilename)
 		value_t val;
 
 		parm = get_parm & rig_idx2setting(i);
-		ms = strparm(parm);
+		ms = rig_strparm(parm);
 
 		if (!ms || !ms[0])
 			continue;
@@ -280,7 +280,7 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f, "%s;", chan->channel_desc);
 	}
 	if (mem_caps->vfo) {
-		fprintf(f,"%s;",strvfo(chan->vfo));
+		fprintf(f,"%s;",rig_strvfo(chan->vfo));
 	}
 	if (mem_caps->ant) {
 		fprintf(f,"%d;",chan->ant);
@@ -289,7 +289,7 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f,"%"FREQFMT";",chan->freq);
 	}
 	if (mem_caps->mode) {
-		fprintf(f, "%s;", strrmode(chan->mode));
+		fprintf(f, "%s;", rig_strrmode(chan->mode));
 	}
 	if (mem_caps->width) {
 		fprintf(f,"%d;",(int)chan->width);
@@ -298,7 +298,7 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f,"%"FREQFMT";",chan->tx_freq);
 	}
 	if (mem_caps->tx_mode) {
-		fprintf(f, "%s;", strrmode(chan->tx_mode));
+		fprintf(f, "%s;", rig_strrmode(chan->tx_mode));
 	}
 	if (mem_caps->tx_width) {
 		fprintf(f,"%d;",(int)chan->tx_width);
@@ -307,10 +307,10 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f, "%s;", chan->split==RIG_SPLIT_ON?"on":"off");
 	}
 	if (mem_caps->tx_vfo) {
-		fprintf(f,"%s;",strvfo(chan->tx_vfo));
+		fprintf(f,"%s;",rig_strvfo(chan->tx_vfo));
 	}
 	if (mem_caps->rptr_shift) {
-		fprintf(f, "%s;", strptrshift(chan->rptr_shift));
+		fprintf(f, "%s;", rig_strptrshift(chan->rptr_shift));
 	}
 	if (mem_caps->rptr_offs) {
 		fprintf(f,"%d",(int)chan->rptr_offs);

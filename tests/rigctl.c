@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.49 2004-02-08 20:25:36 fillods Exp $  
+ * $Id: rigctl.c,v 1.50 2004-05-17 21:09:45 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -504,7 +504,7 @@ int main (int argc, char *argv[])
 			printf("Opened rig model %d, '%s'\n", my_rig->caps->rig_model,
 							my_rig->caps->model_name);
 	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n", 
-					my_rig->caps->version, strstatus(my_rig->caps->status));
+					my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
 #define MAXARGSZ 127
 	while (1) {
@@ -580,14 +580,14 @@ int main (int argc, char *argv[])
 				if (interactive) {
 					printf("VFO: ");
 					scanfc("%s", arg1);
-					vfo = parse_vfo(arg1);
+					vfo = rig_parse_vfo(arg1);
 				} else {
 					if (!argv[optind]) {
 						fprintf(stderr, "Invalid arg for command '%s'\n", 
 									cmd_entry->name);
 						exit(2);
 					}
-					vfo = parse_vfo(argv[optind++]);
+					vfo = rig_parse_vfo(argv[optind++]);
 				}
 			}
 			if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
@@ -731,13 +731,13 @@ static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 		printf("\n");
 		break;
 	case RIG_CONF_STRING:
-		printf("String.\n");
+		printf("\tString.\n");
 		break;
 	case RIG_CONF_CHECKBUTTON:
-		printf("Check button.\n");
+		printf("\tCheck button.\n");
 		break;
 	default:
-		printf("Unkown conf\n");
+		printf("\tUnkown conf\n");
 	}
 
 	return 1;  /* !=0, we want them all ! */
@@ -746,7 +746,7 @@ static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 static int print_model_list(const struct rig_caps *caps, void *data)
 {
 	printf("%d\t%-16s%-24s%-8s%s\n", caps->rig_model, caps->mfg_name,
-				caps->model_name, caps->version, strstatus(caps->status));
+				caps->model_name, caps->version, rig_strstatus(caps->status));
 	return 1;  /* !=0, we want them all ! */
 }
 
@@ -863,7 +863,7 @@ declare_proto_rig(set_mode)
 		rmode_t mode;
 		pbwidth_t width;
 
-		mode = parse_mode(arg1);
+		mode = rig_parse_mode(arg1);
 		sscanf(arg2, "%ld", &width);
 		return rig_set_mode(rig, vfo, mode, width);
 }
@@ -880,7 +880,7 @@ declare_proto_rig(get_mode)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%s\n", strrmode(mode));
+		printf("%s\n", rig_strrmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%ld\n", width);
@@ -890,7 +890,7 @@ declare_proto_rig(get_mode)
 
 declare_proto_rig(set_vfo)
 {
-		return rig_set_vfo(rig, parse_vfo(arg1));
+		return rig_set_vfo(rig, rig_parse_vfo(arg1));
 }
 
 
@@ -903,7 +903,7 @@ declare_proto_rig(get_vfo)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%s\n", strvfo(vfo));
+		printf("%s\n", rig_strvfo(vfo));
 		return status;
 }
 
@@ -936,7 +936,7 @@ declare_proto_rig(set_rptr_shift)
 {
 		rptr_shift_t rptr_shift;
 
-		rptr_shift = parse_rptr_shift(arg1);
+		rptr_shift = rig_parse_rptr_shift(arg1);
 		return rig_set_rptr_shift(rig, vfo, rptr_shift);
 }
 
@@ -951,7 +951,7 @@ declare_proto_rig(get_rptr_shift)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%s\n", strptrshift(rptr_shift));
+		printf("%s\n", rig_strptrshift(rptr_shift));
 		return status;
 }
 
@@ -1056,7 +1056,7 @@ declare_proto_rig(set_split_mode)
 		rmode_t mode;
 		pbwidth_t width;
 
-		mode = parse_mode(arg1);
+		mode = rig_parse_mode(arg1);
 		sscanf(arg2, "%d", (int*)&width);
 		return rig_set_split_mode(rig, vfo, mode, width);
 }
@@ -1073,7 +1073,7 @@ declare_proto_rig(get_split_mode)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%s\n", strrmode(mode));
+		printf("%s\n", rig_strrmode(mode));
 		if (interactive)
 			printf("%s: ", cmd->arg2);
 		printf("%ld\n", width);
@@ -1086,7 +1086,7 @@ declare_proto_rig(set_split_vfo)
 		split_t split;
 
 		sscanf(arg1, "%d", (int*)&split);
-		return rig_set_split_vfo(rig, vfo, split, parse_vfo(arg2));
+		return rig_set_split_vfo(rig, vfo, split, rig_parse_vfo(arg2));
 }
 
 
@@ -1104,7 +1104,7 @@ declare_proto_rig(get_split_vfo)
 		printf("%d\n", split);
 		if (interactive)
 			printf("%s: ", cmd->arg2);
-		printf("%s\n", strvfo(tx_vfo));
+		printf("%s\n", rig_strvfo(tx_vfo));
 		return status;
 }
 
@@ -1163,7 +1163,7 @@ declare_proto_rig(set_level)
 		setting_t level;
 		value_t val;
 
-		level = parse_level(arg1);
+		level = rig_parse_level(arg1);
 		if (!rig_has_set_level(rig, level)) {
 			const struct confparams *cfp;
 
@@ -1203,7 +1203,7 @@ declare_proto_rig(get_level)
 		setting_t level;
 		value_t val;
 
-		level = parse_level(arg1);
+		level = rig_parse_level(arg1);
 		if (!rig_has_get_level(rig, level)) {
 			const struct confparams *cfp;
 
@@ -1253,7 +1253,7 @@ declare_proto_rig(set_func)
 		setting_t func;
 		int func_stat;
 
-		func = parse_func(arg1);
+		func = rig_parse_func(arg1);
 		sscanf(arg2, "%d", (int*)&func_stat);
 		return rig_set_func(rig, vfo, func, func_stat);
 }
@@ -1265,7 +1265,7 @@ declare_proto_rig(get_func)
 		setting_t func;
 		int func_stat;
 
-		func = parse_func(arg1);
+		func = rig_parse_func(arg1);
 		status = rig_get_func(rig, vfo, func, &func_stat);
 		if (status != RIG_OK)
 				return status;
@@ -1280,7 +1280,7 @@ declare_proto_rig(set_parm)
 		setting_t parm;
 		value_t val;
 
-		parm = parse_parm(arg1);
+		parm = rig_parse_parm(arg1);
 
 		if (!rig_has_set_parm(rig, parm)) {
 			const struct confparams *cfp;
@@ -1321,7 +1321,7 @@ declare_proto_rig(get_parm)
 		setting_t parm;
 		value_t val;
 
-		parm = parse_parm(arg1);
+		parm = rig_parse_parm(arg1);
 		if (!rig_has_get_parm(rig, parm)) {
 			const struct confparams *cfp;
 
@@ -1403,7 +1403,7 @@ declare_proto_rig(vfo_op)
 {
 		vfo_op_t op;
 
-		op = parse_vfo_op(arg1);
+		op = rig_parse_vfo_op(arg1);
 		return rig_vfo_op(rig, vfo, op);
 }
 
@@ -1412,7 +1412,7 @@ declare_proto_rig(scan)
 		scan_t op;
 		int ch;
 
-		op = parse_scan(arg1);
+		op = rig_parse_scan(arg1);
 		sscanf(arg2, "%d", &ch);
 		return rig_scan(rig, vfo, op, ch);
 }
@@ -1434,7 +1434,7 @@ declare_proto_rig(get_channel)
 			if (sscanf(arg1, "%d", &chan.channel_num) != 1)
 				return -RIG_EINVAL;
 		} else {
-			chan.vfo = parse_vfo(arg1);
+			chan.vfo = rig_parse_vfo(arg1);
 			chan.channel_num = 0;
 		}
 
@@ -1447,32 +1447,32 @@ declare_proto_rig(get_channel)
 
 static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
-	printf("Event: freq changed to %lliHz on %s\n", (long long)freq, strvfo(vfo));
+	printf("Event: freq changed to %lliHz on %s\n", (long long)freq, rig_strvfo(vfo));
 	return 0;
 }
 
 static int mymode_event(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width, rig_ptr_t arg)
 {
-	printf("Event: mode changed to %s, width %liHz on %s\n", strrmode(mode),
-			width, strvfo(vfo));
+	printf("Event: mode changed to %s, width %liHz on %s\n", rig_strrmode(mode),
+			width, rig_strvfo(vfo));
 	return 0;
 }
 
 static int myvfo_event(RIG *rig, vfo_t vfo, rig_ptr_t arg)
 {
-	printf("Event: vfo changed to %s\n", strvfo(vfo));
+	printf("Event: vfo changed to %s\n", rig_strvfo(vfo));
 	return 0;
 }
 
 static int myptt_event(RIG *rig, vfo_t vfo, ptt_t ptt, rig_ptr_t arg)
 {
-	printf("Event: PTT changed to %i on %s\n", ptt, strvfo(vfo));
+	printf("Event: PTT changed to %i on %s\n", ptt, rig_strvfo(vfo));
 	return 0;
 }
 
 static int mydcd_event(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
 {
-	printf("Event: DCD changed to %i on %s\n", dcd, strvfo(vfo));
+	printf("Event: DCD changed to %i on %s\n", dcd, rig_strvfo(vfo));
 	return 0;
 }
 
@@ -1537,21 +1537,21 @@ void dump_chan(RIG *rig, channel_t *chan)
 	printf("Channel: %d, Name: '%s'\n", chan->channel_num, 
 					chan->channel_desc);
 
-	printf("VFO: %s, Antenna: %d, Split: %s\n", strvfo(chan->vfo),
+	printf("VFO: %s, Antenna: %d, Split: %s\n", rig_strvfo(chan->vfo),
 					chan->ant, chan->split==RIG_SPLIT_ON?"ON":"OFF");
 
 	sprintf_freq(freqbuf, chan->freq);
 	sprintf_freq(widthbuf, chan->width);
 	printf("Freq:   %s\tMode:   %s\tWidth:   %s\n", 
-						freqbuf, strrmode(chan->mode), widthbuf);
+						freqbuf, rig_strrmode(chan->mode), widthbuf);
 
 	sprintf_freq(freqbuf, chan->tx_freq);
 	sprintf_freq(widthbuf, chan->tx_width);
 	printf("txFreq: %s\ttxMode: %s\ttxWidth: %s\n", 
-						freqbuf, strrmode(chan->tx_mode), widthbuf);
+						freqbuf, rig_strrmode(chan->tx_mode), widthbuf);
 
 	sprintf_freq(freqbuf,chan->rptr_offs);
-	printf("Shift: %s, Offset: %s%s, ", strptrshift(chan->rptr_shift),
+	printf("Shift: %s, Offset: %s%s, ", rig_strptrshift(chan->rptr_shift),
 						chan->rptr_offs>0?"+":"", freqbuf);
 
 	sprintf_freq(freqbuf,chan->tuning_step);
@@ -1576,7 +1576,7 @@ void dump_chan(RIG *rig, channel_t *chan)
 
 			if (!rig_has_set_level(rig, level))
 					continue;
-			level_s = strlevel(level);
+			level_s = rig_strlevel(level);
 			if (!level_s)
 					continue;	/* duh! */
 			if (firstloop)

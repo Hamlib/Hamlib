@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - API header
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.94 2004-05-11 17:36:10 fillods Exp $
+ *	$Id: rig.h,v 1.95 2004-05-17 21:09:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1543,6 +1543,27 @@ extern HAMLIB_EXPORT(int) rig_load_all_backends HAMLIB_PARAMS(());
 typedef int (*rig_probe_func_t)(const port_t *, rig_model_t, rig_ptr_t);
 extern HAMLIB_EXPORT(int) rig_probe_all HAMLIB_PARAMS((port_t *p, rig_probe_func_t, rig_ptr_t));
 extern HAMLIB_EXPORT(rig_model_t) rig_probe HAMLIB_PARAMS((port_t *p));
+
+
+/* Misc calls */
+extern HAMLIB_EXPORT(const char *) rig_strrmode(rmode_t mode);
+extern HAMLIB_EXPORT(const char *) rig_strvfo(vfo_t vfo);
+extern HAMLIB_EXPORT(const char *) rig_strfunc(setting_t);
+extern HAMLIB_EXPORT(const char *) rig_strlevel(setting_t);
+extern HAMLIB_EXPORT(const char *) rig_strparm(setting_t);
+extern HAMLIB_EXPORT(const char *) rig_strptrshift(rptr_shift_t);
+extern HAMLIB_EXPORT(const char *) rig_strvfop(vfo_op_t op);
+extern HAMLIB_EXPORT(const char *) rig_strscan(scan_t scan);
+extern HAMLIB_EXPORT(const char *) rig_strstatus(enum rig_status_e status);
+
+extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
+extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);
+extern HAMLIB_EXPORT(setting_t) rig_parse_func(const char *s);
+extern HAMLIB_EXPORT(setting_t) rig_parse_level(const char *s);
+extern HAMLIB_EXPORT(setting_t) rig_parse_parm(const char *s);
+extern HAMLIB_EXPORT(vfo_op_t) rig_parse_vfo_op(const char *s);
+extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
+extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 
 
 __END_DECLS

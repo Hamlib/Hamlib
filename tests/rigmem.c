@@ -1,10 +1,10 @@
 /*
- * rigmem.c - (C) Stephane Fillod and Thierry Leconte 2003
+ * rigmem.c - (C) Stephane Fillod and Thierry Leconte 2003-2004
  *
  * This program exercises the backup and restore of a radio
  * using Hamlib.
  *
- * $Id: rigmem.c,v 1.1 2003-12-04 23:15:02 fillods Exp $  
+ * $Id: rigmem.c,v 1.2 2004-05-17 21:09:45 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -224,7 +224,7 @@ int main (int argc, char *argv[])
 			printf("Opened rig model %d, '%s'\n", rig->caps->rig_model,
 							rig->caps->model_name);
 	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n", 
-					rig->caps->version, strstatus(rig->caps->status));
+					rig->caps->version, rig_strstatus(rig->caps->status));
 
 	/* on some rigs, this accelerates the backup/restore */
 	rig_set_vfo(rig, RIG_VFO_MEM);

@@ -1,8 +1,8 @@
 /*
  *  Hamlib GNUradio backend - Demodulator chain class
- *  Copyright (c) 2003 by Stephane Fillod
+ *  Copyright (c) 2003-2004 by Stephane Fillod
  *
- *	$Id: demod.h,v 1.2 2004-02-08 20:27:58 fillods Exp $
+ *	$Id: demod.h,v 1.3 2004-05-17 21:09:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,7 +48,7 @@ class DemodChainCF {
 		d_source(d_source), d_sink(d_sink), mode(mode), width(width), input_rate(input_rate), centerfreq(centerfreq), rf_gain(1.0), if_width_of_transition_band(1000), CFIRdecimate(1), RFIRdecimate(1) {}
 	virtual ~DemodChainCF () { delete agc; delete mixer; delete gainstage; delete audio_filter; }
 
-	virtual const char *name() { return strrmode(mode); }
+	virtual const char *name() { return rig_strrmode(mode); }
 
 	virtual void connect (void);
 	void setWidth (pbwidth_t width);

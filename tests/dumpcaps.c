@@ -1,9 +1,9 @@
 /*
- * dumpcaps.c - Copyright (C) 2000-2003 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2004 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.41 2003-12-04 23:18:49 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.42 2004-05-17 21:09:44 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -63,7 +63,7 @@ int dumpcaps (RIG* rig)
 	printf("Mfg name:\t%s\n",caps->mfg_name);
 	printf("Backend version:\t%s\n",caps->version);
 	printf("Backend copyright:\t%s\n",caps->copyright);
-	printf("Backend status:\t%s\n", strstatus(caps->status));
+	printf("Backend status:\t%s\n", rig_strstatus(caps->status));
 	printf("Rig type:\t");
 	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
@@ -332,7 +332,7 @@ int dumpcaps (RIG* rig)
 			continue;
 
 		sprintf_freq(freqbuf, pbnorm);
-		printf("\n\t%s\tnormal: %s,\t", strrmode(i), freqbuf);
+		printf("\n\t%s\tnormal: %s,\t", rig_strrmode(i), freqbuf);
 
 		sprintf_freq(freqbuf, rig_passband_narrow(rig, i));
 		printf("narrow: %s,\t", freqbuf);

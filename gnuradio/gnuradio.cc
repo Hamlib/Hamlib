@@ -1,9 +1,9 @@
 /* -*- Mode: c++ -*- */
 /*
  *  Hamlib GNUradio backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: gnuradio.cc,v 1.8 2004-02-08 20:27:58 fillods Exp $
+ *	$Id: gnuradio.cc,v 1.9 2004-05-17 21:09:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -98,7 +98,7 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
 {
   chan->channel_num = 0;
   chan->vfo = vfo;
-  strcpy(chan->channel_desc, strvfo(vfo));
+  strcpy(chan->channel_desc, rig_strvfo(vfo));
 
   chan->freq = RIG_FREQ_NONE;
   chan->mode = RIG_MODE_NONE;
@@ -501,7 +501,7 @@ int gr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   sprintf_freq(fstr, freq);
   rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n", 
- 			__FUNCTION__, strvfo(vfo), fstr);
+ 			__FUNCTION__, rig_strvfo(vfo), fstr);
 
   ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
   if (ret != RIG_OK)
@@ -555,7 +555,7 @@ int gr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   int chan_num = vfo2chan_num(rig, vfo);
   channel_t *chan = &priv->chans[chan_num];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
 
   *freq = chan->freq;
 
@@ -581,7 +581,7 @@ int gr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	  width = rig_passband_normal(rig, mode);
   sprintf_freq(buf, width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", 
-  		__FUNCTION__, strvfo(vfo), strrmode(mode), buf);
+  		__FUNCTION__, rig_strvfo(vfo), rig_strrmode(mode), buf);
 
   if (mode == chan->mode && width == chan->width)
 	  return RIG_OK;
@@ -681,7 +681,7 @@ int gr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   int chan_num = vfo2chan_num(rig, vfo);
   channel_t *chan = &priv->chans[chan_num];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
 
   *mode = chan->mode;
   *width = chan->width;
@@ -701,7 +701,7 @@ int gr_set_vfo(RIG *rig, vfo_t vfo)
 	  return -RIG_EINVAL;
 
   priv->curr_vfo = vfo;
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
 
   return RIG_OK;
 }
@@ -712,7 +712,7 @@ int gr_get_vfo(RIG *rig, vfo_t *vfo)
   struct gnuradio_priv_data *priv = (struct gnuradio_priv_data *)rig->state.priv;
 
   *vfo = priv->curr_vfo;
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(*vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(*vfo));
 
   return RIG_OK;
 }
@@ -738,7 +738,7 @@ int gnuradio_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
   else
 	  sprintf(lstr, "%d", val.i);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",__FUNCTION__, 
-				  strlevel(level), lstr);
+				  rig_strlevel(level), lstr);
   /* TODO: check val is in range */
 
   pthread_mutex_lock(&priv->mutex_process);
@@ -749,7 +749,7 @@ int gnuradio_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	break;
   default:
 	rig_debug(RIG_DEBUG_TRACE, "%s: level %s, try tuner\n",
-			  __FUNCTION__, strlevel(level));
+			  __FUNCTION__, rig_strlevel(level));
 	ret = rig_set_level(priv->tuner, vfo, level, val);
 	break;
   }
@@ -772,7 +772,7 @@ int gnuradio_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   if (idx < RIG_SETTING_MAX)
   	*val = chan->levels[idx];
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
-				  strlevel(level));
+				  rig_strlevel(level));
 
   return RIG_OK;
 }
@@ -844,7 +844,7 @@ int gnuradio_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
   int ret = RIG_OK;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
-				  strvfop(op));
+				  rig_strvfop(op));
 
   switch (op) {
   case RIG_OP_UP:

@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - SDR-1000
  *  Copyright (c) 2003-2004 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.5 2004-02-08 17:41:52 fillods Exp $
+ *	$Id: sdr1k.c,v 1.6 2004-05-17 21:09:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -397,7 +397,7 @@ int sdr1k_set_ptt (RIG *rig, vfo_t vfo, ptt_t ptt)
 
 int sdr1k_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	rig_debug(RIG_DEBUG_TRACE,"%s: %s %d\n", __FUNCTION__, strlevel(level), val.i);
+	rig_debug(RIG_DEBUG_TRACE,"%s: %s %d\n", __FUNCTION__, rig_strlevel(level), val.i);
 
 	switch (level) {
 	case RIG_LEVEL_PREAMP:

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - toolbox
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.31 2003-12-24 09:07:52 fillods Exp $
+ *	$Id: misc.c,v 1.32 2004-05-17 21:09:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -262,7 +262,7 @@ int sprintf_freq(char *str, freq_t freq)
 		return sprintf (str, "%g %s", f, hz);
 }
 
-const char *strptrshift(rptr_shift_t shift)
+const char *rig_strptrshift(rptr_shift_t shift)
 {
 	switch (shift) {
 	case RIG_RPT_SHIFT_MINUS: return "+";
@@ -273,7 +273,7 @@ const char *strptrshift(rptr_shift_t shift)
 	return NULL;
 }
 
-const char *strstatus(enum rig_status_e status)
+const char *rig_strstatus(enum rig_status_e status)
 {
 	switch (status) {
 	case RIG_STATUS_ALPHA:
@@ -314,7 +314,7 @@ static struct {
 };
 
 
-rmode_t parse_mode(const char *s)
+rmode_t rig_parse_mode(const char *s)
 {
 	int i;
 
@@ -324,7 +324,7 @@ rmode_t parse_mode(const char *s)
 	return RIG_MODE_NONE;
 }
 
-const char * strrmode(rmode_t mode)
+const char * rig_strrmode(rmode_t mode)
 {
 	int i;
 
@@ -354,7 +354,7 @@ static struct {
 		{ RIG_VFO_NONE, "" },
 };
 
-vfo_t parse_vfo(const char *s)
+vfo_t rig_parse_vfo(const char *s)
 {
 	int i;
 
@@ -364,7 +364,7 @@ vfo_t parse_vfo(const char *s)
 	return RIG_VFO_NONE;
 }
 
-const char *strvfo(vfo_t vfo)
+const char *rig_strvfo(vfo_t vfo)
 {
 	int i;
 
@@ -414,7 +414,7 @@ static struct {
 	{ RIG_FUNC_NONE, "" },
 };
 
-setting_t parse_func(const char *s)
+setting_t rig_parse_func(const char *s)
 {
 	int i;
 
@@ -424,7 +424,7 @@ setting_t parse_func(const char *s)
 	return RIG_FUNC_NONE;
 }
 
-const char *strfunc(setting_t func)
+const char *rig_strfunc(setting_t func)
 {
 	int i;
 
@@ -474,7 +474,7 @@ static struct {
 	{ RIG_LEVEL_NONE, "" },
 };
 
-setting_t parse_level(const char *s)
+setting_t rig_parse_level(const char *s)
 {
 	int i;
 
@@ -484,7 +484,7 @@ setting_t parse_level(const char *s)
 	return RIG_LEVEL_NONE;
 }
 
-const char *strlevel(setting_t level)
+const char *rig_strlevel(setting_t level)
 {
 	int i;
 
@@ -512,7 +512,7 @@ static struct {
 	{ RIG_PARM_NONE, "" },
 };
 
-setting_t parse_parm(const char *s)
+setting_t rig_parse_parm(const char *s)
 {
 	int i;
 
@@ -522,7 +522,7 @@ setting_t parse_parm(const char *s)
 	return RIG_PARM_NONE;
 }
 
-const char *strparm(setting_t parm)
+const char *rig_strparm(setting_t parm)
 {
 	int i;
 
@@ -557,7 +557,7 @@ static struct {
 	{ RIG_OP_NONE, "" },
 };
 
-vfo_op_t parse_vfo_op(const char *s)
+vfo_op_t rig_parse_vfo_op(const char *s)
 {
 	int i;
 
@@ -567,7 +567,7 @@ vfo_op_t parse_vfo_op(const char *s)
 	return RIG_OP_NONE;
 }
 
-const char *strvfop(vfo_op_t op)
+const char *rig_strvfop(vfo_op_t op)
 {
 	int i;
 
@@ -597,7 +597,7 @@ static struct {
 	{ RIG_SCAN_NONE, "" },
 };
 
-scan_t parse_scan(const char *s)
+scan_t rig_parse_scan(const char *s)
 {
 	int i;
 
@@ -610,7 +610,7 @@ scan_t parse_scan(const char *s)
 	return RIG_SCAN_NONE;
 }
 
-const char *strscan(scan_t rscan)
+const char *rig_strscan(scan_t rscan)
 {
 	int i;
 
@@ -625,7 +625,7 @@ const char *strscan(scan_t rscan)
 }
 
 
-rptr_shift_t parse_rptr_shift(const char *s)
+rptr_shift_t rig_parse_rptr_shift(const char *s)
 {
 	if (strcmp(s, "+") == 0)
 		return RIG_RPT_SHIFT_PLUS;

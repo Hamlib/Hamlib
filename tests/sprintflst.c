@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - sprintf toolbox
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: sprintflst.c,v 1.4 2004-01-15 22:43:59 fillods Exp $
+ *	$Id: sprintflst.c,v 1.5 2004-05-17 21:09:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,19 +48,19 @@ int sprintf_vfo(char *str, vfo_t vfo)
 		*str = '\0';
 		if (vfo == RIG_VFO_NONE)
 				return 0;
-		sv = strvfo(vfo & RIG_VFO_CURR);
+		sv = rig_strvfo(vfo & RIG_VFO_CURR);
 		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
-		sv = strvfo(vfo & RIG_VFO_MEM);
+		sv = rig_strvfo(vfo & RIG_VFO_MEM);
 		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
-		sv = strvfo(vfo & RIG_VFO_VFO);
+		sv = rig_strvfo(vfo & RIG_VFO_VFO);
 		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
-		sv = strvfo(vfo & RIG_VFO_MAIN);
+		sv = rig_strvfo(vfo & RIG_VFO_MAIN);
 		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
-		sv = strvfo(vfo & RIG_VFO_SUB);
+		sv = rig_strvfo(vfo & RIG_VFO_SUB);
 		if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
 
 		for (i=0; i<16; i++) {
-			sv = strvfo(vfo & RIG_VFO_N(i));
+			sv = rig_strvfo(vfo & RIG_VFO_N(i));
 			if (sv && sv[0]) len += sprintf(str+len, "%s ", sv);
 		}
 
@@ -76,7 +76,7 @@ int sprintf_mode(char *str, rmode_t mode)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				const char *ms = strrmode(mode & (1UL<<i));
+				const char *ms = rig_strrmode(mode & (1UL<<i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
@@ -95,7 +95,7 @@ int sprintf_func(char *str, setting_t func)
 				return 0;
 
 		for (i = 0; i < RIG_SETTING_MAX; i++) {
-				const char *ms = strfunc(func & rig_idx2setting(i));
+				const char *ms = rig_strfunc(func & rig_idx2setting(i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
@@ -115,7 +115,7 @@ int sprintf_level(char *str, setting_t level)
 				return 0;
 
 		for (i = 0; i < RIG_SETTING_MAX; i++) {
-				const char *ms = strlevel(level & rig_idx2setting(i));
+				const char *ms = rig_strlevel(level & rig_idx2setting(i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
@@ -138,7 +138,7 @@ int sprintf_level_gran(char *str, setting_t level, const gran_t gran[])
 
 				if (!(level & rig_idx2setting(i)))
 					continue;
-				ms = strlevel(level & rig_idx2setting(i));
+				ms = rig_strlevel(level & rig_idx2setting(i));
 				if (!ms || !ms[0]) {
 					if (level != DUMMY_ALL && level != RIG_LEVEL_SET(DUMMY_ALL))
 						rig_debug(RIG_DEBUG_BUG, "unkown level idx %d\n", i);
@@ -164,7 +164,7 @@ int sprintf_parm(char *str, setting_t parm)
 				return 0;
 
 		for (i = 0; i < RIG_SETTING_MAX; i++) {
-				const char *ms = strparm(parm & rig_idx2setting(i));
+				const char *ms = rig_strparm(parm & rig_idx2setting(i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
@@ -186,7 +186,7 @@ int sprintf_parm_gran(char *str, setting_t parm, const gran_t gran[])
 				const char *ms;
 				if (!(parm & rig_idx2setting(i)))
 					continue;
-				ms = strparm(parm & rig_idx2setting(i));
+				ms = rig_strparm(parm & rig_idx2setting(i));
 				if (!ms || !ms[0]) {
 					if (parm != DUMMY_ALL && parm != RIG_PARM_SET(DUMMY_ALL))
 						rig_debug(RIG_DEBUG_BUG, "unkown parm idx %d\n", i);
@@ -212,7 +212,7 @@ int sprintf_vfop(char *str, vfo_op_t op)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				const char *ms = strvfop(op & (1UL<<i));
+				const char *ms = rig_strvfop(op & (1UL<<i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
@@ -232,7 +232,7 @@ int sprintf_scan(char *str, scan_t rscan)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				const char *ms = strscan(rscan & (1UL<<i));
+				const char *ms = rig_strscan(rscan & (1UL<<i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);

@@ -2,7 +2,7 @@
  * memload.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memload.c,v 1.3 2004-01-21 19:48:12 f4dwv Exp $  
+ *	$Id: memload.c,v 1.4 2004-05-17 21:09:45 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -152,7 +152,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	if (rig->state.chan_list[i].mem_caps.mode) {
 		prop=xmlGetProp(node, "mode");
 		if(prop!=NULL)
-			chan->mode = parse_mode(prop);
+			chan->mode = rig_parse_mode(prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.width) {
 		prop=xmlGetProp(node, "width");
@@ -167,7 +167,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	if (rig->state.chan_list[i].mem_caps.tx_mode) {
 		prop=xmlGetProp(node, "tx_mode");
 		if(prop!=NULL)
-			chan->tx_mode = parse_mode(prop);
+			chan->tx_mode = rig_parse_mode(prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_width) {
 		prop=xmlGetProp(node, "tx_width");

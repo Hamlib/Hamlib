@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.27 2004-02-16 21:38:59 fillods Exp $  
+ * $Id: ft847.c,v 1.28 2004-05-17 21:09:41 fillods Exp $  
  *
  *
  *
@@ -461,7 +461,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
    */
 
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", rig_strvfo(vfo));
   
   if (vfo == RIG_VFO_CURR)
 	vfo = p->current_vfo;
@@ -510,7 +510,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
   p = (struct ft847_priv_data*)rs->priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", rig_strvfo(vfo));
   
   if (vfo == RIG_VFO_CURR)
 	vfo = p->current_vfo;
@@ -623,7 +623,7 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
 	vfo = p->current_vfo;
 
   if (vfo != RIG_VFO_MAIN) {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft847: unsupported VFO '%s'\n", strvfo(vfo));
+    rig_debug(RIG_DEBUG_VERBOSE,"ft847: unsupported VFO '%s'\n", rig_strvfo(vfo));
     return -RIG_ENIMPL;		/* sorry, it's in TODO list */
   }
 

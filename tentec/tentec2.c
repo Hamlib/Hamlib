@@ -1,8 +1,8 @@
 /*
  *  Hamlib Tentec backend - Argonaut, Jupiter, RX-350
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: tentec2.c,v 1.3 2003-10-20 22:15:02 fillods Exp $
+ *	$Id: tentec2.c,v 1.4 2004-05-17 21:09:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -86,7 +86,7 @@ int tentec2_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	case RIG_VFO_B: vfo_val = 'B'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, strvfo(vfo));
+				__FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 	freq_len = sprintf(freqbuf, "*%c%c%c%c%c" EOM, 
@@ -127,7 +127,7 @@ int tentec2_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	case RIG_VFO_B: vfo_val = 'B'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, strvfo(vfo));
+				__FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 	freq_len = sprintf(freqbuf, "?%c" EOM, vfo_val);
@@ -171,7 +171,7 @@ int tentec2_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_B: vfo_val = 'B'; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, strvfo(vfo));
+				__FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 	vfo_len = sprintf(vfobuf, "*E%c%c" EOM, 
@@ -314,7 +314,7 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_VFO_B: ttmode_b = ttmode; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, strvfo(vfo));
+				__FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 
@@ -368,7 +368,7 @@ int tentec2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case RIG_VFO_B: ttmode = mdbuf[3]; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
-				__FUNCTION__, strvfo(vfo));
+				__FUNCTION__, rig_strvfo(vfo));
 		return -RIG_EINVAL;
 	}
 	switch (ttmode) {

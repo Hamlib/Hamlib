@@ -1,10 +1,10 @@
 /*
- * ft1000.c - (C) Stephane Fillod 2002-2003 (fillods@users.sourceforge.net)
+ * ft1000.c - (C) Stephane Fillod 2002-2004 (fillods@users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.3 2003-11-16 17:14:44 fillods Exp $
+ *	$Id: ft1000mp.c,v 1.4 2004-05-17 21:09:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -642,7 +642,7 @@ int ft1000mp_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
     break; 
   }
  
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = %s\n", strrmode(*mode));
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: mode = %s\n", rig_strrmode(*mode));
 
   /* TODO: set real IF filter selection */
   *width = RIG_PASSBAND_NORMAL;
@@ -662,7 +662,7 @@ int ft1000mp_set_vfo(RIG *rig, vfo_t vfo) {
   struct ft1000mp_priv_data *p;
   unsigned char cmd_index = 0;      /* index of sequence to send */
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_vfo called %s\n", strvfo(vfo));
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: ft1000mp_set_vfo called %s\n", rig_strvfo(vfo));
 
   
   p = (struct ft1000mp_priv_data*)rig->state.priv;

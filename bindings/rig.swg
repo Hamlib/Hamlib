@@ -1,8 +1,8 @@
 /*
  *  Hamlib bindings - Rig interface
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: rig.swg,v 1.7 2004-01-15 22:40:44 fillods Exp $
+ *	$Id: rig.swg,v 1.8 2004-05-17 21:09:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -95,7 +95,7 @@ typedef struct Rig {
 
 #define METHODSUPERSET(f, t1, fld, chk) void set_##f (const char *name, t1 fld  _VFO_DECL) \
 		{ setting_t stg; value_t val; 	\
-		stg = parse_##f(name);	\
+		stg = rig_parse_##f(name);	\
 		if (!rig_has_set_##f(self->rig, stg)) {	\
 			const struct confparams *cfp;	\
 			cfp = rig_ext_lookup(self->rig, name);	\
@@ -158,7 +158,7 @@ typedef struct Rig {
 
 #define METHODSUPERGET(fct, t1, fld, chk) t1 get_##fct##_##fld(const char *name  _VFO_DECL) \
 		{ setting_t stg; value_t val; 	\
-		stg = parse_##fct(name);	\
+		stg = rig_parse_##fct(name);	\
 		if (!rig_has_get_##fct(self->rig, stg)) {	\
 			const struct confparams *cfp;	\
 			cfp = rig_ext_lookup(self->rig, name);	\

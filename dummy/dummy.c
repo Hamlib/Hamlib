@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.38 2004-01-15 22:43:59 fillods Exp $
+ *	$Id: dummy.c,v 1.39 2004-05-17 21:09:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -65,7 +65,7 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
 {
   chan->channel_num = 0;
   chan->vfo = vfo;
-  strcpy(chan->channel_desc, strvfo(vfo));
+  strcpy(chan->channel_desc, rig_strvfo(vfo));
 
   chan->freq = MHz(145);
   chan->mode = RIG_MODE_FM;
@@ -155,7 +155,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   sprintf_freq(fstr, freq);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", __FUNCTION__, 
- 			strvfo(vfo), fstr);
+ 			rig_strvfo(vfo), fstr);
   curr->freq = freq;
 
   return RIG_OK;
@@ -167,7 +167,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
 
   *freq = curr->freq;
 
@@ -183,7 +183,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   sprintf_freq(buf, width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", __FUNCTION__, 
-  		strvfo(vfo), strrmode(mode), buf);
+  		rig_strvfo(vfo), rig_strrmode(mode), buf);
 
   curr->mode = mode;
   curr->width = width;
@@ -197,7 +197,7 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
 
   *mode = curr->mode;
   *width = curr->width;
@@ -211,7 +211,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
 
   priv->last_vfo = priv->curr_vfo;
   priv->curr_vfo = vfo;
@@ -226,7 +226,7 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 						  break;
 				  }
   default:
-  	rig_debug(RIG_DEBUG_VERBOSE,"%s unknown vfo: %s\n", __FUNCTION__, strvfo(vfo));
+  	rig_debug(RIG_DEBUG_VERBOSE,"%s unknown vfo: %s\n", __FUNCTION__, rig_strvfo(vfo));
   }
 
   return RIG_OK;
@@ -238,7 +238,7 @@ static int dummy_get_vfo(RIG *rig, vfo_t *vfo)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
   *vfo = priv->curr_vfo;
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(*vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(*vfo));
 
   return RIG_OK;
 }
@@ -429,7 +429,7 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
   sprintf_freq(fstr, tx_freq);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", __FUNCTION__, 
- 			strvfo(vfo), fstr);
+ 			rig_strvfo(vfo), fstr);
   curr->tx_freq = tx_freq;
 
   return RIG_OK;
@@ -441,7 +441,7 @@ static int dummy_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__,strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__,rig_strvfo(vfo));
 
   *tx_freq = curr->tx_freq;
 
@@ -456,7 +456,7 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
 
   sprintf_freq(buf, tx_width);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s %s\n", __FUNCTION__,
-  		strvfo(vfo), strrmode(tx_mode), buf);
+  		rig_strvfo(vfo), rig_strrmode(tx_mode), buf);
 
   curr->tx_mode = tx_mode;
   curr->tx_width = tx_width;
@@ -469,7 +469,7 @@ static int dummy_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, strvfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n", __FUNCTION__, rig_strvfo(vfo));
 
   *tx_mode = curr->tx_mode;
   *tx_width = curr->tx_width;
@@ -578,7 +578,7 @@ static int dummy_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
   channel_t *curr = priv->curr;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %d\n",__FUNCTION__, 
-				  strfunc(func), status);
+				  rig_strfunc(func), status);
   if (func < RIG_SETTING_MAX) {
 		if (status)
 			curr->funcs |=  func;
@@ -599,7 +599,7 @@ static int dummy_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		*status = curr->funcs & func ? 1 : 0;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
-				  strfunc(func));
+				  rig_strfunc(func));
 
   return RIG_OK;
 }
@@ -621,7 +621,7 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
   else
 		  sprintf(lstr, "%d", val.i);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",__FUNCTION__, 
-				  strlevel(level), lstr);
+				  rig_strlevel(level), lstr);
 
   return RIG_OK;
 }
@@ -638,7 +638,7 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   if (idx < RIG_SETTING_MAX)
   	*val = curr->levels[idx];
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
-				  strlevel(level));
+				  rig_strlevel(level));
 
   return RIG_OK;
 }
@@ -679,7 +679,7 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
   else
 		  sprintf(pstr, "%d", val.i);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", __FUNCTION__, 
-				  strparm(parm), pstr);
+				  rig_strparm(parm), pstr);
   if (idx < RIG_SETTING_MAX)
   	priv->parms[idx] = val;
 
@@ -697,7 +697,7 @@ static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
   if (idx < RIG_SETTING_MAX)
   	*val = priv->parms[idx];
   rig_debug(RIG_DEBUG_VERBOSE,"%s called %s\n",__FUNCTION__, 
-				  strparm(parm));
+				  rig_strparm(parm));
 
   return RIG_OK;
 }
@@ -767,7 +767,7 @@ static int dummy_get_mem(RIG *rig, vfo_t vfo, int *ch)
 static int dummy_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %d\n",__FUNCTION__, 
-				  strscan(scan), ch);
+				  rig_strscan(scan), ch);
 
   return RIG_OK;
 }
@@ -775,7 +775,7 @@ static int dummy_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 static void chan_vfo(channel_t *chan, vfo_t vfo)
 {
 	chan->vfo = vfo;
-	strcpy(chan->channel_desc, strvfo(vfo));
+	strcpy(chan->channel_desc, rig_strvfo(vfo));
 }
 
 static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
@@ -787,7 +787,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
   shortfreq_t ts;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
-				  strvfop(op));
+				  rig_strvfop(op));
 
   switch (op) {
 	  case RIG_OP_FROM_VFO:	/* VFO->MEM */
