@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.40 2002-07-10 21:45:44 fillods Exp $
+ *	$Id: kenwood.c,v 1.41 2002-09-03 18:53:03 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -453,6 +453,49 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 		return RIG_OK;
 }
+
+int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
+{
+		unsigned char infobuf[50];
+		int info_len, retval;
+
+		retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (info_len != 38 || infobuf[1] != 'F') {
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_rit: wrong answer len=%d\n",
+						info_len);
+		return -RIG_ERJCTED;
+		}
+
+		infobuf[23] = '\0';
+		*rit = atoi(&infobuf[17]);
+
+		return RIG_OK;
+}
+
+int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
+{
+        unsigned char buf[50], infobuf[50], c;
+        int retval, info_len, len, i;
+
+        if (rit == 0)
+        return kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
+
+        if (rit > 0)
+                c = 'U';
+        else
+                c = 'D';
+        len = sprintf(buf, "R%c;", c);
+
+	retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
+	for (i = 0; i < abs(round(rit/10)); i++)
+		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+
+	return RIG_OK;
+}
+
 
 /*
  * kenwood_set_mode

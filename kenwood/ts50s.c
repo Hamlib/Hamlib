@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS50 description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *	$Id: ts50s.c,v 1.5 2002-08-16 17:43:02 fillods Exp $
+ *	$Id: ts50s.c,v 1.6 2002-09-03 18:55:05 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -176,6 +176,8 @@ const struct rig_caps ts50s_caps = {
 
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
+.set_rit =  kenwood_set_rit,
+.get_rit =  kenwood_get_rit,
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
