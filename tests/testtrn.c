@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <hamlib/rig.h>
 
 #define SERIAL_PORT "/dev/ttyS0"
@@ -16,12 +17,16 @@ int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq)
 }
 
 
-int main ()
+int main (int argc, char *argv[])
 { 
 	RIG *my_rig;		/* handle to rig (nstance) */
 	int retcode;		/* generic return code from functions */
 	int i;
 
+	if (argc != 2) {
+		fprintf(stderr,"%s <rig_num>\n", argv[0]);
+		exit(1);
+	}
 
 	printf("testrig:hello, I am your main() !\n");
 
@@ -29,15 +34,20 @@ int main ()
 	 * allocate memory, setup & open port 
 	 */
 
+#if 0
 	retcode = rig_load_backend("icom");
 	if (retcode != RIG_OK ) {
 		printf("rig_load_backend: error = %s \n", rigerror(retcode));
 		exit(3);
 	}
+#endif
 
-	my_rig = rig_init(RIG_MODEL_IC706MKIIG);
-	if (!my_rig)
+	my_rig = rig_init(atoi(argv[1]));
+	if (!my_rig) {
+			fprintf(stderr,"Unknown rig num: %d\n",atoi(argv[1]));
+			fprintf(stderr,"Please check riglist.h\n");
 			exit(1); /* whoops! something went wrong (mem alloc?) */
+	}
 
 	strncpy(my_rig->state.rigport.path, SERIAL_PORT, FILPATHLEN);
 

@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.2 2001-06-04 17:01:21 f4cfe Exp $  
+ *    $Id: dumpmem.c,v 1.3 2001-06-04 21:17:53 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -45,6 +45,7 @@ int main (int argc, char *argv[])
 			exit(1);
 	}
 
+#if 0
   	status = rig_load_backend("icom");
 	status |= rig_load_backend("ft747");
 	status |= rig_load_backend("ft847");
@@ -58,6 +59,7 @@ int main (int argc, char *argv[])
 		printf("rig_load_backend: error = %s \n", rigerror(status));
 		exit(3);
 	}
+#endif
 
   	my_rig = rig_init(atoi(argv[1]));
 

@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.25 2001-06-03 19:54:05 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.26 2001-06-04 21:17:52 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -42,12 +42,14 @@ int main (int argc, char *argv[])
 	int status,i;
 	char freqbuf[20];
 	int backend_warnings=0;
+	int rig_model;
 
 	if (argc != 2) {
 			fprintf(stderr,"%s <rig_num>\n",argv[0]);
 			exit(1);
 	}
 
+#if 0
   	status = rig_load_backend("icom");
 	status |= rig_load_backend("ft747");
 	status |= rig_load_backend("ft847");
@@ -61,10 +63,15 @@ int main (int argc, char *argv[])
 		printf("rig_load_backend: error = %s \n", rigerror(status));
 		exit(3);
 	}
+#endif
 
-	caps = rig_get_caps(atoi(argv[1]));
+	rig_model = atoi(argv[1]);
+	
+	rig_check_backend(rig_model);
+
+	caps = rig_get_caps(rig_model);
 	if (!caps) {
-			fprintf(stderr,"Unknown rig num: %d\n",atoi(argv[1]));
+			fprintf(stderr,"Unknown rig num: %d\n", rig_model);
 			fprintf(stderr,"Please check riglist.h\n");
 			exit(2);
 	}

@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.12 2001-06-02 18:11:21 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.13 2001-06-04 21:17:53 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -299,9 +299,6 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 	
 	print_yn(level & RIG_LEVEL_PREAMP);
 	print_yn(level & RIG_LEVEL_ATT);
-#if 0
-	print_yn(level & RIG_LEVEL_ANT);	/* deprecated */
-#endif
 	print_yn(level & RIG_LEVEL_AF);
 	print_yn(level & RIG_LEVEL_RF);
 	print_yn(level & RIG_LEVEL_SQL);
@@ -541,6 +538,7 @@ int main (int argc, char *argv[])
 	time_t gentime;
 	int set_or_get;
 
+#if 0
 	status = rig_load_backend("icom");
 	if (status != RIG_OK ) {
 		printf("rig_load_backend: error = %s \n", rigerror(status));
@@ -573,6 +571,10 @@ int main (int argc, char *argv[])
 	}
 	rig_load_backend("winradio");	/* may not be compiled ... */
 	rig_load_backend("dummy");
+#endif
+
+	rig_load_all_backends();
+
 
 	printf("<TABLE BORDER=1>");
 	printf("<TR><TD>Model</TD><TD>Mfg</TD><TD>Vers.</TD><TD>Status</TD>"

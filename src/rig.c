@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.31 2001-06-04 17:01:21 f4cfe Exp $
+   $Id: rig.c,v 1.32 2001-06-04 21:17:52 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -230,6 +230,8 @@ RIG *rig_init(rig_model_t rig_model)
 		int i;
 
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_init called \n");
+
+		rig_check_backend(rig_model);
 
 		caps = rig_get_caps(rig_model);
 		if (!caps)
@@ -2614,37 +2616,26 @@ int rig_reset(RIG *rig, reset_t reset)
 }
 
 
-
-#if 0
-
-/* CAUTION: this is really Experimental, It never worked!!
- * try to guess a rig, can be very buggy! (but fun if it works!)
- * FIXME: finish me and handle nicely errors
- * TODO: rewrite rig_probe, it's the wrong approach.
- * 		 Each rig backend should provide a rigbe_probe function
- * 		 so with help of rig_list_foreach we can probe them all. --SF
+/**
+ *      rig_probe - try to guess a rig
+ *      @p:		A pointer describing a port connected to the rig
+ *
+ *      The rig_probe() function try to guess a rig, can be very buggy!
+ *      (but fun if it works!)
+ *		CAUTION: this is really Experimental, It never worked 
+ *		(never tested tough)!!
+ *
+ *      RETURN VALUE: The rig_probe() function returns the rig model id
+ *      according to the rig_model_t type if found, or %RIG_MODEL_NONE
+ *      otherwise.
  */
-RIG *rig_probe(const char *port_path)
+rig_model_t rig_probe(port_t *p)
 {
-		RIG *rig;
-		int i;
+		if (!p)
+				return RIG_MODEL_NONE;
 
-		for (i = 0; rig_base[i]; i++) {
-			if (rig_base[i]->rig_probe != NULL) {
-				rig = rig_init(rig_base[i]->rig_model);
-				strncpy(rig->state.rig_path, port_path, FILPATHLEN);
-				rig_open(rig);
-				if (rig && rig_base[i]->rig_probe(rig) == 0) {
-					return rig;
-				} else {
-					rig_close(rig);
-					rig_cleanup(rig);
-				}
-			}
-		}
-		return NULL;
+		return rig_probe_all(p);
 }
-#endif
 
 /**
  *      rig_set_level - set a radio level setting
