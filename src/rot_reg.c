@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rot_reg.c,v 1.1 2001-12-27 21:46:25 fillods Exp $
+ *		$Id: rot_reg.c,v 1.2 2001-12-28 20:38:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -274,8 +274,8 @@ int rot_load_backend(const char *be_name)
     int (*be_init)(rig_ptr_t);
 	int status;
 	char libname[PATH_MAX];
-	char initfname[MAXFUNCNAMELEN]  = "init_";
-	char probefname[MAXFUNCNAMELEN] = "probe_";
+	char initfname[MAXFUNCNAMELEN]  = "initrots_";
+	char probefname[MAXFUNCNAMELEN] = "proberots_";
 	int i;
 
 	/*
