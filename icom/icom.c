@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.18 2001-03-01 00:28:08 f4cfe Exp $  
+ * $Id: icom.c,v 1.19 2001-03-01 21:21:23 f4cfe Exp $  
  *
  *
  *
@@ -318,8 +318,8 @@ int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		icom_transaction (rig, C_SET_FREQ, -1, freqbuf, freq_len, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_freq: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_freq: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -395,8 +395,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 						icmode_ext[0]?1:0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_mode: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_mode: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -459,8 +459,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 		icom_transaction (rig, C_SET_VFO, icvfo, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_vfo: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_vfo: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -485,6 +485,9 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		priv = (struct icom_priv_data*)rs->priv;
 
 
+		/*
+		 * So far, levels of float type are in [0.0..1.0] range
+		 */
 		if (RIG_LEVEL_IS_FLOAT(level))
 				icom_val = val.f * 255;
 		else
@@ -604,8 +607,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 						ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x),
-								len=%d\n", ackbuf[0], ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_level: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -653,6 +656,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		int lvl_len;
 		int lvl_cn, lvl_sc;		/* Command Number, Subcommand */
 		int icom_val;
+		int cmdhead;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
@@ -758,19 +762,20 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		/*
 		 * strbuf should contain Cn,Sc,Data area
 		 */
-		lvl_len-=2;
-#if 0
-		if (lvl_len != 2) {
-				rig_debug(RIG_DEBUG_ERR,"icom_get_level: wrong frame len=%d\n",
-								lvl_len);
-				return -RIG_EPROTO;
+		cmdhead = (lvl_sc == -1) ? 1:2;
+		lvl_len -= cmdhead;
+
+		if (lvlbuf[0] != ACK && lvlbuf[0] != lvl_cn) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_level: ack NG (%#.2x), "
+								"len=%d\n", lvlbuf[0],lvl_len);
+				return -RIG_ERJCTED;
 		}
-#endif
+
 		/*	
 		 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
 		 * (from_bcd is little endian)
 		 */
-		icom_val = from_bcd_be(lvlbuf+2, lvl_len*2);
+		icom_val = from_bcd_be(lvlbuf+cmdhead, lvl_len*2);
 
 
 		switch (level) {
@@ -796,11 +801,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			}
 			val->i = rs->preamp[icom_val-1];
 			break;
-		case RIG_LEVEL_ATT:
-			/* TODO: check lvl_len */
-			icom_val = from_bcd_be(lvlbuf+1, 1);
-			val->i = icom_val;
-			break;
+		/* RIG_LEVEL_ATT: returned value is already an integer in dB ! */
 		default:
 			if (RIG_LEVEL_IS_FLOAT(level))
 				val->f = (float)icom_val/255;
@@ -810,22 +811,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		rig_debug(RIG_DEBUG_VERBOSE,"get_level: %d %d %d %f\n", lvl_len, 
 						icom_val, val->i, val->f);
-
-		/* this stuff is wrong, use calibrated data instead */
-#if 0
-#define STR_FLOOR 44.0
-#define STR_CEILING 223.0
-#define STR_MAX 114.0	/* S9+60db */
-#ifndef max
-#define max(a,b) ((a)>(b)?(a):(b))
-#endif
-		/* translate to db */
-		if (level == RIG_LEVEL_STRENGTH)
-			val->i = rint(STR_MAX/(STR_CEILING-STR_FLOOR)*max(icom_val-STR_FLOOR,0));
-		else
-			val->i = icom_val;
-		rig_debug(RIG_DEBUG_VERBOSE,"%d %d %d\n",lvl_len,icom_val,val->i);
-#endif
 
 		return RIG_OK;
 }
@@ -849,8 +834,8 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		icom_transaction (rig, C_CTL_PTT, ptt_sc, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_ptt: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ptt: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -962,8 +947,8 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 		icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_shift: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_shift: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1037,8 +1022,8 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 		icom_transaction (rig, C_SET_OFFS, -1, offsbuf, OFFS_LEN, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_offs: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_offs: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1147,8 +1132,8 @@ int icom_set_split(RIG *rig, vfo_t vfo, split_t split)
 		icom_transaction (rig, C_CTL_SPLT, split_sc, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_split: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_split: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1225,8 +1210,8 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		icom_transaction (rig, C_SET_TS, ts_sc, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_ts: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ts: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1279,8 +1264,8 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  */
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-		unsigned char fctbuf[16];
-		int fct_len;
+		unsigned char fctbuf[16], ackbuf[16];
+		int fct_len, acklen;
 		int fct_cn, fct_sc;		/* Command Number, Subcommand */
 
 		/*
@@ -1330,19 +1315,122 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 			fct_cn = C_CTL_FUNC;
 			fct_sc = S_FUNC_NR;
 			break;
+		case RIG_FUNC_APF:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_APF;
+			break;
+		case RIG_FUNC_MON:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_MON;
+			break;
+		case RIG_FUNC_MN:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_MN;
+			break;
+		case RIG_FUNC_RNF:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_RNF;
+			break;
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d", func);
 			return -RIG_EINVAL;
 		}
 
-		icom_transaction (rig, fct_cn, fct_sc, NULL, 0, fctbuf, &fct_len);
+		icom_transaction(rig, fct_cn, fct_sc, fctbuf, fct_len, ackbuf, &acklen);
 
 		if (fct_len != 2) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_func: wrong frame len=%d\n",
 								fct_len);
 				return -RIG_EPROTO;
 		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_get_func
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ * FIXME: IC8500 and no-sc, any support?
+ */
+int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+		unsigned char ackbuf[16];
+		int ack_len;
+		int fct_cn, fct_sc;		/* Command Number, Subcommand */
+
+		/* Optimize:
+		 *   sort the switch cases with the most frequent first
+		 */
+		switch (func) {
+		case RIG_FUNC_FAGC:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_AGC;	/* default to 0x01 super-fast */
+			break;
+		case RIG_FUNC_NB:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_NB;
+			break;
+		case RIG_FUNC_COMP:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_COMP;
+			break;
+		case RIG_FUNC_VOX:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_VOX;
+			break;
+		case RIG_FUNC_TONE:		/* repeater tone */
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_TONE;
+			break;
+		case RIG_FUNC_TSQL:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_TSQL;
+			break;
+		case RIG_FUNC_SBKIN:		/* FIXME ? */
+		case RIG_FUNC_FBKIN:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_BKIN;
+			break;
+		case RIG_FUNC_ANF:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_ANF;
+			break;
+		case RIG_FUNC_NR:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_NR;
+			break;
+		case RIG_FUNC_APF:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_APF;
+			break;
+		case RIG_FUNC_MON:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_MON;
+			break;
+		case RIG_FUNC_MN:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_MN;
+			break;
+		case RIG_FUNC_RNF:
+			fct_cn = C_CTL_FUNC;
+			fct_sc = S_FUNC_RNF;
+			break;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %d", func);
+			return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, fct_cn, fct_sc, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 3) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_func: wrong frame len=%d\n",
+								ack_len);
+				return -RIG_EPROTO;
+		}
+
+		*status = ackbuf[2];
 
 		return RIG_OK;
 }
@@ -1388,8 +1476,8 @@ int icom_set_channel(RIG *rig, const channel_t *chan)
 		icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT, chanbuf, chan_len, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_channel: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_channel: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1461,8 +1549,8 @@ int icom_set_poweron(RIG *rig)
 		icom_transaction(rig, C_SET_PWR, S_PWR_ON, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_poweron: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_poweron: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1481,8 +1569,8 @@ int icom_set_poweroff(RIG *rig)
 		icom_transaction(rig, C_SET_PWR, S_PWR_OFF, NULL, 0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_poweroff: ack NG (%#.2x),
-								len=%d\n", ackbuf[0],ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_poweroff: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1508,8 +1596,8 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 		icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_mem: ack NG (%#.2x),
-								len=%d\n", ackbuf[0], ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_mem: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1535,8 +1623,8 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 		icom_transaction (rig, C_SET_MEM, S_BANK, bankbuf, CHAN_NB_LEN, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_bank: ack NG (%#.2x),
-								len=%d\n", ackbuf[0], ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_set_bank: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
 				return -RIG_ERJCTED;
 		}
 
@@ -1606,8 +1694,8 @@ int icom_mv_ctl(RIG *rig, vfo_t vfo, mv_op_t op)
 		icom_transaction (rig, mv_cn, mv_sc, mvbuf, mv_len, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_mv_ctl: ack NG (%#.2x),
-								len=%d\n", ackbuf[0], ack_len);
+				rig_debug(RIG_DEBUG_ERR,"icom_mv_ctl: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
 				return -RIG_ERJCTED;
 		}
 
