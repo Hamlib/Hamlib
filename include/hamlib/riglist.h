@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.33 2003-03-15 23:58:41 fillods Exp $
+ *	$Id: riglist.h,v 1.34 2003-05-12 22:27:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -318,6 +318,10 @@
 #define RIG_MODEL_TT538 RIG_MAKE_MODEL(RIG_TENTEC, 2)	/* Jupiter */
 #define RIG_MODEL_RX320 RIG_MAKE_MODEL(RIG_TENTEC, 3)
 #define RIG_MODEL_RX340 RIG_MAKE_MODEL(RIG_TENTEC, 4)
+#define RIG_MODEL_RX350 RIG_MAKE_MODEL(RIG_TENTEC, 5)
+#define RIG_MODEL_TT526 RIG_MAKE_MODEL(RIG_TENTEC, 6)	/* 6N2 */
+#define RIG_MODEL_TT516 RIG_MAKE_MODEL(RIG_TENTEC, 7)	/* Argonaut V */
+#define RIG_MODEL_TT565 RIG_MAKE_MODEL(RIG_TENTEC, 8)	/* Orion */
 
 	/*
 	 * Alinco
@@ -361,6 +365,20 @@
 #define RIG_MICROTUNE 21
 #define RIG_BACKEND_MICROTUNE "microtune"
 #define RIG_MODEL_MICROTUNE_4937 RIG_MAKE_MODEL(RIG_MICROTUNE, 1)	/* eval board */
+
+	/*
+	 * TAPR
+	 */
+#define RIG_TAPR 22
+#define RIG_BACKEND_TAPR "tapr"
+#define RIG_MODEL_TAPR_DSP10 RIG_MAKE_MODEL(RIG_TAPR, 1)
+
+	/*
+	 * TAPR
+	 */
+#define RIG_FLEXRADIO 22
+#define RIG_BACKEND_FLEXRADIO "flexradio"
+#define RIG_MODEL_FLEXRADIO_SDR1000 RIG_MAKE_MODEL(RIG_FLEXRADIO, 1)
 
 
 	/*
@@ -407,6 +425,8 @@ typedef int rig_model_t;
 		{ RIG_RPC, RIG_BACKEND_RPC }, \
 		{ RIG_GNURADIO, RIG_BACKEND_GNURADIO }, \
 		{ RIG_MICROTUNE, RIG_BACKEND_MICROTUNE }, \
+		{ RIG_TAPR, RIG_BACKEND_TAPR }, \
+		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
 		{ 0, NULL }, /* end */  \
 }
 
