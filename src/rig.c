@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.50 2001-12-20 07:46:12 fillods Exp $
+ *		$Id: rig.c,v 1.51 2001-12-26 23:47:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -74,13 +74,6 @@ struct opened_rig_l {
 };
 static struct opened_rig_l *opened_rig_list = { NULL };
 
-/*
- * rig_state.comm_state
- */
-enum {
-		RIG_COMM_NOTOPEN,
-		RIG_COMM_OPEN
-};
 
 /*
  * Careful, the order must be the same as their RIG_E* counterpart!
@@ -241,7 +234,7 @@ RIG *rig_init(rig_model_t rig_model)
 
 		rs = &rig->state;
 
-		rs->comm_state = RIG_COMM_NOTOPEN;
+		rs->comm_state = 0;
 		rs->rigport.type.rig = caps->port_type; /* default from caps */
 		strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
 		rs->rigport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
@@ -354,7 +347,7 @@ int rig_open(RIG *rig)
 		caps = rig->caps;
 		rs = &rig->state;
 
-		if (rs->comm_state != RIG_COMM_NOTOPEN)
+		if (rs->comm_state)
 				return -RIG_EINVAL;
 
 		rs->rigport.fd = -1;
@@ -374,6 +367,7 @@ int rig_open(RIG *rig)
 				break;
 
 		case RIG_PORT_NONE:
+		case RIG_PORT_RPC:
 				break;	/* ez :) */
 
 		case RIG_PORT_NETWORK:	/* not implemented yet! */
@@ -432,20 +426,24 @@ int rig_open(RIG *rig)
 
 		add_opened_rig(rig);
 
+		rs->comm_state = 1;
+
 		/* 
 		 * Maybe the backend has something to initialize
-		 * FIXME: check rig_open() return code
+		 * In case of failure, just close down and report error code.
 		 */
-		if (caps->rig_open != NULL)
-				caps->rig_open(rig);	
+		if (caps->rig_open != NULL) {
+				status = caps->rig_open(rig);	
+				if (status != RIG_OK) {
+						rig_close(rig);
+						return status;
+				}
+		}
 
 		/*
 		 * trigger state->current_vfo first retrieval
 		 */
-		if (!caps->targetable_vfo && caps->get_vfo)
-				caps->get_vfo(rig, &vfo);	
-
-		rs->comm_state = RIG_COMM_OPEN;
+		rig_get_vfo(rig, &vfo);	
 
 		return RIG_OK;
 }
@@ -477,7 +475,7 @@ int rig_close(RIG *rig)
 		caps = rig->caps;
 		rs = &rig->state;
 
-		if (rs->comm_state != RIG_COMM_OPEN)
+		if (!rs->comm_state)
 				return -RIG_EINVAL;
 
 		if (rs->transceive) {
@@ -488,7 +486,8 @@ int rig_close(RIG *rig)
 		}
 
 		/*
-		 * Let the backend say 73s to the rig
+		 * Let the backend say 73s to the rig.
+		 * and ignore the return code.
 		 */
 		if (caps->rig_close)
 				caps->rig_close(rig);
@@ -542,7 +541,7 @@ int rig_close(RIG *rig)
 
 		remove_opened_rig(rig);
 
-		rs->comm_state = RIG_COMM_NOTOPEN;
+		rs->comm_state = 0;
 
 		return RIG_OK;
 }
@@ -571,7 +570,7 @@ int rig_cleanup(RIG *rig)
 		/*
 		 * check if they forgot to close the rig
 		 */
-		if (rig->state.comm_state == RIG_COMM_OPEN)
+		if (rig->state.comm_state)
 				rig_close(rig);
 
 		/*
