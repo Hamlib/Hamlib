@@ -6,7 +6,7 @@
  * used by the ICOM "CI-V" interface.
  *
  *
- *    $Id: icom_defs.h,v 1.6 2000-10-29 16:27:37 f4cfe Exp $  
+ *    $Id: icom_defs.h,v 1.7 2001-01-28 22:10:14 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -156,6 +156,13 @@
 #define S_ATT_30dB	0x30		/* 30 dB, or Att on for IC-R75 */
 
 /*
+ * Set Preamp (S_FUNC_PAMP) data
+ */
+#define D_PAMP_OFF	0x00
+#define D_PAMP1		0x01
+#define D_PAMP2		0x02
+
+/*
  * Set antenna (C_SET_ANT) subcommands
  */
 #define S_ANT_RD	0x00		/* Without subcommand, reads out setting */
@@ -198,13 +205,25 @@
  * Function settings (C_CTL_FUNC) subcommands
  */
 #define S_FUNC_PAMP	0x02		/* Preamp setting */
+#define S_FUNC_AGCOFF	0x10		/* IC-R8500 only */
+#define S_FUNC_AGCON 	0x11		/* IC-R8500 only */
 #define S_FUNC_AGC	0x12		/* AGC setting */
+#define S_FUNC_NBOFF	0x20		/* IC-R8500 only */
+#define S_FUNC_NBON	0x21		/* IC-R8500 only */
 #define S_FUNC_NB	0x22		/* NB setting */
+#define S_FUNC_APFOFF	0x30		/* IC-R8500 only */
+#define S_FUNC_APFON	0x31		/* IC-R8500 only */
+#define S_FUNC_APF	0x32		/* APF setting */
+#define S_FUNC_NR	0x40		/* NR setting */
+#define S_FUNC_ANF	0x41		/* ANF setting */
 #define S_FUNC_TONE	0x42		/* TONE setting */
 #define S_FUNC_TSQL	0x43		/* TSQL setting */
 #define S_FUNC_COMP	0x44		/* COMP setting */
+#define S_FUNC_MON	0x45		/* Monitor setting */
 #define S_FUNC_VOX	0x46		/* VOX setting */
 #define S_FUNC_BKIN	0x47		/* BK-IN setting */
+#define S_FUNC_MN	0x48		/* Manual notch setting */
+#define S_FUNC_RFN	0x49		/* RTTY Filter Notch setting */
 
 /*
  * Transceiver ID (C_RD_TRXID) subcommands
@@ -228,6 +247,12 @@
  */
 #define S_MEM_CNTNT	0x00
 #define S_MEM_CNTNT_SLCT	0x01
+
+/*
+ * Tone control (C_SET_TONE) subcommands
+ */
+#define S_TONE_RPTR	0x00		/* Tone frequency setting for repeater user */
+#define S_TONE_SQL	0x01		/* Tone frequency setting for squelch */
 
 #endif /* _ICOM_DEFS_H */
 
