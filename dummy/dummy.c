@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: dummy.c,v 1.17 2001-11-18 14:16:57 f4cfe Exp $
+ *		$Id: dummy.c,v 1.18 2001-12-16 11:24:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,100 +34,20 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
 
 #include "dummy.h"
 
 struct dummy_priv_data {
 		freq_t curr_freq;
+		vfo_t curr_vfo;
 		rmode_t curr_mode;
 		pbwidth_t curr_width;
 		/* current vfo already in rig_state */
 };
 
-static unsigned char *decode_vfo(vfo_t vfo)
-{
-	switch (vfo) {
-	case	RIG_VFO_A:
-			return "VFOA";
-	case	RIG_VFO_B:
-			return "VFOA";
-	case	RIG_VFO_C:
-			return "VFOC";
-	case	RIG_VFO_CURR:
-			return "currVFO";
-	case	RIG_VFO_ALL:
-			return "VFOall";
-#ifdef RIG_VFO_MEM
-	case	RIG_VFO_MEM:
-			return "MEM";
-#endif
-#ifdef RIG_VFO_VFO
-	case	RIG_VFO_VFO:
-			return "VFO";
-#endif
-		default:
-			return "VFO?";
-	}
-	return "VFO?";
-}
-
-static unsigned char *decode_mode(rmode_t mode, pbwidth_t width)
-{
-	switch (mode) {
-	case	RIG_MODE_AM:
-			return "AM";
-	case	RIG_MODE_FM:
-			return "FM";
-	case	RIG_MODE_LSB:
-			return "LSB";
-	case	RIG_MODE_USB:
-			return "USB";
-	case	RIG_MODE_CW:
-			return "CW";
-	case	RIG_MODE_RTTY:
-			return "RTTY";
-	case	RIG_MODE_WFM:
-			return "WFM";
-	case	RIG_MODE_NONE:
-			return "None";
-		default:
-			return "MODE?";
-	}
-	return "MODE?";
-}
-
-/*
- * Huh! ugly code! these static buffers prevent reentrancy!
- */
-#define BUF_SIZE 32
-
-static unsigned char *decode_freq(freq_t freq)
-{
-	static unsigned char buf[BUF_SIZE];
-
-	if (freq < kHz(1))
-		snprintf(buf, BUF_SIZE, "%lldHz", freq);
-	else if (freq < MHz(1))
-			snprintf(buf, BUF_SIZE, "%lld.%lldkHz", freq/kHz(1), freq%kHz(1));
-	else if (freq < GHz(1))
-			snprintf(buf, BUF_SIZE, "%lld.%lldMHz", freq/MHz(1), freq%MHz(1));
-	else
-		snprintf(buf, BUF_SIZE, "%lld.%lldGHz", freq/GHz(1), freq%GHz(1));
-
-	return buf;
-}
 
 /********************************************************************/
 
@@ -143,6 +63,7 @@ static int dummy_init(RIG *rig) {
   rig->state.rigport.type.rig = RIG_PORT_NONE;
 
   priv->curr_freq = MHz(145);
+  priv->curr_vfo = RIG_VFO_A;
   priv->curr_mode = RIG_MODE_FM;
   priv->curr_width = rig_passband_normal(rig, RIG_MODE_FM);
 
@@ -177,9 +98,11 @@ static int dummy_close(RIG *rig)
 static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  char fstr[20];
 
+  freq_sprintf(fstr, freq);
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
- 			decode_vfo(vfo), decode_freq(freq));
+ 			strvfo(vfo), fstr);
   priv->curr_freq = freq;
 
   return RIG_OK;
@@ -190,7 +113,7 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", strvfo(vfo));
 
   *freq = priv->curr_freq;
 
@@ -201,9 +124,11 @@ static int dummy_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  char buf[16];
 
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
-  		decode_vfo(vfo), decode_mode(mode, width));
+  freq_sprintf(buf, width);
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s %s\n", 
+  		strvfo(vfo), strmode(mode), buf);
 
   priv->curr_mode = mode;
   priv->curr_width = width;
@@ -216,7 +141,7 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", strvfo(vfo));
 
   *mode = priv->curr_mode;
   *width = priv->curr_width;
@@ -227,7 +152,10 @@ static int dummy_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", decode_vfo(vfo));
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", strvfo(vfo));
+  priv->curr_vfo = vfo;
 
   return RIG_OK;
 }
@@ -235,7 +163,10 @@ static int dummy_set_vfo(RIG *rig, vfo_t vfo)
 
 static int dummy_get_vfo(RIG *rig, vfo_t *vfo)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+
+  *vfo = priv->curr_vfo;
+  rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s\n", strvfo(*vfo));
 
   return RIG_OK;
 }
