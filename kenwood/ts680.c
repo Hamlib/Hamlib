@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS680 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.1 2003-11-10 15:59:36 fillods Exp $
+ *	$Id: ts680.c,v 1.2 2005-01-19 22:23:21 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include <bandplan.h>
 #include "kenwood.h"
 
 
@@ -34,11 +35,7 @@
 #define TS680_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define TS680_AM_TX_MODES RIG_MODE_AM
 
-/* FIXME: TBC */
-#define TS680_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_ANF|RIG_FUNC_LOCK)
-
-#define TS680_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_AGC)
-
+/* BUG: set VFO only sets the VFO hamlib operates on. Does not change on radio */
 #define TS680_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS680_ANTS (0)
 
@@ -48,46 +45,47 @@ static const struct kenwood_priv_caps  ts680_priv_caps  = {
 
 /*
  * ts680 rig capabilities.
- * written from specs:
- * 	http://www.qsl.net/sm7vhs/radio/kenwood/ts680/specs.htm
- *
- * TODO: protocol to be check with manual!
+ * written by experimentation from an actual radio:
+ * 	MattD.. 2005-01-12
+ * These changes probably apply to the TS-140 as well.
+ * TODO: Might be an idea to verify this on all variants.
  */
+
 const struct rig_caps ts680s_caps = {
 .rig_model =  RIG_MODEL_TS680S,
 .model_name = "TS-680S",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  1200,
-.serial_rate_max =  57600,	/* TBC */
+.serial_rate_min =  4800,
+.serial_rate_max =  9600,	/* Rig only capable of 4800 baud from factory and 9k6 with jumper change */
 .serial_data_bits =  8,
-.serial_stop_bits =  1,
+.serial_stop_bits =  2,		/* TWO stop bits. This is correct. */
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  300,
 .retry =  3,
 
-.has_get_func =  TS680_FUNC_ALL,
-.has_set_func =  TS680_FUNC_ALL,
-.has_get_level =  TS680_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(TS680_LEVEL_ALL),
+.has_get_func =  RIG_FUNC_LOCK,
+.has_set_func =  RIG_FUNC_LOCK,
+.has_get_level =  RIG_LEVEL_NONE,
+.has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.has_set_parm =  RIG_PARM_NONE,    /* No PARAMS controllable */
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
-.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
-.attenuator =   { RIG_DBLST_END, },	/* TBC */
-.max_rit =  kHz(2.54),
-.max_xit =  kHz(2.54),
-.max_ifshift =  Hz(0),
+.preamp =   { RIG_DBLST_END, },	/* Not controllable */
+.attenuator =   { RIG_DBLST_END, },	/* Not controllable */
+.max_rit =  kHz(1.2),
+.max_xit =  kHz(1.2),
+.max_ifshift =  Hz(0), /* Not controllable */
 .targetable_vfo =  RIG_TARGETABLE_FREQ,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
@@ -95,72 +93,38 @@ const struct rig_caps ts680s_caps = {
 
 
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM  },	/* TBC */
-			{ 90, 99, RIG_MTYPE_EDGE },
+			{  0, 19, RIG_MTYPE_MEM  },
+			{ 20, 30, RIG_MTYPE_EDGE },
 			RIG_CHAN_END,
 		},
 
 .rx_range_list1 =  { 
-	{kHz(500),MHz(30),TS680_ALL_MODES,-1,-1,TS680_VFO},
-	{MHz(50),MHz(54),TS680_ALL_MODES,-1,-1,TS680_VFO},
+	{kHz(50),kHz(34999),TS680_ALL_MODES,-1,-1,TS680_VFO},
+	{MHz(45),kHz(59999),TS680_ALL_MODES,-1,-1,TS680_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
-.tx_range_list1 =  { 
-    {kHz(1810),kHz(1850),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(1810),kHz(1850),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(3500),kHz(3800),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(3500),kHz(3800),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(7),kHz(7100),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {MHz(7),kHz(7100),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(10100),kHz(10150),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(10100),kHz(10150),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(14),kHz(14350),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {MHz(14),kHz(14350),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(18068),kHz(18168),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(18068),kHz(18168),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(21),kHz(21450),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {MHz(21),kHz(21450),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(24890),kHz(24990),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(24890),kHz(24990),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(28),kHz(29700),TS680_OTHER_TX_MODES^RIG_MODE_FM,W(5),W(95),TS680_VFO},
-    {MHz(28),kHz(29700),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(28),kHz(29700),RIG_MODE_FM,W(1),W(10),TS680_VFO},
-    {MHz(50),MHz(54),TS680_OTHER_TX_MODES,W(1),W(10),TS680_VFO},
-    {MHz(50),kHz(54),TS680_AM_TX_MODES,W(1),W(4),TS680_VFO},
-	RIG_FRNG_END,
+.tx_range_list1 =  {
+    FRQ_RNG_HF(1,TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO,TS680_ANTS),
+    FRQ_RNG_HF(1,TS680_AM_TX_MODES,W(2),W(40),TS680_VFO,TS680_ANTS),
+    FRQ_RNG_6m(1,TS680_OTHER_TX_MODES,W(1),W(10),TS680_VFO,TS680_ANTS),
+    FRQ_RNG_6m(1,TS680_AM_TX_MODES,W(1),W(4),TS680_VFO,TS680_ANTS),
+    RIG_FRNG_END,
   },
 
 .rx_range_list2 =  {
-	{kHz(500),MHz(30),TS680_ALL_MODES,-1,-1,TS680_VFO},
-	{MHz(50),MHz(54),TS680_ALL_MODES,-1,-1,TS680_VFO},
+	{kHz(50),kHz(34999),TS680_ALL_MODES,-1,-1,TS680_VFO},
+	{MHz(45),kHz(59999),TS680_ALL_MODES,-1,-1,TS680_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list2 =  {
-    {kHz(1800),MHz(2)-1,TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(1800),MHz(2)-1,TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(3500),MHz(4)-1,TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(3500),MHz(4)-1,TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(7),kHz(7300),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {MHz(7),kHz(7300),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(10100),kHz(10150),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(10100),kHz(10150),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(14),kHz(14350),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {MHz(14),kHz(14350),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(18068),kHz(18168),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(18068),kHz(18168),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(21),kHz(21450),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {MHz(21),kHz(21450),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {kHz(24890),kHz(24990),TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO},
-    {kHz(24890),kHz(24990),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(28),kHz(29700),TS680_OTHER_TX_MODES^RIG_MODE_FM,W(5),W(95),TS680_VFO},
-    {MHz(28),kHz(29700),TS680_AM_TX_MODES,W(2),W(40),TS680_VFO},
-    {MHz(28),kHz(29700),RIG_MODE_FM,W(1),W(10),TS680_VFO},
-    {MHz(50),MHz(54),TS680_OTHER_TX_MODES,W(1),W(10),TS680_VFO},
-    {MHz(50),kHz(54),TS680_AM_TX_MODES,W(1),W(4),TS680_VFO},
-	RIG_FRNG_END,
+    FRQ_RNG_HF(2,TS680_OTHER_TX_MODES,W(5),W(100),TS680_VFO,TS680_ANTS),
+    FRQ_RNG_HF(2,TS680_AM_TX_MODES,W(2),W(40),TS680_VFO,TS680_ANTS),
+    FRQ_RNG_6m(2,TS680_OTHER_TX_MODES,W(1),W(10),TS680_VFO,TS680_ANTS),
+    FRQ_RNG_6m(2,TS680_AM_TX_MODES,W(1),W(4),TS680_VFO,TS680_ANTS),
+    RIG_FRNG_END,    
   }, /* tx range */
-.tuning_steps =  {		/* FIXME: TBC */
-	 {TS680_ALL_MODES,50},
+.tuning_steps =  {		/* FIXME: Done */
+	 {TS680_ALL_MODES,10},
 	 {TS680_ALL_MODES,100},
 	 {TS680_ALL_MODES,kHz(1)},
 	 {TS680_ALL_MODES,kHz(5)},
@@ -177,6 +141,7 @@ const struct rig_caps ts680s_caps = {
 .filters =  {
 		{RIG_MODE_AM, kHz(6)},
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_AM, kHz(2.2)},
+		{RIG_MODE_CW, 600}, /* TODO: Can't get this to work. the CW narrow filter is 600Hz */
 		{RIG_MODE_FM, kHz(12)},
 		RIG_FLT_END,
 	},
@@ -189,23 +154,15 @@ const struct rig_caps ts680s_caps = {
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
-.set_vfo =  kenwood_set_vfo,
+.set_vfo =  kenwood_set_vfo,	/* TODO: Why does this not change the radio? */
 .get_vfo =  kenwood_get_vfo,
-.get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
 .set_func =  kenwood_set_func,
 .get_func =  kenwood_get_func,
-.set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
-.set_trn =  kenwood_set_trn,
-.get_trn =  kenwood_get_trn,
-.set_powerstat =  kenwood_set_powerstat,
-.get_powerstat =  kenwood_get_powerstat,
 .reset =  kenwood_reset,
 
 };
