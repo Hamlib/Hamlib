@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.65 2002-11-28 22:32:42 fillods Exp $
+ *	$Id: rig.c,v 1.66 2003-01-29 22:31:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -361,7 +361,6 @@ int rig_open(RIG *rig)
 		const struct rig_caps *caps;
 		struct rig_state *rs;
 		int status;
-		vfo_t vfo;
 
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_open called \n");
 
@@ -459,7 +458,6 @@ int rig_open(RIG *rig)
 		if (caps->rig_open != NULL) {
 				status = caps->rig_open(rig);	
 				if (status != RIG_OK) {
-						rig_close(rig);
 						return status;
 				}
 		}
@@ -467,7 +465,7 @@ int rig_open(RIG *rig)
 		/*
 		 * trigger state->current_vfo first retrieval
 		 */
-        rig_get_vfo(rig, &vfo);
+        rig_get_vfo(rig, &rs->current_vfo);
 
 #if 0
         /*
