@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.17 2001-04-22 14:47:02 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.18 2001-04-24 19:56:41 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
+#include "misc.h"
 
 
 static char *decode_modes(rmode_t modes);
@@ -37,6 +38,7 @@ int main (int argc, char *argv[])
 { 
 	const struct rig_caps *caps;
 	int status,i;
+	char freqbuf[20];
 
 	if (argc != 2) {
 			fprintf(stderr,"%s <rig_num>\n",argv[0]);
@@ -362,7 +364,8 @@ int main (int argc, char *argv[])
 
 	printf("Tuning steps:");
 	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
-			printf("\n\t%8liHz:\t%s",caps->tuning_steps[i].ts,
+			freq_sprintf(freqbuf,caps->tuning_steps[i].ts);
+			printf("\n\t%s:   \t%s", freqbuf,
 							decode_modes(caps->tuning_steps[i].modes));
 	}
 	if (i==0)
@@ -371,7 +374,8 @@ int main (int argc, char *argv[])
 
 	printf("Filters:");
 	for (i=0; i<FLTLSTSIZ && caps->filters[i].modes; i++) {
-			printf("\n\t%8liHz:\t%s",caps->filters[i].width,
+			freq_sprintf(freqbuf,caps->filters[i].width);
+			printf("\n\t%s:   \t%s", freqbuf,
 							decode_modes(caps->filters[i].modes));
 	}
 	if (i==0)
