@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - Fodtrack parallel port
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: fodtrack.c,v 1.4 2003-06-22 19:52:40 fillods Exp $
+ *	$Id: fodtrack.c,v 1.5 2003-08-25 22:26:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,6 +42,12 @@
 
 #include "fodtrack.h"
 
+#ifndef PARPORT_CONTROL_AUTOFD
+#define PARPORT_CONTROL_AUTOFD 0x2
+#endif
+#ifndef PARPORT_CONTROL_STROBE
+#define PARPORT_CONTROL_STROBE 0x1
+#endif
 
 /* ************************************************************************* */
 
