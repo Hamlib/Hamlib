@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.12 2002-09-08 22:30:09 fillods Exp $
+ *	$Id: event.c,v 1.13 2002-09-29 19:40:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -120,7 +120,7 @@ int remove_trn_rig(RIG *rig)
  * to find out which rig generated this event,
  * and decode/process it.
  *
- * assumes rig!=NULL, rig->state.rigport.fd>=0
+ * assumes rig!=NULL
  */
 static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 {
@@ -128,6 +128,14 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
 	struct timeval tv;
 	int retval;
 
+	/*
+	 * so far, only file oriented ports have event reporting support
+	 */
+	if (rig->state.rigport.type != RIG_PORT_SERIAL || 
+			rig->state.rigport.fd == -1)
+		return -1;
+
+	/* FIXME: siginfo is not portable, however use it where available */
 #if 0&&defined(HAVE_SIGINFO_T)
 	siginfo_t *si = (siginfo_t*)data;
 
