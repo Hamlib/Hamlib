@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.43 2002-09-04 15:08:23 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.44 2002-09-04 15:10:21 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -957,7 +957,7 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 		return retval;
 
 	if (tone_len != 38 || tonebuf[1] != 'F') {
-		rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctss_tone: wrong answer len=%d\n",
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_ctcss_tone: wrong answer len=%d\n",
 						tone_len);
 		return -RIG_ERJCTED;
 	}
