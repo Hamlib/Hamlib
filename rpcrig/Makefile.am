@@ -36,23 +36,28 @@ rpcrig.h: Makefile rpcrig.x
 	rm -f $@
 	$(RPCGEN) -h -C `test -f rpcrig.x || echo '$(srcdir)/'`rpcrig.x -o $@
 
+
 # Need to chdir in source dir, otherwise rpcgen hardcodes header path. sigh.
 rpcrig_clnt.c: Makefile rpcrig.x
 	rm -f $@
-	cd $(srcdir) && $(RPCGEN) -l -C rpcrig.x -o $(top_builddir)/rpcrig/$@
+	abs_builddir=`pwd` ; \
+	cd $(srcdir) && $(RPCGEN) -l -C rpcrig.x -o $$abs_builddir/$@
 
 rpcrig_svc.c: Makefile rpcrig.x
 	rm -f $@
-	cd $(srcdir) && $(RPCGEN) -m -C rpcrig.x -o $(top_builddir)/rpcrig/$@
+	abs_builddir=`pwd` ; \
+	cd $(srcdir) && $(RPCGEN) -m -C rpcrig.x -o $$abs_builddir/$@
 
 # note: 
 # we need 2 rpcrig_xdr.c's: one for static rpcrig deamon, one for lt backend
 
 rpcrig_xdr.c: Makefile rpcrig.x
 	rm -f $@
-	cd $(srcdir) && $(RPCGEN) -c -C rpcrig.x -o $(top_builddir)/rpcrig/$@
+	abs_builddir=`pwd` ; \
+	cd $(srcdir) && $(RPCGEN) -c -C rpcrig.x -o $$abs_builddir/$@
 
 rpcrig_xdr_lt.c: Makefile rpcrig.x
 	rm -f $@
-	cd $(srcdir) && $(RPCGEN) -c -C rpcrig.x -o $(top_builddir)/rpcrig/$@
+	abs_builddir=`pwd` ; \
+	cd $(srcdir) && $(RPCGEN) -c -C rpcrig.x -o $$abs_builddir/$@
 
