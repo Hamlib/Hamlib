@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.13 2001-02-15 00:01:08 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.14 2001-02-27 23:04:35 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -364,6 +364,7 @@ int main (int argc, char *argv[])
 			printf(" none! This backend might be bogus!");
 	printf("\n");
 
+	printf("Has priv data:\t%c\n",caps->priv!=NULL?'Y':'N');
 	/*
 	 * TODO: keep me up-to-date with API call list!
 	 */
@@ -382,6 +383,14 @@ int main (int argc, char *argv[])
 	printf("Can get repeater offset:\t%c\n",caps->get_rptr_offs!=NULL?'Y':'N');
 	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
 	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
+	printf("Can set CTCSS:\t%c\n",caps->set_ctcss!=NULL?'Y':'N');
+	printf("Can get CTCSS:\t%c\n",caps->get_ctcss!=NULL?'Y':'N');
+	printf("Can set DCS:\t%c\n",caps->set_dcs!=NULL?'Y':'N');
+	printf("Can get DCS:\t%c\n",caps->get_dcs!=NULL?'Y':'N');
+	printf("Can set CTCSS squelch:\t%c\n",caps->set_ctcss_sql!=NULL?'Y':'N');
+	printf("Can get CTCSS squelch:\t%c\n",caps->get_ctcss_sql!=NULL?'Y':'N');
+	printf("Can set DCS squelch:\t%c\n",caps->set_dcs_sql!=NULL?'Y':'N');
+	printf("Can get DCS squelch:\t%c\n",caps->get_dcs_sql!=NULL?'Y':'N');
 	printf("Can set power on:\t%c\n",caps->set_poweron!=NULL?'Y':'N');
 	printf("Can set power off:\t%c\n",caps->set_poweroff!=NULL?'Y':'N');
 	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
