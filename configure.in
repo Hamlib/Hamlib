@@ -53,6 +53,7 @@ AC_CHECK_FUNCS(atexit snprintf usleep select strerror)
 
 
 dnl initialize libtool
+AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 
 if test "${enable_dynamic}" != "no"; then
@@ -87,4 +88,5 @@ AC_SUBST(V_MINOR)
 AC_SUBST(DLL_PRELOAD)
 
 AC_OUTPUT( ft747/Makefile ft847/Makefile icom/Makefile Makefile \
-			src/Makefile tests/Makefile )
+			include/Makefile include/hamlib/Makefile src/Makefile \
+			tests/Makefile doc/Makefile )
