@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-725 and variations
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ic725.c,v 1.1 2002-12-23 14:20:42 fillods Exp $
+ *	$Id: ic725.c,v 1.2 2002-12-26 11:43:20 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,22 +45,20 @@
 
 #define IC725_ANTS RIG_ANT_1
 
-#define IC725_STR_CAL { 0, { } }
-
 /*
  */
 static const struct icom_priv_caps ic725_priv_caps = { 
 	0x28,	/* default address */
 	0,		/* 731 mode */
 	ic737_ts_sc_list,
-	IC725_STR_CAL
+	EMPTY_STR_CAL
 };
 
 const struct rig_caps ic725_caps = {
 .rig_model =  RIG_MODEL_IC725,
 .model_name = "IC-725", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  "0.2.1", 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -100,12 +98,12 @@ const struct rig_caps ic725_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-	{   1,  26, RIG_MTYPE_MEM },
+	{   1,  26, RIG_MTYPE_MEM, IC_MIN_MEM_CAP },
 	RIG_CHAN_END,
 	},
 
 .rx_range_list1 =   {
-	{kHz(30),MHz(33),IC725_ALL_RX_MODES,-1,-1,IC725_VFO_ALL},
+	{kHz(30),MHz(33)-10,IC725_ALL_RX_MODES,-1,-1,IC725_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list1 =  {
 	FRQ_RNG_HF(2,IC725_OTHER_TX_MODES, W(10),W(100),IC725_VFO_ALL,IC725_ANTS),
@@ -113,7 +111,7 @@ const struct rig_caps ic725_caps = {
 	RIG_FRNG_END, },
 
 .rx_range_list2 =   {
-	{kHz(30),MHz(33),IC725_ALL_RX_MODES,-1,-1,IC725_VFO_ALL},
+	{kHz(30),MHz(33)-10,IC725_ALL_RX_MODES,-1,-1,IC725_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list2 =  {
 	FRQ_RNG_HF(2,IC725_OTHER_TX_MODES, W(10),W(100),IC725_VFO_ALL,IC725_ANTS),
@@ -121,18 +119,14 @@ const struct rig_caps ic725_caps = {
 	RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	{IC725_ALL_RX_MODES,10},
-	{IC725_ALL_RX_MODES,20},
-	{IC725_ALL_RX_MODES,50},
-	{IC725_ALL_RX_MODES,kHz(1)},
-	{IC725_ALL_RX_MODES,MHz(1)},
+	{IC725_ALL_RX_MODES,10},  /* basic resolution, there's no set_ts */
 	RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
-	{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
-	{RIG_MODE_AM, kHz(8)},	/* optional, TBC */
-	{RIG_MODE_FM, kHz(15)},	/* optional, TBC */
+	{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.3)},
+	{RIG_MODE_AM, kHz(6)},
+	{RIG_MODE_FM, kHz(15)},
 	RIG_FLT_END,
 	},
 
@@ -152,6 +146,10 @@ const struct rig_caps ic725_caps = {
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
 .set_split =  icom_set_split,
+.set_split_freq =  icom_set_split_freq,
+.get_split_freq =  icom_get_split_freq,
+.set_split_mode =  icom_set_split_mode,
+.get_split_mode =  icom_get_split_mode,
 
 .scan =  icom_scan,
 
