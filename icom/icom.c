@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.46 2001-12-20 23:07:13 fillods Exp $
+ *		$Id: icom.c,v 1.47 2001-12-28 20:28:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2279,9 +2279,9 @@ rig_model_t probe_icom(port_t *p)
 }
 
 /*
- * init_icom is called by rig_backend_load
+ * initrigs_icom is called by rig_backend_load
  */
-int init_icom(void *be_handle)
+int initrigs_icom(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "icom: _init called\n");
 

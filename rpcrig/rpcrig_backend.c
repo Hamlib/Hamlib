@@ -1,8 +1,8 @@
 /*
  *  Hamlib RPC backend - main file
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: rpcrig_backend.c,v 1.5 2001-12-27 21:56:01 fillods Exp $
+ *		$Id: rpcrig_backend.c,v 1.6 2001-12-28 20:28:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1022,7 +1022,7 @@ struct rig_caps rpcrig_caps = {
   get_trn:	rpcrig_get_trn,
 };
 
-int init_rpcrig(void *be_handle)
+int initrigs_rpcrig(void *be_handle)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "rpcrig: _init called\n");
 

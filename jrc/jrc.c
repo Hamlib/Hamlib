@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - main file
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: jrc.c,v 1.3 2001-12-20 23:03:26 fillods Exp $
+ *		$Id: jrc.c,v 1.4 2001-12-28 20:28:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -869,9 +869,9 @@ int jrc_decode_event(RIG *rig)
 
 
 /*
- * init_jrc is called by rig_backend_load
+ * initrigs_jrc is called by rig_backend_load
  */
-int init_jrc(void *be_handle)
+int initrigs_jrc(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "jrc: _init called\n");
 

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main file
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.22 2001-12-20 22:59:08 fillods Exp $
+ *		$Id: kenwood.c,v 1.23 2001-12-28 20:28:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1035,9 +1035,9 @@ rig_model_t probe_kenwood(port_t *port)
 
 
 /*
- * init_kenwood is called by rig_backend_load
+ * initrigs_kenwood is called by rig_backend_load
  */
-int init_kenwood(void *be_handle)
+int initrigs_kenwood(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "kenwood: _init called\n");
 

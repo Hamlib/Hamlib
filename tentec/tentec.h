@@ -1,8 +1,8 @@
 /*
  *  Hamlib Tentec backend - main header
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: tentec.h,v 1.2 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: tentec.h,v 1.3 2001-12-28 20:28:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -60,7 +60,7 @@ const char* tentec_get_info(RIG *rig);
 
 extern const struct rig_caps rx320_caps;
 
-extern BACKEND_EXPORT(int) init_tentec(void *be_handle);
+extern BACKEND_EXPORT(int) initrigs_tentec(void *be_handle);
 
 
 #endif /* _TENTEC_H */

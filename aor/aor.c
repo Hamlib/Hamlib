@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - main file
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: aor.c,v 1.16 2001-12-20 22:59:08 fillods Exp $
+ *		$Id: aor.c,v 1.17 2001-12-28 20:28:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -299,9 +299,9 @@ int aor_set_powerstat(RIG *rig, powerstat_t status)
 
 
 /*
- * init_aor is called by rig_backend_load
+ * initrigs_aor is called by rig_backend_load
  */
-int init_aor(void *be_handle)
+int initrigs_aor(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "aor: _init called\n");
 

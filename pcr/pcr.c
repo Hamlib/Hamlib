@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - main file
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: pcr.c,v 1.10 2001-12-16 11:14:46 fillods Exp $
+ *		$Id: pcr.c,v 1.11 2001-12-28 20:28:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -409,9 +409,9 @@ const char *pcr_get_info(RIG *rig)
 
 
 /*
- * init_pcr is called by rig_backend_load
+ * initrigs_pcr is called by rig_backend_load
  */
-int init_pcr(void *be_handle)
+int initrigs_pcr(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "pcr: _init called\n");
 

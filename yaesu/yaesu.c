@@ -1,13 +1,13 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * yaesu.c - (C) Stephane Fillod 2001
+ * yaesu.c - (C) Stephane Fillod 2001,2002
  *
  * This shared library provides an API for communicating
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.5 2001-12-16 11:14:47 fillods Exp $  
+ *	$Id: yaesu.c,v 1.6 2001-12-28 20:28:04 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -45,10 +45,10 @@
 
 
 /*
- * init_yaesu is called by rig_backend_load
+ * initrigs_yaesu is called by rig_backend_load
  */
 
-int init_yaesu(void *be_handle)
+int initrigs_yaesu(void *be_handle)
 {
   rig_debug(RIG_DEBUG_VERBOSE, "yaesu: _init called\n");
 

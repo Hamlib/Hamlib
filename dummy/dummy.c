@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: dummy.c,v 1.20 2001-12-26 23:37:46 fillods Exp $
+ *		$Id: dummy.c,v 1.21 2001-12-28 20:28:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -665,7 +665,7 @@ const struct rig_caps dummy_caps = {
   get_trn:	dummy_get_trn,
 };
 
-int init_dummy(void *be_handle)
+int initrigs_dummy(void *be_handle)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
 
