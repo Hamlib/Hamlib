@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.45 2001-12-19 03:35:27 fillods Exp $
+ *		$Id: icom.c,v 1.46 2001-12-20 23:07:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -439,6 +439,8 @@ int icom_set_vfo(RIG *rig, vfo_t vfo)
 		switch(vfo) {
 		case RIG_VFO_A: icvfo = S_VFOA; break;
 		case RIG_VFO_B: icvfo = S_VFOB; break;
+		case RIG_VFO_MAIN: icvfo = S_MAIN; break;
+		case RIG_VFO_SUB:  icvfo = S_SUB; break;
 		case RIG_VFO_VFO: 
 			retval = icom_transaction (rig, C_SET_VFO, -1, NULL, 0, 
 							ackbuf, &ack_len);
@@ -2291,6 +2293,8 @@ int init_icom(void *be_handle)
 		rig_register(&ic756_caps);
 		rig_register(&ic756pro_caps);
 
+		rig_register(&ic821h_caps);
+		
 		rig_register(&icr8500_caps);
 
 		rig_register(&ic275_caps);

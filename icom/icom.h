@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icom.h,v 1.34 2001-12-19 03:35:27 fillods Exp $
+ *		$Id: icom.h,v 1.35 2001-12-20 23:07:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,7 +62,6 @@ extern const struct ts_sc_list r7100_ts_sc_list[];
 extern const struct ts_sc_list ic756_ts_sc_list[];
 extern const struct ts_sc_list ic706_ts_sc_list[];
 
-
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);
 int icom_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -114,6 +113,7 @@ extern const struct rig_caps ic735_caps;
 extern const struct rig_caps ic756_caps;
 extern const struct rig_caps ic756pro_caps;
 extern const struct rig_caps ic775_caps;
+extern const struct rig_caps ic821h_caps;
 extern const struct rig_caps icr8500_caps;
 extern const struct rig_caps icall_caps;
 extern const struct rig_caps ic275_caps;
