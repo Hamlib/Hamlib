@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.17 2000-10-09 01:17:19 javabear Exp $  
+ * $Id: ft747.c,v 1.18 2000-10-14 03:55:26 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -25,10 +25,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
  */
-
-
-
-
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
@@ -634,13 +630,10 @@ void ft747_cmd_get_update_store(int fd, unsigned char *buffer) {
 /*
  * init_ft747 is called by rig_backend_load
  */
-int init_ft747(void *be_handle)
-{
-		rig_debug(RIG_DEBUG_VERBOSE, "ft747: _init called\n");
-
-		rig_register(&ft747_caps);
-
-		return RIG_OK;
+int init_ft747(void *be_handle) {
+  rig_debug(RIG_DEBUG_VERBOSE, "ft747: _init called\n");
+  rig_register(&ft747_caps); 
+  return RIG_OK;
 }
 
 
