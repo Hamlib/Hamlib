@@ -5,6 +5,14 @@ Copyright (C) 2000,2001  Stephane Fillod
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.1.2
+	2001-06-??
+	* new backends: Alinco (DX-77)
+	* New port_t design
+	* mv_ctl replaced by vfo_op, set_vfo/get_vfo extended to RIG_VFO_MEM
+	* Better portability (TODO: test results on Win32)
+	* added C++ and tcl/tk bindings
+	
 Version 1.1.1
 	2001-05-26
 	* new backends: Kenwood (TS870S), WiNRADiO, PCR-1000, Dummy (for tests)
