@@ -2,7 +2,7 @@
  *  Hamlib WiNRADiO backend - WR-G303 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: g303.c,v 1.1 2004-04-16 20:05:31 fillods Exp $
+ *	$Id: g303.c,v 1.2 2004-08-08 21:38:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -93,7 +93,7 @@ typedef BOOL (__stdcall *FNCSetAGC)(int hRadio, int rAGC);
 typedef int (__stdcall *FNCGetAGC)(int hRadio);
 typedef BOOL (__stdcall *FNCSetIFGain)(int hRadio, int rIFGain);
 typedef int (__stdcall *FNCGetIFGain)(int hRadio);
-typedef int (__stdcall *FNCGetSignalStrength)(int hRadio);
+typedef int (__stdcall *FNCGetSignalStrengthdBm)(int hRadio);
 typedef int (__stdcall *FNCGetRawSignalStrength)(int hRadio);
 typedef BOOL (__stdcall *FNCG3GetInfo)(int hRadio,RADIO_INFO *info);
 
@@ -113,7 +113,7 @@ struct g3_priv_data {
 	FNCGetPower GetAGC;
 	FNCSetPower SetIFGain;
 	FNCGetPower GetIFGain;
-	FNCGetPower GetSignalStrength;
+	FNCGetPower GetSignalStrengthdBm;
 	FNCGetPower GetRawSignalStrength;
 	FNCG3GetInfo G3GetInfo;
 };
@@ -215,8 +215,8 @@ int g3_init(RIG *rig)
 	priv->GetAGC = (FNCGetAGC) GetProcAddress(priv->dll, "GetAGC");
 	priv->SetIFGain = (FNCSetIFGain) GetProcAddress(priv->dll, "SetIFGain");
 	priv->GetIFGain = (FNCGetIFGain) GetProcAddress(priv->dll, "GetIFGain");
-	priv->GetSignalStrength =
-		(FNCGetSignalStrength) GetProcAddress(priv->dll, "GetSignalStrength");
+	priv->GetSignalStrengthdBm =
+		(FNCGetSignalStrengthdBm) GetProcAddress(priv->dll, "GetSignalStrengthdBm");
 	priv->GetRawSignalStrength =
 		(FNCGetRawSignalStrength) GetProcAddress(priv->dll, "GetRawSignalStrength");
 	priv->G3GetInfo = (FNCG3GetInfo) GetProcAddress(priv->dll, "G3GetInfo");
@@ -371,7 +371,7 @@ int g3_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_STRENGTH:
-		val->i = priv->GetSignalStrength(priv->hRadio)+73;
+		val->i = priv->GetSignalStrengthdBm(priv->hRadio)+73;
 		break;
 
 	case RIG_LEVEL_RAWSTR:
