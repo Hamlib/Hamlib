@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main header
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: pcr.h,v 1.6 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: pcr.h,v 1.7 2002-03-07 22:48:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,6 +34,8 @@ extern const int pcr1_ctcss_list[];
 
 int pcr_init(RIG *rig);
 int pcr_cleanup(RIG *rig);
+int pcr_open(RIG *rig);
+int pcr_close(RIG *rig);
 int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int pcr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);

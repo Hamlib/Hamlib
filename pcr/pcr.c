@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: pcr.c,v 1.11 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: pcr.c,v 1.12 2002-03-07 22:48:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,7 +58,7 @@
 #define FLT_50kHz '3'
 #define FLT_230kHz '4'
 
-#define CRLF "\r"
+#define CRLF "\x0d\x0a"
 #define EOM CRLF
 
 /* as returned by GE? */
@@ -69,8 +69,8 @@
 #define	COUNTRY_DEN		0x0c
 
 /* as returned by GD? */
-#define OPT_UT106 1<<0
-#define OPT_UT107 1<<4
+#define OPT_UT106 (1<<0)
+#define OPT_UT107 (1<<4)
 
 /*
  * CTCSS sub-audible tones for PCR100 and PCR1000
@@ -98,6 +98,8 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 
 	rs = &rig->state;
 
+	serial_flush(&rs->rigport);
+
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
 			return retval;
@@ -113,7 +115,7 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 				continue;		/* huh!? */
 		if (retval < 0)
 				return retval;
-	} while (i++ < *data_len);
+	} while (i++ < *data_len || data[i-1] != '\x0a');
 
 	*data_len = i;	/* useless ? */
 
@@ -167,6 +169,86 @@ int pcr_cleanup(RIG *rig)
 }
 
 /*
+ * pcr_open
+ * - send power on
+ * - set auto update off
+ *
+ * Assumes rig!=NULL
+ */
+int pcr_open(RIG *rig)
+{
+	struct pcr_priv_data *priv;
+	struct rig_state *rs;
+	unsigned char ackbuf[16];
+	int ack_len, retval;
+	int wanted_serial_rate;
+	const char *rate_cmd;
+
+	rs = &rig->state;
+	priv = (struct pcr_priv_data *)rs->priv;
+
+	/* 
+	 * initial communication is at 9600bps
+	 * once the power is on, the serial speed can be changed with G1xx
+	 */
+	wanted_serial_rate = rs->rigport.parm.serial.rate;
+	rs->rigport.parm.serial.rate = 9600;
+	serial_setup(&rs->rigport);
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, "H101" EOM, 6, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+			return retval;
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, "G300" EOM, 6, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+			return retval;
+
+#if 0
+	if (wanted_serial_rate != 9600) {
+		switch (wanted_serial_rate) {
+			case 300:	rate_cmd = "G100" EOM; break;
+			case 1200:	rate_cmd = "G101" EOM; break;
+			case 2400:	rate_cmd = "G102" EOM; break;
+			case 9600:	rate_cmd = "G103" EOM; break;
+			case 19200:	rate_cmd = "G104" EOM; break;
+			case 38400:	rate_cmd = "G105" EOM; break;
+		}
+		retval = pcr_transaction (rig, rate_cmd, 6, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+			return retval;
+
+
+		rs->rigport.parm.serial.rate = wanted_serial_rate;
+		serial_setup(&rs->rigport);
+		/* check communication state with "G0?" */
+	}
+#endif
+
+	return RIG_OK;
+}
+
+/*
+ * pcr_close
+ * - send power off
+ *
+ * Assumes rig!=NULL
+ */
+int pcr_close(RIG *rig)
+{
+	unsigned char ackbuf[16];
+	int ack_len, retval;
+
+	ack_len = 6;
+	retval = pcr_transaction (rig, "H100" EOM, 6, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+			return retval;
+
+	return retval;
+}
+
+/*
  * pcr_set_freq
  * Assumes rig!=NULL
  */
@@ -178,7 +260,7 @@ int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 		priv = (struct pcr_priv_data *)rig->state.priv;
 
-		freq_len = sprintf(freqbuf,"K0%010Ld0%c0%c00" CRLF, freq, 
+		freq_len = sprintf(freqbuf,"K0%010Ld0%c0%c00" EOM, freq, 
 						priv->last_mode, priv->last_filter);
 
 		ack_len = 6;
@@ -186,7 +268,7 @@ int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		if (retval != RIG_OK)
 				return retval;
 
-		if (ack_len != 6) {
+		if (ack_len != 6 && ack_len != 4) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_set_freq: ack NG, len=%d\n",
 								ack_len);
 				return -RIG_ERJCTED;
@@ -259,7 +341,7 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 				return -RIG_EINVAL;
 		}
 
-		mdbuf_len = sprintf(mdbuf,"K0%010Ld0%c0%c00" CRLF, priv->last_freq, 
+		mdbuf_len = sprintf(mdbuf,"K0%010Ld0%c0%c00" EOM, priv->last_freq, 
 						pcrmode, pcrfilter);
 
 		ack_len = 6;
@@ -267,7 +349,7 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		if (retval != RIG_OK)
 				return retval;
 
-		if (ack_len != 6) {
+		if (ack_len != 6 && ack_len != 4) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: ack NG, len=%d\n",
 								ack_len);
 				return -RIG_ERJCTED;
@@ -336,7 +418,7 @@ const char *pcr_get_info(RIG *rig)
 		 * protocol version
 		 */
 		ack_len = 6;
-		retval = pcr_transaction (rig, "G2?" CRLF, 5, ackbuf, &ack_len);
+		retval = pcr_transaction (rig, "G2?" EOM, 5, ackbuf, &ack_len);
 		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
@@ -348,7 +430,7 @@ const char *pcr_get_info(RIG *rig)
 		 * Firmware version
 		 */
 		ack_len = 6;
-		retval = pcr_transaction (rig, "G4?" CRLF, 5, ackbuf, &ack_len);
+		retval = pcr_transaction (rig, "G4?" EOM, 5, ackbuf, &ack_len);
 		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
@@ -360,7 +442,7 @@ const char *pcr_get_info(RIG *rig)
 		 * optional devices
 		 */
 		ack_len = 6;
-		retval = pcr_transaction (rig, "GD?" CRLF, 5, ackbuf, &ack_len);
+		retval = pcr_transaction (rig, "GD?" EOM, 5, ackbuf, &ack_len);
 		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
@@ -372,7 +454,7 @@ const char *pcr_get_info(RIG *rig)
 		 * Country
 		 */
 		ack_len = 6;
-		retval = pcr_transaction (rig, "GE?" CRLF, 5, ackbuf, &ack_len);
+		retval = pcr_transaction (rig, "GE?" EOM, 5, ackbuf, &ack_len);
 		if (retval != RIG_OK || ack_len != 6) {
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
