@@ -2,7 +2,7 @@
  *  Hamlib Microtune backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: microtune.h,v 1.3 2003-09-28 15:28:37 fillods Exp $
+ *	$Id: microtune.h,v 1.4 2003-10-20 20:34:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,14 +32,18 @@ __BEGIN_DECLS
 #define TOK_AGCGAIN TOKEN_BACKEND(1)
 
 
-int module_4937_init(RIG *rig);
-int module_4937_cleanup(RIG *rig);
+int microtune_init(RIG *rig);
+int microtune_cleanup(RIG *rig);
 int module_4937_open(RIG *rig);
-int module_4937_close(RIG *rig);
-int module_4937_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int module_4937_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int module_4937_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
+int module_4702_open(RIG *rig);
+int microtune_close(RIG *rig);
+int microtune_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int microtune_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int microtune_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
+
+
 extern const struct rig_caps module_4937_caps;
+extern const struct rig_caps module_4702_caps;
 
 
 __END_DECLS

@@ -20,19 +20,20 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef _MICROTUNE_4937_H_
-#define _MICROTUNE_4937_H_
+#ifndef _MICROTUNE_4702_H_
+#define _MICROTUNE_4702_H_
 
 #include <hamlib/rig.h>
 #include "microtune_eval_board.h"
 
 /*!
- * \brief abstract class for controlling microtune 4937 tuner module
+ * \brief abstract class for controlling microtune 4702 tuner module
  */
-class microtune_4937 : public microtune_eval_board {
+class microtune_4702 : public microtune_eval_board {
 public:
-  microtune_4937(port_t *port) : microtune_eval_board (port), d_reference_divider(640), d_fast_tuning_p(false) {}
-  ~microtune_4937() {}
+
+  microtune_4702(port_t *port) : microtune_eval_board (port), d_reference_divider(320), prescaler(false) {}
+  ~microtune_4702() {}
 
   /*!
    * \brief select RF frequency to be tuned to output frequency.
@@ -43,22 +44,16 @@ public:
    * \returns true iff sucessful.
    */
   bool set_RF_freq (double freq, double *actual_freq);
-  
-  /*!
-   * \returns true iff PLL is locked
-   */
-  bool pll_locked_p ();
-  
-  /*!
-   * \returns the output frequency (IF center freq) of the tuner in Hz.
-   */
+  bool read_info (unsigned char* buf);
+ 
   double get_output_freq ();
+  bool pll_locked_p ();
 
  private:
   int	d_reference_divider;
-  bool	d_fast_tuning_p;	/* if set, higher charge pump current:
+  bool	prescaler;	/* if set, higher charge pump current:
 				   faster tuning, worse phase noise
 				   for distance < 10kHz to the carrier */
 };
 
-#endif /* _MICROTUNE_4937_H_ */
+#endif /* _MICROTUNE_4702_H_ */

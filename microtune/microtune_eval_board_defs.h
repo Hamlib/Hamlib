@@ -32,7 +32,7 @@
 #define _MICROTUNE_EVAL_BOARD_DEFS_H_
 
 /*
- * The Microtune 4937DI5 cable modem tuner eval board is controlled
+ * The Microtune 4937DI5/4702DT5 cable modem tuner eval board is controlled
  * by bit banging the PC parallel port.  This file defines the relevant
  * bits.
  *

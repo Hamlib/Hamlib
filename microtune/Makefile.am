@@ -18,13 +18,14 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-MTSRCLIST = module_4937.c
+MTSRCLIST = module_4937.c module_4702.c
 
 GRIO_SOURCES = 		\
 	i2cio.cc		\
 	i2cio_pp.cc		\
 	i2c.cc			\
 	microtune_4937.cc	\
+	microtune_4702.cc	\
 	microtune_eval_board.cc
 
 lib_LTLIBRARIES = hamlib-microtune.la
@@ -37,6 +38,7 @@ noinst_HEADERS = 		\
 	i2cio.h			\
 	i2cio_pp.h		\
 	microtune_4937.h	\
+	microtune_4702.h	\
 	microtune_eval_board.h	\
 	microtune_eval_board_defs.h \
 	microtune.h

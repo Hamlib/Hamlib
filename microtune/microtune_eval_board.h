@@ -31,22 +31,43 @@
 #ifndef _MICROTUNE_EVAL_BOARD_H_
 #define _MICROTUNE_EVAL_BOARD_H_
 
-#include "microtune_4937.h"
 #include "serial.h"
 
 class i2cio;
 class i2c;
 
 /*!
- * \brief concrete class for controlling microtune 4937 eval board attached to parallel port
+ * \brief concrete class for controlling a microtune eval board attached to parallel port
  */
-class microtune_eval_board : public microtune_4937 {
+class microtune_eval_board  {
 public:
   microtune_eval_board (port_t *port);
-  ~microtune_eval_board ();
+  virtual ~microtune_eval_board ();
 
   //! is the eval board present?
-  bool board_present_p ();
+  virtual bool board_present_p ();
+
+
+  /*!
+   * \brief select RF frequency to be tuned to output frequency.
+   * \p freq is the requested frequency in Hz, \p actual_freq
+   * is set to the actual frequency tuned.  It takes about 100 ms
+   * for the PLL to settle.
+   *
+   * \returns true iff sucessful.
+   */
+  virtual bool set_RF_freq (double freq, double *actual_freq) = 0;
+ 
+  /*!
+   * \returns true iff PLL is locked
+   */
+  virtual bool pll_locked_p () = 0;
+ 
+ 
+  /*!
+   * \returns the output frequency (IF center freq) of the tuner in Hz.
+   */
+  virtual double get_output_freq () = 0;
 
   /*!
    * \brief set RF and IF AGC control voltages ([0, 5] volts)
@@ -64,13 +85,14 @@ public:
   void set_AGC (float value_0_1000);
 
 
-private:
+protected:
   //! \returns true iff successful
   virtual bool i2c_write (int addr, const unsigned char *buf, int nbytes);
 
   //! \returns number of bytes read or -1 if error
   virtual int i2c_read (int addr, unsigned char *buf, int max_bytes);
 
+private:
   void write_dac (int which, int value);
   void write_both_dacs (int val0, int val1);
   
