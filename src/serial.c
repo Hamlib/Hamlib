@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.18 2001-08-22 21:12:09 f4cfe Exp $
+ *		$Id: serial.c,v 1.19 2001-12-15 03:13:39 aa1vl Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -474,6 +474,18 @@ int write_block(port_t *p, const char *txbuffer, size_t count)
   
   return RIG_OK;
 }
+
+/*
+ * Flush all characters waiting in RX buffer.
+ */
+
+int serial_flush( port_t *p )
+{
+  tcflush(p->fd, TCIFLUSH);
+
+  return RIG_OK;
+}
+
 
 /*
  * Read "num" bytes from "fd" and put results into
