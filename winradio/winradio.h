@@ -2,13 +2,13 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
  * winradio.h - Copyright (C) 2001 pab@users.sourceforge.net
- * Derived from hamlib code (C) 2000 Stephane Fillod.
+ * Derived from hamlib code (C) 2000,2001 Stephane Fillod.
  *
  * This shared library supports winradio receivers through the
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.h,v 1.2 2001-03-02 18:37:17 f4cfe Exp $
+ *		$Id: winradio.h,v 1.3 2001-06-02 18:07:45 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -39,11 +39,19 @@ int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int wr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int wr_set_powerstat(RIG *rig, powerstat_t status);
 int wr_get_powerstat(RIG *rig, powerstat_t *status);
+int wr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+int wr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-unsigned char *wr_get_info(RIG *rig);
+const char *wr_get_info(RIG *rig);
 
+extern const struct rig_caps wr1000_caps;
 extern const struct rig_caps wr1500_caps;
+extern const struct rig_caps wr1550_caps;
+extern const struct rig_caps wr3100_caps;
+extern const struct rig_caps wr3150_caps;
+extern const struct rig_caps wr3500_caps;
+extern const struct rig_caps wr3700_caps;
 
 extern int init_winradio(void *be_handle);
 
