@@ -40,13 +40,27 @@
  * The rig_base is a variable length rig_caps* array, NULL terminated
  */
 
+/*
+ * removed references to xxx_caps for testing. perhaps we should
+ * 
+ *
+ */
+
+
 #if 0
 static const struct rig_caps *rig_base[] = { 
 	&ft747_caps, &ic706_caps, &ic706mkiig_caps, /* ... */ NULL, };
 
 #endif
 
-#define MAXRIGSIZE  10
+/*
+ * removed references to xxx_caps for testing. perhaps we should use
+ * the declaration below, an dthnk about populating it another way -- FS
+ *
+ */
+
+
+#define MAXRIGSIZE  10		/* put this in .h later */
 static const struct rig_caps *rig_base[MAXRIGSIZE];
 
 
