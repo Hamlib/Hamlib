@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.11 2004-08-12 02:04:30 fineware Exp $
+ *	$Id: drake.c,v 1.12 2004-08-17 20:41:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -642,7 +642,7 @@ int drake_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	int lvl_len, retval;
+	int lvl_len, retval, ss;
 	char lvlbuf[BUFSZ];
 	char mc;
 
@@ -685,7 +685,7 @@ int drake_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  }
 
 	  lvlbuf[3] = '\0';
-	  int ss =  strtol(lvlbuf+1, (char **)NULL, 16);
+	  ss =  strtol(lvlbuf+1, (char **)NULL, 16);
 	  val->i = (int)rig_raw2val(ss,&rig->caps->str_cal);
 	  break;
 	case RIG_LEVEL_PREAMP:
