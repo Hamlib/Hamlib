@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-775 and variations
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ic775.c,v 1.5 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: ic775.c,v 1.6 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,7 +58,7 @@ const struct rig_caps ic775_caps = {
 .rig_model =  RIG_MODEL_IC775,
 .model_name = "IC-775", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

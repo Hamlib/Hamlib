@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-728
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic728.c,v 1.1 2004-02-02 22:15:17 fillods Exp $
+ *	$Id: ic728.c,v 1.2 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,7 +61,7 @@ const struct rig_caps ic728_caps = {
 .rig_model =  RIG_MODEL_IC728,
 .model_name = "IC-728", 
 .mfg_name =  "Icom", 
-.version =  "0.2.1", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

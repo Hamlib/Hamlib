@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R75
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.7 2004-09-06 19:16:28 fineware Exp $
+ *	$Id: icr75.c,v 1.8 2005-04-03 19:53:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -105,7 +105,7 @@ const struct rig_caps icr75_caps = {
 .rig_model =  RIG_MODEL_ICR75,
 .model_name = "IC-R75", 
 .mfg_name =  "Icom", 
-.version =  "0.3", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,

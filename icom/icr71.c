@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R71
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icr71.c,v 1.1 2003-11-16 16:58:35 fillods Exp $
+ *	$Id: icr71.c,v 1.2 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -51,7 +51,7 @@ const struct rig_caps icr71_caps = {
 .rig_model =  RIG_MODEL_ICR71,
 .model_name = "IC-R71", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,

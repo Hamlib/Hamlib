@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-271 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic271.c,v 1.2 2003-11-16 17:14:42 fillods Exp $
+ *	$Id: ic271.c,v 1.3 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,7 +56,7 @@ const struct rig_caps ic271_caps = {
 .rig_model =  RIG_MODEL_IC271,
 .model_name = "IC-271", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-781 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic781.c,v 1.2 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: ic781.c,v 1.3 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,7 +62,7 @@ const struct rig_caps ic781_caps = {
 .rig_model =  RIG_MODEL_IC781,
 .model_name = "IC-781", 
 .mfg_name =  "Icom", 
-.version =  "0.2.1", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

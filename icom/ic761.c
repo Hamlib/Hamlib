@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-761 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic761.c,v 1.1 2004-03-07 15:49:44 fillods Exp $
+ *	$Id: ic761.c,v 1.2 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,7 +59,7 @@ const struct rig_caps ic761_caps = {
 .rig_model =  RIG_MODEL_IC761,
 .model_name = "IC-761", 
 .mfg_name =  "Icom", 
-.version =  "0.2.0", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

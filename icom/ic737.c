@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-737
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic737.c,v 1.4 2003-11-16 17:24:34 fillods Exp $
+ *	$Id: ic737.c,v 1.5 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,7 +61,7 @@ const struct rig_caps ic737_caps = {
 .rig_model =  RIG_MODEL_IC737,
 .model_name = "IC-737", 
 .mfg_name =  "Icom", 
-.version =  "0.2.1", 
+.version =  BACKEND_VER, 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
