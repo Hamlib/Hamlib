@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - toolbox
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.c,v 1.15 2002-01-29 21:59:44 fillods Exp $
+ *		$Id: misc.c,v 1.16 2002-04-23 21:53:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -324,6 +324,10 @@ const char *strfunc(setting_t func)
 	case RIG_FUNC_BC: return "BC";
 	case RIG_FUNC_MBC: return "MBC";
 	case RIG_FUNC_LMP: return "LMP";
+	case RIG_FUNC_AFC: return "AFC";
+	case RIG_FUNC_SATMODE: return "SATMODE";
+	case RIG_FUNC_SCOPE: return "SCOPE";
+	case RIG_FUNC_RESUME: return "RESUME";
 
 	case RIG_FUNC_NONE: return "";
 	default:
@@ -355,6 +359,8 @@ const char *strlevel(setting_t level)
 	case RIG_LEVEL_BKINDL: return "BKINDL";
 	case RIG_LEVEL_BALANCE: return "BALANCE";
 	case RIG_LEVEL_METER: return "METER";
+	case RIG_LEVEL_VOXGAIN: return "VOXGAIN";
+	case RIG_LEVEL_ANTIVOX: return "ANTIVOX";
 
 	case RIG_LEVEL_SWR: return "SWR";
 	case RIG_LEVEL_ALC: return "ALC";
@@ -648,6 +654,10 @@ static struct {
 	{ RIG_FUNC_BC, "BC" },
 	{ RIG_FUNC_MBC, "MBC" },
 	{ RIG_FUNC_LMP, "LMP" },
+	{ RIG_FUNC_AFC, "AFC" },
+	{ RIG_FUNC_SATMODE, "SATMODE" },
+	{ RIG_FUNC_SCOPE, "SCOPE" },
+	{ RIG_FUNC_RESUME, "RESUME" },
 	{ RIG_FUNC_NONE, NULL },
 };
 
@@ -686,6 +696,8 @@ static struct {
 	{ RIG_LEVEL_BKINDL, "BKINDL" },
 	{ RIG_LEVEL_BALANCE, "BAL" },
 	{ RIG_LEVEL_METER, "METER" },
+	{ RIG_LEVEL_VOXGAIN, "VOXGAIN" },
+	{ RIG_LEVEL_ANTIVOX, "ANTIVOX" },
 
 	{ RIG_LEVEL_SWR, "SWR" },
 	{ RIG_LEVEL_ALC, "ALC" },
