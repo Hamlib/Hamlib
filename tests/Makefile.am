@@ -1,9 +1,10 @@
 
 AUTOMAKE_OPTIONS = dejagnu
 
+#DEJATOOL = rigctl testbcd
 RUNTESTDEFAULTFLAGS = --tool rigctl --srcdir $$srcdir/testsuite RIGCTL=`pwd`/rigctl TESTBCD=`pwd`/testbcd
 
-DISTCLEANFILES = rigctl.log rigctl.sum
+DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rotctl
 man_MANS = rigctl.1 rotctl.1
@@ -15,7 +16,7 @@ rigctl_SOURCES = rigctl.c dumpcaps.c
 EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
-LDADD = ../src/libhamlib.la
+LDADD = ../src/libhamlib.la ../lib/libmisc.la
 DEPENDENCIES = ../src/libhamlib.la
 
 ## Linker options
