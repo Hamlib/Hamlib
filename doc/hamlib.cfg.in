@@ -1,0 +1,54 @@
+## $Id: hamlib.cfg.in,v 1.1 2004-08-09 20:52:53 fillods Exp $
+
+PROJECT_NAME    = "Hamlib - the C library reference"
+PROJECT_NUMBER  = @VERSION@
+
+# Output
+OUTPUT_DIRECTORY= .
+
+OUTPUT_LANGUAGE = English
+GENERATE_HTML   = YES
+GENERATE_LATEX  = NO
+GENERATE_RTF    = NO
+GENERATE_MAN    = YES
+MAN_EXTENSION	= .3
+
+# Input
+CASE_SENSE_NAMES = NO
+FULL_PATH_NAMES = NO
+INPUT	= @top_srcdir@/doc/index.doxygen \
+	  @top_srcdir@/src/rig.c \
+	  @top_srcdir@/src/conf.c \
+	  @top_srcdir@/src/mem.c \
+	  @top_srcdir@/src/settings.c \
+	  @top_srcdir@/src/rotator.c \
+	  @top_srcdir@/src/tones.c \
+	  @top_srcdir@/src/event.c \
+	  @top_srcdir@/src/locator.c \
+	  @top_srcdir@/include/hamlib/rig.h \
+          @top_srcdir@/include/hamlib/riglist.h \
+	  @top_srcdir@/include/hamlib/rotator.h \
+          @top_srcdir@/include/hamlib/rotlist.h
+
+#../c++/rigclass.cc
+
+INCLUDE_PATH	= @top_srcdir@/include
+
+EXAMPLE_PATH    = @top_srcdir@/tests/testrig.c
+QUIET          = YES
+
+HTML_STYLESHEET	= @top_srcdir@/doc/hamlib.css
+
+EXTRACT_ALL    = NO
+EXTRACT_STATIC = NO
+HIDE_UNDOC_MEMBERS = YES
+SHOW_INCLUDE_FILES = YES
+INHERIT_DOCS   = YES
+ENABLED_SECTIONS = ""
+PREDEFINED       = DOXYGEN "DOC_HIDDEN"
+JAVADOC_AUTOBRIEF = NO
+OPTIMIZE_OUTPUT_FOR_C = YES		# doxygen 1.2.6 option
+
+MAN_LINKS              = NO
+MACRO_EXPANSION        = YES
+
