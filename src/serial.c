@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.37 2003-09-28 15:34:44 fillods Exp $
+ *	$Id: serial.c,v 1.38 2003-10-01 19:44:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -144,14 +144,6 @@ int serial_open(port_t *rp) {
   if (err != RIG_OK) {
 		  CLOSE(fd);
 		  return err;
-  }
-
-  rp->stream = fdopen(fd, "r+b");
-  if (rp->stream == NULL) {
-		rig_debug(RIG_DEBUG_ERR, "open_serial: fdopen failed: %s\n", 
-					strerror(errno));
-		CLOSE(fd);
-		return -RIG_EIO;		/* arg, so close! */
   }
 
   return RIG_OK;

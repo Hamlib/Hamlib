@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.12 2003-08-25 22:33:38 fillods Exp $
+ *	$Id: rotator.c,v 1.13 2003-10-01 19:44:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -292,7 +292,6 @@ int rot_open(ROT *rot)
 				break;
 
 		case RIG_PORT_PARALLEL:
-				rs->rotport.stream = NULL;
 				status = par_open(&rs->rotport);
 				if (status < 0)
 					return status;
@@ -373,22 +372,17 @@ int rot_close(ROT *rot)
 
 
 		if (rs->rotport.fd != -1) {
-				if (rs->rotport.stream != NULL) {
-					fclose(rs->rotport.stream); /* this closes also fd */
-				} else {
-					switch(rs->rotport.type.rig) {
-					case RIG_PORT_SERIAL:
-						ser_close(&rs->rotport);
-						break;
-					case RIG_PORT_PARALLEL:
-						par_close(&rs->rotport);
-						break;
-					default:
-						close(rs->rotport.fd);
-					}
+				switch(rs->rotport.type.rig) {
+				case RIG_PORT_SERIAL:
+					ser_close(&rs->rotport);
+					break;
+				case RIG_PORT_PARALLEL:
+					par_close(&rs->rotport);
+					break;
+				default:
+					close(rs->rotport.fd);
 				}
 				rs->rotport.fd = -1;
-				rs->rotport.stream = NULL;
 		}
 
 		remove_opened_rot(rot);

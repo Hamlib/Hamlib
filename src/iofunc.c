@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.9 2003-08-20 07:22:40 fillods Exp $
+ *	$Id: iofunc.c,v 1.10 2003-10-01 19:44:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -195,77 +195,6 @@ int read_block(port_t *p, char *rxbuffer, size_t count)
   return total_count;			/* return bytes count read */
 }
 
-int fread_block(port_t *p, char *rxbuffer, size_t count)
-{  
-  fd_set rfds;
-  struct timeval tv, tv_timeout;
-  int rd_count, total_count = 0;
-  int retval;
-  int fd;
-
-  fd = fileno(p->stream);
-
-  FD_ZERO(&rfds);
-  FD_SET(fd, &rfds);
-
-  /*
-   * Wait up to timeout ms.
-   */
-  tv_timeout.tv_sec = p->timeout/1000;
-  tv_timeout.tv_usec = (p->timeout%1000)*1000;
-
-
-	/*
-	 * grab bytes from the rig
-	 * The file descriptor must have been set up non blocking.
-	 */
-  	rd_count = fread(rxbuffer, 1, count, p->stream);
-	if (rd_count < 0) {
-			rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
-								strerror(errno));
-			return -RIG_EIO;
-	}
-	total_count += rd_count;
-	count -= rd_count;
-
-  while (count > 0) {
-		tv = tv_timeout;	/* select may have updated it */
-
-		retval = select(fd+1, &rfds, NULL, NULL, &tv);
-		if (retval == 0) {
-			dump_hex(rxbuffer, total_count);
-#if 0
-			rig_debug(RIG_DEBUG_WARN, "fread_block: timedout after %d chars\n",
-							total_count);
-#endif
-				return -RIG_ETIMEOUT;
-		}
-		if (retval < 0) {
-			dump_hex(rxbuffer, total_count);
-			rig_debug(RIG_DEBUG_ERR,"fread_block: select error after %d chars: "
-							"%s\n", total_count, strerror(errno));
-				return -RIG_EIO;
-		}
-
-		/*
-		 * grab bytes from the rig
-		 * The file descriptor must have been set up non blocking.
-		 */
-  		rd_count = fread(rxbuffer+total_count, 1, count, p->stream);
-		if (rd_count < 0) {
-				dump_hex(rxbuffer, total_count);
-				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
-									strerror(errno));
-				return -RIG_EIO;
-		}
-		total_count += rd_count;
-		count -= rd_count;
-  }
-
-  rig_debug(RIG_DEBUG_TRACE,"RX %d bytes\n",total_count);
-  dump_hex(rxbuffer, total_count);
-  return total_count;			/* return bytes count read */
-}
 
 /*
  * Read a string from "fd" and put result into
