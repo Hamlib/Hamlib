@@ -7,7 +7,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.25 2001-12-26 23:34:56 fillods Exp $  
+ * $Id: rigctl.c,v 1.26 2002-01-09 23:09:10 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -133,6 +133,7 @@ declare_proto_rig(set_channel);
 declare_proto_rig(get_channel);
 declare_proto_rig(set_trn);
 declare_proto_rig(get_trn);
+declare_proto_rig(get_info);
 
 
 
@@ -141,6 +142,8 @@ declare_proto_rig(get_trn);
  *
  * TODO: add missing rig_set_/rig_get_: [rx]it, ant, sql, dcd, etc.
  * NB: 'q' 'Q' '?' are reserved by interactive mode interface
+ *
+ *	Available letters: -.-------JK-----*-----W-YZ
  */
 struct test_table test_list[] = {
 		{ 'F', "set_freq", set_freq, ARG_IN, "Frequency" },
@@ -182,6 +185,7 @@ struct test_table test_list[] = {
 		{ 'A', "set_trn", set_trn, ARG_IN, "Transceive" },
 		{ 'a', "get_trn", get_trn, ARG_OUT, "Transceive" },
 		{ 'B', "set_bank", set_bank, ARG_IN, "Bank" },
+		{ '_', "get_info", get_info, ARG_OUT, "Info" },
 		{ '2', "power2mW", power2mW },
 		{ 0x00, "", NULL },
 
@@ -1162,6 +1166,17 @@ declare_proto_rig(get_trn)
 			printf("%s: ", cmd->arg1);
 		printf("%d\n", trn);
 		return status;
+}
+
+declare_proto_rig(get_info)
+{
+		const char *s;
+
+		s = rig_get_info(rig);
+		if (interactive)
+			printf("%s: ", cmd->arg1);
+		printf("%s\n", s ? s : "None");
+		return RIG_OK;
 }
 
 /* ********************************************************** */
