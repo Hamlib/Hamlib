@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.83 2005-01-31 16:41:49 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.84 2005-02-02 19:32:16 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -579,7 +579,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 		unsigned char levelbuf[16], ackbuf[16];
 		int level_len, ack_len, retval;
-		int kenwood_val;
+		int i, kenwood_val;
 
 		if (RIG_LEVEL_IS_FLOAT(level))
 				kenwood_val = val.f * 255;
@@ -606,6 +606,18 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		case RIG_LEVEL_AGC:
 		if (kenwood_val > 3) kenwood_val = 3; /* 0.. 255 */
 		level_len = sprintf(levelbuf, "GT%03d;", 84*kenwood_val);
+		break;
+
+		case RIG_LEVEL_ATT:
+		/* set the attenuator if a correct value is entered */
+		for (i=0; i<MAXDBLSTSIZ; i++)
+			if (kenwood_val == rig->state.attenuator[i])
+			{
+				level_len = sprintf(levelbuf, "RA%02d;", kenwood_val/6);
+				break;
+			}
+			else
+				level_len = sprintf(levelbuf, "RA00;");
 		break;
 
 		default:
