@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.5 2000-10-22 16:02:21 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.6 2000-10-23 19:53:03 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
 #include <stdio.h>		/* required for FILE definition */
+#include <sys/time.h>		/* required for struct timeval */
 
 /*
  * Error codes that can be returned by the Hamlib functions
@@ -452,10 +453,10 @@ struct rig_caps {
   int (*set_ts)(RIG *rig, unsigned long ts); /* set tuning step */
   int (*get_ts)(RIG *rig, unsigned long *ts); /* get tuning step */
 
-  int (*set_dcs)(RIG *rig, unsigned int tone);	/* set tone */
-  int (*get_dcs)(RIG *rig, unsigned int *tone);	/* get tone */
-  int (*set_ctcss)(RIG *rig, unsigned int tone);	/* set tone squelch */
-  int (*get_ctcss)(RIG *rig, unsigned int *tone);	/* get tone squelch */
+  int (*set_dcs)(RIG *rig, unsigned int code);
+  int (*get_dcs)(RIG *rig, unsigned int *code);
+  int (*set_ctcss)(RIG *rig, unsigned int tone);
+  int (*get_ctcss)(RIG *rig, unsigned int *tone);
 
   /*
    * It'd be nice to have a power2mW and mW2power functions
@@ -475,6 +476,7 @@ struct rig_caps {
   int (*set_func)(RIG *rig, setting_t func, int status); /* activate the function(s) */
   int (*get_func)(RIG *rig, setting_t *func); /* get the setting from rig */
 
+  int (*set_bank)(RIG *rig, int bank);			/* set memory bank number */
   int (*set_mem)(RIG *rig, int ch);			/* set memory channel number */
   int (*get_mem)(RIG *rig, int *ch);		/* get memory channel number */
   int (*mv_ctl)(RIG *rig, mv_op_t op);		/* Mem/VFO operation */
@@ -514,6 +516,7 @@ struct rig_state {
   enum serial_handshake_e serial_handshake; /* */
   int write_delay;        /* delay in ms between each byte sent out */
   int post_write_delay;		/* for some yaesu rigs */
+  struct timeval post_write_date;		/* hamlib internal use */
   int timeout;	/* in ms */
   int retry;		/* maximum number of retries, 0 to disable */
   enum ptt_type_e ptt_type;	/* how we will key the rig */
@@ -596,8 +599,8 @@ extern int rig_get_rptr_offs(RIG *rig, unsigned long *rptr_offs); /* get repeate
 
 extern int rig_set_ctcss(RIG *rig, unsigned int tone);
 extern int rig_get_ctcss(RIG *rig, unsigned int *tone);
-extern int rig_set_dcs(RIG *rig, unsigned int tone);
-extern int rig_get_dcs(RIG *rig, unsigned int *tone);
+extern int rig_set_dcs(RIG *rig, unsigned int code);
+extern int rig_get_dcs(RIG *rig, unsigned int *code);
 
 extern int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq);
 extern int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
@@ -612,26 +615,10 @@ extern int rig_get_power(RIG *rig, float *power);
 extern int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
 extern int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 
-#if 0
-extern int rig_set_volume(RIG *rig, float vol);
-extern int rig_get_volume(RIG *rig, float *vol);
-extern int rig_set_squelch(RIG *rig, float sql);
-extern int rig_get_squelch(RIG *rig, float *sql);
-extern int rig_get_squelch_status(RIG *rig, int *sql_status);
-extern int rig_get_strength(RIG *rig, int *strength);
-extern int rig_set_ant(RIG *rig, int ant);
-extern int rig_get_ant(RIG *rig, int *ant);
-extern int rig_set_att(RIG *rig, int att);
-extern int rig_get_att(RIG *rig, int *att);
-extern int rig_set_preamp(RIG *rig, int preamp);
-extern int rig_get_preamp(RIG *rig, int *preamp);
-#else
-
 extern int rig_set_level(RIG *rig, setting_t level, value_t val);
 extern int rig_get_level(RIG *rig, setting_t level, value_t *val);
 
 #define rig_get_strength(r,s) rig_get_level((r), RIG_LEVEL_STRENGTH, (value_t*)(s))
-#endif
 
 extern int rig_set_poweron(RIG *rig);
 extern int rig_set_poweroff(RIG *rig);
@@ -650,6 +637,7 @@ extern setting_t rig_has_func(RIG *rig, setting_t func);	/* is part of capabilit
 extern int rig_set_func(RIG *rig, setting_t func, int status);	/* activate the function(s) */
 extern int rig_get_func(RIG *rig, setting_t *func); /* get the setting from rig */
 
+extern int rig_set_bank(RIG *rig, int bank);	/* set memory bank number */
 extern int rig_set_mem(RIG *rig, int ch);		/* set memory channel number */
 extern int rig_get_mem(RIG *rig, int *ch);		/* get memory channel number */
 extern int rig_mv_ctl(RIG *rig, mv_op_t op);	/* Mem/VFO operation */
