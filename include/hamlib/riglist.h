@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.6 2001-01-28 22:13:09 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.7 2001-02-07 23:39:37 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -207,10 +207,17 @@ enum rig_model_e {
 	RIG_MODEL_TRP8000,
 	RIG_MODEL_TRP9000,
 
+	/*
+	 * WiNRADiO/LinRADiO, by Rosetta?
+	 */
+	RIG_MODEL_WR1000,	/* WR-1000i */
+	RIG_MODEL_WR1500,	/* WR-1500i and WR-1500e */
+	RIG_MODEL_WR1550,	/* WR-1550e */
+	RIG_MODEL_WR3150,	/* WR-3150i */
+
 	RIG_MODEL_KWZ30,	/* KNEISNER +DOERING */
 	RIG_MODEL_E1800,	/* DASA-Telefunken */
 	RIG_MODEL_EKD500,	/* RFT */
-	RIG_MODEL_WINRADIO,	/* Rosetta */
 	RIG_MODEL_TT550,	/* Ten Tec */
 	RIG_MODEL_RX320,
 
