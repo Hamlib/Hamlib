@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - gnuradio priv structure
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: gr_priv.h,v 1.1 2002-07-06 09:27:38 fillods Exp $
+ *	$Id: gr_priv.h,v 1.2 2002-10-07 21:46:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,7 +33,7 @@
 
 #include <hamlib/rig.h>
 
-#define IOTYPE float
+#define IOTYPE short
 
 struct gnuradio_priv_data {
 	/* current vfo already in rig_state ? */

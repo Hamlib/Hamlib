@@ -17,7 +17,7 @@
 #include <VrSum.h>
 #include <VrConnect.h>
 #include <VrMultiTask.h>
-#include "VrGUI.h" 
+#include <VrGUI.h>
 
 #define SAMPLING_FREQUENCY                          5e6
 #define CARRIER_FREQ	          	        1.070e6	// AM 1070
@@ -43,6 +43,8 @@ int main(int argc, char *argv[])
 
 
   printf("testgr:hello, I am your main() !\n");
+
+  rig_set_debug(RIG_DEBUG_TRACE);
 
   my_rig = rig_init(RIG_MODEL_GNURADIO);
   if (!my_rig) {
