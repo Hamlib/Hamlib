@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.11 2001-06-15 07:08:37 f4cfe Exp $
+ *		$Id: winradio.c,v 1.12 2001-06-20 06:08:22 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -36,7 +36,7 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__) && defined(HAMLIB_DLL)
+#if defined(__CYGWIN__)
 #  undef HAMLIB_DLL
 #  include <hamlib/rig.h>
 #  include <serial.h>

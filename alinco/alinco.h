@@ -6,7 +6,7 @@
  * via serial interface to a Alinco radio.
  *
  *
- *    $Id: alinco.h,v 1.2 2001-06-15 07:08:37 f4cfe Exp $  
+ *    $Id: alinco.h,v 1.3 2001-06-20 06:08:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,16 +28,16 @@
 #ifndef _ALINCO_H
 #define _ALINCO_H 1
 
-#if defined(__CYGWIN__) && defined(HAMLIB_DLL)
+#if defined(__CYGWIN__)
 #  undef HAMLIB_DLL
 #  include <hamlib/rig.h>
+#  include <cal.h>
 #  define HAMLIB_DLL
 #  include <hamlib/rig_dll.h>
 #else
 #  include <hamlib/rig.h>
+#  include <cal.h>
 #endif
-
-#include <cal.h>
 
 struct alinco_priv_caps {
 	cal_table_t str_cal;
