@@ -4,10 +4,14 @@
 
 # changes the following to match the versions installed on your system
 AUTOCONF=autoconf
+AUTOHEADER=autoheader
 AUTOMAKE=automake
 ACLOCAL=aclocal
-AUTOHEADER=autoheader
 
+# Needed on Gentoo
+export WANT_AUTOCONF_2_5	#  2.54 or higher, not 2.53a or 2.13
+
+ACLOCAL_FLAGS="$ACLOCAL_FLAGS -Imacros"
 
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
