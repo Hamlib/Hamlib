@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: orion.c,v 1.5 2005-03-28 02:33:36 aa6e Exp $
+ *	$Id: orion.c,v 1.6 2005-03-30 04:30:30 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,10 @@
    Added valid length settings before tentec_transaction calls.
    Added vfo_curr initialization to VFO A
    Fixed up VSWR & S-meter, set ATT, set AGC, add rough STR_CAL func.
+   Use local tt565_transaction due to quirky serial interface
+   Variable-length transaction read ok.
+   Calibrated S-meter response with signal generator.
+   Read re-tries implemented.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -34,14 +38,14 @@
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <sys/time.h>
 
 #include <hamlib/rig.h>
 #include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
-
+#include "idx_builtin.h"
 #include "tentec.h"
-
 
 /*
  * Mem caps, to be checked..
@@ -115,37 +119,81 @@ struct tt565_priv_data {
 		RIG_OP_TO_VFO|RIG_OP_FROM_VFO| \
 		RIG_OP_TUNE)
 
-#if 0
-/* FIXME: real measure  -- borrowed from icr8500 */
-#define TT565_STR_CAL { 16,  { \
-                {   0, -54 },   /* S0 */ \
-                {  10, -48 }, \
-                {  32, -42 }, \
-                {  46, -36 }, \
-                {  62, -30 }, \
-                {  82, -24 }, \
-                {  98, -18 }, \
-                { 112, -12 }, \
-                { 124,  -6 }, \
-                { 134,   0 }, /* S9 */ \
-                { 156,  10 }, \
-                { 177,  20 }, \
-                { 192,  30 }, \
-                { 211,  40 }, \
-                { 228,  50 }, \
-                { 238,  60 }, \
+/* Checked on one physical unit 3/29/05 - aa6e */
+#define TT565_STR_CAL { 15,  { \
+		{  10, -45 }, /* S 1.5 min meter indication */ \
+                {  13, -42 }, \
+                {  18, -36 }, \
+                {  22, -30 }, \
+                {  27, -24 }, \
+                {  30, -18 }, \
+                {  34, -12 }, \
+                {  38,  -6 }, \
+                {  43,   0 }, /* S9 */ \
+                {  48,  10 }, \
+                {  55,  20 }, \
+                {  62,  30 }, \
+                {  70,  40 }, \
+                {  78,  48 }, /* severe dsp quantization error */ \
+                { 101,  65 }, /* at high end of scale */ \
         } }
+
+#define TT565_EOM "\r"		/* <cr> terminates input string */
+
+#ifdef TT565_TIME
+double tt565_timenow()	/* returns current time in secs+microsecs */
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (double)tv.tv_sec + ((double)tv.tv_usec)/1.0e+6;
+}
 #endif
 
-/* This is crude and measured off the air - need better data */
+/*
+ * tt565_transaction, adapted from tentec_transaction (tentec.c)
+ * read exactly data_len bytes
+ * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
+ * Otherwise, you'll get a nice seg fault. You've been warned!
+ */
+int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+{
+        int retval, data_len0, itry;
+        struct rig_state *rs;
+#ifdef TT565_TIME
+ 	double ft1, ft2;	
+#endif
+	data_len0 = *data_len;
+    for (itry=1; itry < rig->caps->retry; itry++) {	
+        rs = &rig->state;
 
-#define TT565_STR_CAL { 5,  { \
-                { 014, -42 }, /* S2 */  \
-                { 031, -18 }, /* S6 */ \
-                { 043,   0 }, /* S9 */ \
-                { 052,  20 }, \
-                { 063,  40 }, \
-        } }
+        serial_flush(&rs->rigport);
+
+        retval = write_block(&rs->rigport, cmd, cmd_len);
+        if (retval != RIG_OK)
+                        return retval;
+
+        /* no data expected, TODO: flush input? */
+        if (!data || !data_len)
+                        return 0;		/* normal exit if no read */
+#ifdef TT565_TIME
+	ft1 = tt565_timenow();
+#endif
+	*data_len = data_len0;
+        *data_len = read_string(&rs->rigport, data, *data_len, 
+		TT565_EOM, strlen(TT565_EOM));
+	if (*data_len > 0) return RIG_OK;	/* normal exit if reading */
+#ifdef TT565_TIME
+	ft2 = tt565_timenow();
+        if (*data_len == -RIG_ETIMEOUT)
+	  printf("Timeout %d: Elapsed = %f secs.\n", itry, ft2-ft1);
+	else
+	  printf("Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
+		*data_len, itry, ft2-ft1);
+#endif
+    }
+        return RIG_ETIMEOUT;
+}
+
 
 /*
  * tt565 transceiver capabilities.
@@ -181,7 +229,10 @@ const struct rig_caps tt565_caps = {
 .has_set_level =  RIG_LEVEL_SET(TT565_LEVELS),
 .has_get_parm =  TT565_PARMS,
 .has_set_parm =  TT565_PARMS,
-.level_gran =  {},                 /* FIXME: granularity */
+/*  (in progress)
+.level_gran =  { [LVL_RF] = { .min = { .i = 0 }, .max = { .i =  100 }, .step = { .i = 1 } } }, 
+*/
+.level_gran = {}, 
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
@@ -396,7 +447,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 			which_vfo(rig, vfo),
 			(long long)freq);
 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
 }
@@ -414,7 +465,7 @@ int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 				which_vfo(rig, vfo));
 
 	resp_len=16;	
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -446,7 +497,7 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
 		vfo_len = sprintf (vfobuf, "*K%c" EOM, 
 				vfo == RIG_VFO_SUB ? 'S' : 'M');
 
-		return tentec_transaction (rig, vfobuf, vfo_len, NULL, NULL);
+		return tt565_transaction (rig, vfobuf, vfo_len, NULL, NULL);
 	}
 
 	priv->vfo_curr = vfo;
@@ -483,7 +534,7 @@ int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 			'N',			/* FIXME */
 			which_vfo(rig, tx_vfo));
 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
 }
@@ -510,7 +561,7 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 
 	cmd_len = sprintf(cmdbuf, "?KV" EOM);
 	resp_len=16;	
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -590,7 +641,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	/* Query mode */
 	cmd_len = sprintf(cmdbuf, "?R%cM" EOM, ttreceiver);
 	resp_len=16;  
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -620,7 +671,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	/* Query passband width (filter) */
 	cmd_len = sprintf(cmdbuf, "?R%cF" EOM, ttreceiver);
 	resp_len=16; 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -651,7 +702,7 @@ int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 				which_receiver(rig, vfo),
 				(int)ts);
 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
 }
@@ -665,7 +716,7 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 				which_receiver(rig, vfo));
 
 	resp_len=16;	
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -694,7 +745,7 @@ int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 				which_receiver(rig, vfo),
 				(int)rit);
 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
 }
@@ -708,7 +759,7 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 				which_receiver(rig, vfo));
 
 	resp_len=16;	
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -740,7 +791,7 @@ int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 				'M',
 				(int)xit);
 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
 }
@@ -754,7 +805,7 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 				'M');
 
 	resp_len=16;	
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -790,7 +841,7 @@ int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 	unsigned char respbuf[32];
 
 	resp_len=16;	
-	retval = tentec_transaction (rig, "?S" EOM, 3, respbuf, &resp_len);
+	retval = tt565_transaction (rig, "?S" EOM, 3, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -815,7 +866,7 @@ int tt565_reset(RIG *rig, reset_t reset)
 	char reset_buf[32];
 
 	reset_len=16;	
-	retval = tentec_transaction (rig, "X" EOM, 2, reset_buf, &reset_len);
+	retval = tt565_transaction (rig, "X" EOM, 2, reset_buf, &reset_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -844,7 +895,7 @@ const char *tt565_get_info(RIG *rig)
 	 * protocol version
 	 */
 	firmware_len = 24;	
-	retval = tentec_transaction (rig, "?V" EOM, 3, buf, &firmware_len);
+	retval = tt565_transaction (rig, "?V" EOM, 3, buf, &firmware_len);
 
 	/* "Version 1.372" */				
 	if (retval != RIG_OK || firmware_len < 8) {	
@@ -951,7 +1002,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return -RIG_EINVAL;
 	}
 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, NULL,NULL);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL,NULL);
 
 	return retval;
 }
@@ -973,7 +1024,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 	case RIG_LEVEL_SWR:
 		lvl_len=16;	
-		retval = tentec_transaction (rig, "?S" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, "?S" EOM, 3, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1000,7 +1051,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	case RIG_LEVEL_RAWSTR:
   		lvl_len=16;	
-		retval = tentec_transaction (rig, "?S" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, "?S" EOM, 3, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1019,7 +1070,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	case RIG_LEVEL_RFPOWER:
 		lvl_len=16;	
-		retval = tentec_transaction (rig, "?TP" EOM, 4, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, "?TP" EOM, 4, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1037,7 +1088,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				which_receiver(rig, vfo));
 
 		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1063,7 +1114,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				which_receiver(rig, vfo));
 
 		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1081,7 +1132,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				which_receiver(rig, vfo));
 
 		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1099,7 +1150,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				which_receiver(rig, vfo));
 
 		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1117,7 +1168,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				which_receiver(rig, vfo));
 
 		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1132,15 +1183,13 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		else
 			val->i = rig->caps->attenuator[lvlbuf[4]-'1'];
 		break;
-
-	case RIG_LEVEL_PREAMP:
 		/* Sub receiver does not contain a Preamp */
 		if (which_receiver(rig, vfo) == 'S') {
 			val->i=0;
 			break;
 		}
 		lvl_len=16;	
-		retval = tentec_transaction (rig, "?RME" EOM, 5, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, "?RME" EOM, 5, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1158,7 +1207,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				which_receiver(rig, vfo));
 
 		lvl_len=16;	
-		retval = tentec_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1173,7 +1222,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	case RIG_LEVEL_MICGAIN:
 		lvl_len=16;	
-		retval = tentec_transaction (rig, "?TM" EOM, 4, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, "?TM" EOM, 4, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1188,7 +1237,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	case RIG_LEVEL_COMP:
 		lvl_len=16;	
-		retval = tentec_transaction (rig, "?TS" EOM, 4, lvlbuf, &lvl_len);
+		retval = tt565_transaction (rig, "?TS" EOM, 4, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1263,7 +1312,7 @@ int tt565_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 		return -RIG_EINVAL;
 	}
 
-	retval = tentec_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
 }
