@@ -1,0 +1,36 @@
+hamlib - Copyright (C) 2000 Frank Singleton
+
+libic706.so - Copyright (C) 2000 Stephane Fillod
+This shared library provides an API for communicating
+via serial interface to an IC-706 using the "CI-V" interface.
+
+
+Reference Documentation
+-----------------------
+
+Operating Manual
+IC-706MKIIG
+Icom Inc.
+
+
+Status
+------
+
+Handles 0% of all opcodes
+Right now, this is just example of how a backend should glue
+with the generic rig API.
+
+This lib should/will cover the ic706, ic706mkII, ic706mkIIG
+
+Warnings
+--------
+
+1. NOTHING IS WORKING, this is WIP.
+
+
+Contributors
+------------
+
+
+
+
