@@ -125,7 +125,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/getopt_long.Plo $(DEPDIR)/usleep.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/getopt_long.Plo $(DEPDIR)/trunc.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/usleep.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -135,7 +136,7 @@ LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 DIST_SOURCES = $(libmisc_la_SOURCES)
-DIST_COMMON = Makefile.am Makefile.in getopt_long.c usleep.c
+DIST_COMMON = Makefile.am Makefile.in getopt_long.c trunc.c usleep.c
 SOURCES = $(libmisc_la_SOURCES)
 
 all: all-am
@@ -171,6 +172,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/getopt_long.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/trunc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/usleep.Plo@am__quote@
 
 distclean-depend:

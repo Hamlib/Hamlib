@@ -53,6 +53,9 @@
 /* Define if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define if you have the `c' library (-lc). */
+#undef HAVE_LIBC
+
 /* Define if you have the `syslog' library (-lsyslog). */
 #undef HAVE_LIBSYSLOG
 
