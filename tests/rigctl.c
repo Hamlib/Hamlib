@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.10 2001-03-02 18:43:25 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.11 2001-04-22 14:47:27 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -204,7 +204,7 @@ int main (int argc, char *argv[])
 printf("%s\n",opt_string);
 
 	/* TODO: add a long option(after they are consumed) or arg to set rig model */
-#if 1
+#if 0
   	my_rig = rig_init(RIG_MODEL_DUMMY);
 #else
   	my_rig = rig_init(RIG_MODEL_IC706MKIIG);
@@ -362,7 +362,7 @@ declare_proto_rig(get_mode)
 		printf("%d\n", mode);
 		if (interactive)
 			printf("%s: ", cmd->name2);
-		printf("%d", width);
+		printf("%ld", width);
 		return status;
 }
 
