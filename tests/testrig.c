@@ -26,7 +26,7 @@ int main ()
 	 * allocate memory, setup & open port 
 	 */
 
-/*  	retcode = rig_load_backend("icom"); */
+  	retcode = rig_load_backend("icom");
 	retcode = rig_load_backend("ft747");
 
 	if (retcode != RIG_OK ) {
@@ -34,8 +34,11 @@ int main ()
 		exit(3);
 	}
 
-/*  	my_rig = rig_init(RIG_MODEL_IC706MKIIG); */
+#if 1
+  	my_rig = rig_init(RIG_MODEL_IC706MKIIG);
+#else
 	my_rig = rig_init(RIG_MODEL_FT747);
+#endif
 
 	if (!my_rig)
 			exit(1); /* whoops! something went wrong (mem alloc?) */
@@ -52,7 +55,6 @@ int main ()
 	 * Must add checking of functionality map prior to command execution -- FS
 	 *
 	 */
-	
 
 	/*
 	 * Example of setting rig paameters
@@ -74,11 +76,13 @@ int main ()
 	 *
 	 */
 	
+#ifdef RIG_PASSBAND_OLDTIME
 	/* 10m FM Narrow */
 
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 28350125); /* 10m */
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_FM, RIG_PASSBAND_NARROW);
 	sleep(3);		/* so you can see it -- FS */
+#endif
 
 	/* 15m USB */
 
@@ -98,11 +102,13 @@ int main ()
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
 	sleep(3);
 
+#ifdef RIG_PASSBAND_OLDTIME
 	/* 80m AM NArrow */
 
 	retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 3980000); /* 80m  */
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_AM, RIG_PASSBAND_NARROW);
 	sleep(3);
+#endif
 
 	/* 160m CW Normal */
 
@@ -110,10 +116,12 @@ int main ()
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_CW, RIG_PASSBAND_NORMAL);
 	sleep(3);
 
+#ifdef RIG_PASSBAND_OLDTIME
 	/* 160m CW Narrow -- The band is noisy tonight -- FS*/
 
 	retcode = rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_CW, RIG_PASSBAND_NARROW);
 	sleep(3);
+#endif
 
 	/* 20m USB on VFO_A */
 
@@ -160,7 +168,6 @@ int main ()
 	} 
 
 	sleep(1);
-
 
 	/*
 	 * Simple examples of getting rig information -- FS
