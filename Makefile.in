@@ -62,10 +62,13 @@ host_triplet = @host@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
+GCJ = @GCJ@
+GCJFLAGS = @GCJFLAGS@
 INCLTDL = @INCLTDL@
 LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
@@ -99,7 +102,7 @@ CONFIG_CLEAN_FILES =  hamlib.spec
 DIST_COMMON =  README AUTHORS COPYING COPYING.LIB ChangeLog INSTALL \
 Makefile.am Makefile.in NEWS THANKS TODO aclocal.m4 config.guess \
 config.sub configure configure.ac hamlib.spec.in include/config.h.in \
-include/stamp-h.in install-sh ltmain.sh missing mkinstalldirs
+include/stamp-h.in install-sh ltconfig ltmain.sh missing mkinstalldirs
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
