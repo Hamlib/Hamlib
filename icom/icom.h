@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - main header
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.h,v 1.41 2002-03-05 23:31:31 fillods Exp $
+ *		$Id: icom.h,v 1.42 2002-03-06 21:10:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -108,6 +108,10 @@ int icom_set_powerstat(RIG *rig, powerstat_t status);
 int icom_get_powerstat(RIG *rig, powerstat_t *status);
 int icom_decode_event(RIG *rig);
 
+int optoscan_open(RIG *rig);
+int optoscan_close(RIG *rig);
+const char* optoscan_get_info(RIG *rig);
+
 extern const struct confparams icom_cfg_params[];
 
 extern const struct rig_caps ic706_caps;
@@ -126,6 +130,8 @@ extern const struct rig_caps icr8500_caps;
 extern const struct rig_caps icall_caps;
 extern const struct rig_caps ic275_caps;
 extern const struct rig_caps ic475_caps;
+
+extern const struct rig_caps os535_caps;
 
 extern BACKEND_EXPORT(rig_model_t) proberigs_icom(port_t *p);
 extern BACKEND_EXPORT(int) initrigs_icom(void *be_handle);
