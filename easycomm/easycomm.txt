@@ -1,0 +1,85 @@
+The following are the specifications for the EasyComm interfaces which
+are available with the WiSP programs.  Both EasyComm 1 and EasyComm2 are
+available in WiSP32.  Only EasyComm1 is available with WiSP31.  The EasyComm
+interfaces are for use by those who wish to design their own radio and rotor
+controllers.
+
+EASYCOMM I Standard
+-------------------
+
+The EasyComm 1 standard is a simple ASCII character based standard for
+controling antennas and rotators.
+
+The host PC issues a single line command as follows -:
+
+AZaaa.a ELeee.e UPuuuuuuuuu UUU DNddddddddd DDD
+                     
+The Az and El values (aaa.a and eee.e) are not fixed width.  They are in
+degrees and include 1 decimal place.
+
+The Up and Dn frequencies are in Hz.
+
+UUU and DDD are the uplink and downlink mode.
+
+EASYCOMM II Standard
+--------------------
+
+The EasyComm 2 standard is an enhanced protocol to allow full station
+control and also feedback from external systems.
+
+The host PC issues commands to the controller by sending a 2 character
+command identifier followed by the command value.  Commands are
+separated by either a space or carriage return or linefeed.
+Not all commands need to be implemented, and the most basic system
+may only decode the rotator control commands.
+
+The Host PC can issue the following commands -:
+
+Command		Meaning			Perameters
+-------		-------			----------
+
+AZ		Azimuth             number - 1 decimal place
+EL		Elevation           number - 1 decimal place
+UP		Uplink freq         in Hertz
+DN		Downlink freq		in Hertz
+DM		Downlink Mode       ascii, eg SSB, FM
+UM		Uplink Mode         ascii, eg SSB, FM
+DR		Downlink Radio      number
+UR		Uplink Radio        number
+ML		Move Left
+MR		Move Right
+MU		Move Up
+MD		Move Down
+SA		Stop azimuth moving
+SE		Stop elevation moving
+AO		AOS
+LO		LOS
+OP		Set output          number
+IP		Read an input       number
+AN		Read analogue input number
+ST		Set time            YY:MM:DD:HH:MM:SS
+VE		Request Version
+
+For those commands that require a response, the response is an echo of
+the command followed by the response.  If the command specifies a field
+number (eq. AN or IP), then the two numbers are delimited with a comma.
+eg.  To read an analogue value, the host sends ANx where x is the
+analogue channel number.
+
+     In response the controller will reply with ANx,yyy where yyy is the
+     value read on the analogue port.
+eg.  To find the controller version number, the host sends VE.
+     In response the controller sends VExxx where xxx is an ascii string
+     containing the version number.
+
+All strings sent in either direction are not of fixed length.
+The controller can also send unsolicited information back to the
+host.  This information may be used by the host for alarms or just
+control feedback.  All of the above commands may be sent by the
+controller for information, and in addition the following may also
+be sent
+
+ALxxx		Alarm, where xxxx is an ascii string with the alarm info.
+
+Chris Jackson, G7UPN
+
