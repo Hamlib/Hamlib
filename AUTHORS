@@ -145,6 +145,11 @@ M: Nate Bargmann, N0NB
 [Frontend]
 M: Stephane Fillod, F8CFE
 
+[src/locator.c]
+M: Dave Hines, M1CXW
+C: Stephane Fillod, F8CFE
+C: Nate Bargmann, N0NB
+
 
 [platform: FreeBSD]
 M: Diane Bruce, VA3DB
@@ -189,4 +194,5 @@ Mark J. Fine <mark.fine (at) fineware-swl.com>
 Jim Jerzycke, KQ6EA <kq6ea (at) amsat.org>
 Alexandru Csete OZ9AEC <alexc (at) phys.au.dk>
 Diane Bruce, VA3DB <db (at) db.net>
+Dave Hines, M1CXW, <hamlib (at) dph.fluff.org>
 
