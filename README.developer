@@ -3,6 +3,24 @@ hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
 General Guidelines.
 -------------------
 
+0. The top level directory looks like thus.
+
+|-- RCS
+|-- ft1000
+|-- ft1000d
+|-- ft747
+|   |-- RCS
+|   |-- include
+|   |-- lib
+|   `-- test
+|       `-- RCS
+|-- ft840
+|-- ft847
+|-- ft920
+|-- ts570d
+|-- ts870s
+`-- ts950  
+
 1.Every new shared lib should be created autonomously
   within its own directory. eg ft747/ for libft747.so
 
