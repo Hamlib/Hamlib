@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.7 2001-02-27 23:03:45 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.8 2001-03-01 00:26:19 f4cfe Exp $  
  *
  *
  *
@@ -62,12 +62,16 @@ const struct rig_caps ts870s_caps = {
   1200, 57600, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   0, 0, 200, 3, 
   RIG_FUNC_NONE, TS870S_FUNC_ALL, TS870S_LEVEL_ALL, TS870S_LEVEL_ALL, 
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { RIG_DBLST_END, },	/* FIXME! */
   { RIG_DBLST_END, },
   9999,
   0,			/* FIXME: VFO list */
   0, RIG_TRN_ON,
   1000, 0, 0,
+
+  { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },

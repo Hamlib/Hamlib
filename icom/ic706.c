@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.14 2001-02-27 23:03:45 f4cfe Exp $  
+ * $Id: ic706.c,v 1.15 2001-03-01 00:26:19 f4cfe Exp $  
  *
  *
  *
@@ -67,12 +67,16 @@ const struct rig_caps ic706_caps = {
   300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   0, 0, 200, 3, 
   RIG_FUNC_NONE, IC706_FUNC_ALL, RIG_FUNC_NONE, IC706_LEVEL_ALL,
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   0,			/* TBC: RIT controllable? */
   0,			/* FIXME: VFO list */
   0, RIG_TRN_ON, 
   101, 0, 0,
+
+  { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
   { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },
@@ -139,12 +143,16 @@ const struct rig_caps ic706mkii_caps = {
   300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   0, 0, 200, 3, 
   RIG_FUNC_NONE, IC706_FUNC_ALL, RIG_FUNC_NONE, IC706_LEVEL_ALL,
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   0,			/* TBC: RIT controllable? */
   0,			/* FIXME: VFO list */
   0, RIG_TRN_ON, 
   101, 0, 0,
+
+  { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
   { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },
@@ -215,12 +223,21 @@ const struct rig_caps ic706mkiig_caps = {
   300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   0, 0, 200, 3, 
   RIG_FUNC_NONE, IC706_FUNC_ALL|RIG_FUNC_NR|RIG_FUNC_ANF, IC706_LEVEL_ALL, IC706_LEVEL_ALL,
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  icom_ctcss_list, NULL,
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   9999,			/* RIT */
   0,			/* FIXME: VFO list */
   0, RIG_TRN_ON, 
-  101, 0, 0,
+  105, 0, 0,
+
+  /* memory channel list */
+  { {  01,  99, RIG_MTYPE_MEM, 0 },
+    { 100, 103, RIG_MTYPE_EDGE, 0 },
+    { 104, 105, RIG_MTYPE_CALL, 0 },
+    RIG_CHAN_END,
+  },
 
   { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },

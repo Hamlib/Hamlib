@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: icr8500.c,v 1.5 2001-02-27 23:03:45 f4cfe Exp $  
+ * $Id: icr8500.c,v 1.6 2001-03-01 00:26:19 f4cfe Exp $  
  *
  *
  *
@@ -59,12 +59,16 @@ const struct rig_caps icr8500_caps = {
   300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE,
   0, 0, 200, 3,
   RIG_FUNC_NONE, ICR8500_FUNC_ALL, ICR8500_LEVEL_ALL, ICR8500_LEVEL_ALL,
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   9999,
   0,			/* FIXME: VFO list */
   0, RIG_TRN_ON,
   999, 12, 0,
+
+  { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.7 2001-02-27 23:03:45 f4cfe Exp $  
+ * $Id: ft747.c,v 1.8 2001-03-01 00:26:19 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -132,12 +132,16 @@ const struct rig_caps ft747_caps = {
   4800, 4800, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,
   FT747_FUNC_ALL, FT747_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { RIG_DBLST_END, },	/* FIXME! */
   { RIG_DBLST_END, },
   9999,
   0,			/* FIXME: VFO list */
   0, RIG_TRN_OFF,
   20, 0, 0,
+
+  { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },

@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.7 2001-02-27 23:03:45 f4cfe Exp $  
+ * $Id: ft847.c,v 1.8 2001-03-01 00:26:19 f4cfe Exp $  
  *
  *
  *
@@ -189,12 +189,16 @@ const struct rig_caps ft847_caps = {
   4800, 57600, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE,
   FT847_WRITE_DELAY, FT847_POST_WRITE_DELAY, 100, 0,
   RIG_FUNC_NONE, FT847_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { RIG_DBLST_END, },	/* FIXME! */
   { RIG_DBLST_END, },
   9999,
   0,			/* FIXME: VFO list */
   1, RIG_TRN_OFF,
   78, 0, 0,
+
+  { RIG_CHAN_END, },	/* FIXME: memory chan list */
 
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },

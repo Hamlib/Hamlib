@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ar8200.c,v 1.5 2001-02-27 23:03:45 f4cfe Exp $  
+ * $Id: ar8200.c,v 1.6 2001-03-01 00:26:19 f4cfe Exp $  
  *
  *
  *
@@ -59,12 +59,16 @@ const struct rig_caps ar8200_caps = {
   9600, 19200, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_XONXOFF,
   0, 0, 200, 3, 
   RIG_FUNC_NONE, AR8200_FUNC_ALL, AR8200_LEVEL_ALL, AR8200_LEVEL_ALL,
+  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
+  NULL, NULL,	/* FIXME: CTCSS/DCS list */
   { RIG_DBLST_END, },
   { RIG_DBLST_END, },
   0,
   0,	/* FIXME: VFO list */
   0, RIG_TRN_ON,
   1000, 0, 0,
+
+  { RIG_CHAN_END, },	/* FIXME: memory channel list */
 
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },

@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.3 2001-02-27 23:03:45 f4cfe Exp $
+ *	$Id: dummy.c,v 1.4 2001-03-01 00:26:19 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -416,7 +416,7 @@ static int dummy_set_poweroff(RIG *rig)
 }
 
 
-static int dummy_set_ann(RIG *rig, ann_t ann)
+static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -424,7 +424,7 @@ static int dummy_set_ann(RIG *rig, ann_t ann)
 }
 
 
-static int dummy_get_ann(RIG *rig, ann_t *ann)
+static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called\n");
 
@@ -564,6 +564,11 @@ const struct rig_caps dummy_caps = {
   has_set_func:  DUMMY_FUNC,
   has_get_level: DUMMY_LEVEL,
   has_set_level: DUMMY_SET_LEVEL,
+  has_get_parm:	 RIG_PARM_NONE,	/* FIXME */
+  has_set_parm:	 RIG_PARM_NONE,	/* FIXME */
+  ctcss_list:	 NULL,	/* FIXME */
+  dcs_list:  	 NULL,  /* FIXME */
+  chan_list:	 { RIG_CHAN_END, },	/* FIXME */
   transceive:    RIG_TRN_OFF,
   attenuator:    { 10, 20, 30, RIG_DBLST_END, },
   vfo_list:      0,		/* FIXME */
@@ -595,6 +600,8 @@ const struct rig_caps dummy_caps = {
   get_level:    dummy_get_level,
   set_func:     dummy_set_func,
   get_func:     dummy_get_func,
+  set_parm:     dummy_set_parm,
+  get_parm:     dummy_get_parm,
 
   get_info:     dummy_get_info,
 
@@ -624,8 +631,10 @@ const struct rig_caps dummy_caps = {
   get_ts:	dummy_get_ts,
   power2mW:	dummy_power2mW,
   mW2power:	dummy_mW2power,
+#if 0
   set_ann:	dummy_set_ann,
   get_ann:	dummy_get_ann,
+#endif
   set_ant:	dummy_set_ant,
   get_ant:	dummy_get_ant,
   set_bank:	dummy_set_bank,
