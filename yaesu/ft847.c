@@ -1,12 +1,12 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ * hamlib - (C) Frank Singleton 2000,2001 (vk3fcs@ix.netcom.com)
  *
  * ft847.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  * This shared library provides an API for communicating
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.11 2001-05-04 22:38:58 f4cfe Exp $  
+ * $Id: ft847.c,v 1.12 2001-05-22 18:05:29 f4cfe Exp $  
  *
  *
  *
@@ -183,71 +183,98 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 
 const struct rig_caps ft847_caps = {
-  RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", "GPL?",
-  RIG_STATUS_ALPHA, RIG_TYPE_TRANSCEIVER,
-  RIG_PTT_RIG, RIG_DCD_NONE, RIG_PORT_SERIAL,
-  4800, 57600, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE,
-  FT847_WRITE_DELAY, FT847_POST_WRITE_DELAY, 100, 0,
-  RIG_FUNC_NONE, FT847_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
-  RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
-  {}, {},		/* FIXME: granularity */
-  NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { RIG_DBLST_END, },	/* FIXME! */
-  { RIG_DBLST_END, },
-  Hz(9999), Hz(0), Hz(0),	/* RIT, XIT, IF-SHIFT */
-  RIG_ANN_NONE,
-  1, RIG_TRN_OFF,
-  0, 0,
+rig_model: RIG_MODEL_FT847,
+model_name:"FT-847", 
+mfg_name: "Yaesu", 
+version: "0.1", 
+copyright: "GPL",
+status: RIG_STATUS_ALPHA,
+rig_type: RIG_TYPE_TRANSCEIVER,
+ptt_type: RIG_PTT_RIG,
+dcd_type: RIG_DCD_NONE,
+port_type: RIG_PORT_SERIAL,
+serial_rate_min: 4800,
+serial_rate_max: 57600,
+serial_data_bits: 8,
+serial_stop_bits: 2,
+serial_parity: RIG_PARITY_NONE,
+serial_handshake: RIG_HANDSHAKE_NONE, 
+write_delay: FT847_WRITE_DELAY,
+post_write_delay: FT847_POST_WRITE_DELAY,
+timeout: 100,
+retry: 0, 
 
-  { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
+has_get_func: RIG_FUNC_NONE,
+has_set_func: FT847_FUNC_ALL, 
+has_get_level: RIG_LEVEL_NONE,	/* FIXME! */
+has_set_level: RIG_LEVEL_NONE,
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
+level_gran: {}, 		/* granularity */
+parm_gran: {},
+ctcss_list: NULL,	/* FIXME: CTCSS/DCS list */
+dcs_list: NULL,
+preamp:  { RIG_DBLST_END, },	/* FIXME! */
+attenuator:  { RIG_DBLST_END, },
+max_rit: Hz(9999),
+max_xit: Hz(0),
+max_ifshift: Hz(0),
+targetable_vfo: 1,
+transceive: RIG_TRN_OFF,
+bank_qty:  0,
+chan_desc_sz: 0,
 
-  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-  { RIG_FRNG_END, },
-  { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
-    {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
-    {420000000,512000000,FT847_ALL_RX_MODES,-1,-1},
+chan_list: { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
+
+rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+tx_range_list1: { RIG_FRNG_END, },
+rx_range_list2: 
+  { {kHz(100),MHz(76),FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
+    {MHz(108),MHz(174),FT847_ALL_RX_MODES,-1,-1},
+    {MHz(420),MHz(512),FT847_ALL_RX_MODES,-1,-1},
 
     RIG_FRNG_END, }, /* rx range end */
 
-  { {1800000,1999999,FT847_OTHER_TX_MODES,5000,100000},	/* 5-100W class */
-    {1800000,1999999,FT847_AM_TX_MODES,1000,25000},	/* 1-5W class */
+tx_range_list2:
+  { {MHz(1.8),1999999,FT847_OTHER_TX_MODES,W(5),W(100)},	/* 5-100W class */
+    {MHz(1.8),1999999,FT847_AM_TX_MODES,W(1),W(25)},	/* 1-25W class */
 
-    {3500000,3999999,FT847_OTHER_TX_MODES,5000,100000},
-    {3500000,3999999,FT847_AM_TX_MODES,1000,25000},
+    {MHz(3.5),3999999,FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(3.5),3999999,FT847_AM_TX_MODES,W(1),W(25)},
 
-    {7000000,7300000,FT847_OTHER_TX_MODES,5000,100000},
-    {7000000,7300000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(7),MHz(7.3),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(7),MHz(7.3),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {10000000,10150000,FT847_OTHER_TX_MODES,5000,100000},
-    {10000000,10150000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(10),MHz(10.150),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(10),MHz(10.150),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {14000000,14350000,FT847_OTHER_TX_MODES,5000,100000},
-    {14000000,14350000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(14),MHz(14.350),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(14),MHz(14.350),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {18068000,18168000,FT847_OTHER_TX_MODES,5000,100000},
-    {18068000,18168000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(18.068),MHz(18.168),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(18.068),MHz(18.168),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {21000000,21450000,FT847_OTHER_TX_MODES,5000,100000},
-    {21000000,21450000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(21),MHz(21.450),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(21),MHz(21.450),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {24890000,24990000,FT847_OTHER_TX_MODES,5000,100000},
-    {24890000,24990000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(24.890),MHz(24.990),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(24.890),MHz(24.990),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {28000000,29700000,FT847_OTHER_TX_MODES,5000,100000},
-    {28000000,29700000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(28),MHz(29.7),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(28),MHz(29.7),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {50000000,54000000,FT847_OTHER_TX_MODES,5000,100000},
-    {50000000,54000000,FT847_AM_TX_MODES,1000,25000},
+    {MHz(50),MHz(54),FT847_OTHER_TX_MODES,W(5),W(100)},
+    {MHz(50),MHz(54),FT847_AM_TX_MODES,W(1),W(25)},
 
-    {144000000,148000000,FT847_OTHER_TX_MODES,1000,50000}, 
-    {144000000,148000000,FT847_AM_TX_MODES,1000,12500}, 
+    {MHz(144),MHz(148),FT847_OTHER_TX_MODES,W(1),W(50)}, 
+    {MHz(144),MHz(148),FT847_AM_TX_MODES,W(1),W(12.5)}, 
 
-    {430000000,44000000,FT847_OTHER_TX_MODES,1000,50000}, /* check range */
-    {430000000,440000000,FT847_AM_TX_MODES,1000,12500},
+    {MHz(430),MHz(440),FT847_OTHER_TX_MODES,W(1),W(50)}, /* check range */
+    {MHz(430),MHz(440),FT847_AM_TX_MODES,W(1),W(12.5)},
 
     RIG_FRNG_END, },
 
-  { {FT847_SSB_CW_RX_MODES,1}, /* normal */
+tuning_steps: { {FT847_SSB_CW_RX_MODES,1}, /* normal */
     {FT847_SSB_CW_RX_MODES,10}, /* fast */
     {FT847_SSB_CW_RX_MODES,100}, /* faster */
 
@@ -258,29 +285,27 @@ const struct rig_caps ft847_caps = {
     RIG_TS_END,
   },  
       /* mode/filter list, remember: order matters! */
-  {
+filters: {
 		/* FIXME! */
 		RIG_FLT_END,
   },
-  NULL,	/* priv */
-  ft847_init, 
-  ft847_cleanup, 
-  ft847_open, 
-  ft847_close, 
 
-  ft847_set_freq,		/* set freq */
-  ft847_get_freq,		/* get freq */
-  ft847_set_mode,		/* set mode */
-  ft847_get_mode,		/* get mode */
-  ft847_set_vfo,		/* set vfo */
-  ft847_get_vfo,		/* get vfo */
-  ft847_set_ptt,		/* set ptt */
-  ft847_get_ptt,		/* get ptt */
+priv:  NULL,
+rig_init:  ft847_init, 
+rig_cleanup: ft847_cleanup, 
+rig_open:  ft847_open, 
+rig_close: ft847_close, 
 
-  NULL,
-  NULL,
+set_freq:  ft847_set_freq,		/* set freq */
+get_freq: ft847_get_freq,		/* get freq */
+set_mode: ft847_set_mode,		/* set mode */
+get_mode: ft847_get_mode,		/* get mode */
+set_vfo: ft847_set_vfo,		/* set vfo */
+get_vfo: ft847_get_vfo,		/* get vfo */
+set_ptt: ft847_set_ptt,		/* set ptt */
+get_ptt: ft847_get_ptt,		/* get ptt */
+
 };
-
 
 /*
  * Function definitions below
@@ -665,4 +690,6 @@ int init_ft847(void *be_handle) {
   
   return RIG_OK;
 }
+
+
 
