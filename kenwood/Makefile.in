@@ -93,18 +93,18 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-TSSRCLIST = ts870s.c ts570.c ts450s.c thd7.c
+TSSRCLIST = ts870s.c ts570.c ts450s.c thd7.c thf7.c
 
 lib_LTLIBRARIES = libhamlib-kenwood.la
-libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c
+libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c th.c
 libhamlib_kenwood_la_LDFLAGS = -no-undefined -module -avoid-version
 libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-kenwood.a
-libhamlib_kenwood_a_SOURCES = $(TSSRCLIST) kenwood.c
+libhamlib_kenwood_a_SOURCES = $(TSSRCLIST) kenwood.c th.c
 libhamlib_kenwood_a_LIBADD = ../src/libhamlib.la
 
-noinst_HEADERS = kenwood.h
+noinst_HEADERS = kenwood.h th.h
 subdir = kenwood
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -114,13 +114,14 @@ LIBRARIES = $(lib_LIBRARIES)
 libhamlib_kenwood_a_AR = $(AR) cru
 libhamlib_kenwood_a_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_kenwood_a_OBJECTS = ts870s.$(OBJEXT) ts570.$(OBJEXT) \
-	ts450s.$(OBJEXT) thd7.$(OBJEXT) kenwood.$(OBJEXT)
+	ts450s.$(OBJEXT) thd7.$(OBJEXT) thf7.$(OBJEXT) \
+	kenwood.$(OBJEXT) th.$(OBJEXT)
 libhamlib_kenwood_a_OBJECTS = $(am_libhamlib_kenwood_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_kenwood_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_kenwood_la_OBJECTS = ts870s.lo ts570.lo ts450s.lo thd7.lo \
-	kenwood.lo
+	thf7.lo kenwood.lo th.lo
 libhamlib_kenwood_la_OBJECTS = $(am_libhamlib_kenwood_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -130,10 +131,12 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/kenwood.Plo $(DEPDIR)/kenwood.Po \
-@AMDEP_TRUE@	$(DEPDIR)/thd7.Plo $(DEPDIR)/thd7.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ts450s.Plo $(DEPDIR)/ts450s.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ts570.Plo $(DEPDIR)/ts570.Po \
-@AMDEP_TRUE@	$(DEPDIR)/ts870s.Plo $(DEPDIR)/ts870s.Po
+@AMDEP_TRUE@	$(DEPDIR)/th.Plo $(DEPDIR)/th.Po $(DEPDIR)/thd7.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/thd7.Po $(DEPDIR)/thf7.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/thf7.Po $(DEPDIR)/ts450s.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ts450s.Po $(DEPDIR)/ts570.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ts570.Po $(DEPDIR)/ts870s.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ts870s.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -231,8 +234,12 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/kenwood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/kenwood.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/th.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/th.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thd7.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thd7.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thf7.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/thf7.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts450s.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts450s.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts570.Plo@am__quote@
