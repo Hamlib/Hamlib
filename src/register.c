@@ -2,7 +2,7 @@
    register.c  - Copyright (C) 2000 Stephane Fillod and Frank Singleton
    Provides registering for dynamically loadable backends.
 
-   $Id: register.c,v 1.3 2001-02-14 01:06:53 f4cfe Exp $
+   $Id: register.c,v 1.4 2001-06-02 17:54:43 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -30,23 +30,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-
-#if defined(HAVE_DLOPEN) && defined(HAVE_DLFCN_H)
-
-#include <dlfcn.h>
-
-  /* Older versions of dlopen() don't define RTLD_NOW and RTLD_LAZY.
-   *      They all seem to use a mode of 1 to indicate RTLD_NOW and some do
-   *           not support RTLD_LAZY at all.  Hence, unless defined, we define
-   *                both macros as 1 to play it safe.  */
-# ifndef RTLD_NOW
-#  define RTLD_NOW      1
-# endif
-# ifndef RTLD_LAZY
-#  define RTLD_LAZY     1
-# endif
-#endif
-
+/* This is libtool's dl wrapper */
+#include <ltdl.h>
 
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
@@ -59,7 +44,7 @@
 
 struct rig_list {
 		const struct rig_caps *caps;
-		void *handle;				/* handle returned by dlopen() */
+		lt_dlhandle handle;			/* handle returned by lt_dlopen() */
 		struct rig_list *next;
 };
 
@@ -167,59 +152,49 @@ int rig_list_foreach(int (*cfunc)(const struct rig_caps*, void *),void *data)
  */
 int rig_load_backend(const char *be_name)
 {
-#ifdef HAVE_DLOPEN
-
 # define PREFIX "libhamlib-"
 # define POSTFIX ".so" /* ".so.%u" */
-		void *be_handle;
+		lt_dlhandle be_handle;
 	    int (*be_init)(void *);
 		int status;
-		int mode = getenv ("LD_BIND_NOW") ? RTLD_NOW : RTLD_LAZY;
 		char libname[PATH_MAX];
 		char initfuncname[64]="init_";
+
+	/* lt_dlinit may be called several times */
+	status = lt_dlinit();
+	if (status) {
+    		rig_debug(RIG_DEBUG_ERR, "rig_backend_load: lt_dlinit for %s failed: %d\n",
+					      be_name, status);
+    		return -RIG_EINTERNAL;
+	}
 
 		rig_debug(RIG_DEBUG_VERBOSE, "rig: loading backend %s\n",be_name);
 
 		/*
 		 * add hamlib directory here
 		 */
-		snprintf (libname, sizeof (libname), PREFIX"%s"POSTFIX,
-							                  be_name /* , V_MAJOR */);
+		snprintf (libname, sizeof (libname), PREFIX"%s"POSTFIX, be_name);
 
-#ifdef __CYGWIN32__
-		/*
-		 * backends are statically linked, open executable
-		 */
-		be_handle = dlopen (NULL, mode);
-#else
-		be_handle = dlopen (libname, mode);
-#endif
+		be_handle = lt_dlopen (libname);
+
 		if (!be_handle) {
-			rig_debug(RIG_DEBUG_ERR, "rig: dlopen() failed (%s)\n",
-							dlerror());
+			rig_debug(RIG_DEBUG_ERR, "rig: lt_dlopen(\"%s\") failed (%s)\n",
+							libname, lt_dlerror());
 			return -RIG_EINVAL;
 	    }
 
 
 	    strcat(initfuncname, be_name);
-	    be_init = (int (*)(void *)) dlsym (be_handle, initfuncname);
+	    be_init = (int (*)(void *)) lt_dlsym (be_handle, initfuncname);
 		if (!be_init) {
 				rig_debug(RIG_DEBUG_ERR, "rig: dlsym(%s) failed (%s)\n",
-							initfuncname, dlerror());
-				dlclose(be_handle);
+							initfuncname, lt_dlerror());
+				lt_dlclose(be_handle);
 				return -RIG_EINVAL;
 		}
 
 		status = (*be_init)(be_handle);
 
 	 	return status;
-
-# undef PREFIX
-# undef POSTFIX
-#else /* HAVE_DLOPEN */
-    rig_debug(RIG_DEBUG_ERR, "rig_backend_load: ignoring attempt to load `%s'; no dl support\n",
-					      be_name);
-    return -RIG_ENIMPL;
-#endif /* HAVE_DLOPEN */
 }
 
