@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.16 2004-06-14 19:32:26 f4dwv Exp $
+ *	$Id: ts850.c,v 1.17 2004-06-14 20:57:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -505,7 +505,7 @@ int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
                 unsigned char lvlbuf[50];
-                int lvl_len, retval;
+                int i, lvl_len, retval;
 
 		if(vfo!=RIG_VFO_CURR)
 			return -RIG_EINVAL;
@@ -534,11 +534,11 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                                 return retval;
 
 			lvlbuf[7]='\0';
-			val->i=atoi(&lvlbuf[3]);
-			if(val->i == 30) 
+			i=atoi(&lvlbuf[3]);
+			if(i == 30) 
 				val->f = 150.0; /* infinity :-) */
 			else
-				val->f = 60.0/(30.0-(float)val->i)-1.0;
+				val->f = 60.0/(30.0-(float)i)-1.0;
                         break;
                 case RIG_LEVEL_COMP:
                 	lvl_len = 0;
