@@ -27,9 +27,12 @@
 #
 #
 #
-#	$Id: Makefile,v 1.7 2000-09-24 23:32:04 javabear Exp $	
+#	$Id: Makefile,v 1.8 2000-09-24 23:49:28 javabear Exp $	
 #
 #
+
+BACKEND_INCLUDE	=	../ft747/include
+
 INSTALL_LIBDIR		=	./lib/
 INSTALL_INCLUDEDIR	=	./include/
 INCLUDE		=	-I/usr/include -I/usr/local/include -I. -I../common
@@ -44,18 +47,19 @@ LIB_OBJECTS     =	serial.o rig.o
 
 CC	=	gcc
 INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include
-OBJ	=	serial.o rig.o testrig.o
+OBJ	=	serial.o rig.o #testrig.o
 LDFLAG	=	-lm 
 
 CFLAGS	=	-g -Wall -D__USE_FIXED_PROTOTYPES__ -pedantic -fPIC -g -Wall
 MAKEALL	=	$(OBJ)
 
-all:	lib
+all:	hamlib
 
-.PHONY:	lib
-lib:	
+.PHONY:	hamlib
+hamlib:	
 	$(CC) $(CFLAGS) $(INCLUDE) -c $(LIB_SRC)
 	$(CC) -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
+
 # install header and lib
 
 install:
@@ -83,10 +87,12 @@ rig.o: rig.c rig.h riglist.h
 	$(CC)	$(CFLAGS)  $(INCLUDE) -c rig.c
 
 
-# clean up
+# clean up local,lib and include
 
 clean:
 	make cleanlocal
+	make cleanlib
+	make cleaninclude
 
 # clean up local directory
 
@@ -95,12 +101,16 @@ cleanlocal:
 	rm -f *.o 
 	rm -f $(LIB_RELEASE)
 
+# clean up local lib directory
 
-# test making a shared lib ( for the frontend -- FS
-# still lots to cleanup. 
+.PHONY: cleanlib
+cleanlib:
+	cd $(INSTALL_LIBDIR); rm -f $(LIB_NAME)*
 
-.PHONY: hamlib
-hamlib:	 
-	$(CC) $(CFLAGS) $(INCLUDE) -c $(LIB_SRC)
-	$(CC) -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
+
+# clean up local include directory
+
+.PHONY: cleaninclude
+cleaninclude:
+	cd $(INSTALL_INCLUDEDIR); rm -f $(LIB_HEADER)
 
