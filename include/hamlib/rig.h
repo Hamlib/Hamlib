@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.71 2002-11-12 00:15:01 fillods Exp $
+ *	$Id: rig.h,v 1.72 2002-11-28 22:38:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,22 +77,23 @@ extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
 /*
  * Error codes that can be returned by the Hamlib functions
  */
-#define RIG_OK			0	/* completed sucessfully */
-#define RIG_EINVAL		1	/* invalid parameter */
-#define RIG_ECONF		2	/* invalid configuration (serial,..) */
-#define RIG_ENOMEM		3	/* memory shortage */
-#define RIG_ENIMPL		4	/* function not implemented, but will be */
-#define RIG_ETIMEOUT		5	/* communication timed out */
-#define RIG_EIO			6	/* IO error, including open failed */
-#define RIG_EINTERNAL		7	/* Internal Hamlib error, huh! */
-#define RIG_EPROTO		8	/* Protocol error */
-#define RIG_ERJCTED		9	/* Command rejected by the rig */
-#define RIG_ETRUNC 		10	/* Command performed, but arg truncated */
-#define RIG_ENAVAIL		11	/* function not available */
-#define RIG_ENTARGET		12	/* VFO not targetable */
-#define RIG_BUSERROR		13	/* Error talking on the bus */
-#define RIG_BUSBUSY		14	/* Collision on the bus */
-
+enum rig_errcode_e {
+	RIG_OK,			/*<! completed sucessfully */
+	RIG_EINVAL,		/*<! invalid parameter */
+	RIG_ECONF,		/*<! invalid configuration (serial,..) */
+	RIG_ENOMEM,		/*<! memory shortage */
+	RIG_ENIMPL,		/*<! function not implemented, but will be */
+	RIG_ETIMEOUT,		/*<! communication timed out */
+	RIG_EIO,		/*<! IO error, including open failed */
+	RIG_EINTERNAL,		/*<! Internal Hamlib error, huh! */
+	RIG_EPROTO,		/*<! Protocol error */
+	RIG_ERJCTED,		/*<! Command rejected by the rig */
+	RIG_ETRUNC,		/*<! Command performed, but arg truncated */
+	RIG_ENAVAIL,		/*<! function not available */
+	RIG_ENTARGET,		/*<! VFO not targetable */
+	RIG_BUSERROR,		/*<! Error talking on the bus */
+	RIG_BUSBUSY,		/*<! Collision on the bus */
+};
 
 /**
  *\brief Hamlib debug levels
@@ -102,12 +103,12 @@ extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
  * \sa rig_set_debug
  */
 enum rig_debug_level_e {
-  RIG_DEBUG_NONE = 0,
-  RIG_DEBUG_BUG,
-  RIG_DEBUG_ERR,
-  RIG_DEBUG_WARN,
-  RIG_DEBUG_VERBOSE,
-  RIG_DEBUG_TRACE
+  RIG_DEBUG_NONE = 0,		/*<! no bug reporting */
+  RIG_DEBUG_BUG,		/*<! serious bug */
+  RIG_DEBUG_ERR,		/*<! error case (e.g. protocol, memory allocation) */
+  RIG_DEBUG_WARN,		/*<! warning */
+  RIG_DEBUG_VERBOSE,		/*<! verbose */
+  RIG_DEBUG_TRACE		/*<! tracing */
 };
 
 /* --------------- Rig capabilities -----------------*/
@@ -135,6 +136,13 @@ typedef struct rig RIG;
 
 /**
  * \brief CTCSS and DCS type definition.
+ *
+ * Continuous Tone Controlled Squelch System (CTCSS)
+ * sub-audible tone frequency are expressed in \em tenth of Hz.
+ * For example, the subaudible tone of 88.5 Hz is represented within
+ * Hamlib by 885.
+ *
+ * Digitally-Coded Squelch codes are simple direct integers.
  */
 typedef unsigned int tone_t;
 
@@ -150,6 +158,7 @@ enum rig_port_e {
   RIG_PORT_DTMF,		/*!< DTMF protocol bridge via another rig, eg. Kenwood Sky Cmd System */
   RIG_PORT_ULTRA,		/*!< IrDA Ultra protocol! */
   RIG_PORT_RPC,			/*!< RPC wrapper */
+  RIG_PORT_PARALLEL,		/*!< Parallel port */
 };
 
 /**
@@ -182,9 +191,10 @@ enum serial_handshake_e {
 #define RIG_FLAG_APRS			(1<<8)
 #define RIG_FLAG_TNC			(1<<9)
 #define RIG_FLAG_DXCLUSTER		(1<<10)
+#define RIG_FLAG_TUNER			(1<<11)		/* dumb tuner */
 
 #define RIG_FLAG_TRANSCEIVER (RIG_FLAG_RECEIVER|RIG_FLAG_TRANSMITTER)
-#define RIG_TYPE_MASK (RIG_FLAG_TRANSCEIVER|RIG_FLAG_SCANNER|RIG_FLAG_MOBILE|RIG_FLAG_HANDHELD|RIG_FLAG_COMPUTER|RIG_FLAG_TRUNKING)
+#define RIG_TYPE_MASK (RIG_FLAG_TRANSCEIVER|RIG_FLAG_SCANNER|RIG_FLAG_MOBILE|RIG_FLAG_HANDHELD|RIG_FLAG_COMPUTER|RIG_FLAG_TRUNKING|RIG_FLAG_TUNER)
 
 #define RIG_TYPE_OTHER		0
 #define RIG_TYPE_TRANSCEIVER	RIG_FLAG_TRANSCEIVER
@@ -195,6 +205,7 @@ enum serial_handshake_e {
 #define RIG_TYPE_SCANNER	(RIG_FLAG_SCANNER|RIG_FLAG_RECEIVER)
 #define RIG_TYPE_TRUNKSCANNER	(RIG_TYPE_SCANNER|RIG_FLAG_TRUNKING)
 #define RIG_TYPE_COMPUTER	(RIG_FLAG_TRANSCEIVER|RIG_FLAG_COMPUTER)
+#define RIG_TYPE_TUNER		RIG_FLAG_TUNER
 
 
 /**
@@ -266,13 +277,13 @@ typedef signed long shortfreq_t;
  *
  * There is one byte per "tunable channel":
  *
-\code
+\verbatim
     MSB           LSB
      8             1
     +-+-+-+-+-+-+-+-+
     | |             |
     CTL     VFO
-\endcode
+\endverbatim
  *
  * The least significant byte holds the first "tunable channel",
  * the second byte the second one and so on.
@@ -283,13 +294,24 @@ typedef signed long shortfreq_t;
  */
 typedef int vfo_t;
 
-#define RIG_VFO_CURR    0       /* current "tunable channel"/VFO */
-#define RIG_VFO_NONE    0       /* used in caps */
+/** \brief current "tunable channel"/VFO */
+#define RIG_VFO_CURR    0
 
-#define RIG_VFO_MEM		-2		/* means Memory mode, to be used with set_vfo */
-#define RIG_VFO_VFO		-3		/* means (any)VFO mode, with set_vfo */
-#define RIG_VFO_UPLINK		-4		/* alias for duplex uplink */
-#define RIG_VFO_DOWNLINK	-5		/* alias for duplex downlink */
+/** \brief used in caps */
+#define RIG_VFO_NONE    0
+
+/** \brief means Memory mode, to be used with set_vfo */
+#define RIG_VFO_MEM	-2
+
+/** \brief means (any)VFO mode, with set_vfo */
+#define RIG_VFO_VFO	-3
+
+/** \brief alias for split tx or uplink  */
+#define RIG_VFO_TX	-4
+
+/** \brief alias for split rx or downlink */
+#define RIG_VFO_RX	-5
+
 
 #define RIG_VFO1 (1<<0)
 #define RIG_VFO2 (1<<1)
@@ -327,6 +349,7 @@ enum dcd_e {
   RIG_DCD_OFF = 0,		/*!< Squelch closed */
   RIG_DCD_ON			/*!< Squelch open */
 };
+/** \brief dcd_t type */
 typedef enum dcd_e dcd_t;
 
 /**
@@ -428,9 +451,10 @@ typedef long vfo_op_t;
 #define RIG_SCAN_DELTA	(1L<<4)		/* delta-f scan */
 #define RIG_SCAN_VFO	(1L<<5)		/* most basic scan */
 
+/** \brief Scan type */
 typedef long scan_t;
 
-/*
+/**
  * configuration token
  */
 typedef long token_t;
@@ -479,11 +503,20 @@ struct confparams {
 #define RIG_ANN_FREQ	(1<<0)
 #define RIG_ANN_RXMODE	(1<<1)
 #define RIG_ANN_ALL 	(1<<2)
+
+/** \brief Announce */
 typedef long ann_t;
 
 
 /* Antenna number */
 typedef int ant_t;
+
+#define RIG_ANT_NONE	0
+#define RIG_ANT_1	(1<<0)
+#define RIG_ANT_2	(1<<1)
+#define RIG_ANT_3	(1<<2)
+#define RIG_ANT_4	(1<<3)
+
 
 /* TODO: kill me, and replace by real AGC delay */
 enum agc_level_e {
@@ -516,6 +549,7 @@ union value_u {
   char *s;			/*!< Pointer to char string */
   const char *cs;		/*!< Pointer to constant char string */
 };
+/** \brief Value */
 typedef union value_u value_t;
 
 #define RIG_LEVEL_NONE		0ULL
@@ -578,7 +612,13 @@ typedef union value_u value_t;
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 
 #define RIG_SETTING_MAX 64
-typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
+/**
+ * \brief Setting
+ *
+ * This can be a func, a level or a parm.
+ * Each bit designate one of them, let's hope 64 bits will be enough.
+ */
+typedef unsigned long long setting_t;
 
 /*
  * tranceive mode, ie. the rig notify the host of any event,
@@ -634,13 +674,14 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define W(p)	 Watts(p)
 #define kW(p)	 ((int)((p)*1000000L))
 
-typedef unsigned int rmode_t;	/* radio mode  */
+/** \brief Radio mode  */
+typedef unsigned int rmode_t;
 
 /*
  * Do not use an enum since this will be used w/ rig_mode_t bit fields.
  * Also, how should CW reverse sideband and RTTY reverse
  * sideband be handled?
- * */
+ */
 #define RIG_MODE_NONE  	0
 #define RIG_MODE_AM    	(1<<0)
 #define RIG_MODE_CW    	(1<<1)
@@ -672,6 +713,7 @@ struct freq_range_list {
   vfo_t vfo;		/*!< VFO list equipped with this range */
   ant_t ant;		/*!< Antenna list equipped with this range, 0 means all */
 };
+/** \brief Freq range */
 typedef struct freq_range_list freq_range_t;
 
 #define RIG_FRNG_END     {Hz(0),Hz(0),RIG_MODE_NONE,0,0,RIG_VFO_NONE}
@@ -756,9 +798,13 @@ struct channel {
   freq_t freq;			/*!< Receive frequency */
   rmode_t mode;			/*!< Receive mode */
   pbwidth_t width;		/*!< Receive passband width associated with mode */
+
+#ifndef NO_SPLIT_FIELD 
   freq_t tx_freq;		/*!< Transmit frequency */
   rmode_t tx_mode;		/*!< Transmit mode */
   pbwidth_t tx_width;		/*!< Transmit passband width associated with mode */
+#endif
+
   split_t split;		/*!< Split mode */
   rptr_shift_t rptr_shift;	/*!< Repeater shift */
   shortfreq_t rptr_offs;	/*!< Repeater offset */
@@ -777,6 +823,7 @@ struct channel {
   struct ext_list *ext_levels;	/*!< Extension level value list, NULL ended. ext_levels can be NULL */
 };
 
+/** \brief Channel */
 typedef struct channel channel_t;
 
 /**
@@ -793,9 +840,11 @@ struct channel_cap {
   unsigned freq:1;		/*!< Receive frequency */
   unsigned mode:1;		/*!< Receive mode */
   unsigned width:1;		/*!< Receive passband width associated with mode */
+#ifndef NO_SPLIT_FIELD 
   unsigned tx_freq:1;		/*!< Transmit frequency */
   unsigned tx_mode:1;		/*!< Transmit mode */
   unsigned tx_width:1;		/*!< Transmit passband width associated with mode */
+#endif
   unsigned split:1;		/*!< Split mode */
   unsigned rptr_shift:1;	/*!< Repeater shift */
   unsigned rptr_offs:1;		/*!< Repeater offset */
@@ -814,6 +863,7 @@ struct channel_cap {
   unsigned ext_levels:1;	/*!< Extension level value list */
 };
 
+/** \brief Channel cap */
 typedef struct channel_cap channel_cap_t;
 
 
@@ -842,9 +892,9 @@ enum chan_type_e {
  * Example for the Ic706MkIIG (99 memory channels, 2 scan edges, 2 call chans):
 \code
 	chan_t chan_list[] = {
-		{ 1, 99, RIG_MTYPE_MEM, 0 },
-		{ 100, 103, RIG_MTYPE_EDGE, 0 },
-		{ 104, 105, RIG_MTYPE_CALL, 0 },
+		{ 1, 99, RIG_MTYPE_MEM  },
+		{ 100, 103, RIG_MTYPE_EDGE },
+		{ 104, 105, RIG_MTYPE_CALL },
 		RIG_CHAN_END
 	}
 \endcode
@@ -859,8 +909,10 @@ struct chan_list {
 #define RIG_CHAN_END     {0,0,RIG_MTYPE_NONE}
 #define RIG_IS_CHAN_END(c)	((c).type == RIG_MTYPE_NONE)
 
+/** \brief chan_t type */
 typedef struct chan_list chan_t;
 
+/** \brief gran_t type */
 typedef	float gran_t;
 
 
@@ -990,12 +1042,14 @@ struct rig_caps {
   int (*set_rptr_offs) (RIG * rig, vfo_t vfo, shortfreq_t offs);
   int (*get_rptr_offs) (RIG * rig, vfo_t vfo, shortfreq_t * offs);
 
+#ifndef NO_SPLIT_FIELD 
   int (*set_split_freq) (RIG * rig, vfo_t vfo, freq_t tx_freq);
   int (*get_split_freq) (RIG * rig, vfo_t vfo, freq_t * tx_freq);
   int (*set_split_mode) (RIG * rig, vfo_t vfo, rmode_t tx_mode,
 			       pbwidth_t tx_width);
   int (*get_split_mode) (RIG * rig, vfo_t vfo, rmode_t * tx_mode,
 			       pbwidth_t * tx_width);
+#endif
   int (*set_split) (RIG * rig, vfo_t vfo, split_t split);
   int (*get_split) (RIG * rig, vfo_t vfo, split_t * split);
 
@@ -1280,10 +1334,12 @@ extern HAMLIB_EXPORT(int) rig_get_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, 
 extern HAMLIB_EXPORT(int) rig_set_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
 extern HAMLIB_EXPORT(int) rig_get_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
+#ifndef NO_SPLIT_FIELD 
 extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t tx_freq));
 extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *tx_freq));
 extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width));
 extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width));
+#endif
 extern HAMLIB_EXPORT(int) rig_set_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t split));
 extern HAMLIB_EXPORT(int) rig_get_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t *split));
 
