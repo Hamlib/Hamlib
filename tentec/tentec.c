@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: tentec.c,v 1.3 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: tentec.c,v 1.4 2002-01-06 17:49:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,6 +72,8 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 
 	rs = &rig->state;
 
+	serial_flush(&rs->rigport);
+
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
 			return retval;
@@ -82,6 +84,9 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 	/*
 	 * buffered read are quite helpful here!
 	 * However, an automate with a state model would be more efficient..
+	 *
+	 * FIXME:
+	 * and BTW, this is currently helpless since length of response may vary
 	 */
 	i = 0;
 	do {
@@ -144,6 +149,27 @@ int tentec_cleanup(RIG *rig)
 		free(rig->state.priv);
 
 	rig->state.priv = NULL;
+
+	return RIG_OK;
+}
+
+/*
+ * Tentec transceiver only open routine
+ * Restart and set program to execute.
+ */
+int tentec_trx_open(RIG *rig)
+{
+	struct rig_state *rs = &rig->state;
+	int ack_len, retval;
+	char ack[16];
+
+	/*
+	 * be kind: use XX first, and do 'Dsp Program Execute' only 
+	 * in " DSP START" state.
+	 */
+	retval = tentec_transaction (rig, "P1" EOM, 3, NULL, NULL);
+	if (retval != RIG_OK)
+		return retval;
 
 	return RIG_OK;
 }
@@ -437,6 +463,7 @@ int initrigs_tentec(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "tentec: _init called\n");
 
+		rig_register(&tt550_caps);
 		rig_register(&rx320_caps);
 
 		return RIG_OK;

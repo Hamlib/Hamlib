@@ -1,4 +1,4 @@
-TENTECSRCLIST = rx320.c
+TENTECSRCLIST = rx320.c pegasus.c
 
 lib_LTLIBRARIES = libhamlib-tentec.la
 libhamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c

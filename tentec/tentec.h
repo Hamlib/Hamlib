@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main header
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: tentec.h,v 1.3 2001-12-28 20:28:04 fillods Exp $
+ *		$Id: tentec.h,v 1.4 2002-01-06 17:49:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,6 +50,7 @@ struct tentec_priv_data {
 
 int tentec_init(RIG *rig);
 int tentec_cleanup(RIG *rig);
+int tentec_trx_open(RIG *rig);
 int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int tentec_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
@@ -59,6 +60,7 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 const char* tentec_get_info(RIG *rig);
 
 extern const struct rig_caps rx320_caps;
+extern const struct rig_caps tt550_caps;
 
 extern BACKEND_EXPORT(int) initrigs_tentec(void *be_handle);
 
