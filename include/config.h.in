@@ -62,6 +62,12 @@
 /* Define if you have the <gd.h> header file.  */
 #undef HAVE_GD_H
 
+/* Define if you have the <linradio/radio_ioctl.h> header file.  */
+#undef HAVE_LINRADIO_RADIO_IOCTL_H
+
+/* Define if you have the <linradio/wrapi.h> header file.  */
+#undef HAVE_LINRADIO_WRAPI_H
+
 /* Define if you have the <sys/ioctl.h> header file.  */
 #undef HAVE_SYS_IOCTL_H
 
