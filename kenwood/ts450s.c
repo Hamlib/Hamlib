@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.11 2002-12-16 15:36:48 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.12 2002-12-17 12:08:05 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -102,7 +102,7 @@ static int ts450s_get_vfo(RIG *rig, vfo_t *vfo)
   return retval;
 
   if (info_len != 38 || infobuf[1] != 'F') {
-    rig_debug(RIG_DEBUG_ERR,"ts450s_get_mode: wrong answer len=%d\n",
+    rig_debug(RIG_DEBUG_ERR,"ts450s_get_vfo: wrong answer len=%d\n",
       info_len);
     return -RIG_ERJCTED;
   }
@@ -153,9 +153,9 @@ const struct rig_caps ts450s_caps = {
 .rig_model =  RIG_MODEL_TS450S,
 .model_name = "TS-450S",
 .mfg_name =  "Kenwood",
-.version =  "0.2.1",
+.version =  "0.2.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
