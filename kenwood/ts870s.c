@@ -1,13 +1,13 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * ts870s.c - Copyright (C) 2000 Stephane Fillod
+ * ts870s.c - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to a Kenwood radio
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.10 2001-03-04 13:06:36 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.11 2001-04-28 12:40:44 f4cfe Exp $  
  *
  *
  *
@@ -49,11 +49,15 @@
 
 #define TS870S_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
 
+#define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
+
 /*
  * ts870s rig capabilities.
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  * RIT: Variable Range ±9.99 kHz
+ *
+ * part of infos comes from http://www.kenwood.net/
  */
 const struct rig_caps ts870s_caps = {
   RIG_MODEL_TS870S, "TS-870S", "Kenwood", "0.1", "GPL",
@@ -68,7 +72,7 @@ const struct rig_caps ts870s_caps = {
   { RIG_DBLST_END, },
   NULL,
   Hz(9999), Hz(0),	/* RIT, IF-SHIFT */
-  0,			/* FIXME: VFO list */
+  TS870S_VFO,
   0, RIG_TRN_RIG,
   1000, 0, 0,
 
@@ -77,28 +81,28 @@ const struct rig_caps ts870s_caps = {
   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   { RIG_FRNG_END, },
   {
-	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1},
+	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1,TS870S_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
   {
-    {kHz(1800),MHz(2)-1,TS870S_OTHER_TX_MODES,5000,100000},	/* 100W class */
-    {kHz(1800),MHz(2)-1,TS870S_AM_TX_MODES,2000,25000},		/* 25W class */
-    {kHz(3500),MHz(4)-1,TS870S_OTHER_TX_MODES,5000,100000},
-    {kHz(3500),MHz(4)-1,TS870S_AM_TX_MODES,2000,25000},
-    {MHz(7),kHz(7300),TS870S_OTHER_TX_MODES,5000,100000},
-    {MHz(7),kHz(7300),TS870S_AM_TX_MODES,2000,25000},
-    {kHz(10100),kHz(10150),TS870S_OTHER_TX_MODES,5000,100000},
-    {kHz(10100),kHz(10150),TS870S_AM_TX_MODES,2000,25000},
-    {MHz(14),kHz(14350),TS870S_OTHER_TX_MODES,5000,100000},
-    {MHz(14),kHz(14350),TS870S_AM_TX_MODES,2000,25000},
-    {kHz(18068),kHz(18168),TS870S_OTHER_TX_MODES,5000,100000},
-    {kHz(18068),kHz(18168),TS870S_AM_TX_MODES,2000,25000},
-    {MHz(21),kHz(21450),TS870S_OTHER_TX_MODES,5000,100000},
-    {MHz(21),kHz(21450),TS870S_AM_TX_MODES,2000,25000},
-    {kHz(24890),kHz(24990),TS870S_OTHER_TX_MODES,5000,100000},
-    {kHz(24890),kHz(24990),TS870S_AM_TX_MODES,2000,25000},
-    {MHz(28),kHz(29700),TS870S_OTHER_TX_MODES,5000,100000},
-    {MHz(28),kHz(29700),TS870S_AM_TX_MODES,2000,25000},
+    {kHz(1800),MHz(2)-1,TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},	/* 100W class */
+    {kHz(1800),MHz(2)-1,TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},		/* 25W class */
+    {kHz(3500),MHz(4)-1,TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {kHz(3500),MHz(4)-1,TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+    {MHz(7),kHz(7300),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {MHz(7),kHz(7300),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+    {kHz(10100),kHz(10150),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {kHz(10100),kHz(10150),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+    {MHz(14),kHz(14350),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {MHz(14),kHz(14350),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+    {kHz(18068),kHz(18168),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {kHz(18068),kHz(18168),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+    {MHz(21),kHz(21450),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {MHz(21),kHz(21450),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+    {kHz(24890),kHz(24990),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {kHz(24890),kHz(24990),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+    {MHz(28),kHz(29700),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
+    {MHz(28),kHz(29700),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
 	RIG_FRNG_END,
   }, /* tx range */
   {
@@ -118,7 +122,11 @@ const struct rig_caps ts870s_caps = {
 	},
         /* mode/filter list, remember: order matters! */
     {
-		/* FIXME! */
+		{RIG_MODE_SSB, kHz(2.4)},
+		{RIG_MODE_CW, Hz(200)},
+		{RIG_MODE_RTTY, Hz(500)},
+		{RIG_MODE_AM, kHz(9)},
+		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
   NULL,	/* priv */
