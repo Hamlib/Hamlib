@@ -19,6 +19,11 @@ BuildRequires: /bin/sh, automake >= 1.4, libtool >= 1.4, fileutils, findutils
 
 %changelog
 
+* Tue Jan 20 2004 Tomi Manninen
+- Fix for 1.1.5pre2
+- Better use of rpm macros
+- Disable all bindings
+
 * Tue Oct 08 2003 Joop Stakenborg
 - Fix 'make rpm' again by disabling c++ bindings.
 - rotclass.h and rigclass.h go into the devel package for now (FIXME)
@@ -102,15 +107,18 @@ Requires: hamlib
 %setup
 %build
 
-./configure --prefix=%prefix --without-cxx-binding
+%configure --without-cxx-binding   \
+	   --without-perl-binding  \
+	   --without-kylix-binding \
+	   --without-tcl-binding   \
+	   --without-python-binding
 make CFLAGS="$RPM_OPT_FLAGS" CXXFLAGS="$RPM_OPT_FLAGS" all
 
 %install
 rm -rf $RPM_BUILD_ROOT
 (umask 077 && mkdir -p $RPM_BUILD_ROOT)
 chmod go= $RPM_BUILD_ROOT
-
-make prefix="$RPM_BUILD_ROOT%{prefix}" "INSTALL_PROGRAM_ARGS=-s" install
+%makeinstall
 
 chmod 644 $RPM_BUILD_ROOT%{prefix}/lib/*.la
 #strip $RPM_BUILD_ROOT%{prefix}/lib/*-%{version}.so
@@ -133,101 +141,121 @@ rm -rf $RPM_BUILD_ROOT
 #%doc doc/*.txt
 
 %defattr(755, root, root, 755)
-%{prefix}/lib/libhamlib-%{ver}.so.1
-%{prefix}/lib/libhamlib-%{ver}.so.1.0.0
-%{prefix}/lib/libhamlib.la
-%{prefix}/lib/hamlib-alinco.so
-%{prefix}/lib/hamlib-alinco.la
-%{prefix}/lib/hamlib-aor.so
-%{prefix}/lib/hamlib-aor.la
-%{prefix}/lib/hamlib-drake.so
-%{prefix}/lib/hamlib-drake.la
-%{prefix}/lib/hamlib-dummy.so
-%{prefix}/lib/hamlib-dummy.la
-%{prefix}/lib/hamlib-easycomm.so
-%{prefix}/lib/hamlib-easycomm.la
-%{prefix}/lib/hamlib-fodtrack.so
-%{prefix}/lib/hamlib-fodtrack.la
-%{prefix}/lib/hamlib-icom.so
-%{prefix}/lib/hamlib-icom.la
-%{prefix}/lib/hamlib-jrc.so
-%{prefix}/lib/hamlib-jrc.la
-%{prefix}/lib/hamlib-kachina.so
-%{prefix}/lib/hamlib-kachina.la
-%{prefix}/lib/hamlib-kenwood.so
-%{prefix}/lib/hamlib-kenwood.la
-%{prefix}/lib/hamlib-pcr.so
-%{prefix}/lib/hamlib-pcr.la
-%{prefix}/lib/hamlib-rotorez.so
-%{prefix}/lib/hamlib-rotorez.la
-%{prefix}/lib/hamlib-rpcrig.so
-%{prefix}/lib/hamlib-rpcrig.la
-%{prefix}/lib/hamlib-rpcrot.so
-%{prefix}/lib/hamlib-rpcrot.la
-%{prefix}/lib/hamlib-tentec.so
-%{prefix}/lib/hamlib-tentec.la
-%{prefix}/lib/hamlib-uniden.so
-%{prefix}/lib/hamlib-uniden.la
-%{prefix}/lib/hamlib-winradio.so
-%{prefix}/lib/hamlib-winradio.la
-%{prefix}/lib/hamlib-yaesu.so
-%{prefix}/lib/hamlib-yaesu.la
-%{prefix}/bin/rigctl
-%{prefix}/sbin/rpc.rigd
-%{prefix}/man/man1/rigctl.1.gz
-%{prefix}/man/man8/rpc.rigd.8.gz
-%{prefix}/bin/rotctl
-%{prefix}/sbin/rpc.rotd
-%{prefix}/man/man1/rotctl.1.gz
-%{prefix}/man/man8/rpc.rotd.8.gz
+%{_libdir}/libhamlib-%{ver}.so.2
+%{_libdir}/libhamlib-%{ver}.so.2.0.0
+%{_libdir}/libhamlib.la
+%{_libdir}/hamlib-alinco.so
+%{_libdir}/hamlib-alinco.la
+%{_libdir}/hamlib-aor.so
+%{_libdir}/hamlib-aor.la
+%{_libdir}/hamlib-drake.so
+%{_libdir}/hamlib-drake.la
+%{_libdir}/hamlib-dummy.so
+%{_libdir}/hamlib-dummy.la
+%{_libdir}/hamlib-easycomm.so
+%{_libdir}/hamlib-easycomm.la
+%{_libdir}/hamlib-flexradio.so
+%{_libdir}/hamlib-flexradio.la
+%{_libdir}/hamlib-fodtrack.so
+%{_libdir}/hamlib-fodtrack.la
+%{_libdir}/hamlib-icom.so
+%{_libdir}/hamlib-icom.la
+%{_libdir}/hamlib-jrc.so
+%{_libdir}/hamlib-jrc.la
+%{_libdir}/hamlib-kachina.so
+%{_libdir}/hamlib-kachina.la
+%{_libdir}/hamlib-kenwood.so
+%{_libdir}/hamlib-kenwood.la
+%{_libdir}/hamlib-lowe.so
+%{_libdir}/hamlib-lowe.la
+%{_libdir}/hamlib-microtune.so
+%{_libdir}/hamlib-microtune.la
+%{_libdir}/hamlib-pcr.so
+%{_libdir}/hamlib-pcr.la
+%{_libdir}/hamlib-rft.so
+%{_libdir}/hamlib-rft.la
+%{_libdir}/hamlib-rotorez.so
+%{_libdir}/hamlib-rotorez.la
+%{_libdir}/hamlib-rpcrig.so
+%{_libdir}/hamlib-rpcrig.la
+%{_libdir}/hamlib-rpcrot.so
+%{_libdir}/hamlib-rpcrot.la
+%{_libdir}/hamlib-sartek.so
+%{_libdir}/hamlib-sartek.la
+%{_libdir}/hamlib-tapr.so
+%{_libdir}/hamlib-tapr.la
+%{_libdir}/hamlib-tentec.so
+%{_libdir}/hamlib-tentec.la
+%{_libdir}/hamlib-uniden.so
+%{_libdir}/hamlib-uniden.la
+%{_libdir}/hamlib-winradio.so
+%{_libdir}/hamlib-winradio.la
+%{_libdir}/hamlib-yaesu.so
+%{_libdir}/hamlib-yaesu.la
+%{_bindir}/rigctl
+%{_sbindir}/rpc.rigd
+%{_mandir}/man1/rigctl.1.gz
+%{_mandir}/man8/rpc.rigd.8.gz
+%{_bindir}/rotctl
+%{_sbindir}/rpc.rotd
+%{_mandir}/man1/rotctl.1.gz
+%{_mandir}/man8/rpc.rotd.8.gz
+%{_bindir}/rigmem
+%{_mandir}/man1/rigmem.1.gz
 
 %files devel
 %defattr(644, root, root, 755)
 
-%{prefix}/include/hamlib/rig.h
-%{prefix}/include/hamlib/rigclass.h
-%{prefix}/include/hamlib/rotclass.h
-%{prefix}/include/hamlib/rig_dll.h
-%{prefix}/include/hamlib/riglist.h
-%{prefix}/include/hamlib/rotator.h
-%{prefix}/include/hamlib/rotlist.h
-%{prefix}/share/aclocal/hamlib.m4
-%{prefix}/lib/pkgconfig/hamlib.pc
-%{prefix}/lib/libhamlib.a
-%{prefix}/lib/libhamlib.so
-%{prefix}/lib/hamlib-alinco.a
-%{prefix}/lib/hamlib-aor.a
-%{prefix}/lib/hamlib-drake.a
-%{prefix}/lib/hamlib-dummy.a
-%{prefix}/lib/hamlib-easycomm.a
-%{prefix}/lib/hamlib-fodtrack.a
-%{prefix}/lib/hamlib-icom.a
-%{prefix}/lib/hamlib-jrc.a
-%{prefix}/lib/hamlib-kachina.a
-%{prefix}/lib/hamlib-kenwood.a
-%{prefix}/lib/hamlib-pcr.a
-%{prefix}/lib/hamlib-rotorez.a
-%{prefix}/lib/hamlib-rpcrig.a
-%{prefix}/lib/hamlib-rpcrot.a
-%{prefix}/lib/hamlib-tentec.a
-%{prefix}/lib/hamlib-uniden.a
-%{prefix}/lib/hamlib-winradio.a
-%{prefix}/lib/hamlib-yaesu.a
+%{_includedir}/hamlib/rig.h
+%{_includedir}/hamlib/rigclass.h
+%{_includedir}/hamlib/rotclass.h
+%{_includedir}/hamlib/rig_dll.h
+%{_includedir}/hamlib/riglist.h
+%{_includedir}/hamlib/rotator.h
+%{_includedir}/hamlib/rotlist.h
+%{_datadir}/aclocal/hamlib.m4
+%{_libdir}/pkgconfig/hamlib.pc
+%{_libdir}/libhamlib.a
+%{_libdir}/libhamlib.so
+%{_libdir}/hamlib-alinco.a
+%{_libdir}/hamlib-aor.a
+%{_libdir}/hamlib-drake.a
+%{_libdir}/hamlib-dummy.a
+%{_libdir}/hamlib-easycomm.a
+%{_libdir}/hamlib-flexradio.a
+%{_libdir}/hamlib-fodtrack.a
+%{_libdir}/hamlib-icom.a
+%{_libdir}/hamlib-jrc.a
+%{_libdir}/hamlib-kachina.a
+%{_libdir}/hamlib-kenwood.a
+%{_libdir}/hamlib-lowe.a
+%{_libdir}/hamlib-microtune.a
+%{_libdir}/hamlib-pcr.a
+%{_libdir}/hamlib-rft.a
+%{_libdir}/hamlib-rotorez.a
+%{_libdir}/hamlib-rpcrig.a
+%{_libdir}/hamlib-rpcrot.a
+%{_libdir}/hamlib-sartek.a
+%{_libdir}/hamlib-tapr.a
+%{_libdir}/hamlib-tentec.a
+%{_libdir}/hamlib-uniden.a
+%{_libdir}/hamlib-winradio.a
+%{_libdir}/hamlib-yaesu.a
 
 #%files c++
 #%defattr(755, root, root, 755)
-#%{prefix}/lib/libhamlib++-%{version}.so
+#%{_libdir}/libhamlib++-%{version}.so
 
 
 #%files c++-devel
 #%defattr(644, root, root, 755)
 
-#%{prefix}/include/hamlib/rigclass.h
-#%{prefix}/include/hamlib/rotclass.h
+#%{_includedir}/hamlib/rigclass.h
+#%{_includedir}/hamlib/rotclass.h
 
-#%{prefix}/share/aclocal/hamlib++.m4
-#%{prefix}/lib/libhamlib++.a
-#%{prefix}/lib/libhamlib++.la
+#%{_datadir}/aclocal/hamlib++.m4
+#%{_libdir}/libhamlib++.a
+#%{_libdir}/libhamlib++.la
 
 #%files perl
 #%defattr(755, root, root, 755)
