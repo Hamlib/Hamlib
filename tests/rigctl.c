@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.36 2002-09-06 10:43:59 fillods Exp $  
+ * $Id: rigctl.c,v 1.37 2002-09-06 14:07:16 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -68,6 +68,13 @@ struct test_table {
 	const char *arg3;
 };
 
+
+/* 
+ * external prototype
+ */
+
+int dumpcaps (RIG *);
+
 /* 
  * Prototypes
  */
@@ -127,6 +134,7 @@ declare_proto_rig(get_channel);
 declare_proto_rig(set_trn);
 declare_proto_rig(get_trn);
 declare_proto_rig(get_info);
+declare_proto_rig(dump_caps);
 
 
 
@@ -182,6 +190,7 @@ struct test_table test_list[] = {
 		{ 'B', "set_bank", set_bank, ARG_IN, "Bank" },
 		{ '_', "get_info", get_info, ARG_OUT, "Info" },
 		{ '2', "power2mW", power2mW },
+		{ 0x80, "dump_caps", dump_caps },
 		{ 0x00, "", NULL },
 
 };
@@ -192,7 +201,7 @@ struct test_table test_list[] = {
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:P:d:D:c:s:C:LvhVl"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:lC:LuvhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -206,6 +215,7 @@ static struct option long_options[] =
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
+	{"dump-caps",  0, 0, 'u'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -245,11 +255,12 @@ int main (int argc, char *argv[])
 
 	int interactive=1;	/* if no cmd on command line, switch to interactive */
 	int retcode;		/* generic return code from functions */
-	char cmd;
+	unsigned char cmd;
 	struct test_table *cmd_entry;
 
 	int verbose = 0;
 	int show_conf = 0;
+	int dump_caps_opt = 0;
 	const char *rig_file=NULL, *ptt_file=NULL, *dcd_file=NULL;
 	ptt_type_t ptt_type = RIG_PTT_NONE;
 	dcd_type_t dcd_type = RIG_DCD_NONE;
@@ -369,6 +380,9 @@ int main (int argc, char *argv[])
 			case 'l':
 					list_models();
 					exit(0);
+			case 'u':
+					dump_caps_opt++;
+					break;
 			default:
 					usage();	/* unknown option? */
 					exit(1);
@@ -430,6 +444,16 @@ int main (int argc, char *argv[])
 			rig_token_foreach(my_rig, print_conf_list, (rig_ptr_t)my_rig);
 	}
 
+	/*
+	 * print out conf parameters, and exists immediately
+	 * We may be interested only in only caps, and rig_open may fail.
+	 */
+	if (dump_caps_opt) {
+		dumpcaps(my_rig);
+		rig_cleanup(my_rig); /* if you care about memory */
+		exit(0);
+	}
+
 	retcode = rig_open(my_rig);
 	if (retcode != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
@@ -457,7 +481,7 @@ int main (int argc, char *argv[])
 
 					/* command by name */
 					if (cmd == '\\') {
-						char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
+						unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
 						int c_len = MAXNAMSIZ;
 
 						scanf("%c", pcmd);
@@ -612,6 +636,7 @@ void usage()
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
+	"  -u, --dump-caps            dump capabilities and exit\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n"
@@ -1472,4 +1497,12 @@ void dump_chan(RIG *rig, channel_t *chan)
 	}
 	printf("\n");
 }
+
+declare_proto_rig(dump_caps)
+{
+		dumpcaps(rig);
+
+		return RIG_OK;
+}
+
 

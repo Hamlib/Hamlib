@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "April 17, 2002" "Hamlib"
+.TH RIGCTL "1" "September 6, 2002" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -76,6 +76,9 @@ Set config parameter.
 .B \-l, \-\-list
 List all model numbers and exit.
 .TP
+.B \-u, \-\-dump\-caps
+Dump capabilities and exit.
+.TP
 .B \-v, \-\-verbose
 Set verbose mode, cumulative.
 .TP
@@ -87,12 +90,16 @@ Show version of program and exit.
 
 .SH COMMANDS
 Commands can be entered either as a single char, or as a long command name.
-Basically, the commands do not take a dash in front of them, as
-the options usually do. They may be typed in when in interactive mode
+Basically, the commands do not take a dash in front of them on the command
+line, as the options usually do. They may be typed in when in interactive mode
 or provided as argument in command line interface mode.
+.PP
 Since most of the Hamlib operations have a \fIset\fP and a \fIget\fP method,
 upper case letter will be used for \fIset\fP method whereas the corresponding
 lower case letter refers to the \fIget\fP method.
+In interactive, prepend a backslash to enter a long command name.
+Example: "\\dump_caps" to see what this model can do.
+
 .PP
 Please note that the backend for the radio to be controlled, 
 or the radio itself may not support some commands. In that case, 
@@ -173,16 +180,6 @@ Set tuning step, in Hz.
 .B n, get_ts
 Get tuning step.
 .TP
-.B L, set_level
-Set level/value:
-PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN,
-PBT_OUT, CWPITCH, RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP,
-AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX.
-.TP
-.B l, get_level
-Get level value: also
-SWR, ALC, SQLSTAT, STRENGTH.
-.TP
 .B U, set_func
 Set func/status:
 FAGC, NB, COMP, VOX, TONE, TSQL, SBKIN, FBKIN, ANF, NR, AIP, MON, MN,
@@ -191,9 +188,19 @@ RNF, ARO, LOCK, MUTE, VSC, REV, SQL, BC, MBC, LMP, AFC, SATMODE, SCOPE, RESUME.
 .B u, get_func
 Get func status.
 .TP
+.B L, set_level
+Set level/value:
+PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN,
+PBT_OUT, CWPITCH, RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP,
+AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX. Plus "extra" levels.
+.TP
+.B l, get_level
+Get level value: also
+SWR, ALC, SQLSTAT, STRENGTH.
+.TP
 .B P, set_parm
 Set parm/value:
-ANN, APO, BACKLIGHT, BEEP, TIME, BAT.
+ANN, APO, BACKLIGHT, BEEP, TIME, BAT. Plus "extra" parameters.
 .TP
 .B p, get_parm
 Get parm value.
@@ -228,6 +235,10 @@ Get transceive mode (reporting event).
 .TP
 .B _, get_info
 Get misc information about the rig.
+.TP
+.B dump_caps
+Not a real rig remote command, it just dumps capabilities, 
+i.e. what the backend knows about this model, and what it can do.
 
 .SH RETURN VALUE
 rigctl exits with:

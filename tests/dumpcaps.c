@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.31 2002-01-29 22:04:30 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.32 2002-09-06 14:07:17 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,36 +31,28 @@
 #include "misc.h"
 
 
+static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
 static const char *decode_mtype(enum chan_type_e type);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
 
-int main (int argc, char *argv[])
+/*
+ * the rig may be in rig_init state, but not openned
+ */
+int dumpcaps (RIG* rig)
 { 
 	const struct rig_caps *caps;
 	int status,i;
 	char freqbuf[20];
 	int backend_warnings=0;
-	int rig_model;
 	char prntbuf[256];
 
-	if (argc != 2) {
-			fprintf(stderr,"%s <rig_num>\n",argv[0]);
-			exit(1);
-	}
+	if (!rig || !rig->caps)
+		return -RIG_EINVAL;
 
-	rig_model = atoi(argv[1]);
-	
-	rig_check_backend(rig_model);
+	caps = rig->caps;
 
-	caps = rig_get_caps(rig_model);
-	if (!caps) {
-			fprintf(stderr,"Unknown rig num: %d\n", rig_model);
-			fprintf(stderr,"Please check riglist.h\n");
-			exit(2);
-	}
-
-	printf("Rig dump for model %d\n",caps->rig_model);
+	printf("Caps dump for model %d\n",caps->rig_model);
 	printf("Model name:\t%s\n",caps->model_name);
 	printf("Mfg name:\t%s\n",caps->mfg_name);
 	printf("Backend version:\t%s\n",caps->version);
@@ -224,6 +216,9 @@ int main (int argc, char *argv[])
 			printf("Warning: backend can set readonly levels!\n");
 			backend_warnings++;
 	}
+	printf("Extra levels:");
+	rig_ext_level_foreach(rig, print_ext, NULL);
+	printf("\n");
 
 	sprintf_parm(prntbuf, caps->has_get_parm);
 	printf("Get parameters: %s\n", prntbuf);
@@ -234,6 +229,9 @@ int main (int argc, char *argv[])
 			printf("Warning: backend can set readonly parms!\n");
 			backend_warnings++;
 	}
+	printf("Extra parameters:");
+	rig_ext_parm_foreach(rig, print_ext, NULL);
+	printf("\n");
 
 #if 0
 	/* FIXME: use rig->state.vfo_list instead */
@@ -301,6 +299,24 @@ int main (int argc, char *argv[])
 	if (i==0) {
 			printf(" none! This backend might be bogus!");
 			backend_warnings++;
+	}
+	printf("\n");
+
+        printf("Bandwidths:");
+	for (i=1; i < 1<<10; i<<=1) {
+		pbwidth_t pbnorm = rig_passband_normal(rig, i);
+
+		if (pbnorm == 0)
+			continue;
+
+		sprintf_freq(freqbuf, pbnorm);
+		printf("\n\t%s\tnormal: %s,\t", strrmode(i), freqbuf);
+
+		sprintf_freq(freqbuf, rig_passband_narrow(rig, i));
+		printf("narrow: %s,\t", freqbuf);
+
+		sprintf_freq(freqbuf, rig_passband_wide(rig, i));
+		printf("wide: %s", freqbuf);
 	}
 	printf("\n");
 
@@ -377,6 +393,14 @@ int main (int argc, char *argv[])
 	printf("\nOverall backend warnings: %d\n", backend_warnings);
 
 	return backend_warnings;
+}
+
+
+static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
+{
+	printf(" %s", cfp->name);
+
+	return 1;       /* process them all */
 }
 
 
