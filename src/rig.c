@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.73 2003-06-22 19:41:59 fillods Exp $
+ *	$Id: rig.c,v 1.74 2003-06-22 21:37:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,6 +77,7 @@ const char hamlib_copyright[] =
 #ifndef DOC_HIDDEN
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
+#define DEFAULT_PARALLEL_PORT "/dev/parport0"
 
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
@@ -253,15 +254,27 @@ RIG *rig_init(rig_model_t rig_model)
 
 		rs->comm_state = 0;
 		rs->rigport.type.rig = caps->port_type; /* default from caps */
+
+		switch (caps->port_type) {
+		case RIG_PORT_SERIAL:
 		strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
 		rs->rigport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
 		rs->rigport.parm.serial.data_bits = caps->serial_data_bits;
 		rs->rigport.parm.serial.stop_bits = caps->serial_stop_bits;
 		rs->rigport.parm.serial.parity = caps->serial_parity;
 		rs->rigport.parm.serial.handshake = caps->serial_handshake;
+		break;
+
+		case RIG_PORT_PARALLEL:
+		strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
+		break;
+
+		default:
+		strncpy(rs->rigport.pathname, "", FILPATHLEN);
+		}
+
 		rs->rigport.write_delay = caps->write_delay;
 		rs->rigport.post_write_delay = caps->post_write_delay;
-
 		rs->rigport.timeout = caps->timeout;
 		rs->rigport.retry = caps->retry;
 		rs->pttport.type.ptt = caps->ptt_type;
@@ -378,7 +391,7 @@ int rig_open(RIG *rig)
 		switch(rs->rigport.type.rig) {
 		case RIG_PORT_SERIAL:
 				status = serial_open(&rs->rigport);
-				if (status != 0)
+				if (status < 0)
 						return status;
 				if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
 						rs->rigport.type.ptt != RIG_PTT_SERIAL_RTS &&
@@ -400,8 +413,8 @@ int rig_open(RIG *rig)
 		case RIG_PORT_PARALLEL:
 				rs->rigport.stream = NULL;
 				status = par_open(&rs->rigport);
-				if (status != 0)
-						return status;
+				if (status < 0)
+					return status;
 				break;
 
 		case RIG_PORT_DEVICE:
@@ -583,7 +596,7 @@ int rig_close(RIG *rig)
 	rs->dcdport.fd = rs->pttport.fd = -1;
 
 	if (rs->rigport.fd != -1) {
-		if (!rs->rigport.stream) {
+		if (rs->rigport.stream) {
 			fclose(rs->rigport.stream); /* this closes also fd */
 		} else {
 			switch(rs->rigport.type.rig) {
