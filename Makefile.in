@@ -112,8 +112,8 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = README AUTHORS COPYING COPYING.LIB ChangeLog INSTALL \
 	Makefile.am Makefile.in NEWS THANKS TODO aclocal.m4 \
-	config.guess config.sub configure configure.ac hamlib.spec.in \
-	install-sh ltmain.sh missing mkinstalldirs
+	config.guess config.sub configure configure.ac depcomp \
+	hamlib.spec.in install-sh ltmain.sh missing mkinstalldirs
 DIST_SUBDIRS = $(SUBDIRS)
 all: all-recursive
 
