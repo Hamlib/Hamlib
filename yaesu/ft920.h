@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.9 2003-01-07 03:32:35 n0nb Exp $  
+ *    $Id: ft920.h,v 1.10 2003-01-17 04:43:50 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -35,9 +35,7 @@
 #define FT920_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
 
-/*
- * Receiver caps 
- */
+/* Receiver caps */
 
 #define FT920_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT920_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
@@ -45,25 +43,18 @@
 #define FT920_FM_RX_MODES (RIG_MODE_FM)
 
 
-/* 
- * TX caps
- */ 
+/* TX caps */
 
 #define FT920_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB ) /* 100 W class */
 #define FT920_AM_TX_MODES (RIG_MODE_AM )    /* set 25W max */
 #define FT920_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN) /* fix */
 
 
-/*
- * Other features
- */
+/* Other features */
 
 #define FT920_ANTS 0            /* FIXME: declare Ant A & B and RX input */
 
-/*
- * Returned data length in bytes
- *
- */
+/* Returned data length in bytes */
 
 #define FT920_MEM_CHNL_LENGTH           1           /* 0x10 P1 = 01 return size */
 #define FT920_STATUS_FLAGS_LENGTH       8           /* 0xfa return size */
@@ -71,10 +62,7 @@
 #define FT920_MEM_CHNL_DATA_LENGTH      14          /* 0x10 P1 = 04, P4 = 0x00-0x89 return size */
 
 
-/*
- * Timing values in mS
- *
- */
+/* Timing values in mS */
 
 #define FT920_PACING_INTERVAL                5 
 #define FT920_PACING_DEFAULT_VALUE           1
@@ -89,6 +77,10 @@
 /* Rough safe value for default timeout */
 
 #define FT920_DEFAULT_READ_TIMEOUT  28 * ( 5 + (FT920_PACING_INTERVAL * FT920_PACING_DEFAULT_VALUE))
+
+/* BCD coded frequency length */
+#define FT920_BCD_DIAL  8
+#define FT920_BCD_RIT   3
 
 
 /*
@@ -121,28 +113,10 @@ enum ft920_native_cmd_e {
   FT920_NATIVE_VFO_TO_MEM,
   FT920_NATIVE_VFO_A,
   FT920_NATIVE_VFO_B,
-  FT920_NATIVE_M_TO_VFO,
+  FT920_NATIVE_MEM_TO_VFO,
+  FT920_NATIVE_CLARIFIER_OPS,
   FT920_NATIVE_VFO_A_FREQ_SET,
-  FT920_NATIVE_VFO_A_MODE_SET_LSB,
-  FT920_NATIVE_VFO_A_MODE_SET_USB,
-  FT920_NATIVE_VFO_A_MODE_SET_CW_USB,
-  FT920_NATIVE_VFO_A_MODE_SET_CW_LSB,
-  FT920_NATIVE_VFO_A_MODE_SET_AM,
-  FT920_NATIVE_VFO_A_MODE_SET_FMW,
-  FT920_NATIVE_VFO_A_MODE_SET_FMN,
-  FT920_NATIVE_VFO_A_MODE_SET_DATA_LSB,
-  FT920_NATIVE_VFO_A_MODE_SET_DATA_USB,
-  FT920_NATIVE_VFO_A_MODE_SET_DATA_FM,
-  FT920_NATIVE_VFO_B_MODE_SET_LSB,
-  FT920_NATIVE_VFO_B_MODE_SET_USB,
-  FT920_NATIVE_VFO_B_MODE_SET_CW_USB,
-  FT920_NATIVE_VFO_B_MODE_SET_CW_LSB,
-  FT920_NATIVE_VFO_B_MODE_SET_AM,
-  FT920_NATIVE_VFO_B_MODE_SET_FMW,
-  FT920_NATIVE_VFO_B_MODE_SET_FMN,
-  FT920_NATIVE_VFO_B_MODE_SET_DATA_LSB,
-  FT920_NATIVE_VFO_B_MODE_SET_DATA_USB,
-  FT920_NATIVE_VFO_B_MODE_SET_DATA_FM,
+  FT920_NATIVE_MODE_SET,
   FT920_NATIVE_PACING,
   FT920_NATIVE_MEM_CHNL,
   FT920_NATIVE_OP_DATA,
@@ -162,31 +136,53 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 
 /*
- * Internal MODES - when setting modes via cmd_mode_set()
+ * Internal MODES - when setting modes via FT920_NATIVE_MODE_SET
  *
  */
 
-#define MODE_SET_LSB    0x00
-#define MODE_SET_USB    0x01
-#define MODE_SET_CWW    0x02
-#define MODE_SET_CWN    0x03
-#define MODE_SET_AMW    0x04
-#define MODE_SET_AMN    0x05
-#define MODE_SET_FMW    0x06
-#define MODE_SET_FMN    0x07
+/* VFO A */
+#define MODE_SET_A_LSB    0x00
+#define MODE_SET_A_USB    0x01
+#define MODE_SET_A_CW_U   0x02
+#define MODE_SET_A_CW_L   0x03
+#define MODE_SET_A_AM_W   0x04
+#define MODE_SET_A_AM_N   0x05
+#define MODE_SET_A_FM_W   0x06
+#define MODE_SET_A_FM_N   0x07
+#define MODE_SET_A_DATA_L 0x08
+#define MODE_SET_A_DATA_U 0x0a
+#define MODE_SET_A_DATA_F 0x0b
 
+/* VFO B */
+#define MODE_SET_B_LSB    0x80
+#define MODE_SET_B_USB    0x81
+#define MODE_SET_B_CW_U   0x82
+#define MODE_SET_B_CW_L   0x83
+#define MODE_SET_B_AM_W   0x84
+#define MODE_SET_B_AM_N   0x85
+#define MODE_SET_B_FM_W   0x86
+#define MODE_SET_B_FM_N   0x87
+#define MODE_SET_B_DATA_L 0x88
+#define MODE_SET_B_DATA_U 0x8a
+#define MODE_SET_B_DATA_F 0x8b
 
 
 /*
- * Status Flag Masks when reading
+ * Internal Clarifier parms - when setting clarifier via
+ * FT920_NATIVE_CLARIFIER_OPS
  *
  */
 
-#define SF_DLOCK   0x01
-#define SF_CLAR    0x04
-#define SF_RXTX    0x20
-#define SF_RESV    0x40
-#define SF_PRI     0x80
+/* P1 values */
+#define CLAR_RX_OFF     0x00
+#define CLAR_RX_ON      0x01
+#define CLAR_TX_OFF     0x80
+#define CLAR_TX_ON      0x81
+#define CLAR_SET_FREQ   0xff
+
+/* P2 values */
+#define CLAR_OFFSET_PLUS    0x00
+#define CLAR_OFFSET_MINUS   0xff
 
 
 /*
@@ -194,8 +190,8 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
  *
  */
 
-#define FT920_VFO_A                  0x00
-#define FT920_VFO_B                  0x01
+//#define FT920_VFO_A                  0x00
+//#define FT920_VFO_B                  0x01
 
 
 /*
@@ -255,11 +251,13 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 
 #define FT920_SUMO_DISPLAYED_FREQ       0x01    /* Current main display, can be VFO A, Memory data, Memory tune */
 #define FT920_SUMO_VFO_A_FREQ           0x01    /* VFO A frequency, not necessarily currently displayed! */
+#define FT920_SUMO_DISPLAYED_CLAR       0x05    /* RIT/XIT offset -- current display */
+#define FT920_SUMO_VFO_A_CLAR           0x05    /* RIT/XIT offset -- VFO A */
 #define FT920_SUMO_DISPLAYED_MODE       0x07    /* Current main display mode */
 #define FT920_SUMO_VFO_A_MODE           0x07    /* VFO A mode, not necessarily currently displayed! */
 #define FT920_SUMO_VFO_B_FREQ           0x0f    /* Current sub display && VFO B */
+#define FT920_SUMO_VFO_B_CLAR           0x13    /* RIT/XIT offset -- VFO B */
 #define FT920_SUMO_VFO_B_MODE           0x15    /* Current sub display && VFO B */
-    
 
 /*
  * Mode Bitmap from offset 0x07 or 0x16 in VFO Record.
@@ -278,18 +276,28 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define MODE_USB     0x40
 #define MODE_CW_U    0x41       /* CW listening on USB */
 /* Narrow filter selected */
-#define MODE_LSBN    0x80
+#define MODE_LSBN    0x80       /* Not sure this actually exists */
 #define MODE_CW_LN   0x81
 #define MODE_AMN     0x82
 #define MODE_FMN     0x83
 #define MODE_DATA_LN 0x84
 #define MODE_DATA_UN 0x85
 #define MODE_DATA_FN 0x86
-#define MODE_USBN    0xc0
+#define MODE_USBN    0xc0       /* Not sure this actually exists */
 #define MODE_CW_UN   0xc1
 
 /* All relevent bits */
 #define MODE_MASK   0xc7
+
+
+/*
+ * Command string parameter offsets
+ */
+
+#define P1  3
+#define P2  2
+#define P3  1
+#define P4  0
 
 
 /* 
@@ -297,27 +305,33 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
  *
  */
 
-int ft920_init(RIG *rig);
-int ft920_cleanup(RIG *rig);
-int ft920_open(RIG *rig);
-int ft920_close(RIG *rig);
+static int ft920_init(RIG *rig);
+static int ft920_cleanup(RIG *rig);
+static int ft920_open(RIG *rig);
+static int ft920_close(RIG *rig);
 
-int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
-int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
-int ft920_set_vfo(RIG *rig, vfo_t vfo);
-int ft920_get_vfo(RIG *rig, vfo_t *vfo);
+static int ft920_set_vfo(RIG *rig, vfo_t vfo);
+static int ft920_get_vfo(RIG *rig, vfo_t *vfo);
 
-int ft920_set_split(RIG *rig, vfo_t vfo, split_t split);
-int ft920_get_split(RIG *rig, vfo_t vfo, split_t *split);
+static int ft920_set_split(RIG *rig, vfo_t vfo, split_t split);
+static int ft920_get_split(RIG *rig, vfo_t vfo, split_t *split);
 
-int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
-int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
+static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
+static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 
-int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
-int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
+
+static int ft920_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int ft920_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+
+static int ft920_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+static int ft920_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 
 #endif /* _FT920_H */
