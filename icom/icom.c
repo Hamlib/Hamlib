@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.89 2004-08-30 01:39:21 fineware Exp $
+ *	$Id: icom.c,v 1.90 2004-09-07 21:54:20 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1053,15 +1053,15 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
-		unsigned char ackbuf[MAXFRAMELEN], ptt_sc;
+		unsigned char ackbuf[MAXFRAMELEN], pttbuf[1];
 		int ack_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		ptt_sc = ptt == RIG_PTT_ON ? S_PTT_ON:S_PTT_OFF;
+		pttbuf[0] = ptt == RIG_PTT_ON ? 1 : 0;
 
-		retval = icom_transaction (rig, C_CTL_PTT, ptt_sc, NULL, 0,
+		retval = icom_transaction (rig, C_CTL_PTT, S_PTT, pttbuf, 1,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1089,7 +1089,7 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		retval = icom_transaction (rig, C_CTL_PTT, -1, NULL, 0,
+		retval = icom_transaction (rig, C_CTL_PTT, S_PTT, NULL, 0,
 						pttbuf, &ptt_len);
 		if (retval != RIG_OK)
 				return retval;
@@ -1104,7 +1104,7 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 				return -RIG_ERJCTED;
 		}
 
-		*ptt = pttbuf[1] == S_PTT_ON ? RIG_PTT_ON : RIG_PTT_OFF;
+		*ptt = pttbuf[1] == 1 ? RIG_PTT_ON : RIG_PTT_OFF;
 
 		return RIG_OK;
 }

@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-756 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.9 2003-12-08 08:33:58 fillods Exp $
+ *	$Id: ic756.c,v 1.10 2004-09-07 21:54:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -413,13 +413,19 @@ static const struct confparams ic756pro2_ext_parms[] = {
 static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val);
 static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
+#define IC756PROII_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC756PROII_1HZ_TS_MODES IC756PROII_ALL_RX_MODES
+#define IC756PROII_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC756PROII_AM_TX_MODES (RIG_MODE_AM)
+
+
 const struct rig_caps ic756pro2_caps = {
 .rig_model =  RIG_MODEL_IC756PROII,
 .model_name = "IC-756PROII", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  "0.3", 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -465,30 +471,30 @@ const struct rig_caps ic756pro2_caps = {
 	   RIG_CHAN_END,
 	},
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC756_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
+.rx_range_list1 =   { {kHz(30),MHz(60),IC756PROII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(1,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(1,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(1,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_HF(1,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_6m(1,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_HF(1,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_6m(1,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
     	RIG_FRNG_END, },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC756_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
+.rx_range_list2 =   { {kHz(30),MHz(60),IC756PROII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(2,IC756_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(2,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(2,IC756_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_HF(2,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_6m(2,IC756PROII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_HF(2,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_6m(2,IC756PROII_AM_TX_MODES, W(2),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
     	RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	 {IC756_1HZ_TS_MODES,1},
-	 {IC756_ALL_RX_MODES,kHz(1)},
-	 {IC756_ALL_RX_MODES,kHz(5)},
-	 {IC756_ALL_RX_MODES,kHz(9)},
-	 {IC756_ALL_RX_MODES,kHz(10)},
+	 {IC756PROII_1HZ_TS_MODES,1},
+	 {IC756PROII_ALL_RX_MODES,kHz(1)},
+	 {IC756PROII_ALL_RX_MODES,kHz(5)},
+	 {IC756PROII_ALL_RX_MODES,kHz(9)},
+	 {IC756PROII_ALL_RX_MODES,kHz(10)},
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */

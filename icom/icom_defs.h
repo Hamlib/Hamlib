@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.16 2004-08-27 01:49:38 fineware Exp $
+ *		$Id: icom_defs.h,v 1.17 2004-09-07 21:54:20 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -257,8 +257,7 @@
 /*
  * Transmit control (C_CTL_PTT) subcommands
  */
-#define S_PTT_ON	0x00		/* no documentation, not tested! */
-#define S_PTT_OFF	0x01		/* please confirm (IC-756Pro, IC-746) --SF */
+#define S_PTT	0x00
 
 /*
  * Memory contents (C_CTL_MEM) subcommands
