@@ -52,6 +52,9 @@ M: Chuck Gilkes, WD0FCL/4
 [icom: icr7000]
 M: Chuck Hemker, N2POR
 
+[icom: icr75]
+M: Mark J. Fine
+
 [icom: OptoScan]
 M: Michael Smith, KE4RJQ
 
@@ -74,6 +77,9 @@ C: Leigh Klotz WA5ZNU
 [kenwood: TS-480SAT]
 M: Juergen Rinas DC3BW
 
+[kenwood: R-5000]
+M: Mark J. Fine
+
 [kenwood: thg71,tmv7,tmd700]
 M: Thierry Leconte, F4DWV
 
@@ -85,7 +91,7 @@ M: Stephane Fillod, F8CFE
 
 
 [tentec]
-M: Mark J. Fine
+M:
 C: testing by James Chance, N3TKD
 
 [tentec: tt516]
