@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.4 2003-04-09 06:37:37 fillods Exp $
+ *	$Id: optoscan.c,v 1.5 2003-04-09 06:43:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,9 +202,9 @@ int optoscan_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 		const struct rig_caps *caps;
 		unsigned char dtmfbuf[MAXFRAMELEN],digit;
 		int len, retval, digitpos;
-		unsigned char xlate[] = {"0","1","2","3","4","5","6",
-					 "7","8","9","A","B","C","D",
-					 "*","#"};
+		unsigned char xlate[] = {'0','1','2','3','4','5','6',
+					 '7','8','9','A','B','C','D',
+					 '*','#'};
 		caps = rig->caps;
 		digitpos=0;
 	       
