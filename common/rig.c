@@ -131,19 +131,63 @@ int rig_open(RIG *rig)
 }
 
 /*
- * typical cmd_* wrapper
+ * Examples of typical cmd_* wrapper
  */
 
-int cmd_set_freq(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo )
+/*
+ * cmd_set_freq
+ *
+ */
+
+int cmd_set_freq(RIG *rig, freq_t freq)
 {
 		if (!rig || !rig->caps)
 			return -1; /* EINVAL */
 
-		if (rig->caps->set_freq_main_vfo_hz == NULL)
+		if (rig->caps->set_freq == NULL)
 			return -2; /* not implemented */
 		else
-			return rig->caps->set_freq_main_vfo_hz(rig, freq, mode);
+			return rig->caps->set_freq(rig, freq);
 }
+
+/*
+ * cmd_set_mode
+ *
+ */
+
+
+int cmd_set_mode(RIG *rig, mode_t mode)
+{
+		if (!rig || !rig->caps)
+			return -1; /* EINVAL */
+
+		if (rig->caps->set_mode == NULL)
+			return -2; /* not implemented */
+		else
+			return rig->caps->set_mode(rig, mode);
+}
+
+/*
+ * cmd_set_vfo
+ *
+ */
+
+
+int cmd_set_vfo(RIG *rig, rig_vfo_t vfo)
+{
+		if (!rig || !rig->caps)
+			return -1; /* EINVAL */
+
+		if (rig->caps->set_vfo == NULL)
+			return -2; /* not implemented */
+		else
+			return rig->caps->set_vfo(rig, vfo);
+}
+
+/*
+ * more cmd_* to come -- FS
+ *
+ */
 
 
 

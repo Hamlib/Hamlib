@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.7 2000-09-16 21:37:25 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.8 2000-09-18 03:47:34 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -108,6 +108,18 @@ enum rig_vfo_e {
 
 typedef enum rig_vfo_e rig_vfo_t;
 
+enum rig_ptt_e {
+	RIG_PTT_OFF = 0,
+	RIG_PTT_ON,
+};
+
+typedef enum rig_ptt_e rig_ptt_t;
+
+
+
+
+
+
 /*
  * frequency type in Hz, must be >32bits for SHF! 
  */
@@ -141,6 +153,7 @@ typedef unsigned int rig_mode_t;
 #define RIGVERSIZ 8
 #define MAXRIGPATHLEN 100
 #define FRQRANGESIZ 30
+#define MAXCHANDESC 30		/* describe channel eg: WWV 5Mhz */
 
 
 /* put together a buch of this struct in an array to define 
@@ -154,6 +167,23 @@ struct freq_range_list {
 		int high_power;	/* in mW, -1 for no power (ie. rx list) */
 };
 
+
+/* 
+ * Convenience struct, describes a freq/vfo/mode combo 
+ * Also useful for memory handling -- FS
+ *
+ */
+
+struct channel {
+  int channel_num;
+  freq_t freq;
+  rig_mode_t mode;
+  rig_vfo_t vfo;
+  char channel_desc[MAXCHANDESC];
+};
+
+typedef struct channel channel_t;
+
 /* Basic rig type, can store some useful
 * info about different radios. Each lib must
 * be able to populate this structure, so we can make
@@ -164,41 +194,73 @@ struct freq_range_list {
  * rig driver, and will remain readonly for the application
  */
 struct rig_caps {
-	rig_model_t rig_model; /* eg. RIG_MODEL_FT847 */
-	unsigned char model_name[RIGNAMSIZ]; /* eg "ft847" */
-	unsigned char mfg_name[RIGNAMSIZ]; /* eg "Yeasu" */
-	char version[RIGVERSIZ]; /* driver version, eg "0.5" */
-	enum rig_status_e status; /* among ALPHA, BETA, STABLE, NEW  */
-	enum rig_type_e rig_type;
-	int serial_rate_min; /* eg 4800 */
-	int serial_rate_max; /* eg 9600 */
-	int serial_data_bits; /* eg 8 */
-	int serial_stop_bits; /* eg 2 */
-	enum serial_parity_e serial_parity; /* */
-	enum serial_handshake_e serial_handshake; /* */
-	int write_delay;		/* delay in ms between each byte sent out */
-	int timeout;	/* in ms */
-	int retry;		/* maximum number of retries, 0 to disable */
-	struct freq_range_list rx_range_list[FRQRANGESIZ];
-	struct freq_range_list tx_range_list[FRQRANGESIZ];
-
-	int (*rig_init)(RIG *rig);	/* setup *priv */
-	int (*rig_cleanup)(RIG *rig);
-	int (*rig_open)(RIG *rig);	/* called when port just opened */
-	int (*rig_close)(RIG *rig);	/* called before port is to close */
-	int (*rig_probe)(RIG *rig); /* Experimental: may work.. */
-  
-       /* cmd API below */
-	int (*set_freq_main_vfo_hz)(RIG *rig, freq_t freq, rig_mode_t mode);
+  rig_model_t rig_model; /* eg. RIG_MODEL_FT847 */
+  unsigned char model_name[RIGNAMSIZ]; /* eg "ft847" */
+  unsigned char mfg_name[RIGNAMSIZ]; /* eg "Yeasu" */
+  char version[RIGVERSIZ]; /* driver version, eg "0.5" */
+  enum rig_status_e status; /* among ALPHA, BETA, STABLE, NEW  */
+  enum rig_type_e rig_type;
+  int serial_rate_min; /* eg 4800 */
+  int serial_rate_max; /* eg 9600 */
+  int serial_data_bits; /* eg 8 */
+  int serial_stop_bits; /* eg 2 */
+  enum serial_parity_e serial_parity; /* */
+  enum serial_handshake_e serial_handshake; /* */
+  int write_delay;		/* delay in ms between each byte sent out */
+  int timeout;	/* in ms */
+  int retry;		/* maximum number of retries, 0 to disable */
+  struct freq_range_list rx_range_list[FRQRANGESIZ];
+  struct freq_range_list tx_range_list[FRQRANGESIZ];
 
   /*
-    int (*set_freq)(RIG *rig, freq_t freq);
-    int (*set_mode)(RIG *rig, rig_mode_t mode);
-    int (*set_vfo)(RIG *rig, rig_vfo_t vfo);
-  */
+   * Rig Admin API
+   *
+   */
+ 
+  int (*rig_init)(RIG *rig);	/* setup *priv */
+  int (*rig_cleanup)(RIG *rig);
+  int (*rig_open)(RIG *rig);	/* called when port just opened */
+  int (*rig_close)(RIG *rig);	/* called before port is to close */
+  int (*rig_probe)(RIG *rig); /* Experimental: may work.. */
+  
+  /*
+   *  General API commands, from most primitive to least.. :()
+   *  List Set/Get functions pairs
+   */
+  
+  int (*set_freq)(RIG *rig, freq_t freq); /* select freq */
+  struct freq_t (*get_freq)(RIG *rig); /* get freq */
 
-/* etc... */
+  int (*set_mode)(RIG *rig, rig_mode_t mode); /* select mode */
+  struct rig_mode_t (*get_mode)(RIG *rig, rig_mode_t mode); /* get mode */
 
+  int (*set_vfo)(RIG *rig, rig_vfo_t vfo); /* select vfo */
+  struct rig_vfo_t (*get_vfo)(RIG *rig); /* get vfo */
+
+  int (*set_ptt)(RIG *rig, rig_ptt_t ptt); /* ptt on/off */
+  struct rig_ptt_t (*get_ptt)(RIG *rig); /* get ptt status */
+
+  int (*set_rpt_shift)(RIG *rig, rig_rptr_shift_t rig_rptr_shift ); /* set repeater shift */
+  struct rig_rptr_shift_t (*get_rpt_shift)(RIG *rig); /* get repeater shift */
+
+/*
+ * Convenience Functions 
+ */
+
+/*    int (*set_channel)(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo); */
+/*    int (*get_channel)(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo); */
+
+  int (*set_channel)(RIG *rig, struct channel *ch);
+  struct channel *(*get_channel)(RIG *rig);
+
+
+
+/*    int (*set_freq_main_vfo_hz)(RIG *rig, freq_t freq, rig_mode_t mode); */
+  
+  
+  
+  /* etc... */
+  
 };
 
 /*
@@ -259,7 +321,29 @@ struct rig {
 RIG *rig_init(rig_model_t rig_model);
 int rig_open(RIG *rig);
 
-int cmd_set_freq(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo );
+  /*
+   *  General API commands, from most primitive to least.. :()
+   *  List Set/Get functions pairs
+   */
+
+int cmd_set_freq(RIG *rig, freq_t freq); /* select freq */
+struct freq_t cmd_get_freq(RIG *rig); /* get freq */
+
+int cmd_set_mode(RIG *rig, rig_mode_t mode); /* select mode */
+struct rig_mode_t cmd_get_mode(RIG *rig, rig_mode_t mode); /* get mode */
+
+int cmd_set_vfo(RIG *rig, rig_vfo_t vfo); /* select vfo */
+struct rig_vfo_t cmd_get_vfo(RIG *rig); /* get vfo */
+
+int cmd_set_ptt(RIG *rig, rig_ptt_t ptt); /* ptt on/off */
+struct rig_ptt_t cmd_get_ptt(RIG *rig); /* get ptt status */
+
+int cmd_set_rpt_shift(RIG *rig, rig_rptr_shift_t rig_rptr_shift ); /* set repeater shift */
+struct rig_rptr_shift_t cmd_get_rpt_shift(RIG *rig); /* get repeater shift */
+
+/* more to come -- FS */
+
+/*  int cmd_set_freq(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo ); */
 /* etc. */
 
 int rig_close(RIG *rig);
