@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.68 2002-07-09 22:17:13 fillods Exp $
+ *	$Id: rig.h,v 1.69 2002-10-07 21:49:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -436,6 +436,7 @@ union value_u {
 	signed int i;
 	float f;
 	char *s;
+	const char *cs;
 };
 typedef union value_u value_t;
 
