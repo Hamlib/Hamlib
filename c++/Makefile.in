@@ -98,7 +98,7 @@ hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
 lib_LTLIBRARIES = libhamlib++.la
-libhamlib___la_SOURCES = rigclass.cc
+libhamlib___la_SOURCES = rigclass.cc rotclass.cc
 libhamlib___la_LDFLAGS = -no-undefined -release @VERSION@ -version-info 0:0:0
 libhamlib___la_LIBADD = ../src/libhamlib.la
 subdir = c++
@@ -108,7 +108,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib___la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib___la_OBJECTS = rigclass.lo
+am_libhamlib___la_OBJECTS = rigclass.lo rotclass.lo
 libhamlib___la_OBJECTS = $(am_libhamlib___la_OBJECTS)
 
 DEFS = @DEFS@
@@ -117,7 +117,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rigclass.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rigclass.Plo $(DEPDIR)/rotclass.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -180,6 +180,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigclass.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rotclass.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)

@@ -98,7 +98,7 @@ install_sh = @install_sh@
 
 INCLUDES = @INCLUDES@ @INCLTDL@
 RIGSRC = rig.c serial.c misc.c register.c event.c cal.c conf.c tones.c \
-			rotator.c locator.c rot_reg.c rot_conf.c
+			rotator.c locator.c rot_reg.c rot_conf.c iofunc.c
 
 
 lib_LTLIBRARIES = libhamlib.la
@@ -107,7 +107,9 @@ libhamlib_la_LDFLAGS = -no-undefined -release @VERSION@ -version-info 0:0:0
 libhamlib_la_CFLAGS = -DIN_HAMLIB $(AM_CFLAGS)
 libhamlib_la_LIBADD = @LIBLTDL@ ../lib/libmisc.la -lm
 
-noinst_HEADERS = event.h misc.h serial.h cal.h conf.h tones.h rot_conf.h
+noinst_HEADERS = event.h misc.h serial.h iofunc.c cal.h tones.h \
+					conf.h rot_conf.h
+
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -120,7 +122,7 @@ am_libhamlib_la_OBJECTS = libhamlib_la-rig.lo libhamlib_la-serial.lo \
 	libhamlib_la-event.lo libhamlib_la-cal.lo libhamlib_la-conf.lo \
 	libhamlib_la-tones.lo libhamlib_la-rotator.lo \
 	libhamlib_la-locator.lo libhamlib_la-rot_reg.lo \
-	libhamlib_la-rot_conf.lo
+	libhamlib_la-rot_conf.lo libhamlib_la-iofunc.lo
 libhamlib_la_OBJECTS = $(am_libhamlib_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -132,6 +134,7 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/libhamlib_la-cal.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-conf.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-event.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-iofunc.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-locator.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-misc.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/libhamlib_la-register.Plo \
@@ -206,6 +209,7 @@ libhamlib_la-rotator.lo: rotator.c
 libhamlib_la-locator.lo: locator.c
 libhamlib_la-rot_reg.lo: rot_reg.c
 libhamlib_la-rot_conf.lo: rot_conf.c
+libhamlib_la-iofunc.lo: iofunc.c
 libhamlib.la: $(libhamlib_la_OBJECTS) $(libhamlib_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_la_LDFLAGS) $(libhamlib_la_OBJECTS) $(libhamlib_la_LIBADD) $(LIBS)
 
@@ -218,6 +222,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-cal.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-conf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-event.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-iofunc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-locator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-misc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/libhamlib_la-register.Plo@am__quote@
@@ -464,6 +469,24 @@ libhamlib_la-rot_conf.lo: rot_conf.c
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-rot_conf.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-rot_conf.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-rot_conf.lo `test -f rot_conf.c || echo '$(srcdir)/'`rot_conf.c
+
+libhamlib_la-iofunc.o: iofunc.c
+@AMDEP_TRUE@	source='iofunc.c' object='libhamlib_la-iofunc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-iofunc.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-iofunc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-iofunc.o `test -f iofunc.c || echo '$(srcdir)/'`iofunc.c
+
+libhamlib_la-iofunc.obj: iofunc.c
+@AMDEP_TRUE@	source='iofunc.c' object='libhamlib_la-iofunc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-iofunc.Po' tmpdepfile='$(DEPDIR)/libhamlib_la-iofunc.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-iofunc.obj `cygpath -w iofunc.c`
+
+libhamlib_la-iofunc.lo: iofunc.c
+@AMDEP_TRUE@	source='iofunc.c' object='libhamlib_la-iofunc.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/libhamlib_la-iofunc.Plo' tmpdepfile='$(DEPDIR)/libhamlib_la-iofunc.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libhamlib_la_CFLAGS) $(CFLAGS) -c -o libhamlib_la-iofunc.lo `test -f iofunc.c || echo '$(srcdir)/'`iofunc.c
 CCDEPMODE = @CCDEPMODE@
 uninstall-info-am:
 
