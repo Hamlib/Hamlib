@@ -1,13 +1,13 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * yaesu.c - (C) Stephane Fillod 2001-2003
+ * yaesu.c - (C) Stephane Fillod 2001-2004
  *
  * This shared library provides an API for communicating
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.18 2004-04-24 13:01:00 fillods Exp $  
+ *	$Id: yaesu.c,v 1.19 2004-05-16 07:32:57 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -62,6 +62,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
   rig_register(&ft920_caps);
   rig_register(&ft990_caps);
   rig_register(&ft1000mp_caps);
+  rig_register(&frg8800_caps);
 
   return RIG_OK;
 }
