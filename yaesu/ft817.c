@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.c,v 1.7 2003-04-06 18:40:35 fillods Exp $  
+ *    $Id: ft817.c,v 1.8 2003-04-07 22:42:04 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -26,17 +26,15 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
-#include <stdio.h>   	/* Standard input/output definitions */
 #include <string.h>  	/* String function definitions */
 #include <unistd.h>  	/* UNIX standard function definitions */
-#include <fcntl.h>   	/* File control definitions */
-#include <errno.h>   	/* Error number definitions */
-#include <termios.h> 	/* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
+#include "hamlib/rig.h"
 #include "serial.h"
 #include "yaesu.h"
 #include "ft817.h"

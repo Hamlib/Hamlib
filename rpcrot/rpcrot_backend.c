@@ -3,7 +3,7 @@
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *	$Id: rpcrot_backend.c,v 1.5 2002-12-16 22:07:00 fillods Exp $
+ *	$Id: rpcrot_backend.c,v 1.6 2003-04-07 22:41:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,21 +26,16 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 #include <math.h>
 #include <netdb.h>
 #include <limits.h>
 
-#include <hamlib/rotator.h>
-#include <serial.h>
-#include <misc.h>
-#include <token.h>
+#include "hamlib/rotator.h"
+#include "serial.h"
+#include "misc.h"
+#include "token.h"
 
 #include <rpc/rpc.h>
 #ifdef HAVE_RPC_RPCENT_H

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Rotator backend - Fodtrack parallel port
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: fodtrack.c,v 1.1 2002-11-28 22:24:10 fillods Exp $
+ *	$Id: fodtrack.c,v 1.2 2003-04-07 22:41:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,13 +25,11 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 
 /*
  * So far, only supported on Linux platforms
@@ -41,9 +39,9 @@
 #include <linux/ppdev.h>
 #endif
 
-#include <hamlib/rotator.h>
-#include <serial.h>
-#include <misc.h>
+#include "hamlib/rotator.h"
+#include "serial.h"
+#include "misc.h"
 
 #include "fodtrack.h"
 

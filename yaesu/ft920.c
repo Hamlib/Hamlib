@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.15 2003-04-06 18:40:36 fillods Exp $
+ * $Id: ft920.c,v 1.16 2003-04-07 22:42:07 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -31,19 +31,16 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
-#include <bandplan.h>
+#include "hamlib/rig.h"
+#include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
 #include "yaesu.h"

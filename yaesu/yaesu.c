@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.11 2003-03-09 04:43:38 n0nb Exp $  
+ *	$Id: yaesu.c,v 1.12 2003-04-07 22:42:11 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -26,17 +26,15 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
 

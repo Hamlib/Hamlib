@@ -1,10 +1,10 @@
 /*
- * ft1000.c - (C) Stephane Fillod 2002 (fillods@users.sourceforge.net)
+ * ft1000.c - (C) Stephane Fillod 2002-2003 (fillods@users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.1 2002-12-01 21:49:12 fillods Exp $
+ *	$Id: ft1000mp.c,v 1.2 2003-04-07 22:42:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,17 +32,16 @@
  */
 
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
-#include <bandplan.h>
+#include "hamlib/rig.h"
+#include "bandplan.h"
 #include "serial.h"
 #include "misc.h"
 #include "cal.h"

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Tentec backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.6 2002-09-06 14:05:41 fillods Exp $
+ *	$Id: tentec.c,v 1.7 2003-04-07 22:41:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,19 +25,14 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
-#include <cal.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
+#include "cal.h"
 
 #include "tentec.h"
 

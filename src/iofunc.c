@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - generic file based io functions
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.6 2002-07-08 22:53:26 fillods Exp $
+ *	$Id: iofunc.c,v 1.7 2003-04-07 22:41:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,9 +33,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "iofunc.h"
 #include "misc.h"
 

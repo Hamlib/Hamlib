@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.3 2003-03-10 08:26:08 fillods Exp $
+ *	$Id: drake.c,v 1.4 2003-04-07 22:41:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,17 +25,13 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
 
 #include "drake.h"
 

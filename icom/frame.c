@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - low level communication routines
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *		$Id: frame.c,v 1.19 2003-01-06 22:04:58 fillods Exp $
+ *	$Id: frame.c,v 1.20 2003-04-07 22:41:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,18 +25,12 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
-#include <serial.h>
-#include <misc.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"

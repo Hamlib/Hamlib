@@ -12,7 +12,7 @@
  * Hy-Gain is a trademark of MFJ Enterprises
  *
  *
- *    $Id: rotorez.c,v 1.5 2003-02-27 03:47:47 n0nb Exp $
+ *    $Id: rotorez.c,v 1.6 2003-04-07 22:41:55 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -36,17 +36,12 @@
 #endif
 
 #include <stdlib.h>             /* Standard library definitions */
-#include <stdio.h>              /* Standard input/output definitions */
 #include <string.h>             /* String function definitions */
 #include <unistd.h>             /* UNIX standard function definitions */
-#include <fcntl.h>              /* File control definitions */
-#include <errno.h>              /* Error number definitions */
-#include <termios.h>            /* POSIX terminal control definitions */
-#include <sys/ioctl.h>          /* System IO Control definitions */
 
-#include <hamlib/rotator.h>
-#include <serial.h>
-#include <misc.h>
+#include "hamlib/rotator.h"
+#include "serial.h"
+#include "misc.h"
 
 #include "rotorez.h"
 

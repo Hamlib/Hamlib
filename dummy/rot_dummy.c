@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rot_dummy.c,v 1.4 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: rot_dummy.c,v 1.5 2003-04-07 22:41:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,18 +25,13 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rotator.h>
-#include <serial.h>
-#include <misc.h>
+#include "hamlib/rotator.h"
+#include "serial.h"
+#include "misc.h"
 
 #include "rot_dummy.h"
 

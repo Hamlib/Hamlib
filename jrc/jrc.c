@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - main file
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *		$Id: jrc.c,v 1.6 2002-03-13 23:37:12 fillods Exp $
+ *	$Id: jrc.c,v 1.7 2003-04-07 22:41:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,18 +25,13 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
-#include <cal.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
+#include "cal.h"
 
 #include "jrc.h"
 
@@ -827,9 +822,7 @@ int jrc_decode_event(RIG *rig)
 
 		count = read_string(&rs->rigport, buf, SETUP_STATUS_LEN, "", 0);
 		if (count < 0) {
-			rig_debug(RIG_DEBUG_ERR, "jrc: read_string failed: %s\n",
-							strerror(errno));
-			return -RIG_EIO;
+			return count;
 		}
 		buf[31] = '\0';	/* stop run away.. */
 

@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.12 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.13 2003-04-07 22:41:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,21 +25,16 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 #include <math.h>
 #include <limits.h>
-
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
-#include <token.h>
 #include <netdb.h>
+
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
+#include "token.h"
 
 #include <rpc/rpc.h>
 #ifdef HAVE_RPC_RPCENT_H

@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.22 2003-02-24 22:27:40 fillods Exp $
+ *	$Id: aor.c,v 1.23 2003-04-07 22:41:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,18 +25,13 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
 
 #include "aor.h"
 

@@ -1,9 +1,9 @@
 /*
  *  Hamlib WiNRADiO backend - main file for interface through /dev/winradio API
  *  Copyright (C) 2001 pab@users.sourceforge.net
- *  Derived from hamlib code (C) 2000,2001 Stephane Fillod.
+ *  Derived from hamlib code (C) 2000-2003 Stephane Fillod.
  *
- *		$Id: winradio.c,v 1.16 2001-12-28 20:28:04 fillods Exp $
+ *	$Id: winradio.c,v 1.17 2003-04-07 22:41:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,18 +26,16 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
 
 #include "winradio.h"
 

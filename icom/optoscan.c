@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - OptoScan extensions
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *		$Id: optoscan.c,v 1.2 2002-03-07 22:58:47 fillods Exp $
+ *	$Id: optoscan.c,v 1.3 2003-04-07 22:41:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,20 +25,15 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <serial.h>
-#include <misc.h>
-#include <cal.h>
-#include <token.h>
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
+#include "cal.h"
+#include "token.h"
 
 #include "icom.h"
 #include "icom_defs.h"
