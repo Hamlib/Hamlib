@@ -13,7 +13,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.60 2002-07-09 22:17:13 fillods Exp $
+ *	$Id: rig.c,v 1.61 2002-07-10 21:30:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -3638,13 +3638,16 @@ int generic_save_channel(RIG *rig, channel_t *chan)
 {
   int i;
   int chan_num;
+  vfo_t vfo;
 
   if (CHECK_RIG_ARG(rig) || !chan)
 	return -RIG_EINVAL;
 
   chan_num = chan->channel_num;
+  vfo = chan->vfo;
   memset(chan, 0, sizeof(channel_t));
   chan->channel_num = chan_num;
+  chan->vfo = vfo;
 
   rig_get_vfo(rig, &chan->vfo);
   rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
@@ -3702,7 +3705,7 @@ int generic_restore_channel(RIG *rig, const channel_t *chan)
   if (CHECK_RIG_ARG(rig) || !chan)
 	return -RIG_EINVAL;
 
-  rig_set_vfo(rig, chan->vfo);	/* huh!? */
+  rig_set_vfo(rig, chan->vfo);
   rig_set_freq(rig, RIG_VFO_CURR, chan->freq);
   rig_set_mode(rig, RIG_VFO_CURR, chan->mode, chan->width);
   rig_set_split(rig, RIG_VFO_CURR, chan->split);
@@ -3805,7 +3808,7 @@ int rig_set_channel(RIG *rig, const channel_t *chan)
 	if (vfo == RIG_VFO_MEM)
 		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 
-	retcode = rc->set_vfo(rig, vfo);
+	retcode = rig_set_vfo(rig, vfo);
 	if (retcode != RIG_OK)
 		return retcode;
 
@@ -3882,7 +3885,7 @@ int rig_get_channel(RIG *rig, channel_t *chan)
 		return -RIG_ENAVAIL;
 
 	if (vfo == RIG_VFO_CURR)
-		return generic_restore_channel(rig, chan);
+		return generic_save_channel(rig, chan);
 
 	if (!rc->set_vfo)
 		return -RIG_ENTARGET;
@@ -3896,7 +3899,7 @@ int rig_get_channel(RIG *rig, channel_t *chan)
 	if (vfo == RIG_VFO_MEM)
 		get_mem_status = rig_get_mem(rig, RIG_VFO_CURR, &curr_chan_num);
 
-	retcode = rc->set_vfo(rig, vfo);
+	retcode = rig_set_vfo(rig, vfo);
 	if (retcode != RIG_OK)
 		return retcode;
 
