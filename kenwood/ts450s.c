@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.17 2002-12-21 15:34:52 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.18 2002-12-22 13:51:48 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -120,28 +120,6 @@ ts450s_get_vfo(RIG *rig, vfo_t *vfo)
   return RIG_OK;
 }
 
-static int 
-ts450s_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
-{
-  unsigned char infobuf[50];
-  int info_len, retval;
-
-  retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
-  if (retval != RIG_OK)
-  return retval;
-
-  if (info_len != 38 || infobuf[1] != 'F') {
-    rig_debug(RIG_DEBUG_ERR,"ts450s_get_freq: wrong answer len=%d\n",
-      info_len);
-    return -RIG_ERJCTED;
-  }
-
-  infobuf[14] = '\0';
-  sscanf(infobuf+2, "%lld", freq);
-
-  return RIG_OK;
-
-}
 
 static int 
 ts450s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
@@ -361,7 +339,7 @@ const struct rig_caps ts450s_caps = {
 .priv =  (void *)&ts450_priv_caps,
 
 .set_freq =  kenwood_set_freq,
-.get_freq =  ts450s_get_freq,
+.get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
