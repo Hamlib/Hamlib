@@ -18,7 +18,7 @@ SUBDIRS = macros include lib libltdl src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
 DIST_SUBDIRS = macros include lib libltdl src c++ kylix bindings tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
 	rpcrig winradio easycomm fodtrack rpcrot gnuradio drake rotorez \
-	microtune flexradio sartek lowe
+	microtune flexradio sartek lowe rft tapr
 
 rpm: Makefile
 	make dist
