@@ -1,10 +1,11 @@
 
 Status:	Being Overhauled.  Consider it broken.
+	Now compiling.
 
-	The ts2k.[ch] are for the TS-2000.  I'm to lazy to spell it any
+	The ts2k.[ch] are for the TS-2000.  I'm too lazy to spell it any
 	different.
 
-	Check back here often.  I've be making extensive changes daily
+	Check back here often.  I've been making extensive changes daily
 	(wife permitting).  I'll change the status to working as soon
 	as I get reasonable functionality back.
 
@@ -18,3 +19,53 @@ Status:	Being Overhauled.  Consider it broken.
 
 	Dale
 	kd7eni
+
+--------------------------------------------------------------------------
+File change summary:	(Hopefully, I'll keep this updated...)
+
+	Makefile.am	Added ts2k.c, ts2k.h
+	ts2k.status	current status in the form of rigctl help
+			Takes alot of time.  May or may not be kept
+			up to date.  Anybody write an expect script?
+	ts2k.c		New
+	ts2k_menu.c	(not implemented; work to allow menus to set the
+			zillions of options we'll never have functions for
+			in hamlib.  The user and calling program will have
+			to do all the work.  Comments will be much appreciated!)
+	ts2k_menu.h	just the actual data and some structs for the rig.
+			(Currently every menu item number and text is entered
+			but the menu default is not set.  For example, grig
+			can't be expected to know every rig's menu's.  in work!)
+			It just occured to me that it would be very nice to
+			have a default hamlib menu.  If a rig don't have any
+			or no menu functions yet, the levels and other items
+			can be presented as a default menu. 
+
+	ts2000.c	Inserted my version.  mv'd orig to ts2000.c.orig
+	ts2000.h	renamed ts2000.c to ts2000.h
+	rigctl.c	Added comments: [# | ;] anything... [\n | \r]
+
+	include/hamlib/rig.h:	(nothing extraordinary.  yet.)
+			added RIG_FUNC_ALL, RIG_PARM_ALL, RIG_LEVEL_ALL.
+			added RIG_FUNC_EXCLUDE, RIG_PARM_EXCLUDE, RIG_LEVEL_EXCLUDE
+			added RIG_RPTR_SHIFT_1750
+			(The following needed work, though I stopped short of
+			  what I wanted to do. )
+			eliminated negatives for VFO, changed vfo_t to *ONLY*
+			bitmasks, instead of bitmask and integer const.
+			I'm going to check files and look for stuff that might
+			get broken (mostly in the backends).
+		The following are those I've checked manually:
+			alinco/*.[ch]	// ok
+			aor/aor.c	// I need to check RIG_VFO_VFO
+			dummy/dummy.c	// "	"	"	"
+			icom/*.[ch]	// ok
+			kylix/hamlib_rigapi.pas	// same as rig.h (Hold the Press!)
+			kenwood/	// ok
+			pcr/		// ok
+			rpcrig/		// ok
+			src/		// ok
+			tests/dumpcaps.c	// uses bitwise mask (&)
+			yaesu/ft100.c	// uses RIG_VFO1 directly, etc...
+			yaesu/ft817.c	// uses RIG_VFO1 directly, etc...
+			yaesu/ft847.c	// uses RIG_VFO_MAIN, _CURR only!
