@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.23 2002-12-19 11:02:13 pa4tu Exp $
+ *	$Id: misc.c,v 1.24 2003-01-06 22:08:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -231,7 +231,9 @@ void rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 		}
 }
 
+#ifndef llabs
 #define llabs(a) ((a)<0?-(a):(a))
+#endif
 
 /*
  * rig_freq_snprintf?
@@ -260,140 +262,6 @@ int sprintf_freq(char *str, freq_t freq)
 		return sprintf (str, "%g %s", f, hz);
 }
 
-const char * strrmode(rmode_t mode)
-{
-	switch (mode) {
-    case RIG_MODE_AM: return "AM";
-	case RIG_MODE_CW: return "CW";
-	case RIG_MODE_CWR: return "CWR";
-	case RIG_MODE_USB: return "USB";
-	case RIG_MODE_LSB: return "LSB";
-	case RIG_MODE_RTTY: return "RTTY";
-	case RIG_MODE_RTTYR: return "RTTYR";
-	case RIG_MODE_FM: return "FM";
-	case RIG_MODE_WFM: return "WFM";
-	case RIG_MODE_NONE: return "";
-	}
-	return NULL;
-}
-
-/*
- * shouldn't this use the same table as parse_vfo()?
- * It already caused me one bug.  :)		--Dale
- */
-const char *strvfo(vfo_t vfo)
-{
-	switch (vfo) {
-	case	RIG_VFO_A:
-			return "VFOA";
-	case	RIG_VFO_B:
-			return "VFOB";
-	case	RIG_VFO_C:
-			return "VFOC";
-	case	RIG_VFO_CURR:
-			return "currVFO";
-	case	RIG_VFO_MEM:
-			return "MEM";
-	case	RIG_VFO_VFO:
-			return "VFO";
-	case	RIG_VFO_MAIN:
-			return "Main";
-	case	RIG_VFO_SUB:
-			return "Sub";
-	}
-	return NULL;
-}
-
-const char *strfunc(setting_t func)
-{
-	switch (func) {
-	case RIG_FUNC_FAGC: return "FAGC";
-	case RIG_FUNC_NB: return "NB";
-	case RIG_FUNC_COMP: return "COMP";
-	case RIG_FUNC_VOX: return "VOX";
-	case RIG_FUNC_TONE: return "TONE";
-	case RIG_FUNC_TSQL: return "TSQL";
-	case RIG_FUNC_SBKIN: return "SBKIN";
-	case RIG_FUNC_FBKIN: return "FBKIN";
-	case RIG_FUNC_ANF: return "ANF";
-	case RIG_FUNC_NR: return "NR";
-	case RIG_FUNC_AIP: return "AIP";
-	case RIG_FUNC_APF: return "APF";
-	case RIG_FUNC_MON: return "MON";
-	case RIG_FUNC_MN: return "MN";
-	case RIG_FUNC_RNF: return "RNF";
-	case RIG_FUNC_ARO: return "ARO";
-	case RIG_FUNC_LOCK: return "LOCK";
-	case RIG_FUNC_MUTE: return "MUTE";
-	case RIG_FUNC_VSC: return "VSC";
-	case RIG_FUNC_REV: return "REV";
-	case RIG_FUNC_SQL: return "SQL";
-	case RIG_FUNC_BC: return "BC";
-	case RIG_FUNC_MBC: return "MBC";
-	case RIG_FUNC_LMP: return "LMP";
-	case RIG_FUNC_AFC: return "AFC";
-	case RIG_FUNC_SATMODE: return "SATMODE";
-	case RIG_FUNC_SCOPE: return "SCOPE";
-	case RIG_FUNC_RESUME: return "RESUME";
-	case RIG_FUNC_TBURST: return "TBURST";
-
-	case RIG_FUNC_NONE: return "";
-	}
-	return NULL;
-}
-
-const char *strlevel(setting_t level)
-{
-	switch (level) {
-	case RIG_LEVEL_PREAMP: return "PREAMP";
-	case RIG_LEVEL_ATT: return "ATT";
-	case RIG_LEVEL_VOX: return "VOX";
-	case RIG_LEVEL_AF: return "AF";
-	case RIG_LEVEL_RF: return "RF";
-	case RIG_LEVEL_SQL: return "SQL";
-	case RIG_LEVEL_IF: return "IF";
-	case RIG_LEVEL_APF: return "APF";
-	case RIG_LEVEL_NR: return "NR";
-	case RIG_LEVEL_PBT_IN: return "PBT_IN";
-	case RIG_LEVEL_PBT_OUT: return "PBT_OUT";
-	case RIG_LEVEL_CWPITCH: return "CWPITCH";
-	case RIG_LEVEL_RFPOWER: return "RFPOWER";
-	case RIG_LEVEL_MICGAIN: return "MICGAIN";
-	case RIG_LEVEL_KEYSPD: return "KEYSPD";
-	case RIG_LEVEL_NOTCHF: return "NOTCHF";
-	case RIG_LEVEL_COMP: return "COMP";
-	case RIG_LEVEL_AGC: return "AGC";
-	case RIG_LEVEL_BKINDL: return "BKINDL";
-	case RIG_LEVEL_BALANCE: return "BALANCE";
-	case RIG_LEVEL_METER: return "METER";
-	case RIG_LEVEL_VOXGAIN: return "VOXGAIN";
-	case RIG_LEVEL_ANTIVOX: return "ANTIVOX";
-
-	case RIG_LEVEL_SWR: return "SWR";
-	case RIG_LEVEL_ALC: return "ALC";
-	case RIG_LEVEL_SQLSTAT: return "SQLSTAT";
-	case RIG_LEVEL_STRENGTH: return "STRENGTH";
-
-	case RIG_LEVEL_NONE: return "";
-	}
-	return NULL;
-}
-
-const char *strparm(setting_t parm)
-{
-	switch (parm) {
-	case RIG_PARM_ANN: return "ANN";
-	case RIG_PARM_APO: return "APO";
-	case RIG_PARM_BACKLIGHT: return "BACKLIGHT";
-	case RIG_PARM_BEEP: return "BEEP";
-	case RIG_PARM_TIME: return "TIME";
-	case RIG_PARM_BAT: return "BAT";
-
-	case RIG_PARM_NONE: return "";
-	}
-	return NULL;
-}
-
 const char *strptrshift(rptr_shift_t shift)
 {
 	switch (shift) {
@@ -401,40 +269,6 @@ const char *strptrshift(rptr_shift_t shift)
 	case RIG_RPT_SHIFT_PLUS: return "-";
 
 	case RIG_RPT_SHIFT_NONE: return "None";
-	}
-	return NULL;
-}
-
-const char *strvfop(vfo_op_t op)
-{
-	switch (op) {
-	case RIG_OP_CPY: return "CPY";
-	case RIG_OP_XCHG: return "XCHG";
-	case RIG_OP_FROM_VFO: return "FROM_VFO";
-	case RIG_OP_TO_VFO: return "TO_VFO";
-	case RIG_OP_MCL: return "MCL";
-	case RIG_OP_UP: return "UP";
-	case RIG_OP_DOWN: return "DOWN";
-	case RIG_OP_BAND_UP: return "BAND_UP";
-	case RIG_OP_BAND_DOWN: return "BAND_DOWN";
-	case RIG_OP_LEFT: return "LEFT";
-	case RIG_OP_RIGHT: return "RIGHT";
-
-	case RIG_OP_NONE: return "";
-	}
-	return NULL;
-}
-
-const char *strscan(scan_t rscan)
-{
-	switch (rscan) {
-	case RIG_SCAN_STOP: return "STOP";
-	case RIG_SCAN_MEM: return "MEM";
-	case RIG_SCAN_SLCT: return "SLCT";
-	case RIG_SCAN_PRIO: return "PRIO";
-	case RIG_SCAN_PROG: return "PROG";
-	case RIG_SCAN_DELTA: return "DELTA";
-	case RIG_SCAN_VFO: return "VFO";
 	}
 	return NULL;
 }
@@ -585,9 +419,11 @@ static struct {
 	{ RIG_MODE_AM, "AM" },
 	{ RIG_MODE_FM, "FM" },
 	{ RIG_MODE_CW, "CW" },
+	{ RIG_MODE_CWR, "CWR" },
 	{ RIG_MODE_USB, "USB" },
 	{ RIG_MODE_LSB, "LSB" },
 	{ RIG_MODE_RTTY, "RTTY" },
+	{ RIG_MODE_RTTYR, "RTTYR" },
 	{ RIG_MODE_WFM, "WFM" },
 	{ RIG_MODE_NONE, NULL },
 };
@@ -602,6 +438,21 @@ rmode_t parse_mode(const char *s)
 					return mode_str[i].mode;
 	return RIG_MODE_NONE;
 }
+
+const char * strrmode(rmode_t mode)
+{
+	int i;
+
+	if (mode == RIG_MODE_NONE)
+		return "";
+
+	for (i=0; mode_str[i].str != NULL; i++)
+		if (mode == mode_str[i].mode)
+			return mode_str[i].str;
+
+	return NULL;
+}
+
 
 static struct { 
 		vfo_t vfo ;
@@ -622,10 +473,24 @@ vfo_t parse_vfo(const char *s)
 {
 	int i;
 
-	for (i=0 ; vfo_str[i].str != NULL; i++)
-			if (!strcmp(s, vfo_str[i].str))
-					return vfo_str[i].vfo;
+	for (i=0; vfo_str[i].str != NULL; i++)
+		if (!strcmp(s, vfo_str[i].str))
+			return vfo_str[i].vfo;
 	return RIG_VFO_NONE;
+}
+
+const char *strvfo(vfo_t vfo)
+{
+	int i;
+
+	if (vfo == RIG_VFO_NONE)
+		return "";
+
+	for (i=0; vfo_str[i].str != NULL; i++)
+		if (vfo == vfo_str[i].vfo)
+			return vfo_str[i].str;
+
+	return NULL;
 }
 
 
@@ -674,6 +539,21 @@ setting_t parse_func(const char *s)
 	return RIG_FUNC_NONE;
 }
 
+const char *strfunc(setting_t func)
+{
+	int i;
+
+	if (func == RIG_FUNC_NONE)
+		return "";
+
+	for (i=0; func_str[i].str != NULL; i++)
+		if (func == func_str[i].func)
+			return func_str[i].str;
+
+	return NULL;
+}
+
+
 static struct { 
 		setting_t level;
 		const char *str;
@@ -719,6 +599,21 @@ setting_t parse_level(const char *s)
 	return RIG_LEVEL_NONE;
 }
 
+const char *strlevel(setting_t level)
+{
+	int i;
+
+	if (level == RIG_LEVEL_NONE)
+		return "";
+
+	for (i=0; level_str[i].str != NULL; i++)
+		if (level == level_str[i].level)
+			return level_str[i].str;
+
+	return NULL;
+}
+
+
 static struct { 
 		setting_t parm;
 		const char *str;
@@ -741,6 +636,21 @@ setting_t parse_parm(const char *s)
 					return parm_str[i].parm;
 	return RIG_PARM_NONE;
 }
+
+const char *strparm(setting_t parm)
+{
+	int i;
+
+	if (parm == RIG_PARM_NONE)
+		return "";
+
+	for (i=0; parm_str[i].str != NULL; i++)
+		if (parm == parm_str[i].parm)
+			return parm_str[i].str;
+
+	return NULL;
+}
+
 
 static struct { 
 		vfo_op_t vfo_op;
@@ -770,6 +680,21 @@ vfo_op_t parse_vfo_op(const char *s)
 	return RIG_OP_NONE;
 }
 
+const char *strvfop(vfo_op_t op)
+{
+	int i;
+
+	if (op == RIG_OP_NONE)
+		return "";
+
+	for (i=0; vfo_op_str[i].str != NULL; i++)
+		if (op == vfo_op_str[i].vfo_op)
+			return vfo_op_str[i].str;
+
+	return NULL;
+}
+
+
 static struct { 
 		scan_t rscan;
 		const char *str;
@@ -796,6 +721,21 @@ scan_t parse_scan(const char *s)
 
 	return RIG_SCAN_NONE;
 }
+
+const char *strscan(scan_t rscan)
+{
+	int i;
+
+	if (rscan == RIG_SCAN_NONE)
+		return "";
+
+	for (i=0; scan_str[i].str != NULL; i++)
+		if (rscan == scan_str[i].rscan)
+			return scan_str[i].str;
+
+	return NULL;
+}
+
 
 rptr_shift_t parse_rptr_shift(const char *s)
 {
