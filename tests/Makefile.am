@@ -1,5 +1,7 @@
-bin_PROGRAMS = printcaps testrig testbcd
-LDADD = -L../src/.libs -lhamlib -L../icom/.libs -lhamlib-icom -L../ft747/.libs -lhamlib-ft747 -L../ft847/.libs -lhamlib-ft847
+bin_PROGRAMS = dumpcaps testrig testtrn testbcd listrigs
+LDADD = -L../src/.libs -lhamlib
 testrig_SOURCES = testrig.c
+testtrn_SOURCES = testtrn.c
 testbcd_SOURCES = testbcd.c
-printcaps_SOURCES = printcaps.c
+dumpcaps_SOURCES = dumpcaps.c
+listrigs_SOURCES = listrigs.c
