@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.21 2003-08-20 07:22:40 fillods Exp $
+ *	$Id: event.c,v 1.22 2003-09-07 18:30:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -510,8 +510,6 @@ int rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
 {
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
-	if(arg==NULL)
-	  return -RIG_EINVAL;
 
 	rig->callbacks.pltune = cb;
 	rig->callbacks.pltune_arg = arg;

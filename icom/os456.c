@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan456
  *  Copyright (c) 2000-2003 by Stephane Fillod and Michael Smith
  *
- *	$Id: os456.c,v 1.6 2003-08-17 22:39:07 fillods Exp $
+ *	$Id: os456.c,v 1.7 2003-09-07 18:30:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -18,6 +18,11 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/*
+ * This backend is currently being maintained by Michael Smith, KE4RJQ.
+ * Email: james (dot) m (dot) smith (at) earthlink (dot) net
  */
 
 #ifdef HAVE_CONFIG_H
@@ -69,7 +74,7 @@ const struct rig_caps os456_caps = {
 .rig_model =  RIG_MODEL_OS456,
 .model_name = "OptoScan456", 
 .mfg_name =  "Optoelectronics", 
-.version =  "0.2", 
+.version =  "0.3", 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,

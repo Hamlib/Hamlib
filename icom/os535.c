@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan535
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: os535.c,v 1.5 2003-05-19 06:57:44 fillods Exp $
+ *	$Id: os535.c,v 1.6 2003-09-07 18:30:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,6 +20,11 @@
  *
  */
 
+/*
+ * This backend is currently being maintained by Michael Smith, KE4RJQ.
+ * Email: james (dot) m (dot) smith (at) earthlink (dot) net
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -33,11 +38,12 @@ extern struct confparams opto_ext_parms[];
 
 #define OS535_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 #define OS535_VFO_ALL (RIG_VFO_A)
-#define OS535_LEVELS (RIG_LEVEL_STRENGTH)
+#define OS535_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF)
+#define OS535_SCAN_OPS (RIG_SCAN_PLT)
 
 #define OS535_STR_CAL { 2, { \
-		{ 137, -60 }, \
 		{ 20, 60 }, \
+		{ 137, -60 }, \
 		} }		/* TBC */
 
 /*
@@ -52,19 +58,20 @@ static const struct icom_priv_caps os535_priv_caps = {
 		0x80,	/* default address */
 		0,		/* 731 mode */
 		NULL,
-		OS535_STR_CAL
+		OS535_STR_CAL,
+		.settle_time = 12,
 };
 
 const struct rig_caps os535_caps = {
 .rig_model =  RIG_MODEL_OS535,
 .model_name = "OptoScan535", 
 .mfg_name =  "Optoelectronics", 
-.version =  "0.2", 
+.version =  "0.3", 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_SERIAL_CAR,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  38400,
@@ -78,8 +85,8 @@ const struct rig_caps os535_caps = {
 .retry =  3, 
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE, 
-.has_get_level =  RIG_LEVEL_NONE,
-.has_set_level =  RIG_LEVEL_NONE,
+.has_get_level =  OS535_LEVELS,
+.has_set_level =  RIG_LEVEL_AF,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
 .level_gran =  {},
@@ -93,7 +100,7 @@ const struct rig_caps os535_caps = {
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
 .vfo_ops =  RIG_OP_NONE,
-.scan_ops =  RIG_SCAN_NONE,
+.scan_ops =  OS535_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
@@ -102,9 +109,7 @@ const struct rig_caps os535_caps = {
 
 .rx_range_list1 =   {
 	{ MHz(25),MHz(520),OS535_MODES,-1,-1,OS535_VFO_ALL},
-	{ MHz(760),MHz(823.995),OS535_MODES,-1,-1,OS535_VFO_ALL},
-	{ MHz(849),MHz(868.995),OS535_MODES,-1,-1,OS535_VFO_ALL},
-	{ MHz(894),MHz(1300),OS535_MODES,-1,-1,OS535_VFO_ALL},
+	{ MHz(760),MHz(1300),OS535_MODES,-1,-1,OS535_VFO_ALL},
 	RIG_FRNG_END, },
 .tx_range_list1 =  { RIG_FRNG_END, },		/* this is a scanner */
 
@@ -150,6 +155,19 @@ const struct rig_caps os535_caps = {
 .decode_event =  icom_decode_event,
 
 .get_info =  optoscan_get_info,
+
+.get_ctcss_tone = optoscan_get_ctcss_tone,
+.get_dcs_code = optoscan_get_dcs_code,
+.recv_dtmf = optoscan_recv_dtmf,
+
+.extparms = opto_ext_parms,
+.set_ext_parm = optoscan_set_ext_parm,
+.get_ext_parm = optoscan_get_ext_parm,
+
+.set_level = optoscan_set_level,
+.get_level = optoscan_get_level,
+
+.scan = optoscan_scan,
 
 };
 

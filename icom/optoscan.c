@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.7 2003-08-17 22:39:07 fillods Exp $
+ *	$Id: optoscan.c,v 1.8 2003-09-07 18:30:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -558,9 +558,6 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
   pltune_cb_t cb;
   int rc, pin_state;
   struct rig_state *rs;
-  int status;
-  unsigned char y;
-  port_t *p;
 
   if(scan != RIG_SCAN_PLT)
     return -RIG_ENAVAIL;
@@ -615,6 +612,9 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	}
     }
 
+  /* exiting pipeline loop - force state init on next call */
+  state->freq=0;
+
   return RIG_OK;
 }
 
@@ -623,7 +623,7 @@ int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
  */
 static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
 {
-  int retval, ack_len;
+  int retval, ack_len, expected_len;
   unsigned char ackbuf[MAXFRAMELEN];
 
   memset(status_block,0,sizeof(struct optostat));
@@ -634,7 +634,21 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
   if (retval != RIG_OK)
     return retval;
   
-  if (ack_len != 4 ) {
+  switch( rig->caps->rig_model )
+    {
+    case RIG_MODEL_OS456:
+      expected_len=4;
+      break;
+    case RIG_MODEL_OS535:
+      expected_len=5;
+      break;
+    default:
+      rig_debug(RIG_DEBUG_ERR,"optoscan_get_status_block: unknown rig model");
+      return -RIG_ERJCTED;
+      break;
+    }
+
+  if (ack_len != expected_len ) {
     rig_debug(RIG_DEBUG_ERR,"optoscan_get_status_block: ack NG (%#.2x), "
 	      "len=%d\n", ackbuf[0], ack_len);
     return -RIG_ERJCTED;
@@ -673,7 +687,7 @@ static int optoscan_send_freq(RIG *rig,pltstate_t *state)
   struct icom_priv_data *priv;
   struct rig_state *rs;
   const port_t *port;
-  int fd,i;
+  int fd;
   char md,pd;
   freq_t freq;
   rmode_t mode;
@@ -707,9 +721,6 @@ static int optoscan_RTS_toggle(RIG *rig)
 {
   struct rig_state *rs;
   int state=0;
-  port_t *p;
-  int status;
-  unsigned char y;
 
   rs=&rig->state;
   ser_get_rts(&rs->rigport,&state);
@@ -748,12 +759,3 @@ static int optoscan_wait_timer(RIG *rig, pltstate_t *state)
   return RIG_OK;
 }
 
-void static dump_state(char *str, pltstate_t *state)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,"%s:\n",str);
-  rig_debug(RIG_DEBUG_VERBOSE,"freq:       %d\n",state->freq);
-  rig_debug(RIG_DEBUG_VERBOSE,"mode:       %d\n",state->mode);
-  rig_debug(RIG_DEBUG_VERBOSE,"next freq:  %d\n",state->next_freq);
-  rig_debug(RIG_DEBUG_VERBOSE,"next mode:  %d\n",state->next_mode);
-  rig_debug(RIG_DEBUG_VERBOSE,"usleep time:%d\n",state->usleep_time);
-}
