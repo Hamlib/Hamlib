@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.h,v 1.12 2002-01-27 23:47:41 fillods Exp $
+ *		$Id: misc.h,v 1.13 2002-07-06 09:26:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,7 @@
 #define Hold_Decode(rig) {(rig)->state.hold_decode = 1;}
 #define Unhold_Decode(rig) {(rig)->state.hold_decode = 0;}
 
+__BEGIN_DECLS
 
 /*
  * Do a hex dump of the unsigned char array.
@@ -88,6 +89,8 @@ extern HAMLIB_EXPORT(rptr_shift_t) parse_rptr_shift(const char *s);
 
 /* check if it's any of CR or LF */
 #define isreturn(c) ((c) == 10 || (c) == 13)
+
+__END_DECLS
 
 #endif /* _MISC_H */
 
