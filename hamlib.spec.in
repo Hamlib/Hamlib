@@ -166,6 +166,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/hamlib-kachina.la
 %{_libdir}/hamlib-kenwood.so
 %{_libdir}/hamlib-kenwood.la
+%{_libdir}/hamlib-kit.so
+%{_libdir}/hamlib-kit.la
 %{_libdir}/hamlib-lowe.so
 %{_libdir}/hamlib-lowe.la
 %{_libdir}/hamlib-microtune.so
@@ -228,6 +230,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/hamlib-jrc.a
 %{_libdir}/hamlib-kachina.a
 %{_libdir}/hamlib-kenwood.a
+%{_libdir}/hamlib-kit.a
 %{_libdir}/hamlib-lowe.a
 %{_libdir}/hamlib-microtune.a
 %{_libdir}/hamlib-pcr.a
