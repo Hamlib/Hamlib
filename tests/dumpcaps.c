@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.34 2002-11-28 22:27:11 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.35 2003-02-23 22:41:03 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -282,10 +282,13 @@ int dumpcaps (RIG* rig)
 	if (status) backend_warnings++;
 
 	printf("Tuning steps:");
-	for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
+	for (i=0; i<TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++) {
+		if (caps->tuning_steps[i].ts == RIG_TS_ANY)
+			strcpy(freqbuf, "ANY");
+		else
 			sprintf_freq(freqbuf,caps->tuning_steps[i].ts);
-			sprintf_mode(prntbuf,caps->tuning_steps[i].modes);
-			printf("\n\t%s:   \t%s", freqbuf, prntbuf);
+		sprintf_mode(prntbuf,caps->tuning_steps[i].modes);
+		printf("\n\t%s:   \t%s", freqbuf, prntbuf);
 	}
 	if (i==0) {
 			printf(" none! This backend might be bogus!");
@@ -297,10 +300,13 @@ int dumpcaps (RIG* rig)
 	if (status) backend_warnings++;
 
 	printf("Filters:");
-	for (i=0; i<FLTLSTSIZ && caps->filters[i].modes; i++) {
+	for (i=0; i<FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++) {
+		if (caps->filters[i].width == RIG_FLT_ANY)
+			strcpy(freqbuf, "ANY");
+		else
 			sprintf_freq(freqbuf,caps->filters[i].width);
-			sprintf_mode(prntbuf,caps->filters[i].modes);
-			printf("\n\t%s:   \t%s", freqbuf, prntbuf);
+		sprintf_mode(prntbuf,caps->filters[i].modes);
+		printf("\n\t%s:   \t%s", freqbuf, prntbuf);
 	}
 	if (i==0) {
 			printf(" none! This backend might be bogus!");
@@ -482,9 +488,9 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
 	last_ts = 0;
 	last_modes = RIG_MODE_NONE;
 	for (i=0; i<TSLSTSIZ; i++) {
-			if (tuning_step[i].modes == 0 && tuning_step[i].ts == 0)
+			if (RIG_IS_TS_END(tuning_step[i]))
 					break;
-			if (tuning_step[i].ts < last_ts && 
+			if (tuning_step[i].ts != RIG_TS_ANY && tuning_step[i].ts < last_ts && 
 							last_modes == tuning_step[i].modes)
 					return -1;
 			if (tuning_step[i].modes == 0)
@@ -504,7 +510,7 @@ static void dump_chan_caps(const channel_cap_t *chan)
   if (chan->bank_num) printf("BANK ");
   if (chan->ant) printf("ANT ");
   if (chan->freq) printf("FREQ ");
-  if (chan->mode) printf("MORE ");
+  if (chan->mode) printf("MODE ");
   if (chan->width) printf("WIDTH ");
   if (chan->tx_freq) printf("TXFREQ ");
   if (chan->tx_mode) printf("TXMODE ");
