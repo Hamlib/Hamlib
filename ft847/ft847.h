@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.8 2000-07-30 05:09:51 javabear Exp $  
+ *    $Id: ft847.h,v 1.9 2000-08-09 01:25:18 javabear Exp $  
  */
 
 /*
@@ -48,6 +48,16 @@ const unsigned char  TXSF_POALC_METER_MASK  = 0x1f; /* bottom 5 bits */
 #define MODE_CWNR  0x83
 #define MODE_AMN   0x84
 #define MODE_FMN   0x88
+
+/*
+ * Modes for setting CTCSS/DCS Mode
+ *
+ */
+
+const unsigned char DCS_ON            = 0x0a;
+const unsigned char CTCSS_ENC_DEC_ON  = 0x2a; 
+const unsigned char CTCSS_ENC_ON      = 0x4a; 
+const unsigned char CTCSS_ENC_DEC_OFF = 0x2a; 
 
 
 
@@ -130,6 +140,12 @@ void cmd_set_freq_sat_rx_vfo_hz(int fd,long int freq, unsigned char mode);
 void cmd_set_freq_sat_tx_vfo_hz(int fd,long int freq, unsigned char mode);
 
 
+/*
+ * Set Repeater offset in Hz.
+ *
+ */
+
+void cmd_set_repeater_offset_hz(int fd,long int freq);
 
 
 

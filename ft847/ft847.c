@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.14 2000-07-30 05:07:17 javabear Exp $  
+ * $Id: ft847.c,v 1.15 2000-08-09 01:24:31 javabear Exp $  
  *
  */
 
@@ -22,10 +22,35 @@
 #include "serial.h"
 #include "ft847.h"
 
+#define TRUE    1;
+#define FALSE   0;
+
+
 static unsigned char datain[5]; /* data read from rig */
 
 static long int  calc_freq_from_packed4(unsigned char *in);
 static void calc_packed4_from_freq(long int freq, unsigned char *out);
+
+
+
+/*
+ * Allowable DCS Codes 
+ *
+ */
+
+static int dcs_allowed[] = { 
+  23,25,26,31,32,36,43,47,51,53,54,65,71,
+  72,73,74,114,115,116,122,125,131,132,134,143,145,
+  152,155,156,162,165,172,174,205,212,223,225,226,243,
+  244,245,246,251,252,255,266,263,265,266,271,274,306,
+  311,315,325,331,332,343,347,351,356,364,365,371,411,
+  412,413,423,431,432,445,446,452,454,455,462,464,465,
+  466,503,506,516,523,526,532,546,565,606,612,624,627,
+  631,632,654,662,664,703,712,723,731,732,734,743,754
+
+};
+
+
 
 /*
  * Function definitions below
@@ -421,6 +446,30 @@ void cmd_set_freq_sat_tx_vfo_hz(int fd,long int freq, unsigned char mode) {
 
 }
 
+/*
+ * Set Repeater offset in Hz.
+ *
+ */
+
+void cmd_set_repeater_offset_hz(int fd,long int freq) {
+  unsigned char d1,d2,d3,d4;
+  unsigned char farray[4];	/* holds packed freq */
+
+  /* can only specify multiples of 10Hz on FT847, but */
+  /* calc_packed4_from_freq() does that for us , so dont */
+  /* do it here.. */
+
+  calc_packed4_from_freq(freq,farray); /* and store in farray */
+
+  d1 = farray[0];
+  d2 = farray[1];
+  d3 = farray[2];
+  d4 = farray[3];
+
+  cmd_set_repeater_offset(fd,d1,d2,d3,d4); /* set freq */
+
+}
+
 
 /*
  * Private helper functions....
@@ -450,7 +499,7 @@ static long int  calc_freq_from_packed4(unsigned char *in) {
   f += d3*100;
   f += d4;
 
-  f = f *10;			/* yaesu requires freq as multiple of 10 Hz, so must */
+  f = f *10;			/* yaesu uses freq as multiple of 10 Hz, so must */
 				/* scale to return Hz*/
 
   printf("ft847:frequency = %ld  Hz\n",  f); 
@@ -461,8 +510,11 @@ static long int  calc_freq_from_packed4(unsigned char *in) {
 
 
 /*
- * Calculate  packed decimal from freq (4 bytes, 8 digits) 
+ * Calculate  packed decimal from freq hz (4 bytes, 8 digits) 
  * and return packed decimal frequency in out[] array.
+ *
+ *  Note this routine also scales freq as multiple of
+ *  10Hz as required for most freq parameters.
  *
  */
 
@@ -482,14 +534,30 @@ static void calc_packed4_from_freq(long int freq, unsigned char *out) {
   d3 = calc_packed_from_char(f3);
   d4 = calc_packed_from_char(f4);
 
-  out[0] = d1;			/* update out[] array */
-  out[1] = d2;
-  out[2] = d3;
-  out[3] = d4;
+  out[0] = d1;			/* get 100 Mhz-10 Mhz part */	
+  out[1] = d2;			/* get 1Mhz-100Khz part */
+  out[2] = d3;			/* get 10khz-1khz part */
+  out[3] = d4;			/* get 10khz-1khz part */
  
 }
 
 
 
+
+
+/*
+ * To see if a value is present in an array of ints.
+ *
+ */
+
+static int is_in_list(int *list, int list_length, int value) {
+  int i;
+  
+  for(i=0; i<list_length; i++){
+    if (*(list+i) == value)
+      return TRUE;		/* found */
+  }
+  return FALSE;			/* not found */
+}
 
 
