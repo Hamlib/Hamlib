@@ -14,20 +14,15 @@ GENERAL PROJECT TODO
 13. ~/.hamlibrc and /etc/hamlibrc preferences file
 14. Write the list of all functions that should be in the API
 15. Handle retransmissions (no more than n) if timeout (->backends)
-16. Write .spec (rpm) and .deb (debian) package files
 18. rewrite the post_write_delay. Active delay is a waste of cycles! [need test]
-19. specify how to access Reverse modes (CWR, RTTYR). through set_mode?
-21. grab cygwin and test portability under Win32 (what about MacOS?)
 23. add support in the API for additional filters, DSP bandpass control
 25. Write aclocal .m4 macro helpers for autoconf support [need test]
 26. Write rig protocol simulator so no hardware is involved with Hamlib testing
 27. complete memory bank support
 28. add rig_srch_ctcss, rig_srch_dcs, etc.
 29. emulate get_stuff (caching) if backend has no support for it
-30. Write perl/python/etc. modules
-31. Add some antenna tuner support
+30. Write perl/python/etc. modules [ongoing]
 32. Document C++/tcltk bindings, complete Hamlib API documentation using doxygen
-33. Merge dumpmem/dumpcaps into rigctl
 
 DONE
 ----
@@ -44,6 +39,8 @@ DONE
 
 12. Add general rig capabilities handling. see rig.h
 
+16. Write .spec (rpm) and .deb (debian) package files
+
 17a. Add support for a configurable debug level (none, function calls, 
 	packet traces)
 
@@ -51,11 +48,14 @@ DONE
 	for better performance. Use flushing with fwrite.
 
 18. Get CVS updates mailed to our hamlib-cvs-digest list
-
+19. specify how to access Reverse modes (CWR, RTTYR). through set_mode?
 22. handle nicely different versions of same rig coming for 
 	ITU region1/region2 ham band (-> freq ranges in capabilities)
 
 11. Add some scanning routines [ 1.1.2? ]
 
 20. adapt API include files to support C++ (__BEGIN_DECLS/__END_DECLS, etc.)
+21. grab cygwin and test portability under Win32 (what about MacOS?)
 24. Should Hamlib (the library itself) be LGPL'ed ?
+31. Add some antenna tuner support
+33. Merge dumpmem/dumpcaps into rigctl
