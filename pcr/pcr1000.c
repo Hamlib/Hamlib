@@ -6,7 +6,7 @@
  * via serial interface to an Icom PCR-1000.
  *
  *
- *	$Id: pcr1000.c,v 1.3 2001-05-04 22:37:35 f4cfe Exp $  
+ *	$Id: pcr1000.c,v 1.4 2001-06-02 17:53:18 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -93,11 +93,12 @@ chan_desc_sz: 0,
 
 chan_list: { RIG_CHAN_END, },	/* no memory channel list: this is a PC receiver */
 
-rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+rx_range_list1: { {kHz(10),GHz(1.3),PCR1000_MODES,-1,-1,RIG_VFO_A},
+ 	RIG_FRNG_END, },
 tx_range_list1: { RIG_FRNG_END, },
-rx_range_list2: { {kHz(100),MHz(824)-10,PCR1000_MODES,-1,-1,RIG_VFO_A},
+rx_range_list2: { {kHz(10),MHz(824)-10,PCR1000_MODES,-1,-1,RIG_VFO_A},
     {MHz(849)+10,MHz(869)-10,PCR1000_MODES,-1,-1,RIG_VFO_A},
-    {MHz(894)+10,GHz(1.3)-10,PCR1000_MODES,-1,-1,RIG_VFO_A},
+    {MHz(894)+10,GHz(1.3),PCR1000_MODES,-1,-1,RIG_VFO_A},
  	RIG_FRNG_END, },
 tx_range_list2: { RIG_FRNG_END, },	/* no TX ranges, this is a receiver */
 
