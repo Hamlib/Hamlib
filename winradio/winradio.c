@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.8 2001-04-26 21:32:54 f4cfe Exp $
+ *		$Id: winradio.c,v 1.9 2001-06-02 18:08:40 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -55,7 +55,10 @@ int wr_rig_init(RIG *rig) {
 }
 
 int wr_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
-  unsigned long f = freq;
+  unsigned long f;
+  if (freq > GHz(4.2))
+		  return -RIG_EINVAL;
+  f = (unsigned long)freq;
   if ( ioctl(rig->state.fd, RADIO_SET_FREQ, &f) ) return -RIG_EINVAL;
   return RIG_OK;
 }
@@ -63,7 +66,7 @@ int wr_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 int wr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   unsigned long f;
   if ( ioctl(rig->state.fd, RADIO_GET_FREQ, &f) < 0 ) return -RIG_EINVAL;
-  *freq = f;
+  *freq = (freq_t)f;
   return RIG_OK;
 }
 
@@ -126,6 +129,32 @@ int wr_get_powerstat(RIG *rig, powerstat_t *status) {
   return RIG_OK;
 }
 
+int wr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
+  switch ( func ) {
+  case RIG_FUNC_FAGC: {
+    unsigned long v = status ? 1 : 0;
+    if ( ioctl(rig->state.fd, RADIO_SET_AGC, &v) ) return -RIG_EINVAL;
+    return RIG_OK;
+  }
+  default:
+    return -RIG_EINVAL;
+  }    
+}
+
+int wr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status) {
+  switch ( func ) {
+  case RIG_FUNC_FAGC: {
+    unsigned long v;
+    if ( ioctl(rig->state.fd, RADIO_GET_AGC, &v) ) return -RIG_EINVAL;
+	*status = v;
+    return RIG_OK;
+  }
+  default:
+    return -RIG_EINVAL;
+  }   
+}
+
+
 int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
   switch ( level ) {
   case RIG_LEVEL_AF: {
@@ -138,6 +167,16 @@ int wr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
   case RIG_LEVEL_ATT: {
     unsigned long v = val.i ? 1 : 0;
     if ( ioctl(rig->state.fd, RADIO_SET_ATTN, &v) ) return -RIG_EINVAL;
+    return RIG_OK;
+  }
+  case RIG_LEVEL_IF: {
+    long v = val.i;
+    if ( ioctl(rig->state.fd, RADIO_SET_IFS, &v) ) return -RIG_EINVAL;
+    return RIG_OK;
+  }
+  case RIG_LEVEL_RF: {
+    long v = val.f*100;	/* iMaxIFGain on wHWVer > RHV_3150 */
+    if ( ioctl(rig->state.fd, RADIO_SET_IFG, &v) ) return -RIG_EINVAL;
     return RIG_OK;
   }
   default:
@@ -157,13 +196,25 @@ int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
   case RIG_LEVEL_ATT: {
     unsigned long v;
     if ( ioctl(rig->state.fd, RADIO_GET_VOL, &v) ) return -RIG_EINVAL;
-    val->i = v ? 20 : 0; /* TODO */
+    val->i = v ? rig->state.attenuator[0] : 0;
     return RIG_OK;
   }
   case RIG_LEVEL_STRENGTH: {
     unsigned long v;
     if ( ioctl(rig->state.fd, RADIO_GET_SS, &v) ) return -RIG_EINVAL;
-    val->i = v; /* TODO */
+    val->i = v-60; /* 0..120, Hamlib assumes S9 = 0dB */
+    return RIG_OK;
+  }
+  case RIG_LEVEL_IF: {
+    long v;
+    if ( ioctl(rig->state.fd, RADIO_GET_IFS, &v) ) return -RIG_EINVAL;
+    val->i = v;
+    return RIG_OK;
+  }
+  case RIG_LEVEL_RF: {
+    long v;
+    if ( ioctl(rig->state.fd, RADIO_GET_IFG, &v) ) return -RIG_EINVAL;
+    val->f = (float)v/100;	/* iMaxIFGain on wHWVer > RHV_3150 */
     return RIG_OK;
   }
   default:
@@ -174,7 +225,7 @@ int wr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
 /*
  * FIXME: static buf does not allow reentrancy!
  */
-unsigned char *wr_get_info(RIG *rig) {
+const char *wr_get_info(RIG *rig) {
   static char buf[100];
   if ( ioctl(rig->state.fd, RADIO_GET_DESCR, buf) < 0 ) return "?";
   return buf;
@@ -185,7 +236,12 @@ int init_winradio(void *be_handle)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "winradio: _init called\n");
 
+	rig_register(&wr1000_caps);
 	rig_register(&wr1500_caps);
+	rig_register(&wr3100_caps);
+	rig_register(&wr3150_caps);
+	rig_register(&wr3500_caps);
+	rig_register(&wr3700_caps);
 
 	return RIG_OK;
 }
