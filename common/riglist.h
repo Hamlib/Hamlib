@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.2 2000-09-16 01:54:42 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.3 2000-09-19 00:25:33 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -52,8 +52,14 @@ typedef enum rig_model_e rig_model_t;
 extern const struct rig_caps ft847_caps;
 extern const struct rig_caps ic706_caps;
 extern const struct rig_caps ic706mkiig_caps;
+extern const struct rig_caps ft747_caps;
+
 /* etc. */
 
 
 #endif /* _RIGLIST_H */
+
+
+
+
 
