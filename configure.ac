@@ -74,6 +74,7 @@ AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select gettimeofday memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
+AC_CHECK_FUNCS([cfmakeraw])
 AC_REPLACE_FUNCS(getopt_long)
 AC_REPLACE_FUNCS(usleep)
 AC_FUNC_ALLOCA
@@ -156,6 +157,9 @@ AC_SUBST(NET)
 
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
 ROT_BACKEND_LIST="dummy easycomm"
+BINDING_LIST="kylix c++ tcl"
+
+AC_SUBST(BINDING_LIST)
 
 case "$host_os" in
  linux-gnu*)
