@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.20 2001-03-01 00:23:14 f4cfe Exp $
+ *	$Id: rig.h,v 1.21 2001-03-01 21:17:00 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -309,10 +309,10 @@ typedef union value_u value_t;
 #define RIG_LEVEL_BKINDL	(1<<18)	/* BKin Delay, arg int (tenth of dots) */
 #define RIG_LEVEL_BALANCE	(1<<19)	/* Balance (Dual Watch), arg float [0.0 .. 1.0] */
 		/* These ones are not settable */
+#define RIG_LEVEL_SQLSTAT	(1<<27)	/* SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 #define RIG_LEVEL_SWR		(1<<28)	/* SWR, arg float */
 #define RIG_LEVEL_ALC		(1<<29)	/* ALC, arg float */
-#define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
-#define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (dB) */
+#define RIG_LEVEL_STRENGTH	(1<<30)	/* Signal strength, arg int (dB) */
 
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 
@@ -362,7 +362,7 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 #define RIG_FUNC_APF     	(1<<11)		/* Auto Passband Filter */
 #define RIG_FUNC_MON     	(1<<12)		/* Monitor? (Icom) */
 #define RIG_FUNC_MN     	(1<<13)		/* Manual Notch (Icom) */
-#define RIG_FUNC_RFN     	(1<<14)		/* RTTY Filter Notch (Icom) */
+#define RIG_FUNC_RNF     	(1<<14)		/* RTTY Filter Notch (Icom) */
 #define RIG_FUNC_ARO     	(1<<15)		/* Auto Repeater Offset */
 
 
