@@ -1,5 +1,6 @@
 
-AM_CPPFLAGS = @GNURADIO_CFLAGS@ -D_REENTRANT
+AM_CFLAGS = @GNURADIO_CFLAGS@ @PTHREAD_CFLAGS@
+AM_CXXFLAGS = $(AM_CFLAGS)
 
 lib_LTLIBRARIES = hamlib-gnuradio.la
 hamlib_gnuradio_la_SOURCES = mc4020.c graudio.c gr.c gnuradio.cc
@@ -7,7 +8,7 @@ hamlib_gnuradio_la_SOURCES = mc4020.c graudio.c gr.c gnuradio.cc
 hamlib_gnuradio_la_LDFLAGS = -no-undefined -module -avoid-version
 
 # requires libgnuradio, libfftw and c++
-hamlib_gnuradio_la_LIBADD = $(top_builddir)/src/libhamlib.la @GNURADIO_LIBS@ -lstdc++ -lpthread
+hamlib_gnuradio_la_LIBADD = $(top_builddir)/src/libhamlib.la @GNURADIO_LIBS@ -lstdc++ @PTHREAD_LIBS@
 
 noinst_HEADERS = gnuradio.h gr_priv.h demod.h nfm.h am.h ssb.h wfm.h
 
