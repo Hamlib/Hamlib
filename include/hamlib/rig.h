@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.53 2001-12-16 11:17:42 fillods Exp $
+ *		$Id: rig.h,v 1.54 2001-12-20 07:42:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -394,6 +394,8 @@ typedef long token_t;
 #define RIG_CONF_NUMERIC     2
 #define RIG_CONF_CHECKBUTTON 3
 
+#define RIG_COMBO_MAX	8
+
 struct confparams {
 		token_t token;
 		const char *name;	/* try to avoid spaces in the name */
@@ -408,7 +410,7 @@ struct confparams {
 				float step;
 			} n;
 			struct {
-				const char *combostr[8];
+				const char *combostr[RIG_COMBO_MAX];
 			} c;
 		} u;
 };
@@ -880,8 +882,8 @@ struct rig_caps {
   int (*vfo_op)(RIG *rig, vfo_t vfo, vfo_op_t op);
   int (*scan)(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 
-  int (*set_trn)(RIG *rig, vfo_t vfo, int trn);
-  int (*get_trn)(RIG *rig, vfo_t vfo, int *trn);
+  int (*set_trn)(RIG *rig, int trn);
+  int (*get_trn)(RIG *rig, int *trn);
 
 
   int (*decode_event)(RIG *rig);
@@ -1114,6 +1116,7 @@ extern HAMLIB_EXPORT(int) rig_get_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t
 extern HAMLIB_EXPORT(int) rig_reset HAMLIB_PARAMS((RIG *rig, reset_t reset));	/* dangerous! */
 
 
+extern HAMLIB_EXPORT(int) rig_token_foreach HAMLIB_PARAMS((RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data));
 extern HAMLIB_EXPORT(const struct confparams*) rig_confparam_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
 extern HAMLIB_EXPORT(token_t) rig_token_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
 
@@ -1154,8 +1157,8 @@ extern HAMLIB_EXPORT(int) rig_save_channel HAMLIB_PARAMS((RIG *rig, channel_t *c
 extern HAMLIB_EXPORT(int) rig_set_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan));	/* mem */
 extern HAMLIB_EXPORT(int) rig_get_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));
 
-extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int trn));
-extern HAMLIB_EXPORT(int) rig_get_trn HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int *trn));
+extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, int trn));
+extern HAMLIB_EXPORT(int) rig_get_trn HAMLIB_PARAMS((RIG *rig, int *trn));
 
 
 extern HAMLIB_EXPORT(const char *) rig_get_info HAMLIB_PARAMS((RIG *rig));
