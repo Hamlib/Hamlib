@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-706 and variations
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ic706.c,v 1.27 2001-10-07 21:48:02 f4cfe Exp $
+ *		$Id: ic706.c,v 1.28 2002-05-28 21:35:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,17 +24,7 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include "icom.h"
 
 
@@ -48,34 +38,63 @@
 #define IC706_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC706_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC706_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
+#define IC706IIG_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
 
-#define IC706_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define IC706IIG_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
 
 #define IC706_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
 #define IC706_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC706_SCAN_OPS (RIG_SCAN_MEM)
 
-#define IC706IIG_STR_CAL { 16, \
+/*
+ * IC706IIG_REAL_STR_CAL is accurate measurements
+ * IC706IIG_STR_CAL is what the S-meter displays
+ *
+ * calibration data was obtained from W8WWV 
+ * 	http://www.seed-solutions.com/gregordy/
+ */
+#define IC706IIG_REAL_STR_CAL { 16, \
 	{ \
-		{ 100, -18 }, \
+		{  46, -27 }, /* S0 */ \
+		{  54, -25 }, \
+		{  64, -24 }, \
+		{  76, -23 }, \
+		{  84, -22 }, \
+		{  94, -20 }, \
 		{ 104, -16 }, \
-		{ 108, -14 }, \
-		{ 111, -12 }, \
-		{ 114, -10 }, \
-		{ 118, -8 }, \
-		{ 121, -6 }, \
-		{ 125, -4 }, \
-		{ 129, -2 }, \
-		{ 133, 0 }, \
-		{ 137, 2 }, \
-		{ 142, 4 }, \
-		{ 146, 6 }, \
-		{ 151, 8 }, \
-		{ 156, 10 }, \
-		{ 161, 12 } \
+		{ 113, -11 }, \
+		{ 123, -5 }, \
+		{ 133, 0 },  /* S9 */ \
+		{ 144, 5 },  /* +10 */ \
+		{ 156, 10 }, /* +20 */ \
+		{ 170, 16 }, /* +30 */ \
+		{ 181, 21 }, /* +40 */ \
+		{ 192, 26 }, /* +50 */ \
+		{ 204, 35 } /* +60 */ \
 	} }
+
+#define IC706IIG_STR_CAL { 17, \
+	{ \
+		{  45, -60 }, \
+		{  46, -54 }, /* S0 */ \
+		{  54, -48 }, \
+		{  64, -42 }, \
+		{  76, -36 }, \
+		{  84, -30 }, \
+		{  94, -24 }, \
+		{ 104, -18 }, \
+		{ 113, -12 }, \
+		{ 123, -6 }, \
+		{ 133, 0 },  /* S9 */ \
+		{ 144, 10 }, /* +10 */ \
+		{ 156, 20 }, /* +20 */ \
+		{ 170, 30 }, /* +30 */ \
+		{ 181, 40 }, /* +40 */ \
+		{ 192, 50 }, /* +50 */ \
+		{ 204, 60 }  /* +60 */ \
+	} }
+
 
 
 /*
@@ -111,10 +130,10 @@ write_delay: 0,
 post_write_delay: 0,
 timeout: 200,
 retry: 3, 
-has_get_func: IC706_FUNC_ALL,
-has_set_func: IC706_FUNC_ALL, 
-has_get_level: IC706_LEVEL_ALL,
-has_set_level: RIG_LEVEL_SET(IC706_LEVEL_ALL),
+has_get_func: RIG_FUNC_NONE,
+has_set_func: RIG_FUNC_NONE, 
+has_get_level: RIG_LEVEL_NONE,
+has_set_level: RIG_LEVEL_NONE,
 has_get_parm: RIG_PARM_NONE,
 has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
 level_gran: {}, 		/* granularity */
@@ -197,6 +216,20 @@ set_mode: icom_set_mode,
 get_mode: icom_get_mode,
 set_vfo: icom_set_vfo,
 
+decode_event: icom_decode_event,
+set_mem: icom_set_mem,
+vfo_op: icom_vfo_op,
+scan: icom_scan,
+set_ts: icom_set_ts,
+
+set_rptr_shift: icom_set_rptr_shift,
+set_split_freq: icom_set_split_freq,
+get_split_freq: icom_get_split_freq,
+set_split_mode: icom_set_split_mode,
+get_split_mode: icom_get_split_mode,
+set_split: icom_set_split,
+
+
 };
 
 
@@ -228,10 +261,10 @@ write_delay: 0,
 post_write_delay: 0,
 timeout: 200,
 retry: 3, 
-has_get_func: IC706_FUNC_ALL,
-has_set_func: IC706_FUNC_ALL, 
-has_get_level: IC706_LEVEL_ALL,
-has_set_level: RIG_LEVEL_SET(IC706_LEVEL_ALL),
+has_get_func: RIG_FUNC_NONE,
+has_set_func: RIG_FUNC_NONE,
+has_get_level: RIG_LEVEL_NONE,
+has_set_level: RIG_LEVEL_NONE,
 has_get_parm: RIG_PARM_NONE,
 has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
 level_gran: {}, 		/* granularity */
@@ -316,6 +349,20 @@ get_freq: icom_get_freq,
 set_mode: icom_set_mode,
 get_mode: icom_get_mode,
 set_vfo: icom_set_vfo,
+
+decode_event: icom_decode_event,
+set_mem: icom_set_mem,
+vfo_op: icom_vfo_op,
+scan: icom_scan,
+set_ts: icom_set_ts,
+
+set_rptr_shift: icom_set_rptr_shift,
+set_split_freq: icom_set_split_freq,
+get_split_freq: icom_get_split_freq,
+set_split_mode: icom_set_split_mode,
+get_split_mode: icom_get_split_mode,
+set_split: icom_set_split,
+
 };
 
 /*
@@ -335,7 +382,7 @@ model_name:"IC-706MkIIG",
 mfg_name: "Icom", 
 version: "0.2", 
 copyright: "LGPL",
-status: RIG_STATUS_ALPHA,
+status: RIG_STATUS_BETA,
 rig_type: RIG_TYPE_MOBILE,
 ptt_type: RIG_PTT_NONE,
 dcd_type: RIG_DCD_NONE,
@@ -350,10 +397,10 @@ write_delay: 0,
 post_write_delay: 0,
 timeout: 200,
 retry: 3, 
-has_get_func: IC706_FUNC_ALL,
-has_set_func: IC706_FUNC_ALL, 
-has_get_level: IC706_LEVEL_ALL,
-has_set_level: RIG_LEVEL_SET(IC706_LEVEL_ALL),
+has_get_func: IC706IIG_FUNC_ALL,
+has_set_func: IC706IIG_FUNC_ALL, 
+has_get_level: IC706IIG_LEVEL_ALL,
+has_set_level: RIG_LEVEL_SET(IC706IIG_LEVEL_ALL),
 has_get_parm: RIG_PARM_NONE,
 has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
 level_gran: {}, 		/* granularity */
@@ -373,7 +420,7 @@ bank_qty:  0,
 chan_desc_sz: 0,
 
 chan_list: {
-				   {  01,  99, RIG_MTYPE_MEM, 0 },
+				   {   1,  99, RIG_MTYPE_MEM, 0 },
 				   { 100, 105, RIG_MTYPE_EDGE, 0 },    /* two by two */
 				   { 106, 107, RIG_MTYPE_CALL, 0 },
 				   RIG_CHAN_END,
@@ -465,9 +512,7 @@ set_ptt: icom_set_ptt,
 get_ptt: icom_get_ptt,
 get_dcd: icom_get_dcd,
 set_ts: icom_set_ts,
-get_ts: icom_get_ts,
 set_rptr_shift: icom_set_rptr_shift,
-get_rptr_shift: icom_get_rptr_shift,
 set_rptr_offs: icom_set_rptr_offs,
 get_rptr_offs: icom_get_rptr_offs,
 set_split_freq: icom_set_split_freq,
@@ -475,7 +520,6 @@ get_split_freq: icom_get_split_freq,
 set_split_mode: icom_set_split_mode,
 get_split_mode: icom_get_split_mode,
 set_split: icom_set_split,
-get_split: icom_get_split,
 
 };
 
