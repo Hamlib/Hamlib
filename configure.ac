@@ -149,10 +149,10 @@ darwin* | rhapsody*)
 esac
 
 dnl Check if C99 struct initializers are supported
-AC_MSG_CHECKING(whether C99 struct initializers are supported)
-AC_TRY_COMPILE(,struct{char a;int b;}s={.b=5};, [AC_MSG_RESULT(yes)],
+AC_MSG_CHECKING(whether C99 struct/array initializers are supported)
+AC_TRY_COMPILE(,[struct{char a;int b;}s[8]={[3]={.b=5}};], [AC_MSG_RESULT(yes)],
 		[AC_MSG_ERROR( ""
-		"You need a C99 compliant C compiler that supports struct intializers."
+		"You need a C99 compliant C compiler that supports struct/array intializers."
 		"Have you considered GCC lately?.")]);
 
 
@@ -311,8 +311,8 @@ fi
 # dlopen force or preopen self for static version ?
 BACKENDLNK="-dlopen force"
 for be in ${BACKEND_LIST} ; do
-	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
-	BACKENDEPS="${BACKENDEPS} ../${be}/libhamlib-${be}.la"
+	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/hamlib-${be}.la"
+	BACKENDEPS="${BACKENDEPS} ../${be}/hamlib-${be}.la"
 done
 AC_SUBST(BACKEND_LIST)
 AC_SUBST(BACKENDLNK)
@@ -321,15 +321,32 @@ AC_SUBST(BACKENDEPS)
 # dlopen force or preopen self for static version ?
 ROT_BACKENDLNK="-dlopen force"
 for be in ${ROT_BACKEND_LIST} ; do
-    ROT_BACKENDLNK="${ROT_BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
-    ROT_BACKENDEPS="${ROT_BACKENDEPS} ../${be}/libhamlib-${be}.la"
+    ROT_BACKENDLNK="${ROT_BACKENDLNK} -dlopen ../${be}/hamlib-${be}.la"
+    ROT_BACKENDEPS="${ROT_BACKENDEPS} ../${be}/hamlib-${be}.la"
 done
 AC_SUBST(ROT_BACKEND_LIST)
 AC_SUBST(ROT_BACKENDLNK)
 AC_SUBST(ROT_BACKENDEPS)
 
 BINDINGS=""
-AC_CHECK_PROG(BINDINGS, [swig], [bindings], [], [$PATH])
+AC_CHECK_PROG(cf_with_bindings, [swig], [yes], [no], [$PATH])
+if test "${cf_with_bindings}" = "yes" ; then
+  AC_MSG_CHECKING(for swig >= 1.3.14)
+  cf_with_bindings=no
+  case `swig -version 2>&1| grep 'SWIG Version'` in
+  *1.3.1[[4-9]]*)
+  	cf_with_bindings=yes
+ 	BINDINGS="bindings"
+ 	;;
+  *2.*.*)
+  	cf_with_bindings=yes
+ 	BINDINGS="bindings"
+	;;
+  esac
+  AC_MSG_RESULT($cf_with_bindings)
+fi
+AC_MSG_CHECKING(whether to build bindings)
+AC_MSG_RESULT($cf_with_bindings)
 AC_SUBST(BINDINGS)
 
 for bi in ${BINDING_LIST} ; do
