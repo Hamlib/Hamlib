@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: tentec.c,v 1.5 2002-03-13 23:37:13 fillods Exp $
+ *	$Id: tentec.c,v 1.6 2002-09-06 14:05:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -116,10 +116,12 @@ int tentec_init(RIG *rig)
 	priv->cwbfo = 0;
 	priv->agc = 0.5;	/* medium */
 	priv->lnvol = priv->spkvol = 0.0;	/* mute */
-	tentec_tuning_factor_calc(rig);
 	memcpy(&priv->str_cal, &priv_caps->str_cal, sizeof(cal_table_t));
 
 	rig->state.priv = (rig_ptr_t)priv;
+
+	/* tentec_tuning_factor_calc needs rig->state.priv */
+	tentec_tuning_factor_calc(rig);
 
 	return RIG_OK;
 }
