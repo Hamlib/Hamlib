@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-736R using the "CAT" interface
  *
- *	$Id: ft736.c,v 1.1 2004-08-10 21:08:41 fillods Exp $
+ *	$Id: ft736.c,v 1.2 2005-04-03 18:37:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -274,7 +274,7 @@ int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x8e};
 
   /*
-   * this can be misleading as Yeasu call it "Full duplex" 
+   * this can be misleading as Yaesu call it "Full duplex" 
    * or "sat mode", and split Yaesu terms is repeater shift.
    */ 
   cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
