@@ -5,6 +5,6 @@ TSSRCLIST = ts850.c ts870s.c ts570.c ts450s.c ts440.c ts950.c ts50s.c \
 lib_LTLIBRARIES = libhamlib-kenwood.la
 libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c th.c
 libhamlib_kenwood_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
-libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la
+libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la @MATH_LIBS@
 
 noinst_HEADERS = kenwood.h th.h
