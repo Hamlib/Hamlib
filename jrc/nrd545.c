@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.9 2004-06-04 21:48:05 fillods Exp $
+ *	$Id: nrd545.c,v 1.10 2004-08-01 21:23:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -81,9 +81,9 @@ const struct rig_caps nrd545_caps = {
 .rig_model =  RIG_MODEL_NRD545,
 .model_name = "NRD-545 DSP",
 .mfg_name =  "JRC",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
