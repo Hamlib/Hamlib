@@ -94,8 +94,8 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-bin_PROGRAMS = rigctl
-man_MANS = rigctl.1
+bin_PROGRAMS = rigctl rotctl
+man_MANS = rigctl.1 rotctl.1
 
 noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp testloc @RIGMATRIX@
 
@@ -113,6 +113,7 @@ testrig_LDFLAGS = @BACKENDLNK@
 testtrn_LDFLAGS = @BACKENDLNK@
 testfreq_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
+rotctl_LDFLAGS = @BACKENDLNK@
 
 # temporary hack
 testbcd_LDFLAGS = -dlpreopen self
@@ -130,6 +131,7 @@ testrig_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testtrn_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+rotctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
 
@@ -141,7 +143,7 @@ mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
 EXTRA_PROGRAMS = rigmatrix$(EXEEXT)
-bin_PROGRAMS = rigctl$(EXEEXT)
+bin_PROGRAMS = rigctl$(EXEEXT) rotctl$(EXEEXT)
 noinst_PROGRAMS = dumpcaps$(EXEEXT) dumpmem$(EXEEXT) testcaps$(EXEEXT) \
 	testrig$(EXEEXT) testtrn$(EXEEXT) testbcd$(EXEEXT) \
 	testfreq$(EXEEXT) listrigs$(EXEEXT) testcpp$(EXEEXT) \
@@ -163,6 +165,9 @@ rigctl_LDADD = $(LDADD)
 rigmatrix_SOURCES = rigmatrix.c
 rigmatrix_OBJECTS = rigmatrix.$(OBJEXT)
 rigmatrix_LDADD = $(LDADD)
+rotctl_SOURCES = rotctl.c
+rotctl_OBJECTS = rotctl.$(OBJEXT)
+rotctl_LDADD = $(LDADD)
 testbcd_SOURCES = testbcd.c
 testbcd_OBJECTS = testbcd.$(OBJEXT)
 testbcd_LDADD = $(LDADD)
@@ -195,10 +200,11 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/dumpcaps.Po $(DEPDIR)/dumpmem.Po \
 @AMDEP_TRUE@	$(DEPDIR)/listrigs.Po $(DEPDIR)/rigctl.Po \
-@AMDEP_TRUE@	$(DEPDIR)/rigmatrix.Po $(DEPDIR)/testbcd.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testcaps.Po $(DEPDIR)/testcpp.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testfreq.Po $(DEPDIR)/testloc.Po \
-@AMDEP_TRUE@	$(DEPDIR)/testrig.Po $(DEPDIR)/testtrn.Po
+@AMDEP_TRUE@	$(DEPDIR)/rigmatrix.Po $(DEPDIR)/rotctl.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testbcd.Po $(DEPDIR)/testcaps.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testcpp.Po $(DEPDIR)/testfreq.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testloc.Po $(DEPDIR)/testrig.Po \
+@AMDEP_TRUE@	$(DEPDIR)/testtrn.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -217,13 +223,13 @@ CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CXXFLAGS = @CXXFLAGS@
 DIST_SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c \
-	testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c testloc.c \
-	testrig.c testtrn.c
+	rotctl.c testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c \
+	testloc.c testrig.c testtrn.c
 
 NROFF = nroff
 MANS = $(man_MANS)
 DIST_COMMON = README Makefile.am Makefile.in
-SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c testloc.c testrig.c testtrn.c
+SOURCES = dumpcaps.c dumpmem.c listrigs.c rigctl.c rigmatrix.c rotctl.c testbcd.c testcaps.c $(testcpp_SOURCES) testfreq.c testloc.c testrig.c testtrn.c
 
 all: all-am
 
@@ -287,6 +293,9 @@ rigctl$(EXEEXT): $(rigctl_OBJECTS) $(rigctl_DEPENDENCIES)
 rigmatrix$(EXEEXT): $(rigmatrix_OBJECTS) $(rigmatrix_DEPENDENCIES) 
 	@rm -f rigmatrix$(EXEEXT)
 	$(LINK) $(rigmatrix_LDFLAGS) $(rigmatrix_OBJECTS) $(rigmatrix_LDADD) $(LIBS)
+rotctl$(EXEEXT): $(rotctl_OBJECTS) $(rotctl_DEPENDENCIES) 
+	@rm -f rotctl$(EXEEXT)
+	$(LINK) $(rotctl_LDFLAGS) $(rotctl_OBJECTS) $(rotctl_LDADD) $(LIBS)
 testbcd$(EXEEXT): $(testbcd_OBJECTS) $(testbcd_DEPENDENCIES) 
 	@rm -f testbcd$(EXEEXT)
 	$(LINK) $(testbcd_LDFLAGS) $(testbcd_OBJECTS) $(testbcd_LDADD) $(LIBS)
@@ -320,6 +329,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/listrigs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigmatrix.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rotctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testbcd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcaps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcpp.Po@am__quote@
