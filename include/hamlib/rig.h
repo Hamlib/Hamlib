@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.17 2001-02-14 23:51:44 f4cfe Exp $
+ *	$Id: rig.h,v 1.18 2001-02-25 23:06:18 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -277,6 +277,11 @@ typedef union value_u value_t;
 #define RIG_LEVEL_ALC		(1<<29)	/* ALC, arg float */
 #define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 #define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (dB) */
+
+#define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
+
+#define RIG_LEVEL_IS_FLOAT(l) ((l)&RIG_LEVEL_FLOAT_LIST)
+
 
 typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 
