@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.32 2001-06-04 21:17:52 f4cfe Exp $
+   $Id: rig.c,v 1.33 2001-06-05 18:08:30 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -372,7 +372,7 @@ int rig_open(RIG *rig)
 
 		switch(rig->state.rigport.type.rig) {
 		case RIG_PORT_SERIAL:
-				status = serial_open(&rig->state);
+				status = serial_open(&rig->state.rigport);
 				if (status != 0)
 						return status;
 				break;

@@ -10,7 +10,7 @@
  * ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.11 2001-06-04 17:01:21 f4cfe Exp $  
+ *	$Id: serial.c,v 1.12 2001-06-05 18:08:30 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -85,11 +85,10 @@
  *
  */
 
-int serial_open(struct rig_state *rs) {
+int serial_open(port_t *rp) {
 
   int fd;				/* File descriptor for the port */
   speed_t speed;			/* serial comm speed */
-  port_t *rp;
 
 #ifdef HAVE_TERMIOS_H
   struct termios options;
@@ -101,10 +100,8 @@ int serial_open(struct rig_state *rs) {
 #error "No term control supported!"
 #endif
 
-  if (!rs)
+  if (!rp)
 		  return -RIG_EINVAL;
-
-  rp = &rs->rigport;
 
   /*
    * Open in Non-blocking mode. Watch for EAGAIN errors!

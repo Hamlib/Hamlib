@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.7 2001-06-04 17:01:21 f4cfe Exp $  
+ *    $Id: serial.h,v 1.8 2001-06-05 18:08:30 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@
 #include <hamlib/rig.h>
 
 
-int serial_open(struct rig_state *rs);
+int serial_open(port_t *rs);
 
 #if 0
 int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay);
