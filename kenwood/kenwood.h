@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.h,v 1.15 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: kenwood.h,v 1.16 2002-01-03 21:42:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,6 +53,8 @@ const char* kenwood_get_info(RIG *rig);
 int kenwood_set_trn(RIG *rig, int trn);
 int kenwood_get_trn(RIG *rig, int *trn);
 
+extern const struct rig_caps ts950sdx_caps;
+extern const struct rig_caps ts50s_caps;
 extern const struct rig_caps ts450s_caps;
 extern const struct rig_caps ts570d_caps;
 extern const struct rig_caps ts570s_caps;

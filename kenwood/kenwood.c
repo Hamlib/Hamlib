@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.24 2002-01-02 23:38:07 fillods Exp $
+ *		$Id: kenwood.c,v 1.25 2002-01-03 21:42:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -396,6 +396,11 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return RIG_OK;
 }
 
+int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+		return -RIG_ENIMPL;
+}
+
 /* 
  * assumes f!=NULL
  */
@@ -520,6 +525,13 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		return RIG_OK;
 }
+
+
+int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+		return -RIG_ENIMPL;
+}
+
 
 /* 
  * assumes status!=NULL
@@ -1041,6 +1053,8 @@ int initrigs_kenwood(void *be_handle)
 {
 		rig_debug(RIG_DEBUG_VERBOSE, "kenwood: _init called\n");
 
+		rig_register(&ts950sdx_caps);
+		rig_register(&ts50s_caps);
 		rig_register(&ts450s_caps);
 		rig_register(&ts570d_caps);
 		rig_register(&ts570s_caps);
