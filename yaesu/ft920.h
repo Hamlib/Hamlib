@@ -1,31 +1,31 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
+ * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
- * ft920.h - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
- *           (C) Nate Bargmann 2002 (n0nb@arrl.net)
- *           (C) Stephane Fillod 2002 (fillods@users.sourceforge.net)
+ * ft920.h - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
+ *           (C) Nate Bargmann 2002 (n0nb at arrl.net)
+ *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.6 2002-11-15 13:15:25 n0nb Exp $  
+ *    $Id: ft920.h,v 1.7 2002-11-22 03:04:30 n0nb Exp $  
  *
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *
  */
 
 
@@ -53,6 +53,12 @@
 #define FT920_AM_TX_MODES (RIG_MODE_AM )    /* set 25W max */
 #define FT920_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN) /* fix */
 
+
+/*
+ * Other features
+ */
+
+#define FT920_ANTS 0            /* FIXME: declare Ant A & B and RX input */
 
 /*
  * Returned data length in bytes
@@ -207,9 +213,10 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
  */
 
 #define FT920_SUMO_DISPLAYED_STATUS_0   0x00    /* Status flag byte 0 */
+#define SF_VFOA     0x00    /* bits 0 & 1, VFO A TX/RX == 0 */
 #define SF_SPLITA   0x01    /* Split operation with VFO-B on TX */
 #define SF_SPLITB   0x02    /* Split operation with VFO-B on RX */
-#define SF_VFOAB    0x03    /* bits 0 & 1, VFO A TX/RX == 0, VFO B TX/RX  == 3 */
+#define SF_VFOB     0x03    /* bits 0 & 1, VFO B TX/RX  == 3 */
 
 #define FT920_SUMO_DISPLAYED_STATUS_1   0x01    /* Status flag byte 1 */
 #define SF_QMB      0x08    /* Quick Memory Bank (QMB) selected */

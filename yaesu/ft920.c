@@ -1,9 +1,9 @@
 /*
- * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
- * ft920.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
- *           (C) Nate Bargmann 2002 (n0nb@arrl.net)
- *           (C) Stephane Fillod 2002 (fillods@users.sourceforge.net)
+ * ft920.c - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
+ *           (C) Nate Bargmann 2002 (n0nb at arrl.net)
+ *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
@@ -12,23 +12,23 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.8 2002-11-21 23:06:37 fillods Exp $
+ * $Id: ft920.c,v 1.9 2002-11-22 03:04:30 n0nb Exp $
  *
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2 of the License, or (at your option) any later version.
+ *
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *
  */
 
 
@@ -43,6 +43,7 @@
 
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
+#include <bandplan.h>
 #include "serial.h"
 #include "misc.h"
 #include "yaesu.h"
@@ -147,7 +148,6 @@ struct ft920_priv_data {
   unsigned char update_data[FT920_VFO_DATA_LENGTH]; /* returned data--max value, some are less */
 };
 
-
 /*
  * ft920 rigs capabilities.
  * Also this struct is READONLY!
@@ -158,8 +158,8 @@ const struct rig_caps ft920_caps = {
   .rig_model =          RIG_MODEL_FT920,
   .model_name =         "FT-920",
   .mfg_name =           "Yaesu",
-  .version =            "0.1.0",
-  .copyright =          "GPL",
+  .version =            "0.1.2",
+  .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_NONE,
@@ -194,50 +194,35 @@ const struct rig_caps ft920_caps = {
   .chan_desc_sz =       0,
   .chan_list =          { RIG_CHAN_END, },  /* FIXME: memory channel list: 122 (!) */
 
-  .rx_range_list1 =     { RIG_FRNG_END, },  /* FIXME: enter region 1 setting */
+  .rx_range_list1 =     {
+    {kHz(100), MHz(30), FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL, FT920_ANTS},   /* General coverage + ham */
+    {MHz(48), MHz(56), FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL, FT920_ANTS},   /* 6m! */
+    RIG_FRNG_END,
+  }, /* FIXME:  Are these the correct Region 1 values? */
 
-  .tx_range_list1 =     { RIG_FRNG_END, },
+  .tx_range_list1 =     {
+	FRQ_RNG_HF(1, FT920_OTHER_TX_MODES, W(5), W(100), FT920_VFO_ALL, FT920_ANTS),
+	FRQ_RNG_HF(1, FT920_AM_TX_MODES, W(2), W(25), FT920_VFO_ALL, FT920_ANTS),	/* AM class */
+
+	FRQ_RNG_6m(1, FT920_OTHER_TX_MODES, W(5), W(100), FT920_VFO_ALL, FT920_ANTS),
+	FRQ_RNG_6m(1, FT920_AM_TX_MODES, W(2), W(25), FT920_VFO_ALL, FT920_ANTS),	/* AM class */
+    RIG_FRNG_END,
+  },
 
   .rx_range_list2 =     {
-    {kHz(100),  MHz(30),   FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL},   /* General coverage + ham */
-    {MHz(48),   MHz(56),   FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL},   /* 6m! */
-
+    {kHz(100), MHz(30), FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL, FT920_ANTS},
+    {MHz(48), MHz(56), FT920_ALL_RX_MODES, -1, -1, FT920_VFO_ALL, FT920_ANTS},
     RIG_FRNG_END,
-  }, /* Region 2 rx ranges */
+  },
 
   .tx_range_list2 =     {
-    {kHz(1800),     Hz(1999990),   FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},    /* 100W class */
-    {kHz(1800),     Hz(1999990),   FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},    /* 25W class */
-    
-    {kHz(3500),     Hz(3999990),   FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
-    {kHz(3500),     Hz(3999990),   FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
-    
-    {MHz(7),        Hz(7299990),   FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
-    {MHz(7),        Hz(7299990),   FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
+	FRQ_RNG_HF(2, FT920_OTHER_TX_MODES, W(5), W(100), FT920_VFO_ALL, FT920_ANTS),
+	FRQ_RNG_HF(2, FT920_AM_TX_MODES, W(2), W(25), FT920_VFO_ALL, FT920_ANTS),	/* AM class */
 
-    {kHz(10100),    Hz(10149990),  FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
-    {kHz(10100),    Hz(10149990),  FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
-    
-    {MHz(14),       Hz(14349990),  FT920_OTHER_TX_MODES,   W(5),   W(100),  FT920_VFO_ALL},
-    {MHz(14),       Hz(14349990),  FT920_AM_TX_MODES,      W(2),   W(25),   FT920_VFO_ALL},
-    
-    {kHz(18068),    Hz(18167990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
-    {kHz(18068),    Hz(18167990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
-    
-    {MHz(21),       Hz(21449990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
-    {MHz(21),       Hz(21449990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
-    
-    {kHz(24890),    Hz(24989990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
-    {kHz(24890),    Hz(24989990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
-    
-    {MHz(28),       Hz(29699990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
-    {MHz(28),       Hz(29699990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
-    
-    {MHz(50),       Hz(53999990),  FT920_OTHER_TX_MODES,   W(5),   W(100), FT920_VFO_ALL},
-    {MHz(50),       Hz(53999990),  FT920_AM_TX_MODES,      W(2),   W(25),  FT920_VFO_ALL},
-
+	FRQ_RNG_6m(2, FT920_OTHER_TX_MODES, W(5), W(100), FT920_VFO_ALL, FT920_ANTS),
+	FRQ_RNG_6m(2, FT920_AM_TX_MODES, W(2), W(25), FT920_VFO_ALL, FT920_ANTS),	/* AM class */
     RIG_FRNG_END,
-  },    /* region 2 TX ranges */
+  },
 
   .tuning_steps =       {
     {FT920_SSB_CW_RX_MODES, Hz(10)},    /* Normal */
@@ -876,7 +861,7 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
                         FT920_STATUS_FLAGS_LENGTH);
   
   status_0 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_0];
-  status_0 &= SF_VFOAB;             /* get VFO B (sub display) active bits */
+  status_0 &= SF_VFOB;             /* get VFO B (sub display) active bits */
 
   status_1 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_1];
   status_1 &= SF_VFO_MASK;          /* get VFO/MEM (main display) active bits */
@@ -895,7 +880,7 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
    *
    */
   switch (status_0) {
-  case SF_VFOAB:
+  case SF_VFOB:
     *vfo = RIG_VFO_B;
     priv->current_vfo = RIG_VFO_B;
     return RIG_OK;
@@ -921,7 +906,7 @@ int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
       *vfo = RIG_VFO_A;
       priv->current_vfo = RIG_VFO_A;
       return RIG_OK;
-    case 0:
+    case SF_VFOA:
       *vfo = RIG_VFO_A;
       priv->current_vfo = RIG_VFO_A;
       return RIG_OK;
