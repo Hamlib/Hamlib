@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.52 2001-12-27 22:00:27 fillods Exp $
+ *		$Id: rig.c,v 1.53 2002-01-07 18:18:15 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -449,8 +449,19 @@ int rig_open(RIG *rig)
 		/*
 		 * trigger state->current_vfo first retrieval
 		 */
-		rig_get_vfo(rig, &vfo);	
+        rig_get_vfo(rig, &vfo);
 
+#if 0
+        /*
+         * Check the current tranceive state of the rig
+         */
+        if (rs->transceive == RIG_TRN_RIG) {
+            int retval, trn;
+            retval = rig_get_trn(rig, &trn);
+            if (retval == RIG_OK && trn == RIG_TRN_RIG)
+                add_trn_rig(rig);
+        }
+#endif
 		return RIG_OK;
 }
 
