@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.14 2001-10-30 07:17:09 f4cfe Exp $  
+ * $Id: ft847.c,v 1.15 2001-11-14 18:31:51 f4cfe Exp $  
  *
  *
  *
@@ -497,9 +497,115 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   return RIG_OK;
 }
 
-int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+#define MD_LSB  0x00
+#define MD_USB  0x01
+#define MD_CW   0x02
+#define MD_CWR  0x03
+#define MD_AM   0x04
+#define MD_FM   0x08
+#define MD_CWN  0x82
+#define MD_CWNR 0x83
+#define MD_AMN  0x84
+#define MD_FMN  0x88
 
-  return -RIG_ENIMPL;
+static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
+				pbwidth_t *width) {
+  struct rig_state *rs = &rig->state;
+  struct ft847_priv_data *p;
+  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char cmd_index;	/* index of sequence to send */
+  unsigned char data[8];
+  int n;
+
+  p = (struct ft847_priv_data*)rs->priv;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%i \n", vfo);
+  
+  if (vfo == RIG_VFO_MAIN)
+		  vfo = p->current_vfo;
+
+  /*
+   * TODO:
+   *	FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_RX
+   *	FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_SAT_TX
+   */
+  switch(vfo) {
+  case RIG_VFO_MAIN:
+    cmd_index = FT_847_NATIVE_CAT_GET_FREQ_MODE_STATUS_MAIN;
+    break;
+
+  default:
+    rig_debug(RIG_DEBUG_VERBOSE,"ft847: Unknown  VFO \n");
+    return -RIG_EINVAL;		/* sorry, wrong VFO */
+  }
+
+  memcpy(p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);  
+
+  cmd = p->p_cmd;
+  write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+
+  n = read_block(&rs->rigport, data, YAESU_CMD_LENGTH);
+  if (n != YAESU_CMD_LENGTH) {
+  		rig_debug(RIG_DEBUG_ERR,"ft847: read_block returned %d\n", n);
+		return n < 0 ? n : -RIG_EPROTO;
+  }
+
+	/* Remember, this is 10Hz resolution */
+  *freq = 10*from_bcd_be(data, 8);
+
+  *width = RIG_PASSBAND_NORMAL;
+  switch (data[4]) {
+  case MD_LSB: *mode = RIG_MODE_LSB; break;
+  case MD_USB: *mode = RIG_MODE_USB; break;
+
+  case MD_CWN: 
+			   *width = rig_passband_narrow(rig, RIG_MODE_CW);
+  case MD_CW:  
+			   *mode = RIG_MODE_CW;
+			   break;
+
+#ifdef RIG_MODE_CWR
+  case MD_CWNR:
+			   *width = rig_passband_narrow(rig, RIG_MODE_CW);
+  case MD_CWR: 
+				*mode = RIG_MODE_CWR;
+				break;
+#endif
+
+  case MD_AMN:
+			   *width = rig_passband_narrow(rig, RIG_MODE_AM);
+  case MD_AM:
+			   *mode = RIG_MODE_AM;
+			   break;
+
+  case MD_FMN:
+			   *width = rig_passband_narrow(rig, RIG_MODE_FM);
+  case MD_FM:  
+			   *mode = RIG_MODE_FM; 
+			   break;
+  default:
+    *mode = RIG_MODE_NONE;
+    rig_debug(RIG_DEBUG_VERBOSE,"ft847: Unknown mode %02x\n", data[4]);
+  }
+  if (*width == RIG_PASSBAND_NORMAL)
+		  *width = rig_passband_normal(rig, *mode);
+
+  return RIG_OK;
+}
+
+/*
+ * Note taken from http://my.en.com/~rayd/ft-847/FAQ/page4.htm#pollingcodes
+ * The FT-847, as originally delivered, could not poll the radio for frequency
+ * and mode information. This was added beginning with the 8G05 production
+ * runs. The Operating Manual does not show the codes for polling the radio.
+ * Note that you cannot query the sub-VFO, nor can you swap VFOs via software.
+ */
+int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+  rmode_t mode;
+  pbwidth_t width;
+
+  return get_freq_and_mode(rig, vfo, freq, &mode, &width);
 }
 
 
@@ -544,16 +650,7 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
    * Now set width
    */
 
-  switch(width) {
-  case RIG_PASSBAND_NORMAL:	         /* easy case , no change to native sequence */
-    ft847_send_priv_cmd(rig,cmd_index);	 /* TODO -- check return codes */
-    return RIG_OK;		         /* I am out of here .. */
-
-#ifdef RIG_PASSBAND_OLDTIME
-  case RIG_PASSBAND_WIDE:
-    return -RIG_EINVAL;		/* sorry, WIDE WIDTH is not supported */
-
-  case RIG_PASSBAND_NARROW:	/* must set narrow */
+  if (width == rig_passband_narrow(rig, mode)) {
     switch(mode) {
     case RIG_MODE_AM:
       cmd_index = FT_847_NATIVE_CAT_SET_MODE_MAIN_AMN;
@@ -567,16 +664,12 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     default:
       return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
     }
-    break;
-#else
-	/* TODO ! */
-#endif
-
-  default:
-    return -RIG_EINVAL;		/* sorry, wrong WIDTH requested  */    
-  }
-  
-
+  } else {
+  		if (width != RIG_PASSBAND_NORMAL && 
+						width != rig_passband_normal(rig, mode)) {
+      		return -RIG_EINVAL;		/* sorry, wrong MODE/WIDTH combo  */    
+		}
+	}
   /*
    * Now send the command
    */
@@ -587,7 +680,9 @@ int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
 }
 
 int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
-  return -RIG_ENIMPL;
+  freq_t freq;
+
+  return get_freq_and_mode(rig, vfo, &freq, mode, width);
 }
 
 
