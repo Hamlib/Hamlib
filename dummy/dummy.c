@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: dummy.c,v 1.22 2002-01-22 00:43:05 fillods Exp $
+ *		$Id: dummy.c,v 1.23 2002-01-27 23:49:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,6 +37,7 @@
 #include <hamlib/rig.h>
 #include <serial.h>
 #include <misc.h>
+#include <tones.h>
 
 #include "dummy.h"
 
@@ -138,7 +139,7 @@ static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   channel_t *curr = (channel_t *)&priv->curr;
   char fstr[20];
 
-  freq_sprintf(fstr, freq);
+  sprintf_freq(fstr, freq);
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
  			strvfo(vfo), fstr);
   curr->freq = freq;
@@ -166,7 +167,7 @@ static int dummy_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   channel_t *curr = (channel_t *)&priv->curr;
   char buf[16];
 
-  freq_sprintf(buf, width);
+  sprintf_freq(buf, width);
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s %s\n", 
   		strvfo(vfo), strmode(mode), buf);
 
@@ -398,7 +399,7 @@ static int dummy_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
   channel_t *curr = (channel_t *)&priv->curr;
   char fstr[20];
 
-  freq_sprintf(fstr, tx_freq);
+  sprintf_freq(fstr, tx_freq);
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s\n", 
  			strvfo(vfo), fstr);
   curr->tx_freq = tx_freq;
@@ -425,7 +426,7 @@ static int dummy_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
   channel_t *curr = (channel_t *)&priv->curr;
   char buf[16];
 
-  freq_sprintf(buf, tx_width);
+  sprintf_freq(buf, tx_width);
   rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ " called: %s %s %s\n", 
   		strvfo(vfo), strmode(tx_mode), buf);
 
@@ -838,9 +839,14 @@ const struct rig_caps dummy_caps = {
   has_set_level: RIG_LEVEL_SET(DUMMY_LEVEL),
   has_get_parm:	 DUMMY_PARM,
   has_set_parm:	 RIG_PARM_SET(DUMMY_PARM),
-  ctcss_list:	 NULL,	/* FIXME */
-  dcs_list:  	 NULL,  /* FIXME */
-  chan_list:	 { RIG_CHAN_END, },	/* FIXME */
+  ctcss_list:	 common_ctcss_list,
+  dcs_list:  	 full_dcs_list,
+  chan_list:	 {
+					{   1,  99, RIG_MTYPE_MEM, 0 },
+					{ 100, 101, RIG_MTYPE_EDGE, 0 },
+					{ 102, 102, RIG_MTYPE_CALL, 0 },
+					RIG_CHAN_END,
+				 },
   scan_ops:		 DUMMY_SCAN,
   vfo_ops:		 DUMMY_VFO_OP,
   transceive:    RIG_TRN_OFF,
