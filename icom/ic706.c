@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.15 2001-03-01 00:26:19 f4cfe Exp $  
+ * $Id: ic706.c,v 1.16 2001-03-01 21:18:39 f4cfe Exp $  
  *
  *
  *
@@ -53,7 +53,8 @@
 
 #define IC706_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
 
-#define IC706_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define IC706_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+#define IC706_LEVEL_SET_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC)
 
 /*
  * ic706 rigs capabilities.
@@ -66,10 +67,10 @@ const struct rig_caps ic706_caps = {
   RIG_PTT_NONE, RIG_DCD_NONE, RIG_PORT_SERIAL,
   300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   0, 0, 200, 3, 
-  RIG_FUNC_NONE, IC706_FUNC_ALL, RIG_FUNC_NONE, IC706_LEVEL_ALL,
+  IC706_FUNC_ALL, IC706_FUNC_ALL, IC706_LEVEL_ALL, IC706_LEVEL_SET_ALL,
   RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
   NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { 20, RIG_DBLST_END, },
+  { 10, RIG_DBLST_END, },	/* preamp */
   { 20, RIG_DBLST_END, },
   0,			/* TBC: RIT controllable? */
   0,			/* FIXME: VFO list */
@@ -142,10 +143,10 @@ const struct rig_caps ic706mkii_caps = {
   RIG_PTT_NONE, RIG_DCD_NONE, RIG_PORT_SERIAL,
   300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   0, 0, 200, 3, 
-  RIG_FUNC_NONE, IC706_FUNC_ALL, RIG_FUNC_NONE, IC706_LEVEL_ALL,
+  IC706_FUNC_ALL, IC706_FUNC_ALL, IC706_LEVEL_ALL, IC706_LEVEL_SET_ALL,
   RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
   NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { 20, RIG_DBLST_END, },
+  { 10, RIG_DBLST_END, },	/* preamp */
   { 20, RIG_DBLST_END, },
   0,			/* TBC: RIT controllable? */
   0,			/* FIXME: VFO list */
@@ -222,10 +223,10 @@ const struct rig_caps ic706mkiig_caps = {
   RIG_PTT_NONE, RIG_DCD_RIG, RIG_PORT_SERIAL,
   300, 19200, 8, 1, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   0, 0, 200, 3, 
-  RIG_FUNC_NONE, IC706_FUNC_ALL|RIG_FUNC_NR|RIG_FUNC_ANF, IC706_LEVEL_ALL, IC706_LEVEL_ALL,
+  IC706_FUNC_ALL, IC706_FUNC_ALL, IC706_LEVEL_ALL, IC706_LEVEL_SET_ALL,
   RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
   icom_ctcss_list, NULL,
-  { 20, RIG_DBLST_END, },
+  { 10, RIG_DBLST_END, },	/* preamp */
   { 20, RIG_DBLST_END, },
   9999,			/* RIT */
   0,			/* FIXME: VFO list */
@@ -234,8 +235,8 @@ const struct rig_caps ic706mkiig_caps = {
 
   /* memory channel list */
   { {  01,  99, RIG_MTYPE_MEM, 0 },
-    { 100, 103, RIG_MTYPE_EDGE, 0 },
-    { 104, 105, RIG_MTYPE_CALL, 0 },
+    { 100, 105, RIG_MTYPE_EDGE, 0 },	/* two by two */
+    { 106, 107, RIG_MTYPE_CALL, 0 },
     RIG_CHAN_END,
   },
 
@@ -307,6 +308,7 @@ decode_event: icom_decode_event,
 set_level: icom_set_level,
 get_level: icom_get_level,
 set_func: icom_set_func,
+get_func: icom_get_func,
 set_channel: icom_set_channel,
 get_channel: icom_get_channel,
 set_mem: icom_set_mem,
