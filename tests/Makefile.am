@@ -1,6 +1,6 @@
 
-bin_PROGRAMS = rigctl
-man_MANS = rigctl.1
+bin_PROGRAMS = rigctl rotctl
+man_MANS = rigctl.1 rotctl.1
 
 noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp testloc @RIGMATRIX@
 
@@ -19,6 +19,7 @@ testrig_LDFLAGS = @BACKENDLNK@
 testtrn_LDFLAGS = @BACKENDLNK@
 testfreq_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
+rotctl_LDFLAGS = @BACKENDLNK@
  
 # temporary hack
 testbcd_LDFLAGS = -dlpreopen self
@@ -38,6 +39,7 @@ testrig_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testtrn_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+rotctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 testcpp_DEPENDENCIES = ../c++/libhamlib++.la @BACKENDEPS@
 
