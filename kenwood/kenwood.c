@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.18 2001-12-11 21:58:37 fillods Exp $
+ *		$Id: kenwood.c,v 1.19 2001-12-12 22:03:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -371,7 +371,7 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		int ack_len, retval;
 
 
-		retval = kenwood_transaction (rig, "MD;", 2, ackbuf, &ack_len);
+		retval = kenwood_transaction (rig, "MD;", 3, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
 
