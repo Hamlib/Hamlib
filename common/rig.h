@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.6 2000-09-16 21:23:06 javabear Exp $	 *
+ * 	$Id: rig.h,v 1.7 2000-09-16 21:37:25 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -92,7 +92,7 @@ enum rig_rptr_shift_e {
 	RIG_RPT_SHIFT_NONE = 0,
 	RIG_RPT_SHIFT_MINUS,
 	RIG_RPT_SHIFT_PLUS
-}
+};
 
 typedef enum rig_rptr_shift_e rig_rptr_shift_t;
 
