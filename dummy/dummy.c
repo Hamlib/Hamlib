@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.c,v 1.2 2001-02-14 23:57:30 f4cfe Exp $
+ *	$Id: dummy.c,v 1.3 2001-02-27 23:03:45 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -566,11 +566,13 @@ const struct rig_caps dummy_caps = {
   has_set_level: DUMMY_SET_LEVEL,
   transceive:    RIG_TRN_OFF,
   attenuator:    { 10, 20, 30, RIG_DBLST_END, },
+  vfo_list:      0,		/* FIXME */
   rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:DUMMY_MODES,
 		    low_power:-1,high_power:-1},
 		    RIG_FRNG_END, },
   tx_range_list2: { RIG_FRNG_END, },
   tuning_steps: { {DUMMY_MODES,1}, RIG_TS_END, },
+  priv: NULL,	/* priv */
 
   rig_init:    dummy_init,
   rig_cleanup: dummy_cleanup,

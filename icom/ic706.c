@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.13 2001-02-14 23:54:21 f4cfe Exp $  
+ * $Id: ic706.c,v 1.14 2001-02-27 23:03:45 f4cfe Exp $  
  *
  *
  *
@@ -70,6 +70,7 @@ const struct rig_caps ic706_caps = {
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   0,			/* TBC: RIT controllable? */
+  0,			/* FIXME: VFO list */
   0, RIG_TRN_ON, 
   101, 0, 0,
 
@@ -125,6 +126,7 @@ const struct rig_caps ic706_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
+  NULL,	/* priv */
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL,
@@ -140,6 +142,7 @@ const struct rig_caps ic706mkii_caps = {
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   0,			/* TBC: RIT controllable? */
+  0,			/* FIXME: VFO list */
   0, RIG_TRN_ON, 
   101, 0, 0,
 
@@ -195,6 +198,7 @@ const struct rig_caps ic706mkii_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
+  NULL,	/* priv */
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL,
@@ -213,7 +217,8 @@ const struct rig_caps ic706mkiig_caps = {
   RIG_FUNC_NONE, IC706_FUNC_ALL|RIG_FUNC_NR|RIG_FUNC_ANF, IC706_LEVEL_ALL, IC706_LEVEL_ALL,
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
-  9999,
+  9999,			/* RIT */
+  0,			/* FIXME: VFO list */
   0, RIG_TRN_ON, 
   101, 0, 0,
 
@@ -271,6 +276,7 @@ const struct rig_caps ic706mkiig_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
+  NULL,	/* priv */
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL, 

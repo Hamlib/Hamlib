@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: icr8500.c,v 1.4 2001-02-14 23:54:21 f4cfe Exp $  
+ * $Id: icr8500.c,v 1.5 2001-02-27 23:03:45 f4cfe Exp $  
  *
  *
  *
@@ -62,6 +62,7 @@ const struct rig_caps icr8500_caps = {
   { 20, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   9999,
+  0,			/* FIXME: VFO list */
   0, RIG_TRN_ON,
   999, 12, 0,
 
@@ -101,6 +102,7 @@ const struct rig_caps icr8500_caps = {
 		{RIG_MODE_WFM, kHz(230)},
 		RIG_FLT_END,
 	},
+  NULL,	/* priv */
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL, 

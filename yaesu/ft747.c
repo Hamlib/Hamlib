@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.6 2001-02-14 23:54:21 f4cfe Exp $  
+ * $Id: ft747.c,v 1.7 2001-02-27 23:03:45 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -135,6 +135,7 @@ const struct rig_caps ft747_caps = {
   { RIG_DBLST_END, },	/* FIXME! */
   { RIG_DBLST_END, },
   9999,
+  0,			/* FIXME: VFO list */
   0, RIG_TRN_OFF,
   20, 0, 0,
 
@@ -187,6 +188,7 @@ const struct rig_caps ft747_caps = {
 		/* FIXME! */
 		RIG_FLT_END,
   },
+  NULL,	/* priv */
 
   ft747_init, 
   ft747_cleanup, 

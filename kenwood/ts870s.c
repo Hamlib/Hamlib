@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ts870s.c,v 1.6 2001-02-14 23:54:20 f4cfe Exp $  
+ * $Id: ts870s.c,v 1.7 2001-02-27 23:03:45 f4cfe Exp $  
  *
  *
  *
@@ -65,6 +65,7 @@ const struct rig_caps ts870s_caps = {
   { RIG_DBLST_END, },	/* FIXME! */
   { RIG_DBLST_END, },
   9999,
+  0,			/* FIXME: VFO list */
   0, RIG_TRN_ON,
   1000, 0, 0,
 
@@ -115,6 +116,7 @@ const struct rig_caps ts870s_caps = {
 		/* FIXME! */
 		RIG_FLT_END,
 	},
+  NULL,	/* priv */
 
   NULL, NULL, NULL, NULL, NULL /* probe not supported yet */,
   kenwood_set_freq, kenwood_get_freq, kenwood_set_mode, kenwood_get_mode, NULL,
