@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.5 2005-01-25 00:21:58 fillods Exp $
+ *	$Id: ft1000mp.c,v 1.6 2005-02-26 23:13:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,6 +48,11 @@
 #include "yaesu.h"
 #include "ft1000mp.h"
 
+/*
+ * Differences between FT1000MP:
+ * The FT1000MP MARK-V Field appears to be identical to FT1000MP,
+ * whereas the FT1000MP MARK-V is a FT1000MP with 200W. TBC.
+ */
 
 /* Private helper function prototypes */
 
@@ -140,7 +145,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 /**
  * 33 CTCSS sub-audible tones
  */
-const tone_t ft1000mp_ctcss_list[] = {
+static const tone_t ft1000mp_ctcss_list[] = {
 	      670,        719,        770,        825,        885,      
 	948,       1000, 1035, 1072, 1109, 1148, 1188,       1230, 1273,
 	1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622,       1679,
@@ -200,7 +205,257 @@ struct ft1000mp_priv_data {
 
 const struct rig_caps ft1000mp_caps = {
   .rig_model =          RIG_MODEL_FT1000MP,
+  .model_name =         "FT-1000MP",
+  .mfg_name =           "Yaesu",
+  .version =            "0.0.5",
+  .copyright =          "LGPL",
+  .status =             RIG_STATUS_ALPHA,
+  .rig_type =           RIG_TYPE_TRANSCEIVER,
+  .ptt_type =           RIG_PTT_RIG,
+  .dcd_type =           RIG_DCD_RIG,
+  .port_type =          RIG_PORT_SERIAL,
+  .serial_rate_min =    4800,
+  .serial_rate_max =    4800,
+  .serial_data_bits =   8,
+  .serial_stop_bits =   2,
+  .serial_parity =      RIG_PARITY_NONE,
+  .serial_handshake =   RIG_HANDSHAKE_NONE,
+  .write_delay =        FT1000MP_WRITE_DELAY,
+  .post_write_delay =   FT1000MP_POST_WRITE_DELAY,
+  .timeout =            2000,
+  .retry =              0,
+  .has_get_func =       FT1000MP_FUNC_ALL,
+  .has_set_func =       FT1000MP_FUNC_ALL,
+  .has_get_level =      FT1000MP_LEVEL_GET,
+  .has_set_level =      RIG_LEVEL_NONE,	/* as strange as it could be */
+  .has_get_parm =       RIG_PARM_NONE,
+  .has_set_parm =       RIG_PARM_NONE,
+  .ctcss_list =         ft1000mp_ctcss_list,
+  .dcs_list =           NULL,
+  .vfo_ops =		FT1000MP_VFO_OPS,
+  .preamp =             { RIG_DBLST_END, },
+  .attenuator =         { RIG_DBLST_END, },
+  .max_rit =            Hz(9999),
+  .max_xit =            Hz(9999),
+  .max_ifshift =        kHz(1.12),
+  .targetable_vfo =     RIG_TARGETABLE_FREQ,
+  .transceive =         RIG_TRN_OFF,
+  .bank_qty =           0,
+  .chan_desc_sz =       0,
+  .chan_list =          { 
+				{   1,  99, RIG_MTYPE_MEM, FT1000MP_MEM_CAP },
+				{ 100, 108, RIG_MTYPE_EDGE },	/* P1 .. P9 */
+				{ 109, 113, RIG_MTYPE_MEMOPAD }, /* Q1 .. Q5 */
+				RIG_CHAN_END,
+			},
+  .rx_range_list1 =     { 
+    {kHz(100), MHz(30), FT1000MP_ALL_RX_MODES, -1, -1, FT1000MP_VFOS, FT1000MP_ANTS },   /* General coverage + ham */
+    RIG_FRNG_END,
+  }, /* Region 1 rx ranges */
+
+  .tx_range_list1 =     {
+	FRQ_RNG_HF(1,FT1000MP_OTHER_TX_MODES, W(5),W(100),FT1000MP_VFOS,FT1000MP_ANTS),
+	FRQ_RNG_HF(1,FT1000MP_AM_TX_MODES, W(2),W(25),FT1000MP_VFOS,FT1000MP_ANTS),  /* AM class */
+	RIG_FRNG_END,
+  },    /* region 1 TX ranges */
+
+  .rx_range_list2 =     {
+    {kHz(100), MHz(30), FT1000MP_ALL_RX_MODES, -1, -1, FT1000MP_VFOS, FT1000MP_ANTS },   /* General coverage + ham */
+    RIG_FRNG_END,
+  }, /* Region 2 rx ranges */
+
+  .tx_range_list2 =     {
+	FRQ_RNG_HF(1,FT1000MP_OTHER_TX_MODES, W(5),W(100),FT1000MP_VFOS,FT1000MP_ANTS),
+	FRQ_RNG_HF(1,FT1000MP_AM_TX_MODES, W(2),W(25),FT1000MP_VFOS,FT1000MP_ANTS),  /* AM class */
+	RIG_FRNG_END,
+  },    /* region 2 TX ranges */
+
+  .tuning_steps =       {
+    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(10)},    /* Normal */
+    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(100)},   /* Fast */
+
+    {RIG_MODE_AM,     Hz(100)},   /* Normal */
+    {RIG_MODE_AM,     kHz(1)},    /* Fast */
+
+    {RIG_MODE_FM,     Hz(100)},   /* Normal */
+    {RIG_MODE_FM,     kHz(1)},    /* Fast */
+
+    RIG_TS_END,
+
+    /*
+     * The FT-1000MP has a Fine tuning step which increments in 1 Hz steps
+     * for SSB_CW_RX_MODES, and 10 Hz steps for AM_RX_MODES and
+     * FM_RX_MODES.  It doesn't appear that anything finer than 10 Hz
+     * is available through the CAT interface, however. -N0NB
+     *
+     */
+  },
+
+    /* mode/filter list, .remember =  order matters! */
+  .filters =            {
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM,  kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY,  kHz(2.0)},
+    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(500)},
+    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(250)},
+    {RIG_MODE_AM,   kHz(5)},	/* wide */
+    {RIG_MODE_FM,   kHz(8)},   /* FM */
+
+    RIG_FLT_END,
+  },
+  .str_cal = FT1000MP_STR_CAL,
+
+  .priv =               NULL,           /* private data */
+
+  .rig_init =           ft1000mp_init,
+  .rig_cleanup =        ft1000mp_cleanup,
+  .rig_open =           ft1000mp_open,     /* port opened */
+
+  .set_freq =           ft1000mp_set_freq, /* set freq */
+  .get_freq =           ft1000mp_get_freq, /* get freq */
+  .set_mode =           ft1000mp_set_mode, /* set mode */
+  .get_mode =           ft1000mp_get_mode, /* get mode */
+  .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
+  .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
+
+  .get_rit =            ft1000mp_get_rit,
+  .set_rit =            ft1000mp_set_rit,
+  .get_xit =            ft1000mp_get_xit,
+  .set_xit =            ft1000mp_set_xit,
+
+  .get_level =          ft1000mp_get_level,
+  .set_ptt =            ft1000mp_set_ptt,
+
+  /* TODO: the remaining ... */
+};
+
+const struct rig_caps ft1000mpmkv_caps = {
+  .rig_model =          RIG_MODEL_FT1000MPMKV,
   .model_name =         "MARK-V FT-1000MP",
+  .mfg_name =           "Yaesu",
+  .version =            "0.0.5",
+  .copyright =          "LGPL",
+  .status =             RIG_STATUS_ALPHA,
+  .rig_type =           RIG_TYPE_TRANSCEIVER,
+  .ptt_type =           RIG_PTT_RIG,
+  .dcd_type =           RIG_DCD_RIG,
+  .port_type =          RIG_PORT_SERIAL,
+  .serial_rate_min =    4800,
+  .serial_rate_max =    4800,
+  .serial_data_bits =   8,
+  .serial_stop_bits =   2,
+  .serial_parity =      RIG_PARITY_NONE,
+  .serial_handshake =   RIG_HANDSHAKE_NONE,
+  .write_delay =        FT1000MP_WRITE_DELAY,
+  .post_write_delay =   FT1000MP_POST_WRITE_DELAY,
+  .timeout =            2000,
+  .retry =              0,
+  .has_get_func =       FT1000MP_FUNC_ALL,
+  .has_set_func =       FT1000MP_FUNC_ALL,
+  .has_get_level =      FT1000MP_LEVEL_GET,
+  .has_set_level =      RIG_LEVEL_NONE,	/* as strange as it could be */
+  .has_get_parm =       RIG_PARM_NONE,
+  .has_set_parm =       RIG_PARM_NONE,
+  .ctcss_list =         ft1000mp_ctcss_list,
+  .dcs_list =           NULL,
+  .vfo_ops =		FT1000MP_VFO_OPS,
+  .preamp =             { RIG_DBLST_END, },
+  .attenuator =         { RIG_DBLST_END, },
+  .max_rit =            Hz(9999),
+  .max_xit =            Hz(9999),
+  .max_ifshift =        kHz(1.12),
+  .targetable_vfo =     RIG_TARGETABLE_FREQ,
+  .transceive =         RIG_TRN_OFF,
+  .bank_qty =           0,
+  .chan_desc_sz =       0,
+  .chan_list =          { 
+				{   1,  99, RIG_MTYPE_MEM, FT1000MP_MEM_CAP },
+				{ 100, 108, RIG_MTYPE_EDGE },	/* P1 .. P9 */
+				{ 109, 113, RIG_MTYPE_MEMOPAD }, /* Q1 .. Q5 */
+				RIG_CHAN_END,
+			},
+  .rx_range_list1 =     { 
+    {kHz(100), MHz(30), FT1000MP_ALL_RX_MODES, -1, -1, FT1000MP_VFOS, FT1000MP_ANTS },   /* General coverage + ham */
+    RIG_FRNG_END,
+  }, /* Region 1 rx ranges */
+
+  .tx_range_list1 =     {
+	FRQ_RNG_HF(1,FT1000MP_OTHER_TX_MODES, W(5),W(200),FT1000MP_VFOS,FT1000MP_ANTS),
+	FRQ_RNG_HF(1,FT1000MP_AM_TX_MODES, W(2),W(50),FT1000MP_VFOS,FT1000MP_ANTS),  /* AM class */
+	RIG_FRNG_END,
+  },    /* region 1 TX ranges */
+
+  .rx_range_list2 =     {
+    {kHz(100), MHz(30), FT1000MP_ALL_RX_MODES, -1, -1, FT1000MP_VFOS, FT1000MP_ANTS },   /* General coverage + ham */
+    RIG_FRNG_END,
+  }, /* Region 2 rx ranges */
+
+  .tx_range_list2 =     {
+	FRQ_RNG_HF(1,FT1000MP_OTHER_TX_MODES, W(5),W(200),FT1000MP_VFOS,FT1000MP_ANTS),
+	FRQ_RNG_HF(1,FT1000MP_AM_TX_MODES, W(2),W(50),FT1000MP_VFOS,FT1000MP_ANTS),  /* AM class */
+	RIG_FRNG_END,
+  },    /* region 2 TX ranges */
+
+  .tuning_steps =       {
+    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(10)},    /* Normal */
+    {RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY, Hz(100)},   /* Fast */
+
+    {RIG_MODE_AM,     Hz(100)},   /* Normal */
+    {RIG_MODE_AM,     kHz(1)},    /* Fast */
+
+    {RIG_MODE_FM,     Hz(100)},   /* Normal */
+    {RIG_MODE_FM,     kHz(1)},    /* Fast */
+
+    RIG_TS_END,
+
+    /*
+     * The FT-1000MP has a Fine tuning step which increments in 1 Hz steps
+     * for SSB_CW_RX_MODES, and 10 Hz steps for AM_RX_MODES and
+     * FM_RX_MODES.  It doesn't appear that anything finer than 10 Hz
+     * is available through the CAT interface, however. -N0NB
+     *
+     */
+  },
+
+    /* mode/filter list, .remember =  order matters! */
+  .filters =            {
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM,  kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY,  kHz(2.0)},
+    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(500)},
+    {RIG_MODE_CW|RIG_MODE_RTTY,   Hz(250)},
+    {RIG_MODE_AM,   kHz(5)},	/* wide */
+    {RIG_MODE_FM,   kHz(8)},   /* FM */
+
+    RIG_FLT_END,
+  },
+  .str_cal = FT1000MP_STR_CAL,
+
+  .priv =               NULL,           /* private data */
+
+  .rig_init =           ft1000mp_init,
+  .rig_cleanup =        ft1000mp_cleanup,
+  .rig_open =           ft1000mp_open,     /* port opened */
+
+  .set_freq =           ft1000mp_set_freq, /* set freq */
+  .get_freq =           ft1000mp_get_freq, /* get freq */
+  .set_mode =           ft1000mp_set_mode, /* set mode */
+  .get_mode =           ft1000mp_get_mode, /* get mode */
+  .set_vfo =            ft1000mp_set_vfo,  /* set vfo */
+  .get_vfo =            ft1000mp_get_vfo,  /* get vfo */
+
+  .get_rit =            ft1000mp_get_rit,
+  .set_rit =            ft1000mp_set_rit,
+  .get_xit =            ft1000mp_get_xit,
+  .set_xit =            ft1000mp_set_xit,
+
+  .get_level =          ft1000mp_get_level,
+  .set_ptt =            ft1000mp_set_ptt,
+
+  /* TODO: the remaining ... */
+};
+
+const struct rig_caps ft1000mpmkvfld_caps = {
+  .rig_model =          RIG_MODEL_FT1000MPMKVFLD,
+  .model_name =         "MARK-V Field FT-1000MP",
   .mfg_name =           "Yaesu",
   .version =            "0.0.5",
   .copyright =          "LGPL",
