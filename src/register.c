@@ -2,7 +2,7 @@
    register.c  - Copyright (C) 2000 Stephane Fillod and Frank Singleton
    Provides registering for dynamically loadable backends.
 
-   $Id: register.c,v 1.1 2000-10-08 21:19:26 f4cfe Exp $
+   $Id: register.c,v 1.2 2001-02-11 23:15:38 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -19,7 +19,9 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <errno.h>
 #include <stdlib.h>

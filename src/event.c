@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: event.c,v 1.1 2000-10-08 21:19:26 f4cfe Exp $
+   $Id: event.c,v 1.2 2001-02-11 23:15:38 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -18,6 +18,10 @@
    along with sane; see the file COPYING.  If not, write to the Free
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -96,7 +100,9 @@ int remove_trn_rig(RIG *rig)
  */
 static int search_rig_and_decode(RIG *rig, void *data)
 {
+#if 0
 	siginfo_t *si = (siginfo_t*)data;
+#endif
 	int bytes;
 
 #if 0
