@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.15 2003-04-22 19:31:47 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.16 2003-05-16 16:31:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -163,6 +163,8 @@ static int rpcrig_init(RIG *rig)
 	priv = (struct rpcrig_priv_data*)rig->state.priv;
 
 	rig->state.rigport.type.rig = RIG_PORT_RPC;
+	rig->state.pttport.type.ptt = RIG_PTT_RIG;
+	rig->state.dcdport.type.dcd = RIG_DCD_RIG;
 	strcpy(rig->state.rigport.pathname, "localhost");
 	priv->prognum = RIGPROG;
 
