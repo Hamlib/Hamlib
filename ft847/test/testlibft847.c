@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.7 2000-07-29 20:31:30 javabear Exp $  
+ * $Id: testlibft847.c,v 1.8 2000-07-29 23:13:53 javabear Exp $  
  *
  */
 
@@ -144,7 +144,7 @@ static int test(fd) {
   decode_rx_status_flags(data1);
   sleep(1);
 
-  for (i=0; i<10; i++) {
+  for (i=0; i<4; i++) {
     data1 = cmd_get_rx_status(fd);
     decode_rx_status_flags(data1);
     sleep(1);
@@ -153,6 +153,13 @@ static int test(fd) {
 
     sleep(1);   
   }
+  cmd_set_freq_main_vfo_hz(fd,439700000,MODE_FM);
+  sleep(5);
+  cmd_set_freq_main_vfo_hz(fd,123456780,MODE_CW);
+  sleep(5);
+  cmd_set_freq_main_vfo_hz(fd,770000,MODE_AM);
+  sleep(5);
+
   cmd_cat_off(fd);		/* cat off */
     
   return 0;
