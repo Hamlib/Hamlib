@@ -21,7 +21,7 @@ AM_MAINTAINER_MODE
 ## ------------------------------- ##
 ## Hamlib  specific configuration. ##
 ## ------------------------------- ##
-ABI_VERSION=1
+ABI_VERSION=2
 
 dnl Pick up the Hamlib macros.
 AM_ACLOCAL_INCLUDE(macros)
@@ -51,6 +51,8 @@ AC_PROG_GCC_TRADITIONAL
 AC_C_CONST
 AC_C_INLINE
 
+LF_SET_WARNINGS
+
 dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -58,18 +60,13 @@ AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
 AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h rpc/rpcent.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
 AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h linux/parport.h sgtty.h term.h termio.h termios.h])
-AC_CHECK_HEADERS([windows.h winioctl.h winbase.h])
+
+dnl Check for Mingw support
+GR_PWIN32
 
 AM_SYS_POSIX_TERMIOS
 
 INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
-#CPPFLAGS="${CPPFLAGS} -D_ISOC99_SOURCE"
-if test "${ac_cv_c_compiler_gnu}" = "yes"; then
-  CFLAGS="${CFLAGS} -Wall"
-fi
-if test "${ac_cv_cxx_compiler_gnu}" = "yes"; then
-  CXXFLAGS="${CXXFLAGS} -Wall"
-fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
@@ -134,7 +131,6 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
 AC_CHECK_FUNCS([cfmakeraw setitimer])
-AC_REPLACE_FUNCS([getopt_long usleep gettimeofday])
 AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
@@ -309,6 +305,9 @@ esac
 
 # FIXME: check for presence of libgnuradio, libfftw
 if test "${cf_with_cxx}" = "yes" ; then
+  # stuff that requires C++ support
+  BACKEND_LIST="$BACKEND_LIST microtune"
+
   AC_MSG_CHECKING(whether to build gnuradio backend)
   AC_ARG_WITH(gnuradio,
         [  --with-gnuradio	build gnuradio backend],
@@ -317,24 +316,15 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_gnuradio)
 
   if test "${cf_with_gnuradio}" = "yes" ; then
-  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.8)
-	BACKEND_LIST="$BACKEND_LIST gnuradio"
+  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.8cvs)
+	dnl check for pthreads
+	ACX_PTHREAD([BACKEND_LIST="$BACKEND_LIST gnuradio"],
+		[AC_MSG_FAILURE([gnuradio backend requires POSIX threads.  pthreads not found.])])
   fi
  
-  # So far, microtune has only support on Linux x86.
-  # BTW, any platform with a parallel support may support it in the future
-
-  AC_MSG_CHECKING(whether to build microtune backend)
-  AC_ARG_WITH(microtune,
-        [  --with-microtune	build microtune backend],
-        [cf_with_microtune=$withval],
-        [cf_with_microtune="no"])
-  AC_MSG_RESULT($cf_with_microtune)
-
-  if test "${cf_with_microtune}" = "yes" ; then
-	BACKEND_LIST="$BACKEND_LIST microtune"
-  fi
 fi
+AC_MSG_CHECKING(whether to build microtune backend)
+AC_MSG_RESULT($cf_with_cxx)
 
 AC_SUBST(GNURADIO_CFLAGS)
 AC_SUBST(GNURADIO_LIBS)
@@ -382,19 +372,13 @@ AC_SUBST(ROT_BACKENDEPS)
 AC_CHECK_PROG(cf_with_bindings, [swig], [yes], [no], [$PATH])
 if test "${cf_with_bindings}" = "yes" -a "${cf_with_tcl_binding}" = "yes" \
 	-a "${cf_with_perl_binding}" = "yes"; then
-  AC_MSG_CHECKING(for swig >= 1.3.14)
   cf_with_bindings=no
-  case `swig -version 2>&1| grep 'SWIG Version'` in
-  *1.3.1[[4-9]]*)
-  	cf_with_bindings=yes
- 	BINDINGS="${BINDINGS} bindings"
- 	;;
-  *2.*.*)
-  	cf_with_bindings=yes
- 	BINDINGS="${BINDINGS} bindings"
-	;;
-  esac
-  AC_MSG_RESULT($cf_with_bindings)
+
+  SWIG_PROG(1.3.14)
+  if test "${SWIG}" != "false" ; then
+    BINDINGS="${BINDINGS} bindings"
+    cf_with_bindings=yes
+  fi
 fi
 AC_MSG_CHECKING(whether to build bindings)
 AC_MSG_RESULT($cf_with_bindings)
