@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR5000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.5 2004-09-07 20:40:20 fillods Exp $
+ *	$Id: ar5000.c,v 1.6 2005-04-03 19:41:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -96,7 +96,7 @@ const struct rig_caps ar5000_caps = {
 .rig_model =  RIG_MODEL_AR5000,
 .model_name = "AR5000",
 .mfg_name =  "AOR",
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,

@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: aor.h,v 1.17 2004-09-07 20:40:20 fillods Exp $
+ *	$Id: aor.h,v 1.18 2005-04-03 19:41:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,7 +25,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "0.2"
+#define BACKEND_VER "0.3"
 
 int aor_close(RIG *rig);
 
@@ -53,4 +53,3 @@ extern const struct rig_caps ar7030_caps;
 extern const struct rig_caps ar3030_caps;
 
 #endif /* _AOR_H */
-
