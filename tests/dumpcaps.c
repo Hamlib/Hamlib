@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.20 2001-04-28 12:42:26 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.21 2001-05-04 22:45:57 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -337,6 +337,8 @@ int main (int argc, char *argv[])
 	} else
 			printf("none\n");
 
+#if 0
+	/* FIXME: use rig->state.vfo_list instead */
 	printf("VFO list: ");
 	if (caps->vfo_list!=0) {
 		if ((caps->vfo_list&RIG_VFO_A)==RIG_VFO_A) printf("VFOA ");
@@ -348,6 +350,7 @@ int main (int argc, char *argv[])
 	}
 
 	printf("Number of channels:\t%d\n", caps->chan_qty);
+#endif
 	printf("Number of banks:\t%d\n", caps->bank_qty);
 	printf("Memory name desc size:\t%d\n", caps->chan_desc_sz);
 
