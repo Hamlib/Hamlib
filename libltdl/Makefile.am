@@ -38,6 +38,9 @@ local-install-files: $(DISTFILES)
 	-rm -rf $(DESTDIR)$(datadir)/libtool/libltdl
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/libtool/libltdl
 	@for file in $(DISTFILES); do \
+	  case $$file in \
+	    $(srcdir)/*) file=`echo "$$file" | sed "s|^$(srcdir)/||"`;; \
+	  esac; \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
 	    cp -r $$d/$$file $(DESTDIR)$(datadir)/libtool/libltdl/$$file; \
