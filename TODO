@@ -22,7 +22,13 @@ GENERAL PROJECT TODO
 15. Handle retransmissions (no more than n) if timeout (->backends)
 16. Write .spec (rpm) and .deb (debian) package files
 18. rewrite the post_write_delay. Active delay is a waste of cycles!
-
+19. specify how to access Reverse modes (CWR, RTTYW). through set_mode?
+20. rework API include files to support C++ (__BEGIN_DECLS/__END_DECLS, etc.)
+21. grab cygwin and test portability under Win32 (what about MacOS?)
+22. handle nicely different versions of same rig coming for 
+	ITU region1/region2 ham band (-> freq ranges in capabilities)
+23. add support in the API for additional filters, DSP bandpass control
+24. Should Hamlib (the library itself) be LGPL'ed ?
 
 DONE
 ----
