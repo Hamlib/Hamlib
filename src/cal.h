@@ -4,7 +4,7 @@
  * cal.h - Copyright (C) 2001 Stephane Fillod
  *
  *
- *		$Id: cal.h,v 1.1 2001-03-04 12:54:12 f4cfe Exp $  
+ *		$Id: cal.h,v 1.2 2001-06-12 23:59:21 f4cfe Exp $  
  *
  *
  *
@@ -26,6 +26,8 @@
 
 #ifndef _CAL_H
 #define _CAL_H 1
+
+#include <hamlib/rig_dll.h>
 
 /* add rig_set_cal(cal_table), rig_get_calstat(rawmin,rawmax,cal_table), */
 
@@ -52,6 +54,6 @@ typedef struct cal_table cal_table_t;
 
 #define EMPTY_STR_CAL { 0, { { 0, 0 }, } }
 
-float rig_raw2val(int rawval, const cal_table_t *cal);
+extern HAMLIB_EXPORT(float) rig_raw2val(int rawval, const cal_table_t *cal);
 
 #endif /* _CAL_H */

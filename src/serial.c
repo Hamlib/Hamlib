@@ -10,7 +10,7 @@
  * ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.13 2001-06-10 22:19:08 f4cfe Exp $  
+ *	$Id: serial.c,v 1.14 2001-06-12 23:59:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -53,10 +53,11 @@
 #include <sgtty.h>
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 /* for CTS/RTS and DTR/DSR control --SF */
 #include <windows.h>
 #include <winioctl.h>
+#include <winbase.h>
 #endif
 
 #include <hamlib/rig.h>
@@ -696,22 +697,30 @@ int ser_ptt_set(port_t *p, ptt_t pttx)
  */
 int ser_ptt_get(port_t *p, ptt_t *pttx)
 {
-		unsigned char y;
-		int status;
 
 		switch(p->type.ptt) {
 #ifdef _WIN32
 				/* TODO... */
 #else
 		case RIG_PTT_SERIAL_RTS:
-			status = ioctl(p->fd, TIOCMGET, &y);
-			*pttx = y & TIOCM_RTS ? RIG_PTT_ON:RIG_PTT_OFF;
-			return status;
+			{
+				unsigned char y;
+				int status;
+
+				status = ioctl(p->fd, TIOCMGET, &y);
+				*pttx = y & TIOCM_RTS ? RIG_PTT_ON:RIG_PTT_OFF;
+				return status;
+			}
 
 		case RIG_PTT_SERIAL_DTR:
-			status = ioctl(p->fd, TIOCMGET, &y);
-			*pttx = y & TIOCM_DTR ? RIG_PTT_ON:RIG_PTT_OFF;
-			return status;
+			{
+				unsigned char y;
+				int status;
+
+				status = ioctl(p->fd, TIOCMGET, &y);
+				*pttx = y & TIOCM_DTR ? RIG_PTT_ON:RIG_PTT_OFF;
+				return status;
+			}
 #endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
@@ -727,22 +736,30 @@ int ser_ptt_get(port_t *p, ptt_t *pttx)
  */
 int ser_dcd_get(port_t *p, dcd_t *dcdx)
 {
-		unsigned char y;
-		int status;
 
 		switch(p->type.dcd) {
 #ifdef _WIN32
 				/* TODO... */
 #else
 		case RIG_DCD_SERIAL_CTS:
-			status = ioctl(p->fd, TIOCMGET, &y);
-			*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
-			return status;
+			{
+				unsigned char y;
+				int status;
+
+				status = ioctl(p->fd, TIOCMGET, &y);
+				*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
+				return status;
+			}
 
 		case RIG_DCD_SERIAL_DSR:
-			status = ioctl(p->fd, TIOCMGET, &y);
-			*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
-			return status;
+			{
+				unsigned char y;
+				int status;
+
+				status = ioctl(p->fd, TIOCMGET, &y);
+				*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
+				return status;
+			}
 #endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",

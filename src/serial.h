@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.8 2001-06-05 18:08:30 f4cfe Exp $  
+ *    $Id: serial.h,v 1.9 2001-06-12 23:59:21 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,14 +31,14 @@
 #include <hamlib/rig.h>
 
 
-int serial_open(port_t *rs);
+extern HAMLIB_EXPORT(int) serial_open(port_t *rs);
 
 #if 0
 int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay);
 #endif
-int read_block(port_t *p, char *rxbuffer, size_t count);
-int write_block(port_t *p, const char *txbuffer, size_t count);
-int fread_block(port_t *p, char *rxbuffer, size_t count);
+extern HAMLIB_EXPORT(int) read_block(port_t *p, char *rxbuffer, size_t count);
+extern HAMLIB_EXPORT(int) write_block(port_t *p, const char *txbuffer, size_t count);
+extern HAMLIB_EXPORT(int) fread_block(port_t *p, char *rxbuffer, size_t count);
 
 /* Hamlib internal use, see rig.c */
 int ser_open(port_t *p);

@@ -2,11 +2,11 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
  * misc.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com), 
- * 				Stephane Fillod 2000
+ * 				Stephane Fillod 2001
  * Provides useful routines for data handling, used by backends
  * 	as well as by the frontend.
  *
- *    $Id: misc.h,v 1.5 2001-04-24 19:52:28 f4cfe Exp $  
+ *    $Id: misc.h,v 1.6 2001-06-12 23:59:21 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,7 @@
 #ifndef _MISC_H
 #define _MISC_H 1
 
+#include <hamlib/rig.h>
 
 /*
  * Carefull!! These marcos are NOT reentrant!
@@ -53,17 +54,19 @@ void dump_hex(const unsigned char ptr[], size_t size);
  *  reprensentation, and return it.
  * bcd_len is the number of digits in the BCD array.
  */
-unsigned char *to_bcd(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
-unsigned long long from_bcd(const unsigned char bcd_data[], int bcd_len);
+extern HAMLIB_EXPORT(unsigned char *) to_bcd(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
+extern HAMLIB_EXPORT(unsigned long long) from_bcd(const unsigned char bcd_data[], int bcd_len);
 
 /*
  * same as to_bcd and from_bcd, but in Big Endian mode
  */
-unsigned char *to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
-unsigned long long from_bcd_be(const unsigned char bcd_data[], int bcd_len);
+extern HAMLIB_EXPORT(unsigned char *) to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len);
+extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_data[], int bcd_len);
 
 int freq_sprintf(char *str, freq_t freq);
 
+/* check if it's any of CR or LF */
+#define isreturn(c) ((c) == 10 || (c) == 13)
 
 #endif /* _MISC_H */
 

@@ -1,4 +1,4 @@
-INCLUDES = $(INCLTDL)
+INCLUDES = @INCLUDES@ $(INCLTDL)
 
 lib_LTLIBRARIES = libhamlib.la
 libhamlib_la_SOURCES = rig.c serial.c misc.c register.c event.c cal.c

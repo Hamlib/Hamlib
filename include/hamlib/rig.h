@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.38 2001-06-12 07:09:44 f4cfe Exp $
+ *	$Id: rig.h,v 1.39 2001-06-12 23:59:21 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -31,19 +31,10 @@
 #include <stdio.h>		/* required for FILE definition */
 #include <sys/time.h>		/* required for struct timeval */
 
-/* At some point, cygwin will stop defining __CYGWIN32__, but b19 and
- *  * earlier do not define __CYGWIN__.  This snippit allows us to check
- *   * for __CYGWIN32__ reliably for both old and (probable) future releases.
- *    */
-#ifdef __CYGWIN__
-#  ifndef __CYGWIN32__
-#    define __CYGWIN32__
-#  endif
-#endif
 
 /* __BEGIN_DECLS should be used at the beginning of your declarations,
- *    so that C++ compilers don't mangle their names.  Use __END_DECLS at
- *       the end of C declarations. */
+ * so that C++ compilers don't mangle their names.  Use __END_DECLS at
+ * the end of C declarations. */
 #undef __BEGIN_DECLS
 #undef __END_DECLS
 #ifdef __cplusplus
@@ -54,45 +45,30 @@
 # define __END_DECLS /* empty */
 #endif
 
-/* RIG_PARAMS is a macro used to wrap function prototypes, so that compilers
- *    that don't understand ANSI C prototypes still work, and ANSI C
- *       compilers can issue warnings about type mismatches. */
-#undef RIG_PARAMS
-#if defined (__STDC__) || defined (_AIX) || (defined (__mips) && defined (_SYSTYPE_SVR4)) || defined(__CYGWIN32__) || defined(__cplusplus)
-# define RIG_PARAMS(protos) protos
+/* HAMLIB_PARAMS is a macro used to wrap function prototypes, so that compilers
+ * that don't understand ANSI C prototypes still work, and ANSI C
+ * compilers can issue warnings about type mismatches. */
+#undef HAMLIB_PARAMS
+#if defined (__STDC__) || defined (_AIX) || (defined (__mips) && defined (_SYSTYPE_SVR4)) || defined(__CYGWIN__) || defined(__cplusplus)
+# define HAMLIB_PARAMS(protos) protos
 # define rig_ptr_t     void*
 #else
-# define RIG_PARAMS(protos) ()
+# define HAMLIB_PARAMS(protos) ()
 # define rig_ptr_t     char*
 #endif
 
-#ifdef __CYGWIN32__
-#  ifdef HAMLIB_DLL
-     /* need some (as yet non-existant) automake magic to tell
-	  * the object whether the libhamlib it will be linked with is
-	  * a dll or not, ie whether LIBHAMLIB_DLL is defined or not.
-	  */
-#    ifdef _LIBHAMLIB_COMPILATION_
-#      define EXTERN __declspec(dllexport)
-#    else
-#      define EXTERN extern __declspec(dllimport)
-#    endif
-#  else
-#    define EXTERN extern
-#  endif
-#else
-#  define EXTERN extern
-#endif
+#include <hamlib/rig_dll.h>
+
 
 __BEGIN_DECLS
 
-EXTERN const char hamlib_version[];
+extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
 
 typedef unsigned int tone_t;
 
-EXTERN const tone_t full_ctcss_list[];
-EXTERN const tone_t common_ctcss_list[];
-EXTERN const tone_t full_dcs_list[];
+extern HAMLIB_EXPORT_VAR(const tone_t) full_ctcss_list[];
+extern HAMLIB_EXPORT_VAR(const tone_t) common_ctcss_list[];
+extern HAMLIB_EXPORT_VAR(const tone_t) full_dcs_list[];
 #define CTCSS_LIST_SIZE (sizeof(full_ctcss_list)/sizeof(tone_t)-1)
 #define DCS_LIST_SIZE (sizeof(full_dcs_list)/sizeof(tone_t)-1)
 
@@ -1020,150 +996,150 @@ struct rig {
 
 /* --------------- API function prototypes -----------------*/
 
-extern RIG *rig_init RIG_PARAMS((rig_model_t rig_model));
-extern int rig_open RIG_PARAMS((RIG *rig));
+extern HAMLIB_EXPORT(RIG *) rig_init HAMLIB_PARAMS((rig_model_t rig_model));
+extern HAMLIB_EXPORT(int) rig_open HAMLIB_PARAMS((RIG *rig));
 
   /*
    *  General API commands, from most primitive to least.. :()
    *  List Set/Get functions pairs
    */
 
-extern int rig_set_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t freq));
-extern int rig_get_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t *freq));
+extern HAMLIB_EXPORT(int) rig_set_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t freq));
+extern HAMLIB_EXPORT(int) rig_get_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *freq));
 
-extern int rig_set_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width));
-extern int rig_get_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width));
+extern HAMLIB_EXPORT(int) rig_set_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width));
+extern HAMLIB_EXPORT(int) rig_get_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width));
 
-extern int rig_set_vfo RIG_PARAMS((RIG *rig, vfo_t vfo));
-extern int rig_get_vfo RIG_PARAMS((RIG *rig, vfo_t *vfo));
+extern HAMLIB_EXPORT(int) rig_set_vfo HAMLIB_PARAMS((RIG *rig, vfo_t vfo));
+extern HAMLIB_EXPORT(int) rig_get_vfo HAMLIB_PARAMS((RIG *rig, vfo_t *vfo));
 
-extern int rig_set_ptt RIG_PARAMS((RIG *rig, vfo_t vfo, ptt_t ptt));
-extern int rig_get_ptt RIG_PARAMS((RIG *rig, vfo_t vfo, ptt_t *ptt));
+extern HAMLIB_EXPORT(int) rig_set_ptt HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ptt_t ptt));
+extern HAMLIB_EXPORT(int) rig_get_ptt HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ptt_t *ptt));
 
-extern int rig_get_dcd RIG_PARAMS((RIG *rig, vfo_t vfo, dcd_t *dcd));
+extern HAMLIB_EXPORT(int) rig_get_dcd HAMLIB_PARAMS((RIG *rig, vfo_t vfo, dcd_t *dcd));
 
-extern int rig_set_rptr_shift RIG_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift));
-extern int rig_get_rptr_shift RIG_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift));
-extern int rig_set_rptr_offs RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rptr_offs));
-extern int rig_get_rptr_offs RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs));
+extern HAMLIB_EXPORT(int) rig_set_rptr_shift HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift));
+extern HAMLIB_EXPORT(int) rig_get_rptr_shift HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift));
+extern HAMLIB_EXPORT(int) rig_set_rptr_offs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rptr_offs));
+extern HAMLIB_EXPORT(int) rig_get_rptr_offs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs));
 
-extern int rig_set_ctcss RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
-extern int rig_get_ctcss RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
-extern int rig_set_dcs RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
-extern int rig_get_dcs RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
+extern HAMLIB_EXPORT(int) rig_set_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
+extern HAMLIB_EXPORT(int) rig_get_ctcss HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
+extern HAMLIB_EXPORT(int) rig_set_dcs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
+extern HAMLIB_EXPORT(int) rig_get_dcs HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
-extern int rig_set_ctcss_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
-extern int rig_get_ctcss_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
-extern int rig_set_dcs_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
-extern int rig_get_dcs_sql RIG_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
+extern HAMLIB_EXPORT(int) rig_set_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t tone));
+extern HAMLIB_EXPORT(int) rig_get_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *tone));
+extern HAMLIB_EXPORT(int) rig_set_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
+extern HAMLIB_EXPORT(int) rig_get_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
-extern int rig_set_split_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq));
-extern int rig_get_split_freq RIG_PARAMS((RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq));
-extern int rig_set_split_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width));
-extern int rig_get_split_mode RIG_PARAMS((RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width));
-extern int rig_set_split RIG_PARAMS((RIG *rig, vfo_t vfo, split_t split));
-extern int rig_get_split RIG_PARAMS((RIG *rig, vfo_t vfo, split_t *split));
+extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq));
+extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq));
+extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width));
+extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width));
+extern HAMLIB_EXPORT(int) rig_set_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t split));
+extern HAMLIB_EXPORT(int) rig_get_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t *split));
 
-extern int rig_set_rit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rit));
-extern int rig_get_rit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rit));
-extern int rig_set_xit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t xit));
-extern int rig_get_xit RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *xit));
+extern HAMLIB_EXPORT(int) rig_set_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rit));
+extern HAMLIB_EXPORT(int) rig_get_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rit));
+extern HAMLIB_EXPORT(int) rig_set_xit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t xit));
+extern HAMLIB_EXPORT(int) rig_get_xit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *xit));
 
-extern int rig_set_ts RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t ts));
-extern int rig_get_ts RIG_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *ts));
+extern HAMLIB_EXPORT(int) rig_set_ts HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t ts));
+extern HAMLIB_EXPORT(int) rig_get_ts HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *ts));
 
-extern int rig_power2mW RIG_PARAMS((RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode));
-extern int rig_mW2power RIG_PARAMS((RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode));
+extern HAMLIB_EXPORT(int) rig_power2mW HAMLIB_PARAMS((RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode));
+extern HAMLIB_EXPORT(int) rig_mW2power HAMLIB_PARAMS((RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode));
 
-extern shortfreq_t rig_get_resolution RIG_PARAMS((RIG *rig, rmode_t mode));
+extern HAMLIB_EXPORT(shortfreq_t) rig_get_resolution HAMLIB_PARAMS((RIG *rig, rmode_t mode));
 
-extern int rig_set_level RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t level, value_t val));
-extern int rig_get_level RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t level, value_t *val));
+extern HAMLIB_EXPORT(int) rig_set_level HAMLIB_PARAMS((RIG *rig, vfo_t vfo, setting_t level, value_t val));
+extern HAMLIB_EXPORT(int) rig_get_level HAMLIB_PARAMS((RIG *rig, vfo_t vfo, setting_t level, value_t *val));
 
 #define rig_get_strength(r,v,s) rig_get_level((r),(v),RIG_LEVEL_STRENGTH, (value_t*)(s))
 
-extern int rig_set_parm RIG_PARAMS((RIG *rig, setting_t parm, value_t val));
-extern int rig_get_parm RIG_PARAMS((RIG *rig, setting_t parm, value_t *val));
+extern HAMLIB_EXPORT(int) rig_set_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t val));
+extern HAMLIB_EXPORT(int) rig_get_parm HAMLIB_PARAMS((RIG *rig, setting_t parm, value_t *val));
 
-extern int rig_set_powerstat RIG_PARAMS((RIG *rig, powerstat_t status));
-extern int rig_get_powerstat RIG_PARAMS((RIG *rig, powerstat_t *status));
+extern HAMLIB_EXPORT(int) rig_set_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t status));
+extern HAMLIB_EXPORT(int) rig_get_powerstat HAMLIB_PARAMS((RIG *rig, powerstat_t *status));
 
-extern int rig_reset RIG_PARAMS((RIG *rig, reset_t reset));	/* dangerous! */
+extern HAMLIB_EXPORT(int) rig_reset HAMLIB_PARAMS((RIG *rig, reset_t reset));	/* dangerous! */
 
 /* more to come -- FS */
 
-extern int rig_close RIG_PARAMS((RIG *rig));
-extern int rig_cleanup RIG_PARAMS((RIG *rig));
+extern HAMLIB_EXPORT(int) rig_close HAMLIB_PARAMS((RIG *rig));
+extern HAMLIB_EXPORT(int) rig_cleanup HAMLIB_PARAMS((RIG *rig));
 
-extern rig_model_t rig_probe RIG_PARAMS((port_t *p));
+extern HAMLIB_EXPORT(rig_model_t) rig_probe HAMLIB_PARAMS((port_t *p));
 
-extern int rig_set_ant RIG_PARAMS((RIG *rig, vfo_t vfo, ant_t ant));	/* antenna */
-extern int rig_get_ant RIG_PARAMS((RIG *rig, vfo_t vfo, ant_t *ant));
+extern HAMLIB_EXPORT(int) rig_set_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t ant));	/* antenna */
+extern HAMLIB_EXPORT(int) rig_get_ant HAMLIB_PARAMS((RIG *rig, vfo_t vfo, ant_t *ant));
 
-extern setting_t rig_has_get_level RIG_PARAMS((RIG *rig, setting_t level));
-extern setting_t rig_has_set_level RIG_PARAMS((RIG *rig, setting_t level));
+extern HAMLIB_EXPORT(setting_t) rig_has_get_level HAMLIB_PARAMS((RIG *rig, setting_t level));
+extern HAMLIB_EXPORT(setting_t) rig_has_set_level HAMLIB_PARAMS((RIG *rig, setting_t level));
 
-extern setting_t rig_has_get_parm RIG_PARAMS((RIG *rig, setting_t parm));
-extern setting_t rig_has_set_parm RIG_PARAMS((RIG *rig, setting_t parm));
+extern HAMLIB_EXPORT(setting_t) rig_has_get_parm HAMLIB_PARAMS((RIG *rig, setting_t parm));
+extern HAMLIB_EXPORT(setting_t) rig_has_set_parm HAMLIB_PARAMS((RIG *rig, setting_t parm));
 
-extern setting_t rig_has_get_func RIG_PARAMS((RIG *rig, setting_t func));
-extern setting_t rig_has_set_func RIG_PARAMS((RIG *rig, setting_t func));
+extern HAMLIB_EXPORT(setting_t) rig_has_get_func HAMLIB_PARAMS((RIG *rig, setting_t func));
+extern HAMLIB_EXPORT(setting_t) rig_has_set_func HAMLIB_PARAMS((RIG *rig, setting_t func));
 
-extern int rig_set_func RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int status));
-extern int rig_get_func RIG_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int *status));
+extern HAMLIB_EXPORT(int) rig_set_func HAMLIB_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int status));
+extern HAMLIB_EXPORT(int) rig_get_func HAMLIB_PARAMS((RIG *rig, vfo_t vfo, setting_t func, int *status));
 
-extern int rig_send_dtmf RIG_PARAMS((RIG *rig, vfo_t vfo, const char *digits));
-extern int rig_recv_dtmf RIG_PARAMS((RIG *rig, vfo_t vfo, char *digits, int *length));
-extern int rig_send_morse RIG_PARAMS((RIG *rig, vfo_t vfo, const char *msg));
+extern HAMLIB_EXPORT(int) rig_send_dtmf HAMLIB_PARAMS((RIG *rig, vfo_t vfo, const char *digits));
+extern HAMLIB_EXPORT(int) rig_recv_dtmf HAMLIB_PARAMS((RIG *rig, vfo_t vfo, char *digits, int *length));
+extern HAMLIB_EXPORT(int) rig_send_morse HAMLIB_PARAMS((RIG *rig, vfo_t vfo, const char *msg));
 
-extern int rig_set_bank RIG_PARAMS((RIG *rig, vfo_t vfo, int bank));
-extern int rig_set_mem RIG_PARAMS((RIG *rig, vfo_t vfo, int ch));
-extern int rig_get_mem RIG_PARAMS((RIG *rig, vfo_t vfo, int *ch));
+extern HAMLIB_EXPORT(int) rig_set_bank HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int bank));
+extern HAMLIB_EXPORT(int) rig_set_mem HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int ch));
+extern HAMLIB_EXPORT(int) rig_get_mem HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int *ch));
 #ifdef WANT_OLD_VFO_TO_BE_REMOVED
-extern int rig_mv_ctl RIG_PARAMS((RIG *rig, vfo_t vfo, mv_op_t op));
+extern HAMLIB_EXPORT(int) rig_mv_ctl HAMLIB_PARAMS((RIG *rig, vfo_t vfo, mv_op_t op));
 #else
-extern int rig_vfo_op RIG_PARAMS((RIG *rig, vfo_t vfo, vfo_op_t op));
-extern vfo_op_t rig_has_vfo_op RIG_PARAMS((RIG *rig, vfo_op_t op));
+extern HAMLIB_EXPORT(int) rig_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_t vfo, vfo_op_t op));
+extern HAMLIB_EXPORT(vfo_op_t) rig_has_vfo_op HAMLIB_PARAMS((RIG *rig, vfo_op_t op));
 #endif
 
-extern int rig_restore_channel RIG_PARAMS((RIG *rig, const channel_t *chan)); /* curr VFO */
-extern int rig_save_channel RIG_PARAMS((RIG *rig, channel_t *chan));
-extern int rig_set_channel RIG_PARAMS((RIG *rig, const channel_t *chan));	/* mem */
-extern int rig_get_channel RIG_PARAMS((RIG *rig, channel_t *chan));
+extern HAMLIB_EXPORT(int) rig_restore_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan)); /* curr VFO */
+extern HAMLIB_EXPORT(int) rig_save_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));
+extern HAMLIB_EXPORT(int) rig_set_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan));	/* mem */
+extern HAMLIB_EXPORT(int) rig_get_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));
 
-extern int rig_set_trn RIG_PARAMS((RIG *rig, vfo_t vfo, int trn));
-extern int rig_get_trn RIG_PARAMS((RIG *rig, vfo_t vfo, int *trn));
+extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int trn));
+extern HAMLIB_EXPORT(int) rig_get_trn HAMLIB_PARAMS((RIG *rig, vfo_t vfo, int *trn));
 
 
-extern const char *rig_get_info RIG_PARAMS((RIG *rig));
+extern HAMLIB_EXPORT(const char *) rig_get_info HAMLIB_PARAMS((RIG *rig));
 
-extern const struct rig_caps *rig_get_caps RIG_PARAMS((rig_model_t rig_model));
-const freq_range_t *rig_get_range RIG_PARAMS((const freq_range_t range_list[], freq_t freq, rmode_t mode));
+extern HAMLIB_EXPORT(const struct rig_caps *) rig_get_caps HAMLIB_PARAMS((rig_model_t rig_model));
+extern HAMLIB_EXPORT(const freq_range_t *) rig_get_range HAMLIB_PARAMS((const freq_range_t range_list[], freq_t freq, rmode_t mode));
 
-extern pbwidth_t rig_passband_normal RIG_PARAMS((RIG *rig, rmode_t mode));
-extern pbwidth_t rig_passband_narrow RIG_PARAMS((RIG *rig, rmode_t mode));
-extern pbwidth_t rig_passband_wide RIG_PARAMS((RIG *rig, rmode_t mode));
+extern HAMLIB_EXPORT(pbwidth_t) rig_passband_normal HAMLIB_PARAMS((RIG *rig, rmode_t mode));
+extern HAMLIB_EXPORT(pbwidth_t) rig_passband_narrow HAMLIB_PARAMS((RIG *rig, rmode_t mode));
+extern HAMLIB_EXPORT(pbwidth_t) rig_passband_wide HAMLIB_PARAMS((RIG *rig, rmode_t mode));
 
-extern const char *rigerror RIG_PARAMS((int errnum));
+extern HAMLIB_EXPORT(const char *) rigerror HAMLIB_PARAMS((int errnum));
 
-extern int rig_setting2idx RIG_PARAMS((setting_t s));
+extern HAMLIB_EXPORT(int) rig_setting2idx HAMLIB_PARAMS((setting_t s));
 #define rig_idx2setting(i) (1<<(i))
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific
  * Maybe "hamlib_" would have been better. Let me know. --SF
  */
-void rig_set_debug RIG_PARAMS((enum rig_debug_level_e debug_level));
-int rig_need_debug RIG_PARAMS((enum rig_debug_level_e debug_level));
-void rig_debug RIG_PARAMS((enum rig_debug_level_e debug_level, const char *fmt, ...));
+extern HAMLIB_EXPORT(void) rig_set_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
+extern HAMLIB_EXPORT(int) rig_need_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level));
+extern HAMLIB_EXPORT(void) rig_debug HAMLIB_PARAMS((enum rig_debug_level_e debug_level, const char *fmt, ...));
 
-int rig_register RIG_PARAMS((const struct rig_caps *caps));
-int rig_unregister RIG_PARAMS((rig_model_t rig_model));
-int rig_list_foreach RIG_PARAMS((int (*cfunc)(const struct rig_caps*, rig_ptr_t), rig_ptr_t data));
-int rig_load_backend RIG_PARAMS((const char *be_name));
-int rig_check_backend RIG_PARAMS((rig_model_t rig_model));
-int rig_load_all_backends RIG_PARAMS(());
-rig_model_t rig_probe_all RIG_PARAMS((port_t *p));
+extern HAMLIB_EXPORT(int) rig_register HAMLIB_PARAMS((const struct rig_caps *caps));
+extern HAMLIB_EXPORT(int) rig_unregister HAMLIB_PARAMS((rig_model_t rig_model));
+extern HAMLIB_EXPORT(int) rig_list_foreach HAMLIB_PARAMS((int (*cfunc)(const struct rig_caps*, rig_ptr_t), rig_ptr_t data));
+extern HAMLIB_EXPORT(int) rig_load_backend HAMLIB_PARAMS((const char *be_name));
+extern HAMLIB_EXPORT(int) rig_check_backend HAMLIB_PARAMS((rig_model_t rig_model));
+extern HAMLIB_EXPORT(int) rig_load_all_backends HAMLIB_PARAMS(());
+extern HAMLIB_EXPORT(rig_model_t) rig_probe_all HAMLIB_PARAMS((port_t *p));
 
 
 __END_DECLS
