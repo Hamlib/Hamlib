@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.10 2004-04-04 04:57:35 bwulf Exp $
+ * $Id: ft990.c,v 1.11 2004-08-17 20:07:20 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -277,7 +277,7 @@ const struct rig_caps ft990_caps = {
 /*
  * rig_init
  */
-static int ft990_init(RIG *rig) {
+int ft990_init(RIG *rig) {
   struct ft990_priv_data *priv;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -310,7 +310,7 @@ static int ft990_init(RIG *rig) {
 /*
  * rig_cleanup
  */
-static int ft990_cleanup(RIG *rig) {
+int ft990_cleanup(RIG *rig) {
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -329,7 +329,7 @@ static int ft990_cleanup(RIG *rig) {
 /*
  * rig_open
  */
-static int  ft990_open(RIG *rig) {
+int  ft990_open(RIG *rig) {
   struct rig_state *rig_s;
   struct ft990_priv_data *priv;
   int err;
@@ -367,7 +367,7 @@ static int  ft990_open(RIG *rig) {
 /*
  * rig_close
  */
-static int ft990_close(RIG *rig) {
+int ft990_close(RIG *rig) {
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -395,7 +395,7 @@ static int ft990_close(RIG *rig) {
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
+int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct ft990_priv_data *priv;
   int err;
 
@@ -453,7 +453,7 @@ static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   struct ft990_priv_data *priv;
   unsigned char *p;
   freq_t f;
@@ -538,7 +538,7 @@ static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -603,7 +603,7 @@ static int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  * Comments: The passed value for the vfo is ignored since the PTT status
  *           is independent from the VFO selection.
  */
-static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -651,7 +651,7 @@ static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  *           from the currently selected VFO.
  *           Repeater shift can only be set when in FM mode.
  */
-static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
+int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
   struct ft990_priv_data *priv;
   unsigned char ci;
@@ -761,7 +761,7 @@ static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
  *           from the currently selected VFO.
  *           Repeater shift can only be obtained when in FM mode.
  */
-static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
+int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
   struct ft990_priv_data *priv;
   ft990_op_data_t *p;
@@ -842,7 +842,7 @@ static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
  * Comments: The passed value for the vfo is ignored since the
  *           repeater frequency offset is independent from the VFO selection.
  */
-static int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
+int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
   unsigned char bcd[(int) FT990_BCD_RPTR_OFFSET/2];
   int err;
@@ -895,7 +895,7 @@ static int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
  *           the correct TX VFO is selected by the rig in split mode.
  *           An error is returned if vfo and tx_vfo are the same.
  */
-static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
   struct ft990_priv_data *priv;
   unsigned char ci;
@@ -977,7 +977,7 @@ static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  * Comments: The passed value for the vfo is ignored in order to
  *           preserve the current split vfo system settings.
  */
-static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -1050,7 +1050,7 @@ static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
  *           rit = 0 && xit enabled   -> disable rit
  *           rit = 0 && xit disabled  -> disable rit and set frequency = 0
  */
-static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -1139,7 +1139,7 @@ static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
   struct ft990_priv_data *priv;
   unsigned char ci;
@@ -1225,7 +1225,7 @@ static int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  *           xit = 0 && rit enabled   -> disable xit
  *           xit = 0 && rit disabled  -> disable xit and set frequency = 0
  */
-static int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -1312,7 +1312,7 @@ static int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
   struct ft990_priv_data *priv;
   unsigned char ci;
@@ -1389,7 +1389,7 @@ static int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
  * Comments: The passed value for the vfo is ignored since the
  *           the status of rig functions are vfo independent.
  */
-static int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
   unsigned char ci;
   int err;
@@ -1445,7 +1445,7 @@ static int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  * Comments: The passed value for the vfo is ignored since the
  *           the status of rig function are vfo independent.
  */
-static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -1497,7 +1497,7 @@ static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  *
  * Comments:
  */
-static int ft990_set_parm(RIG *rig, setting_t parm, value_t val)
+int ft990_set_parm(RIG *rig, setting_t parm, value_t val)
 {
   int err;
 
@@ -1551,7 +1551,7 @@ static int ft990_set_parm(RIG *rig, setting_t parm, value_t val)
  *
  * Notes:    Hamlib currently doesn't provide support for packet radio modes
  */
-static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   struct ft990_priv_data *priv;
   unsigned char bw;
@@ -1686,7 +1686,7 @@ static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  *
  * Notes:    Hamlib currently doesn't provide support for packet radio modes
  */
-static int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
   struct ft990_priv_data *priv;
   unsigned char *p;
@@ -1827,7 +1827,7 @@ switch(vfo) {
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_set_vfo(RIG *rig, vfo_t vfo) {
+int ft990_set_vfo(RIG *rig, vfo_t vfo) {
   struct ft990_priv_data *priv;
   unsigned char ci;
   int err;
@@ -1900,7 +1900,7 @@ static int ft990_set_vfo(RIG *rig, vfo_t vfo) {
  *           The result is stored in the priv->current_vfo data structure
  *           for later retrieval.
  */
-static int ft990_get_vfo(RIG *rig, vfo_t *vfo) {
+int ft990_get_vfo(RIG *rig, vfo_t *vfo) {
   struct ft990_priv_data *priv;
   int err;
 
@@ -1971,7 +1971,7 @@ static int ft990_get_vfo(RIG *rig, vfo_t *vfo) {
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
+int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
 {
   struct ft990_priv_data *priv;
   struct rig_state *rig_s;
@@ -2057,7 +2057,7 @@ static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
  *           In all other cases the passed vfo is selected if it differs
  *           from the currently selected VFO.
  */
-static int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
   struct ft990_priv_data *priv;
   unsigned char ci;
@@ -2154,7 +2154,7 @@ static int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  * Comments: The passed value for the vfo is ignored since the
  *           the channel selection is vfo independent.
  */
-static int ft990_set_mem(RIG *rig, vfo_t vfo, int ch)
+int ft990_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -2200,7 +2200,7 @@ static int ft990_set_mem(RIG *rig, vfo_t vfo, int ch)
  *           the channel selection is vfo independent.
  *           Will succeed only when in RIG_VFO_MEM mode.
  */
-static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
+int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
   struct ft990_priv_data *priv;
   int err;
@@ -2254,7 +2254,7 @@ static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch)
  * -------------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  */
-static int ft990_set_channel (RIG *rig, const channel_t *chan)
+int ft990_set_channel (RIG *rig, const channel_t *chan)
 {
   struct ft990_priv_data *priv;
 
@@ -2282,7 +2282,7 @@ static int ft990_set_channel (RIG *rig, const channel_t *chan)
  *
  * Comments: TX attributes are set equal to their corresponding RX attributes.
  */
-static int ft990_get_channel (RIG *rig, channel_t *chan)
+int ft990_get_channel (RIG *rig, channel_t *chan)
 {
   struct ft990_priv_data *priv;
   ft990_op_data_t *p;
@@ -2432,7 +2432,7 @@ static int ft990_get_channel (RIG *rig, channel_t *chan)
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
  */
-static int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short rl) {
+int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short rl) {
   struct rig_state *rig_s;
   struct ft990_priv_data *priv;
   int n, err;                       /* for read_  */
@@ -2506,7 +2506,7 @@ static int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short rl) 
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
  */
-static int ft990_send_static_cmd(RIG *rig, unsigned char ci) {
+int ft990_send_static_cmd(RIG *rig, unsigned char ci) {
   struct rig_state *rig_s;
   struct ft990_priv_data *priv;
   int err;
@@ -2547,7 +2547,7 @@ static int ft990_send_static_cmd(RIG *rig, unsigned char ci) {
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
  */
-static int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
+int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
                                   unsigned char p1, unsigned char p2,
                                   unsigned char p3, unsigned char p4) {
   struct rig_state *rig_s;
@@ -2601,7 +2601,7 @@ static int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
  */
-static int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
+int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
   struct rig_state *rig_s;
   struct ft990_priv_data *priv;
   int err;
@@ -2654,7 +2654,7 @@ static int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
  * Returns:     RIG_OK if all called functions are successful,
  *              otherwise returns error from called functiion
  */
-static int ft990_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
+int ft990_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
   struct ft990_priv_data *priv;
   struct rig_state *rig_s;
   int err;

@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- *    $Id: ft990.h,v 1.4 2003-12-23 13:32:11 bwulf Exp $  
+ *    $Id: ft990.h,v 1.5 2004-08-17 20:07:20 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -150,36 +150,36 @@ typedef enum ft990_native_cmd_e {
 
 
 /* HAMLIB API implementation */
-static int ft990_init(RIG *rig);
-static int ft990_cleanup(RIG *rig);
-static int ft990_open(RIG *rig);
-static int ft990_close(RIG *rig);
-static int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-static int ft990_set_vfo(RIG *rig, vfo_t vfo);
-static int ft990_get_vfo(RIG *rig, vfo_t *vfo);
-static int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-static int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
-static int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
-static int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
-static int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-static int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-static int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-static int ft990_set_parm(RIG *rig, setting_t parm, value_t val);
-static int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
-static int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
-static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
-static int ft990_set_mem(RIG *rig, vfo_t vfo, int ch);
-static int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch);
-static int ft990_set_channel (RIG *rig, const channel_t *chan);
-static int ft990_get_channel (RIG *rig, channel_t *chan);
+int ft990_init(RIG *rig);
+int ft990_cleanup(RIG *rig);
+int ft990_open(RIG *rig);
+int ft990_close(RIG *rig);
+int ft990_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int ft990_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int ft990_set_vfo(RIG *rig, vfo_t vfo);
+int ft990_get_vfo(RIG *rig, vfo_t *vfo);
+int ft990_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int ft990_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+int ft990_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+int ft990_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift);
+int ft990_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+int ft990_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+int ft990_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int ft990_set_parm(RIG *rig, setting_t parm, value_t val);
+int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
+int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
+int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int ft990_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+int ft990_set_mem(RIG *rig, vfo_t vfo, int ch);
+int ft990_get_mem(RIG *rig, vfo_t vfo, int *ch);
+int ft990_set_channel (RIG *rig, const channel_t *chan);
+int ft990_get_channel (RIG *rig, channel_t *chan);
 
 
 /*
