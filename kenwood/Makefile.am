@@ -1,7 +1,7 @@
 
 TSSRCLIST = ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
 		ts790.c ts2000.c k2.c ts930.c \
-		ts680.c ts690.c ts140.c
+		ts680.c ts690.c ts140.c ts480.c
 
 IC10SRCLIST = ts440.c ts940.c ts711.c ts811.c r5000.c
 

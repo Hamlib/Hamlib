@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.49 2004-11-15 16:54:43 fillods Exp $
+ *	$Id: riglist.h,v 1.50 2004-11-27 13:19:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -116,6 +116,7 @@
 #define RIG_MODEL_TS140S RIG_MAKE_MODEL(RIG_KENWOOD, 25)
 #define RIG_MODEL_TMD700 RIG_MAKE_MODEL(RIG_KENWOOD, 26)
 #define RIG_MODEL_TMV7 RIG_MAKE_MODEL(RIG_KENWOOD, 27)
+#define RIG_MODEL_TS480 RIG_MAKE_MODEL(RIG_KENWOOD, 28)
 
 	/*
 	 * Icom
@@ -336,6 +337,7 @@
 #define RIG_MODEL_TT526 RIG_MAKE_MODEL(RIG_TENTEC, 6)	/* 6N2 */
 #define RIG_MODEL_TT516 RIG_MAKE_MODEL(RIG_TENTEC, 7)	/* Argonaut V */
 #define RIG_MODEL_TT565 RIG_MAKE_MODEL(RIG_TENTEC, 8)	/* Orion */
+#define RIG_MODEL_TT585 RIG_MAKE_MODEL(RIG_TENTEC, 9)	/* Paragon */
 
 	/*
 	 * Alinco
