@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.h,v 1.3 2001-06-02 18:07:45 f4cfe Exp $
+ *		$Id: winradio.h,v 1.4 2001-06-15 07:08:37 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -53,6 +53,6 @@ extern const struct rig_caps wr3150_caps;
 extern const struct rig_caps wr3500_caps;
 extern const struct rig_caps wr3700_caps;
 
-extern int init_winradio(void *be_handle);
+extern HAMLIB_EXPORT(int) init_winradio(void *be_handle);
 
 #endif /* _WINRADIO_H */

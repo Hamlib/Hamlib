@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- *    $Id: aor.h,v 1.4 2001-03-02 18:29:48 f4cfe Exp $  
+ *    $Id: aor.h,v 1.5 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -41,7 +41,7 @@ int aor_set_powerstat(RIG *rig, powerstat_t status);
 
 extern const struct rig_caps ar8200_caps;
 
-extern int init_aor(void *be_handle);
+extern HAMLIB_EXPORT(int) init_aor(void *be_handle);
 
 
 #endif /* _AOR_H */

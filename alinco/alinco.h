@@ -6,7 +6,7 @@
  * via serial interface to a Alinco radio.
  *
  *
- *    $Id: alinco.h,v 1.1 2001-06-03 17:39:59 f4cfe Exp $  
+ *    $Id: alinco.h,v 1.2 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,15 @@
 #ifndef _ALINCO_H
 #define _ALINCO_H 1
 
-#include <hamlib/rig.h>
+#if defined(__CYGWIN__) && defined(HAMLIB_DLL)
+#  undef HAMLIB_DLL
+#  include <hamlib/rig.h>
+#  define HAMLIB_DLL
+#  include <hamlib/rig_dll.h>
+#else
+#  include <hamlib/rig.h>
+#endif
+
 #include <cal.h>
 
 struct alinco_priv_caps {
@@ -60,7 +68,7 @@ int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch);
 
 extern const struct rig_caps dx77_caps;
 
-extern int init_alinco(void *be_handle);
+extern HAMLIB_EXPORT(int) init_alinco(void *be_handle);
 
 
 #endif /* _ALINCO_H */

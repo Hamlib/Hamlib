@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: frame.h,v 1.6 2001-06-04 21:09:13 f4cfe Exp $  
+ *    $Id: frame.h,v 1.7 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@
 #ifndef _FRAME_H
 #define _FRAME_H 1
 
-#include <hamlib/rig.h>
 
 /*
  * helper functions 

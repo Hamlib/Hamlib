@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.29 2001-06-10 22:29:00 f4cfe Exp $  
+ * $Id: icom.c,v 1.30 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  *
@@ -36,11 +36,21 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
-#include <serial.h>
-#include <misc.h>
-#include <cal.h>
+#if defined(__CYGWIN__) && defined(HAMLIB_DLL)
+#  undef HAMLIB_DLL
+#  include <hamlib/rig.h>
+#  include <serial.h>
+#  include <misc.h>
+#  include <cal.h>
+#  define HAMLIB_DLL
+#  include <hamlib/rig_dll.h>
+#else
+#  include <hamlib/rig.h>
+#  include <serial.h>
+#  include <misc.h>
+#  include <cal.h>
+#endif
+
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"

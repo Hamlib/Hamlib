@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.9 2001-06-12 23:59:21 f4cfe Exp $  
+ *    $Id: serial.h,v 1.10 2001-06-15 07:08:37 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,9 +33,6 @@
 
 extern HAMLIB_EXPORT(int) serial_open(port_t *rs);
 
-#if 0
-int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay);
-#endif
 extern HAMLIB_EXPORT(int) read_block(port_t *p, char *rxbuffer, size_t count);
 extern HAMLIB_EXPORT(int) write_block(port_t *p, const char *txbuffer, size_t count);
 extern HAMLIB_EXPORT(int) fread_block(port_t *p, char *rxbuffer, size_t count);

@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.9 2001-06-12 07:07:11 f4cfe Exp $  
+ * $Id: aor.c,v 1.10 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  *
@@ -36,10 +36,19 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
-#include <serial.h>
-#include <misc.h>
+#if defined(__CYGWIN__) && defined(HAMLIB_DLL)
+#  undef HAMLIB_DLL
+#  include <hamlib/rig.h>
+#  include <serial.h>
+#  include <misc.h>
+#  define HAMLIB_DLL
+#  include <hamlib/rig_dll.h>
+#else
+#  include <hamlib/rig.h>
+#  include <serial.h>
+#  include <misc.h>
+#endif
+
 #include "aor.h"
 
 

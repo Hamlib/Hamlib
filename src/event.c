@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: event.c,v 1.6 2001-06-11 00:41:28 f4cfe Exp $
+   $Id: event.c,v 1.7 2001-06-15 07:08:37 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -36,11 +36,13 @@
 #include <errno.h>
 
 
+#define HAMLIB_DLL
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
+
 #include "event.h"
 
-#ifdef _WIN32
+
+#if defined(_WIN32) || defined(__CYGWIN__)
 static void sa_sigiohandler(int signum);
 #else
 static void sa_sigioaction(int signum, siginfo_t *si, void *data);
@@ -62,7 +64,7 @@ int add_trn_rig(RIG *rig)
 		/*
 		 * FIXME: multiple open will register several time SIGIO hndlr
 		 */
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 	act.sa_handler = sa_sigiohandler;
 #else
 	act.sa_sigaction = sa_sigioaction;
@@ -70,7 +72,7 @@ int add_trn_rig(RIG *rig)
 
 	sigemptyset(&act.sa_mask);
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 	act.sa_flags = 0;
 #else
 	act.sa_flags = SA_SIGINFO;
@@ -86,7 +88,7 @@ int add_trn_rig(RIG *rig)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETOWN failed: %s\n",
 						strerror(errno));
 
-#ifndef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 	status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETSIG failed: %s\n",
@@ -167,7 +169,7 @@ static int search_rig_and_decode(RIG *rig, rig_ptr_t data)
  * check the rig is not holding SIGIO,
  * then call rig->caps->decode_event()  (this is done by search_rig)
  */
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 static void sa_sigiohandler(int signum)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "sa_sigiohandler: activity detected\n");

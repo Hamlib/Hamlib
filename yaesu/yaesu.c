@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.1 2001-06-04 21:07:17 f4cfe Exp $  
+ *	$Id: yaesu.c,v 1.2 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -36,10 +36,19 @@
 #include <termios.h> /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 
-#include <hamlib/rig.h>
-#include <hamlib/riglist.h>
-#include "serial.h"
-#include "misc.h"
+#if defined(__CYGWIN__) && defined(HAMLIB_DLL)
+#  undef HAMLIB_DLL
+#  include <hamlib/rig.h>
+#  include "serial.h"
+#  include "misc.h"
+#  define HAMLIB_DLL
+#  include <hamlib/rig_dll.h>
+#else
+#  include <hamlib/rig.h>
+#  include "serial.h"
+#  include "misc.h"
+#endif
+
 #include "yaesu.h"
 #include "ft747.h"
 

@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backends
  * 	as well as by the frontend.
  *
- *    $Id: misc.h,v 1.6 2001-06-12 23:59:21 f4cfe Exp $  
+ *    $Id: misc.h,v 1.7 2001-06-15 07:08:37 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@
 #define _MISC_H 1
 
 #include <hamlib/rig.h>
+
 
 /*
  * Carefull!! These marcos are NOT reentrant!

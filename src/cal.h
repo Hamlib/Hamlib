@@ -4,7 +4,7 @@
  * cal.h - Copyright (C) 2001 Stephane Fillod
  *
  *
- *		$Id: cal.h,v 1.2 2001-06-12 23:59:21 f4cfe Exp $  
+ *		$Id: cal.h,v 1.3 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  *
@@ -27,7 +27,8 @@
 #ifndef _CAL_H
 #define _CAL_H 1
 
-#include <hamlib/rig_dll.h>
+#include <hamlib/rig.h>
+
 
 /* add rig_set_cal(cal_table), rig_get_calstat(rawmin,rawmax,cal_table), */
 

@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *    $Id: kenwood.h,v 1.4 2001-05-22 21:59:26 f4cfe Exp $  
+ *    $Id: kenwood.h,v 1.5 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ int kenwood_get_trn(RIG *rig, vfo_t vfo, int *trn);
 
 extern const struct rig_caps ts870s_caps;
 
-extern int init_kenwood(void *be_handle);
+extern HAMLIB_EXPORT(int) init_kenwood(void *be_handle);
 
 
 #endif /* _KENWOOD_H */

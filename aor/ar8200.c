@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ar8200.c,v 1.10 2001-05-04 22:37:35 f4cfe Exp $  
+ * $Id: ar8200.c,v 1.11 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  *
@@ -117,7 +117,9 @@ tuning_steps: {
 	 {AR8200_MODES,kHz(25)},
 	 {AR8200_MODES,kHz(100)},
 	 {AR8200_MODES,MHz(1)},
+#if 0 
 	 {AR8200_MODES,0},	/* any tuning step */
+#endif
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */

@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the PCR1000 protocol.
  *
  *
- *    $Id: pcr.h,v 1.2 2001-06-02 17:52:55 f4cfe Exp $  
+ *    $Id: pcr.h,v 1.3 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,6 @@
 #ifndef _PCR_H
 #define _PCR_H 1
 
-#include <hamlib/rig.h>
 
 struct pcr_priv_data {
 	freq_t last_freq;
@@ -50,7 +49,7 @@ const char *pcr_get_info(RIG *rig);
 extern const struct rig_caps pcr1000_caps;
 extern const struct rig_caps pcr100_caps;
 
-extern int init_pcr(void *be_handle);
+extern HAMLIB_EXPORT(int) init_pcr(void *be_handle);
 
 
 #endif /* _PCR_H */

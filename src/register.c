@@ -2,7 +2,7 @@
    register.c  - Copyright (C) 2000 Stephane Fillod and Frank Singleton
    Provides registering for dynamically loadable backends.
 
-   $Id: register.c,v 1.6 2001-06-11 00:41:28 f4cfe Exp $
+   $Id: register.c,v 1.7 2001-06-15 07:08:37 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -33,8 +33,8 @@
 /* This is libtool's dl wrapper */
 #include <ltdl.h>
 
+#define HAMLIB_DLL
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 
 
 #ifndef PATH_MAX

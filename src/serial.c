@@ -10,7 +10,7 @@
  * ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
  *
- *	$Id: serial.c,v 1.14 2001-06-12 23:59:21 f4cfe Exp $  
+ *	$Id: serial.c,v 1.15 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -60,6 +60,7 @@
 #include <winbase.h>
 #endif
 
+#define HAMLIB_DLL
 #include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
@@ -615,7 +616,7 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
  * assumes: p is not NULL
  */
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 int ser_open(port_t *p)
 {
 	const char *path = p->path;
@@ -646,7 +647,7 @@ int ser_open(port_t *p)
 
 int ser_close(port_t *p)
 {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 		return CloseHandle(p->handle);
 #else
 		return close(p->fd);
@@ -659,7 +660,7 @@ int ser_close(port_t *p)
 int ser_ptt_set(port_t *p, ptt_t pttx)
 {
 		switch(p->type.ptt) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 		/*
 		 * TODO: log error with 0x%lx GetLastError()
 		 */
@@ -699,7 +700,7 @@ int ser_ptt_get(port_t *p, ptt_t *pttx)
 {
 
 		switch(p->type.ptt) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 				/* TODO... */
 #else
 		case RIG_PTT_SERIAL_RTS:
@@ -738,7 +739,7 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 {
 
 		switch(p->type.dcd) {
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
 				/* TODO... */
 #else
 		case RIG_DCD_SERIAL_CTS:

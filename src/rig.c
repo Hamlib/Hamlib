@@ -2,7 +2,7 @@
    Copyright (C) 2000,2001 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.35 2001-06-11 00:41:28 f4cfe Exp $
+   $Id: rig.c,v 1.36 2001-06-15 07:08:37 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@
 #include <fcntl.h>
 
 
+#define HAMLIB_DLL
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include <serial.h>
 #include "event.h"
 

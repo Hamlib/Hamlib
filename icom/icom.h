@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.20 2001-06-10 22:29:00 f4cfe Exp $  
+ *    $Id: icom.h,v 1.21 2001-06-15 07:08:37 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -115,8 +115,8 @@ extern const struct rig_caps ic706mkiig_caps;
 extern const struct rig_caps icr8500_caps;
 extern const struct rig_caps icall_caps;
 
-extern rig_model_t probe_icom(port_t *p);
-extern int init_icom(void *be_handle);
+extern HAMLIB_EXPORT(rig_model_t) probe_icom(port_t *p);
+extern HAMLIB_EXPORT(int) init_icom(void *be_handle);
 
 
 #endif /* _ICOM_H */

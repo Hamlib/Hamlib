@@ -7,7 +7,7 @@
  * purpose mainly.
  *
  *
- *	$Id: dummy.h,v 1.1 2001-02-14 00:59:02 f4cfe Exp $
+ *	$Id: dummy.h,v 1.2 2001-06-15 07:08:37 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,10 +29,9 @@
 #ifndef _DUMMY_H
 #define _DUMMY_H 1
 
-#include <hamlib/rig.h>
 
 extern const struct rig_caps dummy_caps;
 
-extern int init_dummy(void *be_handle);
+extern HAMLIB_EXPORT(int) init_dummy(void *be_handle);
 
 #endif /* _DUMMY_H */
