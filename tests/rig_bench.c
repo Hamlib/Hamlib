@@ -57,7 +57,7 @@ int main (int argc, char *argv[])
 	printf("Opened rig model %d, '%s'\n", my_rig->caps->rig_model,
 							my_rig->caps->model_name);
 	printf("Backend version: %s, Status: %s\n",
-				my_rig->caps->version, strstatus(my_rig->caps->status));
+				my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 	printf("Serial speed: %d bauds\n", my_rig->state.rigport.parm.serial.rate);
 
 	strncpy(my_rig->state.rigport.pathname,SERIAL_PORT,FILPATHLEN);
