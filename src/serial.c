@@ -6,7 +6,11 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface.
  *
- * $Id: serial.c,v 1.6 2001-02-09 23:08:20 f4cfe Exp $  
+ * Parts of the PTT handling are inspired from soundmodem, an excellent
+ * packet softmodem written by Thomas Sailer, HB9JNX.
+ *
+ *
+ *	$Id: serial.c,v 1.7 2001-02-11 23:16:07 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -640,7 +644,7 @@ int par_ptt_get(struct rig_state *rs, ptt_t *pttx)
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
 								rs->ptt_type);
-				return -RIG_EINVAL;
+				return -RIG_ENAVAIL;
 		}
 		return RIG_OK;
 }
