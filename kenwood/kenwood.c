@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.54 2002-12-21 12:35:09 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.55 2002-12-21 13:46:05 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -684,9 +684,6 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		int i, ret, agclevel;
 
 		lvl_len = 50;
-		/* Optimize:
-		 *   sort the switch cases with the most frequent first
-		 */
 		switch (level) {
 		case RIG_LEVEL_STRENGTH:
 			retval = kenwood_transaction (rig, "SM;", 3, lvlbuf, &lvl_len);
@@ -699,20 +696,10 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return -RIG_ERJCTED;
 			}
 
-			/*
-			 * Frontend expects:
-			 *    -54 = S0
-			 * 		0 = S9
-			 */
+			/* Frontend expects:  -54 = S0, 0 = S9  */
 			sscanf(lvlbuf+2, "%d", &val->i);
 			val->i = (val->i * 4) - 54;
 			break;
-
-		case RIG_LEVEL_SQLSTAT:
-			return -RIG_ENIMPL;	/* get_dcd ? */
-
-		case RIG_LEVEL_PREAMP:
-			return -RIG_ENIMPL;
 
 		case RIG_LEVEL_ATT:
 			retval = kenwood_transaction (rig, "RA;", 3, lvlbuf, &lvl_len);
@@ -764,6 +751,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			else if (agclevel <= 255) val->i = 3;
 			return ret;
 
+		case RIG_LEVEL_SQLSTAT:
+		case RIG_LEVEL_PREAMP:
 		case RIG_LEVEL_IF:
 		case RIG_LEVEL_APF:
 		case RIG_LEVEL_NR:
