@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.23 2003-05-03 11:24:44 fillods Exp $  
+ * $Id: ft847.c,v 1.24 2003-08-11 21:21:40 fillods Exp $  
  *
  *
  *
@@ -286,6 +286,7 @@ const struct rig_caps ft847_caps = {
       /* mode/filter list, .remember =  order matters! */
 .filters =  {
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.2)},
+		{RIG_MODE_CW, Hz(500)},
 		{RIG_MODE_AM, kHz(9)},
 		{RIG_MODE_AM, kHz(2.2)},
 		{RIG_MODE_FM, kHz(15)},
