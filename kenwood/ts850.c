@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.13 2004-02-14 15:12:41 f4dwv Exp $
+ *	$Id: ts850.c,v 1.14 2004-02-14 16:50:53 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,6 +202,7 @@ const struct rig_caps ts850_caps = {
 .get_mode =  ts850_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo,
+.set_split_vfo =  kenwood_set_split_vfo,
 .set_ctcss_tone =  ts850_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,

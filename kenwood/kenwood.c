@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.72 2004-02-08 17:05:55 fillods Exp $
+ *	$Id: kenwood.c,v 1.73 2004-02-14 16:50:53 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -268,6 +268,52 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 		return retval;
 }
 
+int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+		unsigned char cmdbuf[16], ackbuf[16];
+		int cmd_len, ack_len, retval;
+		char vfo_function;
+
+		if(vfo !=RIG_VFO_CURR) {
+		switch (vfo) {
+		case RIG_VFO_VFO:
+		case RIG_VFO_A: vfo_function = '0'; break;
+		case RIG_VFO_B: vfo_function = '1'; break;
+		case RIG_VFO_MEM: vfo_function = '2'; break;
+		default: 
+			rig_debug(RIG_DEBUG_ERR,"kenwood_set_split_vfo: unsupported VFO %d\n",
+								vfo);
+			return -RIG_EINVAL;
+		}
+		
+		/* set RX VFO */
+		cmd_len = sprintf(cmdbuf, "FR%c%s", vfo_function, cmd_trm(rig));
+		ack_len = 0;
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+			return retval;
+		}
+
+		if(split==RIG_SPLIT_ON) {
+			switch (txvfo) {
+				case RIG_VFO_VFO:
+				case RIG_VFO_A: vfo_function = '0'; break;
+				case RIG_VFO_B: vfo_function = '1'; break;
+				case RIG_VFO_MEM: vfo_function = '2'; break;
+				default: 
+					rig_debug(RIG_DEBUG_ERR,"kenwood_set_split_vfo: unsupported VFO %d\n", txvfo);
+					return -RIG_EINVAL;
+			} 
+		} else
+		  if(vfo==RIG_VFO_CURR)
+			rig_debug(RIG_DEBUG_ERR,"kenwood_set_split_vfo: unsupported VFO %d\n", vfo);
+
+		/* set TX VFO */
+		cmd_len = sprintf(cmdbuf, "FT%c%s", vfo_function, cmd_trm(rig));
+		ack_len = 0;
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
+		return retval;
+}
 
 /*
  * kenwood_get_vfo using byte 31 of the IF information field
