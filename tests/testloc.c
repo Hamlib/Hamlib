@@ -45,7 +45,11 @@ int main (int argc, char *argv[]) {
 	lat1 = dms2dec(deg, min, sec);
 	printf("  Recoded lat: %f\n", lat1);
 
-	longlat2locator(lon1, lat1, recodedloc, locator_length);
+	retcode = longlat2locator(lon1, lat1, recodedloc, locator_length);
+	if (retcode != RIG_OK) {
+		fprintf(stderr, "longlat2locator() failed, precision out of range.\n");
+		exit(2);
+	}
 	printf("  Recoded: %s\n", recodedloc);
 
 	if (loc2 == NULL)
@@ -68,17 +72,21 @@ int main (int argc, char *argv[]) {
 	lat2 = dms2dec(deg, min, sec);
 	printf("  Recoded lat: %f\n", lat2);
 
-	longlat2locator(lon2, lat2, recodedloc, locator_length);
+	retcode = longlat2locator(lon2, lat2, recodedloc, locator_length);
+	if (retcode != RIG_OK) {
+		fprintf(stderr, "longlat2locator() failed, precision out of range.\n");
+		exit(2);
+	}
 	printf("  Recoded: %s\n", recodedloc);
 
 	retcode = qrb(lon1, lat1, lon2, lat2, &distance, &az);
 	if (retcode != 0) {
-			fprintf(stderr, "QRB error: %d\n", retcode);
-			exit(2);
+		fprintf(stderr, "QRB error: %d\n", retcode);
+		exit(2);
 	}
 	dec2dms(az, &deg, &min, &sec);
 	printf("\nDistance: %.2fkm\n", distance);
 	printf("Bearing: %f, %d° %d' %.2f\"\n", az, deg, min, sec);
 
-	return 0;
+	exit(0);
 }
