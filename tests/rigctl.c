@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.9 2001-03-01 21:25:45 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.10 2001-03-02 18:43:25 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -171,6 +171,7 @@ int main (int argc, char *argv[])
 	retcode |= rig_load_backend("ft847");
 	retcode |= rig_load_backend("kenwood");
 	retcode |= rig_load_backend("aor");
+	retcode |= rig_load_backend("pcr");
 	rig_load_backend("winradio");
 	rig_load_backend("dummy");
 

@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- * $Id: kenwood.c,v 1.2 2001-02-27 23:06:53 f4cfe Exp $  
+ * $Id: kenwood.c,v 1.3 2001-03-02 18:40:15 f4cfe Exp $  
  *
  *
  *
@@ -43,6 +43,8 @@
 #include "kenwood.h"
 
 
+#define EOM ';'
+
 /*
  * modes in use by the "MD" command
  */
@@ -50,6 +52,9 @@
 #define MD_USB	'2'
 #define MD_CW	'3'
 #define MD_FM	'4'
+#define MD_AM	'5'
+#define MD_FSK	'6'
+#define MD_CWN	'7'		/* at least on R-5000 */
 
 /*
  * kenwood_transaction
@@ -73,7 +78,7 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int 
 	i = 0;
 	do {
 		fread_block(rs->stream, data+i, 1, rs->timeout);
-	} while (data[i++] != ';');
+	} while (data[i++] != EOM);
 
 	*data_len = i;
 
@@ -122,7 +127,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			 */
 		cmdbuf[0] = 'F';
 		cmdbuf[1] = vfo==RIG_VFO_A? 'A':'B';
-		cmdbuf[2] = ';';
+		cmdbuf[2] = EOM;
 
 		kenwood_transaction (rig, cmdbuf, 3, freqbuf, &freq_len);
 

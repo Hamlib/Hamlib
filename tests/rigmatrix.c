@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.9 2001-03-01 21:23:32 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.10 2001-03-02 18:43:25 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -232,8 +232,8 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 	print_yn(caps->get_ctcss);
 	print_yn(caps->set_dcs);
 	print_yn(caps->get_dcs);
-	print_yn(caps->set_poweron);
-	print_yn(caps->set_poweroff);
+	print_yn(caps->set_powerstat);
+	print_yn(caps->get_powerstat);
 	print_yn(caps->set_trn);
 	print_yn(caps->set_trn);
 	print_yn(caps->decode_event);
@@ -529,6 +529,11 @@ int main (int argc, char *argv[])
 		printf("rig_load_backend: aor error = %s \n", rigerror(status));
 		exit(3);
 	}
+	status = rig_load_backend("pcr");
+	if (status != RIG_OK ) {
+		printf("rig_load_backend: pcr error = %s \n", rigerror(status));
+		exit(3);
+	}
 	rig_load_backend("winradio");	/* may not be compiled ... */
 	rig_load_backend("dummy");
 
@@ -575,7 +580,7 @@ int main (int argc, char *argv[])
 					"<TD>Set ts</TD><TD>Get ts</TD>"
 					"<TD>Set CTCSS</TD><TD>Get CTCSS</TD>"
 					"<TD>Set DCS</TD><TD>Get DCS</TD>"
-					"<TD>Set PowerON</TD><TD>Set PowerOFF</TD>"
+					"<TD>Set Power Stat</TD><TD>Get Power Stat</TD>"
 					"<TD>Set trn</TD><TD>Get trn</TD>"
 					"<TD>Decode</TD>"
 					"</TR>\n");

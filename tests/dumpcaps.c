@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.15 2001-03-01 21:23:32 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.16 2001-03-02 18:43:25 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -48,6 +48,7 @@ int main (int argc, char *argv[])
 	status |= rig_load_backend("ft847");
 	status |= rig_load_backend("kenwood");
 	status |= rig_load_backend("aor");
+	status |= rig_load_backend("pcr");
 	rig_load_backend("winradio");   /* may not be compiled ... */
 	rig_load_backend("dummy");
 
@@ -200,6 +201,10 @@ int main (int argc, char *argv[])
 	printf("Max RIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_rit/1000, caps->max_rit%1000,
 					caps->max_rit/1000, caps->max_rit%1000);
+
+	printf("Max IF-SHIFT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
+					caps->max_ifshift/1000, caps->max_ifshift%1000,
+					caps->max_ifshift/1000, caps->max_ifshift%1000);
 
 	printf("Preamp:");
 	for(i=0; i<MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
@@ -391,8 +396,8 @@ int main (int argc, char *argv[])
 	printf("Can get CTCSS squelch:\t%c\n",caps->get_ctcss_sql!=NULL?'Y':'N');
 	printf("Can set DCS squelch:\t%c\n",caps->set_dcs_sql!=NULL?'Y':'N');
 	printf("Can get DCS squelch:\t%c\n",caps->get_dcs_sql!=NULL?'Y':'N');
-	printf("Can set power on:\t%c\n",caps->set_poweron!=NULL?'Y':'N');
-	printf("Can set power off:\t%c\n",caps->set_poweroff!=NULL?'Y':'N');
+	printf("Can set power stat:\t%c\n",caps->set_powerstat!=NULL?'Y':'N');
+	printf("Can get power stat:\t%c\n",caps->get_powerstat!=NULL?'Y':'N');
 	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
 	printf("Can get transceive:\t%c\n",caps->get_trn!=NULL?'Y':'N');
 	printf("Can set func:\t%c\n",caps->set_func!=NULL?'Y':'N');
