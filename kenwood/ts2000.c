@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2000.h,v 1.1 2002-06-29 08:40:42 dedmons Exp $
+ *		$Id: ts2000.c,v 1.9 2002-06-30 10:20:52 dedmons Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,28 +35,36 @@
 	RIG_MODE_RTTY)
 #define TS2000_AM_TX_MODES (RIG_MODE_AM)
 
-#define TS2000_FUNC_ALL ( RIG_FUNC_ALL & \
-			~(RIG_FUNC_MN | RIG_FUNC_RNF | RIG_FUNC_VSC) ) 
+// the following might be cond. later
+# define TS2000_RIGVFO (0)
+# define TS2000_MAINVFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM)
+# define TS2000_SUBVFO (RIG_VFO_C)
 
-#define TS2000_LEVEL_ALL (RIG_LEVEL_ALL & ~(RIG_LEVEL_APF))
+#ifndef _NEW_VFO_H
 
-// old
-#define TS2000_MAINVFO (RIG_VFO_A | RIG_VFO_B)
-#define TS2000_SUBVFO (RIG_VFO_C)
+// old / simple
+# define TS2000_FUNC_ALL (RIG_FUNC_TONE | RIG_FUNC_NB)
+# define TS2000_PARM_OP (RIG_PARM_BEEP | RIG_PARM_BACKLIGHT)
+# define TS2000_LEVEL_ALL (RIG_LEVEL_PREAMP | RIG_LEVEL_VOX | RIG_LEVEL_AF)
+# define TS2000_SCAN_OP (RIG_SCAN_STOP | RIG_SCAN_MEM)
+
+#else
 
 // new
-//#define TS2000_MAINVFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM_A | RIG_VFO_CALL_A)
-//#define TS2000_SUBVFO (RIG_VFO_C | RIG_VFO_MEM_C | RIG_VFO_CALL_C)
-
+# define TS2000_FUNC_ALL ( RIG_FUNC_ALL & \
+			~(RIG_FUNC_MN | RIG_FUNC_RNF | RIG_FUNC_VSC) ) 
+# define TS2000_PARM_OP (RIG_PARM_EXCLUDE(RIG_PARM_BAT | RIG_PARM_TIME))
+# define TS2000_LEVEL_ALL (RIG_LEVEL_ALL & ~(RIG_LEVEL_APF))
+# define TS2000_SCAN_OP (RIG_SCAN_ALL & ~(RIG_SCAN_DELTA))
 // the following uses both Sub and Main for the Major mode
-//#define TS2000_RIGVFO (RIG_VFO_SAT | RIG_VFO_CROSS)
+//# define TS2000_MAINVFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM_A | RIG_VFO_CALL_A)
+//# define TS2000_RIGVFO (RIG_VFO_SAT | RIG_VFO_CROSS)
+//# define TS2000_SUBVFO (RIG_VFO_C | RIG_VFO_MEM_C | RIG_VFO_CALL_C)
 
-//#define TS2000_VFO_ALL (TS2000_RIGVFO | TS2000_MAINVFO | TS2000_SUBVFO)
+#endif
 
+#define TS2000_VFO_ALL (TS2000_RIGVFO | TS2000_MAINVFO | TS2000_SUBVFO)
 #define TS2000_VFO_OP (RIG_OP_UP | RIG_OP_DOWN)
-
-#define TS2000_SCAN_OP (RIG_SCAN_ALL & ~(RIG_SCAN_DELTA))
-#define TS2000_PARM_OP (RIG_PARM_EXCLUDE(RIG_PARM_BAT | RIG_PARM_TIME))
 
 /*
  * 103 available DCS codes
@@ -266,38 +274,6 @@ filters: {
 	},
 priv: (void *)&ts2k_priv_caps,
 
-/* kenwood
-set_freq: kenwood_set_freq,
-get_freq: kenwood_get_freq,
-set_mode: kenwood_set_mode,
-get_mode: kenwood_get_mode,
-set_vfo: kenwood_set_vfo,
-get_vfo: kenwood_get_vfo,
-//set_tone: kenwood_set_tone,
-//get_tone: kenwood_get_tone,
-set_ctcss_tone: kenwood_set_ctcss_tone,
-get_ctcss_tone: kenwood_get_ctcss_tone,
-get_ptt: kenwood_get_ptt,
-set_ptt: kenwood_set_ptt,
-get_dcd: kenwood_get_dcd,
-set_func: kenwood_set_func,
-get_func: kenwood_get_func,
-set_level: kenwood_set_level,
-get_level: kenwood_get_level,
-set_powerstat: kenwood_set_powerstat,
-get_powerstat: kenwood_get_powerstat,
-reset: kenwood_reset,
-send_morse: kenwood_send_morse,
-vfo_op: kenwood_vfo_op,
-set_mem: kenwood_set_mem,
-get_mem: kenwood_get_mem,
-set_trn: kenwood_set_trn,
-get_trn: kenwood_get_trn,
-get_info: kenwood_get_info,
-*/
-/*end kenwood */
-
-
 /* ts2k */
 //set_tone: ts2k_set_tone,
 //get_tone: ts2k_get_tone,
@@ -360,7 +336,6 @@ set_xit:	ts2k_set_xit,
 //get_tone_sql:	ts2k_get_tone_sql,
 //set_tone_sql:	ts2k_set_tone_sql,
 //decode_event:	ts2k_decode_event,	/* highest */
-//send_dtmf:	ts2k_send_dtmf,		/* lowest */
 //get_conf:	ts2k_get_conf,
 //set_conf:	ts2k_set_conf,
 //get_ant:	ts2k_get_ant,
@@ -370,6 +345,7 @@ set_xit:	ts2k_set_xit,
 //set_ctcss_sql:	ts2k_set_ctcss_sql,
 //get_dcs_sql:	ts2k_get_dcs_sql,
 //set_dcs_sql:	ts2k_set_dcs_sql,
+//send_dtmf:	ts2k_send_dtmf,		/* lowest */
 
 /* and never... */
 //set_bank:				/* not needed */
