@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main header
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.h,v 1.10 2004-09-05 00:33:56 fineware Exp $
+ *	$Id: jrc.h,v 1.11 2005-04-03 19:57:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,8 @@
 #define _JRC_H 1
 
 #include <hamlib/rig.h>
+
+#define BACKEND_VER	"0.4"
 
 struct jrc_priv_caps {
 	int max_freq_len;
