@@ -2,7 +2,7 @@
  *  Hamlib GNUradio backend - graudio/any rig
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: graudio.c,v 1.3 2003-09-28 15:59:27 fillods Exp $
+ *	$Id: graudio.c,v 1.4 2003-09-28 16:00:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,7 +57,7 @@ const struct rig_caps graudio_caps = {
   .rig_model =      RIG_MODEL_GRAUDIO,
   .model_name =     "GNU Radio GrAudio",
   .mfg_name =       "GNU",
-  .version =        "0.1.1",
+  .version =        "0.1.2",
   .copyright = 	 "GPL",
   .status =         RIG_STATUS_ALPHA,
   .rig_type =       RIG_TYPE_PCRECEIVER,
@@ -127,9 +127,9 @@ const struct rig_caps graudioiq_caps = {
   .rig_model =      RIG_MODEL_GRAUDIOIQ,
   .model_name =     "GNU Radio GrAudio I&Q",
   .mfg_name =       "GNU",
-  .version =        "0.1.1",
+  .version =        "0.1.2",
   .copyright = 	 "GPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_NEW,
   .rig_type =       RIG_TYPE_PCRECEIVER,
   .targetable_vfo = 	 RIG_TARGETABLE_ALL,
   .ptt_type =       RIG_PTT_RIG,
