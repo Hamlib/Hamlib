@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.1 2000-10-08 21:15:28 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.2 2000-10-09 01:17:20 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -306,6 +306,7 @@ struct rig_caps {
   enum serial_parity_e serial_parity; /* */
   enum serial_handshake_e serial_handshake; /* */
   int write_delay;		/* delay in ms between each byte sent out */
+  int post_write_delay;		/* optional delay after sending last cmd sequence (yaesu) -- FS */
   int timeout;	/* in ms */
   int retry;		/* maximum number of retries, 0 to disable */
   unsigned long has_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
@@ -410,30 +411,31 @@ struct rig_caps {
  * Rig state
  */
 struct rig_state {
-	enum rig_port_e port_type;	/* serial, network, etc. */
-	int serial_rate;
-	int serial_data_bits; /* eg 8 */
-	int serial_stop_bits; /* eg 2 */
-	enum serial_parity_e serial_parity; /* */
-	enum serial_handshake_e serial_handshake; /* */
-	int write_delay;        /* delay in ms between each byte sent out */
-	int timeout;	/* in ms */
-	int retry;		/* maximum number of retries, 0 to disable */
-  	enum ptt_type_e ptt_type;	/* how we will key the rig */
-  	char ptt_path[FILPATHLEN];	/* path to the keying device (serial,//) */
-	double vfo_comp;	/* VFO compensation in PPM, 0.0 to disable */
-	char rig_path[FILPATHLEN]; /* serial port/network path(host:port) */
-	int fd;	/* serial port/socket file handle */
-	FILE *stream;	/* serial port/socket (buffered) stream handle */
-  	int transceive;	/* wether the transceive mode is on */
-    int hold_decode;/* set to 1 to hold the event decoder (async) otherwise 0 */
-	/*
-	 * Pointer to private data
-	 * tuff like CI_V_address for Icom goes in this *priv 51 area
-	 */
-	void *priv;  /* pointer to private data */
-
-	/* etc... */
+  enum rig_port_e port_type;	/* serial, network, etc. */
+  int serial_rate;
+  int serial_data_bits; /* eg 8 */
+  int serial_stop_bits; /* eg 2 */
+  enum serial_parity_e serial_parity; /* */
+  enum serial_handshake_e serial_handshake; /* */
+  int write_delay;        /* delay in ms between each byte sent out */
+  int post_write_delay;		/* for some yaesu rigs */
+  int timeout;	/* in ms */
+  int retry;		/* maximum number of retries, 0 to disable */
+  enum ptt_type_e ptt_type;	/* how we will key the rig */
+  char ptt_path[FILPATHLEN];	/* path to the keying device (serial,//) */
+    double vfo_comp;	/* VFO compensation in PPM, 0.0 to disable */
+  char rig_path[FILPATHLEN]; /* serial port/network path(host:port) */
+  int fd;	/* serial port/socket file handle */
+  FILE *stream;	/* serial port/socket (buffered) stream handle */
+  int transceive;	/* wether the transceive mode is on */
+  int hold_decode;/* set to 1 to hold the event decoder (async) otherwise 0 */
+  /*
+   * Pointer to private data
+   * tuff like CI_V_address for Icom goes in this *priv 51 area
+   */
+  void *priv;  /* pointer to private data */
+  
+  /* etc... */
 };
 
 /*

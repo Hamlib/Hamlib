@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.22 2000-10-08 21:57:40 f4cfe Exp $  
+ * $Id: ft847.c,v 1.23 2000-10-09 01:17:19 javabear Exp $  
  *
  *
  *
@@ -69,7 +69,7 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
 const struct rig_caps ft847_caps = {
   RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", RIG_STATUS_ALPHA,
   RIG_TYPE_TRANSCEIVER,RIG_PTT_NONE, 4800, 57600, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 50, 100, 0, FT847_FUNC_ALL, 78, RIG_TRN_OFF,
+  RIG_HANDSHAKE_NONE,FT847_WRITE_DELAY ,FT847_POST_WRITE_DELAY, 100, 0, FT847_FUNC_ALL, 78, RIG_TRN_OFF,
   { {100000,76000000,FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {108000000,174000000,FT847_ALL_RX_MODES,-1,-1},
     {420000000,512000000,FT847_ALL_RX_MODES,-1,-1},
@@ -208,7 +208,7 @@ int ft847_open(RIG *rig) {
   
   /* Good time to set CAT ON */
   
-  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay);  
+  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);  
   return RIG_OK;
 }
 
@@ -228,7 +228,7 @@ int ft847_close(RIG *rig) {
 
   /* Good time to set CAT OFF */
 
-  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay);  
+  write_block(rig_s->fd, cmd, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);  
   return RIG_OK;
 }
 
@@ -292,10 +292,10 @@ int ft847_set_ptt(RIG *rig, ptt_t ptt) {
 
   switch(ptt) {
   case RIG_PTT_ON:
-    write_block(rig_s->fd, cmd_A, FT847_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_A, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     return RIG_OK;
   case RIG_PTT_OFF:
-    write_block(rig_s->fd, cmd_B, FT847_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_B, FT847_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     return RIG_OK;
   default:
     return -RIG_EINVAL;		/* sorry, wrong ptt range */
@@ -333,7 +333,7 @@ int ft847_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode) {
    * should check return code and that write wrote cmd_len chars! 
    */
 
-  write_block(rig_s->fd, data, frm_len, rig_s->write_delay);
+  write_block(rig_s->fd, data, frm_len, rig_s->write_delay, rig_s->post_write_delay);
   
   /*
    * wait for ACK ... etc.. 

@@ -24,13 +24,17 @@ int main ()
 	 * allocate memory, setup & open port 
 	 */
 
-	retcode = rig_load_backend("icom");
+/*  	retcode = rig_load_backend("icom"); */
+	retcode = rig_load_backend("ft747");
+
 	if (retcode != RIG_OK ) {
 		printf("rig_load_backend: error = %s \n", rigerror(retcode));
 		exit(3);
 	}
 
-	my_rig = rig_init(RIG_MODEL_IC706MKIIG);
+/*  	my_rig = rig_init(RIG_MODEL_IC706MKIIG); */
+	my_rig = rig_init(RIG_MODEL_FT747);
+
 	if (!my_rig)
 			exit(1); /* whoops! something went wrong (mem alloc?) */
 
@@ -53,7 +57,9 @@ int main ()
 	 * and some error checking on the return code.
 	 */
 
-	retcode = rig_set_vfo(my_rig, RIG_VFO_MAIN);
+/*  	retcode = rig_set_vfo(my_rig, RIG_VFO_MAIN); */
+	retcode = rig_set_vfo(my_rig, RIG_VFO_B);
+
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_vfo: error = %s \n", rigerror(retcode));
@@ -65,7 +71,7 @@ int main ()
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
 	} 
 
-	retcode = rig_set_mode(my_rig, RIG_MODE_FM);
+	retcode = rig_set_mode(my_rig, RIG_MODE_LSB);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_mode: error = %s \n", rigerror(retcode));
@@ -116,5 +122,15 @@ int main ()
 
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
 
 

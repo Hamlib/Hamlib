@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.16 2000-10-08 23:06:17 javabear Exp $  
+ * $Id: ft747.c,v 1.17 2000-10-09 01:17:19 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -78,7 +78,7 @@ static int ft747_get_update_data(RIG *rig);
 const struct rig_caps ft747_caps = {
   RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", RIG_STATUS_ALPHA,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 50, 2000, 0,FT747_FUNC_ALL,20,RIG_TRN_OFF,
+  RIG_HANDSHAKE_NONE, FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,FT747_FUNC_ALL,20,RIG_TRN_OFF,
   { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   
   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
@@ -208,7 +208,6 @@ int ft747_cleanup(RIG *rig) {
   return RIG_OK;
 }
 
-
 /*
  * ft747_open  routine
  * 
@@ -221,6 +220,10 @@ int ft747_open(RIG *rig) {
     return -RIG_EINVAL;
 
   rig_s = &rig->state;
+
+  printf("ft747:rig_open: write_delay = %i \n", rig_s->write_delay);
+  printf("ft747:rig_open: post_write_delay = %i \n", rig_s->post_write_delay);
+
   
    /* TODO */
 
@@ -285,6 +288,7 @@ int ft747_set_mode(RIG *rig, rmode_t rmode) {
   /* 
    * translate mode from generic to ft747 specific
    */
+
   printf("rmode = %x \n", rmode);
 
   switch(rmode) {
@@ -320,7 +324,7 @@ int ft747_set_mode(RIG *rig, rmode_t rmode) {
   }
 
   cmd[3] = mymode;
-  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay);
+  write_block(rig_s->fd, cmd, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
   return RIG_OK;		/* good */
   
 }
@@ -400,10 +404,10 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
 
   switch(vfo) {
   case RIG_VFO_A:
-    write_block(rig_s->fd, cmd_A, FT747_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_A, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     return RIG_OK;
   case RIG_VFO_B:
-    write_block(rig_s->fd, cmd_B, FT747_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_B, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     return RIG_OK;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
@@ -432,10 +436,10 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt) {
 
   switch(ptt) {
   case RIG_PTT_OFF:
-    write_block(rig_s->fd, cmd_ptt_off, FT747_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_ptt_off, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     return RIG_OK;
   case RIG_PTT_ON:
-    write_block(rig_s->fd, cmd_ptt_on, FT747_CMD_LENGTH, rig_s->write_delay);
+    write_block(rig_s->fd, cmd_ptt_on, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
     return RIG_OK;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
@@ -473,11 +477,11 @@ static int ft747_get_update_data(RIG *rig) {
   cmd_pace[3] = p->pacing;		/* get pacing value */
   printf("read pacing = %i \n",p->pacing);
 
-  write_block(rig_s->fd, cmd_pace, FT747_CMD_LENGTH, rig_s->write_delay);
+  write_block(rig_s->fd, cmd_pace, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay);
 
   printf("read timeout = %i \n",FT747_DEFAULT_READ_TIMEOUT);
 
-  write_block(rig_s->fd, cmd_update, FT747_CMD_LENGTH, rig_s->write_delay); /* request data */
+  write_block(rig_s->fd, cmd_update, FT747_CMD_LENGTH, rig_s->write_delay, rig_s->post_write_delay); /* request data */
   n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT); 
 /*    n = read_block(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
 

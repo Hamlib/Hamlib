@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface.
  *
- * $Id: serial.c,v 1.2 2000-10-08 21:46:09 f4cfe Exp $  
+ * $Id: serial.c,v 1.3 2000-10-09 01:17:20 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -308,8 +308,13 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {
  * Write a block of count characters to file descriptor,
  * with a pause between each character if write_delay is > 0
  *
- * The delay is for Yaesu type rigs..require 5 character
+ * The write_delay is for Yaesu type rigs..require 5 character
  * sequence to be sent with 50-200msec between each char.
+ *
+ * Also, post_write_delay is for some Yaesu rigs (eg: FT747) that
+ * get confused with sequential fast writes between cmd sequences.
+ *
+ *
  *
  * input:
  *
@@ -327,7 +332,7 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay) {
  * it could work very well also with any file handle, like a socket.
  */
 
-int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay)
+int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay, int post_write_delay)
 {
   int i;
 
@@ -342,6 +347,12 @@ int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_d
   } else {
 		  write(fd, txbuffer, count);
   }
+  
+  if(post_write_delay > 0)
+    usleep(post_write_delay*1000); /* optional delay after last write */
+				   /* otherwise some yaesu rigs get confused */
+				   /* with sequential fast writes*/
+
   rig_debug(RIG_DEBUG_TRACE,"TX %d bytes\n",count);
   dump_hex(txbuffer,count);
   

@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.2 2000-10-08 21:45:20 f4cfe Exp $
+   $Id: rig.c,v 1.3 2000-10-09 01:17:20 javabear Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -160,6 +160,9 @@ RIG *rig_init(rig_model_t rig_model)
 		rig->state.serial_stop_bits = rig->caps->serial_stop_bits;
 		rig->state.serial_parity = rig->caps->serial_parity;
 		rig->state.serial_handshake = rig->caps->serial_handshake;
+		rig->state.write_delay = rig->caps->write_delay;
+		rig->state.post_write_delay = rig->caps->post_write_delay;
+
 		rig->state.timeout = rig->caps->timeout;
 		rig->state.retry = rig->caps->retry;
 		rig->state.transceive = rig->caps->transceive;

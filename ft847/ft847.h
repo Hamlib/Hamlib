@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.15 2000-10-01 23:49:08 javabear Exp $  
+ *    $Id: ft847.h,v 1.16 2000-10-09 01:17:19 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,18 @@
 #define _FT847_H 1
 
 
-#define FT847_CMD_LENGTH      5
+#define FT847_CMD_LENGTH                     5
+#define FT847_WRITE_DELAY                    50
+
+/* Sequential fast writes may confuse FT847 without this delay */
+
+#define FT847_POST_WRITE_DELAY               50 
+
+
+/* Rough safe value for default timeout */
+
+#define FT847_DEFAULT_READ_TIMEOUT           2000
+
 
 
 /*

@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.1 2000-10-08 21:21:31 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.2 2000-10-09 01:17:20 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +43,9 @@ int main (int argc, char *argv[])
 			exit(1);
 	}
 
-	status = rig_load_backend("icom");
+/*  	status = rig_load_backend("icom"); */
+	status = rig_load_backend("ft747");
+
 	if (status != RIG_OK ) {
 		printf("rig_load_backend: error = %s \n", rigerror(status));
 		exit(3);
@@ -136,6 +138,9 @@ int main (int argc, char *argv[])
 
 	printf("Write delay %dms, timeout %dms, %d retry\n",
 					caps->write_delay,caps->timeout,caps->retry);
+	printf("Post Write delay %dms \n",
+					caps->post_write_delay);
+
 
 	printf("Functions: ");
 	if (caps->has_func!=0) {

@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.2 2000-10-08 21:26:33 f4cfe Exp $  
+ * $Id: frame.c,v 1.3 2000-10-09 01:17:19 javabear Exp $  
  *
  *
  *
@@ -157,7 +157,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		/* 
 		 * should check return code and that write wrote cmd_len chars! 
 		 */
-		write_block(rig_s->fd, buf, frm_len, rig_s->write_delay);
+		write_block(rig_s->fd, buf, frm_len, rig_s->write_delay, rig_s->post_write_delay);
 
 		/*
 		 * read what we just sent, because TX and RX are looped,

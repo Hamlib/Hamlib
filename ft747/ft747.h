@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.12 2000-10-08 22:58:02 javabear Exp $  
+ *    $Id: ft747.h,v 1.13 2000-10-09 01:17:19 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,13 @@
 
 #define FT747_PACING_INTERVAL                5 
 #define FT747_PACING_DEFAULT_VALUE           0 
+#define FT747_WRITE_DELAY                    50
+
+
+/* Sequential fast writes confuse FT747 without this delay */
+
+#define FT747_POST_WRITE_DELAY               5
+
 
 /* Rough safe value for default timeout */
 
