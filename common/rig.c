@@ -40,8 +40,15 @@
  * The rig_base is a variable length rig_caps* array, NULL terminated
  */
 
+#if 0
 static const struct rig_caps *rig_base[] = { 
 	&ft747_caps, &ic706_caps, &ic706mkiig_caps, /* ... */ NULL, };
+
+#endif
+
+#define MAXRIGSIZE  10
+static const struct rig_caps *rig_base[MAXRIGSIZE];
+
 
 static const char *rigerror_table[] = {
 		"Command completed sucessfully",

@@ -27,7 +27,7 @@
 #
 #
 #
-#	$Id: Makefile,v 1.9 2000-09-24 23:51:05 javabear Exp $	
+#	$Id: Makefile,v 1.10 2000-09-29 03:15:30 javabear Exp $	
 #
 #
 
@@ -37,15 +37,15 @@ INSTALL_INCLUDEDIR	=	./include/
 INCLUDE		=	-I/usr/include -I/usr/local/include -I. -I../common
 
 LIB_NAME        =	libhamlib.so
-LIB_SONAME      =	libhamlib.so.1
-LIB_RELEASE     =	libhamlib.so.1.0.1
+LIB_SONAME      =	libhamlib.so.0
+LIB_RELEASE     =	libhamlib.so.0.0.1            
 LIB_HEADER      =	rig.h serial.h riglist.h  
 LIB_SRC         =	rig.c serial.c
 LIB_OBJECTS     =	serial.o rig.o 
 
 
 CC	=	gcc
-INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include
+INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I./include
 OBJ	=	serial.o rig.o #testrig.o
 LDFLAG	=	-lm 
 
