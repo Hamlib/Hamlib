@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.1 2000-09-16 01:49:40 f4cfe Exp $  
+ * $Id: icom.c,v 1.2 2000-09-19 07:04:05 f4cfe Exp $  
  *
  *
  *
@@ -44,7 +44,17 @@
 /* Prototypes */
 unsigned char *freq2bcd(unsigned char bcd_data[], freq_t freq, int bcd_len);
 freq_t bcd2freq(const unsigned char bcd_data[], int bcd_len);
+int read_icom_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
 
+struct icom_addr {
+		rig_model_t model;
+		unsigned char re_civ_addr;
+};
+
+static const struct icom_addr icom_addr_list[] = {
+		{ RIG_MODEL_IC706MKIIG, 0x58 },
+		{ -1, 0 },
+};
 
 /*
  * This is a generic icom_init function.
@@ -56,25 +66,39 @@ freq_t bcd2freq(const unsigned char bcd_data[], int bcd_len);
 int icom_init(RIG *rig)
 {
 		struct icom_priv_data *p;
+		int i;
 
 		if (!rig)
-				return -1;
+				return RIG_EINVAL;
 
 		p = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
 		if (!p) {
 				/* whoops! memory shortage! */
-				return -2;
+				return RIG_ENOMEM;
 		}
 		/* TODO: CI-V address should be customizable */
 
 		/* init the priv_data from static struct 
 		 *          + override with preferences
 		 */
-		p->re_civ_addr = 0xe0;
+
+		p->re_civ_addr = 0x00;
+		for (i=0; icom_addr_list[i].model >= 0; i++) {
+				if (icom_addr_list[i].model == rig->caps->rig_model) {
+						p->re_civ_addr = icom_addr_list[i].re_civ_addr;
+						break;
+				}
+		}
+
+		if (rig->caps->rig_model == RIG_MODEL_IC731)
+			p->civ_731_mode = 1;
+		else
+			p->civ_731_mode = 0;
+
 
 		rig->state.priv = (void*)p;
 
-		return 0;
+		return RIG_OK;
 }
 
 /*
@@ -84,13 +108,13 @@ int icom_init(RIG *rig)
 int icom_cleanup(RIG *rig)
 {
 		if (!rig)
-				return -1;
+				return RIG_EINVAL;
 
 		if (rig->state.priv)
 				free(rig->state.priv);
 		rig->state.priv = NULL;
 
-		return 0;
+		return RIG_OK;
 }
 
 /*
@@ -184,7 +208,7 @@ make_cmd_frame_chan(char frame[], char re_id, char cmd, int subcmd, int chan)
  * TODO: implement (ie. rewrite it) this function properly,
  * 		right now it just serves as a backend example
  */
-int icom_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode)
+int icom_set_freq(RIG *rig, freq_t freq)
 {
 		struct icom_priv_data *p;
 		struct rig_state *rig_s;
@@ -192,7 +216,7 @@ int icom_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode)
 		int frm_len;
 
 		if (!rig)
-				return -1;
+				return RIG_EINVAL;
 
 		p = (struct icom_priv_data*)rig->state.priv;
 		rig_s = &rig->state;
@@ -203,23 +227,45 @@ int icom_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode)
 		/* 
 		 * should check return code and that write wrote cmd_len chars! 
 		 */
-		write_block2(rig_s->fd, buf, frm_len, rig_s->write_delay);
+		write_block(rig_s->fd, buf, frm_len, rig_s->write_delay);
 
 		/*
 		 * wait for ACK ... etc.. 
 		 */
-		read_block(rig_s->fd, buf, frm_len, rig_s->timeout);
+		read_icom_block(rig_s->fd, buf, ACKFRMLEN, rig_s->timeout);
+
+		if (buf[5] != ACK) {
+				return RIG_ERJCTED;
+		}
 
 		/*
 		 * TODO: check address, Command number and ack!
 		 */
 
-		/* then set the mode ... etc. */
-
-		return 0;
+		return RIG_OK;
 }
 
 
+/*
+ * read count usefull bytes, discarding collisions
+ * FIXME: check return codes/bytes read
+ */
+int read_icom_block(int fd, unsigned char *rxbuffer, size_t count, int timeout)
+{
+		int i;
+
+		read_block(fd, rxbuffer, count, timeout);
+
+		for (i=0; i<count; i++) {
+			if (rxbuffer[i] != COL)
+				break;
+		}
+		if (i > 0) {
+			memmove(rxbuffer, rxbuffer+i, count-i);
+			read_block(fd, rxbuffer+i, count-i, timeout);
+		}
+		return count;	/* duh! */
+}
 
 
 
@@ -261,19 +307,19 @@ freq2bcd(unsigned char bcd_data[], freq_t freq, int bcd_len)
 freq_t bcd2freq(const unsigned char bcd_data[], int bcd_len)
 {
 	int i;
-	freq_t a = 0;
+	freq_t f = 0;
 
 	if (bcd_len&1)
-			a = bcd_data[bcd_len/2] & 0x0f;
+			f = bcd_data[bcd_len/2] & 0x0f;
 
 	for (i=(bcd_len/2)-1; i >= 0; i--) {
-			a *= 10;
-			a += bcd_data[i]>>4;
-			a *= 10;
-			a += bcd_data[i] & 0x0f;
+			f *= 10;
+			f += bcd_data[i]>>4;
+			f *= 10;
+			f += bcd_data[i] & 0x0f;
 	}
 	
-	return a;
+	return f;
 }
 
 
