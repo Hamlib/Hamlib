@@ -6,10 +6,6 @@
  * 
  */
 
-#include <stdio.h>
-#include <hamlib/rig.h>
-#include "gr_priv.h"
-
 #include <VrSigSource.h>
 #include <GrFFTSink.h>
 #include <VrNullSink.h>
@@ -19,9 +15,11 @@
 #include <VrMultiTask.h>
 #include <VrGUI.h>
 
-#define SAMPLING_FREQUENCY                          5e6
+#include <stdio.h>
+#include <hamlib/rig.h>
+#include "gr_priv.h"
+
 #define CARRIER_FREQ	          	        1.070e6	// AM 1070
-#define MAX_FREQUENCY           (SAMPLING_FREQUENCY / 2)
 
 static  RIG *my_rig;
 
@@ -60,30 +58,33 @@ int main(int argc, char *argv[])
 	exit(3);
   }
 
-
-  fftsink = new GrFFTSink<IOTYPE>(vert, 300, 450, 1024);
-
-  priv->m->add (fftsink);
-
-  (void) new VrGUINumber(horiz, "Carrier", "Frequency (Hz)", set_my_freq,
-			 MAX_FREQUENCY, CARRIER_FREQ);
-
-
-  // now wire it all together from the sink, back to the sources
-  
-  NWO_CONNECT (priv->source, fftsink);
-
   retcode = rig_open(my_rig);	/* start */
   if (retcode != RIG_OK) {
 	printf("rig_open: error = %s\n", rigerror(retcode));
 	exit(2);
   }
 
+  fftsink = new GrFFTSink<IOTYPE>(vert, 300, 450, 1024);
+
+  pthread_mutex_lock(&priv->mutex_process);
+  priv->m->add (fftsink);
+
+  // now wire it all together from the sink, back to the sources
+  
+  NWO_CONNECT (GR_SOURCE(priv), fftsink);
+  pthread_mutex_unlock(&priv->mutex_process);
+
+  rig_set_freq(my_rig, RIG_VFO_CURR, (freq_t)CARRIER_FREQ-kHz(10));
+  rig_set_mode(my_rig, RIG_VFO_CURR, RIG_MODE_USB, RIG_PASSBAND_NORMAL);
+
+  (void) new VrGUINumber(horiz, "Carrier", "Frequency (Hz)", set_my_freq,
+			 priv->input_rate/2, CARRIER_FREQ);
+
   guimain->start();
 
   while (1) {
     guimain->processEvents(10 /*ms*/);
-    priv->m->process();
+    //priv->m->process();
   }
 
   rig_close(my_rig); /* close port */
