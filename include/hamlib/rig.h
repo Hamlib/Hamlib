@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.46 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: rig.h,v 1.47 2001-07-20 11:07:11 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,6 +62,7 @@
 __BEGIN_DECLS
 
 extern HAMLIB_EXPORT_VAR(const char) hamlib_version[];
+extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
 
 typedef unsigned int tone_t;
 
