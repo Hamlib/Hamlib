@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.86 2005-02-13 00:22:00 fillods Exp $
+ *	$Id: kenwood.c,v 1.87 2005-03-13 17:54:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1170,7 +1170,7 @@ int kenwood_reset(RIG *rig, reset_t reset)
  */
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-		unsigned char morsebuf[30], ackbuf[16];
+		unsigned char morsebuf[30], m2[30], ackbuf[16];
 		int morse_len, ack_len;
 		int msg_len, buff_len, retval;
 		const char *p;
@@ -1182,13 +1182,18 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 				/*
 				 * TODO: check with "KY;" if char buffer is available.
 				 * 		if not, sleep.
+				 *
+				 * Make the total message segments 28 characters 
+				 * in length because Kenwood demands it.
+				 * Spaces fill in the message end.
 				 */
 				buff_len = msg_len > 24 ? 24 : msg_len;
 
-				strcpy(morsebuf, "KY ");
-				strncat(morsebuf, p, buff_len);
-				strcat(morsebuf, ";");
-				morse_len = 4 + buff_len;
+				strncpy(m2, p, 24);
+				m2[24] = '\0';
+
+				/* morse_len must be 28 */
+				morse_len = sprintf(morsebuf,"KY %-24s;", m2);
 				ack_len = 0;
 				retval = kenwood_transaction (rig, morsebuf, morse_len, 
 								ackbuf, &ack_len);
