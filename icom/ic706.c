@@ -3,10 +3,11 @@
  *
  * ic706.c - Copyright (C) 2000 Stephane Fillod
  * This shared library provides an API for communicating
- * via serial interface to an IC-706 using the "CI-V" interface.
+ * via serial interface to an IC-706,IC-706MKII,IC706-MKIIG
+ * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.2 2000-09-21 06:46:13 f4cfe Exp $  
+ * $Id: ic706.c,v 1.3 2000-10-01 12:33:30 f4cfe Exp $  
  *
  *
  *
@@ -58,8 +59,8 @@
  * Also this struct is READONLY!
  */
 const struct rig_caps ic706_caps = {
-  RIG_MODEL_IC706, "IC-706", "Icom", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_MOBILE, RIG_PTT_NONE, 1200, 57600, 8, 1, RIG_PARITY_NONE, 
+  RIG_MODEL_IC706, "IC-706", "Icom", "0.2", RIG_STATUS_ALPHA,
+  RIG_TYPE_MOBILE, RIG_PTT_NONE, 300, 19200, 8, 1, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, 0, 2000, 3, IC706_FUNC_ALL, 101,
   { {30000,199999999,IC706_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   { {1800000,1999999,IC706_OTHER_TX_MODES,5000,100000},	/* 100W class */
@@ -104,8 +105,8 @@ const struct rig_caps ic706_caps = {
 };
 
 const struct rig_caps ic706mkiig_caps = {
-  RIG_MODEL_IC706MKIIG, "IC-706MKIIG", "Icom", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_MOBILE, RIG_PTT_NONE, 1200, 57600, 8, 1, RIG_PARITY_NONE, 
+  RIG_MODEL_IC706MKIIG, "IC-706MKIIG", "Icom", "0.2", RIG_STATUS_ALPHA,
+  RIG_TYPE_MOBILE, RIG_PTT_NONE, 300, 19200, 8, 1, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, 0, 2000, 3, IC706_FUNC_ALL|RIG_FUNC_NR|RIG_FUNC_ANF, 101,
   { {30000,199999999,IC706_ALL_RX_MODES,-1,-1},	/* this trx also has UHF */
  	{400000000,470000000,IC706_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, },
@@ -149,7 +150,7 @@ const struct rig_caps ic706mkiig_caps = {
 	 {0,0}
 	},
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
-  icom_set_freq, NULL, 
+  icom_set_freq, icom_get_freq, NULL, 
 };
 
 
