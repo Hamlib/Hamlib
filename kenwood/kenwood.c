@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- * $Id: kenwood.c,v 1.1 2000-12-23 08:40:14 f4cfe Exp $  
+ * $Id: kenwood.c,v 1.2 2001-02-27 23:06:53 f4cfe Exp $  
  *
  *
  *
@@ -60,11 +60,11 @@
 int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int i;
-	struct rig_state *rig_s;
+	struct rig_state *rs;
 
-	rig_s = &rig->state;
+	rs = &rig->state;
 
-	write_block(rig_s->fd, cmd, cmd_len, rig_s->write_delay, rig_s->post_write_delay);
+	write_block(rs->fd, cmd, cmd_len, rs->write_delay, rs->post_write_delay);
 
 	/*
 	 * buffered read are quite helpful here!
@@ -72,7 +72,7 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int 
 	 */
 	i = 0;
 	do {
-		fread_block(rig_s->stream, data+i, 1, rig_s->timeout);
+		fread_block(rs->stream, data+i, 1, rs->timeout);
 	} while (data[i++] != ';');
 
 	*data_len = i;

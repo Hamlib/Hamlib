@@ -6,7 +6,7 @@
  * via serial interface to an AOR scanner.
  *
  *
- * $Id: aor.c,v 1.3 2000-12-05 22:01:00 f4cfe Exp $  
+ * $Id: aor.c,v 1.4 2001-02-27 23:06:53 f4cfe Exp $  
  *
  *
  *
@@ -73,12 +73,12 @@
 int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int i;
-	struct rig_state *rig_s;
+	struct rig_state *rs;
 
-	rig_s = &rig->state;
+	rs = &rig->state;
 
-	write_block(rig_s->fd, cmd, cmd_len, rig_s->write_delay, rig_s->post_write_delay);
-	write_block(rig_s->fd, "\n", 1, rig_s->write_delay, rig_s->post_write_delay);
+	write_block(rs->fd, cmd, cmd_len, rs->write_delay, rs->post_write_delay);
+	write_block(rs->fd, "\n", 1, rs->write_delay, rs->post_write_delay);
 
 	/*
 	 * buffered read are quite helpful here!
@@ -86,7 +86,7 @@ int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	 */
 	i = 0;
 	do {
-		fread_block(rig_s->stream, data+i, 1, rig_s->timeout);
+		fread_block(rs->stream, data+i, 1, rs->timeout);
 	} while (data[i++] != CR);
 
 	*data_len = i;

@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.16 2001-02-26 23:16:11 f4cfe Exp $  
+ * $Id: icom.c,v 1.17 2001-02-27 23:05:51 f4cfe Exp $  
  *
  *
  *
@@ -197,10 +197,13 @@ static const struct icom_addr icom_addr_list[] = {
 int icom_init(RIG *rig)
 {
 		struct icom_priv_data *priv;
+		const struct rig_caps *caps;
 		int i;
 
 		if (!rig)
 				return -RIG_EINVAL;
+
+		caps = rig->caps;
 
 		priv = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
 		if (!priv) {
@@ -219,19 +222,19 @@ int icom_init(RIG *rig)
 
 		priv->re_civ_addr = 0x00;
 		for (i=0; icom_addr_list[i].model >= 0; i++) {
-				if (icom_addr_list[i].model == rig->caps->rig_model) {
+				if (icom_addr_list[i].model == caps->rig_model) {
 						priv->re_civ_addr = icom_addr_list[i].re_civ_addr;
 						break;
 				}
 		}
 
-		if (rig->caps->rig_model == RIG_MODEL_IC731 ||
-						rig->caps->rig_model == RIG_MODEL_IC735)
+		if (caps->rig_model == RIG_MODEL_IC731 ||
+						caps->rig_model == RIG_MODEL_IC735)
 			priv->civ_731_mode = 1;
 		else
 			priv->civ_731_mode = 0;
 
-		switch (rig->caps->rig_model) {
+		switch (caps->rig_model) {
 		case RIG_MODEL_IC737:
 			priv->ts_sc_list = ic737_ts_sc_list;
 			break;

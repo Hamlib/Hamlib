@@ -6,7 +6,7 @@
  * CI-V interface, used in serial communication to ICOM radios.
  *
  *
- * $Id: frame.c,v 1.7 2001-01-05 18:20:27 f4cfe Exp $  
+ * $Id: frame.c,v 1.8 2001-02-27 23:05:51 f4cfe Exp $  
  *
  *
  *
@@ -96,12 +96,12 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
 int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len)
 {
 		struct icom_priv_data *priv;
-		struct rig_state *rig_s;
+		struct rig_state *rs;
 		unsigned char buf[16];
 		int frm_len;
 
-		rig_s = &rig->state;
-		priv = (struct icom_priv_data*)rig_s->priv;
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
 
 		frm_len = make_cmd_frame(buf, priv->re_civ_addr, cmd, subcmd, 
 						payload, payload_len);
@@ -109,7 +109,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		/* 
 		 * should check return code and that write wrote cmd_len chars! 
 		 */
-		write_block(rig_s->fd, buf, frm_len, rig_s->write_delay, rig_s->post_write_delay);
+		write_block(rs->fd, buf, frm_len, rs->write_delay, rs->post_write_delay);
 
 		/*
 		 * read what we just sent, because TX and RX are looped,
@@ -117,18 +117,18 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 * TODO: - if what we read is not what we sent, then it means
 		 * 			a collision on the CI-V bus occured!
 		 * 		- if we get a timeout, then retry to send the frame,
-		 * 			up to rig_s->retry times.
+		 * 			up to rs->retry times.
 		 */
 
 		Hold_Decode(rig);
-		read_icom_block(rig_s->stream, buf, frm_len, rig_s->timeout);
+		read_icom_block(rs->stream, buf, frm_len, rs->timeout);
 
 		/*
 		 * wait for ACK ... 
 		 * FIXME: handle pading/collisions
 		 * ACKFRMLEN is the smallest frame we can expect from the rig
 		 */
-		frm_len = read_icom_frame(rig_s->stream, buf, rig_s->timeout);
+		frm_len = read_icom_frame(rs->stream, buf, rs->timeout);
 		Unhold_Decode(rig);
 
 		*data_len = frm_len-(ACKFRMLEN-1);
