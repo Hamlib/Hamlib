@@ -4,6 +4,7 @@ AC_INIT(hamlib, 1.1.3, hamlib-developer@lists.sourceforge.net)
 AM_INIT_AUTOMAKE(hamlib, 1.1.3)
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_CONFIG_HEADER(include/config.h)
+AM_MAINTAINER_MODE
 
 # Minimum Autoconf version required.
 AC_PREREQ(2.50)
@@ -20,7 +21,6 @@ AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_RANLIB
 
 AC_AIX
 AC_ISC_POSIX
@@ -74,8 +74,8 @@ AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select gettimeofday memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
-AC_CHECK_FUNCS(getopt_long,,LIBOBJS="$LIBOBJS getopt.o getopt1.o")
-AC_CHECK_FUNCS(usleep,,LIBOBJS="$LIBOBJS usleep.o")
+AC_REPLACE_FUNCS(getopt_long)
+AC_REPLACE_FUNCS(usleep)
 AC_FUNC_ALLOCA
 AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
@@ -153,17 +153,6 @@ else
 fi
 AC_SUBST(NET)
 
-if test "${enable_shared}" = "no"; then
-  enable_preload=yes
-fi
-if test "${enable_dynamic}" = "no" || test "${enable_preload}" = "yes"; then
-  echo "preloading backends into DLL"
-  DLL_PRELOAD="\$(PRELOADABLE_BACKENDS)"
-else
-  DLL_PRELOAD=""
-fi
-AC_SUBST(DLL_PRELOAD)
-AC_SUBST(LIBOBJS)
 
 case "$host_os" in
  linux-gnu*)
@@ -178,6 +167,7 @@ if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
  BACKEND_LIST="$BACKEND_LIST rpcrig"
 fi
 
+BACKENDLNK="-dlopen force"
 for be in ${BACKEND_LIST} ; do
 	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
 	BACKENDEPS="${BACKENDEPS} ../${be}/libhamlib-${be}.la"
@@ -186,9 +176,13 @@ AC_SUBST(BACKEND_LIST)
 AC_SUBST(BACKENDLNK)
 AC_SUBST(BACKENDEPS)
 
+Xsed="sed -e s/^X//"
+LTLIBOBJS=`echo X"$LIBOBJS" | $Xsed -e "s,\.[^.]* ,.lo ,g;s,\.[^.]*\$,.lo,"`
+AC_SUBST(LIBOBJS)
+AC_SUBST(LTLIBOBJS)
+
 AC_CONFIG_FILES([Makefile
 include/Makefile
-include/hamlib/Makefile
 lib/Makefile
 dummy/Makefile
 yaesu/Makefile
@@ -196,7 +190,6 @@ icom/Makefile
 aor/Makefile
 kenwood/Makefile
 winradio/Makefile
-winradio/linradio/Makefile
 pcr/Makefile
 alinco/Makefile
 uniden/Makefile
