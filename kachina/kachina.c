@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kachina backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: kachina.c,v 1.6 2003-04-16 22:30:40 fillods Exp $
+ *	$Id: kachina.c,v 1.7 2004-11-15 18:51:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,7 +72,7 @@
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
+static int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
 {
 	int count, retval;
 	struct rig_state *rs;
@@ -98,7 +98,7 @@ int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
 	return (buf4[0]==GDCMD) ? RIG_OK : -RIG_EPROTO;
 }
 
-int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data, int data_len)
+static int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data, int data_len)
 {
 	int cmd_len, count, retval;
 	struct rig_state *rs;
@@ -130,7 +130,7 @@ int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data, int data_len
  * convert a frequency in Hz in the range of 30kHz to 30MHz
  * to DDS value, as expected by the Kachina.
  */
-void inline freq2dds(freq_t freq, int ant_port, unsigned char fbuf[4])
+static void freq2dds(freq_t freq, int ant_port, unsigned char fbuf[4])
 {
 		double dds;
 		unsigned long dds_ulong;
@@ -202,6 +202,59 @@ int kachina_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 		return retval;
 }
+
+/*
+ * kachina_get_level
+ * Assumes rig!=NULL
+ */
+int kachina_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	int i, count;
+	unsigned char buf[32];
+
+	static const char rcv_signal_range[128] =
+	{ 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+	  0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+	  0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+	  0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+	  0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
+	  0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
+	  0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+	  0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f,
+	  0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47,
+	  0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
+	  0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57,
+	  0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f,
+	  0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
+	  0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f,
+	  0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
+	  0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f };
+
+
+
+	/* so far, only RAWSTR supported! */
+	if (level != RIG_LEVEL_RAWSTR)
+		return -RIG_ENIMPL;
+
+
+	/* telemetry sent to the PC automatically at a 50msec rate */
+
+	serial_flush(&rig->state.rigport);
+
+	count = read_string(&rig->state.rigport, buf, 31, rcv_signal_range, 128);
+	if (count < 1)
+		return count;
+
+	for (i=0; i<count; i++) {
+		if (buf[i] <= 0x7f)
+			break;
+	}
+
+	val->i = buf[i];
+
+	return RIG_OK;
+}
+
 
 /*
  * initrigs_kachina is called by rig_backend_load

@@ -2,7 +2,7 @@
  *  Hamlib Kachina backend - 505DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: 505dsp.c,v 1.7 2004-09-26 08:35:03 fillods Exp $
+ *	$Id: 505dsp.c,v 1.8 2004-11-15 18:51:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,15 +36,17 @@
 
 #define K505DSP_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TONE|RIG_FUNC_COMP)
 
-#define K505DSP_LEVEL_ALL (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
+#define K505DSP_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_IF|RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|RIG_LEVEL_BKINDL|RIG_LEVEL_CWPITCH)
 
 #define K505DSP_PARM_ALL (RIG_PARM_NONE)
 
 #define K505DSP_VFO (RIG_VFO_A)
 
+#define dBm2S9(x) ((x)+73)
+
 #define K505DSP_STR_CAL { 2, { \
-		{    0, -60 }, \
-		{  127,  20 }, \
+		{    0, dBm2S9(-130) }, \
+		{  127, dBm2S9(20) }, \
 	} }
 
 /*
@@ -80,7 +82,7 @@ const struct rig_caps k505dsp_caps = {
 
 .has_get_func =  K505DSP_FUNC,
 .has_set_func =  K505DSP_FUNC,
-.has_get_level =  K505DSP_LEVEL_ALL,
+.has_get_level =  RIG_LEVEL_RAWSTR,
 .has_set_level =  RIG_LEVEL_SET(K505DSP_LEVEL_ALL),
 .has_get_parm =  K505DSP_PARM_ALL,
 .has_set_parm =  RIG_PARM_SET(K505DSP_PARM_ALL),
@@ -153,6 +155,8 @@ const struct rig_caps k505dsp_caps = {
 
 .set_freq =  kachina_set_freq,
 .set_mode =  kachina_set_mode,
+
+.get_level =  kachina_get_level,
 
 };
 
