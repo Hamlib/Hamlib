@@ -1,9 +1,9 @@
 /*
  *  Hamlib WiNRADiO backend - main file for interface through /dev/winradio API
  *  Copyright (C) 2001 pab@users.sourceforge.net
- *  Derived from hamlib code (C) 2000-2003 Stephane Fillod.
+ *  Derived from hamlib code (C) 2000-2004 Stephane Fillod.
  *
- *	$Id: winradio.c,v 1.20 2004-01-15 22:43:59 fillods Exp $
+ *	$Id: winradio.c,v 1.21 2004-04-16 20:07:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -21,9 +21,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include "winradio.h"	/* config.h */
 
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
@@ -38,7 +36,9 @@
 #include "misc.h"
 #include "register.h"
 
-#include "winradio.h"
+
+
+#ifdef WINRADIO_IOCTL
 
 #include <linradio/wrapi.h>
 #include <linradio/radio_ioctl.h>
@@ -229,11 +229,13 @@ const char *wr_get_info(RIG *rig) {
   return buf;
 }
 
+#endif	/* WINRADIO_IOCTL */
 
 DECLARE_INITRIG_BACKEND(winradio)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "winradio: _init called\n");
 
+#ifdef WINRADIO_IOCTL
 	rig_register(&wr1000_caps);
 	rig_register(&wr1500_caps);
 	rig_register(&wr1550_caps);
@@ -241,6 +243,12 @@ DECLARE_INITRIG_BACKEND(winradio)
 	rig_register(&wr3150_caps);
 	rig_register(&wr3500_caps);
 	rig_register(&wr3700_caps);
+#endif	/* WINRADIO_IOCTL */
+
+	/* Receivers with DLL only available under Windows */
+#ifdef _WIN32
+	rig_register(&g303_caps);
+#endif
 
 	return RIG_OK;
 }
