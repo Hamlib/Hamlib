@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.11 2000-12-05 22:01:02 f4cfe Exp $  
+ * $Id: icom.c,v 1.12 2001-01-05 18:20:27 f4cfe Exp $  
  *
  *
  *
@@ -358,7 +358,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rig_s;
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[16],icmode_ext[1];
 		int ack_len,icmode;
 
 		rig_s = &rig->state;
@@ -366,7 +366,9 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 		icmode = hamlib2icom_mode(mode,width);
 
-		icom_transaction (rig, C_SET_MODE, icmode, NULL, 0, ackbuf, &ack_len);
+		icmode_ext[0] = (icmode>>8) & 0xff;
+		icom_transaction (rig, C_SET_MODE, icmode & 0xff, icmode_ext, 
+						icmode_ext[0]?1:0, ackbuf, &ack_len);
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"icom_set_mode: ack NG (%#.2x),
