@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R8500 description
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icr8500.c,v 1.14 2002-02-27 23:19:09 fillods Exp $
+ *		$Id: icr8500.c,v 1.15 2002-04-23 22:01:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -160,8 +160,6 @@ decode_event: icom_decode_event,
 set_level: icom_set_level,
 get_level: icom_get_level,
 set_func: icom_set_func,
-set_channel: icom_set_channel,
-get_channel: icom_get_channel,
 set_mem: icom_set_mem,
 vfo_op: icom_vfo_op,
 set_ts: icom_set_ts,

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - Do it all Icom description for debugging
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icall.c,v 1.9 2001-10-07 21:48:02 f4cfe Exp $
+ *		$Id: icall.c,v 1.10 2002-04-23 22:01:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -185,8 +185,6 @@ set_level: icom_set_level,
 get_level: icom_get_level,
 set_func: icom_set_func,
 get_func: icom_get_func,
-set_channel: icom_set_channel,
-get_channel: icom_get_channel,
 set_mem: icom_set_mem,
 vfo_op: icom_vfo_op,
 set_ptt: icom_set_ptt,
