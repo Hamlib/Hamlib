@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.57 2002-03-11 23:28:45 fillods Exp $
+ *		$Id: icom.c,v 1.58 2002-03-15 13:04:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -428,6 +428,10 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		err = rig2icom_mode(rig, mode, width, &icmode, &icmode_ext);
 		if (err < 0)
 				return err;
+
+		/* IC-731 and IC-735 don't support passband data */
+		if (priv->civ_731_mode)
+				icmode_ext = -1;
 
 		retval = icom_transaction (rig, C_SET_MODE, icmode, &icmode_ext,
 						icmode_ext == -1 ? 0 : 1, ackbuf, &ack_len);
@@ -2048,12 +2052,15 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 		unsigned char membuf[2];
 		unsigned char ackbuf[16];
 		int ack_len, retval;
+		int chan_len;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
-		to_bcd_be(membuf, ch, CHAN_NB_LEN*2);
-		retval = icom_transaction (rig, C_SET_MEM, -1, membuf, CHAN_NB_LEN,
+		chan_len = ch < 100 ? 1 : 2;
+
+		to_bcd_be(membuf, ch, chan_len*2);
+		retval = icom_transaction (rig, C_SET_MEM, -1, membuf, chan_len,
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
