@@ -2,7 +2,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: conf.c,v 1.6 2002-01-27 14:55:30 fillods Exp $
+ *	$Id: conf.c,v 1.7 2002-08-16 17:43:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,46 +47,46 @@ static const struct confparams frontend_cfg_params[] = {
 	},
 	{ TOK_WRITE_DELAY, "write_delay", "Write delay", 
 			"Delay in ms between each byte sent out",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 1000, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
 	{ TOK_POST_WRITE_DELAY, "post_write_delay", "Post write delay", 
 			"Delay in ms between each command sent out",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 1000, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
 	{ TOK_TIMEOUT, "timeout", "Timeout", "Timeout in ms",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 10000, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 10000, 1 } }
 	},
 	{ TOK_RETRY, "retry", "Retry", "Max number of retry",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 10, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
 	},
 	{ TOK_ITU_REGION, "itu_region", "ITU region", 
 			"ITU region this rig has been manufactured for (freq. band plan)",
-			"0", RIG_CONF_NUMERIC, { n: { 1, 3, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 1, 3, 1 } }
 	},
 
 	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
 			"Serial port baud rate",
-			"0", RIG_CONF_NUMERIC, { n: { 300, 115200, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 300, 115200, 1 } }
 	},
 	{ TOK_DATA_BITS, "data_bits", "Serial data bits", 
 			"Serial port data bits",
-			"8", RIG_CONF_NUMERIC, { n: { 5, 8, 1 } }
+			"8", RIG_CONF_NUMERIC, { .n = { 5, 8, 1 } }
 	},
 	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits", 
 			"Serial port stop bits",
-			"1", RIG_CONF_NUMERIC, { n: { 0, 3, 1 } }
+			"1", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } }
 	},
 	{ TOK_PARITY, "serial_parity", "Serial parity", 
 			"Serial port parity",
-			"None", RIG_CONF_COMBO, { c: {{ "None", "Odd", "Even", NULL }} }
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", NULL }} }
 	},
 	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
 			"Serial port handshake",
-			"None", RIG_CONF_COMBO, { c: {{ "None", "XONXOFF", "Hardware", NULL }} }
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "XONXOFF", "Hardware", NULL }} }
 	},
 	{ TOK_VFO_COMP, "vfo_comp", "VFO compensation", 
 			"VFO compensation in ppm",
-			"0", RIG_CONF_NUMERIC, { n: { 0.0, 1000.0, .001 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0.0, 1000.0, .001 } }
 	},
 
 	{ RIG_CONF_END, NULL, }

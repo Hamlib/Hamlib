@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.62 2002-07-09 20:43:37 fillods Exp $
+ *	$Id: icom.c,v 1.63 2002-08-16 17:43:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -192,7 +192,7 @@ struct icom_addr {
 
 const struct confparams icom_cfg_params[] = {
 	{ TOK_CIVADDR, "civaddr", "CI-V address", "Transceiver's CI-V address",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 0xff, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 0xff, 1 } }
 	},
 	{ TOK_MODE731, "mode731", "CI-V 731 mode", "CI-V operating frequency "
 			"data length, needed for IC731 and IC735",

@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.4 2002-04-23 21:56:41 fillods Exp $  
+ *    $Id: ft100.c,v 1.5 2002-08-16 17:43:02 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -156,51 +156,51 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT100_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_TONE|RIG_FUNC_TSQL)
 
 const struct rig_caps ft100_caps = {
-  rig_model:		RIG_MODEL_FT100,
-  model_name:		"FT-100", 
-  mfg_name:		"Yaesu", 
-  version:		"0.1", 
-  copyright:		"GPL",
-  status:		RIG_STATUS_ALPHA,
-  rig_type:		RIG_TYPE_TRANSCEIVER,
-  ptt_type:		RIG_PTT_RIG,
-  dcd_type:		RIG_DCD_NONE,
-  port_type:		RIG_PORT_SERIAL,
-  serial_rate_min:	4800,                /* ft100/d 4800 only */
-  serial_rate_max:	4800,                /* no others allowed */
-  serial_data_bits:	8,
-  serial_stop_bits:	2,
-  serial_parity:	RIG_PARITY_NONE,
-  serial_handshake:	RIG_HANDSHAKE_NONE, 
-  write_delay:		FT100_WRITE_DELAY,
-  post_write_delay:	FT100_POST_WRITE_DELAY,
-  timeout:		100,
-  retry:		0, 
-  has_get_func:		RIG_FUNC_NONE,
-  has_set_func:		FT100_FUNC_ALL, 
-  has_get_level:	FT100_GET_RIG_LEVELS,
-  has_set_level:	RIG_LEVEL_NONE,
-  has_get_parm:		RIG_PARM_NONE,
-  has_set_parm:		RIG_PARM_NONE,	/* FIXME: parms */
-  level_gran:		{}, 		/* granularity */
-  parm_gran:		{},
-  ctcss_list:		NULL,	/* FIXME: CTCSS/DCS list */
-  dcs_list:		NULL,
-  preamp:		{ RIG_DBLST_END, },	/* FIXME! */
-  attenuator:		{ RIG_DBLST_END, },
-  max_rit:		Hz(9999),
-  max_xit:		Hz(0),
-  max_ifshift:		Hz(0),
-  targetable_vfo:	0,
-  transceive:		RIG_TRN_OFF,
-  bank_qty:		0,
-  chan_desc_sz:		0,
+  .rig_model = 		RIG_MODEL_FT100,
+  .model_name = 		"FT-100", 
+  .mfg_name = 		"Yaesu", 
+  .version = 		"0.1", 
+  .copyright = 		"GPL",
+  .status = 		RIG_STATUS_ALPHA,
+  .rig_type = 		RIG_TYPE_TRANSCEIVER,
+  .ptt_type = 		RIG_PTT_RIG,
+  .dcd_type = 		RIG_DCD_NONE,
+  .port_type = 		RIG_PORT_SERIAL,
+  .serial_rate_min = 	4800,                /* ft100/d 4800 only */
+  .serial_rate_max = 	4800,                /* no others allowed */
+  .serial_data_bits = 	8,
+  .serial_stop_bits = 	2,
+  .serial_parity = 	RIG_PARITY_NONE,
+  .serial_handshake = 	RIG_HANDSHAKE_NONE, 
+  .write_delay = 		FT100_WRITE_DELAY,
+  .post_write_delay = 	FT100_POST_WRITE_DELAY,
+  .timeout = 		100,
+  .retry = 		0, 
+  .has_get_func = 		RIG_FUNC_NONE,
+  .has_set_func = 		FT100_FUNC_ALL, 
+  .has_get_level = 	FT100_GET_RIG_LEVELS,
+  .has_set_level = 	RIG_LEVEL_NONE,
+  .has_get_parm = 		RIG_PARM_NONE,
+  .has_set_parm = 		RIG_PARM_NONE,	/* FIXME: parms */
+  .level_gran = 		{}, 		/* granularity */
+  .parm_gran = 		{},
+  .ctcss_list = 		NULL,	/* FIXME: CTCSS/DCS list */
+  .dcs_list = 		NULL,
+  .preamp = 		{ RIG_DBLST_END, },	/* FIXME! */
+  .attenuator = 		{ RIG_DBLST_END, },
+  .max_rit = 		Hz(9999),
+  .max_xit = 		Hz(0),
+  .max_ifshift = 		Hz(0),
+  .targetable_vfo = 	0,
+  .transceive = 		RIG_TRN_OFF,
+  .bank_qty = 		0,
+  .chan_desc_sz = 		0,
 
-  chan_list: { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
+  .chan_list =  { RIG_CHAN_END, },	/* FIXME: memory chan .list =  78 */
 
-  rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-  tx_range_list1: { RIG_FRNG_END, },
-  rx_range_list2: { 
+  .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+  .tx_range_list1 =  { RIG_FRNG_END, },
+  .rx_range_list2 =  { 
     {kHz(100),MHz(56), FT100_ALL_RX_MODES,-1,-1},
     {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
     {MHz(108),MHz(154),FT100_ALL_RX_MODES,-1,-1},
@@ -208,7 +208,7 @@ const struct rig_caps ft100_caps = {
     RIG_FRNG_END, 
   },
 
-  tx_range_list2: {
+  .tx_range_list2 =  {
     {MHz(1.8),   MHz(2),      FT100_OTHER_TX_MODES, W(0.5),W(0.5)},
     {MHz(1.8),   MHz(2),      FT100_AM_TX_MODES,    W(0.5),W(1.5)},
     {MHz(3.5),   MHz(4),      FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
@@ -236,7 +236,7 @@ const struct rig_caps ft100_caps = {
     RIG_FRNG_END, 
   },
 
-  tuning_steps: {
+  .tuning_steps =  {
     {FT100_SSB_CW_RX_MODES,10},
     {FT100_SSB_CW_RX_MODES,100},
     {FT100_AM_FM_RX_MODES,10},
@@ -244,61 +244,59 @@ const struct rig_caps ft100_caps = {
     RIG_TS_END,
   },  
 
-  filters: {
+  .filters =  {
     RIG_FLT_END,
   },
 
-  priv:			NULL,
-  rig_init:		ft100_init, 
-  rig_cleanup:		ft100_cleanup, 
-  rig_open:		ft100_open, 
-  rig_close:		ft100_close, 
-  set_freq:		ft100_set_freq,
-  get_freq:		ft100_get_freq,
-  set_mode:		ft100_set_mode,
-  get_mode:		NULL,
-  set_vfo:		NULL,
-  get_vfo:		NULL,
-  set_ptt:	        ft100_set_ptt,
-  get_ptt:		NULL,
-  get_dcd:		NULL,
-  set_rptr_shift:	ft100_set_rptr_shift,
-  get_rptr_shift:	NULL,
-  set_rptr_offs:	NULL,
-  get_rptr_offs:	NULL,
-  set_split_freq:	NULL,
-  get_split_freq:	NULL,
-  set_split_mode:       NULL,
-  get_split_mode:	NULL,
-  set_split:		ft100_set_split,
-  get_split:		NULL,
-  set_rit:		NULL,
-  get_rit:		NULL,
-  set_xit:		NULL,
-  get_xit:		NULL,
-  set_ts:		NULL,
-  get_ts:		NULL,
-  set_dcs_code:		ft100_set_dcs_code,
-  get_dcs_code:		NULL,
-  set_ctcss_tone:       ft100_set_ctcss_tone,
-  get_ctcss_tone:	NULL,
-  set_dcs_sql:		NULL,
-  get_dcs_sql:		NULL,
-  set_ctcss_sql:	NULL,
-  get_ctcss_sql:	NULL,
-  power2mW:		NULL,
-  mW2power:		NULL,
-  set_powerstat:	NULL,
-  get_powerstat:	NULL,
-  reset:		NULL,
-  set_ant:		NULL,
-  get_ant:		NULL,
-  set_level:		NULL,
-  get_level:		NULL,
-  set_func:		NULL,
-  get_func:		NULL,
-  set_parm:		NULL,
-  get_parm:		NULL,
+  .priv = 			NULL,
+  .rig_init = 		ft100_init, 
+  .rig_cleanup = 		ft100_cleanup, 
+  .rig_open = 		ft100_open, 
+  .rig_close = 		ft100_close, 
+  .set_freq = 		ft100_set_freq,
+  .get_freq = 		ft100_get_freq,
+  .set_mode = 		ft100_set_mode,
+  .get_mode = 		NULL,
+  .set_vfo = 		NULL,
+  .get_vfo = 		NULL,
+  .set_ptt = 	        ft100_set_ptt,
+  .get_ptt = 		NULL,
+  .get_dcd = 		NULL,
+  .set_rptr_shift = 	ft100_set_rptr_shift,
+  .get_rptr_shift = 	NULL,
+  .set_rptr_offs = 	NULL,
+  .get_rptr_offs = 	NULL,
+  .set_split_freq = 	NULL,
+  .get_split_freq = 	NULL,
+  .set_split_mode =        NULL,
+  .get_split_mode = 	NULL,
+  .set_split = 		ft100_set_split,
+  .get_split = 		NULL,
+  .set_rit = 		NULL,
+  .get_rit = 		NULL,
+  .set_xit = 		NULL,
+  .get_xit = 		NULL,
+  .set_ts = 		NULL,
+  .get_ts = 		NULL,
+  .set_dcs_code = 		ft100_set_dcs_code,
+  .get_dcs_code = 		NULL,
+  .set_ctcss_tone =        ft100_set_ctcss_tone,
+  .get_ctcss_tone = 	NULL,
+  .set_dcs_sql = 		NULL,
+  .get_dcs_sql = 		NULL,
+  .set_ctcss_sql = 	NULL,
+  .get_ctcss_sql = 	NULL,
+  .set_powerstat = 	NULL,
+  .get_powerstat = 	NULL,
+  .reset = 		NULL,
+  .set_ant = 		NULL,
+  .get_ant = 		NULL,
+  .set_level = 		NULL,
+  .get_level = 		NULL,
+  .set_func = 		NULL,
+  .get_func = 		NULL,
+  .set_parm = 		NULL,
+  .get_parm = 		NULL,
 }; 
 
 

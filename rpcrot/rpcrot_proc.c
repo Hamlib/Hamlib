@@ -1,9 +1,9 @@
 /*
  *  Hamlib RPC server - procedures
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *		$Id: rpcrot_proc.c,v 1.1 2002-01-16 16:45:11 fgretief Exp $
+ *	$Id: rpcrot_proc.c,v 1.2 2002-08-16 17:43:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,7 +37,7 @@ getmodel_1_svc(void *argp, struct svc_req *rqstp)
 {
 	static model_x  result;
 
-	rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
 	result = the_rpc_rot->caps->rot_model;
 
@@ -50,7 +50,7 @@ getrotstate_1_svc(void *argp, struct svc_req *rqstp)
 	static rotstate_res res;
 	struct rot_state *rs;
 
-	rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
 	if (!the_rpc_rot->state.comm_state) {
 		res.rotstatus = -RIG_ERJCTED;
@@ -73,7 +73,7 @@ setposition_1_svc(position_s *argp, struct svc_req *rqstp)
 {
 	static int  result;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "Setting position to %.1f deg Az, %.1f deg El\n", argp->az, argp->el);
 
@@ -89,7 +89,7 @@ getposition_1_svc(void *argp, struct svc_req *rqstp)
 	azimuth_t az;
 	elevation_t el;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 	memset(&res, 0, sizeof(res));
 
 	res.rotstatus = rot_get_position(the_rpc_rot, &az, &el);
@@ -106,7 +106,7 @@ stop_1_svc(void *argp, struct svc_req *rqstp)
 {
 	static int  result;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
 	result = rot_stop(the_rpc_rot);
 
@@ -118,7 +118,7 @@ reset_1_svc(rot_reset_x *argp, struct svc_req *rqstp)
 {
 	static int  result;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
 	result = rot_reset(the_rpc_rot, *argp);
 
@@ -130,7 +130,7 @@ park_1_svc(void *argp, struct svc_req *rqstp)
 {
 	static int  result;
 
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
 	result = rot_park(the_rpc_rot);
 
@@ -141,7 +141,7 @@ int *
 move_1_svc(move_s *argp, struct svc_req *rqstp)
 {
     static int result;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     result = rot_move(the_rpc_rot, argp->direction, argp->speed);
     return &result;

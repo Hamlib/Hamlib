@@ -2,7 +2,7 @@
  *  Hamlib Interface - rotator configuration interface
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rot_conf.c,v 1.2 2002-01-27 14:55:30 fillods Exp $
+ *	$Id: rot_conf.c,v 1.3 2002-08-16 17:43:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,55 +47,55 @@ static const struct confparams rotfrontend_cfg_params[] = {
 	},
 	{ TOK_WRITE_DELAY, "write_delay", "Write delay", 
 			"Delay in ms between each byte sent out",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 1000, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
 	{ TOK_POST_WRITE_DELAY, "post_write_delay", "Post write delay", 
 			"Delay in ms between each command sent out",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 1000, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 1000, 1 } }
 	},
 	{ TOK_TIMEOUT, "timeout", "Timeout", "Timeout in ms",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 10000, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 10000, 1 } }
 	},
 	{ TOK_RETRY, "retry", "Retry", "Max number of retry",
-			"0", RIG_CONF_NUMERIC, { n: { 0, 10, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
 	},
 
 	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
 			"Serial port baud rate",
-			"0", RIG_CONF_NUMERIC, { n: { 300, 115200, 1 } }
+			"0", RIG_CONF_NUMERIC, { .n = { 300, 115200, 1 } }
 	},
 	{ TOK_DATA_BITS, "data_bits", "Serial data bits", 
 			"Serial port data bits",
-			"8", RIG_CONF_NUMERIC, { n: { 5, 8, 1 } }
+			"8", RIG_CONF_NUMERIC, { .n = { 5, 8, 1 } }
 	},
 	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits", 
 			"Serial port stop bits",
-			"1", RIG_CONF_NUMERIC, { n: { 0, 3, 1 } }
+			"1", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } }
 	},
 	{ TOK_PARITY, "serial_parity", "Serial parity", 
 			"Serial port parity",
-			"None", RIG_CONF_COMBO, { c: {{ "None", "Odd", "Even", NULL }} }
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", NULL }} }
 	},
 	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
 			"Serial port handshake",
-			"None", RIG_CONF_COMBO, { c: {{ "None", "XONXOFF", "Hardware", NULL }} }
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "XONXOFF", "Hardware", NULL }} }
 	},
 
 	{ TOK_MIN_AZ, "min_az", "Minimum azimuth",
 			"Minimum rotator azimuth in degrees",
-			"-180", RIG_CONF_NUMERIC, { n: { -360, 360, .001 } }
+			"-180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
 	},
 	{ TOK_MAX_AZ, "max_az", "Maximum azimuth",
 			"Maximum rotator azimuth in degrees",
-			"180", RIG_CONF_NUMERIC, { n: { -360, 360, .001 } }
+			"180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
 	},
 	{ TOK_MIN_EL, "min_el", "Minimum elevation",
 			"Minimum rotator elevation in degrees",
-			"0", RIG_CONF_NUMERIC, { n: { -90, 180, .001 } }
+			"0", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
 	},
 	{ TOK_MAX_EL, "max_el", "Maximum elevation",
 			"Maximum rotator elevation in degrees",
-			"90", RIG_CONF_NUMERIC, { n: { -90, 180, .001 } }
+			"90", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
 	},
 
 	{ RIG_CONF_END, NULL, }

@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - NRD-545 DSP description
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: nrd545.c,v 1.2 2001-12-20 23:03:27 fillods Exp $
+ *	$Id: nrd545.c,v 1.3 2002-08-16 17:43:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,63 +56,63 @@ static const struct jrc_priv_caps nrd545_priv_caps = {
  *
  */
 const struct rig_caps nrd545_caps = {
-rig_model: RIG_MODEL_NRD545,
-model_name:"NRD-545 DSP",
-mfg_name: "JRC",
-version: "0.1",
-copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
-rig_type: RIG_TYPE_RECEIVER,
-ptt_type: RIG_PTT_NONE,
-dcd_type: RIG_DCD_NONE,
-port_type: RIG_PORT_SERIAL,
-serial_rate_min: 4800,
-serial_rate_max: 4800,
-serial_data_bits: 8,
-serial_stop_bits: 1,
-serial_parity: RIG_PARITY_NONE,
-serial_handshake: RIG_HANDSHAKE_NONE,
-write_delay: 0,
-post_write_delay: 0,
-timeout: 200,
-retry: 3,
+.rig_model =  RIG_MODEL_NRD545,
+.model_name = "NRD-545 DSP",
+.mfg_name =  "JRC",
+.version =  "0.1",
+.copyright =  "LGPL",
+.status =  RIG_STATUS_UNTESTED,
+.rig_type =  RIG_TYPE_RECEIVER,
+.ptt_type =  RIG_PTT_NONE,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  4800,
+.serial_rate_max =  4800,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  200,
+.retry =  3,
 
-has_get_func: NRD545_FUNC,
-has_set_func: NRD545_FUNC,
-has_get_level: NRD545_LEVEL,
-has_set_level: RIG_LEVEL_SET(NRD545_LEVEL),
-has_get_parm: RIG_PARM_TIME,
-has_set_parm: RIG_PARM_SET(NRD545_PARM),
-level_gran: {},                 /* FIXME: granularity */
-parm_gran: {},
-ctcss_list: NULL,
-dcs_list: NULL,
-preamp:  { RIG_DBLST_END },
-attenuator:  { 20, RIG_DBLST_END },	/* To be confirmed */
-max_rit: Hz(0),
-max_xit: Hz(0),
-max_ifshift: kHz(2.3),
-targetable_vfo: 0,
-transceive: RIG_TRN_RIG,
-vfo_ops: RIG_OP_FROM_VFO,
-scan_ops: RIG_SCAN_STOP|RIG_SCAN_SLCT,
-bank_qty:  0,
-chan_desc_sz: 0,
+.has_get_func =  NRD545_FUNC,
+.has_set_func =  NRD545_FUNC,
+.has_get_level =  NRD545_LEVEL,
+.has_set_level =  RIG_LEVEL_SET(NRD545_LEVEL),
+.has_get_parm =  RIG_PARM_TIME,
+.has_set_parm =  RIG_PARM_SET(NRD545_PARM),
+.level_gran =  {},                 /* FIXME: granularity */
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END },
+.attenuator =   { 20, RIG_DBLST_END },	/* To be confirmed */
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  kHz(2.3),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_RIG,
+.vfo_ops =  RIG_OP_FROM_VFO,
+.scan_ops =  RIG_SCAN_STOP|RIG_SCAN_SLCT,
+.bank_qty =   0,
+.chan_desc_sz =  0,
 
-chan_list: {
+.chan_list =  {
 			{ 0, 999, RIG_MTYPE_MEM, 0 },
 			RIG_CHAN_END,
 		},
 
-rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-tx_range_list1: { RIG_FRNG_END, },
-rx_range_list2: {
+.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  {
 	{kHz(100),MHz(30),NRD545_MODES,-1,-1,NRD545_VFO},
 	RIG_FRNG_END,
   },
-tx_range_list2: { RIG_FRNG_END, },
+.tx_range_list2 =  { RIG_FRNG_END, },
 
-tuning_steps: {
+.tuning_steps =  {
 	 {NRD545_MODES,1},
 	 {NRD545_MODES,10},
 	 {NRD545_MODES,100},
@@ -128,35 +128,35 @@ tuning_steps: {
 	 {NRD545_MODES,kHz(100)},
 	 RIG_TS_END,
 	},
-        /* mode/filter list, remember: order matters! */
-filters: {
+        /* mode/filter list, .remember =  order matters! */
+.filters =  {
 		{RIG_MODE_AM|RIG_MODE_FM, kHz(10)},
 		{NRD545_MODES, kHz(2.4)},
 		{NRD545_MODES, kHz(1)},
 		{NRD545_MODES, kHz(4.5)},
 		RIG_FLT_END,
 	},
-priv: (void*)&nrd545_priv_caps,
+.priv =  (void*)&nrd545_priv_caps,
 
-rig_open: jrc_open,
-rig_close: jrc_close,
-set_freq: jrc_set_freq,
-get_freq: jrc_get_freq,
-set_mode: jrc_set_mode,
-set_func: jrc_set_func,
-get_func: jrc_get_func,
-set_level: jrc_set_level,
-get_level: jrc_get_level,
-set_parm: jrc_set_parm,
-get_parm: jrc_get_parm,
-get_dcd: jrc_get_dcd,
-set_trn: jrc_set_trn,
-reset: jrc_reset,
-set_mem: jrc_set_mem,
-vfo_op: jrc_vfo_op,
-scan: jrc_scan,
-set_powerstat: jrc_set_powerstat,
-decode_event: jrc_decode_event,
+.rig_open =  jrc_open,
+.rig_close =  jrc_close,
+.set_freq =  jrc_set_freq,
+.get_freq =  jrc_get_freq,
+.set_mode =  jrc_set_mode,
+.set_func =  jrc_set_func,
+.get_func =  jrc_get_func,
+.set_level =  jrc_set_level,
+.get_level =  jrc_get_level,
+.set_parm =  jrc_set_parm,
+.get_parm =  jrc_get_parm,
+.get_dcd =  jrc_get_dcd,
+.set_trn =  jrc_set_trn,
+.reset =  jrc_reset,
+.set_mem =  jrc_set_mem,
+.vfo_op =  jrc_vfo_op,
+.scan =  jrc_scan,
+.set_powerstat =  jrc_set_powerstat,
+.decode_event =  jrc_decode_event,
 
 };
 

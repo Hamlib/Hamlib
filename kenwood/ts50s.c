@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS50 description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *		$Id: ts50s.c,v 1.4 2002-03-25 00:18:36 pa4tu Exp $
+ *	$Id: ts50s.c,v 1.5 2002-08-16 17:43:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,7 +27,6 @@
 #include <stdlib.h>
 
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include "kenwood.h"
 
 
@@ -43,68 +42,68 @@
 #define TS50_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
 static const struct kenwood_priv_caps  ts50_priv_caps  = {
-		cmdtrm: EOM_KEN,
+		.cmdtrm =  EOM_KEN,
 };
 
 /*
  * ts50 rig capabilities.
  *
- * part of infos comes from http://www.kenwood.net/
+ * part of infos comes from .http = //www.kenwood.net/
  */
 const struct rig_caps ts50s_caps = {
-rig_model: RIG_MODEL_TS50,
-model_name:"TS-50S",
-mfg_name: "Kenwood",
-version: "0.1",
-copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
-rig_type: RIG_TYPE_MOBILE,
-ptt_type: RIG_PTT_RIG,
-dcd_type: RIG_DCD_RIG,
-port_type: RIG_PORT_SERIAL,
-serial_rate_min: 1200,
-serial_rate_max: 57600,
-serial_data_bits: 8,
-serial_stop_bits: 1,
-serial_parity: RIG_PARITY_NONE,
-serial_handshake: RIG_HANDSHAKE_NONE,
-write_delay: 0,
-post_write_delay: 0,
-timeout: 200,
-retry: 3,
+.rig_model =  RIG_MODEL_TS50,
+.model_name = "TS-50S",
+.mfg_name =  "Kenwood",
+.version =  "0.1",
+.copyright =  "LGPL",
+.status =  RIG_STATUS_UNTESTED,
+.rig_type =  RIG_TYPE_MOBILE,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_RIG,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  1200,
+.serial_rate_max =  57600,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  200,
+.retry =  3,
 
-has_get_func: TS50_FUNC_ALL,
-has_set_func: TS50_FUNC_ALL,
-has_get_level: TS50_LEVEL_ALL,
-has_set_level: RIG_LEVEL_SET(TS50_LEVEL_ALL),
-has_get_parm: RIG_PARM_NONE,
-has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
-level_gran: {},                 /* FIXME: granularity */
-parm_gran: {},
-ctcss_list: NULL,
-dcs_list: NULL,
-preamp:  { RIG_DBLST_END, },	/* FIXME: preamp list */
-attenuator:  { 18, RIG_DBLST_END, },
-max_rit: kHz(1.1),
-max_xit: Hz(0),
-max_ifshift: Hz(0),
-vfo_ops: TS50_VFO_OP,
-targetable_vfo: RIG_TARGETABLE_FREQ,
-transceive: RIG_TRN_RIG,
-bank_qty:  0,
-chan_desc_sz: 0,
+.has_get_func =  TS50_FUNC_ALL,
+.has_set_func =  TS50_FUNC_ALL,
+.has_get_level =  TS50_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(TS50_LEVEL_ALL),
+.has_get_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.level_gran =  {},                 /* FIXME: granularity */
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
+.attenuator =   { 18, RIG_DBLST_END, },
+.max_rit =  kHz(1.1),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.vfo_ops =  TS50_VFO_OP,
+.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.transceive =  RIG_TRN_RIG,
+.bank_qty =   0,
+.chan_desc_sz =  0,
 
 
-chan_list: {
+.chan_list =  {
 			{  0, 89, RIG_MTYPE_MEM,  0 },
 			{ 90, 99, RIG_MTYPE_EDGE, 0 },
 		  	RIG_CHAN_END,
 		   },
-rx_range_list1: { 
+.rx_range_list1 =  { 
 	{kHz(500),MHz(30),TS50_ALL_MODES,-1,-1,TS50_VFO},
 	RIG_FRNG_END,
   },
-tx_range_list1: {
+.tx_range_list1 =  {
     {kHz(1810),kHz(1850)-1,TS50_OTHER_TX_MODES,5000,100000,TS50_VFO},	/* 100W class */
     {kHz(1800),MHz(2)-1,TS50_AM_TX_MODES,5000,25000,TS50_VFO},		/* 25W class */
     {kHz(3500),kHz(3800)-1,TS50_OTHER_TX_MODES,5000,100000,TS50_VFO},
@@ -126,11 +125,11 @@ tx_range_list1: {
 	RIG_FRNG_END,
   },
 
-rx_range_list2: {
+.rx_range_list2 =  {
 	{kHz(500),MHz(30),TS50_ALL_MODES,-1,-1,TS50_VFO},
 	RIG_FRNG_END,
   },
-tx_range_list2: {
+.tx_range_list2 =  {
     {kHz(1800),MHz(2)-1,TS50_OTHER_TX_MODES,5000,100000,TS50_VFO},	/* 100W class */
     {kHz(1800),MHz(2)-1,TS50_AM_TX_MODES,5000,25000,TS50_VFO},		/* 25W class */
     {kHz(3500),MHz(4)-1,TS50_OTHER_TX_MODES,5000,100000,TS50_VFO},
@@ -151,7 +150,7 @@ tx_range_list2: {
     {MHz(28),kHz(29700),TS50_AM_TX_MODES,5000,25000,TS50_VFO},
 	RIG_FRNG_END,
   }, /* tx range */
-tuning_steps: {
+.tuning_steps =  {
 	 {TS50_ALL_MODES,50},
 	 {TS50_ALL_MODES,100},
 	 {TS50_ALL_MODES,kHz(1)},
@@ -167,33 +166,33 @@ tuning_steps: {
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
-filters: {
+.filters =  {
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.2)},
 		{RIG_MODE_AM, kHz(5)},
 		{RIG_MODE_FM, kHz(12)},
 		RIG_FLT_END,
 	},
-priv: (void *)&ts50_priv_caps,
+.priv =  (void *)&ts50_priv_caps,
 
-set_freq: kenwood_set_freq,
-get_freq: kenwood_get_freq,
-set_mode: kenwood_set_mode,
-get_mode: kenwood_get_mode,
-set_vfo: kenwood_set_vfo,
-get_vfo: kenwood_get_vfo,
-get_ptt: kenwood_get_ptt,
-set_ptt: kenwood_set_ptt,
-get_dcd: kenwood_get_dcd,
-set_func: kenwood_set_func,
-get_func: kenwood_get_func,
-set_level: kenwood_set_level,
-get_level: kenwood_get_level,
-set_powerstat: kenwood_set_powerstat,
-get_powerstat: kenwood_get_powerstat,
-reset: kenwood_reset,
-vfo_op: kenwood_vfo_op,
-set_mem: kenwood_set_mem,
-get_mem: kenwood_get_mem,
+.set_freq =  kenwood_set_freq,
+.get_freq =  kenwood_get_freq,
+.set_mode =  kenwood_set_mode,
+.get_mode =  kenwood_get_mode,
+.set_vfo =  kenwood_set_vfo,
+.get_vfo =  kenwood_get_vfo,
+.get_ptt =  kenwood_get_ptt,
+.set_ptt =  kenwood_set_ptt,
+.get_dcd =  kenwood_get_dcd,
+.set_func =  kenwood_set_func,
+.get_func =  kenwood_get_func,
+.set_level =  kenwood_set_level,
+.get_level =  kenwood_get_level,
+.set_powerstat =  kenwood_set_powerstat,
+.get_powerstat =  kenwood_get_powerstat,
+.reset =  kenwood_reset,
+.vfo_op =  kenwood_vfo_op,
+.set_mem =  kenwood_set_mem,
+.get_mem =  kenwood_get_mem,
 
 };
 

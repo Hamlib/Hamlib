@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-550 PC-Radio description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *		$Id: pegasus.c,v 1.1 2002-01-06 17:47:49 fillods Exp $
+ *	$Id: pegasus.c,v 1.2 2002-08-16 17:43:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,59 +63,59 @@ static const struct tentec_priv_caps tt550_priv_caps = {
  * TODO:
  */
 const struct rig_caps tt550_caps = {
-rig_model: RIG_MODEL_TT550,
-model_name:"TT-550",
-mfg_name: "Ten-Tec",
-version: "0.1",
-copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
-rig_type: RIG_TYPE_COMPUTER,
-ptt_type: RIG_PTT_NONE,
-dcd_type: RIG_DCD_NONE,
-port_type: RIG_PORT_SERIAL,
-serial_rate_min: 57600,
-serial_rate_max: 57600,
-serial_data_bits: 8,
-serial_stop_bits: 1,
-serial_parity: RIG_PARITY_NONE,
-serial_handshake: RIG_HANDSHAKE_HARDWARE,
-write_delay: 0,
-post_write_delay: 0,
-timeout: 200,
-retry: 3,
+.rig_model =  RIG_MODEL_TT550,
+.model_name = "TT-550",
+.mfg_name =  "Ten-Tec",
+.version =  "0.1",
+.copyright =  "LGPL",
+.status =  RIG_STATUS_UNTESTED,
+.rig_type =  RIG_TYPE_COMPUTER,
+.ptt_type =  RIG_PTT_NONE,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  57600,
+.serial_rate_max =  57600,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  200,
+.retry =  3,
 
-has_get_func: TT550_FUNCS,
-has_set_func: TT550_FUNCS,
-has_get_level: TT550_LEVELS,
-has_set_level: RIG_LEVEL_SET(TT550_LEVELS),
-has_get_parm: RIG_PARM_NONE,
-has_set_parm: RIG_PARM_NONE,
-level_gran: {},                 /* FIXME: granularity */
-parm_gran: {},
-ctcss_list: NULL,
-dcs_list: NULL,
-preamp:  { RIG_DBLST_END },
-attenuator:  { 20, RIG_DBLST_END },
-max_rit: Hz(0),
-max_xit: Hz(0),
-max_ifshift: Hz(0),
-targetable_vfo: 0,
-transceive: RIG_TRN_OFF,
-bank_qty:  0,
-chan_desc_sz: 0,
+.has_get_func =  TT550_FUNCS,
+.has_set_func =  TT550_FUNCS,
+.has_get_level =  TT550_LEVELS,
+.has_set_level =  RIG_LEVEL_SET(TT550_LEVELS),
+.has_get_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,
+.level_gran =  {},                 /* FIXME: granularity */
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END },
+.attenuator =   { 20, RIG_DBLST_END },
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   0,
+.chan_desc_sz =  0,
 
-chan_list: {
+.chan_list =  {
 			RIG_CHAN_END,
 		},
 
-rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-tx_range_list1: { RIG_FRNG_END, },
+.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.tx_range_list1 =  { RIG_FRNG_END, },
 
-rx_range_list2: {
+.rx_range_list2 =  {
 	{kHz(100),MHz(30),TT550_RXMODES,-1,-1,TT550_VFO},
 	RIG_FRNG_END,
   },
-tx_range_list2: {
+.tx_range_list2 =  {
     {kHz(1800),MHz(2)-1,TT550_MODES,5000,100000,TT550_VFO},
     {kHz(3500),MHz(4)-1,TT550_MODES,5000,100000,TT550_VFO},
     {MHz(7),kHz(7300),TT550_MODES,5000,100000,TT550_VFO},
@@ -128,30 +128,30 @@ tx_range_list2: {
 	RIG_FRNG_END,
   },
 
-tuning_steps: {
+.tuning_steps =  {
 	 {TT550_RXMODES,1},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
-filters: {
+.filters =  {
 				 /* FIXME: add increments -> 34 filters? */
 		{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(3)},
 		{RIG_MODE_CW, 300},
 		{RIG_MODE_AM|RIG_MODE_FM, kHz(8)},
 		RIG_FLT_END,
 	},
-priv: (void*)&tt550_priv_caps,
+.priv =  (void*)&tt550_priv_caps,
 
-rig_init: tentec_init,
-rig_cleanup: tentec_cleanup,
-rig_open: tentec_trx_open,
-set_freq: tentec_set_freq,
-get_freq: tentec_get_freq,
-set_mode: tentec_set_mode,
-get_mode: tentec_get_mode,
-set_level: tentec_set_level,
-get_level: tentec_get_level,
-get_info: tentec_get_info,
+.rig_init =  tentec_init,
+.rig_cleanup =  tentec_cleanup,
+.rig_open =  tentec_trx_open,
+.set_freq =  tentec_set_freq,
+.get_freq =  tentec_get_freq,
+.set_mode =  tentec_set_mode,
+.get_mode =  tentec_get_mode,
+.set_level =  tentec_set_level,
+.get_level =  tentec_get_level,
+.get_info =  tentec_get_info,
 
 };
 

@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.19 2001-12-20 22:59:09 fillods Exp $  
+ * $Id: ft847.c,v 1.20 2002-08-16 17:43:02 fillods Exp $  
  *
  *
  *
@@ -183,52 +183,52 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 
 const struct rig_caps ft847_caps = {
-rig_model: RIG_MODEL_FT847,
-model_name:"FT-847", 
-mfg_name: "Yaesu", 
-version: "0.1", 
-copyright: "LGPL",
-status: RIG_STATUS_ALPHA,
-rig_type: RIG_TYPE_TRANSCEIVER,
-ptt_type: RIG_PTT_RIG,
-dcd_type: RIG_DCD_NONE,
-port_type: RIG_PORT_SERIAL,
-serial_rate_min: 4800,
-serial_rate_max: 57600,
-serial_data_bits: 8,
-serial_stop_bits: 2,
-serial_parity: RIG_PARITY_NONE,
-serial_handshake: RIG_HANDSHAKE_NONE, 
-write_delay: FT847_WRITE_DELAY,
-post_write_delay: FT847_POST_WRITE_DELAY,
-timeout: 100,
-retry: 0, 
+.rig_model =  RIG_MODEL_FT847,
+.model_name = "FT-847", 
+.mfg_name =  "Yaesu", 
+.version =  "0.1", 
+.copyright =  "LGPL",
+.status =  RIG_STATUS_ALPHA,
+.rig_type =  RIG_TYPE_TRANSCEIVER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  4800,
+.serial_rate_max =  57600,
+.serial_data_bits =  8,
+.serial_stop_bits =  2,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE, 
+.write_delay =  FT847_WRITE_DELAY,
+.post_write_delay =  FT847_POST_WRITE_DELAY,
+.timeout =  100,
+.retry =  0, 
 
-has_get_func: RIG_FUNC_NONE,
-has_set_func: FT847_FUNC_ALL, 
-has_get_level: RIG_LEVEL_NONE,	/* FIXME! */
-has_set_level: RIG_LEVEL_NONE,
-has_get_parm: RIG_PARM_NONE,
-has_set_parm: RIG_PARM_NONE,	/* FIXME: parms */
-level_gran: {}, 		/* granularity */
-parm_gran: {},
-ctcss_list: NULL,	/* FIXME: CTCSS/DCS list */
-dcs_list: NULL,
-preamp:  { RIG_DBLST_END, },	/* FIXME! */
-attenuator:  { RIG_DBLST_END, },
-max_rit: Hz(9999),
-max_xit: Hz(0),
-max_ifshift: Hz(0),
-targetable_vfo: RIG_TARGETABLE_FREQ,
-transceive: RIG_TRN_OFF,
-bank_qty:  0,
-chan_desc_sz: 0,
+.has_get_func =  RIG_FUNC_NONE,
+.has_set_func =  FT847_FUNC_ALL, 
+.has_get_level =  RIG_LEVEL_NONE,	/* FIXME! */
+.has_set_level =  RIG_LEVEL_NONE,
+.has_get_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
+.level_gran =  {}, 		/* granularity */
+.parm_gran =  {},
+.ctcss_list =  NULL,	/* FIXME: CTCSS/DCS list */
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END, },	/* FIXME! */
+.attenuator =   { RIG_DBLST_END, },
+.max_rit =  Hz(9999),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   0,
+.chan_desc_sz =  0,
 
-chan_list: { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
+.chan_list =  { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
 
-rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-tx_range_list1: { RIG_FRNG_END, },
-rx_range_list2: 
+.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  
   { {kHz(100),MHz(30),FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {MHz(36),MHz(76),FT847_ALL_RX_MODES,-1,-1},
     {MHz(108),MHz(174),FT847_ALL_RX_MODES,-1,-1},
@@ -236,7 +236,7 @@ rx_range_list2:
 
     RIG_FRNG_END, }, /* rx range end */
 
-tx_range_list2:
+.tx_range_list2 = 
   { {MHz(1.8),1999999,FT847_OTHER_TX_MODES,W(5),W(100)},	/* 5-100W class */
     {MHz(1.8),1999999,FT847_AM_TX_MODES,W(1),W(25)},	/* 1-25W class */
 
@@ -275,7 +275,7 @@ tx_range_list2:
 
     RIG_FRNG_END, },
 
-tuning_steps: { {FT847_SSB_CW_RX_MODES,1}, /* normal */
+.tuning_steps =  { {FT847_SSB_CW_RX_MODES,1}, /* normal */
     {FT847_SSB_CW_RX_MODES,10}, /* fast */
     {FT847_SSB_CW_RX_MODES,100}, /* faster */
 
@@ -285,8 +285,8 @@ tuning_steps: { {FT847_SSB_CW_RX_MODES,1}, /* normal */
         
     RIG_TS_END,
   },  
-      /* mode/filter list, remember: order matters! */
-filters: {
+      /* mode/filter list, .remember =  order matters! */
+.filters =  {
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.2)},
 		{RIG_MODE_AM, kHz(9)},
 		{RIG_MODE_AM, kHz(2.2)},
@@ -295,20 +295,20 @@ filters: {
 		RIG_FLT_END,
   },
 
-priv:  NULL,
-rig_init:  ft847_init, 
-rig_cleanup: ft847_cleanup, 
-rig_open:  ft847_open, 
-rig_close: ft847_close, 
+.priv =   NULL,
+.rig_init =   ft847_init, 
+.rig_cleanup =  ft847_cleanup, 
+.rig_open =   ft847_open, 
+.rig_close =  ft847_close, 
 
-set_freq:  ft847_set_freq,		/* set freq */
-get_freq: ft847_get_freq,		/* get freq */
-set_mode: ft847_set_mode,		/* set mode */
-get_mode: ft847_get_mode,		/* get mode */
-set_vfo: ft847_set_vfo,		/* set vfo */
-get_vfo: ft847_get_vfo,		/* get vfo */
-set_ptt: ft847_set_ptt,		/* set ptt */
-get_ptt: ft847_get_ptt,		/* get ptt */
+.set_freq =   ft847_set_freq,		/* set freq */
+.get_freq =  ft847_get_freq,		/* get freq */
+.set_mode =  ft847_set_mode,		/* set mode */
+.get_mode =  ft847_get_mode,		/* get mode */
+.set_vfo =  ft847_set_vfo,		/* set vfo */
+.get_vfo =  ft847_get_vfo,		/* get vfo */
+.set_ptt =  ft847_set_ptt,		/* set ptt */
+.get_ptt =  ft847_get_ptt,		/* get ptt */
 
 };
 

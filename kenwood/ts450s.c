@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts450s.c,v 1.5 2002-03-25 00:17:35 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.6 2002-08-16 17:43:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,7 +39,7 @@
 #define TS450S_VFO (RIG_VFO_A|RIG_VFO_B)
 
 static const struct kenwood_priv_caps  ts450_priv_caps  = {
-		cmdtrm: EOM_KEN,
+		.cmdtrm =  EOM_KEN,
 };
 
 /*
@@ -48,60 +48,60 @@ static const struct kenwood_priv_caps  ts450_priv_caps  = {
  * Also this struct is READONLY!
  * RIT: Variable Range ±9.99 kHz
  *
- * part of infos comes from http://www.qsl.net/sm7vhs/radio/kenwood/ts450/specs.htm
+ * part of infos comes from .http = //www.qsl.net/sm7vhs/radio/kenwood/ts450/specs.htm
  */
 const struct rig_caps ts450s_caps = {
-rig_model: RIG_MODEL_TS450S,
-model_name:"TS-450S",
-mfg_name: "Kenwood",
-version: "0.1",
-copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
-rig_type: RIG_TYPE_TRANSCEIVER,
-ptt_type: RIG_PTT_RIG,
-dcd_type: RIG_DCD_RIG,
-port_type: RIG_PORT_SERIAL,
-serial_rate_min: 4800,
-serial_rate_max: 4800,
-serial_data_bits: 8,
-serial_stop_bits: 2,
-serial_parity: RIG_PARITY_NONE,
-serial_handshake: RIG_HANDSHAKE_NONE,
-write_delay: 0,
-post_write_delay: 0,
-timeout: 200,
-retry: 3,
+.rig_model =  RIG_MODEL_TS450S,
+.model_name = "TS-450S",
+.mfg_name =  "Kenwood",
+.version =  "0.1",
+.copyright =  "LGPL",
+.status =  RIG_STATUS_UNTESTED,
+.rig_type =  RIG_TYPE_TRANSCEIVER,
+.ptt_type =  RIG_PTT_RIG,
+.dcd_type =  RIG_DCD_RIG,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  4800,
+.serial_rate_max =  4800,
+.serial_data_bits =  8,
+.serial_stop_bits =  2,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  200,
+.retry =  3,
 
-has_get_func: TS450S_FUNC_ALL,
-has_set_func: TS450S_FUNC_ALL,
-has_get_level: TS450S_LEVEL_ALL,
-has_set_level: RIG_LEVEL_SET(TS450S_LEVEL_ALL),
-has_get_parm: RIG_PARM_NONE,
-has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
-level_gran: {},                 /* FIXME: granularity */
-parm_gran: {},
-ctcss_list: kenwood38_ctcss_list,
-dcs_list: NULL,
-preamp:  { RIG_DBLST_END, },	/* FIXME: preamp list */
-attenuator:  { 6, 12, 18, RIG_DBLST_END, },
-max_rit: Hz(9999),
-max_xit: Hz(0),
-max_ifshift: Hz(0),
-targetable_vfo: RIG_TARGETABLE_FREQ,
-transceive: RIG_TRN_RIG,
-bank_qty:  0,
-chan_desc_sz: 0,
+.has_get_func =  TS450S_FUNC_ALL,
+.has_set_func =  TS450S_FUNC_ALL,
+.has_get_level =  TS450S_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(TS450S_LEVEL_ALL),
+.has_get_parm =  RIG_PARM_NONE,
+.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
+.level_gran =  {},                 /* FIXME: granularity */
+.parm_gran =  {},
+.ctcss_list =  kenwood38_ctcss_list,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
+.attenuator =   { 6, 12, 18, RIG_DBLST_END, },
+.max_rit =  Hz(9999),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.transceive =  RIG_TRN_RIG,
+.bank_qty =   0,
+.chan_desc_sz =  0,
 
 
-chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
+.chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
 
-rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-tx_range_list1: { RIG_FRNG_END, },
-rx_range_list2: {
+.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  {
 	{kHz(500),MHz(30),TS450S_ALL_MODES,-1,-1,TS450S_VFO},
 	RIG_FRNG_END,
   }, /* rx range */
-tx_range_list2: {
+.tx_range_list2 =  {
     {kHz(1800),MHz(2)-1,TS450S_OTHER_TX_MODES,5000,100000,TS450S_VFO},	/* 100W class */
     {kHz(1800),MHz(2)-1,TS450S_AM_TX_MODES,2000,40000,TS450S_VFO},		/* 40W class */
     {kHz(3500),MHz(4)-1,TS450S_OTHER_TX_MODES,5000,100000,TS450S_VFO},
@@ -122,7 +122,7 @@ tx_range_list2: {
     {MHz(28),kHz(29700),TS450S_AM_TX_MODES,2000,40000,TS450S_VFO},
 	RIG_FRNG_END,
   }, /* tx range */
-tuning_steps: {
+.tuning_steps =  {
 	 {TS450S_ALL_MODES,50},
 	 {TS450S_ALL_MODES,100},
 	 {TS450S_ALL_MODES,kHz(1)},
@@ -138,7 +138,7 @@ tuning_steps: {
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
-filters: {
+.filters =  {
 		{RIG_MODE_SSB, kHz(2.2)},
 		{RIG_MODE_CW, Hz(200)},
 		{RIG_MODE_RTTY, Hz(500)},
@@ -146,28 +146,28 @@ filters: {
 		{RIG_MODE_FM, kHz(14)},
 		RIG_FLT_END,
 	},
-priv: (void *)&ts450_priv_caps,
+.priv =  (void *)&ts450_priv_caps,
 
-set_freq: kenwood_set_freq,
-get_freq: kenwood_get_freq,
-set_mode: kenwood_set_mode,
-get_mode: kenwood_get_mode,
-set_vfo: kenwood_set_vfo,
-get_vfo: kenwood_get_vfo,
-set_ctcss_tone: kenwood_set_ctcss_tone,
-get_ctcss_tone: kenwood_get_ctcss_tone,
-set_ptt: kenwood_set_ptt,
-get_dcd: kenwood_get_dcd,
-set_func: kenwood_set_func,
-get_func: kenwood_get_func,
-set_level: kenwood_set_level,
-get_level: kenwood_get_level,
-set_powerstat: kenwood_set_powerstat,
-get_powerstat: kenwood_get_powerstat,
-reset: kenwood_reset,
-vfo_op: kenwood_vfo_op,
-set_mem: kenwood_set_mem,
-get_mem: kenwood_get_mem,
+.set_freq =  kenwood_set_freq,
+.get_freq =  kenwood_get_freq,
+.set_mode =  kenwood_set_mode,
+.get_mode =  kenwood_get_mode,
+.set_vfo =  kenwood_set_vfo,
+.get_vfo =  kenwood_get_vfo,
+.set_ctcss_tone =  kenwood_set_ctcss_tone,
+.get_ctcss_tone =  kenwood_get_ctcss_tone,
+.set_ptt =  kenwood_set_ptt,
+.get_dcd =  kenwood_get_dcd,
+.set_func =  kenwood_set_func,
+.get_func =  kenwood_get_func,
+.set_level =  kenwood_set_level,
+.get_level =  kenwood_get_level,
+.set_powerstat =  kenwood_set_powerstat,
+.get_powerstat =  kenwood_get_powerstat,
+.reset =  kenwood_reset,
+.vfo_op =  kenwood_vfo_op,
+.set_mem =  kenwood_set_mem,
+.get_mem =  kenwood_get_mem,
 
 };
 

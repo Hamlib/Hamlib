@@ -3,7 +3,7 @@
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *		$Id: easycomm.c,v 1.2 2002-03-10 23:41:39 fillods Exp $
+ *	$Id: easycomm.c,v 1.3 2002-08-16 17:43:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -85,7 +85,7 @@ easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     unsigned char cmdstr[64], ackstr[64];
     int retval;
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called: %f %f\n", az, el);
+	rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
 
     sprintf(cmdstr, "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
     retval = easycomm_transaction(rot, cmdstr, ackstr, sizeof(ackstr));
@@ -102,7 +102,8 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     unsigned char cmdstr[16], ackbuf[32];
     int retval;
     int t;
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
 #ifdef USE_CUSTOM_CODE
     sprintf(cmdstr, "!");   /* Custom implementation: Remove later */
@@ -119,7 +120,7 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 #ifdef USE_CUSTOM_CODE
     retval = sscanf(ackbuf, "TM%i AZ%f EL%f", &t, az, el);
     if (retval != 3) {
-        rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unknown replay (%s)\n", ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: unknown replay (%s)\n", __FUNCTION__, ackbuf);
         return -RIG_ERJCTED;
     }
 #ifndef USETESTCODE
@@ -159,7 +160,8 @@ easycomm_rot_stop(ROT *rot)
 {
     unsigned char ackbuf[32];
     int retval;
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     retval = easycomm_transaction(rot, "SA SE \n", ackbuf, sizeof(ackbuf));
 	if (retval != RIG_OK)
@@ -175,7 +177,7 @@ easycomm_rot_reset(ROT *rot, rot_reset_t rst)
 {
     unsigned char ackbuf[32];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     retval = easycomm_transaction(rot, "RESET\n", ackbuf, sizeof(ackbuf));
     if (retval != RIG_OK)   /* Custom command (not in Easycomm) */
@@ -189,7 +191,7 @@ easycomm_rot_park(ROT *rot)
 {
     unsigned char ackbuf[32];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     retval = easycomm_transaction(rot, "PARK\n", ackbuf, sizeof(ackbuf));
     if (retval != RIG_OK)   /* Custom command (not in Easycomm) */
@@ -203,7 +205,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
 {
     char cmdstr[24], ackbuf[32];
     int retval;
-    rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
+    rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     /* Note: speed is unused at the moment */
     switch (direction) {
@@ -220,7 +222,7 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
         sprintf(cmdstr, "MR\n");
         break;
     default:
-        rig_debug(RIG_DEBUG_ERR,__FUNCTION__": Invalid direction value! (%d)\n", direction);
+        rig_debug(RIG_DEBUG_ERR,"%s: Invalid direction value! (%d)\n", __FUNCTION__, direction);
         return -RIG_EINVAL;
     }
 
@@ -241,86 +243,86 @@ easycomm_rot_move(ROT *rot, int direction, int speed)
  *  as dummy entries because the spec require them.
  */
 const struct rot_caps easycomm1_rot_caps = {
-  rot_model:     ROT_MODEL_EASYCOMM1,
-  model_name:    "EasycommI",
-  mfg_name:      "Hamlib",
-  version:       "0.1",
-  copyright:	 "LGPL",
-  status:        RIG_STATUS_ALPHA,
-  rot_type:      ROT_TYPE_OTHER,
-  port_type:     RIG_PORT_SERIAL,
-  serial_rate_min: 9600,
-  serial_rate_max: 19200,
-  serial_data_bits: 8,
-  serial_stop_bits: 1,
-  serial_parity: RIG_PARITY_NONE,
-  serial_handshake: RIG_HANDSHAKE_NONE,
-  write_delay: 0,
-  post_write_delay: 0,
-  timeout: 200,
-  retry: 3,
+  .rot_model =      ROT_MODEL_EASYCOMM1,
+  .model_name =     "EasycommI",
+  .mfg_name =       "Hamlib",
+  .version =        "0.1",
+  .copyright = 	 "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_OTHER,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min =  9600,
+  .serial_rate_max =  19200,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  1,
+  .serial_parity =  RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =  0,
+  .post_write_delay =  0,
+  .timeout =  200,
+  .retry =  3,
 
-  min_az:	-180.0,
-  max_az: 	180.0,
-  min_el:	0.0,
-  max_el: 	90.0,
+  .min_az = 	-180.0,
+  .max_az =  	180.0,
+  .min_el = 	0.0,
+  .max_el =  	90.0,
 
-  priv: NULL,	/* priv */
+  .priv =  NULL,	/* priv */
 
-  set_position: easycomm_rot_set_position,
-  stop:	easycomm_rot_stop,
+  .set_position =  easycomm_rot_set_position,
+  .stop = 	easycomm_rot_stop,
 };
 
 /* EasycommII implement most of the functions. Again the radio tags
  * is only dummy values.
  */
 const struct rot_caps easycomm2_rot_caps = {
-  rot_model:     ROT_MODEL_EASYCOMM2,
-  model_name:    "EasycommII",
-  mfg_name:      "Hamlib",
-  version:       "0.1",
-  copyright:	 "LGPL",
-  status:        RIG_STATUS_ALPHA,
-  rot_type:      ROT_TYPE_OTHER,
-  port_type:     RIG_PORT_SERIAL,
-  serial_rate_min: 9600,
-  serial_rate_max: 19200,
-  serial_data_bits: 8,
-  serial_stop_bits: 1,
-  serial_parity: RIG_PARITY_NONE,
-  serial_handshake: RIG_HANDSHAKE_NONE,
-  write_delay: 0,
-  post_write_delay: 0,
-  timeout: 200,
-  retry: 3,
+  .rot_model =      ROT_MODEL_EASYCOMM2,
+  .model_name =     "EasycommII",
+  .mfg_name =       "Hamlib",
+  .version =        "0.1",
+  .copyright = 	 "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_OTHER,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min =  9600,
+  .serial_rate_max =  19200,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  1,
+  .serial_parity =  RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =  0,
+  .post_write_delay =  0,
+  .timeout =  200,
+  .retry =  3,
 
-  min_az:	-180.0,
-  max_az: 	180.0,
-  min_el:	0.0,
-  max_el: 	90.0,
+  .min_az = 	-180.0,
+  .max_az =  	180.0,
+  .min_el = 	0.0,
+  .max_el =  	90.0,
 
-  priv: NULL,	/* priv */
+  .priv =  NULL,	/* priv */
 
-  rot_init: NULL,
-  rot_cleanup: NULL,
-  rot_open: NULL,
-  rot_close: NULL,
+  .rot_init =  NULL,
+  .rot_cleanup =  NULL,
+  .rot_open =  NULL,
+  .rot_close =  NULL,
 
-  get_position: easycomm_rot_get_position,
-  set_position: easycomm_rot_set_position,
-  stop:	easycomm_rot_stop,
-  park: easycomm_rot_park,
-  reset: easycomm_rot_reset,
-  move: easycomm_rot_move,
+  .get_position =  easycomm_rot_get_position,
+  .set_position =  easycomm_rot_set_position,
+  .stop = 	easycomm_rot_stop,
+  .park =  easycomm_rot_park,
+  .reset =  easycomm_rot_reset,
+  .move =  easycomm_rot_move,
 
-  get_info: NULL,
+  .get_info =  NULL,
 };
 
 /* ************************************************************************* */
 
 int initrots_easycomm(void *be_handle)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
     rot_register(&easycomm1_rot_caps);
     rot_register(&easycomm2_rot_caps);

@@ -4,7 +4,7 @@
  * This program let programs control a radio through
  * the mean of RPC services using Hamlib.
  *
- * $Id: rpcrigd.c,v 1.2 2001-12-26 23:33:37 fillods Exp $  
+ * $Id: rpcrigd.c,v 1.3 2002-08-16 17:43:02 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -59,7 +59,6 @@ void rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp);
  * Reminder: when adding long options, 
  * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
- * TODO: add an option to read from a file
  */
 #define SHORT_OPTIONS "m:r:p:P:d:D:c:s:C:vhV"
 static struct option long_options[] =

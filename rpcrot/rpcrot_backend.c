@@ -3,7 +3,7 @@
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *		$Id: rpcrot_backend.c,v 1.2 2002-01-22 00:48:41 fillods Exp $
+ *	$Id: rpcrot_backend.c,v 1.3 2002-08-16 17:43:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -110,7 +110,7 @@ static int rpcrot_open(ROT *rot)
 		return -RIG_EPROTO;
 	}
 	model = *mdl_res;
-	rig_debug(RIG_DEBUG_VERBOSE,__FUNCTION__ ": model %d\n", model);
+	rig_debug(RIG_DEBUG_TRACE,"%s: model %d\n", __FUNCTION__, model);
 
 	/*
 	 * autoload if necessary
@@ -130,7 +130,7 @@ static int rpcrot_open(ROT *rot)
 	}
 
 	if (rs_res->rotstatus != RIG_OK) {
-		rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__": error from remote - %s\n", rigerror(rs_res->rotstatus));
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: error from remote - %s\n", __FUNCTION__, rigerror(rs_res->rotstatus));
 		return rs_res->rotstatus;
 	}
 
@@ -257,27 +257,27 @@ static int rpcrot_move(ROT *rot, int direction, int speed)
 /* ************************************************************************* */
 
 struct rot_caps rpcrot_caps = {
-  rot_model:     ROT_MODEL_RPC,
-  model_name:    "RPC rotator",
-  mfg_name:      "Hamlib",
-  version:       "0.1",
-  copyright:	 "LGPL",
-  status:        RIG_STATUS_NEW,
-  rot_type:      ROT_TYPE_OTHER,
-  port_type:     RIG_PORT_NONE,
-  priv: NULL,
+  .rot_model =      ROT_MODEL_RPC,
+  .model_name =     "RPC rotator",
+  .mfg_name =       "Hamlib",
+  .version =        "0.1",
+  .copyright = 	 "LGPL",
+  .status =         RIG_STATUS_NEW,
+  .rot_type =       ROT_TYPE_OTHER,
+  .port_type =      RIG_PORT_NONE,
+  .priv =  NULL,
 
-  rot_init:    rpcrot_init,
-  rot_cleanup: rpcrot_cleanup,
-  rot_open:    rpcrot_open,
-  rot_close:   rpcrot_close,
+  .rot_init =     rpcrot_init,
+  .rot_cleanup =  rpcrot_cleanup,
+  .rot_open =     rpcrot_open,
+  .rot_close =    rpcrot_close,
 
-  set_position: rpcrot_set_position,
-  get_position: rpcrot_get_position,
-  stop: rpcrot_stop,
-  reset: rpcrot_reset,
-  park: rpcrot_park,
-  move: rpcrot_move,
+  .set_position =  rpcrot_set_position,
+  .get_position =  rpcrot_get_position,
+  .stop =  rpcrot_stop,
+  .reset =  rpcrot_reset,
+  .park =  rpcrot_park,
+  .move =  rpcrot_move,
 
 };
 
@@ -285,7 +285,7 @@ struct rot_caps rpcrot_caps = {
 
 int initrots_rpcrot(void *be_handle)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__" called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
 	rot_register(&rpcrot_caps);
 

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.16 2001-12-20 22:59:08 fillods Exp $  
+ * $Id: ft747.c,v 1.17 2002-08-16 17:43:02 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -144,86 +144,86 @@ struct ft747_priv_data {
  */
 
 const struct rig_caps ft747_caps = {
-  rig_model:       RIG_MODEL_FT747, 
-  model_name:      "FT-747GX", 
-  mfg_name:        "Yaesu", 
-  version:          "0.1", 
-  copyright:        "LGPL",
-  status:           RIG_STATUS_ALPHA, 
-  rig_type:         RIG_TYPE_MOBILE, 
-  ptt_type:         RIG_PTT_RIG,
-  dcd_type:         RIG_DCD_NONE,
-  port_type:        RIG_PORT_SERIAL,
-  serial_rate_min:  4800,
-  serial_rate_max:  4800,
-  serial_data_bits: 8,
-  serial_stop_bits: 2,
-  serial_parity:    RIG_PARITY_NONE,
-  serial_handshake: RIG_HANDSHAKE_NONE,
-  write_delay:      FT747_WRITE_DELAY,
-  post_write_delay: FT747_POST_WRITE_DELAY,
-  timeout:          2000,
-  retry:            0,
-  has_get_func:     FT747_FUNC_ALL,
-  has_set_func:     FT747_FUNC_ALL,
-  has_get_level:    RIG_LEVEL_NONE,
-  has_set_level:    RIG_LEVEL_NONE,
-  has_get_parm:     RIG_PARM_NONE,
-  has_set_parm:     RIG_PARM_NONE,
-  ctcss_list:       NULL,
-  dcs_list:         NULL,
-  preamp:           { RIG_DBLST_END, },
-  attenuator:       { RIG_DBLST_END, },
-  max_rit:          Hz(9999),
-  max_xit:          Hz(0),
-  max_ifshift:      Hz(0),
-  targetable_vfo:   0,
-  transceive:       RIG_TRN_OFF,
-  bank_qty:         0,
-  chan_desc_sz:     0,
-  chan_list:        { RIG_CHAN_END, },	/* FIXME: memory channel list:20 */
+  .rig_model =        RIG_MODEL_FT747, 
+  .model_name =       "FT-747GX", 
+  .mfg_name =         "Yaesu", 
+  .version =           "0.1", 
+  .copyright =         "LGPL",
+  .status =            RIG_STATUS_ALPHA, 
+  .rig_type =          RIG_TYPE_MOBILE, 
+  .ptt_type =          RIG_PTT_RIG,
+  .dcd_type =          RIG_DCD_NONE,
+  .port_type =         RIG_PORT_SERIAL,
+  .serial_rate_min =   4800,
+  .serial_rate_max =   4800,
+  .serial_data_bits =  8,
+  .serial_stop_bits =  2,
+  .serial_parity =     RIG_PARITY_NONE,
+  .serial_handshake =  RIG_HANDSHAKE_NONE,
+  .write_delay =       FT747_WRITE_DELAY,
+  .post_write_delay =  FT747_POST_WRITE_DELAY,
+  .timeout =           2000,
+  .retry =             0,
+  .has_get_func =      FT747_FUNC_ALL,
+  .has_set_func =      FT747_FUNC_ALL,
+  .has_get_level =     RIG_LEVEL_NONE,
+  .has_set_level =     RIG_LEVEL_NONE,
+  .has_get_parm =      RIG_PARM_NONE,
+  .has_set_parm =      RIG_PARM_NONE,
+  .ctcss_list =        NULL,
+  .dcs_list =          NULL,
+  .preamp =            { RIG_DBLST_END, },
+  .attenuator =        { RIG_DBLST_END, },
+  .max_rit =           Hz(9999),
+  .max_xit =           Hz(0),
+  .max_ifshift =       Hz(0),
+  .targetable_vfo =    0,
+  .transceive =        RIG_TRN_OFF,
+  .bank_qty =          0,
+  .chan_desc_sz =      0,
+  .chan_list =         { RIG_CHAN_END, },	/* FIXME: memory channel list:20 */
 
-  rx_range_list1:   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+  .rx_range_list1 =    { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 
-  tx_range_list1:   { RIG_FRNG_END, },
+  .tx_range_list1 =    { RIG_FRNG_END, },
 
-  rx_range_list2:   { { start:kHz(100), end:29999900, 
-			modes:FT747_ALL_RX_MODES,low_power:-1,high_power:-1}, 
+  .rx_range_list2 =    { { .start = kHz(100), .end = 29999900, 
+			.modes = FT747_ALL_RX_MODES,.low_power = -1,.high_power = -1}, 
 		      RIG_FRNG_END, }, /* rx range */
 
-  tx_range_list2:   { {kHz(1500),1999900,FT747_OTHER_TX_MODES,low_power:5000,high_power:100000},	/* 100W class */ 
+  .tx_range_list2 =    { {kHz(1500),1999900,FT747_OTHER_TX_MODES,.low_power = 5000,.high_power = 100000},	/* 100W class */ 
 
-    {start:kHz(1500),end:1999900,FT747_AM_TX_MODES,low_power:2000,high_power:25000},	/* 25W class */
+    {.start = kHz(1500),.end = 1999900,FT747_AM_TX_MODES,.low_power = 2000,.high_power = 25000},	/* 25W class */
     
-    {start:kHz(3500),3999900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:kHz(3500),3999900,FT747_AM_TX_MODES,2000,25000},
+    {.start = kHz(3500),3999900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = kHz(3500),3999900,FT747_AM_TX_MODES,2000,25000},
     
-    {start:kHz(7000),7499900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:kHz(7000),7499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = kHz(7000),7499900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = kHz(7000),7499900,FT747_AM_TX_MODES,2000,25000},
     
-    {start:MHz(10),10499900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:MHz(10),10499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(10),10499900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = MHz(10),10499900,FT747_AM_TX_MODES,2000,25000},
     
-    {start:MHz(14),14499900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:MHz(14),14499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(14),14499900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = MHz(14),14499900,FT747_AM_TX_MODES,2000,25000},
     
-    {start:MHz(18),18499900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:MHz(18),18499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(18),18499900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = MHz(18),18499900,FT747_AM_TX_MODES,2000,25000},
     
-    {start:MHz(21),21499900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:MHz(21),21499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(21),21499900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = MHz(21),21499900,FT747_AM_TX_MODES,2000,25000},
     
-    {start:kHz(24500),24999900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:kHz(24500),24999900,FT747_AM_TX_MODES,2000,25000},
+    {.start = kHz(24500),24999900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = kHz(24500),24999900,FT747_AM_TX_MODES,2000,25000},
     
-    {start:MHz(28),29999900,FT747_OTHER_TX_MODES,5000,100000},
-    {start:MHz(28),29999900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(28),29999900,FT747_OTHER_TX_MODES,5000,100000},
+    {.start = MHz(28),29999900,FT747_AM_TX_MODES,2000,25000},
     
     RIG_FRNG_END, },
 
 
   
-  tuning_steps:   { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
+  .tuning_steps =    { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
 		    {FT747_SSB_CW_RX_MODES,2500}, /* fast on */
 		    
 		    {FT747_AM_RX_MODES,kHz(1)}, /* fast off */
@@ -235,9 +235,9 @@ const struct rig_caps ft747_caps = {
 		    RIG_TS_END,
   },  
 
-      /* mode/filter list, remember: order matters! */
+      /* mode/filter list, .remember =  order matters! */
 
-  filters:   { {RIG_MODE_SSB, kHz(2.2)}, /* standard SSB filter bandwidth */
+  .filters =    { {RIG_MODE_SSB, kHz(2.2)}, /* standard SSB filter bandwidth */
 	       {RIG_MODE_CW, kHz(1.8)},	/* normal CW filter */
 	       {RIG_MODE_CW, kHz(0.5)},	/* CW filter with narrow selection */
 	       {RIG_MODE_AM, kHz(6)},	/* normal AM filter */
@@ -249,22 +249,22 @@ const struct rig_caps ft747_caps = {
   },
 
 
-  priv:  NULL, /* private data */
+  .priv =   NULL, /* private data */
 
-  rig_init:  ft747_init, 
-  rig_cleanup:   ft747_cleanup, 
-  rig_open:  ft747_open,				/* port opened */
-  rig_close: ft747_close,				/* port closed */
+  .rig_init =   ft747_init, 
+  .rig_cleanup =    ft747_cleanup, 
+  .rig_open =   ft747_open,				/* port opened */
+  .rig_close =  ft747_close,				/* port closed */
 
-  set_freq:  ft747_set_freq,		/* set freq */
-  get_freq:  ft747_get_freq,		/* get freq */
-  set_mode:  ft747_set_mode,		/* set mode */
-  get_mode:  ft747_get_mode,		/* get mode */
-  set_vfo:   ft747_set_vfo,		/* set vfo */
+  .set_freq =   ft747_set_freq,		/* set freq */
+  .get_freq =   ft747_get_freq,		/* get freq */
+  .set_mode =   ft747_set_mode,		/* set mode */
+  .get_mode =   ft747_get_mode,		/* get mode */
+  .set_vfo =    ft747_set_vfo,		/* set vfo */
 
-  get_vfo:   ft747_get_vfo,		/* get vfo */
-  set_ptt:   ft747_set_ptt,		/* set ptt */
-  get_ptt:   ft747_get_ptt,		/* get ptt */
+  .get_vfo =    ft747_get_vfo,		/* get vfo */
+  .set_ptt =    ft747_set_ptt,		/* set ptt */
+  .get_ptt =    ft747_get_ptt,		/* get ptt */
 
 };
 
