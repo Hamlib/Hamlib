@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.18 2002-12-21 12:08:06 pa4tu Exp $
+ *	$Id: ts570.c,v 1.19 2003-09-28 15:30:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -131,6 +131,8 @@ int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
       }
       *width = 50 * atoi(&buf[2]);
       break;
+    default:
+      return -RIG_EINVAL;
   }
 
   return RIG_OK;
@@ -169,7 +171,7 @@ int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_CWR:
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-      buf_len = sprintf(buf, "FW%04d;", width);
+      buf_len = sprintf(buf, "FW%04d;", (int)width);
       ack_len = 0;
       retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
       if (retval != RIG_OK) return retval;
@@ -183,6 +185,8 @@ int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
       if (retval != RIG_OK) return retval;
       break;
+    default:
+      return -RIG_EINVAL;
   }
 
   return RIG_OK;
