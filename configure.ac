@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(hamlib, 1.1.2, hamlib-developer@lists.sourceforge.net)
-AM_INIT_AUTOMAKE(hamlib, 1.1.2)
+AC_INIT(hamlib, 1.1.3, hamlib-developer@lists.sourceforge.net)
+AM_INIT_AUTOMAKE(hamlib, 1.1.3)
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_CONFIG_HEADER(include/config.h)
 
