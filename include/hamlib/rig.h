@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.61 2002-02-28 11:00:57 fgretief Exp $
+ *		$Id: rig.h,v 1.62 2002-03-05 00:43:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -210,9 +210,9 @@ typedef long long freq_t;
 typedef signed long shortfreq_t;
 
 #define Hz(f)	((freq_t)(f))
-#define kHz(f)	(((freq_t)(f))*1000UL)
-#define MHz(f)	(((freq_t)(f))*1000000UL)
-#define GHz(f)	(((freq_t)(f))*1000000000UL)
+#define kHz(f)	((freq_t)((f)*(freq_t)1000))
+#define MHz(f)	((freq_t)((f)*(freq_t)1000000))
+#define GHz(f)	((freq_t)((f)*(freq_t)1000000000))
 
 #define RIG_FREQ_NONE Hz(0)
 
