@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.48 2002-09-15 22:35:25 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.49 2002-10-22 20:24:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -496,7 +496,7 @@ int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
 	info_len = 0;
 	retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
-	for (i = 0; i < abs(round(rit/10)); i++)
+	for (i = 0; i < abs(rint(rit/10)); i++)
 	{
 		info_len = 0;
 		retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
