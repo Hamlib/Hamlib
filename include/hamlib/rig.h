@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.12 2001-01-05 18:21:39 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.13 2001-01-28 22:11:36 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -167,7 +167,8 @@ typedef enum ptt_e ptt_t;
 
 enum ptt_type_e {
 	RIG_PTT_RIG = 0,			/* legacy PTT */
-	RIG_PTT_SERIAL,				/* PTT accessed through CTS/RTS */
+	RIG_PTT_SERIAL_DTR,
+	RIG_PTT_SERIAL_RTS,
 	RIG_PTT_PARALLEL,			/* PTT accessed through DATA0 */
 	RIG_PTT_NONE				/* not available */
 };
@@ -209,7 +210,7 @@ enum agc_level_e {
  * Universal approach for use by set_level/get_level
  */
 union value_u {
-		int i;		
+		signed int i;
 		float f;
 };
 typedef union value_u value_t;
@@ -221,7 +222,7 @@ typedef union value_u value_t;
 #define RIG_LEVEL_RF		(1<<4)	/* RF gain (not TX power), arg float [0.0..1.0] */
 #define RIG_LEVEL_SQL		(1<<5)	/* Squelch, arg float [0.0 .. 1.0] */
 #define RIG_LEVEL_IF		(1<<6)	/* IF, arg int (Hz) */
-#define RIG_LEVEL_APF		(1<<7)	/* APF?, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_APF		(1<<7)	/* APF, arg float [0.0 .. 1.0] */
 #define RIG_LEVEL_NR		(1<<8)	/* Noise Reduction, arg float [0.0 .. 1.0] */
 #define RIG_LEVEL_PBT_IN	(1<<9)	/* Twin PBT (inside), arg float [0.0 .. 1.0] */
 #define RIG_LEVEL_PBT_OUT	(1<<10)	/* Twin PBT (outside), arg float [0.0 .. 1.0] */
@@ -239,7 +240,7 @@ typedef union value_u value_t;
 #define RIG_LEVEL_SWR		(1<<28)	/* SWR, arg float */
 #define RIG_LEVEL_ALC		(1<<29)	/* ALC, arg float */
 #define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0) */
-#define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (db) */
+#define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (dB) */
 
 typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 
@@ -249,6 +250,7 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
  */
 #define	RIG_TRN_OFF 0
 #define	RIG_TRN_ON 1
+#define	RIG_TRN_POLL 2
 
 
 /*
@@ -265,7 +267,10 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 #define RIG_FUNC_ANF    	(1<<8)		/* Automatic Notch Filter (DSP) */
 #define RIG_FUNC_NR     	(1<<9)		/* Noise Reduction (DSP) */
 #define RIG_FUNC_AIP     	(1<<10)		/* AIP (Kenwood) */
-
+#define RIG_FUNC_APF     	(1<<11)		/* Auto Passband Filter */
+#define RIG_FUNC_MON     	(1<<12)		/* Monitor? (Icom) */
+#define RIG_FUNC_MN     	(1<<13)		/* Manual Notch (Icom) */
+#define RIG_FUNC_RFN     	(1<<14)		/* RTTY Filter Notch (Icom) */
 
 
 /*
@@ -286,7 +291,7 @@ typedef signed long shortfreq_t;
 #define mW(p)	 ((int)(p))
 #define Watts(p) ((int)((p)*1000))
 #define KW(p)	 ((int)((p)*1000000L))
-#define MW(p)	 ((int)((p)*1000000000L))	/* geeez! :) */
+#define MW(p)	 ((int)((p)*1000000000LL))	/* geeez! :-) */
 
 typedef unsigned int rmode_t;	/* radio mode  */
 
@@ -377,7 +382,7 @@ typedef struct channel channel_t;
 struct rig_caps {
   rig_model_t rig_model; /* eg. RIG_MODEL_FT847 */
   unsigned char model_name[RIGNAMSIZ]; /* eg "ft847" */
-  unsigned char mfg_name[RIGNAMSIZ]; /* eg "Yeasu" */
+  unsigned char mfg_name[RIGNAMSIZ]; /* eg "Yaesu" */
   char version[RIGVERSIZ]; /* driver version, eg "0.5" */
   enum rig_status_e status; /* among ALPHA, BETA, STABLE, NEW  */
   enum rig_type_e rig_type;
@@ -529,6 +534,7 @@ struct rig_state {
     double vfo_comp;	/* VFO compensation in PPM, 0.0 to disable */
   char rig_path[FILPATHLEN]; /* serial port/network path(host:port) */
   int fd;	/* serial port/socket file handle */
+  int ptt_fd;	/* ptt port file handle */
   FILE *stream;	/* serial port/socket (buffered) stream handle */
   int transceive;	/* wether the transceive mode is on */
   int hold_decode;/* set to 1 to hold the event decoder (async) otherwise 0 */
