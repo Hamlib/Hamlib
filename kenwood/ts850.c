@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.15 2004-03-29 20:55:34 f4dwv Exp $
+ *	$Id: ts850.c,v 1.16 2004-06-14 19:32:26 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -96,8 +96,8 @@ const struct rig_caps ts850_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
-.post_write_delay =  0,
-.timeout =  2000,
+.post_write_delay =  500,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  TS850_FUNC_ALL,
@@ -518,11 +518,6 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                         if (retval != RIG_OK)
                                 return retval;
 
-                        if (lvl_len != 7 || lvlbuf[1] != 'M') {
-                                rig_debug(RIG_DEBUG_ERR,"kenwood_get_level: wrong answer le n=%d\n", lvl_len);
-                                return -RIG_ERJCTED;
-			}
-
 			lvlbuf[6]='\0';
 			val->i=atoi(&lvlbuf[2]);
 			if(level==RIG_LEVEL_STRENGTH)
@@ -534,12 +529,16 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
                         if (retval != RIG_OK)
                                 return retval;
                 	lvl_len = 50;
-                        retval = kenwood_transaction (rig, "RM;", 4, lvlbuf, &lvl_len);
+                        retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
                         if (retval != RIG_OK)
                                 return retval;
 
 			lvlbuf[7]='\0';
-			val->f=(float)atoi(&lvlbuf[3])/30.0;
+			val->i=atoi(&lvlbuf[3]);
+			if(val->i == 30) 
+				val->f = 150.0; /* infinity :-) */
+			else
+				val->f = 60.0/(30.0-(float)val->i)-1.0;
                         break;
                 case RIG_LEVEL_COMP:
                 	lvl_len = 0;
