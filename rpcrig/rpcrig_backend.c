@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.17 2004-03-15 03:24:12 nj8j Exp $
+ *	$Id: rpcrig_backend.c,v 1.18 2004-03-15 03:30:26 nj8j Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -795,7 +795,7 @@ static int rpcrig_get_parm(RIG *rig, setting_t parm, value_t *val)
 		return -RIG_EPROTO;
 	}
 	if (res->rigstatus == RIG_OK) {
-			if (RIG_LEVEL_IS_FLOAT(parm))
+			if (RIG_PARM_IS_FLOAT(parm))
 				val->f = res->val_res_u.val.f;
 			else
 				val->i = res->val_res_u.val.i;
