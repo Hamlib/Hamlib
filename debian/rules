@@ -8,12 +8,18 @@
 # This is the debhelper compatability version to use.
 export DH_COMPAT=3
 
-version=`cat configure.ac|grep AC_INIT|cut -d"," -f2|cut -d"[" -f2|cut -d"]" -f1`
+version=1.1.5
 
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	./configure --prefix=/usr --mandir=\$${prefix}/share/man --without-cxx-binding
+	./configure --prefix=/usr --mandir=\$${prefix}/share/man \
+	--without-cxx-binding \
+	--without-perl-binding  \
+	--without-kylix-binding \
+	--without-tcl-binding   \
+	--without-python-binding
+
 	touch configure-stamp
 
 build: configure-stamp build-stamp
@@ -50,9 +56,9 @@ install: build
 	mv $(CURDIR)/debian/tmp/usr/share/aclocal/hamlib.m4 $(CURDIR)/debian/hamlib-dev/usr/share/aclocal/
 
 	# Move the appropriate files into the runtime package..
-	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.1 $(CURDIR)/debian/hamlib1/usr/lib/
-	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.1.0.0 $(CURDIR)/debian/hamlib1/usr/lib/
-	mv $(CURDIR)/debian/tmp/usr/lib/hamlib-*so $(CURDIR)/debian/hamlib1/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2 $(CURDIR)/debian/hamlib2/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib-$(version).so.2.0.0 $(CURDIR)/debian/hamlib2/usr/lib/
+	mv $(CURDIR)/debian/tmp/usr/lib/hamlib-*so $(CURDIR)/debian/hamlib2/usr/lib/
 
 	# Move the appropriate files into the documentation package..
 	mv $(CURDIR)/doc/html/* $(CURDIR)/debian/hamlib-doc/usr/share/doc/hamlib-doc/html
@@ -60,8 +66,10 @@ install: build
 	# Move the appropriate files into the utils package..
 	mv $(CURDIR)/debian/tmp/usr/bin/rigctl $(CURDIR)/debian/hamlib-utils/usr/bin/
 	mv $(CURDIR)/debian/tmp/usr/bin/rotctl $(CURDIR)/debian/hamlib-utils/usr/bin/
+	mv $(CURDIR)/debian/tmp/usr/bin/rigmem $(CURDIR)/debian/hamlib-utils/usr/bin/
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/rigctl.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
 	mv $(CURDIR)/debian/tmp/usr/share/man/man1/rotctl.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
+	mv $(CURDIR)/debian/tmp/usr/share/man/man1/rigmem.1 $(CURDIR)/debian/hamlib-utils/usr/share/man/man1
 	mv $(CURDIR)/debian/tmp/usr/sbin/rpc.rigd $(CURDIR)/debian/hamlib-utils/usr/sbin/
 	mv $(CURDIR)/debian/tmp/usr/sbin/rpc.rotd $(CURDIR)/debian/hamlib-utils/usr/sbin/
 	mv $(CURDIR)/debian/tmp/usr/share/man/man8/rpc.rigd.8 $(CURDIR)/debian/hamlib-utils/usr/share/man/man8
@@ -78,7 +86,7 @@ binary-arch: build install
 
 #	dh_movefiles
 #	dh_installdebconf	
-	dh_installdocs -X INSTALL
+	dh_installdocs -X INSTALL -X ChangeLog
 #	dh_installexamples
 #	dh_installmenu
 #	dh_installlogrotate
@@ -90,15 +98,15 @@ binary-arch: build install
 #	dh_installman
 #	dh_installinfo
 #	dh_undocumented
-	dh_installchangelogs ChangeLog
+	dh_installchangelogs
 #	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xpcr -Xrotorez -Xrpc -Xtentec -Xuniden -Xwinradio -Xyaesu
+	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu
 	dh_installdeb
 #	dh_perl
-	dh_shlibdeps -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xpcr -Xrotorez -Xrpc -Xtentec -Xuniden -Xwinradio -Xyaesu
+	dh_shlibdeps -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xlowe -Xmicrotune -Xpcr -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xuniden -Xwinradio -Xyaesu
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

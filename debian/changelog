@@ -1,3 +1,12 @@
+hamlib (1.1.5-1) unstable; urgency=low
+
+  * New upstream.
+  * New package: hamlib2 because of API changes.
+  * 1 new program in hamlib-utils called rigmem.
+  * Upstream changelog is old, so not included anymore.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Fri, 30 Jan 2004 20:37:06 +0100
+
 hamlib (1.1.4-6) unstable; urgency=low
 
   * This time fix it correctly. Call dh_makeshlibs with -V option.
