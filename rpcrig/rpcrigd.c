@@ -4,7 +4,7 @@
  * This program let programs control a radio through
  * the mean of RPC services using Hamlib.
  *
- * $Id: rpcrigd.c,v 1.1 2001-10-16 19:29:03 f4cfe Exp $  
+ * $Id: rpcrigd.c,v 1.2 2001-12-26 23:33:37 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ void rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:P:d:D:c:vhVl"
+#define SHORT_OPTIONS "m:r:p:P:d:D:c:s:C:vhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -70,8 +70,9 @@ static struct option long_options[] =
 	{"dcd-file", 1, 0, 'd'},
 	{"ptt-type", 1, 0, 'P'},
 	{"dcd-type", 1, 0, 'D'},
+	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
-	{"list",     0, 0, 'l'},
+	{"set-conf", 1, 0, 'C'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -79,8 +80,33 @@ static struct option long_options[] =
 };
 
 
+int set_conf(RIG *my_rig, char *conf_parms)
+{
+	char *p, *q, *n;
+	int ret;
+
+	p = conf_parms;
+	while (p && *p != '\0') {
+			/* FIXME: left hand value of = cannot be null */
+		q = strchr(p, '=');
+		if (q) *q++ = '\0';
+		n = strchr(q, ',');
+		if (n) *n++ = '\0';
+
+		ret = rig_set_conf(my_rig, rig_token_lookup(my_rig, p), q);
+		if (ret != RIG_OK)
+				return ret;
+		p = n;
+	}
+	return RIG_OK;
+}
+
+
 
 RIG *the_rpc_rig;
+
+
+#define MAXCONFLEN 128
 
 int
 main (int argc, char *argv[])
@@ -95,6 +121,8 @@ main (int argc, char *argv[])
 	ptt_type_t ptt_type = RIG_PTT_NONE;
 	dcd_type_t dcd_type = RIG_DCD_NONE;
 	char *civaddr = NULL;	/* NULL means no need to set conf */
+	int serial_rate = 0;
+	char conf_parms[MAXCONFLEN] = "";
 
 	/* Arguments parsing */
 
@@ -163,6 +191,22 @@ main (int argc, char *argv[])
 					}
 					civaddr = optarg;
 					break;
+			case 's':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					serial_rate = atoi(optarg);
+					break;
+			case 'C':
+					if (!optarg) {
+							usage();	/* wrong arg count */
+							exit(1);
+					}
+					if (*conf_parms != '\0')
+							strcat(conf_parms, ",");
+					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+					break;
 			case 'v':
 					verbose++;
 					break;
@@ -182,7 +226,13 @@ main (int argc, char *argv[])
 	if (!the_rpc_rig) {
 			fprintf(stderr, "Unknown rig num %d, or initialization error.\n", 
 							my_model);
-			fprintf(stderr, "Please check with --list option.\n");
+			fprintf(stderr, "Please check with rigctl --list option.\n");
+			exit(2);
+	}
+
+	retcode = set_conf(the_rpc_rig, conf_parms);
+	if (retcode != RIG_OK) {
+			fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
 			exit(2);
 	}
 
@@ -200,11 +250,15 @@ main (int argc, char *argv[])
 		strncpy(the_rpc_rig->state.pttport.pathname, ptt_file, FILPATHLEN);
 	if (dcd_file)
 		strncpy(the_rpc_rig->state.dcdport.pathname, dcd_file, FILPATHLEN);
+	/* FIXME: bound checking and port type == serial */
+	if (serial_rate != 0)
+		the_rpc_rig->state.rigport.parm.serial.rate = serial_rate;
 	if (civaddr)
         rig_set_conf(the_rpc_rig, rig_token_lookup(the_rpc_rig, "civaddr"), civaddr);
 
 
-	if ((retcode = rig_open(the_rpc_rig)) != RIG_OK) {
+	retcode = rig_open(the_rpc_rig);
+	if (retcode != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
 			exit(2);
 	}
@@ -271,8 +325,9 @@ void usage()
 	"  -d, --dcd-file=DEVICE      set device of the DCD device to operate on\n"
 	"  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
 	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
+	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address (for Icom rigs only)\n"
-	"  -l, --list                 list all model numbers and exit\n"
+	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n"
@@ -287,5 +342,4 @@ void version()
 	printf("rpcrigd, %s\n\n", hamlib_version);
 	printf("%s\n", hamlib_copyright);
 }
-
 

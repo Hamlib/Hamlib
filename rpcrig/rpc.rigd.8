@@ -55,8 +55,14 @@ Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
 Use \fBtype\fP device as the kind of the Data Carrier Detect device 
 to operate on.
 .TP
+.B \-s, --serial-speed=baud
+Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
+.TP
 .B \-c, --civaddr=id
 Use \fBid\fP as the CI-V address to communicate with the rig. Only for Icom rigs.
+.TP
+.B \-C, \-\-set\-conf=parm=val[,parm=val]*
+Set config parameter.
 .TP
 .B \-v, \-\-verbose
 Set verbose mode, cumulative.
