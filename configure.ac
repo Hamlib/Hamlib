@@ -1,32 +1,45 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT
-AC_CONFIG_SRCDIR([include/hamlib/rig.h])
-
+AC_INIT(hamlib, 1.1.2, hamlib-developer@lists.sourceforge.net)
 AM_INIT_AUTOMAKE(hamlib, 1.1.2)
+AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_CONFIG_HEADER(include/config.h)
-AC_PREREQ(2.50)dnl              dnl Minimum Autoconf version required.
-AC_REVISION($Revision: 1.3 $)
+
+# Minimum Autoconf version required.
+AC_PREREQ(2.50)
+AC_REVISION($Revision: 1.4 $)
 
 dnl directory for docs (html)
 hamlibdocdir=$datadir/doc/hamlib
 AC_SUBST(hamlibdocdir)
 
 dnl Checks for programs.
+AC_PROG_CXX
+AC_PROG_AWK
 AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+
 AC_AIX
 AC_ISC_POSIX
 AC_MINIX
 AM_PROG_CC_STDC
 AC_PROG_GCC_TRADITIONAL
 
-AC_PROG_MAKE_SET
-AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_RANLIB
-AC_PROG_AWK
+dnl Checks for header files.
+AC_HEADER_DIRENT
+AC_HEADER_STDC
+AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
+AC_CHECK_HEADERS([stdlib.h values.h])
+AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h unistd.h getopt.h errno.h])
+AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h])
+AC_CHECK_HEADERS([windows.h winioctl.h winbase.h])
 
-AC_PROG_CXX
+AM_SYS_POSIX_TERMIOS
+
 AC_MSG_CHECKING(if you want to build C++ binding and demo)
 AC_ARG_WITH(cxx-binding,
         [  --without-cxx-binding   do not build C++ binding and demo],
@@ -44,13 +57,6 @@ if test "${ac_cv_cxx_compiler_gnu}" = "yes"; then
   CXXFLAGS="${CXXFLAGS} -Wall"
 fi
 
-dnl Checks for header files.
-AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h unistd.h getopt.h errno.h])
-AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h])
-AC_CHECK_HEADERS([windows.h winioctl.h winbase.h])
-dnl AC_HEADER_STAT
-
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
@@ -66,14 +72,9 @@ dnl AC_CHECK_LIB(nsl,gethostbyaddr)
 dnl AC_CHECK_LIB(socket,socket)
 AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 
-dnl Replace `main' with a function in -lc:
-AC_CHECK_LIB(c, main)
-dnl Replace `main' with a function in -lm:
-AC_CHECK_LIB(m, main)
-
-
 dnl Checks for library functions.
-AC_CHECK_FUNCS(atexit snprintf select strerror)
+AC_CHECK_FUNCS([atexit snprintf select gettimeofday memmove memset])
+AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
 AC_CHECK_FUNCS(getopt_long,,LIBOBJS="$LIBOBJS getopt.o getopt1.o")
 AC_CHECK_FUNCS(usleep,,LIBOBJS="$LIBOBJS usleep.o")
 AC_FUNC_ALLOCA
@@ -116,11 +117,11 @@ AM_CONDITIONAL(WANTRIGMATRIX, test x$wantrigmatrix = xtrue)
 
 if test "x${wantrigmatrix}" != "xfalse"; then
 AC_CHECK_HEADERS(gd.h,
-  [AC_CHECK_LIB(gd,gdImageCreate)
+  [AC_CHECK_LIB([gd],[gdImageCreate])
   AC_CHECK_FUNCS(gdImageCreate, , enable_rigmatrix=no)],
    [enable_rigmatrix=no])
-AC_CHECK_LIB(gd,png_write_data)
-AC_CHECK_LIB(z,uncompress)
+AC_CHECK_LIB([gd],[png_write_data])
+AC_CHECK_LIB([z],[uncompress])
 if test "${ac_cv_header_gd_h}" = "no"; then
   echo "disabling rigmatrix generation"
   RIGMATRIX=
