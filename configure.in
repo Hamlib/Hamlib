@@ -3,7 +3,7 @@ AC_INIT(include/hamlib/rig.h)
 
 # version code:
 V_MAJOR=1
-V_MINOR=1.1
+V_MINOR=1.2
 
 AM_INIT_AUTOMAKE(hamlib, ${V_MAJOR}.${V_MINOR})
 AM_CONFIG_HEADER(include/config.h)
@@ -11,8 +11,8 @@ AC_PREREQ(2.10)dnl              dnl Minimum Autoconf version required.
 AC_ARG_PROGRAM
 
 dnl directory for docs (html)
-AC_SUBST(hamlibdocdir)
 hamlibdocdir=$datadir/doc/hamlib
+AC_SUBST(hamlibdocdir)
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -26,16 +26,26 @@ AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
-CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE -DV_MAJOR=${V_MAJOR} -DV_MINOR=${V_MINOR}"
+AC_CHECK_PROG(RANLIB, ranlib, ranlib, :)
+AC_CHECK_PROG(DLLTOOL, dlltool, dlltool, dlltool)
+AC_CHECK_PROG(AS, as, as, as, as)
+AC_CHECK_PROG(AR, ar, ar, ar, ar)
+AC_CHECK_PROG(WINDRES, windres, windres, i686-pc-cygwin-windres)
+AC_CYGWIN
+AC_MINGW32
+AC_EXEEXT
+AC_OBJEXT
+
+INCLUDES="${INCLUDES} -I\$(top_srcdir)/src"
+CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 if test "${ac_cv_prog_gcc}" = "yes"; then
   CFLAGS="${CFLAGS} -Wall"
 fi
 
 dnl Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h sys/ioccom.h linux/ppdev.h \
-	sgtty.h term.h termio.h termios.h)
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h getopt.h)
+AC_CHECK_HEADERS(sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h)
 dnl AC_HEADER_STAT
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -58,19 +68,31 @@ AC_CHECK_LIB(m, main)
 
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(atexit snprintf usleep select strerror)
+AC_CHECK_FUNCS(atexit snprintf select strerror)
+AC_CHECK_FUNCS(getopt_long,,LIBOBJS="$LIBOBJS getopt.o getopt1.o")
+AC_CHECK_FUNCS(usleep,,LIBOBJS="$LIBOBJS usleep.o")
 
 
 dnl initialize libtool
+dnl Enable building of the convenience library
+dnl and set LIBLTDL accordingly
+AC_LIBLTDL_CONVENIENCE
+dnl Substitute INCLTDL and LIBLTDL in the Makefiles
+AC_SUBST(INCLTDL)
+AC_SUBST(LIBLTDL)
+dnl Check for dlopen support
 AC_LIBTOOL_DLOPEN
+dnl Configure libtool
 AM_PROG_LIBTOOL
+dnl Configure libltdl
+AC_CONFIG_SUBDIRS(libltdl)
 
-if test "${enable_dynamic}" != "no"; then
-  AC_CHECK_HEADERS(dlfcn.h,
-  [AC_CHECK_LIB(dl,dlopen)
-  AC_CHECK_FUNCS(dlopen, , enable_dynamic=no)],
-   [enable_dynamic=no])
-fi
+dnl if test "${enable_dynamic}" != "no"; then
+dnl   AC_CHECK_HEADERS(dlfcn.h,
+dnl   [AC_CHECK_LIB(dl,dlopen)
+dnl   AC_CHECK_FUNCS(dlopen, , enable_dynamic=no)],
+dnl    [enable_dynamic=no])
+dnl fi
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 
@@ -110,18 +132,22 @@ AC_CHECK_HEADERS(linradio/radio_ioctl.h linradio/wrapi.h)
 if test "${ac_cv_header_linradio_radio_ioctl_h}" = "no" -o \
 					"${ac_cv_header_linradio_wrapi_h}" = "no"; then
   echo "disabling WiNRADiO receiver support"
-  WINRADIO=
   WINRADIOLNK=
   WINRADIODEPS=
+  LIBWINRADIO=
+  LTLIBWINRADIO=
 else
   echo "enabling WiNRADiO receiver support"
-  WINRADIO=winradio
-  WINRADIOLNK="\"-dlopen\" ../winradio/libhamlib-winradio.la"
-  WINRADIODEPS="../winradio/libhamlib-winradio.la"
+  LIBWINRADIO=libhamlib-winradio.la
+  LTLIBWINRADIO=libhamlib-winradio.a
+  WINRADIOLNK="\"-dlopen\" ../winradio/${LIBWINRADIO}"
+  WINRADIODEPS="../winradio/${LTLIBWINRADIO}"
 fi
-AC_SUBST(WINRADIO)
+  AM_CONDITIONAL(WINRADIO, test -n "$WINRADIOLNK")
 AC_SUBST(WINRADIOLNK)
 AC_SUBST(WINRADIODEPS)
+AC_SUBST(LIBWINRADIO)
+AC_SUBST(LTLIBWINRADIO)
 
 
 AC_SUBST(INCLUDES)
@@ -147,10 +173,12 @@ fi
 AC_SUBST(V_MAJOR)
 AC_SUBST(V_MINOR)
 AC_SUBST(DLL_PRELOAD)
+AC_SUBST(LIBOBJS)
 
 AC_OUTPUT([Makefile
 include/Makefile
 include/hamlib/Makefile
+lib/Makefile
 dummy/Makefile
 yaesu/Makefile
 icom/Makefile
