@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.51 2004-06-06 21:59:54 fillods Exp $  
+ * $Id: rigctl.c,v 1.52 2004-10-02 10:33:21 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -667,11 +667,11 @@ void usage_rig()
 		printf("Commands (may not be available for this rig):\n");
 		for (i=0; test_list[i].cmd != 0; i++) {
 			printf("%c: %-16s(", isprint(test_list[i].cmd)?test_list[i].cmd:'?', test_list[i].name);
-			if (test_list[i].arg1)
+			if (test_list[i].arg1 && (test_list[i].flags&ARG_IN1))
 					printf("%s", test_list[i].arg1);
-			if (test_list[i].arg2)
+			if (test_list[i].arg2 && (test_list[i].flags&ARG_IN2))
 					printf(",%s", test_list[i].arg2);
-			if (test_list[i].arg3)
+			if (test_list[i].arg3 && (test_list[i].flags&ARG_IN3))
 					printf(",%s", test_list[i].arg3);
 			printf(")  \t");
 
