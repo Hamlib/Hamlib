@@ -1,8 +1,8 @@
 /*
- *  Hamlib TEnTenc backend - RX-320 PC-Radio capabilities
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Hamlib TenTenc backend - RX-320 PC-Radio description
+ *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: rx320.c,v 1.1 2001-07-14 16:42:48 f4cfe Exp $
+ *		$Id: rx320.c,v 1.2 2002-01-06 17:50:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,17 +24,7 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include "tentec.h"
 
 
