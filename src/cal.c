@@ -2,7 +2,7 @@
  *  Hamlib Interface - calibration routines
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: cal.c,v 1.3 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: cal.c,v 1.4 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,7 +24,6 @@
 #include "config.h"
 #endif
 
-#define HAMLIB_DLL
 #include <hamlib/rig.h>
 #include "cal.h"
 

@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: pcr.h,v 1.4 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: pcr.h,v 1.5 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,7 +44,7 @@ const char *pcr_get_info(RIG *rig);
 extern const struct rig_caps pcr1000_caps;
 extern const struct rig_caps pcr100_caps;
 
-extern HAMLIB_EXPORT(int) init_pcr(void *be_handle);
+extern BACKEND_EXPORT(int) init_pcr(void *be_handle);
 
 
 #endif /* _PCR_H */

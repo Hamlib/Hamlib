@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rpcrig_backend.c,v 1.1 2001-10-16 19:29:03 f4cfe Exp $
+ *		$Id: rpcrig_backend.c,v 1.2 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,18 +34,9 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
 
 #include <rpc/rpc.h>
 #include "rpcrig.h"
@@ -54,12 +45,12 @@
 
 
 /********************************************************************/
-void freq_t2freq_s(freq_t freqt, freq_s *freqs)
+static void freq_t2freq_s(freq_t freqt, freq_s *freqs)
 {
 	freqs->f1 = freqt & 0xffffffff;
 	freqs->f2 = (freqt>>32) & 0xffffffff;
 }
-freq_t freq_s2freq_t(freq_s *freqs)
+static freq_t freq_s2freq_t(freq_s *freqs)
 {
 	return freqs->f1 | ((freq_t)freqs->f2 << 32);
 }
@@ -117,6 +108,7 @@ static int rpcrig_open(RIG *rig)
 	result = getmodel_1(NULL, priv->cl);
 	if (result == NULL) {
 		clnt_perror(priv->cl, server);
+		clnt_destroy(priv->cl);
 		return -RIG_EPROTO;
 	}
 	model = *result;
@@ -126,7 +118,7 @@ static int rpcrig_open(RIG *rig)
 	/*
 	 * TODO: get these from RPC instead
 	 */
-#if 0
+#if 1
 	rs->vfo_list = 0;
 	for (i=0; i<FRQRANGESIZ; i++) {
 		if (rs->rx_range_list[i].start != 0 &&

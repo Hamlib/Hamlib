@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: uniden.h,v 1.1 2001-07-14 16:45:40 f4cfe Exp $
+ *		$Id: uniden.h,v 1.2 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,16 +23,8 @@
 #ifndef _UNIDEN_H
 #define _UNIDEN_H 1
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <cal.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <cal.h>
-#endif
+#include <hamlib/rig.h>
+#include <cal.h>
 
 
 int uniden_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -40,7 +32,7 @@ int uniden_set_mem(RIG *rig, vfo_t vfo, int ch);
 
 extern const struct rig_caps bc895_caps;
 
-extern int init_uniden(void *be_handle);
+extern BACKEND_EXPORT(int) init_uniden(void *be_handle);
 
 
 #endif /* _UNIDEN_H */

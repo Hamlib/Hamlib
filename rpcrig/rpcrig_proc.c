@@ -2,7 +2,7 @@
  *  Hamlib RPC server - procedures
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rpcrig_proc.c,v 1.1 2001-10-16 19:29:03 f4cfe Exp $
+ *		$Id: rpcrig_proc.c,v 1.2 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,12 +38,12 @@
 
 extern RIG *the_rpc_rig;
 
-void freq_t2freq_s(freq_t freqt, freq_s *freqs)
+static void freq_t2freq_s(freq_t freqt, freq_s *freqs)
 {
 	freqs->f1 = freqt & 0xffffffff;
 	freqs->f2 = (freqt>>32) & 0xffffffff;
 }
-freq_t freq_s2freq_t(freq_s *freqs)
+static freq_t freq_s2freq_t(freq_s *freqs)
 {
 	return freqs->f1 | ((freq_t)freqs->f2 << 32);
 }

@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rpcrig_backend.h,v 1.1 2001-10-16 19:29:03 f4cfe Exp $
+ *		$Id: rpcrig_backend.h,v 1.2 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,6 +26,6 @@
 
 extern const struct rig_caps rpcrig_caps;
 
-extern HAMLIB_EXPORT(int) init_rpcrig(void *be_handle);
+extern BACKEND_EXPORT(int) init_rpcrig(void *be_handle);
 
 #endif /* _RPCRIG_H */

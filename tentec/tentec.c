@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: tentec.c,v 1.1 2001-07-14 16:42:48 f4cfe Exp $
+ *		$Id: tentec.c,v 1.2 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,20 +34,10 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  include <cal.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  include <cal.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
+#include <cal.h>
 
 #include "tentec.h"
 
@@ -352,7 +342,7 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		/* FIXME: support also separate Lineout setting 
 		 * -> need to create RIG_LEVEL_LINEOUT ?
 		 */
-		cmd_len = sprintf(cmdbuf, "C%c%c" EOM, 0, (int)rint(val.f*63));
+		cmd_len = sprintf(cmdbuf, "C%c%c" EOM, 0, (int)(val.f*63));
 		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
 		if (retval == RIG_OK) 
 				priv->lnvol = priv->spkvol = val.f;

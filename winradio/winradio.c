@@ -3,7 +3,7 @@
  *  Copyright (C) 2001 pab@users.sourceforge.net
  *  Derived from hamlib code (C) 2000,2001 Stephane Fillod.
  *
- *		$Id: winradio.c,v 1.14 2001-07-25 21:59:55 f4cfe Exp $
+ *		$Id: winradio.c,v 1.15 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,18 +35,9 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
 
 #include "winradio.h"
 

@@ -2,7 +2,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: conf.c,v 1.2 2001-07-25 21:58:15 f4cfe Exp $
+ *		$Id: conf.c,v 1.3 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,7 +30,6 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 
-#define HAMLIB_DLL
 #include <hamlib/rig.h>
 
 #include "conf.h"

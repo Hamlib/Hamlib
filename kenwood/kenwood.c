@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.19 2001-12-12 22:03:29 fillods Exp $
+ *		$Id: kenwood.c,v 1.20 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,18 +34,9 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
 
 #include "kenwood.h"
 

@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: uniden.c,v 1.1 2001-07-14 16:45:40 f4cfe Exp $
+ *		$Id: uniden.c,v 1.2 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,18 +34,9 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
 
 #include "uniden.h"
 

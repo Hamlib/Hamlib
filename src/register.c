@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: register.c,v 1.10 2001-09-19 21:58:33 f4cfe Exp $
+ *		$Id: register.c,v 1.11 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,6 @@
 /* This is libtool's dl wrapper */
 #include <ltdl.h>
 
-#define HAMLIB_DLL
 #include <hamlib/rig.h>
 
 
@@ -282,13 +281,12 @@ int rig_load_backend(const char *be_name)
 	/*
 	 * lt_dlinit may be called several times
 	 */
-#ifdef	HAVE_PRELOADED_SYMBOLS
 	LTDL_SET_PRELOADED_SYMBOLS();
-#endif
+
 	status = lt_dlinit();
 	if (status) {
     		rig_debug(RIG_DEBUG_ERR, "rig_backend_load: lt_dlinit for %s "
-							"failed: %d\n", be_name, status);
+							"failed: %s\n", be_name, lt_dlerror());
     		return -RIG_EINTERNAL;
 	}
 
@@ -297,16 +295,19 @@ int rig_load_backend(const char *be_name)
 	/*
 	 * add hamlib directory here
 	 */
+#ifdef HAMLIB_DLL
 	snprintf (libname, sizeof (libname), PREFIX"%s"POSTFIX, be_name);
 
 	be_handle = lt_dlopen (libname);
+#else
+	be_handle = lt_dlopen (NULL);
+#endif
 
 	if (!be_handle) {
-		rig_debug(RIG_DEBUG_ERR, "rig: lt_dlopen(\"%s\") failed (%s)\n",
+		rig_debug(RIG_DEBUG_ERR, "rig:  lt_dlopen(\"%s\") failed (%s)\n",
 						libname, lt_dlerror());
 		return -RIG_EINVAL;
     }
-
 
     strncat(initfname, be_name, MAXFUNCNAMELEN);
     be_init = (int (*)(rig_ptr_t)) lt_dlsym (be_handle, initfname);

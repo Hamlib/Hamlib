@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: event.c,v 1.10 2001-08-22 21:10:17 f4cfe Exp $
+ *		$Id: event.c,v 1.11 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,7 +37,6 @@
 #include <errno.h>
 
 
-#define HAMLIB_DLL
 #include <hamlib/rig.h>
 
 #include "event.h"

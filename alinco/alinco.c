@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: alinco.c,v 1.8 2001-10-16 19:19:46 f4cfe Exp $
+ *		$Id: alinco.c,v 1.9 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,20 +34,10 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  include <cal.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <serial.h>
-#  include <misc.h>
-#  include <cal.h>
-#endif
+#include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
+#include <cal.h>
 
 #include "tone_tbl.h"
 

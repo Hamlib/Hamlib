@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: tentec.h,v 1.1 2001-07-14 16:42:48 f4cfe Exp $
+ *		$Id: tentec.h,v 1.2 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,16 +23,8 @@
 #ifndef _TENTEC_H
 #define _TENTEC_H 1
 
-#if defined(__CYGWIN__)
-#  undef HAMLIB_DLL
-#  include <hamlib/rig.h>
-#  include <cal.h>
-#  define HAMLIB_DLL
-#  include <hamlib/rig_dll.h>
-#else
-#  include <hamlib/rig.h>
-#  include <cal.h>
-#endif
+#include <hamlib/rig.h>
+#include <cal.h>
 
 struct tentec_priv_caps {
 	cal_table_t str_cal;
@@ -68,7 +60,7 @@ const char* tentec_get_info(RIG *rig);
 
 extern const struct rig_caps rx320_caps;
 
-extern HAMLIB_EXPORT(int) init_tentec(void *be_handle);
+extern BACKEND_EXPORT(int) init_tentec(void *be_handle);
 
 
 #endif /* _TENTEC_H */

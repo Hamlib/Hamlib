@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: dummy.h,v 1.3 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: dummy.h,v 1.4 2001-12-16 11:14:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,6 +26,6 @@
 
 extern const struct rig_caps dummy_caps;
 
-extern HAMLIB_EXPORT(int) init_dummy(void *be_handle);
+extern BACKEND_EXPORT(int) init_dummy(void *be_handle);
 
 #endif /* _DUMMY_H */
