@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.14 2001-02-11 23:14:28 f4cfe Exp $  
+ * $Id: icom.c,v 1.15 2001-02-14 23:55:54 f4cfe Exp $  
  *
  *
  *
@@ -48,82 +48,82 @@ const struct ts_sc_list r8500_ts_sc_list[] = {
 		{ 10, 0x00 },
 		{ 50, 0x01 },
 		{ 100, 0x02 },
-		{ KHz(1), 0x03 },
+		{ kHz(1), 0x03 },
 		{ 12500, 0x04 },
-		{ KHz(5), 0x05 },
-		{ KHz(9), 0x06 },
-		{ KHz(10), 0x07 },
+		{ kHz(5), 0x05 },
+		{ kHz(9), 0x06 },
+		{ kHz(10), 0x07 },
 		{ 12500, 0x08 },
-		{ KHz(20), 0x09 },
-		{ KHz(25), 0x10 },
-		{ KHz(100), 0x11 },
+		{ kHz(20), 0x09 },
+		{ kHz(25), 0x10 },
+		{ kHz(100), 0x11 },
 		{ MHz(1), 0x12 },
 		{ 0, 0 },	/* programmable tuning step not supported */
 };
 
 const struct ts_sc_list ic737_ts_sc_list[] = {
 		{ 10, 0x00 },
-		{ KHz(1), 0x01 },
-		{ KHz(2), 0x02 },
-		{ KHz(3), 0x03 },
-		{ KHz(4), 0x04 },
-		{ KHz(5), 0x05 },
-		{ KHz(6), 0x06 },
-		{ KHz(7), 0x07 },
-		{ KHz(8), 0x08 },
-		{ KHz(9), 0x09 },
-		{ KHz(10), 0x10 },
+		{ kHz(1), 0x01 },
+		{ kHz(2), 0x02 },
+		{ kHz(3), 0x03 },
+		{ kHz(4), 0x04 },
+		{ kHz(5), 0x05 },
+		{ kHz(6), 0x06 },
+		{ kHz(7), 0x07 },
+		{ kHz(8), 0x08 },
+		{ kHz(9), 0x09 },
+		{ kHz(10), 0x10 },
 		{ 0, 0 },
 };
 
 const struct ts_sc_list r75_ts_sc_list[] = {
 		{ 10, 0x00 },
 		{ 100, 0x01 },
-		{ KHz(1), 0x02 },
-		{ KHz(5), 0x03 },
+		{ kHz(1), 0x02 },
+		{ kHz(5), 0x03 },
 		{ 6250, 0x04 },
-		{ KHz(9), 0x05 },
-		{ KHz(10), 0x06 },
+		{ kHz(9), 0x05 },
+		{ kHz(10), 0x06 },
 		{ 12500, 0x07 },
-		{ KHz(20), 0x08 },
-		{ KHz(25), 0x09 },
-		{ KHz(100), 0x10 },
+		{ kHz(20), 0x08 },
+		{ kHz(25), 0x09 },
+		{ kHz(100), 0x10 },
 		{ MHz(1), 0x11 },
 		{ 0, 0 },
 };
 
 const struct ts_sc_list r7100_ts_sc_list[] = {
 		{ 100, 0x00 },
-		{ KHz(1), 0x01 },
-		{ KHz(5), 0x02 },
-		{ KHz(10), 0x03 },
+		{ kHz(1), 0x01 },
+		{ kHz(5), 0x02 },
+		{ kHz(10), 0x03 },
 		{ 12500, 0x04 },
-		{ KHz(20), 0x05 },
-		{ KHz(25), 0x06 },
-		{ KHz(100), 0x07 },
+		{ kHz(20), 0x05 },
+		{ kHz(25), 0x06 },
+		{ kHz(100), 0x07 },
 		{ 0, 0 },
 };
 
 const struct ts_sc_list ic756_ts_sc_list[] = {
 		{ 10, 0x00 },
-		{ KHz(1), 0x01 },
-		{ KHz(5), 0x02 },
-		{ KHz(9), 0x03 },
-		{ KHz(10), 0x04 },
+		{ kHz(1), 0x01 },
+		{ kHz(5), 0x02 },
+		{ kHz(9), 0x03 },
+		{ kHz(10), 0x04 },
 		{ 0, 0 },
 };
 
 const struct ts_sc_list ic706_ts_sc_list[] = {
 		{ 10, 0x00 },
 		{ 100, 0x01 },
-		{ KHz(1), 0x02 },
-		{ KHz(5), 0x03 },
-		{ KHz(9), 0x04 },
-		{ KHz(10), 0x05 },
+		{ kHz(1), 0x02 },
+		{ kHz(5), 0x03 },
+		{ kHz(9), 0x04 },
+		{ kHz(10), 0x05 },
 		{ 12500, 0x06 },
-		{ KHz(20), 0x07 },
-		{ KHz(25), 0x08 },
-		{ KHz(100), 0x09 },
+		{ kHz(20), 0x07 },
+		{ kHz(25), 0x08 },
+		{ kHz(100), 0x09 },
 		{ 0, 0 },
 };
 
@@ -339,6 +339,10 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			return RIG_OK;
 		}
 
+		/*
+		 * TODO: older rig may return less than 4 or 5 bytes (for low freqs)!
+		 *  also if freq is undefined (i.e. blank memory) set freq to RIG_FREQ_NONE
+		 */
 		if (freq_len != (priv->civ_731_mode ? 4:5)) {
 				rig_debug(RIG_DEBUG_ERR,"icom_get_freq: wrong frame len=%d\n",
 								freq_len);
@@ -729,6 +733,47 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		return RIG_OK;
 }
 
+/*
+ * icom_get_dcd
+ * Assumes rig!=NULL, rig->state.priv!=NULL, ptt!=NULL
+ */
+int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char dcdbuf[16];
+		int dcd_len;
+		int icom_val;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0, dcdbuf, &dcd_len);
+
+		/*
+		 * freqbuf should contain Cn,Data area
+		 */
+		dcd_len -= 2;
+		if (dcd_len != 2) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_dcd: wrong frame len=%d\n",
+								dcd_len);
+				return -RIG_ERJCTED;
+		}
+
+		/*	
+		 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
+		 * (from_bcd is little endian)
+		 */
+		icom_val = from_bcd_be(dcdbuf+2, dcd_len*2);
+			/*
+			 * 0x00=sql closed, 0x01=sql open
+			 *
+			 * TODO: replace icom_val by dcdbuf[2] ?
+			 */ 
+		*dcd = (icom_val==0x01) ? RIG_DCD_ON : RIG_DCD_OFF;
+
+		return RIG_OK;
+}
 /*
  * icom_set_rptr_shift
  * Assumes rig!=NULL, rig->state.priv!=NULL
