@@ -1,9 +1,10 @@
 /**
  * \file src/rig.c
+ * \ingroup hamlib
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2001
+ * \date 2000-2002
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
@@ -12,7 +13,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.55 2002-01-27 14:55:30 fillods Exp $
+ *		$Id: rig.c,v 1.56 2002-02-27 23:34:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -3701,6 +3702,135 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
 	return NULL;
 }
 
+/**
+ * \brief set the callback for freq events
+ * \param rig	The rig handle
+ * \param cb	The callback to install
+ * \param trn	A Pointer to some private data to pass later on to the callback
+ *
+ *  Install a callback for freq events, to be called when in transceive mode.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_trn()
+ */
+
+int rig_set_freq_callback(RIG *rig, freq_cb_t cb, rig_ptr_t arg)
+{
+		if (CHECK_RIG_ARG(rig))
+			return -RIG_EINVAL;
+
+		rig->callbacks.freq_event = cb;
+		rig->callbacks.freq_arg = arg;
+
+		return RIG_OK;
+}
+
+/**
+ * \brief set the callback for mode events
+ * \param rig	The rig handle
+ * \param cb	The callback to install
+ * \param trn	A Pointer to some private data to pass later on to the callback
+ *
+ *  Install a callback for mode events, to be called when in transceive mode.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_trn()
+ */
+
+int rig_set_mode_callback(RIG *rig, mode_cb_t cb, rig_ptr_t arg)
+{
+		if (CHECK_RIG_ARG(rig))
+			return -RIG_EINVAL;
+
+		rig->callbacks.mode_event = cb;
+		rig->callbacks.mode_arg = arg;
+
+		return RIG_OK;
+}
+
+/**
+ * \brief set the callback for vfo events
+ * \param rig	The rig handle
+ * \param cb	The callback to install
+ * \param trn	A Pointer to some private data to pass later on to the callback
+ *
+ *  Install a callback for vfo events, to be called when in transceive mode.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_trn()
+ */
+
+int rig_set_vfo_callback(RIG *rig, vfo_cb_t cb, rig_ptr_t arg)
+{
+		if (CHECK_RIG_ARG(rig))
+			return -RIG_EINVAL;
+
+		rig->callbacks.vfo_event = cb;
+		rig->callbacks.vfo_arg = arg;
+
+		return RIG_OK;
+}
+
+/**
+ * \brief set the callback for ptt events
+ * \param rig	The rig handle
+ * \param cb	The callback to install
+ * \param trn	A Pointer to some private data to pass later on to the callback
+ *
+ *  Install a callback for ptt events, to be called when in transceive mode.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_trn()
+ */
+
+int rig_set_ptt_callback(RIG *rig, ptt_cb_t cb, rig_ptr_t arg)
+{
+		if (CHECK_RIG_ARG(rig))
+			return -RIG_EINVAL;
+
+		rig->callbacks.ptt_event = cb;
+		rig->callbacks.ptt_arg = arg;
+
+		return RIG_OK;
+}
+
+/**
+ * \brief set the callback for dcd events
+ * \param rig	The rig handle
+ * \param cb	The callback to install
+ * \param trn	A Pointer to some private data to pass later on to the callback
+ *
+ *  Install a callback for dcd events, to be called when in transceive mode.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_trn()
+ */
+
+int rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
+{
+		if (CHECK_RIG_ARG(rig))
+			return -RIG_EINVAL;
+
+		rig->callbacks.dcd_event = cb;
+		rig->callbacks.dcd_arg = arg;
+
+		return RIG_OK;
+}
 
 /**
  * \brief control the transceive mode 
