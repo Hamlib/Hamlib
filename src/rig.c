@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.14 2001-01-28 22:17:12 f4cfe Exp $
+   $Id: rig.c,v 1.15 2001-02-07 23:44:08 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -263,6 +263,13 @@ int rig_open(RIG *rig)
 				status = serial_open(&rig->state);
 				if (status != 0)
 						return status;
+				break;
+
+		case RIG_PORT_DEVICE:
+				status = open(rig->state.rig_path, O_RDWR, 0);
+				if (status < 0)
+						return -RIG_EIO;
+				rig->state.fd = status;
 				break;
 
 		case RIG_PORT_NETWORK:	/* not implemented yet! */
@@ -1310,6 +1317,37 @@ int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmod
 			return (mwpower>txrange->high_power? RIG_OK : RIG_ETRUNC);
 		} else
 			return rig->caps->mW2power(rig, power, mwpower, freq, mode);
+}
+
+/**
+ *      rig_get_resolution - get the best frequency resolution of the rig
+ *      @rig:	The rig handle
+ *      @mode:	The mode where the conversion should take place
+ *
+ *      The rig_get_resolution() function returns the best frequency
+ *      resolution of the rig, for a given @mode.
+ *
+ *      RETURN VALUE: The rig_get_resolution() function returns the
+ *      frequency resolution in Hertz if the operation has been sucessful,
+ *      or a negative value if an error occured.
+ *
+ */
+shortfreq_t rig_get_resolution(RIG *rig, rmode_t mode)
+{
+		const struct rig_caps *caps;
+		int i;
+
+		if (!rig || !rig->caps || !mode)
+			return -RIG_EINVAL;
+
+		caps = rig->caps;
+
+		for (i=0; i<TSLSTSIZ && caps->tuning_steps[i].ts; i++) {
+				if (caps->tuning_steps[i].modes & mode)
+						return caps->tuning_steps[i].ts;
+		}
+
+		return -RIG_EINVAL;
 }
 
 /**
