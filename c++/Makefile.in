@@ -63,6 +63,7 @@ AWK = @AWK@
 BACKENDEPS = @BACKENDEPS@
 BACKENDLNK = @BACKENDLNK@
 BACKEND_LIST = @BACKEND_LIST@
+BINDING_LIST = @BINDING_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -101,6 +102,13 @@ lib_LTLIBRARIES = libhamlib++.la
 libhamlib___la_SOURCES = rigclass.cc rotclass.cc
 libhamlib___la_LDFLAGS = -no-undefined -release @VERSION@ -version-info 0:0:0
 libhamlib___la_LIBADD = ../src/libhamlib.la
+
+noinst_PROGRAMS = testcpp
+
+testcpp_SOURCES = testcpp.cc
+testcpp_LDADD = libhamlib++.la
+testcpp_LDFLAGS = @BACKENDLNK@
+testcpp_DEPENDENCIES = libhamlib++.la @BACKENDEPS@
 subdir = c++
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -110,6 +118,11 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libhamlib___la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib___la_OBJECTS = rigclass.lo rotclass.lo
 libhamlib___la_OBJECTS = $(am_libhamlib___la_OBJECTS)
+noinst_PROGRAMS = testcpp$(EXEEXT)
+PROGRAMS = $(noinst_PROGRAMS)
+
+am_testcpp_OBJECTS = testcpp.$(OBJEXT)
+testcpp_OBJECTS = $(am_testcpp_OBJECTS)
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
@@ -117,7 +130,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rigclass.Plo $(DEPDIR)/rotclass.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rigclass.Plo $(DEPDIR)/rotclass.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/testcpp.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -127,9 +141,9 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CXXFLAGS = @CXXFLAGS@
-DIST_SOURCES = $(libhamlib___la_SOURCES)
+DIST_SOURCES = $(libhamlib___la_SOURCES) $(testcpp_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(libhamlib___la_SOURCES)
+SOURCES = $(libhamlib___la_SOURCES) $(testcpp_SOURCES)
 
 all: all-am
 
@@ -173,6 +187,12 @@ clean-libLTLIBRARIES:
 libhamlib++.la: $(libhamlib___la_OBJECTS) $(libhamlib___la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(libhamlib___la_LDFLAGS) $(libhamlib___la_OBJECTS) $(libhamlib___la_LIBADD) $(LIBS)
 
+clean-noinstPROGRAMS:
+	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+testcpp$(EXEEXT): $(testcpp_OBJECTS) $(testcpp_DEPENDENCIES) 
+	@rm -f testcpp$(EXEEXT)
+	$(CXXLINK) $(testcpp_LDFLAGS) $(testcpp_OBJECTS) $(testcpp_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
 
@@ -181,6 +201,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rigclass.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rotclass.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/testcpp.Po@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -260,7 +281,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
 
 installdirs:
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
@@ -291,7 +312,7 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	mostlyclean-am
+	clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 
@@ -328,11 +349,11 @@ mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libLTLIBRARIES clean-libtool distclean distclean-compile \
-	distclean-depend distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am info info-am install \
-	install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am \
+	clean-libLTLIBRARIES clean-libtool clean-noinstPROGRAMS \
+	distclean distclean-compile distclean-depend distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am info \
+	info-am install install-am install-data install-data-am \
+	install-exec install-exec-am install-info install-info-am \
 	install-libLTLIBRARIES install-man install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
