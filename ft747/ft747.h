@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft747.h,v 1.16 2000-12-07 02:34:56 javabear Exp $  
+ *    $Id: ft747.h,v 1.17 2000-12-09 02:03:26 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -110,6 +110,12 @@
 #define SF_PRI     0x80
 
 
+/*
+ * Local VFO CMD's, according to spec
+ */
+
+#define FT747_VFO_A                  0x00
+#define FT747_VFO_B                  0x01
 
 
 /*
@@ -136,7 +142,7 @@
 struct ft747_priv_data {
   unsigned char pacing;		/* pacing value */
   unsigned int read_update_delay;	 /* depends on pacing value */
-  unsigned char current_vfo;	/* active VFO from last cmd */
+  unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
   unsigned char p_cmd[FT747_CMD_LENGTH]; /* private copy of constructed CAT cmd */
   unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
 };
