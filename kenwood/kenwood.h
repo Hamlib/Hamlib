@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- *    $Id: kenwood.h,v 1.1 2000-12-23 08:40:14 f4cfe Exp $  
+ *    $Id: kenwood.h,v 1.2 2001-03-04 13:08:33 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -33,6 +33,9 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
+int kenwood_set_trn(RIG *rig, vfo_t vfo, int trn);
+int kenwood_get_trn(RIG *rig, vfo_t vfo, int *trn);
 
 extern const struct rig_caps ts870s_caps;
 

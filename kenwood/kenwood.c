@@ -6,7 +6,7 @@
  * via serial interface to a Kenwood radio.
  *
  *
- * $Id: kenwood.c,v 1.3 2001-03-02 18:40:15 f4cfe Exp $  
+ * $Id: kenwood.c,v 1.4 2001-03-04 13:07:29 f4cfe Exp $  
  *
  *
  *
@@ -200,6 +200,49 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 		return RIG_OK;
 }
+
+/*
+ * kenwood_set_trn
+ * Assumes rig!=NULL
+ */
+int kenwood_set_trn(RIG *rig, vfo_t vfo, int trn)
+{
+		unsigned char trnbuf[16], ackbuf[16];
+		int trn_len,ack_len;
+
+		trn_len = sprintf(trnbuf,"A%d;", trn==RIG_TRN_RIG?1:0);
+
+		kenwood_transaction (rig, trnbuf, trn_len, ackbuf, &ack_len);
+
+		if (ack_len != 1) {
+				rig_debug(RIG_DEBUG_ERR,"kenwood_set_trn: ack NG, len=%d\n",
+								ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * kenwood_get_trn
+ * Assumes rig!=NULL, trn!=NULL
+ */
+int kenwood_get_trn(RIG *rig, vfo_t vfo, int *trn)
+{
+		unsigned char trnbuf[16];
+		unsigned char cmdbuf[4];
+		int trn_len;
+
+		cmdbuf[0] = 'A';
+		cmdbuf[1] = EOM;
+
+		kenwood_transaction (rig, cmdbuf, 2, trnbuf, &trn_len);
+
+		sscanf(trnbuf,"A%d", trn);
+
+		return RIG_OK;
+}
+
 
 /*
  * init_kenwood is called by rig_backend_load
