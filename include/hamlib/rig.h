@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.56 2002-01-07 17:57:28 fgretief Exp $
+ *		$Id: rig.h,v 1.57 2002-01-09 23:08:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -339,6 +339,8 @@ typedef enum reset_e reset_t;
 #define RIG_OP_DOWN		(1<<6)		/* DOWN */
 #define RIG_OP_BAND_UP		(1<<7)		/* Band UP */
 #define RIG_OP_BAND_DOWN	(1<<8)		/* Band DOWN */
+#define RIG_OP_LEFT		(1<<9)		/* LEFT */
+#define RIG_OP_RIGHT	(1<<10)		/* RIGHT */
 
 /* 
  * RIG_MVOP_DUAL_ON/RIG_MVOP_DUAL_OFF (Dual watch off/Dual watch on)
