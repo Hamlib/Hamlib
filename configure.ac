@@ -190,7 +190,7 @@ AC_MSG_CHECKING(whether to build perl binding and demo)
 AC_ARG_WITH(perl-binding,
         [  --with-perl-binding   build perl binding and demo],
         [cf_with_perl_binding=$withval],
-        [cf_with_perl_binding=$cf_with_perl])
+        [cf_with_perl_binding=no])
 AC_MSG_RESULT($cf_with_perl_binding)
 
 if test "${cf_with_perl_binding}" = "yes" ; then
@@ -281,10 +281,7 @@ AC_SUBST(ROT_BACKENDEPS)
 
 AC_SUBST(BINDING_LIST)
 
-Xsed="sed -e s/^X//"
-LTLIBOBJS=`echo X"$LIBOBJS" | $Xsed -e "s,\.[^.]* ,.lo ,g;s,\.[^.]*\$,.lo,"`
-AC_SUBST(LIBOBJS)
-AC_SUBST(LTLIBOBJS)
+AC_LIBSOURCES([trunc.c])
 AC_SUBST(INCLUDES)
 
 AC_CONFIG_FILES([Makefile
