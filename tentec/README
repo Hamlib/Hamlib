@@ -1,0 +1,26 @@
+tt550 TODO (Ken,  N7IPB):
+	Support for multiple VFO's and Memories.  The TT550 doesn't
+	really have VFO's or Memories since it's strictly a software
+	controlled radio, but they can easily be simulated in software.
+	I already support a split mode since the TX and RX control is
+	separate.  Adding support for VFO-A, VFO-B and memory channels 
+	will be done next.
+
+	The optional encoder with keypad is supported for changing frequency
+	only, along with F1 changing the stepsize.  The other function keys
+	have no current assignments.  I can add hard-coded Function keys as
+	I did with F1 but maybe a more generic solution can be determined.
+
+	In addition the keypad is not supported.  Hamlib has no apparent way
+	to make use of the numeric keys.  We probably need to add a callback
+	for key data.
+
+	IF-Shift:  IF-Shift code is in place but I see no way in hamlib to make 
+	use of it.  The Icom dual pass-band tuning is supported,  but not just
+	simple IF shift.  Or maybe I just missed something.
+
+	TX Audio Monitor Volume - no hamlib support - RIG_LEVEL_TX_MON?
+	CW Sidetone Volume - no hamlib support - RIG_LEVEL_SIDETONE?
+	Transmit Audio Source and Volume select - no hamlib support - RIG_LEVEL_LINEIN?
+	CW Spot Level - no hamlib support - RIG_LEVEL_CW_SPOT?
+	Enable/Disable Amplifier keying loop - no hamlib support - RIG_FUNC_AMP?
