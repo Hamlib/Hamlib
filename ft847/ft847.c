@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.12 2000-07-30 02:53:22 javabear Exp $  
+ * $Id: ft847.c,v 1.13 2000-07-30 04:26:39 javabear Exp $  
  *
  */
 
@@ -29,6 +29,7 @@ static char calc_char_from_packed(unsigned char pkd );
 
 static long int  calc_freq_from_packed4(unsigned char *in);
 static void calc_packed4_from_freq(long int freq, unsigned char *out);
+static long int  calc_freq_from_packed4_b(unsigned char *in);
 
 /*
  * Function definitions below
@@ -108,11 +109,7 @@ void cmd_set_freq_main_vfo(int fd, unsigned char d1,  unsigned char d2,
   data[2] = d3;
   data[3] = d4;
 
-  for(i=0; i<5; i++) {
-    printf("data = %.2x \n", data[i]);
-  }
   write_block(fd,data);
-  printf("cmd_set_freq_main_vfo called \n");
 
 }
 
@@ -312,7 +309,7 @@ long int cmd_get_freq_mode_status_main_vfo(int fd, unsigned char *mode) {
 								  /* main vfo*/
   write_block(fd,data);
   read_sleep(fd,datain,5);	/* wait and read for 5 byte to be read */
-  f = calc_freq_from_packed4(datain); /* 1st 4 bytes */
+  f = calc_freq_from_packed4_b(datain); /* 1st 4 bytes */
   *mode = datain[4];		      /* last byte */
   
   return f;			/* return freq in Hz */
@@ -331,7 +328,7 @@ long int cmd_get_freq_mode_status_sat_rx_vfo(int fd, unsigned char *mode ) {
 								  /* sat rx vfo*/
   write_block(fd,data);
   read_sleep(fd,datain,5);	/* wait and read for 5 byte to be read */
-  f = calc_freq_from_packed4(datain); /* 1st 4 bytes */
+  f = calc_freq_from_packed4_b(datain); /* 1st 4 bytes */
   *mode = datain[4];		      /* last byte */
   
   return f;			/* return freq in Hz */
@@ -350,7 +347,7 @@ long int cmd_get_freq_mode_status_sat_tx_vfo(int fd, unsigned char *mode) {
 								  /* sat tx vfo*/
   write_block(fd,data);
   read_sleep(fd,datain,5);	/* wait and read for 5 byte to be read */
-  f = calc_freq_from_packed4(datain); /* 1st 4 bytes */
+  f = calc_freq_from_packed4_b(datain); /* 1st 4 bytes */
   *mode = datain[4];		      /* last byte */
 
   return f;			/* return freq in Hz */
@@ -456,6 +453,36 @@ static long int  calc_freq_from_packed4(unsigned char *in) {
   f = atol(sfreq);
   f = f *10;			/* yaesu returns freq to 10 Hz, so must */
 				/* scale to return Hz*/
+  printf("frequency = %ld  Hz\n",  f); 
+     
+  return f;			/* Hz */
+}
+
+/*
+ * Calculate freq from packed decimal (4 bytes, 8 digits) 
+ * and return frequency in Hz. No string routines.
+ *
+ */
+
+static long int  calc_freq_from_packed4_b(unsigned char *in) {
+  long int f;			/* frequnecy in Hz */
+  unsigned char d1,d2,d3,d4;
+
+  printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  in[0], in[1], in[2], in[3], in[4]); 
+
+  d1 = calc_char_from_packed(in[0]);
+  d2 = calc_char_from_packed(in[1]);
+  d3 = calc_char_from_packed(in[2]);
+  d4 = calc_char_from_packed(in[3]);
+
+  f  = d1*1000000;
+  f += d2*10000;
+  f += d3*100;
+  f += d4;
+
+  f = f *10;			/* yaesu requires freq as multiple of 10 Hz, so must */
+				/* scale to return Hz*/
+
   printf("frequency = %ld  Hz\n",  f); 
      
   return f;			/* Hz */
