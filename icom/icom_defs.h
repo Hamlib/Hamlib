@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.13 2002-03-06 21:11:28 fillods Exp $
+ *		$Id: icom_defs.h,v 1.14 2002-03-10 23:39:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -103,6 +103,10 @@
 #define S_FM	0x05		/* Set to FM */
 #define S_WFM	0x06		/* Set to Wide FM */
 
+#define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
+#define PD_WIDE		0x01	/* Wide */
+#define PD_MEDIUM	0x02	/* Medium */
+#define PD_NARROW	0x03	/* Narrow */
 
 /*
  * Set VFO (C_SET_VFO) sub commands
