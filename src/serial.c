@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface.
  *
- * $Id: serial.c,v 1.1 2000-10-01 14:24:47 f4cfe Exp $  
+ * $Id: serial.c,v 1.2 2000-10-08 21:46:09 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-#include <rig.h>
+#include <hamlib/rig.h>
 #include "serial.h"
 #include "misc.h"
 
@@ -391,6 +391,68 @@ int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout )
 		 * The file descriptor must have been set up non blocking.
 		 */
   		rd_count = read(fd, rxbuffer+total_count, count);
+		if (rd_count < 0) {
+				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
+									strerror(errno));
+				return -RIG_EIO;
+		}
+		total_count += rd_count;
+		count -= rd_count;
+  }
+
+  rig_debug(RIG_DEBUG_TRACE,"RX %d bytes\n",total_count);
+  dump_hex(rxbuffer, total_count);
+  return total_count;			/* return bytes count read */
+}
+
+int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout )
+{  
+  fd_set rfds;
+  struct timeval tv, tv_timeout;
+  int rd_count, total_count = 0;
+  int retval;
+  int fd;
+
+  fd = fileno(stream);
+
+  FD_ZERO(&rfds);
+  FD_SET(fd, &rfds);
+
+  /*
+   * Wait up to timeout ms.
+   */
+  tv_timeout.tv_sec = timeout/1000;
+  tv_timeout.tv_usec = (timeout%1000)*1000;
+
+
+		/*
+		 * grab bytes from the rig
+		 * The file descriptor must have been set up non blocking.
+		 */
+  		rd_count = fread(rxbuffer, 1, count, stream);
+		if (rd_count < 0) {
+				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
+									strerror(errno));
+				return -RIG_EIO;
+		}
+		total_count += rd_count;
+		count -= rd_count;
+
+  while (count > 0) {
+		tv = tv_timeout;	/* select may have updated it */
+
+		retval = select(fd+1, &rfds, NULL, NULL, &tv);
+		if (!retval) {
+			rig_debug(RIG_DEBUG_ERR,"rig timeout after %d chars or select error - %s!\n",
+							total_count, strerror(errno));
+				return -RIG_ETIMEOUT;
+		}
+
+		/*
+		 * grab bytes from the rig
+		 * The file descriptor must have been set up non blocking.
+		 */
+  		rd_count = fread(rxbuffer+total_count, 1, count, stream);
 		if (rd_count < 0) {
 				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
 									strerror(errno));
