@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR8200 description
- *  Copyright (c) 2000,2001 by Stephane Fillod
+ *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: ar8200.c,v 1.13 2001-10-07 21:47:11 f4cfe Exp $
+ *		$Id: ar8200.c,v 1.14 2002-01-09 23:11:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,25 +24,21 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
-#include <termios.h> /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
-
 #include <hamlib/rig.h>
-#include <hamlib/riglist.h>
 #include "aor.h"
 
 
 #define AR8200_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define AR8200_FUNC_ALL (RIG_FUNC_TSQL)
+#define AR8200_FUNC (RIG_FUNC_TSQL|RIG_FUNC_ABM)
 
 #define AR8200_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+
+#define AR8200_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
+
+#define AR8200_VFO_OPS (RIG_OP_MCL|RIG_OP_UP|RIG_OP_DOWN|RIG_OP_LEFT|RIG_OP_RIGHT)
+
+#define AR8200_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
 /*
  * ar8200 rig capabilities.
@@ -73,31 +69,32 @@ post_write_delay: 0,
 timeout: 200,
 retry: 3,
 has_get_func: RIG_FUNC_NONE,
-has_set_func: AR8200_FUNC_ALL,
+has_set_func: AR8200_FUNC,
 has_get_level: AR8200_LEVEL,
 has_set_level: RIG_LEVEL_SET(AR8200_LEVEL),
 has_get_parm: RIG_PARM_NONE,
 has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
 level_gran: {},                 /* FIXME: granularity */
 parm_gran: {},
-ctcss_list: NULL,				/* FIXME: CTCSS/DCS list */
+ctcss_list: NULL,				/* FIXME: CTCSS list */
 dcs_list: NULL,
 preamp:  { RIG_DBLST_END, },
-attenuator:  { RIG_DBLST_END, },
+attenuator:  { 20, RIG_DBLST_END, },	/* TBC */
 max_rit: Hz(0),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
 targetable_vfo: 0,
 transceive: RIG_TRN_RIG,
-bank_qty:  0,
-chan_desc_sz: 0,
+bank_qty:  20,
+chan_desc_sz: 12,
+vfo_ops: AR8200_VFO_OPS,
 
 chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
 
 rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 tx_range_list1: { RIG_FRNG_END, },
 rx_range_list2: {
-	{kHz(100),MHz(2040),AR8200_MODES,-1,-1,RIG_VFO_A},
+	{kHz(100),MHz(2040),AR8200_MODES,-1,-1,AR8200_VFO_ALL},
 	RIG_FRNG_END,
   }, /* rx range */
 tx_range_list2: { RIG_FRNG_END, },	/* no tx range, this is a scanner! */
@@ -139,11 +136,16 @@ rig_close: aor_close,
 
 set_freq: aor_set_freq,
 get_freq: aor_get_freq,
+set_vfo: aor_set_vfo,
+get_vfo: aor_get_vfo,
 set_mode: aor_set_mode,
 get_mode: aor_get_mode,
 
 set_ts: aor_set_ts,
 set_powerstat: aor_set_powerstat,
+vfo_op: aor_vfo_op,
+get_info: aor_get_info,
+
 };
 
 /*
