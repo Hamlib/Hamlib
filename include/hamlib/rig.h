@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.4 2000-10-16 21:58:03 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.5 2000-10-22 16:02:21 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -324,7 +324,7 @@ typedef unsigned int rmode_t;	/* radio mode  */
 struct freq_range_list {
   freq_t start;
   freq_t end;
-  unsigned long modes;	/* bitwise OR'ed RIG_MODE_* */
+  rmode_t modes;	/* bitwise OR'ed RIG_MODE_* */
   int low_power;	/* in mW, -1 for no power (ie. rx list) */
   int high_power;	/* in mW, -1 for no power (ie. rx list) */
 };
@@ -395,9 +395,9 @@ struct rig_caps {
   int post_write_delay;		/* optional delay after sending last cmd sequence (yaesu) -- FS */
   int timeout;	/* in ms */
   int retry;		/* maximum number of retries, 0 to disable */
-  unsigned long has_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
-  unsigned long has_level;		/* bitwise OR'ed RIG_LEVEL_* */
-  unsigned long has_set_level;		/* bitwise OR'ed RIG_LEVEL_* */
+  setting_t has_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
+  setting_t has_level;		/* bitwise OR'ed RIG_LEVEL_* */
+  setting_t has_set_level;		/* bitwise OR'ed RIG_LEVEL_* */
   int chan_qty;		/* number of channels */
 #if 0
   int chan_desc_sz;   /* memory channel size, 0 if none */
@@ -438,11 +438,11 @@ struct rig_caps {
   int (*set_passband)(RIG *rig, pbwidth_t width); /* select width */
   int (*get_passband)(RIG *rig, pbwidth_t *width); /* get width */
 
-  int (*set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift);	/* set repeater shift */
-  int (*get_rpt_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
+  int (*set_rptr_shift)(RIG *rig, rptr_shift_t rptr_shift);	/* set repeater shift */
+  int (*get_rptr_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
 
-  int (*set_rpt_offs)(RIG *rig, unsigned long offs);/* set duplex offset freq */
-  int (*get_rpt_offs)(RIG *rig, unsigned long *offs);/* get duplex offset freq*/
+  int (*set_rptr_offs)(RIG *rig, unsigned long offs);/*set duplex offset freq*/
+  int (*get_rptr_offs)(RIG *rig, unsigned long *offs);/*get duplex offset freq*/
 
   int (*set_split_freq)(RIG *rig, freq_t rx_freq, freq_t tx_freq);
   int (*get_split_freq)(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
@@ -463,43 +463,17 @@ struct rig_caps {
    * Unfortunately, on most rigs, the formula is not the same
    * on all bands/modes. Have to work this out.. --SF
    */
-#if 0
-  int (*set_power)(RIG *rig, float power);	/* set TX power [0.0 .. 1.0] */
-  int (*get_power)(RIG *rig, float *power);
-#endif
-
   int (*power2mW)(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
   int (*mW2power)(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
-
-#if 0
-  int (*set_volume)(RIG *rig, float vol);	/* select vol from 0.0 and 1.0 */
-  int (*get_volume)(RIG *rig, float *vol);	/* get volume */
-
-  int (*set_squelch)(RIG *rig, float sql);	/* set squelch */
-  int (*get_squelch)(RIG *rig, float *sql);	/* get squelch setting */
-  int (*get_squelch_status)(RIG *rig, int *sql_status);	/* get squelch status */
-  int (*get_strength)(RIG *rig, int *strength);	/* get signal strength */
-#endif
 
   int (*set_poweron)(RIG *rig);
   int (*set_poweroff)(RIG *rig);
 
-#if 0
-  int (*set_ant)(RIG *rig, int ant);	/* set antenna number */
-  int (*get_ant)(RIG *rig, int *ant);	/* get antenna number */
+  int (*set_level)(RIG *rig, setting_t level, value_t val);/* set level setting */
+  int (*get_level)(RIG *rig, setting_t level, value_t *val);/* set level setting*/
 
-  int (*set_att)(RIG *rig, int att);	/* set attenuator */
-  int (*get_att)(RIG *rig, int *att);	/* get attenuator */
-
-  int (*set_preamp)(RIG *rig, int preamp);	/* set preamp */
-  int (*get_preamp)(RIG *rig, int *preamp);	/* get preamp */
-#endif
-
-  int (*set_level)(RIG *rig, setting_t set, value_t val);/* set level setting */
-  int (*get_level)(RIG *rig, setting_t set, value_t *val);/* set level setting*/
-
-  int (*set_func)(RIG *rig, unsigned long func); /* activate the function(s) */
-  int (*get_func)(RIG *rig, unsigned long *func); /* get the setting from rig */
+  int (*set_func)(RIG *rig, setting_t func, int status); /* activate the function(s) */
+  int (*get_func)(RIG *rig, setting_t *func); /* get the setting from rig */
 
   int (*set_mem)(RIG *rig, int ch);			/* set memory channel number */
   int (*get_mem)(RIG *rig, int *ch);		/* get memory channel number */
@@ -615,10 +589,10 @@ extern int rig_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 extern int rig_set_ptt(RIG *rig, ptt_t ptt); /* ptt on/off */
 extern int rig_get_ptt(RIG *rig, ptt_t *ptt); /* get ptt status */
 
-extern int rig_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift); /* set repeater shift */
-extern int rig_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift); /* get repeater shift */
-extern int rig_set_rpt_offs(RIG *rig, unsigned long rptr_offs); /* set repeater offset */
-extern int rig_get_rpt_offs(RIG *rig, unsigned long *rptr_offs); /* get repeater offset */
+extern int rig_set_rptr_shift(RIG *rig, rptr_shift_t rptr_shift); /* set repeater shift */
+extern int rig_get_rptr_shift(RIG *rig, rptr_shift_t *rptr_shift); /* get repeater shift */
+extern int rig_set_rptr_offs(RIG *rig, unsigned long rptr_offs); /* set repeater offset */
+extern int rig_get_rptr_offs(RIG *rig, unsigned long *rptr_offs); /* get repeater offset */
 
 extern int rig_set_ctcss(RIG *rig, unsigned int tone);
 extern int rig_get_ctcss(RIG *rig, unsigned int *tone);
@@ -669,11 +643,11 @@ extern int rig_cleanup(RIG *rig);
 
 extern RIG *rig_probe(const char *rig_path);
 
-extern int rig_has_level(RIG *rig, setting_t level);
-extern int rig_has_set_level(RIG *rig, setting_t level);
+extern setting_t rig_has_level(RIG *rig, setting_t level);
+extern setting_t rig_has_set_level(RIG *rig, setting_t level);
 
-extern int rig_has_func(RIG *rig, setting_t func);	/* is part of capabilities? */
-extern int rig_set_func(RIG *rig, setting_t func);	/* activate the function(s) */
+extern setting_t rig_has_func(RIG *rig, setting_t func);	/* is part of capabilities? */
+extern int rig_set_func(RIG *rig, setting_t func, int status);	/* activate the function(s) */
 extern int rig_get_func(RIG *rig, setting_t *func); /* get the setting from rig */
 
 extern int rig_set_mem(RIG *rig, int ch);		/* set memory channel number */
@@ -687,7 +661,7 @@ extern int rig_set_trn(RIG *rig, int trn); /* activate the transceive mode */
 extern int rig_get_trn(RIG *rig, int *trn);
 
 extern const struct rig_caps *rig_get_caps(rig_model_t rig_model);
-const freq_range_t *rig_get_range(const freq_range_t range_list[], freq_t freq, unsigned long mode);
+const freq_range_t *rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode);
 
 extern const char *rigerror(int errnum);
 
