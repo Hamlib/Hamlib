@@ -4,7 +4,7 @@
  * This include defines the list of known rigs.
  *
  *
- * 	$Id: riglist.h,v 1.13 2001-06-04 21:17:52 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.14 2001-06-30 23:11:53 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -80,6 +80,7 @@
 #define RIG_MODEL_TS950SDX RIG_MAKE_MODEL(RIG_KENWOOD, 13)
 #define RIG_MODEL_TS2000 RIG_MAKE_MODEL(RIG_KENWOOD, 14)
 #define RIG_MODEL_R5000 RIG_MAKE_MODEL(RIG_KENWOOD, 15)
+#define RIG_MODEL_TS570S RIG_MAKE_MODEL(RIG_KENWOOD, 16)
 
 	/*
 	 * Icom
