@@ -3,22 +3,28 @@
 RPCRIG_SVC = rpcrig_xdr.c rpcrig_svc.c rpcrig_proc.c rpcrigd.c
 RPCRIG_CLNT = rpcrig_xdr.c rpcrig_clnt.c rpcrig_backend.c
 
+LDADD = ../src/libhamlib.la ../lib/libmisc.a
+DEPENDENCIES = ../src/libhamlib.la 
+
 # The RPC server
 bin_PROGRAMS = rpc.rigd
-LDADD = ../src/libhamlib.la ../lib/libmisc.a # -lnsl
-DEPENDENCIES = ../src/libhamlib.la
+rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rpc_rigd_SOURCES = $(RPCRIG_SVC)
+rpc_rigd_LDFLAGS = @BACKENDLNK@ -export-dynamic
 man_MANS = rpc.rigd.8
 
 # The RPC backend
 lib_LTLIBRARIES = libhamlib-rpcrig.la
 libhamlib_rpcrig_la_SOURCES = $(RPCRIG_CLNT)
 libhamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version -lnsl
+libhamlib_rpcrig_la_CFLAGS = -DHAMLIB_DLL $(AM_CFLAGS)
 libhamlib_rpcrig_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-rpcrig.a
 libhamlib_rpcrig_a_SOURCES = $(RPCRIG_CLNT)
+libhamlib_rpcrig_a_CFLAGS = -DHAMLIB_STATIC $(AM_CFLAGS)
 libhamlib_rpcrig_a_LIBADD = ../src/libhamlib.la # -lnsl
+
 
 noinst_HEADERS = rpcrig.h rpcrig_backend.h
 
@@ -28,17 +34,17 @@ RPCGEN = rpcgen
 
 rpcrig.h: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -h rpcrig.x -o $@
+	$(RPCGEN) -h $< -o $@
 
 rpcrig_clnt.c: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -l rpcrig.x -o $@
+	$(RPCGEN) -l $< -o $@
 
 rpcrig_svc.c: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -m rpcrig.x -o $@
+	$(RPCGEN) -m $< -o $@
 
 rpcrig_xdr.c: rpcrig.x
 	rm -f $@
-	$(RPCGEN) -c rpcrig.x -o $@
+	$(RPCGEN) -c $< -o $@
 

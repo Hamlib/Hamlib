@@ -11,19 +11,19 @@ LDADD = ../src/libhamlib.la ../lib/libmisc.a
 DEPENDENCIES = ../src/libhamlib.la
 
 ## Linker options
-listrigs_LDFLAGS = @BACKENDLNK@
-dumpcaps_LDFLAGS = @BACKENDLNK@
-dumpmem_LDFLAGS = @BACKENDLNK@
-testcaps_LDFLAGS = @BACKENDLNK@
-testrig_LDFLAGS = @BACKENDLNK@
-testtrn_LDFLAGS = @BACKENDLNK@
+listrigs_LDFLAGS = @BACKENDLNK@ -export-dynamic
+dumpcaps_LDFLAGS = @BACKENDLNK@ -export-dynamic
+dumpmem_LDFLAGS = @BACKENDLNK@ -export-dynamic
+testcaps_LDFLAGS = @BACKENDLNK@ -export-dynamic
+testrig_LDFLAGS = @BACKENDLNK@ -export-dynamic
+testtrn_LDFLAGS = @BACKENDLNK@ -export-dynamic
 testbcd_LDFLAGS = @BACKENDLNK@
 testfreq_LDFLAGS = @BACKENDLNK@
-rigctl_LDFLAGS = @BACKENDLNK@
+rigctl_LDFLAGS = @BACKENDLNK@ -export-dynamic
 # rigmatrix needs also libgd
-rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
+rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@ -export-dynamic
 testcpp_LDADD = ../c++/libhamlib++.la $(LDADD)
-testcpp_LDFLAGS = @BACKENDLNK@
+testcpp_LDFLAGS = @BACKENDLNK@ -export-dynamic
 
 ## Dependencies
 
