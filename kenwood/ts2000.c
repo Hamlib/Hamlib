@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2000.c,v 1.9 2002-06-30 10:20:52 dedmons Exp $
+ *		$Id: ts2000.c,v 1.10 2002-07-08 22:20:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,45 +26,20 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
-#include "ts2k.h"
 
 
-#define TS2000_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM| \
-	RIG_MODE_RTTY)
-#define TS2000_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM| \
-	RIG_MODE_RTTY)
-#define TS2000_AM_TX_MODES (RIG_MODE_AM)
+#define TS2000_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TS2000_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
+#define TS2000_AM_TX_MODES RIG_MODE_AM
 
-// the following might be cond. later
-# define TS2000_RIGVFO (0)
-# define TS2000_MAINVFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM)
-# define TS2000_SUBVFO (RIG_VFO_C)
+#define TS2000_FUNC_ALL (RIG_FUNC_TSQL)
 
-#ifndef _NEW_VFO_H
+#define TS2000_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
 
-// old / simple
-# define TS2000_FUNC_ALL (RIG_FUNC_TONE | RIG_FUNC_NB)
-# define TS2000_PARM_OP (RIG_PARM_BEEP | RIG_PARM_BACKLIGHT)
-# define TS2000_LEVEL_ALL (RIG_LEVEL_PREAMP | RIG_LEVEL_VOX | RIG_LEVEL_AF)
-# define TS2000_SCAN_OP (RIG_SCAN_STOP | RIG_SCAN_MEM)
+#define TS2000_MAINVFO (RIG_VFO_A|RIG_VFO_B)
+#define TS2000_SUBVFO (RIG_VFO_C)
 
-#else
-
-// new
-# define TS2000_FUNC_ALL ( RIG_FUNC_ALL & \
-			~(RIG_FUNC_MN | RIG_FUNC_RNF | RIG_FUNC_VSC) ) 
-# define TS2000_PARM_OP (RIG_PARM_EXCLUDE(RIG_PARM_BAT | RIG_PARM_TIME))
-# define TS2000_LEVEL_ALL (RIG_LEVEL_ALL & ~(RIG_LEVEL_APF))
-# define TS2000_SCAN_OP (RIG_SCAN_ALL & ~(RIG_SCAN_DELTA))
-// the following uses both Sub and Main for the Major mode
-//# define TS2000_MAINVFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_MEM_A | RIG_VFO_CALL_A)
-//# define TS2000_RIGVFO (RIG_VFO_SAT | RIG_VFO_CROSS)
-//# define TS2000_SUBVFO (RIG_VFO_C | RIG_VFO_MEM_C | RIG_VFO_CALL_C)
-
-#endif
-
-#define TS2000_VFO_ALL (TS2000_RIGVFO | TS2000_MAINVFO | TS2000_SUBVFO)
-#define TS2000_VFO_OP (RIG_OP_UP | RIG_OP_DOWN)
+#define TS2000_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
 /*
  * 103 available DCS codes
@@ -82,7 +57,7 @@ static const tone_t ts2000_dcs_list[] = {
   0,
 };
 
-const struct ts2k_priv_caps  ts2k_priv_caps  = {
+const struct kenwood_priv_caps  ts2000_priv_caps  = {
 		cmdtrm: EOM_KEN,
 };
 
@@ -97,9 +72,9 @@ const struct rig_caps ts2000_caps = {
 rig_model: RIG_MODEL_TS2000,
 model_name:"TS-2000",
 mfg_name: "Kenwood",
-version: "0.1.2",
+version: "0.1",
 copyright: "LGPL",
-status: RIG_STATUS_ALPHA,
+status: RIG_STATUS_UNTESTED,
 rig_type: RIG_TYPE_TRANSCEIVER,
 ptt_type: RIG_PTT_RIG,
 dcd_type: RIG_DCD_RIG,
@@ -112,20 +87,19 @@ serial_parity: RIG_PARITY_NONE,
 serial_handshake: RIG_HANDSHAKE_NONE,
 write_delay: 0,
 post_write_delay: 0,
-timeout: 20,
-retry: 1,
+timeout: 200,
+retry: 3,
 
 has_get_func: TS2000_FUNC_ALL,
 has_set_func: TS2000_FUNC_ALL,
 has_get_level: TS2000_LEVEL_ALL,
 has_set_level: RIG_LEVEL_SET(TS2000_LEVEL_ALL),
-has_get_parm: TS2000_PARM_OP,
-has_set_parm: TS2000_PARM_OP,
+has_get_parm: RIG_PARM_NONE,
+has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
 level_gran: {},                 /* FIXME: granularity */
 parm_gran: {},
 vfo_ops: TS2000_VFO_OP,
-scan_ops: TS2000_SCAN_OP,
-ctcss_list: ts2k_ctcss_list,
+ctcss_list: kenwood38_ctcss_list,
 dcs_list: ts2000_dcs_list,
 preamp:  { 20, RIG_DBLST_END, },	/* FIXME: real preamp? */
 attenuator:  { 20, RIG_DBLST_END, },
@@ -135,48 +109,11 @@ max_ifshift: kHz(1),
 targetable_vfo: RIG_TARGETABLE_FREQ,
 transceive: RIG_TRN_RIG,
 bank_qty:  0,
-chan_desc_sz: 8,
+chan_desc_sz: 0,
 
-/* set up the memories.  See also, rig.h --D.E. kd7eni */
 
-/* The following are suggested 'modes' and when the following may
- *  be accessed:
- *
- *	MTYPE		MSTATE		Description
- *
- *	MEM		M_MEM		main, sub
- *	EDGE		M_MEM		main, sub (vhf/uhf)
- *	MEMOPAD		M_VFO		e.g. main&&sub in vfo (both!)
- *	CALL		M_ANY		at least VFO and MEM (others?)
- *	SAT		M_SAT		only (uses both main+sub)
- *	PCT		M_PCT		when P.C.T. enabled on sub+tnc
- *	MENU		M_MOST		rig does it if it feels like it :)
- *	SETUP		M_UNKNOWN	twilight zone stuff...
- */
-chan_list: {
-	{ 0, 289, RIG_MTYPE_MEM, 0 },		/* regular memories */
-	/* Note: each memory is receive+transmit an RX != TX is split memory. */
-	{ 290, 299, RIG_MTYPE_EDGE, 0 },	/* band tune limits (not scan-only) */
-	{ 0, 9, RIG_MTYPE_MEMOPAD, 0 },		/* Quick Memories, Main+sub both saved:) */
-	{ 0, 1, RIG_MTYPE_CALL, 0 },		/* each TX band has one call */
-	{ 0, 9, RIG_MTYPE_SAT, 0 },		/* direct operation from these */
-//	{ 0, 9, RIG_MTYPE_PCT, 0 },		/* packet clusters buffered as
-//						   they come in */
-//	{ 0, 1, RIG_MTYPE_MENU, 0 },		/* There are two menus, A/B. I
-//						   set one for HF, one for VHF/UHF*/
-//	{ 0, 5, RIG_MTYPE_SETUP, 0 },		/* See: "pm;" command.  ;) */
-	/* This seems to be undocumented and not accesible to the front panel.
-	   When operated it seems to be an independently settable menu. Thus,
-	   more than just A/B are available.  I don't know if the memopad
-	   quick memories are involved but the regular MEM ones are *NOT*
-	   duplicated.  The manual only says: 0=PM off, 1-5=channel 1-5.
-	   Kenwood calls this "Programmable Memory".  I haven't used this
-	   in some time but 0-5 seems more appropriate than 1-5.  I'll
-	   investigate more after hamlib-1.1.3 (gnurig's target release). */
+chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
 
-/*	{ 0, , RIG_MTYPE_, 0 },*/
-	RIG_CHAN_END,
-   },
 rx_range_list1: {
 	{kHz(300),MHz(60),TS2000_ALL_MODES,-1,-1,TS2000_MAINVFO},
 	{MHz(144),MHz(146),TS2000_ALL_MODES,-1,-1,TS2000_MAINVFO},
@@ -272,88 +209,37 @@ filters: {
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)},
 		RIG_FLT_END,
 	},
-priv: (void *)&ts2k_priv_caps,
+priv: (void *)&ts2000_priv_caps,
 
-/* ts2k */
-//set_tone: ts2k_set_tone,
-//get_tone: ts2k_get_tone,
-set_ctcss_tone: ts2k_set_ctcss_tone,
-get_ctcss_tone: ts2k_get_ctcss_tone,
-get_dcd: ts2k_get_dcd,
-set_freq: ts2k_set_freq,
-get_freq: ts2k_get_freq,
-get_func: ts2k_get_func,
-set_func: ts2k_set_func,
-get_info: ts2k_get_info,
-get_level: ts2k_get_level,
-set_level: ts2k_set_level,
-get_mem: ts2k_get_mem,
-set_mem: ts2k_set_mem,
-get_mode: ts2k_get_mode,
-set_mode: ts2k_set_mode,
-get_powerstat: ts2k_get_powerstat,
-set_powerstat: ts2k_set_powerstat,
-get_ptt: ts2k_get_ptt,
-set_ptt: ts2k_set_ptt,
-reset: ts2k_reset,
-send_morse: ts2k_send_morse,
-get_trn: ts2k_get_trn,
-set_trn: ts2k_set_trn,
-/*
-*/
-set_vfo: ts2k_set_vfo,
-get_vfo: ts2k_get_vfo,
-vfo_op: ts2k_vfo_op,
-/*
- * stuff I've written--kd7eni
- */
+set_freq: kenwood_set_freq,
+get_freq: kenwood_get_freq,
+set_mode: kenwood_set_mode,
+get_mode: kenwood_get_mode,
+set_vfo: kenwood_set_vfo,
+get_vfo: kenwood_get_vfo,
+set_ctcss_tone: kenwood_set_ctcss_tone,
+get_ctcss_tone: kenwood_get_ctcss_tone,
+get_ptt: kenwood_get_ptt,
+set_ptt: kenwood_set_ptt,
+get_dcd: kenwood_get_dcd,
+set_func: kenwood_set_func,
+get_func: kenwood_get_func,
+set_level: kenwood_set_level,
+get_level: kenwood_get_level,
+set_powerstat: kenwood_set_powerstat,
+get_powerstat: kenwood_get_powerstat,
+reset: kenwood_reset,
+send_morse: kenwood_send_morse,
+vfo_op: kenwood_vfo_op,
+set_mem: kenwood_set_mem,
+get_mem: kenwood_get_mem,
+set_trn: kenwood_set_trn,
+get_trn: kenwood_get_trn,
+get_info: kenwood_get_info,
 
-scan:		ts2k_scan,
-get_channel:	ts2k_get_channel,
-set_channel:	ts2k_set_channel,
-get_dcs_code:	ts2k_get_dcs_code,
-set_dcs_code:	ts2k_set_dcs_code,
-get_parm:	ts2k_get_parm,
-set_parm:	ts2k_set_parm,
-get_rit:	ts2k_get_rit,
-set_rit:	ts2k_set_rit,
-get_rptr_offs:	ts2k_get_rptr_offs,
-set_rptr_offs:	ts2k_set_rptr_offs,
-get_rptr_shift:	ts2k_get_rptr_shift,
-set_rptr_shift:	ts2k_set_rptr_shift,
-get_split:	ts2k_get_split,
-set_split:	ts2k_set_split,
-get_split_freq:	ts2k_get_split_freq,
-set_split_freq:	ts2k_set_split_freq,
-get_split_mode:	ts2k_get_split_mode,
-set_split_mode:	ts2k_set_split_mode,
-get_ts:		ts2k_get_ts,
-set_ts:		ts2k_set_ts,
-get_xit:	ts2k_get_xit,
-set_xit:	ts2k_set_xit,
-
-/* comming soon... */
-//get_tone_sql:	ts2k_get_tone_sql,
-//set_tone_sql:	ts2k_set_tone_sql,
-//decode_event:	ts2k_decode_event,	/* highest */
-//get_conf:	ts2k_get_conf,
-//set_conf:	ts2k_set_conf,
-//get_ant:	ts2k_get_ant,
-//set_ant:	ts2k_set_ant,
-//recv_dtmf:	ts2k_recv_dtmf,		/* possible? */
-//get_ctcss_sql:	ts2k_get_ctcss_sql,
-//set_ctcss_sql:	ts2k_set_ctcss_sql,
-//get_dcs_sql:	ts2k_get_dcs_sql,
-//set_dcs_sql:	ts2k_set_dcs_sql,
-//send_dtmf:	ts2k_send_dtmf,		/* lowest */
-
-/* and never... */
-//set_bank:				/* not needed */
-/*
-  end ts2k
- */
 };
 
 /*
  * Function definitions below
  */
+
