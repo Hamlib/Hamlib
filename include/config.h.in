@@ -38,6 +38,9 @@
 /* Define if you have the dlopen function.  */
 #undef HAVE_DLOPEN
 
+/* Define if you have the gdImageCreate function.  */
+#undef HAVE_GDIMAGECREATE
+
 /* Define if you have the select function.  */
 #undef HAVE_SELECT
 
@@ -56,6 +59,9 @@
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
 
+/* Define if you have the <gd.h> header file.  */
+#undef HAVE_GD_H
+
 /* Define if you have the <sys/ioctl.h> header file.  */
 #undef HAVE_SYS_IOCTL_H
 
@@ -70,6 +76,9 @@
 
 /* Define if you have the dl library (-ldl).  */
 #undef HAVE_LIBDL
+
+/* Define if you have the gd library (-lgd).  */
+#undef HAVE_LIBGD
 
 /* Define if you have the intl library (-lintl).  */
 #undef HAVE_LIBINTL
