@@ -1,10 +1,10 @@
 /*
- * rigmatric.c - Copyright (C) 2000 Stephane Fillod
+ * rigmatric.c - Copyright (C) 2000,2001 Stephane Fillod
  * This program generates the supported rig matrix in HTML format.
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.10 2001-03-02 18:43:25 f4cfe Exp $  
+ *    $Id: rigmatrix.c,v 1.11 2001-05-22 22:01:00 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -40,7 +40,8 @@ int create_png_range(const freq_range_t rx_range_list[], const freq_range_t tx_r
 int print_caps_sum(const struct rig_caps *caps, void *data)
 {
 
-	printf("<TR><TD>%s</TD><TD>%s</TD><TD>%s</TD><TD>",
+	printf("<TR><TD><A HREF=\"model%d.txt\">%s</A></TD><TD>%s</TD><TD>%s</TD><TD>",
+					caps->rig_model,
 					caps->model_name,caps->mfg_name,caps->version
 					);
 
@@ -99,10 +100,14 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 	printf("</TD><TD><A HREF=\"#rng%d\">range</A></TD>"
 					"<TD><A HREF=\"#parms%d\">parms</A></TD>"
 					"<TD><A HREF=\"#caps%d\">caps</A></TD>"
-					"<TD><A HREF=\"#setfunc%d\">func</A></TD>"
+					"<TD><A HREF=\"#getfunc%d\">funcs</A></TD>"
+					"<TD><A HREF=\"#setfunc%d\">funcs</A></TD>"
 					"<TD><A HREF=\"#getlevel%d\">levels</A></TD>"
-					"<TD><A HREF=\"#setlevel%d\">set levels</A></TD>"
+					"<TD><A HREF=\"#setlevel%d\">levels</A></TD>"
+					"<TD><A HREF=\"#getparm%d\">parms</A></TD>"
+					"<TD><A HREF=\"#setparm%d\">parms</A></TD>"
 					"</TR>\n",
+					caps->rig_model, caps->rig_model, caps->rig_model,
 					caps->rig_model, caps->rig_model, caps->rig_model,
 					caps->rig_model, caps->rig_model, caps->rig_model
 					);
@@ -113,7 +118,7 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 /*
  * IO params et al.
  */
-int print_caps_parms(const struct rig_caps *caps, void *data)
+int print_caps_parameters(const struct rig_caps *caps, void *data)
 {
 	printf("<A NAME=\"parms%d\"><TR><TD>%s</TD><TD>", 
 					caps->rig_model,
@@ -237,6 +242,35 @@ int print_caps_caps(const struct rig_caps *caps, void *data)
 	print_yn(caps->set_trn);
 	print_yn(caps->set_trn);
 	print_yn(caps->decode_event);
+
+	printf("</TR></A>\n");
+
+	return 1;
+}
+
+/*
+ * Get/Set parm abilities
+ */
+int print_caps_parm(const struct rig_caps *caps, void *data)
+{
+	setting_t parm;
+
+	if (!data)
+			return 0;
+
+	parm = (*(int*)data)? caps->has_set_parm : caps->has_get_parm;
+
+	printf("<A NAME=\"%sparm%d\"><TR><TD>%s</TD>", 
+					(*(int*)data)? "set":"get",
+					caps->rig_model,
+					caps->model_name);
+	
+	print_yn(parm & RIG_PARM_ANN);
+	print_yn(parm & RIG_PARM_APO);
+	print_yn(parm & RIG_PARM_BACKLIGHT);
+	print_yn(parm & RIG_PARM_BEEP);
+	print_yn(parm & RIG_PARM_TIME);
+	print_yn(parm & RIG_PARM_BAT);
 
 	printf("</TR></A>\n");
 
@@ -541,9 +575,12 @@ int main (int argc, char *argv[])
 	printf("<TR><TD>Model</TD><TD>Mfg</TD><TD>Vers.</TD><TD>Status</TD>"
 					"<TD>Type</TD><TD>Freq. range</TD><TD>Parameters</TD>"
 					"<TD>Capabilities</TD>"
-					"<TD>Has func</TD>"
+					"<TD>Get func</TD>"
+					"<TD>Set func</TD>"
 					"<TD>Get level</TD>"
 					"<TD>Set level</TD>"
+					"<TD>Get parm</TD>"
+					"<TD>Set parm</TD>"
 					"</TR>\n");
 	status = rig_list_foreach(print_caps_sum,NULL);
 	printf("</TABLE>\n");
@@ -555,7 +592,7 @@ int main (int argc, char *argv[])
 					"<TD>Speed min</TD><TD>Speed max</TD>"
 					"<TD>Parm.</TD><TD>Handshake</TD><TD>Write delay</TD>"
 					"<TD>Post delay</TD><TD>Timeout</TD><TD>Retry</TD></TR>\n");
-	status = rig_list_foreach(print_caps_parms,NULL);
+	status = rig_list_foreach(print_caps_parameters,NULL);
 	printf("</TABLE>\n");
 
 	printf("<P>");
@@ -628,7 +665,7 @@ int main (int argc, char *argv[])
 	printf("Set level");
 	printf("<TABLE BORDER=1>\n");
 	printf("<TR><TD>Model</TD>"
-					"<TD>Pamp</TD><TD>Att</TD>"
+					"<TD>Preamp</TD><TD>Att</TD>"
 					"<TD>AF</TD><TD>RF</TD>"
 					"<TD>SQL</TD><TD>IF</TD>"
 					"<TD>APF</TD><TD>NR</TD>"
@@ -651,7 +688,6 @@ int main (int argc, char *argv[])
 	printf("<TABLE BORDER=1>\n");
 	printf("<TR><TD>Model</TD>"
 					"<TD>Preamp</TD><TD>Att</TD>"
-					"<TD>Ant</TD>"
 					"<TD>AF</TD><TD>RF</TD>"
 					"<TD>SQL</TD><TD>IF</TD>"
 					"<TD>APF</TD><TD>NR</TD>"
@@ -660,12 +696,38 @@ int main (int argc, char *argv[])
 					"<TD>Mic gain</TD><TD>Key speed</TD>"
 					"<TD>Notch</TD><TD>Comp</TD>"
 					"<TD>AGC</TD><TD>BKin delay</TD>"
-					"<TD>Bal</TD><TD>Ann</TD>"
+					"<TD>Bal</TD>"
 					"<TD>SWR</TD><TD>ALC</TD>"
 					"<TD>SQL stat</TD><TD>SMeter</TD>"
 					"</TR>\n");
 	set_or_get = 0;
 	status = rig_list_foreach(print_caps_level,&set_or_get);
+	printf("</TABLE>\n");
+
+	printf("<P>");
+
+	printf("Set parm");
+	printf("<TABLE BORDER=1>\n");
+	printf("<TR><TD>Model</TD>"
+					"<TD>Ann</TD><TD>APO</TD>"
+					"<TD>Back Light</TD><TD>Beep</TD>"
+					"<TD>Time</TD><TD>Batt</TD>"
+					"</TR>\n");
+	set_or_get = 1;
+	status = rig_list_foreach(print_caps_parm,&set_or_get);
+	printf("</TABLE>\n");
+
+	printf("<P>");
+
+	printf("Get parm");
+	printf("<TABLE BORDER=1>\n");
+	printf("<TR><TD>Model</TD>"
+					"<TD>Ann</TD><TD>APO</TD>"
+					"<TD>Back Light</TD><TD>Beep</TD>"
+					"<TD>Time</TD><TD>Batt</TD>"
+					"</TR>\n");
+	set_or_get = 0;
+	status = rig_list_foreach(print_caps_parm,&set_or_get);
 	printf("</TABLE>\n");
 
 	printf("<P>");
