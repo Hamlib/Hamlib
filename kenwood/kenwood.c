@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: kenwood.c,v 1.47 2002-09-15 22:22:39 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.48 2002-09-15 22:35:25 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -622,7 +622,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 		case RIG_LEVEL_AGC:
-		level_len = sprintf(levelbuf, "GT%03d;", kenwood_val);
+		if (kenwood_val > 3) kenwood_val = 3; /* 0.. 255 */
+		level_len = sprintf(levelbuf, "GT%03d;", 84*kenwood_val);
 		break;
 
 		default:
