@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.29 2002-04-23 22:04:19 fillods Exp $  
+ * $Id: rigctl.c,v 1.30 2002-06-26 20:44:37 dedmons Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -438,6 +438,12 @@ int main (int argc, char *argv[])
 				} while (cmd == 0x0a || cmd == 0x0d);
 
 				last_was_ret = 0;
+
+				if (cmd == '#' || cmd == ';') {
+					while( cmd != '\n' && cmd != '\r')
+						scanf("%c", &cmd);
+					continue;
+				}
 
 				if (cmd == 'Q' || cmd == 'q')
 						break;
