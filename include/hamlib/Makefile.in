@@ -58,7 +58,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -85,9 +84,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -108,7 +104,7 @@ TAR = tar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu include/hamlib/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

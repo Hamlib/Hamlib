@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -69,11 +68,13 @@ ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTHAMLIBTCL = @LTHAMLIBTCL@
 LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
@@ -84,9 +85,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -98,7 +96,7 @@ LDFLAGS = -no-undefined -module -avoid-version
 @WINRADIO_TRUE@lib_LTLIBRARIES = libhamlib-winradio.la
 @WINRADIO_TRUE@libhamlib_winradio_la_SOURCES = winradio.c $(WRSRCLIST)
 #libhamlib_winradio_la_LDFLAGS = -no-undefined -module -avoid-version
-@WINRADIO_TRUE@libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
+#libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
 #EXTRA_LTLIBRARIES = libhamlib-winradio.la
 
 #lib_LIBRARIES = @LIBWINRADIO@
@@ -123,10 +121,11 @@ LIBS = @LIBS@
 @WINRADIO_TRUE@wr1000.$(OBJEXT) wr1500.$(OBJEXT) wr1550.$(OBJEXT) \
 @WINRADIO_TRUE@wr3100.$(OBJEXT) wr3150.$(OBJEXT) wr3500.$(OBJEXT) \
 @WINRADIO_TRUE@wr3700.$(OBJEXT)
+AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_winradio_la_LDFLAGS = 
-@WINRADIO_TRUE@libhamlib_winradio_la_DEPENDENCIES =  ../src/libhamlib.la
+libhamlib_winradio_la_LIBADD = 
 @WINRADIO_TRUE@libhamlib_winradio_la_OBJECTS =  winradio.lo wr1000.lo \
 @WINRADIO_TRUE@wr1500.lo wr1550.lo wr3100.lo wr3150.lo wr3500.lo \
 @WINRADIO_TRUE@wr3700.lo
@@ -153,7 +152,7 @@ OBJECTS = $(libhamlib_winradio_a_OBJECTS) $(libhamlib_winradio_la_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu winradio/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

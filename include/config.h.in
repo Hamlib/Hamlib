@@ -1,124 +1,139 @@
-/* include/config.h.in.  Generated automatically from configure.in by autoheader 2.13.  */
+/* include/config.h.in.  Generated automatically from configure.ac by autoheader.  */
+
+/* Define if you have the `atexit' function. */
+#undef HAVE_ATEXIT
+
+/* Define if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define if you have the `gdImageCreate' function. */
+#undef HAVE_GDIMAGECREATE
+
+/* Define if you have the <gd.h> header file. */
+#undef HAVE_GD_H
+
+/* Define if you have the <getopt.h> header file. */
+#undef HAVE_GETOPT_H
+
+/* Define if you have the `getopt_long' function. */
+#undef HAVE_GETOPT_LONG
+
+/* Define if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if you have the `c' library (-lc). */
+#undef HAVE_LIBC
+
+/* Define if you have the `gd' library (-lgd). */
+#undef HAVE_LIBGD
+
+/* Define if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define if you have the `syslog' library (-lsyslog). */
+#undef HAVE_LIBSYSLOG
+
+/* Define if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
+/* Define if you have the <linradio/radio_ioctl.h> header file. */
+#undef HAVE_LINRADIO_RADIO_IOCTL_H
+
+/* Define if you have the <linradio/wrapi.h> header file. */
+#undef HAVE_LINRADIO_WRAPI_H
+
+/* Define if you have the <linux/ppdev.h> header file. */
+#undef HAVE_LINUX_PPDEV_H
+
+/* Define if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define if you have the `select' function. */
+#undef HAVE_SELECT
+
+/* Define if you have the <sgtty.h> header file. */
+#undef HAVE_SGTTY_H
+
+/* Define if you have the `snprintf' function. */
+#undef HAVE_SNPRINTF
+
+/* Define if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define if you have the <sys/ioccom.h> header file. */
+#undef HAVE_SYS_IOCCOM_H
+
+/* Define if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
+/* Define if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define if you have the <tcl8.2/tcl.h> header file. */
+#undef HAVE_TCL8_2_TCL_H
+
+/* Define if you have the <termios.h> header file. */
+#undef HAVE_TERMIOS_H
+
+/* Define if you have the <termio.h> header file. */
+#undef HAVE_TERMIO_H
+
+/* Define if you have the <term.h> header file. */
+#undef HAVE_TERM_H
+
+/* Define if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the `usleep' function. */
+#undef HAVE_USLEEP
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
 
 /* Define if on AIX 3.
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */
 #ifndef _ALL_SOURCE
-#undef _ALL_SOURCE
+# undef _ALL_SOURCE
 #endif
 
-/* Define to empty if the keyword does not work.  */
-#undef const
-
-/* Define as __inline if that's what the C compiler calls it.  */
-#undef inline
-
-/* Define if on MINIX.  */
+/* Define if on MINIX. */
 #undef _MINIX
 
-/* Define if the system does not provide POSIX.1 features except
-   with this defined.  */
+/* Define if the system does not provide POSIX.1 features except with this
+   defined. */
 #undef _POSIX_1_SOURCE
 
-/* Define if you need to in order for stat and other things to work.  */
+/* Define if you need to in order for `stat' and other things to work. */
 #undef _POSIX_SOURCE
 
-/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define as `__inline' if that's what the C compiler calls it, or to nothing
+   if it is not supported. */
+#undef inline
+
+/* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
-
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
-
-/* Define if you can safely include both <sys/time.h> and <time.h>.  */
-#undef TIME_WITH_SYS_TIME
-
-/* Define if you have the atexit function.  */
-#undef HAVE_ATEXIT
-
-/* Define if you have the gdImageCreate function.  */
-#undef HAVE_GDIMAGECREATE
-
-/* Define if you have the getopt_long function.  */
-#undef HAVE_GETOPT_LONG
-
-/* Define if you have the select function.  */
-#undef HAVE_SELECT
-
-/* Define if you have the snprintf function.  */
-#undef HAVE_SNPRINTF
-
-/* Define if you have the strerror function.  */
-#undef HAVE_STRERROR
-
-/* Define if you have the usleep function.  */
-#undef HAVE_USLEEP
-
-/* Define if you have the <dlfcn.h> header file.  */
-#undef HAVE_DLFCN_H
-
-/* Define if you have the <fcntl.h> header file.  */
-#undef HAVE_FCNTL_H
-
-/* Define if you have the <gd.h> header file.  */
-#undef HAVE_GD_H
-
-/* Define if you have the <getopt.h> header file.  */
-#undef HAVE_GETOPT_H
-
-/* Define if you have the <linradio/radio_ioctl.h> header file.  */
-#undef HAVE_LINRADIO_RADIO_IOCTL_H
-
-/* Define if you have the <linradio/wrapi.h> header file.  */
-#undef HAVE_LINRADIO_WRAPI_H
-
-/* Define if you have the <linux/ppdev.h> header file.  */
-#undef HAVE_LINUX_PPDEV_H
-
-/* Define if you have the <sgtty.h> header file.  */
-#undef HAVE_SGTTY_H
-
-/* Define if you have the <sys/ioccom.h> header file.  */
-#undef HAVE_SYS_IOCCOM_H
-
-/* Define if you have the <sys/ioctl.h> header file.  */
-#undef HAVE_SYS_IOCTL_H
-
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
-
-/* Define if you have the <tcl8.2/tcl.h> header file.  */
-#undef HAVE_TCL8_2_TCL_H
-
-/* Define if you have the <term.h> header file.  */
-#undef HAVE_TERM_H
-
-/* Define if you have the <termio.h> header file.  */
-#undef HAVE_TERMIO_H
-
-/* Define if you have the <termios.h> header file.  */
-#undef HAVE_TERMIOS_H
-
-/* Define if you have the <unistd.h> header file.  */
-#undef HAVE_UNISTD_H
-
-/* Define if you have the c library (-lc).  */
-#undef HAVE_LIBC
-
-/* Define if you have the gd library (-lgd).  */
-#undef HAVE_LIBGD
-
-/* Define if you have the m library (-lm).  */
-#undef HAVE_LIBM
-
-/* Define if you have the syslog library (-lsyslog).  */
-#undef HAVE_LIBSYSLOG
-
-/* Define if you have the z library (-lz).  */
-#undef HAVE_LIBZ
-
-/* Name of package */
-#undef PACKAGE
-
-/* Version number of package */
-#undef VERSION
-

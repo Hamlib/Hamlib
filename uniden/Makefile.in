@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -86,9 +85,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -98,7 +94,7 @@ UNIDENSRC = bc895.c
 lib_LTLIBRARIES = libhamlib-uniden.la
 libhamlib_uniden_la_SOURCES = $(UNIDENSRC) uniden.c
 libhamlib_uniden_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_uniden_la_LIBADD = ../src/libhamlib.la
+#libhamlib_uniden_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-uniden.a
 libhamlib_uniden_a_SOURCES = $(UNIDENSRC) uniden.c
@@ -117,9 +113,10 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_uniden_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_uniden_a_OBJECTS =  bc895.$(OBJEXT) uniden.$(OBJEXT)
+AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_uniden_la_DEPENDENCIES =  ../src/libhamlib.la
+libhamlib_uniden_la_LIBADD = 
 libhamlib_uniden_la_OBJECTS =  bc895.lo uniden.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -142,7 +139,7 @@ OBJECTS = $(libhamlib_uniden_a_OBJECTS) $(libhamlib_uniden_la_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu uniden/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -85,9 +84,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -99,7 +95,7 @@ LDFLAGS = -no-undefined -module -avoid-version
 #lib_LTLIBRARIES = @LTHAMLIBTCL@
 @HAMLIBTCL_TRUE@libhamlibtcl_la_SOURCES = hamlibtcl.c
 #libhamlibtcl_la_LDFLAGS = -no-undefined -module -avoid-version
-@HAMLIBTCL_TRUE@libhamlibtcl_la_LIBADD = ../src/libhamlib.la
+#libhamlibtcl_la_LIBADD = ../src/libhamlib.la
 #EXTRA_LTLIBRARIES = libhamlibtcl.la
 
 @HAMLIBTCL_TRUE@lib_LIBRARIES = libhamlibtcl.a
@@ -122,10 +118,11 @@ CPPFLAGS = @CPPFLAGS@
 LIBS = @LIBS@
 @HAMLIBTCL_TRUE@libhamlibtcl_a_DEPENDENCIES =  ../src/libhamlib.la
 @HAMLIBTCL_TRUE@libhamlibtcl_a_OBJECTS =  hamlibtcl.$(OBJEXT)
+AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlibtcl_la_LDFLAGS = 
-@HAMLIBTCL_TRUE@libhamlibtcl_la_DEPENDENCIES =  ../src/libhamlib.la
+libhamlibtcl_la_LIBADD = 
 @HAMLIBTCL_TRUE@libhamlibtcl_la_OBJECTS =  hamlibtcl.lo
 SCRIPTS =  $(noinst_SCRIPTS)
 
@@ -148,7 +145,7 @@ OBJECTS = $(libhamlibtcl_a_OBJECTS) $(libhamlibtcl_la_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu tcl/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

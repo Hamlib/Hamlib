@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -86,34 +85,35 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
-noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp @RIGMATRIX@
 bin_PROGRAMS = rigctl
+man_MANS = rigctl.1
+
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp @RIGMATRIX@
+
 EXTRA_PROGRAMS = rigmatrix
 
 # all the programs need this
-LDADD = ../src/libhamlib.la
+LDADD = ../src/libhamlib.la ../lib/libmisc.a
 DEPENDENCIES = ../src/libhamlib.la
 
-BACKENDLNK = "-dlopen" self "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-yaesu.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la "-dlopen" ../alinco/libhamlib-alinco.la "-dlopen" ../uniden/libhamlib-uniden.la "-dlopen" ../tentec/libhamlib-tentec.la @WINRADIOLNK@
+BACKENDLNK = -dlopen self -dlopen ../icom/libhamlib-icom.la -dlopen ../yaesu/libhamlib-yaesu.la -dlopen ../kenwood/libhamlib-kenwood.la -dlopen ../aor/libhamlib-aor.la -dlopen ../dummy/libhamlib-dummy.la -dlopen ../pcr/libhamlib-pcr.la -dlopen ../alinco/libhamlib-alinco.la -dlopen ../uniden/libhamlib-uniden.la -dlopen ../tentec/libhamlib-tentec.la @WINRADIOLNK@
 BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la ../uniden/libhamlib-uniden.la ../tentec/libhamlib-tentec.la @WINRADIODEPS@
 
-listrigs_LDADD = $(BACKENDLNK) $(LDADD)
-dumpcaps_LDADD = $(BACKENDLNK) $(LDADD)
-dumpmem_LDADD = $(BACKENDLNK) $(LDADD)
-testcaps_LDADD = $(BACKENDLNK) $(LDADD)
-testrig_LDADD = $(BACKENDLNK) $(LDADD)
-testtrn_LDADD = $(BACKENDLNK) $(LDADD)
-rigctl_LDADD = $(BACKENDLNK) $(LDADD) ../lib/libmisc.a
+listrigs_LDFLAGS = $(BACKENDLNK)
+dumpcaps_LDFLAGS = $(BACKENDLNK)
+dumpmem_LDFLAGS = $(BACKENDLNK)
+testcaps_LDFLAGS = $(BACKENDLNK)
+testrig_LDFLAGS = $(BACKENDLNK)
+testtrn_LDFLAGS = $(BACKENDLNK)
+rigctl_LDFLAGS = $(BACKENDLNK)
 # rigmatrix needs also libgd
-rigmatrix_LDADD = -lgd $(BACKENDLNK) $(LDADD)
-testcpp_LDADD = $(BACKENDLNK) ../c++/libhamlib++.la
+rigmatrix_LDFLAGS = -lgd $(BACKENDLNK)
+testcpp_LDADD = ../c++/libhamlib++.la $(LDADD)
+testcpp_LDFLAGS = $(BACKENDLNK)
 
 dumpcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 dumpmem_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
@@ -137,7 +137,7 @@ rigctl_SOURCES = rigctl.c
 rigmatrix_SOURCES = rigmatrix.c
 testcpp_SOURCES = testcpp.cc
 
-EXTRA_DIST = rigmatrix_head.html
+EXTRA_DIST = rigmatrix_head.html $(man_MANS)
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
 CONFIG_CLEAN_FILES = 
@@ -153,31 +153,30 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 rigmatrix_OBJECTS =  rigmatrix.$(OBJEXT)
-rigmatrix_LDFLAGS = 
+rigmatrix_LDADD = $(LDADD)
 rigctl_OBJECTS =  rigctl.$(OBJEXT)
-rigctl_LDFLAGS = 
+rigctl_LDADD = $(LDADD)
 dumpcaps_OBJECTS =  dumpcaps.$(OBJEXT)
-dumpcaps_LDFLAGS = 
+dumpcaps_LDADD = $(LDADD)
 dumpmem_OBJECTS =  dumpmem.$(OBJEXT)
-dumpmem_LDFLAGS = 
+dumpmem_LDADD = $(LDADD)
 testcaps_OBJECTS =  testcaps.$(OBJEXT)
-testcaps_LDFLAGS = 
+testcaps_LDADD = $(LDADD)
 testrig_OBJECTS =  testrig.$(OBJEXT)
-testrig_LDFLAGS = 
+testrig_LDADD = $(LDADD)
 testtrn_OBJECTS =  testtrn.$(OBJEXT)
-testtrn_LDFLAGS = 
+testtrn_LDADD = $(LDADD)
 testbcd_OBJECTS =  testbcd.$(OBJEXT)
 testbcd_LDADD = $(LDADD)
-testbcd_DEPENDENCIES =  ../src/libhamlib.la
+testbcd_DEPENDENCIES =  ../src/libhamlib.la ../lib/libmisc.a
 testbcd_LDFLAGS = 
 testfreq_OBJECTS =  testfreq.$(OBJEXT)
 testfreq_LDADD = $(LDADD)
-testfreq_DEPENDENCIES =  ../src/libhamlib.la
+testfreq_DEPENDENCIES =  ../src/libhamlib.la ../lib/libmisc.a
 testfreq_LDFLAGS = 
 listrigs_OBJECTS =  listrigs.$(OBJEXT)
-listrigs_LDFLAGS = 
+listrigs_LDADD = $(LDADD)
 testcpp_OBJECTS =  testcpp.$(OBJEXT)
-testcpp_LDFLAGS = 
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -188,6 +187,10 @@ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CF
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+man1dir = $(mandir)/man1
+MANS = $(man_MANS)
+
+NROFF = nroff
 DIST_COMMON =  README Makefile.am Makefile.in
 
 
@@ -204,7 +207,7 @@ OBJECTS = $(rigmatrix_OBJECTS) $(rigctl_OBJECTS) $(dumpcaps_OBJECTS) $(dumpmem_O
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .cc .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
@@ -334,6 +337,45 @@ testcpp$(EXEEXT): $(testcpp_OBJECTS) $(testcpp_DEPENDENCIES)
 .cc.lo:
 	$(LTCXXCOMPILE) -c $<
 
+install-man1:
+	$(mkinstalldirs) $(DESTDIR)$(man1dir)
+	@list='$(man1_MANS)'; \
+	l2='$(man_MANS)'; for i in $$l2; do \
+	  case "$$i" in \
+	    *.1*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  if test -f $(srcdir)/$$i; then file=$(srcdir)/$$i; \
+	  else file=$$i; fi; \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst"; \
+	  $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst; \
+	done
+
+uninstall-man1:
+	@list='$(man1_MANS)'; \
+	l2='$(man_MANS)'; for i in $$l2; do \
+	  case "$$i" in \
+	    *.1*) list="$$list $$i" ;; \
+	  esac; \
+	done; \
+	for i in $$list; do \
+	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
+	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
+	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
+	  echo " rm -f $(DESTDIR)$(man1dir)/$$inst"; \
+	  rm -f $(DESTDIR)$(man1dir)/$$inst; \
+	done
+install-man: $(MANS)
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-man1
+uninstall-man:
+	@$(NORMAL_UNINSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) uninstall-man1
+
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES) $(LISP)
@@ -445,20 +487,20 @@ installcheck: installcheck-am
 install-exec-am: install-binPROGRAMS
 install-exec: install-exec-am
 
-install-data-am:
+install-data-am: install-man
 install-data: install-data-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-am
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-binPROGRAMS uninstall-man
 uninstall: uninstall-am
-all-am: Makefile $(PROGRAMS)
+all-am: Makefile $(PROGRAMS) $(MANS)
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
 installdirs:
-	$(mkinstalldirs)  $(DESTDIR)$(bindir)
+	$(mkinstalldirs)  $(DESTDIR)$(bindir) $(DESTDIR)$(mandir)/man1
 
 
 mostlyclean-generic:
@@ -505,22 +547,21 @@ mostlyclean-noinstPROGRAMS distclean-noinstPROGRAMS \
 clean-noinstPROGRAMS maintainer-clean-noinstPROGRAMS \
 mostlyclean-compile distclean-compile clean-compile \
 maintainer-clean-compile mostlyclean-libtool distclean-libtool \
-clean-libtool maintainer-clean-libtool tags mostlyclean-tags \
-distclean-tags clean-tags maintainer-clean-tags distdir \
-mostlyclean-depend distclean-depend clean-depend \
-maintainer-clean-depend info-am info dvi-am dvi check check-am \
-installcheck-am installcheck install-exec-am install-exec \
-install-data-am install-data install-am install uninstall-am uninstall \
-all-redirect all-am all installdirs mostlyclean-generic \
-distclean-generic clean-generic maintainer-clean-generic clean \
-mostlyclean distclean maintainer-clean
+clean-libtool maintainer-clean-libtool install-man1 uninstall-man1 \
+install-man uninstall-man tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags distdir mostlyclean-depend \
+distclean-depend clean-depend maintainer-clean-depend info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	mkdir -p html
 	( cd html && cat ../rigmatrix_head.html && ../rigmatrix ) > html/rigmatrix.html
-	#for f in `./listrigs | tail +2 | cut -f1` ; do ./dumpcaps $f > html/model$1.txt ; done
-	# ./listrigs | awk 'NR!=1 { system("./dumpcaps $1 > html/model$1.txt") }'
+	for f in `./listrigs | tail +2 | cut -f1` ; do ./dumpcaps $$f > html/model$$f.txt ; done
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

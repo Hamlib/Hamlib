@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -69,11 +68,13 @@ ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTHAMLIBTCL = @LTHAMLIBTCL@
 LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
@@ -84,9 +85,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -109,6 +107,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libmisc_a_DEPENDENCIES =  @LIBOBJS@
 libmisc_a_OBJECTS = 
+AR = ar
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -128,7 +127,7 @@ OBJECTS = $(libmisc_a_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu lib/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

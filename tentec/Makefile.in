@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -86,9 +85,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -98,7 +94,7 @@ TENTECSRCLIST = rx320.c
 lib_LTLIBRARIES = libhamlib-tentec.la
 libhamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c
 libhamlib_tentec_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_tentec_la_LIBADD = ../src/libhamlib.la
+#libhamlib_tentec_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-tentec.a
 libhamlib_tentec_a_SOURCES = $(TENTECSRCLIST) tentec.c
@@ -117,9 +113,10 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_tentec_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_tentec_a_OBJECTS =  rx320.$(OBJEXT) tentec.$(OBJEXT)
+AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_tentec_la_DEPENDENCIES =  ../src/libhamlib.la
+libhamlib_tentec_la_LIBADD = 
 libhamlib_tentec_la_OBJECTS =  rx320.lo tentec.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -142,7 +139,7 @@ OBJECTS = $(libhamlib_tentec_a_OBJECTS) $(libhamlib_tentec_la_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu tentec/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -86,9 +85,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -98,7 +94,7 @@ TSSRCLIST = ts870s.c ts570.c
 lib_LTLIBRARIES = libhamlib-kenwood.la
 libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c
 libhamlib_kenwood_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la
+#libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-kenwood.a
 libhamlib_kenwood_a_SOURCES = $(TSSRCLIST) kenwood.c
@@ -118,9 +114,10 @@ LIBS = @LIBS@
 libhamlib_kenwood_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_kenwood_a_OBJECTS =  ts870s.$(OBJEXT) ts570.$(OBJEXT) \
 kenwood.$(OBJEXT)
+AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_kenwood_la_DEPENDENCIES =  ../src/libhamlib.la
+libhamlib_kenwood_la_LIBADD = 
 libhamlib_kenwood_la_OBJECTS =  ts870s.lo ts570.lo kenwood.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -143,7 +140,7 @@ OBJECTS = $(libhamlib_kenwood_a_OBJECTS) $(libhamlib_kenwood_la_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu kenwood/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

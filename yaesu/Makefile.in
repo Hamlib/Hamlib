@@ -59,7 +59,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -69,11 +68,13 @@ ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTHAMLIBTCL = @LTHAMLIBTCL@
 LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
@@ -84,9 +85,6 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
@@ -96,7 +94,7 @@ YAESUSRC = ft747.c ft847.c
 lib_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = yaesu.c $(YAESUSRC)
 libhamlib_yaesu_la_LDFLAGS = -no-undefined -module -avoid-version
-libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
+#libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
 
 lib_LIBRARIES = libhamlib-yaesu.a
 libhamlib_yaesu_a_SOURCES = yaesu.c $(YAESUSRC)
@@ -116,9 +114,10 @@ LIBS = @LIBS@
 libhamlib_yaesu_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_yaesu_a_OBJECTS =  yaesu.$(OBJEXT) ft747.$(OBJEXT) \
 ft847.$(OBJEXT)
+AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
-libhamlib_yaesu_la_DEPENDENCIES =  ../src/libhamlib.la
+libhamlib_yaesu_la_LIBADD = 
 libhamlib_yaesu_la_OBJECTS =  yaesu.lo ft747.lo ft847.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -141,7 +140,7 @@ OBJECTS = $(libhamlib_yaesu_a_OBJECTS) $(libhamlib_yaesu_la_OBJECTS)
 all: all-redirect
 .SUFFIXES:
 .SUFFIXES: .S .c .lo .o .obj .s
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu yaesu/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)

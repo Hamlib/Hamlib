@@ -10,6 +10,17 @@
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
 
+#noinst_SCRIPTS = hamlib-doc split-man.pl
+#EXTRA_DIST = hamlib-doc split-man.pl NOTES
+
+# hamlib-doc -man $(find -name '*.c' '*.h') | split-man.pl /tmp/man
+# FIXME: this might be broken with VPATH make
+#hamlib-doc-man: ../src/rig.c hamlib-doc split-man.pl
+#	./hamlib-doc -man ../src/rig.c | ./split-man.pl man/
+
+#hamlib-doc-html: ../src/rig.c hamlib-doc
+#	./hamlib-doc -html ../src/rig.c > html/hamlib.html
+
 
 SHELL = @SHELL@
 
@@ -59,7 +70,6 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
@@ -69,11 +79,13 @@ ECHO = @ECHO@
 EXEEXT = @EXEEXT@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
+LIBHAMLIBTCL = @LIBHAMLIBTCL@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBTOOL = @LIBTOOL@
 LIBWINRADIO = @LIBWINRADIO@
 LN_S = @LN_S@
+LTHAMLIBTCL = @LTHAMLIBTCL@
 LTLIBWINRADIO = @LTLIBWINRADIO@
 MAKEINFO = @MAKEINFO@
 NET = @NET@
@@ -84,20 +96,12 @@ RANLIB = @RANLIB@
 RIGMATRIX = @RIGMATRIX@
 STRIP = @STRIP@
 VERSION = @VERSION@
-V_MAJOR = @V_MAJOR@
-V_MINOR = @V_MINOR@
-WINDRES = @WINDRES@
 WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
-
-noinst_SCRIPTS = hamlib-doc split-man.pl
-EXTRA_DIST = hamlib-doc split-man.pl NOTES
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
 CONFIG_CLEAN_FILES = 
-SCRIPTS =  $(noinst_SCRIPTS)
-
 DIST_COMMON =  Makefile.am Makefile.in
 
 
@@ -107,7 +111,7 @@ TAR = tar
 GZIP_ENV = --best
 all: all-redirect
 .SUFFIXES:
-$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu doc/Makefile
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
@@ -157,7 +161,7 @@ install-am: all-am
 install: install-am
 uninstall-am:
 uninstall: uninstall-am
-all-am: Makefile $(SCRIPTS)
+all-am: Makefile
 all-redirect: all-am
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
@@ -200,13 +204,10 @@ distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
 
-# hamlib-doc -man $(find -name '*.c' '*.h') | split-man.pl /tmp/man
-# FIXME: this might be broken with VPATH make
-hamlib-doc-man: ../src/rig.c hamlib-doc split-man.pl
-	./hamlib-doc -man ../src/rig.c | ./split-man.pl man/
+doc: hamlib.cfg ../src/rig.c
+	doxygen hamlib.cfg
 
-hamlib-doc-html: ../src/rig.c hamlib-doc
-	./hamlib-doc -html ../src/rig.c > html/hamlib.html
+#man_MANS= man/man3/rig.c.3
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
