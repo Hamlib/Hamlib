@@ -4,7 +4,7 @@
 #
 # creates:	libft747.so
 #
-#	$Id: Makefile,v 1.2 2000-07-18 22:01:04 frank Exp $	
+#	$Id: Makefile,v 1.3 2000-07-18 23:28:01 frank Exp $	
 #
 #
 # .h files go in INSTALL_INCLUDEDIR
@@ -23,12 +23,15 @@ LIB_HEADER	=	ft747.h
 LIB_SRC		=	ft747.c
 LIB_OBJECTS	=	ft747.o
 
+CC		=	gcc
+CFLAGS 		=	-fPIC -g -Wall
+
 all:	lib
 
 .PHONY:	lib
 lib:	
-	gcc -fPIC -g -Wall -c $(LIB_SRC)
-	gcc -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
+	$(CC) $(CFLAGS) -c $(LIB_SRC)
+	$(CC) -shared -Wl,-soname,$(LIB_SONAME) -o $(LIB_RELEASE) $(LIB_OBJECTS) -lc
 
 # install header and lib
 
