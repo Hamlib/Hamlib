@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR7030 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar7030.c,v 1.1 2004-04-16 19:58:10 fillods Exp $
+ *	$Id: ar7030.c,v 1.2 2004-08-26 20:46:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -79,9 +79,9 @@ const struct rig_caps ar7030_caps = {
 .rig_model =  RIG_MODEL_AR7030,
 .model_name = "AR7030",
 .mfg_name =  "AOR",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -91,7 +91,7 @@ const struct rig_caps ar7030_caps = {
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_XONXOFF,	/* TBC */
+.serial_handshake =  RIG_HANDSHAKE_NONE,	/* TBC */
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  500,	/* 0.5 second */
@@ -220,7 +220,7 @@ static int rxr_readByte(RIG *rig, unsigned char *c)
 
 int ar7030_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  int numSteps = (int)((double)freq * 376.635223 + 0.5);
+  unsigned numSteps = (unsigned)((double)freq * .376635223 + 0.5);
 
   if (vfo != RIG_VFO_CURR)
 	  return -RIG_EINVAL;
@@ -231,17 +231,17 @@ int ar7030_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 
   /* Exact multiplicand is (2^24) / 44545 */
-  rxr_writeByte(rig, 0x30+(int)(numSteps/1048576));
+  rxr_writeByte(rig, 0x30 + numSteps/1048576);
   numSteps %= 1048576;
-  rxr_writeByte(rig, 0x60+(int)(numSteps/65536));
+  rxr_writeByte(rig, 0x60 + numSteps/65536);
   numSteps %= 65536;
-  rxr_writeByte(rig, 0x30+(int)(numSteps/4096));
+  rxr_writeByte(rig, 0x30 + numSteps/4096);
   numSteps %= 4096;
-  rxr_writeByte(rig, 0x60+(int)(numSteps/256));
+  rxr_writeByte(rig, 0x60 + numSteps/256);
   numSteps %= 256;
-  rxr_writeByte(rig, 0x30+(int)(numSteps/16));
+  rxr_writeByte(rig, 0x30 + numSteps/16);
   numSteps %= 16;
-  rxr_writeByte(rig, 0x60+(int)(numSteps % 16));
+  rxr_writeByte(rig, 0x60 + numSteps);
 
   rxr_writeByte(rig, 0x21);
   rxr_writeByte(rig, 0x2C);
