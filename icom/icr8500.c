@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: icr8500.c,v 1.7 2001-03-02 18:35:18 f4cfe Exp $  
+ * $Id: icr8500.c,v 1.8 2001-03-04 13:03:41 f4cfe Exp $  
  *
  *
  *
@@ -48,6 +48,12 @@
 
 #define ICR8500_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
 
+static const struct icom_priv_caps icr8500_priv_caps = {
+	0x4a,   /* default address */
+	0,      /* 731 mode */
+	r8500_ts_sc_list,
+	EMPTY_STR_CAL
+};
 /*
  * ICR8500 rigs capabilities.
  */
@@ -61,12 +67,12 @@ const struct rig_caps icr8500_caps = {
   RIG_FUNC_NONE, ICR8500_FUNC_ALL, ICR8500_LEVEL_ALL, ICR8500_LEVEL_ALL,
   RIG_PARM_NONE, RIG_PARM_NONE,	/* FIXME: parms */
   NULL, NULL,	/* FIXME: CTCSS/DCS list */
-  { 20, RIG_DBLST_END, },
+  { 10, RIG_DBLST_END, },
   { 20, RIG_DBLST_END, },
   NULL,
   Hz(9999), Hz(0),	/* RIT, IF-SHIFT */
   0,			/* FIXME: VFO list */
-  0, RIG_TRN_ON,
+  0, RIG_TRN_RIG,
   999, 12, 0,
 
   { RIG_CHAN_END, },	/* FIXME: memory channel list */
@@ -107,7 +113,7 @@ const struct rig_caps icr8500_caps = {
 		{RIG_MODE_WFM, kHz(230)},
 		RIG_FLT_END,
 	},
-  NULL,	/* priv */
+  (void*)&icr8500_priv_caps,
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL, 

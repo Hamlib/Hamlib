@@ -1,12 +1,12 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * icom.h - Copyright (C) 2000 Stephane Fillod
+ * icom.h - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.15 2001-03-02 18:39:42 f4cfe Exp $  
+ *    $Id: icom.h,v 1.16 2001-03-04 13:03:41 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 #define _ICOM_H 1
 
 #include <hamlib/rig.h>
+#include <cal.h>
 
 /*
  * defines used by comp_cal_str in rig.c 
@@ -44,16 +45,28 @@ struct ts_sc_list {
 	unsigned char sc;	/* sub command */
 };
 
+struct icom_priv_caps {
+	unsigned char re_civ_addr;	/* the remote dlft equipment's CI-V address*/
+	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+	const struct ts_sc_list *ts_sc_list;
+	cal_table_t str_cal;
+};
+
+
 struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
-	const struct ts_sc_list *ts_sc_list;
-	int str_cal_raw[STR_CAL_LENGTH];
-	int str_cal_db[STR_CAL_LENGTH];
+	cal_table_t str_cal;
 };
 
 extern const int icom_ctcss_list[];
 
+extern const struct ts_sc_list r8500_ts_sc_list[];
+extern const struct ts_sc_list ic737_ts_sc_list[];
+extern const struct ts_sc_list r75_ts_sc_list[];
+extern const struct ts_sc_list r7100_ts_sc_list[];
+extern const struct ts_sc_list ic756_ts_sc_list[];
+extern const struct ts_sc_list ic706_ts_sc_list[];
 
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);

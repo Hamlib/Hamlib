@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * 		$Id: icall.c,v 1.1 2001-03-02 18:30:45 f4cfe Exp $  
+ * 		$Id: icall.c,v 1.2 2001-03-04 13:03:41 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -54,6 +54,13 @@
 
 #define ICALL_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
 
+static const struct icom_priv_caps icall_priv_caps = {
+	0x58,   /* whatever! */
+	0,      /* 731 mode */
+	ic706_ts_sc_list,
+	EMPTY_STR_CAL
+};
+
 /*
  */
 const struct rig_caps icall_caps = {
@@ -71,7 +78,7 @@ const struct rig_caps icall_caps = {
   NULL,
   Hz(9999), kHz(2.1),	/* RIT, IF-SHIFT */
   0,			/* FIXME: VFO list */
-  0, RIG_TRN_ON, 
+  0, RIG_TRN_RIG, 
   105, 0, 0,
 
   /* memory channel list */
@@ -135,7 +142,7 @@ const struct rig_caps icall_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
-  NULL,	/* priv */
+  (void*)&icall_priv_caps,	/* priv */
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL, 

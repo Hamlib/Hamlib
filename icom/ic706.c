@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.17 2001-03-02 18:35:18 f4cfe Exp $  
+ * $Id: ic706.c,v 1.18 2001-03-04 13:03:41 f4cfe Exp $  
  *
  *
  *
@@ -55,11 +55,40 @@
 
 #define IC706_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
 
+
+#define IC706IIG_STR_CAL { 16, \
+	{ \
+		{ 100, -18 }, \
+		{ 104, -16 }, \
+		{ 108, -14 }, \
+		{ 111, -12 }, \
+		{ 114, -10 }, \
+		{ 118, -8 }, \
+		{ 121, -6 }, \
+		{ 125, -4 }, \
+		{ 129, -2 }, \
+		{ 133, 0 }, \
+		{ 137, 2 }, \
+		{ 142, 4 }, \
+		{ 146, 6 }, \
+		{ 151, 8 }, \
+		{ 156, 10 }, \
+		{ 161, 12 } \
+	} }
+
+
 /*
  * ic706 rigs capabilities.
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
  */
+static const struct icom_priv_caps ic706_priv_caps = { 
+		0x48,	/* default address */
+		0,		/* 731 mode */
+		ic706_ts_sc_list,
+		IC706IIG_STR_CAL
+};
+
 const struct rig_caps ic706_caps = {
   RIG_MODEL_IC706, "IC-706", "Icom", "0.2", "GPL",
   RIG_STATUS_UNTESTED, RIG_TYPE_MOBILE,
@@ -75,7 +104,7 @@ const struct rig_caps ic706_caps = {
   NULL,
   Hz(0), Hz(0),	/* RIT, IF-SHIFT */
   0,			/* FIXME: VFO list */
-  0, RIG_TRN_ON, 
+  0, RIG_TRN_RIG, 
   101, 0, 0,
 
   { RIG_CHAN_END, },	/* FIXME: memory channel list */
@@ -132,10 +161,18 @@ const struct rig_caps ic706_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
-  NULL,	/* priv */
+  (void*)&ic706_priv_caps,
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL,
+};
+
+
+static const struct icom_priv_caps ic706mkii_priv_caps = { 
+		0x4e,	/* default address */
+		0,		/* 731 mode */
+		ic706_ts_sc_list,
+		IC706IIG_STR_CAL
 };
 
 const struct rig_caps ic706mkii_caps = {
@@ -153,7 +190,7 @@ const struct rig_caps ic706mkii_caps = {
   NULL,
   Hz(0), Hz(0),	/* RIT, IF-SHIFT */
   0,			/* FIXME: VFO list */
-  0, RIG_TRN_ON, 
+  0, RIG_TRN_RIG, 
   101, 0, 0,
 
   { RIG_CHAN_END, },	/* FIXME: memory channel list */
@@ -210,7 +247,7 @@ const struct rig_caps ic706mkii_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
-  NULL,	/* priv */
+  (void*)&ic706mkii_priv_caps,
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL,
@@ -220,6 +257,13 @@ const struct rig_caps ic706mkii_caps = {
  * Basically, the IC706MKIIG is an IC706MKII plus UHF, a DSP
  * and 50W VHF
  */
+static const struct icom_priv_caps ic706mkiig_priv_caps = { 
+		0x58,	/* default address */
+		0,		/* 731 mode */
+		ic706_ts_sc_list,
+		IC706IIG_STR_CAL
+};
+
 const struct rig_caps ic706mkiig_caps = {
   RIG_MODEL_IC706MKIIG, "IC-706MKIIG", "Icom", "0.2", "GPL", 
   RIG_STATUS_ALPHA, RIG_TYPE_MOBILE, 
@@ -235,7 +279,7 @@ const struct rig_caps ic706mkiig_caps = {
   NULL,
   Hz(0), Hz(0),	/* RIT, IF-SHIFT */
   0,			/* FIXME: VFO list */
-  0, RIG_TRN_ON, 
+  0, RIG_TRN_RIG, 
   105, 0, 0,
 
   /* memory channel list */
@@ -299,7 +343,7 @@ const struct rig_caps ic706mkiig_caps = {
 		{RIG_MODE_WFM, kHz(230)},	/* WideFM, filter FL?? */
 		RIG_FLT_END,
 	},
-  NULL,	/* priv */
+  (void*)&ic706mkiig_priv_caps,
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL, 
@@ -338,6 +382,7 @@ get_split: icom_get_split,
  * Function definitions below
  */
 
+#if 0
 static const int mkiig_raw[STR_CAL_LENGTH] = {
 100, 104, 108, 111, 114, 118, 121, 125, 129, 133, 137, 142, 146, 151, 156, 161
 };
@@ -363,4 +408,6 @@ int ic706mkiig_str_cal_init(RIG *rig)
 	}
 	return RIG_OK;
 }
+
+#endif
 

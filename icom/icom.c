@@ -1,12 +1,12 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * icom.c - Copyright (C) 2000 Stephane Fillod
+ * icom.c - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.20 2001-03-02 18:33:27 f4cfe Exp $  
+ * $Id: icom.c,v 1.21 2001-03-04 13:03:41 f4cfe Exp $  
  *
  *
  *
@@ -40,6 +40,7 @@
 #include <hamlib/riglist.h>
 #include <serial.h>
 #include <misc.h>
+#include <cal.h>
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
@@ -211,13 +212,19 @@ const int icom_ctcss_list[] = {
 int icom_init(RIG *rig)
 {
 		struct icom_priv_data *priv;
+		const struct icom_priv_caps *priv_caps;
 		const struct rig_caps *caps;
 		int i;
 
-		if (!rig)
+		if (!rig || !rig->caps)
 				return -RIG_EINVAL;
 
 		caps = rig->caps;
+
+		if (!caps->priv)
+				return -RIG_ECONF;
+
+		priv_caps = (const struct icom_priv_caps *) caps->priv;
 
 		priv = (struct icom_priv_data*)malloc(sizeof(struct icom_priv_data));
 		if (!priv) {
@@ -235,6 +242,9 @@ int icom_init(RIG *rig)
 		 */
 
 		priv->re_civ_addr = 0x00;
+
+		/* to be removed soon */
+#if 0
 		for (i=0; icom_addr_list[i].model >= 0; i++) {
 				if (icom_addr_list[i].model == caps->rig_model) {
 						priv->re_civ_addr = icom_addr_list[i].re_civ_addr;
@@ -273,6 +283,11 @@ int icom_init(RIG *rig)
 		default:
 			priv->ts_sc_list = ic706_ts_sc_list;
 		}
+#endif
+
+		priv->re_civ_addr = priv_caps->re_civ_addr;
+		priv->civ_731_mode = priv_caps->civ_731_mode;
+		memcpy(&priv->str_cal, &priv_caps->str_cal, sizeof(cal_table_t));
 
 		return RIG_OK;
 }
@@ -619,6 +634,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return RIG_OK;
 }
 
+/* will be removed soon */
+#if 0
 /*
  * compensate strength using calibration
  * assume STR_CAL_LENGTH!=0
@@ -645,7 +662,7 @@ static int comp_cal_str(int str_cal_raw[], int str_cal_db[], int icom_val)
 
 		return str_cal_db[i] - interpolation;
 }
-
+#endif
 
 
 /*
@@ -784,7 +801,10 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		switch (level) {
 		case RIG_LEVEL_STRENGTH:
+#if 0
 			val->i = comp_cal_str(priv->str_cal_raw,priv->str_cal_db,icom_val);
+#endif
+			val->i = rig_raw2val(icom_val, &priv->str_cal);
 			break;
 		case RIG_LEVEL_SQLSTAT:
 			/*
@@ -1188,22 +1208,20 @@ int icom_get_split(RIG *rig, vfo_t vfo, split_t *split)
 
 /*
  * icom_set_ts
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, rig->caps->priv!=NULL
  */
 int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-		struct icom_priv_data *priv;
-		struct rig_state *rs;
+		const struct icom_priv_caps *priv_caps;
 		unsigned char ackbuf[16];
 		int i, ack_len;
 		int ts_sc = 0;
 
-		rs = &rig->state;
-		priv = (struct icom_priv_data*)rs->priv;
+		priv_caps = (const struct icom_priv_caps*)rig->caps->priv;
 
 		for (i=0; i<TSLSTSIZ; i++) {
-				if (priv->ts_sc_list[i].ts == ts) {
-						ts_sc = priv->ts_sc_list[i].sc;
+				if (priv_caps->ts_sc_list[i].ts == ts) {
+						ts_sc = priv_caps->ts_sc_list[i].sc;
 						break;
 				}
 		}
@@ -1224,17 +1242,15 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 
 /*
  * icom_get_ts
- * Assumes rig!=NULL, rig->state.priv!=NULL, ts!=NULL
+ * Assumes rig!=NULL, rig->caps->priv!=NULL, ts!=NULL
  */
 int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-		struct icom_priv_data *priv;
-		struct rig_state *rs;
+		const struct icom_priv_caps *priv_caps;
 		unsigned char tsbuf[16];
 		int ts_len,i;
 
-		rs = &rig->state;
-		priv = (struct icom_priv_data*)rs->priv;
+		priv_caps = (const struct icom_priv_caps*)rig->caps->priv;
 
 		icom_transaction (rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
 
@@ -1249,8 +1265,8 @@ int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		}
 
 		for (i=0; i<TSLSTSIZ; i++) {
-				if (priv->ts_sc_list[i].sc == tsbuf[1]) {
-						*ts = priv->ts_sc_list[i].ts;
+				if (priv_caps->ts_sc_list[i].sc == tsbuf[1]) {
+						*ts = priv_caps->ts_sc_list[i].ts;
 						break;
 				}
 		}
