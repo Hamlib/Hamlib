@@ -6,8 +6,8 @@ EXTRA_PROGRAMS = rigmatrix
 LDADD = ../src/libhamlib.la
 DEPENDENCIES = ../src/libhamlib.la
 
-BACKENDLNK = "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-ft747.la "-dlopen" ../yaesu/libhamlib-ft847.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la @WINRADIOLNK@
-BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-ft747.la ../yaesu/libhamlib-ft847.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la @WINRADIODEPS@
+BACKENDLNK = "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../yaesu/libhamlib-yaesu.la "-dlopen" ../kenwood/libhamlib-kenwood.la "-dlopen" ../aor/libhamlib-aor.la "-dlopen" ../dummy/libhamlib-dummy.la "-dlopen" ../pcr/libhamlib-pcr.la "-dlopen" ../alinco/libhamlib-alinco.la @WINRADIOLNK@
+BACKENDEPS = ../icom/libhamlib-icom.la ../yaesu/libhamlib-yaesu.la ../kenwood/libhamlib-kenwood.la ../aor/libhamlib-aor.la ../dummy/libhamlib-dummy.la ../pcr/libhamlib-pcr.la ../alinco/libhamlib-alinco.la @WINRADIODEPS@
 
 ## Linker options
 listrigs_LDADD = $(BACKENDLNK) $(LDADD)
@@ -42,3 +42,12 @@ testcaps_SOURCES = testcaps.c
 listrigs_SOURCES = listrigs.c
 rigctl_SOURCES = rigctl.c
 rigmatrix_SOURCES = rigmatrix.c
+
+rigmatrix.html: rigmatrix_head.html rigmatrix
+	mkdir -p html
+	cd html
+	mv rigmatrix.html rigmatrix-old.html
+	( cat ../rigmatrix_head.html && ../rigmatrix ) >  rigmatrix.html
+	cd ..
+
+noinst_DATA = rigmatrix_head.html
