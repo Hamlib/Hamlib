@@ -67,12 +67,12 @@ if test "${enable_dynamic}" != "no"; then
    [enable_dynamic=no])
 fi
 
-if test "${enable_rigmatrix}" != "no"; then
-  AC_CHECK_HEADERS(gd.h,
+dnl Check if libgd-dev is installed, so we can enable rigmatrix
+
+AC_CHECK_HEADERS(gd.h,
   [AC_CHECK_LIB(gd,gdImageCreate)
   AC_CHECK_FUNCS(gdImageCreate, , enable_rigmatrix=no)],
    [enable_rigmatrix=no])
-fi
 if test "${ac_cv_header_gd_h}" = "no"; then
   echo "disabling rigmatrix generation"
   RIGMATRIX=
@@ -81,6 +81,26 @@ else
   RIGMATRIX=rigmatrix
 fi
 AC_SUBST(RIGMATRIX)
+
+dnl Check if linradio-toolkit includes are there, so we can enable WiNRADiO
+
+AC_CHECK_HEADERS(linradio/radio_ioctl.h linradio/wrapi.h)
+if test "${ac_cv_header_linradio_radio_ioctl_h}" = "no" -o \
+					"${ac_cv_header_linradio_wrapi_h}" = "no"; then
+  echo "disabling WiNRADiO receiver support"
+  WINRADIO=
+  WINRADIOLNK=
+  WINRADIODEPS=
+else
+  echo "enabling WiNRADiO receiver support"
+  WINRADIO=winradio
+  WINRADIOLNK="\"-dlopen\" ../winradio/libhamlib-winradio.la"
+  WINRADIODEPS="../winradio/libhamlib-winradio.la"
+fi
+AC_SUBST(WINRADIO)
+AC_SUBST(WINRADIOLNK)
+AC_SUBST(WINRADIODEPS)
+
 
 AC_SUBST(INCLUDES)
 
@@ -96,7 +116,7 @@ AC_SUBST(NET)
 if test "${enable_shared}" = "no"; then
   enable_preload=yes
 fi
-if test "${enable_dynamic}" = no || test "${enable_preload}" = "yes"; then
+if test "${enable_dynamic}" = "no" || test "${enable_preload}" = "yes"; then
   echo "preloading backends into DLL"
   DLL_PRELOAD="\$(PRELOADABLE_BACKENDS)"
 else
@@ -107,7 +127,7 @@ AC_SUBST(V_MINOR)
 AC_SUBST(DLL_PRELOAD)
 
 AC_OUTPUT( yaesu/Makefile icom/Makefile aor/Makefile \
-			kenwood/Makefile \
+			kenwood/Makefile winradio/Makefile \
 			Makefile include/Makefile include/hamlib/Makefile src/Makefile \
 			tests/Makefile doc/Makefile )
 
