@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.4 2003-12-03 12:25:36 bwulf Exp $
+ * $Id: ft990.c,v 1.5 2003-12-23 13:32:11 bwulf Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -101,7 +101,7 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x8E } }, /* Step Operating Frequency Up */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x8E } }, /* Step Operating Frequency Down */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* Read Meter */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0xf8 } }, /* DIM Level */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0xf8 } }, /* DIM Level */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0xf9 } }, /* Set Offset for Repeater Shift */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xfa } }, /* Read Status Flags */
 };
@@ -135,7 +135,7 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.3",
+  .version =            "0.0.4",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_NEW,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -158,7 +158,7 @@ const struct rig_caps ft990_caps = {
                         RIG_LEVEL_ALC | RIG_LEVEL_RFPOWER,
   .has_set_level =      RIG_LEVEL_NONE,
   .has_get_parm =       RIG_PARM_NONE,
-  .has_set_parm =       RIG_PARM_NONE,
+  .has_set_parm =       RIG_PARM_BACKLIGHT,
   .ctcss_list =         NULL,
   .dcs_list =           NULL,
   .preamp =             { RIG_DBLST_END, },
@@ -225,6 +225,8 @@ const struct rig_caps ft990_caps = {
     {RIG_MODE_FM,   kHz(8)},      /* FM standard filter */
     {RIG_MODE_RTTY, RIG_FLT_ANY}, /* Enable all filters for RTTY */
     {RIG_MODE_RTTYR,RIG_FLT_ANY}, /* Enable all filters for Reverse RTTY */
+//    {RIG_MODE_PKTLSB,RIG_FLT_ANY}, /* Enable all filters for Packet Radio LSB */
+//    {RIG_MODE_PKTFM,kHz(8)},      /* FM standard filter for Packet Radio FM */
     RIG_FLT_END,
   },
 
@@ -254,6 +256,7 @@ const struct rig_caps ft990_caps = {
   .get_xit =            ft990_get_xit,
   .set_func =           ft990_set_func,
   .get_func =           ft990_get_func,
+  .set_parm =           ft990_set_parm,
   .get_level =          ft990_get_level,
   .set_mem =            ft990_set_mem,
   .get_mem =            ft990_get_mem,
@@ -1480,6 +1483,48 @@ static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 }
 
 /*
+ * rig_set_parm*
+ *
+ * Set rig parameters that are not VFO specific
+ *
+ * Parameter     | Type   | Accepted/Expected Values
+ * -------------------------------------------------------------------------
+ *   RIG *      | input  | pointer to private data
+ *   parm       | input  | BACKLIGHT
+ *   val        | input  | 0.0..1.0
+ * -------------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:
+ */
+static int ft990_set_parm(RIG *rig, setting_t parm, value_t val)
+{
+  int err;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed parm = %i\n", __func__, parm);
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed val = %f\n", __func__, val.f);
+
+  switch(parm) {
+    case RIG_PARM_BACKLIGHT:
+      err = ft990_send_dynamic_cmd(rig, FT990_NATIVE_DIM_LEVEL,
+                                   (unsigned char) (0x0d * val.f), 0, 0, 0);
+      break;
+    default:
+      return -RIG_EINVAL;
+  }
+
+  if (err != RIG_OK)
+    return err;
+
+  return RIG_OK;
+}
+
+/*
  * rig_set_mode*
  *
  * Set operating mode and passband for a given VFO
@@ -1585,7 +1630,8 @@ static int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
   if (ci == FT990_NATIVE_MODE_SET_AM_N ||
       ci == FT990_NATIVE_MODE_SET_AM_W ||
-      ci == FT990_NATIVE_MODE_SET_FM)
+      ci == FT990_NATIVE_MODE_SET_FM) //   ||
+//      ci == FT990_NATIVE_MODE_SET_PKT_FM)
     return RIG_OK;
 
   switch(width) {
@@ -1727,8 +1773,10 @@ switch(vfo) {
     case FT990_MODE_PKT:
       if (*fl & FT990_BW_FMPKTRTTY)
         *mode = RIG_MODE_FM;
+//        *mode = RIG_MODE_PKTFM;
       else
         *mode = RIG_MODE_LSB;
+//        *mode = RIG_MODE_PKTLSB;
       break;
     default:
       return -RIG_EINVAL;
@@ -1740,7 +1788,7 @@ switch(vfo) {
   // AM bandwidth for 2400Hz and 6000Hz are interchanged.
   switch(*fl & 0x7f) {
     case FT990_BW_F2400:
-      if (*mode == RIG_MODE_FM)
+      if (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM)
         *width = 8000;
       else if (*mode == RIG_MODE_AM) // <- FT990 firmware bug?
         *width = 6000;

@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- *    $Id: ft990.h,v 1.3 2003-11-30 22:46:01 fillods Exp $  
+ *    $Id: ft990.h,v 1.4 2003-12-23 13:32:11 bwulf Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -171,6 +171,7 @@ static int ft990_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft990_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 static int ft990_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 static int ft990_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+static int ft990_set_parm(RIG *rig, setting_t parm, value_t val);
 static int ft990_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit);
 static int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 static int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
