@@ -19,6 +19,7 @@ int main (int argc, char *argv[])
 	vfo_t vfo;		/* vfo selection */
 	int strength;		/* S-Meter level */
 	int retcode;		/* generic return code from functions */
+	rig_model_t myrig_model;
 
 
 	printf("testrig:hello, I am your main() !\n");
@@ -27,28 +28,38 @@ int main (int argc, char *argv[])
 	 * allocate memory, setup & open port 
 	 */
 
-#if 0
-  	retcode = rig_load_backend("icom");
-	retcode = rig_load_backend("ft747");
+	if (argc < 2) {
+			port_t myport;
+			/* may be overriden by backend probe */
+			myport.type.rig = RIG_PORT_SERIAL;
+			myport.parm.serial.rate = 9600;
+			myport.parm.serial.data_bits = 8;
+			myport.parm.serial.stop_bits = 1;
+			myport.parm.serial.parity = RIG_PARITY_NONE;
+			myport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
+			strncpy(myport.path, SERIAL_PORT, FILPATHLEN);
 
-	if (retcode != RIG_OK ) {
-		printf("rig_load_backend: error = %s \n", rigerror(retcode));
-		exit(3);
+			rig_load_all_backends();
+			myrig_model = rig_probe(&myport);
+	} else {
+			myrig_model = atoi(argv[1]);
 	}
-#endif
 
-	my_rig = rig_init(atoi(argv[1]));
+	my_rig = rig_init(myrig_model);
 		
 	if (!my_rig) {
-		fprintf(stderr,"Unknown rig num: %d\n", atoi(argv[1]));
+		fprintf(stderr,"Unknown rig num: %d\n", myrig_model);
 		fprintf(stderr,"Please check riglist.h\n");
 		exit(1); /* whoops! something went wrong (mem alloc?) */
 	}
 
 	strncpy(my_rig->state.rigport.path,SERIAL_PORT,FILPATHLEN);
 
-	if (rig_open(my_rig))
-			exit(2);
+	retcode = rig_open(my_rig);
+	if (retcode != RIG_OK) {
+		printf("rig_open: error = %s\n", rigerror(retcode));
+		exit(2);
+	}
 
 	printf("Port %s opened ok\n", SERIAL_PORT);
 
