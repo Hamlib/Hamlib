@@ -1,4 +1,4 @@
-DRAKESRC = r8b.c
+DRAKESRC = r8a.c r8b.c
 
 lib_LTLIBRARIES = hamlib-drake.la
 hamlib_drake_la_SOURCES = $(DRAKESRC) drake.c

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Drake backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.7 2003-10-20 22:15:01 fillods Exp $
+ *	$Id: drake.c,v 1.8 2004-03-10 23:33:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,8 +45,9 @@
 
 #define BUFSZ 64
 
-#define CRLF "\x0d\x0a"
-#define EOM CRLF
+#define CR "\x0d"
+#define LF "\x0a"
+#define EOM CR
 
 #define MD_USB	'1'
 #define MD_LSB	'2'
@@ -80,7 +81,30 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	if (!data || !data_len)
 			return 0;
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, CRLF, 1);
+	*data_len = read_string(&rs->rigport, data, BUFSZ, LF, 1);
+
+	return RIG_OK;
+}
+
+int drake_init(RIG *rig)
+{
+	struct drake_priv_data *priv;
+	priv = malloc(sizeof(struct drake_priv_data));
+
+	if (!priv)
+		return -RIG_ENOMEM;
+
+	priv->curr_ch = 0;
+	rig->state.priv = priv;
+
+	return RIG_OK;
+}
+
+int drake_cleanup(RIG *rig)
+{
+	struct drake_priv_data *priv = rig->state.priv;
+
+	free(priv);
 
 	return RIG_OK;
 }
@@ -98,7 +122,7 @@ int drake_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	 * 10Hz resolution 
 	 * TODO: round nearest?
 	 */
-	freq_len = sprintf(freqbuf,"F%07d" EOM, (unsigned int)freq/10);
+	freq_len = sprintf(freqbuf,"F%07d", (unsigned int)freq/10);
 	retval = drake_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
 
 	return retval;
@@ -147,6 +171,7 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_USB:      mode_sel = MD_USB; break;
 	case RIG_MODE_LSB:      mode_sel = MD_LSB; break;
 	case RIG_MODE_FM:       mode_sel = MD_FM; break;
+	case RIG_MODE_AMS:
 	case RIG_MODE_AM:       mode_sel = MD_AM; break;
 	case RIG_MODE_RTTY:     mode_sel = MD_RTTY; break;
 	default:
@@ -181,6 +206,150 @@ int drake_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		retval = drake_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
 	}
 
+	if (mode == RIG_MODE_AMS || mode == RIG_MODE_AM) {
+		mdbuf_len = sprintf(mdbuf, "S%c" EOM, mode==RIG_MODE_AMS?'O':'F');
+		retval = drake_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+	}
+
+	return retval;
+}
+
+
+/*
+ * drake_set_ant
+ * Assumes rig!=NULL
+ */
+int drake_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+{
+	unsigned char buf[16], ackbuf[16];
+	int len, ack_len, retval;
+
+	len = sprintf(buf,"A%c"EOM, ant==RIG_ANT_1?'1':(ant==RIG_ANT_2?'2':'C'));
+
+	retval = drake_transaction(rig, buf, len, ackbuf, &ack_len);
+
+	return retval;
+}
+
+/*
+ * drake_set_mem
+ * Assumes rig!=NULL
+ */
+int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
+{
+	struct drake_priv_data *priv = rig->state.priv;
+
+	priv->curr_ch = ch;
+
+	return RIG_OK;
+}
+
+/*
+ * drake_vfo_op
+ * Assumes rig!=NULL
+ */
+int drake_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+	struct drake_priv_data *priv = rig->state.priv;
+	unsigned char buf[16], ackbuf[16];
+	int len, ack_len, retval;
+
+	switch(op) {
+	case RIG_OP_UP:
+		len = sprintf(buf,"U");
+		break;
+	case RIG_OP_DOWN:
+		len = sprintf(buf,"D");
+		break;
+	case RIG_OP_CPY:
+		len = sprintf(buf,"A E B"EOM);
+		break;
+	case RIG_OP_TO_VFO:
+		len = sprintf(buf,"C%03d", priv->curr_ch);
+		break;
+	case RIG_OP_MCL:
+		len = sprintf(buf,"EC%03d"EOM, priv->curr_ch);
+		break;
+	case RIG_OP_FROM_VFO:
+		len = sprintf(buf,"PR"EOM"%03d"EOM, priv->curr_ch);
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+
+	retval = drake_transaction(rig, buf, len, buf[len-1]==0x0d ?ackbuf:NULL, &ack_len);
+
+	return retval;
+}
+
+/*
+ * drake_set_func
+ * Assumes rig!=NULL
+ */
+int drake_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+	unsigned char buf[16], ackbuf[16];
+	int len, ack_len, retval;
+
+	switch(func) {
+	case RIG_FUNC_MN:
+		len = sprintf(buf,"N%c"EOM, status?'O':'F');
+		break;
+	case RIG_FUNC_LOCK:
+		len = sprintf(buf,"L%c"EOM, status?'O':'F');
+		break;
+	case RIG_FUNC_NB:
+		/* TODO: NB narrow */
+		len = sprintf(buf,"B%c"EOM, status?'W':'F');
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+
+	retval = drake_transaction(rig, buf, len, ackbuf, &ack_len);
+
+	return retval;
+}
+
+/*
+ * drake_set_level
+ * Assumes rig!=NULL
+ */
+int drake_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	unsigned char buf[16], ackbuf[16];
+	int len, ack_len, retval;
+
+	switch(level) {
+	case RIG_LEVEL_PREAMP:
+		len = sprintf(buf,"G%c"EOM, val.i?'+':'0');
+		break;
+	case RIG_LEVEL_ATT:
+		len = sprintf(buf,"G%c"EOM, val.i?'-':'0');
+		break;
+	case RIG_LEVEL_AGC:
+		len = sprintf(buf,"A%c"EOM,
+				val.i==RIG_AGC_OFF?'O':
+				(val.i==RIG_AGC_FAST?'F':'S'));
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+
+	retval = drake_transaction(rig, buf, len, ackbuf, &ack_len);
+
+	return retval;
+}
+
+int drake_set_powerstat (RIG * rig, powerstat_t status)
+{
+	unsigned char buf[16], ackbuf[16];
+	int len, ack_len, retval;
+
+	len = sprintf(buf,"P%c"EOM, status==RIG_POWER_OFF?'F':'O');
+
+	retval = drake_transaction(rig, buf, len, ackbuf, &ack_len);
+
 	return retval;
 }
 
@@ -195,7 +364,7 @@ const char *drake_get_info(RIG *rig)
 	static unsigned char idbuf[BUFSZ];
 	int retval, id_len;
 
-	retval = drake_transaction(rig, "ID" EOM, 4, idbuf, &id_len);
+	retval = drake_transaction(rig, "ID" EOM, 3, idbuf, &id_len);
 	if (retval != RIG_OK)
 		return NULL;
 
@@ -211,6 +380,7 @@ DECLARE_INITRIG_BACKEND(drake)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "drake: _init called\n");
 
+	rig_register(&r8a_caps);
 	rig_register(&r8b_caps);
 
 	return RIG_OK;
@@ -239,8 +409,8 @@ DECLARE_PROBERIG_BACKEND(drake)
 	if (retval != RIG_OK)
 		return RIG_MODEL_NONE;
 
-	retval = write_block(port, "ID" EOM, 4);
-	id_len = read_string(port, idbuf, BUFSZ, CRLF, 2);
+	retval = write_block(port, "ID" EOM, 3);
+	id_len = read_string(port, idbuf, BUFSZ, LF, 1);
 
 	close(port->fd);
 
@@ -253,6 +423,11 @@ DECLARE_PROBERIG_BACKEND(drake)
 		if (cfunc)
 			(*cfunc)(port, RIG_MODEL_DKR8B, data);
 		return RIG_MODEL_DKR8B;
+	}
+	if (!strcmp(idbuf, "R8A")) {	/* TBC */
+		if (cfunc)
+			(*cfunc)(port, RIG_MODEL_DKR8A, data);
+		return RIG_MODEL_DKR8A;
 	}
 
 	/*

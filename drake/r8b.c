@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8B description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: r8b.c,v 1.4 2003-10-01 19:31:55 fillods Exp $
+ *	$Id: r8b.c,v 1.5 2004-03-10 23:33:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,17 +30,19 @@
 #include "drake.h"
 
 
-#define R8B_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_FM)
+#define R8B_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY|RIG_MODE_AM|RIG_MODE_AMS|RIG_MODE_FM)
 
-#define R8B_FUNC (RIG_FUNC_NONE)
+#define R8B_FUNC (RIG_FUNC_MN|RIG_FUNC_LOCK|RIG_FUNC_NB)
 
-#define R8B_LEVEL_ALL (RIG_LEVEL_NONE)
+#define R8B_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC)
 
 #define R8B_PARM_ALL (RIG_PARM_NONE)
 
 #define R8B_VFO (RIG_VFO_A|RIG_VFO_B)
 
-#define R8B_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_CPY)
+#define R8B_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_MCL|RIG_OP_CPY)
+
+#define R8B_ANTS (RIG_ANT_1|RIG_ANT_2|RIG_ANT_3)
 
 
 /*
@@ -54,7 +56,7 @@ const struct rig_caps r8b_caps = {
 .rig_model =  RIG_MODEL_DKR8B,
 .model_name = "R-8B",
 .mfg_name =  "Drake",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,		/* and only basic support */
 .rig_type =  RIG_TYPE_RECEIVER,
@@ -94,16 +96,17 @@ const struct rig_caps r8b_caps = {
 .vfo_ops =  R8B_VFO_OPS,
 
 .chan_list =  {
-		RIG_CHAN_END,	/* FIXME */
+		{   0,  999, RIG_MTYPE_MEM },
+		RIG_CHAN_END
 	},
 
 .rx_range_list1 =  { 
-	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO},
+	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO,R8B_ANTS},
 	RIG_FRNG_END,
   },
 .tx_range_list1 =  { RIG_FRNG_END, },
 .rx_range_list2 =  {
-	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO},
+	{kHz(10),MHz(30),R8B_MODES,-1,-1,R8B_VFO,R8B_ANTS},
 	RIG_FRNG_END,
   },
 .tx_range_list2 =  { RIG_FRNG_END, },
@@ -127,9 +130,18 @@ const struct rig_caps r8b_caps = {
 	},
 .priv =  NULL,
 
+.rig_init = drake_init,
+.rig_cleanup = drake_cleanup,
+
 .set_freq =  drake_set_freq,
 .set_vfo =  drake_set_vfo,
 .set_mode =  drake_set_mode,
+
+.set_mem = drake_set_mem,
+.vfo_op = drake_vfo_op,
+.set_func = drake_set_func,
+.set_level = drake_set_level,
+.set_powerstat = drake_set_powerstat,
 
 .get_info =  drake_get_info,
 
