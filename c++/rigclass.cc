@@ -9,9 +9,9 @@
 
 /*
  *  Hamlib C++ bindings - main file
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: rigclass.cc,v 1.9 2002-07-09 22:17:14 fillods Exp $
+ *	$Id: rigclass.cc,v 1.10 2002-09-22 11:41:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -362,12 +362,12 @@ pbwidth_t Rig::passbandWide (rmode_t mode)
 	return rig_passband_wide(theRig, mode);
 }
 
-void Rig::setRptrShift (rptr_shift_t rptr_shift, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setRptrShift (rptr_shift_t rptr_shift, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_rptr_shift(theRig, vfo, rptr_shift) );
 }
 
-rptr_shift_t Rig::getRptrShift (vfo_t vfo = RIG_VFO_CURR)
+rptr_shift_t Rig::getRptrShift (vfo_t vfo)
 {
 	rptr_shift_t rptr_shift;
 
@@ -376,12 +376,12 @@ rptr_shift_t Rig::getRptrShift (vfo_t vfo = RIG_VFO_CURR)
 	return rptr_shift;
 }
 
-void Rig::setRptrOffs (shortfreq_t rptr_offs, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setRptrOffs (shortfreq_t rptr_offs, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_rptr_offs(theRig, vfo, rptr_offs) );
 }
 
-shortfreq_t Rig::getRptrOffs (vfo_t vfo = RIG_VFO_CURR)
+shortfreq_t Rig::getRptrOffs (vfo_t vfo)
 {
 	shortfreq_t rptr_offs;
 
@@ -390,12 +390,12 @@ shortfreq_t Rig::getRptrOffs (vfo_t vfo = RIG_VFO_CURR)
 	return rptr_offs;
 }
 
-void Rig::setTs (shortfreq_t ts, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setTs (shortfreq_t ts, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_ts(theRig, vfo, ts) );
 }
 
-shortfreq_t Rig::getTs (vfo_t vfo = RIG_VFO_CURR)
+shortfreq_t Rig::getTs (vfo_t vfo)
 {
 	shortfreq_t ts;
 
@@ -404,12 +404,12 @@ shortfreq_t Rig::getTs (vfo_t vfo = RIG_VFO_CURR)
 	return ts;
 }
 
-void Rig::setCTCSS (tone_t tone, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setCTCSS (tone_t tone, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_ctcss_tone(theRig, vfo, tone) );
 }
 
-tone_t Rig::getCTCSS (vfo_t vfo = RIG_VFO_CURR)
+tone_t Rig::getCTCSS (vfo_t vfo)
 {
 	tone_t tone;
 
@@ -418,12 +418,12 @@ tone_t Rig::getCTCSS (vfo_t vfo = RIG_VFO_CURR)
 	return tone;
 }
 
-void Rig::setDCS (tone_t code, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setDCS (tone_t code, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_dcs_code(theRig, vfo, code) );
 }
 
-tone_t Rig::getDCS (vfo_t vfo = RIG_VFO_CURR)
+tone_t Rig::getDCS (vfo_t vfo)
 {
 	tone_t code;
 
@@ -432,12 +432,12 @@ tone_t Rig::getDCS (vfo_t vfo = RIG_VFO_CURR)
 	return code;
 }
 
-void Rig::setCTCSSsql (tone_t tone, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setCTCSSsql (tone_t tone, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_ctcss_sql(theRig, vfo, tone) );
 }
 
-tone_t Rig::getCTCSSsql (vfo_t vfo = RIG_VFO_CURR)
+tone_t Rig::getCTCSSsql (vfo_t vfo)
 {
 	tone_t tone;
 
@@ -446,12 +446,12 @@ tone_t Rig::getCTCSSsql (vfo_t vfo = RIG_VFO_CURR)
 	return tone;
 }
 
-void Rig::setDCSsql (tone_t code, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setDCSsql (tone_t code, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_dcs_sql(theRig, vfo, code) );
 }
 
-tone_t Rig::getDCSsql (vfo_t vfo = RIG_VFO_CURR)
+tone_t Rig::getDCSsql (vfo_t vfo)
 {
 	tone_t code;
 
@@ -461,12 +461,12 @@ tone_t Rig::getDCSsql (vfo_t vfo = RIG_VFO_CURR)
 }
 
 
-void Rig::setFunc (setting_t func, bool status, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setFunc (setting_t func, bool status, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_func(theRig, vfo, func, status? 1:0) );
 }
 
-bool Rig::getFunc (setting_t func, vfo_t vfo = RIG_VFO_CURR)
+bool Rig::getFunc (setting_t func, vfo_t vfo)
 {
 	int status;
 
@@ -615,17 +615,17 @@ int Rig::getTrn ()
 	return trn;
 }
 
-void Rig::setBank (int bank, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setBank (int bank, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_ts(theRig, vfo, bank) );
 }
 
-void Rig::setMem (int ch, vfo_t vfo = RIG_VFO_CURR)
+void Rig::setMem (int ch, vfo_t vfo)
 {
 	CHECK_RIG( rig_set_mem(theRig, vfo, ch) );
 }
 
-int Rig::getMem (vfo_t vfo = RIG_VFO_CURR)
+int Rig::getMem (vfo_t vfo)
 {
 	int mem;
 

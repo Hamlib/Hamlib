@@ -1,8 +1,8 @@
 /*
  *  Hamlib C++ bindings - API header
- *  Copyright (c) 2001 by Stephane Fillod
+ *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.10 2002-07-09 22:17:13 fillods Exp $
+ *	$Id: rigclass.h,v 1.11 2002-09-22 11:41:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -220,7 +220,7 @@ extern "C" {
 #include <errno.h>
 }
 
-#include <iostream.h>
+#include <iostream>
 #if !(defined(__GNUG__)||defined(__SUNPRO_CC))
    extern "C" void exit(int);
 #endif
