@@ -8,9 +8,9 @@
 # Top Level Make file for shared lib  suite.
 #
 #
-#	$Id: Makefile,v 1.1 2000-07-25 00:34:27 javabear Exp $	
+#	$Id: Makefile,v 1.2 2000-09-25 00:02:11 javabear Exp $	
 #
-# 
+# See common/Makefile for making libhamlib.so -- FS
 #
 #
 
@@ -46,11 +46,11 @@ cleanall:
 # Build all libs, install locally and test suite
 # and run..
 
-.PHONY:	verify
-verify:
-	(cd common && $(MAKE) all)
-	(cd ft747 && $(MAKE) verify)
-	(cd ft847 && $(MAKE) verify)
+# .PHONY:	verify
+# verify:
+# 	(cd common && $(MAKE) all)
+# 	(cd ft747 && $(MAKE) verify)
+# 	(cd ft847 && $(MAKE) verify)
 
 
 
