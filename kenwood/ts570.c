@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.15 2002-11-04 22:40:55 fillods Exp $
+ *	$Id: ts570.c,v 1.16 2002-12-21 00:23:12 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,9 +41,150 @@
 #define TS570_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS570_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
+/*
+ * modes in use by the "MD" command
+ */
+#define MD_NONE	'0'
+#define MD_LSB	'1'
+#define MD_USB	'2'
+#define MD_CW	'3'
+#define MD_FM	'4'
+#define MD_AM	'5'
+#define MD_FSK	'6'
+#define MD_CWR	'7'
+#define MD_FSKR	'9'
+
 static const struct kenwood_priv_caps  ts570_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
+
+int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+  unsigned char buf[50];
+  int buf_len, retval;
+
+
+  buf_len = 50;
+  retval = kenwood_transaction (rig, "MD;", 3, buf, &buf_len);
+  if (retval != RIG_OK)
+    return retval;
+
+  if (buf_len != 4 || buf[1] != 'D')
+  {
+    rig_debug(RIG_DEBUG_ERR,"ts570_get_mode: unexpected MD answer, len=%d\n",
+      buf_len);
+    return -RIG_ERJCTED;
+  }
+
+  switch (buf[2]) 
+  {
+    case MD_CW:         *mode = RIG_MODE_CW; break;
+    case MD_CWR:	*mode = RIG_MODE_CWR; break;
+    case MD_USB:	*mode = RIG_MODE_USB; break;
+    case MD_LSB:	*mode = RIG_MODE_LSB; break;
+    case MD_FM:	        *mode = RIG_MODE_FM; break;
+    case MD_AM:	        *mode = RIG_MODE_AM; break;
+    case MD_FSK:	*mode = RIG_MODE_RTTY; break;
+    case MD_FSKR:	*mode = RIG_MODE_RTTYR; break;
+    case MD_NONE:	*mode = RIG_MODE_NONE; break;
+    default:
+      rig_debug(RIG_DEBUG_ERR,"ts570_get_mode: "
+        "unsupported mode '%c'\n", buf[2]);
+      return -RIG_EINVAL;
+  }
+
+/* 
+ * Use FW (Filter Width) for CW and RTTY, 
+ * SL (dsp Slope Low cut-off)  for all the other modes
+ */
+  switch (*mode) 
+  {
+    case RIG_MODE_CW:
+    case RIG_MODE_CWR:
+    case RIG_MODE_RTTY:
+    case RIG_MODE_RTTYR:
+      buf_len = 50;
+      retval = kenwood_transaction (rig, "FW;", 3, buf, &buf_len);
+      if (retval != RIG_OK) return retval;
+      if (buf_len != 7 || buf[1] != 'W')
+      {
+        rig_debug(RIG_DEBUG_ERR,
+          "ts570_get_mode: unexpected FW answer, len=%d\n", buf_len);
+        return -RIG_ERJCTED;
+      }
+      *width = atoi(&buf[2]);
+      break;
+    case RIG_MODE_USB:
+    case RIG_MODE_LSB:
+    case RIG_MODE_FM:
+    case RIG_MODE_AM:
+      buf_len = 50;
+      retval = kenwood_transaction (rig, "SL;", 3, buf, &buf_len);
+      if (retval != RIG_OK) return retval;
+      if (buf_len != 5 || buf[1] != 'L')
+      {
+        rig_debug(RIG_DEBUG_ERR,
+          "ts570_get_mode: unexpected SL answer, len=%d\n", buf_len);
+        return -RIG_ERJCTED;
+      }
+      *width = 50 * atoi(&buf[2]);
+      break;
+  }
+
+  return RIG_OK;
+}
+
+
+int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+  unsigned char buf[16],ackbuf[16];
+  int buf_len, ack_len, kmode, retval;
+
+  switch (mode) 
+  {
+    case RIG_MODE_CW:       kmode = MD_CW; break;
+    case RIG_MODE_CWR:      kmode = MD_CWR; break;
+    case RIG_MODE_USB:      kmode = MD_USB; break;
+    case RIG_MODE_LSB:      kmode = MD_LSB; break;
+    case RIG_MODE_FM:       kmode = MD_FM; break;
+    case RIG_MODE_AM:       kmode = MD_AM; break;
+    case RIG_MODE_RTTY:     kmode = MD_FSK; break;
+    case RIG_MODE_RTTYR:    kmode = MD_FSKR; break;
+    default:
+      rig_debug(RIG_DEBUG_ERR,"ts570_set_mode: "
+	"unsupported mode %d\n", mode);
+      return -RIG_EINVAL;
+  }
+
+  buf_len = sprintf(buf, "MD%c;", kmode);
+  ack_len = 0;
+  retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
+  if (retval != RIG_OK) return retval;
+
+  switch (mode) 
+  {
+    case RIG_MODE_CW:
+    case RIG_MODE_CWR:
+    case RIG_MODE_RTTY:
+    case RIG_MODE_RTTYR:
+      buf_len = sprintf(buf, "FW%04d;", width);
+      ack_len = 0;
+      retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
+      if (retval != RIG_OK) return retval;
+      break;
+    case RIG_MODE_USB:
+    case RIG_MODE_LSB:
+    case RIG_MODE_FM:
+    case RIG_MODE_AM:
+      buf_len = sprintf(buf, "SL%02d;", (int)width/50);
+      ack_len = 0;
+      retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
+      if (retval != RIG_OK) return retval;
+      break;
+  }
+
+  return RIG_OK;
+}
 
 /*
  * ts570 rig capabilities.
@@ -57,7 +198,7 @@ const struct rig_caps ts570s_caps = {
 .rig_model =  RIG_MODEL_TS570S,
 .model_name = "TS-570S",
 .mfg_name =  "Kenwood",
-.version =  "0.2",
+.version =  "0.2.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -189,8 +330,8 @@ const struct rig_caps ts570s_caps = {
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
-.set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
+.set_mode =  ts570_set_mode,
+.get_mode =  ts570_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
