@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.10 2003-09-12 03:15:18 n0nb Exp $
+ *	$Id: rotator.h,v 1.11 2003-11-03 04:26:37 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -339,15 +339,15 @@ extern HAMLIB_EXPORT(int) longlat2locator HAMLIB_PARAMS((double longitude,
 extern HAMLIB_EXPORT(int) locator2longlat HAMLIB_PARAMS((double *longitude, 
 						double *latitude, const char *locator));
 
-extern HAMLIB_EXPORT(double) dms2dec HAMLIB_PARAMS((float degrees, double minutes,
-						double seconds));
-extern HAMLIB_EXPORT(int) dec2dms HAMLIB_PARAMS((double dec, float *degrees,
-						double *minutes, double *seconds));
+extern HAMLIB_EXPORT(double) dms2dec HAMLIB_PARAMS((int degrees, int minutes,
+						double seconds, int sw));
+extern HAMLIB_EXPORT(int) dec2dms HAMLIB_PARAMS((double dec, int *degrees,
+						int *minutes, double *seconds, int *sw));
 
-extern HAMLIB_EXPORT(int) dec2dmmm HAMLIB_PARAMS((double dec, float *degrees,
-						double *minutes));
-extern HAMLIB_EXPORT(double) dmmm2dec HAMLIB_PARAMS((float degrees,
-						     double minutes));
+extern HAMLIB_EXPORT(int) dec2dmmm HAMLIB_PARAMS((double dec, int *degrees,
+						double *minutes, int *sw));
+extern HAMLIB_EXPORT(double) dmmm2dec HAMLIB_PARAMS((int degrees,
+						     double minutes, int sw));
 
 /*! \def rot_debug
  *  \brief Convenience definition for debug level.

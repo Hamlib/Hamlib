@@ -14,7 +14,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.12 2003-10-28 01:01:05 n0nb Exp $
+ *	$Id: locator.c,v 1.13 2003-11-03 04:26:37 n0nb Exp $
  *
  *	Code to determine bearing and range was taken from the Great Circle,
  *	by S. R. Sampson, N5OWK.
@@ -110,29 +110,48 @@ const static int loc_char_range[] = { 18, 10, 24, 10, 25, 10 };
  * \param degrees	Degrees
  * \param minutes	Minutes
  * \param seconds	Seconds
+ * \param sw            South or West
  *
  *  Convert degree/minute/second angle to decimal degrees angle.
  *  \a degrees >360, \a minutes > 60, and \a seconds > 60 are allowed,
  *  but resulting angle won't be normalized.
+ *
+ *  When the variable sw is passed a value of 1, the returned decimal
+ *  degrees value will be negative (south or west).  When passed a
+ *  value of 0 the returned decimal degrees value will be positive
+ *  (north or east).
  *
  * \return The angle in decimal degrees.
  *
  * \sa dec2dms()
  */
 
-double dms2dec(float degrees, double minutes, double seconds) {
-	double s, st;
+double dms2dec(int degrees, int minutes, double seconds, int sw) {
+	double st;
 
-	s = copysign(1.0, (double)degrees);
-	st = fabs((double)degrees);
+//	s = copysign(1.0, (double)degrees);
+//	st = fabs((double)degrees);
 
-	return copysign((st + minutes / 60. + seconds / 3600.), s);
+	if (degrees < 0)
+		degrees = abs(degrees);
+	if (minutes < 0)
+		minutes = abs(minutes);
+	if (seconds < 0)
+		seconds = fabs(seconds);
+
+	st = (double)degrees + (double)minutes / 60. + seconds / 3600.;
+
+	if (sw == 1)
+		return -st;
+	else
+                return st;
 }
 
 /**
  * \brief Convert D M.MMM notation to decimal degrees
  * \param degrees	Degrees
  * \param minutes	Minutes
+ * \param sw            South or West
  *
  *  Convert a degrees, decimal minutes notation common on
  *  many GPS units to its decimal degrees value.
@@ -140,27 +159,48 @@ double dms2dec(float degrees, double minutes, double seconds) {
  *  \a degrees > 360, \a minutes > 60 are allowed, but
  *  resulting angle won't be normalized.
  *
+ *  When the variable sw is passed a value of 1, the returned decimal
+ *  degrees value will be negative (south or west).  When passed a
+ *  value of 0 the returned decimal degrees value will be positive
+ *  (north or east).
+ *
  * \return The angle in decimal degrees.
  *
  * \sa dec2dmmm()
  */
 
-double dmmm2dec(float degrees, double minutes) {
-	return dms2dec(degrees, minutes, 0.0);
+double dmmm2dec(int degrees, double minutes, int sw) {
+	double st;
+
+	if (degrees < 0)
+		degrees = abs(degrees);
+	if (minutes < 0)
+		minutes = fabs(minutes);
+
+	st = (double)degrees + minutes / 60.;
+
+	if (sw == 1)
+		return -st;
+	else
+                return st;
 }
 
 /**
  * \brief Convert decimal degrees angle into DMS notation
  * \param dec		Decimal angle
- * \param degrees	The location where to store the degrees
- * \param minutes	The location where to store the minutes
- * \param seconds	The location where to store the seconds
+ * \param degrees	The address of the degrees
+ * \param minutes	The address of the minutes
+ * \param seconds	The address of the seconds
+ * \param sw            The address of the sw flag
  *
  *  Convert decimal degrees angle into its degree/minute/second
  *  notation.
  *
  *  When \a dec < -180 or \a dec > 180, the angle will be normalized
  *  within these limits and the sign set appropriately.
+ *
+ *  When \a dec is < 0 \a sw will be set to 1.  When \a dec is
+ *  >= 0 \a sw will be set to 0.
  *
  *  Upon return dec2dms guarantees -180 <= \a degrees < 180,
  *  0 <= \a minutes < 60, and 0 <= \a seconds < 60.
@@ -171,13 +211,13 @@ double dmmm2dec(float degrees, double minutes) {
  * \sa dms2dec()
  */
 
-int dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
-	int s = 0;
-	float deg;
-	double st, min;
+int dec2dms(double dec, int *degrees, int *minutes, double *seconds, int *sw) {
+//	int s = 0;
+	int deg, min;
+	double st;
 
 	/* bail if NULL pointers passed */
-	if (!degrees || !minutes || !seconds)
+	if (!degrees || !minutes || !seconds || !sw)
 		return -RIG_EINVAL;
 
 	/* reverse the sign if dec has a magnitude greater
@@ -197,7 +237,9 @@ int dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
 	 * to be positive.
 	 */
 	if (st < 0.0 && st != -180)
-		s = 1;
+		*sw = 1;
+	else
+		*sw = 0;
 
 	/* work on st as a positive value to remove a
 	 * bug introduced by the effect of floor() when
@@ -207,14 +249,15 @@ int dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
 	 */
 	st = fabs(st);
 
-	deg = (float)floor(st);
+	deg = (int)floor(st);
 	st  = 60. * (st - (double)deg);
-	min = floor(st);
-	st  = 60. * (st - min);
+	min = (int)floor(st);
+	st  = 60. * (st - (double)min);
 
 	/* set *degrees to sign determined by fmod() */
-	(s == 1) ? (*degrees = -deg) : (*degrees = deg);
+//	(s == 1) ? (*degrees = -deg) : (*degrees = deg);
 
+	*degrees = deg;
 	*minutes = min;
 	*seconds = st;
 
@@ -224,14 +267,18 @@ int dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
 /**
  * \brief Convert a decimal angle into D M.MMM notation
  * \param dec		Decimal angle
- * \param degrees	The location where to store the degrees
- * \param minutes	The location where to store the minutes
+ * \param degrees	The address of the degrees
+ * \param minutes	The address of the minutes
+ * \param sw            The address of the sw flag
  *
  *  Convert a decimal angle into its degree, decimal minute
  *  notation common on many GPS units.
  *
  *  When passed a value < -180 or > 180, the value will be normalized
  *  within these limits and the sign set apropriately.
+ *
+ *  When \a dec is < 0 \a sw will be set to 1.  When \a dec is
+ *  >= 0 \a sw will be set to 0.
  *
  *  Upon return dec2dmmm guarantees -180 <= \a degrees < 180,
  *  0 <= \a minutes < 60.
@@ -242,19 +289,19 @@ int dec2dms(double dec, float *degrees, double *minutes, double *seconds) {
  * \sa dmmm2dec()
  */
 
-int dec2dmmm(double dec, float *degrees, double *minutes) {
-	int r;
-	double min, sec;
+int dec2dmmm(double dec, int *degrees, double *minutes, int *sw) {
+	int r, min;
+	double sec;
 
 	/* bail if NULL pointers passed */
-	if (!degrees || !minutes)
+	if (!degrees || !minutes || !sw)
 		return -RIG_EINVAL;
 
-	r = dec2dms(dec, degrees, &min, &sec);
+	r = dec2dms(dec, degrees, &min, &sec, sw);
 	if (r != RIG_OK)
 		return r;
 
-	*minutes = min + sec / 60;
+	*minutes = (double)min + sec / 60;
 
 	return RIG_OK;
 }
@@ -419,8 +466,8 @@ int longlat2locator(double longitude, double latitude,
 
 int qrb(double lon1, double lat1, double lon2, double lat2,
 				double *distance, double *azimuth) {
-	double delta_long, tmp, arc, cosaz, az;
-        double a, c, dlon, dlat;
+	double delta_long, tmp, arc, az;
+//        double cosaz, a, c, dlon, dlat;
 
 	/* bail if NULL pointers passed */
 	if (!distance || !azimuth)
@@ -531,11 +578,14 @@ int qrb(double lon1, double lat1, double lon2, double lat2,
 	az = RADIAN * fmod(atan2(sin(lon1 - lon2) * cos(lat2),
 				 cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon1 - lon2)), 2 * M_PI);
 	if (lon1 > lon2) {
-		az -= 360;
+		az -= 360.;
 		*azimuth = -az;
-	} else
-		*azimuth = -az;
-
+	} else {
+		if (az >= 0.0)
+			*azimuth = az;
+		else
+			*azimuth = -az;
+	}
 	return RIG_OK;
 }
 
