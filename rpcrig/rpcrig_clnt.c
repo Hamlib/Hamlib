@@ -7,9 +7,9 @@
 #include "rpcrig.h"
 /*
  *  Hamlib Interface - RPC definitions
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rpcrig_clnt.c,v 1.3 2001-12-27 21:58:47 fillods Exp $
+ *	$Id: rpcrig_clnt.c,v 1.4 2002-08-23 20:01:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -384,6 +384,411 @@ vfoop_1(vfo_op_arg *argp, CLIENT *clnt)
 	if (clnt_call (clnt, VFOOP,
 		(xdrproc_t) xdr_vfo_op_arg, (caddr_t) argp,
 		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setrptrshift_1(rptrshift_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETRPTRSHIFT,
+		(xdrproc_t) xdr_rptrshift_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+rptrshift_res *
+getrptrshift_1(vfo_x *argp, CLIENT *clnt)
+{
+	static rptrshift_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETRPTRSHIFT,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_rptrshift_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setrptroffs_1(shortfreq_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETRPTROFFS,
+		(xdrproc_t) xdr_shortfreq_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+shortfreq_res *
+getrptroffs_1(vfo_x *argp, CLIENT *clnt)
+{
+	static shortfreq_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETRPTROFFS,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_shortfreq_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setctcsstone_1(tone_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETCTCSSTONE,
+		(xdrproc_t) xdr_tone_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+tone_res *
+getctcsstone_1(vfo_x *argp, CLIENT *clnt)
+{
+	static tone_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETCTCSSTONE,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_tone_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setctcsssql_1(tone_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETCTCSSSQL,
+		(xdrproc_t) xdr_tone_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+tone_res *
+getctcsssql_1(vfo_x *argp, CLIENT *clnt)
+{
+	static tone_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETCTCSSSQL,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_tone_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setdcscode_1(tone_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETDCSCODE,
+		(xdrproc_t) xdr_tone_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+tone_res *
+getdcscode_1(vfo_x *argp, CLIENT *clnt)
+{
+	static tone_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETDCSCODE,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_tone_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setdcssql_1(tone_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETDCSSQL,
+		(xdrproc_t) xdr_tone_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+tone_res *
+getdcssql_1(vfo_x *argp, CLIENT *clnt)
+{
+	static tone_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETDCSSQL,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_tone_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setrit_1(shortfreq_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETRIT,
+		(xdrproc_t) xdr_shortfreq_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+shortfreq_res *
+getrit_1(vfo_x *argp, CLIENT *clnt)
+{
+	static shortfreq_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETRIT,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_shortfreq_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setxit_1(shortfreq_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETXIT,
+		(xdrproc_t) xdr_shortfreq_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+shortfreq_res *
+getxit_1(vfo_x *argp, CLIENT *clnt)
+{
+	static shortfreq_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETXIT,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_shortfreq_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setts_1(shortfreq_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETTS,
+		(xdrproc_t) xdr_shortfreq_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+shortfreq_res *
+getts_1(vfo_x *argp, CLIENT *clnt)
+{
+	static shortfreq_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETTS,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_shortfreq_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+scan_1(scan_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SCAN,
+		(xdrproc_t) xdr_scan_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+reset_1(reset_x *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, RESET,
+		(xdrproc_t) xdr_reset_x, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setmem_1(ch_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETMEM,
+		(xdrproc_t) xdr_ch_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+ch_res *
+getmem_1(vfo_x *argp, CLIENT *clnt)
+{
+	static ch_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETMEM,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_ch_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setant_1(ant_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETANT,
+		(xdrproc_t) xdr_ant_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+ant_res *
+getant_1(vfo_x *argp, CLIENT *clnt)
+{
+	static ant_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETANT,
+		(xdrproc_t) xdr_vfo_x, (caddr_t) argp,
+		(xdrproc_t) xdr_ant_res, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setbank_1(ch_arg *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETBANK,
+		(xdrproc_t) xdr_ch_arg, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+int *
+setpowerstat_1(powerstat_x *argp, CLIENT *clnt)
+{
+	static int clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, SETPOWERSTAT,
+		(xdrproc_t) xdr_powerstat_x, (caddr_t) argp,
+		(xdrproc_t) xdr_int, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+powerstat_res *
+getpowerstat_1(void *argp, CLIENT *clnt)
+{
+	static powerstat_res clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, GETPOWERSTAT,
+		(xdrproc_t) xdr_void, (caddr_t) argp,
+		(xdrproc_t) xdr_powerstat_res, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}

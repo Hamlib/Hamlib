@@ -15,9 +15,9 @@ extern "C" {
 
 /*
  *  Hamlib Interface - RPC definitions
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rpcrig.h,v 1.3 2001-12-27 21:59:10 fillods Exp $
+ *	$Id: rpcrig.h,v 1.4 2002-08-23 20:01:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,6 +62,16 @@ typedef uint64_t setting_x;
 typedef long ant_x;
 
 typedef long ann_x;
+
+typedef int rptr_shift_x;
+
+typedef int tone_x;
+
+typedef long scan_x;
+
+typedef long reset_x;
+
+typedef long powerstat_x;
 
 struct mode_s {
 	rmode_x mode;
@@ -110,6 +120,14 @@ struct vfo_res {
 	} vfo_res_u;
 };
 typedef struct vfo_res vfo_res;
+
+struct powerstat_res {
+	int rigstatus;
+	union {
+		powerstat_x powerstat;
+	} powerstat_res_u;
+};
+typedef struct powerstat_res powerstat_res;
 
 struct split_arg {
 	vfo_x vfo;
@@ -164,9 +182,100 @@ typedef struct val_res val_res;
 
 struct vfo_op_arg {
 	vfo_x vfo;
-	vfo_op_x op;
+	vfo_op_x vfo_op;
 };
 typedef struct vfo_op_arg vfo_op_arg;
+
+struct rptrshift_res {
+	int rigstatus;
+	union {
+		rptr_shift_x rptrshift;
+	} rptrshift_res_u;
+};
+typedef struct rptrshift_res rptrshift_res;
+
+struct rptrshift_arg {
+	vfo_x vfo;
+	rptr_shift_x rptrshift;
+};
+typedef struct rptrshift_arg rptrshift_arg;
+
+struct shortfreq_res {
+	int rigstatus;
+	union {
+		shortfreq_x shortfreq;
+	} shortfreq_res_u;
+};
+typedef struct shortfreq_res shortfreq_res;
+
+struct shortfreq_arg {
+	vfo_x vfo;
+	shortfreq_x shortfreq;
+};
+typedef struct shortfreq_arg shortfreq_arg;
+
+struct tone_res {
+	int rigstatus;
+	union {
+		tone_x tone;
+	} tone_res_u;
+};
+typedef struct tone_res tone_res;
+
+struct tone_arg {
+	vfo_x vfo;
+	tone_x tone;
+};
+typedef struct tone_arg tone_arg;
+
+struct ant_res {
+	int rigstatus;
+	union {
+		ant_x ant;
+	} ant_res_u;
+};
+typedef struct ant_res ant_res;
+
+struct ant_arg {
+	vfo_x vfo;
+	ant_x ant;
+};
+typedef struct ant_arg ant_arg;
+
+struct ch_res {
+	int rigstatus;
+	union {
+		int ch;
+	} ch_res_u;
+};
+typedef struct ch_res ch_res;
+
+struct ch_arg {
+	vfo_x vfo;
+	int ch;
+};
+typedef struct ch_arg ch_arg;
+
+struct scan_s {
+	scan_x scan;
+	int ch;
+};
+typedef struct scan_s scan_s;
+
+struct scan_res {
+	int rigstatus;
+	union {
+		scan_s scan;
+	} scan_res_u;
+};
+typedef struct scan_res scan_res;
+
+struct scan_arg {
+	vfo_x vfo;
+	scan_x scan;
+	int ch;
+};
+typedef struct scan_arg scan_arg;
 
 struct freq_range_s {
 	freq_x start;
@@ -321,6 +430,87 @@ extern  val_res * getparm_1_svc(setting_arg *, struct svc_req *);
 #define VFOOP 31
 extern  int * vfoop_1(vfo_op_arg *, CLIENT *);
 extern  int * vfoop_1_svc(vfo_op_arg *, struct svc_req *);
+#define SETRPTRSHIFT 32
+extern  int * setrptrshift_1(rptrshift_arg *, CLIENT *);
+extern  int * setrptrshift_1_svc(rptrshift_arg *, struct svc_req *);
+#define GETRPTRSHIFT 33
+extern  rptrshift_res * getrptrshift_1(vfo_x *, CLIENT *);
+extern  rptrshift_res * getrptrshift_1_svc(vfo_x *, struct svc_req *);
+#define SETRPTROFFS 34
+extern  int * setrptroffs_1(shortfreq_arg *, CLIENT *);
+extern  int * setrptroffs_1_svc(shortfreq_arg *, struct svc_req *);
+#define GETRPTROFFS 35
+extern  shortfreq_res * getrptroffs_1(vfo_x *, CLIENT *);
+extern  shortfreq_res * getrptroffs_1_svc(vfo_x *, struct svc_req *);
+#define SETCTCSSTONE 36
+extern  int * setctcsstone_1(tone_arg *, CLIENT *);
+extern  int * setctcsstone_1_svc(tone_arg *, struct svc_req *);
+#define GETCTCSSTONE 37
+extern  tone_res * getctcsstone_1(vfo_x *, CLIENT *);
+extern  tone_res * getctcsstone_1_svc(vfo_x *, struct svc_req *);
+#define SETCTCSSSQL 38
+extern  int * setctcsssql_1(tone_arg *, CLIENT *);
+extern  int * setctcsssql_1_svc(tone_arg *, struct svc_req *);
+#define GETCTCSSSQL 39
+extern  tone_res * getctcsssql_1(vfo_x *, CLIENT *);
+extern  tone_res * getctcsssql_1_svc(vfo_x *, struct svc_req *);
+#define SETDCSCODE 40
+extern  int * setdcscode_1(tone_arg *, CLIENT *);
+extern  int * setdcscode_1_svc(tone_arg *, struct svc_req *);
+#define GETDCSCODE 41
+extern  tone_res * getdcscode_1(vfo_x *, CLIENT *);
+extern  tone_res * getdcscode_1_svc(vfo_x *, struct svc_req *);
+#define SETDCSSQL 42
+extern  int * setdcssql_1(tone_arg *, CLIENT *);
+extern  int * setdcssql_1_svc(tone_arg *, struct svc_req *);
+#define GETDCSSQL 43
+extern  tone_res * getdcssql_1(vfo_x *, CLIENT *);
+extern  tone_res * getdcssql_1_svc(vfo_x *, struct svc_req *);
+#define SETRIT 44
+extern  int * setrit_1(shortfreq_arg *, CLIENT *);
+extern  int * setrit_1_svc(shortfreq_arg *, struct svc_req *);
+#define GETRIT 45
+extern  shortfreq_res * getrit_1(vfo_x *, CLIENT *);
+extern  shortfreq_res * getrit_1_svc(vfo_x *, struct svc_req *);
+#define SETXIT 46
+extern  int * setxit_1(shortfreq_arg *, CLIENT *);
+extern  int * setxit_1_svc(shortfreq_arg *, struct svc_req *);
+#define GETXIT 47
+extern  shortfreq_res * getxit_1(vfo_x *, CLIENT *);
+extern  shortfreq_res * getxit_1_svc(vfo_x *, struct svc_req *);
+#define SETTS 48
+extern  int * setts_1(shortfreq_arg *, CLIENT *);
+extern  int * setts_1_svc(shortfreq_arg *, struct svc_req *);
+#define GETTS 49
+extern  shortfreq_res * getts_1(vfo_x *, CLIENT *);
+extern  shortfreq_res * getts_1_svc(vfo_x *, struct svc_req *);
+#define SCAN 50
+extern  int * scan_1(scan_arg *, CLIENT *);
+extern  int * scan_1_svc(scan_arg *, struct svc_req *);
+#define RESET 51
+extern  int * reset_1(reset_x *, CLIENT *);
+extern  int * reset_1_svc(reset_x *, struct svc_req *);
+#define SETMEM 52
+extern  int * setmem_1(ch_arg *, CLIENT *);
+extern  int * setmem_1_svc(ch_arg *, struct svc_req *);
+#define GETMEM 53
+extern  ch_res * getmem_1(vfo_x *, CLIENT *);
+extern  ch_res * getmem_1_svc(vfo_x *, struct svc_req *);
+#define SETANT 54
+extern  int * setant_1(ant_arg *, CLIENT *);
+extern  int * setant_1_svc(ant_arg *, struct svc_req *);
+#define GETANT 55
+extern  ant_res * getant_1(vfo_x *, CLIENT *);
+extern  ant_res * getant_1_svc(vfo_x *, struct svc_req *);
+#define SETBANK 56
+extern  int * setbank_1(ch_arg *, CLIENT *);
+extern  int * setbank_1_svc(ch_arg *, struct svc_req *);
+#define SETPOWERSTAT 58
+extern  int * setpowerstat_1(powerstat_x *, CLIENT *);
+extern  int * setpowerstat_1_svc(powerstat_x *, struct svc_req *);
+#define GETPOWERSTAT 59
+extern  powerstat_res * getpowerstat_1(void *, CLIENT *);
+extern  powerstat_res * getpowerstat_1_svc(void *, struct svc_req *);
 extern int rigprog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -396,6 +586,87 @@ extern  val_res * getparm_1_svc();
 #define VFOOP 31
 extern  int * vfoop_1();
 extern  int * vfoop_1_svc();
+#define SETRPTRSHIFT 32
+extern  int * setrptrshift_1();
+extern  int * setrptrshift_1_svc();
+#define GETRPTRSHIFT 33
+extern  rptrshift_res * getrptrshift_1();
+extern  rptrshift_res * getrptrshift_1_svc();
+#define SETRPTROFFS 34
+extern  int * setrptroffs_1();
+extern  int * setrptroffs_1_svc();
+#define GETRPTROFFS 35
+extern  shortfreq_res * getrptroffs_1();
+extern  shortfreq_res * getrptroffs_1_svc();
+#define SETCTCSSTONE 36
+extern  int * setctcsstone_1();
+extern  int * setctcsstone_1_svc();
+#define GETCTCSSTONE 37
+extern  tone_res * getctcsstone_1();
+extern  tone_res * getctcsstone_1_svc();
+#define SETCTCSSSQL 38
+extern  int * setctcsssql_1();
+extern  int * setctcsssql_1_svc();
+#define GETCTCSSSQL 39
+extern  tone_res * getctcsssql_1();
+extern  tone_res * getctcsssql_1_svc();
+#define SETDCSCODE 40
+extern  int * setdcscode_1();
+extern  int * setdcscode_1_svc();
+#define GETDCSCODE 41
+extern  tone_res * getdcscode_1();
+extern  tone_res * getdcscode_1_svc();
+#define SETDCSSQL 42
+extern  int * setdcssql_1();
+extern  int * setdcssql_1_svc();
+#define GETDCSSQL 43
+extern  tone_res * getdcssql_1();
+extern  tone_res * getdcssql_1_svc();
+#define SETRIT 44
+extern  int * setrit_1();
+extern  int * setrit_1_svc();
+#define GETRIT 45
+extern  shortfreq_res * getrit_1();
+extern  shortfreq_res * getrit_1_svc();
+#define SETXIT 46
+extern  int * setxit_1();
+extern  int * setxit_1_svc();
+#define GETXIT 47
+extern  shortfreq_res * getxit_1();
+extern  shortfreq_res * getxit_1_svc();
+#define SETTS 48
+extern  int * setts_1();
+extern  int * setts_1_svc();
+#define GETTS 49
+extern  shortfreq_res * getts_1();
+extern  shortfreq_res * getts_1_svc();
+#define SCAN 50
+extern  int * scan_1();
+extern  int * scan_1_svc();
+#define RESET 51
+extern  int * reset_1();
+extern  int * reset_1_svc();
+#define SETMEM 52
+extern  int * setmem_1();
+extern  int * setmem_1_svc();
+#define GETMEM 53
+extern  ch_res * getmem_1();
+extern  ch_res * getmem_1_svc();
+#define SETANT 54
+extern  int * setant_1();
+extern  int * setant_1_svc();
+#define GETANT 55
+extern  ant_res * getant_1();
+extern  ant_res * getant_1_svc();
+#define SETBANK 56
+extern  int * setbank_1();
+extern  int * setbank_1_svc();
+#define SETPOWERSTAT 58
+extern  int * setpowerstat_1();
+extern  int * setpowerstat_1_svc();
+#define GETPOWERSTAT 59
+extern  powerstat_res * getpowerstat_1();
+extern  powerstat_res * getpowerstat_1_svc();
 extern int rigprog_1_freeresult ();
 #endif /* K&R C */
 
@@ -415,6 +686,11 @@ extern  bool_t xdr_shortfreq_x (XDR *, shortfreq_x*);
 extern  bool_t xdr_setting_x (XDR *, setting_x*);
 extern  bool_t xdr_ant_x (XDR *, ant_x*);
 extern  bool_t xdr_ann_x (XDR *, ann_x*);
+extern  bool_t xdr_rptr_shift_x (XDR *, rptr_shift_x*);
+extern  bool_t xdr_tone_x (XDR *, tone_x*);
+extern  bool_t xdr_scan_x (XDR *, scan_x*);
+extern  bool_t xdr_reset_x (XDR *, reset_x*);
+extern  bool_t xdr_powerstat_x (XDR *, powerstat_x*);
 extern  bool_t xdr_mode_s (XDR *, mode_s*);
 extern  bool_t xdr_value_s (XDR *, value_s*);
 extern  bool_t xdr_freq_arg (XDR *, freq_arg*);
@@ -422,6 +698,7 @@ extern  bool_t xdr_freq_res (XDR *, freq_res*);
 extern  bool_t xdr_mode_arg (XDR *, mode_arg*);
 extern  bool_t xdr_mode_res (XDR *, mode_res*);
 extern  bool_t xdr_vfo_res (XDR *, vfo_res*);
+extern  bool_t xdr_powerstat_res (XDR *, powerstat_res*);
 extern  bool_t xdr_split_arg (XDR *, split_arg*);
 extern  bool_t xdr_split_res (XDR *, split_res*);
 extern  bool_t xdr_ptt_arg (XDR *, ptt_arg*);
@@ -430,6 +707,19 @@ extern  bool_t xdr_dcd_res (XDR *, dcd_res*);
 extern  bool_t xdr_setting_arg (XDR *, setting_arg*);
 extern  bool_t xdr_val_res (XDR *, val_res*);
 extern  bool_t xdr_vfo_op_arg (XDR *, vfo_op_arg*);
+extern  bool_t xdr_rptrshift_res (XDR *, rptrshift_res*);
+extern  bool_t xdr_rptrshift_arg (XDR *, rptrshift_arg*);
+extern  bool_t xdr_shortfreq_res (XDR *, shortfreq_res*);
+extern  bool_t xdr_shortfreq_arg (XDR *, shortfreq_arg*);
+extern  bool_t xdr_tone_res (XDR *, tone_res*);
+extern  bool_t xdr_tone_arg (XDR *, tone_arg*);
+extern  bool_t xdr_ant_res (XDR *, ant_res*);
+extern  bool_t xdr_ant_arg (XDR *, ant_arg*);
+extern  bool_t xdr_ch_res (XDR *, ch_res*);
+extern  bool_t xdr_ch_arg (XDR *, ch_arg*);
+extern  bool_t xdr_scan_s (XDR *, scan_s*);
+extern  bool_t xdr_scan_res (XDR *, scan_res*);
+extern  bool_t xdr_scan_arg (XDR *, scan_arg*);
 extern  bool_t xdr_freq_range_s (XDR *, freq_range_s*);
 extern  bool_t xdr_tuning_step_s (XDR *, tuning_step_s*);
 extern  bool_t xdr_filter_s (XDR *, filter_s*);
@@ -451,6 +741,11 @@ extern bool_t xdr_shortfreq_x ();
 extern bool_t xdr_setting_x ();
 extern bool_t xdr_ant_x ();
 extern bool_t xdr_ann_x ();
+extern bool_t xdr_rptr_shift_x ();
+extern bool_t xdr_tone_x ();
+extern bool_t xdr_scan_x ();
+extern bool_t xdr_reset_x ();
+extern bool_t xdr_powerstat_x ();
 extern bool_t xdr_mode_s ();
 extern bool_t xdr_value_s ();
 extern bool_t xdr_freq_arg ();
@@ -458,6 +753,7 @@ extern bool_t xdr_freq_res ();
 extern bool_t xdr_mode_arg ();
 extern bool_t xdr_mode_res ();
 extern bool_t xdr_vfo_res ();
+extern bool_t xdr_powerstat_res ();
 extern bool_t xdr_split_arg ();
 extern bool_t xdr_split_res ();
 extern bool_t xdr_ptt_arg ();
@@ -466,6 +762,19 @@ extern bool_t xdr_dcd_res ();
 extern bool_t xdr_setting_arg ();
 extern bool_t xdr_val_res ();
 extern bool_t xdr_vfo_op_arg ();
+extern bool_t xdr_rptrshift_res ();
+extern bool_t xdr_rptrshift_arg ();
+extern bool_t xdr_shortfreq_res ();
+extern bool_t xdr_shortfreq_arg ();
+extern bool_t xdr_tone_res ();
+extern bool_t xdr_tone_arg ();
+extern bool_t xdr_ant_res ();
+extern bool_t xdr_ant_arg ();
+extern bool_t xdr_ch_res ();
+extern bool_t xdr_ch_arg ();
+extern bool_t xdr_scan_s ();
+extern bool_t xdr_scan_res ();
+extern bool_t xdr_scan_arg ();
 extern bool_t xdr_freq_range_s ();
 extern bool_t xdr_tuning_step_s ();
 extern bool_t xdr_filter_s ();

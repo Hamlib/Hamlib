@@ -2,7 +2,7 @@
  *  Hamlib RPC backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.8 2002-08-16 17:43:02 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.9 2002-08-23 20:01:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,6 +47,76 @@
 struct rpcrig_priv_data {
 		CLIENT *cl;
 };
+
+#define SETBODY1(f, rpc_type, rig_arg)	\
+	struct rpcrig_priv_data *priv;				\
+	int *result;						\
+	rpc_type##_x arg;						\
+								\
+	priv = (struct rpcrig_priv_data*)rig->state.priv;	\
+								\
+	arg = rig_arg;						\
+	result = f##_1(&arg, priv->cl);			\
+	if (result == NULL) {					\
+		clnt_perror(priv->cl, "##f##_1");		\
+		return -RIG_EPROTO;				\
+	}							\
+								\
+	return *result;
+
+#define GETBODY1(f, rpc_type, rig_arg)	\
+	struct rpcrig_priv_data *priv;				\
+	rpc_type##_x arg;					\
+	rpc_type##_res *res;					\
+								\
+	priv = (struct rpcrig_priv_data*)rig->state.priv;	\
+								\
+	arg = *rig_arg;						\
+	res = f##_1(&arg, priv->cl);				\
+	if (res == NULL) {					\
+		clnt_perror(priv->cl, "##f##_1");		\
+		return -RIG_EPROTO;				\
+	}							\
+	if (res->rigstatus == RIG_OK)				\
+		*rig_arg = res->rpc_type##_res_u.rpc_type;	\
+								\
+	return res->rigstatus;
+
+#define SETBODYVFO1(f, rpc_type, rig_arg)	\
+	struct rpcrig_priv_data *priv;				\
+	int *result;						\
+	rpc_type##_arg arg;					\
+								\
+	priv = (struct rpcrig_priv_data*)rig->state.priv;	\
+								\
+	arg.vfo = vfo;						\
+	arg.rpc_type = rig_arg;					\
+	result = f##_1(&arg, priv->cl);				\
+	if (result == NULL) {					\
+		clnt_perror(priv->cl, "##f##_1");		\
+		return -RIG_EPROTO;				\
+	}							\
+								\
+	return *result;
+
+#define GETBODYVFO1(f, rpc_type, rig_arg)	\
+	struct rpcrig_priv_data *priv;				\
+	rpc_type##_res *res;					\
+	vfo_x v;						\
+								\
+	priv = (struct rpcrig_priv_data*)rig->state.priv;	\
+								\
+	v = vfo;						\
+	res = f##_1(&v, priv->cl);				\
+	if (res == NULL) {					\
+		clnt_perror(priv->cl, "##f##_1");		\
+		return -RIG_EPROTO;				\
+	}							\
+	if (res->rigstatus == RIG_OK)				\
+		*rig_arg = res->rpc_type##_res_u.rpc_type;	\
+								\
+	return res->rigstatus;
+
 
 static int rpcrig_init(RIG *rig)
 {
@@ -186,41 +256,13 @@ static int rpcrig_close(RIG *rig)
 
 static int rpcrig_set_vfo(RIG *rig, vfo_t vfo)
 {
-	struct rpcrig_priv_data *priv;
-	int *result;
-	vfo_x varg;
-
-	priv = (struct rpcrig_priv_data*)rig->state.priv;
-
-	varg = vfo;
-	result = setvfo_1(&varg, priv->cl);
-	if (result == NULL) {
-		clnt_perror(priv->cl, "setvfo_1");
-		return -RIG_EPROTO;
-	}
-
-	return *result;
+	SETBODY1(setvfo, vfo, vfo);
 }
 
 
 static int rpcrig_get_vfo(RIG *rig, vfo_t *vfo)
 {
-	struct rpcrig_priv_data *priv;
-	vfo_x v;
-	vfo_res *vres;
-
-	priv = (struct rpcrig_priv_data*)rig->state.priv;
-
-	v = *vfo;
-	vres = getvfo_1(&v, priv->cl);
-	if (vres == NULL) {
-		clnt_perror(priv->cl, "getvfo_1");
-		return -RIG_EPROTO;
-	}
-	if (vres->rigstatus == RIG_OK)
-		*vfo = vres->vfo_res_u.vfo;
-
-	return vres->rigstatus;
+	GETBODY1(getvfo, vfo, vfo);
 }
 
 
@@ -393,248 +435,139 @@ static int rpcrig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_
 
 static int rpcrig_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
-	struct rpcrig_priv_data *priv;
-	int *result;
-	split_arg sarg;
-
-	priv = (struct rpcrig_priv_data*)rig->state.priv;
-
-	sarg.vfo = vfo;
-	sarg.split = split;
-	result = setsplit_1(&sarg, priv->cl);
-	if (result == NULL) {
-		clnt_perror(priv->cl, "setsplit_1");
-		return -RIG_EPROTO;
-	}
-
-	return *result;
+	SETBODYVFO1(setsplit, split, split);
 }
 
 
 static int rpcrig_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
-	struct rpcrig_priv_data *priv;
-	split_res *sres;
-	vfo_x v;
-
-	priv = (struct rpcrig_priv_data*)rig->state.priv;
-
-	v = vfo;
-	sres = getsplit_1(&v, priv->cl);
-	if (sres == NULL) {
-		clnt_perror(priv->cl, "getsplit_1");
-		return -RIG_EPROTO;
-	}
-	if (sres->rigstatus == RIG_OK)
-		*split = sres->split_res_u.split;
-
-	return sres->rigstatus;
+	GETBODYVFO1(getsplit, split, split);
 }
 
 
 static int rpcrig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	struct rpcrig_priv_data *priv;
-	int *result;
-	ptt_arg arg;
-
-	priv = (struct rpcrig_priv_data*)rig->state.priv;
-
-	arg.vfo = vfo;
-	arg.ptt = ptt;
-	result = setptt_1(&arg, priv->cl);
-	if (result == NULL) {
-		clnt_perror(priv->cl, "setptt_1");
-		return -RIG_EPROTO;
-	}
-
-	return *result;
+	SETBODYVFO1(setptt, ptt, ptt);
 }
 
 
 static int rpcrig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-	struct rpcrig_priv_data *priv;
-	ptt_res *res;
-	vfo_x v;
-
-	priv = (struct rpcrig_priv_data*)rig->state.priv;
-
-	v = vfo;
-	res = getptt_1(&v, priv->cl);
-	if (res == NULL) {
-		clnt_perror(priv->cl, "getptt_1");
-		return -RIG_EPROTO;
-	}
-	if (res->rigstatus == RIG_OK)
-		*ptt = res->ptt_res_u.ptt;
-
-	return res->rigstatus;
+	GETBODYVFO1(getptt, ptt, ptt);
 }
 
 
 static int rpcrig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-	struct rpcrig_priv_data *priv;
-	dcd_res *res;
-	vfo_x v;
-
-	priv = (struct rpcrig_priv_data*)rig->state.priv;
-
-	v = vfo;
-	res = getdcd_1(&v, priv->cl);
-	if (res == NULL) {
-		clnt_perror(priv->cl, "getdcd_1");
-		return -RIG_EPROTO;
-	}
-	if (res->rigstatus == RIG_OK)
-		*dcd = res->dcd_res_u.dcd;
-
-	return res->rigstatus;
+	GETBODYVFO1(getdcd, dcd, dcd);
 }
 
 
 static int rpcrig_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setrptrshift, rptrshift, rptr_shift);
 }
 
 
 static int rpcrig_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getrptrshift, rptrshift, rptr_shift);
 }
 
 
 static int rpcrig_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setrptroffs, shortfreq, rptr_offs);
 }
 
 
 static int rpcrig_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getrptroffs, shortfreq, rptr_offs);
 }
 
 
 static int rpcrig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setctcsstone, tone, tone);
 }
 
 
 static int rpcrig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getctcsstone, tone, tone);
 }
 
 
 static int rpcrig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setdcscode, tone, code);
 }
 
 
 static int rpcrig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getdcscode, tone, code);
 }
 
 
 static int rpcrig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setctcsssql, tone, tone);
 }
 
 
 static int rpcrig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getctcsssql, tone, tone);
 }
 
 
 static int rpcrig_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setdcssql, tone, code);
 }
 
 
 static int rpcrig_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getdcssql, tone, code);
 }
 
 
 static int rpcrig_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setrit, shortfreq, rit);
 }
 
 
 static int rpcrig_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getrit, shortfreq, rit);
 }
 
 
 static int rpcrig_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setxit, shortfreq, xit);
 }
 
 
 static int rpcrig_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getxit, shortfreq, xit);
 }
 
 
 static int rpcrig_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setts, shortfreq, ts);
 }
 
 
 static int rpcrig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getts, shortfreq, ts);
 }
 
 
@@ -787,78 +720,58 @@ static int rpcrig_get_parm(RIG *rig, setting_t parm, value_t *val)
 	return res->rigstatus;
 }
 
-static int rpcrig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+static int rpcrig_scan(RIG *rig, vfo_t vfo, scan_t rscan, int ch)
 {
 	struct rpcrig_priv_data *priv;
 	int *result;
-	vfo_op_arg arg;
+	scan_arg arg;
 
 	priv = (struct rpcrig_priv_data*)rig->state.priv;
 
 	arg.vfo = vfo;
-	arg.op = op;
-	result = vfoop_1(&arg, priv->cl);
+	arg.scan = rscan;
+	arg.ch = ch;
+	result = scan_1(&arg, priv->cl);
 	if (result == NULL) {
-		clnt_perror(priv->cl, "vfoop_1");
+		clnt_perror(priv->cl, "scan_1");
 		return -RIG_EPROTO;
 	}
 
 	return *result;
 }
 
-static int rpcrig_set_powerstat(RIG *rig, powerstat_t status)
+static int rpcrig_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(vfoop, vfo_op, op);
 }
-
-
-static int rpcrig_get_powerstat(RIG *rig, powerstat_t *status)
-{
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
-}
-
 
 static int rpcrig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setant, ant, ant);
 }
 
 
 static int rpcrig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getant, ant, ant);
 }
 
 
 static int rpcrig_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setbank, ch, bank);
 }
 
 
 static int rpcrig_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	SETBODYVFO1(setmem, ch, ch);
 }
 
 
 static int rpcrig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
-
-  return -RIG_ENIMPL;
+	GETBODYVFO1(getmem, ch, ch);
 }
 
 
@@ -875,6 +788,23 @@ static int rpcrig_get_channel(RIG *rig, channel_t *chan)
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   return -RIG_ENIMPL;
+}
+
+
+static int rpcrig_reset(RIG *rig, reset_t reset)
+{
+	SETBODY1(reset, reset, reset);
+}
+
+static int rpcrig_set_powerstat(RIG *rig, powerstat_t status)
+{
+	SETBODY1(setpowerstat, powerstat, status);
+}
+
+
+static int rpcrig_get_powerstat(RIG *rig, powerstat_t *status)
+{
+	GETBODY1(getpowerstat, powerstat, status);
 }
 
 
@@ -932,9 +862,9 @@ struct rig_caps rpcrig_caps = {
   .rig_model =      RIG_MODEL_RPC,
   .model_name =     "RPC rig",
   .mfg_name =       "Hamlib",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	 "LGPL",
-  .status =         RIG_STATUS_NEW,
+  .status =         RIG_STATUS_ALPHA,
   .rig_type =       RIG_TYPE_OTHER,
   .targetable_vfo = 	 0,
   .ptt_type =       RIG_PTT_NONE,
@@ -1020,6 +950,8 @@ struct rig_caps rpcrig_caps = {
   .get_channel = 	rpcrig_get_channel,
   .set_trn = 	rpcrig_set_trn,
   .get_trn = 	rpcrig_get_trn,
+  .scan = 	rpcrig_scan,
+  .reset = 	rpcrig_reset,
 };
 
 int initrigs_rpcrig(void *be_handle)

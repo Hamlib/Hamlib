@@ -17,9 +17,9 @@
 #endif
 /*
  *  Hamlib Interface - RPC definitions
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rpcrig_svc.c,v 1.3 2001-12-27 21:58:47 fillods Exp $
+ *	$Id: rpcrig_svc.c,v 1.4 2002-08-23 20:01:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,6 +63,32 @@ rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		setting_arg setparm_1_arg;
 		setting_arg getparm_1_arg;
 		vfo_op_arg vfoop_1_arg;
+		rptrshift_arg setrptrshift_1_arg;
+		vfo_x getrptrshift_1_arg;
+		shortfreq_arg setrptroffs_1_arg;
+		vfo_x getrptroffs_1_arg;
+		tone_arg setctcsstone_1_arg;
+		vfo_x getctcsstone_1_arg;
+		tone_arg setctcsssql_1_arg;
+		vfo_x getctcsssql_1_arg;
+		tone_arg setdcscode_1_arg;
+		vfo_x getdcscode_1_arg;
+		tone_arg setdcssql_1_arg;
+		vfo_x getdcssql_1_arg;
+		shortfreq_arg setrit_1_arg;
+		vfo_x getrit_1_arg;
+		shortfreq_arg setxit_1_arg;
+		vfo_x getxit_1_arg;
+		shortfreq_arg setts_1_arg;
+		vfo_x getts_1_arg;
+		scan_arg scan_1_arg;
+		reset_x reset_1_arg;
+		ch_arg setmem_1_arg;
+		vfo_x getmem_1_arg;
+		ant_arg setant_1_arg;
+		vfo_x getant_1_arg;
+		ch_arg setbank_1_arg;
+		powerstat_x setpowerstat_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -215,6 +241,168 @@ rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		_xdr_argument = (xdrproc_t) xdr_vfo_op_arg;
 		_xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) vfoop_1_svc;
+		break;
+
+	case SETRPTRSHIFT:
+		_xdr_argument = (xdrproc_t) xdr_rptrshift_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setrptrshift_1_svc;
+		break;
+
+	case GETRPTRSHIFT:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_rptrshift_res;
+		local = (char *(*)(char *, struct svc_req *)) getrptrshift_1_svc;
+		break;
+
+	case SETRPTROFFS:
+		_xdr_argument = (xdrproc_t) xdr_shortfreq_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setrptroffs_1_svc;
+		break;
+
+	case GETRPTROFFS:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_shortfreq_res;
+		local = (char *(*)(char *, struct svc_req *)) getrptroffs_1_svc;
+		break;
+
+	case SETCTCSSTONE:
+		_xdr_argument = (xdrproc_t) xdr_tone_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setctcsstone_1_svc;
+		break;
+
+	case GETCTCSSTONE:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_tone_res;
+		local = (char *(*)(char *, struct svc_req *)) getctcsstone_1_svc;
+		break;
+
+	case SETCTCSSSQL:
+		_xdr_argument = (xdrproc_t) xdr_tone_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setctcsssql_1_svc;
+		break;
+
+	case GETCTCSSSQL:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_tone_res;
+		local = (char *(*)(char *, struct svc_req *)) getctcsssql_1_svc;
+		break;
+
+	case SETDCSCODE:
+		_xdr_argument = (xdrproc_t) xdr_tone_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setdcscode_1_svc;
+		break;
+
+	case GETDCSCODE:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_tone_res;
+		local = (char *(*)(char *, struct svc_req *)) getdcscode_1_svc;
+		break;
+
+	case SETDCSSQL:
+		_xdr_argument = (xdrproc_t) xdr_tone_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setdcssql_1_svc;
+		break;
+
+	case GETDCSSQL:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_tone_res;
+		local = (char *(*)(char *, struct svc_req *)) getdcssql_1_svc;
+		break;
+
+	case SETRIT:
+		_xdr_argument = (xdrproc_t) xdr_shortfreq_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setrit_1_svc;
+		break;
+
+	case GETRIT:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_shortfreq_res;
+		local = (char *(*)(char *, struct svc_req *)) getrit_1_svc;
+		break;
+
+	case SETXIT:
+		_xdr_argument = (xdrproc_t) xdr_shortfreq_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setxit_1_svc;
+		break;
+
+	case GETXIT:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_shortfreq_res;
+		local = (char *(*)(char *, struct svc_req *)) getxit_1_svc;
+		break;
+
+	case SETTS:
+		_xdr_argument = (xdrproc_t) xdr_shortfreq_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setts_1_svc;
+		break;
+
+	case GETTS:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_shortfreq_res;
+		local = (char *(*)(char *, struct svc_req *)) getts_1_svc;
+		break;
+
+	case SCAN:
+		_xdr_argument = (xdrproc_t) xdr_scan_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) scan_1_svc;
+		break;
+
+	case RESET:
+		_xdr_argument = (xdrproc_t) xdr_reset_x;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) reset_1_svc;
+		break;
+
+	case SETMEM:
+		_xdr_argument = (xdrproc_t) xdr_ch_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setmem_1_svc;
+		break;
+
+	case GETMEM:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_ch_res;
+		local = (char *(*)(char *, struct svc_req *)) getmem_1_svc;
+		break;
+
+	case SETANT:
+		_xdr_argument = (xdrproc_t) xdr_ant_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setant_1_svc;
+		break;
+
+	case GETANT:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_ant_res;
+		local = (char *(*)(char *, struct svc_req *)) getant_1_svc;
+		break;
+
+	case SETBANK:
+		_xdr_argument = (xdrproc_t) xdr_ch_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setbank_1_svc;
+		break;
+
+	case SETPOWERSTAT:
+		_xdr_argument = (xdrproc_t) xdr_powerstat_x;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setpowerstat_1_svc;
+		break;
+
+	case GETPOWERSTAT:
+		_xdr_argument = (xdrproc_t) xdr_void;
+		_xdr_result = (xdrproc_t) xdr_powerstat_res;
+		local = (char *(*)(char *, struct svc_req *)) getpowerstat_1_svc;
 		break;
 
 	default:

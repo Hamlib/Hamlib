@@ -1,8 +1,8 @@
 %/*
 % *  Hamlib Interface - RPC definitions
-% *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+% *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *
-% *		$Id: rpcrig.x,v 1.3 2001-12-27 21:52:07 fillods Exp $
+% *	$Id: rpcrig.x,v 1.4 2002-08-23 20:01:09 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -39,6 +39,11 @@ typedef long shortfreq_x;
 typedef unsigned hyper setting_x;
 typedef long ant_x;
 typedef long ann_x;
+typedef int rptr_shift_x;
+typedef int tone_x;
+typedef long scan_x;
+typedef long reset_x;
+typedef long powerstat_x;
 
 struct mode_s {
 	rmode_x mode;
@@ -78,6 +83,13 @@ default:
 union vfo_res switch (int rigstatus) {
 case 0:
 	vfo_x vfo;
+default:
+	void;
+};
+
+union powerstat_res switch (int rigstatus) {
+case 0:
+	powerstat_x powerstat;
 default:
 	void;
 };
@@ -125,8 +137,88 @@ default:
 
 struct vfo_op_arg {
 	vfo_x vfo;
-	vfo_op_x op;
+	vfo_op_x vfo_op;
 };
+
+union rptrshift_res switch (int rigstatus) {
+case 0:
+	rptr_shift_x rptrshift;
+default:
+	void;
+};
+
+struct rptrshift_arg {
+	vfo_x vfo;
+	rptr_shift_x rptrshift;
+};
+
+union shortfreq_res switch (int rigstatus) {
+case 0:
+	shortfreq_x shortfreq;
+default:
+	void;
+};
+
+struct shortfreq_arg {
+	vfo_x vfo;
+	shortfreq_x shortfreq;
+};
+
+union tone_res switch (int rigstatus) {
+case 0:
+	tone_x tone;
+default:
+	void;
+};
+
+struct tone_arg {
+	vfo_x vfo;
+	tone_x tone;
+};
+
+union ant_res switch (int rigstatus) {
+case 0:
+	ant_x ant;
+default:
+	void;
+};
+
+struct ant_arg {
+	vfo_x vfo;
+	ant_x ant;
+};
+
+union ch_res switch (int rigstatus) {
+case 0:
+	int ch;
+default:
+	void;
+};
+
+struct ch_arg {
+	vfo_x vfo;
+	int ch;
+};
+
+struct scan_s {
+	scan_x scan;
+	int ch;
+};
+
+union scan_res switch (int rigstatus) {
+case 0:
+	scan_s scan;
+default:
+	void;
+};
+
+struct scan_arg {
+	vfo_x vfo;
+	scan_x scan;
+	int ch;
+};
+
+
 
 struct	freq_range_s {
 	freq_x start;
@@ -216,6 +308,33 @@ program RIGPROG {
 		int SETPARM(setting_arg) = 29;
 		val_res GETPARM(setting_arg) = 30;
 		int VFOOP(vfo_op_arg) = 31;
+		int SETRPTRSHIFT(rptrshift_arg) = 32;
+		rptrshift_res GETRPTRSHIFT(vfo_x) = 33;
+		int SETRPTROFFS(shortfreq_arg) = 34;
+		shortfreq_res GETRPTROFFS(vfo_x) = 35;
+		int SETCTCSSTONE(tone_arg) = 36;
+		tone_res GETCTCSSTONE(vfo_x) = 37;
+		int SETCTCSSSQL(tone_arg) = 38;
+		tone_res GETCTCSSSQL(vfo_x) = 39;
+		int SETDCSCODE(tone_arg) = 40;
+		tone_res GETDCSCODE(vfo_x) = 41;
+		int SETDCSSQL(tone_arg) = 42;
+		tone_res GETDCSSQL(vfo_x) = 43;
+		int SETRIT(shortfreq_arg) = 44;
+		shortfreq_res GETRIT(vfo_x) = 45;
+		int SETXIT(shortfreq_arg) = 46;
+		shortfreq_res GETXIT(vfo_x) = 47;
+		int SETTS(shortfreq_arg) = 48;
+		shortfreq_res GETTS(vfo_x) = 49;
+		int SCAN(scan_arg) = 50;
+		int RESET(reset_x) = 51;
+		int SETMEM(ch_arg) = 52;
+		ch_res GETMEM(vfo_x) = 53;
+		int SETANT(ant_arg) = 54;
+		ant_res GETANT(vfo_x) = 55;
+		int SETBANK(ch_arg) = 56;
+		int SETPOWERSTAT(powerstat_x) = 58;
+		powerstat_res GETPOWERSTAT(void) = 59;
 	} = 1;
 } = 0x20000099;
 

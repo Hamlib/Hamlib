@@ -2,7 +2,7 @@
  *  Hamlib RPC server - procedures
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: rpcrig_proc.c,v 1.5 2002-07-08 22:53:26 fillods Exp $
+ *	$Id: rpcrig_proc.c,v 1.6 2002-08-23 20:01:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,6 +37,53 @@
 #include <hamlib/rig.h>
 
 extern RIG *the_rpc_rig;
+
+
+/* without VFO arg */
+#define DECLARESET1(f, rig_f, rpc_type)	\
+int * f##_1_svc(rpc_type *arg, struct svc_req *svc)		\
+{								\
+	static int res;						\
+								\
+	res = rig_f(the_rpc_rig, *arg);				\
+								\
+	return &res;						\
+}
+
+#define DECLAREGET1(f, rig_f, rpc_type, rig_type)	\
+rpc_type##_res *f##_1_svc(void *rpc_arg, struct svc_req *svc)	\
+{								\
+	static rpc_type##_res res;				\
+	rig_type arg;						\
+								\
+	res.rigstatus = rig_f(the_rpc_rig, &arg);		\
+	res.rpc_type##_res_u.rpc_type = arg;			\
+								\
+	return &res;						\
+}
+
+/* with VFO arg */
+#define DECLARESETV1(f, rig_f, rpc_type)	\
+int *f##_1_svc(rpc_type##_arg *arg, struct svc_req *svc)	\
+{								\
+	static int res;						\
+								\
+	res = rig_f(the_rpc_rig, arg->vfo, arg->rpc_type);	\
+								\
+	return &res;						\
+}
+
+#define DECLAREGETV1(f, rig_f, rpc_type, rig_type)	\
+rpc_type##_res *f##_1_svc(vfo_x *vfo, struct svc_req *svc)	\
+{								\
+	static rpc_type##_res res;				\
+	rig_type arg;						\
+								\
+	res.rigstatus = rig_f(the_rpc_rig, *vfo, &arg);		\
+	res.rpc_type##_res_u.rpc_type = arg;			\
+								\
+	return &res;						\
+}
 
 model_x *getmodel_1_svc(void *arg, struct svc_req *svc)
 {
@@ -144,21 +191,14 @@ mode_res *getmode_1_svc(vfo_x *vfo, struct svc_req *svc)
 	return &res;
 }
 
-int *setvfo_1_svc(vfo_x *varg, struct svc_req *svc)
-{
-	static int res;
-
-	res = rig_set_vfo(the_rpc_rig, *varg);
-
-	return &res;
-}
+DECLARESET1(setvfo, rig_set_vfo, vfo_x)
 
 vfo_res *getvfo_1_svc(vfo_x *vfo, struct svc_req *svc)
 {
 	static vfo_res res;
 	vfo_t v;
 
-	v = *vfo;
+	v = *vfo;	/* NB: arg vfo is also input argument to get_vfo */
 	res.rigstatus = rig_get_vfo(the_rpc_rig, &v);
 	res.vfo_res_u.vfo = v;
 
@@ -209,56 +249,12 @@ mode_res *getsplitmode_1_svc(vfo_x *vfo, struct svc_req *svc)
 	return &res;
 }
 
-int *setsplit_1_svc(split_arg *sarg, struct svc_req *svc)
-{
-	static int res;
+DECLARESETV1(setsplit, rig_set_split, split)
+DECLAREGETV1(getsplit, rig_get_split, split, split_t)
 
-	res = rig_set_split(the_rpc_rig, sarg->vfo, sarg->split);
-
-	return &res;
-}
-
-split_res *getsplit_1_svc(vfo_x *vfo, struct svc_req *svc)
-{
-	static split_res res;
-	split_t s;
-
-	res.rigstatus = rig_get_split(the_rpc_rig, *vfo, &s);
-	res.split_res_u.split = s;
-
-	return &res;
-}
-
-int *setptt_1_svc(ptt_arg *arg, struct svc_req *svc)
-{
-	static int res;
-
-	res = rig_set_ptt(the_rpc_rig, arg->vfo, arg->ptt);
-
-	return &res;
-}
-
-ptt_res *getptt_1_svc(vfo_x *vfo, struct svc_req *svc)
-{
-	static ptt_res res;
-	ptt_t p;
-
-	res.rigstatus = rig_get_ptt(the_rpc_rig, *vfo, &p);
-	res.ptt_res_u.ptt = p;
-
-	return &res;
-}
-
-dcd_res *getdcd_1_svc(vfo_x *vfo, struct svc_req *svc)
-{
-	static dcd_res res;
-	dcd_t d;
-
-	res.rigstatus = rig_get_dcd(the_rpc_rig, *vfo, &d);
-	res.dcd_res_u.dcd = d;
-
-	return &res;
-}
+DECLARESETV1(setptt, rig_set_ptt, ptt)
+DECLAREGETV1(getptt, rig_get_ptt, ptt, ptt_t)
+DECLAREGETV1(getdcd, rig_get_dcd, dcd, dcd_t)
 
 int *setlevel_1_svc(setting_arg *arg, struct svc_req *svc)
 {
@@ -305,7 +301,7 @@ int *setparm_1_svc(setting_arg *arg, struct svc_req *svc)
 	value_t val;
 
 	setting = setting_x2t(&arg->setting);
-	if (RIG_LEVEL_IS_FLOAT(setting))
+	if (RIG_PARM_IS_FLOAT(setting))
 		val.f = arg->val.f;
 	else
 		val.i = arg->val.i;
@@ -322,13 +318,13 @@ val_res *getparm_1_svc(setting_arg *arg, struct svc_req *svc)
 	value_t val;
 
 	setting = setting_x2t(&arg->setting);
-	if (RIG_LEVEL_IS_FLOAT(setting))
+	if (RIG_PARM_IS_FLOAT(setting))
 		val.f = arg->val.f;
 	else
 		val.i = arg->val.i;
 
 	res.rigstatus = rig_get_parm(the_rpc_rig, setting, &val);
-	if (RIG_LEVEL_IS_FLOAT(setting))
+	if (RIG_PARM_IS_FLOAT(setting))
 		res.val_res_u.val.f = val.f;
 	else
 		res.val_res_u.val.i = val.i;
@@ -355,24 +351,52 @@ val_res *getfunc_1_svc(setting_arg *arg, struct svc_req *svc)
 	value_t val;
 
 	setting = setting_x2t(&arg->setting);
-	if (RIG_LEVEL_IS_FLOAT(setting))
-		val.f = arg->val.f;
-	else
-		val.i = arg->val.i;
-
+	val.i = arg->val.i;
 	res.rigstatus = rig_get_func(the_rpc_rig, arg->vfo, setting, 
 					&res.val_res_u.val.i);
 
 	return &res;
 }
 
-int *vfoop_1_svc(vfo_op_arg *arg, struct svc_req *svc)
+int *scan_1_svc(scan_arg *arg, struct svc_req *svc)
 {
 	static int res;
 
-	res = rig_vfo_op(the_rpc_rig, arg->vfo, arg->op);
+	res = rig_scan(the_rpc_rig, arg->vfo, arg->scan, arg->ch);
 
 	return &res;
 }
 
+DECLARESETV1(vfoop, rig_vfo_op, vfo_op)
+
+DECLARESETV1(setrptrshift, rig_set_rptr_shift, rptrshift)
+DECLAREGETV1(getrptrshift, rig_get_rptr_shift, rptrshift, rptr_shift_t)
+DECLARESETV1(setrptroffs, rig_set_rptr_offs, shortfreq)
+DECLAREGETV1(getrptroffs, rig_get_rptr_offs, shortfreq, shortfreq_t)
+
+DECLARESETV1(setctcsstone, rig_set_ctcss_tone, tone)
+DECLAREGETV1(getctcsstone, rig_get_ctcss_tone, tone, tone_t)
+DECLARESETV1(setctcsssql, rig_set_ctcss_sql, tone)
+DECLAREGETV1(getctcsssql, rig_get_ctcss_sql, tone, tone_t)
+DECLARESETV1(setdcscode, rig_set_dcs_code, tone)
+DECLAREGETV1(getdcscode, rig_get_dcs_code, tone, tone_t)
+DECLARESETV1(setdcssql, rig_set_dcs_sql, tone)
+DECLAREGETV1(getdcssql, rig_get_dcs_sql, tone, tone_t)
+
+DECLARESETV1(setrit, rig_set_rit, shortfreq)
+DECLAREGETV1(getrit, rig_get_rit, shortfreq, shortfreq_t)
+DECLARESETV1(setxit, rig_set_xit, shortfreq)
+DECLAREGETV1(getxit, rig_get_xit, shortfreq, shortfreq_t)
+DECLARESETV1(setts, rig_set_ts, shortfreq)
+DECLAREGETV1(getts, rig_get_ts, shortfreq, shortfreq_t)
+
+DECLARESETV1(setant, rig_set_ant, ant)
+DECLAREGETV1(getant, rig_get_ant, ant, ant_t)
+DECLARESETV1(setmem, rig_set_mem, ch)
+DECLAREGETV1(getmem, rig_get_mem, ch, int)
+DECLARESETV1(setbank, rig_set_bank, ch)
+
+DECLARESET1(reset, rig_reset, reset_x)
+DECLARESET1(setpowerstat, rig_set_powerstat, powerstat_x)
+DECLAREGET1(getpowerstat, rig_get_powerstat, powerstat, powerstat_t)
 
