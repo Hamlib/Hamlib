@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.2 2000-07-28 00:48:40 javabear Exp $  
+ *    $Id: serial.h,v 1.3 2000-07-30 04:35:56 javabear Exp $  
  */
 
 
@@ -25,3 +25,21 @@ int close_port(int fd);
 
 
 int read_sleep(int fd, unsigned char *rxbuffer, int num );
+
+
+/*
+ * Convert char to packed decimal
+ * eg: 33 (0x21) => 0x33
+ *
+ */
+
+char calc_packed_from_char(unsigned char dec );
+
+
+/*
+ * Convert packed decimal to decimal
+ * eg: 0x33 (51) => 33 decimal
+ *
+ */
+
+char calc_char_from_packed(unsigned char pkd );

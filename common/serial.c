@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.4 2000-07-30 03:57:19 javabear Exp $  
+ * $Id: serial.c,v 1.5 2000-07-30 04:38:33 javabear Exp $  
  *
  */
 
@@ -229,6 +229,42 @@ static void dump_hex(unsigned char *ptr, int size, int width) {
 
   return;
 } 
+
+
+/*
+ * Convert char to packed decimal
+ * eg: 33 (0x21) => 0x33
+ *
+ */
+
+char calc_packed_from_char(unsigned char dec ) {
+ 
+  char d1,d2,pkd;
+
+  d1 = dec/10;
+  d2 = dec - (d1 * 10);
+  pkd = (d1*16)+d2;
+ 
+  return pkd;
+}
+
+
+/*
+ * Convert packed decimal to decimal
+ * eg: 0x33 (51) => 33 decimal
+ *
+ */
+
+char calc_char_from_packed(unsigned char pkd ) {
+ 
+  char d1,d2,dec;
+
+  d1 = pkd/16;
+  d2 = pkd - (d1 * 16);
+  dec = (d1*10)+d2;
+
+  return dec;
+}
 
 
 
