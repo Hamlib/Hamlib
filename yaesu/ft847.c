@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.13 2001-06-04 17:01:21 f4cfe Exp $  
+ * $Id: ft847.c,v 1.14 2001-10-30 07:17:09 f4cfe Exp $  
  *
  *
  *
@@ -229,7 +229,8 @@ chan_list: { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
 rx_range_list1: { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 tx_range_list1: { RIG_FRNG_END, },
 rx_range_list2: 
-  { {kHz(100),MHz(76),FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
+  { {kHz(100),MHz(30),FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
+    {MHz(36),MHz(76),FT847_ALL_RX_MODES,-1,-1},
     {MHz(108),MHz(174),FT847_ALL_RX_MODES,-1,-1},
     {MHz(420),MHz(512),FT847_ALL_RX_MODES,-1,-1},
 
@@ -286,7 +287,11 @@ tuning_steps: { {FT847_SSB_CW_RX_MODES,1}, /* normal */
   },  
       /* mode/filter list, remember: order matters! */
 filters: {
-		/* FIXME! */
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.2)},
+		{RIG_MODE_AM, kHz(9)},
+		{RIG_MODE_AM, kHz(2.2)},
+		{RIG_MODE_FM, kHz(15)},
+		{RIG_MODE_FM, kHz(9)},
 		RIG_FLT_END,
   },
 
