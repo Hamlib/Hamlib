@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.36 2002-03-15 22:58:14 pa4tu Exp $
+ *		$Id: kenwood.c,v 1.37 2002-03-25 00:12:17 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -464,6 +464,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				kenwood_val = val.i;
 
 		switch (level) {
+		case RIG_LEVEL_RFPOWER:
+		level_len = sprintf(levelbuf, "PC%03d;", kenwood_val);
+		break;
+
 		case RIG_LEVEL_AF:
 		level_len = sprintf(levelbuf, "AG%03d;", kenwood_val);
 		break;
@@ -588,6 +592,9 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 					val->i = rig->state.attenuator[i-1];
 			}
 			break;
+		case RIG_LEVEL_RFPOWER:
+			return get_kenwood_level(rig, "PC;", 3, &val->f);
+
 		case RIG_LEVEL_AF:
 			return get_kenwood_level(rig, "AG;", 3, &val->f);
 

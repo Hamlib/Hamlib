@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS50 description
  *  Copyright (c) 2002 by Stephane Fillod
  *
- *		$Id: ts50s.c,v 1.3 2002-03-13 23:42:43 fillods Exp $
+ *		$Id: ts50s.c,v 1.4 2002-03-25 00:18:36 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,7 +37,7 @@
 
 #define TS50_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_TSQL|RIG_FUNC_TONE|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_LOCK|RIG_FUNC_BC)
 
-#define TS50_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
+#define TS50_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
 
 #define TS50_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS50_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)

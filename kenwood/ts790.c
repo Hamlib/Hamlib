@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts790.c,v 1.3 2002-03-13 23:42:43 fillods Exp $
+ *		$Id: ts790.c,v 1.4 2002-03-25 00:20:38 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 /* func and levels to be checked */
 #define TS790_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_LOCK|RIG_FUNC_MUTE)
 
-#define TS790_LEVEL_ALL (RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF)
+#define TS790_LEVEL_ALL (RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER)
 
 #define TS790_VFO (RIG_VFO_A|RIG_VFO_B)
 
