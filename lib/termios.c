@@ -457,6 +457,7 @@ int termios_to_bytesize( int cflag )
 	}
 }
 
+#if 0
 /*----------------------------------------------------------
 get_dos_port()
 
@@ -478,6 +479,7 @@ const char *get_dos_port( char const *name )
 	LEAVE( "get_dos_port" );
 	return( ( const char * ) name );
 }
+#endif
 
 /*----------------------------------------------------------
 ClearErrors()
@@ -2667,10 +2669,13 @@ fstat()
    comments:  this is just to keep the eventLoop happy.
 ----------------------------------------------------------*/
 
+#if 0
 int fstat( int fd, ... )
 {
 	return( 0 );
 }
+#endif
+
 /*----------------------------------------------------------
 ioctl()
 
@@ -2697,7 +2702,7 @@ ioctl()
 
 ----------------------------------------------------------*/
 
-int ioctl( int fd, int request, ... )
+int win32_serial_ioctl( int fd, int request, ... )
 {
 	unsigned long dwStatus = 0;
 	va_list ap;
@@ -2749,6 +2754,17 @@ int ioctl( int fd, int request, ... )
 			va_end( ap );
 			return -ENOIOCTLCMD;
 
+		case TIOCCBRK:
+		case TIOCSBRK:
+			arg = va_arg( ap, int * );
+			if ( EscapeCommFunction( index->hComm, 
+				( request == TIOCSBRK ) ? SETBREAK :
+				CLRBREAK ) )
+				report( "EscapeCommFunction: True\n" );
+			else
+				report( "EscapeCommFunction: False\n" );
+			break;
+
 		case TIOCMGET:
 			arg = va_arg( ap, int * );
 		/* DORITOS */
@@ -2782,15 +2798,50 @@ int ioctl( int fd, int request, ... )
 */
 			va_end( ap );
 			return( 0 );
-		/* TIOCMIS, TIOCMBIC and TIOCMSET all do the same thing... */
 		case TIOCMBIS:
 			arg = va_arg( ap, int * );
-			va_end( ap );
-			return -ENOIOCTLCMD;
+			if ( *arg & TIOCM_DTR )
+			{
+				index->MSR |= TIOCM_DTR;
+
+				if (EscapeCommFunction( index->hComm, SETDTR))
+					report( "EscapeCommFunction: True\n" );
+				else
+					report( "EscapeCommFunction: False\n" );
+			}
+
+			if ( *arg & TIOCM_RTS )
+			{
+				index->MSR |= TIOCM_RTS;
+
+				if(EscapeCommFunction( index->hComm, SETRTS))
+					report( "EscapeCommFunction: True\n" );
+				else
+					report( "EscapeCommFunction: False\n" );
+			}
+			break;
+
 		case TIOCMBIC:
 			arg = va_arg( ap, int * );
-			va_end( ap );
-			return -ENOIOCTLCMD;
+			if ( *arg & TIOCM_DTR )
+			{
+				index->MSR &= ~TIOCM_DTR;
+				if ( EscapeCommFunction( index->hComm, CLRDTR))
+					report( "EscapeCommFunction: True\n" );
+				else
+					report( "EscapeCommFunction: False\n" );
+			}
+
+			if ( *arg & TIOCM_RTS )
+			{
+				index->MSR &= ~TIOCM_RTS;
+				if( EscapeCommFunction( index->hComm, CLRRTS))
+					report( "EscapeCommFunction: True\n" );
+				else
+					report( "EscapeCommFunction: False\n" );
+			}
+			break;
+
 		case TIOCMSET:
 			arg = va_arg( ap, int * );
 			if (( *arg & TIOCM_DTR) == (index->MSR & TIOCM_DTR) )
@@ -3204,7 +3255,7 @@ int  win32_serial_select( int  n,  fd_set  *readfds,  fd_set  *writefds,
 		int timeout_usec = timeout ? timeout->tv_sec*1000000 + timeout->tv_usec : INT_MAX;
 
 		while (timeout_usec > 0) {
-			sprintf( message, "wait for data in read buffer%d\n", Stat.cbInQue );
+			sprintf( message, "wait for data in read buffer%d\n", (int)Stat.cbInQue );
 			report( message );
 
 			if (Stat.cbInQue != 0) {

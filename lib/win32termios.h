@@ -119,6 +119,7 @@ int win32_serial_open(const char *File, int flags, ... );
 int win32_serial_close(int fd);
 int win32_serial_read(int fd, void *b, int size);
 int win32_serial_write(int fd, const char *Str, int length);
+int win32_serial_ioctl(int fd, int request, ... );
 /*
  * lcc winsock.h conflicts
  */
@@ -131,6 +132,7 @@ int win32_serial_select(int, struct fd_set *, struct fd_set *, struct fd_set *, 
 #define CLOSE win32_serial_close
 #define READ win32_serial_read
 #define WRITE win32_serial_write
+#define IOCTL win32_serial_ioctl
 
 void termios_interrupt_event_loop( int , int );
 void termios_setflags( int , int[] );
@@ -146,7 +148,6 @@ int termios_to_bytesize(int);
 int bytesize_to_termios(int);
 int tcgetattr(int Fd, struct termios *s_termios);
 int tcsetattr(int Fd, int when, struct termios *);
-int win32_serial_close(int );
 speed_t cfgetospeed(struct termios *s_termios);
 speed_t cfgetispeed(struct termios *s_termios);
 int cfsetspeed(struct termios *, speed_t speed);
@@ -158,7 +159,6 @@ int tcsetpgrp ( int , int );
 int tcdrain ( int );
 int tcflow ( int , int );
 int tcsendbreak ( int , int );
-int ioctl(int fd, int request, ... );
 /*
 int fstat(int fd, ... );
 */
@@ -396,6 +396,8 @@ void termiosSetParityError( int, char );
 
 /* unused ioctls */
 #define TCSBRK		0x5409
+#define TIOCCBRK	0x540a
+#define TIOCSBRK	0x540b
 #define TIOCOUTQ	0x5411
 #define TIOCMGET	0x5415
 #define TIOCMBIS	0x5416

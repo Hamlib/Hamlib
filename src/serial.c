@@ -1,10 +1,10 @@
 /*
  *  Hamlib Interface - serial communication low-level support
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.39 2004-04-16 20:04:11 fillods Exp $
+ *	$Id: serial.c,v 1.40 2004-08-01 23:13:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,6 +72,7 @@
 #else
 #define OPEN open
 #define CLOSE close
+#define IOCTL ioctl
 #endif
 
 #include <hamlib/rig.h>
@@ -177,9 +178,9 @@ int serial_setup(port_t *rp)
 #if defined(HAVE_TERMIOS_H) || defined(WIN32)
   tcgetattr(fd, &options);
 #elif defined(HAVE_TERMIO_H)
-  ioctl (fd, TCGETA, &options);
+  IOCTL (fd, TCGETA, &options);
 #else	/* sgtty */
-  ioctl (fd, TIOCGETP, &sg);
+  IOCTL (fd, TIOCGETP, &sg);
 #endif
 
 #ifdef HAVE_CFMAKERAW
@@ -368,14 +369,14 @@ int serial_setup(port_t *rp)
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #elif defined(HAVE_TERMIO_H)
-  if (ioctl(fd, TCSETA, &options) == -1) {
+  if (IOCTL(fd, TCSETA, &options) == -1) {
 		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TCSETA) failed: %s\n", 
 					strerror(errno));
 		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #else	/* sgtty */
-  if (ioctl(fd, TIOCSETP, &sg) == -1) {
+  if (IOCTL(fd, TIOCSETP, &sg) == -1) {
 		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TIOCSETP) failed: %s\n", 
 					strerror(errno));
 		CLOSE(fd);
@@ -398,74 +399,31 @@ int serial_flush( port_t *p )
   return RIG_OK;
 }
 
-/*
- * ser_ptt_set and par_ptt_set
- * ser_ptt_open/ser_ptt_close & par_ptt_open/par_ptt_close
- *
- * ser_open/ser_close,par_open/par_close to be used for PTT and DCD
- *
- * assumes: p is not NULL
- */
-
-#if defined(WIN32)
 int ser_open(port_t *p)
 {
-	const char *path = p->pathname;
-	HANDLE h;
-	DCB dcb;
-
-	h = CreateFile(path, GENERIC_READ | GENERIC_WRITE, 0, NULL, 
-					OPEN_EXISTING, 0, NULL);
-	if (h == INVALID_HANDLE_VALUE) {
-		rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n", path);
-		return -1;
-	}
-	/* Check if it is a comm device */
-	if (!GetCommState(h, &dcb)) {
-		rig_debug(RIG_DEBUG_ERR, "Device \"%s\" not a COM device\n", path);
-		CloseHandle(h);
-		return -1;
-	} 
-	p->handle = h;
-	return 0;
+	return (p->fd = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY));
 }
-#else
-int ser_open(port_t *p)
-{
-		return (p->fd = open(p->pathname, O_RDWR | O_NOCTTY));
-}
-#endif
 
 int ser_close(port_t *p)
 {
-#if defined(WIN32)
-		return CloseHandle(p->handle);
-#else
-		return close(p->fd);
-#endif
+	return CLOSE(p->fd);
 }
 
 int ser_set_rts(port_t *p, int state)
 {
-#if defined(WIN32)
-		/*
-		 * TODO: log error with 0x%lx GetLastError()
-		 */
-	return !EscapeCommFunction(p->handle, state ? SETRTS : CLRRTS);
-#else
 	unsigned int y = TIOCM_RTS;
+
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
-	return ioctl(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
 #else
-	if (ioctl(p->fd, TIOCMGET, &y) < 0) {
+	if (IOCTL(p->fd, TIOCMGET, &y) < 0) {
 		return -RIG_EIO;
 	}
 	if (state)
 		y |= TIOCM_RTS;
 	else
 		y &= ~TIOCM_RTS;
-	return ioctl(p->fd, TIOCMSET, &y);
-#endif
+	return IOCTL(p->fd, TIOCMSET, &y);
 #endif
 }
 
@@ -475,63 +433,46 @@ int ser_set_rts(port_t *p, int state)
  */
 int ser_get_rts(port_t *p, int *state)
 {
-#if defined(WIN32)
-	/* TODO... */
-  return -RIG_ENIMPL;
-#else
   int status;
   unsigned int y;
-  status = ioctl(p->fd, TIOCMGET, &y);
+  status = IOCTL(p->fd, TIOCMGET, &y);
   *state = (y & TIOCM_RTS) ? RIG_PTT_ON:RIG_PTT_OFF;
   return RIG_OK;
-#endif
 }
 
 int ser_set_dtr(port_t *p, int state)
 {
-#if defined(WIN32)
-	return !EscapeCommFunction(p->handle, state ? SETDTR : CLRDTR);
-#else
 	unsigned int y = TIOCM_DTR;
+
 #if defined(TIOCMBIS) && defined(TIOCMBIC)
-	return ioctl(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+	return IOCTL(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
 #else
-	if (ioctl(p->fd, TIOCMGET, &y) < 0) {
+	if (IOCTL(p->fd, TIOCMGET, &y) < 0) {
 		return -RIG_EIO;
 	}
 	if (state)
 		y |= TIOCM_DTR;
 	else
 		y &= ~TIOCM_DTR;
-	return ioctl(p->fd, TIOCMSET, &y);
-#endif
+	return IOCTL(p->fd, TIOCMSET, &y);
 #endif
 }
 
 int ser_get_dtr(port_t *p, int *state)
 {
-#if defined(WIN32)
-	/* TODO... */
-  return -RIG_ENIMPL;
-#else
   int status;
   unsigned int y;
-  status = ioctl(p->fd, TIOCMGET, &y);
+  status = IOCTL(p->fd, TIOCMGET, &y);
   *state = (y & TIOCM_DTR) ? RIG_PTT_ON:RIG_PTT_OFF;
   return status;
-#endif
 }
 
 int ser_set_brk(port_t *p, int state)
 {
-#if defined(WIN32)
-	return !EscapeCommFunction(p->handle, state ? SETBREAK : CLRBREAK);
-#else
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
-	return ioctl(p->fd, state ? TIOCSBRK : TIOCCBRK, 0 );
+	return IOCTL(p->fd, state ? TIOCSBRK : TIOCCBRK, 0 );
 #else
 	return -RIG_ENIMPL;
-#endif
 #endif
 }
 
@@ -541,16 +482,11 @@ int ser_set_brk(port_t *p, int state)
  */
 int ser_get_dcd(port_t *p, int *state)
 {
-#if defined(WIN32)
-	/* TODO... */
-  return -RIG_ENIMPL;
-#else
   int status;
   unsigned int y;
-  status = ioctl(p->fd, TIOCMGET, &y);
+  status = IOCTL(p->fd, TIOCMGET, &y);
   *state = (y & TIOCM_CAR) ? RIG_DCD_ON:RIG_DCD_OFF;
   return RIG_OK;
-#endif
 }
 
 /* 
@@ -598,15 +534,12 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 {
 
 		switch(p->type.dcd) {
-#if defined(WIN32)
-				/* TODO... */
-#else
 		case RIG_DCD_SERIAL_CTS:
 			{
 				unsigned int y;
 				int status;
 
-				status = ioctl(p->fd, TIOCMGET, &y);
+				status = IOCTL(p->fd, TIOCMGET, &y);
 				*dcdx = y & TIOCM_CTS ? RIG_DCD_ON:RIG_DCD_OFF;
 				return status;
 			}
@@ -616,11 +549,10 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 				unsigned int y;
 				int status;
 
-				status = ioctl(p->fd, TIOCMGET, &y);
+				status = IOCTL(p->fd, TIOCMGET, &y);
 				*dcdx = y & TIOCM_DSR ? RIG_DCD_ON:RIG_DCD_OFF;
 				return status;
 			}
-#endif
 		case RIG_DCD_SERIAL_CAR:
 			return ser_get_dcd(p, &dcdx);
 		default:
