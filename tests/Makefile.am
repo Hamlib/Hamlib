@@ -1,4 +1,4 @@
-noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs @RIGMATRIX@
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp @RIGMATRIX@
 bin_PROGRAMS = rigctl
 EXTRA_PROGRAMS = rigmatrix
 
@@ -20,6 +20,7 @@ testtrn_LDADD = $(BACKENDLNK) $(LDADD)
 rigctl_LDADD = $(BACKENDLNK) $(LDADD) ../lib/libmisc.a
 # rigmatrix needs also libgd
 rigmatrix_LDADD = -lgd $(BACKENDLNK) $(LDADD)
+testcpp_LDADD = $(BACKENDLNK) ../c++/libhamlib++.la
 
 ## Dependencies
 
@@ -31,6 +32,7 @@ testtrn_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 listrigs_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 rigctl_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS) ../lib/libmisc.a
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testcpp_DEPENDENCIES = ../c++/libhamlib++.la $(BACKENDEPS)
 
 ## Source list
 testrig_SOURCES = testrig.c
@@ -43,6 +45,7 @@ testcaps_SOURCES = testcaps.c
 listrigs_SOURCES = listrigs.c
 rigctl_SOURCES = rigctl.c
 rigmatrix_SOURCES = rigmatrix.c
+testcpp_SOURCES = testcpp.cc
 
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	mkdir -p html
@@ -51,3 +54,4 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs dumpcaps
 	# ./listrigs | awk 'NR!=1 { system("./dumpcaps $1 > html/model$1.txt") }'
 
 noinst_DATA = rigmatrix_head.html
+
