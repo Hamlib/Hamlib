@@ -1,8 +1,15 @@
+/**
+ * \file src/tones.c
+ * \ingroup hamlib
+ * \brief CTCSS and DCS tables
+ * \author Stephane Fillod
+ * \date 2000-2002
+ */
 /*
  *  Hamlib Interface - CTCSS and DCS tables
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: tones.c,v 1.1 2001-12-19 03:18:44 fillods Exp $
+ *		$Id: tones.c,v 1.2 2002-02-12 22:15:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
