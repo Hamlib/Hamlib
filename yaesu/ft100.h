@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.2 2002-03-04 13:01:06 avflinsch Exp $  
+ *    $Id: ft100.h,v 1.3 2002-03-12 13:27:01 avflinsch Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -74,6 +74,9 @@ enum ft100_native_cmd_e {
   FT100_NATIVE_CAT_PWR_WAKE,
   FT100_NATIVE_CAT_PWR_ON,
   FT100_NATIVE_CAT_PWR_OFF,
+  FT100_NATIVE_CAT_READ_STATUS,
+  FT100_NATIVE_CAT_READ_METERS,
+  FT100_NATIVE_CAT_READ_FLAGS,   
   FT100_NATIVE_SIZE		/* end marker */
 };
 
@@ -90,6 +93,49 @@ struct ft100_priv_data {
   unsigned char freq_mode_status;
 };
 
+
+/*
+ *  we are able to get way more info
+ *  than we can set 
+ * 
+ */ 
+typedef struct
+{
+   unsigned char band_no;
+   unsigned char freq[4];
+   unsigned char mode;
+   unsigned char ctcss;
+   unsigned char dcs;
+   unsigned char flag1;
+   unsigned char flag2;
+   unsigned char clarifier[2];
+   unsigned char not_used;
+   unsigned char step1;
+   unsigned char step2;
+   unsigned char filter;
+}
+ FT100_STATUS_INFO;
+
+
+typedef struct 
+{
+   unsigned char mic_switch_1;
+   unsigned char tx_fwd_power;
+   unsigned char tx_rev_power;
+   unsigned char s_meter;
+   unsigned char mic_level;
+   unsigned char squelch_level;
+   unsigned char mic_switch_2;
+   unsigned char final_temp;
+   unsigned char alc_level;
+}
+ FT100_METER_INFO;
+
+typedef struct 
+{
+   unsigned char flags[8];
+}
+FT100_FLAG_INFO;
 
 int ft100_init(RIG *rig);
 int ft100_open(RIG *rig);
@@ -129,6 +175,7 @@ int ft100_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
 int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 
+int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags);
 
 #endif /* _FT100_H */
 
