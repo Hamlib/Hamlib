@@ -13,7 +13,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.c,v 1.2 2003-08-27 07:39:05 fillods Exp $  
+ *    $Id: ft857.c,v 1.3 2003-09-21 11:08:06 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -50,7 +50,6 @@
  *
  *      - discriminator centered (yes/no flag)
  *      - received ctcss/dcs matched (yes/no flag)
- *      - squelch open (yes/no flag)
  *
  *   - TX status command returns info that is not used:
  *
@@ -121,6 +120,9 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xe7 } }, /* get RX status  */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* get TX status  */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* get FREQ and MODE status */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
 };
 
 
@@ -145,7 +147,7 @@ const struct rig_caps ft857_caps = {
   .status = 		RIG_STATUS_ALPHA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
   .ptt_type = 		RIG_PTT_RIG,
-  .dcd_type = 		RIG_DCD_NONE,
+  .dcd_type = 		RIG_DCD_RIG,
   .port_type = 		RIG_PORT_SERIAL,
   .serial_rate_min = 	4800,
   .serial_rate_max = 	38400,
@@ -159,7 +161,7 @@ const struct rig_caps ft857_caps = {
   .retry = 		0, 
   .has_get_func =       RIG_FUNC_NONE,
   .has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL, 
-  .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER,
+  .has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RFPOWER | RIG_LEVEL_SQLSTAT,
   .has_set_level = 	RIG_LEVEL_NONE,
   .has_get_parm = 	RIG_PARM_NONE,
   .has_set_parm = 	RIG_PARM_NONE,
@@ -244,7 +246,7 @@ const struct rig_caps ft857_caps = {
   .get_vfo = 		NULL,
   .set_ptt = 		ft857_set_ptt,
   .get_ptt = 		ft857_get_ptt,
-  .get_dcd = 		NULL,
+  .get_dcd = 		ft857_get_dcd,
   .set_rptr_shift = 	ft857_set_rptr_shift,
   .get_rptr_shift = 	NULL,
   .set_rptr_offs = 	ft857_set_rptr_offs,
@@ -297,18 +299,12 @@ int ft857_init(RIG *rig)
 {
   struct ft857_priv_data *p;
   
-  if (!rig)
-    return -RIG_EINVAL;
-  
+  rig_debug(RIG_DEBUG_VERBOSE,"ft857:ft857_init called \n");
+
   if ((p = calloc(1, sizeof(struct ft857_priv_data))) == NULL)
     return -RIG_ENOMEM;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft857:ft857_init called \n");
-
-  /* 
-   * Copy complete native cmd set to private cmd storage area 
-   */
-
+  /* Copy complete native cmd set to private cmd storage area */
   memcpy(p->pcs, ncmd, sizeof(ncmd));
 
   rig->state.priv = (void*) p;
@@ -318,14 +314,11 @@ int ft857_init(RIG *rig)
 
 int ft857_cleanup(RIG *rig)
 {
-  if (!rig)
-    return -RIG_EINVAL;
-  
+  rig_debug(RIG_DEBUG_VERBOSE,"ft857:ft857_cleanup called \n");
+
   if (rig->state.priv)
     free(rig->state.priv);
   rig->state.priv = NULL;
-
-  rig_debug(RIG_DEBUG_VERBOSE,"ft857:ft857_cleanup called \n");
   
   return RIG_OK;
 }
@@ -428,9 +421,6 @@ int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
   int n;
 
-  if (!rig || !freq)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -447,9 +437,6 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
   struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
   int n;
-
-  if (!rig || !mode || !width)
-    return -RIG_EINVAL;
 
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
@@ -497,9 +484,6 @@ int ft857_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
   struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
   int n;
 
-  if (!rig || !ptt)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -539,15 +523,17 @@ static int ft857_get_smeter_level(RIG *rig, value_t *val)
     if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
       return n;
 
-  val->i = ((p->rx_status & 0x0F) - 9) * 6;
+  n = (p->rx_status & 0x0F) - 9;
+
+  val->i = n * ((n > 0) ? 10 : 6);
 
   return RIG_OK;
 }
 
 int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-  if (!rig || !val)
-    return -RIG_EINVAL;
+  dcd_t dcd;
+  int n;
 
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
@@ -555,11 +541,42 @@ int ft857_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   switch (level) {
   case RIG_LEVEL_STRENGTH:
     return ft857_get_smeter_level(rig, val);
+
   case RIG_LEVEL_RFPOWER:
     return ft857_get_pometer_level(rig, val);
+
+  case RIG_LEVEL_SQLSTAT:
+    if ((n = ft857_get_dcd(rig, vfo, &dcd)) < 0)
+      return n;
+    val->i = dcd;
+    break;
+
   default:
     return -RIG_EINVAL;
   }
+
+  return RIG_OK;
+}
+
+int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->rx_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_RX_STATUS)) < 0)
+      return n;
+
+  /* TODO: consider bit 6 too ??? (CTCSS/DCS code match) */
+  if (p->rx_status & 0x80)
+    *dcd = RIG_DCD_OFF;
+  else
+    *dcd = RIG_DCD_ON;
+
+  return RIG_OK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -627,9 +644,6 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   unsigned char data[YAESU_CMD_LENGTH - 1];
 
-  if (!rig)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -644,9 +658,6 @@ int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   int index;	/* index of sequence to send */
-
-  if (!rig)
-    return -RIG_EINVAL;
 
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
@@ -690,10 +701,7 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-  int index;
-
-  if (!rig)
-    return -RIG_EINVAL;
+  int index, n;
 
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
@@ -711,14 +719,16 @@ int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
     return -RIG_EINVAL;
   }
 
-  return ft857_send_cmd(rig, index);
+  n = ft857_send_cmd(rig, index);
+
+  if (n < 0 && n != -RIG_ERJCTED)
+    return n;
+
+  return RIG_OK;
 }
 
 int ft857_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-  if (!rig)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -765,9 +775,6 @@ int ft857_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
   unsigned char data[YAESU_CMD_LENGTH - 1];
   int n;
 
-  if (!rig)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -790,9 +797,6 @@ int ft857_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
   unsigned char data[YAESU_CMD_LENGTH - 1];
   int n;
-
-  if (!rig)
-    return -RIG_EINVAL;
 
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
@@ -817,9 +821,6 @@ int ft857_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
   unsigned char data[YAESU_CMD_LENGTH - 1];
   int n;
 
-  if (!rig)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -843,9 +844,6 @@ int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
   unsigned char data[YAESU_CMD_LENGTH - 1];
   int n;
 
-  if (!rig)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -866,9 +864,6 @@ int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 int ft857_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 {
-  if (!rig)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -890,9 +885,6 @@ int ft857_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 {
   unsigned char data[YAESU_CMD_LENGTH - 1];
 
-  if (!rig)
-    return -RIG_EINVAL;
-
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
@@ -908,9 +900,6 @@ int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
   unsigned char data[YAESU_CMD_LENGTH - 1];
   int n;
-
-  if (!rig)
-    return -RIG_EINVAL;
 
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
@@ -933,6 +922,24 @@ int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
   return RIG_OK;
 }
+
+#if 0
+/*
+ * This doesn't seem to work on FT857. It might work with FT817 though.
+ */
+int ft857_set_powerstat(RIG *rig, powerstat_t status)
+{
+  switch (status) {
+  case RIG_POWER_OFF:
+    return ft857_send_cmd(rig, FT857_NATIVE_CAT_PWR_OFF);
+  case RIG_POWER_ON:
+    return ft857_send_cmd(rig, FT857_NATIVE_CAT_PWR_ON);
+  case RIG_POWER_STANDBY:
+  default:
+    return -RIG_EINVAL;
+  }
+}
+#endif
 
 /* ---------------------------------------------------------------------- */
 

@@ -12,7 +12,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.h,v 1.2 2003-08-27 07:39:05 fillods Exp $  
+ *    $Id: ft857.h,v 1.3 2003-09-21 11:08:06 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@
 /*
  * Read timeout.
  */
-#define FT857_TIMEOUT			100
+#define FT857_TIMEOUT			200
 
 /*
  * The time the TX, RX and FREQ/MODE status are cached (in millisec).
@@ -110,6 +110,9 @@ enum ft857_native_cmd_e {
   FT857_NATIVE_CAT_GET_RX_STATUS,
   FT857_NATIVE_CAT_GET_TX_STATUS,
   FT857_NATIVE_CAT_GET_FREQ_MODE_STATUS,
+  FT857_NATIVE_CAT_PWR_WAKE,
+  FT857_NATIVE_CAT_PWR_ON,
+  FT857_NATIVE_CAT_PWR_OFF,
   FT857_NATIVE_SIZE		/* end marker */
 };
 
@@ -159,6 +162,7 @@ int ft857_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 int ft857_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
 int ft857_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
 int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-
+int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+// int ft857_set_powerstat(RIG *rig, powerstat_t status);
 
 #endif /* _FT857_H */
