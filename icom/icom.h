@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.4 2000-10-08 21:39:58 f4cfe Exp $  
+ *    $Id: icom.h,v 1.5 2000-10-10 21:58:31 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -29,9 +29,15 @@
 #define _ICOM_H 1
 
 
+struct ts_sc_list {
+	unsigned long ts;	/* tuning step */
+	unsigned char sc;	/* sub command */
+};
+
 struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
+	const struct ts_sc_list *ts_sc_list;
 };
 
 int icom_init(RIG *rig);
@@ -41,6 +47,12 @@ int icom_get_freq(RIG *rig, freq_t *freq);
 int icom_set_mode(RIG *rig, rmode_t mode);
 int icom_get_mode(RIG *rig, rmode_t *mode);
 int icom_set_vfo(RIG *rig, vfo_t vfo);
+int icom_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift);
+int icom_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift);
+int icom_set_ts(RIG *rig, unsigned long ts);
+int icom_get_ts(RIG *rig, unsigned long *ts);
+int icom_set_ptt(RIG *rig, ptt_t ptt);
+int icom_get_ptt(RIG *rig, ptt_t *ptt);
 int icom_get_strength(RIG *rig, int *strength);
 int icom_decode_event(RIG *rig);
 

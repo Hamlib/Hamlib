@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.5 2000-10-08 21:38:45 f4cfe Exp $  
+ * $Id: icom.c,v 1.6 2000-10-10 21:58:31 f4cfe Exp $  
  *
  *
  *
@@ -43,6 +43,90 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
+
+const struct ts_sc_list r8500_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ 50, 0x01 },
+		{ 100, 0x02 },
+		{ KHz(1), 0x03 },
+		{ 12500, 0x04 },
+		{ KHz(5), 0x05 },
+		{ KHz(9), 0x06 },
+		{ KHz(10), 0x07 },
+		{ 12500, 0x08 },
+		{ KHz(20), 0x09 },
+		{ KHz(25), 0x10 },
+		{ KHz(100), 0x11 },
+		{ MHz(1), 0x12 },
+		{ 0, 0 },	/* programmable tuning step not supported */
+};
+
+const struct ts_sc_list ic737_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ KHz(1), 0x01 },
+		{ KHz(2), 0x02 },
+		{ KHz(3), 0x03 },
+		{ KHz(4), 0x04 },
+		{ KHz(5), 0x05 },
+		{ KHz(6), 0x06 },
+		{ KHz(7), 0x07 },
+		{ KHz(8), 0x08 },
+		{ KHz(9), 0x09 },
+		{ KHz(10), 0x10 },
+		{ 0, 0 },
+};
+
+const struct ts_sc_list r75_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ 100, 0x01 },
+		{ KHz(1), 0x02 },
+		{ KHz(5), 0x03 },
+		{ 6250, 0x04 },
+		{ KHz(9), 0x05 },
+		{ KHz(10), 0x06 },
+		{ 12500, 0x07 },
+		{ KHz(20), 0x08 },
+		{ KHz(25), 0x09 },
+		{ KHz(100), 0x10 },
+		{ MHz(1), 0x11 },
+		{ 0, 0 },
+};
+
+const struct ts_sc_list r7100_ts_sc_list[] = {
+		{ 100, 0x00 },
+		{ KHz(1), 0x01 },
+		{ KHz(5), 0x02 },
+		{ KHz(10), 0x03 },
+		{ 12500, 0x04 },
+		{ KHz(20), 0x05 },
+		{ KHz(25), 0x06 },
+		{ KHz(100), 0x07 },
+		{ 0, 0 },
+};
+
+const struct ts_sc_list ic756_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ KHz(1), 0x01 },
+		{ KHz(5), 0x02 },
+		{ KHz(9), 0x03 },
+		{ KHz(10), 0x04 },
+		{ 0, 0 },
+};
+
+const struct ts_sc_list ic706_ts_sc_list[] = {
+		{ 10, 0x00 },
+		{ 100, 0x01 },
+		{ KHz(1), 0x02 },
+		{ KHz(5), 0x03 },
+		{ KHz(9), 0x04 },
+		{ KHz(10), 0x05 },
+		{ 12500, 0x06 },
+		{ KHz(20), 0x07 },
+		{ KHz(25), 0x08 },
+		{ KHz(100), 0x09 },
+		{ 0, 0 },
+};
+
 
 
 struct icom_addr {
@@ -89,6 +173,7 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_ICR72, 0x32 },
 		{ RIG_MODEL_ICR8500, 0x4a },
 		{ RIG_MODEL_ICR9000, 0x2a },
+		{ RIG_MODEL_ICR75, UNKNOWN_ADDR },
 		{ RIG_MODEL_IC707, UNKNOWN_ADDR },
 		{ RIG_MODEL_IC718, UNKNOWN_ADDR },
 		{ RIG_MODEL_IC728, UNKNOWN_ADDR },
@@ -144,6 +229,29 @@ int icom_init(RIG *rig)
 		else
 			priv->civ_731_mode = 0;
 
+		switch (rig->caps->rig_model) {
+		case RIG_MODEL_IC737:
+			priv->ts_sc_list = ic737_ts_sc_list;
+			break;
+		case RIG_MODEL_ICR7100:
+		case RIG_MODEL_ICR72:
+			priv->ts_sc_list = r7100_ts_sc_list;
+			break;
+		case RIG_MODEL_IC756:
+			priv->ts_sc_list = ic756_ts_sc_list;
+			break;
+		case RIG_MODEL_ICR75:
+			priv->ts_sc_list = r75_ts_sc_list;
+			break;
+		case RIG_MODEL_ICR8500:
+			priv->ts_sc_list = r8500_ts_sc_list;
+			break;
+		case RIG_MODEL_IC706MKII:
+		case RIG_MODEL_IC706MKIIG:
+		case RIG_MODEL_ICR9000:
+		default:
+			priv->ts_sc_list = ic706_ts_sc_list;
+		}
 
 		rig->state.priv = (void*)priv;
 
@@ -364,6 +472,227 @@ int icom_get_strength(RIG *rig, int *strength)
 
 		return RIG_OK;
 }
+
+/*
+ * icom_set_rpt_shift
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char ackbuf[16];
+		int ack_len;
+		int rptr_sc;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		switch (rptr_shift) {
+		case RIG_RPT_SHIFT_NONE:
+			rptr_sc = S_DUP_OFF;	/* Simplex mode */
+			break;
+		case RIG_RPT_SHIFT_MINUS:
+			rptr_sc = S_DUP_M;		/* Duples - mode */
+			break;
+		case RIG_RPT_SHIFT_PLUS:
+			rptr_sc = S_DUP_P;		/* Duplex + mode */
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported shift %d", rptr_shift);
+			return -RIG_EINVAL;
+		}
+
+		icom_transaction (rig, C_CTL_SPLT, rptr_sc, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_rptr_shift: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_set_ptt
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_ptt(RIG *rig, ptt_t ptt)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char ackbuf[16], ptt_sc;
+		int ack_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		ptt_sc = ptt == RIG_PTT_ON ? S_PTT_ON:S_PTT_OFF;
+
+		icom_transaction (rig, C_CTL_PTT, ptt_sc, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ptt: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_get_ptt
+ * Assumes rig!=NULL, rig->state.priv!=NULL, ptt!=NULL
+ */
+int icom_get_ptt(RIG *rig, ptt_t *ptt)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char pttbuf[16];
+		int ptt_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		icom_transaction (rig, C_CTL_PTT, -1, NULL, 0, pttbuf, &ptt_len);
+
+		/*
+		 * freqbuf should contain Cn,Data area
+		 */
+		ptt_len--;
+		if (ptt_len != 1) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_ptt: wrong frame len=%d\n",
+								ptt_len);
+				return -RIG_ERJCTED;
+		}
+
+		*ptt = pttbuf[1] == S_PTT_ON ? RIG_PTT_ON : RIG_PTT_OFF;
+
+		return RIG_OK;
+}
+
+
+/*
+ * icom_get_rpt_shift
+ * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_shift!=NULL
+ */
+int icom_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char rptrbuf[16];
+		int rptr_len;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0, rptrbuf, &rptr_len);
+
+		/*
+		 * rptrbuf should contain Cn,Sc
+		 */
+		rptr_len--;
+		if (rptr_len != 1) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_rptr_shift: wrong frame len=%d\n",
+								rptr_len);
+				return -RIG_ERJCTED;
+		}
+
+		switch (rptrbuf[1]) {
+		case S_DUP_OFF:
+			*rptr_shift = RIG_RPT_SHIFT_NONE;	/* Simplex mode */
+			break;
+		case S_DUP_M:
+			*rptr_shift = RIG_RPT_SHIFT_MINUS;		/* Duples - mode */
+			break;
+		case S_DUP_P:
+			*rptr_shift = RIG_RPT_SHIFT_PLUS;		/* Duplex + mode */
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported shift %d", rptrbuf[1]);
+			return -RIG_EPROTO;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_set_ts
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_ts(RIG *rig, unsigned long ts)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char ackbuf[16];
+		int i, ack_len;
+		int ts_sc;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		for (i=0; i<TSLSTSIZ; i++) {
+				if (priv->ts_sc_list[i].ts == ts) {
+						ts_sc = priv->ts_sc_list[i].sc;
+						break;
+				}
+		}
+		if (i >= TSLSTSIZ) {
+				return -RIG_EINVAL;	/* not found, unsupported */
+		}
+
+		icom_transaction (rig, C_SET_TS, ts_sc, NULL, 0, ackbuf, &ack_len);
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ts: ack NG (%#.2x),
+								len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_get_ts
+ * Assumes rig!=NULL, rig->state.priv!=NULL, ts!=NULL
+ */
+int icom_get_ts(RIG *rig, unsigned long *ts)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rig_s;
+		unsigned char tsbuf[16];
+		int ts_len,i;
+
+		rig_s = &rig->state;
+		priv = (struct icom_priv_data*)rig_s->priv;
+
+		icom_transaction (rig, C_SET_TS, -1, NULL, 0, tsbuf, &ts_len);
+
+		/*
+		 * rptrbuf should contain Cn,Sc
+		 */
+		ts_len--;
+		if (ts_len != 1) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_ts: wrong frame len=%d\n",
+								ts_len);
+				return -RIG_ERJCTED;
+		}
+
+		for (i=0; i<TSLSTSIZ; i++) {
+				if (priv->ts_sc_list[i].sc == tsbuf[1]) {
+						*ts = priv->ts_sc_list[i].ts;
+						break;
+				}
+		}
+		if (i >= TSLSTSIZ) {
+				return -RIG_EPROTO;	/* not found, unsupported */
+		}
+
+		return RIG_OK;
+}
+
+
 
 /*
  * icom_decode is called by sa_sigio, when some asynchronous
