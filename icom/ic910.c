@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.4 2002-09-07 15:13:52 fillods Exp $
+ *      $Id: ic910.c,v 1.5 2002-09-11 21:32:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,6 +28,13 @@
 #include <hamlib/rig.h>
 #include "icom.h"
 
+/*
+ * It seems some IC910 out there have weird firmware. Uncomment the following
+ * if your modes are wrong, and please report to hamlib-developer maillist
+ * with firmware number. That'd be interesting to have a word from Icom
+ * on this subject, and if firmware updates are possible.
+ */
+#ifdef HAVE_WEIRD_IC910_MODES
 static int ic910_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     /* FIX: The IC-910 has "Set FM" = 4, which is RTTY in for other radios */
@@ -46,7 +53,53 @@ static int ic910_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     }
     return retval;
 }
+#endif /* HAVE_WEIRD_IC910_MODES */
 
+
+static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
+ {
+    int retval;
+    freq_t otherfreq;
+    freq_t freqdiff;
+    rmode_t mmode, smode;
+    pbwidth_t mwidth, swidth;
+
+    /* get the freq of the other band */
+    if (vfo==RIG_VFO_MAIN)
+        icom_set_vfo(rig, RIG_VFO_SUB);
+    else
+        icom_set_vfo(rig, RIG_VFO_MAIN);
+
+    retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
+    freqdiff=freq-otherfreq;
+    if(freqdiff < 0) freqdiff=freqdiff*-1;
+    if (retval!=RIG_OK) return retval;
+
+    if (freqdiff < MHz(100) ) {
+	/* before we exchange the bands, we need to know the modes on the bands! */
+	icom_set_vfo(rig, RIG_VFO_MAIN);
+	retval=icom_get_mode(rig, RIG_VFO_CURR, &mmode, &mwidth);
+	if(retval!=RIG_OK) return retval;
+	icom_set_vfo(rig, RIG_VFO_SUB);
+	retval=icom_get_mode(rig, RIG_VFO_CURR, &smode, &swidth);
+	if(retval!=RIG_OK) return retval;	
+        /* exchange the bands */
+	retval=icom_vfo_op(rig, RIG_VFO_CURR, RIG_OP_XCHG);
+	if (retval!=RIG_OK) return retval;
+	/* set the modes back */
+	retval=icom_set_mode(rig, RIG_VFO_CURR, mmode, mwidth);
+	if (retval!=RIG_OK) return retval;
+	icom_set_vfo(rig, RIG_VFO_MAIN);
+	retval=icom_set_mode(rig, RIG_VFO_CURR, smode, swidth);
+	if (retval!=RIG_OK) return retval;
+     }
+    icom_set_vfo(rig, vfo);
+    return icom_set_freq(rig, RIG_VFO_CURR, freq);
+ }
+ 
+ 
+#define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
+ 
 #define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
 #define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_C)
@@ -194,9 +247,16 @@ const struct rig_caps ic910_caps = {
 .get_conf =  icom_get_conf,
 
 .get_freq =  icom_get_freq,
-.set_freq =  icom_set_freq,
+.set_freq =  ic910_set_freq,
+
+#ifdef HAVE_WEIRD_IC910_MODES
 .get_mode =  ic910_get_mode,
 .set_mode =  ic910_set_mode,
+#else
+.get_mode =  icom_get_mode,
+.set_mode =  icom_set_mode,
+#endif
+
 .get_vfo =  NULL,
 .set_vfo =  icom_set_vfo,
 .get_ts =  icom_get_ts,
