@@ -419,7 +419,6 @@ rpcrig/Makefile
 rpcrot/Makefile
 src/Makefile
 c++/Makefile
-kylix/Makefile
 bindings/Makefile
 tests/Makefile
 doc/Makefile
