@@ -2,7 +2,7 @@
  *  Hamlib Interface - sprintf toolbox
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: sprintflst.c,v 1.3 2003-12-08 08:42:11 fillods Exp $
+ *	$Id: sprintflst.c,v 1.4 2004-01-15 22:43:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,7 +37,8 @@
 #include "sprintflst.h"
 #include "misc.h"
 
-#define DUMMY_ALL 0x7ffffffffffffffLL
+/* #define DUMMY_ALL 0x7ffffffffffffffLL */
+#define DUMMY_ALL ((setting_t)-1)
 
 int sprintf_vfo(char *str, vfo_t vfo)
 {

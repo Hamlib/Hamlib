@@ -2,7 +2,7 @@
  * memload.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memload.c,v 1.1 2003-12-04 23:15:02 fillods Exp $  
+ *	$Id: memload.c,v 1.2 2004-01-15 22:43:59 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +45,6 @@ static int set_chan(RIG *rig, channel_t *chan ,xmlNodePtr node);
 int xml_load (RIG *my_rig, const char *infilename)
 { 
 #ifdef HAVE_XML2
-	int c,m=0;
 	xmlDocPtr Doc;
 	xmlNodePtr node;
 
@@ -222,7 +221,7 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	if (rig->state.chan_list[i].mem_caps.funcs) {
 		prop=xmlGetProp(node, "funcs");
 		if(prop!=NULL) 
-			sscanf(prop,"%llx",&chan->funcs);
+			sscanf(prop,"%lx",&chan->funcs);
 	}
 	if (rig->state.chan_list[i].mem_caps.ctcss_tone) {
 		prop=xmlGetProp(node, "ctcss_tone");

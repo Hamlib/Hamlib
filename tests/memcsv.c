@@ -4,7 +4,7 @@
  * This program exercises the backup and restore of a radio
  * using Hamlib. CSV primitives
  *
- * $Id: memcsv.c,v 1.2 2003-12-08 08:46:11 fillods Exp $  
+ * $Id: memcsv.c,v 1.3 2004-01-15 22:43:59 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -325,7 +325,7 @@ void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f
 		fprintf(f,"%d;",(int)chan->xit);
 	}
 	if (mem_caps->funcs) {
-		fprintf(f,"%llx;",chan->funcs);
+		fprintf(f,"%llx;",(long long)chan->funcs);
 	}
 	if (mem_caps->ctcss_tone) {
 		fprintf(f,"%d;",chan->ctcss_tone);

@@ -2,7 +2,7 @@
  * memsave.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memsave.c,v 1.2 2003-12-05 22:08:17 f4dwv Exp $  
+ *	$Id: memsave.c,v 1.3 2004-01-15 22:43:59 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -138,7 +138,7 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		xmlNewProp(node, "ant", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.freq && chan.freq != RIG_FREQ_NONE) {
-		sprintf(attrbuf,"%lld",chan.freq);
+		sprintf(attrbuf,"%lld",(long long)chan.freq);
 		xmlNewProp(node, "freq", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.mode && chan.mode != RIG_MODE_NONE) {
@@ -149,7 +149,7 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		xmlNewProp(node, "width", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_freq && chan.tx_freq != RIG_FREQ_NONE) {
-		sprintf(attrbuf,"%lld",chan.tx_freq);
+		sprintf(attrbuf,"%lld",(long long)chan.tx_freq);
 		xmlNewProp(node, "tx_freq", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_mode && chan.tx_mode != RIG_MODE_NONE) {
@@ -203,7 +203,7 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		xmlNewProp(node, "xit", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.funcs) {
-		sprintf(attrbuf,"%llx",chan.funcs);
+		sprintf(attrbuf,"%llx",(long long)chan.funcs);
 		xmlNewProp(node, "funcs", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.ctcss_tone && chan.ctcss_tone !=0) {

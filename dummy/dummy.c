@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.37 2003-12-08 08:37:05 fillods Exp $
+ *	$Id: dummy.c,v 1.38 2004-01-15 22:43:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -984,9 +984,16 @@ static int dummy_send_morse(RIG *rig, vfo_t vfo, const char *msg)
  * Dummy rig capabilities.
  */
 
+#if 0
 #define DUMMY_FUNC  0x7fffffffffffffLL	/* has it all */
 #define DUMMY_LEVEL 0x7ffffffffffffffLL
 #define DUMMY_PARM  0x7ffffffffffffffLL
+#else
+#define DUMMY_FUNC  ((setting_t)-1)	/* has it all */
+#define DUMMY_LEVEL ((setting_t)-1)
+#define DUMMY_PARM  ((setting_t)-1)
+#endif
+
 #define DUMMY_VFO_OP  0x7ffffffL
 #define DUMMY_SCAN	0x7ffffffL
 

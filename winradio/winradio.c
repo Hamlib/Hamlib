@@ -3,7 +3,7 @@
  *  Copyright (C) 2001 pab@users.sourceforge.net
  *  Derived from hamlib code (C) 2000-2003 Stephane Fillod.
  *
- *	$Id: winradio.c,v 1.19 2003-09-07 14:07:48 fillods Exp $
+ *	$Id: winradio.c,v 1.20 2004-01-15 22:43:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -79,11 +79,11 @@ int wr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   case RIG_MODE_FM:
     switch ( width ) {
     case RIG_PASSBAND_NORMAL:
-    case kHz(17):
-    case kHz(15): m = RMD_FMN; break;
+    case (int)kHz(17):
+    case (int)kHz(15): m = RMD_FMN; break;
 
-    case kHz(6): m = RMD_FM6; break;
-    case kHz(50): m = RMD_FMM; break;
+    case (int)kHz(6): m = RMD_FM6; break;
+    case (int)kHz(50): m = RMD_FMM; break;
     default: return -RIG_EINVAL;
     }
   default: return -RIG_EINVAL;
