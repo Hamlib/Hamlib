@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.11 2000-09-16 23:16:26 javabear Exp $  
+ * $Id: ft747.c,v 1.12 2000-09-23 00:35:45 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -45,7 +45,8 @@
 #include "ft747.h"
 
 /* prototypes */
-int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
+
+int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode);
 
 
 /* 
@@ -53,6 +54,10 @@ int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
  */
 
 #define FT747_ALL_RX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NAM| RIG_MODE_NCW)
+#define FT747_SSB_CW_RX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NCW)
+#define FT747_AM_RX_MODES (RIG_MODE_AM| RIG_MODE_NAM)
+#define FT747_FM_RX_MODES (RIG_MODE_FM)
+
 
 /* 
  * TX caps
@@ -61,6 +66,8 @@ int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
 #define FT747_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB )	/* 100 W class */
 #define FT747_AM_TX_MODES (RIG_MODE_AM ) /* set 25W max */
 
+#define FT747_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
+
 /*
  * ft747 rigs capabilities.
  * Also this struct is READONLY!
@@ -68,47 +75,58 @@ int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
 
 const struct rig_caps ft747_caps = {
   RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", RIG_STATUS_ALPHA,
-  RIG_TYPE_MOBILE, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, 50, 2000, 0,
+  RIG_TYPE_MOBILE, RIG_PTT_NONE, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
+  RIG_HANDSHAKE_NONE, 50, 2000, 0,FT747_FUNC_ALL,20,
   { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
-
+  
   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
     {1500000,1999900,FT747_AM_TX_MODES,2000,25000},	/* 25W class */
-
+    
     {3500000,3999900,FT747_OTHER_TX_MODES,5000,100000},
     {3500000,3999900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {7000000,7499900,FT747_OTHER_TX_MODES,5000,100000},
     {7000000,7499900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {10000000,10499900,FT747_OTHER_TX_MODES,5000,100000},
     {10000000,10499900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {14000000,14499900,FT747_OTHER_TX_MODES,5000,100000},
     {14000000,14499900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {18000000,18499900,FT747_OTHER_TX_MODES,5000,100000},
     {18000000,18499900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {21000000,21499900,FT747_OTHER_TX_MODES,5000,100000},
     {21000000,21499900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {24500000,24999900,FT747_OTHER_TX_MODES,5000,100000},
     {24500000,24999900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {28000000,29999900,FT747_OTHER_TX_MODES,5000,100000},
     {28000000,29999900,FT747_AM_TX_MODES,2000,25000},
-
+    
     {0,0,0,0,0} },
   
+  { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
+    {FT747_SSB_CW_RX_MODES,2500}, /* fast on */
+    
+    {FT747_AM_RX_MODES,KHz(1)}, /* fast off */
+    {FT747_AM_RX_MODES,KHz(10)}, /* fast on */
+    
+    {FT747_FM_RX_MODES,KHz(5)}, /* fast off */
+    {FT747_FM_RX_MODES,12500}, /* fast on */
+    
+    {0,0}
+  },  
   ft747_init, 
   ft747_cleanup, 
   NULL,				/* port opened */
   NULL,				/* port closed */
   NULL,				/* probe not supported yet */
 
-  ft747_set_freq_main_vfo_hz	/* example implementation */
-
+  ft747_set_freq_main_vfo_hz	,/* set freq */
+  NULL,				/* get freq, add later */
 };
 
 /*  
@@ -166,25 +184,21 @@ int ft747_cleanup(RIG *rig) {
   return 0;
 }
 
-		/* 
-		 * should check return code and that write wrote cmd_len chars! 
-		 */
-/*  		write_block2(rig_s->fd, buf, frm_len, rig_s->write_delay); */
-
 
 /*
  * Example of wrapping backend function inside frontend API
  * 	 
  */
 
-int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode) {
+int ft747_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rmode_t mode) {
   struct ft747_priv_data *p;
   struct rig_state *rig_s;
   unsigned char buf[16];
   int frm_len = 5;		/* fix later */
 
-  /*  examlpe opcode */
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x04 }; /* dial lock = on */
+  /*  example opcode */
+  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x01, 0x04 }; /* dial lock = on, FIX once freq is implemented */
+								  /* in backend */
 
   
   if (!rig)
