@@ -106,7 +106,7 @@ cf_with_perl = @cf_with_perl@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 TSSRCLIST = ts850.c ts870s.c ts570.c ts450s.c ts950.c ts50s.c \
-				ts790.c thd7.c thf7.c
+				ts790.c thd7.c thf7.c ts2000.c
 
 
 lib_LTLIBRARIES = libhamlib-kenwood.la
@@ -114,7 +114,7 @@ libhamlib_kenwood_la_SOURCES = $(TSSRCLIST) kenwood.c th.c ts2k.c
 libhamlib_kenwood_la_LDFLAGS = -no-undefined -module -version-info 0:0:0
 libhamlib_kenwood_la_LIBADD = ../src/libhamlib.la
 
-noinst_HEADERS = kenwood.h th.h ts2k.h ts2000.h
+noinst_HEADERS = kenwood.h th.h ts2k.h
 subdir = kenwood
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/config.h
@@ -123,7 +123,7 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_kenwood_la_DEPENDENCIES = ../src/libhamlib.la
 am__objects_1 = ts850.lo ts870s.lo ts570.lo ts450s.lo ts950.lo ts50s.lo \
-	ts790.lo thd7.lo thf7.lo
+	ts790.lo thd7.lo thf7.lo ts2000.lo
 am_libhamlib_kenwood_la_OBJECTS = $(am__objects_1) kenwood.lo th.lo \
 	ts2k.lo
 libhamlib_kenwood_la_OBJECTS = $(am_libhamlib_kenwood_la_OBJECTS)
@@ -137,10 +137,11 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/kenwood.Plo ./$(DEPDIR)/th.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/thd7.Plo ./$(DEPDIR)/thf7.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/ts2k.Plo ./$(DEPDIR)/ts450s.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/ts50s.Plo ./$(DEPDIR)/ts570.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/ts790.Plo ./$(DEPDIR)/ts850.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/ts870s.Plo ./$(DEPDIR)/ts950.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/ts2000.Plo ./$(DEPDIR)/ts2k.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/ts450s.Plo ./$(DEPDIR)/ts50s.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/ts570.Plo ./$(DEPDIR)/ts790.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/ts850.Plo ./$(DEPDIR)/ts870s.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/ts950.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -199,6 +200,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/th.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thd7.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thf7.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts2000.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts2k.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts450s.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ts50s.Plo@am__quote@
