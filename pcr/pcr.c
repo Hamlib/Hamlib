@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod and Darren Hatcher
+ *  Copyright (c) 2001-2005 by Stephane Fillod and Darren Hatcher
  *
- *	$Id: pcr.c,v 1.20 2003-10-20 22:15:02 fillods Exp $
+ *	$Id: pcr.c,v 1.21 2005-01-25 00:20:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -269,7 +269,7 @@ int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 		priv = (struct pcr_priv_data *)rig->state.priv;
 
-		freq_len = sprintf(freqbuf,"K0%010Ld0%c0%c00" EOM, (long long)freq, 
+		freq_len = sprintf(freqbuf,"K0%010"PRIll"0%c0%c00" EOM, (long long)freq, 
 						priv->last_mode, priv->last_filter);
 
 		ack_len = 6;
@@ -328,8 +328,8 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case RIG_MODE_WFM:	pcrmode = MD_WFM; pcrfilter = FLT_230kHz; break;
 			case RIG_MODE_FM:	pcrmode = MD_FM; pcrfilter = FLT_15kHz; break;
 			default:
-				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: unsupported mode %d\n",
-								mode);
+				rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
+						__FUNCTION__, mode);
 				return -RIG_EINVAL;
 		}
 
@@ -345,12 +345,12 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case s_kHz(50):		pcrfilter = FLT_50kHz; break;
 			case s_kHz(230):	pcrfilter = FLT_230kHz; break;
 			default:
-				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: unsupported "
-							"width %d\n", width);
+				rig_debug(RIG_DEBUG_ERR,"%s: unsupported "
+						"width %d\n", __FUNCTION__, width);
 				return -RIG_EINVAL;
 		}
 
-		mdbuf_len = sprintf(mdbuf,"K0%010Ld0%c0%c00" EOM, (long long)priv->last_freq, 
+		mdbuf_len = sprintf(mdbuf,"K0%010"PRIll"0%c0%c00" EOM, (long long)priv->last_freq, 
 						pcrmode, pcrfilter);
 
 		ack_len = 6;
@@ -359,8 +359,8 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 				return retval;
 
 		if (ack_len != 6 && ack_len != 4) {
-				rig_debug(RIG_DEBUG_ERR,"pcr_set_mode: ack NG, len=%d\n",
-								ack_len);
+				rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",
+						__FUNCTION__, ack_len);
 				return -RIG_ERJCTED;
 		}
 

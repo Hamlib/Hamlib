@@ -11,7 +11,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.3 2004-09-26 08:35:05 fillods Exp $  
+ *    $Id: ft897.c,v 1.4 2005-01-25 00:21:58 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -631,7 +631,7 @@ int ft897_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   if (vfo != RIG_VFO_CURR)
     return -RIG_ENTARGET;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft897: requested freq = %lli Hz\n", freq);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft897: requested freq = %"PRIfreq" Hz\n", freq);
 
   /* fill in the frequency */
   to_bcd_be(data, (freq + 5) / 10, 8);

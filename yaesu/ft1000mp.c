@@ -1,10 +1,10 @@
 /*
- * ft1000.c - (C) Stephane Fillod 2002-2004 (fillods@users.sourceforge.net)
+ * ft1000.c - (C) Stephane Fillod 2002-2005 (fillods@users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.4 2004-05-17 21:09:41 fillods Exp $
+ *	$Id: ft1000mp.c,v 1.5 2005-01-25 00:21:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -425,7 +425,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %lli Hz \n", freq);
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq = %"PRIfreq" Hz \n", freq);
 
   if (vfo == RIG_VFO_CURR)
 	  vfo = p->current_vfo;
@@ -452,7 +452,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   to_bcd(p->p_cmd,freq/10,8);   /* store bcd format in in p_cmd */
                                 /* TODO -- fix 10Hz resolution -- FS */
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq after conversion = %lli Hz\n",
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: requested freq after conversion = %"PRIll" Hz\n",
             from_bcd(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd;               /* get native sequence */
@@ -503,7 +503,7 @@ int ft1000mp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   /* big endian integer, kinda */
   f = ((((((p[0]<<8) + p[1])<<8) + p[2])<<8) + p[3])*10/16;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %lli Hz for VFO [%x]\n", f, vfo);
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %"PRIfreq" Hz for VFO [%x]\n", f, vfo);
 
   *freq = f;                    /* return diplayed frequency */
 
@@ -820,7 +820,7 @@ int ft1000mp_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
 
   f = f*10/16;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %lli Hz for VFO [%x]\n", f, vfo);
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %li Hz for VFO [%x]\n", f, vfo);
 
   *rit = f;		/* return diplayed frequency */
 
@@ -905,7 +905,7 @@ int ft1000mp_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
 
   f = f*10/16;
 
-  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %lli Hz for VFO [%x]\n", f, vfo);
+  rig_debug(RIG_DEBUG_TRACE,"ft1000mp: freq = %li Hz for VFO [%x]\n", f, vfo);
 
   *xit = f;		/* return diplayed frequency */
 

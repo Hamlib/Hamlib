@@ -4,6 +4,10 @@
  * This is mainly to test kHz, MHz, GHz macros and long long support.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <hamlib/rig.h>
@@ -32,27 +36,27 @@ int main (int argc, char *argv[])
 
 	/* freq on 31bits test */
 	f = GHz(2);
-	printf("GHz(2) = %lld\n", (long long)f);
+	printf("GHz(2) = %"PRIll"\n", (long long)f);
 
 	/* freq on 32bits test */
 	f = GHz(4);
-	printf("GHz(4) = %lld\n", (long long)f);
+	printf("GHz(4) = %"PRIll"\n", (long long)f);
 
 	/* freq on >32bits test */
 	f = GHz(5);
-	printf("GHz(5) = %lld\n", (long long)f);
+	printf("GHz(5) = %"PRIll"\n", (long long)f);
 
 	/* floating point to freq conversion test */
 	f = GHz(1.3);
-	printf("GHz(1.3) = %lld\n", (long long)f);
+	printf("GHz(1.3) = %"PRIll"\n", (long long)f);
 
 	/* floating point to freq conversion precision test */
 	f = GHz(1.234567890);
-	printf("GHz(1.234567890) = %lld\n", (long long)f);
+	printf("GHz(1.234567890) = %"PRIll"\n", (long long)f);
 
 	/* floating point to freq conversion precision test, with freq >32bits */
 	f = GHz(123.456789012);
-	printf("GHz(123.456789012) = %lld\n", (long long)f);
+	printf("GHz(123.456789012) = %"PRIll"\n", (long long)f);
 
 	return 0;
 }

@@ -1,8 +1,8 @@
 /*
- * memsave.c - Copyright (C) 2003-2004 Thierry Leconte
+ * memsave.c - Copyright (C) 2003-2005 Thierry Leconte
  *
  *
- *	$Id: memsave.c,v 1.7 2004-12-27 12:53:02 f4dwv Exp $  
+ *	$Id: memsave.c,v 1.8 2005-01-25 00:21:44 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -143,7 +143,7 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		xmlNewProp(node, "ant", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.freq && chan.freq != RIG_FREQ_NONE) {
-		sprintf(attrbuf,"%lld",(long long)chan.freq);
+		sprintf(attrbuf,"%"PRIll,(long long)chan.freq);
 		xmlNewProp(node, "freq", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.mode && chan.mode != RIG_MODE_NONE) {
@@ -154,7 +154,7 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 		xmlNewProp(node, "width", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_freq && chan.tx_freq != RIG_FREQ_NONE) {
-		sprintf(attrbuf,"%lld",(long long)chan.tx_freq);
+		sprintf(attrbuf,"%"PRIll,(long long)chan.tx_freq);
 		xmlNewProp(node, "tx_freq", attrbuf);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_mode && chan.tx_mode != RIG_MODE_NONE) {

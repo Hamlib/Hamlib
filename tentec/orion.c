@@ -1,8 +1,8 @@
 /*
  *  Hamlib TenTenc backend - TT-565 description
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: orion.c,v 1.2 2004-06-14 21:15:20 fillods Exp $
+ *	$Id: orion.c,v 1.3 2005-01-25 00:21:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -354,7 +354,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int cmd_len, retval;
 	unsigned char cmdbuf[16];
 
-	cmd_len = sprintf (cmdbuf, "*%cF%lld" EOM, 
+	cmd_len = sprintf (cmdbuf, "*%cF%"PRIll EOM, 
 			which_vfo(rig, vfo),
 			(long long)freq);
 

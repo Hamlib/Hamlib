@@ -3,7 +3,7 @@
  *
  * ft920.c - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *           (C) Nate Bargmann 2002-2005 (n0nb at arrl.net)
- *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
+ *           (C) Stephane Fillod 2002-2005 (fillods at users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.17 2005-01-18 23:06:48 n0nb Exp $
+ * $Id: ft920.c,v 1.18 2005-01-25 00:21:58 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -396,7 +396,7 @@ static int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 	priv = (struct ft920_priv_data *)rig->state.priv;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-	rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %lli Hz\n", __func__, freq);
+	rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
 	if (vfo == RIG_VFO_CURR) {
 		vfo = priv->current_vfo;	/* from previous vfo cmd */
@@ -482,7 +482,7 @@ static int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	/* big endian integer */
 	f = (((((p[0]<<8) + p[1])<<8) + p[2])<<8) + p[3];
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: freq = %lli Hz for vfo 0x%02x\n", __func__, f, vfo);
+	rig_debug(RIG_DEBUG_TRACE, "%s: freq = %"PRIfreq" Hz for vfo 0x%02x\n", __func__, f, vfo);
 
 	*freq = f;				/* return displayed frequency */
 
@@ -1471,7 +1471,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
 		return -RIG_EINVAL;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: passed ci = %i\n", __func__, ci);
-	rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %lli Hz\n", __func__, freq);
+	rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
 
 	priv = (struct ft920_priv_data *)rig->state.priv;
 
@@ -1493,7 +1493,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
 	to_bcd(priv->p_cmd, freq/10, FT920_BCD_DIAL);
 
 	rig_debug(RIG_DEBUG_TRACE,
-		  "%s: requested freq after conversion = %lli Hz\n",
+		  "%s: requested freq after conversion = %"PRIll" Hz\n",
 		  __func__, from_bcd(priv->p_cmd, FT920_BCD_DIAL)* 10);
 
 	err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);

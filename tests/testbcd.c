@@ -4,6 +4,10 @@
  * This is mainly to test freq2bcd and bcd2freq functions.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <hamlib/rig.h>
@@ -36,7 +40,7 @@ int main (int argc, char *argv[])
 	printf("BCD: %2.2x",b[0]);
 	for (i = 1; i < (digits+1)/2; i++)
 		printf(",%2.2x",b[i]);
-	printf("\nResult after recoding: %llu\n", from_bcd(b, digits));
+	printf("\nResult after recoding: %"SCNll"\n", from_bcd(b, digits));
 
 	printf("\nBig Endian mode\n");
 	printf("Frequency: %"PRIfreq"\n",f);
@@ -44,7 +48,7 @@ int main (int argc, char *argv[])
 	printf("BCD: %2.2x",b[0]);
 	for (i = 1; i < (digits+1)/2; i++)
 		printf(",%2.2x",b[i]);
-	printf("\nResult after recoding: %llu\n", from_bcd_be(b, digits));
+	printf("\nResult after recoding: %"SCNll"\n", from_bcd_be(b, digits));
 
 	return 0;
 }

@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.53 2005-01-24 23:04:26 fillods Exp $  
+ * $Id: rigctl.c,v 1.54 2005-01-25 00:21:46 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -40,12 +40,6 @@
 #include <hamlib/rig.h>
 #include "misc.h"
 #include "sprintflst.h"
-
-#ifdef _WIN32
-#define LLFMT "L"
-#else
-#define LLFMT "ll"
-#endif
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100	/* max number of different options */
@@ -815,7 +809,7 @@ declare_proto_rig(get_freq)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1); /* i.e. "Frequency" */
-		printf("%lld\n", (long long)freq);
+		printf("%"PRIll"\n", (long long)freq);
 		return status;
 }
 
@@ -1053,7 +1047,7 @@ declare_proto_rig(get_split_freq)
 				return status;
 		if (interactive)
 			printf("%s: ", cmd->arg1);
-		printf("%lld\n", (long long)txfreq);
+		printf("%"PRIll"\n", (long long)txfreq);
 		return status;
 }
 
@@ -1453,7 +1447,7 @@ declare_proto_rig(get_channel)
 
 static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
-	printf("Event: freq changed to %lliHz on %s\n", (long long)freq, rig_strvfo(vfo));
+	printf("Event: freq changed to %"PRIll"Hz on %s\n", (long long)freq, rig_strvfo(vfo));
 	return 0;
 }
 

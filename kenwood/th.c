@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: th.c,v 1.26 2005-01-24 23:04:03 fillods Exp $
+ *	$Id: th.c,v 1.27 2005-01-25 00:20:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,6 +33,7 @@
 #include "kenwood.h"
 #include "th.h"
 #include "serial.h"
+#include "misc.h"
 
 const struct kenwood_priv_caps  th_priv_caps  = {
     .cmdtrm =  EOM_TH,
@@ -94,7 +95,7 @@ th_decode_event (RIG *rig)
         vfo = (vfo == 0) ? RIG_VFO_A : RIG_VFO_B;
         mode = (mode == 0) ? RIG_MODE_FM : RIG_MODE_AM;
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (vfo %d, freq %lld Hz, mode %d)\n", __FUNCTION__, vfo, freq, mode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (vfo %d, freq %"PRIfreq" Hz, mode %d)\n", __FUNCTION__, vfo, freq, mode);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
@@ -193,7 +194,7 @@ th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 
     step = 1;
     f=(long long) freq;
-    sprintf(freqbuf, "FQ %011lld,%1d"EOM, f, step);
+    sprintf(freqbuf, "FQ %011"PRIll",%1d"EOM, f, step);
     retval = kenwood_transaction(rig, freqbuf, strlen(freqbuf), ackbuf, &ack_len);
     if (retval != RIG_OK)
         return retval;
@@ -210,7 +211,6 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char freqbuf[24], ackbuf[ACKBUF_LEN];
     int retval, step,ack_len=ACKBUF_LEN;
-    long long f;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -226,13 +226,12 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
     if (retval != RIG_OK)
         return retval;
 
-    retval = sscanf(ackbuf, "FQ %lld,%d",&f,&step);
+    retval = sscanf(ackbuf, "FQ %"SCNfreq",%d",freq,&step);
     if (retval != 2) {
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, freqbuf);
         return -RIG_ERJCTED;
     }
 
-    *freq=(freq_t)f;
     return RIG_OK;
 }
 
@@ -1298,11 +1297,11 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 	return -RIG_EINVAL;
 
     if(chan->channel_num<=220)
-    sprintf(membuf, "%s,%011lld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09lld,0"EOM,
+    sprintf(membuf, "%s,%011"PRIll",%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll",0"EOM,
                     req,(long long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq, (long long)offset);
     else
-    sprintf(membuf, "%s,%011lld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09lld"EOM,
+    sprintf(membuf, "%s,%011"PRIll",%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll EOM,
                     req, (long long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq, (long long)offset);
 
@@ -1313,7 +1312,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
     if(chan->channel_num<223 && chan->tx_freq!=RIG_FREQ_NONE) {
 	req[5]='1';
-    	sprintf(membuf, "%s,%011lld,%01d"EOM, req,(long long)chan->tx_freq, step);
+    	sprintf(membuf, "%s,%011"PRIll",%01d"EOM, req,(long long)chan->tx_freq, step);
         ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)

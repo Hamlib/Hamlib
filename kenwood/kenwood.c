@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main file
- *  Copyright (c) 2000-2004 by Stephane Fillod and others
+ *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.81 2004-12-27 12:53:01 f4dwv Exp $
+ *	$Id: kenwood.c,v 1.82 2005-01-25 00:20:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -374,7 +374,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 								vfo);
 			return -RIG_EINVAL;
 		}
-		freq_len = sprintf(freqbuf,"F%c%011Ld;", vfo_letter, (long long)freq);
+		freq_len = sprintf(freqbuf,"F%c%011"PRIll";", vfo_letter, (long long)freq);
 
 		ack_len = 0;
 		retval = kenwood_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
@@ -392,7 +392,6 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		unsigned char cmdbuf[4];
 		int cmd_len, freq_len, retval;
 		char vfo_letter;
-		long long f;
 		vfo_t	tvfo;
 
         	if(vfo==RIG_VFO_CURR) tvfo=rig->state.current_vfo;
@@ -403,8 +402,8 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		case RIG_VFO_B: vfo_letter = 'B'; break;
 		case RIG_VFO_C: vfo_letter = 'C'; break;
 		default: 
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_freq: unsupported VFO %d\n",
-								vfo);
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %d\n",
+					__FUNCTION__, vfo);
 			return -RIG_EINVAL;
 		}
 
@@ -416,13 +415,12 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 			return retval;
 
 		if (freq_len != 14 || freqbuf[0] != 'F') {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_freq: unexpected answer %s, "
-							"len=%d\n", freqbuf, freq_len);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer %s, "
+					"len=%d\n", __FUNCTION__, freqbuf, freq_len);
 			return -RIG_ERJCTED;
 		}
 
-		sscanf(freqbuf+2, "%lld", &f);
-		*freq = (freq_t)f;
+		sscanf(freqbuf+2, "%"SCNfreq, freq);
 
 		return RIG_OK;
 }

@@ -2,9 +2,9 @@
  *  Hamlib Kenwood backend - IC-10 interface for:
  *  			TS-940, TS-811, TS-711, TS-440, and R-5000
  *
- *  Copyright (c) 2000-2004 by Stephane Fillod and others
+ *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: ic10.c,v 1.3 2004-06-13 12:38:41 fillods Exp $
+ *	$Id: ic10.c,v 1.4 2005-01-25 00:20:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -273,7 +273,6 @@ int ic10_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	unsigned char infobuf[50];
 	int retval;
-	long long f;
 
        	if (vfo != RIG_VFO_CURR) {
 		/* targeted freq retrieval */
@@ -288,8 +287,7 @@ int ic10_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
 
 	infobuf[13] = '\0';
-	sscanf(infobuf+2, "%011lld", &f);
-	*freq = (freq_t)f;
+	sscanf(infobuf+2, "%011"SCNfreq, freq);
 
 	return RIG_OK;
 }
@@ -320,7 +318,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		return -RIG_EINVAL;
 	}
 	
-	freq_len = sprintf(freqbuf,"F%c%011Ld;", vfo_letter, (long long)freq);
+	freq_len = sprintf(freqbuf,"F%c%011"PRIll";", vfo_letter, (long long)freq);
 	retval = ic10_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
 
 	return retval;
@@ -463,7 +461,6 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
 {
 	char membuf[16],infobuf[32];
 	int retval,info_len,len;
-	long long freq;
 
 	len = sprintf(membuf,"MR0 %02d;",chan->channel_num);
 	info_len = 24;
@@ -489,8 +486,7 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
 
 	/*  infobuf[17] = ' '; */
 	infobuf[17] = '\0';
-	sscanf(infobuf+6, "%011lld", &freq);
-	chan->freq = (freq_t)freq;
+	sscanf(infobuf+6, "%011"SCNfreq, &chan->freq);
 	chan->vfo=RIG_VFO_MEM;
 
 	/* TX VFO (Split channel only) */
@@ -518,8 +514,7 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
 		/*  infobuf[17] = ' '; */
 		infobuf[17] = '\0';
 
-		sscanf(infobuf+6, "%011lld", &freq);
-		chan->tx_freq = (freq_t)freq;
+		sscanf(infobuf+6, "%011"SCNfreq, &chan->tx_freq);
 	}
 
 	return RIG_OK;
@@ -548,7 +543,7 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 	}
 
 	/* MWnxrrggmmmkkkhhhdzxxxx; */
-	len = sprintf(membuf,"MW0 %02d%011lld%c0    ;",
+	len = sprintf(membuf,"MW0 %02d%011"PRIll"%c0    ;",
 			chan->channel_num,
 			freq,
 			md
@@ -574,7 +569,7 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 	}
 
 	/* MWnxrrggmmmkkkhhhdzxxxx; */
-	len = sprintf(membuf,"MW1 %02d%011lld%c0    ;",
+	len = sprintf(membuf,"MW1 %02d%011"PRIll"%c0    ;",
 			chan->channel_num,
 			freq,
 			md
@@ -869,7 +864,7 @@ int ic10_decode_event (RIG *rig)
 	char asyncbuf[128],c;
 	int retval,async_len=128;
 	vfo_t vfo;
-	long long freq;
+	freq_t freq;
 	rmode_t mode;
 	ptt_t ptt;
 
@@ -923,14 +918,14 @@ int ic10_decode_event (RIG *rig)
 	ptt = asyncbuf[priv->if_len-5] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
 
 	asyncbuf[13] = '\0';
-	sscanf(asyncbuf+2, "%011lld", &freq);
+	sscanf(asyncbuf+2, "%011"SCNfreq, &freq);
 	
 	/* Callback execution */
 	if (rig->callbacks.vfo_event) {
     	rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);
 	}
 	if (rig->callbacks.freq_event) {
-		rig->callbacks.freq_event(rig, vfo, (freq_t)freq, rig->callbacks.freq_arg);
+		rig->callbacks.freq_event(rig, vfo, freq, rig->callbacks.freq_arg);
 	}
 	if (rig->callbacks.mode_event) {
 		rig->callbacks.mode_event(rig, vfo, mode, RIG_PASSBAND_NORMAL, 

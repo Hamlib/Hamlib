@@ -1,10 +1,10 @@
 /*
- * rigmem.c - (C) Stephane Fillod and Thierry Leconte 2003-2004
+ * rigmem.c - (C) Stephane Fillod and Thierry Leconte 2003-2005
  *
  * This program exercises the backup and restore of a radio
  * using Hamlib.
  *
- * $Id: rigmem.c,v 1.2 2004-05-17 21:09:45 fillods Exp $  
+ * $Id: rigmem.c,v 1.3 2005-01-25 00:21:56 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -39,12 +39,6 @@
 #include <hamlib/rig.h>
 #include "misc.h"
 #include "sprintflst.h"
-
-#ifdef _WIN32
-#define LLFMT "L"
-#else
-#define LLFMT "ll"
-#endif
 
 #define MAXNAMSIZ 32
 #define MAXNBOPT 100	/* max number of different options */

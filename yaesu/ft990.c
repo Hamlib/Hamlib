@@ -1,5 +1,5 @@
 /*
- * hamlib - (C) Stephane Fillod 2002-2004 (fillods at users.sourceforge.net)
+ * hamlib - (C) Stephane Fillod 2002-2005 (fillods at users.sourceforge.net)
  *
  * ft990.c - (C) Berndt Josef Wulf (wulf at ping.net.au)
  *
@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.14 2005-01-24 23:04:35 fillods Exp $
+ * $Id: ft990.c,v 1.15 2005-01-25 00:22:14 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -2639,7 +2639,7 @@ int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
   to_bcd(priv->p_cmd, freq/10, FT990_BCD_DIAL);
 
   rig_debug(RIG_DEBUG_TRACE,
-            "%s: requested freq after conversion = %lli Hz\n",
+            "%s: requested freq after conversion = %"PRIll" Hz\n",
              __func__, from_bcd(priv->p_cmd, FT990_BCD_DIAL) * 10);
 
   err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd,

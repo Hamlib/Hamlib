@@ -1,8 +1,8 @@
 /*
  *  Hamlib Uniden backend - main file
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: uniden.c,v 1.9 2004-02-08 16:59:48 fillods Exp $
+ *	$Id: uniden.c,v 1.10 2005-01-25 00:21:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -93,7 +93,7 @@ int uniden_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 				return -RIG_EINVAL;
 
 		/* exactly 8 digits */
-		freq_len = sprintf(freqbuf, "RF%08Ld" EOM, (long long)freq);
+		freq_len = sprintf(freqbuf, "RF%08"PRIll EOM, (long long)freq);
 
 		return uniden_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }

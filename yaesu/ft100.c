@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.15 2005-01-24 23:04:29 fillods Exp $  
+ *    $Id: ft100.c,v 1.16 2005-01-25 00:21:58 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -467,7 +467,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%"PRIfreq" d2=%"PRIfreq"\n",d1,d2);
    
-   sprintf(sfreq,"%8lli",(long long)d2);
+   sprintf(sfreq,"%8"PRIll,(long long)d2);
    
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq= %s \n",sfreq);
    

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.8 2005-01-24 23:04:16 fillods Exp $
+ *	$Id: tmv7.c,v 1.9 2005-01-25 00:20:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 #include "th.h"
+#include "misc.h"
 
 #if 1
 #define RIG_ASSERT(x)	if (!(x)) { rig_debug(RIG_DEBUG_ERR, "Assertion failed on line %i\n",__LINE__); abort(); }
@@ -615,11 +616,11 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 	return -RIG_EINVAL;
 
     if(chan->channel_num<221)
-    	sprintf(membuf, "%s,%011lld,%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,0,0"EOM,
+    	sprintf(membuf, "%s,%011"PRIll",%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,0,0"EOM,
                     req,(long long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq);
     else
-    	sprintf(membuf, "%s,%011lld,%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,"EOM,
+    	sprintf(membuf, "%s,%011"PRIll",%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,"EOM,
                     req, (long long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq);
 
@@ -630,7 +631,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 
     if(chan->tx_freq!=RIG_FREQ_NONE) {
 	req[5]='1';
-    	sprintf(membuf, "%s,%011lld,%01d"EOM, req,(long long)chan->tx_freq, step);
+    	sprintf(membuf, "%s,%011"PRIll",%01d"EOM, req,(long long)chan->tx_freq, step);
         ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
