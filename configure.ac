@@ -47,7 +47,7 @@ AC_ARG_WITH(cxx-binding,
 AC_MSG_RESULT($cf_with_cxx_binding)
 
 
-INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
+INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
 if test "${ac_cv_c_compiler_gnu}" = "yes"; then
   CFLAGS="${CFLAGS} -Wall"
