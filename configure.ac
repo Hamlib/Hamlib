@@ -255,15 +255,7 @@ if test "${cf_with_tcl_binding}" = "yes" ; then
 fi
 AC_SUBST(TCL_LIB_SPEC)
 
-
-if test "${ac_cv_header_sys_socket_h}" = "no"; then
-  echo "disabling NET port"
-  NET=
-else
-  echo "enabling NET port"
-  NET=net
-fi
-AC_SUBST(NET)
+# TODO: require "${ac_cv_header_sys_socket_h}" = "no"
 
 
 dnl Backend list
