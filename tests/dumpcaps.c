@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.11 2001-02-11 23:19:58 f4cfe Exp $  
+ *    $Id: dumpcaps.c,v 1.12 2001-02-14 01:11:22 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ int main (int argc, char *argv[])
 	status |= rig_load_backend("kenwood");
 	status |= rig_load_backend("aor");
 	rig_load_backend("winradio");   /* may not be compiled ... */
+	rig_load_backend("dummy");
 
 	if (status != RIG_OK ) {
 		printf("rig_load_backend: error = %s \n", rigerror(status));
@@ -112,25 +113,8 @@ int main (int argc, char *argv[])
 	case RIG_TYPE_COMPUTER:
 			printf("Computer\n");
 			break;
-	default:
-			printf("Unknown\n");
-	}
-
-	printf("PTT type:\t");
-	switch (caps->ptt_type) {
-	case RIG_PTT_RIG:
-			printf("rig capable\n");
-			break;
-	case RIG_PTT_PARALLEL:
-			printf("thru parallel port (DATA0)\n");
-			break;
-	case RIG_PTT_SERIAL_RTS:
-			printf("thru serial port (CTS/RTS)\n");
-	case RIG_TYPE_SCANNER:
-			printf("Scanner\n");
-			break;
-	case RIG_TYPE_COMPUTER:
-			printf("Computer\n");
+	case RIG_TYPE_OTHER:
+			printf("Other\n");
 			break;
 	default:
 			printf("Unknown\n");
@@ -181,10 +165,14 @@ int main (int argc, char *argv[])
 	printf("Preamp:");
 	for(i=0; i<MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
 			printf(" %ddB", caps->preamp[i]);
+	if (caps->preamp[i] == 0)
+		printf(" none");
 	printf("\n");
 	printf("Attenuator:");
 	for(i=0; i<MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
 			printf(" %ddB",caps->attenuator[i]);
+	if (caps->attenuator[i] == 0)
+		printf(" none");
 	printf("\n");
 
 	printf("Get functions: ");
