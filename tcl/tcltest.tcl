@@ -11,7 +11,7 @@ puts [rig version]\n
 set my_rig [rig init 1]
 $my_rig open
 $my_rig set_freq 145550000
-$my_rig get_strength
+puts [$my_rig get_strength]
 $my_rig close
 $my_rig cleanup
 
