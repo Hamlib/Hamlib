@@ -4,7 +4,7 @@
  * yaesu.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  * Common yaesu declarations for hamlib
  *
- * 	$Id: yaesu.h,v 1.2 2000-12-22 01:41:09 javabear Exp $	
+ * 	$Id: yaesu.h,v 1.3 2000-12-22 04:59:17 javabear Exp $	
  *
  *
  *
@@ -39,8 +39,8 @@
  */
 
 struct yaesu_cmd_set {
-  unsigned char ncomp;		/* 1 = complete, 0 = incomplete, needs extra info */
-  unsigned char nseq[5];	/* native cmd sequence */
+  unsigned char ncomp;		        /* 1 = complete, 0 = incomplete, needs extra info */
+  unsigned char nseq[YAESU_CMD_LENGTH];	/* native cmd sequence */
 };
 
 typedef struct yaesu_cmd_set yaesu_cmd_set_t; 
