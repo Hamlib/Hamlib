@@ -216,6 +216,7 @@ rpcrot/Makefile
 src/Makefile
 c++/Makefile
 tcl/Makefile
+kylix/Makefile
 tests/Makefile
 doc/Makefile
 hamlib.spec])
