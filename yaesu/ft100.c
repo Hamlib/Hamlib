@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.1 2002-02-26 01:18:48 fillods Exp $  
+ *    $Id: ft100.c,v 1.2 2002-03-04 13:00:22 avflinsch Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +41,7 @@
 #include "yaesu.h"
 #include "ft100.h"
 #include "misc.h"
+#include "yaesu_tones.h"
 
 /* prototypes */
 
@@ -53,44 +54,66 @@ static int ft100_send_priv_cmd(RIG *rig, unsigned char ci);
 /* Incomplete sequences (0) must be completed with extra parameters */
 /* eg: mem number, or freq etc.. */
 
+
+/* kc2ivl - what works on a ft100    as of 02/27/2002        */
+/*          ptt on/off                                       */
+/*          set mode AM,CW,USB,LSB,FM use RTTY for DIG mode  */
+/*          set split on/off                                 */
+/*          set repeater +, - splx                           */
+/*          set frequency of current vfo                     */
+
 static const yaesu_cmd_set_t ncmd[] = {
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* lock on */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x80 } }, /* lock off */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x08 } }, /* ptt on */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x88 } }, /* ptt off */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* set freq */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main LSB */
-  { 1, { 0x01, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main USB */
-  { 1, { 0x02, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main CW */
-  { 1, { 0x03, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main CWR */
-  { 1, { 0x04, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main AM */
-  { 1, { 0x08, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main FM */
-  { 1, { 0x0a, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main DIG */
-  { 1, { 0x0c, 0x00, 0x00, 0x00, 0x07 } }, /* mode set main PKT */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* clar on */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x85 } }, /* clar off */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0xf5 } }, /* set clar freq */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, /* toggle vfo a/b */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* split on */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, /* split off */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x09 } }, /* set RPT shift MINUS */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x49 } }, /* set RPT shift PLUS */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x89 } }, /* set RPT shift SIMPLEX */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0xf9 } }, /* set RPT offset freq */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* lock on */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* lock off */
+   
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0f } }, /* ptt on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* ptt off */
+   
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0a } }, /* set freq */
+   
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* mode set main LSB */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0c } }, /* mode set main USB */
+  { 1, { 0x00, 0x00, 0x00, 0x02, 0x0c } }, /* mode set main CW */
+  { 1, { 0x00, 0x00, 0x00, 0x03, 0x0c } }, /* mode set main CWR */
+  { 1, { 0x00, 0x00, 0x00, 0x04, 0x0c } }, /* mode set main AM */
+  { 1, { 0x00, 0x00, 0x00, 0x06, 0x0c } }, /* mode set main FM */
+  { 1, { 0x00, 0x00, 0x00, 0x05, 0x0c } }, /* mode set main DIG */
+  { 1, { 0x00, 0x00, 0x00, 0x07, 0x0c } }, /* mode set main WFM */
+   
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* clar on */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* clar off */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* set clar freq */
+
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* toggle vfo a/b */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x05 } }, /* select vfo a   */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x05 } }, /* select vfo b   */
+   
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split off */
+   
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x84 } }, /* set RPT shift MINUS */
+  { 1, { 0x00, 0x00, 0x00, 0x02, 0x84 } }, /* set RPT shift PLUS */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x84 } }, /* set RPT shift SIMPLEX */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* set RPT offset freq */
+
 /* fix me */
-  { 1, { 0x0a, 0x00, 0x00, 0x00, 0x0a } }, /* set DCS on */
-  { 1, { 0x2a, 0x00, 0x00, 0x00, 0x0a } }, /* set CTCSS/DCS enc/dec on */
-  { 1, { 0x4a, 0x00, 0x00, 0x00, 0x0a } }, /* set CTCSS/DCS enc on */
-  { 1, { 0x8a, 0x00, 0x00, 0x00, 0x0a } }, /* set CTCSS/DCS off */
+  { 1, { 0x00, 0x00, 0x00, 0x03, 0x92 } }, /* set DCS on */
+  { 1, { 0x00, 0x00, 0x00, 0x02, 0x92 } }, /* set CTCSS/DCS enc/dec on */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x92 } }, /* set CTCSS/DCS enc on */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x92 } }, /* set CTCSS/DCS off */
 /* em xif */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0b } }, /* set CTCSS tone */
-  { 0, { 0x00, 0x00, 0x00, 0x00, 0x0c } }, /* set DCS code */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0xe7 } }, /* get RX status  */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* get TX status  */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x03 } }, /* get FREQ and MODE status */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* pwr on */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }  /* pwr off */
+   
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x90 } }, /* set CTCSS tone */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x91 } }, /* set DCS code */
+   
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* get RX status  */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* get TX status  */
+   
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x10 } }, /* get FREQ and MODE status */
+   
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr wakeup sequence */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr on */
+  { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }  /* pwr off */
 };
 
 
@@ -114,8 +137,8 @@ const struct rig_caps ft100_caps = {
   ptt_type:		RIG_PTT_RIG,
   dcd_type:		RIG_DCD_NONE,
   port_type:		RIG_PORT_SERIAL,
-  serial_rate_min:	4800,
-  serial_rate_max:	38400,
+  serial_rate_min:	4800,                /* ft100/d 4800 only */
+  serial_rate_max:	4800,                /* no others allowed */
   serial_data_bits:	8,
   serial_stop_bits:	2,
   serial_parity:	RIG_PARITY_NONE,
@@ -202,23 +225,23 @@ const struct rig_caps ft100_caps = {
   rig_open:		ft100_open, 
   rig_close:		ft100_close, 
   set_freq:		ft100_set_freq,
-  get_freq:		ft100_get_freq,
+  get_freq:		NULL,
   set_mode:		ft100_set_mode,
-  get_mode:		ft100_get_mode,
-  set_vfo:		ft100_set_vfo,
-  get_vfo:		ft100_get_vfo,
-  set_ptt:		ft100_set_ptt,
-  get_ptt:		ft100_get_ptt,
+  get_mode:		NULL,
+  set_vfo:		NULL,
+  get_vfo:		NULL,
+  set_ptt:	        ft100_set_ptt,
+  get_ptt:		NULL,
   get_dcd:		NULL,
-  set_rptr_shift:	NULL,
+  set_rptr_shift:	ft100_set_rptr_shift,
   get_rptr_shift:	NULL,
   set_rptr_offs:	NULL,
   get_rptr_offs:	NULL,
   set_split_freq:	NULL,
   get_split_freq:	NULL,
-  set_split_mode:	NULL,
+  set_split_mode:       NULL,
   get_split_mode:	NULL,
-  set_split:		NULL,
+  set_split:		ft100_set_split,
   get_split:		NULL,
   set_rit:		NULL,
   get_rit:		NULL,
@@ -226,9 +249,9 @@ const struct rig_caps ft100_caps = {
   get_xit:		NULL,
   set_ts:		NULL,
   get_ts:		NULL,
-  set_dcs_code:		NULL,
+  set_dcs_code:		ft100_set_dcs_code,
   get_dcs_code:		NULL,
-  set_ctcss_tone:	NULL,
+  set_ctcss_tone:       ft100_set_ctcss_tone,
   get_ctcss_tone:	NULL,
   set_dcs_sql:		NULL,
   get_dcs_sql:		NULL,
@@ -315,10 +338,13 @@ int ft100_close(RIG *rig) {
  */
 
 static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
-
+ 
   struct rig_state *rig_s;
   struct ft100_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
+  int i;
+   
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: ft100_send_priv_cmd \n");
  
   if (!rig)  return -RIG_EINVAL;
 
@@ -329,10 +355,16 @@ static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
     rig_debug(RIG_DEBUG_VERBOSE,"ft100: Attempt to send incomplete sequence \n");
     return -RIG_EINVAL;
   }
-
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
   
+  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: Attempt to send sequence ="); 
+  for (i=0; i < YAESU_CMD_LENGTH; i++)
+      rig_debug(RIG_DEBUG_VERBOSE," %3i",(int)cmd[i]);
+  rig_debug(RIG_DEBUG_VERBOSE," \n");
+   
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+    
   return RIG_OK;
 }
 
@@ -368,7 +400,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
   memcpy(p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
 
-  to_bcd_be(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
+  to_bcd(p->p_cmd,freq,8);	/* store bcd format in in p_cmd */
 				/* TODO -- fix 10Hz resolution -- FS */
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq after conversion = %lli Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
@@ -496,6 +528,7 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   return -RIG_EIO;
 }
 
+
 int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
   struct ft100_priv_data *p = (struct ft100_priv_data*)rig->state.priv;
@@ -519,6 +552,7 @@ int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
   return RIG_OK;
 }
+
 
 
 int ft100_get_vfo(RIG *rig, vfo_t *vfo) {
@@ -609,5 +643,130 @@ int ft100_get_parm(RIG *rig, setting_t parm, value_t *val) {
 }
 
 
+/* kc2ivl */
+int ft100_set_split(RIG *rig, vfo_t vfo, split_t split) {
+
+  unsigned char cmd_index;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_set_split called \n");
+
+  switch(split) {
+  case RIG_SPLIT_ON:
+    cmd_index = FT100_NATIVE_CAT_SPLIT_ON;
+    break;
+  case RIG_SPLIT_OFF:
+    cmd_index = FT100_NATIVE_CAT_SPLIT_OFF;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+  
+  ft100_send_priv_cmd(rig,cmd_index);
+  return RIG_OK; 
+}
+
+int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift) {
+
+  unsigned char cmd_index;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_set_rptr_shift called \n");
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: + - 0 %3i %3i %3i %3i %c\n", RIG_RPT_SHIFT_PLUS, RIG_RPT_SHIFT_MINUS, RIG_RPT_SHIFT_NONE, shift,  (char)shift);  
+  switch(shift) {
+  case RIG_RPT_SHIFT_PLUS:
+    cmd_index = FT100_NATIVE_CAT_SET_RPT_SHIFT_PLUS;
+    break;
+  case RIG_RPT_SHIFT_MINUS:
+    cmd_index = FT100_NATIVE_CAT_SET_RPT_SHIFT_MINUS;
+    break;
+  case RIG_RPT_SHIFT_NONE:
+    cmd_index = FT100_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX;   
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+  
+  ft100_send_priv_cmd(rig,cmd_index);
+  return RIG_OK; 
+}
 
 
+
+int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
+  struct rig_state *rig_s;
+  struct ft100_priv_data *p;
+  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char cmd_index;	/* index of sequence to send */
+
+  if (!rig)  return -RIG_EINVAL;
+
+  p = (struct ft100_priv_data*)rig->state.priv;
+
+  rig_s = &rig->state;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: ft100_set_dcs_code  =%3i %s\n", code,code_tbl[code]);
+
+  if( ( vfo != RIG_VFO_CURR ) &&
+      ( ft100_set_vfo( rig, vfo ) != RIG_OK ) )  return -RIG_ERJCTED;
+   
+  if (code > 103) return -RIG_EINVAL; /* there are 104 dcs codes available */
+  
+  switch( vfo ) {
+  case RIG_VFO_CURR:
+  case RIG_VFO1:
+  case RIG_VFO2:
+    cmd_index = FT100_NATIVE_CAT_SET_DCS_CODE;
+    break;
+  default:
+    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Unknown VFO \n");
+    return -RIG_EINVAL;
+  }
+
+  memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
+  
+  cmd[3]=(char)code;
+  
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+
+  return RIG_OK;
+}
+
+
+int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
+  struct rig_state *rig_s;
+  struct ft100_priv_data *p;
+  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char cmd_index;	/* index of sequence to send */
+
+  if (!rig)  return -RIG_EINVAL;
+
+  if (tone > 38) return -RIG_EINVAL; /* there are 39 ctcss tones available */ 
+   
+  p = (struct ft100_priv_data*)rig->state.priv;
+
+  rig_s = &rig->state;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: ft100_set_ctcss_tone  =%3i %s\n",tone,tone_tbl[tone]);
+
+  if( ( vfo != RIG_VFO_CURR ) &&
+      ( ft100_set_vfo( rig, vfo ) != RIG_OK ) )  return -RIG_ERJCTED;
+ 
+  switch( vfo ) {
+  case RIG_VFO_CURR:
+  case RIG_VFO1:
+  case RIG_VFO2:
+    cmd_index = FT100_NATIVE_CAT_SET_CTCSS_FREQ;
+    break;
+  default:
+    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Unknown VFO \n");
+    return -RIG_EINVAL;
+  }
+
+  memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
+  
+  cmd[3]=(char)tone;
+  
+  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+
+  return RIG_OK;
+}
