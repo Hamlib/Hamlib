@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.13 2002-12-17 22:46:18 fillods Exp $
+ *	$Id: ts450s.c,v 1.14 2002-12-20 09:49:14 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,7 +72,8 @@ static int ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     return -RIG_ERJCTED;
   }
 
-  *width = RIG_PASSBAND_NORMAL;	/* FIXME */
+  /* this rig does not have a command for reading IF bandwidth */
+  *width = rig_passband_normal(rig, *mode);
 
   switch (infobuf[29]) {
     case MD_CW:		*mode = RIG_MODE_CW; break;
