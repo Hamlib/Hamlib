@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.21 2003-04-26 09:54:49 fillods Exp $
+ *	$Id: frame.c,v 1.22 2003-05-03 13:34:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,7 +77,7 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
 }
 
 /*
- * icom_transaction
+ * icom_one_transaction
  * 
  * We assume that rig!=NULL, rig->state!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
@@ -87,7 +87,7 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
  * return RIG_OK if transaction completed, 
  * or a negative value otherwise indicating the error.
  */
-int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len)
+int icom_one_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
@@ -117,7 +117,7 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		/*
 		 * read what we just sent, because TX and RX are looped,
 		 * and discard it...
-		 * TODO: - if what we read is not what we sent, then it means
+		 * - if what we read is not what we sent, then it means
 		 * 			a collision on the CI-V bus occured!
 		 * 		- if we get a timeout, then retry to send the frame,
 		 * 			up to rs->retry times.
@@ -211,6 +211,34 @@ int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int pa
 		 */
 		
 		return RIG_OK;
+}
+
+/*
+ * icom_transaction
+ * 
+ * This function honors rigport.retry count.
+ *
+ * We assume that rig!=NULL, rig->state!= NULL, payload!=NULL, data!=NULL, data_len!=NULL
+ * Otherwise, you'll get a nice seg fault. You've been warned!
+ * payload can be NULL if payload_len == 0
+ * subcmd can be equal to -1 (no subcmd wanted)
+ *
+ * return RIG_OK if transaction completed, 
+ * or a negative value otherwise indicating the error.
+ */
+int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len)
+{
+	int retval, retry;
+
+	retry = rig->state.rigport.retry;
+
+	do {
+		retval = icom_one_transaction (rig, cmd, subcmd, payload, payload_len, data, data_len);
+		if (retval == RIG_OK)
+			break;
+	} while (retry-- > 0);
+
+	return retval;
 }
 
 /* used in read_icom_frame as end of block */
