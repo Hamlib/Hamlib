@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.13 2004-01-15 22:43:59 fillods Exp $  
+ *    $Id: ft100.c,v 1.14 2004-02-01 22:29:23 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -600,22 +600,22 @@ int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
   switch(vfo) {
   case RIG_VFO_A:
-    if( p->current_vfo != vfo ) {
-      if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOB ) == RIG_OK ) {
-        p->current_vfo = vfo;
-      } else {
-        return -RIG_ERJCTED;
-      }
-    }
-    break;
-  case RIG_VFO_B:
-    if( p->current_vfo != vfo ) {
+    if( p->current_vfo != vfo ) { 
       if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOA ) == RIG_OK ) {
         p->current_vfo = vfo;
       } else {
         return -RIG_ERJCTED;
       }
-    }
+    } 
+    break;
+  case RIG_VFO_B:
+    if( p->current_vfo != vfo ) { 
+      if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOB ) == RIG_OK ) {
+        p->current_vfo = vfo;
+      } else {
+        return -RIG_ERJCTED;
+      }
+    } 
     break;
   default:
     return -RIG_EINVAL;
@@ -653,7 +653,7 @@ int ft100_get_vfo(RIG *rig, vfo_t *vfo) {
     priv->current_vfo = RIG_VFO_B;
   } else {
     *vfo = RIG_VFO_A;
-    priv->current_vfo = RIG_VFO_B;
+    priv->current_vfo = RIG_VFO_A;
   }
 
   return RIG_OK;
