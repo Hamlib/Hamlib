@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.10 2000-07-30 00:28:52 javabear Exp $  
+ * $Id: ft847.c,v 1.11 2000-07-30 02:03:48 javabear Exp $  
  *
  */
 
@@ -28,9 +28,7 @@ static char calc_packed_from_char(unsigned char dec );
 static char calc_char_from_packed(unsigned char pkd );
 
 static long int  calc_freq_from_packed4(unsigned char *in);
-static long int calc_packed4_from_freq(long int freq, unsigned char *out);
-
-
+static void calc_packed4_from_freq(long int freq, unsigned char *out);
 
 /*
  * Function definitions below
@@ -60,17 +58,17 @@ int rig_close(int fd) {
  * Implement OPCODES
  */
 
-void cmd_cat_on(int fd) {
+void cmd_set_cat_on(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x00 }; /* cat = on */
   write_block(fd,data);
 }
 
-void cmd_cat_off(int fd) {
+void cmd_set_cat_off(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x80 }; /* cat = off */
   write_block(fd,data);
 }
 
-void cmd_ptt_on(int fd) {
+void cmd_set_ptt_on(int fd) {
 
 #ifdef TX_ENABLED
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x0f }; /* ptt = on */
@@ -83,17 +81,17 @@ void cmd_ptt_on(int fd) {
 }
 
 
-void cmd_ptt_off(int fd) {
+void cmd_set_ptt_off(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x88 }; /* ptt = off */
   write_block(fd,data);
 }
 
-void cmd_sat_on(int fd) {
+void cmd_set_sat_on(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x4e }; /* sat = on */
   write_block(fd,data);
 }
 
-void cmd_sat_off(int fd) {
+void cmd_set_sat_off(int fd) {
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x8e }; /* sat = off */
   write_block(fd,data);
 }
@@ -471,7 +469,7 @@ static long int  calc_freq_from_packed4(unsigned char *in) {
  *
  */
 
-static long int calc_packed4_from_freq(long int freq, unsigned char *out) {
+static void calc_packed4_from_freq(long int freq, unsigned char *out) {
   unsigned char d1,d2,d3,d4;
   long int f1,f2,f3,f4;
   long int testf;
