@@ -8,6 +8,10 @@ AM_CONFIG_HEADER(include/config.h)
 AC_PREREQ(2.10)dnl              dnl Minimum Autoconf version required.
 AC_ARG_PROGRAM
 
+dnl directory for docs (html)
+AC_SUBST(hamlibdocdir)
+hamlibdocdir=$datadir/doc/hamlib
+
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
@@ -62,6 +66,21 @@ if test "${enable_dynamic}" != "no"; then
   AC_CHECK_FUNCS(dlopen, , enable_dynamic=no)],
    [enable_dynamic=no])
 fi
+
+if test "${enable_rigmatrix}" != "no"; then
+  AC_CHECK_HEADERS(gd.h,
+  [AC_CHECK_LIB(gd,gdImageCreate)
+  AC_CHECK_FUNCS(gdImageCreate, , enable_rigmatrix=no)],
+   [enable_rigmatrix=no])
+fi
+if test "${ac_cv_header_gd_h}" = "no"; then
+  echo "disabling rigmatrix generation"
+  RIGMATRIX=
+else
+  echo "enabling rigmatrix generation"
+  RIGMATRIX=rigmatrix
+fi
+AC_SUBST(RIGMATRIX)
 
 AC_SUBST(INCLUDES)
 
