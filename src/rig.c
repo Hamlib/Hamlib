@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.17 2001-02-11 23:09:16 f4cfe Exp $
+   $Id: rig.c,v 1.18 2001-02-14 01:08:12 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -300,6 +300,8 @@ int rig_open(RIG *rig)
 		if (!rig)
 				return -RIG_EINVAL;
 
+		rig->state.fd = -1;
+
 		switch(rig->state.port_type) {
 		case RIG_PORT_SERIAL:
 				status = serial_open(&rig->state);
@@ -314,13 +316,17 @@ int rig_open(RIG *rig)
 				rig->state.fd = status;
 				break;
 
+		case RIG_PORT_NONE:
+				break;	/* ez :) */
+
 		case RIG_PORT_NETWORK:	/* not implemented yet! */
 				return -RIG_ENIMPL;
 		default:
 				return -RIG_EINVAL;
 		}
 
-		rig->state.stream = fdopen(rig->state.fd, "r+b");
+		if (rig->state.fd >= 0)
+			rig->state.stream = fdopen(rig->state.fd, "r+b");
 
 		/*
 		 * FIXME: what to do if PTT open fails or PTT unsupported?
@@ -374,7 +380,7 @@ int rig_close(RIG *rig)
 
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_close called \n");
 
-		if (! rig || !rig->caps)
+		if (!rig || !rig->caps)
 				return -RIG_EINVAL;
 
 		rs = &rig->state;
@@ -1321,6 +1327,142 @@ int rig_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 		rig->caps->set_vfo(rig, curr_vfo);
 		return retcode;
 }
+
+/**
+ *      rig_set_ann - set the announce level
+ *      @rig:	The rig handle
+ *      @ann:	The announce level
+ *
+ *      The rig_set_ann() function sets the current announce level.
+ *
+ *      RETURN VALUE: The rig_set_ann() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_ann()
+ */
+
+int rig_set_ann(RIG *rig, ann_t ann)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_ann == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->set_ann(rig, ann);
+}
+
+/**
+ *      rig_get_ann - get the current announce level
+ *      @rig:	The rig handle
+ *      @ann:	The location where to store the current announce level
+ *
+ *      The rig_get_ann() function retrieves the current announce level.
+ *
+ *      RETURN VALUE: The rig_get_ann() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_set_ann()
+ */
+
+int rig_get_ann(RIG *rig, ann_t *ann)
+{
+		if (!rig || !rig->caps || !ann)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_ann == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->get_ann(rig, ann);
+}
+
+/**
+ *      rig_set_ant - set the antenna
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @ant:	The anntena to select
+ *
+ *      The rig_set_ant() function sets the current antenna.
+ *
+ *      RETURN VALUE: The rig_set_ant() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_get_ant()
+ */
+
+int rig_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+{
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_ant == NULL)
+			return -RIG_ENAVAIL;
+
+		if (rig->caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return rig->caps->set_ant(rig, vfo, ant);
+
+		if (!rig->caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = rig->caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = rig->caps->set_ant(rig, vfo, ant);
+		rig->caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
+/**
+ *      rig_get_ant - get the current antenna
+ *      @rig:	The rig handle
+ *      @vfo:	The target VFO
+ *      @ant:	The location where to store the current antenna
+ *
+ *      The rig_get_ant() function retrieves the current antenna.
+ *
+ *      RETURN VALUE: The rig_get_ant() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_set_ant()
+ */
+
+int rig_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+{
+		int retcode;
+		vfo_t curr_vfo;
+
+		if (!rig || !rig->caps || !ant)
+			return -RIG_EINVAL;
+
+		if (rig->caps->get_ant == NULL)
+			return -RIG_ENAVAIL;
+
+		if (rig->caps->targetable_vfo || vfo == RIG_VFO_CURR ||
+										vfo == rig->state.current_vfo)
+			return rig->caps->get_ant(rig, vfo, ant);
+
+		if (!rig->caps->set_vfo)
+			return -RIG_ENTARGET;
+		curr_vfo = rig->state.current_vfo;
+		retcode = rig->caps->set_vfo(rig, vfo);
+		if (retcode != RIG_OK)
+				return retcode;
+
+		retcode = rig->caps->get_ant(rig, vfo, ant);
+		rig->caps->set_vfo(rig, curr_vfo);
+		return retcode;
+}
+
+
 
 /**
  *      rig_power2mW - conversion utility from relative range to absolute in mW
