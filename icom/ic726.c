@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-726 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic726.c,v 1.3 2004-02-08 17:01:19 fillods Exp $
+ *	$Id: ic726.c,v 1.4 2004-08-01 21:29:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,7 +63,7 @@ const struct rig_caps ic726_caps = {
 .mfg_name =  "Icom", 
 .version =  "0.2.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_NEW,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
