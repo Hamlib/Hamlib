@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.34 2004-02-14 16:50:54 f4dwv Exp $
+ *	$Id: kenwood.h,v 1.35 2004-03-20 10:23:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -103,6 +103,7 @@ extern const struct rig_caps tmd700_caps;
 extern const struct rig_caps thf7a_caps;
 extern const struct rig_caps thf7e_caps;
 extern const struct rig_caps thg71_caps;
+extern const struct rig_caps tmv7_caps;
 extern const struct rig_caps k2_caps;
 
 

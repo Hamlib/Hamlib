@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.73 2004-02-14 16:50:53 f4dwv Exp $
+ *	$Id: kenwood.c,v 1.74 2004-03-20 10:23:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -92,6 +92,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] = {
 	{ RIG_MODEL_THD7A,  "TH-D7" },
 	{ RIG_MODEL_THD7AG, "TH-D7G" },
 	{ RIG_MODEL_TMD700, "TM-D700" },
+	{ RIG_MODEL_TMV7,   "TM-V7" },
 	{ RIG_MODEL_THF6A, "TH-F6" },
 	{ RIG_MODEL_THF7E, "TH-F7" },
 	{ RIG_MODEL_THG71, "TH-G71" },
@@ -1561,6 +1562,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 		rig_register(&thd7a_caps);
 		rig_register(&thf7e_caps);
 		rig_register(&thg71_caps);
+		rig_register(&tmv7_caps);
 
 		return RIG_OK;
 }

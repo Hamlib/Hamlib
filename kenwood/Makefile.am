@@ -3,7 +3,7 @@ TSSRCLIST = ts850.c ts870s.c ts570.c ts450s.c ts440.c ts950.c ts50s.c \
 		ts790.c ts2000.c k2.c ts930.c \
 		ts680.c ts690.c ts940.c ts711.c ts811.c ts140.c
 
-THSRCLIST = thd7.c thf7.c thg71.c tmd700.c
+THSRCLIST = thd7.c thf7.c thg71.c tmd700.c tmv7.c
 
 lib_LTLIBRARIES = hamlib-kenwood.la
 hamlib_kenwood_la_SOURCES = $(TSSRCLIST) $(THSRCLIST) kenwood.c th.c
