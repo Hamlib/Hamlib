@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- * $Id: icom.c,v 1.23 2001-04-26 21:31:01 f4cfe Exp $  
+ * $Id: icom.c,v 1.24 2001-04-28 12:38:02 f4cfe Exp $  
  *
  *
  *
@@ -1049,6 +1049,44 @@ int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq)
 
 		return status;
 }
+
+/*
+ * icom_set_split_mode
+ * Assumes rig!=NULL, rig->state.priv!=NULL, 
+ * 	icom_set_vfo,icom_set_mode works for this rig
+ * FIXME: status
+ */
+int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width)
+{
+		int status;
+
+		status = icom_set_vfo(rig, RIG_VFO_B);
+		status |= icom_set_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		status |= icom_set_vfo(rig, RIG_VFO_A);
+		status |= icom_set_mode(rig, RIG_VFO_CURR, rx_mode, rx_width);
+
+		return status;
+}
+
+/*
+ * icom_get_split_mode
+ * Assumes rig!=NULL, rig->state.priv!=NULL, 
+ *  rx_mode!=NULL, rx_width!=NULL, tx_mode!=NULL, tx_width!=NULL
+ * 	icom_set_vfo,icom_get_mode works for this rig
+ * FIXME: status
+ */
+int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+		int status;
+
+		status = icom_set_vfo(rig, RIG_VFO_B);
+		status |= icom_get_mode(rig, RIG_VFO_CURR, tx_mode, tx_width);
+		status |= icom_set_vfo(rig, RIG_VFO_A);
+		status |= icom_get_mode(rig, RIG_VFO_CURR, rx_mode, rx_width);
+
+		return status;
+}
+
 
 /*
  * icom_set_split

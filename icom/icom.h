@@ -6,7 +6,7 @@
  * via serial interface to an ICOM using the "CI-V" interface.
  *
  *
- *    $Id: icom.h,v 1.16 2001-03-04 13:03:41 f4cfe Exp $  
+ *    $Id: icom.h,v 1.17 2001-04-28 12:38:02 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -81,6 +81,8 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs);
 int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs);
 int icom_set_split_freq(RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq);
 int icom_get_split_freq(RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq);
+int icom_set_split_mode(RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width);
+int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width);
 int icom_set_split(RIG *rig, vfo_t vfo, split_t split);
 int icom_get_split(RIG *rig, vfo_t vfo, split_t *split);
 int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);

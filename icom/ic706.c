@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.19 2001-04-22 14:48:57 f4cfe Exp $  
+ * $Id: ic706.c,v 1.20 2001-04-28 12:38:02 f4cfe Exp $  
  *
  *
  *
@@ -374,41 +374,10 @@ set_rptr_offs: icom_set_rptr_offs,
 get_rptr_offs: icom_get_rptr_offs,
 set_split_freq: icom_set_split_freq,
 get_split_freq: icom_get_split_freq,
+set_split_mode: icom_set_split_mode,
+get_split_mode: icom_get_split_mode,
 set_split: icom_set_split,
 get_split: icom_get_split,
 };
 
-
-/*
- * Function definitions below
- */
-
-#if 0
-static const int mkiig_raw[STR_CAL_LENGTH] = {
-100, 104, 108, 111, 114, 118, 121, 125, 129, 133, 137, 142, 146, 151, 156, 161
-};
-static const int mkiig_db[STR_CAL_LENGTH] = {
--18, -16, -14, -12, -10,  -8,  -6,  -4,  -2,   0,   2,   4,   6,   8,  10,  12
-};
-
-/*
- * called by icom_init
- * assume rig!=NULL, rig->state.priv!=NULL
- */
-int ic706mkiig_str_cal_init(RIG *rig)
-{
-	int i;
-	struct icom_priv_data *p = (struct icom_priv_data *)rig->state.priv;
-
-	/*
-	 * initialize the S Meter calibration table
-	 */
-	for (i=0; i<STR_CAL_LENGTH; i++) {
-			p->str_cal_raw[i] = mkiig_raw[i];
-			p->str_cal_db[i] = mkiig_db[i];
-	}
-	return RIG_OK;
-}
-
-#endif
 

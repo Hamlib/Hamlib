@@ -1,13 +1,13 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * icall.c - Copyright (C) 2000 Stephane Fillod
+ * icall.c - Copyright (C) 2000,2001 Stephane Fillod
  * This shared library provides an API for communicating
  * via serial interface to a virtual do-it-all Icom (for debug purpose)
  * using the "CI-V" interface.
  *
  *
- * 		$Id: icall.c,v 1.2 2001-03-04 13:03:41 f4cfe Exp $  
+ * 		$Id: icall.c,v 1.3 2001-04-28 12:38:02 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -172,6 +172,8 @@ set_rptr_offs: icom_set_rptr_offs,
 get_rptr_offs: icom_get_rptr_offs,
 set_split_freq: icom_set_split_freq,
 get_split_freq: icom_get_split_freq,
+set_split_mode: icom_set_split_mode,
+get_split_mode: icom_get_split_mode,
 set_split: icom_set_split,
 get_split: icom_get_split,
 set_ctcss: icom_set_ctcss,
