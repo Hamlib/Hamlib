@@ -1,21 +1,23 @@
 Hamlib -- History of visible changes.
 
-Copyright (C) 2000-2003  Stephane Fillod, Frank Singleton and others
+Copyright (C) 2000-2004  Stephane Fillod, Frank Singleton and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 1.1.5
-	2003-11-xx
+	2004-02-xx
 	* new backends: Lowe (HF-235), FlexRadio (SDR-1000), 
 			skelton TAPR (DSP-10), skelton RFT,
-			Ten-Tec models and many new models
+			Ten-Tec models and many new models & fixes
 	* new rotator backends: sartek
-	* implemented retry, esp. useful for CI-V
-	* emulated transceive mode using polling
-	* pipelined tuning on Optoscan's
-	* Python bindings
-	* updated Microtune 4937 & 4702, no need to be root anymore
-	* NetBSD & FreeBSD port, mingw32(Windows) port, MacOSX ready
+	* API change: freq_t to double, and setting_t to (single) long int.
+	* frontend: emulated transceive mode using polling
+	* icom: implemented retry, esp. useful for CI-V
+	* icom: pipelined tuning on Optoscan's
+	* microtune: no need of root priviledges anymore
+	* bindings: added Python, new install method
+	* rigmem: new command to load/store memory content from/to XML file
+	* port: NetBSD & FreeBSD, mingw32(Windows) port, MacOSX ready
 
 Version 1.1.4
 	2003-04-28
