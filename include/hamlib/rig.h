@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- *	$Id: rig.h,v 1.24 2001-03-04 23:06:30 f4cfe Exp $
+ *	$Id: rig.h,v 1.25 2001-04-22 13:54:48 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -149,6 +149,21 @@ enum split_e {
 
 typedef enum split_e split_t;
 
+/*
+ * freq_t: frequency type in Hz, must be >32bits for SHF! 
+ * shortfreq_t: frequency on 31bits, suitable for offsets, shifts, etc..
+ */
+typedef long long freq_t;
+typedef signed long shortfreq_t;
+
+#define Hz(f)	((freq_t)(f))
+#define kHz(f)	((freq_t)((f)*1000))
+#define MHz(f)	((freq_t)((f)*1000000L))
+#define GHz(f)	((freq_t)((f)*1000000000LL))
+
+#define RIG_FREQ_NONE Hz(0)
+
+
 #if 1
 enum vfo_e {
 	RIG_VFO_MAIN = 0,
@@ -179,7 +194,11 @@ typedef enum vfo_e vfo_t;
 typedef int vfo_t;
 #endif
 
-#if 1
+#ifdef RIG_PASSBAND_OLDTIME
+/*
+ * this is obsoleted by the new design.
+ * Defines will be removed soon.
+ */
 enum passband_width_e {
 	RIG_PASSBAND_NORMAL = 0,
 	RIG_PASSBAND_NARROW,
@@ -306,7 +325,7 @@ typedef union value_u value_t;
 #define RIG_LEVEL_PREAMP	(1<<0)	/* Preamp, arg int (dB) */
 #define RIG_LEVEL_ATT		(1<<1)	/* Attenuator, arg int (dB) */
 #define RIG_LEVEL_AF		(1<<3)	/* Volume, arg float [0.0..1.0] */
-#define RIG_LEVEL_RF		(1<<4)	/* RF gain (not TX power), arg float [0.0..1.0] */
+#define RIG_LEVEL_RF		(1<<4)	/* RF gain (not TX power), arg float [0.0..1.0] or in dB ?? -20..20 ?*/
 #define RIG_LEVEL_SQL		(1<<5)	/* Squelch, arg float [0.0 .. 1.0] */
 #define RIG_LEVEL_IF		(1<<6)	/* IF, arg int (Hz) */
 #define RIG_LEVEL_APF		(1<<7)	/* APF, arg float [0.0 .. 1.0] */
@@ -385,21 +404,8 @@ typedef unsigned long setting_t;	/* 32 bits might not be enough.. */
 #define RIG_FUNC_LOCK     	(1<<16)		/* Lock */
 #define RIG_FUNC_MUTE     	(1<<17)		/* Mute, could be emulated by LELVE_AF*/
 #define RIG_FUNC_VSC     	(1<<18)		/* Voice Scan Control */
+#define RIG_FUNC_REV     	(1<<19)		/* Reverse tx and rx freqs */
 
-
-/*
- * freq_t: frequency type in Hz, must be >32bits for SHF! 
- * shortfreq_t: frequency on 31bits, suitable for offsets, shifts, etc..
- */
-typedef long long freq_t;
-typedef signed long shortfreq_t;
-
-#define Hz(f)	((freq_t)(f))
-#define kHz(f)	((freq_t)((f)*1000))
-#define MHz(f)	((freq_t)((f)*1000000L))
-#define GHz(f)	((freq_t)((f)*1000000000LL))
-
-#define RIG_FREQ_NONE Hz(0)
 
 /*
  * power unit macros, converts to mW
@@ -529,7 +535,8 @@ enum chan_type_e {
 		RIG_MTYPE_MEM,			/* regular */
 		RIG_MTYPE_EDGE,			/* scan edge */
 		RIG_MTYPE_CALL,			/* call channel */
-		RIG_MTYPE_MEMOPAD		/* inaccessible on Icom, what about others? */
+		RIG_MTYPE_MEMOPAD,		/* inaccessible on Icom, what about others? */
+		RIG_MTYPE_SAT			/* satellite */
 };
 
 struct chan_list {
