@@ -94,7 +94,7 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-TENTECSRCLIST = rx320.c
+TENTECSRCLIST = rx320.c pegasus.c
 
 lib_LTLIBRARIES = libhamlib-tentec.la
 libhamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c
@@ -109,7 +109,7 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_tentec_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_tentec_la_OBJECTS = rx320.lo tentec.lo
+am_libhamlib_tentec_la_OBJECTS = rx320.lo pegasus.lo tentec.lo
 libhamlib_tentec_la_OBJECTS = $(am_libhamlib_tentec_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -118,7 +118,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/rx320.Plo $(DEPDIR)/tentec.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/pegasus.Plo $(DEPDIR)/rx320.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/tentec.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -181,6 +182,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/pegasus.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/rx320.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tentec.Plo@am__quote@
 

@@ -99,9 +99,10 @@ LDFLAGS = -no-undefined -module -avoid-version
 @HAMLIBTCL_TRUE@lib_LTLIBRARIES = libhamlibtcl.la
 #lib_LTLIBRARIES = @LTHAMLIBTCL@
 @HAMLIBTCL_TRUE@libhamlibtcl_la_SOURCES = hamlibtcl.c
+@HAMLIBTCL_TRUE@libhamlibtcl_la_LIBADD = ../src/libhamlib.la
+
 
 #libhamlibtcl_la_LDFLAGS = -no-undefined -module -avoid-version
-#libhamlibtcl_la_LIBADD = ../src/libhamlib.la
 #EXTRA_LTLIBRARIES = libhamlibtcl.la
 @HAMLIBTCL_FALSE@BUILT_SOURCES = hamlibtcl.c
 
@@ -114,7 +115,8 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlibtcl_la_LDFLAGS =
-libhamlibtcl_la_LIBADD =
+@HAMLIBTCL_TRUE@libhamlibtcl_la_DEPENDENCIES = ../src/libhamlib.la
+@HAMLIBTCL_FALSE@libhamlibtcl_la_DEPENDENCIES =
 @HAMLIBTCL_TRUE@am_libhamlibtcl_la_OBJECTS = hamlibtcl.lo
 @HAMLIBTCL_FALSE@am_libhamlibtcl_la_OBJECTS =
 libhamlibtcl_la_OBJECTS = $(am_libhamlibtcl_la_OBJECTS)
