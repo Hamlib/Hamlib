@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.13 2001-01-05 18:24:20 f4cfe Exp $
+   $Id: rig.c,v 1.14 2001-01-28 22:17:12 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -203,7 +203,6 @@ RIG *rig_init(rig_model_t rig_model)
 
 		rig->state.port_type = RIG_PORT_SERIAL; /* default is serial port */
 		strncpy(rig->state.rig_path, DEFAULT_SERIAL_PORT, FILPATHLEN);
-		rig->state.port_type = RIG_PORT_SERIAL; /* default is serial port */
 		rig->state.serial_rate = rig->caps->serial_rate_max;	/* fastest ! */
 		rig->state.serial_data_bits = rig->caps->serial_data_bits;
 		rig->state.serial_stop_bits = rig->caps->serial_stop_bits;
@@ -218,6 +217,9 @@ RIG *rig_init(rig_model_t rig_model)
 		rig->state.ptt_type = rig->caps->ptt_type;
 		rig->state.vfo_comp = 0.0;	/* override it with preferences */
 		rig->state.current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
+
+		rig->state.fd = -1;
+		rig->state.ptt_fd = -1;
 
 		/* 
 		 * let the backend a chance to setup his private data
@@ -270,6 +272,16 @@ int rig_open(RIG *rig)
 
 		rig->state.stream = fdopen(rig->state.fd, "r+b");
 
+		if (rig->state.ptt_type == RIG_PTT_SERIAL_DTR ||
+						rig->state.ptt_type == RIG_PTT_SERIAL_RTS ||
+						rig->state.ptt_type == RIG_PTT_PARALLEL) {
+			if ((rig->state.ptt_fd = open(rig->state.ptt_path, O_RDWR, 0)) < 0) {
+				rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
+								rig->state.ptt_path);
+				return -1;
+			}
+		}
+
 		add_opened_rig(rig);
 
 		/* 
@@ -317,6 +329,10 @@ int rig_close(RIG *rig)
 				else
 					close(rig->state.fd);
 				rig->state.fd = -1;
+				if (rig->state.ptt_fd >= 0) {
+					close(rig->state.ptt_fd);
+					rig->state.ptt_fd = -1;
+				}
 				rig->state.stream = NULL;
 		}
 
@@ -632,9 +648,13 @@ int rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 			break;
 
-		case RIG_PTT_SERIAL:
+		case RIG_PTT_SERIAL_DTR:
+		case RIG_PTT_SERIAL_RTS:
 		case RIG_PTT_PARALLEL:
-				return -RIG_ENIMPL;	/* not implemented */
+				return -RIG_ENIMPL;	/* not implemented(experimental) */
+
+				ptt_set(rig->state.ptt_fd, rig->state.ptt_type, ptt);
+				break;
 
 		case RIG_PTT_NONE:
 		default:
@@ -687,7 +707,8 @@ int rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 			break;
 
-		case RIG_PTT_SERIAL:
+		case RIG_PTT_SERIAL_RTS:	/* DCD through CTS */
+		case RIG_PTT_SERIAL_DTR:	/* DCD through DSR */
 		case RIG_PTT_PARALLEL:
 				return -RIG_ENIMPL;	/* not implemented */
 
@@ -1788,6 +1809,13 @@ int rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  *      The rig_get_level() function retrieves the value of a @level.
  *      The level value @val can be a float or an integer. See &value_t
  *      for more information.
+ *
+ * 		%RIG_LEVEL_STRENGTH: @val is an integer, representing the S Meter
+ * 		level in dB, according to the ideal S Meter scale. The ideal
+ * 		S Meter scale is as follow: S0=-54, S1=-48, S2=-42, S3=-36,
+ * 		S4=-30, S5=-24, S6=-18, S7=-12, S8=-6, S9=0, +10=10, +20=20,
+ * 		+30=30, +40=40, +50=50 and +60=60. This is the responsability
+ * 		of the backend to return values calibrated for this scale.
  *
  *      RETURN VALUE: The rig_get_level() function returns %RIG_OK
  *      if the operation has been sucessful, or a negative value
