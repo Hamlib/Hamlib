@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.7 2000-09-16 01:29:35 f4cfe Exp $  
+ *    $Id: serial.h,v 1.8 2000-09-17 00:06:52 javabear Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,10 +32,8 @@
 
 int serial_open(struct rig_state *rs);
 
-int open_port(char *serial_port);
-int write_block(int fd, unsigned char *data);
+
 int close_port(int fd);
-int open_port2(struct rig_caps *rc);
 
 
 /*
@@ -49,10 +47,21 @@ int open_port2(struct rig_caps *rc);
 
 
 int read_sleep(int fd, unsigned char *rxbuffer, int num );
-
-
 int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
 int write_block2(int fd, const unsigned char *txbuffer, size_t count, int write_delay);
+
+
+
+
+
+
+/*
+ * todo :Should move conversion stuff to another file -- FS
+ *
+ */
+
+
+
 
 /*
  * Convert char to packed decimal
