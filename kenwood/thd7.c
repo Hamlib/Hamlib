@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-D7 description
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: thd7.c,v 1.4 2002-01-02 23:41:44 fillods Exp $
+ *		$Id: thd7.c,v 1.5 2002-01-07 17:46:28 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,27 +44,50 @@
 #define RIG_ASSERT(x)
 #endif
 
-
 static int thd7_set_vfo(RIG *rig, vfo_t vfo);
 static int thd7_get_vfo(RIG *rig, vfo_t *vfo);
 static int thd7_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int thd7_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int thd7_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 static int thd7_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+static int thd7_set_trn(RIG *rig, int trn);
+static int thd7_get_trn(RIG *rig, int *trn);
+static const char *thd7_get_info(RIG *rig);
+static int thd7_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int thd7_get_mem(RIG *rig, vfo_t vfo, int *ch);
+static int thd7_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 #define THD7_MODES	  (RIG_MODE_FM|RIG_MODE_AM)
 #define THD7_MODES_TX (RIG_MODE_FM)
 
-#define THD7_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_AIP|RIG_FUNC_SQL)
+#define THD7_FUNC_ALL (RIG_FUNC_TSQL|   \
+                       RIG_FUNC_AIP|    \
+                       RIG_FUNC_MON|    \
+                       RIG_FUNC_SQL|    \
+                       RIG_FUNC_TONE|   \
+                       RIG_FUNC_REV|    \
+                       RIG_FUNC_LOCK|   \
+                       RIG_FUNC_ARO|    \
+                       RIG_FUNC_LMP)
 
-#define THD7_LEVEL_ALL (RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
+#define THD7_LEVEL_ALL (RIG_LEVEL_STRENGTH| \
+                        RIG_LEVEL_SQL| \
+                        RIG_LEVEL_SQLSTAT| \
+                        RIG_LEVEL_AF| \
+                        RIG_LEVEL_RF|\
+                        RIG_LEVEL_MICGAIN)
 
 #define THD7_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
 /*
  * TODO: Band A & B
  */
-#define THD7_VFO (RIG_VFO_A|RIG_VFO_C)
+#define THD7_VFO (RIG_VFO_A|RIG_VFO_B)
+
+const struct kenwood_priv_caps  thd7_priv_caps  = {
+    cmdtrm: "\r",   /* Command termination character */
+};
+
 
 /*
  * th-d7a rig capabilities.
@@ -148,25 +171,30 @@ filters: {
 		{RIG_MODE_AM, kHz(9)},
 		RIG_FLT_END,
 	},
-priv: NULL,
+priv: (void *)&thd7_priv_caps,
+rig_init: kenwood_init,
+rig_cleanup: kenwood_cleanup,
+rig_open: NULL,
+rig_close: NULL,
 
 set_freq: th_set_freq,
 get_freq: th_get_freq,
-set_mode: thd7_set_mode,
-get_mode: thd7_get_mode,
-set_vfo: thd7_set_vfo,
-get_vfo: thd7_get_vfo,
+set_mode: th_set_mode,
+get_mode: th_get_mode,
+set_vfo: th_set_vfo,
+get_vfo: th_get_vfo,
 set_ctcss_tone: thd7_set_ctcss_tone,
 get_ctcss_tone: thd7_get_ctcss_tone,
+set_mem: thd7_set_mem,
+get_mem: thd7_get_mem,
+set_trn: th_set_trn,
+get_trn: th_get_trn,
 
-/* Untested and will most probably not work! *
-set_ptt: kenwood_set_ptt,
-get_dcd: kenwood_get_dcd,
-vfo_op: kenwood_vfo_op,
-set_mem: kenwood_set_mem,
-get_mem: kenwood_get_mem,
- */
+get_func: th_get_func,
+get_level: th_get_level,
+get_info: thd7_get_info,
 
+decode_event: th_decode_event,
 };
 
 #define EOM "\r"
@@ -252,7 +280,7 @@ thd7_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__" called\n");
     RIG_ASSERT(rig != NULL);
-	
+
 	switch (mode) {
 	case RIG_MODE_FM:   kmode = '0'; break;
 	case RIG_MODE_AM:   kmode = '1'; break;
@@ -408,5 +436,258 @@ thd7_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	return RIG_OK;
 }
 
+#ifdef USE_TRN_FUNCS
+/*
+ * th7d_set_trn
+ * Assumes rig!=NULL
+ */
+static int
+thd7_set_trn(RIG *rig, int trn)
+{
+	unsigned char trnbuf[16], ackbuf[16];
+	int retval, trn_len, ack_len = 0;
 
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	memset(ackbuf, 0, sizeof(ackbuf));
+
+	trn_len = sprintf(trnbuf, "AI %c" EOM,
+			(trn == RIG_TRN_RIG) ? '1' : '0');
+
+	retval = kenwood_transaction (rig, trnbuf, trn_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ackbuf[0] != 'A' || ackbuf[1] != 'I') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+								"'%s', len=%d\n", ackbuf, ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	return RIG_OK;
+}
+
+/*
+ * th7d_get_trn
+ * Assumes rig!=NULL
+ */
+static int
+thd7_get_trn(RIG *rig, int *trn)
+{
+	unsigned char trnbuf[16];
+	int retval, trn_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	memset(trnbuf, 0, sizeof(trnbuf));
+
+	retval = kenwood_transaction(rig, "AI" EOM, 3, trnbuf, &trn_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (trnbuf[0] == 'N' && trnbuf[1] == '\n') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": ack NG, len=%d\n", trn_len);
+		return -RIG_ERJCTED;
+	}
+
+	if (trnbuf[0] != 'A' || trnbuf[1] != 'I') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+			                    "'%s', len=%d\n", trnbuf, trn_len);
+        return -RIG_ERJCTED;
+	}
+
+	*trn = (trnbuf[4] != '0') ? RIG_TRN_RIG : RIG_TRN_OFF;
+	return RIG_OK;
+}
+#endif /* USE_TRN_FUNCS */
+
+static const char *
+thd7_get_info(RIG *rig)		/* I hope this is the correct function for this command. */
+{
+	static unsigned char firmbuf[16];
+	int retval, firm_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+
+	memset(firmbuf, 0, sizeof(firmbuf));
+	retval = kenwood_transaction (rig, "ID" EOM, 3, firmbuf, &firm_len);
+	if (retval != RIG_OK)
+		return NULL;
+#if 1
+	if (firm_len != 6) {
+		rig_debug(RIG_DEBUG_ERR,__FUNCTION__": wrong answer len=%d\n",
+											firm_len);
+        return NULL;
+    }
+#endif
+	if (firmbuf[0] != 'I' || firmbuf[1] != 'D') {
+       rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+                               "'%s', len=%d\n", firmbuf, firm_len);
+	   return NULL;
+	}
+
+	return &firmbuf[2];
+}
+
+/*
+ * thd7_set_mem
+ * Assumes rig!=NULL
+ */
+static int
+thd7_set_mem(RIG *rig, vfo_t vfo, int ch)
+{
+	unsigned char vsel, membuf[16], ackbuf[16];
+	int retval, mem_len, ack_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	memset(ackbuf, 0, sizeof(ackbuf));
+
+	if (ch < 0 || ch > 200) {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": channel num out of range: %d\n", ch);
+		return -RIG_EINVAL;
+	}
+	switch (vfo) {
+	  case RIG_VFO_A: vsel = '0'; break;
+	  case RIG_VFO_B: vsel = '1'; break;
+	  default:
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unsupported VFO %d\n", vfo);
+		return -RIG_EINVAL;
+	}
+
+	mem_len = sprintf(membuf, "MC %c,%i" EOM, vsel, ch);
+	retval = kenwood_transaction(rig, membuf, mem_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": negative acknowledgment\n");
+		return -RIG_ERJCTED;
+	}
+
+	if (ackbuf[0] != 'M' || ackbuf[1] != 'C') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+								"'%s', len=%d\n", ackbuf, ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	return RIG_OK;
+}
+
+static int
+thd7_get_mem(RIG *rig, vfo_t vfo, int *ch)
+{
+	unsigned char *membuf, ackbuf[16];
+	int retval, mem_len, ack_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	memset(ackbuf, 0, sizeof(ackbuf));
+
+	switch (vfo) {
+	  case RIG_VFO_A:
+		membuf = "MC 0" EOM;
+		break;
+	  case RIG_VFO_B:
+		membuf = "MC 1" EOM;
+		break;
+	  case RIG_VFO_CURR:
+		membuf = "MC" EOM;
+		break;
+	  default:
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unsupported VFO %d\n", vfo);
+		return -RIG_EINVAL;
+	}
+
+	mem_len = strlen(membuf);
+	retval = kenwood_transaction(rig, membuf, mem_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": negative acknowledgment\n");
+		return -RIG_ERJCTED;
+	}
+
+	if (ackbuf[0] != 'M' || ackbuf[1] != 'C') {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+								"'%s', len=%d\n", ackbuf, ack_len);
+		return -RIG_ERJCTED;
+	}
+
+    *ch = atoi(&membuf[3]);
+#if 0
+	if (*ch < 0 || *ch > 200) {
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": channel num out of range: %d\n", ch);
+		return -RIG_EINVAL;
+	}
+#endif
+	return RIG_OK;
+}
+
+/*
+ * thd7_get_level
+ * Assumes rig!=NULL
+ */
+static int
+thd7_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	unsigned char vsel, lvlbuf[16], ackbuf[16];
+	int retval, lvl_len, ack_len = 0;
+
+	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__": called\n");
+	memset(ackbuf, 0, sizeof(ackbuf));
+
+	switch (vfo) {
+	  case RIG_VFO_A: vsel = '0'; break;
+	  case RIG_VFO_B: vsel = '1'; break;
+	  default:
+		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unsupported VFO %d\n", vfo);
+		return -RIG_EINVAL;
+	}
+
+	switch (level) {
+	case RIG_LEVEL_STRENGTH:
+		lvl_len = sprintf(lvlbuf, "SM %c" EOM, vsel);
+		retval = kenwood_transaction(rig, lvlbuf, lvl_len, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+			return retval;
+		if (ackbuf[0] == 'N' && ackbuf[1] == '\n') {
+	        rig_debug(RIG_DEBUG_ERR,__FUNCTION__": negative acknowledgment\n");
+	        return -RIG_ERJCTED;
+	    }
+		if (ackbuf[0] != 'S' || ackbuf[1] != 'M') {
+			rig_debug(RIG_DEBUG_ERR, __FUNCTION__": unexpected reply "
+				                     "'%s', len=%d\n", ackbuf, ack_len);
+	        return -RIG_ERJCTED;
+	    }
+
+		val->i = atoi(&ackbuf[3]);
+		break;
+
+	case RIG_LEVEL_SQLSTAT:
+	case RIG_LEVEL_PREAMP:
+	case RIG_LEVEL_ATT:
+	case RIG_LEVEL_AF:
+	case RIG_LEVEL_RF:
+	case RIG_LEVEL_SQL:
+	case RIG_LEVEL_MICGAIN:
+	case RIG_LEVEL_IF:
+	case RIG_LEVEL_APF:
+	case RIG_LEVEL_NR:
+	case RIG_LEVEL_PBT_IN:
+	case RIG_LEVEL_PBT_OUT:
+	case RIG_LEVEL_CWPITCH:
+	case RIG_LEVEL_KEYSPD:
+	case RIG_LEVEL_NOTCHF:
+	case RIG_LEVEL_COMP:
+	case RIG_LEVEL_AGC:
+	case RIG_LEVEL_BKINDL:
+	case RIG_LEVEL_BALANCE:
+		return -RIG_ENIMPL;
+
+	default:
+        rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+        return -RIG_EINVAL;
+    }
+    return RIG_OK;
+}
+
+/* end of file */
 
