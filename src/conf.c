@@ -2,7 +2,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: conf.c,v 1.4 2001-12-20 07:47:53 fillods Exp $
+ *		$Id: conf.c,v 1.5 2001-12-26 23:45:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,13 +35,6 @@
 #include "conf.h"
 
 
-#define TOK_RIG_PATHNAME	RIG_TOKEN_FRONTEND(10)
-#define TOK_WRITE_DELAY	RIG_TOKEN_FRONTEND(12)
-#define TOK_POST_WRITE_DELAY	RIG_TOKEN_FRONTEND(13)
-#define TOK_TIMEOUT	RIG_TOKEN_FRONTEND(14)
-#define TOK_RETRY	RIG_TOKEN_FRONTEND(15)
-#define TOK_ITU_REGION	RIG_TOKEN_FRONTEND(20)
-
 /*
  * Place holder for now. Here will be defined all the configuration
  * options available in the rig->state struct.
@@ -69,6 +62,32 @@ static const struct confparams frontend_cfg_params[] = {
 			"ITU region this rig has been manufactured for (freq. band plan)",
 			"0", RIG_CONF_NUMERIC, { n: { 1, 3, 1 } }
 	},
+
+	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
+			"Serial port baud rate",
+			"0", RIG_CONF_NUMERIC, { n: { 300, 115200, 1 } }
+	},
+	{ TOK_DATA_BITS, "data_bits", "Serial data bits", 
+			"Serial port data bits",
+			"8", RIG_CONF_NUMERIC, { n: { 5, 8, 1 } }
+	},
+	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits", 
+			"Serial port stop bits",
+			"1", RIG_CONF_NUMERIC, { n: { 0, 3, 1 } }
+	},
+	{ TOK_PARITY, "serial_parity", "Serial parity", 
+			"Serial port parity",
+			"None", RIG_CONF_COMBO, { c: {{ "None", "Odd", "Even", NULL }} }
+	},
+	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
+			"Serial port handshake",
+			"None", RIG_CONF_COMBO, { c: {{ "None", "XONXOFF", "Hardware", NULL }} }
+	},
+	{ TOK_VFO_COMP, "vfo_comp", "VFO compensation", 
+			"VFO compensation in ppm",
+			"0", RIG_CONF_NUMERIC, { n: { 0.0, 1000.0, .001 } }
+	},
+
 	{ RIG_CONF_END, NULL, }
 };
 
@@ -102,6 +121,36 @@ int frontend_set_conf(RIG *rig, token_t token, const char *val)
 				rs->rigport.retry = atoi(val);
 				break;
 
+		case TOK_SERIAL_SPEED:
+				rs->rigport.parm.serial.rate = atoi(val);
+				break;
+		case TOK_DATA_BITS:
+				rs->rigport.parm.serial.data_bits = atoi(val);
+				break;
+		case TOK_STOP_BITS:
+				rs->rigport.parm.serial.stop_bits = atoi(val);
+				break;
+		case TOK_PARITY:
+				if (!strncmp(val, "None", 8))
+					rs->rigport.parm.serial.parity = RIG_PARITY_NONE;
+				else if (!strncmp(val, "Odd", 8))
+					rs->rigport.parm.serial.parity = RIG_PARITY_ODD;
+				else if (!strncmp(val, "Even", 8))
+					rs->rigport.parm.serial.parity = RIG_PARITY_EVEN;
+				else 
+						return -RIG_EINVAL;
+				break;
+		case TOK_HANDSHAKE:
+				if (!strncmp(val, "None", 8))
+					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
+				else if (!strncmp(val, "XONXOFF", 8))
+					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
+				else if (!strncmp(val, "Hardware", 8))
+					rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
+				else 
+						return -RIG_EINVAL;
+				break;
+
 		case TOK_ITU_REGION:
 				rs->itu_region = atoi(val);
                 switch(rs->itu_region) {
@@ -122,6 +171,10 @@ int frontend_set_conf(RIG *rig, token_t token, const char *val)
 					}
 				break;
 
+		case TOK_VFO_COMP:
+				rs->vfo_comp = atof(val);
+				break;
+
 		default:
 				return -RIG_EINVAL;
 		}
@@ -136,6 +189,7 @@ int frontend_get_conf(RIG *rig, token_t token, char *val)
 {
 		const struct rig_caps *caps;
 		struct rig_state *rs;
+		const char *s;
 
 		caps = rig->caps;
 		rs = &rig->state;
@@ -160,6 +214,38 @@ int frontend_get_conf(RIG *rig, token_t token, char *val)
 				sprintf(val, "%d", 
 					rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
 				break;
+		case TOK_SERIAL_SPEED:
+				sprintf(val, "%d", rs->rigport.parm.serial.rate);
+				break;
+		case TOK_DATA_BITS:
+				sprintf(val, "%d", rs->rigport.parm.serial.data_bits);
+				break;
+		case TOK_STOP_BITS:
+				sprintf(val, "%d", rs->rigport.parm.serial.stop_bits);
+				break;
+		case TOK_PARITY:
+				switch (rs->rigport.parm.serial.parity) {
+				case RIG_PARITY_NONE: s = "None"; break;
+				case RIG_PARITY_ODD: s = "Odd"; break;
+				case RIG_PARITY_EVEN: s = "Even"; break;
+				default: return -RIG_EINVAL;
+				}
+				strcpy(val, s);
+				break;
+		case TOK_HANDSHAKE:
+				switch (rs->rigport.parm.serial.handshake) {
+				case RIG_HANDSHAKE_NONE: s = "None"; break;
+				case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
+				case RIG_HANDSHAKE_HARDWARE: s = "Hardware"; break;
+				default: return -RIG_EINVAL;
+				}
+				strcpy(val, s);
+				break;
+
+		case TOK_VFO_COMP:
+				sprintf(val, "%f", rs->vfo_comp);
+				break;
+
 		default:
 				return -RIG_EINVAL;
 		}
@@ -190,8 +276,10 @@ int rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_
 
 
 /*
- * lookup backend config table first, then fall back to frontend
- * should use Lex to speed it up, strcmp hurts!
+ * lookup conf token by its name, return pointer to confparams struct.
+ *
+ * lookup backend config table first, then fall back to frontend.
+ * TODO: should use Lex to speed it up, strcmp hurts!
  */
 const struct confparams *rig_confparam_lookup(RIG *rig, const char *name)
 {
@@ -208,6 +296,9 @@ const struct confparams *rig_confparam_lookup(RIG *rig, const char *name)
 		return NULL;
 }
 
+/*
+ * Simple lookup returning token id assicated with name
+ */
 token_t rig_token_lookup(RIG *rig, const char *name)
 {
 		const struct confparams *cfp;
@@ -218,6 +309,5 @@ token_t rig_token_lookup(RIG *rig, const char *name)
 
 		return cfp->token;
 }
-
 
 
