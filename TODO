@@ -13,7 +13,6 @@ GENERAL PROJECT TODO
 8. More safe checking during function calls (in rig_* wrappers).
 13. ~/.hamlibrc and /etc/hamlibrc preferences file
 14. Write the list of all functions that should be in the API
-15. Handle retransmissions (no more than n) if timeout (->backends)
 18. rewrite the post_write_delay. Active delay is a waste of cycles! [need test]
 23. add support in the API for additional filters, DSP bandpass control
 25. Write aclocal .m4 macro helpers for autoconf support [need test]
@@ -22,7 +21,6 @@ GENERAL PROJECT TODO
 28. add rig_srch_ctcss, rig_srch_dcs, etc.
 29. emulate get_stuff (caching) if backend has no support for it
 30. Write perl/python/etc. modules [ongoing]
-32. Document C++/tcltk bindings, complete Hamlib API documentation using doxygen
 
 DONE
 ----
@@ -39,6 +37,7 @@ DONE
 
 12. Add general rig capabilities handling. see rig.h
 
+15. Handle retransmissions (no more than n) if timeout (->backends)
 16. Write .spec (rpm) and .deb (debian) package files
 
 17a. Add support for a configurable debug level (none, function calls, 
@@ -59,3 +58,4 @@ DONE
 24. Should Hamlib (the library itself) be LGPL'ed ?
 31. Add some antenna tuner support
 33. Merge dumpmem/dumpcaps into rigctl
+32. Document C++/tcltk bindings, complete Hamlib API documentation using doxygen
