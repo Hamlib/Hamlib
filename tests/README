@@ -1,0 +1,16 @@
+
+You will find in the tests/ subdirectory various programs to exercise
+the Hamlib library.
+Most of the time, you will have to make sure that the backend for
+your rig is loaded at the begining of the main() by rig_load_backend(),
+and rig_init() initialize for your rig type. Check also that
+the program is setup for your rig path (strncpy(my_rig->state.rig_path, etc.)
+
+dumpcaps  -	Output the caps contents of a rig 
+listrigs  -	Condensed list of all the models supported by backends
+rigmatrix -	Output the HTML table of supported rigs, with .png files for freqs
+testbcd   -	Simple program to test BCD conversion, takes a number as arg.
+testfreq  -	Simple program to test Freq conversion, takes a number as arg.
+testrig   -	Sample program calling common API calls
+testtrn   -	Sample program using event notification
+rigctl	  -	Combined tool to execute any call of the API
