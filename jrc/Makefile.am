@@ -1,4 +1,4 @@
-JRCSRCLIST = nrd545.c
+JRCSRCLIST = nrd535.c nrd545.c
 
 lib_LTLIBRARIES = hamlib-jrc.la
 hamlib_jrc_la_SOURCES = $(JRCSRCLIST) jrc.c
