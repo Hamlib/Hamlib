@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.91 2004-01-15 23:04:52 fillods Exp $
+ *	$Id: rig.h,v 1.92 2004-02-09 22:07:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -131,7 +131,7 @@ typedef struct rig RIG;
 #define FRQRANGESIZ 30
 #define MAXCHANDESC 30		/* describe channel eg: "WWV 5Mhz" */
 #define TSLSTSIZ 20		/* max tuning step list size, zero ended */
-#define FLTLSTSIZ 16		/* max mode/filter list size, zero ended */
+#define FLTLSTSIZ 42		/* max mode/filter list size, zero ended */
 #define MAXDBLSTSIZ 8		/* max preamp/att levels supported, zero ended */
 #define CHANLSTSIZ 16		/* max mem_list size, zero ended */
 #define MAX_CAL_LENGTH 32	/* max calibration plots in cal_table_t */
@@ -577,6 +577,7 @@ enum rig_level_e {
 	RIG_LEVEL_VOXGAIN =	(1<<21),/*!< VOX gain level, arg float [0.0 .. 1.0] */
 	RIG_LEVEL_VOXDELAY =  RIG_LEVEL_VOX,	/*!< VOX delay, arg int (tenth of seconds) */
 	RIG_LEVEL_ANTIVOX =	(1<<22),/*!< anti-VOX level, arg float [0.0 .. 1.0] */
+	//RIG_LEVEL_LINEOUT =	(1<<23),/*!< Lineout Volume, arg float [0.0 .. 1.0] */
 
 		/*!< These ones are not settable */
 	RIG_LEVEL_RAWSTR =	(1<<26),/*!< Raw (A/D) value for signal strength, specific to each rig, arg int */
