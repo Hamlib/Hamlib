@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.30 2003-04-16 22:33:18 fillods Exp $
+ *	$Id: serial.c,v 1.31 2003-04-19 11:49:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -136,9 +136,9 @@ int serial_open(port_t *rp) {
 
 int serial_setup(port_t *rp)
 {
-  speed_t speed;			/* serial comm speed */
   int fd;
 #ifdef HAVE_TERMIOS_H
+  speed_t speed;			/* serial comm speed */
   struct termios options;
 #elif defined(HAVE_TERMIO_H)
   struct termio options;
