@@ -1,8 +1,15 @@
+/**
+ * \file src/conf.c
+ * \ingroup rig
+ * \brief Rig configuration interface
+ * \author Stephane Fillod
+ * \date 2000-2002
+ */
 /*
  *  Hamlib Interface - configuration interface
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000,2002 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.7 2002-08-16 17:43:02 fillods Exp $
+ *	$Id: conf.c,v 1.8 2002-11-04 22:21:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,10 +38,7 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 
 #include <hamlib/rig.h>
-
-#include "conf.h"
 #include "token.h"
-
 
 /*
  * Place holder for now. Here will be defined all the configuration
@@ -97,7 +101,7 @@ static const struct confparams frontend_cfg_params[] = {
  * assumes rig!=NULL, val!=NULL
  * TODO: check format of val before doing atoi().
  */
-int frontend_set_conf(RIG *rig, token_t token, const char *val)
+static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 {
 		const struct rig_caps *caps;
 		struct rig_state *rs;
@@ -186,7 +190,7 @@ int frontend_set_conf(RIG *rig, token_t token, const char *val)
  * frontend_get_conf
  * assumes rig!=NULL, val!=NULL
  */
-int frontend_get_conf(RIG *rig, token_t token, char *val)
+static int frontend_get_conf(RIG *rig, token_t token, char *val)
 {
 		const struct rig_caps *caps;
 		struct rig_state *rs;
@@ -254,10 +258,19 @@ int frontend_get_conf(RIG *rig, token_t token, char *val)
 		return RIG_OK;
 }
 
-/*
- * rig_token_foreach
- * executes cfunc on all the elements stored in the conf table
- * start first with backend conf table, then finish with frontend table
+/**
+ * \brief call a function against each configuration token of a rig
+ * \param rig	The rig handle
+ * \param cfunc	The function to perform on each token
+ * \param data	Any data to be passed to cfunc
+ *
+ * Executes \a cfunc on all the elements stored in the conf table.
+ * rig_token_foreach starts first with backend conf table, then finish 
+ * with frontend table.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
  */
 int rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
@@ -276,11 +289,14 @@ int rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams *, rig_ptr_
 }
 
 
-/*
- * lookup conf token by its name, return pointer to confparams struct.
+/**
+ * \brief lookup a confparam struct
+ * \param rig	The rig handle
+ * \param name	The name of the configuration parameter
  *
- * lookup backend config table first, then fall back to frontend.
- * TODO: should use Lex to speed it up, strcmp hurts!
+ * Lookup conf token by its name.
+ *
+ * \return a pointer to the confparams struct if found, otherwise NULL.
  */
 const struct confparams *rig_confparam_lookup(RIG *rig, const char *name)
 {
@@ -297,8 +313,14 @@ const struct confparams *rig_confparam_lookup(RIG *rig, const char *name)
 		return NULL;
 }
 
-/*
- * Simple lookup returning token id assicated with name
+/**
+ * \brief lookup a token id
+ * \param rig	The rig handle
+ * \param name	The name of the configuration parameter
+ *
+ * Simple lookup returning token id assicated with name.
+ *
+ * \return the token id if found, otherwise RIG_CONF_END
  */
 token_t rig_token_lookup(RIG *rig, const char *name)
 {
@@ -311,4 +333,60 @@ token_t rig_token_lookup(RIG *rig, const char *name)
 		return cfp->token;
 }
 
+/**
+ * \brief set a radio configuration parameter
+ * \param rig	The rig handle
+ * \param token	The parameter
+ * \param val	The value to set the parameter to
+ *
+ *  Sets a configuration parameter. 
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_conf()
+ */
+int rig_set_conf(RIG *rig, token_t token, const char *val)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (IS_TOKEN_FRONTEND(token))
+				return frontend_set_conf(rig, token, val);
+
+		if (rig->caps->set_conf == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->set_conf(rig, token, val);
+}
+
+/**
+ * \brief get the value of a configuration parameter
+ * \param rig	The rig handle
+ * \param token	The parameter
+ * \param val	The location where to store the value of config \a token
+ *
+ *  Retrieves the value of a configuration paramter associated with \a token.
+ *  The location pointed to by val must be large enough to hold the value of the config.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_conf()
+ */
+int rig_get_conf(RIG *rig, token_t token, char *val)
+{
+		if (!rig || !rig->caps || !val)
+			return -RIG_EINVAL;
+
+		if (IS_TOKEN_FRONTEND(token))
+				return frontend_get_conf(rig, token, val);
+
+		if (rig->caps->get_conf == NULL)
+			return -RIG_ENAVAIL;
+
+		return rig->caps->get_conf(rig, token, val);
+}
 
