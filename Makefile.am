@@ -6,7 +6,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = hamlib.pc
 
 EXTRA_DIST = PLAN TODO LICENSE hamlib.m4 hamlib.pc.in README.developer \
-	README.betatester hamlib.spec
+	README.betatester README.win32 hamlib.spec
 
 # BINDINGS_LIST subdirs are no more built
 SUBDIRS = macros include lib libltdl src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
