@@ -81,10 +81,10 @@ WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
 lib_LTLIBRARIES = libhamlib-winradio.la
-libhamlib_winradio_la_SOURCES = winradio.c
+libhamlib_winradio_la_SOURCES = winradio.c wr1500.c
 libhamlib_winradio_la_LDFLAGS = -avoid-version # -module
 lib_LIBRARIES = libhamlib-winradio.a
-libhamlib_winradio_a_SOURCES = winradio.c
+libhamlib_winradio_a_SOURCES = winradio.c wr1500.c
 noinst_HEADERS = winradio.h
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../include/config.h
@@ -97,12 +97,12 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_winradio_a_LIBADD = 
-libhamlib_winradio_a_OBJECTS =  winradio.o
+libhamlib_winradio_a_OBJECTS =  winradio.o wr1500.o
 AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_winradio_la_LIBADD = 
-libhamlib_winradio_la_OBJECTS =  winradio.lo
+libhamlib_winradio_la_OBJECTS =  winradio.lo wr1500.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -117,7 +117,7 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/winradio.P
+DEP_FILES =  .deps/winradio.P .deps/wr1500.P
 SOURCES = $(libhamlib_winradio_a_SOURCES) $(libhamlib_winradio_la_SOURCES)
 OBJECTS = $(libhamlib_winradio_a_OBJECTS) $(libhamlib_winradio_la_OBJECTS)
 
