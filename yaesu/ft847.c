@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.5 2001-02-11 23:13:13 f4cfe Exp $  
+ * $Id: ft847.c,v 1.6 2001-02-14 23:54:21 f4cfe Exp $  
  *
  *
  *
@@ -185,7 +185,8 @@ static const yaesu_cmd_set_t ncmd[] = {
 const struct rig_caps ft847_caps = {
   RIG_MODEL_FT847, "FT-847", "Yaesu", "0.1", "GPL?",
   RIG_STATUS_ALPHA, RIG_TYPE_TRANSCEIVER,
-  RIG_PTT_RIG, 4800, 57600, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE,
+  RIG_PTT_RIG, RIG_DCD_NONE, RIG_PORT_SERIAL,
+  4800, 57600, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE,
   FT847_WRITE_DELAY, FT847_POST_WRITE_DELAY, 100, 0,
   RIG_FUNC_NONE, FT847_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
   { RIG_DBLST_END, },	/* FIXME! */
@@ -250,6 +251,11 @@ const struct rig_caps ft847_caps = {
         
     RIG_TS_END,
   },  
+      /* mode/filter list, remember: order matters! */
+  {
+		/* FIXME! */
+		RIG_FLT_END,
+  },
   ft847_init, 
   ft847_cleanup, 
   ft847_open, 

@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.5 2001-02-11 23:13:13 f4cfe Exp $  
+ * $Id: ft747.c,v 1.6 2001-02-14 23:54:21 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -128,7 +128,8 @@ static const yaesu_cmd_set_t ncmd[] = {
 const struct rig_caps ft747_caps = {
   RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", "GPL?",
   RIG_STATUS_ALPHA, RIG_TYPE_MOBILE, 
-  RIG_PTT_RIG, 4800, 4800, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
+  RIG_PTT_RIG, RIG_DCD_NONE, RIG_PORT_SERIAL,
+  4800, 4800, 8, 2, RIG_PARITY_NONE, RIG_HANDSHAKE_NONE, 
   FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,
   FT747_FUNC_ALL, FT747_FUNC_ALL, RIG_LEVEL_NONE, RIG_LEVEL_NONE,
   { RIG_DBLST_END, },	/* FIXME! */
@@ -173,14 +174,20 @@ const struct rig_caps ft747_caps = {
   { {FT747_SSB_CW_RX_MODES,25}, /* fast off */
     {FT747_SSB_CW_RX_MODES,2500}, /* fast on */
     
-    {FT747_AM_RX_MODES,KHz(1)}, /* fast off */
-    {FT747_AM_RX_MODES,KHz(10)}, /* fast on */
+    {FT747_AM_RX_MODES,kHz(1)}, /* fast off */
+    {FT747_AM_RX_MODES,kHz(10)}, /* fast on */
     
-    {FT747_FM_RX_MODES,KHz(5)}, /* fast off */
+    {FT747_FM_RX_MODES,kHz(5)}, /* fast off */
     {FT747_FM_RX_MODES,12500}, /* fast on */
     
     RIG_TS_END,
   },  
+      /* mode/filter list, remember: order matters! */
+  {
+		/* FIXME! */
+		RIG_FLT_END,
+  },
+
   ft747_init, 
   ft747_cleanup, 
   ft747_open,				/* port opened */

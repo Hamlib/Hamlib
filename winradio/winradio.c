@@ -8,7 +8,7 @@
  * /dev/winradio API.
  *
  *
- *		$Id: winradio.c,v 1.2 2001-02-11 23:13:13 f4cfe Exp $
+ *		$Id: winradio.c,v 1.3 2001-02-14 23:54:21 f4cfe Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -188,15 +188,17 @@ const struct rig_caps wr1500_caps = {
   copyright:	 "GPL?",
   status:        RIG_STATUS_NEW,
   rig_type:      RIG_TYPE_PCRECEIVER,
+  port_type:     RIG_PORT_DEVICE,
   targetable_vfo:	 0,
   ptt_type:      RIG_PTT_NONE,
+  dcd_type:      RIG_DCD_NONE,
   has_get_func:  WR1500_FUNC,
   has_set_func:  WR1500_FUNC,
   has_get_level: WR1500_LEVEL,
   has_set_level: WR1500_SET_LEVEL,
   transceive:    RIG_TRN_OFF,
   attenuator:    { 20, RIG_DBLST_END, },
-  rx_range_list2: { {start:KHz(150),end:MHz(1500),modes:WR1500_MODES,
+  rx_range_list2: { {start:kHz(150),end:MHz(1500),modes:WR1500_MODES,
 		    low_power:-1,high_power:-1},
 		    RIG_FRNG_END, },
   tx_range_list2: { RIG_FRNG_END, },
