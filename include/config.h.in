@@ -1,10 +1,30 @@
 /* include/config.h.in.  Generated automatically from configure.ac by autoheader.  */
 
+/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for `alloca.c' support on those systems.
+   */
+#undef CRAY_STACKSEG_END
+
+/* Define if using `alloca.c'. */
+#undef C_ALLOCA
+
+/* Define if you have `alloca', as a function or macro. */
+#undef HAVE_ALLOCA
+
+/* Define if you have <alloca.h> and it should be used (not on Ultrix). */
+#undef HAVE_ALLOCA_H
+
 /* Define if you have the `atexit' function. */
 #undef HAVE_ATEXIT
 
 /* Define if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
+
+/* Define if you don't have `vprintf' but do have `_doprnt.' */
+#undef HAVE_DOPRNT
+
+/* Define if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
 
 /* Define if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
@@ -42,6 +62,9 @@
 /* Define if you have the <linux/ppdev.h> header file. */
 #undef HAVE_LINUX_PPDEV_H
 
+/* Define if your system has a working `malloc' function. */
+#undef HAVE_MALLOC
+
 /* Define if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -50,6 +73,9 @@
 
 /* Define if you have the <sgtty.h> header file. */
 #undef HAVE_SGTTY_H
+
+/* Define if the system has the type `siginfo_t'. */
+#undef HAVE_SIGINFO_T
 
 /* Define if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
@@ -102,8 +128,31 @@
 /* Define if you have the `usleep' function. */
 #undef HAVE_USLEEP
 
+/* Define if you have the `vprintf' function. */
+#undef HAVE_VPRINTF
+
+/* Define if you have the <winbase.h> header file. */
+#undef HAVE_WINBASE_H
+
+/* Define if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+
+/* Define if you have the <winioctl.h> header file. */
+#undef HAVE_WINIOCTL_H
+
 /* Name of package */
 #undef PACKAGE
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* If using the C implementation of alloca, define if you know the
+   direction of stack growth for your system; otherwise it will be
+   automatically deduced at run-time.
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
+#undef STACK_DIRECTION
 
 /* Define if you have the ANSI C header files. */
 #undef STDC_HEADERS
