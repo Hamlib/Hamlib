@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - event handling header
- *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *		$Id: event.h,v 1.2 2001-07-13 19:08:15 f4cfe Exp $
+ *	$Id: event.h,v 1.3 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as

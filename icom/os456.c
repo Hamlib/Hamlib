@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of the OptoScan456
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod and Michael Smith
  *
- *	$Id: os456.c,v 1.5 2003-05-19 06:57:44 fillods Exp $
+ *	$Id: os456.c,v 1.6 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@ extern struct confparams opto_ext_parms[];
 #define OS456_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 #define OS456_VFO_ALL (RIG_VFO_A)
 #define OS456_LEVELS (RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF)
-
+#define OS456_SCAN_OPS (RIG_SCAN_PLT)
 /*
  * The signal strength data is in the form of two bytes, each consisting 
  * of two BCD digits. The signal strength is reported in units of absolute 
@@ -61,7 +61,8 @@ static const struct icom_priv_caps os456_priv_caps = {
 		0x80,	/* default address */
 		0,		/* 731 mode */
 		NULL,
-		OS456_STR_CAL
+		OS456_STR_CAL,
+		.settle_time = 20,
 };
 
 const struct rig_caps os456_caps = {
@@ -73,7 +74,7 @@ const struct rig_caps os456_caps = {
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
-.dcd_type =  RIG_DCD_NONE,
+.dcd_type =  RIG_DCD_SERIAL_CAR,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
 .serial_rate_max =  38400,
@@ -102,7 +103,7 @@ const struct rig_caps os456_caps = {
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
 .vfo_ops =  RIG_OP_NONE,
-.scan_ops =  RIG_SCAN_NONE,
+.scan_ops =  OS456_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
@@ -167,6 +168,8 @@ const struct rig_caps os456_caps = {
 
 .set_level = optoscan_set_level,
 .get_level = optoscan_get_level,
+
+.scan = optoscan_scan,
 
 };
 

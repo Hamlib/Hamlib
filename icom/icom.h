@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.57 2003-05-19 06:57:44 fillods Exp $
+ *	$Id: icom.h,v 1.58 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,11 +69,27 @@ struct ts_sc_list {
 	unsigned char sc;	/* sub command */
 };
 
+/**
+ * \brief Pipelined tuning state data structure.
+ */
+typedef struct rig_pltstate {
+  freq_t freq;
+  freq_t next_freq;
+  rmode_t mode;
+  rmode_t next_mode;
+  pbwidth_t width;
+  pbwidth_t next_width;
+  struct timeval timer_start;
+  struct timeval timer_current;
+  int usleep_time; /* dependent on radio module & serial data rate */
+} pltstate_t;
+
 struct icom_priv_caps {
 	unsigned char re_civ_addr;	/* the remote dlft equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	const struct ts_sc_list *ts_sc_list;
 	cal_table_t str_cal;
+	int settle_time; /*!< Receiver settle time, in ms */
 };
 
 
@@ -81,6 +97,7 @@ struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	cal_table_t str_cal;
+	pltstate_t *pltstate;	/* only on optoscan */
 };
 
 extern const struct ts_sc_list r8500_ts_sc_list[];

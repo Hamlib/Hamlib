@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.26 2003-06-22 19:39:31 fillods Exp $
+ *	$Id: misc.c,v 1.27 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -708,6 +708,7 @@ static struct {
 	{ RIG_SCAN_PROG, "PROG" },
 	{ RIG_SCAN_DELTA, "DELTA" },
 	{ RIG_SCAN_VFO, "VFO" },
+	{ RIG_SCAN_PLT, "PLT" },
 	{ RIG_SCAN_NONE, NULL },
 };
 

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.22 2003-05-03 13:34:16 fillods Exp $
+ *	$Id: frame.c,v 1.23 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -83,6 +83,7 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * payload can be NULL if payload_len == 0
  * subcmd can be equal to -1 (no subcmd wanted)
+ * if no answer is to be expected, data_len must be set to NULL to tell so
  *
  * return RIG_OK if transaction completed, 
  * or a negative value otherwise indicating the error.
@@ -169,6 +170,14 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const char *payload, in
 		    Unhold_Decode(rig);
 		    return -RIG_EPROTO;
 		  }
+
+		/*
+		 * expect an answer?
+		 */
+		if (data_len == NULL) {
+		    Unhold_Decode(rig);
+		    return RIG_OK;
+		}
 
 		/*
 		 * wait for ACK ... 

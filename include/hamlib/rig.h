@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.83 2003-07-03 06:47:31 fillods Exp $
+ *	$Id: rig.h,v 1.84 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -357,6 +357,7 @@ typedef enum {
   RIG_DCD_RIG,			/*!< Rig has DCD status support, i.e. rig has get_dcd cap */
   RIG_DCD_SERIAL_DSR,		/*!< DCD status from serial DSR signal */
   RIG_DCD_SERIAL_CTS,		/*!< DCD status from serial CTS signal */
+  RIG_DCD_SERIAL_CAR,		/*!< DCD status from serial CD signal */
   RIG_DCD_PARALLEL		/*!< DCD status from parallel port pin */
 } dcd_type_t;
 
@@ -441,7 +442,8 @@ typedef enum {
 	RIG_SCAN_PRIO =		(1<<2),	/*!< Priority watch (mem or call channel) */
 	RIG_SCAN_PROG =		(1<<3),	/*!< Programmed(edge) scan */
 	RIG_SCAN_DELTA =	(1<<4),	/*!< delta-f scan */
-	RIG_SCAN_VFO =		(1<<5) 	/*!< most basic scan */
+	RIG_SCAN_VFO =		(1<<5),	/*!< most basic scan */
+	RIG_SCAN_PLT =		(1<<6)  /*!< Scan using pipelined tuning */
 } scan_t;
 
 /**
@@ -1265,6 +1267,7 @@ typedef int (*mode_cb_t) (RIG *, vfo_t, rmode_t, pbwidth_t, rig_ptr_t);
 typedef int (*vfo_cb_t) (RIG *, vfo_t, rig_ptr_t);
 typedef int (*ptt_cb_t) (RIG *, vfo_t, ptt_t, rig_ptr_t);
 typedef int (*dcd_cb_t) (RIG *, vfo_t, dcd_t, rig_ptr_t);
+typedef int (*pltune_cb_t) (RIG *, vfo_t, freq_t *, rmode_t *, pbwidth_t *, rig_ptr_t);
 
 /**
  * \brief Callback functions and args for rig event.
@@ -1294,6 +1297,8 @@ struct rig_callbacks {
   rig_ptr_t ptt_arg;	/*!< PTT change argument */
   dcd_cb_t dcd_event;	/*!< DCD change event */
   rig_ptr_t dcd_arg;	/*!< DCD change argument */
+  pltune_cb_t pltune;   /*!< Pipeline tuning module freq/mode/width callback */
+  rig_ptr_t pltune_arg; /*!< Pipeline tuning argument */
   /* etc.. */
 };
 
@@ -1449,6 +1454,7 @@ extern HAMLIB_EXPORT(int) rig_set_mode_callback HAMLIB_PARAMS((RIG *, mode_cb_t,
 extern HAMLIB_EXPORT(int) rig_set_vfo_callback HAMLIB_PARAMS((RIG *, vfo_cb_t, rig_ptr_t));
 extern HAMLIB_EXPORT(int) rig_set_ptt_callback HAMLIB_PARAMS((RIG *, ptt_cb_t, rig_ptr_t));
 extern HAMLIB_EXPORT(int) rig_set_dcd_callback HAMLIB_PARAMS((RIG *, dcd_cb_t, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_set_pltune_callback HAMLIB_PARAMS((RIG *, pltune_cb_t, rig_ptr_t));
 
 extern HAMLIB_EXPORT(const char *) rig_get_info HAMLIB_PARAMS((RIG *rig));
 

@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.19 2003-08-15 01:25:26 fillods Exp $
+ *	$Id: event.c,v 1.20 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -485,6 +485,36 @@ int rig_set_dcd_callback(RIG *rig, dcd_cb_t cb, rig_ptr_t arg)
 
 	rig->callbacks.dcd_event = cb;
 	rig->callbacks.dcd_arg = arg;
+
+	return RIG_OK;
+}
+
+/**
+ * \brief set the callback for pipelined tuning module
+ * \param rig	The rig handle
+ * \param cb	The callback to install
+ * \param arg	A Pointer to some private data to pass later on to the callback
+ * used to maintain state during pipelined tuning.
+ *
+ *  Install a callback for pipelined tuning module, to be called when the
+ *  rig_scan( SCAN_PLT ) loop needs a new frequency, mode and width.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_trn()
+ */
+
+int rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
+{
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
+	if(arg==NULL)
+	  return -RIG_EINVAL;
+
+	rig->callbacks.pltune = cb;
+	rig->callbacks.pltune_arg = arg;
 
 	return RIG_OK;
 }

@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.43 2003-05-03 13:17:25 fillods Exp $  
+ * $Id: rigctl.c,v 1.44 2003-08-17 22:39:07 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -369,6 +369,8 @@ int main (int argc, char *argv[])
 						dcd_type = RIG_DCD_SERIAL_DSR;
 					else if (!strcmp(optarg, "CTS"))
 						dcd_type = RIG_DCD_SERIAL_CTS;
+					else if (!strcmp(optarg, "CD"))
+						dcd_type = RIG_DCD_SERIAL_CAR;
 					else if (!strcmp(optarg, "PARALLEL"))
 						dcd_type = RIG_DCD_PARALLEL;
 					else if (!strcmp(optarg, "NONE"))

@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.33 2003-08-15 01:25:26 fillods Exp $
+ *	$Id: serial.c,v 1.34 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -436,7 +436,7 @@ int ser_close(port_t *p)
 #endif
 }
 
-int ser_set_rts(const port_t *p, int state)
+int ser_set_rts(port_t *p, int state)
 {
 #if defined(WIN32)
 		/*
@@ -449,13 +449,63 @@ int ser_set_rts(const port_t *p, int state)
 #endif
 }
 
-int ser_set_dtr(const port_t *p, int state)
+/*
+ * assumes state not NULL
+ * p is supposed to be &rig->state.rigport
+ */
+int ser_get_rts(port_t *p, int *state)
+{
+#if defined(WIN32)
+	/* TODO... */
+  return -RIG_ENIMPL;
+#else
+  int status;
+  unsigned int y;
+  status = ioctl(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_RTS) ? RIG_PTT_ON:RIG_PTT_OFF;
+  return RIG_OK;
+#endif
+}
+
+int ser_set_dtr(port_t *p, int state)
 {
 #if defined(WIN32)
 	return !EscapeCommFunction(p->handle, state ? SETDTR : CLRDTR);
 #else
 	unsigned char y = TIOCM_DTR;
 	return ioctl(p->fd, state ? TIOCMBIS : TIOCMBIC, &y);
+#endif
+}
+
+int ser_get_dtr(port_t *p, int *state)
+{
+#if defined(WIN32)
+	/* TODO... */
+  return -RIG_ENIMPL;
+#else
+  int status;
+  unsigned char y;
+  status = ioctl(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_DTR) ? RIG_PTT_ON:RIG_PTT_OFF;
+  return status;
+#endif
+}
+
+/*
+ * assumes state not NULL
+ * p is supposed to be &rig->state.rigport
+ */
+int ser_get_dcd(port_t *p, int *state)
+{
+#if defined(WIN32)
+	/* TODO... */
+  return -RIG_ENIMPL;
+#else
+  int status;
+  unsigned int y;
+  status = ioctl(p->fd, TIOCMGET, &y);
+  *state = (y & TIOCM_CAR) ? RIG_DCD_ON:RIG_DCD_OFF;
+  return RIG_OK;
 #endif
 }
 
@@ -484,29 +534,10 @@ int ser_ptt_get(port_t *p, ptt_t *pttx)
 {
 
 		switch(p->type.ptt) {
-#if defined(WIN32)
-				/* TODO... */
-#else
 		case RIG_PTT_SERIAL_RTS:
-			{
-				unsigned char y;
-				int status;
-
-				status = ioctl(p->fd, TIOCMGET, &y);
-				*pttx = y & TIOCM_RTS ? RIG_PTT_ON:RIG_PTT_OFF;
-				return status;
-			}
-
+			return ser_get_rts(p, &pttx);
 		case RIG_PTT_SERIAL_DTR:
-			{
-				unsigned char y;
-				int status;
-
-				status = ioctl(p->fd, TIOCMGET, &y);
-				*pttx = y & TIOCM_DTR ? RIG_PTT_ON:RIG_PTT_OFF;
-				return status;
-			}
-#endif
+			return ser_get_dtr(p, &pttx);
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n",
 								p->type.ptt);
@@ -546,6 +577,8 @@ int ser_dcd_get(port_t *p, dcd_t *dcdx)
 				return status;
 			}
 #endif
+		case RIG_DCD_SERIAL_CAR:
+			return ser_get_dcd(p, &dcdx);
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n",
 								p->type.dcd);

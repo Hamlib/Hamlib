@@ -6,6 +6,7 @@ ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c  \
 lib_LTLIBRARIES = hamlib-icom.la
 hamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c optoscan.c
 hamlib_icom_la_LDFLAGS = -no-undefined -module -avoid-version
-hamlib_icom_la_LIBADD = $(top_builddir)/src/libhamlib.la
+hamlib_icom_la_LIBADD = $(top_builddir)/lib/libmisc.la \
+			$(top_builddir)/src/libhamlib.la
 
 noinst_HEADERS = frame.h icom.h icom_defs.h optoscan.h

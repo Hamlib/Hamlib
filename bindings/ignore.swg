@@ -132,6 +132,7 @@
 %ignore rig_set_vfo_callback;
 %ignore rig_set_ptt_callback;
 %ignore rig_set_dcd_callback;
+%ignore rig_set_pltune_callback;
 %ignore rig_get_info;
 %ignore rig_passband_normal;
 %ignore rig_passband_narrow;

@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.74 2003-06-22 21:37:42 fillods Exp $
+ *	$Id: rig.c,v 1.75 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -466,6 +466,7 @@ int rig_open(RIG *rig)
 				break;
 		case RIG_DCD_SERIAL_DSR:
 		case RIG_DCD_SERIAL_CTS:
+		case RIG_DCD_SERIAL_CAR:
 				rs->dcdport.fd = ser_open(&rs->dcdport);
 				if (rs->dcdport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
@@ -583,6 +584,7 @@ int rig_close(RIG *rig)
 			break;
 	case RIG_DCD_SERIAL_DSR:
 	case RIG_DCD_SERIAL_CTS:
+	case RIG_DCD_SERIAL_CAR:
 			ser_close(&rs->dcdport);
 			break;
 	case RIG_DCD_PARALLEL:
@@ -1247,6 +1249,7 @@ int rig_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
 		case RIG_DCD_SERIAL_CTS:
 		case RIG_DCD_SERIAL_DSR:
+		case RIG_DCD_SERIAL_CAR:
 				ser_dcd_get(&rig->state.dcdport, dcd);
 				break;
 		case RIG_DCD_PARALLEL:

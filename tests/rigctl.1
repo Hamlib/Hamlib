@@ -57,7 +57,7 @@ Supported types are RIG, DTR, RTS, PARALLEL, NONE.
 .B \-d, --dcd-type=type
 Use \fBtype\fP device as the kind of the Data Carrier Detect device 
 to operate on.
-Supported types are RIG, DSR, CTS, PARALLEL, NONE.
+Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
@@ -236,7 +236,7 @@ Perform VFO operation:
 CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT, TUNER.
 .TP
 .B g, scan_op
-Perform scan operation/channel: STOP, MEM, SLCT, PRIO, DELTA.
+Perform scan operation/channel: STOP, MEM, SLCT, PRIO, DELTA, VFO, PLT.
 .TP
 .B H, set_channel
 Set memory channel data. Not implemented yet.

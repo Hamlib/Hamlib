@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: optoscan.h,v 1.1 2003-05-20 07:01:18 fillods Exp $
+ *	$Id: optoscan.h,v 1.2 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,6 +36,8 @@
 #define TOK_CTCSSACT  TOKEN_BACKEND(7)
 #define TOK_DCSACT    TOKEN_BACKEND(8)
 
+#define OPTO_BUFF_SIZE   64
+
 int optoscan_open(RIG *rig);
 int optoscan_close(RIG *rig);
 const char* optoscan_get_info(RIG *rig);
@@ -46,6 +48,7 @@ int optoscan_set_ext_parm(RIG *rig, token_t token, value_t val);
 int optoscan_get_ext_parm(RIG *rig, token_t token, value_t *val);
 int optoscan_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 
 struct optostat {
   int remote_control;
@@ -59,7 +62,5 @@ struct optostat {
   int fivekhz_enabled;
   int audio_present;
 };
-
-
 
 #endif /* _OPTOSCAN_H */

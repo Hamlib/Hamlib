@@ -1,10 +1,10 @@
 /*
- * rpcrigd - (C) Stephane Fillod 2001-2002
+ * rpcrigd - (C) Stephane Fillod 2001-2003
  *
  * This program let programs control a radio through
  * the mean of RPC services using Hamlib.
  *
- *	$Id: rpcrigd.c,v 1.6 2002-12-16 22:06:54 fillods Exp $  
+ *	$Id: rpcrigd.c,v 1.7 2003-08-17 22:39:07 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -218,6 +218,8 @@ main (int argc, char *argv[])
 						dcd_type = RIG_DCD_SERIAL_DSR;
 					else if (!strcmp(optarg, "CTS"))
 						dcd_type = RIG_DCD_SERIAL_CTS;
+					else if (!strcmp(optarg, "CD"))
+						dcd_type = RIG_DCD_SERIAL_CAR;
 					else if (!strcmp(optarg, "PARALLEL"))
 						dcd_type = RIG_DCD_PARALLEL;
 					else if (!strcmp(optarg, "NONE"))

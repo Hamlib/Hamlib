@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.6 2003-05-19 06:57:44 fillods Exp $
+ *	$Id: optoscan.c,v 1.7 2003-08-17 22:39:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,6 +28,7 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
+#include <sys/time.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -54,6 +55,10 @@ const struct confparams opto_ext_parms[] = {
 };
 
 static int optoscan_get_status_block(RIG *rig, struct optostat *status_block);
+static int optoscan_send_freq(RIG *rig,pltstate_t *state);
+static int optoscan_RTS_toggle(RIG *rig);
+static int optoscan_start_timer(RIG *rig, pltstate_t *state);
+static int optoscan_wait_timer(RIG *rig, pltstate_t *state);
 
 /*
  * optoscan_open
@@ -63,21 +68,32 @@ int optoscan_open(RIG *rig)
 {
 		struct icom_priv_data *priv;
 		struct rig_state *rs;
+  		pltstate_t *pltstate;
 		unsigned char ackbuf[16];
 		int ack_len, retval;
 
 		rs = &rig->state;
 		priv = (struct icom_priv_data*)rs->priv;
 
+		pltstate = malloc(sizeof(pltstate_t));
+		if (!pltstate) {
+			return -RIG_ENOMEM;
+		}
+		memset(pltstate, 0, sizeof(pltstate_t));
+		priv->pltstate = pltstate;
+
 		/* select REMOTE control */
 		retval = icom_transaction (rig, C_CTL_MISC, S_OPTO_REMOTE, 
 						NULL, 0, ackbuf, &ack_len);
-		if (retval != RIG_OK)
-				return retval;
+		if (retval != RIG_OK) {
+			free(pltstate);
+			return retval;
+		}
 
 		if (ack_len != 1 || ackbuf[0] != ACK) {
 				rig_debug(RIG_DEBUG_ERR,"optoscan_open: ack NG (%#.2x), "
 								"len=%d\n", ackbuf[0], ack_len);
+				free(pltstate);
 				return -RIG_ERJCTED;
 		}
 
@@ -109,6 +125,8 @@ int optoscan_close(RIG *rig)
 								"len=%d\n", ackbuf[0], ack_len);
 				return -RIG_ERJCTED;
 		}
+
+		free(priv->pltstate);
 
 		return RIG_OK;
 }
@@ -510,6 +528,95 @@ int optoscan_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   return RIG_OK;
 }
 
+/* OS456 Pipeline tuning algorithm:                                          
+ *	Step 2:  Send the next frequency and mode to the receiver using the
+ *		 TRANSFER NEXT FREQUENCY/MODE command.
+ *
+ *      Step 3:  Change the state of the RTS interface signal to cause the
+ *               next frequency and mode to become the current frequency and
+ *               mode, and the receiver to begin settling.
+ *
+ *	Step 4:  While the receiver is still settling on the current
+ *		 frequency and mode, send the next frequency and mode to the
+ *		 receiver using the TRANSFER NEXT FREQUENCY/MODE command.
+ *
+ *	Step 5:  Wait for the receiver to finish settling.  The total
+ *		 settling time, including sending the next frequency and
+ *		 mode, is 20 milliseconds (0.02 seconds).
+ *
+ *	Step 6:  Check the squelch status by reading the DCD interface
+ *		 signal.  If the squelch is open, scanning is stopped.
+ *		 Otherwise, scanning continues.  Optionally, the status of
+ *		 the CTCSS/DCS/DTMF decoder can be checked, and the
+ *		 appropriate action taken.
+ *
+ *	Step 7:  Continuously repeat steps 3 through 6 above.
+ */
+int optoscan_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
+{
+  pltstate_t *state;
+  pltune_cb_t cb;
+  int rc, pin_state;
+  struct rig_state *rs;
+  int status;
+  unsigned char y;
+  port_t *p;
+
+  if(scan != RIG_SCAN_PLT)
+    return -RIG_ENAVAIL;
+
+  rs=&rig->state;
+  cb = rig->callbacks.pltune;
+  state = ((struct icom_priv_data*)rs->priv)->pltstate;
+
+  if(state==NULL)
+    return -RIG_EINTERNAL;
+
+  if(state->freq==0) /* pltstate_t is not initialized - perform setup */
+    {
+      /* time for CIV command to be sent. this is subtracted from */
+      /* rcvr settle time */
+      state->usleep_time = (1000000 / (rig->state.rigport.parm.serial.rate)) 
+	* 13 * 9;
+
+      rc=cb(rig,vfo,&(state->next_freq),&(state->next_mode),
+	    &(state->next_width),rig->callbacks.pltune_arg);
+      if(rc==RIG_SCAN_STOP)
+	return RIG_OK; /* callback halted loop */
+
+      /* Step 1 is implicit, since hamlib does this when it opens the device */
+      optoscan_send_freq(rig,state); /*Step 2*/
+    }
+
+  rc=!RIG_SCAN_STOP;
+  while(rc!=RIG_SCAN_STOP)
+    {
+      optoscan_RTS_toggle(rig); /*Step 3*/
+
+      state->freq = state->next_freq;
+      state->mode = state->next_mode;
+
+      optoscan_start_timer(rig,state);
+
+      rc=cb(rig,vfo,&(state->next_freq),&(state->next_mode),
+	    &(state->next_width),rig->callbacks.pltune_arg);
+      if(rc!=RIG_SCAN_STOP)
+	{
+	  optoscan_send_freq(rig,state); /*Step 4*/
+	}
+
+      optoscan_wait_timer(rig,state); /*Step 5*/
+      
+      ser_get_dcd(&rs->rigport,&pin_state);
+      if( pin_state ) /*Step 6*/
+	{
+	  return RIG_OK; /* we've broken squelch - return(). caller can */
+	                 /* get current freq & mode out of state str    */
+	}
+    }
+
+  return RIG_OK;
+}
 
 /*
  * Assumes rig!=NULL, status_block !=NULL
@@ -557,4 +664,96 @@ static int optoscan_get_status_block(RIG *rig, struct optostat *status_block)
   rig_debug(RIG_DEBUG_VERBOSE,"audio_present      = %d\n",status_block->audio_present);
 
   return RIG_OK;
+}
+
+
+static int optoscan_send_freq(RIG *rig,pltstate_t *state)
+{
+  unsigned char buff[OPTO_BUFF_SIZE];
+  struct icom_priv_data *priv;
+  struct rig_state *rs;
+  const port_t *port;
+  int fd,i;
+  char md,pd;
+  freq_t freq;
+  rmode_t mode;
+
+  port = &(rig->state.rigport);
+  fd = port->fd;
+  rs = &rig->state;
+  priv = (struct icom_priv_data*)rs->priv;
+  freq=state->next_freq;
+  mode=state->next_mode;
+
+  memset(buff,0,OPTO_BUFF_SIZE);  
+
+  to_bcd(buff,freq,5*2); /* to_bcd requires nibble len */
+
+  rig2icom_mode(rig,mode,0,&md,&pd);
+  buff[5]=md;
+
+  /* read echo'd chars only...there will be no ACK from this command
+   *
+   * Note:
+   *	It may have waited fro pltstate->usleep_time before reading the echo'd
+   *	chars, but the read will be blocking anyway. --SF
+   * */
+  return icom_transaction (rig, C_CTL_MISC, S_OPTO_NXT, buff, 6, NULL, NULL);
+
+  return RIG_OK;
+}
+
+static int optoscan_RTS_toggle(RIG *rig)
+{
+  struct rig_state *rs;
+  int state=0;
+  port_t *p;
+  int status;
+  unsigned char y;
+
+  rs=&rig->state;
+  ser_get_rts(&rs->rigport,&state);
+  ser_set_rts(&rs->rigport,!state); 
+
+  return RIG_OK;
+}
+
+static int optoscan_start_timer(RIG *rig, pltstate_t *state)
+{
+  gettimeofday(&(state->timer_start),NULL);
+
+  return RIG_OK;
+}
+
+static int optoscan_wait_timer(RIG *rig, pltstate_t *state)
+{
+  struct icom_priv_caps *priv_caps;
+  int usec_diff;
+  int settle_usec;
+
+  priv_caps = (struct icom_priv_caps *)rig->caps->priv;
+  settle_usec = priv_caps->settle_time * 1000; /*convert settle time (ms) to */
+                                               /* settle time (usec)         */
+
+  gettimeofday(&(state->timer_current),NULL);
+
+  usec_diff = abs( (state->timer_current.tv_usec) - 
+		   (state->timer_start.tv_usec) );
+
+  if( usec_diff < settle_usec )
+    {
+      usleep( settle_usec - usec_diff ); /* sleep balance of settle_time */
+    }
+
+  return RIG_OK;
+}
+
+void static dump_state(char *str, pltstate_t *state)
+{
+  rig_debug(RIG_DEBUG_VERBOSE,"%s:\n",str);
+  rig_debug(RIG_DEBUG_VERBOSE,"freq:       %d\n",state->freq);
+  rig_debug(RIG_DEBUG_VERBOSE,"mode:       %d\n",state->mode);
+  rig_debug(RIG_DEBUG_VERBOSE,"next freq:  %d\n",state->next_freq);
+  rig_debug(RIG_DEBUG_VERBOSE,"next mode:  %d\n",state->next_mode);
+  rig_debug(RIG_DEBUG_VERBOSE,"usleep time:%d\n",state->usleep_time);
 }

@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.37 2003-04-06 18:40:35 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.38 2003-08-17 22:39:07 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -131,6 +131,9 @@ int dumpcaps (RIG* rig)
 			break;
 	case RIG_DCD_SERIAL_DSR:
 			printf("thru serial port (DTR/DSR)\n");
+			break;
+	case RIG_DCD_SERIAL_CAR:
+			printf("thru serial port (CD)\n");
 			break;
 	case RIG_DCD_NONE:
 			printf("None\n");
