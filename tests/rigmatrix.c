@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.18 2003-08-20 07:23:13 fillods Exp $  
+ *    $Id: rigmatrix.c,v 1.19 2004-08-10 22:41:41 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 					"<TD>%s</TD><TD>%s</TD><TD>",
 					caps->rig_model,
 					caps->model_name,caps->mfg_name,caps->version,
-					strstatus(caps->status)
+					rig_strstatus(caps->status)
 					);
 
 	switch (caps->rig_type & RIG_TYPE_MASK) {
