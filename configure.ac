@@ -1,7 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(hamlib, 1.1.4-cvs, hamlib-developer@lists.sourceforge.net)
-AM_INIT_AUTOMAKE(hamlib, 1.1.4-cvs)
+dnl Please do not use '-' in the version number, 'make rpm' will fail
+AC_INIT(hamlib, 1.1.4cvs, hamlib-developer@lists.sourceforge.net)
+AM_INIT_AUTOMAKE(hamlib, 1.1.4cvs)
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_MAINTAINER_MODE
