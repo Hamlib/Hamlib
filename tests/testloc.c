@@ -15,14 +15,14 @@
 int main (int argc, char *argv[])
 {
 	char recodedloc[8], *loc1, *loc2;
-	double lon1, lat1, lon2, lat2;
+	double lon1 = 0, lat1, lon2, lat2;
 	double distance, az;
 	int deg, min, sec;
 	int retcode;
 
 	if (argc < 2) {
-			fprintf(stderr,"Usage: %s <locator1> [<locator2>]\n", argv[0]);
-			exit(1);
+		fprintf(stderr, "Usage: %s <locator1> [<locator2>]\n", argv[0]);
+		exit(1);
 	}
 
 	loc1 = argv[1];
@@ -30,6 +30,10 @@ int main (int argc, char *argv[])
 
 	printf("Locator1: %s\n", loc1);
 	retcode = locator2longlat(&lon1, &lat1, loc1);
+	if (retcode != RIG_OK) {
+		fprintf(stderr, "locator2longlat() failed with malformed input.\n");
+		exit(2);
+	}
 
 	dec2dms(lon1, &deg, &min, &sec);
 	printf("  Longitude:   %f, %d° %d' %d\"\n", lon1, deg, min, sec);
@@ -50,6 +54,10 @@ int main (int argc, char *argv[])
 
 	printf("\nLocator2: %s\n", loc2);
 	retcode = locator2longlat(&lon2, &lat2, loc2);
+	if (retcode != RIG_OK) {
+		fprintf(stderr, "locator2longlat() failed with malformed input.\n");
+		exit(2);
+	}
 
 	dec2dms(lon2, &deg, &min, &sec);
 	printf("  Longitude:   %f, %d° %d' %d\"\n", lon2, deg, min, sec);
