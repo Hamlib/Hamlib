@@ -1,0 +1,433 @@
+/*
+ * ft736.c - (C) Stephane Fillod 2004
+ *
+ * This shared library provides an API for communicating
+ * via serial interface to an FT-736R using the "CAT" interface
+ *
+ *	$Id: ft736.c,v 1.1 2004-08-10 21:08:41 fillods Exp $
+ *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdlib.h>
+#include <string.h>  /* String function definitions */
+#include <unistd.h>  /* UNIX standard function definitions */
+
+#include "hamlib/rig.h"
+#include "serial.h"
+#include "misc.h"
+#include "yaesu.h"
+
+
+
+
+#define FT736_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM)
+
+#define FT736_VFOS (RIG_VFO_A)	/* TODO: Sat mode ? */
+
+/* TODO: get real measure numbers */
+#define FT736_STR_CAL { 2, { \
+		{ 0x30, -60 }, /* S0 -6dB */ \
+		{ 0xad,  60 }  /* +60 */ \
+		} }
+
+/* Private helper function prototypes */
+
+static int ft736_open(RIG *rig);
+static int ft736_close(RIG *rig);
+
+static int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft736_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft736_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft736_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft736_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+static int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int ft736_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
+static int ft736_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+
+/*
+ * ft736 rigs capabilities.
+ * Also this struct is READONLY!
+ *
+ * TODO:
+ *	- repeater func & offset
+ *      - CTCSS & DCS
+ *	- AQS
+ */
+
+const struct rig_caps ft736_caps = {
+  .rig_model =          RIG_MODEL_FT736R,
+  .model_name =         "FT-736R",
+  .mfg_name =           "Yaesu",
+  .version =            "0.1",
+  .copyright =          "LGPL",
+  .status =             RIG_STATUS_UNTESTED,
+  .rig_type =           RIG_TYPE_TRANSCEIVER,
+  .ptt_type =           RIG_PTT_RIG,
+  .dcd_type =           RIG_DCD_RIG,
+  .port_type =          RIG_PORT_SERIAL,
+  .serial_rate_min =    4800,
+  .serial_rate_max =    4800,
+  .serial_data_bits =   8,
+  .serial_stop_bits =   2,
+  .serial_parity =      RIG_PARITY_NONE,
+  .serial_handshake =   RIG_HANDSHAKE_NONE, /* RTS low, DTR high, and CTS low. */
+  .write_delay =        30,	/* 50ms to be real safe */
+  .post_write_delay =   0,
+  .timeout =            2000,
+  .retry =              0,
+  .has_get_func =       RIG_FUNC_NONE,
+  .has_set_func =       RIG_FUNC_NONE,
+  .has_get_level =      RIG_LEVEL_RAWSTR,
+  .has_set_level =      RIG_LEVEL_NONE,
+  .has_get_parm =       RIG_PARM_NONE,
+  .has_set_parm =       RIG_PARM_NONE,
+  .vfo_ops =		RIG_OP_NONE,
+  .preamp =             { RIG_DBLST_END, },
+  .attenuator =         { RIG_DBLST_END, },
+  .max_rit =            Hz(0),
+  .max_xit =            Hz(0),
+  .max_ifshift =        Hz(0),
+  .targetable_vfo =     RIG_TARGETABLE_FREQ,
+  .transceive =         RIG_TRN_OFF,
+  .bank_qty =           0,
+  .chan_desc_sz =       0,
+  .chan_list =          { 
+				RIG_CHAN_END,
+			},
+  .rx_range_list1 =     { 
+    {MHz(50), MHz(53.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    {MHz(144), MHz(145.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    {MHz(430), MHz(439.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    {MHz(1240), MHz(1299.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    RIG_FRNG_END,
+  }, /* Region 1 rx ranges */
+
+  .tx_range_list1 =     {
+    {MHz(50), MHz(53.99999), FT736_MODES, W(5), W(30), FT736_VFOS },
+    {MHz(144), MHz(145.99999), FT736_MODES, W(5), W(60), FT736_VFOS },
+    {MHz(430), MHz(439.99999), FT736_MODES, W(5), W(60), FT736_VFOS },
+    {MHz(1240), MHz(1299.99999), FT736_MODES, W(5), W(45), FT736_VFOS },
+	RIG_FRNG_END,
+  },    /* region 1 TX ranges */
+
+  .rx_range_list2 =     {
+    {MHz(50), MHz(53.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    {MHz(144), MHz(147.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    {MHz(220), MHz(224.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    {MHz(430), MHz(449.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    {MHz(1240), MHz(1299.99999), FT736_MODES, -1, -1, FT736_VFOS },
+    RIG_FRNG_END,
+  }, /* Region 2 rx ranges */
+
+  .tx_range_list2 =     {
+    {MHz(50), MHz(53.99999), FT736_MODES, W(5), W(30), FT736_VFOS },
+    {MHz(144), MHz(147.99999), FT736_MODES, W(5), W(60), FT736_VFOS },
+    {MHz(220), MHz(224.99999), FT736_MODES, W(5), W(60), FT736_VFOS },
+    {MHz(430), MHz(449.99999), FT736_MODES, W(5), W(60), FT736_VFOS },
+    {MHz(1240), MHz(1299.99999), FT736_MODES, W(5), W(45), FT736_VFOS },
+	RIG_FRNG_END,
+  },    /* region 2 TX ranges */
+
+
+  .tuning_steps =       {
+    {FT736_MODES, Hz(10)},
+    RIG_TS_END,
+  },
+
+    /* mode/filter list, remember: order matters! */
+  .filters =            {
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR,  kHz(2.2)},
+    {RIG_MODE_CW,   Hz(600)},
+    {RIG_MODE_FM,   kHz(12)},
+    {RIG_MODE_FM,   kHz(8)},
+
+    RIG_FLT_END,
+  },
+
+  .str_cal = FT736_STR_CAL,
+
+  .rig_open =		ft736_open,
+  .rig_close =		ft736_close,
+
+  .set_freq =           ft736_set_freq,
+  .set_mode =           ft736_set_mode,
+  .set_ptt =            ft736_set_ptt,
+  .get_dcd =            ft736_get_dcd,
+  .get_level =          ft736_get_level,
+
+  .set_split_vfo = 	ft736_set_split_vfo,
+  .set_split_freq = 	ft736_set_split_freq,
+  .set_split_mode =     ft736_set_split_mode,
+
+  .set_rptr_shift = 	ft736_set_rptr_shift,
+  .set_rptr_offs = 	ft736_set_rptr_offs,
+};
+
+
+/*
+ * ft736_open  routine
+ * 
+ */
+int ft736_open(RIG *rig)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
+ 
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
+
+  /* send Ext Cntl ON: Activate CAT */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+
+}
+
+int ft736_close(RIG *rig)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x80, 0x80, 0x80, 0x80, 0x80};
+ 
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
+
+  /* send Ext Cntl OFF: Deactivate CAT */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+
+}
+
+
+int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
+
+   /* store bcd format in cmd (MSB) */
+  to_bcd_be(cmd,freq/10,8);
+
+  /* special case for 1.2GHz band */
+  if (freq > GHz(1.2))
+	cmd[0] = (cmd[0] & 0x0f) | 0xc0;
+
+  /* Frequency set */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
+
+
+#define MD_LSB  0x00
+#define MD_USB  0x01
+#define MD_CW   0x02
+#define MD_CWR  0x03
+#define MD_AM   0x04
+#define MD_FM   0x08
+
+int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x07};
+  unsigned char md;
+
+
+  /* 
+   * translate mode from generic to ft736 specific
+   */
+  switch(mode) {
+  case RIG_MODE_CW:	md = MD_CW; break;
+  case RIG_MODE_CWR:	md = MD_CWR; break;
+  case RIG_MODE_USB:	md = MD_USB; break;
+  case RIG_MODE_LSB:	md = MD_LSB; break;
+  case RIG_MODE_FM:	md = MD_FM; break;
+  case RIG_MODE_AM:	md = MD_AM; break;
+  default:
+    return -RIG_EINVAL;         /* sorry, wrong MODE */
+  }
+
+  if (width != RIG_PASSBAND_NORMAL &&
+		  width < rig_passband_normal(rig, mode)) {
+	  md |= 0x80;
+  }
+
+  cmd[0] = md;
+
+  /* Mode set */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
+
+
+int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x8e};
+
+  /*
+   * this can be misleading as Yeasu call it "Full duplex" 
+   * or "sat mode", and split Yaesu terms is repeater shift.
+   */ 
+  cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
+
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
+int ft736_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x1e};
+
+   /* store bcd format in cmd (MSB) */
+  to_bcd_be(cmd,freq/10,8);
+
+  /* special case for 1.2GHz band */
+  if (freq > GHz(1.2))
+	cmd[0] = (cmd[0] & 0x0f) | 0xc0;
+
+  /* Frequency set */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
+
+int ft736_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x27};
+  unsigned char md;
+
+
+  /* 
+   * translate mode from generic to ft736 specific
+   */
+  switch(mode) {
+  case RIG_MODE_CW:	md = MD_CW; break;
+  case RIG_MODE_CWR:	md = MD_CWR; break;
+  case RIG_MODE_USB:	md = MD_USB; break;
+  case RIG_MODE_LSB:	md = MD_LSB; break;
+  case RIG_MODE_FM:	md = MD_FM; break;
+  case RIG_MODE_AM:	md = MD_AM; break;
+  default:
+    return -RIG_EINVAL;         /* sorry, wrong MODE */
+  }
+
+  if (width != RIG_PASSBAND_NORMAL &&
+		  width < rig_passband_normal(rig, mode)) {
+	  md |= 0x80;
+  }
+
+  cmd[0] = md;
+
+  /* Mode set */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
+
+
+
+int ft736_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x88};
+
+  cmd[4] = ptt == RIG_PTT_ON ? 0x08 : 0x88;
+
+  /* Tx/Rx set */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
+int ft736_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xe7};
+  int retval;
+
+  serial_flush(&rig->state.rigport);
+
+  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+
+  if (retval < 0)
+	  return retval;
+
+  /* read back the 1 byte */
+  retval = read_block(&rig->state.rigport, cmd, 5);
+
+  if (retval < 1) {
+	rig_debug(RIG_DEBUG_ERR,"%s: read squelch failed %d\n", 
+			__FUNCTION__,retval);
+
+	return retval < 0 ? retval : -RIG_EIO;
+  }
+  *dcd = cmd[0] == 0x00 ? RIG_DCD_OFF : RIG_DCD_ON;
+
+  return RIG_OK;
+}
+
+int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xf7};
+  int retval;
+ 
+  if (level != RIG_LEVEL_RAWSTR)
+	  return -RIG_EINVAL;
+
+  serial_flush(&rig->state.rigport);
+
+  /* send Test S-meter cmd to rig  */
+  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  if (retval < 0)
+	  return retval;
+
+  /* read back the 1 byte */
+  retval = read_block(&rig->state.rigport, cmd, 5);
+
+  if (retval < 1) {
+	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n", 
+			__FUNCTION__,retval);
+
+	return retval < 0 ? retval : -RIG_EIO;
+  }
+  val->i = cmd[0];
+
+  return RIG_OK;
+}
+
+
+
+int ft736_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x88};
+
+  switch (shift) {
+  case RIG_RPT_SHIFT_NONE:
+    cmd[4] = 0x88;
+    break;
+  case RIG_RPT_SHIFT_MINUS:
+    cmd[4] = 0x09;
+    break;
+  case RIG_RPT_SHIFT_PLUS:
+    cmd[4] = 0x49;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
+int ft736_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
+{
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xf9};
+
+   /* store bcd format in cmd (MSB) */
+  to_bcd_be(cmd,offs,8);
+
+  /* Offset set */
+  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+}
+
