@@ -1,4 +1,4 @@
-/* hamlib - Control your rig!
+/* hamlib - Ham Radio Control Libraries
    Copyright (C) 2000 Stephane Fillod
    This file is part of the hamlib package.
 
@@ -27,20 +27,25 @@
 
 
 #include <rig.h>
+#include <riglist.h>
+
+#include "serial.h"
 
 
-/* It would be nice to have an automatic way of referencing all the backends
+#define DEFAULT_SERIAL_PORT "/dev/ttyS0"
+
+/*
+ * It would be nice to have an automatic way of referencing all the backends
  * supported by hamlib. Maybe this array should be placed in a separate file..
+ * 
+ * The rig_base is a variable length rig_caps* array, NULL terminated
  */
-extern const struct rig_caps ft847_caps;
-extern const struct rig_caps ic706_caps;
-extern const struct rig_caps ic706mkiig_caps;
 
 static const struct rig_caps *rig_base[] = { 
 	&ft847_caps, &ic706_caps, &ic706mkiig_caps, /* ... */ NULL, };
 
 
-RIG *rig_open(const char *rig_path, rig_model_t rig_model)
+RIG *rig_init(rig_model_t rig_model)
 {
 		RIG *rig;
 		int i;
@@ -51,79 +56,129 @@ RIG *rig_open(const char *rig_path, rig_model_t rig_model)
 						break;
 		}
 		if (rig_base[i] == NULL) {
-				/* rig not supported, sorry! */
+				/* End of list, rig not supported, sorry! */
 				return NULL;
 		}
 
-		/* okay, we've found it. Allocate some memory and set it to zeros, */
-		/*							and especially the callbacks */
+		/*
+		 * okay, we've found it. Allocate some memory and set it to zeros,
+		 * and especially the initialize the callbacks 
+		 */ 
 		rig = calloc(1, sizeof(RIG));
 		if (rig == NULL) {
+				/*
+				 * FIXME: how can the caller know it's a memory shortage,
+				 * 		  and not "rig not found" ?
+				 */
 				return NULL;
 		}
 
 		/* remember, rig->caps is readonly */
 		rig->caps = rig_base[i];
 
-		/* populate the rig->state here */
-		switch (port_type) {
-		case SERIAL_PORT:
-		rig->state.serial_rate = get_from_preference_or_default();
-		rig->state.serial_data_bits = get_from_preference_or_default();
-		rig->state.serial_stop_bits = get_from_preference_or_default();
-		rig->state.serial_parity = get_from_preference_or_default();
-		strncpy(rig->state.rig_path, rig_path, MAXRIGPATHLEN);
-		/* serial_open would be cool */
-		rig->state.fd = serial_open(rig_path, O_RDWR /* serial parms... */);
-		/* chech return code.. */
+		/*
+		 * populate the rig->state
+		 * TODO: read the Preferences here! 
+		 */
 
-		/* let the backend a chance to setup his private data */
+		rig->state.port_type = RIG_PORT_SERIAL; /* default is serial port */
+		strncpy(rig->state.rig_path, DEFAULT_SERIAL_PORT, MAXRIGPATHLEN);
+		rig->state.port_type = RIG_PORT_SERIAL; /* default is serial port */
+		rig->state.serial_rate = rig->caps->serial_rate_max;	/* fastest ! */
+		rig->state.serial_data_bits = rig->caps->serial_data_bits;
+		rig->state.serial_stop_bits = rig->caps->serial_stop_bits;
+		rig->state.serial_parity = rig->caps->serial_parity;
+		rig->state.serial_handshake = rig->caps->serial_handshake;
+		rig->state.timeout = rig->caps->timeout;
+		rig->state.retry = rig->caps->retry;
+
+		/* 
+		 * let the backend a chance to setup his private data
+		 * FIXME: check rig_init() return code
+		 */
 		if (rig->caps->rig_init != NULL)
 				rig->caps->rig_init(rig);	
-		break;
 
-		case TCP_PORT:
-		/* get hostname, port name, create socket, connect, etc. */
-		break;
-
-		default: /* bail out, port not supported! */
-		break;
-		} 
-
-#define PROBE_OK 0
-
-		/* check we haven't been fooled */
-		if (rig->caps->rig_probe != NULL)
-				if (rig->caps->rig_probe(rig) != PROBE_OK) {
-						/* not what we expected! release the rig */
-					rig_close(rig);
-					return NULL;
-				}	
-		break;
 		return rig;
 }
 
-
-/* typicall cmd_* wrapper */
-int cmd_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode)
+int rig_open(RIG *rig)
 {
-		if (rig == NULL || rig->caps)
+		int status;
+
+		if (!rig)
+				return -1;
+
+		switch(rig->state.port_type) {
+		case RIG_PORT_SERIAL:
+				status = serial_open(&rig->state);
+				if (status != 0)
+						return status;
+				break;
+
+		case RIG_PORT_NETOWRK:	/* not implemented yet! */
+		default:
+				return -3;
+		}
+
+		/* 
+		 * Maybe the backend has something to initialize
+		 * FIXME: check rig_open() return code
+		 */
+		if (rig->caps->rig_open != NULL)
+				rig->caps->rig_open(rig);	
+
+		return 0;
+}
+
+/*
+ * typical cmd_* wrapper
+ */
+
+int cmd_set_freq(RIG *rig, freq_t freq, rig_mode_t mode, rig_vfo_t vfo )
+{
+		if (!rig || !rig->caps)
 			return -1; /* EINVAL */
+
 		if (rig->caps->set_freq_main_vfo_hz == NULL)
 			return -2; /* not implemented */
 		else
-			return rig->caps->set_freq_main_vfo_hz(&rig->state, freq, mode);
+			return rig->caps->set_freq_main_vfo_hz(rig, freq, mode);
 }
 
 
+
 /*
- * close port and release memory
+ * Close port
  */
 int rig_close(RIG *rig)
 {
 		if (rig == NULL || rig->caps)
 				return -1;
 
+		/*
+		 * Let the rig say 73s to the rig
+		 */
+		if (rig->caps->rig_close)
+				rig->caps->rig_close(rig);
+
+		if (rig->state.fd != -1)
+				close(rig->state.fd);
+
+		return 0;
+}
+
+/*
+ * Release a rig struct which port has already been closed
+ */
+int rig_cleanup(RIG *rig)
+{
+		if (rig == NULL || rig->caps)
+				return -1;
+
+		/*
+		 * basically free up the priv struct 
+		 */
 		if (rig->caps->rig_cleanup)
 				rig->caps->rig_cleanup(rig);
 
@@ -131,6 +186,9 @@ int rig_close(RIG *rig)
 
 		return 0;
 }
+
+
+
 
 /* CAUTION: this is really Experimental, It never worked!!
  * try to guess a rig, can be very buggy! (but fun if it works!)
@@ -143,11 +201,15 @@ RIG *rig_probe(const char *port_path)
 
 		for (i = 0; rig_base[i]; i++) {
 			if (rig_base[i]->rig_probe != NULL) {
-				rig = rig_open(port_path, rig_base[i]->rig_model);
-				if (rig && rig_base[i]->rig_probe(rig) == PROBE_OK)
+				rig = rig_init(rig_base[i]->rig_model);
+				strncpy(rig->state.rig_path, port_path, MAXRIGPATHLEN);
+				rig_open(rig);
+				if (rig && rig_base[i]->rig_probe(rig) == 0) {
 					return rig;
-				else
-						rig_close(rig);
+				} else {
+					rig_close(rig);
+					rig_cleanup(rig);
+				}
 			}
 		}
 		return NULL;
