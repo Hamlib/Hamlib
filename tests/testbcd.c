@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <rig.h>
+#include <hamlib/rig.h>
 #include "../src/misc.h"
 
 

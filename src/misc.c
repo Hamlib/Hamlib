@@ -6,7 +6,7 @@
  * Provides useful routines for data handling, used by backend
  * 	as well as by the frontend.
  *
- * $Id: misc.c,v 1.1 2000-10-01 12:25:49 f4cfe Exp $  
+ * $Id: misc.c,v 1.2 2000-10-08 21:43:00 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <rig.h>
+#include <hamlib/rig.h>
 #include "misc.h"
 
 
