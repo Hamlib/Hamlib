@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: misc.c,v 1.17 2002-06-17 20:59:51 fillods Exp $
+ *		$Id: misc.c,v 1.18 2002-06-30 10:17:03 dedmons Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -253,7 +253,7 @@ int sprintf_freq(char *str, freq_t freq)
 				f = (double)freq;
 		}
 
-		return sprintf (str, "%g%s", f, hz);
+		return sprintf (str, "%g %s", f, hz);
 }
 
 const char * strmode(rmode_t mode)
@@ -267,10 +267,15 @@ const char * strmode(rmode_t mode)
 	case RIG_MODE_FM: return "FM";
 	case RIG_MODE_WFM: return "WFM";
 	case RIG_MODE_NONE: return "";
+	default:
 	}
 	return NULL;
 }
 
+/*
+ * shouldn't this use the same table as parse_vfo()?
+ * It already caused me one bug.  :)		--Dale
+ */
 const char *strvfo(vfo_t vfo)
 {
 	switch (vfo) {
@@ -292,6 +297,20 @@ const char *strvfo(vfo_t vfo)
 			return "Main";
 	case	RIG_VFO_SUB:
 			return "Sub";
+	case	RIG_CTRL_SAT:
+			return "SAT";
+	case	RIG_VFO_MEM_A:
+			return "MEMA";
+	case	RIG_VFO_MEM_C:
+			return "MEMC";
+	case	RIG_VFO_CALL_A:
+			return "CALLA";
+	case	RIG_VFO_CALL_C:
+			return "CALLC";
+	case	RIG_VFO_AB:
+			return "VFOAB";
+	case	RIG_VFO_BA:
+			return "VFOBA";
 	}
 	return NULL;
 }
@@ -329,6 +348,7 @@ const char *strfunc(setting_t func)
 	case RIG_FUNC_RESUME: return "RESUME";
 
 	case RIG_FUNC_NONE: return "";
+	default:
 	}
 	return NULL;
 }
@@ -366,6 +386,7 @@ const char *strlevel(setting_t level)
 	case RIG_LEVEL_STRENGTH: return "STRENGTH";
 
 	case RIG_LEVEL_NONE: return "";
+	default:
 	}
 	return NULL;
 }
@@ -381,6 +402,7 @@ const char *strparm(setting_t parm)
 	case RIG_PARM_BAT: return "BAT";
 
 	case RIG_PARM_NONE: return "";
+	default:
 	}
 	return NULL;
 }
@@ -392,6 +414,7 @@ const char *strptrshift(rptr_shift_t shift)
 	case RIG_RPT_SHIFT_PLUS: return "-";
 
 	case RIG_RPT_SHIFT_NONE: return "None";
+	default:
 	}
 	return NULL;
 }
@@ -412,18 +435,22 @@ const char *strvfop(vfo_op_t op)
 	case RIG_OP_RIGHT: return "RIGHT";
 
 	case RIG_OP_NONE: return "";
+	default:
 	}
 	return NULL;
 }
 
-const char *strscan(scan_t scan)
+const char *strscan(scan_t rscan)
 {
-	switch (scan) {
+	switch (rscan) {
 	case RIG_SCAN_STOP: return "STOP";
 	case RIG_SCAN_MEM: return "MEM";
 	case RIG_SCAN_SLCT: return "SLCT";
 	case RIG_SCAN_PRIO: return "PRIO";
+	case RIG_SCAN_PROG: return "PROG";
 	case RIG_SCAN_DELTA: return "DELTA";
+	case RIG_SCAN_VFO: return "VFO";
+	default:
 	}
 	return NULL;
 }
@@ -547,16 +574,16 @@ int sprintf_vfop(char *str, vfo_op_t op)
 }
 
 
-int sprintf_scan(char *str, scan_t scan)
+int sprintf_scan(char *str, scan_t rscan)
 {
 		int i, len=0;
 
 		*str = '\0';
-		if (scan == RIG_SCAN_NONE)
+		if (rscan == RIG_SCAN_NONE)
 				return 0;
 
 		for (i = 0; i < 30; i++) {
-				const char *ms = strscan(scan & (1UL<<i));
+				const char *ms = strscan(rscan & (1UL<<i));
 				if (!ms || !ms[0])
 						continue;	/* unknown, FIXME! */
 				strcat(str, ms);
@@ -600,12 +627,20 @@ static struct {
 		{ RIG_VFO_A, "VFOA" },
 		{ RIG_VFO_B, "VFOB" },
 		{ RIG_VFO_C, "VFOC" },
-		{ RIG_VFO_CURR, "currVFO" },
-		{ RIG_VFO_ALL, "allVFO" },
-		{ RIG_VFO_MEM, "MEM" },
-		{ RIG_VFO_VFO, "VFO" },
+		{ RIG_VFO_AB, "VFOAB" },
+		{ RIG_VFO_BA, "VFOBA" },
+		{ RIG_VFO_MEM_A, "MEMA" },
+		{ RIG_VFO_MEM_C, "MEMC" },
+		{ RIG_CTRL_SAT, "SAT" },
+		{ RIG_VFO_CALL_A, "CALLA" },
+		{ RIG_VFO_CALL_C, "CALLC" },
 		{ RIG_VFO_MAIN, "Main" },
 		{ RIG_VFO_SUB, "Sub" },
+// one or more of the following may be ambiguous	--Dale
+		{ RIG_VFO_CURR, "currVFO" },
+		{ RIG_VFO_VFO, "VFO" },
+		{ RIG_VFO_MEM, "MEM" },
+//		{ RIG_VFO_ALL, "allVFO" },
 		{ RIG_VFO_NONE, NULL },
 };
 
@@ -761,14 +796,16 @@ vfo_op_t parse_vfo_op(const char *s)
 }
 
 static struct { 
-		scan_t scan;
+		scan_t SCan;
 		const char *str;
 } scan_str[] = {
 	{ RIG_SCAN_STOP, "STOP" },
 	{ RIG_SCAN_MEM, "MEM" },
 	{ RIG_SCAN_SLCT, "SLCT" },
 	{ RIG_SCAN_PRIO, "PRIO" },
+	{ RIG_SCAN_PROG, "PROG" },
 	{ RIG_SCAN_DELTA, "DELTA" },
+	{ RIG_SCAN_VFO, "VFO" },
 	{ RIG_SCAN_NONE, NULL },
 };
 
@@ -776,19 +813,26 @@ scan_t parse_scan(const char *s)
 {
 	int i;
 
-	for (i=0 ; scan_str[i].str != NULL; i++)
-			if (!strcmp(s, scan_str[i].str))
-					return scan_str[i].scan;
+	printf(__FUNCTION__": parsing %s...\n",s);
+
+	for (i=0 ; scan_str[i].str != NULL; i++) {
+		if (strcmp(s, scan_str[i].str) == 0) {
+			return scan_str[i].SCan;
+		}
+	}
+
 	return RIG_SCAN_NONE;
 }
 
 rptr_shift_t parse_rptr_shift(const char *s)
 {
-	if (!strcmp(s, "+"))
-			return RIG_RPT_SHIFT_PLUS;
-	else if (!strcmp(s, "-"))
-			return RIG_RPT_SHIFT_MINUS;
+	if (strcmp(s, "+") == 0)
+		return RIG_RPT_SHIFT_PLUS;
+	else if (strcmp(s, "-") == 0)
+		return RIG_RPT_SHIFT_MINUS;
+	else if (strcmp(s, "=") == 0)
+		return RIG_RPT_SHIFT_1750;
 	else
-			return RIG_RPT_SHIFT_NONE;
+		return RIG_RPT_SHIFT_NONE;
 }
 

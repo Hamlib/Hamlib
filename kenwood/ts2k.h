@@ -2,7 +2,7 @@
  *  Hamlib TS2000 backend - main header
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.h,v 1.2 2002-06-29 09:54:50 dedmons Exp $
+ *		$Id: ts2k.h,v 1.3 2002-06-30 10:17:03 dedmons Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -125,8 +125,8 @@ int ts2k_set_trn(RIG *rig, int trn);
 int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 int ts2k_scan_on(RIG *rig, char ch);
 int ts2k_scan_off(RIG *rig);
-int ts2k_get_channel(RIG *rig, vfo_t vfo, channel_t *chan); 
-int ts2k_set_channel(RIG *rig, vfo_t vfo, channel_t *chan); 
+int ts2k_get_channel(RIG *rig, channel_t *chan); 
+int ts2k_set_channel(RIG *rig, const channel_t *chan); 
 char *ts2k_get_ctrl(RIG *rig);
 int ts2k_set_ctrl(RIG *rig, int ptt, int ctrl);
 int ts2k_vfo_ctrl(RIG *rig, vfo_t vfo);
@@ -172,127 +172,4 @@ extern const struct rig_caps ts2000_caps;
 extern BACKEND_EXPORT(int) initrigs_ts2k(void *be_handle);
 extern BACKEND_EXPORT(rig_model_t) proberigs_ts2k(port_t *port);
 
-
 #endif /* _TS2000_H */
-
-
-/************** Temporary local copy of rig.h *************************/
-
-
-
-#ifndef _RIG_H_TEMP
-#define _RIG_H_TEMP 1
-
-#define RIG_RPT_SHIFT_1750 (RIG_RPT_SHIFT_PLUS + 1)
-
-/*
- * I've cleaned up the VFO definition to make it easier to change
- * when the MoonMelter is finally released.  Essentially, I've
- * done nothing.	--Dale	:)
- */
-
-/*
- * Upper segment: "rig Major"
- * Lower segment: "VFO minor"
- *
- *	MSB		    LSB
- *	N	n+1 n	      0
- *	+-+-+-+-+-+-+-+-+-+-+-+
- *	|	   |	      |
- *	    Rig		VFO
- *	   Major       minor
- */
-//typedef unsigned int vfo_t;
-
-#define BIT(a)	( ((vfo_t) 1) << (a))
-//#define BIT(a)	(1L << (a))
-
-#define RIG_MINOR	3
-/* M=Major, m=minor */
-#define RIG_SET_VFO(M,m)	((vfo_t) ( ((M) << (RIG_MINOR+1)) | (m) ))
-/* Note: prior definition exibited exponential growth in bit count */
-
-#define RIG_VFO_RESERVED	RIG_SET_VFO(0, BIT(0))
-#define RIG_VFO_RESERVED2	RIG_SET_VFO(0, BIT(1))
-
-/* VFO Minor */
-#define RIG_VFO1	RIG_SET_VFO(0, BIT(2))
-#define RIG_VFO2	RIG_SET_VFO(0, BIT(3))
-#define RIG_VFO3	RIG_SET_VFO(0, BIT(4))
-/*					   |
- * RIG_MINOR = n :== MAX >-----------------'
- */
-
-/* Rig Major */
-#define RIG_CTRL_MAIN	RIG_SET_VFO(BIT(0), 0)
-#define RIG_CTRL_SUB	RIG_SET_VFO(BIT(1), 0)
-#define RIG_CTRL_MEM	RIG_SET_VFO(BIT(2), 0)
-
-/* Standard VFO's for common use */
-#define RIG_VFO_A	(RIG_CTRL_MAIN | RIG_VFO1)
-#define RIG_VFO_B	(RIG_CTRL_MAIN | RIG_VFO2)
-#define RIG_VFO_C	(RIG_CTRL_SUB  | RIG_VFO1)
-#define RIG_VFO_MEM	RIG_CTRL_MEM
-/* VFOC should be VFO3 because ambiguities may arise someday */
-
-/* VFO stuff that may be handy. */
-#define RIG_VFO_MASK	(RIG_VFO1 | RIG_VFO2 | RIG_VFO3)
-#define RIG_CTRL_MASK	(RIG_CTRL_MAIN | RIG_CTRL_SUB | RIG_CTRL_MEM)
-#define RIG_VFO_VALID	(RIG_CTRL_MASK | RIG_VFO_MASK)
-#define RIG_VFO_TEST(v)	(((v) & RIG_VFO_VALID) != 0)
-
-/* The following are for compatibility with existing code! */
-#define RIG_VFO_NONE	(~RIG_VFO_VALID)
-#define RIG_VFO_CURR	RIG_SET_VFO(0,0)
-#define RIG_VFO_ALL	RIG_VFO_MASK
-#define RIG_VFO_MAIN	RIG_CTRL_MAIN
-#define RIG_VFO_SUB	RIG_CTRL_SUB
-#define RIG_VFO_VFO	(RIG_VFO_VALID & ~RIG_VFO_MEM)
-/*
- * Ahhh.  Now I can live happy and die free! --Dale
- */
-
-#define RIG_SCAN_VFO	(1L<<4)		/* most basic of scans! */
-
-#define RIG_SCAN_ALL	(RIG_SCAN_STOP | RIG_SCAN_MEM | RIG_SCAN_SLCT \
-			| RIG_SCAN_PRIO | RIG_SCAN_PROG | RIG_SCAN_DELTA \
-			| RIG_SCAN_VFO)
-#define RIG_SCAN_EXCLUDE(e) (RIG_SCAN_ALL & ~(e))
-
-/* There's no reason for every back-end to write huge lists.  The guys
- * with about 50% features still have some work.  Someone that knows
- * many rigs should make RIG_LEVEL_COMMON, RIG_FUNC_COMMON	--Dale
- */
-#define RIG_LEVEL_ALL	(RIG_LEVEL_PREAMP | RIG_LEVEL_ATT | RIG_LEVEL_VOX \
-			| RIG_LEVEL_AF | RIG_LEVEL_RF | RIG_LEVEL_SQL \
-	| RIG_LEVEL_IF | RIG_LEVEL_APF | RIG_LEVEL_NR | RIG_LEVEL_PBT_IN \
-	| RIG_LEVEL_PBT_OUT | RIG_LEVEL_CWPITCH | RIG_LEVEL_RFPOWER \
-	| RIG_LEVEL_MICGAIN | RIG_LEVEL_KEYSPD | RIG_LEVEL_NOTCHF \
-	| RIG_LEVEL_COMP | RIG_LEVEL_AGC | RIG_LEVEL_BKINDL \
-	| RIG_LEVEL_BALANCE | RIG_LEVEL_METER | RIG_LEVEL_VOXGAIN \
-	| RIG_LEVEL_VOXDELAY | RIG_LEVEL_ANTIVOX | RIG_LEVEL_SQLSTAT \
-	| RIG_LEVEL_SWR | RIG_LEVEL_ALC | RIG_LEVEL_STRENGTH )
-
-/* simplification macro */
-#define RIG_LEVEL_EXCLUDE(e) (RIG_LEVEL_ALL & ~(e))
-
-/* more simplification macros */
-#define RIG_PARM_ALL	(RIG_PARM_ANN | RIG_PARM_APO | RIG_PARM_BACKLIGHT \
-			| RIG_PARM_BEEP | RIG_PARM_TIME | RIG_PARM_BAT )
-#define RIG_PARM_EXCLUDE(e)	(RIG_PARM_ALL & ~(e))
-
-/* For the Ham who has it all  --Dale */
-#define RIG_FUNC_ALL	(RIG_FUNC_FAGC | RIG_FUNC_NB | RIG_FUNC_COMP \
-			| RIG_FUNC_VOX | RIG_FUNC_TONE | RIG_FUNC_TSQL \
-	| RIG_FUNC_SBKIN | RIG_FUNC_FBKIN | RIG_FUNC_ANF | RIG_FUNC_NR \
-	| RIG_FUNC_AIP | RIG_FUNC_APF | RIG_FUNC_MON | RIG_FUNC_MN \
-	| RIG_FUNC_RNF | RIG_FUNC_ARO | RIG_FUNC_LOCK | RIG_FUNC_MUTE \
-	| RIG_FUNC_VSC | RIG_FUNC_REV | RIG_FUNC_SQL | RIG_FUNC_ABM \
-	| RIG_FUNC_BC | RIG_FUNC_MBC | RIG_FUNC_LMP | RIG_FUNC_AFC \
-	| RIG_FUNC_SATMODE | RIG_FUNC_SCOPE | RIG_FUNC_RESUME )
-
-/* Those of us who don't have everything */
-//#define RIG_FUNC_EXCLUDE(f)	(RIG_FUNC_ALL & ~(f))
-
-#endif /* _RIG_H */
-

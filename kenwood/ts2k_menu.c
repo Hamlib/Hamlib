@@ -7,6 +7,10 @@
  */
 
 /*
+ * status:	Never been compiled!
+ */
+
+/*
  * Functions to initialize, read, set, and list menus
  * for the TS-2000.  These functions will be added to
  * src/rig.c as rig_*menu_*() as time permits.
