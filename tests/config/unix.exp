@@ -1,0 +1,72 @@
+#   Copyright (C) 1997 - 2001 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  
+
+# Please email any bugs, comments, and/or additions to this file to:
+# hamlib-developer@lists.sourceforge.net
+
+set RIGCTL "$srcdir/rigctl"
+
+if ![info exists prompt] then {
+    set prompt "Rig command: "
+}
+#
+# rigctl_version -- extract and print the version number of rigctl
+#
+
+proc rigctl_version {} {
+	global RIGCTL
+	global prompt
+	set tmp [exec $RIGCTL --version]
+	regexp "Hamlib version *(\[^\n\]*)\n.*" $tmp tmp version
+	clone_output "[which $RIGCTL] version $version\n"
+}
+#
+# rigctl_load -- loads the program
+#
+proc rigctl_load { arg } {
+	#
+}
+
+#
+# rigctl_exit -- quit and cleanup
+#
+proc rigctl_exit {} {
+	send "quit\n"
+}
+
+#
+# rigctl_start -- start rigctl running
+#
+proc rigctl_start {} {
+	global RIGCTL
+	global prompt
+	global spawn_id
+	global verbose
+
+	if { $verbose > 1 } {
+		send_user "starting $RIGCTL\n"
+	}
+	spawn $RIGCTL
+	expect {
+		-re "No such file.*" { perror "Can't start $RIGCTL"; exit 1 }
+		-re "$prompt$" { }
+		#FIXME
+		#-re "rig: dlsym\(initrigs_([^\)]*)\) failed.*" { perror "Can't find backend $expect_out(1,string)"; exit 1 }
+		timeout { perror "Failed to spawn $RIGCTL (timeout)"; exit 1 }
+	}
+}
+
+rigctl_start

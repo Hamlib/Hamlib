@@ -1,8 +1,6 @@
 
 AUTOMAKE_OPTIONS = dejagnu
-
-#DEJATOOL = rigctl testbcd
-RUNTESTDEFAULTFLAGS = --tool rigctl --srcdir $$srcdir/testsuite RIGCTL=`pwd`/rigctl TESTBCD=`pwd`/testbcd
+DEJATOOL = testfreq testbcd testloc rigctl
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
