@@ -12,34 +12,38 @@ For any reason, if you prefer not to appear in this list, please let me know.
 
 Backends:
 
- ft747,ft847:	Frank Singleton, VK3FCS
+ ft747, ft847:		Frank Singleton, VK3FCS
  ft817: 		Chris Karpinsky, AA1VL
  ft100:			Alex V Flinsch, KC2IVL
+ ft920, ft890, ft900:	Nate Bargmann, N0NB
  winradio:		Pascal Brisset
- icom&others:	Stephane Fillod, F8CFE
+ icom & others:		Stephane Fillod, F8CFE
  ic718:			Chuck Gilkes, WD0FCL/4
- ic821h,thd7,
-  rotators easycomm:		Francois Retief
+ ic821h, thd7,
  kenwood:		High Quality testing by Joop, PA4TU
  IC-R7000:		HQ testing by Chuck Hemker, N2POR
- TS-2000:		testing by Dale Edmons KD7ENI
+ TS-2000:		testing by Dale Edmons, KD7ENI
  jrc:			Manual and testing by Bob Parnass, AJ9S
  aor:			testing by John Ronan
  tentec:		testing by James Chance, N3TKD
  OptoScan 456:		Michael Smith
 
+Rotators
+ easycomm:		Francois Retief
+ rotorez:		Nate Bargmann, N0NB
+
 Frontend:
  Stephane Fillod and Frank Singleton
 
 Web site:	http://hamlib.sf.net/
- Nate Bargmann
+ Joop Stakenborg
 
 e-mail addresses:
 
 Frank Singleton, VK3FCS, <vk3fcs (at) ix.netcom.com>
 Stephane Fillod, F8CFE, <fillods (at) users.sourceforge.net>
 Pascal Brisset <pab (at) users.sourceforge.net>
-Nate Bargmann, N0NB, <n0nb (at) networksplus.net>
+Nate Bargmann, N0NB, <n0nb (at) arrl.net>
 Chris Karpinsky, AA1VL, <aa1vl (at) arrl.net>
 Joop Stakenborg, PA4TU, <pa3aba (at) debian.org>
 Bob Parnass, AJ9S, <parnass (at) megsinet.net>
