@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.2 2004-11-28 21:06:40 jrinas Exp $
+ *	$Id: ts480.c,v 1.3 2004-12-14 07:37:58 jrinas Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,6 +28,7 @@
 #include <stdio.h>
 
 #include <hamlib/rig.h>
+#include "idx_builtin.h"
 #include "kenwood.h"
 
 #define TS480_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY|RIG_MODE_RTTYR)
@@ -35,18 +36,25 @@
 #define TS480_AM_TX_MODES RIG_MODE_AM
 #define TS480_VFO (RIG_VFO_A|RIG_VFO_B)
 
+#define TS480_LEVEL_ALL (RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_AGC)
+#define TS480_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_NR|RIG_FUNC_BC)
+
+
 /*
  * kenwood_ts480_set_ptt
  * Assumes rig!=NULL
  *
  * set PTT with audio from data connector (NOT microphone!!!)
  */
-static int kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
+static int
+kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
 {
   unsigned char ackbuf[16];
   int ack_len = 0;
 
-  return kenwood_transaction (rig, ptt == RIG_PTT_ON ? "TX1;" : "RX;", 3, ackbuf, &ack_len);
+  if (RIG_PTT_ON == ptt)
+    return kenwood_transaction (rig, "TX1;", 4, ackbuf, &ack_len);
+  return kenwood_transaction (rig, "RX;", 3, ackbuf, &ack_len);
 }
 
 
@@ -56,14 +64,16 @@ static int kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
  *
  * set the aerial/antenna  to use
  */
-static int kenwood_ts480_set_ant (RIG *rig, vfo_t vfo, ant_t ant)
+static int
+kenwood_ts480_set_ant (RIG * rig, vfo_t vfo, ant_t ant)
 {
   unsigned char ackbuf[16];
   int ack_len = 0;
-  if ( RIG_ANT_1==ant)
-    return kenwood_transaction (rig,"AN1;", 4, ackbuf, &ack_len);
-  if ( RIG_ANT_2==ant)
-    return kenwood_transaction (rig,"AN2;", 4, ackbuf, &ack_len);
+
+  if (RIG_ANT_1 == ant)
+    return kenwood_transaction (rig, "AN1;", 4, ackbuf, &ack_len);
+  if (RIG_ANT_2 == ant)
+    return kenwood_transaction (rig, "AN2;", 4, ackbuf, &ack_len);
   return -RIG_EINVAL;
 }
 
@@ -74,29 +84,30 @@ static int kenwood_ts480_set_ant (RIG *rig, vfo_t vfo, ant_t ant)
  *
  * get the aerial/antenna  in use
  */
-static int kenwood_ts480_get_ant (RIG *rig, vfo_t vfo, ant_t * ant)
+static int
+kenwood_ts480_get_ant (RIG * rig, vfo_t vfo, ant_t * ant)
 {
   unsigned char ackbuf[16];
-  int ack_len=16;
+  int ack_len = 16;
   int retval;
-  
-  retval = kenwood_transaction (rig,"AN;", 3, ackbuf, &ack_len);
+
+  retval = kenwood_transaction (rig, "AN;", 3, ackbuf, &ack_len);
   if (RIG_OK != retval)
     return retval;
-  if (4!=ack_len)
-     return -RIG_EPROTO;   
+  if (4 != ack_len)
+    return -RIG_EPROTO;
   switch (ackbuf[2])
-  {
+    {
     case '1':
-      *ant=RIG_ANT_1;
+      *ant = RIG_ANT_1;
       break;
     case '2':
-      *ant=RIG_ANT_2;
+      *ant = RIG_ANT_2;
       break;
     default:
       /* can only be a protocol error since the ts480 has only two antenna connectors */
-      return -RIG_EPROTO;  
-  }
+      return -RIG_EPROTO;
+    }
   return RIG_OK;
 }
 
@@ -115,13 +126,11 @@ kenwood_ts480_get_info (RIG * rig)
   retval = kenwood_transaction (rig, "TY;", 3, firmbuf, &firm_len);
   if (retval != RIG_OK)
     return NULL;
-
   if (firm_len != 6)
     {
       rig_debug (RIG_DEBUG_ERR, "kenwood_get_info: wrong answer len=%d\n", firm_len);
       return NULL;
     }
-
   switch (firmbuf[4])
     {
     case '0':
@@ -138,9 +147,224 @@ kenwood_ts480_get_info (RIG * rig)
 }
 
 
+/*
+ * kenwood_ts480_set_level
+ * Assumes rig!=NULL
+ *
+ * set levels of most functions
+ *
+ * WARNING: the commands differ slightly from the general versions in kenwood.c
+ * e.g.: "SQ"=>"SQ0" , "AG"=>"AG0"
+ */
+int
+kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
+{
+  unsigned char levelbuf[16], ackbuf[16];
+  int level_len, ack_len, retval;
+  int kenwood_val;
+
+  switch (level)
+    {
+    case RIG_LEVEL_RFPOWER:
+      kenwood_val = val.f * 100;	/* level for TS480SAT is from 0.. 100W in SSB */
+      level_len = sprintf (levelbuf, "PC%03d;", kenwood_val);
+      break;
+
+    case RIG_LEVEL_AF:
+      kenwood_val = val.f * 255;	/* possible values for TS480 are 000.. 255 */
+      level_len = sprintf (levelbuf, "AG0%03d;", kenwood_val);
+      break;
+
+    case RIG_LEVEL_RF:
+      kenwood_val = val.f * 100;	/* possible values for TS480 are 000.. 100 */
+      level_len = sprintf (levelbuf, "RG%03d;", kenwood_val);
+      break;
+
+    case RIG_LEVEL_SQL:
+      kenwood_val = val.f * 255;	/* possible values for TS480 are 000.. 255 */
+      level_len = sprintf (levelbuf, "SQ0%03d;", kenwood_val);
+      break;
+
+    case RIG_LEVEL_AGC:	/* possible values for TS480 000(=off), 001(=fast), 002(=slow) */
+      /* hamlib argument is int, possible values rig.h:enum agc_level_e */
+      switch (val.i)
+	{
+	case RIG_AGC_OFF:
+	  kenwood_val = 0;
+	  break;
+	case RIG_AGC_FAST:
+	  kenwood_val = 1;
+	  break;
+	case RIG_AGC_SLOW:
+	  kenwood_val = 2;
+	  break;
+	default:
+	  rig_debug (RIG_DEBUG_ERR, "Unsupported agc value");
+	  return -RIG_EINVAL;
+	};
+      level_len = sprintf (levelbuf, "GT%03d;", kenwood_val);
+      break;
+
+    default:
+      rig_debug (RIG_DEBUG_ERR, "Unsupported set_level %d", level);
+      return -RIG_EINVAL;
+    }
+
+  ack_len = 0;
+  retval = kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+  if (retval != RIG_OK)
+    return retval;
+
+  return RIG_OK;
+}
+
+
+/*
+ * kenwood_get_level
+ * Assumes rig!=NULL, val!=NULL
+ */
+int
+kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
+{
+  unsigned char ackbuf[50];
+  int ack_len = 50;
+  int levelint;
+  int retval;
+
+  switch (level)
+    {
+    case RIG_LEVEL_RFPOWER:
+      retval = kenwood_transaction (rig, "PC;", 3, ackbuf, &ack_len);
+      if (RIG_OK != retval)
+	return retval;
+      if (6 != ack_len)
+	return -RIG_EPROTO;
+      if (1 != sscanf (&ackbuf[2], "%d", &levelint))
+	return -RIG_EPROTO;
+      val->f = (float) levelint / 100.;
+      return RIG_OK;
+
+    case RIG_LEVEL_AF:
+      retval = kenwood_transaction (rig, "AG0;", 4, ackbuf, &ack_len);
+      if (RIG_OK != retval)
+	return retval;
+      if (7 != ack_len)
+	return -RIG_EPROTO;
+      if (1 != sscanf (&ackbuf[3], "%d", &levelint))
+	return -RIG_EPROTO;
+      val->f = (float) levelint / 255.;
+      return RIG_OK;
+
+    case RIG_LEVEL_RF:
+      retval = kenwood_transaction (rig, "RG;", 3, ackbuf, &ack_len);
+      if (RIG_OK != retval)
+	return retval;
+      if (6 != ack_len)
+	return -RIG_EPROTO;
+      if (1 != sscanf (&ackbuf[2], "%d", &levelint))
+	return -RIG_EPROTO;
+      val->f = (float) levelint / 100.;
+      return RIG_OK;
+
+    case RIG_LEVEL_SQL:
+      retval = kenwood_transaction (rig, "SQ0;", 4, ackbuf, &ack_len);
+      if (RIG_OK != retval)
+	return retval;
+      if (7 != ack_len)
+	return -RIG_EPROTO;
+      if (1 != sscanf (&ackbuf[3], "%d", &levelint))
+	return -RIG_EPROTO;
+      val->f = (float) levelint / 255.;
+      return RIG_OK;
+
+    case RIG_LEVEL_AGC:
+      retval = kenwood_transaction (rig, "GT;", 3, ackbuf, &ack_len);
+      if (RIG_OK != retval)
+	return retval;
+      if (6 != ack_len)
+	return -RIG_EPROTO;
+      switch (ackbuf[4])
+	{
+	case '0':
+	  val->i = RIG_AGC_OFF;
+	  break;
+	case '1':
+	  val->i = RIG_AGC_FAST;
+	  break;
+	case '2':
+	  val->i = RIG_AGC_SLOW;
+	  break;
+	default:
+	  return -RIG_EPROTO;
+	}
+      return RIG_OK;
+
+    case RIG_LEVEL_MICGAIN:
+    case RIG_LEVEL_PREAMP:
+    case RIG_LEVEL_IF:
+    case RIG_LEVEL_APF:
+    case RIG_LEVEL_NR:
+    case RIG_LEVEL_PBT_IN:
+    case RIG_LEVEL_PBT_OUT:
+    case RIG_LEVEL_CWPITCH:
+    case RIG_LEVEL_KEYSPD:
+    case RIG_LEVEL_NOTCHF:
+    case RIG_LEVEL_COMP:
+    case RIG_LEVEL_BKINDL:
+    case RIG_LEVEL_BALANCE:
+      return -RIG_ENIMPL;
+
+    default:
+      rig_debug (RIG_DEBUG_ERR, "Unsupported get_level %d", level);
+      return -RIG_EINVAL;
+    }
+
+  return RIG_OK;		/* never reached */
+}
+
+
+int
+kenwood_ts480_set_func (RIG * rig, vfo_t vfo, setting_t func, int status)
+{
+  unsigned char fctbuf[16], ackbuf[16];
+  int fct_len, ack_len;
+
+  ack_len = 0;
+  switch (func)
+    {
+    case RIG_FUNC_NB:
+      fct_len = sprintf (fctbuf, "NB%c;", status == 0 ? '0' : '1');
+      return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+    case RIG_FUNC_COMP:
+      fct_len = sprintf (fctbuf, "PR%c;", status == 0 ? '0' : '1');
+      return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+    case RIG_FUNC_VOX:
+      fct_len = sprintf (fctbuf, "VX%c;", status == 0 ? '0' : '1');
+      return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+    case RIG_FUNC_NR:
+      fct_len = sprintf (fctbuf, "NR%c;", status == 0 ? '0' : '1');
+      return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+    case RIG_FUNC_BC:
+      fct_len = sprintf (fctbuf, "BC%c;", status == 0 ? '0' : '1');
+      return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+    default:
+      rig_debug (RIG_DEBUG_ERR, "Unsupported set_func %#x", func);
+      return -RIG_EINVAL;
+    }
+
+  return RIG_OK;
+}
+
+
 static const struct kenwood_priv_caps ts480_priv_caps = {
   .cmdtrm = EOM_KEN,
 };
+
 
 /*
  * ts480 rig capabilities.
@@ -175,6 +399,7 @@ const struct rig_caps ts480_caps = {
   .max_ifshift = Hz (0),
   .targetable_vfo = RIG_TARGETABLE_FREQ,
   .transceive = RIG_TRN_RIG,
+
 
   .rx_range_list1 = {
 		     {kHz (100), Hz (59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},
@@ -252,7 +477,26 @@ const struct rig_caps ts480_caps = {
   .reset = kenwood_reset,
   .set_ant = kenwood_ts480_set_ant,
   .get_ant = kenwood_ts480_get_ant,
+  .scan = kenwood_scan,		/* not working, invalid arguments using rigctl; kenwood_scan does only support on/off and not tone and CTCSS scan */
+  .has_set_level = TS480_LEVEL_ALL,
+  .has_get_level = TS480_LEVEL_ALL,
+  .set_level = kenwood_ts480_set_level,
+  .get_level = kenwood_ts480_get_level,
+  .has_get_func = TS480_FUNC_ALL,
+  .has_set_func = TS480_FUNC_ALL,
+  .set_func = kenwood_ts480_set_func,
+  .get_func = kenwood_get_func,
 };
+
+
+/*
+ * my notes:
+ *  format with:  indent --line-length 200 ts480.c
+ *
+ * for the TS480 the function NR and BC have tree state: NR0,1,2 and BC0,1,2 
+ * this cannot be send through the on/off logic of set_function!
+ */
+
 
 /*
  * Function definitions below
