@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.19 2002-07-08 22:20:15 fillods Exp $
+ *	$Id: misc.c,v 1.20 2002-07-09 22:18:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -329,6 +329,7 @@ const char *strfunc(setting_t func)
 	case RIG_FUNC_SATMODE: return "SATMODE";
 	case RIG_FUNC_SCOPE: return "SCOPE";
 	case RIG_FUNC_RESUME: return "RESUME";
+	case RIG_FUNC_TBURST: return "TBURST";
 
 	case RIG_FUNC_NONE: return "";
 	}
@@ -653,6 +654,7 @@ static struct {
 	{ RIG_FUNC_SATMODE, "SATMODE" },
 	{ RIG_FUNC_SCOPE, "SCOPE" },
 	{ RIG_FUNC_RESUME, "RESUME" },
+	{ RIG_FUNC_TBURST, "TBURST" },
 	{ RIG_FUNC_NONE, NULL },
 };
 
