@@ -1,9 +1,9 @@
 /*
- * dumpcaps.c - Copyright (C) 2000,2001,2002 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2002 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.32 2002-09-06 14:07:17 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.33 2002-11-04 22:28:46 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
 static const char *decode_mtype(enum chan_type_e type);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
+static void dump_chan_caps(const channel_cap_t *chan);
 
 /*
  * the rig may be in rig_init state, but not openned
@@ -252,9 +253,11 @@ int dumpcaps (RIG* rig)
 
 	printf("Memories:");
 	for (i=0; i<CHANLSTSIZ && caps->chan_list[i].type; i++) {
-			printf("\n\t%d..%d:   \t%s", caps->chan_list[i].start,
-							caps->chan_list[i].end,
-							decode_mtype(caps->chan_list[i].type));
+		printf("\n\t%d..%d:   \t%s", caps->chan_list[i].start,
+						caps->chan_list[i].end,
+						decode_mtype(caps->chan_list[i].type));
+		printf("\n\t  mem caps: ");
+		dump_chan_caps(&caps->chan_list[i].mem_caps);
 	}
 	if (i == 0)
 		printf(" none");
@@ -365,7 +368,7 @@ int dumpcaps (RIG* rig)
 	printf("Can get DCS squelch:\t%c\n",caps->get_dcs_sql!=NULL?'Y':'N');
 	printf("Can set power stat:\t%c\n",caps->set_powerstat!=NULL?'Y':'N');
 	printf("Can get power stat:\t%c\n",caps->get_powerstat!=NULL?'Y':'N');
-	printf("Can get reset:\t%c\n",caps->reset!=NULL?'Y':'N');
+	printf("Can reset:\t%c\n",caps->reset!=NULL?'Y':'N');
 	printf("Can get ant:\t%c\n",caps->get_ant!=NULL?'Y':'N');
 	printf("Can set ant:\t%c\n",caps->set_ant!=NULL?'Y':'N');
 	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
@@ -492,4 +495,32 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
 	return 0;
 }
 
+
+static void dump_chan_caps(const channel_cap_t *chan)
+{
+  if (chan->bank_num) printf("BANK ");
+  if (chan->ant) printf("ANT ");
+  if (chan->freq) printf("FREQ ");
+  if (chan->mode) printf("MORE ");
+  if (chan->width) printf("WIDTH ");
+  if (chan->tx_freq) printf("TXFREQ ");
+  if (chan->tx_mode) printf("TXMODE ");
+  if (chan->tx_width) printf("TXWIDTH ");
+  if (chan->split) printf("SPLIT ");
+  if (chan->rptr_shift) printf("RPTRSHIFT ");
+  if (chan->rptr_offs) printf("RPTROFS ");
+  if (chan->tuning_step) printf("TS ");
+  if (chan->rit) printf("RIT ");
+  if (chan->xit) printf("XIT ");
+  if (chan->funcs) printf("FUNC ");
+  if (chan->levels) printf("LEVEL ");
+  if (chan->ctcss_tone) printf("TONE ");
+  if (chan->ctcss_sql) printf("CTCSS ");
+  if (chan->dcs_code) printf("DCSCODE ");
+  if (chan->dcs_sql) printf("DCSSQL ");
+  if (chan->scan_group) printf("SCANGRP ");
+  if (chan->flags) printf("FLAG ");    /* RIG_CHFLAG's */
+  if (chan->channel_desc) printf("NAME ");
+  if (chan->ext_levels) printf("EXTLVL ");
+}
 
