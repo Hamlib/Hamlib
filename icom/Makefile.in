@@ -60,15 +60,14 @@ POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
 AS = @AS@
+AWK = @AWK@
 CC = @CC@
+CPP = @CPP@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
 EXEEXT = @EXEEXT@
-GCJ = @GCJ@
-GCJFLAGS = @GCJFLAGS@
 INCLTDL = @INCLTDL@
 INCLUDES = @INCLUDES@
 LIBHAMLIBTCL = @LIBHAMLIBTCL@
@@ -88,7 +87,7 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 hamlibdocdir = @hamlibdocdir@
 
-ICOMSRCLIST = ic706.c icr8500.c icall.c
+ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c icall.c
 
 lib_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
@@ -112,13 +111,14 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libhamlib_icom_a_DEPENDENCIES =  ../src/libhamlib.la
 libhamlib_icom_a_OBJECTS =  ic706.$(OBJEXT) icr8500.$(OBJEXT) \
-icall.$(OBJEXT) icom.$(OBJEXT) frame.$(OBJEXT)
+ic735.$(OBJEXT) ic775.$(OBJEXT) icall.$(OBJEXT) icom.$(OBJEXT) \
+frame.$(OBJEXT)
 AR = ar
 LTLIBRARIES =  $(lib_LTLIBRARIES)
 
 libhamlib_icom_la_LIBADD = 
-libhamlib_icom_la_OBJECTS =  ic706.lo icr8500.lo icall.lo icom.lo \
-frame.lo
+libhamlib_icom_la_OBJECTS =  ic706.lo icr8500.lo ic735.lo ic775.lo \
+icall.lo icom.lo frame.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -133,8 +133,8 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
-DEP_FILES =  .deps/frame.P .deps/ic706.P .deps/icall.P .deps/icom.P \
-.deps/icr8500.P
+DEP_FILES =  .deps/frame.P .deps/ic706.P .deps/ic735.P .deps/ic775.P \
+.deps/icall.P .deps/icom.P .deps/icr8500.P
 SOURCES = $(libhamlib_icom_a_SOURCES) $(libhamlib_icom_la_SOURCES)
 OBJECTS = $(libhamlib_icom_a_OBJECTS) $(libhamlib_icom_la_OBJECTS)
 
