@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS570 description
- *  Copyright (c) 2001,2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.19 2003-09-28 15:30:48 fillods Exp $
+ *	$Id: ts570.c,v 1.20 2003-10-01 19:31:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include <hamlib/rig.h>

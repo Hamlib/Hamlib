@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.8 2003-04-16 22:30:40 fillods Exp $
+ *	$Id: jrc.c,v 1.9 2003-10-01 19:31:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */

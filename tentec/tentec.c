@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.10 2003-05-12 22:29:59 fillods Exp $
+ *	$Id: tentec.c,v 1.11 2003-10-01 19:32:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */

@@ -12,7 +12,7 @@
  * Hy-Gain is a trademark of MFJ Enterprises
  *
  *
- *    $Id: rotorez.c,v 1.7 2003-04-16 22:30:41 fillods Exp $
+ *    $Id: rotorez.c,v 1.8 2003-10-01 19:32:00 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>             /* Standard library definitions */
 #include <string.h>             /* String function definitions */
 #include <unistd.h>             /* UNIX standard function definitions */

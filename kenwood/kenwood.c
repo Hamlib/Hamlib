@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.66 2003-09-28 16:14:00 fillods Exp $
+ *	$Id: kenwood.c,v 1.67 2003-10-01 19:31:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,6 +25,7 @@
 #endif
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>

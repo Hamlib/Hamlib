@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.1 2003-09-28 16:14:00 fillods Exp $
+ *	$Id: thg71.c,v 1.2 2003-10-01 19:31:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "kenwood.h"

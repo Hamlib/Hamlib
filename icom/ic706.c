@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-706 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.31 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: ic706.c,v 1.32 2003-10-01 19:31:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,7 +24,9 @@
 #include "config.h"
 #endif
 
-#include <hamlib/rig.h>
+#include <stdlib.h>
+
+#include "hamlib/rig.h"
 #include "icom.h"
 
 #define IC706_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM)

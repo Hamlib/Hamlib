@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-775 and variations
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ic775.c,v 1.3 2002-11-04 22:40:54 fillods Exp $
+ *	$Id: ic775.c,v 1.4 2003-10-01 19:31:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "icom.h"

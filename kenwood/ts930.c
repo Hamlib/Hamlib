@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS930 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts930.c,v 1.1 2003-03-15 23:58:41 fillods Exp $
+ *	$Id: ts930.c,v 1.2 2003-10-01 19:31:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include <bandplan.h>

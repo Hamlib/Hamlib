@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the OptoScan456
  *  Copyright (c) 2000-2003 by Stephane Fillod and Michael Smith
  *
- *	$Id: os456.c,v 1.7 2003-09-07 18:30:28 fillods Exp $
+ *	$Id: os456.c,v 1.8 2003-10-01 19:31:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,6 +28,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "icom.h"

@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3000 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ar3000.c,v 1.1 2003-02-13 22:17:44 fillods Exp $
+ *	$Id: ar3000.c,v 1.2 2003-10-01 19:31:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <string.h>
 
 #include <hamlib/rig.h>

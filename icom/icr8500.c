@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R8500 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icr8500.c,v 1.16 2002-08-16 17:43:01 fillods Exp $
+ *	$Id: icr8500.c,v 1.17 2003-10-01 19:31:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,7 +24,9 @@
 #include "config.h"
 #endif
 
-#include <hamlib/rig.h>
+#include <stdlib.h>
+
+#include "hamlib/rig.h"
 #include "icom.h"
 
 

@@ -3,7 +3,7 @@
  *
  * sartek.c - (C) Stephane Fillod 2003
  *
- *    $Id: sartek.c,v 1.1 2003-06-22 19:36:37 fillods Exp $
+ *    $Id: sartek.c,v 1.2 2003-10-01 19:32:01 fillods Exp $
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>             /* Standard library definitions */
 #include <string.h>             /* String function definitions */
 #include <unistd.h>             /* UNIX standard function definitions */

@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - DX77 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: dx77.c,v 1.6 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: dx77.c,v 1.7 2003-10-01 19:31:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "alinco.h"

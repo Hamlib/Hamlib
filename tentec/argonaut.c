@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-516 PC-Radio description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: argonaut.c,v 1.1 2003-05-12 22:29:59 fillods Exp $
+ *	$Id: argonaut.c,v 1.2 2003-10-01 19:32:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "tentec2.h"

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-725 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic725.c,v 1.3 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: ic725.c,v 1.4 2003-10-01 19:31:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,8 +24,10 @@
 #include "config.h"
 #endif
 
-#include <hamlib/rig.h>
-#include <bandplan.h>
+#include <stdlib.h>
+
+#include "hamlib/rig.h"
+#include "bandplan.h"
 #include "icom.h"
 
 

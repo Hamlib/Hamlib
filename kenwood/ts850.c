@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS850 description
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.9 2003-06-23 18:11:43 pa4tu Exp $
+ *	$Id: ts850.c,v 1.10 2003-10-01 19:31:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "kenwood.h"

@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *  Caps submitted by Chuck Gilkes WD0FCL/4
  *
- *	$Id: ic718.c,v 1.4 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: ic718.c,v 1.5 2003-10-01 19:31:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,7 +25,9 @@
 #include "config.h"
 #endif
 
-#include <hamlib/rig.h>
+#include <stdlib.h>
+
+#include "hamlib/rig.h"
 #include "icom.h"
 
 

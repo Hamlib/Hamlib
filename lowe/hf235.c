@@ -2,7 +2,7 @@
  *  Hamlib Lowe backend - HF-235 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: hf235.c,v 1.1 2003-06-22 19:36:37 fillods Exp $
+ *	$Id: hf235.c,v 1.2 2003-10-01 19:31:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "lowe.h"

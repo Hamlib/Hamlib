@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.8 2003-08-15 01:05:40 fillods Exp $
+ *	$Id: thf7.c,v 1.9 2003-10-01 19:31:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "kenwood.h"

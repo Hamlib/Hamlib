@@ -1,8 +1,8 @@
 /*
  *  Hamlib Drake backend - R-8B description
- *  Copyright (c) 2001-2002 by Stephane Fillod
+ *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: r8b.c,v 1.3 2002-10-20 20:46:32 fillods Exp $
+ *	$Id: r8b.c,v 1.4 2003-10-01 19:31:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include <hamlib/rig.h>
 #include "drake.h"

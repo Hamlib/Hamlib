@@ -9,7 +9,7 @@
  *  Hamlib Interface - CTCSS and DCS interface and tables
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: tones.c,v 1.4 2003-04-16 22:33:18 fillods Exp $
+ *	$Id: tones.c,v 1.5 2003-10-01 19:32:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,6 +30,8 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include <stdlib.h>
 
 #include "hamlib/rig.h"
 #include "tones.h"

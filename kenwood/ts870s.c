@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS870S description
- *  Copyright (c) 2000-2002 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.36 2003-06-23 17:48:27 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.37 2003-10-01 19:31:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,6 +25,8 @@
 #endif
 
 #include <stdlib.h>
+#include <stdio.h>
+
 #include <hamlib/rig.h>
 #include "kenwood.h"
 

@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR5000 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.3 2003-02-24 22:27:41 fillods Exp $
+ *	$Id: ar5000.c,v 1.4 2003-10-01 19:31:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <string.h>
 #include <hamlib/rig.h>
 #include "aor.h"
