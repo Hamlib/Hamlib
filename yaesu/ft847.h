@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.4 2002-12-01 03:08:05 n0nb Exp $  
+ *    $Id: ft847.h,v 1.5 2003-03-10 08:26:20 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -150,7 +150,7 @@ typedef enum ft847_native_cmd_e ft847_native_cmd_t;
  */
 
 struct ft847_priv_data {
-  unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A, SAT_RX, SAT_TX */
+  vfo_t current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A, SAT_RX, SAT_TX */
   unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
   yaesu_cmd_set_t pcs[FT_847_NATIVE_SIZE];		/* private cmd set */
   unsigned char rx_status;	/* tx returned data */

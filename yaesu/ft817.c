@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft817.c,v 1.5 2002-12-01 03:08:05 n0nb Exp $  
+ *    $Id: ft817.c,v 1.6 2003-03-10 08:26:20 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -273,7 +273,7 @@ int ft817_init(RIG *rig) {
 
   memcpy(p->pcs,ncmd,sizeof(ncmd));
 
-  p->current_vfo = RIG_VFO1;	/* no clue which VFO is active, so guess VFO 1 */
+  p->current_vfo = RIG_VFO_A;	/* no clue which VFO is active, so guess VFO 1 */
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -355,8 +355,8 @@ int ft817_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
  
   switch( vfo ) {
   case RIG_VFO_CURR:
-  case RIG_VFO1:
-  case RIG_VFO2:
+  case RIG_VFO_A:
+  case RIG_VFO_B:
     cmd_index = FT817_NATIVE_CAT_SET_FREQ;
     break;
   default:
@@ -501,8 +501,8 @@ int ft817_set_vfo(RIG *rig, vfo_t vfo) {
   if (!rig)  return -RIG_EINVAL;
 
   switch(vfo) {
-  case RIG_VFO1:
-  case RIG_VFO2:
+  case RIG_VFO_A:
+  case RIG_VFO_B:
     if( p->current_vfo != vfo ) {
       if( ft817_send_priv_cmd( rig, FT817_NATIVE_CAT_SET_VFOAB ) == RIG_OK ) {
         p->current_vfo = vfo;

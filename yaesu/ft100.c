@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.7 2003-02-14 15:23:00 avflinsch Exp $  
+ *    $Id: ft100.c,v 1.8 2003-03-10 08:26:20 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -325,7 +325,7 @@ int ft100_init(RIG *rig) {
 
   memcpy(p->pcs,ncmd,sizeof(ncmd));
 
-  p->current_vfo = RIG_VFO1;	/* no clue which VFO is active, so guess VFO 1 */
+  p->current_vfo = RIG_VFO_A;	/* no clue which VFO is active, so guess VFO 1 */
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -416,8 +416,8 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
  
   switch( vfo ) {
   case RIG_VFO_CURR:
-  case RIG_VFO1:
-  case RIG_VFO2:
+  case RIG_VFO_A:
+  case RIG_VFO_B:
     cmd_index = FT100_NATIVE_CAT_SET_FREQ;
     break;
   default:
@@ -580,8 +580,8 @@ int ft100_set_vfo(RIG *rig, vfo_t vfo) {
   if (!rig)  return -RIG_EINVAL;
 
   switch(vfo) {
-  case RIG_VFO1:
-  case RIG_VFO2:
+  case RIG_VFO_A:
+  case RIG_VFO_B:
     if( p->current_vfo != vfo ) {
       if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOAB ) == RIG_OK ) {
         p->current_vfo = vfo;
@@ -757,8 +757,8 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
   
   switch( vfo ) {
   case RIG_VFO_CURR:
-  case RIG_VFO1:
-  case RIG_VFO2:
+  case RIG_VFO_A:
+  case RIG_VFO_B:
     cmd_index = FT100_NATIVE_CAT_SET_DCS_CODE;
     break;
   default:
@@ -798,8 +798,8 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
  
   switch( vfo ) {
   case RIG_VFO_CURR:
-  case RIG_VFO1:
-  case RIG_VFO2:
+  case RIG_VFO_A:
+  case RIG_VFO_B:
     cmd_index = FT100_NATIVE_CAT_SET_CTCSS_FREQ;
     break;
   default:
