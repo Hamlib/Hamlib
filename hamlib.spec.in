@@ -1,7 +1,7 @@
 %define ver @VERSION@
 %define prefix	/usr
 
-Summary: Run-time library to control radio transcievers and receivers.
+Summary: Run-time library to control radio transceivers and receivers.
 Name: hamlib
 Version: %ver
 Release: 1
@@ -59,7 +59,7 @@ BuildRequires: /bin/sh, automake >= 1.4, libtool >= 1.4, fileutils, findutils
  command line interface or in a text-oriented interactive interface.
 
 %package devel
-Summary: Development library to control radio transcievers and receivers.
+Summary: Development library to control radio transceivers and receivers.
 Group: Development/Libraries
 Requires: hamlib
 
