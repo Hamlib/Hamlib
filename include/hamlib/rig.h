@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.92 2004-02-09 22:07:21 fillods Exp $
+ *	$Id: rig.h,v 1.93 2004-04-16 20:01:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -522,6 +522,7 @@ enum agc_level_e {
 	RIG_AGC_OFF = 0,
 	RIG_AGC_SUPERFAST,
 	RIG_AGC_FAST,
+	RIG_AGC_MEDIUM,
 	RIG_AGC_SLOW,
 	RIG_AGC_USER		/*!< user selectable */
 };
@@ -556,7 +557,7 @@ enum rig_level_e {
 	RIG_LEVEL_ATT =		(1<<1),	/*!< Attenuator, arg int (dB) */
 	RIG_LEVEL_VOX =		(1<<2),	/*!< VOX delay, arg int (tenth of seconds) */
 	RIG_LEVEL_AF =		(1<<3),	/*!< Volume, arg float [0.0..1.0] */
-	RIG_LEVEL_RF =		(1<<4),	/*!< RF gain (not TX power), arg float [0.0..1.0] or in dB ?? -20..20 ? */
+	RIG_LEVEL_RF =		(1<<4),	/*!< RF gain (not TX power), arg float [0.0..1.0] */
 	RIG_LEVEL_SQL =		(1<<5),	/*!< Squelch, arg float [0.0 .. 1.0] */
 	RIG_LEVEL_IF =		(1<<6),	/*!< IF, arg int (Hz) */
 	RIG_LEVEL_APF =		(1<<7),	/*!< APF, arg float [0.0 .. 1.0] */
