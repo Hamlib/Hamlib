@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R8500 description
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icr8500.c,v 1.12 2001-08-08 06:04:48 f4cfe Exp $
+ *		$Id: icr8500.c,v 1.13 2001-10-07 21:48:02 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,8 +38,8 @@
 #include "icom.h"
 
 
-#define ICR8500_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
-#define ICR8500_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM)
+#define ICR8500_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM)
+#define ICR8500_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 
 #define ICR8500_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_APF)
 

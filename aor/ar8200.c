@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR8200 description
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: ar8200.c,v 1.12 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: ar8200.c,v 1.13 2001-10-07 21:47:11 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +38,7 @@
 #include "aor.h"
 
 
-#define AR8200_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_FM)
+#define AR8200_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
 
 #define AR8200_FUNC_ALL (RIG_FUNC_TSQL)
 

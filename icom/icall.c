@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - Do it all Icom description for debugging
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: icall.c,v 1.8 2001-08-08 06:04:48 f4cfe Exp $
+ *		$Id: icall.c,v 1.9 2001-10-07 21:48:02 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,9 +38,9 @@
 #include "icom.h"
 
 
-#define ICALL_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
-#define ICALL_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM)
-#define ICALL_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY)
+#define ICALL_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM)
+#define ICALL_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
+#define ICALL_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY)
 
 /* tx doesn't have WFM.
  * 100W in all modes but AM (40W)
