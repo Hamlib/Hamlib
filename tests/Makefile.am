@@ -1,5 +1,7 @@
 bin_PROGRAMS = dumpcaps testrig testtrn testbcd listrigs
-LDADD = -L../src/.libs -lhamlib
+LDADD = ../src/libhamlib.la
+listrigs_LDADD = ../src/libhamlib.la "-dlopen" ../icom/libhamlib-icom.la "-dlopen" ../ft747/libhamlib-ft747.la "-dlopen" ../ft847/libhamlib-ft847.la
+listrigs_DEPENDENCIES = ../icom/libhamlib-icom.la ../ft747/libhamlib-ft747.la ../ft847/libhamlib-ft847.la
 testrig_SOURCES = testrig.c
 testtrn_SOURCES = testtrn.c
 testbcd_SOURCES = testbcd.c
