@@ -11,7 +11,7 @@
  *  Hamlib C++ bindings - main file
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.cc,v 1.4 2001-11-08 07:38:38 f4cfe Exp $
+ *		$Id: rigclass.cc,v 1.5 2001-12-16 11:18:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,8 +202,42 @@ float Rig::getLevelF(setting_t level, vfo_t vfo)
 	return val.f;
 }
 
+void Rig::setSplitFreq(freq_t tx_freq, vfo_t vfo) {
+	CHECK_RIG( rig_set_split_freq(theRig, vfo, tx_freq) );
+}
 
+freq_t Rig::getSplitFreq(vfo_t vfo)
+{
+	freq_t freq;
 
+	CHECK_RIG( rig_get_split_freq(theRig, vfo, &freq) );
+
+	return freq;
+}
+
+void Rig::setSplitMode(rmode_t mode, pbwidth_t width, vfo_t vfo) {
+	CHECK_RIG(rig_set_split_mode(theRig, vfo, mode, width));
+}
+
+rmode_t Rig::getSplitMode(pbwidth_t& width, vfo_t vfo) {
+	rmode_t mode;
+
+	CHECK_RIG( rig_get_split_mode(theRig, vfo, &mode, &width) );
+
+	return mode;
+}
+
+void Rig::setSplit(split_t split, vfo_t vfo) {
+	CHECK_RIG(rig_set_split(theRig, vfo, split));
+}
+
+split_t Rig::getSplit(vfo_t vfo) {
+	split_t split;
+
+	CHECK_RIG( rig_get_split(theRig, vfo, &split) );
+
+	return split;
+}
 
 setting_t Rig::hasGetLevel (setting_t level)
 {

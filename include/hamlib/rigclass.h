@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001 by Stephane Fillod
  *
- *		$Id: rigclass.h,v 1.5 2001-11-08 07:38:38 f4cfe Exp $
+ *		$Id: rigclass.h,v 1.6 2001-12-16 11:18:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,10 +25,9 @@
 
 #include <hamlib/rig.h>
 
-#include <hamlib/rig_dll.h>
 
 
-class HAMLIB_IMPEXP Rig {
+class BACKEND_IMPEXP Rig {
 private:
   RIG* theRig;  // Global ref. to the rig
 
@@ -92,6 +91,13 @@ public:
   rmode_t RngRxModes (freq_t freq);
   rmode_t RngTxModes (freq_t freq);
 
+  void setSplitFreq (freq_t tx_freq, vfo_t vfo = RIG_VFO_CURR);
+  freq_t getSplitFreq (vfo_t vfo = RIG_VFO_CURR);
+  void setSplitMode(rmode_t, pbwidth_t width = RIG_PASSBAND_NORMAL, vfo_t vfo = RIG_VFO_CURR);
+  rmode_t getSplitMode(pbwidth_t&, vfo_t vfo = RIG_VFO_CURR);
+  void setSplit(split_t split, vfo_t vfo = RIG_VFO_CURR);
+  split_t getSplit(vfo_t vfo = RIG_VFO_CURR);
+
 
   shortfreq_t getResolution (rmode_t mode);
   void reset (reset_t reset);
@@ -132,12 +138,6 @@ extern HAMLIB_EXPORT(int) rig_get_ctcss_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, 
 extern HAMLIB_EXPORT(int) rig_set_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t code));
 extern HAMLIB_EXPORT(int) rig_get_dcs_sql HAMLIB_PARAMS((RIG *rig, vfo_t vfo, tone_t *code));
 
-extern HAMLIB_EXPORT(int) rig_set_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t rx_freq, freq_t tx_freq));
-extern HAMLIB_EXPORT(int) rig_get_split_freq HAMLIB_PARAMS((RIG *rig, vfo_t vfo, freq_t *rx_freq, freq_t *tx_freq));
-extern HAMLIB_EXPORT(int) rig_set_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t rx_mode, pbwidth_t rx_width, rmode_t tx_mode, pbwidth_t tx_width));
-extern HAMLIB_EXPORT(int) rig_get_split_mode HAMLIB_PARAMS((RIG *rig, vfo_t vfo, rmode_t *rx_mode, pbwidth_t *rx_width, rmode_t *tx_mode, pbwidth_t *tx_width));
-extern HAMLIB_EXPORT(int) rig_set_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t split));
-extern HAMLIB_EXPORT(int) rig_get_split HAMLIB_PARAMS((RIG *rig, vfo_t vfo, split_t *split));
 
 extern HAMLIB_EXPORT(int) rig_set_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t rit));
 extern HAMLIB_EXPORT(int) rig_get_rit HAMLIB_PARAMS((RIG *rig, vfo_t vfo, shortfreq_t *rit));
@@ -227,7 +227,7 @@ extern "C" {
 
 // Forward Declarations
 
-class HAMLIB_IMPEXP RigException
+class BACKEND_IMPEXP RigException
 {
 public:
   const char *message;
