@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.93 2004-04-16 20:01:42 fillods Exp $
+ *	$Id: rig.h,v 1.94 2004-05-11 17:36:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -522,9 +522,9 @@ enum agc_level_e {
 	RIG_AGC_OFF = 0,
 	RIG_AGC_SUPERFAST,
 	RIG_AGC_FAST,
-	RIG_AGC_MEDIUM,
 	RIG_AGC_SLOW,
-	RIG_AGC_USER		/*!< user selectable */
+	RIG_AGC_USER,		/*!< user selectable */
+	RIG_AGC_MEDIUM
 };
 
 /**
