@@ -57,7 +57,7 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([alloca.h argz.h malloc.h memory.h string.h strings.h])
 AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h rpc/rpcent.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
-AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h])
+AC_CHECK_HEADERS([sys/ioccom.h linux/ppdev.h linux/parport.h sgtty.h term.h termio.h termios.h])
 AC_CHECK_HEADERS([windows.h winioctl.h winbase.h])
 
 AM_SYS_POSIX_TERMIOS
@@ -85,11 +85,8 @@ dnl Checks for libraries.
 #--------------------------------------------------------------------
 # On a few very rare systems, all of the libm.a stuff is
 # already in libc.a.  Set compiler flags accordingly.
-# Also, Linux requires the "ieee" library for math to work
-# right (and it must appear before "-lm").
 #--------------------------------------------------------------------
 AC_CHECK_FUNC(sin, [MATH_LIBS=""], [MATH_LIBS="-lm"])
-AC_CHECK_LIB(ieee, main, [MATH_LIBS="-lieee $MATH_LIBS"], [], [])
 
 #--------------------------------------------------------------------
 # Interactive UNIX requires -linet instead of -lsocket, plus it
@@ -200,8 +197,8 @@ fi
 AC_SUBST(RIGMATRIX)
 
 
-BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake"
-ROT_BACKEND_LIST="dummy easycomm rotorez"
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe"
+ROT_BACKEND_LIST="dummy easycomm rotorez sartek"
 BINDINGS=""
 BINDING_LIST=""
 
@@ -293,6 +290,7 @@ case "$host_os" in
  # TODO: support parallel port interface on other systems too
  if test "${ac_cv_header_linux_ppdev_h}" = "yes"; then
    ROT_BACKEND_LIST="$ROT_BACKEND_LIST fodtrack"
+   RIG_BACKEND_LIST="$RIG_BACKEND_LIST flexradio"
  fi
  ;;
  *) 
@@ -412,9 +410,11 @@ tentec/Makefile
 kachina/Makefile
 jrc/Makefile
 drake/Makefile
+lowe/Makefile
 gnuradio/Makefile
 easycomm/Makefile
 fodtrack/Makefile
+sartek/Makefile
 rpcrig/Makefile
 rpcrot/Makefile
 src/Makefile
@@ -425,6 +425,7 @@ tests/Makefile
 doc/Makefile
 rotorez/Makefile
 microtune/Makefile
+flexradio/Makefile
 hamlib.pc
 hamlib.spec]
 )
