@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.60 2002-02-27 23:22:31 fillods Exp $
+ *		$Id: rig.h,v 1.61 2002-02-28 11:00:57 fgretief Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -114,7 +114,7 @@ enum rig_debug_level_e {
 	RIG_DEBUG_TRACE
 };
 
-/* 
+/*
  * Rig capabilities
  *
  * Basic rig type, can store some useful
@@ -176,7 +176,7 @@ enum serial_handshake_e {
 
 
 /*
- * Development status of the backend 
+ * Development status of the backend
  */
 enum rig_status_e {
 	RIG_STATUS_ALPHA = 0,
@@ -203,7 +203,7 @@ enum split_e {
 typedef enum split_e split_t;
 
 /*
- * freq_t: frequency type in Hz, must be >32bits for SHF! 
+ * freq_t: frequency type in Hz, must be >32bits for SHF!
  * shortfreq_t: frequency on 31bits, suitable for offsets, shifts, etc..
  */
 typedef long long freq_t;
@@ -222,7 +222,7 @@ typedef signed long shortfreq_t;
 #define RIG_VFO_ALL		-1		/* apply to all VFO (when used as target) */
 
 /*
- * Or should it be better designated 
+ * Or should it be better designated
  * as a "tunable channel" (RIG_CTRL_MEM) ? --SF
  */
 #define RIG_VFO_MEM		-2		/* means Memory mode, to be used with set_vfo */
@@ -266,7 +266,7 @@ typedef int vfo_t;
 
 
 #define RIG_PASSBAND_NORMAL Hz(0)
-/* 
+/*
  * also see rig_passband_normal(rig,mode),
  * 	rig_passband_narrow(rig,mode) and rig_passband_wide(rig,mode)
  */
@@ -342,9 +342,9 @@ typedef enum reset_e reset_t;
 #define RIG_OP_LEFT		(1<<9)		/* LEFT */
 #define RIG_OP_RIGHT	(1<<10)		/* RIGHT */
 
-/* 
+/*
  * RIG_MVOP_DUAL_ON/RIG_MVOP_DUAL_OFF (Dual watch off/Dual watch on)
- * better be set by set_func IMHO, 
+ * better be set by set_func IMHO,
  * or is it the balance (-> set_level) ? --SF
  */
 
@@ -359,6 +359,8 @@ typedef long vfo_op_t;
 #define RIG_SCAN_PRIO	(1L<<2)		/* Priority watch (mem or call channel) */
 #define RIG_SCAN_PROG	(1L<<3)		/* Programmed(edge) scan */
 #define RIG_SCAN_DELTA	(1L<<4)		/* delta-f scan */
+#define RIG_SCAN_RESUME_ON  (1L<<5) /* Scan resume ON (IC-910H) */
+#define RIG_SCAN_RESUME_OFF (1L<<6) /* Scan resume OFF (IC-910H) */
 
 typedef long scan_t;
 
@@ -399,7 +401,7 @@ struct confparams {
 };
 
 /*
- * When optional speech synthesizer is installed 
+ * When optional speech synthesizer is installed
  * what about RIG_ANN_ENG and RIG_ANN_JAPAN? and RIG_ANN_CW?
  */
 
@@ -462,13 +464,17 @@ typedef union value_u value_t;
 #define RIG_LEVEL_BALANCE	(1<<19)	/* Balance (Dual Watch), arg float [0.0 .. 1.0] */
 #define RIG_LEVEL_METER		(1<<20)	/* Display meter, arg int (see enum meter_level_e) */
 
+#define RIG_LEVEL_VOXGAIN   (1<<21) /* VOX gain level, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_VOXDELAY  RIG_LEVEL_VOX /* VOX delay, arg int (tenth of seconds) */
+#define RIG_LEVEL_ANTIVOX   (1<<22) /* anti-VOX level, arg float [0.0 .. 1.0] */
+
 		/* These ones are not settable */
 #define RIG_LEVEL_SQLSTAT	(1<<27)	/* SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 #define RIG_LEVEL_SWR		(1<<28)	/* SWR, arg float */
 #define RIG_LEVEL_ALC		(1<<29)	/* ALC, arg float */
 #define RIG_LEVEL_STRENGTH	(1<<30)	/* Signal strength, arg int (dB) */
 
-#define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
+#define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
 
 #define RIG_LEVEL_READONLY_LIST (RIG_LEVEL_SQLSTAT|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_STRENGTH)
 
@@ -534,6 +540,9 @@ typedef unsigned long long setting_t;	/* hope 64 bits will be enough.. */
 #define RIG_FUNC_BC     	(1<<22)		/* Beat Canceller */
 #define RIG_FUNC_MBC     	(1<<23)		/* Manual Beat Canceller */
 #define RIG_FUNC_LMP        (1<<24)     /* LCD lamp ON/OFF */
+#define RIG_FUNC_AFC        (1<<25)     /* Auto Frequency Control ON/OFF */
+#define RIG_FUNC_SATMODE    (1<<26)     /* Satellite mode ON/OFF (IC-910H) */
+#define RIG_FUNC_SCOPE      (1<<27)     /* Simple bandscope ON/OFF (IC-910H) */
 
 /*
  * power unit macros, converts to mW
@@ -568,9 +577,9 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define RIG_IS_DBLST_END(d) ((d)==0)
 
 /*
- * Put together a bunch of this struct in an array to define 
- * what your rig have access to 
- */ 
+ * Put together a bunch of this struct in an array to define
+ * what your rig have access to
+ */
 struct freq_range_list {
   freq_t start;
   freq_t end;
@@ -615,8 +624,8 @@ struct filter_list {
 #define RIG_IS_FLT_END(f)	((f).modes == RIG_MODE_NONE)
 
 
-/* 
- * Convenience struct, describes a freq/vfo/mode combo 
+/*
+ * Convenience struct, describes a freq/vfo/mode combo
  * Also useful for memory handling -- FS
  *
  * TODO: skip flag, etc.
@@ -651,7 +660,7 @@ struct channel {
 
 typedef struct channel channel_t;
 
-/* 
+/*
  * chan_t is used to describe what memory your rig is equipped with
  * cf. chan_list field in caps
  * Example for the Ic706MkIIG (99 memory channels, 2 scan edges, 2 call chans):
@@ -690,7 +699,7 @@ typedef struct chan_list chan_t;
 * useful enquiries about capablilities.
 */
 
-/* 
+/*
  * The main idea of this struct is that it will be defined by the backend
  * rig driver, and will remain readonly for the application.
  * Fields that need to be modifiable by the application are
