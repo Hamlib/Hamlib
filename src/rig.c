@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.84 2005-01-12 01:55:38 n2por Exp $
+ *	$Id: rig.c,v 1.85 2005-02-20 02:38:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,7 +26,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2004
+ * \date 2000-2005
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
@@ -70,7 +70,7 @@ const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-  "Copyright (C) 2000-2004 Stephane Fillod and Frank Singleton\n"
+  "Copyright (C) 2000-2005 Stephane Fillod and Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 
@@ -85,6 +85,8 @@ const char hamlib_copyright[] =
 
 #if defined(WIN32)
 #define DEFAULT_PARALLEL_PORT "\\\\.\\$VDMLPT1"
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
+#define DEFAULT_PARALLEL_PORT "/dev/ppi0"
 #else
 #define DEFAULT_PARALLEL_PORT "/dev/parport0"
 #endif

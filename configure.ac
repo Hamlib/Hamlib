@@ -61,6 +61,7 @@ AC_CHECK_HEADERS([stdlib.h values.h rpc/rpc.h rpc/rpcent.h net/errno.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h errno.h])
 AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
 AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h])
+AC_CHECK_HEADERS([dev/ppbus/ppi.h dev/ppbus/ppbconf.h])
 gt_HEADER_INTTYPES_H
 
 dnl Check for Mingw support

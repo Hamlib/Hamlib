@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - parallel communication low-level support
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: parallel.c,v 1.1 2004-10-02 20:37:24 fillods Exp $
+ *	$Id: parallel.c,v 1.2 2005-02-20 02:38:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -78,6 +78,11 @@
 #endif
 
 
+#ifdef HAVE_DEV_PPBUS_PPI_H
+#include <dev/ppbus/ppi.h>
+#include <dev/ppbus/ppbconf.h>
+#endif
+
 
 /*
  * TODO: to be called before exiting: atexit(parport_cleanup)
@@ -105,6 +110,14 @@ int par_open(port_t *port)
 		return -RIG_EIO;
 	}
 
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
+
+	fd = open(port->pathname, O_RDWR);
+	if (fd < 0) {
+		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\": %s\n", port->pathname, strerror(errno));
+		return -RIG_EIO;
+	}
+
 #elif defined(WIN32)
 	fd = (int)CreateFile(port->pathname, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_EXISTING, 0, NULL);
@@ -123,6 +136,7 @@ int par_open(port_t *port)
 int par_close(port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
 #elif defined(WIN32)
 	CloseHandle((HANDLE)(port->fd));
 	return RIG_OK;
@@ -135,6 +149,10 @@ int HAMLIB_API par_write_data(port_t *port, unsigned char data)
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
 	status = ioctl(port->fd, PPWDATA, &data);
+	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
+	int status;
+	status = ioctl(port->fd, PPISDATA, &data);
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
 	unsigned int dummy;
@@ -152,6 +170,10 @@ int HAMLIB_API par_read_data(port_t *port, unsigned char *data)
 #ifdef HAVE_LINUX_PPDEV_H
 	int status;
 	status = ioctl(port->fd, PPRDATA, data);
+	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
+	int status;
+	status = ioctl(port->fd, PPIGDATA, &data);
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
 	char ret;
@@ -174,6 +196,11 @@ int HAMLIB_API par_write_control(port_t *port, unsigned char control)
 	int status;
 	unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
 	status = ioctl(port->fd, PPWCONTROL, &ctrl);
+	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
+	int status;
+	unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
+	status = ioctl(port->fd, PPISCTRL, &ctrl);
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
   unsigned char ctr = control;
@@ -209,6 +236,12 @@ int HAMLIB_API par_read_control(port_t *port, unsigned char *control)
 	status = ioctl(port->fd, PPRCONTROL, &ctrl);
 	*control = ctrl ^ CP_ACTIVE_LOW_BITS;
 	return status == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
+	int status;
+	unsigned char ctrl;
+	status = ioctl(port->fd, PPIGCTRL, &ctrl);
+	*control = ctrl ^ CP_ACTIVE_LOW_BITS;
+	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
 	char ret;
 	unsigned int dummy;
@@ -232,6 +265,12 @@ int HAMLIB_API par_read_status(port_t *port, unsigned char *status)
 	ret = ioctl(port->fd, PPRSTATUS, &sta);
 	*status = sta ^ SP_ACTIVE_LOW_BITS;
 	return ret == 0 ? RIG_OK : -RIG_EIO;
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
+	int status;
+	unsigned char sta;
+	status = ioctl(port->fd, PPIGSTATUS, &sta);
+	*control = sta ^ SP_ACTIVE_LOW_BITS;
+	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
 	unsigned char ret;
 	unsigned int dummy;
@@ -255,6 +294,7 @@ int HAMLIB_API par_lock(port_t *port)
 		return -RIG_EIO;
 	}
 	return RIG_OK;
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
 #elif defined(WIN32)
 	return RIG_OK;
 #endif
@@ -269,6 +309,7 @@ int HAMLIB_API par_unlock(port_t *port)
 		return -RIG_EIO;
 	}
 	return RIG_OK;
+#elif defined(HAVE_DEV_PPBUS_PPI_H)
 #elif defined(WIN32)
 	return RIG_OK;
 #endif
