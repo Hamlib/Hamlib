@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.37 2002-09-06 14:07:16 fillods Exp $  
+ * $Id: rigctl.c,v 1.38 2002-10-07 21:50:54 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -604,7 +604,7 @@ void usage_rig()
 
 		printf("Commands (may not be available for this rig):\n");
 		for (i=0; test_list[i].cmd != 0; i++) {
-			printf("%c: %-16s(", test_list[i].cmd, test_list[i].name);
+			printf("%c: %-16s(", isprint(test_list[i].cmd)?test_list[i].cmd:'?', test_list[i].name);
 			if (test_list[i].arg1)
 					printf("%s", test_list[i].arg1);
 			if (test_list[i].arg2)
@@ -1093,7 +1093,7 @@ declare_proto_rig(set_level)
 				sscanf(arg2, "%f", &val.f);
 				break;
 			case RIG_CONF_STRING:
-				val.s = arg2;
+				val.cs = arg2;
 				break;
 			default:
 				return -RIG_ECONF;
@@ -1211,7 +1211,7 @@ declare_proto_rig(set_parm)
 				sscanf(arg2, "%f", &val.f);
 				break;
 			case RIG_CONF_STRING:
-				val.s = arg2;
+				val.cs = arg2;
 				break;
 			default:
 				return -RIG_ECONF;
@@ -1341,17 +1341,16 @@ declare_proto_rig(get_channel)
 {
 		int status;
 		channel_t chan;
-		vfo_t vfo;
 
-		vfo = parse_vfo(arg1);
-		if (vfo != RIG_VFO_CURR) {
-			vfo = RIG_VFO_MEM;
+		if (isdigit(arg1[0])) {
+			chan.vfo = RIG_VFO_MEM;
 			if (sscanf(arg1, "%d", &chan.channel_num) != 1)
 				return -RIG_EINVAL;
-		} else
+		} else {
+			chan.vfo = parse_vfo(arg1);
 			chan.channel_num = 0;
+		}
 
-		chan.vfo = vfo;
 		status = rig_get_channel(rig, &chan);
 		if (status != RIG_OK)
 				return status;
