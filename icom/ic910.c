@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.3 2002-08-16 17:43:01 fillods Exp $
+ *      $Id: ic910.c,v 1.4 2002-09-07 15:13:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -91,7 +91,7 @@ static int ic910_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 static const struct icom_priv_caps ic910_priv_caps = {
     0x60,           /* default address */
-    1,              /* 731 mode */
+    0,              /* 731 mode */
     ic910_ts_sc_list,
     IC910_STR_CAL
 };
