@@ -421,6 +421,7 @@ bindings/Makefile
 bindings/hamlibvb.bas
 tests/Makefile
 doc/Makefile
+doc/hamlib.cfg
 rotorez/Makefile
 microtune/Makefile
 flexradio/Makefile
