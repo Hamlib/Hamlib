@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - Fodtrack parallel port
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: fodtrack.c,v 1.3 2003-04-16 22:30:39 fillods Exp $
+ *	$Id: fodtrack.c,v 1.4 2003-06-22 19:52:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,12 +31,8 @@
 #include <sys/ioctl.h>
 #endif
 
-/*
- * So far, only supported on Linux platforms
- */
-#ifdef HAVE_LINUX_PPDEV_H
+#ifdef HAVE_LINUX_PARPORT_H
 #include <linux/parport.h>
-#include <linux/ppdev.h>
 #endif
 
 #include "hamlib/rotator.h"
@@ -50,32 +46,34 @@
 /* ************************************************************************* */
 
 /** outputs an direction to the interface */
-static int setDirection(int fodtrackfd, unsigned char outputvalue, int direction)
+static int setDirection(port_t *port, unsigned char outputvalue, int direction)
 {
   unsigned char outputstatus;
 
   // set the data bits
-  ioctl(fodtrackfd, PPWDATA, &outputvalue);
+  par_write_data(port, outputvalue);
 
   // autofd=true --> azimuth otherwhise elevation
   if(direction)
     outputstatus = PARPORT_CONTROL_AUTOFD;
   else
     outputstatus=0;
-  ioctl(fodtrackfd, PPWCONTROL, &outputstatus);
+  par_write_control(port, outputstatus);
   // and now the strobe impulse
   usleep(1);
+
   if(direction)
     outputstatus = PARPORT_CONTROL_AUTOFD | PARPORT_CONTROL_STROBE;
   else
     outputstatus = PARPORT_CONTROL_STROBE;
-  ioctl(fodtrackfd, PPWCONTROL, &outputstatus);
+  par_write_control(port, outputstatus);
   usleep(1);
+
   if (direction)
     outputstatus= PARPORT_CONTROL_AUTOFD;
   else
     outputstatus=0;
-  ioctl(fodtrackfd, PPWCONTROL, &outputstatus);
+  par_write_control(port, outputstatus);
 
   return RIG_OK;
 }
@@ -83,18 +81,18 @@ static int setDirection(int fodtrackfd, unsigned char outputvalue, int direction
 static int
 fodtrack_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
- int fd;
  int retval;
+ port_t *pport;
 
   rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
 
-  fd = rot->state.rotport.fd;
+  pport = &rot->state.rotport;
 
-  retval = setDirection(fd, el/(float)rot->state.max_el*255.0, 0);
+  retval = setDirection(pport, el/(float)rot->state.max_el*255.0, 0);
   if (retval != RIG_OK)
 	  return retval;
 
-  retval = setDirection(fd, az/(float)rot->state.max_az*255.0, 1);
+  retval = setDirection(pport, az/(float)rot->state.max_az*255.0, 1);
   if (retval != RIG_OK)
 	  return retval;
 
