@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.13 2000-09-24 03:35:39 javabear Exp $  
+ * $Id: ft747.c,v 1.14 2000-10-02 00:02:03 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -121,8 +121,8 @@ const struct rig_caps ft747_caps = {
   },  
   ft747_init, 
   ft747_cleanup, 
-  NULL,				/* port opened */
-  NULL,				/* port closed */
+  ft747_open,				/* port opened */
+  ft747_close,				/* port closed */
   NULL,				/* probe not supported yet */
 
   ft747_set_freq,		/* set freq */
@@ -154,6 +154,7 @@ static const struct ft747_priv_data ft747_priv = { 747 }; /* dummy atm */
  * setup *priv 
  * serial port is already open (rig->state->fd)
  */
+
 
 int ft747_init(RIG *rig) {
   struct ft747_priv_data *p;
@@ -195,6 +196,44 @@ int ft747_cleanup(RIG *rig) {
     free(rig->state.priv);
   rig->state.priv = NULL;
   
+  return RIG_OK;
+}
+
+
+/*
+ * ft747_open  routine
+ * 
+ */
+
+int ft747_open(RIG *rig) {
+  struct rig_state *rig_s;
+ 
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_s = &rig->state;
+  
+   /* TODO */
+
+  return RIG_OK;
+}
+
+
+/*
+ * ft747_close  routine
+ * 
+ */
+
+int ft747_close(RIG *rig) {
+  struct rig_state *rig_s;
+ 
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_s = &rig->state;
+
+  /* TODO */
+
   return RIG_OK;
 }
 

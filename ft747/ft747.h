@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- *    $Id: ft747.h,v 1.10 2000-09-24 03:36:47 javabear Exp $  
+ *    $Id: ft747.h,v 1.11 2000-10-02 00:01:01 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -47,6 +47,8 @@ struct ft747_priv_data {
 
 int ft747_init(RIG *rig);
 int ft747_cleanup(RIG *rig);
+int ft747_open(RIG *rig);
+int ft747_close(RIG *rig);
 
 int ft747_set_freq(RIG *rig, freq_t freq);
 int ft747_get_freq(RIG *rig, freq_t *freq);
@@ -61,6 +63,13 @@ int ft747_set_ptt(RIG *rig, ptt_t ptt);
 int ft747_get_ptt(RIG *rig, ptt_t *ptt);
 
 
+
+/*
+ * Below is leftovers of old interface. TODO
+ *
+ */
+
+#if 0
 /*
  * Allow TX commands to be disabled
  *
@@ -128,7 +137,6 @@ const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 2
 
 
 
-#if 0
 
 void cmd_set_split_yes(int fd);
 void cmd_set_split_no(int fd);
