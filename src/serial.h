@@ -2,7 +2,7 @@
  *  Hamlib Interface - serial communication header
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: serial.h,v 1.18 2003-02-23 22:36:30 fillods Exp $
+ *		$Id: serial.h,v 1.19 2003-06-22 19:50:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,6 +44,11 @@ int par_close(port_t *p);
 int par_ptt_set(port_t *p, ptt_t pttx);
 int par_ptt_get(port_t *p, ptt_t *pttx);
 int par_dcd_get(port_t *p, dcd_t *dcdx);
+
+extern HAMLIB_EXPORT(int) par_write_data(port_t *p, unsigned char data);
+extern HAMLIB_EXPORT(int) par_write_control(port_t *p, unsigned char control);
+extern HAMLIB_EXPORT(int) par_read_data(port_t *p, unsigned char *data);
+extern HAMLIB_EXPORT(int) par_read_control(port_t *p, unsigned char *control);
 
 #endif /* _SERIAL_H */
 

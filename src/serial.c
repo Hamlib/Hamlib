@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.31 2003-04-19 11:49:43 fillods Exp $
+ *	$Id: serial.c,v 1.32 2003-06-22 19:50:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -581,24 +581,68 @@ int par_close(port_t *p)
 		return close(p->fd);
 }
 
+int par_write_data(port_t *p, unsigned char data)
+{
+	int status;
+#ifdef HAVE_LINUX_PPDEV_H
+	status = ioctl(p->fd, PPWDATA, &data);
+	return status == 0 ? RIG_OK : -RIG_EIO;
+#endif
+	return -RIG_ENIMPL;
+}
+
+int par_read_data(port_t *p, unsigned char *data)
+{
+	int status;
+#ifdef HAVE_LINUX_PPDEV_H
+	status = ioctl(p->fd, PPRDATA, data);
+	return status == 0 ? RIG_OK : -RIG_EIO;
+#endif
+	return -RIG_ENIMPL;
+}
+
+
+int par_write_control(port_t *p, unsigned char control)
+{
+	int status;
+#ifdef HAVE_LINUX_PPDEV_H
+	status = ioctl(p->fd, PPWCONTROL, &control);
+	return status == 0 ? RIG_OK : -RIG_EIO;
+#endif
+	return -RIG_ENIMPL;
+}
+
+int par_read_control(port_t *p, unsigned char *control)
+{
+	int status;
+#ifdef HAVE_LINUX_PPDEV_H
+	status = ioctl(p->fd, PPRCONTROL, control);
+	return status == 0 ? RIG_OK : -RIG_EIO;
+#endif
+	return -RIG_ENIMPL;
+}
+
+
+
+
 int par_ptt_set(port_t *p, ptt_t pttx)
 {
 		switch(p->type.ptt) {
-#ifdef HAVE_LINUX_PPDEV_H
 		case RIG_PTT_PARALLEL:
 				{
 					unsigned char reg;
 					int status;
 
-					status = ioctl(p->fd, PPRDATA, &reg);
+					status = par_read_data(p, &reg);
+					if (status != RIG_OK)
+						return status;
 					if (pttx == RIG_PTT_ON)
 						reg |=   1 << p->parm.parallel.pin;
 					else
 						reg &= ~(1 << p->parm.parallel.pin);
 
-					return ioctl(p->fd, PPWDATA, &reg);
+					return par_write_data(p, reg);
 				}
-#endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
 								p->type.ptt);
@@ -613,18 +657,16 @@ int par_ptt_set(port_t *p, ptt_t pttx)
 int par_ptt_get(port_t *p, ptt_t *pttx)
 {
 		switch(p->type.ptt) {
-#ifdef HAVE_LINUX_PPDEV_H
 		case RIG_PTT_PARALLEL:
 				{
 					unsigned char reg;
 					int status;
 
-					status = ioctl(p->fd, PPRDATA, &reg);
+					status = par_read_data(p, &reg);
 					*pttx = reg & (1<<p->parm.parallel.pin) ? 
 							RIG_PTT_ON:RIG_PTT_OFF;
 					return status;
 				}
-#endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
 								p->type.ptt);
@@ -639,18 +681,16 @@ int par_ptt_get(port_t *p, ptt_t *pttx)
 int par_dcd_get(port_t *p, dcd_t *dcdx)
 {
 		switch(p->type.dcd) {
-#ifdef HAVE_LINUX_PPDEV_H
 		case RIG_DCD_PARALLEL:
 				{
 					unsigned char reg;
 					int status;
 
-					status = ioctl(p->fd, PPRDATA, &reg);
+					status = par_read_data(p, &reg);
 					*dcdx = reg & (1<<p->parm.parallel.pin) ? 
 							RIG_DCD_ON:RIG_DCD_OFF;
 					return status;
 				}
-#endif
 		default:
 				rig_debug(RIG_DEBUG_ERR,"Unsupported DCD type %d\n", 
 								p->type.dcd);
