@@ -7,7 +7,7 @@
  * using the "CI-V" interface.
  *
  *
- * $Id: ic706.c,v 1.8 2000-11-28 22:26:20 f4cfe Exp $  
+ * $Id: ic706.c,v 1.9 2001-01-05 18:18:50 f4cfe Exp $  
  *
  *
  *
@@ -64,7 +64,7 @@ const struct rig_caps ic706_caps = {
   RIG_MODEL_IC706, "IC-706", "Icom", "0.2", RIG_STATUS_ALPHA,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 300, 19200, 8, 1, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, 0, 0, 2000, 3, IC706_FUNC_ALL, IC706_LEVEL_ALL,
-  IC706_LEVEL_ALL, 101, RIG_TRN_ON,
+  IC706_LEVEL_ALL, 0, 101, RIG_TRN_ON,
   { {KHz(30),199999999,IC706_ALL_RX_MODES,-1,-1},{0,0,0,0,0}, }, /* rx range */
   { {KHz(1800),1999999,IC706_OTHER_TX_MODES,5000,100000},	/* 100W class */
     {KHz(1800),1999999,IC706_AM_TX_MODES,2000,40000},	/* 40W class */
@@ -111,7 +111,7 @@ const struct rig_caps ic706mkii_caps = {
   RIG_MODEL_IC706MKII, "IC-706MKII", "Icom", "0.2", RIG_STATUS_ALPHA,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 300, 19200, 8, 1, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, 0, 0, 2000, 3, IC706_FUNC_ALL, IC706_LEVEL_ALL,
-  IC706_LEVEL_ALL, 101, RIG_TRN_ON,
+  IC706_LEVEL_ALL, 0, 101, RIG_TRN_ON,
   { {30000,199999999,IC706_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   { {1800000,1999999,IC706_OTHER_TX_MODES,5000,100000},	/* 100W class */
     {1800000,1999999,IC706_AM_TX_MODES,2000,40000},	/* 40W class */
@@ -163,7 +163,7 @@ const struct rig_caps ic706mkiig_caps = {
   RIG_MODEL_IC706MKIIG, "IC-706MKIIG", "Icom", "0.2", RIG_STATUS_ALPHA,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 300, 19200, 8, 1, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_NONE, 0, 0, 2000, 3, IC706_FUNC_ALL|RIG_FUNC_NR|RIG_FUNC_ANF,
-  IC706_LEVEL_ALL, IC706_LEVEL_ALL, 101, RIG_TRN_ON,
+  IC706_LEVEL_ALL, IC706_LEVEL_ALL, 0, 101, RIG_TRN_ON,
   { {30000,199999999,IC706_ALL_RX_MODES,-1,-1},	/* this trx also has UHF */
  	{400000000,470000000,IC706_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, },
   { {1800000,1999999,IC706_OTHER_TX_MODES,5000,100000},	/* 100W class */
@@ -208,6 +208,12 @@ const struct rig_caps ic706mkiig_caps = {
   icom_init, icom_cleanup, NULL, NULL, NULL /* probe not supported yet */,
   icom_set_freq, icom_get_freq, icom_set_mode, icom_get_mode, icom_set_vfo,
   NULL, 
+  /*
+   * FIXME:
+   * the use of the following GNU extension (field: value)
+   * is bad manner in portable code but admit it, quite handy
+   * when testing stuff. --SF
+   */
 decode_event: icom_decode_event,
 set_level: icom_set_level,
 get_level: icom_get_level,

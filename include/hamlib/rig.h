@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.11 2000-12-05 22:01:03 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.12 2001-01-05 18:21:39 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -46,6 +46,7 @@
 #define RIG_ERJCTED		9			/* Command rejected by the rig */
 #define RIG_ETRUNC 		10			/* Command performed, but arg truncated */
 #define RIG_ENAVAIL		11			/* function not available */
+#define RIG_ENTARGET	12			/* VFO not targetable */
 
 
 /* Forward struct references */
@@ -394,6 +395,7 @@ struct rig_caps {
   setting_t has_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
   setting_t has_level;		/* bitwise OR'ed RIG_LEVEL_* */
   setting_t has_set_level;		/* bitwise OR'ed RIG_LEVEL_* */
+  int targetable_vfo;
   int chan_qty;		/* number of channels */
 #if 0
   int chan_desc_sz;   /* memory channel size, 0 if none */
@@ -530,6 +532,7 @@ struct rig_state {
   FILE *stream;	/* serial port/socket (buffered) stream handle */
   int transceive;	/* wether the transceive mode is on */
   int hold_decode;/* set to 1 to hold the event decoder (async) otherwise 0 */
+  int current_vfo;
   /*
    * Pointer to private data
    * tuff like CI_V_address for Icom goes in this *priv 51 area

@@ -7,7 +7,7 @@
  * using the serial interface.
  *
  *
- * $Id: ar8200.c,v 1.1 2000-11-01 23:23:56 f4cfe Exp $  
+ * $Id: ar8200.c,v 1.2 2001-01-05 18:18:17 f4cfe Exp $  
  *
  *
  *
@@ -56,7 +56,7 @@ const struct rig_caps ar8200_caps = {
   RIG_MODEL_AR8200, "AR8200", "AOR", "0.1", RIG_STATUS_UNTESTED,
   RIG_TYPE_SCANNER, RIG_PTT_NONE, 9600, 19200, 8, 2, RIG_PARITY_NONE, 
   RIG_HANDSHAKE_XONXOFF, 0, 0, 2000, 3, AR8200_FUNC_ALL, AR8200_LEVEL_ALL,
-  AR8200_LEVEL_ALL, 1000, RIG_TRN_ON,
+  AR8200_LEVEL_ALL, 0, 1000, RIG_TRN_ON,
   {
 	{KHz(100),MHz(2040),AR8200_ALL_MODES,-1,-1},
 	{0,0,0,0,0},
