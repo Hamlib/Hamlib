@@ -12,10 +12,12 @@ Contributors:
 Backends:
 
  ft747,ft847:	Frank Singleton, VK3FCS
- ft817: 		Chris, AA1VL
+ ft817: 		Chris Karpinsky, AA1VL
  winradio:		Pascal Brisset
  icom&others:	Stephane Fillod, F8CFE
+   ic821h:		Francois Retief
  kenwood:		High quality testing by Joop, PA4TU
+ jrc:			Docs and testing by Bob Parnass, AJ9S
 
 Frontend:
  Stephane Fillod and Frank Singleton
@@ -29,5 +31,7 @@ Frank Singleton, VK3FCS, <vk3fcs (at) ix.netcom.com>
 Stephane Fillod, F8CFE, <fillods (at) users.sourceforge.net>
 Pascal Brisset <pab (at) users.sourceforge.net>
 Nate Bargmann, N0NB, <n0nb (at) networksplus.net>
-Chris, AA1VL, <aa1vl (at) arrl.net>
+Chris Karpinsky, AA1VL, <aa1vl (at) arrl.net>
 Joop Stakenborg, PA4TU, <pa3aba (at) debian.org>
+Bob Parnass, AJ9S, <parnass (at) megsinet.net>
+Francois Retief, <fgretief@sun.ac.za>
