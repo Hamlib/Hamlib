@@ -32,8 +32,8 @@
 #define _MICROTUNE_EVAL_BOARD_H_
 
 #include "microtune_4937.h"
+#include "serial.h"
 
-class ppio;
 class i2cio;
 class i2c;
 
@@ -42,11 +42,27 @@ class i2c;
  */
 class microtune_eval_board : public microtune_4937 {
 public:
-  microtune_eval_board (int which_pp = 1);
+  microtune_eval_board (port_t *port);
   ~microtune_eval_board ();
 
   //! is the eval board present?
   bool board_present_p ();
+
+  /*!
+   * \brief set RF and IF AGC control voltages ([0, 5] volts)
+   */
+  void set_RF_AGC_voltage (float volts);
+  void set_IF_AGC_voltage (float volts);
+
+  /*!
+   * \brief set RF and IF AGC levels together (scale [0, 1000])
+   *
+   * This provides a simple linear interface for adjusting both
+   * the RF and IF gain in consort.  This is the easy to use interface.
+   * 0 corresponds to minimum gain. 1000 corresponds to maximum gain.
+   */
+  void set_AGC (float value_0_1000);
+
 
 private:
   //! \returns true iff successful
@@ -55,7 +71,10 @@ private:
   //! \returns number of bytes read or -1 if error
   virtual int i2c_read (int addr, unsigned char *buf, int max_bytes);
 
-  ppio	*m_ppio;
+  void write_dac (int which, int value);
+  void write_both_dacs (int val0, int val1);
+  
+  port_t	*m_ppio;
   i2cio	*m_i2cio;
   i2c	*m_i2c;
 };

@@ -2,7 +2,7 @@
  *  Hamlib microtune backend - 4937 file
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: module_4937.c,v 1.2 2003-04-16 22:30:41 fillods Exp $
+ *	$Id: module_4937.c,v 1.3 2003-09-28 15:28:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,29 +33,37 @@
 /*
  * Microtune 4937 rig capabilities.
  *
- * TODO: set_ptt, set_agc
+ * TODO: set_ptt
  */
 
 #define M4937_FUNC  RIG_FUNC_NONE
 #define M4937_LEVEL RIG_LEVEL_NONE
 #define M4937_PARM  RIG_PARM_NONE
 
-#define M4937_MODES (RIG_MODE_WFM)	/* FIXME: IF */
+#define M4937_MODES (RIG_MODE_NONE)	/* FIXME: IF */
 
 #define M4937_VFO RIG_VFO_A
+
+static const struct confparams module_4937_ext_parms[] = {
+	{ TOK_AGCGAIN, "agcgain", "AGC gain level", "RF and IF AGC levels",
+		NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
 
 const struct rig_caps module_4937_caps = {
   .rig_model =      RIG_MODEL_MICROTUNE_4937,
   .model_name =     "4937 DI5 tuner module",
   .mfg_name =       "Microtune",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright =      "GPL",
   .status =         RIG_STATUS_UNTESTED,
   .rig_type =       RIG_TYPE_TUNER,
   .targetable_vfo = 	 0,
   .ptt_type =       RIG_PTT_RIG,
   .dcd_type =       RIG_DCD_NONE,
-  .port_type =      RIG_PORT_NONE,	/* FIXME */
+  .port_type =      RIG_PORT_PARALLEL,
   .has_get_func =   M4937_FUNC,
   .has_set_func =   M4937_FUNC,
   .has_get_level =  M4937_LEVEL,
@@ -81,6 +89,7 @@ const struct rig_caps module_4937_caps = {
   .tuning_steps =  { {M4937_MODES,kHz(50)},
 			RIG_TS_END,
   },
+  .extparms	= module_4937_ext_parms,
   .priv =  NULL,	/* priv */
 
   .rig_init =     module_4937_init,
@@ -90,7 +99,7 @@ const struct rig_caps module_4937_caps = {
 
   .set_freq =     module_4937_set_freq,
   .get_freq =     module_4937_get_freq,
-
+  .set_ext_level =     module_4937_set_ext_level,
 };
 
 
@@ -102,4 +111,3 @@ DECLARE_INITRIG_BACKEND(microtune)
 
 	return RIG_OK;
 }
-

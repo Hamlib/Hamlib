@@ -40,7 +40,7 @@ class i2c {
  public:
   
   /*! i2c does not control lifetime of a_io */
-  i2c (i2cio *a_io);
+  i2c (i2cio *io);
   ~i2c () {};
   
   //! \returns true iff successful
@@ -56,11 +56,11 @@ private:
   void write_bit (bool bit);
   bool write_byte (char byte);
   
-  void set_sda (bool bit) { io->set_sda (bit); }
-  void set_scl (bool bit) { io->set_scl (bit); }
-  bool get_sda () { return io->get_sda (); }
+  void set_sda (bool bit) { d_io->set_sda (bit); }
+  void set_scl (bool bit) { d_io->set_scl (bit); }
+  bool get_sda () { return d_io->get_sda (); }
 
-  i2cio	*io;
+  i2cio	*d_io;
 };
 
 #endif /* _I2C_H_ */

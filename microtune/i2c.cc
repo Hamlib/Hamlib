@@ -30,10 +30,14 @@
 
 #include "i2c.h"
 
-i2c::i2c (i2cio *a_io)
+i2c::i2c (i2cio *io)
 {
-  io = a_io;
+  d_io = io;
+  d_io->lock ();
+
   stop ();	// get bus in known state
+
+  d_io->unlock ();
 }
 
 
@@ -113,6 +117,7 @@ i2c::write (int addr, const unsigned char *buf, int nbytes)
 {
   bool	ok = true;
   
+  d_io->lock ();
   start ();
   ok = write_byte ((addr << 1) | 0);	// addr plus "read opcode"
 
@@ -120,6 +125,7 @@ i2c::write (int addr, const unsigned char *buf, int nbytes)
     ok &= write_byte (buf[i]);
 
   stop ();
+  d_io->unlock ();
   return ok;
 }
 
@@ -131,6 +137,10 @@ i2c::write (int addr, const unsigned char *buf, int nbytes)
 int
 i2c::read (int addr, unsigned char *buf, int max_bytes)
 {
+  d_io->lock ();
+
   // FIXME
+
+  d_io->unlock ();
   return 0;
 }

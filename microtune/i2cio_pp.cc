@@ -31,45 +31,64 @@
 #include "i2cio_pp.h"
 #include "microtune_eval_board_defs.h"
 
-i2cio_pp::i2cio_pp (ppio *a_pp)
+i2cio_pp::i2cio_pp (port_t *pp)
 {
-  pp = a_pp;
-  pp->write_control (pp->read_control () & ~UT_CP_MUST_BE_ZERO);	// output, no interrupts
+  unsigned char	r;
+  d_pp = pp;
+  par_lock (d_pp);
+  par_read_control (d_pp, &r);
+  par_write_control (d_pp, r & ~UT_CP_MUST_BE_ZERO);	// output, no interrupts
+  par_unlock (d_pp);
 }
 
 void
 i2cio_pp::set_scl (bool state)
 {
-  int	r = pp->read_control();
+  unsigned char	r;
+  par_read_control(d_pp, &r);
 
   if (!state){					// active low
-    pp->write_control (r | UT_CP_TUNER_SCL);
+    par_write_control (d_pp, r | UT_CP_TUNER_SCL);
   }
   else {
-    pp->write_control (r & ~UT_CP_TUNER_SCL);
+    par_write_control (d_pp, r & ~UT_CP_TUNER_SCL);
   }
-  pp->read_control ();	// use for 1us delay
-  pp->read_control ();	// use for 1us delay
+  par_read_control (d_pp, &r);	// use for 1us delay
+  par_read_control (d_pp, &r);	// use for 1us delay
 }
 
 void
 i2cio_pp::set_sda (bool state)
 {
-  int	r = pp->read_data ();
+  unsigned char	r;
+  par_read_data (d_pp, &r);
 
   if (!state){					// active low
-    pp->write_data (r | UT_DP_TUNER_SDA_OUT);
+    par_write_data (d_pp, r | UT_DP_TUNER_SDA_OUT);
   }
   else {
-    pp->write_data (r & ~UT_DP_TUNER_SDA_OUT);
+    par_write_data (d_pp, r & ~UT_DP_TUNER_SDA_OUT);
   }
-  pp->read_data ();	// use for 1us delay
-  pp->read_data ();	// use for 1us delay
+  par_read_data (d_pp, &r);	// use for 1us delay
+  par_read_data (d_pp, &r);	// use for 1us delay
 }
 
 bool
 i2cio_pp::get_sda ()
 {
-  int	r = pp->read_status ();
+  unsigned char	r;
+  par_read_status (d_pp, &r);
   return (r & UT_SP_TUNER_SDA_IN) == 0;	// eval board has an inverter on it
+}
+
+void
+i2cio_pp::lock ()
+{
+  par_lock (d_pp);
+}
+
+void
+i2cio_pp::unlock ()
+{
+  par_unlock (d_pp);
 }

@@ -32,7 +32,7 @@
 #define _I2CIO_PP_H_
 
 #include "i2cio.h"
-#include "ppio.h"
+#include "serial.h"
 
 /*!
  * \brief concrete class that implements low level i/o for i2c bus using parallel port
@@ -40,14 +40,17 @@
 class i2cio_pp : public i2cio {
  public:
 
-  i2cio_pp (ppio *a_pp);
+  i2cio_pp (port_t *a_pp);
 
   virtual void set_scl (bool state);
   virtual void set_sda (bool state);
   virtual bool get_sda ();
 
+  virtual void lock ();
+  virtual void unlock ();
+
  private:
-  ppio	*pp;
+  port_t	*d_pp;
 };
 
 #endif /* _I2CIO_PP_H_ */

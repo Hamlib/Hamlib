@@ -21,7 +21,6 @@
 MTSRCLIST = module_4937.c
 
 GRIO_SOURCES = 		\
-	ppio.cc			\
 	i2cio.cc		\
 	i2cio_pp.cc		\
 	i2c.cc			\
@@ -40,10 +39,5 @@ noinst_HEADERS = 		\
 	microtune_4937.h	\
 	microtune_eval_board.h	\
 	microtune_eval_board_defs.h \
-	ppio.h			\
 	microtune.h
-
-check_PROGRAMS = givelp1
-
-givelp1_SOURCES = givelp1.cc
 

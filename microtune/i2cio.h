@@ -57,6 +57,9 @@ class i2cio {
   int get_udelay_sda_lo () { return udelay_sda_lo; }
   int get_udelay_sda_hi () { return udelay_sda_hi; }
 
+  virtual void lock () = 0;
+  virtual void unlock () = 0;
+  
  private:
   int	udelay_scl_lo;
   int	udelay_scl_hi;

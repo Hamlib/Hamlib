@@ -2,7 +2,7 @@
  *  Hamlib Microtune backend - main file
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: microtune.cc,v 1.1 2003-01-29 23:06:30 fillods Exp $
+ *	$Id: microtune.cc,v 1.2 2003-09-28 15:28:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -58,7 +58,6 @@ struct module_4937_priv_data {
 int module_4937_init(RIG *rig)
 {
 	struct module_4937_priv_data *priv;
-	int           which = 1;      // the parallel port the board is connected to
 
 	priv = (struct module_4937_priv_data*)malloc(sizeof(struct module_4937_priv_data));
 	if (!priv) {
@@ -68,17 +67,6 @@ int module_4937_init(RIG *rig)
 
 	priv->actual_freq = RIG_FREQ_NONE;
 
-	rig_debug(RIG_DEBUG_TRACE, "microtune: if the program segfaults here,"
-			" you require ioperm privilege. Use givelp1.\n");
-
-	priv->board = new microtune_eval_board(which);
-	if (!priv->board) {
-		free(priv);
-		return -RIG_ENOMEM;
-	}
-
-	rig_debug(RIG_DEBUG_TRACE, "microtune: ioperm okay. "
-			"parallel port access granted.\n");
 	rig->state.priv = (void*)priv;
 
 	return RIG_OK;
@@ -88,8 +76,14 @@ int module_4937_open(RIG *rig)
 {
 	struct module_4937_priv_data *priv = (struct module_4937_priv_data *)rig->state.priv;
 
-	if (!priv->board->board_present_p()) {
+	priv->board = new microtune_eval_board(&rig->state.rigport);
+	if (!priv->board) {
+		return -RIG_ENOMEM;
+	}
+
+	if (0 && !priv->board->board_present_p()) {
 		rig_debug(RIG_DEBUG_WARN, "microtune: eval board is NOT present\n");
+		delete priv->board;
 		return -RIG_EPROTO;
 	}
 
@@ -98,7 +92,9 @@ int module_4937_open(RIG *rig)
 
 int module_4937_close(RIG *rig)
 {
-	/* place holder.. */
+	struct module_4937_priv_data *priv = (struct module_4937_priv_data *)rig->state.priv;
+
+	delete priv->board;
 
 	return RIG_OK;
 }
@@ -108,7 +104,6 @@ int module_4937_cleanup(RIG *rig)
 	struct module_4937_priv_data *priv = (struct module_4937_priv_data *)rig->state.priv;
 
 	if (priv) {
-		delete priv->board;
 		free(priv);
 	}
 	rig->state.priv = NULL;
@@ -143,5 +138,23 @@ int module_4937_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   *freq = priv->actual_freq;
 
   return RIG_OK;
+}
+
+
+/*
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int module_4937_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+  	struct module_4937_priv_data *priv = (struct module_4937_priv_data *)rig->state.priv;
+
+	switch(token) {
+	case TOK_AGCGAIN:
+  		priv->board->set_AGC(val.f*1000);
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+	return RIG_OK;
 }
 

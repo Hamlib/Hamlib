@@ -1,14 +1,6 @@
-/* -*-C++-*-
-*******************************************************************************
-*
-* File:         microtune_4937.cc
-* Description:  
-*
-*******************************************************************************
-*/
-
+/* -*- c++-*- */
 /*
- * Copyright 2001 Free Software Foundation, Inc.
+ * Copyright 2001,2003 Free Software Foundation, Inc.
  * 
  * This file is part of GNU Radio
  * 
@@ -38,6 +30,8 @@ static const double first_IF = 43.75e6;
 // These are the recommened boundaries
 static const double VHF_High_takeover = 158e6;
 static const double UHF_takeover = 464e6;
+
+static int PLL_I2C_ADDR	    = 	0x61;
 
 static unsigned char
 control_byte_1 (bool fast_tuning_p, int reference_divisor)
@@ -78,6 +72,12 @@ control_byte_2 (double target_freq, bool shutdown_tx_PGA)
   return c;
 }
 
+microtune_4937::microtune_4937 ()
+{
+  d_reference_divider = 640;
+  d_fast_tuning_p  = false;
+}
+
 microtune_4937::~microtune_4937 (){}
 
 /*!
@@ -95,7 +95,7 @@ microtune_4937::set_RF_freq (double target_freq, double *p_actual_freq)
 
   double target_f_osc = target_freq + first_IF;
   
-  double f_ref = 4e6 / reference_divider;
+  double f_ref = 4e6 / d_reference_divider;
 
   // f_osc = f_ref * 8 * divisor
   // divisor = f_osc / (f_ref * 8)
@@ -110,7 +110,7 @@ microtune_4937::set_RF_freq (double target_freq, double *p_actual_freq)
 
   buf[0] = (divisor >> 8) & 0xff;	// DB1
   buf[1] = divisor & 0xff;		// DB2
-  buf[2] = control_byte_1 (fast_tuning_p, reference_divider);
+  buf[2] = control_byte_1 (d_fast_tuning_p, d_reference_divider);
   buf[3] = control_byte_2 (target_freq, true);
 
 #if 0
@@ -118,7 +118,18 @@ microtune_4937::set_RF_freq (double target_freq, double *p_actual_freq)
 	  target_freq/1e6, actual_freq/1e6, buf[0], buf[1], buf[2], buf[3]);
 #endif
 
-  return i2c_write (i2c_addr, buf, 4);
+  return i2c_write (PLL_I2C_ADDR, buf, 4);
+}
+
+double
+microtune_4937::set_RF_freq (double target_freq)
+{
+  double actual_freq = 0.0;
+
+  if (set_RF_freq (target_freq, &actual_freq))
+    return actual_freq;
+
+  return 0.0;
 }
 
   
@@ -131,11 +142,11 @@ microtune_4937::pll_locked_p ()
   // FIXME
   return true;
 }
-  
+
 /*!
  * \returns the output frequency of the tuner in Hz.
  */
-double 
+double
 microtune_4937::get_output_freq ()
 {
   return 5.75e6;	// 3x7702

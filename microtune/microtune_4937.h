@@ -1,14 +1,6 @@
-/* -*-C++-*-
-*******************************************************************************
-*
-* File:         microtune_4937.h
-* Description:  
-*
-*******************************************************************************
-*/
-
+/* -*- c++ -*- */
 /*
- * Copyright 2001 Free Software Foundation, Inc.
+ * Copyright 2001,2003 Free Software Foundation, Inc.
  * 
  * This file is part of GNU Radio
  * 
@@ -36,8 +28,7 @@
  */
 class microtune_4937 {
 public:
-  microtune_4937 () :
-    i2c_addr (0xC2/2), reference_divider(640), fast_tuning_p (false) {};
+  microtune_4937 ();
 
   virtual ~microtune_4937 ();
 
@@ -51,13 +42,16 @@ public:
    */
   bool set_RF_freq (double freq, double *actual_freq);
   
+  // returns actual freq or 0 if error (easier interface for SWIG)
+  double set_RF_freq (double freq);
+
   /*!
    * \returns true iff PLL is locked
    */
   bool pll_locked_p ();
   
   /*!
-   * \returns the output frequency of the tuner in Hz.
+   * \returns the output frequency (IF center freq) of the tuner in Hz.
    */
   double get_output_freq ();
 
@@ -68,12 +62,10 @@ public:
   //! \returns number of bytes read or -1 if error
   virtual int i2c_read (int addr, unsigned char *buf, int max_bytes) = 0;
 
-  int	i2c_addr;
-  int	reference_divider;
-  bool	fast_tuning_p;		/* if set, higher charge pump current:
+  int	d_reference_divider;
+  bool	d_fast_tuning_p;	/* if set, higher charge pump current:
 				   faster tuning, worse phase noise
 				   for distance < 10kHz to the carrier */
 };
-
 
 #endif /* _MICROTUNE_4937_H_ */
