@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: uniden.c,v 1.3 2001-12-28 20:28:04 fillods Exp $
+ *		$Id: uniden.c,v 1.4 2002-03-13 23:37:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -52,6 +52,7 @@
 
 #define EOM "\r"
 
+#define BUFSZ 32
 
 /*
  * uniden_transaction
@@ -60,10 +61,12 @@
  */
 int uniden_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i, count, retval;
+	int retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
+
+	serial_flush(&rs->rigport);
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
@@ -73,22 +76,8 @@ int uniden_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
 			return 0;
-	/*
-	 * buffered read are quite helpful here!
-	 * However, an automate with a state model would be more efficient..
-	 *
-	 * FIXME: should read until CR or LF?
-	 */
-	i = 0;
-	do {
-		count = fread_block(&rs->rigport, data+i, 1);
-		if (count > 0)
-				i += count;
-		else if (count < 0)
-				return count;
-	} while (count > 0);
 
-	*data_len = i;
+	*data_len = read_string(&rs->rigport, data, BUFSZ, "\x0a", 1);
 
 	return RIG_OK;
 }
@@ -99,7 +88,7 @@ int uniden_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
  */
 int uniden_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		char freqbuf[16];
+		char freqbuf[BUFSZ];
 		int freq_len;
 
 		/* max 8 digits */
@@ -118,7 +107,7 @@ int uniden_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int uniden_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-		char cmdbuf[16];
+		char cmdbuf[BUFSZ];
 		int cmd_len;
 
 		cmd_len = sprintf(cmdbuf, "MA%03d" EOM, ch);

@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main file
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: pcr.c,v 1.12 2002-03-07 22:48:50 fillods Exp $
+ *		$Id: pcr.c,v 1.13 2002-03-13 23:37:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -93,7 +93,7 @@ const int pcr1_ctcss_list[] = {
  */
 int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i, retval;
+	int retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
@@ -104,20 +104,7 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	if (retval != RIG_OK)
 			return retval;
 
-	/*
-	 * buffered read are quite helpful here!
-	 * However, an automate with a state model would be more efficient..
-	 */
-	i = 0;
-	do {
-		retval = fread_block(&rs->rigport, data+i, 1);
-		if (retval == 0)
-				continue;		/* huh!? */
-		if (retval < 0)
-				return retval;
-	} while (i++ < *data_len || data[i-1] != '\x0a');
-
-	*data_len = i;	/* useless ? */
+	*data_len = read_string(&rs->rigport, data, *data_len, "\x0a", 1);
 
 	return RIG_OK;
 }

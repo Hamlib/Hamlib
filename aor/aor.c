@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - main file
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod
+ *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: aor.c,v 1.19 2002-02-27 23:17:22 fillods Exp $
+ *		$Id: aor.c,v 1.20 2002-03-13 23:37:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,7 +47,9 @@
  * Is \r portable enough?
  */
 #define CR '\r'
-#define EOM "\r"
+#define EOM "\x0a"
+
+#define BUFSZ 64
 
 /*
  * modes in use by the "MD" command
@@ -72,9 +74,8 @@
  */
 int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i, retval;
+	int retval;
 	struct rig_state *rs;
-	char c;
 
 	rs = &rig->state;
 
@@ -84,23 +85,11 @@ int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	if (retval != RIG_OK)
 			return retval;
 
-	/*
-	 * buffered read are quite helpful here!
-	 * However, an automate with a state model would be more efficient..
-	 */
-	i = 0;
-	do {
-		retval = fread_block(&rs->rigport, &c, 1);
-		if (retval == 0)
-				continue;	/* huh!? */
-		if (retval != RIG_OK)
-			return retval;
-		if (data)
-				data[i++] = c;
-	} while (c != CR);
+	/* will flush data on next transaction */
+	if (!data || !data_len)
+			return RIG_OK;
 
-	if (data_len)
-		*data_len = i;
+	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
 
 	return RIG_OK;
 }
@@ -123,7 +112,7 @@ int aor_close(RIG *rig)
  */
 int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		unsigned char freqbuf[16], ackbuf[16];
+		unsigned char freqbuf[BUFSZ], ackbuf[BUFSZ];
 		int freq_len, ack_len, retval;
 		int lowhz;
 
@@ -158,7 +147,7 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		char *rfp;
 		int freq_len, retval;
-		unsigned char freqbuf[64];
+		unsigned char freqbuf[BUFSZ];
 
 		retval = aor_transaction (rig, "RX" EOM, 3, freqbuf, &freq_len);
 		if (retval != RIG_OK)
@@ -198,7 +187,7 @@ int aor_set_vfo(RIG *rig, vfo_t vfo)
 int aor_get_vfo(RIG *rig, vfo_t *vfo)
 {
 		int vfo_len, retval;
-		unsigned char vfobuf[64];
+		unsigned char vfobuf[BUFSZ];
 
 		retval = aor_transaction (rig, "RX" EOM, 3, vfobuf, &vfo_len);
 		if (retval != RIG_OK)
@@ -227,7 +216,7 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-		unsigned char mdbuf[16],ackbuf[16];
+		unsigned char mdbuf[BUFSZ],ackbuf[BUFSZ];
 		int mdbuf_len, ack_len, aormode, retval;
 
 		switch (mode) {
@@ -280,7 +269,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-		unsigned char ackbuf[16];
+		unsigned char ackbuf[BUFSZ];
 		int ack_len, retval;
 
 
@@ -331,7 +320,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-		unsigned char tsbuf[16],ackbuf[16];
+		unsigned char tsbuf[BUFSZ],ackbuf[BUFSZ];
 		int ts_len, ack_len;
 
 		/*
@@ -364,7 +353,7 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 		char *aorcmd;
 		int ack_len;
-		char ackbuf[16];
+		char ackbuf[BUFSZ];
 
 		switch (op) {
 		case RIG_OP_UP: aorcmd = "\x1e" EOM; break;
@@ -388,10 +377,10 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 const char *aor_get_info(RIG *rig)
 {
-		static char infobuf[16];
+		static char infobuf[BUFSZ];
 		int id_len, frm_len, retval;
-		char idbuf[4];
-		char frmbuf[16];
+		char idbuf[BUFSZ];
+		char frmbuf[BUFSZ];
 
 		retval = aor_transaction (rig, "\001" EOM, 2, idbuf, &id_len);
 		if (retval != RIG_OK)

@@ -2,7 +2,7 @@
  *  Hamlib Kachina backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: kachina.c,v 1.3 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: kachina.c,v 1.4 2002-03-13 23:37:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,11 +89,13 @@ int kachina_transaction(RIG *rig, unsigned char cmd1, unsigned char cmd2)
 	buf4[2] = cmd2;
 	buf4[3] = ETX;
 
+	serial_flush(&rs->rigport);
+
 	retval = write_block(&rs->rigport, buf4, 4);
 	if (retval != RIG_OK)
 			return retval;
 
-	count = fread_block(&rs->rigport, buf4, 1);
+	count = read_string(&rs->rigport, buf4, 1, "", 0);
 	if (count != 1)
 			return count;
 
@@ -115,11 +117,13 @@ int kachina_trans_n(RIG *rig, unsigned char cmd1, const char *data, int data_len
 
 	cmd_len = data_len+3;
 
+	serial_flush(&rs->rigport);
+
 	retval = write_block(&rs->rigport, buf, cmd_len);
 	if (retval != RIG_OK)
 			return retval;
 
-	count = fread_block(&rs->rigport, buf, 1);
+	count = read_string(&rs->rigport, buf, 1, "", 0);
 	if (count != 1)
 			return count;
 

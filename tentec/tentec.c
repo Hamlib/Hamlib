@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: tentec.c,v 1.4 2002-01-06 17:49:55 fillods Exp $
+ *		$Id: tentec.c,v 1.5 2002-03-13 23:37:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -67,7 +67,7 @@ static int tentec_filters[] = {
  */
 int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i, count, retval;
+	int retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
@@ -81,23 +81,8 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
 			return 0;
-	/*
-	 * buffered read are quite helpful here!
-	 * However, an automate with a state model would be more efficient..
-	 *
-	 * FIXME:
-	 * and BTW, this is currently helpless since length of response may vary
-	 */
-	i = 0;
-	do {
-		count = fread_block(&rs->rigport, data+i, 1);
-		if (count > 0)
-				i += count;
-		else if (count < 0)
-				return count;
-	} while (i < *data_len);
 
-	*data_len = i;
+	*data_len = read_string(&rs->rigport, data, *data_len, "", 0);
 
 	return RIG_OK;
 }
@@ -159,9 +144,7 @@ int tentec_cleanup(RIG *rig)
  */
 int tentec_trx_open(RIG *rig)
 {
-	struct rig_state *rs = &rig->state;
-	int ack_len, retval;
-	char ack[16];
+	int retval;
 
 	/*
 	 * be kind: use XX first, and do 'Dsp Program Execute' only 

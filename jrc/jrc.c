@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: jrc.c,v 1.5 2002-02-27 23:25:41 fillods Exp $
+ *		$Id: jrc.c,v 1.6 2002-03-13 23:37:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -46,6 +46,8 @@
  */
 #define EOM "\r"
 
+#define BUFSZ 32
+
 /*
  * modes in use by the "2G" command
  */
@@ -69,7 +71,7 @@
  */
 int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i, count, retval;
+	int retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
@@ -83,20 +85,8 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
 			return 0;
-	/*
-	 * buffered read are quite helpful here!
-	 * However, an automate with a state model would be more efficient..
-	 */
-	i = 0;
-	do {
-		count = fread_block(&rs->rigport, data+i, 1);
-		if (count > 0)
-				i += count;
-		else if (count < 0)
-				return count;
-	} while (count > 0 && data[i-1] != EOM[0]);
 
-	*data_len = i;
+	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
 
 	return RIG_OK;
 }
@@ -129,7 +119,7 @@ int jrc_close(RIG *rig)
  */
 int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		char freqbuf[16];
+		char freqbuf[BUFSZ];
 		int freq_len;
 
 		/* max 10 digits */
@@ -148,7 +138,7 @@ int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		int freq_len, retval;
-		char freqbuf[32];
+		char freqbuf[BUFSZ];
 
 		retval = jrc_transaction (rig, "F" EOM, 2, freqbuf, &freq_len);
 		if (retval != RIG_OK)
@@ -173,7 +163,7 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-		char mdbuf[16];
+		char mdbuf[BUFSZ];
 		int retval, mdbuf_len;
 		char amode;
 		const char *bandwidth;
@@ -223,7 +213,7 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 		int cmd_len;
-		char cmdbuf[32];
+		char cmdbuf[BUFSZ];
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -275,7 +265,7 @@ int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
 		int retval, func_len;
-		char funcbuf[32];
+		char funcbuf[BUFSZ];
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -372,7 +362,7 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 		int cmd_len;
-		char cmdbuf[32];
+		char cmdbuf[BUFSZ];
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -426,7 +416,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
  		struct jrc_priv_caps *priv;
 		int retval, lvl_len, lvl;
-		char lvlbuf[32];
+		char lvlbuf[BUFSZ];
 
 		priv = (struct jrc_priv_caps*)rig->caps->priv;
 
@@ -551,7 +541,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int jrc_set_parm(RIG *rig, setting_t parm, value_t val)
 {
 		int cmd_len;
-		char cmdbuf[32];
+		char cmdbuf[BUFSZ];
 		int minutes;
 
 		/* Optimize:
@@ -592,7 +582,7 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
  		struct jrc_priv_caps *priv;
 		int retval, lvl_len, i;
-		char lvlbuf[32];
+		char lvlbuf[BUFSZ];
 
 		priv = (struct jrc_priv_caps*)rig->caps->priv;
 
@@ -635,7 +625,7 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val)
  */
 int jrc_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-		char dcdbuf[16];
+		char dcdbuf[BUFSZ];
 		int dcd_len, retval;
 
 		retval = jrc_transaction (rig, "Q" EOM, 2, dcdbuf, &dcd_len);
@@ -658,7 +648,7 @@ int jrc_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int jrc_set_trn(RIG *rig, int trn)
 {
-		unsigned char trnbuf[16];
+		unsigned char trnbuf[BUFSZ];
 		int trn_len;
 
 		trn_len = sprintf(trnbuf, "I%d" EOM, trn==RIG_TRN_RIG?1:0);
@@ -672,7 +662,7 @@ int jrc_set_trn(RIG *rig, int trn)
  */
 int jrc_set_powerstat(RIG *rig, powerstat_t status)
 {
-		unsigned char pwrbuf[16];
+		unsigned char pwrbuf[BUFSZ];
 		int pwr_len;
 
 		pwr_len = sprintf(pwrbuf, "T%d" EOM, status==RIG_POWER_ON?1:0);
@@ -686,7 +676,7 @@ int jrc_set_powerstat(RIG *rig, powerstat_t status)
  */
 int jrc_reset(RIG *rig, reset_t reset)
 {
-		unsigned char rstbuf[16];
+		unsigned char rstbuf[BUFSZ];
 		int rst_len;
 		char rst;
 
@@ -710,8 +700,8 @@ int jrc_reset(RIG *rig, reset_t reset)
  */
 int jrc_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-		char cmdbuf[16];
-		char membuf[16];
+		char cmdbuf[BUFSZ];
+		char membuf[BUFSZ];
 		int cmd_len, mem_len;
 
 		if (ch < 0 || ch > 999)
@@ -826,7 +816,7 @@ int jrc_decode_event(RIG *rig)
 		rmode_t mode;
 		pbwidth_t width; 
 		int count;
-		char buf[32];
+		char buf[BUFSZ];
 
 		rig_debug(RIG_DEBUG_VERBOSE, "jrc: jrc_decode called\n");
 
@@ -835,9 +825,9 @@ int jrc_decode_event(RIG *rig)
 		/* "Iabdfg"CR */
 #define SETUP_STATUS_LEN 17
 
-		count = fread_block(&rs->rigport, buf, SETUP_STATUS_LEN);
+		count = read_string(&rs->rigport, buf, SETUP_STATUS_LEN, "", 0);
 		if (count < 0) {
-			rig_debug(RIG_DEBUG_ERR, "jrc: fread_block failed: %s\n",
+			rig_debug(RIG_DEBUG_ERR, "jrc: read_string failed: %s\n",
 							strerror(errno));
 			return -RIG_EIO;
 		}

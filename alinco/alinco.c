@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *		$Id: alinco.c,v 1.12 2001-12-28 20:28:02 fillods Exp $
+ *		$Id: alinco.c,v 1.13 2002-03-13 23:37:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +42,10 @@
 #include "alinco.h"
 
 
-#define EOM "\r"
+/* Line Feed */
+#define EOM "\x0a"
+
+#define BUFSZ 32
 
 /*
  * modes in use by the "2G" command
@@ -98,10 +101,12 @@
  */
 int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int i, count, retval;
+	int retval;
 	struct rig_state *rs;
 
 	rs = &rig->state;
+
+	serial_flush(&rs->rigport);
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
@@ -110,20 +115,8 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
 			return 0;
-	/*
-	 * buffered read are quite helpful here!
-	 * However, an automate with a state model would be more efficient..
-	 */
-	i = 0;
-	do {
-		count = fread_block(&rs->rigport, data+i, 1);
-		if (count > 0)
-				i += count;
-		else if (count < 0)
-				return count;
-	} while (count > 0);
 
-	*data_len = i;
+	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
 
 	return RIG_OK;
 }
@@ -134,7 +127,7 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
  */
 int alinco_set_vfo(RIG *rig, vfo_t vfo)
 {
-		char cmdbuf[16];
+		char cmdbuf[BUFSZ];
 		int cmd_len;
 		char vfo_num;
 
@@ -160,7 +153,7 @@ int alinco_set_vfo(RIG *rig, vfo_t vfo)
  */
 int alinco_get_vfo(RIG *rig, vfo_t *vfo)
 {
-		char vfobuf[16];
+		char vfobuf[BUFSZ];
 		int vfo_len, retval;
 
 		retval = alinco_transaction(rig, AL CMD_RMV EOM, 
@@ -195,7 +188,7 @@ int alinco_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		char freqbuf[16];
+		char freqbuf[BUFSZ];
 		int freq_len;
 
 		/* max 10 digits */
@@ -235,7 +228,7 @@ static int current_data_read(RIG *rig, char *databuf)
 int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 		int retval;
-		char freqbuf[32];
+		char freqbuf[BUFSZ];
 
 		retval = current_data_read(rig, freqbuf);
 		if (retval != RIG_OK)
@@ -254,7 +247,7 @@ int alinco_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int alinco_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-		char mdbuf[16];
+		char mdbuf[BUFSZ];
 		int mdbuf_len, narrow_filter, retval;
 		char amode;
 
@@ -301,7 +294,7 @@ int alinco_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 		int retval;
 		int settings;
-		char modebuf[32];
+		char modebuf[BUFSZ];
 
 		retval = current_data_read(rig, modebuf);
 		if (retval != RIG_OK)
@@ -342,7 +335,7 @@ int alinco_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int alinco_set_split(RIG *rig, vfo_t vfo, split_t split)
 {
 		int cmd_len;
-		char cmdbuf[32];
+		char cmdbuf[BUFSZ];
 
 		cmd_len = sprintf(cmdbuf, AL CMD_SPLT "%d" EOM, 
 						split==RIG_SPLIT_ON ? 1 : 0);
@@ -357,7 +350,7 @@ int alinco_set_split(RIG *rig, vfo_t vfo, split_t split)
 int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split)
 {
 		int splt_len, retval;
-		char spltbuf[32];
+		char spltbuf[BUFSZ];
 
 		retval = alinco_transaction (rig, AL CMD_RSPLT EOM, 
 						strlen(AL CMD_RSPLT EOM), spltbuf, &splt_len);
@@ -389,7 +382,7 @@ int alinco_get_split(RIG *rig, vfo_t vfo, split_t *split)
  */
 int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
-		char freqbuf[16];
+		char freqbuf[BUFSZ];
 		int freq_len;
 		int retval;
 
@@ -412,7 +405,7 @@ int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 		int retval;
-		char freqbuf[32];
+		char freqbuf[BUFSZ];
 
 		retval = current_data_read(rig, freqbuf);
 		if (retval != RIG_OK)
@@ -433,7 +426,7 @@ int alinco_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
 		int rit_len, retval;
-		char ritbuf[32];
+		char ritbuf[BUFSZ];
 
 		/* read in Hertz unit */
 		retval = alinco_transaction (rig, AL CMD_RIT "0" EOM,
@@ -461,7 +454,7 @@ int alinco_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 int alinco_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 		int cmd_len;
-		char cmdbuf[32];
+		char cmdbuf[BUFSZ];
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -504,7 +497,7 @@ int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
 		int retval;
 		int settings;
-		char funcbuf[32];
+		char funcbuf[BUFSZ];
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -553,7 +546,7 @@ int alinco_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int alinco_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 		int cmd_len, lvl;
-		char cmdbuf[32];
+		char cmdbuf[BUFSZ];
 
 		/* Optimize:
 		 *   sort the switch cases with the most frequent first
@@ -606,7 +599,7 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
  		struct alinco_priv_caps *priv;
 		int retval, lvl_len;
-		char lvlbuf[32];
+		char lvlbuf[BUFSZ];
 
 		priv = (struct alinco_priv_caps*)rig->caps->priv;
 
@@ -693,7 +686,7 @@ int alinco_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
-	unsigned char tonebuf[16];
+	unsigned char tonebuf[BUFSZ];
 	int tone_len;
 	int i;
 								 
@@ -718,7 +711,7 @@ int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
  */
 int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-		char pttbuf[16];
+		char pttbuf[BUFSZ];
 		int ptt_len, retval;
 
 		retval = alinco_transaction (rig, AL CMD_PTT EOM, 
@@ -752,7 +745,7 @@ int alinco_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  */
 int alinco_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-		char dcdbuf[16];
+		char dcdbuf[BUFSZ];
 		int dcd_len, retval;
 
 		retval = alinco_transaction (rig, AL CMD_SQL EOM,
@@ -786,7 +779,7 @@ int alinco_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int alinco_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-		char cmdbuf[16];
+		char cmdbuf[BUFSZ];
 		int cmd_len;
 
 		if (ch < 0 || ch > 99)
@@ -803,7 +796,7 @@ int alinco_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int alinco_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-		char membuf[16];
+		char membuf[BUFSZ];
 		int mem_len, retval;
 
 		retval = alinco_transaction (rig, AL CMD_RMEM EOM, 
