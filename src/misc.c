@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.29 2003-11-16 17:34:00 fillods Exp $
+ *	$Id: misc.c,v 1.30 2003-12-03 01:32:35 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -307,7 +307,7 @@ static struct {
 	{ RIG_MODE_RTTY, "RTTY" },
 	{ RIG_MODE_RTTYR, "RTTYR" },
 	{ RIG_MODE_WFM, "WFM" },
-	{ RIG_MODE_NONE, NULL },
+	{ RIG_MODE_NONE, "" },
 };
 
 
@@ -315,7 +315,7 @@ rmode_t parse_mode(const char *s)
 {
 	int i;
 
-	for (i=0 ; mode_str[i].str != NULL; i++)
+	for (i=0 ; mode_str[i].str != ""; i++)
 			if (!strcmp(s, mode_str[i].str))
 					return mode_str[i].mode;
 	return RIG_MODE_NONE;
@@ -328,16 +328,16 @@ const char * strrmode(rmode_t mode)
 	if (mode == RIG_MODE_NONE)
 		return "";
 
-	for (i=0; mode_str[i].str != NULL; i++)
+	for (i=0; mode_str[i].str != ""; i++)
 		if (mode == mode_str[i].mode)
 			return mode_str[i].str;
 
-	return NULL;
+	return "";
 }
 
 
 static struct { 
-		vfo_t vfo ;
+		vfo_t vfo;
 		const char *str;
 } vfo_str[] = {
 		{ RIG_VFO_A, "VFOA" },
@@ -348,14 +348,14 @@ static struct {
 		{ RIG_VFO_VFO, "VFO" },
 		{ RIG_VFO_MAIN, "Main" },
 		{ RIG_VFO_SUB, "Sub" },
-		{ RIG_VFO_NONE, NULL },
+		{ RIG_VFO_NONE, "" },
 };
 
 vfo_t parse_vfo(const char *s)
 {
 	int i;
 
-	for (i=0; vfo_str[i].str != NULL; i++)
+	for (i=0; vfo_str[i].str != ""; i++)
 		if (!strcmp(s, vfo_str[i].str))
 			return vfo_str[i].vfo;
 	return RIG_VFO_NONE;
@@ -368,11 +368,11 @@ const char *strvfo(vfo_t vfo)
 	if (vfo == RIG_VFO_NONE)
 		return "";
 
-	for (i=0; vfo_str[i].str != NULL; i++)
+	for (i=0; vfo_str[i].str != ""; i++)
 		if (vfo == vfo_str[i].vfo)
 			return vfo_str[i].str;
 
-	return NULL;
+	return "";
 }
 
 
@@ -408,14 +408,14 @@ static struct {
 	{ RIG_FUNC_RESUME, "RESUME" },
 	{ RIG_FUNC_TBURST, "TBURST" },
 	{ RIG_FUNC_TUNER, "TUNER" },
-	{ RIG_FUNC_NONE, NULL },
+	{ RIG_FUNC_NONE, "" },
 };
 
 setting_t parse_func(const char *s)
 {
 	int i;
 
-	for (i=0 ; func_str[i].str != NULL; i++)
+	for (i=0 ; func_str[i].str != ""; i++)
 			if (!strcmp(s, func_str[i].str))
 					return func_str[i].func;
 	return RIG_FUNC_NONE;
@@ -428,11 +428,11 @@ const char *strfunc(setting_t func)
 	if (func == RIG_FUNC_NONE)
 		return "";
 
-	for (i=0; func_str[i].str != NULL; i++)
+	for (i=0; func_str[i].str != ""; i++)
 		if (func == func_str[i].func)
 			return func_str[i].str;
 
-	return NULL;
+	return "";
 }
 
 
@@ -463,20 +463,19 @@ static struct {
 	{ RIG_LEVEL_METER, "METER" },
 	{ RIG_LEVEL_VOXGAIN, "VOXGAIN" },
 	{ RIG_LEVEL_ANTIVOX, "ANTIVOX" },
-
 	{ RIG_LEVEL_RAWSTR, "RAWSTR" },
 	{ RIG_LEVEL_SWR, "SWR" },
 	{ RIG_LEVEL_ALC, "ALC" },
 	{ RIG_LEVEL_SQLSTAT, "SQLSTAT" },
 	{ RIG_LEVEL_STRENGTH, "STRENGTH" },
-	{ RIG_LEVEL_NONE, NULL },
+	{ RIG_LEVEL_NONE, "" },
 };
 
 setting_t parse_level(const char *s)
 {
 	int i;
 
-	for (i=0 ; level_str[i].str != NULL; i++)
+	for (i=0 ; level_str[i].str != ""; i++)
 			if (!strcmp(s, level_str[i].str))
 					return level_str[i].level;
 	return RIG_LEVEL_NONE;
@@ -489,11 +488,11 @@ const char *strlevel(setting_t level)
 	if (level == RIG_LEVEL_NONE)
 		return "";
 
-	for (i=0; level_str[i].str != NULL; i++)
+	for (i=0; level_str[i].str != ""; i++)
 		if (level == level_str[i].level)
 			return level_str[i].str;
 
-	return NULL;
+	return "";
 }
 
 
@@ -507,14 +506,14 @@ static struct {
 	{ RIG_PARM_BEEP, "BEEP" },
 	{ RIG_PARM_TIME, "TIME" },
 	{ RIG_PARM_BAT, "BAT" },
-	{ RIG_PARM_NONE, NULL },
+	{ RIG_PARM_NONE, "" },
 };
 
 setting_t parse_parm(const char *s)
 {
 	int i;
 
-	for (i=0 ; parm_str[i].str != NULL; i++)
+	for (i=0 ; parm_str[i].str != ""; i++)
 			if (!strcmp(s, parm_str[i].str))
 					return parm_str[i].parm;
 	return RIG_PARM_NONE;
@@ -527,11 +526,11 @@ const char *strparm(setting_t parm)
 	if (parm == RIG_PARM_NONE)
 		return "";
 
-	for (i=0; parm_str[i].str != NULL; i++)
+	for (i=0; parm_str[i].str != ""; i++)
 		if (parm == parm_str[i].parm)
 			return parm_str[i].str;
 
-	return NULL;
+	return "";
 }
 
 
@@ -552,14 +551,14 @@ static struct {
 	{ RIG_OP_RIGHT, "RIGHT" },
 	{ RIG_OP_TUNE, "TUNE" },
 	{ RIG_OP_TOGGLE, "TOGGLE" },
-	{ RIG_OP_NONE, NULL },
+	{ RIG_OP_NONE, "" },
 };
 
 vfo_op_t parse_vfo_op(const char *s)
 {
 	int i;
 
-	for (i=0 ; vfo_op_str[i].str != NULL; i++)
+	for (i=0 ; vfo_op_str[i].str != ""; i++)
 			if (!strcmp(s, vfo_op_str[i].str))
 					return vfo_op_str[i].vfo_op;
 	return RIG_OP_NONE;
@@ -572,11 +571,11 @@ const char *strvfop(vfo_op_t op)
 	if (op == RIG_OP_NONE)
 		return "";
 
-	for (i=0; vfo_op_str[i].str != NULL; i++)
+	for (i=0; vfo_op_str[i].str != ""; i++)
 		if (op == vfo_op_str[i].vfo_op)
 			return vfo_op_str[i].str;
 
-	return NULL;
+	return "";
 }
 
 
@@ -592,14 +591,14 @@ static struct {
 	{ RIG_SCAN_DELTA, "DELTA" },
 	{ RIG_SCAN_VFO, "VFO" },
 	{ RIG_SCAN_PLT, "PLT" },
-	{ RIG_SCAN_NONE, NULL },
+	{ RIG_SCAN_NONE, "" },
 };
 
 scan_t parse_scan(const char *s)
 {
 	int i;
 
-	for (i=0 ; scan_str[i].str != NULL; i++) {
+	for (i=0 ; scan_str[i].str != ""; i++) {
 		if (strcmp(s, scan_str[i].str) == 0) {
 			return scan_str[i].rscan;
 		}
@@ -615,11 +614,11 @@ const char *strscan(scan_t rscan)
 	if (rscan == RIG_SCAN_NONE)
 		return "";
 
-	for (i=0; scan_str[i].str != NULL; i++)
+	for (i=0; scan_str[i].str != ""; i++)
 		if (rscan == scan_str[i].rscan)
 			return scan_str[i].str;
 
-	return NULL;
+	return "";
 }
 
 
