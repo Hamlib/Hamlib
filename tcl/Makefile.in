@@ -98,16 +98,19 @@ install_sh = @install_sh@
 
 INCLUDES = @INCLUDES@ -I/usr/include/tcl8.2
 
+TCLSRCLIST = hamlibtcl.c tclrig.c tclrot.c
 LDFLAGS = -no-undefined -module -avoid-version
 @HAMLIBTCL_TRUE@lib_LTLIBRARIES = libhamlibtcl.la
 #lib_LTLIBRARIES = @LTHAMLIBTCL@
-@HAMLIBTCL_TRUE@libhamlibtcl_la_SOURCES = hamlibtcl.c
+@HAMLIBTCL_TRUE@libhamlibtcl_la_SOURCES = $(TCLSRCLIST)
 @HAMLIBTCL_TRUE@libhamlibtcl_la_LIBADD = ../src/libhamlib.la
 
 
 #libhamlibtcl_la_LDFLAGS = -no-undefined -module -avoid-version
 #EXTRA_LTLIBRARIES = libhamlibtcl.la
-@HAMLIBTCL_FALSE@BUILT_SOURCES = hamlibtcl.c
+@HAMLIBTCL_FALSE@BUILT_SOURCES = $(TCLSRCLIST)
+
+noinst_HEADERS = tclrig.h tclrot.h
 
 noinst_SCRIPTS = tcltest.tcl
 EXTRA_DIST = tcltest.tcl
@@ -120,7 +123,8 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libhamlibtcl_la_LDFLAGS =
 @HAMLIBTCL_TRUE@libhamlibtcl_la_DEPENDENCIES = ../src/libhamlib.la
 @HAMLIBTCL_FALSE@libhamlibtcl_la_DEPENDENCIES =
-@HAMLIBTCL_TRUE@am_libhamlibtcl_la_OBJECTS = hamlibtcl.lo
+@HAMLIBTCL_TRUE@am_libhamlibtcl_la_OBJECTS = hamlibtcl.lo tclrig.lo \
+@HAMLIBTCL_TRUE@	tclrot.lo
 @HAMLIBTCL_FALSE@am_libhamlibtcl_la_OBJECTS =
 libhamlibtcl_la_OBJECTS = $(am_libhamlibtcl_la_OBJECTS)
 SCRIPTS = $(noinst_SCRIPTS)
@@ -131,7 +135,8 @@ DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
 CPPFLAGS = @CPPFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
-@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/hamlibtcl.Plo
+@AMDEP_TRUE@DEP_FILES = $(DEPDIR)/hamlibtcl.Plo $(DEPDIR)/tclrig.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/tclrot.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -141,7 +146,9 @@ LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 DIST_SOURCES = $(libhamlibtcl_la_SOURCES)
-DIST_COMMON = Makefile.am Makefile.in
+HEADERS = $(noinst_HEADERS)
+
+DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
 SOURCES = $(libhamlibtcl_la_SOURCES)
 
 all: $(BUILT_SOURCES)
@@ -194,6 +201,8 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/hamlibtcl.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tclrig.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/tclrot.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf $(DEPDIR)
@@ -273,7 +282,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(SCRIPTS)
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(HEADERS)
 
 installdirs:
 	$(mkinstalldirs) $(DESTDIR)$(libdir)
