@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.12 2000-09-04 17:51:35 javabear Exp $  
+ *    $Id: ft847.h,v 1.13 2000-09-17 03:21:31 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,33 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
  */
+
+#ifndef _FT847_H
+#define _FT847_H 1
+
+/*
+ * future - private data
+ *
+ */
+
+struct ft847_priv_data {
+  int dummy;			/* for test */
+};
+
+
+/* 
+ * API local implementation 
+ */
+
+int ft847_init(RIG *rig);
+int ft847_cleanup(RIG *rig);
+int cmd_set_freq_main_vfo_hz(RIG *rig, freq_t freq, rig_mode_t mode);
+
+  /*
+    int (*set_freq)(RIG *rig, freq_t freq);
+    int (*set_mode)(RIG *rig, rig_mode_t mode);
+    int (*set_vfo)(RIG *rig, rig_vfo_t vfo);
+  */
 
 /*
  * Allow TX commands to be disabled
@@ -77,22 +104,14 @@ const unsigned char CTCSS_ENC_DEC_OFF = 0x2a;
 
 
 
-/*
- * Visible functions in shared lib.
- *
- */
-
-/*  int rig_open(char *serial_port); */ /* return fd or -1 on error */
-
-int rig_close(int fd);
-struct rig_caps *rig_get_caps(); /* return ptr to capabilities */
-int rig_open(struct rig_caps *rc); /* use rig_caps struct to open */
-
 
 /*
  * Raw CAT command set
  *
  */
+
+
+#if 0
 
 void cmd_set_cat_on(int fd);
 void cmd_set_cat_off(int fd);
@@ -166,6 +185,11 @@ void cmd_set_freq_sat_tx_vfo_hz(int fd,long int freq, unsigned char mode);
 
 void cmd_set_repeater_offset_hz(int fd,long int freq);
 
+#endif /* 0 */
+
+
+
+#endif /* _FT847_H */
 
 
 
