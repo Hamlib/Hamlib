@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - NRD-545 DSP description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.7 2003-12-08 08:39:06 fillods Exp $
+ *	$Id: nrd545.c,v 1.8 2004-05-19 08:57:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 
 #define NRD545_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_ABM|RIG_FUNC_BC|RIG_FUNC_NR)
 
-#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL)
+#define NRD545_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_ATT|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH)
 
 /* FIXME: add more from "U" command */
 #define NRD545_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
@@ -51,6 +51,29 @@
 	} }
 
 /*
+ * channel caps.
+ */
+#define NRD545_MEM_CAP {	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+	.levels = RIG_LEVEL_ATT|RIG_LEVEL_AGC, \
+} 
+
+
+static const struct jrc_priv_caps nrd545_priv_caps = {
+	.max_freq_len = 10,
+	.info_len = 18,
+	.mem_len = 21,
+	.pbs_info_len = 6,
+	.pbs_len = 3,
+	.beep = 100,
+	.beep_len = 3,
+	.cw_pitch = "U14"
+};
+
+
+/*
  * NRD-545 rig capabilities.
  *
  */
@@ -58,7 +81,7 @@ const struct rig_caps nrd545_caps = {
 .rig_model =  RIG_MODEL_NRD545,
 .model_name = "NRD-545 DSP",
 .mfg_name =  "JRC",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
@@ -99,11 +122,12 @@ const struct rig_caps nrd545_caps = {
 .scan_ops =  RIG_SCAN_STOP|RIG_SCAN_SLCT,
 .bank_qty =   0,
 .chan_desc_sz =  0,
+.priv = (void*)&nrd545_priv_caps,
 
 .chan_list =  {
-			{ 0, 999, RIG_MTYPE_MEM },
-			RIG_CHAN_END,
-		},
+		{ 0, 999, RIG_MTYPE_MEM, NRD545_MEM_CAP },
+		RIG_CHAN_END,
+	},
 
 .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 .tx_range_list1 =  { RIG_FRNG_END, },
@@ -144,6 +168,7 @@ const struct rig_caps nrd545_caps = {
 .set_freq =  jrc_set_freq,
 .get_freq =  jrc_get_freq,
 .set_mode =  jrc_set_mode,
+.get_mode =  jrc_get_mode,
 .set_func =  jrc_set_func,
 .get_func =  jrc_get_func,
 .set_level =  jrc_set_level,
@@ -154,6 +179,7 @@ const struct rig_caps nrd545_caps = {
 .set_trn =  jrc_set_trn,
 .reset =  jrc_reset,
 .set_mem =  jrc_set_mem,
+.get_mem =  jrc_get_mem,
 .vfo_op =  jrc_vfo_op,
 .scan =  jrc_scan,
 .set_powerstat =  jrc_set_powerstat,

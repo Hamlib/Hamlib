@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - NRD-535 DSP description
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd535.c,v 1.2 2003-12-08 08:39:05 fillods Exp $
+ *	$Id: nrd535.c,v 1.3 2004-05-19 08:57:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,12 +33,12 @@
 
 #define NRD535_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)	/* + FAX */
 
-#define NRD535_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_LOCK|RIG_FUNC_ABM|RIG_FUNC_BC|RIG_FUNC_NR)
+#define NRD535_FUNC (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_ABM)
 
-#define NRD535_LEVEL (RIG_LEVEL_SQLSTAT|RIG_LEVEL_RAWSTR|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_AGC|RIG_LEVEL_IF|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL)
+#define NRD535_LEVEL (RIG_LEVEL_RAWSTR|RIG_LEVEL_ATT|RIG_LEVEL_IF|RIG_LEVEL_AGC|RIG_LEVEL_CWPITCH)
 
 /* FIXME: add more from "U" command */
-#define NRD535_PARM (RIG_PARM_TIME|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
+#define NRD535_PARM (RIG_PARM_TIME|RIG_PARM_BEEP)
 
 #define NRD535_VFO (RIG_VFO_A)
 
@@ -66,8 +66,20 @@
 	.freq = 1,	\
 	.mode = 1,	\
 	.width = 1,	\
+	.funcs = RIG_FUNC_FAGC, \
 	.levels = RIG_LEVEL_ATT|RIG_LEVEL_AGC, \
 } 
+
+static const struct jrc_priv_caps nrd535_priv_caps = {
+	.max_freq_len = 8,
+	.info_len = 14,
+	.mem_len = 17,
+	.pbs_info_len = 7,
+	.pbs_len = 4,
+	.beep = 90,
+	.beep_len = 2,
+	.cw_pitch = "U2"
+};
 
 /*
  * NRD-535 rig capabilities.
@@ -75,11 +87,11 @@
  */
 const struct rig_caps nrd535_caps = {
 .rig_model =  RIG_MODEL_NRD535,
-.model_name = "NRD-535 DSP",
+.model_name = "NRD-535D",
 .mfg_name =  "JRC",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -91,7 +103,7 @@ const struct rig_caps nrd535_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
-.post_write_delay =  0,
+.post_write_delay =  10,
 .timeout =  200,
 .retry =  3,
 
@@ -118,6 +130,7 @@ const struct rig_caps nrd535_caps = {
 .scan_ops =  RIG_SCAN_STOP|RIG_SCAN_SLCT,
 .bank_qty =   0,
 .chan_desc_sz =  0,
+.priv = (void*)&nrd535_priv_caps,
 
 .chan_list =  {
 			{ 0, 199, RIG_MTYPE_MEM, NRD535_MEM_CAP },
@@ -143,10 +156,10 @@ const struct rig_caps nrd535_caps = {
 	},
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(12)},
+		{RIG_MODE_FM, kHz(12)},
 		{NRD535_MODES, kHz(2)},
 		{NRD535_MODES, kHz(1)},
-		{NRD535_MODES, kHz(4)},
+		{NRD535_MODES, kHz(6)},
 		RIG_FLT_END,
 	},
 .str_cal = NRD535_STR_CAL,
@@ -156,6 +169,7 @@ const struct rig_caps nrd535_caps = {
 .set_freq =  jrc_set_freq,
 .get_freq =  jrc_get_freq,
 .set_mode =  jrc_set_mode,
+.get_mode =  jrc_get_mode,
 .set_func =  jrc_set_func,
 .get_func =  jrc_get_func,
 .set_level =  jrc_set_level,
@@ -166,6 +180,7 @@ const struct rig_caps nrd535_caps = {
 .set_trn =  jrc_set_trn,
 .reset =  jrc_reset,
 .set_mem =  jrc_set_mem,
+.get_mem =  jrc_get_mem,
 .vfo_op =  jrc_vfo_op,
 .scan =  jrc_scan,
 .set_powerstat =  jrc_set_powerstat,

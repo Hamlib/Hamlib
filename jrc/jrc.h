@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - main header
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: jrc.h,v 1.6 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: jrc.h,v 1.7 2004-05-19 08:57:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,11 +25,23 @@
 
 #include <hamlib/rig.h>
 
+struct jrc_priv_caps {
+	int max_freq_len;
+	int info_len;
+	int mem_len;
+	int pbs_info_len;
+	int pbs_len;
+	int beep;
+	int beep_len;
+	const char * cw_pitch;
+};
+
 int jrc_open(RIG *rig);
 int jrc_close(RIG *rig);
 int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
@@ -39,6 +51,7 @@ int jrc_get_parm(RIG *rig, setting_t parm, value_t *val);
 int jrc_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 int jrc_set_trn(RIG *rig, int trn);
 int jrc_set_mem(RIG *rig, vfo_t vfo, int ch);
+int jrc_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int jrc_set_powerstat(RIG *rig, powerstat_t status);
 int jrc_reset(RIG *rig, reset_t reset);
 int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
