@@ -4,28 +4,27 @@
  */
 
 #include "rpcrig.h"
-
-bool_t
-xdr_vfo_x (XDR *xdrs, vfo_x *objp)
-{
-	register int32_t *buf;
-
-	 if (!xdr_u_int (xdrs, objp))
-		 return FALSE;
-	return TRUE;
-}
-
-bool_t
-xdr_freq_s (XDR *xdrs, freq_s *objp)
-{
-	register int32_t *buf;
-
-	 if (!xdr_u_int (xdrs, &objp->f1))
-		 return FALSE;
-	 if (!xdr_u_int (xdrs, &objp->f2))
-		 return FALSE;
-	return TRUE;
-}
+/*
+ *  Hamlib Interface - RPC definitions
+ *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *
+ *		$Id: rpcrig_xdr.c,v 1.2 2001-12-26 23:44:09 fillods Exp $
+ *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
 
 bool_t
 xdr_model_x (XDR *xdrs, model_x *objp)
@@ -33,6 +32,142 @@ xdr_model_x (XDR *xdrs, model_x *objp)
 	register int32_t *buf;
 
 	 if (!xdr_u_int (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_vfo_x (XDR *xdrs, vfo_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_freq_x (XDR *xdrs, freq_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int64_t (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_rmode_x (XDR *xdrs, rmode_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_u_int (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_pbwidth_x (XDR *xdrs, pbwidth_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_split_x (XDR *xdrs, split_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_u_long (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_ptt_x (XDR *xdrs, ptt_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_dcd_x (XDR *xdrs, dcd_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_vfo_op_x (XDR *xdrs, vfo_op_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_long (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_shortfreq_x (XDR *xdrs, shortfreq_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_long (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_setting_x (XDR *xdrs, setting_x *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_uint64_t (xdrs, objp))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_mode_s (XDR *xdrs, mode_s *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_rmode_x (xdrs, &objp->mode))
+		 return FALSE;
+	 if (!xdr_pbwidth_x (xdrs, &objp->width))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_value_s (XDR *xdrs, value_s *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->i))
+		 return FALSE;
+	 if (!xdr_float (xdrs, &objp->f))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_freq_arg (XDR *xdrs, freq_arg *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_vfo_x (xdrs, &objp->vfo))
+		 return FALSE;
+	 if (!xdr_freq_x (xdrs, &objp->freq))
 		 return FALSE;
 	return TRUE;
 }
@@ -46,7 +181,7 @@ xdr_freq_res (XDR *xdrs, freq_res *objp)
 		 return FALSE;
 	switch (objp->rigstatus) {
 	case 0:
-		 if (!xdr_freq_s (xdrs, &objp->freq_res_u.freq))
+		 if (!xdr_freq_x (xdrs, &objp->freq_res_u.freq))
 			 return FALSE;
 		break;
 	default:
@@ -56,13 +191,211 @@ xdr_freq_res (XDR *xdrs, freq_res *objp)
 }
 
 bool_t
-xdr_freq_arg (XDR *xdrs, freq_arg *objp)
+xdr_mode_arg (XDR *xdrs, mode_arg *objp)
 {
 	register int32_t *buf;
 
 	 if (!xdr_vfo_x (xdrs, &objp->vfo))
 		 return FALSE;
-	 if (!xdr_freq_s (xdrs, &objp->freq))
+	 if (!xdr_mode_s (xdrs, &objp->mw))
 		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_mode_res (XDR *xdrs, mode_res *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->rigstatus))
+		 return FALSE;
+	switch (objp->rigstatus) {
+	case 0:
+		 if (!xdr_mode_s (xdrs, &objp->mode_res_u.mw))
+			 return FALSE;
+		break;
+	default:
+		break;
+	}
+	return TRUE;
+}
+
+bool_t
+xdr_vfo_res (XDR *xdrs, vfo_res *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->rigstatus))
+		 return FALSE;
+	switch (objp->rigstatus) {
+	case 0:
+		 if (!xdr_vfo_x (xdrs, &objp->vfo_res_u.vfo))
+			 return FALSE;
+		break;
+	default:
+		break;
+	}
+	return TRUE;
+}
+
+bool_t
+xdr_split_arg (XDR *xdrs, split_arg *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_vfo_x (xdrs, &objp->vfo))
+		 return FALSE;
+	 if (!xdr_split_x (xdrs, &objp->split))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_split_res (XDR *xdrs, split_res *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->rigstatus))
+		 return FALSE;
+	switch (objp->rigstatus) {
+	case 0:
+		 if (!xdr_split_x (xdrs, &objp->split_res_u.split))
+			 return FALSE;
+		break;
+	default:
+		break;
+	}
+	return TRUE;
+}
+
+bool_t
+xdr_ptt_arg (XDR *xdrs, ptt_arg *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_vfo_x (xdrs, &objp->vfo))
+		 return FALSE;
+	 if (!xdr_ptt_x (xdrs, &objp->ptt))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_ptt_res (XDR *xdrs, ptt_res *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->rigstatus))
+		 return FALSE;
+	switch (objp->rigstatus) {
+	case 0:
+		 if (!xdr_ptt_x (xdrs, &objp->ptt_res_u.ptt))
+			 return FALSE;
+		break;
+	default:
+		break;
+	}
+	return TRUE;
+}
+
+bool_t
+xdr_dcd_res (XDR *xdrs, dcd_res *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->rigstatus))
+		 return FALSE;
+	switch (objp->rigstatus) {
+	case 0:
+		 if (!xdr_dcd_x (xdrs, &objp->dcd_res_u.dcd))
+			 return FALSE;
+		break;
+	default:
+		break;
+	}
+	return TRUE;
+}
+
+bool_t
+xdr_setting_arg (XDR *xdrs, setting_arg *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_vfo_x (xdrs, &objp->vfo))
+		 return FALSE;
+	 if (!xdr_setting_x (xdrs, &objp->setting))
+		 return FALSE;
+	 if (!xdr_value_s (xdrs, &objp->val))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_val_res (XDR *xdrs, val_res *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->rigstatus))
+		 return FALSE;
+	switch (objp->rigstatus) {
+	case 0:
+		 if (!xdr_value_s (xdrs, &objp->val_res_u.val))
+			 return FALSE;
+		break;
+	default:
+		break;
+	}
+	return TRUE;
+}
+
+bool_t
+xdr_vfo_op_arg (XDR *xdrs, vfo_op_arg *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_vfo_x (xdrs, &objp->vfo))
+		 return FALSE;
+	 if (!xdr_vfo_op_x (xdrs, &objp->op))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_rigstate_s (XDR *xdrs, rigstate_s *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->itu_region))
+		 return FALSE;
+	 if (!xdr_setting_x (xdrs, &objp->has_get_func))
+		 return FALSE;
+	 if (!xdr_setting_x (xdrs, &objp->has_set_func))
+		 return FALSE;
+	 if (!xdr_setting_x (xdrs, &objp->has_get_level))
+		 return FALSE;
+	 if (!xdr_setting_x (xdrs, &objp->has_set_level))
+		 return FALSE;
+	 if (!xdr_setting_x (xdrs, &objp->has_get_parm))
+		 return FALSE;
+	 if (!xdr_setting_x (xdrs, &objp->has_set_parm))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_rigstate_res (XDR *xdrs, rigstate_res *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_int (xdrs, &objp->rigstatus))
+		 return FALSE;
+	switch (objp->rigstatus) {
+	case 0:
+		 if (!xdr_rigstate_s (xdrs, &objp->rigstate_res_u.state))
+			 return FALSE;
+		break;
+	default:
+		break;
+	}
 	return TRUE;
 }

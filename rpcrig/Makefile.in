@@ -104,7 +104,7 @@ LDADD = ../src/libhamlib.la
 DEPENDENCIES = ../src/libhamlib.la 
 
 # The RPC server
-bin_PROGRAMS = rpc.rigd
+sbin_PROGRAMS = rpc.rigd
 rpc_rigd_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rpc_rigd_SOURCES = $(RPCRIG_SVC)
 rpc_rigd_LDFLAGS = @BACKENDLNK@
@@ -131,8 +131,8 @@ libhamlib_rpcrig_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_rpcrig_la_OBJECTS = rpcrig_xdr.lo rpcrig_clnt.lo \
 	rpcrig_backend.lo
 libhamlib_rpcrig_la_OBJECTS = $(am_libhamlib_rpcrig_la_OBJECTS)
-bin_PROGRAMS = rpc.rigd$(EXEEXT)
-PROGRAMS = $(bin_PROGRAMS)
+sbin_PROGRAMS = rpc.rigd$(EXEEXT)
+PROGRAMS = $(sbin_PROGRAMS)
 
 am_rpc_rigd_OBJECTS = rpcrig_xdr.$(OBJEXT) rpcrig_svc.$(OBJEXT) \
 	rpcrig_proc.$(OBJEXT) rpcrigd.$(OBJEXT)
@@ -207,30 +207,30 @@ clean-libLTLIBRARIES:
 	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
 libhamlib-rpcrig.la: $(libhamlib_rpcrig_la_OBJECTS) $(libhamlib_rpcrig_la_DEPENDENCIES) 
 	$(LINK) -rpath $(libdir) $(libhamlib_rpcrig_la_LDFLAGS) $(libhamlib_rpcrig_la_OBJECTS) $(libhamlib_rpcrig_la_LIBADD) $(LIBS)
-install-binPROGRAMS: $(bin_PROGRAMS)
+install-sbinPROGRAMS: $(sbin_PROGRAMS)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(bindir)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	$(mkinstalldirs) $(DESTDIR)$(sbindir)
+	@list='$(sbin_PROGRAMS)'; for p in $$list; do \
 	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
 	  if test -f $$p \
 	     || test -f $$p1 \
 	  ; then \
 	    f=`echo $$p1|sed '$(transform);s/$$/$(EXEEXT)/'`; \
-	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f"; \
-	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(bindir)/$$f; \
+	   echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(sbindir)/$$f"; \
+	   $(INSTALL_PROGRAM_ENV) $(LIBTOOL) --mode=install $(INSTALL_PROGRAM) $$p $(DESTDIR)$(sbindir)/$$f; \
 	  else :; fi; \
 	done
 
-uninstall-binPROGRAMS:
+uninstall-sbinPROGRAMS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+	@list='$(sbin_PROGRAMS)'; for p in $$list; do \
 	  f=`echo $$p|sed 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	  echo " rm -f $(DESTDIR)$(bindir)/$$f"; \
-	  rm -f $(DESTDIR)$(bindir)/$$f; \
+	  echo " rm -f $(DESTDIR)$(sbindir)/$$f"; \
+	  rm -f $(DESTDIR)$(sbindir)/$$f; \
 	done
 
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+clean-sbinPROGRAMS:
+	-test -z "$(sbin_PROGRAMS)" || rm -f $(sbin_PROGRAMS)
 rpc.rigd$(EXEEXT): $(rpc_rigd_OBJECTS) $(rpc_rigd_DEPENDENCIES) 
 	@rm -f rpc.rigd$(EXEEXT)
 	$(LINK) $(rpc_rigd_LDFLAGS) $(rpc_rigd_OBJECTS) $(rpc_rigd_LDADD) $(LIBS)
@@ -367,11 +367,9 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(MANS) $(HEADERS)
-install-binPROGRAMS: install-libLTLIBRARIES
-
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(bindir) $(DESTDIR)$(man8dir)
+	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(sbindir) $(DESTDIR)$(man8dir)
 
 install: install-am
 install-exec: install-exec-am
@@ -398,8 +396,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
+	clean-sbinPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 
@@ -416,7 +414,7 @@ info-am:
 
 install-data-am: install-man
 
-install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
+install-exec-am: install-libLTLIBRARIES install-sbinPROGRAMS
 
 install-info: install-info-am
 
@@ -433,24 +431,24 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-binPROGRAMS uninstall-info-am \
-	uninstall-libLTLIBRARIES uninstall-man
+uninstall-am: uninstall-info-am uninstall-libLTLIBRARIES uninstall-man \
+	uninstall-sbinPROGRAMS
 
 uninstall-man: uninstall-man8
 
-.PHONY: GTAGS all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic clean-libLTLIBRARIES clean-libtool distclean \
+.PHONY: GTAGS all all-am check check-am clean clean-generic \
+	clean-libLTLIBRARIES clean-libtool clean-sbinPROGRAMS distclean \
 	distclean-compile distclean-depend distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am info \
-	info-am install install-am install-binPROGRAMS install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-libLTLIBRARIES install-man install-man8 \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	info-am install install-am install-data install-data-am \
+	install-exec install-exec-am install-info install-info-am \
+	install-libLTLIBRARIES install-man install-man8 \
+	install-sbinPROGRAMS install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool tags uninstall uninstall-am \
 	uninstall-info-am uninstall-libLTLIBRARIES uninstall-man \
-	uninstall-man8
+	uninstall-man8 uninstall-sbinPROGRAMS
 
 
 rpcrig.h: rpcrig.x

@@ -15,6 +15,27 @@
 #ifndef SIG_PF
 #define SIG_PF void(*)(int)
 #endif
+/*
+ *  Hamlib Interface - RPC definitions
+ *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
+ *
+ *		$Id: rpcrig_svc.c,v 1.2 2001-12-26 23:44:09 fillods Exp $
+ *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
 
 void
 rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
@@ -22,6 +43,26 @@ rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	union {
 		freq_arg setfreq_1_arg;
 		vfo_x getfreq_1_arg;
+		mode_arg setmode_1_arg;
+		vfo_x getmode_1_arg;
+		vfo_x setvfo_1_arg;
+		vfo_x getvfo_1_arg;
+		freq_arg setsplitfreq_1_arg;
+		vfo_x getsplitfreq_1_arg;
+		mode_arg setsplitmode_1_arg;
+		vfo_x getsplitmode_1_arg;
+		split_arg setsplit_1_arg;
+		vfo_x getsplit_1_arg;
+		ptt_arg setptt_1_arg;
+		vfo_x getptt_1_arg;
+		vfo_x getdcd_1_arg;
+		setting_arg setfunc_1_arg;
+		setting_arg getfunc_1_arg;
+		setting_arg setlevel_1_arg;
+		setting_arg getlevel_1_arg;
+		setting_arg setparm_1_arg;
+		setting_arg getparm_1_arg;
+		vfo_op_arg vfoop_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -38,6 +79,12 @@ rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		local = (char *(*)(char *, struct svc_req *)) getmodel_1_svc;
 		break;
 
+	case GETRIGSTATE:
+		_xdr_argument = (xdrproc_t) xdr_void;
+		_xdr_result = (xdrproc_t) xdr_rigstate_res;
+		local = (char *(*)(char *, struct svc_req *)) getrigstate_1_svc;
+		break;
+
 	case SETFREQ:
 		_xdr_argument = (xdrproc_t) xdr_freq_arg;
 		_xdr_result = (xdrproc_t) xdr_int;
@@ -48,6 +95,126 @@ rigprog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		_xdr_argument = (xdrproc_t) xdr_vfo_x;
 		_xdr_result = (xdrproc_t) xdr_freq_res;
 		local = (char *(*)(char *, struct svc_req *)) getfreq_1_svc;
+		break;
+
+	case SETMODE:
+		_xdr_argument = (xdrproc_t) xdr_mode_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setmode_1_svc;
+		break;
+
+	case GETMODE:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_mode_res;
+		local = (char *(*)(char *, struct svc_req *)) getmode_1_svc;
+		break;
+
+	case SETVFO:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setvfo_1_svc;
+		break;
+
+	case GETVFO:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_vfo_res;
+		local = (char *(*)(char *, struct svc_req *)) getvfo_1_svc;
+		break;
+
+	case SETSPLITFREQ:
+		_xdr_argument = (xdrproc_t) xdr_freq_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setsplitfreq_1_svc;
+		break;
+
+	case GETSPLITFREQ:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_freq_res;
+		local = (char *(*)(char *, struct svc_req *)) getsplitfreq_1_svc;
+		break;
+
+	case SETSPLITMODE:
+		_xdr_argument = (xdrproc_t) xdr_mode_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setsplitmode_1_svc;
+		break;
+
+	case GETSPLITMODE:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_mode_res;
+		local = (char *(*)(char *, struct svc_req *)) getsplitmode_1_svc;
+		break;
+
+	case SETSPLIT:
+		_xdr_argument = (xdrproc_t) xdr_split_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setsplit_1_svc;
+		break;
+
+	case GETSPLIT:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_split_res;
+		local = (char *(*)(char *, struct svc_req *)) getsplit_1_svc;
+		break;
+
+	case SETPTT:
+		_xdr_argument = (xdrproc_t) xdr_ptt_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setptt_1_svc;
+		break;
+
+	case GETPTT:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_ptt_res;
+		local = (char *(*)(char *, struct svc_req *)) getptt_1_svc;
+		break;
+
+	case GETDCD:
+		_xdr_argument = (xdrproc_t) xdr_vfo_x;
+		_xdr_result = (xdrproc_t) xdr_dcd_res;
+		local = (char *(*)(char *, struct svc_req *)) getdcd_1_svc;
+		break;
+
+	case SETFUNC:
+		_xdr_argument = (xdrproc_t) xdr_setting_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setfunc_1_svc;
+		break;
+
+	case GETFUNC:
+		_xdr_argument = (xdrproc_t) xdr_setting_arg;
+		_xdr_result = (xdrproc_t) xdr_val_res;
+		local = (char *(*)(char *, struct svc_req *)) getfunc_1_svc;
+		break;
+
+	case SETLEVEL:
+		_xdr_argument = (xdrproc_t) xdr_setting_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setlevel_1_svc;
+		break;
+
+	case GETLEVEL:
+		_xdr_argument = (xdrproc_t) xdr_setting_arg;
+		_xdr_result = (xdrproc_t) xdr_val_res;
+		local = (char *(*)(char *, struct svc_req *)) getlevel_1_svc;
+		break;
+
+	case SETPARM:
+		_xdr_argument = (xdrproc_t) xdr_setting_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) setparm_1_svc;
+		break;
+
+	case GETPARM:
+		_xdr_argument = (xdrproc_t) xdr_setting_arg;
+		_xdr_result = (xdrproc_t) xdr_val_res;
+		local = (char *(*)(char *, struct svc_req *)) getparm_1_svc;
+		break;
+
+	case VFOOP:
+		_xdr_argument = (xdrproc_t) xdr_vfo_op_arg;
+		_xdr_result = (xdrproc_t) xdr_int;
+		local = (char *(*)(char *, struct svc_req *)) vfoop_1_svc;
 		break;
 
 	default:

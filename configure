@@ -9870,20 +9870,22 @@ else
   NET=net
 fi
 
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
+
 case "$host_os" in
  linux-gnu*)
  # Winradio only under Linux (until someone port it on other os)
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco winradio uniden tentec kachina jrc"
+ BACKEND_LIST="$BACKEND_LIST winradio"
  ;;
  *)
- BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc"
 esac
 
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
  BACKEND_LIST="$BACKEND_LIST rpcrig"
 fi
 
-BACKENDLNK="-dlopen force"
+# Preopen self for static version
+BACKENDLNK="-dlpreopen self"
 for be in ${BACKEND_LIST} ; do
 	BACKENDLNK="${BACKENDLNK} -dlopen ../${be}/libhamlib-${be}.la"
 	BACKENDEPS="${BACKENDEPS} ../${be}/libhamlib-${be}.la"
@@ -9973,7 +9975,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:9976: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:9978: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -10149,7 +10151,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:10152: error: ambiguous option: $1
+    { { echo "$as_me:10154: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -10168,7 +10170,7 @@ Try \`$0 --help' for more information." >&2;}
     ac_need_defaults=false;;
 
   # This is an error.
-  -*) { { echo "$as_me:10171: error: unrecognized option: $1
+  -*) { { echo "$as_me:10173: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -10237,7 +10239,7 @@ do
   "hamlib.spec" ) CONFIG_FILES="$CONFIG_FILES hamlib.spec" ;;
   "default-1" ) CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
   "include/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
-  *) { { echo "$as_me:10240: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:10242: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -10510,7 +10512,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:10513: creating $ac_file" >&5
+    { echo "$as_me:10515: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -10528,7 +10530,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:10531: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:10533: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -10541,7 +10543,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:10544: error: cannot find input file: $f" >&5
+           { { echo "$as_me:10546: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -10602,7 +10604,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:10605: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:10607: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -10613,7 +10615,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:10616: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:10618: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -10626,7 +10628,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:10629: error: cannot find input file: $f" >&5
+           { { echo "$as_me:10631: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -10743,7 +10745,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:10746: $ac_file is unchanged" >&5
+      { echo "$as_me:10748: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
@@ -10905,7 +10907,7 @@ if test "$no_recursion" != yes; then
     # parts of a large source tree are present.
     test -d $srcdir/$ac_subdir || continue
 
-    { echo "$as_me:10908: configuring in $ac_subdir" >&5
+    { echo "$as_me:10910: configuring in $ac_subdir" >&5
 echo "$as_me: configuring in $ac_subdir" >&6;}
     case $srcdir in
     .) ;;
@@ -10927,7 +10929,7 @@ done; }
 
        if test -d ./$ac_subdir; then :;
        else
-         { { echo "$as_me:10930: error: cannot create \`pwd\`/$ac_subdir" >&5
+         { { echo "$as_me:10932: error: cannot create \`pwd\`/$ac_subdir" >&5
 echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
        fi
@@ -10958,7 +10960,7 @@ echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
     elif test -f $ac_sub_srcdir/configure.in; then
       ac_sub_configure=$ac_configure
     else
-      { echo "$as_me:10961: WARNING: no configuration information is in $ac_subdir" >&5
+      { echo "$as_me:10963: WARNING: no configuration information is in $ac_subdir" >&5
 echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
       ac_sub_configure=
     fi
@@ -10972,12 +10974,12 @@ echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
         ac_sub_cache_file=$ac_dots$cache_file ;;
       esac
 
-      { echo "$as_me:10975: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
+      { echo "$as_me:10977: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
 echo "$as_me: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&6;}
       # The eval makes quoting arguments work.
       eval $ac_sub_configure $ac_sub_configure_args \
            --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir ||
-        { { echo "$as_me:10980: error: $ac_sub_configure failed for $ac_subdir" >&5
+        { { echo "$as_me:10982: error: $ac_sub_configure failed for $ac_subdir" >&5
 echo "$as_me: error: $ac_sub_configure failed for $ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
     fi

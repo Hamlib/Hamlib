@@ -116,7 +116,7 @@ testfreq_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
 # rigmatrix needs also libgd
 rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
-testcpp_LDADD = ../c++/libhamlib++.la $(LDADD)
+testcpp_LDADD = ../c++/libhamlib++.la
 testcpp_LDFLAGS = @BACKENDLNK@
 
 dumpcaps_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
