@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: riglist.h,v 1.15 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: riglist.h,v 1.16 2001-07-14 16:46:43 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -273,10 +273,10 @@
 	 */
 #define RIG_TENTEC 16
 #define RIG_BACKEND_TENTEC "tentec"
-#define RIG_MODEL_TT550 RIG_MAKE_MODEL(RIG_MODEL_TENTEC, 1)	/* Pegasus */
-#define RIG_MODEL_TT538 RIG_MAKE_MODEL(RIG_MODEL_TENTEC, 2)	/* Jupiter */
-#define RIG_MODEL_RX320 RIG_MAKE_MODEL(RIG_MODEL_TENTEC, 3)
-#define RIG_MODEL_RX340 RIG_MAKE_MODEL(RIG_MODEL_TENTEC, 4)
+#define RIG_MODEL_TT550 RIG_MAKE_MODEL(RIG_TENTEC, 1)	/* Pegasus */
+#define RIG_MODEL_TT538 RIG_MAKE_MODEL(RIG_TENTEC, 2)	/* Jupiter */
+#define RIG_MODEL_RX320 RIG_MAKE_MODEL(RIG_TENTEC, 3)
+#define RIG_MODEL_RX340 RIG_MAKE_MODEL(RIG_TENTEC, 4)
 
 #define RIG_ALINCO 17
 #define RIG_BACKEND_ALINCO "alinco"
