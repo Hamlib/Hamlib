@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.7 2002-01-27 23:55:45 fillods Exp $  
+ *    $Id: dumpmem.c,v 1.8 2002-07-10 21:34:53 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -121,6 +121,7 @@ int dump_chan(RIG *rig, int chan_num)
 	int status;
 	char freqbuf[20];
 
+	chan.vfo = RIG_VFO_MEM;
 	chan.channel_num = chan_num;
 	status=rig_get_channel(rig, &chan);
 

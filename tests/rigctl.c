@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.31 2002-07-09 20:40:28 fillods Exp $  
+ * $Id: rigctl.c,v 1.32 2002-07-10 21:34:53 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -1252,8 +1252,17 @@ declare_proto_rig(get_channel)
 {
 		int status;
 		channel_t chan;
+		vfo_t vfo;
 
-		sscanf(arg1, "%d", &chan.channel_num);
+		vfo = parse_vfo(arg1);
+		if (vfo != RIG_VFO_CURR) {
+			vfo = RIG_VFO_MEM;
+			if (sscanf(arg1, "%d", &chan.channel_num) != 1)
+				return -RIG_EINVAL;
+		} else
+			chan.channel_num = 0;
+
+		chan.vfo = vfo;
 		status = rig_get_channel(rig, &chan);
 		if (status != RIG_OK)
 				return status;
