@@ -1,0 +1,150 @@
+%define ver		@VERSION@
+%define prefix	/usr
+
+Summary: Run-time library to control radio transcievers and receivers.
+Name: hamlib
+Version: %ver
+Release: 1
+Copyright: LGPL
+Group: Ham/Libraries
+Packager: Stephane Fillod <f4cfe@users.sourceforge.net>
+Source: ftp://ftp.sourceforge.net/pub/sourceforge/hamlib/hamlib-%{ver}.tar.gz
+BuildRoot: /tmp/hamlib-%{ver}-buildroot
+URL: http://hamlib.sourceforge.net
+#BuildRequires: binutils >= 2.9.4, gcc >= 2.95, glibc-devel >= 2.1
+#BuildRequires: /bin/sh, fileutils, findutils, flex
+#BuildRequires: gzip, make >= 3.77, patch >= 2.5, rpm >= 3.0, sed
+#BuildRequires: textutils
+##BuildRequires: /bin/sh, automake >= 1.4, libtool >= 1.4, fileutils, findutils, flex
+
+%changelog
+
+* Mon Jul 18 2001 Stephane Fillod
+- Made initial "working" SPEC file
+
+
+%description
+ Most recent amateur radio transceivers allow external control of their
+ functions through a computer interface. Unfortunately, control commands are
+ not always consistent across a manufacturer's product line and each
+ manufacturer's product line differs greatly from its competitors.
+ .
+ This library addresses that issue by providing a standardised programming
+ interface that applications can talk to and translating that into the
+ appropriate commands required by the radio in use.
+ .
+ This package provides the run-time form of the library. If you wish to
+ develop software using this library you need the 'hamlib-devel' package.
+ .
+ Also included in the package is a simple radio control program 'rigctl',
+ which let one control a radio transceiver or receiver, either from
+ command line interface or in a text-oriented interactive interface.
+
+%package devel
+Summary: Development library to control radio transcievers and receivers.
+Group: Development/Libraries
+Requires: hamlib
+
+%description devel
+ Most recent amateur radio transceivers allow external control of their
+ functions through a computer interface. Unfortunately, control commands are
+ not always consistent across a manufacturer's product line and each
+ manufacturer's product line differs greatly from its competitors.
+ .
+ This library addresses that issue by providing a standardised programming
+ interface that applications can talk to and translating that into the
+ appropriate commands required by the radio in use.
+ .
+ This package provides the development library. If you wish to run applications
+ developed using this library you'll need the 'hamlib' package.
+
+%package c++
+Summary: Hamlib radio control library C++ bindings
+Group: Development/Libraries
+Requires: hamlib
+
+%description c++
+C++ Bindings.
+
+%package c++-devel
+Summary: Hamlib radio control library C++ bindings headers and static libs
+Group: Development/Libraries
+Requires: hamlib
+
+%description c++-devel
+This package contains all of the headers and the static libraries 
+for C++ bindings of Hamlib.
+
+You'll only need this package if you
+are doing development.
+
+%prep
+#%setup -q
+%setup
+%build
+
+CFLAGS=$RPM_OPT_FLAGS CXXFLAGS=$RPM_OPT_FLAGS ./configure --prefix=%prefix
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+(umask 077 && mkdir -p $RPM_BUILD_ROOT)
+chmod go= $RPM_BUILD_ROOT
+
+make prefix="$RPM_BUILD_ROOT%{prefix}" "INSTALL_PROGRAM_ARGS=-s" install
+
+chmod 644 $RPM_BUILD_ROOT%{prefix}/lib/*.la
+#strip $RPM_BUILD_ROOT%{prefix}/lib/*-%{version}.so
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
+
+
+%files
+%defattr(644, root, root, 755)
+%doc COPYING
+
+#%doc doc/*.html
+#%doc doc/*.sgml
+#%doc doc/*.txt
+
+%defattr(755, root, root, 755)
+#%{prefix}/lib/libhamlib-%{version}.so
+%{prefix}/lib/libhamlib-*.so
+
+%{prefix}/bin/rigctl
+%{prefix}/man/man1/rigctl.1
+
+%files devel
+%defattr(644, root, root, 755)
+
+%{prefix}/include/hamlib/rig.h
+%{prefix}/include/hamlib/rig_dll.h
+%{prefix}/include/hamlib/riglist.h
+
+#%{prefix}/share/aclocal/hamlib.m4
+%{prefix}/lib/libhamlib.a
+%{prefix}/lib/libhamlib.la
+%{prefix}/lib/libhamlib-*.a
+%{prefix}/lib/libhamlib-*.la
+
+%files c++
+%defattr(755, root, root, 755)
+%{prefix}/lib/libhamlib++-%{version}.so
+
+
+%files c++-devel
+%defattr(644, root, root, 755)
+
+%{prefix}/include/hamlib/rigclass.h
+
+#%{prefix}/share/aclocal/hamlib++.m4
+%{prefix}/lib/libhamlib++.a
+%{prefix}/lib/libhamlib++.la
+
+

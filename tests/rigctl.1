@@ -1,0 +1,209 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH RIGCTL "1" "July 20, 2001" "Hamlib"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+rigctl \- control radio transcievers and receivers
+.SH SYNOPSIS
+.B rigctl
+[\fIOPTION\fR]... [\fICOMMAND\fR]...
+.SH DESCRIPTION
+Control radio transcievers and receivers.
+\fBrigctl\fP accepts \fBcommands\fP from command line as well as in
+interactive mode if none provided in command line.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" respectively.
+Keep in mind that \fBHamlib\fP is still ALPHA level software. 
+A lof of stuff hasn't been tested thoroughly, and the API may change
+without publicised notice. Please report bugs and feedback at
+the e-mail address given in the REPORTING BUGS section.
+.SH OPTIONS
+This program follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+.TP
+.B \-m, \-\-model=id
+Select radio model number. See model list.
+.TP
+.B \-r, --rig-file=device
+Use \fBdevice\fP as the file name of the radio to operate on.
+.TP
+.B \-p, --ptt-file=device
+Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on.
+.TP
+.B \-d, --dcd-file=device
+Use \fBdevice\fP as the file name of the Data Carrier Detect device 
+to operate on.
+.TP
+.B \-p, --ptt-type=type
+Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
+.TP
+.B \-d, --dcd-type=type
+Use \fBtype\fP device as the kind of the Data Carrier Detect device 
+to operate on.
+.TP
+.B \-l, \-\-list
+List all model numbers and exit.
+.TP
+.B \-v, \-\-verbose
+Set verbose mode, cumulative.
+.TP
+.B \-h, \-\-help
+Show summary of options and exit.
+.TP
+.B \-V, \-\-version
+Show version of program and exit.
+
+.SH COMMANDS
+Commands can be entered either as a single char, or as a long command name.
+Basically, the commands do not take a dash in front of them, as
+the options usually do. They may be typed in when in interactive mode
+or provided as argument in command line interface mode.
+Since most of the Hamlib operations have a \fIset\fP and a \fIget\fP method,
+upper case letter will be used for \fIset\fP method whereas the corresponding
+lower case letter refers to the \fIget\fP method.
+.PP
+Please note that the backend for the radio to be controlled, 
+or the radio itself may not support some commands. In that case, 
+the operation will fail with a standard error message.
+.PP
+A summary of commands is included below.
+.TP
+.B F, set_freq
+Set frequency.
+.TP
+.B f, get_freq
+Get frequency.
+.TP
+.B M, set_mode
+Set mode/passband.
+.TP
+.B m, get_mode
+Get mode/passband.
+.TP
+.B V, set_vfo
+Set VFO.
+.TP
+.B v, get_vfo
+Get VFO.
+.TP
+.B V, set_ptt
+Set PTT.
+.TP
+.B v, get_ptt
+Get PTT.
+.TP
+.B R, set_rptr_shift
+Set repeater shift.
+.TP
+.B r, get_rptr_shift
+Get repeater shift.
+.TP
+.B R, set_rptr_offs
+Set repeater offset.
+.TP
+.B r, get_rptr_offs
+Get repeater offset.
+.TP
+.B R, set_ctcss_tone
+Set CTCSS tone.
+.TP
+.B r, get_ctcss_tone
+Get CTCSS tone.
+.TP
+.B R, set_dcs_code
+Set DCS code.
+.TP
+.B r, get_dcs_code
+Get DCS code.
+.TP
+.B I, set_split_freq
+Set TX frequency.
+.TP
+.B i, get_split_freq
+Get TX frequency.
+.TP
+.B S, set_split
+Set split mode.
+.TP
+.B s, get_split
+Get split mode.
+.TP
+.B N, set_ts
+Set tuning step.
+.TP
+.B n, get_ts
+Get tuning step.
+.TP
+.B L, set_level
+Set level/value.
+.TP
+.B l, get_level
+Get level value.
+.TP
+.B U, set_func
+Set func/status.
+.TP
+.B u, get_func
+Get func status.
+.TP
+.B B, set_bank
+Set bank.
+.TP
+.B E, set_mem
+Set memory channel number.
+.TP
+.B e, get_mem
+Get memory channel number.
+.TP
+.B G, vfo_op
+Perform VFO operation.
+.TP
+.B g, scan_op
+Perform scan operation/channel.
+.TP
+.B E, set_channel
+Set memory channel data. does not work yet.
+.TP
+.B e, get_channel
+Get memory channel data.
+
+.SH RETURN VALUE
+rigctl exits with:
+0 if all operations went fine; 1 if there was an invalid command line
+option or arg; or 2 if an error was returned by Hamlib.
+
+.SH AUTHOR
+Written by Stephane Fillod.
+.SH BUGS
+Cannot target VFO. Use set_vfo as a workaround.
+.PP
+This empty section...
+.SH REPORTING BUGS
+Report bugs to <hamlib-developer@users.sourceforge.net>.
+.br
+I'm already aware of the bug in the previous section :-)
+.SH COPYRIGHT
+Copyright \(co 2000 Stephane Fillod & Frank Singleton.
+.br
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.
+.SH SEE ALSO
+.BR hamlib (3)
+
