@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001,2002 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.27 2002-08-26 21:26:06 fillods Exp $
+ *	$Id: dummy.c,v 1.28 2002-10-03 20:13:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -863,7 +863,24 @@ static int dummy_set_channel(RIG *rig, const channel_t *chan)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
-  memcpy(&priv->mem[chan->channel_num], chan, sizeof(channel_t));
+
+  /* TODO: check chan->channel_num is in a valid range */
+  switch (chan->vfo) {
+	  case RIG_VFO_MEM:
+	  	memcpy(&priv->mem[chan->channel_num], chan, sizeof(channel_t));
+		break;
+	  case RIG_VFO_A:
+	  	memcpy(&priv->vfo_a, chan, sizeof(channel_t));
+		break;
+	  case RIG_VFO_B:
+	  	memcpy(&priv->vfo_b, chan, sizeof(channel_t));
+		break;
+	  case RIG_VFO_CURR:
+	  	memcpy(priv->curr, chan, sizeof(channel_t));
+		break;
+	  default:
+		return -RIG_EINVAL;
+  }
 
   return RIG_OK;
 }
@@ -873,8 +890,25 @@ static int dummy_get_channel(RIG *rig, channel_t *chan)
 {
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
 
-  memcpy(chan, &priv->mem[chan->channel_num], sizeof(channel_t));
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+
+  /* TODO: check chan->channel_num is in a valid range */
+  switch (chan->vfo) {
+	  case RIG_VFO_MEM:
+	  	memcpy(chan, &priv->mem[chan->channel_num], sizeof(channel_t));
+		break;
+	  case RIG_VFO_A:
+	  	memcpy(chan, &priv->vfo_a, sizeof(channel_t));
+		break;
+	  case RIG_VFO_B:
+	  	memcpy(chan, &priv->vfo_b, sizeof(channel_t));
+		break;
+	  case RIG_VFO_CURR:
+	  	memcpy(chan, priv->curr, sizeof(channel_t));
+		break;
+	  default:
+		return -RIG_EINVAL;
+  }
 
   return RIG_OK;
 }
