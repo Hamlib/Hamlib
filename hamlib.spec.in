@@ -146,7 +146,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %defattr(755, root, root, 755)
 %{_libdir}/libhamlib-%{ver}.so.2
-%{_libdir}/libhamlib-%{ver}.so.2.0.2
+%{_libdir}/libhamlib-%{ver}.so.2.0.3
 %{_libdir}/libhamlib.la
 %{_libdir}/hamlib-alinco.so
 %{_libdir}/hamlib-alinco.la
