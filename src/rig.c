@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.78 2003-11-16 17:14:44 fillods Exp $
+ *	$Id: rig.c,v 1.79 2003-11-19 07:32:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -120,6 +120,9 @@ static const char *rigerror_table[] = {
 		"Target VFO unaccessible",
 		"Communication bus error",
 		"Communication bus collision",
+		"NULL RIG handle or invalid pointer parameter",
+		"Invalid VFO",
+		"Argument out of domain of func",
 		NULL,
 };
 

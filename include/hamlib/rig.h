@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.88 2003-11-16 17:36:15 fillods Exp $
+ *	$Id: rig.h,v 1.89 2003-11-19 07:32:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -91,7 +91,10 @@ enum rig_errcode_e {
 	RIG_ENAVAIL,		/*<! function not available */
 	RIG_ENTARGET,		/*<! VFO not targetable */
 	RIG_BUSERROR,		/*<! Error talking on the bus */
-	RIG_BUSBUSY		/*<! Collision on the bus */
+	RIG_BUSBUSY,		/*<! Collision on the bus */
+	RIG_EARG,		/*<! NULL RIG handle or any invalid pointer parameter in get arg */
+	RIG_EVFO,		/*<! Invalid VFO */
+	RIG_EDOM		/*<! Argument out of domain of func */
 };
 
 /**
