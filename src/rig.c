@@ -2,6 +2,8 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
+   $Id: rig.c,v 1.2 2000-10-08 21:45:20 f4cfe Exp $
+
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2 of the License, or
@@ -26,23 +28,28 @@
 #include <fcntl.h>
 
 
-#include <rig.h>
-#include <riglist.h>
+#include <hamlib/rig.h>
+#include <hamlib/riglist.h>
 #include "serial.h"
+#include "event.h"
 
 
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 
 /*
- * It would be nice to have an automatic way of referencing all the backends
- * supported by hamlib. Maybe this array should be placed in a separate file..
- * 
- * The rig_base is a variable length rig_caps* array, NULL terminated
+ * Data structure to track the opened rig (by rig_open)
  */
+struct opened_rig_l {
+		RIG *rig;
+		struct opened_rig_l *next;
+};
+static struct opened_rig_l *opened_rig_list = { NULL };
 
-static const struct rig_caps *rig_base[] = { 
-	&ft747_caps, &ic706_caps, &ic706mkiig_caps, /* ... */ NULL, };
 
+/*
+ * Careful, the order must be the same as their RIG_E* counterpart!
+ * TODO: localise the messages..
+ */
 static const char *rigerror_table[] = {
 		"Command completed sucessfully",
 		"Invalid parameter",
@@ -54,7 +61,9 @@ static const char *rigerror_table[] = {
 		"Internal Hamlib error",
 		"Protocol error",
 		"Command rejected by the rig",
-		"Command performed, but arg truncated, result not guaranteed"
+		"Command performed, but arg truncated, result not guaranteed",
+		"Feature not available",
+		NULL,
 };
 
 /*
@@ -65,23 +74,63 @@ const char *rigerror(int errnum)
 			return rigerror_table[abs(errnum)];
 }
 
+static int add_opened_rig(RIG *rig)
+{
+	struct opened_rig_l *p;
+	p = (struct opened_rig_l *)malloc(sizeof(struct opened_rig_l));
+	if (!p)
+			return -RIG_ENOMEM;
+	p->rig = rig;
+	p->next = opened_rig_list;
+	opened_rig_list = p;
+	return RIG_OK;
+}
+
+static int remove_opened_rig(RIG *rig)
+{	
+	struct opened_rig_l *p,*q;
+	q = NULL;
+
+	for (p=opened_rig_list; p; p=p->next) {
+			if (p->rig == rig) {
+					if (q == NULL) {
+							opened_rig_list = opened_rig_list->next;
+					} else {
+							q->next = p->next;
+					}
+					free(p);
+					return RIG_OK;
+			}
+			q = p;
+	}
+	return -RIG_EINVAL;	/* Not found in list ! */
+}
+
+/*
+ * Execs (*cfunc)(data) on each opened rig
+ * Stops when cfunc returns 0
+ */
+int foreach_opened_rig(int (*cfunc)(RIG *, void *),void *data)
+{	
+	struct opened_rig_l *p;
+
+	for (p=opened_rig_list; p; p=p->next) {
+			if ((*cfunc)(p->rig,data) == 0)
+					return RIG_OK;
+	}
+	return RIG_OK;
+}
 
 RIG *rig_init(rig_model_t rig_model)
 {
 		RIG *rig;
-		int i;
+		const struct rig_caps *caps;
 
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_init called \n");
 
-		/* lookup for this rig */
-		for (i=0; rig_base[i]; i++) {
-				if (rig_base[i]->rig_model == rig_model)
-						break;
-		}
-		if (rig_base[i] == NULL) {
-				/* End of list, rig not supported, sorry! */
+		caps = rig_get_caps(rig_model);
+		if (!caps)
 				return NULL;
-		}
 
 		/*
 		 * okay, we've found it. Allocate some memory and set it to zeros,
@@ -96,8 +145,7 @@ RIG *rig_init(rig_model_t rig_model)
 				return NULL;
 		}
 
-		/* remember, rig->caps is readonly */
-		rig->caps = rig_base[i];
+		rig->caps = caps;
 
 		/*
 		 * populate the rig->state
@@ -114,6 +162,7 @@ RIG *rig_init(rig_model_t rig_model)
 		rig->state.serial_handshake = rig->caps->serial_handshake;
 		rig->state.timeout = rig->caps->timeout;
 		rig->state.retry = rig->caps->retry;
+		rig->state.transceive = rig->caps->transceive;
 		rig->state.ptt_type = rig->caps->ptt_type;
 		rig->state.vfo_comp = 0.0;	/* override it with preferences */
 
@@ -148,6 +197,10 @@ int rig_open(RIG *rig)
 				return -RIG_ENIMPL;
 		}
 
+		rig->state.stream = fdopen(rig->state.fd, "r+b");
+
+		add_opened_rig(rig);
+
 		/* 
 		 * Maybe the backend has something to initialize
 		 * FIXME: check rig_open() return code
@@ -176,7 +229,7 @@ int rig_set_freq(RIG *rig, freq_t freq)
 				freq += (freq_t)(rig->state.vfo_comp * freq);
 
 		if (rig->caps->set_freq == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_freq(rig, freq);
 }
@@ -194,7 +247,7 @@ int rig_get_freq(RIG *rig, freq_t *freq)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_freq == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else {
 			status = rig->caps->get_freq(rig, freq);
 			if (rig->state.vfo_comp != 0.0)
@@ -215,7 +268,7 @@ int rig_set_mode(RIG *rig, rmode_t mode)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_mode == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_mode(rig, mode);
 }
@@ -231,7 +284,7 @@ int rig_get_mode(RIG *rig, rmode_t *mode)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_mode == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_mode(rig, mode);
 }
@@ -248,7 +301,7 @@ int rig_set_vfo(RIG *rig, vfo_t vfo)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_vfo == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_vfo(rig, vfo);
 }
@@ -264,7 +317,7 @@ int rig_get_vfo(RIG *rig, vfo_t *vfo)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_vfo == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_vfo(rig, vfo);
 }
@@ -333,7 +386,7 @@ int rig_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_rpt_shift == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_rpt_shift(rig, rptr_shift);
 }
@@ -349,7 +402,7 @@ int rig_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_ts == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_rpt_shift(rig, rptr_shift);
 }
@@ -367,7 +420,7 @@ int rig_set_ts(RIG *rig, unsigned long ts)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_ts == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_ts(rig, ts);
 }
@@ -383,7 +436,7 @@ int rig_get_ts(RIG *rig, unsigned long *ts)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_ts == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_ts(rig, ts);
 }
@@ -401,7 +454,7 @@ int rig_set_power(RIG *rig, float power)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_power == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_power(rig, power);
 }
@@ -417,7 +470,7 @@ int rig_get_power(RIG *rig, float *power)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_power == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_power(rig, power);
 }
@@ -489,7 +542,7 @@ int rig_set_volume(RIG *rig, float vol)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_volume == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_volume(rig, vol);
 }
@@ -505,7 +558,7 @@ int rig_get_volume(RIG *rig, float *vol)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_volume == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_volume(rig, vol);
 }
@@ -521,7 +574,7 @@ int rig_set_squelch(RIG *rig, float sql)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_squelch == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_squelch(rig, sql);
 }
@@ -537,7 +590,7 @@ int rig_get_squelch(RIG *rig, float *sql)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_squelch == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_squelch(rig, sql);
 }
@@ -557,7 +610,7 @@ int rig_set_tonesq(RIG *rig, unsigned int tone)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_tonesq == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_tonesq(rig, tone);
 }
@@ -574,7 +627,7 @@ int rig_get_tonesq(RIG *rig, unsigned int *tone)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_tonesq == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_tonesq(rig, tone);
 }
@@ -594,7 +647,7 @@ int rig_set_tone(RIG *rig, unsigned int tone)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_tone == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_tone(rig, tone);
 }
@@ -611,7 +664,7 @@ int rig_get_tone(RIG *rig, unsigned int *tone)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_tone == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_tone(rig, tone);
 }
@@ -629,7 +682,7 @@ int rig_get_strength(RIG *rig, int *strength)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_strength == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_strength(rig, strength);
 }
@@ -644,7 +697,7 @@ int rig_set_poweron(RIG *rig)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_poweron == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_poweron(rig);
 }
@@ -659,7 +712,7 @@ int rig_set_poweroff(RIG *rig)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_poweroff == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_poweroff(rig);
 }
@@ -683,6 +736,13 @@ int rig_close(RIG *rig)
 		if (rig == NULL || rig->caps)
 				return -RIG_EINVAL;
 
+		if (rig->state.transceive) {
+				/*
+				 * TODO: check error codes et al.
+				 */
+				remove_trn_rig(rig);
+		}
+
 		/*
 		 * Let the backend say 73s to the rig
 		 */
@@ -690,9 +750,15 @@ int rig_close(RIG *rig)
 				rig->caps->rig_close(rig);
 
 		if (rig->state.fd != -1) {
-				close(rig->state.fd);
+				if (!rig->state.stream)
+						fclose(rig->state.stream); /* this closes also fd */
+				else
+					close(rig->state.fd);
 				rig->state.fd = -1;
+				rig->state.stream = NULL;
 		}
+
+		remove_opened_rig(rig);
 
 		return RIG_OK;
 }
@@ -720,6 +786,7 @@ int rig_cleanup(RIG *rig)
 
 
 
+#if 0
 
 /* CAUTION: this is really Experimental, It never worked!!
  * try to guess a rig, can be very buggy! (but fun if it works!)
@@ -745,6 +812,7 @@ RIG *rig_probe(const char *port_path)
 		}
 		return NULL;
 }
+#endif
 
 
 /*
@@ -769,7 +837,7 @@ int rig_set_func(RIG *rig, unsigned long func)
 			return -RIG_EINVAL;
 
 		if (rig->caps->set_func == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->set_func(rig, func);
 }
@@ -786,38 +854,11 @@ int rig_get_func(RIG *rig, unsigned long *func)
 			return -RIG_EINVAL;
 
 		if (rig->caps->get_func == NULL)
-			return -RIG_ENIMPL;	/* not implemented */
+			return -RIG_ENAVAIL;	/* not implemented */
 		else
 			return rig->caps->get_func(rig, func);
 }
 
-
-
-
-/*
- * Get rig capabilities.
- * 
- */
-
-const struct rig_caps *rig_get_caps(rig_model_t rig_model) {
-
-	int i;
-	const struct rig_caps *rc;
-
-	/* lookup for this rig */
-	for (i=0; rig_base[i]; i++) {
-			if (rig_base[i]->rig_model == rig_model)
-					break;
-	}
-	if (rig_base[i] == NULL) {
-			/* rig not supported, sorry! */
-			return NULL;
-	}
-
-	rc = rig_base[i];
-
-	return  rc;
-}
 
 
 /*
@@ -841,4 +882,35 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, unsigned long mode)
 	}
 	return NULL;
 }
+
+
+/*
+ * rig_set_trn
+ * Enable/disable the transceive handling of a rig
+ *  and kick off async mode
+ */
+
+int rig_set_trn(RIG *rig, int trn)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->transceive == RIG_TRN_OFF)
+			return -RIG_ENAVAIL;
+
+		if (trn == RIG_TRN_ON) {
+			if (rig->state.transceive) {
+				/*
+				 * TODO: check error codes et al.
+				 */
+				return add_trn_rig(rig);
+			} else {
+				return -RIG_ECONF;
+			}
+		} else
+				return remove_trn_rig(rig);
+
+		return RIG_OK;
+}
+
 
