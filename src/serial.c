@@ -1,10 +1,10 @@
 /*
  *  Hamlib Interface - serial communication low-level support
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *		$Id: serial.c,v 1.24 2002-01-22 21:17:54 fillods Exp $
+ *		$Id: serial.c,v 1.25 2002-03-07 22:49:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -86,17 +86,7 @@
 int serial_open(port_t *rp) {
 
   int fd;				/* File descriptor for the port */
-  speed_t speed;			/* serial comm speed */
-
-#ifdef HAVE_TERMIOS_H
-  struct termios options;
-#elif defined(HAVE_TERMIO_H)
-  struct termio options;
-#elif defined(HAVE_SGTTY_H)
-  struct sgttyb sg;
-#else
-#error "No term control supported!"
-#endif
+  int err;
 
   if (!rp)
 		  return -RIG_EINVAL;
@@ -115,6 +105,45 @@ int serial_open(port_t *rp) {
     return -RIG_EIO;
   }
  
+  rp->fd = fd;
+
+  err = serial_setup(rp);
+  if (err != RIG_OK) {
+		  close(fd);
+		  return err;
+  }
+
+  rp->stream = fdopen(fd, "r+b");
+  if (rp->stream == NULL) {
+		rig_debug(RIG_DEBUG_ERR, "open_serial: fdopen failed: %s\n", 
+					strerror(errno));
+		close(fd);
+		return -RIG_EIO;		/* arg, so close! */
+  }
+
+  return RIG_OK;
+}
+
+
+int serial_setup(port_t *rp)
+{
+  speed_t speed;			/* serial comm speed */
+  int fd;
+#ifdef HAVE_TERMIOS_H
+  struct termios options;
+#elif defined(HAVE_TERMIO_H)
+  struct termio options;
+#elif defined(HAVE_SGTTY_H)
+  struct sgttyb sg;
+#else
+#error "No term control supported!"
+#endif
+
+  if (!rp)
+		  return -RIG_EINVAL;
+
+  fd = rp->fd;
+
   /*
    * Get the current options for the port...
    */
@@ -327,16 +356,6 @@ int serial_open(port_t *rp) {
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #endif
-
-  rp->stream = fdopen(fd, "r+b");
-  if (rp->stream == NULL) {
-		rig_debug(RIG_DEBUG_ERR, "open_serial: fdopen failed: %s\n", 
-					strerror(errno));
-		close(fd);
-		return -RIG_EIO;		/* arg, so close! */
-  }
-
-  rp->fd = fd;
 
   return RIG_OK;
 }
