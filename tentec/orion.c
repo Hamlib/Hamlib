@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.9 2005-04-03 20:21:25 fillods Exp $
+ *	$Id: orion.c,v 1.10 2005-04-04 18:08:18 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -21,14 +21,15 @@
  */
 
 /* Edits by Martin Ewing AA6E, 23 Mar 2005 --> ?? 
-   Added valid length settings before tentec_transaction calls.
-   Added vfo_curr initialization to VFO A
-   Fixed up VSWR & S-meter, set ATT, set AGC, add rough STR_CAL func.
-   Use local tt565_transaction due to quirky serial interface
-   Variable-length transaction read ok.
-   Calibrated S-meter response with signal generator.
-   Read re-tries implemented.
-*/
+ * Added valid length settings before tentec_transaction calls.
+ * Added vfo_curr initialization to VFO A
+ * Fixed up VSWR & S-meter, set ATT, set AGC, add rough STR_CAL func.
+ * Use local tt565_transaction due to quirky serial interface
+ * Variable-length transaction read ok.
+ * Calibrated S-meter response with signal generator.
+ * Read re-tries implemented.
+ * Added RIG_LEVEL_CWPITCH, RIG_LEVEL_KEYSPD, send_morse()
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -49,7 +50,9 @@
 
 /*
  * Mem caps, to be checked..
+ * Orion stores: for either A or B VFO - F, Mode (USB/CW/...), Bandwidth
  */
+ 
 #define TT565_MEM_CAP {        \
 	.freq = 1,      \
 	.mode = 1,      \
@@ -85,6 +88,7 @@ static int tt565_get_xit(RIG * rig, vfo_t vfo, shortfreq_t *xit);
 static int tt565_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val);
 static int tt565_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t *val);
 static const char* tt565_get_info(RIG *rig);
+static int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg);
 
 struct tt565_priv_data {
 	int ch;		/* mem */
@@ -99,6 +103,7 @@ struct tt565_priv_data {
 #define TT565_FUNCS (RIG_FUNC_LOCK|RIG_FUNC_TUNER)
 
 #define TT565_LEVELS (RIG_LEVEL_RAWSTR|/*RIG_LEVEL_NB|*/ \
+				RIG_LEVEL_CWPITCH| \
 				RIG_LEVEL_SQL|RIG_LEVEL_IF| \
 				RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD| \
 				RIG_LEVEL_RF|RIG_LEVEL_NR| \
@@ -142,63 +147,6 @@ struct tt565_priv_data {
 
 #undef TT565_TIME		/* Define to enable time checks */
 
-#ifdef TT565_TIME
-double tt565_timenow()	/* returns current time in secs+microsecs */
-{
-	struct timeval tv;
-	gettimeofday(&tv, NULL);
-	return (double)tv.tv_sec + ((double)tv.tv_usec)/1.0e+6;
-}
-#endif
-
-/*
- * tt565_transaction, adapted from tentec_transaction (tentec.c)
- * read exactly data_len bytes
- * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
- * Otherwise, you'll get a nice seg fault. You've been warned!
- */
-int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
-{
-        int retval, data_len_init, itry;
-        struct rig_state *rs;
-#ifdef TT565_TIME
- 	double ft1, ft2;	
-#endif
-	/* Capture buffer length for possible read re-try. */
-	data_len_init = (data && data_len) ? *data_len : 0;
-	/* Allow transaction re-tries according to capabilities. */
-	for (itry=1; itry < rig->caps->retry; itry++) {	
-          rs = &rig->state;
-
-          serial_flush(&rs->rigport);
-
-          retval = write_block(&rs->rigport, cmd, cmd_len);
-          if (retval != RIG_OK)
-                        return retval;
-
-          /* no data expected, TODO: flush input? */
-          if (!data || !data_len)
-                        return 0;	/* normal exit if no read */
-#ifdef TT565_TIME
-	  ft1 = tt565_timenow();
-#endif
-	  *data_len = data_len_init;	/* restore orig. buffer length */
-          *data_len = read_string(&rs->rigport, data, *data_len, 
-		TT565_EOM, strlen(TT565_EOM));
-	  if (*data_len > 0) return RIG_OK; /* normal exit if reading */
-#ifdef TT565_TIME
-	  ft2 = tt565_timenow();
-          if (*data_len == -RIG_ETIMEOUT)
-	    rig_debug(RIG_DEBUG_ERR,"Timeout %d: Elapsed = %f secs.\n", itry, ft2-ft1);
-	  else
-	    rig_debug(RIG_DEBUG_ERR,"Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
-		*data_len, itry, ft2-ft1);
-#endif
-	}
-        return RIG_ETIMEOUT;
-}
-
-
 /*
  * tt565 transceiver capabilities.
  *
@@ -223,7 +171,7 @@ const struct rig_caps tt565_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
-.post_write_delay =  0,
+.post_write_delay =  10,	/* Needed for CW send + ?? */
 .timeout =  400,
 .retry =  3,
 
@@ -324,6 +272,7 @@ const struct rig_caps tt565_caps = {
 .get_xit =  tt565_get_xit,
 .reset =  tt565_reset,
 .get_info =  tt565_get_info,
+.send_morse = tt565_send_morse,
 
 .str_cal = TT565_STR_CAL,
 };
@@ -342,6 +291,62 @@ const struct rig_caps tt565_caps = {
 #define TT565_FM  '5'
 #define TT565_RTTY '6'
 
+#ifdef TT565_TIME
+double tt565_timenow()	/* returns current time in secs+microsecs */
+{
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (double)tv.tv_sec + ((double)tv.tv_usec)/1.0e+6;
+}
+#endif
+
+/*
+ * tt565_transaction, adapted from tentec_transaction (tentec.c)
+ * read variable number of bytes, up to buffer size, if data & data_len != NULL.
+ * We assume that rig!=NULL, rig->state!= NULL
+ * Otherwise, you'll get a nice seg fault. You've been warned!
+ */
+int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+{
+        int retval, data_len_init, itry;
+        struct rig_state *rs;
+#ifdef TT565_TIME
+ 	double ft1, ft2;	
+#endif
+	/* Capture buffer length for possible read re-try. */
+	data_len_init = (data && data_len) ? *data_len : 0;
+	/* Allow transaction re-tries according to capabilities. */
+	for (itry=1; itry < rig->caps->retry; itry++) {	
+          rs = &rig->state;
+
+          serial_flush(&rs->rigport);
+
+          retval = write_block(&rs->rigport, cmd, cmd_len);
+          if (retval != RIG_OK)
+                        return retval;
+
+          /* no data expected, TODO: flush input? */
+          if (!data || !data_len)
+                        return 0;	/* normal exit if no read */
+#ifdef TT565_TIME
+	  ft1 = tt565_timenow();
+#endif
+	  *data_len = data_len_init;	/* restore orig. buffer length */
+          *data_len = read_string(&rs->rigport, data, *data_len, 
+		TT565_EOM, strlen(TT565_EOM));
+	  if (*data_len > 0) return RIG_OK; /* normal exit if reading */
+#ifdef TT565_TIME
+	  ft2 = tt565_timenow();
+          if (*data_len == -RIG_ETIMEOUT)
+	    rig_debug(RIG_DEBUG_ERR,"Timeout %d: Elapsed = %f secs.\n", itry, ft2-ft1);
+	  else
+	    rig_debug(RIG_DEBUG_ERR,"Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
+		*data_len, itry, ft2-ft1);
+#endif
+	}
+        return RIG_ETIMEOUT;
+}
+
 /*************************************************************************************
  *
  * Specs from http://www.rfsquared.com, Rev 1, firmware 1.340
@@ -351,7 +356,6 @@ const struct rig_caps tt565_caps = {
  *
  * 	XCHG
  */
-
 
 /*
  * tt565_init:
@@ -493,6 +497,7 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
 		return RIG_OK;
 
 	if (vfo == RIG_VFO_MAIN || vfo == RIG_VFO_SUB) {
+		/* Select Sub or Main RX */
 		vfo_len = sprintf (vfobuf, "*K%c" EOM, 
 				vfo == RIG_VFO_SUB ? 'S' : 'M');
 
@@ -620,8 +625,6 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	return retval;
 }
-
-
 
 /*
  * tt565_get_mode
@@ -816,8 +819,6 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 	return RIG_OK;
 }
 
-
-
 /*
  * tt565_set_ptt
  * Assumes rig!=NULL
@@ -988,6 +989,29 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				(int)(val.f*9));
 		break;
 
+	case RIG_LEVEL_CWPITCH:
+		/* "CWPITCH" is the "Tone" button on the Orion.
+		   Manual menu adjustment works down to 100 Hz, but not via
+		   computer.
+		*/
+		if (val.i > 1200) val.i = 1200;
+		else if (val.i < 300) val.i = 300;	/* Range 300-1200 Hz works */
+							/* Limits should be in caps? */
+		cmd_len = sprintf(cmdbuf, "*CT%d" EOM,
+				val.i);
+		break;
+
+	case RIG_LEVEL_KEYSPD:
+		/* Keyer speed setting does not imply Keyer = "on".  That is a
+		   command which should be a hamlib function, but is not.
+		   Keyer speed determines the rate of computer sent CW also.
+		*/
+		if (val.i > 60) val.i = 60;
+		else if (val.i < 10) val.i = 10;	/* Range 10-60 wpm */	
+		cmd_len = sprintf(cmdbuf, "*CS%d" EOM,
+				val.i);
+		break;
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n",
 				__FUNCTION__, level);
@@ -1009,10 +1033,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	int retval, cmd_len, lvl_len;
 	unsigned char cmdbuf[16],lvlbuf[32];
 
-
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
+	/* Optimize: sort the switch cases with the most frequent first */
 	switch (level) {
 	case RIG_LEVEL_SWR:
 		lvl_len = sizeof(lvlbuf);	
@@ -1244,6 +1265,33 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		val->f = atof(lvlbuf+3)/9.0;
 		break;
 
+	case RIG_LEVEL_CWPITCH:
+		lvl_len = sizeof(lvlbuf);
+		retval = tt565_transaction (rig, "?CT" EOM, 4, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (lvlbuf[1] != 'C' || lvlbuf[2] != 'T' || lvl_len < 4) {
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
+					__FUNCTION__, lvlbuf);
+			return -RIG_EPROTO;
+		}
+		val->i = atoi(lvlbuf+3);
+		break;
+
+	case RIG_LEVEL_KEYSPD:
+		lvl_len = sizeof(lvlbuf);
+		retval = tt565_transaction (rig, "?CS" EOM, 4, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (lvlbuf[1] != 'C' || lvlbuf[2] != 'S' || lvl_len < 4) {
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
+					__FUNCTION__, lvlbuf);
+			return -RIG_EPROTO;
+		}
+		val->i = atoi(lvlbuf+3);
+		break;
 
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n", 
@@ -1258,8 +1306,7 @@ int tt565_set_mem(RIG * rig, vfo_t vfo, int ch)
 {
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 
-	priv->ch = ch;
-
+	priv->ch = ch;	/* See RIG_OP_TO/FROM_VFO */
 	return RIG_OK;
 }
 
@@ -1268,7 +1315,6 @@ int tt565_get_mem(RIG * rig, vfo_t vfo, int *ch)
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 
 	*ch = priv->ch;
-
 	return RIG_OK;
 }
 
@@ -1307,7 +1353,44 @@ int tt565_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 	}
 
 	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
-
 	return retval;
 }
+
+int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
+{
+	int msg_len, retval, ic, cmdl;
+	char morsecmd[8];
+	static int keyer_set = 0;	/*Shouldn't be here!*/
+
+/* Orion keyer must be on for morse, but we do not have a "keyer on" function in 
+ * hamlib (yet).  So force keyer on here. 
+ */
+	if (!keyer_set) {
+	    retval = tt565_transaction(rig, "*CK1" EOM, 5, NULL, NULL);
+	    if (retval != RIG_OK)
+		return retval;
+	    keyer_set = 1;
+	    usleep(100000);	/* 100 msec - guess */
+	}
+	msg_len = strlen(msg);
+	if (msg_len > 20) msg_len = 20;	/* sanity limit 20 chars */
+
+/* Orion can queue up to 20 characters.  
+ * We could batch a longer message into 20 char chunks, but there is no
+ * simple way to tell if message has completed.  We could calculate a
+ * duration based on keyer speed and the text that was sent, but
+ * what we really need is a handshake for "message complete".
+ * Without it, you can't easily use the Orion as a code practice machine.
+ * For now, we let the user do the batching.
+ * Note that rig panel is locked up for duration of message. 
+ */
+	for (ic = 0; ic < msg_len; ic++) {
+		cmdl = sprintf(morsecmd,"/%c" EOM, msg[ic]);
+		retval = tt565_transaction(rig,morsecmd,cmdl,NULL,NULL);
+		if (retval != RIG_OK)
+			return retval;
+	}
+	return RIG_OK;
+}
+
 /* End of orion.c */
