@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.18 2000-10-14 03:55:26 javabear Exp $  
+ * $Id: ft747.c,v 1.19 2000-10-16 22:27:11 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -51,9 +51,16 @@ static int ft747_get_update_data(RIG *rig);
  * Receiver caps 
  */
 
+#if 0
 #define FT747_ALL_RX_MODES (RIG_MODE_AM| RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NAM| RIG_MODE_NCW)
 #define FT747_SSB_CW_RX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB| RIG_MODE_NCW)
 #define FT747_AM_RX_MODES (RIG_MODE_AM| RIG_MODE_NAM)
+#else
+#define FT747_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT747_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT747_AM_RX_MODES (RIG_MODE_AM)
+#endif
+
 #define FT747_FM_RX_MODES (RIG_MODE_FM)
 
 
@@ -74,7 +81,7 @@ static int ft747_get_update_data(RIG *rig);
 const struct rig_caps ft747_caps = {
   RIG_MODEL_FT747, "FT-747GX", "Yaesu", "0.1", RIG_STATUS_ALPHA,
   RIG_TYPE_MOBILE, RIG_PTT_NONE, 4800, 4800, 8, 2, RIG_PARITY_NONE, 
-  RIG_HANDSHAKE_NONE, FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,FT747_FUNC_ALL,20,RIG_TRN_OFF,
+  RIG_HANDSHAKE_NONE, FT747_WRITE_DELAY, FT747_POST_WRITE_DELAY, 2000, 0,FT747_FUNC_ALL,0,0,20,RIG_TRN_OFF,
   { {100000,29999900,FT747_ALL_RX_MODES,-1,-1}, {0,0,0,0,0}, }, /* rx range */
   
   { {1500000,1999900,FT747_OTHER_TX_MODES,5000,100000},	/* 100W class */ 
@@ -303,6 +310,7 @@ int ft747_set_mode(RIG *rig, rmode_t rmode) {
   case RIG_MODE_FM:
     mymode = MODE_SET_FMW;
     break;
+#if 0
   case RIG_MODE_NFM:
     mymode = MODE_SET_FMN;
     break;
@@ -315,6 +323,7 @@ int ft747_set_mode(RIG *rig, rmode_t rmode) {
   case RIG_MODE_WAM:
     mymode = MODE_SET_AMW;
     break;
+#endif
   default:
     return -RIG_EINVAL;		/* sorry, wrong MODE */
   }
@@ -359,6 +368,7 @@ int ft747_get_mode(RIG *rig, rmode_t *rmode) {
   case MODE_LSB:
     (*rmode) = RIG_MODE_LSB;
     break;
+#if 0
   case MODE_FMN:
     (*rmode) = RIG_MODE_NFM;
     break;
@@ -368,6 +378,7 @@ int ft747_get_mode(RIG *rig, rmode_t *rmode) {
   case MODE_CWN:
     (*rmode) = RIG_MODE_NCW;
     break;
+#endif
   default:
     return -RIG_EINVAL;		/* sorry, wrong mode */
     break; 
