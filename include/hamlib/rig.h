@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.3 2000-10-10 22:09:54 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.4 2000-10-16 21:58:03 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -81,7 +81,7 @@ enum rig_port_e {
 	RIG_PORT_SERIAL = 0,
 	RIG_PORT_NETWORK,
 	RIG_PORT_DEVICE,	/* Device driver, like for the WinRADIO */
-	RIG_PORT_ULTRA		/* IrDA Ultra protocol */
+	RIG_PORT_ULTRA		/* IrDA Ultra protocol! */
 };
 
 enum serial_parity_e {
@@ -137,18 +137,22 @@ typedef enum split_e split_t;
 
 enum vfo_e {
 	RIG_VFO_MAIN = 0,
-	RIG_VFO_RX,
-	RIG_VFO_TX,
 	RIG_VFO_SUB,
-	RIG_VFO_SAT_RX,
-	RIG_VFO_SAT_TX,
-	RIG_VFO_A,
-	RIG_VFO_B,
-	RIG_VFO_C
-
+	RIG_VFO_SAT,
+	RIG_VFO_A = RIG_VFO_MAIN,
+	RIG_VFO_B = RIG_VFO_SUB,
+	RIG_VFO_C = RIG_VFO_SAT
 };
 
 typedef enum vfo_e vfo_t;
+
+enum passband_width_e {
+	RIG_PASSBAND_NORMAL = 0,
+	RIG_PASSBAND_NARROW,
+	RIG_PASSBAND_WIDE
+};
+
+typedef enum passband_width_e pbwidth_t;
 
 enum ptt_e {
 	RIG_PTT_OFF = 0,
@@ -158,14 +162,80 @@ enum ptt_e {
 typedef enum ptt_e ptt_t;
 
 enum ptt_type_e {
-	RIG_PTT_RIG = 0,		/* PTT controlable through the rig interface */
+	RIG_PTT_RIG = 0,			/* legacy PTT */
 	RIG_PTT_SERIAL,				/* PTT accessed through CTS/RTS */
 	RIG_PTT_PARALLEL,			/* PTT accessed through DATA0 */
 	RIG_PTT_NONE				/* not available */
 };
 
-
 typedef enum ptt_type_e ptt_type_t;
+
+
+enum mem_vfo_op_e {
+	RIG_MVOP_VFO_MODE = 0,
+	RIG_MVOP_MEM_MODE,
+	RIG_MVOP_VFO_CPY,		/* VFO A = VFO B */
+	RIG_MVOP_VFO_XCHG,		/* Exchange VFO A/B */
+	RIG_MVOP_DUAL_OFF,		/* Dual watch off */
+	RIG_MVOP_DUAL_ON,		/* Dual watch on */
+	RIG_MVOP_FROM_VFO,		/* VFO->MEM */
+	RIG_MVOP_TO_VFO,		/* MEM->VFO */
+	RIG_MVOP_MCL			/* Memory clear */
+};
+
+typedef enum mem_vfo_op_e mv_op_t;
+
+
+/* When optional speech synthesizer is installed */
+enum ann_level_e {
+		RIG_ANN_OFF = 0,
+		RIG_ANN_FREQ,
+		RIG_ANN_RXMODE,
+		RIG_ANN_ALL
+};
+
+enum agc_level_e {
+		RIG_AGC_OFF = 0,
+		RIG_AGC_SUPERFAST,
+		RIG_AGC_FAST,
+		RIG_AGC_SLOW
+};
+
+/*
+ * Universal approach for use by set_level/get_level
+ */
+union value_u {
+		int i;		
+		float f;
+};
+typedef union value_u value_t;
+
+#define RIG_LEVEL_PREAMP	(1<<0)	/* Preamp, arg int (db) */
+#define RIG_LEVEL_ATT		(1<<1)	/* Attenuator, arg int (db) */
+#define RIG_LEVEL_ANT		(1<<2)	/* Antenna, arg int (numbering from 0) */
+#define RIG_LEVEL_AF		(1<<3)	/* Volume, arg float [0.0..1.0] */
+#define RIG_LEVEL_RF		(1<<4)	/* RF gain (not TX power), arg float [0.0..1.0] */
+#define RIG_LEVEL_SQL		(1<<5)	/* Squelch, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_IF		(1<<6)	/* IF, arg int (Hz) */
+#define RIG_LEVEL_APF		(1<<7)	/* APF?, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_NR		(1<<8)	/* Noise Reduction, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_PBT_IN	(1<<9)	/* Twin PBT (inside), arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_PBT_OUT	(1<<10)	/* Twin PBT (outside), arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_CWPITCH	(1<<11)	/* CW pitch, arg int (Hz) */
+#define RIG_LEVEL_RFPOWER	(1<<12)	/* RF Power, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_MICGAIN	(1<<13)	/* MIC Gain, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_KEYSPD	(1<<14)	/* Key Speed, arg int (WPM) */
+#define RIG_LEVEL_NOTCHF	(1<<15)	/* Notch Freq., arg int (Hz) */
+#define RIG_LEVEL_COMP		(1<<16)	/* Compressor, arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_AGC		(1<<17)	/* AGC, arg int (see enum agc_level_e) */
+#define RIG_LEVEL_BKINDL	(1<<18)	/* BKin Delay, arg int (tenth of dots) */
+#define RIG_LEVEL_BALANCE	(1<<19)	/* Balance (Dual Watch), arg float [0.0 .. 1.0] */
+#define RIG_LEVEL_ANN		(1<<20)	/* Announce, arg int (see enum ann_level_e) */
+		/* These ones are not settable */
+#define RIG_LEVEL_SQLSTAT	(1<<30)	/* SQL status, arg int (open=1/closed=0) */
+#define RIG_LEVEL_STRENGTH	(1<<31)	/* Signal strength, arg int (db) */
+
+typedef unsigned long setting_t;	/* at least 32 bits */
 
 /*
  * tranceive mode, ie. the rig notify the host of any event,
@@ -217,19 +287,26 @@ typedef unsigned int rmode_t;	/* radio mode  */
 #define RIG_MODE_LSB	(1<<3)
 #define RIG_MODE_RTTY	(1<<4)
 #define RIG_MODE_FM    	(1<<5)
-#define RIG_MODE_NFM	(1<<6)	/* should we distinguish modes w/ filers? */
-#define RIG_MODE_WFM	(1<<7)
-#define RIG_MODE_NAM	(1<<8)	/* Narrow AM */
+
+/* The following are deprecated */
+/* use the get/set_filter to manipulate these bits */
+#if 0
+#define RIG_MODE_WFM	(1<<6)
+#define RIG_MODE_CWR	(1<<7)	/* CW reverse sideband*/
+#define RIG_MODE_RTTYR	(1<<8)	/* RTTY reverse sideband */
+
+#define RIG_MODE_NFM	(1<<19)	/* should we distinguish modes w/ filers? */
+#define RIG_MODE_NAM	(1<<20)	/* Narrow AM */
 #define RIG_MODE_WAM	(1<<9)	/* Wide AM */
 #define RIG_MODE_NCW	(1<<10)	
 #define RIG_MODE_WCW	(1<<11)	
-#define RIG_MODE_CWR	(1<<12)	/* Reverse CW */
 #define RIG_MODE_NUSB	(1<<13)	
 #define RIG_MODE_WUSB	(1<<14)	
 #define RIG_MODE_NLSB	(1<<15)	
 #define RIG_MODE_WLSB	(1<<16)	
 #define RIG_MODE_NRTTY	(1<<17)	
 #define RIG_MODE_WRTTY	(1<<18)	
+#endif
 
 
 #define RIGNAMSIZ 30
@@ -275,7 +352,9 @@ struct channel {
   rmode_t mode;
   vfo_t vfo;
   int power;	/* in mW */
-  signed int preamp;	/* in dB, if < 0, this is attenuator */
+  int att;	/* in db */
+  int preamp;	/* in db */
+  int ant;	/* antenna number */
   unsigned long tuning_step;	/* */
   unsigned char channel_desc[MAXCHANDESC];
 };
@@ -317,7 +396,12 @@ struct rig_caps {
   int timeout;	/* in ms */
   int retry;		/* maximum number of retries, 0 to disable */
   unsigned long has_func;		/* bitwise OR'ed RIG_FUNC_FAGC, NG, etc. */
+  unsigned long has_level;		/* bitwise OR'ed RIG_LEVEL_* */
+  unsigned long has_set_level;		/* bitwise OR'ed RIG_LEVEL_* */
   int chan_qty;		/* number of channels */
+#if 0
+  int chan_desc_sz;   /* memory channel size, 0 if none */
+#endif
   int transceive;	/* the rig is able to generate events, to be used by callbacks */
   freq_range_t rx_range_list[FRQRANGESIZ];
   freq_range_t tx_range_list[FRQRANGESIZ];
@@ -351,7 +435,10 @@ struct rig_caps {
   int (*set_ptt)(RIG *rig, ptt_t ptt); /* ptt on/off */
   int (*get_ptt)(RIG *rig, ptt_t *ptt); /* get ptt status */
 
-  int (*set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift );	/* set repeater shift */
+  int (*set_passband)(RIG *rig, pbwidth_t width); /* select width */
+  int (*get_passband)(RIG *rig, pbwidth_t *width); /* get width */
+
+  int (*set_rpt_shift)(RIG *rig, rptr_shift_t rptr_shift);	/* set repeater shift */
   int (*get_rpt_shift)(RIG *rig, rptr_shift_t *rptr_shift);	/* get repeater shift */
 
   int (*set_rpt_offs)(RIG *rig, unsigned long offs);/* set duplex offset freq */
@@ -365,10 +452,10 @@ struct rig_caps {
   int (*set_ts)(RIG *rig, unsigned long ts); /* set tuning step */
   int (*get_ts)(RIG *rig, unsigned long *ts); /* get tuning step */
 
-  int (*set_tone)(RIG *rig, unsigned int tone);	/* set tone */
-  int (*get_tone)(RIG *rig, unsigned int *tone);	/* get tone */
-  int (*set_tonesq)(RIG *rig, unsigned int tone);	/* set tone squelch */
-  int (*get_tonesq)(RIG *rig, unsigned int *tone);	/* get tone squelch */
+  int (*set_dcs)(RIG *rig, unsigned int tone);	/* set tone */
+  int (*get_dcs)(RIG *rig, unsigned int *tone);	/* get tone */
+  int (*set_ctcss)(RIG *rig, unsigned int tone);	/* set tone squelch */
+  int (*get_ctcss)(RIG *rig, unsigned int *tone);	/* get tone squelch */
 
   /*
    * It'd be nice to have a power2mW and mW2power functions
@@ -376,12 +463,15 @@ struct rig_caps {
    * Unfortunately, on most rigs, the formula is not the same
    * on all bands/modes. Have to work this out.. --SF
    */
+#if 0
   int (*set_power)(RIG *rig, float power);	/* set TX power [0.0 .. 1.0] */
   int (*get_power)(RIG *rig, float *power);
+#endif
 
   int (*power2mW)(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
   int (*mW2power)(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 
+#if 0
   int (*set_volume)(RIG *rig, float vol);	/* select vol from 0.0 and 1.0 */
   int (*get_volume)(RIG *rig, float *vol);	/* get volume */
 
@@ -389,22 +479,34 @@ struct rig_caps {
   int (*get_squelch)(RIG *rig, float *sql);	/* get squelch setting */
   int (*get_squelch_status)(RIG *rig, int *sql_status);	/* get squelch status */
   int (*get_strength)(RIG *rig, int *strength);	/* get signal strength */
+#endif
 
   int (*set_poweron)(RIG *rig);
   int (*set_poweroff)(RIG *rig);
 
+#if 0
+  int (*set_ant)(RIG *rig, int ant);	/* set antenna number */
+  int (*get_ant)(RIG *rig, int *ant);	/* get antenna number */
+
+  int (*set_att)(RIG *rig, int att);	/* set attenuator */
+  int (*get_att)(RIG *rig, int *att);	/* get attenuator */
+
+  int (*set_preamp)(RIG *rig, int preamp);	/* set preamp */
+  int (*get_preamp)(RIG *rig, int *preamp);	/* get preamp */
+#endif
+
+  int (*set_level)(RIG *rig, setting_t set, value_t val);/* set level setting */
+  int (*get_level)(RIG *rig, setting_t set, value_t *val);/* set level setting*/
+
   int (*set_func)(RIG *rig, unsigned long func); /* activate the function(s) */
   int (*get_func)(RIG *rig, unsigned long *func); /* get the setting from rig */
 
-  int (*set_mem)(RIG *rig, int ch);
-  int (*get_mem)(RIG *rig, int *ch);
-  int (*mem_clear)(RIG *rig);
-  int (*mem_to_vfo)(RIG *rig);
-  int (*vfo_to_mem)(RIG *rig);	/* memory write */
-/* also VFO A=B, and Switch VFO A and B, set to VFO mode, set to MEM mode */
+  int (*set_mem)(RIG *rig, int ch);			/* set memory channel number */
+  int (*get_mem)(RIG *rig, int *ch);		/* get memory channel number */
+  int (*mv_ctl)(RIG *rig, mv_op_t op);		/* Mem/VFO operation */
 
   int (*set_trn)(RIG *rig, int trn);	/* activate transceive mode on radio */
-  int (*get_trn)(RIG *rig, int *trn);	/* PCR-1000 can do that */
+  int (*get_trn)(RIG *rig, int *trn);	/* PCR-1000 can do that, ICR75 too */
 
 
   int (*decode_event)(RIG *rig);	/* When transceive on, find out which callback to call, and call it */
@@ -504,6 +606,9 @@ extern int rig_get_freq(RIG *rig, freq_t *freq); /* get freq */
 extern int rig_set_mode(RIG *rig, rmode_t mode); /* select mode */
 extern int rig_get_mode(RIG *rig, rmode_t *mode); /* get mode */
 
+extern int rig_set_passband(RIG *rig, pbwidth_t width); /* select width */
+extern int rig_get_passband(RIG *rig, pbwidth_t *width); /* get width */
+
 extern int rig_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
 extern int rig_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
@@ -514,6 +619,11 @@ extern int rig_set_rpt_shift(RIG *rig, rptr_shift_t rptr_shift); /* set repeater
 extern int rig_get_rpt_shift(RIG *rig, rptr_shift_t *rptr_shift); /* get repeater shift */
 extern int rig_set_rpt_offs(RIG *rig, unsigned long rptr_offs); /* set repeater offset */
 extern int rig_get_rpt_offs(RIG *rig, unsigned long *rptr_offs); /* get repeater offset */
+
+extern int rig_set_ctcss(RIG *rig, unsigned int tone);
+extern int rig_get_ctcss(RIG *rig, unsigned int *tone);
+extern int rig_set_dcs(RIG *rig, unsigned int tone);
+extern int rig_get_dcs(RIG *rig, unsigned int *tone);
 
 extern int rig_set_split_freq(RIG *rig, freq_t rx_freq, freq_t tx_freq);
 extern int rig_get_split_freq(RIG *rig, freq_t *rx_freq, freq_t *tx_freq);
@@ -528,16 +638,27 @@ extern int rig_get_power(RIG *rig, float *power);
 extern int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode);
 extern int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 
+#if 0
 extern int rig_set_volume(RIG *rig, float vol);
 extern int rig_get_volume(RIG *rig, float *vol);
 extern int rig_set_squelch(RIG *rig, float sql);
 extern int rig_get_squelch(RIG *rig, float *sql);
 extern int rig_get_squelch_status(RIG *rig, int *sql_status);
-extern int rig_set_tonesq(RIG *rig, unsigned int tone);
-extern int rig_get_tonesq(RIG *rig, unsigned int *tone);
-extern int rig_set_tone(RIG *rig, unsigned int tone);
-extern int rig_get_tone(RIG *rig, unsigned int *tone);
 extern int rig_get_strength(RIG *rig, int *strength);
+extern int rig_set_ant(RIG *rig, int ant);
+extern int rig_get_ant(RIG *rig, int *ant);
+extern int rig_set_att(RIG *rig, int att);
+extern int rig_get_att(RIG *rig, int *att);
+extern int rig_set_preamp(RIG *rig, int preamp);
+extern int rig_get_preamp(RIG *rig, int *preamp);
+#else
+
+extern int rig_set_level(RIG *rig, setting_t level, value_t val);
+extern int rig_get_level(RIG *rig, setting_t level, value_t *val);
+
+#define rig_get_strength(r,s) rig_get_level((r), RIG_LEVEL_STRENGTH, (value_t*)(s))
+#endif
+
 extern int rig_set_poweron(RIG *rig);
 extern int rig_set_poweroff(RIG *rig);
 
@@ -548,9 +669,19 @@ extern int rig_cleanup(RIG *rig);
 
 extern RIG *rig_probe(const char *rig_path);
 
-extern int rig_has_func(RIG *rig, unsigned long func);	/* is part of capabilities? */
-extern int rig_set_func(RIG *rig, unsigned long func);	/* activate the function(s) */
-extern int rig_get_func(RIG *rig, unsigned long *func); /* get the setting from rig */
+extern int rig_has_level(RIG *rig, setting_t level);
+extern int rig_has_set_level(RIG *rig, setting_t level);
+
+extern int rig_has_func(RIG *rig, setting_t func);	/* is part of capabilities? */
+extern int rig_set_func(RIG *rig, setting_t func);	/* activate the function(s) */
+extern int rig_get_func(RIG *rig, setting_t *func); /* get the setting from rig */
+
+extern int rig_set_mem(RIG *rig, int ch);		/* set memory channel number */
+extern int rig_get_mem(RIG *rig, int *ch);		/* get memory channel number */
+extern int rig_mv_ctl(RIG *rig, mv_op_t op);	/* Mem/VFO operation */
+
+extern int rig_set_channel(RIG *rig, const channel_t *chan);
+extern int rig_get_channel(RIG *rig, channel_t *chan);
 
 extern int rig_set_trn(RIG *rig, int trn); /* activate the transceive mode */
 extern int rig_get_trn(RIG *rig, int *trn);
