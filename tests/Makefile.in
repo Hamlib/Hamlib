@@ -62,6 +62,7 @@ host_triplet = @host@
 AR = @AR@
 AS = @AS@
 CC = @CC@
+CXX = @CXX@
 DLLTOOL = @DLLTOOL@
 DLL_PRELOAD = @DLL_PRELOAD@
 ECHO = @ECHO@
@@ -90,7 +91,7 @@ WINRADIODEPS = @WINRADIODEPS@
 WINRADIOLNK = @WINRADIOLNK@
 hamlibdocdir = @hamlibdocdir@
 
-noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs @RIGMATRIX@
+noinst_PROGRAMS = dumpcaps dumpmem testcaps testrig testtrn testbcd testfreq listrigs testcpp @RIGMATRIX@
 bin_PROGRAMS = rigctl
 EXTRA_PROGRAMS = rigmatrix
 
@@ -110,6 +111,7 @@ testtrn_LDADD = $(BACKENDLNK) $(LDADD)
 rigctl_LDADD = $(BACKENDLNK) $(LDADD) ../lib/libmisc.a
 # rigmatrix needs also libgd
 rigmatrix_LDADD = -lgd $(BACKENDLNK) $(LDADD)
+testcpp_LDADD = $(BACKENDLNK) ../c++/libhamlib++.la
 
 dumpcaps_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 dumpmem_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
@@ -119,6 +121,7 @@ testtrn_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 listrigs_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
 rigctl_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS) ../lib/libmisc.a
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) $(BACKENDEPS)
+testcpp_DEPENDENCIES = ../c++/libhamlib++.la $(BACKENDEPS)
 
 testrig_SOURCES = testrig.c
 testtrn_SOURCES = testtrn.c
@@ -130,6 +133,7 @@ testcaps_SOURCES = testcaps.c
 listrigs_SOURCES = listrigs.c
 rigctl_SOURCES = rigctl.c
 rigmatrix_SOURCES = rigmatrix.c
+testcpp_SOURCES = testcpp.cc
 
 noinst_DATA = rigmatrix_head.html
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
@@ -138,7 +142,7 @@ CONFIG_CLEAN_FILES =
 bin_PROGRAMS =  rigctl$(EXEEXT)
 noinst_PROGRAMS =  dumpcaps$(EXEEXT) dumpmem$(EXEEXT) testcaps$(EXEEXT) \
 testrig$(EXEEXT) testtrn$(EXEEXT) testbcd$(EXEEXT) testfreq$(EXEEXT) \
-listrigs$(EXEEXT) @RIGMATRIX@
+listrigs$(EXEEXT) testcpp$(EXEEXT) @RIGMATRIX@
 PROGRAMS =  $(bin_PROGRAMS) $(noinst_PROGRAMS)
 
 
@@ -170,6 +174,13 @@ testfreq_DEPENDENCIES =  ../src/libhamlib.la
 testfreq_LDFLAGS = 
 listrigs_OBJECTS =  listrigs.$(OBJEXT)
 listrigs_LDFLAGS = 
+testcpp_OBJECTS =  testcpp.$(OBJEXT)
+testcpp_LDFLAGS = 
+CXXFLAGS = @CXXFLAGS@
+CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -186,13 +197,13 @@ TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/dumpcaps.P .deps/dumpmem.P .deps/listrigs.P \
 .deps/rigctl.P .deps/rigmatrix.P .deps/testbcd.P .deps/testcaps.P \
-.deps/testfreq.P .deps/testrig.P .deps/testtrn.P
-SOURCES = $(rigmatrix_SOURCES) $(rigctl_SOURCES) $(dumpcaps_SOURCES) $(dumpmem_SOURCES) $(testcaps_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES) $(testbcd_SOURCES) $(testfreq_SOURCES) $(listrigs_SOURCES)
-OBJECTS = $(rigmatrix_OBJECTS) $(rigctl_OBJECTS) $(dumpcaps_OBJECTS) $(dumpmem_OBJECTS) $(testcaps_OBJECTS) $(testrig_OBJECTS) $(testtrn_OBJECTS) $(testbcd_OBJECTS) $(testfreq_OBJECTS) $(listrigs_OBJECTS)
+.deps/testcpp.P .deps/testfreq.P .deps/testrig.P .deps/testtrn.P
+SOURCES = $(rigmatrix_SOURCES) $(rigctl_SOURCES) $(dumpcaps_SOURCES) $(dumpmem_SOURCES) $(testcaps_SOURCES) $(testrig_SOURCES) $(testtrn_SOURCES) $(testbcd_SOURCES) $(testfreq_SOURCES) $(listrigs_SOURCES) $(testcpp_SOURCES)
+OBJECTS = $(rigmatrix_OBJECTS) $(rigctl_OBJECTS) $(dumpcaps_OBJECTS) $(dumpmem_OBJECTS) $(testcaps_OBJECTS) $(testrig_OBJECTS) $(testtrn_OBJECTS) $(testbcd_OBJECTS) $(testfreq_OBJECTS) $(listrigs_OBJECTS) $(testcpp_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .obj .s
+.SUFFIXES: .S .c .cc .lo .o .obj .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu tests/Makefile
 
@@ -313,6 +324,16 @@ listrigs$(EXEEXT): $(listrigs_OBJECTS) $(listrigs_DEPENDENCIES)
 	@rm -f listrigs$(EXEEXT)
 	$(LINK) $(listrigs_LDFLAGS) $(listrigs_OBJECTS) $(listrigs_LDADD) $(LIBS)
 
+testcpp$(EXEEXT): $(testcpp_OBJECTS) $(testcpp_DEPENDENCIES)
+	@rm -f testcpp$(EXEEXT)
+	$(CXXLINK) $(testcpp_LDFLAGS) $(testcpp_OBJECTS) $(testcpp_LDADD) $(LIBS)
+.cc.o:
+	$(CXXCOMPILE) -c $<
+.cc.obj:
+	$(CXXCOMPILE) -c `cygpath -w $<`
+.cc.lo:
+	$(LTCXXCOMPILE) -c $<
+
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES) $(LISP)
@@ -388,6 +409,25 @@ maintainer-clean-depend:
 %.lo: %.c
 	@echo '$(LTCOMPILE) -c $<'; \
 	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
+
+%.o: %.cc
+	@echo '$(CXXCOMPILE) -c $<'; \
+	$(CXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.cc
+	@echo '$(LTCXXCOMPILE) -c $<'; \
+	$(LTCXXCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
 	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
 	  < .deps/$(*F).pp > .deps/$(*F).P; \
 	tr ' ' '\012' < .deps/$(*F).pp \
