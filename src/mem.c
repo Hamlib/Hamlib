@@ -3,16 +3,16 @@
  * \ingroup rig
  * \brief Memory and channel interface
  * \author Stephane Fillod
- * \date 2000-2004
+ * \date 2000-2005
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - mem/channel calls
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.4 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: mem.c,v 1.5 2005-04-03 22:33:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@ int HAMLIB_API rig_set_mem(RIG *rig, vfo_t vfo, int ch)
 	if (caps->set_mem == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_mem(rig, vfo, ch);
 
@@ -128,7 +128,7 @@ int HAMLIB_API rig_get_mem(RIG *rig, vfo_t vfo, int *ch)
 	if (caps->get_mem == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_mem(rig, vfo, ch);
 
@@ -176,7 +176,7 @@ int HAMLIB_API rig_set_bank(RIG *rig, vfo_t vfo, int bank)
 	if (caps->set_bank == NULL)
 		return -RIG_ENAVAIL;
 	
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_bank(rig, vfo, bank);
 

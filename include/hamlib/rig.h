@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.105 2005-04-03 18:35:45 fillods Exp $
+ *	$Id: rig.h,v 1.106 2005-04-03 22:33:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -330,10 +330,15 @@ typedef int vfo_t;
 #define RIG_VFO_C RIG_VFO_N(2)
 
 
-#define RIG_TARGETABLE_NONE 0x00
-#define RIG_TARGETABLE_FREQ 0x01
-#define RIG_TARGETABLE_MODE 0x02
-#define RIG_TARGETABLE_ALL  0xffffffffU
+/*
+ * targetable bitfields, for internal use.
+ * RIG_TARGETABLE_PURE means a pure targetable radio on every command
+ */
+#define RIG_TARGETABLE_NONE 0
+#define RIG_TARGETABLE_FREQ (1<<0)
+#define RIG_TARGETABLE_MODE (1<<1)
+#define RIG_TARGETABLE_PURE (1<<2)
+#define RIG_TARGETABLE_ALL  0x7fffffff
 
 
 #define RIG_PASSBAND_NORMAL s_Hz(0)

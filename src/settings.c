@@ -3,16 +3,16 @@
  * \ingroup rig
  * \brief func/level/parm interface
  * \author Stephane Fillod
- * \date 2000-2004
+ * \date 2000-2005
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - func/level/parm
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.5 2004-10-02 10:32:09 fillods Exp $
+ *	$Id: settings.c,v 1.6 2005-04-03 22:33:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -84,7 +84,7 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	if (caps->set_level == NULL || !rig_has_set_level(rig,level))
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_level(rig, vfo, level, val);
 
@@ -154,7 +154,7 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	}
 
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_level(rig, vfo, level, val);
 
@@ -403,7 +403,7 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	if (caps->set_func == NULL || !rig_has_set_func(rig,func))
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_func(rig, vfo, func, status);
 
@@ -452,7 +452,7 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	if (caps->get_func == NULL || !rig_has_get_func(rig,func))
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_func(rig, vfo, func, status);
 
@@ -497,7 +497,7 @@ int HAMLIB_API rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val
 	if (caps->set_ext_level == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 		vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_ext_level(rig, vfo, token, val);
 
@@ -542,7 +542,7 @@ int HAMLIB_API rig_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *va
 	if (caps->get_ext_level == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_ALL) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 		vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_ext_level(rig, vfo, token, val);
 
