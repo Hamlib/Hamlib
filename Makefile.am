@@ -1,6 +1,4 @@
 
-#AUTOMAKE_OPTIONS = 1.6
-
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = hamlib.m4
 
@@ -18,7 +16,7 @@ SUBDIRS = macros include lib libltdl src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
 DIST_SUBDIRS = macros include lib libltdl src c++ bindings tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
 	rpcrig winradio easycomm fodtrack rpcrot gnuradio drake rotorez \
-	microtune flexradio sartek lowe rft tapr
+	microtune flexradio sartek lowe rft tapr kit
 
 rpm: Makefile
 	make dist

@@ -130,7 +130,7 @@ AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
-AC_CHECK_FUNCS([cfmakeraw setitimer])
+AC_CHECK_FUNCS([cfmakeraw setitimer ioctl])
 AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
@@ -197,7 +197,7 @@ fi
 AC_SUBST(RIGMATRIX)
 
 
-BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft tapr flexradio"
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft kit tapr flexradio"
 ROT_BACKEND_LIST="dummy easycomm rotorez sartek fodtrack"
 BINDINGS=""
 BINDING_LIST=""
@@ -286,13 +286,17 @@ fi
 
 dnl Backend list
 
-case "$host_os" in
- linux-gnu*)
- # Winradio only under Linux (until someone port it on other os)
- BACKEND_LIST="$BACKEND_LIST winradio"
- ;;
- *) 
-esac
+# Winradio only under Linux (until someone port it on other os)
+AC_MSG_CHECKING(whether to build winradio backend)
+AC_ARG_WITH(winradio,
+      [  --without-winradio	do not build winradio backend],
+      [cf_with_winradio="no"],
+      [cf_with_winradio="yes"])
+AC_MSG_RESULT($cf_with_winradio)
+
+if test "${cf_with_winradio}" = "yes" ; then
+	BACKEND_LIST="$BACKEND_LIST winradio"
+fi
 
 # FIXME: check for presence of libgnuradio, libfftw
 if test "${cf_with_cxx}" = "yes" ; then
@@ -399,6 +403,7 @@ jrc/Makefile
 drake/Makefile
 lowe/Makefile
 rft/Makefile
+kit/Makefile
 tapr/Makefile
 gnuradio/Makefile
 easycomm/Makefile
