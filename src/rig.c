@@ -2,7 +2,7 @@
    Copyright (C) 2000 Stephane Fillod and Frank Singleton
    This file is part of the hamlib package.
 
-   $Id: rig.c,v 1.7 2000-10-23 19:56:29 f4cfe Exp $
+   $Id: rig.c,v 1.8 2000-10-29 16:30:43 f4cfe Exp $
 
    Hamlib is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #include <hamlib/rig.h>
 #include <hamlib/riglist.h>
-#include "serial.h"
+#include <serial.h>
 #include "event.h"
 
 
@@ -589,9 +589,11 @@ int rig_get_ptt(RIG *rig, ptt_t *ptt)
 
 		case RIG_PTT_SERIAL:
 		case RIG_PTT_PARALLEL:
+				return -RIG_ENIMPL;	/* not implemented */
+
 		case RIG_PTT_NONE:
 		default:
-				return -RIG_ENIMPL;	/* not implemented */
+				return -RIG_ENAVAIL;	/* not available */
 		}
 }
 
@@ -869,7 +871,7 @@ int rig_get_ts(RIG *rig, unsigned long *ts)
  *
  *      SEE ALSO: rig_mW2power()
  */
-int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, mode_t mode)
+int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
 {
 		const freq_range_t *txrange;
 
@@ -884,7 +886,7 @@ int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, mode
 				 */
 				return -RIG_ECONF; /* could be RIG_EINVAL ? */
 			}
-			*mwpower = (unsigned long)(power*txrange->high_power);
+			*mwpower = (unsigned int)(power * txrange->high_power);
 			return RIG_OK;
 		} else
 			return rig->caps->power2mW(rig, mwpower, power, freq, mode);
@@ -911,7 +913,7 @@ int rig_power2mW(RIG *rig, unsigned int *mwpower, float power, freq_t freq, mode
  *
  *      SEE ALSO: rig_power2mW()
  */
-int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, mode_t mode)
+int rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
 {
 		const freq_range_t *txrange;
 
@@ -1392,6 +1394,34 @@ int rig_mv_ctl(RIG *rig, mv_op_t op)
 }
 
 /**
+ *      rig_set_bank - set the current memory bank
+ *      @rig:	The rig handle
+ *      @bank:	The memory bank
+ *
+ *      The rig_set_bank() function sets the current memory bank.
+ *      It is not mandatory for the radio to be in memory mode. Actually
+ *      it depends on rigs. YMMV.
+ *
+ *      RETURN VALUE: The rig_set_bank() function returns %RIG_OK
+ *      if the operation has been sucessful, or a negative value
+ *      if an error occured (in which case, cause is set appropriately).
+ *
+ *      SEE ALSO: rig_set_mem()
+ */
+
+int rig_set_bank(RIG *rig, int bank)
+{
+		if (!rig || !rig->caps)
+			return -RIG_EINVAL;
+
+		if (rig->caps->set_bank == NULL)
+			return -RIG_ENAVAIL;	/* not implemented */
+		else
+			return rig->caps->set_bank(rig, bank);
+}
+
+
+/**
  *      rig_set_channel - set channel data
  *      @rig:	The rig handle
  *      @chan:	The location of data to set for this channel
@@ -1467,9 +1497,9 @@ rig_get_range(const freq_range_t range_list[], freq_t freq, rmode_t mode)
 		if (range_list[i].start == 0 && range_list[i].end == 0) {
 				return NULL;
 		}
-		if ((freq >= range_list[i].start && freq <= range_list[i].end) &&
+		if (freq >= range_list[i].start && freq <= range_list[i].end &&
 				(range_list[i].modes & mode)) {
-				return (&range_list[i]);
+				return &range_list[i];
 		}
 	}
 	return NULL;
