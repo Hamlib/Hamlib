@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.3 2002-03-12 13:02:58 avflinsch Exp $  
+ *    $Id: ft100.c,v 1.4 2002-04-23 21:56:41 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -476,7 +476,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%lld d2=%lld\n",d1,d2);
    
-   sprintf(sfreq,"%8i",d2);
+   sprintf(sfreq,"%8lli",d2);
    
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq= %s \n",sfreq);
    
@@ -768,6 +768,7 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
     return -RIG_EINVAL;
   }
 
+  cmd = p->p_cmd; /* get native sequence */
   memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
   
   cmd[3]=(char)code;
@@ -808,6 +809,7 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
     return -RIG_EINVAL;
   }
 
+  cmd = p->p_cmd; /* get native sequence */
   memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
   
   cmd[3]=(char)tone;
