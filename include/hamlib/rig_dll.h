@@ -1,5 +1,10 @@
-/* $Id: rig_dll.h,v 1.4 2001-12-16 11:14:46 fillods Exp $ */
+/* $Id: rig_dll.h,v 1.5 2001-12-19 03:37:07 fillods Exp $ */
 
+
+/*
+ * Temporarily commented out, until cygwin port is sorted out
+ */
+#if 0
 
 #if defined(__CYGWIN__)
 #  if defined(HAMLIB_DLL)
@@ -34,6 +39,26 @@
 #  define BACKEND_EXPORT(type) BACKEND_IMPEXP type HAMLIB_API
 #  define BACKEND_EXPORT_VAR(type) BACKEND_IMPEXP type
 #endif
+
+#endif
+
+
+#if defined(__CYGWIN__)
+#  undef BACKEND_EXPORT_VAR(type)
+#  undef HAMLIB_EXPORT_VAR(type)
+#  ifdef DLL_EXPORT
+#    ifdef IN_HAMLIB
+#      define BACKEND_EXPORT_VAR(type) __declspec(dllexport) type
+#      define HAMLIB_EXPORT_VAR(type) __declspec(dllexport) type
+#    else
+#      define BACKEND_EXPORT_VAR(type) __declspec(dllimport) type
+		/* FIXME: HAMLIB_EXPORT_VAR import */
+#    endif
+#  else
+	 /* must be static build, no directive */
+#  endif
+#endif
+
 
 /* Take care of non-cygwin platforms */
 #if !defined(HAMLIB_IMPEXP)
