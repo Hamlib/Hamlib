@@ -6,7 +6,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- *    $Id: serial.h,v 1.3 2000-10-09 01:17:20 javabear Exp $  
+ *    $Id: serial.h,v 1.4 2001-02-09 23:09:50 f4cfe Exp $  
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +37,16 @@ int read_sleep(int fd, unsigned char *rxbuffer, int num , int read_delay);
 int read_block(int fd, unsigned char *rxbuffer, size_t count, int timeout);
 int write_block(int fd, const unsigned char *txbuffer, size_t count, int write_delay, int post_write_delay);
 int fread_block(FILE *stream, unsigned char *rxbuffer, size_t count, int timeout);
+
+/* Hamlib internal use, see rig.c */
+int ser_ptt_open(struct rig_state *rs);
+int par_ptt_open(struct rig_state *rs);
+int ser_ptt_set(struct rig_state *rs, ptt_t pttx);
+int par_ptt_set(struct rig_state *rs, ptt_t pttx);
+int ser_ptt_get(struct rig_state *rs, ptt_t *pttx);
+int par_ptt_get(struct rig_state *rs, ptt_t *pttx);
+int ser_ptt_close(struct rig_state *rs);
+int par_ptt_close(struct rig_state *rs);
 
 #endif /* _SERIAL_H */
 
