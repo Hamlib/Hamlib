@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.45 2001-10-16 19:19:46 f4cfe Exp $
+ *		$Id: rig.c,v 1.46 2001-10-16 21:18:02 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,6 +77,13 @@ struct opened_rig_l {
 };
 static struct opened_rig_l *opened_rig_list = { NULL };
 
+/*
+ * rig_state.comm_state
+ */
+enum {
+		RIG_COMM_NOTOPEN,
+		RIG_COMM_OPEN
+};
 
 /*
  * Careful, the order must be the same as their RIG_E* counterpart!
@@ -237,6 +244,7 @@ RIG *rig_init(rig_model_t rig_model)
 
 		rs = &rig->state;
 
+		rs->comm_state = RIG_COMM_NOTOPEN;
 		rs->rigport.type.rig = caps->port_type; /* default from caps */
 		strncpy(rs->rigport.pathname, DEFAULT_SERIAL_PORT, FILPATHLEN);
 		rs->rigport.parm.serial.rate = caps->serial_rate_max;	/* fastest ! */
@@ -337,6 +345,7 @@ RIG *rig_init(rig_model_t rig_model)
 int rig_open(RIG *rig)
 {
 		const struct rig_caps *caps;
+		struct rig_state *rs;
 		int status;
 		vfo_t vfo;
 
@@ -346,20 +355,25 @@ int rig_open(RIG *rig)
 				return -RIG_EINVAL;
 
 		caps = rig->caps;
-		rig->state.rigport.fd = -1;
+		rs = &rig->state;
 
-		switch(rig->state.rigport.type.rig) {
+		if (rs->comm_state != RIG_COMM_NOTOPEN)
+				return -RIG_EINVAL;
+
+		rs->rigport.fd = -1;
+
+		switch(rs->rigport.type.rig) {
 		case RIG_PORT_SERIAL:
-				status = serial_open(&rig->state.rigport);
+				status = serial_open(&rs->rigport);
 				if (status != 0)
 						return status;
 				break;
 
 		case RIG_PORT_DEVICE:
-				status = open(rig->state.rigport.pathname, O_RDWR, 0);
+				status = open(rs->rigport.pathname, O_RDWR, 0);
 				if (status < 0)
 						return -RIG_EIO;
-				rig->state.rigport.fd = status;
+				rs->rigport.fd = status;
 				break;
 
 		case RIG_PORT_NONE:
@@ -375,48 +389,48 @@ int rig_open(RIG *rig)
 		 * FIXME: what to do if PTT open fails or PTT unsupported?
 		 * 			fail rig_open?  remember unallocating..
 		 */
-		switch(rig->state.pttport.type.ptt) {
+		switch(rs->pttport.type.ptt) {
 		case RIG_PTT_NONE:
 		case RIG_PTT_RIG:
 				break;
 		case RIG_PTT_SERIAL_RTS:
 		case RIG_PTT_SERIAL_DTR:
-				rig->state.pttport.fd = ser_open(&rig->state.pttport);
-				if (rig->state.pttport.fd < 0)
+				rs->pttport.fd = ser_open(&rs->pttport);
+				if (rs->pttport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-								rig->state.pttport.pathname);
+								rs->pttport.pathname);
 				break;
 		case RIG_PTT_PARALLEL:
-				rig->state.pttport.fd = par_open(&rig->state.pttport);
-				if (rig->state.pttport.fd < 0)
+				rs->pttport.fd = par_open(&rs->pttport);
+				if (rs->pttport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
-								rig->state.pttport.pathname);
+								rs->pttport.pathname);
 				break;
 		default:
 				rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
-								rig->state.pttport.type.ptt);
+								rs->pttport.type.ptt);
 		}
 
-		switch(rig->state.dcdport.type.dcd) {
+		switch(rs->dcdport.type.dcd) {
 		case RIG_DCD_NONE:
 		case RIG_DCD_RIG:
 				break;
 		case RIG_DCD_SERIAL_DSR:
 		case RIG_DCD_SERIAL_CTS:
-				rig->state.dcdport.fd = ser_open(&rig->state.dcdport);
-				if (rig->state.dcdport.fd < 0)
+				rs->dcdport.fd = ser_open(&rs->dcdport);
+				if (rs->dcdport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-								rig->state.dcdport.pathname);
+								rs->dcdport.pathname);
 				break;
 		case RIG_DCD_PARALLEL:
-				rig->state.dcdport.fd = par_open(&rig->state.dcdport);
-				if (rig->state.dcdport.fd < 0)
+				rs->dcdport.fd = par_open(&rs->dcdport);
+				if (rs->dcdport.fd < 0)
 					rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
-								rig->state.dcdport.pathname);
+								rs->dcdport.pathname);
 				break;
 		default:
 				rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
-								rig->state.dcdport.type.dcd);
+								rs->dcdport.type.dcd);
 		}
 
 		add_opened_rig(rig);
@@ -433,6 +447,8 @@ int rig_open(RIG *rig)
 		 */
 		if (!caps->targetable_vfo && caps->get_vfo)
 				caps->get_vfo(rig, &vfo);	
+
+		rs->comm_state = RIG_COMM_OPEN;
 
 		return RIG_OK;
 }
@@ -463,6 +479,9 @@ int rig_close(RIG *rig)
 
 		caps = rig->caps;
 		rs = &rig->state;
+
+		if (rs->comm_state != RIG_COMM_OPEN)
+				return -RIG_EINVAL;
 
 		if (rs->transceive) {
 				/*
@@ -549,6 +568,12 @@ int rig_cleanup(RIG *rig)
 
 		if (!rig || !rig->caps)
 				return -RIG_EINVAL;
+
+		/*
+		 * check if they forgot to close the rig
+		 */
+		if (rig->state.comm_state == RIG_COMM_OPEN)
+				rig_close(rig);
 
 		/*
 		 * basically free up the priv struct 

@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.51 2001-10-16 19:19:46 f4cfe Exp $
+ *		$Id: rig.h,v 1.52 2001-10-16 21:18:02 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -986,6 +986,7 @@ struct rig_state {
 
   int level_gran[RIG_SETTING_MAX];		/* level granularity */
 
+  int comm_state;	/* opened or not */
   /*
    * Pointer to private data
    * stuff like CI_V_address for Icom goes in this *priv 51 area
