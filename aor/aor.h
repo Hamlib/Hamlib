@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main header
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: aor.h,v 1.6 2001-07-13 19:08:15 f4cfe Exp $
+ *		$Id: aor.h,v 1.7 2001-10-22 20:23:42 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,7 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int aor_set_powerstat(RIG *rig, powerstat_t status);
 
 extern const struct rig_caps ar8200_caps;
+extern const struct rig_caps ar8000_caps;
 
 extern HAMLIB_EXPORT(int) init_aor(void *be_handle);
 

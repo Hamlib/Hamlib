@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -90,13 +93,13 @@ am__quote = @am__quote@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-AORSRCLIST = ar8200.c
+AORSRCLIST = ar8200.c ar8000.c
 
 lib_LTLIBRARIES = libhamlib-aor.la
 libhamlib_aor_la_SOURCES = $(AORSRCLIST) aor.c
 libhamlib_aor_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_aor_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_aor_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-aor.a
 libhamlib_aor_a_SOURCES = $(AORSRCLIST) aor.c
 libhamlib_aor_a_LIBADD = ../src/libhamlib.la
@@ -110,12 +113,13 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libhamlib_aor_a_AR = $(AR) cru
 libhamlib_aor_a_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_aor_a_OBJECTS = ar8200.$(OBJEXT) aor.$(OBJEXT)
+am_libhamlib_aor_a_OBJECTS = ar8200.$(OBJEXT) ar8000.$(OBJEXT) \
+	aor.$(OBJEXT)
 libhamlib_aor_a_OBJECTS = $(am_libhamlib_aor_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_aor_la_LIBADD =
-am_libhamlib_aor_la_OBJECTS = ar8200.lo aor.lo
+libhamlib_aor_la_DEPENDENCIES = ../src/libhamlib.la
+am_libhamlib_aor_la_OBJECTS = ar8200.lo ar8000.lo aor.lo
 libhamlib_aor_la_OBJECTS = $(am_libhamlib_aor_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -125,6 +129,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@DEP_FILES = $(DEPDIR)/aor.Plo $(DEPDIR)/aor.Po \
+@AMDEP_TRUE@	$(DEPDIR)/ar8000.Plo $(DEPDIR)/ar8000.Po \
 @AMDEP_TRUE@	$(DEPDIR)/ar8200.Plo $(DEPDIR)/ar8200.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -222,6 +227,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/aor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/aor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ar8000.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ar8000.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ar8200.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ar8200.Po@am__quote@
 
