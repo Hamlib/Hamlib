@@ -1,3 +1,19 @@
+# aclocal-include.m4
+# 
+# This macro adds the name macrodir to the set of directories
+# that `aclocal' searches for macros.  
+
+# serial 1
+
+dnl AM_ACLOCAL_INCLUDE(macrodir)
+AC_DEFUN([AM_ACLOCAL_INCLUDE],
+[
+	AM_CONDITIONAL(INSIDE_GNOME_COMMON, test x = y)
+
+	test -n "$ACLOCAL_FLAGS" && ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
+
+	for k in $1 ; do ACLOCAL="$ACLOCAL -I $k" ; done
+])
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
 ## Free Software Foundation, Inc.
@@ -2042,7 +2058,7 @@ cygwin* | mingw* | pw32*)
     ;;
   yes,mingw*)
     library_names_spec='${libname}`echo ${release} | sed -e 's/[[.]]/-/g'`${versuffix}.dll'
-    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/;/ /g"`
+    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/;/ /g" -e "s,=/,/,g"`
     ;;
   yes,pw32*)
     library_names_spec='`echo ${libname} | sed -e 's/^lib/pw/'``echo ${release} | sed -e 's/[.]/-/g'`${versuffix}.dll'
@@ -3295,7 +3311,7 @@ test -n "$reload_flag" && reload_flag=" $reload_flag"
 # AC_DEPLIBS_CHECK_METHOD - how to check for library dependencies
 #  -- PORTME fill in with the dynamic library characteristics
 AC_DEFUN([AC_DEPLIBS_CHECK_METHOD],
-[AC_CACHE_CHECK([how to recognise dependant libraries],
+[AC_CACHE_CHECK([how to recognise dependent libraries],
 lt_cv_deplibs_check_method,
 [lt_cv_file_magic_cmd='$MAGIC_CMD'
 lt_cv_file_magic_test_file=
@@ -3691,8 +3707,121 @@ else
 fi
 AC_MSG_RESULT([$SED])
 ])
+#------------------------------------------------------------------------
+# SC_PATH_PERLINC --
+#
+#	Locate the perl include files 
+#
+# Arguments:
+#	none
+#
+# Results:
+#
+#	Adds the following arguments to configure:
+#		--with-perl-inc=...
+#
+#	Defines the following vars:
+#		PERL_INC_DIR	Full path to the directory containing
+#				the perl include files
+#------------------------------------------------------------------------
 
-#########################################################################
+AC_DEFUN(SC_PATH_PERLINC, [
+
+	# we reset no_perl in case something fails here
+	no_perl=true
+
+    AC_ARG_WITH(perl-inc, [  --with-perl-inc         directory containing perl includes], with_perl_inc=${withval})
+	AC_MSG_CHECKING([for perl headers])
+	AC_CACHE_VAL(ac_cv_c_perl_inc,[
+
+	    # First check to see if --with-perl-inc was specified.
+	    if test x"${with_perl_inc}" != x ; then
+		if test -f "${with_perl_inc}/perl.h" ; then
+		    ac_cv_c_perl_inc=`(cd ${with_perl_inc}; pwd)`
+		else
+		    AC_MSG_ERROR([${with_perl_inc} directory doesn't contain perl.h])
+		fi
+	    fi
+
+	    # then check for a private Perl installation
+	    if test x"${ac_cv_c_perl_inc}" = x ; then
+	    	eval `perl -V:archlibexp`
+		if test -f "${archlibexp}/CORE/perl.h" ; then
+		    ac_cv_c_perl_inc=`(cd ${archlibexp}/CORE; pwd)`
+		else
+		    AC_MSG_WARN([${with_perl_inc} directory doesn't contain perl.h])
+		fi
+	    fi
+	])
+
+	if test x"${ac_cv_c_perl_inc}" = x ; then
+	    PERL_INC_DIR=
+	    AC_MSG_WARN(Can't find Perl header files)
+	else
+	    no_perl=
+	    PERL_INC_DIR=${ac_cv_c_perl_inc}
+	    AC_MSG_RESULT(found $PERL_INC_DIR)
+	fi
+    AC_SUBST(PERL_INC_DIR)
+])
+
+
+dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
+dnl defines GSTUFF_LIBS, GSTUFF_CFLAGS, see pkg-config man page
+dnl also defines GSTUFF_PKG_ERRORS on error
+AC_DEFUN(PKG_CHECK_MODULES, [
+  succeeded=no
+
+  if test -z "$PKG_CONFIG"; then
+    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
+  fi
+
+  if test "$PKG_CONFIG" = "no" ; then
+     echo "*** The pkg-config script could not be found. Make sure it is"
+     echo "*** in your path, or set the PKG_CONFIG environment variable"
+     echo "*** to the full path to pkg-config."
+     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        AC_MSG_CHECKING(for $2)
+
+        if $PKG_CONFIG --exists "$2" ; then
+            AC_MSG_RESULT(yes)
+            succeeded=yes
+
+            AC_MSG_CHECKING($1_CFLAGS)
+            $1_CFLAGS=`$PKG_CONFIG --cflags "$2"`
+            AC_MSG_RESULT($$1_CFLAGS)
+
+            AC_MSG_CHECKING($1_LIBS)
+            $1_LIBS=`$PKG_CONFIG --libs "$2"`
+            AC_MSG_RESULT($$1_LIBS)
+        else
+            $1_CFLAGS=""
+            $1_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but 
+            ## do set a variable so people can do so.
+            $1_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$2"`
+            ifelse([$4], ,echo $$1_PKG_ERRORS,)
+        fi
+
+        AC_SUBST($1_CFLAGS)
+        AC_SUBST($1_LIBS)
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     ifelse([$3], , :, [$3])
+  else
+     ifelse([$4], , AC_MSG_ERROR([Library requirements ($2) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them.]), [$4])
+  fi
+])
+
+
 #------------------------------------------------------------------------
 # SC_PATH_TCLCONFIG --
 #
