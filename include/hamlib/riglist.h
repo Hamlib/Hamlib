@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - list of known rigs
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.42 2003-11-16 17:30:12 fillods Exp $
+ *	$Id: riglist.h,v 1.43 2004-02-08 17:03:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -114,13 +114,14 @@
 #define RIG_MODEL_THG71 RIG_MAKE_MODEL(RIG_KENWOOD, 23)
 #define RIG_MODEL_TS680S RIG_MAKE_MODEL(RIG_KENWOOD, 24)
 #define RIG_MODEL_TS140S RIG_MAKE_MODEL(RIG_KENWOOD, 25)
+#define RIG_MODEL_TMD700 RIG_MAKE_MODEL(RIG_KENWOOD, 26)
 
 	/*
 	 * Icom
 	 */
 #define RIG_ICOM 3
 #define RIG_BACKEND_ICOM "icom"
-#define RIG_MODEL_ICALL RIG_MAKE_MODEL(RIG_ICOM, 0)	/* no in use anymore */
+#define RIG_MODEL_ICALL RIG_MAKE_MODEL(RIG_ICOM, 0)	/* deprecated */
 #define RIG_MODEL_IC1271 RIG_MAKE_MODEL(RIG_ICOM, 1)
 #define RIG_MODEL_IC1275 RIG_MAKE_MODEL(RIG_ICOM, 2)
 #define RIG_MODEL_IC271 RIG_MAKE_MODEL(RIG_ICOM, 3)
@@ -365,6 +366,7 @@
 #define RIG_MODEL_MC4020 RIG_MAKE_MODEL(RIG_GNURADIO, 2)	/* MC4020 */
 #define RIG_MODEL_GRAUDIO RIG_MAKE_MODEL(RIG_GNURADIO, 3)	/* Sound card source */
 #define RIG_MODEL_GRAUDIOIQ RIG_MAKE_MODEL(RIG_GNURADIO, 4)	/* I&Q stereo sound card source */
+#define RIG_MODEL_USRP RIG_MAKE_MODEL(RIG_GNURADIO, 5)	/* Universal Software Radio Peripheral */
 
 	/*
 	 * Microtune tuners
