@@ -102,7 +102,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -Xalinco -Xaor -Xdummy -Xicom -Xkachina -Xkenwood -Xpcr -Xtentec -Xuniden -Xwinradio -Xyaesu
+	dh_makeshlibs -Xalinco -Xaor -Xdummy -Xicom -Xkachina -Xkenwood -Xpcr -Xtentec -Xuniden -Xwinradio -Xyaesu -Xdrake -Xeasycomm -Xjrc
 	dh_installdeb
 #	dh_perl
 	dh_shlibdeps
