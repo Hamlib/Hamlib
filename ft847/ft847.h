@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.6 2000-07-29 23:12:57 javabear Exp $  
+ *    $Id: ft847.h,v 1.7 2000-07-30 00:29:52 javabear Exp $  
  */
 
 /*
@@ -61,7 +61,7 @@ int rig_close(int fd);
 
 
 /*
- * CAT command set
+ * Raw CAT command set
  *
  */
 
@@ -84,15 +84,19 @@ void cmd_set_freq_sat_tx_vfo(int fd, unsigned char d1,  unsigned char d2,
 void cmd_set_opmode_main_vfo(int fd, unsigned char d1);
 void cmd_set_opmode_sat_rx_vfo(int fd, unsigned char d1);
 void cmd_set_opmode_sat_tx_vfo(int fd, unsigned char d1);
+
 void cmd_set_ctcss_dcs_main_vfo(int fd, unsigned char d1);
 void cmd_set_ctcss_dcs_sat_rx_vfo(int fd, unsigned char d1);
 void cmd_set_ctcss_dcs_sat_tx_vfo(int fd, unsigned char d1);
+
 void cmd_set_ctcss_freq_main_vfo(int fd, unsigned char d1);
 void cmd_set_ctcss_freq_sat_rx_vfo(int fd, unsigned char d1);
 void cmd_set_ctcss_freq_sat_tx_vfo(int fd, unsigned char d1);
+
 void cmd_set_dcs_code_main_vfo(int fd, unsigned char d1, unsigned char d2);
 void cmd_set_dcs_code_sat_rx_vfo(int fd, unsigned char d1, unsigned char d2);
 void cmd_set_dcs_code_sat_tx_vfo(int fd, unsigned char d1, unsigned char d2);
+
 void cmd_set_repeater_shift_minus(int fd);
 void cmd_set_repeater_shift_plus(int fd);
 void cmd_set_repeater_shift_simplex(int fd);
@@ -120,4 +124,6 @@ long int cmd_get_freq_mode_status_sat_tx_vfo(int fd, unsigned char *mode);
  */
 
 void cmd_set_freq_main_vfo_hz(int fd,long int freq, unsigned char mode);
+void cmd_set_freq_main_sat_rx_hz(int fd,long int freq, unsigned char mode);
+void cmd_set_freq_main_sat_tx_hz(int fd,long int freq, unsigned char mode);
 
