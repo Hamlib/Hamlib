@@ -1,8 +1,8 @@
 /*
  *  Hamlib Uniden backend - main header
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: uniden.h,v 1.4 2003-04-16 22:30:43 fillods Exp $
+ *	$Id: uniden.h,v 1.5 2004-02-08 16:59:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,6 +31,7 @@ int uniden_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int uniden_set_mem(RIG *rig, vfo_t vfo, int ch);
 
 extern const struct rig_caps bc895_caps;
+extern const struct rig_caps bc245_caps;
 
 
 #endif /* _UNIDEN_H */

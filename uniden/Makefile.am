@@ -1,4 +1,4 @@
-UNIDENSRC = bc895.c
+UNIDENSRC = bc895.c bc245.c
 
 lib_LTLIBRARIES = hamlib-uniden.la
 hamlib_uniden_la_SOURCES = $(UNIDENSRC) uniden.c
