@@ -9,7 +9,7 @@
  * supports the Hy-Gain DCU-1.
  *
  *
- *    $Id: rotorez.c,v 1.2 2003-01-12 14:29:14 n0nb Exp $
+ *    $Id: rotorez.c,v 1.3 2003-01-12 14:59:46 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -242,7 +242,7 @@ static int rotorez_rot_cleanup(ROT *rot) {
 /*
  * Set position
  * DCU protocol supports azimuth only--elevation is ignored
- * Range is an integer, 0 to 360 degrees
+ * Range is converted to an integer string, 0 to 360 degrees
  */
 
 static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation) {
@@ -257,6 +257,9 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 
   if (azimuth < 0 || azimuth > 360)
     return -RIG_EINVAL;
+
+  if (azimuth > 359.4999)           /* DCU-1 compatibility */
+    azimuth = 0;
 
   sprintf(cmdstr, "AP1%03.0f;", azimuth);    /* Target bearing */
   err = rotorez_send_priv_cmd(rot, cmdstr);
