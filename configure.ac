@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(hamlib, 1.1.3, hamlib-developer@lists.sourceforge.net)
-AM_INIT_AUTOMAKE(hamlib, 1.1.3)
+AC_INIT(hamlib, 1.1.4-cvs, hamlib-developer@lists.sourceforge.net)
+AM_INIT_AUTOMAKE(hamlib, 1.1.4-cvs)
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_MAINTAINER_MODE
@@ -134,7 +134,7 @@ dnl Check for dlopen support
 AC_LIBTOOL_WIN32_DLL
 AC_LIBTOOL_DLOPEN
 dnl Configure libtool
-AM_PROG_LIBTOOL
+AC_PROG_LIBTOOL
 dnl Configure libltdl
 AC_CONFIG_SUBDIRS(libltdl)
 
@@ -254,10 +254,38 @@ case "$host_os" in
  *) 
 esac
 
+# assumes we have libgnuradio, libfftw
+if test "${cf_with_cxx}" = "yes" ; then
+AC_CHECK_HEADERS([VrMultiTask.h])
+#AC_CHECK_LIB([gnuradio],[], [], [], [-lfftw -lrfftw])
+  AC_MSG_CHECKING(whether to build gnuradio backend)
+  AC_ARG_WITH(gnuradio,
+        [  --with-gnuradio	build gnuradio backend],
+        [cf_with_gnuradio=$withval],
+        [cf_with_gnuradio="no"])
+  AC_MSG_RESULT($cf_with_gnuradio)
+
+  if test "${cf_with_gnuradio}" = "yes" ; then
+	BACKEND_LIST="$BACKEND_LIST gnuradio"
+
+	# fix almost hardcoded path...
+	grpath="../../gnuradio-0.3"
+	#GNURADIO_LIBS="-L. -L${grpath}/src/gnu/lib -lgnuradio -lrfftw -lfftw"
+	GNURADIO_LIBS="${grpath}/src/gnu/lib/libgnuradio.la -lstdc++"
+	GNURADIO_FLAGS="-DUSE_LIBGXX_INLINES -D_REENTRANT -DPARANOID=1 -DCACHESIZE=262144 -I${grpath}/src/gnu/lib/gr -I${grpath}/src/gnu/lib/grio -I${grpath}/src/gnu/lib/grgui -I${grpath}/src/gnu/lib/dtv -I${grpath}/src/pspectra/lib/vr -I${grpath}/src/pspectra/lib/vrp -I${grpath}/src/pspectra/lib/vrio"
+  fi
+fi
+AC_SUBST(GNURADIO_LIBS)
+AC_SUBST(GNURADIO_FLAGS)
+
+
+# RPCRig must be the last one added to BACKEND_LIST 
+# because it links against other backends (build order)
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" ; then
     BACKEND_LIST="$BACKEND_LIST rpcrig"
     ROT_BACKEND_LIST="$ROT_BACKEND_LIST rpcrot"
 fi
+
 
 # dlopen force or preopen self for static version ?
 BACKENDLNK="-dlopen force"
@@ -299,6 +327,7 @@ uniden/Makefile
 tentec/Makefile
 kachina/Makefile
 jrc/Makefile
+gnuradio/Makefile
 easycomm/Makefile
 rpcrig/Makefile
 rpcrot/Makefile
