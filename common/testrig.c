@@ -20,6 +20,8 @@ int main ()
 	 * allocate memory, setup & open port 
 	 */
 
+	printf("testrig:main() has been called \n");
+
 	my_rig = rig_init(RIG_MODEL_FT847);
 	if (!my_rig)
 			exit(1); /* whoops! something went wrong (mem alloc?) */
