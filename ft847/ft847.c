@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.6 2000-07-28 02:04:49 javabear Exp $  
+ * $Id: ft847.c,v 1.7 2000-07-29 02:38:22 javabear Exp $  
  *
  */
 
@@ -290,15 +290,21 @@ unsigned char cmd_get_tx_status(int fd) {
 
 unsigned char cmd_get_freq_mode_status_main_vfo(int fd) {
   int n;			/* counters */
+  unsigned char sfreq[8];
+  long int f;
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x03 }; /* get freq and mode status */
 								  /* main vfo*/
 
   write_block(fd,data);
-  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
+  n = read_sleep(fd,datain,5);	/* wait and read for 1 byte to be read */
 
-  printf("datain[0] = %x \n", datain[0]);
-
+  printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  datain[0], datain[1], datain[2],datain[3],datain[4]);
+  sprintf(sfreq,"%.2x%.2x%.2x%.2x",datain[0], datain[1], datain[2],datain[3]);
+  f = atol(sfreq);
+  f = f *10;
+  printf("f = %ld Hz\n",f );
+  
   return datain[0];
 
 }
@@ -315,9 +321,9 @@ unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
 								  /* sat rx vfo*/
 
   write_block(fd,data);
-  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
+  n = read_sleep(fd,datain,5);	/* wait and read for 1 byte to be read */
 
-  printf("datain[0] = %x \n",  datain[0]);
+  printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  datain[0], datain[1], datain[2],datain[3],datain[4]); 
 
   return datain[0];
 
@@ -335,15 +341,27 @@ unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd) {
 								  /* sat tx vfo*/
 
   write_block(fd,data);
-  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
+  n = read_sleep(fd,datain,5);	/* wait and read for 1 byte to be read */
 
-  printf("datain[0] = %x \n",  datain[0]);
+  printf("frequency/mode = %.2x%.2x%.2x%.2x %.2x \n",  datain[0], datain[1], datain[2],datain[3],datain[4]); 
 
   return datain[0];
 
 }
 
 
+
+/*
+ * Set frequency in Hz.
+ *
+ */
+
+void cmd_set_freq_main_vfo_hz(unsigned long int freq) {
+  unsigned char d1,d2,d3,d4;
+
+ 
+
+}
 
 
 
