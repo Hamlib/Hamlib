@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.5 2000-07-28 02:03:27 javabear Exp $  
+ * $Id: testlibft847.c,v 1.6 2000-07-29 02:39:15 javabear Exp $  
  *
  */
 
@@ -119,35 +119,13 @@ static void decode_mode(unsigned char mode) {
 
 
 
-
-
-
-
-
-/*
- * Do a hex dump of the unsigned char array.
- */
-
-static void dump_hex(unsigned char *ptr, int size, int length) {
-  int i;
-  
-  printf("Memory Dump \n\n");
-  for(i=0; i<size; i++) {
-    printf(" 0x%2.2x", *(ptr+i));
-    if (i % length == 15) {
-      printf("\n");
-    }
-  }
-  printf("\n\n");
-  
-} 
-
 /*
  * Simple test to see if we are talking to the RIG.
  */
 
 static int test(fd) {
   unsigned char data1;
+  int i;
 
   cmd_cat_off(fd);		/* cat off */
   sleep(1);
@@ -163,6 +141,14 @@ static int test(fd) {
 
   decode_rx_status_flags(data1);
   sleep(1);
+
+  for (i=0; i<10; i++) {
+    data1 = cmd_get_rx_status(fd);
+    decode_rx_status_flags(data1);
+    sleep(1);
+    cmd_get_freq_mode_status_main_vfo(fd);
+    sleep(1);   
+  }
   cmd_cat_off(fd);		/* cat off */
     
   return 0;
