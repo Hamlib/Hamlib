@@ -1,0 +1,22 @@
+H1 { text-align: center; }
+A.qindex {}
+A.qindexRef {}
+A.el { text-decoration: none; font-weight: bold; font-family: courier,,helvetica,serif }
+A.elRef { font-weight: bold; font-family: courier,helvetica,serif }
+A.code { text-decoration: none; font-weight: normal; color: #4444ee; font-family: courier,helvetica,serif }
+A.codeRef { font-weight: normal; color: #4444ee; font-family: courier,helvetica,serif }
+A:hover { text-decoration: none; background-color: #f0f0fd; }
+DL.el { margin-left: -1cm }
+DIV.fragment { width: 100%; border: none; background-color: #eeeeee; font-family: courier,halvetica,serif }
+DIV.ah { background-color: black; font-weight: bold; color: #ffffff; margin-bottom: 3px; margin-top: 3px; font-family: courier,halvetica,serif }
+TD.md { background-color: #f2f2ff; font-weight: bold; font-family: courier,halvetica,serif }
+TD.mdname { background-color: #f2f2ff; font-weight: bold; font-style: italic; font-family: courier,halvetica,serif }
+DIV.groupHeader { margin-left: 16px; margin-top: 12px; margin-bottom: 6px; font-weight: bold; font-family: courier,halvetica,serif }
+DIV.groupText { margin-left: 16px; font-style: italic; font-size: smaller; font-family: courier,halvetica,serif }
+FONT.keyword       { color: #008000 }
+FONT.keywordtype   { color: #604020 }
+FONT.keywordflow   { color: #e08000 }
+FONT.comment       { color: #800000 }
+FONT.preprocessor  { color: #806020 }
+FONT.stringliteral { color: #002080 }
+FONT.charliteral   { color: #008080 }
