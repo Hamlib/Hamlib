@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.h,v 1.54 2001-12-20 07:42:57 fillods Exp $
+ *		$Id: rig.h,v 1.55 2001-12-26 23:38:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -132,7 +132,8 @@ enum rig_port_e {
 	RIG_PORT_DEVICE,	/* Device driver, like the WiNRADiO */
 	RIG_PORT_PACKET,	/* e.g. SV8CS */
 	RIG_PORT_DTMF,		/* bridge via another rig, eg. Kenwood Sky Cmd System */
-	RIG_PORT_ULTRA		/* IrDA Ultra protocol! */
+	RIG_PORT_ULTRA,		/* IrDA Ultra protocol! */
+	RIG_PORT_RPC,		/* RPC wrapper */
 };
 
 enum serial_parity_e {
@@ -147,21 +148,6 @@ enum serial_handshake_e {
 	RIG_HANDSHAKE_HARDWARE
 };
 
-
-#if 0
-enum rig_type_e {
-	RIG_TYPE_TRANSCEIVER = 0,	/* aka base station */
-	RIG_TYPE_HANDHELD,
-	RIG_TYPE_MOBILE,
-	RIG_TYPE_RECEIVER,
-	RIG_TYPE_PCRECEIVER,
-	RIG_TYPE_SCANNER,
-	RIG_TYPE_TRUNKSCANNER,
-	RIG_TYPE_COMPUTER,		/* eg. Pegasus */
-	/* etc. */
-	RIG_TYPE_OTHER
-};
-#else
 
 #define RIG_FLAG_RECEIVER		(1<<1)
 #define RIG_FLAG_TRANSMITTER	(1<<2)
@@ -188,7 +174,6 @@ enum rig_type_e {
 #define RIG_TYPE_TRUNKSCANNER	(RIG_TYPE_SCANNER|RIG_FLAG_TRUNKING)
 #define RIG_TYPE_COMPUTER	(RIG_FLAG_TRANSCEIVER|RIG_FLAG_COMPUTER)
 
-#endif
 
 /*
  * Development status of the backend 
@@ -625,7 +610,7 @@ struct tuning_step_list {
  */
 struct filter_list {
   rmode_t modes;	/* bitwise OR'ed RIG_MODE_* */
-  shortfreq_t width;		/* passband width in Hz */
+  pbwidth_t width;		/* passband width in Hz */
 };
 
 #define RIG_FLT_END     {RIG_MODE_NONE,0}
@@ -955,19 +940,19 @@ typedef struct {
  * not be initialized like caps are.
  */
 struct rig_state {
+	/*
+	 * overridable fields
+	 */
   port_t rigport;
   port_t pttport;
   port_t dcdport;
 
   double vfo_comp;				/* VFO compensation in PPM, 0.0 to disable */
 
-  int transceive;	/* whether the transceive mode is on */
-  int hold_decode;/* set to 1 to hold the event decoder (async) otherwise 0 */
-  vfo_t current_vfo;
-
   int itu_region;
   freq_range_t rx_range_list[FRQRANGESIZ];	/* these ones can be updated */
   freq_range_t tx_range_list[FRQRANGESIZ];
+
   struct tuning_step_list tuning_steps[TSLSTSIZ];
 
   struct filter_list filters[FLTLSTSIZ];	/* mode/filter table, at -6dB */
@@ -979,11 +964,10 @@ struct rig_state {
   shortfreq_t max_ifshift;	/* max absolute IF-SHIFT */
 
   ann_t announces;
-  int vfo_list;
 
   int preamp[MAXDBLSTSIZ];			/* in dB, 0 terminated */
   int attenuator[MAXDBLSTSIZ];		/* in dB, 0 terminated */
-	   
+
   setting_t has_get_func;
   setting_t has_set_func;		/* updatable, e.g. for optional DSP, etc. */
   setting_t has_get_level;
@@ -992,6 +976,18 @@ struct rig_state {
   setting_t has_set_parm;
 
   int level_gran[RIG_SETTING_MAX];		/* level granularity */
+
+   
+  	/* 
+	 * non overridable fields, internal use
+	 */
+
+  int hold_decode; /* set to 1 to hold the event decoder (async) otherwise 0 */
+  vfo_t current_vfo;
+
+  int transceive;	/* whether the transceive mode is on */
+
+  int vfo_list;
 
   int comm_state;	/* opened or not */
   /*
@@ -1005,7 +1001,6 @@ struct rig_state {
    */
   rig_ptr_t obj;
 
-  /* etc... */
 };
 
 /*
