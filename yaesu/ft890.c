@@ -2,14 +2,14 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft890.c - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
- *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
+ *           (C) Stephane Fillod 2002, 2003 (fillods at users.sourceforge.net)
  *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-890 using the "CAT" interface
  *
  *
- * $Id: ft890.c,v 1.5 2003-04-07 22:42:06 fillods Exp $
+ * $Id: ft890.c,v 1.6 2003-04-12 13:00:16 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -45,9 +45,7 @@
 
 
 /*
- * Functions considered to be Beta code (2003-03-04):
- *
- * Functions considered to be Alpha code (2003-03-23):
+ * Functions considered to be Beta code (2003-04-11):
  * set_freq
  * get_freq
  * set_mode
@@ -58,14 +56,20 @@
  * get_ptt
  * set_split
  * get_split
+ * set_rit
+ * get_rit
+ * set_func
+ * get_func
+ * get_level
  *
- * functions not yet implemented (2003-03-06):
+ * Functions considered to be Alpha code (2003-04-11):
+ * vfo_op
+ *
+ * functions not yet implemented (2003-04-11):
  * set_split_freq
  * get_split_freq
  * set_split_mode
  * get_split_mode
- * set_rit
- * get_rit
  *
  */
 
@@ -150,9 +154,9 @@ const struct rig_caps ft890_caps = {
   .rig_model =          RIG_MODEL_FT890,
   .model_name =         "FT-890",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.3",
+  .version =            "0.0.4",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_NEW,
+  .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_NONE,
@@ -180,6 +184,7 @@ const struct rig_caps ft890_caps = {
   .max_rit =            Hz(9999),
   .max_xit =            Hz(0),
   .max_ifshift =        Hz(0),
+  .vfo_ops =            RIG_OP_TUNE,
   .targetable_vfo =     RIG_TARGETABLE_ALL,
   .transceive =         RIG_TRN_OFF,        /* Yaesus have to be polled, sigh */
   .bank_qty =           0,
@@ -261,6 +266,7 @@ const struct rig_caps ft890_caps = {
   .get_rit =            ft890_get_rit,
   .set_func =           ft890_set_func,
   .get_level =          ft890_get_level,
+  .vfo_op =             ft890_vfo_op,
 };
 
 
@@ -966,7 +972,7 @@ static int ft890_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
 
 
 /*
- * rig_set_split
+ * rig_set_split_vfo
  *
  * set the '890 into split TX/RX mode
  *
@@ -1008,7 +1014,7 @@ static int ft890_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 
 /*
- * rig_get_split
+ * rig_get_split_vfo
  *
  * Get whether the '890 is in split mode
  *
@@ -1168,7 +1174,7 @@ static int ft890_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode,
 
 static int ft890_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
   struct ft890_priv_data *priv;
-  unsigned char offset;
+//  unsigned char offset;
   int err;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1413,6 +1419,40 @@ static int ft890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
   return RIG_OK;
 }
 
+
+/*
+ * rig_vfo_op
+ *
+ * VFO operations--tuner start, etc
+ *
+ * vfo is ignored for now
+ *
+ */
+
+static int ft890_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op) {
+  int err, cmd_index;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: passed op = 0x%02x\n", __func__, op);
+
+  switch (op) {
+  case RIG_OP_TUNE:
+    cmd_index = FT890_NATIVE_TUNER_START;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+
+  err = ft890_send_static_cmd(rig, cmd_index);
+  if (err != RIG_OK)
+    return err;
+
+  return RIG_OK;
+}
 
 
 /*

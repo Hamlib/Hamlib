@@ -2,14 +2,14 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft890.h - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
- *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
+ *           (C) Stephane Fillod 2002, 2003 (fillods at users.sourceforge.net)
  *           (C) Nate Bargmann 2002, 2003 (n0nb at arrl.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-890 using the "CAT" interface
  *
  *
- *    $Id: ft890.h,v 1.4 2003-04-06 18:40:36 fillods Exp $  
+ *    $Id: ft890.h,v 1.5 2003-04-12 13:00:17 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -356,5 +356,7 @@ static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 static int ft890_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 static int ft890_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
+static int ft890_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 #endif /* _FT890_H */
