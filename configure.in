@@ -19,7 +19,7 @@ AC_AIX
 AC_MINIX
 AC_ISC_POSIX
 
-INCLUDES="${INCLUDES} -I/usr/local/include -I../src"
+INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
 CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE -DV_MAJOR=${V_MAJOR} -DV_MINOR=${V_MINOR}"
 if test "${ac_cv_prog_gcc}" = "yes"; then
   CFLAGS="${CFLAGS} -Wall"
