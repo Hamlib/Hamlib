@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.8 2000-08-19 04:07:00 javabear Exp $  
+ * $Id: testlibft747.c,v 1.9 2000-09-04 04:06:14 javabear Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +36,7 @@
 
 #include "testlibft747.h"
 #include "ft747.h"
+#include "rig.h"
 
 static unsigned char datain[350]; /* data read from rig */
 
@@ -217,9 +218,14 @@ static int test(fd) {
 
 int main(void) {
 
+  struct rig_caps *rc;	/* points to rig caps */
 
   int fd;
 
+  rc = rig_get_caps();		/* find capabilities */
+
+  printf("rig_name = %s \n", rc->rig_name);
+  
   fd = rig_open(SERIAL_PORT);
   printf("port opened ok \n");
 
