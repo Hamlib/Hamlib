@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - IC-R7000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: icr7000.c,v 1.1 2002-02-27 23:17:57 fillods Exp $
+ *		$Id: icr7000.c,v 1.2 2002-03-05 00:49:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,16 +25,20 @@
 #endif
 
 #include <hamlib/rig.h>
+#include <serial.h>
+#include <misc.h>
+
 #include "icom.h"
+#include "icom_defs.h"
+#include "frame.h"
 
 
 #define ICR7000_MODES (RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define ICR7000_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_TSQL|RIG_FUNC_APF)
+#define ICR7000_OPS (RIG_OP_FROM_VFO|RIG_OP_MCL)
 
-#define ICR7000_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_SQLSTAT|RIG_LEVEL_STRENGTH)
+static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
-#define ICR7000_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 
 static const struct icom_priv_caps icr7000_priv_caps = {
 	0x08,   /* default address */
@@ -51,13 +55,13 @@ model_name:"ICR-7000",
 mfg_name: "Icom",
 version: "0.2",
 copyright: "LGPL",
-status: RIG_STATUS_UNTESTED,
+status: RIG_STATUS_ALPHA,
 rig_type: RIG_TYPE_RECEIVER,
 ptt_type: RIG_PTT_NONE,
 dcd_type: RIG_DCD_NONE,
 port_type: RIG_PORT_SERIAL,
 serial_rate_min: 300,
-serial_rate_max: 19200,
+serial_rate_max: 1200,
 serial_data_bits: 8,
 serial_stop_bits: 1,
 serial_parity: RIG_PARITY_NONE,
@@ -68,27 +72,29 @@ timeout: 200,
 retry: 3,
 
 has_get_func: RIG_FUNC_NONE,
-has_set_func: ICR7000_FUNC_ALL,
-has_get_level: ICR7000_LEVEL_ALL,
-has_set_level: RIG_LEVEL_SET(ICR7000_LEVEL_ALL),
+has_set_func: RIG_FUNC_NONE,
+has_get_level: RIG_LEVEL_NONE,
+has_set_level: RIG_LEVEL_NONE,
 has_get_parm: RIG_PARM_NONE,
-has_set_parm: RIG_PARM_NONE,    /* FIXME: parms */
-level_gran: {},                 /* FIXME: granularity */
+has_set_parm: RIG_PARM_NONE, 
+level_gran: {},
 parm_gran: {},
-ctcss_list: NULL,	/* FIXME: CTCSS/DCS list */
+ctcss_list: NULL,
 dcs_list: NULL,
-preamp:  { 10, RIG_DBLST_END, },
-attenuator:  { 20, RIG_DBLST_END, },
-max_rit: Hz(9999),
+preamp:  { RIG_DBLST_END, },
+attenuator:  { RIG_DBLST_END, },
+max_rit: Hz(0),
 max_xit: Hz(0),
 max_ifshift: Hz(0),
 targetable_vfo: 0,
 vfo_ops: ICR7000_OPS,
 transceive: RIG_TRN_RIG,
-bank_qty:  12,
+bank_qty:  0,
 chan_desc_sz: 0,
 
-chan_list: { RIG_CHAN_END, },	/* FIXME: memory channel list */
+chan_list: { 
+	{   1,  99, RIG_MTYPE_MEM,   0 },
+	RIG_CHAN_END, },
 
 rx_range_list1: {
 	{MHz(25),MHz(1000),ICR7000_MODES,-1,-1, RIG_VFO_A},
@@ -103,12 +109,14 @@ rx_range_list2: {
 tx_range_list2: { RIG_FRNG_END, },	/* no TX ranges, this is a receiver */
 
 tuning_steps: {
-	 {ICR7000_MODES,100},
+	 {ICR7000_MODES,100},	/* resolution */
+#if 0
 	 {ICR7000_MODES,kHz(1)},
 	 {ICR7000_MODES,kHz(5)},
 	 {ICR7000_MODES,kHz(10)},
 	 {ICR7000_MODES,12500},
 	 {ICR7000_MODES,kHz(25)},
+#endif
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
@@ -130,22 +138,15 @@ rig_cleanup:  icom_cleanup,
 rig_open: NULL,
 rig_close: NULL,
 
-set_freq: icom_set_freq,
+set_freq: r7000_set_freq,
 get_freq: icom_get_freq,
 set_mode: icom_set_mode,
 get_mode: icom_get_mode,
 set_vfo: icom_set_vfo,
 
 decode_event: icom_decode_event,
-set_level: icom_set_level,
-get_level: icom_get_level,
-set_func: icom_set_func,
-set_channel: icom_set_channel,
-get_channel: icom_get_channel,
 set_mem: icom_set_mem,
 vfo_op: icom_vfo_op,
-set_ts: icom_set_ts,
-get_ts: icom_get_ts,
 };
 
 
@@ -153,4 +154,20 @@ get_ts: icom_get_ts,
  * Function definitions below
  */
 
+
+/*
+ * r7000_set_freq
+ */
+static int r7000_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+		/* 
+		 * The R7000 cannot set freqencies higher than 1GHz, 
+		 * this is done by flipping a switch on the front panel and
+		 * stripping the most significant digit.
+		 * This is the only change with the common icom_set_freq
+		 */
+		freq %= GHz(1);
+
+		return icom_set_freq(rig, vfo, freq);
+}
 
