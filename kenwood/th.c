@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.23 2004-12-06 22:15:14 f4dwv Exp $
+ *	$Id: th.c,v 1.24 2004-12-22 16:06:00 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1200,14 +1200,15 @@ int th_get_channel(RIG *rig, channel_t *chan)
 	 chan->ctcss_sql=0;
 
     chan->tx_freq=RIG_FREQ_NONE;
-    if(chan->channel_num<223 && offset==0) {
+    if(chan->channel_num<223 && shift==0) {
 	req[5]='1';
         sprintf(membuf,"%s"EOM,req);
         ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval == RIG_OK) {
-    		strcat(req,",%"FREQFMT",%d");
-    		retval = sscanf(ackbuf, req, &freq, &step);
+    		strcpy(scf,req);
+    		strcat(scf,",%"FREQFMT",%d");
+    		retval = sscanf(ackbuf, scf, &freq, &step);
 		chan->tx_freq=freq;
 	}
     }
