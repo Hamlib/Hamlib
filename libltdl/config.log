@@ -1,0 +1,77 @@
+This file contains any messages produced by compilers while
+running configure, to aid debugging if configure makes a mistake.
+
+configure:772: checking for a BSD compatible install
+configure:825: checking whether build environment is sane
+configure:882: checking whether make sets ${MAKE}
+configure:921: checking for working aclocal
+configure:934: checking for working autoconf
+configure:947: checking for working automake
+configure:960: checking for working autoheader
+configure:973: checking for working makeinfo
+configure:990: checking whether to enable maintainer-specific portions of Makefiles
+configure:1016: checking for gcc
+configure:1129: checking whether the C compiler (gcc  ) works
+configure:1145: gcc -o conftest    conftest.c  1>&5
+configure:1171: checking whether the C compiler (gcc  ) is a cross-compiler
+configure:1176: checking whether we are using GNU C
+configure:1204: checking whether gcc accepts -g
+configure:1236: checking for working const
+configure:1311: checking for inline
+configure:1353: checking for Cygwin environment
+configure:1386: checking for mingw32 environment
+configure:1415: checking how to run the C preprocessor
+configure:1570: checking host system type
+configure:1591: checking build system type
+configure:1620: checking for ld used by GCC
+configure:1688: checking if the linker (/usr/bin/ld) is GNU ld
+configure:1705: checking for /usr/bin/ld option to reload object files
+configure:1717: checking for BSD-compatible nm
+configure:1755: checking whether ln -s works
+configure:1776: checking how to recognise dependant libraries
+configure:1949: checking for object suffix
+configure:1975: checking for executable suffix
+configure:2016: checking command to parse /usr/bin/nm -B output
+configure:2192: checking for dlfcn.h
+configure:2370: checking for ranlib
+configure:2437: checking for strip
+configure:2945: checking for objdir
+configure:2972: checking for gcc option to produce PIC
+configure:3124: checking if gcc PIC flag         -fPIC works
+configure:3190: checking if gcc static flag -static works
+configure:3232: checking if gcc supports -c -o file.o
+configure:3280: checking if gcc supports -c -o file.lo
+configure:3345: checking if gcc supports -fno-rtti -fno-exceptions
+configure:3358: gcc -c -g -O2 -fno-rtti -fno-exceptions -c conftest.c  conftest.c 1>&5
+configure:3385: checking whether the linker (/usr/bin/ld) supports shared libraries
+configure:4001: checking how to hardcode library paths into programs
+configure:4029: checking whether stripping libraries is possible
+configure:4043: checking dynamic linker characteristics
+configure:4429: checking if libtool supports shared libraries
+configure:4922: checking whether -lc should be explicitly linked in
+configure:5522: checking for ANSI C header files
+configure:5653: checking which extension is used for shared libraries
+configure:5677: checking which variable specifies run-time library path
+configure:5694: checking for the default library search path
+configure:5722: checking for objdir
+configure:5749: checking whether libtool supports -dlopen/-dlpreopen
+configure:5771: checking for dlopen in -ldl
+configure:5909: checking for shl_load
+configure:5958: checking for shl_load in -ldld
+configure:6005: checking for dld_link in -ldld
+configure:6055: checking for dlerror
+configure:6111: checking for _ prefix in compiled symbols
+configure:6257: checking whether deplibs are loaded by dlopen
+configure:6293: checking for malloc.h
+configure:6293: checking for memory.h
+configure:6293: checking for stdlib.h
+configure:6293: checking for stdio.h
+configure:6293: checking for ctype.h
+configure:6293: checking for dl.h
+configure:6293: checking for sys/dl.h
+configure:6293: checking for dld.h
+configure:6333: checking for string.h
+configure:6372: checking for strchr
+configure:6427: checking for strrchr
+configure:6482: checking for memcpy
+configure:6537: checking for strcmp
