@@ -4,7 +4,7 @@
  * This program defines the list of supported rigs.
  *
  *
- * 	$Id: riglist.h,v 1.1 2000-09-14 00:50:55 f4cfe Exp $	 *
+ * 	$Id: riglist.h,v 1.2 2000-09-16 01:54:42 f4cfe Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -44,6 +44,15 @@ enum rig_model_e {
 };
 
 typedef enum rig_model_e rig_model_t;
+
+/*
+ * It would be nice to have an automatic way of referencing all the backends
+ * supported by hamlib. Maybe this array should be placed in a separate file..
+ */
+extern const struct rig_caps ft847_caps;
+extern const struct rig_caps ic706_caps;
+extern const struct rig_caps ic706mkiig_caps;
+/* etc. */
 
 
 #endif /* _RIGLIST_H */
