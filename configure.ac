@@ -1,0 +1,215 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT
+AC_CONFIG_SRCDIR([include/hamlib/rig.h])
+
+AM_INIT_AUTOMAKE(hamlib, 1.1.2)
+AM_CONFIG_HEADER(include/config.h)
+AC_PREREQ(2.50)dnl              dnl Minimum Autoconf version required.
+AC_REVISION($Revision: 1.1 $)
+
+dnl directory for docs (html)
+hamlibdocdir=$datadir/doc/hamlib
+AC_SUBST(hamlibdocdir)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_AIX
+AC_ISC_POSIX
+AC_MINIX
+AM_PROG_CC_STDC
+AC_PROG_GCC_TRADITIONAL
+
+AC_PROG_MAKE_SET
+AC_PROG_INSTALL
+AC_PROG_LN_S
+
+AC_PROG_CXX
+AC_MSG_CHECKING(if you want to build C++ binding and demo)
+AC_ARG_WITH(cxx-binding,
+        [  --without-cxx-binding   do not build C++ binding and demo],
+        [cf_with_cxx_binding=$withval],
+        [cf_with_cxx_binding=$cf_with_cxx])
+AC_MSG_RESULT($cf_with_cxx_binding)
+
+
+INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src"
+CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+if test "${ac_cv_c_compiler_gnu}" = "yes"; then
+  CFLAGS="${CFLAGS} -Wall"
+fi
+if test "${ac_cv_cxx_compiler_gnu}" = "yes"; then
+  CXXFLAGS="${CXXFLAGS} -Wall"
+fi
+
+dnl Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h sys/ioctl.h sys/time.h unistd.h getopt.h)
+AC_CHECK_HEADERS(sys/ioccom.h linux/ppdev.h sgtty.h term.h termio.h termios.h)
+dnl AC_HEADER_STAT
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+dnl Checks for libraries.
+
+dnl AC_CHECK_LIB(intl,gettext)
+dnl AC_CHECK_LIB(nsl,gethostbyaddr)
+dnl AC_CHECK_LIB(socket,socket)
+AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
+
+dnl Replace `main' with a function in -lc:
+AC_CHECK_LIB(c, main)
+dnl Replace `main' with a function in -lm:
+AC_CHECK_LIB(m, main)
+
+
+dnl Checks for library functions.
+AC_CHECK_FUNCS(atexit snprintf select strerror)
+AC_CHECK_FUNCS(getopt_long,,LIBOBJS="$LIBOBJS getopt.o getopt1.o")
+AC_CHECK_FUNCS(usleep,,LIBOBJS="$LIBOBJS usleep.o")
+
+
+dnl initialize libtool
+dnl Enable building of the convenience library
+dnl and set LIBLTDL accordingly
+AC_LIBLTDL_CONVENIENCE
+dnl Substitute INCLTDL and LIBLTDL in the Makefiles
+AC_SUBST(INCLTDL)
+AC_SUBST(LIBLTDL)
+dnl Check for dlopen support
+AC_LIBTOOL_WIN32_DLL
+AC_LIBTOOL_DLOPEN
+dnl Configure libtool
+AM_PROG_LIBTOOL
+dnl Configure libltdl
+AC_CONFIG_SUBDIRS(libltdl)
+
+dnl if test "${enable_dynamic}" != "no"; then
+dnl   AC_CHECK_HEADERS(dlfcn.h,
+dnl   [AC_CHECK_LIB(dl,dlopen)
+dnl   AC_CHECK_FUNCS(dlopen, , enable_dynamic=no)],
+dnl    [enable_dynamic=no])
+dnl fi
+
+dnl Check if libgd-dev is installed, so we can enable rigmatrix
+
+AC_ARG_ENABLE(rigmatrix,
+[  --enable-rigmatrix	Generate rigmatrix tool (requires libgd)],
+[case "${enableval}" in
+	yes) wantrigmatrix=true ;;
+	no)  wantrigmatrix=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-rigmatrix) ;;
+	esac],[wantrigmatrix=false])
+
+AM_CONDITIONAL(WANTRIGMATRIX, test x$wantrigmatrix = xtrue)
+
+if test "x${wantrigmatrix}" != "xfalse"; then
+AC_CHECK_HEADERS(gd.h,
+  [AC_CHECK_LIB(gd,gdImageCreate)
+  AC_CHECK_FUNCS(gdImageCreate, , enable_rigmatrix=no)],
+   [enable_rigmatrix=no])
+AC_CHECK_LIB(gd,png_write_data)
+AC_CHECK_LIB(z,uncompress)
+if test "${ac_cv_header_gd_h}" = "no"; then
+  echo "disabling rigmatrix generation"
+  RIGMATRIX=
+else
+  echo "enabling rigmatrix generation"
+  RIGMATRIX=rigmatrix
+fi
+else
+  echo "disabling rigmatrix generation"
+  RIGMATRIX=
+fi
+AC_SUBST(RIGMATRIX)
+
+dnl Check if linradio-toolkit includes are there, so we can enable WiNRADiO
+
+AC_CHECK_HEADERS(linradio/radio_ioctl.h linradio/wrapi.h)
+if test "${ac_cv_header_linradio_radio_ioctl_h}" = "no" -o \
+					"${ac_cv_header_linradio_wrapi_h}" = "no"; then
+  echo "disabling WiNRADiO receiver support"
+  WINRADIOLNK=
+  WINRADIODEPS=
+  LIBWINRADIO=
+  LTLIBWINRADIO=
+else
+  echo "enabling WiNRADiO receiver support"
+  LIBWINRADIO=libhamlib-winradio.a
+  LTLIBWINRADIO=libhamlib-winradio.la
+  WINRADIOLNK="-dlopen \$(top_builddir)/winradio/${LTLIBWINRADIO}"
+  WINRADIODEPS="\$(top_builddir)/winradio/${LTLIBWINRADIO}"
+fi
+AM_CONDITIONAL(WINRADIO, test x$LTLIBWINRADIO != x)
+AC_SUBST(WINRADIOLNK)
+AC_SUBST(WINRADIODEPS)
+AC_SUBST(LIBWINRADIO)
+AC_SUBST(LTLIBWINRADIO)
+
+dnl Check if tcl includes are there, so we can enable HamlibTCL
+
+AC_CHECK_HEADERS(tcl8.2/tcl.h)
+if test "${ac_cv_header_tcl8_2_tcl_h}" = "no" ; then
+  echo "disabling HamlibTCL support"
+  LIBHAMLIBTCL=
+  LTHAMLIBTCL=
+else
+  echo "enabling HamlibTCL support"
+  LIBHAMLIBTCL=libhamlibtcl.a
+  LTHAMLIBTCL=libhamlibtcl.la
+fi
+AM_CONDITIONAL(HAMLIBTCL, test x$LTHAMLIBTCL != x)
+AC_SUBST(LIBHAMLIBTCL)
+AC_SUBST(LTHAMLIBTCL)
+
+
+
+AC_SUBST(INCLUDES)
+
+if test "${ac_cv_header_sys_socket_h}" = "no"; then
+  echo "disabling NET port"
+  NET=
+else
+  echo "enabling NET port"
+  NET=net
+fi
+AC_SUBST(NET)
+
+if test "${enable_shared}" = "no"; then
+  enable_preload=yes
+fi
+if test "${enable_dynamic}" = "no" || test "${enable_preload}" = "yes"; then
+  echo "preloading backends into DLL"
+  DLL_PRELOAD="\$(PRELOADABLE_BACKENDS)"
+else
+  DLL_PRELOAD=""
+fi
+AC_SUBST(DLL_PRELOAD)
+AC_SUBST(LIBOBJS)
+
+AC_CONFIG_FILES([Makefile
+include/Makefile
+include/hamlib/Makefile
+lib/Makefile
+dummy/Makefile
+yaesu/Makefile
+icom/Makefile
+aor/Makefile
+kenwood/Makefile
+winradio/Makefile
+pcr/Makefile
+alinco/Makefile
+uniden/Makefile
+tentec/Makefile
+src/Makefile
+c++/Makefile
+tcl/Makefile
+tests/Makefile
+doc/Makefile
+hamlib.spec])
+AC_OUTPUT
+
