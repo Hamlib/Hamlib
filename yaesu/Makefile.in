@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -95,8 +98,8 @@ YAESUSRC = ft747.c ft847.c
 lib_LTLIBRARIES = libhamlib-yaesu.la
 libhamlib_yaesu_la_SOURCES = yaesu.c $(YAESUSRC)
 libhamlib_yaesu_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_yaesu_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-yaesu.a
 libhamlib_yaesu_a_SOURCES = yaesu.c $(YAESUSRC)
 libhamlib_yaesu_a_LIBADD = ../src/libhamlib.la
@@ -115,7 +118,7 @@ am_libhamlib_yaesu_a_OBJECTS = yaesu.$(OBJEXT) ft747.$(OBJEXT) \
 libhamlib_yaesu_a_OBJECTS = $(am_libhamlib_yaesu_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_yaesu_la_LIBADD =
+libhamlib_yaesu_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_yaesu_la_OBJECTS = yaesu.lo ft747.lo ft847.lo
 libhamlib_yaesu_la_OBJECTS = $(am_libhamlib_yaesu_la_OBJECTS)
 

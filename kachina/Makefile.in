@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -95,8 +98,8 @@ ALINCOSRCLIST = 505dsp.c
 lib_LTLIBRARIES = libhamlib-kachina.la
 libhamlib_kachina_la_SOURCES = $(ALINCOSRCLIST) kachina.c
 libhamlib_kachina_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_kachina_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_kachina_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-kachina.a
 libhamlib_kachina_a_SOURCES = $(ALINCOSRCLIST) kachina.c
 libhamlib_kachina_a_LIBADD = ../src/libhamlib.la
@@ -114,7 +117,7 @@ am_libhamlib_kachina_a_OBJECTS = 505dsp.$(OBJEXT) kachina.$(OBJEXT)
 libhamlib_kachina_a_OBJECTS = $(am_libhamlib_kachina_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_kachina_la_LIBADD =
+libhamlib_kachina_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_kachina_la_OBJECTS = 505dsp.lo kachina.lo
 libhamlib_kachina_la_OBJECTS = $(am_libhamlib_kachina_la_OBJECTS)
 

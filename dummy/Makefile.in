@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -93,8 +96,8 @@ install_sh = @install_sh@
 lib_LTLIBRARIES = libhamlib-dummy.la
 libhamlib_dummy_la_SOURCES = dummy.c
 libhamlib_dummy_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_dummy_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_dummy_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-dummy.a
 libhamlib_dummy_a_SOURCES = dummy.c
 libhamlib_dummy_a_LIBADD = ../src/libhamlib.la
@@ -112,7 +115,7 @@ am_libhamlib_dummy_a_OBJECTS = dummy.$(OBJEXT)
 libhamlib_dummy_a_OBJECTS = $(am_libhamlib_dummy_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_dummy_la_LIBADD =
+libhamlib_dummy_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_dummy_la_OBJECTS = dummy.lo
 libhamlib_dummy_la_OBJECTS = $(am_libhamlib_dummy_la_OBJECTS)
 

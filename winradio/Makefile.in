@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -97,8 +100,8 @@ WRSRCLIST = wr1000.c wr1500.c wr1550.c wr3100.c wr3150.c wr3500.c wr3700.c
 lib_LTLIBRARIES = libhamlib-winradio.la
 libhamlib_winradio_la_SOURCES = $(WRSRCLIST) winradio.c
 libhamlib_winradio_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_winradio_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-winradio.a
 libhamlib_winradio_a_SOURCES = $(WRSRCLIST) winradio.c
 libhamlib_winradio_a_LIBADD = ../src/libhamlib.la
@@ -118,7 +121,7 @@ am_libhamlib_winradio_a_OBJECTS = wr1000.$(OBJEXT) wr1500.$(OBJEXT) \
 libhamlib_winradio_a_OBJECTS = $(am_libhamlib_winradio_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_winradio_la_LIBADD =
+libhamlib_winradio_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_winradio_la_OBJECTS = wr1000.lo wr1500.lo wr1550.lo \
 	wr3100.lo wr3150.lo wr3500.lo wr3700.lo winradio.lo
 libhamlib_winradio_la_OBJECTS = $(am_libhamlib_winradio_la_OBJECTS)

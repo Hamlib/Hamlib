@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -95,8 +98,8 @@ ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c icall.c
 lib_LTLIBRARIES = libhamlib-icom.la
 libhamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c
 libhamlib_icom_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_icom_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_icom_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-icom.a
 libhamlib_icom_a_SOURCES = $(ICOMSRCLIST) icom.c frame.c
 libhamlib_icom_a_LIBADD = ../src/libhamlib.la
@@ -116,7 +119,7 @@ am_libhamlib_icom_a_OBJECTS = ic706.$(OBJEXT) icr8500.$(OBJEXT) \
 libhamlib_icom_a_OBJECTS = $(am_libhamlib_icom_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_icom_la_LIBADD =
+libhamlib_icom_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_icom_la_OBJECTS = ic706.lo icr8500.lo ic735.lo ic775.lo \
 	ic756.lo icall.lo icom.lo frame.lo
 libhamlib_icom_la_OBJECTS = $(am_libhamlib_icom_la_OBJECTS)

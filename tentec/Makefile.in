@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -95,8 +98,8 @@ TENTECSRCLIST = rx320.c
 lib_LTLIBRARIES = libhamlib-tentec.la
 libhamlib_tentec_la_SOURCES = $(TENTECSRCLIST) tentec.c
 libhamlib_tentec_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_tentec_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_tentec_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-tentec.a
 libhamlib_tentec_a_SOURCES = $(TENTECSRCLIST) tentec.c
 libhamlib_tentec_a_LIBADD = ../src/libhamlib.la
@@ -114,7 +117,7 @@ am_libhamlib_tentec_a_OBJECTS = rx320.$(OBJEXT) tentec.$(OBJEXT)
 libhamlib_tentec_a_OBJECTS = $(am_libhamlib_tentec_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_tentec_la_LIBADD =
+libhamlib_tentec_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_tentec_la_OBJECTS = rx320.lo tentec.lo
 libhamlib_tentec_la_OBJECTS = $(am_libhamlib_tentec_la_OBJECTS)
 

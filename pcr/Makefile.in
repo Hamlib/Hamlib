@@ -60,6 +60,9 @@ host_triplet = @host@
 AMTAR = @AMTAR@
 AS = @AS@
 AWK = @AWK@
+BACKENDEPS = @BACKENDEPS@
+BACKENDLNK = @BACKENDLNK@
+BACKEND_LIST = @BACKEND_LIST@
 CC = @CC@
 CPP = @CPP@
 CXX = @CXX@
@@ -95,8 +98,8 @@ PCRSRCLIST = pcr1000.c pcr100.c
 lib_LTLIBRARIES = libhamlib-pcr.la
 libhamlib_pcr_la_SOURCES = $(PCRSRCLIST) pcr.c
 libhamlib_pcr_la_LDFLAGS = -no-undefined -module -avoid-version
+libhamlib_pcr_la_LIBADD = ../src/libhamlib.la
 
-#libhamlib_pcr_la_LIBADD = ../src/libhamlib.la
 lib_LIBRARIES = libhamlib-pcr.a
 libhamlib_pcr_a_SOURCES = $(PCRSRCLIST) pcr.c
 libhamlib_pcr_a_LIBADD = ../src/libhamlib.la
@@ -115,7 +118,7 @@ am_libhamlib_pcr_a_OBJECTS = pcr1000.$(OBJEXT) pcr100.$(OBJEXT) \
 libhamlib_pcr_a_OBJECTS = $(am_libhamlib_pcr_a_OBJECTS)
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
-libhamlib_pcr_la_LIBADD =
+libhamlib_pcr_la_DEPENDENCIES = ../src/libhamlib.la
 am_libhamlib_pcr_la_OBJECTS = pcr1000.lo pcr100.lo pcr.lo
 libhamlib_pcr_la_OBJECTS = $(am_libhamlib_pcr_la_OBJECTS)
 
