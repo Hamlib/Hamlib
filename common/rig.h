@@ -5,7 +5,7 @@
  * will be used for obtaining rig capabilities.
  *
  *
- * 	$Id: rig.h,v 1.12 2000-09-21 06:44:44 f4cfe Exp $	 *
+ * 	$Id: rig.h,v 1.13 2000-09-24 03:37:57 javabear Exp $	 *
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,9 +37,9 @@
 #define RIG_ECONF		2			/* invalid configuration (serial,..) */
 #define RIG_ENOMEM		3			/* memory shortage */
 #define RIG_ENIMPL		4			/* function not implemented */
-#define RIG_ETIMEOUT	5			/* communication timed out */
+#define RIG_ETIMEOUT	        5                       /* communication timed out */
 #define RIG_EIO			6			/* IO error, including open failed */
-#define RIG_EINTERNAL	7			/* Internal Hamlib error, huh! */
+#define RIG_EINTERNAL	        7			/* Internal Hamlib error, huh! */
 #define RIG_EPROTO		8			/* Protocol error */
 #define RIG_ERJCTED		9			/* Command rejected by the rig */
 #define RIG_ETRUNC 		10			/* Command performed, but arg truncated */
@@ -118,7 +118,10 @@ enum vfo_e {
 	RIG_VFO_TX,
 	RIG_VFO_SUB,
 	RIG_VFO_SAT_RX,
-	RIG_VFO_SAT_TX
+	RIG_VFO_SAT_TX,
+	RIG_VFO_A,
+	RIG_VFO_B,
+	RIG_VFO_C,
 
 };
 
@@ -129,6 +132,8 @@ enum ptt_e {
 	RIG_PTT_ON
 };
 
+typedef enum ptt_e ptt_t;
+
 enum ptt_type_e {
 	RIG_PTT_BUILTIN = 0,		/* PTT controlable through remote interface */
 	RIG_PTT_SERIAL,				/* PTT accessed through CTS/RTS */
@@ -137,7 +142,7 @@ enum ptt_type_e {
 };
 
 
-typedef enum ptt_e ptt_t;
+typedef enum ptt_type_e ptt_type_t;
 
 /*
  * These are activated functions.
