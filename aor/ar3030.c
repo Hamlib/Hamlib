@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.2 2004-07-03 15:01:55 t_mills Exp $
+ *	$Id: ar3030.c,v 1.3 2004-07-05 14:38:34 t_mills Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -328,7 +328,8 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned char freqbuf[BUFSZ];
 
 	/*
-	 * DRnGnBnTnFnnnnnnnnC
+	 * D Rn Gn Bn Tn Fnnnnnnnn C 
+    * Note: spaces are transmitted.
 	 */
 	retval = ar3030_transaction (rig, "D" EOM, 3, freqbuf, &freq_len);
 	if (retval != RIG_OK)
@@ -339,7 +340,6 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	if (!rfp)
 		return -RIG_EPROTO;
 	sscanf(rfp+1,"%"FREQFMT, freq);
-	*freq *= 10;
 
 	return RIG_OK;
 }
@@ -386,7 +386,8 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	unsigned char buf[BUFSZ];
 
 	/*
-	 * DRnGnBnTnFnnnnnnnnC
+	 * D Rn Gn Bn Tn Fnnnnnnnn C
+	 * Note: spaces are transmitted
 	 */
 	retval = ar3030_transaction (rig, "D" EOM, 3, buf, &buf_len);
 	if (retval != RIG_OK)
