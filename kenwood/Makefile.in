@@ -99,10 +99,11 @@ TCL_SRC_DIR = @TCL_SRC_DIR@
 VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
+cf_with_perl = @cf_with_perl@
 hamlibdocdir = @hamlibdocdir@
 install_sh = @install_sh@
 
-TSSRCLIST = ts870s.c ts570.c ts450s.c ts2000.c ts950.c ts50s.c \
+TSSRCLIST = ts850.c ts870s.c ts570.c ts450s.c ts2000.c ts950.c ts50s.c \
 				ts790.c thd7.c thf7.c
 
 
@@ -119,8 +120,9 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
 libhamlib_kenwood_la_DEPENDENCIES = ../src/libhamlib.la
-am_libhamlib_kenwood_la_OBJECTS = ts870s.lo ts570.lo ts450s.lo ts2000.lo \
-	ts950.lo ts50s.lo ts790.lo thd7.lo thf7.lo kenwood.lo th.lo
+am_libhamlib_kenwood_la_OBJECTS = ts850.lo ts870s.lo ts570.lo ts450s.lo \
+	ts2000.lo ts950.lo ts50s.lo ts790.lo thd7.lo thf7.lo kenwood.lo \
+	th.lo
 libhamlib_kenwood_la_OBJECTS = $(am_libhamlib_kenwood_la_OBJECTS)
 
 DEFS = @DEFS@
@@ -133,8 +135,8 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 @AMDEP_TRUE@	$(DEPDIR)/thd7.Plo $(DEPDIR)/thf7.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/ts2000.Plo $(DEPDIR)/ts450s.Plo \
 @AMDEP_TRUE@	$(DEPDIR)/ts50s.Plo $(DEPDIR)/ts570.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ts790.Plo $(DEPDIR)/ts870s.Plo \
-@AMDEP_TRUE@	$(DEPDIR)/ts950.Plo
+@AMDEP_TRUE@	$(DEPDIR)/ts790.Plo $(DEPDIR)/ts850.Plo \
+@AMDEP_TRUE@	$(DEPDIR)/ts870s.Plo $(DEPDIR)/ts950.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -206,6 +208,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts50s.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts570.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts790.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts850.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts870s.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@$(DEPDIR)/ts950.Plo@am__quote@
 
