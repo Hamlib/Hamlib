@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.27 2002-01-22 00:56:13 fillods Exp $  
+ * $Id: rigctl.c,v 1.28 2002-01-27 23:58:24 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -74,6 +74,7 @@ void usage();
 void usage_rig();
 void version();
 void list_models();
+void dump_chan(RIG*, channel_t*);
 static int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(RIG *my_rig, char *conf_parms);
 
@@ -346,8 +347,12 @@ int main (int argc, char *argv[])
 					exit(1);
 		}
 	}
-	if (verbose < 2)
-		rig_set_debug(RIG_DEBUG_WARN);
+
+	rig_set_debug(verbose<2 ? RIG_DEBUG_WARN: verbose);
+
+	rig_debug(RIG_DEBUG_VERBOSE, "rigctl, %s\n", hamlib_version);
+	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
+					"<hamlib-developer@lists.sourceforge.net>\n\n");
 
 	/*
 	 * at least one command on command line, 
@@ -407,6 +412,8 @@ int main (int argc, char *argv[])
 	if (verbose > 0)
 			printf("Opened rig model %d, '%s'\n", my_rig->caps->rig_model,
 							my_rig->caps->model_name);
+	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n", 
+					my_rig->caps->version, strstatus(my_rig->caps->status));
 
 #define MAXARGSZ 127
 	while (1) {
@@ -554,7 +561,7 @@ void usage()
 	"  -P, --ptt-type=TYPE        set type of the PTT device to operate on\n"
 	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
-	"  -c, --civaddr=ID           set CI-V address (for Icom rigs only)\n"
+	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
@@ -1115,7 +1122,7 @@ declare_proto_rig(scan)
 
 declare_proto_rig(set_channel)
 {
-		fprintf(stderr,"rigctl_set_channel not implemented yet!\n");
+		fprintf(stderr,"rigctl set_channel not implemented yet!\n");
 		return -RIG_ENIMPL;
 }
 
@@ -1129,7 +1136,7 @@ declare_proto_rig(get_channel)
 		status = rig_get_channel(rig, &chan);
 		if (status != RIG_OK)
 				return status;
-		/* TODO: dump data here */
+		dump_chan(rig, &chan);
 		return status;
 }
 
@@ -1166,5 +1173,70 @@ declare_proto_rig(get_info)
 			printf("%s: ", cmd->arg1);
 		printf("%s\n", s ? s : "None");
 		return RIG_OK;
+}
+
+
+void dump_chan(RIG *rig, channel_t *chan)
+{
+	int idx, firstloop=1;
+	char freqbuf[16];
+	char widthbuf[16];
+	char prntbuf[256];
+
+	printf("Channel: %d, Name: '%s'\n", chan->channel_num, 
+					chan->channel_desc);
+
+	printf("VFO: %s, Antenna: %d, Split %s\n", strvfo(chan->vfo),
+					chan->ant, chan->split==RIG_SPLIT_ON?"ON":"OFF");
+
+	sprintf_freq(freqbuf, chan->freq);
+	sprintf_freq(widthbuf, chan->width);
+	printf("Freq:   %s\tMode:   %s\tWidth:   %s\n", 
+						freqbuf, strmode(chan->mode), widthbuf);
+
+	sprintf_freq(freqbuf, chan->tx_freq);
+	sprintf_freq(widthbuf, chan->tx_width);
+	printf("txFreq: %s\ttxMode: %s\ttxWidth: %s\n", 
+						freqbuf, strmode(chan->tx_mode), widthbuf);
+
+	sprintf_freq(freqbuf,chan->rptr_offs);
+	printf("Shift: %s, Offset: %s%s, ", strptrshift(chan->rptr_shift),
+						chan->rptr_offs>0?"+":"", freqbuf);
+
+	sprintf_freq(freqbuf,chan->tuning_step);
+	printf("Step: %s, ", freqbuf);
+	sprintf_freq(freqbuf,chan->rit);
+	printf("RIT: %s%s, ", chan->rit>0?"+":"", freqbuf);
+	sprintf_freq(freqbuf,chan->xit);
+	printf("XIT: %s%s\n", chan->xit>0?"+":"", freqbuf);
+
+	printf("CTCSS: %d.%dHz, ", chan->ctcss_tone/10, chan->ctcss_tone%10);
+	printf("CTCSSsql: %d.%dHz, ", chan->ctcss_sql/10, chan->ctcss_sql%10);
+	printf("DCS: %d.%d, ", chan->dcs_code/10, chan->dcs_code%10);
+	printf("DCSsql: %d.%d\n", chan->dcs_sql/10, chan->dcs_sql%10);
+
+	sprintf_func(prntbuf, chan->funcs);
+	printf("Functions: %s\n", prntbuf);
+	
+	printf("Levels:");
+	for (idx=0; idx<60; idx++) {
+			setting_t level = rig_idx2setting(idx);
+			const char *level_s;
+
+			if (!rig_has_set_level(rig, level))
+					continue;
+			level_s = strlevel(level);
+			if (!level_s)
+					continue;	/* duh! */
+			if (firstloop)
+					firstloop = 0;
+			else
+					printf(",\t");
+			if (RIG_LEVEL_IS_FLOAT(level))
+					printf(" %s: %g%%", level_s, 100*chan->levels[idx].f);
+			else
+					printf(" %s: %d", level_s, chan->levels[idx].i);
+	}
+	printf("\n");
 }
 
