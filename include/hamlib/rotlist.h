@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rotators
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.8 2003-01-12 14:29:14 n0nb Exp $
+ *	$Id: rotlist.h,v 1.9 2003-06-22 19:38:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -126,6 +126,17 @@
 #define ROT_MODEL_ROTORCARD ROT_MAKE_MODEL(ROT_ROTOREZ, 2)
 #define ROT_MODEL_DCU ROT_MAKE_MODEL(ROT_ROTOREZ, 3)
 
+/*! \def ROT_MODEL_SARTEK1
+ *  \brief A macro that returns the model number of the SARtek-1 backend.
+ *
+ *  The sartek backend can be used with rotators that support the
+ *  SARtek protocol.
+ */
+#define ROT_SARTEK 5
+#define ROT_BACKEND_SARTEK "sartek"
+#define ROT_MODEL_SARTEK1 ROT_MAKE_MODEL(ROT_SARTEK, 1)
+
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
@@ -145,6 +156,7 @@ typedef int rot_model_t;
         { ROT_EASYCOMM, ROT_BACKEND_EASYCOMM }, \
         { ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
         { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ }, \
+        { ROT_SARTEK, ROT_BACKEND_SARTEK }, \
         { 0, NULL }, /* end */  \
 }
 
