@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main file
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *		$Id: pcr.c,v 1.13 2002-03-13 23:37:12 fillods Exp $
+ *		$Id: pcr.c,v 1.14 2002-03-13 23:56:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -104,6 +104,14 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	if (retval != RIG_OK)
 			return retval;
 
+	/* eat the first ack */
+	retval = read_string(&rs->rigport, data, 1, "\x0a", 1);
+	if (retval < 0)
+			return retval;
+	if (retval != 1)
+			return -RIG_EPROTO;
+
+	/* here is the real response */
 	*data_len = read_string(&rs->rigport, data, *data_len, "\x0a", 1);
 
 	return RIG_OK;
