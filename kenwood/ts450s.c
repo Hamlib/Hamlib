@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.12 2002-12-17 12:08:05 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.13 2002-12-17 22:46:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -238,11 +238,11 @@ const struct rig_caps ts450s_caps = {
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB, kHz(2.2)},
-		{RIG_MODE_CW, Hz(200)},
-		{RIG_MODE_RTTY, Hz(500)},
-		{RIG_MODE_AM, kHz(9)},
-		{RIG_MODE_FM, kHz(14)},
+		{RIG_MODE_SSB, kHz(2.4)},
+		{RIG_MODE_CW|RIG_MODE_RTTY, Hz(500)},
+		{RIG_MODE_AM, kHz(6)},
+		{RIG_MODE_FM, kHz(12)},
+		{RIG_MODE_FM, kHz(6)},
 		RIG_FLT_END,
 	},
 .priv =  (void *)&ts450_priv_caps,
