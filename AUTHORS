@@ -11,10 +11,11 @@ Contributors:
 
 Backends:
 
- ft747: 		Frank Singleton
- ft847: 		Frank Singleton
+ ft747,ft847:	Frank Singleton, VK3FCS
+ ft817: 		Chris, AA1VL
  winradio:		Pascal Brisset
- icom&others:	Stephane Fillod
+ icom&others:	Stephane Fillod, F8CFE
+ kenwood:		High quality testing by Joop, PA4TU
 
 Frontend:
  Stephane Fillod and Frank Singleton
@@ -22,9 +23,11 @@ Frontend:
 Web site:	http://hamlib.sf.net/
  Nate Bargmann
 
-email addresses:
+e-mail addresses:
 
-Frank Singleton <vk3fcs (at) ix.netcom.com>
-Stephane Fillod <f4cfe (at) users.sourceforge.net>
+Frank Singleton, VK3FCS, <vk3fcs (at) ix.netcom.com>
+Stephane Fillod, F8CFE, <fillods (at) users.sourceforge.net>
 Pascal Brisset <pab (at) users.sourceforge.net>
-Nate Bargmann <n0nb@ (at) networksplus.net>
+Nate Bargmann, N0NB, <n0nb (at) networksplus.net>
+Chris, AA1VL, <aa1vl (at) arrl.net>
+Joop Stakenborg, PA4TU, <pa3aba (at) debian.org>
