@@ -9,7 +9,7 @@
 # Make file for libft747.so shared lib test suite.
 #
 #
-#	$Id: Makefile,v 1.2 2000-07-27 00:47:56 javabear Exp $	
+#	$Id: Makefile,v 1.3 2000-09-03 23:38:23 javabear Exp $	
 #
 #
 #
@@ -26,7 +26,7 @@ LIB_HEADER	=	ft747.h
 COMMON_DIR	=	../../common/
 
 CC	=	gcc
-INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include 
+INCLUDE	=	-I/usr/include -I/usr/local/include -I. -I../include -I$(COMMON_DIR)
 OBJ	=	testlibft747.o $(COMMON_DIR)serial.o
 LDFLAG	=	-lm -lft747 -L../lib
 CFLAGS	=	-g -Wall -ansi -pedantic -O2 -D__USE_FIXED_PROTOTYPES__ 
