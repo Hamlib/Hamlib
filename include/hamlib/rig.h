@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.82 2003-06-22 19:39:31 fillods Exp $
+ *	$Id: rig.h,v 1.83 2003-07-03 06:47:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -94,7 +94,7 @@ enum rig_errcode_e {
 	RIG_ENAVAIL,		/*<! function not available */
 	RIG_ENTARGET,		/*<! VFO not targetable */
 	RIG_BUSERROR,		/*<! Error talking on the bus */
-	RIG_BUSBUSY,		/*<! Collision on the bus */
+	RIG_BUSBUSY		/*<! Collision on the bus */
 };
 
 /**
@@ -160,7 +160,7 @@ typedef enum rig_port_e {
   RIG_PORT_DTMF,		/*!< DTMF protocol bridge via another rig, eg. Kenwood Sky Cmd System */
   RIG_PORT_ULTRA,		/*!< IrDA Ultra protocol! */
   RIG_PORT_RPC,			/*!< RPC wrapper */
-  RIG_PORT_PARALLEL,		/*!< Parallel port */
+  RIG_PORT_PARALLEL		/*!< Parallel port */
 } rig_port_t;
 
 /**
@@ -204,7 +204,7 @@ typedef enum {
 	RIG_FLAG_APRS =		(1<<8),		/*!< has APRS */
 	RIG_FLAG_TNC =		(1<<9),		/*!< has TNC */
 	RIG_FLAG_DXCLUSTER =	(1<<10),	/*!< has DXCluster */
-	RIG_FLAG_TUNER =	(1<<11),	/*!< dumb tuner */
+	RIG_FLAG_TUNER =	(1<<11) 	/*!< dumb tuner */
 } rig_type_t;
 
 #define RIG_FLAG_TRANSCEIVER (RIG_FLAG_RECEIVER|RIG_FLAG_TRANSMITTER)
@@ -248,7 +248,7 @@ typedef enum {
  */
 typedef enum {
   RIG_SPLIT_OFF = 0,		/*!< Split mode disabled */
-  RIG_SPLIT_ON,			/*!< Split mode enabled */
+  RIG_SPLIT_ON			/*!< Split mode enabled */
 } split_t;
 
 /**
@@ -357,7 +357,7 @@ typedef enum {
   RIG_DCD_RIG,			/*!< Rig has DCD status support, i.e. rig has get_dcd cap */
   RIG_DCD_SERIAL_DSR,		/*!< DCD status from serial DSR signal */
   RIG_DCD_SERIAL_CTS,		/*!< DCD status from serial CTS signal */
-  RIG_DCD_PARALLEL,		/*!< DCD status from parallel port pin */
+  RIG_DCD_PARALLEL		/*!< DCD status from parallel port pin */
 } dcd_type_t;
 
 
@@ -387,7 +387,7 @@ typedef enum {
 typedef enum {
   RIG_POWER_OFF =	0,		/*!< Power off */
   RIG_POWER_ON =	(1<<0),		/*!< Power on */
-  RIG_POWER_STANDBY =	(1<<1),		/*!< Standby */
+  RIG_POWER_STANDBY =	(1<<1)		/*!< Standby */
 } powerstat_t;
 
 /**
@@ -398,7 +398,7 @@ typedef enum {
   RIG_RESET_SOFT =	(1<<0),		/*!< Software reset */
   RIG_RESET_VFO =	(1<<1),		/*!< VFO reset */
   RIG_RESET_MCALL =	(1<<2),		/*!< Memory clear */
-  RIG_RESET_MASTER =	(1<<3),		/*!< Master reset */
+  RIG_RESET_MASTER =	(1<<3)		/*!< Master reset */
 } reset_t;
 
 
@@ -426,7 +426,7 @@ typedef enum {
 	RIG_OP_BAND_DOWN =	(1<<8),	/*!< Band DOWN */
 	RIG_OP_LEFT =		(1<<9),	/*!< LEFT */
 	RIG_OP_RIGHT =		(1<<10),/*!< RIGHT */
-	RIG_OP_TUNE =		(1<<11),/*!< Start tune */
+	RIG_OP_TUNE =		(1<<11) /*!< Start tune */
 } vfo_op_t;
 
 
@@ -441,7 +441,7 @@ typedef enum {
 	RIG_SCAN_PRIO =		(1<<2),	/*!< Priority watch (mem or call channel) */
 	RIG_SCAN_PROG =		(1<<3),	/*!< Programmed(edge) scan */
 	RIG_SCAN_DELTA =	(1<<4),	/*!< delta-f scan */
-	RIG_SCAN_VFO =		(1<<5),	/*!< most basic scan */
+	RIG_SCAN_VFO =		(1<<5) 	/*!< most basic scan */
 } scan_t;
 
 /**
@@ -458,7 +458,7 @@ enum rig_conf_e {
 	RIG_CONF_STRING,	/*!<	String type */
 	RIG_CONF_COMBO,		/*!<	Combo type */
 	RIG_CONF_NUMERIC,	/*!<	Numeric type (integer or real) */
-	RIG_CONF_CHECKBUTTON,	/*!<	on/off type */
+	RIG_CONF_CHECKBUTTON	/*!<	on/off type */
 };
 
 #define RIG_COMBO_MAX	8
@@ -495,7 +495,7 @@ typedef enum {
 	RIG_ANN_RXMODE = (1<<1),	/*!< Announce receive mode */
 	RIG_ANN_CW = (1<<2),		/*!< CW */
 	RIG_ANN_ENG = (1<<3),		/*!< English */
-	RIG_ANN_JAP = (1<<4),		/*!< Japan */
+	RIG_ANN_JAP = (1<<4)		/*!< Japan */
 } ann_t;
 
 
@@ -515,7 +515,7 @@ enum agc_level_e {
 	RIG_AGC_SUPERFAST,
 	RIG_AGC_FAST,
 	RIG_AGC_SLOW,
-	RIG_AGC_USER,		/*!< user selectable */
+	RIG_AGC_USER		/*!< user selectable */
 };
 
 /**
@@ -527,7 +527,7 @@ enum meter_level_e {
   RIG_METER_COMP =	(1<<1),		/*< Compression level */
   RIG_METER_ALC =	(1<<2),		/*< ALC */
   RIG_METER_IC =	(1<<3),		/*< IC */
-  RIG_METER_DB =	(1<<4),		/*< DB */
+  RIG_METER_DB =	(1<<4)		/*< DB */
 };
 
 /**
@@ -574,7 +574,7 @@ enum rig_level_e {
 	RIG_LEVEL_SQLSTAT =	(1<<27),/*!< SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 	RIG_LEVEL_SWR =		(1<<28),/*!< SWR, arg float */
 	RIG_LEVEL_ALC =		(1<<29),/*!< ALC, arg float */
-	RIG_LEVEL_STRENGTH =	(1<<30),/*!< Signal strength, arg int (dB) */
+	RIG_LEVEL_STRENGTH =	(1<<30) /*!< Signal strength, arg int (dB) */
 };
 
 #define RIG_LEVEL_FLOAT_LIST (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_APF|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_COMP|RIG_LEVEL_BALANCE|RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX)
@@ -597,7 +597,7 @@ enum rig_parm_e {
 	RIG_PARM_BEEP =		(1<<4),	/*!< Beep on keypressed, int (0,1) */
 	RIG_PARM_TIME =		(1<<5),	/*!< hh:mm:ss, int in seconds from 00:00:00 */
 	RIG_PARM_BAT =		(1<<6),	/*!< battery level, float [0.0..1.0] */
-	RIG_PARM_KEYLIGHT =	(1<<7), /*!< Button backlight, on/off */
+	RIG_PARM_KEYLIGHT =	(1<<7)  /*!< Button backlight, on/off */
 };
 
 #define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT)
@@ -659,7 +659,7 @@ enum rig_func_e {
 	RIG_FUNC_SCOPE =  	(1<<27),/*!< Simple bandscope ON/OFF */
 	RIG_FUNC_RESUME =	(1<<28),/*!< Scan auto-resume */
 	RIG_FUNC_TBURST =	(1<<29),/*!< 1750 Hz tone burst */
-	RIG_FUNC_TUNER =	(1<<30),/*!< Enable automatic tuner */
+	RIG_FUNC_TUNER =	(1<<30) /*!< Enable automatic tuner */
 };
 
 /*
@@ -685,7 +685,7 @@ typedef enum {
 	RIG_MODE_WFM =   	(1<<6),	/*!< broadcast wide FM */
 	RIG_MODE_CWR =   	(1<<7),	/*!< CW reverse sideband */
 	RIG_MODE_RTTYR =	(1<<8),	/*!< RTTY reverse sideband */
-	RIG_MODE_AMS =    	(1<<9),	/*!< Amplitude Modulation Synchronous */
+	RIG_MODE_AMS =    	(1<<9)	/*!< Amplitude Modulation Synchronous */
 } rmode_t;
 
 /** \brief macro for backends, no to be used by rig_set_mode et al. */
