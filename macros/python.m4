@@ -41,7 +41,7 @@ AC_DEFUN([PYTHON_DEVEL],[
 	done
 	AC_MSG_RESULT([$python_path])
 	if test -z "$python_path" ; then
-		AC_MSG_ERROR([cannot find Python include path])
+		AC_MSG_WARN([cannot find Python include path])
 	fi
 	AC_SUBST(PYTHON_CPPFLAGS,[-I$python_path])
 ])
