@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.24 2004-08-21 23:53:38 fillods Exp $
+ *	$Id: frame.c,v 1.25 2004-09-06 18:10:49 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -299,7 +299,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 		case RIG_MODE_USB:	icmode = S_USB; break;
 		case RIG_MODE_LSB:	icmode = S_LSB; break;
 		case RIG_MODE_RTTY:	icmode = S_RTTY; break;
-		case RIG_MODE_RTTYR:icmode = S_RTTYR; break;
+		case RIG_MODE_RTTYR:	icmode = S_RTTYR; break;
 		case RIG_MODE_FM:	icmode = S_FM; break;
 		case RIG_MODE_WFM:	icmode = S_WFM; break;
 		default:
@@ -353,7 +353,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 		case S_USB:	*mode = RIG_MODE_USB; break;
 		case S_LSB:	*mode = RIG_MODE_LSB; break;
 		case S_RTTY:	*mode = RIG_MODE_RTTY; break;
-		case S_RTTYR: *mode = RIG_MODE_RTTYR; break;
+		case S_RTTYR:	*mode = RIG_MODE_RTTYR; break;
 		case 0xff:	*mode = RIG_MODE_NONE; break;	/* blank mem channel */
 
 		default:
@@ -363,7 +363,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 		}
 		
 		/* IC-R75 returns passband indexes 1-wide, 2-normal,3-narrow */
-		if (rig->caps->rig_model == RIG_MODEL_ICR75)
+		if ((rig->caps->rig_model == RIG_MODEL_ICR75) || (rig->caps->rig_model == RIG_MODEL_IC756PROII))
 			pd = 3-pd;
 		
 		switch (pd) {
