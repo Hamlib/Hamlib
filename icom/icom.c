@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.65 2002-09-11 21:30:22 fillods Exp $
+ *	$Id: icom.c,v 1.66 2002-09-18 21:19:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -636,7 +636,8 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			break;
 		case RIG_LEVEL_ATT:
 			lvl_cn = C_CTL_ATT;
-			lvl_sc = val.i;
+			/* attenuator level is dB, in BCD mode */
+			lvl_sc = (val.i/10)<<4 | (val.i%10);
 			lvl_len = 0;
 			break;
 		case RIG_LEVEL_AF:
@@ -910,7 +911,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			}
 			val->i = rs->preamp[icom_val-1];
 			break;
-		/* RIG_LEVEL_ATT: returned value is already an integer in dB ! */
+		/* RIG_LEVEL_ATT: returned value is already an integer in dB (coded in BCD) */
 		default:
 			if (RIG_LEVEL_IS_FLOAT(level))
 				val->f = (float)icom_val/255;
@@ -918,7 +919,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				val->i = icom_val;
 		}
 
-		rig_debug(RIG_DEBUG_VERBOSE,"get_level: %d %d %d %f\n", lvl_len,
+		rig_debug(RIG_DEBUG_TRACE,"icom_get_level: %d %d %d %f\n", lvl_len,
 						icom_val, val->i, val->f);
 
 		return RIG_OK;
