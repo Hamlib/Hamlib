@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod
  *
- *		$Id: kenwood.c,v 1.16 2001-10-18 20:43:13 f4cfe Exp $
+ *		$Id: kenwood.c,v 1.17 2001-11-09 15:44:38 f4cfe Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -51,6 +51,7 @@
 
 
 #define EOM ';'
+#define EOM_TH '\r'
 
 /*
  * modes in use by the "MD" command
@@ -97,6 +98,8 @@ static const struct kenwood_id kenwood_id_list[] = {
 static const struct kenwood_id_string kenwood_id_string_list[] = {
 	{ RIG_MODEL_THD7A,  "TH-D7" },
 	{ RIG_MODEL_THD7AG, "TH-D7G" },
+	{ RIG_MODEL_THF6A, "TH-F6" },
+	{ RIG_MODEL_THF7E, "TH-F7" },
 	{ RIG_MODEL_NONE, NULL },	/* end marker */
 };
 
@@ -139,7 +142,8 @@ static int port_transaction(port_t *port, const char *cmd, int cmd_len, char *da
 				continue;	/* huh!? */
 		if (retval < 0)
 				return retval;
-	} while (data[i++] != EOM);
+		i++;
+	} while (data[i-1] != EOM && data[i-1] != EOM_TH);
 
 	*data_len = i;
 
@@ -1037,6 +1041,7 @@ int init_kenwood(void *be_handle)
 		rig_register(&ts570s_caps);
 		rig_register(&ts870s_caps);
 		rig_register(&thd7a_caps);
+		rig_register(&thf7e_caps);
 
 		return RIG_OK;
 }
