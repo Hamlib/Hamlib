@@ -12,7 +12,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000,2001 by Stephane Fillod and Frank Singleton
  *
- *		$Id: rig.c,v 1.51 2001-12-26 23:47:07 fillods Exp $
+ *		$Id: rig.c,v 1.52 2001-12-27 22:00:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,7 +202,7 @@ RIG *rig_init(rig_model_t rig_model)
 		RIG *rig;
 		const struct rig_caps *caps;
 		struct rig_state *rs;
-		int i;
+		int i, retcode;
 
 		rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_init called \n");
 
@@ -274,12 +274,10 @@ RIG *rig_init(rig_model_t rig_model)
 		}
 
 		rs->vfo_list = 0;
-		for (i=0; i<FRQRANGESIZ; i++) {
-				if (rs->rx_range_list[i].start != 0 &&
-								rs->rx_range_list[i].end != 0)
+		for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++) {
 					rs->vfo_list |= rs->rx_range_list[i].vfo;
-				if (rs->tx_range_list[i].start != 0 &&
-								rs->tx_range_list[i].end != 0)
+		}
+		for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++) {
 					rs->vfo_list |= rs->tx_range_list[i].vfo;
 		}
 
@@ -307,10 +305,18 @@ RIG *rig_init(rig_model_t rig_model)
 
 		/* 
 		 * let the backend a chance to setup his private data
-		 * FIXME: check rig_init() return code
+		 * This must be done only once defaults are setup,
+		 * so the backend init can override rig_state.
 		 */
-		if (caps->rig_init != NULL)
-				caps->rig_init(rig);	
+		if (caps->rig_init != NULL) {
+				retcode = caps->rig_init(rig);
+				if (retcode != RIG_OK) {
+						rig_debug(RIG_DEBUG_VERBOSE,"rig:backend_init failed!\n");
+						/* cleanup and exit */
+						free(rig);
+						return NULL;
+				}
+		}
 
 		return rig;
 }
