@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-746 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic746.c,v 1.1 2003-10-24 22:59:18 fillods Exp $
+ *	$Id: ic746.c,v 1.2 2003-11-16 17:24:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,7 @@
 
 #include <hamlib/rig.h>
 #include "token.h"
+#include "idx_builtin.h"
 
 #include "icom.h"
 #include "icom_defs.h"
@@ -42,7 +43,7 @@
  *
  * TODO:
  * 	- advanced scanning functions
- * 	- set_ant 0x12,[1|2]
+ * 	- fix: set_ant 0x12,[1|2]
  * 	- set_channel
  * 	- set_ctcss_tone/ctcss_sql
  * 	- set keyer?
@@ -62,13 +63,13 @@
 
 #define IC746_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RNF|RIG_FUNC_ANF|RIG_FUNC_APF)
 
-#define IC746_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH)
+#define IC746_LEVEL_ALL (RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_APF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
 
 #define IC746_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 #define IC746_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 #define IC746_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
-#define IC746_SCAN_OPS (RIG_SCAN_MEM)
+#define IC746_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM)
 
 #define IC746_STR_CAL { 16, \
 	{ \
@@ -96,8 +97,7 @@
 static const struct icom_priv_caps ic746_priv_caps = { 
 		0x56,	/* default address */
 		0,		/* 731 mode */
-		ic756pro_ts_sc_list,
-		IC746_STR_CAL	/* FIXME */
+		ic756pro_ts_sc_list
 };
 
 const struct rig_caps ic746_caps = {
@@ -127,7 +127,9 @@ const struct rig_caps ic746_caps = {
 .has_set_level =  RIG_LEVEL_SET(IC746_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
-.level_gran =  {}, 		/* granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
@@ -198,6 +200,7 @@ const struct rig_caps ic746_caps = {
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(9)},
 		RIG_FLT_END,
 	},
+.str_cal = IC746_STR_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
@@ -214,6 +217,8 @@ const struct rig_caps ic746_caps = {
 .set_mode =  icom_set_mode,
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
+.set_ant =  icom_set_ant,
+.get_ant =  icom_get_ant,
 
 .decode_event =  icom_decode_event,
 .set_level =  icom_set_level,
@@ -246,8 +251,7 @@ const struct rig_caps ic746_caps = {
 static const struct icom_priv_caps ic746pro_priv_caps = { 
 		0x66,	/* default address */
 		0,		/* 731 mode */
-		ic756pro_ts_sc_list,
-		IC746_STR_CAL	/* FIXME */
+		ic756pro_ts_sc_list
 };
 
 const struct rig_caps ic746pro_caps = {
@@ -277,10 +281,12 @@ const struct rig_caps ic746pro_caps = {
 .has_set_level =  RIG_LEVEL_SET(IC746_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
-.level_gran =  {}, 		/* granularity */
+.level_gran = {
+	[LVL_RAWSTR].min.i = 0, [LVL_RAWSTR].max.i = 255,
+	},
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
-.dcs_list =  NULL,
+.dcs_list =  full_dcs_list,
 .preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC */
 .attenuator =   { 20, RIG_DBLST_END, },
 .max_rit =  Hz(9999),
@@ -296,6 +302,7 @@ const struct rig_caps ic746pro_caps = {
 .chan_list =  {
 			   {   1,  99, RIG_MTYPE_MEM  },
 			   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+			   { 102, 102, RIG_MTYPE_CALL },
 			   RIG_CHAN_END,
 		},
 
@@ -343,12 +350,14 @@ const struct rig_caps ic746pro_caps = {
 
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
-		{RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_CW, kHz(2.1)},
-		{RIG_MODE_CW, Hz(500)},
-		{RIG_MODE_FM, kHz(12)},
-		{RIG_MODE_FM|RIG_MODE_AM, kHz(9)},
+		{RIG_MODE_SSB|RIG_MODE_RTTYR|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_CW, kHz(2.4)},
+		{RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(350)},
+		{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
+		{RIG_MODE_FM, kHz(15)},
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(6)},
 		RIG_FLT_END,
 	},
+.str_cal = IC746_STR_CAL,
 
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
@@ -365,6 +374,8 @@ const struct rig_caps ic746pro_caps = {
 .set_mode =  icom_set_mode,
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
+.set_ant =  icom_set_ant,
+.get_ant =  icom_get_ant,
 
 .decode_event =  icom_decode_event,
 .set_level =  icom_set_level,

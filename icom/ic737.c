@@ -1,8 +1,8 @@
 /*
- *  Hamlib CI-V backend - description of IC-737 and variations
+ *  Hamlib CI-V backend - description of IC-737
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic737.c,v 1.3 2003-10-01 19:31:56 fillods Exp $
+ *	$Id: ic737.c,v 1.4 2003-11-16 17:24:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,7 +33,6 @@
 
 /*
  * IC-737
- * TODO: add antenna caps and ic737_set_ant support: Cn 0x12, Sc 0x00/0x01
  */
 
 
@@ -50,24 +49,19 @@
 #define IC737_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY)
 #define IC737_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_PROG|RIG_SCAN_VFO)
 
-#define IC737_ANTS 0	/* FIXME: declare both antenna connectors */
+#define IC737_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-#define IC737_STR_CAL { 0, { } }
-
-/*
- */
 static const struct icom_priv_caps ic737_priv_caps = { 
 		0x3c,	/* default address */
 		0,		/* 731 mode */
-		ic737_ts_sc_list,
-		IC737_STR_CAL
+		ic737_ts_sc_list
 };
 
 const struct rig_caps ic737_caps = {
 .rig_model =  RIG_MODEL_IC737,
 .model_name = "IC-737", 
 .mfg_name =  "Icom", 
-.version =  "0.2", 
+.version =  "0.2.1", 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -168,6 +162,8 @@ const struct rig_caps ic737_caps = {
 .set_mode =  icom_set_mode,
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
+.set_ant =  icom_set_ant,
+.get_ant =  icom_get_ant,
 
 .decode_event =  icom_decode_event,
 .set_mem =  icom_set_mem,
