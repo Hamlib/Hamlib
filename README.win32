@@ -1,0 +1,90 @@
+Message-ID: <40D5E4A4.4080305@starpower.net>
+From: "Mark J. Fine" <fineware@starpower.net>
+Subject: [Hamlib-developer] Building under Cygwin for Windows (Mingw32)
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=hamlib-developer>
+Date: Sun, 20 Jun 2004 15:25:24 -0400
+
+
+
+Found this to be helpful for building hamlib under Cygwin/Mingw32 for 
+linking with Windows apps:
+
+1. To create the dlls, do the following from within Cygwin (assumes 
+Cygwin is fully updated):
+
+Modify include/hamlib/rig.h to put the include for sys/time.h in the 
+windows build, i.e.:
+   #if defined(__CYGWIN__) || defined(_WIN32)
+   #include <windows.h>        /* HANDLE definition */
+   #include <sys/time.h>        /* required for struct timeval */
+   #else
+   #include <sys/time.h>        /* required for struct timeval */
+   #endif
+
+Modify ./configure.ac to put all of the AC_CONFIG_FILES parameters all 
+on one line, i.e.:
+   AC_CONFIG_FILES([Makefile macros/Makefile include/Makefile 
+lib/Makefile dummy/Makefile yaesu/Makefile icom/Makefile aor/Makefile 
+kenwood/Makefile winradio/Makefile pcr/Makefile alinco/Makefile 
+uniden/Makefile tentec/Makefile kachina/Makefile jrc/Makefile 
+drake/Makefile lowe/Makefile rft/Makefile kit/Makefile tapr/Makefile 
+gnuradio/Makefile easycomm/Makefile fodtrack/Makefile sartek/Makefile 
+rpcrig/Makefile rpcrot/Makefile src/Makefile c++/Makefile 
+bindings/Makefile tests/Makefile doc/Makefile rotorez/Makefile 
+microtune/Makefile flexradio/Makefile hamlib.pc hamlib.spec])
+For some reason Cygwin doesn't like it.
+
+# export CC="gcc -mno-cygwin"
+# export CXX="g++ -mno-cygwin"
+# ./autogen.sh --prefix=/usr/local --disable-static --disable-xmltest 
+--without-rpc-backends --without-tcl-binding --without-perl-binding 
+--without-python-binding --build=i686-pc-cygwin --host=i686-pc-mingw32 
+--target=i686-pc-mingw32
+Note: on subsequent runs you can replace ./autogen.sh with ./configure
+
+Modify include/config.h to put the sleep back in, i.e.:
+   /* Define to 1 if you have win32 Sleep */
+   /* #undef HAVE_SSLEEP */
+   #define HAVE_SSLEEP 1
+   #define HAVE_SLEEP 1
+For some reason ./configure doesn't properly recognize it.
+
+Copy /usr/include/iconv.h into /usr/include/mingw/ otherwise rigmem 
+won't build.
+
+# make
+
+Don't run "make install" if you've already made a native Cygwin version 
+of hamlib, since it will screw up the pkgconfig for Cygwin linking.
+Instead, manually go through all of the .libs and copy the resulting 
+.exes and .dlls in to a single directory, or create a script to do it 
+for you.
+
+Also, copy the files in include/hamlib into this directory, but unmodify 
+rig.h from before, i.e:
+   #if defined(__CYGWIN__) || defined(_WIN32)
+   #include <windows.h>        /* HANDLE definition */
+   #else
+   #include <sys/time.h>        /* required for struct timeval */
+   #endif
+
+Go to the directory you've just put all that stuff in and run:
+# strip *.dll
+# strip *.exe
+This will make the resulting images smaller.
+
+2. To create a MSVC-compatible interface library, do the following in a 
+Windows command window from the directory where you put all that stuff:
+
+ > lib /def:libhamlib.def /machine:IX86 /name:libhamlib-1-2-2cvs-2
+
+This will create libhamlib.lib and libhamlib.exp.
+
+libhamlib.lib and the .h includes from include/hamlib can now be used 
+within any MSVC build (i.e., dream), but all the dlls must be put in the 
+same directory as the resulting .exe otherwise it won't find it.
+
+-- 
+
+Mark J. Fine
+Remington, Virginia, USA
