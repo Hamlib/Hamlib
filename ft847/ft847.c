@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.11 2000-07-30 02:03:48 javabear Exp $  
+ * $Id: ft847.c,v 1.12 2000-07-30 02:53:22 javabear Exp $  
  *
  */
 
@@ -548,6 +548,7 @@ static char calc_char_from_packed(unsigned char pkd ) {
  
   return dec;
 }
+
 
 
 
