@@ -5,7 +5,7 @@
  * Provides useful routines for read/write serial data for communicating
  * via serial interface .
  *
- * $Id: serial.c,v 1.1 2000-07-25 01:01:00 javabear Exp $  
+ * $Id: serial.c,v 1.2 2000-07-28 00:49:49 javabear Exp $  
  *
  */
 
@@ -163,4 +163,36 @@ int write_block(int fd, unsigned char *data) {
     pause2();			/* 50 msec */
   }
   return 0;
+}
+
+
+/*
+ * Read "num" bytes from "fd" and put results into
+ * an array of unsigned char pointed to by "rxbuffer"
+ * 
+ * Sleeps every second until number of bytes to read
+ * is the amount requested.
+ *
+ * It the reads "num" bytes into rxbuffer.
+ *
+ */
+
+
+int read_sleep(int fd, unsigned char *rxbuffer, int num ) {  
+  int bytes = 0;
+  int n = 0;
+
+  while(1) {
+    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
+    printf("bytes  = %i\n", bytes);
+    if (bytes == num)
+      break;
+    sleep(1);			/* wait 1 second and try again */
+  }
+
+  /* this should not block now */
+  
+  n = read(fd,rxbuffer,num);	/* grab num bytes from rig */
+
+  return n;			/* return bytes read */
 }
