@@ -1,9 +1,8 @@
-
 /*
  *  Hamlib TenTenc backend - TT-538 description
- *  Copyright (c) 2003-2004 by Stephane Fillod
+ *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: jupiter.c,v 1.2 2004-11-08 21:52:30 fillods Exp $
+ *	$Id: jupiter.c,v 1.3 2005-02-26 22:29:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -211,7 +210,7 @@ static int tt538_rxFilter[] = {
    response from the 538 isn't seen by the laptop.  A few "XX"s
    sometimes get things going again, hence this hack, er, function. */
 
-int tt538_transaction (RIG *rig, const char *cmd, int cmd_len,
+static int tt538_transaction (RIG *rig, const char *cmd, int cmd_len,
 	char *data, int *data_len)
 {
 	char	reset_buf[32];
@@ -493,7 +492,7 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 /* Find rx filter index of bandwidth the same or larger as requested. */
-int tt538_filter_number(int width)
+static int tt538_filter_number(int width)
 {
 	int	i;
 
