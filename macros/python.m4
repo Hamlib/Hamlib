@@ -28,6 +28,9 @@ AC_DEFUN([PYTHON_DEVEL],[
 
 	# Check for Python include path
 	AC_MSG_CHECKING([for Python include path])
+	if test -z "$PYTHON" ; then
+		AC_MSG_WARN([cannot find Python path])
+	else
 	python_path=${PYTHON%/bin*}
 	for i in "$python_path/include/python$PYTHON_VERSION/" "$python_path/include/python/" "$python_path/" ; do
 		python_path=`find $i -type f -name Python.h -print`
@@ -42,6 +45,8 @@ AC_DEFUN([PYTHON_DEVEL],[
 	AC_MSG_RESULT([$python_path])
 	if test -z "$python_path" ; then
 		AC_MSG_WARN([cannot find Python include path])
+	else
+		AC_SUBST(PYTHON_CPPFLAGS,[-I$python_path])
 	fi
-	AC_SUBST(PYTHON_CPPFLAGS,[-I$python_path])
+	fi
 ])
