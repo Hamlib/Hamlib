@@ -13,6 +13,7 @@ int main ()
 	RIG *my_rig;		/* handle to rig (nstance) */
 	freq_t freq;		/* frequency  */
 	rmode_t rmode;		/* radio mode of operation */
+	pbwidth_t width;
 	vfo_t vfo;		/* vfo selection */
 	int strength;		/* S-Meter level */
 	int retcode;		/* generic return code from functions */
@@ -95,7 +96,7 @@ int main ()
 	  printf("rig_set_freq: error = %s \n", rigerror(retcode));
 	} 
 
-	retcode = rig_set_mode(my_rig, RIG_MODE_LSB);
+	retcode = rig_set_mode(my_rig, RIG_MODE_LSB, RIG_PASSBAND_NORMAL);
 
 	if (retcode != RIG_OK ) {
 	  printf("rig_set_mode: error = %s \n", rigerror(retcode));
@@ -122,7 +123,7 @@ int main ()
 	  printf("rig_get_freq: error =  %s \n", rigerror(retcode));
 	}
 
-	retcode = rig_get_mode(my_rig, &rmode);
+	retcode = rig_get_mode(my_rig, &rmode, &width);
 
 	if (retcode == RIG_OK ) {
 	  printf("rig_get_mode: mode = %i \n", rmode);
