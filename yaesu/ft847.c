@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.22 2003-04-07 22:42:05 fillods Exp $  
+ * $Id: ft847.c,v 1.23 2003-05-03 11:24:44 fillods Exp $  
  *
  *
  *
@@ -460,7 +460,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
    */
 
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%i \n", vfo);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", strvfo(vfo));
   
   switch(vfo) {
   case RIG_VFO_MAIN:
@@ -517,7 +517,7 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 
   p = (struct ft847_priv_data*)rs->priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%i \n", vfo);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft847: vfo =%s \n", strvfo(vfo));
   
   if (vfo == RIG_VFO_MAIN)
 		  vfo = p->current_vfo;
@@ -562,13 +562,11 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 			   *mode = RIG_MODE_CW;
 			   break;
 
-#ifdef RIG_MODE_CWR
   case MD_CWNR:
 			   *width = rig_passband_narrow(rig, RIG_MODE_CW);
   case MD_CWR: 
 				*mode = RIG_MODE_CWR;
 				break;
-#endif
 
   case MD_AMN:
 			   *width = rig_passband_narrow(rig, RIG_MODE_AM);
