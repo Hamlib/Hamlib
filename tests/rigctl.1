@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "September 22, 2002" "Hamlib"
+.TH RIGCTL "1" "March 28, 2003" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -79,6 +79,10 @@ List all model numbers and exit.
 .B \-u, \-\-dump\-caps
 Dump capabilities and exit.
 .TP
+.B \-o, \-\-vfo
+Set vfo mode, requiring an extra VFO argument in front of each appropriate command.
+Otherwise, VFO_CURR is assumed when this option is not set.
+.TP
 .B \-v, \-\-verbose
 Set verbose mode, cumulative (BUG, ERR, WARN, VERBOSE, TRACE).
 .TP
@@ -114,7 +118,7 @@ Set frequency, in Hz.
 Get frequency, in Hz.
 .TP
 .B M, set_mode
-Set mode/passband: AM, FM, CW, USB, LSB, RTTY, WFM.
+Set mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM.
 The passband is the exact passband in Hz, or 0 for the default.
 .TP
 .B m, get_mode
@@ -132,10 +136,10 @@ Set RIT, in Hz.
 .B j, get_rit
 Get RIT, in Hz.
 .TP
-.B set_xit
+.B Z, set_xit
 Set XIT, in Hz.
 .TP
-.B get_xit
+.B z, get_xit
 Get XIT, in Hz.
 .TP
 .B T, set_ptt
@@ -189,7 +193,7 @@ Get tuning step.
 .B U, set_func
 Set func/status:
 FAGC, NB, COMP, VOX, TONE, TSQL, SBKIN, FBKIN, ANF, NR, AIP, MON, MN,
-RNF, ARO, LOCK, MUTE, VSC, REV, SQL, BC, MBC, LMP, AFC, SATMODE, SCOPE, RESUME.
+RNF, ARO, LOCK, MUTE, VSC, REV, SQL, BC, MBC, AFC, SATMODE, SCOPE, RESUME, TUNER.
 .TP
 .B u, get_func
 Get func status.
@@ -222,7 +226,7 @@ Get memory channel number.
 .TP
 .B G, vfo_op
 Perform VFO operation:
-CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT.
+CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT, TUNER.
 .TP
 .B g, scan_op
 Perform scan operation/channel: STOP, MEM, SLCT, PRIO, DELTA.
@@ -260,7 +264,7 @@ option or arg; or 2 if an error was returned by Hamlib.
 .SH AUTHOR
 Written by Stephane Fillod.
 .SH BUGS
-Cannot target VFO. Use set_vfo as a workaround.
+set_chan has no entry method as of yet, hence left unimplemented.
 .PP
 This almost empty section...
 .SH REPORTING BUGS
@@ -268,7 +272,7 @@ Report bugs to <hamlib-developer@users.sourceforge.net>.
 .br
 I'm already aware of the bug in the previous section :-)
 .SH COPYRIGHT
-Copyright \(co 2000-2002 Stephane Fillod & Frank Singleton.
+Copyright \(co 2000-2003 Stephane Fillod & Frank Singleton.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
