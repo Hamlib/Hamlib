@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: frame.c,v 1.18 2002-03-18 23:04:27 fillods Exp $
+ *		$Id: frame.c,v 1.19 2003-01-06 22:04:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -255,7 +255,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 				unsigned char *md, char *pd)
 {
 		unsigned char icmode;
-		char icmode_ext;
+		signed char icmode_ext;
 		pbwidth_t medium_width;
 
 		icmode_ext = -1;
