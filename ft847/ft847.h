@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.2 2000-07-25 23:14:35 javabear Exp $  
+ *    $Id: ft847.h,v 1.3 2000-07-28 02:02:22 javabear Exp $  
  */
 
 /*
@@ -17,20 +17,20 @@
 #undef TX_ENABLED
 
 /*
- * TX Status Flags
- */
-
-const unsigned char  TXSF_DISC_CENTER     = (1<<5);
-const unsigned char  TXSF_CTCSS_DCS_CODE  = (1<<6);
-const unsigned char  TXSF_SQUELCH_STATUS  = (1<<7);
-const unsigned char  TXSF_SMETER_MASK     = 0x1f; /* bottom 5 bits */
-
-/*
  * RX Status Flags
  */
 
-const unsigned char  RXSF_PTT_STATUS        = (1<<7);
-const unsigned char  RXSF_POALC_METER_MASK  = 0x1f; /* bottom 5 bits */
+const unsigned char  RXSF_DISC_CENTER     = (1<<5);
+const unsigned char  RXSF_CTCSS_DCS_CODE  = (1<<6);
+const unsigned char  RXSF_SQUELCH_STATUS  = (1<<7);
+const unsigned char  RXSF_SMETER_MASK     = 0x1f; /* bottom 5 bits */
+
+/*
+ * TX Status Flags
+ */
+
+const unsigned char  TXSF_PTT_STATUS        = (1<<7);
+const unsigned char  TXSF_POALC_METER_MASK  = 0x1f; /* bottom 5 bits */
 
 
 

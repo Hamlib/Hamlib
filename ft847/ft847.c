@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.5 2000-07-28 01:20:00 javabear Exp $  
+ * $Id: ft847.c,v 1.6 2000-07-28 02:04:49 javabear Exp $  
  *
  */
 
@@ -258,6 +258,8 @@ unsigned char cmd_get_rx_status(int fd) {
   write_block(fd,data);
   n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
 
+  printf("datain[0] = %x \n",datain[0]);
+
   return datain[0];
 
 }
@@ -329,7 +331,7 @@ unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
 unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd) {
   int n;			/* counters */
 
-  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x13 }; /* get freq and mode status */
+  static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x23 }; /* get freq and mode status */
 								  /* sat tx vfo*/
 
   write_block(fd,data);

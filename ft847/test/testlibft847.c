@@ -5,7 +5,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: testlibft847.c,v 1.4 2000-07-26 00:37:26 javabear Exp $  
+ * $Id: testlibft847.c,v 1.5 2000-07-28 02:03:27 javabear Exp $  
  *
  */
 
@@ -26,46 +26,49 @@ static unsigned char datain[5]; /* data read from rig */
 
 
 /*
- * Decode routine for rx status update map
+ * Decode routine for TX status update map
  */
 
-static void decode_rx_status_flags(unsigned char rxflag) {
+static void decode_tx_status_flags(unsigned char txflag) {
 
-  if((rxflag & RXSF_PTT_STATUS) != 0 ) {
+  printf("TX Status = %i \n", txflag);
+  printf("TXSF_PTT_STATUS = %i \n",TXSF_PTT_STATUS);
+
+  if((txflag & TXSF_PTT_STATUS) != 0 ) {
     printf("PTT = OFF (RX) \n");
   } else {
     printf("PTT = ON (TX) \n");
   }
 
-  printf("PO/ALC Meter Data = %i \n", rxflag & RXSF_POALC_METER_MASK);
+  printf("PO/ALC Meter Data = %i \n", txflag & TXSF_POALC_METER_MASK);
 
 }
 
 /*
- * Decode routine for tx status update map
+ * Decode routine for RX status update map
  */
 
-static void decode_tx_status_flags(unsigned char txflag) {
+static void decode_rx_status_flags(unsigned char rxflag) {
 
-  if((txflag & TXSF_DISC_CENTER) != 0 ) {
+  if((rxflag & RXSF_DISC_CENTER) != 0 ) {
     printf("Discriminator = Off Center  \n");
   } else {
     printf("Discriminator = Centered \n");
   }
 
-  if((txflag & TXSF_SQUELCH_STATUS) != 0 ) {
+  if((rxflag & RXSF_SQUELCH_STATUS) != 0 ) {
     printf("Squelch = Squelch On (no signal)  \n");
   } else {
     printf("Squelch = Squelch Off (signal present)  \n");
   }
 
-  if((txflag & TXSF_CTCSS_DCS_CODE) != 0 ) {
+  if((rxflag & RXSF_CTCSS_DCS_CODE) != 0 ) {
     printf("CTCSS/DCS Code = Un-Matched  \n");
   } else {
     printf("CTCSS/DCS Code = Matched  \n");
   }
 
-  printf("S-Meter Meter Data = %i \n", txflag & TXSF_SMETER_MASK);
+  printf("S-Meter Meter Data = %i \n", rxflag & RXSF_SMETER_MASK);
 
 }
 
@@ -151,11 +154,13 @@ static int test(fd) {
   cmd_cat_on(fd);		/* cat on */
   sleep(1);
   cmd_sat_on(fd);		/* sat mode on */
-  sleep(1);
+  sleep(5);
   cmd_sat_off(fd);		/* sat mode off */
   sleep(1);
 
   data1 = cmd_get_rx_status(fd);
+  printf("data1 = %i \n", data1);
+
   decode_rx_status_flags(data1);
   sleep(1);
   cmd_cat_off(fd);		/* cat off */
