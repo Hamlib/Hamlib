@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: th.c,v 1.22 2004-11-11 17:51:53 f4dwv Exp $
+ *	$Id: th.c,v 1.23 2004-12-06 22:15:14 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -717,7 +717,7 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
             retval = sscanf(ackbuf, "PC %d,%d", &v, &l);
-            if (retval != 1 || l < 0 || l > 3) {
+            if (retval != 2 || l < 0 || l > 3) {
                 rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
                 return -RIG_ERJCTED;
             }
@@ -966,8 +966,8 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 int
 th_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-        unsigned char *membuf;
-        int retval;
+	unsigned char *membuf, ackbuf[ACKBUF_LEN];
+	int retval,ack_len=ACKBUF_LEN;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -982,7 +982,7 @@ th_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
                 return -RIG_EINVAL;
         }
 
-        retval = kenwood_transaction(rig, membuf, strlen(membuf), NULL, NULL);
+        retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
                 return retval;
 
