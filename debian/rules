@@ -13,43 +13,38 @@ version=`cat configure.ac|grep AC_INIT|cut -d"," -f2|cut -d"[" -f2|cut -d"]" -f1
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	./configure --prefix=/usr --mandir=\$${prefix}/share/man
-
+	./configure --prefix=/usr --mandir=\$${prefix}/share/man --without-cxx-binding
 	touch configure-stamp
 
 build: configure-stamp build-stamp
 build-stamp:
 	dh_testdir
-
 	# Add here commands to compile the package.
 	$(MAKE)
 	$(MAKE) -C doc doc
-
 	touch build-stamp
 
 clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp config.log config.status
-
 	# Add here commands to clean up after the build process.
-	-$(MAKE) distclean
-
+	-$(MAKE) clean
 	dh_clean
+	rm -f build-stamp configure-stamp config.log config.status libltdl/config.log libltdl/config.status
 
 install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-
 	# Add here commands to install the package into debian/tmp
 	$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
-
 	# Move the appropriate files into the development package..
 	mv $(CURDIR)/debian/tmp/usr/lib/libhamlib.so $(CURDIR)/debian/hamlib-dev/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/lib/*.a $(CURDIR)/debian/hamlib-dev/usr/lib/
 	mv $(CURDIR)/debian/tmp/usr/lib/*.la $(CURDIR)/debian/hamlib-dev/usr/lib/
+	rm -f $(CURDIR)/debian/tmp/usr/include/hamlib/rigclass.h
+	rm -f $(CURDIR)/debian/tmp/usr/include/hamlib/rotclass.h
 	mv $(CURDIR)/debian/tmp/usr/include/hamlib $(CURDIR)/debian/hamlib-dev/usr/include/
 	mv $(CURDIR)/debian/tmp/usr/lib/pkgconfig/hamlib.pc $(CURDIR)/debian/hamlib-dev/usr/lib/pkgconfig/
 	mv $(CURDIR)/debian/tmp/usr/share/aclocal/hamlib.m4 $(CURDIR)/debian/hamlib-dev/usr/share/aclocal/
@@ -100,10 +95,10 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xpcr -Xrotorez -Xrpc -Xtentec -Xuniden -Xwinradio -Xyaesu
+	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xpcr -Xrotorez -Xrpc -Xtentec -Xuniden -Xwinradio -Xyaesu
 	dh_installdeb
 #	dh_perl
-	dh_shlibdeps
+	dh_shlibdeps -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xpcr -Xrotorez -Xrpc -Xtentec -Xuniden -Xwinradio -Xyaesu
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

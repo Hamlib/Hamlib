@@ -1,9 +1,9 @@
 Source: hamlib
 Section: hamradio
 Priority: optional
-Maintainer: Terry Dawson <terry@animats.net>
+Maintainer: Joop Stakenborg <pa3aba@debian.org>
 Build-Depends: debhelper (>> 3.0.0), doxygen
-Standards-Version: 3.5.7
+Standards-Version: 3.5.9
 
 Package: hamlib1
 Architecture: any
@@ -24,7 +24,7 @@ Description: Run-time library to control radio transcievers and receivers
 
 Package: hamlib-dev
 Architecture: any
-Section: devel
+Section: libdevel
 Depends: hamlib1 (= ${Source-Version}), libc6-dev
 Description: Development library to control radio transcievers and receivers
  Most recent amateur radio transceivers allow external control of their

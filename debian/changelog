@@ -1,3 +1,41 @@
+hamlib (1.1.4-6) unstable; urgency=low
+
+  * This time fix it correctly. Call dh_makeshlibs with -V option.
+    Closes: #194607.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Mon, 26 May 2003 17:43:29 +0200
+
+hamlib (1.1.4-5) unstable; urgency=low
+
+  * Modify shlibs.local, so we have the correct build dependencies.
+    Thanks Hamish. Closes: #194607.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sun, 25 May 2003 19:02:37 +0200
+
+hamlib (1.1.4-4) unstable; urgency=low
+
+  * Don't check on libieee in the configure script, as this messes up
+    builds on arm and it is an empty library anyway.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Tue,  6 May 2003 21:10:57 +0200
+
+hamlib (1.1.4-3) unstable; urgency=low
+
+  * Include rig_dll.h in the hamlib-dev package, it is needed by rig.h.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Fri,  2 May 2003 19:06:19 +0200
+
+hamlib (1.1.4-2) unstable; urgency=low
+
+  * This time really change the Maintainer field in the control file.
+  * Update standards version.
+  * Don't build C++ libraries.
+  * Fix override disparity for hamlib-dev.
+  * Clean up libltdl directory before building.
+  * Don't include C++ and cygwin headers.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Thu,  1 May 2003 20:38:30 +0200
+
 hamlib (1.1.4-1) unstable; urgency=low
 
   * New upstream.
