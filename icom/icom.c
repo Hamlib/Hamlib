@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000,2001,2002 by Stephane Fillod
  *
- *		$Id: icom.c,v 1.47 2001-12-28 20:28:03 fillods Exp $
+ *		$Id: icom.c,v 1.48 2002-01-24 23:37:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -820,7 +820,10 @@ int icom_set_conf(RIG *rig, token_t token, const char *val)
 
 		switch(token) {
 			case TOK_CIVADDR:
-					priv->re_civ_addr = atoi(val);
+					if (val[0] == '0' && val[1] == 'x')
+						priv->re_civ_addr = strtol(val, (char **)NULL, 16);
+					else
+						priv->re_civ_addr = atoi(val);
 					break;
 			case TOK_MODE731:
 					priv->civ_731_mode = atoi(val) ? 1:0;
