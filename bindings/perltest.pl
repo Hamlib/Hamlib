@@ -2,7 +2,7 @@
 
 use Hamlib;
 
-print "Version: $Hamlib::hamlib_version\n";
+print "Perl test, version: $Hamlib::hamlib_version\n";
 print "FM: $Hamlib::RIG_MODE_FM\n";
 
 Hamlib::rig_set_debug($Hamlib::RIG_DEBUG_TRACE);
@@ -26,7 +26,14 @@ $f = $rig->get_freq();
 print "freq: $f\n";
 
 ($mode, $width) = $rig->get_mode();
-print "mode: $mode, width: $width\n";
+print "get_mode: $mode, width: $width\n";
+
+$vfo = $rig->get_vfo();
+print "get_vfo: $vfo\n";
+#$rig->set_vfo($Hamlib::RIG_VFO_A);
+$rig->set_vfo("VFOA");
+
+$rig->set_mode($Hamlib::RIG_MODE_CW, $Hamlib::RIG_PASSBAND_NORMAL);
 
 print "ITU region: $rig->{state}->{itu_region}\n";
 print "Copyright: $rig->{caps}->{copyright}\n";
