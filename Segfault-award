@@ -1,0 +1,7 @@
+This is the "Hamlib Segfault Honor Roll".
+
+The distinctive HSHR is granted to people that were able to segfault Hamlib.
+Here is the list of the brave fellows:
+
+* David Kjellquist WB5NHL, v1.1.3, 09/2002, kenwood/ts570.c
+	caught on TS570D backend startup.
