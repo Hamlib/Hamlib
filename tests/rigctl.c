@@ -7,7 +7,7 @@
  * TODO: be more generic and add command line option to run 
  * 		in non-interactive mode
  *
- * $Id: rigctl.c,v 1.5 2001-02-07 23:53:30 f4cfe Exp $  
+ * $Id: rigctl.c,v 1.6 2001-02-11 23:22:06 f4cfe Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -78,6 +78,9 @@ static int get_channel(RIG *rig);
 static int set_trn(RIG *rig);
 static int get_trn(RIG *rig);
 
+/*
+ * TODO: add missing rig_set_/rig_get_: rit, ann, ant, dcs, ctcss, etc.
+ */
 struct test_table test_list[] = {
 		{ 'F', "rig_set_freq", set_freq },
 		{ 'f', "rig_get_freq", get_freq },
@@ -118,14 +121,6 @@ struct test_table test_list[] = {
 		{ 'a', "rig_get_trn", get_trn },
 		{ 0x00, "", NULL },
 
-#if 0
- extern setting_t rig_has_level(RIG *rig, setting_t level);
- extern setting_t rig_has_set_level(RIG *rig, setting_t level);
-
- extern setting_t rig_has_func(RIG *rig, setting_t func);        /* is part of capabilities? */
-																	function(s) */
-#endif
-
 };
 
 int main ()
@@ -162,6 +157,10 @@ int main ()
 			exit(1); /* whoops! something went wrong (mem alloc?) */
 
 	strncpy(my_rig->state.rig_path,SERIAL_PORT,FILPATHLEN);
+
+	/* TODO: make this a parameter */
+	my_rig->state.ptt_type = RIG_PTT_PARALLEL;
+	strncpy(my_rig->state.ptt_path,"/dev/parport0",FILPATHLEN);
 
 	if ((retcode = rig_open(my_rig)) != RIG_OK) {
 	  		fprintf(stderr,"rig_open: error = %s \n", rigerror(retcode));
@@ -466,25 +465,66 @@ static int power2mW(RIG *rig)
 
 static int set_level(RIG *rig)
 {
-		return 0;
+		setting_t level;
+		value_t val;
+		unsigned char m;
+
+		printf("Level: ");
+		scanf("%ld", &level);
+		printf("(i)nt or (f)loat: ");
+		scanf("%c", &m);
+		printf("Level: ");
+		if (m == 'f')
+			scanf("%f", &val.f);
+		else
+			scanf("%d", &val.i);
+		return rig_set_level(rig, RIG_VFO_CURR, level, val);
 }
 
 
 static int get_level(RIG *rig)
 {
-		return 0;
+		int status;
+		setting_t level;
+		value_t val;
+
+		printf("Level: ");
+		scanf("%ld", &level);
+		status = rig_get_level(rig, RIG_VFO_CURR, level, &val);
+		printf("Level (int): %d\n", val.i);
+		printf("Level (float): %f\n", val.f);
+		return status;
 }
 
 
 static int set_func(RIG *rig)
 {
-		return 0;
+		setting_t func;
+		int func_stat;
+
+		printf("Func: ");
+		scanf("%ld", &func);
+		printf("Func status: ");
+		scanf("%d", (int*)&func_stat);
+		return rig_set_func(rig, RIG_VFO_CURR, func, func_stat);
 }
 
 
+/*
+ * TODO: if rig_get_func fails, do not printf
+ *		fix all other get_* calls in rigctl..
+ */
 static int get_func(RIG *rig)
 {
-		return 0;
+		int status;
+		setting_t func;
+		int func_stat;
+
+		printf("Func: ");
+		scanf("%ld", &func);
+		status = rig_get_func(rig, RIG_VFO_CURR, func, &func_stat);
+		printf("Function status: %d\n", func_stat);
+		return status;
 }
 
 
