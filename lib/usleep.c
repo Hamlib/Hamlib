@@ -52,7 +52,7 @@ usleep (unsigned int useconds)
   /* The usleep function does not work under the SYS5.3 environment.
      Use the Domain/OS time_$wait call instead. */
   time_$wait (time_$relative, DomainTime100mS, &DomainStatus);
-#elif WIN32
+#elif defined(WIN32) && !defined(__CYGWIN__)
   Sleep( useconds/1000 );
   return 0;
 #else

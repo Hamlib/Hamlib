@@ -1,4 +1,8 @@
-#ifdef WIN32
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #ifdef TRENT_IS_HERE
 #define TRACE
 #define DEBUG
