@@ -34,15 +34,15 @@ rpcrig.h: rpcrig.x
 	rm -f $@
 	$(RPCGEN) -h $< -o $@
 
-rpcrig_clnt.c: rpcrig.x
+rpcrig_clnt.c: rpcrig.x rpcrig.h
 	rm -f $@
 	$(RPCGEN) -l $< -o $@
 
-rpcrig_svc.c: rpcrig.x
+rpcrig_svc.c: rpcrig.x rpcrig.h
 	rm -f $@
 	$(RPCGEN) -m $< -o $@
 
-rpcrig_xdr.c: rpcrig.x
+rpcrig_xdr.c: rpcrig.x rpcrig.h
 	rm -f $@
 	$(RPCGEN) -c $< -o $@
 

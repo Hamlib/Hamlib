@@ -34,15 +34,15 @@ rpcrot.h: rpcrot.x
 	rm -f $@
 	$(RPCGEN) -h $< -o $@
 
-rpcrot_clnt.c: rpcrot.x
+rpcrot_clnt.c: rpcrot.x rpcrot.h
 	rm -f $@
 	$(RPCGEN) -l $< -o $@
 
-rpcrot_svc.c: rpcrot.x
+rpcrot_svc.c: rpcrot.x rpcrot.h
 	rm -f $@
 	$(RPCGEN) -m $< -o $@
 
-rpcrot_xdr.c: rpcrot.x
+rpcrot_xdr.c: rpcrot.x rpcrot.h
 	rm -f $@
 	$(RPCGEN) -c $< -o $@
 
