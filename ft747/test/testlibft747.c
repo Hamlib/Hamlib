@@ -6,7 +6,7 @@
  * box (FIF-232C) or similar.
  *
  *
- * $Id: testlibft747.c,v 1.1 2000-07-18 20:55:01 frank Exp $  
+ * $Id: testlibft747.c,v 1.2 2000-07-27 00:52:26 javabear Exp $  
  *
  */
 
@@ -172,7 +172,7 @@ static int test(fd) {
   sleep(1);
   cmd_dlock_on(fd);
   sleep(1);
-/*    cmd_dlock_off(fd); */
+  cmd_dlock_off(fd);
   sleep(1);
   cmd_select_vfo_a(fd);
   sleep(1);
@@ -204,8 +204,10 @@ static int test(fd) {
    */
 
   bytes = 0;
-  while(bytes < 345) {
+  while(1) {
     ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
+    if (bytes == 345)
+      break;
     printf("bytes  = %i\n", bytes);
     sleep(1);
     
@@ -248,13 +250,13 @@ int main(void) {
 
   int fd;
 
-  fd = open_port(SERIAL_PORT);
+  fd = rig_open(SERIAL_PORT);
   printf("port opened ok \n");
 
   test(fd);
   printf("testing communication result ok \n");
 
-  close(fd);
+  rig_close(fd);
   printf("port closed ok \n");
 
   return 0;
