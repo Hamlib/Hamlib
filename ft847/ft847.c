@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.4 2000-07-26 23:36:54 javabear Exp $  
+ * $Id: ft847.c,v 1.5 2000-07-28 01:20:00 javabear Exp $  
  *
  */
 
@@ -245,72 +245,35 @@ void cmd_set_repeater_offset(int fd, unsigned char d1,  unsigned char d2,
 
 
 /*
- * Get data rx from the RIG...
+ * Get data rx from the RIG...only 1 byte
  *
  */
 
 
 unsigned char cmd_get_rx_status(int fd) {
-  int bytes;			/* read from rig */
   int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0xe7 }; /* get receiver status */
 
   write_block(fd,data);
-
-  /*
-   * Sleep regularly until the buffer contains 1 byte
-   * This should handle most cases.
-   */
-
-  bytes = 0;
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    if (bytes == 1)
-      break;
-    sleep(1);    
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,datain,1);	/* grab 1 byte from rig */
-
-  printf("Byte read = %x \n", datain[0]);
+  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
 
   return datain[0];
-
 
 }
 
 /*
- * Get data tx from the RIG...
+ * Get data tx from the RIG...only 1 byte
  *
  */
 
 unsigned char cmd_get_tx_status(int fd) {
-  int bytes;			/* read from rig */
   int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0xf7 }; /* get tx status */
 
   write_block(fd,data);
-
-  /*
-   * Sleep regularly until the buffer contains all 1 bytes
-   * This should handle most cases.
-   */
-
-  bytes = 0;
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    if (bytes == 1)
-      break;
-    sleep(1);
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,datain,1);	/* grab 1 byte from rig */
+  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
 
   printf("datain[0] = %x \n",datain[0]);
 
@@ -319,35 +282,18 @@ unsigned char cmd_get_tx_status(int fd) {
 }
 
 /*
- * Get freq and mode data from the RIG...
+ * Get freq and mode data from the RIG main VFO...only 1 byte
  *
  */
 
 unsigned char cmd_get_freq_mode_status_main_vfo(int fd) {
-  int bytes;			/* read from rig */
   int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x03 }; /* get freq and mode status */
 								  /* main vfo*/
 
   write_block(fd,data);
-
-  /*
-   * Sleep regularly until the buffer contains all 1 bytes
-   * This should handle most cases.
-   */
-
-  bytes = 0;
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    if (bytes == 1)
-      break;
-    sleep(1);   
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,datain,1);	/* grab 1 byte from rig */
+  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
 
   printf("datain[0] = %x \n", datain[0]);
 
@@ -355,31 +301,19 @@ unsigned char cmd_get_freq_mode_status_main_vfo(int fd) {
 
 }
 
+/*
+ * Get freq and mode data from the RIG  sat RX vfo ...only 1 byte
+ *
+ */
+
 unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
-  int bytes;			/* read from rig */
   int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x13 }; /* get freq and mode status */
 								  /* sat rx vfo*/
 
   write_block(fd,data);
-
-  /*
-   * Sleep regularly until the buffer contains all 1 bytes
-   * This should handle most cases.
-   */
-
-  bytes = 0;
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    if (bytes == 1)
-      break;
-    sleep(1);   
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,datain,1);	/* grab 1 byte from rig */
+  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
 
   printf("datain[0] = %x \n",  datain[0]);
 
@@ -387,31 +321,19 @@ unsigned char cmd_get_freq_mode_status_sat_rx_vfo(int fd) {
 
 }
 
+/*
+ * Get freq and mode data from the RIG sat TX VFO...only 1 byte
+ *
+ */
+
 unsigned char cmd_get_freq_mode_status_sat_tx_vfo(int fd) {
-  int bytes;			/* read from rig */
   int n;			/* counters */
 
   static unsigned char data[] = { 0x00, 0x00, 0x00, 0x00, 0x13 }; /* get freq and mode status */
 								  /* sat tx vfo*/
 
   write_block(fd,data);
-
-  /*
-   * Sleep regularly until the buffer contains all 1 bytes
-   * This should handle most cases.
-   */
-
-  bytes = 0;
-  while(1) {
-    ioctl(fd, FIONREAD, &bytes); /* get bytes in buffer */
-    if (bytes == 1)
-      break;
-    sleep(1);
-  }
-
-  /* this should not block now */
-  
-  n = read(fd,datain,1);	/* grab 1 byte from rig */
+  n = read_sleep(fd,datain,1);	/* wait and read for 1 byte to be read */
 
   printf("datain[0] = %x \n",  datain[0]);
 
