@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.81 2003-11-10 16:01:20 fillods Exp $
+ *	$Id: icom.c,v 1.82 2003-11-16 17:28:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -223,7 +223,6 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC731, 0x02 },	/* need confirmation */
 		{ RIG_MODEL_IC735, 0x04 },
 		{ RIG_MODEL_IC736, 0x40 },
-		{ RIG_MODEL_IC7400, 0x66 },
 		{ RIG_MODEL_IC746, 0x56 },
 		{ RIG_MODEL_IC746PRO, 0x66 },
 		{ RIG_MODEL_IC737, 0x3c },
@@ -244,10 +243,11 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_IC970, 0x2e },
 		{ RIG_MODEL_IC1271, 0x24 },
 		{ RIG_MODEL_IC1275, 0x18 },
+		{ RIG_MODEL_ICR10, 0x52 },
 		{ RIG_MODEL_ICR71, 0x1a },
 		{ RIG_MODEL_ICR72, 0x32 },
 		{ RIG_MODEL_ICR75, 0x5a },
-		{ RIG_MODEL_ICR78, 0x62 },
+		{ RIG_MODEL_IC78, 0x62 },
 		{ RIG_MODEL_ICR7000, 0x08 },
 		{ RIG_MODEL_ICR7100, 0x34 },
 		{ RIG_MODEL_ICR8500, 0x4a },
@@ -255,6 +255,7 @@ static const struct icom_addr icom_addr_list[] = {
 		{ RIG_MODEL_MINISCOUT, 0x94 },
 		{ RIG_MODEL_IC718, 0x5e },
 		{ RIG_MODEL_OS535, 0x80 },
+		{ RIG_MODEL_ICID1, 0x01 },
 		{ RIG_MODEL_NONE, 0 },
 };
 
@@ -300,7 +301,6 @@ int icom_init(RIG *rig)
 
 		priv->re_civ_addr = priv_caps->re_civ_addr;
 		priv->civ_731_mode = priv_caps->civ_731_mode;
-		memcpy(&priv->str_cal, &priv_caps->str_cal, sizeof(cal_table_t));
 
 		return RIG_OK;
 }
@@ -764,7 +764,7 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		 *   sort the switch cases with the most frequent first
 		 */
 		switch (level) {
-		case RIG_LEVEL_STRENGTH:
+		case RIG_LEVEL_RAWSTR:
 			lvl_cn = C_RD_SQSM;
 			lvl_sc = S_SML;
 			break;
@@ -891,8 +891,8 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 
 		switch (level) {
-		case RIG_LEVEL_STRENGTH:
-			val->i = rig_raw2val(icom_val, &priv->str_cal);
+		case RIG_LEVEL_RAWSTR:
+			val->i = icom_val;
 			break;
 		case RIG_LEVEL_SQLSTAT:
 			/*
@@ -1917,124 +1917,6 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 		return RIG_OK;
 }
 
-/*
- * icr75_set_channel
- * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
- * TODO: still a WIP --SF
- */
-int icr75_set_channel(RIG *rig, const channel_t *chan)
-{
-		struct icom_priv_data *priv;
-		struct rig_state *rs;
-		unsigned char chanbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
-		int chan_len, freq_len, ack_len, retval;
-		unsigned char icmode;
-		signed char icmode_ext;
-		int err;
-
-		rs = &rig->state;
-		priv = (struct icom_priv_data*)rs->priv;
-
-		to_bcd_be(chanbuf,chan->channel_num,4);
-
-		chanbuf[2] = S_MEM_CNTNT_SLCT;
-
-		freq_len = priv->civ_731_mode ? 4:5;
-		/*
-		 * to_bcd requires nibble len
-		 */
-		to_bcd(chanbuf+3, chan->freq, freq_len*2);
-
-		chan_len = 3+freq_len+1;
-
-		err = rig2icom_mode(rig, chan->mode, RIG_PASSBAND_NORMAL,
-						&icmode, &icmode_ext);/* FIXME */
-		if (err != RIG_OK)
-				return err;
-
-		chanbuf[chan_len++] = icmode;
-		chanbuf[chan_len++] = icmode_ext;	/* FIXME */
-
-		to_bcd_be(chanbuf+chan_len++,
-						chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i, 2);
-		to_bcd_be(chanbuf+chan_len++,
-						chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i, 2);
-
-		to_bcd_be(chanbuf+chan_len++,chan->ant,2);
-		memset(chanbuf+chan_len, 0, 8);
-		strncpy(chanbuf+chan_len, chan->channel_desc, 8);
-		chan_len += 8;
-
-		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT,
-						chanbuf, chan_len, ackbuf, &ack_len);
-		if (retval != RIG_OK)
-				return retval;
-
-		if (ack_len != 1 || ackbuf[0] != ACK) {
-				rig_debug(RIG_DEBUG_ERR,"icom_set_channel: ack NG (%#.2x), "
-								"len=%d\n", ackbuf[0],ack_len);
-				return -RIG_ERJCTED;
-		}
-
-		return RIG_OK;
-}
-
-/*
- * icr75_get_channel
- * Assumes rig!=NULL, rig->state.priv!=NULL, chan!=NULL
- * TODO: still a WIP --SF
- */
-int icr75_get_channel(RIG *rig, channel_t *chan)
-{
-		struct icom_priv_data *priv;
-		struct rig_state *rs;
-		unsigned char chanbuf[24];
-		int chan_len, freq_len, retval;
-		pbwidth_t width; 	/* FIXME */
-
-		rs = &rig->state;
-		priv = (struct icom_priv_data*)rs->priv;
-
-		to_bcd_be(chanbuf,chan->channel_num,4);
-		chan_len = 2;
-
-		freq_len = priv->civ_731_mode ? 4:5;
-
-		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT,
-						chanbuf, chan_len, chanbuf, &chan_len);
-		if (retval != RIG_OK)
-				return retval;
-
-		/*
-		 * freqbuf should contain Cn,Data area
-		 */
-		chan_len--;
-		if (freq_len != freq_len+16) {
-				rig_debug(RIG_DEBUG_ERR,"icr75_get_channel: wrong frame len=%d\n",
-								chan_len);
-				return -RIG_ERJCTED;
-		}
-
-		/*
-		 * from_bcd requires nibble len
-		 */
-		chan->freq = from_bcd(chanbuf+4, freq_len*2);
-
-		chan_len = 4+freq_len+1;
-
-		icom2rig_mode(rig, chanbuf[chan_len], chanbuf[chan_len+1],
-						&chan->mode, &width);
-		chan_len += 2;
-		chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i =
-				from_bcd_be(chanbuf+chan_len++,2);
-		chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i =
-				from_bcd_be(chanbuf+chan_len++,2);
-		chan->ant = from_bcd_be(chanbuf+chan_len++,2);
-		strncpy(chan->channel_desc, chanbuf+chan_len, 8);
-
-		return RIG_OK;
-}
-
 
 /*
  * icom_set_powerstat
@@ -2149,6 +2031,70 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 
 		return RIG_OK;
 }
+
+/*
+ * icom_set_ant
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
+{
+		struct icom_priv_data *priv;
+		struct rig_state *rs;
+		unsigned char antarg;
+		unsigned char ackbuf[MAXFRAMELEN];
+		int ack_len, retval, i_ant;
+
+		rs = &rig->state;
+		priv = (struct icom_priv_data*)rs->priv;
+
+		/*
+		 * FIXME: IC-756*, IC-746*
+		 */
+		i_ant = ant == RIG_ANT_1 ? 0: 1;
+
+		antarg = 0;
+		retval = icom_transaction (rig, C_CTL_ANT, i_ant,
+						&antarg, 1, ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_set_ant: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0], ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		return RIG_OK;
+}
+
+/*
+ * icom_get_ant
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+{
+		unsigned char ackbuf[MAXFRAMELEN];
+		int ack_len, retval;
+
+		retval = icom_transaction(rig, C_CTL_ANT, -1, NULL, 0,
+						ackbuf, &ack_len);
+		if (retval != RIG_OK)
+				return retval;
+
+		if (ack_len != 1 || ackbuf[0] != ACK) {
+				rig_debug(RIG_DEBUG_ERR,"icom_get_ant: ack NG (%#.2x), "
+								"len=%d\n", ackbuf[0],ack_len);
+				return -RIG_ERJCTED;
+		}
+
+		/*
+		 * FIXME: IC-756*, IC-746*
+		 */
+		*ant = ackbuf[1] == 0 ? RIG_ANT_1 : RIG_ANT_2;
+
+		return RIG_OK;
+}
+
 
 /*
  * icom_vfo_op, Mem/VFO operation
@@ -2560,7 +2506,6 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic735_caps);
 	rig_register(&ic736_caps);
 	rig_register(&ic737_caps);
-	rig_register(&ic7400_caps);
 	rig_register(&ic746_caps);
 	rig_register(&ic746pro_caps);
 	rig_register(&ic775_caps);
@@ -2574,9 +2519,16 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic910_caps);
 	rig_register(&ic970_caps);
 
+        rig_register(&icr10_caps);
+        rig_register(&icr71_caps);
+        rig_register(&icr72_caps);
+        rig_register(&icr75_caps);
         rig_register(&icr7000_caps);
+        rig_register(&icr7100_caps);
 	rig_register(&icr8500_caps);
+	rig_register(&icr9000_caps);
 
+	rig_register(&ic271_caps);
 	rig_register(&ic275_caps);
 	rig_register(&ic471_caps);
 	rig_register(&ic475_caps);
@@ -2585,6 +2537,8 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&os456_caps);
 
 	rig_register(&omnivip_caps);
+
+	rig_register(&id1_caps);
 
 	return RIG_OK;
 }

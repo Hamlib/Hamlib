@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.61 2003-11-10 16:01:21 fillods Exp $
+ *	$Id: icom.h,v 1.62 2003-11-16 17:28:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,7 +88,6 @@ struct icom_priv_caps {
 	unsigned char re_civ_addr;	/* the remote dlft equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	const struct ts_sc_list *ts_sc_list;
-	cal_table_t str_cal;
 	int settle_time; /*!< Receiver settle time, in ms */
 };
 
@@ -96,7 +95,6 @@ struct icom_priv_caps {
 struct icom_priv_data {
 	unsigned char re_civ_addr;	/* the remote equipment's CI-V address*/
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
-	cal_table_t str_cal;
 	pltstate_t *pltstate;	/* only on optoscan */
 };
 
@@ -146,12 +144,12 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-int icr75_set_channel(RIG *rig, const channel_t *chan);
-int icr75_get_channel(RIG *rig, channel_t *chan);
 int icom_set_conf(RIG *rig, token_t token, const char *val);
 int icom_get_conf(RIG *rig, token_t token, char *val);
 int icom_set_powerstat(RIG *rig, powerstat_t status);
 int icom_get_powerstat(RIG *rig, powerstat_t *status);
+int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
+int icom_get_ant(RIG * rig, vfo_t vfo, ant_t *ant);
 int icom_decode_event(RIG *rig);
 
 extern const struct confparams icom_cfg_params[];
@@ -166,7 +164,6 @@ extern const struct rig_caps ic726_caps;
 extern const struct rig_caps ic735_caps;
 extern const struct rig_caps ic736_caps;
 extern const struct rig_caps ic737_caps;
-extern const struct rig_caps ic7400_caps;
 extern const struct rig_caps ic746_caps;
 extern const struct rig_caps ic746pro_caps;
 extern const struct rig_caps ic756_caps;
@@ -178,8 +175,15 @@ extern const struct rig_caps ic781_caps;
 extern const struct rig_caps ic821h_caps;
 extern const struct rig_caps ic910_caps;
 extern const struct rig_caps ic970_caps;
+extern const struct rig_caps icr10_caps;
+extern const struct rig_caps icr71_caps;
+extern const struct rig_caps icr72_caps;
+extern const struct rig_caps icr75_caps;
 extern const struct rig_caps icr7000_caps;
+extern const struct rig_caps icr7100_caps;
 extern const struct rig_caps icr8500_caps;
+extern const struct rig_caps icr9000_caps;
+extern const struct rig_caps ic271_caps;
 extern const struct rig_caps ic275_caps;
 extern const struct rig_caps ic471_caps;
 extern const struct rig_caps ic475_caps;
@@ -189,5 +193,6 @@ extern const struct rig_caps omnivip_caps;
 extern const struct rig_caps os456_caps;
 extern const struct rig_caps os535_caps;
 
-#endif /* _ICOM_H */
+extern const struct rig_caps id1_caps;
 
+#endif /* _ICOM_H */
