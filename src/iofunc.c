@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - generic file based io functions
- *  Copyright (c) 2000,2001,2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *		$Id: iofunc.c,v 1.3 2002-03-12 19:28:52 fillods Exp $
+ *		$Id: iofunc.c,v 1.4 2002-04-23 22:03:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -160,11 +160,13 @@ int read_block(port_t *p, char *rxbuffer, size_t count)
 
 		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
 		if (retval == 0) {
+			dump_hex(rxbuffer, total_count);
 			rig_debug(RIG_DEBUG_WARN, "read_block: timedout after %d chars\n",
 							total_count);
 				return -RIG_ETIMEOUT;
 		}
 		if (retval < 0) {
+			dump_hex(rxbuffer, total_count);
 			rig_debug(RIG_DEBUG_ERR,"read_block: select error after %d chars: "
 							"%s\n", total_count, strerror(errno));
 				return -RIG_EIO;
@@ -227,6 +229,7 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
 
 		retval = select(fd+1, &rfds, NULL, NULL, &tv);
 		if (retval == 0) {
+			dump_hex(rxbuffer, total_count);
 #if 0
 			rig_debug(RIG_DEBUG_WARN, "fread_block: timedout after %d chars\n",
 							total_count);
@@ -234,6 +237,7 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
 				return -RIG_ETIMEOUT;
 		}
 		if (retval < 0) {
+			dump_hex(rxbuffer, total_count);
 			rig_debug(RIG_DEBUG_ERR,"fread_block: select error after %d chars: "
 							"%s\n", total_count, strerror(errno));
 				return -RIG_EIO;
@@ -245,6 +249,7 @@ int fread_block(port_t *p, char *rxbuffer, size_t count)
 		 */
   		rd_count = fread(rxbuffer+total_count, 1, count, p->stream);
 		if (rd_count < 0) {
+				dump_hex(rxbuffer, total_count);
 				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
 									strerror(errno));
 				return -RIG_EIO;
@@ -298,6 +303,7 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
             break;
 
 		if (retval < 0) {
+			dump_hex(rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR,__FUNCTION__": select error after %d chars:"
                             " %s\n", total_count, strerror(errno));
             return -RIG_EIO;
@@ -308,6 +314,7 @@ int read_string(port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
 		 */
         rd_count = read(p->fd, &rxbuffer[total_count], 1);
 		if (rd_count < 0) {
+			dump_hex(rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR, __FUNCTION__": read failed - %s\n",
                             strerror(errno));
             return -RIG_EIO;
