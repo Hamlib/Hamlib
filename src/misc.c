@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: misc.c,v 1.21 2002-08-26 21:26:06 fillods Exp $
+ *	$Id: misc.c,v 1.22 2002-10-07 21:57:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -97,12 +97,13 @@ void dump_hex(const unsigned char ptr[], size_t size)
  * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
  */
 unsigned char *
-to_bcd(unsigned char bcd_data[], unsigned long long freq, int bcd_len)
+to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
 {
 	int i;
 	unsigned char a;
 
-	/* '450'-> 0,5;4,0 */
+	/* '450'/4-> 5,0;0,4 */
+	/* '450'/3-> 5,0;x,4 */
 
 	for (i=0; i < bcd_len/2; i++) {
 			a = freq%10;
@@ -125,7 +126,7 @@ to_bcd(unsigned char bcd_data[], unsigned long long freq, int bcd_len)
  *
  * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
  */
-unsigned long long from_bcd(const unsigned char bcd_data[], int bcd_len)
+unsigned long long from_bcd(const unsigned char bcd_data[], unsigned bcd_len)
 {
 	int i;
 	freq_t f = 0;
@@ -147,23 +148,25 @@ unsigned long long from_bcd(const unsigned char bcd_data[], int bcd_len)
  * Same as to_bcd, but in Big Endian mode
  */
 unsigned char *
-to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len)
+to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
 {
 	int i;
 	unsigned char a;
 
-	/* '450'-> 0,4;5,0 */
+	/* '450'/4 -> 0,4;5,0 */
+	/* '450'/3 -> 4,5;0,x */
 
+	if (bcd_len&1) {
+			bcd_data[bcd_len/2] &= 0x0f;
+			bcd_data[bcd_len/2] |= (freq%10)<<4;	/* NB: low nibble is left uncleared */
+			freq /= 10;
+	}
 	for (i=(bcd_len/2)-1; i >= 0; i--) {
 			a = freq%10;
 			freq /= 10;
 			a |= (freq%10)<<4;
 			freq /= 10;
 			bcd_data[i] = a;
-	}
-	if (bcd_len&1) {
-			bcd_data[0] &= 0xf0;
-			bcd_data[0] |= freq%10;	/* NB: high nibble is left uncleared */
 	}
 
 	return bcd_data;
@@ -172,21 +175,22 @@ to_bcd_be(unsigned char bcd_data[], unsigned long long freq, int bcd_len)
 /*
  * Same as from_bcd, but in Big Endian mode
  */
-unsigned long long from_bcd_be(const unsigned char bcd_data[], int bcd_len)
+unsigned long long from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len)
 {
 	int i;
 	freq_t f = 0;
 
-	if (bcd_len&1)
-			f = bcd_data[0] & 0x0f;
-
-	for (i=bcd_len&1; i < (bcd_len+1)/2; i++) {
+	for (i=0; i < bcd_len/2; i++) {
 			f *= 10;
 			f += bcd_data[i]>>4;
 			f *= 10;
 			f += bcd_data[i] & 0x0f;
 	}
-	
+	if (bcd_len&1) {
+			f *= 10;
+			f += bcd_data[bcd_len/2]>>4;
+	}
+
 	return f;
 }
 
