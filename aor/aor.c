@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.31 2005-01-25 00:33:38 fillods Exp $
+ *	$Id: aor.c,v 1.32 2005-04-08 20:15:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -80,11 +80,11 @@ int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
-			return retval;
+		return retval;
 
 	/* will flush data on next transaction */
 	if (!data || !data_len)
-			return RIG_OK;
+		return RIG_OK;
 
 	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
 
@@ -97,9 +97,9 @@ int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
  */
 int aor_close(RIG *rig)
 {
-		/* terminate remote operation via the RS-232 */
+	/* terminate remote operation via the RS-232 */
 
-		return aor_transaction (rig, "EX" EOM, 3, NULL, NULL);
+	return aor_transaction (rig, "EX" EOM, 3, NULL, NULL);
 }
 
 
@@ -109,32 +109,32 @@ int aor_close(RIG *rig)
  */
 int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-		unsigned char freqbuf[BUFSZ], ackbuf[BUFSZ];
-		int freq_len, ack_len, retval;
-		int lowhz;
-		long long f = (long long)freq;
+	unsigned char freqbuf[BUFSZ], ackbuf[BUFSZ];
+	int freq_len, ack_len, retval;
+	int lowhz;
+	long long f = (long long)freq;
 
-		/*
-		 * actually, frequency must be like nnnnnnnnm0, 
-		 * where m must be 0 or 5 (for 50Hz).
-		 */
-		lowhz = f % 100;
-		f /= 100;
-		if (lowhz < 25)
-				lowhz = 0;
-		else if (lowhz < 75)
-				lowhz = 50;
-		else 
-				lowhz = 100;
-		f = f*100 + lowhz;
+	/*
+	 * actually, frequency must be like nnnnnnnnm0, 
+	 * where m must be 0 or 5 (for 50Hz).
+	 */
+	lowhz = f % 100;
+	f /= 100;
+	if (lowhz < 25)
+		lowhz = 0;
+	else if (lowhz < 75)
+		lowhz = 50;
+	else 
+		lowhz = 100;
+	f = f*100 + lowhz;
 
-		freq_len = sprintf(freqbuf,"RF%010"PRIll EOM, f);
+	freq_len = sprintf(freqbuf,"RF%010"PRIll EOM, f);
 
-		retval = aor_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
-		if (retval != RIG_OK)
-			return retval;
+	retval = aor_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /*
@@ -143,24 +143,24 @@ int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-		char *rfp;
-		int freq_len, retval;
-		unsigned char freqbuf[BUFSZ];
+	char *rfp;
+	int freq_len, retval;
+	unsigned char freqbuf[BUFSZ];
 
-		retval = aor_transaction (rig, "RX" EOM, 3, freqbuf, &freq_len);
-		if (retval != RIG_OK)
-			return retval;
+	retval = aor_transaction (rig, "RX" EOM, 3, freqbuf, &freq_len);
+	if (retval != RIG_OK)
+		return retval;
 
-		rfp = strstr(freqbuf, "RF");
-		if (!rfp) {
-			rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in aor_get_freq: '%s'\n",
-					freqbuf);
-			return -RIG_EPROTO;
-		}
+	rfp = strstr(freqbuf, "RF");
+	if (!rfp) {
+		rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in aor_get_freq: '%s'\n",
+				freqbuf);
+		return -RIG_EPROTO;
+	}
 
-		sscanf(rfp+2,"%"SCNfreq, freq);
+	sscanf(rfp+2,"%"SCNfreq, freq);
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /*
@@ -169,19 +169,19 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int aor_set_vfo(RIG *rig, vfo_t vfo)
 {
-		char *vfocmd;
+	char *vfocmd;
 
-		switch (vfo) {
-		case RIG_VFO_VFO: vfocmd = "VF" EOM; break;
-		case RIG_VFO_A: vfocmd = "VA" EOM; break;
-		case RIG_VFO_B: vfocmd = "VB" EOM; break;
-		default:
-				rig_debug(RIG_DEBUG_ERR,"aor_set_vfo: unsupported vfo %d\n",
-								vfo);
-				return -RIG_EINVAL;
-		}
+	switch (vfo) {
+	case RIG_VFO_VFO: vfocmd = "VF" EOM; break;
+	case RIG_VFO_A: vfocmd = "VA" EOM; break;
+	case RIG_VFO_B: vfocmd = "VB" EOM; break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"aor_set_vfo: unsupported vfo %d\n",
+						vfo);
+		return -RIG_EINVAL;
+	}
 
-		return aor_transaction (rig, vfocmd, strlen(vfocmd), NULL, NULL);
+	return aor_transaction (rig, vfocmd, strlen(vfocmd), NULL, NULL);
 }
 
 /*
@@ -190,27 +190,27 @@ int aor_set_vfo(RIG *rig, vfo_t vfo)
  */
 int aor_get_vfo(RIG *rig, vfo_t *vfo)
 {
-		int vfo_len, retval;
-		unsigned char vfobuf[BUFSZ];
+	int vfo_len, retval;
+	unsigned char vfobuf[BUFSZ];
 
-		retval = aor_transaction (rig, "RX" EOM, 3, vfobuf, &vfo_len);
-		if (retval != RIG_OK)
-			return retval;
+	retval = aor_transaction (rig, "RX" EOM, 3, vfobuf, &vfo_len);
+	if (retval != RIG_OK)
+		return retval;
 
-		switch (vfobuf[1]) {
-		case 'S':
-		case 'V':
-		case 'F': *vfo = RIG_VFO_VFO; break;
-		case 'A': *vfo = RIG_VFO_A; break;
-		case 'B': *vfo = RIG_VFO_B; break;
-		case 'R': *vfo = RIG_VFO_MEM; break;
-		default:
-				rig_debug(RIG_DEBUG_ERR,"aor_get_vfo: unknown vfo %c\n",
-								vfobuf[1]);
-				return -RIG_EINVAL;
-		}
+	switch (vfobuf[1]) {
+	case 'S':
+	case 'V':
+	case 'F': *vfo = RIG_VFO_VFO; break;
+	case 'A': *vfo = RIG_VFO_A; break;
+	case 'B': *vfo = RIG_VFO_B; break;
+	case 'R': *vfo = RIG_VFO_MEM; break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"aor_get_vfo: unknown vfo %c\n",
+						vfobuf[1]);
+		return -RIG_EINVAL;
+	}
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 
@@ -220,51 +220,51 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-		unsigned char mdbuf[BUFSZ],ackbuf[BUFSZ];
-		int mdbuf_len, ack_len, aormode, retval;
+	unsigned char mdbuf[BUFSZ],ackbuf[BUFSZ];
+	int mdbuf_len, ack_len, aormode, retval;
 
-		switch (mode) {
-			case RIG_MODE_AM:       
-					switch(width) {
-						case RIG_PASSBAND_NORMAL:
-						case s_kHz(9): aormode = MD_AM; break;
+	switch (mode) {
+	case RIG_MODE_AM:       
+		switch(width) {
+			case RIG_PASSBAND_NORMAL:
+			case s_kHz(9): aormode = MD_AM; break;
 
-						case s_kHz(12): aormode = MD_WAM; break;
-						case s_kHz(3): aormode = MD_NAM; break;
-						default:
-							rig_debug(RIG_DEBUG_ERR,
-								"aor_set_mode: unsupported passband %d %d\n",
-								mode, width);
-						return -RIG_EINVAL;
-					}
-					break;
-			case RIG_MODE_CW:       aormode = MD_CW; break;
-			case RIG_MODE_USB:      aormode = MD_USB; break;
-			case RIG_MODE_LSB:      aormode = MD_LSB; break;
-			case RIG_MODE_WFM:      aormode = MD_WFM; break;
-			case RIG_MODE_FM:
-					switch(width) {
-						case RIG_PASSBAND_NORMAL:
-						case s_kHz(12): aormode = MD_NFM; break;
-
-						case s_kHz(9): aormode = MD_SFM; break;
-						default:
-							rig_debug(RIG_DEBUG_ERR,
-								"aor_set_mode: unsupported passband %d %d\n",
-								mode, width);
-						return -RIG_EINVAL;
-					}
-					break;
+			case s_kHz(12): aormode = MD_WAM; break;
+			case s_kHz(3): aormode = MD_NAM; break;
 			default:
-				rig_debug(RIG_DEBUG_ERR,"aor_set_mode: unsupported mode %d\n",
-								mode);
-				return -RIG_EINVAL;
+				rig_debug(RIG_DEBUG_ERR,
+					"aor_set_mode: unsupported passband %d %d\n",
+					mode, width);
+			return -RIG_EINVAL;
 		}
+		break;
+	case RIG_MODE_CW:       aormode = MD_CW; break;
+	case RIG_MODE_USB:      aormode = MD_USB; break;
+	case RIG_MODE_LSB:      aormode = MD_LSB; break;
+	case RIG_MODE_WFM:      aormode = MD_WFM; break;
+	case RIG_MODE_FM:
+		switch(width) {
+			case RIG_PASSBAND_NORMAL:
+			case s_kHz(12): aormode = MD_NFM; break;
 
-		mdbuf_len = sprintf(mdbuf, "MD%c" EOM, aormode);
-		retval = aor_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+			case s_kHz(9): aormode = MD_SFM; break;
+			default:
+				rig_debug(RIG_DEBUG_ERR,
+					"aor_set_mode: unsupported passband %d %d\n",
+					mode, width);
+			return -RIG_EINVAL;
+		}
+		break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"aor_set_mode: unsupported mode %d\n",
+						mode);
+		return -RIG_EINVAL;
+	}
 
-		return retval;
+	mdbuf_len = sprintf(mdbuf, "MD%c" EOM, aormode);
+	retval = aor_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+
+	return retval;
 }
 
 /*
@@ -273,49 +273,49 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-		unsigned char ackbuf[BUFSZ];
-		int ack_len, retval;
+	unsigned char ackbuf[BUFSZ];
+	int ack_len, retval;
 
 
-		retval = aor_transaction (rig, "MD" EOM, 3, ackbuf, &ack_len);
-		if (retval != RIG_OK)
-				return retval;
+	retval = aor_transaction (rig, "MD" EOM, 3, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
 
-		if (ack_len != 2 || ackbuf[1] != CR) {
-				rig_debug(RIG_DEBUG_ERR,"aor_get_mode: ack NG, len=%d\n",
-								ack_len);
-				return -RIG_ERJCTED;
-		}
+	if (ack_len != 2 || ackbuf[1] != CR) {
+		rig_debug(RIG_DEBUG_ERR,"aor_get_mode: ack NG, len=%d\n",
+						ack_len);
+		return -RIG_ERJCTED;
+	}
 
-		*width = RIG_PASSBAND_NORMAL;
-		switch (ackbuf[0]) {
-			case MD_AM:		*mode = RIG_MODE_AM; break;
-			case MD_NAM:	
-							*mode = RIG_MODE_AM;
-							*width = rig_passband_narrow(rig, *mode); 
-							break;
-			case MD_WAM:	
-							*mode = RIG_MODE_AM;
-							*width = rig_passband_wide(rig, *mode); 
-							break;
-			case MD_CW:		*mode = RIG_MODE_CW; break;
-			case MD_USB:	*mode = RIG_MODE_USB; break;
-			case MD_LSB:	*mode = RIG_MODE_LSB; break;
-			case MD_WFM:	*mode = RIG_MODE_WFM; break;
-			case MD_NFM:	*mode = RIG_MODE_FM; break;
-			case MD_SFM:	
-							*mode = RIG_MODE_FM;
-							*width = rig_passband_narrow(rig, *mode); 
-							break;
-			default:
-				rig_debug(RIG_DEBUG_ERR,"aor_get_mode: unsupported mode %d\n",
-								ackbuf[0]);
-				return -RIG_EINVAL;
-		}
-		if (*width == RIG_PASSBAND_NORMAL)
-				*width = rig_passband_normal(rig, *mode);
+	*width = RIG_PASSBAND_NORMAL;
+	switch (ackbuf[0]) {
+		case MD_AM:		*mode = RIG_MODE_AM; break;
+		case MD_NAM:	
+			*mode = RIG_MODE_AM;
+			*width = rig_passband_narrow(rig, *mode); 
+			break;
+		case MD_WAM:	
+			*mode = RIG_MODE_AM;
+			*width = rig_passband_wide(rig, *mode); 
+			break;
+		case MD_CW:		*mode = RIG_MODE_CW; break;
+		case MD_USB:	*mode = RIG_MODE_USB; break;
+		case MD_LSB:	*mode = RIG_MODE_LSB; break;
+		case MD_WFM:	*mode = RIG_MODE_WFM; break;
+		case MD_NFM:	*mode = RIG_MODE_FM; break;
+		case MD_SFM:	
+			*mode = RIG_MODE_FM;
+			*width = rig_passband_narrow(rig, *mode); 
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"aor_get_mode: unsupported mode %d\n",
+							ackbuf[0]);
+			return -RIG_EINVAL;
+	}
+	if (*width == RIG_PASSBAND_NORMAL)
+		*width = rig_passband_normal(rig, *mode);
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 /*
@@ -324,16 +324,16 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-		unsigned char tsbuf[BUFSZ],ackbuf[BUFSZ];
-		int ts_len, ack_len;
+	unsigned char tsbuf[BUFSZ],ackbuf[BUFSZ];
+	int ts_len, ack_len;
 
-		/*
-		 * actually, tuning step must be like nnnnm0, 
-		 * where m must be 0 or 5 (for 50Hz).
-		 */
-		ts_len = sprintf(tsbuf,"ST%06ld" EOM, ts);
+	/*
+	 * actually, tuning step must be like nnnnm0, 
+	 * where m must be 0 or 5 (for 50Hz).
+	 */
+	ts_len = sprintf(tsbuf,"ST%06ld" EOM, ts);
 
-		return aor_transaction (rig, tsbuf, ts_len, ackbuf, &ack_len);
+	return aor_transaction (rig, tsbuf, ts_len, ackbuf, &ack_len);
 }
 
 
@@ -497,11 +497,11 @@ int aor_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int aor_set_powerstat(RIG *rig, powerstat_t status)
 {
-		if (status == RIG_POWER_ON)
-			return aor_transaction (rig, "X" EOM, 2, NULL, NULL);
+	if (status == RIG_POWER_ON)
+		return aor_transaction (rig, "X" EOM, 2, NULL, NULL);
 
-		/* turn off power */
-		return aor_transaction (rig, "QP" EOM, 3, NULL, NULL);
+	/* turn off power */
+	return aor_transaction (rig, "QP" EOM, 3, NULL, NULL);
 }
 
 /*
@@ -510,23 +510,23 @@ int aor_set_powerstat(RIG *rig, powerstat_t status)
  */
 int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-		char *aorcmd;
-		int ack_len;
-		char ackbuf[BUFSZ];
+	char *aorcmd;
+	int ack_len;
+	char ackbuf[BUFSZ];
 
-		switch (op) {
-		case RIG_OP_UP: aorcmd = "\x1e" EOM; break;
-		case RIG_OP_DOWN: aorcmd = "\x1f" EOM; break;
-		case RIG_OP_RIGHT: aorcmd = "\x1c" EOM; break;
-		case RIG_OP_LEFT: aorcmd = "\x1d" EOM; break;
-		case RIG_OP_MCL: aorcmd = "MQ" EOM; break;
-		default:
-				rig_debug(RIG_DEBUG_ERR,"aor_vfo_op: unsupported op %d\n",
-								op);
-				return -RIG_EINVAL;
-		}
+	switch (op) {
+	case RIG_OP_UP: aorcmd = "\x1e" EOM; break;
+	case RIG_OP_DOWN: aorcmd = "\x1f" EOM; break;
+	case RIG_OP_RIGHT: aorcmd = "\x1c" EOM; break;
+	case RIG_OP_LEFT: aorcmd = "\x1d" EOM; break;
+	case RIG_OP_MCL: aorcmd = "MQ" EOM; break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"aor_vfo_op: unsupported op %d\n",
+						op);
+		return -RIG_EINVAL;
+	}
 
-		return aor_transaction (rig, aorcmd, strlen(aorcmd), ackbuf, &ack_len);
+	return aor_transaction (rig, aorcmd, strlen(aorcmd), ackbuf, &ack_len);
 }
 
 
@@ -536,26 +536,26 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 const char *aor_get_info(RIG *rig)
 {
-		static char infobuf[BUFSZ];
-		int id_len, frm_len, retval;
-		char idbuf[BUFSZ];
-		char frmbuf[BUFSZ];
+	static char infobuf[BUFSZ];
+	int id_len, frm_len, retval;
+	char idbuf[BUFSZ];
+	char frmbuf[BUFSZ];
 
-		retval = aor_transaction (rig, "\001" EOM, 2, idbuf, &id_len);
-		if (retval != RIG_OK)
-			return NULL;
+	retval = aor_transaction (rig, "\001" EOM, 2, idbuf, &id_len);
+	if (retval != RIG_OK)
+		return NULL;
 
-		idbuf[2] = '\0';
+	idbuf[2] = '\0';
 
-		retval = aor_transaction (rig, "VR" EOM, 3, frmbuf, &frm_len);
-		if (retval != RIG_OK || frm_len>16)
-			return NULL;
+	retval = aor_transaction (rig, "VR" EOM, 3, frmbuf, &frm_len);
+	if (retval != RIG_OK || frm_len>16)
+		return NULL;
 
-		frmbuf[frm_len] = '\0';
-		sprintf(infobuf, "Remote ID %c%c, Firmware version %s", 
-						idbuf[0], idbuf[1], frmbuf);
+	frmbuf[frm_len] = '\0';
+	sprintf(infobuf, "Remote ID %c%c, Firmware version %s", 
+			idbuf[0], idbuf[1], frmbuf);
 
-		return infobuf;
+	return infobuf;
 }
 
 
@@ -564,15 +564,15 @@ const char *aor_get_info(RIG *rig)
  */
 DECLARE_INITRIG_BACKEND(aor)
 {
-		rig_debug(RIG_DEBUG_VERBOSE, "aor: _init called\n");
+	rig_debug(RIG_DEBUG_VERBOSE, "aor: _init called\n");
 
-		rig_register(&ar8200_caps);
-		rig_register(&ar8000_caps);
-		rig_register(&ar5000_caps);
-		rig_register(&ar3000a_caps);
-		rig_register(&ar7030_caps);
-		rig_register(&ar3030_caps);
+	rig_register(&ar8200_caps);
+	rig_register(&ar8000_caps);
+	rig_register(&ar5000_caps);
+	rig_register(&ar3000a_caps);
+	rig_register(&ar7030_caps);
+	rig_register(&ar3030_caps);
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
