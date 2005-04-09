@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.37 2005-04-06 21:27:28 fillods Exp $
+ *	$Id: misc.c,v 1.38 2005-04-09 09:49:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,58 +37,6 @@
 #include <hamlib/rig.h>
 
 #include "misc.h"
-
-
-
-static int rig_debug_level = RIG_DEBUG_TRACE;
-static FILE *rig_debug_stream;
-static vprintf_cb_t rig_vprintf_cb;
-static rig_ptr_t rig_vprintf_arg;
-
-/*
- * Do a hex dump of the unsigned char array.
- */
-
-#define DUMP_HEX_WIDTH 16
-
-void dump_hex(const unsigned char ptr[], size_t size)
-{
-  int i;
-  char buf[DUMP_HEX_WIDTH+1];
-
-  if (!rig_need_debug(RIG_DEBUG_TRACE))
-		  return;
-
-  buf[DUMP_HEX_WIDTH] = '\0';
-
-  for(i=0; i<size; i++) {
-    if (i % DUMP_HEX_WIDTH == 0)
-      rig_debug(RIG_DEBUG_TRACE,"%.4x\t",i);
-
-    rig_debug(RIG_DEBUG_TRACE," %.2x", ptr[i]);
-
-	if (ptr[i] >= ' ' && ptr[i] < 0x7f)
-		buf[i%DUMP_HEX_WIDTH] = ptr[i];
-	else
-		buf[i%DUMP_HEX_WIDTH] = '.';
-
-    if (i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH-1)
-      rig_debug(RIG_DEBUG_TRACE,"\t%s\n",buf);
-  }
-
-  /* Add some spaces in order to align right ASCII dump column */
-  if ((i / DUMP_HEX_WIDTH) > 0) {
-    int j;
-    for (j = i % DUMP_HEX_WIDTH; j < DUMP_HEX_WIDTH; j++)
-      rig_debug(RIG_DEBUG_TRACE,"   ");
-  }
-
-  if (i % DUMP_HEX_WIDTH != DUMP_HEX_WIDTH-1) {
-  	buf[i % DUMP_HEX_WIDTH] = '\0';
-    rig_debug(RIG_DEBUG_TRACE,"\t%s\n",buf);
-  }
-
-} 
 
 
 /*
@@ -196,90 +144,6 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsign
 
 	return f;
 }
-
-/*
- * rig_set_debug
- * Change the current debug level
- */
-void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
-{
-	rig_debug_level = debug_level;
-}
-
-/*
- * rig_need_debug
- * Usefull for dump_hex, etc.
- */
-int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
-{
-	return (debug_level <= rig_debug_level);
-}
-
-/*
- * rig_debug
- * Default is debugging messages are done through stderr
- */
-void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
-{
-	va_list ap;
-
-	if (!rig_need_debug(debug_level))
-		return;
-
-
-	va_start(ap, fmt);
-
-	if (rig_vprintf_cb) {
-
-		rig_vprintf_cb(debug_level, rig_vprintf_arg, fmt, ap);
-
-	} else {
-		if (!rig_debug_stream)
-			rig_debug_stream = stderr;
-
-		vfprintf (rig_debug_stream, fmt, ap);
-	}
-
-	va_end(ap);
-}
-
-/**
- * \brief set callback to handle debug messages
- * \param cb    The callback to install
- * \param arg   A Pointer to some private data to pass later on to the callback
- *
- *  Install a callback for \a rig_debug messages.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise
- * a negative value if an error occured (in which case, cause
- * is set appropriately).
- *
- * \sa rig_debug()
- */
-//typedef int (*vprintf_cb_t) (enum rig_debug_level_e debug_level, rig_ptr_t, const char *, va_list);
-vprintf_cb_t rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
-{
-	vprintf_cb_t prev_cb = rig_vprintf_cb;
-
-	rig_vprintf_cb = cb;
-	rig_vprintf_arg = arg;
-
-	return prev_cb;
-}
-
-/**
- * \brief change stderr to some different output
- * \param stream The stream to set output to
- */
-FILE *rig_set_debug_file(FILE *stream)
-{
-	FILE *prev_stream = rig_debug_stream;
-
-	rig_debug_stream = stream;
-
-	return prev_stream;
-}
-
 
 
 #ifndef llabs
