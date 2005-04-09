@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.32 2005-04-08 20:15:00 fillods Exp $
+ *	$Id: aor.c,v 1.33 2005-04-09 16:33:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,11 +29,13 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
+#include <ctype.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
+#include "idx_builtin.h"
 
 #include "aor.h"
 
@@ -46,7 +48,7 @@
 #define CR '\r'
 #define EOM "\r"
 
-#define BUFSZ 64
+#define BUFSZ 256
 
 /*
  * modes in use by the "MD" command
@@ -87,6 +89,11 @@ int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 		return RIG_OK;
 
 	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+		
+	if (*data_len < BUFSZ)
+		data[*data_len] = '\0';
+	else
+		data[BUFSZ-1] = '\0';
 
 	return RIG_OK;
 }
@@ -102,15 +109,8 @@ int aor_close(RIG *rig)
 	return aor_transaction (rig, "EX" EOM, 3, NULL, NULL);
 }
 
-
-/*
- * aor_set_freq
- * Assumes rig!=NULL
- */
-int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+static int format_freq(char *buf, freq_t freq)
 {
-	unsigned char freqbuf[BUFSZ], ackbuf[BUFSZ];
-	int freq_len, ack_len, retval;
 	int lowhz;
 	long long f = (long long)freq;
 
@@ -128,13 +128,23 @@ int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		lowhz = 100;
 	f = f*100 + lowhz;
 
-	freq_len = sprintf(freqbuf,"RF%010"PRIll EOM, f);
+	return sprintf(buf,"RF%010"PRIll, f);
+}
 
-	retval = aor_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
+/*
+ * aor_set_freq
+ * Assumes rig!=NULL
+ */
+int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+{
+	unsigned char freqbuf[BUFSZ];
+	int freq_len;
 
-	return RIG_OK;
+	freq_len = format_freq(freqbuf, freq);
+	strcpy(freqbuf+freq_len, EOM);
+	freq_len += strlen(EOM);
+
+	return aor_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }
 
 /*
@@ -175,6 +185,11 @@ int aor_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_VFO: vfocmd = "VF" EOM; break;
 	case RIG_VFO_A: vfocmd = "VA" EOM; break;
 	case RIG_VFO_B: vfocmd = "VB" EOM; break;
+	case RIG_VFO_C: vfocmd = "VC" EOM; break;
+	case RIG_VFO_N(3): vfocmd = "VD" EOM; break;
+	case RIG_VFO_N(4): vfocmd = "VE" EOM; break;
+	case RIG_VFO_MEM: vfocmd = "MR" EOM; break;
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"aor_set_vfo: unsupported vfo %d\n",
 						vfo);
@@ -203,6 +218,9 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
 	case 'F': *vfo = RIG_VFO_VFO; break;
 	case 'A': *vfo = RIG_VFO_A; break;
 	case 'B': *vfo = RIG_VFO_B; break;
+	case 'C': *vfo = RIG_VFO_C; break;
+	case 'D': *vfo = RIG_VFO_N(3); break;
+	case 'E': *vfo = RIG_VFO_N(4); break;
 	case 'R': *vfo = RIG_VFO_MEM; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"aor_get_vfo: unknown vfo %c\n",
@@ -213,15 +231,9 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
 	return RIG_OK;
 }
 
-
-/*
- * aor_set_mode
- * Assumes rig!=NULL
- */
-int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+static int format_mode(char *buf, rmode_t mode, pbwidth_t width)
 {
-	unsigned char mdbuf[BUFSZ],ackbuf[BUFSZ];
-	int mdbuf_len, ack_len, aormode, retval;
+	int aormode;
 
 	switch (mode) {
 	case RIG_MODE_AM:       
@@ -233,7 +245,8 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case s_kHz(3): aormode = MD_NAM; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,
-					"aor_set_mode: unsupported passband %d %d\n",
+					"%s: unsupported passband %d %d\n",
+					__FUNCTION__,
 					mode, width);
 			return -RIG_EINVAL;
 		}
@@ -250,45 +263,44 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			case s_kHz(9): aormode = MD_SFM; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,
-					"aor_set_mode: unsupported passband %d %d\n",
+					"%s: unsupported passband %d %d\n",
+					__FUNCTION__,
 					mode, width);
 			return -RIG_EINVAL;
 		}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR,"aor_set_mode: unsupported mode %d\n",
-						mode);
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
+				__FUNCTION__, mode);
 		return -RIG_EINVAL;
 	}
 
-	mdbuf_len = sprintf(mdbuf, "MD%c" EOM, aormode);
-	retval = aor_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+	return sprintf(buf, "MD%c", aormode);
+}
+
+/*
+ * aor_set_mode
+ * Assumes rig!=NULL
+ */
+int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+	unsigned char mdbuf[BUFSZ];
+	int mdbuf_len, retval;
+
+	mdbuf_len = format_mode(mdbuf, mode, width);
+
+	strcpy(mdbuf+mdbuf_len, EOM);
+	mdbuf_len += strlen(EOM);
+
+	retval = aor_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
 
 	return retval;
 }
 
-/*
- * aor_get_mode
- * Assumes rig!=NULL, mode!=NULL
- */
-int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+static int parse_aor_mode(RIG *rig, char aormode, rmode_t *mode, pbwidth_t *width)
 {
-	unsigned char ackbuf[BUFSZ];
-	int ack_len, retval;
-
-
-	retval = aor_transaction (rig, "MD" EOM, 3, ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
-
-	if (ack_len != 2 || ackbuf[1] != CR) {
-		rig_debug(RIG_DEBUG_ERR,"aor_get_mode: ack NG, len=%d\n",
-						ack_len);
-		return -RIG_ERJCTED;
-	}
-
 	*width = RIG_PASSBAND_NORMAL;
-	switch (ackbuf[0]) {
+	switch (aormode) {
 		case MD_AM:		*mode = RIG_MODE_AM; break;
 		case MD_NAM:	
 			*mode = RIG_MODE_AM;
@@ -308,8 +320,8 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			*width = rig_passband_narrow(rig, *mode); 
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR,"aor_get_mode: unsupported mode %d\n",
-							ackbuf[0]);
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
+					__FUNCTION__, aormode);
 			return -RIG_EINVAL;
 	}
 	if (*width == RIG_PASSBAND_NORMAL)
@@ -319,13 +331,43 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 }
 
 /*
+ * aor_get_mode
+ * Assumes rig!=NULL, mode!=NULL
+ */
+int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+	unsigned char ackbuf[BUFSZ], *mdp;
+	int ack_len, retval;
+
+
+	retval = aor_transaction (rig, "MD" EOM, 3, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	/*
+	 * search MD, because on the AR5000, AU is also returned 
+	 * by MD request
+	 */
+	mdp = strstr(ackbuf, "MD");
+	if (!mdp) {
+		rig_debug(RIG_DEBUG_ERR, "%s: no MD in returned string: '%s'\n",
+				__FUNCTION__, ackbuf);
+		return -RIG_EPROTO;
+	}
+
+	retval = parse_aor_mode(rig, mdp[2], mode, width);
+
+	return retval;
+}
+
+/*
  * aor_set_ts
  * Assumes rig!=NULL
  */
 int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-	unsigned char tsbuf[BUFSZ],ackbuf[BUFSZ];
-	int ts_len, ack_len;
+	unsigned char tsbuf[BUFSZ];
+	int ts_len;
 
 	/*
 	 * actually, tuning step must be like nnnnm0, 
@@ -333,7 +375,7 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 	 */
 	ts_len = sprintf(tsbuf,"ST%06ld" EOM, ts);
 
-	return aor_transaction (rig, tsbuf, ts_len, ackbuf, &ack_len);
+	return aor_transaction (rig, tsbuf, ts_len, NULL, NULL);
 }
 
 
@@ -345,8 +387,8 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct aor_priv_data *priv;
 	struct rig_state *rs;
-	unsigned char lvlbuf[BUFSZ],ackbuf[BUFSZ];
-	int lvl_len, ack_len;
+	unsigned char lvlbuf[BUFSZ];
+	int lvl_len;
 	unsigned i;
 	int agc;
 
@@ -387,7 +429,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return -RIG_EINVAL;
 	}
 
-	return aor_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
+	return aor_transaction (rig, lvlbuf, lvl_len, NULL, NULL);
 }
 
 /*
@@ -511,8 +553,6 @@ int aor_set_powerstat(RIG *rig, powerstat_t status)
 int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 	char *aorcmd;
-	int ack_len;
-	char ackbuf[BUFSZ];
 
 	switch (op) {
 	case RIG_OP_UP: aorcmd = "\x1e" EOM; break;
@@ -526,7 +566,200 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		return -RIG_EINVAL;
 	}
 
-	return aor_transaction (rig, aorcmd, strlen(aorcmd), ackbuf, &ack_len);
+	return aor_transaction (rig, aorcmd, strlen(aorcmd), NULL, NULL);
+}
+
+/*
+ * aor_set_mem
+ * Assumes rig!=NULL
+ */
+int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
+{
+	unsigned char membuf[BUFSZ];
+	int mem_len;
+
+	/* FIXME: bank# */
+	mem_len = sprintf(membuf,"MR%c%02d" EOM, 'A'+ch/100,ch%100);
+
+	return aor_transaction (rig, membuf, mem_len, NULL, NULL);
+}
+
+/*
+ * aor_get_mem
+ * Assumes rig!=NULL, freq!=NULL
+ */
+int aor_get_mem(RIG *rig, vfo_t vfo, int *ch)
+{
+	int mem_len, retval;
+	unsigned char membuf[BUFSZ];
+
+	retval = aor_transaction (rig, "MR" EOM, 3, membuf, &mem_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (membuf[0] == '?' || membuf[2] == '?')
+		return -RIG_ENAVAIL;
+
+	sscanf(membuf+3,"%d", ch);
+
+	/* FIXME: bank# */
+	*ch += 100 * (toupper(membuf[2])-'A');
+
+	return RIG_OK;
+}
+
+/*
+ * aor_set_bank
+ * Assumes rig!=NULL
+ */
+int aor_set_bank(RIG *rig, vfo_t vfo, int bank)
+{
+	unsigned char membuf[BUFSZ];
+	int mem_len;
+
+	/* FIXME: bank# */
+	mem_len = sprintf(membuf,"MR%c" EOM, (bank%10)+(bank<10 ? 'A':'a'));
+
+	return aor_transaction (rig, membuf, mem_len, NULL, NULL);
+}
+
+
+int aor_set_channel(RIG *rig, const channel_t *chan)
+{
+	char aorcmd[BUFSZ];
+	int cmd_len;
+
+	cmd_len = sprintf(aorcmd, "MX%c%02d ", 
+			chan->bank_num, chan->channel_num%100);
+
+	cmd_len += format_freq(aorcmd+cmd_len, chan->freq);
+
+	/*
+	 * FIXME: automode
+	 */
+	cmd_len += sprintf(aorcmd+cmd_len, " AU%d ST%06d ", 
+			0, (int)chan->tuning_step);
+
+	cmd_len += format_mode(aorcmd+cmd_len, chan->mode, chan->width);
+
+	cmd_len += sprintf(aorcmd+cmd_len, " AT%d TM%12s"EOM, 
+			chan->levels[LVL_ATT].i ? 1:0, chan->channel_desc);
+
+	return aor_transaction (rig, aorcmd, cmd_len, NULL, NULL);
+}
+
+int aor_get_channel(RIG *rig, channel_t *chan)
+{
+	char aorcmd[BUFSZ];
+	int cmd_len, chan_len;
+	char chanbuf[BUFSZ];
+	int retval, i;
+	char *basep, *tagp;
+	channel_cap_t *mem_caps = NULL;
+	chan_t *chan_list;
+
+	/*
+	 * find mem_caps in caps, we'll need it later
+	 */
+	chan_list = rig->caps->chan_list;
+	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+		if (chan->channel_num >= chan_list[i].start &&
+				chan->channel_num <= chan_list[i].end) {
+			mem_caps = &chan_list[i].mem_caps;
+			break;
+		}
+	}
+	if (!mem_caps)
+		return -RIG_EINVAL;
+
+	/* FIXME: I don't understand the MA. It lists only 10 channels,
+	 * we can select bank, but not channel number. How to get 
+	 * the memories past the first 10 ?
+	 * Let's try with a MR first, then MA without bank.
+	 */
+	cmd_len = sprintf(aorcmd, "MR%c%02d" EOM, 'A' + chan->channel_num/100,
+			chan->channel_num%100);
+	retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	cmd_len = sprintf(aorcmd, "MA" EOM);
+	retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	/* 
+	 * search for attribute tags in the first line.
+	 * Using strstr enable support for various models
+	 * which may or may not have tag support.
+	 */
+	basep = chanbuf;
+
+	/* pass */
+	tagp = strstr(basep, "MP");
+	if (!tagp && mem_caps->flags) {
+		rig_debug(RIG_DEBUG_WARN, "%s: no MP in returned string: '%s'\n",
+				__FUNCTION__, chanbuf);
+		return -RIG_EPROTO;
+	}
+	chan->flags = tagp[2] == '0' ? 0 : RIG_CHFLAG_SKIP;
+
+	/* frequency */
+	tagp = strstr(basep, "RF");
+	if (!tagp && mem_caps->freq) {
+		rig_debug(RIG_DEBUG_WARN, "%s: no RF in returned string: '%s'\n",
+				__FUNCTION__, chanbuf);
+		return -RIG_EPROTO;
+	}
+
+	sscanf(tagp+2,"%"SCNfreq, &chan->freq);
+
+	/* channel desc */
+	tagp = strstr(basep, "ST");
+	if (!tagp && mem_caps->tuning_step) {
+		rig_debug(RIG_DEBUG_WARN, "%s: no ST in returned string: '%s'\n",
+				__FUNCTION__, chanbuf);
+		return -RIG_EPROTO;
+	}
+	sscanf(tagp+2,"%d", (int*)&chan->tuning_step);
+
+
+	/* mode and width */
+	tagp = strstr(basep, "MD");
+	if (!tagp && mem_caps->mode && mem_caps->width) {
+		rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
+				__FUNCTION__, chanbuf);
+		return -RIG_EPROTO;
+	}
+
+	retval = parse_aor_mode(rig, tagp[2], &chan->mode, &chan->width);
+	if (retval != RIG_OK)
+		return retval;
+
+	/* attenuator */
+	tagp = strstr(basep, "AT");
+	if (!tagp && (mem_caps->levels&LVL_ATT)) {
+		rig_debug(RIG_DEBUG_WARN, "%s: no AT in returned string: '%s'\n",
+				__FUNCTION__, chanbuf);
+		return -RIG_EPROTO;
+	}
+	chan->levels[LVL_ATT].i = tagp[2] == '0' ? 0 :
+		rig->caps->attenuator[tagp[2] - '0' - 1];
+
+
+	/* channel desc */
+	tagp = strstr(basep, "TM");
+	if (!tagp && mem_caps->channel_desc) {
+		rig_debug(RIG_DEBUG_WARN, "%s: no TM in returned string: '%s'\n",
+				__FUNCTION__, chanbuf);
+		return -RIG_EPROTO;
+	}
+
+	strncpy(chan->channel_desc, tagp+2, 12);
+	chan->channel_desc[12] = '\0';
+
+
+	return RIG_OK;
 }
 
 

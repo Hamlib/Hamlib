@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR8200 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar8200.c,v 1.17 2004-09-07 20:40:20 fillods Exp $
+ *	$Id: ar8200.c,v 1.18 2005-04-09 16:33:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,7 @@
 
 #define AR8200_VFO_OPS (RIG_OP_MCL|RIG_OP_UP|RIG_OP_DOWN|RIG_OP_LEFT|RIG_OP_RIGHT)
 
-#define AR8200_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define AR8200_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 /* TODO: measure and report real values */
 #define AR8200_STR_CAL { 2, \
@@ -48,6 +48,16 @@
 		{  0x00, -60 }, \
 		{  0xff, 60 } \
 	} }
+
+#define AR8200_MEM_CAP {	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+	.tuning_step = 1,	\
+	.channel_desc = 1,	\
+	.flags = 1,	\
+	.levels = RIG_LEVEL_ATT,	\
+}
 
 /*
  * ar8200 rig capabilities.
@@ -62,7 +72,7 @@ const struct rig_caps ar8200_caps = {
 .mfg_name =  "AOR",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
@@ -94,14 +104,19 @@ const struct rig_caps ar8200_caps = {
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
 .transceive =  RIG_TRN_RIG,
-.bank_qty =   20,
+.bank_qty =   20,	/* A through J, and a trough j */
 .chan_desc_sz =  12,
 .vfo_ops =  AR8200_VFO_OPS,
 .str_cal = AR8200_STR_CAL,
 
-.chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
+.chan_list =  {
+	{   0,  999, RIG_MTYPE_MEM, AR8200_MEM_CAP },	/* flat space */
+        RIG_CHAN_END, },
 
-.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.rx_range_list1 =  {
+	{kHz(100),MHz(2040),AR8200_MODES,-1,-1,AR8200_VFO_ALL},
+	RIG_FRNG_END,
+  }, /* rx range */
 .tx_range_list1 =  { RIG_FRNG_END, },
 .rx_range_list2 =  {
 	{kHz(100),MHz(2040),AR8200_MODES,-1,-1,AR8200_VFO_ALL},
@@ -159,6 +174,13 @@ const struct rig_caps ar8200_caps = {
 .set_powerstat =  aor_set_powerstat,
 .vfo_op =  aor_vfo_op,
 .get_info =  aor_get_info,
+
+.set_mem = aor_set_mem,
+.get_mem = aor_get_mem,
+.set_bank = aor_set_bank,
+
+.set_channel = aor_set_channel,
+.get_channel = aor_get_channel,
 
 };
 
