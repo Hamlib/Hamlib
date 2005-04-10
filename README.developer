@@ -167,7 +167,7 @@ the AUTOCONF,AUTOHEADER,AUTOHEADER,ACLOCAL variables with the required
 versions seen in the previous section.
 
 	chmod +x autogen.sh
-	./autogen.sh --disable-static --prefix=/some/where
+	./autogen.sh --disable-static --prefix=/some/where CFLAGS="-g -O0"
 	make
 	make install
 
@@ -179,8 +179,9 @@ some exotic hardware/software system:
 	./config.guess --version
 	./config.sub --version
 
-The prefix argument is optionnal. The --disable-static speeds up
-compilation if you don't plan to use static libraries.
+The prefix argument is optionnal. The --disable-static and CFLAGS="-O0"
+speeds up compilation if you don't plan to use static libraries and
+bear less optimized binaries.
 
 NOTE: autogen.sh has only to be run the first time after a fresh checkout.
 
