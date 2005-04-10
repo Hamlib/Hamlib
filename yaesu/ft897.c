@@ -11,7 +11,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.5 2005-03-26 13:03:26 fillods Exp $  
+ *    $Id: ft897.c,v 1.6 2005-04-10 21:49:38 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -425,7 +425,7 @@ static int ft897_get_status(RIG *rig, int status)
     break;
   default:
     rig_debug(RIG_DEBUG_ERR, "ft897_get_status: Internal error!\n");
-    return RIG_EINTERNAL;
+    return -RIG_EINTERNAL;
   }
 
   serial_flush(&rig->state.rigport);

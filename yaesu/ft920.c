@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.18 2005-01-25 00:21:58 fillods Exp $
+ * $Id: ft920.c,v 1.19 2005-04-10 21:49:38 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -992,7 +992,7 @@ static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
 		*split = RIG_SPLIT_OFF;
 		break;
 	default:
-		return RIG_EINVAL;
+		return -RIG_EINVAL;
 	}
 
 	return RIG_OK;
@@ -1191,7 +1191,7 @@ static int ft920_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
 		offset = FT920_SUMO_VFO_B_CLAR;
 		break;
 	default:
-		return RIG_EINVAL;
+		return -RIG_EINVAL;
 	}
 	rig_debug(RIG_DEBUG_TRACE, "%s: set cmd_index = %i\n", __func__, cmd_index);
 	rig_debug(RIG_DEBUG_TRACE, "%s: set offset = 0x%02x\n", __func__, offset);

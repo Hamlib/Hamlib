@@ -9,7 +9,7 @@
  * via serial interface to an FT-890 using the "CAT" interface
  *
  *
- * $Id: ft890.c,v 1.8 2005-04-03 18:57:28 fillods Exp $
+ * $Id: ft890.c,v 1.9 2005-04-10 21:49:38 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1178,7 +1178,7 @@ static int ft890_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
     length = FT890_VFO_DATA_LENGTH;
     break;
   default:
-    return RIG_EINVAL;
+    return -RIG_EINVAL;
   }
   rig_debug(RIG_DEBUG_TRACE, "%s: set cmd_index = %i\n", __func__, cmd_index);
   rig_debug(RIG_DEBUG_TRACE, "%s: set offset = 0x%02x\n", __func__, offset);

@@ -2,7 +2,7 @@
  *  Hamlib Watkins-Johnson backend - main file
  *  Copyright (c) 2004 by Stephane Fillod
  *
- *	$Id: wj.c,v 1.1 2004-09-12 21:29:10 fillods Exp $
+ *	$Id: wj.c,v 1.2 2005-04-10 21:49:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -164,7 +164,7 @@ static int wj_transaction(RIG *rig, int monitor)
 	 	*/
 		retval = read_block(&rig->state.rigport, rxbuf, CMDSZ);
 		if (retval < 0 || retval > CMDSZ)
-			return RIG_ERJCTED;
+			return -RIG_ERJCTED;
 
 		/*
 		 *  TODO: analyze back the reply, and fill in the priv struct

@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.11 2005-04-05 13:52:42 aa6e Exp $
+ *	$Id: orion.c,v 1.12 2005-04-10 21:49:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -346,7 +346,7 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 		*data_len, itry, ft2-ft1);
 #endif
 	}
-        return RIG_ETIMEOUT;
+        return -RIG_ETIMEOUT;
 }
 
 /*************************************************************************************
