@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: uniden.c,v 1.10 2005-01-25 00:21:56 fillods Exp $
+ *	$Id: uniden.c,v 1.11 2005-04-10 21:47:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -56,7 +56,7 @@
  * We assume that rig!=NULL, rig->state!= NULL, data!=NULL, data_len!=NULL
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
-int uniden_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int uniden_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int retval;
 	struct rig_state *rs;
@@ -72,9 +72,14 @@ int uniden_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
-			return 0;
+		return 0;
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, "\x0a", 1);
+	retval = read_string(&rs->rigport, data, BUFSZ, "\x0a", 1);
+	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	return RIG_OK;
 }

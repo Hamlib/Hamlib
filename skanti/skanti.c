@@ -1,8 +1,8 @@
 /*
  *  Hamlib Skanti backend - main file
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: skanti.c,v 1.1 2004-08-18 18:51:24 fillods Exp $
+ *	$Id: skanti.c,v 1.2 2005-04-10 21:47:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,7 +76,7 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len, char *data
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
-			return retval;
+		return retval;
 
 
 	/* no data expected, check for OK returned */
@@ -85,18 +85,23 @@ static int skanti_transaction(RIG *rig, const char *cmd, int cmd_len, char *data
 	 	* Transceiver sends back ">"
 	 	*/
 		retval = read_string(&rs->rigport, retbuf, BUFSZ, PROMPT, strlen(PROMPT));
-		if (retval < 0 || retval > BUFSZ)
-			return RIG_ERJCTED;
+		if (retval < 0)
+			return retval;
 
 		retbuf[retval] = '\0';
 
 		if (strstr(retbuf, PROMPT)) 
 			return RIG_OK;
 		else
-			return RIG_ERJCTED;
+			return -RIG_ERJCTED;
 	}
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
+	retval = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
+	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	/* strip CR/LF from string
 	 */

@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod and Darren Hatcher
  *
- *	$Id: pcr.c,v 1.21 2005-01-25 00:20:40 fillods Exp $
+ *	$Id: pcr.c,v 1.22 2005-04-10 21:47:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -96,7 +96,7 @@ const int pcr1_ctcss_list[] = {
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int retval;
 	struct rig_state *rs;
@@ -107,25 +107,32 @@ int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
-			return retval;
+		return retval;
 
 	/* eat the first ack */
 #ifdef WANT_READ_STRING
 	retval = read_string(&rs->rigport, data, 1, "\x0a", 1);
 	if (retval < 0)
-			return retval;
+		return retval;
 	if (retval != 1)
-			return -RIG_EPROTO;
+		return -RIG_EPROTO;
 #else
 	retval = read_block(&rs->rigport, data, 1);
+	if (retval < 0)
+		return retval;
 #endif
 
 	/* here is the real response */
 #ifdef WANT_READ_STRING
-	*data_len = read_string(&rs->rigport, data, *data_len, "\x0a", 1);
+	retval = read_string(&rs->rigport, data, *data_len, "\x0a", 1);
 #else
-	*data_len = read_block( &rs->rigport, data, *data_len );
+	retval = read_block( &rs->rigport, data, *data_len );
 #endif
+	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	return RIG_OK;
 }

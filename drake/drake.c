@@ -1,8 +1,8 @@
 /*
  *  Hamlib Drake backend - main file
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.16 2004-09-05 19:15:10 fineware Exp $
+ *	$Id: drake.c,v 1.17 2005-04-10 21:47:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -80,7 +80,12 @@ int drake_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	if (!data || !data_len)
 			return 0;
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, LF, 1);
+	retval = read_string(&rs->rigport, data, BUFSZ, LF, 1);
+	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	return RIG_OK;
 }

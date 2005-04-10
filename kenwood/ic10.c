@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: ic10.c,v 1.4 2005-01-25 00:20:04 fillods Exp $
+ *	$Id: ic10.c,v 1.5 2005-04-10 21:47:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,8 +72,13 @@ int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	if (!data || !data_len)
 		return 0;
 
-	*data_len = read_string(&rs->rigport, data, 50, EOM_KEN, 1);
-    
+	retval = read_string(&rs->rigport, data, 50, EOM_KEN, 1);
+   	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
+ 
     return RIG_OK;
 }
 

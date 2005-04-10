@@ -1,8 +1,8 @@
 /*
  *  Hamlib Tentec backend - main file
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.14 2004-05-26 21:30:13 fillods Exp $
+ *	$Id: tentec.c,v 1.15 2005-04-10 21:47:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -73,13 +73,18 @@ int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
-			return retval;
+		return retval;
 
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
-			return 0;
+		return 0;
 
-	*data_len = read_string(&rs->rigport, data, *data_len, "", 0);
+	retval = read_string(&rs->rigport, data, *data_len, "", 0);
+	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	return RIG_OK;
 }

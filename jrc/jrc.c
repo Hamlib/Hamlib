@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.21 2005-01-25 00:19:41 fillods Exp $
+ *	$Id: jrc.c,v 1.22 2005-04-10 21:47:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -85,7 +85,12 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	if (!data || !data_len)
 			return 0;
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+	retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	return RIG_OK;
 }

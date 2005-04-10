@@ -95,10 +95,17 @@ tt550_transaction (RIG * rig, const char *cmd, int cmd_len, char *data,
   /*
    * no data expected, TODO: flush input? 
    */
-  if (!data || !data_len)
+  if (!data || !data_len) {
+    Unhold_Decode (rig);
     return 0;
+  }
 
-  *data_len = read_string (&rs->rigport, data, *data_len, "", 0);
+  retval = read_string (&rs->rigport, data, *data_len, "", 0);
+  if (retval == -RIG_ETIMEOUT)
+	retval = 0;
+  if (retval < 0)
+	return retval;
+  *data_len = retval;
 
   Unhold_Decode (rig);
 

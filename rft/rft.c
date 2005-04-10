@@ -2,7 +2,7 @@
  *  Hamlib RFT backend - main file
  *  Copyright (c) 2003 by Thomas B. Ruecker
  *
- *	$Id: rft.c,v 1.1 2003-10-07 22:15:49 fillods Exp $
+ *	$Id: rft.c,v 1.2 2005-04-10 21:47:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,9 +64,14 @@ int rft_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 
 	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
-			return 0;
+		return 0;
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, CR, 1);
+	retval = read_string(&rs->rigport, data, BUFSZ, CR, 1);
+	if (retval == -RIG_ETIMEOUT)
+		retval = 0;
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	return RIG_OK;
 }

@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.26 2005-01-25 00:19:38 fillods Exp $
+ *	$Id: alinco.c,v 1.27 2005-04-10 21:47:12 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -109,28 +109,33 @@ int alinco_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
-			return retval;
+		return retval;
 
 	/*
 	 * Transceiver sends an echo of cmd followed by a CR/LF
 	 * TODO: check whether cmd and echobuf match (optional)
 	 */
 	retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF));
-	/* if (retval <= 3)
-			return retval; */
+	if (retval < 0)
+		return retval;
 
 	/* no data expected, check for OK returned */
 	if (!data || !data_len) {
 	    	retval = read_string(&rs->rigport, echobuf, BUFSZ, LF, strlen(LF));
+		if (retval < 0)
+			return retval;
 		retval -= 2;
 		echobuf[retval] = 0;
 		if (strcmp(echobuf, "OK") == 0) 
 			return RIG_OK;
 		else
-			return RIG_ERJCTED;
+			return -RIG_ERJCTED;
 	}
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
+	retval = read_string(&rs->rigport, data, BUFSZ, LF, strlen(LF));
+	if (retval < 0)
+		return retval;
+	*data_len = retval;
 
 	/* strip CR/LF from string
 	 */
