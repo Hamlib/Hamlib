@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.33 2005-04-09 16:33:42 fillods Exp $
+ *	$Id: aor.c,v 1.34 2005-04-10 20:59:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,7 +88,11 @@ int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 	if (!data || !data_len)
 		return RIG_OK;
 
-	*data_len = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+	retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+	if (retval < 0)
+		return retval;
+
+	*data_len = retval;
 		
 	if (*data_len < BUFSZ)
 		data[*data_len] = '\0';
@@ -683,7 +687,7 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 	if (retval != RIG_OK)
 		return retval;
 
-	cmd_len = sprintf(aorcmd, "MA" EOM);
+	cmd_len = sprintf(aorcmd, "RX" EOM);
 	retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -696,67 +700,94 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 	basep = chanbuf;
 
 	/* pass */
-	tagp = strstr(basep, "MP");
-	if (!tagp && mem_caps->flags) {
-		rig_debug(RIG_DEBUG_WARN, "%s: no MP in returned string: '%s'\n",
-				__FUNCTION__, chanbuf);
-		return -RIG_EPROTO;
+	if (mem_caps->flags) {
+		tagp = strstr(basep, "MP");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no MP in returned string: '%s'\n",
+					__FUNCTION__, chanbuf);
+			return -RIG_EPROTO;
+		}
+
+		chan->flags = tagp[2] == '0' ? 0 : RIG_CHFLAG_SKIP;
 	}
-	chan->flags = tagp[2] == '0' ? 0 : RIG_CHFLAG_SKIP;
 
 	/* frequency */
-	tagp = strstr(basep, "RF");
-	if (!tagp && mem_caps->freq) {
-		rig_debug(RIG_DEBUG_WARN, "%s: no RF in returned string: '%s'\n",
-				__FUNCTION__, chanbuf);
-		return -RIG_EPROTO;
-	}
+	if (mem_caps->freq) {
+		tagp = strstr(basep, "RF");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no RF in returned string: '%s'\n",
+					__FUNCTION__, chanbuf);
+			return -RIG_EPROTO;
+		}
 
-	sscanf(tagp+2,"%"SCNfreq, &chan->freq);
+		sscanf(tagp+2,"%"SCNfreq, &chan->freq);
+	}
 
 	/* channel desc */
-	tagp = strstr(basep, "ST");
-	if (!tagp && mem_caps->tuning_step) {
-		rig_debug(RIG_DEBUG_WARN, "%s: no ST in returned string: '%s'\n",
-				__FUNCTION__, chanbuf);
-		return -RIG_EPROTO;
+	if (mem_caps->tuning_step) {
+		tagp = strstr(basep, "ST");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no ST in returned string: '%s'\n",
+					__FUNCTION__, chanbuf);
+			return -RIG_EPROTO;
+		}
+		sscanf(tagp+2,"%d", (int*)&chan->tuning_step);
 	}
-	sscanf(tagp+2,"%d", (int*)&chan->tuning_step);
 
 
 	/* mode and width */
-	tagp = strstr(basep, "MD");
-	if (!tagp && mem_caps->mode && mem_caps->width) {
-		rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
+	if (mem_caps->mode && mem_caps->width) {
+		tagp = strstr(basep, "MD");
+		if (!tagp && mem_caps->mode && mem_caps->width) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
 				__FUNCTION__, chanbuf);
-		return -RIG_EPROTO;
+			return -RIG_EPROTO;
+		}
+
+		retval = parse_aor_mode(rig, tagp[2], &chan->mode, &chan->width);
+		if (retval != RIG_OK)
+			return retval;
 	}
 
-	retval = parse_aor_mode(rig, tagp[2], &chan->mode, &chan->width);
-	if (retval != RIG_OK)
-		return retval;
+	/* auto-mode */
+	if (mem_caps->funcs&RIG_FUNC_ABM) {
+		tagp = strstr(basep, "AU");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no AU in returned string: '%s'\n",
+					__FUNCTION__, chanbuf);
+			return -RIG_EPROTO;
+		}
+
+		chan->funcs = tagp[2] == '0' ? 0 : RIG_FUNC_ABM;
+	}
+
 
 	/* attenuator */
-	tagp = strstr(basep, "AT");
-	if (!tagp && (mem_caps->levels&LVL_ATT)) {
-		rig_debug(RIG_DEBUG_WARN, "%s: no AT in returned string: '%s'\n",
-				__FUNCTION__, chanbuf);
-		return -RIG_EPROTO;
+	if (mem_caps->levels&LVL_ATT) {
+		tagp = strstr(basep, "AT");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no AT in returned string: '%s'\n",
+					__FUNCTION__, chanbuf);
+			return -RIG_EPROTO;
+		}
+
+		chan->levels[LVL_ATT].i = tagp[2] == '0' ? 0 :
+				rig->caps->attenuator[tagp[2] - '0' - 1];
 	}
-	chan->levels[LVL_ATT].i = tagp[2] == '0' ? 0 :
-		rig->caps->attenuator[tagp[2] - '0' - 1];
 
 
 	/* channel desc */
-	tagp = strstr(basep, "TM");
-	if (!tagp && mem_caps->channel_desc) {
-		rig_debug(RIG_DEBUG_WARN, "%s: no TM in returned string: '%s'\n",
-				__FUNCTION__, chanbuf);
-		return -RIG_EPROTO;
-	}
+	if (mem_caps->channel_desc) {
+		tagp = strstr(basep, "TM");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no TM in returned string: '%s'\n",
+					__FUNCTION__, chanbuf);
+			return -RIG_EPROTO;
+		}
 
-	strncpy(chan->channel_desc, tagp+2, 12);
-	chan->channel_desc[12] = '\0';
+		strncpy(chan->channel_desc, tagp+2, 12);
+		chan->channel_desc[12] = '\0';
+	}
 
 
 	return RIG_OK;
