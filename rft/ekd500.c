@@ -2,7 +2,7 @@
  *  Hamlib RFT backend - EKD-500 description
  *  Copyright (c) 2003-2005 by Thomas B. Ruecker
  *
- *	$Id: ekd500.c,v 1.2 2005-01-25 07:30:35 fillods Exp $
+ *	$Id: ekd500.c,v 1.3 2005-04-10 21:57:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -54,7 +54,7 @@ const struct rig_caps ekd500_caps = {
 .rig_model =  RIG_MODEL_EKD500,
 .model_name = "EKD-500",
 .mfg_name =  "RFT",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,

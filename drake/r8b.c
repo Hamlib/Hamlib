@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8B description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: r8b.c,v 1.10 2004-09-05 00:32:57 fineware Exp $
+ *	$Id: r8b.c,v 1.11 2005-04-10 21:57:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -87,7 +87,7 @@ const struct rig_caps r8b_caps = {
 .rig_model =  RIG_MODEL_DKR8B,
 .model_name = "R-8B",
 .mfg_name =  "Drake",
-.version =  "0.3",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,

@@ -1,8 +1,8 @@
 /*
  *  Hamlib Skanti backend - TRP8000 description
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: trp8000.c,v 1.1 2004-08-18 18:51:24 fillods Exp $
+ *	$Id: trp8000.c,v 1.2 2005-04-10 21:57:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -54,7 +54,7 @@ const struct rig_caps trp8000_caps = {
 .rig_model =  RIG_MODEL_TRP8000,
 .model_name = "TRP8000",
 .mfg_name =  "Skanti",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

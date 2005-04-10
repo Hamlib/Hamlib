@@ -2,7 +2,7 @@
  *  Hamlib Lowe backend - HF-235 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: hf235.c,v 1.2 2003-10-01 19:31:59 fillods Exp $
+ *	$Id: hf235.c,v 1.3 2005-04-10 21:57:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -52,7 +52,7 @@ const struct rig_caps hf235_caps = {
 .rig_model =  RIG_MODEL_HF235,
 .model_name = "HF-235",
 .mfg_name =  "Lowe",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,		/* and only basic support */
 .rig_type =  RIG_TYPE_RECEIVER,

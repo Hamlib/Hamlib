@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - IC-10 header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic10.h,v 1.3 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ic10.h,v 1.4 2005-04-10 21:57:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,7 +23,7 @@
 #ifndef _IC10_H
 #define _IC10_H 1
 
-#define IC10_VER	"0.5"
+#define IC10_VER	"0.6"
 
 int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
 int ic10_set_vfo(RIG *rig, vfo_t vfo);

@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - R-8A description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: r8a.c,v 1.6 2004-09-05 00:32:57 fineware Exp $
+ *	$Id: r8a.c,v 1.7 2005-04-10 21:57:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -87,7 +87,7 @@ const struct rig_caps r8a_caps = {
 .rig_model =  RIG_MODEL_DKR8A,
 .model_name = "R-8A",
 .mfg_name =  "Drake",
-.version =  "0.3",
+.version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,

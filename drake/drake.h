@@ -2,7 +2,7 @@
  *  Hamlib Drake backend - main header
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: drake.h,v 1.7 2004-09-05 00:32:57 fineware Exp $
+ *	$Id: drake.h,v 1.8 2005-04-10 21:57:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,6 +24,8 @@
 #define _DRAKE_H 1
 
 #include <hamlib/rig.h>
+
+#define BACKEND_VER "0.4"
 
 struct drake_priv_data {
 	int curr_ch;
