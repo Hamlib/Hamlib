@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.12 2005-04-10 21:49:38 fillods Exp $
+ *	$Id: orion.c,v 1.13 2005-04-11 14:00:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,6 +30,7 @@
  * Read re-tries implemented.
  * Added RIG_LEVEL_CWPITCH, RIG_LEVEL_KEYSPD, send_morse()
  * Added RIG_FUNC_TUNER, RIG_FUNC_LOCK and RIG_FUNC_VOX, fixed MEM_CAP.
+ * Added VFO_OPS
  */
 
 #ifdef HAVE_CONFIG_H
@@ -50,7 +51,7 @@
 #include "tentec.h"
 
 /*
- * Orion mem channel holds a freq, mode, and bandwidth.
+ * Orion's own  memory channel holds a freq, mode, and bandwidth.
  * May be captured from VFO A or B and applied to VFO A or B.
  * It cannot directly be read or written from the computer! 
  */
@@ -107,7 +108,7 @@ struct tt565_priv_data {
 				RIG_LEVEL_SQL|RIG_LEVEL_IF| \
 				RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD| \
 				RIG_LEVEL_RF|RIG_LEVEL_NR| \
-				/*RIG_LEVEL_ANF|*/RIG_LEVEL_MICGAIN| \
+				RIG_LEVEL_MICGAIN| \
 				RIG_LEVEL_AF|RIG_LEVEL_AGC| \
 				RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOX| \
 				RIG_LEVEL_COMP|RIG_LEVEL_PREAMP| \
@@ -159,7 +160,7 @@ const struct rig_caps tt565_caps = {
 .mfg_name =  "Ten-Tec",
 .version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
@@ -191,6 +192,7 @@ const struct rig_caps tt565_caps = {
 .max_rit =  kHz(8),
 .max_xit =  kHz(8),
 .max_ifshift =  kHz(8),
+.vfo_ops = TT565_VFO_OPS,
 .targetable_vfo =  RIG_TARGETABLE_ALL,
 .transceive =  RIG_TRN_OFF,
 .bank_qty =   0,
@@ -353,7 +355,6 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
  *
  * Specs from http://www.rfsquared.com, Rev 1, firmware 1.340
  *
- * 	[sg]et_func
  * 	[sg]et_ant
  *
  * 	XCHG
