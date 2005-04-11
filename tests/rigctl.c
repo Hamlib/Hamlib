@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.56 2005-04-10 22:32:54 fillods Exp $  
+ * $Id: rigctl.c,v 1.57 2005-04-11 22:11:28 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -39,6 +39,8 @@
 
 #include <hamlib/rig.h>
 #include "misc.h"
+#include "iofunc.h"
+#include "serial.h"
 #include "sprintflst.h"
 
 #define MAXNAMSIZ 32
@@ -143,6 +145,7 @@ declare_proto_rig(set_ant);
 declare_proto_rig(get_ant);
 declare_proto_rig(reset);
 declare_proto_rig(send_morse);
+declare_proto_rig(send_cmd);
 declare_proto_rig(set_powerstat);
 declare_proto_rig(get_powerstat);
 
@@ -160,22 +163,8 @@ declare_proto_rig(get_powerstat);
 struct test_table test_list[] = {
 	{ 'F', "set_freq", set_freq, ARG_IN, "Frequency" },
 	{ 'f', "get_freq", get_freq, ARG_OUT, "Frequency" },
-	{ 'J', "set_rit", set_rit, ARG_IN, "RIT" },
-	{ 'j', "get_rit", get_rit, ARG_OUT, "RIT" },
 	{ 'M', "set_mode", set_mode, ARG_IN, "Mode", "Passband" },
 	{ 'm', "get_mode", get_mode, ARG_OUT, "Mode", "Passband" },
-	{ 'V', "set_vfo", set_vfo, ARG_IN|ARG_NOVFO, "VFO" },
-	{ 'v', "get_vfo", get_vfo, ARG_OUT, "VFO" },
-	{ 'T', "set_ptt", set_ptt, ARG_IN, "PTT" },
-	{ 't', "get_ptt", get_ptt, ARG_OUT, "PTT" },
-	{ 'R', "set_rptr_shift", set_rptr_shift, ARG_IN, "Rptr shift" },
-	{ 'r', "get_rptr_shift", get_rptr_shift, ARG_OUT, "Rptr shift" },
-	{ 'O', "set_rptr_offs", set_rptr_offs, ARG_IN, "Rptr offset" },
-	{ 'o', "get_rptr_offs", get_rptr_offs, ARG_OUT, "Rptr offset" },
-	{ 'C', "set_ctcss_tone", set_ctcss_tone, ARG_IN, "CTCSS tone" },
-	{ 'c', "get_ctcss_tone", get_ctcss_tone, ARG_OUT, "CTCSS tone" },
-	{ 'D', "set_dcs_code", set_dcs_code, ARG_IN, "DCS code" },
-	{ 'd', "get_dcs_code", get_dcs_code, ARG_OUT, "DCS code" },
 	{ 'I', "set_split_freq", set_split_freq, ARG_IN, "Tx frequency" },
 	{ 'i', "get_split_freq", get_split_freq, ARG_OUT, "Tx frequency" },
 	{ 'X', "set_split_mode", set_split_mode, ARG_IN, "Mode", "Passband" },
@@ -190,26 +179,42 @@ struct test_table test_list[] = {
 	{ 'u', "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
 	{ 'P', "set_parm", set_parm, ARG_IN|ARG_NOVFO, "Parm", "Value" },
 	{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2|ARG_NOVFO, "Parm", "Value" },
-	{ 'E', "set_mem", set_mem, ARG_IN, "Memory#" },
-	{ 'e', "get_mem", get_mem, ARG_OUT, "Memory#" },
 	{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
 	{ 'g', "scan", scan, ARG_IN, "Scan fct", "Channel" },
-	{ 'H', "set_channel", set_channel, ARG_IN|ARG_NOVFO,  /* FIXME */ },
-	{ 'h', "get_channel", get_channel, ARG_IN|ARG_NOVFO, "Channel" },
 	{ 'A', "set_trn", set_trn, ARG_IN|ARG_NOVFO, "Transceive" },
 	{ 'a', "get_trn", get_trn, ARG_OUT|ARG_NOVFO, "Transceive" },
+	{ 'R', "set_rptr_shift", set_rptr_shift, ARG_IN, "Rptr shift" },
+	{ 'r', "get_rptr_shift", get_rptr_shift, ARG_OUT, "Rptr shift" },
+	{ 'O', "set_rptr_offs", set_rptr_offs, ARG_IN, "Rptr offset" },
+	{ 'o', "get_rptr_offs", get_rptr_offs, ARG_OUT, "Rptr offset" },
+	{ 'C', "set_ctcss_tone", set_ctcss_tone, ARG_IN, "CTCSS tone" },
+	{ 'c', "get_ctcss_tone", get_ctcss_tone, ARG_OUT, "CTCSS tone" },
+	{ 'D', "set_dcs_code", set_dcs_code, ARG_IN, "DCS code" },
+	{ 'd', "get_dcs_code", get_dcs_code, ARG_OUT, "DCS code" },
+	{ 'V', "set_vfo", set_vfo, ARG_IN|ARG_NOVFO, "VFO" },
+	{ 'v', "get_vfo", get_vfo, ARG_OUT, "VFO" },
+	{ 'T', "set_ptt", set_ptt, ARG_IN, "PTT" },
+	{ 't', "get_ptt", get_ptt, ARG_OUT, "PTT" },
+	{ 'E', "set_mem", set_mem, ARG_IN, "Memory#" },
+	{ 'e', "get_mem", get_mem, ARG_OUT, "Memory#" },
+	{ 'H', "set_channel", set_channel, ARG_IN|ARG_NOVFO, "Channel" },
+	{ 'h', "get_channel", get_channel, ARG_IN|ARG_NOVFO, "Channel" },
 	{ 'B', "set_bank", set_bank, ARG_IN, "Bank" },
 	{ '_', "get_info", get_info, ARG_OUT|ARG_NOVFO, "Info" },
-	{ '2', "power2mW", power2mW, ARG_NOVFO },
-	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
+	{ 'J', "set_rit", set_rit, ARG_IN, "RIT" },
+	{ 'j', "get_rit", get_rit, ARG_OUT, "RIT" },
 	{ 'Z', "set_xit", set_xit, ARG_IN, "XIT" },
 	{ 'z', "get_xit", get_xit, ARG_OUT, "XIT" },
 	{ 0x83, "set_ant", set_ant, ARG_IN, "Antenna" },
 	{ 0x84, "get_ant", get_ant, ARG_OUT, "Antenna" },
-	{ 0x85, "reset", reset, ARG_IN, "Reset" },
-	{ 0x86, "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
 	{ 0x87, "set_powerstat", set_powerstat, ARG_IN|ARG_NOVFO, "Status" },
 	{ 0x88, "get_powerstat", get_powerstat, ARG_OUT|ARG_NOVFO, "Status" },
+	{ 0x85, "reset", reset, ARG_IN, "Reset" },
+	{ '2', "power2mW", power2mW, ARG_NOVFO },
+	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
+	{ 'w', "send_cmd", send_cmd, ARG_IN1|ARG_IN_LINE|ARG_OUT2|ARG_NOVFO, "Cmd", "Reply" },
+	{ 0x86, "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
+	/* next one is 0x89 */
 	{ 0x00, "", NULL },
 
 };
@@ -556,18 +561,18 @@ int main (int argc, char *argv[])
 			if (cmd == 'Q' || cmd == 'q')
 					break;
 			if (cmd == '?') {
-					usage_rig();
+				usage_rig();
 				continue;
 			}
 		} else {
-				/* parse rest of command line */
-				if (optind >= argc)
-						break;
-				if (argv[optind][1] == '\0')
-						cmd = argv[optind][0];
-				else
-						cmd = parse_arg(argv[optind]);
-				optind++;
+			/* parse rest of command line */
+			if (optind >= argc)
+				break;
+			if (argv[optind][1] == '\0')
+				cmd = argv[optind][0];
+			else
+				cmd = parse_arg(argv[optind]);
+			optind++;
 		}
 
 		cmd_entry = find_cmd_entry(cmd);
@@ -591,15 +596,18 @@ int main (int argc, char *argv[])
 				vfo = rig_parse_vfo(argv[optind++]);
 			}
 		}
+
 		if ((cmd_entry->flags & ARG_IN_LINE) && 
 				(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 			if (interactive) {
 				char *nl;
 				printf("%s: ", cmd_entry->arg1);
 				fgets(arg1, MAXARGSZ, stdin);
+				if (arg1[0] == 0xa)
+					fgets(arg1, MAXARGSZ, stdin);
 				nl = strchr(arg1, 0xa);
 				if (nl) *nl = '\0';	/* chomp */
-				p1 = arg1;
+				p1 = arg1[0]==' '?arg1+1:arg1;
 			} else {
 				if (!argv[optind]) {
 					fprintf(stderr, "Invalid arg for command '%s'\n", 
@@ -1440,8 +1448,104 @@ declare_proto_rig(scan)
 
 declare_proto_rig(set_channel)
 {
-	fprintf(stderr,"rigctl set_channel not implemented yet!\n");
+	channel_cap_t *mem_caps = NULL;
+	chan_t *chan_list;
+	int i;
+	channel_t chan;
+
 	return -RIG_ENIMPL;
+
+	if (isdigit(arg1[0])) {
+		chan.vfo = RIG_VFO_MEM;
+		if (sscanf(arg1, "%d", &chan.channel_num) != 1)
+			return -RIG_EINVAL;
+		/*
+		 * find mem_caps in caps, we'll need it later
+		 */
+		chan_list = rig->caps->chan_list;
+		for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+			if (chan.channel_num >= chan_list[i].start &&
+					chan.channel_num <= chan_list[i].end) {
+				mem_caps = &chan_list[i].mem_caps;
+				break;
+			}
+		}
+
+	} else {
+		chan.vfo = rig_parse_vfo(arg1);
+		chan.channel_num = 0;
+
+		/* TODO: mem_caps for VFO! */
+	}
+
+	if (!mem_caps)
+		return -RIG_ECONF;
+
+#ifdef FIXME
+	if (mem_caps->bank_num)
+		sscanf(arg1, "%d", &chan.bank_num);
+	if (mem_caps->vfo)
+		chan.vfo = rig_parse_vfo(arg1);
+	if (mem_caps->ant)
+		sscanf(arg1, "%d", &chan.ant);
+	if (mem_caps->freq)
+		sscanf(arg1, "%"SCNfreq, &chan.freq);
+	if (mem_caps->mode)
+		chan.mode = rig_parse_mode(arg1);
+	if (mem_caps->width)
+		sscanf(arg1, "%d", (int*)&chan.width);
+
+	if (mem_caps->tx_freq)
+		sscanf(arg1, "%"SCNfreq, &chan.tx_freq);
+	if (mem_caps->tx_mode)
+		chan.tx_mode = rig_parse_mode(arg1);
+	if (mem_caps->tx_width)
+		sscanf(arg1, "%d", (int*)&chan.tx_width);
+
+	if (mem_caps->split)
+		sscanf(arg1, "%d", &chan.split);
+	if (mem_caps->tx_vfo)
+		chan.tx_vfo = rig_parse_vfo(arg1);
+	if (mem_caps->rptr_shift)
+		chan.rptr_shift = rig_parse_rptr_shift(arg1);
+	if (mem_caps->rptr_offs)
+		sscanf(arg1, "%d", &chan.rptr_offs);
+	if (mem_caps->tuning_step)
+		sscanf(arg1, "%d", &chan.tuning_step);
+	if (mem_caps->rit)
+		sscanf(arg1, "%d", &chan.rit);
+	if (mem_caps->xit)
+		sscanf(arg1, "%d", &chan.xit);
+	if (mem_caps->funcs)
+		sscanf(arg1, "%x", &chan.funcs);
+#if 0
+		/* for all levels, ask */
+	if (mem_caps->levels)
+		sscanf(arg1, "%d", &chan.levels);
+#endif
+	if (mem_caps->ctcss_tone)
+		sscanf(arg1, "%d", &chan.ctcss_tone);
+	if (mem_caps->ctcss_sql)
+		sscanf(arg1, "%d", &chan.ctcss_sql);
+	if (mem_caps->dcs_code)
+		sscanf(arg1, "%d", &chan.dcs_code);
+	if (mem_caps->dcs_sql)
+		sscanf(arg1, "%d", &chan.dcs_sql);
+	if (mem_caps->scan_group)
+		sscanf(arg1, "%d", &chan.scan_group);
+	if (mem_caps->flags)
+		sscanf(arg1, "%d", &chan.flags);
+	if (mem_caps->channel_desc)
+		strcpy(chan.channel_desc, arg1);
+#if 0
+	/* TODO: same as levels */
+	if (mem_caps->ext_levels)
+		sscanf(arg1, "%d", &chan.ext_levels);
+#endif
+
+#endif
+
+	return RIG_OK;
 }
 
 
@@ -1556,24 +1660,24 @@ void dump_chan(RIG *rig, channel_t *chan)
 	char prntbuf[256];
 
 	printf("Channel: %d, Name: '%s'\n", chan->channel_num, 
-					chan->channel_desc);
+			chan->channel_desc);
 
 	printf("VFO: %s, Antenna: %d, Split: %s\n", rig_strvfo(chan->vfo),
-					chan->ant, chan->split==RIG_SPLIT_ON?"ON":"OFF");
+			chan->ant, chan->split==RIG_SPLIT_ON?"ON":"OFF");
 
 	sprintf_freq(freqbuf, chan->freq);
 	sprintf_freq(widthbuf, chan->width);
 	printf("Freq:   %s\tMode:   %s\tWidth:   %s\n", 
-						freqbuf, rig_strrmode(chan->mode), widthbuf);
+			freqbuf, rig_strrmode(chan->mode), widthbuf);
 
 	sprintf_freq(freqbuf, chan->tx_freq);
 	sprintf_freq(widthbuf, chan->tx_width);
 	printf("txFreq: %s\ttxMode: %s\ttxWidth: %s\n", 
-						freqbuf, rig_strrmode(chan->tx_mode), widthbuf);
+			freqbuf, rig_strrmode(chan->tx_mode), widthbuf);
 
 	sprintf_freq(freqbuf,chan->rptr_offs);
 	printf("Shift: %s, Offset: %s%s, ", rig_strptrshift(chan->rptr_shift),
-						chan->rptr_offs>0?"+":"", freqbuf);
+			chan->rptr_offs>0?"+":"", freqbuf);
 
 	sprintf_freq(freqbuf,chan->tuning_step);
 	printf("Step: %s, ", freqbuf);
@@ -1592,31 +1696,31 @@ void dump_chan(RIG *rig, channel_t *chan)
 	
 	printf("Levels:");
 	for (idx=0; idx<60; idx++) {
-			setting_t level = rig_idx2setting(idx);
-			const char *level_s;
+		setting_t level = rig_idx2setting(idx);
+		const char *level_s;
 
-			if (!rig_has_set_level(rig, level))
-					continue;
-			level_s = rig_strlevel(level);
-			if (!level_s)
-					continue;	/* duh! */
-			if (firstloop)
-					firstloop = 0;
-			else
-					printf(",\t");
-			if (RIG_LEVEL_IS_FLOAT(level))
-					printf(" %s: %g%%", level_s, 100*chan->levels[idx].f);
-			else
-					printf(" %s: %d", level_s, chan->levels[idx].i);
+		if (!rig_has_set_level(rig, level))
+				continue;
+		level_s = rig_strlevel(level);
+		if (!level_s)
+				continue;	/* duh! */
+		if (firstloop)
+			firstloop = 0;
+		else
+			printf(",\t");
+		if (RIG_LEVEL_IS_FLOAT(level))
+			printf(" %s: %g%%", level_s, 100*chan->levels[idx].f);
+		else
+			printf(" %s: %d", level_s, chan->levels[idx].i);
 	}
 	printf("\n");
 }
 
 declare_proto_rig(dump_caps)
 {
-		dumpcaps(rig);
+	dumpcaps(rig);
 
-		return RIG_OK;
+	return RIG_OK;
 }
 
 declare_proto_rig(set_ant)
@@ -1674,5 +1778,74 @@ declare_proto_rig(get_powerstat)
 		printf("%s: ", cmd->arg1);
 	printf("%d\n", stat);
 	return status;
+}
+
+/*
+ * special debugging purpose send command
+ * display reply until there's a timeout
+ */
+declare_proto_rig(send_cmd)
+{
+	int retval;
+	struct rig_state *rs;
+	int backend_num;
+#define BUFSZ 128
+	char bufcmd[BUFSZ];
+	char buf[BUFSZ];
+
+	/*
+	 * binary protocols enter values as \0xZZ\0xYY..
+	 */
+	backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
+	if (backend_num == RIG_YAESU || backend_num == RIG_ICOM ||
+			backend_num == RIG_KACHINA ||
+			backend_num == RIG_MICROTUNE) {
+		const char *p = arg1, *pp = NULL;
+		int i;
+		for (i=0; i < BUFSZ-1 && p != pp; i++) {
+			pp = p+1;
+			bufcmd[i] = strtol(p+1, &p, 0);
+		}
+		bufcmd[i] = '\0';
+	} else {
+		strncpy(bufcmd,arg1,BUFSZ);
+		bufcmd[BUFSZ-1] = '\0';
+		/*
+		 * assumes CR is end of line char
+		 * for all ascii protocols
+		 */
+		strcat(bufcmd, "\r");
+	}
+
+	rs = &rig->state;
+
+	serial_flush(&rs->rigport);
+
+	retval = write_block(&rs->rigport, bufcmd, strlen(bufcmd));
+	if (retval != RIG_OK)
+		return retval;
+
+	if (interactive)
+		printf("%s: ", cmd->arg2);
+
+#define EOM "\0xa"
+	do {
+		retval = read_string(&rs->rigport, buf, BUFSZ, EOM, strlen(EOM));
+		if (retval < 0)
+			break;
+	
+		if (retval < BUFSZ)
+			buf[retval] = '\0';
+		else
+			buf[BUFSZ-1] = '\0';
+	
+		printf("%s\n", buf);
+
+	} while (retval > 0);
+
+	if (retval > 0 || retval == -RIG_ETIMEOUT)
+		retval = RIG_OK;
+
+	return retval;
 }
 
