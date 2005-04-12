@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.13 2005-04-11 14:00:51 aa6e Exp $
+ *	$Id: orion.c,v 1.14 2005-04-12 01:47:47 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,6 +31,8 @@
  * Added RIG_LEVEL_CWPITCH, RIG_LEVEL_KEYSPD, send_morse()
  * Added RIG_FUNC_TUNER, RIG_FUNC_LOCK and RIG_FUNC_VOX, fixed MEM_CAP.
  * Added VFO_OPS
+ * Support LEVEL_VOX, VOXGAIN, ANTIVOX
+ * Support LEVEL_NR as Orion NB setting (firmware bug), FUNC_NB -> NB=0,4
  */
 
 #ifdef HAVE_CONFIG_H
@@ -101,16 +103,16 @@ struct tt565_priv_data {
 			RIG_MODE_RTTY|RIG_MODE_AM)
 #define TT565_RXMODES (TT565_MODES)
 
-#define TT565_FUNCS (RIG_FUNC_LOCK|RIG_FUNC_TUNER|RIG_FUNC_VOX)
+#define TT565_FUNCS (RIG_FUNC_LOCK|RIG_FUNC_TUNER|RIG_FUNC_VOX|RIG_FUNC_NB)
 
-#define TT565_LEVELS (RIG_LEVEL_RAWSTR|/*RIG_LEVEL_NB|*/ \
+#define TT565_LEVELS (RIG_LEVEL_RAWSTR| \
 				RIG_LEVEL_CWPITCH| \
 				RIG_LEVEL_SQL|RIG_LEVEL_IF| \
 				RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD| \
 				RIG_LEVEL_RF|RIG_LEVEL_NR| \
 				RIG_LEVEL_MICGAIN| \
 				RIG_LEVEL_AF|RIG_LEVEL_AGC| \
-				RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOX| \
+				RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOX|RIG_LEVEL_ANTIVOX| \
 				RIG_LEVEL_COMP|RIG_LEVEL_PREAMP| \
 				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
 
@@ -187,7 +189,7 @@ const struct rig_caps tt565_caps = {
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
-.preamp =   { 20, RIG_DBLST_END },	/* TBC */
+.preamp =   { 20, RIG_DBLST_END },
 .attenuator =   { 6, 12, 18, RIG_DBLST_END },
 .max_rit =  kHz(8),
 .max_xit =  kHz(8),
@@ -882,8 +884,6 @@ int tt565_reset(RIG *rig, reset_t reset)
 /*
  * tt565_get_info
  * Assumes rig!=NULL
- *
- * FIXME: what is the Orion command to get Firmware version?
  */
 const char *tt565_get_info(RIG *rig)
 {
@@ -1013,6 +1013,28 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		else if (val.i < 10) val.i = 10;	/* Range 10-60 wpm */	
 		cmd_len = sprintf(cmdbuf, "*CS%d" EOM,
 				val.i);
+		break;
+
+	case RIG_LEVEL_NR:
+		/* For some reason NB setting is supported in 1.372, but
+		   NR, NOTCH, and AN are not. 
+		   FOR NOW -- RIG_LEVEL_NR controls the Orion NB setting 
+		*/
+		cmd_len = sprintf(cmdbuf, "*R%cNB%d" EOM,
+				which_receiver(rig, vfo),
+				(int)(val.f*9));
+		break;
+
+	case RIG_LEVEL_VOX:	/* =VOXDELAY, tenths of seconds */
+		cmd_len = sprintf(cmdbuf, "*TH%4.2f" EOM, 0.1*val.f);
+		break;
+
+	case RIG_LEVEL_VOXGAIN:	/* Float, 0.0 - 1.0 */
+		cmd_len = sprintf(cmdbuf, "*TG%d" EOM, (int)(100.0*val.f));
+		break;
+
+	case RIG_LEVEL_ANTIVOX:	/* Float, 0.0 - 1.0 */
+		cmd_len = sprintf(cmdbuf, "*TA%d" EOM, (int)(100.0*val.f));
 		break;
 
 	default:
@@ -1296,6 +1318,63 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		val->i = atoi(lvlbuf+3);
 		break;
 
+	case RIG_LEVEL_NR:
+		/* RIG_LEVEL_NR controls Orion NB setting - TEMP */
+		cmd_len = sprintf(cmdbuf, "?R%cNB" EOM,
+                                which_receiver(rig, vfo));
+	
+		lvl_len = sizeof(lvlbuf);
+		retval = tt565_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+		if (lvlbuf[1] != 'R' || lvlbuf[3] != 'N' || lvlbuf[4] != 'B' ||
+			lvl_len < 6 ) {
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
+					__FUNCTION__, lvlbuf);
+				return -RIG_EPROTO;
+			}
+		val->f = atof(lvlbuf+5)/9.0;	/* Note 0-9 -> 0.0 - 1.0 */
+		break;
+
+	case RIG_LEVEL_VOX:	/* =VOXDELAY, tenths of secs. */
+		lvl_len = sizeof(lvlbuf);
+		retval = tt565_transaction (rig, "?TH" EOM, 4, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+		if (lvlbuf[1] != 'T' || lvlbuf[2] != 'H' || lvl_len < 4) {
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
+				__FUNCTION__, lvlbuf);
+			return -RIG_EPROTO;
+		}
+		val->f = 10.0*atof(lvlbuf+3);
+		break;
+
+	case RIG_LEVEL_VOXGAIN:	/* Float, 0.0 - 1.0 */
+		lvl_len = sizeof(lvlbuf);
+		retval = tt565_transaction (rig, "?TG" EOM, 4, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+		if (lvlbuf[1] != 'T' || lvlbuf[2] != 'G' || lvl_len < 4) {
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
+				__FUNCTION__, lvlbuf);
+			return -RIG_EPROTO;
+		}
+		val->f = 0.01 * atof(lvlbuf+3);
+	break;
+
+	case RIG_LEVEL_ANTIVOX:	/* Float, 0.0 - 1.0 */
+                lvl_len = sizeof(lvlbuf);
+                retval = tt565_transaction (rig, "?TA" EOM, 4, lvlbuf, &lvl_len);
+                if (retval != RIG_OK)
+                        return retval;
+                if (lvlbuf[1] != 'T' || lvlbuf[2] != 'A' || lvl_len < 4) {
+                        rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
+                                __FUNCTION__, lvlbuf);
+                        return -RIG_EPROTO;
+                }
+                val->f = 0.01 * atof(lvlbuf+3);
+	break;
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported level %d\n", 
 				__FUNCTION__, level);
@@ -1419,6 +1498,16 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 			!status ? 'U' : 'L' );
 		break;
 
+	case RIG_FUNC_NB:
+		/* NB "on" sets Orion NB=4; "off" -> NB=0.  See also
+		RIG_LEVEL_NR which maps to NB setting due to firmware
+		limitation.
+		*/
+		fcmdlen = sprintf(fcmdbuf,"*R%cNB%c" EOM,
+			which_receiver(rig, vfo),
+			!status ? '0' : '4' );
+		break;
+
 	default:
                 rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
                 return -RIG_EINVAL;
@@ -1459,6 +1548,23 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		/* response is @AL @AU or @BL @BU */
 		*status = frespbuf[ 2 ] == 'L' ? 1:0;
 		return RIG_OK;
+
+	case RIG_FUNC_NB:
+		/* Note NB should be a LEVEL for Orion. It is also
+		   available through LEVEL_NR
+		*/
+		fcmdlen = sprintf(fcmdbuf, "?R%cNB" EOM,
+			which_receiver(rig, vfo) );
+		/* needs special treatment */
+		fresplen = sizeof(frespbuf);
+		retval = tt565_transaction(rig, fcmdbuf, fcmdlen, 
+			frespbuf, &fresplen);
+		if (retval != RIG_OK)
+			return retval;
+		/* response is @RxNBn, n=0--9. Return 0 iff receive NB=0 */
+		*status = frespbuf[ 5 ] == '0' ? 0:1;
+		return RIG_OK;
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
 		return -RIG_EINVAL;
