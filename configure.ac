@@ -270,7 +270,6 @@ SC_PATH_TCLCONFIG
 if test x"${no_tcl}" = x; then
 	SC_LOAD_TCLCONFIG
 	tcl_save_CPPFLAGS=$CPPFLAGS
-	echo $TCL_INCLUDE_SPEC
 	CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
 	AC_CHECK_HEADERS([tcl.h],
 			[cf_with_tcl=yes])
@@ -303,12 +302,11 @@ AC_SUBST(TCL_SHLIB_SUFFIX)
 dnl Check for python availability, so we can enable HamlibPy
 
 PYTHON_DEVEL
-cf_with_python=yes
 AC_MSG_CHECKING(whether to build python binding and demo)
 AC_ARG_WITH(python-binding,
         [  --with-python-binding	build python binding and demo],
         [cf_with_python_binding=$withval],
-        [cf_with_python_binding=$cf_with_python])
+        [cf_with_python_binding=$cf_with_python_devel])
 AC_MSG_RESULT($cf_with_python_binding)
 
 if test "${cf_with_python_binding}" = "yes" ; then

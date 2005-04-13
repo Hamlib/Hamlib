@@ -47,6 +47,58 @@ AC_DEFUN([PYTHON_DEVEL],[
 		AC_MSG_WARN([cannot find Python include path])
 	else
 		AC_SUBST(PYTHON_CPPFLAGS,[-I$python_path])
+
+		# Check for Python headers usability
+		python_save_CPPFLAGS=$CPPFLAGS
+		CPPFLAGS="$CPPFLAGS $PYTHON_CPPFLAGS"
+		AC_CHECK_HEADERS([Python.h],, [cf_with_python_devel=no])
+		CPPFLAGS="$python_save_CPPFLAGS"
+
+	if test "$cf_with_python_devel" != "no" ; then
+
+	# Check for Python library path
+	AC_MSG_CHECKING([for Python library path])
+	python_path=`echo $PYTHON | sed "s,/bin.*$,,"`
+	for i in "$python_path/lib/python$PYTHON_VERSION/config/" "$python_path/lib/python$PYTHON_VERSION/" "$python_path/lib/python/config/" "$python_path/lib/python/" "$python_path/" ; do
+		python_path=`find $i -type f -name libpython$PYTHON_VERSION.* -print | sed "1q"`
+		if test -n "$python_path" ; then
+			break
+		fi
+	done
+	python_path=`echo $python_path | sed "s,/libpython.*$,,"`
+	AC_MSG_RESULT([$python_path])
+	if test -z "$python_path" ; then
+		AC_MSG_WARN([cannot find Python library path])
+	fi
+	AC_SUBST([PYTHON_LDFLAGS],["-L$python_path -lpython$PYTHON_VERSION"])
+	#
+	python_site=`echo $python_path | sed "s/config/site-packages/"`
+	AC_SUBST([PYTHON_SITE_PKG],[$python_site])
+	#
+	# libraries which must be linked in when embedding
+	#
+	AC_MSG_CHECKING(python extra libraries)
+	PYTHON_EXTRA_LIBS=`$PYTHON -c "import distutils.sysconfig; \
+                conf = distutils.sysconfig.get_config_var; \
+                print conf('LOCALMODLIBS')+' '+conf('LIBS')"
+	AC_MSG_RESULT($PYTHON_EXTRA_LIBS)`
+	AC_SUBST(PYTHON_EXTRA_LIBS)
+
+
+		# Check for Python library usability
+		python_save_LDFLAGS=$LDFLAGS
+		LDFLAGS="$LDFLAGS $PYTHON_LDFLAGS"
+		AC_CHECK_FUNC(PyArg_Parse, 
+			[cf_with_python_devel=yes], 
+			[cf_with_python_devel=no])
+
+		LDFLAGS="$python_save_LDFLAGS"
+
+	fi
+
+
 	fi
 	fi
+
+
 ])
