@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.23 2005-04-13 18:20:37 fillods Exp $
+ *	$Id: jrc.c,v 1.24 2005-04-13 22:31:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -68,7 +68,7 @@
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int retval;
 	struct rig_state *rs;
@@ -79,18 +79,107 @@ int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
 
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
-			return retval;
+		return retval;
 
-	/* no data expected, TODO: flush input? */
 	if (!data || !data_len)
-			return 0;
+		return 0;
 
 	retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
-	if (retval == -RIG_ETIMEOUT)
-		retval = 0;
 	if (retval < 0)
 		return retval;
 	*data_len = retval;
+
+	return RIG_OK;
+}
+
+static int jrc2rig_mode(RIG *rig, char jmode, char jwidth,
+			rmode_t *mode, pbwidth_t *width)
+{
+	switch (jmode) {
+	case MD_RTTY:	*mode = RIG_MODE_RTTY; break;
+	case MD_CW:	*mode = RIG_MODE_CW; break;
+	case MD_USB:	*mode = RIG_MODE_USB; break;
+	case MD_LSB:	*mode = RIG_MODE_LSB; break;
+	case MD_AM:	*mode = RIG_MODE_AM; break;
+	case MD_FM:	*mode = RIG_MODE_FM; break;
+	case MD_AMS:	if (rig->caps->rig_model == RIG_MODEL_NRD535) {
+				*mode = RIG_MODE_FAX;
+			} else {
+				*mode = RIG_MODE_AMS;
+			}
+			break;
+	case MD_ECSS_USB:	*mode = RIG_MODE_ECSSUSB; break;
+	case MD_ECSS_LSB:	*mode = RIG_MODE_ECSSLSB; break;
+	case MD_WFM:		*mode = RIG_MODE_WFM; break;
+	default:
+	  rig_debug(RIG_DEBUG_ERR,
+		    "%s: unsupported mode %c\n",
+		    __FUNCTION__, jmode);
+	  *mode = RIG_MODE_NONE;
+	  return -RIG_EINVAL;
+	}
+
+	/*
+	 * determine passband
+	 */
+	switch (jwidth) {
+	case '0':
+	  *width = s_Hz(6000); //wide
+	  break;
+	case '1':
+	  *width = s_Hz(2000); //inter
+	  break;
+	case '2':
+	  *width = s_Hz(1000); //narr
+	  break;
+	case '3':
+	  *width = s_Hz(12000); //aux - nrd535 only
+	  break;
+	default:
+	  rig_debug(RIG_DEBUG_ERR,
+		    "%s: unsupported width %c\n",
+		    __FUNCTION__, jwidth);
+	  *width = RIG_PASSBAND_NORMAL;
+	  return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
+static int rig2jrc_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+		char *jmode, char *jwidth)
+{
+	switch (mode) {
+	case RIG_MODE_RTTY:	*jmode = MD_RTTY; break;
+	case RIG_MODE_CW:       *jmode = MD_CW; break;
+	case RIG_MODE_USB:      *jmode = MD_USB; break;
+	case RIG_MODE_LSB:      *jmode = MD_LSB; break;
+	case RIG_MODE_AM:       *jmode = MD_AM; break;
+	case RIG_MODE_FM:       *jmode = MD_FM; break;
+	case RIG_MODE_AMS:	*jmode = MD_AMS; break;
+	case RIG_MODE_FAX:	*jmode = MD_FAX; break;
+	case RIG_MODE_ECSSUSB:	*jmode = MD_ECSS_USB; break;
+	case RIG_MODE_ECSSLSB:	*jmode = MD_ECSS_LSB; break;
+	case RIG_MODE_WFM:	*jmode = MD_WFM; break;
+	default:
+	  rig_debug(RIG_DEBUG_ERR,
+		    "%s: unsupported mode %d\n", __FUNCTION__, mode);
+	  return -RIG_EINVAL;
+	}
+
+	if (width == RIG_PASSBAND_NORMAL)
+		width = rig_passband_normal(rig, mode);
+
+	if (width <= s_Hz(1500))
+	  *jwidth = '2'; /*narr*/
+	else if (width <= s_Hz(4000))
+	  *jwidth = '1'; /*inter*/
+	else if (width <= s_Hz(9000))
+	  *jwidth = '0'; /*wide*/
+	else if (rig->caps->rig_model == RIG_MODEL_NRD535)
+	  *jwidth = '3'; /*aux - nrd535 only*/
+	else
+	  *jwidth = '1'; /*inter*/
 
 	return RIG_OK;
 }
@@ -199,49 +288,23 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	char mdbuf[BUFSZ];
 	int retval, mdbuf_len;
-	char amode;
-	const char *bandwidth;
+	char amode, awidth;
 
-	switch (mode) {
-	case RIG_MODE_CW:       amode = MD_CW; break;
-	case RIG_MODE_USB:      amode = MD_USB; break;
-	case RIG_MODE_LSB:      amode = MD_LSB; break;
-	case RIG_MODE_FM:       amode = MD_FM; break;
-	case RIG_MODE_AM:       amode = MD_AM; break;
-	case RIG_MODE_RTTY:	amode = MD_RTTY; break;
-	case RIG_MODE_WFM:	amode = MD_WFM; break;
-	case RIG_MODE_AMS:	amode = MD_AMS; break;
-	case RIG_MODE_FAX:	amode = MD_FAX; break;
-	case RIG_MODE_ECSSUSB:	amode = MD_ECSS_USB; break;
-	case RIG_MODE_ECSSLSB:	amode = MD_ECSS_LSB; break;
-	default:
-	  rig_debug(RIG_DEBUG_ERR,
-		    "jrc_set_mode: unsupported mode %d\n", mode);
-	  return -RIG_EINVAL;
-	}
+	retval = rig2jrc_mode(rig, mode, width, &amode, &awidth);
+	if (retval != RIG_OK)
+	  return retval;
 
 	mdbuf_len = sprintf(mdbuf, "D" "%c" EOM, amode);
 	retval = jrc_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
 	if (retval != RIG_OK)
 	  return retval;
 
-	if (width == RIG_PASSBAND_NORMAL)
-		width = rig_passband_normal(rig, mode);
+	mdbuf_len = sprintf(mdbuf, "B" "%c" EOM, awidth);
+	retval = jrc_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+	if (retval != RIG_OK)
+	  return retval;
 
-	if (width <= s_Hz(1500))
-	  bandwidth = "B2" EOM; /*narr*/
-	else if (width <= s_Hz(4000))
-	  bandwidth = "B1" EOM; /*inter*/
-	else if (width <= s_Hz(9000))
-	  bandwidth = "B0" EOM; /*wide*/
-	else if (rig->caps->rig_model == RIG_MODEL_NRD535)
-	  bandwidth = "B3" EOM; /*aux - nrd535 only*/
-	else
-	  bandwidth = "B1" EOM; /*inter*/
-
-	retval = jrc_transaction (rig, bandwidth, 3, NULL, NULL);
-
-	return retval;
+	return RIG_OK;
 }
 
 /*
@@ -272,45 +335,10 @@ int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	cwidth = freqbuf[2];
 	cmode = freqbuf[3];
 
-	switch(cwidth) {
-	case '0' : *width = s_Hz(6000); break; //wide
-	case '1' : *width = s_Hz(2000); break; //inter
-	case '2' : *width = s_Hz(1000); break; //narr
-	case '3' : *width = s_Hz(12000); break; //aux - nrd535 only
-	default:
-	  rig_debug(RIG_DEBUG_ERR,
-		    "jrc_get_mode: unsupported width %c\n",
-		    cwidth);
-	  *width = RIG_PASSBAND_NORMAL;
-	  return -RIG_EINVAL;
-	}
+	retval = jrc2rig_mode(rig, cmode, cwidth,
+			mode, width);
 
-	switch(cmode) {
-	  /* FIXME: FAX/AMS, and ECSS modes */
-	case '0' : *mode = RIG_MODE_RTTY; break;
-	case '1' : *mode = RIG_MODE_CW; break;
-	case '2' : *mode = RIG_MODE_USB; break;
-	case '3' : *mode = RIG_MODE_LSB; break;
-	case '4' : *mode = RIG_MODE_AM; break;
-	case '5' : *mode = RIG_MODE_FM; break;
-	case '6' : if (rig->caps->rig_model == RIG_MODEL_NRD535) {
-	             *mode = RIG_MODE_FAX; break;  //FAX on nrd535
-				}
-	           else {
-	             *mode = RIG_MODE_AMS; break;  //AMS on nrd545
-			   }
-	case '7' : *mode = RIG_MODE_ECSSUSB; break;  //ECSS-USB
-	case '8' : *mode = RIG_MODE_ECSSLSB; break;  //ECSS-LSB
-	case '9' : *mode = RIG_MODE_WFM; break;  //nrd545 only
-	default:
-	  rig_debug(RIG_DEBUG_ERR,
-		    "jrc_get_mode: unsupported mode %c\n",
-		    cmode);
-	  *mode = RIG_MODE_NONE;
-	  return -RIG_EINVAL;
-	}
-
-	return RIG_OK;
+	return retval;
 }
 
 /*
@@ -505,23 +533,27 @@ int jrc_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
-	/*case RIG_LEVEL_TONE:
+#if 0
+	case RIG_LEVEL_TONE:
 	  cmd_len = sprintf(cmdbuf, "KK%03d" EOM, (int)(val.f*255.0));
 
-	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);*/
+	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+#endif
 
 	case RIG_LEVEL_NOTCHF:
 	  cmd_len = sprintf(cmdbuf, "GG%+04d" EOM, val.i);
 
 	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
-	  /*case RIG_LEVEL_BWC:
+#if 0
+	  case RIG_LEVEL_BWC:
 	  if (priv->pbs_len == 3)
 		  val.i /= 10;
 	  
 	  cmd_len = sprintf(cmdbuf, "W%0*d" EOM, priv->pbs_len,  val.i);
 
-	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);*/
+	  return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+#endif
 
 	case RIG_LEVEL_AGC:
 	  if (val.i < 10)
@@ -567,9 +599,6 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	char cwbuf[BUFSZ];
 	int cw_len;
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
 	switch (level) {
 	case RIG_LEVEL_RAWSTR:
 	  /* read A/D converted value */
@@ -711,7 +740,8 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  val->f = (float)lvl/255.0;
 	  break;
 
-	/*case RIG_LEVEL_TONE:
+#if 0
+	case RIG_LEVEL_TONE:
 	  retval = jrc_transaction (rig, "KK" EOM, 3, lvlbuf, &lvl_len);
 	  if (retval != RIG_OK)
 	    return retval;
@@ -724,7 +754,8 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	  sscanf(lvlbuf+2, "%u", &lvl);
 	  val->f = (float)lvl/255.0;
-	  break;*/
+	  break;
+#endif
 
 	case RIG_LEVEL_NOTCHF:
 	  retval = jrc_transaction (rig, "GG" EOM, 3, lvlbuf, &lvl_len);
@@ -743,7 +774,8 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  val->f = (float)lvl/255.0;
 	  break;
 
-	  /*case RIG_LEVEL_BWC:
+#if 0
+	  case RIG_LEVEL_BWC:
 	  retval = jrc_transaction (rig, "W" EOM, 2, lvlbuf, &lvl_len);
 	  if (retval != RIG_OK)
 	    return retval;
@@ -759,7 +791,8 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		  lvl *= 10;
 	  
 	  val->i = lvl;
-	  break;*/
+	  break;
+#endif
 
 	case RIG_LEVEL_CWPITCH:
 	  cw_len = sprintf(cwbuf, "%s" EOM, priv->cw_pitch);
@@ -962,7 +995,6 @@ int jrc_set_powerstat(RIG *rig, powerstat_t status)
  * Assumes rig!=NULL
  */
 int jrc_get_powerstat(RIG *rig, powerstat_t *status)
-//powerstat_t jrc_get_powerstat(RIG *rig)
 {
 	char pwrbuf[BUFSZ];
 	int pwr_len, retval;
@@ -1063,38 +1095,17 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
 {
 	struct jrc_priv_caps *priv = (struct jrc_priv_caps*)rig->caps->priv;
 	char	cmdbuf[BUFSZ];
-	int		cmd_len;
+	int	retval, cmd_len;
 
 	sprintf(cmdbuf,"K%03d000",chan->channel_num);
 	
 	if (chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i == 20)
 		cmdbuf[4] = '1';
-			
-	if (chan->width <= s_Hz(1500))
-		cmdbuf[5] = '2';
-	else if (chan->width <= s_Hz(4000))
-		cmdbuf[5] = '1';
-	else if (chan->width <= s_Hz(9000))
-		cmdbuf[5] = '0';
-	else if (rig->caps->rig_model == RIG_MODEL_NRD535)
-		cmdbuf[5] = '3'; /*aux - nrd535 only*/
-	else
-		cmdbuf[5] = '1'; /*inter*/
-	
-	switch (chan->mode) {
-		case RIG_MODE_CW:       cmdbuf[6] = MD_CW; break;
-		case RIG_MODE_USB:      cmdbuf[6] = MD_USB; break;
-		case RIG_MODE_LSB:      cmdbuf[6] = MD_LSB; break;
-		case RIG_MODE_FM:       cmdbuf[6] = MD_FM; break;
-		case RIG_MODE_AM:       cmdbuf[6] = MD_AM; break;
-		case RIG_MODE_RTTY:		cmdbuf[6] = MD_RTTY; break;
-		case RIG_MODE_WFM:		cmdbuf[6] = MD_WFM; break;
-		case RIG_MODE_AMS:		cmdbuf[6] = MD_AMS; break;
-		case RIG_MODE_FAX:		cmdbuf[6] = MD_FAX; break;
-		case RIG_MODE_ECSSUSB:	cmdbuf[6] = MD_ECSS_USB; break;
-		case RIG_MODE_ECSSLSB:	cmdbuf[6] = MD_ECSS_LSB; break;
-		default: cmdbuf[6] = MD_AM;
-	}
+
+	retval = rig2jrc_mode(rig, chan->mode, chan->width,
+			&cmdbuf[6], &cmdbuf[5]);
+	if (retval != RIG_OK)
+	  return retval;
 	
 	sprintf(cmdbuf+7,"%0*"PRIll, priv->max_freq_len, (long long)chan->freq);
 	
@@ -1165,31 +1176,9 @@ int jrc_get_chan(RIG *rig, channel_t *chan)
 	if (mem_len != 6) {
 		if (membuf[4] == '1')
 			chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 20;
-		switch (membuf[5]) {
-			case '0' : chan->width = s_Hz(6000); break; //wide
-			case '1' : chan->width = s_Hz(2000); break; //inter
-			case '2' : chan->width = s_Hz(1000); break; //narr
-			case '3' : chan->width = s_Hz(12000); break; //aux - nrd535 only
-			default : chan->width = RIG_PASSBAND_NORMAL;
-		}
-		switch (membuf[6]) {
-			case '0' : chan->mode = RIG_MODE_RTTY; break;
-			case '1' : chan->mode = RIG_MODE_CW; break;
-			case '2' : chan->mode = RIG_MODE_USB; break;
-			case '3' : chan->mode = RIG_MODE_LSB; break;
-			case '4' : chan->mode = RIG_MODE_AM; break;
-			case '5' : chan->mode = RIG_MODE_FM; break;
-			case '6' : if (rig->caps->rig_model == RIG_MODEL_NRD535) {
-		             		chan->mode = RIG_MODE_FAX; break;  //FAX on nrd535
-						}
-						else {
-							chan->mode = RIG_MODE_AMS; break;  //AMS on nrd545
-						}
-			case '7' : chan->mode = RIG_MODE_ECSSUSB; break;  //ECSS-USB
-			case '8' : chan->mode = RIG_MODE_ECSSLSB; break;  //ECSS-LSB
-			case '9' : chan->mode = RIG_MODE_WFM; break;  //nrd545 only
-			default: chan->mode = RIG_MODE_NONE;
-		}
+
+		jrc2rig_mode(rig, membuf[6], membuf[5],
+			&chan->mode, &chan->width);
 
 		strncpy(freqbuf,membuf+7,priv->max_freq_len);
 		freqbuf[priv->max_freq_len] = 0x00;
@@ -1222,13 +1211,15 @@ int jrc_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 
 	switch(op) {
 		case RIG_OP_FROM_VFO: cmd="E1" EOM; break;
+		case RIG_OP_UP: cmd="MM25" EOM; break;
+		case RIG_OP_DOWN: cmd="MM24" EOM; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"jrc_vfo_op: unsupported op %#x\n",
 							op);
 			return -RIG_EINVAL;
 	}
 
-	return jrc_transaction (rig, cmd, 3, NULL, NULL);
+	return jrc_transaction (rig, cmd, strlen(cmd), NULL, NULL);
 }
 
 
@@ -1258,57 +1249,6 @@ int jrc_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	}
 
 	return jrc_transaction (rig, scan_cmd, 3, NULL, NULL);
-}
-
-static int jrc2rig_mode(RIG *rig, char jmode, char jwidth,
-			rmode_t *mode, pbwidth_t *width)
-{
-	switch (jmode) {
-	case MD_CW:			*mode = RIG_MODE_CW; break;
-	case MD_USB:		*mode = RIG_MODE_USB; break;
-	case MD_LSB:		*mode = RIG_MODE_LSB; break;
-	case MD_FM:			*mode = RIG_MODE_FM; break;
-	case MD_AM:			*mode = RIG_MODE_AM; break;
-	case MD_AMS:		if (rig->caps->rig_model == RIG_MODEL_NRD535) {
-							*mode = RIG_MODE_FAX; break;
-						}
-						else {
-							*mode = RIG_MODE_AMS; break;
-						}
-	case MD_ECSS_USB:	*mode = RIG_MODE_ECSSUSB; break;
-	case MD_ECSS_LSB:	*mode = RIG_MODE_ECSSLSB; break;
-	case MD_RTTY:		*mode = RIG_MODE_RTTY; break;
-	case MD_WFM:		*mode = RIG_MODE_WFM; break;
-	default:
-	  rig_debug(RIG_DEBUG_ERR,
-		    "jrc_set_mode: unsupported mode %c\n",
-		    jmode);
-	  *mode = RIG_MODE_NONE;
-	  return -RIG_EINVAL;
-	}
-
-	/*
-	 * determine passband
-	 */
-	switch (jwidth) {
-	case '0':
-	  *width = rig_passband_wide(rig, *mode);
-	  break;
-	case '1':
-	  *width = rig_passband_normal(rig, *mode);
-	  break;
-	case '2':
-	  *width = rig_passband_narrow(rig, *mode);
-	  break;
-	default:
-	  rig_debug(RIG_DEBUG_ERR,
-		    "jrc_set_mode: unsupported width %c\n",
-		    jwidth);
-	  *width = RIG_PASSBAND_NORMAL;
-	  return -RIG_EINVAL;
-	}
-
-	return RIG_OK;
 }
 
 /*
