@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR5000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.6 2005-04-03 19:41:26 fillods Exp $
+ *	$Id: ar5000.c,v 1.7 2005-04-15 17:48:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +38,7 @@
 
 #define AR5000_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
-#define AR5000_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
+#define AR5000_VFO_OPS (RIG_OP_MCL|RIG_OP_UP|RIG_OP_DOWN|RIG_OP_LEFT|RIG_OP_RIGHT)
 
 #define AR5000_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -82,8 +82,26 @@
 		{  0xfd, dBm2S9(0) } \
 	} }
 
-static int ar5k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ar5k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+#define AR5000_MEM_CAP {	\
+	.freq = 1,	\
+	.mode = 1,	\
+	.width = 1,	\
+	.bank_num = 1,	\
+	.tuning_step = 1,	\
+	.channel_desc = 1,	\
+	.flags = 1,	\
+	.levels = RIG_LEVEL_ATT|RIG_LEVEL_AGC,	\
+	.funcs = RIG_FUNC_ABM,    \
+}
+
+
+static int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width);
+static int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width);
+
+static const struct aor_priv_caps ar5k_priv_caps = {
+	.format_mode = format5k_mode,
+	.parse_aor_mode = parse5k_aor_mode,
+};
 
 /*
  * ar5000 rig capabilities.
@@ -91,6 +109,8 @@ static int ar5k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
  * Also this struct is READONLY!
  *
  * part of info from http://www.aoruk.com/5000.htm
+ *
+ * TODO: retrieve BW info, and rest of commands
  */
 const struct rig_caps ar5000_caps = {
 .rig_model =  RIG_MODEL_AR5000,
@@ -130,12 +150,15 @@ const struct rig_caps ar5000_caps = {
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
 .transceive =  RIG_TRN_RIG,
-.bank_qty =   20,
+.bank_qty =   10,
 .chan_desc_sz =  12,
 .vfo_ops =  AR5000_VFO_OPS,
 .str_cal = AR5000_REAL_STR_CAL,
 
-.chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
+.chan_list =  {
+	{   0,  999, RIG_MTYPE_MEM, AR5000_MEM_CAP },
+        RIG_CHAN_END, },
+
 
 .rx_range_list1 =  {
 	{kHz(10),MHz(2600),AR5000_MODES,-1,-1,AR5000_VFO},
@@ -178,15 +201,17 @@ const struct rig_caps ar5000_caps = {
 .filters =  {
         /* mode/filter list, .remember =  order matters! */
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(3)}, 
+		{RIG_MODE_CW, Hz(500)}, 
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(15)}, 
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(6)}, 	/* narrow */
-		{RIG_MODE_FM|RIG_MODE_AM, kHz(30)}, /* wide */
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(40)}, /* wide */
 		{RIG_MODE_WFM, kHz(220)},
 		{RIG_MODE_WFM, kHz(120)},
 		RIG_FLT_END,
 	},
 
-.priv =  NULL,
+.priv = (void*)&ar5k_priv_caps,
+
 .rig_init =  NULL,
 .rig_cleanup =  NULL,
 .rig_open =  NULL,
@@ -194,8 +219,8 @@ const struct rig_caps ar5000_caps = {
 
 .set_freq =  aor_set_freq,
 .get_freq =  aor_get_freq,
-.set_mode =  ar5k_set_mode,
-.get_mode =  ar5k_get_mode,
+.set_mode =  aor_set_mode,
+.get_mode =  aor_get_mode,
 .set_vfo =  aor_set_vfo,
 .get_vfo =  aor_get_vfo,
 
@@ -208,6 +233,13 @@ const struct rig_caps ar5000_caps = {
 .vfo_op =  aor_vfo_op,
 .get_info =  aor_get_info,
 
+.set_mem = aor_set_mem,
+.get_mem = aor_get_mem,
+.set_bank = aor_set_bank,
+
+.set_channel = aor_set_channel,
+.get_channel = aor_get_channel,
+
 };
 
 /*
@@ -216,91 +248,81 @@ const struct rig_caps ar5000_caps = {
 
 
 /*
- * acknowledge is CR
- * Is \r portable enough?
+ * modes in use by the "MD" command of AR5000
  */
-#define CR '\r'
-#define EOM "\r"
+#define AR5K_FM		'0'
+#define	AR5K_AM		'1'
+#define AR5K_LSB	'2'
+#define AR5K_USB	'3'
+#define AR5K_CW		'4'
 
-#define BUFSZ 64
-
-/*
- * modes in use by the "MD" command
- */
-#define MD_FM	'0'
-#define	MD_AM	'1'
-#define MD_LSB	'2'
-#define MD_USB	'3'
-#define MD_CW	'4'
-
-
-extern int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
-
-/*
- * aor_set_mode
- * Assumes rig!=NULL
- */
-int ar5k_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+int format5k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 {
-	unsigned char mdbuf[BUFSZ],ackbuf[BUFSZ];
-	int mdbuf_len, ack_len, aormode, retval;
+	int aormode, aorwidth;
 
 	switch (mode) {
-	case RIG_MODE_FM:       aormode = MD_FM; break;
-	case RIG_MODE_AM:       aormode = MD_AM; break;
-	case RIG_MODE_CW:       aormode = MD_CW; break;
-	case RIG_MODE_USB:      aormode = MD_USB; break;
-	case RIG_MODE_LSB:      aormode = MD_LSB; break;
+	case RIG_MODE_AM:       aormode = AR5K_AM; break;
+	case RIG_MODE_WFM:
+	case RIG_MODE_FM:       aormode = AR5K_FM; break;
+	case RIG_MODE_LSB:      aormode = AR5K_LSB; break;
+	case RIG_MODE_USB:      aormode = AR5K_USB; break;
+	case RIG_MODE_CW:       aormode = AR5K_CW; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-					__FUNCTION__,mode);
+				__FUNCTION__, mode);
 		return -RIG_EINVAL;
 	}
 
-	mdbuf_len = sprintf(mdbuf, "MD%c" EOM, aormode);
-	retval = aor_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+	if (width == RIG_PASSBAND_NORMAL)
+		width = rig_passband_normal(rig, mode);
 
-	return retval;
+	switch (width) {
+	case 500:	aorwidth = '0'; break;
+	case s_kHz(3):	aorwidth = '1'; break;
+	case s_kHz(6):	aorwidth = '2'; break;
+	case s_kHz(15):	aorwidth = '3'; break;
+	case s_kHz(40):	aorwidth = '4'; break;
+	case s_kHz(110):	aorwidth = '5'; break;
+	case s_kHz(220):	aorwidth = '6'; break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
+				__FUNCTION__, width);
+		return -RIG_EINVAL;
+	}
+
+	return sprintf(buf, "MD%c BW%c", aormode, aorwidth);
 }
 
-/*
- * aor_get_mode
- * Assumes rig!=NULL, mode!=NULL
- */
-int ar5k_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+
+
+int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width)
 {
-	unsigned char ackbuf[BUFSZ];
-	int ack_len, retval;
-	char *rfp;
+	switch (aormode) {
+		case AR5K_FM:	*mode = RIG_MODE_FM; break;
+		case AR5K_AM:	*mode = RIG_MODE_AM; break;
+		case AR5K_LSB:	*mode = RIG_MODE_LSB; break;
+		case AR5K_USB:	*mode = RIG_MODE_USB; break;
+		case AR5K_CW:	*mode = RIG_MODE_CW; break;
+		default:
+			rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
+					__FUNCTION__, aormode);
+			return -RIG_EPROTO;
+	}
 
-
-	retval = aor_transaction (rig, "MD" EOM, strlen("MD" EOM), ackbuf, &ack_len);
-	if (retval != RIG_OK)
-		return retval;
-
-	rfp = strstr(ackbuf, "MD");
-	if (!rfp) {
-		rig_debug(RIG_DEBUG_WARN, "No MD in returned string in %s: '%s'\n",
-				__FUNCTION__, ackbuf);
+	switch (aorwidth) {
+		case '0':	*width = 500; break;
+		case '1':	*width = s_kHz(3); break;
+		case '2':	*width = s_kHz(6); break;
+		case '3':	*width = s_kHz(15); break;
+		case '4':	*width = s_kHz(40); break;
+		case '5':	*width = s_kHz(110); break;
+		case '6':	*width = s_kHz(220); break;
+	default:
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported width %d\n",
+				__FUNCTION__, aorwidth);
 		return -RIG_EPROTO;
 	}
 
-	*width = RIG_PASSBAND_NORMAL;
-	switch (rfp[2]) {
-		case MD_AM:	*mode = RIG_MODE_AM; break;
-		case MD_CW:	*mode = RIG_MODE_CW; break;
-		case MD_FM:	*mode = RIG_MODE_FM; break;
-		case MD_USB:	*mode = RIG_MODE_USB; break;
-		case MD_LSB:	*mode = RIG_MODE_LSB; break;
-		default:
-			rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-							__FUNCTION__, rfp[2]);
-			return -RIG_EINVAL;
-	}
-	if (*width == RIG_PASSBAND_NORMAL)
-		*width = rig_passband_normal(rig, *mode);
-
 	return RIG_OK;
 }
-
 

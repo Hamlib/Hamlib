@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.34 2005-04-10 20:59:30 fillods Exp $
+ *	$Id: aor.c,v 1.35 2005-04-15 17:48:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -51,17 +51,17 @@
 #define BUFSZ 256
 
 /*
- * modes in use by the "MD" command
+ * modes in use by the "MD" command of AR8000 and AR8200
  */
-#define MD_WFM	'0'
-#define MD_NFM	'1'
-#define	MD_AM	'2'
-#define MD_USB	'3'
-#define MD_LSB	'4'
-#define MD_CW	'5'
-#define MD_SFM	'6'
-#define MD_WAM	'7'
-#define MD_NAM	'8'
+#define AR8K_WFM	'0'
+#define AR8K_NFM	'1'
+#define	AR8K_AM	'2'
+#define AR8K_USB	'3'
+#define AR8K_LSB	'4'
+#define AR8K_CW	'5'
+#define AR8K_SFM	'6'
+#define AR8K_WAM	'7'
+#define AR8K_NAM	'8'
 
 
 /*
@@ -71,7 +71,7 @@
  * return value: RIG_OK if everything's fine, negative value otherwise
  * TODO: error case handling
  */
-int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
 	int retval;
 	struct rig_state *rs;
@@ -235,7 +235,7 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
 	return RIG_OK;
 }
 
-static int format_mode(char *buf, rmode_t mode, pbwidth_t width)
+int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 {
 	int aormode;
 
@@ -243,10 +243,10 @@ static int format_mode(char *buf, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_AM:       
 		switch(width) {
 			case RIG_PASSBAND_NORMAL:
-			case s_kHz(9): aormode = MD_AM; break;
+			case s_kHz(9): aormode = AR8K_AM; break;
 
-			case s_kHz(12): aormode = MD_WAM; break;
-			case s_kHz(3): aormode = MD_NAM; break;
+			case s_kHz(12): aormode = AR8K_WAM; break;
+			case s_kHz(3): aormode = AR8K_NAM; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,
 					"%s: unsupported passband %d %d\n",
@@ -255,16 +255,16 @@ static int format_mode(char *buf, rmode_t mode, pbwidth_t width)
 			return -RIG_EINVAL;
 		}
 		break;
-	case RIG_MODE_CW:       aormode = MD_CW; break;
-	case RIG_MODE_USB:      aormode = MD_USB; break;
-	case RIG_MODE_LSB:      aormode = MD_LSB; break;
-	case RIG_MODE_WFM:      aormode = MD_WFM; break;
+	case RIG_MODE_CW:       aormode = AR8K_CW; break;
+	case RIG_MODE_USB:      aormode = AR8K_USB; break;
+	case RIG_MODE_LSB:      aormode = AR8K_LSB; break;
+	case RIG_MODE_WFM:      aormode = AR8K_WFM; break;
 	case RIG_MODE_FM:
 		switch(width) {
 			case RIG_PASSBAND_NORMAL:
-			case s_kHz(12): aormode = MD_NFM; break;
+			case s_kHz(12): aormode = AR8K_NFM; break;
 
-			case s_kHz(9): aormode = MD_SFM; break;
+			case s_kHz(9): aormode = AR8K_SFM; break;
 			default:
 				rig_debug(RIG_DEBUG_ERR,
 					"%s: unsupported passband %d %d\n",
@@ -288,10 +288,11 @@ static int format_mode(char *buf, rmode_t mode, pbwidth_t width)
  */
 int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	unsigned char mdbuf[BUFSZ];
 	int mdbuf_len, retval;
 
-	mdbuf_len = format_mode(mdbuf, mode, width);
+	mdbuf_len = priv->format_mode(rig, mdbuf, mode, width);
 
 	strcpy(mdbuf+mdbuf_len, EOM);
 	mdbuf_len += strlen(EOM);
@@ -301,25 +302,29 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	return retval;
 }
 
-static int parse_aor_mode(RIG *rig, char aormode, rmode_t *mode, pbwidth_t *width)
+/*
+ * parse8k_aor_mode * don't care about aorwidth,
+ * because there's no such BW command
+ */
+int parse8k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width)
 {
 	*width = RIG_PASSBAND_NORMAL;
 	switch (aormode) {
-		case MD_AM:		*mode = RIG_MODE_AM; break;
-		case MD_NAM:	
+		case AR8K_AM:		*mode = RIG_MODE_AM; break;
+		case AR8K_NAM:	
 			*mode = RIG_MODE_AM;
 			*width = rig_passband_narrow(rig, *mode); 
 			break;
-		case MD_WAM:	
+		case AR8K_WAM:	
 			*mode = RIG_MODE_AM;
 			*width = rig_passband_wide(rig, *mode); 
 			break;
-		case MD_CW:		*mode = RIG_MODE_CW; break;
-		case MD_USB:	*mode = RIG_MODE_USB; break;
-		case MD_LSB:	*mode = RIG_MODE_LSB; break;
-		case MD_WFM:	*mode = RIG_MODE_WFM; break;
-		case MD_NFM:	*mode = RIG_MODE_FM; break;
-		case MD_SFM:	
+		case AR8K_CW:		*mode = RIG_MODE_CW; break;
+		case AR8K_USB:	*mode = RIG_MODE_USB; break;
+		case AR8K_LSB:	*mode = RIG_MODE_LSB; break;
+		case AR8K_WFM:	*mode = RIG_MODE_WFM; break;
+		case AR8K_NFM:	*mode = RIG_MODE_FM; break;
+		case AR8K_SFM:	
 			*mode = RIG_MODE_FM;
 			*width = rig_passband_narrow(rig, *mode); 
 			break;
@@ -334,14 +339,17 @@ static int parse_aor_mode(RIG *rig, char aormode, rmode_t *mode, pbwidth_t *widt
 	return RIG_OK;
 }
 
+
 /*
  * aor_get_mode
  * Assumes rig!=NULL, mode!=NULL
  */
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	unsigned char ackbuf[BUFSZ], *mdp;
-	int ack_len, retval;
+	unsigned char ackbuf2[BUFSZ], *mdp2;
+	int ack_len, ack2_len, retval;
 
 
 	retval = aor_transaction (rig, "MD" EOM, 3, ackbuf, &ack_len);
@@ -359,7 +367,16 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return -RIG_EPROTO;
 	}
 
-	retval = parse_aor_mode(rig, mdp[2], mode, width);
+	if (rig->caps->rig_model == RIG_MODEL_AR5000) {
+		retval = aor_transaction (rig, "BW" EOM, 3, ackbuf2, &ack2_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		mdp2 = strstr(ackbuf2, "BW");
+	} else
+		mdp2 = mdp;
+
+	retval = priv->parse_aor_mode(rig, mdp[2], mdp2[2], mode, width);
 
 	return retval;
 }
@@ -630,6 +647,7 @@ int aor_set_bank(RIG *rig, vfo_t vfo, int bank)
 
 int aor_set_channel(RIG *rig, const channel_t *chan)
 {
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	char aorcmd[BUFSZ];
 	int cmd_len;
 
@@ -644,7 +662,7 @@ int aor_set_channel(RIG *rig, const channel_t *chan)
 	cmd_len += sprintf(aorcmd+cmd_len, " AU%d ST%06d ", 
 			0, (int)chan->tuning_step);
 
-	cmd_len += format_mode(aorcmd+cmd_len, chan->mode, chan->width);
+	cmd_len += priv->format_mode(rig, aorcmd+cmd_len, chan->mode, chan->width);
 
 	cmd_len += sprintf(aorcmd+cmd_len, " AT%d TM%12s"EOM, 
 			chan->levels[LVL_ATT].i ? 1:0, chan->channel_desc);
@@ -654,6 +672,7 @@ int aor_set_channel(RIG *rig, const channel_t *chan)
 
 int aor_get_channel(RIG *rig, channel_t *chan)
 {
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	char aorcmd[BUFSZ];
 	int cmd_len, chan_len;
 	char chanbuf[BUFSZ];
@@ -737,14 +756,19 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 
 	/* mode and width */
 	if (mem_caps->mode && mem_caps->width) {
+		char *tag2p;
 		tagp = strstr(basep, "MD");
 		if (!tagp && mem_caps->mode && mem_caps->width) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
 				__FUNCTION__, chanbuf);
 			return -RIG_EPROTO;
 		}
+		/* "BW" only on AR5000 */
+		tag2p = strstr(basep, "BW");
+		if (!tag2p)
+			tag2p = tagp;
 
-		retval = parse_aor_mode(rig, tagp[2], &chan->mode, &chan->width);
+		retval = priv->parse_aor_mode(rig, tagp[2], tag2p[2], &chan->mode, &chan->width);
 		if (retval != RIG_OK)
 			return retval;
 	}

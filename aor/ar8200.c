@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR8200 description
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar8200.c,v 1.18 2005-04-09 16:33:42 fillods Exp $
+ *	$Id: ar8200.c,v 1.19 2005-04-15 17:48:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,11 +53,19 @@
 	.freq = 1,	\
 	.mode = 1,	\
 	.width = 1,	\
+	.bank_num = 1,	\
 	.tuning_step = 1,	\
 	.channel_desc = 1,	\
 	.flags = 1,	\
 	.levels = RIG_LEVEL_ATT,	\
+	.funcs = RIG_FUNC_ABM,	\
 }
+
+static const struct aor_priv_caps ar8k_priv_caps = {
+	.format_mode = format8k_mode,
+	.parse_aor_mode = parse8k_aor_mode,
+};
+
 
 /*
  * ar8200 rig capabilities.
@@ -153,7 +161,8 @@ const struct rig_caps ar8200_caps = {
 		RIG_FLT_END,
 	},
 
-.priv =  NULL,
+.priv = (void*)&ar8k_priv_caps,
+
 .rig_init =  NULL,
 .rig_cleanup =  NULL,
 .rig_open =  NULL,
