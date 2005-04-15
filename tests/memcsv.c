@@ -4,7 +4,7 @@
  * This program exercises the backup and restore of a radio
  * using Hamlib. CSV primitives
  *
- * $Id: memcsv.c,v 1.6 2005-01-24 23:04:21 fillods Exp $  
+ * $Id: memcsv.c,v 1.7 2005-04-15 21:14:10 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -83,7 +83,7 @@ int csv_save (RIG *rig, const char *outfilename)
 
 			if (status == -RIG_ENAVAIL ) {
 				/* empty channel */
-				return RIG_OK;
+				continue;
 			}
 
 			if (status != RIG_OK ) {
