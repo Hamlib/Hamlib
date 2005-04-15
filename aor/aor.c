@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.35 2005-04-15 17:48:40 fillods Exp $
+ *	$Id: aor.c,v 1.36 2005-04-15 18:18:42 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -75,6 +75,8 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 {
 	int retval;
 	struct rig_state *rs;
+	unsigned char ackbuf[BUFSZ];
+	int ack_len;
 
 	rs = &rig->state;
 
@@ -84,10 +86,14 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 	if (retval != RIG_OK)
 		return retval;
 
-	/* will flush data on next transaction */
-	if (!data || !data_len)
-		return RIG_OK;
+	if (!data)
+		data = ackbuf;
+	if (!data_len)
+		data_len = &ack_len;
 
+	/*
+	 * Do wait for a reply
+	 */
 	retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
 	if (retval < 0)
 		return retval;
@@ -98,6 +104,13 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 		data[*data_len] = '\0';
 	else
 		data[BUFSZ-1] = '\0';
+
+	if (data[0] == '?') {
+		/* command failed? resync with radio */
+		write_block(&rs->rigport, EOM, 1);
+
+		return -RIG_EPROTO;
+	}
 
 	return RIG_OK;
 }
