@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main header
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.h,v 1.20 2005-04-15 17:48:40 fillods Exp $
+ *	$Id: aor.h,v 1.21 2005-04-15 21:50:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,6 +34,8 @@ int parse8k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwid
 struct aor_priv_caps {
 	int (*format_mode)(RIG *rig, char *buf, rmode_t mode, pbwidth_t width);
 	int (*parse_aor_mode)(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width);
+	char bank_base1;
+	char bank_base2;
 };
 
 int aor_close(RIG *rig);

@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.36 2005-04-15 18:18:42 fillods Exp $
+ *	$Id: aor.c,v 1.37 2005-04-15 21:50:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -419,7 +419,6 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
  */
 int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	struct aor_priv_data *priv;
 	struct rig_state *rs;
 	unsigned char lvlbuf[BUFSZ];
 	int lvl_len;
@@ -427,7 +426,6 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	int agc;
 
 	rs = &rig->state;
-	priv = (struct aor_priv_data*)rs->priv;
 
 
 	switch (level) {
@@ -472,13 +470,11 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	struct aor_priv_data *priv;
 	struct rig_state *rs;
 	unsigned char lvlbuf[BUFSZ],ackbuf[BUFSZ];
 	int lvl_len, ack_len, retval;
 
 	rs = &rig->state;
-	priv = (struct aor_priv_data*)rs->priv;
 
 	switch (level) {
 	case RIG_LEVEL_RAWSTR:
@@ -609,11 +605,27 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	unsigned char membuf[BUFSZ];
 	int mem_len;
+	int mem_num;
+	char bank_base;
 
-	/* FIXME: bank# */
-	mem_len = sprintf(membuf,"MR%c%02d" EOM, 'A'+ch/100,ch%100);
+	/*
+	 * FIXME: we're assuming the banks are split 50/50.
+	 * 	MW should be called the first time instead,
+	 * 	and sizing memorized.
+	 */
+	mem_num = ch%100;
+	if (mem_num >= 50 && priv->bank_base1 != priv->bank_base2) {
+		bank_base = priv->bank_base2;
+		mem_num -= 50;
+	} else {
+		bank_base = priv->bank_base1;
+	} 
+
+	mem_len = sprintf(membuf,"MR%c%02d" EOM, 
+			bank_base + ch/100, mem_num);
 
 	return aor_transaction (rig, membuf, mem_len, NULL, NULL);
 }
@@ -624,6 +636,7 @@ int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int aor_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	int mem_len, retval;
 	unsigned char membuf[BUFSZ];
 
@@ -636,8 +649,15 @@ int aor_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 	sscanf(membuf+3,"%d", ch);
 
-	/* FIXME: bank# */
-	*ch += 100 * (toupper(membuf[2])-'A');
+	/*
+	 * FIXME: we're assuming the banks are split 50/50.
+	 * 	MW should be called the first time instead,
+	 * 	and sizing memorized.
+	 */
+	if (membuf[2] >= priv->bank_base2)
+		*ch += 100 * (membuf[2] - priv->bank_base2) + 50;
+	else
+		*ch += 100 * (membuf[2] - priv->bank_base1);
 
 	return RIG_OK;
 }
@@ -648,11 +668,12 @@ int aor_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int aor_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	unsigned char membuf[BUFSZ];
 	int mem_len;
 
-	/* FIXME: bank# */
-	mem_len = sprintf(membuf,"MR%c" EOM, (bank%10)+(bank<10 ? 'A':'a'));
+	mem_len = sprintf(membuf,"MR%c" EOM, (bank%10) + (bank<10 ? 
+				priv->bank_base1:priv->bank_base2));
 
 	return aor_transaction (rig, membuf, mem_len, NULL, NULL);
 }
@@ -693,14 +714,16 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 	char *basep, *tagp;
 	channel_cap_t *mem_caps = NULL;
 	chan_t *chan_list;
+	int mem_num, channel_num = chan->channel_num;
+	char bank_base;
 
 	/*
 	 * find mem_caps in caps, we'll need it later
 	 */
 	chan_list = rig->caps->chan_list;
 	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-		if (chan->channel_num >= chan_list[i].start &&
-				chan->channel_num <= chan_list[i].end) {
+		if (channel_num >= chan_list[i].start &&
+				channel_num <= chan_list[i].end) {
 			mem_caps = &chan_list[i].mem_caps;
 			break;
 		}
@@ -708,14 +731,30 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 	if (!mem_caps)
 		return -RIG_EINVAL;
 
-	/* FIXME: I don't understand the MA. It lists only 10 channels,
-	 * we can select bank, but not channel number. How to get 
-	 * the memories past the first 10 ?
-	 * Let's try with a MR first, then MA without bank.
+
+	/*
+	 * FIXME: we're assuming the banks are split 50/50.
+	 * 	MW should be called the first time instead,
+	 * 	and sizing memorized.
 	 */
-	cmd_len = sprintf(aorcmd, "MR%c%02d" EOM, 'A' + chan->channel_num/100,
-			chan->channel_num%100);
+	mem_num = channel_num%100;
+	if (mem_num >= 50 && priv->bank_base1 != priv->bank_base2) {
+		bank_base = priv->bank_base2;
+		mem_num -= 50;
+	} else {
+		bank_base = priv->bank_base1;
+	} 
+
+	cmd_len = sprintf(aorcmd, "MR%c%02d" EOM, 
+			bank_base + channel_num/100, mem_num);
 	retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
+
+	/* is the channel empty? */
+	if (retval == -RIG_EPROTO && chanbuf[0] == '?') {
+		chan->freq = RIG_FREQ_NONE;
+		return -RIG_ENAVAIL;
+	}
+
 	if (retval != RIG_OK)
 		return retval;
 

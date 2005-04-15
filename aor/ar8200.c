@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR8200 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar8200.c,v 1.19 2005-04-15 17:48:41 fillods Exp $
+ *	$Id: ar8200.c,v 1.20 2005-04-15 21:50:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,6 +64,8 @@
 static const struct aor_priv_caps ar8k_priv_caps = {
 	.format_mode = format8k_mode,
 	.parse_aor_mode = parse8k_aor_mode,
+	.bank_base1 = 'A',
+	.bank_base2 = 'a',
 };
 
 

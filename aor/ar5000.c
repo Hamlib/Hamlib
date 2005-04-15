@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR5000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.7 2005-04-15 17:48:41 fillods Exp $
+ *	$Id: ar5000.c,v 1.8 2005-04-15 21:50:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -101,6 +101,8 @@ static int parse5k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode
 static const struct aor_priv_caps ar5k_priv_caps = {
 	.format_mode = format5k_mode,
 	.parse_aor_mode = parse5k_aor_mode,
+	.bank_base1 = '0',
+	.bank_base2 = '0',
 };
 
 /*
