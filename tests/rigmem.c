@@ -4,7 +4,7 @@
  * This program exercises the backup and restore of a radio
  * using Hamlib.
  *
- * $Id: rigmem.c,v 1.3 2005-01-25 00:21:56 fillods Exp $  
+ * $Id: rigmem.c,v 1.4 2005-04-20 13:33:18 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -81,7 +81,9 @@ static struct option long_options[] =
 	{"civaddr",  1, 0, 'c'},
 	{"set-conf", 1, 0, 'C'},
 	{"all",  0, 0, 'a'},
+#ifdef HAVE_XML2
 	{"xml",  0, 0, 'x'},
+#endif
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -161,9 +163,11 @@ int main (int argc, char *argv[])
 			case 'a':
 					all++;
 					break;
+#ifdef HAVE_XML2
 			case 'x':
 					xml++;
 					break;
+#endif
 			case 'v':
 					verbose++;
 					break;
@@ -286,7 +290,9 @@ void usage()
 	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -a, --all                  bypass mem_caps, apply to all fields of channel_t\n"
+#ifdef HAVE_XML2
 	"  -x, --xml                  use XML format instead of CSV\n"
+#endif
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n"
