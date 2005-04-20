@@ -2,7 +2,7 @@
  * memsave.c - Copyright (C) 2003-2005 Thierry Leconte
  *
  *
- *	$Id: memsave.c,v 1.8 2005-01-25 00:21:44 fillods Exp $  
+ *	$Id: memsave.c,v 1.9 2005-04-20 14:47:04 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,13 +37,13 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
-static int dump_xml_chan(RIG *rig, xmlNodePtr root ,int chn, int chan_num);
+static int dump_xml_chan(RIG *rig, channel_t **chan, int channel_num, const chan_t *chan_list, rig_ptr_t arg);
 #endif
 
-int xml_save (RIG *my_rig, const char *outfilename)
+int xml_save (RIG *rig, const char *outfilename)
 { 
 #ifdef HAVE_XML2
-	int i,j;
+	int retval;
 	xmlDocPtr Doc;
 	xmlNodePtr root;
 
@@ -54,12 +54,13 @@ int xml_save (RIG *my_rig, const char *outfilename)
 	root=xmlNewChild(root,NULL,"channels",NULL);
 
 
- 	for (i=0; my_rig->state.chan_list[i].type && i < CHANLSTSIZ; i++) {
-		for (j = my_rig->state.chan_list[i].start;
-						j <= my_rig->state.chan_list[i].end; j++) {
-			dump_xml_chan(my_rig, root, i,j);
-		}
-	}
+	if (rig->caps->clone_combo_get)
+		printf("About to save data, enter cloning mode: %s\n",
+				rig->caps->clone_combo_get);
+
+	retval = rig_get_chan_all_cb (rig, dump_xml_chan, root);
+	if (retval != RIG_OK)
+		return retval;
 
 	/* write xml File */
 
@@ -74,7 +75,7 @@ int xml_save (RIG *my_rig, const char *outfilename)
 #endif
 }
 
-int xml_parm_save (RIG *my_rig, const char *outfilename)
+int xml_parm_save (RIG *rig, const char *outfilename)
 {
 	return -RIG_ENIMPL;
 }
@@ -82,28 +83,27 @@ int xml_parm_save (RIG *my_rig, const char *outfilename)
 
 
 #ifdef HAVE_XML2
-int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
+int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *chan_list, rig_ptr_t arg)
 {
-	channel_t chan;
-	int status;
 	char attrbuf[20];
+	xmlNodePtr root = arg;
 	xmlNodePtr node;
 
-	chan.vfo = RIG_VFO_MEM;
-	chan.channel_num = chan_num;
-	status=rig_get_channel(rig, &chan);
+	static channel_t chan;
+	const channel_cap_t *mem_caps = &chan_list->mem_caps;
 
-	if (status == -RIG_ENAVAIL ) {
-		/* empty channel */
+
+	if (*chan_pp == NULL) {
+		/*
+		 * Hamlib frontend demand application an allocated 
+		 * channel_t pointer for next round.
+		 */
+		*chan_pp = &chan;
+
 		return RIG_OK;
 	}
-
-	if (status != RIG_OK ) {
-		printf("rig_get_channel: error = %s \n", rigerror(status));
-		return status;
-	}
-
-	switch (rig->state.chan_list[i].type) {
+	
+	switch (chan_list->type) {
 		case   RIG_MTYPE_NONE :
 			return RIG_OK;
 		case  RIG_MTYPE_MEM:
@@ -123,7 +123,7 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 			break;
 	}
 
-	if (rig->state.chan_list[i].mem_caps.bank_num) {
+	if (mem_caps->bank_num) {
 		sprintf(attrbuf,"%d",chan.bank_num);
 		xmlNewProp(node, "bank_num", attrbuf);
 	}
@@ -131,47 +131,47 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 	sprintf(attrbuf,"%d",chan.channel_num);
 	xmlNewProp(node, "num", attrbuf);
 
-	if (rig->state.chan_list[i].mem_caps.channel_desc && chan.channel_desc[0]!='\0') {
+	if (mem_caps->channel_desc && chan.channel_desc[0]!='\0') {
 			xmlNewProp(node, "channel_desc", chan.channel_desc);
 	}
-	if (rig->state.chan_list[i].mem_caps.vfo) {
+	if (mem_caps->vfo) {
 		sprintf(attrbuf,"%d",chan.vfo);
 		xmlNewProp(node, "vfo", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.ant && chan.ant != RIG_ANT_NONE) {
+	if (mem_caps->ant && chan.ant != RIG_ANT_NONE) {
 		sprintf(attrbuf,"%d",chan.ant);
 		xmlNewProp(node, "ant", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.freq && chan.freq != RIG_FREQ_NONE) {
+	if (mem_caps->freq && chan.freq != RIG_FREQ_NONE) {
 		sprintf(attrbuf,"%"PRIll,(long long)chan.freq);
 		xmlNewProp(node, "freq", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.mode && chan.mode != RIG_MODE_NONE) {
+	if (mem_caps->mode && chan.mode != RIG_MODE_NONE) {
 		xmlNewProp(node, "mode", rig_strrmode(chan.mode));
 	}
-	if (rig->state.chan_list[i].mem_caps.width && chan.width != 0) {
+	if (mem_caps->width && chan.width != 0) {
 		sprintf(attrbuf,"%d",(int)chan.width);
 		xmlNewProp(node, "width", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.tx_freq && chan.tx_freq != RIG_FREQ_NONE) {
+	if (mem_caps->tx_freq && chan.tx_freq != RIG_FREQ_NONE) {
 		sprintf(attrbuf,"%"PRIll,(long long)chan.tx_freq);
 		xmlNewProp(node, "tx_freq", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.tx_mode && chan.tx_mode != RIG_MODE_NONE) {
+	if (mem_caps->tx_mode && chan.tx_mode != RIG_MODE_NONE) {
 		xmlNewProp(node, "tx_mode", rig_strrmode(chan.tx_mode));
 	}
-	if (rig->state.chan_list[i].mem_caps.tx_width && chan.tx_width!=0) {
+	if (mem_caps->tx_width && chan.tx_width!=0) {
 		sprintf(attrbuf,"%d",(int)chan.tx_width);
 		xmlNewProp(node, "tx_width", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.split && chan.split!=RIG_SPLIT_OFF) {
+	if (mem_caps->split && chan.split!=RIG_SPLIT_OFF) {
 		xmlNewProp(node, "split", "on");
-		if (rig->state.chan_list[i].mem_caps.tx_vfo) {
+		if (mem_caps->tx_vfo) {
 				sprintf(attrbuf,"%x",chan.tx_vfo);
 				xmlNewProp(node, "tx_vfo", attrbuf);
 		}
 	}
-	if (rig->state.chan_list[i].mem_caps.rptr_shift && chan.rptr_shift!=RIG_RPT_SHIFT_NONE) {
+	if (mem_caps->rptr_shift && chan.rptr_shift!=RIG_RPT_SHIFT_NONE) {
 		switch(chan.rptr_shift) {
 		case RIG_RPT_SHIFT_NONE:
 				xmlNewProp(node, "rptr_shift", "=");
@@ -183,48 +183,48 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
 				xmlNewProp(node, "rptr_shift", "-");
 				break;
 		}
-		if (rig->state.chan_list[i].mem_caps.rptr_offs && (int)chan.rptr_offs!=0) {
+		if (mem_caps->rptr_offs && (int)chan.rptr_offs!=0) {
 			sprintf(attrbuf,"%d",(int)chan.rptr_offs);
 			xmlNewProp(node, "rptr_offs", attrbuf);
 		}
 	}
-	if (rig->state.chan_list[i].mem_caps.tuning_step && chan.tuning_step !=0) {
+	if (mem_caps->tuning_step && chan.tuning_step !=0) {
 		sprintf(attrbuf,"%d",(int)chan.tuning_step);
 		xmlNewProp(node, "tuning_step", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.rit && chan.rit!=0) {
+	if (mem_caps->rit && chan.rit!=0) {
 		sprintf(attrbuf,"%d",(int)chan.rit);
 		xmlNewProp(node, "rit", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.xit && chan.xit !=0) {
+	if (mem_caps->xit && chan.xit !=0) {
 		sprintf(attrbuf,"%d",(int)chan.xit);
 		xmlNewProp(node, "xit", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.funcs) {
+	if (mem_caps->funcs) {
 		sprintf(attrbuf,"%llx",(long long)chan.funcs);
 		xmlNewProp(node, "funcs", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.ctcss_tone && chan.ctcss_tone !=0) {
+	if (mem_caps->ctcss_tone && chan.ctcss_tone !=0) {
 		sprintf(attrbuf,"%d",chan.ctcss_tone);
 		xmlNewProp(node, "ctcss_tone", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.ctcss_sql && chan.ctcss_sql !=0) {
+	if (mem_caps->ctcss_sql && chan.ctcss_sql !=0) {
 		sprintf(attrbuf,"%d",chan.ctcss_sql);
 		xmlNewProp(node, "ctcss_sql", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.dcs_code && chan.dcs_code !=0) {
+	if (mem_caps->dcs_code && chan.dcs_code !=0) {
 		sprintf(attrbuf,"%d",chan.dcs_code);
 		xmlNewProp(node, "dcs_code", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.dcs_sql && chan.dcs_sql !=0) {
+	if (mem_caps->dcs_sql && chan.dcs_sql !=0) {
 		sprintf(attrbuf,"%d",chan.dcs_sql);
 		xmlNewProp(node, "dcs_sql", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.scan_group) {
+	if (mem_caps->scan_group) {
 		sprintf(attrbuf,"%d",chan.scan_group);
 		xmlNewProp(node, "scan_group", attrbuf);
 	}
-	if (rig->state.chan_list[i].mem_caps.flags) {
+	if (mem_caps->flags) {
 		sprintf(attrbuf,"%x",chan.flags);
 		xmlNewProp(node, "flags", attrbuf);
 	}
@@ -232,4 +232,3 @@ int dump_xml_chan(RIG *rig, xmlNodePtr root, int i, int chan_num)
   return 0;
 }
 #endif
-

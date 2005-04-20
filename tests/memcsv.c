@@ -4,7 +4,7 @@
  * This program exercises the backup and restore of a radio
  * using Hamlib. CSV primitives
  *
- * $Id: memcsv.c,v 1.7 2005-04-15 21:14:10 fillods Exp $  
+ * $Id: memcsv.c,v 1.8 2005-04-20 14:47:04 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -47,10 +47,12 @@
 
 extern int all;
 
+char csv_sep = ',';	/* CSV separator */
+
 /* 
  * Prototypes
  */
-static void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f);
+static int dump_csv_chan(RIG *rig, channel_t **chan, int channel_num, const chan_t *chan_list, rig_ptr_t arg);
 static void dump_csv_name(const channel_cap_t *mem_caps, FILE *f);
 
 int csv_save (RIG *rig, const char *outfilename);
@@ -62,42 +64,21 @@ int csv_parm_load (RIG *rig, const char *infilename);
 
 int csv_save (RIG *rig, const char *outfilename)
 {
-	int i,j,status;
+	int status;
 	FILE *f;
-	channel_t chan;
 
 	f = fopen(outfilename, "w");
 	if (!f)
 		return -1;
 
+	if (rig->caps->clone_combo_get)
+		printf("About to save data, enter cloning mode: %s\n",
+				rig->caps->clone_combo_get);
 
- 	for (i=0; rig->state.chan_list[i].type && i < CHANLSTSIZ; i++) {
-
-		dump_csv_name(&rig->state.chan_list[i].mem_caps, f);
-
-		for (j = rig->state.chan_list[i].start;
-						j <= rig->state.chan_list[i].end; j++) {
-			chan.vfo = RIG_VFO_MEM;
-			chan.channel_num = j;
-			status=rig_get_channel(rig, &chan);
-
-			if (status == -RIG_ENAVAIL ) {
-				/* empty channel */
-				continue;
-			}
-
-			if (status != RIG_OK ) {
-				printf("rig_get_channel: error = %s \n", rigerror(status));
-				return status;
-			}
-
-			dump_csv_chan(&rig->state.chan_list[i].mem_caps, &chan, f);
-		}
-	}
-
+	status = rig_get_chan_all_cb (rig, dump_csv_chan, f);
 
 	fclose(f);
-	return 0;
+	return status;
 }
 
 int csv_load (RIG *rig, const char *infilename)
@@ -108,7 +89,7 @@ int csv_load (RIG *rig, const char *infilename)
 
 static int print_parm_name(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 {
-	fprintf((FILE*)ptr, "%s;", cfp->name);
+	fprintf((FILE*)ptr, "%s%c", cfp->name, csv_sep);
 
 	return 1;	/* process them all */
 }
@@ -120,18 +101,18 @@ static int print_parm_val(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 	rig_get_ext_parm(rig, cfp->token, &val);
 
 	switch (cfp->type) {
-                          case RIG_CONF_CHECKBUTTON:
-                          case RIG_CONF_COMBO:
-                                  fprintf(f,"%d;", val.i);
-                                  break;
-                          case RIG_CONF_NUMERIC:
-                                  fprintf(f,"%f;", val.f);
-                                  break;
-                          case RIG_CONF_STRING:
-                                  fprintf(f,"%s;", val.s);
-                                  break;
-                          default:
-                                  fprintf(f,"unknown;");
+		case RIG_CONF_CHECKBUTTON:
+		case RIG_CONF_COMBO:
+			fprintf(f,"%d%c", val.i, csv_sep);
+			break;
+		case RIG_CONF_NUMERIC:
+			fprintf(f,"%f%c", val.f, csv_sep);
+			break;
+		case RIG_CONF_STRING:
+			fprintf(f,"%s%c", val.s, csv_sep);
+			break;
+		default:
+			fprintf(f,"unknown%c", csv_sep);
        	}
 
 	return 1;	/* process them all */
@@ -152,7 +133,7 @@ int csv_parm_save (RIG *rig, const char *outfilename)
 		const char *ms = rig_strparm(get_parm & rig_idx2setting(i));
 		if (!ms || !ms[0])
 			continue;
-		fprintf(f, "%s;", ms);
+		fprintf(f, "%s%c", ms, csv_sep);
 	}
 
 	rig_ext_parm_foreach(rig, print_parm_name, f);
@@ -169,9 +150,9 @@ int csv_parm_save (RIG *rig, const char *outfilename)
 			continue;
 		ret = rig_get_parm(rig, parm, &val);
 		if (RIG_PARM_IS_FLOAT(parm))
-			fprintf(f, "%f;", val.f);
+			fprintf(f, "%f%c", val.f, csv_sep);
 		else
-			fprintf(f, "%d;", val.i);
+			fprintf(f, "%d%c", val.i, csv_sep);
 	}
 
 
@@ -194,162 +175,190 @@ int csv_parm_load (RIG *rig, const char *infilename)
 
 void dump_csv_name(const channel_cap_t *mem_caps, FILE *f)
 {
-	fprintf(f, "num;");
+	fprintf(f, "num%c", csv_sep);
 
 	if (mem_caps->bank_num) {
-		fprintf(f, "bank_num;");
+		fprintf(f, "bank_num%c", csv_sep);
 	}
 
 	if (mem_caps->channel_desc) {
-			fprintf(f, "channel_desc;");
+			fprintf(f, "channel_desc%c", csv_sep);
 	}
 	if (mem_caps->vfo) {
-		fprintf(f, "vfo;");
+		fprintf(f, "vfo%c", csv_sep);
 	}
 	if (mem_caps->ant) {
-		fprintf(f, "ant;");
+		fprintf(f, "ant%c", csv_sep);
 	}
 	if (mem_caps->freq) {
-		fprintf(f, "freq;");
+		fprintf(f, "freq%c", csv_sep);
 	}
 	if (mem_caps->mode) {
-		fprintf(f, "mode;");
+		fprintf(f, "mode%c", csv_sep);
 	}
 	if (mem_caps->width) {
-		fprintf(f, "width;");
+		fprintf(f, "width%c", csv_sep);
 	}
 	if (mem_caps->tx_freq) {
-		fprintf(f, "tx_freq;");
+		fprintf(f, "tx_freq%c", csv_sep);
 	}
 	if (mem_caps->tx_mode) {
-		fprintf(f, "tx_mode;");
+		fprintf(f, "tx_mode%c", csv_sep);
 	}
 	if (mem_caps->tx_width) {
-		fprintf(f, "tx_width;");
+		fprintf(f, "tx_width%c", csv_sep);
 	}
 	if (mem_caps->split) {
-		fprintf(f, "split;");
+		fprintf(f, "split%c", csv_sep);
 	}
 	if (mem_caps->tx_vfo) {
-		fprintf(f, "tx_vfo;");
+		fprintf(f, "tx_vfo%c", csv_sep);
 	}
 	if (mem_caps->rptr_shift) {
-		fprintf(f, "rptr_shift;");
+		fprintf(f, "rptr_shift%c", csv_sep);
 	}
 	if (mem_caps->rptr_offs) {
-		fprintf(f, "rptr_offs;");
+		fprintf(f, "rptr_offs%c", csv_sep);
 	}
 	if (mem_caps->tuning_step) {
-		fprintf(f, "tuning_step;");
+		fprintf(f, "tuning_step%c", csv_sep);
 	}
 	if (mem_caps->rit) {
-		fprintf(f, "rit;");
+		fprintf(f, "rit%c", csv_sep);
 	}
 	if (mem_caps->xit) {
-		fprintf(f, "xit;");
+		fprintf(f, "xit%c", csv_sep);
 	}
 	if (mem_caps->funcs) {
-		fprintf(f, "funcs;");
+		fprintf(f, "funcs%c", csv_sep);
 	}
 	if (mem_caps->ctcss_tone) {
-		fprintf(f, "ctcss_tone;");
+		fprintf(f, "ctcss_tone%c", csv_sep);
 	}
 	if (mem_caps->ctcss_sql) {
-		fprintf(f, "ctcss_sql;");
+		fprintf(f, "ctcss_sql%c", csv_sep);
 	}
 	if (mem_caps->dcs_code) {
-		fprintf(f, "dcs_code;");
+		fprintf(f, "dcs_code%c", csv_sep);
 	}
 	if (mem_caps->dcs_sql) {
-		fprintf(f, "dcs_sql;");
+		fprintf(f, "dcs_sql%c", csv_sep);
 	}
 	if (mem_caps->scan_group) {
-		fprintf(f, "scan_group;");
+		fprintf(f, "scan_group%c", csv_sep);
 	}
 	if (mem_caps->flags) {
-		fprintf(f, "flags;");
+		fprintf(f, "flags%c", csv_sep);
 	}
 	fprintf(f, "\n");
 }
 
 
-void dump_csv_chan(const channel_cap_t *mem_caps, const channel_t *chan, FILE *f)
+int dump_csv_chan(RIG *rig, channel_t **chan_pp, int channel_num, const chan_t *chan_list, rig_ptr_t arg)
 {
-	fprintf(f,"%d;",chan->channel_num);
+	FILE *f = arg;
+	static channel_t chan;
+	static int first_time = 1;
+	const channel_cap_t *mem_caps = &chan_list->mem_caps;
+
+	if (first_time) {
+		dump_csv_name(mem_caps, f);
+		first_time = 0;
+	}
+
+	if (*chan_pp == NULL) {
+		/*
+		 * Hamlib frontend demand application an allocated 
+		 * channel_t pointer for next round.
+		 */
+		*chan_pp = &chan;
+
+		return RIG_OK;
+	}
+	
+	fprintf(f,"%d%c",chan.channel_num, csv_sep);
 
 	if (mem_caps->bank_num) {
-		fprintf(f,"%d;",chan->bank_num);
+		fprintf(f,"%d%c",chan.bank_num, csv_sep);
 	}
 
 	if (mem_caps->channel_desc) {
-		fprintf(f, "%s;", chan->channel_desc);
+		fprintf(f, "%s%c", chan.channel_desc, csv_sep);
 	}
 	if (mem_caps->vfo) {
-		fprintf(f,"%s;",rig_strvfo(chan->vfo));
+		fprintf(f,"%s%c",rig_strvfo(chan.vfo), csv_sep);
 	}
 	if (mem_caps->ant) {
-		fprintf(f,"%d;",chan->ant);
+		fprintf(f,"%d%c",chan.ant, csv_sep);
 	}
 	if (mem_caps->freq) {
-		fprintf(f,"%"PRIfreq";",chan->freq);
+		fprintf(f,"%.0"PRIfreq"%c",chan.freq, csv_sep);
 	}
 	if (mem_caps->mode) {
-		fprintf(f, "%s;", rig_strrmode(chan->mode));
+		fprintf(f, "%s%c", rig_strrmode(chan.mode), csv_sep);
 	}
 	if (mem_caps->width) {
-		fprintf(f,"%d;",(int)chan->width);
+		fprintf(f,"%d%c",(int)chan.width, csv_sep);
 	}
 	if (mem_caps->tx_freq) {
-		fprintf(f,"%"PRIfreq";",chan->tx_freq);
+		fprintf(f,"%.0"PRIfreq"%c",chan.tx_freq, csv_sep);
 	}
 	if (mem_caps->tx_mode) {
-		fprintf(f, "%s;", rig_strrmode(chan->tx_mode));
+		fprintf(f, "%s%c", rig_strrmode(chan.tx_mode), csv_sep);
 	}
 	if (mem_caps->tx_width) {
-		fprintf(f,"%d;",(int)chan->tx_width);
+		fprintf(f,"%d%c",(int)chan.tx_width, csv_sep);
 	}
 	if (mem_caps->split) {
-		fprintf(f, "%s;", chan->split==RIG_SPLIT_ON?"on":"off");
+		fprintf(f, "%s%c", chan.split==RIG_SPLIT_ON?"on":"off", csv_sep);
 	}
 	if (mem_caps->tx_vfo) {
-		fprintf(f,"%s;",rig_strvfo(chan->tx_vfo));
+		fprintf(f,"%s%c",rig_strvfo(chan.tx_vfo), csv_sep);
 	}
 	if (mem_caps->rptr_shift) {
-		fprintf(f, "%s;", rig_strptrshift(chan->rptr_shift));
+		fprintf(f, "%s%c", rig_strptrshift(chan.rptr_shift), csv_sep);
 	}
 	if (mem_caps->rptr_offs) {
-		fprintf(f,"%d;",(int)chan->rptr_offs);
+		fprintf(f,"%d%c",(int)chan.rptr_offs, csv_sep);
 	}
 	if (mem_caps->tuning_step) {
-		fprintf(f,"%d;",(int)chan->tuning_step);
+		fprintf(f,"%d%c",(int)chan.tuning_step, csv_sep);
 	}
 	if (mem_caps->rit) {
-		fprintf(f,"%d;",(int)chan->rit);
+		fprintf(f,"%d%c",(int)chan.rit, csv_sep);
 	}
 	if (mem_caps->xit) {
-		fprintf(f,"%d;",(int)chan->xit);
+		fprintf(f,"%d%c",(int)chan.xit, csv_sep);
 	}
 	if (mem_caps->funcs) {
-		fprintf(f,"%lx;",chan->funcs);
+		fprintf(f,"%lx%c",chan.funcs, csv_sep);
 	}
 	if (mem_caps->ctcss_tone) {
-		fprintf(f,"%d;",chan->ctcss_tone);
+		fprintf(f,"%d%c",chan.ctcss_tone, csv_sep);
 	}
 	if (mem_caps->ctcss_sql) {
-		fprintf(f,"%d;",chan->ctcss_sql);
+		fprintf(f,"%d%c",chan.ctcss_sql, csv_sep);
 	}
 	if (mem_caps->dcs_code) {
-		fprintf(f,"%d;",chan->dcs_code);
+		fprintf(f,"%d%c",chan.dcs_code, csv_sep);
 	}
 	if (mem_caps->dcs_sql) {
-		fprintf(f,"%d;",chan->dcs_sql);
+		fprintf(f,"%d%c",chan.dcs_sql, csv_sep);
 	}
 	if (mem_caps->scan_group) {
-		fprintf(f,"%d;",chan->scan_group);
+		fprintf(f,"%d%c",chan.scan_group, csv_sep);
 	}
 	if (mem_caps->flags) {
-		fprintf(f,"%x;",chan->flags);
+		fprintf(f,"%x%c",chan.flags, csv_sep);
 	}
 	fprintf(f,"\n");
+
+	/*
+	 * keep the same *chan_pp for next round, thanks
+	 * to chan being static
+	 */
+
+
+	return RIG_OK;
 }
 
