@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main header
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.h,v 1.21 2005-04-15 21:50:27 fillods Exp $
+ *	$Id: aor.h,v 1.22 2005-04-20 14:48:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,9 +62,12 @@ int aor_set_bank(RIG *rig, vfo_t vfo, int bank);
 
 int aor_get_channel(RIG *rig, channel_t *chan);
 int aor_set_channel(RIG *rig, const channel_t *chan);
+int aor_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t);
 
+extern const struct rig_caps ar2700_caps;
 extern const struct rig_caps ar8200_caps;
 extern const struct rig_caps ar8000_caps;
+extern const struct rig_caps ar8600_caps;
 extern const struct rig_caps ar5000_caps;
 extern const struct rig_caps ar3000a_caps;
 extern const struct rig_caps ar7030_caps;
