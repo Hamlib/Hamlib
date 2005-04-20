@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.57 2005-04-11 22:11:28 fillods Exp $  
+ * $Id: rigctl.c,v 1.58 2005-04-20 13:29:43 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -211,8 +211,8 @@ struct test_table test_list[] = {
 	{ 0x88, "get_powerstat", get_powerstat, ARG_OUT|ARG_NOVFO, "Status" },
 	{ 0x85, "reset", reset, ARG_IN, "Reset" },
 	{ '2', "power2mW", power2mW, ARG_NOVFO },
-	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
 	{ 'w', "send_cmd", send_cmd, ARG_IN1|ARG_IN_LINE|ARG_OUT2|ARG_NOVFO, "Cmd", "Reply" },
+	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
 	{ 0x86, "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
 	/* next one is 0x89 */
 	{ 0x00, "", NULL },
