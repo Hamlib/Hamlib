@@ -4,7 +4,7 @@
  * This program exercises the backup and restore of a radio
  * using Hamlib.
  *
- * $Id: rigmem.c,v 1.4 2005-04-20 13:33:18 fillods Exp $  
+ * $Id: rigmem.c,v 1.5 2005-04-20 14:47:56 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -72,7 +72,7 @@ int clear_chans (RIG *rig, const char *infilename);
  * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  */
-#define SHORT_OPTIONS "m:r:s:c:C:axvhV"
+#define SHORT_OPTIONS "m:r:s:c:C:p:axvhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -80,6 +80,7 @@ static struct option long_options[] =
 	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
 	{"set-conf", 1, 0, 'C'},
+	{"set-separator", 1, 0, 'p'},
 	{"all",  0, 0, 'a'},
 #ifdef HAVE_XML2
 	{"xml",  0, 0, 'x'},
@@ -106,6 +107,7 @@ int main (int argc, char *argv[])
 	int serial_rate = 0;
 	char *civaddr = NULL;	/* NULL means no need to set conf */
 	char conf_parms[MAXCONFLEN] = "";
+	extern char csv_sep; 
 
 	while(1) {
 		int c;
@@ -125,40 +127,47 @@ int main (int argc, char *argv[])
 					exit(0);
 			case 'm':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					my_model = atoi(optarg);
 					break;
 			case 'r':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					rig_file = optarg;
 					break;
 			case 'c':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					civaddr = optarg;
 					break;
 			case 's':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					serial_rate = atoi(optarg);
 					break;
 			case 'C':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					if (*conf_parms != '\0')
-							strcat(conf_parms, ",");
+						strcat(conf_parms, ",");
 					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+					break;
+			case 'p':
+					if (!optarg) {
+						usage();	/* wrong arg count */
+						exit(1);
+					}
+					csv_sep = optarg[0];
 					break;
 			case 'a':
 					all++;
@@ -289,6 +298,7 @@ void usage()
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
+	"  -p, --set-separator=SEP    set character separator instead of the CSV comma\n"
 	"  -a, --all                  bypass mem_caps, apply to all fields of channel_t\n"
 #ifdef HAVE_XML2
 	"  -x, --xml                  use XML format instead of CSV\n"
@@ -307,7 +317,7 @@ void usage()
 	"  clear\n\n"
 		      );
 
-		printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
+	printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 
 }
 
