@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR8000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar8000.c,v 1.5 2004-09-07 20:40:20 fillods Exp $
+ *	$Id: ar8000.c,v 1.6 2005-04-20 14:50:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -165,6 +165,8 @@ const struct rig_caps ar8000_caps = {
 .set_powerstat =  aor_set_powerstat,
 .vfo_op =  aor_vfo_op,
 .get_info =  aor_get_info,
+
+.get_chan_all_cb = aor_get_chan_all_cb,
 
 };
 

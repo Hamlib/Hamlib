@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR5000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.8 2005-04-15 21:50:27 fillods Exp $
+ *	$Id: ar5000.c,v 1.9 2005-04-20 14:50:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -241,6 +241,8 @@ const struct rig_caps ar5000_caps = {
 
 .set_channel = aor_set_channel,
 .get_channel = aor_get_channel,
+
+.get_chan_all_cb = aor_get_chan_all_cb,
 
 };
 

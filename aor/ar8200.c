@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR8200 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar8200.c,v 1.20 2005-04-15 21:50:27 fillods Exp $
+ *	$Id: ar8200.c,v 1.21 2005-04-20 14:50:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -192,6 +192,8 @@ const struct rig_caps ar8200_caps = {
 
 .set_channel = aor_set_channel,
 .get_channel = aor_get_channel,
+
+.get_chan_all_cb = aor_get_chan_all_cb,
 
 };
 

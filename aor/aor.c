@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.37 2005-04-15 21:50:27 fillods Exp $
+ *	$Id: aor.c,v 1.38 2005-04-20 14:50:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -121,9 +121,13 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
  */
 int aor_close(RIG *rig)
 {
-	/* terminate remote operation via the RS-232 */
+	/*
+	 * terminate remote operation via the RS-232
+	 * Note: use write_block() instead of aor_transaction
+	 * since no reply is to be expected.
+	 */
 
-	return aor_transaction (rig, "EX" EOM, 3, NULL, NULL);
+	return write_block(&rig->state.rigport, "EX" EOM, 3);
 }
 
 static int format_freq(char *buf, freq_t freq)
@@ -704,6 +708,117 @@ int aor_set_channel(RIG *rig, const channel_t *chan)
 	return aor_transaction (rig, aorcmd, cmd_len, NULL, NULL);
 }
 
+static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel_cap_t *mem_caps)
+{
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
+	int retval;
+	char *tagp;
+
+	/* 
+	 * search for attribute tags in the line.
+	 * Using strstr enable support for various models
+	 * which may or may not have tag support.
+	 */
+
+	/* pass */
+	if (mem_caps->flags) {
+		tagp = strstr(basep, "MP");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no MP in returned string: '%s'\n",
+					__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+
+		chan->flags = tagp[2] == '0' ? 0 : RIG_CHFLAG_SKIP;
+	}
+
+	/* frequency */
+	if (mem_caps->freq) {
+		tagp = strstr(basep, "RF");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no RF in returned string: '%s'\n",
+					__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+
+		sscanf(tagp+2,"%"SCNfreq, &chan->freq);
+	}
+
+	/* channel desc */
+	if (mem_caps->tuning_step) {
+		tagp = strstr(basep, "ST");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no ST in returned string: '%s'\n",
+					__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+		sscanf(tagp+2,"%d", (int*)&chan->tuning_step);
+	}
+
+
+	/* mode and width */
+	if (mem_caps->mode && mem_caps->width) {
+		char *tag2p;
+		tagp = strstr(basep, "MD");
+		if (!tagp && mem_caps->mode && mem_caps->width) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
+				__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+		/* "BW" only on AR5000 */
+		tag2p = strstr(basep, "BW");
+		if (!tag2p)
+			tag2p = tagp;
+
+		retval = priv->parse_aor_mode(rig, tagp[2], tag2p[2], &chan->mode, &chan->width);
+		if (retval != RIG_OK)
+			return retval;
+	}
+
+	/* auto-mode */
+	if (mem_caps->funcs&RIG_FUNC_ABM) {
+		tagp = strstr(basep, "AU");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no AU in returned string: '%s'\n",
+					__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+
+		chan->funcs = tagp[2] == '0' ? 0 : RIG_FUNC_ABM;
+	}
+
+
+	/* attenuator */
+	if (mem_caps->levels&LVL_ATT) {
+		tagp = strstr(basep, "AT");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no AT in returned string: '%s'\n",
+					__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+
+		chan->levels[LVL_ATT].i = tagp[2] == '0' ? 0 :
+				rig->caps->attenuator[tagp[2] - '0' - 1];
+	}
+
+
+	/* channel desc */
+	if (mem_caps->channel_desc) {
+		tagp = strstr(basep, "TM");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no TM in returned string: '%s'\n",
+					__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+
+		strncpy(chan->channel_desc, tagp+2, 12);
+		chan->channel_desc[12] = '\0';
+	}
+
+	return RIG_OK;
+}
+
+
 int aor_get_channel(RIG *rig, channel_t *chan)
 {
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
@@ -711,7 +826,6 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 	int cmd_len, chan_len;
 	char chanbuf[BUFSZ];
 	int retval, i;
-	char *basep, *tagp;
 	channel_cap_t *mem_caps = NULL;
 	chan_t *chan_list;
 	int mem_num, channel_num = chan->channel_num;
@@ -763,112 +877,85 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 	if (retval != RIG_OK)
 		return retval;
 
-	/* 
-	 * search for attribute tags in the first line.
-	 * Using strstr enable support for various models
-	 * which may or may not have tag support.
-	 */
-	basep = chanbuf;
-
-	/* pass */
-	if (mem_caps->flags) {
-		tagp = strstr(basep, "MP");
-		if (!tagp) {
-			rig_debug(RIG_DEBUG_WARN, "%s: no MP in returned string: '%s'\n",
-					__FUNCTION__, chanbuf);
-			return -RIG_EPROTO;
-		}
-
-		chan->flags = tagp[2] == '0' ? 0 : RIG_CHFLAG_SKIP;
-	}
-
-	/* frequency */
-	if (mem_caps->freq) {
-		tagp = strstr(basep, "RF");
-		if (!tagp) {
-			rig_debug(RIG_DEBUG_WARN, "%s: no RF in returned string: '%s'\n",
-					__FUNCTION__, chanbuf);
-			return -RIG_EPROTO;
-		}
-
-		sscanf(tagp+2,"%"SCNfreq, &chan->freq);
-	}
-
-	/* channel desc */
-	if (mem_caps->tuning_step) {
-		tagp = strstr(basep, "ST");
-		if (!tagp) {
-			rig_debug(RIG_DEBUG_WARN, "%s: no ST in returned string: '%s'\n",
-					__FUNCTION__, chanbuf);
-			return -RIG_EPROTO;
-		}
-		sscanf(tagp+2,"%d", (int*)&chan->tuning_step);
-	}
-
-
-	/* mode and width */
-	if (mem_caps->mode && mem_caps->width) {
-		char *tag2p;
-		tagp = strstr(basep, "MD");
-		if (!tagp && mem_caps->mode && mem_caps->width) {
-			rig_debug(RIG_DEBUG_WARN, "%s: no MD in returned string: '%s'\n",
-				__FUNCTION__, chanbuf);
-			return -RIG_EPROTO;
-		}
-		/* "BW" only on AR5000 */
-		tag2p = strstr(basep, "BW");
-		if (!tag2p)
-			tag2p = tagp;
-
-		retval = priv->parse_aor_mode(rig, tagp[2], tag2p[2], &chan->mode, &chan->width);
-		if (retval != RIG_OK)
-			return retval;
-	}
-
-	/* auto-mode */
-	if (mem_caps->funcs&RIG_FUNC_ABM) {
-		tagp = strstr(basep, "AU");
-		if (!tagp) {
-			rig_debug(RIG_DEBUG_WARN, "%s: no AU in returned string: '%s'\n",
-					__FUNCTION__, chanbuf);
-			return -RIG_EPROTO;
-		}
-
-		chan->funcs = tagp[2] == '0' ? 0 : RIG_FUNC_ABM;
-	}
-
-
-	/* attenuator */
-	if (mem_caps->levels&LVL_ATT) {
-		tagp = strstr(basep, "AT");
-		if (!tagp) {
-			rig_debug(RIG_DEBUG_WARN, "%s: no AT in returned string: '%s'\n",
-					__FUNCTION__, chanbuf);
-			return -RIG_EPROTO;
-		}
-
-		chan->levels[LVL_ATT].i = tagp[2] == '0' ? 0 :
-				rig->caps->attenuator[tagp[2] - '0' - 1];
-	}
-
-
-	/* channel desc */
-	if (mem_caps->channel_desc) {
-		tagp = strstr(basep, "TM");
-		if (!tagp) {
-			rig_debug(RIG_DEBUG_WARN, "%s: no TM in returned string: '%s'\n",
-					__FUNCTION__, chanbuf);
-			return -RIG_EPROTO;
-		}
-
-		strncpy(chan->channel_desc, tagp+2, 12);
-		chan->channel_desc[12] = '\0';
-	}
-
+	retval = parse_chan_line(rig, chan, chanbuf, mem_caps);
 
 	return RIG_OK;
 }
 
+
+#define LINES_PER_MA	10
+
+int aor_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
+{
+	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
+	int i,j,retval;
+	chan_t *chan_list = rig->state.chan_list;
+	channel_t *chan;
+	int chan_count;
+	char aorcmd[BUFSZ];
+	int cmd_len, chan_len;
+	char chanbuf[BUFSZ];
+	int chan_next = chan_list[0].start;
+
+
+	chan_count = chan_list[0].end - chan_list[0].start + 1;
+
+	/*
+	 * setting chan to NULL means the application
+	 * has to provide a struct where to store data
+	 * future data for channel channel_num
+	 */
+	chan = NULL;
+	retval = chan_cb(rig, &chan, chan_next, chan_list, arg);
+	if (retval != RIG_OK)
+		return retval;
+	if (chan == NULL)
+		return -RIG_ENOMEM;
+
+	cmd_len = sprintf(aorcmd, "MA%c" EOM, 
+			priv->bank_base1);
+	
+	for (i=0; i < chan_count/LINES_PER_MA; i++) {
+
+		retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
+		if (retval != RIG_OK)
+			return retval;
+	
+		for (j=0; j<LINES_PER_MA; j++) {
+
+			chan->vfo = RIG_VFO_MEM;
+			chan->channel_num = i*LINES_PER_MA + j;
+
+			retval = parse_chan_line(rig, chan, chanbuf, &chan_list[0].mem_caps);
+	
+			if (retval != RIG_OK)
+				return retval;
+	
+			/* notify the end? */
+			chan_next = chan_next < chan_list[i].end ? chan_next+1 : chan_next;
+	
+			/*
+			 * provide application with channel data,
+			 * and ask for a new channel structure
+			 */
+			chan_cb(rig, &chan, chan_next, chan_list, arg);
+
+			if (j >= LINES_PER_MA-1)
+				break;
+
+			/*
+			 * get next line
+			 */
+			retval = read_string(&rig->state.rigport, chanbuf, BUFSZ, EOM, strlen(EOM));
+			if (retval < 0)
+				return retval;
+		}
+
+		cmd_len = sprintf(aorcmd, "MA" EOM);
+	}
+
+	return RIG_OK;
+}
 
 /*
  * aor_get_info
@@ -906,8 +993,10 @@ DECLARE_INITRIG_BACKEND(aor)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "aor: _init called\n");
 
+	rig_register(&ar2700_caps);
 	rig_register(&ar8200_caps);
 	rig_register(&ar8000_caps);
+	rig_register(&ar8600_caps);
 	rig_register(&ar5000_caps);
 	rig_register(&ar3000a_caps);
 	rig_register(&ar7030_caps);
