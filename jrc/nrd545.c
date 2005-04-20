@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - NRD-545 DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: nrd545.c,v 1.17 2005-04-03 19:57:46 fillods Exp $
+ *	$Id: nrd545.c,v 1.18 2005-04-20 16:36:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -137,7 +137,7 @@ const struct rig_caps nrd545_caps = {
 .max_ifshift =  kHz(2.3),
 .targetable_vfo =  0,
 .transceive =  RIG_TRN_RIG,
-.vfo_ops =  RIG_OP_FROM_VFO,
+.vfo_ops =  RIG_OP_FROM_VFO|RIG_OP_UP|RIG_OP_DOWN,
 .scan_ops =  RIG_SCAN_STOP|RIG_SCAN_SLCT,
 .bank_qty =   0,
 .chan_desc_sz =  0,
