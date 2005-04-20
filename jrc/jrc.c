@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.24 2005-04-13 22:31:46 fillods Exp $
+ *	$Id: jrc.c,v 1.25 2005-04-20 16:43:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,14 +77,23 @@ static int jrc_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 
 	serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, cmd, cmd_len);
-	if (retval != RIG_OK)
-		return retval;
+	Hold_Decode(rig);
 
-	if (!data || !data_len)
+	retval = write_block(&rs->rigport, cmd, cmd_len);
+	if (retval != RIG_OK) {
+		Unhold_Decode(rig);
+		return retval;
+	}
+
+	if (!data || !data_len) {
+		Unhold_Decode(rig);
 		return 0;
+	}
 
 	retval = read_string(&rs->rigport, data, BUFSZ, EOM, strlen(EOM));
+
+	Unhold_Decode(rig);
+
 	if (retval < 0)
 		return retval;
 	*data_len = retval;
@@ -224,6 +233,22 @@ int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	return jrc_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }
 
+static int get_current_istate(RIG *rig, char *buf, int *buf_len)
+{
+	int retval;
+
+	/*
+	 * JRCs use "I" to get information,
+	 * but the command is not available in remote mode
+	 */
+	retval = jrc_transaction (rig, "H0"EOM "I1"EOM "I" EOM, 8, buf, buf_len);
+
+	/* and back to remote mode */
+	jrc_transaction (rig, "I0"EOM "H1"EOM, 6, NULL, NULL);
+
+	return retval;
+}
+
 /*
  * jrc_get_freq
  * Assumes rig!=NULL, freq!=NULL
@@ -235,7 +260,7 @@ int jrc_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	char freqbuf[BUFSZ];
 
 	//note: JRCs use "I" to get information
-	retval = jrc_transaction (rig, "I" EOM, 2, freqbuf, &freq_len);
+	retval = get_current_istate(rig, freqbuf, &freq_len);
 	if (retval != RIG_OK)
 	  return retval;
 
@@ -309,31 +334,31 @@ int jrc_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 /*
  * jrc_get_mode
- * Assumes rig!=NULL, freq!=NULL
+ * Assumes rig!=NULL, mode!=NULL, width!=NULL
  */
 int jrc_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	struct jrc_priv_caps *priv = (struct jrc_priv_caps*)rig->caps->priv;
-	int freq_len, retval;
-	char freqbuf[BUFSZ];
+	int md_len, retval;
+	char mdbuf[BUFSZ];
 	char cmode;
 	char cwidth;
 
 	//note: JRCs use "I" to get information
-	retval = jrc_transaction (rig, "I" EOM, 2, freqbuf, &freq_len);
+	retval = get_current_istate(rig, mdbuf, &md_len);
 	if (retval != RIG_OK)
 	  return retval;
 
 	//I command returns Iabdffffffffg<CR>
-	if (freqbuf[0] != 'I' || freq_len != priv->info_len) {
+	if (mdbuf[0] != 'I' || md_len != priv->info_len) {
 	  rig_debug(RIG_DEBUG_ERR,"jrc_get_mode: wrong answer %s, "
-		    "len=%d\n", freqbuf, freq_len);
+		    "len=%d\n", mdbuf, md_len);
 	  return -RIG_ERJCTED;
 	}
 
 	/* extract width and mode */
-	cwidth = freqbuf[2];
-	cmode = freqbuf[3];
+	cwidth = mdbuf[2];
+	cmode = mdbuf[3];
 
 	retval = jrc2rig_mode(rig, cmode, cwidth,
 			mode, width);
@@ -410,7 +435,7 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	case RIG_FUNC_FAGC:
 	  /* FIXME: FAGC levels */
 	  //retval = jrc_transaction (rig, "G" EOM, 2, funcbuf, &func_len);
-	  retval = jrc_transaction (rig, "I" EOM, 2, funcbuf, &func_len);
+	  retval = get_current_istate(rig, funcbuf, &func_len);
 	  if (retval != RIG_OK)
 	    return retval;
 
@@ -633,7 +658,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  break;
 
 	case RIG_LEVEL_ATT:
-	  retval = jrc_transaction (rig, "I" EOM, 2, lvlbuf, &lvl_len);
+	  retval = get_current_istate(rig, lvlbuf, &lvl_len);
 	  if (retval != RIG_OK)
 	    return retval;
 
@@ -647,7 +672,7 @@ int jrc_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	  break;
 
 	case RIG_LEVEL_AGC:
-	  retval = jrc_transaction (rig, "I" EOM, 2, lvlbuf, &lvl_len);
+	  retval = get_current_istate(rig, lvlbuf, &lvl_len);
 	  if (retval != RIG_OK)
 	    return retval;
 
@@ -968,12 +993,14 @@ int jrc_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int jrc_set_trn(RIG *rig, int trn)
 {
-	unsigned char trnbuf[BUFSZ];
-	int trn_len;
+	unsigned char *trncmd;
 
-	trn_len = sprintf(trnbuf, "I%d" EOM, trn==RIG_TRN_RIG?1:0);
+	/* transceive mode not available in remote mode
+	 * so switch back and forth upon entering/leaving
+	 */
+	trncmd = trn==RIG_TRN_RIG ? "H0"EOM"I1"EOM : "I0"EOM"H1"EOM;
 
-	return jrc_transaction (rig, trnbuf, trn_len, NULL, NULL);
+	return jrc_transaction (rig, trncmd, 6, NULL, NULL);
 }
 
 /*
