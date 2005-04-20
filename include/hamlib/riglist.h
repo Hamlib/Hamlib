@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.55 2005-04-03 19:19:00 fillods Exp $
+ *	$Id: riglist.h,v 1.56 2005-04-20 13:27:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -220,6 +220,7 @@
 #define RIG_MODEL_AR16 RIG_MAKE_MODEL(RIG_AOR, 10)
 #define RIG_MODEL_SDU5500 RIG_MAKE_MODEL(RIG_AOR, 11)
 #define RIG_MODEL_SDU5000 RIG_MAKE_MODEL(RIG_AOR, 12)
+#define RIG_MODEL_AR8600 RIG_MAKE_MODEL(RIG_AOR, 13)
 
 	/*
 	 * JRC
