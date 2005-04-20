@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.107 2005-04-06 21:27:27 fillods Exp $
+ *	$Id: rig.h,v 1.108 2005-04-20 14:44:01 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1004,6 +1004,9 @@ typedef struct cal_table cal_table_t;
 #define EMPTY_STR_CAL { 0, { { 0, 0 }, } }
 
 
+typedef int (*chan_cb_t) (RIG *, channel_t**, int, const chan_t*, rig_ptr_t);
+typedef int (*confval_cb_t) (RIG *, const struct confparams *, value_t *, rig_ptr_t);
+
 /**
  * \brief Rig data structure.
  *
@@ -1217,6 +1220,14 @@ struct rig_caps {
 
   const char *(*get_info) (RIG * rig);
 
+  int (*set_chan_all_cb) (RIG * rig, chan_cb_t chan_cb, rig_ptr_t);
+  int (*get_chan_all_cb) (RIG * rig, chan_cb_t chan_cb, rig_ptr_t);
+
+  int (*set_mem_all_cb) (RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t);
+  int (*get_mem_all_cb) (RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t);
+
+  const char *clone_combo_set;	/*<! String describing key combination to enter load cloning mode */
+  const char *clone_combo_get;	/*<! String describing key combination to enter save cloning mode */
 };
 
 /**
@@ -1521,6 +1532,16 @@ extern HAMLIB_EXPORT(scan_t) rig_has_scan HAMLIB_PARAMS((RIG *rig, scan_t scan))
 extern HAMLIB_EXPORT(int) rig_set_channel HAMLIB_PARAMS((RIG *rig, const channel_t *chan));	/* mem */
 extern HAMLIB_EXPORT(int) rig_get_channel HAMLIB_PARAMS((RIG *rig, channel_t *chan));
 
+extern HAMLIB_EXPORT(int) rig_set_chan_all HAMLIB_PARAMS((RIG *rig, const channel_t chans[]));
+extern HAMLIB_EXPORT(int) rig_get_chan_all HAMLIB_PARAMS((RIG *rig, channel_t chans[]));
+extern HAMLIB_EXPORT(int) rig_set_chan_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t chan_cb, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_get_chan_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t chan_cb, rig_ptr_t));
+
+extern HAMLIB_EXPORT(int) rig_set_mem_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_get_mem_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t));
+extern HAMLIB_EXPORT(int) rig_set_mem_all HAMLIB_PARAMS((RIG *rig, const channel_t *chan, const struct confparams *, value_t *));
+extern HAMLIB_EXPORT(int) rig_get_mem_all HAMLIB_PARAMS((RIG *rig, channel_t *chan, const struct confparams *, value_t *));
+
 extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, int trn));
 extern HAMLIB_EXPORT(int) rig_get_trn HAMLIB_PARAMS((RIG *rig, int *trn));
 extern HAMLIB_EXPORT(int) rig_set_freq_callback HAMLIB_PARAMS((RIG *, freq_cb_t, rig_ptr_t));
@@ -1542,7 +1563,7 @@ extern HAMLIB_EXPORT(pbwidth_t) rig_passband_wide HAMLIB_PARAMS((RIG *rig, rmode
 extern HAMLIB_EXPORT(const char *) rigerror HAMLIB_PARAMS((int errnum));
 
 extern HAMLIB_EXPORT(int) rig_setting2idx HAMLIB_PARAMS((setting_t s));
-#define rig_idx2setting(i) (1ULL<<(i))
+#define rig_idx2setting(i) (1UL<<(i))
 
 /*
  * Even if these functions are prefixed with "rig_", they are not rig specific

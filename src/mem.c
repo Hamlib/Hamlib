@@ -12,7 +12,7 @@
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.5 2005-04-03 22:33:08 fillods Exp $
+ *	$Id: mem.c,v 1.6 2005-04-20 14:44:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -222,14 +222,11 @@ static int generic_retr_extl(RIG *rig, const struct confparams *cfp, rig_ptr_t p
 /*
  * stores current VFO state into chan by emulating rig_get_channel
  */
-int generic_save_channel(RIG *rig, channel_t *chan)
+static int generic_save_channel(RIG *rig, channel_t *chan)
 {
-  int i;
+  int i, retval;
   int chan_num;
   vfo_t vfo;
-
-  if (CHECK_RIG_ARG(rig) || !chan)
-	return -RIG_EINVAL;
 
   chan_num = chan->channel_num;
   vfo = chan->vfo;
@@ -237,8 +234,12 @@ int generic_save_channel(RIG *rig, channel_t *chan)
   chan->channel_num = chan_num;
   chan->vfo = vfo;
 
+  retval = rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
+  /* empty channel ? */
+  if (retval == -RIG_ENAVAIL || chan->freq == RIG_FREQ_NONE)
+	  return -RIG_ENAVAIL;
+
   rig_get_vfo(rig, &chan->vfo);
-  rig_get_freq(rig, RIG_VFO_CURR, &chan->freq);
   rig_get_mode(rig, RIG_VFO_CURR, &chan->mode, &chan->width);
 
   chan->split = RIG_SPLIT_OFF;
@@ -285,13 +286,10 @@ int generic_save_channel(RIG *rig, channel_t *chan)
 /*
  * Restores chan into current VFO state by emulating rig_set_channel
  */
-int generic_restore_channel(RIG *rig, const channel_t *chan)
+static int generic_restore_channel(RIG *rig, const channel_t *chan)
 {
   int i;
   struct ext_list *p;
-
-  if (CHECK_RIG_ARG(rig) || !chan)
-	return -RIG_EINVAL;
 
   rig_set_vfo(rig, chan->vfo);
   rig_set_freq(rig, RIG_VFO_CURR, chan->freq);
@@ -521,5 +519,242 @@ int HAMLIB_API rig_get_channel(RIG *rig, channel_t *chan)
 	generic_restore_channel(rig, &curr_chan);
 #endif
 	return retcode;
+}
+
+
+#ifndef DOC_HIDDEN
+int get_chan_all_cb_generic (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+{
+	int i,j,retval;
+	chan_t *chan_list = rig->state.chan_list;
+	channel_t *chan;
+
+ 	for (i=0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++) {
+		
+		/*
+		 * setting chan to NULL means the application
+		 * has to provide a struct where to store data
+		 * future data for channel channel_num
+		 */
+		chan = NULL;
+		retval = chan_cb(rig, &chan, chan_list[i].start, chan_list, arg);
+		if (retval != RIG_OK)
+			return retval;
+		if (chan == NULL)
+			return -RIG_ENOMEM;
+
+		for (j = chan_list[i].start; j <= chan_list[i].end; j++) {
+			int chan_next;
+
+			chan->vfo = RIG_VFO_MEM;
+			chan->channel_num = j;
+
+			/*
+			 * TODO: if doesn't have rc->get_channel, special generic
+			 */
+			retval = rig_get_channel(rig, chan);
+
+			if (retval == -RIG_ENAVAIL) {
+				/*
+				 * empty channel
+				 *
+				 * Should it continue or call chan_cb with special arg?
+				 */
+				continue;
+			}
+
+			if (retval != RIG_OK)
+				return retval;
+
+			chan_next = j < chan_list[i].end ? j+1 : j;
+
+			chan_cb(rig, &chan, chan_next, chan_list, arg);
+		}
+	}
+
+	return RIG_OK;
+}
+
+int set_chan_all_cb_generic (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+{
+	int i,j,retval;
+	chan_t *chan_list = rig->state.chan_list;
+	channel_t *chan;
+
+ 	for (i=0; !RIG_IS_CHAN_END(chan_list[i]) && i < CHANLSTSIZ; i++) {
+
+		for (j = chan_list[i].start; j <= chan_list[i].end; j++) {
+
+			chan_cb(rig, &chan, j, chan_list, arg);
+			chan->vfo = RIG_VFO_MEM;
+
+			retval = rig_set_channel(rig, chan);
+
+			if (retval != RIG_OK)
+				return retval;
+		}
+	}
+
+	return RIG_OK;
+}
+
+/*
+ * chan_cb_t to be used for non cb get/set_all
+ */
+static int map_chan (RIG *rig, channel_t **chan, int channel_num, const chan_t *chan_list, rig_ptr_t arg)
+{
+	channel_t *chans = arg;
+
+	/* TODO: check channel_num within start-end of chan_list */
+
+	*chan = &chans[channel_num];
+
+	return RIG_OK;
+}
+
+#endif	/* DOC_HIDDEN */
+
+/**
+ * \brief set all channel data, by callback
+ * \param rig	The rig handle
+ * \param chan_cb	Pointer to a callback function to provide channel data
+ * \param arg	Arbitrary argument passed back to \a chan_cb
+ *
+ *  Write the data associated with a all the memory channels.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_chan_all(), rig_get_chan_all_cb()
+ */
+int HAMLIB_API rig_set_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+{
+	struct rig_caps *rc;
+	int retval;
+
+	if (CHECK_RIG_ARG(rig) || !chan_cb)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+
+	if (rc->set_chan_all_cb)
+		return rc->set_chan_all_cb(rig, chan_cb, arg);
+
+
+	/* if not available, emulate it */
+	retval = set_chan_all_cb_generic (rig, chan_cb, arg);
+
+	return retval;
+}
+
+/**
+ * \brief get all channel data, by callback
+ * \param rig	The rig handle
+ * \param chan_cb	Pointer to a callback function to retrieve channel data
+ * \param arg	Arbitrary argument passed back to \a chan_cb
+ *
+ *  Retrieves the data associated with a all the memory channels.
+ *
+ *  \a chan_cb is called first with no data in \chan (chan equals NULL). 
+ *  This means the application has to provide a struct where to store 
+ *  future data for channel channel_num. If channel_num == chan->channel_num,
+ *  the application does not need to provide a new allocated structure.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_chan_all(), rig_set_chan_all_cb()
+ */
+int HAMLIB_API rig_get_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
+{
+	struct rig_caps *rc;
+	int retval;
+
+	if (CHECK_RIG_ARG(rig) || !chan_cb)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+
+	if (rc->get_chan_all_cb)
+		return rc->get_chan_all_cb(rig, chan_cb, arg);
+
+
+	/* if not available, emulate it */
+	retval = get_chan_all_cb_generic (rig, chan_cb, arg);
+
+	return retval;
+}
+
+
+/**
+ * \brief set all channel data
+ * \param rig	The rig handle
+ * \param chan	The location of data to set for all channels
+ *
+ *  Write the data associated with a all the memory channels.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_set_chan_all_cb(), rig_get_chan_all()
+ */
+int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
+{
+	struct rig_caps *rc;
+	int retval;
+
+	if (CHECK_RIG_ARG(rig) || !chans)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+
+	if (rc->set_chan_all_cb)
+		return rc->set_chan_all_cb(rig, map_chan, (rig_ptr_t)chans);
+
+
+	/* if not available, emulate it */
+	retval = set_chan_all_cb_generic (rig, map_chan, (rig_ptr_t)chans);
+
+	return retval;
+}
+
+
+/**
+ * \brief get all channel data
+ * \param rig	The rig handle
+ * \param chan	The location where to store all the channel data
+ *
+ *  Retrieves the data associated with a all the memory channels.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_chan_all_cb(), rig_set_chan_all()
+ */
+int HAMLIB_API rig_get_chan_all (RIG *rig, channel_t chans[])
+{
+	struct rig_caps *rc;
+	int retval;
+
+	if (CHECK_RIG_ARG(rig) || !chans)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+
+	if (rc->get_chan_all_cb)
+		return rc->get_chan_all_cb(rig, map_chan, chans);
+
+	/*
+	 * if not available, emulate it
+	 *
+	 * TODO: save_current_state, restore_current_state
+	 */
+	retval = get_chan_all_cb_generic (rig, map_chan, chans);
+
+	return retval;
 }
 
