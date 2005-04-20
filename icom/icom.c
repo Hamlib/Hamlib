@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.93 2005-04-16 11:55:49 fillods Exp $
+ *	$Id: icom.c,v 1.94 2005-04-20 13:26:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2512,7 +2512,8 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		return retval;
 
 	if (ack_len != 1 || ackbuf[0] != ACK) {
-		rig_debug(RIG_DEBUG_ERR,"icom_vfo_op: ack NG (%#.2x), "
+		if (op != RIG_OP_XCHG)
+			rig_debug(RIG_DEBUG_ERR,"icom_vfo_op: ack NG (%#.2x), "
 					"len=%d\n", ackbuf[0], ack_len);
 		return -RIG_ERJCTED;
 	}
