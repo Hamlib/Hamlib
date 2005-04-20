@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - setting2idx for builtin constants
- *  Copyright (c) 2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2002-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: idx_builtin.h,v 1.3 2004-09-14 22:14:23 fineware Exp $
+ *	$Id: idx_builtin.h,v 1.4 2005-04-20 13:28:14 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -70,38 +70,6 @@
 				 (s)==(1<<29)?29:	\
 				 (s)==(1<<30)?30:	\
 				 (s)==(1<<31)?31:	\
-				 (s)==(1<<32)?32:	\
-				 (s)==(1<<33)?33:	\
-				 (s)==(1<<34)?34:	\
-				 (s)==(1<<35)?35:	\
-				 (s)==(1<<36)?36:	\
-				 (s)==(1<<37)?37:	\
-				 (s)==(1<<38)?38:	\
-				 (s)==(1<<39)?39:	\
-				 (s)==(1<<40)?40:	\
-				 (s)==(1<<41)?41:	\
-				 (s)==(1<<42)?42:	\
-				 (s)==(1<<43)?43:	\
-				 (s)==(1<<44)?44:	\
-				 (s)==(1<<45)?45:	\
-				 (s)==(1<<46)?46:	\
-				 (s)==(1<<47)?47:	\
-				 (s)==(1<<48)?48:	\
-				 (s)==(1<<49)?49:	\
-				 (s)==(1<<50)?50:	\
-				 (s)==(1<<51)?51:	\
-				 (s)==(1<<52)?52:	\
-				 (s)==(1<<53)?53:	\
-				 (s)==(1<<54)?54:	\
-				 (s)==(1<<55)?55:	\
-				 (s)==(1<<56)?56:	\
-				 (s)==(1<<57)?57:	\
-				 (s)==(1<<58)?58:	\
-				 (s)==(1<<59)?59:	\
-				 (s)==(1<<60)?60:	\
-				 (s)==(1<<61)?61:	\
-				 (s)==(1<<62)?62:	\
-				 (s)==(1<<63)?63:	\
 				 0 \
 				)
 
