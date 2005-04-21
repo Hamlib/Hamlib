@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.38 2005-04-20 14:50:56 fillods Exp $
+ *	$Id: aor.c,v 1.39 2005-04-21 20:19:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -720,6 +720,34 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 	 * which may or may not have tag support.
 	 */
 
+	tagp = strstr(basep, "---");
+	if (tagp) {
+		vfo_t vfo_save = chan->vfo;
+		int ch_save = chan->channel_num;
+
+		rig_debug(RIG_DEBUG_WARN, "%s: skipping, channel is empty: '%s'\n",
+				__FUNCTION__, basep);
+
+		memset(chan, 0, sizeof(channel_t));
+		chan->vfo = vfo_save;
+		chan->channel_num = ch_save;
+
+		return -RIG_ENAVAIL;
+	}
+
+	/* bank_num */
+	if (mem_caps->bank_num) {
+		tagp = strstr(basep, "MX");
+		if (!tagp) {
+			rig_debug(RIG_DEBUG_WARN, "%s: no MX in returned string: '%s'\n",
+					__FUNCTION__, basep);
+			return -RIG_EPROTO;
+		}
+
+		chan->bank_num = tagp[2]-(tagp[2] >= priv->bank_base2 ?
+				priv->bank_base2+10 : priv->bank_base1);
+	}
+
 	/* pass */
 	if (mem_caps->flags) {
 		tagp = strstr(basep, "MP");
@@ -804,6 +832,8 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 
 	/* channel desc */
 	if (mem_caps->channel_desc) {
+		int i;
+
 		tagp = strstr(basep, "TM");
 		if (!tagp) {
 			rig_debug(RIG_DEBUG_WARN, "%s: no TM in returned string: '%s'\n",
@@ -813,6 +843,10 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 
 		strncpy(chan->channel_desc, tagp+2, 12);
 		chan->channel_desc[12] = '\0';
+		/* chop off trailing spaces */
+		for (i=11; i>0 && chan->channel_desc[i]==' '; i--)
+			chan->channel_desc[i] = '\0';
+
 	}
 
 	return RIG_OK;
@@ -831,46 +865,55 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 	int mem_num, channel_num = chan->channel_num;
 	char bank_base;
 
-	/*
-	 * find mem_caps in caps, we'll need it later
-	 */
 	chan_list = rig->caps->chan_list;
-	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-		if (channel_num >= chan_list[i].start &&
-				channel_num <= chan_list[i].end) {
-			mem_caps = &chan_list[i].mem_caps;
-			break;
-		}
-	}
-	if (!mem_caps)
-		return -RIG_EINVAL;
 
-
-	/*
-	 * FIXME: we're assuming the banks are split 50/50.
-	 * 	MW should be called the first time instead,
-	 * 	and sizing memorized.
-	 */
-	mem_num = channel_num%100;
-	if (mem_num >= 50 && priv->bank_base1 != priv->bank_base2) {
-		bank_base = priv->bank_base2;
-		mem_num -= 50;
+	if (chan->vfo == RIG_VFO_CURR) {
+		/*
+		 * curr VFO mem_caps same as memory caps
+		 */
+		mem_caps = &chan_list[0].mem_caps;
 	} else {
-		bank_base = priv->bank_base1;
-	} 
 
-	cmd_len = sprintf(aorcmd, "MR%c%02d" EOM, 
-			bank_base + channel_num/100, mem_num);
-	retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
-
-	/* is the channel empty? */
-	if (retval == -RIG_EPROTO && chanbuf[0] == '?') {
-		chan->freq = RIG_FREQ_NONE;
-		return -RIG_ENAVAIL;
+		/*
+		 * find mem_caps in caps, we'll need it later
+		 */
+		for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+			if (channel_num >= chan_list[i].start &&
+					channel_num <= chan_list[i].end) {
+				mem_caps = &chan_list[i].mem_caps;
+				break;
+			}
+		}
+		if (!mem_caps)
+			return -RIG_EINVAL;
+	
+	
+		/*
+		 * FIXME: we're assuming the banks are split 50/50.
+		 * 	MW should be called the first time instead,
+		 * 	and sizing memorized.
+		 */
+		mem_num = channel_num%100;
+		if (mem_num >= 50 && priv->bank_base1 != priv->bank_base2) {
+			bank_base = priv->bank_base2;
+			mem_num -= 50;
+		} else {
+			bank_base = priv->bank_base1;
+		} 
+	
+		cmd_len = sprintf(aorcmd, "MR%c%02d" EOM, 
+				bank_base + channel_num/100, mem_num);
+		retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
+	
+		/* is the channel empty? */
+		if (retval == -RIG_EPROTO && chanbuf[0] == '?') {
+			chan->freq = RIG_FREQ_NONE;
+			return -RIG_ENAVAIL;
+		}
+	
+		if (retval != RIG_OK)
+			return retval;
 	}
-
-	if (retval != RIG_OK)
-		return retval;
 
 	cmd_len = sprintf(aorcmd, "RX" EOM);
 	retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
@@ -879,7 +922,7 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 
 	retval = parse_chan_line(rig, chan, chanbuf, mem_caps);
 
-	return RIG_OK;
+	return retval;
 }
 
 
@@ -928,6 +971,9 @@ int aor_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
 
 			retval = parse_chan_line(rig, chan, chanbuf, &chan_list[0].mem_caps);
 	
+			if (retval == -RIG_ENAVAIL)
+				retval = RIG_OK;
+
 			if (retval != RIG_OK)
 				return retval;
 	
