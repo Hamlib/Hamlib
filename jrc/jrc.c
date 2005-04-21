@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.25 2005-04-20 16:43:29 fillods Exp $
+ *	$Id: jrc.c,v 1.26 2005-04-21 20:50:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -198,9 +198,12 @@ int jrc_open(RIG *rig)
 {
   int retval;
 
-  /* Turning computer control ON */
+  /*
+   * Turning computer control ON,
+   * Turn continuous mode on (for "I" query)
+   */
 
-  retval = jrc_transaction(rig, "H1" EOM, 3, NULL, NULL);
+  retval = jrc_transaction(rig, "H1" EOM "I1"EOM, 6, NULL, NULL);
   return retval;
 }
 
@@ -239,12 +242,8 @@ static int get_current_istate(RIG *rig, char *buf, int *buf_len)
 
 	/*
 	 * JRCs use "I" to get information,
-	 * but the command is not available in remote mode
 	 */
-	retval = jrc_transaction (rig, "H0"EOM "I1"EOM "I" EOM, 8, buf, buf_len);
-
-	/* and back to remote mode */
-	jrc_transaction (rig, "I0"EOM "H1"EOM, 6, NULL, NULL);
+	retval = jrc_transaction (rig, "I" EOM, 2, buf, buf_len);
 
 	return retval;
 }
@@ -995,10 +994,10 @@ int jrc_set_trn(RIG *rig, int trn)
 {
 	unsigned char *trncmd;
 
-	/* transceive mode not available in remote mode
+	/* transceive(continuous) mode not available in remote mode
 	 * so switch back and forth upon entering/leaving
 	 */
-	trncmd = trn==RIG_TRN_RIG ? "H0"EOM"I1"EOM : "I0"EOM"H1"EOM;
+	trncmd = trn==RIG_TRN_RIG ? "H0"EOM"I1"EOM : "H1"EOM"I1"EOM;
 
 	return jrc_transaction (rig, trncmd, 6, NULL, NULL);
 }
