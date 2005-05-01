@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.26 2005-04-21 20:50:04 fillods Exp $
+ *	$Id: jrc.c,v 1.27 2005-05-01 11:09:38 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -203,7 +203,11 @@ int jrc_open(RIG *rig)
    * Turn continuous mode on (for "I" query)
    */
 
-  retval = jrc_transaction(rig, "H1" EOM "I1"EOM, 6, NULL, NULL);
+  if (rig->caps->rig_model == RIG_MODEL_NRD535)
+    retval = jrc_transaction(rig, "H1" EOM, 3, NULL, NULL);
+  else
+    retval = jrc_transaction(rig, "H1" EOM "I1"EOM, 6, NULL, NULL);
+
   return retval;
 }
 
@@ -243,7 +247,10 @@ static int get_current_istate(RIG *rig, char *buf, int *buf_len)
 	/*
 	 * JRCs use "I" to get information,
 	 */
-	retval = jrc_transaction (rig, "I" EOM, 2, buf, buf_len);
+	if (rig->caps->rig_model == RIG_MODEL_NRD535)
+	  retval = jrc_transaction (rig, "I1" EOM "I0" EOM, 6, buf, buf_len);
+	else
+	  retval = jrc_transaction (rig, "I" EOM, 2, buf, buf_len);
 
 	return retval;
 }
@@ -1025,18 +1032,28 @@ int jrc_get_powerstat(RIG *rig, powerstat_t *status)
 	char pwrbuf[BUFSZ];
 	int pwr_len, retval;
 
-	retval = jrc_transaction (rig, "T" EOM, 2, pwrbuf, &pwr_len);
-	if (retval != RIG_OK)
-	  return retval;
+	if (rig->caps->rig_model == RIG_MODEL_NRD535) {
+		retval = jrc_transaction (rig, "T" EOM, 2, pwrbuf, &pwr_len);
+		if (retval != RIG_OK)
+		  return retval;
 
-	if (pwr_len != 3) {
-	  rig_debug(RIG_DEBUG_ERR,"jrc_get_powerstat: wrong answer %s, "
-		    "len=%d\n", pwrbuf, pwr_len);
-	  return -RIG_ERJCTED;
+		if (pwr_len != 3) {
+		  rig_debug(RIG_DEBUG_ERR,"jrc_get_powerstat: wrong answer %s, "
+			    "len=%d\n", pwrbuf, pwr_len);
+		  return -RIG_ERJCTED;
+		}
+		*status = pwrbuf[1] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
+
+		return RIG_OK;
 	}
-	*status = pwrbuf[1] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
+	else {
+		retval = jrc_transaction (rig, "I" EOM, 2, pwrbuf, &pwr_len);
 
-	return RIG_OK;
+		*status = retval != RIG_OK ? RIG_POWER_OFF : RIG_POWER_ON;
+
+		return retval;
+	}
+		
 }
 
 /*
