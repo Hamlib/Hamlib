@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.27 2005-05-01 11:09:38 fineware Exp $
+ *	$Id: jrc.c,v 1.28 2005-05-04 20:57:52 fineware Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -415,6 +415,11 @@ int jrc_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 		return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
+	case RIG_FUNC_MN:
+		cmd_len = sprintf(cmdbuf, "EE%d" EOM, status?1:0);
+
+		return jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %d\n", func);
 		return -RIG_EINVAL;
@@ -504,6 +509,20 @@ int jrc_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 	case RIG_FUNC_LOCK:
 		retval = jrc_transaction (rig, "DD" EOM, 3, funcbuf, &func_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (func_len != 3) {
+			rig_debug(RIG_DEBUG_ERR,"jrc_get_func: wrong answer %s, "
+						"len=%d\n", funcbuf, func_len);
+			return -RIG_ERJCTED;
+		}
+		*status = funcbuf[1] == '1';
+
+		return RIG_OK;
+
+	case RIG_FUNC_MN:
+		retval = jrc_transaction (rig, "EE" EOM, 3, funcbuf, &func_len);
 		if (retval != RIG_OK)
 			return retval;
 
