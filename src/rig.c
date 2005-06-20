@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.89 2005-04-04 18:30:56 fillods Exp $
+ *	$Id: rig.c,v 1.90 2005-06-20 21:15:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -2243,13 +2243,13 @@ int HAMLIB_API rig_mW2power(RIG *rig, float *power, unsigned int mwpower, freq_t
 		 */
 		return -RIG_ECONF; /* could be RIG_EINVAL ? */
 	}
-	if (mwpower == 0) {
+	if (txrange->high_power == 0) {
 		*power = 0.0;
 		return RIG_OK;
 	}
-	*power = (float)txrange->high_power/mwpower;
+	*power = (float)mwpower / txrange->high_power;
 	if (*power > 1.0)
-			*power = 1.0;
+		*power = 1.0;
 	return (mwpower>txrange->high_power? RIG_OK : RIG_ETRUNC);
 }
 
