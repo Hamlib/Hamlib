@@ -10,7 +10,7 @@ dnl
 dnl For backwards compatibility, if ACTION_IF_NOT_FOUND is not specified,
 dnl and the hamlib libraries are not found, a fatal AC_MSG_ERROR() will result.
 dnl
-AC_DEFUN(AM_PATH_HAMLIB,
+AC_DEFUN([AM_PATH_HAMLIB],
 [dnl Save the original CFLAGS, LDFLAGS, and LIBS
 hamlib_save_CFLAGS="$CFLAGS"
 hamlib_save_LDFLAGS="$LDFLAGS"
