@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.18 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts2000.c,v 1.19 2005-09-28 21:17:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,12 +36,15 @@
 
 #define TS2000_FUNC_ALL (RIG_FUNC_TSQL)
 
-#define TS2000_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
+#define TS2000_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
 
 #define TS2000_MAINVFO (RIG_VFO_A|RIG_VFO_B)
 #define TS2000_SUBVFO (RIG_VFO_C)
 
 #define TS2000_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+
+/* prototypes */
+static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 /*
  * 103 available DCS codes
@@ -74,7 +77,7 @@ const struct rig_caps ts2000_caps = {
 .rig_model =  RIG_MODEL_TS2000,
 .model_name = "TS-2000",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER "0.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -231,7 +234,7 @@ const struct rig_caps ts2000_caps = {
 .set_func =  kenwood_set_func,
 .get_func =  kenwood_get_func,
 .set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
+.get_level =  ts2000_get_level,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
@@ -249,3 +252,75 @@ const struct rig_caps ts2000_caps = {
  * Function definitions below
  */
 
+/*
+ * ts2000_get_level
+ * Assumes rig!=NULL, val!=NULL
+ */
+int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	unsigned char lvlbuf[50];
+	int lvl_len, retval;
+	int lvl;
+	int i, ret, agclevel;
+
+	lvl_len = 50;
+	switch (level) {
+	case RIG_LEVEL_RAWSTR:
+	case RIG_LEVEL_STRENGTH:
+		retval = kenwood_transaction (rig, "SM0;", 4, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (( (lvl_len !=8)) || lvlbuf[1] != 'M') {
+			/* TS-2000 returns 8 bytes for S meter level */
+			rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
+					__FUNCTION__, lvl_len);
+			return -RIG_ERJCTED;
+		}
+
+		/* Frontend expects:  -54 = S0, 0 = S9  */
+		sscanf(lvlbuf+3, "%d", &val->i);	/* raw str */
+
+		/* TS-2000 main reciever returns values from 0 - 30 */
+		/* so scale the value */
+		if (level == RIG_LEVEL_STRENGTH)
+			val->i = (val->i * 3.6) - 54;
+		break;
+
+	case RIG_LEVEL_ATT:
+		retval = kenwood_transaction (rig, "RA;", 3, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+
+		if ((lvl_len != 7)){ /*TS-2000 returns 7 chars for RA; */
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
+					__FUNCTION__, lvl_len);
+			return -RIG_ERJCTED;
+		}
+
+		sscanf(lvlbuf+2, "%d", &lvl);
+		if (lvl == 0) {
+			val->i = 0;
+			break;
+		}
+
+		for (i=0; i<lvl && i<MAXDBLSTSIZ; i++) {
+			if (rig->state.attenuator[i] == 0) {
+				rig_debug(RIG_DEBUG_ERR,"%s: "
+					"unexpected att level %d\n", __FUNCTION__, lvl);
+				return -RIG_EPROTO;
+			}
+		}
+		if (i != lvl)
+			return -RIG_EINTERNAL;
+		val->i = rig->state.attenuator[i-1];
+
+		break;
+
+	default:
+		/* fall back */
+		return kenwood_get_level(rig, vfo, level, val);
+	}
+
+	return -RIG_EINVAL;
+}
