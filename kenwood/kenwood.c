@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.88 2005-09-24 07:48:42 fillods Exp $
+ *	$Id: kenwood.c,v 1.89 2005-09-28 21:14:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -645,8 +645,8 @@ int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f)
 		return retval;
 
 	if (lvl_len != 6) {
-		rig_debug(RIG_DEBUG_ERR,"kenwood_get_level: wrong answer len=%d\n",
-				lvl_len);
+		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
+				__FUNCTION__,lvl_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -673,20 +673,23 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	lvl_len = 50;
 	switch (level) {
+	case RIG_LEVEL_RAWSTR:
 	case RIG_LEVEL_STRENGTH:
 		retval = kenwood_transaction (rig, "SM;", 3, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
 		if (lvl_len != 7 || lvlbuf[1] != 'M') {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_level: "
-					"wrong answer len=%d\n", lvl_len);
+			rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
+					__FUNCTION__, lvl_len);
 			return -RIG_ERJCTED;
 		}
 
+		sscanf(lvlbuf+2, "%d", &val->i);	/* rawstr */
+
 		/* Frontend expects:  -54 = S0, 0 = S9  */
-		sscanf(lvlbuf+2, "%d", &val->i);
-		val->i = (val->i * 4) - 54;
+		if (level==RIG_LEVEL_STRENGTH)
+			val->i = (val->i * 4) - 54;
 		break;
 
 	case RIG_LEVEL_ATT:
@@ -695,8 +698,8 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
 		if (lvl_len != 5) {
-			rig_debug(RIG_DEBUG_ERR,"kenwood_get_level: "
-					"unexpected answer len=%d\n", lvl_len);
+			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
+					__FUNCTION__, lvl_len);
 			return -RIG_ERJCTED;
 		}
 
@@ -706,10 +709,11 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		} else {
 			for (i=0; i<lvl && i<MAXDBLSTSIZ; i++)
 				if (rig->state.attenuator[i] == 0) {
-					rig_debug(RIG_DEBUG_ERR,"kenwood_get_level: "
-							"unexpected att level %d\n", lvl);
-							return -RIG_EPROTO;
-					}
+					rig_debug(RIG_DEBUG_ERR,"%s: "
+							"unexpected att level %d\n",
+							__FUNCTION__, lvl);
+					return -RIG_EPROTO;
+				}
 				if (i != lvl)
 					return -RIG_EINTERNAL;
 				val->i = rig->state.attenuator[i-1];
