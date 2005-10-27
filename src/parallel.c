@@ -2,7 +2,7 @@
  *  Hamlib Interface - parallel communication low-level support
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: parallel.c,v 1.4 2005-04-04 18:30:55 fillods Exp $
+ *	$Id: parallel.c,v 1.5 2005-10-27 20:34:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,11 +55,15 @@
 #include "hamlib/rig.h"
 #include "parallel.h"
 
-
-
 #ifdef HAVE_LINUX_PPDEV_H
 #include <linux/ppdev.h>
 #include <linux/parport.h>
+#endif
+
+#ifdef HAVE_DEV_PPBUS_PPI_H
+#include <dev/ppbus/ppi.h>
+#include <dev/ppbus/ppbconf.h>
+#endif
 
 /* 
  * These control port bits are active low.
@@ -74,14 +78,6 @@
  * through our interface.
  */
 #define SP_ACTIVE_LOW_BITS	0x80
-
-#endif
-
-
-#ifdef HAVE_DEV_PPBUS_PPI_H
-#include <dev/ppbus/ppi.h>
-#include <dev/ppbus/ppbconf.h>
-#endif
 
 
 /*
@@ -266,11 +262,11 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 	*status = sta ^ SP_ACTIVE_LOW_BITS;
 	return ret == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
-	int status;
+	int ret;
 	unsigned char sta;
-	status = ioctl(port->fd, PPIGSTATUS, &sta);
-	*control = sta ^ SP_ACTIVE_LOW_BITS;
-	return status == 0 ? RIG_OK : -RIG_EIO;
+	ret = ioctl(port->fd, PPIGSTATUS, &sta);
+	*status = sta ^ SP_ACTIVE_LOW_BITS;
+	return ret == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
 	unsigned char ret;
 	unsigned int dummy;
