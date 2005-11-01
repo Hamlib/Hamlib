@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.108 2005-04-20 14:44:01 fillods Exp $
+ *	$Id: rig.h,v 1.109 2005-11-01 23:02:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -159,7 +159,8 @@ typedef enum rig_port_e {
   RIG_PORT_DTMF,		/*!< DTMF protocol bridge via another rig, eg. Kenwood Sky Cmd System */
   RIG_PORT_ULTRA,		/*!< IrDA Ultra protocol! */
   RIG_PORT_RPC,			/*!< RPC wrapper */
-  RIG_PORT_PARALLEL		/*!< Parallel port */
+  RIG_PORT_PARALLEL,		/*!< Parallel port */
+  RIG_PORT_USB			/*!< USB port */
 } rig_port_t;
 
 /**
@@ -1242,9 +1243,7 @@ typedef struct {
 	dcd_type_t dcd;		/*!< DCD port type */
   } type;
   int fd;			/*!< File descriptor */
-#if defined(__CYGWIN__) || defined(_WIN32)
-  void* deprecated_handle;	/*!< Place holder for deprecated field */
-#endif
+  void* handle;			/*!< handle for USB */
 
   int write_delay;		/*!< Delay between each byte sent out, in ms */
   int post_write_delay;		/*!< Delay between each commands send out, in ms */
@@ -1266,6 +1265,13 @@ typedef struct {
 	struct {
 		int pin;	/*!< Parrallel port pin number */
 	} parallel;		/*!< parallel attributes */
+	struct {
+		int vid;	/*!< Vendor ID */
+		int pid;	/*!< Product ID */
+		int conf;	/*!< Configuration */
+		int iface;	/*!< interface */
+		int alt;	/*!< alternate */
+	} usb;			/*!< USB attributes */
   } parm;			/*!< Port parameter union */
 } hamlib_port_t;
 

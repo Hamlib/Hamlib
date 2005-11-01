@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.90 2005-06-20 21:15:48 fillods Exp $
+ *	$Id: rig.c,v 1.91 2005-11-01 23:02:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,6 +59,7 @@
 #include "hamlib/rig.h"
 #include "serial.h"
 #include "parallel.h"
+#include "usb_port.h"
 #include "event.h"
 
 /**
@@ -451,6 +452,12 @@ int HAMLIB_API rig_open(RIG *rig)
 		rs->rigport.fd = status;
 		break;
 
+	case RIG_PORT_USB:
+		status = usb_port_open(&rs->rigport);
+		if (status < 0)
+			return status;
+		break;
+
 	case RIG_PORT_NONE:
 	case RIG_PORT_RPC:
 		break;	/* ez :) */
@@ -632,6 +639,10 @@ int HAMLIB_API rig_close(RIG *rig)
 		case RIG_PORT_PARALLEL:
 			par_close(&rs->rigport);
 			break;
+		case RIG_PORT_USB:
+			usb_port_close(&rs->rigport);
+			break;
+
 		default:
 			close(rs->rigport.fd);
 		}
