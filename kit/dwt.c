@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Digital World Traveller DRM receiver description
  *  Copyright (c) 2005 by Stephane Fillod
  *
- *	$Id: dwt.c,v 1.1 2005-11-01 23:12:11 fillods Exp $
+ *	$Id: dwt.c,v 1.2 2005-11-01 23:40:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -551,7 +551,7 @@ const struct rig_caps dwt_caps = {
   },
 .tx_range_list2 =  { RIG_FRNG_END, },
 .tuning_steps =  {
-	 {DWT_MODES,1},
+	 {DWT_MODES,kHz(1)},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
@@ -588,8 +588,9 @@ int dwt_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int request, value, index;
-	unsigned char buf[MSG_LEN];
+	unsigned char buf[MSG_LEN] = { 0x4a, 0x00, 0x03, 0x00, 0xff, 0xff, 0x32 };
 	int requesttype, r;
+	int ifreq = (int)(freq/1000);
 
 	/* FIXME */
   	requesttype = 0x00;
@@ -597,8 +598,10 @@ int dwt_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   	value = 0x00;
   	index = 0x00;
 
+	buf[8] = ifreq & 0xff;
+	buf[7] = (ifreq>>8) & 0xff;
 	r = usb_control_msg (udh, requesttype, request, value, index,
-			   (char *) buf, MSG_LEN, 1000);
+			   (char *) buf, 9, 1000);
 	if (r < 0) {
 		/* we get EPIPE if the firmware stalls the endpoint. */
 		if (errno != EPIPE)
