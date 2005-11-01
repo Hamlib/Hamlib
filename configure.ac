@@ -353,12 +353,35 @@ if test "${cf_with_cxx}" = "yes" ; then
 		[AC_MSG_FAILURE([gnuradio backend requires POSIX threads.  pthreads not found.])])
   fi
  
-fi
+  AC_MSG_CHECKING(whether to build USRP backend)
+  AC_ARG_WITH(usrp,
+        [  --with-usrp	build USRP backend],
+        [cf_with_usrp=$withval],
+        [cf_with_usrp="no"])
+  AC_MSG_RESULT($cf_with_usrp)
+
+  if test "${cf_with_usrp}" = "yes" ; then
+  	PKG_CHECK_MODULES(USRP, usrp >= 0.8, 
+		[AC_DEFINE(HAVE_USRP,[1],[Define if usrp is available])])
+  fi
+ fi
 AC_MSG_CHECKING(whether to build microtune backend)
 AC_MSG_RESULT($cf_with_cxx)
 
 AC_SUBST(GNURADIO_CFLAGS)
 AC_SUBST(GNURADIO_LIBS)
+
+
+PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1)
+AC_CHECK_HEADERS([usb.h])
+AC_MSG_CHECKING(whether to build USB backends)
+if test x"${LIBUSB_LIBS}" = x; then
+	cf_with_libusb="no"
+else
+	cf_with_libusb="yes"
+	AC_DEFINE(HAVE_LIBUSB,[1],[Define if libusb is available])
+fi
+AC_MSG_RESULT($cf_with_libusb)
 
 
 AC_CHECK_PROG(cf_with_rpcgen, rpcgen, [yes], [no])
