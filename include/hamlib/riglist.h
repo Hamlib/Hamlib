@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.56 2005-04-20 13:27:26 fillods Exp $
+ *	$Id: riglist.h,v 1.57 2005-11-01 23:05:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -381,7 +381,7 @@
 #define RIG_MODEL_MC4020 RIG_MAKE_MODEL(RIG_GNURADIO, 2)	/* MC4020 */
 #define RIG_MODEL_GRAUDIO RIG_MAKE_MODEL(RIG_GNURADIO, 3)	/* Sound card source */
 #define RIG_MODEL_GRAUDIOIQ RIG_MAKE_MODEL(RIG_GNURADIO, 4)	/* I&Q stereo sound card source */
-#define RIG_MODEL_USRP RIG_MAKE_MODEL(RIG_GNURADIO, 5)	/* Universal Software Radio Peripheral */
+#define RIG_MODEL_USRP_G RIG_MAKE_MODEL(RIG_GNURADIO, 5)	/* Universal Software Radio Peripheral */
 
 	/*
 	 * Microtune tuners
@@ -405,6 +405,7 @@
 #define RIG_FLEXRADIO 23
 #define RIG_BACKEND_FLEXRADIO "flexradio"
 #define RIG_MODEL_SDR1000 RIG_MAKE_MODEL(RIG_FLEXRADIO, 1)
+#define RIG_MODEL_SDR1000RFE RIG_MAKE_MODEL(RIG_FLEXRADIO, 2)
 
 
 	/*
@@ -421,6 +422,9 @@
 #define RIG_BACKEND_KIT "kit"
 #define RIG_MODEL_ELEKTOR304 RIG_MAKE_MODEL(RIG_KIT, 1)
 #define RIG_MODEL_DRT1 RIG_MAKE_MODEL(RIG_KIT, 2)
+#define RIG_MODEL_DWT RIG_MAKE_MODEL(RIG_KIT, 3)
+#define RIG_MODEL_USRP0 RIG_MAKE_MODEL(RIG_KIT, 4)	/* prototype */
+#define RIG_MODEL_USRP RIG_MAKE_MODEL(RIG_KIT, 5)
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
