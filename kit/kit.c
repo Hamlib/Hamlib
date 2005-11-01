@@ -1,8 +1,8 @@
 /*
  *  Hamlib KIT backend - main file
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: kit.c,v 1.2 2004-08-19 21:02:47 fillods Exp $
+ *	$Id: kit.c,v 1.3 2005-11-01 23:14:41 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,6 +32,7 @@
 #include "register.h"
 
 #include "kit.h"
+#include "usrp_impl.h"
 
 /*
  * initrigs_kit is called by rig_backend_load
@@ -42,6 +43,15 @@ DECLARE_INITRIG_BACKEND(kit)
 
 	rig_register(&elektor304_caps);
 	rig_register(&drt1_caps);
+
+#if defined(HAVE_LIBUSB) || defined(_WIN32)
+	rig_register(&dwt_caps);
+#endif
+
+#ifdef HAVE_USRP
+	//rig_register(&usrp0_caps);
+	rig_register(&usrp_caps);
+#endif
 
 	return RIG_OK;
 }
