@@ -41,6 +41,9 @@ M: Friedrich Melchert DC9RP
 [aor: AR-3030]
 M: Tristan Mills
 
+[aor: AR-8200]
+M: Rob Walker
+
 
 [drake]
 M: Mark J. Fine
@@ -126,6 +129,9 @@ M:
 C: Pascal Brisset
 
 
+[yeasu: ft1000d]
+M: Serge Pashenkov
+
 [yeasu: ft100]
 M: Alex V Flinsch, KC2IVL
 
@@ -179,6 +185,7 @@ M: Berndt Josef Wulf, VK5ABN
 [platform: win32]
 M: Stephane Fillod, F8CFE
 C: VB & testing by Darren Hatcher, G0WCW
+C: VB.NET wrapper by Michael Benz
 
 [packaging: debian]
 M: Joop Stakenborg, PG4I
@@ -217,3 +224,4 @@ Diane Bruce, VA3DB <db (at) db.net>
 Dave Hines, M1CXW, <hamlib (at) dph.fluff.org>
 Darren Hatcher, G0WCW, <g0wcw (at) hatcher.org.uk>
 Ben Coleman, NJ8J, <nj8j (at) arrl.net>
+Serge Pashenkov <serge (at) gnode.org>
