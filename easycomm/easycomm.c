@@ -3,7 +3,7 @@
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *	$Id: easycomm.c,v 1.6 2003-10-01 19:31:55 fillods Exp $
+ *	$Id: easycomm.c,v 1.7 2005-11-19 14:45:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -80,12 +80,12 @@ easycomm_transaction (ROT *rot, const char *cmdstr, char *data, size_t data_len)
 static int
 easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    unsigned char cmdstr[64], ackstr[64];
+    unsigned char cmdstr[64];
     int retval;
 	rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
 
     sprintf(cmdstr, "AZ%.1f EL%.1f UP000 XXX DN000 XXX\n", az, el);
-    retval = easycomm_transaction(rot, cmdstr, ackstr, sizeof(ackstr));
+    retval = easycomm_transaction(rot, cmdstr, NULL, 0);
 	if (retval != RIG_OK) {
 		return retval;
 	}
@@ -243,9 +243,9 @@ const struct rot_caps easycomm1_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM1,
   .model_name =     "EasycommI",
   .mfg_name =       "Hamlib",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	 "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
   .port_type =      RIG_PORT_SERIAL,
   .serial_rate_min =  9600,
@@ -259,10 +259,10 @@ const struct rot_caps easycomm1_rot_caps = {
   .timeout =  200,
   .retry =  3,
 
-  .min_az = 	-180.0,
-  .max_az =  	180.0,
+  .min_az = 	0.0,
+  .max_az =  	360.0,
   .min_el = 	0.0,
-  .max_el =  	90.0,
+  .max_el =  	180.0,
 
   .priv =  NULL,	/* priv */
 
@@ -277,9 +277,9 @@ const struct rot_caps easycomm2_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM2,
   .model_name =     "EasycommII",
   .mfg_name =       "Hamlib",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	 "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
   .port_type =      RIG_PORT_SERIAL,
   .serial_rate_min =  9600,
@@ -293,10 +293,10 @@ const struct rot_caps easycomm2_rot_caps = {
   .timeout =  200,
   .retry =  3,
 
-  .min_az = 	-180.0,
-  .max_az =  	180.0,
+  .min_az = 	0.0,
+  .max_az =  	360.0,
   .min_el = 	0.0,
-  .max_el =  	90.0,
+  .max_el =  	180.0,
 
   .priv =  NULL,	/* priv */
 
