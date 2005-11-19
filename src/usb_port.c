@@ -2,7 +2,7 @@
  *  Hamlib Interface - parallel communication low-level support
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: usb_port.c,v 1.1 2005-11-01 23:02:02 fillods Exp $
+ *	$Id: usb_port.c,v 1.2 2005-11-19 14:41:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -24,17 +24,18 @@
 #include "config.h"
 #endif
 
+#include <hamlib/rig.h>
+
 /*
  * Compile only this model if libusb is available
  */
-#ifdef HAVE_USB_H
+#if defined(HAVE_LIBUSB) && defined(HAVE_USB_H)
 
 
 #include <stdlib.h>
 #include <stdio.h>   /* Standard input/output definitions */
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
-#include <usb.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -126,4 +127,16 @@ int usb_port_close(hamlib_port_t *port)
 	return usb_close (udh) == 0 ? RIG_OK : -RIG_EIO;
 }
 
-#endif	/* HAVE_LIBUSB */
+#else
+
+int usb_port_open(hamlib_port_t *port)
+{
+	return -RIG_ENAVAIL;
+}
+
+int usb_port_close(hamlib_port_t *port)
+{
+	return -RIG_ENAVAIL;
+}
+
+#endif	/* defined(HAVE_LIBUSB) && defined(HAVE_USB_H) */

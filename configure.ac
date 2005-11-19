@@ -347,7 +347,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_gnuradio)
 
   if test "${cf_with_gnuradio}" = "yes" ; then
-  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.9, [])
+  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.9)
 	dnl check for pthreads
 	ACX_PTHREAD([BACKEND_LIST="$BACKEND_LIST gnuradio"],
 		[AC_MSG_FAILURE([gnuradio backend requires POSIX threads.  pthreads not found.])])
@@ -372,7 +372,8 @@ AC_SUBST(GNURADIO_CFLAGS)
 AC_SUBST(GNURADIO_LIBS)
 
 
-PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, [])
+PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, , 
+		  [AC_MSG_WARN([libusb pkg-config not found, USB backends will be disabled])])
 AC_CHECK_HEADERS([usb.h])
 AC_MSG_CHECKING(whether to build USB backends)
 if test x"${LIBUSB_LIBS}" = x; then
