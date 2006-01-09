@@ -2,7 +2,7 @@
 % *  Hamlib Interface - RPC definitions
 % *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
 % *
-% *	$Id: rpcrig.x,v 1.10 2005-03-28 09:37:24 fillods Exp $
+% *	$Id: rpcrig.x,v 1.11 2006-01-09 21:41:39 fillods Exp $
 % *
 % *   This library is free software; you can redistribute it and/or modify
 % *   it under the terms of the GNU Library General Public License as
@@ -31,15 +31,7 @@
 
 typedef unsigned int model_x;
 typedef int vfo_x;
-#if 0
-#ifdef __NetBSD__
-typedef longlong_t freq_x;
-#else
-typedef hyper freq_x;
-#endif
-#else
 typedef double freq_x;
-#endif
 typedef unsigned int rmode_x;
 typedef int pbwidth_x;
 typedef unsigned long split_x;
@@ -47,15 +39,7 @@ typedef int ptt_x;
 typedef int dcd_x;
 typedef long vfo_op_x;
 typedef long shortfreq_x;
-#if 0
-#ifdef __NetBSD__
-typedef u_longlong_t setting_x;
-#else
-typedef unsigned hyper setting_x;
-#endif
-#else
 typedef unsigned long setting_x;
-#endif
 typedef long ant_x;
 typedef long ann_x;
 typedef int rptr_shift_x;
