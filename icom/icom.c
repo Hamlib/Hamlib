@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.94 2005-04-20 13:26:55 fillods Exp $
+ *	$Id: icom.c,v 1.95 2006-01-09 21:45:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -259,6 +259,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC718, 0x5e },
 	{ RIG_MODEL_OS535, 0x80 },
 	{ RIG_MODEL_ICID1, 0x01 },
+	{ RIG_MODEL_IC7000, 0x70 },
 	{ RIG_MODEL_NONE, 0 },
 };
 
