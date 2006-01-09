@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.15 2005-04-10 21:47:14 fillods Exp $
+ *	$Id: tentec.c,v 1.16 2006-01-09 21:14:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -110,10 +110,11 @@ int tentec_init(RIG *rig)
 	/*
 	 * set arbitrary initial status
 	 */
-	priv->freq = MHz(145);
+	priv->freq = MHz(10);
 	priv->mode = RIG_MODE_AM;
 	priv->width = kHz(6);
-	priv->cwbfo = 0;
+    priv->pbt = 0;
+	priv->cwbfo = 1000;
 	priv->agc = 0.5;	/* medium */
 	priv->lnvol = priv->spkvol = 0.0;	/* mute */
 
@@ -167,19 +168,21 @@ int tentec_trx_open(RIG *rig)
 static void tentec_tuning_factor_calc(RIG *rig)
 {
 	struct tentec_priv_data *priv;
-	double tfreq, adjtfreq, mcor, fcor;
+	double tfreq, adjtfreq, mcor, fcor, cwbfo;
 
 	priv = (struct tentec_priv_data *)rig->state.priv;
-
-	switch (priv->mode) {
+    cwbfo = 0.0;
+	
+    switch (priv->mode) {
 	case RIG_MODE_AM:
 	case RIG_MODE_FM:
-			mcor=0; break;
+			mcor=0.0; break;
 	case RIG_MODE_CW: 
-	case RIG_MODE_LSB:
-			mcor=-1; break;
+	        mcor=-1.0; cwbfo = (double)priv->cwbfo; break;
+    case RIG_MODE_LSB:
+			mcor=-1.0; break;
 	case RIG_MODE_USB:
-			mcor=1; break;
+			mcor=1.0; break;
 	default:
 			rig_debug(RIG_DEBUG_BUG,
 							"tentec_tuning_factor_calc: invalid mode!\n");
@@ -188,14 +191,13 @@ static void tentec_tuning_factor_calc(RIG *rig)
 	tfreq = priv->freq/(double)MHz(1);
 	fcor = priv->width/2.0+200;
 
-	adjtfreq = tfreq - 0.00125 + (mcor*((fcor+priv->cwbfo)/1000000));
+	adjtfreq = tfreq - 0.00125 + (mcor*((fcor + (double)priv->pbt)/1000000.0));
 
-	priv->ctf = floor(adjtfreq*400);
-	priv->ftf = floor(((adjtfreq*400) - priv->ctf)*2500*5.46);
+	priv->ctf = floor(adjtfreq*400.0);
+	priv->ftf = floor(((adjtfreq*400.0) - priv->ctf) * 2500.0 * 5.46);
 	priv->ctf += 18000;
-	priv->btf = floor((fcor + priv->cwbfo + 8000)*2.73);
+	priv->btf = floor((fcor + (double)priv->pbt + cwbfo + 8000.0) * 2.73);
 }
-
 
 /*
  * tentec_set_freq
@@ -353,15 +355,28 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		if (retval == RIG_OK)
 			priv->agc = val.i;
 		return retval;
+
 	case RIG_LEVEL_AF:
 		/* FIXME: support also separate Lineout setting 
 		 * -> need to create RIG_LEVEL_LINEOUT ?
 		 */
-		cmd_len = sprintf(cmdbuf, "C\x7f%c" EOM, (int)(val.f*63));
+		cmd_len = sprintf(cmdbuf, "C\x7f%c" EOM, (int)((1.0 - val.f) * 63.0));
 		retval = write_block(&rs->rigport, cmdbuf, cmd_len);
 		if (retval == RIG_OK) 
 				priv->lnvol = priv->spkvol = val.f;
 		return retval;
+
+    case RIG_LEVEL_IF:
+        priv->pbt = val.i;
+        retval = tentec_set_freq(rig, vfo, priv->freq);
+        return retval;
+            
+    case RIG_LEVEL_CWPITCH:
+        priv->cwbfo = val.i;
+        if(priv->mode == RIG_MODE_CW) {
+            retval = tentec_set_freq(rig, vfo, priv->freq);
+        }    
+        return retval;
 
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d\n", level);
@@ -414,6 +429,14 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		val->f = priv->spkvol;
 		break;
 
+    case RIG_LEVEL_IF:
+        val->i = priv->pbt;
+        break;
+
+    case RIG_LEVEL_CWPITCH:
+        val->i = priv->cwbfo;
+        break;
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d\n", level);
 		return -RIG_EINVAL;
@@ -435,9 +458,9 @@ const char *tentec_get_info(RIG *rig)
 		/*
 		 * protocol version
 		 */
-		firmware_len = 7;
+		firmware_len = 10;
 		retval = tentec_transaction (rig, "?" EOM, 2, buf, &firmware_len);
-		if (retval != RIG_OK || firmware_len != 7) {
+		if ( (retval != RIG_OK) || (firmware_len > 10) )  {
 				rig_debug(RIG_DEBUG_ERR,"tentec_get_info: ack NG, len=%d\n",
 								firmware_len);
 				return NULL;

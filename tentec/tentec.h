@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main header
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: tentec.h,v 1.9 2004-05-26 21:30:13 fillods Exp $
+ *	$Id: tentec.h,v 1.10 2006-01-09 21:14:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,7 +29,8 @@ struct tentec_priv_data {
 	rmode_t mode;		/* detection mode */
 	freq_t freq;		/* tuned frequency */
 	pbwidth_t width;	/* filter bandwidth in Hz */
-	int cwbfo;		/* BFO frequency: 0 [0-2000Hz] */
+	int cwbfo;		    /* BFO frequency: 1000 [0-2000Hz] */
+    int pbt;            /* Passband Tuning, IF shift: 0 [-2000Hz to 2000Hz] */ 
 	float lnvol;		/* line-out volume: 30 [0..63] */
 	float spkvol;		/* speaker volume: 30 [0..63] */
 	int agc;		/* AGC: medium */

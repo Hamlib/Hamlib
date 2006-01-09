@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - RX-320 PC-Radio description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: rx320.c,v 1.7 2004-06-14 21:12:14 fillods Exp $
+ *	$Id: rx320.c,v 1.8 2006-01-09 21:14:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,7 @@
 #define RX320_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB)
 
 /* TODO: LINEOUT */
-#define RX320_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_AF|RIG_LEVEL_RAWSTR)
+#define RX320_LEVELS (RIG_LEVEL_AGC|RIG_LEVEL_AF|RIG_LEVEL_IF|RIG_LEVEL_RAWSTR|RIG_LEVEL_CWPITCH)
 
 #define RX320_VFO (RIG_VFO_A)
 
@@ -59,9 +59,9 @@ const struct rig_caps rx320_caps = {
 .rig_model =  RIG_MODEL_RX320,
 .model_name = "RX-320",
 .mfg_name =  "Ten-Tec",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_PCRECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -84,8 +84,10 @@ const struct rig_caps rx320_caps = {
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
 .level_gran = {
-	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 99999 } },
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 10000 } },
 	[LVL_AF] = { .step = { .f = 1.0/64 } },
+    [LVL_IF] = { .min = { .i = -2000 }, .max = { .i = 2000 }, .step = { .i = 10} }, 
+    [LVL_CWPITCH] = { .min = { .i = 0}, .max = { .i = 2000 }, .step = { .i = 100} }
 },
 .parm_gran =  {},
 .ctcss_list =  NULL,
@@ -94,7 +96,7 @@ const struct rig_caps rx320_caps = {
 .attenuator =   { RIG_DBLST_END },
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
-.max_ifshift =  Hz(0),
+.max_ifshift =  kHz(2),
 .targetable_vfo =  0,
 .transceive =  RIG_TRN_OFF,
 .bank_qty =   0,
@@ -117,9 +119,22 @@ const struct rig_caps rx320_caps = {
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.5)},
-		{RIG_MODE_AM, kHz(6)},
-		RIG_FLT_END,
+        {RIG_MODE_CW, 300},
+        {RIG_MODE_CW, 450},
+        {RIG_MODE_CW, 600},
+        {RIG_MODE_CW, 750},
+        {RIG_MODE_CW, 900},
+        {RIG_MODE_CW, kHz(1.2)},
+        {RIG_MODE_SSB|RIG_MODE_CW, kHz(1.5)},
+        {RIG_MODE_SSB|RIG_MODE_CW, kHz(1.8)},
+        {RIG_MODE_SSB|RIG_MODE_CW, kHz(2.1)},
+        {RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
+        {RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_CW, kHz(3.0)},
+        {RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_CW, kHz(4.2)},
+        {RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_CW, kHz(5.1)},
+        {RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_CW, kHz(6)},
+        {RIG_MODE_AM|RIG_MODE_SSB|RIG_MODE_CW, kHz(8)},
+        RIG_FLT_END,
 	},
 .str_cal = RX320_STR_CAL,
 
