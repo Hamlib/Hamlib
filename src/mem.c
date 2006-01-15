@@ -3,16 +3,16 @@
  * \ingroup rig
  * \brief Memory and channel interface
  * \author Stephane Fillod
- * \date 2000-2005
+ * \date 2000-2006
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - mem/channel calls
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.6 2005-04-20 14:44:03 fillods Exp $
+ *	$Id: mem.c,v 1.7 2006-01-15 14:25:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -598,16 +598,22 @@ int set_chan_all_cb_generic (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 	return RIG_OK;
 }
 
+struct map_all_s {
+	channel_t *chans;
+	const struct confparams *cfgps;
+	value_t *vals;
+};
+
 /*
  * chan_cb_t to be used for non cb get/set_all
  */
 static int map_chan (RIG *rig, channel_t **chan, int channel_num, const chan_t *chan_list, rig_ptr_t arg)
 {
-	channel_t *chans = arg;
+	struct map_all_s *map_arg = (struct map_all_s*)arg;
 
 	/* TODO: check channel_num within start-end of chan_list */
 
-	*chan = &chans[channel_num];
+	*chan = &map_arg->chans[channel_num];
 
 	return RIG_OK;
 }
@@ -693,7 +699,7 @@ int HAMLIB_API rig_get_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  * \param rig	The rig handle
  * \param chan	The location of data to set for all channels
  *
- *  Write the data associated with a all the memory channels.
+ * Write the data associated with all the memory channels.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -704,19 +710,21 @@ int HAMLIB_API rig_get_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
 {
 	struct rig_caps *rc;
+	struct map_all_s map_arg;
 	int retval;
 
 	if (CHECK_RIG_ARG(rig) || !chans)
 		return -RIG_EINVAL;
 
 	rc = rig->caps;
+	map_arg.chans = chans;
 
 	if (rc->set_chan_all_cb)
-		return rc->set_chan_all_cb(rig, map_chan, (rig_ptr_t)chans);
+		return rc->set_chan_all_cb(rig, map_chan, (rig_ptr_t)&map_arg);
 
 
 	/* if not available, emulate it */
-	retval = set_chan_all_cb_generic (rig, map_chan, (rig_ptr_t)chans);
+	retval = set_chan_all_cb_generic (rig, map_chan, (rig_ptr_t)&map_arg);
 
 	return retval;
 }
@@ -727,7 +735,7 @@ int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
  * \param rig	The rig handle
  * \param chan	The location where to store all the channel data
  *
- *  Retrieves the data associated with a all the memory channels.
+ * Retrieves the data associated with all the memory channels.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -738,22 +746,251 @@ int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
 int HAMLIB_API rig_get_chan_all (RIG *rig, channel_t chans[])
 {
 	struct rig_caps *rc;
+	struct map_all_s map_arg;
 	int retval;
 
 	if (CHECK_RIG_ARG(rig) || !chans)
 		return -RIG_EINVAL;
 
 	rc = rig->caps;
+	map_arg.chans = chans;
 
 	if (rc->get_chan_all_cb)
-		return rc->get_chan_all_cb(rig, map_chan, chans);
+		return rc->get_chan_all_cb(rig, map_chan, (rig_ptr_t)&map_arg);
 
 	/*
 	 * if not available, emulate it
 	 *
 	 * TODO: save_current_state, restore_current_state
 	 */
-	retval = get_chan_all_cb_generic (rig, map_chan, chans);
+	retval = get_chan_all_cb_generic (rig, map_chan, (rig_ptr_t)&map_arg);
+
+	return retval;
+}
+
+int HAMLIB_API rig_copy_channel(RIG *rig, channel_t *chan1, const channel_t *chan2)
+{
+	memcpy(chan1, chan2, sizeof(channel_t));
+	/* TODO: ext_levels */
+	return RIG_OK;
+}
+
+#ifndef DOC_HIDDEN
+static int map_parm (RIG *rig, const struct confparams *cfgps, value_t *value,
+		rig_ptr_t arg)
+{
+	return -RIG_ENIMPL;
+}
+
+int get_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
+			rig_ptr_t vals)
+{
+	return -RIG_ENIMPL;
+}
+
+int set_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
+			rig_ptr_t vals)
+{
+	return -RIG_ENIMPL;
+}
+
+#endif	/* DOC_HIDDEN */
+
+/**
+ * \brief set all channel and non-channel data by call-back
+ * \param rig	The rig handle
+ * \param chan_cb	The callback for channel data
+ * \param parm_cb	The callback for non-channel(aka parm) data
+ * \param arg	Cookie passed to \a chan_cb and \a parm_cb
+ *
+ * Writes the data associated with all the memory channels,
+ * and rigs memory parameters, by callback.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_mem_all_cb(), rig_set_mem_all()
+ * \todo finish coding and testing of mem_all functions
+ */
+int rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
+{
+	struct rig_caps *rc;
+	int retval;
+
+	if (CHECK_RIG_ARG(rig) || !chan_cb)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+
+	if (rc->set_mem_all_cb)
+		return rc->set_mem_all_cb(rig, chan_cb, parm_cb, arg);
+
+
+	/* if not available, emulate it */
+	retval = rig_set_chan_all_cb (rig, chan_cb, arg);
+	if (retval != RIG_OK)
+		return retval;
+
+#if 0
+	retval = rig_set_parm_all_cb (rig, parm_cb, arg);
+	if (retval != RIG_OK)
+		return retval;
+#else
+	return -RIG_ENIMPL;
+#endif
+
+	return retval;
+}
+
+/**
+ * \brief get all channel and non-channel data by call-back
+ * \param rig	The rig handle
+ * \param chan_cb	The callback for channel data
+ * \param parm_cb	The callback for non-channel(aka parm) data
+ * \param arg	Cookie passed to \a chan_cb and \a parm_cb
+ *
+ * Retrieves the data associated with all the memory channels,
+ * and rigs memory parameters, by callback.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_mem_all_cb(), rig_set_mem_all()
+ *
+ * \todo get all parm's
+ * \todo finish coding and testing of mem_all functions
+ */
+int rig_get_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
+{
+	struct rig_caps *rc;
+	int retval;
+
+	if (CHECK_RIG_ARG(rig) || !chan_cb)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+
+	if (rc->get_mem_all_cb)
+		return rc->get_mem_all_cb(rig, chan_cb, parm_cb, arg);
+
+
+	/* if not available, emulate it */
+	retval = rig_get_chan_all_cb (rig, chan_cb, arg);
+	if (retval != RIG_OK)
+		return retval;
+
+#if 0
+	retval = rig_get_parm_cb (rig, parm_cb, arg);
+	if (retval != RIG_OK)
+		return retval;
+#else
+	return -RIG_ENIMPL;
+#endif
+
+	return retval;
+}
+
+/**
+ * \brief set all channel and non-channel data
+ * \param rig	The rig handle
+ * \param chan_cb	The callback for channel data
+ * \param parm_cb	The callback for non-channel(aka parm) data
+ * \param arg	Cookie passed to \a chan_cb and \a parm_cb
+ *
+ * Writes the data associated with all the memory channels,
+ * and rigs memory parameters.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_mem_all(), rig_set_mem_all_cb()
+ *
+ * \todo set all parm's
+ * \todo finish coding and testing of mem_all functions
+ */
+int rig_set_mem_all (RIG *rig, const channel_t chans[], const struct confparams cfgps[], const value_t vals[])
+{
+	struct rig_caps *rc;
+	int retval;
+	struct map_all_s mem_all_arg;
+
+	if (CHECK_RIG_ARG(rig) || !chans || !cfgps || !vals)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+	mem_all_arg.chans = chans;
+	mem_all_arg.cfgps = cfgps;
+	mem_all_arg.vals = vals;
+
+	if (rc->set_mem_all_cb)
+		return rc->set_mem_all_cb(rig, map_chan, map_parm,
+				(rig_ptr_t)&mem_all_arg);
+
+	/* if not available, emulate it */
+	retval = rig_set_chan_all (rig, chans);
+	if (retval != RIG_OK)
+		return retval;
+
+#if 0
+	retval = rig_set_parm_all (rig, parms);
+	if (retval != RIG_OK)
+		return retval;
+#else
+	return -RIG_ENIMPL;
+#endif
+
+	return retval;
+}
+
+/**
+ * \brief get all channel and non-channel data
+ * \param rig	The rig handle
+ * \param chans	Array of channels where to store the data
+ * \param cfgps	Array of config parameters to retrieve
+ * \param vals	Array of values where to store the data
+ *
+ * Retrieves the data associated with all the memory channels,
+ * and rigs memory parameters.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rig_get_mem_all(), rig_set_mem_all_cb()
+ * \todo finish coding and testing of mem_all functions
+ */
+int rig_get_mem_all (RIG *rig, channel_t chans[], const struct confparams cfgps[], value_t vals[])
+{
+	struct rig_caps *rc;
+	int retval;
+	struct map_all_s mem_all_arg;
+
+	if (CHECK_RIG_ARG(rig) || !chans || !cfgps || !vals)
+		return -RIG_EINVAL;
+
+	rc = rig->caps;
+	mem_all_arg.chans = chans;
+	mem_all_arg.cfgps = cfgps;
+	mem_all_arg.vals = vals;
+
+	if (rc->get_mem_all_cb)
+		return rc->get_mem_all_cb(rig, map_chan, map_parm,
+				(rig_ptr_t)&mem_all_arg);
+
+	/*
+	 * if not available, emulate it
+	 *
+	 * TODO: save_current_state, restore_current_state
+	 */
+	retval = rig_get_chan_all (rig, chans);
+	if (retval != RIG_OK)
+		return retval;
+
+	retval = get_parm_all_cb_generic (rig, map_parm, (rig_ptr_t)cfgps,
+			(rig_ptr_t)vals);
 
 	return retval;
 }
