@@ -114,7 +114,7 @@ uninstall-py:
 
 ##########################################
 
-EXTRA_LTLIBRARIES = $(tcl_ltlib) $(python_ltlib)
+lib_LTLIBRARIES = $(tcl_ltlib) $(python_ltlib)
 
 all-local: @BINDING_ALL@
 
