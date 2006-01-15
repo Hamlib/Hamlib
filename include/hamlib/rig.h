@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.109 2005-11-01 23:02:02 fillods Exp $
+ *	$Id: rig.h,v 1.110 2006-01-15 14:23:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1545,7 +1545,7 @@ extern HAMLIB_EXPORT(int) rig_get_chan_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t
 
 extern HAMLIB_EXPORT(int) rig_set_mem_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t));
 extern HAMLIB_EXPORT(int) rig_get_mem_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t));
-extern HAMLIB_EXPORT(int) rig_set_mem_all HAMLIB_PARAMS((RIG *rig, const channel_t *chan, const struct confparams *, value_t *));
+extern HAMLIB_EXPORT(int) rig_set_mem_all HAMLIB_PARAMS((RIG *rig, const channel_t *chan, const struct confparams *, const value_t *));
 extern HAMLIB_EXPORT(int) rig_get_mem_all HAMLIB_PARAMS((RIG *rig, channel_t *chan, const struct confparams *, value_t *));
 
 extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, int trn));
