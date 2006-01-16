@@ -2,7 +2,7 @@
  *  Hamlib Interface - debug
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: debug.c,v 1.1 2005-04-09 09:49:12 fillods Exp $
+ *	$Id: debug.c,v 1.2 2006-01-16 21:00:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -141,6 +141,28 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, .
  * \param arg   A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for \a rig_debug messages.
+\code
+int
+rig_message_cb   (enum rig_debug_level_e debug_level,
+		  rig_ptr_t user_data,
+		  const char *fmt,
+		  va_list ap)
+{
+	char buf[1024];
+
+	sprintf (buf, "Message(%s) ", (char*)user_data);
+	syslog (LOG_USER, buf);
+	vsprintf (buf, fmt, ap);
+	syslog (LOG_USER, buf);
+
+	return RIG_OK;
+}
+
+	. . .
+
+	char *cookie = "Foo";
+	rig_set_debug_callback (rig_message_cb, (rig_ptr_t)cookie);
+\endcode
  *
  * \return RIG_OK if the operation has been sucessful, otherwise
  * a negative value if an error occured (in which case, cause
@@ -148,7 +170,6 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, .
  *
  * \sa rig_debug()
  */
-//typedef int (*vprintf_cb_t) (enum rig_debug_level_e debug_level, rig_ptr_t, const char *, va_list);
 vprintf_cb_t rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
 {
 	vprintf_cb_t prev_cb = rig_vprintf_cb;
