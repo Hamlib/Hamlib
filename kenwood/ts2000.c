@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS2000 description
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.19 2005-09-28 21:17:52 fillods Exp $
+ *	$Id: ts2000.c,v 1.20 2006-02-20 22:28:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,14 +29,13 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 
-
 #define TS2000_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS2000_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define TS2000_AM_TX_MODES RIG_MODE_AM
 
 #define TS2000_FUNC_ALL (RIG_FUNC_TSQL)
 
-#define TS2000_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
+#define TS2000_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_VOX|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_SQL|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_COMP|RIG_LEVEL_AGC|RIG_LEVEL_BKINDL|RIG_LEVEL_METER|RIG_LEVEL_VOXGAIN|RIG_LEVEL_ANTIVOX|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 
 #define TS2000_MAINVFO (RIG_VFO_A|RIG_VFO_B)
 #define TS2000_SUBVFO (RIG_VFO_C)
@@ -77,9 +76,9 @@ const struct rig_caps ts2000_caps = {
 .rig_model =  RIG_MODEL_TS2000,
 .model_name = "TS-2000",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER "0.1",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -256,71 +255,258 @@ const struct rig_caps ts2000_caps = {
  * ts2000_get_level
  * Assumes rig!=NULL, val!=NULL
  */
+
 int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	unsigned char lvlbuf[50];
-	int lvl_len, retval;
-	int lvl;
-	int i, ret, agclevel;
+		unsigned char lvlbuf[50];
+		int lvl_len, retval;
+		int lvl;
+		int i, ret, agclevel;
 
-	lvl_len = 50;
-	switch (level) {
-	case RIG_LEVEL_RAWSTR:
-	case RIG_LEVEL_STRENGTH:
-		retval = kenwood_transaction (rig, "SM0;", 4, lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
+		lvl_len = 50;
+		switch (level) {
 
-		if (( (lvl_len !=8)) || lvlbuf[1] != 'M') {
-			/* TS-2000 returns 8 bytes for S meter level */
-			rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-					__FUNCTION__, lvl_len);
-			return -RIG_ERJCTED;
-		}
-
-		/* Frontend expects:  -54 = S0, 0 = S9  */
-		sscanf(lvlbuf+3, "%d", &val->i);	/* raw str */
-
-		/* TS-2000 main reciever returns values from 0 - 30 */
-		/* so scale the value */
-		if (level == RIG_LEVEL_STRENGTH)
-			val->i = (val->i * 3.6) - 54;
-		break;
-
-	case RIG_LEVEL_ATT:
-		retval = kenwood_transaction (rig, "RA;", 3, lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-
-		if ((lvl_len != 7)){ /*TS-2000 returns 7 chars for RA; */
-			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
-					__FUNCTION__, lvl_len);
-			return -RIG_ERJCTED;
-		}
-
-		sscanf(lvlbuf+2, "%d", &lvl);
-		if (lvl == 0) {
-			val->i = 0;
-			break;
-		}
-
-		for (i=0; i<lvl && i<MAXDBLSTSIZ; i++) {
-			if (rig->state.attenuator[i] == 0) {
-				rig_debug(RIG_DEBUG_ERR,"%s: "
-					"unexpected att level %d\n", __FUNCTION__, lvl);
-				return -RIG_EPROTO;
+		case RIG_LEVEL_PREAMP:
+			retval = kenwood_transaction (rig, "PA;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if ((lvl_len != 5)){ /*TS-2000 returns 5 chars for PA; */
+				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
+					       __FUNCTION__, lvl_len);
+				return -RIG_ERJCTED;
 			}
+
+			sscanf(lvlbuf+2, "%d", &lvl);
+			if (lvl < 10) /* just checking for main receiver preamp setting */ 
+					val->i = 0;
+			if (lvl > 9)
+					val->i = rig->state.preamp[0];
+			break;
+
+		case RIG_LEVEL_ATT:
+			retval = kenwood_transaction (rig, "RA;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			if ((lvl_len != 7)){ /* TS-2000 returns 7 chars for RA; */
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+								"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+			}
+
+			sscanf(lvlbuf+2, "%d", &lvl);
+			
+			if (lvl < 100)  /* just checking main band attenuator */
+				val->i = 0;
+			if (lvl > 99)
+				val->i = rig->state.attenuator[0];  /* Since the TS-2000 only has one step on the attenuator */
+			break;
+			
+		case RIG_LEVEL_VOX:
+			retval = kenwood_transaction (rig, "VD;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 7) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->i = lvl / 100;
+			break;
+		
+	        case RIG_LEVEL_AF:
+			retval = kenwood_transaction (rig, "AG0;", 4, lvlbuf, &lvl_len); 
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 7) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->f = lvl / 255.0;
+			break;
+		
+		case RIG_LEVEL_RF:
+			retval = kenwood_transaction (rig, "RG;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->f = lvl / 255.0;
+			break;
+		
+		case RIG_LEVEL_SQL:
+			retval = kenwood_transaction (rig, "SQ0;", 4, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 7) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+3, "%d", &lvl);
+			val->f = lvl / 255.0;
+			break;
+
+		case RIG_LEVEL_CWPITCH:
+			retval = kenwood_transaction (rig, "EX0310000;", 10, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 12) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d answer=%s\n", lvl_len, lvlbuf);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+8, "%d", &lvl);
+			val->i = 400 + (50 * lvl);
+			break;
+	
+		case RIG_LEVEL_RFPOWER:
+			retval = kenwood_transaction (rig, "PC;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+3, "%d", &lvl);
+			val->f = lvl / 100.0; /* FIXME: for 1.2GHZ need to divide by 10 */
+        	  	break;
+	
+		case RIG_LEVEL_MICGAIN:
+			retval = kenwood_transaction (rig, "MG;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->f = lvl / 100.0;
+			break;
+		
+		case RIG_LEVEL_KEYSPD:
+			retval = kenwood_transaction (rig, "KS;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->i = lvl;
+			break;
+
+		case RIG_LEVEL_NOTCHF:
+			return -RIG_ENIMPL;
+			break;
+
+		case RIG_LEVEL_COMP:
+			retval = kenwood_transaction (rig, "PL;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 9) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			lvl = lvl / 1000;
+			val->f = lvl / 100.0;
+			break;
+		
+			
+		case RIG_LEVEL_AGC: /* FIX ME: ts2000 returns 0 -20 for AGC */
+			ret = get_kenwood_level(rig, "GT;", 3, &val->f);
+			agclevel = 255.0 * val->f;
+			if (agclevel == 0) val->i = 0;
+			else if (agclevel < 85) val->i = 1;
+			else if (agclevel < 170) val->i = 2;
+			else if (agclevel <= 255) val->i = 3;
+			return ret;
+			break;
+
+		case RIG_LEVEL_BKINDL:
+			retval = kenwood_transaction (rig, "SD;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 7) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->i = lvl / 100;
+			break;
+		
+		case RIG_LEVEL_BALANCE:
+			return -RIG_ENIMPL;
+		    break;
+
+		case RIG_LEVEL_METER:
+			retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 8) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->i = lvl / 10000;
+			break;
+		
+		case RIG_LEVEL_VOXGAIN:
+			retval = kenwood_transaction (rig, "VG;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"ts2000_get_level: "
+					"unexpected answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+                        }
+			sscanf(lvlbuf+2, "%d", &lvl);
+			val->f = lvl / 9.0;
+			break;
+
+		case RIG_LEVEL_ANTIVOX:
+			return -RIG_ENIMPL;
+			break;
+		
+		case RIG_LEVEL_RAWSTR:
+		case RIG_LEVEL_STRENGTH:
+			retval = kenwood_transaction (rig, "SM0;", 4, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			if (( (lvl_len !=8)) || lvlbuf[1] != 'M') {
+				/* TS-2000 returns 8 bytes for S meter level */
+				rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
+					       __FUNCTION__, lvl_len);
+				return -RIG_ERJCTED;
+			}
+
+			/* Frontend expects:  -54 = S0, 0 = S9  */
+			sscanf(lvlbuf+3, "%d", &val->i);
+			/* TS-2000 main receiver returns values from 0 - 30 */
+			/* so scale the value */
+			if (level == RIG_LEVEL_STRENGTH)
+			val->i = (val->i * 3.6) - 54;
+			break;
+
+		default:
+			rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
+			return -RIG_EINVAL;
 		}
-		if (i != lvl)
-			return -RIG_EINTERNAL;
-		val->i = rig->state.attenuator[i-1];
 
-		break;
-
-	default:
-		/* fall back */
-		return kenwood_get_level(rig, vfo, level, val);
-	}
-
-	return -RIG_EINVAL;
+		return RIG_OK;
 }
