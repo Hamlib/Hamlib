@@ -2,7 +2,7 @@
  *  Hamlib Interface - parallel communication low-level support
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: usb_port.c,v 1.2 2005-11-19 14:41:37 fillods Exp $
+ *	$Id: usb_port.c,v 1.3 2006-02-20 22:41:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,7 +27,7 @@
 #include <hamlib/rig.h>
 
 /*
- * Compile only this model if libusb is available
+ * Compile only if libusb is available
  */
 #if defined(HAVE_LIBUSB) && defined(HAVE_USB_H)
 
