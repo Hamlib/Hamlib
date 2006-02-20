@@ -11,13 +11,15 @@ $rig = new Hamlib::Rig($Hamlib::RIG_MODEL_DUMMY);
 
 # replace "/dev/Rig" with your path to serial port
 $rig->set_conf("rig_pathname","/dev/Rig");
+$rig->set_conf("serial_speed","9600");
 
 $rig->open();
 
 # 1073741944 is token value for "itu_region"
 $rpath = $rig->get_conf("rig_pathname");
+$rate = $rig->get_conf("serial_speed");
 $region = $rig->get_conf(1073741944);
-print "get_conf: path=\"$rpath\", ITU region=$region\n";
+print "get_conf: path=\"$rpath\", baud rate=$rate, ITU region=$region\n";
 
 
 $rig->set_freq(12000000, $Hamlib::RIG_VFO_A);
