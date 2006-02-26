@@ -58,6 +58,9 @@ M: Chuck Hemker, N2POR
 [icom: ic735]
 C: Darren Hatcher, G0WCW
 
+[icom: ic751]
+C: Lars E. Pettersson, SM6RPZ
+
 [icom: icr75]
 M: Mark J. Fine
 
@@ -226,3 +229,4 @@ Dave Hines, M1CXW, <hamlib (at) dph.fluff.org>
 Darren Hatcher, G0WCW, <g0wcw (at) hatcher.org.uk>
 Ben Coleman, NJ8J, <nj8j (at) arrl.net>
 Serge Pashenkov <serge (at) gnode.org>
+Lars E. Pettersson sm6rpz <lars (at) homer.se>
