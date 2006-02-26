@@ -3,13 +3,13 @@
  * \ingroup rig
  * \brief Rig configuration interface
  * \author Stephane Fillod
- * \date 2000-2005
+ * \date 2000-2006
  */
 /*
  *  Hamlib Interface - configuration interface
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.13 2005-04-04 18:30:47 fillods Exp $
+ *	$Id: conf.c,v 1.14 2006-02-26 19:29:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as

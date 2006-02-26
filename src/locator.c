@@ -3,18 +3,18 @@
  * \ingroup hamlib
  * \brief locator and bearing conversion interface
  * \author Stephane Fillod and the Hamlib Group
- * \date 2000-2004
+ * \date 2000-2006
  *
  *  Hamlib Interface - locator, bearing, and conversion calls
  */
 
 /*
  *  Hamlib Interface - locator and bearing conversion calls
- *  Copyright (c) 2001-2002 by Stephane Fillod
+ *  Copyright (c) 2001-2006 by Stephane Fillod
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.17 2005-01-18 23:06:34 n0nb Exp $
+ *	$Id: locator.c,v 1.18 2006-02-26 19:29:19 fillods Exp $
  *
  *  Code to determine bearing and range was taken from the Great Circle,
  *  by S. R. Sampson, N5OWK.
