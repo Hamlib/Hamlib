@@ -16,7 +16,7 @@
 #				the perl include files
 #------------------------------------------------------------------------
 
-AC_DEFUN(SC_PATH_PERLINC, [
+AC_DEFUN([SC_PATH_PERLINC], [
 
 	# we reset no_perl in case something fails here
 	no_perl=true
