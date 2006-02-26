@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.16 2005-02-25 11:32:31 bwulf Exp $
+ * $Id: ft990.c,v 1.17 2006-02-26 06:25:32 bwulf Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x0f } }, /* PTT (OFF) */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x0f } }, /* PTT (ON) */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x10 } }, /* Update All Data (1508 bytes) */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x10 } }, /* Update Memory Ch Data */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x10 } }, /* Update Memory Ch Number */
   { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* Update Op Data */
   { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* Update VFO Data */
   { 0, { 0x00, 0x00, 0x00, 0x04, 0x10 } }, /* Update Memory Ch Data */
@@ -1576,10 +1576,10 @@ int ft990_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       ci = FT990_NATIVE_MODE_SET_LSB;
       break;
     case RIG_MODE_RTTY:
-      ci = FT990_NATIVE_MODE_SET_RTTY_USB;
+      ci = FT990_NATIVE_MODE_SET_RTTY_LSB;
       break;
     case RIG_MODE_RTTYR:
-      ci = FT990_NATIVE_MODE_SET_RTTY_LSB;
+      ci = FT990_NATIVE_MODE_SET_RTTY_USB;
       break;
     case RIG_MODE_FM:
       ci = FT990_NATIVE_MODE_SET_FM;
@@ -1749,7 +1749,7 @@ int ft990_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
   // The FT990 firmware appears to have a bug since the
   // AM bandwidth for 2400Hz and 6000Hz are interchanged.
-  switch(*fl & 0x7f) {
+  switch(*fl & (~FT990_BW_FMPKTRTTY)) {
     case FT990_BW_F2400:
       if (*mode == RIG_MODE_FM || *mode == RIG_MODE_PKTFM)
         *width = 8000;
@@ -2247,15 +2247,17 @@ int ft990_set_channel (RIG *rig, const channel_t *chan)
  *
  * Comments: Passing a memory channel number of 0 returns information on
  *           the current channel or channel last in use.
- *           TX attributes are set equal to their corresponding RX attributes.
+ *
+ *           Status for split operation, active rig functions and tuning steps
+ *           are only relevant for currVFO
  */
 int ft990_get_channel (RIG *rig, channel_t *chan)
 {
   struct ft990_priv_data *priv;
   ft990_op_data_t *p;
-  int err;
-  int temp1, temp2;
   char ci;
+  int err;
+  channel_t _chan;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -2269,50 +2271,57 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
 
   priv = (struct ft990_priv_data *) rig->state.priv;
 
-  switch(chan->vfo) {
-    case RIG_VFO_MEM:
-      if(chan->channel_num < 0 && chan->channel_num > 90)
-        return -RIG_EINVAL;
+  if(chan->channel_num < 0 && chan->channel_num > 90)
+    return -RIG_EINVAL;
 
-      // On channel=0 get current or last used memory channel
-      if(chan->channel_num == 0) {
+  /*
+   * Get a clean slate so we don't have to assign value to
+   * variables that are not relevant to this equipment
+   */
+  _chan.channel_num = chan->channel_num;
+  _chan.vfo = chan->vfo;
+  memset(chan,0,sizeof(channel_t));
+  chan->channel_num = _chan.channel_num;
+  chan->vfo = _chan.vfo;
+
+  if(chan->channel_num == 0) {
+    switch(chan->vfo) {
+      // Current or last selected memory channel
+      case RIG_VFO_MEM:
         err = ft990_get_update_data(rig, FT990_NATIVE_UPDATE_MEM_CHNL, 0);
 
         if(err != RIG_OK)
           return err;
 
-	chan->channel_num = priv->update_data.channelnumber + 1;
-      }
-
-      p = (ft990_op_data_t *) &priv->update_data.channel[chan->channel_num];
-      ci = FT990_NATIVE_UPDATE_MEM_CHNL_DATA;
-      break;
-    case RIG_VFO_A:
-      p = (ft990_op_data_t *) &priv->update_data.vfoa;
-      ci = FT990_NATIVE_UPDATE_VFO_DATA;
-      break;
-    case RIG_VFO_B:
-      p = (ft990_op_data_t *) &priv->update_data.vfob;
-      ci = FT990_NATIVE_UPDATE_VFO_DATA;
-      break;
-    case RIG_VFO_CURR:
-      p = (ft990_op_data_t *) &priv->update_data.current_front;
-      ci = FT990_NATIVE_UPDATE_OP_DATA;
-      break;
-    default:
-      return -RIG_EINVAL;
+        chan->channel_num = priv->update_data.channelnumber + 1;
+        p = (ft990_op_data_t *) &priv->update_data.channel[chan->channel_num];
+        ci = FT990_NATIVE_UPDATE_MEM_CHNL_DATA;
+        break;
+      case RIG_VFO_A:
+        p = (ft990_op_data_t *) &priv->update_data.vfoa;
+        ci = FT990_NATIVE_UPDATE_VFO_DATA;
+        break;
+      case RIG_VFO_B:
+        p = (ft990_op_data_t *) &priv->update_data.vfob;
+        ci = FT990_NATIVE_UPDATE_VFO_DATA;
+        break;
+      case RIG_VFO_CURR:
+        p = (ft990_op_data_t *) &priv->update_data.current_front;
+        ci = FT990_NATIVE_UPDATE_OP_DATA;
+        break;
+      default:
+        return -RIG_EINVAL;
+    }
+  } else {
+        p = (ft990_op_data_t *) &priv->update_data.channel[chan->channel_num];
+        ci = FT990_NATIVE_UPDATE_MEM_CHNL_DATA;
+        chan->vfo = RIG_VFO_MEM;
   }
 
-  // Get channel data
+  /* 
+   * Get data for selected VFO/MEM
+   */
   err = ft990_get_update_data(rig, ci, chan->channel_num);
-
-  // FIXME: Work-around to initialize data structure
-  // This should be the responsibility of the frontend
-  temp1 = chan->channel_num;
-  temp2 = chan->vfo;
-  memset(chan,0,sizeof(channel_t));
-  chan->channel_num = temp1;
-  chan->vfo = temp2;
 
   if (err != RIG_OK)
     return err;
@@ -2321,10 +2330,15 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
   if (p->bpf & FT990_EMPTY_MEM)
     return RIG_OK;
 
-  // Get channel frequency
+  /* 
+   * Get RX frequency
+   */
   chan->freq = ((((p->basefreq[0] << 8) + p->basefreq[1]) << 8) +
                    p->basefreq[2]) * 10;
 
+  /*
+   * Get RX operating mode 
+   */
   switch(p->mode) {
     case FT990_MODE_LSB:
       chan->mode = RIG_MODE_LSB;
@@ -2342,13 +2356,13 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
       chan->mode = RIG_MODE_FM;
       break;
     case FT990_MODE_RTTY:
-      if (p->filter & FT990_BW_FMPKTRTTY)
+      if(p->filter & FT990_BW_FMPKTRTTY)
         chan->mode = RIG_MODE_RTTYR;
       else
         chan->mode = RIG_MODE_RTTY;
       break;
     case FT990_MODE_PKT:
-      if (p->filter & FT990_BW_FMPKTRTTY)
+      if(p->filter & FT990_BW_FMPKTRTTY)
         chan->mode = RIG_MODE_PKTFM;
       else
         chan->mode = RIG_MODE_PKTLSB;
@@ -2357,13 +2371,18 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
       return -RIG_EINVAL;
   }
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: set mode = 0x%02x\n", __func__, chan->mode);
+  rig_debug(RIG_DEBUG_TRACE, "%s: mode = 0x%02x\n", __func__, p->mode);
+  rig_debug(RIG_DEBUG_TRACE, "%s: filter = 0x%02x\n", __func__, p->filter);
 
-  // The FT990 firmware appears to have a bug since the
-  // AM bandwidth for 2400Hz and 6000Hz are interchanged.
-  switch(p->filter) {
+  /*
+   * Get RX bandwidth selection
+   *
+   * The FT990 firmware appears to have a bug since the
+   * AM bandwidth for 2400Hz and 6000Hz are interchanged.
+   */
+  switch(p->filter & (~FT990_BW_FMPKTRTTY)) {
     case FT990_BW_F2400:
-      if (chan->mode == RIG_MODE_FM)
+      if (chan->mode == RIG_MODE_FM || chan->mode == RIG_MODE_PKTFM)
         chan->width = 8000;
       else if (chan->mode == RIG_MODE_AM) // <- FT990 firmware bug?
         chan->width = 6000;
@@ -2384,36 +2403,171 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
       break;
     default:
       return -RIG_EINVAL;
-   }
-
-  if(chan->vfo & RIG_VFO_CURR) {
-    err = ft990_get_update_data(rig, FT990_NATIVE_READ_FLAGS, 0);
- 
-    if (err != RIG_OK)
-      return err;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: set status = %i\n", __func__, priv->update_data.flag1);
-
-    chan->split = (priv->update_data.flag1 & FT990_SF_SPLIT);
   }
 
-  chan->tx_freq  = chan->freq;
-  chan->tx_mode  = chan->mode;
-  chan->tx_width = chan->width;
-  chan->tx_vfo   = chan->vfo;
+  err = ft990_get_update_data(rig, FT990_NATIVE_READ_FLAGS, 0);
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: set status = %i\n", __func__, p->status);
+  if (err != RIG_OK)
+    return err;
 
-  if (chan->mode & RIG_MODE_FM)
-    chan->rptr_shift = (p->status & FT990_RPT_MASK) >> 2;
+  rig_debug(RIG_DEBUG_TRACE, "%s: set status = %i\n", __func__, priv->update_data.flag1);
 
-  if (p->status & FT990_CLAR_TX_EN)
-    chan->xit = (short) ((p->coffset[0]<<8) | p->coffset[1]) * 10;
+  /*
+   * Status for split operation, active rig functions and tuning steps
+   * are only relevant for currVFO
+   */
+  if(chan->vfo & RIG_VFO_CURR) {
+    chan->split = (priv->update_data.flag1 & FT990_SF_SPLIT);
 
+    if(priv->update_data.flag1 & FT990_SF_XMIT_MON)
+      chan->funcs |= RIG_FUNC_MON;
+
+    if(priv->update_data.flag1 & FT990_SF_TUNER_ON)
+      chan->funcs |= RIG_FUNC_TUNER;
+
+    if(priv->update_data.flag1 & FT990_SF_FAST) {
+      if(chan->mode & (FT990_AM_RX_MODES | FT990_FM_RX_MODES))
+        chan->tuning_step = 1000;
+      else
+        chan->tuning_step = 100;
+    } else {
+      if(chan->mode & (FT990_AM_RX_MODES | FT990_FM_RX_MODES))
+        chan->tuning_step = 100;
+      else
+        chan->tuning_step = 10;
+    }
+  }
+
+  /*
+   *  Get RIT frequencies
+   */
   if (p->status & FT990_CLAR_RX_EN)
     chan->rit = (short) ((p->coffset[0]<<8) | p->coffset[1]) * 10;
 
-  chan->funcs = rig->state.has_get_func;
+  if(chan->split & RIG_SPLIT_ON) {
+    // Get data for the transmit VFO
+    p = (ft990_op_data_t *) &priv->update_data.current_rear;
+
+    chan->tx_freq = ((((p->basefreq[0] << 8) + p->basefreq[1]) << 8) +
+                     p->basefreq[2]) * 10;
+    /*
+     * Get RX operating mode 
+     */
+    switch(p->mode) {
+      case FT990_MODE_LSB:
+        chan->tx_mode = RIG_MODE_LSB;
+        break;
+      case FT990_MODE_USB:
+        chan->tx_mode = RIG_MODE_USB;
+        break;
+      case FT990_MODE_CW:
+        chan->tx_mode = RIG_MODE_CW;
+        break;
+      case FT990_MODE_AM:
+        chan->tx_mode = RIG_MODE_AM;
+        break;
+      case FT990_MODE_FM:
+        chan->tx_mode = RIG_MODE_FM;
+        break;
+      case FT990_MODE_RTTY:
+        if (p->filter & FT990_BW_FMPKTRTTY)
+          chan->tx_mode = RIG_MODE_RTTYR;
+        else
+          chan->tx_mode = RIG_MODE_RTTY;
+        break;
+      case FT990_MODE_PKT:
+        if (p->filter & FT990_BW_FMPKTRTTY)
+          chan->tx_mode = RIG_MODE_PKTFM;
+        else
+          chan->tx_mode = RIG_MODE_PKTLSB;
+        break;
+      default:
+        return -RIG_EINVAL;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: set tx mode = 0x%02x\n", __func__, chan->mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx filter = 0x%02x\n", __func__, p->filter);
+
+    /*
+     * Get RX bandwidth selection
+     *
+     * The FT990 firmware appears to have a bug since the
+     * AM bandwidth for 2400Hz and 6000Hz are interchanged.
+     */
+    switch(p->filter & (~FT990_BW_FMPKTRTTY)) {
+      case FT990_BW_F2400:
+        if (chan->tx_mode == RIG_MODE_FM || chan->mode == RIG_MODE_PKTFM)
+          chan->tx_width = 8000;
+        else if (chan->tx_mode == RIG_MODE_AM) // <- FT990 firmware bug?
+          chan->tx_width = 6000;
+        else
+          chan->tx_width = 2400;
+        break;
+      case FT990_BW_F2000:
+        chan->tx_width = 2000;
+        break;
+      case FT990_BW_F500:
+        chan->tx_width = 500;
+        break;
+      case FT990_BW_F250:
+        chan->tx_width = 250;
+        break;
+      case FT990_BW_F6000:
+        chan->tx_width = 2400;                 // <- FT990 firmware bug?
+        break;
+      default:
+        return -RIG_EINVAL;
+    }
+
+    if(priv->update_data.flag1 & FT990_SF_VFOB) {
+      if(chan->tx_vfo & (RIG_VFO_A | RIG_VFO_MEM))
+        chan->tx_vfo = RIG_VFO_B;
+      else if(chan->vfo & RIG_VFO_MEM)
+        chan->tx_vfo = RIG_VFO_A;
+      else
+        chan->tx_vfo = RIG_VFO_MEM;
+    } else {
+      if(chan->vfo & RIG_VFO_A)
+        chan->tx_vfo = RIG_VFO_MEM;
+      else
+        chan->tx_vfo = RIG_VFO_A;
+    }
+
+    /*
+     *  Get XIT frequencies
+     */
+    if (p->status & FT990_CLAR_TX_EN)
+      chan->xit = (short) ((p->coffset[0]<<8) | p->coffset[1]) * 10;
+
+  } else {
+    /*
+     *  RX/TX frequency, mode, bandwidth and vfo are identical in simplex mode
+     */
+    chan->tx_freq  = chan->freq;
+    chan->tx_mode  = chan->mode;
+    chan->tx_width = chan->width;
+    chan->tx_vfo   = chan->vfo;
+
+    /*
+     *  Get XIT frequencies
+     */
+    if (p->status & FT990_CLAR_TX_EN)
+      chan->xit = (short) ((p->coffset[0]<<8) | p->coffset[1]) * 10;
+  }
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: set status = %i\n", __func__, p->status);
+
+  /*
+   * Repeater shift only possible if transmit mode is FM
+   */
+  if (chan->tx_mode & RIG_MODE_FM)
+    chan->rptr_shift= (p->status & FT990_RPT_MASK) >> 2;
+
+  /*
+   * Check for skip channel for memory channels
+   */
+  if(chan->vfo & RIG_VFO_MEM)
+    chan->flags |= RIG_CHFLAG_SKIP;
 
   return RIG_OK;
 }
