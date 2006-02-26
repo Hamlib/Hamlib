@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS-790 description
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.14 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts790.c,v 1.15 2006-02-26 19:23:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,7 +53,7 @@ static const struct kenwood_priv_caps  ts790_priv_caps  = {
  * TODO: ts790_set_channel, ts790_get_channel
  * get_split, set_split, get_ts, scan, ctcss_sql, set_rptr_shift
  *
- * part of infos comes from .http = //www.kenwood.net/
+ * part of infos comes from http://www.kenwood.net/
  */
 const struct rig_caps ts790_caps = {
 .rig_model =  RIG_MODEL_TS790,
