@@ -1,3 +1,14 @@
+Orion (TT 565, 565AT) and Orion 2 (TT 566, 566AT)
+	These are all covered by the TT565 backend (model 1608).
+	This backend is functioning for basic HF work, although
+	memory, multi-VFO, and antenna selection, etc. are
+	left for the future.
+	All testing to date has been on a model 565AT, running
+	v 1.372 firmware.
+	All reports of success/failure (especially for the Orion 2)
+	are welcome -- Martin, aa6e@arrl.net
+        (26 Feb 2006)
+
 tt550 TODO (Ken,  N7IPB):
 	Support for multiple VFO's and Memories.  The TT550 doesn't
 	really have VFO's or Memories since it's strictly a software
