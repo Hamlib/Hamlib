@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - debug
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: debug.c,v 1.2 2006-01-16 21:00:25 fillods Exp $
+ *	$Id: debug.c,v 1.3 2006-02-26 23:28:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -170,7 +170,7 @@ rig_message_cb   (enum rig_debug_level_e debug_level,
  *
  * \sa rig_debug()
  */
-vprintf_cb_t rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
+vprintf_cb_t HAMLIB_API rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
 {
 	vprintf_cb_t prev_cb = rig_vprintf_cb;
 
@@ -184,7 +184,7 @@ vprintf_cb_t rig_set_debug_callback(vprintf_cb_t cb, rig_ptr_t arg)
  * \brief change stderr to some different output
  * \param stream The stream to set output to
  */
-FILE *rig_set_debug_file(FILE *stream)
+FILE* HAMLIB_API rig_set_debug_file(FILE *stream)
 {
 	FILE *prev_stream = rig_debug_stream;
 

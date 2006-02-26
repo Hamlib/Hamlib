@@ -12,7 +12,7 @@
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.7 2006-01-15 14:25:25 fillods Exp $
+ *	$Id: mem.c,v 1.8 2006-02-26 23:28:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -813,7 +813,7 @@ int set_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
  * \sa rig_get_mem_all_cb(), rig_set_mem_all()
  * \todo finish coding and testing of mem_all functions
  */
-int rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
+int HAMLIB_API rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
 {
 	struct rig_caps *rc;
 	int retval;
@@ -862,7 +862,7 @@ int rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_p
  * \todo get all parm's
  * \todo finish coding and testing of mem_all functions
  */
-int rig_get_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
+int HAMLIB_API rig_get_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t arg)
 {
 	struct rig_caps *rc;
 	int retval;
@@ -911,7 +911,7 @@ int rig_get_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_p
  * \todo set all parm's
  * \todo finish coding and testing of mem_all functions
  */
-int rig_set_mem_all (RIG *rig, const channel_t chans[], const struct confparams cfgps[], const value_t vals[])
+int HAMLIB_API rig_set_mem_all (RIG *rig, const channel_t chans[], const struct confparams cfgps[], const value_t vals[])
 {
 	struct rig_caps *rc;
 	int retval;
@@ -962,7 +962,7 @@ int rig_set_mem_all (RIG *rig, const channel_t chans[], const struct confparams 
  * \sa rig_get_mem_all(), rig_set_mem_all_cb()
  * \todo finish coding and testing of mem_all functions
  */
-int rig_get_mem_all (RIG *rig, channel_t chans[], const struct confparams cfgps[], value_t vals[])
+int HAMLIB_API rig_get_mem_all (RIG *rig, channel_t chans[], const struct confparams cfgps[], value_t vals[])
 {
 	struct rig_caps *rc;
 	int retval;
