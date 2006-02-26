@@ -63,35 +63,6 @@ AC_DEFUN([SWIG_ENABLE_CXX],[
 	fi
 ])
 
-# SWIG_MULTI_MODULE_SUPPORT()
-#
-# Enable support for multiple modules.  This effects all invocations of $(SWIG).
-# You have to link all generated modules against the appropriate SWIG library.
-# If you want to build Python modules for example, use the SWIG_PYTHON() macro
-# and link the modules against $(SWIG_PYTHON_LIB).  The $(SWIG_LDFLAGS) variable
-# can be used to help the linker to find this library.
-AC_DEFUN([SWIG_MULTI_MODULE_SUPPORT],[
-	AC_REQUIRE([SWIG_PROG])
-	if test "$SWIG" != "false" ; then
-		SWIG="$SWIG -c"
-        
-		# Check for SWIG library path
-		AC_MSG_CHECKING([for SWIG library path])
-		swig_path=${SWIG%/bin*}/lib
-		swig_path=`find $swig_path -type f -name libswig*.a -o -name libswig*.so -print`
-		for i in $swig_path ; do
-			swig_path=${i%/libswig*}
-			break
-		done
-		AC_MSG_RESULT([$swig_path])
-		if test -n "$swig_path" ; then
-			AC_SUBST(SWIG_LDFLAGS,[-L$swig_path])
-		else
-			AC_MSG_WARN([cannot find SWIG library path])
-		fi
-	fi
-])
-
 # SWIG_PYTHON([use-shadow-classes])
 #
 # Checks for Python and provides the $(SWIG_PYTHON_CPPFLAGS),
