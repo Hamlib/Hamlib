@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR7030 description
- *  Copyright (c) 2000-2005 by Stephane Fillod & Fritz Melchert
+ *  Copyright (c) 2000-2006 by Stephane Fillod & Fritz Melchert
  *
- *	$Id: ar7030.c,v 1.5 2005-04-03 16:50:19 fillods Exp $
+ *	$Id: ar7030.c,v 1.6 2006-02-26 19:21:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,14 +36,14 @@
 #include <hamlib/rig.h>
 #include "aor.h"
 #include "serial.h"
+#include "idx_builtin.h"
 
 
 /* 
- * So far, only set_freq is implemented. Maintainer wanted!
+ * Maintainer wanted!
  *
  * TODO:
  * 	- everything: this rig has nothing in common with other aor's.
- *	- LEVEL_AF, LEVEL_SQL, LEVEL_AGC, PARM_TIME, FUNC_LOCK
  *
  *	set_mem, get_mem, set_channel, get_channel
  */
@@ -319,6 +319,8 @@ Current mode :-
 */
 static int ar7030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
+  int filter_num;
+
   // mode    Mem_Page=0   Address=1D
   // Current mode :- 1 = AM 4 = Data 2 = Sync 5 = CW 3 = NFM 6 = LSB 7 = USB.
   switch(mode)
@@ -348,9 +350,33 @@ static int ar7030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       return -RIG_EINVAL;
   }
 
+  if (width == RIG_PASSBAND_NORMAL)
+	  width = rig_passband_normal(rig, mode);
+
+  /*
+   * pass-through values 1..6, as filter number
+   * Otherwise find out filter number from passband width
+   */
+  if (width <= 6) {
+    filter_num = width;
+  } else {
+    if (width <= 800)
+      filter_num = 1;
+    else if (width <= 2100)
+      filter_num = 2;
+    else if (width <= 3700)
+      filter_num = 3;
+    else if (width <= 5200)
+      filter_num = 4;
+    else if (width <= 9500)
+      filter_num = 5;
+    else
+      filter_num = 6;
+  }
+
   // filter    Mem_Page=0   Address=34
   // Current filter number (1 to 6).
-  Execute_Routine_4_1(rig, 0, 0x34, width);
+  Execute_Routine_4_1(rig, 0, 0x34, filter_num);
   
   return RIG_OK;
 }
@@ -664,7 +690,7 @@ const struct rig_caps ar7030_caps = {
 .rig_model =  RIG_MODEL_AR7030,
 .model_name = "AR7030",
 .mfg_name =  "AOR",
-.version =  "0.3",
+.version =  "0.3.1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,
@@ -688,7 +714,9 @@ const struct rig_caps ar7030_caps = {
 .has_set_level =  RIG_LEVEL_SET(AR7030_LEVEL),
 .has_get_parm =  AR7030_PARM,
 .has_set_parm =  RIG_PARM_NONE,
-.level_gran =  {},                 /* FIXME: granularity */
+.level_gran =  {
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+},
 .parm_gran =  {},
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
@@ -744,6 +772,9 @@ const struct rig_caps ar7030_caps = {
 .filters =  {
         /* mode/filter list, .remember =  order matters! */
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(3)}, 
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(0.8)}, 	/* narrow */
+		{RIG_MODE_SSB, kHz(4.8)},	/* wide */
+		{RIG_MODE_CW,  kHz(9.5)},	/* wide */
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(15)}, 
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(6)}, 	/* narrow */
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(30)}, /* wide */
