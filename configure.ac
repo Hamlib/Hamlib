@@ -8,7 +8,7 @@ AC_PREREQ(2.50)
 ## Autoconf initialisation. ##
 ## ------------------------ ##
 dnl Please do not use '-' in the version number, 'make rpm' will fail
-AC_INIT([hamlib], [1.2.5], [hamlib-developer@lists.sourceforge.net])
+AC_INIT([hamlib], [1.2.6cvs], [hamlib-developer@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 
 ## ------------------------ ##
