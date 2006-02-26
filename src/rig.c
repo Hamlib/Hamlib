@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.91 2005-11-01 23:02:02 fillods Exp $
+ *	$Id: rig.c,v 1.92 2006-02-26 19:28:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,7 +26,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2005
+ * \date 2000-2006
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
@@ -71,7 +71,7 @@ const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-  "Copyright (C) 2000-2005 Stephane Fillod and Frank Singleton\n"
+  "Copyright (C) 2000-2006 Stephane Fillod and Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 
@@ -403,6 +403,7 @@ int HAMLIB_API rig_open(RIG *rig)
 	const struct rig_caps *caps;
 	struct rig_state *rs;
 	int status;
+	int want_state_delay = 0;
 
 	rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_open called \n");
 
@@ -427,6 +428,7 @@ int HAMLIB_API rig_open(RIG *rig)
 				rs->rigport.parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
 			status = ser_set_rts(&rs->rigport, 
 					rs->rigport.parm.serial.rts_state == RIG_SIGNAL_ON);
+			want_state_delay = 1;
 		}
 		if (status != 0)
 			return status;
@@ -434,9 +436,17 @@ int HAMLIB_API rig_open(RIG *rig)
 				rs->rigport.type.ptt != RIG_PTT_SERIAL_DTR) {
 			status = ser_set_dtr(&rs->rigport, 
 					rs->rigport.parm.serial.dtr_state == RIG_SIGNAL_ON);
+			want_state_delay = 1;
 		}
 		if (status != 0)
 			return status;
+		/*
+		 * Wait whatever electrolytics in the circuit come up to voltage.
+		 * Is 100ms enough? Too much?
+		 */
+		if (want_state_delay)
+			usleep(100*1000);
+
 		break;
 
 	case RIG_PORT_PARALLEL:
