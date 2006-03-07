@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.89 2005-09-28 21:14:44 fillods Exp $
+ *	$Id: kenwood.c,v 1.90 2006-03-07 19:48:20 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -167,7 +167,6 @@ transaction_write:
         return RIG_OK;  /* don't want a reply */
     }
 
-transaction_read:
     memset(data,0,*datasize);
     retval = read_string(&rs->rigport, data, *datasize, cmdtrm, strlen(cmdtrm));
     if (retval < 0) {
@@ -238,10 +237,12 @@ transaction_quit:
  */
 int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 {
-	unsigned char cmdbuf[16], ackbuf[16];
-	int cmd_len, ack_len, retval;
+	char cmdbuf[16], ackbuf[50];
+	int cmd_len, retval;
+	size_t ack_len;
 	char vfo_function;
 
+	ack_len = 50;
 	switch (vfo) {
 	case RIG_VFO_VFO:
 	case RIG_VFO_A: vfo_function = '0'; break;
@@ -257,14 +258,13 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 	cmd_len = sprintf(cmdbuf, "FR%c%s", vfo_function, cmd_trm(rig));
 
 	/* set RX VFO */
-	ack_len = 0;
 	retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
 	/* set TX VFO */
 	cmdbuf[1] = 'T';
-	ack_len = 0;
+	ack_len = 50;
 	retval = kenwood_transaction (rig, cmdbuf, 4, ackbuf, &ack_len);
 
 	return retval;
@@ -272,10 +272,12 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
-	unsigned char cmdbuf[16], ackbuf[16];
-	int cmd_len, ack_len, retval;
-	char vfo_function;
+	char cmdbuf[16], ackbuf[50];
+	int cmd_len, retval;
+	size_t ack_len;
+	unsigned char vfo_function;
 
+	ack_len = 50;
 	if(vfo !=RIG_VFO_CURR) {
 	switch (vfo) {
 	case RIG_VFO_VFO:
@@ -290,7 +292,6 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	
 	/* set RX VFO */
 	cmd_len = sprintf(cmdbuf, "FR%c%s", vfo_function, cmd_trm(rig));
-	ack_len = 0;
 	retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -308,7 +309,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		} 
 	/* set TX VFO */
 	cmd_len = sprintf(cmdbuf, "FT%c%s", vfo_function, cmd_trm(rig));
-	ack_len = 0;
+	ack_len = 50;
 	retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -325,8 +326,9 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
  */
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
 {
-	unsigned char infobuf[50];
-	int info_len, retval;
+	char infobuf[50];
+	int retval;
+	size_t info_len;
 
 	info_len = 50;
 	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
@@ -357,11 +359,13 @@ int kenwood_get_vfo(RIG *rig, vfo_t *vfo)
  */
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	unsigned char freqbuf[16], ackbuf[16];
-	int freq_len, ack_len, retval;
-	char vfo_letter;
-	vfo_t	tvfo;
+	char freqbuf[16], ackbuf[50];
+	int freq_len, retval;
+	size_t ack_len;
+	unsigned char vfo_letter;
+	vfo_t tvfo;
 
+	ack_len = 50;
 	tvfo = vfo==RIG_VFO_CURR ? rig->state.current_vfo : vfo;
                                                                                          
 	switch (tvfo) {
@@ -375,7 +379,6 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	}
 	freq_len = sprintf(freqbuf,"F%c%011"PRIll";", vfo_letter, (long long)freq);
 
-	ack_len = 0;
 	retval = kenwood_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
 
 	return retval;
@@ -387,12 +390,14 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	unsigned char freqbuf[50];
-	unsigned char cmdbuf[4];
-	int cmd_len, freq_len, retval;
-	char vfo_letter;
-	vfo_t	tvfo;
+	char freqbuf[50];
+	char cmdbuf[4];
+	int cmd_len, retval;
+	size_t freq_len;
+	unsigned char vfo_letter;
+	vfo_t tvfo;
 
+	freq_len = 50;
 	tvfo = vfo==RIG_VFO_CURR ? rig->state.current_vfo : vfo;
                                                                                          
 	switch (tvfo) {
@@ -425,8 +430,9 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
 {
-	unsigned char infobuf[50];
-	int info_len, retval;
+	char infobuf[50];
+	int retval;
+	size_t info_len;
 
 	info_len = 50;
 	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
@@ -450,11 +456,12 @@ int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
  */
 int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
-        unsigned char buf[50], infobuf[50], c;
-        int retval, info_len, len, i;
-
+        char buf[50], infobuf[50];
+	unsigned char c;
+        int retval, len, i;
+	size_t info_len;
 	
-	info_len = 0;
+	info_len = 50;
         if (rit == 0)
         	return kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
 
@@ -490,9 +497,10 @@ int kenwood_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
 int kenwood_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 {
-	unsigned char ackbuf[16];
-	int ack_len = 0;
+	char ackbuf[50];
+	size_t ack_len;
 
+	ack_len = 50;
 	return kenwood_transaction (rig, scan==RIG_SCAN_STOP? "SC0;":"SC1;", 4, 
 						ackbuf, &ack_len);
 }
@@ -504,9 +512,11 @@ int kenwood_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
  */
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	unsigned char mdbuf[16],ackbuf[16];
-	int mdbuf_len, ack_len, kmode, retval;
+	char mdbuf[16], ackbuf[50];
+	int mdbuf_len, kmode, retval;
+	size_t ack_len;
 
+	ack_len = 50;
 	switch (mode) {
 		case RIG_MODE_CW:       kmode = MD_CW; break;
 		case RIG_MODE_CWR:      kmode = MD_CWR; break;
@@ -523,7 +533,6 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	}
 
 	mdbuf_len = sprintf(mdbuf, "MD%c;", kmode);
-	ack_len = 0;
 	retval = kenwood_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
 
 	return retval;
@@ -535,9 +544,9 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	unsigned char modebuf[50];
-	int mode_len, retval;
-
+	char modebuf[50];
+	int retval;
+	size_t mode_len;
 
 	mode_len = 50;
 	retval = kenwood_transaction (rig, "MD;", 3, modebuf, &mode_len);
@@ -573,10 +582,12 @@ int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	unsigned char levelbuf[16], ackbuf[16];
-	int level_len, ack_len, retval;
+	char levelbuf[16], ackbuf[50];
+	int level_len, retval;
 	int i, kenwood_val;
+	size_t ack_len;
 
+	ack_len = 50;
 	if (RIG_LEVEL_IS_FLOAT(level))
 		kenwood_val = val.f * 255;
 	else
@@ -621,7 +632,6 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return -RIG_EINVAL;
 	}
 
-	ack_len = 0;
 	retval = kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
 
 	if (retval != RIG_OK)
@@ -635,9 +645,10 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f)
 {
-	unsigned char lvlbuf[50];
-	int lvl_len, retval;
+	char lvlbuf[50];
+	int retval;
 	int lvl;
+	size_t lvl_len;
 
 	lvl_len = 50;
 	retval = kenwood_transaction (rig, cmd, cmd_len, lvlbuf, &lvl_len);
@@ -666,10 +677,11 @@ int get_kenwood_level(RIG *rig, const char *cmd, int cmd_len, float *f)
  */
 int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	unsigned char lvlbuf[50];
-	int lvl_len, retval;
+	char lvlbuf[50];
+	int retval;
 	int lvl;
 	int i, ret, agclevel;
+	size_t lvl_len;
 
 	lvl_len = 50;
 	switch (level) {
@@ -768,13 +780,14 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-	unsigned char fctbuf[16], ackbuf[16];
-	int fct_len, ack_len;
+	char fctbuf[16], ackbuf[50];
+	int fct_len;
+	size_t ack_len;
 
+	ack_len = 50;
 	/* Optimize:
 	 *   sort the switch cases with the most frequent first
 	 */
-	ack_len = 0;
 	switch (func) {
 	case RIG_FUNC_NB:
 		fct_len = sprintf(fctbuf,"NB%c;", (0==status)?'0':'1');
@@ -835,8 +848,9 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  */
 static int get_kenwood_func(RIG *rig, const char *cmd, int cmd_len, int *status)
 {
-	unsigned char fctbuf[50];
-	int fct_len, retval;
+	char fctbuf[50];
+	int retval;
+	size_t fct_len;
 
 	fct_len = 50;
 	retval = kenwood_transaction (rig, cmd, cmd_len, fctbuf, &fct_len);
@@ -861,11 +875,11 @@ static int get_kenwood_func(RIG *rig, const char *cmd, int cmd_len, int *status)
  */
 int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-	unsigned char fctbuf[50];
-	int fct_len, retval;
+	char fctbuf[50];
+	int retval;
+	size_t fct_len;
 
 	fct_len = 50;
-
 	switch (func) {
 	case RIG_FUNC_FAGC:
 		retval = kenwood_transaction (rig, "GT;", 3, fctbuf, &fct_len);
@@ -932,10 +946,12 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
-	unsigned char tonebuf[16], ackbuf[16];
-	int tone_len, ack_len;
+	char tonebuf[16], ackbuf[50];
+	int tone_len;
 	int i;
-								 
+	size_t ack_len;
+
+	ack_len = 50;
 	caps = rig->caps;
 
 /* TODO: replace 200 by something like RIGTONEMAX */
@@ -949,7 +965,6 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 /* TODO: replace menu no 57 by a define */
 	tone_len = sprintf(tonebuf,"EX%03d%04d;", 57, i+1);
 	
-	ack_len = 0;
 	return kenwood_transaction (rig, tonebuf, tone_len, ackbuf, &ack_len);
 }
 
@@ -960,10 +975,11 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	const struct rig_caps *caps;
-	unsigned char tonebuf[50];
-	int tone_len, i, retval;
+	char tonebuf[50];
+	int i, retval;
 	unsigned int tone_idx;
-								 
+	size_t tone_len;
+						 
 	caps = rig->caps;
 
 	tone_len = 50;
@@ -1005,8 +1021,9 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
  */
 int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-	unsigned char infobuf[50];
-	int info_len, retval;
+	char infobuf[50];
+	int retval;
+	size_t info_len;
 
 	info_len = 50;
 	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
@@ -1031,9 +1048,10 @@ int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  */
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	unsigned char ackbuf[16];
-	int ack_len = 0;
+	char ackbuf[50];
+	size_t ack_len;
 
+	ack_len = 50;
 	return kenwood_transaction (rig, ptt==RIG_PTT_ON? "TX;":"RX;", 3, 
 					ackbuf, &ack_len);
 }
@@ -1045,8 +1063,9 @@ int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-	unsigned char busybuf[50];
-	int busy_len, retval;
+	char busybuf[50];
+	int retval;
+	size_t busy_len;
 								 
 	busy_len = 50;
 	retval = kenwood_transaction (rig, "BY;", 3, busybuf, &busy_len);
@@ -1070,9 +1089,11 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int kenwood_set_trn(RIG *rig, int trn)
 {
-	unsigned char trnbuf[16], ackbuf[16];
-	int trn_len, ack_len = 0;
+	char trnbuf[16], ackbuf[50];
+	int trn_len;
+	size_t ack_len;
 
+	ack_len = 50;
 	trn_len = sprintf(trnbuf,"AI%c;", trn==RIG_TRN_RIG?'1':'0');
 
 	return kenwood_transaction (rig, trnbuf, trn_len, ackbuf, &ack_len);
@@ -1084,8 +1105,9 @@ int kenwood_set_trn(RIG *rig, int trn)
  */
 int kenwood_get_trn(RIG *rig, int *trn)
 {
-	unsigned char trnbuf[50];
-	int trn_len, retval;
+	char trnbuf[50];
+	int retval;
+	size_t trn_len;
 
 	trn_len = 50;
 	retval = kenwood_transaction (rig, "AI;", 3, trnbuf, &trn_len);
@@ -1108,9 +1130,11 @@ int kenwood_get_trn(RIG *rig, int *trn)
  */
 int kenwood_set_powerstat(RIG *rig, powerstat_t status)
 {
-	unsigned char pwrbuf[16], ackbuf[16];
-	int pwr_len, ack_len = 0;
+	char pwrbuf[16], ackbuf[50];
+	int pwr_len;
+	size_t ack_len;
 
+	ack_len = 50;
 	pwr_len = sprintf(pwrbuf,"PS%c;", status==RIG_POWER_ON?'1':'0');
 
 	return kenwood_transaction (rig, pwrbuf, pwr_len, ackbuf, &ack_len);
@@ -1122,9 +1146,11 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status)
  */
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
 {
-	unsigned char pwrbuf[50];
-	int pwr_len = 50, retval;
+	char pwrbuf[50];
+	int retval;
+	size_t pwr_len;
 
+	pwr_len = 50;
 	retval = kenwood_transaction (rig, "PS;", 3, pwrbuf, &pwr_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -1145,10 +1171,12 @@ int kenwood_get_powerstat(RIG *rig, powerstat_t *status)
  */
 int kenwood_reset(RIG *rig, reset_t reset)
 {
-	unsigned char rstbuf[16], ackbuf[16];
-	int rst_len, ack_len = 0;
+	char rstbuf[16], ackbuf[50];
+	int rst_len;
 	char rst;
+	size_t ack_len;
 
+	ack_len = 50;
 	switch(reset) {
 		case RIG_RESET_VFO: rst='1'; break;
 		case RIG_RESET_MASTER: rst='2'; break;
@@ -1168,11 +1196,13 @@ int kenwood_reset(RIG *rig, reset_t reset)
  */
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
-	unsigned char morsebuf[30], m2[30], ackbuf[16];
-	int morse_len, ack_len;
+	char morsebuf[30], m2[30], ackbuf[50];
+	int morse_len;
 	int msg_len, buff_len, retval;
 	const char *p;
+	size_t ack_len;
 
+	ack_len = 50;
 	p = msg;
 	msg_len = strlen(msg);
 
@@ -1192,7 +1222,6 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 		/* morse_len must be 28 */
 		morse_len = sprintf(morsebuf,"KY %-24s;", m2);
-		ack_len = 0;
 		retval = kenwood_transaction (rig, morsebuf, morse_len, 
 						ackbuf, &ack_len);
 		if (retval != RIG_OK)
@@ -1211,9 +1240,10 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
  */
 int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-	unsigned char *cmd, ackbuf[16];
-	int ack_len = 0;
+	char *cmd, ackbuf[50];
+	size_t ack_len;
 
+	ack_len = 50;
 	switch(op) {
 		case RIG_OP_UP: cmd="UP;"; break;
 		case RIG_OP_DOWN: cmd="DN;"; break;
@@ -1224,8 +1254,6 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 							op);
 			return -RIG_EINVAL;
 	}
-
-	ack_len = 16;
 	return kenwood_transaction (rig, cmd, 3, ackbuf, &ack_len);
 }
 
@@ -1235,9 +1263,11 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
  */
 int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-	unsigned char membuf[16], ackbuf[16];
-	int mem_len, ack_len = 0;
+	char membuf[16], ackbuf[16];
+	int mem_len;
+	size_t ack_len;
 
+	ack_len = 50;
 	/*
 	 * "MCbmm;"
 	 * where b is the bank number, mm the memory number.
@@ -1254,8 +1284,9 @@ int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-	unsigned char membuf[50];
-	int retval, mem_len;
+	char membuf[50];
+	int retval;
+	size_t mem_len;
 
 	/*
 	 * "MCbmm;"
@@ -1285,9 +1316,10 @@ int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 const char* kenwood_get_info(RIG *rig)
 {
-	unsigned char firmbuf[50];
-	int firm_len, retval;
-								 
+	char firmbuf[50];
+	int retval;
+	size_t firm_len;
+
 	firm_len = 50;
 	retval = kenwood_transaction (rig, "TY;", 3, firmbuf, &firm_len);
 	if (retval != RIG_OK)
@@ -1319,7 +1351,7 @@ const char* kenwood_get_info(RIG *rig)
  */
 DECLARE_PROBERIG_BACKEND(kenwood)
 {
-	unsigned char idbuf[IDBUFSZ];
+	char idbuf[IDBUFSZ];
 	int id_len=-1, i, k_id;
 	int retval=-1;
 	int rates[] = { 115200, 57600, 9600, 4800, 1200, 0 };	/* possible baud rates */
