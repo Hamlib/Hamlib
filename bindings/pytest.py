@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-# -*- coding: <iso-8859-1> -*-
+# -*- coding: iso-8859-1 -*-
 
 import sys
 
 sys.path.append ('.')
 sys.path.append ('.libs')
 sys.path.append ('/usr/local/hamlib/python')
+sys.path.append ('/usr/lib/python2.4/site-packages')
 
 import Hamlib
 
