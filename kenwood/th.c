@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: th.c,v 1.27 2005-01-25 00:20:33 fillods Exp $
+ *	$Id: th.c,v 1.28 2006-03-09 20:12:25 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,7 +64,8 @@ int
 th_decode_event (RIG *rig)
 {
     char asyncbuf[128];
-    int retval,async_len=128;
+    int retval;
+    size_t async_len=128;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -79,7 +80,7 @@ th_decode_event (RIG *rig)
 
         vfo_t vfo;
         freq_t freq, offset;
-        rmode_t mode;
+        int mode;
         int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
         retval = sscanf(asyncbuf, "BUF %d,%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq",%d",
@@ -182,7 +183,8 @@ int
 th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 {
     char freqbuf[ACKBUF_LEN], ackbuf[ACKBUF_LEN];
-    int retval, step,ack_len=ACKBUF_LEN;
+    int retval, step;
+    size_t ack_len=ACKBUF_LEN;
     long long f;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
@@ -210,7 +212,8 @@ int
 th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
 {
     char freqbuf[24], ackbuf[ACKBUF_LEN];
-    int retval, step,ack_len=ACKBUF_LEN;
+    int retval, step;
+    size_t ack_len=ACKBUF_LEN;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -243,7 +246,8 @@ int
 th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
     char kmode, mdbuf[24], ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
       if(vfo!=RIG_VFO_CURR) {
@@ -276,7 +280,8 @@ int
 th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char vch, ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
       if(vfo!=RIG_VFO_CURR) {
@@ -316,7 +321,8 @@ int
 th_set_vfo (RIG *rig, vfo_t vfo)
 {
     char vfobuf[16], ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -368,7 +374,8 @@ int
 th_get_vfo (RIG *rig, vfo_t *vfo)
 {
     char cmdbuf[16], ackbuf[ACKBUF_LEN],vfoc;
-    int retval,ack_len;
+    int retval;
+    size_t ack_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -425,7 +432,8 @@ int
 th_set_trn(RIG *rig, int trn)
 {
     char trnbuf[16], ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -445,7 +453,8 @@ int
 th_get_trn (RIG *rig, int *trn)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -471,7 +480,8 @@ th_get_trn (RIG *rig, int *trn)
 static int th_get_kenwood_func (RIG *rig, const char *cmd, int *status)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = kenwood_transaction (rig, cmd, strlen(cmd), ackbuf, &ack_len);
@@ -528,7 +538,8 @@ th_get_func (RIG *rig, vfo_t vfo, setting_t func, int *status)
 static int th_tburst(RIG *rig, vfo_t vfo, int status)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
     if(status==1) {
     retval = kenwood_transaction(rig, "TT"EOM, 3, ackbuf, &ack_len);
@@ -550,7 +561,8 @@ static int th_tburst(RIG *rig, vfo_t vfo, int status)
 static int th_set_kenwood_func (RIG *rig, const char *cmd, int status)
 {
     char trbuf[16], ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -641,7 +653,8 @@ int
 th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
     char vch, lvlbuf[32], ackbuf[ACKBUF_LEN];
-    int retval, v, l,ack_len=ACKBUF_LEN;
+    int retval, v, l;
+    size_t ack_len=ACKBUF_LEN;
     vfo_t tvfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
@@ -734,7 +747,8 @@ th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
     char vch, lvlbuf[32], ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
     vfo_t tvfo;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
@@ -787,8 +801,9 @@ int
 th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
       const struct rig_caps *caps;
-      unsigned char tonebuf[16], ackbuf[ACKBUF_LEN];
-      int i, retval,ack_len=ACKBUF_LEN;
+      char tonebuf[16],ackbuf[ACKBUF_LEN];
+      int i, retval;
+      size_t ack_len=ACKBUF_LEN;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -819,8 +834,9 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
     struct rig_caps *caps;
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
-	unsigned int tone_idx;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
+    unsigned int tone_idx;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	caps = rig->caps;
@@ -850,8 +866,9 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 const char *
 th_get_info(RIG *rig)
 {
-	static unsigned char firmbuf[16];
-	int retval,firm_len=16;
+	static char firmbuf[50];
+	int retval;
+	size_t firm_len=50;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -876,8 +893,10 @@ th_get_info(RIG *rig)
 int
 th_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-	unsigned char vsel, membuf[16], ackbuf[16];
-	int retval, ack_len = 16;
+	unsigned char vsel;
+	char membuf[16], ackbuf[50];
+	int retval;
+	size_t ack_len = 50;
 	vfo_t tvfo;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
@@ -912,8 +931,9 @@ th_set_mem(RIG *rig, vfo_t vfo, int ch)
 int
 th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-	unsigned char *membuf, ackbuf[ACKBUF_LEN];
-	int retval,ack_len=ACKBUF_LEN;
+	char *membuf, ackbuf[ACKBUF_LEN];
+	int retval;
+	size_t ack_len=ACKBUF_LEN;
 	vfo_t tvfo,cvfo;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
@@ -965,8 +985,9 @@ th_get_mem(RIG *rig, vfo_t vfo, int *ch)
 int
 th_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	unsigned char *membuf, ackbuf[ACKBUF_LEN];
-	int retval,ack_len=ACKBUF_LEN;
+	char *membuf, ackbuf[ACKBUF_LEN];
+	int retval;
+	size_t ack_len=ACKBUF_LEN;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -991,7 +1012,7 @@ th_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int
 th_set_powerstat(RIG *rig, powerstat_t status)
 {
-        unsigned char *membuf;
+        char *membuf;
         int retval;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
@@ -1016,28 +1037,31 @@ th_set_powerstat(RIG *rig, powerstat_t status)
 
 int th_get_powerstat(RIG *rig, powerstat_t *status)
 {
-                unsigned char pwrbuf[50];
-                int pwr_len = 50, retval;
-                                                                                                                            
-                retval = kenwood_transaction (rig, "PS;", 3, pwrbuf, &pwr_len);
-                if (retval != RIG_OK)
-                        return retval;
-                                                                                                                            
-                if (pwr_len != 4) {
-                                rig_debug(RIG_DEBUG_ERR,"kenwood_get_powerstat: wrong answer "
-                                                                "len=%d\n", pwr_len);
-                                return -RIG_ERJCTED;
-                }
-                *status = pwrbuf[2] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
-                                                                                                                            
-                return RIG_OK;
+	char pwrbuf[50];
+	size_t pwr_len = 50;
+	int retval;
+
+	retval = kenwood_transaction (rig, "PS;", 3, pwrbuf, &pwr_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (pwr_len != 4)
+	{
+		rig_debug(RIG_DEBUG_ERR,"kenwood_get_powerstat: wrong answer "
+			"len=%d\n", pwr_len);
+		return -RIG_ERJCTED;
+	}
+	*status = pwrbuf[2] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
+				            
+	return RIG_OK;
 }
                                                                                                                             
 
 int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-        unsigned char *membuf, ackbuf[ACKBUF_LEN];
-        int retval, ack_len=ACKBUF_LEN;
+        char *membuf, ackbuf[ACKBUF_LEN];
+        int retval;
+	size_t ack_len=ACKBUF_LEN;
 
 	switch (vfo) {
 	  case RIG_VFO_VFO:
@@ -1080,8 +1104,9 @@ int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 
-	unsigned char *membuf,ackbuf[ACKBUF_LEN];
-	int retval,ack_len=ACKBUF_LEN;
+	char *membuf,ackbuf[ACKBUF_LEN];
+	int retval;
+	size_t ack_len=ACKBUF_LEN;
 
         rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -1123,7 +1148,8 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 int th_get_channel(RIG *rig, channel_t *chan)
 {
     char membuf[64],ackbuf[ACKBUF_LEN];
-    int retval,ack_len;
+    int retval;
+    size_t ack_len;
     freq_t freq,offset;
     char req[16],scf[128];
     int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
@@ -1228,7 +1254,8 @@ int th_get_channel(RIG *rig, channel_t *chan)
 int th_set_channel(RIG *rig, const channel_t *chan)
 {
     char membuf[ACKBUF_LEN],ackbuf[ACKBUF_LEN];
-    int retval,ack_len;
+    int retval;
+    size_t ack_len;
     char req[64];
     long long freq,offset;   
     int chn, step, shift, tone, ctcss, tonefq, ctcssfq;
