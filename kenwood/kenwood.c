@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.90 2006-03-07 19:48:20 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.91 2006-03-09 19:45:10 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -104,7 +104,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] = {
 /*
  * 38 CTCSS sub-audible tones
   */
-const int kenwood38_ctcss_list[] = {
+const tone_t kenwood38_ctcss_list[] = {
 	 670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
 	 974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
 	1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799, 1862,
