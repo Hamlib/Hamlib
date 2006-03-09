@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.17 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: thg71.c,v 1.18 2006-03-09 19:51:17 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -184,7 +184,8 @@ const struct rig_caps thg71_caps = {
 int thg71_decode_event (RIG *rig)
 {
     char asyncbuf[ACKBUF_LEN];
-    int retval, asyncbuf_len = ACKBUF_LEN-1;
+    int retval;
+    size_t asyncbuf_len = ACKBUF_LEN;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = kenwood_transaction(rig, NULL, 0, asyncbuf, &asyncbuf_len);
@@ -291,7 +292,8 @@ int thg71_decode_event (RIG *rig)
 int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
     int step;
     freq_t freq;
 
@@ -327,7 +329,8 @@ int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int thg71_set_vfo (RIG *rig, vfo_t vfo)
 {
     char vfobuf[16], ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -355,7 +358,8 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
 int thg71_get_vfo (RIG *rig, vfo_t *vfo)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
     int vch;
 
     retval = kenwood_transaction(rig, "VMC 0"EOM , 6, ackbuf, &ack_len);
@@ -382,7 +386,8 @@ int thg71_get_vfo (RIG *rig, vfo_t *vfo)
 int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
      if(func != RIG_FUNC_TBURST)
 		return -RIG_EINVAL;
@@ -404,7 +409,8 @@ int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int thg71_open(RIG *rig)
 {
     char ackbuf[ACKBUF_LEN],*strl,*stru;
-    int retval,i,ack_len=ACKBUF_LEN;
+    int retval,i;
+    size_t ack_len=ACKBUF_LEN;
     const freq_range_t frend=RIG_FRNG_END;
 
 	/* just to be sure it's a THG-71 */
