@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.22 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts450s.c,v 1.23 2006-03-12 09:02:38 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,9 +77,11 @@ static const struct kenwood_priv_caps  ts450_priv_caps  = {
 static int 
 ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-  unsigned char infobuf[50];
-  int info_len, retval;
+  char infobuf[50];
+  size_t info_len;
+  int retval;
 
+  info_len = 50;
   retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
   if (retval != RIG_OK)
   return retval;
@@ -115,9 +117,11 @@ ts450s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 static int 
 ts450s_get_vfo(RIG *rig, vfo_t *vfo)
 {
-  unsigned char infobuf[50];
-  int info_len, retval;
+  char infobuf[50];
+  size_t info_len;
+  int retval;
 
+  info_len = 50;
   retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
   if (retval != RIG_OK)
   return retval;
@@ -144,8 +148,9 @@ ts450s_get_vfo(RIG *rig, vfo_t *vfo)
 static int 
 ts450s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-  unsigned char lvlbuf[50];
-  int lvl_len, retval;
+  char lvlbuf[50];
+  size_t lvl_len;
+  int retval;
 
   lvl_len = 50;
   switch (level) 
@@ -204,10 +209,11 @@ ts450s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 static int 
 ts450s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-  unsigned char levelbuf[16], ackbuf[16];
-  int level_len, ack_len, retval;
-  int kenwood_val;
+  char levelbuf[16], ackbuf[50];
+  size_t level_len, ack_len;
+  int kenwood_val, retval;
 
+  ack_len = 50;
   if (RIG_LEVEL_IS_FLOAT(level))
     kenwood_val = val.f * 255;
   else

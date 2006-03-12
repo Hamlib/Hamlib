@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.12 2005-04-03 20:40:21 fillods Exp $
+ *	$Id: tmv7.c,v 1.13 2006-03-12 09:02:38 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -216,7 +216,8 @@ const struct rig_caps tmv7_caps = {
 int tmv7_decode_event (RIG *rig)
 {
     char asyncbuf[ACKBUF_LEN];
-    int retval, asyncbuf_len = ACKBUF_LEN-1;
+    int retval;
+    size_t asyncbuf_len = ACKBUF_LEN;
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = kenwood_transaction(rig, NULL, 0, asyncbuf, &asyncbuf_len);
@@ -324,7 +325,8 @@ int tmv7_decode_event (RIG *rig)
 int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 {
     char vfobuf[16], ackbuf[ACKBUF_LEN];
-    int retval,ack_len;
+    int retval;
+    size_t ack_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __FUNCTION__,vfo);
 
@@ -383,7 +385,8 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
     int step;
     freq_t freq;
 
@@ -428,7 +431,8 @@ int tmv7_get_powerstat (RIG *rig, powerstat_t *status)
 int tmv7_get_channel(RIG *rig, channel_t *chan)
 {
     char membuf[64],ackbuf[ACKBUF_LEN];
-    int retval,ack_len;
+    int retval;
+    size_t ack_len;
     freq_t freq;
     char req[16],scf[128];
     int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
@@ -540,7 +544,8 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
 int tmv7_set_channel(RIG *rig, const channel_t *chan)
 {
     char membuf[ACKBUF_LEN],ackbuf[ACKBUF_LEN];
-    int retval,ack_len;
+    int retval;
+    size_t ack_len;
     char req[64];
     long long freq;   
     int chn, step, shift, tone, ctcss, tonefq, ctcssfq;
@@ -656,7 +661,8 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 int tmv7_open(RIG *rig)
 {
     char ackbuf[ACKBUF_LEN];
-    int retval,ack_len=ACKBUF_LEN;
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
 
 	/* just to be sure it's a TM-V7 */
     retval = kenwood_transaction(rig, "ID"EOM, 3, ackbuf, &ack_len);

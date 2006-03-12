@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.20 2006-02-20 22:28:23 fillods Exp $
+ *	$Id: ts2000.c,v 1.21 2006-03-12 09:02:38 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -258,10 +258,9 @@ const struct rig_caps ts2000_caps = {
 
 int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-		unsigned char lvlbuf[50];
-		int lvl_len, retval;
-		int lvl;
-		int i, ret, agclevel;
+		char lvlbuf[50];
+		size_t lvl_len;
+		int lvl, retval, ret, agclevel;
 
 		lvl_len = 50;
 		switch (level) {

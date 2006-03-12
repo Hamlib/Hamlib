@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.4 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts480.c,v 1.5 2006-03-12 09:02:38 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,8 +49,8 @@
 static int
 kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
 {
-  unsigned char ackbuf[16];
-  int ack_len = 0;
+  char ackbuf[50];
+  size_t ack_len = 50;
 
   if (RIG_PTT_ON == ptt)
     return kenwood_transaction (rig, "TX1;", 4, ackbuf, &ack_len);
@@ -67,8 +67,8 @@ kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
 static int
 kenwood_ts480_set_ant (RIG * rig, vfo_t vfo, ant_t ant)
 {
-  unsigned char ackbuf[16];
-  int ack_len = 0;
+  char ackbuf[50];
+  size_t ack_len = 50;
 
   if (RIG_ANT_1 == ant)
     return kenwood_transaction (rig, "AN1;", 4, ackbuf, &ack_len);
@@ -87,8 +87,8 @@ kenwood_ts480_set_ant (RIG * rig, vfo_t vfo, ant_t ant)
 static int
 kenwood_ts480_get_ant (RIG * rig, vfo_t vfo, ant_t * ant)
 {
-  unsigned char ackbuf[16];
-  int ack_len = 16;
+  char ackbuf[50];
+  size_t ack_len = 50;
   int retval;
 
   retval = kenwood_transaction (rig, "AN;", 3, ackbuf, &ack_len);
@@ -119,8 +119,9 @@ kenwood_ts480_get_ant (RIG * rig, vfo_t vfo, ant_t * ant)
 static const char *
 kenwood_ts480_get_info (RIG * rig)
 {
-  unsigned char firmbuf[50];
-  int firm_len, retval;
+  char firmbuf[50];
+  size_t firm_len;
+  int retval;
 
   firm_len = 50;
   retval = kenwood_transaction (rig, "TY;", 3, firmbuf, &firm_len);
@@ -159,8 +160,9 @@ kenwood_ts480_get_info (RIG * rig)
 int
 kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
-  unsigned char levelbuf[16], ackbuf[16];
-  int level_len, ack_len, retval;
+  char levelbuf[16], ackbuf[50];
+  int level_len, retval;
+  size_t ack_len = 50;
   int kenwood_val;
 
   switch (level)
@@ -226,8 +228,8 @@ kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 int
 kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 {
-  unsigned char ackbuf[50];
-  int ack_len = 50;
+  char ackbuf[50];
+  size_t ack_len = 50;
   int levelint;
   int retval;
 
@@ -326,8 +328,9 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 int
 kenwood_ts480_set_func (RIG * rig, vfo_t vfo, setting_t func, int status)
 {
-  unsigned char fctbuf[16], ackbuf[16];
-  int fct_len, ack_len;
+  char fctbuf[16], ackbuf[50];
+  int fct_len;
+  size_t ack_len;
 
   ack_len = 0;
   switch (func)
