@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.19 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts850.c,v 1.20 2006-03-14 20:29:41 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -225,9 +225,10 @@ const struct rig_caps ts850_caps = {
 
 int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
-        unsigned char buf[50], infobuf[50], c;
-        int retval, info_len, len, i;
-
+        char buf[50], infobuf[50];
+	unsigned char c;
+        int retval, len, i;
+	size_t info_len;
 
         info_len = 0;
         if (rit == 0)
@@ -254,8 +255,10 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
 int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 {
-        unsigned char buf[50], infobuf[50], c;
-        int retval, info_len, len, i;
+        char buf[50], infobuf[50];
+	unsigned char c;
+        int retval, len, i;
+	size_t info_len;
 
         info_len = 0;
         if (xit == 0)
@@ -296,9 +299,9 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 
 int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-                unsigned char infobuf[50];
-                int info_len, retval;
-		int f,f1,f2;
+                char infobuf[50];
+                size_t info_len;
+		int f,f1,f2,retval;
 
                 info_len = 50;
                 retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len)
@@ -386,8 +389,9 @@ static char mode_to_char(rmode_t mode)
 
 int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-                unsigned char mdbuf[16],ackbuf[16];
-                int mdbuf_len, ack_len, kmode, retval;
+                char mdbuf[16],ackbuf[16];
+                int mdbuf_len, kmode, retval;
+		size_t ack_len;
 
 		 kmode=mode_to_char(mode);
 		 if(kmode==RIG_MODE_NONE) {
@@ -425,9 +429,9 @@ int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
         const struct rig_caps *caps;
-        unsigned char tonebuf[16], ackbuf[16];
-        int tone_len, ack_len;
-        int i;
+        char tonebuf[16], ackbuf[16];
+        int i, tone_len;
+	size_t ack_len;
 
         caps = rig->caps;
 
@@ -446,8 +450,9 @@ int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 int ts850_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-                unsigned char fctbuf[16], ackbuf[16];
-                int fct_len, ack_len;
+                char fctbuf[16], ackbuf[16];
+                int fct_len;
+		size_t ack_len;
 
 		if (vfo != RIG_VFO_CURR) 
 			return -RIG_EINVAL;
@@ -473,8 +478,9 @@ int ts850_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-                unsigned char fctbuf[16], ackbuf[16];
-                int retval, fct_len, ack_len;
+                char fctbuf[16], ackbuf[50];
+                int retval, fct_len;
+		size_t ack_len;
 
 		if (vfo != RIG_VFO_CURR) 
 			return -RIG_EINVAL;
@@ -491,7 +497,7 @@ int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
                         return -RIG_EINVAL;
                 }
 
-                ack_len = 16;
+                ack_len = 50;
                 retval = kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 
                 if (retval != RIG_OK)
@@ -504,8 +510,9 @@ int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-                unsigned char lvlbuf[50];
-                int i, lvl_len, retval;
+                char lvlbuf[50];
+                int i, retval;
+		size_t lvl_len;
 
 		if(vfo!=RIG_VFO_CURR)
 			return -RIG_EINVAL;
@@ -586,8 +593,9 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-                unsigned char lvlbuf[16], ackbuf[16];
-                int lvl_len, ack_len;
+                char lvlbuf[16], ackbuf[16];
+                int lvl_len;
+		size_t ack_len;
 
                 if(level != RIG_LEVEL_CWPITCH)
 			return -RIG_EINVAL;
@@ -603,8 +611,9 @@ int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 int ts850_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
-                unsigned char infobuf[50];
-                int info_len, retval;
+                char infobuf[50];
+                size_t info_len;
+		int retval;
 
                 info_len = 50;
                 retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len)
@@ -641,13 +650,14 @@ static rmode_t char_to_mode(char c)
 
 int ts850_get_channel (RIG * rig, channel_t * chan)
 {
-                unsigned char cmdbuf[16], membuf[30];
-                int retval, cmd_len,mem_len,num;
+                char cmdbuf[16], membuf[50];
+                int retval, cmd_len, num;
+		size_t mem_len;
 
 		num=chan->channel_num;
 
                 cmd_len = sprintf(cmdbuf, "MR0 %02d;", num);
-                mem_len = 25;
+                mem_len = 50;
                 retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
                 if (retval != RIG_OK)
                                 return retval;
@@ -669,7 +679,7 @@ int ts850_get_channel (RIG * rig, channel_t * chan)
 		chan->freq=atoi(&membuf[6]);
 
                 cmd_len = sprintf(cmdbuf, "MR1 %02d;", num);
-                mem_len = 25;
+                mem_len = 50;
                 retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
                 if (retval != RIG_OK)
                                 return retval;
@@ -692,8 +702,9 @@ int ts850_get_channel (RIG * rig, channel_t * chan)
 
 int ts850_set_channel (RIG * rig, const channel_t * chan)
 {
-                unsigned char cmdbuf[30], membuf[30];
-                int retval, cmd_len,mem_len;
+                char cmdbuf[30], membuf[30];
+                int retval, cmd_len;
+		size_t mem_len;
 		int num,freq,tx_freq,tone;
 		char mode,tx_mode,split,tones;
 

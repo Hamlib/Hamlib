@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS680 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.5 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts680.c,v 1.6 2006-03-14 20:29:41 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,8 +62,9 @@ static const struct kenwood_priv_caps  ts680_priv_caps  = {
 
 static int ts680_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-                unsigned char modebuf[50];
-                int mode_len, retval;
+                char modebuf[50];
+                size_t mode_len;
+		int retval;
 
                 mode_len = 50;
                 retval = kenwood_transaction (rig, "IF;", 3, modebuf, &mode_len);
@@ -97,9 +98,10 @@ static int ts680_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int ts680_set_vfo(RIG *rig, vfo_t vfo)
 {
-                unsigned char cmdbuf[16], ackbuf[16];
-                int cmd_len, ack_len, retval;
+                char cmdbuf[16], ackbuf[16];
+                int cmd_len, retval;
                 char vfo_function;
+		size_t ack_len;
 
                 switch (vfo) {
                 case RIG_VFO_VFO:
@@ -123,8 +125,9 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
 
 static int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-                unsigned char freqbuf[50];
-                int freq_len, retval;
+                char freqbuf[50];
+                size_t freq_len;
+		int retval;
                 long long f;
 
 /* We're using IF; here because the TS-680S is incapable of supplying
@@ -151,8 +154,10 @@ static int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 static int ts680_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-                unsigned char fctbuf[16], ackbuf[16];
-                int fct_len, ack_len;
+                char fctbuf[16], ackbuf[16];
+                int fct_len;
+		size_t ack_len;
+
                 ack_len = 0;
                 switch (func) {
                 case RIG_FUNC_LOCK:

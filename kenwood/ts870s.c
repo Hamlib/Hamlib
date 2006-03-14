@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.45 2005-04-03 20:17:21 fillods Exp $
+ *	$Id: ts870s.c,v 1.46 2006-03-14 20:29:41 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -73,8 +73,9 @@ static const struct kenwood_priv_caps  ts870s_priv_caps  = {
    NOTE: using byte 31 in 'IF' will also work. TODO: check other rigs */
 static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 {
-		unsigned char vfobuf[50];
-		int vfo_len, retval;
+		char vfobuf[50];
+		size_t vfo_len;
+		int retval;
 
 
 		/* query RX VFO */
@@ -104,9 +105,9 @@ static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 
 static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-  unsigned char buf[50];
-  int buf_len, retval;
-
+  char buf[50];
+  size_t buf_len;
+  int retval;
 
   buf_len = 50;
   retval = kenwood_transaction (rig, "MD;", 3, buf, &buf_len);
@@ -156,8 +157,9 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  unsigned char buf[16],ackbuf[16];
-  int buf_len, ack_len, kmode, retval;
+  char buf[16],ackbuf[16];
+  int buf_len, kmode, retval;
+  size_t ack_len;
 
   switch (mode) 
   {
@@ -194,9 +196,9 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-		unsigned char lvlbuf[50];
-		int lvl_len, retval;
-		int lvl;
+		char lvlbuf[50];
+		size_t lvl_len;
+		int lvl, retval;
 		int i, ret, agclevel;
 
 		lvl_len = 50;

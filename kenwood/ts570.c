@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.23 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts570.c,v 1.24 2006-03-14 20:29:41 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,8 +64,9 @@ static const struct kenwood_priv_caps  ts570_priv_caps  = {
 
 static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-  unsigned char buf[50];
-  int buf_len, retval;
+  char buf[50];
+  size_t buf_len;
+  int retval;
 
 
   buf_len = 50;
@@ -145,8 +146,9 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  unsigned char buf[16],ackbuf[16];
-  int buf_len, ack_len, kmode, retval;
+  char buf[16],ackbuf[16];
+  int buf_len, kmode, retval;
+  size_t ack_len;
 
   switch (mode) 
   {
@@ -169,6 +171,7 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
   if (retval != RIG_OK) return retval;
 
+  ack_len = 0;
   switch (mode) 
   {
     case RIG_MODE_CW:
@@ -176,7 +179,6 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
       buf_len = sprintf(buf, "FW%04d;", (int)width);
-      ack_len = 0;
       retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
       if (retval != RIG_OK) return retval;
       break;
@@ -185,7 +187,6 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_FM:
     case RIG_MODE_AM:
       buf_len = sprintf(buf, "SL%02d;", (int)width/50);
-      ack_len = 0;
       retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
       if (retval != RIG_OK) return retval;
       break;
@@ -202,11 +203,12 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 static int ts570_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
-	unsigned char buf[6], ackbuf[16];
-	int len, ack_len, retval;
+	char buf[6], ackbuf[16];
+	int len, retval;
+	size_t ack_len;
 
 	len = sprintf(buf,"AN%c;", ant==RIG_ANT_1?'1':'2');
-
+	ack_len = 0;
 	retval = kenwood_transaction(rig, buf, len, ackbuf, &ack_len);
 
 	return retval;
@@ -219,10 +221,11 @@ static int ts570_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
  */
 static int ts570_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
-	unsigned char infobuf[50];
-	int info_len, retval;
+	char infobuf[50];
+	int retval;
+	size_t info_len;
 
-	info_len = 5;
+	info_len = 50;
 	retval = kenwood_transaction (rig, "AN;", 3, infobuf, &info_len);
 	if (retval != RIG_OK)
 		return retval;
