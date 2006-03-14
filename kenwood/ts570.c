@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.24 2006-03-14 20:29:41 pa4tu Exp $
+ *	$Id: ts570.c,v 1.25 2006-03-14 20:35:53 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,7 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
+#include "ic10.h"
 
 
 #define TS570_ALL_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
@@ -241,6 +242,74 @@ static int ts570_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 	return RIG_OK;
 }
 
+/*
+ * extends kenwood_set_func
+ * Assumes rig!=NULL, val!=NULL
+ */
+int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+		char fctbuf[16], ackbuf[16];
+		int fct_len;
+		size_t ack_len;
+
+		/* filter unimplemented RIG_FUNC_TUNER  
+		 * and send all other requests to kenwood_set_func()
+		 */
+		ack_len = 0;
+		switch (func) {
+		case RIG_FUNC_TUNER:
+			fct_len = sprintf(fctbuf,"AC %c0;", (0==status)?'0':'1');
+ 			return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+		
+		default:
+			return kenwood_set_func(rig, vfo, func, status);
+		}
+
+		return RIG_OK;
+}
+
+
+/*
+ * extends kenwood_get_func
+ * Assumes rig!=NULL, val!=NULL
+ */
+int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+		char fctbuf[50];
+		size_t fct_len;
+		int retval;
+
+		fct_len = 50;
+		/* filter unimplemented RIG_FUNC_TUNER  
+		 * and send all other requests to kenwood_get_func()
+		 */
+		switch (func) {
+		case RIG_FUNC_TUNER:
+			retval = kenwood_transaction (rig, "AC;", 3, fctbuf, &fct_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			if (fct_len != 6) {
+				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: " 
+					"wrong answer len=%d\n", fct_len);
+				return -RIG_ERJCTED;
+			}
+
+			*status = fctbuf[3] == '0' ? 0 : 1;
+			break;
+
+		default:
+			return kenwood_get_func(rig, vfo, func, status);
+		}
+
+		return RIG_OK;
+}
+
+/* memory capabilities */
+#define TS570_MEM_CAP {		\
+	.freq = 1,		\
+	.mode = 1,		\
+}
 
 /*
  * ts570 rig capabilities.
@@ -396,8 +465,8 @@ const struct rig_caps ts570s_caps = {
 .get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
-.set_func =  kenwood_set_func,
-.get_func =  kenwood_get_func,
+.set_func =  ts570_set_func,
+.get_func =  ts570_get_func,
 .set_ant =  ts570_set_ant,
 .get_ant =  ts570_get_ant,
 .set_level =  kenwood_set_level,
@@ -441,8 +510,8 @@ const struct rig_caps ts570d_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
-.post_write_delay =  0,
-.timeout =  200,
+.post_write_delay =  50,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  TS570_FUNC_ALL,
@@ -468,8 +537,8 @@ const struct rig_caps ts570d_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM  },
-			{ 90, 99, RIG_MTYPE_EDGE },
+			{  0, 89, RIG_MTYPE_MEM,  TS570_MEM_CAP  },
+			{ 90, 99, RIG_MTYPE_EDGE, TS570_MEM_CAP  },
 		  	RIG_CHAN_END,
 		   },
 .rx_range_list1 =  { 
@@ -560,13 +629,13 @@ const struct rig_caps ts570d_caps = {
 .priv =  (void *)&ts570_priv_caps,
 
 .set_freq =  kenwood_set_freq,
-.get_freq =  kenwood_get_freq,
+.get_freq =  ic10_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
-.set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
+.set_mode =  ts570_set_mode,
+.get_mode =  ts570_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
@@ -574,8 +643,10 @@ const struct rig_caps ts570d_caps = {
 .get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
-.set_func =  kenwood_set_func,
-.get_func =  kenwood_get_func,
+.set_func =  ts570_set_func,
+.get_func =  ts570_get_func,
+.set_ant =  ts570_set_ant,
+.get_ant =  ts570_get_ant,
 .set_level =  kenwood_set_level,
 .get_level =  kenwood_get_level,
 .send_morse =  kenwood_send_morse,
