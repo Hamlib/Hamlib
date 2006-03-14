@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.18 2006-03-09 19:51:17 pa4tu Exp $
+ *	$Id: thg71.c,v 1.19 2006-03-14 20:06:46 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -330,7 +330,7 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
 {
     char vfobuf[16], ackbuf[ACKBUF_LEN];
     int retval;
-    size_t ack_len=ACKBUF_LEN;
+    size_t ack_len;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -347,6 +347,7 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
             return -RIG_EVFO;
         }
 
+    ack_len = 0;
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         return retval;
@@ -387,11 +388,12 @@ int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
     char ackbuf[ACKBUF_LEN];
     int retval;
-    size_t ack_len=ACKBUF_LEN;
+    size_t ack_len;
 
      if(func != RIG_FUNC_TBURST)
 		return -RIG_EINVAL;
 
+    ack_len = 0;
     if(status==1) {
     retval = kenwood_transaction(rig, "TT"EOM, 3, ackbuf, &ack_len);
         if (retval != RIG_OK)

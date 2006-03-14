@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.13 2006-03-12 09:02:38 pa4tu Exp $
+ *	$Id: tmv7.c,v 1.14 2006-03-14 20:06:46 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -350,7 +350,7 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
             return -RIG_EVFO;
 	}
 
-    ack_len=ACKBUF_LEN;
+    ack_len=0;
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
 	if (retval != RIG_OK) {
             rig_debug(RIG_DEBUG_ERR, "%s: bad return \n", __FUNCTION__);
@@ -373,7 +373,7 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 	}
 
     rig_debug(RIG_DEBUG_TRACE, "%s: next2\n", __FUNCTION__);
-    ack_len=ACKBUF_LEN;
+    ack_len=0;
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
 	if (retval != RIG_OK)
         return retval;
@@ -629,7 +629,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
                     req, (long long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq);
 
-    ack_len=ACKBUF_LEN;
+    ack_len=0;
     retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
@@ -637,7 +637,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
     if(chan->tx_freq!=RIG_FREQ_NONE) {
 	req[5]='1';
     	sprintf(membuf, "%s,%011"PRIll",%01d"EOM, req,(long long)chan->tx_freq, step);
-        ack_len=ACKBUF_LEN;
+        ack_len=0;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
@@ -648,7 +648,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 	    	sprintf(membuf,"MNA 0,%03d,%s"EOM,chan->channel_num,chan->channel_desc);
 	    else
 	    	sprintf(membuf,"MNA 1,%03d,%s"EOM,chan->channel_num-100,chan->channel_desc);
-    	ack_len=ACKBUF_LEN;
+    	ack_len=0;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.23 2006-03-12 09:02:38 pa4tu Exp $
+ *	$Id: ts450s.c,v 1.24 2006-03-14 20:06:46 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -213,7 +213,6 @@ ts450s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
   size_t level_len, ack_len;
   int kenwood_val, retval;
 
-  ack_len = 50;
   if (RIG_LEVEL_IS_FLOAT(level))
     kenwood_val = val.f * 255;
   else

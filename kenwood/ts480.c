@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.5 2006-03-12 09:02:38 pa4tu Exp $
+ *	$Id: ts480.c,v 1.6 2006-03-14 20:06:46 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -68,7 +68,7 @@ static int
 kenwood_ts480_set_ant (RIG * rig, vfo_t vfo, ant_t ant)
 {
   char ackbuf[50];
-  size_t ack_len = 50;
+  size_t ack_len = 0;
 
   if (RIG_ANT_1 == ant)
     return kenwood_transaction (rig, "AN1;", 4, ackbuf, &ack_len);
@@ -162,7 +162,7 @@ kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
   char levelbuf[16], ackbuf[50];
   int level_len, retval;
-  size_t ack_len = 50;
+  size_t ack_len;
   int kenwood_val;
 
   switch (level)

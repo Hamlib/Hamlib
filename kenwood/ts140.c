@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS140 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts140.c,v 1.6 2006-03-12 09:02:38 pa4tu Exp $
+ *	$Id: ts140.c,v 1.7 2006-03-14 20:06:46 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -103,7 +103,7 @@ static int ts140_set_vfo(RIG *rig, vfo_t vfo)
 		size_t ack_len;
                 char vfo_function;
 
-		ack_len = 50;
+		ack_len = 0;
                 switch (vfo) {
                 case RIG_VFO_VFO:
                 case RIG_VFO_A: vfo_function = VFO_A; break;
@@ -159,7 +159,7 @@ static int ts140_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                 int fct_len;
 		size_t ack_len;
 
-                ack_len = 50;
+                ack_len = 0;
                 switch (func) {
                 case RIG_FUNC_LOCK:
                 if (status > 1) status = 1;
