@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.20 2006-03-14 20:29:41 pa4tu Exp $
+ *	$Id: ts850.c,v 1.21 2006-03-16 19:36:39 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,7 +39,7 @@
 
 #define TS850_FUNC_ALL (RIG_FUNC_AIP|RIG_FUNC_LOCK)
 
-#define TS850_LEVEL_GET (RIG_LEVEL_SWR|RIG_LEVEL_COMP|RIG_LEVEL_ALC|RIG_LEVEL_CWPITCH|RIG_LEVEL_RAWSTR)
+#define TS850_LEVEL_GET (RIG_LEVEL_SWR|RIG_LEVEL_COMP|RIG_LEVEL_ALC|RIG_LEVEL_CWPITCH|RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH)
 #define TS850_LEVEL_SET (RIG_LEVEL_CWPITCH)
 
 #define TS850_VFO (RIG_VFO_A|RIG_VFO_B)
@@ -96,7 +96,7 @@ const struct rig_caps ts850_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
-.post_write_delay =  500,
+.post_write_delay =  0,
 .timeout =  1000,
 .retry =  3,
 
@@ -310,7 +310,7 @@ int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                         return retval;
 
                 if (info_len != 38 || infobuf[1] != 'F') {
-                rig_debug(RIG_DEBUG_ERR,"kenwood_get_mode: wrong answer len=%d\n", info_len);
+                rig_debug(RIG_DEBUG_ERR,"ts850_get_mode: wrong answer len=%d\n", info_len);
                 return -RIG_ERJCTED;
                 }
 
@@ -325,7 +325,7 @@ int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                         case MD_FSKR:   *mode = RIG_MODE_RTTYR; break;
                         case MD_NONE:   *mode = RIG_MODE_NONE; break;
                         default:
-                                rig_debug(RIG_DEBUG_ERR,"kenwood_get_mode: unsupported mode '%c'\n", infobuf[29]);
+                                rig_debug(RIG_DEBUG_ERR,"ts850_get_mode: unsupported mode '%c'\n", infobuf[29]);
                                 return -RIG_EINVAL;
                 }
 
@@ -336,7 +336,7 @@ int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
                         return retval;
 
                 if (info_len != 9 || infobuf[1] != 'L') {
-                	rig_debug(RIG_DEBUG_ERR,"kenwood_get_mode: wrong answer len=%d\n", info_len);
+                	rig_debug(RIG_DEBUG_ERR,"ts850_get_mode: wrong answer len=%d\n", info_len);
 			return -RIG_ERJCTED;
 		}
 
@@ -395,7 +395,7 @@ int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 		 kmode=mode_to_char(mode);
 		 if(kmode==RIG_MODE_NONE) {
-                                rig_debug(RIG_DEBUG_ERR,"kenwood_set_mode: " "unsupported mode %d\n", mode);
+                                rig_debug(RIG_DEBUG_ERR,"ts850_set_mode: " "unsupported mode %d\n", mode);
                                 return -RIG_EINVAL;
                 }
 
@@ -622,7 +622,7 @@ int ts850_get_mem(RIG *rig, vfo_t vfo, int *ch)
                         return retval;
 
                 if (info_len != 38 || infobuf[1] != 'F') {
-                rig_debug(RIG_DEBUG_ERR,"kenwood_get_mode: wrong answer len=%d\n", info_len);
+                rig_debug(RIG_DEBUG_ERR,"ts850_get_mem: wrong answer len=%d\n", info_len);
                 return -RIG_ERJCTED;
                 }
 
@@ -748,5 +748,3 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 
 		return RIG_OK;
 }
-
-
