@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.26 2006-03-18 10:42:19 y32kn Exp $
+ *	$Id: ts570.c,v 1.27 2006-03-18 10:45:16 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -315,7 +315,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int
 ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
-  unsigned char levelbuf[16], ackbuf[16];
+  char levelbuf[16], ackbuf[16];
   int level_len;
   size_t ack_len;
   int kenwood_val;
@@ -351,7 +351,7 @@ ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 int
 ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 {
-  unsigned char ackbuf[50];
+  char ackbuf[50];
   size_t ack_len = 50;
   int levelint;
   int retval;
