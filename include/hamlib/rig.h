@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.110 2006-01-15 14:23:16 fillods Exp $
+ *	$Id: rig.h,v 1.111 2006-03-18 07:41:13 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -627,7 +627,7 @@ enum rig_parm_e {
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 
-#define RIG_SETTING_MAX 64
+#define RIG_SETTING_MAX 32
 /**
  * \brief Setting
  *
