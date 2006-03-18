@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.25 2006-03-14 20:35:53 pa4tu Exp $
+ *	$Id: ts570.c,v 1.26 2006-03-18 10:42:19 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -304,6 +304,91 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 		return RIG_OK;
 }
+
+/*
+ * ts570_set_level
+ * Assumes rig!=NULL
+ *
+ * set levels of most functions
+ *
+ */
+int
+ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
+{
+  unsigned char levelbuf[16], ackbuf[16];
+  int level_len;
+  size_t ack_len;
+  int kenwood_val;
+
+  ack_len = 0;			/* no answer for set functions */
+
+  switch (level)
+    {
+    case RIG_LEVEL_RFPOWER:
+      /* level for TS570D is from 0.. 100W in SSB and CW */
+      kenwood_val = val.f * 100;	
+      level_len = sprintf (levelbuf, "PC%03d;", kenwood_val);
+      return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+      
+    case RIG_LEVEL_MICGAIN:
+      /* level is from 0..100 */
+      kenwood_val = val.f * 100;
+      level_len = sprintf (levelbuf, "MG%03d;", kenwood_val);
+      return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+
+    default:
+      return kenwood_set_level (rig, vfo, level, val);
+    }
+  
+  return RIG_OK;		/* never reached */
+}
+
+
+/*
+ * ts570_get_level
+ * Assumes rig!=NULL, val!=NULL
+ */
+int
+ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
+{
+  unsigned char ackbuf[50];
+  size_t ack_len = 50;
+  int levelint;
+  int retval;
+
+  switch (level)
+    {
+    case RIG_LEVEL_RFPOWER:
+      /* ts570d returns 5..100 measured in watt */
+      retval = kenwood_transaction (rig, "PC;", 3, ackbuf, &ack_len);
+      if (RIG_OK != retval)
+	return retval;
+      if (6 != ack_len)
+	return -RIG_EPROTO;
+      if (1 != sscanf (&ackbuf[2], "%d", &levelint))
+	return -RIG_EPROTO;
+      val->f = (float) levelint / 100.;
+      return RIG_OK;
+
+    case RIG_LEVEL_MICGAIN:
+      /* reads from 0..100 */
+      retval = kenwood_transaction (rig, "MG;", 3, ackbuf, &ack_len);
+      if (RIG_OK != retval)
+        return retval;
+      if (6 != ack_len)
+        return -RIG_EPROTO;
+      if (1 != sscanf (&ackbuf[2], "%d", &levelint))
+	return -RIG_EPROTO;
+      val->f = (float) levelint / 100.;
+      return RIG_OK;
+
+    default:
+ 	return kenwood_get_level (rig, vfo, level, val);
+    }
+  
+  return RIG_OK;		/* never reached */
+}
+
 
 /* memory capabilities */
 #define TS570_MEM_CAP {		\
@@ -647,8 +732,8 @@ const struct rig_caps ts570d_caps = {
 .get_func =  ts570_get_func,
 .set_ant =  ts570_set_ant,
 .get_ant =  ts570_get_ant,
-.set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
+.set_level =  ts570_set_level,
+.get_level =  ts570_get_level,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
