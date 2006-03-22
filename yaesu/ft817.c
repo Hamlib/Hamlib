@@ -11,7 +11,7 @@
  * copied back and adopted for the FT-817.
  *
  *
- *    $Id: ft817.c,v 1.12 2005-09-04 10:44:22 csete Exp $  
+ *    $Id: ft817.c,v 1.13 2006-03-22 21:31:09 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -564,9 +564,14 @@ static int ft817_get_pometer_level(RIG *rig, value_t *val)
 		if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_TX_STATUS)) < 0)
 			return n;
 
-	/* Valid only if PTT is on */
+	/* Valid only if PTT is on.
+           FT-817 returns the number of bars in the lowest 4 bits
+           No documentation on how to interpret it but the max number
+           of bars on the display is 10 and I measure 4 watts on 20m 
+           when I read 8 bars, but the scale is not exactly linear.
+        */
 	if ((p->tx_status & 0x80) == 0)
-		val->f = ((p->tx_status & 0x0F) / 15.0);
+		val->f = ((p->tx_status & 0x0F) / 10.0);
 	else
 		val->f = 0.0;
 
