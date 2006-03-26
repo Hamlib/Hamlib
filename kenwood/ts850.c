@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS850 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts850.c,v 1.21 2006-03-16 19:36:39 pa4tu Exp $
+ *	$Id: ts850.c,v 1.22 2006-03-26 08:01:20 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -96,7 +96,7 @@ const struct rig_caps ts850_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
-.post_write_delay =  0,
+.post_write_delay =  300,
 .timeout =  1000,
 .retry =  3,
 
