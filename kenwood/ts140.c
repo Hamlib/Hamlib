@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS140 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts140.c,v 1.7 2006-03-14 20:06:46 pa4tu Exp $
+ *	$Id: ts140.c,v 1.8 2006-04-10 18:01:15 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -147,8 +147,38 @@ static int ts140_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                	}
 
                	freqbuf[14] = '\0';
-                sscanf(freqbuf+2, "%lld", &f);
+                sscanf(freqbuf+2, "%lld", &f); /* Is a long long int really necessary here? */
                 *freq = (freq_t)f;
+
+                return RIG_OK;
+}
+
+static int ts140_get_mem(RIG *rig, vfo_t vfo, int *ch)
+{
+                char membuf[50];
+                int m, retval;
+                size_t mem_len;
+
+                mem_len = 50;
+
+/* Again, the TS-140S is incapable of supplying the memory location
+* from MC; so we use IF;. Another awful hack, but it's what the radio
+* forces us to use. Furthermore, the radio will not return the value
+* of an empty memory. */
+
+                retval = kenwood_transaction (rig, "IF;", 3, membuf, &mem_len);
+                if (retval != RIG_OK)
+                                return retval;
+
+                if (mem_len != 38 || membuf[1] != 'F') {
+                                rig_debug(RIG_DEBUG_ERR,"ts140_get_mem: wrong answer "
+                                                                "len=%d\n", mem_len);
+                                return -RIG_ERJCTED;
+                }
+
+                membuf[28] = '\0';
+                sscanf(membuf+25, "%d", &m);
+                *ch = m;
 
                 return RIG_OK;
 }
@@ -176,7 +206,7 @@ static int ts140_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 /*
  * ts140 rig capabilities.
- * 	MattD.. 2005-01-29
+ * 	GW0VNR 09042006
  */
 
 const struct rig_caps ts140_caps = {
@@ -281,7 +311,7 @@ const struct rig_caps ts140_caps = {
 .get_func =  kenwood_get_func,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
-.get_mem =  kenwood_get_mem,
+.get_mem =  ts140_get_mem,
 .reset =  kenwood_reset,
 
 };
