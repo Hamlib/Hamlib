@@ -5,7 +5,7 @@ WriteMakefile(
       (#ABSTRACT_FROM => 'Hamlib.pm', # retrieve abstract from module
        AUTHOR     => 'Stephane Fillod') : ()),
 	# should use libtool somehow. Otherwise try -Wl,--rpath 
-    #'LIBS'		=> ['-L../../src/.libs -lhamlib'],
+    #'LIBS'		=> ['-lhamlib'],
     #'DEFINE'		=> '',
     #'INC'		=> '',
     #'OBJECT'		=> 'hamlibperl_wrap.o', # link all the C files too

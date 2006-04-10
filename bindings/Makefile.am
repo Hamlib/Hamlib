@@ -24,7 +24,7 @@ Hamlib-pl.mk: $(srcdir)/Makefile.PL
 			INC="$(INCLUDES)"  \
 			CC="$(CC)"  \
 			OBJECT="hamlibperl_wrap.o" VERSION="$(PACKAGE_VERSION)" \
-			LIBS="-L$(top_builddir)/src/.libs -lhamlib"
+			LIBS="-lhamlib"
 
 all-perl: Hamlib-pl.mk hamlibperl_wrap.c
 	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk all
