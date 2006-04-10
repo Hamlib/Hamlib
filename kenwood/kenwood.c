@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.92 2006-03-14 08:36:38 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.93 2006-04-10 18:00:38 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -377,7 +377,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 							vfo);
 		return -RIG_EINVAL;
 	}
-	freq_len = sprintf(freqbuf,"F%c%011"PRIll";", vfo_letter, (long long)freq);
+	freq_len = sprintf(freqbuf,"F%c%011ld;", vfo_letter, (long)freq);
 
 	ack_len = 0;
 	retval = kenwood_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
