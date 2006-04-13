@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: th.c,v 1.29 2006-03-14 20:06:46 pa4tu Exp $
+ *	$Id: th.c,v 1.30 2006-04-13 19:43:49 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -185,7 +185,7 @@ th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
     char freqbuf[ACKBUF_LEN], ackbuf[ACKBUF_LEN];
     int retval, step;
     size_t ack_len;
-    long long f;
+    long f;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
@@ -195,8 +195,8 @@ th_set_freq (RIG *rig, vfo_t vfo, freq_t freq)
 	}
 
     step = 1;
-    f=(long long) freq;
-    sprintf(freqbuf, "FQ %011"PRIll",%1d"EOM, f, step);
+    f=(long) freq;
+    sprintf(freqbuf, "FQ %011ld,%1d"EOM, f, step);
     ack_len = 0;
     retval = kenwood_transaction(rig, freqbuf, strlen(freqbuf), ackbuf, &ack_len);
     if (retval != RIG_OK)
@@ -1271,7 +1271,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
     int retval;
     size_t ack_len;
     char req[64];
-    long long freq,offset;   
+    long freq,offset;   
     int chn, step, shift, tone, ctcss, tonefq, ctcssfq;
 
     chn=chan->channel_num;
@@ -1338,12 +1338,12 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 	return -RIG_EINVAL;
 
     if(chan->channel_num<=220)
-    sprintf(membuf, "%s,%011"PRIll",%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll",0"EOM,
-                    req,(long long)freq, step, shift, tone,
+    sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll",0"EOM,
+                    req,(long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq, (long long)offset);
     else
-    sprintf(membuf, "%s,%011"PRIll",%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll EOM,
-                    req, (long long)freq, step, shift, tone,
+    sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll EOM,
+                    req, (long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq, (long long)offset);
 
     ack_len = 0;
