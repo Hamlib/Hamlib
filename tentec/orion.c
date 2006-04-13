@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.15 2005-04-15 15:30:09 aa6e Exp $
+ *	$Id: orion.c,v 1.16 2006-04-13 22:24:53 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -456,7 +456,7 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	int cmd_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf (cmdbuf, "*%cF%"PRIll EOM, 
 			which_vfo(rig, vfo),
@@ -474,7 +474,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	int cmd_len, resp_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf(cmdbuf, "?%cF" EOM,
 				which_vfo(rig, vfo));
@@ -503,7 +503,7 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
 {
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
 	int vfo_len;
-	unsigned char vfobuf[TT565_BUFSIZE];
+	char vfobuf[TT565_BUFSIZE];
 
 	if (vfo == RIG_VFO_CURR)
 		return RIG_OK;
@@ -541,7 +541,7 @@ int tt565_get_vfo(RIG *rig, vfo_t *vfo)
 int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
 	int cmd_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf (cmdbuf, "*KV%c%c%c" EOM, 
 			which_vfo(rig, vfo),
@@ -570,7 +570,7 @@ static vfo_t tt2vfo(char c)
 int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
 	int cmd_len, resp_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 	char ttreceiver;
 
 	cmd_len = sprintf(cmdbuf, "?KV" EOM);
@@ -602,9 +602,9 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	struct rig_state *rs = &rig->state;
-	unsigned char ttmode, ttreceiver;
+	char ttmode, ttreceiver;
 	int mdbuf_len, retval;
-	unsigned char mdbuf[TT565_BUFSIZE];
+	char mdbuf[TT565_BUFSIZE];
 
 	switch (mode) {
 	case RIG_MODE_USB:	ttmode = TT565_USB; break;
@@ -644,7 +644,7 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	int cmd_len, resp_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 	char ttmode, ttreceiver;
 
 	ttreceiver = which_receiver(rig, vfo);
@@ -705,7 +705,7 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
 	int cmd_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf(cmdbuf, "*R%cI%d" EOM,
 				which_receiver(rig, vfo),
@@ -719,7 +719,7 @@ int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 	int cmd_len, resp_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf(cmdbuf, "?R%cI" EOM,
 				which_receiver(rig, vfo));
@@ -748,7 +748,7 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
 	int cmd_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf(cmdbuf, "*R%cR%d" EOM,
 				which_receiver(rig, vfo),
@@ -762,7 +762,7 @@ int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
 	int cmd_len, resp_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf(cmdbuf, "?R%cR" EOM,
 				which_receiver(rig, vfo));
@@ -792,7 +792,7 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
 	int cmd_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE];
 
 	/* Sub receiver does not contain an XIT setting */
 
@@ -808,7 +808,7 @@ int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
 	int cmd_len, resp_len, retval;
-	unsigned char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
 
 	cmd_len = sprintf(cmdbuf, "?R%cX" EOM,
 				'M');
@@ -845,7 +845,7 @@ int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 	int resp_len, retval;
-	unsigned char respbuf[TT565_BUFSIZE];
+	char respbuf[TT565_BUFSIZE];
 
 	resp_len = sizeof(respbuf);	
 	retval = tt565_transaction (rig, "?S" EOM, 3, respbuf, &resp_len);
@@ -921,7 +921,7 @@ const char *tt565_get_info(RIG *rig)
 int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	int retval, cmd_len=0, ii;
-	unsigned char cmdbuf[TT565_BUFSIZE], cc;
+	char cmdbuf[TT565_BUFSIZE], cc;
 
 	switch (level) {
 	case RIG_LEVEL_RFPOWER:
@@ -1062,7 +1062,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	int retval, cmd_len, lvl_len;
-	unsigned char cmdbuf[TT565_BUFSIZE],lvlbuf[TT565_BUFSIZE];
+	char cmdbuf[TT565_BUFSIZE],lvlbuf[TT565_BUFSIZE];
 
 	/* Optimize: sort the switch cases with the most frequent first */
 	switch (level) {
@@ -1483,7 +1483,7 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-	unsigned char fcmdbuf[TT565_BUFSIZE];
+	char fcmdbuf[TT565_BUFSIZE];
 	int retval, fcmdlen;
 
 	if (vfo != RIG_VFO_CURR)
@@ -1527,7 +1527,7 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
 int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
-	unsigned char fcmdbuf[TT565_BUFSIZE], frespbuf[TT565_BUFSIZE];
+	char fcmdbuf[TT565_BUFSIZE], frespbuf[TT565_BUFSIZE];
 	int retval, fcmdlen, fresplen;
 
 	if (vfo != RIG_VFO_CURR)
@@ -1591,7 +1591,7 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
  */
 int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 {
-                unsigned char respbuf[TT565_BUFSIZE];
+                char respbuf[TT565_BUFSIZE];
                 int resp_len, retval;
 		ant_t main_ant, sub_ant;
 
@@ -1658,7 +1658,7 @@ int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 
 int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
-                unsigned char respbuf[TT565_BUFSIZE];
+                char respbuf[TT565_BUFSIZE];
                 int resp_len, retval;
 
 		resp_len = sizeof(respbuf);
