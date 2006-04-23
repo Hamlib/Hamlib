@@ -1,4 +1,12 @@
-Orion (TT 565, 565AT) and Orion 2 (TT 566, 566AT)
+Orion (TT 565, 565AT) and Orion II (TT 566, 566AT)
+	The S-meter behavior has changed for Version 2.xxx of
+	firmware for Orion.  Orion II presumably also has a different
+	calibration.  We will recalibrate, but it is not clear
+	if Orion and Orion II will produce the same readings. :-(
+	Please send calibration info to me as indicated on the
+	Hamlib FAQ at http://hamlib.sourceforge.net/faq.html .
+	(23 April 2006)
+
 	These are all covered by the TT565 backend (model 1608).
 	This backend is functioning for basic HF work, although
 	memory, multi-VFO, and antenna selection, etc. are
