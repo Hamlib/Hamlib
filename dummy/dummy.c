@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.39 2004-05-17 21:09:42 fillods Exp $
+ *	$Id: dummy.c,v 1.40 2006-07-02 17:05:26 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1075,7 +1075,9 @@ const struct rig_caps dummy_caps = {
 	{RIG_MODE_WFM, kHz(230)},
 	RIG_FLT_END,
   },
-
+  .max_rit = 9990,
+  .max_xit = 9990,
+  .max_ifshift = 10000,
   .priv =  NULL,	/* priv */
 
   .rig_init =     dummy_init,
