@@ -97,12 +97,12 @@ General Guidelines.
 
 If you just want to recompile the library, please refer
 to the INSTALL file. 
-This document introduces with hacking the code of Hamlib.
+This document introduces hacking the code of Hamlib.
 
 1.1 Obtaining sources: anonymous (pserver) cvs checkout
 
-  cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/hamlib login 
-  cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/hamlib co -P hamlib
+  cvs -d:pserver:anonymous@hamlib.cvs.sourceforge.net:/cvsroot/hamlib login 
+  cvs -z3 -d:pserver:anonymous@hamlib.cvs.sourceforge.net:/cvsroot/hamlib co -P hamlib
 
 When prompted for a password for anonymous, simply press the Enter key.
 The check out has only to be done the first time. 
