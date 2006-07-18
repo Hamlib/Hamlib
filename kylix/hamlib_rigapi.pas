@@ -497,7 +497,7 @@ const
     RIG_FUNC_APF      =	(1 shl 11);		{* Auto Passband Filter *}
     RIG_FUNC_MON      =	(1 shl 12);		{* Monitor transmitted signal, != rev *}
     RIG_FUNC_MN       =	(1 shl 13);		{* Manual Notch (Icom); *}
-    RIG_FUNC_RNF      =	(1 shl 14);		{* RTTY Filter Notch (Icom); *}
+    RIG_FUNC_RF       =	(1 shl 14);		{* RTTY Filter (Icom);  TNX AD7AI -- N0NB *}
     RIG_FUNC_ARO      =	(1 shl 15);		{* Auto Repeater Offset *}
     RIG_FUNC_LOCK     =	(1 shl 16);		{* Lock *}
     RIG_FUNC_MUTE     =	(1 shl 17);		{* Mute, could be emulated by LEVEL_AF*}
