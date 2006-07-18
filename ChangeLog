@@ -1,3 +1,33 @@
+2006-07-03  KHill  <fuzzballz@comcast.net>
+
+	* 
+
+2006-07-03  KHill  <fuzzballz@comcast.net>
+
+	* include/hamlib/rig.h  changed settings_t and rig_idx2setting from long (32 bit words)
+	to long long (64 bit).  The RIG_SETTING_MAX is set to 64.  This caused errors multiple
+	bits of code tried to access the upper 32 bits.  Maybe RIG_SETTING_MAX should be 
+	changed to 32?
+
+	* Icom/frame.c Changed passband mode to reflect the majority of modern rigs and all the old ones I 
+	could find the command documentation for.  Change char buffer defs so the are consistant.
+
+
+2006-06-29  KHill  <fuzzballz@comcast.net>
+
+	* icom/icom.c numerous fixes and updates.  get_ptt, removing unused code and 
+	structures, functions fagc, fbkin, sbkin fixed and vsc (voice squelch added).   
+	tone set for  ctcss fixed, scan fixed.
+
+	* include/hamlib/rig.h rig_func_rnf  (rtty notch filter) renamed to rig_func_rf (rty filter). It is miss-named.
+	It is so far only implemented with Icom.  It is not a notch filter it is a series of
+	predfined filters for rtty mode.  filter mode needs more work.
+
+	* icom/ic746 updated and corrected lots of bugs added parameters and get channels
+	these still need lot of work.  Could probably generalize the parameters for all the newer
+	rigs.
+
+
 2003-04-28 08:34  fillods
 
 	* INSTALL, NEWS, README, README.developer: updates before release

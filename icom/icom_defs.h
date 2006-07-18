@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.17 2004-09-07 21:54:20 fillods Exp $
+ *		$Id: icom_defs.h,v 1.18 2006-07-18 22:51:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,7 +27,7 @@
  *  CI-V frame codes
  */
 #define PR		0xfe		/* Preamble code */
-#define CTRLID	0xe0		/* Controllers's default address */
+#define CTRLID		0xe0		/* Controllers's default address */
 #define BCASTID	0x00		/* Broadcast address */
 #define FI		0xfd		/* End of message code */
 #define ACK		0xfb		/* OK code */
@@ -49,15 +49,23 @@
 
 /*
  * Cn controller commands
+ *
+
+ 	Most radios have 2 or 3 recieve passbands available.  Where only 2 are available they
+	are selected by 01 for wide and 02 for narrow  Actual bandwidth is determined by the filters
+	installed.  With the newer DSP rigs there are 3 presets 01 = wide 02 = middle and 03 = narrow. 
+	Acutally you can set change any of these presets to any thing you want.
+
  * Notes:
- * 1. When wide or normal op available: add "00" for wide, "01" normal
+ * The following only applies to IC-706.
+ * 1.  When wide or normal op available: add "00" for wide, "01" normal
  * 	  Normal or narrow op: add "00" for normal, "01" for narrow
  * 	  Wide, normal or narrow op: add "00" for wide, "01" normal, "02" narrow
  * 2. Memory channel number 1A=0100/1b=0101, 2A=0102/2b=0103,
  * 	  3A=0104/3b=0105, C1=0106, C2=0107
  */
-#define C_SND_FREQ	0x00		/* Send frequency data */
-#define C_SND_MODE	0x01		/* Send mode data, Sc */
+#define C_SND_FREQ	0x00		/* Send frequency data  trancieve mode does not ack*/
+#define C_SND_MODE	0x01		/* Send mode data, Sc  for trancieve mode does not ack */
 #define C_RD_BAND	0x02		/* Read band edge frequencies */
 #define C_RD_FREQ	0x03		/* Read display frequency */
 #define C_RD_MODE	0x04		/* Read display mode */
@@ -68,13 +76,13 @@
 #define C_WR_MEM	0x09		/* Write memory */
 #define C_MEM2VFO	0x0a		/* Memory to VFO */
 #define C_CLR_MEM	0x0b		/* Memory clear */
-#define C_RD_OFFS	0x0c		/* Read duplex offset frequency */
+#define C_RD_OFFS	0x0c		/* Read duplex offset frequency; default changes with HF/6M/2M */
 #define C_SET_OFFS	0x0d		/* Set duplex offset frequency */
 #define C_CTL_SCAN	0x0e		/* Control scan, Sc */
-#define C_CTL_SPLT	0x0f		/* Control split, Sc */
+#define C_CTL_SPLT	0x0f		/* Control split, and duplex mode Sc */
 #define C_SET_TS	0x10		/* Set tuning step, Sc */
-#define C_CTL_ATT	0x11		/* Set attenuator, Sc */
-#define C_CTL_ANT	0x12		/* Set antenna, Sc */
+#define C_CTL_ATT	0x11		/* Set/get attenuator, Sc */
+#define C_CTL_ANT	0x12		/* Set/get antenna, Sc */
 #define C_CTL_ANN	0x13		/* Control announce (speech synth.), Sc */
 #define C_CTL_LVL	0x14		/* Set AF/RF/squelch, Sc */
 #define C_RD_SQSM	0x15		/* Read squelch condiction/S-meter level, Sc */
@@ -133,19 +141,19 @@
 /*
  * Scan control (C_CTL_SCAN) subcommands
  */
-#define S_SCAN_STOP		0x00		/* Stop scan/window scan */
+#define S_SCAN_STOP	0x00		/* Stop scan/window scan */
 #define S_SCAN_START	0x01		/* Programmed/Memory scan */
-#define S_SCAN_PROG		0x02		/* Programmed scan */
+#define S_SCAN_PROG	0x02		/* Programmed scan */
 #define S_SCAN_DELTA	0x03		/* Delta-f scan */
 #define S_SCAN_WRITE	0x04		/* auto memory-write scan */
 #define S_SCAN_FPROG	0x12		/* Fine programmed scan */
 #define S_SCAN_FDELTA	0x13		/* Fine delta-f scan */
-#define S_SCAN_MEM2		0x22		/* Memory scan */
+#define S_SCAN_MEM2	0x22		/* Memory scan */
 #define S_SCAN_SLCTN	0x23		/* Selected number memory scan */
 #define S_SCAN_SLCTM	0x24		/* Selected mode memory scan */
-#define S_SCAN_PRIO		0x42		/* Priority / window scan */
+#define S_SCAN_PRIO	0x42		/* Priority / window scan */
 #define S_SCAN_NSLCT	0xB0        /* Set as non select channel */
-#define S_SCAN_SLCT		0xB1        /* Set as select channel */
+#define S_SCAN_SLCT	0xB1        /* Set as select channel */
 #define S_SCAN_RSMOFF   0xD0        /* Set scan resume OFF */
 #define S_SCAN_RSMON    0xD3        /* Set scan resume ON */
 
@@ -162,7 +170,7 @@
 /*
  * Set Attenuator (C_CTL_ATT) subcommands
  */
-#define S_ATT_RD	0x00		/* Without subcommand, reads out setting */
+#define S_ATT_RD	-1		/* Without subcommand, reads out setting */
 #define S_ATT_OFF	0x00		/* Off */
 #define S_ATT_6dB	0x06		/* 6 dB, IC-756Pro */
 #define S_ATT_10dB	0x10		/* 10 dB */
@@ -181,7 +189,7 @@
 /*
  * Set antenna (C_SET_ANT) subcommands
  */
-#define S_ANT_RD	0x00		/* Without subcommand, reads out setting */
+#define S_ANT_RD	-1		/* Without subcommand, reads out setting */
 #define S_ANT1		0x00		/* Antenna 1 */
 #define S_ANT2		0x01		/* Antenna 2 */
 
@@ -202,24 +210,27 @@
 #define S_LVL_APF		0x05		/* APF level setting */
 #define S_LVL_NR		0x06		/* NR level setting */
 #define S_LVL_PBTIN		0x07		/* Twin PBT setting (inside) */
-#define S_LVL_PBTOUT	0x08		/* Twin PBT setting (outside) */
-#define S_LVL_CWPITCH	0x09		/* CW pitch setting */
-#define S_LVL_RFPOWER	0x0a		/* RF power setting */
-#define S_LVL_MICGAIN	0x0b		/* MIC gain setting */
-#define S_LVL_KEYSPD	0x0c		/* Key Speed setting */
-#define S_LVL_NOTCHF	0x0d		/* Notch freq. setting */
+#define S_LVL_PBTOUT		0x08		/* Twin PBT setting (outside) */
+#define S_LVL_CWPITCH		0x09		/* CW pitch setting */
+#define S_LVL_RFPOWER		0x0a		/* RF power setting */
+#define S_LVL_MICGAIN		0x0b		/* MIC gain setting */
+#define S_LVL_KEYSPD		0x0c		/* Key Speed setting */
+#define S_LVL_NOTCHF		0x0d		/* Notch freq. setting */
 #define S_LVL_COMP		0x0e		/* Compressor level setting */
-#define S_LVL_BKINDL	0x0f		/* BKin delay setting */
-#define S_LVL_BALANCE	0x10		/* Balance setting (Dual watch) */
+#define S_LVL_BKINDL		0x0f		/* BKin delay setting */
+#define S_LVL_BALANCE		0x10		/* Balance setting (Dual watch) */
 
 /*
- * Read squelch condition/S-meter level (C_RD_SQSM) subcommands
+ * Read squelch condition/S-meter level/other meter levels (C_RD_SQSM) subcommands
  */
 #define S_SQL	0x01		/* Read squelch condition */
 #define S_SML	0x02		/* Read S-meter level */
+#define S_RFML	0x11		/* Read RF-meter level */
+#define S_SWR	0x12		/* Read SWR-meter level */
+#define S_ALC	0x13		/* Read ALC-meter level */
 
 /*
- * Function settings (C_CTL_FUNC) subcommands
+ * Function settings (C_CTL_FUNC) subcommands  Set and Read
  */
 #define S_FUNC_PAMP	0x02		/* Preamp setting */
 #define S_FUNC_AGCOFF	0x10		/* IC-R8500 only */
@@ -240,13 +251,10 @@
 #define S_FUNC_VOX	0x46		/* VOX setting */
 #define S_FUNC_BKIN	0x47		/* BK-IN setting */
 #define S_FUNC_MN	0x48		/* Manual notch setting */
-#define S_FUNC_RNF	0x49		/* RTTY Filter Notch setting */
-#define S_FUNC_AFC  0x4A        /* Auto Frequency Control (AFC) setting */
-
-/*
- * Transceiver ID (C_RD_TRXID) subcommands
- */
-#define S_TRXID	0x00		/* Read transceiver ID code */
+#define S_FUNC_RF	0x49		/* RTTY Filter setting */
+#define S_FUNC_AFC  	0x4A        /* Auto Frequency Control (AFC) setting */
+#define S_FUNC_DTCS	0x4B		/*DTCS tone code squelch setting*/
+#define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
 
 /*
  * Set Power On/Off (C_SET_PWR) subcommands
@@ -257,14 +265,23 @@
 /*
  * Transmit control (C_CTL_PTT) subcommands
  */
-#define S_PTT	0x00
+#define S_PTT		0x00
+#define S_ANT_TUN	0x01	/* Auto tuner 0=OFF, 1 = ON, 2=Start Tuning */
 
 /*
- * Memory contents (C_CTL_MEM) subcommands
+ * Misc contents (C_CTL_MEM) subcommands
  */
-#define S_MEM_CNTNT	0x00
+#define S_MEM_CNTNT		0x00	/* Memory content 2 bigendian */
+#define S_MEM_BAND_REG		0x01	/* band stacking register */
+#define S_MEM_FILT_WDTH		0x03	/* current passband filter width */
+#define S_MEM_PARM		0x05	/* rig parameters; extended parm # + param value */
+#define S_MEM_DATA_MODE		0x06	/* data mode */
+#define S_MEM_TX_PB		0x07	/* SSB tx passband */
+#define S_MEM_FLTR_SHAPE	0x08	/* filter shape 0=sharp 1=soft */
+
+					/* Icr75c */
 #define S_MEM_CNTNT_SLCT	0x01
-#define S_MEM_FILT_SLCT		0x01
+#define S_MEM_FLT_SLCT		0x01
 #define S_MEM_MODE_SLCT		0x02
                                     /* For IC-910H rig. */
 #define S_MEM_RDWR_MEM      0x00    /* Read/write memory channel */
@@ -277,14 +294,37 @@
 #define S_MEM_SATMODE       0x07    /* Satellite mode (on/off) */
 #define S_MEM_BANDSCOPE     0x08    /* Simple bandscope (on/off) */
 
+				    /*IC-746Pro Rig parameters Sc=S_MEM_PARM */
+#define S_MEM_LCD_CONT		0x01	/* LCD Contrast 0-256/0-100% */
+#define S_MEM_BKLIT		0x02	/* Backlight  0-256/0-100% */
+#define S_MEM_BEEP		0x06	/* Button confirmation */
+
+					/* values -9.999 MHz to + 9.999 Mhz */
+#define S_MEM_SPLT_OFST		0x12	/* default split offset 4 bytes little endian last byte sign*/
+
+					/* values 0.000 MHz to + 9.999 Mhz */
+#define S_MEM_HF_DUP_OFST	0x14	/* default HF band duplex offset 3 byte little endian */
+#define S_MEM_6M_DUP_OFST	0x15	/* default 50 mHz duplex offset  3 byte little endian */
+#define S_MEM_2M_DUP_OFST	0x16	/* default 144 MHz duplex offset  3 byte little endian */
+
+#define S_MEM_LANG		0x23	/* 0=English 1=Japanese */
+#define S_MEM_RTTY_FLTR_PB	0x62	/* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */
+#define S_MEM_RTTY_TWNPEAK	0x63	/* rtty twin peak filter off/on */
+#define S_MEM_SCN_SPD		0x70	/* 0 = low; 1 = high */
+#define S_MEM_NB_LVL		0x72	/* NB level 0-255 */
+#define S_MEM_VOX_GN_LVL	0x73	
+#define S_MEM_AVOX_GN_LVL	0x74	/* anti-vox gain */
+#define S_MEM_VOX_DEL_LVL	0x75	/* vox delay 0=0 - 20=2.0 sec */
+
 /*
  * Tone control (C_SET_TONE) subcommands
  */
-#define S_TONE_RPTR	0x00		/* Tone frequency setting for repeater user */
+#define S_TONE_RPTR	0x00		/* Tone frequency setting for repeater receive */
 #define S_TONE_SQL	0x01		/* Tone frequency setting for squelch */
+#define S_TONE_DTCS	0x02		/* DTCS code and polarity for squelch */
 
 /*
- * C_RD_TRXID
+ * Transceiver ID (C_RD_TRXID) subcommands
  */
 #define S_RD_TRXID 0x00
 

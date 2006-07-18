@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.95 2006-01-09 21:45:06 fillods Exp $
+ *	$Id: icom.c,v 1.96 2006-07-18 22:51:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -136,7 +136,7 @@ const struct ts_sc_list ic756_ts_sc_list[] = {
 };
 
 const struct ts_sc_list ic756pro_ts_sc_list[] = {
-	{ 10, 0x00 },
+	{ 10, 0x00 },	/* 1 if step turned off */
 	{ 100, 0x01 },
 	{ kHz(1), 0x02 },
 	{ kHz(5), 0x03 },
@@ -176,6 +176,14 @@ const struct ts_sc_list ic910_ts_sc_list[] = {
         { kHz(25), 0x10 },
         { kHz(100), 0x11 },
         { 0, 0 },
+};
+
+const struct rtty_fltr_list rtty_fil[] = {
+	{ Hz(250), 0x00 },
+	{ Hz(300), 0x01 },
+	{ Hz(350), 0x02 },
+	{ Hz(500), 0x03 },
+	{ kHz(1), 0x04 },
 };
 
 struct icom_addr {
@@ -301,8 +309,6 @@ int icom_init(RIG *rig)
 	 *          + override with preferences
 	 */
 
-	priv->re_civ_addr = 0x00;
-
 	priv->re_civ_addr = priv_caps->re_civ_addr;
 	priv->civ_731_mode = priv_caps->civ_731_mode;
 
@@ -417,13 +423,8 @@ int icom_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
 int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int freq_len, ack_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 
 	freq_len = 2;
@@ -529,13 +530,9 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int icom_set_vfo(RIG *rig, vfo_t vfo)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char ackbuf[MAXFRAMELEN];
 	int ack_len, icvfo, retval;
 
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	if (vfo == RIG_VFO_CURR)
 		return RIG_OK;
@@ -1044,13 +1041,8 @@ int icom_get_conf(RIG *rig, token_t token, char *val)
  */
 int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char ackbuf[MAXFRAMELEN], pttbuf[1];
 	int ack_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	pttbuf[0] = ptt == RIG_PTT_ON ? 1 : 0;
 
@@ -1074,13 +1066,8 @@ int icom_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
  */
 int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char pttbuf[MAXFRAMELEN];
 	int ptt_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	retval = icom_transaction (rig, C_CTL_PTT, S_PTT, NULL, 0,
 					pttbuf, &ptt_len);
@@ -1088,16 +1075,16 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		return retval;
 
 	/*
-	 * freqbuf should contain Cn,Data area
+	 * freqbuf should contain Cn,Sc,Data area
 	 */
-	ptt_len--;
+	ptt_len -= 2;
 	if (ptt_len != 1) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_ptt: wrong frame len=%d\n",
 						ptt_len);
 		return -RIG_ERJCTED;
 	}
 
-	*ptt = pttbuf[1] == 1 ? RIG_PTT_ON : RIG_PTT_OFF;
+	*ptt = pttbuf[2] == 1 ? RIG_PTT_ON : RIG_PTT_OFF;
 
 	return RIG_OK;
 }
@@ -1108,14 +1095,9 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  */
 int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char dcdbuf[MAXFRAMELEN];
 	int dcd_len, retval;
 	int icom_val;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	retval = icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0,
 					dcdbuf, &dcd_len);
@@ -1152,14 +1134,9 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char ackbuf[MAXFRAMELEN];
 	int ack_len, retval;
 	int rptr_sc;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	switch (rptr_shift) {
 	case RIG_RPT_SHIFT_NONE:
@@ -1194,17 +1171,13 @@ int icom_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
 /*
  * icom_get_rptr_shift
  * Assumes rig!=NULL, rig->state.priv!=NULL, rptr_shift!=NULL
- * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF
+ * will not work for IC-746 Pro
+ * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF 
  */
 int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char rptrbuf[MAXFRAMELEN];
 	int rptr_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0,
 					rptrbuf, &rptr_len);
@@ -1245,13 +1218,8 @@ int icom_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shift)
  */
 int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char offsbuf[MAXFRAMELEN],ackbuf[MAXFRAMELEN];
 	int ack_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	/*
 	 * Icoms are using a 100Hz unit (at least on 706MKIIg) -- SF
@@ -1279,13 +1247,9 @@ int icom_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
  */
 int icom_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char offsbuf[MAXFRAMELEN];
 	int offs_len, retval;
 
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	retval = icom_transaction (rig, C_RD_OFFS, -1, NULL, 0,
 				offsbuf, &offs_len);
@@ -1489,14 +1453,10 @@ int icom_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_wid
  */
 int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char ackbuf[MAXFRAMELEN];
 	int ack_len, retval;
 	int split_sc;
 
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	switch (split) {
 	case RIG_SPLIT_OFF:
@@ -1530,13 +1490,8 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
  */
 int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char splitbuf[MAXFRAMELEN];
 	int split_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	retval = icom_transaction (rig, C_CTL_SPLT, -1, NULL, 0,
 					splitbuf, &split_len);
@@ -1637,7 +1592,7 @@ int icom_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 /*
  * icom_get_ts
  * Assumes rig!=NULL, rig->caps->priv!=NULL, ts!=NULL
- * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF
+ * NOTE: seems not to work (tested on IC-706MkIIG), please report --SF  Not available on 746pro
  */
 int icom_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
@@ -1699,7 +1654,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_sc = S_FUNC_AGC;
 		/* note: should it be a LEVEL only, and no func? --SF */
 		if (status != 0)
-			fctbuf[0] = 0x01;	/* default to 0x01 super-fast */
+			fctbuf[0] = 0x03;	/* default to 0x03 in IC746 pro super-fast */
 		else
 			fctbuf[0] = 0x02;
 		break;
@@ -1723,10 +1678,21 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_TSQL;
 		break;
-	case RIG_FUNC_SBKIN:		/* FIXME ? */
+	case RIG_FUNC_SBKIN:
+		fct_cn = C_CTL_FUNC;
+		fct_sc = S_FUNC_BKIN;
+		if (status != 0)
+			fctbuf[0] = 0x01;
+		else
+			fctbuf[0] = 0x00;
+		break;
 	case RIG_FUNC_FBKIN:
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_BKIN;
+		if (status != 0)
+			fctbuf[0] = 0x02;
+		else
+			fctbuf[0] = 0x00;
 		break;
 	case RIG_FUNC_ANF:
 		fct_cn = C_CTL_FUNC;
@@ -1748,9 +1714,13 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_MN;
 		break;
-	case RIG_FUNC_RNF:
+	case RIG_FUNC_RF:
 		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_RNF;
+		fct_sc = S_FUNC_RF;
+		break;
+	case RIG_FUNC_VSC:
+		fct_cn = C_CTL_FUNC;
+		fct_sc = S_FUNC_VSC;
 		break;
         case RIG_FUNC_AFC:      /* IC-910H */
             fct_cn = C_CTL_FUNC;
@@ -1764,7 +1734,7 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
             fct_cn = C_CTL_MEM;
             fct_sc = S_MEM_BANDSCOPE;
             break;
-	case RIG_FUNC_RESUME:	/* IC-910H */
+	case RIG_FUNC_RESUME:	/* IC-910H  & IC-746-Pro*/
 		fct_cn = C_CTL_SCAN;
 		fct_sc = status ? S_SCAN_RSMON : S_SCAN_RSMOFF;
 		fct_len = 0;
@@ -1805,7 +1775,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	switch (func) {
 	case RIG_FUNC_FAGC:
 		fct_cn = C_CTL_FUNC;
-		fct_sc = S_FUNC_AGC;	/* default to 0x01 super-fast */
+		fct_sc = S_FUNC_AGC;	/* default to 0x01=slow 0x03=super-fast */
 		break;
 	case RIG_FUNC_NB:
 		fct_cn = C_CTL_FUNC;
@@ -1827,7 +1797,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_TSQL;
 		break;
-	case RIG_FUNC_SBKIN:		/* FIXME ? */
+	case RIG_FUNC_SBKIN:		/* returns 1 for semi and 2 for full adjusted below */
 	case RIG_FUNC_FBKIN:
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_BKIN;
@@ -1852,11 +1822,15 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_MN;
 		break;
-	case RIG_FUNC_RNF:
+	case RIG_FUNC_RF:
             fct_cn = C_CTL_FUNC;
-            fct_sc = S_FUNC_RNF;
+            fct_sc = S_FUNC_RF;
             break;
-        case RIG_FUNC_AFC:      /* IC-910H */
+	case RIG_FUNC_VSC:
+            fct_cn = C_CTL_FUNC;
+            fct_sc = S_FUNC_VSC;
+            break;
+         case RIG_FUNC_AFC:      /* IC-910H */
             fct_cn = C_CTL_FUNC;
             fct_sc = S_FUNC_AFC;
             break;
@@ -1882,9 +1856,11 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		rig_debug(RIG_DEBUG_ERR,"icom_get_func: wrong frame len=%d\n",
 					ack_len);
 		return -RIG_EPROTO;
-	}
-
-	*status = ackbuf[2];
+	} 
+	if (func != RIG_FUNC_FBKIN)
+		*status = ackbuf[2];
+	else
+		*status = ackbuf[2] == 2 ? 1 : 0;
 
 	return RIG_OK;
 }
@@ -1892,6 +1868,7 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 /*
  * icom_set_parm
  * Assumes rig!=NULL
+These are very much rig specific and should probably be in rig files.  These are for ICR75C only.
  */
 int icom_set_parm(RIG *rig, setting_t parm, value_t val)
 {
@@ -2070,10 +2047,11 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
 
 /*
  * icom_set_ctcss_tone
- * Assumes rig!=NULL, rig->state.priv!=NULL
+ * Assumes rig!=NULL, rig->state.priv!=NULL 
  *
  * Warning! This is untested stuff! May work at least on 756PRO and IC746.
  * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
+   Works for 746 pro and should work for 756 xx and 7800
  */
 int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
@@ -2090,10 +2068,11 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	 * Most probably, it might be the index of the CTCSS subaudible
 	 * tone, and not the tone itself, starting from zero.
 	 *
-	 * Something in the range of 00..51, BCD big endian
+	 * Something in the range of 00..51, BCD big endian 4 nibbles
 	 * Please someone let me know if it works this way. --SF
+	 * No. sent directly as be nibbles with frequency same format as internal kh
 	 */
-	for (i = 0; caps->ctcss_list[i] != 0 && i<200; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
 		if (caps->ctcss_list[i] == tone)
 			break;
 	}
@@ -2101,7 +2080,7 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 		return -RIG_EINVAL;
 
 	tone_len = 1;
-	to_bcd_be(tonebuf, (long long)i, tone_len*2);
+	to_bcd_be(tonebuf, tone, tone_len*2);
 
 	retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR,
 				tonebuf, tone_len, ackbuf, &ack_len);
@@ -2125,13 +2104,13 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[MAXFRAMELEN];
-	int tone_len, tone_idx, retval;
+	int tone_len, retval;
 	int i;
 
 	caps = rig->caps;
 
 	/*
-	 * see icom_set_ctcss for discussion on the untested status!
+	 * see icom_set_ctcss for discussion on the status!
 	 */
 
 	retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, NULL, 0,
@@ -2139,26 +2118,25 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (tone_len != 3) {
+	/* cn,sc,data*3 */
+	if (tone_len != 5) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_tone: ack NG (%#.2x), "
 					"len=%d\n", tonebuf[0], tone_len);
 		return -RIG_ERJCTED;
 	}
 
 	tone_len -= 2;
-	tone_idx = from_bcd_be(tonebuf, tone_len*2);
+	*tone = from_bcd_be(tonebuf+2, tone_len*2);
 
 	/* check this tone exists. That's better than nothing. */
-	for (i = 0; i<=tone_idx; i++) {
-		if (caps->ctcss_list[i] == 0) {
-			rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_tone: CTCSS NG "
-					"(%#.2x)\n", tonebuf[2]);
-			return -RIG_EPROTO;
-		}
+	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+		if (caps->ctcss_list[i] == *tone)
+			return RIG_OK;
 	}
-	*tone = caps->ctcss_list[tone_idx];
 
-	return RIG_OK;
+	rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_tone: CTCSS NG "
+					"(%#.2x)\n", tonebuf[2]);
+	return -RIG_EPROTO;
 }
 
 /*
@@ -2168,7 +2146,7 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
  * Warning! This is untested stuff! May work at least on 756PRO and IC746.
  * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
  */
-int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
+int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
@@ -2181,7 +2159,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 	 * see icom_set_ctcss for discussion on the untested status!
 	 */
 
-	for (i = 0; caps->ctcss_list[i] != 0 && i<200; i++) {
+	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
 		if (caps->ctcss_list[i] == tone)
 			break;
 	}
@@ -2189,7 +2167,7 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
 		return -RIG_EINVAL;
 
 	tone_len = 1;
-	to_bcd_be(tonebuf, (long long)i, tone_len*2);
+	to_bcd_be(tonebuf, tone, tone_len*2);
 
 	retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL,
 					tonebuf, tone_len, ackbuf, &ack_len);
@@ -2209,11 +2187,11 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int tone)
  * icom_get_ctcss_sql
  * Assumes rig!=NULL, rig->state.priv!=NULL
  */
-int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
+int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	const struct rig_caps *caps;
 	unsigned char tonebuf[MAXFRAMELEN];
-	int tone_len, tone_idx, retval;
+	int tone_len, retval;
 	int i;
 
 	caps = rig->caps;
@@ -2227,26 +2205,24 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, unsigned int *tone)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (tone_len != 3) {
+	if (tone_len != 5) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_sql: ack NG (%#.2x), "
 					"len=%d\n", tonebuf[0], tone_len);
 		return -RIG_ERJCTED;
 	}
 
 	tone_len -= 2;
-	tone_idx = from_bcd_be(tonebuf, tone_len*2);
+	*tone = from_bcd_be(tonebuf+2, tone_len*2);
 
 	/* check this tone exists. That's better than nothing. */
-	for (i = 0; i<=tone_idx; i++) {
-		if (caps->ctcss_list[i] == 0) {
-			rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_sql: CTCSS NG "
-					"(%#.2x)\n", tonebuf[2]);
-			return -RIG_EPROTO;
-		}
+	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
+		if (caps->ctcss_list[i] == *tone)
+			return RIG_OK;	
 	}
-	*tone = caps->ctcss_list[tone_idx];
 
-	return RIG_OK;
+	rig_debug(RIG_DEBUG_ERR,"icom_get_ctcss_sql: CTCSS NG "
+				"(%#.2x)\n", tonebuf[2]);
+	return -RIG_EPROTO;
 }
 
 
@@ -2322,15 +2298,10 @@ int icom_get_powerstat(RIG *rig, powerstat_t *status)
  */
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char membuf[2];
 	unsigned char ackbuf[MAXFRAMELEN];
 	int ack_len, retval;
 	int chan_len;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	chan_len = ch < 100 ? 1 : 2;
 
@@ -2355,14 +2326,9 @@ int icom_set_mem(RIG *rig, vfo_t vfo, int ch)
  */
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char bankbuf[2];
 	unsigned char ackbuf[MAXFRAMELEN];
 	int ack_len, retval;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	to_bcd_be(bankbuf, bank, BANK_NB_LEN*2);
 	retval = icom_transaction (rig, C_SET_MEM, S_BANK,
@@ -2385,18 +2351,13 @@ int icom_set_bank(RIG *rig, vfo_t vfo, int bank)
  */
 int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char antarg;
 	unsigned char ackbuf[MAXFRAMELEN];
 	int ack_len, retval, i_ant;
 	int ant_len;
 
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
-
 	/*
-	 * FIXME: IC-756*, IC-746*
+	 * FIXME: IC-756*
 	 */
 	i_ant = ant == RIG_ANT_1 ? 0: 1;
 
@@ -2419,6 +2380,7 @@ int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 /*
  * icom_get_ant
  * Assumes rig!=NULL, rig->state.priv!=NULL
+ * only meaningfull for HF
  */
 int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
@@ -2430,23 +2392,12 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (rig->caps->rig_model == RIG_MODEL_ICR75) {
-		if (ack_len != 2 || ackbuf[0] != C_CTL_ANT) {
-			rig_debug(RIG_DEBUG_ERR,"icom_get_ant: ack NG (%#.2x), "
-						"len=%d\n", ackbuf[0],ack_len);
-			return -RIG_ERJCTED;
-		}
-	}
-	else
-	if (ack_len != 1 || ackbuf[0] != ACK) {
+	if (ack_len != 2 || ackbuf[0] != C_CTL_ANT) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_ant: ack NG (%#.2x), "
 					"len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
 	}
-
-	/*
-	 * FIXME: IC-756*, IC-746*
-	 */
+	
 	*ant = ackbuf[1] == 0 ? RIG_ANT_1 : RIG_ANT_2;
 
 	return RIG_OK;
@@ -2459,15 +2410,10 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
  */
 int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
-	struct icom_priv_data *priv;
-	struct rig_state *rs;
 	unsigned char mvbuf[MAXFRAMELEN];
 	unsigned char ackbuf[MAXFRAMELEN];
 	int mv_len, ack_len, retval;
 	int mv_cn, mv_sc;
-
-	rs = &rig->state;
-	priv = (struct icom_priv_data*)rs->priv;
 
 	mv_len = 0;
 

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.28 2006-02-26 18:48:07 fillods Exp $
+ *	$Id: frame.c,v 1.29 2006-07-18 22:51:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,11 +47,11 @@
  * REM: if "data" is NULL, then "data_len" MUST be 0.
  *
  * NB: the frame array must be big enough to hold the frame.
- * 		The smallest frame is 8 bytes, the biggest is at least 13 bytes.
+ * 		The smallest frame is 6 bytes, the biggest is at least 13 bytes.
  *
  * TODO: inline the function?
  */
-int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *data, int data_len)
+int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const unsigned char *data, int data_len)
 {	
 	int i = 0;
 
@@ -63,9 +63,9 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
 	frame[i++] = re_id;
 	frame[i++] = CTRLID;
 	frame[i++] = cmd;
-	if (subcmd != -1)
-			frame[i++] = subcmd & 0xff;
-
+	if (subcmd != -1) 
+		frame[i++] = subcmd & 0xff;
+		
 	if (data_len != 0) {
 		memcpy(frame+i, data, data_len);
 		i += data_len;
@@ -88,7 +88,7 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const char *d
  * return RIG_OK if transaction completed, 
  * or a negative value otherwise indicating the error.
  */
-int icom_one_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len)
+int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len)
 {
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
@@ -235,7 +235,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const char *payload, in
  * return RIG_OK if transaction completed, 
  * or a negative value otherwise indicating the error.
  */
-int icom_transaction (RIG *rig, int cmd, int subcmd, const char *payload, int payload_len, char *data, int *data_len)
+int icom_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len)
 {
 	int retval, retry;
 
@@ -309,7 +309,7 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 	medium_width = rig_passband_normal(rig, mode);
 	if (width == medium_width || width == RIG_PASSBAND_NORMAL)
-			icmode_ext = -1;	/* medium, no passband data */
+			icmode_ext = -1;	/* medium, no passband data-> rig default. Is medium always the default? */
 	else if (width < medium_width)
 			icmode_ext = PD_NARROW;
 	else
@@ -362,26 +362,18 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 		*mode = RIG_MODE_NONE;
 	}
 	
-	/* IC-R75 returns passband indexes 1-wide, 2-normal,3-narrow */
-	if ((rig->caps->rig_model == RIG_MODEL_ICR75) || 
-			(rig->caps->rig_model == RIG_MODEL_IC756PROII))
-		pd = 3-pd;
+	/* Most rigs return 1-wide, 2-normal,3-narrow  see defs of PD_NARROW etc in the ICOM_defs file.  That is what the rig2icom func uses. */
+	
 	
 	switch (pd) {
-		case 0x00: *width = rig_passband_narrow(rig, *mode); break;
-		case 0x01: *width = rig_passband_normal(rig, *mode); break;
-		case 0x02: *width = rig_passband_wide(rig, *mode); break;
+		case 0x03: *width = rig_passband_narrow(rig, *mode); break;
+		case 0x02: *width = rig_passband_normal(rig, *mode); break;
+		case 0x01: *width = rig_passband_wide(rig, *mode); break;
 		case -1: break;		/* no passband data */
-	case 0x03:
-		if (rig->caps->rig_model == RIG_MODEL_IC751) {
-			*width = rig_passband_narrow(rig, *mode);
-			break;
-		}
-		/* else fall through */
+	
 	default:
 		rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n",
 						pd);
-		*width = RIG_PASSBAND_NORMAL;
 	}
 }
 

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.70 2004-09-26 08:35:03 fillods Exp $
+ *	$Id: icom.h,v 1.71 2006-07-18 22:51:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -79,6 +79,14 @@ struct ts_sc_list {
 	unsigned char sc;	/* sub command */
 };
 
+/*
+ * rtty filter passband width; available on pro rigs
+ */
+struct rtty_fltr_list {
+	shortfreq_t bw; /* filter width */
+	unsigned char sel;
+};
+
 /**
  * \brief Pipelined tuning state data structure.
  */
@@ -118,6 +126,8 @@ extern const struct ts_sc_list ic756pro_ts_sc_list[];
 extern const struct ts_sc_list ic706_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
+
+extern const struct rtty_fltr_list rtty_fil[];
 
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);

@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.111 2006-03-18 07:41:13 y32kn Exp $
+ *	$Id: rig.h,v 1.112 2006-07-18 22:51:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -627,7 +627,7 @@ enum rig_parm_e {
 #define RIG_PARM_IS_FLOAT(l) ((l)&RIG_PARM_FLOAT_LIST)
 #define RIG_PARM_SET(l) ((l)&~RIG_PARM_READONLY_LIST)
 
-#define RIG_SETTING_MAX 32
+#define RIG_SETTING_MAX 64
 /**
  * \brief Setting
  *
@@ -664,7 +664,7 @@ enum rig_func_e {
 	RIG_FUNC_APF =     	(1<<11),/*!< Auto Passband Filter */
 	RIG_FUNC_MON =     	(1<<12),/*!< Monitor transmitted signal */
 	RIG_FUNC_MN =     	(1<<13),/*!< Manual Notch */
-	RIG_FUNC_RNF =     	(1<<14),/*!< RTTY Filter Notch */
+	RIG_FUNC_RF =     	(1<<14),/*!< RTTY Filter */
 	RIG_FUNC_ARO =     	(1<<15),/*!< Auto Repeater Offset */
 	RIG_FUNC_LOCK =     	(1<<16),/*!< Lock */
 	RIG_FUNC_MUTE =     	(1<<17),/*!< Mute */
@@ -818,6 +818,8 @@ struct filter_list {
  */
 #define RIG_CHFLAG_NONE	0
 #define RIG_CHFLAG_SKIP	(1<<0)
+/* DATA port mode flag */
+#define RIG_CHFLAG_DATA (1<<1)
 
 /**
  * \brief Extension attribute definition

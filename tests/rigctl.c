@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.58 2005-04-20 13:29:43 fillods Exp $  
+ * $Id: rigctl.c,v 1.59 2006-07-18 22:51:43 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -1788,7 +1788,7 @@ declare_proto_rig(send_cmd)
 {
 	int retval;
 	struct rig_state *rs;
-	int backend_num;
+	int backend_num, cmd_len;
 #define BUFSZ 128
 	char bufcmd[BUFSZ];
 	char buf[BUFSZ];
@@ -1806,10 +1806,13 @@ declare_proto_rig(send_cmd)
 			pp = p+1;
 			bufcmd[i] = strtol(p+1, &p, 0);
 		}
-		bufcmd[i] = '\0';
+		cmd_len = i-1;
+		/* must save length to allow 0x00 to be sent as part of a command
+		*/
 	} else {
 		strncpy(bufcmd,arg1,BUFSZ);
 		bufcmd[BUFSZ-1] = '\0';
+		cmd_len = strlen(bufcmd);
 		/*
 		 * assumes CR is end of line char
 		 * for all ascii protocols
@@ -1821,7 +1824,7 @@ declare_proto_rig(send_cmd)
 
 	serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, bufcmd, strlen(bufcmd));
+	retval = write_block(&rs->rigport, bufcmd, cmd_len);
 	if (retval != RIG_OK)
 		return retval;
 

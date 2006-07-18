@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.38 2005-04-09 09:49:12 fillods Exp $
+ *	$Id: misc.c,v 1.39 2006-07-18 22:51:43 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -314,7 +314,7 @@ static struct {
 	{ RIG_FUNC_AIP, "AIP" },
 	{ RIG_FUNC_MON, "MON" },
 	{ RIG_FUNC_MN, "MN" },
-	{ RIG_FUNC_RNF, "RNF" },
+	{ RIG_FUNC_RF, "RF" },
 	{ RIG_FUNC_ARO, "ARO" },
 	{ RIG_FUNC_LOCK, "LOCK" },
 	{ RIG_FUNC_MUTE, "MUTE" },

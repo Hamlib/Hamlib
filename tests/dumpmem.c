@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.8 2002-07-10 21:34:53 fillods Exp $  
+ *    $Id: dumpmem.c,v 1.9 2006-07-18 22:51:43 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -184,7 +184,7 @@ int dump_chan(RIG *rig, int chan_num)
 		if (chan.funcs&RIG_FUNC_APF) printf("APF ");
 		if (chan.funcs&RIG_FUNC_MON) printf("MON ");
 		if (chan.funcs&RIG_FUNC_MN) printf("MN ");
-		if (chan.funcs&RIG_FUNC_RNF) printf("RNF ");
+		if (chan.funcs&RIG_FUNC_RF) printf("RF ");
 		printf("\n");
 	} else
 			printf("none\n");
