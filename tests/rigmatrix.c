@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.20 2004-08-29 18:21:26 fineware Exp $  
+ *    $Id: rigmatrix.c,v 1.21 2006-09-22 14:31:19 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -253,7 +253,7 @@ int print_caps_parm(const struct rig_caps *caps, void *data)
 	/*
 	 * bitmap_parm: only those who have a label
 	 */
-	for (i = 0; i < 60; i++) {
+	for (i = 0; i < RIG_SETTING_MAX; i++) {
 			if (rig_idx2setting(i) & bitmap_parm)
 					print_yn(parm & rig_idx2setting(i));
 	}
@@ -283,7 +283,7 @@ int print_caps_level(const struct rig_caps *caps, void *data)
 	/*
 	 * bitmap_level: only those who have a label
 	 */
-	for (i = 0; i < 60; i++) {
+	for (i = 0; i < 32; i++) {
 			if (rig_idx2setting(i) & bitmap_level)
 					print_yn(level & rig_idx2setting(i));
 	}
@@ -313,7 +313,7 @@ int print_caps_func(const struct rig_caps *caps, void *data)
 	/*
 	 * bitmap_func: only those who have a label
 	 */
-	for (i = 0; i < 60; i++) {
+	for (i = 0; i < RIG_SETTING_MAX; i++) {
 			if (rig_idx2setting(i) & bitmap_func)
 					print_yn(func & rig_idx2setting(i));
 	}
@@ -554,7 +554,7 @@ int main (int argc, char *argv[])
 	bitmap_func = 0;
 	prntbuf[0] = '\0';
 	pbuf = prntbuf;
-	for (i = 0; i < 60; i++) {
+	for (i = 0; i < RIG_SETTING_MAX; i++) {
 			setting_t func = rig_idx2setting(i);
 			const char *s = rig_strfunc(func);
 			if (!s)
@@ -584,7 +584,7 @@ int main (int argc, char *argv[])
 	bitmap_level = 0;
 	prntbuf[0] = '\0';
 	pbuf = prntbuf;
-	for (i = 0; i < 60; i++) {
+	for (i = 0; i < RIG_SETTING_MAX; i++) {
 			setting_t level = rig_idx2setting(i);
 			const char *s = rig_strlevel(level);
 			if (!s)
@@ -614,7 +614,7 @@ int main (int argc, char *argv[])
 	bitmap_parm = 0;
 	prntbuf[0] = '\0';
 	pbuf = prntbuf;
-	for (i = 0; i < 60; i++) {
+	for (i = 0; i < RIG_SETTING_MAX; i++) {
 			setting_t parm = rig_idx2setting(i);
 			const char *s = rig_strparm(parm);
 			if (!s)

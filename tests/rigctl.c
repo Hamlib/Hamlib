@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.59 2006-07-18 22:51:43 n0nb Exp $  
+ * $Id: rigctl.c,v 1.60 2006-09-22 14:31:19 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -1695,7 +1695,7 @@ void dump_chan(RIG *rig, channel_t *chan)
 	printf("Functions: %s\n", prntbuf);
 	
 	printf("Levels:");
-	for (idx=0; idx<60; idx++) {
+	for (idx=0; idx<RIG_SETTING_MAX; idx++) {
 		setting_t level = rig_idx2setting(idx);
 		const char *level_s;
 
