@@ -1,3 +1,17 @@
+2006-09-04  AD7AI <fuzzballz@comcast.net>
+ 
+ 	* Changed Icom make_cmd_frame code to accept multi-byte subcommands;
+ 
+ 	* Added HAMLIB_API rig_ext_lookup_tok	to return pointer ext parameter table with token input.
+ 
+ 	* Added icom_get_dsp_filter to allow lib to read the programable filter assignments.  This includes
+ 	the rtty filter modes for some of the dsp rigs.  Does not allow them to be set yet.
+ 
+ 	* Added get/set_ext_parm code for IC746 pro and fixed the 756proII/III ext_parm code.
+ 	This should be easily modified for the IC7000 and 7800 ext parameters.
+ 	
+ 	* fixed misc mismatched sign warnings on parameters.
+ 
 2006-07-30  AD7AI <fuzzballz@comcast.net>
 
 	*  RIG_SETTING_MAX changed back to 32 and rigctl and rigmatrix corrected to reflect 32

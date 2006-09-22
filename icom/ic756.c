@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.13 2006-07-18 22:51:42 n0nb Exp $
+ *	$Id: ic756.c,v 1.14 2006-09-22 19:55:58 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,7 +44,7 @@
 /* 
  * 100W in all modes but AM (40W)
  */ 
-#define IC756_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define IC756_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC756_AM_TX_MODES (RIG_MODE_AM)
 
 #define IC756PRO_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_NR|RIG_FUNC_MON|RIG_FUNC_MN|RIG_FUNC_RF)
@@ -380,10 +380,8 @@ static const struct icom_priv_caps ic756pro2_priv_caps = {
 /*
  * These TOKEN_BACKEND's are on a different name space than conf's
  */
-#define TOK_SSBBASS TOKEN_BACKEND(1)
-#define TOK_MEMNAME TOKEN_BACKEND(2)
-#define TOK_SQLCTRL TOKEN_BACKEND(3)
-#define TOK_MYCALL  TOKEN_BACKEND(4)
+#define TOK_MEMNAME TOKEN_BACKEND(1)
+#define TOK_MYCALL  TOKEN_BACKEND(2)
 
 static const struct confparams ic756pro2_ext_parms[] = {
 	{ TOK_SSBBASS, "ssbbass", "SSB Tx Tone (Bass)", "SSB Tx Tone (Bass)",
@@ -398,6 +396,9 @@ static const struct confparams ic756pro2_ext_parms[] = {
 	{ TOK_MYCALL, "mycall", "Callsign", "My call sign",
 		NULL, RIG_CONF_STRING, { }
 	},
+	{ TOK_RTTY_FLTR, "rttyfltr", "RTTY Fltr Width preset", "Set/Read RTTY preset filter width",
+		"3", RIG_CONF_COMBO, { .c = {{"250", "300", "350", "500", "1000", NULL }} }
+	},
 	{ RIG_CONF_END, NULL, }
 };
 
@@ -408,13 +409,28 @@ static const struct confparams ic756pro2_ext_parms[] = {
  * STRING: val.cs for set, val.s for get
  * CHECKBUTTON: val.i 0/1
  */
+ 
+ /*IC-756Pro Rig parameters Only available in this namespace*/
+#define S_MEM_SC_LEN		2	/* 756PRO S_MEM subcmd length */
+#define S_MEM_SBASS		0x501	/* SSB TX tone bass level */
+#define S_MEM_NAME		0x514	/* send/read memory name */
+#define S_MEM_MYCALL		0x515
+#define S_MEM_BEEP		0x520	/* Button confirmation */
+#define S_MEM_SQL_CTL		0x522	/* RF/SQL ctl set 0=auto; 1 = sql; 2 = RF+SQL */
+#define S_MEM_QSPLT		0x524	/* enable quick split mode */
+#define S_MEM_TRCV		0x532	/* CI-V trancieve mode */
+#define S_MEM_LANG		0x536	/* 0=English 1=Japanese for voice announcer */
+#define S_MEM_SCN_SPD		0x556	/* 0 = low; 1 = high */
+#define S_MEM_RTTY_FL_PB	0x561	/* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */
+#define S_MEM_RTTY_TWNPK	0x562	/* rtty twin peak filter off/on */
+
 
 static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val);
 static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val);
 
 #define IC756PROII_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROII_1HZ_TS_MODES IC756PROII_ALL_RX_MODES
-#define IC756PROII_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC756PROII_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROII_AM_TX_MODES (RIG_MODE_AM)
 
 
@@ -567,7 +583,8 @@ static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
 	struct rig_state *rs;
 	unsigned char epbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
 	int ack_len, ep_len, val_len;
-	int ep_menu;             /* Menu in $1A $05 */
+	int ep_cmd = C_CTL_MEM;
+	int ep_sc;             /* Subcommand in $1A $05xx */
 	int icom_val = 0;
 	int retval;
 
@@ -579,36 +596,40 @@ static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
 
 	switch(token) {
 	case TOK_SSBBASS:
-		ep_menu = 0x01;
+		ep_sc = S_MEM_SBASS ;
 		icom_val = val.f;
 		break;
 	case TOK_MEMNAME:
-		ep_menu = 0x14;
+		ep_sc = S_MEM_NAME;
 		icom_val = val.i ? 1 : 0;
 		break;
 	case TOK_SQLCTRL:
-		ep_menu = 0x22;
-		/* TODO: check range */
+		ep_sc = S_MEM_SQL_CTL;
+		/* TODO: check range this actually doesn't decode the input type 'string' */
 		icom_val = val.i;
 		break;
 	case TOK_MYCALL:	/* max 10 ASCII char */
 		ep_len = strlen(val.cs);
 		if (ep_len > 10)
 			return -RIG_EINVAL;
-		ep_menu = 0x15;
-		memcpy(epbuf+1, val.cs, ep_len);
+		ep_sc = S_MEM_MYCALL;
+		memcpy(epbuf, val.cs, ep_len);
+		break;
+	case TOK_RTTY_FLTR:	/* RTTY filter mode 0 - 4 = 250, 300, 350, 500, 1000 */
+		if (val.i < 0 || val.i > 4) return -RIG_EINVAL;
+		ep_sc = S_MEM_RTTY_FL_PB;
+		icom_val = val.f;
 		break;
 	default:
 		return -RIG_EINVAL;
 	}
 
-	epbuf[0] = ep_menu;
-	if (ep_len++ == 0) {
-		to_bcd_be(epbuf+1, (long long)icom_val, val_len*2);
+	if (ep_len == 0) {
+		to_bcd_be(epbuf, (long long)icom_val, val_len*2);
 		ep_len += val_len;
 	}
 
-	retval = icom_transaction (rig, C_CTL_MEM, 0x05, epbuf, ep_len,
+	retval = icom_transaction (rig, ep_cmd, ep_sc, epbuf, ep_len,
 						ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
@@ -629,14 +650,86 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
 	struct icom_priv_data *priv;
 	struct rig_state *rs;
+	const struct confparams *cfp;
+	
+	unsigned char resbuf[MAXFRAMELEN];
+	int res_len, icom_val;
+	int cmdhead;
+	int retval;
+	
+	int ep_cmd = C_CTL_MEM;
+	int ep_sc;             /* Subcommand in $1A $05xx */
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
 	switch(token) {
+	case TOK_SSBBASS:
+		ep_sc = S_MEM_SBASS ;
+		break;
+	case TOK_MEMNAME:
+		ep_sc = S_MEM_NAME;
+		break;
+	case TOK_SQLCTRL:
+		ep_sc = S_MEM_SQL_CTL;
+		break;
+	case TOK_MYCALL:	/* max 10 ASCII char */
+		ep_sc = S_MEM_MYCALL;
+		break;
+	case TOK_RTTY_FLTR:	/* RTTY filter mode 0 - 4 */
+		ep_sc = S_MEM_RTTY_FL_PB;
+		break;
 	default:
-		return -RIG_ENIMPL;
+		rig_debug(RIG_DEBUG_ERR,"Unsupported get_ext_parm %d", token);
+		return -RIG_EINVAL;
 	}
+	
+	retval = icom_transaction (rig, ep_cmd, ep_sc, NULL, 0,
+					resbuf, &res_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	/*
+	 * strbuf should contain Cn,Sc,Data area
+	 */
+	cmdhead = (ep_sc == -1) ? 1:S_MEM_SC_LEN + 1;
+	res_len -= cmdhead;
+/* should echo cmd, subcmd and then data, if you get an ack something is wrong */
+	if (resbuf[0] != ep_cmd) {
+		if (resbuf[0] == ACK) {
+				rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+		return -RIG_EPROTO;
+		}
+		else {
+			rig_debug(RIG_DEBUG_ERR,"%s: ack NG (%#.2x), "
+				"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+		return -RIG_ERJCTED;
+		}
+	}
+	cfp = rig_ext_lookup_tok(rig, token);
+	switch(cfp->type) {
+		case RIG_CONF_STRING:
+		 memcpy(val->s, resbuf, res_len);
+		break;
+		case RIG_CONF_COMBO:
+		 val->i = from_bcd_be(resbuf+cmdhead, res_len*2);
+		break;
+		case RIG_CONF_NUMERIC:
+		 val->f = from_bcd_be(resbuf+cmdhead, res_len*2);
+		break;
+		default:
+		 rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+		return -RIG_EPROTO;
+		
+	/* The examples of code usage for RIG_CONF_NUMERIC types seems to be restricted to raw floating
+	 point values.  Although the Val definitions allow both integer and  floating point types  The combo
+	 types appear to be left in undecoded form*/
+	}
+	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
+			__FUNCTION__, res_len, icom_val, val->i, val->f);
+	
 	return RIG_OK;
 }
 
@@ -657,7 +750,7 @@ static const struct icom_priv_caps ic756pro3_priv_caps = {
 
 #define IC756PROIII_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROIII_1HZ_TS_MODES IC756PROIII_ALL_RX_MODES
-#define IC756PROIII_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
+#define IC756PROIII_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROIII_AM_TX_MODES (RIG_MODE_AM)
 
 

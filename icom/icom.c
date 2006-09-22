@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.96 2006-07-18 22:51:42 n0nb Exp $
+ *	$Id: icom.c,v 1.97 2006-09-22 19:55:58 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -178,12 +178,14 @@ const struct ts_sc_list ic910_ts_sc_list[] = {
         { 0, 0 },
 };
 
-const struct rtty_fltr_list rtty_fil[] = {
-	{ Hz(250), 0x00 },
-	{ Hz(300), 0x01 },
-	{ Hz(350), 0x02 },
-	{ Hz(500), 0x03 },
-	{ kHz(1), 0x04 },
+/* rtty filter list for some DSP rigs ie PRO */ 
+const pbwidth_t rtty_fil[] = {
+	Hz(250),
+	Hz(300),
+	Hz(350),
+	Hz(500),
+	kHz(1),
+	0, 
 };
 
 struct icom_addr {
@@ -448,6 +450,45 @@ int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 }
 
 
+/* icom_get_dsp_flt 
+	returns the dsp filter width in hz or 0 if the command is not implemented or error.  This allows the default parameters to be assigned from the get_mode routine if the command is not implemented.
+	Assumes rig != null and the current mode is in mode.
+	
+	Has been tested for IC-746pro,  Should work on the all dsp rigs ie pro models. 
+	The 746 documentation says it has the get_if_filter, but doesn't give any decoding information ? Please test.
+*/
+	
+pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
+
+	int retval, res_len, rfstatus;
+	unsigned char resbuf[MAXFRAMELEN];
+	value_t rfwidth;
+
+	if (rig_has_get_func(rig, RIG_FUNC_RF) && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR))) {
+		if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
+		retval = rig_get_ext_parm (rig, TOK_RTTY_FLTR, &rfwidth);
+		if (retval != RIG_OK) return 0;	/* use default */
+		else  return rtty_fil[rfwidth.i];
+		}
+	}
+	retval = icom_transaction (rig, C_CTL_MEM, S_MEM_FILT_WDTH, 0, 0,
+			resbuf, &res_len);
+	if (retval != RIG_OK) {
+		rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+		"len=%d\n", __FUNCTION__,resbuf[0],res_len);
+			return 0;	/* use default */
+	}
+	if (res_len == 3 && resbuf[0] == C_CTL_MEM) {
+		int i;
+		i = (int) from_bcd(resbuf + 2, 2);
+
+		if (mode & RIG_MODE_AM)  return (i  + 1)* 200; /* Ic_7800 */
+		else if ( mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY | 	RIG_MODE_RTTYR)) return i < 10 ? ++i * 50 : (i -4) * 100;
+	}
+	return 0;
+}
+
+
 /*
  * icom_set_mode
  * Assumes rig!=NULL, rig->state.priv!=NULL
@@ -473,7 +514,7 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		icmode_ext = -1;
 
 	retval = icom_transaction (rig, C_SET_MODE, icmode, &icmode_ext,
-				icmode_ext == -1 ? 0 : 1, ackbuf, &ack_len);
+				(icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -520,6 +561,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	icom2rig_mode(rig, modebuf[1], mode_len==2 ? modebuf[2] : -1, mode, width);
+
+	/* Most rigs return 1-wide, 2-normal,3-narrow  For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode    Lets check for dsp filters */
+	
+	if (retval = icom_get_dsp_flt(rig, *mode)) *width = retval;
 
 	return RIG_OK;
 }

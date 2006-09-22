@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.18 2006-07-18 22:51:42 n0nb Exp $
+ *		$Id: icom_defs.h,v 1.19 2006-09-22 19:55:59 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -90,7 +90,7 @@
 #define C_SND_CW	0x17		/* Send CW message */
 #define C_SET_PWR	0x18		/* Set Power ON/OFF, Sc */
 #define C_RD_TRXID	0x19		/* Read transceiver ID code */
-#define C_CTL_MEM	0x1a		/* Misc memory/bank functions, Sc */
+#define C_CTL_MEM	0x1a		/* Misc memory/bank/rig control functions, Sc */
 #define C_SET_TONE	0x1b		/* Set tone frequency */
 #define C_CTL_PTT	0x1c		/* Control Transmit On/Off, Sc */
 #define C_CTL_MISC	0x7f		/* Miscellaneous control, Sc */
@@ -113,6 +113,8 @@
 #define S_CWR	0x07		/* Set to CW Reverse */
 #define S_RTTYR	0x08		/* Set to RTTY Reverse */
 #define S_AMS	0x11		/* Set to AMS */
+#define S_PSK	0x12		/* 7800 PSK USB */
+#define S_PSKR	0x13		/* 7800 PSK LSB */
 
 #define S_R7000_SSB	0x05	/* Set to SSB on R-7000 */
 #define PD_WIDE		0x01	/* Wide */
@@ -154,6 +156,7 @@
 #define S_SCAN_PRIO	0x42		/* Priority / window scan */
 #define S_SCAN_NSLCT	0xB0        /* Set as non select channel */
 #define S_SCAN_SLCT	0xB1        /* Set as select channel */
+#define S_SCAN_SL_NUM	0xB2		/* select programed mem scan 7800 only */
 #define S_SCAN_RSMOFF   0xD0        /* Set scan resume OFF */
 #define S_SCAN_RSMON    0xD3        /* Set scan resume ON */
 
@@ -228,6 +231,7 @@
 #define S_RFML	0x11		/* Read RF-meter level */
 #define S_SWR	0x12		/* Read SWR-meter level */
 #define S_ALC	0x13		/* Read ALC-meter level */
+#define S_CMP	0x14		/* Read COMP-meter level */
 
 /*
  * Function settings (C_CTL_FUNC) subcommands  Set and Read
@@ -235,7 +239,7 @@
 #define S_FUNC_PAMP	0x02		/* Preamp setting */
 #define S_FUNC_AGCOFF	0x10		/* IC-R8500 only */
 #define S_FUNC_AGCON 	0x11		/* IC-R8500 only */
-#define S_FUNC_AGC	0x12		/* AGC setting */
+#define S_FUNC_AGC	0x12		/* AGC setting presets: the dsp models allow these to be modified */
 #define S_FUNC_NBOFF	0x20		/* IC-R8500 only */
 #define S_FUNC_NBON	0x21		/* IC-R8500 only */
 #define S_FUNC_NB	0x22		/* NB setting */
@@ -255,6 +259,8 @@
 #define S_FUNC_AFC  	0x4A        /* Auto Frequency Control (AFC) setting */
 #define S_FUNC_DTCS	0x4B		/*DTCS tone code squelch setting*/
 #define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
+#define S_FUNC_TW_PK	0x4F		/* RTTY Twin Peak filter 0= off 1 = on */
+#define S_FUNC_DIAL_LK	0x50		/* Dial lock */
 
 /*
  * Set Power On/Off (C_SET_PWR) subcommands
@@ -269,15 +275,16 @@
 #define S_ANT_TUN	0x01	/* Auto tuner 0=OFF, 1 = ON, 2=Start Tuning */
 
 /*
- * Misc contents (C_CTL_MEM) subcommands
+ * Misc contents (C_CTL_MEM) subcommands applies to newer rigs.
  */
 #define S_MEM_CNTNT		0x00	/* Memory content 2 bigendian */
 #define S_MEM_BAND_REG		0x01	/* band stacking register */
 #define S_MEM_FILT_WDTH		0x03	/* current passband filter width */
-#define S_MEM_PARM		0x05	/* rig parameters; extended parm # + param value */
+#define S_MEM_PARM		0x05	/* rig parameters; extended parm # + param value:  should be coded */
+					/* in the rig files because they are different for each rig */
 #define S_MEM_DATA_MODE		0x06	/* data mode */
 #define S_MEM_TX_PB		0x07	/* SSB tx passband */
-#define S_MEM_FLTR_SHAPE	0x08	/* filter shape 0=sharp 1=soft */
+#define S_MEM_FLTR_SHAPE	0x08	/* DSP filter shape 0=sharp 1=soft */
 
 					/* Icr75c */
 #define S_MEM_CNTNT_SLCT	0x01
@@ -294,27 +301,6 @@
 #define S_MEM_SATMODE       0x07    /* Satellite mode (on/off) */
 #define S_MEM_BANDSCOPE     0x08    /* Simple bandscope (on/off) */
 
-				    /*IC-746Pro Rig parameters Sc=S_MEM_PARM */
-#define S_MEM_LCD_CONT		0x01	/* LCD Contrast 0-256/0-100% */
-#define S_MEM_BKLIT		0x02	/* Backlight  0-256/0-100% */
-#define S_MEM_BEEP		0x06	/* Button confirmation */
-
-					/* values -9.999 MHz to + 9.999 Mhz */
-#define S_MEM_SPLT_OFST		0x12	/* default split offset 4 bytes little endian last byte sign*/
-
-					/* values 0.000 MHz to + 9.999 Mhz */
-#define S_MEM_HF_DUP_OFST	0x14	/* default HF band duplex offset 3 byte little endian */
-#define S_MEM_6M_DUP_OFST	0x15	/* default 50 mHz duplex offset  3 byte little endian */
-#define S_MEM_2M_DUP_OFST	0x16	/* default 144 MHz duplex offset  3 byte little endian */
-
-#define S_MEM_LANG		0x23	/* 0=English 1=Japanese */
-#define S_MEM_RTTY_FLTR_PB	0x62	/* 0=250 Hz, 1=300' 2 = 350, 3 = 500, 4 = 1 KHz */
-#define S_MEM_RTTY_TWNPEAK	0x63	/* rtty twin peak filter off/on */
-#define S_MEM_SCN_SPD		0x70	/* 0 = low; 1 = high */
-#define S_MEM_NB_LVL		0x72	/* NB level 0-255 */
-#define S_MEM_VOX_GN_LVL	0x73	
-#define S_MEM_AVOX_GN_LVL	0x74	/* anti-vox gain */
-#define S_MEM_VOX_DEL_LVL	0x75	/* vox delay 0=0 - 20=2.0 sec */
 
 /*
  * Tone control (C_SET_TONE) subcommands
@@ -358,5 +344,19 @@
 #define S_PRM_SLEEP		0x32
 #define S_PRM_SLPTM		0x33
 #define S_PRM_TIME		0x27
+
+/*
+ * Tokens for Extra Level and Parameters common to multiple rigs.  Use token # > 99.  Defined here so they
+ * will be available in ICOM name space. They have different internal commands primarily in dsp rigs.  These
+ * tokens are used ext_lvl and ext_parm funtions in the individual rig files.
+ * Extra parameters which are rig specific should be coded in the individual rig files and token #s < 100.
+ */
+ 
+#define TOKEN_BACKEND(t) (t)
+
+#define TOK_RTTY_FLTR TOKEN_BACKEND(100)
+#define TOK_SSBBASS TOKEN_BACKEND(101)
+#define TOK_SQLCTRL TOKEN_BACKEND(102)
+
 
 #endif /* _ICOM_DEFS_H */

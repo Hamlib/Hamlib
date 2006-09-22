@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.71 2006-07-18 22:51:42 n0nb Exp $
+ *	$Id: icom.h,v 1.72 2006-09-22 19:55:59 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,10 +37,12 @@
  * defines used by comp_cal_str in rig.c
  * STR_CAL_LENGTH is the lenght of the S Meter calibration table
  * STR_CAL_S0 is the value in dB of the lowest value (not even in table)
+ * MULTIB_SUBCMD allows the dsp rigs ie pro models to use multibyte subcommands for all the extra
+ * parameters and levels.
  */
 #define STR_CAL_LENGTH 16
 #define STR_CAL_S0 -54
-
+#define MULTIB_SUBCMD
 
 /*
  * minimal channel caps.
@@ -77,14 +79,6 @@
 struct ts_sc_list {
 	shortfreq_t ts;	/* tuning step */
 	unsigned char sc;	/* sub command */
-};
-
-/*
- * rtty filter passband width; available on pro rigs
- */
-struct rtty_fltr_list {
-	shortfreq_t bw; /* filter width */
-	unsigned char sel;
 };
 
 /**
@@ -127,7 +121,9 @@ extern const struct ts_sc_list ic706_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
 
-extern const struct rtty_fltr_list rtty_fil[];
+extern const pbwidth_t rtty_fil[];	/* rtty filter passband width; available on pro rigs */
+
+pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode);
 
 int icom_init(RIG *rig);
 int icom_cleanup(RIG *rig);

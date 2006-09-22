@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.29 2006-07-18 22:51:42 n0nb Exp $
+ *	$Id: frame.c,v 1.30 2006-09-22 19:55:58 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,9 +63,17 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const unsigne
 	frame[i++] = re_id;
 	frame[i++] = CTRLID;
 	frame[i++] = cmd;
-	if (subcmd != -1) 
+	if (subcmd != -1) {
+#ifdef MULTIB_SUBCMD
+		register int j;
+		if (j = subcmd & 0xff0000) {  /* allows multi-byte subcmd for dsp rigs */
+			frame[i++] = j >> 16;
+			frame[i++] = (subcmd & 0xff00) >> 8;
+		}
+		else if (j = subcmd & 0xff00) frame[i++] = j >> 8;
+#endif
 		frame[i++] = subcmd & 0xff;
-		
+	}	
 	if (data_len != 0) {
 		memcpy(frame+i, data, data_len);
 		i += data_len;
@@ -283,7 +291,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
  * assumes rig!=NULL
  */
 int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width, 
-				unsigned char *md, char *pd)
+				unsigned char *md, signed char *pd)
 {
 	unsigned char icmode;
 	signed char icmode_ext;
@@ -354,6 +362,8 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 	case S_LSB:	*mode = RIG_MODE_LSB; break;
 	case S_RTTY:	*mode = RIG_MODE_RTTY; break;
 	case S_RTTYR:	*mode = RIG_MODE_RTTYR; break;
+	case S_PSK:	*mode = RIG_MODE_PKTUSB; break;	/* IC-7800 */
+	case S_PSKR:	*mode = RIG_MODE_PKTLSB; break;
 	case 0xff:	*mode = RIG_MODE_NONE; break;	/* blank mem channel */
 
 	default:
@@ -362,18 +372,24 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 		*mode = RIG_MODE_NONE;
 	}
 	
-	/* Most rigs return 1-wide, 2-normal,3-narrow  see defs of PD_NARROW etc in the ICOM_defs file.  That is what the rig2icom func uses. */
-	
+	/* Most rigs return 1-wide, 2-narrow; or if it has 3 filters: 1-wide, 2-middle, 3-narrow. (Except for the 706 mkIIg 0-wide, 1-middle, 2-narrow.)  For DSP rigs these are presets, which can be programmed for 30 - 41 bandwidths, depending on mode  */
+
+	if (rig->caps->rig_model == RIG_MODEL_IC706MKIIG || rig->caps->rig_model == RIG_MODEL_IC706 || rig->caps->rig_model ==  RIG_MODEL_IC706MKII) pd--;
 	
 	switch (pd) {
+		case 0x01: if (!(*width = rig_passband_wide(rig, *mode)))  /* if no wide filter defined it's the default */
+				 *width = rig_passband_normal(rig, *mode);
+			    break;
+		case 0x02: if (*width = rig_passband_wide(rig, *mode))
+			 *width = rig_passband_normal(rig, *mode); 
+			   else *width = rig_passband_narrow(rig, *mode); /* This really just depends on how you program the table. */
+			   break;
 		case 0x03: *width = rig_passband_narrow(rig, *mode); break;
-		case 0x02: *width = rig_passband_normal(rig, *mode); break;
-		case 0x01: *width = rig_passband_wide(rig, *mode); break;
 		case -1: break;		/* no passband data */
 	
 	default:
-		rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n",
-						pd);
+		rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n", pd);
 	}
+return ;
 }
 

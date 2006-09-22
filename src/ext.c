@@ -2,7 +2,7 @@
  *  Hamlib Interface - extrq parameter interface
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ext.c,v 1.3 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: ext.c,v 1.4 2006-09-22 19:55:59 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -94,6 +94,29 @@ const struct confparams * HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
 			return cfp;
 	for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
 		if (!strcmp(cfp->name, name))
+			return cfp;
+	return NULL;
+}
+
+/*
+ * lookup ext token, return pointer to confparams struct.
+ *
+ * lookup extlevels table first, then fall back to extparms.
+ *
+ * Returns NULL if nothing found
+ */
+const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
+{
+	const struct confparams *cfp;
+
+	if (!rig || !rig->caps)
+		return NULL;
+
+	for (cfp = rig->caps->extlevels; cfp && cfp->token; cfp++)
+		if (cfp->token == token)
+			return cfp;
+	for (cfp = rig->caps->extparms; cfp && cfp->token; cfp++)
+		if (cfp->token == token)
 			return cfp;
 	return NULL;
 }
