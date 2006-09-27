@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.113 2006-09-22 14:31:19 n0nb Exp $
+ *	$Id: rig.h,v 1.114 2006-09-27 11:38:25 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1500,6 +1500,7 @@ extern HAMLIB_EXPORT(int) rig_get_ext_parm HAMLIB_PARAMS((RIG *rig, token_t toke
 extern HAMLIB_EXPORT(int) rig_ext_level_foreach HAMLIB_PARAMS((RIG *rig, int (*cfunc)(RIG*, const struct confparams *, rig_ptr_t), rig_ptr_t data));
 extern HAMLIB_EXPORT(int) rig_ext_parm_foreach HAMLIB_PARAMS((RIG *rig, int (*cfunc)(RIG*, const struct confparams *, rig_ptr_t), rig_ptr_t data));
 extern HAMLIB_EXPORT(const struct confparams*) rig_ext_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
+extern HAMLIB_EXPORT(const struct confparams *)  rig_ext_lookup_tok HAMLIB_PARAMS((RIG *rig, token_t token));
 extern HAMLIB_EXPORT(token_t) rig_ext_token_lookup HAMLIB_PARAMS((RIG *rig, const char *name));
 
 
