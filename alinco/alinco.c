@@ -2,7 +2,7 @@
  *  Hamlib Alinco backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.27 2005-04-10 21:47:12 fillods Exp $
+ *	$Id: alinco.c,v 1.28 2006-10-07 16:55:04 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -800,9 +800,9 @@ int alinco_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->ctcss_list[i] != tone)
 			return -RIG_EINVAL;
 
-	tone_len = sprintf(tonebuf, AL CMD_CTCSS "%02d" EOM, i+1);
+	tone_len = sprintf((char *) tonebuf, AL CMD_CTCSS "%02d" EOM, i+1);
 	
-	return alinco_transaction (rig, tonebuf, tone_len, NULL, NULL);
+	return alinco_transaction (rig, (char *) tonebuf, tone_len, NULL, NULL);
 }
 
 /*
