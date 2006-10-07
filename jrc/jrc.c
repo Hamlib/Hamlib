@@ -2,7 +2,7 @@
  *  Hamlib JRC backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.28 2005-05-04 20:57:52 fineware Exp $
+ *	$Id: jrc.c,v 1.29 2006-10-07 17:51:00 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -303,9 +303,9 @@ int jrc_set_vfo(RIG *rig, vfo_t vfo)
 		return -RIG_EINVAL;
 	}
 
-	cmd_len = sprintf(cmdbuf, "%c" EOM, vfo_function);
+	cmd_len = sprintf((char *) cmdbuf, "%c" EOM, vfo_function);
 	
-	retval = jrc_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = jrc_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
 }
@@ -1018,7 +1018,7 @@ int jrc_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
  */
 int jrc_set_trn(RIG *rig, int trn)
 {
-	unsigned char *trncmd;
+	char *trncmd;
 
 	/* transceive(continuous) mode not available in remote mode
 	 * so switch back and forth upon entering/leaving
@@ -1034,7 +1034,7 @@ int jrc_set_trn(RIG *rig, int trn)
  */
 int jrc_set_powerstat(RIG *rig, powerstat_t status)
 {
-	unsigned char pwrbuf[BUFSZ];
+	char pwrbuf[BUFSZ];
 	int pwr_len;
 
 	pwr_len = sprintf(pwrbuf, "T%d" EOM, status==RIG_POWER_ON?1:0);
@@ -1081,7 +1081,7 @@ int jrc_get_powerstat(RIG *rig, powerstat_t *status)
  */
 int jrc_reset(RIG *rig, reset_t reset)
 {
-	unsigned char rstbuf[BUFSZ];
+	char rstbuf[BUFSZ];
 	int rst_len;
 	char rst;
 
