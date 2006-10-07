@@ -1,47 +1,117 @@
+2006-10-07	Alexandru Csete <csete@users.sourceforge.net>
+
+	* src/rig.c, src/rotator.c, src/mem.c, src/iofunc.c:
+	Cast constant caps to variable caps in order to avoid compiler warnings.
+
+	* alinco/alinco.c, alinco/dx77.c:
+	* yaesu/yaesu.c, yaesu/ft100.c, yaesu/ft747.c, yaesu/ft817.c:
+	* yaesu/ft847.c, yaesu/ft890.c, yaesu/ft900.c, yaesu/ft920.c:
+	* yaesu/ft100mp.c, yaesu/ft857.c, yaesu/ft897.c, yaesu/ft990.c:
+	* yaesu/frg8800.c, yaesu/ft757gx.c, ft736.c, yaesu/frg100.c:
+	* yaesu/frg9600.c:
+	Cast unsigned char to char in order to avoid compiler warnings. Ensure
+	that all variables have a value before they are used (ft920). Disable
+	unused functions and variables (frg100). Incremented backend version
+	numbers.
+
+	* pcr/pcr.h, pcr/pcr.c:
+	Use tone_t for pcr1_ctcss_list.
+	Changed arg 4 of pcr_transaction to unsigned. Cast the other mismatches
+	to (char *).
+
+	* tentec/tentec.c, tentec/tentec2.c, tentec/jupiter.c, tentec/tt550.c:
+	* kachina/kachina.c, kachina/505dsp.c:
+	* jrc/jrc.[ch]:
+	* drake/drake.[ch]:
+	* lowe/lowe.c, lowe/hf235.c:
+	* rft/rft.c, rft/ekd500.c:
+	* tapr/tapr.c, tapr/dsp10.c:
+	* wj/wj.c, wj/wj8888.c:
+	* easycomm/easycomm.c, rotorez/rotorez.c, sartek/sartek.c:
+	Cast/change unsigned char to char in order to fix compile warnings.
+	Incremented backend version numbers.
+
+	* tests/rotctl.c:
+	Cast unsigned char to char in order to avoid compiler warnings.
+	Handle all enum values in switch statements.
+
+	* tests/rigctl.c, tests/memsave.c, tests/memload.c:
+	Fixed type mismatches that caused compiler warnings.
+
+	* icom/ic756.c, icom/746.c:
+	Initialise icom_val to avoid compiler warning.
+
+	* icom/icom.c, icom/icom.h, icom/icr75.c, icom/optoscan.c:
+	Fixed type mismatches between signed and unsigned char.
+	There are a few very suspicious 'if' statements in icom.c and frame.c
+
+	* aor/aor.c, aor/ar3000.c, aor/ar3030.c, aor/ar7030.c:
+	Fixed type mismatches and unhandled switch cases.
+	Incremented backend version numbers.
+	
+ 
 2006-09-04  AD7AI <fuzzballz@comcast.net>
- 
- 	* Changed Icom make_cmd_frame code to accept multi-byte subcommands;
- 
- 	* Added HAMLIB_API rig_ext_lookup_tok	to return pointer ext parameter table with token input.
- 
- 	* Added icom_get_dsp_filter to allow lib to read the programable filter assignments.  This includes
- 	the rtty filter modes for some of the dsp rigs.  Does not allow them to be set yet.
- 
- 	* Added get/set_ext_parm code for IC746 pro and fixed the 756proII/III ext_parm code.
- 	This should be easily modified for the IC7000 and 7800 ext parameters.
+
+	* files?:
+ 	Changed Icom make_cmd_frame code to accept multi-byte subcommands;
+
+	* files?:
+ 	Added HAMLIB_API rig_ext_lookup_tok to return pointer ext parameter
+	table with token input.
+
+	* files?:
+	Added icom_get_dsp_filter to allow lib to read the programable filter
+	assignments.  This includes the rtty filter modes for some of the dsp
+	rigs. Does not allow them to be set yet.
+
+	* files?:
+ 	Added get/set_ext_parm code for IC746 pro and fixed the 756proII/III
+	ext_parm code. This should be easily modified for the IC7000 and 7800
+	ext parameters.
  	
- 	* fixed misc mismatched sign warnings on parameters.
+	* files:?
+	fixed misc mismatched sign warnings on parameters.
+	
  
 2006-07-30  AD7AI <fuzzballz@comcast.net>
 
-	*  RIG_SETTING_MAX changed back to 32 and rigctl and rigmatrix corrected to reflect 32
-	    bit words per readme.developer.  Rigmatrix could use a little more testing, but seems to
-	    work ok.
+	* files?:
+	RIG_SETTING_MAX changed back to 32 and rigctl and rigmatrix corrected
+	to reflect 32 bit words per readme.developer. Rigmatrix could use a
+	little more testing, but seems to work ok.
+	
 
 2006-07-03  KHill  <fuzzballz@comcast.net>
 
-	* include/hamlib/rig.h  changed settings_t and rig_idx2setting from long (32 bit words)
-	to long long (64 bit).  The RIG_SETTING_MAX is set to 64.  This caused errors multiple
-	bits of code tried to access the upper 32 bits.  Maybe RIG_SETTING_MAX should be 
-	changed to 32?
+	* include/hamlib/rig.h:
+	Changed settings_t and rig_idx2setting from long (32 bit words) to
+	long long (64 bit).  The RIG_SETTING_MAX is set to 64.  This caused
+	errors multiple bits of code tried to access the upper 32 bits. Maybe
+	RIG_SETTING_MAX should be changed to 32?
 
-	* Icom/frame.c Changed passband mode to reflect the majority of modern rigs and all the old ones I 
-	could find the command documentation for.  Change char buffer defs so the are consistant.
+	* icom/frame.c:
+	Changed passband mode to reflect the majority of modern rigs and all the
+	old ones I could find the command documentation for.  Change char buffer
+	defs so the are consistant.
 
 
 2006-06-29  KHill  <fuzzballz@comcast.net>
 
-	* icom/icom.c numerous fixes and updates.  get_ptt, removing unused code and 
-	structures, functions fagc, fbkin, sbkin fixed and vsc (voice squelch added).   
-	tone set for  ctcss fixed, scan fixed.
+	* icom/icom.c:
+	Numerous fixes and updates.  get_ptt, removing unused code and structures,
+	functions fagc, fbkin, sbkin fixed and vsc (voice squelch added). tone set
+	for ctcss fixed, scan fixed.
 
-	* include/hamlib/rig.h rig_func_rnf  (rtty notch filter) renamed to rig_func_rf (rty filter). It is miss-named.
-	It is so far only implemented with Icom.  It is not a notch filter it is a series of
-	predfined filters for rtty mode.  filter mode needs more work.
+	* include/hamlib/rig.h:
+	rig_func_rnf  (rtty notch filter) renamed to rig_func_rf (rty filter).
+	It is miss-named. It is so far only implemented with Icom. It is not
+	a notch filter it is a series of predfined filters for rtty mode. 
+	Filter mode needs more work.
 
-	* icom/ic746 updated and corrected lots of bugs added parameters and get channels
-	these still need lot of work.  Could probably generalize the parameters for all the newer
-	rigs.
+	* icom/ic746.c:
+	Updated and corrected lots of bugs added parameters and get channels.
+	These still need lot of work. Could probably generalize the parameters
+	for all the newer rigs.
 
 
 2003-04-28 08:34  fillods
