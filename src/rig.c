@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.92 2006-02-26 19:28:04 fillods Exp $
+ *	$Id: rig.c,v 1.93 2006-10-07 13:08:19 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -261,7 +261,9 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 		return NULL;
 	}
 
-	rig->caps = caps;
+        /* caps is const, so we need to tell compiler
+           that we now what we are doing */
+	rig->caps = (struct rig_caps *) caps;
 
 	/*
 	 * populate the rig->state

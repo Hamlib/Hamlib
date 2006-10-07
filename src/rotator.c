@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.19 2006-02-26 19:29:19 fillods Exp $
+ *	$Id: rotator.c,v 1.20 2006-10-07 13:08:19 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -191,7 +191,9 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 		return NULL;
 	}
 
-	rot->caps = caps;
+        /* caps is const, so we need to tell compiler
+           that we now what we are doing */
+	rot->caps = (struct rot_caps *) caps;
 
 	/*
 	 * populate the rot->state
