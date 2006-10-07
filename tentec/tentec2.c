@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - Argonaut, Jupiter, RX-350
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: tentec2.c,v 1.5 2006-09-22 18:27:18 n0nb Exp $
+ *	$Id: tentec2.c,v 1.6 2006-10-07 17:38:05 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -226,7 +226,7 @@ int tentec2_get_vfo(RIG *rig, vfo_t *vfo)
 	unsigned char vfobuf[16] = "?E\r";
 	
 	ret_len = 7;
-	retval = tentec_transaction (rig, vfobuf, 3, vfobuf, &ret_len);
+	retval = tentec_transaction (rig, (char *) vfobuf, 3, (char *) vfobuf, &ret_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -334,10 +334,10 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	ttmode_a = ttmode_b = ttmode;
 	
-	strcpy(mdbuf, "*M00\r" );
+	strcpy((char *) mdbuf, "*M00\r" );
 	ret_len = 3;
 	mdbuf[2] = ttmode_a; mdbuf[3] = ttmode_b;	
-	retval = tentec_transaction (rig, mdbuf, 5, mdbuf, &ret_len);
+	retval = tentec_transaction (rig, (char *) mdbuf, 5, (char *) mdbuf, &ret_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -359,10 +359,10 @@ int tentec2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	else
 		ttfilter = (width / 100) + 6;
 
-	strcpy (mdbuf, "*Wn\r");
+	strcpy ((char *) mdbuf, "*Wn\r");
 	mdbuf[2] = ttfilter;
 	ret_len = 3;
-	retval = tentec_transaction (rig, mdbuf, 5, mdbuf, &ret_len);
+	retval = tentec_transaction (rig, (char *) mdbuf, 5, (char *) mdbuf, &ret_len);
 	
 	if (retval != RIG_OK)
 		return retval;

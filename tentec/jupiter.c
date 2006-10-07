@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-538 description
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: jupiter.c,v 1.3 2005-02-26 22:29:52 fillods Exp $
+ *	$Id: jupiter.c,v 1.4 2006-10-07 17:38:05 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -98,7 +98,7 @@ const struct rig_caps tt538_caps = {
 .rig_model =  RIG_MODEL_TT538,
 .model_name = "TT-538 Jupiter",
 .mfg_name =  "Ten-Tec",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -331,9 +331,9 @@ int tt538_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 	int cmd_len, resp_len, retval;
 	unsigned char cmdbuf[16], respbuf[32];
 
-	cmd_len = sprintf(cmdbuf, "?%c" EOM, which_vfo(rig, vfo));
+	cmd_len = sprintf((char *) cmdbuf, "?%c" EOM, which_vfo(rig, vfo));
 	resp_len = 32;
-	retval = tt538_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) respbuf, &resp_len);
 
 	if (retval != RIG_OK) 
 		return retval;
@@ -376,11 +376,11 @@ int tt538_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	bytes[1] = ((int) freq >>  8) & 0xff;
 	bytes[0] =  (int) freq        & 0xff;
 
-	cmd_len = sprintf(cmdbuf, "*%c%c%c%c%c" EOM,
-		which_vfo(rig, vfo),
-			bytes[3], bytes[2], bytes[1], bytes[0]);
+	cmd_len = sprintf((char *) cmdbuf, "*%c%c%c%c%c" EOM,
+                          which_vfo(rig, vfo),
+                          bytes[3], bytes[2], bytes[1], bytes[0]);
 
-	return tt538_transaction(rig, cmdbuf, cmd_len, NULL, NULL); 
+	return tt538_transaction(rig, (char *) cmdbuf, cmd_len, NULL, NULL); 
 }
 
 /*
@@ -394,9 +394,9 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	char ttmode;
 
 	/* Query mode */
-	cmd_len = sprintf(cmdbuf, "?M" EOM);
+	cmd_len = sprintf((char *) cmdbuf, "?M" EOM);
 	resp_len = 32;
-	retval = tt538_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -434,9 +434,9 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	/* Query passband width (filter) */
-	cmd_len = sprintf(cmdbuf, "?W" EOM);
+	cmd_len = sprintf((char *) cmdbuf, "?W" EOM);
 	resp_len = 32;
-	retval = tt538_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
@@ -515,9 +515,9 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	struct tt538_priv_data *priv = (struct tt538_priv_data *) rig->state.priv;
 
 	/* Query mode for both VFOs. */
-	cmd_len = sprintf(cmdbuf, "?M" EOM);
+	cmd_len = sprintf((char *) cmdbuf, "?M" EOM);
 	resp_len = 32;
-	retval = tt538_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
+	retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) respbuf, &resp_len);
 	if (retval != RIG_OK)
 		return retval;
 	if (respbuf[0] != 'M' || resp_len != 4) {
@@ -543,10 +543,10 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		vfo = priv->vfo_curr;
 	switch (vfo) {
 	case RIG_VFO_A:
-		cmd_len = sprintf(cmdbuf, "*M%c%c" EOM, ttmode, respbuf[2]);
+		cmd_len = sprintf((char *) cmdbuf, "*M%c%c" EOM, ttmode, respbuf[2]);
 		break;
 	case RIG_VFO_B:
-		cmd_len = sprintf(cmdbuf, "*M%c%c" EOM, respbuf[1], ttmode);
+		cmd_len = sprintf((char *) cmdbuf, "*M%c%c" EOM, respbuf[1], ttmode);
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %s\n",
@@ -554,7 +554,7 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
-	retval = tt538_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -565,8 +565,8 @@ int tt538_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	else
 		width = tt538_filter_number((int) width);
 
-	cmd_len = sprintf(cmdbuf, "*W%c" EOM, (unsigned char) width); 
-	return tt538_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
+	cmd_len = sprintf((char *) cmdbuf, "*W%c" EOM, (unsigned char) width); 
+	return tt538_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 }
 
 /*
@@ -588,7 +588,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_SWR:
 		/* Get forward power. */
 		lvl_len = 32;
-		retval = tt538_transaction (rig, "?F" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, "?F" EOM, 3, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'F' || lvl_len != 3) {
@@ -600,7 +600,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		/* Get reflected power. */
 		lvl_len = 32;
-		retval = tt538_transaction (rig, "?R" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, "?R" EOM, 3, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'R' || lvl_len != 3) {
@@ -614,7 +614,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_RAWSTR:
-		retval = tt538_transaction (rig, "?S" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, "?S" EOM, 3, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -625,7 +625,7 @@ int tt538_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 
 #if 0
-		sprintf(sunits, "%c%c.%c%c",
+		sprintf((char *) sunits, "%c%c.%c%c",
 			lvlbuf[1], lvlbuf[2], lvlbuf[3], lvlbuf[4]);
 		sscanf(sunits, "%f", &sstr);
 		val->f = sstr;
@@ -643,7 +643,7 @@ printf("%f\n", val->f);
 
 		/* Get forward power in volts. */
 		lvl_len = 32;
-		retval = tt538_transaction (rig, "?P" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, "?P" EOM, 3, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'P' || lvl_len != 4) {
@@ -658,9 +658,9 @@ printf("%f\n", val->f);
 	case RIG_LEVEL_AGC:
 
 		/* Read rig's AGC level setting. */
-		cmd_len = sprintf(cmdbuf, "?G" EOM);
+		cmd_len = sprintf((char *) cmdbuf, "?G" EOM);
 		lvl_len = 32;
-		retval = tt538_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'G' || lvl_len != 3) {
@@ -680,9 +680,9 @@ printf("%f\n", val->f);
 	case RIG_LEVEL_AF:
 
 		/* Volume returned as single byte. */
-		cmd_len = sprintf(cmdbuf, "?U" EOM);
+		cmd_len = sprintf((char *) cmdbuf, "?U" EOM);
 		lvl_len = 32;
-		retval = tt538_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -698,10 +698,10 @@ printf("%f\n", val->f);
 	case RIG_LEVEL_IF:
 #if 0
 NO IF MONITOR??
-		cmd_len = sprintf(cmdbuf, "?R%cP" EOM,
-				which_receiver(rig, vfo));
+		cmd_len = sprintf((char *) cmdbuf, "?R%cP" EOM,
+                                  which_receiver(rig, vfo));
 
-		retval = tt538_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -718,9 +718,9 @@ NO IF MONITOR??
 
 	case RIG_LEVEL_RF:
 
-		cmd_len = sprintf(cmdbuf, "?I" EOM);
+		cmd_len = sprintf((char *) cmdbuf, "?I" EOM);
 		lvl_len = 32;
-		retval = tt538_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -735,9 +735,9 @@ NO IF MONITOR??
 
 	case RIG_LEVEL_ATT:
 
-		cmd_len = sprintf(cmdbuf, "?J" EOM);
+		cmd_len = sprintf((char *) cmdbuf, "?J" EOM);
 		lvl_len = 32;
-		retval = tt538_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'J' || lvl_len != 3) {
@@ -755,9 +755,9 @@ NO IF MONITOR??
 
 	case RIG_LEVEL_SQL:
 
-		cmd_len = sprintf(cmdbuf, "?H" EOM);
+		cmd_len = sprintf((char *) cmdbuf, "?H" EOM);
 		lvl_len = 32;
-		retval = tt538_transaction (rig, cmdbuf, cmd_len, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, (char *) cmdbuf, cmd_len, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		if (lvlbuf[0] != 'H' || lvl_len != 3) {
@@ -771,7 +771,7 @@ NO IF MONITOR??
 	case RIG_LEVEL_MICGAIN:
 
 		lvl_len = 3;
-		retval = tt538_transaction (rig, "?O" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, "?O" EOM, 3, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -787,7 +787,7 @@ NO IF MONITOR??
 	case RIG_LEVEL_COMP:
 		/* Query S units signal level. */
 		lvl_len = 32;
-		retval = tt538_transaction (rig, "?S" EOM, 3, lvlbuf, &lvl_len);
+		retval = tt538_transaction (rig, "?S" EOM, 3, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -797,7 +797,7 @@ NO IF MONITOR??
 			return -RIG_EPROTO;
 		}
 
-		sprintf(sunits, "%c%c.%c%c",
+		sprintf((char *) sunits, "%c%c.%c%c",
 			lvlbuf[1], lvlbuf[2], lvlbuf[3], lvlbuf[4]);
 		sscanf(sunits, "%f", &sstr);
 printf("%f\n", sstr);

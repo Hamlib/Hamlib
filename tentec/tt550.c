@@ -1305,23 +1305,23 @@ tt550_set_func (RIG * rig, vfo_t vfo, setting_t func, int status)
     {
       case RIG_FUNC_VOX:
 	fct_len =
-	  sprintf (fctbuf, "U%c" EOM, status == 0 ? '0' : '1');
+	  sprintf ((char *) fctbuf, "U%c" EOM, status == 0 ? '0' : '1');
 	priv->vox = status;
-        return write_block (&rs->rigport, fctbuf, fct_len);
+        return write_block (&rs->rigport, (char *) fctbuf, fct_len);
 
       case RIG_FUNC_NR:
 	fct_len =
-	  sprintf (fctbuf, "K%c%c" EOM, status == 0 ? '0' : '1',
+	  sprintf ((char *) fctbuf, "K%c%c" EOM, status == 0 ? '0' : '1',
 		   priv->anf == 0 ? '0' : '1');
 	priv->en_nr = status;
-        return write_block (&rs->rigport, fctbuf, fct_len);
+        return write_block (&rs->rigport, (char *) fctbuf, fct_len);
 
       case RIG_FUNC_ANF:
 	fct_len =
-	  sprintf (fctbuf, "K%c%c" EOM, priv->en_nr == 0 ? '0' : '1',
+	  sprintf ((char *) fctbuf, "K%c%c" EOM, priv->en_nr == 0 ? '0' : '1',
 		   status == 0 ? '0' : '1');
 	priv->anf = status;
-        return write_block (&rs->rigport, fctbuf, fct_len);
+        return write_block (&rs->rigport, (char *) fctbuf, fct_len);
 
 
       case RIG_FUNC_TUNER:
@@ -1531,7 +1531,7 @@ tt550_decode_event (RIG * rig)
   priv = (struct tt550_priv_data *) rs->priv;
 
 
-  data_len = read_string (&rs->rigport, buf, MAXFRAMELEN, "\n\r", 2);
+  data_len = read_string (&rs->rigport, (char *) buf, MAXFRAMELEN, "\n\r", 2);
 
 
   if (data_len == -RIG_ETIMEOUT) {

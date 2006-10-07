@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.16 2006-01-09 21:14:40 fillods Exp $
+ *	$Id: tentec.c,v 1.17 2006-10-07 17:38:05 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -339,7 +339,7 @@ int tentec_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
 	struct rig_state *rs = &rig->state;
-	int cmd_len, retval;
+	int cmd_len, retval=RIG_OK;
 	char cmdbuf[32];
 
 	/* Optimize:
@@ -405,7 +405,7 @@ int tentec_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_RAWSTR:
 			/* read A/D converted value */
 		lvl_len = 4;
-		retval = tentec_transaction (rig, "X" EOM, 2, lvlbuf, &lvl_len);
+		retval = tentec_transaction (rig, "X" EOM, 2, (char *) lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 
