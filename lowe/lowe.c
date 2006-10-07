@@ -2,7 +2,7 @@
  *  Hamlib Lowe backend - main file
  *  Copyright (c) 2003-2005 by Stephane Fillod
  *
- *	$Id: lowe.c,v 1.4 2005-04-10 21:47:13 fillods Exp $
+ *	$Id: lowe.c,v 1.5 2006-10-07 18:01:31 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -90,7 +90,7 @@ int lowe_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *da
  */
 int lowe_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	unsigned char freqbuf[16], ackbuf[16];
+	char freqbuf[16], ackbuf[16];
 	int freq_len, ack_len, retval;
 
 	/* 
@@ -107,7 +107,7 @@ int lowe_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
  */
 int lowe_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	unsigned char freqbuf[16];
+	char freqbuf[16];
 	int freq_len, retval;
 	float f_freq;
 
@@ -131,8 +131,8 @@ int lowe_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	unsigned char mdbuf[16], ackbuf[16];
-	unsigned char *mode_sel;
+	char mdbuf[16], ackbuf[16];
+	char *mode_sel;
 	int mdbuf_len, ack_len, retval;
 
 	switch (mode) {
@@ -162,7 +162,7 @@ int lowe_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int lowe_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	unsigned char mdbuf[16];
+	char mdbuf[16];
 	int mdbuf_len, retval;
 
 	retval = lowe_transaction (rig, "MOD?" EOM, 5, mdbuf, &mdbuf_len);
@@ -201,7 +201,7 @@ int lowe_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int lowe_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	unsigned char lvlbuf[16];
+	char lvlbuf[16];
 	int lvl_len, retval;
 
 	if (level != RIG_LEVEL_STRENGTH)
@@ -228,7 +228,7 @@ int lowe_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int lowe_reset(RIG *rig, reset_t reset)
 {
-	static unsigned char ackbuf[BUFSZ];
+	static char ackbuf[BUFSZ];
 	int retval, ack_len;
 
 	retval = lowe_transaction(rig, "RES" EOM, 4, ackbuf, &ack_len);
@@ -243,7 +243,7 @@ int lowe_reset(RIG *rig, reset_t reset)
  */
 const char *lowe_get_info(RIG *rig)
 {
-	static unsigned char idbuf[BUFSZ];
+	static char idbuf[BUFSZ];
 	int retval, id_len;
 
 	/* hack: no idea what INF is for */
@@ -264,7 +264,7 @@ const char *lowe_get_info(RIG *rig)
  */
 DECLARE_PROBERIG_BACKEND(lowe)
 {
-	static unsigned char idbuf[BUFSZ];
+	static char idbuf[BUFSZ];
 	int retval, id_len;
 
 	if (!port)
