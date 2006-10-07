@@ -3,7 +3,7 @@
  *
  * sartek.c - (C) Stephane Fillod 2003
  *
- *    $Id: sartek.c,v 1.2 2003-10-01 19:32:01 fillods Exp $
+ *    $Id: sartek.c,v 1.3 2006-10-07 19:08:46 csete Exp $
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -56,7 +56,7 @@ const struct rot_caps sartek_rot_caps = {
   .rot_model =          ROT_MODEL_SARTEK1,
   .model_name =         "SARtek-1",
   .mfg_name =           "SARtek",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_UNTESTED,
   .rot_type =           ROT_TYPE_OTHER,
@@ -102,7 +102,7 @@ const struct rot_caps sartek_rot_caps = {
 
 static int sartek_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation)
 {
-  unsigned char cmdstr[8];
+  char cmdstr[8];
   int len, err;
 
   rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);

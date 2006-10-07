@@ -12,7 +12,7 @@
  * Hy-Gain is a trademark of MFJ Enterprises
  *
  *
- *    $Id: rotorez.c,v 1.8 2003-10-01 19:32:00 fillods Exp $
+ *    $Id: rotorez.c,v 1.9 2006-10-07 19:04:49 csete Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -77,7 +77,7 @@ const struct rot_caps rotorez_rot_caps = {
   .rot_model =          ROT_MODEL_ROTOREZ,
   .model_name =         "Rotor-EZ",
   .mfg_name =           "Idiom Press",
-  .version =            "0.1.2",
+  .version =            "0.2",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_NEW,
   .rot_type =           ROT_TYPE_OTHER,
@@ -118,7 +118,7 @@ const struct rot_caps rotorcard_rot_caps = {
   .rot_model =          ROT_MODEL_ROTORCARD,
   .model_name =         "RotorCard",
   .mfg_name =           "Idiom Press",
-  .version =            "0.1.2",
+  .version =            "0.2",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_NEW,
   .rot_type =           ROT_TYPE_OTHER,
@@ -159,7 +159,7 @@ const struct rot_caps dcu_rot_caps = {
   .rot_model =          ROT_MODEL_DCU,
   .model_name =         "DCU-1/DCU-1X",
   .mfg_name =           "Hy-Gain",
-  .version =            "0.1.2",
+  .version =            "0.2",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_NEW,
   .rot_type =           ROT_TYPE_OTHER,
@@ -248,8 +248,8 @@ static int rotorez_rot_cleanup(ROT *rot) {
  */
 
 static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation) {
-  unsigned char cmdstr[8];
-  unsigned char execstr[5] = "AM1;";
+  char cmdstr[8];
+  char execstr[5] = "AM1;";
   int err;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -285,8 +285,8 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
   struct rot_state *rs;
-  unsigned char cmdstr[5] = "AI1;";
-  unsigned char az[5];          /* read azimuth string */
+  char cmdstr[5] = "AI1;";
+  char az[5];          /* read azimuth string */
   char *p;
   azimuth_t tmp = 0;
   int err;
@@ -334,7 +334,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
  */
 
 static int rotorez_rot_stop(ROT *rot) {
-  unsigned char cmdstr[2] = ";";
+  char cmdstr[2] = ";";
   int err;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
