@@ -2,7 +2,7 @@
  * memload.c - Copyright (C) 2003 Thierry Leconte
  *
  *
- *	$Id: memload.c,v 1.5 2005-01-24 23:04:24 fillods Exp $  
+ *	$Id: memload.c,v 1.6 2006-10-07 19:56:57 csete Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -60,13 +60,13 @@ int xml_load (RIG *my_rig, const char *infilename)
 		fprintf(stderr,"get root failed\n");
 		exit(2);
         }
-	if(strcmp(node->name, (const xmlChar *) "hamlib")) {
+	if(strcmp((char *) node->name, "hamlib")) {
 		fprintf(stderr,"no hamlib tag found\n");
 		exit(2);
 	}
 	for(node=node->xmlChildrenNode;node!=NULL;node=node->next) {
 		if(xmlNodeIsText(node)) continue;
-		if(strcmp(node->name, (const xmlChar *) "channels")==0)
+		if(strcmp((char *) node->name, "channels")==0)
 			break;
 	}
 	if(node==NULL) {
@@ -113,12 +113,12 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	chan->vfo = RIG_VFO_MEM;
 
 
-	prop=xmlGetProp(node,"num");
+	prop=xmlGetProp(node,(unsigned char *) "num");
 	if(prop==NULL) {
 		fprintf(stderr,"no num\n");
 		return -1;
 	}
-	n=chan->channel_num = atoi(prop);
+	n=chan->channel_num = atoi((char *) prop);
 
 	/* find chanel caps */
 	for(i=0;i<CHANLSTSIZ ;i++)
@@ -128,68 +128,68 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 	fprintf(stderr,"node %d %d\n",n,i);
 
 	if (rig->state.chan_list[i].mem_caps.bank_num) {
-		prop=xmlGetProp(node, "bank_num");
+		prop=xmlGetProp(node, (unsigned char *) "bank_num");
 		if(prop!=NULL) 
-			chan->bank_num = atoi(prop);
+			chan->bank_num = atoi((char *) prop);
 	}
 
 	if (rig->state.chan_list[i].mem_caps.channel_desc) {
-			prop=xmlGetProp(node, "channel_desc");
+			prop=xmlGetProp(node, (unsigned char *) "channel_desc");
 			if(prop!=NULL) 
-				strncpy(chan->channel_desc,prop,7);
+				strncpy(chan->channel_desc, (char *) prop, 7);
 	}
 
 	if (rig->state.chan_list[i].mem_caps.ant) {
-		prop=xmlGetProp(node, "ant");
+		prop=xmlGetProp(node, (unsigned char *) "ant");
 		if(prop!=NULL) 
-			chan->ant = atoi(prop);
+			chan->ant = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.freq) {
-		prop=xmlGetProp(node, "freq");
+		prop=xmlGetProp(node, (unsigned char *) "freq");
 		if(prop!=NULL) 
-			sscanf(prop,"%"SCNfreq,&chan->freq);
+			sscanf((char *) prop,"%"SCNfreq,&chan->freq);
 	}
 	if (rig->state.chan_list[i].mem_caps.mode) {
-		prop=xmlGetProp(node, "mode");
+		prop=xmlGetProp(node, (unsigned char *) "mode");
 		if(prop!=NULL)
-			chan->mode = rig_parse_mode(prop);
+			chan->mode = rig_parse_mode((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.width) {
-		prop=xmlGetProp(node, "width");
+		prop=xmlGetProp(node, (unsigned char *) "width");
 		if(prop!=NULL) 
-			chan->width = atoi(prop);
+			chan->width = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_freq) {
-		prop=xmlGetProp(node, "tx_freq");
+		prop=xmlGetProp(node, (unsigned char *) "tx_freq");
 		if(prop!=NULL) 
-			sscanf(prop,"%"SCNfreq,&chan->tx_freq);
+			sscanf((char *) prop,"%"SCNfreq,&chan->tx_freq);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_mode) {
-		prop=xmlGetProp(node, "tx_mode");
+		prop=xmlGetProp(node, (unsigned char *)"tx_mode");
 		if(prop!=NULL)
-			chan->tx_mode = rig_parse_mode(prop);
+			chan->tx_mode = rig_parse_mode((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.tx_width) {
-		prop=xmlGetProp(node, "tx_width");
+		prop=xmlGetProp(node, (unsigned char *)"tx_width");
 		if(prop!=NULL) 
-			chan->tx_width = atoi(prop);
+			chan->tx_width = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.split) {
 		chan->split=RIG_SPLIT_OFF;
-		prop=xmlGetProp(node, "split");
+		prop=xmlGetProp(node, (unsigned char *)"split");
 		if(prop!=NULL) {
-			if(strcmp(prop,"on")==0) {
+			if(strcmp((char *) prop,"on")==0) {
 				chan->split=RIG_SPLIT_ON;
 				if (rig->state.chan_list[i].mem_caps.tx_vfo) {
-					prop=xmlGetProp(node, "tx_vfo");
+					prop=xmlGetProp(node, (unsigned char *)"tx_vfo");
 					if(prop!=NULL)
-						sscanf(prop,"%x",&chan->tx_vfo);
+						sscanf((char *) prop,"%x",&chan->tx_vfo);
 				}
 			}
 		}
 	}
 	if (rig->state.chan_list[i].mem_caps.rptr_shift) {
-		prop=xmlGetProp(node, "rptr_shift");
+		prop=xmlGetProp(node, (unsigned char *)"rptr_shift");
 		if(prop)
 		switch(prop[0]) {
 		case '=': chan->rptr_shift=RIG_RPT_SHIFT_NONE;
@@ -200,60 +200,60 @@ int set_chan(RIG *rig, channel_t *chan, xmlNodePtr node)
 				break;
 		}
 		if (rig->state.chan_list[i].mem_caps.rptr_offs && chan->rptr_shift!=RIG_RPT_SHIFT_NONE) {
-			prop=xmlGetProp(node, "rptr_offs");
+			prop=xmlGetProp(node, (unsigned char *)"rptr_offs");
 			if(prop!=NULL) 
-				chan->rptr_offs = atoi(prop);
+				chan->rptr_offs = atoi((char *) prop);
 		}	
 	}
 	if (rig->state.chan_list[i].mem_caps.tuning_step) {
-		prop=xmlGetProp(node, "tuning_step");
+		prop=xmlGetProp(node, (unsigned char *)"tuning_step");
 		if(prop!=NULL) 
-			chan->tuning_step = atoi(prop);
+			chan->tuning_step = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.rit) {
-		prop=xmlGetProp(node, "rit");
+		prop=xmlGetProp(node, (unsigned char *)"rit");
 		if(prop!=NULL) 
-			chan->rit = atoi(prop);
+			chan->rit = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.xit) {
-		prop=xmlGetProp(node, "xit");
+		prop=xmlGetProp(node, (unsigned char *)"xit");
 		if(prop!=NULL) 
-			chan->xit = atoi(prop);
+			chan->xit = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.funcs) {
-		prop=xmlGetProp(node, "funcs");
+		prop=xmlGetProp(node, (unsigned char *)"funcs");
 		if(prop!=NULL) 
-			sscanf(prop,"%lx",&chan->funcs);
+			sscanf((char *) prop,"%lx",&chan->funcs);
 	}
 	if (rig->state.chan_list[i].mem_caps.ctcss_tone) {
-		prop=xmlGetProp(node, "ctcss_tone");
+		prop=xmlGetProp(node, (unsigned char *)"ctcss_tone");
 		if(prop!=NULL) 
-			chan->ctcss_tone = atoi(prop);
+			chan->ctcss_tone = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.ctcss_sql) {
-		prop=xmlGetProp(node, "ctcss_sql");
+		prop=xmlGetProp(node, (unsigned char *)"ctcss_sql");
 		if(prop!=NULL) 
-			chan->ctcss_sql = atoi(prop);
+			chan->ctcss_sql = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.dcs_code) {
-		prop=xmlGetProp(node, "dcs_code");
+		prop=xmlGetProp(node, (unsigned char *)"dcs_code");
 		if(prop!=NULL) 
-			chan->dcs_code = atoi(prop);
+			chan->dcs_code = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.dcs_sql) {
-		prop=xmlGetProp(node, "dcs_sql");
+		prop=xmlGetProp(node, (unsigned char *)"dcs_sql");
 		if(prop!=NULL) 
-			chan->dcs_sql = atoi(prop);
+			chan->dcs_sql = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.scan_group) {
-		prop=xmlGetProp(node, "scan_group");
+		prop=xmlGetProp(node, (unsigned char *)"scan_group");
 		if(prop!=NULL) 
-			chan->scan_group = atoi(prop);
+			chan->scan_group = atoi((char *) prop);
 	}
 	if (rig->state.chan_list[i].mem_caps.flags) {
-		prop=xmlGetProp(node, "flags");
+		prop=xmlGetProp(node, (unsigned char *)"flags");
 		if(prop!=NULL) 
-			sscanf(prop,"%x",&chan->flags);
+			sscanf((char *) prop,"%x",&chan->flags);
 	}
 
 	
