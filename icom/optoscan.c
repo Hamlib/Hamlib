@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - OptoScan extensions
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: optoscan.c,v 1.13 2005-04-03 12:27:15 fillods Exp $
+ *	$Id: optoscan.c,v 1.14 2006-10-07 20:45:40 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -694,7 +694,7 @@ static int optoscan_send_freq(RIG *rig,pltstate_t *state)
 
   to_bcd(buff,freq,5*2); /* to_bcd requires nibble len */
 
-  rig2icom_mode(rig,mode,0,&md,&pd);
+  rig2icom_mode(rig,mode,0,(unsigned char *) &md, (signed char *) &pd);
   buff[5]=md;
 
   /* read echo'd chars only...there will be no ACK from this command

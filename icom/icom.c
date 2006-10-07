@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.97 2006-09-22 19:55:58 n0nb Exp $
+ *	$Id: icom.c,v 1.98 2006-10-07 20:45:40 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -19,7 +19,6 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -513,8 +512,8 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (priv->civ_731_mode || rig->caps->rig_model == RIG_MODEL_OS456)
 		icmode_ext = -1;
 
-	retval = icom_transaction (rig, C_SET_MODE, icmode, &icmode_ext,
-				(icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
+	retval = icom_transaction (rig, C_SET_MODE, icmode, (unsigned char *) &icmode_ext,
+                                   (icmode_ext == -1 ? 0 : 1), ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -564,7 +563,8 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	/* Most rigs return 1-wide, 2-normal,3-narrow  For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode    Lets check for dsp filters */
 	
-	if (retval = icom_get_dsp_flt(rig, *mode)) *width = retval;
+	if ((retval = icom_get_dsp_flt(rig, *mode)))
+             *width = retval;
 
 	return RIG_OK;
 }
@@ -2713,11 +2713,11 @@ DECLARE_PROBERIG_BACKEND(icom)
 	 */
 	for (civ_addr=0x01; civ_addr<=0x7f; civ_addr++) {
 
-		frm_len = make_cmd_frame(buf, civ_addr, C_RD_TRXID, S_RD_TRXID,
-						NULL, 0);
+		frm_len = make_cmd_frame((char *) buf, civ_addr, C_RD_TRXID, S_RD_TRXID,
+                                         NULL, 0);
 
 		serial_flush(port);
-		write_block(port, buf, frm_len);
+		write_block(port, (char *) buf, frm_len);
 
 		/* read out the bytes we just sent
 	 	* TODO: check this is what we expect
@@ -2772,11 +2772,11 @@ DECLARE_PROBERIG_BACKEND(icom)
 	 */
 	for (civ_addr=0x80; civ_addr<=0x8f; civ_addr++) {
 
-		frm_len = make_cmd_frame(buf, civ_addr, C_CTL_MISC, S_OPTO_RDID,
-						NULL, 0);
+		frm_len = make_cmd_frame((char *) buf, civ_addr, C_CTL_MISC, S_OPTO_RDID,
+                                         NULL, 0);
 
 		serial_flush(port);
-		write_block(port, buf, frm_len);
+		write_block(port, (char *) buf, frm_len);
 
 		/* read out the bytes we just sent
 	 	* TODO: check this is what we expect

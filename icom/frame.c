@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.30 2006-09-22 19:55:58 n0nb Exp $
+ *	$Id: frame.c,v 1.31 2006-10-07 20:45:40 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -66,11 +66,11 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const unsigne
 	if (subcmd != -1) {
 #ifdef MULTIB_SUBCMD
 		register int j;
-		if (j = subcmd & 0xff0000) {  /* allows multi-byte subcmd for dsp rigs */
+		if ((j = subcmd & 0xff0000)) {  /* allows multi-byte subcmd for dsp rigs */
 			frame[i++] = j >> 16;
 			frame[i++] = (subcmd & 0xff00) >> 8;
 		}
-		else if (j = subcmd & 0xff00) frame[i++] = j >> 8;
+		else if ((j = subcmd & 0xff00)) frame[i++] = j >> 8;
 #endif
 		frame[i++] = subcmd & 0xff;
 	}	
@@ -107,8 +107,8 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
-	frm_len = make_cmd_frame(sendbuf, priv->re_civ_addr, cmd, subcmd, 
-					payload, payload_len);
+	frm_len = make_cmd_frame((char *) sendbuf, priv->re_civ_addr, cmd, subcmd, 
+                                 payload, payload_len);
 
 	/* 
 	 * should check return code and that write wrote cmd_len chars! 
@@ -117,7 +117,7 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 
 	serial_flush(&rs->rigport);
 
-	retval = write_block(&rs->rigport, sendbuf, frm_len);
+	retval = write_block(&rs->rigport, (char *) sendbuf, frm_len);
 	if (retval != RIG_OK) {
 			Unhold_Decode(rig);
 			return retval;
@@ -272,7 +272,7 @@ int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
 {
 	int i;
 
-	i = read_string(p, rxbuffer, MAXFRAMELEN, 
+	i = read_string(p, (char *) rxbuffer, MAXFRAMELEN, 
 			icom_block_end, icom_block_end_length);
 
 	return i;
@@ -372,23 +372,39 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 		*mode = RIG_MODE_NONE;
 	}
 	
-	/* Most rigs return 1-wide, 2-narrow; or if it has 3 filters: 1-wide, 2-middle, 3-narrow. (Except for the 706 mkIIg 0-wide, 1-middle, 2-narrow.)  For DSP rigs these are presets, which can be programmed for 30 - 41 bandwidths, depending on mode  */
+	/* Most rigs return 1-wide, 2-narrow; or if it has 3 filters: 1-wide, 2-middle,
+           3-narrow. (Except for the 706 mkIIg 0-wide, 1-middle, 2-narrow.)  For DSP
+           rigs these are presets, which can be programmed for 30 - 41 bandwidths,
+           depending on mode  */
 
-	if (rig->caps->rig_model == RIG_MODEL_IC706MKIIG || rig->caps->rig_model == RIG_MODEL_IC706 || rig->caps->rig_model ==  RIG_MODEL_IC706MKII) pd--;
+	if (rig->caps->rig_model == RIG_MODEL_IC706MKIIG ||
+            rig->caps->rig_model == RIG_MODEL_IC706 ||
+            rig->caps->rig_model ==  RIG_MODEL_IC706MKII) pd--;
 	
 	switch (pd) {
-		case 0x01: if (!(*width = rig_passband_wide(rig, *mode)))  /* if no wide filter defined it's the default */
-				 *width = rig_passband_normal(rig, *mode);
-			    break;
-		case 0x02: if (*width = rig_passband_wide(rig, *mode))
-			 *width = rig_passband_normal(rig, *mode); 
-			   else *width = rig_passband_narrow(rig, *mode); /* This really just depends on how you program the table. */
-			   break;
-		case 0x03: *width = rig_passband_narrow(rig, *mode); break;
-		case -1: break;		/* no passband data */
+		case 0x01: 
+                  /* if no wide filter defined it's the default */
+                  if (!(*width = rig_passband_wide(rig, *mode)))  
+                    *width = rig_passband_normal(rig, *mode);
+                  break;
+
+		case 0x02:
+                  if ((*width = rig_passband_wide(rig, *mode)))
+                    *width = rig_passband_normal(rig, *mode); 
+                  else
+                    /* This really just depends on how you program the table. */
+                    *width = rig_passband_narrow(rig, *mode);
+                  break;
+
+		case 0x03:
+                  *width = rig_passband_narrow(rig, *mode);
+                  break;
+
+		case -1:
+                  break;		/* no passband data */
 	
-	default:
-		rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n", pd);
+	        default:
+                  rig_debug(RIG_DEBUG_ERR,"icom: Unsupported Icom mode width %#.2x\n", pd);
 	}
 return ;
 }

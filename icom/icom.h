@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.72 2006-09-22 19:55:59 n0nb Exp $
+ *	$Id: icom.h,v 1.73 2006-10-07 20:45:40 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.3"
+#define BACKEND_VER "0.4"
 
 /*
  * defines used by comp_cal_str in rig.c

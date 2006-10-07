@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-R75
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icr75.c,v 1.8 2005-04-03 19:53:52 fillods Exp $
+ *	$Id: icr75.c,v 1.9 2006-10-07 20:45:40 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -282,7 +282,7 @@ int icr75_set_channel(RIG *rig, const channel_t *chan)
 
 		to_bcd_be(chanbuf+chan_len++,chan->ant,2);
 		memset(chanbuf+chan_len, 0, 8);
-		strncpy(chanbuf+chan_len, chan->channel_desc, 8);
+		strncpy((char *) (chanbuf+chan_len), chan->channel_desc, 8);
 		chan_len += 8;
 
 		retval = icom_transaction (rig, C_CTL_MEM, S_MEM_CNTNT,
@@ -386,7 +386,7 @@ int icr75_get_channel(RIG *rig, channel_t *chan)
 			if (from_bcd_be(chanbuf+chan_len++,2) != 0)
 				chan->levels[rig_setting2idx(RIG_LEVEL_PREAMP)].i = 20;
 			chan->ant = from_bcd_be(chanbuf+chan_len++,2);
-			strncpy(chan->channel_desc, chanbuf+chan_len, 8);
+			strncpy(chan->channel_desc, (char *) (chanbuf+chan_len), 8);
 		}
 
 		return RIG_OK;
