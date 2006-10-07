@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl.c,v 1.8 2004-05-17 20:59:41 fillods Exp $  
+ *	$Id: rotctl.c,v 1.9 2006-10-07 19:12:35 csete Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -305,7 +305,7 @@ int main (int argc, char *argv[])
 						while(c_len-- && (isalnum(*pcmd) || *pcmd == '_' ))
 							scanf("%c", ++pcmd);
 						*pcmd = '\0';
-						cmd = parse_arg(cmd_name);
+						cmd = parse_arg((char *) cmd_name);
 						break;
 					}
 
@@ -478,6 +478,8 @@ static int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 				printf(", %s", cfp->u.c.combostr[i]);
 		printf("\n");
 		break;
+        default:
+          break;
 	}
 
 	return 1;  /* !=0, we want them all ! */
