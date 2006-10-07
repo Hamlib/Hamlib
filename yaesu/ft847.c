@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- * $Id: ft847.c,v 1.30 2005-01-25 00:21:58 fillods Exp $  
+ * $Id: ft847.c,v 1.31 2006-10-07 15:51:38 csete Exp $  
  *
  *
  *
@@ -184,7 +184,7 @@ const struct rig_caps ft847_caps = {
 .rig_model =  RIG_MODEL_FT847,
 .model_name = "FT-847", 
 .mfg_name =  "Yaesu", 
-.version =  "0.1.1", 
+.version =  "0.2", 
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -426,7 +426,7 @@ static int ft847_send_priv_cmd(RIG *rig, unsigned char ci) {
   }
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
   
   return RIG_OK;
 
@@ -483,7 +483,7 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: requested freq after conversion = %"PRIll" Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -533,9 +533,9 @@ static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
   memcpy(p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);  
 
   cmd = p->p_cmd;
-  write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
-  n = read_block(&rs->rigport, data, YAESU_CMD_LENGTH);
+  n = read_block(&rs->rigport, (char *) data, YAESU_CMD_LENGTH);
   if (n != YAESU_CMD_LENGTH) {
   		rig_debug(RIG_DEBUG_ERR,"ft847: read_block returned %d\n", n);
 		return n < 0 ? n : -RIG_EPROTO;

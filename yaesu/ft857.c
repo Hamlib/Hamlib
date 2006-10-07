@@ -13,7 +13,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.c,v 1.8 2005-04-10 21:49:38 fillods Exp $  
+ *    $Id: ft857.c,v 1.9 2006-10-07 15:51:38 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -146,7 +146,7 @@ const struct rig_caps ft857_caps = {
   .rig_model = 		RIG_MODEL_FT857,
   .model_name = 	"FT-857", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.1", 
+  .version = 		"0.2", 
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_ALPHA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -396,9 +396,9 @@ static int ft857_get_status(RIG *rig, int status)
 
   serial_flush(&rig->state.rigport);
 
-  write_block(&rig->state.rigport, p->pcs[status].nseq, YAESU_CMD_LENGTH);
+  write_block(&rig->state.rigport, (char *) p->pcs[status].nseq, YAESU_CMD_LENGTH);
 
-  if ((n = read_block(&rig->state.rigport, data, len)) < 0)
+  if ((n = read_block(&rig->state.rigport, (char *) data, len)) < 0)
     return n;
 
   if (n != len)
@@ -570,7 +570,7 @@ int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 static int ft857_read_ack(RIG *rig)
 {
 #if (FT857_POST_WRITE_DELAY == 0)
-  unsigned char dummy;
+  char dummy;
   int n;
 
   if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0) {
@@ -600,7 +600,7 @@ static int ft857_send_cmd(RIG *rig, int index)
     return -RIG_EINTERNAL;
   }
 
-  write_block(&rig->state.rigport, p->pcs[index].nseq, YAESU_CMD_LENGTH);
+  write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
   return ft857_read_ack(rig);
 }
 
@@ -620,7 +620,7 @@ static int ft857_send_icmd(RIG *rig, int index, unsigned char *data)
   cmd[YAESU_CMD_LENGTH - 1] = p->pcs[index].nseq[YAESU_CMD_LENGTH - 1];
   memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
-  write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   return ft857_read_ack(rig);
 }
 

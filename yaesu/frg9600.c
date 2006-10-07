@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FRG-9600 using the "CAT" interface
  *
- *	$Id: frg9600.c,v 1.1 2004-08-10 21:08:41 fillods Exp $
+ *	$Id: frg9600.c,v 1.2 2006-10-07 15:51:38 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,7 +57,7 @@ const struct rig_caps frg9600_caps = {
   .rig_model =          RIG_MODEL_FRG9600,
   .model_name =         "FRG-9600",
   .mfg_name =           "Yaesu",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_UNTESTED,
   .rig_type =           RIG_TYPE_RECEIVER,
@@ -151,7 +151,7 @@ int frg9600_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   to_bcd_be(cmd+1, freq/10, 8);
 
   /* Frequency set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -183,6 +183,6 @@ int frg9600_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   cmd[0] = md;
 
   /* Mode set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 

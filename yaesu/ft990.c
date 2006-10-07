@@ -7,7 +7,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.17 2006-02-26 06:25:32 bwulf Exp $
+ * $Id: ft990.c,v 1.18 2006-10-07 15:51:38 csete Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -135,7 +135,7 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.6",
+  .version =            "0.1",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1975,7 +1975,7 @@ int ft990_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *value)
     return err;
 
   rig_s = &rig->state;
-  err = read_block(&rig_s->rigport, mdata, FT990_READ_METER_LENGTH);
+  err = read_block(&rig_s->rigport, (char *) mdata, FT990_READ_METER_LENGTH);
 
   if (err < 0)
     return err;
@@ -2687,7 +2687,7 @@ int ft990_send_static_cmd(RIG *rig, unsigned char ci) {
     return -RIG_EINVAL;
   }
 
-  err = write_block(&rig_s->rigport, (unsigned char *) priv->pcs[ci].nseq,
+  err = write_block(&rig_s->rigport, (char *) priv->pcs[ci].nseq,
                     YAESU_CMD_LENGTH);
 
   if (err != RIG_OK)
@@ -2742,7 +2742,7 @@ int ft990_send_dynamic_cmd(RIG *rig, unsigned char ci,
   priv->p_cmd[1] = p3;
   priv->p_cmd[0] = p4;
 
-  err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd,
+  err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                     YAESU_CMD_LENGTH);
   if (err != RIG_OK)
     return err;
@@ -2796,7 +2796,7 @@ int ft990_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
             "%s: requested freq after conversion = %"PRIll" Hz\n",
              __func__, from_bcd(priv->p_cmd, FT990_BCD_DIAL) * 10);
 
-  err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd,
+  err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                     YAESU_CMD_LENGTH);
 
   if (err != RIG_OK)
@@ -2853,7 +2853,7 @@ int ft990_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
   // Store bcd format into privat command storage area
   to_bcd(priv->p_cmd, labs(rit)/10, FT990_BCD_RIT);
 
-  err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd,
+  err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
 		    YAESU_CMD_LENGTH);
 
   if(err != RIG_OK)

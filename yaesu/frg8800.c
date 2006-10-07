@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FRG-8800 using the "CAT" interface
  *
- *	$Id: frg8800.c,v 1.1 2004-05-16 07:32:57 fillods Exp $
+ *	$Id: frg8800.c,v 1.2 2006-10-07 15:51:38 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,7 +62,7 @@ const struct rig_caps frg8800_caps = {
   .rig_model =          RIG_MODEL_FRG8800,
   .model_name =         "FRG-8800",
   .mfg_name =           "Yaesu",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_UNTESTED,
   .rig_type =           RIG_TYPE_RECEIVER,
@@ -163,7 +163,7 @@ int frg8800_open(RIG *rig)
   rig_debug(RIG_DEBUG_TRACE, "frg8800: frg8800_open called\n");
 
   /* send Ext Cntl ON: Activate CAT */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -174,7 +174,7 @@ int frg8800_close(RIG *rig)
   rig_debug(RIG_DEBUG_TRACE, "frg8800: frg8800_close called\n");
 
   /* send Ext Cntl OFF: Deactivate CAT */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -192,7 +192,7 @@ int frg8800_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   cmd[0] = ( cmd[0]&0xf0 ) | ( 1 << ((((long long)freq)%100)/25) );
 
   /* Frequency set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -225,7 +225,7 @@ int frg8800_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   cmd[3] = md;
 
   /* Mode set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -239,6 +239,6 @@ int frg8800_set_powerstat(RIG *rig, powerstat_t status)
   cmd[3] = status == RIG_POWER_OFF ? 0xff : 0xfe;
 
   /* Frequency set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 

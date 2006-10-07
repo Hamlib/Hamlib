@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft757gx.c,v 1.3 2004-08-10 21:03:56 fillods Exp $  
+ * $Id: ft757gx.c,v 1.4 2006-10-07 15:51:38 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -132,7 +132,7 @@ const struct rig_caps ft757gx_caps = {
   .rig_model =        RIG_MODEL_FT757, 
   .model_name =       "FT-757GX", 
   .mfg_name =         "Yaesu", 
-  .version =           "0.2",
+  .version =           "0.3",
   .copyright =         "LGPL",
   .status =            RIG_STATUS_ALPHA, 
   .rig_type =          RIG_TYPE_MOBILE, 
@@ -411,10 +411,12 @@ int ft757_open(RIG *rig)
   serial_flush(&rig->state.rigport);
 
    /* send 0 delay PACING cmd to rig  */
-  write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   /* read back the 75 status bytes */
-  retval = read_block(&rig->state.rigport, priv->update_data, FT757GX_STATUS_UPDATE_DATA_LENGTH);
+  retval = read_block(&rig->state.rigport,
+                      (char *) priv->update_data,
+                      FT757GX_STATUS_UPDATE_DATA_LENGTH);
 
   if (retval != FT757GX_STATUS_UPDATE_DATA_LENGTH) {
 
@@ -441,7 +443,7 @@ int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   /* fill in first four bytes */
   to_bcd(cmd, freq/10, 8);
 
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
@@ -452,7 +454,7 @@ int ft757_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   /* fill in p1 */
   cmd[3] = mode2rig(rig, mode, width);
 
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -543,7 +545,7 @@ int ft757_set_vfo(RIG *rig, vfo_t vfo) {
 
   priv->current_vfo = vfo;
   
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -590,12 +592,12 @@ int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   serial_flush(&rig->state.rigport);
 
   /* send READ STATUS(Meter only) cmd to rig  */
-  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   if (retval < 0)
 	  return retval;
 
   /* read back the 1 byte */
-  retval = read_block(&rig->state.rigport, cmd, 1);
+  retval = read_block(&rig->state.rigport, (char *) cmd, 1);
 
   if (retval != 1) {
 	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n", 
@@ -625,12 +627,14 @@ int ft757_get_update_data(RIG *rig)
   serial_flush(&rig->state.rigport);
 
   /* send READ STATUS cmd to rig  */
-  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   if (retval < 0)
 	  return retval;
 
   /* read back the 75 status bytes */
-  retval = read_block(&rig->state.rigport, priv->update_data, FT757GX_STATUS_UPDATE_DATA_LENGTH);
+  retval = read_block(&rig->state.rigport,
+                      (char *) priv->update_data,
+                      FT757GX_STATUS_UPDATE_DATA_LENGTH);
 
   if (retval != FT757GX_STATUS_UPDATE_DATA_LENGTH) {
 

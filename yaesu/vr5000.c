@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an VR-5000 using the "CAT" interface
  *
- *  $Id: vr5000.c,v 1.2 2005-03-13 18:30:44 fillods Exp $
+ *  $Id: vr5000.c,v 1.3 2006-10-07 15:51:38 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -127,7 +127,7 @@ const struct rig_caps vr5000_caps = {
   .rig_model =          RIG_MODEL_VR5000,
   .model_name =         "VR-5000",
   .mfg_name =           "Yaesu",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_RECEIVER,
@@ -277,12 +277,12 @@ int vr5000_open(RIG *rig)
   int retval;
 
   /* CAT write command on */
-  retval =  write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval =  write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   if (retval != RIG_OK)
     return retval;
 
   /* disable RIG_VFO_B  (only on display) */
-  retval =  write_block(&rig->state.rigport, b_off, YAESU_CMD_LENGTH);
+  retval =  write_block(&rig->state.rigport, (char *) b_off, YAESU_CMD_LENGTH);
   if (retval != RIG_OK)
     return retval;
 
@@ -306,7 +306,7 @@ int vr5000_close(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x80};
 
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -383,12 +383,12 @@ int vr5000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   serial_flush(&rig->state.rigport);
 
   /* send READ STATUS(Meter only) cmd to rig  */
-  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   if (retval < 0)
     return retval;
 
   /* read back the 1 byte */
-  retval = read_block(&rig->state.rigport, cmd, 1);
+  retval = read_block(&rig->state.rigport, (char *) cmd, 1);
 
   if (retval < 1) {
     rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n",
@@ -412,12 +412,12 @@ int vr5000_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
   serial_flush(&rig->state.rigport);
 
   /* send READ STATUS(Meter only) cmd to rig  */
-  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   if (retval < 0)
     return retval;
 
   /* read back the 1 byte */
-  retval = read_block(&rig->state.rigport, cmd, 1);
+  retval = read_block(&rig->state.rigport, (char *) cmd, 1);
 
   if (retval < 1) {
     rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n",
@@ -544,7 +544,7 @@ int set_vr5000(RIG *rig, vfo_t vfo,freq_t freq,rmode_t mode, pbwidth_t width,sho
   /* fill in m2 */
   cmd_mode_ts[1] = steps[i];
 
-  retval =  write_block(&rig->state.rigport, cmd_mode_ts, YAESU_CMD_LENGTH);
+  retval =  write_block(&rig->state.rigport, (char *) cmd_mode_ts, YAESU_CMD_LENGTH);
   if (retval != RIG_OK)
     return retval;
 
@@ -560,7 +560,7 @@ int set_vr5000(RIG *rig, vfo_t vfo,freq_t freq,rmode_t mode, pbwidth_t width,sho
   cmd_freq[3] = frq & 0xff;
 
   /* frequency set */
-  return write_block(&rig->state.rigport, cmd_freq, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd_freq, YAESU_CMD_LENGTH);
 }
 
 

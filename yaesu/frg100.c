@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FRG-100 using the "CAT" interface
  *
- *	$Id: frg100.c,v 1.4 2005-02-26 22:30:55 fillods Exp $
+ *	$Id: frg100.c,v 1.5 2006-10-07 15:51:38 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -66,7 +66,9 @@ static int frg100_set_vfo(RIG *rig, vfo_t vfo);
 static int frg100_set_powerstat(RIG *rig, powerstat_t status);
 static int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
+#if 0
 static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width);
+#endif
 static int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width);
 
 /*
@@ -88,7 +90,7 @@ const struct rig_caps frg100_caps = {
   .rig_model =          RIG_MODEL_FRG100,
   .model_name =         "FRG-100",
   .mfg_name =           "Yaesu",
-  .version =            "0.3",
+  .version =            "0.4",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_BETA,
   .rig_type =           RIG_TYPE_RECEIVER,
@@ -183,7 +185,7 @@ int frg100_open(RIG *rig)
   rig_debug(RIG_DEBUG_TRACE, "frg100: frg100_open called\n");
 
   /* send 0 delay pacing */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -196,7 +198,7 @@ int frg100_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   to_bcd(cmd, freq/10, 8);
 
   /* Frequency set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -208,7 +210,7 @@ int frg100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   /* fill in p1 */
   cmd[3] = mode2rig(rig, mode, width);
 
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -224,7 +226,7 @@ int frg100_set_powerstat(RIG *rig, powerstat_t status)
   cmd[3] = status == RIG_POWER_OFF ? 0x00 : 0x01;
 
   /* Frequency set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -248,7 +250,7 @@ int frg100_set_vfo(RIG *rig, vfo_t vfo)
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -263,12 +265,12 @@ int frg100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   serial_flush(&rig->state.rigport);
 
   /* send READ STATUS(Meter only) cmd to rig  */
-  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   if (retval < 0)
 	  return retval;
 
   /* read back the 1 byte */
-  retval = read_block(&rig->state.rigport, cmd, 5);
+  retval = read_block(&rig->state.rigport, (char *) cmd, 5);
 
   if (retval < 1) {
 	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n", 
@@ -329,6 +331,8 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
   return md;
 }
 
+/* function not used */
+#if 0
 int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 {
   /* 
@@ -353,4 +357,4 @@ int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 
   return RIG_OK;
 }
-
+#endif

@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-736R using the "CAT" interface
  *
- *	$Id: ft736.c,v 1.2 2005-04-03 18:37:09 fillods Exp $
+ *	$Id: ft736.c,v 1.3 2006-10-07 15:51:38 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -79,7 +79,7 @@ const struct rig_caps ft736_caps = {
   .rig_model =          RIG_MODEL_FT736R,
   .model_name =         "FT-736R",
   .mfg_name =           "Yaesu",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_UNTESTED,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -196,7 +196,7 @@ int ft736_open(RIG *rig)
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
   /* send Ext Cntl ON: Activate CAT */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -207,7 +207,7 @@ int ft736_close(RIG *rig)
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
   /* send Ext Cntl OFF: Deactivate CAT */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }
 
@@ -224,7 +224,7 @@ int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	cmd[0] = (cmd[0] & 0x0f) | 0xc0;
 
   /* Frequency set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -264,7 +264,7 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   cmd[0] = md;
 
   /* Mode set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -279,7 +279,7 @@ int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
    */ 
   cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
 
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 int ft736_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -294,7 +294,7 @@ int ft736_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	cmd[0] = (cmd[0] & 0x0f) | 0xc0;
 
   /* Frequency set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -326,7 +326,7 @@ int ft736_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   cmd[0] = md;
 
   /* Mode set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -339,7 +339,7 @@ int ft736_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
   cmd[4] = ptt == RIG_PTT_ON ? 0x08 : 0x88;
 
   /* Tx/Rx set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 int ft736_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
@@ -349,13 +349,13 @@ int ft736_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
   serial_flush(&rig->state.rigport);
 
-  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   if (retval < 0)
 	  return retval;
 
   /* read back the 1 byte */
-  retval = read_block(&rig->state.rigport, cmd, 5);
+  retval = read_block(&rig->state.rigport, (char *) cmd, 5);
 
   if (retval < 1) {
 	rig_debug(RIG_DEBUG_ERR,"%s: read squelch failed %d\n", 
@@ -379,12 +379,12 @@ int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   serial_flush(&rig->state.rigport);
 
   /* send Test S-meter cmd to rig  */
-  retval = write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  retval = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   if (retval < 0)
 	  return retval;
 
   /* read back the 1 byte */
-  retval = read_block(&rig->state.rigport, cmd, 5);
+  retval = read_block(&rig->state.rigport, (char *) cmd, 5);
 
   if (retval < 1) {
 	rig_debug(RIG_DEBUG_ERR,"%s: read meter failed %d\n", 
@@ -417,7 +417,7 @@ int ft736_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
     return -RIG_EINVAL;
   }
 
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 int ft736_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
@@ -428,6 +428,6 @@ int ft736_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
   to_bcd_be(cmd,offs,8);
 
   /* Offset set */
-  return write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 

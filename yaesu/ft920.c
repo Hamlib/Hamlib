@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.19 2005-04-10 21:49:38 fillods Exp $
+ * $Id: ft920.c,v 1.20 2006-10-07 15:51:38 csete Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -147,7 +147,7 @@ const struct rig_caps ft920_caps = {
 	.rig_model =		RIG_MODEL_FT920,
 	.model_name =		"FT-920",
 	.mfg_name =		"Yaesu",
-	.version =		"0.2.1",
+	.version =		"0.3",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_ALPHA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -499,7 +499,7 @@ static int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 	struct ft920_priv_data *priv;
-	unsigned char cmd_index;		/* index of sequence to send */
+	unsigned char cmd_index = FT920_NATIVE_VFO_A_PASSBAND_WIDE; /* index of sequence to send */
 	unsigned char mode_parm;		/* mode parameter */
 	int err;
 
@@ -1328,7 +1328,7 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: read pacing = %i\n", __func__, priv->pacing);
 
-	err = write_block(&rig_s->rigport, (unsigned char *) priv->p_cmd, YAESU_CMD_LENGTH);
+	err = write_block(&rig_s->rigport, (char *) priv->p_cmd, YAESU_CMD_LENGTH);
 	if (err != RIG_OK)
 		return err;
 
@@ -1336,7 +1336,7 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
 	if (err != RIG_OK)
 		return err;
 
-	n = read_block(&rig_s->rigport, priv->update_data, rl);
+	n = read_block(&rig_s->rigport, (char *) priv->update_data, rl);
 	if (n < 0)
 		return n;		/* die returning read_block error */
 
@@ -1380,7 +1380,7 @@ static int ft920_send_static_cmd(RIG *rig, unsigned char ci) {
 		return -RIG_EINVAL;
 	}
 
-	err = write_block(&rig_s->rigport, (unsigned char *) priv->pcs[ci].nseq, YAESU_CMD_LENGTH);
+	err = write_block(&rig_s->rigport, (char *) priv->pcs[ci].nseq, YAESU_CMD_LENGTH);
 	if (err != RIG_OK)
 		return err;
 
@@ -1438,7 +1438,7 @@ static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci,
 	priv->p_cmd[P3] = p3;
 	priv->p_cmd[P4] = p4;
 
-	err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
+	err = write_block(&rig_s->rigport, (char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 	if (err != RIG_OK)
 		return err;
 
@@ -1496,7 +1496,7 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
 		  "%s: requested freq after conversion = %"PRIll" Hz\n",
 		  __func__, from_bcd(priv->p_cmd, FT920_BCD_DIAL)* 10);
 
-	err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
+	err = write_block(&rig_s->rigport, (char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 	if (err != RIG_OK)
 		return err;
 
@@ -1571,7 +1571,7 @@ static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
 	priv->p_cmd[P1] = p1;		/* ick */
 	priv->p_cmd[P2] = p2;
 
-	err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd, YAESU_CMD_LENGTH);
+	err = write_block(&rig_s->rigport, (char *) &priv->p_cmd, YAESU_CMD_LENGTH);
 	if (err != RIG_OK)
 		return err;
 

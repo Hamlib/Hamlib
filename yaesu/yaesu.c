@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.24 2005-02-26 23:44:41 fillods Exp $  
+ *	$Id: yaesu.c,v 1.25 2006-10-07 15:51:38 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -139,8 +139,8 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 			return RIG_MODEL_NONE;
 
 		/* send READ STATUS cmd to rig  */
-		retval = write_block(port, cmd, YAESU_CMD_LENGTH);
-		id_len = read_block(port, idbuf, YAESU_CMD_LENGTH);
+		retval = write_block(port, (char *) cmd, YAESU_CMD_LENGTH);
+		id_len = read_block(port, (char *) idbuf, YAESU_CMD_LENGTH);
 
 		close(port->fd);
 

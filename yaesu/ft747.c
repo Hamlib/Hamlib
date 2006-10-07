@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.21 2005-01-25 00:21:58 fillods Exp $  
+ * $Id: ft747.c,v 1.22 2006-10-07 15:51:38 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -145,7 +145,7 @@ const struct rig_caps ft747_caps = {
   .rig_model =        RIG_MODEL_FT747, 
   .model_name =       "FT-747GX", 
   .mfg_name =         "Yaesu", 
-  .version =           "0.1", 
+  .version =           "0.2", 
   .copyright =         "LGPL",
   .status =            RIG_STATUS_ALPHA, 
   .rig_type =          RIG_TYPE_MOBILE, 
@@ -400,7 +400,7 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %"PRIll" Hz \n", from_bcd(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -780,14 +780,14 @@ static int ft747_get_update_data(RIG *rig) {
    /* send PACING cmd to rig  */
 
   cmd = p->p_cmd;
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   /* send UPDATE comand to fetch data*/
 
   ft747_send_priv_cmd(rig,FT_747_NATIVE_UPDATE);
 
   /*    n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
-  n = read_block(&rig_s->rigport, p->update_data, 
+  n = read_block(&rig_s->rigport, (char *) p->update_data, 
 				  FT747_STATUS_UPDATE_DATA_LENGTH); 
 
   return 0;
@@ -823,7 +823,7 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci) {
   }
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
   
   return RIG_OK;
 

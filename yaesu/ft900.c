@@ -9,7 +9,7 @@
  * via serial interface to an FT-900 using the "CAT" interface
  *
  *
- * $Id: ft900.c,v 1.4 2005-04-10 21:49:38 fillods Exp $
+ * $Id: ft900.c,v 1.5 2006-10-07 15:51:38 csete Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -154,7 +154,7 @@ const struct rig_caps ft900_caps = {
   .rig_model =          RIG_MODEL_FT900,
   .model_name =         "FT-900",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.1",
+  .version =            "0.1",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_NEW,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1394,7 +1394,7 @@ static int ft900_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
   if (err != RIG_OK)
     return err;
 
-  n = read_block(&rig_s->rigport, priv->update_data, rl);
+  n = read_block(&rig_s->rigport, (char *) priv->update_data, rl);
   if (n < 0)
     return n;                   /* die returning read_block error */
 
@@ -1435,7 +1435,7 @@ static int ft900_send_static_cmd(RIG *rig, unsigned char ci) {
     return -RIG_EINVAL;
   }
 
-  err = write_block(&rig_s->rigport, (unsigned char *) priv->pcs[ci].nseq,
+  err = write_block(&rig_s->rigport, (char *) priv->pcs[ci].nseq,
                     YAESU_CMD_LENGTH);
   if (err != RIG_OK)
     return err;
@@ -1490,7 +1490,7 @@ static int ft900_send_dynamic_cmd(RIG *rig, unsigned char ci,
   priv->p_cmd[P3] = p3;
   priv->p_cmd[P4] = p4;
 
-  err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd,
+  err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                     YAESU_CMD_LENGTH);
   if (err != RIG_OK)
     return err;
@@ -1545,7 +1545,7 @@ static int ft900_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
             "%s: requested freq after conversion = %"PRIll" Hz\n",
             __func__, from_bcd(priv->p_cmd, FT900_BCD_DIAL)* 10);
 
-  err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd,
+  err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                     YAESU_CMD_LENGTH);
   if (err != RIG_OK)
     return err;
@@ -1618,7 +1618,7 @@ static int ft900_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
   priv->p_cmd[P1] = p1;         /* ick */
   priv->p_cmd[P2] = p2;
 
-  err = write_block(&rig_s->rigport, (unsigned char *) &priv->p_cmd,
+  err = write_block(&rig_s->rigport, (char *) &priv->p_cmd,
                     YAESU_CMD_LENGTH);
   if (err != RIG_OK)
     return err;

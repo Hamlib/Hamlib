@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.6 2005-02-26 23:13:12 fillods Exp $
+ *	$Id: ft1000mp.c,v 1.7 2006-10-07 15:51:38 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -207,7 +207,7 @@ const struct rig_caps ft1000mp_caps = {
   .rig_model =          RIG_MODEL_FT1000MP,
   .model_name =         "FT-1000MP",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.5",
+  .version =            "0.1",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -658,7 +658,7 @@ int ft1000mp_open(RIG *rig) {
 
   /* send PACING cmd to rig  */
   cmd = p->p_cmd;
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
    /* TODO */
 
@@ -711,7 +711,7 @@ int ft1000mp_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
             from_bcd(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd;               /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -1022,7 +1022,7 @@ int ft1000mp_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
   priv->p_cmd[2] = rit >= 0 ? 0x00 : 0xff;
 
   cmd = priv->p_cmd;               /* get native sequence */
-  write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -1107,7 +1107,7 @@ int ft1000mp_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
   priv->p_cmd[2] = xit >= 0 ? 0x00 : 0xff;
 
   cmd = priv->p_cmd;               /* get native sequence */
-  write_block(&rs->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rs->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -1218,9 +1218,9 @@ int ft1000mp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	memset(&priv->p_cmd, m, YAESU_CMD_LENGTH-1);
 	priv->p_cmd[4] = 0xf7;
 
-	write_block(&rs->rigport, priv->p_cmd, YAESU_CMD_LENGTH);
+	write_block(&rs->rigport, (char *) priv->p_cmd, YAESU_CMD_LENGTH);
 
-	retval = read_block(&rs->rigport, lvl_data, YAESU_CMD_LENGTH);
+	retval = read_block(&rs->rigport, (char *) lvl_data, YAESU_CMD_LENGTH);
 	if (retval != YAESU_CMD_LENGTH) {
 		rig_debug(RIG_DEBUG_ERR,"ft1000mp_get_level: ack NG %d", retval);
 		return retval;
@@ -1282,7 +1282,7 @@ static int ft1000mp_get_update_data(RIG *rig, unsigned char ci, unsigned char rl
   /* send UPDATE comand to fetch data*/
   ft1000mp_send_priv_cmd(rig, ci);
 
-  n = read_block(&rig_s->rigport, p->update_data, rl);
+  n = read_block(&rig_s->rigport, (char *) p->update_data, rl);
 
   return n;
 
@@ -1317,7 +1317,7 @@ static int ft1000mp_send_priv_cmd(RIG *rig, unsigned char ci) {
   }
 
   cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
   
   return RIG_OK;
 

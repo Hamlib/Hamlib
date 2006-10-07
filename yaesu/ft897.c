@@ -11,7 +11,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.6 2005-04-10 21:49:38 fillods Exp $  
+ *    $Id: ft897.c,v 1.7 2006-10-07 15:51:38 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -178,7 +178,7 @@ const struct rig_caps ft897_caps = {
   .rig_model = 		RIG_MODEL_FT897,
   .model_name = 	"FT-897", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.2", 
+  .version = 		"0.3", 
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_ALPHA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -430,9 +430,9 @@ static int ft897_get_status(RIG *rig, int status)
 
   serial_flush(&rig->state.rigport);
 
-  write_block(&rig->state.rigport, p->pcs[status].nseq, YAESU_CMD_LENGTH);
+  write_block(&rig->state.rigport, (char *) p->pcs[status].nseq, YAESU_CMD_LENGTH);
 
-  if ((n = read_block(&rig->state.rigport, data, len)) < 0)
+  if ((n = read_block(&rig->state.rigport, (char *) data, len)) < 0)
     return n;
 
   if (n != len)
@@ -642,7 +642,7 @@ int ft897_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 static int ft897_read_ack(RIG *rig)
 {
 #if (FT897_POST_WRITE_DELAY == 0)
-  unsigned char dummy;
+  char dummy;
   int n;
 
   if ((n = read_block(&rig->state.rigport, &dummy, 1)) < 0) {
@@ -672,7 +672,7 @@ static int ft897_send_cmd(RIG *rig, int index)
     return -RIG_EINTERNAL;
   }
 
-  write_block(&rig->state.rigport, p->pcs[index].nseq, YAESU_CMD_LENGTH);
+  write_block(&rig->state.rigport, (char *) p->pcs[index].nseq, YAESU_CMD_LENGTH);
   return ft897_read_ack(rig);
 }
 
@@ -692,7 +692,7 @@ static int ft897_send_icmd(RIG *rig, int index, unsigned char *data)
   cmd[YAESU_CMD_LENGTH - 1] = p->pcs[index].nseq[YAESU_CMD_LENGTH - 1];
   memcpy(cmd, data, YAESU_CMD_LENGTH - 1);
 
-  write_block(&rig->state.rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
   return ft897_read_ack(rig);
 }
 

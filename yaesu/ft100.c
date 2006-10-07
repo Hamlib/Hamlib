@@ -7,7 +7,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.17 2005-04-03 19:27:59 fillods Exp $  
+ *    $Id: ft100.c,v 1.18 2006-10-07 15:51:38 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -158,7 +158,7 @@ const struct rig_caps ft100_caps = {
   .rig_model = 		RIG_MODEL_FT100,
   .model_name = 		"FT-100", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.1", 
+  .version = 		"0.2", 
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_ALPHA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -381,7 +381,7 @@ static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
       rig_debug(RIG_DEBUG_VERBOSE," %3i",(int)cmd[i]);
   rig_debug(RIG_DEBUG_VERBOSE," \n");
    
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
     
   return RIG_OK;
 }
@@ -426,7 +426,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq after conversion = %"PRIfreq" Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -534,7 +534,7 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   serial_flush( &rig->state.rigport );
 
   ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_STATUS );
-  n = read_block( &rig->state.rigport, data, sizeof(FT100_STATUS_INFO) );
+  n = read_block( &rig->state.rigport, (char *) data, sizeof(FT100_STATUS_INFO) );
   
     switch( data[5] & 0x0f ) {
     case 0x00:
@@ -645,7 +645,7 @@ int ft100_get_vfo(RIG *rig, vfo_t *vfo) {
   serial_flush( &rig->state.rigport );
 
   ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_FLAGS );
-  n = read_block( &rig->state.rigport, ft100_flags, sizeof(FT100_FLAG_INFO) );
+  n = read_block( &rig->state.rigport, (char *) ft100_flags, sizeof(FT100_FLAG_INFO) );
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read flags=%i \n",n);
 
   if ((ft100_flags[1] & 4) == 4) {
@@ -822,7 +822,7 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
   
   cmd[3]=(char)code;
   
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
@@ -863,7 +863,7 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
   
   cmd[3]=(char)tone;
   
-  write_block(&rig_s->rigport, cmd, YAESU_CMD_LENGTH);
+  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
   return RIG_OK;
 }
