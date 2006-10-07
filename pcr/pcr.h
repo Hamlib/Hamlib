@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: pcr.h,v 1.11 2005-04-10 21:57:13 fillods Exp $
+ *	$Id: pcr.h,v 1.12 2006-10-07 16:42:19 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,7 +23,7 @@
 #ifndef _PCR_H
 #define _PCR_H 1
 
-#define BACKEND_VER "0.3"
+#define BACKEND_VER "0.4"
 
 struct pcr_priv_data {
 	freq_t last_freq;
@@ -31,7 +31,7 @@ struct pcr_priv_data {
 	int last_filter;
 };
 
-extern const int pcr1_ctcss_list[];
+extern const tone_t pcr1_ctcss_list[];
 
 int pcr_init(RIG *rig);
 int pcr_cleanup(RIG *rig);

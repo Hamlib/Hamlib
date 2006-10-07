@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - PCR-100 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: pcr100.c,v 1.6 2005-04-03 20:18:30 fillods Exp $
+ *	$Id: pcr100.c,v 1.7 2006-10-07 16:42:19 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -70,7 +70,7 @@ const struct rig_caps pcr100_caps = {
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
-.ctcss_list =  pcr1_ctcss_list,
+.ctcss_list = pcr1_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { 20, RIG_DBLST_END, },

@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod and Darren Hatcher
  *
- *	$Id: pcr.c,v 1.22 2005-04-10 21:47:13 fillods Exp $
+ *	$Id: pcr.c,v 1.23 2006-10-07 16:42:19 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -81,7 +81,7 @@
  * CTCSS sub-audible tones for PCR100 and PCR1000
  * Don't even touch a single bit! indexes will be used in the protocol!
  */
-const int pcr1_ctcss_list[] = {
+const tone_t pcr1_ctcss_list[] = {
 		670,  693, 710,  719,  744,  770,  797,  825,  854,  885,  915,
 		948,  974, 1000, 1035, 1072, 1109, 1148, 1188,  1230, 1273,
 		1318, 1365, 1413, 1462, 1514, 1567, 1598, 1622, 1655, 1679,
@@ -96,7 +96,7 @@ const int pcr1_ctcss_list[] = {
  * Otherwise, you'll get a nice seg fault. You've been warned!
  * TODO: error case handling
  */
-static int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, unsigned char *data, int *data_len)
 {
 	int retval;
 	struct rig_state *rs;
@@ -111,22 +111,22 @@ static int pcr_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 
 	/* eat the first ack */
 #ifdef WANT_READ_STRING
-	retval = read_string(&rs->rigport, data, 1, "\x0a", 1);
+	retval = read_string(&rs->rigport, (char *) data, 1, "\x0a", 1);
 	if (retval < 0)
 		return retval;
 	if (retval != 1)
 		return -RIG_EPROTO;
 #else
-	retval = read_block(&rs->rigport, data, 1);
+	retval = read_block(&rs->rigport, (char *) data, 1);
 	if (retval < 0)
 		return retval;
 #endif
 
 	/* here is the real response */
 #ifdef WANT_READ_STRING
-	retval = read_string(&rs->rigport, data, *data_len, "\x0a", 1);
+	retval = read_string(&rs->rigport, (char *) data, *data_len, "\x0a", 1);
 #else
-	retval = read_block( &rs->rigport, data, *data_len );
+	retval = read_block( &rs->rigport, (char *) data, *data_len );
 #endif
 	if (retval == -RIG_ETIMEOUT)
 		retval = 0;
@@ -276,11 +276,13 @@ int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 		priv = (struct pcr_priv_data *)rig->state.priv;
 
-		freq_len = sprintf(freqbuf,"K0%010"PRIll"0%c0%c00" EOM, (long long)freq, 
-						priv->last_mode, priv->last_filter);
+		freq_len = sprintf((char *) freqbuf,
+                                   "K0%010"PRIll"0%c0%c00" EOM,
+                                   (long long)freq, 
+                                   priv->last_mode, priv->last_filter);
 
 		ack_len = 6;
-		retval = pcr_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
+		retval = pcr_transaction (rig, (char *) freqbuf, freq_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
 
@@ -357,11 +359,11 @@ int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 				return -RIG_EINVAL;
 		}
 
-		mdbuf_len = sprintf(mdbuf,"K0%010"PRIll"0%c0%c00" EOM, (long long)priv->last_freq, 
+		mdbuf_len = sprintf((char *) mdbuf,"K0%010"PRIll"0%c0%c00" EOM, (long long)priv->last_freq, 
 						pcrmode, pcrfilter);
 
 		ack_len = 6;
-		retval = pcr_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
+		retval = pcr_transaction (rig, (char *) mdbuf, mdbuf_len, ackbuf, &ack_len);
 		if (retval != RIG_OK)
 				return retval;
 
@@ -439,7 +441,7 @@ const char *pcr_get_info(RIG *rig)
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
 		} else {
-			sscanf(ackbuf, "G2%d", &proto_version);
+			sscanf((char *) ackbuf, "G2%d", &proto_version);
 		}
 
 		/*
@@ -451,7 +453,7 @@ const char *pcr_get_info(RIG *rig)
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
 		} else {
-			sscanf(ackbuf, "G4%d", &frmwr_version);
+			sscanf((char *) ackbuf, "G4%d", &frmwr_version);
 		}
 
 		/*
@@ -463,7 +465,7 @@ const char *pcr_get_info(RIG *rig)
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
 		} else {
-				sscanf(ackbuf, "GD%d", &options);
+				sscanf((char *) ackbuf, "GD%d", &options);
 		}
 
 		/*
@@ -475,7 +477,7 @@ const char *pcr_get_info(RIG *rig)
 				rig_debug(RIG_DEBUG_ERR,"pcr_get_info: ack NG, len=%d\n",
 								ack_len);
 		} else {
-			sscanf(ackbuf, "GE%d", &country_code);
+			sscanf((char *) ackbuf, "GE%d", &country_code);
 		}
 
 		switch (country_code) {
@@ -494,13 +496,13 @@ const char *pcr_get_info(RIG *rig)
 
 
 		sprintf(buf, "Firmware v%d.%d, Protocol v%d.%d, "
-						"Optional devices:%s%s%s, Country: %s", 
-						frmwr_version/10,frmwr_version%10,
-						proto_version/10,proto_version%10,
-						options&OPT_UT106 ? " DSP"  : "",
-						options&OPT_UT107 ? " DARC" : "",
-						options ? "" : " none",
-						country);
+                        "Optional devices:%s%s%s, Country: %s", 
+                        frmwr_version/10,frmwr_version%10,
+                        proto_version/10,proto_version%10,
+                        options&OPT_UT106 ? " DSP"  : "",
+                        options&OPT_UT107 ? " DARC" : "",
+                        options ? "" : " none",
+                        country);
 
 		return buf;
 }
@@ -703,7 +705,7 @@ int pcr_check_ok(RIG *rig)
 			return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not acked ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not acked ok
 			return -RIG_EPROTO;
 	return RIG_OK;
 }
@@ -737,10 +739,10 @@ int pcr_set_volume(RIG *rig, int level)
 			return -RIG_EINVAL;
 		}
 	// it  must be valid ...
-	sprintf(vol_cmd,"J40%0X\r\n", level);
+	sprintf((char *) vol_cmd,"J40%0X\r\n", level);
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, vol_cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) vol_cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -749,7 +751,7 @@ int pcr_set_volume(RIG *rig, int level)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -786,10 +788,10 @@ int pcr_set_comm_rate(RIG *rig, int baud_rate)
 
 	// it  must be valid ...
 
-	sprintf(baud_cmd,"G10%0d" EOM, baud_rate);
+	sprintf((char *) baud_cmd,"G10%0d" EOM, baud_rate);
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, baud_cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) baud_cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -880,10 +882,10 @@ int pcr_set_squelch(RIG *rig, int level)
 		}
 	// it  must be valid ...
 
-	sprintf(cmd,"J41%0X\r\n", level);
+	sprintf((char *) cmd,"J41%0X\r\n", level);
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -892,7 +894,7 @@ int pcr_set_squelch(RIG *rig, int level)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -935,10 +937,10 @@ int pcr_set_IF_shift(RIG *rig, int shift)
 		}
 	// it  must be valid ...
 
-	sprintf(cmd,"J43%0X\r\n", shift);
+	sprintf((char *) cmd,"J43%0X\r\n", shift);
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -947,7 +949,7 @@ int pcr_set_IF_shift(RIG *rig, int shift)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -985,12 +987,12 @@ int pcr_set_AGC(RIG *rig, int level)
 		}
 	// it  must be valid ...
 	if (level == 0)
-		sprintf(cmd,"J4500\r\n"); /* off */
+		sprintf((char *) cmd,"J4500\r\n"); /* off */
 	else
-		sprintf(cmd,"J4501\r\n"); /* else must be on */
+		sprintf((char *) cmd,"J4501\r\n"); /* else must be on */
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -999,7 +1001,7 @@ int pcr_set_AGC(RIG *rig, int level)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -1037,12 +1039,12 @@ int pcr_set_NB(RIG *rig, int level)
 		}
 	// it  must be valid ...
 	if (level == 0)
-		sprintf(cmd,"J4600\r\n"); /* off */
+		sprintf((char *) cmd,"J4600\r\n"); /* off */
 	else
-		sprintf(cmd,"J4601\r\n"); /* else must be on */
+		sprintf((char *) cmd,"J4601\r\n"); /* else must be on */
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1051,7 +1053,7 @@ int pcr_set_NB(RIG *rig, int level)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -1091,12 +1093,12 @@ int pcr_set_Attenuator(RIG *rig, int level)
 		}
 	// it  must be valid ...
 	if (level == 0)
-		sprintf(cmd,"J4700\r\n"); /* off */
+		sprintf((char *) cmd,"J4700\r\n"); /* off */
 	else
-		sprintf(cmd,"J4701\r\n"); /* else must be on */
+		sprintf((char *) cmd,"J4701\r\n"); /* else must be on */
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1105,7 +1107,7 @@ int pcr_set_Attenuator(RIG *rig, int level)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	rig_debug(RIG_DEBUG_VERBOSE,"pcr_set_Att: all ok\n");
@@ -1149,10 +1151,10 @@ int pcr_set_BFO(RIG *rig, int shift) // J4Axx
 		}
 	// it  must be valid ...
 
-	sprintf(cmd,"J4A%0X\r\n", shift);
+	sprintf((char *) cmd,"J4A%0X\r\n", shift);
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1161,7 +1163,7 @@ int pcr_set_BFO(RIG *rig, int shift) // J4Axx
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -1197,12 +1199,12 @@ int pcr_set_DSP(RIG *rig, int level)
 		}
 	// it  must be valid ...
 	if (level == 1)
-		sprintf(cmd,"J8001\r\n"); /* else must be UT106 */
+		sprintf((char *) cmd,"J8001\r\n"); /* else must be UT106 */
 	else
-		sprintf(cmd,"J8000\r\n"); /* off */
+		sprintf((char *) cmd,"J8000\r\n"); /* off */
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1211,7 +1213,7 @@ int pcr_set_DSP(RIG *rig, int level)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -1248,12 +1250,12 @@ int pcr_set_DSP_state(RIG *rig, int state)
 		}
 	// it  must be valid ...
 	if (state == 1)
-		sprintf(cmd,"J8101\r\n"); /* else must be set on */
+		sprintf((char *) cmd,"J8101\r\n"); /* else must be set on */
 	else
-		sprintf(cmd,"J8100\r\n"); /* off */
+		sprintf((char *) cmd,"J8100\r\n"); /* off */
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1262,7 +1264,7 @@ int pcr_set_DSP_state(RIG *rig, int state)
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -1298,13 +1300,13 @@ int pcr_set_DSP_noise_reducer(RIG *rig, int state) // J82xx
 		}
 	// it  must be valid ...
 	if (state == 0)
-		sprintf(cmd,"J8200\r\n"); /* off */
+		sprintf((char *) cmd,"J8200\r\n"); /* off */
 	else
-		sprintf(cmd,"J82%0X\r\n",state); /* else must be set on */
+		sprintf((char *) cmd,"J82%0X\r\n",state); /* else must be set on */
 
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1313,7 +1315,7 @@ int pcr_set_DSP_noise_reducer(RIG *rig, int state) // J82xx
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
@@ -1350,13 +1352,13 @@ int pcr_set_DSP_auto_notch(RIG *rig, int state) // J83xx
 		}
 	// it  must be valid ...
 	if (state == 0)
-		sprintf(cmd,"J8300\r\n"); /* off */
+		sprintf((char *) cmd,"J8300\r\n"); /* off */
 	else
-		sprintf(cmd,"J8301\r\n"); /* else must be set on */
+		sprintf((char *) cmd,"J8301\r\n"); /* else must be set on */
 
 
 	ack_len = 6;
-	retval = pcr_transaction (rig, cmd, 7, ackbuf, &ack_len);
+	retval = pcr_transaction (rig, (char *) cmd, 7, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1365,7 +1367,7 @@ int pcr_set_DSP_auto_notch(RIG *rig, int state) // J83xx
 		return -RIG_ERJCTED;
 	}
 
-	if (strcmp("G000" EOM, ackbuf) != 0) // then did not ack ok
+	if (strcmp("G000" EOM, (char *) ackbuf) != 0) // then did not ack ok
 		return -RIG_EPROTO;
 
 	return RIG_OK;
