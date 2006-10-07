@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.14 2005-04-03 12:27:16 fillods Exp $
+ *	$Id: iofunc.c,v 1.15 2006-10-07 21:33:31 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -19,7 +19,6 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -129,7 +128,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 				   /* with sequential fast writes*/
   }
   rig_debug(RIG_DEBUG_TRACE,"TX %d bytes\n",count);
-  dump_hex(txbuffer,count);
+  dump_hex((unsigned char *) txbuffer,count);
   
   return RIG_OK;
 }
@@ -168,13 +167,13 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 
 		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
 		if (retval == 0) {
-			dump_hex(rxbuffer, total_count);
+			dump_hex((unsigned char *) rxbuffer, total_count);
 			rig_debug(RIG_DEBUG_WARN, "read_block: timedout after %d chars\n",
 							total_count);
 				return -RIG_ETIMEOUT;
 		}
 		if (retval < 0) {
-			dump_hex(rxbuffer, total_count);
+			dump_hex((unsigned char *) rxbuffer, total_count);
 			rig_debug(RIG_DEBUG_ERR,"read_block: select error after %d chars: "
 							"%s\n", total_count, strerror(errno));
 				return -RIG_EIO;
@@ -195,7 +194,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
   }
 
   rig_debug(RIG_DEBUG_TRACE,"RX %d bytes\n",total_count);
-  dump_hex(rxbuffer, total_count);
+  dump_hex((unsigned char *) rxbuffer, total_count);
   return total_count;			/* return bytes count read */
 }
 
@@ -240,9 +239,9 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
             break;
 
 		if (retval < 0) {
-			dump_hex(rxbuffer, total_count);
-            rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n", 
-				__FUNCTION__, total_count, strerror(errno));
+			dump_hex((unsigned char *) rxbuffer, total_count);
+                        rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n", 
+                                  __FUNCTION__, total_count, strerror(errno));
             return -RIG_EIO;
 		}
 		/*
@@ -251,7 +250,7 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
 		 */
         rd_count = read(p->fd, &rxbuffer[total_count], 1);
 		if (rd_count < 0) {
-			dump_hex(rxbuffer, total_count);
+			dump_hex((unsigned char *) rxbuffer, total_count);
             rig_debug(RIG_DEBUG_ERR, "%s: read failed - %s\n",__FUNCTION__,
                             strerror(errno));
             return -RIG_EIO;
@@ -273,7 +272,7 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
   }
 
   rig_debug(RIG_DEBUG_TRACE,"RX %d characters\n",total_count);
-  dump_hex(rxbuffer, total_count);
+  dump_hex((unsigned char *) rxbuffer, total_count);
   return total_count;			/* return bytes count read */
 }
 
