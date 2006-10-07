@@ -2,7 +2,7 @@
  *  Hamlib Kachina backend - 505DSP description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: 505dsp.c,v 1.8 2004-11-15 18:51:35 fillods Exp $
+ *	$Id: 505dsp.c,v 1.9 2006-10-07 17:42:14 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,7 +62,7 @@ const struct rig_caps k505dsp_caps = {
 .rig_model =  RIG_MODEL_505DSP,
 .model_name = "505DSP",
 .mfg_name =  "Kachina",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_COMPUTER,
