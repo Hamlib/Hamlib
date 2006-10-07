@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.9 2005-04-10 21:47:12 fillods Exp $
+ *	$Id: ar3030.c,v 1.10 2006-10-07 21:10:11 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -100,7 +100,7 @@ const struct rig_caps ar3030_caps = {
 .rig_model =  RIG_MODEL_AR3030,
 .model_name = "AR3030",
 .mfg_name =  "AOR",
-.version =  "0.3",
+.version =  "0.4",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
@@ -279,7 +279,7 @@ int ar3030_close(RIG *rig)
 int ar3030_set_vfo(RIG *rig, vfo_t vfo)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
-	unsigned char *cmd = "";
+	char *cmd = "";
 	int retval;
 
 	switch(vfo) {
@@ -315,7 +315,7 @@ int ar3030_get_vfo(RIG *rig, vfo_t *vfo)
 int ar3030_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
-	unsigned char freqbuf[BUFSZ];
+	char freqbuf[BUFSZ];
 	int freq_len, retval;
 
 	freq_len = sprintf(freqbuf,"%03.4f" EOM, ((double)freq)/MHz(1));
@@ -338,7 +338,7 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
 	char *rfp;
 	int freq_len, retval;
-	unsigned char freqbuf[BUFSZ];
+	char freqbuf[BUFSZ];
 
 	/*
 	 * D Rn Gn Bn Tn Fnnnnnnnn C 
@@ -363,7 +363,7 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
  */
 int ar3030_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-	unsigned char mdbuf[BUFSZ];
+	char mdbuf[BUFSZ];
 	int mdbuf_len, aormode, retval;
 
 	switch (mode) {
@@ -396,7 +396,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
 	int buf_len, retval;
-	unsigned char buf[BUFSZ];
+	char buf[BUFSZ];
 
 	/*
 	 * D Rn Gn Bn Tn Fnnnnnnnn C
@@ -432,7 +432,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
-	unsigned char cmdbuf[BUFSZ];
+	char cmdbuf[BUFSZ];
 	int cmd_len, retval=RIG_OK;
 
 	if (priv->curr_vfo == RIG_VFO_MEM) {
@@ -450,7 +450,7 @@ int ar3030_set_mem(RIG *rig, vfo_t vfo, int ch)
 int ar3030_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
-	unsigned char infobuf[BUFSZ];
+	char infobuf[BUFSZ];
 	int info_len, retval;
 
 	if (priv->curr_vfo != RIG_VFO_MEM) {
@@ -484,7 +484,7 @@ int ar3030_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
 int ar3030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	unsigned char *cmd;
+	char *cmd;
 	int retval;
 
 	switch(level) {
@@ -512,7 +512,7 @@ int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
 	int info_len, retval;
-	unsigned char infobuf[BUFSZ], *p;
+	char infobuf[BUFSZ], *p;
 
 	switch(level) {
 	case RIG_LEVEL_ATT:
@@ -564,7 +564,7 @@ int ar3030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 int ar3030_get_channel(RIG *rig, channel_t *chan)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
-	unsigned char cmdbuf[BUFSZ], infobuf[BUFSZ];
+	char cmdbuf[BUFSZ], infobuf[BUFSZ];
 	int info_len, cmd_len, retval;
 
 
@@ -623,7 +623,7 @@ int ar3030_get_channel(RIG *rig, channel_t *chan)
 int ar3030_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
 	struct ar3030_priv_data *priv = (struct ar3030_priv_data *)rig->state.priv;
-	unsigned char buf[16];
+	char buf[16];
 	int len, retval;
 
 	switch(op) {

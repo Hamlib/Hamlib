@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR7030 description
  *  Copyright (c) 2000-2006 by Stephane Fillod & Fritz Melchert
  *
- *	$Id: ar7030.c,v 1.6 2006-02-26 19:21:53 fillods Exp $
+ *	$Id: ar7030.c,v 1.7 2006-10-07 21:10:11 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -74,7 +74,7 @@
 
 static int rxr_writeByte(RIG *rig, unsigned char c)
 {
-  return write_block(&rig->state.rigport, &c, 1);
+  return write_block(&rig->state.rigport, (char *) &c, 1);
 }
 
 
@@ -83,8 +83,8 @@ static int rxr_readByte(RIG *rig)
   unsigned char response[1];
   unsigned char buf[] = {0x71}; // Read command
   int retval;
-  retval = write_block(&rig->state.rigport, buf, 1);
-  retval = read_block(&rig->state.rigport, response, 1);
+  retval = write_block(&rig->state.rigport, (char *) buf, 1);
+  retval = read_block(&rig->state.rigport, (char *) response, 1);
   return response[0];
 }
 
@@ -164,6 +164,8 @@ static void Execute_Routine_0(RIG *rig)
 //		RF filters and oscillator range.
 // Routine 2	Set mode	Setup from mode byte in memory and display mode, 
 //		select preferred filter and PBS, BFO values etc.
+// currently not used
+#if 0
 static void Execute_Routine_2_1(RIG *rig, char mp , char ad , int numSteps) 
 {
   setLock(rig, 1);		//Set Lock Level
@@ -173,6 +175,7 @@ static void Execute_Routine_2_1(RIG *rig, char mp , char ad , int numSteps)
   rxr_writeByte(rig, 0x22);
   unlock(rig);			//Set UnLock Level
 }
+#endif
 // Routine 3	Set passband	Setup all IF parameters from filter, pbsval and bfoval bytes.
 static void Execute_Routine_3_1(RIG *rig, char mp , char ad , int numSteps) 
 {
@@ -223,6 +226,8 @@ static void Execute_Routine_4_3(RIG *rig, char mp , char ad , int numSteps)
 }
 
 // Routine 5	Set audio	Setup audio controller from memory register values.
+// currently not used
+#if 0
 static void Execute_Routine_5_1(RIG *rig, char mp , char ad , int numSteps) 
 {
   setLock(rig, 1);		//Set Lock Level
@@ -232,6 +237,8 @@ static void Execute_Routine_5_1(RIG *rig, char mp , char ad , int numSteps)
   rxr_writeByte(rig, 0x25);
   unlock(rig);			//Set UnLock Level
 }
+#endif
+
 // Routine 6	Set RF-IF	Setup RF Gain, IF Gain and AGC speed. Also sets Notch Filter and 
 //				Noise Blanker if these options are fitted.
 static void Execute_Routine_6_1(RIG *rig, char mp , char ad , int numSteps) 
@@ -251,8 +258,8 @@ static int Execute_Routine_14(RIG *rig)
   unsigned char response[1];
   unsigned char buf[] = {0x2e}; // Read command
   int retval;
-  retval = write_block(&rig->state.rigport, buf, 1);
-  retval = read_block(&rig->state.rigport, response, 1);
+  retval = write_block(&rig->state.rigport, (char *) buf, 1);
+  retval = read_block(&rig->state.rigport, (char *) response, 1);
   return response[0];
 }
 
@@ -617,11 +624,15 @@ static int ar7030_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
       }
       else if (smval1 < 11)
       {
-        val->i = round((smval1 * 6 + smval2) * 10 / 12) - 118;
+        /* int ops => int result => round has no effect (besides compiler warning */
+        //val->i = round((smval1 * 6 + smval2) * 10 / 12) - 118;
+        val->i = ((smval1 * 6 + smval2) * 10 / 12) - 118;
       }
       else  if (smval1 >= 11)
       {
-        val->i = round((smval1 * 6 + smval2) * 10 / 6) - 173;
+        /* int ops => int result => round has no effect (besides compiler warning */
+        //val->i = round((smval1 * 6 + smval2) * 10 / 6) - 173;
+        val->i = ((smval1 * 6 + smval2) * 10 / 6) - 173;
       }
       return RIG_OK;
     default :
@@ -636,16 +647,22 @@ static int ar7030_set_powerstat(RIG *rig, powerstat_t status)
   // 1 > RIG_POWER_ON       Power on 
   // 2 > RIG_POWER_STANDBY  Standby 
   switch (status) {
-    case RIG_POWER_OFF:
-      // Operate button 9 = Power button
-      Execute_Operate_button(rig, 9);
-      return RIG_OK;
-    case RIG_POWER_ON:
-      // Operate button 0 = None pressed
-      Execute_Operate_button(rig, 0);
-      return RIG_OK;
- }
- return -RIG_EINVAL;
+
+  case RIG_POWER_OFF:
+    // Operate button 9 = Power button
+    Execute_Operate_button(rig, 9);
+    return RIG_OK;
+
+  case RIG_POWER_ON:
+    // Operate button 0 = None pressed
+    Execute_Operate_button(rig, 0);
+    return RIG_OK;
+
+  default:
+    break;
+  }
+
+  return -RIG_EINVAL;
 }
 
 static int ar7030_get_powerstat(RIG *rig, powerstat_t *status)
@@ -665,13 +682,17 @@ static int ar7030_reset(RIG *rig, reset_t reset)
   // 2 > RIG_RESET_VFO     VFO reset 
   // 3 > RIG_RESET_MCALL   Memory clear 
   // 4 > RIG_RESET_MASTER  Master reset 
-  switch(reset) 
-  {
+  switch(reset) {
+    
     // Routine 0  Reset  Setup receiver as at switch-on.
-    case RIG_RESET_SOFT :
-      Execute_Routine_0(rig) ;
-      return RIG_OK;
+  case RIG_RESET_SOFT :
+    Execute_Routine_0(rig) ;
+    return RIG_OK;
+
+  default:
+    break;
   }
+
   return -RIG_EINVAL;
 }
 
@@ -690,7 +711,7 @@ const struct rig_caps ar7030_caps = {
 .rig_model =  RIG_MODEL_AR7030,
 .model_name = "AR7030",
 .mfg_name =  "AOR",
-.version =  "0.3.1",
+.version =  "0.4",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,

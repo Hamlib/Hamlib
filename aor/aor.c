@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.39 2005-04-21 20:19:41 fillods Exp $
+ *	$Id: aor.c,v 1.40 2006-10-07 21:10:11 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -75,7 +75,7 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 {
 	int retval;
 	struct rig_state *rs;
-	unsigned char ackbuf[BUFSZ];
+	char ackbuf[BUFSZ];
 	int ack_len;
 
 	rs = &rig->state;
@@ -158,7 +158,7 @@ static int format_freq(char *buf, freq_t freq)
  */
 int aor_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	unsigned char freqbuf[BUFSZ];
+	char freqbuf[BUFSZ];
 	int freq_len;
 
 	freq_len = format_freq(freqbuf, freq);
@@ -176,7 +176,7 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	char *rfp;
 	int freq_len, retval;
-	unsigned char freqbuf[BUFSZ];
+	char freqbuf[BUFSZ];
 
 	retval = aor_transaction (rig, "RX" EOM, 3, freqbuf, &freq_len);
 	if (retval != RIG_OK)
@@ -227,7 +227,7 @@ int aor_set_vfo(RIG *rig, vfo_t vfo)
 int aor_get_vfo(RIG *rig, vfo_t *vfo)
 {
 	int vfo_len, retval;
-	unsigned char vfobuf[BUFSZ];
+	char vfobuf[BUFSZ];
 
 	retval = aor_transaction (rig, "RX" EOM, 3, vfobuf, &vfo_len);
 	if (retval != RIG_OK)
@@ -306,7 +306,7 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
-	unsigned char mdbuf[BUFSZ];
+	char mdbuf[BUFSZ];
 	int mdbuf_len, retval;
 
 	mdbuf_len = priv->format_mode(rig, mdbuf, mode, width);
@@ -364,8 +364,8 @@ int parse8k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwid
 int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
-	unsigned char ackbuf[BUFSZ], *mdp;
-	unsigned char ackbuf2[BUFSZ], *mdp2;
+	char ackbuf[BUFSZ], *mdp;
+	char ackbuf2[BUFSZ], *mdp2;
 	int ack_len, ack2_len, retval;
 
 
@@ -404,7 +404,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
-	unsigned char tsbuf[BUFSZ];
+	char tsbuf[BUFSZ];
 	int ts_len;
 
 	/*
@@ -424,7 +424,7 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct rig_state *rs;
-	unsigned char lvlbuf[BUFSZ];
+	char lvlbuf[BUFSZ];
 	int lvl_len;
 	unsigned i;
 	int agc;
@@ -475,7 +475,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct rig_state *rs;
-	unsigned char lvlbuf[BUFSZ],ackbuf[BUFSZ];
+	char lvlbuf[BUFSZ],ackbuf[BUFSZ];
 	int lvl_len, ack_len, retval;
 
 	rs = &rig->state;
@@ -551,7 +551,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  */
 int aor_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
-	unsigned char ackbuf[BUFSZ];
+	char ackbuf[BUFSZ];
 	int  ack_len, retval;
 
 	retval = aor_transaction (rig, "LM" EOM, 3, ackbuf, &ack_len);
@@ -610,7 +610,7 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
-	unsigned char membuf[BUFSZ];
+	char membuf[BUFSZ];
 	int mem_len;
 	int mem_num;
 	char bank_base;
@@ -642,7 +642,7 @@ int aor_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	int mem_len, retval;
-	unsigned char membuf[BUFSZ];
+	char membuf[BUFSZ];
 
 	retval = aor_transaction (rig, "MR" EOM, 3, membuf, &mem_len);
 	if (retval != RIG_OK)
@@ -673,7 +673,7 @@ int aor_get_mem(RIG *rig, vfo_t vfo, int *ch)
 int aor_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
-	unsigned char membuf[BUFSZ];
+	char membuf[BUFSZ];
 	int mem_len;
 
 	mem_len = sprintf(membuf,"MR%c" EOM, (bank%10) + (bank<10 ? 
@@ -713,6 +713,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	int retval;
 	char *tagp;
+        int ts;
 
 	/* 
 	 * search for attribute tags in the line.
@@ -780,7 +781,8 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 					__FUNCTION__, basep);
 			return -RIG_EPROTO;
 		}
-		sscanf(tagp+2,"%d", (int*)&chan->tuning_step);
+                ts = chan->tuning_step;
+		sscanf(tagp+2,"%d", &ts);
 	}
 
 
