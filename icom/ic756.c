@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.14 2006-09-22 19:55:58 n0nb Exp $
+ *	$Id: ic756.c,v 1.15 2006-10-07 20:13:21 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -653,7 +653,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 	const struct confparams *cfp;
 	
 	unsigned char resbuf[MAXFRAMELEN];
-	int res_len, icom_val;
+	int res_len, icom_val=0;
 	int cmdhead;
 	int retval;
 	
@@ -687,7 +687,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 	retval = icom_transaction (rig, ep_cmd, ep_sc, NULL, 0,
 					resbuf, &res_len);
 	if (retval != RIG_OK)
-		return retval;
+            return retval;
 
 	/*
 	 * strbuf should contain Cn,Sc,Data area

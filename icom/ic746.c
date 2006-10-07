@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-746 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic746.c,v 1.7 2006-09-22 19:55:58 n0nb Exp $
+ *	$Id: ic746.c,v 1.8 2006-10-07 20:13:22 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -611,7 +611,7 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 	const struct confparams *cfp;
 	
 	unsigned char resbuf[MAXFRAMELEN];
-	int res_len, icom_val;
+	int res_len, icom_val=0;
 	int cmdhead;
 	int retval;
 	
