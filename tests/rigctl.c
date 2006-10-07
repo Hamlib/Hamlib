@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.60 2006-09-22 14:31:19 n0nb Exp $  
+ * $Id: rigctl.c,v 1.61 2006-10-07 19:24:56 csete Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -536,7 +536,7 @@ int main (int argc, char *argv[])
 						scanfc("%c", ++pcmd);
 
 					*pcmd = '\0';
-					cmd = parse_arg(cmd_name);
+					cmd = parse_arg((char *) cmd_name);
 					break;
 				}
 
@@ -939,10 +939,10 @@ declare_proto_rig(get_vfo)
 
 declare_proto_rig(set_ptt)
 {
-	ptt_t ptt;
+        int   ptt;
 
-	sscanf(arg1, "%d", (int*)&ptt);
-	return rig_set_ptt(rig, vfo, ptt);
+	sscanf(arg1, "%d", &ptt);
+	return rig_set_ptt(rig, vfo, (ptt_t) ptt);
 }
 
 
@@ -997,7 +997,7 @@ declare_proto_rig(set_rptr_offs)
 declare_proto_rig(get_rptr_offs)
 {
 	int status;
-	unsigned long rptr_offs;
+	shortfreq_t rptr_offs;
 
 	status = rig_get_rptr_offs(rig, vfo, &rptr_offs);
 	if (status != RIG_OK)
@@ -1083,11 +1083,11 @@ declare_proto_rig(get_split_freq)
 declare_proto_rig(set_split_mode)
 {
 	rmode_t mode;
-	pbwidth_t width;
+	int     width;
 
 	mode = rig_parse_mode(arg1);
-	sscanf(arg2, "%d", (int*)&width);
-	return rig_set_split_mode(rig, vfo, mode, width);
+	sscanf(arg2, "%d", &width);
+	return rig_set_split_mode(rig, vfo, mode, (pbwidth_t) width);
 }
 
 
@@ -1112,10 +1112,10 @@ declare_proto_rig(get_split_mode)
 
 declare_proto_rig(set_split_vfo)
 {
-	split_t split;
+	int split;
 
-	sscanf(arg1, "%d", (int*)&split);
-	return rig_set_split_vfo(rig, vfo, split, rig_parse_vfo(arg2));
+	sscanf(arg1, "%d", &split);
+	return rig_set_split_vfo(rig, vfo, (split_t) split, rig_parse_vfo(arg2));
 }
 
 
@@ -1150,7 +1150,7 @@ declare_proto_rig(set_ts)
 declare_proto_rig(get_ts)
 {
 	int status;
-	unsigned long ts;
+	shortfreq_t ts;
 
 	status = rig_get_ts(rig, vfo, &ts);
 	if (status != RIG_OK)
@@ -1166,7 +1166,7 @@ declare_proto_rig(power2mW)
 	int status;
 	float power;
 	freq_t freq;
-	rmode_t mode;
+	int mode;
 	unsigned int mwp;
 
 	printf("Power [0.0 .. 1.0]: ");
@@ -1175,7 +1175,7 @@ declare_proto_rig(power2mW)
 	scanf("%"SCNfreq, &freq);
 	printf("Mode: ");
 	scanf("%d", &mode);
-	status = rig_power2mW(rig, &mwp, power, freq, mode);
+	status = rig_power2mW(rig, &mwp, power, freq, (rmode_t) mode);
 	printf("Power: %d mW\n", mwp);
 	return status;
 }
@@ -1747,10 +1747,10 @@ declare_proto_rig(get_ant)
 
 declare_proto_rig(reset)
 {
-	reset_t reset;
+	int reset;
 
 	sscanf(arg1, "%d", &reset);
-	return rig_reset(rig, reset);
+	return rig_reset(rig, (reset_t) reset);
 }
 
 declare_proto_rig(send_morse)
@@ -1760,10 +1760,10 @@ declare_proto_rig(send_morse)
 
 declare_proto_rig(set_powerstat)
 {
-	powerstat_t stat;
+	int stat;
 
 	sscanf(arg1, "%d", &stat);
-	return rig_set_powerstat(rig, stat);
+	return rig_set_powerstat(rig, (powerstat_t) stat);
 }
 
 declare_proto_rig(get_powerstat)
@@ -1804,7 +1804,7 @@ declare_proto_rig(send_cmd)
 		int i;
 		for (i=0; i < BUFSZ-1 && p != pp; i++) {
 			pp = p+1;
-			bufcmd[i] = strtol(p+1, &p, 0);
+			bufcmd[i] = strtol(p+1, (char **) &p, 0);
 		}
 		cmd_len = i-1;
 		/* must save length to allow 0x00 to be sent as part of a command
