@@ -3,7 +3,7 @@
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *	$Id: easycomm.c,v 1.7 2005-11-19 14:45:54 fillods Exp $
+ *	$Id: easycomm.c,v 1.8 2006-10-07 19:00:05 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -80,7 +80,7 @@ easycomm_transaction (ROT *rot, const char *cmdstr, char *data, size_t data_len)
 static int
 easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    unsigned char cmdstr[64];
+    char cmdstr[64];
     int retval;
 	rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
 
@@ -96,7 +96,7 @@ easycomm_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 static int
 easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    unsigned char cmdstr[16], ackbuf[32];
+    char cmdstr[16], ackbuf[32];
     int retval;
     int t;
 
@@ -155,7 +155,7 @@ easycomm_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 static int
 easycomm_rot_stop(ROT *rot)
 {
-    unsigned char ackbuf[32];
+    char ackbuf[32];
     int retval;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
@@ -172,7 +172,7 @@ easycomm_rot_stop(ROT *rot)
 static int
 easycomm_rot_reset(ROT *rot, rot_reset_t rst)
 {
-    unsigned char ackbuf[32];
+    char ackbuf[32];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
@@ -186,7 +186,7 @@ easycomm_rot_reset(ROT *rot, rot_reset_t rst)
 static int
 easycomm_rot_park(ROT *rot)
 {
-    unsigned char ackbuf[32];
+    char ackbuf[32];
     int retval;
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
@@ -243,7 +243,7 @@ const struct rot_caps easycomm1_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM1,
   .model_name =     "EasycommI",
   .mfg_name =       "Hamlib",
-  .version =        "0.2",
+  .version =        "0.3",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
@@ -277,7 +277,7 @@ const struct rot_caps easycomm2_rot_caps = {
   .rot_model =      ROT_MODEL_EASYCOMM2,
   .model_name =     "EasycommII",
   .mfg_name =       "Hamlib",
-  .version =        "0.2",
+  .version =        "0.3",
   .copyright = 	 "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,

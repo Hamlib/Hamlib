@@ -2,7 +2,7 @@
  *  Hamlib TAPR backend - DSP-10 description
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: dsp10.c,v 1.1 2003-10-07 22:15:49 fillods Exp $
+ *	$Id: dsp10.c,v 1.2 2006-10-07 18:52:09 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -61,7 +61,7 @@ const struct rig_caps dsp10_caps = {
 .rig_model =  RIG_MODEL_DSP10,
 .model_name = "DSP-10",
 .mfg_name =  "TAPR",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,

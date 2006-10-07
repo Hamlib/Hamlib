@@ -2,7 +2,7 @@
  *  Hamlib RFT backend - main file
  *  Copyright (c) 2003 by Thomas B. Ruecker
  *
- *	$Id: rft.c,v 1.2 2005-04-10 21:47:14 fillods Exp $
+ *	$Id: rft.c,v 1.3 2006-10-07 18:48:34 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@ int rft_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *dat
  */
 int rft_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	unsigned char freqbuf[16], ackbuf[16];
+	char freqbuf[16], ackbuf[16];
 	int freq_len, ack_len, retval;
 
 	/* 

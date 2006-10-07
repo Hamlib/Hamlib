@@ -2,7 +2,7 @@
  *  Hamlib TAPR backend - main file
  *  Copyright (c) 2003 by Stephane Fillod
  *
- *	$Id: tapr.c,v 1.1 2003-10-07 22:15:49 fillods Exp $
+ *	$Id: tapr.c,v 1.2 2006-10-07 18:52:09 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -67,7 +67,7 @@ static int tapr_cmd(RIG *rig, unsigned char cmd, unsigned char c1, unsigned char
 	cmdbuf[4] = c3;
 	cmdbuf[5] = c4;
 
-	retval = write_block(&rs->rigport, cmdbuf, 6);
+	retval = write_block(&rs->rigport, (char *) cmdbuf, 6);
 	if (retval != RIG_OK)
 		return retval;
 
