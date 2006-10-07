@@ -12,7 +12,7 @@
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.8 2006-02-26 23:28:13 fillods Exp $
+ *	$Id: mem.c,v 1.9 2006-10-07 13:26:06 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -717,7 +717,7 @@ int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
 		return -RIG_EINVAL;
 
 	rc = rig->caps;
-	map_arg.chans = chans;
+	map_arg.chans = (channel_t *) chans;
 
 	if (rc->set_chan_all_cb)
 		return rc->set_chan_all_cb(rig, map_chan, (rig_ptr_t)&map_arg);
@@ -921,9 +921,9 @@ int HAMLIB_API rig_set_mem_all (RIG *rig, const channel_t chans[], const struct 
 		return -RIG_EINVAL;
 
 	rc = rig->caps;
-	mem_all_arg.chans = chans;
+	mem_all_arg.chans = (channel_t *) chans;
 	mem_all_arg.cfgps = cfgps;
-	mem_all_arg.vals = vals;
+	mem_all_arg.vals = (value_t *) vals;
 
 	if (rc->set_mem_all_cb)
 		return rc->set_mem_all_cb(rig, map_chan, map_parm,
