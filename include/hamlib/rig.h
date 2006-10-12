@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.114 2006-09-27 11:38:25 n0nb Exp $
+ *	$Id: rig.h,v 1.115 2006-10-12 16:41:22 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -467,9 +467,10 @@ typedef long token_t;
 
 #define RIG_CONF_END 0
 
-/*
- * strongly inspired from soundmedem. Thanks Thomas!
+/**
+ * \brief Configuration parameter types
  */
+/* strongly inspired from soundmedem. Thanks Thomas! */
 enum rig_conf_e {
 	RIG_CONF_STRING,	/*!<	String type */
 	RIG_CONF_COMBO,		/*!<	Combo type */
@@ -525,7 +526,9 @@ typedef int ant_t;
 #define RIG_ANT_3	RIG_ANT_N(2)
 #define RIG_ANT_4	RIG_ANT_N(3)
 
-
+/**
+ * \brief AGC delay settings
+ */
 /* TODO: kill me, and replace by real AGC delay */
 enum agc_level_e {
 	RIG_AGC_OFF = 0,
