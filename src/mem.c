@@ -12,7 +12,7 @@
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.9 2006-10-07 13:26:06 csete Exp $
+ *	$Id: mem.c,v 1.10 2006-10-12 18:56:48 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -662,7 +662,7 @@ int HAMLIB_API rig_set_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  *
  *  Retrieves the data associated with a all the memory channels.
  *
- *  \a chan_cb is called first with no data in \chan (chan equals NULL). 
+ *  \a chan_cb is called first with no data in chan (chan equals NULL). 
  *  This means the application has to provide a struct where to store 
  *  future data for channel channel_num. If channel_num == chan->channel_num,
  *  the application does not need to provide a new allocated structure.
@@ -697,7 +697,7 @@ int HAMLIB_API rig_get_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
 /**
  * \brief set all channel data
  * \param rig	The rig handle
- * \param chan	The location of data to set for all channels
+ * \param chans	The location of data to set for all channels
  *
  * Write the data associated with all the memory channels.
  *
@@ -733,7 +733,7 @@ int HAMLIB_API rig_set_chan_all (RIG *rig, const channel_t chans[])
 /**
  * \brief get all channel data
  * \param rig	The rig handle
- * \param chan	The location where to store all the channel data
+ * \param chans	The location where to store all the channel data
  *
  * Retrieves the data associated with all the memory channels.
  *
@@ -895,9 +895,9 @@ int HAMLIB_API rig_get_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t par
 /**
  * \brief set all channel and non-channel data
  * \param rig	The rig handle
- * \param chan_cb	The callback for channel data
- * \param parm_cb	The callback for non-channel(aka parm) data
- * \param arg	Cookie passed to \a chan_cb and \a parm_cb
+ * \param chans	Channel data
+ * \param cfgps	??
+ * \param vals	??
  *
  * Writes the data associated with all the memory channels,
  * and rigs memory parameters.
