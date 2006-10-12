@@ -1,4 +1,4 @@
-## $Id: hamlib.cfg.in,v 1.1 2004-08-09 20:52:53 fillods Exp $
+## $Id: hamlib.cfg.in,v 1.2 2006-10-12 19:19:47 aa6e Exp $
 
 PROJECT_NAME    = "Hamlib - the C library reference"
 PROJECT_NUMBER  = @VERSION@
@@ -38,6 +38,7 @@ EXAMPLE_PATH    = @top_srcdir@/tests/testrig.c
 QUIET          = YES
 
 HTML_STYLESHEET	= @top_srcdir@/doc/hamlib.css
+HTML_FOOTER = @top_srcdir@/doc/footer.html
 
 EXTRACT_ALL    = NO
 EXTRACT_STATIC = NO

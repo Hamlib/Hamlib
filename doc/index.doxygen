@@ -1,9 +1,10 @@
 /*! \page Index Preamble and License
 
-\author Stephane Fillod
+\author Stephane Fillod 
 \author Frank Singleton
 
 <H2>Preface</H2>
+
 <P>This document describes the \e Hamlib library API for 1.2.x.</P>
 
 <P>Each function of the API occuring in rig.c at the time of release 
@@ -29,8 +30,8 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</P>
 
 <H2>Internet links</H2>
 <UL>
-<LI><A HREF="http://hamlib.org">Hamlib.org</A> web site, including list of supported rigs.
-<LI><A HREF="http://sourceforge.net/projects/hamlib">Hamlib sourceforge.net</A> project info.
+<LI>http://hamlib.org - project web site, including list of supported rigs.
+<LI>http://hamlib.sourceforge.net --  project info.
 </UL>
-
+<p>Edited by Martin Ewing, AA6E</p>
 */
