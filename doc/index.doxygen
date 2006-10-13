@@ -1,37 +1,102 @@
-/*! \page Index Preamble and License
+/*! \mainpage Hamlib Distribution Information
 
-\author Stephane Fillod 
-\author Frank Singleton
+\section auth Authors
 
-<H2>Preface</H2>
+St&eacute;phane Fillod  and Frank Singleton
+\n Documentation revisions by Martin Ewing, AA6E
 
-<P>This document describes the \e Hamlib library API for 1.2.x.</P>
+\section s1 Preface
 
-<P>Each function of the API occuring in rig.c at the time of release 
-is documented here.  Every effort was made to ensure all arguments 
-and return values are correct, but, as always, the source is definitive.
-Errors are bound to have occurred and others will be blamed.</P>
+This document describes the Hamlib library Application Programming Interface (API) for this distribution. 
 
-<H2>Documentation License</H2>
-<P> This documentation is free; you can redistribute it without 
+We attempt to document the complete API of the core modules of Hamlib, i.e., the API seen
+by end-user application developers.  You may navigate the documentation through the tabs
+at the top of this page.
+
+Please report any problems to hamlib-developers@lists.sourceforge.net.
+
+\section txtfil Distributed information files
+
+These text files are distributed with the Hamlib package.
+
+Readme files: \subpage Rdme "General";
+ \subpage Rdmebeta "Beta tester";
+\subpage Rdmedevel "Developer";
+\subpage Rdmewin32 "Win32"
+
+Other files: \subpage INSTALL;
+\subpage AUTHORS;
+\subpage COPYING;
+\subpage COPYING.LIB;
+\subpage LICENSE;
+\subpage NEWS;
+\subpage PLAN;
+\subpage THANKS;
+\subpage TODO
+
+\section lnks Internet links
+
+\li http://hamlib.org - project web site, including list of supported rigs.
+\li http://hamlib.sourceforge.net --  Sourceforge project info.
+
+\section slic Documentation License
+
+This documentation is free; you can redistribute it without 
 any restrictions. The modification or derived work must retain
-copyright and list all authors.</P>
+copyright and list all authors.
 
-<P> This documentation is distributed in the hope that it will be
+This documentation is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</P>
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-<H2>API links</H2>
-<UL>
-<LI>Page \ref hamlib explains the design of the general API.
-<LI>Page \ref rig explains the design of the Rig (radio) API.
-<LI>Page \ref rot explains the design of the Rotator API.
-</UL>
+\subpage Obsol "Miscellaneous / obsolete"
 
-<H2>Internet links</H2>
-<UL>
-<LI>http://hamlib.org - project web site, including list of supported rigs.
-<LI>http://hamlib.sourceforge.net --  project info.
-</UL>
-<p>Edited by Martin Ewing, AA6E</p>
+*/
+/*! \page Obsol Miscellaneous / Obsolete
+\section apilnk API links
+
+\note Needs revision. This is a pretty useless section as it is!
+
+\li Page \ref hamlib explains the design of the general API.
+\li Page \ref rig explains the design of the Rig (radio) API.
+\li Page \ref rot explains the design of the Rotator API.
+*/
+/*! \page Rdme  README (general)
+\verbinclude README
+*/
+/*! \page Rdmebeta README.betatester
+\verbinclude README.betatester
+*/
+/*! \page Rdmedevel README.developer
+\verbinclude README.developer
+*/
+/*! \page Rdmewin32 README.win32
+\verbinclude README.win32
+*/
+/*! \page INSTALL INSTALL
+\verbinclude INSTALL
+*/
+/*! \page AUTHORS AUTHORS
+\verbinclude AUTHORS
+*/
+/*! \page COPYING COPYING
+\verbinclude COPYING
+*/
+/*! \page COPYING.LIB COPYING.LIB
+\verbinclude COPYING.LIB
+*/
+/*! \page LICENSE LICENSE
+\verbinclude LICENSE
+*/
+/*! \page NEWS NEWS
+\verbinclude NEWS
+*/
+/*! \page PLAN PLAN
+\verbinclude PLAN
+*/
+/*! \page THANKS THANKS
+\verbinclude THANKS
+*/
+/*! \page TODO TO DO
+\verbinclude TODO
 */
