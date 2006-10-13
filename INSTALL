@@ -65,6 +65,12 @@ main directory and do the following:
      files that `configure' created (so you can compile the package for
      a different kind of computer), type `make distclean'.
 
+  6. You can optionally generate the Doxygen documentation files:
+        cd doc
+        make doc
+     The HTML output files are provided for binary releases on the hamlib.org
+     web site.
+
 Compiler configuration
 ======================
 
