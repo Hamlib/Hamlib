@@ -1,5 +1,15 @@
-/* $Id: rig_dll.h,v 1.9 2003-04-23 20:13:03 fillods Exp $ */
+/* $Id: rig_dll.h,v 1.10 2006-10-13 12:02:36 aa6e Exp $ */
 
+/*
+ * Provide definitions to compile in Windows
+ * using C-friendly options, e.g.
+ *
+ * HAMLIB_API -> __cdecl
+ * HAMLIB_EXPORT, HAMLIB_EXPORT_VAR -> __declspec(dllexport)
+ * BACKEND_EXPORT, BACKEND_EXPORT_VAR -> __declspec(dllexport)
+ *
+ * No effect in non-Windows environments.
+ */
 
 /*
  * Temporarily commented out, until cygwin port is sorted out
