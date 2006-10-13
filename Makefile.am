@@ -1,3 +1,4 @@
+## Process this file with automake to produce Makefile.in
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = hamlib.m4
