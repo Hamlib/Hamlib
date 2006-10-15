@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.40 2006-10-07 21:10:11 csete Exp $
+ *	$Id: aor.c,v 1.41 2006-10-15 13:12:54 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -442,8 +442,8 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				break;
 			}
 		}
-		/* should be catched by the front end */
-		if (i>=MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i]))
+		/* should be caught by the front end */
+		if ((val.i != 0) & (i>=MAXDBLSTSIZ || RIG_IS_DBLST_END(rs->attenuator[i])) )
 			return -RIG_EINVAL;
 
 		lvl_len = sprintf(lvlbuf, "AT%u" EOM, att);
