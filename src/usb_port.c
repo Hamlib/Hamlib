@@ -1,8 +1,8 @@
 /*
- *  Hamlib Interface - parallel communication low-level support
+ *  Hamlib Interface - USB communication low-level support
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: usb_port.c,v 1.3 2006-02-20 22:41:17 fillods Exp $
+ *	$Id: usb_port.c,v 1.4 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -18,6 +18,18 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
+/**
+ * \brief USB IO
+ * \file usb_port.c
+ *
+ * doc todo: deal with defined(HAVE_LIBUSB)... quashing the doc process.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,7 +55,11 @@
 #include <usb.h>
 #include "usb_port.h"
 
-
+/**
+ * \brief Find USB device
+ * \param port
+ * \return usb_device
+ */
 struct usb_device * find_device(const hamlib_port_t *port)
 {
 	struct usb_bus *p;
@@ -117,8 +133,6 @@ int usb_port_open(hamlib_port_t *port)
   return RIG_OK;
 }
 
-
-
 int usb_port_close(hamlib_port_t *port)
 {
 	struct usb_dev_handle *udh = port->handle;
@@ -140,3 +154,5 @@ int usb_port_close(hamlib_port_t *port)
 }
 
 #endif	/* defined(HAVE_LIBUSB) && defined(HAVE_USB_H) */
+
+/** @} */

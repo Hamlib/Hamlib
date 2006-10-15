@@ -2,7 +2,7 @@
  *  Hamlib Interface - calibration routines
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *		$Id: cal.c,v 1.5 2004-10-02 10:32:08 fillods Exp $
+ *		$Id: cal.c,v 1.6 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,6 +20,16 @@
  *
  */
 
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
+/**
+ * \file cal.c
+ * \brief Calibration routines
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -29,7 +39,12 @@
 
 /* add rig_set_cal(cal_table), rig_get_calstat(rawmin,rawmax,cal_table), */
 
-/*
+/**
+ * \brief Convert raw S-meter data to calibated value, according to table
+ * \param rawval input value
+ * \param cal calibration table
+ * \return calibrated value
+
  * cal_table_t is a data type suited to hold linear calibration
  * cal_table_t.size tell the number of plot cal_table_t.table contains
  * If a value is below or equal to cal_table_t.table[0].raw, 
@@ -83,3 +98,4 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 	return cal->table[i].val - interpolation;
 }
 
+/** @} */

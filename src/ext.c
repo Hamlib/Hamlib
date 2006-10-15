@@ -2,7 +2,7 @@
  *  Hamlib Interface - extrq parameter interface
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ext.c,v 1.4 2006-09-22 19:55:59 n0nb Exp $
+ *	$Id: ext.c,v 1.5 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -19,6 +19,12 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+/**
+ * \file ext.c
+ * \brief Ext. request parameter interface
+ */
+
+/* doc todo: Are these in the Hamlib API? */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"

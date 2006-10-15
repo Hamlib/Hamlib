@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rotators
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.9 2003-06-22 19:38:26 fillods Exp $
+ *	$Id: rotlist.h,v 1.10 2006-10-15 00:26:47 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,8 +26,12 @@
 #define ROT_MAKE_MODEL(a,b) ((a)*100+(b))
 #define ROT_BACKEND_NUM(a) ((a)/100)
 
+/**
+ * \addtogroup rotator
+ * @{
+ */
+
 /*! \file rotlist.h
- *  \ingroup rot
  *  \brief Hamlib rotator model definitions.
  *
  *  This file contains rotator model definitions for the Hamlib rotator API.
@@ -41,7 +45,6 @@
  *  The model number, or ID, is used to tell hamlib, which rotator the client whishes to
  *  use. It is done with the rot_init() API call.
  */
-
 
 #define ROT_MODEL_NONE 0
 
@@ -70,7 +73,6 @@
 #define ROT_RPC 1
 #define ROT_BACKEND_RPC "rpcrot"
 #define ROT_MODEL_RPC ROT_MAKE_MODEL(ROT_RPC, 1)
-
 
 	/*
 	 * Easycomm
@@ -136,12 +138,10 @@
 #define ROT_BACKEND_SARTEK "sartek"
 #define ROT_MODEL_SARTEK1 ROT_MAKE_MODEL(ROT_SARTEK, 1)
 
-
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
 typedef int rot_model_t;
-
 
 /*! \def ROT_BACKEND_LIST
  *  \brief Static list of rotator models.
@@ -169,3 +169,5 @@ typedef int rot_model_t;
  */
 
 #endif /* _ROTLIST_H */
+
+/** @} */

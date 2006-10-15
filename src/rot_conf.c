@@ -2,7 +2,7 @@
  *  Hamlib Interface - rotator configuration interface
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_conf.c,v 1.5 2005-04-04 18:31:00 fillods Exp $
+ *	$Id: rot_conf.c,v 1.6 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -18,6 +18,16 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/**
+ * \addtogroup rotator
+ * @{
+ */
+
+/**
+ * \brief Rotator Configuration Interface
+ * \file rot_conf.c
  */
 
 #ifdef HAVE_CONFIG_H
@@ -101,8 +111,13 @@ static const struct confparams rotfrontend_cfg_params[] = {
 	{ RIG_CONF_END, NULL, }
 };
 
-/*
- * frontrot_set_conf
+/**
+ * \brief Set rotator state info from alpha input
+ * \param rot
+ * \param token TOK_... specifying which info to set
+ * \param val input
+ * \return RIG_OK or < 0 error
+ *
  * assumes rot!=NULL, val!=NULL
  * TODO: check format of val before doing atoi().
  */
@@ -180,9 +195,12 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 	return RIG_OK;
 }
 
-/*
- * frontrot_get_conf
- * assumes rot!=NULL, val!=NULL
+/**
+ * \brief Get data from rotator state in alpha form
+ * \param rot non-null
+ * \param token TOK_... specifying which data to get
+ * \param val result non-null
+ * \return RIG_OK or < 0 if error
  */
 int frontrot_get_conf(ROT *rot, token_t token, char *val)
 {
@@ -236,7 +254,6 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 		}
 		strcpy(val, s);
 		break;
-
 	case TOK_MIN_AZ:
 		sprintf(val, "%f", rs->min_az);
 		break;
@@ -249,17 +266,18 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 	case TOK_MAX_EL:
 		sprintf(val, "%f", rs->max_el);
 		break;
-
 	default:
 		return -RIG_EINVAL;
 	}
-
 	return RIG_OK;
 }
 
-/*
- * rot_token_foreach
- * executes cfunc on all the elements stored in the conf table
+/**
+ * \brief Executes cfunc on all the elements stored in the conf table
+ * \param rot non-null
+ * \param cfunc function(..)
+ * \param data
+ * 
  * start first with backend conf table, then finish with frontend table
  */
 int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams *, rig_ptr_t), rig_ptr_t data)
@@ -279,8 +297,11 @@ int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams 
 }
 
 
-/*
- * lookup conf token by its name, return pointer to confparams struct.
+/**
+ * \brief lookup conf token by its name, return pointer to confparams struct.
+ * \param rot
+ * \param name
+ * \return confparams or NULL
  *
  * lookup backend config table first, then fall back to frontend.
  * TODO: should use Lex to speed it up, strcmp hurts!
@@ -300,8 +321,11 @@ const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot, const char *
 	return NULL;
 }
 
-/*
- * Simple lookup returning token id assicated with name
+/**
+ * \brief Simple lookup returning token id associated with name
+ * \param rot
+ * \param name
+ * \return token enum 
  */
 token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 {
@@ -314,3 +338,4 @@ token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 	return cfp->token;
 }
 
+/** @} */

@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.15 2006-10-07 21:33:31 csete Exp $
+ *	$Id: iofunc.c,v 1.16 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -19,6 +19,17 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+
+/**
+ * \file iofunc.c
+ * \brief Generic file-based IO functions
+ */
+
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -44,8 +55,14 @@
 #define select win32_serial_select
 #endif
 
-/*
- * Write a block of count characters to file descriptor,
+/**
+ * \brief Write a block of characters to an fd.
+ * \param p rig port descriptor
+ * \param txbuffer command sequence to be sent
+ * \param count number of bytes to send
+ * \return 0 = OK, <0 = NOK
+ *
+ * Write a block of count characters to port file descriptor,
  * with a pause between each character if write_delay is > 0
  *
  * The write_delay is for Yaesu type rigs..require 5 character
@@ -53,8 +70,6 @@
  *
  * Also, post_write_delay is for some Yaesu rigs (eg: FT747) that
  * get confused with sequential fast writes between cmd sequences.
- *
- *
  *
  * input:
  *
@@ -64,11 +79,6 @@
  * write_delay - write delay in ms between 2 chars
  * post_write_delay - minimum delay between two writes
  * post_write_date - timeval of last write
- *
- * returns:
- *
- *  0 = OK
- *  <0 = NOT OK
  *
  * Actually, this function has nothing specific to serial comm,
  * it could work very well also with any file handle, like a socket.
@@ -134,7 +144,13 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 }
 
 
-/*
+/**
+ * \brief Read bytes from an fd
+ * \param p rig port descriptor
+ * \param rxbuffer buffer to receive text
+ * \param count number of bytes
+ * \return count of bytes received
+ *
  * Read "num" bytes from "fd" and put results into
  * an array of unsigned char pointed to by "rxbuffer"
  * 
@@ -199,7 +215,14 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 }
 
 
-/*
+/**
+ * \brief Read a string from an fd
+ * \param p Hamlib port descriptor
+ * \param rxbuffer buffer to receive string
+ * \param rxmax maximum string size + 1
+ * \param stopset string of recognized end of string characters
+ * \param stopset_len length of stopset
+ *
  * Read a string from "fd" and put result into
  * an array of unsigned char pointed to by "rxbuffer"
  *
@@ -276,3 +299,4 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
   return total_count;			/* return bytes count read */
 }
 
+/** @} */

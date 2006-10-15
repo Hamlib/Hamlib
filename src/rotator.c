@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.20 2006-10-07 13:08:19 csete Exp $
+ *	$Id: rotator.c,v 1.21 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -21,8 +21,12 @@
  */
 
 /**
+ * \addtogroup rotator
+ * @{
+ */
+
+/**
  * \file src/rotator.c
- * \ingroup rot
  * \brief Rotator interface
  * \author Stephane Fillod
  * \date 2000-2006
@@ -686,3 +690,4 @@ const char* HAMLIB_API rot_get_info(ROT *rot)
 	return rot->caps->get_info(rot);
 }
 
+/*! @} */

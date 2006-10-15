@@ -1,6 +1,10 @@
 /**
+ * \addtogroup utilities
+ * @{
+ */
+
+/**
  * \file src/locator.c
- * \ingroup hamlib
  * \brief locator and bearing conversion interface
  * \author Stephane Fillod and the Hamlib Group
  * \date 2000-2006
@@ -14,7 +18,7 @@
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
- *	$Id: locator.c,v 1.18 2006-02-26 19:29:19 fillods Exp $
+ *	$Id: locator.c,v 1.19 2006-10-15 00:27:51 aa6e Exp $
  *
  *  Code to determine bearing and range was taken from the Great Circle,
  *  by S. R. Sampson, N5OWK.
@@ -592,3 +596,5 @@ double HAMLIB_API distance_long_path(double distance) {
 double HAMLIB_API azimuth_long_path(double azimuth) {
 	return 360.0 - azimuth;
 }
+
+/*! @} */

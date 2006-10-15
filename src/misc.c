@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.39 2006-07-18 22:51:43 n0nb Exp $
+ *	$Id: misc.c,v 1.40 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -18,6 +18,16 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
+/**
+ * \file misc.c
+ * \brief Miscellaneous utility routines
  */
 
 #ifdef HAVE_CONFIG_H
@@ -38,8 +48,13 @@
 
 #include "misc.h"
 
-
-/*
+/**
+ * \brief Convert from binary to 4-bit BCD digits, little-endian
+ * \param bcd_data
+ * \param freq
+ * \param bcd_len
+ * \return bcd_data
+ *
  * Convert a long long (eg. frequency in Hz) to 4-bit BCD digits, 
  * packed two digits per octet, in little-endian order.
  * bcd_len is the number of BCD digits, usually 10 or 8 in 1-Hz units, 
@@ -71,7 +86,12 @@ HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bc
 	return bcd_data;
 }
 
-/*
+/**
+ * \brief Convert BCD digits to a long long (eg. frequency in Hz)
+ * \param bcd_data
+ * \param bcd_len
+ * \return binary result (e.g. frequency)
+ *
  * Convert BCD digits to a long long (eg. frequency in Hz)
  * bcd_len is the number of BCD digits.
  *
@@ -95,7 +115,13 @@ unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned 
 	return f;
 }
 
-/*
+/**
+ * \brief Convert binary to bcd, big-endian
+ * \param bcd_data
+ * \param freq
+ * \param bcd_len
+ * \return bcd_data
+ *
  * Same as to_bcd, but in Big Endian mode
  */
 unsigned char *
@@ -123,7 +149,12 @@ HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned
 	return bcd_data;
 }
 
-/*
+/**
+ * \brief Convert bcd to binary, big-endian
+ * \param bcd_data
+ * \param bcd_len
+ * \return binary value, e.g., frequency
+ *
  * Same as from_bcd, but in Big Endian mode
  */
 unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len)
@@ -150,7 +181,11 @@ unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsign
 #define llabs(a) ((a)<0?-(a):(a))
 #endif
 
-/*
+/**
+ * \brief Pretty print a frequency
+ * \param str for result (may need up to 17 char)
+ * \param freq input in Hz
+ *
  * rig_freq_snprintf?
  * pretty print frequencies
  * str must be long enough. max can be as long as 17 chars
@@ -177,17 +212,11 @@ int HAMLIB_API sprintf_freq(char *str, freq_t freq)
 	return sprintf (str, "%g %s", f, hz);
 }
 
-const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
-{
-	switch (shift) {
-	case RIG_RPT_SHIFT_MINUS: return "+";
-	case RIG_RPT_SHIFT_PLUS: return "-";
-
-	case RIG_RPT_SHIFT_NONE: return "None";
-	}
-	return NULL;
-}
-
+/**
+ * \brief Convert enum RIG_STATUS_... to printable string
+ * \param status RIG_STATUS_??
+ * \return string
+ */
 const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 {
 	switch (status) {
@@ -231,7 +260,11 @@ static struct {
 	{ RIG_MODE_NONE, "" },
 };
 
-
+/**
+ * \brief Convert alpha string to enum RIG_MODE
+ * \param s input alpha string
+ * \return enum RIG_MODE_??
+ */
 rmode_t HAMLIB_API rig_parse_mode(const char *s)
 {
 	int i;
@@ -242,6 +275,11 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
 	return RIG_MODE_NONE;
 }
 
+/**
+ * \brief Convert enum RIG_MODE to alpha string
+ * \param mode RIG_MODE_...
+ * \return alpha string
+ */
 const char * HAMLIB_API rig_strrmode(rmode_t mode)
 {
 	int i;
@@ -255,7 +293,6 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 
 	return "";
 }
-
 
 static struct { 
 		vfo_t vfo;
@@ -272,6 +309,11 @@ static struct {
 		{ RIG_VFO_NONE, "" },
 };
 
+/**
+ * \brief Convert alpha string to enum RIG_VFO_...
+ * \param s input alpha string
+ * \return RIG_VFO_...
+ */
 vfo_t HAMLIB_API rig_parse_vfo(const char *s)
 {
 	int i;
@@ -282,6 +324,11 @@ vfo_t HAMLIB_API rig_parse_vfo(const char *s)
 	return RIG_VFO_NONE;
 }
 
+/**
+ * \brief Convert enum RIG_VFO_... to alpha string
+ * \param vfo RIG_VFO_...
+ * \return alpha string
+ */
 const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 {
 	int i;
@@ -295,7 +342,6 @@ const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 
 	return "";
 }
-
 
 static struct { 
 		setting_t func; 
@@ -332,6 +378,11 @@ static struct {
 	{ RIG_FUNC_NONE, "" },
 };
 
+/**
+ * \brief Convert alpha string to enum RIG_FUNC_...
+ * \param s input alpha string
+ * \return RIG_FUNC_...
+ */
 setting_t HAMLIB_API rig_parse_func(const char *s)
 {
 	int i;
@@ -343,6 +394,11 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
 	return RIG_FUNC_NONE;
 }
 
+/**
+ * \brief Convert enum RIG_FUNC_... to alpha string
+ * \param func RIG_FUNC_...
+ * \return alpha string
+ */
 const char * HAMLIB_API rig_strfunc(setting_t func)
 {
 	int i;
@@ -356,7 +412,6 @@ const char * HAMLIB_API rig_strfunc(setting_t func)
 
 	return "";
 }
-
 
 static struct { 
 		setting_t level;
@@ -393,6 +448,11 @@ static struct {
 	{ RIG_LEVEL_NONE, "" },
 };
 
+/**
+ * \brief Convert alpha string to enum RIG_LEVEL_...
+ * \param s input alpha string
+ * \return RIG_LEVEL_...
+ */
 setting_t HAMLIB_API rig_parse_level(const char *s)
 {
 	int i;
@@ -404,6 +464,11 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
 	return RIG_LEVEL_NONE;
 }
 
+/**
+ * \brief Convert enum RIG_LEVEL_... to alpha string
+ * \param level RIG_LEVEL_...
+ * \return alpha string
+ */
 const char * HAMLIB_API rig_strlevel(setting_t level)
 {
 	int i;
@@ -418,7 +483,6 @@ const char * HAMLIB_API rig_strlevel(setting_t level)
 	return "";
 }
 
-
 static struct { 
 		setting_t parm;
 		const char *str;
@@ -432,6 +496,11 @@ static struct {
 	{ RIG_PARM_NONE, "" },
 };
 
+/**
+ * \brief Convert alpha string to RIG_PARM_...
+ * \param s input alpha string
+ * \return RIG_PARM_...
+ */
 setting_t HAMLIB_API rig_parse_parm(const char *s)
 {
 	int i;
@@ -443,7 +512,11 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
 	return RIG_PARM_NONE;
 }
 
-
+/**
+ * \brief Convert enum RIG_PARM_... to alpha string
+ * \param parm RIG_PARM_...
+ * \return alpha string
+ */
 const char * HAMLIB_API rig_strparm(setting_t parm)
 {
 	int i;
@@ -457,7 +530,6 @@ const char * HAMLIB_API rig_strparm(setting_t parm)
 
 	return "";
 }
-
 
 static struct { 
 		vfo_op_t vfo_op;
@@ -479,6 +551,11 @@ static struct {
 	{ RIG_OP_NONE, "" },
 };
 
+/**
+ * \brief Convert alpha string to enum RIG_OP_...
+ * \param s alpha string
+ * \return RIG_OP_...
+ */
 vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 {
 	int i;
@@ -490,6 +567,11 @@ vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 	return RIG_OP_NONE;
 }
 
+/**
+ * \brief Convert enum RIG_OP_... to alpha string
+ * \param op RIG_OP_...
+ * \return alpha string
+ */
 const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 {
 	int i;
@@ -503,7 +585,6 @@ const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 
 	return "";
 }
-
 
 static struct { 
 		scan_t rscan;
@@ -520,6 +601,11 @@ static struct {
 	{ RIG_SCAN_NONE, "" },
 };
 
+/**
+ * \brief Convert alpha string to enum RIG_SCAN_...
+ * \param s alpha string
+ * \return RIG_SCAN_...
+ */
 scan_t HAMLIB_API rig_parse_scan(const char *s)
 {
 	int i;
@@ -529,10 +615,14 @@ scan_t HAMLIB_API rig_parse_scan(const char *s)
 			return scan_str[i].rscan;
 		}
 	}
-
 	return RIG_SCAN_NONE;
 }
 
+/**
+ * \brief Convert enum RIG_SCAN_... to alpha string
+ * \param rscan RIG_SCAN_...
+ * \return alpha string
+ */
 const char * HAMLIB_API rig_strscan(scan_t rscan)
 {
 	int i;
@@ -543,11 +633,29 @@ const char * HAMLIB_API rig_strscan(scan_t rscan)
 	for (i=0; scan_str[i].str != ""; i++)
 		if (rscan == scan_str[i].rscan)
 			return scan_str[i].str;
-
 	return "";
 }
 
+/**
+ * \brief convert enum RIG_RPT_SHIFT_... to printable character
+ * \param shift RIG_RPT_SHIFT_??
+ * \return alpha character
+ */
+const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
+{
+	switch (shift) {
+	case RIG_RPT_SHIFT_MINUS: return "+";
+	case RIG_RPT_SHIFT_PLUS: return "-";
+	case RIG_RPT_SHIFT_NONE: return "None";
+	}
+	return NULL;
+}
 
+/**
+ * \brief Convert alpha char to enum RIG_RPT_SHIFT_...
+ * \param s alpha char
+ * \return RIG_RPT_SHIFT_...
+ */
 rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 {
 	if (strcmp(s, "+") == 0)
@@ -558,3 +666,4 @@ rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 		return RIG_RPT_SHIFT_NONE;
 }
 
+/** @} */

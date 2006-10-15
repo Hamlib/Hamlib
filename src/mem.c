@@ -1,18 +1,22 @@
+/** \addtogroup rig
+ * @{
+ */
+
 /**
  * \file src/mem.c
- * \ingroup rig
  * \brief Memory and channel interface
  * \author Stephane Fillod
  * \date 2000-2006
  *
  * Hamlib interface is a frontend implementing wrapper functions.
+ * 
  */
 
 /*
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.10 2006-10-12 18:56:48 aa6e Exp $
+ *	$Id: mem.c,v 1.11 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -995,3 +999,4 @@ int HAMLIB_API rig_get_mem_all (RIG *rig, channel_t chans[], const struct confpa
 	return retval;
 }
 
+/*! @} */

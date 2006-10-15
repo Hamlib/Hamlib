@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: register.c,v 1.23 2005-04-04 18:30:56 fillods Exp $
+ *	$Id: register.c,v 1.24 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,6 +20,13 @@
  *
  */
 
+/**
+ * \brief Dynamic registration of backends
+ * \file register.c
+ *
+ * doc todo: Let's explain what's going on here!
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -35,7 +42,6 @@
 #include <ltdl.h>
 
 #include <hamlib/rig.h>
-
 
 #ifndef PATH_MAX
 # define PATH_MAX       1024
@@ -55,7 +61,6 @@ static struct {
 	const char *be_name;
 	rig_model_t (* be_probe_all)(hamlib_port_t*, rig_probe_func_t, rig_ptr_t);
 } rig_backend_list[RIG_BACKEND_MAX] = RIG_BACKEND_LIST;
-
 
 /*
  * This struct to keep track of known rig models.

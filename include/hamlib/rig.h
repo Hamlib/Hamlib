@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.115 2006-10-12 16:41:22 aa6e Exp $
+ *	$Id: rig.h,v 1.116 2006-10-15 00:26:47 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,6 +20,7 @@
  *
  */
 
+
 #ifndef _RIG_H
 #define _RIG_H 1
 
@@ -28,8 +29,12 @@
 
 #include <hamlib/riglist.h>	/* list in another file to not mess up w/ this one */
 
+/**
+ * \addtogroup rig
+ * @{
+ */
+
 /*! \file rig.h
- *  \ingroup rig
  *  \brief Hamlib rig data structures.
  *
  *  This file contains the data structures and definitions for the Hamlib rig API.
@@ -1624,3 +1629,5 @@ extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
 __END_DECLS
 
 #endif /* _RIG_H */
+
+/*! @} */

@@ -2,7 +2,7 @@
  *  Hamlib Interface - debug
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: debug.c,v 1.3 2006-02-26 23:28:13 fillods Exp $
+ *	$Id: debug.c,v 1.4 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -18,6 +18,16 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
+/**
+ * \file debug.c
+ * \brief control hamlib debugging functions
  */
 
 #ifdef HAVE_CONFIG_H
@@ -43,12 +53,13 @@ static FILE *rig_debug_stream;
 static vprintf_cb_t rig_vprintf_cb;
 static rig_ptr_t rig_vprintf_arg;
 
-/*
- * Do a hex dump of the unsigned char array.
- */
 
 #define DUMP_HEX_WIDTH 16
-
+/**
+ * \param ptr Pointer to memory area
+ * \param size Number of chars to words to dump
+ * \brief Do a hex dump of the unsigned char array.
+ */
 void dump_hex(const unsigned char ptr[], size_t size)
 {
   int i;
@@ -89,27 +100,28 @@ void dump_hex(const unsigned char ptr[], size_t size)
 } 
 
 
-/*
- * rig_set_debug
- * Change the current debug level
+/**
+ * \param debug_level
+ * \brief Change the current debug level
  */
 void HAMLIB_API rig_set_debug(enum rig_debug_level_e debug_level)
 {
 	rig_debug_level = debug_level;
 }
 
-/*
- * rig_need_debug
- * Usefull for dump_hex, etc.
+/**
+ * \param debug_level
+ * \brief Useful for dump_hex, etc.
  */
 int HAMLIB_API rig_need_debug(enum rig_debug_level_e debug_level)
 {
 	return (debug_level <= rig_debug_level);
 }
 
-/*
- * rig_debug
- * Default is debugging messages are done through stderr
+/**
+ * \param debug_level
+ * \param fmt
+ * \brief Default is debugging messages are done through stderr
  */
 void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, ...)
 {
@@ -193,3 +205,4 @@ FILE* HAMLIB_API rig_set_debug_file(FILE *stream)
 	return prev_stream;
 }
 
+/** @} */

@@ -2,7 +2,7 @@
  *  Hamlib Interface - parallel communication low-level support
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: parallel.c,v 1.5 2005-10-27 20:34:16 fillods Exp $
+ *	$Id: parallel.c,v 1.6 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,6 +20,15 @@
  *
  */
 
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
+/**
+ * \brief Parallel Port IO
+ * \file parallel.c
+ */
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -80,7 +89,11 @@
 #define SP_ACTIVE_LOW_BITS	0x80
 
 
-/*
+/**
+ * \brief Open Parallel Port
+ * \param port
+ * \return file descriptor
+ *
  * TODO: to be called before exiting: atexit(parport_cleanup)
  * void parport_cleanup() { ioctl(fd, PPRELEASE); }
  */
@@ -129,6 +142,10 @@ int par_open(hamlib_port_t *port)
 	return fd;
 }
 
+/**
+ * \brief Close Parallel Port
+ * \param port
+ */
 int par_close(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -140,6 +157,11 @@ int par_close(hamlib_port_t *port)
 	return close(port->fd);
 }
 
+/**
+ * \brief Send data on Parallel port
+ * \param port
+ * \param data
+ */
 int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -161,6 +183,11 @@ int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 	return -RIG_ENIMPL;
 }
 
+/**
+ * \brief Receive data on Parallel port
+ * \param port
+ * \param data
+ */
 int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -185,7 +212,11 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 	return -RIG_ENIMPL;
 }
 
-
+/**
+ * \brief Set control data for Parallel Port
+ * \param port
+ * \param control
+ */
 int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -224,6 +255,11 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 	return -RIG_ENIMPL;
 }
 
+/**
+ * \brief Read control data for Parallel Port
+ * \param port
+ * \param control
+ */
 int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -252,7 +288,12 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 	return -RIG_ENIMPL;
 }
 
-
+/**
+ * \brief Get parallel port status
+ * \param port
+ * \param status
+ * \return RIG_OK or < 0 for error
+ */
 int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -281,7 +322,11 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 	return -RIG_ENIMPL;
 }
 
-
+/**
+ * \brief Get a lock on the Parallel Port
+ * \param port
+ * \return RIG_OK or < 0
+ */
 int HAMLIB_API par_lock(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -297,6 +342,11 @@ int HAMLIB_API par_lock(hamlib_port_t *port)
 	return -RIG_ENIMPL;
 }
 
+/**
+ * \brief Release lock on Parallel Port
+ * \param port
+ * \return RIG_OK or < 0
+ */
 int HAMLIB_API par_unlock(hamlib_port_t *port)
 {
 #ifdef HAVE_LINUX_PPDEV_H
@@ -312,7 +362,12 @@ int HAMLIB_API par_unlock(hamlib_port_t *port)
 	return -RIG_ENIMPL;
 }
 
-
+/**
+ * \brief Set or unset Push to talk bit on Parallel Port
+ * \param p
+ * \param pttx RIG_PTT_ON --> Set PTT
+ * \return RIG_OK or < 0 error
+ */
 int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 {
 	switch(p->type.ptt) {
@@ -328,7 +383,6 @@ int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 			reg |=   1 << p->parm.parallel.pin;
 		else
 			reg &= ~(1 << p->parm.parallel.pin);
-
 		return par_write_data(p, reg);
 		}
 	default:
@@ -336,12 +390,14 @@ int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 						p->type.ptt);
 		return -RIG_EINVAL;
 	}
-
 	return RIG_OK;
 }
 
-/*
- * assumes pttx not NULL
+/**
+ * \brief Get state of Push to Talk from Parallel Port
+ * \param p
+ * \param pttx return value (must be non NULL)
+ * \return RIG_OK or < 0 error
  */
 int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 {
@@ -361,12 +417,14 @@ int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 						p->type.ptt);
 		return -RIG_ENAVAIL;
 	}
-
 	return RIG_OK;
 }
 
-/*
- * assumes dcdx not NULL
+/**
+ * \brief get Data Carrier Detect (squelch) from Parallel Port
+ * \param p
+ * \param dcdx return value (Must be non NULL)
+ * \return RIG_OK or < 0 error
  */
 int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 {
@@ -386,7 +444,7 @@ int par_dcd_get(hamlib_port_t *p, dcd_t *dcdx)
 						p->type.dcd);
 		return -RIG_ENAVAIL;
 	}
-
 	return RIG_OK;
 }
 
+/** @} */

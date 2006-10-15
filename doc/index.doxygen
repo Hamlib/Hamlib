@@ -100,3 +100,10 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 /*! \page TODO TO DO
 \verbinclude TODO
 */
+
+/*! Define groups for Doxygen
+ *  \defgroup rig Rig (transceiver) API
+ *  \defgroup rotator Rotator API
+ *  \defgroup utilities Utility Routines API
+ *  \defgroup rig_internal Rig Internal API
+ */

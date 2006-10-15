@@ -1,6 +1,10 @@
 /**
- * \file src/settings.c
- * \ingroup rig
+ * \addtogroup rig
+ * @{
+ */
+
+/**
+ * \file settings.c
  * \brief func/level/parm interface
  * \author Stephane Fillod
  * \date 2000-2006
@@ -12,7 +16,7 @@
  *  Hamlib Interface - func/level/parm
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.7 2006-02-26 19:29:19 fillods Exp $
+ *	$Id: settings.c,v 1.8 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -630,4 +634,4 @@ int HAMLIB_API rig_setting2idx(setting_t s)
 	return 0;
 }
 
-
+/*! @} */

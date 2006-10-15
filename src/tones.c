@@ -1,6 +1,10 @@
 /**
+ * \addtogroup rig
+ * @{
+ */
+
+/**
  * \file src/tones.c
- * \ingroup rig
  * \brief CTCSS and DCS interface and tables
  * \author Stephane Fillod
  * \date 2000-2006
@@ -9,7 +13,7 @@
  *  Hamlib Interface - CTCSS and DCS interface and tables
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: tones.c,v 1.9 2006-02-26 19:29:19 fillods Exp $
+ *	$Id: tones.c,v 1.10 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -443,3 +447,4 @@ int HAMLIB_API rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 	return retcode;
 }
 
+/*! @} */

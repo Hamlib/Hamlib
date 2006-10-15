@@ -2,7 +2,7 @@
  *  Hamlib Interface - event handling
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *	$Id: event.c,v 1.24 2004-10-02 10:32:08 fillods Exp $
+ *	$Id: event.c,v 1.25 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -18,6 +18,17 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/* Doc todo: Verify assignment to rig group.  Consider doc of internal rtns. */
+/**
+ * \addtogroup rig
+ * @{
+ */
+
+/**
+ * \file event.c
+ * \brief Event handling
  */
 
 #ifdef HAVE_CONFIG_H
@@ -639,4 +650,4 @@ int HAMLIB_API rig_get_trn(RIG *rig, int *trn)
 	return RIG_OK;
 }
 
-
+/** @} */

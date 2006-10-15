@@ -4,7 +4,7 @@
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.44 2005-04-03 12:27:17 fillods Exp $
+ *	$Id: serial.c,v 1.45 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,6 +20,16 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/**
+ * \addtogroup rig_internal
+ * @{
+ */
+
+/**
+ * \brief Serial port IO
+ * \file serial.c
  */
 
 #ifdef HAVE_CONFIG_H
@@ -72,19 +82,11 @@
 #include <sys/ioccom.h>
 #endif
 
-/*
- * Open serial port using rig.state data
- *
- *
- * input: ptr to rig.state structure, with serial port
- *        populated. (eg: "/dev/ttyS1").
- * 
- * returns:
- *
- * 0 if OK or negative value on error.
- *
+/**
+ * \brief Open serial port using rig.state data
+ * \param rp port data structure (must spec port id eg /dev/ttyS1)
+ * \return RIG_OK or < 0 if error
  */
-
 int HAMLIB_API serial_open(hamlib_port_t *rp) {
 
   int fd;				/* File descriptor for the port */
@@ -118,7 +120,11 @@ int HAMLIB_API serial_open(hamlib_port_t *rp) {
   return RIG_OK;
 }
 
-
+/**
+ * \brief Set up Serial port according to requests in port
+ * \param rp
+ * \return RIG_OK or < 0
+ */
 int HAMLIB_API serial_setup(hamlib_port_t *rp)
 {
   int fd;
@@ -356,10 +362,11 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 }
 
 
-/*
- * Flush all characters waiting in RX buffer.
+/**
+ * \brief Flush all characters waiting in RX buffer.
+ * \param p
+ * \return RIG_OK
  */
-
 int HAMLIB_API serial_flush(hamlib_port_t *p )
 {
   tcflush(p->fd, TCIFLUSH);
@@ -367,16 +374,32 @@ int HAMLIB_API serial_flush(hamlib_port_t *p )
   return RIG_OK;
 }
 
+/**
+ * \brief Open serial port
+ * \param p
+ * \return fd
+ */
 int ser_open(hamlib_port_t *p)
 {
 	return (p->fd = OPEN(p->pathname, O_RDWR | O_NOCTTY | O_NDELAY));
 }
 
+/**
+ * \brief Close serial port
+ * \param p fd
+ * \return RIG_OK or < 0
+ */
 int ser_close(hamlib_port_t *p)
 {
 	return CLOSE(p->fd);
 }
 
+/**
+ * \brief Set Request to Send (RTS) bit
+ * \param p
+ * \param state true/false
+ * \return RIG_OK or < 0
+ */
 int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
 {
 	unsigned int y = TIOCM_RTS;
@@ -396,9 +419,10 @@ int HAMLIB_API ser_set_rts(hamlib_port_t *p, int state)
 #endif
 }
 
-/*
- * assumes state not NULL
- * p is supposed to be &rig->state.rigport
+/**
+ * \brief Get RTS bit
+ * \param p supposed to be &rig->state.rigport
+ * \param state non-NULL
  */
 int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
 {
@@ -411,6 +435,12 @@ int HAMLIB_API ser_get_rts(hamlib_port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
+/**
+ * \brief Set Data Terminal Ready (DTR) bit
+ * \param p
+ * \param state true/false
+ * \return RIG_OK or < 0
+ */
 int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 {
 	unsigned int y = TIOCM_DTR;
@@ -430,6 +460,11 @@ int HAMLIB_API ser_set_dtr(hamlib_port_t *p, int state)
 #endif
 }
 
+/**
+ * \brief Get DTR bit
+ * \param p supposed to be &rig->state.rigport
+ * \param state non-NULL
+ */
 int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
 {
   int retcode;
@@ -441,6 +476,12 @@ int HAMLIB_API ser_get_dtr(hamlib_port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
+/**
+ * \brief Set Break
+ * \param p
+ * \param state (ignored?)
+ * \return RIG_OK or < 0
+ */
 int HAMLIB_API ser_set_brk(hamlib_port_t *p, int state)
 {
 #if defined(TIOCSBRK) && defined(TIOCCBRK)
@@ -451,9 +492,10 @@ int HAMLIB_API ser_set_brk(hamlib_port_t *p, int state)
 #endif
 }
 
-/*
- * assumes state not NULL
- * p is supposed to be &rig->state.rigport
+/**
+ * \brief Get Carrier (CI?) bit
+ * \param p supposed to be &rig->state.rigport
+ * \param state non-NULL
  */
 int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
 {
@@ -466,6 +508,11 @@ int HAMLIB_API ser_get_car(hamlib_port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
+/**
+ * \brief Get Clear to Send (CTS) bit
+ * \param p supposed to be &rig->state.rigport
+ * \param state non-NULL
+ */
 int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
 {
   int retcode;
@@ -477,6 +524,11 @@ int HAMLIB_API ser_get_cts(hamlib_port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
+/**
+ * \brief Get Data Set Ready (DSR) bit
+ * \param p supposed to be &rig->state.rigport
+ * \param state non-NULL
+ */
 int HAMLIB_API ser_get_dsr(hamlib_port_t *p, int *state)
 {
   int retcode;
@@ -488,3 +540,4 @@ int HAMLIB_API ser_get_dsr(hamlib_port_t *p, int *state)
   return retcode < 0 ? -RIG_EIO : RIG_OK;
 }
 
+/** @} */

@@ -2,7 +2,7 @@
  *  Hamlib Interface - provides registering for dynamically loadable backends.
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_reg.c,v 1.9 2005-04-04 18:31:00 fillods Exp $
+ *	$Id: rot_reg.c,v 1.10 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -18,6 +18,14 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
+ */
+
+/**
+ * \brief Dynamic registration of rotator backends
+ * \file rot_reg.c
+ *
+ * Similar to register.c
+ * doc todo: Let's explain what's going on here!
  */
 
 #ifdef HAVE_CONFIG_H

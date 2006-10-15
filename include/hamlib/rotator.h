@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.13 2005-04-03 12:27:15 fillods Exp $
+ *	$Id: rotator.h,v 1.14 2006-10-15 00:26:47 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,9 +26,12 @@
 #include <hamlib/rig.h>
 #include <hamlib/rotlist.h>
 
+/**
+ * \addtogroup rotator
+ * @{
+ */
 
 /*! \file rotator.h
- *  \ingroup rot
  *  \brief Hamlib rotator data structures.
  *
  *  This file contains the data structures and definitions for the Hamlib rotator API.
@@ -363,3 +366,4 @@ __END_DECLS
 
 #endif /* _ROTATOR_H */
 
+/** @} */

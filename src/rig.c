@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.93 2006-10-07 13:08:19 csete Exp $
+ *	$Id: rig.c,v 1.94 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -21,22 +21,26 @@
  */
 
 /**
+ * \addtogroup rig
+ * @{
+ */
+
+/**
  * \file src/rig.c
- * \ingroup rig
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
  * \date 2000-2006
  *
- * Hamlib interface is a frontend implementing wrapper functions.
+ * Hamlib provides a user-callable API, a set of "front-end" routines that
+ * call rig-specific "back-end" routines whichactually communicate with 
+ * the physical rig.
  */
-
 
 /*! \page rig Rig (radio) interface
  *
- * Although the word rig can stand for lot of thinfs, we are
- * understanding it as general remote controllable radio equipment,
- * with a so-called tunable VFO.
+ * For us, a "rig" is an item of general remote controllable radio equipment.
+ * Generally, there are a VFO settings, gain controls, etc.
  */
 
 /**
@@ -64,6 +68,7 @@
 
 /**
  * \brief Hamlib release number
+ * The version number has the format x.y.z
  */
 const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
 
@@ -102,7 +107,6 @@ struct opened_rig_l {
 		struct opened_rig_l *next;
 };
 static struct opened_rig_l *opened_rig_list = { NULL };
-
 
 /*
  * Careful, the order must be the same as their RIG_E* counterpart!
@@ -2766,3 +2770,4 @@ const char* HAMLIB_API rig_get_info(RIG *rig)
 	return rig->caps->get_info(rig);
 }
 
+/*! @} */

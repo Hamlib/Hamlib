@@ -1,6 +1,6 @@
-## $Id: hamlib.cfg.in,v 1.3 2006-10-13 18:24:02 aa6e Exp $
+## $Id: hamlib.cfg.in,v 1.4 2006-10-15 00:24:27 aa6e Exp $
 
-PROJECT_NAME    = "Hamlib - the C library reference"
+PROJECT_NAME    = "Hamlib"
 PROJECT_NUMBER  = @VERSION@
 
 # Output
@@ -28,7 +28,8 @@ INPUT	= @top_srcdir@/doc/index.doxygen \
 	  @top_srcdir@/include/hamlib/rig.h \
           @top_srcdir@/include/hamlib/riglist.h \
 	  @top_srcdir@/include/hamlib/rotator.h \
-          @top_srcdir@/include/hamlib/rotlist.h
+          @top_srcdir@/include/hamlib/rotlist.h \
+    @top_srcdir@/src/cal.c
 
 #../c++/rigclass.cc
 
