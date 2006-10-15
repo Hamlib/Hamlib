@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR5000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.9 2005-04-20 14:50:56 fillods Exp $
+ *	$Id: ar5000.c,v 1.10 2006-10-15 19:51:02 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,7 +34,7 @@
 
 #define AR5000_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_ABM|RIG_FUNC_AFC)
 
-#define AR5000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
+#define AR5000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR)
 
 #define AR5000_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
