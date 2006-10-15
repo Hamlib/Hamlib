@@ -1,4 +1,4 @@
-## $Id: hamlib.cfg.in,v 1.4 2006-10-15 00:24:27 aa6e Exp $
+## $Id: hamlib.cfg.in,v 1.5 2006-10-15 00:49:08 aa6e Exp $
 
 PROJECT_NAME    = "Hamlib"
 PROJECT_NUMBER  = @VERSION@
@@ -17,19 +17,7 @@ MAN_EXTENSION	= .3
 CASE_SENSE_NAMES = NO
 FULL_PATH_NAMES = NO
 INPUT	= @top_srcdir@/doc/index.doxygen \
-	  @top_srcdir@/src/rig.c \
-	  @top_srcdir@/src/conf.c \
-	  @top_srcdir@/src/mem.c \
-	  @top_srcdir@/src/settings.c \
-	  @top_srcdir@/src/rotator.c \
-	  @top_srcdir@/src/tones.c \
-	  @top_srcdir@/src/event.c \
-	  @top_srcdir@/src/locator.c \
-	  @top_srcdir@/include/hamlib/rig.h \
-          @top_srcdir@/include/hamlib/riglist.h \
-	  @top_srcdir@/include/hamlib/rotator.h \
-          @top_srcdir@/include/hamlib/rotlist.h \
-    @top_srcdir@/src/cal.c
+          @top_srcdir@/src/ @top_srcdir@/include/hamlib/
 
 #../c++/rigclass.cc
 
