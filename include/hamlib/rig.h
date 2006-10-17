@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.116 2006-10-15 00:26:47 aa6e Exp $
+ *	$Id: rig.h,v 1.117 2006-10-17 01:23:38 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -80,24 +80,24 @@ extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
  * Error codes that can be returned by the Hamlib functions
  */
 enum rig_errcode_e {
-	RIG_OK=0,		/*<! No error, operation completed sucessfully */
-	RIG_EINVAL,		/*<! invalid parameter */
-	RIG_ECONF,		/*<! invalid configuration (serial,..) */
-	RIG_ENOMEM,		/*<! memory shortage */
-	RIG_ENIMPL,		/*<! function not implemented, but will be */
-	RIG_ETIMEOUT,		/*<! communication timed out */
-	RIG_EIO,		/*<! IO error, including open failed */
-	RIG_EINTERNAL,		/*<! Internal Hamlib error, huh! */
-	RIG_EPROTO,		/*<! Protocol error */
-	RIG_ERJCTED,		/*<! Command rejected by the rig */
-	RIG_ETRUNC,		/*<! Command performed, but arg truncated */
-	RIG_ENAVAIL,		/*<! function not available */
-	RIG_ENTARGET,		/*<! VFO not targetable */
-	RIG_BUSERROR,		/*<! Error talking on the bus */
-	RIG_BUSBUSY,		/*<! Collision on the bus */
-	RIG_EARG,		/*<! NULL RIG handle or any invalid pointer parameter in get arg */
-	RIG_EVFO,		/*<! Invalid VFO */
-	RIG_EDOM		/*<! Argument out of domain of func */
+	RIG_OK=0,		/*!< No error, operation completed sucessfully */
+	RIG_EINVAL,		/*!< invalid parameter */
+	RIG_ECONF,		/*!< invalid configuration (serial,..) */
+	RIG_ENOMEM,		/*!< memory shortage */
+	RIG_ENIMPL,		/*!< function not implemented, but will be */
+	RIG_ETIMEOUT,		/*!< communication timed out */
+	RIG_EIO,		/*!< IO error, including open failed */
+	RIG_EINTERNAL,		/*!< Internal Hamlib error, huh! */
+	RIG_EPROTO,		/*!< Protocol error */
+	RIG_ERJCTED,		/*!< Command rejected by the rig */
+	RIG_ETRUNC,		/*!< Command performed, but arg truncated */
+	RIG_ENAVAIL,		/*!< function not available */
+	RIG_ENTARGET,		/*!< VFO not targetable */
+	RIG_BUSERROR,		/*!< Error talking on the bus */
+	RIG_BUSBUSY,		/*!< Collision on the bus */
+	RIG_EARG,		/*!< NULL RIG handle or any invalid pointer parameter in get arg */
+	RIG_EVFO,		/*!< Invalid VFO */
+	RIG_EDOM		/*!< Argument out of domain of func */
 };
 
 /**
@@ -108,12 +108,12 @@ enum rig_errcode_e {
  * \sa rig_set_debug
  */
 enum rig_debug_level_e {
-  RIG_DEBUG_NONE = 0,		/*<! no bug reporting */
-  RIG_DEBUG_BUG,		/*<! serious bug */
-  RIG_DEBUG_ERR,		/*<! error case (e.g. protocol, memory allocation) */
-  RIG_DEBUG_WARN,		/*<! warning */
-  RIG_DEBUG_VERBOSE,		/*<! verbose */
-  RIG_DEBUG_TRACE		/*<! tracing */
+  RIG_DEBUG_NONE = 0,		/*!< no bug reporting */
+  RIG_DEBUG_BUG,		/*!< serious bug */
+  RIG_DEBUG_ERR,		/*!< error case (e.g. protocol, memory allocation) */
+  RIG_DEBUG_WARN,		/*!< warning */
+  RIG_DEBUG_VERBOSE,		/*!< verbose */
+  RIG_DEBUG_TRACE		/*!< tracing */
 };
 
 /* --------------- Rig capabilities -----------------*/
@@ -1237,8 +1237,8 @@ struct rig_caps {
   int (*set_mem_all_cb) (RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t);
   int (*get_mem_all_cb) (RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t);
 
-  const char *clone_combo_set;	/*<! String describing key combination to enter load cloning mode */
-  const char *clone_combo_get;	/*<! String describing key combination to enter save cloning mode */
+  const char *clone_combo_set;	/*!< String describing key combination to enter load cloning mode */
+  const char *clone_combo_get;	/*!< String describing key combination to enter save cloning mode */
 };
 
 /**
