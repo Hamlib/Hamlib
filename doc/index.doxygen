@@ -41,6 +41,9 @@ Other files: \subpage INSTALL;
 
 \section slic Documentation License
 
+\li \subpage doclicense 
+*/
+/*! \page doclicense License for Documentation
 This documentation is free; you can redistribute it without 
 any restrictions. The modification or derived work must retain
 copyright and list all authors.
@@ -48,19 +51,8 @@ copyright and list all authors.
 This documentation is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-\subpage Obsol "Miscellaneous / obsolete"
-
 */
-/*! \page Obsol Miscellaneous / Obsolete
-\section apilnk API links
 
-\note Needs revision. This is a pretty useless section as it is!
-
-\li Page \ref hamlib explains the design of the general API.
-\li Page \ref rig explains the design of the Rig (radio) API.
-\li Page \ref rot explains the design of the Rotator API.
-*/
 /*! \page Rdme  README (general)
 \verbinclude README
 */
