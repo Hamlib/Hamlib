@@ -2,7 +2,7 @@
  *  Hamlib Interface - token header
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: token.h,v 1.4 2006-10-17 14:28:52 aa6e Exp $
+ *	$Id: token.h,v 1.5 2006-10-28 03:49:46 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -21,7 +21,7 @@
  */
 
 /**
- * \addtogroup rig
+ * \addtogroup rig_internal
  * @{
  */
 
@@ -90,9 +90,9 @@
 #define TOK_POLL_INTERVAL	TOKEN_FRONTEND(111)
 /** \brief rig: International Telecommunications Union region no. */
 #define TOK_ITU_REGION	TOKEN_FRONTEND(120)
-
 /*
  * rotator specific tokens
+ * (strictly, should be documented as rotator_internal)
  */
 /** \brief rot: Minimum Azimuth */
 #define TOK_MIN_AZ	TOKEN_FRONTEND(110)
@@ -106,4 +106,4 @@
 
 #endif /* _TOKEN_H */
 
-/** @} */
+/** @} */ /* rig_internal definitions */

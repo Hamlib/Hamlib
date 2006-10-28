@@ -2,7 +2,7 @@
  *  Hamlib Interface - extrq parameter interface
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ext.c,v 1.5 2006-10-15 00:27:51 aa6e Exp $
+ *	$Id: ext.c,v 1.6 2006-10-28 03:49:46 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,11 +20,19 @@
  *
  */
 /**
- * \file ext.c
- * \brief Ext. request parameter interface
+ * \addtogroup rig
+ * @{
  */
 
-/* doc todo: Are these in the Hamlib API? */
+/**
+ * \file ext.c
+ * \brief Extension request parameter interface
+ *
+ * An open-ended set of extension parameters and levels are available for each rig,
+ * as provided in the rigcaps extparms and extlevels lists.  These provide a way
+ * to work with rig-specific functions that don't fit into the basic "virtual rig" of
+ * Hamlib.  See icom/ic746.c for an example.
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -42,10 +50,12 @@
 
 
 
-/*
- * rig_ext_level_foreach
- * executes cfunc on all the elements stored in the extlevels table
- */
+/**
+ * \param rig
+ * \param cfunc
+ * \param data
+  * \brief Executes cfunc on all the elements stored in the extlevels table
+*/
 int HAMLIB_API rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
 	const struct confparams *cfp;
@@ -60,9 +70,11 @@ int HAMLIB_API rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct 
 	return RIG_OK;
 }
 
-/*
- * rig_ext_parm_foreach
- * executes cfunc on all the elements stored in the extparms table
+/**
+ * \param rig
+ * \param cfunc The function to be called
+ * \param data The data
+ * \brief Executes cfunc on all the elements stored in the extparms table
  */
 int HAMLIB_API rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
@@ -78,14 +90,15 @@ int HAMLIB_API rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct c
 	return RIG_OK;
 }
 
-
-
-/*
- * lookup ext token by its name, return pointer to confparams struct.
+/**
+ * \param rig
+ * \param name
+ * \brief lookup ext token by its name, return pointer to confparams struct.
  *
- * lookup extlevels table first, then fall back to extparms.
+ * Lookup extlevels table first, then fall back to extparms.
  *
  * Returns NULL if nothing found
+ *
  * TODO: should use Lex to speed it up, strcmp hurts!
  */
 const struct confparams * HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
@@ -104,8 +117,10 @@ const struct confparams * HAMLIB_API rig_ext_lookup(RIG *rig, const char *name)
 	return NULL;
 }
 
-/*
- * lookup ext token, return pointer to confparams struct.
+/**
+ * \param rig
+ * \param token
+ * \brief lookup ext token, return pointer to confparams struct.
  *
  * lookup extlevels table first, then fall back to extparms.
  *
@@ -127,8 +142,10 @@ const struct confparams * HAMLIB_API rig_ext_lookup_tok(RIG *rig, token_t token)
 	return NULL;
 }
 
-/*
- * Simple lookup returning token id assicated with name
+/**
+ * \param rig
+ * \param name
+ * \brief Simple lookup returning token id assicated with name
  */
 token_t HAMLIB_API rig_ext_token_lookup(RIG *rig, const char *name)
 {
@@ -141,4 +158,4 @@ token_t HAMLIB_API rig_ext_token_lookup(RIG *rig, const char *name)
 	return cfp->token;
 }
 
-
+/** @} */

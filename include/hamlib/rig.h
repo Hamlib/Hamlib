@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.117 2006-10-17 01:23:38 aa6e Exp $
+ *	$Id: rig.h,v 1.118 2006-10-28 03:49:05 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1071,8 +1071,8 @@ struct rig_caps {
   gran_t level_gran[RIG_SETTING_MAX];	/*!< level granularity (i.e. steps) */
   gran_t parm_gran[RIG_SETTING_MAX];	/*!< parm granularity (i.e. steps) */
 
-  const struct confparams *extparms;	/*!< Extension parm list */
-  const struct confparams *extlevels;	/*!< Extension level list */
+  const struct confparams *extparms;	/*!< Extension parm list, \sa ext.c */
+  const struct confparams *extlevels;	/*!< Extension level list, \sa ext.c */
 
   const tone_t *ctcss_list;	/*!< CTCSS tones list, zero ended */
   const tone_t *dcs_list;	/*!< DCS code list, zero ended */
