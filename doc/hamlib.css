@@ -10,8 +10,8 @@ A:hover { text-decoration: none; background-color: #f0f0fd; }
 DL.el { margin-left: -1cm }
 DIV.fragment { width: 100%; border: none; background-color: #eeeeee; font-family: courier,helvetica,serif }
 DIV.ah { font-size: 1.20em; background-color: black; font-weight: bold; color: #ffffff; margin-bottom: 3px; margin-top: 3px; font-family: courier,helvetica,serif }
-TD.md { font-size: 1.20em; background-color: #f2f2ff; font-weight: bold; font-family: courier,helvetica,serif }
-TD.mdname { font-size: 1.20em; background-color: #f2f2ff; font-weight: bold; font-style: italic; font-family: courier,helvetica,serif }
+TD.md { font-size: 0.80em; background-color: #f2f2ff; font-weight: bold; font-family: courier,helvetica,serif }
+TD.mdname { font-size: 0.80em; background-color: #f2f2ff; font-weight: bold; font-style: italic; font-family: courier,helvetica,serif }
 DIV.groupHeader { margin-left: 16px; margin-top: 12px; margin-bottom: 6px; font-weight: bold; font-family: courier,helvetica,serif }
 DIV.groupText { margin-left: 16px; font-style: italic; font-size: 1.20em; font-family: courier,helvetica,serif }
 FONT.keyword       { color: #008000 }

@@ -98,4 +98,6 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *  \defgroup rotator Rotator API
  *  \defgroup utilities Utility Routines API
  *  \defgroup rig_internal Rig Internal API
+ *  \defgroup tentec_orion Tentec Orion Backend
+ *  \defgroup tentec Tentec Common Backend
  */

@@ -1,4 +1,4 @@
-## $Id: hamlib.cfg.in,v 1.5 2006-10-15 00:49:08 aa6e Exp $
+## $Id: hamlib.cfg.in,v 1.6 2006-10-30 20:20:29 aa6e Exp $
 
 PROJECT_NAME    = "Hamlib"
 PROJECT_NUMBER  = @VERSION@
@@ -17,7 +17,9 @@ MAN_EXTENSION	= .3
 CASE_SENSE_NAMES = NO
 FULL_PATH_NAMES = NO
 INPUT	= @top_srcdir@/doc/index.doxygen \
-          @top_srcdir@/src/ @top_srcdir@/include/hamlib/
+          @top_srcdir@/src/ @top_srcdir@/include/hamlib/ \
+          @top_srcdir@/tentec/orion.c @top_srcdir@/tentec/tentec.h \
+          @top_srcdir@/tentec/orion.h
 
 #../c++/rigclass.cc
 

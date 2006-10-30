@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main header
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: tentec.h,v 1.10 2006-01-09 21:14:40 fillods Exp $
+ *	$Id: tentec.h,v 1.11 2006-10-30 20:21:15 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,25 +20,37 @@
  *
  */
 
+/**
+ * \addtogroup tentec
+ * @{
+ */
+/**
+ * \file tentec.h
+ * \brief Includes for Tentec Backends
+ */
+
 #ifndef _TENTEC_H
 #define _TENTEC_H 1
 
 #include <hamlib/rig.h>
 
+/**
+ * \brief Private tentec info
+ */
 struct tentec_priv_data {
-	rmode_t mode;		/* detection mode */
-	freq_t freq;		/* tuned frequency */
-	pbwidth_t width;	/* filter bandwidth in Hz */
-	int cwbfo;		    /* BFO frequency: 1000 [0-2000Hz] */
-    int pbt;            /* Passband Tuning, IF shift: 0 [-2000Hz to 2000Hz] */ 
-	float lnvol;		/* line-out volume: 30 [0..63] */
-	float spkvol;		/* speaker volume: 30 [0..63] */
-	int agc;		/* AGC: medium */
+	rmode_t mode;		/*!< detection mode */
+	freq_t freq;		/*!< tuned frequency */
+	pbwidth_t width;	/*!< filter bandwidth in Hz */
+	int cwbfo;		    /*!< BFO frequency: 1000 [0-2000Hz] */
+    int pbt;            /*!< Passband Tuning, IF shift: 0 [-2000Hz to 2000Hz] */ 
+	float lnvol;		/*!< line-out volume: 30 [0..63] */
+	float spkvol;		/*!< speaker volume: 30 [0..63] */
+	int agc;		/*!< AGC: medium */
 
 	/* calculated by tentec_tuning_factor_calc() */
-	int ctf; /* Coarse Tune Factor */
-	int ftf; /* Fine Tune Factor */
-	int btf; /* Bfo Tune Factor, btval is ignored by RX-320 in AM MODE */
+	int ctf; /*!< Coarse Tune Factor */
+	int ftf; /*!< Fine Tune Factor */
+	int btf; /*!< Bfo Tune Factor, btval is ignored by RX-320 in AM MODE */
 };
 
 int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
@@ -65,3 +77,4 @@ extern const struct rig_caps tt565_caps;
 
 
 #endif /* _TENTEC_H */
+/** @} */
