@@ -1,8 +1,8 @@
 /*
  *  Hamlib TenTenc backend - TT-565 description
- *  Copyright (c) 2004-2005 by Stephane Fillod & Martin Ewing
+ *  Copyright (c) 2004-2006 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.16 2006-04-13 22:24:53 aa6e Exp $
+ *	$Id: orion.c,v 1.17 2006-10-30 20:17:58 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,6 +43,18 @@
  * XCHG or other "fancy" VFO & MEM operations?
  */
 
+/**
+ * \addtogroup tentec_orion
+ * @{ */
+
+/**
+ * \file orion.c
+ * \brief Backend for Tentec Orion 565 / 566
+ *
+ * This documentation is experimental, to see how we can do it for the backends.
+ * \n This backend tested mostly with firmware version 1.372
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -58,257 +70,12 @@
 #include "serial.h"
 #include "misc.h"
 #include "idx_builtin.h"
-#include "tentec.h"
+#include "orion.h"
 
-#define TT565_BUFSIZE 16
-
-/*
- * Orion's own  memory channel holds a freq, mode, and bandwidth.
- * May be captured from VFO A or B and applied to VFO A or B.
- * It cannot directly be read or written from the computer! 
+#ifdef TT565_TIME 
+/**
+ * \returns current time in secs/microsecs
  */
- 
-#define TT565_MEM_CAP {        \
-	.freq = 1,      \
-	.mode = 1,      \
-	.width = 1,     \
-}
-
-static int tt565_init(RIG *rig);
-static int tt565_cleanup(RIG *rig);
-static int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-static int tt565_set_vfo(RIG *rig, vfo_t vfo);
-static int tt565_get_vfo(RIG *rig, vfo_t *vfo);
-static int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-static int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-static int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-static int tt565_reset(RIG *rig, reset_t reset);
-static int tt565_set_mem(RIG * rig, vfo_t vfo, int ch);
-static int tt565_get_mem(RIG * rig, vfo_t vfo, int *ch);
-static int tt565_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op);
-static int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
-static int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts);
-static int tt565_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-static int tt565_get_rit(RIG * rig, vfo_t vfo, shortfreq_t *rit);
-static int tt565_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit);
-static int tt565_get_xit(RIG * rig, vfo_t vfo, shortfreq_t *xit);
-static int tt565_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val);
-static int tt565_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t *val);
-static const char* tt565_get_info(RIG *rig);
-static int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg);
-static int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
-static int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-static int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
-static int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant);
-
-struct tt565_priv_data {
-	int ch;		/* mem */
-	vfo_t vfo_curr;
-};
-
-#define TT565_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
-			RIG_MODE_RTTY|RIG_MODE_AM)
-#define TT565_RXMODES (TT565_MODES)
-
-#define TT565_FUNCS (RIG_FUNC_LOCK|RIG_FUNC_TUNER|RIG_FUNC_VOX|RIG_FUNC_NB)
-
-#define TT565_LEVELS (RIG_LEVEL_RAWSTR| \
-				RIG_LEVEL_CWPITCH| \
-				RIG_LEVEL_SQL|RIG_LEVEL_IF| \
-				RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD| \
-				RIG_LEVEL_RF|RIG_LEVEL_NR| \
-				RIG_LEVEL_MICGAIN| \
-				RIG_LEVEL_AF|RIG_LEVEL_AGC| \
-				RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOX|RIG_LEVEL_ANTIVOX| \
-				RIG_LEVEL_COMP|RIG_LEVEL_PREAMP| \
-				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
-
-#define TT565_ANTS (RIG_ANT_1|RIG_ANT_2) 
-#define TT565_RXANTS (TT565_ANTS|RIG_ANT_3) 
-
-#define TT565_PARMS (RIG_PARM_NONE)
-
-#define TT565_VFO (RIG_VFO_A|RIG_VFO_B)
-
-#define TT565_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN|\
-		RIG_OP_TO_VFO|RIG_OP_FROM_VFO| \
-		RIG_OP_TUNE)
-
-/* Checked on one physical unit 3/29/05 - aa6e */
-#define TT565_STR_CAL { 15,  { \
-		{  10, -45 }, /* S 1.5 min meter indication */ \
-                {  13, -42 }, \
-                {  18, -36 }, \
-                {  22, -30 }, \
-                {  27, -24 }, \
-                {  30, -18 }, \
-                {  34, -12 }, \
-                {  38,  -6 }, \
-                {  43,   0 }, /* S9 */ \
-                {  48,  10 }, \
-                {  55,  20 }, \
-                {  62,  30 }, \
-                {  70,  40 }, \
-                {  78,  48 }, /* severe dsp quantization error */ \
-                { 101,  65 }, /* at high end of scale */ \
-        } }
-
-#undef TT565_TIME		/* Define to enable time checks */
-
-/*
- * tt565 transceiver capabilities.
- *
- * Protocol is documented at 
- *		http://www.rfsquared.com/
- */
-const struct rig_caps tt565_caps = {
-.rig_model =  RIG_MODEL_TT565,
-.model_name = "TT-565 Orion",
-.mfg_name =  "Ten-Tec",
-.version =  "0.3",
-.copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
-.rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,
-.dcd_type =  RIG_DCD_NONE,
-.port_type =  RIG_PORT_SERIAL,
-.serial_rate_min =  57600,
-.serial_rate_max =  57600,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  0,
-.post_write_delay =  10,	/* Needed for CW send + ?? */
-.timeout =  400,
-.retry =  3,
-
-.has_get_func =  TT565_FUNCS,
-.has_set_func =  TT565_FUNCS,
-.has_get_level =  TT565_LEVELS,
-.has_set_level =  RIG_LEVEL_SET(TT565_LEVELS),
-.has_get_parm =  TT565_PARMS,
-.has_set_parm =  TT565_PARMS,
-
-.level_gran = {}, 
-.parm_gran =  {},
-.ctcss_list =  NULL,
-.dcs_list =  NULL,
-.preamp =   { 20, RIG_DBLST_END },
-.attenuator =   { 6, 12, 18, RIG_DBLST_END },
-.max_rit =  kHz(8),
-.max_xit =  kHz(8),
-.max_ifshift =  kHz(8),
-.vfo_ops = TT565_VFO_OPS,
-.targetable_vfo =  RIG_TARGETABLE_ALL,
-.transceive =  RIG_TRN_OFF,
-.bank_qty =   0,
-.chan_desc_sz =  0,
-
-.chan_list =  {
-		{   0, 199, RIG_MTYPE_MEM, TT565_MEM_CAP },
-		},
-
-.rx_range_list1 =  {
-	FRQ_RNG_HF(1,TT565_RXMODES, -1,-1,RIG_VFO_N(0),TT565_RXANTS),
-	{kHz(500),MHz(30),TT565_RXMODES,-1,-1,RIG_VFO_N(1),TT565_RXANTS},
-	RIG_FRNG_END,
-  },
-.tx_range_list1 =  {
-	FRQ_RNG_HF(1,TT565_MODES, W(5),W(100),RIG_VFO_N(0),TT565_ANTS),
-	RIG_FRNG_END,
-  },
-
-.rx_range_list2 =  {
-	FRQ_RNG_HF(2,TT565_RXMODES, -1,-1,RIG_VFO_N(0),TT565_RXANTS),
-	{MHz(5.25),MHz(5.40),TT565_RXMODES,-1,-1,RIG_VFO_N(0),TT565_RXANTS},
-	{kHz(500),MHz(30),TT565_RXMODES,-1,-1,RIG_VFO_N(1),TT565_RXANTS},
-	RIG_FRNG_END,
-  },
-.tx_range_list2 =  {
-	FRQ_RNG_HF(2,TT565_MODES, W(5),W(100),RIG_VFO_N(0),TT565_ANTS),
-	{MHz(5.25),MHz(5.40),TT565_MODES,W(5),W(100),RIG_VFO_N(0),TT565_ANTS},
-	RIG_FRNG_END,
-  },
-
-.tuning_steps =  {
-	 {TT565_RXMODES,1},
-	 {TT565_RXMODES,10},
-	 {TT565_RXMODES,100},
-	 {TT565_RXMODES,kHz(1)},
-	 {TT565_RXMODES,kHz(10)},
-	 {TT565_RXMODES,kHz(100)},
-	 RIG_TS_END,
-	},
-        /* mode/filter list, remember: order matters! */
-.filters =  {
-	/* 9MHz IF filters: 15kHz, 6kHz, 2.4kHz, 1.0kHz */
-	/* opt: 1.8kHz, 500Hz, 250Hz */
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY, 100},
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY, kHz(6)},
-		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY, 0}, /* 590 filters */
-		{RIG_MODE_AM, kHz(6)},
-		{RIG_MODE_AM, kHz(4)},
-		{RIG_MODE_FM, kHz(15)},
-		RIG_FLT_END,
-	},
-.priv =  (void*)NULL,
-
-.rig_init =  tt565_init,
-.rig_cleanup =  tt565_cleanup,
-
-.set_freq =  tt565_set_freq,
-.get_freq =  tt565_get_freq,
-.set_vfo =  tt565_set_vfo,
-.get_vfo =  tt565_get_vfo,
-.set_mode =  tt565_set_mode,
-.get_mode =  tt565_get_mode,
-.set_split_vfo =  tt565_set_split_vfo,
-.get_split_vfo =  tt565_get_split_vfo,
-.set_level =  tt565_set_level,
-.get_level =  tt565_get_level,
-.set_mem =  tt565_set_mem,
-.get_mem =  tt565_get_mem,
-.set_ptt =  tt565_set_ptt,
-.get_ptt =  tt565_get_ptt,
-.vfo_op =  tt565_vfo_op,
-.set_ts =  tt565_set_ts,
-.get_ts =  tt565_get_ts,
-.set_rit =  tt565_set_rit,
-.get_rit =  tt565_get_rit,
-.set_xit =  tt565_set_xit,
-.get_xit =  tt565_get_xit,
-.reset =  tt565_reset,
-.get_info =  tt565_get_info,
-.send_morse = tt565_send_morse,
-.get_func = tt565_get_func,
-.set_func = tt565_set_func,
-.get_ant = tt565_get_ant,
-.set_ant = tt565_set_ant,
-
-.str_cal = TT565_STR_CAL,
-};
-
-/*
- * Function definitions below
- */
-
-#define EOM "\015"	/* CR */
-
-#define TT565_USB '0'
-#define TT565_LSB '1'
-#define TT565_CW  '2'
-#define TT565_CWR '3'
-#define TT565_AM  '4'
-#define TT565_FM  '5'
-#define TT565_RTTY '6'
-
-#ifdef TT565_TIME
 double tt565_timenow()	/* returns current time in secs+microsecs */
 {
 	struct timeval tv;
@@ -317,10 +84,18 @@ double tt565_timenow()	/* returns current time in secs+microsecs */
 }
 #endif
 
-/*
- * tt565_transaction, adapted from tentec_transaction (tentec.c)
- * read variable number of bytes, up to buffer size, if data & data_len != NULL.
- * We assume that rig!=NULL, rig->state!= NULL
+/**
+ * \param rig Rig descriptor
+ * \param cmd command to send
+ * \param cmd_len length of command string
+ * \param data string to receive return data from Orion (NULL if no return desired)
+ * \param data_len length of data string
+ * \returns RIG_OK or < 0 if error
+ * \brief tt565_transaction, adapted from tentec_transaction (tentec.c)
+ *
+ * This is the basic I/O transaction to/from the Orion.
+ * \n Read variable number of bytes, up to buffer size, if data & data_len != NULL.
+ * \n We assume that rig!=NULL, rig->state!= NULL.
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
 int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
@@ -359,45 +134,32 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	  else
 	    rig_debug(RIG_DEBUG_ERR,"Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
 		*data_len, itry, ft2-ft1);
-#endif
+#endif 
 	}
         return -RIG_ETIMEOUT;
 }
 
-/*************************************************************************************
- * Specs from http://www.rfsquared.com, Rev 1, firmware 1.340
- * supplemented and corrected with real hardware, firmware 1.372
- */
-
-/*
- * tt565_init:
- * Basically, it just sets up *priv
+/**
+ * \param rig
+ * \returns RIG_OK or < 0
+ * \brief Basically, it just sets up *priv
  */
 int tt565_init(RIG *rig)
 {
 	struct tt565_priv_data *priv;
-
 	priv = (struct tt565_priv_data*)malloc(sizeof(struct tt565_priv_data));
-
-	if (!priv) {
-				/* whoops! memory shortage! */
-		return -RIG_ENOMEM;
-	}
-
+	if (!priv) { return -RIG_ENOMEM; } /* no memory available */
 	memset(priv, 0, sizeof(struct tt565_priv_data));
-
-	/*
-	 * set arbitrary initial status
-	 */
-	priv->ch = 0;
+	priv->ch = 0; /* set arbitrary initial status */
 	priv->vfo_curr = RIG_VFO_A;		
 	rig->state.priv = (rig_ptr_t)priv;
-
 	return RIG_OK;
 }
 
-/*
- * tt565_cleanup routine
+/**
+ * \param rig
+ * \brief tt565_cleanup routine
+ *
  * the serial port is closed by the frontend
  */
 int tt565_cleanup(RIG *rig)
@@ -409,7 +171,16 @@ int tt565_cleanup(RIG *rig)
 
 	return RIG_OK;
 }
-
+/**
+ * \param rig
+ * \param vfo RIG_VFO_MAIN or RIG_VFO_SUB
+ * \returns 'M' or 'S' for main or subreceiver or <0 error
+ * \brief vfo must be RIG_VFO_MAIN or RIG_VFO_SUB
+ *
+ * Note that Orion's "VFO"s are supposed to be logically independent
+ * of the main/sub receiver selection.  (In reality, they are not quite
+ * independent.)
+ */
 static char which_receiver(const RIG *rig, vfo_t vfo)
 {
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
@@ -428,7 +199,12 @@ static char which_receiver(const RIG *rig, vfo_t vfo)
 		return -RIG_EINVAL;
 	}
 }
-
+/**
+ * \param rig
+ * \param vfo RIG_VFO_A, RIG_VFO_B, or RIG_VFO_NONE
+ * \returns 'A' or 'B' or 'N' for VFO A, B, or null VFO, or <0 error
+ * \brief vfo must be RIG_VFO_A, RIG_VFO_B, or RIG_VFO_NONE.
+ */
 static char which_vfo(const RIG *rig, vfo_t vfo)
 {
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
@@ -447,11 +223,14 @@ static char which_vfo(const RIG *rig, vfo_t vfo)
 	}
 }
 
-
-/*
- * tt565_set_freq
- * assumes rig!=NULL, rig->state.priv!=NULL
- * assumes priv->mode in AM,CW,LSB or USB.
+/**
+ * \param rig must != NULL
+ * \param vfo RIG_VFO_A or RIG_VFO_B
+ * \param freq
+ * \brief Set a frequence into the specified VFO
+ *
+ * assumes rig->state.priv!=NULL
+ * \n assumes priv->mode in AM,CW,LSB or USB.
  */
 int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -467,9 +246,13 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	return retval;
 }
 
-/*
- * tt565_get_freq
- * Assumes rig!=NULL, freq!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo RIG_VFO_A or RIG_VFO_B
+ * \param freq must != NULL
+ * \brief Get the frequency currently set in the specified VFO (A or B)
+ *
+ * Performs query on physical rig
  */
 int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
@@ -495,9 +278,13 @@ int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	return RIG_OK;
 }
 
-/*
- * tt565_set_vfo
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo RIG_VFO_MAIN or RIG_VFO_SUB
+ * \returns RIG_OK or < 0
+ * \brief set RIG_VFO_CURR and send info to physical rig.
+ *
+ * Places Orion into Main or Sub Rx active state
  */
 int tt565_set_vfo(RIG *rig, vfo_t vfo)
 {
@@ -521,9 +308,10 @@ int tt565_set_vfo(RIG *rig, vfo_t vfo)
 	return RIG_OK;
 }
 
-/*
- * tt565_get_vfo
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo Set = stored state of current VFO state
+ * \returns RIG_OK
  */
 int tt565_get_vfo(RIG *rig, vfo_t *vfo)
 {
@@ -534,9 +322,16 @@ int tt565_get_vfo(RIG *rig, vfo_t *vfo)
 	return RIG_OK;
 }
 
-/*
- * tt565_set_split_vfo
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo Rx vfo specifier token
+ * \param split (ignored - why?)
+ * \param tx_vfo Tx vfo specifier token
+ * \returns RIG_OK or < 0
+ * \brief Set split operating mode
+ *
+ * Sets Main Rx to "vfo"( A or B) , Main Tx to "tx_vfo" (A, B, or N).  
+ * \n Sub Rx is set to "None". That should be fixed!
  */
 int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
@@ -552,7 +347,11 @@ int tt565_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 	return retval;
 }
-
+/**
+ * \param c
+ * \returns RIG_VFO_x, x= A, B, or NONE
+ * \brief Translate an Orion command character to internal token form.
+ */
 static vfo_t tt2vfo(char c)
 {
 	switch(c) {
@@ -563,9 +362,13 @@ static vfo_t tt2vfo(char c)
 	return RIG_VFO_NONE;
 }
 
-/*
- * tt565_get_split_vfo
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param split Returned with RIG_SPLIT_ON if Tx <> Rx vfo, .._OFF otherwise
+ * \param tx_vfo Returned RIG_VFO_x, signifying selected Tx vfo
+ * \returns RIG_OK or < 0
+ * \brief Get the current split status and Tx vfo selection.
  */
 int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
@@ -595,9 +398,20 @@ int tt565_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 	return RIG_OK;
 }
 
-/*
- * tt565_set_mode
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param mode
+ * \param width passband in Hz or = RIG_PASSBAND_NORMAL (=0) which gives a nominal value
+ * \brief Set operating mode to RIG_MODE_x with indicated passband width.
+ *
+ * Supported modes x= USB, LSB, CW, CWR, AM, FM, RTTY
+ * \n This applies to currently selected receiver (Main Rx=Tx or Sub Rx)
+ * \sa tt565_set_vfo
+ *
+ * \remarks Note widespread confusion between "VFO" and "Receiver".  The Orion
+ * has VFOs A and B which may be mapped to Main and Sub Receivers independently.
+ * But Hamlib may have different ideas!
  */
 int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
@@ -637,9 +451,15 @@ int tt565_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	return retval;
 }
 
-/*
- * tt565_get_mode
- * Assumes rig!=NULL, mode!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param mode Receives current mode setting, must be != NULL
+ * \param width Receives current bandwidth setting, must be != NULL
+ * \returns RIG_OK or < 0
+ * \brief Get op. mode and bandwidth for selected vfo
+ * 
+ * \remarks Confusion of VFO and Main/Sub TRx/Rx. See tt565_set_mode.
  */
 int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -698,9 +518,12 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	return RIG_OK;
 }
 
-/*
- * tt565_set_ts
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param ts Tuning Step, Hz
+ * \returns RIG_OK or < 0
+ * \brief Set Tuning Step for VFO A or B.
  */
 int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
@@ -716,6 +539,13 @@ int tt565_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 	return retval;
 }
 
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param ts Receives Tuning Step, Hz
+ * \returns RIG_OK or < 0
+ * \brief Get Tuning Step for VFO A or B.
+ */
 int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 {
 	int cmd_len, resp_len, retval;
@@ -741,9 +571,12 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 	return RIG_OK;
 }
 
-/*
- * tt565_set_rit
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param rit Rx incremental tuning, Hz
+ * \returns RIG_OK or < 0
+ * \brief Set Rx incremental tuning
  */
 int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
@@ -759,6 +592,13 @@ int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 	return retval;
 }
 
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param rit Receives Rx incremental tuning, Hz
+ * \returns RIG_OK or < 0
+ * \brief Get Rx incremental tuning
+ */
 int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 {
 	int cmd_len, resp_len, retval;
@@ -784,10 +624,12 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 	return RIG_OK;
 }
 
-/*
- * tt565_set_xit
- * Assumes rig!=NULL
- *
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param xit Tx incremental tuning, Hz
+ * \returns RIG_OK or < 0
+ * \brief Set Tx incremental tuning (Main TRx only)
  */
 int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
@@ -805,6 +647,13 @@ int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 	return retval;
 }
 
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param xit Receives Tx incremental tuning, Hz
+ * \returns RIG_OK or < 0
+ * \brief Get Tx incremental tuning (Main TRx only)
+ */
 int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 {
 	int cmd_len, resp_len, retval;
@@ -830,9 +679,12 @@ int tt565_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 	return RIG_OK;
 }
 
-/*
- * tt565_set_ptt
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param ptt RIG_PTT_ON or RIG_PTT_OFF
+ * \returns RIG_OK or < 0
+ * \brief Set push to talk (Tx on/off)
  */
 int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
@@ -842,6 +694,13 @@ int tt565_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 			ptt==RIG_PTT_ON ? "*TK" EOM:"*TU" EOM, 4);
 }
 
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param ptt Receives RIG_PTT_ON or RIG_PTT_OFF
+ * \returns RIG_OK or < 0
+ * \brief Get push to talk (Tx on/off)
+ */
 int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 	int resp_len, retval;
@@ -864,8 +723,15 @@ int tt565_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 	return RIG_OK;
 }
 
-/*
- * Software restart
+/**
+ * \param rig must != NULL
+ * \param reset (not used)
+ * \returns RIG_OK or < 0
+ * \brief Restart Orion firmware
+ *
+ * Sends an "X" command and listens for reply = "ORION START".  This only
+ * seems to test for healthy connection to the firmware.  There is no effect
+ * on Orion's state, AFAIK.
  */
 int tt565_reset(RIG *rig, reset_t reset)
 {
@@ -886,37 +752,59 @@ int tt565_reset(RIG *rig, reset_t reset)
 	return RIG_OK;
 }
 
-
-/*
- * tt565_get_info
- * Assumes rig!=NULL
+/**
+ * \param rig must != NULL
+ * \returns firmware identification string or NULL
+ * \brief Get firmware identification, e.g., "Version 1.372"
+ *
+ * Re-entrancy issue (what else is new?)
  */
 const char *tt565_get_info(RIG *rig)
 {
 	static char buf[100];	/* FIXME: reentrancy */
 	int firmware_len, retval;
 
-	/*
-	 * protocol version
-	 */
 	firmware_len = sizeof(buf);	
 	retval = tt565_transaction (rig, "?V" EOM, 3, buf, &firmware_len);
-
-	/* "Version 1.372" */				
 	if (retval != RIG_OK || firmware_len < 8) {	
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",
 					__FUNCTION__, firmware_len);
 			return NULL;
 	}
 	buf[firmware_len] = '\0';
-
 	return buf;
 }
 
-/*
- * tt565_set_level
- * Assumes rig!=NULL
- * FIXME: cannot support PREAMP and ATT both at same time (make sens though)
+/**
+ * \param rig must != NULL
+ * \param vfo
+ * \param level A level id token, e.g. RIG_LEVEL_AF
+ * \param val Value for the level, on a scale or via a token
+ * \returns RIG_OK or < 0
+ * \brief Sets any of Orion's "Level" adjustments
+ *
+ * Unfortunately, "val" type is not well defined.  Sometimes it is a float (AF gain), 
+ * an integer (RF Atten.), or an enum (RIG_AGC_FAST)...
+ * 
+ * Supported Levels and Units
+ * \n  -RIG_LEVEL_RFPOWER, float 0.0 - 1.0
+ * \n  -RIG_LEVEL_AGC, int RIG_AGC_x, x= OFF, FAST, MEDIUM, SLOW, USER
+ * \n  -RIG_LEVEL_AF, float 0.0 - 1.0
+ * \n  -RIG_LEVEL_IF, passband tuning, int Hz
+ * \n  -RIG_LEVEL_RF, IF gain (!), float 0.0 - 1.0
+ * \n  -RIG_LEVEL_ATT, Atten. setting, int dB (we pick 0, 6, 12, or 18 dB)
+ * \n  -RIG_LEVEL_PREAMP, Preamp on/off, 0-1 (main Rx only)
+ * \n  -RIG_LEVEL_SQL, squelch, float 0.0 - 1.0
+ * \n  -RIG_LEVEL_MICGAIN, float 0.0 - 1.0
+ * \n  -RIG_LEVEL_COMP, speech compression, float 0.0 - 1.0
+ * \n  -RIG_LEVEL_CWPITCH, int Hz
+ * \n  -RIG_LEVEL_KEYSPD, int wpm
+ * \n  -RIG_LEVEL_NR, noise reduction/blank, float 0.0 - 1.0
+ * \n  -RIG_LEVEL_VOX, vox delay, float x 1/10 second
+ * \n  -RIG_LEVEL_VOXGAIN, float 0.0 - 1.0
+ * \n  -RIG_LEVEL_ANTIVOX, float 0.0 - 1.0
+ *
+ * \n FIXME: cannot support PREAMP and ATT both at same time (make sens though)
  */
 int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
@@ -944,24 +832,28 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	case RIG_LEVEL_AF:
+        /* AF Gain, float 0.0 - 1.0 */
 		cmd_len = sprintf(cmdbuf, "*U%c%d" EOM,
 				which_receiver(rig, vfo),
 				(int)(val.f*255));
 		break;
 
 	case RIG_LEVEL_IF:
+        /* This is passband tuning int Hz */
 		cmd_len = sprintf(cmdbuf, "*R%cP%d" EOM,
 				which_receiver(rig, vfo),
 				val.i);
 		break;
 
 	case RIG_LEVEL_RF:
+        /* This is IF Gain, float 0.0 - 1.0 */
 		cmd_len = sprintf(cmdbuf, "*R%cG%d" EOM,
 				which_receiver(rig, vfo),
 				(int)(val.f*100));
 		break;
 
 	case RIG_LEVEL_ATT:
+        /* RF Attenuator, int dB */
 		ii = -1;	/* Request 0-5 dB -> 0, 6-11 dB -> 6, etc. */
 		while ( rig->caps->attenuator[++ii] != RIG_DBLST_END ) {
 			if (rig->caps->attenuator[ii] > val.i) break;
@@ -977,23 +869,26 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		if (which_receiver(rig, vfo) == 'S') {
 			return -RIG_EINVAL;
 		}
-
+        /* RF Preamp (main Rx), int 0 or 1 */
 		cmd_len = sprintf(cmdbuf, "*RME%d" EOM,
 				val.i==0 ? 0 : 1);
 		break;
 
 	case RIG_LEVEL_SQL:
+        /* Squelch level, float 0.0 - 1.0 */
 		cmd_len = sprintf(cmdbuf, "*R%cS%d" EOM,
 				which_receiver(rig, vfo),
 				(int)((val.f*127)-127));
 		break;
 
 	case RIG_LEVEL_MICGAIN:
+        /* Mic gain, float 0.0 - 1.0 */
 		cmd_len = sprintf(cmdbuf, "*TM%d" EOM, 
 				(int)(val.f*100));
 		break;
 
 	case RIG_LEVEL_COMP:
+        /* Speech Processor, float 0.0 - 1.0 */
 		cmd_len = sprintf(cmdbuf, "*TS%d" EOM, 
 				(int)(val.f*9));
 		break;
@@ -1001,13 +896,12 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	case RIG_LEVEL_CWPITCH:
 		/* "CWPITCH" is the "Tone" button on the Orion.
 		   Manual menu adjustment works down to 100 Hz, but not via
-		   computer.
+		   computer. int Hz.
 		*/
-		if (val.i > 1200) val.i = 1200;
-		else if (val.i < 300) val.i = 300;	/* Range 300-1200 Hz works */
-							/* Limits should be in caps? */
-		cmd_len = sprintf(cmdbuf, "*CT%d" EOM,
-				val.i);
+		if (val.i > TT565_TONE_MAX) val.i = TT565_TONE_MAX;
+		else if (val.i < TT565_TONE_MIN) val.i = TT565_TONE_MIN;
+		cmd_len = sprintf(cmdbuf, "*CT%d" EOM, 
+                val.i);
 		break;
 
 	case RIG_LEVEL_KEYSPD:
@@ -1015,14 +909,15 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		   command which should be a hamlib function, but is not.
 		   Keyer speed determines the rate of computer sent CW also.
 		*/
-		if (val.i > 60) val.i = 60;
-		else if (val.i < 10) val.i = 10;	/* Range 10-60 wpm */	
+		if (val.i > TT565_CW_MAX) val.i = TT565_CW_MAX;
+		else if (val.i < TT565_CW_MIN) val.i = TT565_CW_MIN;
 		cmd_len = sprintf(cmdbuf, "*CS%d" EOM,
 				val.i);
 		break;
 
 	case RIG_LEVEL_NR:
-		/* For some reason NB setting is supported in 1.372, but
+		/* Noise Reduction (blanking) Float 0.0 - 1.0
+            For some reason NB setting is supported in 1.372, but
 		   NR, NOTCH, and AN are not. 
 		   FOR NOW -- RIG_LEVEL_NR controls the Orion NB setting 
 		*/
@@ -1031,15 +926,18 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				(int)(val.f*9));
 		break;
 
-	case RIG_LEVEL_VOX:	/* =VOXDELAY, tenths of seconds */
+	case RIG_LEVEL_VOX:	
+        /* VOX delay, float tenths of seconds */
 		cmd_len = sprintf(cmdbuf, "*TH%4.2f" EOM, 0.1*val.f);
 		break;
 
-	case RIG_LEVEL_VOXGAIN:	/* Float, 0.0 - 1.0 */
+	case RIG_LEVEL_VOXGAIN:	
+        /* Float, 0.0 - 1.0 */
 		cmd_len = sprintf(cmdbuf, "*TG%d" EOM, (int)(100.0*val.f));
 		break;
 
-	case RIG_LEVEL_ANTIVOX:	/* Float, 0.0 - 1.0 */
+	case RIG_LEVEL_ANTIVOX:
+        /* Float, 0.0 - 1.0 */
 		cmd_len = sprintf(cmdbuf, "*TA%d" EOM, (int)(100.0*val.f));
 		break;
 
@@ -1050,14 +948,17 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	}
 
 	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL,NULL);
-
 	return retval;
 }
 
-
-/*
- * tt565_get_level
- * Assumes rig!=NULL, val!=NULL
+/**
+ * \param rig must be != NULL
+ * \param vfo
+ * \param level identifier for level of interest
+ * \param val Receives level's value, must != NULL
+ * \brief Get the current value of an Orion "level"
+ *
+ * \sa tt565_set_level
  */
 int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
@@ -1389,7 +1290,16 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	return RIG_OK;
 }
-
+/**
+ * \param rig !=NULL
+ * \param vfo
+ * \param ch Channel number
+ * \returns RIG_OK
+ * \brief This only sets the current memory channel locally.  No Orion I/O.
+ * 
+ * Use RIG_OP_TO_VFO and RIG_OP_FROM_VFO to get/store a freq in the channel.
+ * \sa tt565_vfo_op
+ */
 int tt565_set_mem(RIG * rig, vfo_t vfo, int ch)
 {
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
@@ -1398,6 +1308,13 @@ int tt565_set_mem(RIG * rig, vfo_t vfo, int ch)
 	return RIG_OK;
 }
 
+/**
+ * \param rig != NULL
+ * \param vfo
+ * \param ch to receive the current channel number
+ * \returns RIG_OK
+ * \brief Get the current memory channel number (only)
+ */
 int tt565_get_mem(RIG * rig, vfo_t vfo, int *ch)
 {
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
@@ -1406,6 +1323,20 @@ int tt565_get_mem(RIG * rig, vfo_t vfo, int *ch)
 	return RIG_OK;
 }
 
+/**
+ * \param rig != NULL
+ * \param vfo
+ * \param op Operation to perform, a RIG_OP token
+ * \returns RIG_OK or < 0
+ * \brief perform a RIG_OP operation
+ *
+ * Supported operations:
+ * \n RIG_OP_TO_VFO memory channel to VFO (includes bw, mode, etc)
+ * \n RIG_OP_FROM_VFO stores VFO (& other data) to memory channel
+ * \n RIG_OP_TUNE initiates a tuner cycle (if tuner present) MAY BE BROKEN
+ * \n RIG_OP_UP increment VFO freq by tuning step
+ * \n RIG_OP_DOWN decrement VFO freq by tuning step
+ */
 int tt565_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 {
 	struct tt565_priv_data *priv = (struct tt565_priv_data *)rig->state.priv;
@@ -1444,15 +1375,32 @@ int tt565_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 	return retval;
 }
 
+/**
+ * \param rig
+ * \param vfo
+ * \param msg A message string (<= 20 char)
+ * \returns RIG_OK
+ * \brief Send a string as morse characters
+ *
+ * Orion keyer must be on for morse, but we do not have a "keyer on" function in 
+ * hamlib (yet). Keyer will be forced on.
+ *
+ * Orion can queue up to about 20 characters.  
+ * We could batch a longer message into 20 char chunks, but there is no
+ * simple way to tell if message has completed.  We could calculate a
+ * duration based on keyer speed and the text that was sent, but
+ * what we really need is a handshake for "message complete".
+ * Without it, you can't easily use the Orion as a code practice machine.
+ * For now, we let the user do the batching.
+ * Note that rig panel is locked up for duration of message. 
+ */
 int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
 	int msg_len, retval, ic, cmdl;
 	char morsecmd[8];
 	static int keyer_set = 0;	/*Shouldn't be here!*/
 
-/* Orion keyer must be on for morse, but we do not have a "keyer on" function in 
- * hamlib (yet).  So force keyer on here. 
- */
+/*  Force keyer on. */
 	if (!keyer_set) {
 	    retval = tt565_transaction(rig, "*CK1" EOM, 5, NULL, NULL);
 	    if (retval != RIG_OK)
@@ -1463,15 +1411,6 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 	msg_len = strlen(msg);
 	if (msg_len > 20) msg_len = 20;	/* sanity limit 20 chars */
 
-/* Orion can queue up to about 20 characters.  
- * We could batch a longer message into 20 char chunks, but there is no
- * simple way to tell if message has completed.  We could calculate a
- * duration based on keyer speed and the text that was sent, but
- * what we really need is a handshake for "message complete".
- * Without it, you can't easily use the Orion as a code practice machine.
- * For now, we let the user do the batching.
- * Note that rig panel is locked up for duration of message. 
- */
 	for (ic = 0; ic < msg_len; ic++) {
 		cmdl = sprintf(morsecmd,"/%c" EOM, msg[ic]);
 		retval = tt565_transaction(rig,morsecmd,cmdl,NULL,NULL);
@@ -1480,7 +1419,23 @@ int tt565_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 	}
 	return RIG_OK;
 }
-
+/**
+ * \param rig != NULL
+ * \param vfo
+ * \param func Identifier for function to be performed
+ * \param status data for function
+ * \returns RIG_OK or < 0
+ * \brief Set an Orion "function"
+ *
+ * Note that vfo must == RIG_VFO_CURR
+ *
+ * Supported functions & data
+ * \n RIG_FUNC_TUNER, off/on, 0/1
+ * \n RIG_FUNC_VOX, off/on, 0/1
+ * \n RIG_FUNC_LOCK, unlock/lock, 0/1
+ * \n RIG_FUNC_NB, off/on, 0/1 (sets Orion NB=0 or =4), compare RIG_LEVEL_NR
+ * 
+ */
 int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 	char fcmdbuf[TT565_BUFSIZE];
@@ -1524,7 +1479,16 @@ int tt565_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
                 return retval;
 	return RIG_OK;
 }
-
+/**
+ * \param rig != NULL
+ * \param vfo must == RIG_VFO_CURR
+ * \param func
+ * \param status receives result of function query
+ * \returns RIG_OK or < 0
+ * \brief get state of an Orion "function"
+ *
+ * \sa tt565_set_func
+ */
 int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
 	char fcmdbuf[TT565_BUFSIZE], frespbuf[TT565_BUFSIZE];
@@ -1582,17 +1546,24 @@ int tt565_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	*status = frespbuf[ 3 ] == '1' ? 1:0;
 	return RIG_OK;
 }
-/* Antenna selection for Orion
+/**
+ * \param rig != NULL
+ * \param vfo
+ * \param ant antenna identifier RIG_ANT_1 or RIG_ANT_2
+ * \returns RIG_OK or < 0
+ * \brief Antenna selection for Orion
+ *
  * We support Ant_1 and Ant_2 for M and S receivers.
- * Note that Rx-only antenna (Ant_3?) is not supported at this time.
- * Orion command assigns MSBN to each ant, but hamlib wants to assign ant to rx/tx!
+ * \n Note that Rx-only antenna (Ant_3?) is not supported at this time.
+ * \n Orion command assigns MSBN (main rtx, sub rx, both, or none) to each ant, 
+ * but hamlib wants to assign an ant to rx/tx!
  * The efficient way would be to keep current config in rig priv area, but we will
  * ask the rig what its state is each time...
  */
 int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 {
-                char respbuf[TT565_BUFSIZE];
-                int resp_len, retval;
+        char respbuf[TT565_BUFSIZE];
+        int resp_len, retval;
 		ant_t main_ant, sub_ant;
 
 		/* First, find out what antenna config is now. */
@@ -1655,7 +1626,15 @@ int tt565_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
                                 return retval;
                 return RIG_OK;
 }
-
+/**
+ * \param rig != NULL
+ * \param vfo
+ * \param ant receives antenna identifier
+ * \returns RIG_OK or < 0
+ * \brief Find what antenna is "attached" to our vfo
+ * 
+ * \sa tt565_set_ant
+ */
 int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 {
                 char respbuf[TT565_BUFSIZE];
@@ -1684,3 +1663,4 @@ int tt565_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
                 return RIG_OK;
 }
 /* End of orion.c */
+/** @} */
