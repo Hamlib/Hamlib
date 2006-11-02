@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.40 2006-10-15 00:27:51 aa6e Exp $
+ *	$Id: misc.c,v 1.41 2006-11-02 15:19:58 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -258,6 +258,9 @@ static struct {
 	{ RIG_MODE_ECSSLSB, "ECSSLSB" },
 	{ RIG_MODE_FAX, "FAX" },
 	{ RIG_MODE_NONE, "" },
+ 	{ RIG_MODE_SAM, "SAM" },
+ 	{ RIG_MODE_SAL, "SAL" },
+ 	{ RIG_MODE_SAH, "SAH" },
 };
 
 /**

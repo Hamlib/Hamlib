@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.41 2006-10-15 13:12:54 aa6e Exp $
+ *	$Id: aor.c,v 1.42 2006-11-02 15:19:58 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -307,15 +307,34 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	struct aor_priv_caps *priv = (struct aor_priv_caps*)rig->caps->priv;
 	char mdbuf[BUFSZ];
-	int mdbuf_len, retval;
+	char mdbuf2[BUFSZ] = "";
+	int mdbuf_len, mdbuf2_len, retval;
 
 	mdbuf_len = priv->format_mode(rig, mdbuf, mode, width);
 
 	strcpy(mdbuf+mdbuf_len, EOM);
 	mdbuf_len += strlen(EOM);
 
-	retval = aor_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+	switch (rig->caps->rig_model) {
+	    case RIG_MODEL_AR5000:
+	    case RIG_MODEL_AR5000A:
+		strncpy(mdbuf2, mdbuf, 3);      /* Extract first 'MD' part */
+		mdbuf2_len = strlen(mdbuf2);
+		strcpy(mdbuf2+mdbuf2_len, EOM); /* Add delimiter */
+		mdbuf2_len = strlen(mdbuf2);
 
+		retval = aor_transaction (rig, mdbuf2, mdbuf2_len, NULL, NULL);
+
+		strncpy(mdbuf2, mdbuf + 4, 3); /* Extract first 'BW' part */
+		mdbuf2_len = strlen(mdbuf2);
+
+		retval = aor_transaction (rig, mdbuf2, mdbuf2_len, NULL, NULL);
+		break;
+
+	    default:
+		retval = aor_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
+	}
+	
 	return retval;
 }
 
@@ -384,7 +403,8 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return -RIG_EPROTO;
 	}
 
-	if (rig->caps->rig_model == RIG_MODEL_AR5000) {
+	if (rig->caps->rig_model == RIG_MODEL_AR5000 ||
+	    rig->caps->rig_model == RIG_MODEL_AR5000A) {
 		retval = aor_transaction (rig, "BW" EOM, 3, ackbuf2, &ack2_len);
 		if (retval != RIG_OK)
 			return retval;
@@ -449,7 +469,7 @@ int aor_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		lvl_len = sprintf(lvlbuf, "AT%u" EOM, att);
 		break;
 		}
-	case RIG_LEVEL_AGC:	/* AR5000 */
+	case RIG_LEVEL_AGC:	/* AR5000 & AR5000A */
 		switch(val.i) {
 		case RIG_AGC_FAST: agc = '0'; break;
 		case RIG_AGC_MEDIUM: agc = '1'; break;
@@ -487,7 +507,7 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_ATT:
 		lvl_len = sprintf(lvlbuf, "AT" EOM);
 		break;
-	case RIG_LEVEL_AGC:	/* AR5000 */
+	case RIG_LEVEL_AGC:	/* AR5000 & AR5000A */
 		lvl_len = sprintf(lvlbuf, "AC" EOM);
 		break;
 	default:
@@ -528,13 +548,32 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_AGC:
 		if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'C')
 			return -RIG_EPROTO;
-		switch(ackbuf[3]) {
-		case '0': val->i = RIG_AGC_FAST; break;
-		case '1': val->i = RIG_AGC_MEDIUM; break;
-		case '2': val->i = RIG_AGC_SLOW; break;
-		case 'F':
-		default: val->i = RIG_AGC_OFF;
+
+		if (rig->caps->rig_model == RIG_MODEL_AR5000 ||
+		    rig->caps->rig_model == RIG_MODEL_AR5000A) {
+                    /* AR5000A requires switching to be made on
+		       3rd returned character. SM6PPS */
+
+		    switch(ackbuf[2]) {
+			case '0': val->i = RIG_AGC_FAST; break;
+			case '1': val->i = RIG_AGC_MEDIUM; break;
+			case '2': val->i = RIG_AGC_SLOW; break;
+			case 'F':
+			default: val->i = RIG_AGC_OFF;
+		    }
+		} else {
+                    /* Left the switching on 4th position in case
+		       models other than AR5000(A) use this. SM6PPS */
+
+		    switch(ackbuf[3]) {
+			case '0': val->i = RIG_AGC_FAST; break;
+			case '1': val->i = RIG_AGC_MEDIUM; break;
+			case '2': val->i = RIG_AGC_SLOW; break;
+			case 'F':
+			default: val->i = RIG_AGC_OFF;
+		    }
 		}
+
 		break;
 
 	default:
@@ -1049,6 +1088,7 @@ DECLARE_INITRIG_BACKEND(aor)
 	rig_register(&ar3000a_caps);
 	rig_register(&ar7030_caps);
 	rig_register(&ar3030_caps);
+	rig_register(&ar5000a_caps);
 
 	return RIG_OK;
 }

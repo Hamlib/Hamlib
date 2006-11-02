@@ -1,0 +1,27 @@
+hamlib-1.2.5 aor.c ar5000.c
+
+2006-10-29
+
+The previous AR5000 could:
+- get and set frequency.
+- read mode if radio were not set to SAH, SAL or SAM.
+- not set mode. Radio did not accept two commands to be sent at once.
+- not return VFO-name if rig were set to VFO D or VFO E.
+- not set VFO D or VFO E.
+- vfo_op Up and Down works, but radio returns a "?", resulting in "Protocol error".
+- get_info does not work.
+- not read AGC-level.
+
+
+Now, it:
+- can get and set frequency.
+- can read and set (all) modes.
+- still does not support VFO D & E. I probably have not understood how VFO_N(3) and VFO_N(4) are ment to be used :-(
+- can read AGC-level.
+
+
+- corrected channel description size from 12 to 8.
+- filter-list mode/bw rearranged.
+- list of tuning steps corrected.
+
+Göran Sandin, SM6PPS

@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.118 2006-10-28 03:49:05 aa6e Exp $
+ *	$Id: rig.h,v 1.119 2006-11-02 15:19:58 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -720,7 +720,10 @@ typedef enum {
 	RIG_MODE_PKTFM =        (1<<12),/*!< Packet/Digital FM mode (dedicated port) */
 	RIG_MODE_ECSSUSB =      (1<<13),/*!< Exalted Carrier Single Sideband USB */
 	RIG_MODE_ECSSLSB =      (1<<14),/*!< Exalted Carrier Single Sideband LSB */
-	RIG_MODE_FAX =          (1<<15) /*!< Facsimile Mode */
+	RIG_MODE_FAX =          (1<<15),/*!< Facsimile Mode */
+	RIG_MODE_SAM =          (1<<16),/*!< Synchronous AM double sideband */
+	RIG_MODE_SAL =          (1<<17),/*!< Synchronous AM lower sideband */
+	RIG_MODE_SAH =          (1<<18) /*!< Synchronous AM upper (higher) sideband */
 
 } rmode_t;
 
