@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.29 2006-11-06 13:43:38 y32kn Exp $
+ *	$Id: ts570.c,v 1.30 2006-11-06 19:35:15 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -273,11 +273,18 @@ int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		int fct_len;
 		size_t ack_len;
 
-		/* filter unimplemented RIG_FUNC_TUNER  
-		 * and send all other requests to kenwood_set_func()
+		/* Filter unimplemented RIG_FUNC_TUNER and allow settings 0..2 for 
+		 * RIG_FUNC_NR.
+		 * Send all other requests to kenwood_set_func()
 		 */
 		ack_len = 0;
 		switch (func) {
+
+		case RIG_FUNC_NR:
+			if ((status < 0) || (status >2))
+				return -RIG_EINVAL;
+			fct_len = sprintf(fctbuf,"NR%01d;", status);
+			return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 		case RIG_FUNC_TUNER:
 			fct_len = sprintf(fctbuf,"AC %c0;", (0==status)?'0':'1');
  			return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
@@ -305,6 +312,20 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		 * and send all other requests to kenwood_get_func()
 		 */
 		switch (func) {
+		case RIG_FUNC_NR:
+			retval = kenwood_transaction (rig, "NR;", 3, fctbuf, &fct_len);
+			if (retval != RIG_OK)
+				return retval;
+
+			if (fct_len != 4) {
+				rig_debug(RIG_DEBUG_ERR,"kenwood_get_func: " 
+					"wrong answer len=%d\n", fct_len);
+				return -RIG_ERJCTED;
+			}
+			
+			*status = atoi(&fctbuf[2]);
+			break;
+
 		case RIG_FUNC_TUNER:
 			retval = kenwood_transaction (rig, "AC;", 3, fctbuf, &fct_len);
 			if (retval != RIG_OK)
@@ -783,7 +804,7 @@ const struct rig_caps ts570d_caps = {
 .mfg_name =  "Kenwood",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
