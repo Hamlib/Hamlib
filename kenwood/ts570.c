@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.28 2006-08-20 13:39:47 y32kn Exp $
+ *	$Id: ts570.c,v 1.29 2006-11-06 13:43:38 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,7 +39,7 @@
 
 #define TS570_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_TSQL|RIG_FUNC_TONE|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_NR|RIG_FUNC_LOCK|RIG_FUNC_BC|RIG_FUNC_TUNER)
 
-#define TS570_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
+#define TS570_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN)
 
 #define TS570_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS570_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
@@ -339,11 +339,28 @@ ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
   int level_len;
   size_t ack_len;
   int kenwood_val;
+  int i;
 
   ack_len = 0;			/* no answer for set functions */
 
   switch (level)
     {
+    case RIG_LEVEL_PREAMP:
+        kenwood_val = val.i;
+	/* set the preamplifier if a correct value is entered */
+	if (kenwood_val == 0)
+		level_len = sprintf(levelbuf, "PA0;");
+	else
+	for (i=0; i<MAXDBLSTSIZ; i++)
+	    if (kenwood_val == rig->state.preamp[i])
+	    {
+		level_len = sprintf(levelbuf, "PA%01d;", i+1);
+		break;  /* found - stop searching */
+	    }
+	    else
+	    	return -RIG_EINVAL;
+        return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+
     case RIG_LEVEL_RFPOWER:
       /* level for TS570D is from 0.. 100W in SSB and CW */
       kenwood_val = val.f * 100;	
@@ -375,6 +392,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
   size_t ack_len = 50;
   int levelint;
   int retval;
+  int i;
 
   switch (level)
     {
@@ -402,6 +420,33 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       val->f = (float) levelint / 100.;
       return RIG_OK;
 
+    case RIG_LEVEL_PREAMP:
+	retval = kenwood_transaction (rig, "PA;", 3, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+	    return retval;
+
+	if (4  != ack_len) {
+	    rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
+			__FUNCTION__, ack_len);
+	    return -RIG_ERJCTED;
+	}
+
+	sscanf(ackbuf+2, "%d", &levelint);
+	if (levelint == 0) {
+	    val->i = 0;
+	} else {
+	    for (i=0; i<levelint && i<MAXDBLSTSIZ; i++)
+		if (rig->state.preamp[i] == 0) {
+		    rig_debug(RIG_DEBUG_ERR,"%s: "
+			    "unexpected att level %d\n",
+			    __FUNCTION__, levelint);
+		    return -RIG_EPROTO;
+		}
+		if (i != levelint)
+		    return -RIG_EINTERNAL;
+		val->i = rig->state.preamp[i-1];
+	}
+	break;
     default:
  	return kenwood_get_level (rig, vfo, level, val);
     }
@@ -764,7 +809,7 @@ const struct rig_caps ts570d_caps = {
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
+.preamp =   { 12, RIG_DBLST_END, },
 .attenuator =   { 18, RIG_DBLST_END, },
 .max_rit =  Hz(9990),
 .max_xit =  Hz(9990),
@@ -782,54 +827,54 @@ const struct rig_caps ts570d_caps = {
 		  	RIG_CHAN_END,
 		   },
 .rx_range_list1 =  { 
-	{kHz(500),MHz(30),TS570_ALL_MODES,-1,-1,TS570_VFO},
+	{kHz(500),MHz(30),TS570_ALL_MODES,-1,-1,TS570_VFO,TS570_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list1 =  {
-    {kHz(1810),kHz(1850)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},	/* 100W class */
-    {kHz(1800),MHz(2)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO},		/* 25W class */
-    {kHz(3500),kHz(3800)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(3500),kHz(3800)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(7),kHz(7100),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(7),kHz(7100),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {kHz(10100),kHz(10150),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(10100),kHz(10150),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(14),kHz(14350),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(14),kHz(14350),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {kHz(18068),kHz(18168),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(18068),kHz(18168),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(21),kHz(21450),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(21),kHz(21450),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {kHz(24890),kHz(24990),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(24890),kHz(24990),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(28),kHz(29700),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(28),kHz(29700),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
+    {kHz(1810),kHz(1850)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},	/* 100W class */
+    {kHz(1800),MHz(2)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},		/* 25W class */
+    {kHz(3500),kHz(3800)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(3500),kHz(3800)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(7),kHz(7100),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(7),kHz(7100),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {kHz(10100),kHz(10150),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(10100),kHz(10150),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(14),kHz(14350),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(14),kHz(14350),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {kHz(18068),kHz(18168),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(18068),kHz(18168),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(21),kHz(21450),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(21),kHz(21450),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {kHz(24890),kHz(24990),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(24890),kHz(24990),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(28),kHz(29700),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(28),kHz(29700),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
 	RIG_FRNG_END,
   }, /* tx range */
 
 .rx_range_list2 =  {
-	{kHz(500),MHz(30),TS570_ALL_MODES,-1,-1,TS570_VFO},
+	{kHz(500),MHz(30),TS570_ALL_MODES,-1,-1,TS570_VFO,TS570_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list2 =  {
-    {kHz(1800),MHz(2)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},	/* 100W class */
-    {kHz(1800),MHz(2)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO},		/* 25W class */
-    {kHz(3500),MHz(4)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(3500),MHz(4)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(7),kHz(7300),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(7),kHz(7300),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {kHz(10100),kHz(10150),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(10100),kHz(10150),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(14),kHz(14350),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(14),kHz(14350),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {kHz(18068),kHz(18168),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(18068),kHz(18168),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(21),kHz(21450),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(21),kHz(21450),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {kHz(24890),kHz(24990),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {kHz(24890),kHz(24990),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
-    {MHz(28),kHz(29700),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO},
-    {MHz(28),kHz(29700),TS570_AM_TX_MODES,5000,25000,TS570_VFO},
+    {kHz(1800),MHz(2)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},	/* 100W class */
+    {kHz(1800),MHz(2)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},		/* 25W class */
+    {kHz(3500),MHz(4)-1,TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(3500),MHz(4)-1,TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(7),kHz(7300),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(7),kHz(7300),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {kHz(10100),kHz(10150),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(10100),kHz(10150),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(14),kHz(14350),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(14),kHz(14350),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {kHz(18068),kHz(18168),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(18068),kHz(18168),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(21),kHz(21450),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(21),kHz(21450),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {kHz(24890),kHz(24990),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {kHz(24890),kHz(24990),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
+    {MHz(28),kHz(29700),TS570_OTHER_TX_MODES,5000,100000,TS570_VFO,TS570_ANTS},
+    {MHz(28),kHz(29700),TS570_AM_TX_MODES,5000,25000,TS570_VFO,TS570_ANTS},
 	RIG_FRNG_END,
   }, /* tx range */
 .tuning_steps =  {
