@@ -19,11 +19,12 @@ hamlibperl_wrap.c: hamlib.swg $(SWIGDEP)
 Hamlib-pl.mk: $(srcdir)/Makefile.PL
 	test -f Makefile.PL || $(LN_S) $(srcdir)/Makefile.PL Makefile.PL
 	perl `test -f Makefile.PL || echo '$(srcdir)/'`Makefile.PL \
-			MAKEFILE=Hamlib-pl.mk \
+			MAKEFILE="Hamlib-pl.mk" \
 			PREFIX="$(prefix)" \
 			INC="$(INCLUDES)"  \
 			CC="$(CC)"  \
-			OBJECT="hamlibperl_wrap.o" VERSION="$(PACKAGE_VERSION)" \
+			OBJECT="hamlibperl_wrap.o" \
+			VERSION="$(PACKAGE_VERSION)" \
 			LIBS="-lhamlib"
 
 all-perl: Hamlib-pl.mk hamlibperl_wrap.c
@@ -35,8 +36,8 @@ check-perl: all-perl
 clean-perl: Hamlib-pl.mk
 	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk clean
 
-distclean-perl: Hamlib-pl.mk
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distclean
+distclean-perl: ## Hamlib-pl.mk
+##	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distclean
 
 distcheck-perl: Hamlib-pl.mk
 	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distcheck
@@ -137,7 +138,8 @@ EXTRA_DIST = hamlib.swg ignore.swg rig.swg rotator.swg \
 
 BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c hamlibpy_wrap.c Hamlib.py
 
-DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
+## DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
+DISTCLEANFILES = Hamlib-pl.mk.old
 
 MOSTLYCLEANFILES = hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
 		hamlibtcl_wrap.c pkgIndex.tcl \
