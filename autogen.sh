@@ -1,8 +1,8 @@
 #!/bin/sh
-# Run this to generate all the initial makefiles, etc.
+# Run this to generate or regenerate all the initial makefiles, etc.
 # Taken from glib CVS
 
-# changes the following to match the versions installed on your system
+# Change the following to match the versions installed on your system
 AUTOCONF=autoconf
 AUTOHEADER=autoheader
 AUTOMAKE=automake
@@ -54,6 +54,7 @@ if test -z "$*"; then
         echo "to pass any to it, please specify them on the $0 command line."
 fi
 
+# Are we looking for the compiler on a foreign system?
 case $CC in
 *xlc | *xlc\ * | *lcc | *lcc\ *) am_opt=--include-deps;;
 esac

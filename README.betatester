@@ -15,24 +15,25 @@ Feedback and improvement requests are also valuable.
 * Okay, you volunteer as beta-tester, how to proceed?
 
 First of all, you can start testing official releases. They are easier to
-test because they come in precompiled and packaged (.rpm, .deb).
-Reports from these versions are still very appreciated, on
-hamlib-developer@lists.sourceforge.net mailing list.
+test because they come in precompiled and packaged (.rpm, .deb) but they
+have the drawback of being older than the CVS repository. Reports from these
+versions are still very appreciated, on hamlib-developer@lists.sourceforge.net
+mailing list.
 
-However, the development of Hamlib is still very active, 
-so it's better to test from latest cvs version of the code.
-And depending on feedback you made, developers can commit a fix
-of a patch, so you can try out the change right after, without
-waiting for the next official version.
+However, the development of Hamlib is still very active, so it's better to
+test from the latest CVS version of the code.  And, depending on feedback you
+make, developers can commit a fix, so you can try out the change soon after,
+without waiting for the next official version.
 
-So to proceed, you will have first to obtain either a snapshot or 
-a check out of the latest sources from cvs, then rebuild the Hamlib 
-package and finally test it with your rig. Don't worry, it's much simpler 
-than what it looks, despite the size of the package.
+So to proceed, you will have first to obtain either a snapshot or a check out
+of the latest sources from cvs, then rebuild the Hamlib package and finally
+test it with your rig. Don't worry, it's much simpler than how it looks,
+despite the size of the package.
 
 Pre-requisite:
  - some kind of internet access
- - POSIXish compiler toolchain
+ - POSIXish compiler toolchain (gcc, GNU Autotools, Perl, etc., 
+				see README.developer)
 
  
 So here we go:
@@ -40,17 +41,17 @@ So here we go:
 * snapshots:
 
 Download the latest snapshot from http://www.hamlib.org/bleeding-edge/
-You'll find tar balls with names like hamlib-1.1.4-cvs-021021.tar.gz,
-i.e. a check out made 21-10-02, ready for building.
+You'll find tar balls with names like hamlib-1.2.6cvs-20061107.tar.gz,
+i.e. a check out made 07 Nov 2006, ready for building.
 
 If you cannot afford the cvs checkout, and want a more recent snapshot,
 just ask for it on the hamlib-developer mailing list.
 
 * cvs checkout:
 
-Please read the begining of README.developer file, especially how
-to obtain a cvs checkout, what are the required tools versions
-(very important or make won't even work!), and how to deal with autogen.sh.
+Please read the begining of README.developer file, especially about how to
+obtain a cvs checkout, what are the required tools versions (very important
+or make won't even work!), and how to use autogen.sh.
 
 * build
 
@@ -61,14 +62,16 @@ to do the following commands.
 	make
 	make install
 
-The prefix argument is optionnal. The --disable-static speeds up
-compilation if you don't plan to use static libraries.
+The prefix argument is optional.  Convention is that local packages be placed
+in /usr/local away from distribution installed packages and this is the default
+location for the snapshots.  The --disable-static option speeds up compilation
+if you don't plan to use static libraries.
 
 
 * Structure
 
 For the brave who want to peruse the contents, here are what all the
-subdirectories are for (these are just a sample):
+subdirectories are for (these are just a sample as more are added):
 
 alinco,aor,icom,
 jrc,kachina,kenwood,
@@ -91,31 +94,33 @@ tests:			rigctl/rotctl and various C programs for testing
 
 * testing Hamlib
 
-Don't attempt to test Hamlib from source directory unless you're a
-developper and you understand what are the side effect of *not* installing
-freshly generated objects (basically having to mess with LD_LIBRARY_PATH
-and .libs).
+Don't attempt to test Hamlib from source directory unless you're a developer
+and you understand what are the side effects of *not* installing freshly
+generated objects (basically having to mess with LD_LIBRARY_PATH and .libs).
 
-So here we go. First of all, identify your rig model id.
-Make sure /some/where/bin is in your PATH, rigctl has to be reachable.
-Run "rigctl -l"  to get a list of rigs supported by Hamlib.
+So here we go. First of all, identify your rig model id.  Make sure 
+/some/where/bin is in your PATH, rigctl has to be reachable. Run "rigctl -l"
+to get a list of rigs supported by Hamlib.
 
-If you cannot find yours in the list, please report to the 
-hamlib-developer mailing list. Protocol manual and rig specification may
-help a lot.
+If you cannot find yours in the list, please report to the hamlib-developer
+mailing list. The protocol manual and rig specifications may help a lot.
 
-You found your id? good! You're almost ready to use rigctl.
+You found your rig's ID?  Good!  You're almost ready to use rigctl.
 Have a quick look at its manual page:
+
+	man rigctl
+or:
 	man -M /some/where/man rigctl
-Or simply:
+or simply:
 	rigctl --help
 
 Let's say you own an Icom IC-756:
+
 	rigctl -vvvvv -r /dev/ttyS0 -m 326
 
 The -vvvvv is very important since this will increase verbosity, and give
 precious traces to developpers if something goes wrong. At this level, 
-the protocol data exchanged will also be dumped.
+the protocol data exchanged will also be dumped to the screen.
 
 Unless some problem shows up, you should be presented with a menu
 like "Rig command: ". Enter "?" followed by return to have the list 
@@ -137,12 +142,11 @@ m,M     get_mode/set_mode       FM, USB, LSB, CW, WFM, etc.
 G       vfo_op                  UP, DOWN
 _       get_info                should give remote Id and firmware vers
 
-NB: some functions may not be implemented in the backend or
-simply not available on this rig.
+NB: some functions may not be implemented in the backend or simply not
+available on this rig.
 
 When reporting to hamlib-developer mailing list, please include traces and
-also comments to tell developers if the action performed correctly on the
-rig.
+also comments to tell developers if the action performed correctly on the rig.
 
 Tip: traces can be hard to cut and paste sometimes. In that case,
 	there's a handy tool for you:  script(1). It will make
@@ -167,7 +171,7 @@ Tip: traces can be hard to cut and paste sometimes. In that case,
 	Script done, file is my_rig_traces.txt
 	$
 
-And then send my_rig_traces.txt to hamlib-developer mailing list.
+And then send my_rig_traces.txt to the hamlib-developer mailing list.
 
 
 Okay fellows, test as much as you can, in the weirdest situations if
@@ -177,6 +181,5 @@ and other nasty bugs.
 Needless to say, patches are also very welcome :-)
 
 
-Oct 29, 2002
-Stephane - F8CFE
+Stephane - F8CFE and The Hamlib Group
 
