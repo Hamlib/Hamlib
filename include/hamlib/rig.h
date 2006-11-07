@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.119 2006-11-02 15:19:58 aa6e Exp $
+ *	$Id: rig.h,v 1.120 2006-11-07 12:21:39 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1094,7 +1094,7 @@ struct rig_caps {
   int transceive;	/*!< Supported transceive mode */
 
   int bank_qty;		/*!< Number of banks */
-  int chan_desc_sz;	/*!< Max lenght of memory channel name */
+  int chan_desc_sz;	/*!< Max length of memory channel name */
 
   chan_t chan_list[CHANLSTSIZ];	/*!< Channel list, zero ended */
 

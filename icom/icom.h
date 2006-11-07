@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.73 2006-10-07 20:45:40 csete Exp $
+ *	$Id: icom.h,v 1.74 2006-11-07 12:21:39 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 
 /*
  * defines used by comp_cal_str in rig.c
- * STR_CAL_LENGTH is the lenght of the S Meter calibration table
+ * STR_CAL_LENGTH is the length of the S Meter calibration table
  * STR_CAL_S0 is the value in dB of the lowest value (not even in table)
  * MULTIB_SUBCMD allows the dsp rigs ie pro models to use multibyte subcommands for all the extra
  * parameters and levels.
@@ -118,6 +118,7 @@ extern const struct ts_sc_list r9000_ts_sc_list[];
 extern const struct ts_sc_list ic756_ts_sc_list[];
 extern const struct ts_sc_list ic756pro_ts_sc_list[];
 extern const struct ts_sc_list ic706_ts_sc_list[];
+extern const struct ts_sc_list ic7000_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
 
@@ -197,6 +198,7 @@ extern const struct rig_caps ic765_caps;
 extern const struct rig_caps ic775_caps;
 extern const struct rig_caps ic78_caps;
 extern const struct rig_caps ic7800_caps;
+extern const struct rig_caps ic7000_caps;
 extern const struct rig_caps ic781_caps;
 extern const struct rig_caps ic821h_caps;
 extern const struct rig_caps ic910_caps;
