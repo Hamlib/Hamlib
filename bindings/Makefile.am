@@ -43,10 +43,12 @@ distcheck-perl: Hamlib-pl.mk
 	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk distcheck
 
 install-perl: Hamlib-pl.mk
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk install
+	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk install_site
 
-uninstall-perl: Hamlib-pl.mk
-	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk uninstall
+## ExtUtils::MakeMaker says uninstall is deprecated and won't remove the files
+## anyway, so we'll have to figure out another way to remove the installed files.
+uninstall-perl: ## Hamlib-pl.mk
+##	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk uninstall
 
 
 ##########################################
