@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.59 2006-11-02 15:19:58 aa6e Exp $
+ *	$Id: riglist.h,v 1.60 2006-11-27 00:23:09 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -332,6 +332,7 @@
 #define RIG_MODEL_WR3500 RIG_MAKE_MODEL(RIG_WINRADIO, 6)
 #define RIG_MODEL_WR3700 RIG_MAKE_MODEL(RIG_WINRADIO, 7)
 #define RIG_MODEL_G303 RIG_MAKE_MODEL(RIG_WINRADIO, 8)
+#define RIG_MODEL_G313 RIG_MAKE_MODEL(RIG_WINRADIO, 9)
 
 	/*
 	 * Ten Tec
