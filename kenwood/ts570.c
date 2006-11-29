@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.30 2006-11-06 19:35:15 y32kn Exp $
+ *	$Id: ts570.c,v 1.31 2006-11-29 19:38:00 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -643,8 +643,8 @@ const struct rig_caps ts570s_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
-.post_write_delay =  0,
-.timeout =  200,
+.post_write_delay =  50,
+.timeout = 1000,
 .retry =  3,
 
 .has_get_func =  TS570_FUNC_ALL,
@@ -657,7 +657,7 @@ const struct rig_caps ts570s_caps = {
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END, },	/* FIXME: preamp list */
+.preamp =   { 12, RIG_DBLST_END, },
 .attenuator =   { 18, RIG_DBLST_END, },
 .max_rit =  Hz(9990),
 .max_xit =  Hz(9990),
@@ -671,8 +671,8 @@ const struct rig_caps ts570s_caps = {
 
 
 .chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM  },
-			{ 90, 99, RIG_MTYPE_EDGE },
+			{  0, 89, RIG_MTYPE_MEM,  TS570_MEM_CAP },
+			{ 90, 99, RIG_MTYPE_EDGE, TS570_MEM_CAP },
 		  	RIG_CHAN_END,
 		   },
 .rx_range_list1 =  { 
@@ -757,7 +757,7 @@ const struct rig_caps ts570s_caps = {
 .priv =  (void *)&ts570_priv_caps,
 
 .set_freq =  kenwood_set_freq,
-.get_freq =  kenwood_get_freq,
+.get_freq =  ic10_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
@@ -775,17 +775,19 @@ const struct rig_caps ts570s_caps = {
 .get_func =  ts570_get_func,
 .set_ant =  ts570_set_ant,
 .get_ant =  ts570_get_ant,
-.set_level =  kenwood_set_level,
-.get_level =  kenwood_get_level,
+.set_level =  ts570_set_level,
+.get_level =  ts570_get_level,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
+.get_channel = ts570_get_channel,
+.set_channel = ts570_set_channel,
 .set_trn =  kenwood_set_trn,
-.scan =  kenwood_scan,
 .get_trn =  kenwood_get_trn,
 .set_powerstat =  kenwood_set_powerstat,
 .get_powerstat =  kenwood_get_powerstat,
+.scan =  kenwood_scan,
 .reset =  kenwood_reset,
 
 };
