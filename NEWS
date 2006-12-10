@@ -4,6 +4,15 @@ Copyright (C) 2000-2006  Stephane Fillod, Frank Singleton and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.2.6rc1
+	2006-12-10
+	* Python 2.4 compatibility
+	* Improved TS570 functionality
+	* Improved Argonaut V functionality
+	* New models: IC7000, G313i/G313e
+	* Many Icom, Kenwood, and Tentec fixes.
+	* Build system fixes
+	
 Version 1.2.5
 	2006-02-26
 	* frontend API: support for clonable rigs
