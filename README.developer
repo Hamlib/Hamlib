@@ -121,6 +121,8 @@ checkout.
 Check out the sourceforge page at https://sourceforge.net/cvs/?group_id=8305
 for more information about how to use the CVS repository of Hamlib.
 
+A CVS manual is online at http://ximbiot.com/cvs/manual/
+
 1.2. Requirements
 
 Hamlib is entirely developed using GNU tools, under various Linux systems.
@@ -343,9 +345,9 @@ this. The error checking is removed for simplicity.
    * Windows: MinGW/Cygwin, and VisualC++ support for rig.h
 
    Hamlib should also compile with the following common compilers:
-   * gcc-2.9x
+   * gcc-2.9x  (deprecated?)
    * gcc-3.0 and gcc-3.2+
-   * gcc-4.x
+   * gcc-4.x and newer
    * in shared and static
    * C++ compiler against rig.h, riglist.h, rotator.h
 
@@ -362,6 +364,14 @@ this. The error checking is removed for simplicity.
    The patches are to be sent to the hamlib-developer
    mailing list. If the file is too big, you can send it as a compressed
    attachement.
+   
+   8.3.1 Changelog
+   
+   Caveat: The cvs2cl.pl script is used before each release to generate
+   the Changelog file so any changes made directly to it WILL BE LOST!
+   Simply summarize your changes when the files are committed to CVS or,
+   if providing patches to the mailing list, provide a summary so the
+   uploader can include it in the commit message.
 
    8.4 CVS commit access
 
