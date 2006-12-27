@@ -1,21 +1,21 @@
 ## Process this file with autoconf to create configure. -*- autoconf -*-
 
 ## FIXME: Is this really new enough? ##
-AC_PREREQ(2.50)
+AC_PREREQ(2.59)
 
 
 ## ------------------------ ##
 ## Autoconf initialisation. ##
 ## ------------------------ ##
 dnl Please do not use '-' in the version number, 'make rpm' will fail
-AC_INIT([hamlib], [1.2.7cvs], [hamlib-developer@lists.sourceforge.net])
+AC_INIT([hamlib],[1.2.7cvs],[hamlib-developer@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 
 ## ------------------------ ##
 ## Automake Initialisation. ##
 ## ------------------------ ##
 AM_INIT_AUTOMAKE(AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION, -)
-AM_CONFIG_HEADER([include/config.h])
+AC_CONFIG_HEADERS([include/config.h])
 AM_MAINTAINER_MODE
 
 ## ------------------------------- ##
@@ -46,7 +46,14 @@ AC_CHECK_PROGS(RPMBUILD, rpmbuild, rpm)
 AC_AIX
 AC_ISC_POSIX
 AC_MINIX
-AM_PROG_CC_STDC
+AC_PROG_CC()
+AC_DIAGNOSE([obsolete],[AM_PROG_CC_STDC:
+	your code should no longer depend upon `am_cv_prog_cc_stdc', but upon
+	`ac_cv_prog_cc_stdc'.  Remove this warning and the assignment when
+	you adjust the code.  You can also remove the above call to
+	AC_PROG_CC if you already called it elsewhere.])
+am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
+
 AC_PROG_GCC_TRADITIONAL
 AC_C_CONST
 AC_C_INLINE
@@ -67,7 +74,7 @@ gt_HEADER_INTTYPES_H
 dnl Check for Mingw support
 GR_PWIN32
 
-AM_SYS_POSIX_TERMIOS
+AC_SYS_POSIX_TERMIOS()
 
 INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
 
@@ -174,8 +181,7 @@ esac
 
 dnl Check if C99 struct initializers are supported
 AC_MSG_CHECKING(whether C99 struct/array initializers are supported)
-AC_TRY_COMPILE(,[struct{char a;int b;}s[8]={[3]={.b=5}};], [AC_MSG_RESULT(yes)],
-		[AC_MSG_ERROR( ""
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[struct{char a;int b;}s[8]={[3]={.b=5}};]])],[AC_MSG_RESULT(yes)],[AC_MSG_ERROR( ""
 		"You need a C99 compliant C compiler that supports struct/array intializers."
 		"Have you considered GCC lately?.")]);
 
@@ -215,6 +221,7 @@ BINDING_DISTCHECK=""
 BINDING_INSTALL_EXEC=""
 BINDING_UNINSTALL=""
 BINDING_LIST=""
+BINDING_LIB_TARGETS=""
 
 dnl Check if cxx-binding not wanted, default is to build it
 
@@ -292,6 +299,7 @@ if test "${cf_with_tcl_binding}" = "yes" ; then
   BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-tcl"
   BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-tcl"
   BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-tcl"
+  BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(tcl_ltlib)"
 fi
 AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(TCL_INCLUDE_SPEC)
@@ -317,6 +325,7 @@ if test "${cf_with_python_binding}" = "yes" ; then
   BINDING_DISTCLEAN="${BINDING_DISTCLEAN} distclean-py"
   BINDING_INSTALL_EXEC="${BINDING_INSTALL_EXEC} install-py"
   BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-py"
+  BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(python_ltlib)"
 fi
 
 
@@ -446,7 +455,7 @@ AC_SUBST(BINDING_DISTCHECK)
 AC_SUBST(BINDING_INSTALL_EXEC)
 AC_SUBST(BINDING_UNINSTALL)
 AC_SUBST(BINDING_LIST)
-
+AC_SUBST(BINDING_LIB_TARGETS)
 
 AC_SUBST(INCLUDES)
 
