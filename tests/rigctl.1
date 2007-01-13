@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "February 26, 2006" "Hamlib"
+.TH RIGCTL "1" "January 13, 2007" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -28,7 +28,7 @@ interactive mode if none provided in command line.
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
 .\" respectively.
-Keep in mind that \fBHamlib\fP is still ALPHA level software. 
+Keep in mind that \fBHamlib\fP is still BETA level software. 
 A lof of stuff hasn't been tested thoroughly, and the API may change
 without publicised notice. Please report bugs and feedback at
 the e-mail address given in the REPORTING BUGS section.
@@ -278,6 +278,9 @@ Get misc information about the rig.
 .B dump_caps
 Not a real rig remote command, it just dumps capabilities, 
 i.e. what the backend knows about this model, and what it can do.
+.TP
+.B w, send_cmd
+Send raw command string to rig. Binary protocols enter values as \0xAA\0xBB
 
 .SH RETURN VALUE
 rigctl exits with:
