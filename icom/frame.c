@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.31 2006-10-07 20:45:40 csete Exp $
+ *	$Id: frame.c,v 1.32 2007-01-27 23:50:12 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -270,12 +270,31 @@ static const char icom_block_end[2] = {FI, COL};
  */
 int read_icom_frame(hamlib_port_t *p, unsigned char rxbuffer[])
 {
-	int i;
+	int read = 0;
+	int retries = 10;
+	char *rx_ptr = (char *)rxbuffer;
 
-	i = read_string(p, (char *) rxbuffer, MAXFRAMELEN, 
-			icom_block_end, icom_block_end_length);
-
-	return i;
+	/*
+	 * OK, now sometimes we may time out, e.g. the IC7000 can time out
+	 * during a PTT operation. So, we will insure that the last thing we
+	 * read was a proper end marker - if not, we will try again.
+	 */
+	do
+	{
+	   int i = read_string(p, rx_ptr, MAXFRAMELEN-read, 
+			  icom_block_end, icom_block_end_length);
+	   if (i < 0) /* die on errors */
+	      return i;
+	   if (i == 0) /* nothing read?*/
+	   {
+	      if (--retries <= 0) /* Tried enough times? */
+	        return read;
+	   }
+	   /* OK, we got something. add it in and continue */
+	   read   += i;
+	   rx_ptr += i;
+	} while ((rxbuffer[read-1] != FI) && (rxbuffer[read-1] != COL));   
+	return read;
 }
 
 
