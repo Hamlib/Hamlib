@@ -1,3 +1,36 @@
+2007-01-27 17:50  n0nb
+
+	* icom/: frame.c, icom.c: icom/frame.c - Look for frame
+	terminators, and retry if we don't get them.
+	
+	icom/icom.c - Initialize ack_len to the size of the response buffer
+	since it is an input to icom_transaction as well as an output.
+	
+	Thanks to David Hagood, N0YKG
+
+2007-01-26 20:14  n0nb
+
+	* bindings/Makefile.am: Revert change in bindings/Makefile.am that
+	broke autogen.sh
+
+2007-01-13 10:19  csete
+
+	* tests/rigctl.1: Added infor about w (send_cmd).
+
+2006-12-26 22:41  dianora
+
+	* configure.ac, bindings/Makefile.am: - first cut at fixing
+	configure to recognise --without-tcl-binding   and
+	--without-python-binding options
+
+2006-12-22 08:49  n0nb
+
+	* configure.ac: Advance version to 1.2.7cvs
+
+2006-12-22 08:04  n0nb
+
+	* ChangeLog: Update to 1.2.6 release.
+
 2006-12-22 07:52  n0nb
 
 	* NEWS, configure.ac: Update NEWS and configure.ac for 1.2.6
