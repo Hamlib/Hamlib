@@ -1,3 +1,19 @@
+2007-01-31 14:36  pa4tu
+
+	* doc/Makefile.am: distribute footer.html
+
+2007-01-29 04:07  dl1nc
+
+	* autogen.sh: trying with exec bit again
+
+2007-01-29 04:03  dl1nc
+
+	* autogen.sh: [no log message]
+
+2007-01-28 06:57  n0nb
+
+	* ChangeLog: Updated Changelog
+
 2007-01-27 17:50  n0nb
 
 	* icom/: frame.c, icom.c: icom/frame.c - Look for frame
