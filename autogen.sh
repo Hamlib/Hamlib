@@ -7,6 +7,20 @@ AUTOCONF=autoconf
 AUTOHEADER=autoheader
 AUTOMAKE=automake
 ACLOCAL=aclocal
+#
+# FreeBSD 6.2 uses this
+#
+AUTOCONF=autoconf259
+AUTOHEAD=autoheader259
+AUTOMAKE=automake19
+ACLOCAL=aclocal19
+#
+# Debian etch uses this
+#
+#AUTOCONF=autoconf
+#AUTOHEADER=autoheader
+#AUTOMAKE=automake-1.9
+#ACLOCAL=aclocal-1.9
 
 # Needed on Gentoo
 export WANT_AUTOCONF_2_5	#  2.54 or higher, not 2.53a or 2.13
@@ -64,6 +78,7 @@ $ACLOCAL $ACLOCAL_FLAGS
 # optionally feature autoheader
 ($AUTOHEADER --version)  < /dev/null > /dev/null 2>&1 && $AUTOHEADER
 
+libtoolize --automake --ltdl
 $AUTOMAKE -a $am_opt
 $AUTOCONF
 cd $ORIGDIR
