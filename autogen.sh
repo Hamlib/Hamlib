@@ -10,10 +10,10 @@ ACLOCAL=aclocal
 #
 # FreeBSD 6.2 uses this
 #
-AUTOCONF=autoconf259
-AUTOHEAD=autoheader259
-AUTOMAKE=automake19
-ACLOCAL=aclocal19
+#AUTOCONF=autoconf259
+#AUTOHEAD=autoheader259
+#AUTOMAKE=automake19
+#ACLOCAL=aclocal19
 #
 # Debian etch uses this
 #
