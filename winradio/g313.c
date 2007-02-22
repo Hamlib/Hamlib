@@ -51,7 +51,7 @@ const struct confparams g313_cfg_params[] = {
 #define WRG313DLL "wrg3130api.dll"
 
 #define G313_FUNC  RIG_FUNC_NONE
-#define G313_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_RF)
+#define G313_LEVEL (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_RF | RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR)
 
 #define G313_MODES (RIG_MODE_NONE)
 
@@ -102,8 +102,9 @@ typedef BOOL (__stdcall *FNCSetAGC)(int hRadio, int rAGC);
 typedef int (__stdcall *FNCGetAGC)(int hRadio);
 typedef BOOL (__stdcall *FNCSetIFGain)(int hRadio, int rIFGain);
 typedef int (__stdcall *FNCGetIFGain)(int hRadio);
+typedef int (__stdcall *FNCGetSignalStrengthdBm)(int hRadio);
+typedef int (__stdcall *FNCGetRawSignalStrength)(int hRadio);
 typedef BOOL (__stdcall *FNCG3GetInfo)(int hRadio,RADIO_INFO *info);
-typedef BOOL (__stdcall *FNCSetAdvancedMode)(int hRadio,BOOL Enable,const char *);
 
 typedef MMRESULT (__stdcall *TwaveOutGetDevCaps)(UINT_PTR uDeviceID,LPWAVEOUTCAPS pwoc,UINT cbwoc);
 typedef UINT (__stdcall *TwaveOutGetNumDevs)(void);
@@ -128,8 +129,9 @@ struct g313_priv_data {
 	FNCGetAGC GetAGC;
 	FNCSetIFGain SetIFGain;
 	FNCGetIFGain GetIFGain;
-	FNCG3GetInfo G3GetInfo;
-	FNCSetAdvancedMode SetAdvancedMode;
+	FNCGetSignalStrengthdBm GetSignalStrengthdBm;
+	FNCGetRawSignalStrength GetRawSignalStrength;
+	FNCG3GetInfo G3GetInfo;	
 	
 		
 	HMODULE WinMM;
@@ -286,14 +288,17 @@ int g313_init(RIG *rig)
 	priv->GetAGC = (FNCGetAGC) GetProcAddress(priv->dll, "GetAGC");
 	priv->SetIFGain = (FNCSetIFGain) GetProcAddress(priv->dll, "SetIFGain");
 	priv->GetIFGain = (FNCGetIFGain) GetProcAddress(priv->dll, "GetIFGain");	
+	priv->GetSignalStrengthdBm =
+		(FNCGetSignalStrengthdBm) GetProcAddress(priv->dll, "GetSignalStrengthdBm");
+	priv->GetRawSignalStrength =
+		(FNCGetRawSignalStrength) GetProcAddress(priv->dll, "GetRawSignalStrength");	
 	priv->G3GetInfo = (FNCG3GetInfo) GetProcAddress(priv->dll, "G3GetInfo");
-
-	priv->SetAdvancedMode=(FNCSetAdvancedMode)GetProcAddress(priv->dll,"SetAdvancedMode");
+	
 	
 	if(!priv->OpenRadioDevice || !priv->CloseRadioDevice || !priv->G3SetFrequency ||
 	   !priv->G3GetFrequency || !priv->SetPower || !priv->GetPower || !priv->SetAtten ||
 	   !priv->GetAtten || !priv->SetAGC || !priv->GetAGC || !priv->SetIFGain || !priv->GetIFGain ||
-	   !priv->SetAdvancedMode)
+	   !priv->GetSignalStrengthdBm || !priv->GetRawSignalStrength)
 	{
 		rig_debug(RIG_DEBUG_ERR, "%s: Unable to load valid %s library\n",
 				__FUNCTION__, WRG313DLL);
@@ -539,6 +544,14 @@ int g313_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return -RIG_EINVAL;
 		}
 		break;
+		
+	case RIG_LEVEL_STRENGTH:
+		val->i = priv->GetSignalStrengthdBm(priv->hRadio)/10+73;
+		break;
+
+	case RIG_LEVEL_RAWSTR:
+		val->i = priv->GetRawSignalStrength(priv->hRadio);
+		break;		
 
 	default:
 		return -RIG_EINVAL;
