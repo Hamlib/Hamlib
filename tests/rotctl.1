@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "February 26, 2006" "Hamlib"
+.TH ROTCTL "1" "February 24, 2007" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -22,49 +22,59 @@ rotctl \- control antenna rotators
 [\fIOPTION\fR]... [\fICOMMAND\fR]...
 .SH DESCRIPTION
 Control antenna rotators.
-\fBrotctl\fP accepts \fBcommands\fP from command line as well as in
-interactive mode if none provided in command line.
+\fBrotctl\fP accepts \fIcommands\fP from the command line as well as in
+interactive mode if none are provided on the command line.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
 .\" respectively.
-Keep in mind that \fBHamlib\fP is still ALPHA level software. 
-A lof of stuff hasn't been tested thoroughly, and the API may change
-without publicized notice. Please report bugs and feedback at
-the e-mail address given in the REPORTING BUGS section.
+Keep in mind that \fBHamlib\fP is BETA level software. 
+While a lot of backend libraries lack complete rig support, the basic functions
+are usually well supported.  The API may change without publicized notice, 
+while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
+a change.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the 
+REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
 options starting with two dashes (`-').
-A summary of options is included below.
+
+Here is s summary of the supported options:
 .TP
-.B \-m, \-\-model=id
-Select rotator model number. See model list.
+.B \-m, --model=id
+Select rotator model number. See model list (use 'rotctl -l').
 .TP
 .B \-r, --rot-file=device
-Use \fBdevice\fP as the file name of the rotator to operate. Default is
-\fB/dev/rotator\fP (may be a symbolic link to the actual device).
+Use \fIdevice\fP as the file name of the port the rotator is connected.
+Often a serial port, but could be a USB to serial adapter.  Typically 
+/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+.br
+Default is \fB/dev/rotator\fP (may be a symbolic link to the actual device).
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fBbaud\fP rate. Uses maximum serial speed from rotator 
+Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotator 
 backend capabilites as default.
 .TP
-.B \-L, \-\-show-conf
-List all config parameters.
+.B \-L, --show-conf
+List all config parameters for the rotor defined with -m above.
 .TP
-.B \-C, \-\-set\-conf=parm=val[,parm=val]*
-Set config parameter.
+.B \-C, --set-conf=parm=val[,parm=val]*
+Set config parameter.  e.g. stop_bits=2
+.br
+Use -L option for a list.
 .TP
-.B \-l, \-\-list
-List all model numbers and exit.
+.B \-l, --list
+List all model numbers defined in \fBHamlib\fP and exit.
 .TP
-.B \-v, \-\-verbose
-Set verbose mode, cumulative (BUG, ERR, WARN, VERBOSE, TRACE).
+.B \-v, --verbose
+Set verbose mode, cumulative (see DIAGNOSTICS below).
 .TP
-.B \-h, \-\-help
-Show summary of options and exit.
+.B \-h, --help
+Show summary of these options and exit.
 .TP
 .B \-V, \-\-version
-Show version of program and exit.
+Show version of \fBrotctl\fP and exit.
 .PP
 \fBNOTE!\fP Some options may not be implemented by a given backend and will
 return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
@@ -72,15 +82,19 @@ and \fI\-\-show-conf\fP options.
 .SH COMMANDS
 Commands can be entered either as a single char, or as a long command name.
 Basically, the commands do not take a dash in front of them, as
-the options usually do. They may be typed in when in interactive mode
-or provided as argument in command line interface mode.
-Since most of the Hamlib operations have a \fIset\fP and a \fIget\fP method,
-upper case letter will be used for \fIset\fP method whereas the corresponding
-lower case letter refers to the \fIget\fP method.
+the options do. They may be typed in when in interactive mode
+or provided as argument(s) in command line interface mode.
+.PP
+Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
+an upper case letter will be used for \fIset\fP method whereas the 
+corresponding lower case letter refers to the \fIget\fP method. In
+interactive mode, prepend a backslash to enter a long command name.
+.br
+Example: Use "\\get_info" to see the rotor's info.
 .PP
 Please note that the backend for the rotator to be controlled, 
 or the rotator itself may not support some commands. In that case, 
-the operation will fail with a standard error message.
+the operation will fail with a \fBHamlib\fP error message.
 .PP
 A summary of commands is included below.
 .TP
@@ -105,30 +119,54 @@ Move the rotator in a specific direction.
 .B C, set_conf
 Set a configuration parameter.  It is safe to give "Token" a value of '0'
 (zero).  "Value" may be a string up to 20 characters.
+.br
+See -L output
 .TP
 .B _, get_info
 Get misc information on the rotator.
+.SH EXAMPLES
+Start \fBrotctl\fP for RotorEZ using COM1:
 
-.SH RETURN VALUE
-rotctl exits with:
-0 if all operations went fine; 1 if there was an invalid command line
-option or arg; or 2 if an error was returned by Hamlib.
+$ rotctl -m 401 -r /dev/ttyS0
 
-.SH AUTHOR
-Written by Stephane Fillod.
+Start \fBrotctl\fP using \fBrpc.rotd\fP:
+
+$ rotctl -m 101
+.SH DIAGNOSTICS
+The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
+to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
+-vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
+
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.SH EXIT STATUS
+\fBrotctl\fP exits with:
+.br
+0 if all operations completed normally;
+.br
+1 if there was an invalid command line option or argument;
+.br
+2 if an error was returned by \fBHamlib\fP.
 .SH BUGS
 .PP
-This suspicious empty section...
+This suspiciously empty section...
 .SH REPORTING BUGS
-Report bugs to <hamlib-developer@users.sourceforge.net>.
+Report bugs to <hamlib-developer@lists.sourceforge.net>.
 .br
-I'm already aware of the bug in the previous section :-)
+We are already aware of the bug in the previous section :-)
+.SH AUTHOR
+Written by Stephane Fillod and the Hamlib Group 
+.br
+<http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2006 Stephane Fillod.
+Copyright \(co 2000-2007 Stephane Fillod and the Hamlib Group.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
-.BR hamlib (3)
+.BR hamlib (3),
+.BR rpc.rotd (8)
 

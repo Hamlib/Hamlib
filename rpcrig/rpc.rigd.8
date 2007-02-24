@@ -21,12 +21,12 @@ rigd \- Hamlib rig service daemon
 .B rpc.rigd
 [\fIOPTION\fR]...
 .SH DESCRIPTION
-The \fBrigd\fP program is a Hamlib rig daemon that handles RPC client requests.
-This allows multiple user programs to share one radio.  At this time multiple
-radio support is not available (help needed!).
+The \fBrigd\fP program is a \fBHamlib\fP rig daemon that handles RPC client 
+requests. This allows multiple user programs to share one radio.  At this time 
+multiple radio support is not available (help needed!).
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" \fI<whatever>\fP escape sequences to invoke bold face and italics, 
 .\" respectively.
 Keep in mind that \fBHamlib\fP is BETA level software. 
 While a lot of backend libraries lack complete rig support, the basic functions
@@ -39,13 +39,13 @@ REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
 options starting with two dashes (`-').
-.PP
+
 Here is a summary of the supported options:
 .TP
 .B \-m, --model=id
 Select radio model number. See rig model list (use 'rigctl -l').
 .br
-\fINote:\fP \fBrigctl\fP (or third party software) will use rig model 1901 
+NB: \fBrigctl\fP (or third party software) will use rig model 1901 
 when using \fBrigd\fP.
 .TP
 .B \-r, --rig-file=device
@@ -70,44 +70,47 @@ Use \fItype\fP of Data Carrier Detect device.
 Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fIbaud\fP rate. Uses maximum backend defined rig speed as
-the default.
+Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rig
+backend capabilities as the default.
 .TP
 .B \-c, --civaddr=id
 Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for 
-Icom rigs.
+Icom rigs. 
+.br
+NB: the \fIid\fP is in decimal notation, unless prefixed by 
+\fI0x\fP, in which case it is hexadecimal.
 .TP
 .B \-C, --set-conf=parm=val[,parm=val]*
 Set config parameter.  e.g. stop_bits=2
+.br
+Use -L option of \fBrigctl\fP for a list.
 .TP
 .B \-t, --prog=number
 Use \fInumber\fP as the RPC program number. The default is 536871065.
 .TP
 .B \-v, --verbose
-Set verbose mode, cumulative.
+Set verbose mode, cumulative (see DIAGNOSTICS below).
 .TP
 .B \-h, --help
 Show a summary of these options and exit.
 .TP
 .B \-V, --version
 Show the version of \fBrigd\fP and exit.
-
 .PP
 Please note that the backend for the radio to be controlled, 
 or the radio itself may not support some commands. In that case, 
 the operation will fail with a \fBHamlib\fP error code.
-
 .SH EXAMPLES
-Start rigd as root for a Yaesu FT-920 using a USB to serial adapter and
+Start \fBrigd\fP as root for a Yaesu FT-920 using a USB to serial adapter and
 backgrounding:
 .PP
 # rpc.rigd -m 114 -r /dev/ttyUSB1 &
 .PP
-Start rigd as root for a Yaesu FT-920 using COM1 while generating TRACE output:
+Start \fBrigd\fP as root for a Yaesu FT-920 using COM1 while generating TRACE output:
 .PP
 # rpc.rigd -m 114 -r /dev/ttyS0 -vvvvv
 .PP
-Start rigd as root for a Yaesu FT-920 using a USB to serial adapter while
+Start \fBrigd\fP as root for a Yaesu FT-920 using a USB to serial adapter while
 setting baud rate and stop bits and backgrounding:
 .PP
 # rpc.rigd -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 &
@@ -130,11 +133,13 @@ radios on a CI-V bus).
 Does not support more than one communication device for multiple rig control.
 (e.g. for Single Operator 2 Radio)  Help needed!
 .SH REPORTING BUGS
-Report bugs to <hamlib-developer@users.sourceforge.net>.
+Report bugs to <hamlib-developer@lists.sourceforge.net>.
 .br
 We are already aware of the bugs in the previous section :-)
 .SH AUTHORS
-Written by Stephane Fillod and the Hamlib Group <http://www.hamlib.org>.
+Written by Stephane Fillod and the Hamlib Group
+.br
+<http://www.hamlib.org>.
 .SH COPYRIGHT
 Copyright \(co 2000-2007 Stephane Fillod and the Hamlib Group.
 .PP
@@ -142,5 +147,5 @@ This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
-.BR rigctl (1)
-
+.BR rigctl (1),
+.BR hamlib (3)

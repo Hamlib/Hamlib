@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl.c,v 1.9 2006-10-07 19:12:35 csete Exp $  
+ *	$Id: rotctl.c,v 1.10 2007-02-24 20:24:34 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -104,8 +104,8 @@ struct test_table test_list[] = {
 		{ 'K', "park", park, ARG_NONE, },
 		{ 'S', "stop", stop, ARG_NONE, },
 		{ 'R', "reset", reset, ARG_IN, "Reset" },
-        { 'M', "move", move, ARG_IN, "Direction", "Speed" },
-        { 'C', "set_conf", inter_set_conf, ARG_IN, "Token", "Value" },
+		{ 'M', "move", move, ARG_IN, "Direction", "Speed" },
+		{ 'C', "set_conf", inter_set_conf, ARG_IN, "Token", "Value" },
 		{ '_', "get_info", get_info, ARG_OUT, "Info" },
 		{ 0x00, "", NULL },
 
@@ -113,7 +113,7 @@ struct test_table test_list[] = {
 
 /*
  * Reminder: when adding long options, 
- * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
+ * keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
