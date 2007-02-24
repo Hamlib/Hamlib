@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGD "8" "September 22, 2002" "Hamlib"
+.TH RIGD "8" "February 23, 2007" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -31,22 +31,27 @@ A lof of stuff hasn't been tested thoroughly, and the API may change
 without publicised notice. Please report bugs and feedback at
 the e-mail address given in the REPORTING BUGS section.
 .SH OPTIONS
-This program follow the usual GNU command line syntax, with long
+This program follows the usual GNU command line syntax, with long
 options starting with two dashes (`-').
-A summary of options is included below.
+A summary of \fBrpc.rigd\fP's options is included below:
 .TP
 .B \-m, \-\-model=id
-Select radio model number. See model list.
+Select radio model number. See rig model list (use 'rigctl -l').  Note:
+\fBrigctl\fP (or third party software) will use rig model 1901 when  using
+\fBrpc.rigd\fP.
 .TP
 .B \-r, --rig-file=device
-Use \fBdevice\fP as the file name of the radio to operate on.
+Use \fBdevice\fP as the file name of the radio to operate on.  Often a serial
+device, but these days could be anything.  Typically /dev/ttyS0, /dev/ttyUSB0,
+etc.
 .TP
 .B \-p, --ptt-file=device
-Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on.
+Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on. A
+device file as -r above.
 .TP
 .B \-d, --dcd-file=device
 Use \fBdevice\fP as the file name of the Data Carrier Detect device 
-to operate on.
+to operate on. A device file as -r above.
 .TP
 .B \-p, --ptt-type=type
 Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
@@ -54,17 +59,17 @@ Supported types are RIG, DTR, RTS, PARALLEL, NONE.
 .TP
 .B \-d, --dcd-type=type
 Use \fBtype\fP device as the kind of the Data Carrier Detect device 
-to operate on.
-Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
+to operate on. Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
+Set serial speed to \fBbaud\fP rate. Uses maximum backend define rig speed as 
+default.
 .TP
 .B \-c, --civaddr=id
 Use \fBid\fP as the CI-V address to communicate with the rig. Only for Icom rigs.
 .TP
 .B \-C, \-\-set\-conf=parm=val[,parm=val]*
-Set config parameter.
+Set config parameter.  i.e. stop_bits=2
 .TP
 .B \-t, --prog=number
 Use \fBnumber\fP as the RPC program number. The default is 536871065.
@@ -83,19 +88,23 @@ Please note that the backend for the radio to be controlled,
 or the radio itself may not support some commands. In that case, 
 the operation will fail with a standard error code.
 
-.SH AUTHOR
-Written by Stephane Fillod.
+.SH EXAMPLE
+Start rigd as root for a Yaesu FT-920 using a USB to serial adapter:
+.PP
+# rpc.rigd -m 114 -r /dev/ttyUSB1 &
+.SH AUTHORS
+Written by Stephane Fillod and the Hamlib Group.
 .SH BUGS
-No authentication whatsoever. Could be done through domain restriction though.
-Please ask if stronger security needed.
+No authentication whatsoever; could be done through domain restriction, though.
+Please ask if stronger security is needed.
 .PP
 Does not support more than one rig that share the same serial port (e.g. Icom's on a CI-V bus).
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@users.sourceforge.net>.
 .br
-I'm already aware of the bug in the previous section :-)
+We are already aware of the bug in the previous section :-)
 .SH COPYRIGHT
-Copyright \(co 2000-2002 Stephane Fillod.
+Copyright \(co 2000-2007 Stephane Fillod and the Hamlib Group.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
