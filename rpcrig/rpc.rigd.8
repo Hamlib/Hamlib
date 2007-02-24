@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGD "8" "February 23, 2007" "Hamlib"
+.TH RIGD "8" "February 24, 2007" "Hamlib" "RPC Rig Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -22,90 +22,122 @@ rigd \- Hamlib rig service daemon
 [\fIOPTION\fR]...
 .SH DESCRIPTION
 The \fBrigd\fP program is a Hamlib rig daemon that handles RPC client requests.
+This allows multiple user programs to share one radio.  At this time multiple
+radio support is not available (help needed!).
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
 .\" respectively.
-Keep in mind that \fBHamlib\fP is still ALPHA level software. 
-A lof of stuff hasn't been tested thoroughly, and the API may change
-without publicised notice. Please report bugs and feedback at
-the e-mail address given in the REPORTING BUGS section.
+Keep in mind that \fBHamlib\fP is BETA level software. 
+While a lot of backend libraries lack complete rig support, the basic functions
+are usually well supported.  The API may change without publicized notice, 
+while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
+a change.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the 
+REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
 options starting with two dashes (`-').
-A summary of \fBrpc.rigd\fP's options is included below:
+.PP
+Here is a summary of the supported options:
 .TP
-.B \-m, \-\-model=id
-Select radio model number. See rig model list (use 'rigctl -l').  Note:
-\fBrigctl\fP (or third party software) will use rig model 1901 when  using
-\fBrpc.rigd\fP.
+.B \-m, --model=id
+Select radio model number. See rig model list (use 'rigctl -l').
+.br
+\fINote:\fP \fBrigctl\fP (or third party software) will use rig model 1901 
+when using \fBrigd\fP.
 .TP
 .B \-r, --rig-file=device
-Use \fBdevice\fP as the file name of the radio to operate on.  Often a serial
-device, but these days could be anything.  Typically /dev/ttyS0, /dev/ttyUSB0,
-etc.
+Use \fIdevice\fP as the file name of the port the radio is connected.
+Often a serial port, but could be a USB to serial adapter.  Typically 
+/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
 .TP
 .B \-p, --ptt-file=device
-Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on. A
-device file as -r above.
+Use \fIdevice\fP as the file name of the Push-To-Talk device using a
+device file as described above.
 .TP
 .B \-d, --dcd-file=device
-Use \fBdevice\fP as the file name of the Data Carrier Detect device 
-to operate on. A device file as -r above.
+Use \fIdevice\fP as the file name of the Data Carrier Detect device using a
+device file as described above.
 .TP
 .B \-p, --ptt-type=type
-Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
+Use \fItype\fP of Push-To-Talk device.
 Supported types are RIG, DTR, RTS, PARALLEL, NONE.
 .TP
 .B \-d, --dcd-type=type
-Use \fBtype\fP device as the kind of the Data Carrier Detect device 
-to operate on. Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
+Use \fItype\fP of Data Carrier Detect device. 
+Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fBbaud\fP rate. Uses maximum backend define rig speed as 
-default.
+Set serial speed to \fIbaud\fP rate. Uses maximum backend defined rig speed as
+the default.
 .TP
 .B \-c, --civaddr=id
-Use \fBid\fP as the CI-V address to communicate with the rig. Only for Icom rigs.
+Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for 
+Icom rigs.
 .TP
-.B \-C, \-\-set\-conf=parm=val[,parm=val]*
-Set config parameter.  i.e. stop_bits=2
+.B \-C, --set-conf=parm=val[,parm=val]*
+Set config parameter.  e.g. stop_bits=2
 .TP
 .B \-t, --prog=number
-Use \fBnumber\fP as the RPC program number. The default is 536871065.
+Use \fInumber\fP as the RPC program number. The default is 536871065.
 .TP
-.B \-v, \-\-verbose
-Set verbose mode, cumulative (BUG, ERR, WARN, VERBOSE, TRACE).
+.B \-v, --verbose
+Set verbose mode, cumulative.
 .TP
-.B \-h, \-\-help
-Show summary of options and exit.
+.B \-h, --help
+Show a summary of these options and exit.
 .TP
-.B \-V, \-\-version
-Show version of program and exit.
+.B \-V, --version
+Show the version of \fBrigd\fP and exit.
 
 .PP
 Please note that the backend for the radio to be controlled, 
 or the radio itself may not support some commands. In that case, 
-the operation will fail with a standard error code.
+the operation will fail with a \fBHamlib\fP error code.
 
-.SH EXAMPLE
-Start rigd as root for a Yaesu FT-920 using a USB to serial adapter:
+.SH EXAMPLES
+Start rigd as root for a Yaesu FT-920 using a USB to serial adapter and
+backgrounding:
 .PP
 # rpc.rigd -m 114 -r /dev/ttyUSB1 &
-.SH AUTHORS
-Written by Stephane Fillod and the Hamlib Group.
-.SH BUGS
-No authentication whatsoever; could be done through domain restriction, though.
-Please ask if stronger security is needed.
 .PP
-Does not support more than one rig that share the same serial port (e.g. Icom's on a CI-V bus).
+Start rigd as root for a Yaesu FT-920 using COM1 while generating TRACE output:
+.PP
+# rpc.rigd -m 114 -r /dev/ttyS0 -vvvvv
+.PP
+Start rigd as root for a Yaesu FT-920 using a USB to serial adapter while
+setting baud rate and stop bits and backgrounding:
+.PP
+# rpc.rigd -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 &
+.SH DIAGNOSTICS
+The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
+to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
+-vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the radio which is very useful for radio backend
+library development and may be requested by the developers.
+.SH SECURITY
+No authentication whatsoever; could be done through domain restriction, 
+though.  Please ask if stronger security is needed.
+.SH BUGS
+Does not support more than one rig that share the same serial port (e.g. Icom 
+radios on a CI-V bus).
+.PP
+Does not support more than one communication device for multiple rig control.
+(e.g. for Single Operator 2 Radio)  Help needed!
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@users.sourceforge.net>.
 .br
-We are already aware of the bug in the previous section :-)
+We are already aware of the bugs in the previous section :-)
+.SH AUTHORS
+Written by Stephane Fillod and the Hamlib Group <http://www.hamlib.org>.
 .SH COPYRIGHT
 Copyright \(co 2000-2007 Stephane Fillod and the Hamlib Group.
-.br
+.PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
