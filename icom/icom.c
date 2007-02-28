@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.100 2007-01-27 23:50:13 n0nb Exp $
+ *	$Id: icom.c,v 1.101 2007-02-28 08:50:20 mardigras Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -578,7 +578,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	/* Most rigs return 1-wide, 2-normal,3-narrow  For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode    Lets check for dsp filters */
 	
-	if ((retval = icom_get_dsp_flt(rig, *mode)))
+	if ((retval = icom_get_dsp_flt(rig, *mode)) !=0)
              *width = retval;
 
 	return RIG_OK;

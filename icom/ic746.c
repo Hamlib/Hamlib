@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-746 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic746.c,v 1.9 2006-11-07 12:21:39 n0nb Exp $
+ *	$Id: ic746.c,v 1.10 2007-02-28 08:50:19 mardigras Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -313,7 +313,7 @@ const struct rig_caps ic746_caps = {
 };
 
 
- /*IC-746Pro Rig parameters Only available in this namespace*/
+ /* IC-746Pro Rig parameters Only available in this namespace.  This is a partial list */
 #define S_MEM_SC_LEN		2	/* 756PRO S_MEM subcmd length */
 #define S_MEM_LCD_CONT		0x501	/* LCD Contrast 0-256/0-100% */
 #define S_MEM_BKLIT		0x502	/* Backlight  0-256/0-100% */
@@ -348,7 +348,7 @@ static const struct confparams ic746pro_ext_parms[] = {
 		NULL, RIG_CONF_COMBO, { .c = {{ "Auto", "Sql", "RF+Sql", NULL }} }
 	},
 	{ TOK_RTTY_FLTR, "rttyfltr", "RTTY Fltr Width preset", "Set/Read RTTY preset filter width",
-		"3", RIG_CONF_COMBO, { .c = {{"250", "300", "350", "500", "1000", NULL }} }
+		"350", RIG_CONF_COMBO, { .c = {{"250", "300", "350", "500", "1000", NULL }} }
 	},
 	{ RIG_CONF_END, NULL, }
 };
@@ -356,7 +356,7 @@ static const struct confparams ic746pro_ext_parms[] = {
 
 /*
  * NUMERIC: val.f
- * COMBO: val.i, starting from 0
+ * COMBO: val.i, starting from 0 Index to a string table.
  * STRING: val.cs for set, val.s for get
  * CHECKBUTTON: val.i 0/1
  */
@@ -574,9 +574,9 @@ static int ic746pro_set_ext_parm(RIG *rig, token_t token, value_t val)
 		icom_val = val.i;
 		break;
 	case TOK_RTTY_FLTR:	/* RTTY filter mode 0 - 4 = 250, 300, 350, 500, 1000 */
-		if (val.f < 0 || val.f > 4) return -RIG_EINVAL;
+		if (val.i < 0 || val.i > 4) return -RIG_EINVAL;
 		ep_sc = S_MEM_RTTY_FL_PB;
-		icom_val = val.f;
+		icom_val = val.i;
 		break;
 	default:
 		return -RIG_EINVAL;
@@ -664,6 +664,7 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		case RIG_CONF_STRING:
 		 memcpy(val->s, resbuf, res_len);
 		break;
+		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
 		 val->i = from_bcd_be(resbuf+cmdhead, res_len*2);
 		break;
@@ -675,9 +676,6 @@ static int ic746pro_get_ext_parm(RIG *rig, token_t token, value_t *val)
 			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
 		return -RIG_EPROTO;
 		
-	/* The examples of code usage for RIG_CONF_NUMERIC types seems to be restricted to raw floating 
-	 point values.  Although the Val definitions allow both integer and  floating point types  The combo
-	 types appear to be left in undecoded form*/
 	}
 	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
 			__FUNCTION__, res_len, icom_val, val->i, val->f);

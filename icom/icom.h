@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.74 2006-11-07 12:21:39 n0nb Exp $
+ *	$Id: icom.h,v 1.75 2007-02-28 08:50:20 mardigras Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -122,7 +122,7 @@ extern const struct ts_sc_list ic7000_ts_sc_list[];
 extern const struct ts_sc_list ic910_ts_sc_list[];
 extern const struct ts_sc_list ic718_ts_sc_list[];
 
-extern const pbwidth_t rtty_fil[];	/* rtty filter passband width; available on pro rigs */
+extern const pbwidth_t rtty_fil[];	/* rtty filter passband width; available on 746pro and 756pro rigs */
 
 pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode);
 

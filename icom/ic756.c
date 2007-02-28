@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.15 2006-10-07 20:13:21 csete Exp $
+ *	$Id: ic756.c,v 1.16 2007-02-28 08:50:20 mardigras Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -397,7 +397,7 @@ static const struct confparams ic756pro2_ext_parms[] = {
 		NULL, RIG_CONF_STRING, { }
 	},
 	{ TOK_RTTY_FLTR, "rttyfltr", "RTTY Fltr Width preset", "Set/Read RTTY preset filter width",
-		"3", RIG_CONF_COMBO, { .c = {{"250", "300", "350", "500", "1000", NULL }} }
+		"350", RIG_CONF_COMBO, { .c = {{"250", "300", "350", "500", "1000", NULL }} }
 	},
 	{ RIG_CONF_END, NULL, }
 };
@@ -618,7 +618,7 @@ static int ic756pro2_set_ext_parm(RIG *rig, token_t token, value_t val)
 	case TOK_RTTY_FLTR:	/* RTTY filter mode 0 - 4 = 250, 300, 350, 500, 1000 */
 		if (val.i < 0 || val.i > 4) return -RIG_EINVAL;
 		ep_sc = S_MEM_RTTY_FL_PB;
-		icom_val = val.f;
+		icom_val = val.i;
 		break;
 	default:
 		return -RIG_EINVAL;
@@ -712,6 +712,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 		case RIG_CONF_STRING:
 		 memcpy(val->s, resbuf, res_len);
 		break;
+		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
 		 val->i = from_bcd_be(resbuf+cmdhead, res_len*2);
 		break;
@@ -723,9 +724,6 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 			"len=%d\n", __FUNCTION__,resbuf[0],res_len);
 		return -RIG_EPROTO;
 		
-	/* The examples of code usage for RIG_CONF_NUMERIC types seems to be restricted to raw floating
-	 point values.  Although the Val definitions allow both integer and  floating point types  The combo
-	 types appear to be left in undecoded form*/
 	}
 	rig_debug(RIG_DEBUG_TRACE,"%s: %d %d %d %f\n",
 			__FUNCTION__, res_len, icom_val, val->i, val->f);

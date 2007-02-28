@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.120 2006-11-07 12:21:39 n0nb Exp $
+ *	$Id: rig.h,v 1.121 2007-02-28 08:52:49 mardigras Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -439,8 +439,8 @@ typedef enum {
 	RIG_OP_FROM_VFO =	(1<<2),	/*!< VFO->MEM */
 	RIG_OP_TO_VFO =		(1<<3),	/*!< MEM->VFO */
 	RIG_OP_MCL =		(1<<4),	/*!< Memory clear */
-	RIG_OP_UP =		(1<<5),	/*!< UP */
-	RIG_OP_DOWN =		(1<<6),	/*!< DOWN */
+	RIG_OP_UP =		(1<<5),	/*!< UP increment VFO freq by tuning step*/
+	RIG_OP_DOWN =		(1<<6),	/*!< DOWN decrement VFO freq by tuning step*/
 	RIG_OP_BAND_UP =	(1<<7),	/*!< Band UP */
 	RIG_OP_BAND_DOWN =	(1<<8),	/*!< Band DOWN */
 	RIG_OP_LEFT =		(1<<9),	/*!< LEFT */
@@ -473,13 +473,23 @@ typedef long token_t;
 #define RIG_CONF_END 0
 
 /**
- * \brief Configuration parameter types
+ * \brief  parameter types
+ *
+ *   Used with configuration, parameter and extra-parm tables.
+ * 
+ *   Current internal implementation
+ *   NUMERIC: val.f or val.i
+ *   COMBO: val.i, starting from 0.  Points to a table of strings or asci stored values.
+ *   STRING: val.s or val.cs
+ *   CHECKBUTTON: val.i 0/1
  */
+
 /* strongly inspired from soundmedem. Thanks Thomas! */
+
 enum rig_conf_e {
 	RIG_CONF_STRING,	/*!<	String type */
 	RIG_CONF_COMBO,		/*!<	Combo type */
-	RIG_CONF_NUMERIC,	/*!<	Numeric type (integer or real) */
+	RIG_CONF_NUMERIC,	/*!<	Numeric type integer or real */
 	RIG_CONF_CHECKBUTTON	/*!<	on/off type */
 };
 
