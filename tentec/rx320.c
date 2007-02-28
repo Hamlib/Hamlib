@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - RX-320 PC-Radio description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: rx320.c,v 1.8 2006-01-09 21:14:40 fillods Exp $
+ *	$Id: rx320.c,v 1.9 2007-02-28 15:05:49 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,7 +59,7 @@ const struct rig_caps rx320_caps = {
 .rig_model =  RIG_MODEL_RX320,
 .model_name = "RX-320",
 .mfg_name =  "Ten-Tec",
-.version =  "0.3",
+.version =  "0.4",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_PCRECEIVER,

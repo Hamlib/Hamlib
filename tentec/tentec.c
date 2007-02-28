@@ -2,7 +2,7 @@
  *  Hamlib Tentec backend - main file
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.17 2006-10-07 17:38:05 csete Exp $
+ *	$Id: tentec.c,v 1.18 2007-02-28 15:05:49 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -167,36 +167,37 @@ int tentec_trx_open(RIG *rig)
  */
 static void tentec_tuning_factor_calc(RIG *rig)
 {
-	struct tentec_priv_data *priv;
-	double tfreq, adjtfreq, mcor, fcor, cwbfo;
+    struct tentec_priv_data *priv;
+    freq_t tfreq;
+    int adjtfreq, mcor, fcor, cwbfo;
 
-	priv = (struct tentec_priv_data *)rig->state.priv;
-    cwbfo = 0.0;
-	
+    priv = (struct tentec_priv_data *)rig->state.priv;
+    cwbfo = 0;
+
+    /* computed fcor only used if mode is not CW */
+    fcor = (int)floor((double)priv->width / 2.0) + 200;
+    	
     switch (priv->mode) {
-	case RIG_MODE_AM:
-	case RIG_MODE_FM:
-			mcor=0.0; break;
+    case RIG_MODE_AM:
+    case RIG_MODE_FM:
+        mcor=0; break;
 	case RIG_MODE_CW: 
-	        mcor=-1.0; cwbfo = (double)priv->cwbfo; break;
+	    mcor=-1; cwbfo = priv->cwbfo; fcor = 0; break;
     case RIG_MODE_LSB:
-			mcor=-1.0; break;
-	case RIG_MODE_USB:
-			mcor=1.0; break;
-	default:
-			rig_debug(RIG_DEBUG_BUG,
-							"tentec_tuning_factor_calc: invalid mode!\n");
-			mcor=1;
-	}
-	tfreq = priv->freq/(double)MHz(1);
-	fcor = priv->width/2.0+200;
+		mcor=-1; break;
+    case RIG_MODE_USB:
+        mcor=1; break;
+    default:
+        rig_debug(RIG_DEBUG_BUG, "tentec_tuning_factor_calc: invalid mode!\n");
+        mcor=1; break;
+    }
+    tfreq = priv->freq / (freq_t)Hz(1);
 
-	adjtfreq = tfreq - 0.00125 + (mcor*((fcor + (double)priv->pbt)/1000000.0));
+    adjtfreq = (int)tfreq - 1250 + (int)(mcor * (fcor + priv->pbt));
 
-	priv->ctf = floor(adjtfreq*400.0);
-	priv->ftf = floor(((adjtfreq*400.0) - priv->ctf) * 2500.0 * 5.46);
-	priv->ctf += 18000;
-	priv->btf = floor((fcor + (double)priv->pbt + cwbfo + 8000.0) * 2.73);
+    priv->ctf = (adjtfreq / 2500) + 18000;
+    priv->ftf = (int)floor((double)(adjtfreq % 2500) * 5.46);
+    priv->btf = (int)floor((double)(fcor + priv->pbt + cwbfo + 8000) * 2.73);
 }
 
 /*
@@ -321,7 +322,7 @@ int tentec_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int tentec_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
+    struct tentec_priv_data *priv = (struct tentec_priv_data *)rig->state.priv;
 
 	*mode = priv->mode;
 	*width = priv->width;
