@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.61 2006-10-07 19:24:56 csete Exp $  
+ * $Id: rigctl.c,v 1.62 2007-02-28 08:55:07 mardigras Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -205,15 +205,15 @@ struct test_table test_list[] = {
 	{ 'j', "get_rit", get_rit, ARG_OUT, "RIT" },
 	{ 'Z', "set_xit", set_xit, ARG_IN, "XIT" },
 	{ 'z', "get_xit", get_xit, ARG_OUT, "XIT" },
-	{ 0x83, "set_ant", set_ant, ARG_IN, "Antenna" },
-	{ 0x84, "get_ant", get_ant, ARG_OUT, "Antenna" },
+	{ 'Y', "set_ant", set_ant, ARG_IN, "Antenna" },
+	{ 'y', "get_ant", get_ant, ARG_OUT, "Antenna" },
 	{ 0x87, "set_powerstat", set_powerstat, ARG_IN|ARG_NOVFO, "Status" },
 	{ 0x88, "get_powerstat", get_powerstat, ARG_OUT|ARG_NOVFO, "Status" },
-	{ 0x85, "reset", reset, ARG_IN, "Reset" },
+	{ '*', "reset", reset, ARG_IN, "Reset" },
 	{ '2', "power2mW", power2mW, ARG_NOVFO },
 	{ 'w', "send_cmd", send_cmd, ARG_IN1|ARG_IN_LINE|ARG_OUT2|ARG_NOVFO, "Cmd", "Reply" },
 	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
-	{ 0x86, "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
+	{ 'b', "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
 	/* next one is 0x89 */
 	{ 0x00, "", NULL },
 
