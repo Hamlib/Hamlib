@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.101 2007-02-28 08:50:20 mardigras Exp $
+ *	$Id: icom.c,v 1.102 2007-03-05 09:01:03 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -575,6 +575,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	icom2rig_mode(rig, modebuf[1], mode_len==2 ? modebuf[2] : -1, mode, width);
+	/* IC910H has different meaning of command 1A, subcommand 03. So do
+	 * not ask for DSP filter settings */
+	if (rig->caps->rig_model == RIG_MODEL_IC910)
+		return RIG_OK;
 
 	/* Most rigs return 1-wide, 2-normal,3-narrow  For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode    Lets check for dsp filters */
 	
