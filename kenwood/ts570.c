@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.31 2006-11-29 19:38:00 y32kn Exp $
+ *	$Id: ts570.c,v 1.32 2007-03-17 17:27:53 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
@@ -475,6 +476,110 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
   return RIG_OK;		/* never reached */
 }
 
+/*
+ * ts570_get_split_vfo
+ */
+int ts570_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t * tx_vfo)
+{
+	char ack[10];
+	size_t acklen = 10;
+	char ack2[10];
+	size_t ack2len = 10;
+	int retval;
+
+	retval = kenwood_transaction(rig, "FR;", 3, ack, &acklen);
+	if (retval != RIG_OK)  
+		return retval;
+
+
+	retval = kenwood_transaction(rig, "FT;", 3, ack2, &ack2len);
+	if (retval != RIG_OK)  
+		return retval;
+
+	if (ack[2] != ack2[2]) {
+		*split = RIG_SPLIT_ON;
+		switch (ack2[2]) {
+		case '0': *tx_vfo = RIG_VFO_A; break;
+		case '1': *tx_vfo = RIG_VFO_B; break;
+		case '2': *tx_vfo = RIG_VFO_MEM; break;
+		default: rig_debug(RIG_DEBUG_ERR, "ts570_get_split_vfo: unknown tx vfo: %d\n", ack2[2]);
+			return -RIG_EINVAL;
+		}
+
+	} else {
+		*split = RIG_SPLIT_OFF;
+		*tx_vfo = RIG_VFO_CURR;
+	}
+
+	return RIG_OK;
+}
+
+#define cmd_trm(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)->cmdtrm
+
+/*
+ * ts570_set_split_vfo
+ */
+int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+	char cmdbuf[16], ackbuf[20];
+	int cmd_len, retval;
+	size_t ack_len;
+	unsigned char vfo_function;
+
+	if(vfo !=RIG_VFO_CURR) {
+		switch (vfo) {
+		case RIG_VFO_VFO:
+		case RIG_VFO_A: vfo_function = '0'; break;
+		case RIG_VFO_B: vfo_function = '1'; break;
+		case RIG_VFO_MEM: vfo_function = '2'; break;
+		default: 
+			rig_debug(RIG_DEBUG_ERR,"ts570_set_split_vfo: unsupported VFO %d\n",
+							vfo);
+			return -RIG_EINVAL;
+		}
+		/* set RX VFO */
+		cmd_len = sprintf(cmdbuf, "FR%c%s", vfo_function, cmd_trm(rig));
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, NULL, 0);
+		if (retval != RIG_OK)
+			return retval;
+	}
+
+	if(split==RIG_SPLIT_ON) {
+		switch (txvfo) {
+		case RIG_VFO_VFO:
+		case RIG_VFO_A: vfo_function = '0'; break;
+		case RIG_VFO_B: vfo_function = '1'; break;
+		case RIG_VFO_MEM: vfo_function = '2'; break;
+		default: 
+			rig_debug(RIG_DEBUG_ERR,"ts570_set_split_vfo: unsupported VFO %d\n", txvfo);
+			return -RIG_EINVAL;
+		} 
+		/* set TX VFO */
+		cmd_len = sprintf(cmdbuf, "FT%c%s", vfo_function, cmd_trm(rig));
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, NULL, 0);
+		if (retval != RIG_OK)
+			return retval;
+
+	} else /* RIG_SPLIT_OFF */
+		if(vfo==RIG_VFO_CURR) {
+	  		/* switch to current RX VFO */
+			/* first ask for it */
+			ack_len = 10;
+			retval = kenwood_transaction(rig, "FR;", 3, ackbuf, &ack_len);
+			if (retval != RIG_OK)  
+				return retval;
+			/* and then set it to both vfo's */
+			vfo_function = ackbuf[2];
+			cmd_len = sprintf(cmdbuf, "FT%c%s", vfo_function, cmd_trm(rig));
+			retval = kenwood_transaction(rig, cmdbuf, cmd_len, NULL, 0);
+			if (retval != RIG_OK)
+				return retval;
+		}
+
+	return RIG_OK;
+}
+
+
 
 /* memory capabilities */
 #define TS570_MEM_CAP {		\
@@ -617,6 +722,124 @@ int ts570_set_channel (RIG * rig, const channel_t * chan)
 
 		return RIG_OK;
 }
+
+int ts570_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
+{
+	char infobuf[50];
+	int retval;
+	size_t info_len;
+
+	info_len = 50;
+	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (info_len != 38 || infobuf[1] != 'F') {
+	rig_debug(RIG_DEBUG_ERR,"kenwood_get_rit: wrong answer len=%d\n",
+					info_len);
+	return -RIG_ERJCTED;
+	}
+
+	if (infobuf[23] == '0') {	/* RIT off? */
+		*rit = 0;
+	} else {
+		infobuf[23] = '\0';
+		*rit = atoi(&infobuf[18]);
+	}
+	return RIG_OK;
+}
+
+
+int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
+{
+	char infobuf[50];
+	int retval;
+	size_t info_len;
+
+	info_len = 50;
+	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (info_len != 38 || infobuf[1] != 'F') {
+	rig_debug(RIG_DEBUG_ERR,"kenwood_get_rit: wrong answer len=%d\n",
+					info_len);
+	return -RIG_ERJCTED;
+	}
+
+	if (infobuf[24] == '0') {	/* RIT off? */
+		*rit = 0;
+	} else {
+		infobuf[23] = '\0';
+		*rit = atoi(&infobuf[18]);
+	}
+	return RIG_OK;
+}
+
+int ts570_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
+{
+        char buf[50], infobuf[50];
+	unsigned char c;
+        int retval, len, i;
+	size_t info_len;
+
+        info_len = 0;
+        if (rit == 0) {
+        	kenwood_transaction(rig, "RT0;", 4, infobuf, &info_len);
+		return RIG_OK;
+	} else
+        	kenwood_transaction(rig, "RT1;", 4, infobuf, &info_len);
+
+        if (rit > 0)
+                c = 'U';
+        else
+                c = 'D';
+        len = sprintf(buf, "R%c;", c);
+
+        info_len = 0;
+        retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
+        for (i = 0; i < abs(rint(rit/10)); i++)
+        {
+                info_len = 0;
+                retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+        }
+
+        return RIG_OK;
+}
+
+int ts570_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
+{
+        char buf[50], infobuf[50];
+	unsigned char c;
+        int retval, len, i;
+	size_t info_len;
+
+        info_len = 0;
+        if (rit == 0) {
+        	kenwood_transaction(rig, "XT0;", 4, infobuf, &info_len);
+		return RIG_OK;
+	} else
+        	kenwood_transaction(rig, "XT1;", 4, infobuf, &info_len);
+
+        if (rit > 0)
+                c = 'U';
+        else
+                c = 'D';
+        len = sprintf(buf, "R%c;", c);
+
+        info_len = 0;
+        retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
+        for (i = 0; i < abs(rint(rit/10)); i++)
+        {
+                info_len = 0;
+                retval = kenwood_transaction(rig, buf, len, infobuf, &info_len);
+        }
+
+        return RIG_OK;
+}
+
+
+
 /*
  * ts570 rig capabilities.
  * Notice that some rigs share the same functions.
@@ -643,7 +866,7 @@ const struct rig_caps ts570s_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
-.post_write_delay =  50,
+.post_write_delay =  30,
 .timeout = 1000,
 .retry =  3,
 
@@ -653,8 +876,8 @@ const struct rig_caps ts570s_caps = {
 .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-.level_gran =  {},                 /* FIXME: granularity */
-.parm_gran =  {},
+.level_gran =  {0,0,0},                 /* FIXME: granularity */
+.parm_gran =  {0,0,0},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 12, RIG_DBLST_END, },
@@ -758,14 +981,16 @@ const struct rig_caps ts570s_caps = {
 
 .set_freq =  kenwood_set_freq,
 .get_freq =  ic10_get_freq,
-.set_rit =  kenwood_set_rit,
-.get_rit =  kenwood_get_rit,
-.set_xit =  kenwood_set_xit,
-.get_xit =  kenwood_get_xit,
+.set_rit =  ts570_set_rit,
+.get_rit =  ts570_get_rit,
+.set_xit =  ts570_set_xit,
+.get_xit =  ts570_get_xit,
 .set_mode =  ts570_set_mode,
 .get_mode =  ts570_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo,
+.set_split_vfo = ts570_set_split_vfo,
+.get_split_vfo = ts570_get_split_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,
@@ -818,7 +1043,7 @@ const struct rig_caps ts570d_caps = {
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
-.post_write_delay =  50,
+.post_write_delay =  30,
 .timeout =  1000,
 .retry =  3,
 
@@ -828,8 +1053,8 @@ const struct rig_caps ts570d_caps = {
 .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-.level_gran =  {},                 /* FIXME: granularity */
-.parm_gran =  {},
+.level_gran =  {0,0,0},                 /* FIXME: granularity */
+.parm_gran =  {0,0,0},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 12, RIG_DBLST_END, },
@@ -938,14 +1163,16 @@ const struct rig_caps ts570d_caps = {
 
 .set_freq =  kenwood_set_freq,
 .get_freq =  ic10_get_freq,
-.set_rit =  kenwood_set_rit,
-.get_rit =  kenwood_get_rit,
-.set_xit =  kenwood_set_xit,
-.get_xit =  kenwood_get_xit,
+.set_rit =  ts570_set_rit,
+.get_rit =  ts570_get_rit,
+.set_xit =  ts570_set_xit,
+.get_xit =  ts570_get_xit,
 .set_mode =  ts570_set_mode,
 .get_mode =  ts570_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo,
+.set_split_vfo = ts570_set_split_vfo,
+.get_split_vfo = ts570_get_split_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,
