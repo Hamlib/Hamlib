@@ -1,4 +1,4 @@
-/* $Id: rig_dll.h,v 1.10 2006-10-13 12:02:36 aa6e Exp $ */
+/* $Id: rig_dll.h,v 1.11 2007-05-21 21:41:59 fillods Exp $ */
 
 /*
  * Provide definitions to compile in Windows
@@ -11,48 +11,6 @@
  * No effect in non-Windows environments.
  */
 
-/*
- * Temporarily commented out, until cygwin port is sorted out
- */
-#if 0
-
-#if defined(__CYGWIN__) || defined(_WIN32)
-#  if defined(HAMLIB_DLL)
-#    if defined(HAMLIB_STATIC)
-#      undef HAMLIB_STATIC
-#    endif
-#    if defined(ALL_STATIC)
-#      undef ALL_STATIC
-#    endif
-#  endif
-#  undef HAMLIB_IMPEXP
-#  undef BACKEND_IMPEXP
-#  undef HAMLIB_API
-#  undef HAMLIB_EXPORT
-#  undef HAMLIB_EXPORT_VAR
-#  if defined(HAMLIB_DLL) && defined(IN_HAMLIB)
-/* building a DLL */
-#    define HAMLIB_IMPEXP __declspec(dllexport)
-#    define BACKEND_IMPEXP __declspec(dllexport)
-#  elif defined(HAMLIB_STATIC) || defined(ALL_STATIC)
-/* building or linking to a static library */
-#    define HAMLIB_IMPEXP
-#    define BACKEND_IMPEXP
-#  else
-/* linking to the DLL */
-#    define HAMLIB_IMPEXP  __declspec(dllimport)
-#    define BACKEND_IMPEXP __declspec(dllexport)
-#  endif
-#  define HAMLIB_API __cdecl
-#  define HAMLIB_EXPORT(type) HAMLIB_IMPEXP type HAMLIB_API
-#  define HAMLIB_EXPORT_VAR(type) HAMLIB_IMPEXP type
-#  define BACKEND_EXPORT(type) BACKEND_IMPEXP type HAMLIB_API
-#  define BACKEND_EXPORT_VAR(type) BACKEND_IMPEXP type
-#endif
-
-#endif
-
-
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #  undef HAMLIB_IMPEXP
 #  undef BACKEND_IMPEXP
@@ -61,17 +19,29 @@
 #  undef HAMLIB_EXPORT_VAR
 #  undef BACKEND_EXPORT
 #  undef BACKEND_EXPORT_VAR
+#  undef HAMLIB_DLL_IMPORT
+#  undef HAMLIB_DLL_EXPORT
+
+#  if defined (__BORLANDC__)
+#  define HAMLIB_DLL_IMPORT __import
+#  define HAMLIB_DLL_EXPORT __export
+#  else
+#  define HAMLIB_DLL_IMPORT __declspec(dllimport)
+#  define HAMLIB_DLL_EXPORT __declspec(dllexport)
+#  endif
+
 #  ifdef DLL_EXPORT
+     /* HAMLIB_API may be set to __stdcall for VB, .. */
 #    define HAMLIB_API __cdecl
 #    ifdef IN_HAMLIB
-#      define BACKEND_IMPEXP __declspec(dllexport)
-#      define HAMLIB_IMPEXP __declspec(dllexport)
+#      define BACKEND_IMPEXP HAMLIB_DLL_EXPORT
+#      define HAMLIB_IMPEXP HAMLIB_DLL_EXPORT
 #    else
-#      define BACKEND_IMPEXP __declspec(dllexport)
-#      define HAMLIB_IMPEXP __declspec(dllimport)
+#      define BACKEND_IMPEXP HAMLIB_DLL_EXPORT
+#      define HAMLIB_IMPEXP HAMLIB_DLL_IMPORT
 #    endif
 #  else
-#      define HAMLIB_IMPEXP __declspec(dllimport)
+#      define HAMLIB_IMPEXP HAMLIB_DLL_IMPORT
 	 /* must be static build, no directive? */
 #  endif
 #endif
