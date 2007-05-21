@@ -4,13 +4,14 @@ DEJATOOL = testfreq testbcd testloc rigctl
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigmem rigswr rotctl
-man_MANS = rigctl.1 rigmem.1 rigswr.1 rotctl.1
+bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl
+man_MANS = rigctl.1 rigmem.1 rigswr.1 rigsmtr.1 rotctl.1
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench @RIGMATRIX@
 
 rigctl_SOURCES = rigctl.c dumpcaps.c sprintflst.c
 rigswr_SOURCES = rigswr.c
+rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c
 noinst_HEADERS = sprintflst.h
 
@@ -30,6 +31,7 @@ rig_bench_LDFLAGS = $(top_builddir)/lib/libmisc.la @BACKENDLNK@
 testtrn_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
 rigswr_LDFLAGS = @BACKENDLNK@
+rigsmtr_LDFLAGS = @BACKENDLNK@
 rigmem_LDFLAGS = @BACKENDLNK@ @XML_LIBS@
 rotctl_LDFLAGS = @ROT_BACKENDLNK@
  
@@ -50,6 +52,7 @@ listrigs_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigctl_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigmem_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigswr_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+rigsmtr_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rotctl_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 
