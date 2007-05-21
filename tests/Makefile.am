@@ -59,9 +59,10 @@ rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 
 
 rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
-	mkdir -p html
-	( cat $(srcdir)/rigmatrix_head.html && cd html && ./rigmatrix ) > html/rigmatrix.html
-	for f in `./listrigs | tail +2 | cut -f1` ; do ( ./rigctl -m $$f -u > html/model$$f.txt || exit 0 ) ; done
+	mkdir -p sup-info/support
+	( cat $(srcdir)/rigmatrix_head.html && cd sup-info && ../rigmatrix ) > sup-info/rigmatrix.html
+	for f in `./listrigs | tail -n +2 | cut -f1` ; do ( ./rigctl -m $$f -u > sup-info/support/model$$f.txt || exit 0 ) ; done
+	./rigctl -l |sort -n | $(srcdir)/rig_split_lst.awk -v lst_dir="sup-info"
 
 EXTRA_DIST = rigmatrix_head.html $(man_MANS)
 
