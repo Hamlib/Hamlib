@@ -1,3 +1,100 @@
+2007-05-21 16:41  fillods
+
+	* include/hamlib/rig_dll.h: cleanup and initial __BORLANDC__
+	support
+
+2007-05-21 15:35  fillods
+
+	* tests/Makefile.am: automated generation of <backend>_lst.html
+	files for web site sup-info
+
+2007-05-21 15:35  fillods
+
+	* tests/rig_split_lst.awk: initial release
+
+2007-05-21 15:03  fillods
+
+	* tests/Makefile.am: new rigsmtr
+
+2007-05-21 15:02  fillods
+
+	* tests/: rigsmtr.1, rigsmtr.c: initial release
+
+2007-05-21 14:53  fillods
+
+	* tests/Makefile.am: fix vpath build of rigmatrix.html
+
+2007-03-17 11:27  y32kn
+
+	* kenwood/ts570.c: * get_xit/rit now honours the state of the
+	RIT/XIT switches (returns  0 if off) * set_xit/rit switches RIT/XIT
+	on or off if needed * get/set_split_vfo implemented or corrected
+
+2007-03-05 03:01  y32kn
+
+	* icom/icom.c: IC910H has different meaning of command 1A,
+	subcommand 03. So we should not ask for DSP filter settings in
+	'icom_get_mode'.
+
+2007-03-02 10:29  aa6e
+
+	* tentec/orion.c: use binary mode VFO requests
+
+2007-02-28 09:05  aa6e
+
+	* tentec/: rx320.c, tentec.c: further rx-320 mods by Ken Prox
+
+2007-02-28 02:55  mardigras
+
+	* tests/rigctl.c: Added several letters to the interactive commands
+	to implement more test functions.
+
+2007-02-28 02:50  mardigras
+
+	* icom/ic746.c, icom/ic756.c, icom/icom.c, icom/icom.h,
+	include/hamlib/rig.h: Several Bug fixes for extra parameter code
+	and documentation added
+
+2007-02-24 14:24  n0nb
+
+	* rpcrig/rpc.rigd.8, rpcrot/rpc.rotd.8, tests/README,
+	tests/rigctl.1, tests/rigmem.1, tests/rigswr.1, tests/rotctl.1,
+	tests/rotctl.c: Many man page updates to provide needed information
+	and (hopefully) improve readability.  Also, tried to keep the man
+	pages as consistent as possible.
+
+2007-02-24 08:53  n0nb
+
+	* rpcrig/rpc.rigd.8: Almost complete rewrite including examples and
+	diagnostic information as well as (hopefully) improving
+	readability.
+
+2007-02-23 22:27  n0nb
+
+	* rpcrig/rpc.rigd.8: Clarify and add usage and parameter examples.
+
+2007-02-22 10:54  n0nb
+
+	* winradio/g313.c: Added S-meter functionality.  Thanks to Simone.
+
+2007-02-15 06:50  dianora
+
+	* autogen.sh: - These should have been commented out.
+
+2007-02-13 16:41  dianora
+
+	* autogen.sh: - document debian/FreeBSD needs for AUTOMAKE etc.  -
+	add in libtoolize which should be there
+
+2007-02-13 16:32  dianora
+
+	* configure.ac: - gt_HEADER_INTTYPES_H is definitely bogus here,
+	leftover from what?
+
+2007-02-03 20:36  n0nb
+
+	* ChangeLog: Release of 1.2.6.1
+
 2007-01-31 14:36  pa4tu
 
 	* doc/Makefile.am: distribute footer.html
