@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.6 2006-03-14 20:06:46 pa4tu Exp $
+ *	$Id: ts480.c,v 1.7 2007-08-06 05:19:51 jrinas Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,7 +50,7 @@ static int
 kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
 {
   char ackbuf[50];
-  size_t ack_len = 50;
+  size_t ack_len = 0;
 
   if (RIG_PTT_ON == ptt)
     return kenwood_transaction (rig, "TX1;", 4, ackbuf, &ack_len);
@@ -378,7 +378,7 @@ const struct rig_caps ts480_caps = {
   .rig_model = RIG_MODEL_TS480,
   .model_name = "TS-480",
   .mfg_name = "Kenwood",
-  .version = BACKEND_VER ".0",
+  .version = BACKEND_VER ".1",
   .copyright = "LGPL",
   .status = RIG_STATUS_NEW,
   .rig_type = RIG_TYPE_TRANSCEIVER,
@@ -405,61 +405,87 @@ const struct rig_caps ts480_caps = {
 
 
   .rx_range_list1 = {
-		     {kHz (100), Hz (59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},
-		     RIG_FRNG_END,
-		     },		/* rx range */
+                     {kHz(100),   Hz(59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},
+                     RIG_FRNG_END,
+                     }, /*!< Receive frequency range list for ITU region 1 */
   .tx_range_list1 = {
-		     {kHz (1810), kHz (1850), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},	/* 100W class */
-		     {kHz (1810), kHz (1850), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},	/* 25W class */
-		     {kHz (3500), kHz (3800), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (3500), kHz (3800), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (7), kHz (7100), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (7), kHz (7100), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {kHz (10100), kHz (10150), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (10100), kHz (10150), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (14), kHz (14350), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (14), kHz (14350), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {kHz (18068), kHz (18168), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (18068), kHz (18168), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (21), kHz (21450), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (21), kHz (21450), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {kHz (24890), kHz (24990), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (24890), kHz (24990), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (28), kHz (29700), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (28), kHz (29700), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (50), kHz (52000), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (50), kHz (52000), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     RIG_FRNG_END,
-		     },
+                     {kHz(1810),  kHz(1850),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},   /* 100W class */
+                     {kHz(1810),  kHz(1850),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},       /* 25W class */
+                     {kHz(3500),  kHz(3800),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(3500),  kHz(3800),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(7),     kHz(7200),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(7),     kHz(7200),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {kHz(10100), kHz(10150), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(10100), kHz(10150), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(14),    kHz(14350), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(14),    kHz(14350), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {kHz(18068), kHz(18168), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(18068), kHz(18168), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(21),    kHz(21450), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(21),    kHz(21450), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {kHz(24890), kHz(24990), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(24890), kHz(24990), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(28),    kHz(29700), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(28),    kHz(29700), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(50),    kHz(52000), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(50),    kHz(52000), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     RIG_FRNG_END,
+                     },  /*!< Transmit frequency range list for ITU region 1 */
   .rx_range_list2 = {
-		     {kHz (100), Hz (59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},
-		     RIG_FRNG_END,
-		     },		/* rx range */
+                     {kHz(100),   Hz(59999999), TS480_ALL_MODES, -1, -1, TS480_VFO},
+                     RIG_FRNG_END,
+                     },  /*!< Receive frequency range list for ITU region 2 */
   .tx_range_list2 = {
-		     {kHz (1800), MHz (2) - 1, TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},	/* 100W class */
-		     {kHz (1800), MHz (2) - 1, TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},	/* 25W class */
-		     {kHz (3500), MHz (4) - 1, TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (3500), MHz (4) - 1, TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {kHz (5250), kHz (5450), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (5250), kHz (5450), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (7), kHz (7300), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (7), kHz (7300), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {kHz (10100), kHz (10150), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (10100), kHz (10150), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (14), kHz (14350), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (14), kHz (14350), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {kHz (18068), kHz (18168), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (18068), kHz (18168), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (21), kHz (21450), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (21), kHz (21450), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {kHz (24890), kHz (24990), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {kHz (24890), kHz (24990), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (28), kHz (29700), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (28), kHz (29700), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     {MHz (50), kHz (52000), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
-		     {MHz (50), kHz (52000), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
-		     RIG_FRNG_END,
-		     },		/* tx range */
+                     {kHz(1800),  MHz(2) - 1, TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},  /* 100W class */
+                     {kHz(1800),  MHz(2) - 1, TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},      /* 25W class */
+                     {kHz(3500),  MHz(4) - 1, TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(3500),  MHz(4) - 1, TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {kHz(5250),  kHz(5450),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(5250),  kHz(5450),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(7),     kHz(7300),  TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(7),     kHz(7300),  TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {kHz(10100), kHz(10150), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(10100), kHz(10150), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(14),    kHz(14350), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(14),    kHz(14350), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {kHz(18068), kHz(18168), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(18068), kHz(18168), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(21),    kHz(21450), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(21),    kHz(21450), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {kHz(24890), kHz(24990), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {kHz(24890), kHz(24990), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(28),    kHz(29700), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(28),    kHz(29700), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     {MHz(50),    kHz(52000), TS480_OTHER_TX_MODES, 5000, 100000, TS480_VFO},
+                     {MHz(50),    kHz(52000), TS480_AM_TX_MODES, 5000, 25000, TS480_VFO},
+                     RIG_FRNG_END,
+                     }, /*!< Transmit frequency range list for ITU region 2 */
+ .tuning_steps =  {
+         {TS480_ALL_MODES,kHz(1)},
+         {TS480_ALL_MODES,Hz(2500)},
+         {TS480_ALL_MODES,kHz(5)},
+         {TS480_ALL_MODES,Hz(6250)},
+         {TS480_ALL_MODES,kHz(10)},
+         {TS480_ALL_MODES,Hz(12500)},
+         {TS480_ALL_MODES,kHz(15)},
+         {TS480_ALL_MODES,kHz(20)},
+         {TS480_ALL_MODES,kHz(25)},
+         {TS480_ALL_MODES,kHz(30)},
+         {TS480_ALL_MODES,kHz(100)},
+         {TS480_ALL_MODES,kHz(500)},
+         {TS480_ALL_MODES,MHz(1)},
+         {TS480_ALL_MODES,0},   /* any tuning step */
+         RIG_TS_END,
+        },  
+        /* mode/filter list, remember: order matters! */
+  .filters =  {
+                {RIG_MODE_SSB, kHz(2.4)},
+                {RIG_MODE_CW, Hz(200)},
+                {RIG_MODE_RTTY, Hz(500)},
+                {RIG_MODE_AM, kHz(9)},
+                {RIG_MODE_FM, kHz(14)},
+                RIG_FLT_END,
+        },
   .priv = (void *) &ts480_priv_caps,
   .set_freq = kenwood_set_freq,
   .get_freq = kenwood_get_freq,
