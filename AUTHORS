@@ -105,6 +105,9 @@ M: Andrew McNamara
 [kenwood: thd7]
 M: Stephane Fillod, F8CFE
 
+[kenwood: ts-850]
+C: Rob Frohne, KL7NA
+
 
 [pcr: pcr1000]
 M: Darren Hatcher, G0WCW
@@ -240,3 +243,4 @@ Lars E. Pettersson SM6RPZ <lars (at) homer.se>
 Thomas Beierlein, DL1JBE, <y32kn (at) users.sourceforge.net>
 Kent Hill, AD7AI, <fuzzballz (at) comcast.net>
 Dave Freese, W1HKJ, <w1hkj (at) w1hkj.com>
+Rob Frohne, KL7NA, <frohro (at) wwc.edu>
