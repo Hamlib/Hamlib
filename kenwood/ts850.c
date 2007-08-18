@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.23 2007-08-18 12:55:46 n0nb Exp $
+*	$Id: ts850.c,v 1.24 2007-08-18 20:04:56 aa6e Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -48,12 +48,12 @@
 #define TS850_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
 
 #define TS850_CHANNEL_CAPS \
-freq=1,\
-mode=1,\
-tx_freq=1,\
-tx_mode=1,\
-split=1,\
-ctcss_tone=1
+.freq=1,\
+.mode=1,\
+.tx_freq=1,\
+.tx_mode=1,\
+.split=1,\
+.ctcss_tone=1
 
 #define TS850_STR_CAL { 4, \
 	{ \
