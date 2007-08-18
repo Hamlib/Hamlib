@@ -16,7 +16,7 @@
  *  Hamlib Interface - func/level/parm
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.8 2006-10-15 00:27:52 aa6e Exp $
+ *	$Id: settings.c,v 1.9 2007-08-18 12:55:46 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -146,9 +146,10 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	 * Special case(frontend emulation): calibrated S-meter reading
 	 */
 	if (level == RIG_LEVEL_STRENGTH && 
-			(caps->has_get_level & RIG_LEVEL_STRENGTH) == 0 &&
+			(caps->has_get_level & RIG_LEVEL_STRENGTH) &&
 			rig_has_get_level(rig,RIG_LEVEL_RAWSTR)) {
 
+	
 		value_t rawstr;
 		retcode = rig_get_level(rig, vfo, RIG_LEVEL_RAWSTR, &rawstr);
 		if (retcode != RIG_OK)

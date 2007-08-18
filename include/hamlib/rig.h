@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.121 2007-02-28 08:52:49 mardigras Exp $
+ *	$Id: rig.h,v 1.122 2007-08-18 12:55:46 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -605,6 +605,8 @@ enum rig_level_e {
 	RIG_LEVEL_VOXGAIN =	(1<<21),/*!< VOX gain level, arg float [0.0 .. 1.0] */
 	RIG_LEVEL_VOXDELAY =  RIG_LEVEL_VOX,	/*!< VOX delay, arg int (tenth of seconds) */
 	RIG_LEVEL_ANTIVOX =	(1<<22),/*!< anti-VOX level, arg float [0.0 .. 1.0] */
+	RIG_LEVEL_SLOPE_LOW = (1<<23),/*!<Slope tune, low frequency cut, */
+	RIG_LEVEL_SLOPE_HIGH = (1<<24),/*!<Slope tune, high frequency cut, */
 	//RIG_LEVEL_LINEOUT =	(1<<23),/*!< Lineout Volume, arg float [0.0 .. 1.0] */
 
 		/*!< These ones are not settable */
@@ -612,7 +614,7 @@ enum rig_level_e {
 	RIG_LEVEL_SQLSTAT =	(1<<27),/*!< SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
 	RIG_LEVEL_SWR =		(1<<28),/*!< SWR, arg float [0.0..infinite] */
 	RIG_LEVEL_ALC =		(1<<29),/*!< ALC, arg float */
-	RIG_LEVEL_STRENGTH =	(1<<30) /*!< Effective (calibrated) signal strength relative to S9, arg int (dB) */
+	RIG_LEVEL_STRENGTH =(1<<30) /*!< Effective (calibrated) signal strength relative to S9, arg int (dB) */
 	/*RIG_LEVEL_BWC =		(1<<31)*/ /*!< Bandwidth Control, arg int (Hz) */
 };
 
@@ -733,8 +735,8 @@ typedef enum {
 	RIG_MODE_FAX =          (1<<15),/*!< Facsimile Mode */
 	RIG_MODE_SAM =          (1<<16),/*!< Synchronous AM double sideband */
 	RIG_MODE_SAL =          (1<<17),/*!< Synchronous AM lower sideband */
-	RIG_MODE_SAH =          (1<<18) /*!< Synchronous AM upper (higher) sideband */
-
+	RIG_MODE_SAH =          (1<<18), /*!< Synchronous AM upper (higher) sideband */
+	RIG_MODE_DSB =			(1<<19) /*!< Double sideband suppressed carrier */
 } rmode_t;
 
 /** \brief macro for backends, no to be used by rig_set_mode et al. */

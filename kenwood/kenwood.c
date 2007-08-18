@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.93 2006-04-10 18:00:38 pa4tu Exp $
+ *	$Id: kenwood.c,v 1.94 2007-08-18 12:55:46 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -167,7 +167,7 @@ transaction_write:
         return RIG_OK;  /* don't want a reply */
     }
 
-    memset(data,0,*datasize);
+    memset(data,0,(*datasize)-1);
     retval = read_string(&rs->rigport, data, *datasize, cmdtrm, strlen(cmdtrm));
     if (retval < 0) {
         if (retry_read++ < rig->state.rigport.retry)
@@ -626,6 +626,22 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 				level_len = sprintf(levelbuf, "RA00;");
 		break;
 
+	case RIG_LEVEL_SLOPE_HIGH:
+		if(val.i>20 || val.i < 0)
+			return -RIG_EINVAL;
+		ack_len=0;
+		level_len = sprintf(levelbuf,"SH%02d;",(val.i));
+		return  kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+		break;
+		
+	case RIG_LEVEL_SLOPE_LOW:
+			if(val.i>20 || val.i < 0)
+			return -RIG_EINVAL;
+		ack_len=0;
+		level_len = sprintf(levelbuf,"SL%02d;",(val.i));
+		return  kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+		break;
+		
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
 		return -RIG_EINVAL;
@@ -701,7 +717,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 		/* Frontend expects:  -54 = S0, 0 = S9  */
 		if (level==RIG_LEVEL_STRENGTH)
-			val->i = (val->i * 4) - 54;
+			val->i = (val->i * 4) - 54; // There is a better way of doing this with a calibration table.  See ts850.c.
 		break;
 
 	case RIG_LEVEL_ATT:
@@ -754,7 +770,24 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		else if (agclevel < 170) val->i = 2;
 		else if (agclevel <= 255) val->i = 3;
 		return ret;
-
+	case RIG_LEVEL_SLOPE_LOW:
+		lvl_len = 50;
+		retval = kenwood_transaction (rig, "SL;", 3, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+		lvlbuf[4]='\0';
+		val->i=atoi(&lvlbuf[2]);
+		break;
+		
+	case RIG_LEVEL_SLOPE_HIGH:
+		lvl_len = 50;
+		retval = kenwood_transaction (rig, "SH;", 3, lvlbuf, &lvl_len);
+		if (retval != RIG_OK)
+			return retval;
+		lvlbuf[4]='\0';
+		val->i=atoi(&lvlbuf[2]);
+		break;
+		
 	case RIG_LEVEL_PREAMP:
 	case RIG_LEVEL_IF:
 	case RIG_LEVEL_APF:
@@ -832,7 +865,7 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	case RIG_FUNC_LOCK:
 		fct_len = sprintf(fctbuf,"LK%c;", (0==status)?'0':'1');
 		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
-
+		
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
 		return -RIG_EINVAL;
