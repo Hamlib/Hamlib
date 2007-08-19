@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.41 2006-11-02 15:19:58 aa6e Exp $
+ *	$Id: misc.c,v 1.42 2007-08-19 08:26:27 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -443,6 +443,8 @@ static struct {
 	{ RIG_LEVEL_METER, "METER" },
 	{ RIG_LEVEL_VOXGAIN, "VOXGAIN" },
 	{ RIG_LEVEL_ANTIVOX, "ANTIVOX" },
+	{ RIG_LEVEL_SLOPE_LOW, "SLOPE_LOW" },
+	{ RIG_LEVEL_SLOPE_HIGH, "SLOPE_HIGH" },
 	{ RIG_LEVEL_RAWSTR, "RAWSTR" },
 	{ RIG_LEVEL_SWR, "SWR" },
 	{ RIG_LEVEL_ALC, "ALC" },
