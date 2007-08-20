@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.15 2006-02-26 19:23:31 fillods Exp $
+ *	$Id: ts790.c,v 1.16 2007-08-20 17:26:25 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,8 +29,17 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 
+/*
+ * modes in use by the "MD" command
+ */
+#define MD_NONE	'0'
+#define MD_LSB	'1'
+#define MD_USB	'2'
+#define MD_CW	'3'
+#define MD_FM	'4'
+#define MD_CWR	'7'
 
-#define TS790_ALL_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
+#define TS790_ALL_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM)
 #define TS790_HI_MODES (RIG_MODE_CW|RIG_MODE_FM)
 #define TS790_LO_MODES (RIG_MODE_SSB)
 
@@ -42,6 +51,76 @@
 #define TS790_VFO (RIG_VFO_A|RIG_VFO_B)
 
 #define TS790_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+/*
+ * Function definitions below
+ */
+static int 
+ts790_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+  char infobuf[50];
+  size_t info_len;
+  int retval;
+
+  info_len = 50;
+  retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+  if (retval != RIG_OK)
+  return retval;
+
+  if (info_len != 38 || infobuf[1] != 'F') {
+    rig_debug(RIG_DEBUG_ERR,"ts790_get_mode: wrong answer len=%d\n",
+      info_len);
+    return -RIG_ERJCTED;
+  }
+
+  switch (infobuf[29]) {
+    case MD_CW:		*mode = RIG_MODE_CW; break;
+    case MD_USB:	*mode = RIG_MODE_USB; break;
+    case MD_LSB:	*mode = RIG_MODE_LSB; break;
+    case MD_FM:		*mode = RIG_MODE_FM; break;
+    case MD_CWR:	*mode = RIG_MODE_CWR; break;
+    case MD_NONE:	*mode = RIG_MODE_NONE; break;
+    default:
+      rig_debug(RIG_DEBUG_ERR,"ts790_get_mode: "
+	"unsupported mode '%c'\n", infobuf[29]);
+    return -RIG_EINVAL;
+  }
+
+  /* this rig does not have a command for reading IF bandwidth */
+  *width = rig_passband_normal(rig, *mode);
+
+  return RIG_OK;
+}
+
+static int 
+ts790_get_vfo(RIG *rig, vfo_t *vfo)
+{
+  char infobuf[50];
+  size_t info_len;
+  int retval;
+
+  info_len = 50;
+  retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+  if (retval != RIG_OK)
+  return retval;
+
+  if (info_len != 38 || infobuf[1] != 'F') {
+    rig_debug(RIG_DEBUG_ERR,"ts790_get_vfo: wrong answer len=%d\n",
+      info_len);
+    return -RIG_ERJCTED;
+  }
+
+  switch (infobuf[30]) {
+    case '0': *vfo = RIG_VFO_A; break;
+    case '1': *vfo = RIG_VFO_B; break;
+    case '2': *vfo = RIG_VFO_MEM; break;
+    default: 
+      rig_debug(RIG_DEBUG_ERR,"ts790_get_vfo: unsupported VFO %c\n", 
+        infobuf[30]);
+      return -RIG_EPROTO;
+  }
+  return RIG_OK;
+}
+
 
 static const struct kenwood_priv_caps  ts790_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
@@ -59,7 +138,7 @@ const struct rig_caps ts790_caps = {
 .rig_model =  RIG_MODEL_TS790,
 .model_name = "TS-790",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -160,7 +239,7 @@ const struct rig_caps ts790_caps = {
         /* mode/filter list, remember: order matters! */
 .filters =  {
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.1)},
-		{RIG_MODE_CW, Hz(500)},
+		{RIG_MODE_CWR, Hz(500)},
 		{RIG_MODE_FM, kHz(12)},
 		RIG_FLT_END,
 	},
@@ -171,9 +250,9 @@ const struct rig_caps ts790_caps = {
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
+.get_mode =  ts790_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo,
+.get_vfo =  ts790_get_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,
@@ -192,7 +271,4 @@ const struct rig_caps ts790_caps = {
 
 };
 
-/*
- * Function definitions below
- */
 
