@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.24 2007-08-18 20:04:56 aa6e Exp $
+*	$Id: ts850.c,v 1.25 2007-08-30 17:12:52 y32kn Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -600,23 +600,6 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		val->i=(val->i-8)*50+800;
 		break;
 		
-		case RIG_LEVEL_SLOPE_LOW:
-			lvl_len = 50;
-		retval = kenwood_transaction (rig, "SL;", 3, lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-		lvlbuf[4]='\0';
-		val->i=atoi(&lvlbuf[2]);
-		break;
-		
-		case RIG_LEVEL_SLOPE_HIGH:
-			lvl_len = 50;
-		retval = kenwood_transaction (rig, "SH;", 3, lvlbuf, &lvl_len);
-		if (retval != RIG_OK)
-			return retval;
-		lvlbuf[4]='\0';
-		val->i=atoi(&lvlbuf[2]);
-		break;
 		
 		default:
 			return kenwood_get_level (rig, vfo, level, val);
@@ -639,21 +622,6 @@ int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return  kenwood_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
 		break;
 		
-		case RIG_LEVEL_SLOPE_HIGH:
-			if(val.i>20 || val.i < 0)
-			return -RIG_EINVAL;
-		ack_len=0;
-		lvl_len = sprintf(lvlbuf,"SH%02d;",(val.i));
-		return  kenwood_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
-		break;
-		
-		case RIG_LEVEL_SLOPE_LOW:
-			if(val.i>20 || val.i < 0)
-			return -RIG_EINVAL;
-		ack_len=0;
-		lvl_len = sprintf(lvlbuf,"SL%02d;",(val.i));
-		return  kenwood_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
-		break;
 		
 		default:
 			return kenwood_set_level (rig, vfo, level, val);
