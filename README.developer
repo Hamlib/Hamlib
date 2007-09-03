@@ -148,6 +148,7 @@ Optional:
 * python devel
 * libxml2 devel					# xml2-config --version
 * libgd devel
+* libusb devel
 * RPC devel (libc-dev)				# rpcgen --version
 
 Documentation:
