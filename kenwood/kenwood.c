@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.94 2007-08-18 12:55:46 n0nb Exp $
+ *	$Id: kenwood.c,v 1.95 2007-09-04 15:01:23 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -167,7 +167,7 @@ transaction_write:
         return RIG_OK;  /* don't want a reply */
     }
 
-    memset(data,0,(*datasize)-1);
+    memset(data,0,*datasize);
     retval = read_string(&rs->rigport, data, *datasize, cmdtrm, strlen(cmdtrm));
     if (retval < 0) {
         if (retry_read++ < rig->state.rigport.retry)
