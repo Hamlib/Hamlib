@@ -2,7 +2,7 @@
  *  Hamlib WiNRADiO backend - WR-G303 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: g303.c,v 1.4 2004-08-23 19:48:41 fillods Exp $
+ *	$Id: g303.c,v 1.5 2007-09-18 19:34:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -260,12 +260,12 @@ int g3_cleanup(RIG *rig)
 	if (!rig)
 		return -RIG_EINVAL;
 
+	/* Clean up the dll access */
+	FreeLibrary(priv->dll);
+
 	if (rig->state.priv)
 		free(rig->state.priv);
 	rig->state.priv = NULL;
-
-	/* Clean up the dll access */
-	FreeLibrary(priv->dll);
 
 	return RIG_OK;
 }

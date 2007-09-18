@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Digital World Traveller DRM receiver description
  *  Copyright (c) 2005 by Stephane Fillod
  *
- *	$Id: dwt.c,v 1.2 2005-11-01 23:40:35 fillods Exp $
+ *	$Id: dwt.c,v 1.3 2007-09-18 19:34:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -322,12 +322,12 @@ int dwtdll_cleanup(RIG *rig)
 	if (!rig)
 		return -RIG_EINVAL;
 
+	/* Clean up the dll access */
+	FreeLibrary(priv->dll);
+
 	if (rig->state.priv)
 		free(rig->state.priv);
 	rig->state.priv = NULL;
-
-	/* Clean up the dll access */
-	FreeLibrary(priv->dll);
 
 	return RIG_OK;
 }
