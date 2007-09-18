@@ -2,7 +2,7 @@
  *  Hamlib AOR backend - AR8600 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar8600.c,v 1.1 2005-04-20 14:48:49 fillods Exp $
+ *	$Id: ar8600.c,v 1.2 2007-09-18 19:31:56 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -82,7 +82,7 @@ const struct rig_caps ar8600_caps = {
 .mfg_name =  "AOR",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
