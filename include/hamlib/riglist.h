@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.60 2006-11-27 00:23:09 n0nb Exp $
+ *	$Id: riglist.h,v 1.61 2007-09-18 19:33:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -348,6 +348,7 @@
 #define RIG_MODEL_TT516 RIG_MAKE_MODEL(RIG_TENTEC, 7)	/* Argonaut V */
 #define RIG_MODEL_TT565 RIG_MAKE_MODEL(RIG_TENTEC, 8)	/* Orion */
 #define RIG_MODEL_TT585 RIG_MAKE_MODEL(RIG_TENTEC, 9)	/* Paragon */
+#define RIG_MODEL_DELTAII RIG_MAKE_MODEL(RIG_TENTEC, 10)
 
 	/*
 	 * Alinco
@@ -428,6 +429,8 @@
 #define RIG_MODEL_DWT RIG_MAKE_MODEL(RIG_KIT, 3)
 #define RIG_MODEL_USRP0 RIG_MAKE_MODEL(RIG_KIT, 4)	/* prototype */
 #define RIG_MODEL_USRP RIG_MAKE_MODEL(RIG_KIT, 5)
+#define RIG_MODEL_DDS60 RIG_MAKE_MODEL(RIG_KIT, 6)
+#define RIG_MODEL_ELEKTOR507 RIG_MAKE_MODEL(RIG_KIT, 7)	/* Elektor SDR USB */
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
