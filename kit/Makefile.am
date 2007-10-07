@@ -2,7 +2,7 @@ AM_CFLAGS = @LIBUSB_CFLAGS@
 AM_CXXFLAGS = @USRP_CFLAGS@
 
 # FIXME: compile usrp only if CXX available
-KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c usrp_impl.cc
+KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c usrp_impl.cc elektor507.c
 
 lib_LTLIBRARIES = hamlib-kit.la
 hamlib_kit_la_SOURCES = $(KITSRCLIST) kit.c
