@@ -1,5 +1,6 @@
-hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
-and (C) Stephane Fillod 2000-2006
+Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+	 (C) Stephane Fillod 2000-2007
+         (C) The Hamlib Group 2000-2007
 
 The purpose of this project is to provide stable, flexible,
 shared libraries that enable quicker development of Amateur
