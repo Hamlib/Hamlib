@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - main header
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: kit.h,v 1.4 2007-10-07 20:31:24 fillods Exp $
+ *	$Id: kit.h,v 1.5 2007-10-23 21:56:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,5 +31,6 @@ extern const struct rig_caps drt1_caps;
 extern const struct rig_caps dwt_caps;
 extern const struct rig_caps usrp0_caps;
 extern const struct rig_caps usrp_caps;
+extern const struct rig_caps dds60_caps;
 
 #endif /* _KIT_H */

@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - main file
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: kit.c,v 1.5 2007-10-07 20:31:24 fillods Exp $
+ *	$Id: kit.c,v 1.6 2007-10-23 21:56:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,6 +43,7 @@ DECLARE_INITRIG_BACKEND(kit)
 
 	rig_register(&elektor304_caps);
 	rig_register(&drt1_caps);
+	rig_register(&dds60_caps);
 
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H)) || defined(_WIN32)
 	rig_register(&dwt_caps);
