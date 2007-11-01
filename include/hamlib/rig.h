@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.122 2007-08-18 12:55:46 n0nb Exp $
+ *	$Id: rig.h,v 1.123 2007-11-01 01:13:30 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -269,7 +269,7 @@ typedef double freq_t;
 
 /**
  * \brief Short frequency type
- * Frequency on 31bits, suitable for offsets, shifts, etc..
+ * Frequency in Hz restricted to 31bits, suitable for offsets, shifts, etc..
  */
 typedef signed long shortfreq_t;
 
@@ -289,15 +289,16 @@ typedef signed long shortfreq_t;
 /**
  * \brief VFO definition
  *
- * There's several way of using a vfo_t. For most cases, using RIG_VFO_A,
+ * There are several ways of using a vfo_t. For most cases, using RIG_VFO_A,
  * RIG_VFO_B, RIG_VFO_CURR, etc., as opaque macros should suffice.
  *
  * Strictly speaking a VFO is Variable Frequency Oscillator.
- * Here, it is referred as a tunable channel, from the radio operator
- * point of view. The channel can be designated individualy by its real 
- * number, or using an alias.
- * Aliases may, or may not be honored by backend, and are defined using
- * high significant bits, like RIG_VFO_MEM, RIG_VFO_MAIN, etc.
+ * Here, it is referred as a tunable channel, from the radio operator's
+ * point of view. The channel can be designated individually by its real
+ * number, or by using an alias.
+ *
+ * Aliases may or may not be honored by a backend and are defined using
+ * high significant bits, i.e. RIG_VFO_MEM, RIG_VFO_MAIN, etc.
  *
  */
 typedef int vfo_t;
@@ -423,7 +424,8 @@ typedef enum {
 
 /**
  * \brief VFO operation
- * A VFO operation is an action on a VFO (or memory).
+ *
+ * A VFO operation is an action on a VFO (or tunable memory).
  * The difference with a function is that an action has no on/off
  * status, it is performed at once.
  *
@@ -466,14 +468,14 @@ typedef enum {
 } scan_t;
 
 /**
- * configuration token
+ * \brief configuration token
  */
 typedef long token_t;
 
 #define RIG_CONF_END 0
 
 /**
- * \brief  parameter types
+ * \brief parameter types
  *
  *   Used with configuration, parameter and extra-parm tables.
  * 
@@ -484,7 +486,7 @@ typedef long token_t;
  *   CHECKBUTTON: val.i 0/1
  */
 
-/* strongly inspired from soundmedem. Thanks Thomas! */
+/* strongly inspired from soundmodem. Thanks Thomas! */
 
 enum rig_conf_e {
 	RIG_CONF_STRING,	/*!<	String type */
@@ -518,6 +520,7 @@ struct confparams {
 };
 
 /** \brief Announce
+ *
  * Designate optional speech synthesizer.
  */
 typedef enum {
@@ -531,7 +534,9 @@ typedef enum {
 } ann_t;
 
 
-/* Antenna number */
+/**
+ * \brief Antenna number
+ */
 typedef int ant_t;
 
 #define RIG_ANT_NONE	0
@@ -739,10 +744,10 @@ typedef enum {
 	RIG_MODE_DSB =			(1<<19) /*!< Double sideband suppressed carrier */
 } rmode_t;
 
-/** \brief macro for backends, no to be used by rig_set_mode et al. */
+/** \brief macro for backends, not to be used by rig_set_mode et al. */
 #define RIG_MODE_SSB  	(RIG_MODE_USB|RIG_MODE_LSB)
 
-/** \brief macro for backends, no to be used by rig_set_mode et al. */
+/** \brief macro for backends, not to be used by rig_set_mode et al. */
 #define RIG_MODE_ECSS   (RIG_MODE_ECSSUSB|RIG_MODE_ECSSLSB)
 
 
@@ -752,7 +757,7 @@ typedef enum {
 /**
  * \brief Frequency range
  *
- * Put together a bunch of this struct in an array to define
+ * Put together a group of this struct in an array to define
  * what frequencies your rig has access to.
  */
 typedef struct freq_range_list {
@@ -777,7 +782,7 @@ typedef struct freq_range_list {
  *
  * Lists the tuning steps available for each mode.
  *
- * If in the list a ts field has RIG_TS_ANY value,
+ * If a ts field in the list has RIG_TS_ANY value,
  * this means the rig allows its tuning step to be
  * set to any value ranging from the lowest to the
  * highest (if any) value in the list for that mode.
@@ -814,7 +819,7 @@ struct tuning_step_list {
  * Note: if there's no lower width or upper width, then narrow or
  * respectively wide passband is equal to the default normal passband.
  *
- * If in the list a width field has RIG_FLT_ANY value,
+ * If a width field in the list has RIG_FLT_ANY value,
  * this means the rig allows its passband width to be
  * set to any value ranging from the lowest to the
  * highest value (if any) in the list for that mode.
@@ -901,7 +906,7 @@ typedef struct channel channel_t;
 /**
  * \brief Channel capability definition
  *
- * Definition of the attribute that can be stored/retrieved in/from memory
+ * Definition of the attributes that can be stored/retrieved in/from memory
  */
 struct channel_cap {
   unsigned bank_num:1;		/*!< Bank number */
@@ -1006,7 +1011,7 @@ typedef	struct gran gran_t;
 
 /** \brief Calibration table struct */
 struct cal_table {
-	int size;	/*!< number of plots in the table */
+	int size;		/*!< number of plots in the table */
 	struct {
 		int raw;	/*!< raw (A/D) value, as returned by \a RIG_LEVEL_RAWSTR */
 		int val;	/*!< associated value, basically the measured dB value */
@@ -1017,7 +1022,7 @@ struct cal_table {
  * \brief calibration table type
  *
  * cal_table_t is a data type suited to hold linear calibration.
- * cal_table_t.size tell the number of plot cal_table_t.table contains.
+ * cal_table_t.size tells the number of plots cal_table_t.table contains.
  *
  * If a value is below or equal to cal_table_t.table[0].raw, 
  * rig_raw2val() will return cal_table_t.table[0].val.
@@ -1036,9 +1041,9 @@ typedef int (*confval_cb_t) (RIG *, const struct confparams *, value_t *, rig_pt
 /**
  * \brief Rig data structure.
  *
- * Basic rig type, can store some useful * info about different radios.
+ * Basic rig type, can store some useful info about different radios.
  * Each lib must be able to populate this structure, so we can make
- * useful enquiries about capablilities.
+ * useful inquiries about capabilities.
  *
  * The main idea of this struct is that it will be defined by the backend
  * rig driver, and will remain readonly for the application.
@@ -1059,21 +1064,21 @@ struct rig_caps {
   const char *copyright;	/*!< Copyright info. */
   enum rig_status_e status;	/*!< Driver status. */
 
-  int rig_type;			/*!< Rotator type. */
+  int rig_type;			/*!< Rig type. */
   ptt_type_t ptt_type;		/*!< Type of the PTT port. */
   dcd_type_t dcd_type;		/*!< Type of the DCD port. */
   rig_port_t port_type;		/*!< Type of communication port. */
 
-  int serial_rate_min;		/*!< Minimal serial speed. */
-  int serial_rate_max;		/*!< Maximal serial speed. */
+  int serial_rate_min;		/*!< Minimum serial speed. */
+  int serial_rate_max;		/*!< Maximum serial speed. */
   int serial_data_bits;		/*!< Number of data bits. */
   int serial_stop_bits;		/*!< Number of stop bits. */
   enum serial_parity_e serial_parity;		/*!< Parity. */
   enum serial_handshake_e serial_handshake;	/*!< Handshake. */
 
-  int write_delay;		/*!< Delay between each byte sent out, in ms */
-  int post_write_delay;		/*!< Delay between each commands send out, in ms */
-  int timeout;			/*!< Timeout, in ms */
+  int write_delay;		/*!< Delay between each byte sent out, in mS */
+  int post_write_delay;		/*!< Delay between each commands send out, in mS */
+  int timeout;			/*!< Timeout, in mS */
   int retry;			/*!< Maximum number of retries if command fails, 0 to disable */
 
   setting_t has_get_func;	/*!< List of get functions */
@@ -1270,10 +1275,10 @@ typedef struct {
   int fd;			/*!< File descriptor */
   void* handle;			/*!< handle for USB */
 
-  int write_delay;		/*!< Delay between each byte sent out, in ms */
-  int post_write_delay;		/*!< Delay between each commands send out, in ms */
+  int write_delay;		/*!< Delay between each byte sent out, in mS */
+  int post_write_delay;		/*!< Delay between each commands send out, in mS */
   struct { int tv_sec,tv_usec; } post_write_date;	/*!< hamlib internal use */
-  int timeout;			/*!< Timeout, in ms */
+  int timeout;			/*!< Timeout, in mS */
   int retry;			/*!< Maximum number of retries, 0 to disable */
 
   char pathname[FILPATHLEN];	/*!< Port pathname */
@@ -1288,7 +1293,7 @@ typedef struct {
 		enum serial_control_state_e dtr_state;	/*!< DTR set state */
 	} serial;		/*!< serial attributes */
 	struct {
-		int pin;	/*!< Parrallel port pin number */
+		int pin;	/*!< Parallel port pin number */
 	} parallel;		/*!< parallel attributes */
 	struct {
 		int vid;	/*!< Vendor ID */
@@ -1391,12 +1396,12 @@ typedef int (*pltune_cb_t) (RIG *, vfo_t, freq_t *, rmode_t *, pbwidth_t *, rig_
  * Some rigs are able to notify the host computer the operator changed 
  * the freq/mode from the front panel, depressed a button, etc.
  *
- * Event from the rig are received through async io,
+ * Events from the rig are received through async io,
  * so callback functions will be called from the SIGIO sighandler context.
  *
- * Don't set these fields directly, use instead rig_set_freq_callback et al.
+ * Don't set these fields directly, use rig_set_freq_callback et. al. instead.
  *
- * Callbacks suit very well event based programming, 
+ * Callbacks suit event based programming very well, 
  * really appropriate in a GUI.
  *
  * \sa rig_set_freq_callback, rig_set_mode_callback, rig_set_vfo_callback,
@@ -1428,7 +1433,7 @@ struct rig_callbacks {
  * \sa rig_init(), rig_caps, rig_state
  */
 struct rig {
-  struct rig_caps *caps;		/*!< Pointer to rig capabilities */
+  struct rig_caps *caps;		/*!< Pointer to rig capabilities (read only) */
   struct rig_state state;		/*!< Rig state */
   struct rig_callbacks callbacks;	/*!< registered event callbacks */
 };

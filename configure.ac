@@ -60,6 +60,9 @@ AC_C_INLINE
 
 LF_SET_WARNINGS
 
+dnl Automake macro for rigmem compilation
+AM_PROG_CC_C_O
+
 dnl Checks for header files.
 AC_HEADER_DIRENT
 AC_HEADER_STDC
