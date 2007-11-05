@@ -2,7 +2,7 @@
  *  Hamlib Interface - calibration routines
  *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
  *
- *		$Id: cal.c,v 1.6 2006-10-15 00:27:51 aa6e Exp $
+ *		$Id: cal.c,v 1.7 2007-11-05 03:48:14 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,13 +53,12 @@
  * rig_raw2val() will return cal_table_t.table[cal_table_t.size-1].val
  */
 
-
 float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 {
 #ifdef WANT_CHEAP_WNO_FP
-	float interpolation;
-#else
 	int interpolation;
+#else
+	float interpolation;
 #endif
 	int i;
 
@@ -91,10 +90,9 @@ float HAMLIB_API rig_raw2val(int rawval, const cal_table_t *cal)
 	return cal->table[i].val - interpolation;
 #else
 	interpolation = ((cal->table[i].raw - rawval) * 
-			 (cal->table[i].val - cal->table[i-1].val)) /
-			  (cal->table[i].raw - cal->table[i-1].raw);
+			 (float)(cal->table[i].val - cal->table[i-1].val)) /
+			  (float)(cal->table[i].raw - cal->table[i-1].raw);
 #endif
-
 	return cal->table[i].val - interpolation;
 }
 
