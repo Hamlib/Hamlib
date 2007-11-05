@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2007 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.19 2007-11-05 03:53:24 aa6e Exp $
+ *	$Id: orion.c,v 1.20 2007-11-05 18:42:48 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -177,6 +177,41 @@ int tt565_cleanup(RIG *rig)
 
 	return RIG_OK;
 }
+
+/**
+ * \param rig
+ * \brief tt565_open routine
+ *
+ * Open the rig - check firmware version issues
+ */
+ int tt565_open(RIG *rig)
+ {
+        int current_size, min_size;
+	cal_table_t cal1 = TT565_STR_CAL_V1, cal2 = TT565_STR_CAL_V2;
+	char *buf;
+
+	/* Detect version 1 or version 2 firmware. V2 is default. */
+	/* The only difference from Hamlib's viewpoint is the S-meter cal table */
+	/* The rig caps size value was set at initialization in orion.h */
+
+	/* Get Orion's Version string (?V command response) */	
+	buf = (char *)tt565_get_info(rig);
+
+	current_size = rig->caps->str_cal.size;
+	if (!strstr(buf, "1.")) {  /* Version 1.xxx ? */
+	    /* Not version 1 -> probably version 2 */
+	    /* Need to be sure we aren't exceeding initialized memory */
+	    min_size = current_size < cal2.size ? current_size : cal2.size;
+	    memcpy(&rig->caps->str_cal, &cal2, sizeof(int)*(2*min_size+1));
+	    }
+        else {
+            /* Version 1 */
+	    min_size = current_size < cal1.size ? current_size : cal1.size;
+            memcpy(&rig->caps->str_cal, &cal1, sizeof(int)*(2*min_size+1));
+            }
+    return RIG_OK;
+    }
+    
 /**
  * \param rig
  * \param vfo RIG_VFO_MAIN or RIG_VFO_SUB
@@ -775,16 +810,12 @@ int tt565_reset(RIG *rig, reset_t reset)
     
     reset_len = sizeof(reset_buf);
 	retval = tt565_transaction (rig, "XX" EOM, 3, reset_buf, &reset_len);
-	if (retval != RIG_OK) {
-	    tt565_get_info(rig); /* be sure we have right S_meter cal for firmware */
-		return retval;
-		}
+	if (retval != RIG_OK) return retval;
 	if (!strstr(reset_buf, "ORION START")) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
 					__FUNCTION__, reset_buf);
 		return -RIG_EPROTO;
-	}
-
+        }
 	return RIG_OK;
 }
 
@@ -797,9 +828,8 @@ int tt565_reset(RIG *rig, reset_t reset)
  */
 const char *tt565_get_info(RIG *rig)
 {
-	static char buf[100];	/* FIXME: reentrancy */
-	int firmware_len, retval, firmVersion, current_size, min_size;
-	cal_table_t cal1 = TT565_STR_CAL_V1, cal2 = TT565_STR_CAL_V2;
+	static char buf[TT565_BUFSIZE];	/* FIXME: reentrancy */
+	int firmware_len, retval;
 
 	firmware_len = sizeof(buf);	
 	retval = tt565_transaction (rig, "?V" EOM, 3, buf, &firmware_len);
@@ -809,23 +839,6 @@ const char *tt565_get_info(RIG *rig)
 			return NULL;
 	        }
 	buf[firmware_len] = '\0';
-	
-	/* Detect version 1 or version 2 firmware. V2 is default. */
-	/* The only difference from Hamlib's viewpoint is the S-meter cal table */
-	/* The rig caps size value was set at initialization in orion.h */
-	current_size = rig->caps->str_cal.size;
-	if (!strstr(buf, "1.")) {  /* version 1.xxx ? */
-	    firmVersion = 2;
-	    /* Need to be sure we aren't exceeding initialized memory */
-	    min_size = current_size < cal2.size ? current_size : cal2.size;
-	    memcpy(&rig->caps->str_cal, &cal2, sizeof(int)*(2*min_size+1));
-	    }
-    else {
-        firmVersion = 1;
-	    min_size = current_size < cal1.size ? current_size : cal1.size;
-        memcpy(&rig->caps->str_cal, &cal1, sizeof(int)*(2*min_size+1));
-        }
-    printf ("Got firmware = %d\n",firmVersion);
 	return buf;
     }
 
@@ -1012,7 +1025,30 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  * \param val Receives level's value, must != NULL
  * \brief Get the current value of an Orion "level"
  *
- * \sa tt565_set_level
+ * \sa tt565_get_level
+ * Supported rx levels:
+ * \n  -RIG_LEVEL_SWR
+ * \n  -RIG_LEVEL_RAWSTR, int  raw rx signal strength (rig units)
+ * \n  -RIG_LEVEL_RFPOWER
+ * \n  -RIG_LEVEL_AGC
+ * \n  -RIG_LEVEL_AF
+ * \n  -RIG_LEVEL_IF
+ * \n  -RIG_LEVEL_RF
+ * \n  -RIG_LEVEL_ATT
+ * \n  -RIG_LEVEL_PREAMP
+ * \n  -RIG_LEVEL_SQL
+ * \n  -RIG_LEVEL_MICGAIN
+ * \n  -RIG_LEVEL_COMP
+ * \n  -RIG_LEVEL_CWPITCH
+ * \n  -RIG_LEVEL_KEYSPED
+ * \n  -RIG_LEVEL_NR
+ * \n  -RIG_LEVEL_VOX
+ * \n  -RIG_LEVEL_VOXGAIN
+ * \n  -RIG_LEVEL_ANTIVOX
+ * 
+ * (RIG_LEVEL_STRENGTH, int calibrated signal strength (dB, S9 = 0) is
+ * handled in settings.c)
+
  */
 int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {

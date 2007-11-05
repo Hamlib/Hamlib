@@ -1,9 +1,7 @@
 Orion (TT 565, 565AT) and Orion II (TT 566, 566AT)
-    	V1 and V2 firmware are autorecognized in the get_info routine.
-    	Note that user program needs to call _get_info or _reset to be
-	sure that firmware is autodetected! Version 2.xxx is now the
-	default for Orion.
-    	(4 November 2007)
+    V1 and V2 firmware are autorecognized in the tt565_open routine.
+    Version 2.xxx is now the default for Orion.
+    (5 November 2007)
     
 	The S-meter behavior has changed for Version 2.xxx of
 	firmware for Orion.  Orion II presumably also has a different

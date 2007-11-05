@@ -47,6 +47,7 @@
 }
 
 static int tt565_init(RIG *rig);
+static int tt565_open(RIG *rig);
 static int tt565_cleanup(RIG *rig);
 static int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -281,6 +282,7 @@ const struct rig_caps tt565_caps = {
 
 .rig_init =  tt565_init,
 .rig_cleanup =  tt565_cleanup,
+.rig_open = tt565_open,
 
 .set_freq =  tt565_set_freq,
 .get_freq =  tt565_get_freq,
