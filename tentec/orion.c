@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2007 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.18 2007-03-02 16:29:11 aa6e Exp $
+ *	$Id: orion.c,v 1.19 2007-11-05 03:53:24 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,9 @@
  * Support LEVEL_NR as Orion NB setting (firmware bug), FUNC_NB -> NB=0,4
  * Add get_, set_ant (ignores rx only ant)
  * Use binary mode for VFO read / write, for speed.
+ * Add RIG_LEVEL_STRENGTH capability (should have been there all along)
+ * Implement auto-detect of firmware for S-meter cal, etc.
+ * Fixed bug in tt565_reset (to send "XX" instead of "X")
  */
 
 /* Known issues & to-do list:
@@ -53,7 +56,7 @@
  * \brief Backend for Tentec Orion 565 / 566
  *
  * This documentation is experimental, to see how we can do it for the backends.
- * \n This backend tested mostly with firmware version 1.372
+ * \n This backend tested mostly with firmware versions 1.372 and 2.062a
  */
 
 #ifdef HAVE_CONFIG_H
@@ -110,31 +113,33 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	data_len_init = (data && data_len) ? *data_len : 0;
 	/* Allow transaction re-tries according to capabilities. */
 	for (itry=1; itry < rig->caps->retry; itry++) {	
-          rs = &rig->state;
+        rs = &rig->state;
 
-          serial_flush(&rs->rigport);
+        serial_flush(&rs->rigport);
 
-          retval = write_block(&rs->rigport, cmd, cmd_len);
-          if (retval != RIG_OK)
-                        return retval;
+        retval = write_block(&rs->rigport, cmd, cmd_len);
+        if (retval != RIG_OK)
+                return retval;
 
-          /* no data expected, TODO: flush input? */
-          if (!data || !data_len)
-                        return 0;	/* normal exit if no read */
+        /* no data expected, TODO: flush input? */    
+        if (!data || !data_len)
+                return 0;	/* normal exit if no read */
 #ifdef TT565_TIME
-	  ft1 = tt565_timenow();
+	    ft1 = tt565_timenow();
 #endif
-	  *data_len = data_len_init;	/* restore orig. buffer length */
-          *data_len = read_string(&rs->rigport, data, *data_len, 
-		EOM, strlen(EOM));
-	  if (*data_len > 0) return RIG_OK; /* normal exit if reading */
+	    *data_len = data_len_init;	/* restore orig. buffer length */
+        *data_len = read_string(&rs->rigport, data, *data_len, 
+		        EOM, strlen(EOM));
+	    if (*data_len > 0) return RIG_OK; /* normal exit if reading */
 #ifdef TT565_TIME
-	  ft2 = tt565_timenow();
-          if (*data_len == -RIG_ETIMEOUT)
-	    rig_debug(RIG_DEBUG_ERR,"Timeout %d: Elapsed = %f secs.\n", itry, ft2-ft1);
-	  else
-	    rig_debug(RIG_DEBUG_ERR,"Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
-		*data_len, itry, ft2-ft1);
+	    ft2 = tt565_timenow();
+        if (*data_len == -RIG_ETIMEOUT)
+	    rig_debug(RIG_DEBUG_ERR,"Timeout %d: Elapsed = %f secs.\n", 
+	        itry, ft2-ft1);
+	    else
+	        rig_debug(RIG_DEBUG_ERR,
+	            "Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
+		        *data_len, itry, ft2-ft1);
 #endif 
 	}
         return -RIG_ETIMEOUT;
@@ -766,11 +771,14 @@ int tt565_reset(RIG *rig, reset_t reset)
 	int retval, reset_len;
 	char reset_buf[TT565_BUFSIZE];
 
-	reset_len = sizeof(reset_buf);	
-	retval = tt565_transaction (rig, "X" EOM, 2, reset_buf, &reset_len);
-	if (retval != RIG_OK)
+    if (reset == RIG_RESET_NONE) return RIG_OK; /* No operation requested. */
+    
+    reset_len = sizeof(reset_buf);
+	retval = tt565_transaction (rig, "XX" EOM, 3, reset_buf, &reset_len);
+	if (retval != RIG_OK) {
+	    tt565_get_info(rig); /* be sure we have right S_meter cal for firmware */
 		return retval;
-
+		}
 	if (!strstr(reset_buf, "ORION START")) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
 					__FUNCTION__, reset_buf);
@@ -790,7 +798,8 @@ int tt565_reset(RIG *rig, reset_t reset)
 const char *tt565_get_info(RIG *rig)
 {
 	static char buf[100];	/* FIXME: reentrancy */
-	int firmware_len, retval;
+	int firmware_len, retval, firmVersion, current_size, min_size;
+	cal_table_t cal1 = TT565_STR_CAL_V1, cal2 = TT565_STR_CAL_V2;
 
 	firmware_len = sizeof(buf);	
 	retval = tt565_transaction (rig, "?V" EOM, 3, buf, &firmware_len);
@@ -798,10 +807,27 @@ const char *tt565_get_info(RIG *rig)
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",
 					__FUNCTION__, firmware_len);
 			return NULL;
-	}
+	        }
 	buf[firmware_len] = '\0';
+	
+	/* Detect version 1 or version 2 firmware. V2 is default. */
+	/* The only difference from Hamlib's viewpoint is the S-meter cal table */
+	/* The rig caps size value was set at initialization in orion.h */
+	current_size = rig->caps->str_cal.size;
+	if (!strstr(buf, "1.")) {  /* version 1.xxx ? */
+	    firmVersion = 2;
+	    /* Need to be sure we aren't exceeding initialized memory */
+	    min_size = current_size < cal2.size ? current_size : cal2.size;
+	    memcpy(&rig->caps->str_cal, &cal2, sizeof(int)*(2*min_size+1));
+	    }
+    else {
+        firmVersion = 1;
+	    min_size = current_size < cal1.size ? current_size : cal1.size;
+        memcpy(&rig->caps->str_cal, &cal1, sizeof(int)*(2*min_size+1));
+        }
+    printf ("Got firmware = %d\n",firmVersion);
 	return buf;
-}
+    }
 
 /**
  * \param rig must != NULL

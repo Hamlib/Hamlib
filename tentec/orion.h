@@ -102,7 +102,8 @@ struct tt565_priv_data {
 				RIG_LEVEL_AF|RIG_LEVEL_AGC| \
 				RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOX|RIG_LEVEL_ANTIVOX| \
 				RIG_LEVEL_COMP|RIG_LEVEL_PREAMP| \
-				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
+				RIG_LEVEL_SWR|RIG_LEVEL_ATT)| \
+				RIG_LEVEL_STRENGTH
 
 /** \brief Orion Tx/Rx Antennas*/
 #define TT565_ANTS (RIG_ANT_1|RIG_ANT_2) 
@@ -130,28 +131,47 @@ struct tt565_priv_data {
  *
  * List format: { hardware units, dB relative to S9}
  *
- * This calibration function is likely to be different
- * for different firmware releases and between the Orion (565) and
- * Orion II (566).  How to handle distinguish these cases?
+ * These alternate tables must be of equal size, because they may be
+ * switched depending on firmware version detection.
  *
- * Checked on one physical unit 3/29/05 (v 1.372 probably) 
+ * Note high end of scale is severely compressed in v1
+ * Table corrected against v 1.372, 11/2007
  */
-#define TT565_STR_CAL { 15,  { \
-		{  10, -45 }, /* S 1.5 min meter indication */ \
+#define TT565_STR_CAL_V1 { 14,  { \
+                {   1, -47 }, /* padding to match lengths with v2 */ \
+		        {  10, -47 }, \
                 {  13, -42 }, \
-                {  18, -36 }, \
-                {  22, -30 }, \
-                {  27, -24 }, \
-                {  30, -18 }, \
-                {  34, -12 }, \
-                {  38,  -6 }, \
-                {  43,   0 }, /* S9 */ \
-                {  48,  10 }, \
-                {  55,  20 }, \
-                {  62,  30 }, \
-                {  70,  40 }, \
-                {  78,  48 }, /* severe dsp quantization error */ \
-                { 101,  65 }, /* at high end of scale */ \
+                {  18, -37 }, \
+                {  22, -32 }, \
+                {  27, -27 }, \
+                {  32, -18 }, \
+                {  37, -11 }, \
+                {  42,  -4 }, \
+                {  47,  -1 }, \
+                {  52,  10 }, \
+                {  57,  20 }, \
+                {  65,  30 }, \
+                {  74,  40 }, \
+        } }
+/**
+ * Calibration for Version 2.062a firmware, from Rigserve project.
+ * Again, this is approximate based on one measurement.
+ */
+#define TT565_STR_CAL_V2 { 14, { \
+                { 10., -48. }, /* S1 = min. indication */ \
+                { 24., -42. }, \
+                { 38., -36. }, \
+                { 47., -30. }, \
+                { 61., -24. }, \
+                { 70., -18. }, \
+                { 79., -12. }, \
+                { 84.,  -6. }, \
+                { 94.,   0. }, /* S9 */ \
+                { 103., 10. }, \
+                { 118., 20. }, \
+                { 134., 30. }, \
+                { 147., 40. }, \
+                { 161., 50. }, \
         } }
 
 #undef TT565_TIME		/* Define to enable time checks */
@@ -291,7 +311,8 @@ const struct rig_caps tt565_caps = {
 .get_ant = tt565_get_ant,
 .set_ant = tt565_set_ant,
 
-.str_cal = TT565_STR_CAL,
+/* V2 is default. S-Meter cal table may be changed if V1 firmware detected. */
+.str_cal = TT565_STR_CAL_V2,
 };
 
 /*
