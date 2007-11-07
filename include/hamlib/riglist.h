@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.61 2007-09-18 19:33:00 fillods Exp $
+ *	$Id: riglist.h,v 1.62 2007-11-07 18:38:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -410,6 +410,7 @@
 #define RIG_BACKEND_FLEXRADIO "flexradio"
 #define RIG_MODEL_SDR1000 RIG_MAKE_MODEL(RIG_FLEXRADIO, 1)
 #define RIG_MODEL_SDR1000RFE RIG_MAKE_MODEL(RIG_FLEXRADIO, 2)
+#define RIG_MODEL_DTTSP RIG_MAKE_MODEL(RIG_FLEXRADIO, 3)
 
 
 	/*
