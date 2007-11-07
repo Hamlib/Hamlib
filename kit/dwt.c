@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Digital World Traveller DRM receiver description
  *  Copyright (c) 2005 by Stephane Fillod
  *
- *	$Id: dwt.c,v 1.3 2007-09-18 19:34:43 fillods Exp $
+ *	$Id: dwt.c,v 1.4 2007-11-07 19:11:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -149,7 +149,7 @@ const struct rig_caps dwt_caps = {
 .mfg_name =  "Coding Technologies",
 .version =  "0.1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_PCRECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
