@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Elektor SDR USB (5/07) receiver description
  *  Copyright (c) 2007 by Stephane Fillod
  *
- *	$Id: elektor507.c,v 1.1 2007-10-07 20:30:40 fillods Exp $
+ *	$Id: elektor507.c,v 1.2 2007-11-07 19:26:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -223,6 +223,11 @@ int elektor507_init(RIG *rig)
 	priv->osc_freq = OSCFREQ;
 	priv->ant = ANT_AUTO;
 
+	/* DIV1N set to safe default */
+	priv->Div1N = 8;
+	priv->P = 8;
+	priv->Q = 2;
+
 	extra_priv = &priv->extra_priv;
 
 	/* Try to load required dll */
@@ -344,6 +349,11 @@ int elektor507_init(RIG *rig)
 	priv->xtal_cal = XTAL_CAL;
 	priv->osc_freq = OSCFREQ;
 	priv->ant = ANT_AUTO;
+
+	/* DIV1N set to safe default */
+	priv->Div1N = 8;
+	priv->P = 8;
+	priv->Q = 2;
 
 	rp->parm.usb.vid = USB_VID_FTDI;
 	rp->parm.usb.pid = USB_PID_FTDI_FT232;
@@ -628,13 +638,14 @@ int elektor507_open(RIG *rig)
 	 * Setup the CY27EE16ZE PLL.
 	 */
 
-	/* Enable CLOCK3 & CLOCK5 */
-	ret = i2c_write_reg(rig, CY_I2C_RAM_ADR, CLKOE_REG, 0x24);
+	/* Enable only CLOCK5. CLOCK3 will be on demand in set_ant() */
+	ret = i2c_write_reg(rig, CY_I2C_RAM_ADR, CLKOE_REG, 0x20);
 	if (ret != 0)
 		return ret;
 
 	/* DIV1N set to safe default */
-	ret = i2c_write_reg(rig, CY_I2C_RAM_ADR, DIV1_REG, 0x0a);
+	priv->Div1N = 8;
+	ret = i2c_write_reg(rig, CY_I2C_RAM_ADR, DIV1_REG, priv->Div1N);
 	if (ret != 0)
 		return ret;
 
@@ -662,6 +673,8 @@ int elektor507_open(RIG *rig)
 	return RIG_OK;
 }
 
+
+#ifdef ORIG_ALGORITHM
 
 static void find_P_Q(struct elektor507_priv_data *priv, freq_t freq)
 {
@@ -701,14 +714,85 @@ static void find_P_Q(struct elektor507_priv_data *priv, freq_t freq)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n", 
 			__FUNCTION__, VCO);
 }
+#else	/* ORIG_ALGORITHM */
+
+static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
+{
+	double Min, VCO, freq4;
+	int div1n_min, div1n_max;
+	int p, q, div1n, q_max;
+
+	Min = priv->osc_freq;
+	freq4 = freq*4/kHz(1);
+
+#define vco_min 100e3
+#define vco_max 500e3
+	/*
+	 * Q:2..129
+	 * P:8..2055, best 16..1023 (because of Pump)
+	 
+	   For stable operation:
+	   + REF/Qtotal must not fall below 250kHz (
+	   + P*(REF/Qtotal) must not be above 400 MHz or below 100 MHz
+	  */
+#if 1
+	q_max = priv->osc_freq/250;
+#else
+	q_max = 100;
+#endif
+	div1n_min = vco_min/freq4;
+	if (div1n_min < 2)
+		div1n_min = 2;
+	else if (div1n_min > 127)
+		div1n_min = 127;
+	div1n_max = vco_max/freq4;
+	if (div1n_max > 127)
+		div1n_max = 127;
+	else if (div1n_max < 2)
+		div1n_max = 2;
+
+
+	for (div1n = div1n_min; div1n <= div1n_max; div1n++) {
+		// P/Qtotal = FREQ4*DIV1N/REF
+		// (Q*int(r) + frac(r)*Q)/Q 
+		for (q = q_max; q >= 2; q--) {
+			p = q*freq4*div1n/priv->osc_freq;
+#if 1
+			if (p < 16 || p > 1023)
+				continue;
+#endif
+
+			VCO = ((double)priv->osc_freq/q)*p;
+#if 1
+			if (VCO < vco_min || VCO > vco_max)
+				continue;
+#endif
+			if (fabs(freq4-VCO/div1n) < Min) {
+				Min = fabs(freq4 - VCO/div1n);
+				priv->Div1N = div1n;
+				priv->Q = q;
+				priv->P = p;
+			}
+		}
+	}
+
+	VCO = ((double)priv->osc_freq/priv->Q)*priv->P;
+	if (VCO < vco_min || VCO > 400e3)
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n", 
+			__FUNCTION__, VCO);
+}
+
+#endif	/* ORIG_ALGORITHM */
 
 int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 	freq_t final_freq;
-	int Freq;
 	int ret=0;
 	int Mux;
+#ifdef ORIG_ALGORITHM
+	int Freq;
+#endif
 
 	if (priv->ant == ANT_AUTO) {
 		/* Automatically select appropriate filter */
@@ -727,6 +811,7 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	 * Compute PLL parameters
 	 */
 
+#ifdef ORIG_ALGORITHM
 	Freq = freq / kHz(1);
 
 	if (Freq > 19 && Freq < 60)
@@ -773,14 +858,17 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		priv->Div1N = 4;
 		find_P_Q(priv, freq);
 	}
+#else
+	find_P_Q_DIV1N(priv, freq);
+#endif
 
 
 	elektor507_get_freq(rig, vfo, &final_freq);
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: Freq=%d kHz, delta=%d Hz, Div1N=%d, P=%d, Q=%d\n", 
-			__FUNCTION__, Freq, (int)(final_freq-freq), priv->Div1N, priv->P, priv->Q);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: Freq=%.0f kHz, delta=%d Hz, Div1N=%d, P=%d, Q=%d\n", 
+			__FUNCTION__, freq/kHz(1), (int)(final_freq-freq), priv->Div1N, priv->P, priv->Q);
 
 	if ((double)priv->osc_freq/priv->Q < 250)
-		rig_debug(RIG_DEBUG_VERBOSE, 
+		rig_debug(RIG_DEBUG_WARN, 
 				"%s: Unstable parameters for REF/Qtotal=%.1f\n", 
 			__FUNCTION__, (double)priv->osc_freq/priv->Q);
 
@@ -857,7 +945,12 @@ int elektor507_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 	priv->FT_port &= 0x63;	//0,1 = I2C, 2,3,4=MUX, 5,6=Attenuator
 	priv->FT_port |= Mux << 2;
 
+#if 0
 	ret = elektor507_ftdi_write_data(rig, &priv->FT_port, 1);
+#else
+	/* Enable CLOCK3 on demand */
+	ret = i2c_write_reg(rig, CY_I2C_RAM_ADR, CLKOE_REG, 0x20 | (ant==RIG_ANT_3 ? 0x04 : 0));
+#endif
 
 	return (ret != 0) ? -RIG_EIO : RIG_OK;
 }
@@ -870,6 +963,8 @@ static int cy_update_pll(RIG *rig, unsigned char IICadr)
 {
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 	int P0, R40, R41, R42;
+	unsigned char Div1N;
+	unsigned char Clk3_src;
 	int Pump;
 	int ret;
 
@@ -900,7 +995,29 @@ static int cy_update_pll(RIG *rig, unsigned char IICadr)
 	if (ret != 0)
 		return ret;
 
-	ret = i2c_write_reg(rig, IICadr, DIV1_REG, priv->Div1N);
+	switch (priv->Div1N) {
+		case 2:
+			/* Fixed /2 divider option */
+			Clk3_src = 0x80;
+			Div1N = 8;
+			break;
+		case 3:
+			/* Fixed /3 divider option */
+			Clk3_src = 0xc0;
+			Div1N = 6;
+			break;
+		default:
+			Div1N = priv->Div1N;
+			Clk3_src = 0x40;
+	}
+
+	ret = i2c_write_reg(rig, IICadr, DIV1_REG, Div1N);
+	if (ret != 0)
+		return ret;
+
+
+	/* Set 2 low bits of CLKSRC for CLOCK5. DIV1CLK is set already */
+	ret = i2c_write_reg(rig, IICadr, CLKSRC_REG+2, Clk3_src|0x07);
 	if (ret != 0)
 		return ret;
 
