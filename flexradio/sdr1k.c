@@ -1,8 +1,8 @@
 /*
- *  Hamlib Rotator backend - SDR-1000
- *  Copyright (c) 2003-2005 by Stephane Fillod
+ *  Hamlib backend - SDR-1000
+ *  Copyright (c) 2003-2007 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.9 2005-04-03 12:27:14 fillods Exp $
+ *	$Id: sdr1k.c,v 1.10 2007-11-07 19:05:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,7 +35,7 @@
 #include "bandplan.h"
 #include "register.h"
 
-#include "sdr1k.h"
+#include "flexradio.h"
 
 static int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int sdr1k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
@@ -183,17 +183,6 @@ const struct rig_caps sdr1k_rig_caps = {
 
 };
 
-
-/* ************************************************************************* */
-
-DECLARE_INITRIG_BACKEND(flexradio)
-{
-	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
-
-	rig_register(&sdr1k_rig_caps);
-
-	return RIG_OK;
-}
 
 /* ************************************************************************* */
 
