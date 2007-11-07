@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Elektor DRM receiver description
  *  Copyright (c) 2004-2005 by Stephane Fillod
  *
- *	$Id: elektor304.c,v 1.6 2005-04-03 12:27:15 fillods Exp $
+ *	$Id: elektor304.c,v 1.7 2007-11-07 19:12:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -75,7 +75,9 @@ static int elektor304_get_conf(RIG *rig, token_t token, char *val);
  * source code by Burkhard Kainka which can be downloaded from www.b-kainka.de
  * Linux support is based on a code written by Markus März:
  *	http://mitglied.lycos.de/markusmaerz/drm
- * Linux support is available from DReaM project.
+ * Linux support is available from DRM Dream project.
+ *
+ * The DDS is a AD9835.
  *
  * The receiver is controlled via the TX, RTS and DTR pins of the serial port.
  */
@@ -86,7 +88,7 @@ const struct rig_caps elektor304_caps = {
 .mfg_name =  "Elektor",
 .version =  "0.4",
 .copyright =  "GPL",
-.status =  RIG_STATUS_BETA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TUNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -330,7 +332,7 @@ int elektor304_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	/* all frequencies are in Hz */
 	frg = (unsigned long)(((double)freq + priv->if_mix_freq) /
-				priv->osc_freq * 4294967296.0);
+				priv->osc_freq * 4294967296.0 + 0.5);
 
 	fll = frg & 0xff;
 	flh = (frg>>8) & 0xff;
