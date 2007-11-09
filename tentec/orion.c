@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2007 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.20 2007-11-05 18:42:48 aa6e Exp $
+ *	$Id: orion.c,v 1.21 2007-11-09 03:16:32 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,9 +35,11 @@
  * Support LEVEL_NR as Orion NB setting (firmware bug), FUNC_NB -> NB=0,4
  * Add get_, set_ant (ignores rx only ant)
  * Use binary mode for VFO read / write, for speed.
+ * November, 2007:
  * Add RIG_LEVEL_STRENGTH capability (should have been there all along)
  * Implement auto-detect of firmware for S-meter cal, etc.
  * Fixed bug in tt565_reset (to send "XX" instead of "X")
+ * Filtered rig info string to ensure all graphics.
  */
 
 /* Known issues & to-do list:
@@ -65,6 +67,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <sys/time.h>
@@ -829,7 +832,7 @@ int tt565_reset(RIG *rig, reset_t reset)
 const char *tt565_get_info(RIG *rig)
 {
 	static char buf[TT565_BUFSIZE];	/* FIXME: reentrancy */
-	int firmware_len, retval;
+	int firmware_len, retval, i;
 
 	firmware_len = sizeof(buf);	
 	retval = tt565_transaction (rig, "?V" EOM, 3, buf, &firmware_len);
@@ -839,6 +842,10 @@ const char *tt565_get_info(RIG *rig)
 			return NULL;
 	        }
 	buf[firmware_len] = '\0';
+	
+	/* filter out any non-graphic characters */
+	for (i=0; i < strlen(buf); i++)
+	    if (!isgraph(buf[i])) buf[i] = ' ';   // bad chars -> spaces
 	return buf;
     }
 
