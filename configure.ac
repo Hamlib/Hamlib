@@ -76,6 +76,16 @@ AC_CHECK_HEADERS([dev/ppbus/ppi.h dev/ppbus/ppbconf.h])
 dnl Check for Mingw support
 GR_PWIN32
 
+dnl Check whether to compile rigctld (requires pthread)
+RIGCTLD=""
+ACX_PTHREAD([ RIGCTLD="rigctld" ])
+if test x"$acx_pthread_ok" = xyes; then
+	CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+	CXXFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
+fi
+AC_MSG_CHECKING(whether to build rigctld)
+AC_MSG_RESULT($acx_pthread_ok)
+
 AC_SYS_POSIX_TERMIOS()
 
 INCLUDES="${INCLUDES} -I\$(top_srcdir)/include -I\$(top_srcdir)/src -I\$(top_srcdir)/lib"
@@ -459,6 +469,7 @@ AC_SUBST(BINDING_UNINSTALL)
 AC_SUBST(BINDING_LIST)
 AC_SUBST(BINDING_LIB_TARGETS)
 
+AC_SUBST(RIGCTLD)
 AC_SUBST(INCLUDES)
 
 AC_CONFIG_FILES([Makefile
