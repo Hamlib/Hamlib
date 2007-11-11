@@ -4,18 +4,20 @@ DEJATOOL = testfreq testbcd testloc rigctl
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl
+bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl @RIGCTLD@
 man_MANS = rigctl.1 rigmem.1 rigswr.1 rigsmtr.1 rotctl.1
 
-check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs testloc rig_bench @RIGMATRIX@
+check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs \
+		 testloc rig_bench @RIGMATRIX@
 
-rigctl_SOURCES = rigctl.c dumpcaps.c sprintflst.c
+rigctl_SOURCES = rigctl.c rigctl_parse.c dumpcaps.c sprintflst.c
+rigctld_SOURCES = rigctld.c rigctl_parse.c dumpcaps.c sprintflst.c
 rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c
-noinst_HEADERS = sprintflst.h
+noinst_HEADERS = sprintflst.h rigctl_parse.h
 
-EXTRA_PROGRAMS = rigmatrix
+EXTRA_PROGRAMS = rigmatrix rigctld
 
 # all the programs need this
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
@@ -34,6 +36,7 @@ rigswr_LDFLAGS = @BACKENDLNK@
 rigsmtr_LDFLAGS = @BACKENDLNK@
 rigmem_LDFLAGS = @BACKENDLNK@ @XML_LIBS@
 rotctl_LDFLAGS = @ROT_BACKENDLNK@
+rigctld_LDFLAGS = @BACKENDLNK@ @PTHREAD_LIBS@
  
 # temporary hack
 testbcd_LDFLAGS = -dlpreopen self
@@ -55,6 +58,7 @@ rigswr_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rigsmtr_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 rotctl_DEPENDENCIES = $(DEPENDENCIES) @ROT_BACKENDEPS@
 rigmatrix_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
+rigctld_DEPENDENCIES = $(DEPENDENCIES) @BACKENDEPS@
 
 
 
