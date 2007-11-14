@@ -182,6 +182,17 @@ names).
 	make
 	make install
 
+If you don't want the build files cluttering the source directories, do the 
+following in the same parent directory of hamlib:
+
+        mkdir build && cd build
+        sh ../hamlib/autogen.sh  --disable-static --prefix=/usr/local CFLAGS="-g -O0"
+	make
+	make install
+
+This will keep the binary output files seperate from the source tree and aid
+in development.
+
 Once you've run autogen.sh, make sure you've got some recent config.guess and
 config.sub (needed to guess your system type).  Anything of at least year 2004
 should be fine, unless you run some exotic hardware/software system:
@@ -219,7 +230,7 @@ works on your system, especially on non-Linux or non-PC systems. We are trying
 to make Hamlib as portable as possible. Please report problems to our developer
 mailing list, hamlib-developer@lists.sourceforge.net
 
-Patches are welcome too!
+Patches are welcome too!  Just send them to the mailing list.
 
 So far, Hamlib has been tested successfully under the following systems:
 (if your system is not present, please report to the mailing list)
@@ -296,7 +307,8 @@ So far, Hamlib has been tested successfully under the following systems:
    Report to mailing list.
 
 
-5. Basic functions: set_freq and set_mode. set_vfo would be great.
+5. Basic functions: set/get_freq, set/get_mode, and set/get_vfo would be a
+good starting point for your new backend.
 
 
 6. C code examples.
@@ -313,8 +325,9 @@ this. The error checking is removed for simplicity.
    "Build it and they will come ..."
 
    Seriously, I am hoping the API's will provide a solid framework for some
-   cool GUI development. I would like to see some GTK apps that use the hamlib 
-   API's so they can be used by end users as a nice part of the Ham shack.
+   cool GUI development. I would like to see some GTK or Qt apps that use the 
+   hamlib API's so they can be used by end users as a nice part of the Ham 
+   shack.
 
    Starting points (not exhaustive): 
    	gmfsk, gpredict, grig, klog, kontakt, ktrack, xlog, xtlf
@@ -347,14 +360,14 @@ this. The error checking is removed for simplicity.
    * Windows: MinGW/Cygwin, and VisualC++ support for rig.h
 
    Hamlib should also compile with the following common compilers:
-   * gcc-2.9x  (deprecated?)
-   * gcc-3.0 and gcc-3.2+
+   * gcc-2.9x  (most likely deprecated)
+   * gcc-3.0 and gcc-3.2+  (nearly deprecated?)
    * gcc-4.x and newer
    * in shared and static
    * C++ compiler against rig.h, riglist.h, rotator.h
 
    Portability issues to watch:
-   * little vs. big endian systems (use shifts or hadoc functions)
+   * little vs. big endian systems (use shifts or adhoc functions)
    * 64 bit int: avoid them in API
    * printf/scanf of 64bit int: use PRIll and SCNll
    * printf/scanf of freq_t: use PRIfreq and SCNfreq
@@ -377,8 +390,9 @@ this. The error checking is removed for simplicity.
 
    8.4 CVS commit access
 
-   Generally, volunteers get access to sourceforge CVS upon asking
-   because there's some lag between the commit and the anonymous checkout.
+   Generally, volunteers can get access to SourceForge Hamlib CVS upon 
+   asking one of the project administrators.  Sometimes we'll ask you!
+   
    However, before your start commiting, the project admins would like 
    first to have a look at your "style", just to make sure you have grok 
    the Hamlib approach (c.f. previous section on submitting a patch).

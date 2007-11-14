@@ -41,27 +41,33 @@ Pre-requisite:
  
 So here we go:
 
-* snapshots:
+* daily CVS snapshots:
 
-Download the latest snapshot from http://www.hamlib.org/bleeding-edge/
+Download the latest snapshot from http://hamlib.sourceforge.net/bleeding-edge/
 You'll find tar balls with names like hamlib-1.2.6cvs-20061107.tar.gz,
-i.e. a check out made 07 Nov 2006, ready for building.
+i.e. a check out made 07 Nov 2006, ready for building. 
 
-If you cannot afford the cvs checkout, and want a more recent snapshot,
-just ask for it on the hamlib-developer mailing list.
+The advantage of the CVS snapshot is that you won't need as many tools 
+installed to build Hamlib as the work of Autoconf, Automake, and Libtool 
+have already been done.  Most of the other packages listed in README.developer 
+will be needed unless you tell the `configure' script to not build certain 
+parts of Hamlib like documentation or scripting language bindings.  
+See `configure --help' for more information.
+
 
 * cvs checkout:
 
-Please read the begining of README.developer file, especially about how to
-obtain a cvs checkout, what are the required tools versions (very important
-or make won't even work!), and how to use autogen.sh.
+Please read the beginning of README.developer file, especially about how to
+obtain a cvs checkout, what are the required tools and versions (very 
+important or make won't even work!), and how to use autogen.sh.
 
-* build
+
+* build:
 
 Reading the INSTALL file in top directory will explain in more detail how
 to do the following commands. 
 
-	./configure --disable-static --prefix=/some/where
+	./configure --disable-static --prefix=/usr/local
 	make
 	make install
 
@@ -70,8 +76,18 @@ in /usr/local away from distribution installed packages and this is the default
 location for the snapshots.  The --disable-static option speeds up compilation
 if you don't plan to use static libraries.
 
+If you don't want the build files cluttering the source directories, do the 
+following in the same parent directory of hamlib:
 
-* Structure
+        mkdir build && cd build
+        ../hamlib/configure  --disable-static --prefix=/usr/local
+	make
+	make install
+
+This will keep the binary output files seperate from the source tree.
+
+
+* Structure:
 
 For the brave who want to peruse the contents, here are what all the
 subdirectories are for (these are just a sample as more are added):
@@ -95,7 +111,7 @@ src:			Hamlib frontend source directory
 tests:			rigctl/rotctl and various C programs for testing
 
 
-* testing Hamlib
+* testing Hamlib:
 
 Don't attempt to test Hamlib from source directory unless you're a developer
 and you understand what are the side effects of *not* installing freshly
@@ -177,7 +193,7 @@ Tip: traces can be hard to cut and paste sometimes. In that case,
 And then send my_rig_traces.txt to the hamlib-developer mailing list.
 
 
-Okay fellows, test as much as you can, in the weirdest situations if
+Okay folks, test as much as you can, in the weirdest situations if
 possible. There is a special prize for those who find 'Segmentation fault'
 and other nasty bugs.
 
