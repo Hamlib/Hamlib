@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2007 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.21 2007-11-09 03:16:32 aa6e Exp $
+ *	$Id: orion.c,v 1.22 2007-11-15 04:10:31 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -839,7 +839,8 @@ const char *tt565_get_info(RIG *rig)
 	if (retval != RIG_OK || firmware_len < 8) {	
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",
 					__FUNCTION__, firmware_len);
-			return NULL;
+		    buf[0] = '\0';
+			return buf;
 	        }
 	buf[firmware_len] = '\0';
 	
