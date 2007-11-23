@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.47 2007-11-23 16:08:32 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.48 2007-11-23 18:49:06 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -237,7 +237,7 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 			/* Frontend expects:  -54 = S0, 0 = S9  */
 			sscanf(lvlbuf+2, "%d", &val->i);
-			val->i = (val->i * 4) - 54;
+			val->i = (val->i * 3.6) - 54;
 			break;
 
 		case RIG_LEVEL_SWR:
