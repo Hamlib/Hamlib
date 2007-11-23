@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2007 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.22 2007-11-15 04:10:31 aa6e Exp $
+ *	$Id: orion.c,v 1.23 2007-11-23 04:54:12 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -128,12 +128,12 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
         if (!data || !data_len)
                 return 0;	/* normal exit if no read */
 #ifdef TT565_TIME
-	    ft1 = tt565_timenow();
+	ft1 = tt565_timenow();
 #endif
-	    *data_len = data_len_init;	/* restore orig. buffer length */
+	*data_len = data_len_init;	/* restore orig. buffer length */
         *data_len = read_string(&rs->rigport, data, *data_len, 
 		        EOM, strlen(EOM));
-	    if (*data_len > 0) return RIG_OK; /* normal exit if reading */
+	if (*data_len > 0) return RIG_OK; /* normal exit if reading */
 #ifdef TT565_TIME
 	    ft2 = tt565_timenow();
         if (*data_len == -RIG_ETIMEOUT)
@@ -141,8 +141,8 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	        itry, ft2-ft1);
 	    else
 	        rig_debug(RIG_DEBUG_ERR,
-	            "Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
-		        *data_len, itry, ft2-ft1);
+			"Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
+			*data_len, itry, ft2-ft1);
 #endif 
 	}
         return -RIG_ETIMEOUT;
@@ -839,14 +839,14 @@ const char *tt565_get_info(RIG *rig)
 	if (retval != RIG_OK || firmware_len < 8) {	
 			rig_debug(RIG_DEBUG_ERR,"%s: ack NG, len=%d\n",
 					__FUNCTION__, firmware_len);
-		    buf[0] = '\0';
-			return buf;
+		buf[0] = '\0';
+		return buf;
 	        }
 	buf[firmware_len] = '\0';
 	
 	/* filter out any non-graphic characters */
 	for (i=0; i < strlen(buf); i++)
-	    if (!isgraph(buf[i])) buf[i] = ' ';   // bad chars -> spaces
+		if (!isgraph(buf[i])) buf[i] = ' ';   // bad chars -> spaces
 	return buf;
     }
 

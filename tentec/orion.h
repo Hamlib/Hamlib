@@ -205,8 +205,8 @@ const struct rig_caps tt565_caps = {
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
 .write_delay =  0,
 .post_write_delay =  10,	/* Needed for CW send + ?? */
-.timeout =  400,
-.retry =  3,
+.timeout =  200,	/* was 400 */
+.retry =  2,		/* was 3 */
 
 .has_get_func =  TT565_FUNCS,
 .has_set_func =  TT565_FUNCS,
