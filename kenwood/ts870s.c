@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.46 2006-03-14 20:29:41 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.47 2007-11-23 16:08:32 pa4tu Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -194,6 +194,27 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   return RIG_OK;
 }
 
+int ts870s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	char levelbuf[16], ackbuf[50];
+	int level_len;
+	int intval;
+	size_t ack_len;
+
+	ack_len = 0;
+	switch (level) {
+	case RIG_LEVEL_RFPOWER:
+		intval = val.f * 100;
+		level_len = sprintf(levelbuf, "PC%03d;", intval);
+		return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+		break;
+
+	default:
+		return kenwood_set_level (rig, vfo, level, val);
+	}
+	return RIG_OK;
+}
+
 static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 		char lvlbuf[50];
@@ -316,7 +337,20 @@ static int ts870s_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			}
 			break;
 		case RIG_LEVEL_RFPOWER:
-			return get_kenwood_level(rig, "PC;", 3, &val->f);
+			/* RFPOWER is 0..100 and not 0..255 like all the other levels*/
+			retval = kenwood_transaction (rig, "PC;", 3, lvlbuf, &lvl_len);
+			if (retval != RIG_OK)
+				return retval;
+			if (lvl_len != 6 || lvlbuf[1] != 'C')
+			{
+				rig_debug(RIG_DEBUG_ERR,"ts870s_get_level: "
+					"wrong answer len=%d\n", lvl_len);
+				return -RIG_ERJCTED;
+			}
+			sscanf (lvlbuf + 2, "%d", &lvl);
+			val->f = lvl/100.;
+			break;
+			
 
 		case RIG_LEVEL_AF:
 			return get_kenwood_level(rig, "AG;", 3, &val->f);
@@ -524,7 +558,7 @@ const struct rig_caps ts870s_caps = {
 .get_dcd =  kenwood_get_dcd,
 .set_func =  kenwood_set_func,
 .get_func =  kenwood_get_func,
-.set_level =  kenwood_set_level,
+.set_level =  ts870s_set_level,
 .get_level =  ts870s_get_level,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
