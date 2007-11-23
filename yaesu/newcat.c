@@ -9,7 +9,7 @@
  * "new" text CAT interface.
  *
  *
- * $Id: newcat.c,v 1.1 2007-11-22 04:48:43 n0nb Exp $
+ * $Id: newcat.c,v 1.2 2007-11-23 03:31:26 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -48,17 +48,15 @@ static char cat_term = ';';             /* Yaesu command terminator */
  * future - private data
  *
  * FIXME: Does this need to be exposed to the application/frontend through
- * newcat_caps.priv? -N0NB
+ * rig_caps.priv?  I'm guessing not since it's private to the backend.  -N0NB
  */
 
 struct newcat_priv_data {
-//    unsigned char       pacing;                         /* pacing value */
-//    unsigned int        read_update_delay;              /* depends on pacing value */
+    unsigned int        read_update_delay;              /* depends on pacing value */
     vfo_t               current_vfo;                    /* active VFO from last cmd */
-//    unsigned char       p_cmd[YAESU_CMD_LENGTH];        /* private copy of 1 constructed CAT cmd */
-//    yaesu_cmd_set_t     pcs[FT450_NATIVE_SIZE];         /* private cmd set */
-//    unsigned char       update_data[FT450_ALL_DATA_LENGTH]; /* returned data--max value, some are less */
-//    unsigned char       current_mem;                    /* private memory channel number */
+    char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
+    char                ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
+    unsigned char       current_mem;                    /* private memory channel number */
 };
 
 
@@ -84,13 +82,13 @@ int newcat_init(RIG *rig) {
         return -RIG_EINVAL;
   
     priv = (struct newcat_priv_data *)malloc(sizeof(struct newcat_priv_data));
-    if (!priv)                       /* whoops! memory shortage! */
+    if (!priv)                                  /* whoops! memory shortage! */
         return -RIG_ENOMEM;
   
     /* TODO: read pacing from preferences */
 //    priv->pacing = NEWCAT_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-//    priv->read_update_delay = FT450_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-    priv->current_vfo =  RIG_VFO_MAIN;  /* default to whatever */
+    priv->read_update_delay = NEWCAT_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
+    priv->current_vfo =  RIG_VFO_MAIN;          /* default to whatever */
     rig->state.priv = (void *)priv;
   
     return RIG_OK;
@@ -128,14 +126,14 @@ int newcat_cleanup(RIG *rig) {
 
 int newcat_open(RIG *rig) {
     struct rig_state *rig_s;
-    struct newcat_priv_data *priv;
+//    struct newcat_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!rig)
         return -RIG_EINVAL;
 
-    priv = (struct newcat_priv_data *)rig->state.priv;
+//    priv = (struct newcat_priv_data *)rig->state.priv;
     rig_s = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: write_delay = %i msec\n",
@@ -177,8 +175,7 @@ int newcat_close(RIG *rig) {
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     const struct rig_caps *caps;
     struct newcat_priv_data *priv;
-    struct rig_state *rig_s;
-    char cmd_str[16];           /* Up to 999.999999999 GHz ;-) */
+    struct rig_state *state;
     char c;
     int err, len;
 
@@ -189,7 +186,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
-    rig_s = &rig->state;
+    state = &rig->state;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, freq);
@@ -231,11 +228,11 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
         return -RIG_EINTERNAL;          /* bad news */
 
     /* Build the command string */
-    snprintf(cmd_str, len, "F%c%d%c", c, (int)freq, cat_term);
+    snprintf(priv->cmd_str, len, "F%c%d%c", c, (int)freq, cat_term);
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd_str);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
-    err = write_block(&rig_s->rigport, cmd_str, strlen(cmd_str));
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
         return err;
 
@@ -252,13 +249,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     struct newcat_priv_data *priv;
-    struct rig_state *rig_s;
-    char cmd_str[4];            /* command + terminator */
-    char ret_data[15];          /* freq string returned from rig up to 999.999999999 GHz*/
-//    unsigned char *p;
-//    unsigned char offset;
-//    freq_t f;
-//    int err, cmd_index, count;
+    struct rig_state *state;
     char c;
     int err;
 
@@ -269,12 +260,13 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
         return -RIG_EINVAL;
   
     priv = (struct newcat_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
+    state = &rig->state;
 
     if (vfo == RIG_VFO_CURR) {
         err = newcat_get_vfo(rig, &priv->current_vfo);
         if (err != RIG_OK)
             return err;
+
         vfo = priv->current_vfo;    /* from previous get_vfo cmd */
         rig_debug(RIG_DEBUG_TRACE,
                   "%s: priv->current_vfo = 0x%02x\n", __func__, vfo);
@@ -283,52 +275,47 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     switch(vfo) {
     case RIG_VFO_A:
     case RIG_VFO_VFO:
-//        cmd_index = FT890_NATIVE_VFO_DATA;
-//        offset = FT890_SUMO_VFO_A_FREQ;
-//        count = FT890_VFO_DATA_LENGTH;
         c = 'A';
         break;
     case RIG_VFO_B:
-//        cmd_index = FT890_NATIVE_VFO_DATA;
-//        offset = FT890_SUMO_VFO_B_FREQ;
-//        count = FT890_VFO_DATA_LENGTH;
         c = 'B';
         break;
 //    case RIG_VFO_MEM:
 //    case RIG_VFO_MAIN:
-//        cmd_index = FT890_NATIVE_OP_DATA;
-//        offset = FT890_SUMO_DISPLAYED_FREQ;
-//        count = FT890_OP_DATA_LENGTH;
 //        break;
     default:
         return -RIG_EINVAL;         /* sorry, unsupported VFO */
     }
 
     /* Build the command string */
-    snprintf(cmd_str, sizeof(cmd_str), "F%c%c", c, cat_term);
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", cmd_str);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%c", c, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
     /* get freq */
-    err = write_block(&rig_s->rigport, cmd_str, strlen(cmd_str));
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
         return err;
 
-    err = read_string(&rig_s->rigport, ret_data, sizeof(ret_data), &cat_term, sizeof(cat_term));
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                      &cat_term, sizeof(cat_term));
     if (err < 0)
         return err;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
-              __func__, err, ret_data);
+              __func__, err, priv->ret_data);
 
     /* Check that command termination is correct */
-    if (strchr(cat_term, ret_data[strlen(ret_data) - 1]) == NULL) {
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
-                  __func__, ret_data);
+                  __func__, priv->ret_data);
+
         return -RIG_EPROTO;
     }
 
     /* convert the read frequency string into freq_t and store in *freq */
-    sscanf(ret_data+2, "%"SCNfreq, freq);
+    sscanf(priv->ret_data+2, "%"SCNfreq, freq);
 
     rig_debug(RIG_DEBUG_TRACE,
               "%s: freq = %"PRIfreq" Hz for vfo 0x%02x\n", __func__, freq, vfo);
@@ -347,8 +334,7 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     struct newcat_priv_data *priv;
-    struct rig_state *rig_s;
-    char cmd_str[5];            /* command + VFO + terminator + \0 */
+    struct rig_state *state;
     char c;
     int err;
 
@@ -360,7 +346,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
   
     priv = (struct newcat_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
+    state = &rig->state;
 
     if (vfo == RIG_VFO_CURR) {
         vfo = priv->current_vfo;    /* from previous vfo cmd */
@@ -397,10 +383,11 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     }
 
     /* Build the command string */
-    snprintf(cmd_str, sizeof(cmd_str), "VS%c%c", c, cat_term);
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", cmd_str);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", c, cat_term);
 
-    err = write_block(&rig_s->rigport, cmd_str, strlen(cmd_str));
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
         return err;
 
@@ -420,14 +407,9 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
 
 int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
     struct newcat_priv_data *priv;
-    struct rig_state *rig_s;
-    char cmd_str[] = "VS;";     /* command + terminator string */
-    char ret_data[5];           /* string returned from rig */
+    struct rig_state *state;
     char c;
     int err;
-
-//    unsigned char status_0;           /* newcat status flag 0 */
-//    unsigned char stat_vfo, stat_mem; /* status tests */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -435,45 +417,39 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
         return -RIG_EINVAL;
   
     priv = (struct newcat_priv_data *)rig->state.priv;
-    rig_s = &rig->state;
+    state = &rig->state;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd_str);
+    /* Build the command string */
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS;");
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
     /* Get VFO */
-    err = write_block(&rig_s->rigport, cmd_str, strlen(cmd_str));
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
         return err;
 
-    err = read_string(&rig_s->rigport, ret_data, sizeof(ret_data), &cat_term, sizeof(cat_term));
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                      &cat_term, sizeof(cat_term));
     if (err < 0)
         return err;
 
     /* Check that command termination is correct */
-    if (strchr(cat_term, ret_data[strlen(ret_data) - 1]) == NULL) {
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
-                  __func__, ret_data);
+                  __func__, priv->ret_data);
+
         return -RIG_EPROTO;
     }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, VFO value = %c\n",
-              __func__, err, ret_data, ret_data[2]);
+              __func__, err, priv->ret_data, priv->ret_data[2]);
 
     /*
      * The current VFO value is a digit ('0' or '1' ('A' or 'B' respectively))
      * embedded at ret_data[2] in the read string.
      */
-    c = ret_data[2];
-
-//    status_0 = priv->update_data[FT450_SUMO_DISPLAYED_STATUS_0];
-//    stat_vfo = status_0 & SF_VFO_MASK;    /* get VFO active bits */
-//    stat_mem = status_0 & SF_MEM_MASK;    /* get MEM active bits */
-
-//    rig_debug(RIG_DEBUG_TRACE,
-//              "%s: vfo status_0 = 0x%02x\n", __func__, status_0);
-//    rig_debug(RIG_DEBUG_TRACE,
-//              "%s: stat_vfo = 0x%02x\n", __func__, stat_vfo);
-//    rig_debug(RIG_DEBUG_TRACE,
-//              "%s: stat_mem = 0x%02x\n", __func__, stat_mem);
+    c = priv->ret_data[2];
 
     switch (c) {
     case '0':

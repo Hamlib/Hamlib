@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.26 2007-10-05 04:19:18 sconklin Exp $  
+ *	$Id: yaesu.c,v 1.27 2007-11-23 03:31:26 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -76,6 +76,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
   rig_debug(RIG_DEBUG_VERBOSE, "yaesu: %s called\n", __func__);
 
   rig_register(&ft100_caps);
+  rig_register(&ft450_caps);
   rig_register(&ft736_caps);
   rig_register(&ft747_caps);
   rig_register(&ft757gx_caps);

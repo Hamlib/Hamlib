@@ -9,7 +9,7 @@
  * interface commands that are similar to the Kenwood command set.
  *
  *
- *    $Id: newcat.h,v 1.1 2007-11-22 04:48:43 n0nb Exp $
+ *    $Id: newcat.h,v 1.2 2007-11-23 03:31:26 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -32,6 +32,16 @@
 #ifndef _NEWCAT_H
 #define _NEWCAT_H 1
 
+
+/* Handy constants */
+
+/* Hopefully large enough for future use, 128 chars plus '\0' */
+#define NEWCAT_DATA_LEN                 129
+
+/* arbitrary value for now.  11 bits (8N2+1) == 2.2917 mS @ 4800 bps */
+#define NEWCAT_DEFAULT_READ_TIMEOUT     NEWCAT_DATA_LEN * 5
+
+
 /*
  * Functions considered to be Stable:
  *
@@ -39,7 +49,9 @@
  *
  * Functions considered to be Alpha:
  *      newcat_set_freq
+ *      newcat_get_freq
  *      newcat_set_vfo
+ *      newcat_get_vfo
  *
  * Functions not yet implemented
  * most everything at this time.
