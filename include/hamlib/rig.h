@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.123 2007-11-01 01:13:30 n0nb Exp $
+ *	$Id: rig.h,v 1.124 2007-11-26 20:54:11 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -303,40 +303,40 @@ typedef signed long shortfreq_t;
  */
 typedef int vfo_t;
 
-/** \brief used in caps */
+/** \brief '' -- used in caps */
 #define RIG_VFO_NONE    0
 
 #define RIG_VFO_TX_FLAG    ((vfo_t)(1<<30))
 
-/** \brief current "tunable channel"/VFO */
+/** \brief \c currVFO -- current "tunable channel"/VFO */
 #define RIG_VFO_CURR    ((vfo_t)(1<<29))
 
-/** \brief means Memory mode, to be used with set_vfo */
+/** \brief \c MEM -- means Memory mode, to be used with set_vfo */
 #define RIG_VFO_MEM	((vfo_t)(1<<28))
 
-/** \brief means (last or any)VFO mode, with set_vfo */
+/** \brief \c VFO -- means (last or any)VFO mode, with set_vfo */
 #define RIG_VFO_VFO	((vfo_t)(1<<27))
 
 #define RIG_VFO_TX_VFO(v)	((v)|RIG_VFO_TX_FLAG)
 
-/** \brief alias for split tx or uplink, of VFO_CURR  */
+/** \brief \c TX -- alias for split tx or uplink, of VFO_CURR  */
 #define RIG_VFO_TX	RIG_VFO_TX_VFO(RIG_VFO_CURR)
 
-/** \brief alias for split rx or downlink */
+/** \brief \c RX -- alias for split rx or downlink */
 #define RIG_VFO_RX	RIG_VFO_CURR
 
-/** \brief alias for MAIN */
+/** \brief \c Main -- alias for MAIN */
 #define RIG_VFO_MAIN	((vfo_t)(1<<26))
-/** \brief alias for SUB */
+/** \brief \c Sub -- alias for SUB */
 #define RIG_VFO_SUB	((vfo_t)(1<<25))
 
 #define RIG_VFO_N(n) ((vfo_t)(1<<(n)))
 
-/** \brief VFO A */
+/** \brief \c VFOA -- VFO A */
 #define RIG_VFO_A RIG_VFO_N(0)
-/** \brief VFO B */
+/** \brief \c VFOB -- VFO B */
 #define RIG_VFO_B RIG_VFO_N(1)
-/** \brief VFO C */
+/** \brief \c VFOC -- VFO C */
 #define RIG_VFO_C RIG_VFO_N(2)
 
 
@@ -432,39 +432,47 @@ typedef enum {
  * Note: the vfo argument for some vfo operation may be irrelevant,
  * and thus will be ignored.
  *
- * The VFO/MEM "mode" is set by rig_set_vfo.
+ * The VFO/MEM "mode" is set by rig_set_vfo.\n
+ * \c STRING used in rigctl
+ *
+ * \sa rig_parse_vfo_op() rig_strvfop()
  */
 typedef enum {
-	RIG_OP_NONE =		0,
-	RIG_OP_CPY =		(1<<0),	/*!< VFO A = VFO B */
-	RIG_OP_XCHG =		(1<<1),	/*!< Exchange VFO A/B */
-	RIG_OP_FROM_VFO =	(1<<2),	/*!< VFO->MEM */
-	RIG_OP_TO_VFO =		(1<<3),	/*!< MEM->VFO */
-	RIG_OP_MCL =		(1<<4),	/*!< Memory clear */
-	RIG_OP_UP =		(1<<5),	/*!< UP increment VFO freq by tuning step*/
-	RIG_OP_DOWN =		(1<<6),	/*!< DOWN decrement VFO freq by tuning step*/
-	RIG_OP_BAND_UP =	(1<<7),	/*!< Band UP */
-	RIG_OP_BAND_DOWN =	(1<<8),	/*!< Band DOWN */
-	RIG_OP_LEFT =		(1<<9),	/*!< LEFT */
-	RIG_OP_RIGHT =		(1<<10),/*!< RIGHT */
-	RIG_OP_TUNE =		(1<<11),/*!< Start tune */
-	RIG_OP_TOGGLE =		(1<<12) /*!< Toggle VFOA and VFOB */
+	RIG_OP_NONE =		0,  /*!< '' No VFO_OP */
+	RIG_OP_CPY =		(1<<0),	/*!< \c CPY -- VFO A = VFO B */
+	RIG_OP_XCHG =		(1<<1),	/*!< \c XCHG -- Exchange VFO A/B */
+	RIG_OP_FROM_VFO =	(1<<2),	/*!< \c FROM_VFO -- VFO->MEM */
+	RIG_OP_TO_VFO =		(1<<3),	/*!< \c TO_VFO -- MEM->VFO */
+	RIG_OP_MCL =		(1<<4),	/*!< \c MCL -- Memory clear */
+	RIG_OP_UP =		(1<<5),	/*!< \c UP -- UP increment VFO freq by tuning step*/
+	RIG_OP_DOWN =		(1<<6),	/*!< \c DOWN -- DOWN decrement VFO freq by tuning step*/
+	RIG_OP_BAND_UP =	(1<<7),	/*!< \c BAND_UP -- Band UP */
+	RIG_OP_BAND_DOWN =	(1<<8),	/*!< \c BAND_DOWN -- Band DOWN */
+	RIG_OP_LEFT =		(1<<9),	/*!< \c LEFT -- LEFT */
+	RIG_OP_RIGHT =		(1<<10),/*!< \c RIGHT -- RIGHT */
+	RIG_OP_TUNE =		(1<<11),/*!< \c TUNE -- Start tune */
+	RIG_OP_TOGGLE =		(1<<12) /*!< \c TOGGLE -- Toggle VFOA and VFOB */
 } vfo_op_t;
 
 
 /**
- * \brief Scan operation
+ * \brief Rig Scan operation
+ *
+ * Various scan operations supported by a rig.\n
+ * \c STRING used in rigctl
+ *
+ * \sa rig_parse_scan() rig_strscan()
  */
 typedef enum {
-	RIG_SCAN_NONE =		0,
-	RIG_SCAN_STOP =		RIG_SCAN_NONE, /*!< Stop scanning */
-	RIG_SCAN_MEM =		(1<<0),	/*!< Scan all memory channels */
-	RIG_SCAN_SLCT =		(1<<1),	/*!< Scan all selected memory channels */
-	RIG_SCAN_PRIO =		(1<<2),	/*!< Priority watch (mem or call channel) */
-	RIG_SCAN_PROG =		(1<<3),	/*!< Programmed(edge) scan */
-	RIG_SCAN_DELTA =	(1<<4),	/*!< delta-f scan */
-	RIG_SCAN_VFO =		(1<<5),	/*!< most basic scan */
-	RIG_SCAN_PLT =		(1<<6)  /*!< Scan using pipelined tuning */
+	RIG_SCAN_NONE =		0,  /*!< '' No Scan */
+	RIG_SCAN_STOP =		RIG_SCAN_NONE, /*!< \c STOP -- Stop scanning */
+	RIG_SCAN_MEM =		(1<<0),	/*!< \c MEM -- Scan all memory channels */
+	RIG_SCAN_SLCT =		(1<<1),	/*!< \c SLCT -- Scan all selected memory channels */
+	RIG_SCAN_PRIO =		(1<<2),	/*!< \c PRIO -- Priority watch (mem or call channel) */
+	RIG_SCAN_PROG =		(1<<3),	/*!< \c PROG -- Programmed(edge) scan */
+	RIG_SCAN_DELTA =	(1<<4),	/*!< \c DELTA -- delta-f scan */
+	RIG_SCAN_VFO =		(1<<5),	/*!< \c VFO -- most basic scan */
+	RIG_SCAN_PLT =		(1<<6)  /*!< \c PLT -- Scan using pipelined tuning */
 } scan_t;
 
 /**
@@ -582,44 +590,51 @@ typedef union {
   const char *cs;		/*!< Pointer to constant char string */
 } value_t;
 
-/** \brief Level */
-enum rig_level_e {
-	RIG_LEVEL_NONE =	0,	/*!< None */
-	RIG_LEVEL_PREAMP =	(1<<0),	/*!< Preamp, arg int (dB) */
-	RIG_LEVEL_ATT =		(1<<1),	/*!< Attenuator, arg int (dB) */
-	RIG_LEVEL_VOX =		(1<<2),	/*!< VOX delay, arg int (tenth of seconds) */
-	RIG_LEVEL_AF =		(1<<3),	/*!< Volume, arg float [0.0..1.0] */
-	RIG_LEVEL_RF =		(1<<4),	/*!< RF gain (not TX power), arg float [0.0..1.0] */
-	RIG_LEVEL_SQL =		(1<<5),	/*!< Squelch, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_IF =		(1<<6),	/*!< IF, arg int (Hz) */
-	RIG_LEVEL_APF =		(1<<7),	/*!< APF, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_NR =		(1<<8),	/*!< Noise Reduction, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_PBT_IN =	(1<<9),	/*!< Twin PBT (inside), arg float [0.0 .. 1.0] */
-	RIG_LEVEL_PBT_OUT =	(1<<10),/*!< Twin PBT (outside), arg float [0.0 .. 1.0] */
-	RIG_LEVEL_CWPITCH =	(1<<11),/*!< CW pitch, arg int (Hz) */
-	RIG_LEVEL_RFPOWER =	(1<<12),/*!< RF Power, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_MICGAIN =	(1<<13),/*!< MIC Gain, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_KEYSPD =	(1<<14),/*!< Key Speed, arg int (WPM) */
-	RIG_LEVEL_NOTCHF =	(1<<15),/*!< Notch Freq., arg int (Hz) */
-	RIG_LEVEL_COMP =	(1<<16),/*!< Compressor, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_AGC =		(1<<17),/*!< AGC, arg int (see enum agc_level_e) */
-	RIG_LEVEL_BKINDL =	(1<<18),/*!< BKin Delay, arg int (tenth of dots) */
-	RIG_LEVEL_BALANCE =	(1<<19),/*!< Balance (Dual Watch), arg float [0.0 .. 1.0] */
-	RIG_LEVEL_METER =	(1<<20),/*!< Display meter, arg int (see enum meter_level_e) */
+/** \brief Rig Level Settings
+ *
+ * Various operating levels supported by a rig.\n
+ * \c STRING used in rigctl
+ *
+ * \sa rig_parse_level() rig_strlevel()
+ */
 
-	RIG_LEVEL_VOXGAIN =	(1<<21),/*!< VOX gain level, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_VOXDELAY =  RIG_LEVEL_VOX,	/*!< VOX delay, arg int (tenth of seconds) */
-	RIG_LEVEL_ANTIVOX =	(1<<22),/*!< anti-VOX level, arg float [0.0 .. 1.0] */
-	RIG_LEVEL_SLOPE_LOW = (1<<23),/*!<Slope tune, low frequency cut, */
-	RIG_LEVEL_SLOPE_HIGH = (1<<24),/*!<Slope tune, high frequency cut, */
-	//RIG_LEVEL_LINEOUT =	(1<<23),/*!< Lineout Volume, arg float [0.0 .. 1.0] */
+enum rig_level_e {
+	RIG_LEVEL_NONE =	0,	/*!< '' -- No Level */
+	RIG_LEVEL_PREAMP =	(1<<0),	/*!< \c PREAMP -- Preamp, arg int (dB) */
+	RIG_LEVEL_ATT =		(1<<1),	/*!< \c ATT -- Attenuator, arg int (dB) */
+	RIG_LEVEL_VOX =		(1<<2),	/*!< \c VOX -- VOX delay, arg int (tenth of seconds) */
+	RIG_LEVEL_AF =		(1<<3),	/*!< \c AF -- Volume, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_RF =		(1<<4),	/*!< \c RF -- RF gain (not TX power), arg float [0.0 ... 1.0] */
+	RIG_LEVEL_SQL =		(1<<5),	/*!< \c SQL -- Squelch, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_IF =		(1<<6),	/*!< \c IF -- IF, arg int (Hz) */
+	RIG_LEVEL_APF =		(1<<7),	/*!< \c APF -- APF, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_NR =		(1<<8),	/*!< \c NR -- Noise Reduction, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_PBT_IN =	(1<<9),	/*!< \c PBT_IN -- Twin PBT (inside), arg float [0.0 ... 1.0] */
+	RIG_LEVEL_PBT_OUT =	(1<<10),/*!< \c PBT_OUT -- Twin PBT (outside), arg float [0.0 ... 1.0] */
+	RIG_LEVEL_CWPITCH =	(1<<11),/*!< \c CWPITCH -- CW pitch, arg int (Hz) */
+	RIG_LEVEL_RFPOWER =	(1<<12),/*!< \c RFPOWER -- RF Power, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_MICGAIN =	(1<<13),/*!< \c MICGAIN -- MIC Gain, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_KEYSPD =	(1<<14),/*!< \c KEYSPD -- Key Speed, arg int (WPM) */
+	RIG_LEVEL_NOTCHF =	(1<<15),/*!< \c NOTCHF -- Notch Freq., arg int (Hz) */
+	RIG_LEVEL_COMP =	(1<<16),/*!< \c COMP -- Compressor, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_AGC =		(1<<17),/*!< \c AGC -- AGC, arg int (see enum agc_level_e) */
+	RIG_LEVEL_BKINDL =	(1<<18),/*!< \c BKINDL -- BKin Delay, arg int (tenth of dots) */
+	RIG_LEVEL_BALANCE =	(1<<19),/*!< \c BAL -- Balance (Dual Watch), arg float [0.0 ... 1.0] */
+	RIG_LEVEL_METER =	(1<<20),/*!< \c METER -- Display meter, arg int (see enum meter_level_e) */
+
+	RIG_LEVEL_VOXGAIN =	(1<<21),/*!< \c VOXGAIN -- VOX gain level, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_VOXDELAY =  RIG_LEVEL_VOX,	/*!< Synonym of RIG_LEVEL_VOX */
+	RIG_LEVEL_ANTIVOX =	(1<<22),/*!< \c ANTIVOX -- anti-VOX level, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_SLOPE_LOW = (1<<23),/*!< \c SLOPE_LOW -- Slope tune, low frequency cut, */
+	RIG_LEVEL_SLOPE_HIGH = (1<<24),/*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, */
+	//RIG_LEVEL_LINEOUT =	(1<<23),/*!< Lineout Volume, arg float [0.0 ... 1.0] */
 
 		/*!< These ones are not settable */
-	RIG_LEVEL_RAWSTR =	(1<<26),/*!< Raw (A/D) value for signal strength, specific to each rig, arg int */
-	RIG_LEVEL_SQLSTAT =	(1<<27),/*!< SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
-	RIG_LEVEL_SWR =		(1<<28),/*!< SWR, arg float [0.0..infinite] */
-	RIG_LEVEL_ALC =		(1<<29),/*!< ALC, arg float */
-	RIG_LEVEL_STRENGTH =(1<<30) /*!< Effective (calibrated) signal strength relative to S9, arg int (dB) */
+	RIG_LEVEL_RAWSTR =	(1<<26),/*!< \c RAWSTR -- Raw (A/D) value for signal strength, specific to each rig, arg int */
+	RIG_LEVEL_SQLSTAT =	(1<<27),/*!< \c SQLSTAT -- SQL status, arg int (open=1/closed=0). Deprecated, use get_dcd instead */
+	RIG_LEVEL_SWR =		(1<<28),/*!< \c SWR -- SWR, arg float [0.0 ... infinite] */
+	RIG_LEVEL_ALC =		(1<<29),/*!< \c ALC -- ALC, arg float */
+	RIG_LEVEL_STRENGTH =(1<<30) /*!< \c STRENGTH -- Effective (calibrated) signal strength relative to S9, arg int (dB) */
 	/*RIG_LEVEL_BWC =		(1<<31)*/ /*!< Bandwidth Control, arg int (Hz) */
 };
 
@@ -632,18 +647,22 @@ enum rig_level_e {
 
 
 /**
- * \brief Parameters
- * Parameters are settings that are not VFO specific
+ * \brief Rig Parameters
+ *
+ * Parameters are settings that are not VFO specific.\n
+ * \c STRING used in rigctl
+ *
+ * \sa rig_parse_parm() rig_strparm()
  */
 enum rig_parm_e {
-	RIG_PARM_NONE =		0,	/*!< None */
-	RIG_PARM_ANN =		(1<<0),	/*!< "Announce" level, see ann_t */
-	RIG_PARM_APO =		(1<<1),	/*!< Auto power off, int in minute */
-	RIG_PARM_BACKLIGHT =	(1<<2),	/*!< LCD light, float [0.0..1.0] */
-	RIG_PARM_BEEP =		(1<<4),	/*!< Beep on keypressed, int (0,1) */
-	RIG_PARM_TIME =		(1<<5),	/*!< hh:mm:ss, int in seconds from 00:00:00 */
-	RIG_PARM_BAT =		(1<<6),	/*!< battery level, float [0.0..1.0] */
-	RIG_PARM_KEYLIGHT =	(1<<7)  /*!< Button backlight, on/off */
+	RIG_PARM_NONE =		0,	/*!< '' -- No Parm */
+	RIG_PARM_ANN =		(1<<0),	/*!< \c ANN -- "Announce" level, see ann_t */
+	RIG_PARM_APO =		(1<<1),	/*!< \c APO -- Auto power off, int in minute */
+	RIG_PARM_BACKLIGHT =	(1<<2),	/*!< \c BACKLIGHT -- LCD light, float [0.0 ... 1.0] */
+	RIG_PARM_BEEP =		(1<<4),	/*!< \c BEEP -- Beep on keypressed, int (0,1) */
+	RIG_PARM_TIME =		(1<<5),	/*!< \c TIME -- hh:mm:ss, int in seconds from 00:00:00 */
+	RIG_PARM_BAT =		(1<<6),	/*!< \c BAT -- battery level, float [0.0 ... 1.0] */
+	RIG_PARM_KEYLIGHT =	(1<<7)  /*!< \c KEYLIGHT -- Button backlight, on/off */
 };
 
 #define RIG_PARM_FLOAT_LIST (RIG_PARM_BACKLIGHT|RIG_PARM_BAT)
@@ -657,7 +676,7 @@ enum rig_parm_e {
  * \brief Setting
  *
  * This can be a func, a level or a parm.
- * Each bit designate one of them.
+ * Each bit designates one of them.
  */
 typedef unsigned long setting_t;
 
@@ -671,41 +690,46 @@ typedef unsigned long setting_t;
 
 
 /**
- * \brief Functions
+ * \brief Rig Function Settings
+ *
+ * Various operating functions supported by a rig.\n
+ * \c STRING used in rigctl
+ *
+ * \sa rig_parse_func() rig_strfunc()
  */
 enum rig_func_e {
-	RIG_FUNC_NONE =    	0,	/*!< None */
-	RIG_FUNC_FAGC =    	(1<<0),	/*!< Fast AGC */
-	RIG_FUNC_NB =	    	(1<<1),	/*!< Noise Blanker */
-	RIG_FUNC_COMP =    	(1<<2),	/*!< Compression */
-	RIG_FUNC_VOX =    	(1<<3),	/*!< VOX */
-	RIG_FUNC_TONE =    	(1<<4),	/*!< Tone */
-	RIG_FUNC_TSQL =    	(1<<5),	/*!< CTCSS */
-	RIG_FUNC_SBKIN =    	(1<<6),	/*!< Semi Break-in */
-	RIG_FUNC_FBKIN =    	(1<<7),	/*!< Full Break-in (CW mode) */
-	RIG_FUNC_ANF =    	(1<<8),	/*!< Automatic Notch Filter (DSP) */
-	RIG_FUNC_NR =     	(1<<9),	/*!< Noise Reduction (DSP) */
-	RIG_FUNC_AIP =     	(1<<10),/*!< AIP (Kenwood) */
-	RIG_FUNC_APF =     	(1<<11),/*!< Auto Passband Filter */
-	RIG_FUNC_MON =     	(1<<12),/*!< Monitor transmitted signal */
-	RIG_FUNC_MN =     	(1<<13),/*!< Manual Notch */
-	RIG_FUNC_RF =     	(1<<14),/*!< RTTY Filter */
-	RIG_FUNC_ARO =     	(1<<15),/*!< Auto Repeater Offset */
-	RIG_FUNC_LOCK =     	(1<<16),/*!< Lock */
-	RIG_FUNC_MUTE =     	(1<<17),/*!< Mute */
-	RIG_FUNC_VSC =     	(1<<18),/*!< Voice Scan Control */
-	RIG_FUNC_REV =     	(1<<19),/*!< Reverse transmit and receive frequencies */
-	RIG_FUNC_SQL =     	(1<<20),/*!< Turn Squelch Monitor on/off */
-	RIG_FUNC_ABM =     	(1<<21),/*!< Auto Band Mode */
-	RIG_FUNC_BC =     	(1<<22),/*!< Beat Canceller */
-	RIG_FUNC_MBC =     	(1<<23),/*!< Manual Beat Canceller */
+	RIG_FUNC_NONE =    	0,	/*!< '' -- No Function */
+    RIG_FUNC_FAGC =    	(1<<0),	/*!< \c FAGC -- Fast AGC */
+    RIG_FUNC_NB =	    	(1<<1),	/*!< \c NB -- Boise Blanker */
+	RIG_FUNC_COMP =    	(1<<2),	/*!< \c COMP -- Speech Compression */
+	RIG_FUNC_VOX =    	(1<<3),	/*!< \c VOX -- Voice Operated Relay */
+	RIG_FUNC_TONE =    	(1<<4),	/*!< \c TONE -- CTCSS Tone */
+	RIG_FUNC_TSQL =    	(1<<5),	/*!< \c TSQL -- CTCSS Activate/De-activate */
+	RIG_FUNC_SBKIN =    	(1<<6),	/*!< \c SBKIN -- Semi Break-in (CW mode) */
+	RIG_FUNC_FBKIN =    	(1<<7),	/*!< \c FBKIN -- Full Break-in (CW mode) */
+	RIG_FUNC_ANF =    	(1<<8),	/*!< \c ANF -- Automatic Notch Filter (DSP) */
+	RIG_FUNC_NR =     	(1<<9),	/*!< \c NR -- Noise Reduction (DSP) */
+	RIG_FUNC_AIP =     	(1<<10),/*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
+	RIG_FUNC_APF =     	(1<<11),/*!< \c APF -- Auto Passband Filter */
+	RIG_FUNC_MON =     	(1<<12),/*!< \c MON -- Monitor transmitted signal */
+	RIG_FUNC_MN =     	(1<<13),/*!< \c MN -- Manual Notch */
+	RIG_FUNC_RF =     	(1<<14),/*!< \c RF -- RTTY Filter */
+	RIG_FUNC_ARO =     	(1<<15),/*!< \c ARO -- Auto Repeater Offset */
+	RIG_FUNC_LOCK =     	(1<<16),/*!< \c LOCK -- Lock */
+	RIG_FUNC_MUTE =     	(1<<17),/*!< \c MUTE -- Mute */
+	RIG_FUNC_VSC =     	(1<<18),/*!< \c VSC -- Voice Scan Control */
+	RIG_FUNC_REV =     	(1<<19),/*!< \c REV -- Reverse transmit and receive frequencies */
+	RIG_FUNC_SQL =     	(1<<20),/*!< \c SQL -- Turn Squelch Monitor on/off */
+	RIG_FUNC_ABM =     	(1<<21),/*!< \c ABM -- Auto Band Mode */
+	RIG_FUNC_BC =     	(1<<22),/*!< \c BC -- Beat Canceller */
+	RIG_FUNC_MBC =     	(1<<23),/*!< \c MBC -- Manual Beat Canceller */
 	/* 			(1<<24), used to be RIG_FUNC_LMP, see RIG_PARM_BACKLIGHT instead) */
-	RIG_FUNC_AFC =    	(1<<25),/*!< Auto Frequency Control ON/OFF */
-	RIG_FUNC_SATMODE =	(1<<26),/*!< Satellite mode ON/OFF */
-	RIG_FUNC_SCOPE =  	(1<<27),/*!< Simple bandscope ON/OFF */
-	RIG_FUNC_RESUME =	(1<<28),/*!< Scan auto-resume */
-	RIG_FUNC_TBURST =	(1<<29),/*!< 1750 Hz tone burst */
-	RIG_FUNC_TUNER =	(1<<30) /*!< Enable automatic tuner */
+	RIG_FUNC_AFC =    	(1<<25),/*!< \c AFC -- Auto Frequency Control ON/OFF */
+	RIG_FUNC_SATMODE =	(1<<26),/*!< \c SATMODE -- Satellite mode ON/OFF */
+	RIG_FUNC_SCOPE =  	(1<<27),/*!< \c SCOPE -- Simple bandscope ON/OFF */
+	RIG_FUNC_RESUME =	(1<<28),/*!< \c RESUME -- Scan auto-resume */
+	RIG_FUNC_TBURST =	(1<<29),/*!< \c TBURST -- 1750 Hz tone burst */
+	RIG_FUNC_TUNER =	(1<<30) /*!< \c TUNER -- Enable automatic tuner */
 };
 
 /*
@@ -719,29 +743,34 @@ enum rig_func_e {
 
 /**
  * \brief Radio mode
+ *
+ * Various modes supported by a rig.\n
+ * \c STRING used in rigctl
+ *
+ * \sa rig_parse_mode() rig_strrmode()
  */
 typedef enum {
-	RIG_MODE_NONE =  	0,	/*!< None */
-	RIG_MODE_AM =    	(1<<0),	/*!< Amplitude Modulation */
-	RIG_MODE_CW =    	(1<<1),	/*!< CW */
-	RIG_MODE_USB =		(1<<2),	/*!< Upper Side Band */
-	RIG_MODE_LSB =		(1<<3),	/*!< Lower Side Band */
-	RIG_MODE_RTTY =		(1<<4),	/*!< Remote Teletype */
-	RIG_MODE_FM =    	(1<<5),	/*!< "narrow" band FM */
-	RIG_MODE_WFM =   	(1<<6),	/*!< broadcast wide FM */
-	RIG_MODE_CWR =   	(1<<7),	/*!< CW reverse sideband */
-	RIG_MODE_RTTYR =	(1<<8),	/*!< RTTY reverse sideband */
-	RIG_MODE_AMS =    	(1<<9),	/*!< Amplitude Modulation Synchronous */
-	RIG_MODE_PKTLSB =       (1<<10),/*!< Packet/Digital LSB mode (dedicated port) */
-	RIG_MODE_PKTUSB =       (1<<11),/*!< Packet/Digital USB mode (dedicated port) */
-	RIG_MODE_PKTFM =        (1<<12),/*!< Packet/Digital FM mode (dedicated port) */
-	RIG_MODE_ECSSUSB =      (1<<13),/*!< Exalted Carrier Single Sideband USB */
-	RIG_MODE_ECSSLSB =      (1<<14),/*!< Exalted Carrier Single Sideband LSB */
-	RIG_MODE_FAX =          (1<<15),/*!< Facsimile Mode */
-	RIG_MODE_SAM =          (1<<16),/*!< Synchronous AM double sideband */
-	RIG_MODE_SAL =          (1<<17),/*!< Synchronous AM lower sideband */
-	RIG_MODE_SAH =          (1<<18), /*!< Synchronous AM upper (higher) sideband */
-	RIG_MODE_DSB =			(1<<19) /*!< Double sideband suppressed carrier */
+	RIG_MODE_NONE =  	0,	/*!< '' -- None */
+	RIG_MODE_AM =    	(1<<0),	/*!< \c AM -- Amplitude Modulation */
+	RIG_MODE_CW =    	(1<<1),	/*!< \c CW -- CW "normal" sideband */
+	RIG_MODE_USB =		(1<<2),	/*!< \c USB -- Upper Side Band */
+	RIG_MODE_LSB =		(1<<3),	/*!< \c LSB -- Lower Side Band */
+	RIG_MODE_RTTY =		(1<<4),	/*!< \c RTTY -- Radio Teletype */
+	RIG_MODE_FM =    	(1<<5),	/*!< \c FM -- "narrow" band FM */
+	RIG_MODE_WFM =   	(1<<6),	/*!< \c WFM -- broadcast wide FM */
+	RIG_MODE_CWR =   	(1<<7),	/*!< \c CWR -- CW "reverse" sideband */
+	RIG_MODE_RTTYR =	(1<<8),	/*!< \c RTTYR -- RTTY "reverse" sideband */
+	RIG_MODE_AMS =    	(1<<9),	/*!< \c AMS -- Amplitude Modulation Synchronous */
+	RIG_MODE_PKTLSB =       (1<<10),/*!< \c PKTLSB -- Packet/Digital LSB mode (dedicated port) */
+	RIG_MODE_PKTUSB =       (1<<11),/*!< \c PKTUSB -- Packet/Digital USB mode (dedicated port) */
+	RIG_MODE_PKTFM =        (1<<12),/*!< \c PKTFM -- Packet/Digital FM mode (dedicated port) */
+	RIG_MODE_ECSSUSB =      (1<<13),/*!< \c ECSSUSB -- Exalted Carrier Single Sideband USB */
+	RIG_MODE_ECSSLSB =      (1<<14),/*!< \c ECSSLSB -- Exalted Carrier Single Sideband LSB */
+	RIG_MODE_FAX =          (1<<15),/*!< \c FAX -- Facsimile Mode */
+	RIG_MODE_SAM =          (1<<16),/*!< \c SAM -- Synchronous AM double sideband */
+	RIG_MODE_SAL =          (1<<17),/*!< \c SAL -- Synchronous AM lower sideband */
+	RIG_MODE_SAH =          (1<<18),/*!< \c SAH -- Synchronous AM upper (higher) sideband */
+	RIG_MODE_DSB =			(1<<19) /*!< \c DSB -- Double sideband suppressed carrier */
 } rmode_t;
 
 /** \brief macro for backends, not to be used by rig_set_mode et al. */

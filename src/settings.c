@@ -16,7 +16,7 @@
  *  Hamlib Interface - func/level/parm
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.9 2007-08-18 12:55:46 n0nb Exp $
+ *	$Id: settings.c,v 1.10 2007-11-26 20:54:12 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -179,7 +179,7 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
  * \brief set a radio parameter
  * \param rig	The rig handle
  * \param parm	The parameter
- * \param val	The value to set the parameter to
+ * \param val	The value to set the parameter
  *
  *  Sets a parameter. 
  *  The parameter value \a val can be a float or an integer. See #value_t
@@ -376,16 +376,16 @@ setting_t HAMLIB_API rig_has_set_func(RIG *rig, setting_t func)
 }
 
 /**
- * \brief activate/desactivate functions of radio
+ * \brief activate/de-activate functions of radio
  * \param rig	The rig handle
  * \param vfo	The target VFO
  * \param func	The functions to activate
  * \param status	The status (on or off) to set to
  *
- * Activate/desactivate a function of the radio.
+ * Activate/de-activate a function of the radio.
  *
  * The \a status argument is a non null value for "activate", 
- * "desactivate" otherwise, much as true/false definitions in C language.
+ * "de-activate" otherwise, much as TRUE/FALSE definitions in C language.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -434,7 +434,7 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  *  Retrieves the status (on/off) of a function of the radio.
  *  Upon return, \a status will hold the status of the function,
  *  The value pointer to by the \a status argument is a non null 
- *  value for "on", "off" otherwise, much as true/false 
+ *  value for "on", "off" otherwise, much as TRUE/FALSE
  *  definitions in C language.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
@@ -525,7 +525,7 @@ int HAMLIB_API rig_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val
  * \param token	The parameter
  * \param val	The location where to store the value of \a token
  *
- *  Retrieves the value of a level extra paramter associated with \a token.
+ *  Retrieves the value of a level extra parameter associated with \a token.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -594,7 +594,7 @@ int HAMLIB_API rig_set_ext_parm(RIG *rig, token_t token, value_t val)
  * \param token	The parameter
  * \param val	The location where to store the value of \a token
  *
- *  Retrieves the value of a parm extra paramter associated with \a token.
+ *  Retrieves the value of a parm extra parameter associated with \a token.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 

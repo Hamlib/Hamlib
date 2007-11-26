@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.94 2006-10-15 00:27:51 aa6e Exp $
+ *	$Id: rig.c,v 1.95 2007-11-26 20:54:12 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,7 +76,7 @@ const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-  "Copyright (C) 2000-2006 Stephane Fillod and Frank Singleton\n"
+  "Copyright (C) 2000-2007 Stephane Fillod and Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 

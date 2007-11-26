@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.42 2007-08-19 08:26:27 y32kn Exp $
+ *	$Id: misc.c,v 1.43 2007-11-26 20:54:11 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -242,31 +242,34 @@ static struct {
 		const char *str;
 } mode_str[] = {
 	{ RIG_MODE_AM, "AM" },
-	{ RIG_MODE_AMS, "AMS" },
-	{ RIG_MODE_FM, "FM" },
 	{ RIG_MODE_CW, "CW" },
-	{ RIG_MODE_CWR, "CWR" },
 	{ RIG_MODE_USB, "USB" },
 	{ RIG_MODE_LSB, "LSB" },
 	{ RIG_MODE_RTTY, "RTTY" },
-	{ RIG_MODE_RTTYR, "RTTYR" },
+	{ RIG_MODE_FM, "FM" },
 	{ RIG_MODE_WFM, "WFM" },
+	{ RIG_MODE_CWR, "CWR" },
+	{ RIG_MODE_RTTYR, "RTTYR" },
+	{ RIG_MODE_AMS, "AMS" },
 	{ RIG_MODE_PKTLSB, "PKTLSB" },
 	{ RIG_MODE_PKTUSB, "PKTUSB" },
 	{ RIG_MODE_PKTFM, "PKTFM" },
 	{ RIG_MODE_ECSSUSB, "ECSSUSB" },
 	{ RIG_MODE_ECSSLSB, "ECSSLSB" },
 	{ RIG_MODE_FAX, "FAX" },
-	{ RIG_MODE_NONE, "" },
  	{ RIG_MODE_SAM, "SAM" },
  	{ RIG_MODE_SAL, "SAL" },
- 	{ RIG_MODE_SAH, "SAH" },
+    { RIG_MODE_SAH, "SAH" },
+    { RIG_MODE_DSB, "DSB"},
+	{ RIG_MODE_NONE, "" },
 };
 
 /**
  * \brief Convert alpha string to enum RIG_MODE
  * \param s input alpha string
  * \return enum RIG_MODE_??
+ *
+ * \sa rmode_t
  */
 rmode_t HAMLIB_API rig_parse_mode(const char *s)
 {
@@ -282,6 +285,8 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
  * \brief Convert enum RIG_MODE to alpha string
  * \param mode RIG_MODE_...
  * \return alpha string
+ *
+ * \sa rmode_t
  */
 const char * HAMLIB_API rig_strrmode(rmode_t mode)
 {
@@ -306,7 +311,9 @@ static struct {
 		{ RIG_VFO_C, "VFOC" },
 		{ RIG_VFO_CURR, "currVFO" },
 		{ RIG_VFO_MEM, "MEM" },
-		{ RIG_VFO_VFO, "VFO" },
+        { RIG_VFO_VFO, "VFO" },
+        { RIG_VFO_TX, "TX" },
+        { RIG_VFO_RX, "RX" },
 		{ RIG_VFO_MAIN, "Main" },
 		{ RIG_VFO_SUB, "Sub" },
 		{ RIG_VFO_NONE, "" },
@@ -316,6 +323,8 @@ static struct {
  * \brief Convert alpha string to enum RIG_VFO_...
  * \param s input alpha string
  * \return RIG_VFO_...
+ *
+ * \sa RIG_VFO_A RIG_VFO_B RIG_VFO_C RIG_VFO_MAIN RIG_VFO_SUB RIG_VFO_VFO RIG_VFO_CURR RIG_VFO_MEM RIG_VFO_TX RIG_VFO_RX RIG_VFO_NONE
  */
 vfo_t HAMLIB_API rig_parse_vfo(const char *s)
 {
@@ -331,6 +340,8 @@ vfo_t HAMLIB_API rig_parse_vfo(const char *s)
  * \brief Convert enum RIG_VFO_... to alpha string
  * \param vfo RIG_VFO_...
  * \return alpha string
+ *
+ * \sa RIG_VFO_A RIG_VFO_B RIG_VFO_C RIG_VFO_MAIN RIG_VFO_SUB RIG_VFO_VFO RIG_VFO_CURR RIG_VFO_MEM RIG_VFO_TX RIG_VFO_RX RIG_VFO_NONE
  */
 const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 {
@@ -360,7 +371,8 @@ static struct {
 	{ RIG_FUNC_FBKIN, "FBKIN" },
 	{ RIG_FUNC_ANF, "ANF" },
 	{ RIG_FUNC_NR, "NR" },
-	{ RIG_FUNC_AIP, "AIP" },
+    { RIG_FUNC_AIP, "AIP" },
+    { RIG_FUNC_APF, "APF" },
 	{ RIG_FUNC_MON, "MON" },
 	{ RIG_FUNC_MN, "MN" },
 	{ RIG_FUNC_RF, "RF" },
@@ -369,7 +381,8 @@ static struct {
 	{ RIG_FUNC_MUTE, "MUTE" },
 	{ RIG_FUNC_VSC, "VSC" },
 	{ RIG_FUNC_REV, "REV" },
-	{ RIG_FUNC_SQL, "SQL" },
+    { RIG_FUNC_SQL, "SQL" },
+    { RIG_FUNC_ABM, "ABM" },
 	{ RIG_FUNC_BC, "BC" },
 	{ RIG_FUNC_MBC, "MBC" },
 	{ RIG_FUNC_AFC, "AFC" },
@@ -385,6 +398,8 @@ static struct {
  * \brief Convert alpha string to enum RIG_FUNC_...
  * \param s input alpha string
  * \return RIG_FUNC_...
+ *
+ * \sa rig_func_e
  */
 setting_t HAMLIB_API rig_parse_func(const char *s)
 {
@@ -401,6 +416,8 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
  * \brief Convert enum RIG_FUNC_... to alpha string
  * \param func RIG_FUNC_...
  * \return alpha string
+ *
+ * \sa rig_func_e
  */
 const char * HAMLIB_API rig_strfunc(setting_t func)
 {
@@ -446,9 +463,9 @@ static struct {
 	{ RIG_LEVEL_SLOPE_LOW, "SLOPE_LOW" },
 	{ RIG_LEVEL_SLOPE_HIGH, "SLOPE_HIGH" },
 	{ RIG_LEVEL_RAWSTR, "RAWSTR" },
+	{ RIG_LEVEL_SQLSTAT, "SQLSTAT" },
 	{ RIG_LEVEL_SWR, "SWR" },
 	{ RIG_LEVEL_ALC, "ALC" },
-	{ RIG_LEVEL_SQLSTAT, "SQLSTAT" },
 	{ RIG_LEVEL_STRENGTH, "STRENGTH" },
 	{ RIG_LEVEL_NONE, "" },
 };
@@ -457,6 +474,8 @@ static struct {
  * \brief Convert alpha string to enum RIG_LEVEL_...
  * \param s input alpha string
  * \return RIG_LEVEL_...
+ *
+ * \sa rig_level_e
  */
 setting_t HAMLIB_API rig_parse_level(const char *s)
 {
@@ -473,6 +492,8 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
  * \brief Convert enum RIG_LEVEL_... to alpha string
  * \param level RIG_LEVEL_...
  * \return alpha string
+ *
+ * \sa rig_level_e
  */
 const char * HAMLIB_API rig_strlevel(setting_t level)
 {
@@ -497,7 +518,8 @@ static struct {
 	{ RIG_PARM_BACKLIGHT, "BACKLIGHT" },
 	{ RIG_PARM_BEEP, "BEEP" },
 	{ RIG_PARM_TIME, "TIME" },
-	{ RIG_PARM_BAT, "BAT" },
+    { RIG_PARM_BAT, "BAT" },
+    { RIG_PARM_KEYLIGHT, "KEYLIGHT"},
 	{ RIG_PARM_NONE, "" },
 };
 
@@ -505,6 +527,8 @@ static struct {
  * \brief Convert alpha string to RIG_PARM_...
  * \param s input alpha string
  * \return RIG_PARM_...
+ *
+ * \sa rig_parm_e
  */
 setting_t HAMLIB_API rig_parse_parm(const char *s)
 {
@@ -521,6 +545,8 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
  * \brief Convert enum RIG_PARM_... to alpha string
  * \param parm RIG_PARM_...
  * \return alpha string
+ *
+ * \sa rig_parm_e
  */
 const char * HAMLIB_API rig_strparm(setting_t parm)
 {
@@ -560,6 +586,8 @@ static struct {
  * \brief Convert alpha string to enum RIG_OP_...
  * \param s alpha string
  * \return RIG_OP_...
+ *
+ * \sa vfo_op_t
  */
 vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 {
@@ -576,6 +604,8 @@ vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
  * \brief Convert enum RIG_OP_... to alpha string
  * \param op RIG_OP_...
  * \return alpha string
+ *
+ * \sa vfo_op_t
  */
 const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 {
@@ -610,6 +640,8 @@ static struct {
  * \brief Convert alpha string to enum RIG_SCAN_...
  * \param s alpha string
  * \return RIG_SCAN_...
+ *
+ * \sa scan_t
  */
 scan_t HAMLIB_API rig_parse_scan(const char *s)
 {
@@ -627,6 +659,8 @@ scan_t HAMLIB_API rig_parse_scan(const char *s)
  * \brief Convert enum RIG_SCAN_... to alpha string
  * \param rscan RIG_SCAN_...
  * \return alpha string
+ *
+ * \sa scan_t
  */
 const char * HAMLIB_API rig_strscan(scan_t rscan)
 {
