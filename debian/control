@@ -2,16 +2,18 @@ Source: hamlib
 Section: hamradio
 Priority: optional
 Maintainer: Joop Stakenborg <pa3aba@debian.org>
-Build-Depends: debhelper (>> 3.0.0), doxygen, swig, libperl-dev, python2.3-dev, tcl8.4-dev
-Build-Conflicts: hamlib-dev (< 1.2.3-1)
-Standards-Version: 3.6.1
+Uploaders: Terry Dawson <terry@debian.org>, Joop Stakenborg <pa3aba@debian.org>
+Build-Depends: debhelper (>> 5.0.37.2), doxygen, swig, libperl-dev, python-all-dev (>= 2.3.5-11), tcl8.4-dev, libusb-dev, python-support (>= 0.3)
+Build-Conflicts: hamlib-dev (< 1.2.5-3)
+Standards-Version: 3.7.2
 
-Package: hamlib3
+Package: libhamlib2
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}
-Conflicts: hamlib1, hamlib2
-Description: Run-time library to control radio transcievers and receivers
+Conflicts: hamlib1, hamlib2, hamlib3, hamlib4
+Provides: hamlib4
+Description: Run-time library to control radio transceivers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -22,13 +24,15 @@ Description: Run-time library to control radio transcievers and receivers
  appropriate commands required by the radio in use.
  .
  This package provides the C run-time form of the library. If you wish to
- develop software using this library you need the 'hamlib-dev' package.
+ develop software using this library you need the 'libhamlib-dev' package.
 
-Package: hamlib3++
+Package: libhamlib2++c2
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends}
-Description: Run-time library to control radio transcievers and receivers
+Conflicts: hamlib3++, hamlib3++c2, hamlib4++c2
+Provides: hamlib4++c2
+Description: Run-time library to control radio transceivers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -39,13 +43,15 @@ Description: Run-time library to control radio transcievers and receivers
  appropriate commands required by the radio in use.
  .
  This package provides the C++ run-time form of the library. If you wish to
- develop software using this library you need the 'hamlib++-dev' package.
+ develop software using this library you need the 'libhamlib++-dev' package.
 
-Package: hamlib-dev
+Package: libhamlib-dev
 Architecture: any
 Section: libdevel
-Depends: hamlib3 (= ${Source-Version}), libc6-dev
-Description: Development library to control radio transcievers and receivers
+Depends: libhamlib2 (= ${Source-Version}), libc6-dev, libusb-dev
+Conflicts: hamlib-dev
+Provides: hamlib-dev
+Description: Development library to control radio transceivers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -57,13 +63,15 @@ Description: Development library to control radio transcievers and receivers
  .
  This package provides the development library with both C bindings.
  If you wish to run applications developed using this library you'll need the
- 'hamlib3' package.
+ 'libhamlib2' package.
 
-Package: hamlib++-dev
+Package: libhamlib++-dev
 Architecture: any
 Section: libdevel
-Depends: hamlib3 (= ${Source-Version}), hamlib-dev (= ${Source-Version}), libc6-dev
-Description: Development library to control radio transcievers and receivers
+Depends: libhamlib2 (= ${Source-Version}), libhamlib-dev (= ${Source-Version}), libc6-dev
+Conflicts: hamlib++-dev
+Provides: hamlib++-dev
+Description: Development library to control radio transceivers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -75,13 +83,15 @@ Description: Development library to control radio transcievers and receivers
  .
  This package provides the development library with C++ bindings.
  If you wish to run applications developed using this library you'll need the
- 'hamlib3' package.
+ 'libhamlib2++c2' package.
 
-Package: hamlib3-perl
+Package: libhamlib2-perl
 Architecture: any
 Section: perl
 Depends: ${shlibs:Depends}
-Description: Run-time library to control radio transcievers and receivers
+Conflicts: hamlib3-perl, hamlib4-perl
+Provides: hamlib4-perl
+Description: Run-time library to control radio transceivers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -93,11 +103,13 @@ Description: Run-time library to control radio transcievers and receivers
  .
  This package provides the perl bindings of the library.
 
-Package: hamlib3-tcl
+Package: libhamlib2-tcl
 Architecture: any
 Section: interpreters
 Depends: ${shlibs:Depends}
-Description: Run-time library to control radio transcievers and receivers
+Conflicts: hamlib3-tcl, hamlib4-tcl
+Provides: hamlib4-tcl
+Description: Run-time library to control radio transceivers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -109,11 +121,15 @@ Description: Run-time library to control radio transcievers and receivers
  .
  This package provides the tcl bindings of the library.
 
-Package: python2.3-hamlib3
+Package: python-libhamlib2
 Architecture: any
 Section: python
-Depends: ${shlibs:Depends}
-Description: Run-time library to control radio transcievers and receivers
+Depends: ${shlibs:Depends}, ${python:Depends}
+Conflicts: python2.3-hamlib3, python2.4-hamlib4, python2.3-libhamlib2
+Replaces: python2.3-libhamlib2
+Provides: ${python:Provides}
+XB-Python-Version: ${python:Versions}
+Description: Run-time library to control radio transceivers and receivers
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
  not always consistent across a manufacturer's product line and each
@@ -125,9 +141,11 @@ Description: Run-time library to control radio transcievers and receivers
  .
  This package provides the python bindings of the library.
 
-Package: hamlib-utils
+Package: libhamlib-utils
 Architecture: any
 Depends: ${shlibs:Depends}
+Conflicts: hamlib-utils
+Provides: hamlib-utils
 Description: Utilities to support the hamlib radio control library
  Most recent amateur radio transceivers allow external control of their
  functions through a computer interface. Unfortunately, control commands are
@@ -141,9 +159,11 @@ Description: Utilities to support the hamlib radio control library
  This package provides a command-line utility to test the hamlib library and
  to control transceivers if you're short of anything more sophisticated.
 
-Package: hamlib-doc
+Package: libhamlib-doc
 Architecture: any
 Section: doc
+Conflicts: hamlib-doc
+Provides: hamlib-doc
 Suggests: www-browser
 Description: Documentation for the hamlib radio control library
  Most recent amateur radio transceivers allow external control of their

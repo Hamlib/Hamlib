@@ -1,3 +1,122 @@
+hamlib (1.2.6.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sun,  4 Feb 2007 19:44:37 +0100
+
+hamlib (1.2.6-1) unstable; urgency=low
+
+  * New upstream.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Wed, 31 Jan 2007 19:55:12 +0100
+
+hamlib (1.2.5-8) unstable; urgency=high
+
+  * Change pyversions to 2.4.
+  * Install python modules in /usr/share/python-support/python-libhamlib2,
+    so python can find them.
+  * This fixes an RC bug, so set urgency high.
+  * Closes: #406991.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sun, 21 Jan 2007 19:22:23 +0100
+
+hamlib (1.2.5-7.1) unstable; urgency=low
+
+  * NMU.
+  * Drop explicit dependency on python2.3.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 27 Oct 2006 02:20:23 +0200
+
+hamlib (1.2.5-7) unstable; urgency=low
+
+  * Update to new python policy
+  * Update standards version 3.7.2
+  * This work by Barry deFreese of Ubuntu, thanks! Closes: #379191.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Tue, 25 Jul 2006 10:16:19 +0200
+
+hamlib (1.2.5-6) unstable; urgency=low
+
+  * Make sure the tcltest.tcl script works.
+  * Remove config.status, libltdl/config.status when cleaning.
+  * Fix a spelling error in the control file. Closes: #363632.
+  * Make sure we don't have -Xtcl when running dpkg-shlibdeps, so the
+    depends line for the tcl package gets created correctly.
+  * TODO.Debian added for future work.
+  * Do not use hamlib4, use libhamlib2. Closes: #364222.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sun, 23 Apr 2006 10:10:07 +0200
+
+hamlib (1.2.5-5) unstable; urgency=low
+
+  * Okay, we should be using python instead of python2.3 for build 
+    depends.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Fri, 14 Apr 2006 00:46:31 +0200
+
+hamlib (1.2.5-4) unstable; urgency=low
+
+  * Build depend on python2.3 and python2.3-dev.
+  * Use 'python -V 2.3' in debian/rules.
+  * Build-Conflicts python2.4.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Thu, 13 Apr 2006 22:40:06 +0200
+
+hamlib (1.2.5-3) unstable; urgency=low
+
+  * Remove rpath trapdoor from the perl package. Closes: #358166.
+  * libhamlib-dev should depend on libusb-dev. Closes: #358129.
+  * Adjust copyright file so it points both to the GPL and LGPL, copyright
+    the debian work, include a copyright header from the source code and
+    mention both debian developers.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Fri, 31 Mar 2006 20:04:53 +0200
+
+hamlib (1.2.5-2) unstable; urgency=low
+
+  * Co-maintainer added: Terry Dawson.
+  * Provide new packages, which follow the so name.
+  * Correct some of the descriptions, so they point to the correct packages.
+  * Build python package against python2.3 for now, since building against 
+    2.4 doesn't seem to work.
+  * Use dh_perl and dh_python when building, so we byte compile at install time.
+  * Install the rigswr binary into the libhamlib-utils package.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sun, 19 Mar 2006 09:34:06 +0100
+
+hamlib (1.2.5-1) unstable; urgency=low
+
+  * New upstream release.
+  * Add libusb-dev to the build dependencies.
+  * This package differs from the upstream package, it creates libhamlib.so.2
+    to avoid the need for recompilation for applications that depend on hamlib,
+    should a new hamlib be released. Upstream knows about this and will 
+    apply it to future packages.
+  * Python model now compiled for python2.4.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Sat,  4 Mar 2006 13:55:30 +0100
+
+hamlib (1.2.4-3) unstable; urgency=low
+
+  * Patch by Petr Salinger to fix FTBFS on GNU/kFreeBSD. Closes: #336029.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Thu, 27 Oct 2005 17:46:51 +0200
+
+hamlib (1.2.4-2) unstable; urgency=low
+
+  * C++ ABI transition. Closes: #335632.
+    - rename hamlib3++ to hammlib3++c2 and conflict/replace hamlib3++.
+    - change debian/rules accordingly.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Wed, 26 Oct 2005 10:29:27 +0200
+
+hamlib (1.2.4-1) unstable; urgency=low
+
+  * New upstream release.
+  * Watch file added.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Mon,  4 Apr 2005 16:46:27 +0200
+
 hamlib (1.2.3-2) unstable; urgency=low
 
   * Do a correct rebuild, so hamlib3-tcl does not get linked with hamlib2.
@@ -119,7 +238,7 @@ hamlib (1.1.2-4) unstable; urgency=low
   * (Closes: #124718)
   * (Closes: #124719)
 
- -- Terry Dawson <terry@animats.net>  Fre, 28 Dec 2001 20:12:50 +1000
+ -- Terry Dawson <terry@animats.net>  Fri, 28 Dec 2001 20:12:50 +1000
 
 hamlib (1.1.2-3) unstable; urgency=low
 
