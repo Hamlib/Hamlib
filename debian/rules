@@ -27,7 +27,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	# Add here commands to clean up after the build process.
-	-$(MAKE) clean
+	[ ! -f Makefile ] || $(MAKE) clean
 	dh_clean
 	rm -f build-stamp configure-stamp 
 	rm -f config.log libltdl/config.log
@@ -78,9 +78,10 @@ install: build
 	mv $(CURDIR)/debian/libhamlib2-perl/usr/lib/perl5/perltest.pl $(CURDIR)/debian/libhamlib2-perl/usr/share/doc/libhamlib2-perl
 
 	# Move the appropriate files into the python package
-	rm $(CURDIR)/debian/tmp/usr/lib/python/Hamlib.pyc
+	rm $(CURDIR)/debian/tmp/usr/lib/python/Hamlib.py?
 	mv $(CURDIR)/debian/tmp/usr/lib/python/* $(CURDIR)/debian/python-libhamlib2/usr/share/python-support/python-libhamlib2
 	mv $(CURDIR)/debian/tmp/usr/lib/_Hamlib.so $(CURDIR)/debian/python-libhamlib2/usr/share/python-support/python-libhamlib2
+	chmod 0644 $(CURDIR)/bindings/pytest.py
 	cp $(CURDIR)/bindings/pytest.py $(CURDIR)/debian/python-libhamlib2/usr/share/doc/python-libhamlib2/
 
 	# Move the appropriate files into the tcl package
@@ -136,8 +137,8 @@ binary-arch: build install
 	  fi; \
 	done
 
-	dh_pysupport
-	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xkit -Xlowe -Xmicrotune -Xpcr -Xracal -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xtuner -Xuniden -Xwinradio -Xyaesu -Xkit -Xracal -Xscanti -Xwj -Xtuner
+	dh_pysupport -ppython-libhamlib2
+	dh_makeshlibs -V -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xkit -Xlowe -Xmicrotune -Xpcr -Xracal -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xtuner -Xuniden -Xwinradio -Xyaesu -Xkit -Xracal -Xscanti -Xwj -Xtuner -Xlibtcl
 	dh_installdeb
 	dh_shlibdeps -Xalinco -Xaor -Xdrake -Xdummy -Xeasycomm -Xflexradio -Xfodtrack -Xicom -Xjrc -Xkachina -Xkenwood -Xkit -Xlowe -Xmicrotune -Xpcr -Xracal -Xrft -Xrotorez -Xrpc -Xsartek -Xtapr -Xtentec -Xtuner -Xuniden -Xwinradio -Xyaesu -Xkit -Xracal -Xscanti -Xwj -Xtuner
 	dh_gencontrol

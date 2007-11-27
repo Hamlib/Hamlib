@@ -1,3 +1,23 @@
+hamlib (1.2.6.2-2) unstable; urgency=low
+
+  * From Ubuntu hardy: Remove bytecompiled modules from the python-libhamlib2 
+    package, in debian/rules: change rm to remove Hamlib.py? instead of
+    only Hamlib.pyc.
+  * Add -ppython-libhamlib2 to dh_pysupport call.
+  * Thanks Cesare Tirabassi <norsetto@ubuntu.com>.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Tue, 27 Nov 2007 20:12:51 +0100
+
+hamlib (1.2.6.2-1) unstable; urgency=low
+
+  * New upstream release.
+  * Make python 2.4 only the minimum version.
+  * Remove "@PYTHON_LDFLAGS@" from bindings/Makefile.am, so we
+    don't link with python. Closes: #445382.
+  * Some lintian fixes.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Mon, 26 Nov 2007 20:58:35 +0100
+
 hamlib (1.2.6.1-1) unstable; urgency=low
 
   * New upstream release

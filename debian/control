@@ -48,7 +48,7 @@ Description: Run-time library to control radio transceivers and receivers
 Package: libhamlib-dev
 Architecture: any
 Section: libdevel
-Depends: libhamlib2 (= ${Source-Version}), libc6-dev, libusb-dev
+Depends: libhamlib2 (= ${binary:Version}), libc6-dev, libusb-dev
 Conflicts: hamlib-dev
 Provides: hamlib-dev
 Description: Development library to control radio transceivers and receivers
@@ -68,7 +68,7 @@ Description: Development library to control radio transceivers and receivers
 Package: libhamlib++-dev
 Architecture: any
 Section: libdevel
-Depends: libhamlib2 (= ${Source-Version}), libhamlib-dev (= ${Source-Version}), libc6-dev
+Depends: libhamlib2 (= ${binary:Version}), libhamlib-dev (= ${binary:Version}), libc6-dev
 Conflicts: hamlib++-dev
 Provides: hamlib++-dev
 Description: Development library to control radio transceivers and receivers

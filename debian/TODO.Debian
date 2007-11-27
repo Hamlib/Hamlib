@@ -2,16 +2,6 @@ TODO.Debian for the hamlib package
 ----------------------------------
 
 *
-The perl package still has a backdoor, most probably '-Wl,--rpath' is still
-defined somewhere. The tool to use here is chrpath:
-
-$ chrpath /usr/lib/perl5/auto/Hamlib/Hamlib.so
-/usr/lib/perl5/auto/Hamlib/Hamlib.so: RPATH=/usr/local/lib
-
-/usr/local/lib is not that bad however, no user will have write access to it.
-
-
-*
 We should start using dh_install and the corresponding package.install files,
 it is much easier to maintain.
 
