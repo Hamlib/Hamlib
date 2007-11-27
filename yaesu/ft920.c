@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.21 2007-11-25 04:57:42 n0nb Exp $
+ * $Id: ft920.c,v 1.22 2007-11-27 01:02:17 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -48,15 +48,13 @@
 
 
 /*
- * Functions considered to be Beta code (2002-11-15):
+ * Functions considered to be Beta code (2007-11-25):
  * set_vfo
  * get_vfo
  * set_freq
  * get_freq
  * set_mode
  * get_mode
- *
- * Functions considered to be Alpha code (2003-01-16):
  * set_split
  * get_split
  * set_split_freq
@@ -68,6 +66,9 @@
  * set_xit
  * get_xit
  *
+ * Functions considered to be Alpha code (2007-11-24):
+ * set_ptt
+ * get_ptt
  */
 
 
@@ -78,7 +79,6 @@ static int ft920_send_static_cmd(RIG *rig, unsigned char ci);
 static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci, unsigned char p1, unsigned char p2, unsigned char p3, unsigned char p4);
 static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq);
 static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit);
-
 
 /*
  * Native ft920 cmd set prototypes. These are READ ONLY as each
@@ -109,6 +109,9 @@ static const yaesu_cmd_set_t ncmd[] = {
     { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } },    /* Status Update Data--Current operating data for VFO/Memory (28 bytes) */
     { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } },    /* Status Update DATA--VFO A and B Data (28 bytes) */
     { 0, { 0x00, 0x00, 0x00, 0x04, 0x10 } },    /* Status Update Data--Memory Channel Data (14 bytes) P4 = 0x00-0x89 Memory Channel Number */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } },    /* Tuner off */
+    { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } },    /* Tuner on */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } },    /* Tuner start */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x8a } },    /* set vfo B frequency */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8c } },    /* VFO A wide filter */
     { 1, { 0x00, 0x00, 0x00, 0x02, 0x8c } },    /* VFO A narrow filter */
@@ -149,7 +152,7 @@ const struct rig_caps ft920_caps = {
     .rig_model =        RIG_MODEL_FT920,
     .model_name =       "FT-920",
     .mfg_name =         "Yaesu",
-    .version =          "0.3",
+    .version =          "0.3.3",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_ALPHA,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -166,8 +169,8 @@ const struct rig_caps ft920_caps = {
     .post_write_delay = FT920_POST_WRITE_DELAY,
     .timeout =          2000,
     .retry =            0,
-    .has_get_func =     RIG_FUNC_NONE,
-    .has_set_func =     RIG_FUNC_NONE,
+    .has_get_func =     FT920_FUNC_ALL,
+    .has_set_func =     RIG_FUNC_TUNER,
     .has_get_level =    RIG_LEVEL_NONE,
     .has_set_level =    RIG_LEVEL_NONE,
     .has_get_parm =     RIG_PARM_NONE,
@@ -309,8 +312,8 @@ const struct rig_caps ft920_caps = {
     .get_ant =          NULL,
     .set_level =        NULL,
     .get_level =        NULL,
-    .set_func =         NULL,
-    .get_func =         NULL,
+    .set_func =         ft920_set_func,
+    .get_func =         ft920_get_func,
     .set_parm =         NULL,
     .get_parm =         NULL,
     .set_ext_level =    NULL,
@@ -1080,11 +1083,23 @@ static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
 
 
 /*
- * set the '920 split TX freq
+ * rig_set_split_freq*
  *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
+ * Set the '920 split TX freq
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * tx_freq      | input     | split transmit frequency
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Right now this is just a pass-through function and depends
+ *              on the user app to "know" which VFO to set.
+ *
+ *              Does this need to determine the split direction and set
+ *              accordingly?
  */
 
 static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq) {
@@ -1104,14 +1119,27 @@ static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq) {
 
 
 /*
- * get the '920 split TX freq
+ * rig_get_split_freq*
  *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
+ * Get the '920 split TX freq
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * *tx_freq     | output    | split transmit frequency
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Right now this is just a pass-through function and depends
+ *              on the user app to "know" which VFO to set.
+ *
+ *              Does this need to determine the split direction and set
+ *              accordingly?
  */
 
-static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq) {
+static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
+{
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1128,14 +1156,28 @@ static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq) {
 
 
 /*
- * set the '920 split TX mode
+ * rig_set_split_mode
  *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
+ * Set the '920 split TX mode
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * tx_mode      | input     | supported modes
+ * tx_width     | input     | supported widths
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Right now this is just a pass-through function and depends
+ *              on the user app to "know" which VFO to set.
+ *
+ *              Does this need to determine the split direction and set
+ *              accordingly?
  */
 
-static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width) {
+static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+{
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1152,14 +1194,28 @@ static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
 
 
 /*
- * get the '920 split TX mode
+ * rig_get_split_mode*
  *
- * Right now this is just a pass-through function and depends on the
- * user app to "know" which VFO to set.  Does this need to determine
- * the split direction and set accordingly?
+ * Get the '920 split TX mode
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * *tx_mode     | output    | supported modes
+ * *tx_width    | output    | supported widths
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Right now this is just a pass-through function and depends
+ *              on the user app to "know" which VFO to set.
+ *
+ *              Does this need to determine the split direction and set
+ *              accordingly?
  */
 
-static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width) {
+static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1176,16 +1232,27 @@ static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t
 
 
 /*
- * set the RIT offset
+ * rig_set_rit*
  *
- * vfo is ignored as RIT cannot be changed on sub VFO
+ * Set the RIT offset
  *
- * FIXME:   Should rig be forced into VFO mode if RIG_VFO_A or
- *          RIG_VFO_VFO is received?
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * rit          | input     | -9999 to 9999 Hz
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
- * VFO and MEM rit values are independent.  The sub display carries
- * an RIT value only if A<>B button is pressed or set_vfo is called with
- * RIG_VFO_B and the main display has an RIT value.
+ * Comments:    vfo is ignored as RIT cannot be changed on sub VFO
+ *
+ *              FIXME:  Should rig be forced into VFO mode if RIG_VFO_A
+ *                      or RIG_VFO_VFO is received?
+ *
+ *              VFO and MEM rit values are independent.  The sub display
+ *              carries an RIT value only if A<>B button is pressed or
+ *              set_vfo is called with RIG_VFO_B and the main display has
+ *              an RIT value.
  */
 
 static int ft920_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
@@ -1223,17 +1290,31 @@ static int ft920_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
 
 
 /*
- * Get the RIT offset
- * Value of vfo is ignored as it's not needed
- * Rig returns offset as hex from 0x0000 to 0x270f for 0 to +9.999 kHz
- * and 0xffff to 0xd8f1 for -1 to -9.999 kHz
+ * rig_get_rit*
  *
- * VFO and MEM rit values are independent.  The sub display carries
- * an RIT value only if A<>B button is pressed or set_vfo is called with
- * RIG_VFO_B and the main display has an RIT value.
+ * Get the RIT offset
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * *rit         | output    | -9999 to 9999 Hz
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Value of vfo is ignored as it's not needed.
+ *
+ *              Rig returns offset as hex from 0x0000 to 0x270f for
+ *              0 to +9999 Hz and 0xffff to 0xd8f1 for -1 to -9999 Hz
+ *
+ *              VFO and MEM rit values are independent.  The sub display
+ *              carries an RIT value only if A<>B button is pressed or
+ *              set_vfo is called with RIG_VFO_B and the main display has
+ *              an RIT value.
  */
 
-static int ft920_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
+static int ft920_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
     struct ft920_priv_data *priv;
     unsigned char *p;
     unsigned char offset;
@@ -1296,15 +1377,26 @@ static int ft920_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit) {
 
 
 /*
- * set the XIT offset
+ * rig_set_xit
  *
- * vfo is ignored as XIT cannot be changed on sub VFO
+ * Set the XIT offset
  *
- * FIXME:   Should rig be forced into VFO mode if RIG_VFO_A or
- *          RIG_VFO_VFO is received?
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * xit          | input     | -9999 to 9999 Hz
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    vfo is ignored as XIT cannot be changed on sub VFO
+ *
+ *              FIXME:  Should rig be forced into VFO mode if RIG_VFO_A
+ *                      or RIG_VFO_VFO is received?
  */
 
-static int ft920_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
+static int ft920_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
+{
     unsigned char offset;
     int err;
 
@@ -1339,13 +1431,26 @@ static int ft920_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit) {
 
 
 /*
+ * rig_get_xit*
+ *
  * Get the XIT offset
- * Value of vfo is ignored as it's not needed
- * Rig returns offset as hex from 0x0000 to 0x270f for 0 to +9.999 kHz
- * and 0xffff to 0xd8f1 for -1 to -9.999 kHz
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * *xit         | output    | -9999 to 9999 Hz
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Value of vfo is ignored as it's not needed
+ *
+ *              Rig returns offset as hex from 0x0000 to 0x270f for
+ *              0 to +9999 Hz and 0xffff to 0xd8f1 for -1 to -9999 Hz
  */
 
-static int ft920_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
+static int ft920_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
+{
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1362,18 +1467,28 @@ static int ft920_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit) {
 
 
 /*
- * rig_set_ptt
+ * rig_set_ptt*
  *
- * set the '920 into TX mode
+ * Set the '920 into TX mode
  *
- * vfo is respected by calling ft920_set_vfo if
- * passed vfo != priv->current_vfo
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * ptt          | input     | RIG_PTT_OFF, RIG_PTT_ON
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
- * This command is not documented in my '920 manual, but it works!  -N0NB
+ * Comments:    vfo is respected by calling ft920_set_vfo if
+ *              passed vfo != priv->current_vfo
+ *
+ *              This command is not documented in my '920 manual,
+ *              but it works!  -N0NB
  *
  */
 
-static int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
+static int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
     struct ft920_priv_data *priv;
     unsigned char cmd_index;
     int err;
@@ -1416,16 +1531,25 @@ static int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
 
 
 /*
- * rig_get_ptt
+ * rig_get_ptt*
  *
- * get current PTT status
+ * Get current PTT status
  *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * *ptt         | output    | RIG_PTT_OFF, RIG_PTT_ON
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Get the PTT state
  */
 
-static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
+static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
+{
     struct ft920_priv_data *priv;
     unsigned char stat_0;               /* ft920 status flag 0 */
-    unsigned char stat_ptt;             /* status tests */
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1449,12 +1573,11 @@ static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
      * and gives an accurate state of the PTT line.
      */
     stat_0 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_0];
-    stat_ptt = stat_0 & SF_PTT_MASK;    /* get external PTT active bit */
+    stat_0 &= SF_PTT_MASK;              /* get external PTT active bit */
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: ptt stat_0 = 0x%02x, stat_ptt = 0x%02x\n",
-              __func__, stat_0, stat_ptt);
+    rig_debug(RIG_DEBUG_TRACE, "%s: stat_0 = 0x%02x\n", __func__, stat_0);
 
-    switch (stat_ptt) {
+    switch (stat_0) {
     case SF_PTT_OFF:
         *ptt = RIG_PTT_OFF;
         break;
@@ -1463,6 +1586,153 @@ static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
         break;
     default:                            /* Oops! */
         return -RIG_EINVAL;             /* Invalid PTT bit?! */
+    }
+
+    return RIG_OK;
+}
+
+
+/*
+ * rig_set_func*
+ *
+ * Set rig function
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * func         | input     | TUNER
+ * status       | input     | 0 = off, 1 = on, 2 = start (toggle)
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Set the tuner to on, off, or start
+ */
+
+static int ft920_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    struct ft920_priv_data *priv;
+    unsigned char cmd_index;
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+        return -RIG_EINVAL;
+
+    priv = (struct ft920_priv_data *)rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x, func = 0x%02x, status = %d\n",
+              __func__, vfo, func, status);
+
+    if (vfo == RIG_VFO_CURR) {
+        vfo = priv->current_vfo;        /* from previous vfo cmd */
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: priv->current_vfo = 0x%02x\n", __func__, vfo);
+    } else if (vfo != priv->current_vfo)
+        ft920_set_vfo(rig, vfo);
+
+    switch(func) {
+    case RIG_FUNC_TUNER:
+        switch(status) {
+        case TUNER_OFF:
+            cmd_index = FT920_NATIVE_TUNER_OFF;
+            break;
+        case TUNER_ON:
+            cmd_index = FT920_NATIVE_TUNER_ON;
+            break;
+        case TUNER_START:
+            cmd_index = FT920_NATIVE_TUNER_START;
+            break;
+        default:
+            return -RIG_EINVAL;         /* wrong tuner status! */
+        }
+        break;
+    default:
+        return -RIG_EINVAL;             /* wrong function! */
+    }
+
+    err = ft920_send_static_cmd(rig, cmd_index);
+    if (err != RIG_OK)
+        return err;
+
+    return RIG_OK;
+}
+
+
+/*
+ * rig_get_func*
+ *
+ * Get rig function
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | currVFO, VFOA, VFOB, MEM
+ * func         | input     | TUNER
+ * *status      | output    | 0 = off, 1 = on, 2 = tuning
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Read the tuner status from status flags
+ */
+
+static int ft920_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+    struct ft920_priv_data *priv;
+    unsigned char stat_0, stat_2;       /* ft920 status flags 0, 2 */
+    int err;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+        return -RIG_EINVAL;
+  
+    priv = (struct ft920_priv_data *)rig->state.priv;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x, func = 0x%02x\n",
+              __func__, vfo, func);
+
+    if (vfo == RIG_VFO_CURR) {
+        vfo = priv->current_vfo;        /* from previous vfo cmd */
+        rig_debug(RIG_DEBUG_TRACE,
+                  "%s: priv->current_vfo = 0x%02x\n", __func__, vfo);
+    } else if (vfo != priv->current_vfo)
+        ft920_set_vfo(rig, vfo);
+
+    /* Get flags for VFO status */
+    err = ft920_get_update_data(rig, FT920_NATIVE_STATUS_FLAGS,
+                                FT920_STATUS_FLAGS_LENGTH);
+    if (err != RIG_OK)
+        return err;
+
+    /*
+     * The FT-920 status gives three flags for the tuner state,
+     * one if the tuner is On/tuning, another if the tuner is
+     * "inline" and the last if the "WAIT" light is on.
+     *
+     * Currently, will only check if tuner is tuning and inline.
+     */
+    stat_0 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_0];
+    stat_0 &= SF_TUNE;                  /* get tuning state */
+
+    stat_2 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_2];
+    stat_2 &= SF_TUNER;                 /* get tuner inline state */
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: stat_0 = 0x%02x, stat_2 = 0x%02x\n",
+              __func__, stat_0, stat_2);
+
+    switch(func) {
+    case RIG_FUNC_TUNER:
+        if (stat_0)
+            *status = TUNER_START;
+        else if (stat_2)
+            *status = TUNER_ON;
+        else
+            *status = TUNER_OFF;
+        break;
+    default:
+        return -RIG_EINVAL;             /* wrong function! */
     }
 
     return RIG_OK;
@@ -1494,7 +1764,8 @@ static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
  *              otherwise returns error from called functiion
  */
 
-static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
+static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl)
+{
     struct rig_state *rig_s;
     struct ft920_priv_data *priv;
     int n;                              /* for read_  */
@@ -1534,7 +1805,8 @@ static int ft920_get_update_data(RIG *rig, unsigned char ci, unsigned char rl) {
  *              otherwise returns error from called functiion
  */
 
-static int ft920_send_static_cmd(RIG *rig, unsigned char ci) {
+static int ft920_send_static_cmd(RIG *rig, unsigned char ci)
+{
     struct rig_state *rig_s;
     struct ft920_priv_data *priv;
     int err;
@@ -1580,7 +1852,8 @@ static int ft920_send_static_cmd(RIG *rig, unsigned char ci) {
 
 static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci,
                                   unsigned char p1, unsigned char p2,
-                                  unsigned char p3, unsigned char p4) {
+                                  unsigned char p3, unsigned char p4)
+{
     struct rig_state *rig_s;
     struct ft920_priv_data *priv;
     int err;
@@ -1637,7 +1910,8 @@ static int ft920_send_dynamic_cmd(RIG *rig, unsigned char ci,
  *              otherwise returns error from called functiion
  */
 
-static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
+static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq)
+{
     struct rig_state *rig_s;
     struct ft920_priv_data *priv;
     int err;
@@ -1699,7 +1973,8 @@ static int ft920_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
  * Assumes:     rit doesn't exceed tuning limits of rig
  */
 
-static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
+static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit)
+{
     struct rig_state *rig_s;
     struct ft920_priv_data *priv;
     unsigned char p1;
@@ -1754,5 +2029,4 @@ static int ft920_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
 
     return RIG_OK;
 }
-
 

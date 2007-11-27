@@ -2,14 +2,14 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft920.h - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
- *           (C) Nate Bargmann 2002-2007 (n0nb at arrl.net)
+ *           (C) Nate Bargmann 2002, 2003, 2007 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2002 (fillods at users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.14 2007-11-25 04:57:42 n0nb Exp $  
+ *    $Id: ft920.h,v 1.15 2007-11-27 01:02:17 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -38,7 +38,6 @@
 #define FT920_VFO_ALL   (RIG_VFO_A|RIG_VFO_B)
 
 /* Receiver caps */
-
 #define FT920_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT920_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT920_AM_RX_MODES       (RIG_MODE_AM)
@@ -46,44 +45,28 @@
 
 
 /* TX caps */
-
 #define FT920_OTHER_TX_MODES    (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB )  /* 100 W class */
 #define FT920_AM_TX_MODES       (RIG_MODE_AM )                              /* set 25W max */
-#define FT920_FUNC_ALL          (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN) /* fix */
 
 
 /* Other features */
-
 #define FT920_ANTS  0   /* FIXME: declare Ant A & B and RX input */
+#define FT920_FUNC_ALL  (RIG_FUNC_TUNER) /* fix */
 
 /* Returned data length in bytes */
-
 #define FT920_MEM_CHNL_LENGTH       1   /* 0x10 P1 = 01 return size */
 #define FT920_STATUS_FLAGS_LENGTH   8   /* 0xfa return size */
 #define FT920_VFO_DATA_LENGTH       28  /* 0x10 P1 = 02, 03 return size */
 #define FT920_MEM_CHNL_DATA_LENGTH  14  /* 0x10 P1 = 04, P4 = 0x00-0x89 return size */
 
 
-/* Timing values in mS */
-
-#define FT920_PACING_INTERVAL       5
-#define FT920_PACING_DEFAULT_VALUE  0   /* time between characters from 920 */
-#define FT920_WRITE_DELAY           50
-
-
-/* Delay sequential fast writes */
-
-#define FT920_POST_WRITE_DELAY      5
-
-
-/* Rough safe value for default timeout */
-
-#define FT920_DEFAULT_READ_TIMEOUT  28 * ( 5 + (FT920_PACING_INTERVAL * FT920_PACING_DEFAULT_VALUE))
-
-/* BCD coded frequency length */
-#define FT920_BCD_DIAL  8
-#define FT920_BCD_RIT   3
-
+/* Delay sequential fast writes
+ *
+ * It is thought that it takes the rig about 60 mS to process a command
+ * so a default of 80 mS should be long enough to prevent commands from
+ * stacking up.
+ */
+#define FT920_POST_WRITE_DELAY      80
 
 /*
  * 8N2 and 1 start bit = 11 bits at 4800 bps => effective byte rate = 1 byte
@@ -101,6 +84,18 @@
  *      255             7.2 sec
  *
  */
+
+/* Timing values in mS */
+#define FT920_PACING_DEFAULT_VALUE  0   /* time between characters from 920 */
+#define FT920_WRITE_DELAY           0   /* time between characters to 920 */
+
+/* Rough safe value for default timeout */
+#define FT920_DEFAULT_READ_TIMEOUT  28 * ( 5 + FT920_PACING_DEFAULT_VALUE)
+
+
+/* BCD coded frequency length */
+#define FT920_BCD_DIAL  8
+#define FT920_BCD_RIT   3
 
 
 /*
@@ -126,6 +121,9 @@ enum ft920_native_cmd_e {
     FT920_NATIVE_OP_DATA,
     FT920_NATIVE_VFO_DATA,
     FT920_NATIVE_MEM_CHNL_DATA,
+    FT920_NATIVE_TUNER_OFF,
+    FT920_NATIVE_TUNER_ON,
+    FT920_NATIVE_TUNER_START,
     FT920_NATIVE_VFO_B_FREQ_SET,
     FT920_NATIVE_VFO_A_PASSBAND_WIDE,
     FT920_NATIVE_VFO_A_PASSBAND_NAR,
@@ -189,6 +187,11 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define CLAR_OFFSET_MINUS   0xff
 
 
+/* Tuner status values */
+#define TUNER_OFF       0
+#define TUNER_ON        1
+#define TUNER_START     2
+
 /*
  * Local VFO CMD's, according to spec
  *
@@ -217,6 +220,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define SF_SPLITA   (1<<0)  /* Split operation with VFO-B on TX */
 #define SF_SPLITB   (1<<1)  /* Split operation with VFO-B on RX */
 #define SF_VFOB     (SF_SPLITA|SF_SPLITB)   /* bits 0 & 1, VFO B TX/RX  == 3 */
+#define SF_TUNE     (1<<2)  /* Antenna tuner On/tuning */
 #define SF_PTT_OFF  (0<<7)  /* Receive mode (PTT line open) */
 #define SF_PTT_ON   (1<<7)  /* Transmission in progress (PTT line grounded) */
 #define SF_PTT_MASK (SF_PTT_ON)
@@ -228,6 +232,9 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define SF_MR       (1<<6)  /* Memory Mode selected */
 #define SF_GC       (1<<7)  /* General Coverage Reception selected */
 #define SF_VFO_MASK (SF_QMB|SF_MT|SF_VFO|SF_MR)
+
+#define FT920_SUMO_DISPLAYED_STATUS_2   0x02    /* Status flag byte 2 */
+#define SF_TUNER    (1<<1)  /* Antenna tuner is inline */
 
 
 /*
@@ -345,5 +352,8 @@ static int ft920_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit);
 /* not documented in my FT-920 manual, but it works! - N0NB */
 static int ft920_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+
+static int ft920_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft920_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 
 #endif /* _FT920_H */
