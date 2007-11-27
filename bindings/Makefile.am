@@ -93,7 +93,7 @@ python_ltlib = _Hamlib.la
 pythondir = $(prefix)/lib/python
 
 nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
-_Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version @PYTHON_LDFLAGS@
+_Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version
 _Hamlib_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 _Hamlib_ladir = $(pythondir)
