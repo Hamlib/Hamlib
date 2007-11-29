@@ -1,3 +1,9 @@
+hamlib (1.2.6.2-3) unstable; urgency=low
+
+  * Run 'make distclean' instead of 'make clean'.
+
+ -- Joop Stakenborg <pa3aba@debian.org>  Thu, 29 Nov 2007 19:46:28 +0100
+
 hamlib (1.2.6.2-2) unstable; urgency=low
 
   * From Ubuntu hardy: Remove bytecompiled modules from the python-libhamlib2 
