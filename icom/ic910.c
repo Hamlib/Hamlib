@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.11 2004-09-26 08:35:03 fillods Exp $
+ *      $Id: ic910.c,v 1.12 2007-12-01 00:35:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -331,6 +331,11 @@ const struct rig_caps ic910_caps = {
 .scan =  icom_scan,
 .get_dcd =  icom_get_dcd,
 .decode_event =  icom_decode_event,
+.set_split_vfo = icom_set_split_vfo,
+.set_split_freq = icom_set_split_freq,
+.get_split_freq = icom_get_split_freq,
+.set_split_mode = icom_set_split_mode,
+.get_split_mode = icom_get_split_mode,
 };
 
 /* end of file */

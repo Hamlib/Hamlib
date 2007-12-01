@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-746 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic746.c,v 1.10 2007-02-28 08:50:19 mardigras Exp $
+ *	$Id: ic746.c,v 1.11 2007-12-01 00:35:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -175,7 +175,7 @@ const struct rig_caps ic746_caps = {
 .copyright =  "LGPL",
 .status =  RIG_STATUS_NEW,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_NONE,
+.ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
@@ -309,6 +309,8 @@ const struct rig_caps ic746_caps = {
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
 .get_split_vfo =  icom_get_split_vfo,
+.set_ptt =  icom_set_ptt,
+.get_ptt =  icom_get_ptt,
 
 };
 
