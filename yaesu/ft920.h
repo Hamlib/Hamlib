@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.15 2007-11-27 01:02:17 n0nb Exp $  
+ *    $Id: ft920.h,v 1.16 2007-12-01 22:09:52 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@
 
 /* Other features */
 #define FT920_ANTS  0   /* FIXME: declare Ant A & B and RX input */
-#define FT920_FUNC_ALL  (RIG_FUNC_TUNER) /* fix */
+#define FT920_FUNC_ALL  (RIG_FUNC_TUNER | RIG_FUNC_LOCK) /* fix */
 
 /* Returned data length in bytes */
 #define FT920_MEM_CHNL_LENGTH       1   /* 0x10 P1 = 01 return size */
@@ -121,8 +121,8 @@ enum ft920_native_cmd_e {
     FT920_NATIVE_OP_DATA,
     FT920_NATIVE_VFO_DATA,
     FT920_NATIVE_MEM_CHNL_DATA,
-    FT920_NATIVE_TUNER_OFF,
-    FT920_NATIVE_TUNER_ON,
+    FT920_NATIVE_TUNER_BYPASS,
+    FT920_NATIVE_TUNER_INLINE,
     FT920_NATIVE_TUNER_START,
     FT920_NATIVE_VFO_B_FREQ_SET,
     FT920_NATIVE_VFO_A_PASSBAND_WIDE,
@@ -187,10 +187,12 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define CLAR_OFFSET_MINUS   0xff
 
 
-/* Tuner status values */
-#define TUNER_OFF       0
-#define TUNER_ON        1
-#define TUNER_START     2
+/* Tuner status values used to set the
+ * tuner state and indicate tuner status.
+ */
+#define TUNER_BYPASS    0
+#define TUNER_INLINE    1
+#define TUNER_TUNING    2
 
 /*
  * Local VFO CMD's, according to spec
@@ -220,7 +222,7 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define SF_SPLITA   (1<<0)  /* Split operation with VFO-B on TX */
 #define SF_SPLITB   (1<<1)  /* Split operation with VFO-B on RX */
 #define SF_VFOB     (SF_SPLITA|SF_SPLITB)   /* bits 0 & 1, VFO B TX/RX  == 3 */
-#define SF_TUNE     (1<<2)  /* Antenna tuner On/tuning */
+#define SF_TUNER_TUNE   (1<<2)  /* Antenna tuner On and Tuning for match*/
 #define SF_PTT_OFF  (0<<7)  /* Receive mode (PTT line open) */
 #define SF_PTT_ON   (1<<7)  /* Transmission in progress (PTT line grounded) */
 #define SF_PTT_MASK (SF_PTT_ON)
@@ -234,8 +236,9 @@ typedef enum ft920_native_cmd_e ft920_native_cmd_t;
 #define SF_VFO_MASK (SF_QMB|SF_MT|SF_VFO|SF_MR)
 
 #define FT920_SUMO_DISPLAYED_STATUS_2   0x02    /* Status flag byte 2 */
-#define SF_TUNER    (1<<1)  /* Antenna tuner is inline */
-
+#define SF_TUNER_INLINE (1<<1)  /* Antenna tuner is inline or bypass */
+#define SF_VFOB_LOCK    (1<<2)  /* VFO B tuning lock status */
+#define SF_VFOA_LOCK    (1<<3)  /* VFO A tuning lock status */
 
 /*
  * Offsets for VFO record retrieved via 0x10 P1 = 02, 03

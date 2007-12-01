@@ -8,8 +8,11 @@
  * via serial interface to any Yaesu radio using the new "CAT"
  * interface commands that are similar to the Kenwood command set.
  *
+ * Models this code aims to support are FTDX-9000*, FT-2000,
+ * FT-950, FT-450.  Much testing remains.  -N0NB
  *
- *    $Id: newcat.h,v 1.2 2007-11-23 03:31:26 n0nb Exp $
+ *
+ *    $Id: newcat.h,v 1.3 2007-12-01 22:09:52 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or

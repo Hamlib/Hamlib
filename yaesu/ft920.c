@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.22 2007-11-27 01:02:17 n0nb Exp $
+ * $Id: ft920.c,v 1.23 2007-12-01 22:09:52 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -109,9 +109,9 @@ static const yaesu_cmd_set_t ncmd[] = {
     { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } },    /* Status Update Data--Current operating data for VFO/Memory (28 bytes) */
     { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } },    /* Status Update DATA--VFO A and B Data (28 bytes) */
     { 0, { 0x00, 0x00, 0x00, 0x04, 0x10 } },    /* Status Update Data--Memory Channel Data (14 bytes) P4 = 0x00-0x89 Memory Channel Number */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } },    /* Tuner off */
-    { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } },    /* Tuner on */
-    { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } },    /* Tuner start */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } },    /* Tuner bypass */
+    { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } },    /* Tuner inline */
+    { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } },    /* Tuner start tuning for match */
     { 0, { 0x00, 0x00, 0x00, 0x00, 0x8a } },    /* set vfo B frequency */
     { 1, { 0x00, 0x00, 0x00, 0x00, 0x8c } },    /* VFO A wide filter */
     { 1, { 0x00, 0x00, 0x00, 0x02, 0x8c } },    /* VFO A narrow filter */
@@ -119,10 +119,6 @@ static const yaesu_cmd_set_t ncmd[] = {
     { 1, { 0x00, 0x00, 0x00, 0x82, 0x8c } },    /* VFO B narrow filter */
     { 1, { 0x00, 0x00, 0x00, 0x01, 0xFA } },    /* Read status flags */
     /*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* keyer commands */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* tuner on */
-    /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x82 } }, */ /* tuner start*/
-
 };
 
 
@@ -354,7 +350,7 @@ const struct rig_caps ft920_caps = {
  */
 
 /*
- * _init 
+ * rig_init*
  *
  */
 
@@ -386,7 +382,8 @@ static int ft920_init(RIG *rig) {
 
 
 /*
- * ft920_cleanup routine
+ * rig_cleanup*
+ *
  * the serial port is closed by the frontend
  *
  */
@@ -406,7 +403,7 @@ static int ft920_cleanup(RIG *rig) {
 
 
 /*
- * ft920_open  routine
+ * rig_open*
  * 
  */
 
@@ -447,7 +444,7 @@ static int ft920_open(RIG *rig) {
 
 
 /*
- * ft920_close  routine
+ * rig_close*
  * 
  */
 
@@ -462,9 +459,20 @@ static int ft920_close(RIG *rig) {
 
 
 /*
- * set freq for a given VFO
+ * rig_get_freq*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
+ * Set freq for a given VFO
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | RIG_VFO_A, RIG_VFO_B, RIG_VFO_MEM
+ * freq         | input     | frequency to passed VFO
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    If vfo is set to RIG_VFO_CUR then vfo from
+ *              priv_data is used.
  *
  */
 
@@ -515,7 +523,17 @@ static int ft920_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 
 
 /*
+ * rig_get_freq*
+ *
  * Return Freq for a given VFO
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | RIG_VFO_A, RIG_VFO_B, RIG_VFO_MEM
+ * *freq        | output    | displayed frequency based on passed VFO
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
  */
 
@@ -575,9 +593,21 @@ static int ft920_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 
 /*
- * set mode and passband: eg AM, CW etc for a given VFO
+ * rig_set_mode*
  *
- * If vfo is set to RIG_VFO_CUR then vfo from priv_data is used.
+ * Set mode and passband: eg AM, CW etc for a given VFO
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | RIG_VFO_A, RIG_VFO_B, RIG_VFO_MEM
+ * mode         | input     | supported modes (see ft920.h)
+ * width        | input     | supported widths (see ft920.h)
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    If vfo is set to RIG_VFO_CUR then vfo from
+ *              priv_data is used.
  *
  */
 
@@ -733,7 +763,18 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
 
 /*
- * get mode : eg AM, CW etc for a given VFO
+ * rig_get_mode*
+ *
+ * Get mode and passband: eg AM, CW etc for a given VFO
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | RIG_VFO_A, RIG_VFO_B, RIG_VFO_MEM
+ * *mode        | output    | supported modes (see ft920.h)
+ * *width       | output    | supported widths (see ft920.h)
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
  */
 
@@ -861,8 +902,19 @@ static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) 
 
 
 /*
- * set vfo and store requested vfo for later RIG_VFO_CURR
- * requests.
+ * rig_set_vfo*
+ *
+ * Get active VFO
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | RIG_VFO_A, RIG_VFO_B
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Set vfo and store requested vfo for later
+ *              RIG_VFO_CURR requests.
  *
  */
 
@@ -910,9 +962,20 @@ static int ft920_set_vfo(RIG *rig, vfo_t vfo) {
 
 
 /*
- * get current RX vfo/mem and store requested vfo for
- * later RIG_VFO_CURR requests plus pass the tested vfo/mem
- * back to the frontend.
+ * rig_get_vfo*
+ *
+ * Get active VFO
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * *vfo         | output    | RIG_VFO_A, RIG_VFO_B, RIG_VFO_MEM
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    Get current RX vfo/mem and store requested vfo for
+ *              later RIG_VFO_CURR requests plus pass the tested
+ *              vfo/mem back to the frontend.
  *
  */
 
@@ -995,11 +1058,22 @@ static int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
 
 
 /*
- * set the '920 into split TX/RX mode
+ * rig_set_split_vfo*
  *
- * VFO cannot be set as the set split on command only changes the
- * TX to the sub display.  Setting split off returns the TX to the
- * main display.
+ * Set the '920 into split TX/RX mode
+ *
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | not used
+ * split        | input     | RIG_SPLIT_ON, RIG_SPLIT_OFF
+ * tx_vfo       | input     | not used
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
+ *
+ * Comments:    VFO cannot be set as the set split on command only
+ *              changes the TX to the sub display.  Setting split off
+ *              returns the TX to the main display.
  *
  */
 
@@ -1035,9 +1109,18 @@ static int ft920_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 
 /*
+ * rig_get_split_vfo*
+ *
  * Get whether the '920 is in split mode
  *
- * vfo value is not used
+ * Parameter    | Type      | Accepted/expected values
+ * ------------------------------------------------------------------
+ * *rig         | input     | pointer to private data
+ * vfo          | input     | not used
+ * *split       | output    | RIG_SPLIT_ON, RIG_SPLIT_OFF
+ * *tx_vfo      | output    | not used
+ * ------------------------------------------------------------------
+ * Returns RIG_OK on success or an error code on failure
  *
  */
 
@@ -1602,7 +1685,8 @@ static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  * *rig         | input     | pointer to private data
  * vfo          | input     | currVFO, VFOA, VFOB, MEM
  * func         | input     | TUNER
- * status       | input     | 0 = off, 1 = on, 2 = start (toggle)
+ * status       | input     | 0 = bypass, 1 =inline, 2 = start tuning
+ *              |           |                            (toggle)
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
@@ -1635,13 +1719,13 @@ static int ft920_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     switch(func) {
     case RIG_FUNC_TUNER:
         switch(status) {
-        case TUNER_OFF:
-            cmd_index = FT920_NATIVE_TUNER_OFF;
+        case TUNER_BYPASS:
+            cmd_index = FT920_NATIVE_TUNER_BYPASS;
             break;
-        case TUNER_ON:
-            cmd_index = FT920_NATIVE_TUNER_ON;
+        case TUNER_INLINE:
+            cmd_index = FT920_NATIVE_TUNER_INLINE;
             break;
-        case TUNER_START:
+        case TUNER_TUNING:
             cmd_index = FT920_NATIVE_TUNER_START;
             break;
         default:
@@ -1670,7 +1754,7 @@ static int ft920_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
  * *rig         | input     | pointer to private data
  * vfo          | input     | currVFO, VFOA, VFOB, MEM
  * func         | input     | TUNER
- * *status      | output    | 0 = off, 1 = on, 2 = tuning
+ * *status      | output    | 0 = bypass, 1 = inline, 2 = tuning
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
@@ -1714,22 +1798,38 @@ static int ft920_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
      * Currently, will only check if tuner is tuning and inline.
      */
     stat_0 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_0];
-    stat_0 &= SF_TUNE;                  /* get tuning state */
+//    stat_0 &= SF_TUNER_TUNE;            /* get tuning state */
 
     stat_2 = priv->update_data[FT920_SUMO_DISPLAYED_STATUS_2];
-    stat_2 &= SF_TUNER;                 /* get tuner inline state */
+//    stat_2 &= SF_TUNER_INLINE;          /* get tuner inline state */
 
     rig_debug(RIG_DEBUG_TRACE, "%s: stat_0 = 0x%02x, stat_2 = 0x%02x\n",
               __func__, stat_0, stat_2);
 
     switch(func) {
     case RIG_FUNC_TUNER:
-        if (stat_0)
-            *status = TUNER_START;
-        else if (stat_2)
-            *status = TUNER_ON;
+        if (stat_0 & SF_TUNER_TUNE)
+            *status = TUNER_TUNING;
+        else if (stat_2 & SF_TUNER_INLINE)
+            *status = TUNER_INLINE;
         else
-            *status = TUNER_OFF;
+            *status = TUNER_BYPASS;
+        break;
+    case RIG_FUNC_LOCK:
+        switch(vfo) {
+        case RIG_VFO_A:
+            if (stat_2 & SF_VFOA_LOCK)
+                *status = TRUE;
+            else
+                *status = FALSE;
+            break;
+        case RIG_VFO_B:
+             if (stat_2 & SF_VFOB_LOCK)
+                *status = TRUE;
+            else
+                *status = FALSE;
+             break;
+        }
         break;
     default:
         return -RIG_EINVAL;             /* wrong function! */
