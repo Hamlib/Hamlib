@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.12 2007-12-01 00:35:42 n0nb Exp $
+ *      $Id: ic910.c,v 1.13 2007-12-13 18:48:56 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -135,15 +135,38 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
  {
     int retval;
     freq_t otherfreq;
+    freq_t oldfreq;
 
-    /* get the freq of the other band */
-    if (vfo==RIG_VFO_MAIN)
+    if (vfo==RIG_VFO_CURR) {
+	/* try to detect active subband */
+	retval=icom_get_freq(rig, RIG_VFO_CURR, &oldfreq);
+	if (retval!=RIG_OK) return retval;
+
         icom_set_vfo(rig, RIG_VFO_SUB);
-    else
-        icom_set_vfo(rig, RIG_VFO_MAIN);
 
-    retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
-    if (retval!=RIG_OK) return retval;
+	retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
+	if (retval!=RIG_OK) return retval;
+
+	if (otherfreq == oldfreq) {
+	    /* were already in subband */
+	    vfo = RIG_VFO_SUB;
+	    icom_set_vfo(rig, RIG_VFO_MAIN);
+	    retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
+	    if (retval!=RIG_OK) return retval;
+	} else {
+	    /* we were in mainband */
+	    vfo = RIG_VFO_MAIN;
+	}
+    } else {
+	/* get the freq of the other band */
+	if (vfo==RIG_VFO_MAIN)
+	    icom_set_vfo(rig, RIG_VFO_SUB);
+	else
+	    icom_set_vfo(rig, RIG_VFO_MAIN);
+
+	retval=icom_get_freq(rig, RIG_VFO_CURR, &otherfreq);
+	if (retval!=RIG_OK) return retval;
+    }
 
     if (compareFrequencies(rig, freq, otherfreq))
          icom_swap_bands(rig);
@@ -157,7 +180,7 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
 
 #define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
-#define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_C)
+#define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
 #define IC910_SCAN_OPS (RIG_SCAN_MEM)
 
@@ -291,7 +314,14 @@ const struct rig_caps ic910_caps = {
     RIG_TS_END, },
     /* mode/filter list, remember: order matters! */
 .filters =     {
-    {RIG_MODE_CW|RIG_MODE_SSB, kHz(2.3)},   /* builtin */
+    {RIG_MODE_CW, kHz(2.3)},   /* builtin */
+    {RIG_MODE_CW, Hz(600)},   /* builtin */
+    {RIG_MODE_CW, kHz(2.3)},   /* builtin */
+    {RIG_MODE_SSB, kHz(2.3)},
+    {RIG_MODE_SSB, kHz(2.3)},
+    {RIG_MODE_SSB, kHz(2.3)},
+    {RIG_MODE_FM, kHz(15)},                 /* builtin */
+    {RIG_MODE_FM, kHz(6)},                 /* builtin */
     {RIG_MODE_FM, kHz(15)},                 /* builtin */
      RIG_FLT_END, },
 .str_cal = IC910_STR_CAL,
