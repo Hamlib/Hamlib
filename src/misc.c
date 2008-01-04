@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.43 2007-11-26 20:54:11 n0nb Exp $
+ *	$Id: misc.c,v 1.44 2008-01-04 17:30:31 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,15 +55,20 @@
  * \param bcd_len
  * \return bcd_data
  *
- * Convert a long long (eg. frequency in Hz) to 4-bit BCD digits, 
- * packed two digits per octet, in little-endian order.
- * bcd_len is the number of BCD digits, usually 10 or 8 in 1-Hz units, 
- *	and 6 digits in 100-Hz units for Tx offset data.
+ * Convert a long long (e.g. frequency in Hz) to 4-bit BCD digits,
+ * packed two digits per octet, in little-endian order
+ * (e.g. byte order 90 78 56 34 12 for 1234567890 Hz).
  *
- * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
+ * bcd_len is the number of BCD digits, usually 10 or 8 in 1-Hz units, 
+ * and 6 digits in 100-Hz units for Tx offset data.
+ *
+ * Hope the compiler will do a good job optimizing it (esp. w/the 64bit freq)
+ *
+ * Returns a pointer to (unsigned char *)bcd_data.
+ *
+ * \sa to_bcd_be
  */
-unsigned char *
-HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
+unsigned char * HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
 {
 	int i;
 	unsigned char a;
@@ -87,15 +92,21 @@ HAMLIB_API to_bcd(unsigned char bcd_data[], unsigned long long freq, unsigned bc
 }
 
 /**
- * \brief Convert BCD digits to a long long (eg. frequency in Hz)
+ * \brief Convert BCD digits, little-endian, to a long long (e.g. frequency in Hz)
  * \param bcd_data
  * \param bcd_len
  * \return binary result (e.g. frequency)
  *
- * Convert BCD digits to a long long (eg. frequency in Hz)
+ * Convert BCD digits, little-endian, (byte order 90 78 56 34 12
+ * for 1234567890 Hz) to a long long (e.g. frequency in Hz)
+ *
  * bcd_len is the number of BCD digits.
  *
  * Hope the compiler will do a good job optimizing it (esp. w/ the 64bit freq)
+ *
+ * Returns frequency in Hz an unsigned long long integer.
+ *
+ * \sa from_bcd_be
  */
 unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned bcd_len)
 {
@@ -116,16 +127,18 @@ unsigned long long HAMLIB_API from_bcd(const unsigned char bcd_data[], unsigned 
 }
 
 /**
- * \brief Convert binary to bcd, big-endian
+ * \brief Convert from binary to 4-bit BCD digits, big-endian
  * \param bcd_data
  * \param freq
  * \param bcd_len
  * \return bcd_data
  *
- * Same as to_bcd, but in Big Endian mode
+ * Same as to_bcd, but in big-endian order
+ * (e.g. byte order 12 34 56 78 90 for 1234567890 Hz)
+ *
+ * \sa to_bcd
  */
-unsigned char *
-HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
+unsigned char * HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned bcd_len)
 {
 	int i;
 	unsigned char a;
@@ -150,12 +163,15 @@ HAMLIB_API to_bcd_be(unsigned char bcd_data[], unsigned long long freq, unsigned
 }
 
 /**
- * \brief Convert bcd to binary, big-endian
+ * \brief Convert 4-bit BCD digits to binary, big-endian
  * \param bcd_data
  * \param bcd_len
- * \return binary value, e.g., frequency
+ * \return binary result
  *
- * Same as from_bcd, but in Big Endian mode
+ * Same as from_bcd, but in big-endian order
+ * (e.g. byte order 12 34 56 78 90 for 1234567890 Hz)
+ *
+ * \sa from_bcd
  */
 unsigned long long HAMLIB_API from_bcd_be(const unsigned char bcd_data[], unsigned bcd_len)
 {

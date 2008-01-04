@@ -6,33 +6,50 @@ file. This source code distribution  is autoconfiguring and you should be
 able to compile it and install it without manual interventions such as 
 editing Makefiles, configuration files, and so on. These are generic 
 instructions for people who are not familiar with installing autoconfiguring
-software.
+software (along with some Hamlib-specific information).
 
 The simplest way to compile this package is to enter the source code
 main directory and do the following:
    
   1. Configure the source code by typing:
-        % sh ./configure
+        
+        $ sh ./configure
 
      If you're planning to install the package into your home directory
      or to a location other than `/usr/local' then add the flag
      `--prefix=PATH' to `configure'. For example, if your home directory  
-     is `/home/luser' you can configure the package to install itself there
-     by invoking:
-        % sh ./configure --prefix=/home/luser
+     is `/home/username' you can configure the package to install itself 
+     there by invoking:
+        
+        $ sh ./configure --prefix=/home/username
+
+     N.B. If you know that you won't be using scripting languages (Perl,
+     Python, or TCL) and that you won't need static libaries (most
+     applications dynamically link Hamlib by default) invoke `configure'
+     as follows:
+     
+        $ ./configure --without-perl-binding --without-python-binding \
+        --without-tcl-binding --disable-static
+
+     This will result in a much smaller Hamlib installation (and faster
+     compilation :-) ).  See also the "Hamlib specific Features" section 
+     below for other `configure' options.  
      
      While running, `configure' prints some messages telling which
      features is it checking for. 
 
   2. Compile the package by typing:
-        % make
+        
+        $ make
+     
      Running `make' takes a while. If this is a very large package, now
      is the time to go make some coffee.
      
   3. Some packages are bundled with self-tests for source-code 
      verification. If this package includes such tests, you can 
      optionally run them after compilation by typing 
-        % make check
+
+        $ make check
 
   4. Type `make install' to install the programs and any data files and
      documentation. Type `make uninstall' to undo the installation.
@@ -51,12 +68,16 @@ main directory and do the following:
      created on demand. 
 
      If you are installing in your home directory make sure that 
-     `/home/luser/bin' is in your path. If you're using the bash shell
-     add this line at the end of your .cshrc file:
-        PATH="/home/luser/bin:${PATH}"
+     `/home/username/bin' is in your path. If you're using the bash shell
+     add these lines at the end of your .bashrc file:
+
+        PATH="/home/username/bin:${PATH}"
         export PATH
+
      If you are using csh or tcsh, then use this line instead:
-        setenv PATH /home/luser/bin:${PATH}
+
+        setenv PATH /home/username/bin:${PATH}
+
      By prepending your home directory to the rest of the PATH you can
      override systemwide installed software with your own custom installation.
 
@@ -66,8 +87,10 @@ main directory and do the following:
      a different kind of computer), type `make distclean'.
 
   6. You can optionally generate the Doxygen documentation files:
+
         cd doc
         make doc
+
      The HTML output files are provided for binary releases on the hamlib.org
      web site.
 
@@ -91,12 +114,16 @@ Occasionally that confuses the debugger when code is inlined. To disable
 optimization and enable debugging, set the shell environment variables
 CFLAGS, CXXFLAGS, FFLAGS to `-g'. On the bash shell, you can do this
 like this:
+
   $ export CFLAGS="-g"
   $ export CXXFLAGS="-g"
   $ export FFLAGS="-g"
+
 On the tcsh shell, use the `setenv' command instead:
+
   % setenv CFLAGS "-g"
   ...etc...
+
 For other shell, please consult your shell's documentation.
 
 Similarly, you can increase the optimization level by assigning these
@@ -193,4 +220,7 @@ and/or '--without-python-binding'.
    Some platfroms may have trouble compiling the RPC support (e.g. Mac OS X).
 in such a case, the rpcrig and rpcrot backends may be disabled 
 with the `--without-rpc-backends' option.
+
+   Building static libraries can be disabled by use of the `--disable-static'
+option.  This will reduce the installed size of Hamlib considerably.
 

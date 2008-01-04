@@ -1,5 +1,5 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
-	 (C) Stephane Fillod 2000-2007
+         (C) Stephane Fillod 2000-2007
          (C) The Hamlib Group 2000-2007
 
 The purpose of this project is to provide stable, flexible,
@@ -70,11 +70,13 @@ Any documentation *must* be publically available so we can legally write and
 distribute Free Software supporting a given device.
 
 However, if you just want to recompile the library, please refer
-to the INSTALL file. IMPORTANT: If autoconf or automake are installed on
-your system, make sure they are matching *at least* the version shown above.
-The Hamlib team is very interrested to hear from you, how Hamlib
-builds and works on your system, especially on non-Linux system or 
-non-PC systems. We try to make Hamlib as portable as possible.
+to the INSTALL file. 
+
+IMPORTANT: If autoconf or automake are installed on your system, make sure 
+they are matching *at least* the version shown above.  The Hamlib team is 
+very interrested to hear from you, how Hamlib builds and works on your system,
+especially on non-Linux system or non-PC systems. We try to make Hamlib as 
+portable as possible.
 
 Please report in case of problems at hamlib-developer@lists.sourceforge.net
 Patches are welcome too!
