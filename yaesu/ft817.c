@@ -11,7 +11,7 @@
  * copied back and adopted for the FT-817.
  *
  *
- *    $Id: ft817.c,v 1.14 2006-10-07 15:51:38 csete Exp $  
+ *    $Id: ft817.c,v 1.15 2008-01-05 15:28:57 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -145,48 +145,68 @@ static const tone_t static_ft817_dcs_list[] = {
 #define FT817_VFO_ALL           (RIG_VFO_A|RIG_VFO_B)
 #define FT817_ANTS              0
 
+#define FT817_STR_CAL { 16, \
+                { \
+                    { 0x00, -54 }, /* S0 */ \
+                    { 0x01, -48 }, \
+                    { 0x02, -42 }, \
+                    { 0x03, -36 }, \
+                    { 0x04, -30 }, \
+                    { 0x05, -24 }, \
+                    { 0x06, -18 }, \
+                    { 0x07, -12 }, \
+                    { 0x08, -6 }, \
+                    { 0x09,  0 },  /* S9 */ \
+                    { 0x0A,  10 }, /* +10 */ \
+                    { 0x0B,  20 }, /* +20 */ \
+                    { 0x0C,  30 }, /* +30 */ \
+                    { 0x0D,  40 }, /* +40 */ \
+                    { 0x0E,  50 }, /* +50 */ \
+                    { 0x0F,  60 }  /* +60 */ \
+                } }
+
 const struct rig_caps ft817_caps = {
-	.rig_model = 		RIG_MODEL_FT817,
-	.model_name = 	        "FT-817", 
-	.mfg_name = 		"Yaesu", 
-	.version = 		"0.3", 
-	.copyright = 		"LGPL",
-	.status = 		RIG_STATUS_BETA,
-	.rig_type = 		RIG_TYPE_TRANSCEIVER,
-	.ptt_type = 		RIG_PTT_RIG,
-	.dcd_type = 		RIG_DCD_RIG,
-	.port_type = 		RIG_PORT_SERIAL,
-	.serial_rate_min = 	4800,
-	.serial_rate_max = 	38400,
-	.serial_data_bits = 	8,
-	.serial_stop_bits = 	2,
-	.serial_parity = 	RIG_PARITY_NONE,
-	.serial_handshake = 	RIG_HANDSHAKE_NONE, 
-	.write_delay = 	        FT817_WRITE_DELAY,
-	.post_write_delay = 	FT817_POST_WRITE_DELAY,
-	.timeout = 		FT817_TIMEOUT,
-	.retry = 		0, 
-	.has_get_func =         RIG_FUNC_NONE,
-	.has_set_func = 	RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
-	.has_get_level = 	RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER,
-	.has_set_level = 	RIG_LEVEL_NONE,
-	.has_get_parm = 	RIG_PARM_NONE,
-	.has_set_parm = 	RIG_PARM_NONE,
-	.level_gran = 	        {},                     /* granularity */
-	.parm_gran = 		{},
-	.ctcss_list =    	static_common_ctcss_list,
-	.dcs_list = 		static_ft817_dcs_list,   /* only 104 out of 106 supported */
-	.preamp = 		{ RIG_DBLST_END, },
-	.attenuator =    	{ RIG_DBLST_END, },
-	.max_rit = 		Hz(9990),
-	.max_xit = 		Hz(0),
-	.max_ifshift = 	        Hz(0),
-	.vfo_ops =              RIG_OP_TOGGLE,
-	.targetable_vfo = 	0,
-	.transceive = 	        RIG_TRN_OFF,
-	.bank_qty = 		0,
-	.chan_desc_sz = 	0,
-	.chan_list =            { RIG_CHAN_END, },
+	.rig_model =           RIG_MODEL_FT817,
+	.model_name =          "FT-817",
+	.mfg_name =            "Yaesu",
+	.version =             "0.4",
+	.copyright =           "LGPL",
+	.status =              RIG_STATUS_STABLE,
+	.rig_type =            RIG_TYPE_TRANSCEIVER,
+	.ptt_type =            RIG_PTT_RIG,
+	.dcd_type =            RIG_DCD_RIG,
+	.port_type =           RIG_PORT_SERIAL,
+	.serial_rate_min =     4800,
+	.serial_rate_max =     38400,
+	.serial_data_bits =    8,
+	.serial_stop_bits =    2,
+	.serial_parity =       RIG_PARITY_NONE,
+	.serial_handshake =    RIG_HANDSHAKE_NONE, 
+	.write_delay =         FT817_WRITE_DELAY,
+	.post_write_delay =    FT817_POST_WRITE_DELAY,
+	.timeout =             FT817_TIMEOUT,
+	.retry =               0, 
+	.has_get_func =        RIG_FUNC_NONE,
+	.has_set_func =        RIG_FUNC_LOCK | RIG_FUNC_TONE | RIG_FUNC_TSQL,
+	.has_get_level =       RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | RIG_LEVEL_RFPOWER,
+	.has_set_level =       RIG_LEVEL_NONE,
+	.has_get_parm =        RIG_PARM_NONE,
+	.has_set_parm =        RIG_PARM_NONE,
+	.level_gran =          {},                     /* granularity */
+	.parm_gran =           {},
+	.ctcss_list =          static_common_ctcss_list,
+	.dcs_list =            static_ft817_dcs_list,   /* only 104 out of 106 supported */
+	.preamp =              { RIG_DBLST_END, },
+	.attenuator =          { RIG_DBLST_END, },
+	.max_rit =             Hz(9990),
+	.max_xit =             Hz(0),
+	.max_ifshift =         Hz(0),
+	.vfo_ops =             RIG_OP_TOGGLE,
+	.targetable_vfo =      0,
+	.transceive =          RIG_TRN_OFF,
+	.bank_qty =            0,
+	.chan_desc_sz =        0,
+	.chan_list =           { RIG_CHAN_END, },
 
 	.rx_range_list1 =  { 
 		{kHz(100),MHz(56), FT817_ALL_RX_MODES,-1,-1},
@@ -252,6 +272,8 @@ const struct rig_caps ft817_caps = {
 		RIG_FLT_END,
 	},
 
+    .str_cal = FT817_STR_CAL,
+ 
 	.priv = 		NULL,
 	.rig_init = 		ft817_init,
 	.rig_cleanup =          ft817_cleanup, 
@@ -578,6 +600,8 @@ static int ft817_get_pometer_level(RIG *rig, value_t *val)
 	return RIG_OK;
 }
 
+#if 0
+/* frontend will always use RAWSTR+cal_table */
 static int ft817_get_smeter_level(RIG *rig, value_t *val)
 {
 	struct ft817_priv_data *p = (struct ft817_priv_data *) rig->state.priv;
@@ -587,12 +611,31 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
 		if ((n = ft817_get_status(rig, FT817_NATIVE_CAT_GET_RX_STATUS)) < 0)
 			return n;
 
-	n = (p->rx_status & 0x0F) - 9;
+	//n = (p->rx_status & 0x0F) - 9;
 
-	val->i = n * ((n > 0) ? 10 : 6);
+	//val->i = n * ((n > 0) ? 10 : 6);
+    
+    /* S-meter value is returned in the lower 4 bits.
+       0x00 = S0 (-54dB)
+       0x01 = S1
+       0x02 = S2
+       ...
+       0x09 = S9 (0dB)
+       0x0A = S9+10 (10dB)
+       0x0B = S9+20 and so on
+    */
+    n = (p->rx_status & 0x0F);
+    
+    if (n < 0x0A) {
+        n = (6*n)-54;
+    }
+    else {
+        val->i = 10*(n-9);
+    }
 
 	return RIG_OK;
 }
+#endif
 
 static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 {
@@ -617,7 +660,9 @@ int ft817_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 
 	case RIG_LEVEL_STRENGTH:
+        /* The front-end will always call for RAWSTR and use the cal_table
 		return ft817_get_smeter_level(rig, val);
+        */
 
 	case RIG_LEVEL_RAWSTR:
 		return ft817_get_raw_smeter_level(rig, val);
