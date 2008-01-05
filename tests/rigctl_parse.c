@@ -1,11 +1,11 @@
 /*
- * rigctl_parse.c - (C) Stephane Fillod 2000-2007
+ * rigctl_parse.c - (C) Stephane Fillod 2000-2008
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.1 2007-11-11 23:03:38 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.2 2008-01-05 18:13:12 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -322,7 +322,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (cmd == 'Q' || cmd == 'q')
 				return 1;
 		if (cmd == '?') {
-			usage_rig();
+			usage_rig(fout);
 			return 0;
 		}
 	} else {
@@ -465,25 +465,25 @@ void version()
 	printf("%s\n", hamlib_copyright);
 }
 
-void usage_rig()
+void usage_rig(FILE *fout)
 {
 	int i;
 
-	printf("Commands (may not be available for this rig):\n");
+	fprintf(fout, "Commands (may not be available for this rig):\n");
 	for (i=0; test_list[i].cmd != 0; i++) {
-		printf("%c: %-16s(", isprint(test_list[i].cmd) ? 
+		fprintf(fout, "%c: %-16s(", isprint(test_list[i].cmd) ? 
 				test_list[i].cmd:'?', test_list[i].name);
 
 		if (test_list[i].arg1 && (test_list[i].flags&ARG_IN1))
-				printf("%s", test_list[i].arg1);
+				fprintf(fout, "%s", test_list[i].arg1);
 		if (test_list[i].arg2 && (test_list[i].flags&ARG_IN2))
-				printf(",%s", test_list[i].arg2);
+				fprintf(fout, ",%s", test_list[i].arg2);
 		if (test_list[i].arg3 && (test_list[i].flags&ARG_IN3))
-				printf(",%s", test_list[i].arg3);
-		printf(")  \t");
+				fprintf(fout, ",%s", test_list[i].arg3);
+		fprintf(fout, ")  \t");
 
 		if (i%2)
-			printf("\n");
+			fprintf(fout, "\n");
 	}
 }
 
@@ -1474,7 +1474,7 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 
 declare_proto_rig(dump_caps)
 {
-	dumpcaps(rig);
+	dumpcaps(rig, fout);
 
 	return RIG_OK;
 }

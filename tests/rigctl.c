@@ -1,11 +1,11 @@
 /*
- * rigctl.c - (C) Stephane Fillod 2000-2007
+ * rigctl.c - (C) Stephane Fillod 2000-2008
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.63 2007-11-11 23:04:22 fillods Exp $  
+ * $Id: rigctl.c,v 1.64 2008-01-05 18:13:12 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -289,7 +289,7 @@ int main (int argc, char *argv[])
 	 * We may be interested only in only caps, and rig_open may fail.
 	 */
 	if (dump_caps_opt) {
-		dumpcaps(my_rig);
+		dumpcaps(my_rig, stdout);
 		rig_cleanup(my_rig); /* if you care about memory */
 		exit(0);
 	}
@@ -343,7 +343,7 @@ void usage(void)
 	"  -V, --version              output version information and exit\n\n"
 			);
 
-	usage_rig();
+	usage_rig(stdout);
 
 	printf("\nReport bugs to <hamlib-developer@lists.sourceforge.net>.\n");
 

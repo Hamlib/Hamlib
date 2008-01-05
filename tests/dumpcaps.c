@@ -1,9 +1,9 @@
 /*
- * dumpcaps.c - Copyright (C) 2000-2004 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2008 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.44 2005-04-03 18:36:36 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.45 2008-01-05 18:13:12 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -40,12 +40,12 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
 static const char *decode_mtype(chan_type_t type);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
-static void dump_chan_caps(const channel_cap_t *chan);
+static void dump_chan_caps(const channel_cap_t *chan, FILE *fout);
 
 /*
  * the rig may be in rig_init state, but not openned
  */
-int dumpcaps (RIG* rig)
+int dumpcaps (RIG* rig, FILE *fout)
 { 
 	const struct rig_caps *caps;
 	int status,i;
@@ -59,119 +59,119 @@ int dumpcaps (RIG* rig)
 
 	caps = rig->caps;
 
-	printf("Caps dump for model %d\n",caps->rig_model);
-	printf("Model name:\t%s\n",caps->model_name);
-	printf("Mfg name:\t%s\n",caps->mfg_name);
-	printf("Backend version:\t%s\n",caps->version);
-	printf("Backend copyright:\t%s\n",caps->copyright);
-	printf("Backend status:\t%s\n", rig_strstatus(caps->status));
-	printf("Rig type:\t");
+	fprintf(fout, "Caps dump for model %d\n",caps->rig_model);
+	fprintf(fout, "Model name:\t%s\n",caps->model_name);
+	fprintf(fout, "Mfg name:\t%s\n",caps->mfg_name);
+	fprintf(fout, "Backend version:\t%s\n",caps->version);
+	fprintf(fout, "Backend copyright:\t%s\n",caps->copyright);
+	fprintf(fout, "Backend status:\t%s\n", rig_strstatus(caps->status));
+	fprintf(fout, "Rig type:\t");
 	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
-			printf("Transceiver\n");
+			fprintf(fout, "Transceiver\n");
 			break;
 	case RIG_TYPE_HANDHELD:
-			printf("Handheld\n");
+			fprintf(fout, "Handheld\n");
 			break;
 	case RIG_TYPE_MOBILE:
-			printf("Mobile\n");
+			fprintf(fout, "Mobile\n");
 			break;
 	case RIG_TYPE_RECEIVER:
-			printf("Receiver\n");
+			fprintf(fout, "Receiver\n");
 			break;
 	case RIG_TYPE_PCRECEIVER:
-			printf("PC Receiver\n");
+			fprintf(fout, "PC Receiver\n");
 			break;
 	case RIG_TYPE_SCANNER:
-			printf("Scanner\n");
+			fprintf(fout, "Scanner\n");
 			break;
 	case RIG_TYPE_TRUNKSCANNER:
-			printf("Trunking scanner\n");
+			fprintf(fout, "Trunking scanner\n");
 			break;
 	case RIG_TYPE_COMPUTER:
-			printf("Computer\n");
+			fprintf(fout, "Computer\n");
 			break;
 	case RIG_TYPE_TUNER:
-			printf("Tuner\n");
+			fprintf(fout, "Tuner\n");
 			break;
 	case RIG_TYPE_OTHER:
-			printf("Other\n");
+			fprintf(fout, "Other\n");
 			break;
 	default:
-			printf("Unknown\n");
+			fprintf(fout, "Unknown\n");
 			backend_warnings++;
 	}
 
-	printf("PTT type:\t");
+	fprintf(fout, "PTT type:\t");
 	switch (caps->ptt_type) {
 	case RIG_PTT_RIG:
-			printf("rig capable\n");
+			fprintf(fout, "rig capable\n");
 			break;
 	case RIG_PTT_PARALLEL:
-			printf("thru parallel port (DATA0)\n");
+			fprintf(fout, "thru parallel port (DATA0)\n");
 			break;
 	case RIG_PTT_SERIAL_RTS:
-			printf("thru serial port (CTS/RTS)\n");
+			fprintf(fout, "thru serial port (CTS/RTS)\n");
 			break;
 	case RIG_PTT_SERIAL_DTR:
-			printf("thru serial port (DTR/DSR)\n");
+			fprintf(fout, "thru serial port (DTR/DSR)\n");
 			break;
 	case RIG_PTT_NONE:
-			printf("None\n");
+			fprintf(fout, "None\n");
 			break;
 	default:
-			printf("Unknown\n");
+			fprintf(fout, "Unknown\n");
 			backend_warnings++;
 	}
 
-	printf("DCD type:\t");
+	fprintf(fout, "DCD type:\t");
 	switch (caps->dcd_type) {
 	case RIG_DCD_RIG:
-			printf("rig capable\n");
+			fprintf(fout, "rig capable\n");
 			break;
 	case RIG_DCD_PARALLEL:
-			printf("thru parallel port (DATA1? STROBE?)\n");
+			fprintf(fout, "thru parallel port (DATA1? STROBE?)\n");
 			break;
 	case RIG_DCD_SERIAL_CTS:
-			printf("thru serial port (CTS/RTS)\n");
+			fprintf(fout, "thru serial port (CTS/RTS)\n");
 			break;
 	case RIG_DCD_SERIAL_DSR:
-			printf("thru serial port (DTR/DSR)\n");
+			fprintf(fout, "thru serial port (DTR/DSR)\n");
 			break;
 	case RIG_DCD_SERIAL_CAR:
-			printf("thru serial port (CD)\n");
+			fprintf(fout, "thru serial port (CD)\n");
 			break;
 	case RIG_DCD_NONE:
-			printf("None\n");
+			fprintf(fout, "None\n");
 			break;
 	default:
-			printf("Unknown\n");
+			fprintf(fout, "Unknown\n");
 			backend_warnings++;
 	}
 
-	printf("Port type:\t");
+	fprintf(fout, "Port type:\t");
 	switch (caps->port_type) {
 	case RIG_PORT_SERIAL:
-			printf("RS-232\n");
+			fprintf(fout, "RS-232\n");
 			break;
 	case RIG_PORT_PARALLEL:
-			printf("Parallel\n");
+			fprintf(fout, "Parallel\n");
 			break;
 	case RIG_PORT_DEVICE:
-			printf("device driver\n");
+			fprintf(fout, "device driver\n");
 			break;
 	case RIG_PORT_NETWORK:
-			printf("network link\n");
+			fprintf(fout, "network link\n");
 			break;
 	case RIG_PORT_NONE:
-			printf("None\n");
+			fprintf(fout, "None\n");
 			break;
 	default:
-			printf("Unknown\n");
+			fprintf(fout, "Unknown\n");
 			backend_warnings++;
 	}
 
-	printf("Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
+	fprintf(fout, "Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
 					caps->serial_rate_max,caps->serial_data_bits,
 					caps->serial_parity==RIG_PARITY_NONE?'N':
 					(caps->serial_parity==RIG_PARITY_ODD?'O':'E'),
@@ -180,163 +180,163 @@ int dumpcaps (RIG* rig)
 					(caps->serial_handshake==RIG_HANDSHAKE_XONXOFF?"XONXOFF":"CTS/RTS")
 					);
 
-	printf("Write delay %dms, timeout %dms, %d retry\n",
+	fprintf(fout, "Write delay %dms, timeout %dms, %d retry\n",
 					caps->write_delay,caps->timeout,caps->retry);
-	printf("Post Write delay %dms\n",
+	fprintf(fout, "Post Write delay %dms\n",
 					caps->post_write_delay);
 
-	printf("Has targetable VFO: %s\n",
+	fprintf(fout, "Has targetable VFO: %s\n",
 					caps->targetable_vfo?"yes":"no");
 
-	printf("Has transceive: %s\n",
+	fprintf(fout, "Has transceive: %s\n",
 					caps->transceive?"yes":"no");
 
-	printf("Announce: 0x%x\n", caps->announces);
-	printf("Max RIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
+	fprintf(fout, "Announce: 0x%x\n", caps->announces);
+	fprintf(fout, "Max RIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_rit/1000, caps->max_rit%1000,
 					caps->max_rit/1000, caps->max_rit%1000);
 
-	printf("Max XIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
+	fprintf(fout, "Max XIT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_xit/1000, caps->max_xit%1000,
 					caps->max_xit/1000, caps->max_xit%1000);
 
-	printf("Max IF-SHIFT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
+	fprintf(fout, "Max IF-SHIFT: -%ld.%ldkHz/+%ld.%ldkHz\n", 
 					caps->max_ifshift/1000, caps->max_ifshift%1000,
 					caps->max_ifshift/1000, caps->max_ifshift%1000);
 
-	printf("Preamp:");
+	fprintf(fout, "Preamp:");
 	for(i=0; i<MAXDBLSTSIZ && caps->preamp[i] != 0; i++)
-			printf(" %ddB", caps->preamp[i]);
+			fprintf(fout, " %ddB", caps->preamp[i]);
 	if (i == 0)
-		printf(" none");
-	printf("\n");
-	printf("Attenuator:");
+		fprintf(fout, " none");
+	fprintf(fout, "\n");
+	fprintf(fout, "Attenuator:");
 	for(i=0; i<MAXDBLSTSIZ && caps->attenuator[i] != 0; i++)
-			printf(" %ddB",caps->attenuator[i]);
+			fprintf(fout, " %ddB",caps->attenuator[i]);
 	if (i == 0)
-		printf(" none");
-	printf("\n");
+		fprintf(fout, " none");
+	fprintf(fout, "\n");
 
 	sprintf_func(prntbuf, caps->has_get_func);
-	printf("Get functions: %s\n", prntbuf);
+	fprintf(fout, "Get functions: %s\n", prntbuf);
 
 	sprintf_func(prntbuf, caps->has_set_func);
-	printf("Set functions: %s\n", prntbuf);
+	fprintf(fout, "Set functions: %s\n", prntbuf);
 
 	sprintf_level_gran(prntbuf, caps->has_get_level, caps->level_gran);
-	printf("Get level: %s\n", prntbuf);
+	fprintf(fout, "Get level: %s\n", prntbuf);
 
 	if ((caps->has_get_level&RIG_LEVEL_SQLSTAT)) {
-			printf("Warning: backend uses deprecated SQLSTAT level!\n");
+			fprintf(fout, "Warning: backend uses deprecated SQLSTAT level!\n");
 			backend_warnings++;
 	}
 
 	if ((caps->has_get_level&RIG_LEVEL_RAWSTR) &&
 				caps->str_cal.size == 0) {
-			printf("Warning: backend has get RAWSTR, but not calibration data\n");
+			fprintf(fout, "Warning: backend has get RAWSTR, but not calibration data\n");
 			backend_warnings++;
 	}
 
 	sprintf_level_gran(prntbuf, caps->has_set_level, caps->level_gran);
-	printf("Set level: %s\n", prntbuf);
+	fprintf(fout, "Set level: %s\n", prntbuf);
 	if (caps->has_set_level&RIG_LEVEL_READONLY_LIST) {
-			printf("Warning: backend can set readonly levels!\n");
+			fprintf(fout, "Warning: backend can set readonly levels!\n");
 			backend_warnings++;
 	}
-	printf("Extra levels:");
+	fprintf(fout, "Extra levels:");
 	rig_ext_level_foreach(rig, print_ext, NULL);
-	printf("\n");
+	fprintf(fout, "\n");
 
 	sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
-	printf("Get parameters: %s\n", prntbuf);
+	fprintf(fout, "Get parameters: %s\n", prntbuf);
 
 	sprintf_parm_gran(prntbuf, caps->has_set_parm, caps->parm_gran);
-	printf("Set parameters: %s\n", prntbuf);
+	fprintf(fout, "Set parameters: %s\n", prntbuf);
 	if (caps->has_set_parm&RIG_PARM_READONLY_LIST) {
-			printf("Warning: backend can set readonly parms!\n");
+			fprintf(fout, "Warning: backend can set readonly parms!\n");
 			backend_warnings++;
 	}
-	printf("Extra parameters:");
-	rig_ext_parm_foreach(rig, print_ext, NULL);
-	printf("\n");
+	fprintf(fout, "Extra parameters:");
+	rig_ext_parm_foreach(rig, print_ext, fout);
+	fprintf(fout, "\n");
 
 
 	if (rig->state.vfo_list!=0)
 		sprintf_vfo(prntbuf, rig->state.vfo_list);
 	else
 		strcpy(prntbuf," none! This backend might be bogus!\n");
-	printf("VFO list: %s\n", prntbuf);
+	fprintf(fout, "VFO list: %s\n", prntbuf);
 
 	sprintf_vfop(prntbuf, caps->vfo_ops);
-	printf("VFO Ops: %s\n", prntbuf);
+	fprintf(fout, "VFO Ops: %s\n", prntbuf);
 
 	sprintf_scan(prntbuf, caps->scan_ops);
-	printf("Scan Ops: %s\n", prntbuf);
+	fprintf(fout, "Scan Ops: %s\n", prntbuf);
 
-	printf("Number of banks:\t%d\n", caps->bank_qty);
-	printf("Memory name desc size:\t%d\n", caps->chan_desc_sz);
+	fprintf(fout, "Number of banks:\t%d\n", caps->bank_qty);
+	fprintf(fout, "Memory name desc size:\t%d\n", caps->chan_desc_sz);
 
-	printf("Memories:");
+	fprintf(fout, "Memories:");
 	for (i=0; i<CHANLSTSIZ && caps->chan_list[i].type; i++) {
-		printf("\n\t%d..%d:   \t%s", caps->chan_list[i].start,
+		fprintf(fout, "\n\t%d..%d:   \t%s", caps->chan_list[i].start,
 						caps->chan_list[i].end,
 						decode_mtype(caps->chan_list[i].type));
-		printf("\n\t  mem caps: ");
-		dump_chan_caps(&caps->chan_list[i].mem_caps);
+		fprintf(fout, "\n\t  mem caps: ");
+		dump_chan_caps(&caps->chan_list[i].mem_caps, fout);
 	}
 	if (i == 0)
-		printf(" none");
-	printf("\n");
+		fprintf(fout, " none");
+	fprintf(fout, "\n");
 
 /* TODO: print rx/tx ranges here */
 	status = range_sanity_check(caps->tx_range_list1,0);
-	printf("TX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
+	fprintf(fout, "TX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
 	if (status) backend_warnings++;
 	status = range_sanity_check(caps->rx_range_list1,1);
-	printf("RX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
+	fprintf(fout, "RX ranges status, region 1:\t%s (%d)\n",status?"Bad":"OK",status);
 	if (status) backend_warnings++;
 
 	status = range_sanity_check(caps->tx_range_list2,0);
-	printf("TX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
+	fprintf(fout, "TX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
 	if (status) backend_warnings++;
 	status = range_sanity_check(caps->rx_range_list2,1);
-	printf("RX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
+	fprintf(fout, "RX ranges status, region 2:\t%s (%d)\n",status?"Bad":"OK",status);
 	if (status) backend_warnings++;
 
-	printf("Tuning steps:");
+	fprintf(fout, "Tuning steps:");
 	for (i=0; i<TSLSTSIZ && !RIG_IS_TS_END(caps->tuning_steps[i]); i++) {
 		if (caps->tuning_steps[i].ts == RIG_TS_ANY)
 			strcpy(freqbuf, "ANY");
 		else
 			sprintf_freq(freqbuf,caps->tuning_steps[i].ts);
 		sprintf_mode(prntbuf,caps->tuning_steps[i].modes);
-		printf("\n\t%s:   \t%s", freqbuf, prntbuf);
+		fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
 	}
 	if (i==0) {
-			printf(" none! This backend might be bogus!");
+			fprintf(fout, " none! This backend might be bogus!");
 			backend_warnings++;
 	}
-	printf("\n");
+	fprintf(fout, "\n");
 	status = ts_sanity_check(caps->tuning_steps);
-	printf("Tuning steps status:\t%s (%d)\n",status?"Bad":"OK",status);
+	fprintf(fout, "Tuning steps status:\t%s (%d)\n",status?"Bad":"OK",status);
 	if (status) backend_warnings++;
 
-	printf("Filters:");
+	fprintf(fout, "Filters:");
 	for (i=0; i<FLTLSTSIZ && !RIG_IS_FLT_END(caps->filters[i]); i++) {
 		if (caps->filters[i].width == RIG_FLT_ANY)
 			strcpy(freqbuf, "ANY");
 		else
 			sprintf_freq(freqbuf,caps->filters[i].width);
 		sprintf_mode(prntbuf,caps->filters[i].modes);
-		printf("\n\t%s:   \t%s", freqbuf, prntbuf);
+		fprintf(fout, "\n\t%s:   \t%s", freqbuf, prntbuf);
 	}
 	if (i==0) {
-			printf(" none! This backend might be bogus!");
+			fprintf(fout, " none! This backend might be bogus!");
 			backend_warnings++;
 	}
-	printf("\n");
+	fprintf(fout, "\n");
 
-        printf("Bandwidths:");
+        fprintf(fout, "Bandwidths:");
 	for (i=1; i < 1<<10; i<<=1) {
 		pbwidth_t pbnorm = rig_passband_normal(rig, i);
 
@@ -344,102 +344,102 @@ int dumpcaps (RIG* rig)
 			continue;
 
 		sprintf_freq(freqbuf, pbnorm);
-		printf("\n\t%s\tnormal: %s,\t", rig_strrmode(i), freqbuf);
+		fprintf(fout, "\n\t%s\tnormal: %s,\t", rig_strrmode(i), freqbuf);
 
 		sprintf_freq(freqbuf, rig_passband_narrow(rig, i));
-		printf("narrow: %s,\t", freqbuf);
+		fprintf(fout, "narrow: %s,\t", freqbuf);
 
 		sprintf_freq(freqbuf, rig_passband_wide(rig, i));
-		printf("wide: %s", freqbuf);
+		fprintf(fout, "wide: %s", freqbuf);
 	}
-	printf("\n");
+	fprintf(fout, "\n");
 
-	printf("Has priv data:\t%c\n",caps->priv!=NULL?'Y':'N');
+	fprintf(fout, "Has priv data:\t%c\n",caps->priv!=NULL?'Y':'N');
 	/*
 	 * Status is either 'Y'es, 'E'mulated, 'N'o
 	 *
 	 * TODO: keep me up-to-date with API call list!
 	 */
-	printf("Has init:\t%c\n",caps->rig_init!=NULL?'Y':'N');
-	printf("Has cleanup:\t%c\n",caps->rig_cleanup!=NULL?'Y':'N');
-	printf("Has open:\t%c\n",caps->rig_open!=NULL?'Y':'N');
-	printf("Has close:\t%c\n",caps->rig_close!=NULL?'Y':'N');
-	printf("Can set conf:\t%c\n",caps->set_conf!=NULL?'Y':'N');
-	printf("Can get conf:\t%c\n",caps->get_conf!=NULL?'Y':'N');
-	printf("Can set frequency:\t%c\n",caps->set_freq!=NULL?'Y':'N');
-	printf("Can get frequency:\t%c\n",caps->get_freq!=NULL?'Y':'N');
-	printf("Can set mode:\t%c\n",caps->set_mode!=NULL?'Y':'N');
-	printf("Can get mode:\t%c\n",caps->get_mode!=NULL?'Y':'N');
-	printf("Can set vfo:\t%c\n",caps->set_vfo!=NULL?'Y':'N');
-	printf("Can get vfo:\t%c\n",caps->get_vfo!=NULL?'Y':'N');
-	printf("Can set ptt:\t%c\n",caps->set_ptt!=NULL?'Y':'N');
-	printf("Can get ptt:\t%c\n",caps->get_ptt!=NULL?'Y':'N');
-	printf("Can get dcd:\t%c\n",caps->get_dcd!=NULL?'Y':'N');
-	printf("Can set repeater duplex:\t%c\n",caps->set_rptr_shift!=NULL?'Y':'N');
-	printf("Can get repeater duplex:\t%c\n",caps->get_rptr_shift!=NULL?'Y':'N');
-	printf("Can set repeater offset:\t%c\n",caps->set_rptr_offs!=NULL?'Y':'N');
-	printf("Can get repeater offset:\t%c\n",caps->get_rptr_offs!=NULL?'Y':'N');
+	fprintf(fout, "Has init:\t%c\n",caps->rig_init!=NULL?'Y':'N');
+	fprintf(fout, "Has cleanup:\t%c\n",caps->rig_cleanup!=NULL?'Y':'N');
+	fprintf(fout, "Has open:\t%c\n",caps->rig_open!=NULL?'Y':'N');
+	fprintf(fout, "Has close:\t%c\n",caps->rig_close!=NULL?'Y':'N');
+	fprintf(fout, "Can set conf:\t%c\n",caps->set_conf!=NULL?'Y':'N');
+	fprintf(fout, "Can get conf:\t%c\n",caps->get_conf!=NULL?'Y':'N');
+	fprintf(fout, "Can set frequency:\t%c\n",caps->set_freq!=NULL?'Y':'N');
+	fprintf(fout, "Can get frequency:\t%c\n",caps->get_freq!=NULL?'Y':'N');
+	fprintf(fout, "Can set mode:\t%c\n",caps->set_mode!=NULL?'Y':'N');
+	fprintf(fout, "Can get mode:\t%c\n",caps->get_mode!=NULL?'Y':'N');
+	fprintf(fout, "Can set vfo:\t%c\n",caps->set_vfo!=NULL?'Y':'N');
+	fprintf(fout, "Can get vfo:\t%c\n",caps->get_vfo!=NULL?'Y':'N');
+	fprintf(fout, "Can set ptt:\t%c\n",caps->set_ptt!=NULL?'Y':'N');
+	fprintf(fout, "Can get ptt:\t%c\n",caps->get_ptt!=NULL?'Y':'N');
+	fprintf(fout, "Can get dcd:\t%c\n",caps->get_dcd!=NULL?'Y':'N');
+	fprintf(fout, "Can set repeater duplex:\t%c\n",caps->set_rptr_shift!=NULL?'Y':'N');
+	fprintf(fout, "Can get repeater duplex:\t%c\n",caps->get_rptr_shift!=NULL?'Y':'N');
+	fprintf(fout, "Can set repeater offset:\t%c\n",caps->set_rptr_offs!=NULL?'Y':'N');
+	fprintf(fout, "Can get repeater offset:\t%c\n",caps->get_rptr_offs!=NULL?'Y':'N');
 
 	can_esplit = caps->set_vfo || 
 		(rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op);
-	printf("Can set split freq:\t%c\n",caps->set_split_freq!=NULL?'Y':
+	fprintf(fout, "Can set split freq:\t%c\n",caps->set_split_freq!=NULL?'Y':
 			(can_esplit&&caps->set_freq?'E':'N'));
-	printf("Can get split freq:\t%c\n",caps->get_split_freq!=NULL?'Y':
+	fprintf(fout, "Can get split freq:\t%c\n",caps->get_split_freq!=NULL?'Y':
 			(can_esplit&&caps->get_freq?'E':'N'));
-	printf("Can set split mode:\t%c\n",caps->set_split_mode!=NULL?'Y':
+	fprintf(fout, "Can set split mode:\t%c\n",caps->set_split_mode!=NULL?'Y':
 			(can_esplit&&caps->set_mode?'E':'N'));
-	printf("Can get split mode:\t%c\n",caps->get_split_mode!=NULL?'Y':
+	fprintf(fout, "Can get split mode:\t%c\n",caps->get_split_mode!=NULL?'Y':
 			(can_esplit&&caps->get_mode?'E':'N'));
 
-	printf("Can set split vfo:\t%c\n",caps->set_split_vfo!=NULL?'Y':'N');
-	printf("Can get split vfo:\t%c\n",caps->get_split_vfo!=NULL?'Y':'N');
-	printf("Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
-	printf("Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
-	printf("Can set RIT:\t%c\n",caps->set_rit!=NULL?'Y':'N');
-	printf("Can get RIT:\t%c\n",caps->get_rit!=NULL?'Y':'N');
-	printf("Can set XIT:\t%c\n",caps->set_xit!=NULL?'Y':'N');
-	printf("Can get XIT:\t%c\n",caps->get_xit!=NULL?'Y':'N');
-	printf("Can set CTCSS:\t%c\n",caps->set_ctcss_tone!=NULL?'Y':'N');
-	printf("Can get CTCSS:\t%c\n",caps->get_ctcss_tone!=NULL?'Y':'N');
-	printf("Can set DCS:\t%c\n",caps->set_dcs_code!=NULL?'Y':'N');
-	printf("Can get DCS:\t%c\n",caps->get_dcs_code!=NULL?'Y':'N');
-	printf("Can set CTCSS squelch:\t%c\n",caps->set_ctcss_sql!=NULL?'Y':'N');
-	printf("Can get CTCSS squelch:\t%c\n",caps->get_ctcss_sql!=NULL?'Y':'N');
-	printf("Can set DCS squelch:\t%c\n",caps->set_dcs_sql!=NULL?'Y':'N');
-	printf("Can get DCS squelch:\t%c\n",caps->get_dcs_sql!=NULL?'Y':'N');
-	printf("Can set power stat:\t%c\n",caps->set_powerstat!=NULL?'Y':'N');
-	printf("Can get power stat:\t%c\n",caps->get_powerstat!=NULL?'Y':'N');
-	printf("Can reset:\t%c\n",caps->reset!=NULL?'Y':'N');
-	printf("Can get ant:\t%c\n",caps->get_ant!=NULL?'Y':'N');
-	printf("Can set ant:\t%c\n",caps->set_ant!=NULL?'Y':'N');
-	printf("Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
-	printf("Can get transceive:\t%c\n",caps->get_trn!=NULL?'Y':'N');
-	printf("Can set func:\t%c\n",caps->set_func!=NULL?'Y':'N');
-	printf("Can get func:\t%c\n",caps->get_func!=NULL?'Y':'N');
-	printf("Can set level:\t%c\n",caps->set_level!=NULL?'Y':'N');
-	printf("Can get level:\t%c\n",caps->get_level!=NULL?'Y':'N');
-	printf("Can set param:\t%c\n",caps->set_parm!=NULL?'Y':'N');
-	printf("Can get param:\t%c\n",caps->get_parm!=NULL?'Y':'N');
-	printf("Can send DTMF:\t%c\n",caps->send_dtmf!=NULL?'Y':'N');
-	printf("Can recv DTMF:\t%c\n",caps->recv_dtmf!=NULL?'Y':'N');
-	printf("Can send Morse:\t%c\n",caps->send_morse!=NULL?'Y':'N');
-	printf("Can decode events:\t%c\n",caps->decode_event!=NULL?'Y':'N');
-	printf("Can set bank:\t%c\n",caps->set_bank!=NULL?'Y':'N');
-	printf("Can set mem:\t%c\n",caps->set_mem!=NULL?'Y':'N');
-	printf("Can get mem:\t%c\n",caps->get_mem!=NULL?'Y':'N');
+	fprintf(fout, "Can set split vfo:\t%c\n",caps->set_split_vfo!=NULL?'Y':'N');
+	fprintf(fout, "Can get split vfo:\t%c\n",caps->get_split_vfo!=NULL?'Y':'N');
+	fprintf(fout, "Can set tuning step:\t%c\n",caps->set_ts!=NULL?'Y':'N');
+	fprintf(fout, "Can get tuning step:\t%c\n",caps->get_ts!=NULL?'Y':'N');
+	fprintf(fout, "Can set RIT:\t%c\n",caps->set_rit!=NULL?'Y':'N');
+	fprintf(fout, "Can get RIT:\t%c\n",caps->get_rit!=NULL?'Y':'N');
+	fprintf(fout, "Can set XIT:\t%c\n",caps->set_xit!=NULL?'Y':'N');
+	fprintf(fout, "Can get XIT:\t%c\n",caps->get_xit!=NULL?'Y':'N');
+	fprintf(fout, "Can set CTCSS:\t%c\n",caps->set_ctcss_tone!=NULL?'Y':'N');
+	fprintf(fout, "Can get CTCSS:\t%c\n",caps->get_ctcss_tone!=NULL?'Y':'N');
+	fprintf(fout, "Can set DCS:\t%c\n",caps->set_dcs_code!=NULL?'Y':'N');
+	fprintf(fout, "Can get DCS:\t%c\n",caps->get_dcs_code!=NULL?'Y':'N');
+	fprintf(fout, "Can set CTCSS squelch:\t%c\n",caps->set_ctcss_sql!=NULL?'Y':'N');
+	fprintf(fout, "Can get CTCSS squelch:\t%c\n",caps->get_ctcss_sql!=NULL?'Y':'N');
+	fprintf(fout, "Can set DCS squelch:\t%c\n",caps->set_dcs_sql!=NULL?'Y':'N');
+	fprintf(fout, "Can get DCS squelch:\t%c\n",caps->get_dcs_sql!=NULL?'Y':'N');
+	fprintf(fout, "Can set power stat:\t%c\n",caps->set_powerstat!=NULL?'Y':'N');
+	fprintf(fout, "Can get power stat:\t%c\n",caps->get_powerstat!=NULL?'Y':'N');
+	fprintf(fout, "Can reset:\t%c\n",caps->reset!=NULL?'Y':'N');
+	fprintf(fout, "Can get ant:\t%c\n",caps->get_ant!=NULL?'Y':'N');
+	fprintf(fout, "Can set ant:\t%c\n",caps->set_ant!=NULL?'Y':'N');
+	fprintf(fout, "Can set transceive:\t%c\n",caps->set_trn!=NULL?'Y':'N');
+	fprintf(fout, "Can get transceive:\t%c\n",caps->get_trn!=NULL?'Y':'N');
+	fprintf(fout, "Can set func:\t%c\n",caps->set_func!=NULL?'Y':'N');
+	fprintf(fout, "Can get func:\t%c\n",caps->get_func!=NULL?'Y':'N');
+	fprintf(fout, "Can set level:\t%c\n",caps->set_level!=NULL?'Y':'N');
+	fprintf(fout, "Can get level:\t%c\n",caps->get_level!=NULL?'Y':'N');
+	fprintf(fout, "Can set param:\t%c\n",caps->set_parm!=NULL?'Y':'N');
+	fprintf(fout, "Can get param:\t%c\n",caps->get_parm!=NULL?'Y':'N');
+	fprintf(fout, "Can send DTMF:\t%c\n",caps->send_dtmf!=NULL?'Y':'N');
+	fprintf(fout, "Can recv DTMF:\t%c\n",caps->recv_dtmf!=NULL?'Y':'N');
+	fprintf(fout, "Can send Morse:\t%c\n",caps->send_morse!=NULL?'Y':'N');
+	fprintf(fout, "Can decode events:\t%c\n",caps->decode_event!=NULL?'Y':'N');
+	fprintf(fout, "Can set bank:\t%c\n",caps->set_bank!=NULL?'Y':'N');
+	fprintf(fout, "Can set mem:\t%c\n",caps->set_mem!=NULL?'Y':'N');
+	fprintf(fout, "Can get mem:\t%c\n",caps->get_mem!=NULL?'Y':'N');
 
 	can_echannel = caps->set_mem && caps->set_vfo;
-	printf("Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':
+	fprintf(fout, "Can set channel:\t%c\n",caps->set_channel!=NULL?'Y':
 			(can_echannel?'E':'N'));
-	printf("Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':
+	fprintf(fout, "Can get channel:\t%c\n",caps->get_channel!=NULL?'Y':
 			(can_echannel?'E':'N'));
 
-	printf("Can ctl mem/vfo:\t%c\n",caps->vfo_op!=NULL?'Y':'N');
-	printf("Can scan:\t%c\n",caps->scan!=NULL?'Y':'N');
-	printf("Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
+	fprintf(fout, "Can ctl mem/vfo:\t%c\n",caps->vfo_op!=NULL?'Y':'N');
+	fprintf(fout, "Can scan:\t%c\n",caps->scan!=NULL?'Y':'N');
+	fprintf(fout, "Can get info:\t%c\n",caps->get_info!=NULL?'Y':'N');
 	
 
-	printf("\nOverall backend warnings: %d\n", backend_warnings);
+	fprintf(fout, "\nOverall backend warnings: %d\n", backend_warnings);
 
 	return backend_warnings;
 }
@@ -447,7 +447,7 @@ int dumpcaps (RIG* rig)
 
 static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 {
-	printf(" %s", cfp->name);
+	fprintf((FILE*)ptr, " %s", cfp->name);
 
 	return 1;       /* process them all */
 }
@@ -542,31 +542,31 @@ int ts_sanity_check(const struct tuning_step_list tuning_step[])
 }
 
 
-static void dump_chan_caps(const channel_cap_t *chan)
+static void dump_chan_caps(const channel_cap_t *chan, FILE *fout)
 {
-  if (chan->bank_num) printf("BANK ");
-  if (chan->ant) printf("ANT ");
-  if (chan->freq) printf("FREQ ");
-  if (chan->mode) printf("MODE ");
-  if (chan->width) printf("WIDTH ");
-  if (chan->tx_freq) printf("TXFREQ ");
-  if (chan->tx_mode) printf("TXMODE ");
-  if (chan->tx_width) printf("TXWIDTH ");
-  if (chan->split) printf("SPLIT ");
-  if (chan->rptr_shift) printf("RPTRSHIFT ");
-  if (chan->rptr_offs) printf("RPTROFS ");
-  if (chan->tuning_step) printf("TS ");
-  if (chan->rit) printf("RIT ");
-  if (chan->xit) printf("XIT ");
-  if (chan->funcs) printf("FUNC ");
-  if (chan->levels) printf("LEVEL ");
-  if (chan->ctcss_tone) printf("TONE ");
-  if (chan->ctcss_sql) printf("CTCSS ");
-  if (chan->dcs_code) printf("DCSCODE ");
-  if (chan->dcs_sql) printf("DCSSQL ");
-  if (chan->scan_group) printf("SCANGRP ");
-  if (chan->flags) printf("FLAG ");    /* RIG_CHFLAG's */
-  if (chan->channel_desc) printf("NAME ");
-  if (chan->ext_levels) printf("EXTLVL ");
+  if (chan->bank_num) fprintf(fout, "BANK ");
+  if (chan->ant) fprintf(fout, "ANT ");
+  if (chan->freq) fprintf(fout, "FREQ ");
+  if (chan->mode) fprintf(fout, "MODE ");
+  if (chan->width) fprintf(fout, "WIDTH ");
+  if (chan->tx_freq) fprintf(fout, "TXFREQ ");
+  if (chan->tx_mode) fprintf(fout, "TXMODE ");
+  if (chan->tx_width) fprintf(fout, "TXWIDTH ");
+  if (chan->split) fprintf(fout, "SPLIT ");
+  if (chan->rptr_shift) fprintf(fout, "RPTRSHIFT ");
+  if (chan->rptr_offs) fprintf(fout, "RPTROFS ");
+  if (chan->tuning_step) fprintf(fout, "TS ");
+  if (chan->rit) fprintf(fout, "RIT ");
+  if (chan->xit) fprintf(fout, "XIT ");
+  if (chan->funcs) fprintf(fout, "FUNC ");
+  if (chan->levels) fprintf(fout, "LEVEL ");
+  if (chan->ctcss_tone) fprintf(fout, "TONE ");
+  if (chan->ctcss_sql) fprintf(fout, "CTCSS ");
+  if (chan->dcs_code) fprintf(fout, "DCSCODE ");
+  if (chan->dcs_sql) fprintf(fout, "DCSSQL ");
+  if (chan->scan_group) fprintf(fout, "SCANGRP ");
+  if (chan->flags) fprintf(fout, "FLAG ");    /* RIG_CHFLAG's */
+  if (chan->channel_desc) fprintf(fout, "NAME ");
+  if (chan->ext_levels) fprintf(fout, "EXTLVL ");
 }
 
