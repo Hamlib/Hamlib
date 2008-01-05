@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-765 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic765.c,v 1.4 2008-01-05 11:58:15 csete Exp $
+ *	$Id: ic765.c,v 1.5 2008-01-05 12:37:59 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,7 +45,7 @@
 
 #define IC765_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY|RIG_OP_MCL)
 
-#define IC765_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM)	/* TBC */
+#define IC765_SCAN_OPS (RIG_SCAN_PROG|RIG_SCAN_MEM)
 
 #define IC765_ANTS RIG_ANT_1
 
