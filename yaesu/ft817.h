@@ -11,7 +11,7 @@
  * copied back and adopted for the FT-817.
  *
  *
- *    $Id: ft817.h,v 1.5 2005-09-04 10:44:23 csete Exp $  
+ *    $Id: ft817.h,v 1.6 2008-01-05 16:47:35 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -156,6 +156,10 @@ static int ft817_get_dcd        (RIG *rig, vfo_t vfo, dcd_t *dcd);
 static int ft817_set_powerstat  (RIG *rig, powerstat_t status);
 static int ft817_vfo_op         (RIG *rig, vfo_t vfo, vfo_op_t op);
 static int ft817_set_split_vfo  (RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft817_power2mW       (RIG *rig, unsigned int *mwpower, float power,
+                                 freq_t freq, rmode_t mode);
+static int ft817_mW2power       (RIG *rig, float *power, unsigned int mwpower,
+                                 freq_t freq, rmode_t mode);
 
 #endif /* _FT817_H */
 

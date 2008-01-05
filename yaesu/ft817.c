@@ -11,7 +11,7 @@
  * copied back and adopted for the FT-817.
  *
  *
- *    $Id: ft817.c,v 1.15 2008-01-05 15:28:57 csete Exp $  
+ *    $Id: ft817.c,v 1.16 2008-01-05 16:47:35 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -47,7 +47,6 @@
  *      - high swr flag
  *
  * Todo / tocheck list (oz9aec):
- * - check power meter reading, add power2mW, mW2power
  * - test get_dcd; rigctl does not support it?
  * - squelch
  * - the many "fixme" stuff around
@@ -171,7 +170,7 @@ const struct rig_caps ft817_caps = {
 	.mfg_name =            "Yaesu",
 	.version =             "0.4",
 	.copyright =           "LGPL",
-	.status =              RIG_STATUS_STABLE,
+	.status =              RIG_STATUS_BETA,
 	.rig_type =            RIG_TYPE_TRANSCEIVER,
 	.ptt_type =            RIG_PTT_RIG,
 	.dcd_type =            RIG_DCD_RIG,
@@ -318,8 +317,8 @@ const struct rig_caps ft817_caps = {
 	.get_tone_sql =         NULL,
 	.set_ctcss_sql = 	ft817_set_ctcss_sql,
 	.get_ctcss_sql = 	NULL,
-	.power2mW =             NULL,
-	.mW2power =             NULL,
+    .power2mW =             ft817_power2mW,
+    .mW2power =             ft817_mW2power,
 	.set_powerstat = 	ft817_set_powerstat,
 	.get_powerstat = 	NULL,
 	.reset = 		NULL,
@@ -350,7 +349,6 @@ const struct rig_caps ft817_caps = {
 	.decode_event =         NULL,
 	.set_channel =          NULL,
 	.get_channel =          NULL,
-
 	/* there are some more */
 }; 
 
@@ -587,15 +585,16 @@ static int ft817_get_pometer_level(RIG *rig, value_t *val)
 			return n;
 
 	/* Valid only if PTT is on.
-           FT-817 returns the number of bars in the lowest 4 bits
-           No documentation on how to interpret it but the max number
-           of bars on the display is 10 and I measure 4 watts on 20m 
-           when I read 8 bars, but the scale is not exactly linear.
-        */
-	if ((p->tx_status & 0x80) == 0)
-		val->f = ((p->tx_status & 0x0F) / 10.0);
-	else
+       FT-817 returns the number of bars in the lowest 4 bits
+    */
+	if ((p->tx_status & 0x80) == 0) {
+        /* the rig has 10 bars on its display */
+        val->f = (p->tx_status & 0x0F) / 10.0;
+        
+    }
+	else {
 		val->f = 0.0;
+    }
 
 	return RIG_OK;
 }
@@ -1118,6 +1117,33 @@ int ft817_set_split_vfo  (RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
 	return RIG_OK;
 
+}
+
+
+
+/* FIXME: currently ignores mode and freq */
+/*
+   No documentation on how to interpret it but the max number
+   of bars on the display is 10 and I measure:
+                          8 bars = 5W
+                          5 bars = 2.5W
+                          3 bars = 1W
+                          1 bar  = 0.5W
+*/
+int ft817_power2mW       (RIG *rig, unsigned int *mwpower, float power,
+                          freq_t freq, rmode_t mode)
+{
+    *mwpower = (int) (power*6000);
+    return RIG_OK;
+}
+
+
+/* FIXME: currently ignores mode and freq */
+int ft817_mW2power       (RIG *rig, float *power, unsigned int mwpower,
+                          freq_t freq, rmode_t mode)
+{
+    *power = mwpower/6000.0;
+    return RIG_OK;
 }
 
 
