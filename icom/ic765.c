@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-765 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic765.c,v 1.3 2005-04-03 19:53:51 fillods Exp $
+ *	$Id: ic765.c,v 1.4 2008-01-05 11:58:15 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,13 +63,13 @@ const struct rig_caps ic765_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER, 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_NEW,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
-.serial_rate_max =  1200,
+.serial_rate_max =  9600,
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
