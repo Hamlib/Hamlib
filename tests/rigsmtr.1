@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGSMTR "1" "February 26, 2006" "Hamlib"
+.TH RIGSMTR "1" "January 5, 2008" "Hamlib"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -16,21 +16,20 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-rigswr \- measure S-Meter vs azimuth using Hamlib
+rigsmtr \- measure S-Meter vs azimuth using Hamlib
 .SH SYNOPSIS
-.B rigswr
-[\fIOPTION\fR]... start_freq stop_freq [freq_step]
+.B rigsmtr
+[\fIOPTION\fR]... [time_step]
 .SH DESCRIPTION
-\fBrigswr\fP uses Hamlib to control a rig to measure S-Meter vs azimuth: 
+\fBrigsmtr\fP uses Hamlib to control a rig to measure S-Meter vs azimuth: 
 .br
-It scans frequencies from start_freq to stop_freq with step freq_step.
-For each frequency, it transmits at 25% of total POWER during 0.5 second in CW mode
-and read VSWR.
+It rotates the antenna from minimum azimuth to maximum azimuth.
+Every second or \fItime_step\fP if specified in seconds, it retrieves the signal strength.
 .br
 Azimuth in degree and corresponding S-Meter level in dB relative to S9 are then printed on stdout.
 .br
 To work correctly, rigsmtr needs a rig that could measure S-Meter and a Hamlib backend that 
-is able to get it.
+is able to get it, mounted on a Hamlib supported rotator.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
@@ -47,28 +46,31 @@ A summary of options is included below.
 .B \-m, \-\-model=id
 Select radio model number. See model list provided by rigctl.
 .TP
-.B \-r, --rig-file=device
+.B \-r, \-\-rig\-file=device
 Use \fBdevice\fP as the file name of the radio to operate on.
 .TP
-.B \-s, --serial-speed=baud
-Set serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
+.B \-s, \-\-serial\-speed=baud
+Set radio serial speed to \fBbaud\fP rate. Uses maximal rig speed as default.
 .TP
-.B \-c, --civaddr=id
+.B \-c, \-\-civaddr=id
 Use \fBid\fP as the CI-V address to communicate with the rig. 
 Only for Icom rigs. NB: the id is in decimal, unless prefixed by \fB0x\fP,
 in which case it is hexadecimal.
 .TP
-.B \-p, --ptt-file=device
-Use \fBdevice\fP as the file name of the Push-To-Talk device to operate on.
-This is only needed if the radio doesn't have legacy PTT control.
-.TP
-.B \-p, --ptt-type=type
-Use \fBtype\fP device as the kind of the Push-To-Talk device to operate on.
-Supported types are RIG, DTR, RTS, PARALLEL, NONE.
-This is only needed if the radio doesn't have legacy PTT control.
-.TP
 .B \-C, \-\-set\-conf=parm=val[,parm=val]*
-Set config parameter. See -L option of rigctl for a list.
+Set radio config parameter. See -L option of rigctl for a list.
+.TP
+.B \-M, \-\-rot\-model=id
+Select radio model number. See model list provided by rotctl.
+.TP
+.B \-R,  \-\-rot\-file=device
+Use \fBdevice\fP as the file name of the rotator to operate on.
+.TP
+.B \-S, \-\-rot\-serial\-speed=baud
+Set rotator serial speed to \fBbaud\fP rate. Uses maximal speed as default.
+.TP
+.B \-N, \-\-rot\-set\-conf=parm=val[,parm=val]*
+Set rotator config parameter. See -L option of rotctl for a list.
 .TP
 .B \-v, \-\-verbose
 Set verbose mode, cumulative (BUG, ERR, WARN, VERBOSE, TRACE).
@@ -80,53 +82,82 @@ Show summary of options and exit.
 Show version of program and exit.
 
 .SH RETURN VALUE
-rigswr exits with:
+rigsmtr exits with:
 0 if all operations went fine; 1 if there was an invalid command line
 option or arg; 2 if an error was returned by Hamlib; 3 if the rig
 doesn't have the required capabilities.
 
 .SH EXAMPLE
-rigswr -m 209 -r /dev/tty1 14000000 14350000 50000 > cswr
+rigsmtr -m 209 -r /dev/ttyS1 -M 202 > csmtr
 
 .br
-Scans frequencies between 14MHz and 14.200MHz with 50KHz step on a TS850 and
-record VSWR measurements in file cswr.
+Collect S-Meter readings on a TS850 while an EasycommII rotator makes a 
+full 360\(de, and record measurements in file csmtr.
 .br
-After completion, cswr file contains the following lines :
+After completion, csmtr file contains for example the following lines :
 .br
-  14000000 1.50
+  0 -47
 .br
-  14050000 1.31
+  30 -40 
 .br
-  14100000 1.22
+  60 -22
 .br
-  14150000 1.07
+  90 -3 
 .br
-  14200000 1.07
+  120 10 
+.br
+  150 1 
+.br
+  180 -11 
+.br
+  210 -24 
+.br
+  240 -35 
+.br
+  270 -42 
+.br
+  300 -48 
+.br
+  330 -51 
+.br
+  360 -49 
 
 .TP
 Result could then be ploted with gnuplot:
 .br
 gnuplot
 .br
-set data style linespoints
+set angles degrees
 .br
-set grid
+set polar
 .br
-plot "cswr"
+set grid polar 15.
+.br
+unset border
+.br
+unset param
+.br
+set style data line
+.br
+set rrange [-60:60]
+.br
+set xrange [-60:60]
+.br
+set yrange [-60:60]
+.br
+plot "csmtr"
 .SH AUTHOR
-Man page written by Thierry Leconte & Stephane Fillod .
+Man page written by Stephane Fillod.
 .SH BUGS
-Depending on keyer/QSK setup, transmits in CW mode may not be modulated
-thus giving possibly wrong result. Please report this situation if it happens.
+Need more testing. Reports are welcome.
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@users.sourceforge.net>.
 .SH COPYRIGHT
-Copyright \(co 2004-2006 Thierry Leconte & Stephane Fillod
+Copyright \(co 2004-2008 Thierry Leconte & Stephane Fillod
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
-.BR hamlib (3), rigctl(1)
+.BR hamlib (3), rigctl (1), rotctl (1)
 
