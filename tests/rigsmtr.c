@@ -1,9 +1,9 @@
 /*
- * rigsmtr.c - (C) Stephane Fillod
+ * rigsmtr.c - (C) Stephane Fillod 2007
  *
- * This program output S-meter curve value using Hamlib.
+ * This program output S-meter vs. Azimuth curve using Hamlib.
  *
- * $Id: rigsmtr.c,v 1.1 2007-05-21 20:02:57 fillods Exp $  
+ * $Id: rigsmtr.c,v 1.2 2008-01-05 15:06:35 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -95,6 +95,7 @@ int main (int argc, char *argv[])
 	int with_rot = 1;
 	azimuth_t azimuth;
 	elevation_t elevation;
+	unsigned step = 1000000;	/* 1e6 us */
 
 	while(1) {
 		int c;
@@ -194,11 +195,6 @@ int main (int argc, char *argv[])
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
 			"<hamlib-developer@lists.sourceforge.net>\n\n");
 
-	if (optind+1 >= argc) {
-		usage();
-		exit(1);
-	}
-
 	/*
 	 * The radio
 	 */
@@ -284,25 +280,23 @@ int main (int argc, char *argv[])
 
 
 	/*******************************/
-	/* argv[optind++] */
-#if 0
 	if (optind < argc) 
-		step=atof(argv[optind]);
-#endif
-	fprintf(stderr,"Setting rotator to azimuth %.1f°\n",rot->state.min_az);
+		step = atof(argv[optind])*1e6;
+
+	fprintf(stderr,"Setting rotator to azimuth %.1fÂ°\n",rot->state.min_az);
 	rot_set_position (rot, rot->state.min_az, 0);
 	fprintf(stderr,"Wait for rotator to move...\n");
 	rot_get_position (rot, &azimuth, &elevation);
 	while (fabs(azimuth - rot->state.min_az) > 1.) {
 		rot_get_position (rot, &azimuth, &elevation);
-		usleep(1000000);
+		usleep(step);
 	}
 
-	fprintf(stderr,"Now initiating full 360° rotation...\n");
+	fprintf(stderr,"Now initiating full 360Â° rotation...\n");
 	rot_set_position (rot, rot->state.max_az, 0);
 	
 	/* TODO: check CW or CCW */
-	/* disable AGC */
+	/* disable AGC? */
 
 	while (fabs(rot->state.max_az - azimuth) > 1.) {
 		value_t strength;
