@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - Elektor SDR USB (5/07) receiver description
  *  Copyright (c) 2007 by Stephane Fillod
  *
- *	$Id: elektor507.c,v 1.2 2007-11-07 19:26:39 fillods Exp $
+ *	$Id: elektor507.c,v 1.3 2008-01-05 17:07:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -51,7 +51,9 @@ static int elektor507_open(RIG *rig);
 static int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int elektor507_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int elektor507_set_ant(RIG * rig, vfo_t vfo, ant_t ant);
+static int elektor507_get_ant(RIG * rig, vfo_t vfo, ant_t *ant);
 static int elektor507_set_conf(RIG *rig, token_t token, const char *val);
 static int elektor507_get_conf(RIG *rig, token_t token, char *val);
 
@@ -524,7 +526,7 @@ const struct rig_caps elektor507_caps = {
 .ctcss_list =  NULL,
 .dcs_list =  NULL,
 .preamp =   { RIG_DBLST_END },
-.attenuator =   { 0, 10, 20 },
+.attenuator =   { 10, 20, RIG_DBLST_END },
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
@@ -566,7 +568,9 @@ const struct rig_caps elektor507_caps = {
 .set_freq    =  elektor507_set_freq,
 .get_freq    =  elektor507_get_freq,
 .set_level   =  elektor507_set_level,
+.get_level   =  elektor507_get_level,
 .set_ant     =  elektor507_set_ant,
+.get_ant     =  elektor507_get_ant,
 .get_info    =  elektor507_get_info,
 
 };
@@ -894,19 +898,49 @@ int elektor507_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
 	int ret=0;
+	int att=0;
 	
 	switch(level) {
 	case RIG_LEVEL_ATT:
 		/* val.i */
 		/* FTDI: DSR, DCD */
 
-		if (val.i != 0 && val.i != 1 && val.i != 2)
-			return -RIG_EINVAL;
+		switch (val.i) {
+			case 0: att = 0; break;
+			case 10: att = 1; break;
+			case 20: att = 2; break;
+			default: return -RIG_EINVAL;
+		}
 
 		priv->FT_port &= 0x1f;
-		priv->FT_port |= (val.i&0x3) << 5;
+		priv->FT_port |= (att&0x3) << 5;
 
 		ret = elektor507_ftdi_write_data(rig, &priv->FT_port, 1);
+
+		break;
+
+	default:
+		return -RIG_EINVAL;
+	}
+
+	return (ret != 0) ? -RIG_EIO : RIG_OK;
+}
+
+int elektor507_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
+	int ret=0;
+	
+	switch(level) {
+	case RIG_LEVEL_ATT:
+
+		switch ((priv->FT_port >> 5) & 3) {
+			case 0: val->i = 0; break;
+			case 1: val->i = 10; break;
+			case 2: val->i = 20; break;
+			default:
+				ret = -RIG_EINVAL;
+		}
 
 		break;
 
@@ -953,6 +987,15 @@ int elektor507_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 #endif
 
 	return (ret != 0) ? -RIG_EIO : RIG_OK;
+}
+
+int elektor507_get_ant(RIG * rig, vfo_t vfo, ant_t *ant)
+{
+	struct elektor507_priv_data *priv = (struct elektor507_priv_data *)rig->state.priv;
+
+	*ant = priv->ant;
+
+	return RIG_OK;
 }
 
 
