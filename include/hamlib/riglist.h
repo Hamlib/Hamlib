@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - list of known rigs
- *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.63 2007-11-22 04:48:43 n0nb Exp $
+ *	$Id: riglist.h,v 1.64 2008-01-07 21:10:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -349,6 +349,7 @@
 #define RIG_MODEL_TT565 RIG_MAKE_MODEL(RIG_TENTEC, 8)	/* Orion */
 #define RIG_MODEL_TT585 RIG_MAKE_MODEL(RIG_TENTEC, 9)	/* Paragon */
 #define RIG_MODEL_DELTAII RIG_MAKE_MODEL(RIG_TENTEC, 10)
+#define RIG_MODEL_TT588 RIG_MAKE_MODEL(RIG_TENTEC, 11)	/* Omni-VII */
 
 	/*
 	 * Alinco
@@ -481,7 +482,6 @@ typedef int rig_model_t;
 		{ RIG_ALINCO, RIG_BACKEND_ALINCO }, \
 		{ RIG_KACHINA, RIG_BACKEND_KACHINA }, \
 		{ RIG_RPC, RIG_BACKEND_RPC }, \
-		{ RIG_GNURADIO, RIG_BACKEND_GNURADIO }, \
 		{ RIG_MICROTUNE, RIG_BACKEND_MICROTUNE }, \
 		{ RIG_TAPR, RIG_BACKEND_TAPR }, \
 		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
