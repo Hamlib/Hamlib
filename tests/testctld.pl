@@ -1,7 +1,9 @@
 #! /usr/bin/perl
 
 # testctld.pl - (C) Nate Bargmann 2008
-# A test script for the rigctld program.
+# A Perl test script for the rigctld program.
+
+#  $Id: testctld.pl,v 1.2 2008-01-07 21:41:27 n0nb Exp $
 
 # It connects to the rigctld TCP port (default 4532) and queries
 # the daemon for some common rig information.  It also aims to provide
