@@ -4,7 +4,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
- *	$Id: ft1000mp.c,v 1.7 2006-10-07 15:51:38 csete Exp $
+ *	$Id: ft1000mp.c,v 1.8 2008-01-10 12:12:47 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -110,11 +110,11 @@ static const yaesu_cmd_set_t ncmd[] = {
 /*  { 1, { 0x00, 0x00, 0x00, 0x8b, 0x0c } }, */ /* vfo B mode set DATA-FM */
 
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x0e } }, /* update interval/pacing */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x0F } }, /* PTT OFF */
+  { 1, { 0x00, 0x00, 0x00, 0x01, 0x0F } }, /* PTT ON */
   { 1, { 0x00, 0x00, 0x00, 0x03, 0x10 } }, /* status update VFO A & B update */
   { 1, { 0x00, 0x00, 0x00, 0x02, 0x10 } }, /* status update operating data */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0xFA } }, /* Read status flags */
-  { 1, { 0x00, 0x00, 0x00, 0x00, 0xF0 } }, /* PTT OFF */
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0xF0 } }, /* PTT ON */
 /*  { 0, { 0x00, 0x00, 0x00, 0x00, 0x70 } }, */ /* keyer commands */
 /*  { 1, { 0x00, 0x00, 0x00, 0x00, 0x81 } }, */ /* tuner off */
 /*  { 1, { 0x00, 0x00, 0x00, 0x01, 0x81 } }, */ /* tuner on */
