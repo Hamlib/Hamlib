@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.2 2008-01-05 18:13:12 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.3 2008-01-10 03:42:35 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -257,7 +257,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
 extern int interactive;
 extern int prompt;
-
+extern int dmode;
 
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
@@ -575,6 +575,7 @@ int set_conf(RIG *my_rig, char *conf_parms)
  * 		vfo_t vfo, const void *arg1, const void *arg2, const void *arg3)
  */
 
+/* 'F' */
 declare_proto_rig(set_freq)
 {
 	freq_t freq;
@@ -583,6 +584,7 @@ declare_proto_rig(set_freq)
 	return rig_set_freq(rig, vfo, freq);
 }
 
+/* 'f' */
 declare_proto_rig(get_freq)
 {
 	int status;
@@ -594,10 +596,15 @@ declare_proto_rig(get_freq)
 
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1); /* i.e. "Frequency" */
-	fprintf(fout, "%"PRIll"\n", (long long)freq);
+    fprintf(fout, "%"PRIll"\n", (long long)freq);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
+/* 'J' */
 declare_proto_rig(set_rit)
 {
 	shortfreq_t rit;
@@ -606,6 +613,7 @@ declare_proto_rig(set_rit)
 	return rig_set_rit(rig, vfo, rit);
 }
 
+/* 'j' */
 declare_proto_rig(get_rit)
 {
 	int status;
@@ -617,9 +625,14 @@ declare_proto_rig(get_rit)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rit);
+
+	if (interactive && dmode)             /* only for rigctld */
+		printf(fout, "END\n");
+
 	return status;
 }
 
+/* 'Z' */
 declare_proto_rig(set_xit)
 {
 	shortfreq_t xit;
@@ -628,6 +641,7 @@ declare_proto_rig(set_xit)
 	return rig_set_xit(rig, vfo, xit);
 }
 
+/* 'z' */
 declare_proto_rig(get_xit)
 {
 	int status;
@@ -639,10 +653,14 @@ declare_proto_rig(get_xit)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", xit);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'M' */
 declare_proto_rig(set_mode)
 {
 	rmode_t mode;
@@ -653,7 +671,7 @@ declare_proto_rig(set_mode)
 	return rig_set_mode(rig, vfo, mode, width);
 }
 
-
+/* 'm' */
 declare_proto_rig(get_mode)
 {
 	int status;
@@ -669,16 +687,20 @@ declare_proto_rig(get_mode)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'V' */
 declare_proto_rig(set_vfo)
 {
 	return rig_set_vfo(rig, rig_parse_vfo(arg1));
 }
 
-
+/* 'v' */
 declare_proto_rig(get_vfo)
 {
 	int status;
@@ -689,10 +711,14 @@ declare_proto_rig(get_vfo)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strvfo(vfo));
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'T' */
 declare_proto_rig(set_ptt)
 {
         int   ptt;
@@ -701,7 +727,7 @@ declare_proto_rig(set_ptt)
 	return rig_set_ptt(rig, vfo, (ptt_t) ptt);
 }
 
-
+/* 't' */
 declare_proto_rig(get_ptt)
 {
 	int status;
@@ -713,10 +739,14 @@ declare_proto_rig(get_ptt)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", ptt);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'R' */
 declare_proto_rig(set_rptr_shift)
 {
 	rptr_shift_t rptr_shift;
@@ -725,7 +755,7 @@ declare_proto_rig(set_rptr_shift)
 	return rig_set_rptr_shift(rig, vfo, rptr_shift);
 }
 
-
+/* 'r' */
 declare_proto_rig(get_rptr_shift)
 {
 	int status;
@@ -737,10 +767,14 @@ declare_proto_rig(get_rptr_shift)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strptrshift(rptr_shift));
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'O' */
 declare_proto_rig(set_rptr_offs)
 {
 	unsigned long rptr_offs;
@@ -749,7 +783,7 @@ declare_proto_rig(set_rptr_offs)
 	return rig_set_rptr_offs(rig, vfo, rptr_offs);
 }
 
-
+/* 'o' */
 declare_proto_rig(get_rptr_offs)
 {
 	int status;
@@ -761,10 +795,14 @@ declare_proto_rig(get_rptr_offs)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rptr_offs);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'C' */
 declare_proto_rig(set_ctcss_tone)
 {
 	tone_t tone;
@@ -773,7 +811,7 @@ declare_proto_rig(set_ctcss_tone)
 	return rig_set_ctcss_tone(rig, vfo, tone);
 }
 
-
+/* 'c' */
 declare_proto_rig(get_ctcss_tone)
 {
 	int status;
@@ -785,10 +823,14 @@ declare_proto_rig(get_ctcss_tone)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", tone);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'D' */
 declare_proto_rig(set_dcs_code)
 {
 	tone_t code;
@@ -797,7 +839,7 @@ declare_proto_rig(set_dcs_code)
 	return rig_set_dcs_code(rig, vfo, code);
 }
 
-
+/* 'd' */
 declare_proto_rig(get_dcs_code)
 {
 	int status;
@@ -809,10 +851,14 @@ declare_proto_rig(get_dcs_code)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", code);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'I' */
 declare_proto_rig(set_split_freq)
 {
 	freq_t txfreq;
@@ -821,7 +867,7 @@ declare_proto_rig(set_split_freq)
 	return rig_set_split_freq(rig, vfo, txfreq);
 }
 
-
+/* 'i' */
 declare_proto_rig(get_split_freq)
 {
 	int status;
@@ -833,9 +879,14 @@ declare_proto_rig(get_split_freq)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%"PRIll"\n", (long long)txfreq);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
+/* 'X' */
 declare_proto_rig(set_split_mode)
 {
 	rmode_t mode;
@@ -846,7 +897,7 @@ declare_proto_rig(set_split_mode)
 	return rig_set_split_mode(rig, vfo, mode, (pbwidth_t) width);
 }
 
-
+/* 'x' */
 declare_proto_rig(get_split_mode)
 {
 	int status;
@@ -862,10 +913,14 @@ declare_proto_rig(get_split_mode)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'S' */
 declare_proto_rig(set_split_vfo)
 {
 	int split;
@@ -874,7 +929,7 @@ declare_proto_rig(set_split_vfo)
 	return rig_set_split_vfo(rig, vfo, (split_t) split, rig_parse_vfo(arg2));
 }
 
-
+/* 's' */
 declare_proto_rig(get_split_vfo)
 {
 	int status;
@@ -890,10 +945,14 @@ declare_proto_rig(get_split_vfo)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%s\n", rig_strvfo(tx_vfo));
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'N' */
 declare_proto_rig(set_ts)
 {
 	unsigned long ts;
@@ -902,7 +961,7 @@ declare_proto_rig(set_ts)
 	return rig_set_ts(rig, vfo, ts);
 }
 
-
+/* 'n' */
 declare_proto_rig(get_ts)
 {
 	int status;
@@ -914,9 +973,14 @@ declare_proto_rig(get_ts)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", ts);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
+/* '2' */
 declare_proto_rig(power2mW)
 {
 	int status;
@@ -942,6 +1006,8 @@ declare_proto_rig(power2mW)
  *   COMBO: val.i, starting from 0
  *   STRING: val.s
  *   CHECKBUTTON: val.i 0/1
+ *
+ * 'L'
  */
 declare_proto_rig(set_level)
 {
@@ -981,7 +1047,7 @@ declare_proto_rig(set_level)
 	return rig_set_level(rig, vfo, level, val);
 }
 
-
+/* 'l' */
 declare_proto_rig(get_level)
 {
 	int status;
@@ -1029,10 +1095,14 @@ declare_proto_rig(get_level)
 		fprintf(fout, "%f\n", val.f);
 	else
 		fprintf(fout, "%d\n", val.i);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'U' */
 declare_proto_rig(set_func)
 {
 	setting_t func;
@@ -1043,7 +1113,7 @@ declare_proto_rig(set_func)
 	return rig_set_func(rig, vfo, func, func_stat);
 }
 
-
+/* 'u' */
 declare_proto_rig(get_func)
 {
 	int status;
@@ -1057,9 +1127,14 @@ declare_proto_rig(get_func)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%d\n", func_stat);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
+/* 'P' */
 declare_proto_rig(set_parm)
 {
 	setting_t parm;
@@ -1099,7 +1174,7 @@ declare_proto_rig(set_parm)
 	return rig_set_parm(rig, parm, val);
 }
 
-
+/* 'p' */
 declare_proto_rig(get_parm)
 {
 	int status;
@@ -1148,10 +1223,13 @@ declare_proto_rig(get_parm)
 	else
 		fprintf(fout, "%d\n", val.i);
 
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
-
+/* 'B' */
 declare_proto_rig(set_bank)
 {
 	int bank;
@@ -1160,7 +1238,7 @@ declare_proto_rig(set_bank)
 	return rig_set_bank(rig, vfo, bank);
 }
 
-
+/* 'E' */
 declare_proto_rig(set_mem)
 {
 	int ch;
@@ -1169,7 +1247,7 @@ declare_proto_rig(set_mem)
 	return rig_set_mem(rig, vfo, ch);
 }
 
-
+/* 'e' */
 declare_proto_rig(get_mem)
 {
 	int status;
@@ -1184,6 +1262,7 @@ declare_proto_rig(get_mem)
 	return status;
 }
 
+/* 'G' */
 declare_proto_rig(vfo_op)
 {
 	vfo_op_t op;
@@ -1192,6 +1271,7 @@ declare_proto_rig(vfo_op)
 	return rig_vfo_op(rig, vfo, op);
 }
 
+/* 'g' */
 declare_proto_rig(scan)
 {
 	scan_t op;
@@ -1202,6 +1282,7 @@ declare_proto_rig(scan)
 	return rig_scan(rig, vfo, op, ch);
 }
 
+/* 'H' */
 declare_proto_rig(set_channel)
 {
 	channel_cap_t *mem_caps = NULL;
@@ -1304,7 +1385,7 @@ declare_proto_rig(set_channel)
 	return RIG_OK;
 }
 
-
+/* 'h' */
 declare_proto_rig(get_channel)
 {
 	int status;
@@ -1323,6 +1404,10 @@ declare_proto_rig(get_channel)
 	if (status != RIG_OK)
 		return status;
 	dump_chan(fout, rig, &chan);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
@@ -1357,6 +1442,7 @@ static int mydcd_event(RIG *rig, vfo_t vfo, dcd_t dcd, rig_ptr_t arg)
 	return 0;
 }
 
+/* 'A' */
 declare_proto_rig(set_trn)
 {
 	int trn;
@@ -1381,7 +1467,7 @@ declare_proto_rig(set_trn)
 	return rig_set_trn(rig, trn);
 }
 
-
+/* 'a' */
 declare_proto_rig(get_trn)
 {
 	int status;
@@ -1393,18 +1479,27 @@ declare_proto_rig(get_trn)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", trn);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
+/* '_' */
 declare_proto_rig(get_info)
 {
-		const char *s;
+	const char *s;
 
-		s = rig_get_info(rig);
-		if (interactive && prompt)
-			fprintf(fout, "%s: ", cmd->arg1);
-		fprintf(fout, "%s\n", s ? s : "None");
-		return RIG_OK;
+	s = rig_get_info(rig);
+	if (interactive && prompt)
+		fprintf(fout, "%s: ", cmd->arg1);
+	fprintf(fout, "%s\n", s ? s : "None");
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
+	return RIG_OK;
 }
 
 
@@ -1472,13 +1567,18 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 	fprintf(fout, "\n");
 }
 
+/* '1' */
 declare_proto_rig(dump_caps)
 {
 	dumpcaps(rig, fout);
 
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return RIG_OK;
 }
 
+/* 'Y' */
 declare_proto_rig(set_ant)
 {
 	ant_t ant;
@@ -1487,6 +1587,7 @@ declare_proto_rig(set_ant)
 	return rig_set_ant(rig, vfo, rig_idx2setting(ant));
 }
 
+/* 'y' */
 declare_proto_rig(get_ant)
 {
 	int status;
@@ -1498,9 +1599,14 @@ declare_proto_rig(get_ant)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", rig_setting2idx(ant));
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
+/* '*' */
 declare_proto_rig(reset)
 {
 	int reset;
@@ -1509,11 +1615,13 @@ declare_proto_rig(reset)
 	return rig_reset(rig, (reset_t) reset);
 }
 
+/* 'b' */
 declare_proto_rig(send_morse)
 {
 	return rig_send_morse(rig, vfo, arg1);
 }
 
+/* '0x87' */
 declare_proto_rig(set_powerstat)
 {
 	int stat;
@@ -1522,6 +1630,7 @@ declare_proto_rig(set_powerstat)
 	return rig_set_powerstat(rig, (powerstat_t) stat);
 }
 
+/* '0x88' */
 declare_proto_rig(get_powerstat)
 {
 	int status;
@@ -1533,12 +1642,18 @@ declare_proto_rig(get_powerstat)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", stat);
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
 /*
  * special debugging purpose send command
  * display reply until there's a timeout
+ *
+ * 'w'
  */
 declare_proto_rig(send_cmd)
 {
@@ -1604,6 +1719,9 @@ declare_proto_rig(send_cmd)
 
 	if (retval > 0 || retval == -RIG_ETIMEOUT)
 		retval = RIG_OK;
+
+	if (interactive && dmode)             /* only for rigctld */
+		fprintf(fout, "END\n");
 
 	return retval;
 }

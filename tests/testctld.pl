@@ -3,7 +3,7 @@
 # testctld.pl - (C) Nate Bargmann 2008
 # A Perl test script for the rigctld program.
 
-#  $Id: testctld.pl,v 1.2 2008-01-07 21:41:27 n0nb Exp $
+#  $Id: testctld.pl,v 1.3 2008-01-10 03:42:35 n0nb Exp $
 
 # It connects to the rigctld TCP port (default 4532) and queries
 # the daemon for some common rig information.  It also aims to provide
@@ -32,10 +32,24 @@ use IO::Socket;
 
 # Local variables
 my $socket;
-my $answer;
+my @answer;
 my $freq = "14250000";
 my $mode = "USB";
 my $bw = "2400";
+my $flags;
+
+# Thanks to Uri Guttman on comp.lang.perl.misc for this function
+sub get_results {
+
+	my ($sock) = @_;
+	my @lines;
+
+	while (my $line = <$sock>) {
+
+		return @lines if $line =~ /^END$/;
+		push @lines, $line;
+	}
+}
 
 # Create the new socket.  
 # 'localhost' may be replaced by any hostname or IP address where a 
@@ -53,37 +67,36 @@ $socket = new IO::Socket::INET (PeerAddr    => 'localhost',
 print $socket "f\n";
 
 # Get the rig's frequency from rigctld and print it to STDOUT
-# N.B. Replies are newline terminated.
-$answer = <$socket>;
-print "The rig's frequency is: $answer";
+# N.B. Replies are newline terminated, so lines in @answer end with '\n'.
+@answer = get_results($socket);
+
+print "The rig's frequency is: $answer[0]";
 
 # Extra newline for screen formatting.
 print "\n";
 
 # Do the same for the mode (reading the mode also returns the bandwidth)
 print $socket "m\n";
-$answer = <$socket>;
-print "The rig's mode is: $answer";
-$answer = <$socket>;
-print "The rig's bandwidth is: $answer";
+@answer = get_results($socket);
+print "The rig's mode is: $answer[0]";
+print "The rig's bandwidth is: $answer[1]";
 print "\n";
 
 # Now set the rig's frequency
-print "Setting the rig's frquency to: $freq\n";
+print "Setting the rig's frequency to: $freq\n";
 print $socket "F $freq\n";
 print $socket "f\n";
-$answer = <$socket>;
-print "The rig's frequency is now: $answer";
+@answer = get_results($socket);
+print "The rig's frequency is now: $answer[0]";
 print "\n";
 
 # Setting the mode takes two parameters, mode and bandwidth
 print "Setting the rig's mode to $mode and bandwidth to $bw\n";
-print $socket "M $mode $bw\n";
-print $socket "m\n";
-$answer = <$socket>;
-print "The rig's mode is now: $answer";
-$answer = <$socket>;
-print "The rig's bandwidth is now: $answer";
+print $socket "\\set_mode $mode $bw\n";
+print $socket "\\get_mode\n";
+@answer = get_results($socket);
+print "The rig's mode is now: $answer[0]";
+print "The rig's bandwidth is now: $answer[1]";
 print "\n";
 
 # Close the connection before we exit.

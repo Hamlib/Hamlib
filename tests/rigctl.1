@@ -61,11 +61,11 @@ device file as described above.
 Use \fIdevice\fP as the file name of the Data Carrier Detect device using a
 device file as described above.
 .TP
-.B \-p, --ptt-type=type
+.B \-P, --ptt-type=type
 Use \fItype\fP of Push-To-Talk device.
 Supported types are RIG, DTR, RTS, PARALLEL, NONE.
 .TP
-.B \-d, --dcd-type=type
+.B \-D, --dcd-type=type
 Use \fItype\fP of Data Carrier Detect device. 
 Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
 .TP
@@ -107,9 +107,13 @@ Show summary of these options and exit.
 .B \-V, --version
 Show version of \fBrigctl\fP and exit.
 .PP
-\fBNOTE!\fP Some options may not be implemented by a given backend and will
+\fBN.B.\fP Some options may not be implemented by a given backend and will
 return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
 and \fI\-\-show-conf\fP options.
+.pp
+Please note that the backend for the radio to be controlled, 
+or the radio itself may not support some commands. In that case, 
+the operation will fail with a \fBHamlib\fP error code.
 .SH COMMANDS
 Commands can be entered either as a single char, or as a long command name.
 Basically, the commands do not take a dash in front of them on the command
@@ -137,7 +141,7 @@ Get frequency, in Hz.
 .TP
 .B M, set_mode
 Set mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
-PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX.
+PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
 
 The passband is the exact passband in Hz, or 0 for the default.
 .TP
@@ -145,7 +149,7 @@ The passband is the exact passband in Hz, or 0 for the default.
 Get mode/passband.
 .TP
 .B V, set_vfo
-Set VFO: VFOA, VFOB, VFOC, VFO, MEM, Main, Sub, etc.
+Set VFO: VFOA, VFOB, VFOC, currVFO, VFO, MEM, Main, Sub, TX, RX.
 .TP
 .B v, get_vfo
 Get current VFO.
@@ -200,7 +204,7 @@ Get TX frequency.
 .TP
 .B X, set_split_mode
 Set transmit mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
-PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX.
+PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
 
 The passband is the exact passband in Hz, or 0 for the default.
 .TP
@@ -221,25 +225,25 @@ Get tuning step.
 .TP
 .B U, set_func
 Set func/status:
-FAGC, NB, COMP, VOX, TONE, TSQL, SBKIN, FBKIN, ANF, NR, AIP, MON, MN,
-RNF, ARO, LOCK, MUTE, VSC, REV, SQL, BC, MBC, AFC, SATMODE, SCOPE, RESUME, TUNER.
+FAGC, NB, COMP, VOX, TONE, TSQL, SBKIN, FBKIN, ANF, NR, AIP, APF, MON, MN,
+RF, ARO, LOCK, MUTE, VSC, REV, SQL, ABM, BC, MBC, AFC, SATMODE, SCOPE, 
+RESUME, TBURST, TUNER.
 .TP
 .B u, get_func
 Get func status.
 .TP
 .B L, set_level
 Set level/value:
-PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN,
-PBT_OUT, CWPITCH, RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP,
-AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX. SLOPE_LOW, SLOPE_HIGH, Plus "extra" levels.
+PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH, RFPOWER,
+MICGAIN, KEYSPD, NOTCHF, COMP, AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX. 
+SLOPE_LOW, SLOPE_HIGH, RAWSTR, SQLSTAT, SWR, ALC, STRENGTH.
 .TP
 .B l, get_level
-Get level value: also
-SWR, ALC, STRENGTH, RAWSTR, SLOPE_LOW, SLOPE_HIGH.
+Get level value.
 .TP
 .B P, set_parm
 Set parm/value:
-ANN, APO, BACKLIGHT, BEEP, TIME, BAT. Plus "extra" parameters.
+ANN, APO, BACKLIGHT, BEEP, TIME, BAT, KEYLIGHT.
 .TP
 .B p, get_parm
 Get parm value.
@@ -255,10 +259,11 @@ Get memory channel number.
 .TP
 .B G, vfo_op
 Perform VFO operation:
-CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT, TUNER, TOGGLE.
+CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT,
+TUNE, TOGGLE.
 .TP
 .B g, scan_op
-Perform scan operation/channel: STOP, MEM, SLCT, PRIO, DELTA, VFO, PLT.
+Perform scan operation/channel: STOP, MEM, SLCT, PRIO, PROG, DELTA, VFO, PLT.
 .TP
 .B H, set_channel
 Set memory channel data. Not implemented yet.
@@ -272,30 +277,31 @@ Set transceive mode (reporting event): OFF, RIG, POLL.
 .B a, get_trn
 Get transceive mode (reporting event).
 .TP
-.B set_ant
+.B Y, set_ant
 Set antenna number (0, 1, 2, ..).
 .TP
-.B get_ant
+.B y, get_ant
 Get antenna number (0, 1, 2, ..).
 .TP
-.B reset
+.B *, reset
 Reset.
 .TP
-.B send_morse
+.B b, send_morse
 Send morse symbols.
 .TP
-.B set_powerstat
+.B 0x87, set_powerstat
 Set power status.
 .TP
-.B get_powerstat
+.B 0x88, get_powerstat
 Get power status.
 .TP
 .B _, get_info
 Get misc information about the rig.
 .TP
 .B 1, dump_caps
-Not a real rig remote command, it just dumps capabilities, 
-i.e. what the backend knows about this model, and what it can do.
+Not a real rig remote command, it just dumps capabilities, i.e. what the 
+backend knows about this model, and what it can do.  TODO: Ensure this is
+in a consistent format so it can be read into a hash, dictionary, etc.
 .TP
 .B 2, power2mW
 Converts a power value in a range of \fI0.0 ... 1.0\fP to the real transmit 
@@ -303,7 +309,10 @@ power in milli-Watts.  The \fIfrequency\fP and \fImode\fP also need to be
 provided as output power may vary according to these values.
 .TP
 .B w, send_cmd
-Send raw command string to rig. Binary protocols enter values as \\0xAA\\0xBB
+Send raw command string to rig.
+.br
+For binary protocols enter values as \\0xAA\\0xBB
+
 .SH EXAMPLES
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter in 
 interactive mode:
