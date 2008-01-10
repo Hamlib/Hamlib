@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "January 6, 2008" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "January 9, 2008" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -21,14 +21,22 @@ rigctld \- Hamlib rig control daemon
 .B rigctld
 [\fIOPTION\fR]...
 .SH DESCRIPTION
-The \fBrigctld\fP program is a \fBHamlib\fP rig daemon that handles TCP client 
-requests. This allows multiple user programs to share one radio. Multiple radios
-can be controlled on different TCP ports. The syntax of the commands are the
-same as \fBrigctl\fP.
+The \fBrigctld\fP program is an EXPERIMENTAL \fBHamlib\fP rig daemon that 
+handles TCP client requests. This allows multiple user programs to share one 
+radio. Multiple radios can be controlled on different TCP ports. The syntax 
+of the commands are the same as \fBrigctl\fP. It is hoped that \fBrigctld\fP 
+will be especially useful for languages such as Perl, Python, and others.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invoke bold face and italics, 
 .\" respectively.
+\fBrigctld\fP communicates to a client through a TCP socket using text
+commands shared with \fBrigctl\fP. The protocol is simple, commands are sent
+to \fBrigctld\fP on one line and \fBrigctld\fP responds to "get" commands with
+the requested values, one per line.  A response may contain one to three lines 
+of values plus one line containing "END".  Each line is terminated with a 
+newline '\\n' character.
+.PP
 Keep in mind that \fBHamlib\fP is BETA level software. 
 While a lot of backend libraries lack complete rig support, the basic functions
 are usually well supported.  The API may change without publicized notice, 
@@ -59,11 +67,11 @@ device file as described above.
 Use \fIdevice\fP as the file name of the Data Carrier Detect device using a
 device file as described above.
 .TP
-.B \-p, --ptt-type=type
+.B \-P, --ptt-type=type
 Use \fItype\fP of Push-To-Talk device.
 Supported types are RIG, DTR, RTS, PARALLEL, NONE.
 .TP
-.B \-d, --dcd-type=type
+.B \-D, --dcd-type=type
 Use \fItype\fP of Data Carrier Detect device. 
 Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
 .TP
@@ -108,14 +116,217 @@ Show a summary of these options and exit.
 .B \-V, --version
 Show the version of \fBrigctld\fP and exit.
 .PP
+\fBN.B.\fP Some options may not be implemented by a given backend and will
+return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+and \fI\-\-show-conf\fP options.
+.pp
 Please note that the backend for the radio to be controlled, 
 or the radio itself may not support some commands. In that case, 
 the operation will fail with a \fBHamlib\fP error code.
+.SH COMMANDS
+Commands can be sent over the TCP socket either as a single char, or as a 
+long command name plus the value(s) on one '\\n' terminated line. See 
+PROTOCOL.
+.PP
+Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
+an upper case letter will be used for \fIset\fP method whereas the 
+corresponding lower case letter refers to the \fIget\fP method.  Each operation
+also has a long name, prepend a backslash to send a long command name.
+.PP
+Example (Perl): `print $socket "\\dump_caps\\n";' to see what the radio's
+backend can do.
+.PP
+Please note that the backend for the radio to be controlled, 
+or the radio itself may not support some commands. In that case, 
+the operation will fail with a \fBHamlib\fP error message.
+.PP
+Here is a summary of the supported commands:
+.TP
+.B F, set_freq
+Set frequency, in Hz.
+.TP
+.B f, get_freq
+Get frequency, in Hz.
+.TP
+.B M, set_mode
+Set mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
+PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
+
+The passband is the exact passband in Hz, or 0 for the default.
+.TP
+.B m, get_mode
+Get mode/passband.
+.TP
+.B V, set_vfo
+Set VFO: VFOA, VFOB, VFOC, currVFO, VFO, MEM, Main, Sub, TX, RX.
+.TP
+.B v, get_vfo
+Get current VFO.
+.TP
+.B J, set_rit
+Set RIT, in Hz.
+.TP
+.B j, get_rit
+Get RIT, in Hz.
+.TP
+.B Z, set_xit
+Set XIT, in Hz.
+.TP
+.B z, get_xit
+Get XIT, in Hz.
+.TP
+.B T, set_ptt
+Set PTT, 0 or 1.
+.TP
+.B t, get_ptt
+Get PTT status.
+.TP
+.B R, set_rptr_shift
+Set repeater shift: "+", "-" or something else for none.
+.TP
+.B r, get_rptr_shift
+Get repeater shift.
+.TP
+.B O, set_rptr_offs
+Set repeater offset, in Hz.
+.TP
+.B o, get_rptr_offs
+Get repeater offset.
+.TP
+.B C, set_ctcss_tone
+Set CTCSS tone, in tenth of Hz.
+.TP
+.B c, get_ctcss_tone
+Get CTCSS tone, in tenth of Hz.
+.TP
+.B D, set_dcs_code
+Set DCS code.
+.TP
+.B d, get_dcs_code
+Get DCS code.
+.TP
+.B I, set_split_freq
+Set TX frequency, in Hz.
+.TP
+.B i, get_split_freq
+Get TX frequency.
+.TP
+.B X, set_split_mode
+Set transmit mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
+PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
+
+The passband is the exact passband in Hz, or 0 for the default.
+.TP
+.B x, get_split_mode
+Get transmit mode/passband.
+.TP
+.B S, set_split_vfo
+Set split mode, 0 or 1, and transmit VFO.
+.TP
+.B s, get_split_vfo
+Get split mode and transmit VFO.
+.TP
+.B N, set_ts
+Set tuning step, in Hz.
+.TP
+.B n, get_ts
+Get tuning step.
+.TP
+.B U, set_func
+Set func/status:
+FAGC, NB, COMP, VOX, TONE, TSQL, SBKIN, FBKIN, ANF, NR, AIP, APF, MON, MN,
+RF, ARO, LOCK, MUTE, VSC, REV, SQL, ABM, BC, MBC, AFC, SATMODE, SCOPE, 
+RESUME, TBURST, TUNER.
+.TP
+.B u, get_func
+Get func status.
+.TP
+.B L, set_level
+Set level/value:
+PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH, RFPOWER,
+MICGAIN, KEYSPD, NOTCHF, COMP, AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX. 
+SLOPE_LOW, SLOPE_HIGH, RAWSTR, SQLSTAT, SWR, ALC, STRENGTH.
+.TP
+.B l, get_level
+Get level value.
+.TP
+.B P, set_parm
+Set parm/value:
+ANN, APO, BACKLIGHT, BEEP, TIME, BAT, KEYLIGHT.
+.TP
+.B p, get_parm
+Get parm value.
+.TP
+.B B, set_bank
+Set bank.
+.TP
+.B E, set_mem
+Set memory channel number.
+.TP
+.B e, get_mem
+Get memory channel number.
+.TP
+.B G, vfo_op
+Perform VFO operation:
+CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT,
+TUNE, TOGGLE.
+.TP
+.B g, scan_op
+Perform scan operation/channel: STOP, MEM, SLCT, PRIO, PROG, DELTA, VFO, PLT.
+.TP
+.B H, set_channel
+Set memory channel data. Not implemented yet.
+.TP
+.B h, get_channel
+Get memory channel data.
+.TP
+.B A, set_trn
+Set transceive mode (reporting event): OFF, RIG, POLL.
+.TP
+.B a, get_trn
+Get transceive mode (reporting event).
+.TP
+.B Y, set_ant
+Set antenna number (0, 1, 2, ..).
+.TP
+.B y, get_ant
+Get antenna number (0, 1, 2, ..).
+.TP
+.B *, reset
+Reset.
+.TP
+.B b, send_morse
+Send morse symbols.
+.TP
+.B 0x87, set_powerstat
+Set power status.
+.TP
+.B 0x88, get_powerstat
+Get power status.
+.TP
+.B _, get_info
+Get misc information about the rig.
+.TP
+.B 1, dump_caps
+Not a real rig remote command, it just dumps capabilities, i.e. what the 
+backend knows about this model, and what it can do.  TODO: Ensure this is
+in a consistent format so it can be read into a hash, dictionary, etc.
+.TP
+.B 2, power2mW
+Converts a power value in a range of \fI0.0 ... 1.0\fP to the real transmit 
+power in milli-Watts.  The \fIfrequency\fP and \fImode\fP also need to be 
+provided as output power may vary according to these values.
+.TP
+.B w, send_cmd
+Send raw command string to rig. 
+.br
+For binary protocols enter values as \\0xAA\\0xBB
+
 .SH EXAMPLES
 Start \fBrigctld\fP for a Yaesu FT-920 using an USB-to-serial adapter and
 backgrounding:
 .PP
-$ rigctld -m 114 -r /dev/ttyUSB1
+$ rigctld -m 114 -r /dev/ttyUSB1 &
 .PP
 Start \fBrigctld\fP for a Yaesu FT-920 using a USB to serial adapter while
 setting baud rate and stop bits and backgrounding:
@@ -125,6 +336,33 @@ $ rigctld -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 &
 Connect to the already running \fBrigctld\fP, and set current frequency to 14.266 MHz:
 .PP
 $ echo "\\set_freq 14266000" | nc localhost 4532
+.SH PROTOCOL
+The \fBrigctld\fP protocol is intentionally simple. Commands are entered on
+a single line with any needed values. In Perl, reliable results are obtained
+by terminating each command string with a newline character, '\\n'.
+.PP
+Example \fIset\fP (Perl code):
+
+print $socket "F 14250000\\n";
+.br
+print $socket "\\\\set_mode LSB 2400\\n";   # escape leading '\\'
+.PP
+Responses from \fBrigctld\fP are text values and match the same tokens used
+in the \fIset\fP commands. Each value is returned on its own line. To
+signal the end of a response the "END\\n" string is sent.
+.PP
+Example \fIget\fP (Perl code):
+
+print $socket "f\\n";
+
+"14250000\\n"
+.br
+"END\\n"
+.PP
+Most \fIget\fP functions return one to three values. A notable exception is
+the \fIdump_caps\fP function which returns many lines of key:value pairs.
+Future work will focus on making this output compatible with assignment to a
+hash, dictionary, or other key:value variable.
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
@@ -139,6 +377,8 @@ No authentication whatsoever; don't leave this TCP port open wide to the Interne
 Please ask if stronger security is needed.
 .SH BUGS
 The daemon is not detaching and backgrounding itself.
+
+Much testing needs to be done.
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@lists.sourceforge.net>.
 .br
