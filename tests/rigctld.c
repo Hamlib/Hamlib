@@ -4,7 +4,7 @@
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
  *
- * $Id: rigctld.c,v 1.3 2008-01-10 03:42:35 n0nb Exp $  
+ * $Id: rigctld.c,v 1.4 2008-01-12 00:36:58 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -90,9 +90,8 @@ struct handle_data {
 void * handle_socket(void * arg);
 void usage(void);
 
-int interactive=1;      /* no cmd because of daemon */
-int prompt=0;
-int dmode = 1;          /* Daemon mode for rigparse return string */
+int interactive = 1;    /* no cmd because of daemon */
+int prompt= 0 ;         /* Daemon mode for rigparse return string */
 
 int portno = 4532;
 

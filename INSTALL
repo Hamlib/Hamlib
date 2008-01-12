@@ -13,7 +13,7 @@ main directory and do the following:
    
   1. Configure the source code by typing:
         
-        $ sh ./configure
+        $ ./configure
 
      If you're planning to install the package into your home directory
      or to a location other than `/usr/local' then add the flag
@@ -21,7 +21,7 @@ main directory and do the following:
      is `/home/username' you can configure the package to install itself 
      there by invoking:
         
-        $ sh ./configure --prefix=/home/username
+        $ ./configure --prefix=/home/username
 
      N.B. If you know that you won't be using scripting languages (Perl,
      Python, or TCL) and that you won't need static libaries (most
@@ -35,15 +35,15 @@ main directory and do the following:
      compilation :-) ).  See also the "Hamlib specific Features" section 
      below for other `configure' options.  
      
-     While running, `configure' prints some messages telling which
-     features is it checking for. 
+     While running, `configure' prints some messages telling you which
+     features it is checking for. 
 
   2. Compile the package by typing:
         
         $ make
      
-     Running `make' takes a while. If this is a very large package, now
-     is the time to go make some coffee.
+     Running `make' takes a while.  Since Hamlib is a package, now is the 
+     time to go get a cup of coffee.
      
   3. Some packages are bundled with self-tests for source-code 
      verification. If this package includes such tests, you can 
@@ -53,6 +53,7 @@ main directory and do the following:
 
   4. Type `make install' to install the programs and any data files and
      documentation. Type `make uninstall' to undo the installation.
+
      During installation, the following files go to the following directories:
         Executables          -> /prefix/bin
         Libraries            -> /prefix/lib
@@ -81,18 +82,46 @@ main directory and do the following:
      By prepending your home directory to the rest of the PATH you can
      override systemwide installed software with your own custom installation.
 
-  5. You can remove the program binaries and object files from the
+  5. After installation you may need to update the ld.so.cache as the 
+     installation files are placed in /usr/local/lib by default.  On most
+     systems this is easily accomplished by running the `ldconfig' command
+     as the superuser (root).  The following line may need to be added to
+     /etc/ld.so.conf:
+     
+        /usr/local/lib
+     
+     On Debian systems since at least 4.0 (Etch) and its derivatives (Ubuntu,
+     etc.), a file will need to be created in the /etc/ld.so.conf.d directory.
+     It doesn't seem to matter what you name it so long as it ends in .conf 
+     and local.conf is a good choice.  Place the following line in it:
+     
+        /usr/local/lib
+        
+     Now `ldconfig' can be run.  
+     
+     While the programs built along with Hamlib will probably work fine
+     without running `ldconfig', experience has shown that precompiled
+     binaries like Fldigi will not be able to find libhamlib.so.2 without
+     updating the ld.so.cache.
+     
+  6. You can remove the program binaries and object files from the
      source code directory by typing `make clean'.  To also remove the
      files that `configure' created (so you can compile the package for
-     a different kind of computer), type `make distclean'.
+     a different kind of computer), type `make distclean'.  The
+     `configure' program will need to be run again to recompile Hamlib.
 
-  6. You can optionally generate the Doxygen documentation files:
+  7. You can optionally generate the Doxygen documentation files:
 
         cd doc
         make doc
 
      The HTML output files are provided for binary releases on the hamlib.org
      web site.
+     
+  8. Finally, if you wish to remove Hamlib, run `make uninstall' as 
+     superuser (root), unless Hamlib was installed into your home directory,
+     from the Hamlib source directory.  This will work unless `make distclean'
+     has been run.
 
 Compiler configuration
 ======================

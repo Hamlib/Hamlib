@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.65 2008-01-10 03:42:35 n0nb Exp $  
+ * $Id: rigctl.c,v 1.66 2008-01-12 00:36:58 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -82,9 +82,8 @@ static struct option long_options[] =
 
 #define MAXCONFLEN 128
 
-int interactive=1;	/* if no cmd on command line, switch to interactive */
-int prompt=1;
-int dmode = 0;      /* no Daemon mode for rigparse return string in rigctl */
+int interactive = 1;    /* if no cmd on command line, switch to interactive */
+int prompt = 1;         /* Print prompt in rigctl */
 
 int main (int argc, char *argv[])
 {

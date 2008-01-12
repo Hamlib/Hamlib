@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.3 2008-01-10 03:42:35 n0nb Exp $  
+ * $Id: rigctl_parse.c,v 1.4 2008-01-12 00:36:58 n0nb Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -257,7 +257,6 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
 extern int interactive;
 extern int prompt;
-extern int dmode;
 
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
@@ -598,7 +597,7 @@ declare_proto_rig(get_freq)
 		fprintf(fout, "%s: ", cmd->arg1); /* i.e. "Frequency" */
     fprintf(fout, "%"PRIll"\n", (long long)freq);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -626,8 +625,8 @@ declare_proto_rig(get_rit)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rit);
 
-	if (interactive && dmode)             /* only for rigctld */
-		printf(fout, "END\n");
+	if (interactive && !prompt)             /* only for rigctld */
+		fprintf(fout, "END\n");
 
 	return status;
 }
@@ -654,7 +653,7 @@ declare_proto_rig(get_xit)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", xit);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -688,7 +687,7 @@ declare_proto_rig(get_mode)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -712,7 +711,7 @@ declare_proto_rig(get_vfo)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strvfo(vfo));
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -740,7 +739,7 @@ declare_proto_rig(get_ptt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", ptt);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -768,7 +767,7 @@ declare_proto_rig(get_rptr_shift)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strptrshift(rptr_shift));
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -796,7 +795,7 @@ declare_proto_rig(get_rptr_offs)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rptr_offs);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -824,7 +823,7 @@ declare_proto_rig(get_ctcss_tone)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", tone);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -852,7 +851,7 @@ declare_proto_rig(get_dcs_code)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", code);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -880,7 +879,7 @@ declare_proto_rig(get_split_freq)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%"PRIll"\n", (long long)txfreq);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -914,7 +913,7 @@ declare_proto_rig(get_split_mode)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -946,7 +945,7 @@ declare_proto_rig(get_split_vfo)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%s\n", rig_strvfo(tx_vfo));
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -974,13 +973,14 @@ declare_proto_rig(get_ts)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", ts);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
 }
 
 /* '2' */
+/* FIXME: For rigctld */
 declare_proto_rig(power2mW)
 {
 	int status;
@@ -997,6 +997,10 @@ declare_proto_rig(power2mW)
 	scanf("%d", &mode);
 	status = rig_power2mW(rig, &mwp, power, freq, (rmode_t) mode);
 	fprintf(fout, "Power: %d mW\n", mwp);
+
+    if (interactive && !prompt)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
@@ -1096,7 +1100,7 @@ declare_proto_rig(get_level)
 	else
 		fprintf(fout, "%d\n", val.i);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -1128,7 +1132,7 @@ declare_proto_rig(get_func)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%d\n", func_stat);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -1223,7 +1227,7 @@ declare_proto_rig(get_parm)
 	else
 		fprintf(fout, "%d\n", val.i);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -1259,6 +1263,10 @@ declare_proto_rig(get_mem)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", ch);
+
+    if (interactive && !prompt)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
 	return status;
 }
 
@@ -1405,7 +1413,7 @@ declare_proto_rig(get_channel)
 		return status;
 	dump_chan(fout, rig, &chan);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -1480,7 +1488,7 @@ declare_proto_rig(get_trn)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", trn);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -1496,7 +1504,7 @@ declare_proto_rig(get_info)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", s ? s : "None");
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return RIG_OK;
@@ -1572,7 +1580,7 @@ declare_proto_rig(dump_caps)
 {
 	dumpcaps(rig, fout);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return RIG_OK;
@@ -1600,7 +1608,7 @@ declare_proto_rig(get_ant)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", rig_setting2idx(ant));
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -1643,7 +1651,7 @@ declare_proto_rig(get_powerstat)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", stat);
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return status;
@@ -1720,7 +1728,7 @@ declare_proto_rig(send_cmd)
 	if (retval > 0 || retval == -RIG_ETIMEOUT)
 		retval = RIG_OK;
 
-	if (interactive && dmode)             /* only for rigctld */
+	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
 
 	return retval;
