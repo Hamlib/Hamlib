@@ -446,6 +446,7 @@ int ft767_open(RIG *rig)
 	memset(priv->update_data,0,FT767GX_STATUS_UPDATE_DATA_LENGTH);
 	return retval;
   }
+  rig->state.vfo_list = RIG_VFO_A | RIG_VFO_B;
   return RIG_OK;
 }
 
