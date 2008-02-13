@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.34 2008-01-05 17:24:19 y32kn Exp $
+ *	$Id: ts570.c,v 1.35 2008-02-13 21:28:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -876,8 +876,8 @@ const struct rig_caps ts570s_caps = {
 .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-.level_gran =  {0,0,0},                 /* FIXME: granularity */
-.parm_gran =  {0,0,0},
+.level_gran =  {},                 /* FIXME: granularity */
+.parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 12, RIG_DBLST_END, },
@@ -1053,8 +1053,8 @@ const struct rig_caps ts570d_caps = {
 .has_set_level =  RIG_LEVEL_SET(TS570_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-.level_gran =  {0,0,0},                 /* FIXME: granularity */
-.parm_gran =  {0,0,0},
+.level_gran =  {},                 /* FIXME: granularity */
+.parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
 .dcs_list =  NULL,
 .preamp =   { 12, RIG_DBLST_END, },
