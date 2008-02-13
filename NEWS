@@ -1,8 +1,27 @@
 Hamlib -- History of visible changes.
 
-Copyright (C) 2000-2006  Stephane Fillod, Frank Singleton and others
+Copyright (C) 2000-2008  Stephane Fillod, Frank Singleton and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
+
+Version 1.2.7
+	2008-02-13
+	* Improved Documentation
+	* New models: IC-820H, DttSP, Elektor SDR-USB, DDS-60, 
+		      FT-450, FT-767GX
+	* Fixes: IC-746, IC-765, IC-910, Kenwood, FT1000MP, FT817, ..
+	* New rigsmtr toy to graph polar signal strength
+	* New experimental rigctld rig daemon, with simple protocol
+
+Version 1.2.6.2
+	* Fixes: TS570 (Split, RIT/XIT), IC910H
+	* Improved Tentec Orion,RX-320 functionality
+	* Improved Winradio G-313
+	* Better man pages
+
+Version 1.2.6.1
+	* Icom protocol fixes
+	* bindings build fixing
 
 Version 1.2.6
 	2006-12-22
