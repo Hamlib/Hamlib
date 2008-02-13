@@ -91,7 +91,7 @@ static unsigned char vfo2rig(RIG *rig, vfo_t vfo);
 static vfo_t rig2vfo(unsigned char status);
 static int mode2rig(RIG *rig, rmode_t mode);
 static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width);
-static int ctcss2rig(RIG *rig, tone_t tone);
+/* static int ctcss2rig(RIG *rig, tone_t tone); */
 static int rig2ctcss(RIG *rig, unsigned char tn, tone_t *tone);
 
 /*
