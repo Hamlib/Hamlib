@@ -20,14 +20,14 @@ Before deciding release:
 
 Releasing Hamlib:
 ----------------
-* Regenerate ChangeLog with cvs2cl.pl
+* Regenerate ChangeLog with:
+	 TZ=UTC ./cvs2cl.pl
 * Update NEWS, TODO, AUTHORS
 * Update the version in the macro AC_INIT of configure.ac
 * Tag the CVS rep with version 'HAMLIB-x-y-z'
 * Build source tarball:
-	cvs -d:ext:yourloginhere@cvs.sourceforge.net:/cvsroot/hamlib co -P -r HAMLIB-x-y-z hamlib
-	bootstrap.sh
-	configure --enable-maintainer-mode
+	cvs -d:ext:yourloginhere@hamlib.cvs.sourceforge.net:/cvsroot/hamlib co -P -r HAMLIB-x-y-z hamlib
+	sh autogen.sh --enable-maintainer-mode
 	make dist
 * Build Windows DLL from previous tarball, and .LIB, then create .zip file
   Rem: under Linux, you need the package mingw32 to cross-compile it,
@@ -52,7 +52,10 @@ Releasing Hamlib:
 
 * Release the file(s)
   - ncftp ftp://upload.sourceforge.net/incoming
-  - then https://sourceforge.net/project/admin/editpackages.php?group_id=8305
+  - then go to https://sourceforge.net/project/admin/editpackages.php?group_id=8305
+    [Add release] "x-y-z"
+    Paste NEWS section and ChangeLog, select file, change file processor type to "Any"/"Source .gz"
+    and notify users.
 * Update http://hamlib.org web pages
   - News (to be killed)
   - Download section
