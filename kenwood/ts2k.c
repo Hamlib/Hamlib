@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.5 2002-06-30 10:17:03 dedmons Exp $
+ *		$Id: ts2k.c,v 1.6 2008-02-13 20:59:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,7 +63,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.5 2002-06-30 10:17:03 dedmons Exp $
+ *		$Id: ts2k.c,v 1.6 2008-02-13 20:59:15 fillods Exp $
  */
 
 
@@ -745,7 +745,7 @@ int ts2k_set_freq(RIG * rig, vfo_t vfo, freq_t freq)
 			  "ts2k_set_freq: unsupported VFO %u\n", vfo);
 		return -RIG_EINVAL;
 	}
-	freq_len = sprintf(freqbuf, "F%c%011Lu;", vfo_letter, freq);
+	freq_len = sprintf(freqbuf, "F%c%011"PRIll";", vfo_letter, freq);
 
 	ack_len = 14;
 	retval = ts2k_transaction(rig, freqbuf, freq_len, NULL, NULL);
@@ -806,7 +806,7 @@ int ts2k_get_freq(RIG * rig, vfo_t vfo, freq_t * freq)
 		return -RIG_ERJCTED;
 	}
 
-	sscanf(freqbuf + 2, "%llu", freq);
+	sscanf(freqbuf + 2, "%"SCNll, freq);
 
 	return RIG_OK;
 }
