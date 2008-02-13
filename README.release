@@ -1,0 +1,84 @@
+
+This file is a release HOWTO, more or less a reminder before releasing
+a new version of Hamlib.
+
+
+Before deciding release:
+-----------------------
+* Anticipate what problems would experience users with the new release,
+  so you can fix the problems before making the release.
+  Basically, this is making sure the package will
+  compile on a whole breed of systems (arch,OS,library,gcc,etc. combo),
+  that there's no regression, and the API evolution is managed well.
+* Announce cvs/version freeze on hamlib-developer mailing list,
+  so developers have time to check in their contributions.
+* Update libtool:
+	macros/{ltdl,libtool}.m4
+	ltmain.sh
+	libltdl/
+  A postfix of libtool in libltdl/Makefile.in may be needed: empty am__aclocal_m4_deps 
+
+Releasing Hamlib:
+----------------
+* Regenerate ChangeLog with cvs2cl.pl
+* Update NEWS, TODO, AUTHORS
+* Update the version in the macro AC_INIT of configure.ac
+* Tag the CVS rep with version 'HAMLIB-x-y-z'
+* Build source tarball:
+	cvs -d:ext:yourloginhere@cvs.sourceforge.net:/cvsroot/hamlib co -P -r HAMLIB-x-y-z hamlib
+	bootstrap.sh
+	configure --enable-maintainer-mode
+	make dist
+* Build Windows DLL from previous tarball, and .LIB, then create .zip file
+  Rem: under Linux, you need the package mingw32 to cross-compile it,
+       and free MVC++Toolkit to create .lib file:
+	  ./configure --disable-static \
+			--host=i586-mingw32msvc \
+			--prefix=/tmp/mingw-inst \
+			--without-rpc-backends \
+			--without-perl-binding --without-tcl-binding --without-python-binding \
+			--enable-xmltest ac_cv_path_PKG_CONFIG=no
+	  make install
+	  cp src/libhamlib.def /tmp/mingw-inst/hamlib-1.2.4/lib/msvc/libhamlib-1-2-4-2.def
+	  cd /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/
+	  unix2dos include/hamlib/*.h
+	  unix2dos *.def
+	  wine /media/sda1/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def
+	  vi README.win32.mine
+	  zip -r hamlib-win32-x.y.z.zip hamlib-x.y.z
+
+* Build Windows DLL with stdcall convention:
+	ditto but with __stdcall set in include/hamlib/rig_dll.h before re-compiling.
+
+* Release the file(s)
+  - ncftp ftp://upload.sourceforge.net/incoming
+  - then https://sourceforge.net/project/admin/editpackages.php?group_id=8305
+* Update http://hamlib.org web pages
+  - News (to be killed)
+  - Download section
+	hamlib.org: html.hamlib/{manual,news,download}.html
+			cvs commit
+			wsmake
+			scp *.html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/.
+			support.html
+  - Documentation (TODO: explain how to generate it)
+  - Supported Radios/Rotators (TODO: explain how to generate it)
+	make -C tests rigmatrix.html
+* Notify various sites:
+  - Sourceforge/News: https://sourceforge.net/news/submit.php?group_id=8305
+  - Freshmeat: http://freshmeat.net/projects/hamlib
+  - linux.radio.au Linux Hamradio App: rigctl category
+* Send announce to mailing list: [ANN] hamlib-announce, linux-ham
+
+To advertise:
+- list the rigs supported so far, 
+- what was major work achieved,
+- where we're heading, 
+- what kind of support we need
+
+
+Get ready for the next round:
+* Bump version number and append 'cvs' to it in macro AC_INIT of configure.ac
+* Update src/Makefile.am revision of -version-info
+
+
