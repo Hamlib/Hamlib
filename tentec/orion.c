@@ -1,8 +1,8 @@
 /*
  *  Hamlib TenTenc backend - TT-565 description
- *  Copyright (c) 2004-2007 by Stephane Fillod & Martin Ewing
+ *  Copyright (c) 2004-2008 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.23 2007-11-23 04:54:12 aa6e Exp $
+ *	$Id: orion.c,v 1.24 2008-02-15 23:04:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,6 +40,7 @@
  * Implement auto-detect of firmware for S-meter cal, etc.
  * Fixed bug in tt565_reset (to send "XX" instead of "X")
  * Filtered rig info string to ensure all graphics.
+ * Big reliability improvement (for fldigi, v 2.062a) 2/15/2008
  */
 
 /* Known issues & to-do list:
@@ -70,6 +71,7 @@
 #include <ctype.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
+#include <time.h>
 #include <sys/time.h>
 
 #include <hamlib/rig.h>
@@ -105,35 +107,70 @@ double tt565_timenow()	/* returns current time in secs+microsecs */
  * \n We assume that rig!=NULL, rig->state!= NULL.
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
+
 int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
         int retval, data_len_init, itry;
         struct rig_state *rs;
+        static int passcount=0;
+        char cmds[64]; /* debug */
 #ifdef TT565_TIME
  	double ft1, ft2;	
 #endif
+    passcount++;        // for debugging
 	/* Capture buffer length for possible read re-try. */
 	data_len_init = (data && data_len) ? *data_len : 0;
 	/* Allow transaction re-tries according to capabilities. */
-	for (itry=1; itry < rig->caps->retry; itry++) {	
+	for (itry=0; itry < rig->caps->retry; itry++) {	
         rs = &rig->state;
-
-        serial_flush(&rs->rigport);
-
         retval = write_block(&rs->rigport, cmd, cmd_len);
         if (retval != RIG_OK)
                 return retval;
 
         /* no data expected, TODO: flush input? */    
-        if (!data || !data_len)
-                return 0;	/* normal exit if no read */
+        if (!data || !data_len) {
+                if (*cmd != '*') {     // i.e. was not a 'write' to rig...
+                    rig_debug(RIG_DEBUG_ERR,"reject 1\n");
+                    return -RIG_ERJCTED;    // bad news!
+                    }
+                return RIG_OK;	/* normal exit if no read */
+                }
 #ifdef TT565_TIME
 	ft1 = tt565_timenow();
 #endif
 	*data_len = data_len_init;	/* restore orig. buffer length */
-        *data_len = read_string(&rs->rigport, data, *data_len, 
+    *data_len = read_string(&rs->rigport, data, *data_len, 
 		        EOM, strlen(EOM));
-	if (*data_len > 0) return RIG_OK; /* normal exit if reading */
+    if (!strncmp(data,"Z!",2)) {     // command unrecognized??
+        rig_debug(RIG_DEBUG_ERR,"reject 2\n");
+        return -RIG_ERJCTED;        // what is a better error return?
+        }
+    if (cmd[0] != '?') {              // was this a write to the rig?
+        rig_debug(RIG_DEBUG_ERR,"reject 3\n");
+        return -RIG_ERJCTED;        // terrible, can't get here??
+        }
+    else {                          // no, it was a 'read', phew!
+        if (!strncmp(cmd,"?V",2)) {
+            return RIG_OK;          // special case for ?V command
+            }
+        if (!strncmp(data+1,cmd+1,cmd_len-2)) {  //reponse matches cmd?
+            return RIG_OK;          // all is well, normal exit
+            }
+        else {
+            /* The command read back does not match the command that
+                was written.  What to do?  We report the problem if debugging,
+                and issue another read in hopes that
+                will make it sync up right.
+                */
+            rig_debug(RIG_DEBUG_ERR,
+                "** retry after delay (io=%d, retry=%d) **\n", 
+                passcount, itry);
+	        *data_len = data_len_init;	/* restore orig. buffer length */
+            read_string(&rs->rigport, data, *data_len, 
+		        EOM, strlen(EOM));      // purge the input stream...
+            continue;                   // now go retry the full command
+            }
+        }
 #ifdef TT565_TIME
 	    ft2 = tt565_timenow();
         if (*data_len == -RIG_ETIMEOUT)
@@ -144,7 +181,9 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 			"Other Error #%d, itry=%d: Elapsed = %f secs.\n", 
 			*data_len, itry, ft2-ft1);
 #endif 
-	}
+	}   /* end of itry loop */
+	    rig_debug(RIG_DEBUG_ERR,"** Ran out of retries io=%d **\n",
+	                             passcount);
         return -RIG_ETIMEOUT;
 }
 
@@ -569,7 +608,8 @@ int tt565_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 					__FUNCTION__, ttmode);
 			return -RIG_EPROTO;
 	}
-
+    /* Orion may need some time to "recover" from ?RxM before ?RxF */
+    usleep(80000);      // try 80 ms
 	/* Query passband width (filter) */
 	cmd_len = sprintf(cmdbuf, "?R%cF" EOM, ttreceiver);
 	resp_len = sizeof(respbuf); 
@@ -1139,17 +1179,17 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer '%s'\n",
 					__FUNCTION__, lvlbuf);
 			return -RIG_EPROTO;
-		}
+			}
 
 		switch(lvlbuf[4]) {
-		case 'O': val->i=RIG_AGC_OFF; break;
-		case 'F': val->i=RIG_AGC_FAST; break;
-		case 'M': val->i=RIG_AGC_MEDIUM; break;
-		case 'S': val->i=RIG_AGC_SLOW; break;
-		case 'P': val->i=RIG_AGC_USER; break;
-		default:
-			return -RIG_EPROTO;
-		}
+			case 'O': val->i=RIG_AGC_OFF; break;
+			case 'F': val->i=RIG_AGC_FAST; break;
+			case 'M': val->i=RIG_AGC_MEDIUM; break;
+			case 'S': val->i=RIG_AGC_SLOW; break;
+			case 'P': val->i=RIG_AGC_USER; break;
+			default:
+				return -RIG_EPROTO;
+			}
 		break;
 
 	case RIG_LEVEL_AF:

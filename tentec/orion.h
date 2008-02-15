@@ -203,10 +203,10 @@ const struct rig_caps tt565_caps = {
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  0,
-.post_write_delay =  10,	/* Needed for CW send + ?? */
-.timeout =  200,	/* was 400 */
-.retry =  2,		/* was 3 */
+.write_delay =  0,          /* no delay between characters written */
+.post_write_delay =  10,    /* ms delay between writes DEBUGGING HERE */
+.timeout =  200,            /* ms */
+.retry =  4,
 
 .has_get_func =  TT565_FUNCS,
 .has_set_func =  TT565_FUNCS,
