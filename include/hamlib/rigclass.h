@@ -2,7 +2,7 @@
  *  Hamlib C++ bindings - API header
  *  Copyright (c) 2001-2002 by Stephane Fillod
  *
- *	$Id: rigclass.h,v 1.13 2003-04-06 18:40:35 fillods Exp $
+ *	$Id: rigclass.h,v 1.14 2008-02-18 18:18:54 dl1nc Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -243,6 +243,9 @@ public:
 
   RigException (const char* msg)
     : message(msg), errorno (-RIG_EINTERNAL)
+    {};
+
+  virtual ~RigException()
     {};
 
   void print() const {
