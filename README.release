@@ -39,7 +39,8 @@ Releasing Hamlib:
 			--without-perl-binding --without-tcl-binding --without-python-binding \
 			--enable-xmltest ac_cv_path_PKG_CONFIG=no
 	  make install
-	  cp src/libhamlib.def /tmp/mingw-inst/hamlib-1.2.4/lib/msvc/libhamlib-1-2-4-2.def
+	  mkdir /tmp/mingw-inst/hamlib-x.y.z/lib/msvc
+	  cp src/libhamlib.def /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/libhamlib-2.def
 	  cd /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/
 	  unix2dos include/hamlib/*.h
 	  unix2dos *.def
@@ -48,7 +49,7 @@ Releasing Hamlib:
 	  zip -r hamlib-win32-x.y.z.zip hamlib-x.y.z
 
 * Build Windows DLL with stdcall convention:
-	ditto but with __stdcall set in include/hamlib/rig_dll.h before re-compiling.
+  Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
 
 * Release the file(s)
   - ncftp ftp://upload.sourceforge.net/incoming
@@ -57,20 +58,24 @@ Releasing Hamlib:
     Paste NEWS section and ChangeLog, select file, change file processor type to "Any"/"Source .gz"
     and notify users.
 * Update http://hamlib.org web pages
-  - News (to be killed)
   - Download section
 	hamlib.org: html.hamlib/{manual,news,download}.html
 			cvs commit
 			wsmake
 			scp *.html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/.
 			support.html
-  - Documentation (TODO: explain how to generate it)
-  - Supported Radios/Rotators (TODO: explain how to generate it)
+  - Documentation (requires doxygen)
+	make -C doc doc
+	ssh shell.sourceforge.net mkdir /home/groups/h/ha/hamlib/htdocs/manuals/x-y-z
+	scp -r doc/html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/manuals/x-y-z/.
+	$EDIT manuals.html
+  - Supported Radios/Rotators
 	make -C tests rigmatrix.html
+	scp -r tests/sup-info/* shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/sup-info/.
 * Notify various sites:
   - Sourceforge/News: https://sourceforge.net/news/submit.php?group_id=8305
   - Freshmeat: http://freshmeat.net/projects/hamlib
-  - linux.radio.au Linux Hamradio App: rigctl category
+  - http://radio.linux.org.au/pkgdetail.phtml?pkgid=243 Linux Hamradio App: rigctl category
 * Send announce to mailing list: [ANN] hamlib-announce, linux-ham
 
 To advertise:
