@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.21 2006-03-12 09:02:38 pa4tu Exp $
+ *	$Id: ts2000.c,v 1.22 2008-02-24 22:31:22 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,6 +42,18 @@
 
 #define TS2000_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
+#define TS2000_STR_CAL {9, {\
+                       {0x00, -54},\
+		       {0x03, -48},\
+		       {0x06, -36},\
+		       {0x09, -24},\
+		       {0x0C, -12},\
+		       {0x0F,   0},\
+		       {0x14,  20},\
+		       {0x19,  40},\
+		       {0x1E,  60}}\
+		       }
+
 /* prototypes */
 static int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
@@ -76,7 +88,7 @@ const struct rig_caps ts2000_caps = {
 .rig_model =  RIG_MODEL_TS2000,
 .model_name = "TS-2000",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER ".2",
+.version =  BACKEND_VER ".3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -213,6 +225,9 @@ const struct rig_caps ts2000_caps = {
 		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)},
 		RIG_FLT_END,
 	},
+
+.str_cal = TS2000_STR_CAL,
+
 .priv =  (void *)&ts2000_priv_caps,
 
 .set_freq =  kenwood_set_freq,
