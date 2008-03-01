@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main header
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.41 2006-03-09 19:45:10 pa4tu Exp $
+ *	$Id: kenwood.h,v 1.42 2008-03-01 11:20:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,7 +23,7 @@
 #ifndef _KENWOOD_H
 #define _KENWOOD_H 1
 
-#define BACKEND_VER	"0.5"
+#define BACKEND_VER	"0.6"
 
 #define EOM_KEN ";"
 #define EOM_TH "\r"
@@ -60,6 +60,8 @@ int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
 int kenwood_reset(RIG *rig, reset_t reset);
 int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg);
+int kenwood_set_ant (RIG * rig, vfo_t vfo, ant_t ant);
+int kenwood_get_ant (RIG * rig, vfo_t vfo, ant_t * ant);
 int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);

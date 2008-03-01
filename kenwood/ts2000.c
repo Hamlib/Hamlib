@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS2000 description
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.22 2008-02-24 22:31:22 fillods Exp $
+ *	$Id: ts2000.c,v 1.23 2008-03-01 11:20:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -249,6 +249,8 @@ const struct rig_caps ts2000_caps = {
 .get_func =  kenwood_get_func,
 .set_level =  kenwood_set_level,
 .get_level =  ts2000_get_level,
+.set_ant =  kenwood_set_ant,
+.get_ant =  kenwood_get_ant,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,

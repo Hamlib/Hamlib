@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.95 2007-09-04 15:01:23 y32kn Exp $
+ *	$Id: kenwood.c,v 1.96 2008-03-01 11:20:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1046,6 +1046,55 @@ int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	*tone = caps->ctcss_list[tone_idx-1];
 
 	return RIG_OK;
+}
+
+/*
+ * set the aerial/antenna to use
+ */
+int kenwood_set_ant (RIG * rig, vfo_t vfo, ant_t ant)
+{
+  char ackbuf[50];
+  const char *cmd;
+  size_t ack_len = 0;
+
+  switch (ant) {
+	  case RIG_ANT_1:
+		cmd = "AN1;";
+	  case RIG_ANT_2:
+		cmd = "AN2;";
+	  case RIG_ANT_3:
+		cmd = "AN3;";
+	  case RIG_ANT_4:
+		cmd = "AN4;";
+	  default:
+		return -RIG_EINVAL;
+  }
+
+  return kenwood_transaction (rig, cmd, 4, ackbuf, &ack_len);
+}
+
+
+/*
+ * get the aerial/antenna  in use
+ */
+int kenwood_get_ant (RIG * rig, vfo_t vfo, ant_t * ant)
+{
+  char ackbuf[50];
+  size_t ack_len = 50;
+  int retval;
+
+  retval = kenwood_transaction (rig, "AN;", 3, ackbuf, &ack_len);
+  if (RIG_OK != retval)
+    return retval;
+  if (4 != ack_len)
+    return -RIG_EPROTO;
+
+  if (ackbuf[2] < '1' || ackbuf[2] > '9')
+      return -RIG_EPROTO;
+
+  *ant = RIG_ANT_N(ackbuf[2]-'1');
+
+  return RIG_OK;
 }
 
 /*

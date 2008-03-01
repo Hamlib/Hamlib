@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS870S description
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.48 2007-11-23 18:49:06 pa4tu Exp $
+ *	$Id: ts870s.c,v 1.49 2008-03-01 11:20:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,7 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
+#include "bandplan.h"
 
 #define TS870S_ALL_MODES	\
 (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB		\
@@ -51,6 +52,7 @@
 |RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_PREAMP)
 
 #define TS870S_VFO (RIG_VFO_A|RIG_VFO_B)
+#define TS870S_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 /*
  * modes in use by the "MD" command
@@ -455,54 +457,22 @@ const struct rig_caps ts870s_caps = {
 		},
 
 .rx_range_list1 =  { 
-	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1,TS870S_VFO},
+	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1,TS870S_VFO,TS870S_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list1 =  { 
-    {kHz(1810),kHz(1850),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},	/* 100W class */
-    {kHz(1810),kHz(1850),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},		/* 25W class */
-    {kHz(3500),kHz(3800),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(3500),kHz(3800),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(7),kHz(7100),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(7),kHz(7100),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {kHz(10100),kHz(10150),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(10100),kHz(10150),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(14),kHz(14350),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(14),kHz(14350),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {kHz(18068),kHz(18168),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(18068),kHz(18168),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(21),kHz(21450),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(21),kHz(21450),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {kHz(24890),kHz(24990),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(24890),kHz(24990),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(28),kHz(29700),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(28),kHz(29700),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+	FRQ_RNG_HF(1, TS870S_OTHER_TX_MODES, W(5), W(100), TS870S_VFO, TS870S_ANTS), /* 100W class */
+	FRQ_RNG_HF(1, TS870S_AM_TX_MODES, W(2), W(25), TS870S_VFO, TS870S_ANTS), /* 25W class */
 	RIG_FRNG_END,
   },
 
 .rx_range_list2 =  {
-	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1,TS870S_VFO},
+	{kHz(100),MHz(30),TS870S_ALL_MODES,-1,-1,TS870S_VFO,TS870S_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list2 =  {
-    {kHz(1800),MHz(2)-1,TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},	/* 100W class */
-    {kHz(1800),MHz(2)-1,TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},		/* 25W class */
-    {kHz(3500),MHz(4)-1,TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(3500),MHz(4)-1,TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(7),kHz(7300),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(7),kHz(7300),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {kHz(10100),kHz(10150),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(10100),kHz(10150),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(14),kHz(14350),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(14),kHz(14350),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {kHz(18068),kHz(18168),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(18068),kHz(18168),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(21),kHz(21450),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(21),kHz(21450),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {kHz(24890),kHz(24990),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {kHz(24890),kHz(24990),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
-    {MHz(28),kHz(29700),TS870S_OTHER_TX_MODES,5000,100000,TS870S_VFO},
-    {MHz(28),kHz(29700),TS870S_AM_TX_MODES,2000,25000,TS870S_VFO},
+	FRQ_RNG_HF(2, TS870S_OTHER_TX_MODES, W(5), W(100), TS870S_VFO, TS870S_ANTS), /* 100W class */
+	FRQ_RNG_HF(2, TS870S_AM_TX_MODES, W(2), W(25), TS870S_VFO, TS870S_ANTS), /* 25W class */
 	RIG_FRNG_END,
   }, /* tx range */
 .tuning_steps =  {
@@ -560,6 +530,8 @@ const struct rig_caps ts870s_caps = {
 .get_func =  kenwood_get_func,
 .set_level =  ts870s_set_level,
 .get_level =  ts870s_get_level,
+.set_ant =  kenwood_set_ant,
+.get_ant =  kenwood_get_ant,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
