@@ -222,7 +222,7 @@ fi
 AC_SUBST(RIGMATRIX)
 
 
-BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft kit skanti tapr flexradio wj racal tuner"
+BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft kit skanti tapr flexradio wj racal tuner miniVNA"
 ROT_BACKEND_LIST="dummy easycomm rotorez sartek fodtrack"
 BINDINGS=""
 BINDING_ALL=""
@@ -501,6 +501,7 @@ gnuradio/Makefile
 easycomm/Makefile
 fodtrack/Makefile
 sartek/Makefile
+miniVNA/Makefile
 rpcrig/Makefile
 rpcrot/Makefile
 src/Makefile

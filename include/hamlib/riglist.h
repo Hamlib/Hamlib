@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.64 2008-01-07 21:10:10 fillods Exp $
+ *	$Id: riglist.h,v 1.65 2008-03-05 20:32:23 f4dwv Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -441,6 +441,12 @@
 #define RIG_BACKEND_TUNER "tuner"
 #define RIG_MODEL_V4L RIG_MAKE_MODEL(RIG_TUNER, 1)
 
+	/*
+	 * miniVNA used as external VFO
+	 */
+#define RIG_MINIVNA 27
+#define RIG_BACKEND_MINIVNA "miniVNA"
+#define RIG_MODEL_MINIVNA RIG_MAKE_MODEL(RIG_MINIVNA, 1)
 
 
 	/*
@@ -488,6 +494,7 @@ typedef int rig_model_t;
 		{ RIG_RFT, RIG_BACKEND_RFT }, \
 		{ RIG_KIT, RIG_BACKEND_KIT }, \
 		{ RIG_TUNER, RIG_BACKEND_TUNER }, \
+		{ RIG_MINIVNA, RIG_BACKEND_MINIVNA }, \
 		{ 0, NULL }, /* end */  \
 }
 
