@@ -5,7 +5,7 @@
  * via serial interface to an FT-1000MP using the "CAT" interface
  *
  *
- *    $Id: ft1000mp.h,v 1.1 2002-12-01 21:49:12 fillods Exp $  
+ *    $Id: ft1000mp.h,v 1.2 2008-03-27 02:35:51 n0nb Exp $  
  *
  *
  *   This library is free software; you can redistribute it and/or modify
@@ -95,11 +95,11 @@ enum ft1000mp_native_cmd_e {
   FT1000MP_NATIVE_MODE_SET_DATA_LSB,
   FT1000MP_NATIVE_MODE_SET_DATA_FM,
   FT1000MP_NATIVE_PACING,
+  FT1000MP_NATIVE_PTT_OFF,
+  FT1000MP_NATIVE_PTT_ON,
   FT1000MP_NATIVE_VFO_UPDATE,
   FT1000MP_NATIVE_CURR_VFO_UPDATE,
   FT1000MP_NATIVE_UPDATE,
-  FT1000MP_NATIVE_PTT_OFF,
-  FT1000MP_NATIVE_PTT_ON,
   FT1000MP_NATIVE_SIZE            /* end marker, value indicates number of */
 				                /* native cmd entries */
 
