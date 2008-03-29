@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.104 2008-03-29 18:54:43 aa6e Exp $
+ *	$Id: icom.c,v 1.105 2008-03-29 22:54:17 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -578,7 +578,7 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	/* IC910H has different meaning of command 1A, subcommand 03. So do
 	 * not ask for DSP filter settings */
 	/* Likewise, don't ask if we happen to be an Omni VI Plus */
-	if ( (rig->caps->rig_model == RIG_MODEL_IC910) |
+	if ( (rig->caps->rig_model == RIG_MODEL_IC910) ||
 	    (rig->caps->rig_model == RIG_MODEL_OMNIVIP) )
 		    return RIG_OK;
 
