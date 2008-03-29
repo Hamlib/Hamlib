@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of the TenTenc OMNI VI
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: omni.c,v 1.6 2003-11-16 17:14:43 fillods Exp $
+ *	$Id: omni.c,v 1.7 2008-03-29 18:54:43 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -20,6 +20,17 @@
  *
  */
 
+/* Improvements by Martin Ewing, AA6E, 3/2008
+ * This backend should support either the Ten-Tec Omni VI Plus (564) or the
+ * Omni VI (563).  Tested on an Omni VI.
+ */
+
+/* Known problems:
+ * set ptt on/off works, but throws off timeout errors.
+ * To Do:
+ * Implement RIT, vfo select, split, etc.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -28,19 +39,19 @@
 
 #include <hamlib/rig.h>
 #include "icom.h"
-
-
+#include "icom_defs.h"
+#include "frame.h"
 
 #define OMNIVIP_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
 #define OMNIVIP_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
-#define OMNIVIP_AM_TX_MODES (RIG_MODE_AM)
 
-#define OMNIVIP_ALL_RX_MODES (OMNIVIP_OTHER_TX_MODES|OMNIVIP_AM_TX_MODES)
+#define OMNIVIP_ALL_RX_MODES (OMNIVIP_OTHER_TX_MODES)
 
 #define OMNIVIP_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 #define OMNIVIP_STR_CAL { 0, { } }
 
+int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 
 /*
  * Specs from http://www.tentec.com/TT564.htm
@@ -56,11 +67,11 @@ const struct rig_caps omnivip_caps = {
 .rig_model =  RIG_MODEL_OMNIVIP,
 .model_name = "Omni VI Plus", 
 .mfg_name =  "Ten-Tec", 
-.version =  "0.1", 
+.version =  "0.2", 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_NONE,
+.ptt_type =  RIG_PTT_RIG,           /* Allow program controlled PTT */
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
@@ -99,27 +110,30 @@ const struct rig_caps omnivip_caps = {
 	RIG_FRNG_END, },
 .tx_range_list1 =  { RIG_FRNG_END, },		/* this is a scanner */
 
-
-.rx_range_list2 =   { {kHz(30),MHz(30),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+/* These limits as measured on Omni VI SN 1A10473 */
+.rx_range_list2 =   { 
+    {kHz(1770),kHz(2330),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(3471),kHz(4030),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(6821),kHz(7338),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(9971),kHz(10530),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(13971),kHz(14530),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(17971),kHz(18530),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(20971),kHz(21530),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(24471),kHz(25030),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
+    {kHz(27971),kHz(30030),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
 	RIG_FRNG_END, },
-.tx_range_list2 =  { {kHz(1800),MHz(2)-1,OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},	/* 100W class */
-    {kHz(1800),MHz(2)-1,OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},	/* 40W class */
+
+/* Note: There is no AM mode. */
+.tx_range_list2 =  { 
+    {kHz(1800),MHz(2)-1,OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL}, 
     {kHz(3500),MHz(4)-1,OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {kHz(3500),MHz(4)-1,OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
 	{MHz(7),kHz(7300),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {MHz(7),kHz(7300),OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
     {kHz(10100),kHz(10150),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {kHz(10100),kHz(10150),OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
     {MHz(14),kHz(14350),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {MHz(14),kHz(14350),OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
     {kHz(18068),kHz(18168),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {kHz(18068),kHz(18168),OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
     {MHz(21),kHz(21450),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {MHz(21),kHz(21450),OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
     {kHz(24890),kHz(24990),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {kHz(24890),kHz(24990),OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
     {MHz(28),kHz(29700),OMNIVIP_OTHER_TX_MODES,5000,100000,OMNIVIP_VFO_ALL},
-    {MHz(28),kHz(29700),OMNIVIP_AM_TX_MODES,2000,40000,OMNIVIP_VFO_ALL},
 	RIG_FRNG_END, },
 
 .tuning_steps = 	{
@@ -127,9 +141,12 @@ const struct rig_caps omnivip_caps = {
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
+	/* Possible XTAL filters: 2.4, 1.8, 0.5, 0.25 kHz - may not all be
+	 * present.  FM filter is 15 kHz.
+	 */
 .filters = 	{
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
-		{RIG_MODE_AM|RIG_MODE_FM, kHz(8)},
+		{RIG_MODE_FM, kHz(15)},
 		RIG_FLT_END,
 	},
 
@@ -147,6 +164,8 @@ const struct rig_caps omnivip_caps = {
 .get_mode =  icom_get_mode,
 .set_vfo =  icom_set_vfo,
 .set_rit =  icom_set_rit,
+.set_ptt =  omni6_set_ptt,
+/* Alas, Icom backend does not provide _get_rit or _get_vfo*/
 
 .decode_event =  icom_decode_event,
 .set_mem =  icom_set_mem,
@@ -154,5 +173,30 @@ const struct rig_caps omnivip_caps = {
 
 };
 
+/*
+ * omni6_set_ptt based on icom_set_ptt
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+	unsigned char ackbuf[MAXFRAMELEN];
+	int ack_len=sizeof(ackbuf), retval, sc;
+
+	sc = ptt == RIG_PTT_ON ? 0x1 : 0x2;
+
+/* ptt set/clear code for Omni VI is 0x16, different from Icom */
+
+	retval = icom_transaction (rig, 0x16, sc, NULL, 0,
+					ackbuf, &ack_len);
+	if (retval != RIG_OK)
+			return retval;
+
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		rig_debug(RIG_DEBUG_ERR,"omni6_set_ptt: ack NG (%#.2x), "
+					"len=%d\n", ackbuf[0],ack_len);
+		return -RIG_ERJCTED;
+	}
+	return RIG_OK;
+}
 
 
