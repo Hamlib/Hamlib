@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the TenTenc OMNI VI
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: omni.c,v 1.7 2008-03-29 18:54:43 aa6e Exp $
+ *	$Id: omni.c,v 1.8 2008-03-30 03:37:17 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,7 +26,6 @@
  */
 
 /* Known problems:
- * set ptt on/off works, but throws off timeout errors.
  * To Do:
  * Implement RIT, vfo select, split, etc.
  */
@@ -179,23 +178,17 @@ const struct rig_caps omnivip_caps = {
  */
 int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	unsigned char ackbuf[MAXFRAMELEN];
-	int ack_len=sizeof(ackbuf), retval, sc;
+	int retval, sc;
 
 	sc = ptt == RIG_PTT_ON ? 0x1 : 0x2;
 
-/* ptt set/clear code for Omni VI is 0x16, different from Icom */
-
-	retval = icom_transaction (rig, 0x16, sc, NULL, 0,
-					ackbuf, &ack_len);
+/* ptt set/clear code for Omni VI is 0x16, different from Icom.
+ * Ignore ACK/NAK on this command, because in CW mode, the Omni VI
+ * does not send an ACK.
+ */
+	retval = icom_transaction (rig, 0x16, sc, NULL, 0, NULL, NULL);
 	if (retval != RIG_OK)
 			return retval;
-
-	if (ack_len != 1 || ackbuf[0] != ACK) {
-		rig_debug(RIG_DEBUG_ERR,"omni6_set_ptt: ack NG (%#.2x), "
-					"len=%d\n", ackbuf[0],ack_len);
-		return -RIG_ERJCTED;
-	}
 	return RIG_OK;
 }
 
