@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of the TenTenc OMNI VI
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: omni.c,v 1.8 2008-03-30 03:37:17 aa6e Exp $
+ *	$Id: omni.c,v 1.9 2008-03-31 14:22:58 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -17,7 +17,6 @@
  *   You should have received a copy of the GNU Library General Public
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
  */
 
 /* Improvements by Martin Ewing, AA6E, 3/2008
@@ -26,8 +25,9 @@
  */
 
 /* Known problems:
+ *
  * To Do:
- * Implement RIT, vfo select, split, etc.
+ *  Implement vfo split, FSK mode
  */
 
 #ifdef HAVE_CONFIG_H
@@ -40,6 +40,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
+#include <misc.h>
 
 #define OMNIVIP_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
@@ -51,10 +52,8 @@
 #define OMNIVIP_STR_CAL { 0, { } }
 
 int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-
-/*
- * Specs from http://www.tentec.com/TT564.htm
- */
+int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
 static const struct icom_priv_caps omnivip_priv_caps = { 
 		0x04,	/* default address */
@@ -70,7 +69,7 @@ const struct rig_caps omnivip_caps = {
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,           /* Allow program controlled PTT */
+.ptt_type =  RIG_PTT_RIG,           // Allow program controlled PTT
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
@@ -93,7 +92,7 @@ const struct rig_caps omnivip_caps = {
 .parm_gran =  {},
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
-.max_rit =  Hz(9999),
+.max_rit =  Hz(9980),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
@@ -102,14 +101,13 @@ const struct rig_caps omnivip_caps = {
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
 .chan_desc_sz =  0,
-
-.chan_list =  { RIG_CHAN_END, },
-
+.chan_list =  { { 0, 99, RIG_MTYPE_MEM, IC_MIN_MEM_CAP }, 
+                RIG_CHAN_END, },
 .rx_range_list1 =   {
 	RIG_FRNG_END, },
-.tx_range_list1 =  { RIG_FRNG_END, },		/* this is a scanner */
+.tx_range_list1 =  { RIG_FRNG_END, },
 
-/* These limits as measured on Omni VI SN 1A10473 */
+/* These limits measured on Omni VI SN 1A10473 */
 .rx_range_list2 =   { 
     {kHz(1770),kHz(2330),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
     {kHz(3471),kHz(4030),OMNIVIP_ALL_RX_MODES,-1,-1,OMNIVIP_VFO_ALL},
@@ -136,19 +134,19 @@ const struct rig_caps omnivip_caps = {
 	RIG_FRNG_END, },
 
 .tuning_steps = 	{
-	 {OMNIVIP_ALL_RX_MODES,1},
+	 {OMNIVIP_ALL_RX_MODES, Hz(10)},        // This radio has 10 Hz steps.
 	 RIG_TS_END,
 	},
-	/* mode/filter list, remember: order matters! */
-	/* Possible XTAL filters: 2.4, 1.8, 0.5, 0.25 kHz - may not all be
+	/* mode/filter list, remember: order matters!
+	 * Possible XTAL filters: 2.4, 1.8, 0.5, 0.25 kHz - may not all be
 	 * present.  FM filter is 15 kHz.
+	 * We are not supporting the 'FSK' (RTTY) mode at this time.
 	 */
 .filters = 	{
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
 		{RIG_MODE_FM, kHz(15)},
 		RIG_FLT_END,
 	},
-
 .cfgparams =  icom_cfg_params,
 .set_conf =  icom_set_conf,
 .get_conf =  icom_get_conf,
@@ -161,15 +159,16 @@ const struct rig_caps omnivip_caps = {
 .get_freq =  icom_get_freq,
 .set_mode =  icom_set_mode,
 .get_mode =  icom_get_mode,
-.set_vfo =  icom_set_vfo,
-.set_rit =  icom_set_rit,
+.set_vfo =  icom_set_vfo,       // icom.c has no get_vfo
+.set_rit =  omni6_set_rit,
+.get_rit =  omni6_get_rit,      // icom.c has no get_rit
+.set_xit =  omni6_set_rit,      // xit=rit for this rig
+.get_xit =  omni6_get_rit,      // (front panel controlled)
 .set_ptt =  omni6_set_ptt,
-/* Alas, Icom backend does not provide _get_rit or _get_vfo*/
 
 .decode_event =  icom_decode_event,
 .set_mem =  icom_set_mem,
 .vfo_op =  icom_vfo_op,
-
 };
 
 /*
@@ -182,14 +181,70 @@ int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 	sc = ptt == RIG_PTT_ON ? 0x1 : 0x2;
 
-/* ptt set/clear code for Omni VI is 0x16, different from Icom.
+/* 
  * Ignore ACK/NAK on this command, because in CW mode, the Omni VI
  * does not send an ACK.
  */
-	retval = icom_transaction (rig, 0x16, sc, NULL, 0, NULL, NULL);
+	retval = icom_transaction (rig, C_OMNI6_XMT, sc, NULL, 0, NULL, NULL);
 	if (retval != RIG_OK)
 			return retval;
 	return RIG_OK;
 }
 
+/* 
+ * These 'rit' commands actually deal with an offset frequency.  The operator
+ * must select rit on/off or xit on/off manually to apply this offset.
+ * Omni VI's rit uses 9's complement for negative freq, and freqs are in units
+ * of 10 Hz. on the Omni.
+ * Note that Omni VI rejects rit > 9980, but takes rit >= -9990. So the
+ * rit limit should be +/- 9.98 kHz.
+ */
+ 
+int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
+{
+	unsigned char freqbuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+	int freq_len, ack_len=sizeof(ackbuf), retval;
+    shortfreq_t rit10;
+    
+    rit10 = rit / 10;                           // 10 Hz resolution for Omni
+    if (rit10 < 0) rit10 += 10000L;             // 9's compl.
+    freq_len = 2;
+	to_bcd(freqbuf, rit10, 2*freq_len);
 
+	retval = icom_transaction (rig, C_SET_OFFS, -1, freqbuf, freq_len,
+					ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		rig_debug(RIG_DEBUG_ERR,"omni6_set_rit: ack NG (%#.2x), "
+					"len=%d\n", ackbuf[0],ack_len);
+		return -RIG_ERJCTED;
+	}
+	return RIG_OK;
+}
+
+/* 
+ * Note: icom.c does not provide a get_rit method. It would have been 
+ * wrong for the Omni VI, anyway, so we implement it here.
+ */
+
+int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
+{
+    unsigned char buffer[MAXFRAMELEN];
+    int buffer_len, retval;
+    shortfreq_t my_rit;
+    
+    retval = icom_transaction (rig, C_RD_OFFS, -1, NULL, 0,
+                    buffer, & buffer_len);
+    if (retval != RIG_OK)
+        return retval;
+    if (buffer_len != 3) {
+        rig_debug(RIG_DEBUG_ERR,"omni6_get_rit: wrong length response (%d)\n",
+            buffer_len);
+        return -RIG_ERJCTED;
+    }
+    my_rit = 10*from_bcd(buffer, 2*buffer_len);
+    if (my_rit > 10000L) my_rit -= 100000L;     // 9's compl for negatives
+    *rit = my_rit;
+    return RIG_OK;
+}

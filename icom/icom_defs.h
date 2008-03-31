@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.19 2006-09-22 19:55:59 n0nb Exp $
+ *		$Id: icom_defs.h,v 1.20 2008-03-31 14:22:57 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -333,6 +333,11 @@
 #define S_OPTO_NXT	 	0x0e
 #define S_OPTO_SCON 	0x0f
 #define S_OPTO_SCOFF 	0x10
+
+/*
+ * OmniVIPlus (Omni VI) extensions
+ */
+#define C_OMNI6_XMT      0x16
 
 /*
  * C_CTL_MODE	Misc CI-V Mode settings
