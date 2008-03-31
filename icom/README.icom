@@ -1,39 +1,10 @@
-hamlib - Copyright (C) 2000 Frank Singleton, Copyright (C) 2008 The Hamlib Group
+hamlib - Copyright (C) 2008 The Hamlib Group
 
 File: README.icom
 
-2008-03:
+Notes on Icom backends
 
-Working backends:
-    ic8500.c, omni.c (Omni VI / VI Plus)
-    -- and probably more --  (Please report results)
-
-------
-Older release information:
-
-libicom.so - Copyright (C) 2000 Stephane Fillod
-This shared library provides an API for communicating
-via serial interface to an ICOM using the "CI-V" interface.
-
-
-Reference Documentation
------------------------
-
-Operating Manual
-IC-706MKIIG
-Icom Inc.
-
-
-Status
-------
-
-This is a WIP.
-Handles 30% of all opcodes.
-Right now, this is just example of how a backend should glue
-with the generic rig API. Some simple primitives work,
-some other are coded, but untested yet.
-
-This lib should/will support the ic706, ic706mkII, ic706mkIIG, and
-any other CI-V rig.
+2008-03, AA6E:  Tested and extended omni.c for Ten-Tec Omni VI and Omni VI Plus
+        It is now at least "beta" level.
 
 
