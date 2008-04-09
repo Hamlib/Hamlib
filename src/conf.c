@@ -13,7 +13,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.15 2006-10-15 00:27:51 aa6e Exp $
+ *	$Id: conf.c,v 1.16 2008-04-09 21:36:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -144,15 +144,23 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 		break;
 
 	case TOK_SERIAL_SPEED:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		rs->rigport.parm.serial.rate = atoi(val);
 		break;
 	case TOK_DATA_BITS:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		rs->rigport.parm.serial.data_bits = atoi(val);
 		break;
 	case TOK_STOP_BITS:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		rs->rigport.parm.serial.stop_bits = atoi(val);
 		break;
 	case TOK_PARITY:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		if (!strncmp(val, "None", 8))
 			rs->rigport.parm.serial.parity = RIG_PARITY_NONE;
 		else if (!strncmp(val, "Odd", 8))
@@ -163,6 +171,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 				return -RIG_EINVAL;
 		break;
 	case TOK_HANDSHAKE:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		if (!strncmp(val, "None", 8))
 			rs->rigport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
 		else if (!strncmp(val, "XONXOFF", 8))
@@ -174,6 +184,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 		break;
 
 	case TOK_RTS_STATE:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		if (!strcmp(val, "Unset"))
 			rs->rigport.parm.serial.rts_state = RIG_SIGNAL_UNSET;
 		else if (!strcmp(val, "ON"))
@@ -185,6 +197,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 		break;
 
 	case TOK_DTR_STATE:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		if (!strcmp(val, "Unset"))
 			rs->rigport.parm.serial.dtr_state = RIG_SIGNAL_UNSET;
 		else if (!strcmp(val, "ON"))
@@ -263,15 +277,23 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 			rs->itu_region == 1 ? RIG_ITU_REGION1 : RIG_ITU_REGION2);
 		break;
 	case TOK_SERIAL_SPEED:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		sprintf(val, "%d", rs->rigport.parm.serial.rate);
 		break;
 	case TOK_DATA_BITS:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		sprintf(val, "%d", rs->rigport.parm.serial.data_bits);
 		break;
 	case TOK_STOP_BITS:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		sprintf(val, "%d", rs->rigport.parm.serial.stop_bits);
 		break;
 	case TOK_PARITY:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		switch (rs->rigport.parm.serial.parity) {
 		case RIG_PARITY_NONE: s = "None"; break;
 		case RIG_PARITY_ODD: s = "Odd"; break;
@@ -281,6 +303,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 		strcpy(val, s);
 		break;
 	case TOK_HANDSHAKE:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		switch (rs->rigport.parm.serial.handshake) {
 		case RIG_HANDSHAKE_NONE: s = "None"; break;
 		case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
@@ -291,6 +315,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 		break;
 
 	case TOK_RTS_STATE:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		switch (rs->rigport.parm.serial.rts_state) {
 		case RIG_SIGNAL_UNSET: s = "Unset"; break;
 		case RIG_SIGNAL_ON: s = "ON"; break;
@@ -301,6 +327,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 		break;
 
 	case TOK_DTR_STATE:
+		if (rs->rigport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		switch (rs->rigport.parm.serial.dtr_state) {
 		case RIG_SIGNAL_UNSET: s = "Unset"; break;
 		case RIG_SIGNAL_ON: s = "ON"; break;

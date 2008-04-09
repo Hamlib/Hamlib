@@ -2,7 +2,7 @@
  *  Hamlib Interface - rotator configuration interface
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: rot_conf.c,v 1.6 2006-10-15 00:27:52 aa6e Exp $
+ *	$Id: rot_conf.c,v 1.7 2008-04-09 21:36:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -147,15 +147,23 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 		break;
 
 	case TOK_SERIAL_SPEED:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		rs->rotport.parm.serial.rate = atoi(val);
 		break;
 	case TOK_DATA_BITS:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		rs->rotport.parm.serial.data_bits = atoi(val);
 		break;
 	case TOK_STOP_BITS:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		rs->rotport.parm.serial.stop_bits = atoi(val);
 		break;
 	case TOK_PARITY:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		if (!strncmp(val, "None", 8))
 			rs->rotport.parm.serial.parity = RIG_PARITY_NONE;
 		else if (!strncmp(val, "Odd", 8))
@@ -166,6 +174,8 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 			return -RIG_EINVAL;
 		break;
 	case TOK_HANDSHAKE:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		if (!strncmp(val, "None", 8))
 			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
 		else if (!strncmp(val, "XONXOFF", 8))
@@ -228,15 +238,23 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 		sprintf(val, "%d", rs->rotport.retry);
 		break;
 	case TOK_SERIAL_SPEED:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		sprintf(val, "%d", rs->rotport.parm.serial.rate);
 		break;
 	case TOK_DATA_BITS:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		sprintf(val, "%d", rs->rotport.parm.serial.data_bits);
 		break;
 	case TOK_STOP_BITS:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		sprintf(val, "%d", rs->rotport.parm.serial.stop_bits);
 		break;
 	case TOK_PARITY:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		switch (rs->rotport.parm.serial.parity) {
 		case RIG_PARITY_NONE: s = "None"; break;
 		case RIG_PARITY_ODD: s = "Odd"; break;
@@ -246,6 +264,8 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 		strcpy(val, s);
 		break;
 	case TOK_HANDSHAKE:
+		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
+			return -RIG_EINVAL;
 		switch (rs->rotport.parm.serial.handshake) {
 		case RIG_HANDSHAKE_NONE: s = "None"; break;
 		case RIG_HANDSHAKE_XONXOFF: s = "XONXOFF"; break;
