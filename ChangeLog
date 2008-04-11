@@ -1,3 +1,114 @@
+2008-04-11 18:03  fillods
+
+	* Makefile.am, configure.ac, include/hamlib/riglist.h, kit/kit.c,
+	kit/kit.h, kit/miniVNA.c: moved miniVNA to kit subdir
+
+2008-04-11 17:58  fillods
+
+	* NEWS: Update for 1.2.7.1 release
+
+2008-04-11 17:10  fillods
+
+	* aor/: aor.c, aor.h, ar2700.c, ar5000.c, ar8000.c, ar8200.c,
+	ar8600.c: implemented scanning
+
+2008-04-11 14:43  fillods
+
+	* src/mem.c: malloc/realloc success check
+
+2008-04-11 14:12  fillods
+
+	* src/ext.c: ability to report error through callback iteration
+
+2008-04-11 14:07  fillods
+
+	* src/iofunc.c: check write() return value
+
+2008-04-11 12:59  fillods
+
+	* include/hamlib/riglist.h: added FT950
+
+2008-04-09 21:36  fillods
+
+	* src/: conf.c, rot_conf.c: Be careful, rs->rigport.parm is an
+	union, so serial fields should be accessed only for the
+	RIG_PORT_SERIAL type.
+
+2008-03-31 14:22  aa6e
+
+	* icom/: icom_defs.h, omni.c: Omni VI memories, rit/xit
+
+2008-03-31 01:56  aa6e
+
+	* icom/: README.icom, TODO.icom: Declutter
+
+2008-03-30 03:37  aa6e
+
+	* icom/README.icom: Update Icom info
+
+2008-03-30 03:37  aa6e
+
+	* icom/omni.c: Fix Omni VI PTT function
+
+2008-03-29 22:54  aa6e
+
+	* icom/icom.c: Fix typo
+
+2008-03-29 18:54  aa6e
+
+	* icom/icom.c, icom/omni.c, tentec/README: TT Omni VI / Plus
+	improvements
+
+2008-03-27 02:35  n0nb
+
+	* yaesu/ft1000mp.h: Fixed enum error in native_cmd related to
+	January 10 patch of ft1000mp.c PTT patch.
+
+2008-03-05 20:32  f4dwv
+
+	* Makefile.am, configure.ac, include/hamlib/riglist.h: add miniVNA
+	backend
+
+2008-03-05 20:31  f4dwv
+
+	* miniVNA/: Makefile.am, miniVNA.c, miniVNA.h: Initial release
+
+2008-03-01 11:20  fillods
+
+	* kenwood/: kenwood.c, kenwood.h, ts2000.c, ts870s.c:
+	set_ant/get_ant support for ts870s and ts2000
+
+2008-02-24 22:31  fillods
+
+	* kenwood/ts2000.c: S meter calibration, patch by Patrick Ouellette
+	KB8PYM.
+
+2008-02-18 21:17  fillods
+
+	* README.release: some more fixes
+
+2008-02-18 18:18  dl1nc
+
+	* include/hamlib/rigclass.h: added missing virtual d'tor for
+	RigException
+
+2008-02-15 23:04  aa6e
+
+	* tentec/: orion.c, README, orion.h: Better error handling,
+	reliability for serial I/O.  Misc prettification.
+
+2008-02-13 23:21  fillods
+
+	* configure.ac, src/Makefile.am: get ready for next round
+
+2008-02-13 23:20  fillods
+
+	* README.release: some fixes
+
+2008-02-13 23:00  fillods
+
+	* ChangeLog: Release of 1.2.7
+
 2008-02-13 22:58  fillods
 
 	* README.release: initial release
