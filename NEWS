@@ -4,6 +4,14 @@ Copyright (C) 2000-2008  Stephane Fillod, Frank Singleton and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.2.7.1
+	2008-04-11
+	* New model: miniVNA
+	* Fixes: FT1000MP, Tentec Orion, Omni VI Plus
+	* AOR: implemented scanning
+	* Kenwood models TS2000, TS870S can now get/set antenna.
+          	TS2000 gained strength meter calibration.
+
 Version 1.2.7
 	2008-02-13
 	* Improved Documentation
