@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.66 2008-04-11 12:59:31 fillods Exp $
+ *	$Id: riglist.h,v 1.67 2008-04-11 18:03:53 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -435,6 +435,7 @@
 #define RIG_MODEL_USRP RIG_MAKE_MODEL(RIG_KIT, 5)
 #define RIG_MODEL_DDS60 RIG_MAKE_MODEL(RIG_KIT, 6)
 #define RIG_MODEL_ELEKTOR507 RIG_MAKE_MODEL(RIG_KIT, 7)	/* Elektor SDR USB */
+#define RIG_MODEL_MINIVNA RIG_MAKE_MODEL(RIG_KIT, 8)
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
@@ -442,14 +443,6 @@
 #define RIG_TUNER 26
 #define RIG_BACKEND_TUNER "tuner"
 #define RIG_MODEL_V4L RIG_MAKE_MODEL(RIG_TUNER, 1)
-
-	/*
-	 * miniVNA used as external VFO
-	 */
-#define RIG_MINIVNA 27
-#define RIG_BACKEND_MINIVNA "miniVNA"
-#define RIG_MODEL_MINIVNA RIG_MAKE_MODEL(RIG_MINIVNA, 1)
-
 
 	/*
 	 * TODO:
@@ -496,7 +489,6 @@ typedef int rig_model_t;
 		{ RIG_RFT, RIG_BACKEND_RFT }, \
 		{ RIG_KIT, RIG_BACKEND_KIT }, \
 		{ RIG_TUNER, RIG_BACKEND_TUNER }, \
-		{ RIG_MINIVNA, RIG_BACKEND_MINIVNA }, \
 		{ 0, NULL }, /* end */  \
 }
 
