@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - main header
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: aor.h,v 1.23 2006-11-02 15:19:58 aa6e Exp $
+ *	$Id: aor.h,v 1.24 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,7 +25,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "0.4"
+#define BACKEND_VER "0.5"
 
 
 int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width);
@@ -54,6 +54,7 @@ int aor_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts);
 int aor_set_powerstat(RIG *rig, powerstat_t status);
 int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+int aor_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 const char *aor_get_info(RIG *rig);
 
 int aor_set_mem(RIG *rig, vfo_t vfo, int ch);

@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR8200 description
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ar8200.c,v 1.21 2005-04-20 14:50:56 fillods Exp $
+ *	$Id: ar8200.c,v 1.22 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,6 +39,7 @@
 #define AR8200_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
 #define AR8200_VFO_OPS (RIG_OP_MCL|RIG_OP_UP|RIG_OP_DOWN|RIG_OP_LEFT|RIG_OP_RIGHT)
+#define AR8200_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_PROG|RIG_SCAN_SLCT)
 
 #define AR8200_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
@@ -117,6 +118,7 @@ const struct rig_caps ar8200_caps = {
 .bank_qty =   20,	/* A through J, and a trough j */
 .chan_desc_sz =  12,
 .vfo_ops =  AR8200_VFO_OPS,
+.scan_ops =  AR8200_SCAN_OPS,
 .str_cal = AR8200_STR_CAL,
 
 .chan_list =  {
@@ -184,6 +186,7 @@ const struct rig_caps ar8200_caps = {
 .set_ts =  aor_set_ts,
 .set_powerstat =  aor_set_powerstat,
 .vfo_op =  aor_vfo_op,
+.scan =  aor_scan,
 .get_info =  aor_get_info,
 
 .set_mem = aor_set_mem,

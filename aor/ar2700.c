@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR2700 description
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ar2700.c,v 1.1 2005-04-20 14:48:49 fillods Exp $
+ *	$Id: ar2700.c,v 1.2 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,6 +39,7 @@
 #define AR2700_PARM (RIG_PARM_APO)
 
 #define AR2700_VFO_OPS (RIG_OP_MCL|RIG_OP_UP|RIG_OP_DOWN)
+#define AR2700_SCAN_OPS (RIG_SCAN_MEM)
 
 #define AR2700_VFO_ALL (RIG_VFO_A|RIG_VFO_MEM)
 
@@ -121,6 +122,7 @@ const struct rig_caps ar2700_caps = {
 .bank_qty =   10,
 .chan_desc_sz =  0,
 .vfo_ops =  AR2700_VFO_OPS,
+.scan_ops =  AR2700_SCAN_OPS,
 .str_cal = AR2700_STR_CAL,
 
 .chan_list =  {
@@ -181,6 +183,7 @@ const struct rig_caps ar2700_caps = {
 .set_ts =  aor_set_ts,
 .set_powerstat =  aor_set_powerstat,
 .vfo_op =  aor_vfo_op,
+.scan =  aor_scan,
 .get_info =  aor_get_info,
 
 .set_mem = aor_set_mem,

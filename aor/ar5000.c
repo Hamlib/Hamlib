@@ -1,9 +1,9 @@
 /*
  *  Hamlib AOR backend - AR5000 description
  *  
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ar5000.c,v 1.11 2006-11-02 15:19:58 aa6e Exp $
+ *	$Id: ar5000.c,v 1.12 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,6 +41,7 @@
 #define AR5000_PARM (RIG_PARM_NONE)
 
 #define AR5000_VFO_OPS (RIG_OP_MCL | RIG_OP_UP | RIG_OP_DOWN)
+#define AR5000_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_PROG|RIG_SCAN_SLCT)
 
 #define AR5000_VFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_C | RIG_VFO_N(3) | RIG_VFO_N(4))
 
@@ -141,6 +142,7 @@ const struct rig_caps ar5000_caps = {
     .bank_qty =   10,
     .chan_desc_sz =  8,
     .vfo_ops =  AR5000_VFO_OPS,
+    .scan_ops =  AR5000_SCAN_OPS,
     .str_cal = AR5000_STR_CAL,
 
     .chan_list =  {
@@ -220,6 +222,7 @@ const struct rig_caps ar5000_caps = {
     .set_ts =  aor_set_ts,
     .set_powerstat =  aor_set_powerstat,
     .vfo_op =  aor_vfo_op,
+    .scan =  aor_scan,
     .get_info =  aor_get_info,
 
     .set_mem = aor_set_mem,
@@ -282,6 +285,7 @@ const struct rig_caps ar5000a_caps = {
     .bank_qty =   10,
     .chan_desc_sz =  8,
     .vfo_ops =  AR5000_VFO_OPS,
+    .scan_ops =  AR5000_SCAN_OPS,
     .str_cal = AR5000_STR_CAL,
 
     .chan_list =  {
@@ -360,6 +364,7 @@ const struct rig_caps ar5000a_caps = {
     .set_ts =  aor_set_ts,
     .set_powerstat =  aor_set_powerstat,
     .vfo_op =  aor_vfo_op,
+    .scan =  aor_scan,
     .get_info =  aor_get_info,
 
     .set_mem = aor_set_mem,

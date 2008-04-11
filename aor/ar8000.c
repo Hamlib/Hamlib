@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - AR8000 description
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ar8000.c,v 1.6 2005-04-20 14:50:56 fillods Exp $
+ *	$Id: ar8000.c,v 1.7 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,6 +39,7 @@
 #define AR8000_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
 #define AR8000_VFO_OPS (RIG_OP_MCL|RIG_OP_UP|RIG_OP_DOWN|RIG_OP_LEFT|RIG_OP_RIGHT)
+#define AR8000_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_PROG|RIG_SCAN_SLCT)
 
 #define AR8000_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -98,6 +99,7 @@ const struct rig_caps ar8000_caps = {
 .bank_qty =   20,
 .chan_desc_sz =  12,
 .vfo_ops =  AR8000_VFO_OPS,
+.scan_ops =  AR8000_SCAN_OPS,
 .str_cal = AR8000_STR_CAL,
 
 .chan_list =  { RIG_CHAN_END, },	/* FIXME: memory channel list: 1000 memories */
@@ -164,6 +166,7 @@ const struct rig_caps ar8000_caps = {
 .set_ts =  aor_set_ts,
 .set_powerstat =  aor_set_powerstat,
 .vfo_op =  aor_vfo_op,
+.scan =  aor_scan,
 .get_info =  aor_get_info,
 
 .get_chan_all_cb = aor_get_chan_all_cb,

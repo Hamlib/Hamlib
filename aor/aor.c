@@ -1,8 +1,8 @@
 /*
  *  Hamlib AOR backend - main file
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.42 2006-11-02 15:19:58 aa6e Exp $
+ *	$Id: aor.c,v 1.43 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -636,6 +636,36 @@ int aor_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 	default:
 		rig_debug(RIG_DEBUG_ERR,"aor_vfo_op: unsupported op %d\n",
 						op);
+		return -RIG_EINVAL;
+	}
+
+	return aor_transaction (rig, aorcmd, strlen(aorcmd), NULL, NULL);
+}
+
+/*
+ * aor_scan, scan operation
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int aor_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
+{
+	char *aorcmd;
+
+	switch (scan) {
+	case RIG_SCAN_STOP:
+		/* Not sure how to stop the scanning.
+		 * Maye by going by to MEM/VFO mode?
+		 * Any clue? */
+		if (vfo == RIG_VFO_CURR)
+			vfo = RIG_VFO_MEM; /* supported by all the AOR rigs */
+		return rig_set_vfo(rig, vfo);
+
+	case RIG_SCAN_MEM: aorcmd = "MS" EOM; break;
+	case RIG_SCAN_SLCT: aorcmd = "SM" EOM; break;
+	case RIG_SCAN_PROG: aorcmd = "VS" EOM; break; /* edges are VFO A & VFO B */
+	case RIG_SCAN_VFO: aorcmd = "VV1" EOM; break; /* VFO scan mode, VV0 for 2-VFO mode */
+	default:
+		rig_debug(RIG_DEBUG_ERR,"aor_scan: unsupported scan %d\n",
+						scan);
 		return -RIG_EINVAL;
 	}
 
