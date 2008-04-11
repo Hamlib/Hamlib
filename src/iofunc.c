@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - generic file based io functions
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.16 2006-10-15 00:27:51 aa6e Exp $
+ *	$Id: iofunc.c,v 1.17 2008-04-11 14:07:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -86,7 +86,7 @@
 
 int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 {
-  int i;
+  int i, ret;
 
 #ifdef WANT_NON_ACTIVE_POST_WRITE_DELAY
   if (p->post_write_date.tv_sec != 0) {
@@ -110,15 +110,21 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
   if (p->write_delay > 0) {
   	for (i=0; i < count; i++) {
-		if (write(p->fd, txbuffer+i, 1) < 0) {
-			rig_debug(RIG_DEBUG_ERR,"write_block() failed - %s\n", 
-							strerror(errno));
+		ret = write(p->fd, txbuffer+i, 1);
+		if (ret != 1) {
+			rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n", 
+				__FUNCTION__, __LINE__, ret, strerror(errno));
 			return -RIG_EIO;
     	}
     	usleep(p->write_delay*1000);
   	}
   } else {
-		  write(p->fd, txbuffer, count);
+	ret = write(p->fd, txbuffer, count);
+	if (ret != count) {
+		rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n", 
+			__FUNCTION__, __LINE__, ret, strerror(errno));
+		return -RIG_EIO;
+    	}
   }
   
   if (p->post_write_delay > 0) {
