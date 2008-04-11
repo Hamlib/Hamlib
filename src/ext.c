@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - extrq parameter interface
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ext.c,v 1.6 2006-10-28 03:49:46 aa6e Exp $
+ *	$Id: ext.c,v 1.7 2008-04-11 14:12:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -51,41 +51,57 @@
 
 
 /**
- * \param rig
- * \param cfunc
- * \param data
-  * \brief Executes cfunc on all the elements stored in the extlevels table
-*/
+ * \param rig The rig handle
+ * \param cfunc callback function of each extlevel
+ * \param data cookie to be passed to \a cfunc callback
+ * \brief Executes cfunc on all the elements stored in the extlevels table
+ * The callback \a cfunc is called until it returns a value which is not strictly positive.
+ * A zero value means a normal end of iteration, and a negative value an abnormal end,
+ * which will be the return value of rig_ext_level_foreach.
+ */
 int HAMLIB_API rig_ext_level_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
 	const struct confparams *cfp;
+	int ret;
 
 	if (!rig || !rig->caps || !cfunc)
 		return -RIG_EINVAL;
 
-	for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++)
-		if ((*cfunc)(rig, cfp, data) == 0)
+	for (cfp = rig->caps->extlevels; cfp && cfp->name; cfp++) {
+		ret = (*cfunc)(rig, cfp, data);
+		if (ret == 0)
 			return RIG_OK;
+		if (ret < 0)
+			return ret;
+	}
 
 	return RIG_OK;
 }
 
 /**
- * \param rig
- * \param cfunc The function to be called
- * \param data The data
+ * \param rig The rig handle
+ * \param cfunc callback function of each extparm
+ * \param data cookie to be passed to \a cfunc callback
  * \brief Executes cfunc on all the elements stored in the extparms table
+ * The callback \a cfunc is called until it returns a value which is not strictly positive.
+ * A zero value means a normal end of iteration, and a negative value an abnormal end,
+ * which will be the return value of rig_ext_parm_foreach.
  */
 int HAMLIB_API rig_ext_parm_foreach(RIG *rig, int (*cfunc)(RIG *, const struct confparams *, rig_ptr_t), rig_ptr_t data)
 {
 	const struct confparams *cfp;
+	int ret;
 
 	if (!rig || !rig->caps || !cfunc)
 		return -RIG_EINVAL;
 
-	for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++)
-		if ((*cfunc)(rig, cfp, data) == 0)
+	for (cfp = rig->caps->extparms; cfp && cfp->name; cfp++) {
+		ret = (*cfunc)(rig, cfp, data);
+		if (ret == 0)
 			return RIG_OK;
+		if (ret < 0)
+			return ret;
+	}
 
 	return RIG_OK;
 }
