@@ -16,7 +16,7 @@
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.11 2006-10-15 00:27:51 aa6e Exp $
+ *	$Id: mem.c,v 1.12 2008-04-11 14:43:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -213,6 +213,12 @@ static int generic_retr_extl(RIG *rig, const struct confparams *cfp, rig_ptr_t p
 			el_size += sizeof(struct ext_list);
 		chan->ext_levels = realloc(chan->ext_levels,
 				el_size+sizeof(struct ext_list));
+	}
+
+	if (!chan->ext_levels) {
+		rig_debug(RIG_DEBUG_ERR, "%s:%d memory allocation error!\n",
+				__FUNCTION__, __LINE__);
+		return -RIG_ENOMEM;
 	}
 
 	p->token = cfp->token;
