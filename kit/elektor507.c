@@ -1,8 +1,8 @@
 /*
  *  Hamlib KIT backend - Elektor SDR USB (5/07) receiver description
- *  Copyright (c) 2007 by Stephane Fillod
+ *  Copyright (c) 2007-2008 by Stephane Fillod
  *
- *	$Id: elektor507.c,v 1.3 2008-01-05 17:07:51 fillods Exp $
+ *	$Id: elektor507.c,v 1.4 2008-04-26 09:00:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -487,6 +487,12 @@ int elektor507_ftdi_write_data(RIG *rig, void *FTOutBuf, unsigned long BufferSiz
  *
  * This kit is a QSD based on a CY27EE16ZE PLL.
  * The receiver is controlled via USB (through FTDI FT232R).
+ *
+ * Original artical:
+ * http://www.elektor.com/magazines/2007/may/software-defined-radio.91527.lynkx
+ *
+ * Author (Burkhard Kainka) page, in german:
+ * http://www.b-kainka.de/sdrusb.html
  */
 
 const struct rig_caps elektor507_caps = {
