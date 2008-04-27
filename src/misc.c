@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.45 2008-04-27 09:31:07 fillods Exp $
+ *	$Id: misc.c,v 1.46 2008-04-27 09:48:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -701,8 +701,8 @@ const char * HAMLIB_API rig_strscan(scan_t rscan)
 const char * HAMLIB_API rig_strptrshift(rptr_shift_t shift)
 {
 	switch (shift) {
-	case RIG_RPT_SHIFT_MINUS: return "+";
-	case RIG_RPT_SHIFT_PLUS: return "-";
+	case RIG_RPT_SHIFT_MINUS: return "-";
+	case RIG_RPT_SHIFT_PLUS: return "+";
 	case RIG_RPT_SHIFT_NONE: return "None";
 	}
 	return NULL;
@@ -722,5 +722,58 @@ rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 	else
 		return RIG_RPT_SHIFT_NONE;
 }
+
+static struct { 
+		chan_type_t mtype;
+		const char *str;
+} mtype_str[] = {
+	{ RIG_MTYPE_MEM, "MEM" },
+	{ RIG_MTYPE_EDGE, "EDGE" },
+	{ RIG_MTYPE_CALL, "CALL" },
+	{ RIG_MTYPE_MEMOPAD, "MEMOPAD" },
+	{ RIG_MTYPE_SAT, "SAT" },
+	{ RIG_MTYPE_PRIO, "PRIO" },
+	{ RIG_MTYPE_NONE, "" },
+};
+
+/**
+ * \brief Convert alpha string to enum RIG_MTYPE_...
+ * \param s alpha string
+ * \return RIG_MTYPE_...
+ *
+ * \sa chan_type_t
+ */
+chan_type_t HAMLIB_API rig_parse_mtype(const char *s)
+{
+	int i;
+
+	for (i=0 ; mtype_str[i].str[0] != '\0'; i++) {
+		if (strcmp(s, mtype_str[i].str) == 0) {
+			return mtype_str[i].mtype;
+		}
+	}
+	return RIG_MTYPE_NONE;
+}
+
+/**
+ * \brief Convert enum RIG_MTYPE_... to alpha string
+ * \param mtype RIG_MTYPE_...
+ * \return alpha string
+ *
+ * \sa chan_type_t
+ */
+const char * HAMLIB_API rig_strmtype(chan_type_t mtype)
+{
+	int i;
+
+	if (mtype == RIG_MTYPE_NONE)
+		return "";
+
+	for (i=0; mtype_str[i].str[0] != '\0'; i++)
+		if (mtype == mtype_str[i].mtype)
+			return mtype_str[i].str;
+	return "";
+}
+
 
 /** @} */
