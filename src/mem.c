@@ -6,7 +6,7 @@
  * \file src/mem.c
  * \brief Memory and channel interface
  * \author Stephane Fillod
- * \date 2000-2006
+ * \date 2000-2008
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  * 
@@ -14,9 +14,9 @@
 
 /*
  *  Hamlib Interface - mem/channel calls
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.12 2008-04-11 14:43:09 fillods Exp $
+ *	$Id: mem.c,v 1.13 2008-04-27 09:51:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -637,6 +637,7 @@ static int map_chan (RIG *rig, channel_t **chan, int channel_num, const chan_t *
  * \param arg	Arbitrary argument passed back to \a chan_cb
  *
  *  Write the data associated with a all the memory channels.
+ *  This is the prefered method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -671,6 +672,7 @@ int HAMLIB_API rig_set_chan_all_cb (RIG *rig, chan_cb_t chan_cb, rig_ptr_t arg)
  * \param arg	Arbitrary argument passed back to \a chan_cb
  *
  *  Retrieves the data associated with a all the memory channels.
+ *  This is the prefered method to support clonable rigs.
  *
  *  \a chan_cb is called first with no data in chan (chan equals NULL). 
  *  This means the application has to provide a struct where to store 
@@ -815,6 +817,7 @@ int set_parm_all_cb_generic (RIG *rig, confval_cb_t parm_cb, rig_ptr_t cfgps,
  *
  * Writes the data associated with all the memory channels,
  * and rigs memory parameters, by callback.
+ * This is the prefered method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -862,6 +865,7 @@ int HAMLIB_API rig_set_mem_all_cb (RIG *rig, chan_cb_t chan_cb, confval_cb_t par
  *
  * Retrieves the data associated with all the memory channels,
  * and rigs memory parameters, by callback.
+ * This is the prefered method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -964,6 +968,7 @@ int HAMLIB_API rig_set_mem_all (RIG *rig, const channel_t chans[], const struct 
  *
  * Retrieves the data associated with all the memory channels,
  * and rigs memory parameters.
+ * This is the prefered method to support clonable rigs.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -1003,6 +1008,62 @@ int HAMLIB_API rig_get_mem_all (RIG *rig, channel_t chans[], const struct confpa
 			(rig_ptr_t)vals);
 
 	return retval;
+}
+
+/**
+ * \brief lookup the memory type and capabilities
+ * \param rig	The rig handle
+ * \param ch	The memory channel number
+ *
+ *  Lookup the memory type and capabilities associated with a channel number
+ *
+ * \return a pointer to a chan_t structure if the operation has been sucessful,
+ * otherwise a NULL pointer, most probably because of incorrect channel number
+ * or buggy backend.
+ */
+
+const chan_t * HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
+{
+	chan_t *chan_list;
+	int i;
+
+	if (CHECK_RIG_ARG(rig))
+		return NULL;
+
+	chan_list = rig->state.chan_list;
+	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+		if (ch >= chan_list[i].start && ch <= chan_list[i].end) {
+			return &chan_list[i];
+		}
+	}
+
+	return NULL;
+}
+
+/**
+ * \brief get memory channel count
+ * \param rig	The rig handle
+ *
+ *  Get the total memory channel count, computed from the rig caps
+ *
+ * \return the memory count
+ */
+int HAMLIB_API rig_mem_count(RIG *rig)
+{
+	const chan_t *chan_list;
+	int i, count;
+
+	if (CHECK_RIG_ARG(rig))
+		return -RIG_EINVAL;
+
+	chan_list = rig->state.chan_list;
+	count = 0;
+
+	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+		count += chan_list[i].end - chan_list[i].start + 1;
+	}
+
+	return count;
 }
 
 /*! @} */
