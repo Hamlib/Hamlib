@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.44 2008-01-04 17:30:31 n0nb Exp $
+ *	$Id: misc.c,v 1.45 2008-04-27 09:31:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,9 @@
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
 #include <errno.h>   /* Error number definitions */
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <unistd.h>
 
 #include <hamlib/rig.h>
@@ -291,7 +293,7 @@ rmode_t HAMLIB_API rig_parse_mode(const char *s)
 {
 	int i;
 
-	for (i=0 ; mode_str[i].str != ""; i++)
+	for (i=0 ; mode_str[i].str[0] != '\0'; i++)
 			if (!strcmp(s, mode_str[i].str))
 					return mode_str[i].mode;
 	return RIG_MODE_NONE;
@@ -311,7 +313,7 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 	if (mode == RIG_MODE_NONE)
 		return "";
 
-	for (i=0; mode_str[i].str != ""; i++)
+	for (i=0 ; mode_str[i].str[0] != '\0'; i++)
 		if (mode == mode_str[i].mode)
 			return mode_str[i].str;
 
@@ -346,7 +348,7 @@ vfo_t HAMLIB_API rig_parse_vfo(const char *s)
 {
 	int i;
 
-	for (i=0; vfo_str[i].str != ""; i++)
+	for (i=0 ; vfo_str[i].str[0] != '\0'; i++)
 		if (!strcmp(s, vfo_str[i].str))
 			return vfo_str[i].vfo;
 	return RIG_VFO_NONE;
@@ -366,7 +368,7 @@ const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 	if (vfo == RIG_VFO_NONE)
 		return "";
 
-	for (i=0; vfo_str[i].str != ""; i++)
+	for (i=0 ; vfo_str[i].str[0] != '\0'; i++)
 		if (vfo == vfo_str[i].vfo)
 			return vfo_str[i].str;
 
@@ -421,7 +423,7 @@ setting_t HAMLIB_API rig_parse_func(const char *s)
 {
 	int i;
 
-	for (i=0 ; func_str[i].str != ""; i++)
+	for (i=0 ; func_str[i].str[0] != '\0'; i++)
 		if (!strcmp(s, func_str[i].str))
 			return func_str[i].func;
 
@@ -442,7 +444,7 @@ const char * HAMLIB_API rig_strfunc(setting_t func)
 	if (func == RIG_FUNC_NONE)
 		return "";
 
-	for (i=0; func_str[i].str != ""; i++)
+	for (i=0; func_str[i].str[0] != '\0'; i++)
 		if (func == func_str[i].func)
 			return func_str[i].str;
 
@@ -497,7 +499,7 @@ setting_t HAMLIB_API rig_parse_level(const char *s)
 {
 	int i;
 
-	for (i=0 ; level_str[i].str != ""; i++)
+	for (i=0 ; level_str[i].str[0] != '\0'; i++)
 		if (!strcmp(s, level_str[i].str))
 			return level_str[i].level;
 
@@ -518,7 +520,7 @@ const char * HAMLIB_API rig_strlevel(setting_t level)
 	if (level == RIG_LEVEL_NONE)
 		return "";
 
-	for (i=0; level_str[i].str != ""; i++)
+	for (i=0; level_str[i].str[0] != '\0'; i++)
 		if (level == level_str[i].level)
 			return level_str[i].str;
 
@@ -550,7 +552,7 @@ setting_t HAMLIB_API rig_parse_parm(const char *s)
 {
 	int i;
 
-	for (i=0 ; parm_str[i].str != ""; i++)
+	for (i=0 ; parm_str[i].str[0] != '\0'; i++)
 		if (!strcmp(s, parm_str[i].str))
 			return parm_str[i].parm;
 
@@ -571,7 +573,7 @@ const char * HAMLIB_API rig_strparm(setting_t parm)
 	if (parm == RIG_PARM_NONE)
 		return "";
 
-	for (i=0; parm_str[i].str != ""; i++)
+	for (i=0; parm_str[i].str[0] != '\0'; i++)
 		if (parm == parm_str[i].parm)
 			return parm_str[i].str;
 
@@ -609,7 +611,7 @@ vfo_op_t HAMLIB_API rig_parse_vfo_op(const char *s)
 {
 	int i;
 
-	for (i=0 ; vfo_op_str[i].str != ""; i++)
+	for (i=0 ; vfo_op_str[i].str[0] != '\0'; i++)
 		if (!strcmp(s, vfo_op_str[i].str))
 			return vfo_op_str[i].vfo_op;
 
@@ -630,7 +632,7 @@ const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 	if (op == RIG_OP_NONE)
 		return "";
 
-	for (i=0; vfo_op_str[i].str != ""; i++)
+	for (i=0; vfo_op_str[i].str[0] != '\0'; i++)
 		if (op == vfo_op_str[i].vfo_op)
 			return vfo_op_str[i].str;
 
@@ -663,7 +665,7 @@ scan_t HAMLIB_API rig_parse_scan(const char *s)
 {
 	int i;
 
-	for (i=0 ; scan_str[i].str != ""; i++) {
+	for (i=0 ; scan_str[i].str[0] != '\0'; i++) {
 		if (strcmp(s, scan_str[i].str) == 0) {
 			return scan_str[i].rscan;
 		}
@@ -685,7 +687,7 @@ const char * HAMLIB_API rig_strscan(scan_t rscan)
 	if (rscan == RIG_SCAN_NONE)
 		return "";
 
-	for (i=0; scan_str[i].str != ""; i++)
+	for (i=0; scan_str[i].str[0] != '\0'; i++)
 		if (rscan == scan_str[i].rscan)
 			return scan_str[i].str;
 	return "";
