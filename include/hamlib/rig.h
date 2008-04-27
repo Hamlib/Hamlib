@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - API header
- *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.124 2007-11-26 20:54:11 n0nb Exp $
+ *	$Id: rig.h,v 1.125 2008-04-27 09:46:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -306,16 +306,16 @@ typedef int vfo_t;
 /** \brief '' -- used in caps */
 #define RIG_VFO_NONE    0
 
-#define RIG_VFO_TX_FLAG    ((vfo_t)(1<<30))
+#define RIG_VFO_TX_FLAG    (1<<30)
 
 /** \brief \c currVFO -- current "tunable channel"/VFO */
-#define RIG_VFO_CURR    ((vfo_t)(1<<29))
+#define RIG_VFO_CURR    (1<<29)
 
 /** \brief \c MEM -- means Memory mode, to be used with set_vfo */
-#define RIG_VFO_MEM	((vfo_t)(1<<28))
+#define RIG_VFO_MEM	(1<<28)
 
 /** \brief \c VFO -- means (last or any)VFO mode, with set_vfo */
-#define RIG_VFO_VFO	((vfo_t)(1<<27))
+#define RIG_VFO_VFO	(1<<27)
 
 #define RIG_VFO_TX_VFO(v)	((v)|RIG_VFO_TX_FLAG)
 
@@ -326,11 +326,11 @@ typedef int vfo_t;
 #define RIG_VFO_RX	RIG_VFO_CURR
 
 /** \brief \c Main -- alias for MAIN */
-#define RIG_VFO_MAIN	((vfo_t)(1<<26))
+#define RIG_VFO_MAIN	(1<<26)
 /** \brief \c Sub -- alias for SUB */
-#define RIG_VFO_SUB	((vfo_t)(1<<25))
+#define RIG_VFO_SUB	(1<<25)
 
-#define RIG_VFO_N(n) ((vfo_t)(1<<(n)))
+#define RIG_VFO_N(n) (1<<(n))
 
 /** \brief \c VFOA -- VFO A */
 #define RIG_VFO_A RIG_VFO_N(0)
@@ -870,12 +870,11 @@ struct filter_list {
 #define RIG_IS_FLT_END(f)	((f).modes == RIG_MODE_NONE)
 
 
-/*
- * Used in the channel.flags field
- */
+/** \brief Empty channel_t.flags field */
 #define RIG_CHFLAG_NONE	0
+/** \brief skip memory channel during scan (lock out), channel_t.flags */
 #define RIG_CHFLAG_SKIP	(1<<0)
-/* DATA port mode flag */
+/** \brief DATA port mode flag */
 #define RIG_CHFLAG_DATA (1<<1)
 
 /**
@@ -988,7 +987,8 @@ typedef enum {
   RIG_MTYPE_EDGE,		/*!< Scan edge */
   RIG_MTYPE_CALL,		/*!< Call channel */
   RIG_MTYPE_MEMOPAD,		/*!< Memory pad */
-  RIG_MTYPE_SAT			/*!< Satellite */
+  RIG_MTYPE_SAT,		/*!< Satellite */
+  RIG_MTYPE_PRIO		/*!< Priority channel */
 } chan_type_t;
 
 /**
@@ -1607,6 +1607,9 @@ extern HAMLIB_EXPORT(int) rig_set_mem_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t 
 extern HAMLIB_EXPORT(int) rig_get_mem_all_cb HAMLIB_PARAMS((RIG *rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t));
 extern HAMLIB_EXPORT(int) rig_set_mem_all HAMLIB_PARAMS((RIG *rig, const channel_t *chan, const struct confparams *, const value_t *));
 extern HAMLIB_EXPORT(int) rig_get_mem_all HAMLIB_PARAMS((RIG *rig, channel_t *chan, const struct confparams *, value_t *));
+extern HAMLIB_EXPORT(const chan_t *) rig_lookup_mem_caps HAMLIB_PARAMS((RIG *rig, int ch));
+extern HAMLIB_EXPORT(int) rig_mem_count HAMLIB_PARAMS((RIG *rig));
+
 
 extern HAMLIB_EXPORT(int) rig_set_trn HAMLIB_PARAMS((RIG *rig, int trn));
 extern HAMLIB_EXPORT(int) rig_get_trn HAMLIB_PARAMS((RIG *rig, int *trn));
@@ -1664,6 +1667,7 @@ extern HAMLIB_EXPORT(const char *) rig_strptrshift(rptr_shift_t);
 extern HAMLIB_EXPORT(const char *) rig_strvfop(vfo_op_t op);
 extern HAMLIB_EXPORT(const char *) rig_strscan(scan_t scan);
 extern HAMLIB_EXPORT(const char *) rig_strstatus(enum rig_status_e status);
+extern HAMLIB_EXPORT(const char *) rig_strmtype(chan_type_t mtype);
 
 extern HAMLIB_EXPORT(rmode_t) rig_parse_mode(const char *s);
 extern HAMLIB_EXPORT(vfo_t) rig_parse_vfo(const char *s);
@@ -1673,6 +1677,7 @@ extern HAMLIB_EXPORT(setting_t) rig_parse_parm(const char *s);
 extern HAMLIB_EXPORT(vfo_op_t) rig_parse_vfo_op(const char *s);
 extern HAMLIB_EXPORT(scan_t) rig_parse_scan(const char *s);
 extern HAMLIB_EXPORT(rptr_shift_t) rig_parse_rptr_shift(const char *s);
+extern HAMLIB_EXPORT(chan_type_t) rig_parse_mtype(const char *s);
 
 
 __END_DECLS
