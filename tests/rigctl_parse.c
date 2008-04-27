@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.4 2008-01-12 00:36:58 n0nb Exp $  
+ * $Id: rigctl_parse.c,v 1.5 2008-04-27 09:57:04 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -1293,9 +1293,8 @@ declare_proto_rig(scan)
 /* 'H' */
 declare_proto_rig(set_channel)
 {
-	channel_cap_t *mem_caps = NULL;
-	chan_t *chan_list;
-	int i;
+	const channel_cap_t *mem_caps = NULL;
+	const chan_t *chan_list;
 	channel_t chan;
 
 	return -RIG_ENIMPL;
@@ -1307,14 +1306,9 @@ declare_proto_rig(set_channel)
 		/*
 		 * find mem_caps in caps, we'll need it later
 		 */
-		chan_list = rig->caps->chan_list;
-		for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-			if (chan.channel_num >= chan_list[i].start &&
-					chan.channel_num <= chan_list[i].end) {
-				mem_caps = &chan_list[i].mem_caps;
-				break;
-			}
-		}
+		chan_list = rig_lookup_mem_caps(rig, chan.channel_num);
+		if (chan_list)
+			mem_caps = &chan_list->mem_caps;
 
 	} else {
 		chan.vfo = rig_parse_vfo(arg1);
