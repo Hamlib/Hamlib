@@ -3,7 +3,7 @@
  * This programs dumps the mmeory contents of a rig.
  *
  *
- *    $Id: dumpmem.c,v 1.9 2006-07-18 22:51:43 n0nb Exp $  
+ *    $Id: dumpmem.c,v 1.10 2008-04-27 09:56:06 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -148,7 +148,7 @@ int dump_chan(RIG *rig, int chan_num)
 	sprintf_freq(freqbuf,chan.tx_width);
 	printf("TXWidth: %s\n", freqbuf);
 
-	printf("Shift: %d\n", chan.rptr_shift);
+	printf("Shift: %s\n", rig_strptrshift(chan.rptr_shift));
 	sprintf_freq(freqbuf,chan.rptr_offs);
 	printf("Offset: %s%s\n", chan.rptr_offs>0?"+":"", freqbuf);
 

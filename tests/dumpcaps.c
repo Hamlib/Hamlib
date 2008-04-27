@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.45 2008-01-05 18:13:12 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.46 2008-04-27 09:56:06 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,7 +37,6 @@
 
 
 static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
-static const char *decode_mtype(chan_type_t type);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
 int ts_sanity_check(const struct tuning_step_list tuning_step[]);
 static void dump_chan_caps(const channel_cap_t *chan, FILE *fout);
@@ -280,7 +279,7 @@ int dumpcaps (RIG* rig, FILE *fout)
 	for (i=0; i<CHANLSTSIZ && caps->chan_list[i].type; i++) {
 		fprintf(fout, "\n\t%d..%d:   \t%s", caps->chan_list[i].start,
 						caps->chan_list[i].end,
-						decode_mtype(caps->chan_list[i].type));
+						rig_strmtype(caps->chan_list[i].type));
 		fprintf(fout, "\n\t  mem caps: ");
 		dump_chan_caps(&caps->chan_list[i].mem_caps, fout);
 	}
@@ -453,22 +452,6 @@ static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr)
 }
 
 
-/*
- * NB: this function is not reentrant, because of the static buf.
- * 		but who cares?  --SF
- */
-static const char *decode_mtype(chan_type_t type)
-{
-		switch(type) {
-				case RIG_MTYPE_NONE: return "NONE";
-				case RIG_MTYPE_MEM: return "MEM";
-				case RIG_MTYPE_EDGE: return "EDGE";
-				case RIG_MTYPE_CALL: return "CALL";
-				case RIG_MTYPE_MEMOPAD: return "MEMOPAD";
-				default: return "UNKNOWN";
-		}
-}
-
 /* 
  * check for:
  * - start_freq<end_freq	return_code=-1
@@ -558,14 +541,14 @@ static void dump_chan_caps(const channel_cap_t *chan, FILE *fout)
   if (chan->tuning_step) fprintf(fout, "TS ");
   if (chan->rit) fprintf(fout, "RIT ");
   if (chan->xit) fprintf(fout, "XIT ");
-  if (chan->funcs) fprintf(fout, "FUNC ");
-  if (chan->levels) fprintf(fout, "LEVEL ");
+  if (chan->funcs) fprintf(fout, "FUNC "); /* TODO: iterate over the list */
+  if (chan->levels) fprintf(fout, "LEVEL "); /* TODO: iterate over the list */
   if (chan->ctcss_tone) fprintf(fout, "TONE ");
   if (chan->ctcss_sql) fprintf(fout, "CTCSS ");
   if (chan->dcs_code) fprintf(fout, "DCSCODE ");
   if (chan->dcs_sql) fprintf(fout, "DCSSQL ");
   if (chan->scan_group) fprintf(fout, "SCANGRP ");
-  if (chan->flags) fprintf(fout, "FLAG ");    /* RIG_CHFLAG's */
+  if (chan->flags) fprintf(fout, "FLAG "); /* TODO: iterate over the RIG_CHFLAG's */
   if (chan->channel_desc) fprintf(fout, "NAME ");
   if (chan->ext_levels) fprintf(fout, "EXTLVL ");
 }

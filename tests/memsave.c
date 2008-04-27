@@ -1,8 +1,9 @@
 /*
  * memsave.c - Copyright (C) 2003-2005 Thierry Leconte
+ *             Copyright (C) 2008 Stephane Fillod
  *
  *
- *	$Id: memsave.c,v 1.10 2006-10-07 19:56:57 csete Exp $  
+ *	$Id: memsave.c,v 1.11 2008-04-27 09:56:06 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
 
 #include <hamlib/rig.h>
 #include "misc.h"
@@ -87,6 +89,8 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 	char attrbuf[20];
 	xmlNodePtr root = arg;
 	xmlNodePtr node = NULL;
+	int i;
+	const char *mtype;
 
 	static channel_t chan;
 	const channel_cap_t *mem_caps = &chan_list->mem_caps;
@@ -101,26 +105,16 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 
 		return RIG_OK;
 	}
-	
-	switch (chan_list->type) {
-		case   RIG_MTYPE_NONE :
-			return RIG_OK;
-		case  RIG_MTYPE_MEM:
-			node=xmlNewChild(root,NULL,(unsigned char *) "mem",NULL);
-			break;
-		case  RIG_MTYPE_EDGE:
-			node=xmlNewChild(root,NULL,(unsigned char *) "edge",NULL);
-			break;
-		case  RIG_MTYPE_CALL:
-			node=xmlNewChild(root,NULL,(unsigned char *) "call",NULL);
-			break;
-		case  RIG_MTYPE_MEMOPAD:
-			node=xmlNewChild(root,NULL,(unsigned char *) "memopad",NULL);
-			break;
-		case  RIG_MTYPE_SAT:
-			node=xmlNewChild(root,NULL,(unsigned char *) "sat",NULL);
-			break;
-	}
+
+	if (chan_list->type == RIG_MTYPE_NONE)
+		return RIG_OK;
+
+	mtype = rig_strmtype(chan_list->type);
+	for (i=0; i<strlen(mtype); i++)
+		attrbuf[i] = tolower(mtype[i]);
+	attrbuf[i] = '\0';
+
+	node=xmlNewChild(root,NULL,(unsigned char *)attrbuf,NULL);
 
 	if (mem_caps->bank_num) {
 		sprintf(attrbuf,"%d",chan.bank_num);
@@ -177,23 +171,9 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 		}
 	}
 	if (mem_caps->rptr_shift && chan.rptr_shift!=RIG_RPT_SHIFT_NONE) {
-		switch(chan.rptr_shift) {
-		case RIG_RPT_SHIFT_NONE:
-				xmlNewProp(node,
-                                           (unsigned char *) "rptr_shift",
-                                           (unsigned char *) "=");
-				break;
-		case RIG_RPT_SHIFT_PLUS:
-				xmlNewProp(node,
-                                           (unsigned char *) "rptr_shift",
-                                           (unsigned char *) "+");
-				break;
-		case RIG_RPT_SHIFT_MINUS:
-				xmlNewProp(node,
-                                           (unsigned char *) "rptr_shift",
-                                           (unsigned char *) "-");
-				break;
-		}
+		xmlNewProp(node,
+			   (unsigned char *) "rptr_shift",
+			   (unsigned char *) rig_strptrshift(chan.rptr_shift));
 		if (mem_caps->rptr_offs && (int)chan.rptr_offs!=0) {
 			sprintf(attrbuf,"%d",(int)chan.rptr_offs);
 			xmlNewProp(node,
