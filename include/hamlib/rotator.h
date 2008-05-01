@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.14 2006-10-15 00:26:47 aa6e Exp $
+ *	$Id: rotator.h,v 1.15 2008-05-01 12:19:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -338,7 +338,7 @@ extern HAMLIB_EXPORT(double) distance_long_path HAMLIB_PARAMS((double distance))
 extern HAMLIB_EXPORT(double) azimuth_long_path HAMLIB_PARAMS((double azimuth));
 
 extern HAMLIB_EXPORT(int) longlat2locator HAMLIB_PARAMS((double longitude,
-						double latitude, char *locator, int pair_count));
+						double latitude, char *locator_res, int pair_count));
 extern HAMLIB_EXPORT(int) locator2longlat HAMLIB_PARAMS((double *longitude, 
 						double *latitude, const char *locator));
 
