@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.125 2008-04-27 09:46:35 fillods Exp $
+ *	$Id: rig.h,v 1.126 2008-05-01 12:32:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1013,6 +1013,8 @@ struct chan_list {
 
 #define RIG_CHAN_END     {0,0,RIG_MTYPE_NONE}
 #define RIG_IS_CHAN_END(c)	((c).type == RIG_MTYPE_NONE)
+/** \brief Special memory channel value to tell rig_lookup_mem_caps() to retrieve all the ranges */
+#define RIG_MEM_CAPS_ALL -1
 
 /** \brief chan_t type */
 typedef struct chan_list chan_t;

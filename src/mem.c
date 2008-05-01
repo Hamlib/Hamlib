@@ -16,7 +16,7 @@
  *  Hamlib Interface - mem/channel calls
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: mem.c,v 1.13 2008-04-27 09:51:24 fillods Exp $
+ *	$Id: mem.c,v 1.14 2008-05-01 12:32:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1015,7 +1015,9 @@ int HAMLIB_API rig_get_mem_all (RIG *rig, channel_t chans[], const struct confpa
  * \param rig	The rig handle
  * \param ch	The memory channel number
  *
- *  Lookup the memory type and capabilities associated with a channel number
+ *  Lookup the memory type and capabilities associated with a channel number.
+ *  If \a ch equals RIG_MEM_CAPS_ALL, then a union of all the mem_caps sets
+ *  is returned (pointer to static memory).
  *
  * \return a pointer to a chan_t structure if the operation has been sucessful,
  * otherwise a NULL pointer, most probably because of incorrect channel number
@@ -1025,10 +1027,36 @@ int HAMLIB_API rig_get_mem_all (RIG *rig, channel_t chans[], const struct confpa
 const chan_t * HAMLIB_API rig_lookup_mem_caps(RIG *rig, int ch)
 {
 	chan_t *chan_list;
-	int i;
+	static chan_t chan_list_all;
+	int i, j;
 
 	if (CHECK_RIG_ARG(rig))
 		return NULL;
+
+	if (ch == RIG_MEM_CAPS_ALL)
+	{
+		memset (&chan_list_all, 0, sizeof(chan_list_all));
+		chan_list = rig->state.chan_list;
+		chan_list_all.start = chan_list[0].start;
+		chan_list_all.type = RIG_MTYPE_NONE;	/* meaningless */
+		for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+
+			unsigned char *p1, *p2;
+			p1=(unsigned char*)&chan_list_all.mem_caps;
+			p2=(unsigned char*)&chan_list[i].mem_caps;
+			/* It's kind of hackish, we just want to do update set with:
+			 * 	chan_list_all.mem_caps |= chan_list[i].mem_caps
+			 */
+			for (j=0; j<sizeof(channel_cap_t); j++) {
+				p1[j] |= p2[j];
+			}
+
+			/* til the end, most probably meaningless */
+			chan_list_all.end = chan_list[i].end;
+		}
+
+		return &chan_list_all;
+	}
 
 	chan_list = rig->state.chan_list;
 	for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
