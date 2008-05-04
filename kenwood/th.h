@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH handheld header
- *  Copyright (c) 2001-2005 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: th.h,v 1.10 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: th.h,v 1.11 2008-05-04 21:27:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,7 +23,7 @@
 #define __TH_H__ 1
 #include "idx_builtin.h"
 
-#define TH_VER "0.2"
+#define TH_VER "0.3"
 
 extern int th_transaction (RIG *rig, const char *cmdstr, char *data, size_t datasize);
 extern int th_decode_event (RIG *rig);
@@ -52,15 +52,20 @@ extern int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 extern int th_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 extern int th_get_channel(RIG *rig, channel_t *chan);
 extern int th_set_channel(RIG *rig, const channel_t *chan);
+extern int th_set_ant (RIG * rig, vfo_t vfo, ant_t ant);
+extern int th_get_ant (RIG * rig, vfo_t vfo, ant_t * ant);
+
 
 #define TH_CHANNEL_CAPS \
 .freq=1,\
 .tx_freq=1,\
+.split=1,\
 .mode=1,\
 .width=1,\
 .tuning_step=1,\
 .rptr_shift=1,\
 .rptr_offs=1,\
+.funcs=RIG_FUNC_REV,\
 .ctcss_tone=1,\
 .ctcss_sql=1,\
 .channel_desc=1

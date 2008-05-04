@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH handheld primitives
- *  Copyright (c) 2001-2005 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: th.c,v 1.30 2006-04-13 19:43:49 pa4tu Exp $
+ *	$Id: th.c,v 1.31 2008-05-04 21:27:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,15 +44,6 @@ const struct kenwood_priv_caps  th_priv_caps  = {
 
 #define EOM EOM_TH
 
-/*
- * modes in use by the "MD" command
- */
-#define MD_FM	'0'
-#define MD_WFM	'1'		/* or is it AM on the THD7? */
-#define MD_AM	'2'
-#define MD_LSB	'3'
-#define MD_USB	'4'
-#define MD_CW	'5'
 
 #define ACKBUF_LEN  64
 
@@ -249,6 +240,8 @@ th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char kmode, mdbuf[24], ackbuf[ACKBUF_LEN];
     int retval;
     size_t ack_len;
+    const struct kenwood_priv_caps *priv=(const struct kenwood_priv_caps *)rig->caps->priv;
+
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
       if(vfo!=RIG_VFO_CURR) {
@@ -256,19 +249,31 @@ th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_ENTARGET;
 	}
 
-    /* TODO: Find from rig->caps what modes can be supported. */
+    if (priv->mode_table)
+    {
+	    kmode = rmode2kenwood(mode, priv->mode_table);
+	    if (kmode == -1) {
+            	rig_debug(RIG_DEBUG_WARN, "%s: Unsupported Mode value '%s'\n",
+				__FUNCTION__, rig_strrmode(mode));
+            	return -RIG_EINVAL;
+	    }
+	    kmode += '0';
+    }
+    else
+    {
 	switch (mode) {
-    case RIG_MODE_FM:   kmode = '0'; break; /* TH-D7A(G) modes */
-    case RIG_MODE_AM:   kmode = '1'; break;
+    	case RIG_MODE_FM:   kmode = '0'; break; /* TH-D7A(G) modes */
+	case RIG_MODE_AM:   kmode = '1'; break;
 	default:
         rig_debug(RIG_DEBUG_ERR,"%s: Unsupported Mode %d\n", __FUNCTION__, mode);
 		return -RIG_EINVAL;
 	}
+    }
 
     sprintf(mdbuf, "MD %c" EOM, kmode);
     ack_len = 0;
     retval = kenwood_transaction (rig, mdbuf, strlen(mdbuf), ackbuf, &ack_len);
-	if (retval != RIG_OK)
+    if (retval != RIG_OK)
         return retval;
 
     return RIG_OK;
@@ -284,6 +289,8 @@ th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     char vch, ackbuf[ACKBUF_LEN];
     int retval;
     size_t ack_len=ACKBUF_LEN;
+    const struct kenwood_priv_caps *priv=(const struct kenwood_priv_caps *)rig->caps->priv;
+
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
       if(vfo!=RIG_VFO_CURR) {
@@ -302,6 +309,17 @@ th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         return -RIG_ERJCTED;
     }
 
+    if (priv->mode_table)
+    {
+	    *mode = kenwood2rmode(ackbuf[3], priv->mode_table);
+	    if (*mode == RIG_MODE_NONE) {
+            	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Mode value '%c'\n",
+				__FUNCTION__, ackbuf[3]);
+            	return -RIG_EINVAL;
+	    }
+    }
+    else
+    {
 	switch (ackbuf[3]) {
         case '0': *mode = RIG_MODE_FM; break;     /* TH-D7A(G) modes */
         case '1': *mode = RIG_MODE_AM; break;
@@ -309,10 +327,12 @@ th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Mode value '%c'\n", __FUNCTION__, ackbuf[3]);
             return -RIG_EINVAL;
 	}
+    }
 
     if (width)
         *width = RIG_PASSBAND_NORMAL;
-	return RIG_OK;
+
+    return RIG_OK;
 }
 
 /*
@@ -339,7 +359,10 @@ th_set_vfo (RIG *rig, vfo_t vfo)
             sprintf(vfobuf, "VMC 0,0" EOM);
             break;
         case RIG_VFO_MEM:
-            sprintf(vfobuf, "VMC 0,2" EOM);
+    	    if (rig->caps->rig_model == RIG_MODEL_THF7E)
+            	sprintf(vfobuf, "VMC 0,1" EOM);
+	    else
+            	sprintf(vfobuf, "VMC 0,2" EOM);
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
@@ -1054,7 +1077,7 @@ int th_get_powerstat(RIG *rig, powerstat_t *status)
 	size_t pwr_len = 50;
 	int retval;
 
-	retval = kenwood_transaction (rig, "PS;", 3, pwrbuf, &pwr_len);
+	retval = kenwood_transaction (rig, "PS" EOM, 3, pwrbuf, &pwr_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -1149,15 +1172,8 @@ int th_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
         return RIG_OK;
 }
 
-/* get and set channel tested on thg71   	*/
+/* get and set channel tested on thg71&thf7e   	*/
 /* must work on other th and tm kenwood rigs	*/
-/* Beware : special numbering scheme :		*/
-/* 0-199 : normal memories			*/
-/* 200-209 : scan lower limit memories L	*/
-/* 210-219 : scan upper limit memories U	*/
-/* 220     : Priority channel 			*/
-/* 221-222 : Call channel 			*/
-/* 223-231 : Band vfo mem 			*/
 /* --------------------------------------------------------------------- */
 int th_get_channel(RIG *rig, channel_t *chan)
 {
@@ -1166,33 +1182,71 @@ int th_get_channel(RIG *rig, channel_t *chan)
     size_t ack_len;
     freq_t freq,offset;
     char req[16],scf[128];
-    int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
+    int step, shift, rev, tone, ctcss, tonefq, ctcssfq, dcs, dcscode, mode, lockout;
+    const char *mr_extra;
+    int channel_num;
+    vfo_t vfo;
+    const struct kenwood_priv_caps *priv=(const struct kenwood_priv_caps *)rig->caps->priv;
+    const chan_t *chan_caps;
+   
+    if (chan->vfo == RIG_VFO_MEM)
+    {
+    	chan_caps = rig_lookup_mem_caps(rig, chan->channel_num);
+	if (!chan_caps)
+		return -RIG_ECONF;
+    }
 
-    if(chan->channel_num<200)
-    	sprintf(req,"MR 0,0,%03d",chan->channel_num);
+    channel_num = chan->channel_num;
+    vfo = chan->vfo;
+    memset(chan, 0, sizeof(channel_t));
+    chan->channel_num = channel_num;
+    chan->vfo = vfo;
+
+    if (rig->caps->rig_model == RIG_MODEL_THF7E)
+	    mr_extra = "";
     else
-    if(chan->channel_num<210) {
-    	sprintf(req,"MR 0,0,L%01d",chan->channel_num-200);
-        sprintf(chan->channel_desc,"L%01d",chan->channel_num-200);
-    } else
-    if(chan->channel_num<220) {
-   	sprintf(req,"MR 0,0,U%01d",chan->channel_num-210);
-        sprintf(chan->channel_desc,"U%01d",chan->channel_num-210);
-    } else
-    if(chan->channel_num==220) {
-   	sprintf(req,"MR 0,0,PR");
-        sprintf(chan->channel_desc,"Pr");
-    } else
-    if(chan->channel_num<223) {
-    	sprintf(req,"CR 0,%01d",chan->channel_num-221);
-        if(chan->channel_num==221) sprintf(chan->channel_desc,"Call V");
-        if(chan->channel_num==222) sprintf(chan->channel_desc,"Call U");
-    } else
-    if(chan->channel_num<232) {
-    	sprintf(req,"VR %01d",chan->channel_num-222);
-        sprintf(chan->channel_desc,"BAND %01d",chan->channel_num-222);
-    } else
-	return -RIG_EINVAL;
+	    mr_extra = "0,";
+
+    channel_num -= chan_caps->start;
+    switch (chan_caps->type) {
+	    case RIG_MTYPE_MEM:
+		if (chan_caps[1].type == RIG_MTYPE_PRIO) {
+			/* Info */
+    			sprintf(req,"MR %s0,I-%01d",mr_extra,channel_num);
+		} else
+    			sprintf(req,"MR %s0,%03d",mr_extra,channel_num);
+		break;
+	    case RIG_MTYPE_EDGE:
+		if (chan_caps[1].type == RIG_MTYPE_EDGE) {
+    			sprintf(req,"MR %s0,L%01d",mr_extra,channel_num);
+        		sprintf(chan->channel_desc,"L%01d",channel_num);
+		} else {
+   			sprintf(req,"MR %s0,U%01d",mr_extra,channel_num);
+        		sprintf(chan->channel_desc,"U%01d",channel_num);
+		}
+		break;
+	    case RIG_MTYPE_PRIO:
+		if (chan_caps->start == chan_caps->end) {
+   			sprintf(req,"MR %s0,PR",mr_extra);
+        		sprintf(chan->channel_desc,"Pr");
+		} else {
+   			sprintf(req,"MR %s0,PR%01d",mr_extra,channel_num+1);
+        		sprintf(chan->channel_desc,"Pr%01d",channel_num+1);
+		}
+		break;
+	    case RIG_MTYPE_CALL:
+    		sprintf(req,"CR 0,%01d",channel_num);
+        	if(chan->channel_num==chan_caps->start) sprintf(chan->channel_desc,"Call V");
+		else if(chan->channel_num==chan_caps->end) sprintf(chan->channel_desc,"Call U");
+		else sprintf(chan->channel_desc,"Call");
+		break;
+	    case RIG_MTYPE_BAND:
+		sprintf(req,"VR %01X",channel_num);
+		sprintf(chan->channel_desc,"BAND %01X",channel_num);
+		break;
+	    default:
+		return -RIG_EINVAL;
+    }
 
     sprintf(membuf,"%s"EOM,req);
     ack_len=ACKBUF_LEN;
@@ -1200,22 +1254,64 @@ int th_get_channel(RIG *rig, channel_t *chan)
         if (retval != RIG_OK)
         	return retval;
 
-    strcpy(scf,req);
-    strcat(scf,",%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq);
-    retval = sscanf(ackbuf, scf,
-                    &freq, &step, &shift, &rev, &tone,
-                    &ctcss, &tonefq, &ctcssfq, &offset);
+    /*
+     * TODO: dcs/mode/lockout are not there on TH-G71
+     */
+    mode = RIG_MODE_NONE;
+    rev = lockout = dcs = dcscode = 0;
 
+    strcpy(scf,req);
+    if (chan_caps->mem_caps.dcs_sql)
+    {
+	/* Step can be hexa
+	 * Lockout is optional on some channels
+	 */
+    	strcat(scf,",%"SCNfreq",%x,%d,%d,%d,%d,%d,%d,%d,%d,%"SCNfreq",%d,%d");
+	retval = sscanf(ackbuf, scf,
+                    &freq, &step, &shift, &rev, &tone,
+                    &ctcss, &dcs, &tonefq, &ctcssfq, &dcscode,
+		    &offset, &mode, &lockout
+		    );
+    	if (retval < 12) {
+    		rig_debug(RIG_DEBUG_WARN, "%s: sscanf failed %d\n", __FUNCTION__, retval);
+		return -RIG_EPROTO;
+	}
+    }
+    else
+    {
+	strcat(scf,",%"SCNfreq",%x,%d,%d,%d,%d,,%d,,%d,%"SCNfreq);
+	retval = sscanf(ackbuf, scf,
+                    &freq, &step, &shift, &rev, &tone,
+		    &ctcss, &tonefq, &ctcssfq, &offset);
+    	if (retval != 9) {
+    		rig_debug(RIG_DEBUG_WARN, "%s: sscanf failed %d\n", __FUNCTION__, retval);
+	}
+    }
+
+    chan->funcs = rev ? RIG_FUNC_REV : 0;
+    chan->flags = lockout ? RIG_CHFLAG_SKIP : 0;
     chan->freq=freq;
     chan->vfo=RIG_VFO_MEM;
     chan->tuning_step=rig->state.tuning_steps[step].ts;
-    if(freq <MHz(136) )  {
-		chan->mode=RIG_MODE_AM;
-		chan->width=kHz(9);
-    } else {
-		chan->mode=RIG_MODE_FM;
-		chan->width=kHz(12);
+
+    if (priv->mode_table) {
+	    chan->mode = kenwood2rmode(mode, priv->mode_table);
+	    if (chan->mode == RIG_MODE_NONE) {
+            	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Mode value '%d'\n",
+				__FUNCTION__, mode);
+            	return -RIG_EPROTO;
+	    }
     }
+    else
+    {
+	/* No mode info (TH-G71, TMV7,..),
+	 * guess it from current freq
+	 */
+    	chan->mode = (freq < MHz(136)) ? RIG_MODE_AM : RIG_MODE_FM;
+    }
+
+    chan->width=rig_passband_normal(rig, chan->mode);
+
     switch(shift) {
 	case 0 :
 		chan->rptr_shift=RIG_RPT_SHIFT_NONE;
@@ -1225,22 +1321,37 @@ int th_get_channel(RIG *rig, channel_t *chan)
 		break;
 	case 2 :
 		chan->rptr_shift=RIG_RPT_SHIFT_MINUS;
+		offset = -offset;
 		break;
+	default:
+            	rig_debug(RIG_DEBUG_ERR, "%s: not supported shift %d\n",
+				__FUNCTION__, shift);
+		chan->rptr_shift=RIG_RPT_SHIFT_NONE;
     }
     chan->rptr_offs=offset;
 
+    /* FIXME: ctcss_list for t[fm]*.c */
+	 //chan->ctcss_tone=rig->caps->ctcss_list[tonefq==1?0:tonefq-2];
+	 // chan->ctcss_sql=rig->caps->ctcss_list[ctcssfq==1?0:ctcssfq-2];
     if(tone)
-	 chan->ctcss_tone=rig->caps->ctcss_list[tonefq==1?0:tonefq-2];
+	 chan->ctcss_tone=rig->caps->ctcss_list[tonefq];
     else
 	 chan->ctcss_tone=0;
     if(ctcss)
-	 chan->ctcss_sql=rig->caps->ctcss_list[ctcssfq==1?0:ctcssfq-2];
+	 chan->ctcss_sql=rig->caps->ctcss_list[ctcssfq];
     else
 	 chan->ctcss_sql=0;
+    if(dcs)
+	 chan->dcs_sql=chan->dcs_code=rig->caps->dcs_list[dcscode];
+    else
+	 chan->dcs_sql=chan->dcs_code=0;
 
     chan->tx_freq=RIG_FREQ_NONE;
-    if(chan->channel_num<223 && shift==0) {
-	req[5]='1';
+    if(shift==RIG_RPT_SHIFT_NONE && 
+		    ((chan_caps->type==RIG_MTYPE_MEM && chan_caps->start == 0) ||
+			    chan_caps->type==RIG_MTYPE_CALL)) {
+    	/* split ? */
+	req[3+strlen(mr_extra)]='1';
         sprintf(membuf,"%s"EOM,req);
         ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
@@ -1249,19 +1360,39 @@ int th_get_channel(RIG *rig, channel_t *chan)
     		strcat(scf,",%"SCNfreq",%d");
     		retval = sscanf(ackbuf, scf, &freq, &step);
 		chan->tx_freq=freq;
+		chan->split=RIG_SPLIT_ON;
 	}
     }
 
-    if(chan->channel_num<200) {
-    	sprintf(membuf,"MNA 0,%03d"EOM,chan->channel_num);
+    /* If not set already by special channels.. */
+    if(chan->channel_desc[0] == '\0') {
+	if (chan_caps[1].type == RIG_MTYPE_PRIO)
+    		sprintf(membuf,"MNA %sI-%01d"EOM,mr_extra,channel_num);
+	else
+    		sprintf(membuf,"MNA %s%03d"EOM,mr_extra,channel_num);
         ack_len=ACKBUF_LEN;
+	/* Get memory name */
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
-        memcpy(chan->channel_desc,&ackbuf[10],7);
+	if (ack_len > rig->caps->chan_desc_sz)
+		ack_len = rig->caps->chan_desc_sz;
+        strncpy(chan->channel_desc,ackbuf+strlen(membuf),ack_len);
+	chan->channel_desc[ack_len] = '\0';
     }
 
     return RIG_OK;
+}
+
+static int find_tone_index(const tone_t *tone_list, tone_t tone)
+{
+	int i;
+
+    	for (i = 0; tone_list[i] != 0 && i < RIG_TONEMAX; i++) {
+		if (tone_list[i] == tone)
+			return i;
+	}
+	return -1;
 }
 
 /* --------------------------------------------------------------------- */
@@ -1271,11 +1402,14 @@ int th_set_channel(RIG *rig, const channel_t *chan)
     int retval;
     size_t ack_len;
     char req[64];
-    long freq,offset;   
-    int chn, step, shift, tone, ctcss, tonefq, ctcssfq;
+    char lockoutstr[8];
+    int channel_num, step, shift, rev, tone, ctcss, tonefq, ctcssfq, dcs, dcscode, mode, lockout;
+    const char *mr_extra;
+    const struct kenwood_priv_caps *priv=(const struct kenwood_priv_caps *)rig->caps->priv;
+    const chan_t *chan_caps;
+    const char *channel_desc;
 
-    chn=chan->channel_num;
-    freq=(long long)chan->freq;
+    channel_num = chan->channel_num;
 
     for(step=0; rig->state.tuning_steps[step].ts!=0;step++)
 	if(chan->tuning_step==rig->state.tuning_steps[step].ts) break;
@@ -1291,83 +1425,205 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 		shift=2;
 		break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: not supported shift\n", __FUNCTION__);
+            rig_debug(RIG_DEBUG_ERR, "%s: not supported shift %d\n",
+			    __FUNCTION__, chan->rptr_shift);
             return -RIG_EINVAL;
     }
-    offset=chan->rptr_offs;
-    
+
     if(chan->ctcss_tone==0) {
-	 tone=0;tonefq=9;
+	 tone=0;tonefq=8;
     } else {
-	 tone=1;
-    	for (tonefq = 0; rig->caps->ctcss_list[tonefq] != 0 && tonefq < RIG_TONEMAX; tonefq++) {
-		if (rig->caps->ctcss_list[tonefq] == chan->ctcss_tone)
-			break;
-	}
-	tonefq=tonefq==0?1:tonefq+2;
+	tone=1;
+	tonefq = find_tone_index(rig->caps->ctcss_list, chan->ctcss_tone);
+	if (tonefq == -1)
+		return -RIG_EINVAL;
+	tonefq++;
     }
     if(chan->ctcss_sql==0) {
-	ctcss=0;ctcssfq=9;
+	ctcss=0;ctcssfq=8;
     } else {
-	 ctcss=1;
-    	for (ctcssfq = 0; rig->caps->ctcss_list[ctcssfq] != 0 && ctcssfq < RIG_TONEMAX; ctcssfq++) {
-		if (rig->caps->ctcss_list[ctcssfq] == chan->ctcss_sql)
-			break;
-	}
-	 ctcssfq=ctcssfq==0?1:ctcssfq+2;
+	ctcss=1;
+	ctcssfq = find_tone_index(rig->caps->ctcss_list, chan->ctcss_sql);
+	if (tonefq == -1)
+		return -RIG_EINVAL;
+	ctcssfq++;
     }
 
-    if(chan->channel_num<200)
-    	sprintf(req,"MW 0,0,%03d",chan->channel_num);
-    else
-    if(chan->channel_num<210) {
-    	sprintf(req,"MW 0,0,L%01d",chan->channel_num-200);
-    } else
-    if(chan->channel_num<220) {
-   	sprintf(req,"MW 0,0,U%01d",chan->channel_num-210);
-    } else
-    if(chan->channel_num==220) {
-   	sprintf(req,"MW 0,0,PR");
-    } else
-    if(chan->channel_num<223) {
-    	sprintf(req,"CW 0,%01d",chan->channel_num-221);
-    } else
-    if(chan->channel_num<232) {
-    	sprintf(req,"VW %01d",chan->channel_num-222);
-    } else
-	return -RIG_EINVAL;
+    if(chan->dcs_code==0 && chan->dcs_sql==0) {
+	dcs=0;dcscode=0;
+    } else {
+	dcs=1;
+	dcscode = find_tone_index(rig->caps->dcs_list, chan->dcs_sql);
+	if (dcscode == -1)
+		return -RIG_EINVAL;
+    }
 
-    if(chan->channel_num<=220)
-    sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll",0"EOM,
-                    req,(long)freq, step, shift, tone,
-                    ctcss, tonefq, ctcssfq, (long long)offset);
-    else
-    sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,,%02d,,%02d,%09"PRIll EOM,
-                    req, (long)freq, step, shift, tone,
-                    ctcss, tonefq, ctcssfq, (long long)offset);
+    if (chan->vfo == RIG_VFO_MEM)
+    {
+    	chan_caps = rig_lookup_mem_caps(rig, chan->channel_num);
+	if (!chan_caps)
+		return -RIG_ECONF;
+    }
 
-    ack_len = 0;
+    if (rig->caps->rig_model == RIG_MODEL_THF7E)
+	    mr_extra = "";
+    else
+	    mr_extra = "0,";
+
+    channel_num -= chan_caps->start;
+    channel_desc = NULL;
+    switch (chan_caps->type) {
+	    case RIG_MTYPE_MEM:
+		if (chan_caps[1].type == RIG_MTYPE_PRIO) {
+			/* Info */
+    			sprintf(req,"MW %s0,I-%01d",mr_extra,channel_num);
+    			channel_desc = chan->channel_desc;
+		} else {
+			/* Regular */
+    			sprintf(req,"MW %s0,%03d",mr_extra,channel_num);
+    			channel_desc = chan->channel_desc;
+		}
+		break;
+	    case RIG_MTYPE_EDGE:
+		if (chan_caps[1].type == RIG_MTYPE_EDGE) {
+    			sprintf(req,"MW %s0,L%01d",mr_extra,channel_num);
+		} else {
+   			sprintf(req,"MW %s0,U%01d",mr_extra,channel_num);
+		}
+		break;
+	    case RIG_MTYPE_PRIO:
+		if (chan_caps->start == chan_caps->end) {
+   			sprintf(req,"MW %s0,PR",mr_extra);
+		} else {
+   			sprintf(req,"MW %s0,PR%01d",mr_extra,channel_num+1);
+		}
+		break;
+	    case RIG_MTYPE_CALL:
+    		sprintf(req,"CW 0,%01d",channel_num);
+		break;
+	    case RIG_MTYPE_BAND:
+    		sprintf(req,"VW %01X",channel_num);
+		break;
+	    default:
+		return -RIG_EINVAL;
+    }
+
+    rev = chan->funcs & RIG_FUNC_REV ? 1 : 0;
+    lockout = chan->flags & RIG_CHFLAG_SKIP ? 1 : 0;
+
+    if (chan_caps->mem_caps.flags)
+	    sprintf(lockoutstr, ",%d", lockout);
+    else
+	    strcpy(lockoutstr, "");
+
+    if (chan_caps->mem_caps.flags && chan_caps->mem_caps.dcs_sql)
+    {
+	if (!priv->mode_table) {
+		rig_debug(RIG_DEBUG_ERR, "%s: Buggy backend, no mode_table '%d'\n",
+				__FUNCTION__, chan->mode);
+		return -RIG_ENIMPL;
+	}
+	mode = rmode2kenwood(chan->mode, priv->mode_table);
+	if (mode == -1) {
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Mode value '%d'\n",
+				__FUNCTION__, chan->mode);
+		return -RIG_EINVAL;
+	}
+
+	/* Step can be hexa */
+	retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%s"EOM,
+			req, (long long)chan->freq, step, shift, rev, tone,
+                    	ctcss, dcs, tonefq, ctcssfq, dcscode,
+			(long long)abs(chan->rptr_offs), mode, lockoutstr
+			);
+    }
+    else
+    {
+	/* Without DCS,mode */
+	retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s" EOM,
+			req, (long long)chan->freq, step, shift, rev, tone,
+                    	ctcss, tonefq, ctcssfq, 
+			(long long)abs(chan->rptr_offs), lockoutstr
+			);
+    }
+
+    ack_len = ACKBUF_LEN;
     retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
-        if (retval != RIG_OK)
-        	return retval;
+    if (retval != RIG_OK)
+	return retval;
 
-    if(chan->channel_num<223 && chan->tx_freq!=RIG_FREQ_NONE) {
-	req[5]='1';
-    	sprintf(membuf, "%s,%011"PRIll",%01d"EOM, req,(long long)chan->tx_freq, step);
-        ack_len=0;
+    /* split ? */
+    if (chan->tx_freq!=RIG_FREQ_NONE && 
+		    ((chan_caps->type==RIG_MTYPE_MEM && chan_caps->start == 0) ||
+			    chan_caps->type==RIG_MTYPE_CALL)) {
+	req[3+strlen(mr_extra)]='1';
+    	sprintf(membuf, "%s,%011"PRIll",%X"EOM, req,(long long)chan->tx_freq, step);
+        ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
     }
 
-    if(chan->channel_num<200) {
-    	ack_len=0;
-    	sprintf(membuf,"MNA 0,%03d,%s"EOM,chan->channel_num,chan->channel_desc);
+    if(channel_desc) {
+	/* Memory name */
+        ack_len=ACKBUF_LEN;
+	/* TODO: check strlen(channel_desc) < rig->caps->chan_desc_sz */
+	if (chan_caps[1].type == RIG_MTYPE_PRIO)
+    		sprintf(membuf,"MNA %sI-%01d,%s"EOM,mr_extra,channel_num,channel_desc);
+	else
+    		sprintf(membuf,"MNA %s%03d,%s"EOM,mr_extra,channel_num,channel_desc);
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
     }
 
     return RIG_OK;
+}
+
+/*
+ * set the aerial/antenna to use
+ */
+int th_set_ant (RIG * rig, vfo_t vfo, ant_t ant)
+{
+  char ackbuf[50];
+  const char *cmd;
+  size_t ack_len = 0;
+
+  switch (ant) {
+	  case RIG_ANT_1:
+		cmd = "ANT 0"EOM;
+	  case RIG_ANT_2:
+		cmd = "ANT 1"EOM;
+	  case RIG_ANT_3:
+		cmd = "ANT 2"EOM;
+	  default:
+		return -RIG_EINVAL;
+  }
+
+  return kenwood_transaction (rig, cmd, strlen(cmd), ackbuf, &ack_len);
+}
+
+
+/*
+ * get the aerial/antenna  in use
+ */
+int th_get_ant (RIG * rig, vfo_t vfo, ant_t * ant)
+{
+  char ackbuf[50];
+  size_t ack_len = 50;
+  int retval;
+
+  retval = kenwood_transaction (rig, "ANT"EOM, 4, ackbuf, &ack_len);
+  if (RIG_OK != retval)
+    return retval;
+  if (4 != ack_len)
+    return -RIG_EPROTO;
+
+  if (ackbuf[2] <= '0' || ackbuf[2] > '9')
+      return -RIG_EPROTO;
+
+  *ant = RIG_ANT_N(ackbuf[2]-'0');
+
+  return RIG_OK;
 }
 
