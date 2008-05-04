@@ -4,6 +4,8 @@
 /* useless macros */
 %ignore _RIG_H;
 %ignore _RIGLIST_H;
+%ignore _ROTLIST_H;
+%ignore _ROTATOR_H;
 %ignore RIG_DUMMY;
 %ignore RIG_BACKEND_DUMMY;
 %ignore RIG_YAESU;
@@ -46,6 +48,35 @@
 %ignore RIG_BACKEND_RPC;
 %ignore RIG_GNURADIO;
 %ignore RIG_BACKEND_GNURADIO;
+%ignore RIG_MICROTUNE;
+%ignore RIG_BACKEND_MICROTUNE;
+%ignore RIG_TAPR;
+%ignore RIG_BACKEND_TAPR;
+%ignore RIG_FLEXRADIO;
+%ignore RIG_BACKEND_FLEXRADIO;
+%ignore RIG_RFT;
+%ignore RIG_BACKEND_RFT;
+%ignore RIG_KIT;
+%ignore RIG_BACKEND_KIT;
+%ignore RIG_TUNER;
+%ignore RIG_BACKEND_TUNER;
+
+%ignore ROT_DUMMY;
+%ignore ROT_BACKEND_DUMMY;
+%ignore ROT_RPC;
+%ignore ROT_BACKEND_RPC;
+%ignore ROT_EASYCOMM;
+%ignore ROT_BACKEND_EASYCOMM;
+%ignore ROT_FODTRACK;
+%ignore ROT_BACKEND_FODTRACK;
+%ignore ROT_ROTOREZ;
+%ignore ROT_BACKEND_ROTOREZ;
+%ignore ROT_SARTEK;
+%ignore ROT_BACKEND_SARTEK;
+
+%ignore PRIfreq;
+%ignore SCNfreq;
+%ignore FREQFMT;
 
 %ignore rig_open;
 %ignore rig_set_freq;
