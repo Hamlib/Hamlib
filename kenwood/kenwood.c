@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *
- *	$Id: kenwood.c,v 1.96 2008-03-01 11:20:29 fillods Exp $
+ *	$Id: kenwood.c,v 1.97 2008-05-04 21:19:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -155,11 +155,6 @@ transaction_write:
         retval = write_block(&rs->rigport, cmdstr, strlen(cmdstr));
         if (retval != RIG_OK)
             goto transaction_quit;
-#ifdef TH_ADD_CMDTRM
-        retval = write_block(&rs->rigport, cmdtrm, strlen(cmdtrm));
-        if (retval != RIG_OK)
-            goto transaction_quit;
-#endif
     }
 
     if (data == NULL || *datasize <= 0) {
@@ -185,18 +180,24 @@ transaction_write:
         goto transaction_quit;
     }
 
-    /* Command recognised by rig but invalid data entered. */
-    if (strlen(data) == 2 && data[0] == 'N') {
-        rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __FUNCTION__, cmdstr);
-        retval = -RIG_ENAVAIL;
-        goto transaction_quit;
-    }
-
-    /* Command not understood by rig */
-    if (strlen(data) == 2 && data[0] == '?') {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __FUNCTION__, cmdstr);
-        retval = -RIG_ERJCTED;
-        goto transaction_quit;
+    if (strlen(data) == 2) {
+	switch (data[0]) {
+	case 'N':
+    		/* Command recognised by rig but invalid data entered. */
+        	rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __FUNCTION__, cmdstr);
+        	retval = -RIG_ENAVAIL;
+        	goto transaction_quit;
+	case 'O':
+		/* Too many characters send without a carriage return */
+        	rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __FUNCTION__, cmdstr);
+        	retval = -RIG_EPROTO;
+        	goto transaction_quit;
+	case '?':
+    		/* Command not understood by rig */
+        	rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __FUNCTION__, cmdstr);
+        	retval = -RIG_ERJCTED;
+        	goto transaction_quit;
+	}
     }
 
 #define CONFIG_STRIP_CMDTRM 1
@@ -228,6 +229,23 @@ transaction_write:
 transaction_quit:
     rs->hold_decode = 0;
     return retval;
+}
+
+rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
+{
+	if (mode >= KENWOOD_MODE_TABLE_MAX)
+		return RIG_MODE_NONE;
+	return mode_table[mode];
+}
+
+char rmode2kenwood(rmode_t mode, const rmode_t mode_table[])
+{
+	int i;
+	for(i=0; i<KENWOOD_MODE_TABLE_MAX;i++) {
+		if (mode_table[i] == mode)
+			return i;
+	}
+	return -1;
 }
 
 

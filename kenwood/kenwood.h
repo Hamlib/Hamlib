@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.42 2008-03-01 11:20:29 fillods Exp $
+ *	$Id: kenwood.h,v 1.43 2008-05-04 21:19:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,9 +28,12 @@
 #define EOM_KEN ";"
 #define EOM_TH "\r"
 
+#define KENWOOD_MODE_TABLE_MAX 8
+
 struct kenwood_priv_caps {
     const char *cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
     int if_len;		/* length of IF; anwser */
+    rmode_t *mode_table;
 };
 
 
@@ -38,6 +41,9 @@ extern const tone_t kenwood38_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 				size_t *data_len);
+rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[]);
+char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
+
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
