@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS680 description
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.7 2006-04-10 18:01:15 pa4tu Exp $
+ *	$Id: ts680.c,v 1.8 2008-05-04 21:16:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -128,7 +128,6 @@ static int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                 char freqbuf[50];
                 size_t freq_len;
 		int retval;
-                long long f;
 
 /* We're using IF; here because the TS-680S is incapable of supplying
  * frequency information in MEM mode with the kenwood_get_freq method. It may
@@ -146,8 +145,7 @@ static int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
                	}
 
                	freqbuf[14] = '\0';
-                sscanf(freqbuf+2, "%lld", &f);
-                *freq = (freq_t)f;
+                sscanf(freqbuf+2, "%"SCNfreq, freq);
 
                 return RIG_OK;
 }
@@ -212,7 +210,7 @@ const struct rig_caps ts680s_caps = {
 .rig_model =  RIG_MODEL_TS680S,
 .model_name = "TS-680S",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER ".0",
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
