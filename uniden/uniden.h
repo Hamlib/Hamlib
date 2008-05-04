@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main header
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden.h,v 1.7 2008-05-04 14:23:54 fillods Exp $
+ *	$Id: uniden.h,v 1.8 2008-05-04 15:33:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,6 +72,8 @@ const char* uniden_get_info(RIG *rig);
 
 extern const struct rig_caps bc895_caps;
 extern const struct rig_caps bc245_caps;
+extern const struct rig_caps bc780_caps;
+extern const struct rig_caps bc250_caps;
 extern const struct rig_caps pro2052_caps;
 
 #endif /* _UNIDEN_H */

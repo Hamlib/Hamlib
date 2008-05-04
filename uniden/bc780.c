@@ -1,0 +1,149 @@
+/*
+ *  Hamlib Uniden backend - BC780 description
+ *  Copyright (c) 2001-2008 by Stephane Fillod
+ *
+ *	$Id: bc780.c,v 1.1 2008-05-04 15:33:25 fillods Exp $
+ *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdlib.h>
+
+#include <hamlib/rig.h>
+#include "uniden.h"
+
+
+#define BC780_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
+
+#define BC780_FUNC (RIG_FUNC_MUTE)
+
+#define BC780_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_RAWSTR)
+
+#define BC780_PARM_ALL (RIG_PARM_NONE)
+
+#define BC780_VFO RIG_VFO_A
+
+#define BC780_CHANNEL_CAPS \
+		UNIDEN_CHANNEL_CAPS \
+                .channel_desc=1, \
+		.ctcss_sql=1, \
+		.dcs_sql=1
+
+#define BC780_STR_CAL UNIDEN_STR_CAL
+
+
+/*
+ * bc780 rig capabilities.
+ *
+ * TODO: check this with manual or web site.
+ */
+const struct rig_caps bc780_caps = {
+.rig_model =  RIG_MODEL_BC780,
+.model_name = "BC780xlt",
+.mfg_name =  "Uniden",
+.version =  BACKEND_VER,
+.copyright =  "LGPL",
+.status =  RIG_STATUS_UNTESTED,
+.rig_type =  RIG_TYPE_TRUNKSCANNER,
+.ptt_type =  RIG_PTT_NONE,
+.dcd_type =  RIG_DCD_RIG,
+.port_type =  RIG_PORT_SERIAL,
+.serial_rate_min =  2400,
+.serial_rate_max =  19200,
+.serial_data_bits =  8,
+.serial_stop_bits =  1,
+.serial_parity =  RIG_PARITY_NONE,
+.serial_handshake =  RIG_HANDSHAKE_NONE,
+.write_delay =  0,
+.post_write_delay =  1,
+.timeout =  200,
+.retry =  3,
+
+.has_get_func =  BC780_FUNC,
+.has_set_func =  BC780_FUNC,
+.has_get_level =  BC780_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(BC780_LEVEL_ALL),
+.has_get_parm =  BC780_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(BC780_PARM_ALL),
+.level_gran =  {},                 /* FIXME: granularity */
+.parm_gran =  {},
+.ctcss_list =  uniden_ctcss_list,
+.dcs_list =  uniden_dcs_list,
+.preamp =   { RIG_DBLST_END },
+.attenuator =   { 20, RIG_DBLST_END },	/* TBC */
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   10,	/* A..J */
+.chan_desc_sz =  16,
+.str_cal = BC780_STR_CAL,
+
+.chan_list =  {
+		{ 0, 499, RIG_MTYPE_MEM, {BC780_CHANNEL_CAPS} },
+		RIG_CHAN_END,
+	},
+
+.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  {
+	{MHz(25),MHz(512),BC780_MODES,-1,-1,BC780_VFO},
+	{MHz(806),MHz(956),BC780_MODES,-1,-1,BC780_VFO}, /* (minus Cellular frequencies) */
+	{MHz(1240),MHz(1300),BC780_MODES,-1,-1,BC780_VFO},
+	RIG_FRNG_END,
+  },
+.tx_range_list2 =  { RIG_FRNG_END, },
+.tuning_steps =  {
+	 {BC780_MODES,kHz(5)},
+	 {BC780_MODES,kHz(7.5)},
+	 {BC780_MODES,kHz(10)},
+	 {BC780_MODES,kHz(12.5)},
+	 {BC780_MODES,kHz(50)},
+	 RIG_TS_END,
+	 RIG_TS_END,
+	},
+        /* mode/filter list, remember: order matters! */
+.filters =  {
+		{RIG_MODE_AM|RIG_MODE_FM, kHz(8)},
+		{RIG_MODE_WFM, kHz(230)},
+		RIG_FLT_END,
+	},
+.priv =  NULL,
+
+.set_freq =  uniden_set_freq,
+.get_freq =  uniden_get_freq,
+.set_mode =  uniden_set_mode,
+.get_mode =  uniden_get_mode,
+.set_mem =  uniden_set_mem,
+.get_mem =  uniden_get_mem,
+.get_dcd =  uniden_get_dcd,
+.get_info =  uniden_get_info,
+.get_level = uniden_get_level,
+.set_level = uniden_set_level,
+.get_channel = uniden_get_channel,
+.set_channel = uniden_set_channel,
+
+};
+
+/*
+ * Function definitions below
+ */
+
