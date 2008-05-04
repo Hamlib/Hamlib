@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.95 2007-11-26 20:54:12 n0nb Exp $
+ *	$Id: rig.c,v 1.96 2008-05-04 15:36:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,7 +30,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2006
+ * \date 2000-2008
  *
  * Hamlib provides a user-callable API, a set of "front-end" routines that
  * call rig-specific "back-end" routines whichactually communicate with 
@@ -76,7 +76,7 @@ const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-  "Copyright (C) 2000-2007 Stephane Fillod and Frank Singleton\n"
+  "Copyright (C) 2000-2008 Stephane Fillod and Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 
@@ -85,6 +85,8 @@ const char hamlib_copyright[] =
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 #define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
+#elif BSD
+#define DEFAULT_SERIAL_PORT "/dev/cuaa0"
 #else
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 #endif

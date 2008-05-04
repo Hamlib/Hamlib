@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2006 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.21 2006-10-15 00:27:52 aa6e Exp $
+ *	$Id: rotator.c,v 1.22 2008-05-04 15:36:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,7 +29,7 @@
  * \file src/rotator.c
  * \brief Rotator interface
  * \author Stephane Fillod
- * \date 2000-2006
+ * \date 2000-2008
  *
  * Hamlib interface is a frontend implementing rotator wrapper functions.
  */
@@ -65,9 +65,12 @@
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 #define DEFAULT_SERIAL_PORT "\\\\.\\COM1"
+#elif BSD
+#define DEFAULT_SERIAL_PORT "/dev/cuaa0"
 #else
 #define DEFAULT_SERIAL_PORT "/dev/ttyS0"
 #endif
+
 #if defined(WIN32)
 #define DEFAULT_PARALLEL_PORT "\\\\.\\$VDMLPT1"
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
