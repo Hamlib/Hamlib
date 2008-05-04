@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2008 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.20 2008-04-27 09:53:40 fillods Exp $
+ *	$Id: thg71.c,v 1.21 2008-05-04 21:15:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -125,7 +125,7 @@ const struct rig_caps thg71_caps = {
 		{  210,219, RIG_MTYPE_EDGE , {TH_CHANNEL_CAPS}}, /* U MEM */
 		{  220,220, RIG_MTYPE_PRIO , {TH_CHANNEL_CAPS}}, /* Priority */
 		{  221,222, RIG_MTYPE_CALL , {TH_CHANNEL_CAPS}}, /* Call 0/1 */
-		{  223,231, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* Band VFO */
+		{  223,231, RIG_MTYPE_BAND , {TH_CHANNEL_CAPS}}, /* Band VFO */
 			 RIG_CHAN_END,
 		   },
 

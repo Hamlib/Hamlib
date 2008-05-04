@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.126 2008-05-01 12:32:43 fillods Exp $
+ *	$Id: rig.h,v 1.127 2008-05-04 21:15:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -988,6 +988,7 @@ typedef enum {
   RIG_MTYPE_CALL,		/*!< Call channel */
   RIG_MTYPE_MEMOPAD,		/*!< Memory pad */
   RIG_MTYPE_SAT,		/*!< Satellite */
+  RIG_MTYPE_BAND,		/*!< VFO/Band channel */
   RIG_MTYPE_PRIO		/*!< Priority channel */
 } chan_type_t;
 

@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.46 2008-04-27 09:48:40 fillods Exp $
+ *	$Id: misc.c,v 1.47 2008-05-04 21:15:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -732,6 +732,7 @@ static struct {
 	{ RIG_MTYPE_CALL, "CALL" },
 	{ RIG_MTYPE_MEMOPAD, "MEMOPAD" },
 	{ RIG_MTYPE_SAT, "SAT" },
+	{ RIG_MTYPE_BAND, "BAND" },
 	{ RIG_MTYPE_PRIO, "PRIO" },
 	{ RIG_MTYPE_NONE, "" },
 };
