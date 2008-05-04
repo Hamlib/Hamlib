@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TM-V7 description
- *  Copyright (c) 2004-2005 by Stephane Fillod
+ *  Copyright (c) 2004-2008 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.15 2006-04-13 19:43:49 pa4tu Exp $
+ *	$Id: tmv7.c,v 1.16 2008-05-04 21:23:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -138,7 +138,7 @@ const struct rig_caps tmv7_caps = {
 		{ 101, 190, RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* normal MEM UHF */
 		{  201,206, RIG_MTYPE_EDGE , {TMV7_CHANNEL_CAPS}}, /* L MEM */
 		{  211,216, RIG_MTYPE_EDGE , {TMV7_CHANNEL_CAPS}}, /* U MEM */
-		{  221,222, RIG_MTYPE_MEM , {TMV7_CHANNEL_CAPS}},  /* Call V/U */
+		{  221,222, RIG_MTYPE_CALL , {TMV7_CHANNEL_CAPS}}, /* Call V/U */
 		RIG_CHAN_END,
 		   },
 

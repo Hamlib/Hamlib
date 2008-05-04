@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TM-D700 description
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: tmd700.c,v 1.6 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: tmd700.c,v 1.7 2008-05-04 21:23:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -119,7 +119,7 @@ const struct rig_caps tmd700_caps = {
 .chan_list =  {
                 {  1,  199, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* normal MEM */
                 {  200,219, RIG_MTYPE_EDGE , {TH_CHANNEL_CAPS}}, /* U/L MEM */
-                {  221,222, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* Call 0/1 */
+                {  221,222, RIG_MTYPE_CALL, {TH_CHANNEL_CAPS}},  /* Call 0/1 */
                 RIG_CHAN_END,
                    },
 /*
