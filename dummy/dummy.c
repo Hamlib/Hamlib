@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.40 2006-07-02 17:05:26 csete Exp $
+ *	$Id: dummy.c,v 1.41 2008-05-04 14:08:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,7 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
+#include <time.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -635,6 +636,12 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
   idx = rig_setting2idx(level);
 
+  /* make S-Meter jiggle */
+  if (level == RIG_LEVEL_STRENGTH || level == RIG_LEVEL_RAWSTR)
+  	curr->levels[idx].i = -30 + time(NULL)%32 + rand()%4 
+		- curr->levels[LVL_ATT].i
+		+ curr->levels[LVL_PREAMP].i;
+
   if (idx < RIG_SETTING_MAX)
   	*val = curr->levels[idx];
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
@@ -1032,8 +1039,8 @@ const struct rig_caps dummy_caps = {
   .rig_model =      RIG_MODEL_DUMMY,
   .model_name =     "Dummy",
   .mfg_name =       "Hamlib",
-  .version =        "0.2",
-  .copyright = 	 "LGPL",
+  .version =        "0.3",
+  .copyright =      "LGPL",
   .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_OTHER,
   .targetable_vfo = 	 0,
