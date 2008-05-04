@@ -1,75 +1,90 @@
 #!/usr/bin/env python
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 import sys
 
 sys.path.append ('.')
 sys.path.append ('.libs')
 sys.path.append ('/usr/local/hamlib/python')
-sys.path.append ('/usr/lib/python2.4/site-packages')
 
 import Hamlib
 
 def StartUp ():
-    print "Python test, version: ", Hamlib.cvar.hamlib_version
+    print "Python",sys.version[:5],"test,", Hamlib.cvar.hamlib_version
 
-    Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_TRACE)
+    #Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_TRACE)
+    Hamlib.rig_set_debug (Hamlib.RIG_DEBUG_NONE)
 
     # Init RIG_MODEL_DUMMY
     my_rig = Hamlib.Rig (Hamlib.RIG_MODEL_DUMMY)
+    my_rig.set_conf ("rig_pathname","/dev/Rig")
+    my_rig.set_conf ("retry","5")
 
     my_rig.open ()
 
     # 1073741944 is token value for "itu_region"
-    rpath = my_rig.get_conf("rig_pathname")
+    # but using get_conf is much more convenient
     region = my_rig.get_conf(1073741944)
-    print "get_conf: path=",rpath,", ITU region=",region
+    rpath = my_rig.get_conf("rig_pathname")
+    retry = my_rig.get_conf("retry")
+    print "status(str):",Hamlib.rigerror(my_rig.error_status)
+    print "get_conf: path=",rpath,", retry =",retry,", ITU region=",region
 
-    #my_rig.set_freq (5000000000,Hamlib.RIG_VFO_B)
-    print "freq: ",my_rig.get_freq()
+    my_rig.set_freq (5700000000,Hamlib.RIG_VFO_B)
+    print "freq:",my_rig.get_freq()
     my_rig.set_freq (145550000)
+    my_rig.set_vfo (Hamlib.RIG_VFO_B)
+    #my_rig.set_vfo ("VFOA")
 
-    mode = my_rig.get_mode()
-    print "mode: ",mode[0],"bandwidth: ",mode[1],"Hz (0=normal)"
+    (mode, width) = my_rig.get_mode()
+    print "mode:",Hamlib.rig_strrmode(mode),", bandwidth:",width
 
     print "ITU_region: ",my_rig.state.itu_region
-    print "Copyright: ",my_rig.caps.copyright
+    print "Backend copyright: ",my_rig.caps.copyright
 
-    print "getinfo: ",my_rig.get_info()
+    print "Model:",my_rig.caps.model_name
+    print "Manufacturer:",my_rig.caps.mfg_name
+    print "Backend version:",my_rig.caps.version
+    print "Backend license:",my_rig.caps.copyright
+    print "Rig info:", my_rig.get_info()
 
     my_rig.set_level ("VOX",  1)
-    print "level: ",my_rig.get_level_i("VOX")
+    print "VOX level: ",my_rig.get_level_i("VOX")
     my_rig.set_level (Hamlib.RIG_LEVEL_VOX, 5)
-    print "level: ", my_rig.get_level_i(Hamlib.RIG_LEVEL_VOX)
+    print "VOX level: ", my_rig.get_level_i(Hamlib.RIG_LEVEL_VOX)
 
-    print "str: ", my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH)
+    print "strength: ", my_rig.get_level_i(Hamlib.RIG_LEVEL_STRENGTH)
     print "status: ",my_rig.error_status
     print "status(str):",Hamlib.rigerror(my_rig.error_status)
 
-    #chan = Hamlib.Chan(Hamlib.RIG_VFO_A)
-    chan = Hamlib.Chan()
+    chan = Hamlib.channel(Hamlib.RIG_VFO_B)
 
     my_rig.get_channel(chan)
     print "get_channel status: ",my_rig.error_status
 
-    print "VFO: ",chan.vfo,", ",chan.freq
+    print "VFO: ",Hamlib.rig_strvfo(chan.vfo),", ",chan.freq
     my_rig.close ()
 
+    print "\nSome static functions:"
 
-    # TODO:
     err, long1, lat1 = Hamlib.locator2longlat("IN98EC")
     err, long2, lat2 = Hamlib.locator2longlat("DM33DX")
-    loc1 = Hamlib.longlat2locator(long1, lat1)
-    loc2 = Hamlib.longlat2locator(long2, lat2)
+    err, loc1 = Hamlib.longlat2locator(long1, lat1, 3)
+    err, loc2 = Hamlib.longlat2locator(long2, lat2, 3)
     print "Loc1: IN98EC -> ",loc1
     print "Loc2: DM33DX -> ",loc2
 
-    dist, az = Hamlib.qrb(long1, lat1, long2, lat2)
+    # TODO: qrb should normalize?
+    err, dist, az = Hamlib.qrb(long1, lat1, long2, lat2)
+    if az > 180:
+        az -= 360
     longpath = Hamlib.distance_long_path(dist)
     print "Distance: ",dist," km, long path: ",longpath
-    deg, min, sec = Hamlib.dec2dms(az)
-    az2 = Hamlib.dms2dec(deg, min, sec)
-    print "Bearing: ",az,", ",deg,"° ",min,"' ",sec,", recoded: ",az2
+    err, deg, min, sec, sw = Hamlib.dec2dms(az)
+    az2 = Hamlib.dms2dec(deg, min, sec, sw)
+    if sw:
+        deg = -deg
+    print "Bearing: ",az,", ",deg,"Â° ",min,"' ",sec,", recoded: ",az2
 
 
 if __name__ == '__main__':

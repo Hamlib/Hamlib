@@ -5,9 +5,11 @@ exec tclsh "$0" "$@"
 load ".libs/hamlibtcl.so" Hamlib
 #package require Hamlib
 
-puts "Tcl test, $hamlib_version\n"
+set tclver [info tclversion]
+puts "Tcl $tclver test, $hamlib_version\n"
 
-rig_set_debug $RIG_DEBUG_TRACE
+#rig_set_debug $RIG_DEBUG_TRACE
+rig_set_debug $RIG_DEBUG_NONE
 
 # Init RIG_MODEL_DUMMY
 Rig my_rig $RIG_MODEL_DUMMY
@@ -17,8 +19,10 @@ my_rig set_freq 145550000
 
 puts status:[my_rig cget -error_status]
 
-set mode [my_rig get_mode]
-puts "mode:[lindex $mode 0], bandwidth:[lindex $mode 1]Hz (0=normal)"
+# get_mode returns a tuple
+set moderes [my_rig get_mode]
+set mode [rig_strrmode [lindex $moderes 0]]
+puts "mode: $mode, bandwidth:[lindex $moderes 1]Hz"
 
 set state [my_rig cget -state]
 puts ITU_region:[$state cget -itu_region]
@@ -30,14 +34,14 @@ puts getinfo:[my_rig get_info]
 
 my_rig set_level "VOX"  1
 puts status:[my_rig cget -error_status]
-puts level:[my_rig get_level_i "VOX"]
+puts "VOX level:[my_rig get_level_i "VOX"]"
 puts status:[my_rig cget -error_status]
 my_rig set_level $RIG_LEVEL_VOX 5
 puts status:[my_rig cget -error_status]
-puts level:[my_rig get_level_i $RIG_LEVEL_VOX]
+puts "VOX level:[my_rig get_level_i $RIG_LEVEL_VOX]"
 puts status:[my_rig cget -error_status]
 
-puts str:[my_rig get_level_i $RIG_LEVEL_STRENGTH]
+puts strength:[my_rig get_level_i $RIG_LEVEL_STRENGTH]
 puts status:[my_rig cget -error_status]
 puts status(str):[rigerror [my_rig cget -error_status]]
 
