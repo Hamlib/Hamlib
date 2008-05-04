@@ -1,8 +1,8 @@
 /*
- *  Hamlib Uniden backend - BC245 description
+ *  Hamlib Uniden backend - Radio Shack PRO-2052 description
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: bc245.c,v 1.3 2008-05-04 14:23:54 fillods Exp $
+ *	$Id: pro2052.c,v 1.1 2008-05-04 14:23:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,25 +30,37 @@
 #include "uniden.h"
 
 
-#define BC245_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
+#define PRO2052_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define BC245_FUNC (RIG_FUNC_MUTE)
+#define PRO2052_FUNC (RIG_FUNC_MUTE)
 
-#define BC245_LEVEL_ALL (RIG_LEVEL_ATT)
+#define PRO2052_LEVEL_ALL (RIG_LEVEL_NONE)
 
-#define BC245_PARM_ALL (RIG_PARM_NONE)
+#define PRO2052_PARM_ALL (RIG_PARM_NONE)
 
-#define BC245_VFO RIG_VFO_A
+#define PRO2052_VFO RIG_VFO_A
+
+#define PRO2052_CHANNEL_CAPS \
+		UNIDEN_CHANNEL_CAPS
 
 /*
- * bc245 rig capabilities.
+ * PRO-2052 rig capabilities.
+ *
+ * From http://www.cantonmaine.com/pro2052.htm:
+ * After connecting the cable, turn on the computer and the scanner and then
+ * press and hold the Remote/Hold button on the scanner until you see "SFT"
+ * flashing on the right side of the LCD. You should now be communicating
+ * with the scanner. If it doesn't work, check all the normal stuff for
+ * whatever it was you overlooked. NOTE: You can change the scanner's
+ * default * baud rate by holding down the Remote/Hold button while turning
+ * on the scanner.)
  *
  * TODO: check this with manual or web site.
  */
-const struct rig_caps bc245_caps = {
-.rig_model =  RIG_MODEL_BC245,
-.model_name = "BC245xlt",
-.mfg_name =  "Uniden",
+const struct rig_caps pro2052_caps = {
+.rig_model =  RIG_MODEL_PRO2052,
+.model_name = "PRO-2052",
+.mfg_name =  "Radio Shack",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
@@ -67,12 +79,12 @@ const struct rig_caps bc245_caps = {
 .timeout =  200,
 .retry =  3,
 
-.has_get_func =  BC245_FUNC,
-.has_set_func =  BC245_FUNC,
-.has_get_level =  BC245_LEVEL_ALL,
-.has_set_level =  RIG_LEVEL_SET(BC245_LEVEL_ALL),
-.has_get_parm =  BC245_PARM_ALL,
-.has_set_parm =  RIG_PARM_SET(BC245_PARM_ALL),
+.has_get_func =  PRO2052_FUNC,
+.has_set_func =  PRO2052_FUNC,
+.has_get_level =  PRO2052_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(PRO2052_LEVEL_ALL),
+.has_get_parm =  PRO2052_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(PRO2052_PARM_ALL),
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
 .ctcss_list =  NULL,	/* FIXME: CTCSS list? */
@@ -84,26 +96,36 @@ const struct rig_caps bc245_caps = {
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
 .transceive =  RIG_TRN_OFF,
-.bank_qty =   0,
+.bank_qty =   10,	/* A..J */
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		{ 1, 300, RIG_MTYPE_MEM },
+		{ 0, 999, RIG_MTYPE_MEM, {PRO2052_CHANNEL_CAPS} },
 		RIG_CHAN_END,
 	},
 
 .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 .tx_range_list1 =  { RIG_FRNG_END, },
+
 .rx_range_list2 =  {
-	{MHz(29),MHz(54),BC245_MODES,-1,-1,BC245_VFO},
-	{MHz(108),MHz(174),BC245_MODES,-1,-1,BC245_VFO},
-	{MHz(406),MHz(512),BC245_MODES,-1,-1,BC245_VFO},
-	{MHz(806),MHz(956),BC245_MODES,-1,-1,BC245_VFO},	/* TODO: less cellular */
+	{MHz(29),MHz(54),PRO2052_MODES,-1,-1,PRO2052_VFO},
+	{MHz(108),MHz(174),PRO2052_MODES,-1,-1,PRO2052_VFO},
+	{MHz(179.75),MHz(512),PRO2052_MODES,-1,-1,PRO2052_VFO},
+	{MHz(806),MHz(823.9375),PRO2052_MODES,-1,-1,PRO2052_VFO},
+	{MHz(851),MHz(868.9875),PRO2052_MODES,-1,-1,PRO2052_VFO},
+	{MHz(896.1125),MHz(956),PRO2052_MODES,-1,-1,PRO2052_VFO},
+	{MHz(1240),MHz(1300),PRO2052_MODES,-1,-1,PRO2052_VFO},
 	RIG_FRNG_END,
   },
 .tx_range_list2 =  { RIG_FRNG_END, },
+
 .tuning_steps =  {
-	 {BC245_MODES,10},	/* FIXME: add other ts */
+	 {PRO2052_MODES,kHz(5)},
+	 {PRO2052_MODES,kHz(7.5)},
+	 {PRO2052_MODES,kHz(10)},
+	 {PRO2052_MODES,kHz(12.5)},
+	 {PRO2052_MODES,kHz(25)},
+	 {PRO2052_MODES,kHz(50)},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
