@@ -7,16 +7,16 @@
  * \file settings.c
  * \brief func/level/parm interface
  * \author Stephane Fillod
- * \date 2000-2006
+ * \date 2000-2008
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - func/level/parm
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.10 2007-11-26 20:54:12 n0nb Exp $
+ *	$Id: settings.c,v 1.11 2008-05-04 14:11:43 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -116,8 +116,8 @@ int HAMLIB_API rig_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  *  for more information.
  *
  * 		RIG_LEVEL_STRENGTH: \a val is an integer, representing the S Meter
- * 		level in dB, according to the ideal S Meter scale. The ideal
- * 		S Meter scale is as follow: S0=-54, S1=-48, S2=-42, S3=-36,
+ * 		level in dB relative to S9, according to the ideal S Meter scale.
+ * 		The ideal S Meter scale is as follow: S0=-54, S1=-48, S2=-42, S3=-36,
  * 		S4=-30, S5=-24, S6=-18, S7=-12, S8=-6, S9=0, +10=10, +20=20,
  * 		+30=30, +40=40, +50=50 and +60=60. This is the responsability
  * 		of the backend to return values calibrated for this scale.
