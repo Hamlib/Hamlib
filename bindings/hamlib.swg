@@ -4,9 +4,9 @@
 %{
 /*
  *  Hamlib bindings - swig interface file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: hamlib.swg,v 1.5 2003-04-06 18:52:16 fillods Exp $
+ *	$Id: hamlib.swg,v 1.6 2008-05-04 21:38:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +40,19 @@
  */
 %include "ignore.swg"
 
-%rename(Chan) channel;
+%include typemaps.i
+%include exception.i
+%include cstring.i
+
+%apply double *OUTPUT { double *distance, double *azimuth };
+%apply int *OUTPUT { int *degrees, int *minutes, double *seconds, int *sw };
+%apply int *OUTPUT { int *degrees, double *minutes, int *sw };
+%apply double *OUTPUT { double *longitude, double *latitude };
+%apply char *OUTPUT { char *locator_res };
+
+/* longlat2locator */
+%cstring_bounded_output(char *locator_res, 13) 
+
 
 %include <hamlib/rig_dll.h>
 
@@ -57,9 +69,6 @@
 	typedef channel_t * channel_t_p;
 	typedef channel_t * const_channel_t_p;
 %}
-
-%include typemaps.i
-%include exception.i
 
 /*
  * The Rig "class"
