@@ -1,8 +1,8 @@
 /*
  *  Hamlib bindings - Rig interface
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: rig.swg,v 1.8 2004-05-17 21:09:41 fillods Exp $
+ *	$Id: rig.swg,v 1.9 2008-05-04 21:42:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,8 +32,6 @@ typedef struct Rig {
 
 %}
 
-#define MAX_STATIC 256
-
 %extend channel {
 	channel(vfo_t vfo = RIG_VFO_CURR, int ch = 0) {
 		channel_t *chan;
@@ -47,11 +45,14 @@ typedef struct Rig {
 		return chan;
 	}
 	~channel (void) {
-		/* TODO: free up ext_levels */
+		/* TODO: free ext_levels */
 		free(self);
 	}
 }
 
+%include "carrays.i"
+%array_class(struct channel, channelArray);
+%array_class(tone_t, toneArray);
 
 /*
  * decalre wrapper method with one argument besides RIG* and optional no target vfo
@@ -190,29 +191,38 @@ typedef struct Rig {
 		return val.fld;	\
 	}
 
-#define METHODSTRGET(f) const char * get_##f (const char *name  _VFO_DECL) \
-		{ static char s[MAX_STATIC]=""; value_t val; /* only ext_level/parm's can have string values */ \
+#define METHODSTRGET(f) void get_##f (const char *name, char *returnstr  _VFO_DECL) \
+		{ value_t val; /* only ext_level/parm's can have string values */ \
 		const struct confparams *cfp; \
+		returnstr[0] = '\0'; \
 		cfp = rig_ext_lookup(self->rig, name); \
-		if (!cfp) {	\
-			self->error_status = -RIG_EINVAL;	/* no such parameter */ \
-			return ""; \
+		if (!cfp || cfp->type != RIG_CONF_STRING) {	\
+			self->error_status = -RIG_EINVAL;	/* no such parameter/invalid type */ \
+			return; \
 		} \
-		if (cfp->type != RIG_CONF_STRING) { \
-			self->error_status = -RIG_EINVAL;	/* invalid type */ \
-			return ""; \
-		} \
-		val.s = s; \
+		val.s = returnstr; \
 		self->error_status = rig_get_ext_##f(self->rig _VFO_ARG, cfp->token, &val); \
-		return val.s; \
 	}
 
+
+/*
+ * string as return value
+ * NB: The %apply has to be outside the %extend,
+ * but the %cstring_bounded_output must be inside.
+ */
+%ignore MAX_RETURNSTR;
+#define MAX_RETURNSTR 256
+
+%apply char *OUTPUT { char *returnstr };
 
 /*
  * Rig class alike
  */
 %extend Rig {
-	Rig(rig_model_t rig_model) {
+
+	%cstring_bounded_output(char *returnstr, MAX_RETURNSTR);
+
+	Rig(int rig_model) {
 		Rig *r;
 
 		r = (Rig*)malloc(sizeof(Rig));
@@ -333,7 +343,6 @@ typedef struct Rig {
 	METHODSTRGET(parm)
 
 
-	/* TODO: get rid of value_t, use dynamic casting */
 	void set_conf(const char *name, const char *val) {
 		token_t tok = rig_token_lookup(self->rig, name);
 		if (tok == RIG_CONF_END)
@@ -375,6 +384,15 @@ typedef struct Rig {
 	//METHOD2GET(get_ext_parm, token_t, value_t)
 
 
+	int mem_count(void) {
+		return rig_mem_count(self->rig);
+	}
+
+	const chan_t *lookup_mem_caps(int channel_num = RIG_MEM_CAPS_ALL)
+	{
+		return rig_lookup_mem_caps(self->rig, channel_num);
+	}
+
 	void set_channel(const struct channel *chan) {
 		self->error_status = rig_set_channel(self->rig, chan);
 	}
@@ -384,40 +402,56 @@ typedef struct Rig {
 		/* TODO: handle ext_level's */
 	}
 
+	void chan_clear(struct channel *chans, int nb_chans = 1) {
+		memset(chans, 0, sizeof(struct channel)*nb_chans);
+	}
+
+	void get_chan_all(struct channel *chans) {
+		self->error_status = rig_get_chan_all(self->rig, chans);
+		/* TODO: handle ext_level's */
+	}
+
+	/*
+	 * Rem: does swig has to be told that returned object need to be handled by gc?
+	 */
+	struct channel *get_chan_all(void);
+
 	/* get_channel() returns current VFO data
 	 * get_channel(10) returns content of memory #10
 	 * get_channel(0, RIG_VFO_A) returns VFO A data
+	 * Rem: does swig has to be told that returned object need to be handled by gc?
 	 */
 	struct channel *get_channel(int channel_num = INT_MAX, vfo_t vfo = RIG_VFO_MEM) {
 		struct channel *chan;
-		chan = new_channel(channel_num, channel_num != INT_MAX ? vfo : RIG_VFO_CURR);
+		chan = new_channel(channel_num != INT_MAX ? vfo : RIG_VFO_CURR, channel_num);
+		if (!chan)
+		{
+			self->error_status = -RIG_ENOMEM;
+			return NULL;
+		}
 		self->error_status = rig_get_channel(self->rig, chan);
 		/* TODO: copy ext_level's */
 		return chan;
 	}
 
-	const char *get_conf(token_t tok) {
-		static char s[MAX_STATIC] = "";
-		self->error_status = rig_get_conf(self->rig, tok, s);
-		return s;
+	void get_conf(token_t tok, char *returnstr) {
+		returnstr[0] = '\0';
+		self->error_status = rig_get_conf(self->rig, tok, returnstr);
 	}
 
-	const char *get_conf(const char *name) {
+	void get_conf(const char *name, char *returnstr) {
+		returnstr[0] = '\0';
 		token_t tok = rig_token_lookup(self->rig, name);
-		static char s[MAX_STATIC] = "";
 		if (tok == RIG_CONF_END)
 			self->error_status = -RIG_EINVAL;
 		else
-			self->error_status = rig_get_conf(self->rig, tok, s);
-		return s;
+			self->error_status = rig_get_conf(self->rig, tok, returnstr);
 	}
 
-	const char *recv_dtmf(vfo_t vfo = RIG_VFO_CURR) {
-		static char s[64];
-		int len = sizeof(s)-1;
-		self->error_status = rig_recv_dtmf(self->rig, vfo, s, &len);
-		s[len] = '\0';
-		return s;
+	void recv_dtmf(char *returnstr, vfo_t vfo = RIG_VFO_CURR) {
+		int len = MAX_RETURNSTR;
+		self->error_status = rig_recv_dtmf(self->rig, vfo, returnstr, &len);
+		returnstr[len] = '\0';
 	}
 	const char * get_info(void) {
 		const char *s;
@@ -435,13 +469,15 @@ typedef struct Rig {
 
 
 #ifndef SWIGJAVA
+	/* TODO */
 	void get_level(setting_t level, vfo_t vfo = RIG_VFO_CURR)
 		{ value_t val; self->error_status = rig_get_level(self->rig, vfo, level, &val); 
 			//if (RIG_LEVEL_IS_FLOAT(level))
 			/* TODO: dynamic casting */
 		}
-	/* TODO also: get_parm */
 #endif
+
+	/* TODO also: get_parm */
 };
 
 %{
@@ -466,6 +502,23 @@ void Rig_get_split_mode(Rig *self, unsigned *mode, int *width, vfo_t vfo)
 	self->error_status = rig_get_split_mode(self->rig, vfo, &mode1, &width1);
 	*mode = mode1;
 	*width = width1;
+}
+
+struct channel *Rig_get_chan_all(Rig *self)
+{
+	struct channel *chans;
+	int nb_chans = rig_mem_count(self->rig);
+
+	/* TODO: memleak: typemap to release that memory */
+	chans = calloc(sizeof (struct channel), nb_chans);
+	if (!chans)
+	{
+		self->error_status = -RIG_ENOMEM;
+		return NULL;
+	}
+	self->error_status = rig_get_chan_all(self->rig, chans);
+	/* TODO: copy ext_level's */
+	return chans;
 }
 
 %}
