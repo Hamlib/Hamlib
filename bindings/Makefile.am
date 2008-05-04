@@ -6,8 +6,11 @@
 #INCLUDES = @INCLUDES@ -Dbool=char -I@PERL_INC_DIR@ @TCL_INCLUDE_SPEC@ -I$(top_srcdir)/bindings
 INCLUDES = @INCLUDES@ -I$(top_srcdir)/bindings @TCL_INCLUDE_SPEC@ @PYTHON_CPPFLAGS@
 
+SWGFILES = hamlib.swg ignore.swg rig.swg rotator.swg
+
 SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h \
-		$(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h
+	$(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h \
+	$(SWGFILES)
 
 ##########################################
 # Perl binding
@@ -80,7 +83,7 @@ all-tcl: pkgIndex.tcl $(tcl_ltlib)
 check-tcl: all-tcl
 	TCLLIBPATH=$(builddir)/.libs $(srcdir)/tcltest.tcl || echo "Tcl test failed" 1>&2
 
-install-tcl: 
+install-tcl:
 clean-tcl:
 distclean-tcl: clean-tcl
 uninstall-tcl: 
@@ -130,13 +133,7 @@ install-exec-local: @BINDING_INSTALL_EXEC@
 uninstall-local: @BINDING_UNINSTALL@
 
 
-rig.swg: $(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
-rotator.swg: $(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h
-
-hamlib.swg: ignore.swg rig.swg rotator.swg
-
-
-EXTRA_DIST = hamlib.swg ignore.swg rig.swg rotator.swg \
+EXTRA_DIST = $(SWGFILES) \
 			Makefile.PL perltest.pl tcltest.tcl pytest.py
 
 BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c hamlibpy_wrap.c Hamlib.py
