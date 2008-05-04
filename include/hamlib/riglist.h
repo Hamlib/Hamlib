@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.67 2008-04-11 18:03:53 fillods Exp $
+ *	$Id: riglist.h,v 1.68 2008-05-04 14:10:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -251,7 +251,6 @@
 #define RIG_MODEL_RS2035 RIG_MAKE_MODEL(RIG_RADIOSHACK, 4)	/* w/ OptoElectronics OS435 Board */
 #define RIG_MODEL_RS2042 RIG_MAKE_MODEL(RIG_RADIOSHACK, 5)	/* w/ OptoElectronics OS435 Board */
 #define RIG_MODEL_RS2041 RIG_MAKE_MODEL(RIG_RADIOSHACK, 6)	/* PRO-2041 */
-#define RIG_MODEL_RS2052 RIG_MAKE_MODEL(RIG_RADIOSHACK, 7)	/* PRO-2052 */
 
 	/*
 	 * Uniden
@@ -261,6 +260,12 @@
 #define RIG_MODEL_BC780 RIG_MAKE_MODEL(RIG_UNIDEN, 1)	/* Uniden BC780 - Trunk Tracker "Desktop Radio" */
 #define RIG_MODEL_BC245 RIG_MAKE_MODEL(RIG_UNIDEN, 2)
 #define RIG_MODEL_BC895 RIG_MAKE_MODEL(RIG_UNIDEN, 3)
+#define RIG_MODEL_PRO2052 RIG_MAKE_MODEL(RIG_UNIDEN, 4)	/* Radio Shack PRO-2052 */
+#define RIG_MODEL_BC235 RIG_MAKE_MODEL(RIG_UNIDEN, 5)
+#define RIG_MODEL_BC250 RIG_MAKE_MODEL(RIG_UNIDEN, 6)
+#define RIG_MODEL_BC785 RIG_MAKE_MODEL(RIG_UNIDEN, 7)
+#define RIG_MODEL_BC786 RIG_MAKE_MODEL(RIG_UNIDEN, 8)
+#define RIG_MODEL_BCT8 RIG_MAKE_MODEL(RIG_UNIDEN, 9)
 
 	/*
 	 * Drake
