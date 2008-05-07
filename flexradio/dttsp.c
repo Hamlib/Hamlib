@@ -1,8 +1,8 @@
 /*
  *  Hamlib DttSP backend - main file
- *  Copyright (c) 2001-2007 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: dttsp.c,v 1.1 2007-11-07 19:08:30 fillods Exp $
+ *	$Id: dttsp.c,v 1.2 2008-05-07 22:18:25 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -227,6 +227,7 @@ int dttsp_init(RIG *rig)
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__ );
 
+  priv->tuner = NULL;
   priv->tuner_model = RIG_MODEL_DUMMY;
   priv->IF_center_freq = 0;
 
@@ -264,7 +265,10 @@ int dttsp_set_conf(RIG *rig, token_t token, const char *val)
 		break;
 	default:
 		/* if it's not for the dttsp backend, maybe it's for the tuner */
-		return rig_set_conf(priv->tuner, token, val);
+		if (priv->tuner)
+			return rig_set_conf(priv->tuner, token, val);
+		else
+			return -RIG_EINVAL;
 	}
 	return RIG_OK;
 }
@@ -288,7 +292,10 @@ int dttsp_get_conf(RIG *rig, token_t token, char *val)
 		break;
 	default:
 		/* if it's not for the dttsp backend, maybe it's for the tuner */
-		return rig_get_conf(priv->tuner, token, val);
+		if (priv->tuner)
+			return rig_get_conf(priv->tuner, token, val);
+		else
+			return -RIG_EINVAL;
 	}
 	return RIG_OK;
 }
@@ -319,6 +326,7 @@ int dttsp_open(RIG *rig)
   if (ret != RIG_OK)
   {
   	rig_cleanup(priv->tuner);
+  	priv->tuner = NULL;
 	return ret;
   }
 
@@ -381,7 +389,9 @@ int dttsp_cleanup(RIG *rig)
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  rig_cleanup(priv->tuner);
+  if (priv->tuner)
+  	rig_cleanup(priv->tuner);
+  priv->tuner = NULL;
 
   if (rig->state.priv)
   	free(rig->state.priv);
