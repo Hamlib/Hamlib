@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.5 2008-04-27 09:57:04 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.6 2008-05-08 10:46:27 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -466,23 +466,25 @@ void version()
 
 void usage_rig(FILE *fout)
 {
-	int i;
+	int i, nbspaces;
 
-	fprintf(fout, "Commands (may not be available for this rig):\n");
+	fprintf(fout, "Commands (some may not be available for this rig):\n");
 	for (i=0; test_list[i].cmd != 0; i++) {
 		fprintf(fout, "%c: %-16s(", isprint(test_list[i].cmd) ? 
 				test_list[i].cmd:'?', test_list[i].name);
 
+		nbspaces = 18;
 		if (test_list[i].arg1 && (test_list[i].flags&ARG_IN1))
-				fprintf(fout, "%s", test_list[i].arg1);
+				nbspaces -= fprintf(fout, "%s", test_list[i].arg1);
 		if (test_list[i].arg2 && (test_list[i].flags&ARG_IN2))
-				fprintf(fout, ",%s", test_list[i].arg2);
+				nbspaces -= fprintf(fout, ",%s", test_list[i].arg2);
 		if (test_list[i].arg3 && (test_list[i].flags&ARG_IN3))
-				fprintf(fout, ",%s", test_list[i].arg3);
-		fprintf(fout, ")  \t");
+				nbspaces -= fprintf(fout, ",%s", test_list[i].arg3);
 
 		if (i%2)
-			fprintf(fout, "\n");
+			fprintf(fout, ")\n");
+		else
+			fprintf(fout, ")%*s", nbspaces, " ");
 	}
 }
 
