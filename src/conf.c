@@ -13,7 +13,7 @@
  *  Hamlib Interface - configuration interface
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.16 2008-04-09 21:36:06 fillods Exp $
+ *	$Id: conf.c,v 1.17 2008-05-08 12:40:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -122,6 +122,7 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 {
 	const struct rig_caps *caps;
 	struct rig_state *rs;
+	int val_i;
 
 	caps = rig->caps;
 	rs = &rig->state;
@@ -210,9 +211,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 		break;
 
 	case TOK_ITU_REGION:
-		rs->itu_region = atoi(val);
-                switch(rs->itu_region) {
+		val_i = atoi(val);
+                switch(val_i) {
 		case RIG_ITU_REGION1:
+			rs->itu_region = val_i;
 			memcpy(rs->tx_range_list, caps->tx_range_list1,
 					sizeof(struct freq_range_list)*FRQRANGESIZ);
 			memcpy(rs->rx_range_list, caps->rx_range_list1,
@@ -220,13 +222,15 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
 			break;
 		case RIG_ITU_REGION2:
 		case RIG_ITU_REGION3:
-		default:
+			rs->itu_region = val_i;
 			memcpy(rs->tx_range_list, caps->tx_range_list2,
 					sizeof(struct freq_range_list)*FRQRANGESIZ);
 			memcpy(rs->rx_range_list, caps->rx_range_list2,
 					sizeof(struct freq_range_list)*FRQRANGESIZ);
 			break;
-			}
+		default:
+			return -RIG_EINVAL;
+		}
 		break;
 
 	case TOK_VFO_COMP:
