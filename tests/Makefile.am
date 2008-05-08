@@ -4,7 +4,7 @@ DEJATOOL = testfreq testbcd testloc rigctl
 
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
-bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl @RIGCTLD@
+bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl rigctld
 man_MANS = rigctl.1 rigmem.1 rigswr.1 rigsmtr.1 rotctl.1 rigctld.8 
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs \
@@ -36,7 +36,7 @@ rigswr_LDFLAGS = @BACKENDLNK@
 rigsmtr_LDFLAGS = @BACKENDLNK@
 rigmem_LDFLAGS = @BACKENDLNK@ @XML_LIBS@
 rotctl_LDFLAGS = @ROT_BACKENDLNK@
-rigctld_LDFLAGS = @BACKENDLNK@ @PTHREAD_LIBS@
+rigctld_LDFLAGS = @BACKENDLNK@ @PTHREAD_LIBS@ @NET_LIBS@
  
 # temporary hack
 testbcd_LDFLAGS = -dlpreopen self

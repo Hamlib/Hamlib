@@ -4,7 +4,7 @@
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
  *
- * $Id: rigctld.c,v 1.4 2008-01-12 00:36:58 n0nb Exp $  
+ * $Id: rigctld.c,v 1.5 2008-05-08 16:21:33 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,11 +37,22 @@
 #include <getopt.h>
 
 #include <sys/types.h>          /* See NOTES */
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#elif HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 
 #include <hamlib/rig.h>
 #include "misc.h"
@@ -353,7 +364,9 @@ int main (int argc, char *argv[])
 	 * main loop accepting connections
 	 */
 	do {
+#ifdef HAVE_PTHREAD
 		pthread_t thread;
+#endif
 		struct handle_data *arg;
 
 		arg = malloc(sizeof(struct handle_data));
@@ -375,11 +388,15 @@ int main (int argc, char *argv[])
 				inet_ntoa(arg->cli_addr.sin_addr),
 				ntohs(arg->cli_addr.sin_port));
 
+#ifdef HAVE_PTHREAD
 		retcode = pthread_create(&thread, NULL, handle_socket, arg);
 		if (retcode < 0) {
 			rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
 			break;
 		}
+#else
+		handle_socket(arg);
+#endif
 	}
 	while (retcode == 0);
 
@@ -404,14 +421,18 @@ void * handle_socket(void *arg)
 	if (!fsockin) {
 		rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
 		free(arg);
+#ifdef HAVE_PTHREAD
 		pthread_exit(NULL);
+#endif
 	}
 
 	fsockout = fdopen(handle_data_arg->sock, "wb");
 	if (!fsockout) {
 		rig_debug(RIG_DEBUG_ERR, "fdopen out: %s\n", strerror(errno));
 		free(arg);
+#ifdef HAVE_PTHREAD
 		pthread_exit(NULL);
+#endif
 	}
 
 	do {

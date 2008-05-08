@@ -72,19 +72,16 @@ AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h e
 AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
 AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h])
 AC_CHECK_HEADERS([dev/ppbus/ppi.h dev/ppbus/ppbconf.h])
+AC_CHECK_HEADERS([sys/socket.h netinet/in.h arpa/inet.h ws2tcpip.h])
 
 dnl Check for Mingw support
 GR_PWIN32
 
-dnl Check whether to compile rigctld (requires pthread)
-RIGCTLD=""
-ACX_PTHREAD([ RIGCTLD="rigctld" ])
+ACX_PTHREAD
 if test x"$acx_pthread_ok" = xyes; then
 	CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
 	CXXFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}"
 fi
-AC_MSG_CHECKING(whether to build rigctld)
-AC_MSG_RESULT($acx_pthread_ok)
 
 AC_SYS_POSIX_TERMIOS()
 
@@ -141,7 +138,10 @@ if test "$hl_checkBoth" = 1; then
 	AC_CHECK_FUNC(accept, hl_checkNsl=0, [LIBS=$hl2_oldLibs])
 fi
 AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main, 
-									[NET_LIBS="$NET_LIBS -lnsl"], [], []))
+				[NET_LIBS="$NET_LIBS -lnsl"], [], []))
+# Winsock2
+AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(ws2_32, main, 
+				[NET_LIBS="$NET_LIBS -lws2_32"], [], []))
 LIBS=$hl_oldLibs
 AC_SUBST(NET_LIBS)
 AC_SUBST(MATH_LIBS)
@@ -469,7 +469,6 @@ AC_SUBST(BINDING_UNINSTALL)
 AC_SUBST(BINDING_LIST)
 AC_SUBST(BINDING_LIB_TARGETS)
 
-AC_SUBST(RIGCTLD)
 AC_SUBST(INCLUDES)
 
 AC_CONFIG_FILES([Makefile
