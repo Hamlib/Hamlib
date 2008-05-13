@@ -4,7 +4,7 @@
  * The code is rather ugly since this is only a try out.
  *
  *
- *    $Id: rigmatrix.c,v 1.21 2006-09-22 14:31:19 n0nb Exp $  
+ *    $Id: rigmatrix.c,v 1.22 2008-05-13 13:35:34 y32kn Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ int create_png_range(const freq_range_t rx_range_list[], const freq_range_t tx_r
 int print_caps_sum(const struct rig_caps *caps, void *data)
 {
 
-	printf("<TR><TD><A HREF=\"model%d.txt\">%s</A></TD><TD>%s</TD>"
+	printf("<TR><TD><A HREF=\"support/model%d.txt\">%s</A></TD><TD>%s</TD>"
 					"<TD>%s</TD><TD>%s</TD><TD>",
 					caps->rig_model,
 					caps->model_name,caps->mfg_name,caps->version,
