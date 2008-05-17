@@ -28,7 +28,9 @@ Hamlib-pl.mk: $(srcdir)/Makefile.PL
 			CC="$(CC)"  \
 			OBJECT="hamlibperl_wrap.o" \
 			VERSION="$(PACKAGE_VERSION)" \
-			LIBS="-lhamlib"
+			LIBS="-L$(top_builddir)/src/.libs -lhamlib"
+	sed -e 's/^LD_RUN_PATH.*/LD_RUN_PATH =/' Hamlib-pl.mk > Hamlib-pl-norpath.mk
+	mv Hamlib-pl-norpath.mk Hamlib-pl.mk
 
 all-perl: Hamlib-pl.mk hamlibperl_wrap.c
 	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk all
