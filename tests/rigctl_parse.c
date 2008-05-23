@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.6 2008-05-08 10:46:27 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.7 2008-05-23 14:30:12 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -132,6 +132,7 @@ declare_proto_rig(set_trn);
 declare_proto_rig(get_trn);
 declare_proto_rig(get_info);
 declare_proto_rig(dump_caps);
+declare_proto_rig(dump_conf);
 declare_proto_rig(set_ant);
 declare_proto_rig(get_ant);
 declare_proto_rig(reset);
@@ -203,8 +204,9 @@ static struct test_table test_list[] = {
 	{ '*', "reset", reset, ARG_IN, "Reset" },
 	{ '2', "power2mW", power2mW, ARG_NOVFO },
 	{ 'w', "send_cmd", send_cmd, ARG_IN1|ARG_IN_LINE|ARG_OUT2|ARG_NOVFO, "Cmd", "Reply" },
-	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
 	{ 'b', "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
+	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
+	{ '3', "dump_conf", dump_conf, ARG_NOVFO },
 	/* next one is 0x89 */
 	{ 0x00, "", NULL },
 
@@ -396,7 +398,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			p1 = argv[optind++];
 		}
 	}
-	if ((cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
+	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg2);
@@ -412,7 +414,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			p2 = argv[optind++];
 		}
 	}
-	if ((cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
+	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg3);
@@ -667,6 +669,14 @@ declare_proto_rig(set_mode)
 	rmode_t mode;
 	pbwidth_t width;
 
+#if 0
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_mode(s, rig->state.modes);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+#endif
 	mode = rig_parse_mode(arg1);
 	sscanf(arg2, "%ld", &width);
 	return rig_set_mode(rig, vfo, mode, width);
@@ -893,6 +903,14 @@ declare_proto_rig(set_split_mode)
 	rmode_t mode;
 	int     width;
 
+#if 0
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_mode(s, rig->state.modes);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+#endif
 	mode = rig_parse_mode(arg1);
 	sscanf(arg2, "%d", &width);
 	return rig_set_split_mode(rig, vfo, mode, (pbwidth_t) width);
@@ -1020,6 +1038,13 @@ declare_proto_rig(set_level)
 	setting_t level;
 	value_t val;
 
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_level(s, rig->state.has_set_level);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+
 	level = rig_parse_level(arg1);
 	if (!rig_has_set_level(rig, level)) {
 		const struct confparams *cfp;
@@ -1059,6 +1084,13 @@ declare_proto_rig(get_level)
 	int status;
 	setting_t level;
 	value_t val;
+
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_level(s, rig->state.has_get_level);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
 
 	level = rig_parse_level(arg1);
 	if (!rig_has_get_level(rig, level)) {
@@ -1114,8 +1146,15 @@ declare_proto_rig(set_func)
 	setting_t func;
 	int func_stat;
 
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_func(s, rig->state.has_set_func);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+
 	func = rig_parse_func(arg1);
-	sscanf(arg2, "%d", (int*)&func_stat);
+	sscanf(arg2, "%d", &func_stat);
 	return rig_set_func(rig, vfo, func, func_stat);
 }
 
@@ -1125,6 +1164,13 @@ declare_proto_rig(get_func)
 	int status;
 	setting_t func;
 	int func_stat;
+
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_func(s, rig->state.has_get_func);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
 
 	func = rig_parse_func(arg1);
 	status = rig_get_func(rig, vfo, func, &func_stat);
@@ -1145,6 +1191,13 @@ declare_proto_rig(set_parm)
 {
 	setting_t parm;
 	value_t val;
+
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_parm(s, rig->state.has_set_parm);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
 
 	parm = rig_parse_parm(arg1);
 
@@ -1186,6 +1239,13 @@ declare_proto_rig(get_parm)
 	int status;
 	setting_t parm;
 	value_t val;
+
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_parm(s, rig->state.has_get_parm);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
 
 	parm = rig_parse_parm(arg1);
 	if (!rig_has_get_parm(rig, parm)) {
@@ -1277,6 +1337,13 @@ declare_proto_rig(vfo_op)
 {
 	vfo_op_t op;
 
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_vfop(s, rig->caps->vfo_ops);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
+
 	op = rig_parse_vfo_op(arg1);
 	return rig_vfo_op(rig, vfo, op);
 }
@@ -1286,6 +1353,13 @@ declare_proto_rig(scan)
 {
 	scan_t op;
 	int ch;
+
+	if (!strcmp(arg1, "?")) {
+		char s[SPRINTF_MAX_SIZE];
+		sprintf_scan(s, rig->caps->scan_ops);
+		fprintf(fout, "%s\n", s);
+		return RIG_OK;
+	}
 
 	op = rig_parse_scan(arg1);
 	sscanf(arg2, "%d", &ch);
@@ -1554,8 +1628,9 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 		setting_t level = rig_idx2setting(idx);
 		const char *level_s;
 
-		if (!rig_has_set_level(rig, level))
-				continue;
+		if (!RIG_LEVEL_SET(level) ||
+				(!rig_has_set_level(rig, level) && !rig_has_get_level(rig, level)))
+			continue;
 		level_s = rig_strlevel(level);
 		if (!level_s)
 				continue;	/* duh! */
@@ -1575,6 +1650,17 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 declare_proto_rig(dump_caps)
 {
 	dumpcaps(rig, fout);
+
+	if (interactive && !prompt)             /* only for rigctld */
+		fprintf(fout, "END\n");
+
+	return RIG_OK;
+}
+
+/* '3' */
+declare_proto_rig(dump_conf)
+{
+	dumpconf(rig, fout);
 
 	if (interactive && !prompt)             /* only for rigctld */
 		fprintf(fout, "END\n");
