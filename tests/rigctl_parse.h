@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.h,v 1.2 2008-01-05 18:13:12 fillods Exp $  
+ * $Id: rigctl_parse.h,v 1.3 2008-05-23 14:26:09 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@
  */
 
 int dumpcaps (RIG *, FILE *);
+int dumpconf (RIG *, FILE *);
 
 /* 
  * Prototypes

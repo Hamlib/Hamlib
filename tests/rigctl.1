@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "February 24, 2007" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "May 8, 2008" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -302,6 +302,10 @@ Get misc information about the rig.
 Not a real rig remote command, it just dumps capabilities, i.e. what the 
 backend knows about this model, and what it can do.  TODO: Ensure this is
 in a consistent format so it can be read into a hash, dictionary, etc.
+.TP
+.B 3, dump_conf
+Not a real rig remote command, it just dumps a list of all config parameters
+defined for the radio.
 .TP
 .B 2, power2mW
 Converts a power value in a range of \fI0.0 ... 1.0\fP to the real transmit 

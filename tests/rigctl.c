@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.66 2008-01-12 00:36:58 n0nb Exp $  
+ * $Id: rigctl.c,v 1.67 2008-05-23 14:26:09 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -281,11 +281,11 @@ int main (int argc, char *argv[])
 	 * print out conf parameters
 	 */
 	if (show_conf) {
-		rig_token_foreach(my_rig, print_conf_list, (rig_ptr_t)my_rig);
+		dumpconf(my_rig, stdout);
 	}
 
 	/*
-	 * print out conf parameters, and exists immediately
+	 * print out capabilities, and exists immediately
 	 * We may be interested only in only caps, and rig_open may fail.
 	 */
 	if (dump_caps_opt) {

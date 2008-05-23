@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - sprintf toolbox header
- *  Copyright (c) 2003 by Stephane Fillod
+ *  Copyright (c) 2003-2008 by Stephane Fillod
  *
- *	$Id: sprintflst.h,v 1.1 2003-11-16 16:58:35 fillods Exp $
+ *	$Id: sprintflst.h,v 1.2 2008-05-23 14:26:09 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,6 +25,7 @@
 
 #include <hamlib/rig.h>
 
+#define SPRINTF_MAX_SIZE 256
 
 __BEGIN_DECLS
 

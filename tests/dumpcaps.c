@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.46 2008-04-27 09:56:06 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.47 2008-05-23 14:26:07 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@
 #include "misc.h"
 
 #include "sprintflst.h"
-
+#include "rigctl_parse.h"
 
 static int print_ext(RIG *rig, const struct confparams *cfp, rig_ptr_t ptr);
 int range_sanity_check(const struct freq_range_list range_list[], int rx);
@@ -551,5 +551,12 @@ static void dump_chan_caps(const channel_cap_t *chan, FILE *fout)
   if (chan->flags) fprintf(fout, "FLAG "); /* TODO: iterate over the RIG_CHFLAG's */
   if (chan->channel_desc) fprintf(fout, "NAME ");
   if (chan->ext_levels) fprintf(fout, "EXTLVL ");
+}
+
+int dumpconf (RIG* rig, FILE *fout)
+{
+        rig_token_foreach(rig, print_conf_list, (rig_ptr_t)rig);
+
+	return 0;
 }
 
