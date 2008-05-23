@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - list of known rotators
- *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.10 2006-10-15 00:26:47 aa6e Exp $
+ *	$Id: rotlist.h,v 1.11 2008-05-23 14:09:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -138,6 +138,16 @@
 #define ROT_BACKEND_SARTEK "sartek"
 #define ROT_MODEL_SARTEK1 ROT_MAKE_MODEL(ROT_SARTEK, 1)
 
+/*! \def ROT_MODEL_GS232A
+ *  \brief A macro that returns the model number of the GS-232A backend.
+ *
+ *  The GS-232A backend can be used with rotators that support the
+ *  GS-232A protocol.
+ */
+#define ROT_GS232A 6
+#define ROT_BACKEND_GS232A "gs232a"
+#define ROT_MODEL_GS232A ROT_MAKE_MODEL(ROT_GS232A, 1)
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
@@ -157,6 +167,7 @@ typedef int rot_model_t;
         { ROT_FODTRACK, ROT_BACKEND_FODTRACK }, \
         { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ }, \
         { ROT_SARTEK, ROT_BACKEND_SARTEK }, \
+        { ROT_GS232A, ROT_BACKEND_GS232A }, \
         { 0, NULL }, /* end */  \
 }
 

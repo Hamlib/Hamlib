@@ -73,6 +73,8 @@
 %ignore ROT_BACKEND_ROTOREZ;
 %ignore ROT_SARTEK;
 %ignore ROT_BACKEND_SARTEK;
+%ignore ROT_GS232A;
+%ignore ROT_BACKEND_GS232A;
 
 %ignore PRIfreq;
 %ignore SCNfreq;
