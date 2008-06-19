@@ -176,6 +176,9 @@ struct tt565_priv_data {
         } }
 
 #undef TT565_TIME		/* Define to enable time checks */
+#define TT565_ASCII_FREQ    /* select ascii mode for vfo commands */
+	/* Note:  Binary mode seems buggy at certain freqs like
+	7015679 < freq < 7015936, etc.  Use ascii mode. */
 
 /**
  * 

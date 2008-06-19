@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2008 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.25 2008-05-01 21:30:28 aa6e Exp $
+ *	$Id: orion.c,v 1.26 2008-06-19 04:26:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -113,7 +113,6 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
         int retval, data_len_init, itry;
         struct rig_state *rs;
         static int passcount=0;
-        char cmds[64]; /* debug */
 #ifdef TT565_TIME
  	double ft1, ft2;	
 #endif
@@ -321,29 +320,29 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	int cmd_len, retval;
 	char cmdbuf[TT565_BUFSIZE];
-    unsigned int myfreq;
-
-/*  ASCII mode (former)
- *	cmd_len = sprintf (cmdbuf, "*%cF%"PRIll EOM, 
- *			which_vfo(rig, vfo),
- *			(long long)freq);
- */
-
+#ifdef TT565_ASCII_FREQ
+/*  Use ASCII mode to set frequencies */
+	cmd_len = sprintf (cmdbuf, "*%cF%"PRIll EOM, 
+			which_vfo(rig, vfo),
+			(long long)freq);
+#else
+    /* Use binary mode */
     /* Set frequency using Orion's binary mode (short) sequence. 
     The short sequence transfers faster and may require less Orion
     firmware effort. */
 
     /* Construct command packet by brute force. */
-    myfreq = freq;
+	unsigned int myfreq;
+	myfreq = freq;
 	cmd_len = 7;
-    cmdbuf[0] = '*';
-    cmdbuf[1] = which_vfo(rig,vfo);
-    cmdbuf[2] = (myfreq & 0xff000000) >> 24;
-    cmdbuf[3] = (myfreq & 0x00ff0000) >> 16;
-    cmdbuf[4] = (myfreq & 0x0000ff00) >> 8;
-    cmdbuf[5] =  myfreq & 0x000000ff;
-    cmdbuf[6] = '\r';   /* i.e. EOM */
-
+	cmdbuf[0] = '*';
+	cmdbuf[1] = which_vfo(rig,vfo);
+	cmdbuf[2] = (myfreq & 0xff000000) >> 24;
+	cmdbuf[3] = (myfreq & 0x00ff0000) >> 16;
+	cmdbuf[4] = (myfreq & 0x0000ff00) >> 8;
+	cmdbuf[5] =  myfreq & 0x000000ff;
+	cmdbuf[6] = '\r';   /* i.e. EOM */
+#endif
 	retval = tt565_transaction (rig, cmdbuf, cmd_len, NULL, NULL);
 
 	return retval;
@@ -360,23 +359,27 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
 	int cmd_len, resp_len, retval;
-    unsigned int binf;
 	char cmdbuf[TT565_BUFSIZE], respbuf[TT565_BUFSIZE];
-
-/*  ASCII mode (former)
- *	cmd_len = sprintf(cmdbuf, "?%cF" EOM,
- *				which_vfo(rig, vfo));
- */
-
-    /* Get freq with Orion binary mode short sequence, as above. */
+	unsigned int binf;
+#ifdef TT565_ASCII_FREQ
+	/*  use ASCII mode */
+	cmd_len = sprintf(cmdbuf, "?%cF" EOM,
+				which_vfo(rig, vfo));
+#else
+	/* Get freq with Orion binary mode short sequence. */
 	cmd_len = sprintf(cmdbuf, "?%c" EOM,
 				which_vfo(rig, vfo));
-
+#endif
 	resp_len = sizeof(respbuf);	
 	retval = tt565_transaction (rig, cmdbuf, cmd_len, respbuf, &resp_len);
 
 	if (retval != RIG_OK)
 		return retval;
+#ifdef TT565_ASCII_FREQ
+	respbuf[12] = '\0';
+	sscanf(respbuf+3,"%8u",&binf);
+	*freq = (freq_t) binf;
+#else
     /* Test for valid binary mode return. */
 	if (respbuf[1] != which_vfo(rig,vfo) || resp_len <= 5) {
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected answer '%s'\n",
@@ -384,9 +387,10 @@ int tt565_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return -RIG_EPROTO;
 	}
     /* Convert binary to integer, endedness independent */
-    binf = (unsigned char)respbuf[2]<<24 | (unsigned char)respbuf[3]<<16
-         | (unsigned char)respbuf[4]<<8  | (unsigned char)respbuf[5];
+	binf = (unsigned char)respbuf[2]<<24 | (unsigned char)respbuf[3]<<16
+		| (unsigned char)respbuf[4]<<8  | (unsigned char)respbuf[5];
 	*freq = (freq_t) binf;
+#endif
 	return RIG_OK;
 }
 
