@@ -12,6 +12,7 @@ SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
 	$(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h \
 	$(SWGFILES)
 
+AM_CFLAGS = -fno-strict-aliasing
 ##########################################
 # Perl binding
 
