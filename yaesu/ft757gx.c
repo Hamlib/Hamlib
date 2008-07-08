@@ -9,7 +9,7 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
- * $Id: ft757gx.c,v 1.5 2008-01-10 14:19:19 n0nb Exp $  
+ * $Id: ft757gx.c,v 1.6 2008-07-08 15:02:37 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -113,9 +113,9 @@ const struct rig_caps ft757gx_caps = {
     .transceive =       RIG_TRN_OFF,
     .bank_qty =         0,
     .chan_desc_sz =     0,
-    .chan_list =        { RIG_CHAN_END, },	/* FIXME: memory channel list:20 */
+    .chan_list =        { RIG_CHAN_END, },  /* FIXME: memory channel list:20 */
 
-    .rx_range_list1 =   { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+    .rx_range_list1 =   { RIG_FRNG_END, },  /* FIXME: enter region 1 setting */
 
     .tx_range_list1 =   { RIG_FRNG_END, },
 
@@ -165,7 +165,7 @@ const struct rig_caps ft757gx_caps = {
 
     .set_freq =         ft757_set_freq,     /* set freq */
     .get_freq =         NULL,               /* get freq */
-    .set_mode =         NULL,		        /* set mode */
+    .set_mode =         NULL,               /* set mode */
     .get_mode =         NULL,               /* get mode */
     .set_vfo =          ft757_set_vfo,      /* set vfo */
 
@@ -186,7 +186,7 @@ const struct rig_caps ft757gx2_caps = {
     .copyright =        "LGPL",
     .status =           RIG_STATUS_ALPHA,
     .rig_type =         RIG_TYPE_MOBILE,
-    .ptt_type =         RIG_PTT_SERIAL_DTR,	/* pin4? */
+    .ptt_type =         RIG_PTT_NONE,
     .dcd_type =         RIG_DCD_NONE,
     .port_type =        RIG_PORT_SERIAL,
     .serial_rate_min =  4800,
@@ -428,13 +428,13 @@ int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
     /* grab freq (little endian format) and convert */
     switch(vfo) {
     case RIG_VFO_CURR:
-        *freq = from_bcd(priv->update_data+STATUS_CURR_FREQ, BCD_LEN);
+        *freq = 10 * from_bcd(priv->update_data+STATUS_CURR_FREQ, BCD_LEN);
         break;
     case RIG_VFO_A:
-        *freq = from_bcd(priv->update_data+STATUS_VFOA_FREQ, BCD_LEN);
+        *freq = 10 * from_bcd(priv->update_data+STATUS_VFOA_FREQ, BCD_LEN);
         break;
     case RIG_VFO_B:
-        *freq = from_bcd(priv->update_data+STATUS_VFOB_FREQ, BCD_LEN);
+        *freq = 10 * from_bcd(priv->update_data+STATUS_VFOB_FREQ, BCD_LEN);
         break;
     default:
         return -RIG_EINVAL;		/* sorry, wrong VFO */
