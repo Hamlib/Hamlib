@@ -9,7 +9,7 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
- * $Id: ft757gx.c,v 1.6 2008-07-08 15:02:37 n0nb Exp $  
+ * $Id: ft757gx.c,v 1.7 2008-07-08 16:29:06 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -182,11 +182,11 @@ const struct rig_caps ft757gx2_caps = {
     .rig_model =        RIG_MODEL_FT757GXII,
     .model_name =       "FT-757GXII",
     .mfg_name =         "Yaesu",
-    .version =          "0.2.1",
+    .version =          "0.3.0",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_ALPHA,
+    .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_MOBILE,
-    .ptt_type =         RIG_PTT_NONE,
+    .ptt_type =         RIG_PTT_SERIAL_DTR,     /* CAT port pin 4 per manual */
     .dcd_type =         RIG_DCD_NONE,
     .port_type =        RIG_PORT_SERIAL,
     .serial_rate_min =  4800,
