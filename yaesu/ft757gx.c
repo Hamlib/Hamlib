@@ -9,7 +9,7 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
- * $Id: ft757gx.c,v 1.7 2008-07-08 16:29:06 n0nb Exp $  
+ * $Id: ft757gx.c,v 1.8 2008-07-08 20:44:46 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -64,8 +64,8 @@ static int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width);
  *
  */
 struct ft757_priv_data {
-    unsigned char pacing;		    /* pacing value */
-    unsigned int read_update_delay;	/* depends on pacing value */
+    unsigned char pacing;           /* pacing value */
+    unsigned int read_update_delay; /* depends on pacing value */
     unsigned char current_vfo;      /* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
     unsigned char update_data[FT757GX_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
 };
@@ -94,7 +94,7 @@ const struct rig_caps ft757gx_caps = {
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay =      FT757GX_WRITE_DELAY,
     .post_write_delay = FT757GX_POST_WRITE_DELAY,
-    .timeout =          2000,
+    .timeout =          FT757GX_DEFAULT_READ_TIMEOUT,
     .retry =            0,
     .has_get_func =     RIG_FUNC_NONE,
     .has_set_func =     RIG_FUNC_NONE,
@@ -197,7 +197,7 @@ const struct rig_caps ft757gx2_caps = {
     .serial_handshake = RIG_HANDSHAKE_NONE,
     .write_delay =      FT757GX_WRITE_DELAY,
     .post_write_delay = FT757GX_POST_WRITE_DELAY,
-    .timeout =          2000,
+    .timeout =          FT757GX_DEFAULT_READ_TIMEOUT,
     .retry =            0,
     .has_get_func =     RIG_FUNC_LOCK,
     .has_set_func =     RIG_FUNC_LOCK,
@@ -261,7 +261,7 @@ const struct rig_caps ft757gx2_caps = {
     /* mode/filter list, .remember =  order matters! */
     .filters =  {
         {RIG_MODE_SSB|RIG_MODE_CW,  kHz(2.7)},
-        {RIG_MODE_CW,  Hz(600)},	/* narrow */
+        {RIG_MODE_CW,  Hz(600)},    /* narrow */
         {RIG_MODE_AM,  kHz(6)},
         {RIG_MODE_FM,  kHz(15)},
 
@@ -296,23 +296,23 @@ const struct rig_caps ft757gx2_caps = {
 int ft757_init(RIG *rig)
 {
     struct ft757_priv_data *p;
-  
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     p = (struct ft757_priv_data *)malloc(sizeof(struct ft757_priv_data));
-    if (!p)			/* whoops! memory shortage! */
+    if (!p)         /* whoops! memory shortage! */
         return -RIG_ENOMEM;
-  
+
     /* TODO: read pacing from preferences */
 
-    p->pacing = FT757GX_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
+    p->pacing = FT757GX_PACING_DEFAULT_VALUE;   /* set pacing to minimum for now */
     p->read_update_delay = FT757GX_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-    p->current_vfo =  RIG_VFO_A;	/* default to VFO_A ? */
+    p->current_vfo =  RIG_VFO_A;                /* default to VFO_A ? */
     rig->state.priv = (void *)p;
-  
+
     return RIG_OK;
 }
 
@@ -350,7 +350,7 @@ int ft757_open(RIG *rig)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     /* read back the 75 status bytes */
     retval = ft757_get_update_data(rig);
     if (retval < 0) {
@@ -377,7 +377,7 @@ int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     /* fill in first four bytes */
     to_bcd(cmd, freq/10, BCD_LEN);
 
@@ -420,8 +420,8 @@ int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     if (!rig)
         return -RIG_EINVAL;
-  
-    retval = ft757_get_update_data(rig);	/* get whole shebang from rig */
+
+    retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
     if (retval < 0)
         return retval;
 
@@ -437,7 +437,7 @@ int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         *freq = 10 * from_bcd(priv->update_data+STATUS_VFOB_FREQ, BCD_LEN);
         break;
     default:
-        return -RIG_EINVAL;		/* sorry, wrong VFO */
+        return -RIG_EINVAL;     /* sorry, wrong VFO */
     }
 
     return RIG_OK;
@@ -453,8 +453,8 @@ int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     if (!rig)
         return -RIG_EINVAL;
-  
-    retval = ft757_get_update_data(rig);	/* get whole shebang from rig */
+
+    retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
     if (retval < 0)
         return retval;
 
@@ -469,7 +469,7 @@ int ft757_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         retval = rig2mode(rig, priv->update_data[STATUS_VFOB_MODE], mode, width);
         break;
     default:
-        return -RIG_EINVAL;		/* sorry, wrong VFO */
+        return -RIG_EINVAL;     /* sorry, wrong VFO */
     }
 
     return retval;
@@ -491,7 +491,7 @@ int ft757_set_vfo(RIG *rig, vfo_t vfo)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     switch(vfo) {
     case RIG_VFO_CURR:
         return RIG_OK;
@@ -502,7 +502,7 @@ int ft757_set_vfo(RIG *rig, vfo_t vfo)
         cmd[3] = 0x01;          /* VFO B */
         break;
     default:
-        return -RIG_EINVAL;		/* sorry, wrong VFO */
+        return -RIG_EINVAL;     /* sorry, wrong VFO */
     }
 
     priv->current_vfo = vfo;
@@ -520,8 +520,8 @@ int ft757_get_vfo(RIG *rig, vfo_t *vfo)
 
     if (!rig)
         return -RIG_EINVAL;
-  
-    retval = ft757_get_update_data(rig);	/* get whole shebang from rig */
+
+    retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
     if (retval < 0)
         return retval;
 
@@ -546,8 +546,8 @@ int ft757_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     if (!rig)
         return -RIG_EINVAL;
-  
-    retval = ft757_get_update_data(rig);	/* get whole shebang from rig */
+
+    retval = ft757_get_update_data(rig);    /* get whole shebang from rig */
     if (retval < 0)
         return retval;
 
@@ -565,7 +565,7 @@ int ft757_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     if (level != RIG_LEVEL_RAWSTR)
         return -RIG_EINVAL;
 
@@ -608,7 +608,7 @@ int ft757_get_update_data(RIG *rig)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     serial_flush(&rig->state.rigport);
 
     /* send READ STATUS cmd to rig  */
@@ -640,7 +640,7 @@ int mode2rig(RIG *rig, rmode_t mode, pbwidth_t width)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     /*
      * translate mode from generic to ft757 specific
      */
@@ -678,7 +678,7 @@ int rig2mode(RIG *rig, int md, rmode_t *mode, pbwidth_t *width)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     /*
      * translate mode from ft757 specific to generic
      */

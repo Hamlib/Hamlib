@@ -7,7 +7,7 @@
  * box (FIF-232C) or similar (max232 + some capacitors :-)
  *
  *
- *    $Id: ft757gx.h,v 1.3 2008-01-10 14:19:19 n0nb Exp $  
+ *    $Id: ft757gx.h,v 1.4 2008-07-08 20:44:46 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -45,14 +45,14 @@
 
 
 /* Rough safe value for default timeout */
-#define FT757GX_DEFAULT_READ_TIMEOUT  345 * ( 3 + (FT757GX_PACING_INTERVAL * FT757GX_PACING_DEFAULT_VALUE))
+#define FT757GX_DEFAULT_READ_TIMEOUT    FT757GX_STATUS_UPDATE_DATA_LENGTH * (5 + (FT757GX_PACING_INTERVAL * FT757GX_PACING_DEFAULT_VALUE))
 
 /*
  * Some useful offsets in the status update map (offset = book byte value - 1)
  *
  * Status Update Chart, FT757GXII
  */
-#define STATUS_CURR_FREQ    5	/* Operating Frequency */
+#define STATUS_CURR_FREQ    5   /* Operating Frequency */
 #define STATUS_CURR_MODE    9
 #define STATUS_VFOA_FREQ    10
 #define STATUS_VFOA_MODE    14
