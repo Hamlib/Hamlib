@@ -63,7 +63,13 @@ device file as described above.
 .TP
 .B \-P, --ptt-type=type
 Use \fItype\fP of Push-To-Talk device.
-Supported types are RIG, DTR, RTS, PARALLEL, NONE.
+Supported types are RIG, DTR, RTS, PARALLEL, NONE, overriding PTT type
+defined in the rig's backend.
+
+Some side effects of this command are that when type is set to DTR, read
+PTT state comes from Hamlib frontend, not read from the radio.  When set
+to NONE, PTT state cannot be read or set even if rig backend supports 
+reading/setting PTT status from the rig.
 .TP
 .B \-D, --dcd-type=type
 Use \fItype\fP of Data Carrier Detect device. 
@@ -337,7 +343,7 @@ Start \fBrigctl\fP using \fBrpc.rigd\fP and setting the frequency and mode:
 
 $ rigctl -m 1901 -r localhost F 7253500 M LSB 0
 .SH DIAGNOSTICS
-The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
+The \fB-v\fP, \fB--verbose\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
 -vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
 
@@ -366,7 +372,7 @@ Written by Stephane Fillod and the Hamlib Group
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2007 Stephane Fillod, Frank Singleton, and the Hamlib
+Copyright \(co 2000-2008 Stephane Fillod, Frank Singleton, and the Hamlib
 Group.
 .br
 This is free software; see the source for copying conditions.
