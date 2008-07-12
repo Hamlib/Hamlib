@@ -7,4 +7,11 @@ Notes on Icom backends
 2008-03, AA6E:  Tested and extended omni.c for Ten-Tec Omni VI and Omni VI Plus
         It is now at least "beta" level.
 
+2008-07, AA6E:  Tests with IC-756PROIII at ARRL.  Added AF, RF, SQL levels, COMP,
+	BALANCE. Note: communications do not seem completely reliable for baud
+	rates > 9600.
+	VOX-related commands are implemented for the '910H but are wrong for
+	the '756 and other models.  They should be reimplemented in a more general way.
+
+
 
