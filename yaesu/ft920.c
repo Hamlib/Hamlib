@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.23 2007-12-01 22:09:52 n0nb Exp $
+ * $Id: ft920.c,v 1.24 2008-08-06 11:09:37 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -247,8 +247,11 @@ const struct rig_caps ft920_caps = {
         {RIG_MODE_AM,   kHz(2.4)},  /* AM filter with narrow selection (SSB filter switched in) */
         {RIG_MODE_FM,   kHz(12)},   /* FM with optional FM unit */
         {RIG_MODE_WFM,  kHz(12)},   /* WideFM, with optional FM unit. */
-        {RIG_MODE_RTTY, kHz(1.8)},  /* Alias of MODE_DATA_L */
-        {RIG_MODE_RTTY, kHz(0.5)},  /* Alias of MODE_DATA_LN */
+        {RIG_MODE_PKTLSB, kHz(1.8)},/* Alias of MODE_DATA_L */
+        {RIG_MODE_PKTLSB, kHz(0.5)},/* Alias of MODE_DATA_LN */
+        {RIG_MODE_PKTUSB,kHz(2.4)}, /* Alias for MODE DATA_U */
+        {RIG_MODE_PKTFM, kHz(12)},  /* Alias for MODE_DATA _F */
+        {RIG_MODE_PKTFM, kHz(6)},   /* Alias for MODE_DATA_FN */
 
         RIG_FLT_END,
     },
@@ -662,6 +665,15 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
         case RIG_MODE_RTTY:
             mode_parm = MODE_SET_A_DATA_L;
             break;
+        case RIG_MODE_PKTLSB:
+            mode_parm = MODE_SET_A_DATA_L;
+            break;	
+        case RIG_MODE_PKTUSB:
+            mode_parm = MODE_SET_A_DATA_U;
+            break;
+        case RIG_MODE_PKTFM:
+            mode_parm = MODE_SET_A_DATA_F;
+            break;	
         default:
             return -RIG_EINVAL;         /* sorry, wrong MODE */
         }
@@ -689,6 +701,15 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
         case RIG_MODE_RTTY:
             mode_parm = MODE_SET_B_DATA_L;
             break;
+        case RIG_MODE_PKTLSB:
+            mode_parm = MODE_SET_B_DATA_L;
+        break;
+        case RIG_MODE_PKTUSB:
+            mode_parm = MODE_SET_B_DATA_U;
+            break;
+        case RIG_MODE_PKTFM:
+            mode_parm = MODE_SET_B_DATA_F;
+            break;	
         default:
             return -RIG_EINVAL;
         }
@@ -723,6 +744,7 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
             case RIG_MODE_CW:
             case RIG_MODE_AM:
             case RIG_MODE_FM:
+            case RIG_MODE_PKTFM:
             case RIG_MODE_RTTY:
                 switch(vfo) {
                 case RIG_VFO_A:
@@ -877,12 +899,24 @@ static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) 
         norm = TRUE;
         break;
     case MODE_DATA_LN:
-        *mode = RIG_MODE_RTTY;
+        *mode = RIG_MODE_PKTLSB;
         norm = FALSE;
         break;
     case MODE_DATA_L:
-        *mode = RIG_MODE_RTTY;
+        *mode = RIG_MODE_PKTLSB;
         norm = TRUE;
+        break;
+    case MODE_DATA_U:
+        *mode = RIG_MODE_PKTUSB;
+        norm = TRUE;
+        break;
+    case MODE_DATA_F:
+        *mode = RIG_MODE_PKTFM;
+        norm = TRUE;
+        break;
+    case MODE_DATA_FN:
+        *mode = RIG_MODE_PKTFM;
+        norm = FALSE;
         break;
     default:
         return -RIG_EINVAL;             /* Oops! file bug report */

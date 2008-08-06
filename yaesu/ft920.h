@@ -9,7 +9,7 @@
  * via serial interface to an FT-920 using the "CAT" interface
  *
  *
- *    $Id: ft920.h,v 1.16 2007-12-01 22:09:52 n0nb Exp $  
+ *    $Id: ft920.h,v 1.17 2008-08-06 11:09:37 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -38,14 +38,14 @@
 #define FT920_VFO_ALL   (RIG_VFO_A|RIG_VFO_B)
 
 /* Receiver caps */
-#define FT920_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT920_ALL_RX_MODES   (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM|RIG_MODE_FM|RIG_MODE_WFM)
 #define FT920_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT920_AM_RX_MODES       (RIG_MODE_AM)
-#define FT920_FM_RX_MODES       (RIG_MODE_FM)
+#define FT920_FM_RX_MODES       (RIG_MODE_FM|RIG_MODE_WFM)
 
 
 /* TX caps */
-#define FT920_OTHER_TX_MODES    (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB )  /* 100 W class */
+#define FT920_OTHER_TX_MODES    (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM )  /* 100 W class */
 #define FT920_AM_TX_MODES       (RIG_MODE_AM )                              /* set 25W max */
 
 
