@@ -1,5 +1,6 @@
 /*
  * hamlib - (C) Frank Singleton 2000-2003
+ *          (C) Stephane Fillod 2000-2008
  *
  * ft100.c - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
@@ -7,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.18 2006-10-07 15:51:38 csete Exp $  
+ *    $Id: ft100.c,v 1.19 2008-09-12 15:32:37 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -34,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>  	/* String function definitions */
 #include <unistd.h>  	/* UNIX standard function definitions */
+#include <math.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -41,30 +43,6 @@
 #include "ft100.h"
 #include "misc.h"
 #include "yaesu_tones.h"
-
-
-// avf/kc2ivl fixed translation table feb-14-2003
-const char *CFREQ_TBL[256] =
-{   
- "00", "01", "02", "03", "04", "05", "06", "07", "08", "09","0A","0B","0C","0D","0E", "0F",	
- "10", "11", "12", "13", "14", "15", "16", "17", "18", "19","1A","1B","1C","1D","1E", "1F",
- "20", "21", "22", "23", "24", "25", "26", "27", "28", "29","2A","2B","2C","2D","2E", "2F",
- "30", "31", "32", "33", "34", "35", "36", "37", "38", "39","3A","3B","3C","3D","3E", "3F",
- "40", "41", "42", "43", "44", "45", "46", "47", "48", "49","4A","4B","4C","4D","4E", "4F",
- "50", "51", "52", "53", "54", "55", "56", "57", "58", "59","5A","5B","5C","5D","5E", "5F",
- "60", "61", "62", "63", "64", "65", "66", "67", "68", "69","6A","6B","6C","6D","6E", "6F",
- "70", "71", "72", "73", "74", "75", "76", "77", "78", "79","7A","7B","7C","7D","7E", "7F",
- "80", "81", "82", "83", "84", "85", "86", "87", "88", "89","8A","8B","8C","8D","8E", "8F",
- "90", "91", "92", "93", "94", "95", "96", "97", "98", "99","9A","9B","9C","9D","9E", "9F",
- "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9","AA","AB","AC","AD","AE", "AF",
- "B0", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9","BA","BB","BC","BD","BE", "BF",
- "C0", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9","CA","CB","CC","CD","CE", "CF",
- "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9","DA","DB","DC","DD","DE", "DF",
- "E0", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9","EA","EB","EC","ED","EE", "EF",
- "F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9","FA","FB","FC","FD","FE", "FF"
-};
-
-
 
 
 /* prototypes */
@@ -151,16 +129,23 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 #define FT100_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define FT100_AM_TX_MODES (RIG_MODE_AM)
-#define FT100_GET_RIG_LEVELS (RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER)
+#define FT100_GET_RIG_LEVELS (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 #define FT100_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_TONE|RIG_FUNC_TSQL)
+
+/* TODO: S-meter calibration */
+#define FT100_STR_CAL { 2, \
+	        { \
+			{   0, -54 }, /* S0 */ \
+			{ 255, 60 }  /* +60 */ \
+	        } }
 
 const struct rig_caps ft100_caps = {
   .rig_model = 		RIG_MODEL_FT100,
-  .model_name = 		"FT-100", 
+  .model_name = 	"FT-100", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.2", 
+  .version = 		"0.3", 
   .copyright = 		"LGPL",
-  .status = 		RIG_STATUS_ALPHA,
+  .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
   .ptt_type = 		RIG_PTT_RIG,
   .dcd_type = 		RIG_DCD_NONE,
@@ -181,7 +166,7 @@ const struct rig_caps ft100_caps = {
   .has_set_level = 	RIG_LEVEL_NONE,
   .has_get_parm = 		RIG_PARM_NONE,
   .has_set_parm = 		RIG_PARM_NONE,	/* FIXME: parms */
-  .level_gran = 		{}, 		/* granularity */
+  .level_gran =		{},		/* granularity */
   .parm_gran = 		{},
   .ctcss_list = 		NULL,	/* FIXME: CTCSS/DCS list */
   .dcs_list = 		NULL,
@@ -246,6 +231,7 @@ const struct rig_caps ft100_caps = {
   .filters =  {
     RIG_FLT_END,
   },
+  .str_cal = FT100_STR_CAL,
 
   .priv = 			NULL,
   .rig_init = 		ft100_init, 
@@ -291,7 +277,7 @@ const struct rig_caps ft100_caps = {
   .set_ant = 		NULL,
   .get_ant = 		NULL,
   .set_level = 		NULL,
-  .get_level = 		NULL,
+  .get_level = 		ft100_get_level,
   .set_func = 		NULL,
   .get_func = 		NULL,
   .set_parm = 		NULL,
@@ -370,7 +356,7 @@ static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
   rig_s = &rig->state;
   
   if (! p->pcs[cmd_index].ncomp) {
-    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Attempt to send incomplete sequence \n");
+    rig_debug(RIG_DEBUG_ERR,"ft100: Attempt to send incomplete sequence \n");
     return -RIG_EINVAL;
   }
   
@@ -381,9 +367,7 @@ static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
       rig_debug(RIG_DEBUG_VERBOSE," %3i",(int)cmd[i]);
   rig_debug(RIG_DEBUG_VERBOSE," \n");
    
-  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
-    
-  return RIG_OK;
+  return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -434,14 +418,11 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   
    FT100_STATUS_INFO ft100_status;
-   FT100_METER_INFO  ft100_meters;
-   FT100_FLAG_INFO   ft100_flags;
   
    freq_t d1, d2;
-   char freq_str[6], sfreq[10];  
-   int i;
+   char freq_str[10];
     
-   int n = 0;
+   int ret;
     
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq \n");
    
@@ -449,29 +430,34 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    if( !freq )  return -RIG_EINVAL;
   
    serial_flush( &rig->state.rigport );
-   n=ft100_get_info(rig, &ft100_status, &ft100_meters, &ft100_flags);
+
+   ret = ft100_send_priv_cmd(rig,FT100_NATIVE_CAT_READ_STATUS);
+   if (ret != RIG_OK)
+	   return ret;
+
+   ret = read_block( &rig->state.rigport, (char*)&ft100_status, sizeof(FT100_STATUS_INFO));  
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read status=%i \n",ret);
+   if (ret != RIG_OK)
+	   return ret;
+
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Freq= %3i %3i %3i %3i \n",(int)ft100_status.freq[0], (int)ft100_status.freq[1], (int)ft100_status.freq[2],(int)ft100_status.freq[3]);
   
    /* now convert it .... */
-   /* yes i know its butt fugly, but it works */
    
-   
-   for (i=0; i<5; i++ )
-      freq_str[i]=0x00;
-
-   for (i=0; i<4; i++)
-        strcat(freq_str, CFREQ_TBL[(int)ft100_status.freq[i]]);
+   sprintf(freq_str, "%02X%02X%02X%02X",
+	  ft100_status.freq[0],
+	  ft100_status.freq[1],
+	  ft100_status.freq[2],
+	  ft100_status.freq[3]);
    
    d1=strtol(freq_str,NULL,16);
    d2=(d1*1.25); 		/* fixed 10Hz bug by OH2MMY */
    
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%"PRIfreq" d2=%"PRIfreq"\n",d1,d2);
    
-   sprintf(sfreq,"%8"PRIll,(long long)d2);
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq= %8"PRIll" \n",(long long)d2);
    
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq= %s \n",sfreq);
-   
-   memcpy(freq, &d2, sizeof(freq_t));
+   *freq = d2;
    
    return RIG_OK;
 }
@@ -499,6 +485,9 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     break;
   case RIG_MODE_RTTY:
     cmd_index = FT100_NATIVE_CAT_SET_MODE_DIG;
+    break;
+  case RIG_MODE_WFM:
+    cmd_index = FT100_NATIVE_CAT_SET_MODE_WFM;
     break;
   default:
     return -RIG_EINVAL;
@@ -547,7 +536,7 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
       *mode = RIG_MODE_CW;
       break;
     case 0x03:
-      *mode = RIG_MODE_CW;  /* better suggestion? */
+      *mode = RIG_MODE_CWR;
       break;
     case 0x04:
       *mode = RIG_MODE_AM;
@@ -559,7 +548,7 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
       *mode = RIG_MODE_FM;
       break;
     case 0x07:
-      *mode = RIG_MODE_FM;
+      *mode = RIG_MODE_WFM;
       break; 
     default:
       *mode = RIG_MODE_NONE;
@@ -695,27 +684,60 @@ int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
 int ft100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
    return -RIG_ENIMPL;
 }
+#endif
 
-
-/* TODO: all of this */
+/*
+ * blind implementation of get_level.
+ * Please test on real hardware and send report on hamlib mailing list
+ */
 int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
+   
+   int ret;
+   float f;
+   FT100_METER_INFO ft100_meter;
 
    if( !rig )  return -RIG_EINVAL;
    if( !val )  return -RIG_EINVAL;
+
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n", __FUNCTION__, rig_strlevel(level));
    
+   ret = ft100_send_priv_cmd(rig,FT100_NATIVE_CAT_READ_METERS);
+   if (ret != RIG_OK)
+	   return ret;
+   ret = read_block( &rig->state.rigport, (char*)&ft100_meter, sizeof(FT100_METER_INFO));  
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: read meters=%d\n",__FUNCTION__, ret);
+   if (ret != RIG_OK)
+	   return ret;
+  
    switch( level ) {
    
-   case RIG_LEVEL_STRENGTH:
+   case RIG_LEVEL_RAWSTR:
+      val->i = ft100_meter.s_meter;
       break;
    case RIG_LEVEL_RFPOWER:
+      val->f = (float)ft100_meter.tx_fwd_power/0xff;
+      break;
+   case RIG_LEVEL_SWR:
+      if (ft100_meter.tx_fwd_power == 0)
+	val->f = 0;
+      else {
+      	f = sqrt((float)ft100_meter.tx_rev_power/(float)ft100_meter.tx_fwd_power);
+      	val->f = (1+f)/(1-f);
+      }
+      break;
+   case RIG_LEVEL_ALC:
+      /* need conversion ? */
+      val->f = (float)ft100_meter.alc_level/0xff;
       break;
    default:
       return -RIG_EINVAL;
    }
 
-   return -RIG_ENIMPL;
+   return RIG_OK;
 }
 
+#if 0
+/* TODO: all of this */
 
 int ft100_set_func(RIG *rig, vfo_t vfo, setting_t func, int status) {
    return -RIG_ENIMPL;
@@ -869,6 +891,7 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
 }
 
 
+#if 0
 /*
  * okie dokie here....
  * get everything, let the calling function figure out what it needs
@@ -900,5 +923,5 @@ int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *
    
    return RIG_OK;
 }
-
+#endif
 

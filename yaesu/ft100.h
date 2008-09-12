@@ -1,5 +1,6 @@
 /*
  * hamlib - (C) Frank Singleton 2000-2003 (vk3fcs@ix.netcom.com)
+ *          (C) Stephane Fillod 2000-2008
  *
  * ft100.h - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
@@ -7,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.6 2005-04-03 19:27:59 fillods Exp $  
+ *    $Id: ft100.h,v 1.7 2008-09-12 15:32:38 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -152,11 +153,11 @@ static int ft100_set_vfo(RIG *rig, vfo_t vfo);
 static int ft100_get_vfo(RIG *rig, vfo_t *vfo);
 
 static int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 #if 0
 static int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
 static int ft100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-static int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 static int ft100_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 static int ft100_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
@@ -177,6 +178,6 @@ static int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
 static int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 //static int ft100_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 
-static int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags);
+//static int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags);
 
 #endif /* _FT100_H */
