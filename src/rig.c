@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.96 2008-05-04 15:36:23 fillods Exp $
+ *	$Id: rig.c,v 1.97 2008-09-12 11:49:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1236,16 +1236,25 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		break;
 
 	case RIG_PTT_SERIAL_RTS:
+		if (caps->get_ptt)
+			return caps->get_ptt(rig, vfo, ptt);
+
 		retcode = ser_get_rts(&rig->state.pttport, &status);
 		*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
 		return retcode;
 
 	case RIG_PTT_SERIAL_DTR:
+		if (caps->get_ptt)
+			return caps->get_ptt(rig, vfo, ptt);
+
 		retcode = ser_get_dtr(&rig->state.pttport, &status);
 		*ptt = status ? RIG_PTT_ON : RIG_PTT_OFF;
 		return retcode;
 
 	case RIG_PTT_PARALLEL:
+		if (caps->get_ptt)
+			return caps->get_ptt(rig, vfo, ptt);
+
 		return par_ptt_get(&rig->state.pttport, ptt);
 
 	case RIG_PTT_NONE:
