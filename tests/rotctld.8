@@ -1,0 +1,198 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH ROTCTLD "8" "Septembre 12, 2008" "Hamlib" "Rotator Control Daemon"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+rotctld \- Hamlib rotator control daemon
+.SH SYNOPSIS
+.B rotctld
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+The \fBrotctld\fP program is an EXPERIMENTAL \fBHamlib\fP rotator daemon that 
+handles TCP client requests. This allows multiple user programs to share one 
+rotator. Multiple rotators can be controlled on different TCP ports. The syntax 
+of the commands are the same as \fBrotctl\fP. It is hoped that \fBrotctld\fP 
+will be especially useful for languages such as Perl, Python, and others.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invoke bold face and italics, 
+.\" respectively.
+\fBrotctld\fP communicates to a client through a TCP socket using text
+commands shared with \fBrotctl\fP. The protocol is simple, commands are sent
+to \fBrotctld\fP on one line and \fBrotctld\fP responds to "get" commands with
+the requested values, one per line.  A response may contain one to three lines 
+of values plus one line containing "END".  Each line is terminated with a 
+newline '\\n' character.
+.PP
+Keep in mind that \fBHamlib\fP is BETA level software. 
+While a lot of backend libraries lack complete rotator support, the basic functions
+are usually well supported.  The API may change without publicized notice, 
+while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
+a change.
+.PP
+Please report bugs and provide feedback at the e-mail address given in the 
+REPORTING BUGS section.  Patches and code enhancements are also welcome.
+.SH OPTIONS
+This program follows the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+
+Here is a summary of the supported options:
+.TP
+.B \-m, --model=id
+Select rotator model number. See rotator model list (use 'rotctl -l').
+.TP
+.B \-r, --rot-file=device
+Use \fIdevice\fP as the file name of the port the rotator is connected.
+Often a serial port, but could be a USB to serial adapter.  Typically 
+/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+.TP
+.B \-s, --serial-speed=baud
+Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rig
+backend capabilities as the default.
+.TP
+.B \-L, --show-conf
+List all config parameters for the rotator defined with -m above.
+.TP
+.B \-C, --set-conf=parm=val[,parm=val]*
+Set config parameter.  e.g. stop_bits=2
+.br
+Use -L option for a list.
+.TP
+.B \-t, --port=number
+Use \fInumber\fP as the TCP listening port. The default is 4533.
+.TP
+.B \-l, --list
+List all model numbers defined in \fBHamlib\fP and exit.
+.TP
+.B \-v, --verbose
+Set verbose mode, cumulative (see DIAGNOSTICS below).
+.TP
+.B \-h, --help
+Show a summary of these options and exit.
+.TP
+.B \-V, --version
+Show the version of \fBrotctld\fP and exit.
+.PP
+\fBN.B.\fP Some options may not be implemented by a given backend and will
+return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+and \fI\-\-show-conf\fP options.
+.pp
+Please note that the backend for the rotator to be controlled, 
+or the rotator itself may not support some commands. In that case, 
+the operation will fail with a \fBHamlib\fP error code.
+.SH COMMANDS
+Commands can be sent over the TCP socket either as a single char, or as a 
+long command name plus the value(s) on one '\\n' terminated line. See 
+PROTOCOL.
+.PP
+Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
+an upper case letter will be used for \fIset\fP method whereas the 
+corresponding lower case letter refers to the \fIget\fP method.  Each operation
+also has a long name, prepend a backslash to send a long command name.
+.PP
+Please note that the backend for the rotator to be controlled, 
+or the rotator itself may not support some commands. In that case, 
+the operation will fail with a \fBHamlib\fP error message.
+.PP
+Here is a summary of the supported commands:
+.TP
+.B P, set_pos
+Set position: azimuth and elevation.
+.TP
+.B p, get_pos
+Get position: azimuth and elevation.
+.TP
+.B K, park
+Park the antenna.
+.TP
+.B S, stop
+Stop the rotator.
+.TP
+.B R, reset
+Reset the rotator.
+.TP
+.B M, move
+Move the rotator in a specific direction.
+.TP
+.B _, get_info
+Get misc information about the rotator.
+.TP
+.B w, send_cmd
+Send raw command string to rotator. 
+.br
+For binary protocols enter values as \\0xAA\\0xBB
+
+.SH PROTOCOL
+The \fBrotctld\fP protocol is intentionally simple. Commands are entered on
+a single line with any needed values. In Perl, reliable results are obtained
+by terminating each command string with a newline character, '\\n'.
+.PP
+Example \fIset\fP (Perl code):
+
+print $socket "P 135 10\\n";
+.br
+print $socket "\\\\set_pos 135 10\\n";   # escape leading '\\'
+.PP
+Responses from \fBrotctld\fP are text values and match the same tokens used
+in the \fIset\fP commands. Each value is returned on its own line. To
+signal the end of a response the "END\\n" string is sent.
+.PP
+Example \fIget\fP (Perl code):
+
+print $socket "p\\n";
+
+"135"
+.br
+"10"
+.br
+"END"
+.PP
+Most \fIget\fP functions return one to three values. 
+Future work will focus on making this output compatible with assignment to a
+hash, dictionary, or other key:value variable.
+.SH DIAGNOSTICS
+The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
+to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
+-vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
+.PP
+A given verbose level is useful for providing needed debugging information to
+the email address below.  For example, TRACE output shows all of the values
+sent to and received from the rotator which is very useful for rotator backend
+library development and may be requested by the developers.
+.SH SECURITY
+No authentication whatsoever; don't leave this TCP port open wide to the Internet.
+Please ask if stronger security is needed.
+.SH BUGS
+The daemon is not detaching and backgrounding itself.
+
+Much testing needs to be done.
+.SH REPORTING BUGS
+Report bugs to <hamlib-developer@lists.sourceforge.net>.
+.br
+We are already aware of the bugs in the previous section :-)
+.SH AUTHORS
+Written by Stephane Fillod and the Hamlib Group
+.br
+<http://www.hamlib.org>.
+.SH COPYRIGHT
+Copyright \(co 2000-2008 Stephane Fillod and the Hamlib Group.
+.PP
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE.
+.SH SEE ALSO
+.BR rotctl (1),
+.BR hamlib (3)

@@ -1,11 +1,10 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2008
+ * rotctld.c - (C) Stephane Fillod 2000-2008
  *
  * This program test/control a rotator using Hamlib.
- * It takes commands in interactive mode as well as 
- * from command line options.
+ * It takes commands from network connection.
  *
- *	$Id: rotctl.c,v 1.11 2008-09-12 22:55:09 fillods Exp $  
+ *	$Id: rotctld.c,v 1.1 2008-09-12 22:55:09 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -35,15 +34,40 @@
 #include <ctype.h>
 
 #include <getopt.h>
+#include <errno.h>
+
+#include <sys/types.h>          /* See NOTES */
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#elif HAVE_WS2TCPIP_H
+#include <ws2tcpip.h>
+#endif
+
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
 
 #include <hamlib/rotator.h>
 #include "misc.h"
 
 #include "rotctl_parse.h"
 
-/* 
- * Prototypes
- */
+struct handle_data {
+	ROT *rot;
+	int sock;
+	struct sockaddr_in cli_addr;
+	socklen_t clilen;
+};
+
+void * handle_socket(void * arg);
+
 void usage();
 
 /*
@@ -52,12 +76,13 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:LvhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:LvhVl"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
 	{"rot-file", 1, 0, 'r'},
 	{"serial-speed", 1, 0, 's'},
+	{"port",  1, 0, 't'},
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
@@ -67,10 +92,13 @@ static struct option long_options[] =
 	{0, 0, 0, 0}
 };
 
+int interactive = 1;    /* no cmd because of daemon */
+int prompt= 0 ;         /* Daemon mode for rigparse return string */
+
+int portno = 4533;
+
 #define MAXCONFLEN 128
 
-int interactive = 1;    /* if no cmd on command line, switch to interactive */
-int prompt = 1;         /* Print prompt in rotctl */
 
 int main (int argc, char *argv[])
 { 
@@ -84,6 +112,10 @@ int main (int argc, char *argv[])
 	const char *rot_file=NULL;
 	int serial_rate = 0;
 	char conf_parms[MAXCONFLEN] = "";
+
+	int sock_listen;
+	struct sockaddr_in serv_addr;
+	int reuseaddr = 1;
 
 	while(1) {
 		int c;
@@ -103,33 +135,40 @@ int main (int argc, char *argv[])
 					exit(0);
 			case 'm':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					my_model = atoi(optarg);
 					break;
 			case 'r':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					rot_file = optarg;
 					break;
 			case 's':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					serial_rate = atoi(optarg);
 					break;
 			case 'C':
 					if (!optarg) {
-							usage();	/* wrong arg count */
-							exit(1);
+						usage();	/* wrong arg count */
+						exit(1);
 					}
 					if (*conf_parms != '\0')
-							strcat(conf_parms, ",");
+						strcat(conf_parms, ",");
 					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+					break;
+                       case 't':
+					if (!optarg) {
+						usage();        /* wrong arg count */
+						exit(1);
+					}
+					portno = atoi(optarg);
 					break;
 			case 'v':
 					verbose++;
@@ -145,15 +184,12 @@ int main (int argc, char *argv[])
 					exit(1);
 		}
 	}
-	if (verbose < 2)
-		rig_set_debug(RIG_DEBUG_WARN);
 
-	/*
-	 * at least one command on command line, 
-	 * disable interactive mode
-	 */
-	if (optind < argc)
-		interactive = 0;
+	rig_set_debug(verbose<2 ? RIG_DEBUG_WARN: verbose);
+
+	rig_debug(RIG_DEBUG_VERBOSE, "rotctld, %s\n", hamlib_version);
+	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
+			"<hamlib-developer@lists.sourceforge.net>\n\n");
 
   	my_rot = rot_init(my_model);
 
@@ -197,8 +233,70 @@ int main (int argc, char *argv[])
 	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
 			my_rot->caps->version, rig_strstatus(my_rot->caps->status));
 
+	/*
+	 * Prepare listening socket
+	 */
+	sock_listen = socket(AF_INET, SOCK_STREAM, 0); 
+	if (sock_listen < 0) 
+		perror("ERROR opening socket");
+	memset((char *) &serv_addr, 0, sizeof(serv_addr));
+
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(portno);
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+
+
+	if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
+				(char *)&reuseaddr,sizeof(reuseaddr)) < 0) {
+		rig_debug(RIG_DEBUG_ERR, "setsockopt: %s\n", strerror(errno));
+		exit (1);
+	}
+	if (bind(sock_listen, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+		rig_debug(RIG_DEBUG_ERR, "binding: %s\n", strerror(errno));
+		exit (1);
+	}
+	if (listen(sock_listen,4) < 0) {
+		rig_debug(RIG_DEBUG_ERR, "listening: %s\n", strerror(errno));
+		exit (1);
+	}
+
+	/*
+	 * main loop accepting connections
+	 */
 	do {
-		retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc);
+#ifdef HAVE_PTHREAD
+		pthread_t thread;
+#endif
+		struct handle_data *arg;
+
+		arg = malloc(sizeof(struct handle_data));
+		if (!arg) {
+			rig_debug(RIG_DEBUG_ERR, "malloc: %s\n", strerror(errno));
+			exit (1);
+		}
+
+		arg->rot = my_rot;
+		arg->clilen = sizeof(arg->cli_addr);
+		arg->sock = accept(sock_listen, (struct sockaddr *) &arg->cli_addr,
+				&arg->clilen);
+		if (arg->sock < 0) {
+			rig_debug(RIG_DEBUG_ERR, "accept: %s\n", strerror(errno));
+			break;
+		}
+
+		rig_debug(RIG_DEBUG_VERBOSE, "Connection opened from %s:%d\n",
+				inet_ntoa(arg->cli_addr.sin_addr),
+				ntohs(arg->cli_addr.sin_port));
+
+#ifdef HAVE_PTHREAD
+		retcode = pthread_create(&thread, NULL, handle_socket, arg);
+		if (retcode < 0) {
+			rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
+			break;
+		}
+#else
+		handle_socket(arg);
+#endif
 	}
 	while (retcode == 0);
 
@@ -208,23 +306,71 @@ int main (int argc, char *argv[])
 	return 0;
 }
 
+
+/*
+ * This is the function run by the threads
+ */
+void * handle_socket(void *arg)
+{
+	struct handle_data *handle_data_arg = (struct handle_data *)arg;
+	FILE *fsockin;
+	FILE *fsockout;
+	int retcode;
+
+	fsockin = fdopen(handle_data_arg->sock, "rb");
+	if (!fsockin) {
+		rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
+		free(arg);
+#ifdef HAVE_PTHREAD
+		pthread_exit(NULL);
+#endif
+	}
+
+	fsockout = fdopen(handle_data_arg->sock, "wb");
+	if (!fsockout) {
+		rig_debug(RIG_DEBUG_ERR, "fdopen out: %s\n", strerror(errno));
+		free(arg);
+#ifdef HAVE_PTHREAD
+		pthread_exit(NULL);
+#endif
+	}
+
+	do {
+		retcode = rotctl_parse(handle_data_arg->rot, fsockin, fsockout, NULL, 0);
+		if (ferror(fsockin) || ferror(fsockout))
+			retcode = 1;
+	}
+	while (retcode == 0);
+
+	rig_debug(RIG_DEBUG_VERBOSE, "Connection closed from %s:%d\n",
+				inet_ntoa(handle_data_arg->cli_addr.sin_addr),
+				ntohs(handle_data_arg->cli_addr.sin_port));
+
+	fclose(fsockin);
+	fclose(fsockout);
+	close(handle_data_arg->sock);
+	free(arg);
+
+	return NULL;
+}
+
 void usage()
 {
-	printf("Usage: rotctl [OPTION]... [COMMAND]...\n"
-	   "Send COMMANDs to a connected antenna rotator.\n\n");
-
+	printf("Usage: rotctld [OPTION]... [COMMAND]...\n"
+	   "Daemon serving COMMANDs to a connected antenna rotator.\n\n");
 
 	printf(
 	"  -m, --model=ID             select rotator model number. See model list\n"
 	"  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
+	"  -t, --port=NUM             set TCP listening port, default %d\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
-	"  -V, --version              output version information and exit\n\n"
-		);
+	"  -V, --version              output version information and exit\n\n",
+		portno);
 
 	usage_rot(stdout);
 
