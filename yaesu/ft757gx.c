@@ -9,7 +9,7 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
- * $Id: ft757gx.c,v 1.8 2008-07-08 20:44:46 n0nb Exp $
+ * $Id: ft757gx.c,v 1.9 2008-09-12 12:54:29 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -95,7 +95,7 @@ const struct rig_caps ft757gx_caps = {
     .write_delay =      FT757GX_WRITE_DELAY,
     .post_write_delay = FT757GX_POST_WRITE_DELAY,
     .timeout =          FT757GX_DEFAULT_READ_TIMEOUT,
-    .retry =            0,
+    .retry =            10,
     .has_get_func =     RIG_FUNC_NONE,
     .has_set_func =     RIG_FUNC_NONE,
     .has_get_level =    RIG_LEVEL_NONE,
@@ -198,7 +198,7 @@ const struct rig_caps ft757gx2_caps = {
     .write_delay =      FT757GX_WRITE_DELAY,
     .post_write_delay = FT757GX_POST_WRITE_DELAY,
     .timeout =          FT757GX_DEFAULT_READ_TIMEOUT,
-    .retry =            0,
+    .retry =            10,
     .has_get_func =     RIG_FUNC_LOCK,
     .has_set_func =     RIG_FUNC_LOCK,
     .has_get_level =    RIG_LEVEL_RAWSTR,
@@ -373,7 +373,7 @@ int ft757_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0a};
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called. Freq=%"PRIfreq"\n", __func__, freq);
 
     if (!rig)
         return -RIG_EINVAL;
@@ -440,6 +440,7 @@ int ft757_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
         return -RIG_EINVAL;     /* sorry, wrong VFO */
     }
 
+    rig_debug(RIG_DEBUG_VERBOSE,"%s returning: Freq=%"PRIfreq"\n", __func__, *freq );
     return RIG_OK;
 }
 
@@ -603,26 +604,41 @@ int ft757_get_update_data(RIG *rig)
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x10};
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
     int retval;
+    int nbtries ;
+    /* Maximum number of attempts to ask/read the data. */
+    int maxtries = rig->state.rigport.retry ;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called.\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called. Timeout=%ld ms, Retry=%d\n",
+		    __func__, rig->state.rigport.timeout, maxtries);
 
-    if (!rig)
-        return -RIG_EINVAL;
+    /* At least on one model, returns erraticaly a timeout. Increasing the timeout
+    does not fix things. So we restart the read from scratch, it works most of times. */
+    for( nbtries = 0 ; nbtries < maxtries ; nbtries++ )
+    {
+        serial_flush(&rig->state.rigport);
 
-    serial_flush(&rig->state.rigport);
+        /* send READ STATUS cmd to rig  */
+        retval = write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
+        if (retval < 0)
+            return retval;
 
-    /* send READ STATUS cmd to rig  */
-    retval = write_block(&rig->state.rigport, (char *)cmd, YAESU_CMD_LENGTH);
-    if (retval < 0)
-        return retval;
-
-    /* read back the 75 status bytes */
-    retval = read_block(&rig->state.rigport,
-                        (char *)priv->update_data,
-                        FT757GX_STATUS_UPDATE_DATA_LENGTH);
+        /* read back the 75 status bytes */
+        retval = read_block(&rig->state.rigport,
+                            (char *)priv->update_data,
+                            FT757GX_STATUS_UPDATE_DATA_LENGTH);
+        if (retval == FT757GX_STATUS_UPDATE_DATA_LENGTH) {
+            break ;
+	}
+        rig_debug(RIG_DEBUG_ERR,
+                  "%s: read update_data failed, %d octets of %d read, retry %d out of %d\n",
+                  __func__, retval, FT757GX_STATUS_UPDATE_DATA_LENGTH,
+	          nbtries, maxtries);
+	/* The delay is quadratic. */
+	sleep(nbtries*nbtries);
+    }
 
     if (retval != FT757GX_STATUS_UPDATE_DATA_LENGTH) {
-        rig_debug(RIG_DEBUG_ERR,"%s: read update_data failed, %d octects of %d read.\n",
+        rig_debug(RIG_DEBUG_ERR,"%s: read update_data failed, %d octets of %d read.\n",
                   __func__, retval, FT757GX_STATUS_UPDATE_DATA_LENGTH);
 
         return retval < 0 ? retval : -RIG_EIO;
