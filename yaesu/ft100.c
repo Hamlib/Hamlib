@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.19 2008-09-12 15:32:37 fillods Exp $  
+ *    $Id: ft100.c,v 1.20 2008-09-15 07:16:26 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -437,7 +437,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
    ret = read_block( &rig->state.rigport, (char*)&ft100_status, sizeof(FT100_STATUS_INFO));  
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: read status=%i \n",ret);
-   if (ret != RIG_OK)
+   if (ret < 0)
 	   return ret;
 
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Freq= %3i %3i %3i %3i \n",(int)ft100_status.freq[0], (int)ft100_status.freq[1], (int)ft100_status.freq[2],(int)ft100_status.freq[3]);
@@ -522,8 +522,12 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
   serial_flush( &rig->state.rigport );
 
-  ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_STATUS );
+  n = ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_STATUS );
+  if (n != RIG_OK)
+	  return n;
   n = read_block( &rig->state.rigport, (char *) data, sizeof(FT100_STATUS_INFO) );
+  if (n < 0)
+	  return n;
   
     switch( data[5] & 0x0f ) {
     case 0x00:
@@ -633,9 +637,13 @@ int ft100_get_vfo(RIG *rig, vfo_t *vfo) {
 
   serial_flush( &rig->state.rigport );
 
-  ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_FLAGS );
+  n = ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_FLAGS );
+  if (n < 0)
+	  return n;
   n = read_block( &rig->state.rigport, (char *) ft100_flags, sizeof(FT100_FLAG_INFO) );
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read flags=%i \n",n);
+  if (n < 0)
+	  return n;
 
   if ((ft100_flags[1] & 4) == 4) {
     *vfo = RIG_VFO_B;
@@ -706,7 +714,7 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
 	   return ret;
    ret = read_block( &rig->state.rigport, (char*)&ft100_meter, sizeof(FT100_METER_INFO));  
    rig_debug(RIG_DEBUG_VERBOSE,"%s: read meters=%d\n",__FUNCTION__, ret);
-   if (ret != RIG_OK)
+   if (ret < 0)
 	   return ret;
   
    switch( level ) {
