@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.20 2008-09-15 07:16:26 fillods Exp $  
+ *    $Id: ft100.c,v 1.21 2008-09-15 18:32:10 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -127,10 +127,12 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT100_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT100_AM_FM_RX_MODES (RIG_MODE_AM|RIG_MODE_FM)
 
-#define FT100_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define FT100_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define FT100_AM_TX_MODES (RIG_MODE_AM)
 #define FT100_GET_RIG_LEVELS (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 #define FT100_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_TONE|RIG_FUNC_TSQL)
+
+#define FT100_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
 /* TODO: S-meter calibration */
 #define FT100_STR_CAL { 2, \
@@ -185,50 +187,58 @@ const struct rig_caps ft100_caps = {
   .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
   .tx_range_list1 =  { RIG_FRNG_END, },
   .rx_range_list2 =  { 
-    {kHz(100),MHz(56), FT100_ALL_RX_MODES,-1,-1},
-    {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1},
-    {MHz(108),MHz(154),FT100_ALL_RX_MODES,-1,-1},
-    {MHz(420),MHz(470),FT100_ALL_RX_MODES,-1,-1},
+    {kHz(100),MHz(56), FT100_ALL_RX_MODES,-1,-1,FT100_VFO_ALL},
+    {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1,FT100_VFO_ALL},
+    {MHz(108),MHz(154),FT100_ALL_RX_MODES,-1,-1,FT100_VFO_ALL},
+    {MHz(420),MHz(470),FT100_ALL_RX_MODES,-1,-1,FT100_VFO_ALL},
     RIG_FRNG_END, 
   },
 
   .tx_range_list2 =  {
-    {MHz(1.8),   MHz(2),      FT100_OTHER_TX_MODES, W(0.5),W(0.5)},
-    {MHz(1.8),   MHz(2),      FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(3.5),   MHz(4),      FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(3.5),   MHz(4),      FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(7),     MHz(7.3),    FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(7),     MHz(7.3),    FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(10),    MHz(10.150), FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(10),    MHz(10.150), FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(14),    MHz(14.350), FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(14),    MHz(14.350), FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(18.068),MHz(18.168), FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(18.068),MHz(18.168), FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(21),    MHz(21.450), FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(21),    MHz(21.450), FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(24.890),MHz(24.990), FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(24.890),MHz(24.990), FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(28),    MHz(29.7),   FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(28),    MHz(29.7),   FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(50),    MHz(54),     FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(50),    MHz(54),     FT100_AM_TX_MODES,    W(0.5),W(1.5)},
-    {MHz(144),   MHz(148),    FT100_OTHER_TX_MODES, W(0.5),W(5.0)}, 
-    {MHz(144),   MHz(148),    FT100_AM_TX_MODES,    W(0.5),W(1.5)}, 
-    {MHz(430),   MHz(440),    FT100_OTHER_TX_MODES, W(0.5),W(5.0)},
-    {MHz(430),   MHz(440),    FT100_AM_TX_MODES,    W(0.5),W(1.5)},
+    {MHz(1.8),   MHz(2),      FT100_OTHER_TX_MODES, W(0.5),W(0.5),FT100_VFO_ALL},
+    {MHz(1.8),   MHz(2),      FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(3.5),   MHz(4),      FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(3.5),   MHz(4),      FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(7),     MHz(7.3),    FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(7),     MHz(7.3),    FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(10),    MHz(10.150), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(10),    MHz(10.150), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(14),    MHz(14.350), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(14),    MHz(14.350), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(18.068),MHz(18.168), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(18.068),MHz(18.168), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(21),    MHz(21.450), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(21),    MHz(21.450), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(24.890),MHz(24.990), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(24.890),MHz(24.990), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(28),    MHz(29.7),   FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(28),    MHz(29.7),   FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(50),    MHz(54),     FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(50),    MHz(54),     FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    {MHz(144),   MHz(148),    FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL}, 
+    {MHz(144),   MHz(148),    FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL}, 
+    {MHz(430),   MHz(440),    FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
+    {MHz(430),   MHz(440),    FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
     RIG_FRNG_END, 
   },
 
   .tuning_steps =  {
+	  /* FIXME */
     {FT100_SSB_CW_RX_MODES,10},
     {FT100_SSB_CW_RX_MODES,100},
     {FT100_AM_FM_RX_MODES,10},
     {FT100_AM_FM_RX_MODES,100},
+    {RIG_MODE_WFM, kHz(5)},
+    {RIG_MODE_WFM, kHz(50)},
     RIG_TS_END,
   },  
 
   .filters =  {
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, kHz(2.4)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, Hz(300)},
+    {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, Hz(500)},
+    {RIG_MODE_AM|RIG_MODE_FM, kHz(6)},
+    {RIG_MODE_WFM, kHz(230)},
     RIG_FLT_END,
   },
   .str_cal = FT100_STR_CAL,
