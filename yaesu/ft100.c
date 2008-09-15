@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.21 2008-09-15 18:32:10 fillods Exp $  
+ *    $Id: ft100.c,v 1.22 2008-09-15 22:15:50 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -474,8 +474,9 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char cmd_index;	/* index of sequence to send */
+  int ret;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: generic mode = %x \n", mode);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft100: generic mode = %x, width %d\n", mode, width);
 
   switch(mode) {
   case RIG_MODE_AM:
@@ -483,6 +484,9 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     break;
   case RIG_MODE_CW:
     cmd_index = FT100_NATIVE_CAT_SET_MODE_CW;
+    break;
+  case RIG_MODE_CWR:
+    cmd_index = FT100_NATIVE_CAT_SET_MODE_CWR;
     break;
   case RIG_MODE_USB:
     cmd_index = FT100_NATIVE_CAT_SET_MODE_USB;
@@ -503,14 +507,21 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
     return -RIG_EINVAL;
   }
 
+  ret = ft100_send_priv_cmd(rig,cmd_index);
+  if (ret != RIG_OK)
+	  return ret;
+
+#if 0
+  /* ignore width for now. Should be Opcode 0x8C */
   switch(width) {
   case RIG_PASSBAND_NORMAL:
     return ft100_send_priv_cmd(rig,cmd_index);
   default:
     return -RIG_EINVAL;    
   }
+#endif
 
-  return ft100_send_priv_cmd(rig,cmd_index);
+  return RIG_OK;
 }
 
 
