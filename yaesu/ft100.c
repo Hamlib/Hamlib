@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.22 2008-09-15 22:15:50 fillods Exp $  
+ *    $Id: ft100.c,v 1.23 2008-09-16 18:11:26 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -134,11 +134,18 @@ static const yaesu_cmd_set_t ncmd[] = {
 
 #define FT100_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
-/* TODO: S-meter calibration */
-#define FT100_STR_CAL { 2, \
+/* S-meter calibration, ascending order of RAW values */
+#define FT100_STR_CAL { 9, \
 	        { \
-			{   0, -54 }, /* S0 */ \
-			{ 255, 60 }  /* +60 */ \
+			{  90,  60 }, /* +60 */ \
+			{ 105,  40 }, /* +40 */ \
+			{ 115,  20 }, /* +20 */ \
+			{ 120,   0 }, /*  S9 */ \
+			{ 130,  -6 }, /*  S8 */ \
+			{ 140, -12 }, /*  S7 */ \
+			{ 160, -18 }, /*  S6 */ \
+			{ 180, -24 }, /*  S5 */ \
+			{ 200, -54 }  /*  S0 */ \
 	        } }
 
 const struct rig_caps ft100_caps = {
