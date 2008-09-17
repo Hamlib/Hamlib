@@ -4,7 +4,7 @@
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
  *
- *	$Id: rotctld.c,v 1.1 2008-09-12 22:55:09 fillods Exp $  
+ *	$Id: rotctld.c,v 1.2 2008-09-17 18:56:13 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -290,7 +290,7 @@ int main (int argc, char *argv[])
 
 #ifdef HAVE_PTHREAD
 		retcode = pthread_create(&thread, NULL, handle_socket, arg);
-		if (retcode < 0) {
+		if (retcode != 0) {
 			rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
 			break;
 		}
@@ -321,18 +321,23 @@ void * handle_socket(void *arg)
 	if (!fsockin) {
 		rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
 		free(arg);
+		close(handle_data_arg->sock);
 #ifdef HAVE_PTHREAD
 		pthread_exit(NULL);
 #endif
+		return NULL;
 	}
 
 	fsockout = fdopen(handle_data_arg->sock, "wb");
 	if (!fsockout) {
 		rig_debug(RIG_DEBUG_ERR, "fdopen out: %s\n", strerror(errno));
+		fclose(fsockin);
+		close(handle_data_arg->sock);
 		free(arg);
 #ifdef HAVE_PTHREAD
 		pthread_exit(NULL);
 #endif
+		return NULL;
 	}
 
 	do {
@@ -351,6 +356,9 @@ void * handle_socket(void *arg)
 	close(handle_data_arg->sock);
 	free(arg);
 
+#ifdef HAVE_PTHREAD
+	pthread_exit(NULL);
+#endif
 	return NULL;
 }
 
