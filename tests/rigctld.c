@@ -4,7 +4,7 @@
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
  *
- * $Id: rigctld.c,v 1.6 2008-09-17 18:56:13 fillods Exp $  
+ * $Id: rigctld.c,v 1.7 2008-09-17 20:36:34 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -366,6 +366,7 @@ int main (int argc, char *argv[])
 	do {
 #ifdef HAVE_PTHREAD
 		pthread_t thread;
+		pthread_attr_t attr;
 #endif
 		struct handle_data *arg;
 
@@ -389,7 +390,10 @@ int main (int argc, char *argv[])
 				ntohs(arg->cli_addr.sin_port));
 
 #ifdef HAVE_PTHREAD
-		retcode = pthread_create(&thread, NULL, handle_socket, arg);
+		pthread_attr_init(&attr);
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+		retcode = pthread_create(&thread, &attr, handle_socket, arg);
 		if (retcode != 0) {
 			rig_debug(RIG_DEBUG_ERR, "pthread_create: %s\n", strerror(retcode));
 			break;
