@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.105 2008-03-29 22:54:17 aa6e Exp $
+ *	$Id: icom.c,v 1.106 2008-09-21 19:36:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -582,7 +582,10 @@ int icom_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	    (rig->caps->rig_model == RIG_MODEL_OMNIVIP) )
 		    return RIG_OK;
 
-	/* Most rigs return 1-wide, 2-normal,3-narrow  For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode    Lets check for dsp filters */
+	/* Most rigs return 1-wide, 2-normal,3-narrow
+	 * For DSP rigs these are presets, can be programmed for 30 - 41 bandwidths, depending on mode.
+	 * Lets check for dsp filters
+	 */
 	
 	if ((retval = icom_get_dsp_flt(rig, *mode)) !=0)
              *width = retval;
@@ -999,9 +1002,6 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 	case RIG_LEVEL_RAWSTR:
 		val->i = icom_val;
-		break;
-	case RIG_LEVEL_STRENGTH:
-		val->i = (int)rig_raw2val(icom_val,&rig->caps->str_cal);
 		break;
 	case RIG_LEVEL_PREAMP:
 		if (icom_val == 0) {
