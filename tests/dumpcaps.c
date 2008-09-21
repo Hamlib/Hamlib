@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.47 2008-05-23 14:26:07 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.48 2008-09-21 19:10:59 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -158,6 +158,9 @@ int dumpcaps (RIG* rig, FILE *fout)
 			break;
 	case RIG_PORT_DEVICE:
 			fprintf(fout, "device driver\n");
+			break;
+	case RIG_PORT_USB:
+			fprintf(fout, "USB\n");
 			break;
 	case RIG_PORT_NETWORK:
 			fprintf(fout, "network link\n");
