@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl_parse.c,v 1.1 2008-09-12 22:55:09 fillods Exp $  
+ *	$Id: rotctl_parse.c,v 1.2 2008-09-21 19:27:54 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -37,6 +37,7 @@
 #include <errno.h>
 
 #include <hamlib/rotator.h>
+#include "serial.h"
 #include "misc.h"
 
 #include "rotctl_parse.h"
@@ -60,6 +61,7 @@ static pthread_mutex_t rot_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define ARG_OUT3 0x20
 #define ARG_IN4  0x40
 #define ARG_OUT4 0x80
+#define ARG_IN_LINE 0x4000
 
 #define ARG_NONE	0
 #define ARG_IN  (ARG_IN1|ARG_IN2|ARG_IN3|ARG_IN4)
@@ -88,7 +90,8 @@ declare_proto_rot(reset);
 declare_proto_rot(move);
 declare_proto_rot(get_info);
 declare_proto_rot(inter_set_conf);  /* interactive mode set_conf */
-
+declare_proto_rot(send_cmd);
+declare_proto_rot(dump_state);
 
 /*
  * convention: upper case cmd is set, lowercase is get
@@ -104,6 +107,8 @@ struct test_table test_list[] = {
 		{ 'M', "move", move, ARG_IN, "Direction", "Speed" },
 		{ 'C', "set_conf", inter_set_conf, ARG_IN, "Token", "Value" },
 		{ '_', "get_info", get_info, ARG_OUT, "Info" },
+		{ 'w', "send_cmd", send_cmd, ARG_IN1|ARG_IN_LINE|ARG_OUT2, "Cmd", "Reply" },
+		{ 0x8f,"dump_state", dump_state, ARG_OUT },
 		{ 0x00, "", NULL },
 
 };
@@ -216,6 +221,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			return 1;
 		if (cmd == '?') {
 			usage_rot(fout);
+			fflush(fout);
 			return 0;
 		}
 	} else {
@@ -236,7 +242,28 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	}
 
 	p1 = p2 = p3 = NULL;
-	if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+
+	if ((cmd_entry->flags & ARG_IN_LINE) && 
+			(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
+		if (interactive) {
+			char *nl;
+			if (prompt)
+				fprintf(fout, "%s: ", cmd_entry->arg1);
+			fgets(arg1, MAXARGSZ, fin);
+			if (arg1[0] == 0xa)
+				fgets(arg1, MAXARGSZ, fin);
+			nl = strchr(arg1, 0xa);
+			if (nl) *nl = '\0';	/* chomp */
+			p1 = arg1[0]==' '?arg1+1:arg1;
+		} else {
+			if (!argv[optind]) {
+				fprintf(stderr, "Invalid arg for command '%s'\n", 
+							cmd_entry->name);
+				exit(2);
+			}
+			p1 = argv[optind++];
+		}
+	} else 	if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg1);
@@ -304,11 +331,17 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	pthread_mutex_unlock(&rot_mutex);
 #endif
 
-	fflush(fout);
-
 	if (retcode != RIG_OK) {
-		fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+		if ((cmd_entry->flags & ARG_OUT) && interactive && !prompt)
+			fprintf(fout, "ERROR %d\n", retcode);             /* only for rotctld */
+		else
+			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+	} else {
+		if ((cmd_entry->flags & ARG_OUT) && interactive && !prompt)             /* only for rotctld */
+			fprintf(fout, "END\n");
 	}
+
+	fflush(fout);
 
 	return 0;
 }
@@ -446,9 +479,6 @@ declare_proto_rot(get_position)
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%f\n", el);
 
-	if (interactive && !prompt)	/* only for rigctld */
-		fprintf(fout, "END\n");
-
 	return status;
 }
 
@@ -480,9 +510,6 @@ declare_proto_rot(get_info)
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", s ? s : "None");
 
-	if (interactive && !prompt)	/* only for rigctld */
-		fprintf(fout, "END\n");
-
 	return RIG_OK;
 }
 
@@ -504,5 +531,99 @@ declare_proto_rot(inter_set_conf)
 	sscanf(arg1, "%ld", &token);
 	sscanf(arg2, "%s", val);
 	return rot_set_conf(rot, token, val);
+}
+
+/* For rotctld internal use */
+declare_proto_rot(dump_state)
+{
+	struct rot_state *rs = &rot->state;
+
+	/*
+	 * - Protocol version
+	 */
+#define ROTCTLD_PROT_VER 0
+	fprintf(fout, "%d\n", ROTCTLD_PROT_VER);
+	fprintf(fout, "%d\n", rot->caps->rot_model);
+
+	fprintf(fout, "%lf\n", rs->min_az);
+	fprintf(fout, "%lf\n", rs->max_az);
+	fprintf(fout, "%lf\n", rs->min_el);
+	fprintf(fout, "%lf\n", rs->max_el);
+
+	return RIG_OK;
+}
+
+/*
+ * special debugging purpose send command
+ * display reply until there's a timeout
+ *
+ * 'w'
+ */
+declare_proto_rot(send_cmd)
+{
+	int retval;
+	struct rot_state *rs;
+	int backend_num, cmd_len;
+#define BUFSZ 128
+	char bufcmd[BUFSZ];
+	char buf[BUFSZ];
+
+	/*
+	 * binary protocols enter values as \0xZZ\0xYY..
+	 *
+	 * Rem: no binary protocol for rotator as of now
+	 */
+	backend_num = ROT_BACKEND_NUM(rot->caps->rot_model);
+	if (backend_num == -1) {
+		const char *p = arg1, *pp = NULL;
+		int i;
+		for (i=0; i < BUFSZ-1 && p != pp; i++) {
+			pp = p+1;
+			bufcmd[i] = strtol(p+1, (char **) &p, 0);
+		}
+		cmd_len = i-1;
+		/* must save length to allow 0x00 to be sent as part of a command
+		*/
+	} else {
+		strncpy(bufcmd,arg1,BUFSZ);
+		bufcmd[BUFSZ-1] = '\0';
+		cmd_len = strlen(bufcmd);
+		/*
+		 * assumes CR is end of line char
+		 * for all ascii protocols
+		 */
+		strcat(bufcmd, "\r");
+	}
+
+	rs = &rot->state;
+
+	serial_flush(&rs->rotport);
+
+	retval = write_block(&rs->rotport, bufcmd, cmd_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (interactive && prompt)
+		fprintf(fout, "%s: ", cmd->arg2);
+
+#define EOM "\0xa"
+	do {
+		retval = read_string(&rs->rotport, buf, BUFSZ, EOM, strlen(EOM));
+		if (retval < 0)
+			break;
+	
+		if (retval < BUFSZ)
+			buf[retval] = '\0';
+		else
+			buf[BUFSZ-1] = '\0';
+	
+		fprintf(fout, "%s\n", buf);
+
+	} while (retval > 0);
+
+	if (retval > 0 || retval == -RIG_ETIMEOUT)
+		retval = RIG_OK;
+
+	return retval;
 }
 
