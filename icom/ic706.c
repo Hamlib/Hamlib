@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-706 and variations
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.36 2004-09-26 08:35:03 fillods Exp $
+ *	$Id: ic706.c,v 1.37 2008-09-21 19:09:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -399,7 +399,7 @@ const struct rig_caps ic706mkiig_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER, 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_MOBILE,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
