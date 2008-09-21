@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "Septembre 12, 2008" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "Septembre 21, 2008" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -73,6 +73,9 @@ Use -L option for a list.
 .TP
 .B \-t, --port=number
 Use \fInumber\fP as the TCP listening port. The default is 4533.
+.TP
+.B \-T, --listen-addr=IPADDR
+Use \fIIPADDR\fP as the listening IP address. The default is ANY.
 .TP
 .B \-l, --list
 List all model numbers defined in \fBHamlib\fP and exit.

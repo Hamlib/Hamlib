@@ -4,7 +4,7 @@
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
  *
- *	$Id: rotctld.c,v 1.3 2008-09-17 20:36:34 fillods Exp $  
+ *	$Id: rotctld.c,v 1.4 2008-09-21 20:32:08 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -76,13 +76,14 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:LvhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:T:LvhVl"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
 	{"rot-file", 1, 0, 'r'},
 	{"serial-speed", 1, 0, 's'},
 	{"port",  1, 0, 't'},
+	{"listen-addr",  1, 0, 'T'},
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
@@ -96,6 +97,7 @@ int interactive = 1;    /* no cmd because of daemon */
 int prompt= 0 ;         /* Daemon mode for rigparse return string */
 
 int portno = 4533;
+uint32_t src_addr = INADDR_ANY;
 
 #define MAXCONFLEN 128
 
@@ -116,6 +118,7 @@ int main (int argc, char *argv[])
 	int sock_listen;
 	struct sockaddr_in serv_addr;
 	int reuseaddr = 1;
+	int a0,a1,a2,a3;
 
 	while(1) {
 		int c;
@@ -169,6 +172,17 @@ int main (int argc, char *argv[])
 						exit(1);
 					}
 					portno = atoi(optarg);
+					break;
+			case 'T':
+					if (!optarg) {
+						usage();	/* wrong arg count */
+						exit(1);
+					}
+					if (4 != sscanf(optarg, "%d.%d.%d.%d", &a0,&a1,&a2,&a3)) {
+						usage();	/* wrong arg count */
+						exit(1);
+					}
+					src_addr = (a0<<24)|(a1<<16)|(a2<<8)|a3;
 					break;
 			case 'v':
 					verbose++;
@@ -243,7 +257,7 @@ int main (int argc, char *argv[])
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(portno);
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_addr.s_addr = htonl(src_addr);
 
 
 	if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
@@ -376,6 +390,7 @@ void usage()
 	"  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -t, --port=NUM             set TCP listening port, default %d\n"
+	"  -T, --listen-addr=IPADDR   set listening IP address, default ANY\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"

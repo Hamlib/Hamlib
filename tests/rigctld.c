@@ -4,7 +4,7 @@
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
  *
- * $Id: rigctld.c,v 1.7 2008-09-17 20:36:34 fillods Exp $  
+ * $Id: rigctld.c,v 1.8 2008-09-21 20:32:07 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:lC:t:LuovhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:lC:t:T:LuovhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -80,6 +80,7 @@ static struct option long_options[] =
 	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
 	{"port",  1, 0, 't'},
+	{"listen-addr",  1, 0, 'T'},
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
@@ -105,6 +106,7 @@ int interactive = 1;    /* no cmd because of daemon */
 int prompt= 0 ;         /* Daemon mode for rigparse return string */
 
 int portno = 4532;
+uint32_t src_addr = INADDR_ANY;
 
 #define MAXCONFLEN 128
 
@@ -129,6 +131,7 @@ int main (int argc, char *argv[])
 	int sock_listen;
 	struct sockaddr_in serv_addr;
 	int reuseaddr = 1;
+	int a0,a1,a2,a3;
 
 	while(1) {
 		int c;
@@ -242,6 +245,17 @@ int main (int argc, char *argv[])
 				}
 				portno = atoi(optarg);
 				break;
+			case 'T':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				if (4 != sscanf(optarg, "%d.%d.%d.%d", &a0,&a1,&a2,&a3)) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				src_addr = (a0<<24)|(a1<<16)|(a2<<8)|a3;
+				break;
 			case 'o':
 				vfo_mode++;
 				break;
@@ -343,7 +357,7 @@ int main (int argc, char *argv[])
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(portno);
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_addr.s_addr = htonl(src_addr);
 
 
 	if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
@@ -482,6 +496,7 @@ void usage(void)
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
 	"  -t, --port=NUM             set TCP listening port, default %d\n"
+	"  -T, --listen-addr=IPADDR   set listening IP address, default ANY\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
