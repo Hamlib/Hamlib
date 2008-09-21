@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "January 9, 2008" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "Septemer 21, 2008" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -181,6 +181,9 @@ Set PTT, 0 or 1.
 .B t, get_ptt
 Get PTT status.
 .TP
+.B get_dcd
+Get DCD status.
+.TP
 .B R, set_rptr_shift
 Set repeater shift: "+", "-" or something else for none.
 .TP
@@ -204,6 +207,18 @@ Set DCS code.
 .TP
 .B d, get_dcs_code
 Get DCS code.
+.TP
+.B set_ctcss_sql
+Set CTCSS squelch tone, in tenth of Hz.
+.TP
+.B get_ctcss_sql
+Get CTCSS squelch tone, in tenth of Hz.
+.TP
+.B set_dcs_sql
+Set DCS squelch code.
+.TP
+.B get_dcs_sql
+Get DCS squelch code.
 .TP
 .B I, set_split_freq
 Set TX frequency, in Hz.
@@ -303,6 +318,12 @@ Set power status.
 .TP
 .B 0x88, get_powerstat
 Get power status.
+.TP
+.B 0x89, send_dtmf
+Set DTMF digits.
+.TP
+.B 0x8a, recv_dtmf
+Get DTMF digits.
 .TP
 .B _, get_info
 Get misc information about the rig.
