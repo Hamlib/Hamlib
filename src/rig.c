@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.97 2008-09-12 11:49:32 fillods Exp $
+ *	$Id: rig.c,v 1.98 2008-09-21 19:30:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,6 +64,7 @@
 #include "serial.h"
 #include "parallel.h"
 #include "usb_port.h"
+#include "network.h"
 #include "event.h"
 
 /**
@@ -295,6 +296,10 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 	strncpy(rs->rigport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
 	break;
 
+	case RIG_PORT_NETWORK:
+	strncpy(rs->rigport.pathname, "localhost:4532", FILPATHLEN);
+	break;
+
 	default:
 	strncpy(rs->rigport.pathname, "", FILPATHLEN);
 	}
@@ -480,8 +485,12 @@ int HAMLIB_API rig_open(RIG *rig)
 	case RIG_PORT_RPC:
 		break;	/* ez :) */
 
-	case RIG_PORT_NETWORK:	/* not implemented yet! */
-		return -RIG_ENIMPL;
+	case RIG_PORT_NETWORK:
+		status = network_open(&rs->rigport);
+		if (status < 0)
+			return status;
+		break;
+
 	default:
 		return -RIG_EINVAL;
 	}

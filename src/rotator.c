@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.22 2008-05-04 15:36:23 fillods Exp $
+ *	$Id: rotator.c,v 1.23 2008-09-21 19:30:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,6 +57,8 @@
 #include "hamlib/rotator.h"
 #include "serial.h"
 #include "parallel.h"
+#include "usb_port.h"
+#include "network.h"
 #include "rot_conf.h"
 #include "token.h"
 
@@ -231,6 +233,10 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 	strncpy(rs->rotport.pathname, DEFAULT_PARALLEL_PORT, FILPATHLEN);
 	break;
 
+	case RIG_PORT_NETWORK:
+	strncpy(rs->rotport.pathname, "localhost:4533", FILPATHLEN);
+	break;
+
 	default:
 	strncpy(rs->rotport.pathname, "", FILPATHLEN);
 	}
@@ -316,12 +322,22 @@ int HAMLIB_API rot_open(ROT *rot)
 		rs->rotport.fd = status;
 		break;
 
+	case RIG_PORT_USB:
+		status = usb_port_open(&rs->rotport);
+		if (status < 0)
+			return status;
+		break;
+
 	case RIG_PORT_NONE:
 	case RIG_PORT_RPC:
 			break;	/* ez :) */
 
-	case RIG_PORT_NETWORK:	/* not implemented yet! */
-		return -RIG_ENIMPL;
+	case RIG_PORT_NETWORK:
+		status = network_open(&rs->rotport);
+		if (status < 0)
+			return status;
+		break;
+
 	default:
 		return -RIG_EINVAL;
 	}
@@ -390,6 +406,9 @@ int HAMLIB_API rot_close(ROT *rot)
 			break;
 		case RIG_PORT_PARALLEL:
 			par_close(&rs->rotport);
+			break;
+		case RIG_PORT_USB:
+			usb_port_close(&rs->rotport);
 			break;
 		default:
 			close(rs->rotport.fd);
