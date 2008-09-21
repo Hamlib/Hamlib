@@ -16,7 +16,7 @@
  *  Hamlib Interface - func/level/parm
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.12 2008-09-15 22:03:42 fillods Exp $
+ *	$Id: settings.c,v 1.13 2008-09-21 19:10:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -147,9 +147,11 @@ int HAMLIB_API rig_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	 */
 	if (level == RIG_LEVEL_STRENGTH && 
 			(caps->has_get_level & RIG_LEVEL_STRENGTH) == 0 &&
-			rig_has_get_level(rig,RIG_LEVEL_RAWSTR)) {
+			rig_has_get_level(rig,RIG_LEVEL_RAWSTR) &&
+			rig->state.str_cal.size) {
 	
 		value_t rawstr;
+
 		retcode = rig_get_level(rig, vfo, RIG_LEVEL_RAWSTR, &rawstr);
 		if (retcode != RIG_OK)
 			return retcode;
