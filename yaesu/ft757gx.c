@@ -9,7 +9,7 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
- * $Id: ft757gx.c,v 1.9 2008-09-12 12:54:29 fillods Exp $
+ * $Id: ft757gx.c,v 1.10 2008-09-21 19:35:01 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -79,9 +79,9 @@ const struct rig_caps ft757gx_caps = {
     .rig_model =        RIG_MODEL_FT757,
     .model_name =       "FT-757GX",
     .mfg_name =         "Yaesu",
-    .version =          "0.3.1",
+    .version =          "0.3.2",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_ALPHA,
+    .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_MOBILE,
     .ptt_type =         RIG_PTT_NONE,
     .dcd_type =         RIG_DCD_NONE,
@@ -182,9 +182,9 @@ const struct rig_caps ft757gx2_caps = {
     .rig_model =        RIG_MODEL_FT757GXII,
     .model_name =       "FT-757GXII",
     .mfg_name =         "Yaesu",
-    .version =          "0.3.0",
+    .version =          "0.3.2",
     .copyright =        "LGPL",
-    .status =           RIG_STATUS_BETA,
+    .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_MOBILE,
     .ptt_type =         RIG_PTT_SERIAL_DTR,     /* CAT port pin 4 per manual */
     .dcd_type =         RIG_DCD_NONE,
@@ -603,7 +603,7 @@ int ft757_get_update_data(RIG *rig)
 {
     unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x10};
     struct ft757_priv_data *priv = (struct ft757_priv_data *)rig->state.priv;
-    int retval;
+    int retval=0;
     int nbtries ;
     /* Maximum number of attempts to ask/read the data. */
     int maxtries = rig->state.rigport.retry ;
