@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.69 2008-09-01 19:01:11 fillods Exp $
+ *	$Id: riglist.h,v 1.70 2008-09-21 19:34:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -54,6 +54,7 @@
 #define RIG_DUMMY 0
 #define RIG_BACKEND_DUMMY "dummy"
 #define RIG_MODEL_DUMMY RIG_MAKE_MODEL(RIG_DUMMY, 1)
+#define RIG_MODEL_NETRIGCTL RIG_MAKE_MODEL(RIG_DUMMY, 2)
 
 	/*
 	 * Yaesu 

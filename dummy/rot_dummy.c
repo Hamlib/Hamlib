@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: rot_dummy.c,v 1.6 2003-04-16 22:30:39 fillods Exp $
+ *	$Id: rot_dummy.c,v 1.7 2008-09-21 19:34:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -193,6 +193,7 @@ DECLARE_INITROT_BACKEND(dummy)
 	rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
 
 	rot_register(&dummy_rot_caps);
+	rot_register(&netrotctl_caps);
 
 	return RIG_OK;
 }

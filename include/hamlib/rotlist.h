@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.12 2008-05-23 14:09:58 fillods Exp $
+ *	$Id: rotlist.h,v 1.13 2008-09-21 19:34:16 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -60,6 +60,7 @@
 #define ROT_DUMMY 0
 #define ROT_BACKEND_DUMMY "dummy"
 #define ROT_MODEL_DUMMY ROT_MAKE_MODEL(ROT_DUMMY, 1)
+#define ROT_MODEL_NETROTCTL ROT_MAKE_MODEL(ROT_DUMMY, 2)
 
 	/*
 	 * RPC Network pseudo-backend

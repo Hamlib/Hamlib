@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.41 2008-05-04 14:08:55 fillods Exp $
+ *	$Id: dummy.c,v 1.42 2008-09-21 19:34:15 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1159,6 +1159,7 @@ DECLARE_INITRIG_BACKEND(dummy)
 	rig_debug(RIG_DEBUG_VERBOSE, "dummy: _init called\n");
 
 	rig_register(&dummy_caps);
+	rig_register(&netrigctl_caps);
 
 	return RIG_OK;
 }
