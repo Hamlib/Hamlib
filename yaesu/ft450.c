@@ -7,7 +7,7 @@
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.1 2007-11-22 04:48:43 n0nb Exp $
+ * $Id: ft450.c,v 1.2 2008-09-22 21:30:29 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -94,6 +94,8 @@ const struct rig_caps ft450_caps = {
     .tx_range_list1 =     {
         FRQ_RNG_HF(1, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
         FRQ_RNG_HF(1, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
+        FRQ_RNG_6m(1, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
+        FRQ_RNG_6m(1, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
 
         RIG_FRNG_END,
     },
@@ -106,6 +108,8 @@ const struct rig_caps ft450_caps = {
     .tx_range_list2 =     {
         FRQ_RNG_HF(2, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
         FRQ_RNG_HF(2, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
+        FRQ_RNG_6m(2, FT450_OTHER_TX_MODES, W(5), W(100), FT450_VFO_ALL, FT450_ANTS),
+        FRQ_RNG_6m(2, FT450_AM_TX_MODES, W(2), W(25), FT450_VFO_ALL, FT450_ANTS),	/* AM class */
 
         RIG_FRNG_END,
     },
