@@ -12,7 +12,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.3 2007-12-01 22:09:52 n0nb Exp $
+ * $Id: newcat.c,v 1.4 2008-09-22 21:34:45 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -46,6 +46,135 @@
 
 /* global variables */
 static char cat_term = ';';             /* Yaesu command terminator */
+
+/*
+ * The following table defines which commands are valid for any given
+ * rig supporting the "new" CAT interface.
+ */
+
+typedef struct _yaesu_newcat_commands {
+    char                *command;
+    ncboolean           ft450;
+    ncboolean           ft950;
+    ncboolean           ft2000;
+    ncboolean           ft9000;
+} yaesu_newcat_commands_t;
+
+/*
+ * NOTE: The following table must be in alphabetical order by the
+ * command.  This is because it is searched using a binary search
+ * to determine whether or not a command is valid for a given rig.
+ *
+ * The list of supported commands is obtained from the rig's operator's
+ * or CAT programming manual.
+ *
+ */
+yaesu_newcat_commands_t valid_commands[] = {
+                        /*   Command    FT-450  FT-950  FT-2000 FT-9000 */
+                            {"AB",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"AC",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"AG",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"AI",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"AM",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"AN",      FALSE,  TRUE,   TRUE,   TRUE    },
+                            {"BC",      FALSE,  TRUE,   TRUE,   TRUE    },
+                            {"BD",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"BI",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"BP",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"BS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"BU",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"BY",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"CH",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"CN",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"CO",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"CS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"CT",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"DA",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"DN",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"DP",      FALSE,  TRUE,   TRUE,   TRUE    },
+                            {"DS",      TRUE,   FALSE,  TRUE,   FALSE   },
+                            {"ED",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"EK",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"EU",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"EX",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"FA",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"FB",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"FK",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"FR",      FALSE,  TRUE,   TRUE,   TRUE    },
+                            {"FS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"FT",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"GT",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"ID",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"IF",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"IS",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"KM",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"KP",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"KR",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"KS",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"KY",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"LK",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"LM",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"MA",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"MC",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"MD",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"MG",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"MK",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"ML",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"MR",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"MS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"MW",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"MX",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"NA",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"NB",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"NL",      FALSE,  TRUE,   TRUE,   TRUE    },
+                            {"NR",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"OI",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"OS",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"PA",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"PB",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"PC",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"PL",      FALSE,  TRUE,   TRUE,   TRUE    },
+                            {"PR",      FALSE,  TRUE,   TRUE,   TRUE    },
+                            {"PS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"QI",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"QR",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"QS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"RA",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"RC",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"RD",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"RF",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"RG",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"RI",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"RL",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"RM",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"RO",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"RP",      TRUE,   TRUE,   FALSE,  FALSE   },
+                            {"RS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"RT",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"RU",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"SC",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"SD",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"SF",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"SH",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"SM",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"SQ",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"ST",      TRUE,   FALSE,  FALSE,  FALSE   },
+                            {"SV",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"TS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"TX",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"UL",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"UP",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"VD",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"VF",      FALSE,  TRUE,   TRUE,   FALSE   },
+                            {"VG",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"VM",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"VR",      TRUE,   FALSE,  FALSE,  FALSE   },
+                            {"VS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"VV",      TRUE,   TRUE,   FALSE,  FALSE   },
+                            {"VX",      TRUE,   TRUE,   TRUE,   TRUE    },
+                            {"XT",      FALSE,  TRUE,   TRUE,   TRUE    },
+};
+int                     valid_commands_count = sizeof(valid_commands) / sizeof(yaesu_newcat_commands_t);
 
 /*
  * future - private data
@@ -177,6 +306,7 @@ int newcat_close(RIG *rig) {
 
 int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     const struct rig_caps *caps;
+    char command[3];
     struct newcat_priv_data *priv;
     struct rig_state *state;
     char c;
@@ -231,7 +361,10 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
         return -RIG_EINTERNAL;          /* bad news */
 
     /* Build the command string */
-    snprintf(priv->cmd_str, len, "F%c%d%c", c, (int)freq, cat_term);
+    snprintf(command, sizeof(command) - 1, "F%c", c);
+    if (!newcat_valid_command(rig, command))
+        return RIG_ENAVAIL;
+    snprintf(priv->cmd_str, len, "%s%d%c", command, (int)freq, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -251,6 +384,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
  */
 
 int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
+    char command[3];
     struct newcat_priv_data *priv;
     struct rig_state *state;
     char c;
@@ -291,7 +425,10 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     }
 
     /* Build the command string */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%c", c, cat_term);
+    snprintf(command, sizeof(command) - 1, "F%c", c);
+    if (!newcat_valid_command(rig, command))
+        return RIG_ENAVAIL;
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
@@ -327,6 +464,11 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 }
 
 
+#if 0
+int (*set_mode) (RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int (*get_mode) (RIG * rig, vfo_t vfo, rmode_t * mode, pbwidth_t * width);
+#endif
+
 /*
  * rig_set_vfo
  *
@@ -336,6 +478,7 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
  */
 
 int newcat_set_vfo(RIG *rig, vfo_t vfo) {
+    char command[3];
     struct newcat_priv_data *priv;
     struct rig_state *state;
     char c;
@@ -386,7 +529,10 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     }
 
     /* Build the command string */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS%c%c", c, cat_term);
+    snprintf(command, sizeof(command) - 1, "VS");
+    if (!newcat_valid_command(rig, command))
+        return RIG_ENAVAIL;
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, c, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
 
@@ -409,6 +555,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
  */
 
 int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
+    char command[3];
     struct newcat_priv_data *priv;
     struct rig_state *state;
     char c;
@@ -423,7 +570,10 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
     state = &rig->state;
 
     /* Build the command string */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "VS;");
+    snprintf(command, sizeof(command) - 1, "VS");
+    if (!newcat_valid_command(rig, command))
+        return RIG_ENAVAIL;
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", command);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -495,3 +645,645 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
 
 }
 
+
+int newcat_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_dcd(RIG * rig, vfo_t vfo, dcd_t * dcd)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_rptr_offs(RIG * rig, vfo_t vfo, shortfreq_t offs)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_rptr_offs(RIG * rig, vfo_t vfo, shortfreq_t * offs)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_split_freq(RIG * rig, vfo_t vfo, freq_t tx_freq)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_split_freq(RIG * rig, vfo_t vfo, freq_t * tx_freq)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_split_mode(RIG * rig, vfo_t vfo, rmode_t * tx_mode, pbwidth_t * tx_width)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_dcs_code(RIG * rig, vfo_t vfo, tone_t code)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_dcs_code(RIG * rig, vfo_t vfo, tone_t * code)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_tone(RIG * rig, vfo_t vfo, tone_t tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_tone(RIG * rig, vfo_t vfo, tone_t * tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_dcs_sql(RIG * rig, vfo_t vfo, tone_t code)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_dcs_sql(RIG * rig, vfo_t vfo, tone_t * code)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_tone_sql(RIG * rig, vfo_t vfo, tone_t tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_tone_sql(RIG * rig, vfo_t vfo, tone_t * tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_ctcss_sql(RIG * rig, vfo_t vfo, tone_t tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_powerstat(RIG * rig, powerstat_t status)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_powerstat(RIG * rig, powerstat_t * status)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_reset(RIG * rig, reset_t reset)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_parm(RIG * rig, setting_t parm, value_t val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_parm(RIG * rig, setting_t parm, value_t * val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_ext_parm(RIG *rig, token_t token, value_t val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_conf(RIG * rig, token_t token, const char *val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_conf(RIG * rig, token_t token, char *val)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_send_dtmf(RIG * rig, vfo_t vfo, const char *digits)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_recv_dtmf(RIG * rig, vfo_t vfo, char *digits, int *length)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_send_morse(RIG * rig, vfo_t vfo, const char *msg)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_bank(RIG * rig, vfo_t vfo, int bank)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_trn(RIG * rig, int trn)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_trn(RIG * rig, int *trn)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_decode_event(RIG * rig)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_channel(RIG * rig, const channel_t * chan)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_channel(RIG * rig, channel_t * chan)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+const char *newcat_get_info(RIG * rig)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return "";
+}
+
+
+#if 0
+int newcat_set_chan_all_cb(RIG * rig, chan_cb_t chan_cb, rig_ptr_t)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_chan_all_cb(RIG * rig, chan_cb_t chan_cb, rig_ptr_t)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_set_mem_all_cb(RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+
+
+int newcat_get_mem_all_cb(RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, rig_ptr_t)
+{
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    return RIG_ENAVAIL;
+}
+#endif
+
+const char *clone_combo_set;	/*!< String describing key combination to enter load cloning mode */
+const char *clone_combo_get;	/*!< String describing key combination to enter save cloning mode */
+
+
+/*
+ * newcat_valid_command
+ *
+ * Determine whether or not the command is valid for the specified
+ * rig.  This function should be called before sending the command
+ * to the rig to make it easier to differentiate invalid and illegal
+ * commands (for a rig).
+ */
+
+ncboolean newcat_valid_command(RIG *rig, char *command) {
+    const struct rig_caps *caps;
+    ncboolean is_ft450;
+    ncboolean is_ft950;
+    ncboolean is_ft2000;
+    ncboolean is_ft9000;
+    int search_high;
+    int search_index;
+    int search_low;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Rig argument is invalid\n", __func__);
+        return FALSE;
+    }
+
+    caps = rig->caps;
+    if (!caps) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Rig capabilities not valid\n", __func__);
+        return FALSE;
+    }
+
+    /*
+     * Determine the type of rig from the model number.  Note it is
+     * possible for several model variants to exist; i.e., all the
+     * FT-9000 variants.
+     */
+
+    is_ft450 = strcmp(caps->model_name, "FT-450");
+    is_ft950 = strcmp(caps->model_name, "FT-950");
+    is_ft2000 = strcmp(caps->model_name, "FT-2000");
+    is_ft9000 = strcmp(caps->model_name, "FTDX-9000");
+    is_ft9000 = strcmp(caps->model_name, "FTDX-9000 Contest");
+    is_ft9000 = strcmp(caps->model_name, "FTDX9000D");
+    is_ft9000 = strcmp(caps->model_name, "FTDX9000MP");
+
+    if (!is_ft450 && !is_ft950 && !is_ft2000 && !is_ft9000) {
+        rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n",
+                  __func__, caps->model_name);
+        return FALSE;
+    }
+
+    /*
+     * Make sure the command is known, and then check to make sure
+     * is it valud for the rig.
+     */
+
+    search_low = 0;
+    search_high = valid_commands_count;
+    while (search_low <= search_high) {
+        int search_test;
+
+        search_index = (search_low + search_high) / 2;
+        search_test = strcmp (valid_commands[search_index].command, command);
+        if (search_test > 0)
+            search_high = search_index - 1;
+        else if (search_test < 0)
+            search_low = search_index + 1;
+        else {
+            /*
+             * The command is valid.  Now make sure it is supported by the rig.
+             */
+            if (is_ft450 && valid_commands[search_index].ft450)
+                return TRUE;
+            else if (is_ft950 && valid_commands[search_index].ft950)
+                return TRUE;
+            else if (is_ft2000 && valid_commands[search_index].ft2000)
+                return TRUE;
+            else if (is_ft9000 && valid_commands[search_index].ft9000)
+                return TRUE;
+            else {
+                rig_debug(RIG_DEBUG_TRACE, "%s: '%s' command '%s' not supported\n",
+                          __func__, caps->model_name, command);
+                return FALSE;
+                }
+        }
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: '%s' command '%s' not valid\n",
+              __func__, caps->model_name, command);
+    return FALSE;
+}

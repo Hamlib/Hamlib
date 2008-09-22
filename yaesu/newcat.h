@@ -12,7 +12,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.3 2007-12-01 22:09:52 n0nb Exp $
+ *    $Id: newcat.h,v 1.4 2008-09-22 21:34:45 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -38,11 +38,22 @@
 
 /* Handy constants */
 
+#ifndef TRUE
+#define TRUE 1
+#endif
+#define ON TRUE
+#ifndef FALSE
+#define FALSE 0
+#endif
+#define OFF FALSE
+
+typedef char ncboolean;
+
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
 
 /* arbitrary value for now.  11 bits (8N2+1) == 2.2917 mS @ 4800 bps */
-#define NEWCAT_DEFAULT_READ_TIMEOUT     NEWCAT_DATA_LEN * 5
+#define NEWCAT_DEFAULT_READ_TIMEOUT     (NEWCAT_DATA_LEN * 5)
 
 
 /*
@@ -80,5 +91,7 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 int newcat_set_vfo(RIG *rig, vfo_t vfo);
 int newcat_get_vfo(RIG *rig, vfo_t *vfo);
+
+ncboolean newcat_valid_command(RIG *rig, char *command);
 
 #endif /* _NEWCAT_H */
