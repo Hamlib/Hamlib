@@ -11,7 +11,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.7 2006-10-07 15:51:38 csete Exp $  
+ *    $Id: ft897.c,v 1.8 2008-09-22 20:51:06 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -178,9 +178,9 @@ const struct rig_caps ft897_caps = {
   .rig_model = 		RIG_MODEL_FT897,
   .model_name = 	"FT-897", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.3", 
+  .version = 		"0.3.1", 
   .copyright = 		"LGPL",
-  .status = 		RIG_STATUS_ALPHA,
+  .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
   .ptt_type = 		RIG_PTT_RIG,
   .dcd_type = 		RIG_DCD_RIG,
@@ -482,9 +482,11 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *mode = RIG_MODE_USB;
     break;
   case 0x02:
+  case 0x82:
     *mode = RIG_MODE_CW;
     break;
   case 0x03:
+  case 0x83:
     *mode = RIG_MODE_CWR;
     break;
   case 0x04:
@@ -494,9 +496,11 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     *mode = RIG_MODE_WFM;
     break;
   case 0x08:
+  case 0x88:
     *mode = RIG_MODE_FM;
     break;
   case 0x0a:
+  case 0x8a:
     *mode = RIG_MODE_RTTY;
     break;
   default:
