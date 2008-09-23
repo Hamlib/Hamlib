@@ -2,7 +2,7 @@
  *  Hamlib Interface - network communication header
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: network.h,v 1.1 2008-09-21 19:30:35 fillods Exp $
+ *	$Id: network.h,v 1.2 2008-09-23 22:02:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,7 +29,7 @@
 __BEGIN_DECLS
 
 /* Hamlib internal use, see rig.c */
-int network_open(hamlib_port_t *p);
+int network_open(hamlib_port_t *p, int default_port);
 
 __END_DECLS
 

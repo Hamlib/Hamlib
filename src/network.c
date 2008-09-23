@@ -2,7 +2,7 @@
  *  Hamlib Interface - network communication low-level support
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: network.c,v 1.1 2008-09-21 19:30:34 fillods Exp $
+ *	$Id: network.c,v 1.2 2008-09-23 22:02:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -71,13 +71,14 @@
  * \param rp port data structure (must spec port id eg hostname:port)
  * \return RIG_OK or < 0 if error
  */
-int network_open(hamlib_port_t *rp) {
+int network_open(hamlib_port_t *rp, int default_port) {
 
 	int fd;				/* File descriptor for the port */
 	int status;
 	struct addrinfo hints, *res;
 	char *portstr;
-	char hostname[FILPATHLEN];
+	char hostname[FILPATHLEN] = "localhost";
+	char defaultportstr[8];
 
 	if (!rp)
 		return -RIG_EINVAL;
@@ -86,11 +87,20 @@ int network_open(hamlib_port_t *rp) {
 	hints.ai_family = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	strcpy(hostname, rp->pathname);
-	portstr = strchr(hostname, ':');
-	if (!portstr)
-		return -RIG_ECONF;
-	*portstr++ = '\0';
+	if (rp->pathname[0] == ':') {
+		portstr = rp->pathname+1;
+	} else {
+		strncpy(hostname, rp->pathname, FILPATHLEN-1);
+
+		/* search last ':', because IPv6 may have some */
+		portstr = strrchr(hostname, ':');
+		if (portstr) {
+			*portstr++ = '\0';
+		} else {
+			sprintf(defaultportstr, "%d", default_port);
+			portstr = defaultportstr;
+		}
+	}
     
 	status=getaddrinfo(hostname, portstr, &hints, &res);
 	if (status != 0) {

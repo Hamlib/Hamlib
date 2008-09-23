@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.23 2008-09-21 19:30:35 fillods Exp $
+ *	$Id: rotator.c,v 1.24 2008-09-23 22:02:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -333,7 +333,7 @@ int HAMLIB_API rot_open(ROT *rot)
 			break;	/* ez :) */
 
 	case RIG_PORT_NETWORK:
-		status = network_open(&rs->rotport);
+		status = network_open(&rs->rotport, 4533);
 		if (status < 0)
 			return status;
 		break;

@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.98 2008-09-21 19:30:35 fillods Exp $
+ *	$Id: rig.c,v 1.99 2008-09-23 22:02:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -486,7 +486,7 @@ int HAMLIB_API rig_open(RIG *rig)
 		break;	/* ez :) */
 
 	case RIG_PORT_NETWORK:
-		status = network_open(&rs->rigport);
+		status = network_open(&rs->rigport, 4532);
 		if (status < 0)
 			return status;
 		break;
