@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden.c,v 1.14 2008-10-07 17:55:48 fillods Exp $
+ *	$Id: uniden.c,v 1.15 2008-10-07 18:58:08 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -703,6 +703,9 @@ DECLARE_INITRIG_BACKEND(uniden)
 	rig_register(&bc250_caps);
 
 	rig_register(&pro2052_caps);
+
+	rig_register(&bcd396t_caps);
+	rig_register(&bcd996t_caps);
 
 	return RIG_OK;
 }
