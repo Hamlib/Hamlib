@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden.c,v 1.13 2008-05-04 15:33:26 fillods Exp $
+ *	$Id: uniden.c,v 1.14 2008-10-07 17:55:48 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -591,7 +591,8 @@ const char * uniden_get_info(RIG *rig)
 	if (ret == RIG_OK)
 	{
 		/* overwrite "VR" */
-		infobuf[info_len] = ',';
+		/* FIXME: need to filter \r or it screws w/ stdout */
+		infobuf[info_len] = '\n';
 		infobuf[info_len+1] = ' ';
 	}
 	else
