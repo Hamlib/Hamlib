@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - uniden_digital backend
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden_digital.c,v 1.1 2008-10-07 18:58:08 fillods Exp $
+ *	$Id: uniden_digital.c,v 1.2 2008-10-17 11:52:04 roger-linux Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,6 +35,35 @@
 #include "misc.h"
 
 #include "uniden_digital.h"
+
+
+/*
+ * Uniden Digital backend should work for:
+ * BCD996T as well as the BCD396T.  Some protocols available for the
+ * BCD996T may not be available for the BCD396T or modified to work.
+ *
+ * Protocol information can be found here:
+ * http://www.uniden.com/files/BCD396T_Protocol.pdf
+ * http://www.uniden.com/files/BCD996T_Protocol.pdf
+ *
+ * There are undocumented commands such as firmware_dump and
+ * firmware_load.  These commands are defined within DSctl code.
+ *
+ * There are two methods of retrieving the next memory location
+ * (aka frequency bank).  Use either the "Get Next Location" or 
+ * use the address returned from one of the commands.  If you decide
+ * the latter method, the order is slightly confusing but, I have it
+ * well documented within DSctl.  The latter method is also as much
+ * as 30% faster then using the Uniden software or "Get Next
+ * Location" command.
+ */
+
+static const struct { rig_model_t model; const char *id; }
+uniden_id_string_list[] = {
+	{ RIG_MODEL_BCD396T,  "BCD396T" },
+	{ RIG_MODEL_BCD996T,  "BCD99tT" },
+	{ RIG_MODEL_NONE, NULL },	/* end marker */
+};
 
 
 /*
