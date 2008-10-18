@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - BCD396T description
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: bcd396t.c,v 1.1 2008-10-07 18:58:08 fillods Exp $
+ *	$Id: bcd396t.c,v 1.2 2008-10-18 06:21:31 roger-linux Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,7 +27,7 @@
 #include <stdlib.h>
 
 #include "hamlib/rig.h"
-#include "uniden.h"
+/*#include "uniden.h"*/
 #include "uniden_digital.h"
 
 
@@ -122,7 +122,7 @@ const struct rig_caps bcd396t_caps = {
 		RIG_FLT_END,
 	},
 
-.get_info =  uniden_get_info,
+.get_info =  uniden_digital_get_info,
 .set_freq =  uniden_digital_set_freq,
 .get_freq =  uniden_digital_get_freq,
 

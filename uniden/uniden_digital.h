@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - uniden_digital header
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden_digital.h,v 1.1 2008-10-07 18:58:08 fillods Exp $
+ *	$Id: uniden_digital.h,v 1.2 2008-10-18 06:21:31 roger-linux Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,6 +26,11 @@
 #include "hamlib/rig.h"
 
 #define BACKEND_DIGITAL_VER	"0.3"
+
+int uniden_digital_transaction (RIG *rig, const char *cmdstr, int cmd_len,
+		const char *replystr, char *data, size_t *datasize);
+
+const char* uniden_digital_get_info(RIG *rig);
 
 int uniden_digital_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int uniden_digital_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
