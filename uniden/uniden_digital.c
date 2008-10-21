@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - uniden_digital backend
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden_digital.c,v 1.3 2008-10-18 06:21:31 roger-linux Exp $
+ *	$Id: uniden_digital.c,v 1.4 2008-10-21 16:27:18 roger-linux Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -66,7 +66,7 @@ uniden_id_string_list[] = {
 };
 
 
-#define EOM "\r"
+#define EOM "\r" /* end of message */
 
 #define BUFSZ 64
 
@@ -149,16 +149,30 @@ transaction_write:
      *  in the right mode or using the correct parameters. ERR indicates
      *  an INVALID Command.
      */
-    if (strcmp(data, "NG"EOM) || strcmp(data, "ORER"EOM)) {
+    if (strcmp(data, "NG"EOM)) {
 	    /* Invalid command */
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: NG/Overflow for '%s'\n", __FUNCTION__, cmdstr);
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Command Format Error / Value Error for '%s'\n", __FUNCTION__, cmdstr);
 	    retval = -RIG_EPROTO;
 	    goto transaction_quit;
     }
 
     if (strcmp(data, "ERR"EOM)) {
 	    /*  Command format error */
-	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Error for '%s'\n", __FUNCTION__, cmdstr);
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: The Command is Invalid at this Time for '%s'\n", __FUNCTION__, cmdstr);
+	    retval = -RIG_EINVAL;
+	    goto transaction_quit;
+    }
+		
+	if (strcmp(data, "FER"EOM)) {
+	    /*  Framing error */
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Framing Error for '%s'\n", __FUNCTION__, cmdstr);
+	    retval = -RIG_EINVAL;
+	    goto transaction_quit;
+    }
+		
+	if (strcmp(data, "ORER"EOM)) {
+	    /*  Overrun error */
+	    rig_debug(RIG_DEBUG_VERBOSE, "%s: Overrun Error for '%s'\n", __FUNCTION__, cmdstr);
 	    retval = -RIG_EINVAL;
 	    goto transaction_quit;
     }
@@ -172,10 +186,10 @@ transaction_write:
 #endif
 
     /* Special case for SQuelch */
-    if (!memcmp(cmdstr,"SQ",2) && (replystr[0] == '-' || replystr[0] == '+')) {
+    /*if (!memcmp(cmdstr,"SQ",2) && (replystr[0] == '-' || replystr[0] == '+')) {
 	    retval = RIG_OK;
 	    goto transaction_quit;
-	}
+	}*/
 
     /* Command prefix if no replystr supplied */
     if (!replystr)
