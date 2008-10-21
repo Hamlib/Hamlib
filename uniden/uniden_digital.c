@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - uniden_digital backend
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden_digital.c,v 1.5 2008-10-21 18:45:21 roger-linux Exp $
+ *	$Id: uniden_digital.c,v 1.6 2008-10-21 19:00:28 roger-linux Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -252,9 +252,18 @@ const char * uniden_digital_get_info(RIG *rig)
 	/* Example output:
 	 * STS,011000,          XXX     ,,Fa
      * XXX indicates the BCD996T returns some non-printable ascii chars
-	 * within it's comma separated fields. See pg 30-32 of pdf documentation.
+	 * within it's comma separated fields. See pg 30-32 of BCD996T_Protocol.pdf.
 	 * These chars cause abnomalies on stdout! */
-	/* FIXME: Strip or replace non-printable chars return from STS command! */
+	
+	/* FIXME: Strip or replace non-printable chars return from STS command!
+	 * (Below is a snip from DSctl utils.c file)
+	 *
+	 * For example, search each character.  For each sequence of chars found, replace with normal printable ascii [KEY]
+	 * if (strstr(bcd_chars, "\213") != 0)
+	 *	 strncat(tmp_line, "[FUNCTION KEY] ", 15);
+	 *
+	 * if (strstr(bcd_chars, "\215\216\217\220") != 0)
+	 *	 strncat(tmp_line, "[HOLD] ", 7); */
 
 	if (info_len < 4)
 		return NULL;
