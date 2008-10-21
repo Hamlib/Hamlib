@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - uniden_digital backend
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden_digital.c,v 1.4 2008-10-21 16:27:18 roger-linux Exp $
+ *	$Id: uniden_digital.c,v 1.5 2008-10-21 18:45:21 roger-linux Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -65,10 +65,13 @@ uniden_id_string_list[] = {
 	{ RIG_MODEL_NONE, NULL },	/* end marker */
 };
 
+/* EOM is not consistant with this BCD996T!
+ * Some commands  return newline while others carriage return.
+ * Some commands return nothing special for End of Line char. */
+#define EOM "\r"  /* end of message */
 
-#define EOM "\r" /* end of message */
-
-#define BUFSZ 64
+/* I'm still getting clipped output from buffers  being too small elsewhere! */
+#define BUFSZ 256  /* Wild guess, 64 was too small. */
 
 /**
  * uniden_transaction
@@ -130,14 +133,17 @@ transaction_write:
     }	else
   	    *datasize = retval;
 
-    /* Check that command termination is correct */
-    if (strchr(EOM, data[strlen(data)-1])==NULL) {
+    /* Check that command termination is correct
+	 * FIXME: Sometimes the BCD996T DOES NOT return  a
+	 * consistant carriage return or newline.
+	 * ie: STS command will not return either "\r" or "\n"! */
+    /*if (strchr(EOM, data[strlen(data)-1])==NULL) {
         rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __FUNCTION__, data);
         if (retry_read++ < rig->state.rigport.retry)
             goto transaction_write;
         retval = -RIG_EPROTO;
         goto transaction_quit;
-    }
+	}*/
 
     if (strcmp(data, "OK"EOM)) {
 	    /* everything is fine */
@@ -227,29 +233,60 @@ transaction_quit:
 const char * uniden_digital_get_info(RIG *rig)
 {
 	static char infobuf[BUFSZ];
-	size_t info_len=BUFSZ/2, vrinfo_len=BUFSZ/2;
+	size_t info_len=BUFSZ/2, mdlinfo_len=BUFSZ/2;
 	int ret;
 
+	
+	/* GET STATUS -- STS*/
 	ret = uniden_digital_transaction (rig, "STS" EOM, 3, NULL, infobuf, &info_len);
+	
+	/* NOTE FOR ME: Check Buffer Size with what we got returned in info_len.
+	 * Don't know the max length of return on these units, so check frequently!
+	 * Use five v's (-vvvvv) to activate output. */
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG BUFSZ'%i'\n", __FUNCTION__, BUFSZ);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG info_len'%i'\n", __FUNCTION__, info_len);
+	
 	if (ret != RIG_OK)
 		return NULL;
 
-	/* SI BC250D,0000000000,104  */
+	/* Example output:
+	 * STS,011000,          XXX     ,,Fa
+     * XXX indicates the BCD996T returns some non-printable ascii chars
+	 * within it's comma separated fields. See pg 30-32 of pdf documentation.
+	 * These chars cause abnomalies on stdout! */
+	/* FIXME: Strip or replace non-printable chars return from STS command! */
 
 	if (info_len < 4)
 		return NULL;
 
-	if (info_len >= BUFSZ)
-		info_len = BUFSZ-1;
+	if (info_len >= BUFSZ) {
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: DEBUG Max BUFSZ Reached: info_len  = '%i'\n", __FUNCTION__, info_len);
+		info_len = BUFSZ-1; 
+	}
+		
 	infobuf[info_len] = '\0';
 
 	/* VR not on every rig */
 	/* VR1.00 */
-	ret = uniden_digital_transaction (rig, "MDL" EOM, 3, NULL, infobuf+info_len, &vrinfo_len);
+	/*ret = uniden_digital_transaction (rig, "VR" EOM, 2, NULL, infobuf+info_len, &vrinfo_len);
 	if (ret == RIG_OK)
-	{
+	{*/
 		/* overwrite "VR" */
 		/* FIXME: need to filter \r or it screws w/ stdout */
+		/*infobuf[info_len] = '\n';
+		infobuf[info_len+1] = ' ';
+	}
+	else
+	{
+		infobuf[info_len] = '\0';
+	}*/
+	
+	
+	/* GET MODEL -- MDL */
+	ret = uniden_digital_transaction (rig, "MDL" EOM, 3, NULL, infobuf+info_len, &mdlinfo_len);
+	
+	if (ret == RIG_OK)
+	{
 		infobuf[info_len] = '\n';
 		infobuf[info_len+1] = ' ';
 	}
@@ -258,8 +295,22 @@ const char * uniden_digital_get_info(RIG *rig)
 		infobuf[info_len] = '\0';
 	}
 
-	/* skip "SI " */
-	return infobuf+3;
+	/* GET VERSION -- VER */
+    ret = uniden_digital_transaction (rig, "VER" EOM, 3, NULL, infobuf+info_len, &mdlinfo_len);
+	if (ret == RIG_OK)
+	{
+		infobuf[info_len] = '\n';
+		infobuf[info_len+1] = ' ';
+	}
+	else
+	{
+		infobuf[info_len] = '\0';
+	}
+	
+	
+	/* skip beginning "STS, " */
+	/* FIXME: What about clipping the above two other  MDL & VER Commands? */
+	return infobuf+4;
 }
 
 
