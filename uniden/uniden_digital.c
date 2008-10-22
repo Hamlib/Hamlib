@@ -2,7 +2,7 @@
  *  Hamlib Uniden backend - uniden_digital backend
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: uniden_digital.c,v 1.6 2008-10-21 19:00:28 roger-linux Exp $
+ *	$Id: uniden_digital.c,v 1.7 2008-10-22 04:11:28 roger-linux Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -237,7 +237,7 @@ const char * uniden_digital_get_info(RIG *rig)
 	int ret;
 
 	
-	/* GET STATUS -- STS*/
+	/* GET CURRENT STATUS -- STS */
 	ret = uniden_digital_transaction (rig, "STS" EOM, 3, NULL, infobuf, &info_len);
 	
 	/* NOTE FOR ME: Check Buffer Size with what we got returned in info_len.
@@ -251,6 +251,9 @@ const char * uniden_digital_get_info(RIG *rig)
 
 	/* Example output:
 	 * STS,011000,          XXX     ,,Fa
+	 *
+	 * STS command returns 3 lines including system, truck, freq info
+	 *
      * XXX indicates the BCD996T returns some non-printable ascii chars
 	 * within it's comma separated fields. See pg 30-32 of BCD996T_Protocol.pdf.
 	 * These chars cause abnomalies on stdout! */
@@ -275,7 +278,7 @@ const char * uniden_digital_get_info(RIG *rig)
 		
 	infobuf[info_len] = '\0';
 
-	/* VR not on every rig */
+	/* VR not on every rig <- This doesn't belong here for the newer BCD* units*/
 	/* VR1.00 */
 	/*ret = uniden_digital_transaction (rig, "VR" EOM, 2, NULL, infobuf+info_len, &vrinfo_len);
 	if (ret == RIG_OK)
@@ -291,7 +294,7 @@ const char * uniden_digital_get_info(RIG *rig)
 	}*/
 	
 	
-	/* GET MODEL -- MDL */
+	/* GET MODEL INFO -- MDL */
 	ret = uniden_digital_transaction (rig, "MDL" EOM, 3, NULL, infobuf+info_len, &mdlinfo_len);
 	
 	if (ret == RIG_OK)
@@ -304,7 +307,7 @@ const char * uniden_digital_get_info(RIG *rig)
 		infobuf[info_len] = '\0';
 	}
 
-	/* GET VERSION -- VER */
+	/* GET FIRMWARE VERSION -- VER */
     ret = uniden_digital_transaction (rig, "VER" EOM, 3, NULL, infobuf+info_len, &mdlinfo_len);
 	if (ret == RIG_OK)
 	{
