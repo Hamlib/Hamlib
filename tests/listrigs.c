@@ -1,9 +1,9 @@
 /*
- * listrigs.c - Copyright (C) 2000 Stephane Fillod
+ * listrigs.c - Copyright (C) 2000-2008 Stephane Fillod
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.11 2001-09-20 21:21:14 f4cfe Exp $  
+ *    $Id: listrigs.c,v 1.12 2008-10-25 11:10:24 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -36,28 +36,7 @@ int print_caps_sum(const struct rig_caps *caps, void *data)
 	printf("%d\t%s\t%-12s\t%s\t",caps->rig_model,caps->mfg_name,
 					caps->model_name, caps->version);
 
-	switch (caps->status) {
-	case RIG_STATUS_ALPHA:
-			printf("Alpha\t");
-			break;
-	case RIG_STATUS_UNTESTED:
-			printf("Untested\t");
-			break;
-	case RIG_STATUS_BETA:
-			printf("Beta\t");
-			break;
-	case RIG_STATUS_STABLE:
-			printf("Stable\t");
-			break;
-	case RIG_STATUS_BUGGY:
-			printf("Buggy\t");
-			break;
-	case RIG_STATUS_NEW:
-			printf("New\t");
-			break;
-	default:
-			printf("Unknown\t");
-	}
+	printf("%s\t", rig_strstatus(caps->status));
 	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
 			printf("Transceiver\n");
