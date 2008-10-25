@@ -7,7 +7,7 @@
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.2 2008-09-22 21:30:29 fillods Exp $
+ * $Id: ft450.c,v 1.3 2008-10-25 14:37:19 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -49,9 +49,9 @@ const struct rig_caps ft450_caps = {
     .rig_model =          RIG_MODEL_FT450,
     .model_name =         "FT-450",
     .mfg_name =           "Yaesu",
-    .version =            "0.0.1",
+    .version =            NEWCAT_VER ".0",
     .copyright =          "LGPL",
-    .status =             RIG_STATUS_ALPHA,
+    .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
     .ptt_type =           RIG_PTT_RIG,
     .dcd_type =           RIG_DCD_NONE,
@@ -87,7 +87,7 @@ const struct rig_caps ft450_caps = {
     .chan_list =          { RIG_CHAN_END, },
 
     .rx_range_list1 =     {
-        {kHz(30), MHz(56), FT450_ALL_RX_MODES, -1, -1, FT450_VFO_ALL, FT450_ANTS},   /* General coverage + ham */
+        {kHz(30), MHz(60), FT450_ALL_RX_MODES, -1, -1, FT450_VFO_ALL, FT450_ANTS},   /* General coverage + ham */
         RIG_FRNG_END,
     }, /* FIXME:  Are these the correct Region 1 values? */
 
@@ -149,11 +149,11 @@ const struct rig_caps ft450_caps = {
 
     .set_freq =           newcat_set_freq,
     .get_freq =           newcat_get_freq,
-//    .set_mode =           newcat_set_mode,
-//    .get_mode =           newcat_get_mode,
+    .set_mode =           newcat_set_mode,
+    .get_mode =           newcat_get_mode,
     .set_vfo =            newcat_set_vfo,
     .get_vfo =            newcat_get_vfo,
-//    .set_ptt =            newcat_set_ptt,
+    .set_ptt =            newcat_set_ptt,
 //    .get_ptt =            newcat_get_ptt,
 //    .set_split_vfo =      newcat_set_split_vfo,
 //    .get_split_vfo =      newcat_get_split_vfo,

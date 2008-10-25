@@ -7,7 +7,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.1 2008-09-22 21:31:04 fillods Exp $
+ * $Id: ft950.c,v 1.2 2008-10-25 14:37:19 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ const struct rig_caps ft950_caps = {
     .rig_model =          RIG_MODEL_FT950,
     .model_name =         "FT-950",
     .mfg_name =           "Yaesu",
-    .version =            "0.0.1",
+    .version =            NEWCAT_VER ".0",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_ALPHA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -149,11 +149,11 @@ const struct rig_caps ft950_caps = {
 
     .set_freq =           newcat_set_freq,
     .get_freq =           newcat_get_freq,
-//    .set_mode =           newcat_set_mode,
-//    .get_mode =           newcat_get_mode,
+    .set_mode =           newcat_set_mode,
+    .get_mode =           newcat_get_mode,
     .set_vfo =            newcat_set_vfo,
     .get_vfo =            newcat_get_vfo,
-//    .set_ptt =            newcat_set_ptt,
+    .set_ptt =            newcat_set_ptt,
 //    .get_ptt =            newcat_get_ptt,
 //    .set_split_vfo =      newcat_set_split_vfo,
 //    .get_split_vfo =      newcat_get_split_vfo,

@@ -12,7 +12,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.4 2008-09-22 21:34:45 fillods Exp $
+ *    $Id: newcat.h,v 1.5 2008-10-25 14:37:19 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -48,6 +48,9 @@
 #define OFF FALSE
 
 typedef char ncboolean;
+
+/* shared function version */
+#define NEWCAT_VER "0.1"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -93,5 +96,10 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo);
 int newcat_get_vfo(RIG *rig, vfo_t *vfo);
 
 ncboolean newcat_valid_command(RIG *rig, char *command);
+
+int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
+int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 
 #endif /* _NEWCAT_H */
