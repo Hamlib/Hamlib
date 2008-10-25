@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-725 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ic725.c,v 1.6 2005-04-03 19:53:51 fillods Exp $
+ *	$Id: ic725.c,v 1.7 2008-10-25 14:00:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,15 +59,15 @@ const struct rig_caps ic725_caps = {
 .rig_model =  RIG_MODEL_IC725,
 .model_name = "IC-725", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1", 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
-.serial_rate_max =  1200,
+.serial_rate_max =  9600,
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,

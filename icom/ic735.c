@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-735 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ic735.c,v 1.7 2005-04-03 19:53:51 fillods Exp $
+ *	$Id: ic735.c,v 1.8 2008-10-25 14:00:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,6 +28,7 @@
 
 #include <hamlib/rig.h>
 #include "icom.h"
+#include "bandplan.h"
 
 
 #define IC735_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
@@ -42,7 +43,8 @@
 
 #define IC735_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 
-#define IC735_STR_CAL { 0, { } }
+#define IC735_ANTS RIG_ANT_1
+
 
 /*
  */
@@ -56,15 +58,15 @@ const struct rig_caps ic735_caps = {
 .rig_model =  RIG_MODEL_IC735,
 .model_name = "IC-735", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
-.serial_rate_max =  1200,
+.serial_rate_max =  9600,
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
@@ -96,13 +98,17 @@ const struct rig_caps ic735_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		   {   1,  10, RIG_MTYPE_MEM },
-		   {  11,  12, RIG_MTYPE_EDGE },
+		   {   1,  10, RIG_MTYPE_MEM,  IC_MIN_MEM_CAP },
+		   {  11,  12, RIG_MTYPE_EDGE, IC_MIN_MEM_CAP },
 		   RIG_CHAN_END,
 		},
 
-.rx_range_list1 =   { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
-.tx_range_list1 =   { RIG_FRNG_END, },
+.rx_range_list1 =   { {kHz(30),MHz(30),IC735_ALL_RX_MODES,-1,-1,IC735_VFO_ALL},
+	RIG_FRNG_END, },
+.tx_range_list1 =   {
+        FRQ_RNG_HF(1,IC735_OTHER_TX_MODES, W(10),W(100),IC735_VFO_ALL,IC735_ANTS),
+	FRQ_RNG_HF(1,IC735_AM_TX_MODES, W(10),W(40),IC735_VFO_ALL,IC735_ANTS),   /* AM class */
+	RIG_FRNG_END, },
 
 .rx_range_list2 =   { {kHz(30),MHz(30),IC735_ALL_RX_MODES,-1,-1,IC735_VFO_ALL},
 	RIG_FRNG_END, },
@@ -134,6 +140,7 @@ const struct rig_caps ic735_caps = {
 .filters = 	{
 		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
 		{RIG_MODE_AM, kHz(8)},
+		{RIG_MODE_FM, kHz(15)},
 		RIG_FLT_END,
 	},
 
