@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.47 2008-05-04 21:15:17 fillods Exp $
+ *	$Id: misc.c,v 1.48 2008-10-25 11:36:02 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -248,8 +248,6 @@ const char * HAMLIB_API rig_strstatus(enum rig_status_e status)
 		return "Stable";
 	case RIG_STATUS_BUGGY:
 		return "Buggy";
-	case RIG_STATUS_NEW:
-		return "New";
 	}
 	return "";
 }

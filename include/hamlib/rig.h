@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.127 2008-05-04 21:15:16 fillods Exp $
+ *	$Id: rig.h,v 1.128 2008-10-25 11:36:02 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -236,8 +236,14 @@ enum rig_status_e {
   RIG_STATUS_BETA,		/*!< Beta quality */
   RIG_STATUS_STABLE,		/*!< Stable */
   RIG_STATUS_BUGGY,		/*!< Was stable, but something broke it! */
-  RIG_STATUS_NEW		/*!< Initial release of code */
+/*  RIG_STATUS_NEW	*	*!< Initial release of code 
+ *  				!! Use of RIG_STATUS_NEW is deprecated. Do not use it anymore */
 };
+
+/*
+ * Map all RIG_STATUS_NEW references to RIG_STATUS_UNTESTED for backward compatibility
+ */
+#define RIG_STATUS_NEW RIG_STATUS_UNTESTED
 
 /**
  * \brief Repeater shift type
