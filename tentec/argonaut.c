@@ -1,8 +1,8 @@
 /*
  *  Hamlib TenTenc backend - TT-516 PC-Radio description
- *  Copyright (c) 2003 by Stephane Fillod
+ *  Copyright (c) 2003-2008 by Stephane Fillod
  *
- *	$Id: argonaut.c,v 1.4 2008-01-12 12:50:29 n0nb Exp $
+ *	$Id: argonaut.c,v 1.5 2008-10-25 15:27:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,7 @@
 				RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD| \
 				RIG_LEVEL_SWR|RIG_LEVEL_ATT)
 
-#define TT516_ANTS 0
+#define TT516_ANTS RIG_ANT_1
 
 #define TT516_VFO (RIG_VFO_A|RIG_VFO_B)
 
@@ -57,9 +57,9 @@ const struct rig_caps tt516_caps = {
 .rig_model =  RIG_MODEL_TT516,
 .model_name = "TT-516 Argonaut V",
 .mfg_name =  "Ten-Tec",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
