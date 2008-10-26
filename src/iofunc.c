@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.17 2008-04-11 14:07:09 fillods Exp $
+ *	$Id: iofunc.c,v 1.18 2008-10-26 10:47:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -228,6 +228,9 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
  * \param rxmax maximum string size + 1
  * \param stopset string of recognized end of string characters
  * \param stopset_len length of stopset
+ * \return number of characters read if the operation has been sucessful,
+ * otherwise a negative value if an error occured (in which case, cause is
+ * set appropriately).
  *
  * Read a string from "fd" and put result into
  * an array of unsigned char pointed to by "rxbuffer"
