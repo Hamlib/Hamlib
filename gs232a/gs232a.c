@@ -2,7 +2,7 @@
  *  Hamlib Rotator backend - GS-232A
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: gs232a.c,v 1.1 2008-05-23 14:14:17 fillods Exp $
+ *	$Id: gs232a.c,v 1.2 2008-10-26 13:38:51 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -240,7 +240,7 @@ const struct rot_caps gs232a_rot_caps = {
   .mfg_name =       "Yaesu",
   .version =        "0.1",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_NEW,
+  .status =         RIG_STATUS_UNTESTED,
   .rot_type =       ROT_TYPE_OTHER,
   .port_type =      RIG_PORT_SERIAL,
   .serial_rate_min =   150,

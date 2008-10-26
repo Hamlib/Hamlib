@@ -2,7 +2,7 @@
  *  Hamlib backend - SDR-1000
  *  Copyright (c) 2003-2007 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.10 2007-11-07 19:05:18 fillods Exp $
+ *	$Id: sdr1k.c,v 1.11 2008-10-26 13:35:41 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -124,7 +124,7 @@ const struct rig_caps sdr1k_rig_caps = {
   .mfg_name =       "Flex-radio",
   .version =        "0.2",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_NEW,
+  .status =         RIG_STATUS_UNTESTED,
   .rig_type =       RIG_TYPE_TUNER,
   .targetable_vfo = 	 0,
   .ptt_type =       RIG_PTT_RIG,
