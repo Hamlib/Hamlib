@@ -9,7 +9,7 @@
  * via serial interface to an FT-900 using the "CAT" interface
  *
  *
- * $Id: ft900.c,v 1.5 2006-10-07 15:51:38 csete Exp $
+ * $Id: ft900.c,v 1.6 2008-10-26 13:53:10 y32kn Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -156,7 +156,7 @@ const struct rig_caps ft900_caps = {
   .mfg_name =           "Yaesu",
   .version =            "0.1",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_NEW,
+  .status =             RIG_STATUS_UNTESTED,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_NONE,

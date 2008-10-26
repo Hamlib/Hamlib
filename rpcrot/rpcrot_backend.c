@@ -3,7 +3,7 @@
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *
- *	$Id: rpcrot_backend.c,v 1.8 2004-08-01 21:26:54 fillods Exp $
+ *	$Id: rpcrot_backend.c,v 1.9 2008-10-26 13:51:29 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -377,7 +377,7 @@ struct rot_caps rpcrot_caps = {
   .mfg_name =       "Hamlib",
   .version =        "0.1",
   .copyright = 	 "LGPL",
-  .status =         RIG_STATUS_NEW,
+  .status =         RIG_STATUS_UNTESTED,
   .rot_type =       ROT_TYPE_OTHER,
   .port_type =      RIG_PORT_NONE,
   .priv =  NULL,

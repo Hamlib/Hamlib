@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-707
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic707.c,v 1.3 2005-04-03 19:53:51 fillods Exp $
+ *	$Id: ic707.c,v 1.4 2008-10-26 13:45:21 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,7 +63,7 @@ const struct rig_caps ic707_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER, 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_NEW,
+.status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,

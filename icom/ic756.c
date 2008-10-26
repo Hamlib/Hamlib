@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-756 and variations
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.17 2008-07-12 17:19:47 aa6e Exp $
+ *	$Id: ic756.c,v 1.18 2008-10-26 13:45:21 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -762,7 +762,7 @@ const struct rig_caps ic756pro3_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER, 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_NEW,
+.status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,

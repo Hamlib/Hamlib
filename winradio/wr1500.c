@@ -2,7 +2,7 @@
  *  Hamlib WiNRADiO backend - WR1500 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: wr1500.c,v 1.8 2004-04-16 20:06:24 fillods Exp $
+ *	$Id: wr1500.c,v 1.9 2008-10-26 13:54:52 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,7 +44,7 @@ const struct rig_caps wr1500_caps = {
   .mfg_name =       "Winradio",
   .version =        "0.6",
   .copyright = 	 "LGPL",
-  .status =         RIG_STATUS_NEW,
+  .status =         RIG_STATUS_UNTESTED,
   .rig_type =       RIG_TYPE_PCRECEIVER,
   .port_type =      RIG_PORT_DEVICE,
   .targetable_vfo = 	 0,

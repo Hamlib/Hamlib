@@ -12,7 +12,7 @@
  * Hy-Gain is a trademark of MFJ Enterprises
  *
  *
- *    $Id: rotorez.c,v 1.9 2006-10-07 19:04:49 csete Exp $
+ *    $Id: rotorez.c,v 1.10 2008-10-26 13:50:30 y32kn Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -79,7 +79,7 @@ const struct rot_caps rotorez_rot_caps = {
   .mfg_name =           "Idiom Press",
   .version =            "0.2",
   .copyright = 	        "LGPL",
-  .status =             RIG_STATUS_NEW,
+  .status =             RIG_STATUS_UNTESTED,
   .rot_type =           ROT_TYPE_OTHER,
   .port_type =          RIG_PORT_SERIAL,
   .serial_rate_min =    4800,
@@ -120,7 +120,7 @@ const struct rot_caps rotorcard_rot_caps = {
   .mfg_name =           "Idiom Press",
   .version =            "0.2",
   .copyright = 	        "LGPL",
-  .status =             RIG_STATUS_NEW,
+  .status =             RIG_STATUS_UNTESTED,
   .rot_type =           ROT_TYPE_OTHER,
   .port_type =          RIG_PORT_SERIAL,
   .serial_rate_min =    4800,
@@ -161,7 +161,7 @@ const struct rot_caps dcu_rot_caps = {
   .mfg_name =           "Hy-Gain",
   .version =            "0.2",
   .copyright = 	        "LGPL",
-  .status =             RIG_STATUS_NEW,
+  .status =             RIG_STATUS_UNTESTED,
   .rot_type =           ROT_TYPE_OTHER,
   .port_type =          RIG_PORT_SERIAL,
   .serial_rate_min =    4800,
