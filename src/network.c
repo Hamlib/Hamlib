@@ -2,7 +2,7 @@
  *  Hamlib Interface - network communication low-level support
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: network.c,v 1.2 2008-09-23 22:02:39 fillods Exp $
+ *	$Id: network.c,v 1.3 2008-10-27 22:18:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -46,6 +46,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 
 
 #ifdef HAVE_NETINET_IN_H
@@ -68,6 +69,10 @@
 
 /**
  * \brief Open network port using rig.state data
+ *
+ * Open Open network port using rig.state data.
+ * NB: the signal PIPE will be ignored for the whole application.
+ *
  * \param rp port data structure (must spec port id eg hostname:port)
  * \return RIG_OK or < 0 if error
  */
@@ -84,7 +89,7 @@ int network_open(hamlib_port_t *rp, int default_port) {
 		return -RIG_EINVAL;
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_UNSPEC;
+	hints.ai_family = AF_INET /* PF_UNSPEC */;
 	hints.ai_socktype = SOCK_STREAM;
 
 	if (rp->pathname[0] == ':') {
@@ -108,6 +113,11 @@ int network_open(hamlib_port_t *rp, int default_port) {
 					rp->pathname, gai_strerror(errno));
 		return -RIG_ECONF;
 	}
+
+	/* we don't want a signal when connection get broken */
+#ifdef SIGPIPE
+	signal(SIGPIPE, SIG_IGN);
+#endif
 
 	fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (fd < 0)
