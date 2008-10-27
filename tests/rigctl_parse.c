@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.8 2008-09-21 19:24:47 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.9 2008-10-27 22:23:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -274,6 +274,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
 extern int interactive;
 extern int prompt;
+extern int opt_end;
 
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
@@ -467,13 +468,17 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
 	if (retcode != RIG_OK) {
-		if ((cmd_entry->flags & ARG_OUT) && interactive && !prompt)
-  			fprintf(fout, "ERROR %d\n", retcode);             /* only for rigctld */
+		if (interactive && !prompt)
+  			fprintf(fout, NETRIGCTL_RET "%d\n", retcode);	/* only for rigctld */
 		else
   			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
 	} else {
-		if ((cmd_entry->flags & ARG_OUT) && interactive && !prompt)             /* only for rigctld */
-			fprintf(fout, "END\n");
+		if (interactive && !prompt) {	/* only for rigctld */
+			if (!(cmd_entry->flags & ARG_OUT) && !opt_end) /* netrigctl RIG_OK */
+				fprintf(fout, NETRIGCTL_RET "0\n");
+			else if ((cmd_entry->flags & ARG_OUT) && opt_end) /* Nate's protocol */
+				fprintf(fout, "END\n");
+		}
 	}
 
 	fflush(fout);

@@ -4,7 +4,7 @@
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
  *
- * $Id: rigctld.c,v 1.8 2008-09-21 20:32:07 fillods Exp $  
+ * $Id: rigctld.c,v 1.9 2008-10-27 22:23:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -68,7 +68,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:lC:t:T:LuovhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:lC:t:T:LeuovhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -86,6 +86,7 @@ static struct option long_options[] =
 	{"show-conf",0, 0, 'L'},
 	{"dump-caps",  0, 0, 'u'},
 	{"vfo",  0, 0, 'o'},
+	{"end-marker", 0, 0, 'e'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -104,6 +105,7 @@ void usage(void);
 
 int interactive = 1;    /* no cmd because of daemon */
 int prompt= 0 ;         /* Daemon mode for rigparse return string */
+int opt_end= 0 ;        /* END marker for rigctld */
 
 int portno = 4532;
 uint32_t src_addr = INADDR_ANY;
@@ -271,6 +273,9 @@ int main (int argc, char *argv[])
 			case 'u':
 				dump_caps_opt++;
 				break;
+			case 'e':
+				opt_end = 1;
+				break;
 			default:
 				usage();	/* unknown option? */
 				exit(1);
@@ -351,8 +356,10 @@ int main (int argc, char *argv[])
 	 * Prepare listening socket
 	 */
 	sock_listen = socket(AF_INET, SOCK_STREAM, 0); 
-	if (sock_listen < 0) 
+	if (sock_listen < 0) {
 		perror("ERROR opening socket");
+		exit(2);
+	}
 	memset((char *) &serv_addr, 0, sizeof(serv_addr));
 
 	serv_addr.sin_family = AF_INET;
@@ -502,6 +509,7 @@ void usage(void)
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -u, --dump-caps            dump capabilities and exit\n"
 	"  -o, --vfo                  do not default to VFO_CURR, require extra vfo arg\n"
+	"  -e, --end-marker           use END marker in rigctld protocol\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n",

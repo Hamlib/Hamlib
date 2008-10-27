@@ -2,7 +2,7 @@
  *  Hamlib Netrigctl backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: netrigctl.c,v 1.1 2008-09-21 19:34:15 fillods Exp $
+ *	$Id: netrigctl.c,v 1.2 2008-10-27 22:23:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,28 @@
 #define CMD_MAX 32
 #define BUF_MAX 96
 
-#define RIGCTL_ERROR "ERROR "
+
+/*
+ * Helper function with protocol return code parsing
+ */
+static int netrigctl_transaction(RIG *rig, char *cmd, int len, char *buf)
+{
+  int ret;
+
+  ret = write_block(&rig->state.rigport, cmd, len);
+  if (ret != RIG_OK)
+	return ret;
+
+  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
+  if (ret < 0)
+	return ret;
+
+  if (!memcmp(buf, NETRIGCTL_RET, strlen(NETRIGCTL_RET)))
+	return atoi(buf+strlen(NETRIGCTL_RET));
+
+  return ret;
+}
+
 
 /*
  * mimics rpcrig_open() from rpcrig/rpcrig_backend.c
@@ -60,41 +81,32 @@ static int netrigctl_open(RIG *rig)
 
   len = sprintf(cmd, "\\dump_state\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
   prot_ver = atoi(buf);
 #define RIGCTLD_PROT_VER 0
   if (prot_ver < RIGCTLD_PROT_VER)
 	  return -RIG_EPROTO;
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   model = atoi(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->itu_region = atoi(buf);
 
   for (i=0; i<FRQRANGESIZ; i++) {
 	ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-	if (ret <= 0) {
-		return -RIG_EIO;
-	}
+	if (ret <= 0)
+		return (ret < 0) ? ret : -RIG_EPROTO;
+
 	ret = sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
 		&rs->rx_range_list[i].start,
 		&rs->rx_range_list[i].end,
@@ -111,9 +123,9 @@ static int netrigctl_open(RIG *rig)
   }
   for (i=0; i<FRQRANGESIZ; i++) {
 	ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-	if (ret <= 0) {
-		return -RIG_EIO;
-	}
+	if (ret <= 0)
+		return (ret < 0) ? ret : -RIG_EPROTO;
+
 	ret = sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
 		&rs->tx_range_list[i].start,
 		&rs->tx_range_list[i].end,
@@ -130,9 +142,9 @@ static int netrigctl_open(RIG *rig)
   }
   for (i=0; i<TSLSTSIZ; i++) {
 	ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-	if (ret <= 0) {
-		return -RIG_EIO;
-	}
+  	if (ret <= 0)
+		return (ret < 0) ? ret : -RIG_EPROTO;
+
 	ret = sscanf(buf, "%x%ld",
                                 &rs->tuning_steps[i].modes,
                                 &rs->tuning_steps[i].ts);
@@ -144,9 +156,9 @@ static int netrigctl_open(RIG *rig)
 
   for (i=0; i<FLTLSTSIZ; i++) {
 	ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-	if (ret <= 0) {
-		return -RIG_EIO;
-	}
+  	if (ret <= 0)
+		return (ret < 0) ? ret : -RIG_EPROTO;
+
 	ret = sscanf(buf, "%x%ld",
                                 &rs->filters[i].modes,
                                 &rs->filters[i].width);
@@ -162,33 +174,33 @@ chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
 #endif
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->max_rit = atol(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->max_xit = atol(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->max_ifshift = atol(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->announces = atoi(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   ret = sscanf (buf, "%d%d%d%d%d%d%d", 
 		  &rs->preamp[0], &rs->preamp[1],
 		  &rs->preamp[2], &rs->preamp[3],
@@ -199,9 +211,9 @@ chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
   rs->preamp[ret] = RIG_DBLST_END;
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   ret = sscanf (buf, "%d%d%d%d%d%d%d", 
 		  &rs->attenuator[0], &rs->attenuator[1],
 		  &rs->attenuator[2], &rs->attenuator[3],
@@ -212,51 +224,45 @@ chan_t chan_list[CHANLSTSIZ]; /*!< Channel list, zero ended */
   rs->attenuator[ret] = RIG_DBLST_END;
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->has_get_func = strtol(buf, NULL, 0);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->has_set_func = strtol(buf, NULL, 0);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->has_get_level = strtol(buf, NULL, 0);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->has_set_level = strtol(buf, NULL, 0);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->has_get_parm = strtol(buf, NULL, 0);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->has_set_parm = strtol(buf, NULL, 0);
 
 #if 0
 gran_t level_gran[RIG_SETTING_MAX];   /*!< level granularity */
 gran_t parm_gran[RIG_SETTING_MAX];    /*!< parm granularity */
 #endif
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++) {
 	rs->vfo_list |= rs->rx_range_list[i].vfo;
@@ -279,19 +285,17 @@ static int netrigctl_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "F %"FREQFMT"\n", freq);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -304,27 +308,11 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
   len = sprintf(cmd, "f\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   sscanf(buf, "%"SCNfreq, freq);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -334,20 +322,18 @@ static int netrigctl_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "M %s %li\n",
   		rig_strrmode(mode), width);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -361,34 +347,18 @@ static int netrigctl_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *wid
 
   len = sprintf(cmd, "m\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
-
-  if (buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
+  if (ret > 0 && buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
   *mode = rig_parse_mode(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  *width = atoi(buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  *width = atoi(buf);
 
   return RIG_OK;
 }
@@ -398,19 +368,17 @@ static int netrigctl_set_vfo(RIG *rig, vfo_t vfo)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "V %s\n", rig_strvfo(vfo));
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -424,28 +392,12 @@ static int netrigctl_get_vfo(RIG *rig, vfo_t *vfo)
 
   len = sprintf(cmd, "v\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
-
-  if (buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
+  if (ret > 0 && buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
   *vfo = rig_parse_vfo(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -455,19 +407,17 @@ static int netrigctl_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "T %d\n", ptt);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -481,27 +431,11 @@ static int netrigctl_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
   len = sprintf(cmd, "t\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *ptt = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -516,27 +450,11 @@ static int netrigctl_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 
   len = sprintf(cmd, "\\get_dcd\n");	/* FIXME */
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *dcd = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -546,19 +464,17 @@ static int netrigctl_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "R %s\n", rig_strptrshift(rptr_shift));
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -572,28 +488,12 @@ static int netrigctl_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *rptr_shif
 
   len = sprintf(cmd, "r\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
-
-  if (buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
+  if (ret > 0 && buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
   *rptr_shift = rig_parse_rptr_shift(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -603,19 +503,17 @@ static int netrigctl_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "O %ld\n", rptr_offs);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -629,27 +527,11 @@ static int netrigctl_get_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t *rptr_offs)
 
   len = sprintf(cmd, "o\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *rptr_offs = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -659,19 +541,17 @@ static int netrigctl_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "C %d\n", tone);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -685,27 +565,11 @@ static int netrigctl_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
   len = sprintf(cmd, "c\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *tone = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -715,19 +579,17 @@ static int netrigctl_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "D %d\n", code);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -741,27 +603,11 @@ static int netrigctl_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 
   len = sprintf(cmd, "d\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *code = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -771,19 +617,17 @@ static int netrigctl_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "\\set_ctcss_sql %d\n", tone);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -797,27 +641,11 @@ static int netrigctl_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
   len = sprintf(cmd, "\\get_ctcss_sql\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *tone = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -827,19 +655,17 @@ static int netrigctl_set_dcs_sql(RIG *rig, vfo_t vfo, unsigned int code)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "\\set_dcs_sql %d\n", code);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -853,27 +679,11 @@ static int netrigctl_get_dcs_sql(RIG *rig, vfo_t vfo, unsigned int *code)
 
   len = sprintf(cmd, "\\get_dcs_sql\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *code = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -883,19 +693,17 @@ static int netrigctl_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "I %"FREQFMT"\n", tx_freq);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -909,27 +717,11 @@ static int netrigctl_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
   len = sprintf(cmd, "i\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   sscanf(buf, "%"SCNfreq, tx_freq);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -938,20 +730,18 @@ static int netrigctl_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidt
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "X %s %li\n",
   		rig_strrmode(tx_mode), tx_width);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrigctl_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
@@ -964,34 +754,18 @@ static int netrigctl_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwid
 
   len = sprintf(cmd, "x\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
-
-  if (buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
+  if (ret > 0 && buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
   *tx_mode = rig_parse_mode(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  *tx_width = atoi(buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  *tx_width = atoi(buf);
 
   return RIG_OK;
 }
@@ -1000,19 +774,17 @@ static int netrigctl_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "S %s\n", rig_strvfo(tx_vfo));
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1026,34 +798,19 @@ static int netrigctl_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *t
 
   len = sprintf(cmd, "s\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *split = atoi(buf);
 
   ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
-  *tx_vfo = rig_parse_vfo(buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+
+  if (ret > 0 && buf[ret-1]=='\n') buf[ret-1] = '\0';	/* chomp */
+  *tx_vfo = rig_parse_vfo(buf);
 
   return RIG_OK;
 }
@@ -1062,19 +819,17 @@ static int netrigctl_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "J %ld\n", rit);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1088,27 +843,11 @@ static int netrigctl_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
 
   len = sprintf(cmd, "j\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *rit = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1118,19 +857,17 @@ static int netrigctl_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "Z %ld\n", xit);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1144,27 +881,11 @@ static int netrigctl_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
 
   len = sprintf(cmd, "z\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *xit = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1174,19 +895,17 @@ static int netrigctl_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "N %ld\n", ts);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1200,27 +919,11 @@ static int netrigctl_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
 
   len = sprintf(cmd, "n\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *ts = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1230,19 +933,17 @@ static int netrigctl_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "U %s %i\n", rig_strfunc(func), status);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1256,27 +957,11 @@ static int netrigctl_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
   len = sprintf(cmd, "u %s\n", rig_strfunc(func));
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *status = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1286,6 +971,7 @@ static int netrigctl_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
   char lstr[32];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
@@ -1297,14 +983,11 @@ static int netrigctl_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val
 
   len = sprintf(cmd, "L %s %s\n", rig_strlevel(level), lstr);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 
 }
 
@@ -1319,30 +1002,14 @@ static int netrigctl_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *va
 
   len = sprintf(cmd, "l %s\n", rig_strlevel(level));
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   if (RIG_LEVEL_IS_FLOAT(level))
   	val->f = atof(buf);
   else
   	val->i = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1352,19 +1019,17 @@ static int netrigctl_set_powerstat(RIG *rig, powerstat_t status)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "\\set_powerstat %d\n", status);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1378,27 +1043,11 @@ static int netrigctl_get_powerstat(RIG *rig, powerstat_t *status)
 
   len = sprintf(cmd, "\\get_powerstat\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *status = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1408,6 +1057,7 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
   char pstr[32];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
@@ -1418,14 +1068,11 @@ static int netrigctl_set_parm(RIG *rig, setting_t parm, value_t val)
 	sprintf(pstr, "%d", val.i);
   len = sprintf(cmd, "P %s %s\n", rig_strparm(parm), pstr);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1439,30 +1086,14 @@ static int netrigctl_get_parm(RIG *rig, setting_t parm, value_t *val)
 
   len = sprintf(cmd, "p %s\n", rig_strparm(parm));
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   if (RIG_PARM_IS_FLOAT(parm))
   	val->f = atoi(buf);
   else
   	val->i = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1472,19 +1103,17 @@ static int netrigctl_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "Y %d\n", ant);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1498,27 +1127,11 @@ static int netrigctl_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 
   len = sprintf(cmd, "y\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *ant = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1528,19 +1141,17 @@ static int netrigctl_set_bank(RIG *rig, vfo_t vfo, int bank)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "B %d\n", bank);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1548,19 +1159,17 @@ static int netrigctl_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "E %d\n", ch);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1574,27 +1183,11 @@ static int netrigctl_get_mem(RIG *rig, vfo_t vfo, int *ch)
 
   len = sprintf(cmd, "e\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *ch = atoi(buf);
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1603,38 +1196,34 @@ static int netrigctl_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "g %s %d\n", rig_strscan(scan), ch);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrigctl_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "J %s\n", rig_strvfop(op));
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrigctl_set_channel(RIG *rig, const channel_t *chan)
@@ -1659,27 +1248,12 @@ static const char *netrigctl_get_info(RIG *rig)
 
   len = sprintf(cmd, "_\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return NULL;
-  }
-
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret < 0) {
-	return NULL;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret < 0)
 	return NULL;
 
   buf [ret] = '\0';
 
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return NULL;
-  }
   return buf;
 }
 
@@ -1689,19 +1263,17 @@ static int netrigctl_send_dtmf(RIG *rig, vfo_t vfo, const char *digits)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "\\send_dtmf %s\n", digits);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrigctl_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
@@ -1714,28 +1286,15 @@ static int netrigctl_recv_dtmf(RIG *rig, vfo_t vfo, char *digits, int *length)
 
   len = sprintf(cmd, "\\recv_dtmf\n");
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = read_string(&rig->state.rigport, digits, *length, "\n", sizeof("\n"));
-  if (ret < 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, RIGCTL_ERROR, strlen(RIGCTL_ERROR)))
-	return atoi(buf+strlen(RIGCTL_ERROR));
-
+  if (ret > *length)
+	  ret = *length;
+  strncpy(digits, buf, ret);
   *length = ret;
   digits [ret] = '\0';
-
-  /* read dummy END */
-  ret = read_string(&rig->state.rigport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
 
   return RIG_OK;
 }
@@ -1744,19 +1303,17 @@ static int netrigctl_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "\\send_morse %s\n", msg);
 
-  ret = write(rig->state.rigport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrigctl_transaction(rig, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -1769,9 +1326,9 @@ const struct rig_caps netrigctl_caps = {
   .rig_model =      RIG_MODEL_NETRIGCTL,
   .model_name =     "NET rigctl",
   .mfg_name =       "Hamlib",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright =      "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_OTHER,
   .targetable_vfo = 	 0,
   .ptt_type =       RIG_PTT_RIG,

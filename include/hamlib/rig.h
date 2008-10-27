@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.128 2008-10-25 11:36:02 y32kn Exp $
+ *	$Id: rig.h,v 1.129 2008-10-27 22:23:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -99,6 +99,9 @@ enum rig_errcode_e {
 	RIG_EVFO,		/*!< Invalid VFO */
 	RIG_EDOM		/*!< Argument out of domain of func */
 };
+
+/** \brief Token in the netrigctl protocol for returning error code */
+#define NETRIGCTL_RET "RPRT "
 
 /**
  *\brief Hamlib debug levels
@@ -240,9 +243,7 @@ enum rig_status_e {
  *  				!! Use of RIG_STATUS_NEW is deprecated. Do not use it anymore */
 };
 
-/*
- * Map all RIG_STATUS_NEW references to RIG_STATUS_UNTESTED for backward compatibility
- */
+/** \brief Map all deprecated RIG_STATUS_NEW references to RIG_STATUS_UNTESTED for backward compatibility */
 #define RIG_STATUS_NEW RIG_STATUS_UNTESTED
 
 /**

@@ -2,7 +2,7 @@
  *  Hamlib Interface - Rotator API header
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: rotator.h,v 1.15 2008-05-01 12:19:57 fillods Exp $
+ *	$Id: rotator.h,v 1.16 2008-10-27 22:23:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -71,6 +71,9 @@ typedef struct rot ROT;
  */
 typedef float elevation_t;
 typedef float azimuth_t;
+
+/** \brief Token in the netrotctl protocol for returning error code */
+#define NETROTCTL_RET "RPRT "
 
 /*! \def ROT_RESET_ALL
  *  \brief A macro that returns the flag for the \b reset operation.

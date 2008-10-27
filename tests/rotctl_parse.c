@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl_parse.c,v 1.2 2008-09-21 19:27:54 fillods Exp $  
+ *	$Id: rotctl_parse.c,v 1.3 2008-10-27 22:23:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -159,6 +159,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 
 extern int interactive;
 extern int prompt;
+extern int opt_end;
 
 int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 { 
@@ -332,13 +333,17 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
 	if (retcode != RIG_OK) {
-		if ((cmd_entry->flags & ARG_OUT) && interactive && !prompt)
-			fprintf(fout, "ERROR %d\n", retcode);             /* only for rotctld */
+		if (interactive && !prompt)
+			fprintf(fout, NETROTCTL_RET "%d\n", retcode);	/* only for rotctld */
 		else
 			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
 	} else {
-		if ((cmd_entry->flags & ARG_OUT) && interactive && !prompt)             /* only for rotctld */
-			fprintf(fout, "END\n");
+		if (interactive && !prompt) {	/* only for rotctld */
+			if (!(cmd_entry->flags & ARG_OUT) && !opt_end) /* netrotctl RIG_OK */
+				fprintf(fout, NETROTCTL_RET "0\n");
+			else if ((cmd_entry->flags & ARG_OUT) && opt_end) /* Nate's protocol */
+				fprintf(fout, "END\n");
+		}
 	}
 
 	fflush(fout);

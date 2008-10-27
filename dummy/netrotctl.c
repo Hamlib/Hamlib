@@ -2,7 +2,7 @@
  *  Hamlib Netrotctl backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: netrotctl.c,v 1.1 2008-09-21 19:34:15 fillods Exp $
+ *	$Id: netrotctl.c,v 1.2 2008-10-27 22:23:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +38,27 @@
 
 #define CMD_MAX 32
 #define BUF_MAX 64
-#define ROTCTL_ERROR "ERROR "
+
+/*
+ * Helper function with protocol return code parsing
+ */
+static int netrotctl_transaction(ROT *rot, char *cmd, int len, char *buf)
+{
+  int ret;
+
+  ret = write_block(&rot->state.rotport, cmd, len);
+  if (ret != RIG_OK)
+	return ret;
+
+  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
+  if (ret < 0)
+	return ret;
+
+  if (!memcmp(buf, NETROTCTL_RET, strlen(NETROTCTL_RET)))
+	return atoi(buf+strlen(NETROTCTL_RET));
+
+  return ret;
+}
 
 static int netrotctl_open(ROT *rot)
 {
@@ -54,52 +74,43 @@ static int netrotctl_open(ROT *rot)
 
   len = sprintf(cmd, "\\dump_state\n");
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, ROTCTL_ERROR, strlen(ROTCTL_ERROR)))
-	return atoi(buf+strlen(ROTCTL_ERROR));
   prot_ver = atoi(buf);
 #define ROTCTLD_PROT_VER 0
   if (prot_ver < ROTCTLD_PROT_VER)
 	  return -RIG_EPROTO;
 
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   model = atoi(buf);
 
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->min_az = atof(buf);
 
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->max_az = atof(buf);
 
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->min_el = atof(buf);
 
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
+
   rs->max_el = atof(buf);
 
   return RIG_OK;
@@ -116,20 +127,18 @@ static int netrotctl_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %f %f\n", __FUNCTION__, 
  			az, el);
 
   len = sprintf(cmd, "P %f %f\n", az, el);
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
@@ -142,33 +151,17 @@ static int netrotctl_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
   len = sprintf(cmd, "p\n");
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  if (!memcmp(buf, ROTCTL_ERROR, strlen(ROTCTL_ERROR)))
-           return atoi(buf+strlen(ROTCTL_ERROR));
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
   *az = atof(buf);
 
   ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
-  *el = atof(buf);
+  if (ret <= 0)
+	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  /* read dummy END */
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return -RIG_EIO;
-  }
+  *el = atof(buf);
 
   return RIG_OK;
 }
@@ -178,19 +171,17 @@ static int netrotctl_stop(ROT *rot)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "S\n");
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 
@@ -198,57 +189,51 @@ static int netrotctl_park(ROT *rot)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "K\n");
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrotctl_reset(ROT *rot, rot_reset_t reset)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "R %d\n", reset);
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static int netrotctl_move(ROT *rot, int direction, int speed)
 {
   int ret, len;
   char cmd[CMD_MAX];
+  char buf[BUF_MAX];
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
   len = sprintf(cmd, "M %d %d\n", direction, speed);
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
-	return -RIG_EIO;
-  }
-
-  return RIG_OK;
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret > 0)
+	return -RIG_EPROTO;
+  else
+  	return ret;
 }
 
 static const char *netrotctl_get_info(ROT *rot)
@@ -261,27 +246,12 @@ static const char *netrotctl_get_info(ROT *rot)
 
   len = sprintf(cmd, "_\n");
 
-  ret = write(rot->state.rotport.fd, cmd, len);
-  if (ret != len) {
-  	rig_debug(RIG_DEBUG_ERR,"%s: write failed: %s\n", __FUNCTION__, 
- 			strerror(errno));
+  ret = netrotctl_transaction(rot, cmd, len, buf);
+  if (ret < 0)
 	return NULL;
-  }
-
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret < 0) {
-	return NULL;
-  }
-  if (!memcmp(buf, ROTCTL_ERROR, strlen(ROTCTL_ERROR)))
-           return NULL;
 
   buf [ret] = '\0';
 
-  /* read dummy END */
-  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
-  if (ret <= 0) {
-	return NULL;
-  }
   return buf;
 }
 
@@ -295,9 +265,9 @@ const struct rot_caps netrotctl_caps = {
   .rot_model =      ROT_MODEL_NETROTCTL,
   .model_name =     "NET rotctl",
   .mfg_name =       "Hamlib",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
   .port_type =      RIG_PORT_NETWORK,
   .timeout = 2000,

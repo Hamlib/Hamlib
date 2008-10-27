@@ -4,7 +4,7 @@
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
  *
- *	$Id: rotctld.c,v 1.4 2008-09-21 20:32:08 fillods Exp $  
+ *	$Id: rotctld.c,v 1.5 2008-10-27 22:23:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -76,7 +76,7 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:T:LvhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:T:LevhVl"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -87,6 +87,7 @@ static struct option long_options[] =
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
+	{"end-marker", 0, 0, 'e'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -95,6 +96,7 @@ static struct option long_options[] =
 
 int interactive = 1;    /* no cmd because of daemon */
 int prompt= 0 ;         /* Daemon mode for rigparse return string */
+int opt_end= 0 ;        /* END marker for rotctld */
 
 int portno = 4533;
 uint32_t src_addr = INADDR_ANY;
@@ -193,6 +195,9 @@ int main (int argc, char *argv[])
 			case 'l':
 					list_models();
 					exit(0);
+			case 'e':
+					opt_end = 1;
+					break;
 			default:
 					usage();	/* unknown option? */
 					exit(1);
@@ -394,6 +399,7 @@ void usage()
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
+	"  -e, --end-marker           use END marker in rotctld protocol\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n",

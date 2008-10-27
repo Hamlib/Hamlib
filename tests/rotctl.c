@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl.c,v 1.11 2008-09-12 22:55:09 fillods Exp $  
+ *	$Id: rotctl.c,v 1.12 2008-10-27 22:23:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -71,6 +71,7 @@ static struct option long_options[] =
 
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rotctl */
+int opt_end= 0 ;        /* only used by rotctld */
 
 int main (int argc, char *argv[])
 { 

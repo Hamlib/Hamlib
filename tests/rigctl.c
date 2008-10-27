@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.67 2008-05-23 14:26:09 fillods Exp $  
+ * $Id: rigctl.c,v 1.68 2008-10-27 22:23:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -84,6 +84,7 @@ static struct option long_options[] =
 
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
+int opt_end= 0;         /* only used by rigctld */
 
 int main (int argc, char *argv[])
 {
