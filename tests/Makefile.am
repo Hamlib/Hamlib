@@ -72,5 +72,5 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 	for f in `./listrigs | tail -n +2 | cut -f1` ; do ( ./rigctl -m $$f -u > sup-info/support/model$$f.txt || exit 0 ) ; done
 	./rigctl -l |sort -n | $(srcdir)/rig_split_lst.awk -v lst_dir="sup-info"
 
-EXTRA_DIST = rigmatrix_head.html $(man_MANS)
+EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk $(man_MANS)
 
