@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.18 2008-10-26 10:47:33 fillods Exp $
+ *	$Id: iofunc.c,v 1.19 2008-10-27 22:20:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -170,13 +170,11 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
 int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 {  
-  fd_set rfds;
+  fd_set rfds, efds;
   struct timeval tv, tv_timeout;
   int rd_count, total_count = 0;
   int retval;
 
-  FD_ZERO(&rfds);
-  FD_SET(p->fd, &rfds);
 
   /*
    * Wait up to timeout ms.
@@ -185,34 +183,43 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
   tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
   while (count > 0) {
-		tv = tv_timeout;	/* select may have updated it */
+	tv = tv_timeout;	/* select may have updated it */
 
-		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
-		if (retval == 0) {
-			dump_hex((unsigned char *) rxbuffer, total_count);
-			rig_debug(RIG_DEBUG_WARN, "read_block: timedout after %d chars\n",
-							total_count);
-				return -RIG_ETIMEOUT;
-		}
-		if (retval < 0) {
-			dump_hex((unsigned char *) rxbuffer, total_count);
-			rig_debug(RIG_DEBUG_ERR,"read_block: select error after %d chars: "
-							"%s\n", total_count, strerror(errno));
-				return -RIG_EIO;
-		}
+	FD_ZERO(&rfds);
+	FD_SET(p->fd, &rfds);
+	efds = rfds;
 
-		/*
-		 * grab bytes from the rig
-		 * The file descriptor must have been set up non blocking.
-		 */
-  		rd_count = read(p->fd, rxbuffer+total_count, count);
-		if (rd_count < 0) {
-				rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
-									strerror(errno));
-				return -RIG_EIO;
-		}
-		total_count += rd_count;
-		count -= rd_count;
+	retval = select(p->fd+1, &rfds, NULL, &efds, &tv);
+	if (retval == 0) {
+		dump_hex((unsigned char *) rxbuffer, total_count);
+		rig_debug(RIG_DEBUG_WARN, "read_block: timedout after %d chars\n",
+						total_count);
+		return -RIG_ETIMEOUT;
+	}
+	if (retval < 0) {
+		dump_hex((unsigned char *) rxbuffer, total_count);
+		rig_debug(RIG_DEBUG_ERR,"read_block: select error after %d chars: "
+						"%s\n", total_count, strerror(errno));
+		return -RIG_EIO;
+	}
+	if (FD_ISSET(p->fd, &efds)) {
+		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n", 
+                                  __FUNCTION__, total_count);
+		return -RIG_EIO;
+	}
+
+	/*
+	 * grab bytes from the rig
+	 * The file descriptor must have been set up non blocking.
+	 */
+	rd_count = read(p->fd, rxbuffer+total_count, count);
+	if (rd_count < 0) {
+		rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
+							strerror(errno));
+		return -RIG_EIO;
+	}
+	total_count += rd_count;
+	count -= rd_count;
   }
 
   rig_debug(RIG_DEBUG_TRACE,"RX %d bytes\n",total_count);
@@ -249,13 +256,10 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const char *stopset,
 				int stopset_len)
 {
-  fd_set rfds;
+  fd_set rfds, efds;
   struct timeval tv, tv_timeout;
   int rd_count, total_count = 0;
   int retval;
-
-  FD_ZERO(&rfds);
-  FD_SET(p->fd, &rfds);
 
   /*
    * Wait up to timeout ms.
@@ -264,32 +268,43 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
   tv_timeout.tv_usec = (p->timeout%1000)*1000;
 
   while (total_count < rxmax-1) {
-		tv = tv_timeout;	/* select may have updated it */
+	tv = tv_timeout;	/* select may have updated it */
 
-		retval = select(p->fd+1, &rfds, NULL, NULL, &tv);
+	FD_ZERO(&rfds);
+	FD_SET(p->fd, &rfds);
+	efds = rfds;
+
+	retval = select(p->fd+1, &rfds, NULL, &efds, &tv);
         if (retval == 0)    /* Timed out */
             break;
 
-		if (retval < 0) {
-			dump_hex((unsigned char *) rxbuffer, total_count);
-                        rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n", 
+	if (retval < 0) {
+		dump_hex((unsigned char *) rxbuffer, total_count);
+		rig_debug(RIG_DEBUG_ERR, "%s: select error after %d chars: %s\n", 
                                   __FUNCTION__, total_count, strerror(errno));
-            return -RIG_EIO;
-		}
-		/*
-         * read 1 character from the rig, (check if in stop set)
-		 * The file descriptor must have been set up non blocking.
-		 */
+		return -RIG_EIO;
+	}
+
+	if (FD_ISSET(p->fd, &efds)) {
+		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n", 
+                                  __FUNCTION__, total_count);
+		return -RIG_EIO;
+	}
+
+	/*
+       	 * read 1 character from the rig, (check if in stop set)
+	 * The file descriptor must have been set up non blocking.
+	 */
         rd_count = read(p->fd, &rxbuffer[total_count], 1);
-		if (rd_count < 0) {
-			dump_hex((unsigned char *) rxbuffer, total_count);
-            rig_debug(RIG_DEBUG_ERR, "%s: read failed - %s\n",__FUNCTION__,
+	if (rd_count < 0) {
+		dump_hex((unsigned char *) rxbuffer, total_count);
+		rig_debug(RIG_DEBUG_ERR, "%s: read failed - %s\n",__FUNCTION__,
                             strerror(errno));
-            return -RIG_EIO;
-		}
+		return -RIG_EIO;
+	}
         ++total_count;
-		if (stopset && memchr(stopset, rxbuffer[total_count-1], stopset_len))
-			break;
+	if (stopset && memchr(stopset, rxbuffer[total_count-1], stopset_len))
+		break;
   }
   /*
    * Doesn't hurt anyway. But be aware, some binary protocols may have
