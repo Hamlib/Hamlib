@@ -23,10 +23,13 @@ dumpcaps  -	Output the caps contents of a rig
 dumpmem   -	Dump the memory contents of the rig 
 listrigs  -	Condensed list of all the models supported by backends
 rigmatrix -	Output the HTML table of supported rigs, with .png files for freqs
+		(Better call 'make rigmatrix.html' which builds the HTML table 
+		and additional information in sup-info subdirectory.)
 testbcd   -	Simple program to test BCD conversion, takes a number as arg.
 testfreq  -	Simple program to test Freq conversion, takes a number as arg.
 testrig   -	Sample program calling common API calls, uses rig_probe
 testtrn   -	Sample program using event notification (transceive mode)
 rigctl	  -	Combined tool to execute any call of the API, see man page
 rigmem	  -	Combined tool to load/save content of rig memory, see man page
+rotctl    -     Similar to 'rigctl' but for rotators, see man page
 
