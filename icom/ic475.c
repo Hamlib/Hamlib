@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-475 and variations
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ic475.c,v 1.7 2005-04-03 19:53:51 fillods Exp $
+ *	$Id: ic475.c,v 1.8 2008-10-29 15:55:04 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -54,7 +54,7 @@ const struct rig_caps ic475_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER, 
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,

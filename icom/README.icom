@@ -13,5 +13,7 @@ Notes on Icom backends
 	VOX-related commands are implemented for the '910H but are wrong for
 	the '756 and other models.  They should be reimplemented in a more general way.
 
-
+2008-10, DL1JBE: Tested IC-275H and IC-475H at local clubstation. Offered functions do work
+	as expected in most cases. Only problem: Bandwidth in Get_Mode is reported always as 0.
+	Besides this backend seems to be stable -> Changing State to RIG_STATUS_BETA.
 
