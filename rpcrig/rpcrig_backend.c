@@ -1,8 +1,8 @@
 /*
  *  Hamlib RPC backend - main file
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: rpcrig_backend.c,v 1.19 2004-06-06 21:58:57 fillods Exp $
+ *	$Id: rpcrig_backend.c,v 1.20 2008-10-31 22:14:10 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1009,7 +1009,7 @@ struct rig_caps rpcrig_caps = {
   .mfg_name =       "Hamlib",
   .version =        "0.3",
   .copyright = 	 "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_OTHER,
   .targetable_vfo = 	 0,
   .ptt_type =       RIG_PTT_NONE,
