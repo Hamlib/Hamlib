@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.13 2008-09-21 19:34:16 fillods Exp $
+ *	$Id: rotlist.h,v 1.14 2008-10-31 07:45:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -150,6 +150,15 @@
 #define ROT_BACKEND_GS232A "gs232a"
 #define ROT_MODEL_GS232A ROT_MAKE_MODEL(ROT_GS232A, 1)
 
+/*! \def ROT_MODEL_PCROTOR
+ *  \brief A macro that returns the model number of the PcRotor/WA6UFQ backend.
+ *
+ *  The kit backend can be used with home brewed rotators.
+ */
+#define ROT_KIT 7
+#define ROT_BACKEND_KIT "kit"
+#define ROT_MODEL_PCROTOR ROT_MAKE_MODEL(ROT_KIT, 1)
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
@@ -170,6 +179,7 @@ typedef int rot_model_t;
         { ROT_ROTOREZ, ROT_BACKEND_ROTOREZ }, \
         { ROT_SARTEK, ROT_BACKEND_SARTEK }, \
         { ROT_GS232A, ROT_BACKEND_GS232A }, \
+        { ROT_KIT, ROT_BACKEND_KIT }, \
         { 0, NULL }, /* end */  \
 }
 

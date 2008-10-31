@@ -2,7 +2,7 @@
  *  Hamlib KIT backend - main file
  *  Copyright (c) 2004-2008 by Stephane Fillod
  *
- *	$Id: kit.c,v 1.7 2008-04-11 18:03:53 fillods Exp $
+ *	$Id: kit.c,v 1.8 2008-10-31 07:45:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -55,6 +55,18 @@ DECLARE_INITRIG_BACKEND(kit)
 	//rig_register(&usrp0_caps);
 	rig_register(&usrp_caps);
 #endif
+
+	return RIG_OK;
+}
+
+/*
+ * initrots_kit is called by rot_backend_load
+ */
+DECLARE_INITROT_BACKEND(kit)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "kit: _init called\n");
+
+	rot_register(&pcrotor_caps);
 
 	return RIG_OK;
 }

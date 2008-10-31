@@ -5,8 +5,10 @@ AM_CXXFLAGS = @USRP_CFLAGS@
 KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c usrp_impl.cc elektor507.c \
 	     dds60.c miniVNA.c
 
+KITROTSRCLIST = pcrotor.c
+
 lib_LTLIBRARIES = hamlib-kit.la
-hamlib_kit_la_SOURCES = $(KITSRCLIST) kit.c
+hamlib_kit_la_SOURCES = $(KITSRCLIST) $(KITROTSRCLIST) kit.c
 hamlib_kit_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_kit_la_LIBADD = $(top_builddir)/lib/libmisc.la \
 		       $(USRP_LIBS) \
