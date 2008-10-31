@@ -11,7 +11,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft897.c,v 1.8 2008-09-22 20:51:06 fillods Exp $  
+ *    $Id: ft897.c,v 1.9 2008-10-31 22:09:11 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -162,9 +162,9 @@ static const yaesu_cmd_set_t ncmd[] = {
 };
 
 
-#define FT897_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|\
+#define FT897_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|\
                                  RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
-#define FT897_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_USB|RIG_MODE_LSB)
+#define FT897_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT897_AM_FM_RX_MODES    (RIG_MODE_AM|RIG_MODE_FM)
 
 #define FT897_OTHER_TX_MODES    (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_USB|\
@@ -178,7 +178,7 @@ const struct rig_caps ft897_caps = {
   .rig_model = 		RIG_MODEL_FT897,
   .model_name = 	"FT-897", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.3.1", 
+  .version = 		"0.3.2",
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -267,7 +267,12 @@ const struct rig_caps ft897_caps = {
   },  
 
   .filters =  {
-    RIG_FLT_END,
+	{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, kHz(2.2)},
+	{RIG_MODE_AM, kHz(6)},
+	{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
+	{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(9)},
+	{RIG_MODE_WFM, kHz(230)},	/* ?? */
+	RIG_FLT_END,
   },
 
   .priv = 		NULL,
@@ -502,6 +507,10 @@ int ft897_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   case 0x0a:
   case 0x8a:
     *mode = RIG_MODE_RTTY;
+    break;
+  case 0x0c:
+  case 0x8c:
+    *mode = RIG_MODE_PKTFM;
     break;
   default:
     *mode = RIG_MODE_NONE;
@@ -750,6 +759,9 @@ int ft897_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     break;
   case RIG_MODE_CWR:
     index = FT897_NATIVE_CAT_SET_MODE_CWR;
+    break;
+  case RIG_MODE_PKTFM:
+    index = FT897_NATIVE_CAT_SET_MODE_PKT;
     break;
   default:
     return -RIG_EINVAL;
