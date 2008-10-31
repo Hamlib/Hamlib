@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.99 2008-09-23 22:02:40 fillods Exp $
+ *	$Id: rig.c,v 1.100 2008-10-31 23:08:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -943,6 +943,9 @@ int HAMLIB_API rig_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width
 		rig->state.current_width = *width;
 	}
 
+	if (*width == RIG_PASSBAND_NORMAL && *mode != RIG_MODE_NONE)
+		*width = rig_passband_normal (rig, *mode);
+
 	return retcode;
 }
 
@@ -965,7 +968,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 	int i;
 
 	if (!rig)
-		return 0;	/* huhu! */
+		return RIG_PASSBAND_NORMAL;	/* huhu! */
 
 	rs = &rig->state;
 
@@ -975,7 +978,7 @@ pbwidth_t HAMLIB_API rig_passband_normal(RIG *rig, rmode_t mode)
 		}
 	}
 
-	return 0;
+	return RIG_PASSBAND_NORMAL;
 }
 
 /**
@@ -1705,7 +1708,11 @@ int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_
  * \param tx_mode	The location where to store the current transmit split mode
  * \param tx_width	The location where to store the current transmit split width
  *
- *  Retrieves the current split(TX) mode.
+ *  Retrieves the current split(TX) mode and passband.
+ *  If the backend is unable to determine the width, the \a tx_width
+ *  will be set to RIG_PASSBAND_NORMAL as a default.
+ *  The value stored at \a tx_mode location equals RIG_MODE_NONE
+ *  when the current mode of the VFO is not defined (e.g. blank memory).
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -1750,6 +1757,10 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
 	} else {
 		caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	}
+
+	if (*tx_width == RIG_PASSBAND_NORMAL && *tx_mode != RIG_MODE_NONE)
+		*tx_width = rig_passband_normal (rig, *tx_mode);
+
 	return retcode;
 }
 
