@@ -2,7 +2,7 @@
  *  Hamlib Interface - network communication low-level support
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: network.c,v 1.3 2008-10-27 22:18:39 fillods Exp $
+ *	$Id: network.c,v 1.4 2008-10-31 07:51:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,6 +30,7 @@
  * \file network.c
  */
 
+/* needed for getaddrinfo, will not work with Win95/Win98 */
 #define WINVER 0x0501
 
 #ifdef HAVE_CONFIG_H
@@ -76,8 +77,9 @@
  * \param rp port data structure (must spec port id eg hostname:port)
  * \return RIG_OK or < 0 if error
  */
-int network_open(hamlib_port_t *rp, int default_port) {
-
+int network_open(hamlib_port_t *rp, int default_port)
+{
+#ifdef HAVE_GETADDRINFO
 	int fd;				/* File descriptor for the port */
 	int status;
 	struct addrinfo hints, *res;
@@ -135,6 +137,9 @@ int network_open(hamlib_port_t *rp, int default_port) {
 	rp->fd = fd;
 
 	return RIG_OK;
+#else
+	return -RIG_ENAVAIL;
+#endif
 }
 
 /** @} */
