@@ -2,9 +2,9 @@
  *  Hamlib Kenwood backend - IC-10 interface for:
  *  			TS-940, TS-811, TS-711, TS-440, and R-5000
  *
- *  Copyright (c) 2000-2005 by Stephane Fillod and others
+ *  Copyright (c) 2000-2008 by Stephane Fillod and others
  *
- *	$Id: ic10.c,v 1.6 2006-03-07 19:48:20 pa4tu Exp $
+ *	$Id: ic10.c,v 1.7 2008-10-31 22:34:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -441,8 +441,7 @@ int ic10_get_mem(RIG *rig, vfo_t vfo, int *ch)
 	/* IFggmmmkkkhhh snnnzrx yytdfcp */
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
 	membuf[priv->if_len-5] = '\0';
-	const char *copy = membuf;
-	*ch = atoi(copy+priv->if_len-7);
+	*ch = atoi(membuf+priv->if_len-7);
 
 	return RIG_OK;
 }
