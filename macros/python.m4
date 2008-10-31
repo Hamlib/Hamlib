@@ -24,11 +24,11 @@ dnl
 # Checks for Python and tries to get the include path to 'Python.h'.
 # It provides the $(PYTHON_CPPFLAGS) output variable.
 AC_DEFUN([PYTHON_DEVEL],[
-	AC_REQUIRE([AM_PATH_PYTHON])
+	AM_PATH_PYTHON([1.5],, [:])
 
 	# Check for Python include path
 	AC_MSG_CHECKING([for Python include path])
-	if test -z "$PYTHON" ; then
+	if test "$PYTHON" = : -o -z "$PYTHON" ; then
 		AC_MSG_WARN([cannot find Python path])
 	else
 	python_path=${PYTHON%/bin*}
