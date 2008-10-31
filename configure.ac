@@ -361,7 +361,7 @@ fi
 # FIXME: check for presence of libgnuradio, libfftw
 if test "${cf_with_cxx}" = "yes" ; then
   # stuff that requires C++ support
-  BACKEND_LIST="$BACKEND_LIST microtune"
+  #BACKEND_LIST="$BACKEND_LIST microtune"
 
   AC_MSG_CHECKING(whether to build gnuradio backend)
   AC_ARG_WITH(gnuradio,
@@ -389,8 +389,8 @@ if test "${cf_with_cxx}" = "yes" ; then
 		[AC_DEFINE(HAVE_USRP,[1],[Define if usrp is available])])
   fi
  fi
-AC_MSG_CHECKING(whether to build microtune backend)
-AC_MSG_RESULT($cf_with_cxx)
+#AC_MSG_CHECKING(whether to build microtune backend)
+#AC_MSG_RESULT($cf_with_cxx)
 
 AC_SUBST(GNURADIO_CFLAGS)
 AC_SUBST(GNURADIO_LIBS)
@@ -514,7 +514,6 @@ tests/Makefile
 doc/Makefile
 doc/hamlib.cfg
 rotorez/Makefile
-microtune/Makefile
 flexradio/Makefile
 hamlib.pc
 hamlib.spec]

@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.71 2008-10-06 18:16:35 fillods Exp $
+ *	$Id: riglist.h,v 1.72 2008-10-31 22:20:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -492,7 +492,6 @@ typedef int rig_model_t;
 		{ RIG_ALINCO, RIG_BACKEND_ALINCO }, \
 		{ RIG_KACHINA, RIG_BACKEND_KACHINA }, \
 		{ RIG_RPC, RIG_BACKEND_RPC }, \
-		{ RIG_MICROTUNE, RIG_BACKEND_MICROTUNE }, \
 		{ RIG_TAPR, RIG_BACKEND_TAPR }, \
 		{ RIG_FLEXRADIO, RIG_BACKEND_FLEXRADIO }, \
 		{ RIG_RFT, RIG_BACKEND_RFT }, \
