@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-475 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ic475.c,v 1.8 2008-10-29 15:55:04 y32kn Exp $
+ *	$Id: ic475.c,v 1.9 2008-10-31 07:49:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +36,6 @@
 
 #define IC475_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 
-#define IC475_STR_CAL { 0, { } }
 
 /*
  * FIXME: this appears to be the IC-475A/E
@@ -52,7 +51,7 @@ const struct rig_caps ic475_caps = {
 .rig_model =  RIG_MODEL_IC475,
 .model_name = "IC-475", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -92,9 +91,9 @@ const struct rig_caps ic475_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		   {   1,  99, RIG_MTYPE_MEM  },
-		   { 100, 101, RIG_MTYPE_EDGE },
-		   { 102, 102, RIG_MTYPE_CALL },
+		   {   1,  99, RIG_MTYPE_MEM, IC_MIN_MEM_CAP  },
+		   { 100, 101, RIG_MTYPE_EDGE, IC_MIN_MEM_CAP },
+		   { 102, 102, RIG_MTYPE_CALL, IC_MIN_MEM_CAP },
 		   RIG_CHAN_END,
 		},
 
