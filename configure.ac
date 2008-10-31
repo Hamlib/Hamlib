@@ -453,7 +453,7 @@ if test "${cf_with_bindings}" = "yes";
 then
   cf_with_bindings=no
 
-  SWIG_PROG(1.3.14)
+  SWIG_PROG(1.3.22)
   if test "${SWIG}" != "false" -a "x${BINDING_ALL}" != "x"; then
     BINDINGS="${BINDINGS} bindings"
     cf_with_bindings=yes
