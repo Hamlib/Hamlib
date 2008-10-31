@@ -142,6 +142,9 @@ AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main,
 # Winsock2
 AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(ws2_32, main, 
 				[NET_LIBS="$NET_LIBS -lws2_32"], [], []))
+LIBS="$LIBS $NET_LIBS"
+AC_CHECK_FUNCS(getaddrinfo)
+
 LIBS=$hl_oldLibs
 AC_SUBST(NET_LIBS)
 AC_SUBST(MATH_LIBS)
@@ -223,7 +226,7 @@ AC_SUBST(RIGMATRIX)
 
 
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft kit skanti tapr flexradio wj racal tuner"
-ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a rotorez sartek"
+ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a kit rotorez sartek"
 BINDINGS=""
 BINDING_ALL=""
 BINDING_CHECK=""
