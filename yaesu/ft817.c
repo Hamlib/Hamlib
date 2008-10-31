@@ -11,7 +11,7 @@
  * copied back and adopted for the FT-817.
  *
  *
- *    $Id: ft817.c,v 1.16 2008-01-05 16:47:35 csete Exp $  
+ *    $Id: ft817.c,v 1.17 2008-10-31 22:25:38 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -309,8 +309,6 @@ const struct rig_caps ft817_caps = {
 	.get_tone =             NULL,
 	.set_ctcss_tone = 	ft817_set_ctcss_tone,
 	.get_ctcss_tone = 	NULL,
-	.set_tone =             NULL,
-	.get_tone =             NULL,
 	.set_dcs_sql = 	        ft817_set_dcs_sql,
 	.get_dcs_sql =          NULL,
 	.set_tone_sql =         NULL,
