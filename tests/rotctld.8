@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "Septembre 21, 2008" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "Novembre 1, 2008" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -33,9 +33,11 @@ will be especially useful for languages such as Perl, Python, and others.
 \fBrotctld\fP communicates to a client through a TCP socket using text
 commands shared with \fBrotctl\fP. The protocol is simple, commands are sent
 to \fBrotctld\fP on one line and \fBrotctld\fP responds to "get" commands with
-the requested values, one per line.  A response may contain one to three lines 
-of values plus one line containing "END".  Each line is terminated with a 
-newline '\\n' character.
+the requested values, one per line, when successful, otherwise, it responds
+with one line "RPTR x", where x is a negative number indicating the error code.
+Commands that do not return values responds with the line "RPTR x", where x
+is zero when successful, otherwise is a regative number indicating the error code.
+Each line is terminated with a newline '\\n' character.
 .PP
 Keep in mind that \fBHamlib\fP is BETA level software. 
 While a lot of backend libraries lack complete rotator support, the basic functions
@@ -70,6 +72,9 @@ List all config parameters for the rotator defined with -m above.
 Set config parameter.  e.g. stop_bits=2
 .br
 Use -L option for a list.
+.TP
+.B \-e, --end-marker
+Use END marker in rotctld protocol.
 .TP
 .B \-t, --port=number
 Use \fInumber\fP as the TCP listening port. The default is 4533.
