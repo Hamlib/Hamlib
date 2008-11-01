@@ -2,12 +2,13 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft950.h - (C) Nate Bargmann 2007 (n0nb at arrl.net)
+ *           (C) Stephane Fillod 2008
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- *    $Id: ft950.h,v 1.1 2008-09-22 21:31:05 fillods Exp $
+ *    $Id: ft950.h,v 1.2 2008-11-01 22:39:07 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -45,11 +46,34 @@
 #define FT950_FM_RX_MODES (RIG_MODE_FM)
 
 
-/* TX caps */
+/* TRX caps */
 
 #define FT950_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB ) /* 100 W class */
 #define FT950_AM_TX_MODES (RIG_MODE_AM )    /* set 25W max */
-#define FT950_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN) /* fix */
+
+#define FT950_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|\
+               RIG_LEVEL_ALC|RIG_LEVEL_RAWSTR|RIG_LEVEL_SWR|\
+               RIG_LEVEL_RFPOWER|RIG_LEVEL_RF|RIG_LEVEL_SQL|\
+               RIG_LEVEL_MICGAIN|RIG_LEVEL_IF|RIG_LEVEL_CWPITCH|\
+               RIG_LEVEL_KEYSPD|RIG_LEVEL_AF|RIG_LEVEL_AGC|\
+               RIG_LEVEL_METER|RIG_LEVEL_BKINDL|RIG_LEVEL_SQL|\
+               RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY)
+
+#define FT950_FUNCS (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_LOCK|\
+               RIG_FUNC_MON|RIG_FUNC_NB|RIG_FUNC_NR|RIG_FUNC_VOX|\
+               RIG_FUNC_FBKIN|RIG_FUNC_COMP|RIG_FUNC_ANF|RIG_FUNC_MN)
+
+#define FT950_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
+               RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
+               RIG_OP_TO_VFO|RIG_OP_FROM_VFO)
+
+/* TBC */
+#define FT950_STR_CAL { 3, \
+	       { \
+			{  10, -60 }, /* S0 */ \
+			{ 125,   0 }, /* S9 */ \
+			{ 240,  60 } /* +60 */ \
+		} }
 
 
 /*
@@ -57,7 +81,7 @@
  *
  */
 
-#define FT950_ANTS 0
+#define FT950_ANTS  (RIG_ANT_1|RIG_ANT_2)
 
 #define FT950_MEM_CHNL_LENGTH           1       /* 0x10 P1 = 01 return size */
 #define FT950_OP_DATA_LENGTH            19      /* 0x10 P1 = 03 return size */

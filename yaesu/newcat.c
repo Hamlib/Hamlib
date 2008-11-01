@@ -3,6 +3,7 @@
  *              and the Hamlib Group (hamlib-developer at lists.sourceforge.net)
  *
  * newcat.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
+ *            (C) Stephane Fillod 2008
  *
  * This shared library provides an API for communicating
  * via serial interface to any newer Yaesu radio using the
@@ -12,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.5 2008-10-25 14:37:19 fillods Exp $
+ * $Id: newcat.c,v 1.6 2008-11-01 22:39:07 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -365,7 +366,7 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "F%c%08d%c", c, (int)freq, cat_term);
 #if 0
     if (!newcat_valid_command(rig, command))
-        return RIG_ENAVAIL;
+        return -RIG_ENAVAIL;
 #endif
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
@@ -429,7 +430,7 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     /* Build the command string */
     snprintf(command, sizeof(command) - 1, "F%c", c);
     if (!newcat_valid_command(rig, command))
-        return RIG_ENAVAIL;
+        return -RIG_ENAVAIL;
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
@@ -683,7 +684,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     /* Build the command string */
     snprintf(command, sizeof(command) - 1, "VS");
     if (!newcat_valid_command(rig, command))
-        return RIG_ENAVAIL;
+        return -RIG_ENAVAIL;
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, c, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
@@ -724,7 +725,7 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
     /* Build the command string */
     snprintf(command, sizeof(command) - 1, "VS");
     if (!newcat_valid_command(rig, command))
-        return RIG_ENAVAIL;
+        return -RIG_ENAVAIL;
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", command);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
@@ -834,7 +835,7 @@ int newcat_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -842,7 +843,7 @@ int newcat_get_dcd(RIG * rig, vfo_t vfo, dcd_t * dcd)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -850,7 +851,7 @@ int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -858,7 +859,7 @@ int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -866,7 +867,7 @@ int newcat_set_rptr_offs(RIG * rig, vfo_t vfo, shortfreq_t offs)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -874,7 +875,7 @@ int newcat_get_rptr_offs(RIG * rig, vfo_t vfo, shortfreq_t * offs)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -882,7 +883,7 @@ int newcat_set_split_freq(RIG * rig, vfo_t vfo, freq_t tx_freq)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -890,7 +891,7 @@ int newcat_get_split_freq(RIG * rig, vfo_t vfo, freq_t * tx_freq)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -898,7 +899,7 @@ int newcat_set_split_mode(RIG * rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_wi
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -906,7 +907,7 @@ int newcat_get_split_mode(RIG * rig, vfo_t vfo, rmode_t * tx_mode, pbwidth_t * t
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -914,7 +915,7 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -922,7 +923,7 @@ int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -930,7 +931,7 @@ int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -938,7 +939,7 @@ int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -946,7 +947,7 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -954,7 +955,7 @@ int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -962,7 +963,7 @@ int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -970,7 +971,7 @@ int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -978,7 +979,7 @@ int newcat_set_dcs_code(RIG * rig, vfo_t vfo, tone_t code)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -986,7 +987,7 @@ int newcat_get_dcs_code(RIG * rig, vfo_t vfo, tone_t * code)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -994,7 +995,7 @@ int newcat_set_tone(RIG * rig, vfo_t vfo, tone_t tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1002,7 +1003,7 @@ int newcat_get_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1010,7 +1011,7 @@ int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1018,7 +1019,7 @@ int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1026,7 +1027,7 @@ int newcat_set_dcs_sql(RIG * rig, vfo_t vfo, tone_t code)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1034,7 +1035,7 @@ int newcat_get_dcs_sql(RIG * rig, vfo_t vfo, tone_t * code)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1042,7 +1043,7 @@ int newcat_set_tone_sql(RIG * rig, vfo_t vfo, tone_t tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1050,7 +1051,7 @@ int newcat_get_tone_sql(RIG * rig, vfo_t vfo, tone_t * tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1058,7 +1059,7 @@ int newcat_set_ctcss_sql(RIG * rig, vfo_t vfo, tone_t tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1066,7 +1067,7 @@ int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1074,7 +1075,7 @@ int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, 
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1082,7 +1083,7 @@ int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, 
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1090,7 +1091,7 @@ int newcat_set_powerstat(RIG * rig, powerstat_t status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1098,7 +1099,7 @@ int newcat_get_powerstat(RIG * rig, powerstat_t * status)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1106,7 +1107,7 @@ int newcat_reset(RIG * rig, reset_t reset)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1114,7 +1115,7 @@ int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1122,39 +1123,465 @@ int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
 int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    int i;
+    char cmdstr[16];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    if (!rig)
+        return -RIG_EINVAL;
+  
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    switch (level) {
+	    case RIG_LEVEL_RFPOWER:
+		    sprintf(cmdstr, "PC%03d;", (int)(255*val.f));
+		    break;
+	    case RIG_LEVEL_AF:
+		    sprintf(cmdstr, "AG0%03d;", (int)(255*val.f));
+		    break;
+	    case RIG_LEVEL_AGC:
+		    switch (val.i) {
+			    case RIG_AGC_OFF: strcpy(cmdstr, "GT00;"); break;
+			    case RIG_AGC_FAST: strcpy(cmdstr, "GT01;"); break;
+			    case RIG_AGC_MEDIUM: strcpy(cmdstr, "GT02;"); break;
+			    case RIG_AGC_SLOW: strcpy(cmdstr, "GT03;"); break;
+					       /* TODO: AUTO: "GT04" */
+			    default: return -RIG_EINVAL;
+		    }
+		    break;
+	    case RIG_LEVEL_IF:
+		    sprintf(cmdstr, "IS0%+04d;", val.i);
+		    break;
+	    case RIG_LEVEL_CWPITCH:
+		    if (val.i < 300)
+			    i = 300;
+		    else if (val.i > 1050)
+			    i = 1050;
+		    else
+			    i = val.i;
+			   
+		    sprintf(cmdstr, "KP%02d;", 2*((i+50-300)/100));
+		    break;
+	    case RIG_LEVEL_KEYSPD:
+		    sprintf(cmdstr, "KS%03d;", val.i);
+		    break;
+	    case RIG_LEVEL_MICGAIN:
+		    sprintf(cmdstr, "MG%03d;", (int)(255*val.f));
+		    break;
+	    case RIG_LEVEL_METER:
+		    switch (val.i) {
+			    case RIG_METER_ALC: strcpy(cmdstr, "MS1;"); break;
+			    case RIG_METER_PO:  strcpy(cmdstr, "MS2;"); break;
+			    case RIG_METER_SWR: strcpy(cmdstr, "MS3;"); break;
+			    default: return -RIG_EINVAL;
+		    }
+		    break;
+	    case RIG_LEVEL_PREAMP:
+		    if (val.i == 0) {
+		    	strcpy(cmdstr, "PA00;");
+			break;
+		    }
+		    for (i=0; state->preamp[i] != RIG_DBLST_END; i++)
+			    if (state->preamp[i] == val.i) {
+		    		sprintf(cmdstr, "PA0%d;", i+1);
+				break;
+			    }
+		    return -RIG_EINVAL;
+	    case RIG_LEVEL_ATT:
+		    if (val.i == 0) {
+		    	strcpy(cmdstr, "RA00;");
+			break;
+		    }
+		    for (i=0; state->attenuator[i] != RIG_DBLST_END; i++)
+			    if (state->attenuator[i] == val.i) {
+		    		sprintf(cmdstr, "RA0%d;", i+1);
+				break;
+			    }
+		    return -RIG_EINVAL;
+	    case RIG_LEVEL_RF:
+		    sprintf(cmdstr, "RG0%03d;", (int)(255*val.f));
+		    break;
+	    case RIG_LEVEL_NR:
+		    sprintf(cmdstr, "RL0%02d;", (int)(10*val.f)+1);
+		    break;
+	    case RIG_LEVEL_COMP:
+		    sprintf(cmdstr, "PL%03d;", (int)(255*val.f));
+		    break;
+	    case RIG_LEVEL_BKINDL:
+		    /* FIXME: should be tenth of dots, newcat expects ms */
+		    sprintf(cmdstr, "SD%04d;", val.i);
+		    break;
+	    case RIG_LEVEL_SQL:
+		    sprintf(cmdstr, "SQ0%03d;", (int)(255*val.f));
+		    break;
+	    case RIG_LEVEL_VOX:
+		    /* VOX delay, arg int (tenth of seconds), expects ms */
+		    sprintf(cmdstr, "VD%04d;", val.i*100);
+		    break;
+	    case RIG_LEVEL_VOXGAIN:
+		    sprintf(cmdstr, "VG%03d;", (int)(255*val.f));
+		    break;
+	    default:
+		    return -RIG_EINVAL;
+    }
+
+    err = write_block(&state->rigport, cmdstr, strlen(cmdstr));
+    if (err != RIG_OK)
+        return err;
+
+    return RIG_OK;
 }
 
 
 int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    int ret_data_len;
+    const char *cmdstr;
+    char *retlvl;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    if (!rig)
+        return -RIG_EINVAL;
+  
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    switch (level) {
+	    case RIG_LEVEL_RFPOWER:
+		    /* PowerOut more interesting than Power Control? */
+		    cmdstr = "RM6;";
+		    break;
+	    case RIG_LEVEL_PREAMP:
+		    cmdstr = "PA0;";
+		    break;
+	    case RIG_LEVEL_AF:
+		    cmdstr = "AG0;";
+		    break;
+	    case RIG_LEVEL_AGC:
+		    cmdstr = "GT0;";
+		    break;
+	    case RIG_LEVEL_IF:
+		    cmdstr = "IS0;";
+		    break;
+	    case RIG_LEVEL_CWPITCH:
+		    cmdstr = "KP;";
+		    break;
+	    case RIG_LEVEL_KEYSPD:
+		    cmdstr = "KS;";
+		    break;
+	    case RIG_LEVEL_MICGAIN:
+		    cmdstr = "MG;";
+		    break;
+	    case RIG_LEVEL_METER:
+		    cmdstr = "MS;";
+		    break;
+	    case RIG_LEVEL_ATT:
+		    cmdstr = "RA0;";
+		    break;
+	    case RIG_LEVEL_RF:
+		    cmdstr = "RG0;";
+		    break;
+	    case RIG_LEVEL_COMP:
+		    cmdstr = "PL;";
+		    break;
+	    case RIG_LEVEL_NR:
+		    cmdstr = "RL0;";
+		    break;
+	    case RIG_LEVEL_BKINDL:
+		    /* FIXME: should be tenth of dots, newcat expects ms */
+		    cmdstr = "SD;";
+		    break;
+	    case RIG_LEVEL_SQL:
+		    cmdstr = "SQ0;";
+		    break;
+	    case RIG_LEVEL_VOX:
+		    /* VOX delay, arg int (tenth of seconds), expects ms */
+		    cmdstr = "VD;";
+		    break;
+	    case RIG_LEVEL_VOXGAIN:
+		    cmdstr = "VG;";
+		    break;
+	    /*
+	     * Read only levels
+	     */
+	    case RIG_LEVEL_RAWSTR:
+		    cmdstr = "SM0;";
+		    break;
+	    case RIG_LEVEL_SWR:
+		    cmdstr = "RM6;";
+		    break;
+	    case RIG_LEVEL_ALC:
+		    cmdstr = "RM4;";
+		    break;
+	    default:
+		    return -RIG_EINVAL;
+    }
+
+    err = write_block(&state->rigport, cmdstr, strlen(cmdstr));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                      &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+              __func__, err, priv->ret_data);
+
+    ret_data_len = strlen(priv->ret_data);
+    if (ret_data_len <= strlen(cmdstr) ||
+    	priv->ret_data[ret_data_len-1] != ';')
+	    return -RIG_EPROTO;
+
+    /* skip command */
+    retlvl = priv->ret_data + strlen(cmdstr)-1;
+    /* chop term */
+    priv->ret_data[ret_data_len-1] = '\0';
+
+    switch (level) {
+	    case RIG_LEVEL_RFPOWER:
+	    case RIG_LEVEL_AF:
+	    case RIG_LEVEL_MICGAIN:
+	    case RIG_LEVEL_RF:
+	    case RIG_LEVEL_SQL:
+	    case RIG_LEVEL_COMP:
+	    case RIG_LEVEL_VOXGAIN:
+	    case RIG_LEVEL_RAWSTR:
+	    case RIG_LEVEL_SWR:
+	    case RIG_LEVEL_ALC:
+		    val->f = (float)atoi(retlvl)/255.;
+		    break;
+
+	    case RIG_LEVEL_KEYSPD:
+	    case RIG_LEVEL_BKINDL: /* FIXME */
+	    case RIG_LEVEL_IF:
+		    val->i = atoi(retlvl);
+		    break;
+
+	    case RIG_LEVEL_NR:
+		    val->f = (float)(atoi(retlvl)-1)/10.;
+		    break;
+	    case RIG_LEVEL_VOX:
+		    /* VOX delay, arg int (tenth of seconds) */
+		    val->i = atoi(retlvl)/100;
+		    break;
+	    case RIG_LEVEL_PREAMP:
+		    if (retlvl[0] < '0' || retlvl[0] > '9')
+			    return -RIG_EPROTO;
+		    val->i = (retlvl[0] == '0') ? 0 : state->preamp[retlvl[0]-'1'];
+		    break;
+	    case RIG_LEVEL_ATT:
+		    if (retlvl[0] < '0' || retlvl[0] > '9')
+			    return -RIG_EPROTO;
+		    val->i = (retlvl[0] == '0') ? 0 : state->attenuator[retlvl[0]-'1'];
+		    break;
+	    case RIG_LEVEL_AGC:
+		    switch (retlvl[0]) {
+			    case '0': val->i = RIG_AGC_OFF; break;
+			    case '1': val->i = RIG_AGC_FAST; break;
+			    case '2': val->i = RIG_AGC_MEDIUM; break;
+			    case '3': val->i = RIG_AGC_SLOW; break;
+					       /* TODO: AUTO: "GT04" */
+			    default: return -RIG_EINVAL;
+		    }
+		    break;
+	    case RIG_LEVEL_CWPITCH:
+		    val->i = (atoi(retlvl)/2)*100+300;
+		    break;
+	    case RIG_LEVEL_METER:
+		    switch (retlvl[0]) {
+			    case '1': val->i = RIG_METER_ALC; break;
+			    case '2': val->i = RIG_METER_PO; break;
+			    case '3': val->i = RIG_METER_SWR; break;
+			    default: return -RIG_EINVAL;
+		    }
+		    break;
+	    default:
+		    return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 
 int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char cmdstr[16];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    if (!rig)
+        return -RIG_EINVAL;
+  
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    switch (func) {
+	    case RIG_FUNC_ANF:
+		    sprintf(cmdstr, "BC%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_MN:
+		    sprintf(cmdstr, "BP00%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_FBKIN:
+		    sprintf(cmdstr, "BI%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_TONE:
+		    sprintf(cmdstr, "CT0%d;", status ? 2 : 0);
+		    break;
+	    case RIG_FUNC_TSQL:
+		    sprintf(cmdstr, "CT0%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_LOCK:
+		    sprintf(cmdstr, "LK%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_MON:
+		    sprintf(cmdstr, "ML0%03d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_NB:
+		    sprintf(cmdstr, "NB0%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_NR:
+		    sprintf(cmdstr, "NR0%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_COMP:
+		    sprintf(cmdstr, "PR%d;", status ? 1 : 0);
+		    break;
+	    case RIG_FUNC_VOX:
+		    sprintf(cmdstr, "VX%d;", status ? 1 : 0);
+		    break;
+	    default:
+		    return -RIG_EINVAL;
+    }
+
+    err = write_block(&state->rigport, cmdstr, strlen(cmdstr));
+    if (err != RIG_OK)
+        return err;
+
+    return RIG_OK;
 }
 
 
 int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    int ret_data_len;
+    const char *cmdstr;
+    char *retfunc;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    if (!rig)
+        return -RIG_EINVAL;
+  
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    switch (func) {
+	    case RIG_FUNC_ANF:
+		    cmdstr = "BC;";
+		    break;
+	    case RIG_FUNC_MN:
+		    cmdstr = "BP00;";
+		    break;
+	    case RIG_FUNC_FBKIN:
+		    cmdstr = "BI;";
+		    break;
+	    case RIG_FUNC_TONE:
+		    cmdstr = "CT0;";
+		    break;
+	    case RIG_FUNC_TSQL:
+		    cmdstr = "CT0;";
+		    break;
+	    case RIG_FUNC_LOCK:
+		    cmdstr = "LK;";
+		    break;
+	    case RIG_FUNC_MON:
+		    cmdstr = "ML0;";
+		    break;
+	    case RIG_FUNC_NB:
+		    cmdstr = "NB0;";
+		    break;
+	    case RIG_FUNC_NR:
+		    cmdstr = "NR0;";
+		    break;
+	    case RIG_FUNC_COMP:
+		    cmdstr = "PR;";
+		    break;
+	    case RIG_FUNC_VOX:
+		    cmdstr = "VX;";
+		    break;
+	    default:
+		    return -RIG_EINVAL;
+    }
+
+    err = write_block(&state->rigport, cmdstr, strlen(cmdstr));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                      &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+              __func__, err, priv->ret_data);
+
+    ret_data_len = strlen(priv->ret_data);
+    if (ret_data_len <= strlen(cmdstr) ||
+    	priv->ret_data[ret_data_len-1] != ';')
+	    return -RIG_EPROTO;
+
+    /* skip command */
+    retfunc = priv->ret_data + strlen(cmdstr)-1;
+    /* chop term */
+    priv->ret_data[ret_data_len-1] = '\0';
+
+    switch (func) {
+	    case RIG_FUNC_ANF:
+	    case RIG_FUNC_MN:
+	    case RIG_FUNC_FBKIN:
+	    case RIG_FUNC_LOCK:
+	    case RIG_FUNC_MON:
+	    case RIG_FUNC_NB:
+	    case RIG_FUNC_NR:
+	    case RIG_FUNC_COMP:
+	    case RIG_FUNC_VOX:
+		    *status = (retfunc[0] == '0') ? 0 : 1;
+		    break;
+
+	    case RIG_FUNC_TONE:
+		    *status = (retfunc[0] == '2') ? 1 : 0;
+		    break;
+	    case RIG_FUNC_TSQL:
+		    *status = (retfunc[0] == '1') ? 1 : 0;
+		    break;
+	    default:
+		    return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -1162,7 +1589,7 @@ int newcat_set_parm(RIG * rig, setting_t parm, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1170,7 +1597,7 @@ int newcat_get_parm(RIG * rig, setting_t parm, value_t * val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1178,7 +1605,7 @@ int newcat_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1186,7 +1613,7 @@ int newcat_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1194,7 +1621,7 @@ int newcat_set_ext_parm(RIG *rig, token_t token, value_t val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1202,7 +1629,7 @@ int newcat_get_ext_parm(RIG *rig, token_t token, value_t *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1210,7 +1637,7 @@ int newcat_set_conf(RIG * rig, token_t token, const char *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1218,7 +1645,7 @@ int newcat_get_conf(RIG * rig, token_t token, char *val)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1226,7 +1653,7 @@ int newcat_send_dtmf(RIG * rig, vfo_t vfo, const char *digits)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1234,7 +1661,7 @@ int newcat_recv_dtmf(RIG * rig, vfo_t vfo, char *digits, int *length)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1242,7 +1669,7 @@ int newcat_send_morse(RIG * rig, vfo_t vfo, const char *msg)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1250,31 +1677,135 @@ int newcat_set_bank(RIG * rig, vfo_t vfo, int bank)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
 int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char cmdstr[8];
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    if (!rig)
+        return -RIG_EINVAL;
+  
+    sprintf(cmdstr, "MC%03d;", ch);
+
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    err = write_block(&state->rigport, cmdstr, strlen(cmdstr));
+    if (err != RIG_OK)
+        return err;
+
+    return RIG_OK;
 }
 
 
 int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
-}
+    if (!rig)
+        return -RIG_EINVAL;
+  
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
 
+    /* Build the command string */
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC;");
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+
+    /* Get Memory Channel */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                      &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
+                  __func__, priv->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+              __func__, err, priv->ret_data);
+
+    *ch = atoi(priv->ret_data+2);
+
+    return RIG_OK;
+}
 
 int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char *cmdstr;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    if (!rig)
+        return -RIG_EINVAL;
+  
+
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    switch (op) {
+	    case RIG_OP_TUNE:
+		    cmdstr = "AC002;";
+		    break;
+	    case RIG_OP_CPY:
+		    cmdstr = "VV;";
+		    break;
+	    case RIG_OP_XCHG:
+		    cmdstr = "SV;";
+		    break;
+	    case RIG_OP_UP:
+		    cmdstr = "UP;";
+		    break;
+	    case RIG_OP_DOWN:
+		    cmdstr = "DN;";
+		    break;
+	    case RIG_OP_BAND_UP:
+		    cmdstr = (priv->current_vfo == RIG_VFO_B) ? "BU1;" : "BU0;";
+		    break;
+	    case RIG_OP_BAND_DOWN:
+		    cmdstr = (priv->current_vfo == RIG_VFO_B) ? "BD1;" : "BD0;";
+		    break;
+	    case RIG_OP_FROM_VFO:
+		    /* VFOA ! */
+		    cmdstr = "AM;";
+		    break;
+	    case RIG_OP_TO_VFO:
+		    /* VFOA ! */
+		    cmdstr = "MA;";
+		    break;
+	    default:
+		    return -RIG_EINVAL;
+    }
+
+    err = write_block(&state->rigport, cmdstr, strlen(cmdstr));
+    if (err != RIG_OK)
+        return err;
+
+    return RIG_OK;
 }
 
 
@@ -1282,7 +1813,7 @@ int newcat_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1290,7 +1821,7 @@ int newcat_set_trn(RIG * rig, int trn)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1298,7 +1829,7 @@ int newcat_get_trn(RIG * rig, int *trn)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1306,7 +1837,7 @@ int newcat_decode_event(RIG * rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1314,7 +1845,7 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1322,7 +1853,7 @@ int newcat_get_channel(RIG * rig, channel_t * chan)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1330,7 +1861,49 @@ const char *newcat_get_info(RIG * rig)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return "";
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    static char idbuf[8];
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rig)
+	    return NULL;
+  
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    /* Build the command string */
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "ID;");
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+
+    /* Get Identification Channel */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+	    return NULL;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data),
+                      &cat_term, sizeof(cat_term));
+    if (err < 0)
+	    return NULL;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n",
+                  __func__, priv->ret_data);
+
+	return NULL;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+              __func__, err, priv->ret_data);
+
+    priv->ret_data[6] = '\0';
+    strcpy(idbuf, priv->ret_data);
+
+    return idbuf;
 }
 
 
@@ -1339,7 +1912,7 @@ int newcat_set_chan_all_cb(RIG * rig, chan_cb_t chan_cb, rig_ptr_t)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1347,7 +1920,7 @@ int newcat_get_chan_all_cb(RIG * rig, chan_cb_t chan_cb, rig_ptr_t)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1355,7 +1928,7 @@ int newcat_set_mem_all_cb(RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, ri
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 
 
@@ -1363,7 +1936,7 @@ int newcat_get_mem_all_cb(RIG * rig, chan_cb_t chan_cb, confval_cb_t parm_cb, ri
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return RIG_ENAVAIL;
+    return -RIG_ENAVAIL;
 }
 #endif
 

@@ -12,7 +12,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.5 2008-10-25 14:37:19 fillods Exp $
+ *    $Id: newcat.h,v 1.6 2008-11-01 22:39:07 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "0.1"
+#define NEWCAT_VER "0.2"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -58,6 +58,18 @@ typedef char ncboolean;
 /* arbitrary value for now.  11 bits (8N2+1) == 2.2917 mS @ 4800 bps */
 #define NEWCAT_DEFAULT_READ_TIMEOUT     (NEWCAT_DATA_LEN * 5)
 
+
+#define NEWCAT_MEM_CAP {    \
+	.freq = 1,      \
+	.mode = 1,      \
+	.width = 1,     \
+	.rit = 1,       \
+	.xit = 1,       \
+	.rptr_offs = 1, \
+	.ctcss_tone = 1,\
+	.ctcss_sql = 1,\
+	.funcs = (RIG_FUNC_TONE|RIG_FUNC_TSQL), \
+}
 
 /*
  * Functions considered to be Stable:
@@ -101,5 +113,14 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
 int newcat_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val);
+int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val);
+int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status);
+int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status);
+int newcat_set_mem(RIG * rig, vfo_t vfo, int ch);
+int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch);
+int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op);
+const char *newcat_get_info(RIG * rig);
+
 
 #endif /* _NEWCAT_H */

@@ -2,12 +2,13 @@
  * hamlib - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *
  * ft450.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
+ *           (C) Stephane Fillod 2008
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.3 2008-10-25 14:37:19 fillods Exp $
+ * $Id: ft450.c,v 1.4 2008-11-01 22:39:07 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -38,6 +39,7 @@
 #include "yaesu.h"
 #include "newcat.h"
 #include "ft450.h"
+#include "idx_builtin.h"
 
 /*
  * ft450 rigs capabilities.
@@ -49,7 +51,7 @@ const struct rig_caps ft450_caps = {
     .rig_model =          RIG_MODEL_FT450,
     .model_name =         "FT-450",
     .mfg_name =           "Yaesu",
-    .version =            NEWCAT_VER ".0",
+    .version =            NEWCAT_VER ".1",
     .copyright =          "LGPL",
     .status =             RIG_STATUS_BETA,
     .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -66,25 +68,34 @@ const struct rig_caps ft450_caps = {
     .post_write_delay =   FT450_POST_WRITE_DELAY,
     .timeout =            2000,
     .retry =              0,
-    .has_get_func =       RIG_FUNC_NONE,
-    .has_set_func =       RIG_FUNC_NONE,
-    .has_get_level =      RIG_LEVEL_NONE,
-    .has_set_level =      RIG_LEVEL_NONE,
+    .has_get_func =       FT450_FUNCS,
+    .has_set_func =       FT450_FUNCS,
+    .has_get_level =      FT450_LEVELS,
+    .has_set_level =      RIG_LEVEL_SET(FT450_LEVELS),
     .has_get_parm =       RIG_PARM_NONE,
     .has_set_parm =       RIG_PARM_NONE,
-    .ctcss_list =         NULL,
+    .level_gran = {
+	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
+	[LVL_CWPITCH] = { .min = { .i = 400 }, .max = { .i = 800 }, .step = { .i = 100 } },
+    },
+    .ctcss_list =         NULL,	/* TODO */
     .dcs_list =           NULL,
-    .preamp =             { RIG_DBLST_END, },
-    .attenuator =         { RIG_DBLST_END, },
+    .preamp =             { 10, RIG_DBLST_END, }, /* TBC */
+    .attenuator =         { 18, RIG_DBLST_END, }, /* TBC */
     .max_rit =            Hz(9999),
     .max_xit =            Hz(0),
     .max_ifshift =        Hz(1000),
-    .vfo_ops =            RIG_OP_TUNE,
-    .targetable_vfo =     RIG_TARGETABLE_ALL,
+    .vfo_ops =            FT450_VFO_OPS,
+    .targetable_vfo =     RIG_TARGETABLE_FREQ,
     .transceive =         RIG_TRN_OFF,        /* May enable later as the 450 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
-    .chan_list =          { RIG_CHAN_END, },
+    .str_cal =            FT450_STR_CAL,
+    .chan_list =          {
+		{   1, 500, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+		{ 501, 504, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
+		RIG_CHAN_END,
+	    		  },
 
     .rx_range_list1 =     {
         {kHz(30), MHz(60), FT450_ALL_RX_MODES, -1, -1, FT450_VFO_ALL, FT450_ANTS},   /* General coverage + ham */
@@ -159,8 +170,13 @@ const struct rig_caps ft450_caps = {
 //    .get_split_vfo =      newcat_get_split_vfo,
 //    .set_rit =            newcat_set_rit,
 //    .get_rit =            newcat_get_rit,
-//    .set_func =           newcat_set_func,
-//    .get_level =          newcat_get_level,
-//    .vfo_op =             newcat_vfo_op,
+    .get_func =           newcat_get_func,
+    .set_func =           newcat_set_func,
+    .get_level =          newcat_get_level,
+    .set_level =          newcat_set_level,
+    .get_mem =            newcat_get_mem,
+    .set_mem =            newcat_set_mem,
+    .vfo_op =             newcat_vfo_op,
+    .get_info =           newcat_get_info,
 };
 
