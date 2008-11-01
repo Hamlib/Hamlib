@@ -7,7 +7,7 @@
  * via serial interface to a Yaesu rig
  *
  *
- *	$Id: yaesu.c,v 1.28 2008-09-22 21:32:38 fillods Exp $  
+ *	$Id: yaesu.c,v 1.29 2008-11-01 16:38:46 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -113,7 +113,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
  */
 DECLARE_PROBERIG_BACKEND(yaesu)
 {
-	unsigned char idbuf[YAESU_CMD_LENGTH];
+	unsigned char idbuf[YAESU_CMD_LENGTH+1];
 	static const unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xfa};
 	int id_len=-1, i, id1, id2;
 	int retval=-1;
@@ -158,7 +158,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 	 * reply should be [Flag1,Flag2,Flag3,ID1,ID2]
 	 */
 	if (id_len != 5 || id_len != 6) {
-		idbuf[7] = '\0';
+		idbuf[YAESU_CMD_LENGTH] = '\0';
 		rig_debug(RIG_DEBUG_WARN,"probe_yaesu: protocol error,"
 			" expected %d, received %d: %s\n", 6, id_len, idbuf);
 		return RIG_MODEL_NONE;
