@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: th.c,v 1.34 2008-11-01 16:27:28 fillods Exp $
+ *	$Id: th.c,v 1.35 2008-11-01 16:30:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -595,7 +595,7 @@ static int th_set_kenwood_func (RIG *rig, const char *cmd, int status)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     strncpy(trbuf,cmd,16);
-    strncat(trbuf,(status)?" 1":" 0",16);
+    strncat(trbuf,(status)?" 1":" 0",15);
     strncat(trbuf,EOM,16);
     ack_len = ACKBUF_LEN;
     retval = kenwood_transaction (rig, cmd, strlen(cmd), ackbuf, &ack_len);
