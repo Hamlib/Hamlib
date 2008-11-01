@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: th.c,v 1.33 2008-11-01 16:22:45 fillods Exp $
+ *	$Id: th.c,v 1.34 2008-11-01 16:27:28 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1226,6 +1226,8 @@ int th_get_channel(RIG *rig, channel_t *chan)
 	if (!chan_caps)
 		return -RIG_ECONF;
     }
+    else
+	    return -RIG_ENIMPL;
 
     channel_num = chan->channel_num;
     vfo = chan->vfo;
@@ -1497,6 +1499,8 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 		return -RIG_ECONF;
     	channel_num -= chan_caps->start;
     }
+    else
+	    return -RIG_ENIMPL;
 
     if (rig->caps->rig_model == RIG_MODEL_THF7E)
 	    mr_extra = "";
