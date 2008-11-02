@@ -1,3 +1,714 @@
+2008-11-02 21:58  fillods
+
+	* NEWS, configure.ac: Update for 1.2.8 release
+
+2008-11-02 17:32  fillods
+
+	* dummy/: netrigctl.c, netrotctl.c: clean signoff before closing
+	socket
+
+2008-11-02 17:05  fillods
+
+	* bindings/ignore.swg: new kit backend
+
+2008-11-02 16:26  fillods
+
+	* icom/frame.c: icom2rig_mode: fix passband widths for the IC-706
+	familly
+
+2008-11-02 16:14  y32kn
+
+	* icom/ic910.c: cleaup of filter width declarations
+
+2008-11-02 14:53  fillods
+
+	* yaesu/ft920.c: increase version number
+
+2008-11-02 12:45  fillods
+
+	* include/hamlib/riglist.h: added SoftRock Si570
+
+2008-11-02 12:43  fillods
+
+	* configure.ac: getaddrinfo replacement + libusb build fix
+
+2008-11-02 12:42  fillods
+
+	* src/network.c: getaddrinfo replacement
+
+2008-11-02 12:39  fillods
+
+	* tests/rotctld.c: exit in case of socket creation error
+
+2008-11-01 22:39  fillods
+
+	* yaesu/: ft450.c, ft450.h, ft950.c, ft950.h, newcat.c, newcat.h: *
+	extended newcat: set_level/get_level, set_func/get_func,
+	set_mem/get_mem,   vfo_op, get_info * updated FT-450/FT950
+	accordingly
+
+2008-11-01 22:33  fillods
+
+	* tests/: rigctld.8, rotctld.8: description of error handling in
+	the protocol
+
+2008-11-01 20:35  fillods
+
+	* include/hamlib/rig.h: added RIG_METER_PO
+
+2008-11-01 16:38  fillods
+
+	* yaesu/yaesu.c: fix warning
+
+2008-11-01 16:27  fillods
+
+	* kenwood/: th.c, th.c: fix warning
+
+2008-11-01 16:22  fillods
+
+	* kenwood/th.c: fix warning
+
+2008-10-31 23:08  fillods
+
+	* src/rig.c: resolve normal passband where available in
+	rig_get_mode/rig_get_split_mode
+
+2008-10-31 23:06  fillods
+
+	* macros/python.m4: don't make absence of python fatal
+
+2008-10-31 22:34  fillods
+
+	* kenwood/ic10.c: fix compilation with old compilers
+
+2008-10-31 22:25  fillods
+
+	* yaesu/ft817.c: fix duplicate initializer
+
+2008-10-31 22:22  fillods
+
+	* configure.ac: swig 1.3.21 does not work, so raise at least to
+	1.3.22, maybe higher
+
+2008-10-31 22:20  fillods
+
+	* Makefile.am, configure.ac, include/hamlib/riglist.h: kill
+	microtune backend
+
+2008-10-31 22:14  fillods
+
+	* rpcrig/rpcrig_backend.c, rpcrot/rpcrot_backend.c: changed to
+	RIG_STATUS_BETA
+
+2008-10-31 22:09  fillods
+
+	* yaesu/: ft857.c, ft897.c: patch from Jeff N7YG about MODE_PKTFM
+	on FT-857, port to the FT-897 and some filters by me (SF)
+
+2008-10-31 07:51  fillods
+
+	* src/network.c: Conditional compiling upon getaddrinfo()
+	availability. TODO: replacement code
+
+2008-10-31 07:49  fillods
+
+	* icom/: ic275.c, ic475.c: memory caps
+
+2008-10-31 07:47  fillods
+
+	* configure.ac: check for getaddrinfo() availability, new kit rotor
+	backend
+
+2008-10-31 07:45  fillods
+
+	* include/hamlib/rotlist.h, kit/Makefile.am, kit/kit.c, kit/kit.h,
+	kit/pcrotor.c: added PcRotor in a new kit rotor group
+
+2008-10-31 00:17  aa6e
+
+	* icom/ic756.c: fix missing comma
+
+2008-10-31 00:10  aa6e
+
+	* icom/ic756.c: RIG_STATUS_ALPHA reflecting initial tests.
+
+2008-10-29 15:55  y32kn
+
+	* icom/: README.icom, ic275.c, ic475.c: Changed State of IC-275 and
+	IC-475 after tests.
+
+2008-10-28 05:22  y32kn
+
+	* yaesu/: ft890.c, ft920.c: Changed State to STABLE as reported by
+	Nate Bargmann N0NB.
+
+2008-10-28 05:12  y32kn
+
+	* tests/README: Added some additional descritions
+
+2008-10-27 22:23  fillods
+
+	* dummy/netrigctl.c, dummy/netrotctl.c, include/hamlib/rig.h,
+	include/hamlib/rotator.h, tests/rigctl.c, tests/rigctl_parse.c,
+	tests/rigctld.c, tests/rotctl.c, tests/rotctl_parse.c,
+	tests/rotctld.c: new netrigctl/netrotctl protocol with return value
+
+2008-10-27 22:20  fillods
+
+	* src/iofunc.c: make select() watch for errors
+
+2008-10-27 22:18  fillods
+
+	* src/network.c: don't want SIGPIPE, and prefer IPv4 over IPv6
+
+2008-10-27 20:45  y32kn
+
+	* tests/Makefile.am: Added missing script for build of
+	distribution.
+
+2008-10-26 13:54  y32kn
+
+	* winradio/: wr1000.c, wr1500.c, wr1550.c, wr3100.c, wr3150.c,
+	wr3500.c, wr3700.c: changed RIG_STATUS_NEW into
+	RIG_STATUS_UNTESTED.
+
+2008-10-26 13:50  y32kn
+
+	* rotorez/rotorez.c, rpcrot/rpcrot_backend.c, yaesu/ft900.c:
+	changed RIG_STATUS_NEW into RIG_STATUS_UNTESTED.
+
+2008-10-26 13:45  y32kn
+
+	* icom/ic7000.c, icom/ic707.c, icom/ic728.c, icom/ic736.c,
+	icom/ic737.c, icom/ic746.c, icom/ic756.c, icom/ic7800.c,
+	kenwood/tmd700.c, kenwood/ts480.c: changed RIG_STATUS_NEW into
+	RIG_STATUS_UNTESTED.
+
+2008-10-26 13:38  y32kn
+
+	* gs232a/gs232a.c: changed RIG_STATUS_NEW into RIG_STATUS_UNTESTED.
+
+2008-10-26 13:35  y32kn
+
+	* flexradio/sdr1k.c, gnuradio/graudio.c: changed RIG_STATUS_NEW
+	into RIG_STATUS_UNTESTED.
+
+2008-10-26 10:47  fillods
+
+	* src/iofunc.c: some more documenting of read_block()
+
+2008-10-25 15:27  fillods
+
+	* tentec/argonaut.c: set Argonaut status to STABLE
+
+2008-10-25 14:37  fillods
+
+	* yaesu/: ft450.c, ft950.c, newcat.c, newcat.h: Patch from Dave,
+	W1HKJ: 1. the FT-450 transceiver does not respond to the "VS;"
+	command and responds	with "?;" which is not a documented
+	response.  That appears to be	 the "what's that" response.  So
+	the new_cat code needs to    recognize that and just keep on going.
+	 2. the transceiver expects a full 8 digits when setting frequency.
+	    As originally written the transceiver would accept frequences
+	>=     1000000 but reject all below that value.  3. Code for
+	get_mode, set_mode, and set_ptt functions.  4. Rig status changed
+	to RIG_STATUS_BETA.
+
+2008-10-25 14:00  fillods
+
+	* icom/: ic725.c, ic735.c, ic761.c, ic775.c, ic781.c:
+	serial_rate_max and other misc fixes
+
+2008-10-25 11:36  y32kn
+
+	* include/hamlib/rig.h, src/misc.c: Dropped RIG_STATUS_NEW from
+	enum of possible backend states in rig.h.
+	
+	Mapped all RIG_STATUS_NEW requests from existing applications to
+	RIG_STATUS_UNTESTED for backward compatibility.
+
+2008-10-25 11:10  fillods
+
+	* tests/listrigs.c: factorization thanks to rig_strstatus()
+
+2008-10-25 08:51  y32kn
+
+	* icom/ic910.c: Changed backend status to RIG_STATUS_BETA to
+	reflect stable work of the rig for most commands.
+
+2008-10-22 04:11  roger-linux
+
+	* uniden/uniden_digital.c: Add additional comments for improved
+	reading.
+
+2008-10-21 19:00  roger-linux
+
+	* uniden/uniden_digital.c: Added a few more comments.
+
+2008-10-21 18:45  roger-linux
+
+	* uniden/uniden_digital.c: Added MDL & VER command to get_info. 
+	Added many comments, info & fixmes.
+
+2008-10-21 16:27  roger-linux
+
+	* uniden/uniden_digital.c: 
+	Added more error codes.  Distinguished NG & ORER error codes from
+	each other.  Commented SQ/SQuelch unused command.
+
+2008-10-18 06:21  roger-linux
+
+	* uniden/: bcd396t.c, bcd996t.c, uniden_digital.c,
+	uniden_digital.h: 
+	- Copied uniden_transaction to uniden_digital_transaction from
+	uniden.*
+	
+	- Copied uniden_get_info to uniden_digital_get_info from uniden.*
+	
+	- Removed uniden.h include from bcd396t.c & bcd996t.c.	For now,
+	might be       best keeping experimental code separate from the
+	working analog scanner	       code.  (Can return in the future if
+	we find code can be merged.)
+
+2008-10-17 11:52  roger-linux
+
+	* uniden/uniden_digital.c: 
+	Adds some initial notes to uniden_digital.c concerning protocol pdf
+	files.
+	
+	Adds the two known models using compatible protocols.
+	
+	Roger <roger@eskimo.com>
+
+2008-10-07 18:58  fillods
+
+	* uniden/: Makefile.am, bcd396t.c, bcd996t.c, uniden.c, uniden.h,
+	uniden_digital.c, uniden_digital.h: new models: BCD396T/BCD996T
+
+2008-10-07 17:55  fillods
+
+	* uniden/uniden.c: SI/VR fix from Roger
+
+2008-10-06 18:16  fillods
+
+	* include/hamlib/riglist.h: Newer Uniden models
+
+2008-09-23 22:02  fillods
+
+	* src/: network.c, network.h, rotator.c, rig.c: accept partial
+	'pathname' for PORT_NETWORK
+
+2008-09-22 21:34  fillods
+
+	* yaesu/: newcat.c, newcat.h: Support table of newcat, patch by
+	Mark N1VQW
+
+2008-09-22 21:32  fillods
+
+	* yaesu/: Makefile.am, yaesu.c, yaesu.h: new: FT-950
+
+2008-09-22 21:31  fillods
+
+	* yaesu/: ft950.c, ft950.h: cloned after FT-450
+
+2008-09-22 21:30  fillods
+
+	* yaesu/ft450.c: caps: 6m band
+
+2008-09-22 20:51  fillods
+
+	* yaesu/ft897.c: get_mode for narrow passbands, patch by Stelios,
+	M0GLD
+
+2008-09-22 20:40  fillods
+
+	* yaesu/ft857.c: get_mode for narrow passbands, patch by Stelios,
+	M0GLD
+
+2008-09-21 20:32  fillods
+
+	* tests/: rigctld.8, rigctld.c, rotctld.8, rotctld.c: restrict
+	listening IP address
+
+2008-09-21 19:36  fillods
+
+	* icom/icom.c: RIG_LEVEL_STRENGTH is emulated by frontend
+
+2008-09-21 19:35  fillods
+
+	* yaesu/ft757gx.c: update status/version and fix warning
+
+2008-09-21 19:34  fillods
+
+	* dummy/Makefile.am, dummy/dummy.c, dummy/dummy.h,
+	dummy/netrigctl.c, dummy/netrotctl.c, dummy/rot_dummy.c,
+	dummy/rot_dummy.h, include/hamlib/riglist.h,
+	include/hamlib/rotlist.h: new backend ala rpcrig/rpcrot, but using
+	rigctld/rotctld and simpler protocol
+
+2008-09-21 19:30  fillods
+
+	* src/: Makefile.am, network.c, network.h, rig.c, rotator.c:
+	implementation of PORT_NETWORK
+
+2008-09-21 19:27  fillods
+
+	* tests/rotctl_parse.c: * dump_state for internal use by netrotctl
+	backend * factorize the "END" marker for rotctld, and proprer
+	flushing/error handling
+
+2008-09-21 19:24  fillods
+
+	* tests/: rigctl.1, rigctl_parse.c, rigctld.8: * CTCSS/DCS squelch
+	accessors * DTMF send/recv and get_dcd * dump_state for internal
+	use by netrigctl backend * factorize the "END" marker for rigctld,
+	with proprer flushing/error handling
+
+2008-09-21 19:10  fillods
+
+	* tests/dumpcaps.c: RIG_PORT_USB support
+
+2008-09-21 19:10  fillods
+
+	* src/settings.c: only emulate LEVEL_STRENGTH when
+	rig->state.str_cal is defined
+
+2008-09-21 19:09  fillods
+
+	* icom/ic706.c: ic706mkiig reached STATUS_STABLE
+
+2008-09-17 20:36  fillods
+
+	* tests/: rigctld.c, rotctld.c: create threads in detached state in
+	order to prevent zombies
+
+2008-09-17 18:56  fillods
+
+	* tests/: rigctld.c, rotctld.c: fix thread-leak and pthread_create
+	error code checking
+
+2008-09-16 18:11  fillods
+
+	* yaesu/ft100.c: S-Meter calibration table from Tony G0WFV
+
+2008-09-15 22:15  fillods
+
+	* yaesu/ft100.c: disable confusing width setting in ft100_set_mode
+	for now
+
+2008-09-15 22:03  fillods
+
+	* src/settings.c: fix RIG_LEVEL_STRENGTH emulation
+
+2008-09-15 18:32  fillods
+
+	* yaesu/ft100.c: VFO list fix, added filter list
+
+2008-09-15 07:16  fillods
+
+	* yaesu/ft100.c: fix error checking of read_block
+
+2008-09-12 22:55  fillods
+
+	* tests/: rotctl.c, rotctl_parse.c, rotctl_parse.h, rotctld.8,
+	rotctld.c, Makefile.am: initial rotctld release (same idea as
+	rigctld)
+
+2008-09-12 15:32  fillods
+
+	* yaesu/: Makefile.am, ft100.c, ft100.h: FT100: * fixed buffer
+	overflow in ft100_get_freq, thanks to Tony Corbett G0WFV * better
+	error code checking * support for MODE_WFM * implemented
+	ft100_get_level
+
+2008-09-12 12:54  fillods
+
+	* yaesu/ft757gx.c: SF#2106506: Implement retries to work around
+	erratic timeouts.  Patch from Remi Chateauneu - f4ecw
+
+2008-09-12 11:49  fillods
+
+	* src/rig.c: BUG#2106524: allow backend specific override get_ptt
+	even if RIG_PTT_SERIAL_DTR (e.g. FT757GXII)
+
+2008-09-01 19:01  fillods
+
+	* include/hamlib/riglist.h, kenwood/kenwood.h, kenwood/k3.c,
+	kenwood/kenwood.c, kenwood/Makefile.am: new backend for the
+	Elekraft K3
+
+2008-08-06 11:09  n0nb
+
+	* yaesu/: ft920.c, ft920.h: Added support for RIG_MODE_PKTLSB,
+	RIG_MODE_PKTUSB, and RIG_MODE_PKTFM.  TNX Jeff Steinkamp N7YG.
+
+2008-07-14 01:31  aa6e
+
+	* THANKS: minor changes
+
+2008-07-14 01:25  aa6e
+
+	* THANKS: Add thanks to W1RFI & ARRL
+
+2008-07-12 17:19  aa6e
+
+	* icom/: README.icom, ic756.c: Add AF, RF gain and squelch level
+	capability.
+
+2008-07-08 20:44  n0nb
+
+	* yaesu/: ft757gx.c, ft757gx.h: Minor source cleanup of ft757gx.c
+	Change FT757GX_DEFAULT_READ_TIMEOUT to be
+	FT757GX_STATUS_UPDATE_DATA_LENGTH * (5 + (FT757GX_PACING_INTERVAL *
+	FT757GX_PACING_DEFAULT_VALUE)) by default.  Should allow 375 mS for
+	read timeout at minimum in ft757gx.h
+
+2008-07-08 16:43  n0nb
+
+	* tests/rigctl.1: Explain the -P option a bit more clearly and its
+	side effects.  Correct typo in the Diagnostics section.
+
+2008-07-08 16:29  n0nb
+
+	* yaesu/ft757gx.c: Returned ptt_type in ft757gx2_caps to
+	RIG_PTT_SERIAL_DTR and tested DTR state follows PTT setting.
+
+2008-07-08 15:02  n0nb
+
+	* yaesu/ft757gx.c: Set PTT type to NONE Corrected get_freq error
+	off by a factor of 10--bug tracker # 2009215, thanks to F4ECW and
+	KC0MLS
+
+2008-06-26 15:23  y32kn
+
+	* bindings/Makefile.am: fix for gcc warnings: dereferencing
+	type-punned pointer will break strict-aliasing rules"
+
+2008-06-20 03:11  n0nb
+
+	* Makefile.am, README.developer: Added gs232a to Makefile.am
+	DIST_SUBDIRS variable Clarified backend additions in
+	README.developer
+
+2008-06-19 04:26  aa6e
+
+	* tentec/: orion.c, orion.h: Switch back to ASCII freq. setting
+	because of hardware(?) bug.
+
+2008-06-11 17:53  aa6e
+
+	* AUTHORS: Add author. (credits info added to web page, also)
+
+2008-05-23 14:30  fillods
+
+	* tests/rigctl_parse.c: * new command dump_conf from within rigctl
+	* DBTS #258692: '?' show all the possibilities at rigctl prompt
+
+2008-05-23 14:26  fillods
+
+	* tests/: dumpcaps.c, rigctl.1, rigctl.c, rigctl_parse.h,
+	sprintflst.h: new command dump_conf from rigctl
+
+2008-05-23 14:19  fillods
+
+	* src/mem.c: in generic save/restore chan, only process decalred
+	properties from mem_caps
+
+2008-05-23 14:14  fillods
+
+	* gs232a/: Makefile.am, gs232a.c, gs232a.h: added GS-232A rotator
+	controller
+
+2008-05-23 14:09  fillods
+
+	* include/hamlib/rotlist.h: copyright fix
+
+2008-05-23 14:09  fillods
+
+	* include/hamlib/rotlist.h, configure.ac, bindings/ignore.swg:
+	added GS-232A rotator controller
+
+2008-05-17 16:36  fillods
+
+	* bindings/Makefile.am: allow perl binding to find libhamlib in
+	src, but nuke LD_RUN_PATH, hence preventing any rpath backdoor
+
+2008-05-13 13:35  y32kn
+
+	* tests/rigmatrix.c: adapt path for model to support/model%d.txt in
+	print_caps_sum()
+
+2008-05-08 16:21  fillods
+
+	* configure.ac, tests/Makefile.am, tests/rigctld.c: do not make
+	rigctld conditional anoymore, check for winsock2 so rigctld can
+	compile on mingw32
+
+2008-05-08 12:40  fillods
+
+	* src/conf.c: check ITU region validity in
+	rig_set_conf('itu_region')
+
+2008-05-08 10:46  fillods
+
+	* tests/rigctl_parse.c: fix Debian #263478, rigctl: help sheet
+	doesn't line up
+
+2008-05-07 22:18  fillods
+
+	* flexradio/dttsp.c: prevent invalid free() in cleanup
+
+2008-05-05 21:57  fillods
+
+	* kenwood/th.c: * fix remaining places not knowing that tuning step
+	is hexadecimal * get ready for freqs higher than 31 bits * on freq
+	higher than 470MHz, tuning step of TH-F7 must be at least 10kHz *
+	fix flexible th_get_mode * added RIG_LEVEL_BALANCE/RIG_LEVEL_ATT *
+	and yes, we do want to read the transaction's reply, to know if
+	successful
+
+2008-05-04 21:47  fillods
+
+	* bindings/: pytest.py, tcltest.tcl, perltest.pl: more
+	tests/examples
+
+2008-05-04 21:42  fillods
+
+	* bindings/rig.swg: * fix/improve memory oriented methods * made
+	all methods returning strings more handy
+
+2008-05-04 21:38  fillods
+
+	* bindings/hamlib.swg: make locator/qrb/longlat functions to work
+	from bindings
+
+2008-05-04 21:36  fillods
+
+	* bindings/Makefile.am: partly fix dependencies
+
+2008-05-04 21:31  fillods
+
+	* bindings/ignore.swg: more symbols to ignore
+
+2008-05-04 21:27  fillods
+
+	* kenwood/: th.c, th.h, thf7.c: * Added th_set_ant/th_get_ant *
+	Flexible rmode_t conversion * Made th_get_channel/th_set_channel
+	more generic, esp. to work with TH-F7E * Major TH-F7E improvements
+
+2008-05-04 21:23  fillods
+
+	* kenwood/: thd7.c, tmd700.c, tmv7.c: chan_list fixes
+
+2008-05-04 21:19  fillods
+
+	* kenwood/: kenwood.c, kenwood.h: flexible rmode_t conversion,
+	detect overflow in kenwood_transaction()
+
+2008-05-04 21:16  fillods
+
+	* kenwood/: ts140.c, ts680.c: get rid of non portable %lld
+
+2008-05-04 21:15  fillods
+
+	* include/hamlib/rig.h, kenwood/thg71.c, src/misc.c: new
+	RIG_MTYPE_BAND
+
+2008-05-04 15:36  fillods
+
+	* src/: rig.c, rotator.c: default serial device on BSD systems
+
+2008-05-04 15:33  fillods
+
+	* uniden/: bc780.c, Makefile.am, bc250.c, uniden.c, uniden.h: Added
+	BC780xlt and BC250D
+
+2008-05-04 14:23  fillods
+
+	* uniden/: Makefile.am, bc245.c, bc895.c, pro2052.c, uniden.c,
+	uniden.h: Added PRO-2052, big improvement of uniden backend
+
+2008-05-04 14:11  fillods
+
+	* src/settings.c: misc comment about STRENGTH relative to S9
+
+2008-05-04 14:10  fillods
+
+	* include/hamlib/riglist.h: More Uniden and Radio Shack models
+
+2008-05-04 14:08  fillods
+
+	* dummy/dummy.c: make S-Meter jiggle randomly
+
+2008-05-01 21:30  aa6e
+
+	* tentec/orion.c: Fix serial I/O error checking
+
+2008-05-01 12:32  fillods
+
+	* include/hamlib/rig.h, src/mem.c: allow rig_lookup_mem_caps() to
+	retrieve a union of all the mem_caps sets
+
+2008-05-01 12:19  fillods
+
+	* include/hamlib/rotator.h: harmless arg name change in order to
+	ease swig work
+
+2008-04-27 09:57  fillods
+
+	* tests/rigctl_parse.c: make use of factorized rig_lookup_mem_caps
+
+2008-04-27 09:56  fillods
+
+	* tests/: dumpcaps.c, dumpmem.c, memsave.c: make use of factorized
+	rig_strmtype/rig_strptrshift
+
+2008-04-27 09:53  fillods
+
+	* kenwood/thg71.c: * Split edge range chan_list, change MTYPE of
+	PRIO
+
+2008-04-27 09:51  fillods
+
+	* src/mem.c: added rig_lookup_mem_caps() and rig_mem_count()
+
+2008-04-27 09:48  fillods
+
+	* src/misc.c: * bug fix in rig_strptrshift (+ and - were inversed,
+	ouch) * added rig_parse_mtype/rig_strmtype
+
+2008-04-27 09:46  fillods
+
+	* include/hamlib/rig.h: * added RIG_MTYPE_PRIO * added
+	rig_lookup_mem_caps/rig_mem_count and rig_strmtype/rig_parse_mtype
+	* misc change to RIG_VFO* for Swig to make them available in the
+	bindings
+
+2008-04-27 09:31  fillods
+
+	* src/misc.c: Patch from Jeff Laughlin - N1YWB Cleanup for invalid
+	code 'str != ""' all over misc.c
+
+2008-04-26 09:00  fillods
+
+	* kit/elektor507.c: url of the kit
+
+2008-04-11 22:01  fillods
+
+	* kit/Makefile.am: moved miniVNA to kit subdir
+
+2008-04-11 18:22  fillods
+
+	* configure.ac, src/Makefile.am: get ready for next round
+
+2008-04-11 18:18  fillods
+
+	* configure.ac: release 1.2.7.1
+
+2008-04-11 18:18  fillods
+
+	* ChangeLog: Release of 1.2.7.1
+
 2008-04-11 18:03  fillods
 
 	* Makefile.am, configure.ac, include/hamlib/riglist.h, kit/kit.c,
