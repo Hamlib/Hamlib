@@ -4,7 +4,7 @@
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
  *
- *	$Id: rotctld.c,v 1.5 2008-10-27 22:23:36 fillods Exp $  
+ *	$Id: rotctld.c,v 1.6 2008-11-02 12:39:36 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -256,8 +256,10 @@ int main (int argc, char *argv[])
 	 * Prepare listening socket
 	 */
 	sock_listen = socket(AF_INET, SOCK_STREAM, 0); 
-	if (sock_listen < 0) 
+	if (sock_listen < 0)  {
 		perror("ERROR opening socket");
+		exit(1);
+	}
 	memset((char *) &serv_addr, 0, sizeof(serv_addr));
 
 	serv_addr.sin_family = AF_INET;
