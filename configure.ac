@@ -72,7 +72,7 @@ AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h sys/param.h unistd.h getopt.h e
 AC_CHECK_HEADERS([sys/ioccom.h sgtty.h term.h termio.h termios.h])
 AC_CHECK_HEADERS([linux/ppdev.h linux/parport.h linux/ioctl.h])
 AC_CHECK_HEADERS([dev/ppbus/ppi.h dev/ppbus/ppbconf.h])
-AC_CHECK_HEADERS([sys/socket.h netinet/in.h arpa/inet.h ws2tcpip.h])
+AC_CHECK_HEADERS([sys/socket.h netinet/in.h netdb.h arpa/inet.h ws2tcpip.h])
 
 dnl Check for Mingw support
 GR_PWIN32
@@ -143,7 +143,15 @@ AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main,
 AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(ws2_32, main, 
 				[NET_LIBS="$NET_LIBS -lws2_32"], [], []))
 LIBS="$LIBS $NET_LIBS"
-AC_CHECK_FUNCS(getaddrinfo)
+AC_CHECK_FUNCS(getaddrinfo gai_strerror)
+AC_CHECK_TYPES([struct addrinfo],[],[],[
+		#ifdef HAVE_NETDB_H
+		#include <netdb.h>
+		#endif
+		#ifdef HAVE_WS2TCPIP_H
+		#include <ws2tcpip.h>
+		#endif
+		])
 
 LIBS=$hl_oldLibs
 AC_SUBST(NET_LIBS)
@@ -398,6 +406,8 @@ AC_SUBST(GNURADIO_LIBS)
 
 PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, , 
 		  [AC_MSG_WARN([libusb pkg-config not found, USB backends will be disabled])])
+CFLAGS="${CFLAGS} ${LIBUSB_CFLAGS}"
+CXXFLAGS="${CXXFLAGS} ${LIBUSB_CFLAGS}"
 AC_CHECK_HEADERS([usb.h])
 AC_MSG_CHECKING(whether to build USB backends)
 if test x"${LIBUSB_LIBS}" = x; then
