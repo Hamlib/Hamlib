@@ -2,7 +2,7 @@
  *  Hamlib Interface - network communication low-level support
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: network.c,v 1.4 2008-10-31 07:51:46 fillods Exp $
+ *	$Id: network.c,v 1.5 2008-11-02 12:42:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,8 +30,8 @@
  * \file network.c
  */
 
-/* needed for getaddrinfo, will not work with Win95/Win98 */
-#define WINVER 0x0501
+/* Forcing WINVER in MinGW yanks in getaddrinfo(), but locks out Win95/Win98 */
+/* #define WINVER 0x0501 */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -52,7 +52,9 @@
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#include <netdb.h>	/* TODO */
+#endif
+#if HAVE_NETDB_H
+#include <netdb.h>
 #endif
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
@@ -63,10 +65,74 @@
 #include <ws2tcpip.h>
 #endif
 
-
 #include "hamlib/rig.h"
 #include "network.h"
 #include "misc.h"
+
+
+#ifndef HAVE_STRUCT_ADDRINFO
+struct addrinfo {
+	int ai_family;
+	int ai_socktype;
+	int ai_protocol;
+	struct sockaddr *ai_addr;
+	socklen_t ai_addrlen;
+};
+#endif
+
+/*
+ * Replacement for getaddrinfo. Only one addrinfo is returned.
+ * Weak checking.
+ */
+#ifndef HAVE_GETADDRINFO
+static int getaddrinfo(const char *node, const char *service,
+	const struct addrinfo *hints, struct addrinfo **res)
+{
+	struct addrinfo *p;
+
+	p = malloc(sizeof(struct addrinfo));
+	if (!p)
+		return ENOMEM;
+	/* limitation: this replacement function only for IPv4 */
+	if (hints && hints->ai_family != AF_INET)
+		return EINVAL;
+	memset(p, 0, sizeof(struct addrinfo));
+	p->ai_family = hints->ai_family;
+	p->ai_socktype = hints->ai_socktype;
+	p->ai_protocol = hints->ai_protocol;
+	p->ai_addrlen = sizeof(struct sockaddr_in);
+	p->ai_addr = malloc(p->ai_addrlen);
+	if (!p->ai_addr) {
+		free(p);
+		return ENOMEM;
+	}
+	memset((char *) p->ai_addr, 0, p->ai_addrlen);
+
+	((struct sockaddr_in*)p->ai_addr)->sin_family = p->ai_family;
+	/* limitation: the service must be a port _number_ */
+	((struct sockaddr_in*)p->ai_addr)->sin_port = htons(atoi(service));
+	/* limitation: the node must be in numbers-and-dots notation */
+	((struct sockaddr_in*)p->ai_addr)->sin_addr.s_addr = inet_addr(node);
+
+	*res = p;
+	
+	return 0;
+}
+
+static void freeaddrinfo(struct addrinfo *res)
+{
+	free(res->ai_addr);
+	free(res);
+}
+#endif /* !HAVE_GETADDRINFO */
+
+#if !defined(HAVE_GAI_STRERROR) && !defined(gai_strerror)
+static const char *gai_strerror(int errcode)
+{
+	return strerror(errcode);
+}
+#endif /* !HAVE_GAI_STRERROR */
+
 
 /**
  * \brief Open network port using rig.state data
@@ -79,7 +145,6 @@
  */
 int network_open(hamlib_port_t *rp, int default_port)
 {
-#ifdef HAVE_GETADDRINFO
 	int fd;				/* File descriptor for the port */
 	int status;
 	struct addrinfo hints, *res;
@@ -137,9 +202,6 @@ int network_open(hamlib_port_t *rp, int default_port)
 	rp->fd = fd;
 
 	return RIG_OK;
-#else
-	return -RIG_ENAVAIL;
-#endif
 }
 
 /** @} */
