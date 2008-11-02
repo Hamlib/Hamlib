@@ -2,7 +2,7 @@
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: riglist.h,v 1.72 2008-10-31 22:20:40 fillods Exp $
+ *	$Id: riglist.h,v 1.73 2008-11-02 12:45:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -445,6 +445,7 @@
 #define RIG_MODEL_DDS60 RIG_MAKE_MODEL(RIG_KIT, 6)
 #define RIG_MODEL_ELEKTOR507 RIG_MAKE_MODEL(RIG_KIT, 7)	/* Elektor SDR USB */
 #define RIG_MODEL_MINIVNA RIG_MAKE_MODEL(RIG_KIT, 8)
+#define RIG_MODEL_SI570AVRUSB RIG_MAKE_MODEL(RIG_KIT, 9) /* SoftRock Si570 */
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
