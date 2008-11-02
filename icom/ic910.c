@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.14 2008-10-25 08:51:43 y32kn Exp $
+ *      $Id: ic910.c,v 1.15 2008-11-02 16:14:57 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -314,15 +314,10 @@ const struct rig_caps ic910_caps = {
     RIG_TS_END, },
     /* mode/filter list, remember: order matters! */
 .filters =     {
-    {RIG_MODE_CW, kHz(2.3)},   /* builtin */
-    {RIG_MODE_CW, Hz(600)},   /* builtin */
-    {RIG_MODE_CW, kHz(2.3)},   /* builtin */
-    {RIG_MODE_SSB, kHz(2.3)},
-    {RIG_MODE_SSB, kHz(2.3)},
-    {RIG_MODE_SSB, kHz(2.3)},
-    {RIG_MODE_FM, kHz(15)},                 /* builtin */
-    {RIG_MODE_FM, kHz(6)},                 /* builtin */
-    {RIG_MODE_FM, kHz(15)},                 /* builtin */
+    {RIG_MODE_CW | RIG_MODE_SSB, kHz(2.3)},     /* builtin */
+    {RIG_MODE_CW, Hz(600)},                     /* with optional FL-132/Fl133 CW filters */
+    {RIG_MODE_FM, kHz(15)},                     /* builtin */
+    {RIG_MODE_FM, kHz(6)},                      /* builtin */
      RIG_FLT_END, },
 .str_cal = IC910_STR_CAL,
 
