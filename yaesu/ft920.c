@@ -3,7 +3,7 @@
  *
  * ft920.c - (C) Frank Singleton 2000 (javabear at users.sourceforge.net)
  *           (C) Nate Bargmann 2002-2005 (n0nb at arrl.net)
- *           (C) Stephane Fillod 2002-2005 (fillods at users.sourceforge.net)
+ *           (C) Stephane Fillod 2002-2008 (fillods at users.sourceforge.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-920 using the "CAT" interface
@@ -12,7 +12,7 @@
  * pages 86 to 90
  *
  *
- * $Id: ft920.c,v 1.25 2008-10-28 05:22:38 y32kn Exp $
+ * $Id: ft920.c,v 1.26 2008-11-02 14:53:25 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -148,7 +148,7 @@ const struct rig_caps ft920_caps = {
     .rig_model =        RIG_MODEL_FT920,
     .model_name =       "FT-920",
     .mfg_name =         "Yaesu",
-    .version =          "0.3.3",
+    .version =          "0.3.4",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
