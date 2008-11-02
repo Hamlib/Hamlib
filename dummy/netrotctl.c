@@ -2,7 +2,7 @@
  *  Hamlib Netrotctl backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: netrotctl.c,v 1.2 2008-10-27 22:23:36 fillods Exp $
+ *	$Id: netrotctl.c,v 1.3 2008-11-02 17:32:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -119,6 +119,9 @@ static int netrotctl_open(ROT *rot)
 static int netrotctl_close(ROT *rot)
 {
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+
+  /* clean signoff, no read back */
+  write_block(&rot->state.rotport, "q\n", 2);
 
   return RIG_OK;
 }

@@ -2,7 +2,7 @@
  *  Hamlib Netrigctl backend - main file
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: netrigctl.c,v 1.2 2008-10-27 22:23:36 fillods Exp $
+ *	$Id: netrigctl.c,v 1.3 2008-11-02 17:32:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -277,6 +277,9 @@ gran_t parm_gran[RIG_SETTING_MAX];    /*!< parm granularity */
 static int netrigctl_close(RIG *rig)
 {
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+
+  /* clean signoff, no read back */
+  write_block(&rig->state.rigport, "q\n", 2);
 
   return RIG_OK;
 }
