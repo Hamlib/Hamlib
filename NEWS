@@ -1,8 +1,26 @@
 Hamlib -- History of visible changes.
 
-Copyright (C) 2000-2008  Stephane Fillod, Frank Singleton and others
+Copyright (C) 2000-2003  Frank Singleton
+Copyright (C) 2000-2008  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
+
+Version 1.2.8
+	2008-11-02
+	* New models: BC235, BC250, BC780, PRO-2052,
+		BCD396T, BCD996T, K3, FT950
+	* New pseudo models: netrigctl/netrotctl, backends ala rpcrig/rpcrot,
+		but based on rigctld/rotctld
+	* New rotator backend: GS232A, PcRotor
+	* Removed microtune backend
+	* Fixes: DttSP, IC-275, IC-475, IC-725, IC-735, IC-756PRO, IC-761,
+		IC-775, IC-781, IC-706*, Kenwood TH/TM models, Orion,
+		BC245, BC895, FT-100, FT757GX, FT-857, FT-897, FT-920
+	* Numerous bindings fixes, esp. for memory channel works
+	* New commands available in rigctl
+	* New rotctld to go with rigctld rig daemon.
+		The protocol changed, but there's the compatibility
+		option -e to pass to the daemon for previous protocol.
 
 Version 1.2.7.1
 	2008-04-11
