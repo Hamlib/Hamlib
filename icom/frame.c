@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.32 2007-01-27 23:50:12 n0nb Exp $
+ *	$Id: frame.c,v 1.33 2008-11-02 16:26:55 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -398,7 +398,7 @@ void icom2rig_mode(RIG *rig, unsigned char md, int pd, rmode_t *mode, pbwidth_t 
 
 	if (rig->caps->rig_model == RIG_MODEL_IC706MKIIG ||
             rig->caps->rig_model == RIG_MODEL_IC706 ||
-            rig->caps->rig_model ==  RIG_MODEL_IC706MKII) pd--;
+            rig->caps->rig_model ==  RIG_MODEL_IC706MKII) pd++;
 	
 	switch (pd) {
 		case 0x01: 
