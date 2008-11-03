@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.6 2008-11-01 22:39:07 fillods Exp $
+ * $Id: newcat.c,v 1.7 2008-11-03 21:53:28 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1859,8 +1859,6 @@ int newcat_get_channel(RIG * rig, channel_t * chan)
 
 const char *newcat_get_info(RIG * rig)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
