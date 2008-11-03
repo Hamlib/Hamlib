@@ -2,13 +2,12 @@
  * hamlib - (C) Frank Singleton 2000,2001 (vk3fcs@ix.netcom.com)
  *
  * ft847.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *           (C) Stephane Fillod 2000-2008
+ *
  * This shared library provides an API for communicating
  * via serial interface to an FT-847 using the "CAT" interface.
  *
- *
- * $Id: ft847.c,v 1.31 2006-10-07 15:51:38 csete Exp $  
- *
- *
+ * $Id: ft847.c,v 1.32 2008-11-03 20:45:19 fillods Exp $  
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -58,6 +57,7 @@
 #include "yaesu.h"
 #include "ft847.h"
 #include "misc.h"
+#include "bandplan.h"
 
 /* prototypes */
 
@@ -171,7 +171,21 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT847_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define FT847_AM_TX_MODES (RIG_MODE_AM)
 
-#define FT847_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
+#define FT847_FUNC_ALL RIF_FUNC_NONE /* none available through CAT */
+
+#define FT847_LEVEL_ALL (RIG_LEVEL_RAWSTR)
+
+#define FT847_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB)
+
+/* FT-847 has different antennas connectors, but no rig_set_ant() ability */
+#define FT847_ANTS RIG_ANT_1
+
+#define FT847_STR_CAL { 3, \
+	{ \
+		{   0, -60 }, /* S0 */ \
+		{  16,   0 }, /* S9 */ \
+		{  31,  60 }, /* +60 dB */ \
+	} }
 
 /*
  * ft847 rigs capabilities.
@@ -179,12 +193,11 @@ static const yaesu_cmd_set_t ncmd[] = {
  * Also this struct is READONLY!
  */
 
-
 const struct rig_caps ft847_caps = {
 .rig_model =  RIG_MODEL_FT847,
 .model_name = "FT-847", 
 .mfg_name =  "Yaesu", 
-.version =  "0.2", 
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -203,8 +216,8 @@ const struct rig_caps ft847_caps = {
 .retry =  0, 
 
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  FT847_FUNC_ALL, 
-.has_get_level =  RIG_LEVEL_NONE,	/* FIXME! */
+.has_set_func =  RIG_FUNC_NONE, /* none available through CAT */
+.has_get_level =  FT847_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
@@ -212,20 +225,42 @@ const struct rig_caps ft847_caps = {
 .parm_gran =  {},
 .ctcss_list =  NULL,	/* FIXME: CTCSS/DCS list */
 .dcs_list =  NULL,
-.preamp =   { RIG_DBLST_END, },	/* FIXME! */
+.preamp =   { RIG_DBLST_END, },	/* no preamp/att in CAT */
 .attenuator =   { RIG_DBLST_END, },
-.max_rit =  Hz(9999),
+.max_rit =  Hz(0),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
-.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.targetable_vfo =  RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
 .transceive =  RIG_TRN_OFF,
 .bank_qty =   0,
 .chan_desc_sz =  0,
+.str_cal = FT847_STR_CAL,
 
-.chan_list =  { RIG_CHAN_END, },	/* FIXME: memory chan list: 78 */
+.chan_list =  { RIG_CHAN_END, }, /* FIXME: memory chan list: 78, but only in clonable mode? */
 
-.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list1 =  {
+    {kHz(100),MHz(30),FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
+    {MHz(36),MHz(76),FT847_ALL_RX_MODES,-1,-1},
+    {MHz(108),MHz(174),FT847_ALL_RX_MODES,-1,-1},
+    {MHz(420),MHz(512),FT847_ALL_RX_MODES,-1,-1},
+
+    RIG_FRNG_END, }, /* rx range end */
+
+.tx_range_list1 =  {
+    FRQ_RNG_HF(1,FT847_OTHER_TX_MODES, W(5),W(100),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_HF(1,FT847_AM_TX_MODES, W(1),W(25),FT847_VFOS,FT847_ANTS),
+
+    FRQ_RNG_6m(2,FT847_OTHER_TX_MODES, W(5),W(100),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_6m(2,FT847_AM_TX_MODES, W(1),W(25),FT847_VFOS,FT847_ANTS),
+
+    FRQ_RNG_2m(2,FT847_OTHER_TX_MODES, W(1),W(50),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_2m(2,FT847_AM_TX_MODES, W(1),W(12.5),FT847_VFOS,FT847_ANTS),
+
+    FRQ_RNG_70cm(2,FT847_OTHER_TX_MODES, W(1),W(50),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_70cm(2,FT847_AM_TX_MODES, W(1),W(12.5),FT847_VFOS,FT847_ANTS),
+
+    RIG_FRNG_END, }, /* tx range end */
+
 .rx_range_list2 =  
   { {kHz(100),MHz(30),FT847_ALL_RX_MODES,-1,-1}, /* rx range begin */
     {MHz(36),MHz(76),FT847_ALL_RX_MODES,-1,-1},
@@ -235,41 +270,18 @@ const struct rig_caps ft847_caps = {
     RIG_FRNG_END, }, /* rx range end */
 
 .tx_range_list2 = 
-  { {MHz(1.8),1999999,FT847_OTHER_TX_MODES,W(5),W(100)},	/* 5-100W class */
-    {MHz(1.8),1999999,FT847_AM_TX_MODES,W(1),W(25)},	/* 1-25W class */
+  {
+    FRQ_RNG_HF(2,FT847_OTHER_TX_MODES, W(5),W(100),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_HF(2,FT847_AM_TX_MODES, W(1),W(25),FT847_VFOS,FT847_ANTS),
 
-    {MHz(3.5),3999999,FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(3.5),3999999,FT847_AM_TX_MODES,W(1),W(25)},
+    FRQ_RNG_6m(2,FT847_OTHER_TX_MODES, W(5),W(100),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_6m(2,FT847_AM_TX_MODES, W(1),W(25),FT847_VFOS,FT847_ANTS),
 
-    {MHz(7),MHz(7.3),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(7),MHz(7.3),FT847_AM_TX_MODES,W(1),W(25)},
+    FRQ_RNG_2m(2,FT847_OTHER_TX_MODES, W(1),W(50),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_2m(2,FT847_AM_TX_MODES, W(1),W(12.5),FT847_VFOS,FT847_ANTS),
 
-    {MHz(10),MHz(10.150),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(10),MHz(10.150),FT847_AM_TX_MODES,W(1),W(25)},
-
-    {MHz(14),MHz(14.350),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(14),MHz(14.350),FT847_AM_TX_MODES,W(1),W(25)},
-
-    {MHz(18.068),MHz(18.168),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(18.068),MHz(18.168),FT847_AM_TX_MODES,W(1),W(25)},
-
-    {MHz(21),MHz(21.450),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(21),MHz(21.450),FT847_AM_TX_MODES,W(1),W(25)},
-
-    {MHz(24.890),MHz(24.990),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(24.890),MHz(24.990),FT847_AM_TX_MODES,W(1),W(25)},
-
-    {MHz(28),MHz(29.7),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(28),MHz(29.7),FT847_AM_TX_MODES,W(1),W(25)},
-
-    {MHz(50),MHz(54),FT847_OTHER_TX_MODES,W(5),W(100)},
-    {MHz(50),MHz(54),FT847_AM_TX_MODES,W(1),W(25)},
-
-    {MHz(144),MHz(148),FT847_OTHER_TX_MODES,W(1),W(50)}, 
-    {MHz(144),MHz(148),FT847_AM_TX_MODES,W(1),W(12.5)}, 
-
-    {MHz(430),MHz(440),FT847_OTHER_TX_MODES,W(1),W(50)}, /* check range */
-    {MHz(430),MHz(440),FT847_AM_TX_MODES,W(1),W(12.5)},
+    FRQ_RNG_70cm(2,FT847_OTHER_TX_MODES, W(1),W(50),FT847_VFOS,FT847_ANTS),
+    FRQ_RNG_70cm(2,FT847_AM_TX_MODES, W(1),W(12.5),FT847_VFOS,FT847_ANTS),
 
     RIG_FRNG_END, },
 
