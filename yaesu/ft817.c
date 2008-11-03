@@ -11,7 +11,7 @@
  * copied back and adopted for the FT-817.
  *
  *
- *    $Id: ft817.c,v 1.17 2008-10-31 22:25:38 fillods Exp $  
+ *    $Id: ft817.c,v 1.18 2008-11-03 20:48:09 csete Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -168,7 +168,7 @@ const struct rig_caps ft817_caps = {
 	.rig_model =           RIG_MODEL_FT817,
 	.model_name =          "FT-817",
 	.mfg_name =            "Yaesu",
-	.version =             "0.4",
+	.version =             "0.5",
 	.copyright =           "LGPL",
 	.status =              RIG_STATUS_BETA,
 	.rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -597,7 +597,7 @@ static int ft817_get_pometer_level(RIG *rig, value_t *val)
 	return RIG_OK;
 }
 
-#if 0
+
 /* frontend will always use RAWSTR+cal_table */
 static int ft817_get_smeter_level(RIG *rig, value_t *val)
 {
@@ -624,7 +624,7 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
     n = (p->rx_status & 0x0F);
     
     if (n < 0x0A) {
-        n = (6*n)-54;
+        val->i = (6*n)-54;
     }
     else {
         val->i = 10*(n-9);
@@ -632,7 +632,7 @@ static int ft817_get_smeter_level(RIG *rig, value_t *val)
 
 	return RIG_OK;
 }
-#endif
+
 
 static int ft817_get_raw_smeter_level(RIG *rig, value_t *val)
 {
@@ -657,15 +657,17 @@ int ft817_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 
 	case RIG_LEVEL_STRENGTH:
-        /* The front-end will always call for RAWSTR and use the cal_table
+        /* The front-end will always call for RAWSTR and use the cal_table */
 		return ft817_get_smeter_level(rig, val);
-        */
+        break;
 
 	case RIG_LEVEL_RAWSTR:
 		return ft817_get_raw_smeter_level(rig, val);
+        break;
 
 	case RIG_LEVEL_RFPOWER:
 		return ft817_get_pometer_level(rig, val);
+        break;
 
 	default:
 		return -RIG_EINVAL;
