@@ -21,7 +21,7 @@
 /*-------------------------------------------------------------------------
 |   rxtx is a native interface to serial ports in java.
 |   Copyright 1997-2002 by Trent Jarvi taj@www.linux.org.uk.
-|   Copyright 1998-2002 by Wayne roberts wroberts1@home.com
+|   Copyright 1997-2006 by Trent Jarvi taj@www.linux.org.uk.
 |
 |   This library is free software; you can redistribute it and/or
 |   modify it under the terms of the GNU Library General Public
@@ -40,7 +40,7 @@
 |   License along with this library; if not, write to the Free
 |   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 |
-| This file was taken from rxtx-2.1-7pre16 and adaptated for Hamlib.
+| This file was taken from rxtx-2.1-7 and adaptated for Hamlib.
 --------------------------------------------------------------------------*/
 #include <windows.h>
 #include <stdio.h>
@@ -104,9 +104,20 @@ int win32_serial_test( char * filename )
 	int ret;
 	hcomm = CreateFile( filename, GENERIC_READ |GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0 );
 	if ( hcomm == INVALID_HANDLE_VALUE )
-		ret = 0;
+	{
+		if (GetLastError() == ERROR_ACCESS_DENIED)
+		{
+			ret = 1;
+		}
+		else
+		{
+			ret = 0;
+		}
+	}
 	else
+	{
 		ret = 1;
+	}
 	CloseHandle( hcomm );
 	return(ret);
 }
@@ -303,24 +314,15 @@ int CBR_to_B( int Baud )
 		case CBR_2400:		return( B2400 );
 		case CBR_4800:		return( B4800 );
 		case CBR_9600:		return( B9600 );
+		case CBR_14400:		return( B14400 );
 		case CBR_19200:		return( B19200 );
 		case CBR_28800:		return( B28800 );
 		case CBR_38400:		return( B38400 );
 		case CBR_57600:		return( B57600 );
 		case CBR_115200:	return( B115200 );
-		/*  14400, 128000 and 256000 are windows specific but need to
-		 *  work.
-		 *  hosed on my hardware....
-		 */
-		case CBR_14400:		return( B14400 );
 		case CBR_128000:	return( B128000 );
-		case CBR_256000:	return( B256000 );
-
-		/*  The following could be used on linux and should be able to
-		 *  work on windows if we get control of baud/divisor.
-		 */
-
 		case CBR_230400:	return( B230400 );
+		case CBR_256000:	return( B256000 );
 		case CBR_460800:	return( B460800 );
 		case CBR_500000:	return( B500000 );
 		case CBR_576000:	return( B576000 );
@@ -370,21 +372,13 @@ int B_to_CBR( int Baud )
 		case B2400:	ret = CBR_2400;		break;
 		case B4800:	ret = CBR_4800;		break;
 		case B9600:	ret = CBR_9600;		break;
+		case B14400:	ret = CBR_14400;	break;
 		case B19200:	ret = CBR_19200;	break;
 		case B38400:	ret = CBR_38400;	break;
 		case B57600:	ret = CBR_57600;	break;
 		case B115200:	ret = CBR_115200;	break;
-
-		/*  14400, 128000 and 256000 are windows specific but need to
-		 *  work.
-		 */
-		case B14400:	ret = CBR_14400;	break;
 		case B128000:	ret = CBR_128000;	break;
 		case B256000: 	ret = CBR_256000;	break;
-
-		/*  The following could be used on linux and should be able to
-		 *  work on windows if we get control of baud/divisor.
-		 */
 		case B230400:	ret = CBR_230400;	break;
 		case B460800:	ret = CBR_460800;	break;
 		case B500000:	ret = CBR_500000;	break;
@@ -624,7 +618,7 @@ int win32_serial_close( int fd )
 	struct termios_list *index;
 	/* char message[80]; */
 
-	ENTER( "close" );
+	ENTER( "serial_close" );
 	if( !first_tl || !first_tl->hComm )
 	{
 		report( "gotit!" );
@@ -633,7 +627,7 @@ int win32_serial_close( int fd )
 	index = find_port( fd );
 	if ( !index )
 	{
-		LEAVE( "close" );
+		LEAVE( "serial_close" );
 		return -1;
 	}
 
@@ -650,7 +644,7 @@ int win32_serial_close( int fd )
 	}
 	else
 	{
-		sprintf( message, "close():  Invalid Port Reference for %s\n",
+		sprintf( message, "serial_ close():  Invalid Port Reference for %s\n",
 			index->filename );
 		report( message );
 	}
@@ -686,7 +680,7 @@ int win32_serial_close( int fd )
 		*/
 		free( index );
 	}
-	LEAVE( "close" );
+	LEAVE( "serial_close" );
 	return 0;
 }
 
@@ -881,7 +875,7 @@ int open_port( struct termios_list *port )
 		YACK();
 		set_errno( EINVAL );
 /*
-		printf( "open failed %s\n", port->filename );
+		printf( "serial_open failed %s\n", port->filename );
 */
 		return -1;
 	}
@@ -1188,7 +1182,7 @@ int win32_serial_open( const char *filename, int flags, ... )
 	index = add_port( filename );
 	if( !index )
 	{
-		report( "open !index\n" );
+		report( "serial_open !index\n" );
 		return( -1 );
 	}
 	
@@ -1196,17 +1190,17 @@ int win32_serial_open( const char *filename, int flags, ... )
 	index->tx_happened = 0;
 	if ( open_port( index ) )
 	{
-		sprintf( message, "open():  Invalid Port Reference for %s\n",
+		sprintf( message, "serial_open():  Invalid Port Reference for %s\n",
 			filename );
 		report( message );
-		close( index->fd );
+		win32_serial_close( index->fd );
 		return -1;
 	}
 
 	if( check_port_capabilities( index ) )
 	{
 		report( "check_port_capabilites!" );
-		close( index->fd );
+		win32_serial_close( index->fd );
 		return -1;
 	}
 
@@ -1253,7 +1247,7 @@ int win32_serial_write( int fd, const char *Str, int length )
 {
 	unsigned long nBytes;
 	struct termios_list *index;
-	//COMSTAT Stat;
+	/* COMSTAT Stat; */
 	int old_flag;
 
 	ENTER( "serial_write" );
@@ -1281,9 +1275,9 @@ int win32_serial_write( int fd, const char *Str, int length )
 		WaitForSingleObject( index->wol.hEvent,100 );
 		if ( GetLastError() != ERROR_IO_PENDING )
 		{
-			//ClearErrors( index, &Stat );
+			/* ClearErrors( index, &Stat ); */
 			report( "serial_write error\n" );
-			//report("Condition 1 Detected in write()\n");
+			/* report("Condition 1 Detected in write()\n"); */
 			YACK();
 			errno = EIO;
 			nBytes=-1;
@@ -1295,30 +1289,28 @@ int win32_serial_write( int fd, const char *Str, int length )
 		{
 			if ( GetLastError() != ERROR_IO_INCOMPLETE )
 			{
-				//report("Condition 2 Detected in write()\n");
+				/* report("Condition 2 Detected in write()\n"); */
 				YACK();
 				errno = EIO;
 				nBytes = -1;
 				goto end;
-				//ClearErrors( index, &Stat );
+				/* ClearErrors( index, &Stat ); */
 			}
 		}
 	}
 	else
 	{
-		//ClearErrors( index, &Stat );
-		//report("Condition 3 Detected in write()\n");
-		YACK();
-		errno = EIO;
-		//report( "serial_write bailing!\n" );
-		return(-1);
+		/* Write finished synchronously.  That is ok!
+		 * I have seen this with USB to Serial
+		 * devices like TI's.
+		 */
 	}
 end:
 	/* FlushFileBuffers( index->hComm ); */
 	index->event_flag |= EV_TXEMPTY;
-	//ClearErrors( index, &Stat );
+	/* ClearErrors( index, &Stat ); */
 	SetCommMask( index->hComm, index->event_flag );
-	//ClearErrors( index, &Stat );
+	/* ClearErrors( index, &Stat ); */
 	index->event_flag = old_flag;
 	index->tx_happened = 1; 
 	LEAVE( "serial_write" );
@@ -1418,7 +1410,7 @@ int win32_serial_read( int fd, void *vb, int size )
 	while ( size > 0 )
 	{
 		nBytes = 0;
-		//ret = ClearErrors( index, &stat);
+		/* ret = ClearErrors( index, &stat); */
 
 		index->rol.Offset = index->rol.OffsetHigh = 0;
 		ResetEvent( index->rol.hEvent );
@@ -1592,7 +1584,7 @@ int win32_serial_read( int fd, void *vb, int size )
 	while ( size > 0 )
 	{
 		nBytes = 0;
-		//ret = ClearErrors( index, &Stat);
+		/* ret = ClearErrors( index, &Stat); */
 
 		index->rol.Offset = index->rol.OffsetHigh = 0;
 		ResetEvent( index->rol.hEvent );
@@ -2258,7 +2250,6 @@ int tcsetattr( int fd, int when, struct termios *s_termios )
 	DCB dcb;
 	COMMTIMEOUTS timeouts;
 	struct termios_list *index;
-	char message[80];
 
 	ENTER( "tcsetattr" );
 	if ( fd <= 0 )
@@ -2734,7 +2725,16 @@ int win32_serial_ioctl( int fd, int request, ... )
 
 	va_start( ap, request );
 	
-	ClearErrors( index, &Stat );
+	ret = ClearErrors( index, &Stat );
+	if (ret == 0)
+	{
+		set_errno( EBADFD );
+		YACK();
+		report( "ClearError Failed! ernno EBADFD" );
+		arg = va_arg( ap, int * );
+		va_end( ap );
+		return -1;		
+	}
 	switch( request )
 	{
 		case TCSBRK:
@@ -3030,7 +3030,7 @@ int win32_serial_ioctl( int fd, int request, ... )
 				printf( "---------------overrun\n" );
 */
 				sistruct->overrun = index->sis->overrun;
-				//ErrCode &= ~CE_OVERRUN;
+				/* ErrCode &= ~CE_OVERRUN; */
 			}
 			if( sistruct->parity != index->sis->parity )
 			{
