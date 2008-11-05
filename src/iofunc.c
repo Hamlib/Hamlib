@@ -2,7 +2,7 @@
  *  Hamlib Interface - generic file based io functions
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: iofunc.c,v 1.19 2008-10-27 22:20:21 fillods Exp $
+ *	$Id: iofunc.c,v 1.20 2008-11-05 23:07:38 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -50,9 +50,58 @@
 
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #include "win32termios.h"
-#define read win32_serial_read
-#define write win32_serial_write
-#define select win32_serial_select
+
+/* On MinGW32/MSVC/.. the appropriate accessor must be used
+ * depending on the port type, sigh.
+ */
+static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
+{
+  if (p->type.rig == RIG_PORT_SERIAL)
+	return win32_serial_read(p->fd, buf, count);
+  else if (p->type.rig == RIG_PORT_NETWORK)
+	return recv(p->fd, buf, count, 0);
+  else
+	return read(p->fd, buf, count);
+}
+
+static ssize_t port_write(hamlib_port_t *p, const void *buf, size_t count)
+{
+  if (p->type.rig == RIG_PORT_SERIAL)
+	return win32_serial_write(p->fd, buf, count);
+  else if (p->type.rig == RIG_PORT_NETWORK)
+	return send(p->fd, buf, count, 0);
+  else
+	return write(p->fd, buf, count);
+}
+
+static int port_select(hamlib_port_t *p, int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+{
+#if 1
+  /* select does not work very well with writefds/exceptfds
+   * So let's pretend there's none of them
+   */
+  if (exceptfds)
+ 	FD_ZERO(exceptfds);
+  if (writefds)
+ 	FD_ZERO(writefds);
+  writefds = NULL;
+  exceptfds = NULL;
+#endif
+
+  if (p->type.rig == RIG_PORT_SERIAL)
+	return win32_serial_select(n, readfds, writefds, exceptfds, timeout);
+  else
+	return select(n, readfds, writefds, exceptfds, timeout);
+}
+
+
+#else
+
+/* POSIX */
+#define port_read(p,b,c) read((p)->fd,(b),(c))
+#define port_write(p,b,c) write((p)->fd,(b),(c))
+#define port_select(p,n,r,w,e,t) select((n),(r),(w),(e),(t))
+
 #endif
 
 /**
@@ -110,7 +159,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
 
   if (p->write_delay > 0) {
   	for (i=0; i < count; i++) {
-		ret = write(p->fd, txbuffer+i, 1);
+		ret = port_write(p, txbuffer+i, 1);
 		if (ret != 1) {
 			rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n", 
 				__FUNCTION__, __LINE__, ret, strerror(errno));
@@ -119,7 +168,7 @@ int HAMLIB_API write_block(hamlib_port_t *p, const char *txbuffer, size_t count)
     	usleep(p->write_delay*1000);
   	}
   } else {
-	ret = write(p->fd, txbuffer, count);
+	ret = port_write(p, txbuffer, count);
 	if (ret != count) {
 		rig_debug(RIG_DEBUG_ERR,"%s():%d failed %d - %s\n", 
 			__FUNCTION__, __LINE__, ret, strerror(errno));
@@ -189,7 +238,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 	FD_SET(p->fd, &rfds);
 	efds = rfds;
 
-	retval = select(p->fd+1, &rfds, NULL, &efds, &tv);
+	retval = port_select(p, p->fd+1, &rfds, NULL, &efds, &tv);
 	if (retval == 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
 		rig_debug(RIG_DEBUG_WARN, "read_block: timedout after %d chars\n",
@@ -212,7 +261,7 @@ int HAMLIB_API read_block(hamlib_port_t *p, char *rxbuffer, size_t count)
 	 * grab bytes from the rig
 	 * The file descriptor must have been set up non blocking.
 	 */
-	rd_count = read(p->fd, rxbuffer+total_count, count);
+	rd_count = port_read(p, rxbuffer+total_count, count);
 	if (rd_count < 0) {
 		rig_debug(RIG_DEBUG_ERR, "read_block: read failed - %s\n",
 							strerror(errno));
@@ -274,7 +323,7 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
 	FD_SET(p->fd, &rfds);
 	efds = rfds;
 
-	retval = select(p->fd+1, &rfds, NULL, &efds, &tv);
+	retval = port_select(p, p->fd+1, &rfds, NULL, &efds, &tv);
         if (retval == 0)    /* Timed out */
             break;
 
@@ -284,7 +333,6 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
                                   __FUNCTION__, total_count, strerror(errno));
 		return -RIG_EIO;
 	}
-
 	if (FD_ISSET(p->fd, &efds)) {
 		rig_debug(RIG_DEBUG_ERR, "%s: fd error after %d chars\n", 
                                   __FUNCTION__, total_count);
@@ -295,7 +343,7 @@ int HAMLIB_API read_string(hamlib_port_t *p, char *rxbuffer, size_t rxmax, const
        	 * read 1 character from the rig, (check if in stop set)
 	 * The file descriptor must have been set up non blocking.
 	 */
-        rd_count = read(p->fd, &rxbuffer[total_count], 1);
+        rd_count = port_read(p, &rxbuffer[total_count], 1);
 	if (rd_count < 0) {
 		dump_hex((unsigned char *) rxbuffer, total_count);
 		rig_debug(RIG_DEBUG_ERR, "%s: read failed - %s\n",__FUNCTION__,
