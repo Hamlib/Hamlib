@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.24 2008-09-23 22:02:39 fillods Exp $
+ *	$Id: rotator.c,v 1.25 2008-11-05 23:02:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -234,7 +234,7 @@ ROT * HAMLIB_API rot_init(rot_model_t rot_model)
 	break;
 
 	case RIG_PORT_NETWORK:
-	strncpy(rs->rotport.pathname, "localhost:4533", FILPATHLEN);
+	strncpy(rs->rotport.pathname, "127.0.0.1:4533", FILPATHLEN);
 	break;
 
 	default:
@@ -409,6 +409,9 @@ int HAMLIB_API rot_close(ROT *rot)
 			break;
 		case RIG_PORT_USB:
 			usb_port_close(&rs->rotport);
+			break;
+		case RIG_PORT_NETWORK:
+			network_close(&rs->rotport);
 			break;
 		default:
 			close(rs->rotport.fd);

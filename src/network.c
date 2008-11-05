@@ -2,7 +2,7 @@
  *  Hamlib Interface - network communication low-level support
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: network.c,v 1.5 2008-11-02 12:42:45 fillods Exp $
+ *	$Id: network.c,v 1.6 2008-11-05 23:02:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -134,6 +134,10 @@ static const char *gai_strerror(int errcode)
 #endif /* !HAVE_GAI_STRERROR */
 
 
+#ifdef __MINGW32__
+static int wsstarted;
+#endif
+
 /**
  * \brief Open network port using rig.state data
  *
@@ -149,8 +153,16 @@ int network_open(hamlib_port_t *rp, int default_port)
 	int status;
 	struct addrinfo hints, *res;
 	char *portstr;
-	char hostname[FILPATHLEN] = "localhost";
+	char hostname[FILPATHLEN] = "127.0.0.1";
 	char defaultportstr[8];
+
+#ifdef __MINGW32__
+	WSADATA wsadata;
+	if (!(wsstarted++) && WSAStartup(MAKEWORD(1,1), &wsadata) == SOCKET_ERROR) {
+		rig_debug(RIG_DEBUG_ERR, "Error creating socket\n");
+		return -RIG_EIO;
+	}
+#endif
 
 	if (!rp)
 		return -RIG_EINVAL;
@@ -202,6 +214,19 @@ int network_open(hamlib_port_t *rp, int default_port)
 	rp->fd = fd;
 
 	return RIG_OK;
+}
+
+int network_close(hamlib_port_t *rp)
+{
+	int ret;
+#ifdef __MINGW32__
+	ret = closesocket(rp->fd);
+	if (--wsstarted)
+		WSACleanup();
+#else
+	ret = close(rp->fd);
+#endif
+	return ret;
 }
 
 /** @} */

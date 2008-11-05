@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.c,v 1.100 2008-10-31 23:08:59 fillods Exp $
+ *	$Id: rig.c,v 1.101 2008-11-05 23:02:00 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -297,7 +297,7 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 	break;
 
 	case RIG_PORT_NETWORK:
-	strncpy(rs->rigport.pathname, "localhost:4532", FILPATHLEN);
+	strncpy(rs->rigport.pathname, "127.0.0.1:4532", FILPATHLEN);
 	break;
 
 	default:
@@ -668,6 +668,9 @@ int HAMLIB_API rig_close(RIG *rig)
 			break;
 		case RIG_PORT_USB:
 			usb_port_close(&rs->rigport);
+			break;
+		case RIG_PORT_NETWORK:
+			network_close(&rs->rigport);
 			break;
 
 		default:
