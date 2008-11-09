@@ -51,6 +51,9 @@ main directory and do the following:
 
         $ make check
 
+     Be careful: 'make check' needs an already installed hamlib library. That
+     means that this step has to wait until you finished step 4 (and 5).
+
   4. Type `make install' to install the programs and any data files and
      documentation. Type `make uninstall' to undo the installation.
 

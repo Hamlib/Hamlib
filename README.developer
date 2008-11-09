@@ -301,7 +301,7 @@ So far, Hamlib has been tested successfully under the following systems:
          may be composed.
 
          
-3. How to add a new model to and existing backend
+3. How to add a new model to an existing backend
 
     3.1. make sure there's already a (unique) ID for the model to be added
          in include/hamlib/riglist.h
@@ -315,7 +315,7 @@ So far, Hamlib has been tested successfully under the following systems:
     3.6. In initrigs_<mybackend> of mybackend.c, 
          add "rig_register(&<mymodel>_caps);"
 
-	3.7. Run `make' if you have dependencies, or the following to regenerate
+    3.7. Run `make' if you have dependencies, or the following to regenerate
          the makefile:
             $ automake mybackend/Makefile
             $ CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=mybackend/Makefile ./config.status

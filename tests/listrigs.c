@@ -3,7 +3,7 @@
  * This programs list all the available the rig capabilities.
  *
  *
- *    $Id: listrigs.c,v 1.12 2008-10-25 11:10:24 fillods Exp $  
+ *    $Id: listrigs.c,v 1.13 2008-11-09 14:26:04 y32kn Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -33,10 +33,10 @@
 int print_caps_sum(const struct rig_caps *caps, void *data)
 {
 
-	printf("%d\t%s\t%-12s\t%s\t",caps->rig_model,caps->mfg_name,
+	printf("%d\t%-10s\t%-12s\t%s\t",caps->rig_model,caps->mfg_name,
 					caps->model_name, caps->version);
 
-	printf("%s\t", rig_strstatus(caps->status));
+	printf("%-10s\t", rig_strstatus(caps->status));
 	switch (caps->rig_type & RIG_TYPE_MASK) {
 	case RIG_TYPE_TRANSCEIVER:
 			printf("Transceiver\n");
@@ -78,7 +78,7 @@ int main (int argc, char *argv[])
 
 	rig_load_all_backends();
 
-	printf("Rig#\tMfg\tModel       \tVers.\tStatus\tType\n");
+	printf("Rig#\tMfg       \tModel       \tVers.\tStatus    \tType\n");
 	status = rig_list_foreach(print_caps_sum,NULL);
 	if (status != RIG_OK ) {
 		printf("rig_list_foreach: error = %s \n", rigerror(status));

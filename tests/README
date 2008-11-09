@@ -31,5 +31,5 @@ testrig   -	Sample program calling common API calls, uses rig_probe
 testtrn   -	Sample program using event notification (transceive mode)
 rigctl	  -	Combined tool to execute any call of the API, see man page
 rigmem	  -	Combined tool to load/save content of rig memory, see man page
-rotctl    -     Similar to 'rigctl' but for rotators, see man page
+rotctl	  -     Similar to 'rigctl' but for rotators, see man page
 
