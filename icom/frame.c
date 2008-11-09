@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - low level communication routines
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.34 2008-11-09 14:26:04 y32kn Exp $
+ *	$Id: frame.c,v 1.35 2008-11-09 15:17:49 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -336,23 +336,11 @@ int rig2icom_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 	medium_width = rig_passband_normal(rig, mode);
 	if (width == medium_width || width == RIG_PASSBAND_NORMAL)
-			icmode_ext = -1;	/* medium, no passband data
-						   -> rig default. Is medium 
-						   always the default? */
-	else
-	    if (rig_passband_wide(rig, mode) != 0) /* Wide mode defined 
-						   -> rig with 3 codings */
-	    {
-	    	if (width < medium_width)
+			icmode_ext = -1;	/* medium, no passband data-> rig default. Is medium always the default? */
+	else if (width < medium_width)
 			icmode_ext = PD_NARROW_3;
-	    	else
+	else
 			icmode_ext = PD_WIDE_3;
-	    } else {				  /* rig with 2 codings */
-		if (width < medium_width)
-		    	icmode_ext = PD_NARROW_2;
-		else
-		    	icmode_ext = -1; 	  /* no wide mode */ 
-	    }				     	  /* -> use default */
 
 	if (rig->caps->rig_model == RIG_MODEL_ICR7000) {
 			if (mode == RIG_MODE_USB || mode == RIG_MODE_LSB) {
