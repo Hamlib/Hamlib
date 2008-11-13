@@ -3,7 +3,7 @@
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.15 2008-11-02 16:14:57 y32kn Exp $
+ *      $Id: ic910.c,v 1.16 2008-11-13 20:29:43 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,8 @@
 
 #include <hamlib/rig.h>
 #include "icom.h"
+#include "icom_defs.h"
+#include "frame.h"
 #include "idx_builtin.h"
 
 /*
@@ -175,6 +177,23 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
     return icom_set_freq(rig, RIG_VFO_CURR, freq);
  }
 
+/*
+ * This function does the special bandwidth coding for IC-910
+ * (1 - normal, 2 - narrow)
+ */
+int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+	                                unsigned char *md, signed char *pd)
+{
+    	int err;
+
+	err = rig2icom_mode(rig, mode, width, md, pd);
+
+	if (*pd == PD_NARROW_3) 	
+		*pd = PD_NARROW_2;
+
+	return err;
+}
+
 
 #define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
@@ -221,12 +240,14 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
 
 #define IC910_STR_CAL UNKNOWN_IC_STR_CAL	/* FIXME */
 
+
 /*
  */
 static const struct icom_priv_caps ic910_priv_caps = {
     0x60,           /* default address */
     0,              /* 731 mode */
-    ic910_ts_sc_list
+    ic910_ts_sc_list,
+    .r2i_mode = ic910_r2i_mode
 };
 
 const struct rig_caps ic910_caps = {

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main header
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: icom.h,v 1.76 2008-02-13 22:04:52 fillods Exp $
+ *	$Id: icom.h,v 1.77 2008-11-13 20:29:43 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -101,6 +101,15 @@ struct icom_priv_caps {
 	int civ_731_mode; /* Off: freqs on 10 digits, On: freqs on 8 digits */
 	const struct ts_sc_list *ts_sc_list;
 	int settle_time; /*!< Receiver settle time, in ms */
+	int (*r2i_mode)(RIG *rig, rmode_t mode, pbwidth_t width, 
+		unsigned char *md, signed char *pd); /*< backend specific code
+						       to convert bandwidth and 
+						       mode to cmd tokens */
+	void (*i2r_mode)(RIG *rig, unsigned char md, int pd, 
+		rmode_t *mode, pbwidth_t *width);    /*< backend specific code
+						       to convert response 
+						       tokes to bandwidth and 
+						       mdoe */
 };
 
 

@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - main file
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: icom.c,v 1.106 2008-09-21 19:36:50 fillods Exp $
+ *	$Id: icom.c,v 1.107 2008-11-13 20:29:43 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -510,6 +510,7 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
 int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	struct icom_priv_data *priv;
+	const struct icom_priv_caps *priv_caps;
 	struct rig_state *rs;
 	unsigned char ackbuf[MAXFRAMELEN];
 	unsigned char icmode;
@@ -519,7 +520,17 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
 
-	err = rig2icom_mode(rig, mode, width, &icmode, &icmode_ext);
+	priv_caps = (const struct icom_priv_caps *) rig->caps->priv;
+
+	if (priv_caps->r2i_mode != NULL) {	/* call priv code if defined */
+	    	err = priv_caps->r2i_mode(rig, mode, width, 
+				&icmode, &icmode_ext);
+	} 
+	else {					/* else call default */
+		err = rig2icom_mode(rig, mode, width, 
+				&icmode, &icmode_ext);
+	}
+
 	if (err < 0)
 		return err;
 
