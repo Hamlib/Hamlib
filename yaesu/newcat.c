@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.8 2008-11-16 14:49:12 fillods Exp $
+ * $Id: newcat.c,v 1.9 2008-11-26 23:24:14 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1180,6 +1180,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
     int err;
     int i;
     char cmdstr[16];
+    float scale;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1191,7 +1192,8 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level) {
 	    case RIG_LEVEL_RFPOWER:
-		    sprintf(cmdstr, "PC%03d;", (int)(255*val.f));
+		    scale = (RIG_MODEL_FT950 == rig->caps->rig_model) ? 100. : 255.;
+		    sprintf(cmdstr, "PC%03d;", (int)(scale * val.f));
 		    break;
 	    case RIG_LEVEL_AF:
 		    sprintf(cmdstr, "AG0%03d;", (int)(255*val.f));
@@ -1202,7 +1204,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			    case RIG_AGC_FAST: strcpy(cmdstr, "GT01;"); break;
 			    case RIG_AGC_MEDIUM: strcpy(cmdstr, "GT02;"); break;
 			    case RIG_AGC_SLOW: strcpy(cmdstr, "GT03;"); break;
-					       /* TODO: AUTO: "GT04" */
+			    case RIG_AGC_AUTO: strcpy(cmdstr, "GT04;"); break;
 			    default: return -RIG_EINVAL;
 		    }
 		    break;
@@ -1298,6 +1300,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
     int ret_data_len;
     const char *cmdstr;
     char *retlvl;
+    float scale;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1309,8 +1312,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
     switch (level) {
 	    case RIG_LEVEL_RFPOWER:
-		    /* PowerOut more interesting than Power Control? */
-		    cmdstr = "RM6;";
+		    cmdstr = "PC;";
 		    break;
 	    case RIG_LEVEL_PREAMP:
 		    cmdstr = "PA0;";
@@ -1402,18 +1404,21 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
     switch (level) {
 	    case RIG_LEVEL_RFPOWER:
+		    scale = (RIG_MODEL_FT950 == rig->caps->rig_model) ? 100. : 255.;
+		    val->f = (float)atoi(retlvl)/scale;
+		    break;
 	    case RIG_LEVEL_AF:
 	    case RIG_LEVEL_MICGAIN:
 	    case RIG_LEVEL_RF:
 	    case RIG_LEVEL_SQL:
 	    case RIG_LEVEL_COMP:
 	    case RIG_LEVEL_VOXGAIN:
-	    case RIG_LEVEL_RAWSTR:
 	    case RIG_LEVEL_SWR:
 	    case RIG_LEVEL_ALC:
 		    val->f = (float)atoi(retlvl)/255.;
 		    break;
 
+	    case RIG_LEVEL_RAWSTR:
 	    case RIG_LEVEL_KEYSPD:
 	    case RIG_LEVEL_BKINDL: /* FIXME */
 	    case RIG_LEVEL_IF:
@@ -1443,7 +1448,10 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 			    case '1': val->i = RIG_AGC_FAST; break;
 			    case '2': val->i = RIG_AGC_MEDIUM; break;
 			    case '3': val->i = RIG_AGC_SLOW; break;
-					       /* TODO: AUTO: "GT04" */
+			    case '4': 
+			    case '5':
+			    case '6':
+			    	val->i = RIG_AGC_AUTO; break;
 			    default: return -RIG_EINVAL;
 		    }
 		    break;
