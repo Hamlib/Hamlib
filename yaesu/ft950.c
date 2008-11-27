@@ -8,7 +8,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.3 2008-11-01 22:39:07 fillods Exp $
+ * $Id: ft950.c,v 1.4 2008-11-27 07:46:34 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -165,11 +165,13 @@ const struct rig_caps ft950_caps = {
     .set_vfo =            newcat_set_vfo,
     .get_vfo =            newcat_get_vfo,
     .set_ptt =            newcat_set_ptt,
-//    .get_ptt =            newcat_get_ptt,
+    .get_ptt =            newcat_get_ptt,
 //    .set_split_vfo =      newcat_set_split_vfo,
 //    .get_split_vfo =      newcat_get_split_vfo,
 //    .set_rit =            newcat_set_rit,
 //    .get_rit =            newcat_get_rit,
+    .set_ant =            newcat_set_ant,
+    .get_ant =            newcat_get_ant,
     .get_func =           newcat_get_func,
     .set_func =           newcat_set_func,
     .get_level =          newcat_get_level,
