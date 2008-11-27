@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.9 2008-11-26 23:24:14 mrtembry Exp $
+ * $Id: newcat.c,v 1.10 2008-11-27 07:45:23 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1159,17 +1159,79 @@ int newcat_reset(RIG * rig, reset_t reset)
 
 int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char ant1[] = "AN01;";
+    char ant2[] = "AN02;";
 
-    return -RIG_ENAVAIL;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    switch (ant) {
+        case RIG_ANT_1:
+            err = write_block(&state->rigport, ant1, strlen(ant1));
+            break;
+         case RIG_ANT_2:
+            err = write_block(&state->rigport, ant2, strlen(ant2));
+            break;
+         default:
+            return -RIG_EINVAL;
+    }
+    return err;
 }
 
 
 int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char c;
+
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", "AN0");
+    /* Get ANT */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, ANT value = %c\n", __func__, err, priv->ret_data, priv->ret_data[3]);
+
+    if (strcmp(priv->ret_data, "?;") == 0) {
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting ANT\n");
+        return RIG_OK;
+    }
+
+    c = priv->ret_data[3];
+    switch (c) {
+        case '1':
+            *ant = RIG_ANT_1;
+            break;
+        case '2' :
+            *ant = RIG_ANT_2;
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    return RIG_OK;
+
 }
 
 
