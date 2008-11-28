@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.10 2008-11-27 07:45:23 mrtembry Exp $
+ * $Id: newcat.c,v 1.11 2008-11-28 22:59:08 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1162,22 +1162,41 @@ int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
-    char ant1[] = "AN01;";
-    char ant2[] = "AN02;";
+    char command[] = "AN";
+    char which_ant;
 
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
+
+    /* TODO: ADD RX only antenna */ 
+
     switch (ant) {
         case RIG_ANT_1:
-            err = write_block(&state->rigport, ant1, strlen(ant1));
+            which_ant = '1';
             break;
          case RIG_ANT_2:
-            err = write_block(&state->rigport, ant2, strlen(ant2));
+            which_ant = '2';
+            break;
+         case RIG_ANT_3:
+            if (newcat_is_rig_model(rig, RIG_MODEL_FT950)) /* FT2000 also */
+                return -RIG_EINVAL;
+            which_ant = '3';
+            break;
+         case RIG_ANT_4:
+            if (newcat_is_rig_model(rig, RIG_MODEL_FT950))
+                return -RIG_EINVAL;
+            which_ant = '4';
             break;
          default:
             return -RIG_EINVAL;
     }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c%c", command, which_ant, cat_term);
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+
     return err;
 }
 
@@ -1188,13 +1207,19 @@ int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
     struct rig_state *state;
     int err;
     char c;
+    char command[] = "AN";
 
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", "AN0");
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
+
+    /* TODO: ADD RX only antenna */ 
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0;", command);
     /* Get ANT */
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
@@ -1226,12 +1251,17 @@ int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
         case '2' :
             *ant = RIG_ANT_2;
             break;
+        case '3' :
+            *ant = RIG_ANT_3;
+            break;
+        case '4' :
+            *ant = RIG_ANT_4;
+            break;
         default:
             return -RIG_EINVAL;
     }
 
     return RIG_OK;
-
 }
 
 
@@ -1254,7 +1284,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 
     switch (level) {
 	    case RIG_LEVEL_RFPOWER:
-		    scale = (RIG_MODEL_FT950 == rig->caps->rig_model) ? 100. : 255.;
+		    scale = (newcat_is_rig_model(rig, RIG_MODEL_FT950)) ? 100. : 255.;
 		    sprintf(cmdstr, "PC%03d;", (int)(scale * val.f));
 		    break;
 	    case RIG_LEVEL_AF:
@@ -1466,7 +1496,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
     switch (level) {
 	    case RIG_LEVEL_RFPOWER:
-		    scale = (RIG_MODEL_FT950 == rig->caps->rig_model) ? 100. : 255.;
+		    scale = (newcat_is_rig_model(rig, RIG_MODEL_FT950)) ? 100. : 255.;
 		    val->f = (float)atoi(retlvl)/scale;
 		    break;
 	    case RIG_LEVEL_AF:
@@ -2149,4 +2179,12 @@ ncboolean newcat_valid_command(RIG *rig, char *command) {
     rig_debug(RIG_DEBUG_TRACE, "%s: '%s' command '%s' not valid\n",
               __func__, caps->model_name, command);
     return FALSE;
+}
+
+ncboolean newcat_is_rig_model(RIG * rig, rig_model_t model) {
+    ncboolean is_my_rig;
+
+    is_my_rig = (model == rig->caps->rig_model) ? TRUE : FALSE;
+
+    return is_my_rig;
 }
