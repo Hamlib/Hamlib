@@ -12,7 +12,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.8 2008-11-28 22:58:28 mrtembry Exp $
+ *    $Id: newcat.h,v 1.9 2008-11-29 19:26:09 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -126,5 +126,10 @@ int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op);
 const char *newcat_get_info(RIG * rig);
 
 ncboolean newcat_is_rig_model(RIG * rig, rig_model_t model);
+int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit);
+int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
+int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit);
+int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit);
+
 
 #endif /* _NEWCAT_H */
