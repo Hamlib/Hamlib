@@ -12,7 +12,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.10 2008-11-30 12:42:42 mrtembry Exp $
+ *    $Id: newcat.h,v 1.11 2008-11-30 15:30:39 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@
 typedef char ncboolean;
 
 /* shared function version */
-#define NEWCAT_VER "0.2"
+#define NEWCAT_VER "0.21"
 
 /* Hopefully large enough for future use, 128 chars plus '\0' */
 #define NEWCAT_DATA_LEN                 129
@@ -81,7 +81,15 @@ typedef char ncboolean;
  *      newcat_get_freq
  *      newcat_set_vfo
  *      newcat_get_vfo
- *
+ *      newcat_get_rit
+ *      newcat_set_rit
+ *      newcat_get_xit
+ *      newcat_set_xit
+ *      power2mW
+ *      mW2power
+ *      newcat_get_ant
+ *      newcat_set_ant
+ *      newcat_get_ptt
  * Functions not yet implemented
  * most everything at this time.
  *
