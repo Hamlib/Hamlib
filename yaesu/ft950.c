@@ -8,7 +8,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.5 2008-11-29 19:26:09 mrtembry Exp $
+ * $Id: ft950.c,v 1.6 2008-11-30 12:42:42 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -182,5 +182,7 @@ const struct rig_caps ft950_caps = {
     .set_mem =            newcat_set_mem,
     .vfo_op =             newcat_vfo_op,
     .get_info =           newcat_get_info,
+    .power2mW =           newcat_power2mW,
+    .mW2power =           newcat_mW2power,
 };
 

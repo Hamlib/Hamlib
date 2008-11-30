@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.12 2008-11-29 19:26:09 mrtembry Exp $
+ * $Id: newcat.c,v 1.13 2008-11-30 12:42:42 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -840,7 +840,7 @@ int newcat_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt)
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", "TX");
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", "TX", cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -982,16 +982,16 @@ int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
     state = &rig->state;
 
     if (rit == 0)
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RT0;");
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RT0%c", cat_term);
     else if (rit < 0) {
         if (rit < -9999)
             rit = -9999;
         rit = abs(rit);
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC;RD%04ld;RT1;", rit);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%cRT1%c", cat_term, rit, cat_term, cat_term);
     }else {
         if (rit > 9999)
             rit = 9999;
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC;RU%04ld;RT1;", rit);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%cRT1%c", cat_term, rit, cat_term, cat_term);
     }
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
@@ -1016,7 +1016,7 @@ int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", "IF");
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", "IF", cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -1062,16 +1062,16 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
     state = &rig->state;
 
     if (xit == 0)
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "XT0;");
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "XT0%c", cat_term);
     else if (xit < 0) {
         if (xit < -9999)
             xit = 9999;
         xit = abs(xit);
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC;RD%04ld;XT1;", xit);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRD%04ld%cXT1%c", cat_term, xit, cat_term, cat_term);
     }else {
         if (xit > 9999)
             xit = 9999;
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC;RU%04ld;XT1;", xit);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04ld%cXT1%c", cat_term, xit, cat_term, cat_term);
     }
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
@@ -1096,7 +1096,7 @@ struct newcat_priv_data *priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", "IF");
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", "IF", cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -1249,15 +1249,28 @@ int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, 
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (newcat_is_rig_model(rig, RIG_MODEL_FT950)) {
+        *mwpower = power * 100000;              /* 0..100 Linear scale */
+    } else {
+        *mwpower = power * 100000;
+        /* TODO: 0..255 scale... Linear or Not */ 
+    }  
+    
+    return RIG_OK;
 }
 
 
 int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    return -RIG_ENAVAIL;
+    
+    if (newcat_is_rig_model(rig, RIG_MODEL_FT950)) {
+        *power = mwpower / 100000.;              /* 0..100 Linear scale */
+    } else {
+        *power = mwpower / 100000.;
+        /* TODO: 0..255 scale... Linear or Not */ 
+    }  
+    return RIG_OK;
 }
 
 
@@ -1345,7 +1358,7 @@ int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
 
     /* TODO: ADD RX only antenna */ 
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0;", command);
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s0%c", command, cat_term);
     /* Get ANT */
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
@@ -1411,10 +1424,10 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
     switch (level) {
 	    case RIG_LEVEL_RFPOWER:
 		    scale = (newcat_is_rig_model(rig, RIG_MODEL_FT950)) ? 100. : 255.;
-		    sprintf(cmdstr, "PC%03d;", (int)(scale * val.f));
+		    sprintf(cmdstr, "PC%03d%c", (int)(scale * val.f), cat_term);
 		    break;
 	    case RIG_LEVEL_AF:
-		    sprintf(cmdstr, "AG0%03d;", (int)(255*val.f));
+		    sprintf(cmdstr, "AG0%03d%c", (int)(255*val.f), cat_term);
 		    break;
 	    case RIG_LEVEL_AGC:
 		    switch (val.i) {
