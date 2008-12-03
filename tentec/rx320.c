@@ -1,8 +1,8 @@
 /*
  *  Hamlib TenTenc backend - RX-320 PC-Radio description
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: rx320.c,v 1.9 2007-02-28 15:05:49 aa6e Exp $
+ *	$Id: rx320.c,v 1.10 2008-12-03 22:36:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,12 +39,24 @@
 #define RX320_VFO (RIG_VFO_A)
 
 /* 
- * a bit coarse, but I don't have a RX320, and the manual is not
- * verbose on the subject. Please test it and report! --SF
+ * Modified 11/18/2008, Josh Rovero, KK1D
+ * Calibration via comparison with JRC NRD-525.  
+ * Highy non-linear....
  */
-#define RX320_STR_CAL { 2, { \
-		{      0, -60 }, \
-		{  10000,  20 }, \
+#define RX320_STR_CAL { 13, { \
+		{      0, -40 }, \
+		{     50, -20 }, \
+		{    100, -10 }, \
+		{    200, -5 }, \
+		{    225, -3 }, \
+		{    256,  0 }, \
+		{    512,  1 }, \
+		{    768,  3}, \
+		{   1024,  4 }, \
+		{   1280,  5 }, \
+		{   2560,  10 }, \
+		{   5120,  20 }, \
+		{  10000,  30 }, \
 	} }
 
 /*
@@ -59,7 +71,7 @@ const struct rig_caps rx320_caps = {
 .rig_model =  RIG_MODEL_RX320,
 .model_name = "RX-320",
 .mfg_name =  "Ten-Tec",
-.version =  "0.4",
+.version =  "0.5",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_PCRECEIVER,
@@ -77,9 +89,13 @@ const struct rig_caps rx320_caps = {
 .timeout =  200,
 .retry =  3,
 
+/*
+ * Added S-meter read support, Josh Rovero KK1D 
+ * Only get_level is for RIG_LEVEL_RAWSTR 
+ */
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
-.has_get_level =  RX320_LEVELS,
+.has_get_level =  RIG_LEVEL_RAWSTR,
 .has_set_level =  RIG_LEVEL_SET(RX320_LEVELS),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
