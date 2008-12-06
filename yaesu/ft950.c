@@ -8,7 +8,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.6 2008-11-30 12:42:42 mrtembry Exp $
+ * $Id: ft950.c,v 1.7 2008-12-06 02:37:45 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -83,7 +83,7 @@ const struct rig_caps ft950_caps = {
     .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
     .max_rit =            Hz(9999),
-    .max_xit =            Hz(0),
+    .max_xit =            Hz(9999),
     .max_ifshift =        Hz(1000),
     .vfo_ops =            FT950_VFO_OPS,
     .targetable_vfo =     RIG_TARGETABLE_FREQ,
@@ -166,8 +166,8 @@ const struct rig_caps ft950_caps = {
     .get_vfo =            newcat_get_vfo,
     .set_ptt =            newcat_set_ptt,
     .get_ptt =            newcat_get_ptt,
-//    .set_split_vfo =      newcat_set_split_vfo,
-//    .get_split_vfo =      newcat_get_split_vfo,
+    .set_split_vfo =      newcat_set_split_vfo,
+    .get_split_vfo =      newcat_get_split_vfo,
     .set_rit =            newcat_set_rit,
     .get_rit =            newcat_get_rit,
     .set_xit =            newcat_set_xit,

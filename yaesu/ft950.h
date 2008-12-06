@@ -8,7 +8,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- *    $Id: ft950.h,v 1.3 2008-11-26 22:16:00 mrtembry Exp $
+ *    $Id: ft950.h,v 1.4 2008-12-06 02:37:45 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -65,7 +65,7 @@
 
 #define FT950_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
-               RIG_OP_TO_VFO|RIG_OP_FROM_VFO)
+               RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_TOGGLE)
 
 /* TBC */
 #define FT950_STR_CAL { 16, \
@@ -113,20 +113,5 @@
 /* Delay sequential fast writes */
 
 #define FT950_POST_WRITE_DELAY               5
-
-
-/*
- * API local implementation
- *
- */
-
-//static int ft950_init(RIG *rig);
-//static int ft950_cleanup(RIG *rig);
-//static int ft950_open(RIG *rig);
-//static int ft950_close(RIG *rig);
-
-//static int ft950_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-
-//static int ft950_set_vfo(RIG *rig, vfo_t vfo);
 
 #endif /* _FT950_H */
