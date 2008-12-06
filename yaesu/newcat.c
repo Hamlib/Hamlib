@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.14 2008-12-06 02:37:45 mrtembry Exp $
+ * $Id: newcat.c,v 1.15 2008-12-06 13:29:37 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1140,6 +1140,9 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
+    if (!newcat_valid_command(rig, "XT"))
+        return -RIG_ENAVAIL;
+
     tmp_xit = xit;
     xit = abs(xit);
     if (xit > rig->caps->max_xit)
@@ -1162,13 +1165,16 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 
 int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit)
 {
-struct newcat_priv_data *priv;
+    struct newcat_priv_data *priv;
     struct rig_state *state;
     char *retval;
     char xit_on;
     int err;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
+
+    if (!newcat_valid_command(rig, "XT"))
+        return -RIG_ENAVAIL;
 
     *xit = 0;
 
