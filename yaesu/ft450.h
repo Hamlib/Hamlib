@@ -8,7 +8,7 @@
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- *    $Id: ft450.h,v 1.2 2008-11-01 22:39:07 fillods Exp $
+ *    $Id: ft450.h,v 1.3 2008-12-06 13:27:32 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -64,7 +64,9 @@
                 RIG_FUNC_FBKIN|RIG_FUNC_MN)
 
 #define FT450_VFO_OPS (RIG_OP_TUNE|RIG_OP_CPY|RIG_OP_XCHG|\
-                RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN)
+               RIG_OP_UP|RIG_OP_DOWN|RIG_OP_BAND_UP|RIG_OP_BAND_DOWN|\
+               RIG_OP_TOGGLE)
+
 
 /* TBC */
 #define FT450_STR_CAL { 3, \
