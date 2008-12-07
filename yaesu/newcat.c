@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.15 2008-12-06 13:29:37 mrtembry Exp $
+ * $Id: newcat.c,v 1.16 2008-12-07 23:16:51 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1497,6 +1497,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
     int i;
     char cmdstr[16];
     float scale;
+    char c;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1525,7 +1526,11 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		    }
 		    break;
 	    case RIG_LEVEL_IF:
-		    sprintf(cmdstr, "IS0%+04d;", val.i);
+		    if (val.i < 0)
+                c = '-';
+            else 
+                c = '+';    /* FT950 IF Shift needs  "+0000"  for center */
+            sprintf(cmdstr, "IS0%c%04d;", c, abs(val.i));
 		    break;
 	    case RIG_LEVEL_CWPITCH:
 		    if (val.i < 300)
@@ -1602,7 +1607,8 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		    sprintf(cmdstr, "VD%04d;", val.i*100);
 		    break;
 	    case RIG_LEVEL_VOXGAIN:
-		    sprintf(cmdstr, "VG%03d;", (int)(255*val.f));
+		    scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100. : 255.;
+		    sprintf(cmdstr, "VG%03d;", (int)(scale * val.f));
 		    break;
 	    default:
 		    return -RIG_EINVAL;
@@ -1728,6 +1734,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
     switch (level) {
 	    case RIG_LEVEL_RFPOWER:
+	    case RIG_LEVEL_VOXGAIN:
 		    scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100. : 255.;
 		    val->f = (float)atoi(retlvl)/scale;
 		    break;
@@ -1736,7 +1743,6 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 	    case RIG_LEVEL_RF:
 	    case RIG_LEVEL_SQL:
 	    case RIG_LEVEL_COMP:
-	    case RIG_LEVEL_VOXGAIN:
 	    case RIG_LEVEL_SWR:
 	    case RIG_LEVEL_ALC:
 		    val->f = (float)atoi(retlvl)/255.;
