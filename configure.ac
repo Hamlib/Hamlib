@@ -168,6 +168,7 @@ AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
 AC_LIBOBJ(termios)
+AC_LIBOBJ(dummy)
 
 ## ------------------------ ##
 ## libtool  Initialisation. ##
