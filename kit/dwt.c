@@ -1,8 +1,8 @@
 /*
  *  Hamlib KIT backend - Digital World Traveller DRM receiver description
- *  Copyright (c) 2005 by Stephane Fillod
+ *  Copyright (c) 2005-2008 by Stephane Fillod
  *
- *	$Id: dwt.c,v 1.4 2007-11-07 19:11:59 fillods Exp $
+ *	$Id: dwt.c,v 1.5 2008-12-09 22:07:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -410,7 +410,7 @@ int dwtdll_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 int dwtdll_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	struct dwtdll_priv_data *priv = (struct dwtdll_priv_data *)rig->state.priv;
-	short ret=0;
+	signed short ret=0;
 
 	switch(level) {
 	case RIG_LEVEL_ATT:
@@ -426,7 +426,8 @@ int dwtdll_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		ret = priv->FrontendGetRfLevel();
 		if (ret < 0)
 			break;
-		val->i = (int)(10.*log10(((10e-6*ret*ret)/50)/1e-3))+73;
+	      	/* return actual RMS signal strength in dBuV, -34 to get dB rel S9 */
+		val->i = ret - 34;
 		break;
 
 	case RIG_LEVEL_RAWSTR:
