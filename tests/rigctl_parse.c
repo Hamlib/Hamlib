@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.9 2008-10-27 22:23:36 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.10 2008-12-10 08:37:35 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -275,7 +275,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 extern int interactive;
 extern int prompt;
 extern int opt_end;
-
+extern int vfo_mode;
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 {
@@ -288,7 +288,6 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	char arg3[MAXARGSZ+1], *p3;
 	static int last_was_ret = 1;
 	vfo_t vfo = RIG_VFO_CURR;
-	int vfo_mode = 0;
 
 	if (interactive) {
 		if (prompt)

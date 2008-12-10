@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.68 2008-10-27 22:23:36 fillods Exp $  
+ * $Id: rigctl.c,v 1.69 2008-12-10 08:37:35 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -85,6 +85,7 @@ static struct option long_options[] =
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
 int opt_end= 0;         /* only used by rigctld */
+int vfo_mode;		/* vfo_mode=0 means target VFO is current VFO */
 
 int main (int argc, char *argv[])
 {
@@ -94,7 +95,6 @@ int main (int argc, char *argv[])
 	int retcode;		/* generic return code from functions */
 
 	int verbose = 0;
-	int vfo_mode = 0;
 	int show_conf = 0;
 	int dump_caps_opt = 0;
 	const char *rig_file=NULL, *ptt_file=NULL, *dcd_file=NULL;
