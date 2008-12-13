@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.10 2008-12-10 08:37:35 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.11 2008-12-13 22:51:36 mrtembry Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -930,9 +930,10 @@ declare_proto_rig(get_dcs_sql)
 declare_proto_rig(set_split_freq)
 {
 	freq_t txfreq;
+	vfo_t txvfo = RIG_VFO_TX;
 
 	sscanf(arg1, "%"SCNfreq, &txfreq);
-	return rig_set_split_freq(rig, vfo, txfreq);
+	return rig_set_split_freq(rig, txvfo, txfreq);
 }
 
 /* 'i' */
@@ -940,8 +941,9 @@ declare_proto_rig(get_split_freq)
 {
 	int status;
 	freq_t txfreq;
-
-	status = rig_get_split_freq(rig, vfo, &txfreq);
+	vfo_t txvfo = RIG_VFO_TX;
+	
+	status = rig_get_split_freq(rig, txvfo, &txfreq);
 	if (status != RIG_OK)
 		return status;
 	if (interactive && prompt)
@@ -956,6 +958,7 @@ declare_proto_rig(set_split_mode)
 {
 	rmode_t mode;
 	int     width;
+	vfo_t txvfo = RIG_VFO_TX;
 
 #if 0
 	if (!strcmp(arg1, "?")) {
@@ -967,7 +970,7 @@ declare_proto_rig(set_split_mode)
 #endif
 	mode = rig_parse_mode(arg1);
 	sscanf(arg2, "%d", &width);
-	return rig_set_split_mode(rig, vfo, mode, (pbwidth_t) width);
+	return rig_set_split_mode(rig, txvfo, mode, (pbwidth_t) width);
 }
 
 /* 'x' */
@@ -976,8 +979,9 @@ declare_proto_rig(get_split_mode)
 	int status;
 	rmode_t mode;
 	pbwidth_t width;
+	vfo_t txvfo = RIG_VFO_TX;
 
-	status = rig_get_split_mode(rig, vfo, &mode, &width);
+	status = rig_get_split_mode(rig, txvfo, &mode, &width);
 	if (status != RIG_OK)
 		return status;
 	if (interactive && prompt)
