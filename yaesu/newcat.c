@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.17 2008-12-10 23:53:56 mrtembry Exp $
+ * $Id: newcat.c,v 1.18 2008-12-13 21:23:31 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -200,6 +200,7 @@ int newcat_set_txvfo(RIG * rig, vfo_t txvfo);
 int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo);
 int newcat_set_rxvfo(RIG * rig, vfo_t rxvfo);
 int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo);
+int newcat_scale_float(int scale, float fval);
 
 
 /*
@@ -1499,6 +1500,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	int i;
 	char cmdstr[16];
 	int scale;
+	int fpf;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -1511,10 +1513,14 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	switch (level) {
 		case RIG_LEVEL_RFPOWER:
 			scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100 : 255;
-			sprintf(cmdstr, "PC%03d%c", (int)(scale * val.f), cat_term);
+			// sprintf(cmdstr, "PC%03d%c", (int)(scale * val.f), cat_term);
+			fpf = newcat_scale_float(scale, val.f);
+			sprintf(cmdstr, "PC%03d%c", fpf, cat_term);
 			break;
 		case RIG_LEVEL_AF:
-			sprintf(cmdstr, "AG0%03d%c", (int)(255*val.f), cat_term);
+			// sprintf(cmdstr, "AG0%03d%c", (int)(255*val.f), cat_term);
+			fpf = newcat_scale_float(255, val.f);
+			sprintf(cmdstr, "AG0%03d%c", fpf, cat_term);
 			break;
 		case RIG_LEVEL_AGC:
 			switch (val.i) {
@@ -1544,7 +1550,9 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			sprintf(cmdstr, "KS%03d;", val.i);
 			break;
 		case RIG_LEVEL_MICGAIN:
-			sprintf(cmdstr, "MG%03d;", (int)(255*val.f));
+			// sprintf(cmdstr, "MG%03d;", (int)(255*val.f));
+			fpf = newcat_scale_float(255, val.f);
+			sprintf(cmdstr, "MG%03d;", fpf);
 			break;
 		case RIG_LEVEL_METER:
 			switch (val.i) {
@@ -1585,14 +1593,28 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 
 			return -RIG_EINVAL;
 		case RIG_LEVEL_RF:
-			sprintf(cmdstr, "RG0%03d;", (int)(255*val.f));
+			// sprintf(cmdstr, "RG0%03d;", (int)(255*val.f));
+			fpf = newcat_scale_float(255, val.f);
+			sprintf(cmdstr, "RG0%03d;", fpf);
 			break;
 		case RIG_LEVEL_NR:
-			sprintf(cmdstr, "RL0%02d;", (int)(10*val.f)+1);
+			if (newcat_is_rig(rig, RIG_MODEL_FT450)) {
+				// sprintf(cmdstr, "RL0%02d;", (int)(10*val.f)+1);
+				fpf = newcat_scale_float(10, val.f);
+				sprintf(cmdstr, "RL0%02d;", fpf+1);
+			} else {
+				// sprintf(cmdstr, "RL0%02d;", (int)(100*val.f));
+				fpf = newcat_scale_float(100, val.f);
+				sprintf(cmdstr, "RL0%02d;", fpf);
+				if (fpf < 1 || fpf > 15)
+					return -RIG_EINVAL;
+			}
 			break;
 		case RIG_LEVEL_COMP:
 			scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100 : 255;
-			sprintf(cmdstr, "PL%03d;", (int)(scale * val.f));
+			// sprintf(cmdstr, "PL%03d;", (int)(scale * val.f));
+			fpf = newcat_scale_float(scale, val.f);
+			sprintf(cmdstr, "PL%03d;", fpf);
 			break;
 		case RIG_LEVEL_BKINDL:
 			/* FIXME: should be tenth of dots, newcat expects ms */
@@ -1605,7 +1627,9 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 				sprintf(cmdstr, "SD%04d;", val.i);
 			break;
 		case RIG_LEVEL_SQL:
-			sprintf(cmdstr, "SQ0%03d;", (int)(255*val.f));
+			// sprintf(cmdstr, "SQ0%03d;", (int)(255*val.f));
+			fpf = newcat_scale_float(255, val.f);
+			sprintf(cmdstr, "SQ0%03d;", fpf);
 			break;
 		case RIG_LEVEL_VOX:
 			/* VOX delay, arg int (tenth of seconds), expects ms */
@@ -1623,12 +1647,16 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			break;
 		case RIG_LEVEL_VOXGAIN:
 			scale = (newcat_is_rig(rig, RIG_MODEL_FT950)) ? 100 : 255;
-			sprintf(cmdstr, "VG%03d;", (int)(scale * val.f));
+			// sprintf(cmdstr, "VG%03d;", (int)(scale * val.f));
+			fpf = newcat_scale_float(scale, val.f);
+			sprintf(cmdstr, "VG%03d;", fpf);
 			break;
 		case RIG_LEVEL_ANTIVOX:
-			if (newcat_is_rig(rig, RIG_MODEL_FT950))
-				sprintf(cmdstr, "EX117%03d;", (int)(100 * val.f));
-			else
+			if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
+				// sprintf(cmdstr, "EX117%03d;", (int)(100 * val.f));
+				fpf = newcat_scale_float(100, val.f);
+				sprintf(cmdstr, "EX117%03d;", fpf);
+			} else
 				return -RIG_EINVAL;
 			break;
 		default:
@@ -1782,7 +1810,10 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 			val->i = atoi(retlvl);
 			break;
 		case RIG_LEVEL_NR:
-			val->f = (float)(atoi(retlvl)-1)/10.;
+			if (newcat_is_rig(rig, RIG_MODEL_FT450))
+				val->f = (float)(atoi(retlvl)-1)/10.;
+			else
+				val->f = (float)(atoi(retlvl))/100.;
 			break;
 		case RIG_LEVEL_VOX:
 			if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
@@ -2732,4 +2763,27 @@ int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo) {
 	}
 
 	return RIG_OK;
+}
+
+/*
+ *	Found newcat_set_level() floating point math problem
+ *	Using rigctl on FT950 I was trying to set RIG_LEVEL_COMP to 12
+ *	I kept setting it to 11.  I wrote some test software and 
+ *	found out that 0.12 * 100 = 11 with my setup.
+ *  Compilier is gcc 4.2.4, CPU is AMD X2
+ *  This works but Find a better way.
+ *  The newcat_get_level() seems to work correctly.
+ *  Terry KJ4EED
+ *
+ */
+int newcat_scale_float(int scale, float fval) {
+	float f;
+	float fudge = 0.003;
+    
+	if ((fval + fudge) > 1.0)
+		f = scale * fval;
+	else 
+		f = scale * (fval + fudge);
+
+	return (int) f;
 }

@@ -8,7 +8,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- *    $Id: ft950.h,v 1.5 2008-12-10 23:53:56 mrtembry Exp $
+ *    $Id: ft950.h,v 1.6 2008-12-13 21:23:31 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@
                RIG_LEVEL_KEYSPD|RIG_LEVEL_AF|RIG_LEVEL_AGC|\
                RIG_LEVEL_METER|RIG_LEVEL_BKINDL|RIG_LEVEL_SQL|\
                RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_COMP|\
-               RIG_LEVEL_ANTIVOX)
+               RIG_LEVEL_ANTIVOX|RIG_LEVEL_NR)
 
 #define FT950_FUNCS (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_LOCK|\
                RIG_FUNC_MON|RIG_FUNC_NB|RIG_FUNC_NR|RIG_FUNC_VOX|\
