@@ -1,8 +1,9 @@
 /*
  *  Hamlib Interface - list of known rigs
- *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Frank Singleton
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: riglist.h,v 1.73 2008-11-02 12:45:04 fillods Exp $
+ *	$Id: riglist.h,v 1.74 2008-12-14 20:02:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -89,6 +90,8 @@
 #define RIG_MODEL_VR5000 RIG_MAKE_MODEL(RIG_YAESU, 26)
 #define RIG_MODEL_FT450 RIG_MAKE_MODEL(RIG_YAESU, 27)
 #define RIG_MODEL_FT950 RIG_MAKE_MODEL(RIG_YAESU, 28)
+#define RIG_MODEL_FT2000 RIG_MAKE_MODEL(RIG_YAESU, 29)
+#define RIG_MODEL_FT9000 RIG_MAKE_MODEL(RIG_YAESU, 30)
 
 	/*
 	 * Kenwood
