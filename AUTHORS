@@ -169,6 +169,9 @@ M: Nate Bargmann, N0NB
 [yaesu: ft990]
 M: Berndt Josef Wulf, VK5ABN
 
+[yaesu: ft950,newcat]
+M: Terry Embry, KJ4EED
+
 [yaesu: VR-5000]
 M: Jacob Heder
 
@@ -250,3 +253,4 @@ Dave Freese, W1HKJ, <w1hkj (at) w1hkj.com>
 Rob Frohne, KL7NA, <frohro (at) wwc.edu>
 Steve Conklin, AI4QR, <steve (at) conklinhouse.com>
 Martin Ewing, AA6E, <aa6e (at) arrl.net>
+Terry Embry, KJ4EED, <mrtembry (at) users.sourceforge.net>
