@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.131 2008-11-26 16:20:20 mrtembry Exp $
+ *	$Id: rig.h,v 1.132 2008-12-14 19:26:35 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -560,6 +560,7 @@ typedef int ant_t;
 #define RIG_ANT_2	RIG_ANT_N(1)
 #define RIG_ANT_3	RIG_ANT_N(2)
 #define RIG_ANT_4	RIG_ANT_N(3)
+#define RIG_ANT_5	RIG_ANT_N(4)
 
 /**
  * \brief AGC delay settings
