@@ -193,6 +193,27 @@ Tip: traces can be hard to cut and paste sometimes. In that case,
 And then send my_rig_traces.txt to the hamlib-developer mailing list.
 
 
+Some models needs S-meter calibration, because the rig only returns raw
+measurement.  It's easy, it takes only 10mn. Here's how to proceed:
+
+ 1. Fire up the rigctl program released with the Hamlib package,
+    and pass along options as needed (serial speed, etc.).
+ 2. Tune to some frequency reporting S0 to the radio S-Meter.
+ 3. At rigctl prompt, issue "get_level" ('l' in short) of the level RAWSTR.
+ 4. Write down the S-level read on radio front panel, and the RAWSTR value
+    retrieved.
+ 5. Repeat from step 2 with S9 and S9+60dB. Actually the more plots,
+    the better, otherwise Hamlib does interpolation.
+ 6. Send the table to the hamlib-developer mailing list and it will be added
+    in the next release of Hamlib. 
+
+NB: you have to know the S-Meter of radio's is far from being accurate.
+For owners with a fully equipped lab, you may want to make the up-mentioned
+measurements with a good Signal Generator and a set of calibrated attenuators.
+Greg W8WWV has an insightful page about S-Meter:
+ http://www.seed-solutions.com/gregordy/Amateur%20Radio/Experimentation/SMeterBlues.htm
+
+
 Okay folks, test as much as you can, in the weirdest situations if
 possible. There is a special prize for those who find 'Segmentation fault'
 and other nasty bugs.
