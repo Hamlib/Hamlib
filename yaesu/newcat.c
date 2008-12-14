@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.19 2008-12-14 18:51:25 mrtembry Exp $
+ * $Id: newcat.c,v 1.20 2008-12-14 20:05:21 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@
 #include "newcat.h"
 
 /* global variables */
-static char cat_term = ';';             /* Yaesu command terminator */
+static const char cat_term = ';';             /* Yaesu command terminator */
 
 /*
  * The following table defines which commands are valid for any given
@@ -70,7 +70,7 @@ typedef struct _yaesu_newcat_commands {
  * or CAT programming manual.
  *
  */
-yaesu_newcat_commands_t valid_commands[] = {
+static const yaesu_newcat_commands_t valid_commands[] = {
                         /*   Command    FT-450  FT-950  FT-2000 FT-9000 */
                             {"AB",      FALSE,  TRUE,   TRUE,   FALSE   },
                             {"AC",      TRUE,   TRUE,   TRUE,   TRUE    },
@@ -194,13 +194,13 @@ struct newcat_priv_data {
 
 
 /* NewCAT Internal Functions */
-ncboolean newcat_is_rig(RIG * rig, rig_model_t model);
-int newcat_get_txvfo(RIG * rig, vfo_t * txvfo);
-int newcat_set_txvfo(RIG * rig, vfo_t txvfo);
-int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo);
-int newcat_set_rxvfo(RIG * rig, vfo_t rxvfo);
-int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo);
-int newcat_scale_float(int scale, float fval);
+static ncboolean newcat_is_rig(RIG * rig, rig_model_t model);
+static int newcat_get_txvfo(RIG * rig, vfo_t * txvfo);
+static int newcat_set_txvfo(RIG * rig, vfo_t txvfo);
+static int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo);
+static int newcat_set_rxvfo(RIG * rig, vfo_t rxvfo);
+static int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo);
+static int newcat_scale_float(int scale, float fval);
 
 
 /*
@@ -504,7 +504,8 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (vfo != RIG_VFO_CURR)
 		return -RIG_ENTARGET;
 
-	rig_debug(RIG_DEBUG_VERBOSE,"ft450: generic mode = %x \n", mode);
+	rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %x \n",
+			__func__, mode);
 
 	switch(mode) {
 		case RIG_MODE_LSB:
@@ -534,8 +535,11 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		case RIG_MODE_RTTYR:
 			cmdstr[3] = '9';
 			break;
+		case RIG_MODE_PKTFM:
+			cmdstr[3] = 'A';
+			break;
 		case RIG_MODE_FM:
-			cmdstr[3] = 'B';
+			cmdstr[3] = 'B';	/* narrow */
 			break;
 		case RIG_MODE_PKTUSB:
 			cmdstr[3] = 'C';
@@ -626,8 +630,11 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		case '9':
 			*mode = RIG_MODE_RTTYR;
 			break;
+		case 'A':
+			*mode = RIG_MODE_PKTFM;
+			break;
 		case 'B':
-			*mode = RIG_MODE_FM;
+			*mode = RIG_MODE_FM;	/* narrow */
 			break;
 		case 'C':
 			*mode = RIG_MODE_PKTUSB;
@@ -636,7 +643,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     	    return -RIG_EINVAL;
     }
 
-    *width = 2400;      /* dummy */
+    *width = rig_passband_normal(rig, *mode);      /* FIXME: dummy */
 
     return RIG_OK;
 
@@ -1399,8 +1406,6 @@ int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
     if (!newcat_valid_command(rig, command))
         return -RIG_ENAVAIL;
 
-    /* TODO: ADD RX only antenna */ 
-
     switch (ant) {
         case RIG_ANT_1:
             which_ant = '1';
@@ -1417,6 +1422,12 @@ int newcat_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
             if (newcat_is_rig(rig, RIG_MODEL_FT950))
                 return -RIG_EINVAL;
             which_ant = '4';
+            break;
+         case RIG_ANT_5:
+            if (newcat_is_rig(rig, RIG_MODEL_FT950))
+                return -RIG_EINVAL;
+	    /* RX only, on FT-2000/FT-9000 */
+            which_ant = '5';
             break;
          default:
             return -RIG_EINVAL;
@@ -1483,6 +1494,9 @@ int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
             break;
         case '4' :
             *ant = RIG_ANT_4;
+            break;
+        case '5' :
+            *ant = RIG_ANT_5;
             break;
         default:
             return -RIG_EINVAL;
