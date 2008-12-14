@@ -20,10 +20,10 @@ Before deciding release:
 
 Releasing Hamlib:
 ----------------
-* Regenerate ChangeLog with:
-	 TZ=UTC ./cvs2cl.pl
 * Update NEWS, TODO, AUTHORS
 * Update the version in the macro AC_INIT of configure.ac
+* Regenerate ChangeLog with:
+	 TZ=UTC ./cvs2cl.pl
 * Tag the CVS rep with version 'HAMLIB-x-y-z'
 * Build source tarball:
 	cvs -d:ext:yourloginhere@hamlib.cvs.sourceforge.net:/cvsroot/hamlib co -P -r HAMLIB-x-y-z hamlib
@@ -39,20 +39,21 @@ Releasing Hamlib:
 			--without-perl-binding --without-tcl-binding --without-python-binding \
 			--enable-xmltest ac_cv_path_PKG_CONFIG=no
 	  make install
-	  mkdir /tmp/mingw-inst/hamlib-x.y.z/lib/msvc
+	  mkdir -p /tmp/mingw-inst/hamlib-x.y.z/lib/msvc
 	  cp src/libhamlib.def /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/libhamlib-2.def
 	  cd /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/
 	  unix2dos include/hamlib/*.h
-	  unix2dos *.def
+	  unix2dos ./lib/msvc/*.def
 	  wine /media/sda1/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def
 	  vi README.win32.mine
 	  zip -r hamlib-win32-x.y.z.zip hamlib-x.y.z
+	Edit Release, i386, .zip
 
 * Build Windows DLL with stdcall convention:
   Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
 
 * Release the file(s)
-  - ncftp ftp://upload.sourceforge.net/incoming
+  - rsync -avP -e ssh hamlib-x.y.z.tar.gz yourloginhere@frs.sourceforge.net:uploads/
   - then go to https://sourceforge.net/project/admin/editpackages.php?group_id=8305
     [Add release] "x-y-z"
     Paste NEWS section and ChangeLog, select file, change file processor type to "Any"/"Source .gz"
