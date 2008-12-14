@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.48 2008-09-21 19:10:59 fillods Exp $  
+ *    $Id: dumpcaps.c,v 1.49 2008-12-14 19:01:16 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -217,6 +217,26 @@ int dumpcaps (RIG* rig, FILE *fout)
 			fprintf(fout, " %ddB",caps->attenuator[i]);
 	if (i == 0)
 		fprintf(fout, " none");
+	fprintf(fout, "\n");
+
+	fprintf(fout, "CTCSS:");
+	for(i=0; caps->ctcss_list && i<60 && caps->ctcss_list[i] != 0; i++) {
+		fprintf(fout, " %d.%1d",caps->ctcss_list[i]/10,caps->ctcss_list[i]%10);
+	}
+	if (i == 0)
+		fprintf(fout, " none");
+	else
+		fprintf(fout, " Hz, %d tones", i);
+	fprintf(fout, "\n");
+
+	fprintf(fout, "DCS:");
+	for(i=0; caps->dcs_list && i<128 && caps->dcs_list[i] != 0; i++) {
+		fprintf(fout, " %d",caps->dcs_list[i]);
+	}
+	if (i == 0)
+		fprintf(fout, " none");
+	else
+		fprintf(fout, ", %d codes", i);
 	fprintf(fout, "\n");
 
 	sprintf_func(prntbuf, caps->has_get_func);
