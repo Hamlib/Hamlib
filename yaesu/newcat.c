@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.18 2008-12-13 21:23:31 mrtembry Exp $
+ * $Id: newcat.c,v 1.19 2008-12-14 18:51:25 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1659,6 +1659,12 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			} else
 				return -RIG_EINVAL;
 			break;
+		case RIG_LEVEL_NOTCHF:
+			val.i = val.i / 10;
+			if (val.i < 1 || val.i > 300)
+				return -RIG_EINVAL;
+			sprintf(cmdstr, "BP01%03d;", val.i);
+			break;
 		default:
 			return -RIG_EINVAL;
 	}
@@ -1761,6 +1767,9 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 			else
 				return -RIG_EINVAL;
 			break;
+		case RIG_LEVEL_NOTCHF:
+			cmdstr = "BP01;";
+			break;
 		default:
 			return -RIG_EINVAL;
 	}
@@ -1856,6 +1865,9 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 				case '3': val->i = RIG_METER_SWR; break;
 				default: return -RIG_EINVAL;
 			}
+			break;
+		case RIG_LEVEL_NOTCHF:
+			val->i = atoi(retlvl) * 10;
 			break;
 		default:
 			return -RIG_EINVAL;
