@@ -2,7 +2,7 @@
  *  Hamlib CI-V backend - description of IC-706 and variations
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.37 2008-09-21 19:09:07 fillods Exp $
+ *	$Id: ic706.c,v 1.38 2008-12-14 20:09:39 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,7 +28,31 @@
 
 #include "hamlib/rig.h"
 #include "icom.h"
+#include "icom_defs.h"
+#include "frame.h"
 #include "idx_builtin.h"
+
+
+/*
+ *  This function does the special bandwidth coding for IC-706, IC-706MKII
+ *  and IC-706MKIIG
+ *  (0 - wide, 1 - normal, 2 - narrow)
+ */
+int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+	                                unsigned char *md, signed char *pd)
+{
+        int err;
+
+	err = rig2icom_mode(rig, mode, width, md, pd);
+	
+	if (err == -1)
+	    return err;
+
+	*pd--; 	
+
+	return RIG_OK;
+}
+
 
 #define IC706_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM|RIG_MODE_WFM)
 #define IC706_1MHZ_TS_MODES (RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
@@ -105,7 +129,8 @@
 static const struct icom_priv_caps ic706_priv_caps = { 
 		0x48,	/* default address */
 		0,		/* 731 mode */
-		ic706_ts_sc_list
+		ic706_ts_sc_list,
+		.r2i_mode = ic706_r2i_mode
 };
 
 const struct rig_caps ic706_caps = {
@@ -236,7 +261,8 @@ const struct rig_caps ic706_caps = {
 static const struct icom_priv_caps ic706mkii_priv_caps = { 
 		0x4e,	/* default address */
 		0,		/* 731 mode */
-		ic706_ts_sc_list
+		ic706_ts_sc_list,
+		.r2i_mode = ic706_r2i_mode
 };
 
 const struct rig_caps ic706mkii_caps = {
@@ -390,7 +416,8 @@ const struct rig_caps ic706mkii_caps = {
 static const struct icom_priv_caps ic706mkiig_priv_caps = { 
 		0x58,	/* default address */
 		0,		/* 731 mode */
-		ic706_ts_sc_list
+		ic706_ts_sc_list,
+		.r2i_mode = ic706_r2i_mode
 };
 
 const struct rig_caps ic706mkiig_caps = {
