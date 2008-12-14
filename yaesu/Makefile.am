@@ -18,4 +18,4 @@ hamlib_yaesu_la_LIBADD = $(top_builddir)/lib/libmisc.la \
 
 noinst_HEADERS = ft100.h ft747.h ft817.h ft847.h ft890.h ft900.h ft920.h \
 		 ft1000mp.h ft857.h ft897.h ft990.h yaesu.h yaesu_tones.h \
-		 ft757gx.h ft767gx.h ft450.h ft950.h newcat.h
+		 ft757gx.h ft767gx.h ft450.h ft950.h ft2000.h ft9000.h newcat.h
