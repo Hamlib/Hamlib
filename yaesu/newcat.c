@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.22 2008-12-16 09:01:46 mrtembry Exp $
+ * $Id: newcat.c,v 1.23 2008-12-16 22:38:57 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -513,6 +513,9 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	rig_debug(RIG_DEBUG_VERBOSE,"%s: generic mode = %x \n",
 			__func__, mode);
 
+	if (RIG_PASSBAND_NORMAL == width)
+		width = rig_passband_normal(rig, mode);
+
 	switch(mode) {
 		case RIG_MODE_LSB:
 			cmdstr[3] = '1';
@@ -522,9 +525,6 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			break;
 		case RIG_MODE_CW:
 			cmdstr[3] = '3';
-			break;
-		case RIG_MODE_WFM:
-			cmdstr[3] = '4';
 			break;
 		case RIG_MODE_AM:
 			cmdstr[3] = '5';
@@ -545,7 +545,10 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			cmdstr[3] = 'A';
 			break;
 		case RIG_MODE_FM:
-			cmdstr[3] = 'B';	/* narrow */
+			if (width < rig_passband_normal(rig, mode))
+				cmdstr[3] = 'B';	/* narrow */
+			else
+				cmdstr[3] = '4';
 			break;
 		case RIG_MODE_PKTUSB:
 			cmdstr[3] = 'C';
@@ -616,10 +619,13 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
      */
     c = priv->ret_data[3];
 
+    /* default, unless set otherwise */
+    *width = RIG_PASSBAND_NORMAL;
+
     switch (c) {
-	    case '1':
-    		*mode = RIG_MODE_LSB;
-        	break;
+		case '1':
+			*mode = RIG_MODE_LSB;
+			break;
 		case '2':
 			*mode = RIG_MODE_USB;
 			break;
@@ -627,7 +633,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			*mode = RIG_MODE_CW;
 			break;
 		case '4':
-			*mode = RIG_MODE_WFM;
+			*mode = RIG_MODE_FM;
 			break;
 		case '5':
 			*mode = RIG_MODE_AM;
@@ -649,15 +655,17 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			break;
 		case 'B':
 			*mode = RIG_MODE_FM;	/* narrow */
+			*width = rig_passband_narrow(rig, RIG_MODE_FM);
 			break;
 		case 'C':
 			*mode = RIG_MODE_PKTUSB;
 			break;
 	    default:
-    	    return -RIG_EINVAL;
+    	    return -RIG_EPROTO;
     }
 
-    *width = rig_passband_normal(rig, *mode);      /* FIXME: dummy */
+    if (RIG_PASSBAND_NORMAL == *width)
+    	*width = rig_passband_normal(rig, *mode);
 
     return RIG_OK;
 
@@ -847,9 +855,9 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
 //                      __func__, priv->current_mem);
 //            break;
 //        default:                      /* Oops! */
-//            return -RIG_EINVAL;         /* sorry, wrong current VFO */
+//            return -RIG_EPROTO;         /* sorry, wrong current VFO */
 //        }
-        return -RIG_EINVAL;         /* sorry, wrong current VFO */
+        return -RIG_EPROTO;         /* sorry, wrong current VFO */
     }
     rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *vfo);
 
@@ -932,7 +940,7 @@ int newcat_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt)
             *ptt = RIG_PTT_ON;
             break;
         default:
-            return -RIG_EINVAL;
+            return -RIG_EPROTO;
     }
 
     return RIG_OK;
@@ -1529,7 +1537,7 @@ int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
             *ant = RIG_ANT_5;
             break;
         default:
-            return -RIG_EINVAL;
+            return -RIG_EPROTO;
     }
 
     return RIG_OK;
@@ -1948,7 +1956,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 				case '5':
 				case '6':
 					  val->i = RIG_AGC_AUTO; break;
-				default: return -RIG_EINVAL;
+				default: return -RIG_EPROTO;
 			}
 			break;
 		case RIG_LEVEL_CWPITCH:
@@ -1959,7 +1967,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 				case '1': val->i = RIG_METER_ALC; break;
 				case '2': val->i = RIG_METER_PO; break;
 				case '3': val->i = RIG_METER_SWR; break;
-				default: return -RIG_EINVAL;
+				default: return -RIG_EPROTO;
 			}
 			break;
 		case RIG_LEVEL_NOTCHF:
@@ -2691,7 +2699,7 @@ int newcat_get_txvfo(RIG * rig, vfo_t * txvfo) {
 			*txvfo = RIG_VFO_B;
 			break;
 		default:
-			return -RIG_EINVAL;
+			return -RIG_EPROTO;
 	}
 
 	return RIG_OK;
@@ -2807,7 +2815,7 @@ int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo) {
 			*rxvfo = RIG_VFO_B;
 			break;
 		default:
-			return -RIG_EINVAL;
+			return -RIG_EPROTO;
 	}
 
 	priv->current_vfo = *rxvfo;     /* Track Main Band RX VFO */
