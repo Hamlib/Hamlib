@@ -1,8 +1,8 @@
 /*
  *  Hamlib Drake backend - main file
- *  Copyright (c) 2001-2005 by Stephane Fillod
+ *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: drake.c,v 1.18 2006-10-07 17:56:26 csete Exp $
+ *	$Id: drake.c,v 1.19 2008-12-16 22:40:02 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -449,7 +449,7 @@ int drake_set_mem(RIG *rig, vfo_t vfo, int ch)
 
 	if (ack_len != 2) {
 		rig_debug(RIG_DEBUG_ERR,"drake_set_mem: could not set channel %03d.\n", ch);
-		retval = RIG_ERJCTED;
+		retval = -RIG_ERJCTED;
 	}
 	
 	return retval;
