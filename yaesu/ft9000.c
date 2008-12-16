@@ -8,7 +8,7 @@
  * via serial interface to an FT-9000 using the "CAT" interface
  *
  *
- * $Id: ft9000.c,v 1.1 2008-12-14 20:02:03 fillods Exp $
+ * $Id: ft9000.c,v 1.2 2008-12-16 22:33:02 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -146,9 +146,10 @@ const struct rig_caps ft9000_caps = {
     .filters =            {
         {FT9000_SSB_CW_RX_MODES,  kHz(2.4)},  /* standard SSB/CW filter bandwidth */
         {RIG_MODE_CW,   kHz(0.5)},  /* CW filter with narrow selection (must be installed!) */
-        {RIG_MODE_AM,   kHz(6)},    /* normal AM filter */
-        {RIG_MODE_AM,   kHz(2.4)},  /* AM filter with narrow selection (SSB filter switched in) */
+        {RIG_MODE_AM,   kHz(9)},    /* normal AM filter */
+        {RIG_MODE_AM,   kHz(6)},
         {FT9000_FM_RX_MODES,   kHz(12)},   /* FM  */
+        {RIG_MODE_FM,   kHz(8)},    /* narrow FM */
 
         RIG_FLT_END,
     },
