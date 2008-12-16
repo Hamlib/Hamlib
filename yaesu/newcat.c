@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.21 2008-12-15 21:52:36 mrtembry Exp $
+ * $Id: newcat.c,v 1.22 2008-12-16 09:01:46 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1618,6 +1618,8 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		case RIG_LEVEL_PREAMP:
 			if (val.i == 0) {
 				sprintf(cmdstr, "PA00%c", cat_term);
+				if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+					cmdstr[2] = main_sub_vfo;
 				break;
 			}
 			cmdstr[0] = '\0';
@@ -1636,6 +1638,8 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		case RIG_LEVEL_ATT:
 			if (val.i == 0) {
 				sprintf(cmdstr, "RA00%c", cat_term);
+			    if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+					cmdstr[2] = main_sub_vfo;
 				break;
 			}
 			cmdstr[0] = '\0';
@@ -1644,10 +1648,13 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 					sprintf(cmdstr, "RA0%d%c", i+1, cat_term);
 					break;  /* for loop */
 				}
-			if (strlen(cmdstr) != 0)
-				break;
-
-			return -RIG_EINVAL;
+			if (strlen(cmdstr) != 0) {
+			    if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+					cmdstr[2] = main_sub_vfo;
+                break;
+            }
+			
+            return -RIG_EINVAL;
 		case RIG_LEVEL_RF:
 			fpf = newcat_scale_float(255, val.f);
 			sprintf(cmdstr, "RG%c%03d%c", main_sub_vfo, fpf, cat_term);
@@ -1675,7 +1682,11 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			/* FIXME: should be tenth of dots, newcat expects ms */
 			/* GUI GRIG2 expects ms so keep FT450 and FT950 BKIN DELAY in ms for now */
 			if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
-				if (((val.i > 0) && (val.i < 30)) || (val.i > 3000))	/* 0000, is rejected by FT950 */
+				if ((val.i > 0 && val.i < 30) || val.i > 3000 || val.i < 0)	/* 0000, is rejected by FT950 */
+					return -RIG_EINVAL;
+				sprintf(cmdstr, "SD%04d%c", val.i, cat_term);
+            } else if (newcat_is_rig(rig, RIG_MODEL_FT2000) || newcat_is_rig(rig, RIG_MODEL_FT9000)) {
+				if (val.i < 1 || val.i > 5000)
 					return -RIG_EINVAL;
 				sprintf(cmdstr, "SD%04d%c", val.i, cat_term);
 			} else
@@ -1688,12 +1699,12 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		case RIG_LEVEL_VOX:
 			/* VOX delay, arg int (tenth of seconds), expects ms */
 			/* GUI GRIG2 expects ms so keep FT950 and FT450 VOX delay in ms */
-			if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
-				if (((val.i >= 0) && (val.i < 30)) || (val.i > 3000))
+			if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
+				if (val.i < 30 || val.i > 3000)
 					return -RIG_EINVAL;
 				sprintf(cmdstr, "VD%04d%c", val.i, cat_term);
-			} else if (newcat_is_rig(rig, RIG_MODEL_FT450)) {
-				if (((val.i >= 0) && (val.i < 100)) || (val.i > 3000))
+			} else if (newcat_is_rig(rig, RIG_MODEL_FT2000) || newcat_is_rig(rig, RIG_MODEL_FT9000)) {
+				if (val.i < 0  || val.i > 5000)
 					return -RIG_EINVAL;
 				sprintf(cmdstr, "VD%04d%c", val.i, cat_term);
 			} else
@@ -1713,10 +1724,15 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			break;
 		case RIG_LEVEL_NOTCHF:
 			val.i = val.i / 10;
-			if (val.i < 1 || val.i > 300)
-				return -RIG_EINVAL;
+			if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
+                if (val.i < 1 || val.i > 300)
+				    return -RIG_EINVAL;
+            } else {
+                if (val.i < 1 || val.i > 400)
+				    return -RIG_EINVAL;
+            }
 			sprintf(cmdstr, "BP01%03d%c", val.i, cat_term);
-			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+			if (newcat_is_rig(rig, RIG_MODEL_FT9000)) /* The old CAT Man. shows VFO, the new CAT Man. shows 0 ? */
 				cmdstr[2] = main_sub_vfo;
 			break;
 		default:
@@ -1792,6 +1808,8 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 			break;
 		case RIG_LEVEL_ATT:
 			sprintf(cmdstr, "RA0%c", cat_term);
+			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+				cmdstr[2] = main_sub_vfo;
 			break;
 		case RIG_LEVEL_RF:
 			sprintf(cmdstr, "RG%c%c", main_sub_vfo, cat_term);
@@ -1805,7 +1823,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 				cmdstr[2] = main_sub_vfo;
 			break;
 		case RIG_LEVEL_BKINDL:
-			/* FIXME: should be tenth of dots, newcat expects ms */
+			/* should be tenth of dots, newcat expects ms */
 			sprintf(cmdstr, "SD%c", cat_term);
 			break;
 		case RIG_LEVEL_SQL:
@@ -1822,13 +1840,19 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 			 * Read only levels
 			 */
 		case RIG_LEVEL_RAWSTR:
-			sprintf(cmdstr, "SM0%c", cat_term);
+			sprintf(cmdstr, "SM%c%c", main_sub_vfo, cat_term);
 			break;
 		case RIG_LEVEL_SWR:
-			sprintf(cmdstr, "RM6%c", cat_term);
+			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+                sprintf(cmdstr, "RM09%c", cat_term);
+            else
+                sprintf(cmdstr, "RM6%c", cat_term);
 			break;
 		case RIG_LEVEL_ALC:
-			sprintf(cmdstr, "RM4%c", cat_term);
+            if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+			    sprintf(cmdstr, "RM07%c", cat_term);
+            else 
+			    sprintf(cmdstr, "RM4%c", cat_term);
 			break;
 		case RIG_LEVEL_ANTIVOX:
 			if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
@@ -1881,9 +1905,9 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 		case RIG_LEVEL_SQL:
 		case RIG_LEVEL_SWR:
 		case RIG_LEVEL_ALC:
-			val->f = (float)atoi(retlvl)/255.;
+            val->f = (float)atoi(retlvl)/255.;
 			break;
-		case RIG_LEVEL_BKINDL: /* FIXME FT950 FT450 works with GUI GRIG2; */
+		case RIG_LEVEL_BKINDL: /* FT950 FT450 works with GUI GRIG2; */
 		case RIG_LEVEL_RAWSTR:
 		case RIG_LEVEL_KEYSPD:
 		case RIG_LEVEL_IF:
@@ -1896,7 +1920,8 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 				val->f = (float)(atoi(retlvl))/100.;
 			break;
 		case RIG_LEVEL_VOX:
-			if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
+			if (newcat_is_rig(rig, RIG_MODEL_FT950)  || newcat_is_rig(rig, RIG_MODEL_FT450) ||
+                newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000)) {
 				val->i = atoi(retlvl);       /* ms, works with GRIG2 */
 			} else {
 				/* VOX delay, arg int (tenth of seconds) */
@@ -1998,10 +2023,7 @@ int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 			sprintf(cmdstr, "LK%d%c", status ? 1 : 0, cat_term);
 			break;
 		case RIG_FUNC_MON:
-			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
-				return -RIG_EINVAL;
-			else
-				sprintf(cmdstr, "ML0%03d%c", status ? 1 : 0, cat_term);
+			sprintf(cmdstr, "ML0%03d%c", status ? 1 : 0, cat_term);
 			break;
 		case RIG_FUNC_NB:
 			sprintf(cmdstr, "NB0%d%c", status ? 1 : 0, cat_term);
@@ -2073,10 +2095,7 @@ int newcat_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
 			sprintf(cmdstr, "LK%c", cat_term);
 			break;
 		case RIG_FUNC_MON:
-			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
-				return -RIG_EINVAL;
-			else
-				sprintf(cmdstr, "ML0%c", cat_term);
+			sprintf(cmdstr, "ML0%c", cat_term);
 			break;
 		case RIG_FUNC_NB:
 			sprintf(cmdstr, "NB0%c", cat_term);
@@ -2340,25 +2359,17 @@ int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 	
 	switch (op) {
 		case RIG_OP_TUNE:
-			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
-				cmdstr = "AC2";
-			else
-				cmdstr = "AC002;";
+			cmdstr = "AC002;";
 			break;
 		case RIG_OP_CPY:
 			if (newcat_is_rig(rig, RIG_MODEL_FT450))
 				cmdstr = "VV;";
-			else if (newcat_is_rig(rig, RIG_MODEL_FT9000))
-				return -RIG_EINVAL;
 			else
 				cmdstr = "AB;"; /* VFO_A to VFO_B */
 			break;
 		case RIG_OP_XCHG:
 		case RIG_OP_TOGGLE:
-			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
-				return -RIG_EINVAL;
-			else
-				cmdstr = "SV;";
+			cmdstr = "SV;";
 			break;
 		case RIG_OP_UP:
 			cmdstr = "UP;";
@@ -2373,20 +2384,12 @@ int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
 			cmdstr = (main_sub_vfo == '1') ? "BD1;" : "BD0;";
 			break;
 		case RIG_OP_FROM_VFO:
-			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
-				return -RIG_EINVAL;
-			else {
-				/* VFOA ! */
-				cmdstr = "AM;";
-			}
+			/* VFOA ! */
+			cmdstr = "AM;";
 			break;
 		case RIG_OP_TO_VFO:
-			if (newcat_is_rig(rig, RIG_MODEL_FT9000))
-				return -RIG_EINVAL;
-			else {
-				/* VFOA ! */
-				cmdstr = "MA;";
-			}
+			/* VFOA ! */
+			cmdstr = "MA;";
 			break;
 		default:
 			return -RIG_EINVAL;
