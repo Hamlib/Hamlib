@@ -8,7 +8,7 @@
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.5 2008-12-06 13:28:32 mrtembry Exp $
+ * $Id: ft450.c,v 1.6 2008-12-17 22:57:04 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -141,15 +141,21 @@ const struct rig_caps ft450_caps = {
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {RIG_MODE_SSB,  kHz(2.4)},  /* standard SSB filter bandwidth */
-        {RIG_MODE_CW,   kHz(2.4)},  /* normal CW filter */
-        {RIG_MODE_CW,   kHz(0.5)},  /* CW filter with narrow selection (must be installed!) */
-        {RIG_MODE_AM,   kHz(6)},    /* normal AM filter */
-        {RIG_MODE_AM,   kHz(2.4)},  /* AM filter with narrow selection (SSB filter switched in) */
-        {RIG_MODE_FM,   kHz(12)},   /* FM  */
+        {FT450_CW_RTTY_PKT_RX_MODES,  kHz(1.8)},  /* Normal must be first */
+        {FT450_CW_RTTY_PKT_RX_MODES,  kHz(0.5)},  /* Narrow filter bandwidth */
+        {FT450_CW_RTTY_PKT_RX_MODES,  kHz(2.4)},  /* Wide   filter bandwidth */
+        {RIG_MODE_SSB,                kHz(2.4)},  /* Normal SSB filter bandwidth */
+        {RIG_MODE_SSB,                kHz(1.8)},  /* Narrow SSB filter bandwidth */
+        {RIG_MODE_SSB,                kHz(3.0)},  /* Wide   SSB filter bandwidth */
+        {RIG_MODE_AM,                 kHz(6)},    /* normal AM filter */
+        {RIG_MODE_AM,                 kHz(3)},
+        {RIG_MODE_AM,                 kHz(9)},
+        {FT450_FM_RX_MODES,           kHz(12)},   /* FM  */
+        {RIG_MODE_FM,                 kHz(8)},    /* narrow FM */
 
         RIG_FLT_END,
     },
+
 
     .priv =               NULL,           /* private data FIXME: */
 
