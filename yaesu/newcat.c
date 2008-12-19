@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.24 2008-12-18 13:11:40 mrtembry Exp $
+ * $Id: newcat.c,v 1.25 2008-12-19 19:30:54 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1567,6 +1567,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
     err = newcat_set_vfo_from_alias(rig, &vfo);
     if (err < 0)
         return err;
+
     /* Start with both but mostly FT9000 */
 	if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
 		main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
@@ -1593,9 +1594,13 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			cmdstr[2] = main_sub_vfo;	
 			break;
 		case RIG_LEVEL_IF:
-			if (abs(val.i) > rig->caps->max_ifshift)
-				return -RIG_EINVAL;
-			sprintf(cmdstr, "IS0%+.4d%c", val.i, cat_term);	/* format problem with %+04d */
+			if (abs(val.i) > rig->caps->max_ifshift) {
+                if (val.i > 0)
+                    val.i = rig->caps->max_ifshift;
+                else
+                    val.i = rig->caps->max_ifshift * -1;
+            }
+			sprintf(cmdstr, "IS0%+.4d%c", val.i, cat_term);	/* problem with %+04d */
             if (newcat_is_rig(rig, RIG_MODEL_FT9000))
                 cmdstr[2] = main_sub_vfo;
 			break;
@@ -1618,7 +1623,12 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		case RIG_LEVEL_METER:
 			switch (val.i) {
 				case RIG_METER_ALC: strcpy(cmdstr, "MS1;"); break;
-				case RIG_METER_PO:  strcpy(cmdstr, "MS2;"); break;
+				case RIG_METER_PO:
+                    if (newcat_is_rig(rig, RIG_MODEL_FT950))
+                        return RIG_OK;
+                    else
+                        strcpy(cmdstr, "MS2;");
+                    break;
 				case RIG_METER_SWR: strcpy(cmdstr, "MS3;"); break;
 				default: return -RIG_EINVAL;
 			}
@@ -1669,16 +1679,21 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			break;
 		case RIG_LEVEL_NR:
 			if (newcat_is_rig(rig, RIG_MODEL_FT450)) {
-				fpf = newcat_scale_float(10, val.f);
-				sprintf(cmdstr, "RL0%02d%c", fpf+1, cat_term);
+				fpf = newcat_scale_float(11, val.f);
+                if (fpf < 1)
+                    fpf = 1;
+                if (fpf > 11)
+                    fpf = 11;
+				sprintf(cmdstr, "RL0%02d%c", fpf, cat_term);
 			} else {
-				fpf = newcat_scale_float(100, val.f);
+				fpf = newcat_scale_float(15, val.f);
+				if (fpf < 1)
+                    fpf = 1;
+                if (fpf > 15)
+                    fpf = 15;
                 sprintf(cmdstr, "RL0%02d%c", fpf, cat_term);
-				if (newcat_is_rig(rig, RIG_MODEL_FT9000))
+                if (newcat_is_rig(rig, RIG_MODEL_FT9000))
 					cmdstr[2] = main_sub_vfo;
-
-				if (fpf < 1 || fpf > 15)
-					return -RIG_EINVAL;
 			}
 			break;
 		case RIG_LEVEL_COMP:
@@ -1687,9 +1702,13 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			sprintf(cmdstr, "PL%03d%c", fpf, cat_term);
 			break;
 		case RIG_LEVEL_BKINDL:
-			/* FIXME: should be tenth of dots, newcat expects ms */
-			/* GUI GRIG2 expects ms so keep FT450 and FT950 BKIN DELAY in ms for now */
-			if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
+            /* Standard: word "PARIS" == 50 dots */
+            /* 10 tenth_dots == 1 dot */
+            /* ms  = (1200 * dots-per-word * tenth_dots) / tenth_dots-per-min */
+            if (val.i == 0)
+                val.i = 1;
+            val.i = 600000 / val.i;
+            if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
 			    if (val.i < 30)
                    val.i = 30;
                 if (val.i > 3000)
@@ -1699,9 +1718,9 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
                     val.i = 1;
                 if (val.i > 5000)
                     val.i = 5000;
-            }
+             }
 			sprintf(cmdstr, "SD%04d%c", val.i, cat_term);
-			break;
+            break;
 		case RIG_LEVEL_SQL:
 			fpf = newcat_scale_float(255, val.f);
 			sprintf(cmdstr, "SQ%c%03d%c", main_sub_vfo, fpf, cat_term);
@@ -1921,17 +1940,21 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 		case RIG_LEVEL_ALC:
             val->f = (float)atoi(retlvl)/255.;
 			break;
-		case RIG_LEVEL_BKINDL: /* FT950 FT450 works with GUI GRIG2; */
+		case RIG_LEVEL_BKINDL:
+            val->i = atoi(retlvl);      /* milliseconds */
+            val->i = 600000 / val->i;   /* tenth_dots per min */
+            break;
 		case RIG_LEVEL_RAWSTR:
 		case RIG_LEVEL_KEYSPD:
 		case RIG_LEVEL_IF:
 			val->i = atoi(retlvl);
 			break;
 		case RIG_LEVEL_NR:
+            /*  ratio 0 - 1.0 */
 			if (newcat_is_rig(rig, RIG_MODEL_FT450))
-				val->f = (float)(atoi(retlvl)-1)/10.;
-			else
-				val->f = (float)(atoi(retlvl))/100.;
+                val->f = (float) (atoi(retlvl) / 11. );
+            else
+                val->f = (float) (atoi(retlvl) / 15. );
 			break;
 		case RIG_LEVEL_VOX:
 			/* VOX delay, arg int (tenth of seconds), 100ms intervals */
@@ -1965,9 +1988,11 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 			break;
 		case RIG_LEVEL_METER:
 			switch (retlvl[0]) {
+				case '0': val->i = RIG_METER_COMP; break;
 				case '1': val->i = RIG_METER_ALC; break;
 				case '2': val->i = RIG_METER_PO; break;
-				case '3': val->i = RIG_METER_SWR; break;
+			    case '3': val->i = RIG_METER_SWR; break;
+			    case '4': val->i = RIG_METER_IC; break;     /* ID CURRENT */
 				default: return -RIG_EPROTO;
 			}
 			break;
