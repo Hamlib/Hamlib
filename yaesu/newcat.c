@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.25 2008-12-19 19:30:54 mrtembry Exp $
+ * $Id: newcat.c,v 1.26 2008-12-21 10:51:50 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -201,6 +201,8 @@ static int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo);
 static int newcat_set_rxvfo(RIG * rig, vfo_t rxvfo);
 static int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo);
 static int newcat_scale_float(int scale, float fval);
+// static int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow);
+// static int newcat_set_narrow(RIG * rig, vfo_t vfo, ncboolean narrow);
 
 
 /*
@@ -1705,7 +1707,7 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
             /* Standard: word "PARIS" == 50 dots */
             /* 10 tenth_dots == 1 dot */
             /* ms  = (1200 * dots-per-word * tenth_dots) / tenth_dots-per-min */
-            if (val.i == 0)
+            if (val.i < 1)
                 val.i = 1;
             val.i = 600000 / val.i;
             if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
@@ -1942,6 +1944,8 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 			break;
 		case RIG_LEVEL_BKINDL:
             val->i = atoi(retlvl);      /* milliseconds */
+            if (val->i < 1)             /* divide by zero catch */
+                val->i = 1;
             val->i = 600000 / val->i;   /* tenth_dots per min */
             break;
 		case RIG_LEVEL_RAWSTR:
@@ -2954,11 +2958,105 @@ int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo) {
 int newcat_scale_float(int scale, float fval) {
 	float f;
 	float fudge = 0.003;
-    
+
 	if ((fval + fudge) > 1.0)
 		f = scale * fval;
 	else 
 		f = scale * (fval + fudge);
 
 	return (int) f;
+}
+
+
+int newcat_set_narrow(RIG * rig, vfo_t vfo, ncboolean narrow)
+{
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char cmdstr[16];
+    char main_sub_vfo = '0';
+    char c = '0';
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!newcat_valid_command(rig, "NA"))
+        return -RIG_ENAVAIL;
+
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
+        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+
+    if (narrow == TRUE) 
+        c = '1';
+
+    snprintf(cmdstr, sizeof(cmdstr), "NA%c%c%c", main_sub_vfo, c, cat_term);
+
+    err = write_block(&state->rigport, cmdstr, strlen(cmdstr));
+    if (err != RIG_OK)
+        return err;
+
+    return RIG_OK;
+}
+
+
+int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow)
+{
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char command[] = "NA";
+    char main_sub_vfo = '0';
+    char c;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
+
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
+        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, main_sub_vfo, cat_term);
+    /* Get NAR */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, NA value = %c\n", __func__,
+            err, priv->ret_data, priv->ret_data[3]);
+
+    if (strcmp(priv->ret_data, "?;") == 0) {
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting NA\n");
+        return RIG_OK;
+    }
+
+    c = priv->ret_data[3];
+    if (c == '1')
+        *narrow = TRUE;
+    else
+        *narrow = FALSE;
+
+    return RIG_OK;
 }
