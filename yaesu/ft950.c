@@ -8,7 +8,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.8 2008-12-17 22:57:04 mrtembry Exp $
+ * $Id: ft950.c,v 1.9 2008-12-23 22:36:51 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -141,17 +141,42 @@ const struct rig_caps ft950_caps = {
 
     /* mode/filter list, .remember =  order matters! */
  .filters =            {
-        {FT950_CW_RTTY_PKT_RX_MODES,  kHz(1.7)},  /* Normal must be first */
-        {FT950_CW_RTTY_PKT_RX_MODES,  kHz(0.5)},  /* Narrow filter bandwidth */
-        {FT950_CW_RTTY_PKT_RX_MODES,  kHz(2.4)},  /* Wide   filter bandwidth */
-        {RIG_MODE_SSB,                kHz(2.4)},  /* Normal SSB filter bandwidth */
-        {RIG_MODE_SSB,                kHz(1.8)},  /* Narrow SSB filter bandwidth */
-        {RIG_MODE_SSB,                kHz(3.0)},  /* Wide   SSB filter bandwidth */
-        {RIG_MODE_AM,                 kHz(9)},    /* AM Normal */
-        {RIG_MODE_AM,                 kHz(6)},
-        {FT950_FM_RX_MODES,           kHz(12)},   /* FM  */
-        {RIG_MODE_FM,                 kHz(8)},    /* narrow FM */
-
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(1700)},    /* Normal CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(500)},     /* Narrow CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(2000)},    /*        CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(1400)},    /*        CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(1200)},    /*        CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(800)},     /*        CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(400)},     /*        CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(300)},     /*        CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(200)},     /*        CW, RTTY, PKT */
+        {FT950_CW_RTTY_PKT_RX_MODES,  Hz(100)},     /*        CW, RTTY, PKT */
+        {RIG_MODE_SSB,                Hz(2400)},    /* Normal SSB */
+        {RIG_MODE_SSB,                Hz(1800)},    /* Narrow SSB */
+        {RIG_MODE_SSB,                Hz(3000)},    /* Wide   SSB */
+        {RIG_MODE_SSB,                Hz(2900)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2800)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2700)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2600)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2500)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2450)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2250)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(2100)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(1950)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(1650)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(1500)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(1350)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(1100)},    /*        SSB */
+        {RIG_MODE_SSB,                Hz(850)},     /*        SSB */
+        {RIG_MODE_SSB,                Hz(600)},     /*        SSB */
+        {RIG_MODE_SSB,                Hz(400)},     /*        SSB */
+        {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
+        {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
+        {RIG_MODE_AM,                 Hz(6000)},    /* Narrow AM */
+        {FT950_FM_RX_MODES,           Hz(16000)},   /* Normal FM */
+        {FT950_FM_RX_MODES,           Hz(9000)},    /* Narrow FM */
+        
         RIG_FLT_END,
     },
 
