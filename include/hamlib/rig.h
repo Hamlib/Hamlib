@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.132 2008-12-14 19:26:35 fillods Exp $
+ *	$Id: rig.h,v 1.133 2008-12-24 20:12:11 mrtembry Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -586,7 +586,8 @@ enum meter_level_e {
   RIG_METER_ALC =	(1<<2),		/*< ALC */
   RIG_METER_IC =	(1<<3),		/*< IC */
   RIG_METER_DB =	(1<<4),		/*< DB */
-  RIG_METER_PO =	(1<<5)		/*< Power Out */
+  RIG_METER_PO =	(1<<5),		/*< Power Out */
+  RIG_METER_VDD =	(1<<6)		/*< Final Amp Voltage */
 };
 
 /**
