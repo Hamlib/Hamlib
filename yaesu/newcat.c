@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.29 2008-12-25 13:32:50 mrtembry Exp $
+ * $Id: newcat.c,v 1.30 2008-12-25 14:45:00 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -989,17 +989,113 @@ int newcat_get_dcd(RIG * rig, vfo_t vfo, dcd_t * dcd)
 
 int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char command[] = "OS";
+    char main_sub_vfo = '0';
+    char c;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
+
+    /* Main or SUB vfo */
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
+        main_sub_vfo = RIG_VFO_B == vfo ? '1' : '0';
+
+    switch (rptr_shift) {
+        case RIG_RPT_SHIFT_NONE:
+            c = '0';
+            break;
+        case RIG_RPT_SHIFT_PLUS:
+            c = '1';
+            break;
+        case RIG_RPT_SHIFT_MINUS:
+            c = '2';
+            break;
+        default:
+            return -RIG_EINVAL;
+
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c%c", command, main_sub_vfo, c, cat_term);
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+
+    return err;
 }
 
 
 int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char c;
+    char command[] = "OS";
+    char main_sub_vfo = '0';
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
+
+    /* Set Main or SUB vfo */
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
+        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, main_sub_vfo, cat_term);
+    /* Get Rptr Shift */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, Rptr Shift value = %c\n", __func__,
+            err, priv->ret_data, priv->ret_data[3]);
+
+    if (strcmp(priv->ret_data, "?;") == 0) {
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting Rptr Shift\n");
+        return RIG_OK;
+    }
+
+    c = priv->ret_data[3];
+    switch (c) {
+        case '0':
+            *rptr_shift = RIG_RPT_SHIFT_NONE;
+            break; 
+        case '1':
+            *rptr_shift = RIG_RPT_SHIFT_PLUS;
+            break;
+        case '2':
+            *rptr_shift = RIG_RPT_SHIFT_MINUS;
+            break;
+        default: 
+            return -RIG_EINVAL;
+    } 
+
+    return RIG_OK;
 }
 
 

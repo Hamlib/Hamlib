@@ -12,7 +12,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.12 2008-12-06 02:37:45 mrtembry Exp $
+ *    $Id: newcat.h,v 1.13 2008-12-25 14:44:59 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -141,6 +141,8 @@ int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, 
 int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode);
 int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo);
+int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift);
+int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift);
 
 
 #endif /* _NEWCAT_H */
