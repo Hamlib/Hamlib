@@ -8,7 +8,7 @@
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.6 2008-12-17 22:57:04 mrtembry Exp $
+ * $Id: ft450.c,v 1.7 2008-12-25 13:27:07 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -141,17 +141,17 @@ const struct rig_caps ft450_caps = {
 
     /* mode/filter list, .remember =  order matters! */
     .filters =            {
-        {FT450_CW_RTTY_PKT_RX_MODES,  kHz(1.8)},  /* Normal must be first */
-        {FT450_CW_RTTY_PKT_RX_MODES,  kHz(0.5)},  /* Narrow filter bandwidth */
-        {FT450_CW_RTTY_PKT_RX_MODES,  kHz(2.4)},  /* Wide   filter bandwidth */
-        {RIG_MODE_SSB,                kHz(2.4)},  /* Normal SSB filter bandwidth */
-        {RIG_MODE_SSB,                kHz(1.8)},  /* Narrow SSB filter bandwidth */
-        {RIG_MODE_SSB,                kHz(3.0)},  /* Wide   SSB filter bandwidth */
-        {RIG_MODE_AM,                 kHz(6)},    /* normal AM filter */
-        {RIG_MODE_AM,                 kHz(3)},
-        {RIG_MODE_AM,                 kHz(9)},
-        {FT450_FM_RX_MODES,           kHz(12)},   /* FM  */
-        {RIG_MODE_FM,                 kHz(8)},    /* narrow FM */
+        {FT450_CW_RTTY_PKT_RX_MODES,  Hz(1800)},    /* Normal CW, RTTY, PKT/USER */
+        {FT450_CW_RTTY_PKT_RX_MODES,  Hz(500)},     /* Narrow CW, RTTY, PKT/USER */
+        {FT450_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT?USER */
+        {RIG_MODE_SSB,                Hz(2400)},    /* Normal SSB */
+        {RIG_MODE_SSB,                Hz(1800)},    /* Narrow SSB */
+        {RIG_MODE_SSB,                Hz(3000)},    /* Wide   SSB */
+        {RIG_MODE_AM,                 Hz(6000)},    /* Normal AM  */
+        {RIG_MODE_AM,                 Hz(3000)},    /* Narrow AM  */
+        // {RIG_MODE_AM,                 Hz(9000)},    /* Wide   AM  */
+        {FT450_FM_RX_MODES,           Hz(12000)},   /* Normal FM  */
+        {FT450_FM_RX_MODES,           Hz(8000)},    /* Narrow FM  */
 
         RIG_FLT_END,
     },
