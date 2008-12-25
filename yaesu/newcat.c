@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.28 2008-12-24 20:17:45 mrtembry Exp $
+ * $Id: newcat.c,v 1.29 2008-12-25 13:32:50 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -525,7 +525,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         case RIG_MODE_CWR:
             cmdstr[3] = '7';
             break;
-        case RIG_MODE_PKTLSB:
+        case RIG_MODE_PKTLSB:       /* FT450 USER-L */
             cmdstr[3] = '8';
             break;
         case RIG_MODE_RTTYR:
@@ -546,7 +546,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             else
                 cmdstr[3] = '4';
             break;
-        case RIG_MODE_PKTUSB:
+        case RIG_MODE_PKTUSB:       /* FT450 USER-U */
             cmdstr[3] = 'C';
             break;
         default:
@@ -660,7 +660,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             *mode = RIG_MODE_CWR;
             break;
         case '8':
-            *mode = RIG_MODE_PKTLSB;
+            *mode = RIG_MODE_PKTLSB;        /* FT450 USER-L */
             break;
         case '9':
             *mode = RIG_MODE_RTTYR;
@@ -682,7 +682,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             return RIG_OK;
             break;
         case 'C':
-            *mode = RIG_MODE_PKTUSB;
+            *mode = RIG_MODE_PKTUSB;        /* FT450 USER-U */
             break;
         case 'D':
             *mode = RIG_MODE_AM;    /* narrow */
@@ -3175,10 +3175,38 @@ int newcat_set_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
         }   /* end switch(mode) */
     }   /* end if FT950 */
     else {
-   
         /* FT450, FT2000, FT9000 */
-        return RIG_OK;
-    }
+        switch (mode) {
+            case RIG_MODE_PKTUSB:
+            case RIG_MODE_PKTLSB:
+            case RIG_MODE_RTTY:
+            case RIG_MODE_RTTYR:
+            case RIG_MODE_CW:
+            case RIG_MODE_CWR:
+                switch (width) {
+                    case 1800: sprintf(width_str, "16"); narrow = '0'; break;  /* normal */
+                    case  500: sprintf(width_str, "06"); narrow = '0'; break;  /* narrow */
+                    case 2400: sprintf(width_str, "24"); narrow = '0'; break;  /* wide   */
+                    default: return -RIG_EINVAL;
+                }
+                break;
+            case RIG_MODE_LSB:
+            case RIG_MODE_USB:
+                switch (width) {
+                    case 2400: sprintf(width_str, "16"); narrow = '0'; break;  /* normal */
+                    case 1800: sprintf(width_str, "08"); narrow = '0'; break;  /* narrow */
+                    case 3000: sprintf(width_str, "25"); narrow = '0'; break;  /* wide   */
+                    default: return -RIG_EINVAL;
+                }
+                break;
+            case RIG_MODE_AM:
+            case RIG_MODE_FM:
+            case RIG_MODE_PKTFM:
+                return RIG_OK;
+            default:
+                return -RIG_EINVAL;
+        }   /* end switch(mode) */
+    }   /* end else */
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "NA%c%c%cSH%c%s%c",
             main_sub_vfo, narrow, cat_term, main_sub_vfo, width_str, cat_term);
@@ -3218,7 +3246,7 @@ int newcat_get_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
         main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo, cat_term);
-    
+
     /* Get RX BANDWIDTH */
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
@@ -3262,7 +3290,7 @@ int newcat_get_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
                     case 11: *width = 1700; break;  /* normal */
                     case  0:
                     case  7: *width =  500; break;  /* narrow */
-                    case 13: *width = 2400; break;  /* wide */
+                    case 13: *width = 2400; break;  /* wide   */
                     case 12: *width = 2000; break;
                     case 10: *width = 1400; break;
                     case  9: *width = 1200; break;
@@ -3280,7 +3308,7 @@ int newcat_get_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
                     case  0:
                     case 13: *width = 2400; break;  /* normal */
                     case  9: *width = 1800; break;  /* narrow */
-                    case 20: *width = 3000; break;  /* wide */
+                    case 20: *width = 3000; break;  /* wide   */
                     case 19: *width = 2900; break;
                     case 18: *width = 2800; break;
                     case 17: *width = 2700; break;
@@ -3311,10 +3339,31 @@ int newcat_get_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     }   /* end if FT950 */
     else {
-      
         /* FT450, FT2000, FT9000 */
-        // *width = w;     /* SH" return debug */
-    }
+        switch (mode) {
+            case RIG_MODE_PKTUSB:
+            case RIG_MODE_PKTLSB:
+            case RIG_MODE_RTTY:
+            case RIG_MODE_RTTYR:
+            case RIG_MODE_CW:
+            case RIG_MODE_CWR:
+            case RIG_MODE_LSB:
+            case RIG_MODE_USB:
+                if (w < 16)
+                    *width = rig_passband_narrow(rig, mode);
+                else if (w > 16)
+                    *width = rig_passband_wide(rig, mode);
+                else
+                    *width = rig_passband_normal(rig, mode);
+                break;
+            case RIG_MODE_AM:
+            case RIG_MODE_FM:
+            case RIG_MODE_PKTFM:
+                return RIG_OK;
+            default:
+                return -RIG_EINVAL;
+        }   /* end switch (mode) */
+    }   /* end else */
 
     return RIG_OK;
 }
