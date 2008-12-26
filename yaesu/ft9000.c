@@ -3,12 +3,13 @@
  *
  * ft9000.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *            (C) Stephane Fillod 2008
+ *            (C) Terry Embry 2008
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-9000 using the "CAT" interface
  *
  *
- * $Id: ft9000.c,v 1.2 2008-12-16 22:33:02 fillods Exp $
+ * $Id: ft9000.c,v 1.3 2008-12-26 11:36:21 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -187,5 +188,11 @@ const struct rig_caps ft9000_caps = {
     .get_info =           newcat_get_info,
     .power2mW =           newcat_power2mW,
     .mW2power =           newcat_mW2power,
+    .set_rptr_shift =     newcat_set_rptr_shift,
+    .get_rptr_shift =     newcat_get_rptr_shift,
+    .set_ctcss_tone =     newcat_set_ctcss_tone,
+    .get_ctcss_tone =     newcat_get_ctcss_tone,
+    .set_ctcss_sql  =     newcat_set_ctcss_sql,
+    .get_ctcss_sql  =     newcat_get_ctcss_sql,
 };
 
