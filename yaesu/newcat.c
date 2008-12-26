@@ -4,6 +4,7 @@
  *
  * newcat.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *            (C) Stephane Fillod 2008
+ *            (C) Terry Embry 2008
  *
  * This shared library provides an API for communicating
  * via serial interface to any newer Yaesu radio using the
@@ -13,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.30 2008-12-25 14:45:00 mrtembry Exp $
+ * $Id: newcat.c,v 1.31 2008-12-26 00:05:02 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1427,17 +1428,112 @@ int newcat_get_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 
 int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char main_sub_vfo = '0';
+    int i, t;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, "CN"))
+        return -RIG_ENAVAIL;
+
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
+        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+    
+    for (i = 0, t = 0; rig->caps->ctcss_list[i] != 0; i++)
+        if (tone == rig->caps->ctcss_list[i]) { 
+            t = i;
+            break;
+        }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: tone = %d, t = %02d, i = %d", __func__, tone, t, i);
+   
+    if (t == 0)     /* no match */
+        return -RIG_ENAVAIL;
+    
+    if (tone == 0)     /* turn off ctcss */
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo, cat_term);
+    else {
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c", main_sub_vfo, t, cat_term, main_sub_vfo, cat_term);
+    }
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+
+    return err;
 }
 
 
 int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    int ret_data_len;
+    char *retlvl;
+    char cmd[] = "CN";
+    char main_sub_vfo = '0';
+    int t;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, cmd))
+        return -RIG_ENAVAIL;
+
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
+        main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo, cat_term);
+
+    /* Get RX BANDWIDTH */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s\n",
+            __func__, err, priv->ret_data);
+
+    ret_data_len = strlen(priv->ret_data);
+    if (ret_data_len <= strlen(priv->cmd_str) ||
+            priv->ret_data[ret_data_len-1] != ';')
+        return -RIG_EPROTO;
+
+    /* skip command */
+    retlvl = priv->ret_data + strlen(priv->cmd_str)-1;
+    /* chop term */
+    priv->ret_data[ret_data_len-1] = '\0';
+
+    t = atoi(retlvl);   /*  tone index */
+
+    if (t < 0 || t > 49)
+        return -RIG_ENAVAIL;
+
+    *tone = rig->caps->ctcss_list[t];
+
+    return RIG_OK;
 }
 
 
@@ -1476,16 +1572,28 @@ int newcat_get_tone_sql(RIG * rig, vfo_t vfo, tone_t * tone)
 int newcat_set_ctcss_sql(RIG * rig, vfo_t vfo, tone_t tone)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    int err;
+    err = newcat_set_ctcss_tone(rig, vfo, tone);
+    if (err != RIG_OK)
+        return err;
 
-    return -RIG_ENAVAIL;
+    /* Change to sql */
+    if (tone) {      
+        err = newcat_set_func(rig, vfo, RIG_FUNC_TSQL, TRUE);
+        if (err != RIG_OK)
+            return err;
+    }
+
+    return RIG_OK;
 }
 
 
 int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone)
 {
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    return -RIG_ENAVAIL;
+    int err;
+    err = newcat_get_ctcss_tone(rig, vfo, tone);
+    
+    return err;
 }
 
 
@@ -3199,7 +3307,6 @@ int newcat_set_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     char narrow = '0';
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
-    sprintf(width_str, "16");     /* Normal mode for other rigs? */
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 

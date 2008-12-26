@@ -3,12 +3,13 @@
  *
  * ft950.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2008
+ *           (C) Terry Embry 2008
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.10 2008-12-25 14:44:59 mrtembry Exp $
+ * $Id: ft950.c,v 1.11 2008-12-26 00:05:02 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -78,7 +79,7 @@ const struct rig_caps ft950_caps = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	[LVL_CWPITCH] = { .min = { .i = 300 }, .max = { .i = 1050 }, .step = { .i = 50 } },
     },
-    .ctcss_list =         NULL,	/* TODO */
+    .ctcss_list =         common_ctcss_list,
     .dcs_list =           NULL,
     .preamp =             { 10, 20, RIG_DBLST_END, }, /* TBC */
     .attenuator =         { 6, 12, 18, RIG_DBLST_END, },
@@ -176,7 +177,7 @@ const struct rig_caps ft950_caps = {
         {RIG_MODE_AM,                 Hz(6000)},    /* Narrow AM */
         {FT950_FM_RX_MODES,           Hz(16000)},   /* Normal FM */
         {FT950_FM_RX_MODES,           Hz(9000)},    /* Narrow FM */
-        
+
         RIG_FLT_END,
     },
 
@@ -217,5 +218,11 @@ const struct rig_caps ft950_caps = {
     .mW2power =           newcat_mW2power,
     .set_rptr_shift =     newcat_set_rptr_shift,
     .get_rptr_shift =     newcat_get_rptr_shift,
+    .set_ctcss_tone =     newcat_set_ctcss_tone,
+    .get_ctcss_tone =     newcat_get_ctcss_tone,
+    .set_ctcss_sql  =     newcat_set_ctcss_sql,
+    .get_ctcss_sql  =     newcat_get_ctcss_sql,
+
+
 };
 

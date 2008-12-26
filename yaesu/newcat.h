@@ -3,6 +3,7 @@
  *              and the Hamlib Group (hamlib-developer at lists.sourceforge.net)
  *
  * newcat.h - (C) Nate Bargmann 2007 (n0nb at arrl.net)
+ *            (C) Terry Embry 2008
  *
  * This shared library provides the backend API for communicating
  * via serial interface to any Yaesu radio using the new "CAT"
@@ -12,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.13 2008-12-25 14:44:59 mrtembry Exp $
+ *    $Id: newcat.h,v 1.14 2008-12-26 00:05:02 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -35,6 +36,7 @@
 #ifndef _NEWCAT_H
 #define _NEWCAT_H 1
 
+#include <tones.h>
 
 /* Handy constants */
 
@@ -143,6 +145,10 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo);
 int newcat_set_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t rptr_shift);
 int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift);
+int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone);
+int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone);
+int newcat_set_ctcss_sql(RIG * rig, vfo_t vfo, tone_t tone);
+int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone);
 
 
 #endif /* _NEWCAT_H */
