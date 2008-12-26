@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.31 2008-12-26 00:05:02 mrtembry Exp $
+ * $Id: newcat.c,v 1.32 2008-12-26 11:34:24 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -508,17 +508,6 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             break;
         case RIG_MODE_AM:
             cmdstr[3] = '5';
-            if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
-                if (width < rig_passband_normal(rig, mode))
-                    cmdstr[3] = 'D'; 
-            } else {
-                if (width < rig_passband_normal(rig, mode))
-                    err = newcat_set_narrow(rig, vfo, TRUE);
-                else
-                    err = newcat_set_narrow(rig, vfo, FALSE);
-                if (err != RIG_OK)
-                    return err;
-            }
             break;
         case RIG_MODE_RTTY:
             cmdstr[3] = '6';
@@ -534,12 +523,6 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
             break;
         case RIG_MODE_PKTFM:
             cmdstr[3] = 'A';
-            if (width < rig_passband_normal(rig, mode))
-                err = newcat_set_narrow(rig, vfo, TRUE);
-            else
-                err = newcat_set_narrow(rig, vfo, FALSE);
-            if (err != RIG_OK)
-                return err;
             break;
         case RIG_MODE_FM:
             if (width < rig_passband_normal(rig, mode))
@@ -561,6 +544,7 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     if (RIG_PASSBAND_NORMAL == width)
         width = rig_passband_normal(rig, mode);
 
+    /* Set width after mode has been set */
     err = newcat_set_rxbandwidth(rig, vfo, mode, width);
     if (err != RIG_OK)
         return err;
@@ -598,7 +582,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
-    /* Get VFO */
+    /* Get MODE */
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
         return err;
@@ -686,7 +670,7 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
             *mode = RIG_MODE_PKTUSB;        /* FT450 USER-U */
             break;
         case 'D':
-            *mode = RIG_MODE_AM;    /* narrow */
+            *mode = RIG_MODE_AM;    /* narrow, FT950 */
             *width = rig_passband_narrow(rig, RIG_MODE_AM);
             return RIG_OK;
             break;
@@ -1432,11 +1416,15 @@ int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
     struct rig_state *state;
     int err;
     char main_sub_vfo = '0';
-    int i, t;
+    int i;
+    ncboolean tone_match = FALSE;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (rig->caps->ctcss_list == NULL)
+        return -RIG_ENAVAIL;
 
     if (!newcat_valid_command(rig, "CN"))
         return -RIG_ENAVAIL;
@@ -1448,21 +1436,21 @@ int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
     if (newcat_is_rig(rig, RIG_MODEL_FT9000) || newcat_is_rig(rig, RIG_MODEL_FT2000))
         main_sub_vfo = (RIG_VFO_B == vfo) ? '1' : '0';
     
-    for (i = 0, t = 0; rig->caps->ctcss_list[i] != 0; i++)
+    for (i = 0; rig->caps->ctcss_list[i] != 0; i++)
         if (tone == rig->caps->ctcss_list[i]) { 
-            t = i;
+            tone_match = TRUE;
             break;
         }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: tone = %d, t = %02d, i = %d", __func__, tone, t, i);
+    rig_debug(RIG_DEBUG_TRACE, "%s: tone = %d, tone_match = %d, i = %d", __func__, tone, tone_match, i);
    
-    if (t == 0)     /* no match */
+    if (tone_match == FALSE && tone != 0)
         return -RIG_ENAVAIL;
     
     if (tone == 0)     /* turn off ctcss */
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CT%c0%c", main_sub_vfo, cat_term);
     else {
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c", main_sub_vfo, t, cat_term, main_sub_vfo, cat_term);
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c", main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
     }
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
 
@@ -1485,6 +1473,9 @@ int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
+    if (rig->caps->ctcss_list == NULL)
+        return -RIG_ENAVAIL;
+    
     if (!newcat_valid_command(rig, cmd))
         return -RIG_ENAVAIL;
 
@@ -1497,7 +1488,7 @@ int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", cmd, main_sub_vfo, cat_term);
 
-    /* Get RX BANDWIDTH */
+    /* Get CTCSS TONE */
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
     if (err != RIG_OK)
         return err;
@@ -1603,10 +1594,9 @@ int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, 
 
     if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
         *mwpower = power * 100000;              /* 0..100 Linear scale */
-    } else if (newcat_is_rig(rig, RIG_MODEL_FT450)) {
+    } else {
         *mwpower = power * 100000;      /* FIXME: 0..255 scale... Linear or Not */ 
-    } else 
-        return -RIG_ENAVAIL;
+    } 
     
     return RIG_OK;
 }
@@ -1618,10 +1608,9 @@ int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, 
     
     if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
         *power = mwpower / 100000.;              /* 0..100 Linear scale */
-    } else if (newcat_is_rig(rig, RIG_MODEL_FT450)) {
+    } else {
         *power = mwpower / 100000.;     /* FIXME: 0..255 scale... Linear or Not */ 
-    } else  
-        return -RIG_ENAVAIL;
+    } 
     
     return RIG_OK;
 }
@@ -3370,8 +3359,13 @@ int newcat_set_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 }
                 break;
             case RIG_MODE_AM:
-            case RIG_MODE_FM:
             case RIG_MODE_PKTFM:
+                if (width < rig_passband_normal(rig, mode))
+                    err = newcat_set_narrow(rig, vfo, TRUE);
+                else
+                    err = newcat_set_narrow(rig, vfo, FALSE);
+                return err; 
+            case RIG_MODE_FM:
                 return RIG_OK;
             default:
                 return -RIG_EINVAL;
@@ -3403,8 +3397,13 @@ int newcat_set_rxbandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
                 }
                 break;
             case RIG_MODE_AM:
-            case RIG_MODE_FM:
             case RIG_MODE_PKTFM:
+                if (width < rig_passband_normal(rig, mode))
+                    err = newcat_set_narrow(rig, vfo, TRUE);
+                else
+                    err = newcat_set_narrow(rig, vfo, FALSE);
+                return err; 
+            case RIG_MODE_FM:
                 return RIG_OK;
             default:
                 return -RIG_EINVAL;
