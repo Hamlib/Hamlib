@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.133 2008-12-24 20:12:11 mrtembry Exp $
+ *	$Id: rig.h,v 1.134 2008-12-26 23:57:15 mrtembry Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -638,7 +638,7 @@ enum rig_level_e {
 	RIG_LEVEL_ANTIVOX =	(1<<22),/*!< \c ANTIVOX -- anti-VOX level, arg float [0.0 ... 1.0] */
 	RIG_LEVEL_SLOPE_LOW = (1<<23),/*!< \c SLOPE_LOW -- Slope tune, low frequency cut, */
 	RIG_LEVEL_SLOPE_HIGH = (1<<24),/*!< \c SLOPE_HIGH -- Slope tune, high frequency cut, */
-	//RIG_LEVEL_LINEOUT =	(1<<23),/*!< Lineout Volume, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_BKIN_DLYMS = (1<<25),/*!< \c BKIN_DLYMS -- BKin Delay, arg int Milliseconds */
 
 		/*!< These ones are not settable */
 	RIG_LEVEL_RAWSTR =	(1<<26),/*!< \c RAWSTR -- Raw (A/D) value for signal strength, specific to each rig, arg int */
