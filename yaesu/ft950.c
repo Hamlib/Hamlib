@@ -9,7 +9,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.11 2008-12-26 00:05:02 mrtembry Exp $
+ * $Id: ft950.c,v 1.12 2008-12-27 08:08:47 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -222,7 +222,8 @@ const struct rig_caps ft950_caps = {
     .get_ctcss_tone =     newcat_get_ctcss_tone,
     .set_ctcss_sql  =     newcat_set_ctcss_sql,
     .get_ctcss_sql  =     newcat_get_ctcss_sql,
-
+    .set_powerstat =      newcat_set_powerstat,
+    .get_powerstat =      newcat_get_powerstat,
 
 };
 

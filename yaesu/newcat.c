@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.32 2008-12-26 11:34:24 mrtembry Exp $
+ * $Id: newcat.c,v 1.33 2008-12-27 08:08:47 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1618,17 +1618,92 @@ int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, 
 
 int newcat_set_powerstat(RIG * rig, powerstat_t status)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char ps;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, "PS"))
+        return -RIG_ENAVAIL;
+
+    switch (status) {
+        case RIG_POWER_ON:
+            ps = '1';
+            break;
+        case RIG_POWER_OFF:
+        case RIG_POWER_STANDBY:
+            ps = '0';
+            break;
+        default:
+            return -RIG_ENAVAIL;
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "PS%c%c", ps, cat_term);
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    // delay 1.5 seconds
+    usleep(1500000);
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    return err;
 }
 
 
 int newcat_get_powerstat(RIG * rig, powerstat_t * status)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char ps;
+    char command[] = "PS";
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
+    /* Get Power status */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, PS value = %c\n", __func__,
+            err, priv->ret_data, priv->ret_data[2]);
+
+    if (strcmp(priv->ret_data, "?;") == 0) {
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting ANT\n");
+        return RIG_OK;
+    }
+
+    ps = priv->ret_data[2];
+    switch (ps) {
+        case '1':
+            *status = RIG_POWER_ON;
+            break;
+        case '0': 
+            *status = RIG_POWER_OFF;
+            break;
+        default:
+            return -RIG_ENAVAIL;
+    }
+
+    return RIG_OK;
 }
 
 
