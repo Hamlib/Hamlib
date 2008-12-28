@@ -9,7 +9,7 @@
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.9 2008-12-27 08:08:47 mrtembry Exp $
+ * $Id: ft450.c,v 1.10 2008-12-28 13:53:13 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -195,6 +195,8 @@ const struct rig_caps ft450_caps = {
     .get_ctcss_sql  =     newcat_get_ctcss_sql,
     .set_powerstat =      newcat_set_powerstat,
     .get_powerstat =      newcat_get_powerstat,
+    .get_ts =             newcat_get_ts,
+    .set_ts =             newcat_set_ts,
 
 };
 

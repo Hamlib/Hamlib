@@ -9,7 +9,7 @@
  * via serial interface to an FT-9000 using the "CAT" interface
  *
  *
- * $Id: ft9000.c,v 1.3 2008-12-26 11:36:21 mrtembry Exp $
+ * $Id: ft9000.c,v 1.4 2008-12-28 13:53:13 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -194,5 +194,10 @@ const struct rig_caps ft9000_caps = {
     .get_ctcss_tone =     newcat_get_ctcss_tone,
     .set_ctcss_sql  =     newcat_set_ctcss_sql,
     .get_ctcss_sql  =     newcat_get_ctcss_sql,
+    .set_powerstat =      newcat_set_powerstat,
+    .get_powerstat =      newcat_get_powerstat,
+    .get_ts =             newcat_get_ts,
+    .set_ts =             newcat_set_ts,
+
 };
 

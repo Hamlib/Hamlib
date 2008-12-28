@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.35 2008-12-28 04:06:14 mrtembry Exp $
+ * $Id: newcat.c,v 1.36 2008-12-28 13:53:13 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -48,6 +48,19 @@
 
 /* global variables */
 static const char cat_term = ';';             /* Yaesu command terminator */
+
+typedef enum nc_id_e {
+NC_ID_NONE            = 0,
+NC_ID_FT450           = 0241,
+NC_ID_FT950           = 0310,
+NC_ID_FT2000          = 0251,
+NC_ID_FT2000D         = 0252,       /* FIXME: GUESS???  WAITING VERIFACATION */
+NC_ID_FTDX9000D       = 0101,
+NC_ID_FTDX9000Contest = 0102,
+NC_ID_9000MP          = 0103
+} nc_id_t;
+
+static nc_id_t nc_id;                             /* Different model ID;(s) */
 
 /*
  * The following table defines which commands are valid for any given
@@ -103,7 +116,7 @@ static const yaesu_newcat_commands_t valid_commands[] = {
                             {"FB",      TRUE,   TRUE,   TRUE,   TRUE    },
                             {"FK",      FALSE,  TRUE,   TRUE,   FALSE   },
                             {"FR",      FALSE,  TRUE,   TRUE,   TRUE    },
-                            {"FS",      TRUE,   TRUE,   TRUE,   FALSE   },
+                            {"FS",      TRUE,   TRUE,   TRUE,   TRUE    },
                             {"FT",      TRUE,   TRUE,   TRUE,   TRUE    },
                             {"GT",      TRUE,   TRUE,   TRUE,   TRUE    },
                             {"ID",      TRUE,   TRUE,   TRUE,   FALSE   },
@@ -208,6 +221,7 @@ static int newcat_set_narrow(RIG * rig, vfo_t vfo, ncboolean narrow);
 static int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow);
 static int newcat_set_faststep(RIG * rig, ncboolean fast_step);
 static int newcat_get_faststep(RIG * rig, ncboolean * fast_step);
+// static ncboolean newcat_is_id(RIG * rig, nc_id_t id);
 
 /*
  * ************************************
@@ -242,6 +256,8 @@ int newcat_init(RIG *rig) {
 	priv->current_vfo = RIG_VFO_A;
 	  
     rig->state.priv = (void *)priv;
+    
+    nc_id = NC_ID_NONE;
 
     return RIG_OK;
 }
@@ -264,6 +280,8 @@ int newcat_cleanup(RIG *rig) {
     if (rig->state.priv)
         free(rig->state.priv);
     rig->state.priv = NULL;
+    
+    nc_id = NC_ID_NONE;
 
     return RIG_OK;
 }
@@ -1484,9 +1502,6 @@ int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (rig->caps->ctcss_list == NULL)
-        return -RIG_ENAVAIL;
-
     if (!newcat_valid_command(rig, "CN"))
         return -RIG_ENAVAIL;
 
@@ -1534,9 +1549,6 @@ int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (rig->caps->ctcss_list == NULL)
-        return -RIG_ENAVAIL;
-    
     if (!newcat_valid_command(rig, cmd))
         return -RIG_ENAVAIL;
 
@@ -2980,13 +2992,19 @@ ncboolean newcat_valid_command(RIG *rig, char *command) {
      * FT-9000 variants.
      */
 
-    is_ft450 = strcmp(caps->model_name, "FT-450");
-    is_ft950 = strcmp(caps->model_name, "FT-950");
-    is_ft2000 = strcmp(caps->model_name, "FT-2000");
-    is_ft9000 = strcmp(caps->model_name, "FTDX-9000");
-    is_ft9000 = strcmp(caps->model_name, "FTDX-9000 Contest");
-    is_ft9000 = strcmp(caps->model_name, "FTDX9000D");
-    is_ft9000 = strcmp(caps->model_name, "FTDX9000MP");
+    // is_ft450 = strcmp(caps->model_name, "FT-450");
+    // is_ft950 = strcmp(caps->model_name, "FT-950");
+    // is_ft2000 = strcmp(caps->model_name, "FT-2000");
+    // is_ft9000 = strcmp(caps->model_name, "FTDX-9000");
+    // is_ft9000 = strcmp(caps->model_name, "FTDX-9000 Contest");
+    // is_ft9000 = strcmp(caps->model_name, "FTDX9000D");
+    // is_ft9000 = strcmp(caps->model_name, "FTDX9000MP");
+
+    is_ft450 = newcat_is_rig(rig, RIG_MODEL_FT450);
+    is_ft950 = newcat_is_rig(rig, RIG_MODEL_FT950);
+    is_ft2000 = newcat_is_rig(rig, RIG_MODEL_FT2000);
+    is_ft9000 = newcat_is_rig(rig, RIG_MODEL_FT9000);
+
 
     if (!is_ft450 && !is_ft950 && !is_ft2000 && !is_ft9000) {
         rig_debug(RIG_DEBUG_ERR, "%s: '%s' is unknown\n",
@@ -3035,13 +3053,7 @@ ncboolean newcat_valid_command(RIG *rig, char *command) {
     return FALSE;
 }
 
-/*
- *  This could change to rig ID from newcat_get_info() 
- *  Need something like model == FT2000
- *  IDa== FT2000 (100W), IDb = FT2000D (200W)
- *  model == FT9000
- *  FT9000DX, FT9000_CONTEST, etc...
- */
+
 ncboolean newcat_is_rig(RIG * rig, rig_model_t model) {
 	ncboolean is_rig;
 
@@ -3214,8 +3226,10 @@ int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo) {
             break;
         case '2' :                  /* Main Band VFO_A RX,   Sub Band VFO_B RX */
         case '3' :                  /* Main Band VFO_A Mute, Sub Band VFO_B RX */
+            //if (newcat_is_id(rig, NC_ID_FTDX9000Contest)    /* Can not verify? */    
+            //    *rxvfo = RIG_VFO_B;
+            //else         
             *rxvfo = RIG_VFO_A;
-            /* FIXME: if (is_rig/is_rigid?(rig, RIG_MODEL_FT9000_CONTEST)) *rxvfo = RIG_VFO_B; */
             break;
         case '4' :                  /* FT950 Main Band VFO_B RX   */
         case '5' :                  /* FT950 Main Band VFO_B Mute */
@@ -3806,4 +3820,18 @@ int newcat_get_faststep(RIG * rig, ncboolean * fast_step)
         *fast_step = FALSE;
 
     return RIG_OK;
+}
+
+ncboolean newcat_is_id(RIG * rig, nc_id_t id)
+{
+    ncboolean is_my_id;
+
+    if (nc_id == NC_ID_NONE)
+        nc_id = atoi(newcat_get_info(rig));
+
+    is_my_id = (id == nc_id) ? TRUE : FALSE;
+
+    rig_debug(RIG_DEBUG_TRACE, "nc_id = %d, id = %d, is_my_id = %d\n", nc_id, id, is_my_id);
+
+    return is_my_id;
 }

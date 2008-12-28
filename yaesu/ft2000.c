@@ -9,7 +9,7 @@
  * via serial interface to an FT-2000 using the "CAT" interface
  *
  *
- * $Id: ft2000.c,v 1.4 2008-12-27 08:08:47 mrtembry Exp $
+ * $Id: ft2000.c,v 1.5 2008-12-28 13:53:13 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -195,6 +195,8 @@ const struct rig_caps ft2000_caps = {
     .get_ctcss_sql  =     newcat_get_ctcss_sql,
     .set_powerstat =      newcat_set_powerstat,
     .get_powerstat =      newcat_get_powerstat,
+    .get_ts =             newcat_get_ts,
+    .set_ts =             newcat_set_ts,
 
 };
 
