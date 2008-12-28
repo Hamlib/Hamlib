@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.15 2008-12-27 08:08:47 mrtembry Exp $
+ *    $Id: newcat.h,v 1.16 2008-12-28 00:25:31 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -149,8 +149,9 @@ int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone);
 int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone);
 int newcat_set_ctcss_sql(RIG * rig, vfo_t vfo, tone_t tone);
 int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone);
-int newcat_get_powerstat(RIG * rig, powerstat_t * status);
 int newcat_set_powerstat(RIG * rig, powerstat_t status);
-
+int newcat_get_powerstat(RIG * rig, powerstat_t * status);
+int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts);
+int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts);
 
 #endif /* _NEWCAT_H */
