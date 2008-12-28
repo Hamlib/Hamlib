@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.34 2008-12-28 00:25:31 mrtembry Exp $
+ * $Id: newcat.c,v 1.35 2008-12-28 04:06:14 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1380,16 +1380,13 @@ int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts)
     /* assume 2 tuning steps per mode */
     for (i = 0, ts_match = FALSE; i < TSLSTSIZ && rig->caps->tuning_steps[i].ts; i++)
         if (rig->caps->tuning_steps[i].modes & mode) {
-            if (ts <= rig->caps->tuning_steps[i].ts) {
+            if (ts <= rig->caps->tuning_steps[i].ts)
                 err = newcat_set_faststep(rig, FALSE);
-                if (err != RIG_OK)
-                    return err;
-            }
-            else { 
+            else 
                 err = newcat_set_faststep(rig, TRUE);
-                if (err != RIG_OK)
-                    return err;
-            }
+            
+            if (err != RIG_OK)
+                return err;
             ts_match = TRUE;
             break;
         }   /* if mode */
@@ -1998,7 +1995,10 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
                     else
                         strcpy(cmdstr, "MS2;");
                     break;
-				case RIG_METER_SWR: strcpy(cmdstr, "MS3;"); break;
+				case RIG_METER_SWR:  strcpy(cmdstr, "MS3;"); break;
+				case RIG_METER_COMP: strcpy(cmdstr, "MS0;"); break;
+				case RIG_METER_IC:   strcpy(cmdstr, "MS4;"); break;
+				case RIG_METER_VDD:  strcpy(cmdstr, "MS5;"); break;
 				default: return -RIG_EINVAL;
 			}
 			break;
