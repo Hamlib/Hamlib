@@ -9,7 +9,15 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
- * $Id: ft757gx.c,v 1.10 2008-09-21 19:35:01 fillods Exp $
+<<<<<<< ft757gx.c
+<<<<<<< ft757gx.c
+ * $Id: ft757gx.c,v 1.11 2008-12-28 02:38:54 n0nb Exp $
+=======
+ * $Id: ft757gx.c,v 1.11 2008-12-28 02:38:54 n0nb Exp $
+>>>>>>> 1.8
+=======
+ * $Id: ft757gx.c,v 1.11 2008-12-28 02:38:54 n0nb Exp $
+>>>>>>> 1.10
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -351,12 +359,16 @@ int ft757_open(RIG *rig)
     if (!rig)
         return -RIG_EINVAL;
 
-    /* read back the 75 status bytes */
-    retval = ft757_get_update_data(rig);
-    if (retval < 0) {
-       memset(priv->update_data, 0, FT757GX_STATUS_UPDATE_DATA_LENGTH);
-
-        return retval;
+    /* FT757GX has a write-only serial port: don't try to read status data */
+    if (rig->caps->rig_model == RIG_MODEL_FT757) {
+      memset(priv->update_data, 0, FT757GX_STATUS_UPDATE_DATA_LENGTH);
+    } else {
+        /* read back the 75 status bytes from FT757GXII */
+        retval = ft757_get_update_data(rig);
+        if (retval < 0) {
+           memset(priv->update_data, 0, FT757GX_STATUS_UPDATE_DATA_LENGTH);
+           return retval;
+        }
     }
 
     return RIG_OK;
