@@ -9,7 +9,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.13 2008-12-28 00:25:31 mrtembry Exp $
+ * $Id: ft950.c,v 1.14 2008-12-30 18:52:32 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -88,7 +88,7 @@ const struct rig_caps ft950_caps = {
     .max_ifshift =        Hz(1000),
     .vfo_ops =            FT950_VFO_OPS,
     .targetable_vfo =     RIG_TARGETABLE_FREQ,
-    .transceive =         RIG_TRN_OFF,        /* May enable later as the 950 has an Auto Info command */
+    .transceive =         RIG_TRN_RIG,        /* May enable later as the 950 has an Auto Info command */
     .bank_qty =           0,
     .chan_desc_sz =       0,
     .str_cal =            FT950_STR_CAL,
@@ -224,9 +224,10 @@ const struct rig_caps ft950_caps = {
     .get_ctcss_sql  =     newcat_get_ctcss_sql,
     .set_powerstat =      newcat_set_powerstat,
     .get_powerstat =      newcat_get_powerstat,
-    .get_ts =             newcat_get_ts,
     .set_ts =             newcat_set_ts,
-
+    .get_ts =             newcat_get_ts,
+    .set_trn =            newcat_set_trn,
+    .get_trn =            newcat_get_trn,
 
 };
 

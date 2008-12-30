@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.16 2008-12-28 00:25:31 mrtembry Exp $
+ *    $Id: newcat.h,v 1.17 2008-12-30 18:52:32 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -67,7 +67,7 @@ typedef char ncboolean;
 	.width = 1,     \
 	.rit = 1,       \
 	.xit = 1,       \
-	.rptr_offs = 1, \
+	.rptr_shift = 1, \
 	.ctcss_tone = 1,\
 	.ctcss_sql = 1,\
 	.funcs = (RIG_FUNC_TONE|RIG_FUNC_TSQL), \
@@ -153,5 +153,7 @@ int newcat_set_powerstat(RIG * rig, powerstat_t status);
 int newcat_get_powerstat(RIG * rig, powerstat_t * status);
 int newcat_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts);
 int newcat_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts);
+int newcat_set_trn(RIG * rig, int trn);
+int newcat_get_trn(RIG * rig, int *trn);
 
 #endif /* _NEWCAT_H */

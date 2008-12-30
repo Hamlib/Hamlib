@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.36 2008-12-28 13:53:13 mrtembry Exp $
+ * $Id: newcat.c,v 1.37 2008-12-30 18:52:32 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -49,18 +49,19 @@
 /* global variables */
 static const char cat_term = ';';             /* Yaesu command terminator */
 
-typedef enum nc_id_e {
-NC_ID_NONE            = 0,
-NC_ID_FT450           = 0241,
-NC_ID_FT950           = 0310,
-NC_ID_FT2000          = 0251,
-NC_ID_FT2000D         = 0252,       /* FIXME: GUESS???  WAITING VERIFACATION */
-NC_ID_FTDX9000D       = 0101,
-NC_ID_FTDX9000Contest = 0102,
-NC_ID_9000MP          = 0103
-} nc_id_t;
+/* ID of 0310 == 310 -  MUST drop leading zeros */
+typedef enum nc_rigid_e {
+NC_RIGID_NONE            = 0,
+NC_RIGID_FT450           = 241,
+NC_RIGID_FT950           = 310,
+NC_RIGID_FT2000          = 251,
+NC_RIGID_FT2000D         = 252,        /* FIXME: This is a GUESS!  Waiting Verification */
+NC_RIGID_FTDX9000D       = 101,
+NC_RIGID_FTDX9000Contest = 102,
+NC_RIGID_FTDX9000MP      = 103
+} nc_rigid_t;
 
-static nc_id_t nc_id;                             /* Different model ID;(s) */
+static nc_rigid_t _nc_rigid;        /* Different model version ID;(s) */
 
 /*
  * The following table defines which commands are valid for any given
@@ -221,7 +222,8 @@ static int newcat_set_narrow(RIG * rig, vfo_t vfo, ncboolean narrow);
 static int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow);
 static int newcat_set_faststep(RIG * rig, ncboolean fast_step);
 static int newcat_get_faststep(RIG * rig, ncboolean * fast_step);
-// static ncboolean newcat_is_id(RIG * rig, nc_id_t id);
+static nc_rigid_t newcat_get_rigid(RIG * rig);
+// static ncboolean newcat_is_rigid(RIG * rig, nc_rigid_t id);
 
 /*
  * ************************************
@@ -257,7 +259,7 @@ int newcat_init(RIG *rig) {
 	  
     rig->state.priv = (void *)priv;
     
-    nc_id = NC_ID_NONE;
+    _nc_rigid = NC_RIGID_NONE;
 
     return RIG_OK;
 }
@@ -281,7 +283,7 @@ int newcat_cleanup(RIG *rig) {
         free(rig->state.priv);
     rig->state.priv = NULL;
     
-    nc_id = NC_ID_NONE;
+    _nc_rigid = NC_RIGID_NONE;
 
     return RIG_OK;
 }
@@ -1663,28 +1665,96 @@ int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone)
 
 int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
 {
+    nc_rigid_t rig_id;
+    rig_id = newcat_get_rigid(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
-        *mwpower = power * 100000;              /* 0..100 Linear scale */
-    } else {
-        *mwpower = power * 100000;      /* FIXME: 0..255 scale... Linear or Not */
+    switch (rig_id) {
+    case NC_RIGID_FT450:
+        /* 100 Watts */
+        *mwpower = power * 100000;
+        break;
+    case NC_RIGID_FT950:
+        /* 100 Watts */
+        *mwpower = power * 100000;      /* 0..100 Linear scale */
+        rig_debug(RIG_DEBUG_TRACE, "case FT950 - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
+        break;
+    case NC_RIGID_FT2000:
+        /* 100 Watts */
+        *mwpower = power * 100000;
+        break;
+    case NC_RIGID_FT2000D:
+        /* 200 Watts */
+        *mwpower = power * 200000;
+        break;
+    case NC_RIGID_FTDX9000D:
+        /* 200 Watts */
+        *mwpower = power * 200000;
+        break;
+    case NC_RIGID_FTDX9000Contest:
+        /* 200 Watts */
+        *mwpower = power * 200000;
+        break;
+    case NC_RIGID_FTDX9000MP:
+        /* 400 Watts */
+        *mwpower = power * 400000;
+        break;
+    default:
+        /* 100 Watts */
+        *mwpower = power * 100000;
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "End Switch - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
+    
     return RIG_OK;
 }
 
 
 int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
 {
+    nc_rigid_t rig_id;
+    rig_id = newcat_get_rigid(rig);
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (newcat_is_rig(rig, RIG_MODEL_FT950)) {
-        *power = mwpower / 100000.;              /* 0..100 Linear scale */
-    } else {
-        *power = mwpower / 100000.;     /* FIXME: 0..255 scale... Linear or Not */
+    switch (rig_id) {
+    case NC_RIGID_FT450:
+        /* 100 Watts */
+        *power = mwpower / 100000;
+        break;
+    case NC_RIGID_FT950:
+        /* 100 Watts */
+        *power = mwpower / 100000;      /* 0..100 Linear scale */
+        rig_debug(RIG_DEBUG_TRACE, "case FT950 - rig_id = %d, *power = %d\n", rig_id, *power);
+        break;
+    case NC_RIGID_FT2000:
+        /* 100 Watts */
+        *power = mwpower / 100000;
+        break;
+    case NC_RIGID_FT2000D:
+        /* 200 Watts */
+        *power = mwpower / 200000;
+        break;
+    case NC_RIGID_FTDX9000D:
+        /* 200 Watts */
+        *power = mwpower / 200000;
+        break;
+    case NC_RIGID_FTDX9000Contest:
+        /* 200 Watts */
+        *power = mwpower / 200000;
+        break;
+    case NC_RIGID_FTDX9000MP:
+        /* 400 Watts */
+        *power = mwpower / 400000;
+        break;
+    default:
+        /* 100 Watts */
+        *power = mwpower / 100000;
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "End Switch - rig_id = %d, *power = %d\n", rig_id, *power);
+    
     return RIG_OK;
 }
 
@@ -1765,7 +1835,7 @@ int newcat_get_powerstat(RIG * rig, powerstat_t * status)
             err, priv->ret_data, priv->ret_data[2]);
 
     if (strcmp(priv->ret_data, "?;") == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting PWR STATE\n");
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting PS\n");
         return RIG_OK;
     }
 
@@ -2831,17 +2901,80 @@ int newcat_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 
 int newcat_set_trn(RIG * rig, int trn)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char c;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, "AI"))
+        return -RIG_ENAVAIL;
+
+    if (trn  == RIG_TRN_OFF) 
+        c = '0';
+    else 
+        c = '1';
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "AI%c%c", c, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
+
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+
+    return err;
 }
 
 
 int newcat_get_trn(RIG * rig, int *trn)
 {
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    char command[] = "AI";
+    char c;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return -RIG_ENAVAIL;
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
+    /* Get Auto Information */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, AI value = %c\n", __func__,
+            err, priv->ret_data, priv->ret_data[2]);
+
+    if (strcmp(priv->ret_data, "?;") == 0) {
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting AI\n");
+        return RIG_OK;
+    }
+
+    c = priv->ret_data[2];
+    if (c == '0')
+        *trn = RIG_TRN_OFF;
+    else
+        *trn = RIG_TRN_RIG;
+
+    return RIG_OK;
 }
 
 
@@ -3096,10 +3229,10 @@ int newcat_get_txvfo(RIG * rig, vfo_t * txvfo) {
         return -RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, TX_VFO value = %c\n", __func__, err, priv->ret_data, priv->ret_data[2]);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, FT value = %c\n", __func__, err, priv->ret_data, priv->ret_data[2]);
 
     if (strcmp(priv->ret_data, "?;") == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting TX_VFO\n");
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting FT\n");
         return RIG_OK;
     }
 
@@ -3211,10 +3344,10 @@ int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo) {
         return -RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, RX_VFO value = %c\n", __func__, err, priv->ret_data, priv->ret_data[2]);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, FR value = %c\n", __func__, err, priv->ret_data, priv->ret_data[2]);
 
     if (strcmp(priv->ret_data, "?;") == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting RX_VFO\n");
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting FR\n");
         return RIG_OK;
     }
 
@@ -3226,13 +3359,10 @@ int newcat_get_rxvfo(RIG * rig, vfo_t * rxvfo) {
             break;
         case '2' :                  /* Main Band VFO_A RX,   Sub Band VFO_B RX */
         case '3' :                  /* Main Band VFO_A Mute, Sub Band VFO_B RX */
-            //if (newcat_is_id(rig, NC_ID_FTDX9000Contest)    /* Can not verify? */    
-            //    *rxvfo = RIG_VFO_B;
-            //else         
             *rxvfo = RIG_VFO_A;
             break;
-        case '4' :                  /* FT950 Main Band VFO_B RX   */
-        case '5' :                  /* FT950 Main Band VFO_B Mute */
+        case '4' :                  /* FT950 VFO_A OFF, FT950 VFO_B RX   */
+        case '5' :                  /* FT950 VFO_A OFF, FT950 VFO_B Mute */
             *rxvfo = RIG_VFO_B;
             break;
         default:
@@ -3805,11 +3935,11 @@ int newcat_get_faststep(RIG * rig, ncboolean * fast_step)
         return -RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, NA value = %c\n", __func__,
-            err, priv->ret_data, priv->ret_data[3]);
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, FS value = %c\n", __func__,
+            err, priv->ret_data, priv->ret_data[2]);
 
     if (strcmp(priv->ret_data, "?;") == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting NA\n");
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, getting FS\n");
         return RIG_OK;
     }
 
@@ -3822,16 +3952,35 @@ int newcat_get_faststep(RIG * rig, ncboolean * fast_step)
     return RIG_OK;
 }
 
-ncboolean newcat_is_id(RIG * rig, nc_id_t id)
+
+nc_rigid_t newcat_get_rigid(RIG * rig)
+{
+    const char * s;
+    s = NULL;
+    
+    /* if first valid get */
+    if (_nc_rigid == NC_RIGID_NONE) {
+        s = newcat_get_info(rig);
+        if (s != NULL)
+            s +=2;      /* ID0310, jump past ID */
+            _nc_rigid = atoi(s);
+    }
+    
+    rig_debug(RIG_DEBUG_TRACE, "_nc_rigid = %d, *s = %s\n", _nc_rigid, s);
+    
+    return _nc_rigid;
+}
+
+ncboolean newcat_is_rigid(RIG * rig, nc_rigid_t test_id)
 {
     ncboolean is_my_id;
+    nc_rigid_t rig_id;
 
-    if (nc_id == NC_ID_NONE)
-        nc_id = atoi(newcat_get_info(rig));
+    rig_id = newcat_get_rigid(rig);
 
-    is_my_id = (id == nc_id) ? TRUE : FALSE;
+    is_my_id = (test_id == rig_id) ? TRUE : FALSE;
 
-    rig_debug(RIG_DEBUG_TRACE, "nc_id = %d, id = %d, is_my_id = %d\n", nc_id, id, is_my_id);
+    rig_debug(RIG_DEBUG_TRACE, "rig_id = %d, id = %d, is_my_id = %d\n", rig_id, test_id, is_my_id);
 
     return is_my_id;
 }
