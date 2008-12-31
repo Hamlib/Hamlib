@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.37 2008-12-30 18:52:32 mrtembry Exp $
+ * $Id: newcat.c,v 1.38 2008-12-31 18:17:56 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@
 /* global variables */
 static const char cat_term = ';';             /* Yaesu command terminator */
 
-/* ID of 0310 == 310 -  MUST drop leading zeros */
+/* ID 0310 == 310, Must drop leading zero */
 typedef enum nc_rigid_e {
 NC_RIGID_NONE            = 0,
 NC_RIGID_FT450           = 241,
@@ -61,7 +61,8 @@ NC_RIGID_FTDX9000Contest = 102,
 NC_RIGID_FTDX9000MP      = 103
 } nc_rigid_t;
 
-static nc_rigid_t _nc_rigid;        /* Different model version ID;(s) */
+/* _nc_rigid is int to stay away from potential out-of-bound and undefined enum bugs */
+static int _nc_rigid;        /* Different model version ID;(s) */
 
 /*
  * The following table defines which commands are valid for any given
@@ -222,7 +223,7 @@ static int newcat_set_narrow(RIG * rig, vfo_t vfo, ncboolean narrow);
 static int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow);
 static int newcat_set_faststep(RIG * rig, ncboolean fast_step);
 static int newcat_get_faststep(RIG * rig, ncboolean * fast_step);
-static nc_rigid_t newcat_get_rigid(RIG * rig);
+static int newcat_get_rigid(RIG * rig);
 // static ncboolean newcat_is_rigid(RIG * rig, nc_rigid_t id);
 
 /*
@@ -1665,7 +1666,7 @@ int newcat_get_ctcss_sql(RIG * rig, vfo_t vfo, tone_t * tone)
 
 int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, rmode_t mode)
 {
-    nc_rigid_t rig_id;
+    int rig_id;
     rig_id = newcat_get_rigid(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1674,6 +1675,7 @@ int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, 
     case NC_RIGID_FT450:
         /* 100 Watts */
         *mwpower = power * 100000;
+        rig_debug(RIG_DEBUG_TRACE, "case FT450 - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
         break;
     case NC_RIGID_FT950:
         /* 100 Watts */
@@ -1683,37 +1685,41 @@ int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, 
     case NC_RIGID_FT2000:
         /* 100 Watts */
         *mwpower = power * 100000;
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000 - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
         break;
     case NC_RIGID_FT2000D:
         /* 200 Watts */
         *mwpower = power * 200000;
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000D - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
         break;
     case NC_RIGID_FTDX9000D:
         /* 200 Watts */
         *mwpower = power * 200000;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000D - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
         break;
     case NC_RIGID_FTDX9000Contest:
         /* 200 Watts */
         *mwpower = power * 200000;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000Contest - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
         break;
     case NC_RIGID_FTDX9000MP:
         /* 400 Watts */
         *mwpower = power * 400000;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000MP - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
         break;
     default:
         /* 100 Watts */
         *mwpower = power * 100000;
+        rig_debug(RIG_DEBUG_TRACE, "default - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "End Switch - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
-    
     return RIG_OK;
 }
 
 
 int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, rmode_t mode)
 {
-    nc_rigid_t rig_id;
+    int rig_id;
     rig_id = newcat_get_rigid(rig);
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1722,6 +1728,7 @@ int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, 
     case NC_RIGID_FT450:
         /* 100 Watts */
         *power = mwpower / 100000;
+        rig_debug(RIG_DEBUG_TRACE, "case FT450 - rig_id = %d, *power = %d\n", rig_id, *power);
         break;
     case NC_RIGID_FT950:
         /* 100 Watts */
@@ -1731,30 +1738,34 @@ int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, 
     case NC_RIGID_FT2000:
         /* 100 Watts */
         *power = mwpower / 100000;
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000 - rig_id = %d, *power = %d\n", rig_id, *power);
         break;
     case NC_RIGID_FT2000D:
         /* 200 Watts */
         *power = mwpower / 200000;
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000D - rig_id = %d, *power = %d\n", rig_id, *power);
         break;
     case NC_RIGID_FTDX9000D:
         /* 200 Watts */
         *power = mwpower / 200000;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000D - rig_id = %d, *power = %d\n", rig_id, *power);
         break;
     case NC_RIGID_FTDX9000Contest:
         /* 200 Watts */
         *power = mwpower / 200000;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000Contest - rig_id = %d, *power = %d\n", rig_id, *power);
         break;
     case NC_RIGID_FTDX9000MP:
         /* 400 Watts */
         *power = mwpower / 400000;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000MP - rig_id = %d, *power = %d\n", rig_id, *power);
         break;
     default:
         /* 100 Watts */
         *power = mwpower / 100000;
+        rig_debug(RIG_DEBUG_TRACE, "default - rig_id = %d, *power = %d\n", rig_id, *power);
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "End Switch - rig_id = %d, *power = %d\n", rig_id, *power);
-    
     return RIG_OK;
 }
 
@@ -3953,7 +3964,7 @@ int newcat_get_faststep(RIG * rig, ncboolean * fast_step)
 }
 
 
-nc_rigid_t newcat_get_rigid(RIG * rig)
+int newcat_get_rigid(RIG * rig)
 {
     const char * s;
     s = NULL;
@@ -3961,9 +3972,10 @@ nc_rigid_t newcat_get_rigid(RIG * rig)
     /* if first valid get */
     if (_nc_rigid == NC_RIGID_NONE) {
         s = newcat_get_info(rig);
-        if (s != NULL)
+        if (s != NULL) {
             s +=2;      /* ID0310, jump past ID */
             _nc_rigid = atoi(s);
+        }
     }
     
     rig_debug(RIG_DEBUG_TRACE, "_nc_rigid = %d, *s = %s\n", _nc_rigid, s);
@@ -3974,7 +3986,7 @@ nc_rigid_t newcat_get_rigid(RIG * rig)
 ncboolean newcat_is_rigid(RIG * rig, nc_rigid_t test_id)
 {
     ncboolean is_my_id;
-    nc_rigid_t rig_id;
+    int rig_id;
 
     rig_id = newcat_get_rigid(rig);
 
