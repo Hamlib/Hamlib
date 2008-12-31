@@ -7,7 +7,7 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-847 using the "CAT" interface.
  *
- * $Id: ft847.c,v 1.32 2008-11-03 20:45:19 fillods Exp $  
+ * $Id: ft847.c,v 1.33 2008-12-31 16:58:27 fillods Exp $  
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -197,9 +197,9 @@ const struct rig_caps ft847_caps = {
 .rig_model =  RIG_MODEL_FT847,
 .model_name = "FT-847", 
 .mfg_name =  "Yaesu", 
-.version =  "0.3",
+.version =  "0.4",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
@@ -217,7 +217,7 @@ const struct rig_caps ft847_caps = {
 
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE, /* none available through CAT */
-.has_get_level =  FT847_LEVEL_ALL,
+.has_get_level =  (RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR),
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
@@ -320,7 +320,7 @@ const struct rig_caps ft847_caps = {
 .get_vfo =  ft847_get_vfo,		/* get vfo */
 .set_ptt =  ft847_set_ptt,		/* set ptt */
 .get_ptt =  ft847_get_ptt,		/* get ptt */
-
+.get_level = ft847_get_level,           /* get level */
 };
 
 /*
@@ -801,3 +801,118 @@ int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
 
 }
 
+
+static int ft847_get_status(RIG *rig, int status)
+{
+  struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
+  unsigned char *data;
+  int len;
+  int n;
+
+  switch (status) {
+  case FT_847_NATIVE_CAT_GET_RX_STATUS:
+    data = &p->rx_status;
+    len  = 1;
+    break;
+  case FT_847_NATIVE_CAT_GET_TX_STATUS:
+    data = &p->tx_status;
+    len  = 1;
+    break;
+  default:
+    rig_debug(RIG_DEBUG_ERR, "ft847_get_status: Internal error!\n");
+    return -RIG_EINTERNAL;
+  }
+
+  serial_flush(&rig->state.rigport);
+
+  n = write_block(&rig->state.rigport, (char *) p->pcs[status].nseq, YAESU_CMD_LENGTH);
+  if (n < 0)
+    return n;
+
+  n = read_block(&rig->state.rigport, (char *) data, len);
+  if (n < 0)
+    return n;
+
+  if (n != len)
+    return -RIG_EPROTO;
+
+  return RIG_OK;
+}
+
+/*
+ * Get the 'raw' signal strength
+ * This number corresponds to the number of 'dots' in
+ * the FT-847 display
+ */
+static int ft847_get_rawstr_level(RIG *rig, value_t *val)
+{
+  struct ft847_priv_data *p = (struct ft847_priv_data *) rig->state.priv;
+  int n;
+
+
+  n = ft847_get_status(rig, FT_847_NATIVE_CAT_GET_RX_STATUS);
+  if (n < 0)
+    return n;
+
+  n = (p->rx_status & 0x1F);
+
+  val->i = n;
+
+  return RIG_OK;
+}
+
+
+/*
+ * Get S-meter reading (in dB)
+*/
+static int ft847_get_smeter_level(RIG *rig, value_t *val)
+{
+  int n;
+
+  n = ft847_get_rawstr_level(rig, val);
+  if (n < 0)
+    return n;
+
+  /* 
+   * The FT-847 S-meter readings over CAT returns
+   * an integer that corresponds to the number of
+   * 'dots' lit in the display. Use a conversion
+   * function to convert the raw signal strength to dB 
+   */
+  n = val->i;
+  if (n < 4)  /* <= S1 */
+    val->i = -54 + (n * 2);
+  else if (n < 20) /* S1 - S9 */
+    val->i = -48 + ((n -3) * 3);
+  else { /* > S9 */
+    n -= 19;
+    val->i = (n * 5);
+  }
+  
+  return RIG_OK;
+}
+
+
+/*
+ * Get "level" data from rig.
+ * The 847 supports S-meter readings in receive mode
+ * and PO/ALC in transmit mode.  There is no way
+ * to determine whether it's PO or ALC, unfortunately.
+ */
+int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val) 
+{
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  switch (level) {
+  case RIG_LEVEL_STRENGTH:
+    return ft847_get_smeter_level(rig, val);
+  case RIG_LEVEL_RAWSTR:
+    return ft847_get_rawstr_level(rig, val);
+  default:
+    return -RIG_EINVAL;
+  }
+
+  return RIG_OK;
+
+}

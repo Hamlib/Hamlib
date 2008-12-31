@@ -6,7 +6,7 @@
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.6 2005-04-03 19:27:59 fillods Exp $  
+ *    $Id: ft847.h,v 1.7 2008-12-31 16:58:27 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -184,6 +184,8 @@ static int ft847_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 
 static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+
+static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val);
 
 
 #endif /* _FT847_H */
