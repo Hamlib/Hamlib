@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.38 2008-12-31 18:17:56 mrtembry Exp $
+ * $Id: newcat.c,v 1.39 2009-01-01 17:16:07 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -1680,7 +1680,7 @@ int newcat_power2mW(RIG * rig, unsigned int *mwpower, float power, freq_t freq, 
     case NC_RIGID_FT950:
         /* 100 Watts */
         *mwpower = power * 100000;      /* 0..100 Linear scale */
-        rig_debug(RIG_DEBUG_TRACE, "case FT950 - rig_id = %d, *mwpower = %d\n", rig_id, *mwpower);
+        rig_debug(RIG_DEBUG_TRACE, "case FT950 - rig_id = %d, power = %f, *mwpower = %d\n", rig_id, power, *mwpower);
         break;
     case NC_RIGID_FT2000:
         /* 100 Watts */
@@ -1727,43 +1727,43 @@ int newcat_mW2power(RIG * rig, float *power, unsigned int mwpower, freq_t freq, 
     switch (rig_id) {
     case NC_RIGID_FT450:
         /* 100 Watts */
-        *power = mwpower / 100000;
-        rig_debug(RIG_DEBUG_TRACE, "case FT450 - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 100000.0;
+        rig_debug(RIG_DEBUG_TRACE, "case FT450 - rig_id = %d, *power = %f\n", rig_id, *power);
         break;
     case NC_RIGID_FT950:
         /* 100 Watts */
-        *power = mwpower / 100000;      /* 0..100 Linear scale */
-        rig_debug(RIG_DEBUG_TRACE, "case FT950 - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 100000.0;      /* 0..100 Linear scale */
+        rig_debug(RIG_DEBUG_TRACE, "case FT950 - rig_id = %d, mwpower = %d, *power = %f\n", rig_id, mwpower, *power);
         break;
     case NC_RIGID_FT2000:
         /* 100 Watts */
-        *power = mwpower / 100000;
-        rig_debug(RIG_DEBUG_TRACE, "case FT2000 - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 100000.0;
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000 - rig_id = %d, *power = %f\n", rig_id, *power);
         break;
     case NC_RIGID_FT2000D:
         /* 200 Watts */
-        *power = mwpower / 200000;
-        rig_debug(RIG_DEBUG_TRACE, "case FT2000D - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 200000.0;
+        rig_debug(RIG_DEBUG_TRACE, "case FT2000D - rig_id = %d, *power = %f\n", rig_id, *power);
         break;
     case NC_RIGID_FTDX9000D:
         /* 200 Watts */
-        *power = mwpower / 200000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000D - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 200000.0;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000D - rig_id = %d, *power = %f\n", rig_id, *power);
         break;
     case NC_RIGID_FTDX9000Contest:
         /* 200 Watts */
-        *power = mwpower / 200000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000Contest - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 200000.0;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000Contest - rig_id = %d, *power = %f\n", rig_id, *power);
         break;
     case NC_RIGID_FTDX9000MP:
         /* 400 Watts */
-        *power = mwpower / 400000;
-        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000MP - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 400000.0;
+        rig_debug(RIG_DEBUG_TRACE, "case FTDX9000MP - rig_id = %d, *power = %f\n", rig_id, *power);
         break;
     default:
         /* 100 Watts */
-        *power = mwpower / 100000;
-        rig_debug(RIG_DEBUG_TRACE, "default - rig_id = %d, *power = %d\n", rig_id, *power);
+        *power = mwpower / 100000.0;
+        rig_debug(RIG_DEBUG_TRACE, "default - rig_id = %d, *power = %f\n", rig_id, *power);
     }
 
     return RIG_OK;
