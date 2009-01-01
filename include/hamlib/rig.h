@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.134 2008-12-26 23:57:15 mrtembry Exp $
+ *	$Id: rig.h,v 1.135 2009-01-01 17:07:09 dianora Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -238,7 +238,7 @@ enum rig_status_e {
   RIG_STATUS_UNTESTED,		/*!< Written from available specs, rig unavailable for test, feedback wanted! */
   RIG_STATUS_BETA,		/*!< Beta quality */
   RIG_STATUS_STABLE,		/*!< Stable */
-  RIG_STATUS_BUGGY,		/*!< Was stable, but something broke it! */
+  RIG_STATUS_BUGGY		/*!< Was stable, but something broke it! */
 /*  RIG_STATUS_NEW	*	*!< Initial release of code 
  *  				!! Use of RIG_STATUS_NEW is deprecated. Do not use it anymore */
 };
