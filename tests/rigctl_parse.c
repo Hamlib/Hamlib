@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.11 2008-12-13 22:51:36 mrtembry Exp $  
+ * $Id: rigctl_parse.c,v 1.12 2009-01-01 17:21:02 mrtembry Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -1065,7 +1065,9 @@ declare_proto_rig(power2mW)
 	fprintf(fout, "Mode: ");
 	scanf("%d", &mode);
 	status = rig_power2mW(rig, &mwp, power, freq, (rmode_t) mode);
-	fprintf(fout, "Power: %d mW\n", mwp);
+	fprintf(fout, "rig_power2mW()-Power: %d mW\n", mwp);
+    status = rig_mW2power(rig, &power, mwp, freq, (rmode_t) mode);
+    fprintf(fout, "rig_mW2power()-Power ratio [0.0 .. 1.0]: %f\n", power);
 
 	return status;
 }
