@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl_parse.c,v 1.3 2008-10-27 22:23:36 fillods Exp $  
+ *	$Id: rotctl_parse.c,v 1.4 2009-01-01 18:19:26 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -592,12 +592,12 @@ declare_proto_rot(send_cmd)
 	} else {
 		strncpy(bufcmd,arg1,BUFSZ);
 		bufcmd[BUFSZ-1] = '\0';
-		cmd_len = strlen(bufcmd);
 		/*
 		 * assumes CR is end of line char
-		 * for all ascii protocols
+		 * for all ascii protocols.
 		 */
 		strcat(bufcmd, "\r");
+		cmd_len = strlen(bufcmd);
 	}
 
 	rs = &rot->state;
