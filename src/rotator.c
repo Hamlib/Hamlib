@@ -2,7 +2,7 @@
  *  Hamlib Interface - main file
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotator.c,v 1.25 2008-11-05 23:02:00 fillods Exp $
+ *	$Id: rotator.c,v 1.26 2009-01-01 18:18:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -365,7 +365,7 @@ int HAMLIB_API rot_open(ROT *rot)
  * \brief close the communication to the rot
  * \param rot	The #ROT handle of the rotator to be closed
  *
- * Closes communication to a radio which \a ROT handle has been passed
+ * Closes communication to a rotator which \a ROT handle has been passed
  * by argument that was previously open with rot_open().
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
