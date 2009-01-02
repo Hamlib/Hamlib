@@ -1,5 +1,6 @@
 /*  This is a elementary program calling Hamlib to do some useful things.
  *  
+ *  Edit to specify your rig model and serial port before compiling.
  *  To compile:
  *  	gcc -L/usr/local/lib -lhamlib -o example example.c
  *  	if hamlib is installed in /usr/local/...
@@ -68,8 +69,8 @@ int main() {
 /* Raw and calibrated S-meter values */
 	status = rig_get_level(my_rig, RIG_VFO_CURR, RIG_LEVEL_RAWSTR,
 		&rawstrength);
-	printf("Raw receive strength = %d\n", rawstrength);
+	printf("Raw receive strength = %d\n", rawstrength.i);
 	isz = my_rig->caps->str_cal.size;
-	s_meter = rig_raw2val(rawstrength, &my_rig->caps->str_cal);
+	s_meter = rig_raw2val(rawstrength.i, &my_rig->caps->str_cal);
 	printf("S-meter value = %.2f dB relative to S9\n", s_meter);
 };
