@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.17 2008-12-30 18:52:32 mrtembry Exp $
+ *    $Id: newcat.h,v 1.18 2009-01-02 14:32:22 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -64,7 +64,6 @@ typedef char ncboolean;
 #define NEWCAT_MEM_CAP {    \
 	.freq = 1,      \
 	.mode = 1,      \
-	.width = 1,     \
 	.rit = 1,       \
 	.xit = 1,       \
 	.rptr_shift = 1, \
