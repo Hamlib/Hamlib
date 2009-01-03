@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2008 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.26 2008-06-19 04:26:52 aa6e Exp $
+ *	$Id: orion.c,v 1.27 2009-01-03 20:58:32 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1151,8 +1151,18 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 
 		if (lvlbuf[2] == 'R') {
-			val->i = atoi(strchr(lvlbuf+3,
-				vfo == RIG_VFO_SUB ? 'S' : 'M')+1);  /* check main/sub logic */
+			char *raw_field, *raw_field2;
+			/* response is @SRMnnnSnnn, incl main & sub rx. */
+			/* TT's spec indicates variable length data 1-3 digits */
+			if (vfo==RIG_VFO_SUB) {		/* look at sub rx info */
+				raw_field = strchr(lvlbuf+3, 'S')+1; /* length may vary */
+				}
+			else {				/* look at main rx info */
+				raw_field = lvlbuf+4;
+				raw_field2 = strchr(raw_field,'S'); /* position may vary */
+				if (raw_field2) *raw_field2 = '\0'; /* valid string */
+				}
+			val->i = atoi(raw_field);	/* get raw value */
 		}
 			else val->i = 0;	/* S-meter in xmit = 0 */
 		break;
