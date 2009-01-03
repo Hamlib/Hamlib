@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.48 2008-10-25 11:36:02 y32kn Exp $
+ *	$Id: misc.c,v 1.49 2009-01-03 14:15:05 mrtembry Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -277,6 +277,8 @@ static struct {
  	{ RIG_MODE_SAL, "SAL" },
     { RIG_MODE_SAH, "SAH" },
     { RIG_MODE_DSB, "DSB"},
+    { RIG_MODE_NAM, "NAM"},
+    { RIG_MODE_NFM, "NFM"},
 	{ RIG_MODE_NONE, "" },
 };
 
