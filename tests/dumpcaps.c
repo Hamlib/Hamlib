@@ -3,7 +3,7 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.50 2008-12-23 22:32:43 mrtembry Exp $  
+ *    $Id: dumpcaps.c,v 1.51 2009-01-03 14:16:49 mrtembry Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -359,7 +359,7 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "\n");
 
         fprintf(fout, "Bandwidths:");
-	for (i=1; i < 1<<20; i<<=1) {
+	for (i=1; i < RIG_MODE_TESTS_MAX; i<<=1) {
 		pbwidth_t pbnorm = rig_passband_normal(rig, i);
 
 		if (pbnorm == 0)
