@@ -2,11 +2,11 @@
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
  * yaesu.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
- *		and Stephane Fillod 2001-2008
+ *		and Stephane Fillod 2001-2009
  *
  * Common yaesu declarations for hamlib
  *
- * 	$Id: yaesu.h,v 1.29 2008-12-14 20:02:03 fillods Exp $	
+ * 	$Id: yaesu.h,v 1.30 2009-01-04 10:40:34 fillods Exp $	
  *
  *
  *
@@ -58,6 +58,7 @@ extern const struct rig_caps ft817_caps;
 extern const struct rig_caps ft857_caps;
 extern const struct rig_caps ft897_caps;
 extern const struct rig_caps ft847_caps;
+extern const struct rig_caps ft840_caps;
 extern const struct rig_caps ft890_caps;
 extern const struct rig_caps ft900_caps;
 extern const struct rig_caps ft920_caps;
