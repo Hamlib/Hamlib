@@ -8,7 +8,7 @@
  * via serial interface to an FT-2000 using the "CAT" interface
  *
  *
- *    $Id: ft2000.h,v 1.1 2008-12-14 20:02:03 fillods Exp $
+ *    $Id: ft2000.h,v 1.2 2009-01-04 16:03:34 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -50,6 +50,10 @@
 		RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
 #define FT2000_AM_RX_MODES (RIG_MODE_AM)
 #define FT2000_FM_RX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM)
+#define FT2000_CW_RTTY_PKT_RX_MODES (RIG_MODE_RTTY|RIG_MODE_RTTYR|\
+        RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_CWR)
+
+
 
 
 /* TRX caps */

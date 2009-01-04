@@ -3,12 +3,13 @@
  *
  * ft9000.h - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2008
+ *            (C) Terry Embry 2009
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-9000 using the "CAT" interface
  *
  *
- *    $Id: ft9000.h,v 1.1 2008-12-14 20:02:03 fillods Exp $
+ *    $Id: ft9000.h,v 1.2 2009-01-04 16:03:34 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -56,6 +57,11 @@
 #define FT9000_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY| \
 		RIG_MODE_PKTLSB|RIG_MODE_PKTUSB|RIG_MODE_PKTFM)
 #define FT9000_AM_TX_MODES (RIG_MODE_AM)
+#define FT9000_FM_RX_MODES (RIG_MODE_FM|RIG_MODE_PKTFM)
+#define FT9000_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR)
+#define FT9000_CW_RTTY_PKT_RX_MODES (RIG_MODE_RTTY|RIG_MODE_RTTYR|\
+        RIG_MODE_PKTUSB|RIG_MODE_PKTLSB|RIG_MODE_CW|RIG_MODE_CWR)
+
 
 /* TBC */
 #define FT9000_LEVELS (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|\

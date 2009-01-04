@@ -3,13 +3,13 @@
  *
  * ft950.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2008
- *           (C) Terry Embry 2008
+ *           (C) Terry Embry 2008-2009
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.15 2009-01-04 00:05:25 mrtembry Exp $
+ * $Id: ft950.c,v 1.16 2009-01-04 16:03:34 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or

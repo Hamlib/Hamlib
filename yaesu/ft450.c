@@ -3,13 +3,13 @@
  *
  * ft450.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *           (C) Stephane Fillod 2008
- *           (C) Terry Embry 2008
+ *           (C) Terry Embry 2008-2009
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.10 2008-12-28 13:53:13 mrtembry Exp $
+ * $Id: ft450.c,v 1.11 2009-01-04 16:03:34 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -144,15 +144,15 @@ const struct rig_caps ft450_caps = {
     .filters =            {
         {FT450_CW_RTTY_PKT_RX_MODES,  Hz(1800)},    /* Normal CW, RTTY, PKT/USER */
         {FT450_CW_RTTY_PKT_RX_MODES,  Hz(500)},     /* Narrow CW, RTTY, PKT/USER */
-        {FT450_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT?USER */
+        {FT450_CW_RTTY_PKT_RX_MODES,  Hz(2400)},    /* Wide   CW, RTTY, PKT/USER */
         {RIG_MODE_SSB,                Hz(2400)},    /* Normal SSB */
         {RIG_MODE_SSB,                Hz(1800)},    /* Narrow SSB */
         {RIG_MODE_SSB,                Hz(3000)},    /* Wide   SSB */
         {RIG_MODE_AM,                 Hz(6000)},    /* Normal AM  */
         {RIG_MODE_AM,                 Hz(3000)},    /* Narrow AM  */
-        // {RIG_MODE_AM,                 Hz(9000)},    /* Wide   AM  */
         {FT450_FM_RX_MODES,           Hz(12000)},   /* Normal FM  */
         {FT450_FM_RX_MODES,           Hz(8000)},    /* Narrow FM  */
+        {RIG_MODE_NFM,                Hz(8000)},    /* Narrow FM  */
 
         RIG_FLT_END,
     },
@@ -197,6 +197,10 @@ const struct rig_caps ft450_caps = {
     .get_powerstat =      newcat_get_powerstat,
     .get_ts =             newcat_get_ts,
     .set_ts =             newcat_set_ts,
+    .set_trn =            newcat_set_trn,
+    .get_trn =            newcat_get_trn,
+    .set_channel =        newcat_set_channel,
+    .get_channel =        newcat_get_channel,
 
 };
 
