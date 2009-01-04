@@ -9,7 +9,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.14 2008-12-30 18:52:32 mrtembry Exp $
+ * $Id: ft950.c,v 1.15 2009-01-04 00:05:25 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -93,7 +93,7 @@ const struct rig_caps ft950_caps = {
     .chan_desc_sz =       0,
     .str_cal =            FT950_STR_CAL,
     .chan_list =          {
-               {   0,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
+               {   1,  99, RIG_MTYPE_MEM,  NEWCAT_MEM_CAP },
                { 100, 117, RIG_MTYPE_EDGE, NEWCAT_MEM_CAP },    /* two by two */
                RIG_CHAN_END,
                           },
@@ -175,8 +175,10 @@ const struct rig_caps ft950_caps = {
         {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
         {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
         {RIG_MODE_AM,                 Hz(6000)},    /* Narrow AM */
+        {RIG_MODE_NAM,                Hz(6000)},    /* Narrow AM */
         {FT950_FM_RX_MODES,           Hz(16000)},   /* Normal FM */
         {FT950_FM_RX_MODES,           Hz(9000)},    /* Narrow FM */
+        {RIG_MODE_NFM,                Hz(9000)},    /* Narrow FM */
 
         RIG_FLT_END,
     },
@@ -228,6 +230,8 @@ const struct rig_caps ft950_caps = {
     .get_ts =             newcat_get_ts,
     .set_trn =            newcat_set_trn,
     .get_trn =            newcat_get_trn,
+    .set_channel =        newcat_set_channel,
+    .get_channel =        newcat_get_channel,
 
 };
 
