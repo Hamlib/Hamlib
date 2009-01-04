@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.12 2009-01-01 17:21:02 mrtembry Exp $  
+ * $Id: rigctl_parse.c,v 1.13 2009-01-04 14:23:43 mrtembry Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -1405,98 +1405,156 @@ declare_proto_rig(scan)
 /* 'H' */
 declare_proto_rig(set_channel)
 {
-	const channel_cap_t *mem_caps = NULL;
-	const chan_t *chan_list;
-	channel_t chan;
+    const channel_cap_t *mem_caps = NULL;
+    const chan_t *chan_list;
+    channel_t chan;
+    int status;
+    char s[16];
 
-	return -RIG_ENIMPL;
+    rig_debug(RIG_DEBUG_TRACE, "set_channel: arg1[0] = %d\n", arg1[0]);
 
-	if (isdigit(arg1[0])) {
-		chan.vfo = RIG_VFO_MEM;
-		if (sscanf(arg1, "%d", &chan.channel_num) != 1)
-			return -RIG_EINVAL;
-		/*
-		 * find mem_caps in caps, we'll need it later
-		 */
-		chan_list = rig_lookup_mem_caps(rig, chan.channel_num);
-		if (chan_list)
-			mem_caps = &chan_list->mem_caps;
+    memset(&chan, 0, sizeof(channel_t));
 
-	} else {
-		chan.vfo = rig_parse_vfo(arg1);
-		chan.channel_num = 0;
+    if (isdigit(arg1[0])) {
+        chan.vfo = RIG_VFO_MEM;
+        if (sscanf(arg1, "%d", &chan.channel_num) != 1)
+            return -RIG_EINVAL;
+        /*
+         * find mem_caps in caps, we'll need it later
+         */
+        chan_list = rig_lookup_mem_caps(rig, chan.channel_num);
+        if (chan_list)
+            mem_caps = &chan_list->mem_caps;
 
-		/* TODO: mem_caps for VFO! */
-	}
+    } else {
+        chan.vfo = rig_parse_vfo(arg1);
+        chan.channel_num = 0;
 
-	if (!mem_caps)
-		return -RIG_ECONF;
+        /* TODO: mem_caps for VFO! */
+    }
 
-#ifdef FIXME
-	if (mem_caps->bank_num)
-		sscanf(arg1, "%d", &chan.bank_num);
-	if (mem_caps->vfo)
-		chan.vfo = rig_parse_vfo(arg1);
-	if (mem_caps->ant)
-		sscanf(arg1, "%d", &chan.ant);
-	if (mem_caps->freq)
-		sscanf(arg1, "%"SCNfreq, &chan.freq);
-	if (mem_caps->mode)
-		chan.mode = rig_parse_mode(arg1);
-	if (mem_caps->width)
-		sscanf(arg1, "%d", (int*)&chan.width);
+    if (!mem_caps)
+        return -RIG_ECONF;
 
-	if (mem_caps->tx_freq)
-		sscanf(arg1, "%"SCNfreq, &chan.tx_freq);
-	if (mem_caps->tx_mode)
-		chan.tx_mode = rig_parse_mode(arg1);
-	if (mem_caps->tx_width)
-		sscanf(arg1, "%d", (int*)&chan.tx_width);
+    rig_debug(RIG_DEBUG_TRACE, "set_channel: mem_caps->bank_num = %d, mem_caps->freq = %d\n", mem_caps->bank_num, mem_caps->freq);
 
-	if (mem_caps->split)
-		sscanf(arg1, "%d", &chan.split);
-	if (mem_caps->tx_vfo)
-		chan.tx_vfo = rig_parse_vfo(arg1);
-	if (mem_caps->rptr_shift)
-		chan.rptr_shift = rig_parse_rptr_shift(arg1);
-	if (mem_caps->rptr_offs)
-		sscanf(arg1, "%d", &chan.rptr_offs);
-	if (mem_caps->tuning_step)
-		sscanf(arg1, "%d", &chan.tuning_step);
-	if (mem_caps->rit)
-		sscanf(arg1, "%d", &chan.rit);
-	if (mem_caps->xit)
-		sscanf(arg1, "%d", &chan.xit);
-	if (mem_caps->funcs)
-		sscanf(arg1, "%x", &chan.funcs);
+    if (mem_caps->bank_num) {
+        printf("Bank Num: ");
+        scanf("%d", &chan.bank_num);
+    }
+    if (mem_caps->vfo) {
+        printf("vfo (VFOA,MEM,etc...): ");
+        scanf("%s", s);
+        chan.vfo = rig_parse_vfo(s);
+    }
+    if (mem_caps->ant) {
+        printf("ant: ");
+        scanf("%d", &chan.ant);
+    }
+    if (mem_caps->freq) {
+        printf("Frequency: ");
+        scanf("%"SCNfreq, &chan.freq);
+    }
+    if (mem_caps->mode) {
+        printf("mode (FM,LSB,etc...): ");
+        scanf("%s", s);
+        chan.mode = rig_parse_mode(s);
+    }
+    if (mem_caps->width) {
+        printf("width: ");
+        scanf("%ld", &chan.width);
+    }
+    if (mem_caps->tx_freq) {
+        printf("tx freq (VFOA,MEM,etc...): ");
+        scanf("%"SCNfreq, &chan.tx_freq);
+    }
+    if (mem_caps->tx_mode) {
+        printf("tx mode (FM,LSB,etc...): ");
+        scanf("%s", s);
+        chan.tx_mode = rig_parse_mode(s);
+    }
+    if (mem_caps->tx_width) {
+        printf("tx width: ");
+        scanf("%ld", &chan.tx_width);
+    }
+    if (mem_caps->split) {
+        printf("split (0,1): ");
+        scanf("%d", &status);
+        chan.split = status;
+    }
+    if (mem_caps->tx_vfo) {
+        printf("tx vfo (VFOA,MEM,etc...): ");
+        scanf("%s", s);
+        chan.tx_vfo = rig_parse_vfo(s);
+    }
+    if (mem_caps->rptr_shift) {
+        printf("rptr shift (+-0): "); 
+        scanf("%s", s);
+        chan.rptr_shift = rig_parse_rptr_shift(s);
+    }
+    if (mem_caps->rptr_offs) {
+        printf("rptr offset: ");
+        scanf("%ld", &chan.rptr_offs);
+    }
+    if (mem_caps->tuning_step) {
+        printf("tuning step: ");
+        scanf("%ld", &chan.tuning_step);
+    }
+    if (mem_caps->rit) {
+        printf("rit (Hz,0=off): ");
+        scanf("%ld", &chan.rit);
+    }
+    if (mem_caps->xit) {
+        printf("xit (Hz,0=off): ");
+        scanf("%ld", &chan.xit);
+    }
+    if (mem_caps->funcs) {
+        printf("funcs: ");
+        scanf("%lx", &chan.funcs);
+    }
 #if 0
-		/* for all levels, ask */
-	if (mem_caps->levels)
-		sscanf(arg1, "%d", &chan.levels);
+    /* for all levels, ask */
+    if (mem_caps->levels)
+        sscanf(arg1, "%d", &chan.levels);
 #endif
-	if (mem_caps->ctcss_tone)
-		sscanf(arg1, "%d", &chan.ctcss_tone);
-	if (mem_caps->ctcss_sql)
-		sscanf(arg1, "%d", &chan.ctcss_sql);
-	if (mem_caps->dcs_code)
-		sscanf(arg1, "%d", &chan.dcs_code);
-	if (mem_caps->dcs_sql)
-		sscanf(arg1, "%d", &chan.dcs_sql);
-	if (mem_caps->scan_group)
-		sscanf(arg1, "%d", &chan.scan_group);
-	if (mem_caps->flags)
-		sscanf(arg1, "%d", &chan.flags);
-	if (mem_caps->channel_desc)
-		strcpy(chan.channel_desc, arg1);
+    if (mem_caps->ctcss_tone) {
+        printf("ctcss tone freq in tenth of Hz (0=off): ");
+        scanf("%d", &chan.ctcss_tone);
+    }
+    if (mem_caps->ctcss_sql) {
+        printf("ctcss sql freq in tenth of Hz (0=off): ");
+        scanf("%d", &chan.ctcss_sql);
+    }
+    if (mem_caps->dcs_code) {
+        printf("dcs code: ");
+        scanf("%d", &chan.dcs_code);
+    }
+    if (mem_caps->dcs_sql) {
+        printf("dcs sql: ");
+        scanf("%d", &chan.dcs_sql);
+    }
+    if (mem_caps->scan_group) {
+        printf("scan group: ");
+        scanf("%d", &chan.scan_group);
+    }
+    if (mem_caps->flags) {
+        printf("flags: ");
+        scanf("%d", &chan.flags);
+    }
+    if (mem_caps->channel_desc) {
+        printf("channel desc: ");
+        scanf("%s", s);
+        strcpy(chan.channel_desc, s);
+    }
 #if 0
-	/* TODO: same as levels */
-	if (mem_caps->ext_levels)
-		sscanf(arg1, "%d", &chan.ext_levels);
+    /* TODO: same as levels */
+    if (mem_caps->ext_levels)
+        sscanf(arg1, "%d", &chan.ext_levels);
 #endif
 
-#endif
+    status = rig_set_channel(rig, &chan);
 
-	return RIG_OK;
+    return status;
 }
 
 /* 'h' */
