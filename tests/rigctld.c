@@ -1,10 +1,10 @@
 /*
- * rigctld.c - (C) Stephane Fillod 2000-2008
+ * rigctld.c - (C) Stephane Fillod 2000-2009
  *
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
  *
- * $Id: rigctld.c,v 1.10 2008-12-10 08:37:35 fillods Exp $  
+ * $Id: rigctld.c,v 1.11 2009-01-04 14:49:17 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -108,6 +108,7 @@ int prompt= 0 ;         /* Daemon mode for rigparse return string */
 int opt_end= 0 ;        /* END marker for rigctld */
 int vfo_mode;           /* vfo_mode=0 means target VFO is current VFO */
 
+char send_cmd_term = '\r';     /* send_cmd termination char */
 
 int portno = 4532;
 uint32_t src_addr = INADDR_ANY;

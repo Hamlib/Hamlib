@@ -1,10 +1,10 @@
 /*
- * rotctld.c - (C) Stephane Fillod 2000-2008
+ * rotctld.c - (C) Stephane Fillod 2000-2009
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
  *
- *	$Id: rotctld.c,v 1.6 2008-11-02 12:39:36 fillods Exp $  
+ *	$Id: rotctld.c,v 1.7 2009-01-04 14:49:17 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -100,6 +100,8 @@ int opt_end= 0 ;        /* END marker for rotctld */
 
 int portno = 4533;
 uint32_t src_addr = INADDR_ANY;
+
+char send_cmd_term = '\r';     /* send_cmd termination char */
 
 #define MAXCONFLEN 128
 

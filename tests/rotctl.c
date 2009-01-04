@@ -1,11 +1,11 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2008
+ * rotctl.c - (C) Stephane Fillod 2000-2009
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl.c,v 1.12 2008-10-27 22:23:36 fillods Exp $  
+ *	$Id: rotctl.c,v 1.13 2009-01-04 14:49:17 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -52,12 +52,13 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:LvhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:LvhVl"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
 	{"rot-file", 1, 0, 'r'},
 	{"serial-speed", 1, 0, 's'},
+	{"send-cmd-term", 1, 0, 't'},
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
@@ -72,6 +73,8 @@ static struct option long_options[] =
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rotctl */
 int opt_end= 0 ;        /* only used by rotctld */
+
+char send_cmd_term = '\r';     /* send_cmd termination char */
 
 int main (int argc, char *argv[])
 { 
@@ -131,6 +134,16 @@ int main (int argc, char *argv[])
 					if (*conf_parms != '\0')
 							strcat(conf_parms, ",");
 					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+					break;
+			case 't':
+					if (!optarg) {
+						usage();        /* wrong arg count */
+						exit(1);
+					}
+					if (strlen(optarg) > 1)
+						send_cmd_term = strtol(optarg, NULL, 0);
+					else
+						send_cmd_term = optarg[0];
 					break;
 			case 'v':
 					verbose++;
@@ -219,6 +232,7 @@ void usage()
 	"  -m, --model=ID             select rotator model number. See model list\n"
 	"  -r, --rot-file=DEVICE      set device of the rotator to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
+	"  -t, --send-cmd-term=CHAR   set send_cmd command termination char\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"

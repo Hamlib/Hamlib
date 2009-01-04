@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "September 21, 2008" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "January 4, 2009" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -85,6 +85,13 @@ Icom rigs.
 .br
 NB: the \fIid\fP is in decimal notation, unless prefixed by 
 \fI0x\fP, in which case it is hexadecimal.
+.TP
+.B \-t, --send-cmd-term=char
+Change the termination \fIchar\fP for text protocol when using the \fIsend_cmd\fP command.
+The default value is <CR>. Non ASCII printable characters can be specified as an
+ASCII number, in hexadecimal format, prepended with 0x. You may pass an empty string
+for no termination char. The string -1 tells rigctl to switch to binary protocol.
+See the \fIsend_cmd\fP command for further explanation.
 .TP
 .B \-L, --show-conf
 List all config parameters for the radio defined with -m above.
@@ -340,9 +347,11 @@ power in milli-Watts.  The \fIfrequency\fP and \fImode\fP also need to be
 provided as output power may vary according to these values.
 .TP
 .B w, send_cmd
-Send raw command string to rig.
+Send raw command string to the rig.
 .br
-For binary protocols enter values as \\0xAA\\0xBB
+<CR> (or send-cmd-term, see \fI-t\fP option) is appended automatically at the end
+of the command for text protocols.
+For binary protocols, enter values as \\0xAA\\0xBB
 
 .SH EXAMPLES
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter in 
@@ -393,7 +402,7 @@ Written by Stephane Fillod and the Hamlib Group
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2008 Stephane Fillod, Frank Singleton, and the Hamlib
+Copyright \(co 2000-2009 Stephane Fillod, Frank Singleton, and the Hamlib
 Group.
 .br
 This is free software; see the source for copying conditions.

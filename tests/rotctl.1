@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "February 24, 2007" "Hamlib" "Rotator Control Program"
+.TH ROTCTL "1" "January 4, 2009" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -55,6 +55,13 @@ Default is \fB/dev/rotator\fP (may be a symbolic link to the actual device).
 .B \-s, --serial-speed=baud
 Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotator 
 backend capabilites as default.
+.TP
+.B \-t, --send-cmd-term=char
+Change the termination \fIchar\fP for text protocol when using the \fIsend_cmd\fP command.
+The default value is <CR>. Non ASCII printable characters can be specified as an
+ASCII number, in hexadecimal format, prepended with 0x. You may pass an empty string
+for no termination char. The string -1 tells rotctl to switch to binary protocol.
+See the \fIsend_cmd\fP command for further explanation.
 .TP
 .B \-L, --show-conf
 List all config parameters for the rotor defined with -m above.
@@ -124,6 +131,14 @@ See -L output
 .TP
 .B _, get_info
 Get misc information on the rotator.
+.TP
+.B w, send_cmd
+Send raw command string to the rotator.
+.br
+<CR> (or send-cmd-term, see \fI-t\fP option) is appended automatically at the end
+of the command for text protocols.
+For binary protocols, enter values as \\0xAA\\0xBB
+
 .SH EXAMPLES
 Start \fBrotctl\fP for RotorEZ using COM1:
 
@@ -161,7 +176,7 @@ Written by Stephane Fillod and the Hamlib Group
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2007 Stephane Fillod and the Hamlib Group.
+Copyright \(co 2000-2009 Stephane Fillod and the Hamlib Group.
 .br
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY

@@ -1,11 +1,11 @@
 /*
- * rigctl.c - (C) Stephane Fillod 2000-2008
+ * rigctl.c - (C) Stephane Fillod 2000-2009
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl.c,v 1.69 2008-12-10 08:37:35 fillods Exp $  
+ * $Id: rigctl.c,v 1.70 2009-01-04 14:49:17 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -58,7 +58,7 @@ void usage(void);
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:lC:LuovhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:t:lC:LuovhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -69,6 +69,7 @@ static struct option long_options[] =
 	{"dcd-type", 1, 0, 'D'},
 	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
+	{"send-cmd-term", 1, 0, 't'},
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
@@ -86,6 +87,8 @@ int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
 int opt_end= 0;         /* only used by rigctld */
 int vfo_mode;		/* vfo_mode=0 means target VFO is current VFO */
+
+char send_cmd_term = '\r';	/* send_cmd termination char */
 
 int main (int argc, char *argv[])
 {
@@ -193,6 +196,16 @@ int main (int argc, char *argv[])
 				}
 				civaddr = optarg;
 				break;
+			case 't':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				if (strlen(optarg) > 1)
+					send_cmd_term = strtol(optarg, NULL, 0);
+				else
+					send_cmd_term = optarg[0];
+				break;
 			case 's':
 				if (!optarg) {
 						usage();	/* wrong arg count */
@@ -276,7 +289,7 @@ int main (int argc, char *argv[])
 	if (serial_rate != 0)
 		my_rig->state.rigport.parm.serial.rate = serial_rate;
 	if (civaddr)
-        rig_set_conf(my_rig, rig_token_lookup(my_rig, "civaddr"), civaddr);
+        	rig_set_conf(my_rig, rig_token_lookup(my_rig, "civaddr"), civaddr);
 
 	/*
 	 * print out conf parameters
@@ -334,6 +347,7 @@ void usage(void)
 	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
+	"  -t, --send-cmd-term=CHAR   set send_cmd command termination char\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"

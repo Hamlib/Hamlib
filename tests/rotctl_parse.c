@@ -1,11 +1,11 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2008
+ * rotctl.c - (C) Stephane Fillod 2000-2009
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl_parse.c,v 1.4 2009-01-01 18:19:26 fillods Exp $  
+ *	$Id: rotctl_parse.c,v 1.5 2009-01-04 14:49:17 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -160,6 +160,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 extern int interactive;
 extern int prompt;
 extern int opt_end;
+extern char send_cmd_term;
 
 int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 { 
@@ -572,6 +573,7 @@ declare_proto_rot(send_cmd)
 #define BUFSZ 128
 	char bufcmd[BUFSZ];
 	char buf[BUFSZ];
+	char eom_buf[4] = { 0xa, 0xd, 0, 0 };
 
 	/*
 	 * binary protocols enter values as \0xZZ\0xYY..
@@ -579,25 +581,31 @@ declare_proto_rot(send_cmd)
 	 * Rem: no binary protocol for rotator as of now
 	 */
 	backend_num = ROT_BACKEND_NUM(rot->caps->rot_model);
-	if (backend_num == -1) {
+	if (send_cmd_term == -1 || backend_num == -1) {
 		const char *p = arg1, *pp = NULL;
 		int i;
 		for (i=0; i < BUFSZ-1 && p != pp; i++) {
 			pp = p+1;
 			bufcmd[i] = strtol(p+1, (char **) &p, 0);
 		}
-		cmd_len = i-1;
 		/* must save length to allow 0x00 to be sent as part of a command
 		*/
+		cmd_len = i-1;
+
+		/* no End Of Message chars */
+		eom_buf[0] = '\0';
 	} else {
+		/* text protocol */
+
 		strncpy(bufcmd,arg1,BUFSZ);
-		bufcmd[BUFSZ-1] = '\0';
-		/*
-		 * assumes CR is end of line char
-		 * for all ascii protocols.
-		 */
-		strcat(bufcmd, "\r");
+		bufcmd[BUFSZ-2] = '\0';
+
 		cmd_len = strlen(bufcmd);
+
+		/* Automatic termination char */
+		if (send_cmd_term != 0)
+			bufcmd[cmd_len++] = send_cmd_term;
+		eom_buf[2] = send_cmd_term;
 	}
 
 	rs = &rot->state;
@@ -611,9 +619,12 @@ declare_proto_rot(send_cmd)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg2);
 
-#define EOM "\0xa"
 	do {
-		retval = read_string(&rs->rotport, buf, BUFSZ, EOM, strlen(EOM));
+		/*
+		 * assumes CR or LF is end of line char
+		 * for all ascii protocols
+		 */
+		retval = read_string(&rs->rotport, buf, BUFSZ, eom_buf, strlen(eom_buf));
 		if (retval < 0)
 			break;
 	

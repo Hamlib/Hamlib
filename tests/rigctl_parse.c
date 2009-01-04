@@ -1,11 +1,11 @@
 /*
- * rigctl_parse.c - (C) Stephane Fillod 2000-2008
+ * rigctl_parse.c - (C) Stephane Fillod 2000-2009
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.13 2009-01-04 14:23:43 mrtembry Exp $  
+ * $Id: rigctl_parse.c,v 1.14 2009-01-04 14:49:17 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -276,6 +276,7 @@ extern int interactive;
 extern int prompt;
 extern int opt_end;
 extern int vfo_mode;
+extern char send_cmd_term;
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 {
@@ -1929,12 +1930,15 @@ declare_proto_rig(send_cmd)
 #define BUFSZ 128
 	char bufcmd[BUFSZ];
 	char buf[BUFSZ];
+	char eom_buf[4] = { 0xa, 0xd, 0, 0 };
 
 	/*
 	 * binary protocols enter values as \0xZZ\0xYY..
 	 */
 	backend_num = RIG_BACKEND_NUM(rig->caps->rig_model);
-	if (backend_num == RIG_YAESU || backend_num == RIG_ICOM ||
+	if (send_cmd_term == -1 ||
+			backend_num == RIG_YAESU ||
+			backend_num == RIG_ICOM ||
 			backend_num == RIG_KACHINA ||
 			backend_num == RIG_MICROTUNE) {
 		const char *p = arg1, *pp = NULL;
@@ -1943,18 +1947,23 @@ declare_proto_rig(send_cmd)
 			pp = p+1;
 			bufcmd[i] = strtol(p+1, (char **) &p, 0);
 		}
-		cmd_len = i-1;
 		/* must save length to allow 0x00 to be sent as part of a command
 		*/
+		cmd_len = i-1;
+
+		/* no End Of Message chars */
+		eom_buf[0] = '\0';
 	} else {
+		/* text protocol */
+
 		strncpy(bufcmd,arg1,BUFSZ);
-		bufcmd[BUFSZ-1] = '\0';
+		bufcmd[BUFSZ-2] = '\0';
 		cmd_len = strlen(bufcmd);
-		/*
-		 * assumes CR is end of line char
-		 * for all ascii protocols
-		 */
-		strcat(bufcmd, "\r");
+
+		/* Automatic termination char */
+		if (send_cmd_term != 0)
+			bufcmd[cmd_len++] = send_cmd_term;
+		eom_buf[2] = send_cmd_term;
 	}
 
 	rs = &rig->state;
@@ -1968,9 +1977,12 @@ declare_proto_rig(send_cmd)
 	if (interactive && prompt)
 		fprintf(fout, "%s: ", cmd->arg2);
 
-#define EOM "\0xa"
 	do {
-		retval = read_string(&rs->rigport, buf, BUFSZ, EOM, strlen(EOM));
+		/*
+		 * assumes CR or LF is end of line char
+		 * for all ascii protocols
+		 */
+		retval = read_string(&rs->rigport, buf, BUFSZ, eom_buf, strlen(eom_buf));
 		if (retval < 0)
 			break;
 	
