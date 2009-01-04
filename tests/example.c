@@ -1,6 +1,7 @@
 /*  This is a elementary program calling Hamlib to do some useful things.
  *  
- *  Edit to specify your rig model and serial port before compiling.
+ *  Edit to specify your rig model and serial port, and baud rate
+ *  before compiling.
  *  To compile:
  *  	gcc -L/usr/local/lib -lhamlib -o example example.c
  *  	if hamlib is installed in /usr/local/...
@@ -16,7 +17,7 @@ int main() {
 	RIG *my_rig;
 	char *rig_file, *info_buf, *mm;
 	freq_t freq;
-	value_t rawstrength, power;
+	value_t rawstrength, power, strength;
 	float s_meter, rig_raw2val();
 	int status, retcode, isz, mwpower;
 	rmode_t mode;
@@ -25,11 +26,11 @@ int main() {
 /* Set verbosity level */
 	rig_set_debug(RIG_DEBUG_ERR);       // errors only
 /* Instantiate a rig */
-	my_rig = rig_init(RIG_MODEL_TT565); // Ten-Tec Orion code (1608)
+	my_rig = rig_init(RIG_MODEL_TT565); // your rig model.
 /* Set up serial port, baud rate */
-	rig_file = "/dev/ham.orion";        // you may prefer /dev/ttyS0
+	rig_file = "/dev/ttyUSB0";        // your serial device
 	strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN);
-	my_rig->state.rigport.parm.serial.rate = 57600;
+	my_rig->state.rigport.parm.serial.rate = 57600; // your baud rate
 /* Open my rig */
 	retcode = rig_open(my_rig);
 /* Give me ID info, e.g., firmware version. */
@@ -73,4 +74,7 @@ int main() {
 	isz = my_rig->caps->str_cal.size;
 	s_meter = rig_raw2val(rawstrength.i, &my_rig->caps->str_cal);
 	printf("S-meter value = %.2f dB relative to S9\n", s_meter);
+	/* now try using RIG_LEVEL_STRENGTH itself */
+	status = rig_get_strength(my_rig, RIG_VFO_CURR, &strength);
+	printf("LEVEL_STRENGTH returns %d\n", strength.i);
 };
