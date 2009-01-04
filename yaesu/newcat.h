@@ -13,7 +13,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- *    $Id: newcat.h,v 1.19 2009-01-04 00:05:25 mrtembry Exp $
+ *    $Id: newcat.h,v 1.20 2009-01-04 14:01:02 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -69,7 +69,6 @@ typedef char ncboolean;
 	.rptr_shift = 1, \
 	.ctcss_tone = 1,\
 	.ctcss_sql = 1,\
-	.funcs = (RIG_FUNC_TONE|RIG_FUNC_TSQL), \
 }
 
 /*

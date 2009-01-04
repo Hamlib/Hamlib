@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.40 2009-01-04 00:05:25 mrtembry Exp $
+ * $Id: newcat.c,v 1.41 2009-01-04 14:01:02 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -783,8 +783,11 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
         
             priv->current_mem = chan;
 
-            priv->vfo_restore.channel_num = NC_MEM_CH_VFO_A;
-            err = newcat_get_channel(rig, chan_mem);
+            if (priv->current_vfo == RIG_VFO_B)
+                priv->vfo_restore.channel_num = NC_MEM_CH_VFO_B;
+            else
+                priv->vfo_restore.channel_num = NC_MEM_CH_VFO_A;
+            err = newcat_get_channel(rig, chan_mem);    /* backup VFO */
         
             err = newcat_set_mem(rig, vfo, chan);
             priv->current_vfo = vfo; 
@@ -3051,6 +3054,7 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
     char c_rit, c_xit, c_mode, c_vfo, c_tone, c_rptr_shift;
     tone_t tone;
     vfo_t vfo;
+    channel_t chan_vfo;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
@@ -3058,8 +3062,20 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
 
     if (chan->channel_num != NC_MEM_CH_VFO_A && chan->channel_num != NC_MEM_CH_VFO_B) {
 
-        if (!newcat_valid_command(rig, "MR"))
+        if (!newcat_valid_command(rig, "MW"))
             return -RIG_ENAVAIL;
+
+        /* Backup VFO: * Write the memory channel and return to vfo */
+        memset(&chan_vfo, 0, sizeof(channel_t));
+        if (priv->current_vfo == RIG_VFO_B)
+            chan_vfo.channel_num = NC_MEM_CH_VFO_B;
+        else 
+            chan_vfo.channel_num = NC_MEM_CH_VFO_A;
+
+        err = newcat_get_channel(rig, &chan_vfo);
+        if (err != RIG_OK)
+            return err;
+        /* ****************************************** */
 
         /*  Clarifier TX, RX */
         if (chan->rit) {
@@ -3071,9 +3087,9 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
             c_rit = '0';
             c_xit = '1';
         } else { 
-            rxit = 0;
-            c_rit = 0;
-            c_xit = 0;
+            rxit  =  0;
+            c_rit = '0';
+            c_xit = '0';
         }
 
         /* MODE */
@@ -3124,7 +3140,7 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
             default: c_rptr_shift = '0';
         }
 
-        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MR%03d%08d%+.4d%c%c%c%c%c%02d%c%c",
+        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MW%03d%08d%+.4d%c%c%c%c%c%02d%c%c",
                 chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
                 c_tone, tone, c_rptr_shift, cat_term);
 
@@ -3132,7 +3148,12 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
 
         /* Set MEM_CH */
         err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+        if (err != RIG_OK)
+            return err;
 
+        /* recursive return to VFO */
+        err = newcat_set_channel(rig, &chan_vfo);
+        
         return err;
     } /* end if memory channel */
     else {
@@ -3776,8 +3797,11 @@ int newcat_set_rxvfo(RIG * rig, vfo_t rxvfo) {
 
                 priv->current_mem = chan;
 
-                priv->vfo_restore.channel_num = NC_MEM_CH_VFO_A;
-                err = newcat_get_channel(rig, chan_mem);
+                if (priv->current_vfo == RIG_VFO_B)
+                    priv->vfo_restore.channel_num = NC_MEM_CH_VFO_B;
+                else
+                    priv->vfo_restore.channel_num = NC_MEM_CH_VFO_A;
+                err = newcat_get_channel(rig, chan_mem);    /* backup VFO */
 
                 err = newcat_set_mem(rig, rxvfo, chan);
                 priv->current_vfo = rxvfo; 
