@@ -4,7 +4,7 @@
  *
  * newcat.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *            (C) Stephane Fillod 2008
- *            (C) Terry Embry 2008
+ *            (C) Terry Embry 2008-2009
  *
  * This shared library provides an API for communicating
  * via serial interface to any newer Yaesu radio using the
@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.41 2009-01-04 14:01:02 mrtembry Exp $
+ * $Id: newcat.c,v 1.42 2009-01-04 23:59:00 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -2178,12 +2178,15 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 			sprintf(cmdstr, "PL%03d%c", fpf, cat_term);
 			break;
 		case RIG_LEVEL_BKINDL:
-            /* Standard: word "PARIS" == 50 Unit Intervals, UI or dots */
+            /* Standard: word "PARIS" == 50 Unit Intervals, UI */
+            /* 2 UI == 1 dot (on time + off time), "PARIS" == 25 dots */
             /* 10 tenth_dots == 1 dot, UI */
-            /* ms  = (1200 * UI * tenth_dots) / tenth_dots-per-min */
+            /* wpm = 1200 / ms  ; ms = 1200 / wpm */
+            /* ms  = (1200 * dots-pm * tenth_dots) / tenth_dots-per-min */
+            /* tenth_dots-pm = (1200 * dots-pm * tenth_dots) / ms */
             if (val.i < 1)
                 val.i = 1;
-            val.i = 600000 / val.i;
+            val.i = 300000 / val.i;
             if (newcat_is_rig(rig, RIG_MODEL_FT950) || newcat_is_rig(rig, RIG_MODEL_FT450)) {
 			    if (val.i < 30)
                    val.i = 30;
@@ -2420,7 +2423,7 @@ int newcat_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
             val->i = atoi(retlvl);      /* milliseconds */
             if (val->i < 1)             /* divide by zero catch */
                 val->i = 1;
-            val->i = 600000 / val->i;   /* tenth_dots per min */
+            val->i = 300000 / val->i;   /* tenth_dots-per-min */
             break;
 		case RIG_LEVEL_RAWSTR:
 		case RIG_LEVEL_KEYSPD:
