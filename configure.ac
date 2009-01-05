@@ -419,6 +419,18 @@ else
 fi
 AC_MSG_RESULT($cf_with_libusb)
 
+# prepare backend dependencies before adding rpcrig and rpcrot dirs
+# otherwise parallel 'make -jn' will fail
+for be in ${BACKEND_LIST} ; do
+	BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
+done
+
+# prepare backend dependencies before adding rpcrig and rpcrot dirs
+# otherwise parallel 'make -jn' will fail
+for be in ${ROT_BACKEND_LIST} ; do
+    ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
+done
+
 
 AC_CHECK_PROG(cf_with_rpcgen, rpcgen, [yes], [no])
 AC_MSG_CHECKING(whether to build rpc backends)
@@ -443,7 +455,6 @@ fi
 BACKENDLNK="-dlopen force"
 for be in ${BACKEND_LIST} ; do
 	BACKENDLNK="${BACKENDLNK} -dlopen \$(top_builddir)/${be}/hamlib-${be}.la"
-	BACKENDEPS="${BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
 done
 AC_SUBST(BACKEND_LIST)
 AC_SUBST(BACKENDLNK)
@@ -453,7 +464,6 @@ AC_SUBST(BACKENDEPS)
 ROT_BACKENDLNK="-dlopen force"
 for be in ${ROT_BACKEND_LIST} ; do
     ROT_BACKENDLNK="${ROT_BACKENDLNK} -dlopen \$(top_builddir)/${be}/hamlib-${be}.la"
-    ROT_BACKENDEPS="${ROT_BACKENDEPS} \$(top_builddir)/${be}/hamlib-${be}.la"
 done
 AC_SUBST(ROT_BACKEND_LIST)
 AC_SUBST(ROT_BACKENDLNK)
