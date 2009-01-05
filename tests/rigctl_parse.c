@@ -1,11 +1,12 @@
 /*
  * rigctl_parse.c - (C) Stephane Fillod 2000-2009
+ *                  (C) Terry Embry 2008-2009
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.14 2009-01-04 14:49:17 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.15 2009-01-05 02:20:59 mrtembry Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -1563,6 +1564,8 @@ declare_proto_rig(get_channel)
 {
 	int status;
 	channel_t chan;
+    
+    memset(&chan, 0, sizeof(channel_t));
 
 	if (isdigit(arg1[0])) {
 		chan.vfo = RIG_VFO_MEM;
