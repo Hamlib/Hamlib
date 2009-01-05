@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2008 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.28 2009-01-03 23:05:57 aa6e Exp $
+ *	$Id: orion.c,v 1.29 2009-01-05 17:39:57 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +42,7 @@
  * Filtered rig info string to ensure all graphics.
  * Big reliability improvement (for fldigi, v 2.062a) 2/15/2008
  * Jan., 2009:
- * Support RIG_LEVEL_STRENGTH, which was never implemented
+ * Remove RIG_LEVEL_STRENGTH, so that frontend can handle it.
  */
 
 /* Known issues & to-do list:
@@ -1109,8 +1109,7 @@ int tt565_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
  */
 int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	int retval, cmd_len, lvl_len, answer;
-	float f;
+	int retval, cmd_len, lvl_len;
 	char cmdbuf[TT565_BUFSIZE],lvlbuf[TT565_BUFSIZE];
 
 	/* Optimize: sort the switch cases with the most frequent first */
@@ -1143,7 +1142,7 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		break;
 
 	case RIG_LEVEL_RAWSTR:		/* provide uncalibrated raw strength, int */
-	case RIG_LEVEL_STRENGTH:	/* provide calibrated S-meter, int dB rel S9 */
+	    /* NB: RIG_LEVEL_STRENGTH is handled in the frontend */
   		lvl_len = sizeof(lvlbuf);	
 		retval = tt565_transaction (rig, "?S" EOM, 3, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
@@ -1167,16 +1166,9 @@ int tt565_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				raw_field2 = strchr(raw_field,'S'); /* position may vary */
 				if (raw_field2) *raw_field2 = '\0'; /* valid string */
 				}
-			answer = atoi(raw_field);	/* get raw value */
+			val->i = atoi(raw_field);	/* get raw value */
 		}
-		else answer = 0;	/* S-meter in xmit => 0 */
-		if (level==RIG_LEVEL_RAWSTR) {	/* That's all if we're here for the raw story */
-			val->i = answer;
-			break;
-			}
-		/* onward if we need to get calibrated! */
-		f = rig_raw2val(answer, &rig->caps->str_cal);
-		val->i = (int)f;
+		else val->i = 0;	/* S-meter in xmit => 0 */
 		break;
 
 	case RIG_LEVEL_RFPOWER:
