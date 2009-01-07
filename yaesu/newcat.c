@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.45 2009-01-07 20:59:12 mrtembry Exp $
+ * $Id: newcat.c,v 1.46 2009-01-07 23:09:12 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -799,24 +799,24 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
                 if (priv->current_vfo == RIG_VFO_B)
                     return -RIG_ENTARGET;
 
-                /* get current memory channel */
-                err = newcat_get_mem(rig, vfo, &mem);
-                if (err != RIG_OK)
-                    return err;
-
-                rig_debug(RIG_DEBUG_TRACE, "Get Mem Chan = %d\n", mem);
-
-                /* Backup VFO */
                 memset(vfo_chan, 0, sizeof(channel_t));
                 vfo_chan->channel_num = NC_MEM_CHANNEL_VFO_A;
                 vfo_chan->vfo = RIG_VFO_A;
 
+                /* get current memory channel */
+                err = newcat_get_mem(rig, vfo, &mem);
+                if (err != RIG_OK) {
+                    /* Make Sure what current_vfo is on failure */
+                    priv->current_vfo = vfo_chan->vfo; 
+                    return err;
+                }
+
+                rig_debug(RIG_DEBUG_TRACE, "Get Mem Chan = %d\n", mem);
+
+                /* Backup VFO */
                 err = newcat_backup_vfo(rig, vfo_chan);
                 if (err != RIG_OK) {
-                    priv->current_mem = NC_MEM_CHANNEL_NONE;
-                    vfo = vfo_chan->vfo;
-                    priv->current_vfo = vfo; 
-
+                    priv->current_vfo = vfo_chan->vfo; 
                     return err;
                 }
 
@@ -825,10 +825,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
                 if (vfo_chan->split == RIG_SPLIT_ON) {
                     err = newcat_set_split_vfo(rig, vfo_chan->vfo, RIG_SPLIT_OFF, vfo_chan->vfo);
                     if (err != RIG_OK) {
-                        priv->current_mem = NC_MEM_CHANNEL_NONE;
-                        vfo = vfo_chan->vfo;
-                        priv->current_vfo = vfo; 
-
+                        priv->current_vfo = vfo_chan->vfo; 
                         return err;
                     }
                 }
@@ -838,10 +835,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
                 /* turn on memory channel */
                 err = newcat_set_mem(rig, vfo, mem);
                 if (err != RIG_OK) {
-                    priv->current_mem = NC_MEM_CHANNEL_NONE;
-                    vfo = vfo_chan->vfo;
-                    priv->current_vfo = vfo; 
-
+                    priv->current_vfo = vfo_chan->vfo; 
                     return err;
                 }
                 rig_debug(RIG_DEBUG_TRACE, "Set Mem = %d\n", mem);
@@ -849,6 +843,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
                 /* Set current_mem now */
                 priv->current_mem = mem;
             }
+            /* Set current_vfo now */
             priv->current_vfo = vfo;
             return RIG_OK;
         default:
@@ -964,12 +959,12 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
             return -RIG_EPROTO;         /* sorry, wrong current VFO */
     }
 
+    rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *vfo);
+
     if (priv->current_mem != NC_MEM_CHANNEL_NONE)
         *vfo = RIG_VFO_MEM;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *vfo);
-
-    priv->current_vfo = *vfo;       /* set current_vfo now */
+    priv->current_vfo = *vfo;       /* set now */
 
     return RIG_OK;
 
@@ -1238,12 +1233,16 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    err = newcat_get_vfo(rig, &rx_vfo);  /* sync to rig current vfo */
-    if (err != RIG_OK)
-        return err;
-
     err = newcat_set_vfo_from_alias(rig, &vfo);
     if (err < 0)
+        return err;
+
+    /* not now */
+    if (vfo == RIG_VFO_MEM)
+        return RIG_OK;
+
+    err = newcat_get_vfo(rig, &rx_vfo);  /* sync to rig current vfo */
+    if (err != RIG_OK)
         return err;
 
     switch (split) {
@@ -1286,6 +1285,13 @@ int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo)
     err = newcat_set_vfo_from_alias(rig, &vfo);
     if (err != RIG_OK)
         return err;
+
+    /* FALSE split */
+    if (vfo == RIG_VFO_MEM) {
+        *split = RIG_SPLIT_OFF;
+        *tx_vfo = RIG_VFO_MEM;
+        return RIG_OK;
+    }
 
     err = newcat_get_tx_vfo(rig, tx_vfo);
     if (err != RIG_OK)
@@ -3960,40 +3966,47 @@ int newcat_set_rx_vfo(RIG * rig, vfo_t rx_vfo) {
                 if (priv->current_vfo == RIG_VFO_B)
                     return -RIG_ENTARGET;
 
-                /* get current memory channel */
-                err = newcat_get_mem(rig, rx_vfo, &mem);
-                if (err != RIG_OK)
-                    return err;
-                priv->current_mem = mem;
-
-                /* Backup VFO */
                 memset(vfo_chan, 0, sizeof(channel_t));
-                priv->vfo_chan.channel_num = NC_MEM_CHANNEL_VFO_A;
+                vfo_chan->channel_num = NC_MEM_CHANNEL_VFO_A;
                 vfo_chan->vfo = RIG_VFO_A;
 
+                /* get current memory channel */
+                err = newcat_get_mem(rig, rx_vfo, &mem);
+                if (err != RIG_OK) {
+                    /* Make Sure what current_vfo is on failure */
+                    priv->current_vfo = vfo_chan->vfo; 
+                    return err;
+                }
+
+                /* Backup VFO */
                 err = newcat_backup_vfo(rig, vfo_chan);
                 if (err != RIG_OK) {
-                    priv->current_mem = NC_MEM_CHANNEL_NONE;
-                    rx_vfo = vfo_chan->vfo;
-                    priv->current_vfo = rx_vfo; 
+                    priv->current_vfo = vfo_chan->vfo; 
 
                     return err;
                 }
 
                 /* Turn off split during channel memory operation */
-                if (vfo_chan->split == RIG_SPLIT_ON)
+                if (vfo_chan->split == RIG_SPLIT_ON) {
                     err = newcat_set_split_vfo(rig, vfo_chan->vfo, RIG_SPLIT_OFF, vfo_chan->vfo);
+                    if (err != RIG_OK) {
+                        priv->current_vfo = vfo_chan->vfo; 
+
+                        return err;
+                    }
+                }
+
                 /* turn on memory channel */
                 err = newcat_set_mem(rig, rx_vfo, mem);
                 if (err != RIG_OK) {
-                    priv->current_mem = NC_MEM_CHANNEL_NONE;
-                    rx_vfo = vfo_chan->vfo;
-                    priv->current_vfo = rx_vfo; 
+                    priv->current_vfo = vfo_chan->vfo; 
 
                     return err;
                 }
-
+                /* Set current_mem now */
+                priv->current_mem = mem;
             }
+            /* Set current_vfo now  */
             priv->current_vfo = rx_vfo; 
             return RIG_OK;
         default:
@@ -4089,10 +4102,12 @@ int newcat_get_rx_vfo(RIG * rig, vfo_t * rx_vfo) {
             return -RIG_EPROTO;
     }
 
-    if (priv->current_mem)
+    rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *rx_vfo);
+
+    if (priv->current_mem != NC_MEM_CHANNEL_NONE)
         *rx_vfo = RIG_VFO_MEM;
 
-    priv->current_vfo = *rx_vfo;     /* Track Main Band RX VFO */
+    priv->current_vfo = *rx_vfo;     /* set now */
 
     return RIG_OK;
 }
