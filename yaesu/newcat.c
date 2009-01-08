@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.48 2009-01-08 12:57:31 mrtembry Exp $
+ * $Id: newcat.c,v 1.49 2009-01-08 21:38:47 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -3814,8 +3814,7 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
         case RIG_VFO_MEM:
             if (priv->current_mem == NC_MEM_CHANNEL_NONE)
                 return RIG_OK;
-
-            if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
+            else {      /* current_mem == memory channel */
                 if (tx_vfo == priv->vfo_chan.vfo)
                     return RIG_OK;
                 else 
