@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.47 2009-01-08 07:22:25 mrtembry Exp $
+ * $Id: newcat.c,v 1.48 2009-01-08 12:57:31 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -961,8 +961,10 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *vfo);
 
-    if (priv->current_mem != NC_MEM_CHANNEL_NONE)
-        *vfo = RIG_VFO_MEM;
+    if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
+        if (*vfo == priv->vfo_chan.vfo)
+            *vfo = RIG_VFO_MEM;
+    }
 
     priv->current_vfo = *vfo;       /* set now */
 
@@ -1237,10 +1239,6 @@ int newcat_set_split_vfo(RIG * rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
     if (err < 0)
         return err;
 
-    /* no Split in VFO memory mode */
-    if (vfo == RIG_VFO_MEM)
-        return RIG_OK;
-
     err = newcat_get_vfo(rig, &rx_vfo);  /* sync to rig current vfo */
     if (err != RIG_OK)
         return err;
@@ -1290,13 +1288,9 @@ int newcat_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t *tx_vfo)
     if (err != RIG_OK)
         return err;
 
-    /* no Split in VFO memory mode */
-    if (vfo == RIG_VFO_MEM)
-        *tx_vfo = RIG_VFO_MEM;
-
     if (*tx_vfo != vfo)
         *split = RIG_SPLIT_ON;
-    else 
+    else
         *split = RIG_SPLIT_OFF;
 
     rig_debug(RIG_DEBUG_TRACE, "SPLIT = %d, vfo = %d, TX_vfo = %d\n", *split, vfo, *tx_vfo);
@@ -3101,7 +3095,7 @@ int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch)
     if (!newcat_valid_command(rig, "MC"))
         return -RIG_ENAVAIL;
 
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC;");
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC%c", cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
@@ -3357,6 +3351,7 @@ int newcat_set_channel(RIG * rig, const channel_t * chan)
             break;
         case RIG_VFO_B:
         default:
+            /* Only works with VFO A */
             return -RIG_ENTARGET;
     }
 
@@ -3816,6 +3811,17 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
         case RIG_VFO_B:
             p1 = '1';
             break;
+        case RIG_VFO_MEM:
+            if (priv->current_mem == NC_MEM_CHANNEL_NONE)
+                return RIG_OK;
+
+            if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
+                if (tx_vfo == priv->vfo_chan.vfo)
+                    return RIG_OK;
+                else 
+                    p1 = (priv->vfo_chan.vfo == RIG_VFO_B) ? '1' : '0';
+            }
+            break;
         default:
             return -RIG_EINVAL;
     }
@@ -3890,6 +3896,11 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
             break;
         default:
             return -RIG_EPROTO;
+    }
+
+    if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
+        if (*tx_vfo == priv->vfo_chan.vfo)
+            *tx_vfo = RIG_VFO_MEM;
     }
 
     return RIG_OK;
@@ -4101,8 +4112,10 @@ int newcat_get_rx_vfo(RIG * rig, vfo_t * rx_vfo) {
 
     rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *rx_vfo);
 
-    if (priv->current_mem != NC_MEM_CHANNEL_NONE)
-        *rx_vfo = RIG_VFO_MEM;
+    if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
+        if (*rx_vfo == priv->vfo_chan.vfo)
+            *rx_vfo = RIG_VFO_MEM;
+    }
 
     priv->current_vfo = *rx_vfo;     /* set now */
 
@@ -4669,6 +4682,8 @@ int newcat_restore_vfo(RIG * rig, channel_t * chan)
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
+    vfo_t vfo, tx_vfo;
+    split_t split;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
@@ -4705,7 +4720,19 @@ int newcat_restore_vfo(RIG * rig, channel_t * chan)
     }
 
     /* Restore Split */
-    if (chan->split == RIG_SPLIT_ON) {
+    err = newcat_get_split_vfo(rig, chan->vfo, &split, &tx_vfo);
+    if (split != chan->split) {
+        /* Minimize VFO switching */
+        err = newcat_get_vfo(rig, &vfo);
+        if (vfo == chan->tx_vfo) {
+            err = newcat_set_mode(rig, chan->tx_vfo, chan->tx_mode, chan->tx_width);
+            err = newcat_set_freq(rig, chan->tx_vfo, chan->tx_freq);
+        } else {
+            err = newcat_set_vfo(rig, chan->tx_vfo);
+            err = newcat_set_mode(rig, chan->tx_vfo, chan->tx_mode, chan->tx_width);
+            err = newcat_set_freq(rig, chan->tx_vfo, chan->tx_freq);
+            err = newcat_set_vfo(rig, vfo);
+        }
         err = newcat_set_split_vfo(rig, chan->vfo, chan->split, chan->tx_vfo);
     }
 
@@ -4721,7 +4748,7 @@ int newcat_backup_vfo(RIG * rig, channel_t * chan)
     char c, c2;
     int err, i;
     rmode_t mode;
-    pbwidth_t width;
+    vfo_t vfo;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
@@ -4732,15 +4759,26 @@ int newcat_backup_vfo(RIG * rig, channel_t * chan)
 
     /* Get what is needed for VFO Restore */
     /* Get Mode and Width */
-    err = newcat_get_mode(rig, chan->vfo, &mode, &width);
+    err = newcat_get_mode(rig, chan->vfo, &mode, &chan->width);
     if (err != RIG_OK)
         return err;
-    chan->width = width;
 
     /* Get Split VFO */
     err = newcat_get_split_vfo(rig, chan->vfo, &chan->split, &chan->tx_vfo);
-    if (err != RIG_OK)
-        return err;
+    if (chan->split == RIG_SPLIT_OFF)
+        chan->tx_vfo = (chan->vfo == RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_B;
+
+    /* Minimize VFO switching */
+    err = newcat_get_vfo(rig, &vfo);
+    if (vfo == chan->tx_vfo) {
+        err = newcat_get_mode(rig, chan->tx_vfo, &chan->tx_mode, &chan->tx_width);
+        err = newcat_get_freq(rig, chan->tx_vfo, &chan->tx_freq);
+    } else {
+        err = newcat_set_vfo(rig, chan->tx_vfo);
+        err = newcat_get_mode(rig, chan->tx_vfo, &chan->tx_mode, &chan->tx_width);
+        err = newcat_get_freq(rig, chan->tx_vfo, &chan->tx_freq);
+        err = newcat_set_vfo(rig, vfo);
+    }
 
     /* Get Rest of VFO A Information ****************** */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IF%c", cat_term);
