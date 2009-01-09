@@ -1,6 +1,6 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2007
-         (C) The Hamlib Group 2000-2008
+         (C) The Hamlib Group 2000-2009
 
 * Why does Hamlib need beta-testers?
 
@@ -36,16 +36,18 @@ despite the size of the package.
 Pre-requisite:
  - some kind of internet access
  - POSIXish compiler toolchain (gcc, GNU Autotools, Perl, etc., 
-				see README.developer)
+   see README.developer)
 
  
 So here we go:
 
-* daily CVS snapshots:
+* Daily CVS snapshots:
 
-Download the latest snapshot from http://hamlib.sourceforge.net/bleeding-edge/
-You'll find tar balls with names like hamlib-1.2.6cvs-20061107.tar.gz,
-i.e. a check out made 07 Nov 2006, ready for building. 
+Download the latest snapshot from http://n0nb.users.sourceforge.net
+You'll find a tar ball with a name like hamlib-1.2.8.1cvs-20090109.tar.gz,
+i.e. a check out made 09 Jan 2009, ready for building using the familiar
+"three step" (see below).  Each morning by about 1130z a new snapshot is
+generated and uploaded and the prior day's version is removed.
 
 The advantage of the CVS snapshot is that you won't need as many tools 
 installed to build Hamlib as the work of Autoconf, Automake, and Libtool 
@@ -55,21 +57,21 @@ parts of Hamlib like documentation or scripting language bindings.
 See `configure --help' for more information.
 
 
-* cvs checkout:
+* CVS checkout:
 
 Please read the beginning of README.developer file, especially about how to
 obtain a cvs checkout, what are the required tools and versions (very 
 important or make won't even work!), and how to use autogen.sh.
 
 
-* build:
+* Build:
 
 Reading the INSTALL file in top directory will explain in more detail how
 to do the following commands. 
 
-	./configure --disable-static --prefix=/usr/local
-	make
-	make install
+    ./configure --disable-static --prefix=/usr/local
+    make
+    make install
 
 The prefix argument is optional.  Convention is that local packages be placed
 in /usr/local away from distribution installed packages and this is the default
@@ -79,10 +81,10 @@ if you don't plan to use static libraries.
 If you don't want the build files cluttering the source directories, do the 
 following in the same parent directory of hamlib:
 
-        mkdir build && cd build
-        ../hamlib/configure  --disable-static --prefix=/usr/local
-	make
-	make install
+    mkdir build && cd build
+    ../hamlib/configure  --disable-static --prefix=/usr/local
+    make
+    make install
 
 This will keep the binary output files seperate from the source tree.
 
@@ -118,27 +120,27 @@ and you understand what are the side effects of *not* installing freshly
 generated objects (basically having to mess with LD_LIBRARY_PATH and .libs).
 
 So here we go. First of all, identify your rig model id.  Make sure 
-/some/where/bin is in your PATH, rigctl has to be reachable. Run "rigctl -l"
-to get a list of rigs supported by Hamlib.
+/some/where/bin is in your $PATH, as rigctl has to be reachable. Run 
+`rigctl -l' to get a list of rigs supported by Hamlib.
 
 If you cannot find yours in the list, please report to the hamlib-developer
-mailing list. The protocol manual and rig specifications may help a lot.
+mailing list. The protocol manual and rig specifications will help a lot.
 
 You found your rig's ID?  Good!  You're almost ready to use rigctl.
 Have a quick look at its manual page:
 
-	man rigctl
+    man rigctl
 or:
-	man -M /some/where/man rigctl
+    man -M /some/where/man rigctl
 or simply:
-	rigctl --help
+    rigctl --help
 
 Let's say you own an Icom IC-756:
 
-	rigctl -vvvvv -r /dev/ttyS0 -m 326
+    rigctl -vvvvv -r /dev/ttyS0 -m 326
 
 The -vvvvv is very important since this will increase verbosity, and give
-precious traces to developpers if something goes wrong. At this level, 
+precious traces to developers if something goes wrong. At this level, 
 the protocol data exchanged will also be dumped to the screen.
 
 Unless some problem shows up, you should be presented with a menu
@@ -168,27 +170,27 @@ When reporting to hamlib-developer mailing list, please include traces and
 also comments to tell developers if the action performed correctly on the rig.
 
 Tip: traces can be hard to cut and paste sometimes. In that case,
-	there's a handy tool for you:  script(1). It will make
-	a typescript of everything printed on your terminal.
+    there's a handy tool for you:  script(1). It will make
+    a typescript of everything printed on your terminal.
 
-	$ script my_rig_traces.txt
-	Script started, file is my_rig_traces.txt
-	$ rigctl -vvvvv -r /dev/ttyS0 -m 326
-	rig:rig_init called
-	rig: loading backend icom
-	icom: _init called
-	rig_register (309)
-	rig_register (326)
-	rig:rig_open called
-	Opened rig model 326, 'IC-756'
+    $ script my_rig_traces.txt
+    Script started, file is my_rig_traces.txt
+    $ rigctl -vvvvv -r /dev/ttyS0 -m 326
+    rig:rig_init called
+    rig: loading backend icom
+    icom: _init called
+    rig_register (309)
+    rig_register (326)
+    rig:rig_open called
+    Opened rig model 326, 'IC-756'
 
-	Rig command: q
-	rig:rig_close called
-	rig:rig_cleanup called
-	$ exit
-	exit
-	Script done, file is my_rig_traces.txt
-	$
+    Rig command: q
+    rig:rig_close called
+    rig:rig_cleanup called
+    $ exit
+    exit
+    Script done, file is my_rig_traces.txt
+    $
 
 And then send my_rig_traces.txt to the hamlib-developer mailing list.
 
@@ -211,7 +213,7 @@ NB: you have to know the S-Meter of radio's is far from being accurate.
 For owners with a fully equipped lab, you may want to make the up-mentioned
 measurements with a good Signal Generator and a set of calibrated attenuators.
 Greg W8WWV has an insightful page about S-Meter:
- http://www.seed-solutions.com/gregordy/Amateur%20Radio/Experimentation/SMeterBlues.htm
+    http://www.seed-solutions.com/gregordy/Amateur%20Radio/Experimentation/SMeterBlues.htm
 
 
 Okay folks, test as much as you can, in the weirdest situations if

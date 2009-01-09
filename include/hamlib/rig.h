@@ -2,7 +2,7 @@
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rig.h,v 1.136 2009-01-03 14:08:00 mrtembry Exp $
+ *	$Id: rig.h,v 1.137 2009-01-09 23:03:37 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -867,7 +867,7 @@ struct tuning_step_list {
  * this means the rig allows its passband width to be
  * set to any value ranging from the lowest to the
  * highest value (if any) in the list for that mode.
- * The RIG_TS_ANY value, if present, must
+ * The RIG_FLT_ANY value, if present, must
  * be the last one in the list.
  *
  * The width field is the narrowest passband in a transmit/receive chain
