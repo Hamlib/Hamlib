@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.49 2009-01-08 21:38:47 mrtembry Exp $
+ * $Id: newcat.c,v 1.50 2009-01-10 14:52:49 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -47,12 +47,15 @@
 #include "newcat.h"
 
 /* global variables */
-static const char cat_term = ';';           /* Yaesu command terminator */
-static const char cat_unknown_cmd[] = "?;";   /* Yaesu do what? */
+static const char cat_term = ';';             /* Yaesu command terminator */
+static const char cat_unknown_cmd[] = "?;";   /* Yaesu ? */
 
 /* Internal Backup and Restore VFO Memory Channels */
 #define NC_MEM_CHANNEL_NONE  2012
 #define NC_MEM_CHANNEL_VFO_A 2013
+#define NC_MEM_CHANNEL_VFO_B 2014
+#define NC_MEM_CHANNEL_VFO_RESERVED 99
+
 
 /* ID 0310 == 310, Must drop leading zero */
 typedef enum nc_rigid_e {
@@ -208,11 +211,14 @@ struct newcat_priv_data {
     vfo_t               current_vfo;                    /* active VFO from last cmd */
     char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
     char                ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
-    int                 current_mem;    /* private memory channel number */
-    int                 rig_id;         /* rig id from CAT Command ID; */
-    channel_t           vfo_chan;       /* backup vfo for mem and channel funcs */
+    int                 current_mem;                    /* private memory channel number */
+    int                 rig_id;                         /* rig id from CAT Command ID; */
 };
 
+typedef struct newcat_cmd_data {
+    char                cmd_str[NEWCAT_DATA_LEN];       /* command string buffer */
+    char                ret_data[NEWCAT_DATA_LEN];      /* returned data--max value, most are less */
+} newcat_cmd_data_t;
 
 /* NewCAT Internal Functions */
 static ncboolean newcat_is_rig(RIG * rig, rig_model_t model);
@@ -229,8 +235,16 @@ static int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow);
 static int newcat_set_faststep(RIG * rig, ncboolean fast_step);
 static int newcat_get_faststep(RIG * rig, ncboolean * fast_step);
 static int newcat_get_rigid(RIG * rig);
-static int newcat_restore_vfo(RIG * rig, channel_t * chan);
-static int newcat_backup_vfo(RIG * rig, channel_t * chan);
+static int newcat_restore_vfo_ram(RIG * rig, channel_t * chan);
+static int newcat_backup_vfo_ram(RIG * rig, channel_t * chan);
+static int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode);
+static int newcat_set_cmd(RIG * rig, newcat_cmd_data_t * cmd);
+static int newcat_get_cmd(RIG * rig, newcat_cmd_data_t * cmd);
+static int newcat_set_any_mem(RIG * rig, vfo_t vfo, int ch);
+static int newcat_set_any_channel(RIG * rig, const channel_t * chan);
+static int newcat_restore_vfo_mem_channel(RIG * rig);
+static int newcat_backup_vfo_mem_channel(RIG * rig);
+// static int newcat_get_vfo_info(RIG * rig, vfo_t vfo, freq_t * freq, rmode_t * mode);
 // static ncboolean newcat_is_rigid(RIG * rig, nc_rigid_t id);
 
 /*
@@ -269,8 +283,6 @@ int newcat_init(RIG *rig) {
 
     priv->rig_id = NC_RIGID_NONE;
     priv->current_mem = NC_MEM_CHANNEL_NONE;
-
-    memset(&(priv->vfo_chan), 0, sizeof(channel_t));
 
     return RIG_OK;
 }
@@ -362,9 +374,6 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     if (!newcat_valid_command(rig, "FA"))
         return -RIG_ENAVAIL;
 
-    //if (!newcat_valid_command(rig, "FB"))
-    //   return -RIG_ENAVAIL;
-
     priv = (struct newcat_priv_data *)rig->state.priv;
     caps = rig->caps;
     state = &rig->state;
@@ -425,25 +434,20 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
  * Does not SET priv->current_vfo
  *
  */
-
 int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
     char command[3];
     struct newcat_priv_data *priv;
     struct rig_state *state;
     char c;
     int err;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
 
     if (!newcat_valid_command(rig, "FA"))
         return -RIG_ENAVAIL;
-
-    if (!newcat_valid_command(rig, "FB"))
-        return -RIG_ENAVAIL;
-
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
 
     err = newcat_set_vfo_from_alias(rig, &vfo);
     if (err < 0)
@@ -746,23 +750,21 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
  */
 
 int newcat_set_vfo(RIG *rig, vfo_t vfo) {
-    char command[3];
     struct newcat_priv_data *priv;
     struct rig_state *state;
-    channel_t *vfo_chan;
+    char command[] = "VS";
     char c;
     int err, mem;
+    vfo_t vfo_mode;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
-    vfo_chan = &priv->vfo_chan;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called, passed vfo = 0x%02x\n", __func__, vfo);
 
-    if (!newcat_valid_command(rig, "VS"))
-        return -RIG_ENAVAIL;
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
-
+    if (!newcat_valid_command(rig, command)) {
+        err = newcat_set_rx_vfo(rig, vfo);       /* Try set with "FR" */
+        return err;
+    }
 
     err = newcat_set_vfo_from_alias(rig, &vfo);   /* passes RIG_VFO_MEM, RIG_VFO_A, RIG_VFO_B */
     if (err < 0)
@@ -772,24 +774,23 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
         case RIG_VFO_A:
             c = '0';
 
-            if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
-                /* Restore to previous VFO */ 
+            err = newcat_get_vfo_mode(rig, &vfo_mode);
+            if (vfo_mode == RIG_VFO_MEM) {
                 priv->current_mem = NC_MEM_CHANNEL_NONE;
-                err = newcat_restore_vfo(rig, vfo_chan); 
-                priv->current_vfo = vfo_chan->vfo;
-
+                priv->current_vfo = RIG_VFO_A;
+                err = newcat_restore_vfo_mem_channel(rig);
                 return err;
             }
             break;
         case RIG_VFO_B:
             c = '1';
 
-            if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
-                /* Restore to previous VFO */ 
+            err = newcat_get_vfo_mode(rig, &vfo_mode);
+            if (vfo_mode == RIG_VFO_MEM) {
                 priv->current_mem = NC_MEM_CHANNEL_NONE;
-                err = newcat_restore_vfo(rig, vfo_chan); 
-                priv->current_vfo = vfo_chan->vfo;
-
+                /* Restore to previous VFO */
+                priv->current_vfo = RIG_VFO_A;
+                err = newcat_restore_vfo_mem_channel(rig); 
                 return err;
             }
             break;
@@ -799,46 +800,20 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
                 if (priv->current_vfo == RIG_VFO_B)
                     return -RIG_ENTARGET;
 
-                memset(vfo_chan, 0, sizeof(channel_t));
-                vfo_chan->channel_num = NC_MEM_CHANNEL_VFO_A;
-                vfo_chan->vfo = RIG_VFO_A;
-
                 /* get current memory channel */
                 err = newcat_get_mem(rig, vfo, &mem);
-                if (err != RIG_OK) {
-                    /* Make Sure current_vfo is set on error */
-                    priv->current_vfo = vfo_chan->vfo; 
+                if (err != RIG_OK)
                     return err;
-                }
-
-                rig_debug(RIG_DEBUG_TRACE, "Get Mem Chan = %d\n", mem);
 
                 /* Backup VFO */
-                err = newcat_backup_vfo(rig, vfo_chan);
-                if (err != RIG_OK) {
-                    priv->current_vfo = vfo_chan->vfo; 
+                err = newcat_backup_vfo_mem_channel(rig);
+                if (err != RIG_OK)
                     return err;
-                }
-
-                rig_debug(RIG_DEBUG_TRACE, "Backup VFO = %d,  freq = %d\n", vfo_chan-> vfo, vfo_chan->freq);
-
-                if (vfo_chan->split == RIG_SPLIT_ON) {
-                    err = newcat_set_split_vfo(rig, vfo_chan->vfo, RIG_SPLIT_OFF, vfo_chan->vfo);
-                    if (err != RIG_OK) {
-                        priv->current_vfo = vfo_chan->vfo; 
-                        return err;
-                    }
-                }
-
-                rig_debug(RIG_DEBUG_TRACE, "Split Setup Split = %d\n", vfo_chan-> split);
 
                 /* turn on memory channel */
                 err = newcat_set_mem(rig, vfo, mem);
-                if (err != RIG_OK) {
-                    priv->current_vfo = vfo_chan->vfo; 
+                if (err != RIG_OK)
                     return err;
-                }
-                rig_debug(RIG_DEBUG_TRACE, "Set Mem = %d\n", mem);
 
                 /* Set current_mem now */
                 priv->current_mem = mem;
@@ -851,16 +826,6 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
     }
 
     /* Build the command string */
-    snprintf(command, sizeof(command), "VS");
-
-    if (!newcat_valid_command(rig, command)) {
-        err = newcat_set_rx_vfo(rig, vfo);       /* Try set with "FR" */
-        if (err != RIG_OK)
-            return err;
-
-        return RIG_OK;
-    }
-
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, c, cat_term);
 
     rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
@@ -870,6 +835,7 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
         return err;
 
     priv->current_vfo = vfo;    /* if set_vfo worked, set current_vfo */ 
+
     rig_debug(RIG_DEBUG_TRACE, "%s: priv->current_vfo = 0x%02x\n", __func__, vfo);
 
     return RIG_OK;
@@ -883,31 +849,26 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
  * later RIG_VFO_CURR requests plus pass the tested vfo/mem
  * back to the frontend.
  *
- * TODO: determine memory status if possible
  */
 
 int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
-    char command[3];
+    char command[] = "VS";
     struct newcat_priv_data *priv;
     struct rig_state *state;
     char c;
     int err;
+    vfo_t vfo_mode;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    /* Build the command string */
-    snprintf(command, sizeof(command), "VS");
-
     if (!newcat_valid_command(rig, command)) {
         err = newcat_get_rx_vfo(rig, vfo);       /* Try get with "FR" */
-        if (err != RIG_OK)
-            return err;
-
-        return RIG_OK;
+        return err;
     }
 
+    /* Build the command string */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", command);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
@@ -959,14 +920,14 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
             return -RIG_EPROTO;         /* sorry, wrong current VFO */
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *vfo);
-
-    if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
-        if (*vfo == priv->vfo_chan.vfo)
-            *vfo = RIG_VFO_MEM;
-    }
+    /* Check to see if RIG is in MEM mode */
+    err = newcat_get_vfo_mode(rig, &vfo_mode);
+    if (vfo_mode == RIG_VFO_MEM)
+        *vfo = RIG_VFO_MEM;
 
     priv->current_vfo = *vfo;       /* set now */
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *vfo);
 
     return RIG_OK;
 
@@ -1310,15 +1271,6 @@ int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
     if (!newcat_valid_command(rig, "RT"))
         return -RIG_ENAVAIL;
 
-    if (!newcat_valid_command(rig, "RC"))
-        return -RIG_ENAVAIL;
-
-    if (!newcat_valid_command(rig, "RU"))
-        return -RIG_ENAVAIL;
-
-    if (!newcat_valid_command(rig, "RD"))
-        return -RIG_ENAVAIL;
-
     if (rit > rig->caps->max_rit)
         rit = rig->caps->max_rit;   /* + */
     else if (abs(rit) > rig->caps->max_rit)
@@ -1404,15 +1356,6 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
     state = &rig->state;
 
     if (!newcat_valid_command(rig, "XT"))
-        return -RIG_ENAVAIL;
-
-    if (!newcat_valid_command(rig, "RC"))
-        return -RIG_ENAVAIL;
-
-    if (!newcat_valid_command(rig, "RU"))
-        return -RIG_ENAVAIL;
-
-    if (!newcat_valid_command(rig, "RD"))
         return -RIG_ENAVAIL;
 
     if (xit > rig->caps->max_xit)
@@ -3002,83 +2945,15 @@ int newcat_set_bank(RIG * rig, vfo_t vfo, int bank)
 
 int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
 {
-    struct newcat_priv_data *priv;
-    struct rig_state *state;
-    int err, i;
-    ncboolean restore_vfo;
-    channel_t vfo_chan;
-    chan_t *chan_list;
-    channel_cap_t *mem_caps = NULL;
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
+    int err;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    /* reserved channel for VFO backup */
+    if (ch == NC_MEM_CHANNEL_VFO_RESERVED)
+        return -RIG_EDOM;
 
-    if (!newcat_valid_command(rig, "MC"))
-        return -RIG_ENAVAIL;
+    err = newcat_set_any_mem(rig, vfo, ch);
 
-    chan_list = rig->caps->chan_list;
-
-    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-        if (ch >= chan_list[i].start &&
-                ch <= chan_list[i].end) {
-            mem_caps = &chan_list[i].mem_caps;
-            break;
-        }
-    }
-
-    /* Out of Range */
-    if (!mem_caps)
-        return -RIG_ENAVAIL;
-
-    /* Backup VFO ***************************** */
-    memset(&vfo_chan, 0, sizeof(channel_t));
-
-    err = newcat_set_vfo_from_alias(rig, &vfo);
-    if (err < 0)
-        return err;
-
-    switch (vfo) {
-        case RIG_VFO_A:
-            restore_vfo = TRUE;
-            vfo_chan.channel_num = NC_MEM_CHANNEL_VFO_A;
-            vfo_chan.vfo = RIG_VFO_A;
-            break;
-        case RIG_VFO_MEM:
-            restore_vfo = FALSE;
-            break;
-        case RIG_VFO_B:
-        default:
-            /* Only works with VFO A */
-            return -RIG_ENTARGET;
-    }
-
-    if (restore_vfo) {
-        err = newcat_backup_vfo(rig, &vfo_chan);
-        if (err != RIG_OK)
-            return err;
-    }
-
-    /* Set Memory Channel Number ************** */
-    rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %d, freq = %f, freq = %08d\n",
-            vfo_chan.channel_num, vfo, vfo_chan.freq, vfo_chan.freq);
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC%03d%c", ch, cat_term);
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
-
-    /* Restore VFO **************************** */
-    if (restore_vfo) {
-        err = newcat_restore_vfo(rig, &vfo_chan);
-        if (err != RIG_OK)
-            return err;
-    }
-
-    return RIG_OK;
+    return err;
 }
 
 
@@ -3123,6 +2998,7 @@ int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch)
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
         rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get MEM\n");
+        *ch = -NC_MEM_CHANNEL_NONE; 
         return RIG_OK;
     }
 
@@ -3304,145 +3180,15 @@ int newcat_decode_event(RIG * rig)
 
 int newcat_set_channel(RIG * rig, const channel_t * chan)
 {
-    struct newcat_priv_data *priv;
-    struct rig_state *state;
-    int err, i;
-    int rxit;
-    char c_rit, c_xit, c_mode, c_vfo, c_tone, c_rptr_shift;
-    tone_t tone;
-    channel_t vfo_chan;
-    ncboolean restore_vfo;
-    chan_t *chan_list;
-    channel_cap_t *mem_caps = NULL;
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
+    int err;
 
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    /* reserved channel for VFO backup */
+    if (chan->channel_num == NC_MEM_CHANNEL_VFO_RESERVED)
+        return -RIG_EDOM;
 
+    err = newcat_set_any_channel(rig, chan);
 
-    if (!newcat_valid_command(rig, "MW"))
-        return -RIG_ENAVAIL;
-
-    chan_list = rig->caps->chan_list;
-
-    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-        if (chan->channel_num >= chan_list[i].start &&
-                chan->channel_num <= chan_list[i].end) {
-            mem_caps = &chan_list[i].mem_caps;
-            break;
-        }
-    }
-
-    /* Out of Range */
-    if (!mem_caps)
-        return -RIG_ENAVAIL;
-
-    /* Backup VFO *********************************** */
-    memset(&vfo_chan, 0, sizeof(channel_t));
-
-    switch (priv->current_vfo) {
-        case RIG_VFO_A:
-            vfo_chan.channel_num = NC_MEM_CHANNEL_VFO_A;
-            vfo_chan.vfo = RIG_VFO_A;
-            restore_vfo = TRUE;
-            break;
-        case RIG_VFO_MEM:
-            restore_vfo = FALSE; 
-            break;
-        case RIG_VFO_B:
-        default:
-            /* Only works with VFO A */
-            return -RIG_ENTARGET;
-    }
-
-    if (restore_vfo) {
-        err = newcat_backup_vfo(rig, &vfo_chan);
-        if (err != RIG_OK)
-            return err;
-    }
-
-    /* Write Memory Channel ************************* */
-    /*  Clarifier TX, RX */
-    if (chan->rit) {
-        rxit = chan->rit;
-        c_rit = '1';
-        c_xit = '0';
-    } else if (chan->xit) {
-        rxit= chan->xit;
-        c_rit = '0';
-        c_xit = '1';
-    } else { 
-        rxit  =  0;
-        c_rit = '0';
-        c_xit = '0';
-    }
-
-    /* MODE */
-    switch(chan->mode) {
-        case RIG_MODE_LSB:    c_mode = '1'; break;
-        case RIG_MODE_USB:    c_mode = '2'; break;
-        case RIG_MODE_CW:     c_mode = '3'; break;
-        case RIG_MODE_FM:     c_mode = '4'; break;
-        case RIG_MODE_AM:     c_mode = '5'; break;
-        case RIG_MODE_RTTY:   c_mode = '6'; break;
-        case RIG_MODE_CWR:    c_mode = '7'; break;
-        case RIG_MODE_PKTLSB: c_mode = '8'; break;
-        case RIG_MODE_RTTYR:  c_mode = '9'; break;
-        case RIG_MODE_PKTFM:  c_mode = 'A'; break;
-        case RIG_MODE_NFM:    c_mode = 'B';	break;
-        case RIG_MODE_PKTUSB: c_mode = 'C'; break;
-        case RIG_MODE_NAM:    c_mode = 'D'; break;
-        default: c_mode = '1'; break;
-    }
-
-    /* VFO Fixed */
-    c_vfo = '0';
-
-    /* CTCSS Tone / Sql */
-    if (chan->ctcss_tone) {
-        c_tone = '2';
-        tone = chan->ctcss_tone;
-    } else if (chan->ctcss_sql) {
-        c_tone = '1';
-        tone = chan->ctcss_sql;
-    } else {
-        c_tone = '0'; 
-        tone = 0;
-    }
-    for (i = 0; rig->caps->ctcss_list[i] != 0; i++)
-        if (tone == rig->caps->ctcss_list[i]) {
-            tone = i;
-            if (tone > 49)
-                tone = 0;
-            break;
-        }
-
-    /* Repeater Shift */
-    switch (chan->rptr_shift) {
-        case RIG_RPT_SHIFT_NONE:  c_rptr_shift = '0'; break;
-        case RIG_RPT_SHIFT_PLUS:  c_rptr_shift = '1'; break;
-        case RIG_RPT_SHIFT_MINUS: c_rptr_shift = '2'; break;
-        default: c_rptr_shift = '0';
-    }
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MW%03d%08d%+.4d%c%c%c%c%c%02d%c%c",
-            chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
-            c_tone, tone, c_rptr_shift, cat_term);
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-
-    /* Set Memory Channel */
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
-
-    /* Restore VFO ********************************** */
-    if (restore_vfo) {
-        err = newcat_restore_vfo(rig, &vfo_chan);
-        return err;
-    }
-
-    return RIG_OK;
+    return err;
 }
 
 
@@ -3507,6 +3253,8 @@ int newcat_get_channel(RIG * rig, channel_t * chan)
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
         rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get CHANNEL\n");
+        /* Invalid channel, has not been set up */
+        chan->channel_num = -NC_MEM_CHANNEL_NONE;
         return RIG_OK;
     }
 
@@ -3812,14 +3560,11 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
             p1 = '1';
             break;
         case RIG_VFO_MEM:
+            /* VFO A */
             if (priv->current_mem == NC_MEM_CHANNEL_NONE)
                 return RIG_OK;
-            else {      /* current_mem == memory channel */
-                if (tx_vfo == priv->vfo_chan.vfo)
-                    return RIG_OK;
-                else 
-                    p1 = (priv->vfo_chan.vfo == RIG_VFO_B) ? '1' : '0';
-            }
+            else    /* Memory Channel mode */
+                p1 = '0';
             break;
         default:
             return -RIG_EINVAL;
@@ -3849,6 +3594,7 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
     struct rig_state *state;
     int err;
     char c;
+    vfo_t vfo_mode;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
@@ -3897,10 +3643,12 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
             return -RIG_EPROTO;
     }
 
-    if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
-        if (*tx_vfo == priv->vfo_chan.vfo)
-            *tx_vfo = RIG_VFO_MEM;
-    }
+    /* Check to see if RIG is in MEM mode */
+    err = newcat_get_vfo_mode(rig, &vfo_mode);
+    if (vfo_mode == RIG_VFO_MEM && *tx_vfo == RIG_VFO_A)
+        *tx_vfo = RIG_VFO_MEM;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo = 0x%02x\n", __func__, *tx_vfo);
 
     return RIG_OK;
 }
@@ -3915,25 +3663,20 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
 int newcat_set_rx_vfo(RIG * rig, vfo_t rx_vfo) {
     struct newcat_priv_data *priv;
     struct rig_state *state;
-    int err, mem;
-    char p1;
     char command[] = "FR";
-    channel_t * vfo_chan;
+    char p1;
+    int err, mem;
+    vfo_t vfo_mode;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
-    vfo_chan = &priv->vfo_chan;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
     if (!newcat_valid_command(rig, command)) {
         if (newcat_is_rig(rig, RIG_MODEL_FT450)) {    /* No "FR" command */
             err = newcat_set_vfo(rig, rx_vfo);
-            if (err < 0)
-                return err;
-
-            return RIG_OK;
+            return err;
         }   
-
         return -RIG_ENAVAIL;
     }
 
@@ -3944,12 +3687,12 @@ int newcat_set_rx_vfo(RIG * rig, vfo_t rx_vfo) {
     switch (rx_vfo) {
         case RIG_VFO_A:
             p1 = '0';
-            if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
-                /* restore to  previous VFO */
-                priv->current_mem = NC_MEM_CHANNEL_NONE;
-                err = newcat_restore_vfo(rig, vfo_chan); 
-                priv->current_vfo = vfo_chan->vfo;
 
+            err = newcat_get_vfo_mode(rig, &vfo_mode);
+            if (vfo_mode == RIG_VFO_MEM) {
+                priv->current_mem = NC_MEM_CHANNEL_NONE;
+                priv->current_vfo = RIG_VFO_A;
+                err = newcat_restore_vfo_mem_channel(rig); 
                 return err;
             }
             break;
@@ -3958,12 +3701,12 @@ int newcat_set_rx_vfo(RIG * rig, vfo_t rx_vfo) {
             if (newcat_is_rig(rig, RIG_MODEL_FT950))
                 p1 = '4';
 
-            if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
-                /* restore to  previous VFO */
+            err = newcat_get_vfo_mode(rig, &vfo_mode);
+            if (vfo_mode == RIG_VFO_MEM) {
                 priv->current_mem = NC_MEM_CHANNEL_NONE;
-                err = newcat_restore_vfo(rig, vfo_chan); 
-                priv->current_vfo = vfo_chan->vfo;
-
+                /* Restore to previous VFO */
+                priv->current_vfo = RIG_VFO_A;
+                err = newcat_restore_vfo_mem_channel(rig); 
                 return err;
             }
             break;
@@ -3973,43 +3716,21 @@ int newcat_set_rx_vfo(RIG * rig, vfo_t rx_vfo) {
                 if (priv->current_vfo == RIG_VFO_B)
                     return -RIG_ENTARGET;
 
-                memset(vfo_chan, 0, sizeof(channel_t));
-                vfo_chan->channel_num = NC_MEM_CHANNEL_VFO_A;
-                vfo_chan->vfo = RIG_VFO_A;
-
                 /* get current memory channel */
                 err = newcat_get_mem(rig, rx_vfo, &mem);
-                if (err != RIG_OK) {
-                    /* Make Sure current_vfo is set on error */
-                    priv->current_vfo = vfo_chan->vfo; 
+                if (err != RIG_OK)
                     return err;
-                }
 
                 /* Backup VFO */
-                err = newcat_backup_vfo(rig, vfo_chan);
-                if (err != RIG_OK) {
-                    priv->current_vfo = vfo_chan->vfo; 
-
+                err = newcat_backup_vfo_mem_channel(rig);
+                if (err != RIG_OK)
                     return err;
-                }
-
-                /* Turn off split during channel memory operation */
-                if (vfo_chan->split == RIG_SPLIT_ON) {
-                    err = newcat_set_split_vfo(rig, vfo_chan->vfo, RIG_SPLIT_OFF, vfo_chan->vfo);
-                    if (err != RIG_OK) {
-                        priv->current_vfo = vfo_chan->vfo; 
-
-                        return err;
-                    }
-                }
 
                 /* turn on memory channel */
                 err = newcat_set_mem(rig, rx_vfo, mem);
-                if (err != RIG_OK) {
-                    priv->current_vfo = vfo_chan->vfo; 
-
+                if (err != RIG_OK)
                     return err;
-                }
+
                 /* Set current_mem now */
                 priv->current_mem = mem;
             }
@@ -4045,6 +3766,7 @@ int newcat_get_rx_vfo(RIG * rig, vfo_t * rx_vfo) {
     struct rig_state *state;
     int err;
     char c;
+    vfo_t vfo_mode;
     char command[] = "FR";
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
@@ -4109,14 +3831,15 @@ int newcat_get_rx_vfo(RIG * rig, vfo_t * rx_vfo) {
             return -RIG_EPROTO;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: set vfo = 0x%02x\n", __func__, *rx_vfo);
 
-    if (priv->current_mem != NC_MEM_CHANNEL_NONE) {
-        if (*rx_vfo == priv->vfo_chan.vfo)
-            *rx_vfo = RIG_VFO_MEM;
-    }
+    /* Check to see if RIG is in MEM mode */
+    err = newcat_get_vfo_mode(rig, &vfo_mode);
+    if (vfo_mode == RIG_VFO_MEM)
+        *rx_vfo = RIG_VFO_MEM;
 
     priv->current_vfo = *rx_vfo;     /* set now */
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: rx_vfo = 0x%02x\n", __func__, *rx_vfo);
 
     return RIG_OK;
 }
@@ -4676,13 +4399,12 @@ int newcat_get_rigid(RIG * rig)
 }
 
 
-int newcat_restore_vfo(RIG * rig, channel_t * chan)
+int newcat_restore_vfo_ram(RIG * rig, channel_t * chan)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
-    vfo_t vfo, tx_vfo;
-    split_t split;
+    vfo_t vfo_mode;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
@@ -4691,8 +4413,12 @@ int newcat_restore_vfo(RIG * rig, channel_t * chan)
     rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %d, freq = %f\n", chan->channel_num, chan->vfo, chan->freq);
 
     /* Restore Rig back to vfo */
-    err = newcat_vfo_op(rig, chan->vfo, RIG_OP_TO_VFO);
 
+    err = newcat_get_vfo_mode(rig, &vfo_mode);
+    if (vfo_mode == RIG_VFO_MEM) {
+        err = newcat_vfo_op(rig, chan->vfo, RIG_OP_TO_VFO);
+    }
+    
     err = newcat_set_mode(rig, chan->vfo, chan->mode, chan->width);
     /* Now Restore RIG freq after mode */
     err = newcat_set_freq(rig, chan->vfo, chan->freq);
@@ -4718,38 +4444,20 @@ int newcat_restore_vfo(RIG * rig, channel_t * chan)
         err = newcat_set_rptr_shift(rig, chan->vfo, chan->rptr_shift);
     }
 
-    /* Restore Split */
-    err = newcat_get_split_vfo(rig, chan->vfo, &split, &tx_vfo);
-    if (split != chan->split) {
-        /* Minimize VFO switching */
-        err = newcat_get_vfo(rig, &vfo);
-        if (vfo == chan->tx_vfo) {
-            err = newcat_set_mode(rig, chan->tx_vfo, chan->tx_mode, chan->tx_width);
-            err = newcat_set_freq(rig, chan->tx_vfo, chan->tx_freq);
-        } else {
-            err = newcat_set_vfo(rig, chan->tx_vfo);
-            err = newcat_set_mode(rig, chan->tx_vfo, chan->tx_mode, chan->tx_width);
-            err = newcat_set_freq(rig, chan->tx_vfo, chan->tx_freq);
-            err = newcat_set_vfo(rig, vfo);
-        }
-        err = newcat_set_split_vfo(rig, chan->vfo, chan->split, chan->tx_vfo);
-    }
-
     return RIG_OK;
 }
 
 
-int newcat_backup_vfo(RIG * rig, channel_t * chan)
+int newcat_backup_vfo_ram(RIG * rig, channel_t * chan)
 {
     struct newcat_priv_data *priv;
     struct rig_state *state;
     char *retval;
     char c, c2;
     int err, i;
-    rmode_t mode;
-    vfo_t vfo;
-    priv = (struct newcat_priv_data *)rig->state.priv;
+    newcat_cmd_data_t cmd;
     state = &rig->state;
+    priv = (struct newcat_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
@@ -4758,59 +4466,22 @@ int newcat_backup_vfo(RIG * rig, channel_t * chan)
 
     /* Get what is needed for VFO Restore */
     /* Get Mode and Width */
-    err = newcat_get_mode(rig, chan->vfo, &mode, &chan->width);
+    err = newcat_get_mode(rig, chan->vfo, &chan->mode, &chan->width);
     if (err != RIG_OK)
         return err;
-
-    /* Get Split VFO */
-    err = newcat_get_split_vfo(rig, chan->vfo, &chan->split, &chan->tx_vfo);
-    if (chan->split == RIG_SPLIT_OFF)
-        chan->tx_vfo = (chan->vfo == RIG_VFO_B) ? RIG_VFO_A : RIG_VFO_B;
-
-    /* Minimize VFO switching */
-    err = newcat_get_vfo(rig, &vfo);
-    if (vfo == chan->tx_vfo) {
-        err = newcat_get_mode(rig, chan->tx_vfo, &chan->tx_mode, &chan->tx_width);
-        err = newcat_get_freq(rig, chan->tx_vfo, &chan->tx_freq);
-    } else {
-        err = newcat_set_vfo(rig, chan->tx_vfo);
-        err = newcat_get_mode(rig, chan->tx_vfo, &chan->tx_mode, &chan->tx_width);
-        err = newcat_get_freq(rig, chan->tx_vfo, &chan->tx_freq);
-        err = newcat_set_vfo(rig, vfo);
-    }
 
     /* Get Rest of VFO A Information ****************** */
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "IF%c", cat_term);
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+    snprintf(cmd.cmd_str, sizeof(cmd.cmd_str), "IF%c", cat_term);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd.cmd_str);
 
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    err = newcat_get_cmd(rig, &cmd);
     if (err != RIG_OK)
         return err;
-
-    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
-    if (err < 0)
-        return err;
-
-    /* Check that command termination is correct */
-    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
-
-        return -RIG_EPROTO;
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, ret_data length = %d\n", __func__, err, priv->ret_data, strlen(priv->ret_data));
-
-    /* Check for I don't know this command? */
-
-    if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get BACKUP_VFO\n");
-        return RIG_OK;
-    }
 
     /* ret_data string to channel_t struct :: this will destroy ret_data */
 
     /* rptr_shift P10 ************************ */
-    retval = priv->ret_data + 25;
+    retval = cmd.ret_data + 25;
     switch (*retval) {
         case '0': chan->rptr_shift = RIG_RPT_SHIFT_NONE;  break;
         case '1': chan->rptr_shift = RIG_RPT_SHIFT_PLUS;  break;
@@ -4820,13 +4491,13 @@ int newcat_backup_vfo(RIG * rig, channel_t * chan)
     *retval = '\0';
 
     /* CTCSS Encoding P8 ********************* */
-    retval = priv->ret_data + 22;
+    retval = cmd.ret_data + 22;
     c = *retval;
 
     /* CTCSS Tone P9 ************************* */
     chan->ctcss_tone = 0;
     chan->ctcss_sql  = 0;
-    retval = priv->ret_data + 23;
+    retval = cmd.ret_data + 23;
     i = atoi(retval);
 
     if (c == '1')
@@ -4835,13 +4506,13 @@ int newcat_backup_vfo(RIG * rig, channel_t * chan)
         chan->ctcss_tone = rig->caps->ctcss_list[i];
 
     /* vfo, mem, P7 ************************** */
-    /* chan->vfo , (priv->ret_data + 21) */
-    /* else Already set */
+    /* chan->vfo , (cmd.ret_data + 21) */
+    /* Already set */
 
     /* MODE P6 ******************************* */
     /* chan->width, Already set */
 
-    retval = priv->ret_data + 20;
+    retval = cmd.ret_data + 20;
     switch (*retval) {
         case '1': chan->mode = RIG_MODE_LSB;    break;
         case '2': chan->mode = RIG_MODE_USB;    break;
@@ -4860,18 +4531,18 @@ int newcat_backup_vfo(RIG * rig, channel_t * chan)
     }
 
     /* Clarifier TX P5 *********************** */
-    retval = priv->ret_data + 19; 
+    retval = cmd.ret_data + 19; 
     c2 = *retval;
 
     /* Clarifier RX P4 *********************** */
-    retval = priv->ret_data + 18;
+    retval = cmd.ret_data + 18;
     c = *retval;
     *retval = '\0';
 
     /* Clarifier Offset P3 ******************* */
     chan->rit = 0;
     chan->xit = 0;
-    retval = priv->ret_data + 13;
+    retval = cmd.ret_data + 13;
     if (c == '1')
         chan->rit = atoi(retval);
     else if (c2 == '1')
@@ -4879,9 +4550,470 @@ int newcat_backup_vfo(RIG * rig, channel_t * chan)
     *retval = '\0';
 
     /* Frequency P2 ************************** */
-    retval = priv->ret_data + 5;
+    retval = cmd.ret_data + 5;
     chan->freq = atof(retval);
     rig_debug(RIG_DEBUG_TRACE, "chan->freq = %ld\n", chan->freq);
+
+    return err;
+}
+
+
+/*
+ * input:   RIG *, vfo_t *
+ * output:  VFO mode: RIG_VFO_VFO for VFO A and B
+ *                    RIG_VFO_MEM for VFO MEM
+ * return: RIG_OK or error 
+ */
+int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode)
+{
+    struct rig_state *state;
+    char * retval;
+    int err;
+    newcat_cmd_data_t cmd;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!newcat_valid_command(rig, "IF")) 
+        return -RIG_ENAVAIL;
+
+    snprintf(cmd.cmd_str, sizeof(cmd.cmd_str), "IF%c", cat_term);
+
+    /* Get VFO A Information ****************** */
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd.cmd_str);
+
+    err = newcat_get_cmd(rig, &cmd);
+    if (err != RIG_OK)
+        return err;
+
+    /* vfo, mem, P7 ************************** */
+    retval = cmd.ret_data + 21;
+    switch (*retval) {
+        case '0': *vfo_mode = RIG_VFO_VFO; break;
+        case '1':   /* Memory */
+        case '2':   /* Memory Tune */
+        case '3':   /* Quick Memory Bank */
+        case '4':   /* Quick Memory Bank Tune */
+        default:
+                  *vfo_mode = RIG_VFO_MEM;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo mode = %d\n", __func__, *vfo_mode);
+
+    return RIG_OK;
+}
+
+
+/*
+ * Writes cmd and does not wait for reply, no reply expected
+ * input:  complete CAT command string including termination in cmd_str
+ * return: RIG_OK or error 
+ */
+int newcat_set_cmd(RIG * rig, newcat_cmd_data_t * cmd)
+{
+    struct rig_state *state;
+    int err;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd->cmd_str);
+
+    err = write_block(&state->rigport, cmd->cmd_str, strlen(cmd->cmd_str));
+
+    return RIG_OK;
+}
+
+
+/*
+ * Writed data and waits for responce
+ * input:  complete CAT command string including termination in cmd_str
+ * output: complete CAT command answer string in ret_data
+ * return: RIG_OK or error 
+ */
+int newcat_get_cmd(RIG * rig, newcat_cmd_data_t * cmd)
+{
+    struct rig_state *state;
+    int err;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd->cmd_str);
+
+    err = write_block(&state->rigport, cmd->cmd_str, strlen(cmd->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    err = read_string(&state->rigport, cmd->ret_data, sizeof(cmd->ret_data), &cat_term, sizeof(cat_term));
+    if (err < 0)
+        return err;
+
+    /* Check that command termination is correct */
+    if (strchr(&cat_term, cmd->ret_data[strlen(cmd->ret_data) - 1]) == NULL) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, cmd->ret_data);
+
+        return -RIG_EPROTO;
+    }
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, ret_data length = %d\n", __func__, err, cmd->ret_data, strlen(cmd->ret_data));
+
+    /* Check for I don't know this command? */
+    if (strcmp(cmd->ret_data, cat_unknown_cmd) == 0) {
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get cmd = %s\n", cmd->cmd_str);
+        return RIG_OK;
+    }
+
+    return RIG_OK;
+}
+
+
+int newcat_set_any_mem(RIG * rig, vfo_t vfo, int ch)
+{
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err, i;
+    ncboolean restore_vfo;
+    channel_t vfo_chan;
+    chan_t *chan_list;
+    channel_cap_t *mem_caps = NULL;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!newcat_valid_command(rig, "MC"))
+        return -RIG_ENAVAIL;
+
+    chan_list = rig->caps->chan_list;
+
+    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+        if (ch >= chan_list[i].start &&
+                ch <= chan_list[i].end) {
+            mem_caps = &chan_list[i].mem_caps;
+            break;
+        }
+    }
+
+    /* Out of Range */
+    if (!mem_caps)
+        return -RIG_ENAVAIL;
+
+    /* Backup VFO ***************************** */
+    memset(&vfo_chan, 0, sizeof(channel_t));
+
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    switch (vfo) {
+        case RIG_VFO_A:
+            restore_vfo = TRUE;
+            vfo_chan.channel_num = NC_MEM_CHANNEL_VFO_A;
+            vfo_chan.vfo = RIG_VFO_A;
+            break;
+        case RIG_VFO_MEM:
+            restore_vfo = FALSE;
+            break;
+        case RIG_VFO_B:
+        default:
+            /* Only works with VFO A */
+            return -RIG_ENTARGET;
+    }
+
+    if (restore_vfo) {
+        err = newcat_backup_vfo_ram(rig, &vfo_chan);
+        if (err != RIG_OK)
+            return err;
+    }
+
+    /* Set Memory Channel Number ************** */
+    rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %d, freq = %f, freq = %08d\n",
+            vfo_chan.channel_num, vfo, vfo_chan.freq, vfo_chan.freq);
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC%03d%c", ch, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    /* Restore VFO **************************** */
+    if (restore_vfo) {
+        err = newcat_restore_vfo_ram(rig, &vfo_chan);
+        if (err != RIG_OK)
+            return err;
+    }
+
+    return RIG_OK;
+}
+
+
+int newcat_set_any_channel(RIG * rig, const channel_t * chan)
+{
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err, i;
+    int rxit;
+    char c_rit, c_xit, c_mode, c_vfo, c_tone, c_rptr_shift;
+    tone_t tone;
+    channel_t vfo_chan;
+    ncboolean restore_vfo;
+    chan_t *chan_list;
+    channel_cap_t *mem_caps = NULL;
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+
+    if (!newcat_valid_command(rig, "MW"))
+        return -RIG_ENAVAIL;
+
+    chan_list = rig->caps->chan_list;
+
+    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+        if (chan->channel_num >= chan_list[i].start &&
+                chan->channel_num <= chan_list[i].end) {
+            mem_caps = &chan_list[i].mem_caps;
+            break;
+        }
+    }
+
+    /* Out of Range */
+    if (!mem_caps)
+        return -RIG_ENAVAIL;
+
+    /* Backup VFO *********************************** */
+    memset(&vfo_chan, 0, sizeof(channel_t));
+
+    switch (priv->current_vfo) {
+        case RIG_VFO_A:
+            vfo_chan.channel_num = NC_MEM_CHANNEL_VFO_A;
+            vfo_chan.vfo = RIG_VFO_A;
+            restore_vfo = TRUE;
+            break;
+        case RIG_VFO_MEM:
+            restore_vfo = FALSE; 
+            break;
+        case RIG_VFO_B:
+        default:
+            /* Only works with VFO A */
+            return -RIG_ENTARGET;
+    }
+
+    if (restore_vfo) {
+        err = newcat_backup_vfo_ram(rig, &vfo_chan);
+        if (err != RIG_OK)
+            return err;
+    }
+
+    /* Write Memory Channel ************************* */
+    /*  Clarifier TX, RX */
+    if (chan->rit) {
+        rxit = chan->rit;
+        c_rit = '1';
+        c_xit = '0';
+    } else if (chan->xit) {
+        rxit= chan->xit;
+        c_rit = '0';
+        c_xit = '1';
+    } else { 
+        rxit  =  0;
+        c_rit = '0';
+        c_xit = '0';
+    }
+
+    /* MODE */
+    switch(chan->mode) {
+        case RIG_MODE_LSB:    c_mode = '1'; break;
+        case RIG_MODE_USB:    c_mode = '2'; break;
+        case RIG_MODE_CW:     c_mode = '3'; break;
+        case RIG_MODE_FM:     c_mode = '4'; break;
+        case RIG_MODE_AM:     c_mode = '5'; break;
+        case RIG_MODE_RTTY:   c_mode = '6'; break;
+        case RIG_MODE_CWR:    c_mode = '7'; break;
+        case RIG_MODE_PKTLSB: c_mode = '8'; break;
+        case RIG_MODE_RTTYR:  c_mode = '9'; break;
+        case RIG_MODE_PKTFM:  c_mode = 'A'; break;
+        case RIG_MODE_NFM:    c_mode = 'B';	break;
+        case RIG_MODE_PKTUSB: c_mode = 'C'; break;
+        case RIG_MODE_NAM:    c_mode = 'D'; break;
+        default: c_mode = '1'; break;
+    }
+
+    /* VFO Fixed */
+    c_vfo = '0';
+
+    /* CTCSS Tone / Sql */
+    if (chan->ctcss_tone) {
+        c_tone = '2';
+        tone = chan->ctcss_tone;
+    } else if (chan->ctcss_sql) {
+        c_tone = '1';
+        tone = chan->ctcss_sql;
+    } else {
+        c_tone = '0'; 
+        tone = 0;
+    }
+    for (i = 0; rig->caps->ctcss_list[i] != 0; i++)
+        if (tone == rig->caps->ctcss_list[i]) {
+            tone = i;
+            if (tone > 49)
+                tone = 0;
+            break;
+        }
+
+    /* Repeater Shift */
+    switch (chan->rptr_shift) {
+        case RIG_RPT_SHIFT_NONE:  c_rptr_shift = '0'; break;
+        case RIG_RPT_SHIFT_PLUS:  c_rptr_shift = '1'; break;
+        case RIG_RPT_SHIFT_MINUS: c_rptr_shift = '2'; break;
+        default: c_rptr_shift = '0';
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MW%03d%08d%+.4d%c%c%c%c%c%02d%c%c",
+            chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
+            c_tone, tone, c_rptr_shift, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+
+    /* Set Memory Channel */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    /* Restore VFO ********************************** */
+    if (restore_vfo) {
+        err = newcat_restore_vfo_ram(rig, &vfo_chan);
+        return err;
+    }
+
+    return RIG_OK;
+}
+
+
+int newcat_restore_vfo_mem_channel(RIG * rig)
+{
+    int err, mem;
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    /* Backup current memory channel */
+    err = newcat_get_mem(rig, RIG_VFO_A, &mem);
+
+    /* Restore Rig back to vfo */
+    err = newcat_set_any_mem(rig, RIG_VFO_MEM, NC_MEM_CHANNEL_VFO_RESERVED);
+
+    err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
+
+    /* Restore current memory channel */
+    err = newcat_set_mem(rig, RIG_VFO_A, mem);
+
+    return err;
+}
+
+
+int newcat_backup_vfo_mem_channel(RIG * rig)
+{
+    // struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err;
+    newcat_cmd_data_t cmd;
+    state = &rig->state;
+    // priv = (struct newcat_priv_data *)rig->state.priv;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!newcat_valid_command(rig, "IF"))
+        return -RIG_ENAVAIL;
+
+    /* Get VFO A Information ****************** */
+    snprintf(cmd.cmd_str, sizeof(cmd.cmd_str), "IF%c", cat_term);
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd.cmd_str);
+
+    err = newcat_get_cmd(rig, &cmd);
+    if (err != RIG_OK)
+        return err;
+
+    /* copy Reply into command, it goes right back out to memory channel */
+    snprintf(cmd.cmd_str, sizeof(cmd.cmd_str), "%s", cmd.ret_data);
+
+    /* Change to Memory Write Reserved channel */
+    cmd.cmd_str[0]  = 'M';
+    cmd.cmd_str[1]  = 'W';
+    cmd.cmd_str[2]  = '0';
+    cmd.cmd_str[3]  = '9';
+    cmd.cmd_str[4]  = '9';
+    cmd.cmd_str[21] = '0';
+
+    err = newcat_set_cmd(rig, &cmd);
+    usleep(100000);
+    /* Restore back to vfo mode */
+    err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
+
+    return err;
+}
+
+
+/*
+ * input:  RIG *, target vfo_t, target freq_t *, target rmode_t *
+ * output: Target VFO freq, Target VFO
+ * return: RIG_OK or error 
+ */
+int newcat_get_vfo_info(RIG * rig, vfo_t vfo, freq_t * freq, rmode_t * mode)
+{
+    struct rig_state *state;
+    char * retval;
+    int err;
+    newcat_cmd_data_t cmd;
+    state = &rig->state;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (vfo == RIG_VFO_B) {
+        if (!newcat_valid_command(rig, "OI")) 
+            return -RIG_ENAVAIL;
+        snprintf(cmd.cmd_str, sizeof(cmd.cmd_str), "OI%c", cat_term);
+    } else {        /* RIG_VFO_A */
+        if (!newcat_valid_command(rig, "IF")) 
+            return -RIG_ENAVAIL;
+        snprintf(cmd.cmd_str, sizeof(cmd.cmd_str), "IF%c", cat_term);
+    }
+
+    /* Get Target VFO Information ****************** */
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, cmd.cmd_str);
+
+    err = newcat_get_cmd(rig, &cmd);
+    if (err != RIG_OK)
+        return err;
+
+    /* MODE P6 ******************************* */
+    retval = cmd.ret_data + 20;
+    switch (*retval) {
+        case '1': *mode = RIG_MODE_LSB;    break;
+        case '2': *mode = RIG_MODE_USB;    break;
+        case '3': *mode = RIG_MODE_CW;     break;
+        case '4': *mode = RIG_MODE_FM;     break;
+        case '5': *mode = RIG_MODE_AM;     break;
+        case '6': *mode = RIG_MODE_RTTY;   break;
+        case '7': *mode = RIG_MODE_CWR;    break;
+        case '8': *mode = RIG_MODE_PKTLSB; break;
+        case '9': *mode = RIG_MODE_RTTYR;  break;
+        case 'A': *mode = RIG_MODE_PKTFM;  break;
+        case 'B': *mode = RIG_MODE_NFM;    break;
+        case 'C': *mode = RIG_MODE_PKTUSB; break;
+        case 'D': *mode = RIG_MODE_NAM;    break;
+        default:  *mode = RIG_MODE_LSB;
+    }
+
+    /* Frequency P2 ************************** */
+    retval = cmd.ret_data + 13;
+    *retval = '\0';
+    retval = cmd.ret_data + 5;
+    *freq = atof(retval);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: vfo = %d, mode = %ld, freq = %ld\n", __func__, vfo, *mode, *freq);
 
     return RIG_OK;
 }
