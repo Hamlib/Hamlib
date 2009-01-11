@@ -9,7 +9,7 @@
  * via serial interface to an FT-9000 using the "CAT" interface
  *
  *
- * $Id: ft9000.c,v 1.5 2009-01-04 16:03:34 mrtembry Exp $
+ * $Id: ft9000.c,v 1.6 2009-01-11 17:39:26 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -155,7 +155,6 @@ const struct rig_caps ft9000_caps = {
         {RIG_MODE_AM,                  Hz(3000)},   /* Narrow AM  */
         {FT9000_FM_RX_MODES,           Hz(12000)},  /* Normal FM  */
         {FT9000_FM_RX_MODES,           Hz(8000)},   /* Narrow FM  */
-        {RIG_MODE_NFM,                 Hz(8000)},   /* Narrow FM  */
 
         RIG_FLT_END,
     },

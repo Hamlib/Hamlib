@@ -9,7 +9,7 @@
  * via serial interface to an FT-2000 using the "CAT" interface
  *
  *
- * $Id: ft2000.c,v 1.6 2009-01-04 16:03:34 mrtembry Exp $
+ * $Id: ft2000.c,v 1.7 2009-01-11 17:39:26 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -154,7 +154,6 @@ const struct rig_caps ft2000_caps = {
         {RIG_MODE_AM,                  Hz(6000)},   /* Narrow AM  */
         {FT2000_FM_RX_MODES,           Hz(12000)},  /* Normal FM  */
         {FT2000_FM_RX_MODES,           Hz(8000)},   /* Narrow FM  */
-        {RIG_MODE_NFM,                 Hz(8000)},   /* Narrow FM  */
 
         RIG_FLT_END,
     },

@@ -9,7 +9,7 @@
  * via serial interface to an FT-950 using the "CAT" interface
  *
  *
- * $Id: ft950.c,v 1.16 2009-01-04 16:03:34 mrtembry Exp $
+ * $Id: ft950.c,v 1.17 2009-01-11 17:39:26 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -175,10 +175,8 @@ const struct rig_caps ft950_caps = {
         {RIG_MODE_SSB,                Hz(200)},     /*        SSB */
         {RIG_MODE_AM,                 Hz(9000)},    /* Normal AM */
         {RIG_MODE_AM,                 Hz(6000)},    /* Narrow AM */
-        {RIG_MODE_NAM,                Hz(6000)},    /* Narrow AM */
         {FT950_FM_RX_MODES,           Hz(16000)},   /* Normal FM */
         {FT950_FM_RX_MODES,           Hz(9000)},    /* Narrow FM */
-        {RIG_MODE_NFM,                Hz(9000)},    /* Narrow FM */
 
         RIG_FLT_END,
     },

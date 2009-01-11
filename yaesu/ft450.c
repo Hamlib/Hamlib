@@ -9,7 +9,7 @@
  * via serial interface to an FT-450 using the "CAT" interface
  *
  *
- * $Id: ft450.c,v 1.11 2009-01-04 16:03:34 mrtembry Exp $
+ * $Id: ft450.c,v 1.12 2009-01-11 17:39:26 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -152,7 +152,6 @@ const struct rig_caps ft450_caps = {
         {RIG_MODE_AM,                 Hz(3000)},    /* Narrow AM  */
         {FT450_FM_RX_MODES,           Hz(12000)},   /* Normal FM  */
         {FT450_FM_RX_MODES,           Hz(8000)},    /* Narrow FM  */
-        {RIG_MODE_NFM,                Hz(8000)},    /* Narrow FM  */
 
         RIG_FLT_END,
     },
