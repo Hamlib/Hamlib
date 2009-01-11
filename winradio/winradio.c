@@ -1,9 +1,9 @@
 /*
  *  Hamlib WiNRADiO backend - main file for interface through /dev/winradio API
  *  Copyright (C) 2001 pab@users.sourceforge.net
- *  Derived from hamlib code (C) 2000-2004 Stephane Fillod.
+ *  Derived from hamlib code (C) 2000-2009 Stephane Fillod.
  *
- *	$Id: winradio.c,v 1.22 2006-11-19 03:04:20 n0nb Exp $
+ *	$Id: winradio.c,v 1.23 2009-01-11 13:21:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -248,6 +248,7 @@ DECLARE_INITRIG_BACKEND(winradio)
 	/* Receivers with DLL only available under Windows */
 #ifdef _WIN32
 	rig_register(&g303_caps);
+	rig_register(&g305_caps);
 	rig_register(&g313_caps);
 #endif
 
