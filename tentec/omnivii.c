@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-588 description
  *  Copyright (c) 2003-2009 by Stephane Fillod
  *
- *	$Id: omnivii.c,v 1.1 2009-01-11 12:42:24 fillods Exp $
+ *	$Id: omnivii.c,v 1.2 2009-01-11 18:05:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -96,7 +96,7 @@ const struct rig_caps tt588_caps = {
 .mfg_name =  "Ten-Tec",
 .version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
@@ -196,18 +196,18 @@ const struct rig_caps tt588_caps = {
 
 };
 
-/* Filter table for 538 receiver support.  FIXME: TT-588 */
+/* Filter table for 588 reciver support. */
 static int tt588_rxFilter[] = {
-  8000, 6000, 5700, 5400, 5100, 4800, 4500, 4200, 3900, 3600, 3300,
-  3000, 2850, 2700, 2550, 2400, 2250, 2100, 1950, 1800, 1650, 1500,
-  1350, 1200, 1050, 900, 750, 675, 600, 525, 450, 375, 330, 300
+  12000, 9000, 8000, 7500, 7000, 6500, 6000, 5500, 5000, 4500, 4000, 3800, 3600, 3400, 3200,
+  3000, 2800, 2600, 2500, 2400, 2200, 2000, 1800, 1600, 1400,
+  1200, 1000, 900, 800, 700, 600, 500, 450, 400, 350, 300, 250, 200
 };
 
 /*
  * Function definitions below
  */
 
-/* I frequently see the Jupiter and my laptop get out of sync.  A
+/* I frequently see the Omni VII and my laptop get out of sync.  A
    response from the 538 isn't seen by the laptop.  A few "XX"s
    sometimes get things going again, hence this hack, er, function. */
 
@@ -449,40 +449,44 @@ int tt588_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	switch (respbuf[1]) {
-	case 0: *width = 8000; break;
-	case 1: *width = 6000; break;
-	case 2: *width = 5700; break;
-	case 3: *width = 5400; break;
-	case 4: *width = 5100; break;
-	case 5: *width = 4800; break;
-	case 6: *width = 4500; break;
-	case 7: *width = 4200; break;
-	case 8: *width = 3900; break;
-	case 9: *width = 3600; break;
-	case 10: *width = 3300; break;
-	case 11: *width = 3000; break;
-	case 12: *width = 2850; break;
-	case 13: *width = 2700; break;
-	case 14: *width = 2550; break;
-	case 15: *width = 2400; break;
-	case 16: *width = 2250; break;
-	case 17: *width = 2100; break;
-	case 18: *width = 1950; break;
-	case 19: *width = 1800; break;
-	case 20: *width = 1650; break;
-	case 21: *width = 1500; break;
-	case 22: *width = 1350; break;
-	case 23: *width = 1200; break;
-	case 24: *width = 1050; break;
-	case 25: *width = 900; break;
-	case 26: *width = 750; break;
-	case 27: *width = 675; break;
-	case 28: *width = 600; break;
-	case 29: *width = 525; break;
-	case 30: *width = 450; break;
-	case 31: *width = 375; break;
-	case 32: *width = 330; break;
-	case 33: *width = 300; break;
+	case 0: *width = 12000; break;
+	case 1: *width = 9000; break;
+	case 2: *width = 8000; break;
+	case 3: *width = 7500; break;
+	case 4: *width = 7000; break;
+	case 5: *width = 6500; break;
+	case 6: *width = 6000; break;
+	case 7: *width = 5500; break;
+	case 8: *width = 5000; break;
+	case 9: *width = 4500; break;
+	case 10: *width = 4000; break;
+	case 11: *width = 3800; break;
+	case 12: *width = 3600; break;
+	case 13: *width = 3400; break;
+	case 14: *width = 3200; break;
+	case 15: *width = 3000; break;
+	case 16: *width = 2800; break;
+	case 17: *width = 2600; break;
+	case 18: *width = 2500; break;
+	case 19: *width = 2400; break;
+	case 20: *width = 2200; break;
+	case 21: *width = 2000; break;
+	case 22: *width = 1800; break;
+	case 23: *width = 1600; break;
+	case 24: *width = 1400; break;
+	case 25: *width = 1200; break;
+	case 26: *width = 1000; break;
+	case 27: *width = 900; break;
+	case 28: *width = 800; break;
+	case 29: *width = 700; break;
+	case 30: *width = 600; break;
+	case 31: *width = 500; break;
+	case 32: *width = 450; break;
+	case 33: *width = 400; break;
+	case 34: *width = 350; break;
+	case 35: *width = 300; break;
+	case 36: *width = 250; break;
+	case 37: *width = 200; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected bandwidth '%c'\n",
 			__FUNCTION__, respbuf[1]);
