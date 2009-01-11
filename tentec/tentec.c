@@ -1,8 +1,8 @@
 /*
  *  Hamlib Tentec backend - main file
- *  Copyright (c) 2001-2005 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: tentec.c,v 1.18 2007-02-28 15:05:49 aa6e Exp $
+ *	$Id: tentec.c,v 1.19 2009-01-11 12:42:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -113,9 +113,9 @@ int tentec_init(RIG *rig)
 	priv->freq = MHz(10);
 	priv->mode = RIG_MODE_AM;
 	priv->width = kHz(6);
-    priv->pbt = 0;
+	priv->pbt = 0;
 	priv->cwbfo = 1000;
-	priv->agc = 0.5;	/* medium */
+	priv->agc = RIG_AGC_MEDIUM;	/* medium */
 	priv->lnvol = priv->spkvol = 0.0;	/* mute */
 
 	rig->state.priv = (rig_ptr_t)priv;
@@ -482,6 +482,7 @@ DECLARE_INITRIG_BACKEND(tentec)
 	rig_register(&tt516_caps);
 	rig_register(&tt565_caps);
 	rig_register(&tt538_caps);
+	rig_register(&tt588_caps);
 	rig_register(&rx320_caps);
 	rig_register(&rx340_caps);
 	rig_register(&rx350_caps);
