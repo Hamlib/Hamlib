@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.50 2009-01-10 14:52:49 mrtembry Exp $
+ * $Id: newcat.c,v 1.51 2009-01-11 10:04:48 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -455,7 +455,6 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
     switch(vfo) {
         case RIG_VFO_A:
-        case RIG_VFO_VFO:
             c = 'A';
             break;
         case RIG_VFO_B:
@@ -2998,7 +2997,7 @@ int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch)
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
         rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get MEM\n");
-        *ch = -NC_MEM_CHANNEL_NONE; 
+        /* Invalid channel should never see this from radio  */
         return RIG_OK;
     }
 
@@ -3254,7 +3253,6 @@ int newcat_get_channel(RIG * rig, channel_t * chan)
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
         rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get CHANNEL\n");
         /* Invalid channel, has not been set up */
-        chan->channel_num = -NC_MEM_CHANNEL_NONE;
         return RIG_OK;
     }
 
@@ -4949,6 +4947,7 @@ int newcat_backup_vfo_mem_channel(RIG * rig)
 
     err = newcat_set_cmd(rig, &cmd);
     usleep(100000);
+
     /* Restore back to vfo mode */
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
 
