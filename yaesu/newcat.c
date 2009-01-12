@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.52 2009-01-11 17:39:26 mrtembry Exp $
+ * $Id: newcat.c,v 1.53 2009-01-12 00:51:26 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -417,10 +417,8 @@ int newcat_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
     rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
-
-    return RIG_OK;
+ 
+    return err;
 }
 
 
@@ -589,10 +587,8 @@ int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     /* Set width after mode has been set */
     err = newcat_set_rx_bandwidth(rig, vfo, mode, width);
-    if (err != RIG_OK)
-        return err;
 
-    return RIG_OK;
+    return err;
 }
 
 
@@ -1275,10 +1271,8 @@ int newcat_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04d%cRT1%c", cat_term, abs(rit), cat_term, cat_term);
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
 
-    return RIG_OK;
+    return err;
 }
 
 
@@ -1362,10 +1356,8 @@ int newcat_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "RC%cRU%04d%cXT1%c", cat_term, abs(xit), cat_term, cat_term);
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
 
-    return RIG_OK;
+    return err;
 }
 
 
@@ -1574,6 +1566,7 @@ int newcat_set_ctcss_tone(RIG * rig, vfo_t vfo, tone_t tone)
     else {
         snprintf(priv->cmd_str, sizeof(priv->cmd_str), "CN%c%02d%cCT%c2%c", main_sub_vfo, i, cat_term, main_sub_vfo, cat_term);
     }
+    
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
 
     return err;
@@ -1852,6 +1845,7 @@ int newcat_set_powerstat(RIG * rig, powerstat_t status)
     // delay 1.5 seconds
     usleep(1500000);
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    
     return err;
 }
 
@@ -2322,10 +2316,8 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
     }
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
 
-    return RIG_OK;
+    return err;
 }
 
 
@@ -2695,10 +2687,8 @@ int newcat_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
     }
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
 
-    return RIG_OK;
+    return err;
 }
 
 
@@ -3067,10 +3057,8 @@ int newcat_vfo_op(RIG * rig, vfo_t vfo, vfo_op_t op)
     }
 
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
 
-    return RIG_OK;
+    return err;
 }
 
 
@@ -3569,10 +3557,8 @@ int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo) {
 
     /* Set TX VFO */
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
-
-    return RIG_OK;
+        
+    return err;
 }
 
 
@@ -4117,10 +4103,8 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
     /* Set RX Bandwidth */
     err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
 
-    return RIG_OK;
+    return err;
 }
 
 
@@ -4494,19 +4478,7 @@ int newcat_backup_vfo_ram(RIG * rig, channel_t * chan)
 
     // retval = cmd.ret_data + 20;
     // switch (*retval) {
-    //    case '1': chan->mode = RIG_MODE_LSB;    break;
-    //    case '2': chan->mode = RIG_MODE_USB;    break;
-    //    case '3': chan->mode = RIG_MODE_CW;     break;
-    //    case '4': chan->mode = RIG_MODE_FM;     break;
-    //    case '5': chan->mode = RIG_MODE_AM;     break;
-    //    case '6': chan->mode = RIG_MODE_RTTY;   break;
-    //    case '7': chan->mode = RIG_MODE_CWR;    break;
-    //    case '8': chan->mode = RIG_MODE_PKTLSB; break;
-    //    case '9': chan->mode = RIG_MODE_RTTYR;  break;
-    //    case 'A': chan->mode = RIG_MODE_PKTFM;  break;
-    //    case 'B': chan->mode = RIG_MODE_FM;     break;  /* narrow FM */ 
-    //    case 'C': chan->mode = RIG_MODE_PKTUSB; break;
-    //    case 'D': chan->mode = RIG_MODE_AM;     break;  /* narrow AM */
+    //    case '1': chan->mode = RIG_MODE_LSB; break;
     //    default:  chan->mode = RIG_MODE_LSB;
     // }
 
@@ -4534,7 +4506,7 @@ int newcat_backup_vfo_ram(RIG * rig, channel_t * chan)
     chan->freq = atof(retval);
     rig_debug(RIG_DEBUG_TRACE, "chan->freq = %ld\n", chan->freq);
 
-    return err;
+    return RIG_OK;
 }
 
 
