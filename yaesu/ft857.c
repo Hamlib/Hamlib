@@ -13,7 +13,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.c,v 1.11 2008-10-31 22:09:11 fillods Exp $  
+ *    $Id: ft857.c,v 1.12 2009-01-12 12:29:17 n0nb Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -231,16 +231,24 @@ const struct rig_caps ft857_caps = {
     {FT857_AM_FM_RX_MODES,10},
     {FT857_AM_FM_RX_MODES,100},
     RIG_TS_END,
-  },  
-
-  .filters =  {
-	{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY, kHz(2.2)},
-	{RIG_MODE_AM, kHz(6)},
-	{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(15)},
-	{RIG_MODE_FM|RIG_MODE_PKTFM, kHz(9)},
-	{RIG_MODE_WFM, kHz(230)},	/* ?? */
-	RIG_FLT_END,
   },
+
+  /* filter selection is not supported by CAT functions
+  * per testing by Rich Newsom, WA4SXZ
+  */
+  .filters =  {
+//        {RIG_MODE_SSB, kHz(2.2)},
+//        {RIG_MODE_CW, kHz(2.2)},
+//        {RIG_MODE_CWR, kHz(2.2)},
+//        {RIG_MODE_RTTY, kHz(2.2)},
+//        {RIG_MODE_AM, kHz(6)},
+//        {RIG_MODE_FM, kHz(15)},
+//        {RIG_MODE_PKTFM, kHz(15)},	
+//        {RIG_MODE_FM, kHz(9)},
+//        {RIG_MODE_PKTFM, kHz(9)},
+//        {RIG_MODE_WFM, kHz(230)},	/* ?? */
+        RIG_FLT_END,
+    },
 
   .priv = 		NULL,
   .rig_init = 		ft857_init, 
