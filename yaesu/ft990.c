@@ -1,5 +1,6 @@
 /*
  * hamlib - (C) Stephane Fillod 2002-2005 (fillods at users.sourceforge.net)
+ *           (C) Terry Embry 2009
  *
  * ft990.c - (C) Berndt Josef Wulf (wulf at ping.net.au)
  *
@@ -7,7 +8,7 @@
  * via serial interface to an FT-990 using the "CAT" interface
  *
  *
- * $Id: ft990.c,v 1.18 2006-10-07 15:51:38 csete Exp $
+ * $Id: ft990.c,v 1.19 2009-01-12 12:11:06 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -40,6 +41,10 @@
 #include "misc.h"
 #include "yaesu.h"
 #include "ft990.h"
+
+/* FT1000D */
+#define FT1000D_OP_DATA_LENGTH 16
+
 
 /* Private helper function prototypes */
 static int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch);
@@ -2447,6 +2452,9 @@ int ft990_get_channel (RIG *rig, channel_t *chan)
   if(chan->split & RIG_SPLIT_ON) {
     // Get data for the transmit VFO
     p = (ft990_op_data_t *) &priv->update_data.current_rear;
+    /* FT1000D  */
+    if (RIG_MODEL_FT1000D == rig->caps->rig_model)
+      p = (ft990_op_data_t *) &priv->update_data.vfob;
 
     chan->tx_freq = ((((p->basefreq[0] << 8) + p->basefreq[1]) << 8) +
                      p->basefreq[2]) * 10;
@@ -2619,6 +2627,9 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch) {
     case FT990_NATIVE_UPDATE_ALL_DATA:
       p = (char *) &priv->update_data;
       rl = FT990_ALL_DATA_LENGTH;
+      /* FT1000D */
+      if (RIG_MODEL_FT1000D == rig->caps->rig_model)
+        return RIG_OK;
     break;
     case FT990_NATIVE_UPDATE_MEM_CHNL:
       p = (char *) &priv->update_data.channelnumber;
@@ -2627,6 +2638,9 @@ int ft990_get_update_data(RIG *rig, unsigned char ci, unsigned short ch) {
     case FT990_NATIVE_UPDATE_OP_DATA:
       p = (char *) &priv->update_data.current_front;
       rl = FT990_OP_DATA_LENGTH;
+      /* FT1000D */
+      if (RIG_MODEL_FT1000D == rig->caps->rig_model)
+        rl = FT1000D_OP_DATA_LENGTH;
       break;
     case FT990_NATIVE_UPDATE_VFO_DATA:
       p = (char *) &priv->update_data.vfoa;
