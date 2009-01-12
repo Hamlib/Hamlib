@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-588 description
  *  Copyright (c) 2003-2009 by Stephane Fillod
  *
- *	$Id: omnivii.c,v 1.2 2009-01-11 18:05:33 fillods Exp $
+ *	$Id: omnivii.c,v 1.3 2009-01-12 19:29:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -666,6 +666,7 @@ int tt588_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		}
 
 		switch(lvlbuf[1]) {
+		case '0': val->i=RIG_AGC_OFF; break;
 		case '1': val->i=RIG_AGC_SLOW; break;
 		case '2': val->i=RIG_AGC_MEDIUM; break;
 		case '3': val->i=RIG_AGC_FAST; break;
@@ -817,13 +818,13 @@ printf("%f\n", sstr);
 int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
 	int retval, cmd_len;
-	unsigned char cmdbuf[16];
+	unsigned char cmdbuf[16], agcmode;
 
 
 	switch (level) {
 	case RIG_LEVEL_AF:
 
-		/* Volume returned */
+		/* Volume */
 		cmd_len = sprintf((char *) cmdbuf, "*U%c" EOM, (char)(val.f * 127));
 		retval = tt588_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 		if (retval != RIG_OK)
@@ -835,6 +836,23 @@ int tt588_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 		/* RF gain. Omni-VII expects value 0 for full gain, and 127 for lowest gain */
 		cmd_len = sprintf((char *) cmdbuf, "*I%c" EOM, (char)(127- val.f * 127));
+		retval = tt588_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
+		if (retval != RIG_OK)
+			return retval;
+
+		break;
+
+	case RIG_LEVEL_AGC:
+
+		switch(val.i) {
+		case RIG_AGC_OFF:    agcmode = '0'; break;
+		case RIG_AGC_SLOW:   agcmode = '1'; break;
+		case RIG_AGC_MEDIUM: agcmode = '2'; break;
+		case RIG_AGC_FAST:   agcmode = '3'; break;
+		default: return -RIG_EINVAL;
+		}
+
+		cmd_len = sprintf((char *) cmdbuf, "*G%c" EOM, agcmode);
 		retval = tt588_transaction (rig, (char *) cmdbuf, cmd_len, NULL, NULL);
 		if (retval != RIG_OK)
 			return retval;
