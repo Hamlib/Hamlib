@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "November 1, 2008" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "January 14, 2009" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -35,7 +35,7 @@ commands shared with \fBrigctl\fP. The protocol is simple, commands are sent
 to \fBrigctld\fP on one line and \fBrigctld\fP responds to "get" commands with
 the requested values, one per line, when successful, otherwise, it responds
 with one line "RPTR x", where x is a negative number indicating the error code.
-Commands that do not return values responds with the line "RPTR x", where x
+Commands that do not return values respond with the line "RPTR x", where x
 is zero when successful, otherwise is a regative number indicating the error code.
 Each line is terminated with a newline '\\n' character.
 .PP
@@ -49,12 +49,12 @@ Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
-options starting with two dashes (`-').
+options starting with two dashes ('-').
 
 Here is a summary of the supported options:
 .TP
 .B \-m, --model=id
-Select radio model number. See rig model list (use 'rigctl -l').
+Select radio model number. See -l, "list" option below.
 .TP
 .B \-r, --rig-file=device
 Use \fIdevice\fP as the file name of the port the radio is connected.
@@ -71,28 +71,28 @@ device file as described above.
 .TP
 .B \-P, --ptt-type=type
 Use \fItype\fP of Push-To-Talk device.
-Supported types are RIG, DTR, RTS, PARALLEL, NONE.
+Supported types are RIG (CAT command), DTR, RTS, PARALLEL, NONE.
 .TP
 .B \-D, --dcd-type=type
 Use \fItype\fP of Data Carrier Detect device. 
-Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
+Supported types are RIG (CAT command), DSR, CTS, CD, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rig
-backend capabilities as the default.
+backend capabilities (set by -m above) as the default.
 .TP
 .B \-c, --civaddr=id
 Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for 
 Icom rigs. 
 .br
-NB: the \fIid\fP is in decimal notation, unless prefixed by 
+NB: The \fIid\fP is in decimal notation, unless prefixed by 
 \fI0x\fP, in which case it is hexadecimal.
 .TP
 .B \-L, --show-conf
 List all config parameters for the radio defined with -m above.
 .TP
 .B \-C, --set-conf=parm=val[,parm=val]*
-Set config parameter.  e.g. stop_bits=2
+Set config parameter.  e.g. --set-conf=stop_bits=2
 .br
 Use -L option for a list.
 .TP
@@ -141,7 +141,7 @@ an upper case letter will be used for \fIset\fP method whereas the
 corresponding lower case letter refers to the \fIget\fP method.  Each operation
 also has a long name, prepend a backslash to send a long command name.
 .PP
-Example (Perl): `print $socket "\\dump_caps\\n";' to see what the radio's
+Example (Perl): `print $socket "\\\\dump_caps\\n";' to see what the radio's
 backend can do.
 .PP
 Please note that the backend for the radio to be controlled, 
@@ -184,7 +184,7 @@ Set XIT, in Hz.
 Get XIT, in Hz.
 .TP
 .B T, set_ptt
-Set PTT, 0 or 1.
+Set PTT, 0 (RX) or 1 (TX).
 .TP
 .B t, get_ptt
 Get PTT status.
@@ -378,7 +378,8 @@ print $socket "\\\\set_mode LSB 2400\\n";   # escape leading '\\'
 .PP
 Responses from \fBrigctld\fP are text values and match the same tokens used
 in the \fIset\fP commands. Each value is returned on its own line. To
-signal the end of a response the "END\\n" string is sent.
+signal the end of a response the "END\\n" string is sent when the '-e' option
+is passed.
 .PP
 Example \fIget\fP (Perl code):
 
@@ -402,8 +403,8 @@ the email address below.  For example, TRACE output shows all of the values
 sent to and received from the radio which is very useful for radio backend
 library development and may be requested by the developers.
 .SH SECURITY
-No authentication whatsoever; don't leave this TCP port open wide to the Internet.
-Please ask if stronger security is needed.
+No authentication whatsoever; DO NOT leave this TCP port open wide to the 
+Internet.  Please ask if stronger security is needed.
 .SH BUGS
 The daemon is not detaching and backgrounding itself.
 
@@ -417,7 +418,7 @@ Written by Stephane Fillod and the Hamlib Group
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2008 Stephane Fillod and the Hamlib Group.
+Copyright \(co 2000-2009 Stephane Fillod and the Hamlib Group.
 .PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY

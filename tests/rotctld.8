@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "Novembre 1, 2008" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "January 14, 2009" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -35,7 +35,7 @@ commands shared with \fBrotctl\fP. The protocol is simple, commands are sent
 to \fBrotctld\fP on one line and \fBrotctld\fP responds to "get" commands with
 the requested values, one per line, when successful, otherwise, it responds
 with one line "RPTR x", where x is a negative number indicating the error code.
-Commands that do not return values responds with the line "RPTR x", where x
+Commands that do not return values respond with the line "RPTR x", where x
 is zero when successful, otherwise is a regative number indicating the error code.
 Each line is terminated with a newline '\\n' character.
 .PP
@@ -49,12 +49,12 @@ Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
-options starting with two dashes (`-').
+options starting with two dashes ('-').
 
 Here is a summary of the supported options:
 .TP
 .B \-m, --model=id
-Select rotator model number. See rotator model list (use 'rotctl -l').
+Select rotator model number. See -l, "list" option below.
 .TP
 .B \-r, --rot-file=device
 Use \fIdevice\fP as the file name of the port the rotator is connected.
@@ -62,14 +62,14 @@ Often a serial port, but could be a USB to serial adapter.  Typically
 /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rig
-backend capabilities as the default.
+Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotor
+backend capabilities (set by -m above) as the default.
 .TP
 .B \-L, --show-conf
 List all config parameters for the rotator defined with -m above.
 .TP
 .B \-C, --set-conf=parm=val[,parm=val]*
-Set config parameter.  e.g. stop_bits=2
+Set config parameter.  e.g. --set-conf=stop_bits=2
 .br
 Use -L option for a list.
 .TP
@@ -156,7 +156,8 @@ print $socket "\\\\set_pos 135 10\\n";   # escape leading '\\'
 .PP
 Responses from \fBrotctld\fP are text values and match the same tokens used
 in the \fIset\fP commands. Each value is returned on its own line. To
-signal the end of a response the "END\\n" string is sent.
+signal the end of a response the "END\\n" string is sent when the '-e' option
+is passed.
 .PP
 Example \fIget\fP (Perl code):
 
@@ -181,7 +182,7 @@ the email address below.  For example, TRACE output shows all of the values
 sent to and received from the rotator which is very useful for rotator backend
 library development and may be requested by the developers.
 .SH SECURITY
-No authentication whatsoever; don't leave this TCP port open wide to the Internet.
+No authentication whatsoever; DO NOT leave this TCP port open wide to the Internet.
 Please ask if stronger security is needed.
 .SH BUGS
 The daemon is not detaching and backgrounding itself.
@@ -196,7 +197,7 @@ Written by Stephane Fillod and the Hamlib Group
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2008 Stephane Fillod and the Hamlib Group.
+Copyright \(co 2000-2009 Stephane Fillod and the Hamlib Group.
 .PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
