@@ -12,7 +12,7 @@
  * Hy-Gain is a trademark of MFJ Enterprises
  *
  *
- *    $Id: rotorez.c,v 1.10 2008-10-26 13:50:30 y32kn Exp $
+ *    $Id: rotorez.c,v 1.11 2009-01-16 04:21:11 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -44,6 +44,7 @@
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
+#include "iofunc.h"
 
 #include "rotorez.h"
 
@@ -60,6 +61,7 @@ struct rotorez_rot_priv_data {
  */
 
 static int rotorez_send_priv_cmd(ROT *rot, const char *cmd);
+static int rotorez_flush_buffer(ROT *rot);
 
 /* *************************************
  *
@@ -296,14 +298,26 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
   if (!rot)
     return -RIG_EINVAL;
 
+get_az:
   err = rotorez_send_priv_cmd(rot, cmdstr);
   if (err != RIG_OK)
     return err;
 
   rs = &rot->state;
+
   err = read_block(&rs->rotport, az, AZ_READ_LEN);
   if (err != AZ_READ_LEN)
     return -RIG_ETRUNC;
+
+  /* The azimuth string should be ';xxx' beginning at offset 0.  If the
+   * ';' is not there, it's likely the RotorEZ has received an invalid
+   * command and the buffer needs to be flushed.  See rotorez_flush_buffer()
+   * definition below for a complete description.
+   */
+  if (az[0] != ';') {
+    rotorez_flush_buffer(rot);
+    goto get_az;
+  }
 
   /*
    * Rotor-EZ returns a four octet string consisting of a ';' followed
@@ -320,7 +334,7 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
     return -RIG_EINVAL;
 
   *azimuth = tmp;
-  *elevation = 0;               /* assume aiming at the horizon */
+  *elevation = 0;               /* RotorEZ does not support elevation */
   rig_debug(RIG_DEBUG_TRACE,
             "%s: azimuth = %.1f deg; elevation = %.1f deg\n",
             __func__, *azimuth, *elevation);
@@ -409,6 +423,42 @@ static int rotorez_send_priv_cmd(ROT *rot, const char *cmdstr) {
 
 
 /*
+ * Flush the serial input buffer
+ *
+ * If the RotorEZ should receive an invalid command, such as an the ';'
+ * character while the rotor is not in motion, as sent by the rotorez_rot_stop
+ * function or the 'S' command from `rotctl', it will output the following
+ * string, "C2000 IDIOM V1.4S " into the input buffer.  This function flushes
+ * the buffer by reading it until a timeout occurs.  Once the timeout occurs,
+ * this function returns and the buffer is presumed to be empty.
+ */
+
+static int rotorez_flush_buffer(ROT *rot) {
+    struct rot_state *rs;
+    char garbage[32];          /* read buffer */
+    int err = 0;
+    size_t MAX = 31;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rot)
+        return -RIG_EINVAL;
+
+    rs = &rot->state;
+    do {
+        err = read_block(&rs->rotport, garbage, MAX);
+
+        /* Oops!  An IO error was encountered.  Bail out! */
+        if (err == -RIG_EIO)
+            return -RIG_EIO;
+    }
+    while (err != -RIG_ETIMEOUT);
+
+    return RIG_OK;
+}
+
+
+/*
  * Initialize backend
  */
 
@@ -422,5 +472,4 @@ DECLARE_INITROT_BACKEND(rotorez)
 
   return RIG_OK;
 }
-
 

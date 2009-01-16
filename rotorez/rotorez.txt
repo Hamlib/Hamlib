@@ -6,7 +6,7 @@ The Hy-Gain DCU-1/DCU-1X Digital Control Unit supports a subset of
 these commands--AP1XXX; and AM1;  The DCU-1/DCU-1X is manufactured 
 and sold by Hy-Gain, http://www.hy-gain.com
 
-$Id: rotorez.txt,v 1.1 2003-01-12 14:29:15 n0nb Exp $
+$Id: rotorez.txt,v 1.2 2009-01-16 04:21:11 n0nb Exp $
 
 From: "sales@idiompress.com" <info@idiompress.com>
 To: "Nate Bargmann" <n0nb@arrl.net>
@@ -30,19 +30,19 @@ between 000 and 360, and executes. A typical command to rotate to 080
 degrees would be AP1080<CR> Note that the <CR> is often labeled <Enter> on
 many keyboards.
 
-"AP1xxx;"  sets the target bearing but does not execute.
-"AM1;"   executes rotation to the bearing set by the "AP1xxx;" command
-"AI1;"    inquires current bearing; and responds with (000-359) degrees
-";"   terminates rotation
-"E"   enable endpoint option - effective immediately
-"e"    disable endpoint option - effective immediately
-"O"        enable overshoot option - effective immediately
-"o"   disable overshoot option - effective immediately
-"S"        enable unstick option - effective immediately
-"s"        disable unstick option - effective immediately
-"V"     reports version number
-"J"        enable jam protection - effective immediately
-"j"        disable jam protection - effective immediately - NOT recommended!
+"AP1xxx;"   sets the target bearing but does not execute.
+"AM1;"      executes rotation to the bearing set by the "AP1xxx;" command
+"AI1;"      inquires current bearing; and responds with (000-359) degrees
+";"         terminates rotation
+"E"         enable endpoint option - effective immediately
+"e"         disable endpoint option - effective immediately
+"O"         enable overshoot option - effective immediately
+"o"         disable overshoot option - effective immediately
+"S"         enable unstick option - effective immediately
+"s"         disable unstick option - effective immediately
+"V"         reports version number
+"J"         enable jam protection - effective immediately
+"j"         disable jam protection - effective immediately - NOT recommended!
 
 Note that during any rotation initiated by an RS232 command, the rotation
 can be halted and further rotation cancelled by a momentary press of the
