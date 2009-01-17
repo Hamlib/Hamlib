@@ -1,3 +1,48 @@
+Further testing has revealed that the RotorEZ interface will place
+undocumented characters into the serial buffer.  Additions to the
+rotorez backend now take this into account and test for a valid azimuth
+reply and flush the buffer if necessary.
+
+When the unit is first powered on, it appears as though at least one
+character is placed into the buffer.  I have seen this as 0xE0 although
+it is possible some other character could be placed there.
+
+If the RotorEZ should receive an invalid command, such as an the ';'
+character while the rotor is not in motion, as sent by the rotorez_rot_stop
+function ('S' command from `rotctl'), it will output the following
+string, "C2000 IDIOM V1.4S " into the input buffer.  A new function,
+rotorez_flush_buffer, flushes the buffer by reading it until a timeout 
+occurs.  Once the timeout occurs, this function returns and the buffer is 
+presumed to be empty.  Should read_block return an IO error, it is passed
+back to the application.
+
+Flushing the buffer is done by reading the buffer until the read_block
+function times out.  By necessity, this means that the delay could be up
+to a few seconds before the rotorez_rot_get_position function returns a
+valid azimuth.
+
+-----
+
+As of version 0.5 of the rotorez backend, the serial timeout has been
+shortened to 1500 mS and the retry count reduced to 2 to speed up 
+recovery when flushing the buffer as described above.  Also, four
+tokens have been defined in rotorez.h for the set_conf function used by
+`rotctl' and `rotctld'. They are:
+
+    ENDPT,
+    JAM,
+    OVRSHT,
+    UNSTICK
+
+and have the integer values of 1-4 respectively.  Until tokens are more
+completely developed in the Hamlib frontend, passing the integers to
+`rotcrl' and `rotctld' will be necessary.  The 'value' given to
+`rotclt' and `rotctld' is the character '0' or '1' to disable or
+enable the function.  For example, to disable Endpoint Protection give
+the command 'C 1 0' and to enable it again use 'C 1 1'.
+
+=======================================================================
+
 The following email describes the command set used by the Rotor-EZ
 interface for Hy-Gain rotors and the RotorCard interface for Yaesu
 rotors manufactured and sold by Idiom Press, http://www.idiompres.com
@@ -6,7 +51,7 @@ The Hy-Gain DCU-1/DCU-1X Digital Control Unit supports a subset of
 these commands--AP1XXX; and AM1;  The DCU-1/DCU-1X is manufactured 
 and sold by Hy-Gain, http://www.hy-gain.com
 
-$Id: rotorez.txt,v 1.2 2009-01-16 04:21:11 n0nb Exp $
+$Id: rotorez.txt,v 1.3 2009-01-17 14:37:28 n0nb Exp $
 
 From: "sales@idiompress.com" <info@idiompress.com>
 To: "Nate Bargmann" <n0nb@arrl.net>

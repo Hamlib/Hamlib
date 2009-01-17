@@ -11,8 +11,10 @@
  * Rotor-EZ is a trademark of Idiom Press
  * Hy-Gain is a trademark of MFJ Enterprises
  *
+ * Tested on a HAM-IV with the Rotor-EZ V1.4S interface installed.
  *
- *    $Id: rotorez.c,v 1.11 2009-01-16 04:21:11 n0nb Exp $
+ *
+ *    $Id: rotorez.c,v 1.12 2009-01-17 14:37:28 n0nb Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -39,6 +41,7 @@
 #include <stdlib.h>             /* Standard library definitions */
 #include <string.h>             /* String function definitions */
 #include <unistd.h>             /* UNIX standard function definitions */
+#include <ctype.h>              /* for isdigit function */
 
 #include "hamlib/rotator.h"
 #include "serial.h"
@@ -72,16 +75,17 @@ static int rotorez_flush_buffer(ROT *rot);
 
 
 /*
- * Rotor-EZ enhanced rotor capabilities
+ * Idiom Press Rotor-EZ enhanced rotor capabilities for
+ * Hy-Gain CD45, Ham-II, Ham-III, Ham IV and all TailTwister rotors
  */
 
 const struct rot_caps rotorez_rot_caps = {
   .rot_model =          ROT_MODEL_ROTOREZ,
   .model_name =         "Rotor-EZ",
   .mfg_name =           "Idiom Press",
-  .version =            "0.2",
+  .version =            "0.5",
   .copyright = 	        "LGPL",
-  .status =             RIG_STATUS_UNTESTED,
+  .status =             RIG_STATUS_BETA,
   .rot_type =           ROT_TYPE_OTHER,
   .port_type =          RIG_PORT_SERIAL,
   .serial_rate_min =    4800,
@@ -92,8 +96,8 @@ const struct rot_caps rotorez_rot_caps = {
   .serial_handshake =   RIG_HANDSHAKE_NONE,
   .write_delay =        0,
   .post_write_delay =   500,
-  .timeout =            5000,
-  .retry =              3,
+  .timeout =            1500,
+  .retry =              2,
 
   .min_az = 	        0,
   .max_az =  	        360,
@@ -113,14 +117,15 @@ const struct rot_caps rotorez_rot_caps = {
 
 
 /*
- * RotorCard enhanced rotor capabilities
+ * Idiom Press RotorCard enhanced rotor capabilities for
+ * Yaesu SDX and DXA series rotors
  */
 
 const struct rot_caps rotorcard_rot_caps = {
   .rot_model =          ROT_MODEL_ROTORCARD,
   .model_name =         "RotorCard",
   .mfg_name =           "Idiom Press",
-  .version =            "0.2",
+  .version =            "0.5",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_UNTESTED,
   .rot_type =           ROT_TYPE_OTHER,
@@ -133,8 +138,8 @@ const struct rot_caps rotorcard_rot_caps = {
   .serial_handshake =   RIG_HANDSHAKE_NONE,
   .write_delay =        0,
   .post_write_delay =   500,
-  .timeout =            5000,
-  .retry =              3,
+  .timeout =            1500,
+  .retry =              2,
 
   .min_az = 	        0,
   .max_az =  	        360,
@@ -161,7 +166,7 @@ const struct rot_caps dcu_rot_caps = {
   .rot_model =          ROT_MODEL_DCU,
   .model_name =         "DCU-1/DCU-1X",
   .mfg_name =           "Hy-Gain",
-  .version =            "0.2",
+  .version =            "0.5",
   .copyright = 	        "LGPL",
   .status =             RIG_STATUS_UNTESTED,
   .rot_type =           ROT_TYPE_OTHER,
@@ -174,8 +179,8 @@ const struct rot_caps dcu_rot_caps = {
   .serial_handshake =   RIG_HANDSHAKE_NONE,
   .write_delay =        0,
   .post_write_delay =   500,
-  .timeout =            5000,
-  .retry =              3,
+  .timeout =            1500,
+  .retry =              2,
 
   .min_az = 	        0,
   .max_az =  	        360,
@@ -288,7 +293,7 @@ static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t ele
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation) {
   struct rot_state *rs;
   char cmdstr[5] = "AI1;";
-  char az[5];          /* read azimuth string */
+  char az[5];      /* read azimuth string */
   char *p;
   azimuth_t tmp = 0;
   int err;
@@ -298,26 +303,37 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
   if (!rot)
     return -RIG_EINVAL;
 
-get_az:
-  err = rotorez_send_priv_cmd(rot, cmdstr);
-  if (err != RIG_OK)
-    return err;
+  do {
+    err = rotorez_send_priv_cmd(rot, cmdstr);
+    if (err != RIG_OK)
+      return err;
 
-  rs = &rot->state;
+    rs = &rot->state;
 
-  err = read_block(&rs->rotport, az, AZ_READ_LEN);
-  if (err != AZ_READ_LEN)
-    return -RIG_ETRUNC;
+    err = read_block(&rs->rotport, az, AZ_READ_LEN);
+    if (err != AZ_READ_LEN)
+      return -RIG_ETRUNC;
 
-  /* The azimuth string should be ';xxx' beginning at offset 0.  If the
-   * ';' is not there, it's likely the RotorEZ has received an invalid
-   * command and the buffer needs to be flushed.  See rotorez_flush_buffer()
-   * definition below for a complete description.
-   */
-  if (az[0] != ';') {
-    rotorez_flush_buffer(rot);
-    goto get_az;
-  }
+    /* The azimuth string should be ';xxx' beginning at offset 0.  If the
+     * ';' is not there, it's likely the RotorEZ has received an invalid
+     * command and the buffer needs to be flushed.  See rotorez_flush_buffer()
+     * definition below for a complete description.
+     */
+    if (az[0] != ';') {
+        err = rotorez_flush_buffer(rot);
+        if (err == -RIG_EIO)
+            return err;
+        else
+            err = -RIG_EINVAL;
+    } else if (err == AZ_READ_LEN && az[0] == ';') {
+        /* Check if remaining chars are digits if az[0] == ';' */
+        for (p = az + 1;p < az + 4; p++)
+            if (isdigit(*p))
+                continue;
+            else
+                err = -RIG_EINVAL;
+    }
+  } while (err == -RIG_EINVAL);
 
   /*
    * Rotor-EZ returns a four octet string consisting of a ';' followed
@@ -330,7 +346,9 @@ get_az:
   rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
             __func__, p, tmp);
 
-  if (tmp < 0 || tmp > 359)
+  if (tmp == 360)
+      tmp = 0;
+  else if (tmp < 0 || tmp > 359)
     return -RIG_EINVAL;
 
   *azimuth = tmp;
@@ -367,36 +385,65 @@ static int rotorez_rot_stop(ROT *rot) {
 /*
  * Send configuration character
  *
- * token is ignored
  * Rotor-EZ interface will act on these commands immediately --
- * no other command or command terminator is needed
+ * no other command or command terminator is needed.  Expects token
+ * define in rotorez.h and *val of '1' or '0' (enable/disable).
  */
 
 static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val) {
-  int err;
+    char cmdstr[2];
+    char c;
+    int err;
 
-  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: token = %d, *val = %c\n",
+              __func__, token, *val);
 
-  if (!rot)
-    return -RIG_EINVAL;
+    if (!rot)
+        return -RIG_EINVAL;
 
-  switch(*val) {
-  case 'E':             /* Enable endpoint option */
-  case 'e':             /* Disable endpoint option */
-  case 'J':             /* Enable jam protection */
-  case 'j':             /* Disable jam protection -- not recommended */
-  case 'O':             /* Enable overshoot option */
-  case 'o':             /* Disable overshoot option */
-  case 'S':             /* Enable unstick option */
-  case 's':             /* Disable unstick option */
-    err = rotorez_send_priv_cmd(rot, val);
+    if (*val < '0' || *val > '1')
+        return -RIG_EINVAL;
+
+    switch(token) {
+    case ENDPT:             /* Endpoint option */
+        if (*val == '1')
+            c = 'E';
+        else
+            c = 'e';
+        break;
+    case JAM:               /* Jam protection */
+        if (*val == '1')
+            c = 'J';
+        else
+            c = 'j';
+        break;
+    case OVRSHT:            /* Overshoot option */
+        if (*val == '1')
+            c = 'O';
+        else
+            c = 'o';
+        break;
+    case UNSTICK:           /* Unstick option */
+        if (*val == '1')
+            c = 'S';
+        else
+            c = 's';
+        break;
+    default:
+        return -RIG_EINVAL;
+    }
+    rig_debug(RIG_DEBUG_TRACE, "%s: c = %c, *val = %c\n", __func__, c, *val);
+    snprintf(cmdstr, sizeof(cmdstr), "%c", c);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmdstr = %s, *val = %c\n",
+              __func__, cmdstr, *val);
+
+    err = rotorez_send_priv_cmd(rot, cmdstr);
     if (err != RIG_OK)
-      return err;
-  
+        return err;
+
     return RIG_OK;
-  default:
-    return -RIG_EINVAL;
-  }
 }
 
 
