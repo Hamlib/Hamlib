@@ -18,7 +18,7 @@ DIST_SUBDIRS = macros include lib libltdl src c++ bindings tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
 	rpcrig winradio easycomm fodtrack rpcrot gnuradio drake rotorez \
 	flexradio sartek lowe rft tapr kit skanti wj racal tuner \
-	gs232a
+	gs232a heathkit
 
 rpm: Makefile
 	make dist

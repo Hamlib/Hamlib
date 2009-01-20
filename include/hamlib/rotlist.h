@@ -1,9 +1,9 @@
 /*
  *  Hamlib Interface - list of known rotators
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (c) 2000-2002 by Stephane Fillod and Frank Singleton
  *
- *	$Id: rotlist.h,v 1.14 2008-10-31 07:45:17 fillods Exp $
+ *	$Id: rotlist.h,v 1.15 2009-01-20 19:42:44 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -159,6 +159,13 @@
 #define ROT_BACKEND_KIT "kit"
 #define ROT_MODEL_PCROTOR ROT_MAKE_MODEL(ROT_KIT, 1)
 
+/*! \def ROT_MODEL_HD1780
+ *  \brief A macro that returns the model number of the HD 1780 backend.
+ */
+#define ROT_HEATHKIT 8
+#define ROT_BACKEND_HEATHKIT "heathkit"
+#define ROT_MODEL_HD1780 ROT_MAKE_MODEL(ROT_HEATHKIT, 1)
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
@@ -180,6 +187,7 @@ typedef int rot_model_t;
         { ROT_SARTEK, ROT_BACKEND_SARTEK }, \
         { ROT_GS232A, ROT_BACKEND_GS232A }, \
         { ROT_KIT, ROT_BACKEND_KIT }, \
+        { ROT_HEATHKIT, ROT_BACKEND_HEATHKIT }, \
         { 0, NULL }, /* end */  \
 }
 

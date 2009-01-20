@@ -77,6 +77,8 @@
 %ignore ROT_BACKEND_GS232A;
 %ignore ROT_KIT;
 %ignore ROT_BACKEND_KIT;
+%ignore ROT_HEATHKIT;
+%ignore ROT_BACKEND_HEATHKIT;
 
 %ignore PRIfreq;
 %ignore SCNfreq;
