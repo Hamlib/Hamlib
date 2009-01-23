@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-D7 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: thd7.c,v 1.16 2008-05-04 21:23:26 fillods Exp $
+ *	$Id: thd7.c,v 1.17 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -159,6 +159,8 @@ const struct rig_caps thd7a_caps = {
 	},
 .priv =  (void *)&thd7_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  th_set_freq,
 .get_freq =  th_get_freq,
 .set_mode =  th_set_mode,

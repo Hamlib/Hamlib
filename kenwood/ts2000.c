@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.23 2008-03-01 11:20:29 fillods Exp $
+ *	$Id: ts2000.c,v 1.24 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -230,6 +230,8 @@ const struct rig_caps ts2000_caps = {
 
 .priv =  (void *)&ts2000_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
@@ -239,7 +241,7 @@ const struct rig_caps ts2000_caps = {
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo,
+.get_vfo =  kenwood_get_vfo_if,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,

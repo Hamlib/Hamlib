@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.6 2008-02-13 20:59:15 fillods Exp $
+ *		$Id: ts2k.c,v 1.7 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,7 +63,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.6 2008-02-13 20:59:15 fillods Exp $
+ *		$Id: ts2k.c,v 1.7 2009-01-23 03:24:42 n0nb Exp $
  */
 
 
@@ -79,20 +79,6 @@
 
 #include <serial.h>
 #include <misc.h>
-
-
-/*
- * modes in use by the "MD" command
- */
-#define MD_NONE	'0'
-#define MD_LSB	'1'
-#define MD_USB	'2'
-#define MD_CW	'3'
-#define MD_FM	'4'
-#define MD_AM	'5'
-#define MD_FSK	'6'
-#define MD_CWR	'7'
-#define MD_FSKR	'9'
 
 
 // Added the following two lists --Dale, kd7eni
@@ -577,7 +563,7 @@ int ts2k_sat_off(RIG *rig, vfo_t vfo)
 }
 
 /*
- * kenwood_get_vfo
+ * kenwood_get_vfo_if
  * Assumes rig!=NULL, !vfo
  *
  *	status:	works perfect for implemented modes!  --Dale

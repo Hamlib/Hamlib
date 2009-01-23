@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.44 2008-09-01 19:01:11 fillods Exp $
+ *	$Id: kenwood.h,v 1.45 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,19 +23,41 @@
 #ifndef _KENWOOD_H
 #define _KENWOOD_H 1
 
-#define BACKEND_VER	"0.6"
+#define BACKEND_VER	"0.7"
 
-#define EOM_KEN ";"
-#define EOM_TH "\r"
+#define EOM_KEN ';'
+#define EOM_TH '\r'
 
-#define KENWOOD_MODE_TABLE_MAX 8
+#define KENWOOD_MODE_TABLE_MAX 10
+#define KENWOOD_MAX_IF_LEN 50
+
+/*
+ * modes in use by the "MD" command
+ */
+#define MD_NONE '0'
+#define MD_LSB  '1'
+#define MD_USB  '2'
+#define MD_CW   '3'
+#define MD_FM   '4'
+#define MD_AM   '5'
+#define MD_FSK  '6'
+#define MD_CWR  '7'
+#define MD_FSKR '9'
 
 struct kenwood_priv_caps {
-    const char *cmdtrm;    /* Command termination chars (ken=';' or th='\r') */
-    int if_len;		/* length of IF; anwser */
+    char cmdtrm;		/* Command termination chars (ken=';' or th='\r') */
+    int if_len;			/* length of IF; anwser */
     rmode_t *mode_table;
 };
 
+struct kenwood_priv_data {
+    char info[KENWOOD_MAX_IF_LEN];
+};
+
+#define kenwood_caps(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)
+
+
+extern rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX];
 
 extern const tone_t kenwood38_ctcss_list[];
 
@@ -44,8 +66,11 @@ int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[]);
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
 
+int kenwood_init(RIG *rig);
+int kenwood_cleanup(RIG *rig);
+
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
-int kenwood_get_vfo(RIG *rig, vfo_t *vfo);
+int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo);
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
 
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
@@ -56,6 +81,7 @@ int kenwood_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int kenwood_get_xit(RIG *rig, vfo_t vfo, shortfreq_t * rit);
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int kenwood_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
@@ -74,6 +100,8 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch);
 int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch);
+int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch);
+int kenwood_get_channel(RIG *rig, channel_t *chan);
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 const char* kenwood_get_info(RIG *rig);
 

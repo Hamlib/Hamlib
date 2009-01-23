@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - R5000 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: r5000.c,v 1.3 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: r5000.c,v 1.4 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -130,6 +130,8 @@ const struct rig_caps r5000_caps = {
 	},
 .priv =  (void *)&r5000_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  ic10_set_freq,
 .get_freq =  ic10_get_freq,
 .set_mode =  ic10_set_mode,

@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.25 2007-08-30 17:12:52 y32kn Exp $
+*	$Id: ts850.c,v 1.26 2009-01-23 03:24:42 n0nb Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -74,12 +74,7 @@ static int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 static int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
-static int ts850_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-static int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 static int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-static int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-static int ts850_get_mem(RIG *rig, vfo_t vfo, int *ch);
-static int ts850_get_channel (RIG * rig, channel_t * chan);
 static int ts850_set_channel (RIG * rig, const channel_t * chan);
 
 /*
@@ -202,6 +197,8 @@ const struct rig_caps ts850_caps = {
 	.str_cal = TS850_STR_CAL,
 	.priv =  (void *)&ts850_priv_caps,
 	
+        .rig_init = kenwood_init,
+        .rig_cleanup = kenwood_cleanup,
 	.set_freq =  kenwood_set_freq,
 	.get_freq =  kenwood_get_freq,
 	.set_rit =  ts850_set_rit,
@@ -211,20 +208,20 @@ const struct rig_caps ts850_caps = {
 	.set_mode =  ts850_set_mode,
 	.get_mode =  ts850_get_mode,
 	.set_vfo =  kenwood_set_vfo,
-	.get_vfo =  kenwood_get_vfo,
+	.get_vfo =  kenwood_get_vfo_if,
 	.set_split_vfo =  kenwood_set_split_vfo,
 	.set_ctcss_tone =  ts850_set_ctcss_tone,
 	.get_ctcss_tone =  kenwood_get_ctcss_tone,
 	.get_ptt =  kenwood_get_ptt,
 	.set_ptt =  kenwood_set_ptt,
-	.set_func =  ts850_set_func,
-	.get_func =  ts850_get_func,
-	.set_level =  ts850_set_level,
+	.set_func = kenwood_set_func,
+	.get_func = kenwood_get_func,
+	.set_level = kenwood_set_level,
 	.get_level =  ts850_get_level,
 	.vfo_op =  kenwood_vfo_op,
 	.set_mem =  kenwood_set_mem,
-	.get_mem =  ts850_get_mem,
-	.get_channel = ts850_get_channel,
+	.get_mem =  kenwood_get_mem_if,
+	.get_channel = kenwood_get_channel,
 	.set_channel = ts850_set_channel,
 	.set_trn =  kenwood_set_trn
 };
@@ -292,20 +289,6 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 	
 	return RIG_OK;
 }
-
-/*
-* modes in use by the "MD" command
-*/
-#define MD_NONE '0'
-#define MD_LSB  '1'
-#define MD_USB  '2'
-#define MD_CW   '3'
-#define MD_FM   '4'
-#define MD_AM   '5'
-#define MD_FSK  '6'
-#define MD_CWR  '7'
-#define MD_FSKR '9'
-
 
 int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -458,65 +441,6 @@ int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	return kenwood_transaction (rig, tonebuf, tone_len, ackbuf, &ack_len);
 }
 
-int ts850_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
-{
-	char fctbuf[16], ackbuf[16];
-	int fct_len;
-	size_t ack_len;
-	
-	if (vfo != RIG_VFO_CURR) 
-		return -RIG_EINVAL;
-	
-	ack_len = 0;
-	switch (func) {
-		case RIG_FUNC_AIP:
-			fct_len = sprintf(fctbuf,"MX%c;", status?'1':'0');
-		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
-		
-		case RIG_FUNC_LOCK:
-			fct_len = sprintf(fctbuf,"LK%c;", status?'1':'0');
-		return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
-		
-		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
-		return -RIG_EINVAL;
-	}                                                           
-	return RIG_OK;
-}
-
-
-int ts850_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
-{
-	char fctbuf[16], ackbuf[50];
-	int retval, fct_len;
-	size_t ack_len;
-	
-	if (vfo != RIG_VFO_CURR) 
-		return -RIG_EINVAL;
-	
-	switch (func) {
-		case RIG_FUNC_AIP:
-			fct_len = sprintf(fctbuf,"MX;");
-		break;
-		case RIG_FUNC_LOCK:
-			fct_len = sprintf(fctbuf,"LK;");
-		break;
-		default:
-			rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
-		return -RIG_EINVAL;
-	}
-	
-	ack_len = 50;
-	retval = kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
-	
-	if (retval != RIG_OK)
-		return retval;
-	
-	*status=ackbuf[2]=='1'?1:0;
-	
-	return RIG_OK;
-}
-
 int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
 	char lvlbuf[50];
@@ -606,120 +530,6 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	}
 	return retval; // Never gets here.
 }
-
-int ts850_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
-{
-	char lvlbuf[16], ackbuf[16];
-	int lvl_len;
-	size_t ack_len;
-	
-	switch (level) {
-		case RIG_LEVEL_CWPITCH:
-			if(val.i>1000 || val.i<400)
-			return -RIG_EINVAL;	
-		ack_len=0;
-		lvl_len = sprintf(lvlbuf,"PT%02d;",(val.i/50)-8);
-		return  kenwood_transaction (rig, lvlbuf, lvl_len, ackbuf, &ack_len);
-		break;
-		
-		
-		default:
-			return kenwood_set_level (rig, vfo, level, val);
-    }
-  
-  return RIG_OK;		/* never reached */
-}
-
-int ts850_get_mem(RIG *rig, vfo_t vfo, int *ch)
-{
-	char infobuf[50];
-	size_t info_len;
-	int retval;
-	
-	info_len = 50;
-	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len)
-		;
-	if (retval != RIG_OK)
-		return retval;
-	
-	if (info_len != 38 || infobuf[1] != 'F') {
-		rig_debug(RIG_DEBUG_ERR,"ts850_get_mem: wrong answer len=%d\n", info_len);
-		return -RIG_ERJCTED;
-	}
-	
-	infobuf[28]='\0';
-	*ch=atoi(&infobuf[26]);
-	
-	return RIG_OK;
-}
-
-static rmode_t char_to_mode(char c)
-{
-	switch (c) {
-		case MD_CW:     return(RIG_MODE_CW);
-		case MD_CWR:    return(RIG_MODE_CWR);
-		case MD_USB:    return(RIG_MODE_USB);
-		case MD_LSB:    return(RIG_MODE_LSB);
-		case MD_FM:     return(RIG_MODE_FM);
-		case MD_AM:     return(RIG_MODE_AM);
-		case MD_FSK:    return(RIG_MODE_RTTY);
-		case MD_FSKR:   return(RIG_MODE_RTTYR);
-		case MD_NONE:   return(RIG_MODE_NONE);
-	}
-	return(RIG_MODE_NONE);
-}
-
-int ts850_get_channel (RIG * rig, channel_t * chan)
-{
-	char cmdbuf[16], membuf[50];
-	int retval, cmd_len, num;
-	size_t mem_len;
-	
-	num=chan->channel_num;
-	
-	cmd_len = sprintf(cmdbuf, "MR0 %02d;", num);
-	mem_len = 50;
-	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
-	if (retval != RIG_OK)
-		return retval;
-	
-	memset(chan,0,sizeof(channel_t));
-	chan->channel_num=num;
-	
-	
-	if (membuf[19]=='0')
-		chan->ctcss_tone=0;
-	else {
-		membuf[22]='\0';
-		chan->ctcss_tone= rig->caps->ctcss_list[atoi(&membuf[20])];
-	}
-	
-	chan->mode=char_to_mode(membuf[17]);
-	
-	membuf[17]='\0';
-	chan->freq=atoi(&membuf[6]);
-	
-	cmd_len = sprintf(cmdbuf, "MR1 %02d;", num);
-	mem_len = 50;
-	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
-	if (retval != RIG_OK)
-		return retval;
-	
-	chan->tx_mode=char_to_mode(membuf[17]);
-	membuf[17]='\0';
-	chan->tx_freq=atoi(&membuf[6]);
-	
-	if(chan->freq==chan->tx_freq &&
-	   chan->mode==chan->tx_mode) {
-		   chan->tx_freq=RIG_FREQ_NONE;
-		   chan->tx_mode=RIG_MODE_NONE;
-		   chan->split=RIG_SPLIT_OFF;
-	   } else
-		chan->split=RIG_SPLIT_ON;
-	
-	return RIG_OK;
-}
-
 
 int ts850_set_channel (RIG * rig, const channel_t * chan)
 {

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS690 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts690.c,v 1.3 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts690.c,v 1.4 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -173,7 +173,7 @@ const struct rig_caps ts690s_caps = {
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo,
+.get_vfo =  kenwood_get_vfo_if,
 .get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
@@ -183,7 +183,7 @@ const struct rig_caps ts690s_caps = {
 .get_level =  kenwood_get_level,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
-.get_mem =  kenwood_get_mem,
+.get_mem =  kenwood_get_mem_if,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
 .scan =  kenwood_scan,

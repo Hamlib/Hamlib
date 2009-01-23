@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS940 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts940.c,v 1.6 2005-04-04 21:31:57 fillods Exp $
+ *	$Id: ts940.c,v 1.7 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -144,6 +144,8 @@ const struct rig_caps ts940_caps = {
 	},
 .priv =  (void *)&ts940_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  ic10_get_freq,
 .set_rit =  kenwood_set_rit,

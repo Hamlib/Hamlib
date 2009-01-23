@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-D700 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: tmd700.c,v 1.8 2008-10-26 13:48:17 y32kn Exp $
+ *	$Id: tmd700.c,v 1.9 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -173,6 +173,8 @@ const struct rig_caps tmd700_caps = {
 	},
 .priv =  (void *)&tmd700_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  th_set_freq,
 .get_freq =  th_get_freq,
 .set_mode =  th_set_mode,

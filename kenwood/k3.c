@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - Elecraft K3 description
  *  Copyright (c) 2002-2008 by Stephane Fillod
  *
- *	$Id: k3.c,v 1.1 2008-09-01 19:01:12 fillods Exp $
+ *	$Id: k3.c,v 1.2 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -143,12 +143,14 @@ const struct rig_caps k3_caps = {
 	},
 .priv =  (void *)&k3_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo,
+.get_vfo =  kenwood_get_vfo_if,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,

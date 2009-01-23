@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2000-2008 by Stephane Fillod and others
  *
- *	$Id: ic10.c,v 1.7 2008-10-31 22:34:58 fillods Exp $
+ *	$Id: ic10.c,v 1.8 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,18 +40,6 @@
 #include "kenwood.h"
 #include "ic10.h"
 
-/*
- * modes in use by the "MD" command
- */
-#define MD_NONE	'0'
-#define MD_LSB	'1'
-#define MD_USB	'2'
-#define MD_CW	'3'
-#define MD_FM	'4'
-#define MD_AM	'5'
-#define MD_FSK	'6'
-
-
 /**
  * ic10_transaction
  * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
@@ -72,7 +60,7 @@ int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	if (!data || !data_len)
 		return 0;
 
-	retval = read_string(&rs->rigport, data, 50, EOM_KEN, 1);
+	retval = read_string(&rs->rigport, data, 50, ";", 1);
    	if (retval == -RIG_ETIMEOUT)
 		retval = 0;
 	if (retval < 0)

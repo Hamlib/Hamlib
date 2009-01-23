@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS950 description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: ts950.c,v 1.14 2005-04-03 20:14:26 fillods Exp $
+ *	$Id: ts950.c,v 1.15 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -152,6 +152,8 @@ const struct rig_caps ts950sdx_caps = {
 	},
 .priv =  (void *)&ts950_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
@@ -161,7 +163,7 @@ const struct rig_caps ts950sdx_caps = {
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo,
+.get_vfo =  kenwood_get_vfo_if,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,
@@ -182,8 +184,3 @@ const struct rig_caps ts950sdx_caps = {
 .reset =  kenwood_reset,
 
 };
-
-/*
- * Function definitions below
- */
-

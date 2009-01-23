@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH handheld primitives
  *  Copyright (c) 2001-2008 by Stephane Fillod
  *
- *	$Id: th.c,v 1.35 2008-11-01 16:30:23 fillods Exp $
+ *	$Id: th.c,v 1.36 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +42,7 @@ const struct kenwood_priv_caps  th_priv_caps  = {
  * single character.
  */
 
-#define EOM EOM_TH
+#define EOM "\r" /* XXX */
 
 
 #define ACKBUF_LEN  64

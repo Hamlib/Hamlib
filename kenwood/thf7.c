@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.14 2008-05-04 21:27:26 fillods Exp $
+ *	$Id: thf7.c,v 1.15 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -229,6 +229,7 @@ const struct rig_caps thf7e_caps = {
 .priv =  (void *)&thf7_priv_caps,
 
 .rig_init =  thf7e_init,
+.rig_cleanup = kenwood_cleanup,
 .rig_open =  thf7e_open,
 
 .set_freq =  th_set_freq,
@@ -268,7 +269,7 @@ const struct rig_caps thf7e_caps = {
 int thf7e_init(RIG *rig)
 {
 	rig->state.itu_region = RIG_ITU_REGION1;
-	return RIG_OK;
+	return kenwood_init(rig);
 }
 
 int thf7e_open(RIG *rig)
@@ -304,11 +305,11 @@ thf7_set_vfo (RIG *rig, vfo_t vfo)
         case RIG_VFO_A:
         case RIG_VFO_VFO:
         case RIG_VFO_MAIN:
-            sprintf(vfobuf, "BC 0" EOM_TH);
+            sprintf(vfobuf, "BC 0%c", EOM_TH);
             break;
         case RIG_VFO_B:
         case RIG_VFO_SUB:
-            sprintf(vfobuf, "BC 1" EOM_TH);
+            sprintf(vfobuf, "BC 1%c", EOM_TH);
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported BC VFO %d\n", __FUNCTION__, vfo);
@@ -326,14 +327,14 @@ thf7_set_vfo (RIG *rig, vfo_t vfo)
         case RIG_VFO_VFO:
         case RIG_VFO_MAIN:
         case RIG_VFO_A:
-            sprintf(vfobuf, "VMC 0,0" EOM_TH);
+            sprintf(vfobuf, "VMC 0,0%c", EOM_TH);
             break;
         case RIG_VFO_SUB:
         case RIG_VFO_B:
-            sprintf(vfobuf, "VMC 1,0" EOM_TH);
+            sprintf(vfobuf, "VMC 1,0%c", EOM_TH);
             break;
         case RIG_VFO_MEM:
-            sprintf(vfobuf, "VMC 0,1" EOM_TH);
+            sprintf(vfobuf, "VMC 0,1%c", EOM_TH);
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
@@ -361,7 +362,8 @@ thf7_get_vfo (RIG *rig, vfo_t *vfo)
     rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     ack_len=ACKBUF_LEN;
-    retval = kenwood_transaction (rig, "BC" EOM_TH, 3, ackbuf, &ack_len);
+    /* XXX */
+    retval = kenwood_transaction (rig, "BC\r", 3, ackbuf, &ack_len);
     if (retval != RIG_OK)
         return retval;
 
@@ -379,7 +381,7 @@ thf7_get_vfo (RIG *rig, vfo_t *vfo)
             return -RIG_EVFO;
     }
 
-    sprintf(cmdbuf,"VMC %c" EOM_TH,vfoc);
+    sprintf(cmdbuf,"VMC %c%c",vfoc, EOM_TH);
     ack_len=ACKBUF_LEN;
     retval = kenwood_transaction (rig, cmdbuf, strlen(cmdbuf), ackbuf, &ack_len);
     if (retval != RIG_OK)

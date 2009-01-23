@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2008 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.21 2008-05-04 21:15:17 fillods Exp $
+ *	$Id: thg71.c,v 1.22 2009-01-23 03:24:42 n0nb Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -60,7 +60,7 @@
 const struct kenwood_priv_caps  thg71_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
-#define EOM EOM_TH
+#define EOM "\r" /* XXX */
 
 
 /* thg71 procs */
@@ -155,6 +155,8 @@ const struct rig_caps thg71_caps = {
 .str_cal ={ 3, { { 0, -60 }, {1, -30 }, {5,-13}}}, /* guessed from technical manual */
 
 .priv =  (void *)&thg71_priv_caps,
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .rig_open =  thg71_open,
 .rig_close =  NULL,
 
