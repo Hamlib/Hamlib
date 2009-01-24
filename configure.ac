@@ -367,25 +367,9 @@ if test "${cf_with_winradio}" = "yes" ; then
 	BACKEND_LIST="$BACKEND_LIST winradio"
 fi
 
-# FIXME: check for presence of libgnuradio, libfftw
 if test "${cf_with_cxx}" = "yes" ; then
   # stuff that requires C++ support
-  #BACKEND_LIST="$BACKEND_LIST microtune"
 
-  AC_MSG_CHECKING(whether to build gnuradio backend)
-  AC_ARG_WITH(gnuradio,
-        [  --with-gnuradio	build gnuradio backend],
-        [cf_with_gnuradio=$withval],
-        [cf_with_gnuradio="no"])
-  AC_MSG_RESULT($cf_with_gnuradio)
-
-  if test "${cf_with_gnuradio}" = "yes" ; then
-  	PKG_CHECK_MODULES(GNURADIO, gnuradio >= 0.9)
-	dnl check for pthreads
-	ACX_PTHREAD([BACKEND_LIST="$BACKEND_LIST gnuradio"],
-		[AC_MSG_FAILURE([gnuradio backend requires POSIX threads.  pthreads not found.])])
-  fi
- 
   AC_MSG_CHECKING(whether to build USRP backend)
   AC_ARG_WITH(usrp,
         [  --with-usrp	build USRP backend],
@@ -397,12 +381,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   	PKG_CHECK_MODULES(USRP, usrp >= 0.8, 
 		[AC_DEFINE(HAVE_USRP,[1],[Define if usrp is available])])
   fi
- fi
-#AC_MSG_CHECKING(whether to build microtune backend)
-#AC_MSG_RESULT($cf_with_cxx)
-
-AC_SUBST(GNURADIO_CFLAGS)
-AC_SUBST(GNURADIO_LIBS)
+fi
 
 
 PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, , 
@@ -520,7 +499,6 @@ skanti/Makefile
 wj/Makefile
 racal/Makefile
 tuner/Makefile
-gnuradio/Makefile
 easycomm/Makefile
 fodtrack/Makefile
 gs232a/Makefile
