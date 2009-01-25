@@ -1,8 +1,9 @@
 /*
  *  Hamlib Interface - API header
- *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2003 by Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: rig.h,v 1.138 2009-01-11 17:42:29 mrtembry Exp $
+ *	$Id: rig.h,v 1.139 2009-01-25 16:23:06 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -77,7 +78,9 @@ extern HAMLIB_EXPORT_VAR(const char) hamlib_copyright[];
 
 /**
  * \brief Hamlib error codes
- * Error codes that can be returned by the Hamlib functions
+ * Error code definition that can be returned by the Hamlib functions.
+ * Unless stated otherwise, Hamlib functions return the negative value
+ * of rig_errcode_e definitions in case of error, or 0 when successful.
  */
 enum rig_errcode_e {
 	RIG_OK=0,		/*!< No error, operation completed sucessfully */
