@@ -14,7 +14,7 @@
  * Tested on a HAM-IV with the Rotor-EZ V1.4S interface installed.
  *
  *
- *    $Id: rotorez.c,v 1.13 2009-01-17 14:47:12 n0nb Exp $
+ *    $Id: rotorez.c,v 1.14 2009-01-25 16:14:39 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -66,6 +66,25 @@ struct rotorez_rot_priv_data {
 static int rotorez_send_priv_cmd(ROT *rot, const char *cmd);
 static int rotorez_flush_buffer(ROT *rot);
 
+/*
+ * local configuration parameters
+ */
+static const struct confparams rotorez_cfg_params[] = {
+	{ TOK_ENDPT, "endpt", "Endpoint option", "Endpoint option",
+		NULL, RIG_CONF_CHECKBUTTON, { }
+	},
+	{ TOK_JAM, "jam", "Jam protection", "Jam protection",
+		NULL, RIG_CONF_CHECKBUTTON, { }
+	},
+	{ TOK_OVRSHT, "oversht", "Overshoot option", "Overshoot option",
+		NULL, RIG_CONF_CHECKBUTTON, { }
+	},
+	{ TOK_UNSTICK, "unstick", "Unstick option", "Unstick option",
+		NULL, RIG_CONF_CHECKBUTTON, { }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
 /* *************************************
  *
  * Seperate model capabilities
@@ -105,6 +124,7 @@ const struct rot_caps rotorez_rot_caps = {
   .max_el =  	        0,
 
   .priv =  NULL,	/* priv */
+  .cfgparams =  rotorez_cfg_params,
 
   .rot_init =           rotorez_rot_init,
   .rot_cleanup =        rotorez_rot_cleanup,
@@ -147,6 +167,7 @@ const struct rot_caps rotorcard_rot_caps = {
   .max_el =  	        0,
 
   .priv =  NULL,	/* priv */
+  .cfgparams =  rotorez_cfg_params,
 
   .rot_init =           rotorez_rot_init,
   .rot_cleanup =        rotorez_rot_cleanup,
@@ -406,25 +427,25 @@ static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val) {
         return -RIG_EINVAL;
 
     switch(token) {
-    case ENDPT:             /* Endpoint option */
+    case TOK_ENDPT:             /* Endpoint option */
         if (*val == '1')
             c = 'E';
         else
             c = 'e';
         break;
-    case JAM:               /* Jam protection */
+    case TOK_JAM:               /* Jam protection */
         if (*val == '1')
             c = 'J';
         else
             c = 'j';
         break;
-    case OVRSHT:            /* Overshoot option */
+    case TOK_OVRSHT:            /* Overshoot option */
         if (*val == '1')
             c = 'O';
         else
             c = 'o';
         break;
-    case UNSTICK:           /* Unstick option */
+    case TOK_UNSTICK:           /* Unstick option */
         if (*val == '1')
             c = 'S';
         else

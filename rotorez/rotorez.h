@@ -9,7 +9,7 @@
  * supports the Hy-Gain DCU-1.
  *
  *
- *    $Id: rotorez.h,v 1.7 2009-01-17 14:47:12 n0nb Exp $
+ *    $Id: rotorez.h,v 1.8 2009-01-25 16:14:39 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -31,6 +31,8 @@
 #ifndef _ROT_ROTOREZ_H
 #define _ROT_ROTOREZ_H 1
 
+#include "token.h"
+
 #define AZ_READ_LEN 4
 
 extern const struct rot_caps rotorez_rot_caps;
@@ -42,13 +44,10 @@ extern const struct rot_caps dcu_rot_caps;
  * and rotctld followed by a value of '0' to disable a Rotor-EZ option
  * and '1' to enable it.
  */
-enum {
-    NONE = 0,
-    ENDPT,
-    JAM,
-    OVRSHT,
-    UNSTICK
-};
+#define TOK_ENDPT   TOKEN_BACKEND(1)
+#define TOK_JAM     TOKEN_BACKEND(2)
+#define TOK_OVRSHT  TOKEN_BACKEND(3)
+#define TOK_UNSTICK TOKEN_BACKEND(4)
 
 /* 
  * API local implementation
