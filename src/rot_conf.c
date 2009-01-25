@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - rotator configuration interface
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: rot_conf.c,v 1.7 2008-04-09 21:36:06 fillods Exp $
+ *	$Id: rot_conf.c,v 1.8 2009-01-25 15:39:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -119,56 +119,70 @@ static const struct confparams rotfrontend_cfg_params[] = {
  * \return RIG_OK or < 0 error
  *
  * assumes rot!=NULL, val!=NULL
- * TODO: check format of val before doing atoi().
  */
 int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 {
 	const struct rot_caps *caps;
 	struct rot_state *rs;
+	int val_i;
 
 	caps = rot->caps;
 	rs = &rot->state;
 
 	switch(token) {
 	case TOK_PATHNAME:
-		strcpy(rs->rotport.pathname, val);
+		strncpy(rs->rotport.pathname, val, FILPATHLEN-1);
 		break;
 	case TOK_WRITE_DELAY:
-		rs->rotport.write_delay = atoi(val);
+		if (1 != sscanf(val, "%d", &val_i))
+			return -RIG_EINVAL;
+		rs->rotport.write_delay = val_i;
 		break;
 	case TOK_POST_WRITE_DELAY:
-		rs->rotport.post_write_delay = atoi(val);
+		if (1 != sscanf(val, "%d", &val_i))
+			return -RIG_EINVAL;
+		rs->rotport.post_write_delay = val_i;
 		break;
 	case TOK_TIMEOUT:
-		rs->rotport.timeout = atoi(val);
+		if (1 != sscanf(val, "%d", &val_i))
+			return -RIG_EINVAL;
+		rs->rotport.timeout = val_i;
 		break;
 	case TOK_RETRY:
-		rs->rotport.retry = atoi(val);
+		if (1 != sscanf(val, "%d", &val_i))
+			return -RIG_EINVAL;
+		rs->rotport.retry = val_i;
 		break;
 
 	case TOK_SERIAL_SPEED:
 		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
 			return -RIG_EINVAL;
-		rs->rotport.parm.serial.rate = atoi(val);
+		if (1 != sscanf(val, "%d", &val_i))
+			return -RIG_EINVAL;
+		rs->rotport.parm.serial.rate = val_i;
 		break;
 	case TOK_DATA_BITS:
 		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
 			return -RIG_EINVAL;
-		rs->rotport.parm.serial.data_bits = atoi(val);
+		if (1 != sscanf(val, "%d", &val_i))
+			return -RIG_EINVAL;
+		rs->rotport.parm.serial.data_bits = val_i;
 		break;
 	case TOK_STOP_BITS:
 		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
 			return -RIG_EINVAL;
-		rs->rotport.parm.serial.stop_bits = atoi(val);
+		if (1 != sscanf(val, "%d", &val_i))
+			return -RIG_EINVAL;
+		rs->rotport.parm.serial.stop_bits = val_i;
 		break;
 	case TOK_PARITY:
 		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
 			return -RIG_EINVAL;
-		if (!strncmp(val, "None", 8))
+		if (!strcmp(val, "None"))
 			rs->rotport.parm.serial.parity = RIG_PARITY_NONE;
-		else if (!strncmp(val, "Odd", 8))
+		else if (!strcmp(val, "Odd"))
 			rs->rotport.parm.serial.parity = RIG_PARITY_ODD;
-		else if (!strncmp(val, "Even", 8))
+		else if (!strcmp(val, "Even"))
 			rs->rotport.parm.serial.parity = RIG_PARITY_EVEN;
 		else 
 			return -RIG_EINVAL;
@@ -176,11 +190,11 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 	case TOK_HANDSHAKE:
 		if (rs->rotport.type.rig != RIG_PORT_SERIAL)
 			return -RIG_EINVAL;
-		if (!strncmp(val, "None", 8))
+		if (!strcmp(val, "None"))
 			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_NONE;
-		else if (!strncmp(val, "XONXOFF", 8))
+		else if (!strcmp(val, "XONXOFF"))
 			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_XONXOFF;
-		else if (!strncmp(val, "Hardware", 8))
+		else if (!strcmp(val, "Hardware"))
 			rs->rotport.parm.serial.handshake = RIG_HANDSHAKE_HARDWARE;
 		else 
 			return -RIG_EINVAL;
