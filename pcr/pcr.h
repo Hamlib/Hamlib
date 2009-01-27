@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: pcr.h,v 1.12 2006-10-07 16:42:19 csete Exp $
+ *	$Id: pcr.h,v 1.13 2009-01-27 19:05:59 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,15 +23,38 @@
 #ifndef _PCR_H
 #define _PCR_H 1
 
-#define BACKEND_VER "0.4"
+#define BACKEND_VER		"0.5"
+
+#define PCR_MAX_CMD_LEN		32
 
 struct pcr_priv_data {
 	freq_t last_freq;
 	rmode_t last_mode;
+
 	int last_filter;
+	int last_shift;
+	int last_att;
+	int last_agc;
+	tone_t last_ctcss_sql;
+
+	float	volume;
+	float	squelch;
+
+	int auto_update;
+	int raw_level;
+
+	char info[100];
+	char cmd_buf[PCR_MAX_CMD_LEN];
+
+	int protocol;
+	int firmware;
+	int country;
+	int options;
+
+	int sync;
 };
 
-extern const tone_t pcr1_ctcss_list[];
+extern const tone_t pcr_ctcss_list[];
 
 int pcr_init(RIG *rig);
 int pcr_cleanup(RIG *rig);
@@ -44,7 +67,7 @@ int pcr_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 const char *pcr_get_info(RIG *rig);
 
 
-/*Added - G0WCW ----------------------------------------------------- */
+/* Added - G0WCW */
 
 int pcr_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int pcr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
@@ -53,30 +76,35 @@ int pcr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 int pcr_set_comm_rate(RIG *rig, int baud_rate);
-int pcr_check_ok(RIG *rig);
 
-int pcr_set_volume(RIG *rig, int level);
+int pcr_set_volume(RIG *rig, float level);
 int pcr_set_squelch(RIG *rig, int level);
-int pcr_set_IF_shift(RIG *rig, int shift);
-int pcr_set_AGC(RIG *rig, int level);                // J45xx
-int pcr_set_NB(RIG *rig, int level);                 // J46xx
-int pcr_set_Attenuator(RIG *rig, int level);         // J47xx
+int pcr_set_if_shift(RIG *rig, int level);
+int pcr_set_agc(RIG *rig, int status);			// J45xx
+int pcr_set_nb(RIG *rig, int status);			// J46xx
+int pcr_set_attenuator(RIG *rig, int status);		// J47xx
+int pcr_set_anl(RIG *rig, int status);			// J4Dxx
 
-int pcr_set_BFO(RIG *rig, int shift);                // J4Axx
-int pcr_set_VSC(RIG *rig, int level);                // J50xx
-int pcr_set_DSP(RIG *rig, int state);                // J80xx
-int pcr_set_DSP_state(RIG *rig, int state);          // J8100=off J8101=on
-int pcr_set_DSP_noise_reducer(RIG *rig, int state);  // J82xx
-int pcr_set_DSP_auto_notch(RIG *rig, int state);     // J83xx
+int pcr_set_bf0(RIG *rig, int level);                // J4Axx
+int pcr_set_vsc(RIG *rig, int level);                // J50xx
+int pcr_set_dsp(RIG *rig, int level);                // J80xx
+int pcr_set_dsp_state(RIG *rig, int level);          // J8100=off J8101=on
+int pcr_set_dsp_noise_reducer(RIG *rig, int level);  // J82xx
+int pcr_set_dsp_auto_notch(RIG *rig, int level);     // J83xx
+
+int pcr_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+int pcr_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+int pcr_set_trn(RIG * rig, int trn);
+int pcr_decode_event(RIG *rig);
+
+static int pcr_check_ok(RIG * rig);
+
 /* ------------------------------------------------------------------ */
 
 // int pcr_get_param(RIG *rig, setting_t parm, value_t *val);
 // int pcr_set_param(RIG *rig, setting_t parm, value_t *val);
 
-
 extern const struct rig_caps pcr1000_caps;
 extern const struct rig_caps pcr100_caps;
 
-
 #endif /* _PCR_H */
-
