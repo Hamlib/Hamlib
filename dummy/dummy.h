@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main header
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *		$Id: dummy.h,v 1.7 2008-09-21 19:34:15 fillods Exp $
+ *		$Id: dummy.h,v 1.8 2009-01-28 22:53:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -22,6 +22,14 @@
 
 #ifndef _DUMMY_H
 #define _DUMMY_H 1
+
+#include "hamlib/rig.h"
+#include "token.h"
+
+/* ext_level's and ext_parm's tokens */
+#define TOK_EL_MAGICLEVEL  TOKEN_BACKEND(1)
+#define TOK_EL_MAGICFUNC   TOKEN_BACKEND(2)
+#define TOK_EP_MAGICPARM   TOKEN_BACKEND(3)
 
 
 extern const struct rig_caps dummy_caps;

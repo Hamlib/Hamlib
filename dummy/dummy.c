@@ -1,8 +1,8 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.42 2008-09-21 19:34:15 fillods Exp $
+ *	$Id: dummy.c,v 1.43 2009-01-28 22:53:18 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,6 +57,26 @@ struct dummy_priv_data {
 		channel_t vfo_a;
 		channel_t vfo_b;
 		channel_t mem[NB_CHAN];
+
+		struct ext_list *ext_parms;
+};
+
+
+static const struct confparams dummy_ext_levels[] = {
+	{ TOK_EL_MAGICLEVEL, "magiclevel", "Magic level", "Magic level, as an example",
+		NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
+	},
+	{ TOK_EL_MAGICFUNC, "magicfunc", "Magic func", "Magic function, as an example",
+		NULL, RIG_CONF_CHECKBUTTON, { .n = { 0, 1, .001 } }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
+static const struct confparams dummy_ext_parms[] = {
+	{ TOK_EP_MAGICPARM, "magicparm", "Magic parm", "Magic parameter, as an example",
+		NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
+	},
+	{ RIG_CONF_END, NULL, }
 };
 
 
@@ -91,6 +111,41 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
   memset(chan->levels, 0, RIG_SETTING_MAX*sizeof(value_t));
 }
 
+static struct ext_list * alloc_init_ext(const struct confparams *cfp)
+{
+  struct ext_list *elp;
+  int i, nb_ext;
+
+  for (nb_ext=0; !RIG_IS_EXT_END(cfp[nb_ext]); nb_ext++)
+	  ;
+
+  elp = calloc((nb_ext+1), sizeof(struct ext_list));
+  if (!elp)
+	return NULL;
+
+  for (i=0; !RIG_IS_EXT_END(cfp[i]); i++)
+  {
+	  elp[i].token = cfp[i].token;
+	  /* value reset already by calloc */
+  }
+  /* last token in array is set to 0 by calloc */
+
+  return elp;
+}
+
+static struct ext_list * find_ext(struct ext_list *elp, token_t token)
+{
+  int i;
+
+  for (i=0; elp[i].token != 0; i++)
+  {
+    if (elp[i].token == token)
+	    return &elp[i];
+  }
+
+  return NULL;
+}
+
 static int dummy_init(RIG *rig)
 {
   struct dummy_priv_data *priv;
@@ -113,7 +168,23 @@ static int dummy_init(RIG *rig)
   for (i=0; i<NB_CHAN; i++) {
 	priv->mem[i].channel_num = i;
 	priv->mem[i].vfo = RIG_VFO_MEM;
+
+	priv->mem[i].ext_levels = alloc_init_ext(dummy_ext_levels);
+	if (!priv->mem[i].ext_levels)
+		return -RIG_ENOMEM;
   }
+
+  priv->vfo_a.ext_levels = alloc_init_ext(dummy_ext_levels);
+  if (!priv->vfo_a.ext_levels)
+    return -RIG_ENOMEM;
+  priv->vfo_b.ext_levels = alloc_init_ext(dummy_ext_levels);
+  if (!priv->vfo_b.ext_levels)
+    return -RIG_ENOMEM;
+
+  priv->ext_parms = alloc_init_ext(dummy_ext_parms);
+  if (!priv->ext_parms)
+    return -RIG_ENOMEM;
+
   init_chan(rig, RIG_VFO_A, &priv->vfo_a);
   init_chan(rig, RIG_VFO_B, &priv->vfo_b);
   priv->curr = &priv->vfo_a;
@@ -124,7 +195,17 @@ static int dummy_init(RIG *rig)
 
 static int dummy_cleanup(RIG *rig)
 {
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  int i;
+
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+
+  for (i=0; i<NB_CHAN; i++) {
+	free(priv->mem[i].ext_levels);
+  }
+  free(priv->vfo_a.ext_levels);
+  free(priv->vfo_b.ext_levels);
+  free(priv->ext_parms);
 
   if (rig->state.priv)
   	free(rig->state.priv);
@@ -650,6 +731,88 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   return RIG_OK;
 }
 
+static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  channel_t *curr = priv->curr;
+  char lstr[64];
+  const struct confparams *cfp;
+  struct ext_list *elp;
+
+  cfp = rig_ext_lookup_tok(rig, token);
+  if (!cfp)
+	  return -RIG_EINVAL;
+
+  switch (token) {
+    case TOK_EL_MAGICLEVEL:
+    case TOK_EL_MAGICFUNC:
+	    break;
+
+    default:
+	    return -RIG_EINVAL;
+  }
+
+  switch (cfp->type) {
+    case RIG_CONF_STRING:
+	    strcpy(lstr, val.s);
+	    break;
+    case RIG_CONF_COMBO:
+	    sprintf(lstr, "%d", val.i);
+	    break;
+    case RIG_CONF_NUMERIC:
+	    sprintf(lstr, "%f", val.f);
+	    break;
+    case RIG_CONF_CHECKBUTTON:
+	    sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+	    break;
+    default:
+	    return -RIG_EINTERNAL;
+  }
+
+  elp = find_ext(curr->ext_levels, token);
+  if (!elp)
+	    return -RIG_EINTERNAL;
+  /* store value */
+  elp->val = val;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",__FUNCTION__, 
+				  cfp->name, lstr);
+
+  return RIG_OK;
+}
+
+static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  channel_t *curr = priv->curr;
+  const struct confparams *cfp;
+  struct ext_list *elp;
+
+  cfp = rig_ext_lookup_tok(rig, token);
+  if (!cfp)
+	  return -RIG_EINVAL;
+
+  switch (token) {
+    case TOK_EL_MAGICLEVEL:
+    case TOK_EL_MAGICFUNC:
+	    break;
+
+    default:
+	    return -RIG_EINVAL;
+  }
+
+  elp = find_ext(curr->ext_levels, token);
+  if (!elp)
+	    return -RIG_EINTERNAL;
+  /* load value */
+  *val = elp->val;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
+				  cfp->name);
+
+  return RIG_OK;
+}
+
 
 static int dummy_set_powerstat(RIG *rig, powerstat_t status)
 {
@@ -708,6 +871,88 @@ static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
 
   return RIG_OK;
 }
+
+static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
+{
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  char lstr[64];
+  const struct confparams *cfp;
+  struct ext_list *epp;
+
+  cfp = rig_ext_lookup_tok(rig, token);
+  if (!cfp)
+	  return -RIG_EINVAL;
+
+  switch (token) {
+    case TOK_EP_MAGICPARM:
+	    break;
+
+    default:
+	    return -RIG_EINVAL;
+  }
+
+  switch (cfp->type) {
+    case RIG_CONF_STRING:
+	    strcpy(lstr, val.s);
+	    break;
+    case RIG_CONF_COMBO:
+	    sprintf(lstr, "%d", val.i);
+	    break;
+    case RIG_CONF_NUMERIC:
+	    sprintf(lstr, "%f", val.f);
+	    break;
+    case RIG_CONF_CHECKBUTTON:
+	    sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+	    break;
+    default:
+	    return -RIG_EINTERNAL;
+  }
+
+  epp = find_ext(priv->ext_parms, token);
+  if (!epp)
+	    return -RIG_EINTERNAL;
+  /* store value */
+  epp->val = val;
+
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",__FUNCTION__, 
+				  cfp->name, lstr);
+
+  return RIG_OK;
+}
+
+static int dummy_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+  struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
+  const struct confparams *cfp;
+  struct ext_list *epp;
+
+  /* TODO: load value from priv->ext_parms */
+
+  cfp = rig_ext_lookup_tok(rig, token);
+  if (!cfp)
+	  return -RIG_EINVAL;
+
+  switch (token) {
+    case TOK_EP_MAGICPARM:
+	    break;
+
+    default:
+	    return -RIG_EINVAL;
+  }
+
+  epp = find_ext(priv->ext_parms, token);
+  if (!epp)
+	    return -RIG_EINTERNAL;
+  /* load value */
+  *val = epp->val;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
+				  cfp->name);
+
+  return RIG_OK;
+}
+
 
 
 static int dummy_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
@@ -1039,7 +1284,7 @@ const struct rig_caps dummy_caps = {
   .rig_model =      RIG_MODEL_DUMMY,
   .model_name =     "Dummy",
   .mfg_name =       "Hamlib",
-  .version =        "0.3",
+  .version =        "0.4",
   .copyright =      "LGPL",
   .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_OTHER,
@@ -1068,7 +1313,7 @@ const struct rig_caps dummy_caps = {
   .attenuator =     { 10, 20, 30, RIG_DBLST_END, },
   .preamp = 		 { 10, RIG_DBLST_END, },
   .rx_range_list2 =  { {.start=kHz(150),.end=MHz(1500),.modes=DUMMY_MODES,
-		    .low_power=-1,.high_power=-1,RIG_VFO_A|RIG_VFO_B},
+		    .low_power=-1,.high_power=-1,RIG_VFO_A|RIG_VFO_B, RIG_ANT_1|RIG_ANT_2},
 		    RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
   .tuning_steps =  { {DUMMY_MODES,1}, {DUMMY_MODES,RIG_TS_ANY}, RIG_TS_END, },
@@ -1086,6 +1331,9 @@ const struct rig_caps dummy_caps = {
   .max_xit = 9990,
   .max_ifshift = 10000,
   .priv =  NULL,	/* priv */
+
+  .extlevels =    dummy_ext_levels,
+  .extparms =     dummy_ext_parms,
 
   .rig_init =     dummy_init,
   .rig_cleanup =  dummy_cleanup,
@@ -1107,6 +1355,10 @@ const struct rig_caps dummy_caps = {
   .get_func =      dummy_get_func,
   .set_parm =      dummy_set_parm,
   .get_parm =      dummy_get_parm,
+  .set_ext_level = dummy_set_ext_level,
+  .get_ext_level = dummy_get_ext_level,
+  .set_ext_parm =  dummy_set_ext_parm,
+  .get_ext_parm =  dummy_get_ext_parm,
 
   .get_info =      dummy_get_info,
 
