@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS690 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts690.c,v 1.5 2009-01-28 23:30:59 azummo Exp $
+ *	$Id: ts690.c,v 1.6 2009-01-28 23:31:42 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -164,6 +164,8 @@ const struct rig_caps ts690s_caps = {
 	},
 .priv =  (void *)&ts690_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,

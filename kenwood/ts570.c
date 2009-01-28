@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.37 2009-01-28 23:30:58 azummo Exp $
+ *	$Id: ts570.c,v 1.38 2009-01-28 23:31:42 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,7 +47,7 @@
 #define TS570_SCAN_OPS (RIG_SCAN_VFO)
 #define TS570_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-static struct kenwood_priv_caps  ts570_priv_caps  = {
+static struct kenwood_priv_caps ts570_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
@@ -794,6 +794,8 @@ const struct rig_caps ts570s_caps = {
 	},
 .priv =  (void *)&ts570_priv_caps,
 
+.rig_init = kenwood_init,
+.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  ic10_get_freq,
 .set_rit =  ts570_set_rit,
