@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.24 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts2000.c,v 1.25 2009-01-28 23:30:56 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -73,7 +73,7 @@ static const tone_t ts2000_dcs_list[] = {
   0,
 };
 
-const struct kenwood_priv_caps  ts2000_priv_caps  = {
+static struct kenwood_priv_caps  ts2000_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 

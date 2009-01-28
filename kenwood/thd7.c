@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-D7 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: thd7.c,v 1.17 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: thd7.c,v 1.18 2009-01-28 23:30:52 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,7 +64,7 @@
  */
 #define THD7_VFO (RIG_VFO_A|RIG_VFO_B)
 
-const struct kenwood_priv_caps  thd7_priv_caps  = {
+static struct kenwood_priv_caps  thd7_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
 

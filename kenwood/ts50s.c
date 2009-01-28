@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS50 description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: ts50s.c,v 1.13 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts50s.c,v 1.14 2009-01-28 23:30:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,7 @@
 #define TS50_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS50_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
-static const struct kenwood_priv_caps  ts50_priv_caps  = {
+static struct kenwood_priv_caps  ts50_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 

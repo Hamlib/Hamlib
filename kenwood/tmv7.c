@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2008 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.17 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: tmv7.c,v 1.18 2009-01-28 23:30:54 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,7 +69,7 @@
 
 #define ACKBUF_LEN 128
 
-const struct kenwood_priv_caps  tmv7_priv_caps  = {
+static struct kenwood_priv_caps  tmv7_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
 #define EOM "\r" /* XXX */

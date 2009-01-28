@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS680 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.9 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts680.c,v 1.10 2009-01-28 23:30:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,7 +45,7 @@
 #define	VFO_B	'1'
 #define	VFO_MEM	'2'
 
-static const struct kenwood_priv_caps  ts680_priv_caps  = {
+static struct kenwood_priv_caps  ts680_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 

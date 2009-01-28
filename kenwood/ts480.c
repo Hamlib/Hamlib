@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.9 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts480.c,v 1.10 2009-01-28 23:30:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -269,7 +269,7 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
   return RIG_OK;		/* never reached */
 }
 
-static const struct kenwood_priv_caps ts480_priv_caps = {
+static struct kenwood_priv_caps ts480_priv_caps = {
   .cmdtrm = EOM_KEN,
 };
 

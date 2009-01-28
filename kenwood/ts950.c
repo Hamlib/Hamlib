@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS950 description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: ts950.c,v 1.15 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts950.c,v 1.16 2009-01-28 23:30:59 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +41,7 @@
 #define TS950_VFO (RIG_VFO_A|RIG_VFO_B)
 
 #define cmd_trm(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)->cmdtrm
-const struct kenwood_priv_caps  ts950_priv_caps  = {
+static struct kenwood_priv_caps  ts950_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 

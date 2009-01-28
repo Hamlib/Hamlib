@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-790 description
  *  Copyright (c) 2000-2006 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.17 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts790.c,v 1.18 2009-01-28 23:30:59 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -46,7 +46,7 @@
  * Function definitions below
  */
 
-static const struct kenwood_priv_caps  ts790_priv_caps  = {
+static struct kenwood_priv_caps  ts790_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 

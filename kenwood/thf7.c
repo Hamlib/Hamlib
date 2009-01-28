@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.15 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: thf7.c,v 1.16 2009-01-28 23:30:52 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -103,7 +103,7 @@ static rmode_t thf7_mode_table[KENWOOD_MODE_TABLE_MAX] = {
  */
 #define THF7_VFO (RIG_VFO_A|RIG_VFO_B)
 
-const struct kenwood_priv_caps  thf7_priv_caps  = {
+static struct kenwood_priv_caps  thf7_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
     .mode_table = thf7_mode_table,
 };

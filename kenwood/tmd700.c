@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-D700 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: tmd700.c,v 1.9 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: tmd700.c,v 1.10 2009-01-28 23:30:54 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,7 +59,7 @@
  */
 #define TMD700_VFO (RIG_VFO_A|RIG_VFO_B)
 
-const struct kenwood_priv_caps  tmd700_priv_caps  = {
+static struct kenwood_priv_caps  tmd700_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
 

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2008 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.22 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: thg71.c,v 1.23 2009-01-28 23:30:53 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,7 +57,7 @@
 
 #define ACKBUF_LEN 128
 
-const struct kenwood_priv_caps  thg71_priv_caps  = {
+static struct kenwood_priv_caps  thg71_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
 #define EOM "\r" /* XXX */

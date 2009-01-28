@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS-811 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts811.c,v 1.6 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts811.c,v 1.7 2009-01-28 23:30:59 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,7 +43,7 @@
 #define TS811_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 #define TS811_SCAN_OP (RIG_SCAN_VFO)
 
-static const struct kenwood_priv_caps  ts811_priv_caps  = {
+static struct kenwood_priv_caps  ts811_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
 	.if_len =  29,
 };
