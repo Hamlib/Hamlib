@@ -1,9 +1,9 @@
 /*
- * dumpcaps.c - Copyright (C) 2000-2008 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2009 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.51 2009-01-03 14:16:49 mrtembry Exp $  
+ *    $Id: dumpcaps.c,v 1.52 2009-01-28 22:49:58 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -266,7 +266,7 @@ int dumpcaps (RIG* rig, FILE *fout)
 			backend_warnings++;
 	}
 	fprintf(fout, "Extra levels:");
-	rig_ext_level_foreach(rig, print_ext, NULL);
+	rig_ext_level_foreach(rig, print_ext, fout);
 	fprintf(fout, "\n");
 
 	sprintf_parm_gran(prntbuf, caps->has_get_parm, caps->parm_gran);
