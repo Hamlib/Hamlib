@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2005 by Stephane Fillod and others
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.99 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: kenwood.c,v 1.100 2009-01-29 08:41:57 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -144,7 +144,7 @@ kenwood_transaction(RIG *rig, const char *cmdstr, int cmd_len,
     rs = &rig->state;
     rs->hold_decode = 1;
 
-    rig_debug(RIG_DEBUG_ERR, "%s: %s\n", __func__, cmdstr);
+    rig_debug(RIG_DEBUG_TRACE, "%s: %s\n", __func__, cmdstr);
 
     cmdtrm[0] = caps->cmdtrm;
     cmdtrm[1] = '\0';
