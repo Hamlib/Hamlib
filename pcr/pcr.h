@@ -2,7 +2,7 @@
  *  Hamlib PCR backend - main header
  *  Copyright (c) 2001-2003 by Stephane Fillod
  *
- *	$Id: pcr.h,v 1.13 2009-01-27 19:05:59 fillods Exp $
+ *	$Id: pcr.h,v 1.14 2009-01-29 19:50:33 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -52,6 +52,8 @@ struct pcr_priv_data {
 	int options;
 
 	int sync;
+
+	powerstat_t power;
 };
 
 extern const tone_t pcr_ctcss_list[];
@@ -77,8 +79,8 @@ int pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 
 int pcr_set_comm_rate(RIG *rig, int baud_rate);
 
-int pcr_set_volume(RIG *rig, float level);
-int pcr_set_squelch(RIG *rig, int level);
+static int pcr_set_volume(RIG *rig, float level);
+static int pcr_set_squelch(RIG *rig, float level);
 int pcr_set_if_shift(RIG *rig, int level);
 int pcr_set_agc(RIG *rig, int status);			// J45xx
 int pcr_set_nb(RIG *rig, int status);			// J46xx
@@ -96,7 +98,8 @@ int pcr_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int pcr_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 int pcr_set_trn(RIG * rig, int trn);
 int pcr_decode_event(RIG *rig);
-
+int pcr_set_powerstat(RIG * rig, powerstat_t status);
+int pcr_get_powerstat(RIG * rig, powerstat_t *status);
 static int pcr_check_ok(RIG * rig);
 
 /* ------------------------------------------------------------------ */

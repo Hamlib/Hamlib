@@ -3,7 +3,7 @@
  *  Copyright (c) 2001-2005 by Stephane Fillod and Darren Hatcher
  *  Copyright (C) 2007-09 by Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: pcr.c,v 1.24 2009-01-27 19:05:59 fillods Exp $
+ *	$Id: pcr.c,v 1.25 2009-01-29 19:50:33 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -369,7 +369,10 @@ pcr_init(RIG * rig)
 	priv->last_freq		= MHz(145);
 	priv->last_mode		= MD_FM;
 	priv->last_filter	= FLT_15kHz;
-
+	priv->power		= RIG_POWER_OFF;
+	priv->volume		= 0.25;
+	priv->squelch		= 0.00;
+	
 	rig->state.priv		= (rig_ptr_t) priv;
 	rig->state.transceive	= RIG_TRN_OFF;
 
@@ -428,25 +431,26 @@ pcr_open(RIG * rig)
 	if (err != RIG_OK)
 		return err;
 
+	priv->power = RIG_POWER_ON;
+
 	/* turn off auto update (just to be sure) */
 	err = pcr_transaction(rig, "G300");
 	if (err != RIG_OK)
 		return err;
 
-	/* turn squelch off */
-	err = pcr_transaction(rig, "J4100");
+	/* set squelch and volume */
+	err = pcr_set_squelch(rig, priv->squelch);
 	if (err != RIG_OK)
 		return err;
 
-	/* set volume to an acceptable default */
-	err = pcr_set_volume(rig, 0.25);
+	err = pcr_set_volume(rig, priv->volume);
 	if (err != RIG_OK)
 		return err;
 
 	/* get device features */
 	pcr_get_info(rig);
 
-	/* tune to default last freq */
+	/* tune to last freq */
 	pcr_set_freq(rig, 0, priv->last_freq);
 
 	/* switch to different speed if requested */
@@ -463,9 +467,11 @@ pcr_open(RIG * rig)
 int
 pcr_close(RIG * rig)
 {
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
 	/* when the pcr turns itself off sometimes we receive
 	 * a malformed answer, so don't check for it.
 	 */
+	priv->power = RIG_POWER_OFF;
 	return pcr_send(rig, "H100");
 }
 
@@ -820,10 +826,7 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		 *      .... rig supports 0 to FF - look at function for
 		 *      squelch "bands"
 		 */
-		err = pcr_set_squelch(rig, (val.f * 0xFF));
-		if (err == RIG_OK)
-			priv->squelch = val.f;
-		return err;
+		return pcr_set_squelch(rig, val.f);
 
 	case RIG_LEVEL_NR:
 		/* This selectss the DSP unit - this isn't a level per se,
@@ -1027,17 +1030,15 @@ pcr_set_level_cmd(RIG * rig, char *base, int level)
  * Format is J40xx - where xx is 00 to FF in hex, and specifies 255 volume levels
  */
 
-int
+static int
 pcr_set_volume(RIG * rig, float level)
 {
 	int err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
 
-	int hwlevel = level * 0xFF;
-
 	rig_debug(RIG_DEBUG_TRACE, "%s: level = %f\n", __func__, level);
 
-	err = pcr_set_level_cmd(rig, "J40", hwlevel);
+	err = pcr_set_level_cmd(rig, "J40", level * 0xff);
 	if (err == RIG_OK)
 		priv->volume = level;
 
@@ -1062,12 +1063,21 @@ pcr_set_volume(RIG * rig, float level)
  *	use of Hamlib API. Otherwise may get unexpected squelch settings if have to do by hand.
  */
 
-int
-pcr_set_squelch(RIG * rig, int level)
+static int
+pcr_set_squelch(RIG * rig, float level)
 {
-	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, level);
-	return pcr_set_level_cmd(rig, "J41", level);
+	int err;
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: level = %f\n", __func__, level);
+
+	err = pcr_set_level_cmd(rig, "J41", level * 0xff);
+	if (err == RIG_OK)
+		priv->squelch = level;
+
+	return err;
 }
+
 
 /*
  * pcr_set_if_shift
@@ -1328,6 +1338,28 @@ int pcr_decode_event(RIG *rig)
 	return RIG_OK;
 }
 
+int pcr_set_powerstat(RIG * rig, powerstat_t status)
+{
+	if (status == RIG_POWER_ON)
+		return pcr_open(rig);
+	else if (status == RIG_POWER_OFF)
+		return pcr_close(rig);
+
+	return -RIG_ENIMPL;
+}
+
+int pcr_get_powerstat(RIG * rig, powerstat_t *status)
+{
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+
+	/* XXX There's a command to check the status, it's worthwhile
+	 * to use it?
+	 */
+	*status = priv->power;
+
+	return RIG_OK;
+}
+     
 
 /* *********************************************************************************************
  * int pcr_set_comm_mode(RIG *rig, int mode_type);  // Set radio to fast/diagnostic mode  G3xx
