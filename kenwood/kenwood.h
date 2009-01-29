@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - main header
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.45 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: kenwood.h,v 1.46 2009-01-29 22:54:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -72,9 +72,11 @@ int kenwood_cleanup(RIG *rig);
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo);
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo , split_t split, vfo_t txvfo);
+int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo);
 
 int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq);
 int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int kenwood_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit);
 int kenwood_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
@@ -126,6 +128,7 @@ extern const struct rig_caps ts930_caps;
 extern const struct rig_caps ts2000_caps;
 extern const struct rig_caps k2_caps;
 extern const struct rig_caps k3_caps;
+extern const struct rig_caps trc80_caps;
 
 extern const struct rig_caps thd7a_caps;
 extern const struct rig_caps tmd700_caps;

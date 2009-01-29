@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2003 by Frank Singleton
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: riglist.h,v 1.75 2009-01-11 13:16:54 fillods Exp $
+ *	$Id: riglist.h,v 1.76 2009-01-29 22:54:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -127,6 +127,7 @@
 #define RIG_MODEL_TMV7 RIG_MAKE_MODEL(RIG_KENWOOD, 27)
 #define RIG_MODEL_TS480 RIG_MAKE_MODEL(RIG_KENWOOD, 28)
 #define RIG_MODEL_K3 RIG_MAKE_MODEL(RIG_KENWOOD, 29)
+#define RIG_MODEL_TRC80 RIG_MAKE_MODEL(RIG_KENWOOD, 30)
 
 	/*
 	 * Icom

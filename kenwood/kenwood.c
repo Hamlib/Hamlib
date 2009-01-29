@@ -1,9 +1,9 @@
 /*
  *  Hamlib Kenwood backend - main file
- *  Copyright (c) 2000-2005 by Stephane Fillod and others
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.100 2009-01-29 08:41:57 azummo Exp $
+ *	$Id: kenwood.c,v 1.101 2009-01-29 22:54:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -70,6 +70,7 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_TS450S, 10 },
 	{ RIG_MODEL_TS690S, 11 },
 	{ RIG_MODEL_TS870S, 15 },
+	{ RIG_MODEL_TRC80, 16 },
 	{ RIG_MODEL_TS570D, 17 },	/* Elecraft K2 also returns 17 */
 	{ RIG_MODEL_TS570S, 18 },
 	{ RIG_MODEL_TS2000, 19 },
@@ -200,9 +201,14 @@ transaction_write:
 	 	retval = -RIG_ENAVAIL;
 	 	goto transaction_quit;
 	case 'O':
-		/* Too many characters send without a carriage return */
+		/* Too many characters sent without a carriage return */
 	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __FUNCTION__, cmdstr);
 	 	retval = -RIG_EPROTO;
+	 	goto transaction_quit;
+	case 'E':
+		/* Communication error */
+	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Communication error for '%s'\n", __FUNCTION__, cmdstr);
+	 	retval = -RIG_EIO;
 	 	goto transaction_quit;
 	case '?':
     		/* Command not understood by rig */
@@ -335,8 +341,10 @@ static int kenwood_get_if(RIG *rig)
 {
 	struct kenwood_priv_data *priv = rig->state.priv;
 	struct kenwood_priv_caps *caps = kenwood_caps(rig);
+	char cmdbuf[4] = "IF;";
 
-	return kenwood_safe_transaction (rig, "IF", priv->info,
+	cmdbuf[2] = caps->cmdtrm;
+	return kenwood_safe_transaction (rig, cmdbuf, priv->info,
 					KENWOOD_MAX_IF_LEN, caps->if_len);
 }
 
@@ -434,6 +442,36 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	return RIG_OK;
 }
 
+int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
+{
+	int retval;
+	struct kenwood_priv_data *priv = rig->state.priv;
+
+	retval = kenwood_get_if(rig);
+	if (retval != RIG_OK)
+		return retval;
+
+	switch (priv->info[32]) {
+	case '0':
+		*split = RIG_SPLIT_OFF;
+		break;
+
+	case '1':
+		*split = RIG_SPLIT_ON;
+		break;
+
+	default: 
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported split %c\n",
+					__func__, priv->info[32]);
+		return -RIG_EPROTO;
+	}
+
+	/* TODO: find where is the txvfo.. */
+
+	return RIG_OK;
+}
+
+
 /*
  * kenwood_get_vfo_if using byte 31 of the IF information field
  * Assumes rig!=NULL, !vfo
@@ -495,14 +533,30 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	return kenwood_simple_transaction(rig, freqbuf, 0);
 }
 
+int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+	struct kenwood_priv_data *priv = rig->state.priv;
+
+	char freqbuf[50];
+	int retval;
+
+	retval = kenwood_get_if(rig);
+	if (retval != RIG_OK)
+		return retval;
+
+	memcpy(freqbuf, priv->info, 15);
+	freqbuf[14] = '\0';
+	sscanf(freqbuf + 2, "%"SCNfreq, freq);
+
+	return RIG_OK;
+}
+
 /*
  * kenwood_get_freq
  * Assumes rig!=NULL, freq!=NULL
  */
 int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	struct kenwood_priv_data *priv = rig->state.priv;
-
 	char freqbuf[50];
 	char cmdbuf[4];
 	int retval;
@@ -514,15 +568,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	/* memory frequency cannot be read with an Fx command, use IF */
 	if (tvfo == RIG_VFO_MEM) {
 
-		retval = kenwood_get_if(rig);
-		if (retval != RIG_OK)
-			return retval;
-
-		memcpy(freqbuf, priv->info, 15);
-		freqbuf[14] = '\0';
-		sscanf(freqbuf + 2, "%"SCNfreq, freq);
-
-		return RIG_OK;
+		return kenwood_get_freq_if(rig, vfo, freq);
 	}
 
 	switch (tvfo) {
@@ -1215,7 +1261,7 @@ int kenwood_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 	if (retval != RIG_OK)
 		return retval;
 
-	*dcd = (busybuf[2] == 0x01) ? RIG_DCD_ON : RIG_DCD_OFF;
+	*dcd = (busybuf[2] == '1') ? RIG_DCD_ON : RIG_DCD_OFF;
 
 	return RIG_OK;
 }
@@ -1464,7 +1510,7 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
 	/* parse from right to left */
 	/* XXX filter cannot be read there. strange. maybe another command? */
 
-	if (buf[19] == '0')
+	if (buf[19] == '0' || buf[19] == ' ')
                 chan->ctcss_tone = 0;
         else {
                 buf[22]='\0';
@@ -1672,6 +1718,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 	rig_register(&ts870s_caps);
 	rig_register(&ts930_caps);
 	rig_register(&ts2000_caps);
+	rig_register(&trc80_caps);
 	rig_register(&k2_caps);
 	rig_register(&k3_caps);
 
