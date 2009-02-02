@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.101 2009-01-29 22:54:40 fillods Exp $
+ *	$Id: kenwood.c,v 1.102 2009-02-02 07:29:11 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -274,13 +274,6 @@ kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
 	return RIG_OK;
 }
 
-/* use when not interested in the answer */
-int kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
-{
-	char buf[10];
-	return kenwood_safe_transaction(rig, cmd, buf, 10, expected);
-}
-
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[])
 {
 	if (mode >= KENWOOD_MODE_TABLE_MAX)
@@ -384,13 +377,13 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 	sprintf(cmdbuf, "FR%c", vfo_function);
 
 	/* set RX VFO */
-	retval = kenwood_simple_transaction(rig, cmdbuf, 0);
+	retval = kenwood_simple_cmd(rig, cmdbuf);
 	if (retval != RIG_OK)
 		return retval;
 
 	/* set TX VFO */
 	cmdbuf[1] = 'T';
-	retval = kenwood_simple_transaction(rig, cmdbuf, 0);
+	retval = kenwood_simple_cmd(rig, cmdbuf);
 
 	return retval;
 }
@@ -415,7 +408,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	
 	/* set RX VFO */
 	sprintf(cmdbuf, "FR%c", vfo_function);
-	retval = kenwood_simple_transaction(rig, cmdbuf, 0);
+	retval = kenwood_simple_cmd(rig, cmdbuf);
 	if (retval != RIG_OK)
 		return retval;
 	}
@@ -432,7 +425,7 @@ int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		} 
 	/* set TX VFO */
 	sprintf(cmdbuf, "FT%c", vfo_function);
-	retval = kenwood_simple_transaction(rig, cmdbuf, 0);
+	retval = kenwood_simple_cmd(rig, cmdbuf);
 	if (retval != RIG_OK)
 		return retval;
 	} else
@@ -530,7 +523,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	}
 	sprintf(freqbuf,"F%c%011ld;", vfo_letter, (long)freq);
 
-	return kenwood_simple_transaction(rig, freqbuf, 0);
+	return kenwood_simple_cmd(rig, freqbuf);
 }
 
 int kenwood_get_freq_if(RIG *rig, vfo_t vfo, freq_t *freq)
@@ -620,7 +613,7 @@ int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 	int retval, i;
 	
 	if (rit == 0)
-		return kenwood_simple_transaction(rig, "RC;", 0);
+		return kenwood_simple_cmd(rig, "RC;");
 
 	if (rit > 0)
 		c = 'U';
@@ -629,9 +622,9 @@ int kenwood_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
 	sprintf(buf, "R%c;", c);
 
-	retval = kenwood_simple_transaction(rig, "RC;", 0);
+	retval = kenwood_simple_cmd(rig, "RC;");
 	for (i = 0; i < abs(rint(rit/10)); i++)
-		retval = kenwood_simple_transaction(rig, buf, 0);
+		retval = kenwood_simple_cmd(rig, buf);
 
 	return retval;
 }
@@ -651,8 +644,8 @@ int kenwood_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
 int kenwood_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 {
-	return kenwood_simple_transaction(rig,
-		scan == RIG_SCAN_STOP? "SC0;" : "SC1;", 0);
+	return kenwood_simple_cmd(rig,
+		scan == RIG_SCAN_STOP? "SC0;" : "SC1;");
 }
 
 /*
@@ -673,7 +666,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	}
 
 	sprintf(mdbuf, "MD%c;", '0' + kmode);
-	return kenwood_simple_transaction(rig, mdbuf, 0);
+	return kenwood_simple_cmd(rig, mdbuf);
 }
 
 /*
@@ -787,7 +780,7 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		return -RIG_EINVAL;
 	}
 
-	return kenwood_simple_transaction(rig, levelbuf, 0);
+	return kenwood_simple_cmd(rig, levelbuf);
 }
 
 /* 
@@ -952,55 +945,55 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	switch (func) {
 	case RIG_FUNC_NB:
 		sprintf(buf, "NB%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_ABM:
 		sprintf(buf, "AM%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_COMP:
 		sprintf(buf, "PR%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_TONE:
 		sprintf(buf, "TO%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_TSQL:
 		sprintf(buf, "CT%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_VOX:
 		sprintf(buf, "VX%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_FAGC:
 		sprintf(buf, "GT00%c;", (0==status)? '4':'2');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_NR:
 		sprintf(buf, "NR%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_BC:
 		sprintf(buf, "BC%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_ANF:
 		sprintf(buf, "NT%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_LOCK:
 		sprintf(buf, "LK%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 		
 	case RIG_FUNC_AIP:
 		sprintf(buf, "MX%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 /*
 	case RIG_FUNC_FINE_STEP:
 		sprintf(buf, "FS%c;", (status == 0) ? '0' : '1');
-		return kenwood_simple_transaction(rig, buf, 0);
+		return kenwood_simple_cmd(rig, buf);
 
 	case RIG_FUNC_VOICE:
 	case RIG_FUNC_RIT:
@@ -1124,7 +1117,7 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 /* TODO: replace menu no 57 by a define */
 	sprintf(tonebuf,"EX%03d%04d;", 57, i+1);
 	
-	return kenwood_simple_transaction(rig, tonebuf, 0);
+	return kenwood_simple_cmd(rig, tonebuf);
 }
 
 /*
@@ -1349,7 +1342,7 @@ int kenwood_reset(RIG *rig, reset_t reset)
 	sprintf(rstbuf,"SR%c;", rst);
 
 	/* this command has no answer */
-	return kenwood_simple_transaction(rig, rstbuf, 0);
+	return kenwood_simple_cmd(rig, rstbuf);
 }
 
 /*
@@ -1381,7 +1374,7 @@ int kenwood_send_morse(RIG *rig, vfo_t vfo, const char *msg)
 
 		/* the command must consist of 28 bytes */
 		sprintf(morsebuf,"KY %-24s;", m2);
-		retval = kenwood_simple_transaction(rig, morsebuf, 0);
+		retval = kenwood_simple_cmd(rig, morsebuf);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -1423,7 +1416,7 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		return -RIG_EINVAL;
 	}
 
-	return kenwood_simple_transaction(rig, cmd, 0);
+	return kenwood_simple_cmd(rig, cmd);
 }
 
 /*
@@ -1440,7 +1433,7 @@ int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch)
 	 */
 	sprintf(buf, "MC %02d;", ch);
 
-	return kenwood_simple_transaction(rig, buf, 0);
+	return kenwood_simple_cmd(rig, buf);
 }
 
 /*

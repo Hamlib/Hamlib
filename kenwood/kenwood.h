@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.46 2009-01-29 22:54:40 fillods Exp $
+ *	$Id: kenwood.h,v 1.47 2009-02-02 07:29:11 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,6 +63,9 @@ extern const tone_t kenwood38_ctcss_list[];
 
 int kenwood_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 				size_t *data_len);
+int kenwood_safe_transaction(RIG *rig, const char *cmd, char *buf,
+				size_t buf_size, size_t expected);
+
 rmode_t kenwood2rmode(unsigned char mode, const rmode_t mode_table[]);
 char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
 
@@ -105,7 +108,7 @@ int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch);
 int kenwood_get_channel(RIG *rig, channel_t *chan);
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
-const char* kenwood_get_info(RIG *rig);
+const char * kenwood_get_info(RIG *rig);
 
 int kenwood_set_trn(RIG *rig, int trn);
 int kenwood_get_trn(RIG *rig, int *trn);
@@ -144,5 +147,19 @@ extern const struct rig_caps ts811_caps;
 extern const struct rig_caps r5000_caps;
 
 extern const struct rig_caps ts480_caps;
+
+/* use when not interested in the answer, bit want to check its len */
+static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
+{
+	char buf[10];
+	return kenwood_safe_transaction(rig, cmd, buf, 10, expected);
+}
+
+/* no answer needed at all */
+static int inline kenwood_simple_cmd(RIG *rig, const char *cmd)
+{
+	char buf[10];
+	return kenwood_safe_transaction(rig, cmd, buf, 10, 0);
+}
 
 #endif /* _KENWOOD_H */
