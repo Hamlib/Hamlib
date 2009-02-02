@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.102 2009-02-02 07:29:11 azummo Exp $
+ *	$Id: kenwood.c,v 1.103 2009-02-02 07:30:35 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1189,6 +1189,30 @@ int kenwood_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 	return kenwood_simple_transaction(rig, cmd, 4);
 }
 
+int kenwood_set_ant_no_ack(RIG * rig, vfo_t vfo, ant_t ant)
+{
+	const char *cmd;
+
+	switch (ant) {
+	case RIG_ANT_1:
+		cmd = "AN1;";
+		break;
+	case RIG_ANT_2:
+		cmd = "AN2;";
+		break;
+	case RIG_ANT_3:
+		cmd = "AN3;";
+		break;
+	case RIG_ANT_4:
+		cmd = "AN4;";
+		break;
+	default:
+		return -RIG_EINVAL;
+	}
+
+	return kenwood_simple_cmd(rig, cmd);
+}
+
 /*
  * get the aerial/antenna in use
  */
@@ -1236,8 +1260,8 @@ int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
  */
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
-	return kenwood_simple_transaction(rig,
-		ptt == RIG_PTT_ON ? "TX;" : "RX;", 3);
+	return kenwood_simple_cmd(rig,
+		ptt == RIG_PTT_ON ? "TX;" : "RX;");
 }
 
 

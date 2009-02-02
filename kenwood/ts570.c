@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.38 2009-01-28 23:31:42 azummo Exp $
+ *	$Id: ts570.c,v 1.39 2009-02-02 07:30:35 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -815,7 +815,7 @@ const struct rig_caps ts570s_caps = {
 .get_dcd =  kenwood_get_dcd,
 .set_func =  ts570_set_func,
 .get_func =  ts570_get_func,
-.set_ant = kenwood_set_ant,
+.set_ant = kenwood_set_ant_no_ack,
 .get_ant = kenwood_get_ant,
 .set_level =  ts570_set_level,
 .get_level =  ts570_get_level,
@@ -999,7 +999,7 @@ const struct rig_caps ts570d_caps = {
 .get_dcd =  kenwood_get_dcd,
 .set_func =  ts570_set_func,
 .get_func =  ts570_get_func,
-.set_ant = kenwood_set_ant,
+.set_ant = kenwood_set_ant_no_ack,
 .get_ant = kenwood_get_ant,
 .set_level =  ts570_set_level,
 .get_level =  ts570_get_level,
