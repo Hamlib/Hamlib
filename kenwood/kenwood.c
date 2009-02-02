@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.103 2009-02-02 07:30:35 azummo Exp $
+ *	$Id: kenwood.c,v 1.104 2009-02-02 20:30:36 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -648,6 +648,24 @@ int kenwood_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 		scan == RIG_SCAN_STOP? "SC0;" : "SC1;");
 }
 
+static int kenwood_set_filter(RIG *rig, pbwidth_t width)
+{
+	char *cmd;
+
+ 	if (width <= Hz(250))
+		cmd = "FL010009";
+	else if(width <= Hz(500))
+		cmd = "FL009009";
+	else if(width <= kHz(2.7))
+		cmd = "FL007007";
+	else if(width <= kHz(6))
+		cmd = "FL005005";
+	else
+		cmd = "FL002002";
+
+	return kenwood_simple_cmd(rig, cmd);
+}
+
 /*
  * kenwood_set_mode
  * Assumes rig!=NULL
@@ -655,8 +673,9 @@ int kenwood_scan(RIG * rig, vfo_t vfo, scan_t scan, int ch)
 int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	struct kenwood_priv_caps *caps = kenwood_caps(rig);
-	char mdbuf[6];
+	char buf[6];
 	char kmode;
+	int err;
 
 	kmode = rmode2kenwood(mode, caps->mode_table);
 	if (kmode < 0 ) {
@@ -665,8 +684,62 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		return -RIG_EINVAL;
 	}
 
-	sprintf(mdbuf, "MD%c;", '0' + kmode);
-	return kenwood_simple_cmd(rig, mdbuf);
+	sprintf(buf, "MD%c;", '0' + kmode);
+	err = kenwood_simple_cmd(rig, buf);
+ 	if (err != RIG_OK)
+ 		return err;
+
+	if (rig->caps->rig_model == RIG_MODEL_TS450S
+		|| rig->caps->rig_model == RIG_MODEL_TS690S
+		|| rig->caps->rig_model == RIG_MODEL_TS850) {
+
+		err = kenwood_set_filter(rig, width);
+		/* non fatal */
+ 	}
+
+ 	return RIG_OK;
+}
+
+static int kenwood_get_filter(RIG *rig, pbwidth_t *width)
+{
+ 	int err, f, f1, f2;
+ 	char buf[10];
+
+ 	err = kenwood_safe_transaction(rig, "FL;", buf, sizeof(buf), 9);
+ 	if (err != RIG_OK)
+ 		return err;
+
+ 	buf[8] = '\0';
+ 	f2 = atoi(&buf[5]);
+
+ 	buf[5] = '\0';
+ 	f1 = atoi(&buf[2]);
+
+ 	if (f2 > f1)
+ 		f = f2;
+ 	else
+ 		f = f1;
+
+ 	switch (f) {
+ 	case 2:
+ 		*width = kHz(12);
+ 	break;
+ 	case 3:
+ 	case 5:
+ 		*width = kHz(6);
+ 	break;
+ 	case 7:
+ 		*width = kHz(2.7);
+ 	break;
+ 	case 9:
+ 		*width = Hz(500);
+ 	break;
+ 	case 10:
+ 		*width = Hz(250);
+ 	break;
+ 	}
+
+ 	return RIG_OK;
 }
 
 /*
@@ -704,8 +777,15 @@ int kenwood_get_mode_if(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	*mode = kenwood2rmode(priv->info[29] - '0', caps->mode_table);
 
-	/* XXX */
 	*width = rig_passband_normal(rig, *mode);
+
+	if (rig->caps->rig_model == RIG_MODEL_TS450S
+		|| rig->caps->rig_model == RIG_MODEL_TS690S
+		|| rig->caps->rig_model == RIG_MODEL_TS850) {
+
+		err = kenwood_get_filter(rig, width);
+		/* non fatal */
+	}
 
 	return RIG_OK;
 }

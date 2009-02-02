@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.27 2009-01-28 23:30:59 azummo Exp $
+*	$Id: ts850.c,v 1.28 2009-02-02 20:30:36 azummo Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -71,8 +71,6 @@ static struct kenwood_priv_caps  ts850_priv_caps  = {
 /* forward definitions */
 static int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 static int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-static int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-static int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 static int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ts850_set_channel (RIG * rig, const channel_t * chan);
@@ -205,8 +203,8 @@ const struct rig_caps ts850_caps = {
 	.get_rit =  kenwood_get_rit,
 	.set_xit =  ts850_set_xit,
 	.get_xit =  kenwood_get_xit,
-	.set_mode =  ts850_set_mode,
-	.get_mode =  ts850_get_mode,
+	.set_mode = kenwood_set_mode,
+	.get_mode = kenwood_get_mode_if,
 	.set_vfo =  kenwood_set_vfo,
 	.get_vfo =  kenwood_get_vfo_if,
 	.set_split_vfo =  kenwood_set_split_vfo,
@@ -290,79 +288,6 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 	return RIG_OK;
 }
 
-int ts850_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
-{
-	char infobuf[50];
-	size_t info_len;
-	int f,f1,f2,retval;
-	
-	info_len = 50;
-	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len)
-		;
-	if (retval != RIG_OK)
-		return retval;
-	
-	if (info_len != 38 || infobuf[1] != 'F') {
-		rig_debug(RIG_DEBUG_ERR,"ts850_get_mode: wrong answer len=%d\n", info_len);
-		return -RIG_ERJCTED;
-	}
-	
-	switch (infobuf[29]) {
-		case MD_CW:     *mode = RIG_MODE_CW; break;
-		case MD_CWR:    *mode = RIG_MODE_CWR; break;
-		case MD_USB:    *mode = RIG_MODE_USB; break;
-		case MD_LSB:    *mode = RIG_MODE_LSB; break;
-		case MD_FM:     *mode = RIG_MODE_FM; break;
-		case MD_AM:     *mode = RIG_MODE_AM; break;
-		case MD_FSK:    *mode = RIG_MODE_RTTY; break;
-		case MD_FSKR:   *mode = RIG_MODE_RTTYR; break;
-		case MD_NONE:   *mode = RIG_MODE_NONE; break;
-		default:
-			rig_debug(RIG_DEBUG_ERR,"ts850_get_mode: unsupported mode '%c'\n", infobuf[29]);
-		return -RIG_EINVAL;
-	}
-	
-	info_len = 50;
-	retval = kenwood_transaction (rig, "FL;", 3, infobuf, &info_len)
-		;
-	if (retval != RIG_OK)
-		return retval;
-	
-	if (info_len != 9 || infobuf[1] != 'L') {
-		rig_debug(RIG_DEBUG_ERR,"ts850_get_mode: wrong answer len=%d\n", info_len);
-		return -RIG_ERJCTED;
-	}
-	
-	infobuf[8]='\0';
-	f2=atoi(&infobuf[5]);
-	infobuf[5]='\0';
-	f1=atoi(&infobuf[2]);
-	
-	if(f2>f1) f=f2;
-	else f=f1;
-	
-	switch(f) {
-		case 2:
-			*width=kHz(12);
-		break;
-		case 3:
-		case 5:
-			*width=kHz(6);
-		break;
-		case 7:
-			*width=kHz(2.7);
-		break;
-		case 9:
-			*width=Hz(500);
-		break;
-		case 10:
-			*width=Hz(250);
-		break;
-	}
-	
-	return RIG_OK;
-}
-
 static char mode_to_char(rmode_t mode)
 {
 	switch (mode) {
@@ -378,45 +303,6 @@ static char mode_to_char(rmode_t mode)
 			rig_debug(RIG_DEBUG_WARN,"%s: unsupported mode %d\n", __FUNCTION__,mode);
 	}
 	return(RIG_MODE_NONE);
-}
-
-int ts850_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
-{
-	char mdbuf[16],ackbuf[16];
-	int mdbuf_len, kmode, retval;
-	size_t ack_len;
-	
-	kmode=mode_to_char(mode);
-	if(kmode==RIG_MODE_NONE) {
-		rig_debug(RIG_DEBUG_ERR,"ts850_set_mode: " "unsupported mode %d\n", mode);
-		return -RIG_EINVAL;
-	}
-	
-	mdbuf_len = sprintf(mdbuf, "MD%c;", kmode);
-	ack_len = 0;
-	retval = kenwood_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
-	
-	if (retval != RIG_OK)
-		return retval;
-	
-	ack_len = 0;
-	if(width <= Hz(250)) 
-		mdbuf_len = sprintf(mdbuf, "FL010009;");
-	else
-		if(width <= Hz(500)) 
-		mdbuf_len = sprintf(mdbuf, "FL009009;");
-	else
-		if(width <= kHz(2.7)) 
-		mdbuf_len = sprintf(mdbuf, "FL007007;");
-	else
-		if(width <= kHz(6)) 
-		mdbuf_len = sprintf(mdbuf, "FL005005;");
-	else
-		mdbuf_len = sprintf(mdbuf, "FL002002;");
-	
-	retval = kenwood_transaction (rig, mdbuf, mdbuf_len, ackbuf, &ack_len);
-	
-	return retval;
 }
 
 int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
