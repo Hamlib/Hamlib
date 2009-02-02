@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.25 2009-01-23 03:24:42 n0nb Exp $
+ *	$Id: ts450s.c,v 1.26 2009-02-02 20:28:34 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -54,10 +54,24 @@
 	.flags=RIG_CHFLAG_SKIP \
 	}
 
-
 static struct kenwood_priv_caps ts450_priv_caps = {
         .cmdtrm		= EOM_KEN,
 };
+
+
+static int ts450_open(RIG *rig)
+{
+	int err;
+
+	err = kenwood_simple_transaction(rig, "TO", 3);
+	if (err != RIG_OK) {
+        	rig_debug(RIG_DEBUG_TRACE, "%s: tone unit not detected\n", __func__);
+		rig->state.has_set_func &= ~RIG_FUNC_TONE;
+		rig->state.has_get_func &= ~RIG_FUNC_TONE;
+	}
+
+	return RIG_OK;
+}
 
 /*
  * ts450s rig capabilities.
@@ -179,6 +193,7 @@ const struct rig_caps ts450s_caps = {
 
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
+.rig_open = ts450_open,
 .set_freq = kenwood_set_freq,
 .get_freq = kenwood_get_freq,
 .set_rit = kenwood_set_rit,
