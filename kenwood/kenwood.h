@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.48 2009-02-02 07:30:35 azummo Exp $
+ *	$Id: kenwood.h,v 1.49 2009-02-03 22:42:44 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,8 +28,8 @@
 #define EOM_KEN ';'
 #define EOM_TH '\r'
 
-#define KENWOOD_MODE_TABLE_MAX 10
-#define KENWOOD_MAX_IF_LEN 50
+#define KENWOOD_MODE_TABLE_MAX	10
+#define KENWOOD_MAX_BUF_LEN	50 /* max answer len, arbitrary */
 
 /*
  * modes in use by the "MD" command
@@ -51,7 +51,7 @@ struct kenwood_priv_caps {
 };
 
 struct kenwood_priv_data {
-    char info[KENWOOD_MAX_IF_LEN];
+    char info[KENWOOD_MAX_BUF_LEN];
 };
 
 #define kenwood_caps(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)
@@ -71,6 +71,7 @@ char rmode2kenwood(rmode_t mode, const rmode_t mode_table[]);
 
 int kenwood_init(RIG *rig);
 int kenwood_cleanup(RIG *rig);
+int kenwood_open(RIG *rig);
 
 int kenwood_set_vfo(RIG *rig, vfo_t vfo);
 int kenwood_get_vfo_if(RIG *rig, vfo_t *vfo);
@@ -110,6 +111,7 @@ int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch);
 int kenwood_get_channel(RIG *rig, channel_t *chan);
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 const char * kenwood_get_info(RIG *rig);
+int kenwood_get_id(RIG *rig, char *buf);
 
 int kenwood_set_trn(RIG *rig, int trn);
 int kenwood_get_trn(RIG *rig, int *trn);

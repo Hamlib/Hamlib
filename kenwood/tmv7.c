@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2008 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.18 2009-01-28 23:30:54 azummo Exp $
+ *	$Id: tmv7.c,v 1.19 2009-02-03 22:42:44 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,7 +76,6 @@ static struct kenwood_priv_caps  tmv7_priv_caps  = {
 
 
 /* tmv7 procs */
-static int tmv7_open(RIG *rig);
 static int tmv7_decode_event (RIG *rig);
 static int tmv7_set_vfo (RIG *rig, vfo_t vfo);
 static int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
@@ -186,7 +185,7 @@ const struct rig_caps tmv7_caps = {
 .priv =  (void *)&tmv7_priv_caps,
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
-.rig_open =  tmv7_open,
+.rig_open = kenwood_open,
 .rig_close =  NULL,
 
 .set_freq =  th_set_freq,
@@ -658,24 +657,3 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 
     return RIG_OK;
 }
-
-/*-------------------------------------------------------------------- */
-int tmv7_open(RIG *rig)
-{
-    char ackbuf[ACKBUF_LEN];
-    int retval;
-    size_t ack_len=ACKBUF_LEN;
-
-	/* just to be sure it's a TM-V7 */
-    retval = kenwood_transaction(rig, "ID"EOM, 3, ackbuf, &ack_len);
-        if (retval != RIG_OK)
-        	return retval;
-    
-    if (ack_len<9 || strncmp(ackbuf,"ID TM-V7",8)) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
-        return -RIG_ERJCTED;
-    }
-
-    return RIG_OK;
-}
-

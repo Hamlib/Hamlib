@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.27 2009-02-02 20:33:05 azummo Exp $
+ *	$Id: ts450s.c,v 1.28 2009-02-03 22:42:44 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -62,6 +62,10 @@ static struct kenwood_priv_caps ts450_priv_caps = {
 static int ts450_open(RIG *rig)
 {
 	int err;
+
+	err = kenwood_open(rig);
+	if (err != RIG_OK)
+		return err;
 
 	err = kenwood_simple_transaction(rig, "TO", 3);
 	if (err != RIG_OK) {

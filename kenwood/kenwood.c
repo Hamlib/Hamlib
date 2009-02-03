@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.106 2009-02-03 22:33:00 azummo Exp $
+ *	$Id: kenwood.c,v 1.107 2009-02-03 22:42:44 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -78,15 +78,31 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_NONE, UNKNOWN_ID },	/* end marker */
 };
 
+/* XXX numeric ids have been tested only with the TS-450 */
 static const struct kenwood_id_string kenwood_id_string_list[] = {
-	{ RIG_MODEL_THD7A,  "TH-D7" },
-	{ RIG_MODEL_THD7AG, "TH-D7G" },
-	{ RIG_MODEL_TMD700, "TM-D700" },
-	{ RIG_MODEL_TMV7,   "TM-V7" },
-	{ RIG_MODEL_THF6A, "TH-F6" },
-	{ RIG_MODEL_THF7E, "TH-F7" },
-	{ RIG_MODEL_THG71, "TH-G71" },
-	{ RIG_MODEL_NONE, NULL },	/* end marker */
+	{ RIG_MODEL_TS940, 	"001" },
+	{ RIG_MODEL_TS811, 	"002" },
+	{ RIG_MODEL_TS711, 	"003" },
+	{ RIG_MODEL_TS440, 	"004" },
+	{ RIG_MODEL_R5000, 	"005" },
+	{ RIG_MODEL_TS790, 	"007" },
+	{ RIG_MODEL_TS950SDX,	"008" },	/* reported as RIG_MODEL_TS950SD originally */
+	{ RIG_MODEL_TS850,	"009" },
+	{ RIG_MODEL_TS450S,	"010" },
+	{ RIG_MODEL_TS690S,	"011" },
+	{ RIG_MODEL_TS870S,	"015" },
+	{ RIG_MODEL_TS570D,	"017" },	/* Elecraft K2 also returns 17 */
+	{ RIG_MODEL_TS570S,	"018" },
+	{ RIG_MODEL_TS2000,	"019" },
+	{ RIG_MODEL_TS480,	"020" },
+	{ RIG_MODEL_THD7A,	"TH-D7" },
+	{ RIG_MODEL_THD7AG,	"TH-D7G" },
+	{ RIG_MODEL_TMD700,	"TM-D700" },
+	{ RIG_MODEL_TMV7,	"TM-V7" },
+	{ RIG_MODEL_THF6A,	"TH-F6" },
+	{ RIG_MODEL_THF7E,	"TH-F7" },
+	{ RIG_MODEL_THG71,	"TH-G71" },
+	{ RIG_MODEL_NONE,	NULL },	/* end marker */
 };
 
 rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] = {
@@ -296,7 +312,7 @@ int kenwood_init(RIG *rig)
 	struct kenwood_priv_data *priv;
 	struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
-	rig_debug(RIG_DEBUG_ERR, "%s\n", __func__);
+	rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
 	priv = malloc(sizeof(struct kenwood_priv_data));
 	if (priv == NULL)
@@ -330,6 +346,67 @@ int kenwood_cleanup(RIG *rig)
 	return RIG_OK;
 }
 
+int kenwood_open(RIG *rig)
+{
+	int err, i;
+	char *idptr;
+	char id[KENWOOD_MAX_BUF_LEN];
+
+	rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
+
+	/* get id in buffer, will be null terminated */
+	err = kenwood_get_id(rig, id);
+	if (err != RIG_OK) {
+		rig_debug(RIG_DEBUG_ERR, "%s: cannot get identification\n",
+						__func__);
+		return err;
+	}
+
+	/* id is something like 'IDXXX' or 'ID XXX' */
+	if (strlen(id) < 5) {
+		rig_debug(RIG_DEBUG_ERR, "%s: unknown id type (%s)\n", id);
+		return -RIG_EPROTO;
+	}
+
+	/* check for a white space and skip it */
+	idptr = &id[2];
+	if (*idptr == ' ')
+		idptr++;
+
+	/* compare id string */
+	for (i = 0; kenwood_id_string_list[i].model != RIG_MODEL_NONE; i++) {
+		if (strcmp(kenwood_id_string_list[i].id, idptr) != 0)
+			continue;
+
+		/* found matching id, verify driver */
+		rig_debug(RIG_DEBUG_TRACE, "%s: found match %s\n",
+				__func__, kenwood_id_string_list[i].id);
+
+		if (kenwood_id_string_list[i].model == rig->caps->rig_model)
+			return RIG_OK;
+
+		/* driver mismatch */
+		rig_debug(RIG_DEBUG_ERR,
+			"%s: wrong driver selected (%d instead of %d)\n",
+			__func__, rig->caps->rig_model,
+			kenwood_id_string_list[i].model);
+
+		return -RIG_EINVAL;
+	}
+
+	rig_debug(RIG_DEBUG_ERR, "%s: your rig (%s) is unknown\n",
+					__func__, id);
+
+	return -RIG_EPROTO;
+}
+
+/* caller must give a buffer of KENWOOD_MAX_BUF_LEN size */
+int kenwood_get_id(RIG *rig, char *buf)
+{
+	size_t size = KENWOOD_MAX_BUF_LEN;
+	return kenwood_transaction(rig, "ID", 2, buf, &size);
+}
+
 static int kenwood_get_if(RIG *rig)
 {
 	struct kenwood_priv_data *priv = rig->state.priv;
@@ -338,7 +415,7 @@ static int kenwood_get_if(RIG *rig)
 
 	cmdbuf[2] = caps->cmdtrm;
 	return kenwood_safe_transaction (rig, cmdbuf, priv->info,
-					KENWOOD_MAX_IF_LEN, caps->if_len);
+					KENWOOD_MAX_BUF_LEN, caps->if_len);
 }
 
 /*
@@ -1608,12 +1685,12 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
 	/* XXX filter cannot be read there. strange. maybe another command? */
 
 	if (buf[19] == '0' || buf[19] == ' ')
-                chan->ctcss_tone = 0;
-        else {
-                buf[22]='\0';
+		chan->ctcss_tone = 0;
+	else {
+		buf[22]='\0';
 		if (rig->caps->ctcss_list)
-	                chan->ctcss_tone = rig->caps->ctcss_list[atoi(&buf[20])];
-        }
+			chan->ctcss_tone = rig->caps->ctcss_list[atoi(&buf[20])];
+	}
 
 	/* memory lockout */
 	if (buf[18] == '1')

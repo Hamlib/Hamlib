@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2008 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.23 2009-01-28 23:30:53 azummo Exp $
+ *	$Id: thg71.c,v 1.24 2009-02-03 22:42:44 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -418,15 +418,10 @@ int thg71_open(RIG *rig)
     size_t ack_len=ACKBUF_LEN;
     const freq_range_t frend=RIG_FRNG_END;
 
-	/* just to be sure it's a THG-71 */
-    retval = kenwood_transaction(rig, "ID"EOM, 3, ackbuf, &ack_len);
-        if (retval != RIG_OK)
-        	return retval;
-    
-    if (ack_len<9 || strncmp(ackbuf,"ID TH-G71",9)) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
-        return -RIG_ERJCTED;
-    }
+    /* this will check the model id */
+    retval = kenwood_open(rig);
+    if (retval != RIG_OK)
+        return retval;
 
 	/* fill state.rx/tx range_list */
     ack_len=ACKBUF_LEN;
