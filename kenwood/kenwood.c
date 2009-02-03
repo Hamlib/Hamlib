@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.105 2009-02-03 11:25:30 azummo Exp $
+ *	$Id: kenwood.c,v 1.106 2009-02-03 22:33:00 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -65,8 +65,8 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_TS440, 4 },
 	{ RIG_MODEL_R5000, 5 },
 	{ RIG_MODEL_TS790, 7 },
-        { RIG_MODEL_TS950SDX, 8 },	/* reported as RIG_MODEL_TS950SD originally */
-        { RIG_MODEL_TS850, 9 },
+	{ RIG_MODEL_TS950SDX, 8 },	/* reported as RIG_MODEL_TS950SD originally */
+	{ RIG_MODEL_TS850, 9 },
 	{ RIG_MODEL_TS450S, 10 },
 	{ RIG_MODEL_TS690S, 11 },
 	{ RIG_MODEL_TS870S, 15 },
@@ -680,7 +680,7 @@ int kenwood_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	kmode = rmode2kenwood(mode, caps->mode_table);
 	if (kmode < 0 ) {
 		rig_debug(RIG_DEBUG_WARN, "%s: unsupported mode '%s'\n",
-                                   __func__, rig_strrmode(mode));
+				   __func__, rig_strrmode(mode));
 		return -RIG_EINVAL;
 	}
 
@@ -852,8 +852,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	case RIG_LEVEL_CWPITCH:
 		if(val.i > 1000 || val.i < 400)
 			return -RIG_EINVAL;
-                sprintf(levelbuf, "PT%02d", (val.i / 50) - 8);
-                break;
+		sprintf(levelbuf, "PT%02d", (val.i / 50) - 8);
+		break;
 
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
