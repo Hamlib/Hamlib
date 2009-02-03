@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.107 2009-02-03 22:42:44 azummo Exp $
+ *	$Id: kenwood.c,v 1.108 2009-02-03 22:45:59 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1682,12 +1682,16 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
 	 */
 
 	/* parse from right to left */
-	/* XXX filter cannot be read there. strange. maybe another command? */
+
+	/* XXX based on the available documentation, there is no command
+	 * to read out the filters of a given memory channel. The rig, however,
+	 * stores this information.
+	 */
 
 	if (buf[19] == '0' || buf[19] == ' ')
 		chan->ctcss_tone = 0;
 	else {
-		buf[22]='\0';
+		buf[22] = '\0';
 		if (rig->caps->ctcss_list)
 			chan->ctcss_tone = rig->caps->ctcss_list[atoi(&buf[20])];
 	}
@@ -1727,6 +1731,67 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
 		chan->split = RIG_SPLIT_ON;
 
 	return RIG_OK;
+}
+
+int kenwood_set_channel(RIG *rig, channel_t *chan)
+{
+	char buf[26];
+	char mode, tx_mode = 0;
+	int err;
+	int tone = 0;
+
+	struct kenwood_priv_caps *caps = kenwood_caps(rig);
+
+	mode = rmode2kenwood(chan->mode, caps->mode_table);
+        if (mode < 0 ) {
+                rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%s'\n",
+                                   __func__, rig_strrmode(chan->mode));
+                return -RIG_EINVAL;
+        }
+
+	if (chan->split == RIG_SPLIT_ON) {
+		tx_mode = rmode2kenwood(chan->tx_mode, caps->mode_table);
+        	if (tx_mode < 0 ) {
+	                rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode '%s'\n",
+       	                           __func__, rig_strrmode(chan->tx_mode));
+	                return -RIG_EINVAL;
+        	}
+
+	}
+
+	/* find tone */
+	if (chan->ctcss_tone) {
+
+		for (tone = 0; rig->caps->ctcss_list[tone] != 0; tone++) {
+			if (chan->ctcss_tone == rig->caps->ctcss_list[tone])
+				break;
+		}
+
+		if (chan->ctcss_tone != rig->caps->ctcss_list[tone])
+			tone = 0;
+	}
+
+	sprintf(buf, "MW0 %02d%011d%c%c%c%02d ", /* note the space at the end */
+		chan->channel_num,
+		(int) chan->freq,
+		'0' + mode,
+		(chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',
+		chan->ctcss_tone ? '1' : '0',
+		chan->ctcss_tone ? (tone + 1) : 0);
+
+	err = kenwood_simple_cmd(rig, buf);
+	if (err != RIG_OK)
+		return err;
+
+	sprintf(buf, "MW1 %02d%011d%c%c%c%02d ",
+		chan->channel_num,
+		(chan->split == RIG_SPLIT_ON) ? ((int) chan->tx_freq) : 0,
+		(chan->split == RIG_SPLIT_ON) ? ('0' + tx_mode) : '0',
+		(chan->flags & RIG_CHFLAG_SKIP) ? '1' : '0',
+		chan->ctcss_tone ? '1' : '0',
+		chan->ctcss_tone ? (tone + 1) : 0);
+
+	return kenwood_simple_cmd(rig, buf);
 }
 
 /*

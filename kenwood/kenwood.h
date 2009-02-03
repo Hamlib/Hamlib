@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.49 2009-02-03 22:42:44 azummo Exp $
+ *	$Id: kenwood.h,v 1.50 2009-02-03 22:45:59 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -109,6 +109,7 @@ int kenwood_set_mem(RIG *rig, vfo_t vfo, int ch);
 int kenwood_get_mem(RIG *rig, vfo_t vfo, int *ch);
 int kenwood_get_mem_if(RIG *rig, vfo_t vfo, int *ch);
 int kenwood_get_channel(RIG *rig, channel_t *chan);
+int kenwood_set_channel(RIG *rig, channel_t *chan);
 int kenwood_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 const char * kenwood_get_info(RIG *rig);
 int kenwood_get_id(RIG *rig, char *buf);

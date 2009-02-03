@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.28 2009-02-03 22:42:44 azummo Exp $
+ *	$Id: ts450s.c,v 1.29 2009-02-03 22:45:59 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -228,4 +228,5 @@ const struct rig_caps ts450s_caps = {
 	.reset = kenwood_reset,
 	.scan = kenwood_scan,
 	.get_channel = kenwood_get_channel,
+	.set_channel = kenwood_set_channel,
 };
