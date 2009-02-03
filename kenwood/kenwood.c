@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.108 2009-02-03 22:45:59 azummo Exp $
+ *	$Id: kenwood.c,v 1.109 2009-02-03 22:47:33 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1168,8 +1168,9 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 /* 
  * assumes status!=NULL
  * works for any 'format 1' command
+ * answer is always 4 bytes: two byte command id, status and terminator
  */
-static int get_kenwood_func(RIG *rig, const char *cmd, int cmd_len, int *status)
+static int get_kenwood_func(RIG *rig, const char *cmd, int *status)
 {
 	int retval;
 	char buf[10];
@@ -1202,41 +1203,41 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		return RIG_OK;
 
 	case RIG_FUNC_NB:
-		return get_kenwood_func(rig, "NB", 3, status);
+		return get_kenwood_func(rig, "NB", status);
 
 	case RIG_FUNC_ABM:
-		return get_kenwood_func(rig, "AM", 3, status);
+		return get_kenwood_func(rig, "AM", status);
 
 	case RIG_FUNC_COMP:
-		return get_kenwood_func(rig, "PR", 3, status);
+		return get_kenwood_func(rig, "PR", status);
 
 	case RIG_FUNC_TONE:
-		return get_kenwood_func(rig, "TO", 3, status);
+		return get_kenwood_func(rig, "TO", status);
 
 	case RIG_FUNC_TSQL:
-		return get_kenwood_func(rig, "CT", 3, status);
+		return get_kenwood_func(rig, "CT", status);
 
 	case RIG_FUNC_VOX:
-		return get_kenwood_func(rig, "VX", 3, status);
+		return get_kenwood_func(rig, "VX", status);
 
 	case RIG_FUNC_NR:
-		return get_kenwood_func(rig, "NR", 3, status);
+		return get_kenwood_func(rig, "NR", status);
 
  	/* FIXME on TS2000 */
 	case RIG_FUNC_BC:
-		return get_kenwood_func(rig, "BC", 3, status);
+		return get_kenwood_func(rig, "BC", status);
 
 	case RIG_FUNC_ANF:
-		return get_kenwood_func(rig, "NT", 3, status);
+		return get_kenwood_func(rig, "NT", status);
 
 	case RIG_FUNC_LOCK:
-		return get_kenwood_func(rig, "LK", 3, status);
+		return get_kenwood_func(rig, "LK", status);
 
 	case RIG_FUNC_AIP:
-		return get_kenwood_func(rig, "MX", 3, status);
+		return get_kenwood_func(rig, "MX", status);
 /*
 	case RIG_FUNC_FINE_STEP:
-		return get_kenwood_func(rig, "FS", 3, status);
+		return get_kenwood_func(rig, "FS", status);
 */
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
