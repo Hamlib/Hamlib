@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.25 2009-01-28 23:30:56 azummo Exp $
+ *	$Id: ts2000.c,v 1.26 2009-02-03 22:13:55 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -285,7 +285,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		switch (level) {
 
 		case RIG_LEVEL_PREAMP:
-			retval = kenwood_transaction (rig, "PA;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "PA", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if ((lvl_len != 5)){ /*TS-2000 returns 5 chars for PA; */
@@ -302,7 +302,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_ATT:
-			retval = kenwood_transaction (rig, "RA;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RA", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 
@@ -321,7 +321,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 			
 		case RIG_LEVEL_VOX:
-			retval = kenwood_transaction (rig, "VD;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "VD", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 7) {
@@ -334,7 +334,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		
 	        case RIG_LEVEL_AF:
-			retval = kenwood_transaction (rig, "AG0;", 4, lvlbuf, &lvl_len); 
+			retval = kenwood_transaction (rig, "AG0", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 7) {
@@ -347,7 +347,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		
 		case RIG_LEVEL_RF:
-			retval = kenwood_transaction (rig, "RG;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RG", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 6) {
@@ -360,7 +360,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		
 		case RIG_LEVEL_SQL:
-			retval = kenwood_transaction (rig, "SQ0;", 4, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "SQ0", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 7) {
@@ -373,7 +373,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_CWPITCH:
-			retval = kenwood_transaction (rig, "EX0310000;", 10, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "EX0310000", 9, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 12) {
@@ -386,7 +386,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 	
 		case RIG_LEVEL_RFPOWER:
-			retval = kenwood_transaction (rig, "PC;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "PC", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 6) {
@@ -399,7 +399,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
         	  	break;
 	
 		case RIG_LEVEL_MICGAIN:
-			retval = kenwood_transaction (rig, "MG;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "MG", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 6) {
@@ -412,7 +412,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		
 		case RIG_LEVEL_KEYSPD:
-			retval = kenwood_transaction (rig, "KS;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "KS", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 6) {
@@ -429,7 +429,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_COMP:
-			retval = kenwood_transaction (rig, "PL;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "PL", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 9) {
@@ -444,7 +444,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		
 			
 		case RIG_LEVEL_AGC: /* FIX ME: ts2000 returns 0 -20 for AGC */
-			ret = get_kenwood_level(rig, "GT;", 3, &val->f);
+			ret = get_kenwood_level(rig, "GT", 2, &val->f);
 			agclevel = 255.0 * val->f;
 			if (agclevel == 0) val->i = 0;
 			else if (agclevel < 85) val->i = 1;
@@ -454,7 +454,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 
 		case RIG_LEVEL_BKINDL:
-			retval = kenwood_transaction (rig, "SD;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "SD", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 7) {
@@ -471,7 +471,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		    break;
 
 		case RIG_LEVEL_METER:
-			retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "RM", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 8) {
@@ -484,7 +484,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			break;
 		
 		case RIG_LEVEL_VOXGAIN:
-			retval = kenwood_transaction (rig, "VG;", 3, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "VG", 2, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 			if (lvl_len != 6) {
@@ -502,7 +502,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		
 		case RIG_LEVEL_RAWSTR:
 		case RIG_LEVEL_STRENGTH:
-			retval = kenwood_transaction (rig, "SM0;", 4, lvlbuf, &lvl_len);
+			retval = kenwood_transaction (rig, "SM0", 3, lvlbuf, &lvl_len);
 			if (retval != RIG_OK)
 				return retval;
 

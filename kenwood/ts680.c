@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS680 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.10 2009-01-28 23:30:58 azummo Exp $
+ *	$Id: ts680.c,v 1.11 2009-02-03 22:13:55 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -68,7 +68,7 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
                         return -RIG_EINVAL;
                 }
 
-                cmd_len = sprintf(cmdbuf, "FN%c;", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
+                cmd_len = sprintf(cmdbuf, "FN%c", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
                 ack_len = 0;
                 retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
                 if (retval != RIG_OK)

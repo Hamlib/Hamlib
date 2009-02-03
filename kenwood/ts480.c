@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS480 description
  *  Copyright (c) 2000-2004 by Stephane Fillod and Juergen Rinas
  *
- *	$Id: ts480.c,v 1.10 2009-01-28 23:30:58 azummo Exp $
+ *	$Id: ts480.c,v 1.11 2009-02-03 22:13:55 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -53,8 +53,8 @@ kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
   size_t ack_len = 0;
 
   if (RIG_PTT_ON == ptt)
-    return kenwood_transaction (rig, "TX1;", 4, ackbuf, &ack_len);
-  return kenwood_transaction (rig, "RX;", 3, ackbuf, &ack_len);
+    return kenwood_transaction (rig, "TX1", 3, ackbuf, &ack_len);
+  return kenwood_transaction (rig, "RX", 2, ackbuf, &ack_len);
 }
 
 /*
@@ -69,7 +69,7 @@ kenwood_ts480_get_info (RIG * rig)
   int retval;
 
   firm_len = 50;
-  retval = kenwood_transaction (rig, "TY;", 3, firmbuf, &firm_len);
+  retval = kenwood_transaction (rig, "TY", 2, firmbuf, &firm_len);
   if (retval != RIG_OK)
     return NULL;
   if (firm_len != 6)
@@ -114,22 +114,22 @@ kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
     {
     case RIG_LEVEL_RFPOWER:
       kenwood_val = val.f * 100;	/* level for TS480SAT is from 0.. 100W in SSB */
-      level_len = sprintf (levelbuf, "PC%03d;", kenwood_val);
+      level_len = sprintf (levelbuf, "PC%03d", kenwood_val);
       break;
 
     case RIG_LEVEL_AF:
       kenwood_val = val.f * 255;	/* possible values for TS480 are 000.. 255 */
-      level_len = sprintf (levelbuf, "AG0%03d;", kenwood_val);
+      level_len = sprintf (levelbuf, "AG0%03d", kenwood_val);
       break;
 
     case RIG_LEVEL_RF:
       kenwood_val = val.f * 100;	/* possible values for TS480 are 000.. 100 */
-      level_len = sprintf (levelbuf, "RG%03d;", kenwood_val);
+      level_len = sprintf (levelbuf, "RG%03d", kenwood_val);
       break;
 
     case RIG_LEVEL_SQL:
       kenwood_val = val.f * 255;	/* possible values for TS480 are 000.. 255 */
-      level_len = sprintf (levelbuf, "SQ0%03d;", kenwood_val);
+      level_len = sprintf (levelbuf, "SQ0%03d", kenwood_val);
       break;
 
     case RIG_LEVEL_AGC:	/* possible values for TS480 000(=off), 001(=fast), 002(=slow) */
@@ -149,7 +149,7 @@ kenwood_ts480_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	  rig_debug (RIG_DEBUG_ERR, "Unsupported agc value");
 	  return -RIG_EINVAL;
 	};
-      level_len = sprintf (levelbuf, "GT%03d;", kenwood_val);
+      level_len = sprintf (levelbuf, "GT%03d", kenwood_val);
       break;
 
     default:
@@ -181,7 +181,7 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
   switch (level)
     {
     case RIG_LEVEL_RFPOWER:
-      retval = kenwood_transaction (rig, "PC;", 3, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "PC", 2, ackbuf, &ack_len);
       if (RIG_OK != retval)
 	return retval;
       if (6 != ack_len)
@@ -192,7 +192,7 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_AF:
-      retval = kenwood_transaction (rig, "AG0;", 4, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "AG0", 3, ackbuf, &ack_len);
       if (RIG_OK != retval)
 	return retval;
       if (7 != ack_len)
@@ -203,7 +203,7 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_RF:
-      retval = kenwood_transaction (rig, "RG;", 3, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "RG", 2, ackbuf, &ack_len);
       if (RIG_OK != retval)
 	return retval;
       if (6 != ack_len)
@@ -214,7 +214,7 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_SQL:
-      retval = kenwood_transaction (rig, "SQ0;", 4, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "SQ0", 3, ackbuf, &ack_len);
       if (RIG_OK != retval)
 	return retval;
       if (7 != ack_len)
@@ -225,7 +225,7 @@ kenwood_ts480_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_AGC:
-      retval = kenwood_transaction (rig, "GT;", 3, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "GT", 2, ackbuf, &ack_len);
       if (RIG_OK != retval)
 	return retval;
       if (6 != ack_len)

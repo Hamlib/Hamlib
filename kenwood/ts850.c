@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.28 2009-02-02 20:30:36 azummo Exp $
+*	$Id: ts850.c,v 1.29 2009-02-03 22:13:55 azummo Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -237,18 +237,18 @@ int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 	
 	info_len = 0;
 	if (rit == 0)
-		kenwood_transaction(rig, "RT0;", 4, infobuf, &info_len);
+		kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
 	else
-		kenwood_transaction(rig, "RT1;", 4, infobuf, &info_len);
+		kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
 	
 	if (rit > 0)
 		c = 'U';
 	else
 		c = 'D';
-	len = sprintf(buf, "R%c;", c);
+	len = sprintf(buf, "R%c", c);
 	
 	info_len = 0;
-	retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
+	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
 	for (i = 0; i < abs(rint(rit/20)); i++)
 	{
 		info_len = 0;
@@ -267,17 +267,17 @@ int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t xit)
 	
 	info_len = 0;
 	if (xit == 0)
-		kenwood_transaction(rig, "XT0;", 4, infobuf, &info_len);
+		kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
 	else
-		kenwood_transaction(rig, "XT1;", 4, infobuf, &info_len);
+		kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
 	
 	info_len = 0;
-	retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
+	retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
 	if (xit > 0)
 		c = 'U';
 	else
 		c = 'D';
-	len = sprintf(buf, "R%c;", c);
+	len = sprintf(buf, "R%c", c);
 	
 	for (i = 0; i < abs(rint(xit/20)); i++)
 	{
@@ -321,7 +321,7 @@ int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->ctcss_list[i] != tone)
 		return -RIG_EINVAL;
 	
-	tone_len = sprintf(tonebuf,"TN%03d;", i+1);
+	tone_len = sprintf(tonebuf,"TN%03d", i+1);
 	
 	ack_len = 0;
 	return kenwood_transaction (rig, tonebuf, tone_len, ackbuf, &ack_len);
@@ -339,7 +339,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 		case RIG_LEVEL_RAWSTR:
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "SM;", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "SM", 2, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvlbuf[6]='\0';
@@ -348,7 +348,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		
 		case RIG_LEVEL_STRENGTH:
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "SM;", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "SM", 2, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvlbuf[6]='\0';
@@ -359,11 +359,11 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		
 		case RIG_LEVEL_SWR:
 			lvl_len = 0;
-		retval = kenwood_transaction (rig, "RM1;", 4, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM1", 3, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM", 2, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvlbuf[7]='\0';
@@ -376,11 +376,11 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		
 		case RIG_LEVEL_COMP:
 			lvl_len = 0;
-		retval = kenwood_transaction (rig, "RM2;", 4, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM2", 3, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM", 2, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvlbuf[7]='\0';
@@ -389,11 +389,11 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		
 		case RIG_LEVEL_ALC:
 			lvl_len = 0;
-		retval = kenwood_transaction (rig, "RM3;", 4, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM3", 3, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvl_len = 50;
-		retval = kenwood_transaction (rig, "RM;", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "RM", 2, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvlbuf[7]='\0';
@@ -402,7 +402,7 @@ int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		
 		case RIG_LEVEL_CWPITCH:
 			lvl_len = 25;
-		retval = kenwood_transaction (rig, "PT;", 3, lvlbuf, &lvl_len);
+		retval = kenwood_transaction (rig, "PT", 2, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
 		lvlbuf[4]='\0';
@@ -449,14 +449,14 @@ int ts850_set_channel (RIG * rig, const channel_t * chan)
 		tone=0;
 	}
 	
-	cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ;",
+	cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
 					  num,freq,mode,tones,tone);
 	mem_len = 0;
 	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
 	if (retval != RIG_OK)
 		return retval;
 	
-	cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ;",
+	cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
 					  num,tx_freq,tx_mode,tones,tone);
 	mem_len = 0;
 	retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
