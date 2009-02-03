@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts2000.c,v 1.26 2009-02-03 22:13:55 azummo Exp $
+ *	$Id: ts2000.c,v 1.27 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -290,7 +290,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				return retval;
 			if ((lvl_len != 5)){ /*TS-2000 returns 5 chars for PA; */
 				rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
-					       __FUNCTION__, lvl_len);
+					       __func__, lvl_len);
 				return -RIG_ERJCTED;
 			}
 
@@ -509,7 +509,7 @@ int ts2000_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			if (( (lvl_len !=8)) || lvlbuf[1] != 'M') {
 				/* TS-2000 returns 8 bytes for S meter level */
 				rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-					       __FUNCTION__, lvl_len);
+					       __func__, lvl_len);
 				return -RIG_ERJCTED;
 			}
 

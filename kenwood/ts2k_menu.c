@@ -99,7 +99,7 @@ int ts2k_menu_init(RIG *rig, ts2k_menu_t *menu[])
 	ts2k_menu_t *m, *mref;
 
 	if(menu == NULL || menu == ts2k_menus) {
-		rig_debug(rig, __FUNCTION__": invalid menu pointer\n");
+		rig_debug(rig, __func__": invalid menu pointer\n");
 		return -RIG_EINVAL;
 	}
 

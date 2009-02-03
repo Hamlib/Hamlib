@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS2000 description
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.7 2009-01-23 03:24:42 n0nb Exp $
+ *		$Id: ts2k.c,v 1.8 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,7 +63,7 @@
  *  Hamlib Kenwood backend - main file
  *  Copyright (c) 2000-2002 by Stephane Fillod
  *
- *		$Id: ts2k.c,v 1.7 2009-01-23 03:24:42 n0nb Exp $
+ *		$Id: ts2k.c,v 1.8 2009-02-03 23:22:58 azummo Exp $
  */
 
 
@@ -193,13 +193,13 @@ ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 	cmdtrm = cmd_trm(rig);
 
 	if (cmdstr != NULL) {
-		//      rig_debug(RIG_DEBUG_ERR, __FUNCTION__": 1) sending '%s'\n\n", cmdstr);
+		//      rig_debug(RIG_DEBUG_ERR, __func__": 1) sending '%s'\n\n", cmdstr);
 		retval = write_block(&rs->rigport, cmdstr, strlen(cmdstr));
 		if (retval != RIG_OK)
 			{ ta_quit; }
 #undef	TH_ADD_CMDTRM
 #ifdef	TH_ADD_CMDTRM
-		//      rig_debug(RIG_DEBUG_ERR, __FUNCTION__": 2) sending '%s'\n\n", cmdtrm);
+		//      rig_debug(RIG_DEBUG_ERR, __func__": 2) sending '%s'\n\n", cmdtrm);
 		retval = write_block(&rs->rigport, cmdtrm, strlen(cmdtrm));
 		if (retval != RIG_OK)
 			{ ta_quit; }
@@ -215,14 +215,14 @@ ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 
       transaction_read:
 	/* FIXME : TS-2000 gets alot of 'timedout' on read_string()! */
-	//rig_debug(RIG_DEBUG_ERR, __FUNCTION__": 3a) reading %u bytes...\n", *datasize);
+	//rig_debug(RIG_DEBUG_ERR, __func__": 3a) reading %u bytes...\n", *datasize);
 	retval =
 	    read_string(&rs->rigport, data, *datasize, cmdtrm,
 			strlen(cmdtrm));
-	//rig_debug(RIG_DEBUG_ERR, __FUNCTION__": 3b) read '%s', retval=%u\n\n", data, retval);
+	//rig_debug(RIG_DEBUG_ERR, __func__": 3b) read '%s', retval=%u\n\n", data, retval);
 	*datasize = retval;
 	if (retval > 0) {
-		//rig_debug(RIG_DEBUG_ERR, __FUNCTION__": 3b) read cmd '%s', retval=%u\n\n", data, retval);
+		//rig_debug(RIG_DEBUG_ERR, __func__": 3b) read cmd '%s', retval=%u\n\n", data, retval);
 		retval = RIG_OK;
 		goto transaction_check;
 	}
@@ -232,7 +232,7 @@ ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 		if (retry_read++ < MAX_RETRY_READ)
 			goto transaction_read;
 		rig_debug(RIG_DEBUG_ERR,
-			  __FUNCTION__
+			  __func__
 			  ": Command is not correctly terminated '%s'\n",
 			  data);
 		retval = -RIG_EPROTO;
@@ -244,28 +244,28 @@ ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 		switch (data[0]) {
 		case 'E':
 			rig_debug(RIG_DEBUG_ERR,
-				  __FUNCTION__
+				  __func__
 				  ": Communication Error for '%s'\n",
 				  cmdstr);
 			break;
 
 		case 'O':
 			rig_debug(RIG_DEBUG_ERR,
-				  __FUNCTION__
+				  __func__
 				  ": Communication Error for '%s'\n",
 				  cmdstr);
 			break;
 
 		case '?':
 			rig_debug(RIG_DEBUG_ERR,
-				  __FUNCTION__
+				  __func__
 				  ": Communication Error for '%s'\n",
 				  cmdstr);
 			break;
 
 		default:
 			rig_debug(RIG_DEBUG_ERR,
-				  __FUNCTION__ ": Hamlib Error for '%s'\n",
+				  __func__ ": Hamlib Error for '%s'\n",
 				  cmdstr);
 			break;
 
@@ -296,7 +296,7 @@ ts2k_transaction(RIG * rig, const char *cmdstr, int cmd_len,
 			goto transaction_read;
 
 		rig_debug(RIG_DEBUG_ERR,
-			  __FUNCTION__ ": Unexpected reply '%s'\n", data);
+			  __func__ ": Unexpected reply '%s'\n", data);
 		retval = -RIG_EPROTO;
 		{ ta_quit; }
 	}
@@ -326,7 +326,7 @@ int ts2k_set_vfo(RIG * rig, vfo_t vfo)
 	// trivial case, but needs checked if enabled
 /*//	if( (vfo == RIG_CTRL_MODE(RIG_CTRL_MAIN,RIG_VFO_ALL))
 //		|| (vfo == RIG_CTRL_MODE(RIG_CTRL_SUB,RIG_VFO_ALL)) ) {
-//		rig_debug(RIG_DEBUG_ERR, __FUNCTION__ \
+//		rig_debug(RIG_DEBUG_ERR, __func__ \
 //			  ": Geez, you can't set *all* VFO's!\n");
 //		return -RIG_EINVAL;
 //	}
@@ -377,7 +377,7 @@ int ts2k_set_vfo(RIG * rig, vfo_t vfo)
 		|| (vfo & RIG_CTRL_SAT)	// "fr...;", "ft...;" won't do!
 		;
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__ \
+	rig_debug(RIG_DEBUG_ERR, __func__ \
 		  ": starting check.... vfo = 0x%X, v=%d\n", vfo, v);
 
 	if (!v) {	// start check
@@ -411,7 +411,7 @@ int ts2k_set_vfo(RIG * rig, vfo_t vfo)
 			break;
 
 		default:
-			rig_debug(RIG_DEBUG_ERR, __FUNCTION__
+			rig_debug(RIG_DEBUG_ERR, __func__
 				  ": unsupported VFO %u\n", vfo);
 			return -RIG_EINVAL;
 			break;
@@ -448,7 +448,7 @@ int ts2k_set_vfo(RIG * rig, vfo_t vfo)
 			break;
 
 		default:
-			rig_debug(RIG_DEBUG_ERR, __FUNCTION__
+			rig_debug(RIG_DEBUG_ERR, __func__
 				  ": unsupported VFO %u\n",
 				  vfo);
 			return -RIG_EINVAL;
@@ -473,7 +473,7 @@ int ts2k_set_vfo(RIG * rig, vfo_t vfo)
 					return retval;
 			sat_on = 1;			
 		} else {
-			rig_debug(RIG_DEBUG_ERR, __FUNCTION__ \
+			rig_debug(RIG_DEBUG_ERR, __func__ \
 				  ": VFO not changed, only PTT/CTRL\n");
 		}
 	}
@@ -539,7 +539,7 @@ int ts2k_sat_on(RIG *rig, vfo_t vfo)
 		ack[5] = '0';	// sat CTRL on main
 
 STest:
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__ \
+	rig_debug(RIG_DEBUG_ERR, __func__ \
 		  ": sat = %s, vfo = 0x%X\n", cmd, vfo);
 	// of coure, this is *required* too!
 	return ts2k_transaction(rig, ack, acklen, NULL, NULL);
@@ -588,18 +588,18 @@ int ts2k_get_vfo(RIG * rig, vfo_t * vfo)
 
 	/* query RX VFO */
 	vfo_len = 50;
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__
+	rig_debug(RIG_DEBUG_ERR, __func__
 		": sending fr; cmd/checking SAT.  Expect TIMEDOUT if in SAT mode!\n");
 	retval = ts2k_transaction(rig, "fr;", 3, vfobuf, &vfo_len);
 
 							/* "fr;" fails in satellite mode; interesting... */
 	if (retval != RIG_OK) {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": kenwood/ts2k.c\n"
+		rig_debug(RIG_DEBUG_ERR, __func__": kenwood/ts2k.c\n"
 			"FIXME: ts2k.c,\tThis is timeout cannot be prevented.\n");
 		tmp = retval;
 		retval = ts2k_transaction(rig, "sa;", 3, vfobuf, &vfo_len);
 		if (retval == RIG_OK) {
-			rig_debug(RIG_DEBUG_ERR, __FUNCTION__": SAT=%s\n", vfobuf);
+			rig_debug(RIG_DEBUG_ERR, __func__": SAT=%s\n", vfobuf);
 			if(vfobuf[2] == '1') {
 							/* yes, we're in satellite mode! */
 				*vfo = RIG_CTRL_SAT;	// FIXME: set the rest!
@@ -610,24 +610,24 @@ int ts2k_get_vfo(RIG * rig, vfo_t * vfo)
 		return tmp;	// return original "fr;" error!
 	}
 
-//	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": checking fr; cmd.\n");
+//	rig_debug(RIG_DEBUG_ERR, __func__": checking fr; cmd.\n");
 	r_vfo = vfobuf[2];
 
 	//if (vfo_len != 4 || vfobuf[1] != 'R') {
 	if (vfobuf[1] != 'R') {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__
+		rig_debug(RIG_DEBUG_ERR, __func__
 			  ": unexpected answer %s, "
 			  "len=%u\n", vfobuf, vfo_len);
 		return -RIG_ERJCTED;
 	}
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": sending ft; cmd.\n");
+	rig_debug(RIG_DEBUG_ERR, __func__": sending ft; cmd.\n");
 	vfo_len = 50;
 	retval = ts2k_transaction(rig, "ft;", 3, vfobuf, &vfo_len);
 	if (retval != RIG_OK)
 		return retval;
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": checking ft; cmd.\n");
+	rig_debug(RIG_DEBUG_ERR, __func__": checking ft; cmd.\n");
 	if (vfobuf[2] == r_vfo) {	// check most common first
 		rig_debug(RIG_DEBUG_ERR, "ts2k_get_vfo: Non-Split.\n");
 
@@ -686,7 +686,7 @@ int ts2k_get_vfo(RIG * rig, vfo_t * vfo)
 			*vfo = RIG_VFO_BA;
 		else {		// FIXME: need vfo <--> mem split
 			rig_debug(RIG_DEBUG_ERR,
-				  __FUNCTION__
+				  __func__
 				  ":FIXME: vfo<->mem split! -kd7eni!\n");
 			return -RIG_EPROTO;
 		}
@@ -771,7 +771,7 @@ int ts2k_get_freq(RIG * rig, vfo_t vfo, freq_t * freq)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,
-			  __FUNCTION__": unsupported VFO %u\n", vfo);
+			  __func__": unsupported VFO %u\n", vfo);
 		return -RIG_EPROTO;
 	}
 
@@ -780,14 +780,14 @@ int ts2k_get_freq(RIG * rig, vfo_t vfo, freq_t * freq)
 	freq_len = 15;
 	retval =
 	    ts2k_transaction(rig, cmdbuf, cmd_len, freqbuf, &freq_len);
-	//rig_debug(RIG_DEBUG_ERR,"__FUNCTION__: received %s\n", cmdbuf);
+	//rig_debug(RIG_DEBUG_ERR,"__func__: received %s\n", cmdbuf);
 	if (retval != RIG_OK)
 		return retval;
 
 	//if (freq_len != 14 || freqbuf[0] != 'F') {
 	if (freqbuf[0] != 'F') {
 		rig_debug(RIG_DEBUG_ERR,
-			  __FUNCTION__": unexpected answer '%s', "
+			  __func__": unexpected answer '%s', "
 			  "len=%u\n", freqbuf, freq_len);
 		return -RIG_ERJCTED;
 	}
@@ -1283,7 +1283,7 @@ get_ts2k_func(RIG * rig, const char *cmd, int cmd_len, int *status)
 
 	if (fct_len != 4) {
 		rig_debug(RIG_DEBUG_ERR,
-			  __FUNCTION__": wrong answer len=%u\n", fct_len);
+			  __func__": wrong answer len=%u\n", fct_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -1404,7 +1404,7 @@ int ts2k_set_Tones(RIG * rig, vfo_t vfo, tone_t tone, const char ct)
 
 	ack_len = 16;
 	return ts2k_transaction(rig, tonebuf, tone_len, NULL, NULL);
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": sent %s", tonebuf);
+	rig_debug(RIG_DEBUG_ERR, __func__": sent %s", tonebuf);
 }
 
 /*
@@ -1437,7 +1437,7 @@ int ts2k_get_Tones(RIG * rig, vfo_t vfo, tone_t * tone, const char *ct)
 
 	if (tone_len != 5) {
 		rig_debug(RIG_DEBUG_ERR,
-			  __FUNCTION__": unexpected reply "
+			  __func__": unexpected reply "
 			  "'%s', len=%u\n", tonebuf, tone_len);
 		return -RIG_ERJCTED;
 	}
@@ -1446,7 +1446,7 @@ int ts2k_get_Tones(RIG * rig, vfo_t vfo, tone_t * tone, const char *ct)
 
 	if (tone_idx == 0) {
 		rig_debug(RIG_DEBUG_ERR,
-			  __FUNCTION__": Unexpected Tone "
+			  __func__": Unexpected Tone "
 			  "no (%04d)\n", tone_idx);
 		return -RIG_EPROTO;
 	}
@@ -1455,7 +1455,7 @@ int ts2k_get_Tones(RIG * rig, vfo_t vfo, tone_t * tone, const char *ct)
 	for (i = 0; i < tone_idx; i++) {
 		if (caps->ctcss_list[i] == 0) {
 			rig_debug(RIG_DEBUG_ERR,
-				  __FUNCTION__": Tone NG "
+				  __func__": Tone NG "
 				  "(%04d)\n", tone_idx);
 			return -RIG_EPROTO;
 		}
@@ -1873,7 +1873,7 @@ int ts2k_init(RIG * rig)
 {
 	const struct rig_caps *caps;
 	const struct ts2k_priv_caps *priv_caps;
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__ ": called\n");
+	rig_debug(RIG_DEBUG_TRACE, __func__ ": called\n");
 
 	if (!rig || !rig->caps)
 		return -RIG_EINVAL;
@@ -1905,7 +1905,7 @@ int ts2k_init(RIG * rig)
  */
 int ts2k_cleanup(RIG * rig)
 {
-	rig_debug(RIG_DEBUG_TRACE, __FUNCTION__ ": called\n");
+	rig_debug(RIG_DEBUG_TRACE, __func__ ": called\n");
 
 	if (!rig)
 		return -RIG_EINVAL;
@@ -2007,11 +2007,11 @@ int ts2k_set_ctrl(RIG * rig, int ptt, int ctrl)
 
 	buf = ts2k_get_ctrl(rig);
 	if(buf==NULL) {
-		rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__ \
+		rig_debug(RIG_DEBUG_VERBOSE, __func__ \
 			": returned NULL!\n"); 
 		return -RIG_EINVAL;
 	}
-	rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__": curr='%s',"
+	rig_debug(RIG_DEBUG_VERBOSE, __func__": curr='%s',"
 			"ptt=%u, ctrl=%u\n", buf, ptt, ctrl);
 
 	if (ptt != 0)
@@ -2117,7 +2117,7 @@ int ts2k_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts)
 	ack[4] = '\0';
 	s = atoi(&ack[2]);
 
-	rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__": received: '%s', %u\n", ack, s);
+	rig_debug(RIG_DEBUG_VERBOSE, __func__": received: '%s', %u\n", ack, s);
 
 	retval = ts2k_transaction(rig, "MD;", 5, ack, &acklen);
 	CHKERR(retval);
@@ -2125,7 +2125,7 @@ int ts2k_get_ts(RIG * rig, vfo_t vfo, shortfreq_t * ts)
 	// fm or am mode selects 1
 	m = (ack[2] == '4' || ack[2] == '5') ? 1 : 0;
 
-	rig_debug(RIG_DEBUG_VERBOSE, __FUNCTION__": received: '%s', %u\n", ack, m);
+	rig_debug(RIG_DEBUG_VERBOSE, __func__": received: '%s', %u\n", ack, m);
 
 	*ts = ts2k_steps[m][s];
 	return RIG_OK;
@@ -2399,7 +2399,7 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 	v = vfo;
 	// check the memory bit
 	if( !(v & RIG_VFO_MEM) ) {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__
+		rig_debug(RIG_DEBUG_ERR, __func__
 			": Non Memory VFO='%u', v=%u\n", vfo, v);
 		return -RIG_EINVAL;	// not a channel!
 	}
@@ -2407,7 +2407,7 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 // get needed info if rig's mem pointers used
 	if( (	vfo == RIG_VFO_MEM_A
 		|| vfo == RIG_VFO_MEM_C ) ) {
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": using rig's ptr\n");
+		rig_debug(RIG_DEBUG_ERR, __func__": using rig's ptr\n");
 		retval = ts2k_get_vfo(rig, &curr_vfo);
 		CHKERR(retval);
 		retval = ts2k_get_mem(rig, curr_vfo, &curr_mem);
@@ -2430,7 +2430,7 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 		retval = ts2k_transaction(rig, mrcmd, mrcmd_len, ack, &ack_len); 
 		CHKERR(retval);
 
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": read \n\t'%s'\n", ack);
+		rig_debug(RIG_DEBUG_ERR, __func__": read \n\t'%s'\n", ack);
 
 		ack[50] = '\0';		// May be too far, but helps.
 
@@ -2441,7 +2441,7 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 		check |= (ack[2] != ((i == 0)? '0' : '1'));
 		check |= (chan->channel_num != int_n(tmp, &ack[3], 3));
 		if( check ) {
-			rig_debug(RIG_DEBUG_ERR, __FUNCTION__
+			rig_debug(RIG_DEBUG_ERR, __func__
 				":check failed!\n");
 			return -RIG_EINVAL;	// correct error type?
 		}
@@ -2452,7 +2452,7 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 	// FIXME: handle mem split
 	// final check on data. (if RX!=TX mem split, or limit!)
 	if( strncmp( &mrtxt[0][3], &mrtxt[1][3], 41-3) != 0 ) {
-		rig_debug(RIG_DEBUG_ERR, "\n"__FUNCTION__
+		rig_debug(RIG_DEBUG_ERR, "\n"__func__
 			": MEM split and band limits not yet supported!\n");
 		return -RIG_EINVAL;	// FIXME: sending proper error?
 	}
@@ -2516,7 +2516,7 @@ int ts2k_get_channel(RIG * rig, channel_t *chan)
 		|| vfo == RIG_VFO_MEM_C ) ) {
 	}
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": restoring mem=%i\n", curr_mem);
+	rig_debug(RIG_DEBUG_ERR, __func__": restoring mem=%i\n", curr_mem);
 	retval = ts2k_set_mem(rig, curr_vfo, curr_mem);
 	CHKERR(retval);
 #endif
@@ -2752,7 +2752,7 @@ int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	int retval;
 	vfo_t v;
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": starting...\n");
+	rig_debug(RIG_DEBUG_ERR, __func__": starting...\n");
 
 	if(vfo==RIG_VFO_CURR) {
 		retval = ts2k_get_vfo(rig, &v);
@@ -2764,7 +2764,7 @@ int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	retval = ts2k_scan_off(rig);
 	CHKERR(retval);
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": got VFO = %x\n", v);
+	rig_debug(RIG_DEBUG_ERR, __func__": got VFO = %x\n", v);
 	// set proper vfo first (already done?)
 	switch(v) {
 	case RIG_VFO_MEM:	// Currently selected Main/Sub
@@ -2783,11 +2783,11 @@ int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	case RIG_VFO_CALL_A:	// 
 	case RIG_VFO_CALL_C:
 	default:
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": vfo 'defaulted'\n");
+		rig_debug(RIG_DEBUG_ERR, __func__": vfo 'defaulted'\n");
 		return -RIG_ENIMPL;	// unimplemented, but valid scan
 	}
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": VFO set!\n");
+	rig_debug(RIG_DEBUG_ERR, __func__": VFO set!\n");
 	retval = ts2k_scan_off(rig);
 	CHKERR(retval);
 
@@ -2814,7 +2814,7 @@ int ts2k_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 	case RIG_SCAN_PRIO:
 		/* nobreak */
 	default:
-		rig_debug(RIG_DEBUG_ERR, __FUNCTION__": scan 'defaulted'\n");
+		rig_debug(RIG_DEBUG_ERR, __func__": scan 'defaulted'\n");
 		return -RIG_ENIMPL;	// unimplemented, but valid scan
 	}
 }
@@ -2824,12 +2824,12 @@ int ts2k_scan_on(RIG *rig, char sc)
 	char cmd[]="sc0;", ack[10];
 	int retval, cmdlen, acklen, i;
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": turning scan on\n");
+	rig_debug(RIG_DEBUG_ERR, __func__": turning scan on\n");
 	cmd[2] = sc;
 	retval = ts2k_transaction(rig, cmd, 4, NULL, NULL);
 	CHKERR(retval);
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": turned scan on\n");
+	rig_debug(RIG_DEBUG_ERR, __func__": turned scan on\n");
 	// force reply when turning scan on
 	if(sc != '0') {
 		cmd[2] = ';'; cmd[3] = '\0';
@@ -2845,7 +2845,7 @@ int ts2k_scan_on(RIG *rig, char sc)
 
 int ts2k_scan_off(RIG *rig)
 {
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": turning scan off\n");
+	rig_debug(RIG_DEBUG_ERR, __func__": turning scan off\n");
 	return ts2k_scan_on(rig, '0');
 }
 
@@ -2897,8 +2897,8 @@ int ts2k_set_parm(RIG *rig, setting_t parm, value_t val)
 	char cmd[30];
 	int retval, cmdlen, i;
 
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": val.i = %u\n", val.i);
-	rig_debug(RIG_DEBUG_ERR, __FUNCTION__": val.f = %f\n", val.f);
+	rig_debug(RIG_DEBUG_ERR, __func__": val.i = %u\n", val.i);
+	rig_debug(RIG_DEBUG_ERR, __func__": val.f = %f\n", val.f);
 
 	switch( parm ) {
 	case RIG_PARM_APO:

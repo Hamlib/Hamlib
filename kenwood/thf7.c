@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-F7 description
  *  Copyright (c) 2001-2004 by Stephane Fillod
  *
- *	$Id: thf7.c,v 1.16 2009-01-28 23:30:52 azummo Exp $
+ *	$Id: thf7.c,v 1.17 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -291,7 +291,7 @@ thf7_set_vfo (RIG *rig, vfo_t vfo)
     int retval;
     size_t ack_len;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     /* 
      * The band must be active before selecting VFO or MEM.
@@ -312,7 +312,7 @@ thf7_set_vfo (RIG *rig, vfo_t vfo)
             sprintf(vfobuf, "BC 1%c", EOM_TH);
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported BC VFO %d\n", __FUNCTION__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported BC VFO %d\n", __func__, vfo);
             return -RIG_EVFO;
 	}
 
@@ -337,7 +337,7 @@ thf7_set_vfo (RIG *rig, vfo_t vfo)
             sprintf(vfobuf, "VMC 0,1%c", EOM_TH);
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
             return -RIG_EVFO;
 	}
 
@@ -359,7 +359,7 @@ thf7_get_vfo (RIG *rig, vfo_t *vfo)
     int retval;
     size_t ack_len;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     ack_len=ACKBUF_LEN;
     /* XXX */
@@ -368,7 +368,7 @@ thf7_get_vfo (RIG *rig, vfo_t *vfo)
         return retval;
 
     if (ack_len < 4 ) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
         return -RIG_ERJCTED;
     }
 
@@ -377,7 +377,7 @@ thf7_get_vfo (RIG *rig, vfo_t *vfo)
         case '0': *vfo = RIG_VFO_A; break;
         case '1': *vfo = RIG_VFO_B; break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VFO value '%c'\n", __FUNCTION__, ackbuf[3]);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VFO value '%c'\n", __func__, ackbuf[3]);
             return -RIG_EVFO;
     }
 
@@ -388,7 +388,7 @@ thf7_get_vfo (RIG *rig, vfo_t *vfo)
         return retval;
 
     if (ack_len < 8 ) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, ackbuf);
         return -RIG_ERJCTED;
     }
     switch(ackbuf[6]) {
@@ -401,7 +401,7 @@ thf7_get_vfo (RIG *rig, vfo_t *vfo)
 		*vfo = RIG_VFO_MEM;
 		break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VFO value '%c'\n", __FUNCTION__, ackbuf[6]);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VFO value '%c'\n", __func__, ackbuf[6]);
             return -RIG_EVFO;
      }
 

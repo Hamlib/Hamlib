@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.41 2009-02-03 22:56:06 azummo Exp $
+ *	$Id: ts570.c,v 1.42 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -144,7 +144,7 @@ static char mode_to_char(rmode_t mode)
          case RIG_MODE_RTTY:     return(MD_FSK);
          case RIG_MODE_RTTYR:    return(MD_FSKR);
 	 default:
-		rig_debug(RIG_DEBUG_WARN,"ts570_mode_to_char %s: unsupported mode %d\n", __FUNCTION__,mode);
+		rig_debug(RIG_DEBUG_WARN,"ts570_mode_to_char %s: unsupported mode %d\n", __func__,mode);
      }
  return(RIG_MODE_NONE);
 }
@@ -364,7 +364,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
 	if (4  != ack_len) {
 	    rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
-			__FUNCTION__, ack_len);
+			__func__, ack_len);
 	    return -RIG_ERJCTED;
 	}
 
@@ -376,7 +376,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 		if (rig->state.preamp[i] == 0) {
 		    rig_debug(RIG_DEBUG_ERR,"%s: "
 			    "unexpected att level %d\n",
-			    __FUNCTION__, levelint);
+			    __func__, levelint);
 		    return -RIG_EPROTO;
 		}
 		if (i != levelint)

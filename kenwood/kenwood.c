@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.109 2009-02-03 22:47:33 azummo Exp $
+ *	$Id: kenwood.c,v 1.110 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -202,7 +202,7 @@ transaction_write:
 
     /* Check that command termination is correct */
     if (strchr(cmdtrm, data[strlen(data)-1])==NULL) {
-	 rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __FUNCTION__, data);
+	 rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, data);
 	 if (retry_read++ < rig->state.rigport.retry)
 	     goto transaction_write;
 	 retval = -RIG_EPROTO;
@@ -213,22 +213,22 @@ transaction_write:
 	switch (data[0]) {
 	case 'N':
     		/* Command recognised by rig but invalid data entered. */
-	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __FUNCTION__, cmdstr);
+	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: NegAck for '%s'\n", __func__, cmdstr);
 	 	retval = -RIG_ENAVAIL;
 	 	goto transaction_quit;
 	case 'O':
 		/* Too many characters sent without a carriage return */
-	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __FUNCTION__, cmdstr);
+	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__, cmdstr);
 	 	retval = -RIG_EPROTO;
 	 	goto transaction_quit;
 	case 'E':
 		/* Communication error */
-	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Communication error for '%s'\n", __FUNCTION__, cmdstr);
+	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Communication error for '%s'\n", __func__, cmdstr);
 	 	retval = -RIG_EIO;
 	 	goto transaction_quit;
 	case '?':
     		/* Command not understood by rig */
-	 	rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __FUNCTION__, cmdstr);
+	 	rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __func__, cmdstr);
 	 	retval = -RIG_ERJCTED;
 	 	goto transaction_quit;
 	}
@@ -647,7 +647,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	case RIG_VFO_C: vfo_letter = 'C'; break;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %d\n",
-				__FUNCTION__, vfo);
+				__func__, vfo);
 		return -RIG_EINVAL;
 	}
 
@@ -1011,7 +1011,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 				if (rig->state.attenuator[i] == 0) {
 					rig_debug(RIG_DEBUG_ERR,"%s: "
 							"unexpected att level %d\n",
-							__FUNCTION__, lvl);
+							__func__, lvl);
 					return -RIG_EPROTO;
 				}
 				if (i != lvl)

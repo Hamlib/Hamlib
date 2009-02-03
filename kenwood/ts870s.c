@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.53 2009-02-03 22:56:07 azummo Exp $
+ *	$Id: ts870s.c,v 1.54 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -75,7 +75,7 @@ static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 
 		if (vfo_len != 4 || vfobuf[1] != 'R') {
 			rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer %s, "
-						"len=%d\n",__FUNCTION__,vfobuf, vfo_len);
+						"len=%d\n",__func__,vfobuf, vfo_len);
 			return -RIG_ERJCTED;
 		}
 
@@ -86,7 +86,7 @@ static int ts870s_get_vfo(RIG *rig, vfo_t *vfo)
 		case '2': *vfo = RIG_VFO_MEM; break;
 		default: 
 			rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
-							__FUNCTION__,vfobuf[2]);
+							__func__,vfobuf[2]);
 			return -RIG_EPROTO;
 		}
 		return RIG_OK;
@@ -106,7 +106,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   if (buf_len != 4 || buf[1] != 'D')
   {
     rig_debug(RIG_DEBUG_ERR,"%s: unexpected MD answer, len=%d\n",
-      __FUNCTION__,buf_len);
+      __func__,buf_len);
     return -RIG_ERJCTED;
   }
 
@@ -123,7 +123,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     case MD_NONE:	*mode = RIG_MODE_NONE; break;
     default:
       rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-		      __FUNCTION__,buf[2]);
+		      __func__,buf[2]);
       return -RIG_EINVAL;
   }
 
@@ -135,7 +135,7 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   if (buf_len != 7 || buf[1] != 'W')
   {
     rig_debug(RIG_DEBUG_ERR,"%s: unexpected FW answer, len=%d\n",
-			__FUNCTION__,buf_len);
+			__func__,buf_len);
     return -RIG_ERJCTED;
   }
   
@@ -161,7 +161,7 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     case RIG_MODE_RTTYR:    kmode = MD_FSKR; break;
     default:
       rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-		      __FUNCTION__,mode);
+		      __func__,mode);
       return -RIG_EINVAL;
   }
 

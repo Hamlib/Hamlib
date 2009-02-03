@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TH-G71 description
  *  Copyright (c) 2003-2008 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.24 2009-02-03 22:42:44 azummo Exp $
+ *	$Id: thg71.c,v 1.25 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -189,13 +189,13 @@ int thg71_decode_event (RIG *rig)
     char asyncbuf[ACKBUF_LEN];
     int retval;
     size_t asyncbuf_len = ACKBUF_LEN;
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
     retval = kenwood_transaction(rig, NULL, 0, asyncbuf, &asyncbuf_len);
     if (retval != RIG_OK)
         return retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __func__);
 
     if (asyncbuf[0] == 'B' && asyncbuf[1] == 'U' && asyncbuf[2] == 'F') {
 
@@ -206,11 +206,11 @@ int thg71_decode_event (RIG *rig)
                                   &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset);
         if (retval != 11) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BUF message '%s'\n", __FUNCTION__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BUF message '%s'\n", __func__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __FUNCTION__, freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __func__, freq);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
@@ -232,11 +232,11 @@ int thg71_decode_event (RIG *rig)
         int lev;
         retval = sscanf(asyncbuf, "SM 0,%d", &lev);
         if (retval != 2) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected SM message '%s'\n", __FUNCTION__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected SM message '%s'\n", __func__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Signal strength event - signal = %.3f\n", __FUNCTION__, (float)(lev / 5.0));
+        rig_debug(RIG_DEBUG_TRACE, "%s: Signal strength event - signal = %.3f\n", __func__, (float)(lev / 5.0));
 
         /* Callback execution */
 #if STILLHAVETOADDCALLBACK
@@ -252,11 +252,11 @@ int thg71_decode_event (RIG *rig)
 
         retval = sscanf(asyncbuf, "BY 0,%d", &busy);
         if (retval != 2) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BY message '%s'\n", __FUNCTION__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BY message '%s'\n", __func__, asyncbuf);
             return -RIG_ERJCTED;
         }
         rig_debug(RIG_DEBUG_TRACE, "%s: Busy event - status = '%s'\n",
-				__FUNCTION__, (busy == 0) ? "OFF" : "ON" );
+				__func__, (busy == 0) ? "OFF" : "ON" );
         return -RIG_ENIMPL;
         /* This event does not have a callback. */
 
@@ -267,7 +267,7 @@ int thg71_decode_event (RIG *rig)
 
         retval = sscanf(asyncbuf, "VMC 0,%d", &bandmode);
         if (retval != 1) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VMC message '%s'\n", __FUNCTION__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VMC message '%s'\n", __func__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
@@ -277,14 +277,14 @@ int thg71_decode_event (RIG *rig)
           /*  case 3:     bandmode = RIG_VFO_CALL; break; */
             default:    bandmode = RIG_VFO_CURR; break; 
         }
-        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %d\n", __FUNCTION__,  bandmode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %d\n", __func__,  bandmode);
 
         /* TODO: This event does not have a callback! */
         return -RIG_ENIMPL;
     /* --------------------------------------------------------------------- */
     } else {
 
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported transceive cmd '%s'\n", __FUNCTION__, asyncbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported transceive cmd '%s'\n", __func__, asyncbuf);
         return -RIG_ENIMPL;
     }
 
@@ -300,13 +300,13 @@ int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int step;
     freq_t freq;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
 	switch (vfo) {
       case RIG_VFO_CURR: break;
       case RIG_VFO_A: break;
 	  default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
 		return -RIG_EVFO;
 	}
 
@@ -335,7 +335,7 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
     int retval;
     size_t ack_len;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
         switch (vfo) {
         case RIG_VFO_A:
@@ -346,7 +346,7 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
             sprintf(vfobuf, "VMC 0,2"EOM);
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
             return -RIG_EVFO;
         }
 
@@ -380,7 +380,7 @@ int thg71_get_vfo (RIG *rig, vfo_t *vfo)
 		*vfo=RIG_VFO_MEM;
 		break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
             return -RIG_EVFO;
 	}
 	return RIG_OK;
