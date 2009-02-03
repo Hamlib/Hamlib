@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.31 2009-02-03 23:22:58 azummo Exp $
+*	$Id: ts850.c,v 1.32 2009-02-03 23:42:53 azummo Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -71,7 +71,6 @@ static struct kenwood_priv_caps  ts850_priv_caps  = {
 /* forward definitions */
 static int ts850_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 static int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
-static int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 static int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ts850_set_channel (RIG * rig, const channel_t * chan);
 
@@ -208,8 +207,8 @@ const struct rig_caps ts850_caps = {
 	.set_vfo =  kenwood_set_vfo,
 	.get_vfo =  kenwood_get_vfo_if,
 	.set_split_vfo =  kenwood_set_split_vfo,
-	.set_ctcss_tone =  ts850_set_ctcss_tone,
-	.get_ctcss_tone =  kenwood_get_ctcss_tone,
+	.set_ctcss_tone = kenwood_set_ctcss_tone_tn,
+	.get_ctcss_tone = kenwood_get_ctcss_tone,
 	.get_ptt =  kenwood_get_ptt,
 	.set_ptt =  kenwood_set_ptt,
 	.set_func = kenwood_set_func,
@@ -303,26 +302,6 @@ static char mode_to_char(rmode_t mode)
 			rig_debug(RIG_DEBUG_WARN,"%s: unsupported mode %d\n", __func__,mode);
 	}
 	return(RIG_MODE_NONE);
-}
-
-int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
-{
-	const struct rig_caps *caps;
-	char tonebuf[16];
-	int i;
-	
-	caps = rig->caps;
-	
-	for (i = 0; caps->ctcss_list[i] != 0 && i<38; i++) {
-		if (caps->ctcss_list[i] == tone)
-			break;
-	}
-	if (caps->ctcss_list[i] != tone)
-		return -RIG_EINVAL;
-	
-	sprintf(tonebuf,"TN%03d", i+1);
-	
-	return kenwood_simple_cmd(rig, tonebuf);
 }
 
 int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)

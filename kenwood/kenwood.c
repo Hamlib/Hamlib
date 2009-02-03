@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.110 2009-02-03 23:22:58 azummo Exp $
+ *	$Id: kenwood.c,v 1.111 2009-02-03 23:42:53 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -121,6 +121,7 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] = {
 /*
  * 38 CTCSS sub-audible tones
  */
+/* XXX 175000 here ? */
 const tone_t kenwood38_ctcss_list[] = {
 	 670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
 	 974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
@@ -1276,6 +1277,26 @@ int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	sprintf(tonebuf,"EX%03d%04d", 57, i+1);
 	
 	return kenwood_simple_cmd(rig, tonebuf);
+}
+
+int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone)
+{
+	const struct rig_caps *caps = rig->caps;
+	char buf[6];
+	int i;
+
+	/* XXX 38 is a fixed constant */
+	for (i = 0; caps->ctcss_list[i] != 0 && i < 38; i++) {
+		if (tone == caps->ctcss_list[i])
+			break;
+	}
+
+	if (tone != caps->ctcss_list[i])
+		return -RIG_EINVAL;
+
+	sprintf(buf, "TN%02d", i + 1);
+
+	return kenwood_simple_cmd(rig, buf);
 }
 
 /*

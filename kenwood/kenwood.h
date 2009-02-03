@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.50 2009-02-03 22:45:59 azummo Exp $
+ *	$Id: kenwood.h,v 1.51 2009-02-03 23:42:53 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -93,6 +93,7 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
+int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone);
 int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 int kenwood_set_powerstat(RIG *rig, powerstat_t status);
 int kenwood_get_powerstat(RIG *rig, powerstat_t *status);
