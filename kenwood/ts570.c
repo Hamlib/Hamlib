@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.40 2009-02-03 22:13:55 azummo Exp $
+ *	$Id: ts570.c,v 1.41 2009-02-03 22:56:06 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -151,35 +151,32 @@ static char mode_to_char(rmode_t mode)
 
 static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  char buf[16],ackbuf[16];
-  int buf_len, kmode, retval;
-  size_t ack_len;
+  char buf[16];
+  int kmode, retval;
 
   if ((kmode = mode_to_char(mode)) == RIG_MODE_NONE)
      return -RIG_EINVAL;
 
-  buf_len = sprintf(buf, "MD%c", kmode);
-  ack_len = 0;
-  retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
+  sprintf(buf, "MD%c", kmode);
+  retval = kenwood_simple_cmd(rig, buf);
   if (retval != RIG_OK) return retval;
 
-  ack_len = 0;
   switch (mode) 
   {
     case RIG_MODE_CW:
     case RIG_MODE_CWR:
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-      buf_len = sprintf(buf, "FW%04d", (int)width);
-      retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
+      sprintf(buf, "FW%04d", (int)width);
+      retval = kenwood_simple_cmd(rig, buf);
       if (retval != RIG_OK) return retval;
       break;
     case RIG_MODE_USB:
     case RIG_MODE_LSB:
     case RIG_MODE_FM:
     case RIG_MODE_AM:
-      buf_len = sprintf(buf, "SL%02d", (int)width/50);
-      retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
+      sprintf(buf, "SL%02d", (int)width/50);
+      retval = kenwood_simple_cmd(rig, buf);
       if (retval != RIG_OK) return retval;
       break;
     default:
@@ -195,25 +192,22 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
  */
 int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-		char fctbuf[16], ackbuf[16];
-		int fct_len;
-		size_t ack_len;
+		char fctbuf[6];
 
 		/* Filter unimplemented RIG_FUNC_TUNER and allow settings 0..2 for 
 		 * RIG_FUNC_NR.
 		 * Send all other requests to kenwood_set_func()
 		 */
-		ack_len = 0;
 		switch (func) {
 
 		case RIG_FUNC_NR:
 			if ((status < 0) || (status >2))
 				return -RIG_EINVAL;
-			fct_len = sprintf(fctbuf,"NR%01d", status);
-			return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+			sprintf(fctbuf,"NR%01d", status);
+			return kenwood_simple_cmd(rig, fctbuf);
 		case RIG_FUNC_TUNER:
-			fct_len = sprintf(fctbuf,"AC %c0", (0==status)?'0':'1');
- 			return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+			sprintf(fctbuf,"AC %c0", (0==status)?'0':'1');
+ 			return kenwood_simple_cmd(rig, fctbuf);
 		
 		default:
 			return kenwood_set_func(rig, vfo, func, status);
@@ -282,13 +276,9 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int
 ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
-  char levelbuf[16], ackbuf[16];
-  int level_len;
-  size_t ack_len;
+  char levelbuf[16];
   int kenwood_val;
   int i;
-
-  ack_len = 0;			/* no answer for set functions */
 
   switch (level)
     {
@@ -296,29 +286,29 @@ ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
         kenwood_val = val.i;
 	/* set the preamplifier if a correct value is entered */
 	if (kenwood_val == 0)
-		level_len = sprintf(levelbuf, "PA0");
+		sprintf(levelbuf, "PA0");
 	else
 	for (i=0; i<MAXDBLSTSIZ; i++)
 	    if (kenwood_val == rig->state.preamp[i])
 	    {
-		level_len = sprintf(levelbuf, "PA%01d", i+1);
+		sprintf(levelbuf, "PA%01d", i+1);
 		break;  /* found - stop searching */
 	    }
 	    else
 	    	return -RIG_EINVAL;
-        return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+        return kenwood_simple_cmd(rig, levelbuf);
 
     case RIG_LEVEL_RFPOWER:
       /* level for TS570D is from 0.. 100W in SSB and CW */
       kenwood_val = val.f * 100;	
-      level_len = sprintf (levelbuf, "PC%03d", kenwood_val);
-      return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+      sprintf (levelbuf, "PC%03d", kenwood_val);
+      return kenwood_simple_cmd(rig, levelbuf);
       
     case RIG_LEVEL_MICGAIN:
       /* level is from 0..100 */
       kenwood_val = val.f * 100;
-      level_len = sprintf (levelbuf, "MG%03d", kenwood_val);
-      return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+      sprintf (levelbuf, "MG%03d", kenwood_val);
+      return kenwood_simple_cmd(rig, levelbuf);
 
     default:
       return kenwood_set_level (rig, vfo, level, val);
@@ -464,7 +454,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		}
 		/* set RX VFO */
 		cmd_len = sprintf(cmdbuf, "FR%c%c", vfo_function, cmd_trm(rig));
-		retval = kenwood_transaction (rig, cmdbuf, cmd_len, NULL, 0);
+		retval = kenwood_simple_cmd(rig, cmdbuf);
 		if (retval != RIG_OK)
 			return retval;
 	}
@@ -481,7 +471,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 		} 
 		/* set TX VFO */
 		cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
-		retval = kenwood_transaction (rig, cmdbuf, cmd_len, NULL, 0);
+		retval = kenwood_simple_cmd(rig, cmdbuf);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -496,7 +486,7 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 			/* and then set it to both vfo's */
 			vfo_function = ackbuf[2];
 			cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
-			retval = kenwood_transaction(rig, cmdbuf, cmd_len, NULL, 0);
+			retval = kenwood_simple_cmd(rig, cmdbuf);
 			if (retval != RIG_OK)
 				return retval;
 		}

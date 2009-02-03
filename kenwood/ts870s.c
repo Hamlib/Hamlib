@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS870S description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts870s.c,v 1.52 2009-02-03 22:13:55 azummo Exp $
+ *	$Id: ts870s.c,v 1.53 2009-02-03 22:56:07 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -146,9 +146,8 @@ static int ts870s_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  char buf[16],ackbuf[16];
-  int buf_len, kmode, retval;
-  size_t ack_len;
+  char buf[16];
+  int kmode, retval;
 
   switch (mode) 
   {
@@ -166,36 +165,28 @@ static int ts870s_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
       return -RIG_EINVAL;
   }
 
-  buf_len = sprintf(buf, "MD%c", kmode);
-  ack_len = 0;
-  retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
+  sprintf(buf, "MD%c", kmode);
+  retval = kenwood_simple_cmd(rig, buf);
   if (retval != RIG_OK) return retval;
 
 /* 
  * This rig will simply use an IF bandpass which is closest to width, 
  * so we don't need to check the value...
  */
-  buf_len = sprintf(buf, "FW%04d", (int)width/10);
-  ack_len = 0;
-  retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
-  if (retval != RIG_OK) return retval;
-
-  return RIG_OK;
+  sprintf(buf, "FW%04d", (int)width/10);
+  return kenwood_simple_cmd(rig, buf);
 }
 
 int ts870s_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 {
-	char levelbuf[16], ackbuf[50];
-	int level_len;
+	char levelbuf[16];
 	int intval;
-	size_t ack_len;
 
-	ack_len = 0;
 	switch (level) {
 	case RIG_LEVEL_RFPOWER:
 		intval = val.f * 100;
-		level_len = sprintf(levelbuf, "PC%03d", intval);
-		return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
+		sprintf(levelbuf, "PC%03d", intval);
+		return kenwood_simple_cmd(rig, levelbuf);
 		break;
 
 	default:

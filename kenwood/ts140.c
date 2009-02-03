@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS140 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts140.c,v 1.12 2009-02-03 22:13:54 azummo Exp $
+ *	$Id: ts140.c,v 1.13 2009-02-03 22:56:06 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -51,12 +51,10 @@ static struct kenwood_priv_caps  ts140_priv_caps  = {
 
 static int ts140_set_vfo(RIG *rig, vfo_t vfo)
 {
-                char cmdbuf[16], ackbuf[50];
-                int cmd_len, retval;
-		size_t ack_len;
+                char cmdbuf[16];
+                int retval;
                 char vfo_function;
 
-		ack_len = 0;
                 switch (vfo) {
                 case RIG_VFO_VFO:
                 case RIG_VFO_A: vfo_function = VFO_A; break;
@@ -69,12 +67,8 @@ static int ts140_set_vfo(RIG *rig, vfo_t vfo)
                         return -RIG_EINVAL;
                 }
 
-                cmd_len = sprintf(cmdbuf, "FN%c", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
-                ack_len = 0;
-                retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
-                if (retval != RIG_OK)
-                        return retval;
-				return RIG_OK;
+                sprintf(cmdbuf, "FN%c", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
+                return kenwood_simple_cmd(rig, cmdbuf);
 }
 
 /*

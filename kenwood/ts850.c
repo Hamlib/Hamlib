@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.29 2009-02-03 22:13:55 azummo Exp $
+*	$Id: ts850.c,v 1.30 2009-02-03 22:56:06 azummo Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -308,9 +308,8 @@ static char mode_to_char(rmode_t mode)
 int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	const struct rig_caps *caps;
-	char tonebuf[16], ackbuf[16];
-	int i, tone_len;
-	size_t ack_len;
+	char tonebuf[16];
+	int i;
 	
 	caps = rig->caps;
 	
@@ -321,10 +320,9 @@ int ts850_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->ctcss_list[i] != tone)
 		return -RIG_EINVAL;
 	
-	tone_len = sprintf(tonebuf,"TN%03d", i+1);
+	sprintf(tonebuf,"TN%03d", i+1);
 	
-	ack_len = 0;
-	return kenwood_transaction (rig, tonebuf, tone_len, ackbuf, &ack_len);
+	return kenwood_simple_cmd(rig, tonebuf);
 }
 
 int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
