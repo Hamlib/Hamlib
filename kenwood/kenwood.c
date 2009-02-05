@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.111 2009-02-03 23:42:53 azummo Exp $
+ *	$Id: kenwood.c,v 1.112 2009-02-05 21:05:59 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -114,7 +114,7 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] = {
 	 [5] = RIG_MODE_AM,
 	 [6] = RIG_MODE_RTTY,
 	 [7] = RIG_MODE_CWR,
-	 [8] = RIG_MODE_NONE,
+	 [8] = RIG_MODE_NONE,	/* TUNE mode */
 	 [9] = RIG_MODE_RTTYR
 };
 
