@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - PCR-100 description
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: pcr100.c,v 1.9 2009-01-29 19:50:33 azummo Exp $
+ *	$Id: pcr100.c,v 1.10 2009-02-06 17:31:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,11 +33,18 @@
 
 #define PCR100_MODES ( RIG_MODE_AM | RIG_MODE_FM | RIG_MODE_WFM )
 
-#define PCR100_FUNC ( /* RIG_FUNC_ANL | */ RIG_FUNC_TSQL )
+#define PCR100_FUNC ( RIG_FUNC_TSQL )
 
 #define PCR100_LEVEL ( \
 			RIG_LEVEL_ATT | RIG_LEVEL_AF | RIG_LEVEL_SQL | RIG_LEVEL_IF | \
 			RIG_LEVEL_AGC | RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR )
+
+static const struct confparams pcr_ext_levels[] = {
+	{ TOK_EL_ANL, "ANL", "Auto Noise Limiter", "Auto Noise Limiter",
+		NULL, RIG_CONF_CHECKBUTTON
+	},
+	{ RIG_CONF_END, NULL, }
+};
 
 /*
  * IC PCR100 rigs capabilities.
@@ -144,6 +151,8 @@ const struct rig_caps pcr100_caps = {
 			}
 	},
 
+	.extlevels = pcr_ext_levels,
+
 	.rig_init	= pcr_init,
 	.rig_cleanup	= pcr_cleanup,
 	.rig_open	= pcr_open,
@@ -161,6 +170,8 @@ const struct rig_caps pcr100_caps = {
 
 	.set_func	= pcr_set_func,
 	.get_func	= pcr_get_func,
+
+	.set_ext_level  = pcr_set_ext_level,
 
 	.set_ctcss_sql	= pcr_set_ctcss_sql,
 	.get_ctcss_sql	= pcr_get_ctcss_sql,

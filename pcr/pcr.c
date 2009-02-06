@@ -3,7 +3,7 @@
  *  Copyright (c) 2001-2005 by Stephane Fillod and Darren Hatcher
  *  Copyright (C) 2007-09 by Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: pcr.c,v 1.25 2009-01-29 19:50:33 azummo Exp $
+ *	$Id: pcr.c,v 1.26 2009-02-06 17:31:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -783,8 +783,6 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
 	int err = -RIG_ENIMPL;
 
-	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
-
 	if (RIG_LEVEL_IS_FLOAT(level))
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: level = %d, val = %f\n",
 				__func__, level, val.f);
@@ -947,16 +945,6 @@ pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 
 		break;
 
-#if 0
-	case RIG_FUNC_ANL: /* automatic noise limiter */
-		if (status == 0)
-			return pcr_set_anl(rig, 0);
-		else
-			return pcr_set_anl(rig, 1);
-
-		break;
-#endif
-
 	case RIG_FUNC_TSQL:
 		if (priv->last_mode != MD_FM)
 			return -RIG_ERJCTED;
@@ -967,7 +955,7 @@ pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 			return pcr_set_ctcss_sql(rig, vfo, priv->last_ctcss_sql);
 
 	default:
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: default\n");
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: default\n", __func__);
 		return -RIG_EINVAL;
 	}
 }
@@ -985,6 +973,27 @@ pcr_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
 	/* stub here ... */
 	return -RIG_ENIMPL;
 }
+
+
+int
+pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: tok = %s\n", __func__, token);
+
+	switch (token) {
+
+	case TOK_EL_ANL: /* automatic noise limiter */
+
+		return pcr_set_anl(rig, (0 == val.i) ? 0 : 1);
+
+	default:
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: default\n", __func__);
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
 
 /* --------------------------------------------------------------------------------------- */
 /* The next functions are all "helper types". These are called by the base functions above */

@@ -1,8 +1,8 @@
 /*
  *  Hamlib PCR backend - main header
- *  Copyright (c) 2001-2003 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: pcr.h,v 1.14 2009-01-29 19:50:33 azummo Exp $
+ *	$Id: pcr.h,v 1.15 2009-02-06 17:31:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -22,6 +22,13 @@
 
 #ifndef _PCR_H
 #define _PCR_H 1
+
+#include "hamlib/rig.h"
+#include "token.h"
+
+/* ext_level's tokens */
+#define TOK_EL_ANL  TOKEN_BACKEND(1)
+
 
 #define BACKEND_VER		"0.5"
 
@@ -76,6 +83,7 @@ int pcr_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 int pcr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+int pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 
 int pcr_set_comm_rate(RIG *rig, int baud_rate);
 
