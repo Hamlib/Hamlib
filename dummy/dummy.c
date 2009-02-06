@@ -2,7 +2,7 @@
  *  Hamlib Dummy backend - main file
  *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: dummy.c,v 1.43 2009-01-28 22:53:18 fillods Exp $
+ *	$Id: dummy.c,v 1.44 2009-02-06 17:27:54 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -63,17 +63,20 @@ struct dummy_priv_data {
 
 
 static const struct confparams dummy_ext_levels[] = {
-	{ TOK_EL_MAGICLEVEL, "magiclevel", "Magic level", "Magic level, as an example",
+	{ TOK_EL_MAGICLEVEL, "MGL", "Magic level", "Magic level, as an example",
 		NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
 	},
-	{ TOK_EL_MAGICFUNC, "magicfunc", "Magic func", "Magic function, as an example",
-		NULL, RIG_CONF_CHECKBUTTON, { .n = { 0, 1, .001 } }
-	},
+	{ TOK_EL_MAGICFUNC, "MGF", "Magic func", "Magic function, as an example",
+		NULL, RIG_CONF_CHECKBUTTON
+       	},
+	{ TOK_EL_MAGICOP, "MGO", "Magic Op", "Magic Op, as an example",
+		NULL, RIG_CONF_BUTTON
+       	},
 	{ RIG_CONF_END, NULL, }
 };
 
 static const struct confparams dummy_ext_parms[] = {
-	{ TOK_EP_MAGICPARM, "magicparm", "Magic parm", "Magic parameter, as an example",
+	{ TOK_EP_MAGICPARM, "MGP", "Magic parm", "Magic parameter, as an example",
 		NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
 	},
 	{ RIG_CONF_END, NULL, }
@@ -746,6 +749,7 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
   switch (token) {
     case TOK_EL_MAGICLEVEL:
     case TOK_EL_MAGICFUNC:
+    case TOK_EL_MAGICOP:
 	    break;
 
     default:
@@ -764,6 +768,9 @@ static int dummy_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 	    break;
     case RIG_CONF_CHECKBUTTON:
 	    sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+	    break;
+    case RIG_CONF_BUTTON:
+	    lstr[0] = '\0';
 	    break;
     default:
 	    return -RIG_EINTERNAL;
@@ -795,6 +802,7 @@ static int dummy_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
   switch (token) {
     case TOK_EL_MAGICLEVEL:
     case TOK_EL_MAGICFUNC:
+    case TOK_EL_MAGICOP:
 	    break;
 
     default:
@@ -903,6 +911,9 @@ static int dummy_set_ext_parm(RIG *rig, token_t token, value_t val)
 	    break;
     case RIG_CONF_CHECKBUTTON:
 	    sprintf(lstr, "%s", val.i ? "ON" : "OFF");
+	    break;
+    case RIG_CONF_BUTTON:
+	    lstr[0] = '\0';
 	    break;
     default:
 	    return -RIG_EINTERNAL;
