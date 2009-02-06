@@ -6,7 +6,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.15 2009-01-05 02:20:59 mrtembry Exp $  
+ * $Id: rigctl_parse.c,v 1.16 2009-02-06 17:28:38 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -550,8 +550,11 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 	case RIG_CONF_CHECKBUTTON:
 		printf("\tCheck button.\n");
 		break;
+	case RIG_CONF_BUTTON:
+		printf("\tButton.\n");
+		break;
 	default:
-		printf("\tUnkown conf\n");
+		printf("\tUnknown conf\n");
 	}
 
 	return 1;  /* !=0, we want them all ! */
@@ -1104,6 +1107,9 @@ declare_proto_rig(set_level)
 			return -RIG_EINVAL;	/* no such parameter */
 
 		switch (cfp->type) {
+		case RIG_CONF_BUTTON:
+			/* arg is ignored */
+			break;
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
 			sscanf(arg2, "%d", &val.i);
@@ -1158,6 +1164,10 @@ declare_proto_rig(get_level)
 			fprintf(fout, "%s: ", cmd->arg2);
 
 		switch (cfp->type) {
+		case RIG_CONF_BUTTON:
+			/* there's not sense in retrieving value of stateless button */
+			return -RIG_EINVAL;
+
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
 			fprintf(fout, "%d\n", val.i);
@@ -1253,6 +1263,9 @@ declare_proto_rig(set_parm)
 			return -RIG_EINVAL;	/* no such parameter */
 
 		switch (cfp->type) {
+		case RIG_CONF_BUTTON:
+			/* arg is ignored */
+			break;
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
 			sscanf(arg2, "%d", &val.i);
@@ -1307,6 +1320,9 @@ declare_proto_rig(get_parm)
 			fprintf(fout, "%s: ", cmd->arg2);
 
 		switch (cfp->type) {
+		case RIG_CONF_BUTTON:
+			/* there's not sense in retrieving value of stateless button */
+			return -RIG_EINVAL;
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
 			fprintf(fout, "%d\n", val.i);
