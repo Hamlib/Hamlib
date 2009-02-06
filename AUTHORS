@@ -81,6 +81,7 @@ C: Manual and testing by Bob Parnass, AJ9S
 
 [kenwood]
 M: Joop Stakenborg, PG4I
+C: Alessandro Zummo
 
 [kenwood: K2]
 M: Brian Mury VE7NGR
@@ -109,8 +110,9 @@ M: Stephane Fillod, F8CFE
 C: Rob Frohne, KL7NA
 
 
-[pcr: pcr1000]
-M: Darren Hatcher, G0WCW
+[pcr: pcr100,pcr1000]
+M: Alessandro Zummo
+C: Darren Hatcher, G0WCW
 
 
 [tentec]
@@ -257,3 +259,4 @@ Rob Frohne, KL7NA, <frohro (at) wwc.edu>
 Steve Conklin, AI4QR, <steve (at) conklinhouse.com>
 Martin Ewing, AA6E, <aa6e (at) arrl.net>
 Terry Embry, KJ4EED, <mrtembry (at) users.sourceforge.net>
+Alessandro Zummo <alessandro.zummo (at) towertech.it>
