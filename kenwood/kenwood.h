@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.51 2009-02-03 23:42:53 azummo Exp $
+ *	$Id: kenwood.h,v 1.52 2009-02-06 14:15:12 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -23,6 +23,8 @@
 #ifndef _KENWOOD_H
 #define _KENWOOD_H 1
 
+#include "token.h"
+
 #define BACKEND_VER	"0.7"
 
 #define EOM_KEN ';'
@@ -30,6 +32,11 @@
 
 #define KENWOOD_MODE_TABLE_MAX	10
 #define KENWOOD_MAX_BUF_LEN	50 /* max answer len, arbitrary */
+
+#define TOK_VOICE	TOKEN_BACKEND(1)
+#define TOK_FINE	TOKEN_BACKEND(2)
+#define TOK_XIT		TOKEN_BACKEND(3)
+#define TOK_RIT		TOKEN_BACKEND(4)
 
 /*
  * modes in use by the "MD" command
@@ -92,6 +99,8 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val);
+int kenwood_get_ext_parm(RIG *rig, token_t token, value_t *val);
 int kenwood_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 int kenwood_set_ctcss_tone_tn(RIG *rig, vfo_t vfo, tone_t tone);
 int kenwood_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS450S description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts450s.c,v 1.29 2009-02-03 22:45:59 azummo Exp $
+ *	$Id: ts450s.c,v 1.30 2009-02-06 14:15:12 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,8 +39,6 @@
 #define TS450S_LEVEL_ALL (RIG_LEVEL_STRENGTH|RIG_LEVEL_CWPITCH|RIG_LEVEL_METER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 #define TS450S_VFO (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
-#define TS450S_PARMS (RIG_PARM_ANN)	/* optional */
-
 #define TS450S_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
 #define TS450S_SCAN_OPS (RIG_SCAN_VFO)
 
@@ -58,6 +56,17 @@ static struct kenwood_priv_caps ts450_priv_caps = {
         .cmdtrm		= EOM_KEN,
 };
 
+static const struct confparams ts450_ext_parms[] = {
+	{ TOK_FINE, "fine", "Fine", "Fine step mode",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ TOK_VOICE, "voice", "Voice", "Voice recall",
+		NULL, RIG_CONF_BUTTON, { } },
+	{ TOK_XIT, "xit", "XIT", "XIT",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ TOK_RIT, "rit", "RIT", "RIT",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ RIG_CONF_END, NULL, }
+};
 
 static int ts450_open(RIG *rig)
 {
@@ -119,10 +128,11 @@ const struct rig_caps ts450s_caps = {
 	.has_set_func		= TS450S_FUNC_ALL,
 	.has_get_level		= TS450S_LEVEL_ALL | RIG_LEVEL_RFPOWER,
 	.has_set_level		= RIG_LEVEL_SET(TS450S_LEVEL_ALL),
-	.has_get_parm 		= TS450S_PARMS,
-	.has_set_parm		= TS450S_PARMS,
+	.has_get_parm 		= 0,
+	.has_set_parm		= 0,
 	.level_gran		= {},     /* FIXME: granularity */
 	.parm_gran		= {},
+	.extparms		= ts450_ext_parms,
 	.ctcss_list		= NULL, /* hw dip-switch */
 	.dcs_list		= NULL,
 	.preamp			= { RIG_DBLST_END, },
@@ -218,6 +228,8 @@ const struct rig_caps ts450s_caps = {
 	.get_func = kenwood_get_func,
 	.set_level = kenwood_set_level,
 	.get_level = kenwood_get_level,
+	.set_ext_parm = kenwood_set_ext_parm,
+	.get_ext_parm = kenwood_get_ext_parm,
 	.vfo_op = kenwood_vfo_op,
 	.set_mem = kenwood_set_mem,
 	.get_mem = kenwood_get_mem_if,

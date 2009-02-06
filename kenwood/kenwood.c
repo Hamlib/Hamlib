@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.112 2009-02-05 21:05:59 azummo Exp $
+ *	$Id: kenwood.c,v 1.113 2009-02-06 14:15:12 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1148,16 +1148,7 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	case RIG_FUNC_AIP:
 		sprintf(buf, "MX%c", (status == 0) ? '0' : '1');
 		return kenwood_simple_cmd(rig, buf);
-/*
-	case RIG_FUNC_FINE_STEP:
-		sprintf(buf, "FS%c", (status == 0) ? '0' : '1');
-		return kenwood_simple_cmd(rig, buf);
 
-	case RIG_FUNC_VOICE:
-	case RIG_FUNC_RIT:
-	case RIG_FUNC_XIT:
-		...
-*/
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported set_func %#x", func);
 		return -RIG_EINVAL;
@@ -1236,10 +1227,7 @@ int kenwood_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 	case RIG_FUNC_AIP:
 		return get_kenwood_func(rig, "MX", status);
-/*
-	case RIG_FUNC_FINE_STEP:
-		return get_kenwood_func(rig, "FS", status);
-*/
+
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_func %#x", func);
 		return -RIG_EINVAL;
@@ -1814,6 +1802,59 @@ int kenwood_set_channel(RIG *rig, channel_t *chan)
 		chan->ctcss_tone ? (tone + 1) : 0);
 
 	return kenwood_simple_cmd(rig, buf);
+}
+
+int kenwood_set_ext_parm(RIG *rig, token_t token, value_t val)
+{
+	char buf[4];
+
+	switch (token) {
+	case TOK_VOICE:
+		return kenwood_simple_cmd(rig, "VR");
+
+	case TOK_FINE:
+		sprintf(buf, "FS%c", (val.i == 0) ? '0' : '1');
+		return kenwood_simple_cmd(rig, buf);
+
+	case TOK_XIT:
+		sprintf(buf, "XT%c", (val.i == 0) ? '0' : '1');
+		return kenwood_simple_cmd(rig, buf);
+
+	case TOK_RIT:
+		sprintf(buf, "RT%c", (val.i == 0) ? '0' : '1');
+		return kenwood_simple_cmd(rig, buf);
+	}
+
+	return -RIG_EINVAL;
+}
+
+int kenwood_get_ext_parm(RIG *rig, token_t token, value_t *val)
+{
+	int err;
+	struct kenwood_priv_data *priv = rig->state.priv;
+
+	switch (token) {
+	case TOK_FINE:
+		return get_kenwood_func(rig, "FS", &val->i);
+
+	case TOK_XIT:
+		err = kenwood_get_if(rig);
+		if (err != RIG_OK)
+			return err;
+
+		val->i = (priv->info[24] == '1') ? 1 : 0;
+		return RIG_OK;
+
+	case TOK_RIT:
+		err = kenwood_get_if(rig);
+		if (err != RIG_OK)
+			return err;
+
+		val->i = (priv->info[23] == '1') ? 1 : 0;
+		return RIG_OK;
+	}
+
+	return -RIG_ENIMPL;
 }
 
 /*

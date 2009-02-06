@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.32 2009-02-03 23:42:53 azummo Exp $
+*	$Id: ts850.c,v 1.33 2009-02-06 14:15:12 azummo Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -74,6 +74,18 @@ static int ts850_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 static int ts850_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ts850_set_channel (RIG * rig, const channel_t * chan);
 
+static const struct confparams ts850_ext_parms[] = {
+	{ TOK_FINE, "fine", "Fine", "Fine step mode",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ TOK_VOICE, "voice", "Voice", "Voice recall",
+		NULL, RIG_CONF_BUTTON, { } },
+	{ TOK_XIT, "xit", "XIT", "XIT",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ TOK_RIT, "rit", "RIT", "RIT",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+  	{ RIG_CONF_END, NULL, }
+};
+
 /*
 * ts850 rig capabilities.
 * Notice that some rigs share the same functions.
@@ -109,7 +121,8 @@ const struct rig_caps ts850_caps = {
 	.has_set_parm =  RIG_PARM_NONE,
 	.level_gran =  {},            
 	.parm_gran =  {},
-	.ctcss_list =  kenwood38_ctcss_list,
+	.extparms = ts850_ext_parms,
+  	.ctcss_list =  kenwood38_ctcss_list,
 	.dcs_list =  NULL,
 	.preamp =   { RIG_DBLST_END, },
 	.attenuator =   { RIG_DBLST_END, },

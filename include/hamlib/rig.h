@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2003 by Frank Singleton
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: rig.h,v 1.139 2009-01-25 16:23:06 fillods Exp $
+ *	$Id: rig.h,v 1.140 2009-02-06 14:15:11 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -510,7 +510,8 @@ enum rig_conf_e {
 	RIG_CONF_STRING,	/*!<	String type */
 	RIG_CONF_COMBO,		/*!<	Combo type */
 	RIG_CONF_NUMERIC,	/*!<	Numeric type integer or real */
-	RIG_CONF_CHECKBUTTON	/*!<	on/off type */
+	RIG_CONF_CHECKBUTTON,	/*!<	on/off type */
+	RIG_CONF_BUTTON		/*!<    Button type */
 };
 
 #define RIG_COMBO_MAX	8
