@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.114 2009-02-09 20:37:48 azummo Exp $
+ *	$Id: kenwood.c,v 1.115 2009-02-09 20:59:31 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1425,7 +1425,23 @@ int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
 	return kenwood_simple_cmd(rig,
-		ptt == RIG_PTT_ON ? "TX" : "RX");
+		(ptt == RIG_PTT_ON) ? "TX" : "RX");
+}
+
+int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
+{
+	int err;
+	ptt_t current_ptt;
+	
+	err = kenwood_get_ptt(rig, vfo, &current_ptt);
+	if (err != RIG_OK)
+		return err;
+		
+	if (current_ptt == ptt)
+		return RIG_OK;
+
+	return kenwood_simple_cmd(rig,
+		(ptt == RIG_PTT_ON) ? "TX" : "RX");
 }
 
 
