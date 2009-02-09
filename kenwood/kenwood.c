@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.113 2009-02-06 14:15:12 azummo Exp $
+ *	$Id: kenwood.c,v 1.114 2009-02-09 20:37:48 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1097,9 +1097,6 @@ int kenwood_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 	char buf[6];
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
 	switch (func) {
 	case RIG_FUNC_NB:
 		sprintf(buf, "NB%c", (status == 0) ? '0' : '1');
