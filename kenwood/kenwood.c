@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.115 2009-02-09 20:59:31 azummo Exp $
+ *	$Id: kenwood.c,v 1.116 2009-02-10 22:48:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,6 +30,7 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
+#include <ctype.h>
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -905,14 +906,36 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 
 	case RIG_LEVEL_ATT:
 		/* set the attenuator if a correct value is entered */
-		for (i=0; i<MAXDBLSTSIZ; i++)
-			if (kenwood_val == rig->state.attenuator[i])
-			{
-				sprintf(levelbuf, "RA%02d", kenwood_val/6);
-				break;
+		if (val.i == 0)
+			sprintf(levelbuf, "RA00");
+		else {
+			for (i=0; i<MAXDBLSTSIZ && rig->state.attenuator[i]; i++) {
+				if (val.i == rig->state.attenuator[i])
+				{
+					sprintf(levelbuf, "RA%02d", i+1);
+					break;
+				}
 			}
-			else
-				sprintf(levelbuf, "RA00");
+			if (val.i != rig->state.attenuator[i])
+				return -RIG_EINVAL;
+		}
+		break;
+
+	case RIG_LEVEL_PREAMP:
+		/* set the preamp if a correct value is entered */
+		if (val.i == 0)
+			sprintf(levelbuf, "PA0");
+		else {
+			for (i=0; i<MAXDBLSTSIZ && rig->state.preamp[i]; i++) {
+				if (val.i == rig->state.preamp[i])
+				{
+					sprintf(levelbuf, "PA%01d", i+1);
+					break;
+				}
+			}
+			if (val.i != rig->state.preamp[i])
+				return -RIG_EINVAL;
+		}
 		break;
 
 	case RIG_LEVEL_SLOPE_HIGH:
@@ -931,6 +954,12 @@ int kenwood_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		if(val.i > 1000 || val.i < 400)
 			return -RIG_EINVAL;
 		sprintf(levelbuf, "PT%02d", (val.i / 50) - 8);
+		break;
+
+	case RIG_LEVEL_KEYSPD:
+		if(val.i > 50 || val.i < 5)
+			return -RIG_EINVAL;
+		sprintf(levelbuf, "KS%03d", val.i);
 		break;
 
 	default:
@@ -1008,16 +1037,45 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (lvl == 0) {
 			val->i = 0;
 		} else {
-			for (i=0; i<lvl && i<MAXDBLSTSIZ; i++)
+			for (i=0; i<lvl && i<MAXDBLSTSIZ; i++) {
 				if (rig->state.attenuator[i] == 0) {
 					rig_debug(RIG_DEBUG_ERR,"%s: "
 							"unexpected att level %d\n",
 							__func__, lvl);
 					return -RIG_EPROTO;
 				}
-				if (i != lvl)
-					return -RIG_EINTERNAL;
-				val->i = rig->state.attenuator[i-1];
+			}
+			if (i != lvl)
+				return -RIG_EINTERNAL;
+			val->i = rig->state.attenuator[i-1];
+		}
+		break;
+
+	case RIG_LEVEL_PREAMP:
+		retval = kenwood_safe_transaction(rig, "PA", lvlbuf, 50, 4);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (lvlbuf[2] == '0')
+			val->i = 0;
+		else if (isdigit(lvlbuf[2])) {
+			lvl = lvlbuf[2]-'0';
+			for (i=0; i<lvl && i<MAXDBLSTSIZ; i++) {
+				if (rig->state.preamp[i] == 0) {
+					rig_debug(RIG_DEBUG_ERR,"%s: "
+							"unexpected preamp level %d\n",
+							__func__, lvl);
+					return -RIG_EPROTO;
+				}
+			}
+			if (i != lvl)
+				return -RIG_EINTERNAL;
+			val->i = rig->state.preamp[i-1];
+		} else {
+			rig_debug(RIG_DEBUG_ERR,"%s: "
+					"unexpected preamp char '%c'\n",
+					__func__, lvlbuf[2]);
+			return -RIG_EPROTO;
 		}
 		break;
 
@@ -1072,13 +1130,19 @@ int kenwood_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		val->i = (val->i * 1000) + 1000; /* 00 - 08 */
 		break;
 
-	case RIG_LEVEL_PREAMP:
+	case RIG_LEVEL_KEYSPD:
+		retval = kenwood_safe_transaction(rig, "KS", lvlbuf, 50, 6);
+		if (retval != RIG_OK)
+			return retval;
+
+		sscanf(lvlbuf+2, "%d", &val->i);
+		break;
+
 	case RIG_LEVEL_IF:
 	case RIG_LEVEL_APF:
 	case RIG_LEVEL_NR:
 	case RIG_LEVEL_PBT_IN:
 	case RIG_LEVEL_PBT_OUT:
-	case RIG_LEVEL_KEYSPD:
 	case RIG_LEVEL_NOTCHF:
 	case RIG_LEVEL_COMP:
 	case RIG_LEVEL_BKINDL:
@@ -1756,7 +1820,7 @@ int kenwood_get_channel(RIG *rig, channel_t *chan)
 	return RIG_OK;
 }
 
-int kenwood_set_channel(RIG *rig, channel_t *chan)
+int kenwood_set_channel(RIG *rig, const channel_t *chan)
 {
 	char buf[26];
 	char mode, tx_mode = 0;
