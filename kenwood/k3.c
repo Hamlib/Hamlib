@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - Elecraft K3 description
- *  Copyright (c) 2002-2008 by Stephane Fillod
+ *  Copyright (c) 2002-2009 by Stephane Fillod
  *
- *	$Id: k3.c,v 1.3 2009-01-28 23:30:47 azummo Exp $
+ *	$Id: k3.c,v 1.4 2009-02-10 22:51:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,28 +28,33 @@
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
+#include "bandplan.h"
 
 
-#define K3_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY)
+#define K3_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
+		RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_AM)
 
 #define K3_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK)
 
-#define K3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER)
+#define K3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
+	        RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
+		RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
 
 #define K3_VFO (RIG_VFO_A|RIG_VFO_B)
 #define K3_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+
+#define K3_ANTS (RIG_ANT_1|RIG_ANT_2)
+
 
 static struct kenwood_priv_caps  k3_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
 /*
- * KIO2 rig capabilities.
- * This kit can recognize a large subset of TS-570 commands.
+ * KIO3 rig capabilities.
+ * This kit can recognize a large subset of TS-570/K2 commands.
  *
  * part of infos comes from http://www.elecraft.com
- *
- * TODO: 2 antenna support, CW, etc.
  */
 const struct rig_caps k3_caps = {
 .rig_model =  RIG_MODEL_K3,
@@ -63,14 +68,14 @@ const struct rig_caps k3_caps = {
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  4800,
-.serial_rate_max =  4800,
+.serial_rate_max =  38400,
 .serial_data_bits =  8,
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  100,
+.timeout =  600, /* FA and FB make take up to 500 ms on band change */
 .retry =  3,
 
 .has_get_func =  K3_FUNC_ALL,
@@ -81,7 +86,7 @@ const struct rig_caps k3_caps = {
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
-.preamp =   { 14, 4, RIG_DBLST_END, },
+.preamp =   { 14, RIG_DBLST_END, },
 .attenuator =   { 10, RIG_DBLST_END, },
 .max_rit =  Hz(9990),
 .max_xit =  Hz(9990),
@@ -92,53 +97,40 @@ const struct rig_caps k3_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-.chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM  },
-			{ 90, 99, RIG_MTYPE_EDGE },
-		  	RIG_CHAN_END,
-		   },
+.chan_list =  { RIG_CHAN_END },
+
 .rx_range_list1 =  { 
-	{kHz(500),MHz(30),K3_MODES,-1,-1,K3_VFO},
+	{kHz(500),MHz(30),K3_MODES,-1,-1,K3_VFO,K3_ANTS},
+	{ MHz(48),MHz(54),K3_MODES,-1,-1,K3_VFO,K3_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list1 =  {
-    {kHz(1810),kHz(1850)-1,K3_MODES,10,W(15),K3_VFO},	/* 15W class */
-    {kHz(3500),kHz(3800)-1,K3_MODES,10,W(15),K3_VFO},
-    {MHz(7),kHz(7100),K3_MODES,10,W(15),K3_VFO},
-    {kHz(10100),kHz(10150),K3_MODES,10,W(15),K3_VFO},
-    {MHz(14),kHz(14350),K3_MODES,10,W(15),K3_VFO},
-    {kHz(18068),kHz(18168),K3_MODES,10,W(15),K3_VFO},
-    {MHz(21),kHz(21450),K3_MODES,10,W(15),K3_VFO},
-    {kHz(24890),kHz(24990),K3_MODES,10,W(15),K3_VFO},
-    {MHz(28),kHz(29700),K3_MODES,10,W(15),K3_VFO},
+	FRQ_RNG_HF(1,K3_MODES,mW(10),W(10),K3_VFO,K3_ANTS),
+	FRQ_RNG_6m(1,K3_MODES,mW(10),W(10),K3_VFO,K3_ANTS),
 	RIG_FRNG_END,
   }, /* tx range */
 
 .rx_range_list2 =  {
-	{kHz(500),MHz(30),K3_MODES,-1,-1,K3_VFO},
+	{kHz(500),MHz(30),K3_MODES,-1,-1,K3_VFO,K3_ANTS},
+	{ MHz(48),MHz(54),K3_MODES,-1,-1,K3_VFO,K3_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list2 =  {
-    {kHz(1800),MHz(2)-1,K3_MODES,10,W(15),K3_VFO},	/* 15W class */
-    {kHz(3500),MHz(4)-1,K3_MODES,10,W(15),K3_VFO},
-    {MHz(7),kHz(7300),K3_MODES,10,W(15),K3_VFO},
-    {kHz(10100),kHz(10150),K3_MODES,10,W(15),K3_VFO},
-    {MHz(14),kHz(14350),K3_MODES,10,W(15),K3_VFO},
-    {kHz(18068),kHz(18168),K3_MODES,10,W(15),K3_VFO},
-    {MHz(21),kHz(21450),K3_MODES,10,W(15),K3_VFO},
-    {kHz(24890),kHz(24990),K3_MODES,10,W(15),K3_VFO},
-    {MHz(28),kHz(29700),K3_MODES,10,W(15),K3_VFO},
+	FRQ_RNG_HF(2,K3_MODES,mW(10),W(10),K3_VFO,K3_ANTS),
+	FRQ_RNG_6m(2,K3_MODES,mW(10),W(10),K3_VFO,K3_ANTS),
 	RIG_FRNG_END,
   }, /* tx range */
 .tuning_steps =  {
-	 {K3_MODES,10},
+	 {K3_MODES,1},
 	 RIG_TS_END,
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
 		{RIG_MODE_SSB, kHz(2.5)},
-		{RIG_MODE_CW, Hz(500)},
-		{RIG_MODE_RTTY, Hz(500)},
+		{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
+		{RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
+		{RIG_MODE_AM, kHz(6)},
+		{RIG_MODE_FM, kHz(6)}, /* TBC */
 		RIG_FLT_END,
 	},
 .priv =  (void *)&k3_priv_caps,
@@ -151,6 +143,8 @@ const struct rig_caps k3_caps = {
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo_if,
+.set_split_vfo = kenwood_set_split_vfo,
+.get_split_vfo = kenwood_get_split_vfo_if,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
@@ -165,7 +159,11 @@ const struct rig_caps k3_caps = {
 .vfo_op =  kenwood_vfo_op,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
+.set_powerstat =  kenwood_set_powerstat,
 .get_powerstat =  kenwood_get_powerstat,
+.set_ant =  kenwood_set_ant,
+.get_ant =  kenwood_get_ant,
+.send_morse =  kenwood_send_morse,
 
 };
 
