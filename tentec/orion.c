@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2008 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.29 2009-01-05 17:39:57 aa6e Exp $
+ *	$Id: orion.c,v 1.30 2009-02-11 19:26:07 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -697,6 +697,7 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  * \param rit Rx incremental tuning, Hz
  * \returns RIG_OK or < 0
  * \brief Set Rx incremental tuning
+ * Note: command rit != 0 ==> rit "on"; rit = 0 ==> rit "off"
  */
 int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
@@ -750,6 +751,7 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  * \param xit Tx incremental tuning, Hz
  * \returns RIG_OK or < 0
  * \brief Set Tx incremental tuning (Main TRx only)
+ * Note: command xit != 0 ==> rit "on"; xit = 0 ==> rit "off"
  */
 int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
