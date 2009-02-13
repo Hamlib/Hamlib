@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.117 2009-02-13 19:29:16 azummo Exp $
+ *	$Id: kenwood.c,v 1.118 2009-02-13 19:34:21 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1672,10 +1672,10 @@ int kenwood_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		return kenwood_simple_cmd(rig, "DN");
 
 	case RIG_OP_BAND_UP:
-		return kenwood_simple_cmd(rig, "BD");
+		return kenwood_simple_cmd(rig, "BU");
 
 	case RIG_OP_BAND_DOWN:
-		return kenwood_simple_cmd(rig, "BU");
+		return kenwood_simple_cmd(rig, "BD");
 
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported op %#x\n",
