@@ -1,6 +1,6 @@
 /*
  * hamlib - (C) Frank Singleton 2000-2003
- *          (C) Stephane Fillod 2000-2008
+ *          (C) Stephane Fillod 2000-2009
  *
  * ft100.c - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.23 2008-09-16 18:11:26 fillods Exp $  
+ *    $Id: ft100.c,v 1.24 2009-02-14 00:26:03 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -42,8 +42,7 @@
 #include "yaesu.h"
 #include "ft100.h"
 #include "misc.h"
-#include "yaesu_tones.h"
-
+#include "bandplan.h"
 
 /* prototypes */
 
@@ -117,12 +116,33 @@ static const yaesu_cmd_set_t ncmd[] = {
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr on */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x00 } }, /* pwr off */
    
-  { 1, { 0x00, 0x00, 0x00, 0x01, 0x10 } }, /* read status block */
+  { 1, { 0x00, 0x00, 0x00, 0x00, 0x10 } }, /* read status block */
   { 1, { 0x00, 0x00, 0x00, 0x00, 0xf7 } }, /* read meter block */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0xfa } }  /* read flags block */ 
 };
 
 
+static const tone_t ft100_ctcss_list[] = {
+	 670,  693,  719,  744,  770,  797,  825,  854,  885,  915, \
+	 948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, \
+	1318, 1365, 1413, 1462, 1514, 1567,       1622,       1679, \
+	      1738,       1799,       1862,       1928,             \
+	2035,       2107, 2181, 2257,       2336, 2418, 2503,       \
+	0,
+};
+
+static const tone_t ft100_dcs_list[] = {
+	      23,  25,  26,  31,  32,  36,  43,  47,       51,  53, \
+	 54,  65,  71,  72,  73,  74, 114, 115, 116, 122, 125, 131, \
+	132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174, 205, \
+	212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255, 261, \
+	263, 265, 266, 271, 274, 306, 311, 315, 325, 331, 332, 343, \
+	346, 351, 356, 364, 365, 371, 411, 412, 413, 423, 431, 432, \
+	445, 446, 452, 454, 455, 462, 464, 465, 466, 503, 506, 516, \
+	523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654, \
+	662, 664, 703, 712, 723, 731, 732, 734, 743, 754, \
+	0,
+};
 #define FT100_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define FT100_SSB_CW_RX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB)
 #define FT100_AM_FM_RX_MODES (RIG_MODE_AM|RIG_MODE_FM)
@@ -133,6 +153,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT100_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_TONE|RIG_FUNC_TSQL)
 
 #define FT100_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define FT100_ANT (RIG_ANT_1)
 
 /* S-meter calibration, ascending order of RAW values */
 #define FT100_STR_CAL { 9, \
@@ -152,7 +173,7 @@ const struct rig_caps ft100_caps = {
   .rig_model = 		RIG_MODEL_FT100,
   .model_name = 	"FT-100", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.3", 
+  .version = 		"0.4", 
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -177,9 +198,9 @@ const struct rig_caps ft100_caps = {
   .has_set_parm = 		RIG_PARM_NONE,	/* FIXME: parms */
   .level_gran =		{},		/* granularity */
   .parm_gran = 		{},
-  .ctcss_list = 		NULL,	/* FIXME: CTCSS/DCS list */
-  .dcs_list = 		NULL,
-  .preamp = 		{ RIG_DBLST_END, },	/* FIXME! */
+  .ctcss_list = 	ft100_ctcss_list,
+  .dcs_list = 		ft100_dcs_list,
+  .preamp = 		{ RIG_DBLST_END, },
   .attenuator = 		{ RIG_DBLST_END, },
   .max_rit = 		Hz(9999),
   .max_xit = 		Hz(0),
@@ -191,8 +212,23 @@ const struct rig_caps ft100_caps = {
 
   .chan_list =  { RIG_CHAN_END, },	/* FIXME: memory chan .list =  78 */
 
-  .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
-  .tx_range_list1 =  { RIG_FRNG_END, },
+  .rx_range_list1 =  {
+    {kHz(100),MHz(56), FT100_ALL_RX_MODES,-1,-1,FT100_VFO_ALL},
+    {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1,FT100_VFO_ALL},
+    {MHz(108),MHz(154),FT100_ALL_RX_MODES,-1,-1,FT100_VFO_ALL},
+    {MHz(420),MHz(470),FT100_ALL_RX_MODES,-1,-1,FT100_VFO_ALL},
+    RIG_FRNG_END, 
+  },
+  .tx_range_list1 =  {
+    FRQ_RNG_HF(1, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_HF(1, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_6m(1, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_6m(1, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_2m(1, FT100_OTHER_TX_MODES, W(0.5), W(50), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_2m(1, FT100_AM_TX_MODES,    W(0.5), W(12.5), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_70cm(1, FT100_OTHER_TX_MODES, W(0.5), W(20), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_70cm(1, FT100_AM_TX_MODES,    W(0.5), W(5),  FT100_VFO_ALL, FT100_ANT),
+  },
   .rx_range_list2 =  { 
     {kHz(100),MHz(56), FT100_ALL_RX_MODES,-1,-1,FT100_VFO_ALL},
     {MHz(76), MHz(108),RIG_MODE_WFM,      -1,-1,FT100_VFO_ALL},
@@ -250,9 +286,9 @@ const struct rig_caps ft100_caps = {
   },
   .str_cal = FT100_STR_CAL,
 
-  .priv = 			NULL,
+  .priv = 		NULL,
   .rig_init = 		ft100_init, 
-  .rig_cleanup = 		ft100_cleanup, 
+  .rig_cleanup = 	ft100_cleanup, 
   .rig_open = 		ft100_open, 
   .rig_close = 		ft100_close, 
   .set_freq = 		ft100_set_freq,
@@ -427,9 +463,7 @@ int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq after conversion = %"PRIfreq" Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
 
   cmd = p->p_cmd; /* get native sequence */
-  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
-
-  return RIG_OK;
+  return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
@@ -850,6 +884,7 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
   struct ft100_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
+  int pcode;
 
   if (!rig)  return -RIG_EINVAL;
 
@@ -857,12 +892,20 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: ft100_set_dcs_code  =%3i %s\n", code,code_tbl[code]);
-
   if( ( vfo != RIG_VFO_CURR ) &&
       ( ft100_set_vfo( rig, vfo ) != RIG_OK ) )  return -RIG_ERJCTED;
    
-  if (code > 103) return -RIG_EINVAL; /* there are 104 dcs codes available */
+  for (pcode = 0; pcode < 104 && ft100_dcs_list[pcode] !=0; pcode++)
+  {
+	if (ft100_dcs_list[pcode] == code)
+		break;
+  }
+  /* there are 104 dcs codes available */
+  if (pcode >= 104 || ft100_dcs_list[pcode] == 0)
+	  return -RIG_EINVAL;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s = %03i, n=%d\n",
+		 __func__, code, pcode);
   
   switch( vfo ) {
   case RIG_VFO_CURR:
@@ -878,11 +921,9 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
   cmd = p->p_cmd; /* get native sequence */
   memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
   
-  cmd[3]=(char)code;
+  cmd[3]=(char)pcode;
   
-  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
-
-  return RIG_OK;
+  return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 
@@ -891,16 +932,25 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
   struct ft100_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
+  int ptone;
 
   if (!rig)  return -RIG_EINVAL;
 
-  if (tone > 38) return -RIG_EINVAL; /* there are 39 ctcss tones available */ 
-   
+  for (ptone = 0; ptone < 39 && ft100_ctcss_list[ptone] !=0; ptone++)
+  {
+	if (ft100_ctcss_list[ptone] == tone)
+		break;
+  }
+  /* there are 39 ctcss tones available */
+  if (ptone >= 39 || ft100_ctcss_list[ptone] == 0)
+	  return -RIG_EINVAL;
+    
   p = (struct ft100_priv_data*)rig->state.priv;
 
   rig_s = &rig->state;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: ft100_set_ctcss_tone  =%3i %s\n",tone,tone_tbl[tone]);
+  rig_debug(RIG_DEBUG_VERBOSE,"%s = %.1f Hz, n=%d\n",__func__,
+		  (float)tone/10, ptone);
 
   if( ( vfo != RIG_VFO_CURR ) &&
       ( ft100_set_vfo( rig, vfo ) != RIG_OK ) )  return -RIG_ERJCTED;
@@ -919,11 +969,9 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
   cmd = p->p_cmd; /* get native sequence */
   memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
   
-  cmd[3]=(char)tone;
+  cmd[3]=(char)ptone;
   
-  write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
-
-  return RIG_OK;
+  return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
 

@@ -1,6 +1,6 @@
 /*
  * hamlib - (C) Frank Singleton 2000-2003 (vk3fcs@ix.netcom.com)
- *          (C) Stephane Fillod 2000-2008
+ *          (C) Stephane Fillod 2000-2009
  *
  * ft100.h - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.7 2008-09-12 15:32:38 fillods Exp $  
+ *    $Id: ft100.h,v 1.8 2009-02-14 00:26:03 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -114,6 +114,8 @@ typedef struct
    unsigned char step1;
    unsigned char step2;
    unsigned char filter;
+
+   unsigned char stuffing[16];
 }
  FT100_STATUS_INFO;
 
