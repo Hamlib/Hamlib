@@ -2,7 +2,7 @@
  *  Hamlib TenTenc backend - TT-565 description
  *  Copyright (c) 2004-2008 by Stephane Fillod & Martin Ewing
  *
- *	$Id: orion.c,v 1.30 2009-02-11 19:26:07 aa6e Exp $
+ *	$Id: orion.c,v 1.31 2009-02-14 21:33:22 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -166,7 +166,7 @@ int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	                was written.  We report the problem if debugging,
 	                and issue another read in hopes of eventual success.
 	                */
-	            rig_debug(RIG_DEBUG_ERR,
+	            rig_debug(RIG_DEBUG_WARN,
 	                "** retry after delay (io=%d, retry=%d) **\n", 
 	                passcount, itry);
 		        *data_len = data_len_init;	/* restore orig. buffer length */
@@ -697,7 +697,7 @@ int tt565_get_ts(RIG *rig, vfo_t vfo, shortfreq_t *ts)
  * \param rit Rx incremental tuning, Hz
  * \returns RIG_OK or < 0
  * \brief Set Rx incremental tuning
- * Note: command rit != 0 ==> rit "on"; rit = 0 ==> rit "off"
+ * Note: command rit != 0 ==> rit "on"; rit == 0 ==> rit "off"
  */
 int tt565_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 {
@@ -751,7 +751,7 @@ int tt565_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit)
  * \param xit Tx incremental tuning, Hz
  * \returns RIG_OK or < 0
  * \brief Set Tx incremental tuning (Main TRx only)
- * Note: command xit != 0 ==> rit "on"; xit = 0 ==> rit "off"
+ * Note: command xit != 0 ==> xit "on"; xit == 0 ==> xit "off"
  */
 int tt565_set_xit(RIG *rig, vfo_t vfo, shortfreq_t xit)
 {
