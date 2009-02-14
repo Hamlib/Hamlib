@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.24 2009-02-14 00:26:03 fillods Exp $  
+ *    $Id: ft100.c,v 1.25 2009-02-14 16:46:35 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -149,8 +149,9 @@ static const tone_t ft100_dcs_list[] = {
 
 #define FT100_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define FT100_AM_TX_MODES (RIG_MODE_AM)
-#define FT100_GET_RIG_LEVELS (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
-#define FT100_FUNC_ALL (RIG_FUNC_LOCK|RIG_FUNC_TONE|RIG_FUNC_TSQL)
+#define FT100_GET_RIG_LEVELS (RIG_LEVEL_RAWSTR|RIG_LEVEL_RFPOWER|\
+		RIG_LEVEL_SWR|RIG_LEVEL_ALC|RIG_LEVEL_MICGAIN|RIG_LEVEL_SQL)
+#define FT100_FUNC_ALL (RIG_FUNC_TONE|RIG_FUNC_TSQL)
 
 #define FT100_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 #define FT100_ANT (RIG_ANT_1)
@@ -186,29 +187,29 @@ const struct rig_caps ft100_caps = {
   .serial_stop_bits = 	2,
   .serial_parity = 	RIG_PARITY_NONE,
   .serial_handshake = 	RIG_HANDSHAKE_NONE, 
-  .write_delay = 		FT100_WRITE_DELAY,
+  .write_delay = 	FT100_WRITE_DELAY,
   .post_write_delay = 	FT100_POST_WRITE_DELAY,
   .timeout = 		100,
   .retry = 		0, 
-  .has_get_func = 		RIG_FUNC_NONE,
-  .has_set_func = 		FT100_FUNC_ALL, 
+  .has_get_func = 	RIG_FUNC_NONE,
+  .has_set_func = 	FT100_FUNC_ALL, 
   .has_get_level = 	FT100_GET_RIG_LEVELS,
   .has_set_level = 	RIG_LEVEL_NONE,
-  .has_get_parm = 		RIG_PARM_NONE,
-  .has_set_parm = 		RIG_PARM_NONE,	/* FIXME: parms */
+  .has_get_parm = 	RIG_PARM_NONE,
+  .has_set_parm = 	RIG_PARM_NONE,	/* FIXME: parms */
   .level_gran =		{},		/* granularity */
   .parm_gran = 		{},
   .ctcss_list = 	ft100_ctcss_list,
   .dcs_list = 		ft100_dcs_list,
   .preamp = 		{ RIG_DBLST_END, },
-  .attenuator = 		{ RIG_DBLST_END, },
-  .max_rit = 		Hz(9999),
+  .attenuator = 	{ RIG_DBLST_END, },
+  .max_rit = 		Hz(0),
   .max_xit = 		Hz(0),
-  .max_ifshift = 		Hz(0),
-  .targetable_vfo = 	0,
-  .transceive = 		RIG_TRN_OFF,
+  .max_ifshift = 	Hz(0),
+  .targetable_vfo = 	RIG_TARGETABLE_NONE,
+  .transceive = 	RIG_TRN_OFF,
   .bank_qty = 		0,
-  .chan_desc_sz = 		0,
+  .chan_desc_sz = 	0,
 
   .chan_list =  { RIG_CHAN_END, },	/* FIXME: memory chan .list =  78 */
 
@@ -298,7 +299,7 @@ const struct rig_caps ft100_caps = {
   .set_vfo = 		ft100_set_vfo,
   .get_vfo = 		ft100_get_vfo,
   .set_ptt = 	        ft100_set_ptt,
-  .get_ptt = 		NULL,
+  .get_ptt = 	        ft100_get_ptt,
   .get_dcd = 		NULL,
   .set_rptr_shift = 	ft100_set_rptr_shift,
   .get_rptr_shift = 	NULL,
@@ -306,22 +307,22 @@ const struct rig_caps ft100_caps = {
   .get_rptr_offs = 	NULL,
   .set_split_freq = 	NULL,
   .get_split_freq = 	NULL,
-  .set_split_mode =        NULL,
+  .set_split_mode =     NULL,
   .get_split_mode = 	NULL,
   .set_split_vfo = 	ft100_set_split_vfo,
-  .get_split_vfo =	NULL,
+  .get_split_vfo =	ft100_get_split_vfo,
   .set_rit = 		NULL,
   .get_rit = 		NULL,
   .set_xit = 		NULL,
   .get_xit = 		NULL,
   .set_ts = 		NULL,
   .get_ts = 		NULL,
-  .set_dcs_code = 		ft100_set_dcs_code,
-  .get_dcs_code = 		NULL,
-  .set_ctcss_tone =        ft100_set_ctcss_tone,
+  .set_dcs_code = 	ft100_set_dcs_code,
+  .get_dcs_code = 	NULL,
+  .set_ctcss_tone =     ft100_set_ctcss_tone,
   .get_ctcss_tone = 	NULL,
-  .set_dcs_sql = 		NULL,
-  .get_dcs_sql = 		NULL,
+  .set_dcs_sql = 	NULL,
+  .get_dcs_sql = 	NULL,
   .set_ctcss_sql = 	NULL,
   .get_ctcss_sql = 	NULL,
   .set_powerstat = 	NULL,
@@ -339,24 +340,16 @@ const struct rig_caps ft100_caps = {
 
 
 int ft100_init(RIG *rig) {
-  struct ft100_priv_data *p;
+  struct ft100_priv_data *priv;
   
-  if (!rig)  return -RIG_EINVAL;
-  
-  p = (struct ft100_priv_data*)malloc(sizeof(struct ft100_priv_data));
-  if (!p)  return -RIG_ENOMEM;
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_init called \n");
+  priv = (struct ft100_priv_data*)malloc(sizeof(struct ft100_priv_data));
+  if (!priv)  return -RIG_ENOMEM;
 
-  /* 
-   * Copy complete native cmd set to private cmd storage area 
-   */
+  memset(priv, 0, sizeof(struct ft100_priv_data));
 
-  memcpy(p->pcs,ncmd,sizeof(ncmd));
-
-  p->current_vfo = RIG_VFO_A; /* no clue which VFO is active, so guess VFO 1 */
-
-  rig->state.priv = (void*)p;
+  rig->state.priv = (void*)priv;
   
   return RIG_OK;
 }
@@ -397,109 +390,122 @@ int ft100_close(RIG *rig) {
 static int ft100_send_priv_cmd(RIG *rig, unsigned char cmd_index) {
  
   struct rig_state *rig_s;
-  struct ft100_priv_data *p;
+  struct ft100_priv_data *priv;
   unsigned char *cmd;		/* points to sequence to send */
-  int i;
    
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: ft100_send_priv_cmd \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called (%d)\n", __func__, cmd_index);
  
   if (!rig)  return -RIG_EINVAL;
 
-  p = (struct ft100_priv_data*)rig->state.priv;
+  priv = (struct ft100_priv_data*)rig->state.priv;
   rig_s = &rig->state;
   
-  if (! p->pcs[cmd_index].ncomp) {
-    rig_debug(RIG_DEBUG_ERR,"ft100: Attempt to send incomplete sequence \n");
-    return -RIG_EINVAL;
-  }
-  
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
+  cmd = (unsigned char *) &ncmd[cmd_index].nseq; /* get native sequence */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: Attempt to send sequence ="); 
-  for (i=0; i < YAESU_CMD_LENGTH; i++)
-      rig_debug(RIG_DEBUG_VERBOSE," %3i",(int)cmd[i]);
-  rig_debug(RIG_DEBUG_VERBOSE," \n");
-   
   return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 }
 
+static int ft100_read_status(RIG *rig)
+{
+   struct ft100_priv_data *priv;
+   int ret;
+
+   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+
+   priv = (struct ft100_priv_data*)rig->state.priv;
+
+   serial_flush( &rig->state.rigport );
+
+   ret = ft100_send_priv_cmd(rig, FT100_NATIVE_CAT_READ_STATUS);
+   if (ret != RIG_OK)
+	return ret;
+
+   ret = read_block( &rig->state.rigport,
+		   (char*)&priv->status,
+		   sizeof(FT100_STATUS_INFO));  
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: read status=%i \n", __func__, ret);
+   if (ret < 0)
+	return ret;
+
+   return RIG_OK;
+}
+
+static int ft100_read_flags(RIG *rig)
+{
+   struct ft100_priv_data *priv = (struct ft100_priv_data*)rig->state.priv;
+   int ret;
+
+   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+
+   serial_flush( &rig->state.rigport );
+
+   ret = ft100_send_priv_cmd(rig, FT100_NATIVE_CAT_READ_FLAGS);
+   if (ret != RIG_OK)
+	return ret;
+
+   ret = read_block( &rig->state.rigport,
+		   (char*)&priv->flags,
+		   sizeof(FT100_FLAG_INFO));  
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: read flags=%i \n", __func__, ret);
+   if (ret < 0)
+	return ret;
+
+   return RIG_OK;
+}
 
 int ft100_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct rig_state *rig_s;
-  struct ft100_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
+  struct ft100_priv_data *priv;
+  unsigned char p_cmd[YAESU_CMD_LENGTH];
   unsigned char cmd_index;	/* index of sequence to send */
 
   if (!rig)  return -RIG_EINVAL;
 
-  p = (struct ft100_priv_data*)rig->state.priv;
+  priv = (struct ft100_priv_data*)rig->state.priv;
 
   rig_s = &rig->state;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq = %"PRIfreq" Hz \n", freq);
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: vfo =%i \n", vfo);
 
-  if( ( vfo != RIG_VFO_CURR ) &&
-      ( ft100_set_vfo( rig, vfo ) != RIG_OK ) )  return -RIG_ERJCTED;
- 
-  switch( vfo ) {
-  case RIG_VFO_CURR:
-  case RIG_VFO_A:
-  case RIG_VFO_B:
-    cmd_index = FT100_NATIVE_CAT_SET_FREQ;
-    break;
-  default:
-    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Unknown VFO \n");
-    return -RIG_EINVAL;
-  }
+  cmd_index = FT100_NATIVE_CAT_SET_FREQ;
 
-  memcpy(p->p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
+  memcpy(p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
 
   /* fixed 10Hz bug by OH2MMY */
   freq = (int)freq/10;
-  to_bcd(p->p_cmd,freq,8);	/* store bcd format in in p_cmd */
-				/* TODO -- fix 10Hz resolution -- FS */
+  to_bcd(p_cmd,freq,8);	/* store bcd format in in p_cmd */
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: requested freq after conversion = %"PRIfreq" Hz \n", from_bcd_be(p->p_cmd,8)* 10 );
-
-  cmd = p->p_cmd; /* get native sequence */
-  return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
 int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   
-   FT100_STATUS_INFO ft100_status;
-  
+   struct ft100_priv_data *priv = (struct ft100_priv_data*)rig->state.priv;
    freq_t d1, d2;
    char freq_str[10];
-    
    int ret;
     
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq \n");
    
-   if( !rig )  return -RIG_EINVAL;
    if( !freq )  return -RIG_EINVAL;
   
-   serial_flush( &rig->state.rigport );
-
-   ret = ft100_send_priv_cmd(rig,FT100_NATIVE_CAT_READ_STATUS);
+   ret = ft100_read_status(rig);
    if (ret != RIG_OK)
-	   return ret;
+	return ret;
 
-   ret = read_block( &rig->state.rigport, (char*)&ft100_status, sizeof(FT100_STATUS_INFO));  
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read status=%i \n",ret);
-   if (ret < 0)
-	   return ret;
-
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: Freq= %3i %3i %3i %3i \n",(int)ft100_status.freq[0], (int)ft100_status.freq[1], (int)ft100_status.freq[2],(int)ft100_status.freq[3]);
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: Freq= %3i %3i %3i %3i \n",
+		   (int)priv->status.freq[0],
+		   (int)priv->status.freq[1],
+		   (int)priv->status.freq[2],
+		   (int)priv->status.freq[3]);
   
    /* now convert it .... */
    
    sprintf(freq_str, "%02X%02X%02X%02X",
-	  ft100_status.freq[0],
-	  ft100_status.freq[1],
-	  ft100_status.freq[2],
-	  ft100_status.freq[3]);
+	  priv->status.freq[0],
+	  priv->status.freq[1],
+	  priv->status.freq[2],
+	  priv->status.freq[3]);
    
    d1=strtol(freq_str,NULL,16);
    d2=(d1*1.25); 		/* fixed 10Hz bug by OH2MMY */
@@ -515,6 +521,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
 int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char cmd_index;	/* index of sequence to send */
+  unsigned char p_cmd[YAESU_CMD_LENGTH];
   int ret;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft100: generic mode = %x, width %d\n", mode, width);
@@ -552,13 +559,38 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   if (ret != RIG_OK)
 	  return ret;
 
-#if 0
-  /* ignore width for now. Should be Opcode 0x8C */
-  switch(width) {
-  case RIG_PASSBAND_NORMAL:
-    return ft100_send_priv_cmd(rig,cmd_index);
-  default:
-    return -RIG_EINVAL;    
+#if 1
+  if (mode != RIG_MODE_FM && mode != RIG_MODE_WFM && width <= kHz(6))
+  {
+	p_cmd[0] = 0x00;
+	p_cmd[1] = 0x00;
+	p_cmd[2] = 0x00;
+	p_cmd[3] = 0x00; /* to be filled in */
+	p_cmd[4] = 0x8C; /* Op: filter selection */
+
+	if (width == RIG_PASSBAND_NORMAL)
+		  width = rig_passband_normal(rig, mode);
+
+	switch(width) {
+	    case 2400:
+	      p_cmd[3] = 0x00;
+	      break;
+	    case 6000:
+	      p_cmd[3] = 0x01;
+	      break;
+	    case 500:
+	      p_cmd[3] = 0x02;
+	      break;
+	    case 300:
+	      p_cmd[3] = 0x03;
+	      break;
+	    default:
+	      return -RIG_EINVAL;
+	};
+
+  	ret = write_block(&rig->state.rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
+	if (ret != RIG_OK)
+		return ret;
   }
 #endif
 
@@ -575,23 +607,16 @@ int ft100_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
 
 int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
-  int n = 0;
-  unsigned char data[ sizeof(FT100_STATUS_INFO) ];
+    struct ft100_priv_data *priv = (struct ft100_priv_data*)rig->state.priv;
+    int ret;
 
-  if( !rig )  return -RIG_EINVAL;
-  if( !mode )  return -RIG_EINVAL;
-  if( !width )  return -RIG_EINVAL;
-
-  serial_flush( &rig->state.rigport );
-
-  n = ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_STATUS );
-  if (n != RIG_OK)
-	  return n;
-  n = read_block( &rig->state.rigport, (char *) data, sizeof(FT100_STATUS_INFO) );
-  if (n < 0)
-	  return n;
+    if( !mode || !width )  return -RIG_EINVAL;
   
-    switch( data[5] & 0x0f ) {
+    ret = ft100_read_status(rig);
+    if (ret < 0)
+	return ret;
+
+    switch( priv->status.mode & 0x0f ) {
     case 0x00:
       *mode = RIG_MODE_LSB;
       break;
@@ -620,7 +645,7 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
       *mode = RIG_MODE_NONE;
     };
 
-    switch( data[5] >> 4 ) {
+    switch( priv->status.mode >> 4 ) {
     case 0x00:
       *width = Hz(6000);
       break;
@@ -643,34 +668,24 @@ int ft100_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
 
 
 /*  Function ft100_set_vfo fixed by OH2MMY 
- *  Split doesn't work because there's no native command for that.
- *  Maybe will fix it later.
  */
 
 int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
-  struct ft100_priv_data *p = (struct ft100_priv_data*)rig->state.priv;
+  int ret;
 
-  if (!rig)  return -RIG_EINVAL;
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
   switch(vfo) {
   case RIG_VFO_A:
-    if( p->current_vfo != vfo ) { 
-      if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOA ) == RIG_OK ) {
-        p->current_vfo = vfo;
-      } else {
-        return -RIG_ERJCTED;
-      }
-    } 
+      ret = ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOA );
+      if( ret != RIG_OK )
+        return ret;
     break;
   case RIG_VFO_B:
-    if( p->current_vfo != vfo ) { 
-      if( ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOB ) == RIG_OK ) {
-        p->current_vfo = vfo;
-      } else {
-        return -RIG_ERJCTED;
-      }
-    } 
+      ret = ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_SET_VFOB );
+      if( ret != RIG_OK )
+        return ret;
     break;
   default:
     return -RIG_EINVAL;
@@ -688,43 +703,32 @@ int ft100_set_vfo(RIG *rig, vfo_t vfo) {
 
 int ft100_get_vfo(RIG *rig, vfo_t *vfo) {
 
-  struct ft100_priv_data *priv;
-  unsigned char ft100_flags[ sizeof(FT100_FLAG_INFO) ];
-  int n;
+  struct ft100_priv_data *priv = (struct ft100_priv_data*)rig->state.priv;
+  int ret;
 
-  if( !rig )  return -RIG_EINVAL;
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+
   if( !vfo )  return -RIG_EINVAL;
   
-  priv = (struct ft100_priv_data *)rig->state.priv;
+  ret = ft100_read_flags(rig);
+  if (ret < 0)
+	  return ret;
 
-  serial_flush( &rig->state.rigport );
-
-  n = ft100_send_priv_cmd( rig, FT100_NATIVE_CAT_READ_FLAGS );
-  if (n < 0)
-	  return n;
-  n = read_block( &rig->state.rigport, (char *) ft100_flags, sizeof(FT100_FLAG_INFO) );
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100: read flags=%i \n",n);
-  if (n < 0)
-	  return n;
-
-  if ((ft100_flags[1] & 4) == 4) {
+  if ((priv->flags.byte[1] & 0x04) == 0x04) {
     *vfo = RIG_VFO_B;
-    priv->current_vfo = RIG_VFO_B;
   } else {
     *vfo = RIG_VFO_A;
-    priv->current_vfo = RIG_VFO_A;
   }
 
   return RIG_OK;
 }
 
 
-/* TODO:  consider the value of vfo */
 int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
 
   unsigned char cmd_index;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_set_ptt called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
   switch(ptt) {
   case RIG_PTT_ON:
@@ -737,24 +741,28 @@ int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
     return -RIG_EINVAL;
   }
 
-  ft100_send_priv_cmd(rig,cmd_index);
+  return ft100_send_priv_cmd(rig,cmd_index);
+}
+
+int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
+
+  struct ft100_priv_data *priv = (struct ft100_priv_data*)rig->state.priv;
+  int ret;
+
+  if( !ptt )  return -RIG_EINVAL;
+  
+  ret = ft100_read_flags(rig);
+  if (ret < 0)
+	return ret;
+
+  *ptt = (priv->flags.byte[0] & 0x80) == 0x80 ? RIG_PTT_ON : RIG_PTT_OFF;
 
   return RIG_OK;
 }
 
-
-#if 0
-/* TODO: all of this */
-int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
-  return -RIG_ENIMPL;
-}
-
-
-/* TODO: all of this */
-int ft100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val) {
-   return -RIG_ENIMPL;
-}
-#endif
+/*
+ * Rem: The FT-100(D) has no set_level ability
+ */
 
 /*
  * blind implementation of get_level.
@@ -769,13 +777,13 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
    if( !rig )  return -RIG_EINVAL;
    if( !val )  return -RIG_EINVAL;
 
-   rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n", __FUNCTION__, rig_strlevel(level));
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n", __func__, rig_strlevel(level));
    
    ret = ft100_send_priv_cmd(rig,FT100_NATIVE_CAT_READ_METERS);
    if (ret != RIG_OK)
 	   return ret;
    ret = read_block( &rig->state.rigport, (char*)&ft100_meter, sizeof(FT100_METER_INFO));  
-   rig_debug(RIG_DEBUG_VERBOSE,"%s: read meters=%d\n",__FUNCTION__, ret);
+   rig_debug(RIG_DEBUG_VERBOSE,"%s: read meters=%d\n",__func__, ret);
    if (ret < 0)
 	   return ret;
   
@@ -798,6 +806,12 @@ int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val) {
    case RIG_LEVEL_ALC:
       /* need conversion ? */
       val->f = (float)ft100_meter.alc_level/0xff;
+      break;
+   case RIG_LEVEL_MICGAIN:
+      val->f = (float)ft100_meter.mic_level/0xff;
+      break;
+   case RIG_LEVEL_SQL:
+      val->f = (float)ft100_meter.squelch_level/0xff;
       break;
    default:
       return -RIG_EINVAL;
@@ -835,7 +849,7 @@ int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
 
   unsigned char cmd_index;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft100:ft100_set_split called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
 
   switch(split) {
   case RIG_SPLIT_ON:
@@ -848,8 +862,25 @@ int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
     return -RIG_EINVAL;
   }
   
-  ft100_send_priv_cmd(rig,cmd_index);
-  return RIG_OK; 
+  return ft100_send_priv_cmd(rig,cmd_index);
+}
+
+int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo) {
+
+  struct ft100_priv_data *priv = (struct ft100_priv_data*)rig->state.priv;
+  int ret;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+
+  if( !split )  return -RIG_EINVAL;
+  
+  ret = ft100_read_flags(rig);
+  if (ret < 0)
+	return ret;
+
+  *split = (priv->flags.byte[0] & 0x01) == 0x01 ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
+
+  return RIG_OK;
 }
 
 int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift) {
@@ -873,28 +904,22 @@ int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift) {
     return -RIG_EINVAL;
   }
   
-  ft100_send_priv_cmd(rig,cmd_index);
-  return RIG_OK; 
+  return ft100_send_priv_cmd(rig,cmd_index);
 }
 
 
 
+/*
+ * TODO: enable/disable encoding/decoding
+ */
 int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
   struct rig_state *rig_s;
-  struct ft100_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char p_cmd[YAESU_CMD_LENGTH];
   unsigned char cmd_index;	/* index of sequence to send */
   int pcode;
 
-  if (!rig)  return -RIG_EINVAL;
-
-  p = (struct ft100_priv_data*)rig->state.priv;
-
   rig_s = &rig->state;
 
-  if( ( vfo != RIG_VFO_CURR ) &&
-      ( ft100_set_vfo( rig, vfo ) != RIG_OK ) )  return -RIG_ERJCTED;
-   
   for (pcode = 0; pcode < 104 && ft100_dcs_list[pcode] !=0; pcode++)
   {
 	if (ft100_dcs_list[pcode] == code)
@@ -907,34 +932,24 @@ int ft100_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code) {
   rig_debug(RIG_DEBUG_VERBOSE,"%s = %03i, n=%d\n",
 		 __func__, code, pcode);
   
-  switch( vfo ) {
-  case RIG_VFO_CURR:
-  case RIG_VFO_A:
-  case RIG_VFO_B:
-    cmd_index = FT100_NATIVE_CAT_SET_DCS_CODE;
-    break;
-  default:
-    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Unknown VFO \n");
-    return -RIG_EINVAL;
-  }
+  cmd_index = FT100_NATIVE_CAT_SET_DCS_CODE;
 
-  cmd = p->p_cmd; /* get native sequence */
-  memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
+  memcpy(p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
   
-  cmd[3]=(char)pcode;
+  p_cmd[3]=(char)pcode;
   
-  return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
 
 
+/*
+ * TODO: enable/disable encoding/decoding
+ */
 int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
   struct rig_state *rig_s;
-  struct ft100_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
+  unsigned char p_cmd[YAESU_CMD_LENGTH];
   unsigned char cmd_index;	/* index of sequence to send */
   int ptone;
-
-  if (!rig)  return -RIG_EINVAL;
 
   for (ptone = 0; ptone < 39 && ft100_ctcss_list[ptone] !=0; ptone++)
   {
@@ -945,67 +960,17 @@ int ft100_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone) {
   if (ptone >= 39 || ft100_ctcss_list[ptone] == 0)
 	  return -RIG_EINVAL;
     
-  p = (struct ft100_priv_data*)rig->state.priv;
-
   rig_s = &rig->state;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s = %.1f Hz, n=%d\n",__func__,
 		  (float)tone/10, ptone);
 
-  if( ( vfo != RIG_VFO_CURR ) &&
-      ( ft100_set_vfo( rig, vfo ) != RIG_OK ) )  return -RIG_ERJCTED;
- 
-  switch( vfo ) {
-  case RIG_VFO_CURR:
-  case RIG_VFO_A:
-  case RIG_VFO_B:
-    cmd_index = FT100_NATIVE_CAT_SET_CTCSS_FREQ;
-    break;
-  default:
-    rig_debug(RIG_DEBUG_VERBOSE,"ft100: Unknown VFO \n");
-    return -RIG_EINVAL;
-  }
+  cmd_index = FT100_NATIVE_CAT_SET_CTCSS_FREQ;
 
-  cmd = p->p_cmd; /* get native sequence */
-  memcpy(cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
+  memcpy(p_cmd,&ncmd[cmd_index].nseq,YAESU_CMD_LENGTH);
   
-  cmd[3]=(char)ptone;
+  p_cmd[3]=(char)ptone;
   
-  return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  return write_block(&rig_s->rigport, (char *) p_cmd, YAESU_CMD_LENGTH);
 }
-
-
-#if 0
-/*
- * okie dokie here....
- * get everything, let the calling function figure out what it needs
- *  
- * Flags read added by OH2MMY
- *
- */
-int ft100_get_info(RIG *rig, FT100_STATUS_INFO *ft100_status, FT100_METER_INFO *ft100_meter, FT100_FLAG_INFO *ft100_flags)
-{
-   unsigned char cmd_index;
-   int n;
-   
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: getting all info \n");
-   
-   cmd_index=FT100_NATIVE_CAT_READ_STATUS;
-   ft100_send_priv_cmd(rig,cmd_index);
-   n = read_block( &rig->state.rigport, (char*)ft100_status, sizeof(FT100_STATUS_INFO));  
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read status=%i \n",n);
-   
-   cmd_index=FT100_NATIVE_CAT_READ_METERS;
-   ft100_send_priv_cmd(rig,cmd_index);
-   n = read_block( &rig->state.rigport, (char*)ft100_meter, sizeof(FT100_METER_INFO));  
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read meters=%i \n",n);
-   
-   cmd_index=FT100_NATIVE_CAT_READ_FLAGS;
-   ft100_send_priv_cmd(rig,cmd_index);
-   n = read_block( &rig->state.rigport, (char*)ft100_flags, sizeof(FT100_FLAG_INFO));
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: read flags=%i \n",n);
-   
-   return RIG_OK;
-}
-#endif
 

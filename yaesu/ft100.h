@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.h,v 1.8 2009-02-14 00:26:03 fillods Exp $  
+ *    $Id: ft100.h,v 1.9 2009-02-14 16:46:36 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -84,17 +84,6 @@ enum ft100_native_cmd_e {
 
 typedef enum ft100_native_cmd_e ft100_native_cmd_t;
 
-
-struct ft100_priv_data {
-  unsigned char current_vfo;
-  unsigned char p_cmd[YAESU_CMD_LENGTH];
-  yaesu_cmd_set_t pcs[FT100_NATIVE_SIZE];  /* TODO:  why? */
-  unsigned char rx_status;
-  unsigned char tx_status;
-  unsigned char freq_mode_status;
-};
-
-
 /*
  *  we are able to get way more info
  *  than we can set 
@@ -136,9 +125,17 @@ typedef struct
 
 typedef struct 
 {
-   unsigned char flags[8];
+   unsigned char byte[8];
 }
 FT100_FLAG_INFO;
+
+
+struct ft100_priv_data {
+  /* TODO: make use of cached data */
+  FT100_STATUS_INFO status;
+  FT100_FLAG_INFO flags;
+};
+
 
 static int ft100_init(RIG *rig);
 static int ft100_open(RIG *rig);
@@ -155,10 +152,9 @@ static int ft100_set_vfo(RIG *rig, vfo_t vfo);
 static int ft100_get_vfo(RIG *rig, vfo_t *vfo);
 
 static int ft100_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft100_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 #if 0
-static int ft100_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-
 static int ft100_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 
 static int ft100_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
@@ -169,7 +165,7 @@ static int ft100_get_parm(RIG *rig, setting_t parm, value_t *val);
 #endif
 
 static int ft100_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-//static int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+static int ft100_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 static int ft100_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
 //static int ft100_get_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t *shift);			 
