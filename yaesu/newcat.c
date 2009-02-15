@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.53 2009-01-12 00:51:26 mrtembry Exp $
+ * $Id: newcat.c,v 1.54 2009-02-15 09:54:17 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -4381,8 +4381,9 @@ int newcat_restore_vfo_ram(RIG * rig, channel_t * chan)
     err = newcat_get_vfo_mode(rig, &vfo_mode);
     if (vfo_mode == RIG_VFO_MEM) {
         err = newcat_vfo_op(rig, chan->vfo, RIG_OP_TO_VFO);
+        usleep(100000);
     }
-    
+
     err = newcat_set_mode(rig, chan->vfo, chan->mode, chan->width);
     /* Now Restore RIG freq after mode */
     err = newcat_set_freq(rig, chan->vfo, chan->freq);
@@ -4856,6 +4857,7 @@ int newcat_restore_vfo_mem_channel(RIG * rig)
     err = newcat_set_any_mem(rig, RIG_VFO_MEM, NC_MEM_CHANNEL_VFO_RESERVED);
 
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
+    usleep(100000);
 
     /* Restore current memory channel */
     err = newcat_set_mem(rig, RIG_VFO_A, mem);
@@ -4898,10 +4900,10 @@ int newcat_backup_vfo_mem_channel(RIG * rig)
     cmd.cmd_str[21] = '0';
 
     err = newcat_set_cmd(rig, &cmd);
-    usleep(100000);
 
     /* Restore back to vfo mode */
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
+    usleep(100000);
 
     return err;
 }
