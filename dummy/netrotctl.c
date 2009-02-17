@@ -1,8 +1,8 @@
 /*
  *  Hamlib Netrotctl backend - main file
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: netrotctl.c,v 1.3 2008-11-02 17:32:37 fillods Exp $
+ *	$Id: netrotctl.c,v 1.4 2009-02-17 23:01:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -83,7 +83,7 @@ static int netrotctl_open(ROT *rot)
   if (prot_ver < ROTCTLD_PROT_VER)
 	  return -RIG_EPROTO;
 
-  ret = netrotctl_transaction(rot, cmd, len, buf);
+  ret = read_string(&rot->state.rotport, buf, BUF_MAX, "\n", sizeof("\n"));
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
 
@@ -268,7 +268,7 @@ const struct rot_caps netrotctl_caps = {
   .rot_model =      ROT_MODEL_NETROTCTL,
   .model_name =     "NET rotctl",
   .mfg_name =       "Hamlib",
-  .version =        "0.2",
+  .version =        "0.3",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
