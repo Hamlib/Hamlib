@@ -5,7 +5,7 @@
  * It takes commands in interactive mode as well as 
  * from command line options.
  *
- *	$Id: rotctl.c,v 1.13 2009-01-04 14:49:17 fillods Exp $  
+ *	$Id: rotctl.c,v 1.14 2009-02-17 08:03:22 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -161,6 +161,10 @@ int main (int argc, char *argv[])
 	}
 	if (verbose < 2)
 		rig_set_debug(RIG_DEBUG_WARN);
+
+	rig_debug(RIG_DEBUG_VERBOSE, "rotctl, %s\n", hamlib_version);
+	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
+			"<hamlib-developer@lists.sourceforge.net>\n\n");
 
 	/*
 	 * at least one command on command line, 
