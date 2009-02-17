@@ -1,8 +1,8 @@
 /*
  *  Hamlib Interface - sprintf toolbox
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod and Frank Singleton
  *
- *	$Id: sprintflst.c,v 1.5 2004-05-17 21:09:45 fillods Exp $
+ *	$Id: sprintflst.c,v 1.6 2009-02-17 08:03:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -141,7 +141,7 @@ int sprintf_level_gran(char *str, setting_t level, const gran_t gran[])
 				ms = rig_strlevel(level & rig_idx2setting(i));
 				if (!ms || !ms[0]) {
 					if (level != DUMMY_ALL && level != RIG_LEVEL_SET(DUMMY_ALL))
-						rig_debug(RIG_DEBUG_BUG, "unkown level idx %d\n", i);
+						rig_debug(RIG_DEBUG_BUG, "unknown level idx %d\n", i);
 					continue;
 				}
 				if (RIG_LEVEL_IS_FLOAT(rig_idx2setting(i)))
@@ -189,7 +189,7 @@ int sprintf_parm_gran(char *str, setting_t parm, const gran_t gran[])
 				ms = rig_strparm(parm & rig_idx2setting(i));
 				if (!ms || !ms[0]) {
 					if (parm != DUMMY_ALL && parm != RIG_PARM_SET(DUMMY_ALL))
-						rig_debug(RIG_DEBUG_BUG, "unkown parm idx %d\n", i);
+						rig_debug(RIG_DEBUG_BUG, "unknown parm idx %d\n", i);
 					continue;
 				}
 				if (RIG_PARM_IS_FLOAT(rig_idx2setting(i)))
