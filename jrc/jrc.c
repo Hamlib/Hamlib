@@ -1,8 +1,8 @@
 /*
  *  Hamlib JRC backend - main file
- *  Copyright (c) 2001-2005 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.29 2006-10-07 17:51:00 csete Exp $
+ *	$Id: jrc.c,v 1.30 2009-02-18 22:51:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -1379,6 +1379,7 @@ DECLARE_INITRIG_BACKEND(jrc)
 
 	rig_register(&nrd535_caps);
 	rig_register(&nrd545_caps);
+	rig_register(&nrd525_caps);
 
 	return RIG_OK;
 }
