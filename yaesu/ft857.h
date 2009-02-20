@@ -12,7 +12,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.h,v 1.4 2005-04-03 19:27:59 fillods Exp $  
+ *    $Id: ft857.h,v 1.5 2009-02-20 12:26:22 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -145,6 +145,8 @@ static int ft857_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int ft857_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 // static int ft857_set_vfo(RIG *rig, vfo_t vfo);
 // static int ft857_get_vfo(RIG *rig, vfo_t *vfo);
 static int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
@@ -163,6 +165,7 @@ static int ft857_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
 static int ft857_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
 static int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
 static int ft857_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
+static int ft857_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 // static int ft857_set_powerstat(RIG *rig, powerstat_t status);
 
 #endif /* _FT857_H */
