@@ -7,16 +7,16 @@
  * \file settings.c
  * \brief func/level/parm interface
  * \author Stephane Fillod
- * \date 2000-2008
+ * \date 2000-2009
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - func/level/parm
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: settings.c,v 1.13 2008-09-21 19:10:24 fillods Exp $
+ *	$Id: settings.c,v 1.14 2009-02-20 12:26:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as

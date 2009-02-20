@@ -7,13 +7,13 @@
  * \file src/tones.c
  * \brief CTCSS and DCS interface and tables
  * \author Stephane Fillod
- * \date 2000-2006
+ * \date 2000-2009
  */
 /*
  *  Hamlib Interface - CTCSS and DCS interface and tables
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: tones.c,v 1.10 2006-10-15 00:27:52 aa6e Exp $
+ *	$Id: tones.c,v 1.11 2009-02-20 12:26:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
