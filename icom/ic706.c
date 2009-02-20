@@ -1,8 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-706 and variations
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.38 2008-12-14 20:09:39 fillods Exp $
+ *	$Id: ic706.c,v 1.39 2009-02-20 14:20:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,7 +48,7 @@ int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	if (err == -1)
 	    return err;
 
-	*pd--; 	
+	(*pd)--; 	
 
 	return RIG_OK;
 }
