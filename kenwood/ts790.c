@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS-790 description
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: ts790.c,v 1.18 2009-01-28 23:30:59 azummo Exp $
+ *	$Id: ts790.c,v 1.19 2009-02-20 10:33:32 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,6 +42,17 @@
 
 #define TS790_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
+#define TS790_SCAN_OP (RIG_SCAN_VFO)
+
+#define TS790_CHANNEL_CAPS \
+	.freq=1,\
+	.mode=1,\
+	.tx_freq=1,\
+	.tx_mode=1,\
+	.split=1,\
+	.flags=RIG_CHFLAG_SKIP, \
+	.ctcss_tone=1
+
 /*
  * Function definitions below
  */
@@ -51,10 +62,10 @@ static struct kenwood_priv_caps  ts790_priv_caps  = {
 };
 
 /*
- * ts790 rig capabilities.
+ * TS790 A/E rig capabilities.
+ * Interface provided by optional IF-232C
  *
- * TODO: ts790_set_channel, ts790_get_channel
- * get_split, set_split, get_ts, scan, ctcss_sql, set_rptr_shift
+ * TODO: get_ts, ctcss_sql, set_rptr_shift
  *
  * part of infos comes from http://www.kenwood.net/
  */
@@ -62,7 +73,7 @@ const struct rig_caps ts790_caps = {
 .rig_model =  RIG_MODEL_TS790,
 .model_name = "TS-790",
 .mfg_name =  "Kenwood",
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -89,6 +100,7 @@ const struct rig_caps ts790_caps = {
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
 .vfo_ops =  TS790_VFO_OP,
+.scan_ops =  TS790_SCAN_OP,
 .ctcss_list =  kenwood38_ctcss_list,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { /* 12, */ RIG_DBLST_END, },
@@ -100,8 +112,7 @@ const struct rig_caps ts790_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-	/* FIXME: split memories, call channel, etc. */
-.chan_list =  { {  1, 59, RIG_MTYPE_MEM },
+.chan_list =  { {  1, 59, RIG_MTYPE_MEM, { TS790_CHANNEL_CAPS } },
 			 RIG_CHAN_END,
 		   },
 
@@ -162,8 +173,8 @@ const struct rig_caps ts790_caps = {
 	},
         /* mode/filter list, remember: order matters! */
 .filters =  {
-		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.1)},
-		{RIG_MODE_CWR, Hz(500)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR, kHz(2.1)},
+		{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
 		{RIG_MODE_FM, kHz(12)},
 		RIG_FLT_END,
 	},
@@ -179,6 +190,8 @@ const struct rig_caps ts790_caps = {
 .get_mode =  kenwood_get_mode_if,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo_if,
+.set_split_vfo =  kenwood_set_split_vfo,
+.get_split_vfo =  kenwood_get_split_vfo_if,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
 .get_ctcss_tone =  kenwood_get_ctcss_tone,
 .get_ptt =  kenwood_get_ptt,
@@ -189,8 +202,11 @@ const struct rig_caps ts790_caps = {
 .set_level =  kenwood_set_level,
 .get_level =  kenwood_get_level,
 .vfo_op =  kenwood_vfo_op,
+.scan =  kenwood_scan,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
+.set_channel = kenwood_set_channel,
+.get_channel = kenwood_get_channel,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
 .get_info =  kenwood_get_info,
