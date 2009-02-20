@@ -9,7 +9,7 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
- * $Id: ft757gx.c,v 1.12 2009-02-20 12:40:46 fillods Exp $
+ * $Id: ft757gx.c,v 1.13 2009-02-20 15:21:52 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -79,7 +79,7 @@ const struct rig_caps ft757gx_caps = {
     .rig_model =        RIG_MODEL_FT757,
     .model_name =       "FT-757GX",
     .mfg_name =         "Yaesu",
-    .version =          "0.3.2",
+    .version =          "0.4",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_BETA,
     .rig_type =         RIG_TYPE_MOBILE,
@@ -182,7 +182,7 @@ const struct rig_caps ft757gx2_caps = {
     .rig_model =        RIG_MODEL_FT757GXII,
     .model_name =       "FT-757GXII",
     .mfg_name =         "Yaesu",
-    .version =          "0.3.2",
+    .version =          "0.4",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_MOBILE,

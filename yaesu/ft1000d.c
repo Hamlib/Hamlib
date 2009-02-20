@@ -1,5 +1,5 @@
 /*
- * hamlib - (C) Stephane Fillod 2002-2004 (fillods at users.sourceforge.net)
+ * hamlib - (C) Stephane Fillod 2002-2009 (fillods at users.sourceforge.net)
  *
  * ft1000d.c - (C) Berndt Josef Wulf (wulf at ping.net.au)
  *
@@ -7,7 +7,7 @@
  * via serial interface to an FT-1000D using the "CAT" interface
  *
  *
- * $Id: ft1000d.c,v 1.1 2004-08-17 20:07:20 fillods Exp $
+ * $Id: ft1000d.c,v 1.2 2009-02-20 15:21:52 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -104,7 +104,7 @@ const struct rig_caps ft1000d_caps = {
   .rig_model =          RIG_MODEL_FT1000D,
   .model_name =         "FT-1000D",
   .mfg_name =           "Yaesu",
-  .version =            "0.0.5",
+  .version =            "0.0.6",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
