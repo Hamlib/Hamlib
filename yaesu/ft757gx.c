@@ -9,15 +9,7 @@
  * "CAT" interface box (FIF-232C) or similar.
  *
  *
-<<<<<<< ft757gx.c
-<<<<<<< ft757gx.c
- * $Id: ft757gx.c,v 1.11 2008-12-28 02:38:54 n0nb Exp $
-=======
- * $Id: ft757gx.c,v 1.11 2008-12-28 02:38:54 n0nb Exp $
->>>>>>> 1.8
-=======
- * $Id: ft757gx.c,v 1.11 2008-12-28 02:38:54 n0nb Exp $
->>>>>>> 1.10
+ * $Id: ft757gx.c,v 1.12 2009-02-20 12:40:46 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
