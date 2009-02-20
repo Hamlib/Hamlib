@@ -8,7 +8,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft100.c,v 1.25 2009-02-14 16:46:35 fillods Exp $  
+ *    $Id: ft100.c,v 1.26 2009-02-20 12:28:26 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -239,30 +239,14 @@ const struct rig_caps ft100_caps = {
   },
 
   .tx_range_list2 =  {
-    {MHz(1.8),   MHz(2),      FT100_OTHER_TX_MODES, W(0.5),W(0.5),FT100_VFO_ALL},
-    {MHz(1.8),   MHz(2),      FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(3.5),   MHz(4),      FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(3.5),   MHz(4),      FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(7),     MHz(7.3),    FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(7),     MHz(7.3),    FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(10),    MHz(10.150), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(10),    MHz(10.150), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(14),    MHz(14.350), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(14),    MHz(14.350), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(18.068),MHz(18.168), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(18.068),MHz(18.168), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(21),    MHz(21.450), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(21),    MHz(21.450), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(24.890),MHz(24.990), FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(24.890),MHz(24.990), FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(28),    MHz(29.7),   FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(28),    MHz(29.7),   FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(50),    MHz(54),     FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(50),    MHz(54),     FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
-    {MHz(144),   MHz(148),    FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL}, 
-    {MHz(144),   MHz(148),    FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL}, 
-    {MHz(430),   MHz(440),    FT100_OTHER_TX_MODES, W(0.5),W(5.0),FT100_VFO_ALL},
-    {MHz(430),   MHz(440),    FT100_AM_TX_MODES,    W(0.5),W(1.5),FT100_VFO_ALL},
+    FRQ_RNG_HF(2, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_HF(2, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_6m(2, FT100_OTHER_TX_MODES, W(0.5), W(100), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_6m(2, FT100_AM_TX_MODES,    W(0.5), W(25), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_2m(2, FT100_OTHER_TX_MODES, W(0.5), W(50), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_2m(2, FT100_AM_TX_MODES,    W(0.5), W(12.5), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_70cm(2, FT100_OTHER_TX_MODES, W(0.5), W(20), FT100_VFO_ALL, FT100_ANT),
+    FRQ_RNG_70cm(2, FT100_AM_TX_MODES,    W(0.5), W(5),  FT100_VFO_ALL, FT100_ANT),
     RIG_FRNG_END, 
   },
 
