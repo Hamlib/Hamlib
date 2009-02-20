@@ -1,8 +1,9 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Frank Singleton
  *
- *	$Id: rig.c,v 1.102 2008-12-16 22:40:32 fillods Exp $
+ *	$Id: rig.c,v 1.103 2009-02-20 14:14:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -30,7 +31,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2008
+ * \date 2000-2009
  *
  * Hamlib provides a user-callable API, a set of "front-end" routines that
  * call rig-specific "back-end" routines whichactually communicate with 
@@ -77,7 +78,8 @@ const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[] = 
-  "Copyright (C) 2000-2008 Stephane Fillod and Frank Singleton\n"
+  "Copyright (C) 2000-2009 Stephane Fillod\n"
+  "Copyright (C) 2000-2003 Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
 
@@ -313,6 +315,7 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 
 	rs->vfo_comp = 0.0;	/* override it with preferences */
 	rs->current_vfo = RIG_VFO_CURR;	/* we don't know yet! */
+	rs->tx_vfo = RIG_VFO_CURR;	/* we don't know yet! */
 	rs->transceive = RIG_TRN_OFF;
 	rs->poll_interval = 500;
 	/* should it be a parameter to rig_init ? --SF */
@@ -562,7 +565,8 @@ int HAMLIB_API rig_open(RIG *rig)
 	/*
 	 * trigger state->current_vfo first retrieval
 	 */
-        rig_get_vfo(rig, &rs->current_vfo);
+        if (rig_get_vfo(rig, &rs->current_vfo) == RIG_OK)
+		rs->tx_vfo = rs->current_vfo;
 
 #if 0
         /*
@@ -1556,7 +1560,7 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 {
 	const struct rig_caps *caps;
 	int retcode;
-	vfo_t curr_vfo;
+	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -1565,12 +1569,26 @@ int HAMLIB_API rig_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 
 	if (caps->set_split_freq && 
 			((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
+			 vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX ||
+			 vfo == rig->state.current_vfo))
 		return caps->set_split_freq(rig, vfo, tx_freq);
 
+	/* Assisted mode */
+
 	curr_vfo = rig->state.current_vfo;
+
+	/* Use previously setup TxVFO */
+	if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
+		tx_vfo = rig->state.tx_vfo;
+	else
+		tx_vfo = vfo;
+
+	if (caps->set_freq && (caps->targetable_vfo&RIG_TARGETABLE_FREQ))
+		return caps->set_freq(rig, tx_vfo, tx_freq);
+
+
 	if (caps->set_vfo) {
-		retcode = caps->set_vfo(rig, vfo);
+		retcode = caps->set_vfo(rig, tx_vfo);
 	} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
 		retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	} else {
@@ -1610,7 +1628,7 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
 	const struct rig_caps *caps;
 	int retcode;
-	vfo_t curr_vfo;
+	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !tx_freq)
 		return -RIG_EINVAL;
@@ -1619,12 +1637,26 @@ int HAMLIB_API rig_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 
 	if (caps->get_split_freq && 
 			((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
+			 vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX ||
+			 vfo == rig->state.current_vfo))
 		return caps->get_split_freq(rig, vfo, tx_freq);
 
+	/* Assisted mode */
+
 	curr_vfo = rig->state.current_vfo;
+
+	/* Use previously setup TxVFO */
+	if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
+		tx_vfo = rig->state.tx_vfo;
+	else
+		tx_vfo = vfo;
+
+	if (caps->get_freq && (caps->targetable_vfo&RIG_TARGETABLE_FREQ))
+		return caps->get_freq(rig, tx_vfo, tx_freq);
+
+
 	if (caps->set_vfo) {
-		retcode = caps->set_vfo(rig, vfo);
+		retcode = caps->set_vfo(rig, tx_vfo);
 	} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
 		retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	} else {
@@ -1667,7 +1699,7 @@ int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_
 {
 	const struct rig_caps *caps;
 	int retcode;
-	vfo_t curr_vfo;
+	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
@@ -1676,12 +1708,26 @@ int HAMLIB_API rig_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_
 
 	if (caps->set_split_mode && 
 			((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
+			 vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX ||
+			 vfo == rig->state.current_vfo))
 		return caps->set_split_mode(rig, vfo, tx_mode, tx_width);
 
+	/* Assisted mode */
+
 	curr_vfo = rig->state.current_vfo;
+
+	/* Use previously setup TxVFO */
+	if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
+		tx_vfo = rig->state.tx_vfo;
+	else
+		tx_vfo = vfo;
+
+	if (caps->set_mode && (caps->targetable_vfo&RIG_TARGETABLE_MODE))
+		return caps->set_mode(rig, tx_vfo, tx_mode, tx_width);
+
+
 	if (caps->set_vfo) {
-		retcode = caps->set_vfo(rig, vfo);
+		retcode = caps->set_vfo(rig, tx_vfo);
 	} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
 		retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	} else {
@@ -1727,21 +1773,35 @@ int HAMLIB_API rig_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth
 {
 	const struct rig_caps *caps;
 	int retcode;
-	vfo_t curr_vfo;
+	vfo_t curr_vfo, tx_vfo;
 
 	if (CHECK_RIG_ARG(rig) || !tx_mode || !tx_width)
 		return -RIG_EINVAL;
 
 	caps = rig->caps;
 
-	if (caps->get_split_mode && 
-			 ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
-			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo))
+	if (caps->get_split_mode &&
+			((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
+			 vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX ||
+			 vfo == rig->state.current_vfo))
 		return caps->get_split_mode(rig, vfo, tx_mode, tx_width);
 
+	/* Assisted mode */
+
 	curr_vfo = rig->state.current_vfo;
+
+	/* Use previously setup TxVFO */
+	if (vfo == RIG_VFO_CURR || vfo == RIG_VFO_TX)
+		tx_vfo = rig->state.tx_vfo;
+	else
+		tx_vfo = vfo;
+
+	if (caps->get_mode && (caps->targetable_vfo&RIG_TARGETABLE_MODE))
+		return caps->get_mode(rig, tx_vfo, tx_mode, tx_width);
+
+
 	if (caps->set_vfo) {
-		retcode = caps->set_vfo(rig, vfo);
+		retcode = caps->set_vfo(rig, tx_vfo);
 	} else if (rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op) {
 		retcode = caps->vfo_op(rig, vfo, RIG_OP_TOGGLE);
 	} else {
@@ -1799,7 +1859,12 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vf
 
 	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_split_vfo(rig, vfo, split, tx_vfo);
+	{
+		retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
+		if (retcode == RIG_OK)
+			rig->state.tx_vfo = tx_vfo;
+		return retcode;
+	}
 
 	if (!caps->set_vfo)
 		return -RIG_ENTARGET;
@@ -1810,6 +1875,10 @@ int HAMLIB_API rig_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vf
 
 	retcode = caps->set_split_vfo(rig, vfo, split, tx_vfo);
 	caps->set_vfo(rig, curr_vfo);
+
+	if (retcode == RIG_OK)
+		rig->state.tx_vfo = tx_vfo;
+
 	return retcode;
 }
 
@@ -1834,13 +1903,16 @@ int HAMLIB_API rig_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_
 	int retcode;
 	vfo_t curr_vfo;
 
-	if (CHECK_RIG_ARG(rig) || !split)
+	if (CHECK_RIG_ARG(rig) || !split || !tx_vfo)
 		return -RIG_EINVAL;
 
 	caps = rig->caps;
 
 	if (caps->get_split_vfo == NULL)
 		return -RIG_ENAVAIL;
+
+	/* overidden by backend at will */
+	*tx_vfo = rig->state.tx_vfo;
 
 	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)

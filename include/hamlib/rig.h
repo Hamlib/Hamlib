@@ -3,7 +3,7 @@
  *  Copyright (c) 2000-2003 by Frank Singleton
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: rig.h,v 1.140 2009-02-06 14:15:11 azummo Exp $
+ *	$Id: rig.h,v 1.141 2009-02-20 14:14:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -714,8 +714,8 @@ typedef unsigned long setting_t;
  */
 enum rig_func_e {
 	RIG_FUNC_NONE =    	0,	/*!< '' -- No Function */
-    RIG_FUNC_FAGC =    	(1<<0),	/*!< \c FAGC -- Fast AGC */
-    RIG_FUNC_NB =	    	(1<<1),	/*!< \c NB -- Boise Blanker */
+	RIG_FUNC_FAGC =    	(1<<0),	/*!< \c FAGC -- Fast AGC */
+	RIG_FUNC_NB =	    	(1<<1),	/*!< \c NB -- Noise Blanker */
 	RIG_FUNC_COMP =    	(1<<2),	/*!< \c COMP -- Speech Compression */
 	RIG_FUNC_VOX =    	(1<<3),	/*!< \c VOX -- Voice Operated Relay */
 	RIG_FUNC_TONE =    	(1<<4),	/*!< \c TONE -- CTCSS Tone */
@@ -1426,6 +1426,7 @@ struct rig_state {
   freq_t current_freq;	/*!< Frequency currently set */
   rmode_t current_mode;	/*!< Mode currently set */
   pbwidth_t current_width;	/*!< Passband width currently set */
+  vfo_t tx_vfo;		/*!< Tx VFO currently set */
 
 };
 
