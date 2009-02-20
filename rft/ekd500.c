@@ -1,8 +1,8 @@
 /*
  *  Hamlib RFT backend - EKD-500 description
- *  Copyright (c) 2003-2005 by Thomas B. Ruecker
+ *  Copyright (c) 2003-2009 by Thomas B. Ruecker
  *
- *	$Id: ekd500.c,v 1.4 2006-10-07 18:48:34 csete Exp $
+ *	$Id: ekd500.c,v 1.5 2009-02-20 12:23:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,7 +47,7 @@
  * EKD-500 rig capabilities.
  *
  * Documentation:
- *   http://kahuna.sdsu.edu/~mechtron/PremRxPage/ekd500.htm
+ *   http://www.premium-rx.org/ekd500.htm
  */
 
 const struct rig_caps ekd500_caps = {
