@@ -1,6 +1,7 @@
 /* -*- mode: c; c-basic-offset: 2; indent-tabs-mode: nil; -*-
  *
  * hamlib - (C) Frank Singleton 2000,2001 (vk3fcs@ix.netcom.com)
+ *          (C) Stephane Fillod 2000-2009
  *
  * ft857.h - (C) Tomi Manninen 2003 (oh2bns@sral.fi)
  *
@@ -13,7 +14,7 @@
  * The starting point for this code was Frank's ft847 implementation.
  *
  *
- *    $Id: ft857.c,v 1.12 2009-01-12 12:29:17 n0nb Exp $  
+ *    $Id: ft857.c,v 1.13 2009-02-20 09:55:16 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -38,11 +39,6 @@
  *   - RIT ON/OFF without touching the RIT offset. This would
  *     need frontend support (eg. a new RIG_FUNC_xxx)
  *
- *   - VFO A/B toggle. Needs frontend support (RIG_FUNC_xxx)
- *
- *   - Split ON/OFF. Maybe some sort of split operation could
- *     be supported with this and the above???
- *
  *   - DCS encoder/squelch ON/OFF, similar to RIG_FUNC_TONE/TSQL.
  *     Needs frontend support.
  *
@@ -53,7 +49,6 @@
  *
  *   - TX status command returns info that is not used:
  *
- *      - split on/off flag
  *      - high swr flag
  *
  * The manual also indicates that CTCSS and DCS codes can be set
@@ -146,7 +141,7 @@ const struct rig_caps ft857_caps = {
   .rig_model = 		RIG_MODEL_FT857,
   .model_name = 	"FT-857", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.2.2",
+  .version = 		"0.3",
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -183,6 +178,7 @@ const struct rig_caps ft857_caps = {
   .bank_qty = 		0,
   .chan_desc_sz = 	0,
   .chan_list =          { RIG_CHAN_END, },
+  .vfo_ops =            RIG_OP_TOGGLE,
 
   .rx_range_list1 =  { 
     {kHz(100),MHz(56), FT857_ALL_RX_MODES,-1,-1},
@@ -272,8 +268,8 @@ const struct rig_caps ft857_caps = {
   .get_split_freq = 	NULL,
   .set_split_mode = 	NULL,
   .get_split_mode = 	NULL,
-  .set_split_vfo = 	NULL,
-  .get_split_vfo =	NULL,
+  .set_split_vfo = 	ft857_set_split_vfo,
+  .get_split_vfo =	ft857_get_split_vfo,
   .set_rit = 		ft857_set_rit,
   .get_rit = 		NULL,
   .set_xit = 		NULL,
@@ -299,6 +295,7 @@ const struct rig_caps ft857_caps = {
   .get_func = 		NULL,
   .set_parm = 		NULL,
   .get_parm = 		NULL,
+  .vfo_op =             ft857_vfo_op,
 }; 
 
 /* ---------------------------------------------------------------------- */
@@ -491,6 +488,23 @@ int ft857_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
   }
 
   *width = RIG_PASSBAND_NORMAL;
+
+  return RIG_OK;
+}
+
+int ft857_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
+{
+  struct ft857_priv_data *p = (struct ft857_priv_data *) rig->state.priv;
+  int n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  if (check_cache_timeout(&p->tx_status_tv))
+    if ((n = ft857_get_status(rig, FT857_NATIVE_CAT_GET_TX_STATUS)) < 0)
+      return n;
+
+  *split = ((p->tx_status & 0x20) == 0) ? RIG_SPLIT_ON : RIG_SPLIT_OFF;
 
   return RIG_OK;
 }
@@ -707,6 +721,34 @@ int ft857_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     return -RIG_EINVAL;
 
   return ft857_send_cmd(rig, index);
+}
+
+int ft857_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
+{
+  int index, n;
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "ft857: ft857_set_split_vfo called\n");
+
+  switch(split) {
+  case RIG_SPLIT_ON:
+    index = FT857_NATIVE_CAT_SPLIT_ON;
+    break;
+  case RIG_SPLIT_OFF:
+    index = FT857_NATIVE_CAT_SPLIT_OFF;
+    break;
+  default:
+    return -RIG_EINVAL;
+  }
+
+  n = ft857_send_cmd(rig, index);
+
+  if (n < 0 && n != -RIG_ERJCTED)
+    return n;
+
+  return RIG_OK;
 }
 
 int ft857_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
@@ -931,6 +973,17 @@ int ft857_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
     ft857_send_cmd(rig, FT857_NATIVE_CAT_CLAR_ON);
 
   return RIG_OK;
+}
+
+int ft857_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+  switch (op) {
+  case RIG_OP_TOGGLE:
+    return ft857_send_cmd(rig, FT857_NATIVE_CAT_SET_VFOAB);
+  default:
+    return -RIG_EINVAL;
+  }
+  return -RIG_EINVAL;
 }
 
 #if 0
