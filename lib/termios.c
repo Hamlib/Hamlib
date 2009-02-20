@@ -2369,9 +2369,12 @@ int tcsetattr( int fd, int when, struct termios *s_termios )
 	}
 
 #ifdef DEBUG_VERBOSE
+	{
+	char message[32];
 	sprintf( message, "VTIME:%d, VMIN:%d\n", s_termios->c_cc[VTIME],
 		s_termios->c_cc[VMIN] );
 	report( message );
+	}
 #endif /* DEBUG_VERBOSE */
 	vtime = s_termios->c_cc[VTIME] * 100;
 	timeouts.ReadTotalTimeoutConstant = vtime;
@@ -2392,6 +2395,8 @@ int tcsetattr( int fd, int when, struct termios *s_termios )
 		timeouts.ReadTotalTimeoutMultiplier = 0;
 	}
 #ifdef DEBUG_VERBOSE
+	{
+	char message[64];
 	sprintf( message, "ReadIntervalTimeout=%ld\n",
 		timeouts.ReadIntervalTimeout );
 	report( message );
@@ -2407,6 +2412,7 @@ int tcsetattr( int fd, int when, struct termios *s_termios )
 	sprintf( message, "ReadTotalTimeoutMultiplier: %ld\n",
 		timeouts.ReadTotalTimeoutMultiplier );
 	report( message );
+	}
 #endif /* DEBUG_VERBOSE */
 	if ( !SetCommTimeouts( index->hComm, &timeouts ) )
 	{
