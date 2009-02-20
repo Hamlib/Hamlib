@@ -9,7 +9,7 @@
  * via serial interface to an FT-9000 using the "CAT" interface
  *
  *
- *    $Id: ft9000.h,v 1.2 2009-01-04 16:03:34 mrtembry Exp $
+ *    $Id: ft9000.h,v 1.3 2009-02-20 12:39:23 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -71,7 +71,7 @@
                RIG_LEVEL_KEYSPD|RIG_LEVEL_AF|RIG_LEVEL_AGC|\
                RIG_LEVEL_METER|RIG_LEVEL_BKINDL|RIG_LEVEL_SQL|\
                RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_COMP|\
-               RIG_LEVEL_ANTIVOX|RIG_LEVEL_NR)
+               RIG_LEVEL_ANTIVOX|RIG_LEVEL_NR|RIG_LEVEL_NOTCHF)
 
 /* TBC */
 #define FT9000_FUNCS (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_LOCK|\
