@@ -1,12 +1,15 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *          (C) Stephane Fillod 2000-2009
  *
  * ft847.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
+ *           (C) Stephane Fillod 2000-2009
+ *
  * This shared library provides an API for communicating
  * via serial interface to an FT-847 using the "CAT" interface.
  *
  *
- *    $Id: ft847.h,v 1.7 2008-12-31 16:58:27 fillods Exp $  
+ *    $Id: ft847.h,v 1.8 2009-02-20 12:33:52 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -150,15 +153,10 @@ typedef enum ft847_native_cmd_e ft847_native_cmd_t;
  */
 
 struct ft847_priv_data {
-  vfo_t current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A, SAT_RX, SAT_TX */
-  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
-  yaesu_cmd_set_t pcs[FT_847_NATIVE_SIZE];		/* private cmd set */
+  split_t sat_mode;
+
   unsigned char rx_status;	/* tx returned data */
   unsigned char tx_status;	/* rx returned data */
-  unsigned char fm_status_main; /* freq and mode ,returned data */
-  unsigned char fm_status_satrx; /* freq and mode ,returned data */
-  unsigned char fm_status_sattx; /* freq and mode ,returned data */
-
 };
 
 
@@ -179,13 +177,19 @@ static int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width); /* select mode */
 static int ft847_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width); /* get mode */
 
-static int ft847_set_vfo(RIG *rig, vfo_t vfo); /* select vfo */
-static int ft847_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
+static int ft847_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft847_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+
+static int ft847_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft847_get_split_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+static int ft847_set_split_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft847_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 
 static int ft847_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 
 static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val);
-
 
 #endif /* _FT847_H */
