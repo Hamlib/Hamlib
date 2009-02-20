@@ -1,8 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TS140 description
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: ts140.c,v 1.13 2009-02-03 22:56:06 azummo Exp $
+ *	$Id: ts140.c,v 1.14 2009-02-20 14:19:27 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -52,7 +52,6 @@ static struct kenwood_priv_caps  ts140_priv_caps  = {
 static int ts140_set_vfo(RIG *rig, vfo_t vfo)
 {
                 char cmdbuf[16];
-                int retval;
                 char vfo_function;
 
                 switch (vfo) {
