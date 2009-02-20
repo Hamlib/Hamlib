@@ -2,7 +2,7 @@
  *  Hamlib WiNRADiO backend - WR-G305 description
  *  Copyright (c) 2001-2009 by Stephane Fillod
  *
- *	$Id: g305.c,v 1.1 2009-01-11 13:21:21 fillods Exp $
+ *	$Id: g305.c,v 1.2 2009-02-20 12:38:29 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -198,8 +198,6 @@ int g3_init(RIG *rig)
 	}
 
 	/* Get process addresses from dll for function access */
-	priv->OpenRadioDevice =
-		(FNCOpenRadioDevice) GetProcAddress(priv->dll, "OpenRadioDevice");
 	priv->OpenRadioDevice =
 		(FNCOpenRadioDevice) GetProcAddress(priv->dll, "OpenRadioDevice");
 	priv->CloseRadioDevice =
