@@ -2,7 +2,7 @@
 *  Hamlib Kenwood backend - TS850 description
 *  Copyright (c) 2000-2004 by Stephane Fillod
 *
-*	$Id: ts850.c,v 1.34 2009-02-09 20:59:31 azummo Exp $
+*	$Id: ts850.c,v 1.35 2009-02-20 12:22:19 fillods Exp $
 *
 *   This library is free software; you can redistribute it and/or modify
 *   it under the terms of the GNU Library General Public License as
@@ -53,6 +53,7 @@
 .tx_freq=1,\
 .tx_mode=1,\
 .split=1,\
+.flags=RIG_CHFLAG_SKIP, \
 .ctcss_tone=1
 
 #define TS850_STR_CAL { 4, \
