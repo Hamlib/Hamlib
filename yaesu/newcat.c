@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.54 2009-02-15 09:54:17 mrtembry Exp $
+ * $Id: newcat.c,v 1.55 2009-02-23 21:52:56 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -4342,8 +4342,9 @@ int newcat_get_faststep(RIG * rig, ncboolean * fast_step)
 int newcat_get_rigid(RIG * rig)
 {
     struct newcat_priv_data *priv;
-    priv = (struct newcat_priv_data *)rig->state.priv;
     const char * s;
+
+    priv = (struct newcat_priv_data *)rig->state.priv;
     s = NULL;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
