@@ -1,8 +1,8 @@
 /*
  *  Hamlib Racal backend - main file
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2009 by Stephane Fillod
  *
- *	$Id: racal.c,v 1.1 2004-09-12 21:28:26 fillods Exp $
+ *	$Id: racal.c,v 1.2 2009-02-23 21:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -267,7 +267,7 @@ int racal_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (width == RIG_PASSBAND_NORMAL)
 		width = rig_passband_normal(rig, mode);
 
-	sprintf(buf, "D%dI%.f", ra_mode, (double)(width/kHz(1)));
+	sprintf(buf, "D%dI%.0f", ra_mode, (double)(width/kHz(1)));
 
 	return racal_transaction (rig, buf, NULL, NULL);
 }
