@@ -1,3 +1,1054 @@
+2009-02-25 19:13  fillods
+
+	* NEWS, configure.ac: Update for 1.2.9 release
+
+2009-02-23 22:03  fillods
+
+	* libltdl/Makefile.in: build fix
+
+2009-02-23 21:53  fillods
+
+	* racal/racal.c: fix warning with old compilers
+
+2009-02-23 21:52  fillods
+
+	* yaesu/newcat.c: old compilers don't like mixed variable
+	declaration and code
+
+2009-02-23 21:51  fillods
+
+	* kenwood/th.c: fix warning, possible bug where char is unsigned
+
+2009-02-23 21:24  fillods
+
+	* kenwood/ts850.c: change timeout down to 30 seconds
+
+2009-02-20 15:27  fillods
+
+	* kenwood/: Makefile.am, kenwood.c, kenwood.h, trc80.c: add TRC-80
+	to kenwood_hamlib_1_2_9_branch
+
+2009-02-20 15:21  fillods
+
+	* tentec/orion.h, yaesu/ft1000d.c, yaesu/ft757gx.c: increase
+	version number
+
+2009-02-20 14:20  fillods
+
+	* icom/ic706.c: bug in ic706_r2i_mode()
+
+2009-02-20 14:19  fillods
+
+	* kenwood/ts140.c: fix warning
+
+2009-02-20 14:14  fillods
+
+	* include/hamlib/rig.h, src/rig.c: set/get_split_{freq,mode}
+	assisted by frontend
+
+2009-02-20 12:40  fillods
+
+	* yaesu/ft757gx.c: cosmetic
+
+2009-02-20 12:39  fillods
+
+	* yaesu/: ft2000.h, ft9000.h: add RIG_LEVEL_NOTCHF
+
+2009-02-20 12:38  fillods
+
+	* winradio/: g303.c, g305.c: remove double binding of dll symbol
+
+2009-02-20 12:33  fillods
+
+	* yaesu/: ft847.c, ft847.h: * big cleanup and error code checking *
+	implemented:   - split operation through SAT mode   -
+	get_dcd/get_ptt   - get_level: ALC
+
+2009-02-20 12:28  fillods
+
+	* yaesu/ft100.c: fix tx_range_list2 power range
+
+2009-02-20 12:27  fillods
+
+	* yaesu/ft747.c: passband width setting, and return code checking
+
+2009-02-20 12:26  fillods
+
+	* yaesu/ft857.h: added split operation
+
+2009-02-20 12:26  fillods
+
+	* src/locator.c, src/mem.c, src/rotator.c, src/settings.c,
+	src/tones.c, tests/rigmem.1, tests/rigsmtr.1, tests/rigswr.1:
+	copyright year
+
+2009-02-20 12:23  fillods
+
+	* rft/ekd500.c: new URL for documentation
+
+2009-02-20 12:22  fillods
+
+	* lib/termios.c: fix DEBUG_VERBOSE code
+
+2009-02-20 12:22  fillods
+
+	* kenwood/ts850.c: TS-850 has skip flag in mem caps
+
+2009-02-20 10:33  fillods
+
+	* kenwood/ts790.c: * split opertation * set/get_channel * scanning
+
+2009-02-20 09:55  fillods
+
+	* yaesu/ft857.c: added split operation
+
+2009-02-18 22:51  fillods
+
+	* jrc/: Makefile.am, jrc.c, jrc.h, nrd525.c: added NRD-525
+
+2009-02-18 20:56  fillods
+
+	* dummy/: rot_dummy.c, Makefile.am: emulate rotator slowly rotating
+
+2009-02-17 23:01  fillods
+
+	* dummy/netrotctl.c: fix stupid bug in netrotctl_open
+
+2009-02-17 08:03  fillods
+
+	* tests/sprintflst.c: typo
+
+2009-02-17 08:03  fillods
+
+	* tests/rotctl.c: report hamlib version upon startup
+
+2009-02-15 09:54  mrtembry
+
+	* yaesu/newcat.c: Added delays for first time through mem write
+
+2009-02-14 21:33  aa6e
+
+	* tentec/orion.c: Downgrade ERR to WARN (i/o retry)
+
+2009-02-14 16:46  fillods
+
+	* yaesu/: ft100.c, ft100.h: * big cleanup * implemented:   -
+	ft100_get_ptt	- ft100_get_split_vfo	- get_level:
+	RIG_LEVEL_MICGAIN, RIG_LEVEL_SQL   - implement width in set_mode
+
+2009-02-14 00:26  fillods
+
+	* yaesu/: Makefile.am, ft100.c, ft100.h, yaesu_tones.h: * redo the
+	ft100 set_ctcss/set_dcs with appropriate list, yaesu_tones.h no
+	more needed * change P1 of FT100's Status Update. Returned data
+	seems longer than documented.  * populate FT100's bandplan of ITU
+	Region 1 * some error code checking
+
+2009-02-13 19:34  azummo
+
+	* kenwood/kenwood.c: band up/down was inverted
+
+2009-02-13 19:29  azummo
+
+	* kenwood/: kenwood.c, th.c, ts680.c: style fixes
+
+2009-02-11 19:26  aa6e
+
+	* tentec/orion.c: Minor comment re rit/xit
+
+2009-02-10 22:51  fillods
+
+	* kenwood/k3.c: closer look at the K3, still untested
+
+2009-02-10 22:48  fillods
+
+	* kenwood/: kenwood.c, kenwood.h: * implemented RIG_LEVEL_KEYSPD
+	and RIG_LEVEL_PREAMP * fixed RIG_LEVEL_ATT * fix
+	kenwood_set_channel prototype
+
+2009-02-09 20:59  azummo
+
+	* kenwood/: kenwood.c, kenwood.h, ts850.c: check ptt status before
+	set_ptt. enabled on ts850.
+
+2009-02-09 20:37  azummo
+
+	* kenwood/kenwood.c: removed comment about switch optimizatons. the
+	compiler will generate the assembly code in a different order which
+	is usually based on the case value.  other compiler optimizations
+	might also affect it, so it's useless to optimize the order.
+
+2009-02-09 20:37  azummo
+
+	* AUTHORS: Added my call sign
+
+2009-02-06 17:31  fillods
+
+	* pcr/: pcr.c, pcr.h, pcr100.c: support ANL through ext_level
+
+2009-02-06 17:28  fillods
+
+	* tests/rigctl_parse.c: added RIG_CONF_BUTTON
+
+2009-02-06 17:27  fillods
+
+	* dummy/: dummy.c, dummy.h: new RIG_CONF_BUTTON example, renamed
+	the other ext_levels
+
+2009-02-06 17:11  fillods
+
+	* AUTHORS: Add Alessandro Zummo
+
+2009-02-06 14:15  azummo
+
+	* include/hamlib/rig.h, kenwood/kenwood.c, kenwood/kenwood.h,
+	kenwood/ts450s.c, kenwood/ts850.c: implemented set/get_ext_param
+	(voice, fine, xit, rit). enabled on ts450 and ts850
+
+2009-02-05 21:05  azummo
+
+	* kenwood/kenwood.c: Add description for the kenwood mode n. 8
+
+2009-02-03 23:42  azummo
+
+	* kenwood/: kenwood.c, kenwood.h, ts850.c: generic, ts850:
+	implemented CTCSS TN command (reported not working for ts850,
+	should now be fixed)
+
+2009-02-03 23:22  azummo
+
+	* kenwood/: ic10.c, kenwood.c, th.c, thf7.c, thg71.c, tmv7.c,
+	ts2000.c, ts2k.c, ts2k_menu.c, ts570.c, ts850.c, ts870s.c: Replace
+	__FUNCTION__, which is gcc specific and was deprecated a long time
+	ago, with __func__, which is at least defined in C99.
+
+2009-02-03 22:56  azummo
+
+	* kenwood/: ts140.c, ts480.c, ts570.c, ts680.c, ts850.c, ts870s.c:
+	ts570,ts850,ts870s,ts140,ts480,ts680: use kenwood_simple_cmd where
+	possible
+
+2009-02-03 22:47  azummo
+
+	* kenwood/kenwood.c: remove unused parameter from get_kenwood_func
+
+2009-02-03 22:45  azummo
+
+	* kenwood/: kenwood.c, kenwood.h, ts450s.c: ts450: implement
+	set_channel
+
+2009-02-03 22:42  azummo
+
+	* kenwood/: kenwood.c, kenwood.h, thg71.c, tmv7.c, ts450s.c,
+	ts690.c: thg71,tmv7,ts450s,ts690: verify rig id at rig_open
+
+2009-02-03 22:33  azummo
+
+	* kenwood/kenwood.c: fix tabs
+
+2009-02-03 22:13  azummo
+
+	* kenwood/: ts140.c, ts2000.c, ts480.c, ts570.c, ts680.c, ts850.c,
+	ts870s.c: ts140,ts2000,ts480,ts570,ts680,ts850,ts870s: remove usage
+	of fixed ; and EOM
+
+2009-02-03 11:25  azummo
+
+	* kenwood/kenwood.c: remove fixed command terminator (;) from
+	generic code
+
+2009-02-02 20:33  azummo
+
+	* kenwood/ts450s.c: ts450: indentation fixes
+
+2009-02-02 20:30  azummo
+
+	* kenwood/: kenwood.c, ts850.c: ts450,ts690,ts850: use FL command
+	to get/set filters in get/set_mode. (code from ts850.c)
+
+2009-02-02 20:28  azummo
+
+	* kenwood/ts450s.c: ts450: remove RIG_FUNC_TONE from has_xx_func if
+	tone unit is not detected
+
+2009-02-02 07:30  azummo
+
+	* kenwood/: kenwood.c, kenwood.h, ts570.c: Make set_ptt behave as
+	before, fix set_ant for ts570.c
+
+2009-02-02 07:29  azummo
+
+	* kenwood/: kenwood.c, kenwood.h: Add kenwood_simple_cmd
+
+2009-01-29 22:54  fillods
+
+	* include/hamlib/riglist.h, kenwood/kenwood.c, kenwood/kenwood.h,
+	kenwood/trc80.c, kenwood/Makefile.am: added Kenwood TRC-80
+
+2009-01-29 22:54  fillods
+
+	* kenwood/trc80.c: file trc80.c was added on branch
+	kenwood_hamlib_1_2_9_branch on 2009-02-20 15:27:50 +0000
+
+2009-01-29 19:50  azummo
+
+	* pcr/: pcr.c, pcr.h, pcr100.c: Support get/set_powerstat on pcr100
+
+2009-01-29 08:41  azummo
+
+	* kenwood/kenwood.c: Use an appropriate debug level
+
+2009-01-28 23:31  azummo
+
+	* kenwood/: ts570.c, ts690.c: Call kenwood_init in each and every
+	driver
+
+2009-01-28 23:30  azummo
+
+	* kenwood/: k2.c, k3.c, r5000.c, th.c, thd7.c, thf7.c, thg71.c,
+	tmd700.c, tmv7.c, ts140.c, ts2000.c, ts440.c, ts480.c, ts50s.c,
+	ts570.c, ts680.c, ts690.c, ts711.c, ts790.c, ts811.c, ts850.c,
+	ts870s.c, ts930.c, ts940.c, ts950.c: Remove const from priv_caps to
+	allow kenwood_init to initialize default values if they're missing
+
+2009-01-28 22:53  fillods
+
+	* dummy/: dummy.c, dummy.h: * Extra levels and extra parms * dummy
+	backend now has 2 antennas
+
+2009-01-28 22:49  fillods
+
+	* tests/dumpcaps.c: fix segfault with extra levels
+
+2009-01-27 19:05  fillods
+
+	* pcr/: Makefile.am, pcr.c, pcr.h, pcr100.c, pcr1000.c: pcr patch
+	from Alessandro Zummo, with more reliability and new features:	*
+	CTCSS tone squelch  * selectable baud rate (300 - 38400)  * ANL -
+	Automatic Noise Limiter (commented out, until created in frontend) 
+	* simplified and cleaned up code  * RIG_LEVEL_STRENGTH	*
+	RIG_LEVEL_RAWSTR
+
+2009-01-25 16:23  fillods
+
+	* include/hamlib/rig.h: better documentation of enum rig_errcode_e
+
+2009-01-25 16:14  fillods
+
+	* rotorez/: rotorez.c, rotorez.h: enumaration of backend tokens
+
+2009-01-25 15:39  fillods
+
+	* src/rot_conf.c: argument checking in rot_set_conf
+
+2009-01-25 14:25  fillods
+
+	* src/conf.c: argument checking in rig_set_conf, patch from Zhang
+	Bo + edit
+
+2009-01-24 13:33  fillods
+
+	* Makefile.am, configure.ac: do not distribute any more the
+	gnuradio backend (out of date)
+
+2009-01-23 03:24  n0nb
+
+	* kenwood/: ic10.c, k2.c, k3.c, kenwood.c, kenwood.h, r5000.c,
+	th.c, thd7.c, thf7.c, thg71.c, tmd700.c, tmv7.c, ts140.c, ts2000.c,
+	ts2k.c, ts440.c, ts450s.c, ts480.c, ts50s.c, ts570.c, ts680.c,
+	ts690.c, ts711.c, ts790.c, ts811.c, ts850.c, ts870s.c, ts930.c,
+	ts940.c, ts950.c: Several Kenwood patches from Alessandro Zummo,
+	azummo-lists@towertech.it
+	
+	Among the changes:
+	
+	 I finally had the time to build the CAT interface for my TS450 and
+	 discovered a couple of new commands.
+	
+	 MX; MX0; MX1; is used to activate the AIP function
+	 FL; FLXXXYYY; is used to set the filters.
+	
+	 I made a perl script to try every possible two-letters command. If
+	 amyone is interested, at their own risk, just ask.
+	
+	 I've then modified and optimized the kenwood driver:
+	
+	 - moved MD_ defined to .h
+	 - added init/cleanup
+	 - ts450_get_mode -> kenwood_get_mode_if
+	 - support reading memory channel freq within kenwood_get_freq
+	 - added kenwood_safe_transaction as an helper with result len
+	check
+	 - added kenwood_get_if
+	 - added get_level for RIG_LEVEL_CWPITCH
+	 - set/get for RIG_FUNC_AIP
+	 - replaced ts140/680 get_mode and get_freq
+	 - removed the delay on the ts450. it works just fine without it.
+	
+	=============================  the attached patch requires the
+	first one I sent and  addresses a few remaining issues
+	
+	 - converted 8 spaces to tabs
+	 - added kenwood_mode_table
+	 - added kenwood_simple_transaction helper func
+	 - use kenwood2rmode and rmode2kenwood where possible
+	 - some code cleanup
+	 - use kenwood_safe/simple_transaction where possible
+	 - added kenwood_get_mem_if (ts140,ts450,ts680,ts690,ts850)
+	 - added kenwood_get_channel (ts450,ts850)
+	 - added FUNC_FINE_STEP (commented out, we have no more func slots)
+	 - added LEVEL_CWPITCH (set)
+	 - no reason to have ts850_set_func, ts850_set_level
+	 - ... ts480_get/set_ant, ts480_set_func
+	 - ... ts570_set/get_ant, ts570_get_channel, ts570_get_rit
+	 - ... ts680_set_func
+	 - ... ts790_get_mode, ts790_get_vfo
+	
+	 this patch is a bit more extensive and tested only on the TS450.
+	 feedback will be appreciated.
+	
+	 where I removed code I took care to verify that the generic
+	 code in kenwood.c worked in the same way.
+
+2009-01-20 19:42  fillods
+
+	* Makefile.am, configure.ac, heathkit/Makefile.am,
+	heathkit/hd1780.c, heathkit/hd1780.h, include/hamlib/rotlist.h,
+	bindings/ignore.swg, AUTHORS: Heathkit HD 1780 Intellirotor
+	backend, by Rob Frohne, KL7NA
+
+2009-01-17 14:47  n0nb
+
+	* rotorez/: rotorez.c, rotorez.h, rotorez.txt: Update copyright
+	date.
+
+2009-01-17 14:37  n0nb
+
+	* rotorez/: rotorez.c, rotorez.h, rotorez.txt: Improved buffer
+	flush by shortening serial timeout from 5 to 1.5 seconds. 
+	Re-worked rotorez_rot_set_conf to use token values defined in
+	rotorez.h but will need to wait until tokens are available in
+	Hamlib for full use.  Improved documentation in rotorez.txt of
+	changes.
+
+2009-01-16 04:21  n0nb
+
+	* rotorez/: rotorez.c, rotorez.txt: Fix to flush buffer if RotorEZ
+	should receive an invalid command in which case it puts a long
+	string into the buffer.
+
+2009-01-15 03:45  n0nb
+
+	* tests/: rigctld.8, rotctld.8: Minor documentation updates.
+
+2009-01-14 11:55  fillods
+
+	* configure.ac: next version will be 1.2.9
+
+2009-01-12 19:29  fillods
+
+	* tentec/omnivii.c: set_level(RIG_LEVEL_AGC) and RIG_AGC_OFF
+
+2009-01-12 12:29  n0nb
+
+	* yaesu/: ft857.c, ft897.c: Commented out filter definitions as
+	these radios do not support setting of passband.  Thanks to Rich
+	Newsom WA4SXZ for testing.
+
+2009-01-12 12:11  mrtembry
+
+	* yaesu/ft990.c: FT1000D additions
+
+2009-01-12 00:51  mrtembry
+
+	* yaesu/newcat.c: Cleanup returns on set commands
+
+2009-01-11 18:05  fillods
+
+	* tentec/omnivii.c: filter table from Jeff, W4GPL
+
+2009-01-11 17:42  mrtembry
+
+	* include/hamlib/rig.h: removed NFM NFM
+
+2009-01-11 17:39  mrtembry
+
+	* yaesu/: ft2000.c, ft450.c, ft9000.c, ft950.c, newcat.c: removed
+	NFM NAM
+
+2009-01-11 17:36  mrtembry
+
+	* src/misc.c: removed NAM NFM
+
+2009-01-11 13:21  fillods
+
+	* winradio/: Makefile.am, g305.c, winradio.c, winradio.h: Add
+	Winradio G305
+
+2009-01-11 13:16  fillods
+
+	* include/hamlib/riglist.h: Add Winradio G305/G315
+
+2009-01-11 12:42  fillods
+
+	* tentec/: Makefile.am, omnivii.c, tentec.c, tentec.h: Add Tentec
+	Omni VII, cloned after Jupiter
+
+2009-01-11 10:04  mrtembry
+
+	* yaesu/newcat.c: hanged get_mem and get_channel to leave
+	channel_num alone on an error.	get_mem should always be valid. 
+	get_channel will return 0 Hz in freq on an empty channel.
+
+2009-01-10 14:52  mrtembry
+
+	* yaesu/newcat.c: Added backup and restore to Memory Channel. 
+	Added get_cmd and set_cmd.  Added get_vfo_mode for showing if rig
+	is in RIG_VFO_MEM at any time.
+
+2009-01-09 23:03  n0nb
+
+	* README.betatester, include/hamlib/rig.h: Documentation updates.
+
+2009-01-08 21:38  mrtembry
+
+	* yaesu/newcat.c: Change set_tx_vfo RIG_VFO_MEM logic
+
+2009-01-08 18:51  mrtembry
+
+	* src/misc.c: Added RIG_LEVEL_BKIN_DLYMS string
+
+2009-01-08 12:57  mrtembry
+
+	* yaesu/newcat.c: Added split_mode and split_freq tracking to
+	restore_vfo, backup_vfo
+
+2009-01-08 07:22  mrtembry
+
+	* yaesu/newcat.c: Changes to vfo_restore, get_split_vfo
+
+2009-01-07 23:09  mrtembry
+
+	* yaesu/newcat.c: Fixed False Positive get_split_vfo in memory mode
+
+2009-01-07 20:59  mrtembry
+
+	* yaesu/newcat.c: Changed get_split_vfo to use passed vfo Added
+	split mode to vfo_backup and vfo_restore
+
+2009-01-07 00:50  mrtembry
+
+	* yaesu/newcat.c: Added newcat_backup_vfo, newcat_restore_vfo
+	Updated FT9000 valid commands Added valid command test to functions
+	Some code cleanup
+
+2009-01-05 23:03  mrtembry
+
+	* yaesu/newcat.c: Changed RIG_LEVEL_BKINDL to tenth_dots per second
+	Cleanup of set/get_mem and set/get_channel
+
+2009-01-05 17:39  aa6e
+
+	* tentec/: orion.h, orion.c: Orion: Allow frontend to handle
+	RIG_LEVEL_STRENGTH
+
+2009-01-05 12:16  n0nb
+
+	* configure.ac: Patch from Thomas Beierlein, DL1JBE, to fix
+	parallel make, i.e.  `make -jN'.
+
+2009-01-05 02:20  mrtembry
+
+	* tests/rigctl_parse.c: memset channel_t chan in get_channel
+
+2009-01-04 23:59  mrtembry
+
+	* yaesu/newcat.c: Changed RIG_LEVEL_BKINDL math, 1 dot == 2UI (on
+	time + off time)
+
+2009-01-04 16:03  mrtembry
+
+	* yaesu/: ft2000.c, ft2000.h, ft450.c, ft9000.c, ft9000.h, ft950.c:
+	Adjusted bandwidth filters, Added set/get_channel, set/get_trn
+
+2009-01-04 14:49  fillods
+
+	* tests/: rigctl.1, rigctl.c, rigctl_parse.c, rigctld.c, rotctl.1,
+	rotctl.c, rotctl_parse.c, rotctld.c: flexible command termination
+	for send_cmd
+
+2009-01-04 14:23  mrtembry
+
+	* tests/: rigctl.1, rigctl_parse.c: Partially implemented
+	set_channel
+
+2009-01-04 14:01  mrtembry
+
+	* yaesu/: newcat.c, newcat.h: Fixed newcat_set_channel bugs
+
+2009-01-04 10:40  fillods
+
+	* yaesu/: Makefile.am, ft840.c, ft840.h, yaesu.c, yaesu.h: New
+	FT-840 backend, as suggested by Thomas - DK6KD
+
+2009-01-04 01:27  aa6e
+
+	* tests/example.c: Example updates
+
+2009-01-04 00:05  mrtembry
+
+	* yaesu/: ft950.c, newcat.c, newcat.h: Added newcat_get_channel,
+	newcat_set_channel Added RIG_VFO_MEM support
+
+2009-01-03 23:05  aa6e
+
+	* tentec/orion.c: Orion - implement RIG_LEVEL_STRENGTH
+
+2009-01-03 20:58  aa6e
+
+	* tentec/orion.c: fix string handling in LEVEL_RAWSTR
+
+2009-01-03 14:16  mrtembry
+
+	* tests/dumpcaps.c: Adjusted Bandwidths: to see NFM, NAM modes
+
+2009-01-03 14:15  mrtembry
+
+	* src/misc.c: Added NAM, NFM to mode_str
+
+2009-01-03 14:08  mrtembry
+
+	* include/hamlib/rig.h: Added RIG_MODE_NFM, RIG_MODE_NAM
+
+2009-01-02 14:32  mrtembry
+
+	* yaesu/newcat.h: Removed .width from NEWCAT_MEM_CAP
+
+2009-01-02 03:51  aa6e
+
+	* tests/example.c: use rawstrength.i which matters in PPC compile
+
+2009-01-01 18:19  fillods
+
+	* tests/rotctl_parse.c: fix send_cmd bug, patch by Rob Frohne,
+	KL7NA
+
+2009-01-01 18:18  fillods
+
+	* src/rotator.c: comments, patch by Rob Frohne, KL7NA
+
+2009-01-01 17:21  mrtembry
+
+	* tests/rigctl_parse.c: Added mw2power testing into power2mW test
+
+2009-01-01 17:16  mrtembry
+
+	* yaesu/newcat.c: Fixed mW2power bug
+
+2009-01-01 17:07  dianora
+
+	* include/hamlib/rig.h: - Extra comma on RIG_STATUS_BUGGY can cause
+	a compiler error.
+
+2008-12-31 18:17  mrtembry
+
+	* yaesu/newcat.c: Added debugging statements to mW2power and
+	power2mW Changed _nc_rigid to int because of potential enum bugs
+
+2008-12-31 16:58  fillods
+
+	* yaesu/: ft847.c, ft847.h: S-meter readout for FT-847, patch from
+	Magne / LA1BFA
+
+2008-12-30 18:52  mrtembry
+
+	* yaesu/: ft950.c, newcat.c, newcat.h: Added newcat_get/set_trn
+	Changed power2mW mW2power to work with different radio model
+	versions
+
+2008-12-29 13:12  n0nb
+
+	* src/locator.c: Correction of short path azimuth calculation by
+	Dave Freese, W1HKJ in the qrb function.
+
+2008-12-28 13:53  mrtembry
+
+	* yaesu/: ft2000.c, ft450.c, ft9000.c, newcat.c: Added get_ts,
+	set_ts to rigs Added newcat_is_id for future reference Made Changes
+	to newcat_valid_command
+
+2008-12-28 04:06  mrtembry
+
+	* yaesu/newcat.c: Added more METERS to newcat_set_level
+	RIG_LEVEL_METER
+
+2008-12-28 02:38  n0nb
+
+	* yaesu/ft757gx.c: Patch from Stefano Merlo, IZ1IGK that avoids
+	trying to read the status bytes on the FT-757GX as it has a write
+	only serial interface.
+
+2008-12-28 00:25  mrtembry
+
+	* yaesu/: ft950.c, newcat.c, newcat.h: Added newcat_get_ts,
+	newcat_set_ts Added newcat_get_faststep, newcat_set_faststep
+
+2008-12-27 08:08  mrtembry
+
+	* yaesu/: ft2000.c, ft450.c, ft950.c, newcat.c, newcat.h: Added
+	newcat_get_powerstat, newcat_set_powerstat
+
+2008-12-26 23:57  mrtembry
+
+	* include/hamlib/rig.h: Added RIG_LEVEL_BKIN_DLYMS - CW Breakin
+	delay in milliseconds to rig_level_e enum
+
+2008-12-26 11:36  mrtembry
+
+	* yaesu/: ft2000.c, ft450.c, ft9000.c: Added functions and
+	ctcss_list as needed
+
+2008-12-26 11:34  mrtembry
+
+	* yaesu/newcat.c: Fixed newcat_set_ctcss_tone set bug Added null
+	pointer ctcss_list test Changed newcat_set_mode width sets to after
+	mode set Changed newcat_power2mW, newcat_mW2power to allow all nc
+	rigs
+
+2008-12-26 00:05  mrtembry
+
+	* yaesu/: ft950.c, newcat.c, newcat.h: Added newcat_set_ctcss_tone,
+	newcat_get_ctcss_tone,	     newcat_set_ctcss_sql,
+	newcat_get_ctcss_sql
+
+2008-12-25 14:44  mrtembry
+
+	* yaesu/: ft950.c, newcat.h, newcat.c: Added set_rptr_shift,
+	get_rptr_shift
+
+2008-12-25 13:32  mrtembry
+
+	* yaesu/newcat.c: Added FT450 filter gets and sets Found some
+	narrow filter settings in FT2000 manual Made up the rest.  It is a
+	starting point.
+
+2008-12-25 13:27  mrtembry
+
+	* yaesu/ft450.c: Adjusted filters
+
+2008-12-24 20:17  mrtembry
+
+	* yaesu/newcat.c: Added RIG_METER_VDD Did some cleanup
+
+2008-12-24 20:12  mrtembry
+
+	* include/hamlib/rig.h: Added RIG_METER_VDD
+
+2008-12-23 22:36  mrtembry
+
+	* yaesu/: ft950.c, newcat.c: Adjusted ft950.c filters Added
+	newcat_get/set_rxbandwidth functions Added FT950 width gets and
+	sets
+
+2008-12-23 22:32  mrtembry
+
+	* tests/dumpcaps.c: Adjusted Bandwidths: loop to see all modes
+
+2008-12-21 10:51  mrtembry
+
+	* yaesu/newcat.c: Added newcat_get_narrow newcat_set_narrow
+	internal functions.  Added divide by zero catch for
+	RIG_LEVEL_BKINDL
+
+2008-12-19 19:30  mrtembry
+
+	* yaesu/newcat.c: Changed RIG_LEVEL_BKINDL to tenth_dots Changed
+	RIG_LEVEL_NR to ratio Added ID and COMP to RIG_LEVEL_METER get
+	Changed RIG_LEVEL_IF fix out of bounds values Changed RIG_METER_PO
+	to return RIG_OK for ft950
+
+2008-12-18 13:11  mrtembry
+
+	* yaesu/newcat.c: Changed RIG_LEVEL_VOX delay to spec. of .1 s,
+	100ms unit intervals Changed others to bounds check and fix instead
+	of error
+
+2008-12-17 22:57  mrtembry
+
+	* yaesu/: ft450.c, ft450.h, ft950.c, ft950.h: Updated filters
+
+2008-12-16 22:40  fillods
+
+	* src/rig.c: fix error code in rig_mW2power()
+
+2008-12-16 22:40  fillods
+
+	* drake/drake.c: fix error code in drake_set_mem()
+
+2008-12-16 22:38  fillods
+
+	* yaesu/newcat.c: * fix WFM mode misunderstanding * convert some
+	RIG_EINVAL to RIG_EPROTO
+
+2008-12-16 22:33  fillods
+
+	* yaesu/: ft2000.c, ft9000.c: FM narrow, AM filters
+
+2008-12-16 09:01  mrtembry
+
+	* yaesu/newcat.c: 
+	Changes to newcat_vfo_op, newcat_get/set_level, newcat_get/set_func
+	Updated FT9000 CAT manual sure helps.  Terry KJ4EED :
+	-------------------------------------------------------------------
+	---
+
+2008-12-15 21:52  mrtembry
+
+	* yaesu/newcat.c: Added FT2000/FT9000 main_sub_vfo to
+	newcat_get/set_mode, newcat_get/set_level, newcat_get/set_func,
+	newcat_get/set_ant
+
+2008-12-14 22:02  fillods
+
+	* README.betatester: blurb about S-meter calibration (from FAQ)
+
+2008-12-14 21:46  fillods
+
+	* yaesu/Makefile.am: Add FT-2000 and FTDX-9000 headers
+
+2008-12-14 20:09  fillods
+
+	* icom/ic706.c: special mode conversion
+
+2008-12-14 20:05  fillods
+
+	* yaesu/newcat.c: * newcat_get_mode: RIG_MODE_PKTFM, fill in proper
+	width * RX antenna (RIG_ANT_5) * namespace cleanup
+
+2008-12-14 20:02  fillods
+
+	* include/hamlib/riglist.h, yaesu/Makefile.am, yaesu/ft2000.c,
+	yaesu/ft2000.h, yaesu/ft9000.c, yaesu/ft9000.h, yaesu/yaesu.c,
+	yaesu/yaesu.h: Add FT-2000 and FTDX-9000
+
+2008-12-14 19:26  fillods
+
+	* include/hamlib/rig.h: RIG_ANT_5
+
+2008-12-14 19:25  fillods
+
+	* README.release: details, new sf upload method
+
+2008-12-14 19:15  fillods
+
+	* AUTHORS: Add Terry, KJ4EED
+
+2008-12-14 19:01  fillods
+
+	* tests/dumpcaps.c: dump CTCSS/DCS list
+
+2008-12-14 18:51  mrtembry
+
+	* yaesu/: ft950.h, newcat.c: newcat.c Added RIG_LEVEL_NOTCHF set
+	and get ft950.h Added RIG_LEVEL_NOTCHF to SUPPORTED LEVELS Terry
+	KJ4EED
+
+2008-12-13 22:51  mrtembry
+
+	* tests/rigctl_parse.c: Changed vfo to txvfo = RIG_VFO_TX in
+	set_split_freq(), get_split_freq() Changed vfo to txvfo =
+	RIG_VFO_TX in set_split_mode(), get_split_mode() RIG_VFO_TX is
+	"split or uplink vfo"; This may/will break code, maybe we want a
+	vfo option instead? Terry  KJ4EED
+
+2008-12-13 21:23  mrtembry
+
+	* yaesu/: ft950.h, newcat.c: yaesu/newcat.c Added RIG_LEVEL_NR for
+	FT950 Added newcat_scale_float() for newcat_set_level() floating
+	point problem Using rigctl on FT950 I was trying to set
+	RIG_LEVEL_COMP to 12 I kept setting it to 11.  I wrote some test
+	software and found out that 0.12 * 100 = 11.  Compilier is gcc
+	4.2.4, CPU is AMD X2 This seems to work.  Terry KJ4EED
+	
+	yaesu/ft950.h Added RIG_LEVEL_NR
+
+2008-12-10 23:53  mrtembry
+
+	* yaesu/: ft950.h, newcat.c: Added FT950 "EX117" ANTIVOX
+	level_set/get.	Added FT950 COMP Level_set/get.  Added "AB" for
+	FT950 VFO copy.  Changed Command "VV" FT950 to FALSE.  Added
+	RIG_LEVEL_VOX bounds checking.	Keep at ms for GRIG2.  Added
+	RIG_LEVEL_BKINDL bounds checking.  Keep at ms for GRIG2.  Changed
+	newcat_set/get_freq to not set or change priv->current_vfo *** Want
+	to NOT ping-pong vfos when changing freq. *** Changed
+	newcat_get/set_rit logic.  Changed newcat_get/set_xit logic. 
+	Changed RIG_LEVEL_IF logic.  Found odd compiler problem with %+04d
+	versus %+.4d Fixed some scale references between FT450 and FT950. 
+	Some code cleanup.  Sorry cvs diff -wB Some testing on GRIG2 GUI
+	and FlDigi.  Terry KJ4EED
+
+2008-12-10 08:37  fillods
+
+	* tests/: rigctl.c, rigctl_parse.c, rigctld.c: fix 'vfo_mode stuck
+	to 0' bug found by Zhang Bo
+
+2008-12-09 22:07  fillods
+
+	* kit/dwt.c: RIG_LEVEL_STRENGTH fix from Andrew Murphy
+
+2008-12-08 19:54  y32kn
+
+	* configure.ac, lib/dummy.c: Add dummy() function to libmisc.a so
+	that that library will never be empty.	OpenSolaris linker does not
+	like empty libs.
+
+2008-12-07 23:16  mrtembry
+
+	* yaesu/newcat.c: Fixed RIG_LEVEL_IF set.  Fixed RIG_LEVEL_VOXGAIN
+	scale problem for FT950.
+
+2008-12-06 13:29  mrtembry
+
+	* yaesu/newcat.c: Added newcat_valid_command() call to
+	newcat_set_xit().  Added newcat_valid_command() call to
+	newcat_get_xit().  FT450 xit is not supported according to CAT
+	Manual.
+
+2008-12-06 13:28  mrtembry
+
+	* yaesu/ft450.c: Added get_ptt, set_split_vfo, get_split_vfo,
+	set_rit
+
+2008-12-06 13:27  mrtembry
+
+	* yaesu/ft450.h: Added RIG_OP_TOGGLE to FT450_VFO_OPS
+
+2008-12-06 02:37  mrtembry
+
+	* yaesu/: ft950.c, ft950.h, newcat.c, newcat.h: yaesu/ft950.h Added
+	RIG_OP_TOGGLE to FT950_VFO_OPS
+	
+	yaesu/ft950.c Changed max_xit to Hz(9999) Added set_split_vfo() and
+	get_split_vfo()
+	
+	yaesu/newcat.h Added newcat_set_split_vfo() and
+	newcat_get_split_vfo() Moved newcat.c internal function
+	declarations to newcat.c
+	
+	yaesu/newcat.c Fixed PREAMP and ATT SETs in newcat_set_level()
+	Changed newcat_is_rig_model() to newcat_is_rig() Added
+	newcat_set_vfo_from_alias() internal function Added
+	newcat_get_txvfo() and newcat_set_txvfo(), uses "FT" command Added
+	newcat_get_rxvfo() and newcat_set_rxvfo(), uses "FR" command	 to
+	extend newcat_get_vfo() and newcat_set_vfo() for FT9000 Added "SV"
+	toggle command to newcat_vfo_op() Changed newcat_set_rit() to use
+	max_rit Changed newcat_set_xit() to use max_xit Changed
+	newcat_set_rit() and newcat_set_xit() to 0 offset on rit/xit exit
+	Added newcat_set_split_vfo() and newcat_get_split_vfo().      (***
+	Let rig.c backend do split_freq and split_mode)  Changed
+	newcat_set_vfo() to call newcat_set_rxvfo() if "VS" is not
+	supported Changed newcat_get_vfo() to call newcat_get_rxvfo() if
+	"VS" is not supported
+
+2008-12-03 22:36  fillods
+
+	* tentec/rx320.c: Calibration from Josh Rovero KK1D
+
+2008-12-01 15:25  y32kn
+
+	* macros/acx_pthread.m4: Use newer version, to enable OpenSolaris
+	to find the correct '-pthreads' switch.
+
+2008-11-30 15:30  mrtembry
+
+	* yaesu/newcat.h: Changed newcat revision 2.21
+
+2008-11-30 12:42  mrtembry
+
+	* yaesu/: ft950.c, newcat.c, newcat.h: Added power2mW mW2power
+
+2008-11-29 19:26  mrtembry
+
+	* yaesu/: ft950.c, newcat.c, newcat.h: Added get_rit, set_rit,
+	get_xit, set_xit
+
+2008-11-28 22:58  mrtembry
+
+	* yaesu/: newcat.h, newcat.c: Added newcat_is_rig_model
+
+2008-11-27 07:46  mrtembry
+
+	* yaesu/: newcat.h, ft950.c: Added Get_Ant Set_Ant
+
+2008-11-27 07:45  mrtembry
+
+	* yaesu/newcat.c: Added Get_Ant, Set_Ant
+
+2008-11-26 23:24  mrtembry
+
+	* yaesu/newcat.c: FT950 RFPower, AGC, S Meter Changes
+
+2008-11-26 22:16  mrtembry
+
+	* yaesu/ft950.h: 16 data points for S Meter Calibration
+
+2008-11-26 16:20  mrtembry
+
+	* include/hamlib/rig.h: Added RIG_AGC_AUTO enum
+
+2008-11-16 14:49  fillods
+
+	* yaesu/newcat.c: get_ptt patch from Terry
+
+2008-11-13 20:29  y32kn
+
+	* icom/: ic910.c, icom.c, icom.h: Infrastructure change to enable
+	backend specific coding of mode and bandwidth into rig specific
+	command tokens.  See ic910.c for an example
+
+2008-11-09 15:17  y32kn
+
+	* icom/frame.c: effectivly revert to Revision 1.33, but renamed
+	filter tokens
+
+2008-11-09 14:26  y32kn
+
+	* INSTALL, README.developer, icom/frame.c, icom/icom_defs.h,
+	tests/README, tests/listrigs.c: Made a comment that 'make check'
+	needs an installed hamlib library.
+
+2008-11-05 23:07  fillods
+
+	* src/iofunc.c: MinGW network portability and regression fix
+
+2008-11-05 23:02  fillods
+
+	* src/: network.c, network.h, rig.c, rotator.c: MinGW network fixes
+
+2008-11-05 23:00  fillods
+
+	* lib/termios.c: update from rxtx-2.1-7
+
+2008-11-03 21:53  fillods
+
+	* yaesu/newcat.c: fix strict compiling
+
+2008-11-03 20:48  csete
+
+	* yaesu/ft817.c: Fixed RIG_LEVEL_STRENGTH reading.
+
+2008-11-03 20:45  fillods
+
+	* yaesu/ft847.c: freq range and caps fixes according to CAT manual
+
+2008-11-02 22:10  fillods
+
+	* configure.ac, src/Makefile.am: get ready for next round
+
+2008-11-02 22:01  fillods
+
+	* ChangeLog: Release of 1.2.8
+
 2008-11-02 21:58  fillods
 
 	* NEWS, configure.ac: Update for 1.2.8 release
@@ -5522,25 +6573,24 @@
 	src/iofunc.h, src/locator.c, src/misc.c, src/misc.h,
 	src/register.c, src/rig.c, src/rot_conf.c, src/rot_conf.h,
 	src/rot_reg.c, src/rotator.c, src/serial.c, src/serial.h,
-	src/token.h, src/tones.c, src/tones.h, tcl/Makefile.in,
-	tcl/hamlibtcl.c, tcl/tclrig.c, tcl/tclrig.h, tcl/tclrot.c,
-	tcl/tclrot.h, tentec/Makefile.am, tentec/Makefile.in,
-	tentec/pegasus.c, tentec/rx320.c, tentec/tentec.c, tentec/tentec.h,
-	tests/Makefile.am, tests/Makefile.am.ts2k, tests/Makefile.in,
-	tests/dumpcaps.c, tests/dumpmem.c, tests/listrigs.c,
-	tests/rigctl.1, tests/rigctl.c, tests/rigmatrix.c, tests/rotctl.1,
-	tests/rotctl.c, tests/testbcd.c, tests/testcmd.c, tests/testloc.c,
-	tests/testvfo.c, tests/tsctl.c, uniden/Makefile.am,
-	uniden/Makefile.in, uniden/bc895.c, uniden/uniden.c,
-	uniden/uniden.h, winradio/Makefile.am, winradio/Makefile.in,
-	winradio/winradio.c, winradio/winradio.h, winradio/wr1000.c,
-	winradio/wr1500.c, winradio/wr1550.c, winradio/wr3100.c,
-	winradio/wr3150.c, winradio/wr3500.c, winradio/wr3700.c,
-	yaesu/Makefile.am, yaesu/Makefile.in, yaesu/ft100.c, yaesu/ft100.h,
-	yaesu/ft747.c, yaesu/ft747.h, yaesu/ft817.c, yaesu/ft817.h,
-	yaesu/ft847.c, yaesu/ft847.h, yaesu/yaesu.c, yaesu/yaesu.h:
-	Hopefully this is the last.  Copied files missing or outofdate with
-	current hamlib Main.  --Dale, kd7eni
+	src/token.h, src/tones.c, src/tones.h, tentec/Makefile.am,
+	tentec/Makefile.in, tentec/pegasus.c, tentec/rx320.c,
+	tentec/tentec.c, tentec/tentec.h, tests/Makefile.am,
+	tests/Makefile.am.ts2k, tests/Makefile.in, tests/dumpcaps.c,
+	tests/dumpmem.c, tests/listrigs.c, tests/rigctl.1, tests/rigctl.c,
+	tests/rigmatrix.c, tests/rotctl.1, tests/rotctl.c, tests/testbcd.c,
+	tests/testcmd.c, tests/testloc.c, tests/testvfo.c, tests/tsctl.c,
+	uniden/Makefile.am, uniden/Makefile.in, uniden/bc895.c,
+	uniden/uniden.c, uniden/uniden.h, winradio/Makefile.am,
+	winradio/Makefile.in, winradio/winradio.c, winradio/winradio.h,
+	winradio/wr1000.c, winradio/wr1500.c, winradio/wr1550.c,
+	winradio/wr3100.c, winradio/wr3150.c, winradio/wr3500.c,
+	winradio/wr3700.c, yaesu/Makefile.am, yaesu/Makefile.in,
+	yaesu/ft100.c, yaesu/ft100.h, yaesu/ft747.c, yaesu/ft747.h,
+	yaesu/ft817.c, yaesu/ft817.h, yaesu/ft847.c, yaesu/ft847.h,
+	yaesu/yaesu.c, yaesu/yaesu.h: Hopefully this is the last.  Copied
+	files missing or outofdate with current hamlib Main.  --Dale,
+	kd7eni
 
 2003-02-25 05:11  dedmons
 
@@ -6290,11 +7340,6 @@
 	* winradio/linradio/: radio_ioctl.h, wrapi.h: updated to
 	linradio-toolkit-0.7
 
-2002-11-05 21:33  fillods
-
-	* tcl/: hamlibtcl.c, tclrig.h, tclrot.c, tclrot.h, Makefile.am,
-	tclrig.c, tcltest.tcl: deprecated, use swig bindings/ instead
-
 2002-11-05 21:30  fillods
 
 	* perl/: Changes, Hamlib.pm, MANIFEST, README, test.pl, typemap,
@@ -6851,8 +7896,8 @@
 2002-08-26 21:26  fillods
 
 	* dummy/dummy.c, gnuradio/gnuradio.cc, src/misc.c, src/misc.h,
-	tcl/tclrig.c, tests/rigctl.c: WARNING: renamed strmode to strrmode
-	because the symbol is already in use on BSD systems
+	tests/rigctl.c: WARNING: renamed strmode to strrmode because the
+	symbol is already in use on BSD systems
 
 2002-08-24 10:50  fillods
 
@@ -7038,12 +8083,11 @@
 	rpcrig/Makefile.am, rpcrig/Makefile.in, rpcrig/rpcrig_backend.c,
 	rpcrig/rpcrig_proc.c, rpcrot/Makefile.am, rpcrot/Makefile.in,
 	src/Makefile.am, src/Makefile.in, src/iofunc.c, src/misc.c,
-	src/misc.h, src/rig.c, tcl/Makefile.in, tentec/Makefile.in,
-	tests/Makefile.am, tests/Makefile.in, tests/dumpcaps.c,
-	tests/dumpmem.c, tests/listrigs.c, tests/rigctl.c,
-	tests/rigmatrix.c, tests/rotctl.c, tests/testcaps.c,
-	tests/testrig.c, tests/tests.h, tests/testtrn.c,
-	uniden/Makefile.in, winradio/Makefile.in,
+	src/misc.h, src/rig.c, tentec/Makefile.in, tests/Makefile.am,
+	tests/Makefile.in, tests/dumpcaps.c, tests/dumpmem.c,
+	tests/listrigs.c, tests/rigctl.c, tests/rigmatrix.c,
+	tests/rotctl.c, tests/testcaps.c, tests/testrig.c, tests/tests.h,
+	tests/testtrn.c, uniden/Makefile.in, winradio/Makefile.in,
 	winradio/linradio/wrapi.h, yaesu/Makefile.in: 1) Updated
 	branch_ts2k with respect to HEAD.  2) Working ts2k_menu.  (only in
 	RIG_MODEL_TS2K) 3) Split TS-2000 into experimental and standard
@@ -7240,10 +8284,9 @@
 	jrc/Makefile.in, kachina/Makefile.in, kenwood/Makefile.in,
 	kylix/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
 	perl/Makefile.in, rpcrig/Makefile.in, rpcrot/Makefile.in,
-	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
-	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
-	yaesu/Makefile.in: removed autogenerated files, use autogen.sh
-	instead
+	src/Makefile.in, tentec/Makefile.in, tests/Makefile.in,
+	uniden/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in:
+	removed autogenerated files, use autogen.sh instead
 
 2002-07-01 22:11  fillods
 
@@ -7351,7 +8394,7 @@
 2002-06-17 20:59  fillods
 
 	* Makefile.in, THANKS, lib/Makefile.am, src/iofunc.c, src/misc.c,
-	tcl/tcltest.tcl, tests/testtrn.c: misc
+	tests/testtrn.c: misc
 
 2002-06-17 20:56  fillods
 
@@ -7391,9 +8434,8 @@
 	kachina/Makefile.in, kenwood/Makefile.in, kylix/Makefile.in,
 	lib/Makefile.in, pcr/Makefile.in, perl/Makefile.in,
 	rpcrig/Makefile.in, rpcrot/Makefile.in, src/Makefile.in,
-	tcl/Makefile.in, tentec/Makefile.in, tests/Makefile.in,
-	uniden/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in,
-	configure: regenerated
+	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in, configure: regenerated
 
 2002-05-28 21:43  fillods
 
@@ -7816,15 +8858,6 @@
 	* kenwood/: kenwood.c, kenwood.h: first implementation of
 	kenwood_get_ptt
 
-2002-02-15 15:09  fillods
-
-	* tcl/tclrig.c: more calls
-
-2002-02-15 00:14  fillods
-
-	* tcl/tclrig.c: added set_level/get_level, get_func/set_func and
-	set_parm/get_parm
-
 2002-02-15 00:12  fillods
 
 	* dummy/dummy.c: fix in get_level/get_level and get_parm/get_parm,
@@ -7933,9 +8966,8 @@
 	jrc/Makefile.in, kachina/Makefile.in, kenwood/Makefile.in,
 	kylix/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
 	rpcrig/Makefile.in, rpcrot/Makefile.in, src/Makefile.in,
-	tcl/Makefile.in, tentec/Makefile.in, tests/Makefile.in,
-	uniden/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in:
-	regenerated
+	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: regenerated
 
 2002-01-27 23:58  fillods
 
@@ -7949,10 +8981,6 @@
 2002-01-27 23:54  fillods
 
 	* tests/dumpcaps.c: code cleanup thanks to factorisation
-
-2002-01-27 23:53  fillods
-
-	* tcl/Makefile.am: added TCL libs and inc dirs
 
 2002-01-27 23:52  fillods
 
@@ -8093,40 +9121,14 @@
 	* Makefile.am, configure.ac: prepare the list of bindings to be
 	flexible
 
-2002-01-22 21:13  fillods
-
-	* tcl/Makefile.in: regenerated
-
-2002-01-22 21:12  fillods
-
-	* tcl/Makefile.am: cleanup
-
 2002-01-22 21:11  fillods
 
 	* kylix/: Makefile.am, Makefile.in: Initial revision
-
-2002-01-22 01:03  fillods
-
-	* tcl/tcltest.tcl: display returned value
 
 2002-01-22 00:56  fillods
 
 	* tests/rigctl.c: moved parse funcs to src/misc.c, and fixed a bug
 	with set_parm/get_parm
-
-2002-01-22 00:53  fillods
-
-	* tcl/Makefile.in: regenerated
-
-2002-01-22 00:53  fillods
-
-	* tcl/hamlibtcl.c: split rig and rot commands into tclrig.c and
-	tclrot.c
-
-2002-01-22 00:51  fillods
-
-	* tcl/Makefile.am: added tclrig.c tclrot.c; some cleanup to be
-	scheduled
 
 2002-01-22 00:50  fillods
 
@@ -8141,10 +9143,6 @@
 
 	* dummy/dummy.c: be more capable and more verbose, and use
 	channel_t to store current parameters
-
-2002-01-22 00:34  fillods
-
-	* tcl/: tclrig.c, tclrig.h, tclrot.c, tclrot.h: Initial release
 
 2002-01-21 08:30  fillods
 
@@ -8227,9 +9225,8 @@
 	jrc/Makefile.in, kachina/Makefile.in, kenwood/Makefile.in,
 	lib/Makefile.in, libltdl/config-h.in, pcr/Makefile.in,
 	rpcrig/Makefile.in, rpcrot/Makefile.in, src/Makefile.in,
-	tcl/Makefile.in, tentec/Makefile.in, tests/Makefile.in,
-	uniden/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in:
-	regenerated
+	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, yaesu/Makefile.in: regenerated
 
 2002-01-16 19:17  fgretief
 
@@ -8376,16 +9373,12 @@
 
 2002-01-06 17:50  fillods
 
-	* tcl/Makefile.in, tentec/Makefile.in: regenerated
+	* tentec/Makefile.in: regenerated
 
 2002-01-06 17:49  fillods
 
 	* tentec/: Makefile.am, tentec.c, tentec.h: added Pegasus and
 	tentec_trx_open
-
-2002-01-06 17:49  fillods
-
-	* tcl/Makefile.am: fixed missing hamlib.so dependancy
 
 2002-01-06 17:47  fillods
 
@@ -8704,9 +9697,9 @@
 	doc/Makefile.in, dummy/Makefile.in, icom/Makefile.in,
 	include/Makefile.in, jrc/Makefile.in, kachina/Makefile.in,
 	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
-	rpcrig/Makefile.in, src/Makefile.in, tcl/Makefile.in,
-	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
-	winradio/Makefile.in, yaesu/Makefile.in, Makefile.in: regenerated
+	rpcrig/Makefile.in, src/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
+	yaesu/Makefile.in, Makefile.in: regenerated
 
 2001-12-19 03:54  fillods
 
@@ -8747,10 +9740,6 @@
 2001-12-19 03:28  fillods
 
 	* tests/Makefile.am: build flags cleanup
-
-2001-12-19 03:27  fillods
-
-	* tcl/Makefile.am: cleanup, more to be done
 
 2001-12-19 03:26  fillods
 
@@ -9079,9 +10068,9 @@
 	* alinco/Makefile.in, c++/Makefile.in, doc/Makefile.in,
 	dummy/Makefile.in, icom/Makefile.in, include/Makefile.in,
 	kachina/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
-	tcl/Makefile.in, tentec/Makefile.in, include/hamlib/Makefile.in,
-	uniden/Makefile.in, winradio/Makefile.in,
-	winradio/linradio/Makefile.in, yaesu/Makefile.in: regenerated
+	tentec/Makefile.in, include/hamlib/Makefile.in, uniden/Makefile.in,
+	winradio/Makefile.in, winradio/linradio/Makefile.in,
+	yaesu/Makefile.in: regenerated
 
 2001-10-22 20:33  f4cfe
 
@@ -9180,10 +10169,10 @@
 	c++/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
 	icom/Makefile.in, include/Makefile.in, include/hamlib/Makefile.in,
 	kachina/Makefile.in, kenwood/Makefile.in, lib/Makefile.in,
-	pcr/Makefile.in, src/Makefile.in, tcl/Makefile.in,
-	tentec/Makefile.in, tests/Makefile.in, uniden/Makefile.in,
-	winradio/Makefile.in, winradio/linradio/Makefile.in,
-	yaesu/Makefile.in: regenerated (automake 1.5 upgrade)
+	pcr/Makefile.in, src/Makefile.in, tentec/Makefile.in,
+	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
+	winradio/linradio/Makefile.in, yaesu/Makefile.in: regenerated
+	(automake 1.5 upgrade)
 
 2001-10-07 21:50  f4cfe
 
@@ -9301,8 +10290,8 @@
 	c++/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
 	include/Makefile.in, include/config.h.in, kachina/Makefile.in,
 	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
-	tests/Makefile.in, include/hamlib/Makefile.in, uniden/Makefile.in,
+	src/Makefile.in, tentec/Makefile.in, tests/Makefile.in,
+	include/hamlib/Makefile.in, uniden/Makefile.in,
 	winradio/Makefile.in, yaesu/Makefile.in, aclocal.m4: regenerated
 
 2001-09-19 22:00  f4cfe
@@ -9379,8 +10368,8 @@
 	c++/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
 	include/hamlib/Makefile.in, icom/Makefile.in, include/Makefile.in,
 	kenwood/Makefile.in, lib/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
-	uniden/Makefile.in, yaesu/Makefile.in: regenerated
+	src/Makefile.in, tentec/Makefile.in, uniden/Makefile.in,
+	yaesu/Makefile.in: regenerated
 
 2001-08-12 23:15  f4cfe
 
@@ -9552,17 +10541,17 @@
 	c++/Makefile.in, doc/Makefile.in, dummy/Makefile.in,
 	icom/Makefile.in, include/Makefile.in, kenwood/Makefile.in,
 	lib/Makefile.in, libltdl/Makefile.in, pcr/Makefile.in,
-	src/Makefile.in, tcl/Makefile.in, tentec/Makefile.in,
-	tests/Makefile.in, uniden/Makefile.in, winradio/Makefile.in,
-	yaesu/Makefile.in: regenerated
+	src/Makefile.in, tentec/Makefile.in, tests/Makefile.in,
+	uniden/Makefile.in, winradio/Makefile.in, yaesu/Makefile.in:
+	regenerated
 
 2001-07-21 13:03  f4cfe
 
 	* alinco/Makefile.am, aor/Makefile.am, c++/Makefile.am,
 	doc/Makefile.am, dummy/Makefile.am, icom/Makefile.am,
-	kenwood/Makefile.am, pcr/Makefile.am, tcl/Makefile.am,
-	tentec/Makefile.am, uniden/Makefile.am, winradio/Makefile.am,
-	yaesu/Makefile.am: workaround for automake/libtool install bug?
+	kenwood/Makefile.am, pcr/Makefile.am, tentec/Makefile.am,
+	uniden/Makefile.am, winradio/Makefile.am, yaesu/Makefile.am:
+	workaround for automake/libtool install bug?
 
 2001-07-21 13:02  f4cfe
 
@@ -9659,11 +10648,10 @@
 	kenwood/ts570.c, kenwood/ts870s.c, pcr/pcr.c, pcr/pcr.h,
 	pcr/pcr100.c, pcr/pcr1000.c, src/cal.c, src/cal.h, src/event.c,
 	src/event.h, src/misc.c, src/misc.h, src/register.c, src/rig.c,
-	src/serial.c, src/serial.h, tcl/hamlibtcl.c, tests/testcaps.c,
-	winradio/winradio.c, winradio/winradio.h, winradio/wr1000.c,
-	winradio/wr1500.c, winradio/wr1550.c, winradio/wr3100.c,
-	winradio/wr3150.c, winradio/wr3500.c, winradio/wr3700.c: converted
-	to LGPL
+	src/serial.c, src/serial.h, tests/testcaps.c, winradio/winradio.c,
+	winradio/winradio.h, winradio/wr1000.c, winradio/wr1500.c,
+	winradio/wr1550.c, winradio/wr3100.c, winradio/wr3150.c,
+	winradio/wr3500.c, winradio/wr3700.c: converted to LGPL
 
 2001-07-11 07:09  f4cfe
 
@@ -9750,11 +10738,6 @@
 2001-06-20 06:03  f4cfe
 
 	* tests/: Makefile.am, Makefile.in: misc fix
-
-2001-06-20 06:02  f4cfe
-
-	* tcl/: Makefile.am, Makefile.in, hamlibtcl.c, tcltest.tcl: initial
-	release
 
 2001-06-20 05:58  f4cfe
 

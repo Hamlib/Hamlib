@@ -1,9 +1,21 @@
 Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
-Copyright (C) 2000-2008  Stephane Fillod, and others
+Copyright (C) 2000-2009  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
+
+Version 1.2.9
+	2009-02-25
+	* New models: FT2000, FT9000, TT-588 Omni VII, FT-840, NRD525, Winradio G305, TRC-80
+	* New rotator backend: Heathkit HD 1780 Intellirotor
+	* Fixes and features: IC-706*, IC-910, K2, K3, DWT, PCR-100, PCR-1000, RX-320,
+		FT-450, FT-747, FT-817, FT-847, FT-857, FT-990, FT-1000D, Orion, netrot,
+		Rotor-EZ, dummy rig and dummy rotator
+	* Bug fix in qrb()
+	* Better assisted split operation
+	* ext_level/ext_parm examples
+	* Documentation update
 
 Version 1.2.8
 	2008-11-02
