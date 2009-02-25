@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS940 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts940.c,v 1.8 2009-01-28 23:30:59 azummo Exp $
+ *	$Id: ts940.c,v 1.6 2005-04-04 21:31:57 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -46,7 +46,7 @@
 #define TS940_VFO_OPS (RIG_OP_UP|RIG_OP_DOWN)
 #define TS940_SCAN_OPS (RIG_SCAN_VFO)
 
-static struct kenwood_priv_caps  ts940_priv_caps  = {
+static const struct kenwood_priv_caps  ts940_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
 	.if_len =  29,
 };
@@ -144,8 +144,6 @@ const struct rig_caps ts940_caps = {
 	},
 .priv =  (void *)&ts940_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  ic10_get_freq,
 .set_rit =  kenwood_set_rit,

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TRC-80 description
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: trc80.c,v 1.1 2009-01-29 22:54:40 fillods Exp $
+ *	$Id: trc80.c,v 1.1.2.2 2009-02-20 15:27:50 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -29,6 +29,7 @@
 #include "hamlib/rig.h"
 #include "bandplan.h"
 #include "kenwood.h"
+#include "ic10.h"
 
 
 #define TRC80_ALL_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_AM|RIG_MODE_RTTY)
@@ -148,14 +149,12 @@ const struct rig_caps trc80_caps = {
 	},
 .priv =  (void *)&trc80_priv_caps,
 
-.rig_init    = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
 
 #if 0
 .set_freq =  kenwood_set_freq,
 #endif
-.get_freq =  kenwood_get_freq_if,
-.get_split_vfo =  kenwood_get_split_vfo_if,
+.get_freq =  ic10_get_freq,
+.get_split_vfo =  ic10_get_split_vfo,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_mode =  kenwood_set_mode,
@@ -169,7 +168,7 @@ const struct rig_caps trc80_caps = {
 .get_level =  kenwood_get_level,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
-.get_channel =  kenwood_get_channel,
+.get_channel =  ic10_get_channel,
 .scan =  kenwood_scan,
 .set_powerstat =  kenwood_set_powerstat,
 .get_powerstat =  kenwood_get_powerstat,

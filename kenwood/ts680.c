@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS680 description
  *  Copyright (c) 2000-2008 by Stephane Fillod
  *
- *	$Id: ts680.c,v 1.13 2009-02-13 19:29:16 azummo Exp $
+ *	$Id: ts680.c,v 1.8 2008-05-04 21:16:04 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,20 +39,69 @@
 #define TS680_ANTS (0)
 
 /*
+ * mode defines
+ */
+#define MD_NONE '0'
+#define MD_LSB  '1'
+#define MD_USB  '2'
+#define MD_CW   '3'
+#define MD_FM   '4'
+#define MD_AM   '5'
+#define MD_CWR  '7'
+
+/*
  * vfo defines
 */
 #define VFO_A	'0'
 #define	VFO_B	'1'
 #define	VFO_MEM	'2'
 
-static struct kenwood_priv_caps  ts680_priv_caps  = {
+static const struct kenwood_priv_caps  ts680_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
+static int ts680_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+                char modebuf[50];
+                size_t mode_len;
+		int retval;
+
+                mode_len = 50;
+                retval = kenwood_transaction (rig, "IF;", 3, modebuf, &mode_len);
+                if (retval != RIG_OK)
+                        return retval;
+
+                if (mode_len != 38 || modebuf[1] != 'F') {
+                rig_debug(RIG_DEBUG_ERR,"ts680_get_mode: unexpected answer len=%d\n",
+                                                mode_len);
+                return -RIG_ERJCTED;
+                }
+
+                switch (modebuf[29]) {
+                        case MD_CW:     *mode = RIG_MODE_CW; break;
+                        case MD_CWR:    *mode = RIG_MODE_CWR; break; /* Not actually reverse CW. It's narrow where the optional filter is fitted */
+                        case MD_USB:    *mode = RIG_MODE_USB; break;
+                        case MD_LSB:    *mode = RIG_MODE_LSB; break;
+                        case MD_FM:     *mode = RIG_MODE_FM; break;
+                        case MD_AM:     *mode = RIG_MODE_AM; break;
+                        case MD_NONE:   *mode = RIG_MODE_NONE; break;
+                        default:
+                                rig_debug(RIG_DEBUG_ERR,"ts680_get_mode: "
+                                                                "unsupported mode '%c'\n", modebuf[29]);
+                                return -RIG_EINVAL;
+                }
+
+                *width = rig_passband_normal(rig, *mode);
+
+                return RIG_OK;
+}
+
 static int ts680_set_vfo(RIG *rig, vfo_t vfo)
 {
-                char cmdbuf[16];
+                char cmdbuf[16], ackbuf[16];
+                int cmd_len, retval;
                 char vfo_function;
+		size_t ack_len;
 
                 switch (vfo) {
                 case RIG_VFO_VFO:
@@ -66,8 +115,90 @@ static int ts680_set_vfo(RIG *rig, vfo_t vfo)
                         return -RIG_EINVAL;
                 }
 
-                sprintf(cmdbuf, "FN%c", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
-                return kenwood_simple_cmd(rig, cmdbuf);
+                cmd_len = sprintf(cmdbuf, "FN%c;", vfo_function); /* The 680 and 140 need this to set the VFO on the radio */
+                ack_len = 0;
+                retval = kenwood_transaction (rig, cmdbuf, cmd_len, ackbuf, &ack_len);
+                if (retval != RIG_OK)
+                        return retval;
+                return RIG_OK;
+}
+
+static int ts680_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+                char freqbuf[50];
+                size_t freq_len;
+		int retval;
+
+/* We're using IF; here because the TS-680S is incapable of supplying
+ * frequency information in MEM mode with the kenwood_get_freq method. It may
+ * entail more data over the serial port, but for fewer errors and unexplained
+ * silence from rpc.rigd it is a small price to pay. */
+
+		freq_len = 50;
+		retval = kenwood_transaction (rig, "IF;", 3, freqbuf, &freq_len);
+               	if (retval != RIG_OK)
+                       return retval;
+               	if (freq_len != 38 || freqbuf[1] != 'F') {
+               		rig_debug(RIG_DEBUG_ERR,"ts680_get_freq: wrong answer len=%d\n",
+               			                     freq_len);
+               		return -RIG_ERJCTED;
+               	}
+
+               	freqbuf[14] = '\0';
+                sscanf(freqbuf+2, "%"SCNfreq, freq);
+
+                return RIG_OK;
+}
+
+static int ts680_get_mem(RIG *rig, vfo_t vfo, int *ch)
+{
+                char membuf[50];
+                int m, retval;
+                size_t mem_len;
+
+                mem_len = 50;
+
+/* Again, the TS-680S is incapable of supplying the memory location
+* from MC; so we use IF;. Another awful hack, but it's what the radio
+* forces us to use. Furthermore, the radio will not return the value
+* of an empty memory. */
+
+                retval = kenwood_transaction (rig, "IF;", 3, membuf, &mem_len);
+                if (retval != RIG_OK)
+                                return retval;
+
+                if (mem_len != 38 || membuf[1] != 'F') {
+                                rig_debug(RIG_DEBUG_ERR,"ts680_get_mem: wrong answer "
+                                                                "len=%d\n", mem_len);
+                                return -RIG_ERJCTED;
+                }
+
+                membuf[28] = '\0';
+                sscanf(membuf+25, "%d", &m);
+                *ch = m;
+
+                return RIG_OK;
+}
+
+static int ts680_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+                char fctbuf[16], ackbuf[16];
+                int fct_len;
+		size_t ack_len;
+
+                ack_len = 0;
+                switch (func) {
+                case RIG_FUNC_LOCK:
+                if (status > 1) status = 1;
+		fct_len = sprintf(fctbuf,"LK%d;", status); /* The only way I could get the rig to drop the lock once asserted */
+                return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
+
+                default:
+                        rig_debug(RIG_DEBUG_ERR,"Unsupported set_func %#x", func);
+                        return -RIG_EINVAL;
+                }
+
+                return RIG_OK;
 }
 
 /*
@@ -170,22 +301,20 @@ const struct rig_caps ts680s_caps = {
 	},
 .priv =  (void *)&ts680_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
-.get_freq =  kenwood_get_freq,
+.get_freq =  ts680_get_freq,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_mode =  kenwood_set_mode,
-.get_mode = kenwood_get_mode_if,
+.get_mode = ts680_get_mode,
 .set_vfo = ts680_set_vfo,
-.get_vfo =  kenwood_get_vfo_if,
+.get_vfo =  kenwood_get_vfo,
 .set_ptt =  kenwood_set_ptt,
-.set_func = kenwood_set_func,
+.set_func =  ts680_set_func,
 .get_func =  kenwood_get_func,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
-.get_mem = kenwood_get_mem_if,
+.get_mem =  ts680_get_mem,
 .reset =  kenwood_reset,
 
 };

@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TM-V7 description
  *  Copyright (c) 2004-2008 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.20 2009-02-03 23:22:58 azummo Exp $
+ *	$Id: tmv7.c,v 1.16 2008-05-04 21:23:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -69,13 +69,14 @@
 
 #define ACKBUF_LEN 128
 
-static struct kenwood_priv_caps  tmv7_priv_caps  = {
+const struct kenwood_priv_caps  tmv7_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
-#define EOM "\r" /* XXX */
+#define EOM EOM_TH
 
 
 /* tmv7 procs */
+static int tmv7_open(RIG *rig);
 static int tmv7_decode_event (RIG *rig);
 static int tmv7_set_vfo (RIG *rig, vfo_t vfo);
 static int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
@@ -183,9 +184,7 @@ const struct rig_caps tmv7_caps = {
 .str_cal ={ 4, { {0, -60 }, {1, -30,}, {5,0}, {7,20}}}, /* rought guess */
 
 .priv =  (void *)&tmv7_priv_caps,
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
-.rig_open = kenwood_open,
+.rig_open =  tmv7_open,
 .rig_close =  NULL,
 
 .set_freq =  th_set_freq,
@@ -219,13 +218,13 @@ int tmv7_decode_event (RIG *rig)
     char asyncbuf[ACKBUF_LEN];
     int retval;
     size_t asyncbuf_len = ACKBUF_LEN;
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
     retval = kenwood_transaction(rig, NULL, 0, asyncbuf, &asyncbuf_len);
     if (retval != RIG_OK)
         return retval;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __FUNCTION__);
 
     if (asyncbuf[0] == 'B' && asyncbuf[1] == 'U' && asyncbuf[2] == 'F') {
 
@@ -236,11 +235,11 @@ int tmv7_decode_event (RIG *rig)
                                   &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset);
         if (retval != 11) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BUF message '%s'\n", __func__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BUF message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __func__, freq);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Buffer (freq %"PRIfreq" Hz, mode %d)\n", __FUNCTION__, freq);
 
         /* Callback execution */
         if (rig->callbacks.vfo_event) {
@@ -262,11 +261,11 @@ int tmv7_decode_event (RIG *rig)
         int lev;
         retval = sscanf(asyncbuf, "SM 0,%d", &lev);
         if (retval != 2) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected SM message '%s'\n", __func__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected SM message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
-        rig_debug(RIG_DEBUG_TRACE, "%s: Signal strength event - signal = %.3f\n", __func__, (float)(lev / 5.0));
+        rig_debug(RIG_DEBUG_TRACE, "%s: Signal strength event - signal = %.3f\n", __FUNCTION__, (float)(lev / 5.0));
 
         /* Callback execution */
 #if STILLHAVETOADDCALLBACK
@@ -282,11 +281,11 @@ int tmv7_decode_event (RIG *rig)
 
         retval = sscanf(asyncbuf, "BY 0,%d", &busy);
         if (retval != 2) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BY message '%s'\n", __func__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected BY message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
         rig_debug(RIG_DEBUG_TRACE, "%s: Busy event - status = '%s'\n",
-				__func__, (busy == 0) ? "OFF" : "ON" );
+				__FUNCTION__, (busy == 0) ? "OFF" : "ON" );
         return -RIG_ENIMPL;
         /* This event does not have a callback. */
 
@@ -297,7 +296,7 @@ int tmv7_decode_event (RIG *rig)
 
         retval = sscanf(asyncbuf, "VMC 0,%d", &bandmode);
         if (retval != 1) {
-            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VMC message '%s'\n", __func__, asyncbuf);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unexpected VMC message '%s'\n", __FUNCTION__, asyncbuf);
             return -RIG_ERJCTED;
         }
 
@@ -307,14 +306,14 @@ int tmv7_decode_event (RIG *rig)
           /*  case 3:     bandmode = RIG_VFO_CALL; break; */
             default:    bandmode = RIG_VFO_CURR; break; 
         }
-        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %d\n", __func__,  bandmode);
+        rig_debug(RIG_DEBUG_TRACE, "%s: Mode of Band event -  %d\n", __FUNCTION__,  bandmode);
 
         /* TODO: This event does not have a callback! */
         return -RIG_ENIMPL;
     /* --------------------------------------------------------------------- */
     } else {
 
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported transceive cmd '%s'\n", __func__, asyncbuf);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported transceive cmd '%s'\n", __FUNCTION__, asyncbuf);
         return -RIG_ENIMPL;
     }
 
@@ -329,7 +328,7 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
     int retval;
     size_t ack_len;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __func__,vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __FUNCTION__,vfo);
 
 	switch (vfo) {
         case RIG_VFO_A:
@@ -347,18 +346,18 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
             sprintf(vfobuf, "VMC %c,2" EOM,ackbuf[3]);
             break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
             return -RIG_EVFO;
 	}
 
     ack_len=0;
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
 	if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR, "%s: bad return \n", __func__);
+            rig_debug(RIG_DEBUG_ERR, "%s: bad return \n", __FUNCTION__);
         return retval;
     }
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: next %d\n", __func__,vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: next %d\n", __FUNCTION__,vfo);
 	switch (vfo) {
         case RIG_VFO_A:
         case RIG_VFO_VFO:
@@ -373,7 +372,7 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 		return RIG_OK;
 	}
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: next2\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: next2\n", __FUNCTION__);
     ack_len=0;
     retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
 	if (retval != RIG_OK)
@@ -391,13 +390,13 @@ int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     int step;
     freq_t freq;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	switch (vfo) {
       case RIG_VFO_CURR: break;
       case RIG_VFO_A: break;
 	  default:
-        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+        rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __FUNCTION__, vfo);
 		return -RIG_EVFO;
 	}
 
@@ -568,7 +567,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 		shift=2;
 		break;
         default:
-            rig_debug(RIG_DEBUG_ERR, "%s: not supported shift\n", __func__);
+            rig_debug(RIG_DEBUG_ERR, "%s: not supported shift\n", __FUNCTION__);
             return -RIG_EINVAL;
     }
     
@@ -657,3 +656,24 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 
     return RIG_OK;
 }
+
+/*-------------------------------------------------------------------- */
+int tmv7_open(RIG *rig)
+{
+    char ackbuf[ACKBUF_LEN];
+    int retval;
+    size_t ack_len=ACKBUF_LEN;
+
+	/* just to be sure it's a TM-V7 */
+    retval = kenwood_transaction(rig, "ID"EOM, 3, ackbuf, &ack_len);
+        if (retval != RIG_OK)
+        	return retval;
+    
+    if (ack_len<9 || strncmp(ackbuf,"ID TM-V7",8)) {
+        rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __FUNCTION__, ackbuf);
+        return -RIG_ERJCTED;
+    }
+
+    return RIG_OK;
+}
+

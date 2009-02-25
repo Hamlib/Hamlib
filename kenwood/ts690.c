@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS690 description
  *  Copyright (c) 2000-2004 by Stephane Fillod
  *
- *	$Id: ts690.c,v 1.7 2009-02-03 22:42:44 azummo Exp $
+ *	$Id: ts690.c,v 1.3 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,7 +58,7 @@
 	.flags=RIG_CHFLAG_SKIP \
 	}
 
-static struct kenwood_priv_caps  ts690_priv_caps  = {
+static const struct kenwood_priv_caps  ts690_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
@@ -164,9 +164,6 @@ const struct rig_caps ts690s_caps = {
 	},
 .priv =  (void *)&ts690_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
-.rig_open = kenwood_open,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
@@ -176,7 +173,7 @@ const struct rig_caps ts690s_caps = {
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo_if,
+.get_vfo =  kenwood_get_vfo,
 .get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
@@ -186,7 +183,7 @@ const struct rig_caps ts690s_caps = {
 .get_level =  kenwood_get_level,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
-.get_mem =  kenwood_get_mem_if,
+.get_mem =  kenwood_get_mem,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
 .scan =  kenwood_scan,

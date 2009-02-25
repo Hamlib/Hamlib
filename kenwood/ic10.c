@@ -4,7 +4,7 @@
  *
  *  Copyright (c) 2000-2008 by Stephane Fillod and others
  *
- *	$Id: ic10.c,v 1.9 2009-02-03 23:22:58 azummo Exp $
+ *	$Id: ic10.c,v 1.7 2008-10-31 22:34:58 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,6 +40,18 @@
 #include "kenwood.h"
 #include "ic10.h"
 
+/*
+ * modes in use by the "MD" command
+ */
+#define MD_NONE	'0'
+#define MD_LSB	'1'
+#define MD_USB	'2'
+#define MD_CW	'3'
+#define MD_FM	'4'
+#define MD_AM	'5'
+#define MD_FSK	'6'
+
+
 /**
  * ic10_transaction
  * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL
@@ -60,7 +72,7 @@ int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *d
 	if (!data || !data_len)
 		return 0;
 
-	retval = read_string(&rs->rigport, data, 50, ";", 1);
+	retval = read_string(&rs->rigport, data, 50, EOM_KEN, 1);
    	if (retval == -RIG_ETIMEOUT)
 		retval = 0;
 	if (retval < 0)
@@ -88,7 +100,7 @@ static int get_ic10_if (RIG *rig, char *data)
 				(data_len < priv->if_len ||
 				 data[0] != 'I' || data[1] != 'F')) {
 			rig_debug(RIG_DEBUG_WARN,"%s: unexpected answer %s, len=%d\n",
-				__func__, data, data_len);
+				__FUNCTION__, data, data_len);		
 			retval = -RIG_ERJCTED;
 		}
 	}
@@ -115,7 +127,7 @@ int ic10_set_vfo(RIG *rig, vfo_t vfo)
 	case RIG_VFO_CURR: return RIG_OK;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %d\n",
-						__func__, vfo);
+						__FUNCTION__, vfo);
 		return -RIG_EINVAL;
 	}
 
@@ -154,7 +166,7 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
 	case '2': *vfo = RIG_VFO_MEM; break;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
-					__func__, c);
+					__FUNCTION__, c);
 		return -RIG_EPROTO;
 	}
 	return RIG_OK;
@@ -220,7 +232,7 @@ int ic10_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case MD_NONE:	*mode = RIG_MODE_NONE; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-				__func__, c);
+				__FUNCTION__, c);
 		return -RIG_EINVAL;
 	}
 
@@ -249,7 +261,7 @@ int ic10_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	case RIG_MODE_RTTY :	mode_letter = MD_FSK; break;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n", 
-				__func__,mode);
+				__FUNCTION__,mode);
 		return -RIG_EINVAL;
 	}
 	
@@ -309,7 +321,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	case RIG_VFO_B: vfo_letter = 'B'; break;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %d\n",
-				__func__,vfo);
+				__FUNCTION__,vfo);
 		return -RIG_EINVAL;
 	}
 	
@@ -353,7 +365,7 @@ int ic10_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 
 	if (info_len < 4 || infobuf[0] != 'A' || infobuf[1] != 'N') {
 		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-				__func__,info_len);
+				__FUNCTION__,info_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -401,7 +413,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 	case RIG_PTT_ON : ptt_letter = 'T'; break;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported PTT %d\n",
-				__func__,ptt);
+				__FUNCTION__,ptt);
 		return -RIG_EINVAL;
 	}
 				
@@ -474,7 +486,7 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
 	case MD_NONE:	chan->mode = RIG_MODE_NONE; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-				__func__,infobuf[17]);
+				__FUNCTION__,infobuf[17]);
 		return -RIG_EINVAL;
 	}
 	chan->width = rig_passband_normal(rig, chan->mode);
@@ -501,7 +513,7 @@ int ic10_get_channel(RIG *rig, channel_t *chan)
 		case MD_NONE:	chan->tx_mode = RIG_MODE_NONE; break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-					__func__,infobuf[17]);
+					__FUNCTION__,infobuf[17]);
 			return -RIG_EINVAL;
 		}
 		chan->tx_width = rig_passband_normal(rig, chan->tx_mode);
@@ -533,7 +545,7 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 	case RIG_MODE_NONE:	md = MD_NONE; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-				__func__,chan->mode);
+				__FUNCTION__,chan->mode);
 		return -RIG_EINVAL;
 	}
 
@@ -559,7 +571,7 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 	case RIG_MODE_NONE:	md = MD_NONE; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
-				__func__,chan->tx_mode);
+				__FUNCTION__,chan->tx_mode);
 		return -RIG_EINVAL;
 	}
 
@@ -589,7 +601,7 @@ int ic10_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	case RIG_FUNC_LOCK: cmdlen = sprintf(cmdbuf,"LK;"); break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_func %#x",
-				__func__,func);
+				__FUNCTION__,func);
 		return -RIG_EINVAL;
 	}
 
@@ -599,7 +611,7 @@ int ic10_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
 	if (fct_len != 4) {
 		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-				__func__,fct_len);
+				__FUNCTION__,fct_len);
 		return -RIG_ERJCTED;
 	}
 
@@ -622,7 +634,7 @@ int ic10_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	case RIG_FUNC_LOCK: cmdlen = sprintf(cmdbuf,"LK"); break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_func %#x",
-				__func__,func);
+				__FUNCTION__,func);
 		return -RIG_EINVAL;
 	}
 
@@ -656,7 +668,7 @@ int ic10_set_parm(RIG *rig, setting_t parm, value_t val)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported set_parm %d\n", 
-				__func__,parm);
+				__FUNCTION__,parm);
 		return -RIG_EINVAL;
 	}
 		
@@ -683,7 +695,7 @@ int ic10_get_parm(RIG *rig, setting_t parm, value_t *val)
 		/* "CK1hhmmss;"*/
 		if (lvl_len != 10) {
 			rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-					__func__,lvl_len);
+					__FUNCTION__,lvl_len);
 			return -RIG_ERJCTED;
 		}
 
@@ -697,7 +709,7 @@ int ic10_get_parm(RIG *rig, setting_t parm, value_t *val)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: Unsupported get_parm %d\n", 
-				__func__,parm);
+				__FUNCTION__,parm);
 		return -RIG_EINVAL;
 	}
 
@@ -736,7 +748,7 @@ int ic10_get_powerstat(RIG *rig, powerstat_t *status)
 
 	if (pwr_len != 4) {
 		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-				__func__,pwr_len);
+				__FUNCTION__,pwr_len);
 		return -RIG_ERJCTED;
 	}
 	*status = pwrbuf[2] == '0' ? RIG_POWER_OFF : RIG_POWER_ON;
@@ -776,7 +788,7 @@ int ic10_get_trn(RIG *rig, int *trn)
 
 	if (trn_len != 38) {
 		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-				__func__,trn_len);
+				__FUNCTION__,trn_len);
 		return -RIG_ERJCTED;
 	}
 	*trn = trnbuf[2] != '0' ? RIG_TRN_RIG : RIG_TRN_OFF;
@@ -799,7 +811,7 @@ int ic10_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 	case RIG_OP_DOWN  :	cmd = "DN;"; break;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported op %#x\n",
-						__func__,op);
+						__FUNCTION__,op);
 		return -RIG_EINVAL;
 	}
 
@@ -837,7 +849,7 @@ const char* ic10_get_info(RIG *rig)
 
 	if (firm_len != 6) {
 		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
-						__func__,firm_len);
+						__FUNCTION__,firm_len);
 		return NULL;
 	}
 
@@ -863,13 +875,13 @@ int ic10_decode_event (RIG *rig)
 	rmode_t mode;
 	ptt_t ptt;
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __FUNCTION__);
 
 	retval = ic10_transaction(rig, NULL, 0, asyncbuf, &async_len);
 	if (retval != RIG_OK)
         	return retval;
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __func__);
+	rig_debug(RIG_DEBUG_TRACE, "%s: Decoding message\n", __FUNCTION__);
 
 
 
@@ -877,7 +889,7 @@ int ic10_decode_event (RIG *rig)
 	if (async_len<priv->if_len || asyncbuf[0] != 'I' || asyncbuf[1] != 'F') {
 
         	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported transceive cmd '%s'\n",
-			__func__, asyncbuf);
+			__FUNCTION__, asyncbuf);
 	        return -RIG_ENIMPL;
 	}
 
@@ -891,7 +903,7 @@ int ic10_decode_event (RIG *rig)
 	case '2': vfo = RIG_VFO_MEM; break;
 	default: 
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %c\n",
-					__func__, c);
+					__FUNCTION__, c);
 		return -RIG_EPROTO;
 	}
 
@@ -906,7 +918,7 @@ int ic10_decode_event (RIG *rig)
 	case MD_NONE:	mode = RIG_MODE_NONE; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
-				__func__,c);
+				__FUNCTION__,c);
 		return -RIG_EINVAL;
 	}
 

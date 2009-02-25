@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - Elecraft K2 description
  *  Copyright (c) 2002-2004 by Stephane Fillod
  *
- *	$Id: k2.c,v 1.6 2009-01-28 23:30:46 azummo Exp $
+ *	$Id: k2.c,v 1.4 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,7 +39,7 @@
 #define K2_VFO (RIG_VFO_A|RIG_VFO_B)
 #define K2_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
-static struct kenwood_priv_caps  k2_priv_caps  = {
+static const struct kenwood_priv_caps  k2_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
@@ -143,14 +143,12 @@ const struct rig_caps k2_caps = {
 	},
 .priv =  (void *)&k2_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo_if,
+.get_vfo =  kenwood_get_vfo,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,

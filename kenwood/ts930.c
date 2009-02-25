@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS930 description
  *  Copyright (c) 2000-2003 by Stephane Fillod
  *
- *	$Id: ts930.c,v 1.5 2009-01-28 23:30:59 azummo Exp $
+ *	$Id: ts930.c,v 1.3 2005-04-03 20:14:26 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,7 +43,7 @@
 #define TS930_VFO (RIG_VFO_A|RIG_VFO_B)
 #define TS930_ANTS (0)
 
-static struct kenwood_priv_caps  ts930_priv_caps  = {
+static const struct kenwood_priv_caps  ts930_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
@@ -142,8 +142,6 @@ const struct rig_caps ts930_caps = {
 	},
 .priv =  (void *)&ts930_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  kenwood_get_freq,
 .set_rit =  kenwood_set_rit,
@@ -153,7 +151,7 @@ const struct rig_caps ts930_caps = {
 .set_mode =  kenwood_set_mode,
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo_if,
+.get_vfo =  kenwood_get_vfo,
 .get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,

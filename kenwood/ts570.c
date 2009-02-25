@@ -2,7 +2,7 @@
  *  Hamlib Kenwood backend - TS570 description
  *  Copyright (c) 2001-2005 by Stephane Fillod
  *
- *	$Id: ts570.c,v 1.42 2009-02-03 23:22:58 azummo Exp $
+ *	$Id: ts570.c,v 1.35 2008-02-13 21:28:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,9 +47,40 @@
 #define TS570_SCAN_OPS (RIG_SCAN_VFO)
 #define TS570_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-static struct kenwood_priv_caps ts570_priv_caps  = {
+
+/*
+ * modes in use by the "MD" command
+ */
+#define MD_NONE	'0'
+#define MD_LSB	'1'
+#define MD_USB	'2'
+#define MD_CW	'3'
+#define MD_FM	'4'
+#define MD_AM	'5'
+#define MD_FSK	'6'
+#define MD_CWR	'7'
+#define MD_FSKR	'9'
+
+static const struct kenwood_priv_caps  ts570_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
+
+
+static rmode_t char_to_mode(char c)
+{
+        switch (c) {
+            case MD_CW:     return(RIG_MODE_CW);
+            case MD_CWR:    return(RIG_MODE_CWR);
+            case MD_USB:    return(RIG_MODE_USB);
+            case MD_LSB:    return(RIG_MODE_LSB);
+            case MD_FM:     return(RIG_MODE_FM);
+            case MD_AM:     return(RIG_MODE_AM);
+            case MD_FSK:    return(RIG_MODE_RTTY);
+            case MD_FSKR:   return(RIG_MODE_RTTYR);
+            case MD_NONE:   return(RIG_MODE_NONE);
+	}
+        return(RIG_MODE_NONE);
+}
 
 static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
@@ -59,7 +90,7 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 
   buf_len = 50;
-  retval = kenwood_transaction (rig, "MD", 2, buf, &buf_len);
+  retval = kenwood_transaction (rig, "MD;", 3, buf, &buf_len);
   if (retval != RIG_OK)
     return retval;
 
@@ -100,7 +131,7 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
       buf_len = 50;
-      retval = kenwood_transaction (rig, "FW", 2, buf, &buf_len);
+      retval = kenwood_transaction (rig, "FW;", 3, buf, &buf_len);
       if (retval != RIG_OK) return retval;
       if (buf_len != 7 || buf[1] != 'W')
       {
@@ -115,7 +146,7 @@ static int ts570_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
     case RIG_MODE_FM:
     case RIG_MODE_AM:
       buf_len = 50;
-      retval = kenwood_transaction (rig, "SL", 2, buf, &buf_len);
+      retval = kenwood_transaction (rig, "SL;", 3, buf, &buf_len);
       if (retval != RIG_OK) return retval;
       if (buf_len != 5 || buf[1] != 'L')
       {
@@ -144,39 +175,42 @@ static char mode_to_char(rmode_t mode)
          case RIG_MODE_RTTY:     return(MD_FSK);
          case RIG_MODE_RTTYR:    return(MD_FSKR);
 	 default:
-		rig_debug(RIG_DEBUG_WARN,"ts570_mode_to_char %s: unsupported mode %d\n", __func__,mode);
+		rig_debug(RIG_DEBUG_WARN,"ts570_mode_to_char %s: unsupported mode %d\n", __FUNCTION__,mode);
      }
  return(RIG_MODE_NONE);
 }
 
 static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
-  char buf[16];
-  int kmode, retval;
+  char buf[16],ackbuf[16];
+  int buf_len, kmode, retval;
+  size_t ack_len;
 
   if ((kmode = mode_to_char(mode)) == RIG_MODE_NONE)
      return -RIG_EINVAL;
 
-  sprintf(buf, "MD%c", kmode);
-  retval = kenwood_simple_cmd(rig, buf);
+  buf_len = sprintf(buf, "MD%c;", kmode);
+  ack_len = 0;
+  retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
   if (retval != RIG_OK) return retval;
 
+  ack_len = 0;
   switch (mode) 
   {
     case RIG_MODE_CW:
     case RIG_MODE_CWR:
     case RIG_MODE_RTTY:
     case RIG_MODE_RTTYR:
-      sprintf(buf, "FW%04d", (int)width);
-      retval = kenwood_simple_cmd(rig, buf);
+      buf_len = sprintf(buf, "FW%04d;", (int)width);
+      retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
       if (retval != RIG_OK) return retval;
       break;
     case RIG_MODE_USB:
     case RIG_MODE_LSB:
     case RIG_MODE_FM:
     case RIG_MODE_AM:
-      sprintf(buf, "SL%02d", (int)width/50);
-      retval = kenwood_simple_cmd(rig, buf);
+      buf_len = sprintf(buf, "SL%02d;", (int)width/50);
+      retval = kenwood_transaction (rig, buf, buf_len, ackbuf, &ack_len);
       if (retval != RIG_OK) return retval;
       break;
     default:
@@ -187,27 +221,74 @@ static int ts570_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 }
 
 /*
+ * ts570_set_ant
+ * Assumes rig!-NULL, ptt!=NULL
+ */
+static int ts570_set_ant(RIG *rig, vfo_t vfo, ant_t ant)
+{
+	char buf[6], ackbuf[16];
+	int len, retval;
+	size_t ack_len;
+
+	len = sprintf(buf,"AN%c;", ant==RIG_ANT_1?'1':'2');
+	ack_len = 0;
+	retval = kenwood_transaction(rig, buf, len, ackbuf, &ack_len);
+
+	return retval;
+}
+
+
+/*
+ * ts570_get_ant
+ * Assumes rig!=NULL, ptt!=NULL
+ */
+static int ts570_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
+{
+	char infobuf[50];
+	int retval;
+	size_t info_len;
+
+	info_len = 50;
+	retval = kenwood_transaction (rig, "AN;", 3, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (info_len < 4 || infobuf[0] != 'A' || infobuf[1] != 'N') {
+		rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
+				__FUNCTION__,info_len);
+		return -RIG_ERJCTED;
+	}
+
+	*ant = infobuf[2] == '1' ? RIG_ANT_1 : RIG_ANT_2;
+
+	return RIG_OK;
+}
+
+/*
  * extends kenwood_set_func
  * Assumes rig!=NULL, val!=NULL
  */
 int ts570_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
-		char fctbuf[6];
+		char fctbuf[16], ackbuf[16];
+		int fct_len;
+		size_t ack_len;
 
 		/* Filter unimplemented RIG_FUNC_TUNER and allow settings 0..2 for 
 		 * RIG_FUNC_NR.
 		 * Send all other requests to kenwood_set_func()
 		 */
+		ack_len = 0;
 		switch (func) {
 
 		case RIG_FUNC_NR:
 			if ((status < 0) || (status >2))
 				return -RIG_EINVAL;
-			sprintf(fctbuf,"NR%01d", status);
-			return kenwood_simple_cmd(rig, fctbuf);
+			fct_len = sprintf(fctbuf,"NR%01d;", status);
+			return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 		case RIG_FUNC_TUNER:
-			sprintf(fctbuf,"AC %c0", (0==status)?'0':'1');
- 			return kenwood_simple_cmd(rig, fctbuf);
+			fct_len = sprintf(fctbuf,"AC %c0;", (0==status)?'0':'1');
+ 			return kenwood_transaction (rig, fctbuf, fct_len, ackbuf, &ack_len);
 		
 		default:
 			return kenwood_set_func(rig, vfo, func, status);
@@ -233,7 +314,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 		 */
 		switch (func) {
 		case RIG_FUNC_NR:
-			retval = kenwood_transaction (rig, "NR", 2, fctbuf, &fct_len);
+			retval = kenwood_transaction (rig, "NR;", 3, fctbuf, &fct_len);
 			if (retval != RIG_OK)
 				return retval;
 
@@ -247,7 +328,7 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 			break;
 
 		case RIG_FUNC_TUNER:
-			retval = kenwood_transaction (rig, "AC", 2, fctbuf, &fct_len);
+			retval = kenwood_transaction (rig, "AC;", 3, fctbuf, &fct_len);
 			if (retval != RIG_OK)
 				return retval;
 
@@ -276,9 +357,13 @@ int ts570_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 int
 ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
 {
-  char levelbuf[16];
+  char levelbuf[16], ackbuf[16];
+  int level_len;
+  size_t ack_len;
   int kenwood_val;
   int i;
+
+  ack_len = 0;			/* no answer for set functions */
 
   switch (level)
     {
@@ -286,29 +371,29 @@ ts570_set_level (RIG * rig, vfo_t vfo, setting_t level, value_t val)
         kenwood_val = val.i;
 	/* set the preamplifier if a correct value is entered */
 	if (kenwood_val == 0)
-		sprintf(levelbuf, "PA0");
+		level_len = sprintf(levelbuf, "PA0;");
 	else
 	for (i=0; i<MAXDBLSTSIZ; i++)
 	    if (kenwood_val == rig->state.preamp[i])
 	    {
-		sprintf(levelbuf, "PA%01d", i+1);
+		level_len = sprintf(levelbuf, "PA%01d;", i+1);
 		break;  /* found - stop searching */
 	    }
 	    else
 	    	return -RIG_EINVAL;
-        return kenwood_simple_cmd(rig, levelbuf);
+        return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
 
     case RIG_LEVEL_RFPOWER:
       /* level for TS570D is from 0.. 100W in SSB and CW */
       kenwood_val = val.f * 100;	
-      sprintf (levelbuf, "PC%03d", kenwood_val);
-      return kenwood_simple_cmd(rig, levelbuf);
+      level_len = sprintf (levelbuf, "PC%03d;", kenwood_val);
+      return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
       
     case RIG_LEVEL_MICGAIN:
       /* level is from 0..100 */
       kenwood_val = val.f * 100;
-      sprintf (levelbuf, "MG%03d", kenwood_val);
-      return kenwood_simple_cmd(rig, levelbuf);
+      level_len = sprintf (levelbuf, "MG%03d;", kenwood_val);
+      return kenwood_transaction (rig, levelbuf, level_len, ackbuf, &ack_len);
 
     default:
       return kenwood_set_level (rig, vfo, level, val);
@@ -335,7 +420,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
     {
     case RIG_LEVEL_RFPOWER:
       /* ts570d returns 5..100 measured in watt */
-      retval = kenwood_transaction (rig, "PC", 2, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "PC;", 3, ackbuf, &ack_len);
       if (RIG_OK != retval)
 	return retval;
       if (6 != ack_len)
@@ -347,7 +432,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 
     case RIG_LEVEL_MICGAIN:
       /* reads from 0..100 */
-      retval = kenwood_transaction (rig, "MG", 2, ackbuf, &ack_len);
+      retval = kenwood_transaction (rig, "MG;", 3, ackbuf, &ack_len);
       if (RIG_OK != retval)
         return retval;
       if (6 != ack_len)
@@ -358,13 +443,13 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
       return RIG_OK;
 
     case RIG_LEVEL_PREAMP:
-	retval = kenwood_transaction (rig, "PA", 2, ackbuf, &ack_len);
+	retval = kenwood_transaction (rig, "PA;", 3, ackbuf, &ack_len);
 	if (retval != RIG_OK)
 	    return retval;
 
 	if (4  != ack_len) {
 	    rig_debug(RIG_DEBUG_ERR,"%s: unexpected answer len=%d\n",
-			__func__, ack_len);
+			__FUNCTION__, ack_len);
 	    return -RIG_ERJCTED;
 	}
 
@@ -376,7 +461,7 @@ ts570_get_level (RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 		if (rig->state.preamp[i] == 0) {
 		    rig_debug(RIG_DEBUG_ERR,"%s: "
 			    "unexpected att level %d\n",
-			    __func__, levelint);
+			    __FUNCTION__, levelint);
 		    return -RIG_EPROTO;
 		}
 		if (i != levelint)
@@ -402,12 +487,12 @@ int ts570_get_split_vfo(RIG * rig, vfo_t vfo, split_t * split, vfo_t * tx_vfo)
 	size_t ack2len = 10;
 	int retval;
 
-	retval = kenwood_transaction(rig, "FR", 2, ack, &acklen);
+	retval = kenwood_transaction(rig, "FR;", 3, ack, &acklen);
 	if (retval != RIG_OK)  
 		return retval;
 
 
-	retval = kenwood_transaction(rig, "FT", 2, ack2, &ack2len);
+	retval = kenwood_transaction(rig, "FT;", 3, ack2, &ack2len);
 	if (retval != RIG_OK)  
 		return retval;
 
@@ -453,8 +538,8 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 			return -RIG_EINVAL;
 		}
 		/* set RX VFO */
-		cmd_len = sprintf(cmdbuf, "FR%c%c", vfo_function, cmd_trm(rig));
-		retval = kenwood_simple_cmd(rig, cmdbuf);
+		cmd_len = sprintf(cmdbuf, "FR%c%s", vfo_function, cmd_trm(rig));
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, NULL, 0);
 		if (retval != RIG_OK)
 			return retval;
 	}
@@ -470,8 +555,8 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 			return -RIG_EINVAL;
 		} 
 		/* set TX VFO */
-		cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
-		retval = kenwood_simple_cmd(rig, cmdbuf);
+		cmd_len = sprintf(cmdbuf, "FT%c%s", vfo_function, cmd_trm(rig));
+		retval = kenwood_transaction (rig, cmdbuf, cmd_len, NULL, 0);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -480,13 +565,13 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	  		/* switch to current RX VFO */
 			/* first ask for it */
 			ack_len = 10;
-			retval = kenwood_transaction(rig, "FR", 2, ackbuf, &ack_len);
+			retval = kenwood_transaction(rig, "FR;", 3, ackbuf, &ack_len);
 			if (retval != RIG_OK)  
 				return retval;
 			/* and then set it to both vfo's */
 			vfo_function = ackbuf[2];
-			cmd_len = sprintf(cmdbuf, "FT%c%c", vfo_function, cmd_trm(rig));
-			retval = kenwood_simple_cmd(rig, cmdbuf);
+			cmd_len = sprintf(cmdbuf, "FT%c%s", vfo_function, cmd_trm(rig));
+			retval = kenwood_transaction(rig, cmdbuf, cmd_len, NULL, 0);
 			if (retval != RIG_OK)
 				return retval;
 		}
@@ -505,6 +590,89 @@ int ts570_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 	.split=1,		\
 	.ctcss_tone=1		\
 }
+
+/* 
+ * read memory channel
+ * Assumes: rig != NULL, chan != NULL
+ * 
+ * !!! memory channel remembers additional settings for antenna, attenuator and
+ * !!! preamplifier and ctcss squelch. NOT SUPPORTED YET!
+ */
+int ts570_get_channel (RIG * rig, channel_t * chan)
+{
+                char cmdbuf[16], membuf[50];
+                int retval, cmd_len, num;
+		size_t mem_len;
+
+		/* 
+		 * first check if we shall get a memory or vfo channel
+		 */
+		if (chan->vfo != RIG_VFO_MEM) {
+			/*
+			 * At the time only memory channels are supported. 
+			 */
+			rig_debug(RIG_DEBUG_ERR,"kenwood_get_chan: " 
+					"ts570_get_channel not implemented"
+					" for VFO channels.\n");
+			return -RIG_ENIMPL;
+		}
+
+		num=chan->channel_num;
+
+                cmd_len = sprintf(cmdbuf, "MR0 %02d;", num);
+                mem_len = 50;
+                retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
+                if (retval != RIG_OK)
+                                return retval;
+
+		memset(chan,0,sizeof(channel_t));
+		chan->channel_num=num;
+		
+
+		if (membuf[19]=='0')
+			chan->ctcss_tone=0;
+		else {
+			membuf[22]='\0';
+			chan->ctcss_tone= rig->caps->ctcss_list[atoi(&membuf[20])-1];
+		}
+
+		chan->mode=char_to_mode(membuf[17]);
+
+		membuf[17]='\0';
+		chan->freq=atoi(&membuf[6]);
+
+		/* See if channel is in use */
+		if (chan->freq == RIG_FREQ_NONE)
+			return -RIG_ENAVAIL;
+
+		/* Manual says that we can read the scanning stop frequency
+		 * for channel 90..99 by the following command.
+		 * That seems not to be true. It returns the same information 
+		 * as MR0.
+		 * So we use it here only for getting the split info for
+		 * channels 00..89.
+		 */
+                cmd_len = sprintf(cmdbuf, "MR1 %02d;", num);
+                mem_len = 50;
+                retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
+                if (retval != RIG_OK)
+                                return retval;
+
+		chan->tx_mode=char_to_mode(membuf[17]);
+		membuf[17]='\0';
+		chan->tx_freq=atoi(&membuf[6]);
+
+		if(chan->freq==chan->tx_freq &&
+		   chan->mode==chan->tx_mode) {
+			chan->tx_freq=RIG_FREQ_NONE;
+			chan->tx_mode=RIG_MODE_NONE;
+			chan->split=RIG_SPLIT_OFF;
+		} else
+		        chan->split=RIG_SPLIT_ON;
+
+		return RIG_OK;
+}
+
 
 int ts570_set_channel (RIG * rig, const channel_t * chan)
 {
@@ -538,14 +706,14 @@ int ts570_set_channel (RIG * rig, const channel_t * chan)
 			tone=0;
 		}
 
-                cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ",
+                cmd_len = sprintf(cmdbuf, "MW0 %02d%011d%c0%c%02d ;",
 		 num,freq,mode,tones,tone);
                 mem_len = 0;
                 retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
                 if (retval != RIG_OK)
                                 return retval;
 
-                cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ",
+                cmd_len = sprintf(cmdbuf, "MW1 %02d%011d%c0%c%02d ;",
 		 num,tx_freq,tx_mode,tones,tone);
                 mem_len = 0;
                 retval = kenwood_transaction (rig, cmdbuf, cmd_len, membuf, &mem_len);
@@ -555,6 +723,33 @@ int ts570_set_channel (RIG * rig, const channel_t * chan)
 		return RIG_OK;
 }
 
+int ts570_get_rit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
+{
+	char infobuf[50];
+	int retval;
+	size_t info_len;
+
+	info_len = 50;
+	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (info_len != 38 || infobuf[1] != 'F') {
+	rig_debug(RIG_DEBUG_ERR,"kenwood_get_rit: wrong answer len=%d\n",
+					info_len);
+	return -RIG_ERJCTED;
+	}
+
+	if (infobuf[23] == '0') {	/* RIT off? */
+		*rit = 0;
+	} else {
+		infobuf[23] = '\0';
+		*rit = atoi(&infobuf[18]);
+	}
+	return RIG_OK;
+}
+
+
 int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
 {
 	char infobuf[50];
@@ -562,7 +757,7 @@ int ts570_get_xit(RIG *rig, vfo_t vfo, shortfreq_t * rit)
 	size_t info_len;
 
 	info_len = 50;
-	retval = kenwood_transaction (rig, "IF", 2, infobuf, &info_len);
+	retval = kenwood_transaction (rig, "IF;", 3, infobuf, &info_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -590,19 +785,19 @@ int ts570_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
         info_len = 0;
         if (rit == 0) {
-        	kenwood_transaction(rig, "RT0", 3, infobuf, &info_len);
+        	kenwood_transaction(rig, "RT0;", 4, infobuf, &info_len);
 		return RIG_OK;
 	} else
-        	kenwood_transaction(rig, "RT1", 3, infobuf, &info_len);
+        	kenwood_transaction(rig, "RT1;", 4, infobuf, &info_len);
 
         if (rit > 0)
                 c = 'U';
         else
                 c = 'D';
-        len = sprintf(buf, "R%c", c);
+        len = sprintf(buf, "R%c;", c);
 
         info_len = 0;
-        retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+        retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
         for (i = 0; i < abs(rint(rit/10)); i++)
         {
                 info_len = 0;
@@ -621,19 +816,19 @@ int ts570_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 
         info_len = 0;
         if (rit == 0) {
-        	kenwood_transaction(rig, "XT0", 3, infobuf, &info_len);
+        	kenwood_transaction(rig, "XT0;", 4, infobuf, &info_len);
 		return RIG_OK;
 	} else
-        	kenwood_transaction(rig, "XT1", 3, infobuf, &info_len);
+        	kenwood_transaction(rig, "XT1;", 4, infobuf, &info_len);
 
         if (rit > 0)
                 c = 'U';
         else
                 c = 'D';
-        len = sprintf(buf, "R%c", c);
+        len = sprintf(buf, "R%c;", c);
 
         info_len = 0;
-        retval = kenwood_transaction(rig, "RC", 2, infobuf, &info_len);
+        retval = kenwood_transaction(rig, "RC;", 3, infobuf, &info_len);
         for (i = 0; i < abs(rint(rit/10)); i++)
         {
                 info_len = 0;
@@ -784,18 +979,16 @@ const struct rig_caps ts570s_caps = {
 	},
 .priv =  (void *)&ts570_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  ic10_get_freq,
 .set_rit =  ts570_set_rit,
-.get_rit =  kenwood_get_rit,
+.get_rit =  ts570_get_rit,
 .set_xit =  ts570_set_xit,
 .get_xit =  ts570_get_xit,
 .set_mode =  ts570_set_mode,
 .get_mode =  ts570_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo_if,
+.get_vfo =  kenwood_get_vfo,
 .set_split_vfo = ts570_set_split_vfo,
 .get_split_vfo = ts570_get_split_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
@@ -805,15 +998,15 @@ const struct rig_caps ts570s_caps = {
 .get_dcd =  kenwood_get_dcd,
 .set_func =  ts570_set_func,
 .get_func =  ts570_get_func,
-.set_ant = kenwood_set_ant_no_ack,
-.get_ant = kenwood_get_ant,
+.set_ant =  ts570_set_ant,
+.get_ant =  ts570_get_ant,
 .set_level =  ts570_set_level,
 .get_level =  ts570_get_level,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
-.get_channel = kenwood_get_channel,
+.get_channel = ts570_get_channel,
 .set_channel = ts570_set_channel,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
@@ -968,18 +1161,16 @@ const struct rig_caps ts570d_caps = {
 	},
 .priv =  (void *)&ts570_priv_caps,
 
-.rig_init = kenwood_init,
-.rig_cleanup = kenwood_cleanup,
 .set_freq =  kenwood_set_freq,
 .get_freq =  ic10_get_freq,
 .set_rit =  ts570_set_rit,
-.get_rit =  kenwood_get_rit,
+.get_rit =  ts570_get_rit,
 .set_xit =  ts570_set_xit,
 .get_xit =  ts570_get_xit,
 .set_mode =  ts570_set_mode,
 .get_mode =  ts570_get_mode,
 .set_vfo =  kenwood_set_vfo,
-.get_vfo =  kenwood_get_vfo_if,
+.get_vfo =  kenwood_get_vfo,
 .set_split_vfo = ts570_set_split_vfo,
 .get_split_vfo = ts570_get_split_vfo,
 .set_ctcss_tone =  kenwood_set_ctcss_tone,
@@ -989,15 +1180,15 @@ const struct rig_caps ts570d_caps = {
 .get_dcd =  kenwood_get_dcd,
 .set_func =  ts570_set_func,
 .get_func =  ts570_get_func,
-.set_ant = kenwood_set_ant_no_ack,
-.get_ant = kenwood_get_ant,
+.set_ant =  ts570_set_ant,
+.get_ant =  ts570_get_ant,
 .set_level =  ts570_set_level,
 .get_level =  ts570_get_level,
 .send_morse =  kenwood_send_morse,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem,
-.get_channel = kenwood_get_channel,
+.get_channel = ts570_get_channel,
 .set_channel = ts570_set_channel,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
