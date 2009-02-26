@@ -14,7 +14,7 @@
  * FT-950, FT-450.  Much testing remains.  -N0NB
  *
  *
- * $Id: newcat.c,v 1.55 2009-02-23 21:52:56 fillods Exp $
+ * $Id: newcat.c,v 1.56 2009-02-26 23:04:26 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -56,6 +56,8 @@ static const char cat_unknown_cmd[] = "?;";   /* Yaesu ? */
 #define NC_MEM_CHANNEL_VFO_B 2014
 #define NC_MEM_CHANNEL_VFO_RESERVED 99
 
+/* 0.05 seconds delay */
+#define NC_VFO_OP_DELAY 50000
 
 /* ID 0310 == 310, Must drop leading zero */
 typedef enum nc_rigid_e {
@@ -4382,7 +4384,7 @@ int newcat_restore_vfo_ram(RIG * rig, channel_t * chan)
     err = newcat_get_vfo_mode(rig, &vfo_mode);
     if (vfo_mode == RIG_VFO_MEM) {
         err = newcat_vfo_op(rig, chan->vfo, RIG_OP_TO_VFO);
-        usleep(100000);
+        usleep(NC_VFO_OP_DELAY);
     }
 
     err = newcat_set_mode(rig, chan->vfo, chan->mode, chan->width);
@@ -4858,7 +4860,7 @@ int newcat_restore_vfo_mem_channel(RIG * rig)
     err = newcat_set_any_mem(rig, RIG_VFO_MEM, NC_MEM_CHANNEL_VFO_RESERVED);
 
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
-    usleep(100000);
+    usleep(NC_VFO_OP_DELAY);
 
     /* Restore current memory channel */
     err = newcat_set_mem(rig, RIG_VFO_A, mem);
@@ -4904,7 +4906,7 @@ int newcat_backup_vfo_mem_channel(RIG * rig)
 
     /* Restore back to vfo mode */
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
-    usleep(100000);
+    usleep(NC_VFO_OP_DELAY);
 
     return err;
 }
