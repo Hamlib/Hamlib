@@ -1,5 +1,5 @@
 /* ltdl.c -- system independent dlopen wrapper
-   Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1998, 1999, 2000, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
    Originally by Thomas Tanner <tanner@ffii.org>
    This file is part of GNU Libtool.
 
@@ -20,8 +20,8 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-02111-1307  USA
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301  USA
 
 */
 
@@ -137,16 +137,22 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 
 /* --- WINDOWS SUPPORT --- */
 
-
-#ifdef DLL_EXPORT
-#  define LT_GLOBAL_DATA	__declspec(dllexport)
-#else
-#  define LT_GLOBAL_DATA
+/* DLL building support on win32 hosts;  mostly to workaround their
+   ridiculous implementation of data symbol exporting. */
+#ifndef LT_GLOBAL_DATA
+#  if defined(__WINDOWS__) || defined(__CYGWIN__)
+#    ifdef DLL_EXPORT           /* defined by libtool (if required) */
+#      define LT_GLOBAL_DATA __declspec(dllexport)
+#    endif
+#  endif
+#  ifndef LT_GLOBAL_DATA        /* static linking or !__WINDOWS__ */
+#    define LT_GLOBAL_DATA
+#  endif
 #endif
 
 /* fopen() mode flags for reading a text file */
 #undef	LT_READTEXT_MODE
-#ifdef __WINDOWS__
+#if defined(__WINDOWS__) || defined(__CYGWIN__)
 #  define LT_READTEXT_MODE "rt"
 #else
 #  define LT_READTEXT_MODE "r"
@@ -385,11 +391,13 @@ memcpy (dest, src, size)
      const lt_ptr src;
      size_t size;
 {
-  size_t i = 0;
+  const char *	s = src;
+  char *	d = dest;
+  size_t	i = 0;
 
   for (i = 0; i < size; ++i)
     {
-      dest[i] = src[i];
+      d[i] = s[i];
     }
 
   return dest;
@@ -409,17 +417,21 @@ memmove (dest, src, size)
      const lt_ptr src;
      size_t size;
 {
-  size_t i;
+  const char *	s = src;
+  char *	d = dest;
+  size_t	i;
 
-  if (dest < src)
+  if (d < s)
     for (i = 0; i < size; ++i)
       {
-	dest[i] = src[i];
+	d[i] = s[i];
       }
-  else if (dest > src)
-    for (i = size -1; i >= 0; --i)
+  else if (d > s && size > 0)
+    for (i = size -1; ; --i)
       {
-	dest[i] = src[i];
+	d[i] = s[i];
+	if (i == 0)
+	  break;
       }
 
   return dest;
@@ -451,7 +463,9 @@ opendir (path)
   DIR *entry;
 
   assert(path != (char *) NULL);
-  (void) strncpy(file_specification,path,LT_FILENAME_MAX-1);
+  /* allow space for: path + '\\' '\\' '*' '.' '*' + '\0' */
+  (void) strncpy (file_specification, path, LT_FILENAME_MAX-6);
+  file_specification[LT_FILENAME_MAX-6] = LT_EOS_CHAR;
   (void) strcat(file_specification,"\\");
   entry = LT_DLMALLOC (DIR,sizeof(DIR));
   if (entry != (DIR *) 0)
@@ -492,6 +506,7 @@ static struct dirent *readdir(entry)
   entry->firsttime = FALSE;
   (void) strncpy(entry->file_info.d_name,entry->Win32FindData.cFileName,
     LT_FILENAME_MAX-1);
+  entry->file_info.d_name[LT_FILENAME_MAX - 1] = LT_EOS_CHAR;
   entry->file_info.d_namlen = strlen(entry->file_info.d_name);
   return(&entry->file_info);
 }
@@ -616,7 +631,7 @@ argz_create_sep (str, delim, pargz, pargz_len)
   assert (pargz);
   assert (pargz_len);
 
-  /* Make a copy of STR, but replacing each occurence of
+  /* Make a copy of STR, but replacing each occurrence of
      DELIM with '\0'.  */
   argz_len = 1+ LT_STRLEN (str);
   if (argz_len)
@@ -885,7 +900,7 @@ static	const char	sys_search_path[]	= LTDL_SYSSEARCHPATH;
 		(*lt_dlmutex_seterror_func) (errormsg);		\
 	else 	lt_dllast_error = (errormsg);	} LT_STMT_END
 #define LT_DLMUTEX_GETERROR(errormsg)		LT_STMT_START {	\
-	if (lt_dlmutex_seterror_func)				\
+	if (lt_dlmutex_geterror_func)				\
 		(errormsg) = (*lt_dlmutex_geterror_func) ();	\
 	else	(errormsg) = lt_dllast_error;	} LT_STMT_END
 
@@ -909,7 +924,7 @@ lt_dlmutex_register (lock, unlock, seterror, geterror)
      lt_dlmutex_seterror *seterror;
      lt_dlmutex_geterror *geterror;
 {
-  lt_dlmutex_unlock *old_unlock = unlock;
+  lt_dlmutex_unlock *old_unlock = lt_dlmutex_unlock_func;
   int		     errors	= 0;
 
   /* Lock using the old lock() callback, if any.  */
@@ -920,6 +935,7 @@ lt_dlmutex_register (lock, unlock, seterror, geterror)
     {
       lt_dlmutex_lock_func     = lock;
       lt_dlmutex_unlock_func   = unlock;
+      lt_dlmutex_seterror_func = seterror;
       lt_dlmutex_geterror_func = geterror;
     }
   else
@@ -1328,15 +1344,27 @@ sys_wll_open (loader_data, filename)
   if (!searchname)
     return 0;
 
-#if __CYGWIN__
   {
-    char wpath[MAX_PATH];
-    cygwin_conv_to_full_win32_path(searchname, wpath);
-    module = LoadLibrary(wpath);
-  }
+    /* Silence dialog from LoadLibrary on some failures.
+       No way to get the error mode, but to set it,
+       so set it twice to preserve any previous flags. */
+    UINT errormode = SetErrorMode(SEM_FAILCRITICALERRORS);
+    SetErrorMode(errormode | SEM_FAILCRITICALERRORS);
+
+#if defined(__CYGWIN__)
+    {
+      char wpath[MAX_PATH];
+      cygwin_conv_to_full_win32_path (searchname, wpath);
+      module = LoadLibrary (wpath);
+    }
 #else
-  module = LoadLibrary (searchname);
+    module = LoadLibrary (searchname);
 #endif
+
+    /* Restore the error mode. */
+    SetErrorMode(errormode);
+  }
+
   LT_DLFREE (searchname);
 
   /* libltdl expects this function to fail if it is unable
@@ -2111,6 +2139,8 @@ static struct lt_user_dlloader presym = {
 /* The type of a function used at each iteration of  foreach_dirinpath().  */
 typedef int	foreach_callback_func LT_PARAMS((char *filename, lt_ptr data1,
 						 lt_ptr data2));
+/* foreachfile_callback itself calls a function of this type: */
+typedef int	file_worker_func      LT_PARAMS((const char *filename, void *data));
 
 static	int	foreach_dirinpath     LT_PARAMS((const char *search_path,
 						 const char *base_name,
@@ -2308,6 +2338,18 @@ lt_dlexit ()
 		  if (lt_dlclose (tmp))
 		    {
 		      ++errors;
+		    }
+		  /* Make sure that the handle pointed to by 'cur' still exists.
+		     lt_dlclose recursively closes dependent libraries which removes
+		     them from the linked list.  One of these might be the one
+		     pointed to by 'cur'.  */
+		  if (cur)
+		    {
+		      for (tmp = handles; tmp; tmp = tmp->next)
+			if (tmp == cur)
+			  break;
+		      if (! tmp)
+			cur = handles;
 		    }
 		}
 	    }
@@ -2521,8 +2563,8 @@ find_module (handle, dir, libdir, dlname, old_name, installed)
 
       /* maybe it was moved to another directory */
       {
-	  if (tryall_dlopen_module (handle,
-				    (const char *) 0, dir, dlname) == 0)
+	  if (dir && (tryall_dlopen_module (handle,
+				    (const char *) 0, dir, dlname) == 0))
 	    return 0;
       }
     }
@@ -2849,12 +2891,6 @@ load_deplibs (handle, deplibs)
 	}
     }
 
-  /* restore the old search path */
-  LT_DLFREE (user_search_path);
-  user_search_path = save_search_path;
-
-  LT_DLMUTEX_UNLOCK ();
-
   if (!depcount)
     {
       errors = 0;
@@ -2918,7 +2954,7 @@ load_deplibs (handle, deplibs)
 
       handle->deplibs = (lt_dlhandle*) LT_EMALLOC (lt_dlhandle *, depcount);
       if (!handle->deplibs)
-	goto cleanup;
+	goto cleanup_names;
 
       for (i = 0; i < depcount; ++i)
 	{
@@ -2941,6 +2977,13 @@ load_deplibs (handle, deplibs)
 
  cleanup:
   LT_DLFREE (names);
+  /* restore the old search path */
+  if (user_search_path) {
+    LT_DLFREE (user_search_path);
+    user_search_path = save_search_path;
+  }
+  LT_DLMUTEX_UNLOCK ();
+
 #endif
 
   return errors;
@@ -2962,6 +3005,7 @@ unload_deplibs (handle)
 	      errors += lt_dlclose (handle->deplibs[i]);
 	    }
 	}
+      LT_DLFREE (handle->deplibs);
     }
 
   return errors;
@@ -2980,6 +3024,9 @@ trim (dest, str)
 
   LT_DLFREE (*dest);
 
+  if (!end)
+    return 1;
+
   if (len > 3 && str[0] == '\'')
     {
       tmp = LT_EMALLOC (char, end - str);
@@ -2987,7 +3034,7 @@ trim (dest, str)
 	return 1;
 
       strncpy(tmp, &str[1], (end - str) - 1);
-      tmp[len-3] = LT_EOS_CHAR;
+      tmp[(end - str) - 1] = LT_EOS_CHAR;
       *dest = tmp;
     }
   else
@@ -3161,7 +3208,7 @@ try_dlopen (phandle, filename)
 	    }
 #endif
 #ifdef LTDL_SYSSEARCHPATH
-	  if (!file && sys_search_path)
+	  if (!file && *sys_search_path)
 	    {
 	      file = find_file (sys_search_path, base_name, &dir);
 	    }
@@ -3193,16 +3240,19 @@ try_dlopen (phandle, filename)
       /* read the .la file */
       while (!feof (file))
 	{
+	  line[line_len-2] = '\0';
 	  if (!fgets (line, (int) line_len, file))
 	    {
 	      break;
 	    }
 
 	  /* Handle the case where we occasionally need to read a line
-	     that is longer than the initial buffer size.  */
-	  while ((line[LT_STRLEN(line) -1] != '\n') && (!feof (file)))
+	     that is longer than the initial buffer size.
+	     Behave even if the file contains NUL bytes due to corruption. */
+	  while (line[line_len-2] != '\0' && line[line_len-2] != '\n' && !feof (file))
 	    {
 	      line = LT_DLREALLOC (char, line, line_len *2);
+	      line[line_len*2 - 2] = '\0';
 	      if (!fgets (&line[line_len -1], (int) line_len +1, file))
 		{
 		  break;
@@ -3517,7 +3567,14 @@ lt_argz_insert (pargz, pargz_len, before, entry)
 {
   error_t error;
 
-  if ((error = argz_insert (pargz, pargz_len, before, entry)))
+  /* Prior to Sep 8, 2005, newlib had a bug where argz_insert(pargz,
+     pargz_len, NULL, entry) failed with EINVAL.  */
+  if (before)
+    error = argz_insert (pargz, pargz_len, before, entry);
+  else
+    error = argz_append (pargz, pargz_len, entry, 1 + LT_STRLEN (entry));
+
+  if (error)
     {
       switch (error)
 	{
@@ -3668,8 +3725,7 @@ foreachfile_callback (dirname, data1, data2)
      lt_ptr data1;
      lt_ptr data2;
 {
-  int (*func) LT_PARAMS((const char *filename, lt_ptr data))
-	= (int (*) LT_PARAMS((const char *filename, lt_ptr data))) data1;
+  file_worker_func *func = *(file_worker_func **) data1;
 
   int	  is_done  = 0;
   char   *argz     = 0;
@@ -3707,37 +3763,38 @@ lt_dlforeachfile (search_path, func, data)
      lt_ptr data;
 {
   int is_done = 0;
+  file_worker_func **fpptr = &func;
 
   if (search_path)
     {
       /* If a specific path was passed, search only the directories
 	 listed in it.  */
       is_done = foreach_dirinpath (search_path, 0,
-				   foreachfile_callback, func, data);
+				   foreachfile_callback, fpptr, data);
     }
   else
     {
       /* Otherwise search the default paths.  */
       is_done = foreach_dirinpath (user_search_path, 0,
-				   foreachfile_callback, func, data);
+				   foreachfile_callback, fpptr, data);
       if (!is_done)
 	{
 	  is_done = foreach_dirinpath (getenv("LTDL_LIBRARY_PATH"), 0,
-				       foreachfile_callback, func, data);
+				       foreachfile_callback, fpptr, data);
 	}
 
 #ifdef LTDL_SHLIBPATH_VAR
       if (!is_done)
 	{
 	  is_done = foreach_dirinpath (getenv(LTDL_SHLIBPATH_VAR), 0,
-				       foreachfile_callback, func, data);
+				       foreachfile_callback, fpptr, data);
 	}
 #endif
 #ifdef LTDL_SYSSEARCHPATH
       if (!is_done)
 	{
 	  is_done = foreach_dirinpath (getenv(LTDL_SYSSEARCHPATH), 0,
-				       foreachfile_callback, func, data);
+				       foreachfile_callback, fpptr, data);
 	}
 #endif
     }
@@ -4241,17 +4298,18 @@ lt_dlcaller_get_data  (key, handle)
   LT_DLMUTEX_LOCK ();
 
   /* Locate the index of the element with a matching KEY.  */
-  {
-    int i;
-    for (i = 0; handle->caller_data[i].key; ++i)
-      {
-	if (handle->caller_data[i].key == key)
-	  {
-	    result = handle->caller_data[i].data;
-	    break;
-	  }
-      }
-  }
+  if (handle->caller_data)
+    {
+      int i;
+      for (i = 0; handle->caller_data[i].key; ++i)
+        {
+          if (handle->caller_data[i].key == key)
+            {
+              result = handle->caller_data[i].data;
+              break;
+            }
+        }
+    }
 
   LT_DLMUTEX_UNLOCK ();
 
