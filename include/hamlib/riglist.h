@@ -187,7 +187,8 @@
 #define RIG_MODEL_IC756PROIII RIG_MAKE_MODEL(RIG_ICOM, 57)
 #define RIG_MODEL_ICR20 RIG_MAKE_MODEL(RIG_ICOM, 58)
 #define RIG_MODEL_IC7000 RIG_MAKE_MODEL(RIG_ICOM, 60)
-/* next one is 61 */
+#define RIG_MODEL_IC7200 RIG_MAKE_MODEL(RIG_ICOM, 61)
+/* next one is 62 */
 
 	/*
 	 * Optoelectronics (CI-V)
@@ -461,6 +462,14 @@
 #define RIG_MODEL_V4L RIG_MAKE_MODEL(RIG_TUNER, 1)
 
 	/*
+	 * Rohde&Schwarz
+	 */
+#define RIG_RS 27
+#define RIG_BACKEND_RS "rs"
+#define RIG_MODEL_ESMC RIG_MAKE_MODEL(RIG_RS, 1)
+
+
+	/*
 	 * TODO:
 		RIG_MODEL_KWZ30,	KNEISNER +DOERING
 		RIG_MODEL_E1800,	DASA-Telefunken
@@ -504,6 +513,7 @@ typedef int rig_model_t;
 		{ RIG_RFT, RIG_BACKEND_RFT }, \
 		{ RIG_KIT, RIG_BACKEND_KIT }, \
 		{ RIG_TUNER, RIG_BACKEND_TUNER }, \
+		{ RIG_RS, RIG_BACKEND_RS }, \
 		{ 0, NULL }, /* end */  \
 }
 
