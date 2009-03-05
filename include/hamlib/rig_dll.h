@@ -41,8 +41,8 @@
 #      define HAMLIB_IMPEXP HAMLIB_DLL_IMPORT
 #    endif
 #  else
-#      define HAMLIB_IMPEXP HAMLIB_DLL_IMPORT
-	 /* must be static build, no directive? */
+       /* static build, only export the backend entry points for lt_dlsym */
+#      define BACKEND_IMPEXP HAMLIB_DLL_EXPORT
 #  endif
 #endif
 
