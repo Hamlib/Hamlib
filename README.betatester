@@ -19,17 +19,17 @@ Feedback and improvement requests are also valuable.
 
 First of all, you can start testing official releases. They are easier to
 test because they come in precompiled and packaged (.rpm, .deb) but they
-have the drawback of being older than the CVS repository. Reports from these
+have the drawback of being older than the SVN repository. Reports from these
 versions are still very appreciated, on hamlib-developer@lists.sourceforge.net
 mailing list.
 
 However, the development of Hamlib is still very active, so it's better to
-test from the latest CVS version of the code.  And, depending on feedback you
+test from the latest SVN version of the code.  And, depending on feedback you
 make, developers can commit a fix, so you can try out the change soon after,
 without waiting for the next official version.
 
 So to proceed, you will have first to obtain either a snapshot or a check out
-of the latest sources from cvs, then rebuild the Hamlib package and finally
+of the latest sources from SVN, then rebuild the Hamlib package and finally
 test it with your rig. Don't worry, it's much simpler than how it looks,
 despite the size of the package.
 
@@ -41,15 +41,15 @@ Pre-requisite:
  
 So here we go:
 
-* Daily CVS snapshots:
+* Daily SVN trunk snapshots:
 
-Download the latest snapshot from http://n0nb.users.sourceforge.net
-You'll find a tar ball with a name like hamlib-1.2.8.1cvs-20090109.tar.gz,
-i.e. a check out made 09 Jan 2009, ready for building using the familiar
+Download the latest SVN trunk snapshot from http://n0nb.users.sourceforge.net
+You'll find a tar ball with a name like hamlib-1.2.10svn-20090306.tar.gz,
+i.e. a check out made 06 Mar 2009, ready for building using the familiar
 "three step" (see below).  Each morning by about 1130z a new snapshot is
 generated and uploaded and the prior day's version is removed.
 
-The advantage of the CVS snapshot is that you won't need as many tools 
+The advantage of the SVN snapshot is that you won't need as many tools 
 installed to build Hamlib as the work of Autoconf, Automake, and Libtool 
 have already been done.  Most of the other packages listed in README.developer 
 will be needed unless you tell the `configure' script to not build certain 
@@ -57,10 +57,10 @@ parts of Hamlib like documentation or scripting language bindings.
 See `configure --help' for more information.
 
 
-* CVS checkout:
+* SVN checkout:
 
 Please read the beginning of README.developer file, especially about how to
-obtain a cvs checkout, what are the required tools and versions (very 
+obtain a SVN checkout, what are the required tools and versions (very 
 important or make won't even work!), and how to use autogen.sh.
 
 

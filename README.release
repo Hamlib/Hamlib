@@ -2,6 +2,8 @@
 This file is a release HOWTO, more or less a reminder before releasing
 a new version of Hamlib.
 
+TODO:   With the switch to SVN SCM discuss the use of tags and branches
+        for releases.
 
 Before deciding release:
 -----------------------
@@ -10,7 +12,7 @@ Before deciding release:
   Basically, this is making sure the package will
   compile on a whole breed of systems (arch,OS,library,gcc,etc. combo),
   that there's no regression, and the API evolution is managed well.
-* Announce cvs/version freeze on hamlib-developer mailing list,
+* Announce CVN/version freeze on hamlib-developer mailing list,
   so developers have time to check in their contributions.
 * Update libtool:
 	macros/{ltdl,libtool}.m4
@@ -23,11 +25,11 @@ Releasing Hamlib:
 * Update NEWS, TODO, AUTHORS
 * Update the version in the macro AC_INIT of configure.ac
 * Regenerate ChangeLog with:
-	 TZ=UTC ./cvs2cl.pl
-* Tag the CVS rep with version 'HAMLIB-x-y-z'
+	 TZ=UTC svn2cl
+* Tag the SVN rep with version 'HAMLIB-x-y-z'
 * Build source tarball:
-	cvs -d:ext:yourloginhere@hamlib.cvs.sourceforge.net:/cvsroot/hamlib co -P -r HAMLIB-x-y-z hamlib
-	sh autogen.sh --enable-maintainer-mode
+    svn co https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib	
+    sh autogen.sh --enable-maintainer-mode
 	make dist
 * Build Windows DLL from previous tarball, and .LIB, then create .zip file
   Rem: under Linux, you need the package mingw32 to cross-compile it,
@@ -61,7 +63,7 @@ Releasing Hamlib:
 * Update http://hamlib.org web pages
   - Download section
 	hamlib.org: html.hamlib/{manual,news,download}.html
-			cvs commit
+			svn commit
 			wsmake
 			scp *.html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/.
 			support.html
@@ -87,7 +89,7 @@ To advertise:
 
 
 Get ready for the next round:
-* Bump version number and append 'cvs' to it in macro AC_INIT of configure.ac
+* Bump version number and append 'svn' to it in macro AC_INIT of configure.ac
 * Update src/Makefile.am revision of -version-info
 
 
