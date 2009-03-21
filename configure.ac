@@ -211,7 +211,8 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[struct{char a;int b;}s[8]={[3]={.b=5}
 
 dnl libxml2 required rigmem xml support
 PKG_CHECK_MODULES([LIBXML2], [libxml-2.0],
-	[AC_DEFINE(HAVE_XML2,[1],[Define if libxml2 is available])])
+	[AC_DEFINE(HAVE_XML2,[1],[Define if libxml2 is available])],
+	[AC_MSG_WARN([libxml-2.0 pkg-config not found, XML support will be disabled])])
 AC_SUBST(LIBXML2_LIBS)
 AC_SUBST(LIBXML2_CFLAGS)
 
