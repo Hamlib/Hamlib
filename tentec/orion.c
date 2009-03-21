@@ -232,29 +232,23 @@ int tt565_cleanup(RIG *rig)
  */
  int tt565_open(RIG *rig)
  {
-        int current_size, min_size;
 	cal_table_t cal1 = TT565_STR_CAL_V1, cal2 = TT565_STR_CAL_V2;
 	char *buf;
 
 	/* Detect version 1 or version 2 firmware. V2 is default. */
-	/* The only difference from Hamlib's viewpoint is the S-meter cal table */
-	/* The rig caps size value was set at initialization in orion.h */
+	/* The only difference for us is the S-meter cal table */
 
 	/* Get Orion's Version string (?V command response) */	
 	buf = (char *)tt565_get_info(rig);
 
-	current_size = rig->caps->str_cal.size;
-	if (!strstr(buf, "1.")) {  /* Version 1.xxx ? */
-	    /* Not version 1 -> probably version 2 */
-	    /* Need to be sure we aren't exceeding initialized memory */
-	    min_size = current_size < cal2.size ? current_size : cal2.size;
-	    memcpy(&rig->caps->str_cal, &cal2, sizeof(int)*(2*min_size+1));
-	    }
-        else {
-            /* Version 1 */
-	    min_size = current_size < cal1.size ? current_size : cal1.size;
-            memcpy(&rig->caps->str_cal, &cal1, sizeof(int)*(2*min_size+1));
-            }
+	/* Is Orion firmware version 1.* or 2.*? */
+	if (!strstr(buf, "1.")) {
+		/* Not v1 means probably v2 */
+		memcpy(&rig->state.str_cal, &cal2, sizeof(cal_table_t));
+		}
+	else {
+		memcpy(&rig->state.str_cal, &cal1, sizeof(cal_table_t));
+		}
     return RIG_OK;
     }
     
