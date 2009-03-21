@@ -209,9 +209,11 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[struct{char a;int b;}s[8]={[3]={.b=5}
 		"You need a C99 compliant C compiler that supports struct/array intializers."
 		"Have you considered GCC lately?.")]);
 
-
-dnl Check if libxml2 present for rigmem support
-AM_PATH_XML2(2.0.0,[AC_DEFINE(HAVE_XML2,[1],[Define if libxml2 is available])])
+dnl libxml2 required rigmem xml support
+PKG_CHECK_MODULES([LIBXML2], [libxml-2.0],
+	[AC_DEFINE(HAVE_XML2,[1],[Define if libxml2 is available])])
+AC_SUBST(LIBXML2_LIBS)
+AC_SUBST(LIBXML2_CFLAGS)
 
 dnl Check if libgd-dev is installed, so we can enable rigmatrix
 

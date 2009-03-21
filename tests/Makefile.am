@@ -25,7 +25,7 @@ EXTRA_PROGRAMS = rigmatrix rigctld rotctld
 LDADD = $(top_builddir)/src/libhamlib.la $(top_builddir)/lib/libmisc.la
 DEPENDENCIES = $(top_builddir)/src/libhamlib.la
 
-rigmem_CFLAGS = $(AM_CFLAGS) @XML_CPPFLAGS@
+rigmem_CFLAGS = $(AM_CFLAGS) @LIBXML2_CFLAGS@
 
 ## Linker options
 listrigs_LDFLAGS = @BACKENDLNK@
@@ -36,7 +36,7 @@ testtrn_LDFLAGS = @BACKENDLNK@
 rigctl_LDFLAGS = @BACKENDLNK@
 rigswr_LDFLAGS = @BACKENDLNK@
 rigsmtr_LDFLAGS = @BACKENDLNK@
-rigmem_LDFLAGS = @BACKENDLNK@ @XML_LIBS@
+rigmem_LDFLAGS = @BACKENDLNK@ @LIBXML2_LIBS@
 rotctl_LDFLAGS = @ROT_BACKENDLNK@
 rigctld_LDFLAGS = @BACKENDLNK@ @PTHREAD_LIBS@ @NET_LIBS@
 rotctld_LDFLAGS = @ROT_BACKENDLNK@ @PTHREAD_LIBS@ @NET_LIBS@
