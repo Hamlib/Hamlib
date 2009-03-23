@@ -1,6 +1,6 @@
 /*
  *  Hamlib Uniden backend - main header
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
  *	$Id: uniden.h,v 1.9 2008-10-07 18:58:08 fillods Exp $
  *
@@ -71,6 +71,7 @@ int uniden_set_channel(RIG *rig, const channel_t *chan);
 const char* uniden_get_info(RIG *rig);
 
 extern const struct rig_caps bc895_caps;
+extern const struct rig_caps bc898_caps;
 extern const struct rig_caps bc245_caps;
 extern const struct rig_caps bc780_caps;
 extern const struct rig_caps bc250_caps;

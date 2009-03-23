@@ -50,6 +50,7 @@ uniden_id_string_list[] = {
 	{ RIG_MODEL_BC786,  "BC786D" },
 	{ RIG_MODEL_PRO2052,"PRO2052" }, /* ?? */
 	{ RIG_MODEL_BCT8,   "BCT8" },	 /* ?? */
+	{ RIG_MODEL_BC898,  "BC898T" },  /* TBC */
 	{ RIG_MODEL_NONE, NULL },	/* end marker */
 };
 
@@ -59,7 +60,7 @@ const tone_t uniden_ctcss_list[] = {
   948, 974, 1000, 1035, 1072, 1109, 1148, 1188, 1230,
 1273, 1318, 1365, 1413, 1462, 1514, 1567, 1622, 1679,
 1738, 1799, 1862, 1928, 2035, 2107, 2181, 2257, 2336,
-2418, 2503
+2418, 2503, 0
 };
 
 const tone_t uniden_dcs_list[] = {
@@ -73,7 +74,7 @@ const tone_t uniden_dcs_list[] = {
 445, 446, 452, 454, 455, 462, 464, 465, 466, 503,
 506, 516, 523, 526, 532, 546, 565, 606, 612, 624,
 627, 631, 632, 654, 662, 664, 703, 712, 723, 731,
-732, 734, 743, 754
+732, 734, 743, 754, 0
 };
 
 /*
@@ -698,6 +699,7 @@ DECLARE_INITRIG_BACKEND(uniden)
 	rig_debug(RIG_DEBUG_VERBOSE, "uniden: _init called\n");
 
 	rig_register(&bc895_caps);
+	rig_register(&bc898_caps);
 	rig_register(&bc245_caps);
 	rig_register(&bc780_caps);
 	rig_register(&bc250_caps);
