@@ -1,6 +1,6 @@
 /*
  *  Hamlib Kenwood backend - Elecraft K2 description
- *  Copyright (c) 2002-2004 by Stephane Fillod
+ *  Copyright (c) 2002-2009 by Stephane Fillod
  *
  *	$Id: k2.c,v 1.6 2009-01-28 23:30:46 azummo Exp $
  *
@@ -30,14 +30,17 @@
 #include "kenwood.h"
 
 
-#define K2_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY)
+#define K2_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 
 #define K2_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK)
 
-#define K2_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER)
+#define K2_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
+		RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD)
 
 #define K2_VFO (RIG_VFO_A|RIG_VFO_B)
 #define K2_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+
+#define K2_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 static struct kenwood_priv_caps  k2_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
@@ -48,8 +51,6 @@ static struct kenwood_priv_caps  k2_priv_caps  = {
  * This kit can recognize a large subset of TS-570 commands.
  *
  * part of infos comes from http://www.elecraft.com
- *
- * TODO: 2 antenna support, CW, etc.
  */
 const struct rig_caps k2_caps = {
 .rig_model =  RIG_MODEL_K2,
@@ -70,7 +71,7 @@ const struct rig_caps k2_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  100,
+.timeout =  600,
 .retry =  3,
 
 .has_get_func =  K2_FUNC_ALL,
@@ -81,7 +82,7 @@ const struct rig_caps k2_caps = {
 .has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
 .level_gran =  {},                 /* FIXME: granularity */
 .parm_gran =  {},
-.preamp =   { 14, 4, RIG_DBLST_END, },
+.preamp =   { 14, RIG_DBLST_END, },
 .attenuator =   { 10, RIG_DBLST_END, },
 .max_rit =  Hz(9990),
 .max_xit =  Hz(9990),
@@ -92,42 +93,39 @@ const struct rig_caps k2_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-.chan_list =  {
-			{  0, 89, RIG_MTYPE_MEM  },
-			{ 90, 99, RIG_MTYPE_EDGE },
-		  	RIG_CHAN_END,
-		   },
+.chan_list =  { RIG_CHAN_END },
+
 .rx_range_list1 =  { 
-	{kHz(500),MHz(30),K2_MODES,-1,-1,K2_VFO},
+	{kHz(500),MHz(30),K2_MODES,-1,-1,K2_VFO,K2_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list1 =  {
-    {kHz(1810),kHz(1850)-1,K2_MODES,10,W(15),K2_VFO},	/* 15W class */
-    {kHz(3500),kHz(3800)-1,K2_MODES,10,W(15),K2_VFO},
-    {MHz(7),kHz(7100),K2_MODES,10,W(15),K2_VFO},
-    {kHz(10100),kHz(10150),K2_MODES,10,W(15),K2_VFO},
-    {MHz(14),kHz(14350),K2_MODES,10,W(15),K2_VFO},
-    {kHz(18068),kHz(18168),K2_MODES,10,W(15),K2_VFO},
-    {MHz(21),kHz(21450),K2_MODES,10,W(15),K2_VFO},
-    {kHz(24890),kHz(24990),K2_MODES,10,W(15),K2_VFO},
-    {MHz(28),kHz(29700),K2_MODES,10,W(15),K2_VFO},
+    {kHz(1810),kHz(1850)-1,K2_MODES,10,W(15),K2_VFO,K2_ANTS},	/* 15W class */
+    {kHz(3500),kHz(3800)-1,K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(7),kHz(7100),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {kHz(10100),kHz(10150),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(14),kHz(14350),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {kHz(18068),kHz(18168),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(21),kHz(21450),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {kHz(24890),kHz(24990),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(28),kHz(29700),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
 	RIG_FRNG_END,
   }, /* tx range */
 
 .rx_range_list2 =  {
-	{kHz(500),MHz(30),K2_MODES,-1,-1,K2_VFO},
+	{kHz(500),MHz(30),K2_MODES,-1,-1,K2_VFO,K2_ANTS},
 	RIG_FRNG_END,
   }, /* rx range */
 .tx_range_list2 =  {
-    {kHz(1800),MHz(2)-1,K2_MODES,10,W(15),K2_VFO},	/* 15W class */
-    {kHz(3500),MHz(4)-1,K2_MODES,10,W(15),K2_VFO},
-    {MHz(7),kHz(7300),K2_MODES,10,W(15),K2_VFO},
-    {kHz(10100),kHz(10150),K2_MODES,10,W(15),K2_VFO},
-    {MHz(14),kHz(14350),K2_MODES,10,W(15),K2_VFO},
-    {kHz(18068),kHz(18168),K2_MODES,10,W(15),K2_VFO},
-    {MHz(21),kHz(21450),K2_MODES,10,W(15),K2_VFO},
-    {kHz(24890),kHz(24990),K2_MODES,10,W(15),K2_VFO},
-    {MHz(28),kHz(29700),K2_MODES,10,W(15),K2_VFO},
+    {kHz(1800),MHz(2)-1,K2_MODES,10,W(15),K2_VFO,K2_ANTS},	/* 15W class */
+    {kHz(3500),MHz(4)-1,K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(7),kHz(7300),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {kHz(10100),kHz(10150),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(14),kHz(14350),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {kHz(18068),kHz(18168),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(21),kHz(21450),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {kHz(24890),kHz(24990),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
+    {MHz(28),kHz(29700),K2_MODES,10,W(15),K2_VFO,K2_ANTS},
 	RIG_FRNG_END,
   }, /* tx range */
 .tuning_steps =  {
@@ -137,8 +135,8 @@ const struct rig_caps k2_caps = {
         /* mode/filter list, remember: order matters! */
 .filters =  {
 		{RIG_MODE_SSB, kHz(2.5)},
-		{RIG_MODE_CW, Hz(500)},
-		{RIG_MODE_RTTY, Hz(500)},
+		{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
+		{RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)},
 		RIG_FLT_END,
 	},
 .priv =  (void *)&k2_priv_caps,
@@ -151,6 +149,8 @@ const struct rig_caps k2_caps = {
 .get_mode =  kenwood_get_mode,
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo_if,
+.set_split_vfo = kenwood_set_split_vfo,
+.get_split_vfo = kenwood_get_split_vfo_if,
 .set_rit =  kenwood_set_rit,
 .get_rit =  kenwood_get_rit,
 .set_xit =  kenwood_set_xit,
@@ -166,6 +166,9 @@ const struct rig_caps k2_caps = {
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
 .get_powerstat =  kenwood_get_powerstat,
+.set_ant =  kenwood_set_ant,
+.get_ant =  kenwood_get_ant,
+.send_morse =  kenwood_send_morse,
 
 };
 
