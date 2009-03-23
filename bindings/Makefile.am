@@ -12,6 +12,9 @@ SWGDEP=$(top_srcdir)/include/hamlib/rig.h $(top_srcdir)/include/hamlib/riglist.h
 	$(top_srcdir)/include/hamlib/rotator.h $(top_srcdir)/include/hamlib/rotlist.h \
 	$(SWGFILES)
 
+BUILT_SOURCES=
+MOSTLYCLEANFILES=
+
 AM_CFLAGS = -fno-strict-aliasing
 ##########################################
 # Perl binding
@@ -57,8 +60,12 @@ uninstall-perl: ## Hamlib-pl.mk
 ##	$(MAKE) $(AM_MAKEFLAGS) -f Hamlib-pl.mk uninstall
 
 
+if ENABLE_TCL
 ##########################################
 # Tcl binding
+
+BUILT_SOURCES+= hamlibtcl_wrap.c
+MOSTLYCLEANFILES+= hamlibtcl_wrap.c pkgIndex.tcl
 
 tcl_ltlib = hamlibtcl.la
 
@@ -90,6 +97,8 @@ install-tcl:
 clean-tcl:
 distclean-tcl: clean-tcl
 uninstall-tcl: 
+
+endif
 
 ##########################################
 # Python binding
@@ -139,13 +148,12 @@ uninstall-local: @BINDING_UNINSTALL@
 EXTRA_DIST = $(SWGFILES) \
 			Makefile.PL perltest.pl tcltest.tcl pytest.py
 
-BUILT_SOURCES  = hamlibperl_wrap.c hamlibtcl_wrap.c hamlibpy_wrap.c Hamlib.py
+BUILT_SOURCES += hamlibperl_wrap.c hamlibpy_wrap.c Hamlib.py
 
 ## DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
 DISTCLEANFILES = Hamlib-pl.mk.old
 
-MOSTLYCLEANFILES = hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
-		hamlibtcl_wrap.c pkgIndex.tcl \
+MOSTLYCLEANFILES+= hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
 		hamlibpy_wrap.c Hamlib.py *.pyc
 
 noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas

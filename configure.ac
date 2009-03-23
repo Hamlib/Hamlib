@@ -301,27 +301,24 @@ fi
 dnl Kylix binding has been removed because unmaintained. Volunteers welcome.
 
 
-dnl Check for tcl-dev availability, so we can enable HamlibTCL
-
+# Tcl bindings
+AC_MSG_CHECKING([Whether to build Tcl bindings and demos])
+AC_ARG_ENABLE([tcl-binding],
+	[AS_HELP_STRING([--enable-tcl-binding],
+		[Build Tcl binding and demo (default: no)])],
+	[build_tcl=$enableval],
+	[build_tcl=no])
+AC_MSG_RESULT($build_tcl)
 SC_PATH_TCLCONFIG
-if test x"${no_tcl}" = x; then
+if test x"${build_tcl}" = "xyes"; then
 	SC_LOAD_TCLCONFIG
 	tcl_save_CPPFLAGS=$CPPFLAGS
 	CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
 	AC_CHECK_HEADERS([tcl.h],
-			[cf_with_tcl=yes])
+		[],
+		[AC_MSG_ERROR([Unable to find Tcl headers])])
 	CPPFLAGS=$tcl_save_CPPFLAGS
-else
-	cf_with_tcl=no
-fi
-AC_MSG_CHECKING(whether to build tcl binding and demo)
-AC_ARG_WITH(tcl-binding,
-        [  --with-tcl-binding	build tcl binding and demo],
-        [cf_with_tcl_binding=$withval],
-        [cf_with_tcl_binding=$cf_with_tcl])
-AC_MSG_RESULT($cf_with_tcl_binding)
 
-if test "${cf_with_tcl_binding}" = "yes" ; then
   BINDING_LIST="${BINDING_LIST} tcl"
   BINDING_ALL="${BINDING_ALL} all-tcl"
   BINDING_CHECK="${BINDING_CHECK} check-tcl"
@@ -331,6 +328,7 @@ if test "${cf_with_tcl_binding}" = "yes" ; then
   BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-tcl"
   BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(tcl_ltlib)"
 fi
+AM_CONDITIONAL(ENABLE_TCL, test x"${build_tcl}" = "xyes")
 AC_SUBST(TCL_LIB_SPEC)
 AC_SUBST(TCL_INCLUDE_SPEC)
 AC_SUBST(TCL_SHLIB_SUFFIX)
