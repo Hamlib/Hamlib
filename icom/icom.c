@@ -176,6 +176,16 @@ const struct ts_sc_list ic7000_ts_sc_list[] = {
 	{ 0, 0 },
 };
 
+const struct ts_sc_list ic7200_ts_sc_list[] = {
+	{ 10, 0x00 },
+	{ 100, 0x01 },
+	{ kHz(1), 0x02 },
+	{ kHz(5), 0x03 },
+	{ kHz(9), 0x04 },
+	{ kHz(10), 0x05 },
+	{ 0, 0 },
+};
+
 const struct ts_sc_list ic910_ts_sc_list[] = {
         { Hz(1), 0x00 },
         { Hz(10), 0x01 },
@@ -284,6 +294,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_OS535, 0x80 },
 	{ RIG_MODEL_ICID1, 0x01 },
 	{ RIG_MODEL_IC7000, 0x70 },
+	{ RIG_MODEL_IC7200, 0x76 },
 	{ RIG_MODEL_NONE, 0 },
 };
 
@@ -2889,6 +2900,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic78_caps);
 	rig_register(&ic7800_caps);
 	rig_register(&ic7000_caps);
+	rig_register(&ic7200_caps);
 	rig_register(&ic781_caps);
 	rig_register(&ic707_caps);
 	rig_register(&ic728_caps);
