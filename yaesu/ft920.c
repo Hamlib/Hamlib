@@ -148,7 +148,7 @@ const struct rig_caps ft920_caps = {
     .rig_model =        RIG_MODEL_FT920,
     .model_name =       "FT-920",
     .mfg_name =         "Yaesu",
-    .version =          "0.3.4",
+    .version =          "0.3.5",
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -250,6 +250,7 @@ const struct rig_caps ft920_caps = {
         {RIG_MODE_PKTLSB, kHz(1.8)},/* Alias of MODE_DATA_L */
         {RIG_MODE_PKTLSB, kHz(0.5)},/* Alias of MODE_DATA_LN */
         {RIG_MODE_PKTUSB,kHz(2.4)}, /* Alias for MODE DATA_U */
+	{RIG_MODE_PKTUSB, kHz(0.5)},/* Alias of MODE_DATA_UN */
         {RIG_MODE_PKTFM, kHz(12)},  /* Alias for MODE_DATA _F */
         {RIG_MODE_PKTFM, kHz(6)},   /* Alias for MODE_DATA_FN */
 
@@ -906,6 +907,9 @@ static int ft920_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) 
         *mode = RIG_MODE_PKTLSB;
         norm = TRUE;
         break;
+    case MODE_DATA_UN:
+        *mode = RIG_MODE_PKTUSB;
+        norm = FALSE;
     case MODE_DATA_U:
         *mode = RIG_MODE_PKTUSB;
         norm = TRUE;
