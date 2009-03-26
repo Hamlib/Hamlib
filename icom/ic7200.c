@@ -19,6 +19,11 @@
  *
  */
 
+/* 
+ * 26Mar09: Corrected tuning steps and added data modes.
+ * 25Mar09: Initial release
+ */
+ 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -37,9 +42,9 @@
 #include "bandplan.h"
 
 
-/* Data mode needs adding to the following */
-#define IC7200_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
-#define IC7200_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
+/* AM Data mode needs adding - this would require one more mode 'RIG_MODE_PKTAM' to rig.h */
+#define IC7200_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
+#define IC7200_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_PKTLSB|RIG_MODE_PKTUSB)
 #define IC7200_NOT_TS_MODES (IC7200_ALL_RX_MODES &~IC7200_1HZ_TS_MODES)
 
 #define IC7200_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
@@ -65,7 +70,6 @@
 		{   0, -60 }, \
 		{ 255, 60 } \
 	} }
-
 
 /*
  * IC-7200 rig capabilities.
@@ -154,11 +158,6 @@ const struct rig_caps ic7200_caps = {
 	 {IC7200_ALL_RX_MODES,kHz(5)},
 	 {IC7200_ALL_RX_MODES,kHz(9)},
 	 {IC7200_ALL_RX_MODES,kHz(10)},
-	 {IC7200_ALL_RX_MODES,kHz(12.5)},
-	 {IC7200_ALL_RX_MODES,kHz(20)},
-	 {IC7200_ALL_RX_MODES,kHz(25)},
-	 {IC7200_ALL_RX_MODES,kHz(100)},
-	 {IC7200_NOT_TS_MODES,MHz(1)},
 	 RIG_TS_END,
 	},
 
@@ -167,9 +166,6 @@ const struct rig_caps ic7200_caps = {
 		{RIG_MODE_SSB, kHz(2.4)},
 		{RIG_MODE_SSB, kHz(1.8)},
 		{RIG_MODE_SSB, kHz(3)},
-		{RIG_MODE_FM, kHz(10)},
-		{RIG_MODE_FM, kHz(15)},
-		{RIG_MODE_FM, kHz(7)},
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(500)}, 
 		{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(250)}, 
 		{RIG_MODE_CW|RIG_MODE_CWR, kHz(1.2)},
@@ -177,7 +173,6 @@ const struct rig_caps ic7200_caps = {
 		{RIG_MODE_AM, kHz(6)},
 		{RIG_MODE_AM, kHz(3)},
 		{RIG_MODE_AM, kHz(9)},
-		{RIG_MODE_WFM, kHz(280)},
 		RIG_FLT_END,
 	},
 	
@@ -234,4 +229,3 @@ const struct rig_caps ic7200_caps = {
 .get_split_vfo =  NULL,
 
 };
-
