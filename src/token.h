@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - token header
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
  *	$Id: token.h,v 1.5 2006-10-28 03:49:46 aa6e Exp $
  *
@@ -78,6 +78,14 @@
 #define TOK_RTS_STATE	TOKEN_FRONTEND(25)
 /** \brief  Serial Data Terminal Ready status */
 #define TOK_DTR_STATE	TOKEN_FRONTEND(26)
+/** \brief  PTT type override */
+#define TOK_PTT_TYPE	TOKEN_FRONTEND(30)
+/** \brief  PTT pathname override */
+#define TOK_PTT_PATHNAME	TOKEN_FRONTEND(31)
+/** \brief  DCD type override */
+#define TOK_DCD_TYPE	TOKEN_FRONTEND(32)
+/** \brief  DCD pathname override */
+#define TOK_DCD_PATHNAME	TOKEN_FRONTEND(33)
 
 /*
  * rig specific tokens

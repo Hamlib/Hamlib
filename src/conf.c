@@ -108,7 +108,22 @@ static const struct confparams frontend_cfg_params[] = {
 			"Polling interval in millisecond for transceive emulation",
 			"500", RIG_CONF_NUMERIC, { .n = { 0, 1000000, 1 } }
 	},
-
+	{ TOK_PTT_TYPE, "ptt_type", "PTT type", 
+			"Push-To-Talk interface type override",
+			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DTR", "RTS", "Parallel", "None", NULL }} }
+	},
+	{ TOK_PTT_PATHNAME, "ptt_pathname", "PTT path name", 
+			"Path name to the device file of the Push-To-Talk",
+			"/dev/rig", RIG_CONF_STRING, 
+	},
+	{ TOK_DCD_TYPE, "dcd_type", "DCD type", 
+			"Data Carrier Detect (or squelch) interface type override",
+			"RIG", RIG_CONF_COMBO, { .c = {{ "RIG", "DSR", "CTS", "CD", "Parallel", "None", NULL }} }
+	},
+	{ TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name", 
+			"Path name to the device file of the Data Carrier Detect (or squelch)",
+			"/dev/rig", RIG_CONF_STRING, 
+	},
 
 	{ RIG_CONF_END, NULL, }
 };
@@ -254,7 +269,48 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         return -RIG_EINVAL;
                 }
                 break;
+
+        case TOK_PTT_TYPE:
+                if (!strcmp(val, "RIG"))
+                        rs->pttport.type.ptt = RIG_PTT_RIG;
+                else if (!strcmp(val, "DTR"))
+                        rs->pttport.type.ptt = RIG_PTT_SERIAL_DTR;
+                else if (!strcmp(val, "RTS"))
+                        rs->pttport.type.ptt = RIG_PTT_SERIAL_RTS;
+                else if (!strcmp(val, "Parallel"))
+                        rs->pttport.type.ptt = RIG_PTT_PARALLEL;
+                else if (!strcmp(val, "None"))
+                        rs->pttport.type.ptt = RIG_PTT_NONE;
+                else 
+                        return -RIG_EINVAL;
+                break;
+
+        case TOK_PTT_PATHNAME:
+                strncpy(rs->pttport.pathname, val, FILPATHLEN-1);
+                break;
  
+        case TOK_DCD_TYPE:
+                if (!strcmp(val, "RIG"))
+                        rs->dcdport.type.dcd = RIG_DCD_RIG;
+                else if (!strcmp(val, "DSR"))
+                        rs->dcdport.type.dcd = RIG_DCD_SERIAL_DSR;
+                else if (!strcmp(val, "CTS"))
+                        rs->dcdport.type.dcd = RIG_DCD_SERIAL_CTS;
+                else if (!strcmp(val, "CD"))
+                        rs->dcdport.type.dcd = RIG_DCD_SERIAL_CAR;
+                else if (!strcmp(val, "Parallel"))
+                        rs->dcdport.type.dcd = RIG_DCD_PARALLEL;
+                else if (!strcmp(val, "None"))
+                        rs->dcdport.type.dcd = RIG_DCD_NONE;
+                else 
+                        return -RIG_EINVAL;
+                break;
+
+        case TOK_DCD_PATHNAME:
+                strncpy(rs->dcdport.pathname, val, FILPATHLEN-1);
+                break;
+ 
+
         case TOK_VFO_COMP:
                 rs->vfo_comp = atof(val);
                 break;
