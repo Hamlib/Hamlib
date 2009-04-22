@@ -72,6 +72,7 @@ extern const struct rig_caps rx340_caps;
 extern const struct rig_caps rx350_caps;
 extern const struct rig_caps tt516_caps;
 extern const struct rig_caps tt538_caps;
+extern const struct rig_caps tt585_caps;
 extern const struct rig_caps tt588_caps;
 extern const struct rig_caps tt550_caps;
 extern const struct rig_caps tt565_caps;
