@@ -3,6 +3,7 @@
 # Taken from glib CVS
 
 # Change the following to match the versions installed on your system
+LIBTOOLIZE=libtoolize
 AUTOCONF=autoconf
 AUTOHEADER=autoheader
 AUTOMAKE=automake
@@ -37,6 +38,14 @@ TEST_TYPE=-f
 FILE=include/hamlib/rig.h
 
 DIE=0
+
+($LIBTOOLIZE --version) < /dev/null > /dev/null 2>&1 || {
+	echo
+        echo "You must have libtool installed to compile $PROJECT."
+        echo "Download the appropriate package for your distribution,"
+        echo "or get the source tarball at ftp://ftp.gnu.org/pub/gnu/"
+	DIE=1
+}
 
 ($AUTOCONF --version) < /dev/null > /dev/null 2>&1 || {
         echo
@@ -78,7 +87,7 @@ $ACLOCAL $ACLOCAL_FLAGS
 # optionally feature autoheader
 ($AUTOHEADER --version)  < /dev/null > /dev/null 2>&1 && $AUTOHEADER
 
-libtoolize --automake --ltdl
+$LIBTOOLIZE -c -i --force
 $AUTOMAKE -a $am_opt
 $AUTOCONF
 cd $ORIGDIR

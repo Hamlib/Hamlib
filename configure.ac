@@ -24,7 +24,7 @@ AM_MAINTAINER_MODE
 ABI_VERSION=2
 
 dnl Pick up the Hamlib macros.
-AM_ACLOCAL_INCLUDE(macros)
+AM_ACLOCAL_INCLUDE([macros])
 
 AC_DEFINE_UNQUOTED(ABI_VERSION, $ABI_VERSION, [Frontend ABI version])
 AC_SUBST(ABI_VERSION)
@@ -176,22 +176,10 @@ AC_LIBOBJ(dummy)
 ## ------------------------ ##
 ## libtool  Initialisation. ##
 ## ------------------------ ##
-dnl Enable building of the convenience library
-dnl and set LIBLTDL accordingly
-AC_LIBLTDL_CONVENIENCE
-dnl Substitute INCLTDL and LIBLTDL in the Makefiles
-AC_SUBST([INCLTDL])
-AC_SUBST([LIBLTDL])
+LT_CONFIG_LTDL_DIR([libltdl])
+LT_INIT([dlopen], [win32-dll])
+LTDL_INIT([convenience])
 
-dnl Check for dlopen support
-AC_LIBTOOL_WIN32_DLL
-AC_LIBTOOL_DLOPEN
-dnl Configure libtool
-AC_PROG_LIBTOOL
-AC_SUBST([LIBTOOL_DEPS])
-AC_LIB_LTDL
-dnl Configure libltdl
-AC_CONFIG_SUBDIRS(libltdl)
 
 case "$host_os" in
 darwin* | rhapsody*)
