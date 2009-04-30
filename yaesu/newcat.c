@@ -56,8 +56,8 @@ static const char cat_unknown_cmd[] = "?;";   /* Yaesu ? */
 #define NC_MEM_CHANNEL_VFO_B 2014
 #define NC_MEM_CHANNEL_VFO_RESERVED 99
 
-/* 0.05 seconds delay */
-#define NC_VFO_OP_DELAY 50000
+/* 0.15 seconds delay */
+#define NC_VFO_OP_DELAY 150000
 
 /* ID 0310 == 310, Must drop leading zero */
 typedef enum nc_rigid_e {
@@ -65,7 +65,7 @@ typedef enum nc_rigid_e {
     NC_RIGID_FT450           = 241,
     NC_RIGID_FT950           = 310,
     NC_RIGID_FT2000          = 251,
-    NC_RIGID_FT2000D         = 252,        /* FIXME: This is a GUESS!  Waiting Verification */
+    NC_RIGID_FT2000D         = 252,
     NC_RIGID_FTDX9000D       = 101,
     NC_RIGID_FTDX9000Contest = 102,
     NC_RIGID_FTDX9000MP      = 103
@@ -4371,7 +4371,6 @@ int newcat_restore_vfo_ram(RIG * rig, channel_t * chan)
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
-    vfo_t vfo_mode;
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
 
@@ -4379,12 +4378,12 @@ int newcat_restore_vfo_ram(RIG * rig, channel_t * chan)
 
     rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %d, freq = %f\n", chan->channel_num, chan->vfo, chan->freq);
 
-    /* Restore Rig back to vfo */
-
-    err = newcat_get_vfo_mode(rig, &vfo_mode);
-    if (vfo_mode == RIG_VFO_MEM) {
+    /* Restore Rig to saved vfo mode */
+    
+    /* Jump back to VFO from memory channel mode */
+    if (chan->channel_num == NC_MEM_CHANNEL_VFO_A) {
         err = newcat_vfo_op(rig, chan->vfo, RIG_OP_TO_VFO);
-        usleep(NC_VFO_OP_DELAY);
+        // usleep(NC_VFO_OP_DELAY);
     }
 
     err = newcat_set_mode(rig, chan->vfo, chan->mode, chan->width);
@@ -4664,11 +4663,13 @@ int newcat_set_any_mem(RIG * rig, vfo_t vfo, int ch)
 
     switch (vfo) {
         case RIG_VFO_A:
+            /* Jump back from memory channel */
             restore_vfo = TRUE;
             vfo_chan.channel_num = NC_MEM_CHANNEL_VFO_A;
             vfo_chan.vfo = RIG_VFO_A;
             break;
         case RIG_VFO_MEM:
+            /* Jump from channel to channel in memmory mode */
             restore_vfo = FALSE;
             break;
         case RIG_VFO_B:
@@ -4695,6 +4696,8 @@ int newcat_set_any_mem(RIG * rig, vfo_t vfo, int ch)
     if (err != RIG_OK)
         return err;
 
+    usleep(NC_VFO_OP_DELAY);
+    
     /* Restore VFO **************************** */
     if (restore_vfo) {
         err = newcat_restore_vfo_ram(rig, &vfo_chan);
@@ -4746,11 +4749,13 @@ int newcat_set_any_channel(RIG * rig, const channel_t * chan)
 
     switch (priv->current_vfo) {
         case RIG_VFO_A:
+            /* Jump back from memory channel */
             vfo_chan.channel_num = NC_MEM_CHANNEL_VFO_A;
             vfo_chan.vfo = RIG_VFO_A;
             restore_vfo = TRUE;
             break;
         case RIG_VFO_MEM:
+            /* Jump from channel to channel in memmory mode */
             restore_vfo = FALSE; 
             break;
         case RIG_VFO_B:
@@ -4838,6 +4843,8 @@ int newcat_set_any_channel(RIG * rig, const channel_t * chan)
     if (err != RIG_OK)
         return err;
 
+    usleep(NC_VFO_OP_DELAY);
+    
     /* Restore VFO ********************************** */
     if (restore_vfo) {
         err = newcat_restore_vfo_ram(rig, &vfo_chan);
@@ -4860,7 +4867,7 @@ int newcat_restore_vfo_mem_channel(RIG * rig)
     err = newcat_set_any_mem(rig, RIG_VFO_MEM, NC_MEM_CHANNEL_VFO_RESERVED);
 
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
-    usleep(NC_VFO_OP_DELAY);
+    // usleep(NC_VFO_OP_DELAY);
 
     /* Restore current memory channel */
     err = newcat_set_mem(rig, RIG_VFO_A, mem);
@@ -4904,9 +4911,11 @@ int newcat_backup_vfo_mem_channel(RIG * rig)
 
     err = newcat_set_cmd(rig, &cmd);
 
+    usleep(NC_VFO_OP_DELAY);
+    
     /* Restore back to vfo mode */
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
-    usleep(NC_VFO_OP_DELAY);
+    // usleep(NC_VFO_OP_DELAY);
 
     return err;
 }
