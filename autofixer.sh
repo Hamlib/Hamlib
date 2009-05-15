@@ -18,21 +18,18 @@ V2CONFIG='configure.ac.ltv2'
 AUTOGEN='autogen.sh'
 CONFIG='configure.ac'
 
-TMPFILE=/tmp/libtoolchk$$
-
 if [ ! -e $AUTOGEN ]; then
 	echo File $AUTOGEN not detected.
 	echo This procedure is needed only if you are working with source
 	echo from an SVN checkout, where autogen.sh is provided. Exiting.
 	exit 1
 fi
-echo $(libtool --version) | \
-    sed '1,1s/ltmain.*tool) //; 1,1s/ .*$//; 2,$d' > $TMPFILE
+vers=$( echo $(libtool --version) | \
+    sed '1,1s/ltmain.*tool) //; 1,1s/ .*$//; 2,$d')
 
 # Test first digit of version.  If it's '1', use libtool v1 setup, otherwise
 # use libtool v2.
 
-vers=$(cat $TMPFILE)
 echo Libtool version $vers detected.
 
 if [ $vers \< "1.99.99" ]; then 
@@ -42,8 +39,8 @@ if [ $vers \< "1.99.99" ]; then
    else 
 	cp $V2AUTOGEN $AUTOGEN
 	cp $V2CONFIG  $CONFIG
-	echo Libtool v2 configured
+	echo Libtool v2 configured.
 fi
-
-rm $TMPFILE
+echo
+echo ** You may now run "sh ./autogen.sh" **
 
