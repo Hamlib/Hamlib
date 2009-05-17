@@ -1163,7 +1163,7 @@ int icom_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 		return retval;
 
 	/*
-	 * freqbuf should contain Cn,Sc,Data area
+	 * pttbuf should contain Cn,Sc,Data area
 	 */
 	ptt_len -= 2;
 	if (ptt_len != 1) {
@@ -1193,26 +1193,20 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 		return retval;
 
 	/*
-	 * freqbuf should contain Cn,Data area
+	 * dcdbuf should contain Cn,Data area
 	 */
 	dcd_len -= 2;
-	if (dcd_len != 2) {
+	if (dcd_len != 1) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_dcd: wrong frame len=%d\n",
 						dcd_len);
 		return -RIG_ERJCTED;
 	}
 
 	/*
-	 * The result is a 3 digit BCD, but in *big endian* order: 0000..0255
-	 * (from_bcd is little endian)
+	 * 0x00=sql closed, 0x01=sql open
 	 */
-	icom_val = from_bcd_be(dcdbuf+2, dcd_len*2);
-		/*
-		 * 0x00=sql closed, 0x01=sql open
-		 *
-		 * TODO: replace icom_val by dcdbuf[2] ?
-		 */
-	*dcd = (icom_val==0x01) ? RIG_DCD_ON : RIG_DCD_OFF;
+
+	*dcd = dcdbuf[2] == 1 ? RIG_DCD_ON : RIG_DCD_OFF;
 
 	return RIG_OK;
 }
