@@ -199,7 +199,7 @@ int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 #define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
-#define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_B|VFO_RIG_MAIN|VFO_RIG_SUB)
+#define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB)
 
 #define IC910_SCAN_OPS (RIG_SCAN_MEM)
 
