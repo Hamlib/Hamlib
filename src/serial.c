@@ -169,6 +169,9 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
   case 300:
 	speed = B300;		/* yikes... */
     break;
+  case 600:
+        speed = B600;
+    break;
   case 1200:
 	speed = B1200;
     break;
