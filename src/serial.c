@@ -1,6 +1,7 @@
 /*
  *  Hamlib Interface - serial communication low-level support
- *  Copyright (c) 2000-2005 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Frank Singleton
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
@@ -166,6 +167,9 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
    */
 
   switch(rp->parm.serial.rate) {
+  case 150:
+	speed = B150;		/* yikes... */
+    break;
   case 300:
 	speed = B300;		/* yikes... */
     break;
