@@ -39,14 +39,6 @@ FILE=include/hamlib/rig.h
 
 DIE=0
 
-($LIBTOOLIZE --version) < /dev/null > /dev/null 2>&1 || {
-	echo
-        echo "You must have libtool installed to compile $PROJECT."
-        echo "Download the appropriate package for your distribution,"
-        echo "or get the source tarball at ftp://ftp.gnu.org/pub/gnu/"
-	DIE=1
-}
-
 ($AUTOCONF --version) < /dev/null > /dev/null 2>&1 || {
         echo
         echo "You must have autoconf installed to compile $PROJECT."
@@ -56,6 +48,14 @@ DIE=0
 }
 
 ($AUTOMAKE --version) < /dev/null > /dev/null 2>&1 || {
+        echo
+        echo "You must have automake installed to compile $PROJECT."
+        echo "Get ftp://sourceware.cygnus.com/pub/automake/automake-1.5.tar.gz"
+        echo "(or a newer version if it is available)"
+        DIE=1
+}
+
+($LIBTOOLIZE --version) < /dev/null > /dev/null 2>&1 || {
         echo
         echo "You must have automake installed to compile $PROJECT."
         echo "Get ftp://sourceware.cygnus.com/pub/automake/automake-1.5.tar.gz"
@@ -82,12 +82,19 @@ case $CC in
 *xlc | *xlc\ * | *lcc | *lcc\ *) am_opt=--include-deps;;
 esac
 
+if $LIBTOOLIZE --version | grep -q "libtoolize (GNU libtool) 1.*" ; then
+        ltz_opt=--automake --ltdl
+else
+        # libtoolize 2.x and upper
+        ltz_opt=-c -i --force
+fi
+
 $ACLOCAL $ACLOCAL_FLAGS
 
 # optionally feature autoheader
 ($AUTOHEADER --version)  < /dev/null > /dev/null 2>&1 && $AUTOHEADER
 
-$LIBTOOLIZE -c -i --force
+$LIBTOOLIZE $ltz_opt
 $AUTOMAKE -a $am_opt
 $AUTOCONF
 cd $ORIGDIR
