@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main header
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
  *	$Id: icom.h,v 1.77 2008-11-13 20:29:43 y32kn Exp $
  *
@@ -31,7 +31,7 @@
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.4"
+#define BACKEND_VER "0.5"
 
 /*
  * defines used by comp_cal_str in rig.c
@@ -108,8 +108,8 @@ struct icom_priv_caps {
 	void (*i2r_mode)(RIG *rig, unsigned char md, int pd, 
 		rmode_t *mode, pbwidth_t *width);    /*< backend specific code
 						       to convert response 
-						       tokes to bandwidth and 
-						       mdoe */
+						       tokens to bandwidth and 
+						       mode */
 };
 
 
@@ -164,6 +164,8 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
 int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code);
+int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code);
 int icom_set_bank(RIG *rig, vfo_t vfo, int bank);
 int icom_set_mem(RIG *rig, vfo_t vfo, int ch);
 int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);

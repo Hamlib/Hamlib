@@ -1,7 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-7000 and variations
  *  Adapted from IC-7800 code 2006 by Kent Hill 
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2009 by Stephane Fillod
  *
  *	$Id: ic7000.c,v 1.2 2008-10-26 13:45:21 y32kn Exp $
  *
@@ -68,6 +68,27 @@
 
 
 /*
+ *
+ * IC7000 channel caps.
+ */
+#define IC7000_MEM_CAP {    \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .split = 1, \
+        .tx_freq = 1,   \
+        .tx_mode = 1,   \
+        .tx_width = 1,  \
+        .rptr_offs = 1, \
+        .rptr_shift = 1, \
+        .ctcss_tone = 1, \
+        .ctcss_sql = 1, \
+        .funcs = IC7000_FUNCS, \
+        .levels = RIG_LEVEL_SET(IC7000_LEVELS), \
+}
+
+
+/*
  * IC-7000 rig capabilities.
  *
  * TODO: complete command set (esp. the $1A bunch!) and testing..
@@ -83,9 +104,9 @@ const struct rig_caps ic7000_caps = {
 .rig_model =  RIG_MODEL_IC7000,
 .model_name = "IC-7000", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -111,22 +132,23 @@ const struct rig_caps ic7000_caps = {
 },
 .parm_gran =  {},
 .ctcss_list =  common_ctcss_list,
-.dcs_list =  NULL,
+.dcs_list =  common_dcs_list,
 .preamp =   { 10, RIG_DBLST_END, },	/* FIXME: TBC it's a guess*/
 .attenuator =   { 12, RIG_DBLST_END, },
 .max_rit =  Hz(9999),
 .max_xit =  Hz(9999),
-.max_ifshift =  Hz(0),
+.max_ifshift =  Hz(0), /* TODO */
 .targetable_vfo =  0,
 .vfo_ops =  IC7000_VFO_OPS,
 .scan_ops =  IC7000_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   5,
-.chan_desc_sz =  0,
+.chan_desc_sz =  0, /* TODO */
 
 .chan_list =  {
-	   {   1,  99, RIG_MTYPE_MEM  },
-	   { 100, 105, RIG_MTYPE_EDGE },    /* two by two */
+	   {   1,  99, RIG_MTYPE_MEM,  IC7000_MEM_CAP },
+	   { 100, 105, RIG_MTYPE_EDGE, IC7000_MEM_CAP },    /* two by two */
+	   { 106, 107, RIG_MTYPE_CALL, IC7000_MEM_CAP },
 	   RIG_CHAN_END,
 	},
 
@@ -221,6 +243,7 @@ const struct rig_caps ic7000_caps = {
 .set_parm =  NULL,
 .get_parm =  NULL,
 .set_mem =  icom_set_mem,
+.set_mem =  icom_set_bank,
 .vfo_op =  icom_vfo_op,
 .scan =  icom_scan,
 .set_ptt =  icom_set_ptt,
@@ -236,6 +259,8 @@ const struct rig_caps ic7000_caps = {
 .get_ctcss_tone =  icom_get_ctcss_tone,
 .set_ctcss_sql =  icom_set_ctcss_sql,
 .get_ctcss_sql =  icom_get_ctcss_sql,
+.set_dcs_code =  icom_set_dcs_code,
+.get_dcs_code =  icom_get_dcs_code,
 .set_split_freq =  icom_set_split_freq,
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,

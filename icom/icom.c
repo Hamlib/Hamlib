@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2008 by Stephane Fillod
  *
  *	$Id: icom.c,v 1.107 2008-11-13 20:29:43 y32kn Exp $
  *
@@ -2131,9 +2131,7 @@ int icom_get_parm(RIG *rig, setting_t parm, value_t *val)
  * icom_set_ctcss_tone
  * Assumes rig!=NULL, rig->state.priv!=NULL 
  *
- * Warning! This is untested stuff! May work at least on 756PRO and IC746.
- * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
-   Works for 746 pro and should work for 756 xx and 7800
+ * Works for 746 pro and should work for 756 xx and 7800
  */
 int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 {
@@ -2144,16 +2142,6 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 
 	caps = rig->caps;
 
-	/*
-	 * I don't have documentation for this function,
-	 * and I can't experiment (no hardware), so let's guess.
-	 * Most probably, it might be the index of the CTCSS subaudible
-	 * tone, and not the tone itself, starting from zero.
-	 *
-	 * Something in the range of 00..51, BCD big endian 4 nibbles
-	 * Please someone let me know if it works this way. --SF
-	 * No. sent directly as be nibbles with frequency same format as internal kh
-	 */
 	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
 		if (caps->ctcss_list[i] == tone)
 			break;
@@ -2161,7 +2149,9 @@ int icom_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->ctcss_list[i] != tone)
 		return -RIG_EINVAL;
 
-	tone_len = 1;
+    /* Sent as frequency in tenth of Hz */
+
+	tone_len = 3;
 	to_bcd_be(tonebuf, tone, tone_len*2);
 
 	retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR,
@@ -2190,10 +2180,6 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	int i;
 
 	caps = rig->caps;
-
-	/*
-	 * see icom_set_ctcss for discussion on the status!
-	 */
 
 	retval = icom_transaction(rig, C_SET_TONE, S_TONE_RPTR, NULL, 0,
 					tonebuf, &tone_len);
@@ -2224,9 +2210,6 @@ int icom_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 /*
  * icom_set_ctcss_sql
  * Assumes rig!=NULL, rig->state.priv!=NULL
- *
- * Warning! This is untested stuff! May work at least on 756PRO and IC746.
- * 	Please owners report to me <f4cfe@users.sourceforge.net>, thanks. --SF
  */
 int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
@@ -2237,10 +2220,6 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 
 	caps = rig->caps;
 
-	/*
-	 * see icom_set_ctcss for discussion on the untested status!
-	 */
-
 	for (i = 0; caps->ctcss_list[i] != 0 && i<52; i++) {
 		if (caps->ctcss_list[i] == tone)
 			break;
@@ -2248,7 +2227,9 @@ int icom_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->ctcss_list[i] != tone)
 		return -RIG_EINVAL;
 
-	tone_len = 1;
+    /* Sent as frequency in tenth of Hz */
+
+	tone_len = 3;
 	to_bcd_be(tonebuf, tone, tone_len*2);
 
 	retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL,
@@ -2278,10 +2259,6 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 
 	caps = rig->caps;
 
-	/*
-	 * see icom_set_ctcss for discussion on the untested status!
-	 */
-
 	retval = icom_transaction(rig, C_SET_TONE, S_TONE_SQL, NULL, 0,
 											tonebuf, &tone_len);
 	if (retval != RIG_OK)
@@ -2307,6 +2284,81 @@ int icom_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 	return -RIG_EPROTO;
 }
 
+/*
+ * icom_set_dcs_code
+ * Assumes rig!=NULL, rig->state.priv!=NULL 
+ */
+int icom_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
+{
+	const struct rig_caps *caps;
+	unsigned char codebuf[MAXFRAMELEN], ackbuf[MAXFRAMELEN];
+	int code_len, ack_len=sizeof(ackbuf), retval;
+	int i;
+
+	caps = rig->caps;
+
+	for (i = 0; caps->dcs_list[i] != 0 && i<104; i++) {
+		if (caps->dcs_list[i] == code)
+			break;
+	}
+	if (caps->dcs_list[i] != code)
+		return -RIG_EINVAL;
+
+	code_len = 3;
+	to_bcd_be(codebuf, code, code_len*2);
+
+	retval = icom_transaction(rig, C_SET_TONE, S_TONE_DTCS,
+				codebuf, code_len, ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		rig_debug(RIG_DEBUG_ERR,"icom_set_dcs_code: ack NG (%#.2x), "
+					"len=%d\n", ackbuf[0], ack_len);
+		return -RIG_ERJCTED;
+	}
+
+	return RIG_OK;
+}
+
+/*
+ * icom_get_dcs_code
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ */
+int icom_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
+{
+	const struct rig_caps *caps;
+	unsigned char codebuf[MAXFRAMELEN];
+	int code_len, retval;
+	int i;
+
+	caps = rig->caps;
+
+	retval = icom_transaction(rig, C_SET_TONE, S_TONE_DTCS, NULL, 0,
+					codebuf, &code_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	/* cn,sc,data*3 */
+	if (code_len != 5) {
+		rig_debug(RIG_DEBUG_ERR,"icom_get_dcs_code: ack NG (%#.2x), "
+					"len=%d\n", codebuf[0], code_len);
+		return -RIG_ERJCTED;
+	}
+
+	code_len -= 2;
+	*code = from_bcd_be(codebuf+2, code_len*2);
+
+	/* check this code exists. That's better than nothing. */
+	for (i = 0; caps->dcs_list[i] != 0 && i<104; i++) {
+		if (caps->dcs_list[i] == *code)
+			return RIG_OK;
+	}
+
+	rig_debug(RIG_DEBUG_ERR,"icom_get_dcs_code: DTCS NG "
+					"(%#.2x)\n", codebuf[2]);
+	return -RIG_EPROTO;
+}
 
 /*
  * icom_set_powerstat
