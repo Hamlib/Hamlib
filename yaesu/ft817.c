@@ -1,5 +1,6 @@
 /*
  * hamlib - (C) Frank Singleton 2000,2001 (vk3fcs@ix.netcom.com)
+ *          (C) Stephane Fillod 2000-2009
  *
  * ft817.c - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
@@ -117,20 +118,6 @@ static const yaesu_cmd_set_t ncmd[] = {
 	{ 1, { 0x00, 0x00, 0x00, 0x00, 0x8f } }, /* pwr off */
 };
 
-static const tone_t static_ft817_dcs_list[] = {
-	23,  25,  26,  31,  32,  36,  43,  47, 51,  53,
-	54,  65,  71,  72,  73,  74, 114, 115, 116, 122,
-	125, 131, 132, 134, 143, 145, 152, 155, 156, 162,
-	165, 172, 174, 205, 212, 223, 225, 226, 243, 244,
-	245, 246, 251, 252, 255, 261, 263, 265, 266, 271,
-	274, 306, 311, 315, 325, 331, 332, 343,	346, 351,
-	356, 364, 365, 371, 411, 412, 413, 423, 431, 432,
-	445, 446, 452, 454, 455, 462, 464, 465, 466, 503,
-	506, 516, 523, 526, 532, 546, 565, 606, 612, 624,
-	627, 631, 632, 654, 662, 664, 703, 712, 723, 731,
-	732, 734, 743, 754, 0	
-};
-
 #define FT817_ALL_RX_MODES      (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_PKTFM|\
                                  RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define FT817_SSB_CW_RX_MODES   (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_USB|RIG_MODE_LSB|RIG_MODE_RTTY)
@@ -168,7 +155,7 @@ const struct rig_caps ft817_caps = {
 	.rig_model =           RIG_MODEL_FT817,
 	.model_name =          "FT-817",
 	.mfg_name =            "Yaesu",
-	.version =             "0.5",
+	.version =             "0.5.1",
 	.copyright =           "LGPL",
 	.status =              RIG_STATUS_BETA,
 	.rig_type =            RIG_TYPE_TRANSCEIVER,
@@ -193,8 +180,8 @@ const struct rig_caps ft817_caps = {
 	.has_set_parm =        RIG_PARM_NONE,
 	.level_gran =          {},                     /* granularity */
 	.parm_gran =           {},
-	.ctcss_list =          static_common_ctcss_list,
-	.dcs_list =            static_ft817_dcs_list,   /* only 104 out of 106 supported */
+	.ctcss_list =          common_ctcss_list,
+	.dcs_list =            common_dcs_list,   /* only 104 out of 106 supported */
 	.preamp =              { RIG_DBLST_END, },
 	.attenuator =          { RIG_DBLST_END, },
 	.max_rit =             Hz(9990),

@@ -57,6 +57,11 @@ const tone_t full_ctcss_list[] = { FULL_CTCSS_LIST };
 const tone_t common_ctcss_list[] = { COMMON_CTCSS_LIST };
 
 /**
+ * 104 DCS codes
+ */
+const tone_t common_dcs_list[] = { COMMON_DCS_LIST };
+
+/**
  * 106 DCS codes
  */
 const tone_t full_dcs_list[] = { FULL_DCS_LIST };

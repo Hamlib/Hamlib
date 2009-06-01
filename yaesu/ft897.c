@@ -1,10 +1,11 @@
 /* -*- mode: c; c-basic-offset: 2; indent-tabs-mode: nil; -*-
  *
- * ft897.h - (C) Tomi Manninen 2003 (oh2bns@sral.fi)
+ * ft897.c - (C) Tomi Manninen 2003 (oh2bns@sral.fi)
+ *           (C) Stephane Fillod 2009
  *
  *  ...derived but heavily modified from:
  *
- * ft817.h - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
+ * ft817.c - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-897 using the "CAT" interface.
@@ -178,7 +179,7 @@ const struct rig_caps ft897_caps = {
   .rig_model = 		RIG_MODEL_FT897,
   .model_name = 	"FT-897", 
   .mfg_name = 		"Yaesu", 
-  .version = 		"0.3.2",
+  .version = 		"0.3.3",
   .copyright = 		"LGPL",
   .status = 		RIG_STATUS_BETA,
   .rig_type = 		RIG_TYPE_TRANSCEIVER,
@@ -203,8 +204,8 @@ const struct rig_caps ft897_caps = {
   .has_set_parm = 	RIG_PARM_NONE,
   .level_gran = 	{},                     /* granularity */
   .parm_gran = 		{},
-  .ctcss_list = 	static_common_ctcss_list,
-  .dcs_list = 		static_full_dcs_list,   /* FIXME: only 104 supported */
+  .ctcss_list = 	common_ctcss_list,
+  .dcs_list = 		common_dcs_list,   /* only 104 supported */
   .preamp = 		{ RIG_DBLST_END, },
   .attenuator = 	{ RIG_DBLST_END, },
   .max_rit = 		Hz(9990),

@@ -1,6 +1,6 @@
 /*
  *  Hamlib Kenwood backend - TH-F7 description
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
  *	$Id: thf7.c,v 1.17 2009-02-03 23:22:58 azummo Exp $
  *
@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include <hamlib/rig.h>
+#include "tones.h"
 #include "kenwood.h"
 #include "th.h"
 
@@ -73,19 +74,6 @@ static const tone_t thf7_ctcss_list[] = {
   2503, 2541,
   0
 
-};
-
-/* DCS 0..103 (=104) */
-static const tone_t thf7_dcs_list[] = {
-	 23, 25, 26, 31, 32, 36, 43, 47, 51, 53, 54, 65, 71, 72, 73, 74,
-	114, 115, 116, 122, 125, 131, 132, 134, 143, 145, 152, 155, 156,
-	162, 165, 172, 174, 205, 212, 223, 225, 226, 243, 244, 245, 246,
-	251, 252, 255, 261, 263, 265, 266, 271, 274, 306, 311, 315, 325,
-	331, 332, 343, 346, 351, 356, 364, 365, 371, 411, 412, 413, 423,
-	431, 432, 445, 446, 452, 454, 455, 462, 464, 465, 466, 503, 506,
-	516, 523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654,
-	662, 664, 703, 712, 723, 731, 732, 734, 743, 754,
-	0
 };
 
 static rmode_t thf7_mode_table[KENWOOD_MODE_TABLE_MAX] = {
@@ -152,7 +140,7 @@ const struct rig_caps thf7e_caps = {
 },
 .parm_gran =  {},
 .ctcss_list =  thf7_ctcss_list,
-.dcs_list =  thf7_dcs_list,
+.dcs_list =  common_dcs_list,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { 20, RIG_DBLST_END, },
 .max_rit =  Hz(0),

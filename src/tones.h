@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - CTCSS and DCS tables header
- *  Copyright (c) 2000-2003 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod and Frank Singleton
  *
  *	$Id: tones.h,v 1.6 2005-02-21 18:56:22 fillods Exp $
  *
@@ -62,6 +62,25 @@ static const tone_t static_common_ctcss_list[] = {
 };
 
 /*
+ * 104 DCS codes
+ */
+#define COMMON_DCS_LIST \
+	      23,  25,  26,  31,  32,  36,  43,  47,       51,  53, \
+	 54,  65,  71,  72,  73,  74, 114, 115, 116, 122, 125, 131, \
+	132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174, 205, \
+	212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255, 261, \
+	263, 265, 266, 271, 274, 306, 311, 315, 325, 331, 332, 343, \
+	346, 351, 356, 364, 365, 371, 411, 412, 413, 423, 431, 432, \
+	445, 446, 452, 454, 455, 462, 464, 465, 466, 503, 506, 516, \
+	523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654, \
+	662, 664, 703, 712, 723, 731, 732, 734, 743, 754, \
+	0,
+
+static const tone_t static_common_dcs_list[] = {
+	COMMON_DCS_LIST
+};
+
+/*
  * 106 DCS codes
  */
 #define FULL_DCS_LIST \
@@ -88,12 +107,14 @@ static const tone_t static_full_dcs_list[] = {
 #define common_ctcss_list static_common_ctcss_list
 #define full_ctcss_list static_full_ctcss_list
 #define full_dcs_list static_full_dcs_list
+#define common_dcs_list static_common_dcs_list
 
 #else
 
 extern const HAMLIB_EXPORT_VAR(tone_t) full_ctcss_list[];
 extern const HAMLIB_EXPORT_VAR(tone_t) common_ctcss_list[];
 extern const HAMLIB_EXPORT_VAR(tone_t) full_dcs_list[];
+extern const HAMLIB_EXPORT_VAR(tone_t) common_dcs_list[];
 
 #endif
 
