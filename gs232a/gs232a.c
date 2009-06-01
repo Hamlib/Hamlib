@@ -1,6 +1,6 @@
 /*
  *  Hamlib Rotator backend - GS-232A
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
  *	$Id: gs232a.c,v 1.2 2008-10-26 13:38:51 y32kn Exp $
  *
@@ -81,9 +81,9 @@ transaction_write:
 
     /* Always read the reply to know whether the cmd went OK */
     if (!data)
-	    data = replybuf;
+        data = replybuf;
     if (!data_len)
-	    data_len = BUFSZ;
+        data_len = BUFSZ;
 
     memset(data,0,data_len);
     retval = read_string(&rs->rotport, data, data_len, REPLY_EOM, strlen(REPLY_EOM));
@@ -130,11 +130,11 @@ gs232a_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
     u_az = (unsigned)rint(az);
     u_el = (unsigned)rint(el);
 
-    sprintf(cmdstr, "W %03u %03u" EOM, u_az, u_el);
+    sprintf(cmdstr, "W%03u %03u" EOM, u_az, u_el);
     retval = gs232a_transaction(rot, cmdstr, NULL, 0);
 
     if (retval != RIG_OK) {
-	return retval;
+        return retval;
     }
 
     return RIG_OK;
@@ -144,24 +144,27 @@ static int
 gs232a_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
     char posbuf[32];
-    int retval;
+    int retval, angle;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     retval = gs232a_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf));
     if (retval != RIG_OK || strlen(posbuf) < 10) {
-	return retval;
+        return retval;
     }
 
     /* parse */
-    if (sscanf(posbuf+2, "%f", az) != 1) {
+    if (sscanf(posbuf+2, "%d", &angle) != 1) {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__, posbuf);
         return -RIG_EPROTO;
     }
-    if (sscanf(posbuf+7, "%f", el) != 1) {
+    *az = (azimuth_t)angle;
+
+    if (sscanf(posbuf+7, "%d", &angle) != 1) {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__, posbuf);
         return -RIG_EPROTO;
     }
+    *el = (elevation_t)angle;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
 		   __FUNCTION__, *az, *el);
@@ -179,7 +182,7 @@ gs232a_rot_stop(ROT *rot)
     /* All Stop */
     retval = gs232a_transaction(rot, "S" EOM, NULL, 0);
     if (retval != RIG_OK)
-	return retval;
+        return retval;
 
     return RIG_OK;
 }
@@ -238,9 +241,9 @@ const struct rot_caps gs232a_rot_caps = {
   .rot_model =      ROT_MODEL_GS232A,
   .model_name =     "GS-232A",
   .mfg_name =       "Yaesu",
-  .version =        "0.1",
+  .version =        "0.2",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_UNTESTED,
+  .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_OTHER,
   .port_type =      RIG_PORT_SERIAL,
   .serial_rate_min =   150,
@@ -261,8 +264,8 @@ const struct rot_caps gs232a_rot_caps = {
 
   .get_position =  gs232a_rot_get_position,
   .set_position =  gs232a_rot_set_position,
-  .stop = 	gs232a_rot_stop,
-  .move =       gs232a_rot_move,
+  .stop = 	       gs232a_rot_stop,
+  .move =          gs232a_rot_move,
 };
 
 /* ************************************************************************* */
