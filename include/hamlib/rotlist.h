@@ -166,6 +166,16 @@
 #define ROT_BACKEND_HEATHKIT "heathkit"
 #define ROT_MODEL_HD1780 ROT_MAKE_MODEL(ROT_HEATHKIT, 1)
 
+/*! \def ROT_MODEL_SPID
+ *  \brief A macro that returns the model number of the SPID backend.
+ *
+ *  The SPID backend can be used with rotators that support the SPID
+ *  protocol.
+ */
+#define ROT_SPID 9
+#define ROT_BACKEND_SPID "spid"
+#define ROT_MODEL_SPID ROT_MAKE_MODEL(ROT_SPID, 1)
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
@@ -188,6 +198,7 @@ typedef int rot_model_t;
         { ROT_GS232A, ROT_BACKEND_GS232A }, \
         { ROT_KIT, ROT_BACKEND_KIT }, \
         { ROT_HEATHKIT, ROT_BACKEND_HEATHKIT }, \
+        { ROT_SPID, ROT_BACKEND_SPID }, \
         { 0, NULL }, /* end */  \
 }
 

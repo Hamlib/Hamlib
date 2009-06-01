@@ -1,0 +1,208 @@
+SPID Rot2Prog Protocol
+======================
+
+This is an attempt at documenting the protocol of the Rot2Prog rotator
+controller from SPID Elektronik (spid@alpha.pl). The protocol is
+supposed to be similar on Rot1Prog and Rot2Prog, but the specification
+in this document has only been tested on Rot2Prog.
+
+
+
+GENERAL INFO
+------------
+
+The SPID protocol supports 3 commands: stop, status and set. The stop
+command stops the rotator in its current position. The status command
+returns the current position of the rotator, and the set command tells
+the rotator to rotate to a given position.
+
+The rotator controller communicates with the PC using a serial
+port. Communication parameters are 600 bps, 8 bits, no parity and 1
+stop bit. (Rot1Prog uses 1200 bps.)
+
+All commands are issued as 13 byte packets, and responses are received
+as 12 byte packets.
+
+
+
+COMMAND PACKETS
+---------------
+
+Command packets are 13 byte long.
+
+Byte:    0   1    2    3    4    5    6    7    8    9    10   11  12
+       -----------------------------------------------------------------
+Field: | S | H1 | H2 | H3 | H4 | PH | V1 | V2 | V3 | V4 | PV | K | END |
+       -----------------------------------------------------------------
+Value:   57  3x   3x   3x   3x   0x   3x   3x   3x   3x   0x   xF  20 (hex)
+
+
+S:     Start byte. This is always 0x57 ('W')
+
+H1-H4: Azimuth as ASCII characters 0-9
+
+PH:    Azimuth resolution in pulses per degree (ignored!)
+
+V1-V4: Elevation as ASCII characters 0-9
+
+PV:    Elevation resolution in pulses per degree (ignored!)
+
+K:     Command (0x0F=stop, 0x1F=status, 0x2F=set)
+
+END:   End byte. This is always 0x20 (space)
+
+
+Positions are encoded as number of pulses in ASCII numbers
+'0000'-'9999' (see set command for formula).
+
+
+
+RESPONSE PACKETS
+----------------
+
+Response packets are 12 byte long.
+
+Byte:    0   1    2    3    4    5    6    7    8    9    10   11
+       -------------------------------------------------------------
+Field: | S | H1 | H2 | H3 | H4 | PH | V1 | V2 | V3 | V4 | PV | END |
+       -------------------------------------------------------------
+Value:   57  3x   3x   3x   3x   0x   3x   3x   3x   3x   0x   20 (hex)
+
+
+S:     Start byte. This is always 0x57 ('W')
+
+H1-H4: Azimuth as byte values
+
+PH:    Azimuth resolution in pulses per degree (controller setting)
+
+V1-V4: Elevation as byte values
+
+PV:    Elevation resolution in pulses per degree (controller setting)
+
+END:   End byte. This is always 0x20 (space)
+
+
+Positions are decoded using the following formulas:
+
+    az = H1 * 100 + H2 * 10 + H3 + H4 / 10 - 360
+
+    el = V1 * 100 + V2 * 10 + V3 + V4 / 10 - 360
+
+
+The PH and PV values in the response packet reflect the settings of
+the rotator controller. The Rot2Prog supports the following
+resolutions (always the same for azimuth and elevation):
+
+    1    pulse/deg: PH=0x01, PV=0x01
+    0.5  pulse/deg: PH=0x02, PV=0x02
+    0.25 pulse/deg: PH=0x04, PV=0x04
+
+
+
+STOP COMMAND
+------------
+
+The stop command stops the rotator immediately in the current
+position and returns the current position. (The position returned does
+not seem to be entirely correct, often off by a degree or two.)
+
+The H1-H4, PH, V1-V4 and PV fields are ignored, so only the S, K and
+END fields are used. E.g.:
+
+    Command:
+    -----------------------------------------------------------------
+    | S | H1 | H2 | H3 | H4 | PH | V1 | V2 | V3 | V4 | PV | K | END |
+    -----------------------------------------------------------------
+    | 57| 00 | 00 | 00 | 00 | 00 | 00 | 00 | 00 | 00 | 00 | 0F| 20  | (hex)
+    -----------------------------------------------------------------
+    Rotator stops
+
+    Response:
+    -------------------------------------------------------------
+    | S | H1 | H2 | H3 | H4 | PH | V1 | V2 | V3 | V4 | PV | END |
+    -------------------------------------------------------------
+    | 57| 03 | 07 | 02 | 05 | 02 | 03 | 09 | 04 | 00 | 02 | 20  | (hex)
+    -------------------------------------------------------------
+    az=372.5-360=12.5, el=394.0-360=34.0
+    PH=PV=0x02 (pulse for each 0.5 deg)
+
+
+
+STATUS COMMAND
+--------------
+
+The status command returns the current position of the antenna.
+
+The H1-H4, PH, V1-V4 and PV fields are ignored, so only the S, K and
+END fields are used. E.g.:
+
+    Command:
+    -----------------------------------------------------------------
+    | S | H1 | H2 | H3 | H4 | PH | V1 | V2 | V3 | V4 | PV | K | END |
+    -----------------------------------------------------------------
+    | 57| 00 | 00 | 00 | 00 | 00 | 00 | 00 | 00 | 00 | 00 | 1F| 20  | (hex)
+    -----------------------------------------------------------------
+
+    Response:
+    -------------------------------------------------------------
+    | S | H1 | H2 | H3 | H4 | PH | V1 | V2 | V3 | V4 | PV | END |
+    -------------------------------------------------------------
+    | 57| 03 | 07 | 02 | 05 | 02 | 03 | 09 | 04 | 00 | 02 | 20  | (hex)
+    -------------------------------------------------------------
+    az=372.5-360=12.5, el=394.0-360=34.0
+    PH=PV=0x02 (pulse for each 0.5 deg)
+
+
+Status commands can be issued while the rotator is moving and will
+always return the current position.
+
+
+
+SET COMMAND
+-----------
+
+The set command tells the rotator to turn to a specific
+position. The controller does not send a response to this command.
+
+Azimuth and elevation is calculated as number of pulses, with a +360
+degree offset (so that negative position can be encoded with positive
+numbers).
+
+    H = PH * (360 + az)
+
+    V = PV * (360 + el)
+
+H1-H4 and V1-V4 are these numbers encoded as ASCII (0x30-0x39,
+i.e. '0'-'9').
+
+E.g., when pointing to azimuth 123.5, elevation 77.0 when the rotator
+sends one pulse per 0.5 degree (PH=PV=2):
+
+
+    H = 2 * (360 + 123.5) = 967
+
+    V = 2 * (360 + 77.0)  = 874
+
+    -----------------------------------------------------------------
+    | S | H1 | H2 | H3 | H4 | PH | V1 | V2 | V3 | V4 | PV | K | END |
+    -----------------------------------------------------------------
+    | 57| 30 | 39 | 36 | 37 | 02 | 30 | 38 | 37 | 34 | 02 | 2F| 20  | (hex)
+    -----------------------------------------------------------------
+
+The PH and PV values sent are ignored. The values used by the rotator
+control unit are set by choosing resolution in the setup
+menu. Luckily, these values can be read using the status command.
+
+
+
+SEE ALSO
+--------
+http://alfaradio.ca/downloads/program_info/
+
+
+AUTHOR
+------
+
+Norvald H. Ryeng, LA6YKA
+norvald@ryeng.name
+2009-05-21
