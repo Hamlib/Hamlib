@@ -282,11 +282,15 @@ So far, Hamlib has been tested successfully under the following systems:
          Create a new subdir, of the name of the protocol backend. 
          NB: the directory MUST be the same as the backend name.
 
-    2.2. Add <mybackend> to the DIST_SUBDIRS variable in the topdir Makefile.am, 
-    2.3. Add the backend name to the BACKEND_LIST variable in configure.ac 
-	 (Add to ROT_BACKEND_LIST for a new rotor backend).
+    2.2. Add <mybackend> to the DIST_SUBDIRS variable in the topdir Makefile.am
+
+    2.3. Add the backend name to the BACKEND_LIST variable (add to 
+         ROT_BACKEND_LIST for a new rotor backend) in configure.ac.ltv1
+         and configure.ac.ltv2 (configure.ac is deprecated at the moment).
+
     2.4. Add "mybackend/Makefile" in the AC_CONFIG_FILES macro at the bottom 
-         of configure.ac
+         of configure.ac.ltv1 and configure.ac.ltv2 (configure.ac is deprecated
+         at the moment)
 
     2.5. Create mybackend/Makefile.am, mybackend.c mybackend.h
          Use 'dummy' backend as a template.
