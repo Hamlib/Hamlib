@@ -1,6 +1,6 @@
 /*
  *  Hamlib Kenwood backend - TH handheld primitives
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
  *
  *	$Id: th.c,v 1.39 2009-02-13 19:29:16 azummo Exp $
  *
@@ -34,6 +34,7 @@
 #include "th.h"
 #include "serial.h"
 #include "misc.h"
+#include "num_stdio.h"
 
 /* Note: Currently the code assumes the command termination is a
  * single character.
@@ -71,7 +72,7 @@ th_decode_event (RIG *rig)
         int mode;
         int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
-        retval = sscanf(asyncbuf, "BUF %d,%"SCNfreq",%X,%d,%d,%d,%d,,%d,,%d,%"SCNfreq",%d",
+        retval = num_sscanf(asyncbuf, "BUF %d,%"SCNfreq",%X,%d,%d,%d,%d,,%d,,%d,%"SCNfreq",%d",
                                   &vfo, &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset, &mode);
 
@@ -217,7 +218,7 @@ th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq)
     if (retval != RIG_OK)
         return retval;
 
-    retval = sscanf(ackbuf, "FQ %"SCNfreq",%x",freq,&step);
+    retval = num_sscanf(ackbuf, "FQ %"SCNfreq",%x",freq,&step);
     if (retval != 2) {
         rig_debug(RIG_DEBUG_ERR, "%s: Unexpected reply '%s'\n", __func__, freqbuf);
         return -RIG_ERJCTED;
@@ -1298,7 +1299,8 @@ int th_get_channel(RIG *rig, channel_t *chan)
 	 * Lockout is optional on some channels
 	 */
     	strcat(scf,",%"SCNfreq",%x,%d,%d,%d,%d,%d,%d,%d,%d,%"SCNfreq",%d,%d");
-	retval = sscanf(ackbuf, scf,
+
+	    retval = num_sscanf(ackbuf, scf,
                     &freq, &step, &shift, &rev, &tone,
                     &ctcss, &dcs, &tonefq, &ctcssfq, &dcscode,
 		    &offset, &mode, &lockout
@@ -1311,7 +1313,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
     else
     {
 	strcat(scf,",%"SCNfreq",%x,%d,%d,%d,%d,,%d,,%d,%"SCNfreq);
-	retval = sscanf(ackbuf, scf,
+	retval = num_sscanf(ackbuf, scf,
                     &freq, &step, &shift, &rev, &tone,
 		    &ctcss, &tonefq, &ctcssfq, &offset);
     	if (retval != 9) {
@@ -1389,7 +1391,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
         if (retval == RIG_OK) {
     		strcpy(scf,req);
     		strcat(scf,",%"SCNfreq",%x");
-    		retval = sscanf(ackbuf, scf, &freq, &step);
+    		retval = num_sscanf(ackbuf, scf, &freq, &step);
 		chan->tx_freq=freq;
 		chan->split=RIG_SPLIT_ON;
 	}
