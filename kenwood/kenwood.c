@@ -122,12 +122,11 @@ rmode_t kenwood_mode_table[KENWOOD_MODE_TABLE_MAX] = {
 /*
  * 38 CTCSS sub-audible tones
  */
-/* XXX 175000 here ? */
 const tone_t kenwood38_ctcss_list[] = {
 	 670,  719,  744,  770,  797,  825,  854,  885,  915,  948,
 	 974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273, 1318,
 	1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799, 1862,
-	1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503, 17500,
+	1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503,
 	0,
 };
 
@@ -323,6 +322,8 @@ int kenwood_init(RIG *rig)
 
 	memset(priv, 0x00, sizeof(struct kenwood_priv_data));
 
+	priv->split = RIG_SPLIT_OFF;
+
 	rig->state.priv = priv;
 
 	/* default mode_table */
@@ -425,6 +426,7 @@ static int kenwood_get_if(RIG *rig)
  */
 int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 {
+	struct kenwood_priv_data *priv = rig->state.priv;
 	char cmdbuf[6];
 	int retval;
 	char vfo_function;
@@ -459,6 +461,10 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 	if (retval != RIG_OK)
 		return retval;
 
+	/* If split mode on, the don't change TxVFO */
+	if (priv->split != RIG_SPLIT_OFF)
+		return RIG_OK;
+
 	/* set TX VFO */
 	cmdbuf[1] = 'T';
 	return kenwood_simple_cmd(rig, cmdbuf);
@@ -466,57 +472,66 @@ int kenwood_set_vfo(RIG *rig, vfo_t vfo)
 
 int kenwood_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
 {
+	struct kenwood_priv_data *priv = rig->state.priv;
 	char cmdbuf[6];
 	int retval;
 	unsigned char vfo_function;
 
-	if(vfo !=RIG_VFO_CURR) {
-	switch (vfo) {
-	case RIG_VFO_VFO:
-	case RIG_VFO_A: vfo_function = '0'; break;
-	case RIG_VFO_B: vfo_function = '1'; break;
-	case RIG_VFO_MEM: vfo_function = '2'; break;
-	default: 
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__,
-							vfo);
-		return -RIG_EINVAL;
-	}
-	
-	/* set RX VFO */
-	sprintf(cmdbuf, "FR%c", vfo_function);
-	retval = kenwood_simple_cmd(rig, cmdbuf);
-	if (retval != RIG_OK)
-		return retval;
-	}
-
-	if(split==RIG_SPLIT_ON) {
-		switch (txvfo) {
+	if(vfo != RIG_VFO_CURR) {
+		switch (vfo) {
 		case RIG_VFO_VFO:
 		case RIG_VFO_A: vfo_function = '0'; break;
 		case RIG_VFO_B: vfo_function = '1'; break;
 		case RIG_VFO_MEM: vfo_function = '2'; break;
 		default: 
-			rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n",
-						__func__, txvfo);
+			rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n", __func__,
+								vfo);
 			return -RIG_EINVAL;
-		} 
+		}
+		
+		/* set RX VFO */
+		sprintf(cmdbuf, "FR%c", vfo_function);
+		retval = kenwood_simple_cmd(rig, cmdbuf);
+		if (retval != RIG_OK)
+			return retval;
+	}
+
+	/* Split off means Rx and Tx are the same */
+	if (split==RIG_SPLIT_OFF) {
+		txvfo = vfo;
+		if (txvfo == RIG_VFO_CURR) {
+			retval = rig_get_vfo(rig, &txvfo);
+			if (retval != RIG_OK)
+				return retval;
+		}
+	}
+
+	switch (txvfo) {
+	case RIG_VFO_VFO:
+	case RIG_VFO_A: vfo_function = '0'; break;
+	case RIG_VFO_B: vfo_function = '1'; break;
+	case RIG_VFO_MEM: vfo_function = '2'; break;
+	default: 
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n",
+					__func__, txvfo);
+		return -RIG_EINVAL;
+	} 
 	/* set TX VFO */
 	sprintf(cmdbuf, "FT%c", vfo_function);
 	retval = kenwood_simple_cmd(rig, cmdbuf);
 	if (retval != RIG_OK)
 		return retval;
-	} else
-	  if(vfo==RIG_VFO_CURR)
-		rig_debug(RIG_DEBUG_ERR, "%s: unsupported VFO %d\n",
-					__func__, vfo);
+
+	/* Remember whether split is on, for kenwood_set_vfo */
+	priv->split = split;
 
 	return RIG_OK;
 }
 
 int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo)
 {
-	int retval;
 	struct kenwood_priv_data *priv = rig->state.priv;
+	int retval;
 
 	retval = kenwood_get_if(rig);
 	if (retval != RIG_OK)
@@ -536,6 +551,9 @@ int kenwood_get_split_vfo_if(RIG *rig, vfo_t rxvfo, split_t *split, vfo_t *txvfo
 					__func__, priv->info[32]);
 		return -RIG_EPROTO;
 	}
+
+	/* Remember whether split is on, for kenwood_set_vfo */
+	priv->split = *split;
 
 	/* TODO: find where is the txvfo.. */
 

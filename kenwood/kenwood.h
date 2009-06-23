@@ -59,6 +59,7 @@ struct kenwood_priv_caps {
 
 struct kenwood_priv_data {
     char info[KENWOOD_MAX_BUF_LEN];
+    split_t split;		/* current split state */
 };
 
 #define kenwood_caps(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)
