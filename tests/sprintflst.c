@@ -1,6 +1,7 @@
 /*
  *  Hamlib Interface - sprintf toolbox
- *  Copyright (c) 2000-2009 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *	$Id: sprintflst.c,v 1.6 2009-02-17 08:03:52 fillods Exp $
  *

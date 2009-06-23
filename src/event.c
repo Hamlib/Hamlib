@@ -1,6 +1,7 @@
 /*
  *  Hamlib Interface - event handling
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *	$Id: event.c,v 1.25 2006-10-15 00:27:51 aa6e Exp $
  *

@@ -1,6 +1,7 @@
 /*
  *  Hamlib Interface - calibration routines
- *  Copyright (c) 2000-2004 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *		$Id: cal.c,v 1.7 2007-11-05 03:48:14 aa6e Exp $
  *

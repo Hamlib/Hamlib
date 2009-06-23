@@ -1,6 +1,7 @@
 /*
  *  Hamlib Interface - generic file based io functions
- *  Copyright (c) 2000-2008 by Stephane Fillod and Frank Singleton
+ *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *	$Id: iofunc.c,v 1.20 2008-11-05 23:07:38 fillods Exp $
  *
