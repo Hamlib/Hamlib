@@ -411,13 +411,20 @@ pcr_open(RIG * rig)
 
 	int err;
 	int wanted_serial_rate;
+	int startup_serial_rate;
 
 	/* 
-	 * initial communication is at 9600bps
+	 * initial communication is at 9600bps for PCR 100/1000
 	 * once the power is on, the serial speed can be changed with G1xx
 	 */
+    if (rig->caps->rig_model == RIG_MODEL_PCR1500 ||
+            rig->caps->rig_model == RIG_MODEL_PCR2500)
+        startup_serial_rate = 38400;
+    else
+        startup_serial_rate = 9600;
+
 	wanted_serial_rate = rs->rigport.parm.serial.rate;
-	rs->rigport.parm.serial.rate = 9600;
+	rs->rigport.parm.serial.rate = startup_serial_rate;
 
 	serial_setup(&rs->rigport);
 
@@ -454,7 +461,7 @@ pcr_open(RIG * rig)
 	pcr_set_freq(rig, 0, priv->last_freq);
 
 	/* switch to different speed if requested */
-	if (wanted_serial_rate != 9600 && wanted_serial_rate >= 300)
+	if (wanted_serial_rate != startup_serial_rate && wanted_serial_rate >= 300)
 		return pcr_set_comm_speed(rig, wanted_serial_rate);
 
 	return RIG_OK;
@@ -1381,6 +1388,7 @@ DECLARE_INITRIG_BACKEND(pcr)
 
 	rig_register(&pcr100_caps);
 	rig_register(&pcr1000_caps);
+	rig_register(&pcr1500_caps);
 
 	return RIG_OK;
 }

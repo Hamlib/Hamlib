@@ -30,7 +30,7 @@
 #define TOK_EL_ANL  TOKEN_BACKEND(1)
 
 
-#define BACKEND_VER		"0.5"
+#define BACKEND_VER		"0.6"
 
 #define PCR_MAX_CMD_LEN		32
 
@@ -117,5 +117,6 @@ static int pcr_check_ok(RIG * rig);
 
 extern const struct rig_caps pcr1000_caps;
 extern const struct rig_caps pcr100_caps;
+extern const struct rig_caps pcr1500_caps;
 
 #endif /* _PCR_H */

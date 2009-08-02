@@ -1,4 +1,4 @@
-PCRSRCLIST = pcr1000.c pcr100.c
+PCRSRCLIST = pcr1000.c pcr100.c pcr1500.c
 
 lib_LTLIBRARIES = hamlib-pcr.la
 hamlib_pcr_la_SOURCES = $(PCRSRCLIST) pcr.c
