@@ -2,7 +2,7 @@
  *  Hamlib R&S backend - ESMC description
  *  Copyright (c) 2009 by Stephane Fillod
  *
- *	$Id: ekd500.c,v 1.5 2009/02/20 12:23:46 fillods Exp $
+ *	$Id: esmc.c,v 1.5 2009/08/02 12:23:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,11 +31,11 @@
 
 
 /* TODO: LOG and PULSE ? */
-#define ESMC_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_FM)
+#define ESMC_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_AM|RIG_MODE_FM|RIG_MODE_WFM)
 
-#define ESMC_FUNC (RIG_FUNC_SQL)
+#define ESMC_FUNC (RIG_FUNC_SQL|RIG_FUNC_AFC)
 
-#define ESMC_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_RF)
+#define ESMC_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_SQL|RIG_LEVEL_AGC|RIG_LEVEL_RF|RIG_LEVEL_STRENGTH)
 
 #define ESMC_PARM_ALL (RIG_PARM_NONE)
 
@@ -50,8 +50,8 @@
         .ant = 1,     \
         .funcs = ESMC_FUNC, \
         .levels = RIG_LEVEL_SET(ESMC_LEVEL_ALL), \
-	.channel_desc=1, \
-	.flags = RIG_CHFLAG_SKIP, \
+        .channel_desc=1, \
+        .flags = RIG_CHFLAG_SKIP, \
 }
 
 
@@ -107,7 +107,7 @@ const struct rig_caps esmc_caps = {
 .vfo_ops =  ESMC_VFO_OPS,
 
 .chan_list =  {
-	//{ 0, 999, RIG_MTYPE_MEM, ESMC_MEM_CAP },
+    { 0, 999, RIG_MTYPE_MEM, ESMC_MEM_CAP },
 	RIG_CHAN_END,
 	},
 
@@ -138,6 +138,8 @@ const struct rig_caps esmc_caps = {
 
         /* mode/filter list, remember: order matters! */
 .filters =  {
+		{RIG_MODE_WFM, kHz(200)},
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(15)},
 		{ESMC_MODES, kHz(2.5)},
 		{ESMC_MODES, kHz(0.5)},
 		{ESMC_MODES, kHz(8)},
@@ -156,9 +158,6 @@ const struct rig_caps esmc_caps = {
 .priv =  NULL,
 
 .set_freq =  rs_set_freq,
-
-#if 0
-.rig_open =  rs_rig_open,
 .get_freq =  rs_get_freq,
 .set_mode =  rs_set_mode,
 .get_mode =  rs_get_mode,
@@ -166,6 +165,11 @@ const struct rig_caps esmc_caps = {
 .get_level =  rs_get_level,
 .set_func =  rs_set_func,
 .get_func =  rs_get_func,
+.get_info =  rs_get_info,
+
+#if 0
+/* TODO */
+.rig_open =  rs_rig_open,
 .set_channel =  rs_set_channel,
 .get_channel =  rs_get_channel,
 #endif

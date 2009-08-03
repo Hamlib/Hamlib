@@ -2,7 +2,7 @@
  *  Hamlib R&S backend - main file
  *  Copyright (c) 2009 by Stéphane Fillod
  *
- *	$Id: rft.c,v 1.3 2006/10/07 18:48:34 csete Exp $
+ *	$Id: rs.c,v 1.2 2009/08/07 18:48:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,6 +39,7 @@
 
 
 #define BUFSZ 64
+#define RESPSZ 64
 
 #define LF "\x0a"
 #define CR "\x0d"
@@ -68,13 +69,11 @@ int rs_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data
 		return retval;
 
 
-	/* no data expected, TODO: flush input? */
+	/* no data expected */
 	if (!data || !data_len)
-		return 0;
+		return RIG_OK;
 
 	retval = read_string(&rs->rigport, data, BUFSZ, CR, 1);
-	if (retval == -RIG_ETIMEOUT)
-		retval = 0;
 	if (retval < 0)
 		return retval;
 	*data_len = retval;
@@ -88,15 +87,209 @@ int rs_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data
  */
 int rs_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	char freqbuf[16], ackbuf[16];
-	int freq_len, ack_len, retval;
+	char freqbuf[32];
+	int freq_len, retval;
 
-	/* 
-	 */
-	freq_len = sprintf(freqbuf, BOM "FREQ %f MHz" EOM, freq/1e6);
-	retval = rs_transaction(rig, freqbuf, freq_len, ackbuf, &ack_len);
+	freq_len = sprintf(freqbuf, BOM "FREQ %"PRIll EOM, (long long)freq);
+	retval = rs_transaction(rig, freqbuf, freq_len, NULL, NULL);
 
 	return retval;
+}
+
+/*
+ * rs_get_freq
+ * Assumes rig!=NULL
+ */
+int rs_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+{
+	char buf[RESPSZ];
+	int len, retval;
+
+#define FREQ_QUERY  BOM "FREQ?" EOM
+
+	retval = rs_transaction(rig, FREQ_QUERY, strlen(FREQ_QUERY), buf, &len);
+    if (retval < 0)
+        return retval;
+
+    retval = (sscanf(buf, "%"SCNfreq, freq)==1) ? RIG_OK : -RIG_EPROTO;
+
+	return retval;
+}
+
+/*
+ * rs_set_mode
+ * Assumes rig!=NULL
+ */
+int rs_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+	char buf[32], *smode;
+	int len, retval;
+
+    switch (mode) {
+        case RIG_MODE_AM: smode = "AM"; break;
+        case RIG_MODE_WFM:
+        case RIG_MODE_FM: smode = "FM"; break;
+        case RIG_MODE_CW: smode = "CW"; break;
+        case RIG_MODE_USB: smode = "USB"; break;
+        case RIG_MODE_LSB: smode = "LSB"; break;
+        default:
+             return -RIG_EINVAL;
+    }
+
+    len = sprintf(buf, BOM "DEM %s" EOM, smode);
+    retval = rs_transaction(rig, buf, len, NULL, NULL);
+
+    if (width == RIG_PASSBAND_NORMAL)
+        width = rig_passband_normal(rig, mode);
+
+    if (width > 0) {
+	    len = sprintf(buf, BOM "BAND %d" EOM, (int) width);
+	    retval = rs_transaction(rig, buf, len, NULL, NULL);
+    }
+
+	return retval;
+}
+
+/*
+ * rs_get_mode
+ * Assumes rig!=NULL
+ */
+int rs_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+	char buf[RESPSZ];
+	int buf_len, retval;
+
+#define DEM_QUERY   BOM "DEM?" EOM
+
+    retval = rs_transaction(rig, DEM_QUERY, strlen(DEM_QUERY), buf, &buf_len);
+    if (retval < 0)
+        return retval;
+
+    *mode = rig_parse_mode(buf);
+
+#define BAND_QUERY   BOM "BAND?" EOM
+	retval = rs_transaction(rig, BAND_QUERY, strlen(BAND_QUERY), buf, &buf_len);
+    if (retval < 0)
+        return retval;
+
+    *width = atoi(buf);
+
+	return retval;
+}
+
+
+int rs_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+	char buf[32], *sfunc;
+	int len, retval;
+
+    switch (func) {
+        case RIG_FUNC_AFC: sfunc = "FREQ:AFC"; break;
+        case RIG_FUNC_SQL: sfunc = "OUTP:SQU"; break;
+        default:
+             return -RIG_EINVAL;
+    }
+
+    len = sprintf(buf, BOM "%s %s" EOM, sfunc, status ? "ON" : "OFF");
+    retval = rs_transaction(rig, buf, len, NULL, NULL);
+
+	return retval;
+}
+
+int rs_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
+{
+	char buf[RESPSZ], *sfunc;
+	int buf_len, retval;
+
+    switch (func) {
+        case RIG_FUNC_AFC: sfunc = "FREQ:AFC?"; break;
+        case RIG_FUNC_SQL: sfunc = "OUTP:SQU?"; break;
+        default:
+             return -RIG_EINVAL;
+    }
+
+    retval = rs_transaction(rig, sfunc, strlen(sfunc), buf, &buf_len);
+    if (retval < 0)
+        return retval;
+
+    *status = (memcmp(buf, "ON", 2) == 0) ? 1 : 0;
+
+	return retval;
+}
+
+int rs_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+	char buf[32];
+	int len, retval;
+
+    switch (level) {
+        case RIG_LEVEL_ATT:
+            len = sprintf(buf, BOM "INP:ATT:STAT %s" EOM, val.i ? "ON" : "OFF");
+            break;
+        case RIG_LEVEL_SQL:
+        case RIG_LEVEL_AGC:
+        case RIG_LEVEL_RF:
+             return -RIG_ENIMPL;
+        default:
+             return -RIG_EINVAL;
+    }
+
+    retval = rs_transaction(rig, buf, len, NULL, NULL);
+
+	return retval;
+}
+
+int rs_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+	char buf[RESPSZ], *slevel;
+	int buf_len, retval;
+
+    switch (level) {
+        case RIG_LEVEL_STRENGTH: slevel = BOM "SENS:DATA? \"VOLT:AC\"" EOM; break;
+        case RIG_LEVEL_ATT: slevel = BOM "INP:ATT:STAT?" EOM; break;
+            break;
+        case RIG_LEVEL_SQL:
+        case RIG_LEVEL_AGC:
+        case RIG_LEVEL_RF:
+             return -RIG_ENIMPL;
+        default:
+             return -RIG_EINVAL;
+    }
+
+    retval = rs_transaction(rig, slevel, strlen(slevel), buf, &buf_len);
+    if (retval < 0)
+        return retval;
+
+    switch (level) {
+        case RIG_LEVEL_STRENGTH:
+            /* assumes FORMAat:DATA ASCii
+             * result in dBuV, keep only integer part
+             */
+            sscanf(buf, "%d", &val->i);
+            val->i -= 34;
+            break;
+        case RIG_LEVEL_ATT:
+            val->i = (memcmp(buf, "ON", 2) == 0) ? rig->state.attenuator[0] : 0;
+            break;
+        default:
+             return -RIG_EINVAL;
+    }
+
+	return retval;
+}
+
+const char * rs_get_info(RIG *rig)
+{
+	static char infobuf[128];
+	int info_len, retval;
+
+#define ID_QUERY BOM "*IDN?" EOM
+
+	retval = rs_transaction(rig, ID_QUERY, strlen(ID_QUERY), infobuf, &info_len);
+    if (retval < 0)
+        return NULL;
+
+	return infobuf;
 }
 
 /*

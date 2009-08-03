@@ -2,7 +2,7 @@
  *  Hamlib R&S backend - main header
  *  Copyright (c) 2009 by Stephane Fillod
  *
- *	$Id: rft.h,v 1.1 2003/10/07 22:15:49 fillods Exp $
+ *	$Id: rs.h,v 1.1 2009/08/07 22:15:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -27,6 +27,14 @@
 
 
 int rs_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+int rs_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+int rs_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int rs_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int rs_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+int rs_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
+int rs_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+int rs_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+const char * rs_get_info(RIG *rig);
 
 extern const struct rig_caps esmc_caps;
 
