@@ -1,6 +1,6 @@
 /*
  *  Hamlib PCR backend - PCR-1000 description
- *  Copyright (c) 2001-2003 by Stephane Fillod and Darren Hatcher
+ *  Copyright (c) 2001-2009 by Stephane Fillod and Darren Hatcher
  *
  *	$Id: pcr1000.c,v 1.11 2009-01-27 19:05:59 fillods Exp $
  *
@@ -33,7 +33,8 @@
 
 #define PCR1000_MODES ( RIG_MODE_AM | RIG_MODE_FM | RIG_MODE_WFM | RIG_MODE_CW | RIG_MODE_SSB )
 
-#define PCR1000_FUNC ( RIG_FUNC_NB | RIG_FUNC_TSQL | RIG_FUNC_NB | RIG_FUNC_ANF | RIG_FUNC_NR )
+#define PCR1000_FUNC ( RIG_FUNC_NB | RIG_FUNC_TSQL | RIG_FUNC_NB | \
+            RIG_FUNC_ANF | RIG_FUNC_NR | RIG_FUNC_AFC )
 
 #define PCR1000_LEVEL ( \
 			RIG_LEVEL_ATT | RIG_LEVEL_AF | RIG_LEVEL_SQL | RIG_LEVEL_IF | \
@@ -116,12 +117,12 @@ const struct rig_caps pcr1000_caps = {
 	},
 	/* mode/filter list, remember: order matters! */
 	.filters = {
+		    { RIG_MODE_FM | RIG_MODE_AM, kHz(15) },
+		    { RIG_MODE_FM | RIG_MODE_AM, kHz(6) },
 		    { RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_AM,
 		     kHz(2.8)},
-		    { RIG_MODE_FM | RIG_MODE_AM, kHz(6) },
-		    { RIG_MODE_FM | RIG_MODE_AM, kHz(15) },
-		    { RIG_MODE_WFM | RIG_MODE_FM | RIG_MODE_AM, kHz(50) },
 		    { RIG_MODE_WFM, kHz(230) },
+		    { RIG_MODE_WFM | RIG_MODE_FM | RIG_MODE_AM, kHz(50) },
 		    RIG_FLT_END,
 	},
 
@@ -153,4 +154,7 @@ const struct rig_caps pcr1000_caps = {
 
 	.set_trn	= pcr_set_trn,
 	.decode_event	= pcr_decode_event,
+
+    .set_powerstat  = pcr_set_powerstat,
+    .get_powerstat  = pcr_get_powerstat,
 };

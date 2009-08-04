@@ -85,30 +85,12 @@ int pcr_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int pcr_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 
-int pcr_set_comm_rate(RIG *rig, int baud_rate);
-
-static int pcr_set_volume(RIG *rig, float level);
-static int pcr_set_squelch(RIG *rig, float level);
-int pcr_set_if_shift(RIG *rig, int level);
-int pcr_set_agc(RIG *rig, int status);			// J45xx
-int pcr_set_nb(RIG *rig, int status);			// J46xx
-int pcr_set_attenuator(RIG *rig, int status);		// J47xx
-int pcr_set_anl(RIG *rig, int status);			// J4Dxx
-
-int pcr_set_bf0(RIG *rig, int level);                // J4Axx
-int pcr_set_vsc(RIG *rig, int level);                // J50xx
-int pcr_set_dsp(RIG *rig, int level);                // J80xx
-int pcr_set_dsp_state(RIG *rig, int level);          // J8100=off J8101=on
-int pcr_set_dsp_noise_reducer(RIG *rig, int level);  // J82xx
-int pcr_set_dsp_auto_notch(RIG *rig, int level);     // J83xx
-
 int pcr_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int pcr_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
 int pcr_set_trn(RIG * rig, int trn);
 int pcr_decode_event(RIG *rig);
 int pcr_set_powerstat(RIG * rig, powerstat_t status);
 int pcr_get_powerstat(RIG * rig, powerstat_t *status);
-static int pcr_check_ok(RIG * rig);
 
 /* ------------------------------------------------------------------ */
 

@@ -101,6 +101,26 @@ struct pcr_country pcr_countries[] = {
 	{ 0x0F, "FCC Generic 2" },
 };
 
+
+static int pcr_set_volume(RIG *rig, float level);
+static int pcr_set_squelch(RIG *rig, float level);
+static int pcr_set_if_shift(RIG *rig, int level);
+static int pcr_set_agc(RIG *rig, int status);			// J45xx
+static int pcr_set_afc(RIG *rig, int status);			// LD820xx
+static int pcr_set_nb(RIG *rig, int status);			// J46xx
+static int pcr_set_attenuator(RIG *rig, int status);		// J47xx
+static int pcr_set_anl(RIG *rig, int status);			// J4Dxx
+
+static int pcr_set_bfo_shift(RIG *rig, int level);          // J4Axx
+static int pcr_set_vsc(RIG *rig, int level);                // J50xx
+static int pcr_set_dsp(RIG *rig, int level);                // J80xx
+static int pcr_set_dsp_state(RIG *rig, int level);          // J8100=off J8101=on
+static int pcr_set_dsp_noise_reducer(RIG *rig, int level);  // J82xx
+static int pcr_set_dsp_auto_notch(RIG *rig, int level);     // J83xx
+
+static int pcr_check_ok(RIG * rig);
+
+
 #define PCR_COUNTRIES (sizeof(pcr_countries) / sizeof(struct pcr_country))
 
 static int
@@ -811,6 +831,9 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 	case RIG_LEVEL_IF:
 		return pcr_set_if_shift(rig, val.i);
 
+	case RIG_LEVEL_CWPITCH: /* BFO */
+		return pcr_set_bfo_shift(rig, val.i);
+
 	case RIG_LEVEL_AGC:
 		/* this is implemented as a level even though it is a binary function
 		 * as far as PCR is concerned. There is no AGC on/off for a "set func",
@@ -952,6 +975,14 @@ pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 
 		break;
 
+	case RIG_FUNC_AFC: /* Tracking Filter */
+		if (status == 0)
+			return pcr_set_afc(rig, 0);
+		else
+			return pcr_set_afc(rig, 1);
+
+		break;
+
 	case RIG_FUNC_TSQL:
 		if (priv->last_mode != MD_FM)
 			return -RIG_ERJCTED;
@@ -960,6 +991,14 @@ pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 			return pcr_set_ctcss_sql(rig, vfo, 0);
 		else
 			return pcr_set_ctcss_sql(rig, vfo, priv->last_ctcss_sql);
+
+	case RIG_FUNC_VSC: /* Voice Scan Control */
+		if (status == 0)
+			return pcr_set_vsc(rig, 0);
+		else
+			return pcr_set_vsc(rig, 1);
+
+		break;
 
 	default:
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: default\n", __func__);
@@ -1150,6 +1189,23 @@ pcr_set_agc(RIG * rig, int status)
 }
 
 /*
+ * pcr_set_afc(RIG *rig, int level);
+ * Assumes rig!=NULL, rig->state.priv!=NULL
+ *
+ * Sets the Tracking Filter on or off based on the status argument.
+ * 	00 = on, 01 (non zero) is off
+ *
+ * Format is LD820xx - where xx is 00 to ff in hex
+ *
+ */
+int
+pcr_set_afc(RIG * rig, int status)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d\n", __func__, status);
+	return pcr_set_level_cmd(rig, "LD820", status ? 0 : 1);
+}
+
+/*
  * pcr_set_nb(RIG *rig, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
@@ -1212,14 +1268,14 @@ pcr_set_attenuator(RIG * rig, int status)
  * 		> 80	Plus shift (in 10 Hz steps)
  * 		  80	Centre
  *
- * Format is J4Axx - where xx is 00 to FF in hex, and specifies 255 squelch levels
+ * Format is J4Axx - where xx is 00 to FF in hex, and specifies 255 levels
  * XXX command undocumented?
  */
 int
 pcr_set_bfo_shift(RIG * rig, int level)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, level);
-	return pcr_set_level_cmd(rig, "J4A", level);
+	return pcr_set_level_cmd(rig, "J4A", 0x80 + level/10);
 }
 
 /*
