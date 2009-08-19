@@ -57,7 +57,7 @@ static const char cat_unknown_cmd[] = "?;";   /* Yaesu ? */
 #define NC_MEM_CHANNEL_VFO_RESERVED 99
 
 /* 0.15 seconds delay */
-#define NC_VFO_OP_DELAY 150000
+#define NC_VFO_OP_DELAY 300000
 
 /* ID 0310 == 310, Must drop leading zero */
 typedef enum nc_rigid_e {
@@ -4383,7 +4383,7 @@ int newcat_restore_vfo_ram(RIG * rig, channel_t * chan)
     /* Jump back to VFO from memory channel mode */
     if (chan->channel_num == NC_MEM_CHANNEL_VFO_A) {
         err = newcat_vfo_op(rig, chan->vfo, RIG_OP_TO_VFO);
-        // usleep(NC_VFO_OP_DELAY);
+        usleep(NC_VFO_OP_DELAY);
     }
 
     err = newcat_set_mode(rig, chan->vfo, chan->mode, chan->width);
@@ -4867,7 +4867,7 @@ int newcat_restore_vfo_mem_channel(RIG * rig)
     err = newcat_set_any_mem(rig, RIG_VFO_MEM, NC_MEM_CHANNEL_VFO_RESERVED);
 
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
-    // usleep(NC_VFO_OP_DELAY);
+    usleep(NC_VFO_OP_DELAY);
 
     /* Restore current memory channel */
     err = newcat_set_mem(rig, RIG_VFO_A, mem);
@@ -4915,7 +4915,7 @@ int newcat_backup_vfo_mem_channel(RIG * rig)
     
     /* Restore back to vfo mode */
     err = newcat_vfo_op(rig, RIG_VFO_A, RIG_OP_TO_VFO);
-    // usleep(NC_VFO_OP_DELAY);
+    usleep(NC_VFO_OP_DELAY);
 
     return err;
 }
