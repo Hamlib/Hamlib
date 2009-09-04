@@ -1,6 +1,6 @@
 /*
  *  Hamlib KIT backend - main file
- *  Copyright (c) 2004-2008 by Stephane Fillod
+ *  Copyright (c) 2004-2009 by Stephane Fillod
  *
  *	$Id: kit.c,v 1.8 2008-10-31 07:45:17 fillods Exp $
  *
@@ -49,6 +49,7 @@ DECLARE_INITRIG_BACKEND(kit)
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H)) || defined(_WIN32)
 	rig_register(&dwt_caps);
 	rig_register(&elektor507_caps);
+	rig_register(&si570avrusb_caps);
 #endif
 
 #ifdef HAVE_USRP
