@@ -286,6 +286,28 @@ int rig_load_all_backends()
 
 
 #define MAXFUNCNAMELEN 64
+typedef int (*backend_init_t)(rig_ptr_t);
+
+/*
+ * rig_check_backend_version
+ * Check that the versioned init function name for be_name is the correct version.
+ */
+static backend_init_t rig_check_backend_version(const lt_dlhandle be_handle, const char *be_name,
+						backend_init_t **be_init)
+{
+	char initfname[MAXFUNCNAMELEN];
+
+	snprintf(initfname, MAXFUNCNAMELEN, "initrigs%d_%s", ABI_VERSION, be_name);
+	*be_init = (backend_init_t) lt_dlsym(be_handle, initfname);
+	if (!*be_init) {
+		rig_debug(RIG_DEBUG_ERR, "rig:  dlsym(%s) failed (%s)\n",
+					initfname, lt_dlerror());
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
 /*
  * rig_load_backend
  * Dynamically load a rig backend through dlopen mechanism
@@ -295,10 +317,9 @@ int HAMLIB_API rig_load_backend(const char *be_name)
 # define PREFIX "hamlib-"
 
 	lt_dlhandle be_handle;
-    int (*be_init)(rig_ptr_t);
+	backend_init_t be_init;
 	int status;
 	char libname[PATH_MAX];
-	char initfname[MAXFUNCNAMELEN];
 	char probefname[MAXFUNCNAMELEN];
 	int i;
 
@@ -333,26 +354,16 @@ int HAMLIB_API rig_load_backend(const char *be_name)
 	 * external module not found? try dlopenself for backends 
 	 * compiled in static
 	 */
-	if (!be_handle) {
+	if (!be_handle || rig_check_backend_version(be_handle, be_name, &be_init) != RIG_OK) {
 		rig_debug(RIG_DEBUG_VERBOSE, "rig:  lt_dlopen(\"%s\") failed (%s), "
 						"trying static symbols...\n",
 						libname, lt_dlerror());
 		be_handle = lt_dlopen (NULL);
-	}
-
-	if (!be_handle) {
-		rig_debug(RIG_DEBUG_ERR, "rig:  lt_dlopen(\"%s\") failed (%s)\n",
+		if (!be_handle || rig_check_backend_version(be_handle, be_name, &be_init) != RIG_OK) {
+			rig_debug(RIG_DEBUG_ERR, "rig:  lt_dlopen(\"%s\") failed (%s)\n",
 						libname, lt_dlerror());
-		return -RIG_EINVAL;
-    }
-
-    snprintf(initfname, MAXFUNCNAMELEN, "initrigs%d_%s", ABI_VERSION, be_name);
-    be_init = (int (*)(rig_ptr_t)) lt_dlsym (be_handle, initfname);
-	if (!be_init) {
-			rig_debug(RIG_DEBUG_ERR, "rig: dlsym(%s) failed (%s)\n",
-						initfname, lt_dlerror());
-			lt_dlclose(be_handle);
 			return -RIG_EINVAL;
+		}
 	}
 
 
