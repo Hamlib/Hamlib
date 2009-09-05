@@ -443,7 +443,7 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		return si570avrusb_set_freq_by_value(rig, vfo, freq);
 #endif
 
-	f = freq * priv->multiplier;
+	f = (freq * priv->multiplier)/1e6;
 
 	calcDividers(rig, f, &theSolution);
 
@@ -465,8 +465,8 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT,
 			request, value, index, buffer, sizeof(buffer), AVRUSB_WRITE_TIMEOUT);
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.0f Hz, Real=%.0f Hz, buf=%02x%02x%02x%02x%02x%02x\n", 
-			__func__, freq, f,
+	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x%02x%02x\n", 
+			__func__, freq/1e6, f,
 			buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5]);
 
 
@@ -495,12 +495,12 @@ int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 	int index = 0;
 	double f;
        
-	f = freq * priv->multiplier;
+	f = (freq * priv->multiplier)/1e6;
 
 	setLongWord(round(f * 2097152.0), buffer);
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.0f Hz, Real=%.0f Hz, buf=%02x%02x%02x%02x\n", 
-			__func__, freq, f,
+	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x\n", 
+			__func__, freq/1e6, f,
 			buffer[0], buffer[1], buffer[2], buffer[3]);
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT,
@@ -571,7 +571,7 @@ int si570avrusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return -RIG_EIO;
 	}
 
-	*freq = calculateFrequency(rig, buffer) / priv->multiplier;
+	*freq = (calculateFrequency(rig, buffer) / priv->multiplier)*1e6;
 
 	return RIG_OK;
 }
@@ -594,7 +594,7 @@ int si570avrusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 		return -RIG_EIO;
 	}
 
-	*freq = ((double)iFreq / (1UL<<21)) / priv->multiplier;
+	*freq = (((double)iFreq / (1UL<<21)) / priv->multiplier)/1e6;
 
 	return RIG_OK;
 }
