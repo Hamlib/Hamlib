@@ -279,6 +279,40 @@ int si570avrusb_get_conf(RIG *rig, token_t token, char *val)
 }
 
 
+static int setBPF(RIG *rig, int enable)
+{
+	struct usb_dev_handle *udh = rig->state.rigport.handle;
+	unsigned short FilterCrossOver[16];        // allocate enough space for up to 16 filters
+	int nBytes, i;
+
+	// first find out how may cross over points there are for the 1st bank, use 255 for index
+	nBytes = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+            REQUEST_FILTERS, 0, 255,
+            (char *) FilterCrossOver, sizeof(FilterCrossOver),
+            AVRUSB_WRITE_TIMEOUT);
+
+    if (nBytes < 0)
+        return -RIG_EIO;
+  
+	if (nBytes > 2) {
+
+		nBytes = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+                REQUEST_FILTERS, enable, (nBytes / 2) - 1,
+                (char *) FilterCrossOver, sizeof(FilterCrossOver),
+                AVRUSB_WRITE_TIMEOUT);
+        if (nBytes < 0)
+            return -RIG_EIO;
+
+		rig_debug (RIG_DEBUG_TRACE, "Filter Bank 1:\n");
+		for (i = 0; i < (nBytes / 2) - 1; i++) {
+			rig_debug (RIG_DEBUG_TRACE, "  CrossOver[%d] = %f\n",
+                    i, (double) FilterCrossOver[i] / (1UL << 5));
+		}
+		rig_debug (RIG_DEBUG_TRACE, "  BPF Enabled: %d\n",
+                FilterCrossOver[(nBytes / 2) - 1]); 
+	}
+    return RIG_OK;
+}
 
 int si570avrusb_open(RIG *rig)
 {
@@ -320,6 +354,10 @@ int si570avrusb_open(RIG *rig)
 			return -RIG_EIO;
 
 		priv->osc_freq = (double)iFreq / (1UL<<24);
+
+        ret = setBPF(rig, 1);
+        if (ret != RIG_OK)
+            return ret;
 	}
 
 	rig_debug(RIG_DEBUG_VERBOSE,"%s: using Xtall at %.3f MHz\n",
@@ -615,7 +653,7 @@ int si570avrusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_SET_PTT, (ptt == RIG_PTT_ON) ? 1 : 0, 0,
 			(char *)buffer, sizeof(buffer), AVRUSB_WRITE_TIMEOUT);
-	if (ret != 0) {
+	if (ret < 0) {
 		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
 					__func__,
 					usb_strerror ());
