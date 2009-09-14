@@ -5,7 +5,7 @@
  *  Derived from usbsoftrock-0.5:
  *  Copyright (C) 2009 Andrew Nilsson (andrew.nilsson@gmail.com)
  *
- *	$Id: si570avrusb.c,v 1.4 2008-04-26 09:00:30 fillods Exp $
+ *	$Id: si570avrusb.c fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -38,7 +38,7 @@
 /*
  * Compile this model only if libusb is available
  */
-#if defined(HAVE_LIBUSB)
+#if defined(HAVE_LIBUSB) && defined(HAVE_USB_H)
 
 #include <errno.h>
 #include <usb.h>
@@ -50,6 +50,8 @@ static int si570avrusb_cleanup(RIG *rig);
 static int si570avrusb_open(RIG *rig);
 static int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int si570avrusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq);
+static int si570avrusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq);
 static int si570avrusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt);
 static int si570avrusb_set_conf(RIG *rig, token_t token, const char *val);
 static int si570avrusb_get_conf(RIG *rig, token_t token, char *val);
@@ -64,10 +66,8 @@ static const char *si570avrusb_get_info(RIG *rig);
  */
 
 #define VENDOR_NAME			"www.obdev.at"
-#define PRODUCT_NAME			"DG8SAQ-I2C"
+#define PRODUCT_NAME		"DG8SAQ-I2C"
 
-
-#define AVRUSB_WRITE_TIMEOUT 5000 /* from caps/state ? */
 
 
 #define TOK_OSCFREQ	TOKEN_BACKEND(1)
@@ -101,7 +101,7 @@ struct si570avrusb_priv_data {
 
 #define SI570AVRUSB_LEVEL_ALL (RIG_LEVEL_NONE)
 
-	/* TODO: BPF as a parm */
+	/* TODO: BPF as a parm or ext_level? */
 #define SI570AVRUSB_PARM_ALL (RIG_PARM_NONE)
 
 #define SI570AVRUSB_VFO (RIG_VFO_A)
@@ -124,14 +124,14 @@ const struct rig_caps si570avrusb_caps = {
 .mfg_name =  "SoftRock",
 .version =  "0.1",
 .copyright =  "GPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_USB,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  5,
+.timeout =  500,
 .retry = 0,
 
 .has_get_func =  SI570AVRUSB_FUNC,
@@ -204,6 +204,7 @@ int si570avrusb_init(RIG *rig)
 	}
 
 	priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
+    /* QSD/QSE */
 	priv->multiplier = 4;
 
 	rp->parm.usb.vid = USBDEV_SHARED_VID;
@@ -212,10 +213,8 @@ int si570avrusb_init(RIG *rig)
 	rp->parm.usb.iface = 0;
 	rp->parm.usb.alt = 0;	/* necessary ? */
 
-#if 0
 	rp->parm.usb.vendor_name = VENDOR_NAME;
 	rp->parm.usb.product = PRODUCT_NAME;
-#endif
 
 	rig->state.priv = (void*)priv;
 
@@ -282,14 +281,15 @@ int si570avrusb_get_conf(RIG *rig, token_t token, char *val)
 static int setBPF(RIG *rig, int enable)
 {
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
-	unsigned short FilterCrossOver[16];        // allocate enough space for up to 16 filters
+    /* allocate enough space for up to 16 filters */
+	unsigned short FilterCrossOver[16];
 	int nBytes, i;
 
 	// first find out how may cross over points there are for the 1st bank, use 255 for index
 	nBytes = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
             REQUEST_FILTERS, 0, 255,
             (char *) FilterCrossOver, sizeof(FilterCrossOver),
-            AVRUSB_WRITE_TIMEOUT);
+            rig->state.rigport.timeout);
 
     if (nBytes < 0)
         return -RIG_EIO;
@@ -299,7 +299,7 @@ static int setBPF(RIG *rig, int enable)
 		nBytes = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
                 REQUEST_FILTERS, enable, (nBytes / 2) - 1,
                 (char *) FilterCrossOver, sizeof(FilterCrossOver),
-                AVRUSB_WRITE_TIMEOUT);
+                rig->state.rigport.timeout);
         if (nBytes < 0)
             return -RIG_EIO;
 
@@ -329,7 +329,7 @@ int si570avrusb_open(RIG *rig)
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_READ_VERSION, 0x0E00, 0,
-			(char *) &version, sizeof(version), AVRUSB_WRITE_TIMEOUT);
+			(char *) &version, sizeof(version), rig->state.rigport.timeout);
 
 	if (ret != 2) {
 		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
@@ -348,7 +348,7 @@ int si570avrusb_open(RIG *rig)
 		ret = usb_control_msg(udh,
 				USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 				REQUEST_READ_XTALL, 0, 0, (char *) &iFreq, sizeof(iFreq),
-				AVRUSB_WRITE_TIMEOUT);
+				rig->state.rigport.timeout);
 
 		if (ret != 4)
 			return -RIG_EIO;
@@ -376,7 +376,7 @@ const char * si570avrusb_get_info(RIG *rig)
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_READ_VERSION, 0x0E00, 0,
-			(char *) &version, sizeof(version), AVRUSB_WRITE_TIMEOUT);
+			(char *) &version, sizeof(version), rig->state.rigport.timeout);
 
 	if (ret != 2) {
 		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
@@ -451,7 +451,7 @@ static int calcDividers(RIG *rig, double f, struct solution* solution)
 	}
 }
 
-static void setLongWord(uint32_t value, char * bytes)
+static void setLongWord(uint32_t value, unsigned char * bytes)
 {
 	bytes[0] = value & 0xff;
 	bytes[1] = ((value & 0xff00) >> 8) & 0xff;
@@ -465,7 +465,7 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int ret;
-	char buffer[6];
+	unsigned char buffer[6];
 	int request = REQUEST_SET_FREQ;
 	int value = 0x700 + SI570_I2C_ADDR;
 	int index = 0;
@@ -476,10 +476,8 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char fracBuffer[4];
 	unsigned char intBuffer[4];
 
-#if 0
 	if (priv->version >= 0x0f00)
 		return si570avrusb_set_freq_by_value(rig, vfo, freq);
-#endif
 
 	f = (freq * priv->multiplier)/1e6;
 
@@ -487,8 +485,8 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	RFREQ_int = trunc(theSolution.RFREQ);
 	RFREQ_frac = round((theSolution.RFREQ - RFREQ_int)*268435456);
-	setLongWord(RFREQ_int, (char *) intBuffer);
-	setLongWord(RFREQ_frac, (char *) fracBuffer);
+	setLongWord(RFREQ_int, intBuffer);
+	setLongWord(RFREQ_frac, fracBuffer);
 	
 	buffer[5] = fracBuffer[0];
 	buffer[4] = fracBuffer[1];
@@ -501,7 +499,7 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	buffer[0] = buffer[0] + (theSolution.HS_DIV << 5);
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT,
-			request, value, index, buffer, sizeof(buffer), AVRUSB_WRITE_TIMEOUT);
+			request, value, index, (char*)buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Freq=%.6f MHz, Real=%.6f MHz, buf=%02x%02x%02x%02x%02x%02x\n", 
 			__func__, freq/1e6, f,
@@ -527,7 +525,7 @@ int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int ret;
 
-	char buffer[4];
+	unsigned char buffer[4];
 	int request = REQUEST_SET_FREQ_BY_VALUE;
 	int value = 0x700 + SI570_I2C_ADDR;
 	int index = 0;
@@ -542,7 +540,7 @@ int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 			buffer[0], buffer[1], buffer[2], buffer[3]);
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT,
-			request, value, index, buffer, sizeof(buffer), AVRUSB_WRITE_TIMEOUT);
+			request, value, index, (char*)buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (!ret) {
 		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
@@ -593,14 +591,12 @@ int si570avrusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned char buffer[6];
 	int ret;
 
-#if 0
 	if (priv->version >= 0x0f00)
 		return si570avrusb_get_freq_by_value(rig, vfo, freq);
-#endif
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_READ_REGISTERS, SI570_I2C_ADDR, 0,
-			(char *)buffer, sizeof(buffer), AVRUSB_WRITE_TIMEOUT);
+			(char *)buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (ret <= 0) {
 		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
@@ -623,7 +619,7 @@ int si570avrusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_READ_FREQUENCY, 0, 0,
-			(char *)&iFreq, sizeof(iFreq), AVRUSB_WRITE_TIMEOUT);
+			(char *)&iFreq, sizeof(iFreq), rig->state.rigport.timeout);
 
 	if (ret != 4) {
 		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
@@ -632,7 +628,7 @@ int si570avrusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 		return -RIG_EIO;
 	}
 
-	*freq = (((double)iFreq / (1UL<<21)) / priv->multiplier)/1e6;
+	*freq = (((double)iFreq / (1UL<<21)) / priv->multiplier)*1e6;
 
 	return RIG_OK;
 }
@@ -652,7 +648,7 @@ int si570avrusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 	
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_SET_PTT, (ptt == RIG_PTT_ON) ? 1 : 0, 0,
-			(char *)buffer, sizeof(buffer), AVRUSB_WRITE_TIMEOUT);
+			(char *)buffer, sizeof(buffer), rig->state.rigport.timeout);
 	if (ret < 0) {
 		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s\n", 
 					__func__,
@@ -663,5 +659,5 @@ int si570avrusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 	return RIG_OK;
 }
 
-#endif	/* defined(HAVE_LIBUSB) */
+#endif	/* defined(HAVE_LIBUSB) && defined(HAVE_USB_H) */
 
