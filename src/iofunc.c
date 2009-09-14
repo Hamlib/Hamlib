@@ -49,6 +49,130 @@
 #include "iofunc.h"
 #include "misc.h"
 
+#include "serial.h"
+#include "parallel.h"
+#include "usb_port.h"
+#include "network.h"
+
+
+/**
+ * \brief Open a hamlib_port based on its rig port type
+ * \param p rig port descriptor
+ * \return status
+ */
+int HAMLIB_API port_open(hamlib_port_t *p)
+{
+	int status;
+	int want_state_delay = 0;
+
+	p->fd = -1;
+
+	switch(p->type.rig) {
+	case RIG_PORT_SERIAL:
+		status = serial_open(p);
+		if (status < 0)
+			return status;
+		if (p->parm.serial.rts_state != RIG_SIGNAL_UNSET &&
+				p->parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
+			status = ser_set_rts(p, 
+					p->parm.serial.rts_state == RIG_SIGNAL_ON);
+			want_state_delay = 1;
+		}
+		if (status != 0)
+			return status;
+		if (p->parm.serial.dtr_state != RIG_SIGNAL_UNSET) {
+			status = ser_set_dtr(p, 
+					p->parm.serial.dtr_state == RIG_SIGNAL_ON);
+			want_state_delay = 1;
+		}
+		if (status != 0)
+			return status;
+		/*
+		 * Wait whatever electrolytics in the circuit come up to voltage.
+		 * Is 100ms enough? Too much?
+		 */
+		if (want_state_delay)
+			usleep(100*1000);
+
+		break;
+
+	case RIG_PORT_PARALLEL:
+		status = par_open(p);
+		if (status < 0)
+			return status;
+		break;
+
+	case RIG_PORT_DEVICE:
+		status = open(p->pathname, O_RDWR, 0);
+		if (status < 0)
+			return -RIG_EIO;
+		p->fd = status;
+		break;
+
+	case RIG_PORT_USB:
+		status = usb_port_open(p);
+		if (status < 0)
+			return status;
+		break;
+
+	case RIG_PORT_NONE:
+	case RIG_PORT_RPC:
+		break;	/* ez :) */
+
+	case RIG_PORT_NETWORK:
+        /* FIXME: hardcoded network port */
+		status = network_open(p, 4532);
+		if (status < 0)
+			return status;
+		break;
+
+	default:
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
+/**
+ * \brief Close a hamlib_port
+ * \param p rig port descriptor
+ * \param port_type equivalent rig port type
+ * \return status
+ *
+ * This function may also be used with ptt and dcd ports.
+ */
+int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
+{
+    int ret;
+
+	if (p->fd != -1) {
+		switch (port_type) {
+		case RIG_PORT_SERIAL:
+			ret = ser_close(p);
+			break;
+		case RIG_PORT_PARALLEL:
+			ret = par_close(p);
+			break;
+		case RIG_PORT_USB:
+			ret = usb_port_close(p);
+			break;
+		case RIG_PORT_NETWORK:
+			ret = network_close(p);
+			break;
+
+		default:
+		    rig_debug(RIG_DEBUG_ERR, "%s: Unknown port type %d\n",
+						__func__, port_type);
+            /* fall through */
+		case RIG_PORT_DEVICE:
+			ret = close(p->fd);
+		}
+		p->fd = -1;
+	}
+
+	return ret;
+}
+
 #if defined(WIN32) && !defined(HAVE_TERMIOS_H)
 #include "win32termios.h"
 

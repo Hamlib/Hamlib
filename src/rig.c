@@ -419,7 +419,6 @@ int HAMLIB_API rig_open(RIG *rig)
 	const struct rig_caps *caps;
 	struct rig_state *rs;
 	int status;
-	int want_state_delay = 0;
 
 	rig_debug(RIG_DEBUG_VERBOSE,"rig:rig_open called \n");
 
@@ -434,69 +433,28 @@ int HAMLIB_API rig_open(RIG *rig)
 
 	rs->rigport.fd = -1;
 
-	switch(rs->rigport.type.rig) {
-	case RIG_PORT_SERIAL:
-		status = serial_open(&rs->rigport);
-		if (status < 0)
-			return status;
+	if (rs->rigport.type.rig == RIG_PORT_SERIAL) {
+
 		if (rs->rigport.parm.serial.rts_state != RIG_SIGNAL_UNSET &&
-				rs->rigport.type.ptt != RIG_PTT_SERIAL_RTS &&
-				rs->rigport.parm.serial.handshake != RIG_HANDSHAKE_HARDWARE) {
-			status = ser_set_rts(&rs->rigport, 
-					rs->rigport.parm.serial.rts_state == RIG_SIGNAL_ON);
-			want_state_delay = 1;
+				(rs->pttport.type.ptt == RIG_PTT_SERIAL_RTS ||
+				rs->rigport.parm.serial.handshake == RIG_HANDSHAKE_HARDWARE)) {
+
+			rig_debug(RIG_DEBUG_ERR, "Cannot set RTS with PTT by RTS or hardware handshare \"%s\"\n",
+						rs->rigport.pathname);
+            return -RIG_ECONF;
 		}
-		if (status != 0)
-			return status;
 		if (rs->rigport.parm.serial.dtr_state != RIG_SIGNAL_UNSET &&
-				rs->rigport.type.ptt != RIG_PTT_SERIAL_DTR) {
-			status = ser_set_dtr(&rs->rigport, 
-					rs->rigport.parm.serial.dtr_state == RIG_SIGNAL_ON);
-			want_state_delay = 1;
+				rs->pttport.type.ptt == RIG_PTT_SERIAL_DTR) {
+			rig_debug(RIG_DEBUG_ERR, "Cannot set DTR with PTT by DTR\"%s\"\n",
+						rs->rigport.pathname);
+            return -RIG_ECONF;
 		}
-		if (status != 0)
-			return status;
-		/*
-		 * Wait whatever electrolytics in the circuit come up to voltage.
-		 * Is 100ms enough? Too much?
-		 */
-		if (want_state_delay)
-			usleep(100*1000);
+    }
 
-		break;
+    status = port_open(&rs->rigport);
+    if (status < 0)
+        return status;
 
-	case RIG_PORT_PARALLEL:
-		status = par_open(&rs->rigport);
-		if (status < 0)
-			return status;
-		break;
-
-	case RIG_PORT_DEVICE:
-		status = open(rs->rigport.pathname, O_RDWR, 0);
-		if (status < 0)
-			return -RIG_EIO;
-		rs->rigport.fd = status;
-		break;
-
-	case RIG_PORT_USB:
-		status = usb_port_open(&rs->rigport);
-		if (status < 0)
-			return status;
-		break;
-
-	case RIG_PORT_NONE:
-	case RIG_PORT_RPC:
-		break;	/* ez :) */
-
-	case RIG_PORT_NETWORK:
-		status = network_open(&rs->rigport, 4532);
-		if (status < 0)
-			return status;
-		break;
-
-	default:
-		return -RIG_EINVAL;
-	}
 
 	/*
 	 * FIXME: what to do if PTT open fails or PTT unsupported?
@@ -633,10 +591,10 @@ int HAMLIB_API rig_close(RIG *rig)
 		break;
 	case RIG_PTT_SERIAL_RTS:
 	case RIG_PTT_SERIAL_DTR:
-		ser_close(&rs->pttport);
+        port_close(&rs->pttport, RIG_PORT_SERIAL);
 		break;
 	case RIG_PTT_PARALLEL:
-		par_close(&rs->pttport);
+        port_close(&rs->pttport, RIG_PORT_PARALLEL);
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
@@ -650,10 +608,10 @@ int HAMLIB_API rig_close(RIG *rig)
 	case RIG_DCD_SERIAL_DSR:
 	case RIG_DCD_SERIAL_CTS:
 	case RIG_DCD_SERIAL_CAR:
-		ser_close(&rs->dcdport);
+        port_close(&rs->dcdport, RIG_PORT_SERIAL);
 		break;
 	case RIG_DCD_PARALLEL:
-		par_close(&rs->dcdport);
+        port_close(&rs->dcdport, RIG_PORT_PARALLEL);
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported DCD type %d\n",
@@ -662,26 +620,7 @@ int HAMLIB_API rig_close(RIG *rig)
 
 	rs->dcdport.fd = rs->pttport.fd = -1;
 
-	if (rs->rigport.fd != -1) {
-		switch(rs->rigport.type.rig) {
-		case RIG_PORT_SERIAL:
-			ser_close(&rs->rigport);
-			break;
-		case RIG_PORT_PARALLEL:
-			par_close(&rs->rigport);
-			break;
-		case RIG_PORT_USB:
-			usb_port_close(&rs->rigport);
-			break;
-		case RIG_PORT_NETWORK:
-			network_close(&rs->rigport);
-			break;
-
-		default:
-			close(rs->rigport.fd);
-		}
-		rs->rigport.fd = -1;
-	}
+    port_close(&rs->rigport, rs->rigport.type.rig);
 
 	remove_opened_rig(rig);
 
