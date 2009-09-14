@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - USB communication low-level support
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
  *	$Id: usb_port.c,v 1.5 2007-10-07 20:12:36 fillods Exp $
  *
@@ -55,44 +55,121 @@
 #include <usb.h>
 #include "usb_port.h"
 
-/**
- * \brief Find USB device
- * \param port
- * \return usb_device
- */
-struct usb_device * find_device(const hamlib_port_t *port)
-{
-	struct usb_bus *p;
-	struct usb_device *q;
 
-  p = usb_get_busses();
+/**
+ * \brief Get ASCII string from USB descriptor
+ * \param udh
+ * \param index
+ * \param langid
+ * \param buf
+ * \param buflen
+ * \return status/len
+ */
+static int usbGetStringAscii(usb_dev_handle *udh, int index, int langid, char *buf, int buflen)
+{
+  char    buffer[256];
+  int     rval, i;
+
+  rval = usb_control_msg(udh, USB_ENDPOINT_IN, USB_REQ_GET_DESCRIPTOR,
+          (USB_DT_STRING << 8) + index, langid, buffer, sizeof(buffer), 1000);
+  if(rval < 0)
+    return rval;
+  if(buffer[1] != USB_DT_STRING)
+    return 0;
+  if((unsigned char)buffer[0] < rval)
+    rval = (unsigned char)buffer[0];
+  rval /= 2;
+  /* lossy conversion to ISO Latin1 */
+  for(i=1;i<rval;i++){
+    if(i > buflen)  /* destination buffer overflow */
+      break;
+    buf[i-1] = buffer[2 * i];
+    if(buffer[2 * i + 1] != 0)  /* outside of ISO Latin1 range */
+      buf[i-1] = '?';
+  }
+  buf[i-1] = 0;
+  return i-1;
+}
+
+/**
+ * \brief Find and open USB device
+ * \param port
+ * \return usb_handle
+ */
+static struct usb_dev_handle *find_and_open_device(const hamlib_port_t *port)
+{
+  struct usb_bus *bus;
+  struct usb_device *dev;
+  struct usb_dev_handle *udh;
+  char    string[256];
+  int     len;
 
   rig_debug(RIG_DEBUG_TRACE, "%s: looking for device %04x:%04x...", __FUNCTION__,
 		  port->parm.usb.vid, port->parm.usb.pid);
 
-  while (p != NULL){
-    q = p->devices;
-    while (q != NULL){
-      rig_debug(RIG_DEBUG_TRACE, " %04x:%04x,", q->descriptor.idVendor,
-			q->descriptor.idProduct);
-      if (q->descriptor.idVendor == port->parm.usb.vid &&
-			q->descriptor.idProduct == port->parm.usb.pid) {
-      		rig_debug(RIG_DEBUG_TRACE, " -> found\n");
-	  	return q;
+  for (bus = usb_get_busses(); bus != NULL; bus = bus->next) {
+    
+    for (dev = bus->devices; dev != NULL; dev = dev->next) {
+
+      rig_debug(RIG_DEBUG_TRACE, " %04x:%04x,", dev->descriptor.idVendor,
+			dev->descriptor.idProduct);
+      if (dev->descriptor.idVendor == port->parm.usb.vid &&
+			dev->descriptor.idProduct == port->parm.usb.pid) {
+
+          /* we need to open the device in order to query strings */
+          udh = usb_open(dev);
+          if (!udh){
+            rig_debug(RIG_DEBUG_WARN, "Warning: cannot open USB device: %s\n", usb_strerror());
+            continue;
+          }
+
+          /* now check whether the names match: */
+          if (port->parm.usb.vendor_name) {
+              len = usbGetStringAscii(udh, dev->descriptor.iManufacturer, 0x0409, string, sizeof(string));
+              if (len < 0) {
+                rig_debug(RIG_DEBUG_WARN, "Warning: cannot query manufacturer for USB device: %s\n", usb_strerror());
+                usb_close(udh);
+                continue;
+              }
+              rig_debug(RIG_DEBUG_TRACE, " vendor >%s<", string);
+              if (strcmp(string, port->parm.usb.vendor_name) != 0){
+                usb_close(udh);
+                continue;
+              }
+          }
+
+          if (port->parm.usb.product) {
+              len = usbGetStringAscii(udh, dev->descriptor.iProduct, 0x0409, string, sizeof(string));
+              if (len < 0) {
+                rig_debug(RIG_DEBUG_WARN, "Warning: cannot query product for USB device: %s\n", usb_strerror());
+                usb_close(udh);
+                continue;
+              }
+              rig_debug(RIG_DEBUG_TRACE, " product >%s<", string);
+              if (strcmp(string, port->parm.usb.product) != 0){
+                usb_close(udh);
+                continue;
+              }
+          }
+
+          rig_debug(RIG_DEBUG_TRACE, " -> found\n");
+	  	  return udh;
 	  }
-      q = q->next;
     }
-    p = p->next;
   }
   rig_debug(RIG_DEBUG_TRACE, " -> not found\n");
   return NULL;	/* not found */
 }
 
 
+/**
+ * \brief Open hamlib_port of USB device
+ * \param port
+ * \return status
+ */
 int usb_port_open(hamlib_port_t *port)
 {
 	struct usb_dev_handle *udh;
-	struct usb_device *dev;
 
 
 	if (!port->pathname)
@@ -100,19 +177,15 @@ int usb_port_open(hamlib_port_t *port)
 
     usb_init ();	/* usb library init */
     if (usb_find_busses () < 0)
-	rig_debug(RIG_DEBUG_ERR, "%s: usb_find_busses failed %s\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: usb_find_busses failed %s\n",
 			__FUNCTION__, usb_strerror());
     if (usb_find_devices() < 0)
-	rig_debug(RIG_DEBUG_ERR, "%s: usb_find_devices failed %s\n",
+        rig_debug(RIG_DEBUG_ERR, "%s: usb_find_devices failed %s\n",
 			__FUNCTION__, usb_strerror());
 
-    dev = find_device(port);
-    if (dev == 0)
-	return -RIG_EIO;
-
-  udh = usb_open (dev);
-  if (udh == 0)
-	return -RIG_EIO;
+    udh = find_and_open_device(port);
+    if (udh == 0)
+        return -RIG_EIO;
 
 #ifdef LIBUSB_HAS_GET_DRIVER_NP
       /* Try to detach ftdi_sio kernel module
@@ -125,12 +198,6 @@ int usb_port_open(hamlib_port_t *port)
 		return -RIG_EIO;
 	}
 #endif
-
-  if (dev != usb_device (udh)){
-	rig_debug(RIG_DEBUG_ERR, "%s:%d: internal error!\n", __FILE__, __LINE__);
-	usb_close(udh);
-	return -RIG_EINTERNAL;
-  }
 
 #if 0
   if (usb_set_configuration (udh, port->parm.usb.conf) < 0){
@@ -165,6 +232,11 @@ int usb_port_open(hamlib_port_t *port)
   return RIG_OK;
 }
 
+/**
+ * \brief Close hamlib_port of USB device
+ * \param port
+ * \return status
+ */
 int usb_port_close(hamlib_port_t *port)
 {
 	struct usb_dev_handle *udh = port->handle;

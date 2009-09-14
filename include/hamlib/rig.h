@@ -725,7 +725,7 @@ enum rig_func_e {
 	RIG_FUNC_ANF =    	(1<<8),	/*!< \c ANF -- Automatic Notch Filter (DSP) */
 	RIG_FUNC_NR =     	(1<<9),	/*!< \c NR -- Noise Reduction (DSP) */
 	RIG_FUNC_AIP =     	(1<<10),/*!< \c AIP -- RF pre-amp (AIP on Kenwood, IPO on Yaesu, etc.) */
-	RIG_FUNC_APF =     	(1<<11),/*!< \c APF -- Auto Passband Filter */
+	RIG_FUNC_APF =     	(1<<11),/*!< \c APF -- Auto Passband/Audio Peak Filter */
 	RIG_FUNC_MON =     	(1<<12),/*!< \c MON -- Monitor transmitted signal */
 	RIG_FUNC_MN =     	(1<<13),/*!< \c MN -- Manual Notch */
 	RIG_FUNC_RF =     	(1<<14),/*!< \c RF -- RTTY Filter */
@@ -1350,6 +1350,8 @@ typedef struct {
 		int conf;	/*!< Configuration */
 		int iface;	/*!< interface */
 		int alt;	/*!< alternate */
+        char *vendor_name; /*!< Vendor name (opt.) */
+        char *product;     /*!< Product (opt.) */
 	} usb;			/*!< USB attributes */
   } parm;			/*!< Port parameter union */
 } hamlib_port_t;
