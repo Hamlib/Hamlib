@@ -1,5 +1,6 @@
 /*
- * rigmem.c - (C) Stephane Fillod and Thierry Leconte 2003-2005
+ * rigmem.c - (C) Thierry Leconte 2003-2005
+ *            (C) Stephane Fillod 2003-2009
  *
  * This program exercises the backup and restore of a radio
  * using Hamlib.
@@ -211,6 +212,22 @@ int main (int argc, char *argv[])
 		fprintf(stderr, "Config parameter error: %s\n", rigerror(retcode));
 		exit(2);
 	}
+
+    /* check channel support */
+    if (rig->caps->set_channel == NULL && rig->caps->get_channel == NULL &&
+            rig->caps->set_chan_all_cb == NULL && rig->caps->get_chan_all_cb == NULL &&
+            (rig->caps->set_mem == NULL || rig->caps->set_vfo == NULL)) {
+		fprintf(stderr, "Error: rig num %d has no memory support implemented/available.\n", 
+						my_model);
+		exit(3);
+    }
+
+    /* check channel description */
+    if (rig->caps->chan_list[0].type == 0) {
+		fprintf(stderr, "Error: rig num %d has no channel list.\n", 
+						my_model);
+		exit(3);
+    }
 
 	if (rig_file)
 		strncpy(rig->state.rigport.pathname, rig_file, FILPATHLEN);
