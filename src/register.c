@@ -292,8 +292,8 @@ typedef int (*backend_init_t)(rig_ptr_t);
  * rig_check_backend_version
  * Check that the versioned init function name for be_name is the correct version.
  */
-static backend_init_t rig_check_backend_version(const lt_dlhandle be_handle, const char *be_name,
-						backend_init_t **be_init)
+static int rig_check_backend_version(const lt_dlhandle be_handle, const char *be_name,
+						backend_init_t *be_init)
 {
 	char initfname[MAXFUNCNAMELEN];
 
