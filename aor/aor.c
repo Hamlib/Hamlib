@@ -183,6 +183,10 @@ int aor_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return retval;
 
 	rfp = strstr(freqbuf, "RF");
+    if (!rfp && rig->caps->rig_model == RIG_MODEL_AR8000)
+        rfp = strstr(freqbuf, "VA");
+    if (!rfp && rig->caps->rig_model == RIG_MODEL_AR8000)
+        rfp = strstr(freqbuf, "VB");
 	if (!rfp) {
 		rig_debug(RIG_DEBUG_WARN, "NO RF in returned string in aor_get_freq: '%s'\n",
 				freqbuf);
@@ -203,7 +207,16 @@ int aor_set_vfo(RIG *rig, vfo_t vfo)
 	char *vfocmd;
 
 	switch (vfo) {
-	case RIG_VFO_VFO: vfocmd = "VF" EOM; break;
+	case RIG_VFO_VFO:
+        if (rig->caps->rig_model == RIG_MODEL_AR8000)
+        {
+            vfocmd = "RF" EOM;
+        }
+        else
+        {
+            vfocmd = "VF" EOM;
+        }
+        break;
 	case RIG_VFO_A: vfocmd = "VA" EOM; break;
 	case RIG_VFO_B: vfocmd = "VB" EOM; break;
 	case RIG_VFO_C: vfocmd = "VC" EOM; break;
@@ -233,6 +246,28 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
 	if (retval != RIG_OK)
 		return retval;
 
+    if (rig->caps->rig_model == RIG_MODEL_AR8000)
+    {
+        switch (vfobuf[0])
+        {
+            case 'S':
+            case 'D':
+                *vfo = RIG_VFO_VFO;
+                break;
+            case 'V':
+                *vfo = RIG_VFO_N(vfobuf[4]-'A');
+                break;
+            case 'M':
+                *vfo = RIG_VFO_MEM;
+                break;
+            default:
+                rig_debug(RIG_DEBUG_ERR,"aor_get_vfo: unknown vfo %s\n",
+                                vfobuf);
+                return -RIG_EINVAL;
+        }
+    }
+    else
+    {
 	switch (vfobuf[1]) {
 	case 'S':
 	case 'V':
@@ -248,6 +283,7 @@ int aor_get_vfo(RIG *rig, vfo_t *vfo)
 						vfobuf[1]);
 		return -RIG_EINVAL;
 	}
+    }
 
 	return RIG_OK;
 }
@@ -258,6 +294,12 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 
 	switch (mode) {
 	case RIG_MODE_AM:       
+        if (rig->caps->rig_model == RIG_MODEL_AR8000)
+        {
+            aormode = AR8K_AM;
+        }
+        else
+        {
 		switch(width) {
 			case RIG_PASSBAND_NORMAL:
 			case s_kHz(9): aormode = AR8K_AM; break;
@@ -271,12 +313,19 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 					mode, width);
 			return -RIG_EINVAL;
 		}
+        }
 		break;
 	case RIG_MODE_CW:       aormode = AR8K_CW; break;
 	case RIG_MODE_USB:      aormode = AR8K_USB; break;
 	case RIG_MODE_LSB:      aormode = AR8K_LSB; break;
 	case RIG_MODE_WFM:      aormode = AR8K_WFM; break;
 	case RIG_MODE_FM:
+        if (rig->caps->rig_model == RIG_MODEL_AR8000)
+        {
+            aormode = AR8K_NFM;
+        }
+        else
+        {
 		switch(width) {
 			case RIG_PASSBAND_NORMAL:
 			case s_kHz(12): aormode = AR8K_NFM; break;
@@ -288,6 +337,7 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 					__FUNCTION__,
 					mode, width);
 			return -RIG_EINVAL;
+            }
 		}
 		break;
 	default:
@@ -311,6 +361,8 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	int mdbuf_len, mdbuf2_len, retval;
 
 	mdbuf_len = priv->format_mode(rig, mdbuf, mode, width);
+	// Return on error
+    if(mdbuf_len<0) return mdbuf_len;
 
 	strcpy(mdbuf+mdbuf_len, EOM);
 	mdbuf_len += strlen(EOM);
@@ -532,7 +584,14 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		unsigned att;
 		if (ack_len < 4 || ackbuf[0] != 'A' || ackbuf[1] != 'T')
 			return -RIG_EPROTO;
+        if (rig->caps->rig_model == RIG_MODEL_AR8000)
+        {
+            att = ackbuf[2]-'0';
+        }
+        else
+        {
 		att = ackbuf[3]-'0';
+        }
 		if (att == 0) {
 			val->i = 0;
 			break;

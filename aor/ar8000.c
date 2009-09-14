@@ -1,6 +1,6 @@
 /*
  *  Hamlib AOR backend - AR8000 description
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
  *	$Id: ar8000.c,v 1.7 2008-04-11 17:10:45 fillods Exp $
  *
@@ -34,7 +34,7 @@
 
 #define AR8000_FUNC_ALL (RIG_FUNC_TSQL|RIG_FUNC_ABM|RIG_FUNC_AFC)
 
-#define AR8000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR)
+#define AR8000_LEVEL (RIG_LEVEL_ATT|RIG_LEVEL_RAWSTR)
 
 #define AR8000_PARM (RIG_PARM_APO|RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 
@@ -50,6 +50,12 @@
 		{  0xff, 60 } \
 	} }
 
+static const struct aor_priv_caps ar8000_priv_caps = {
+	.format_mode = format8k_mode,
+	.parse_aor_mode = parse8k_aor_mode,
+	.bank_base1 = 'A',
+	.bank_base2 = 'a',
+};
 
 /*
  * ar8000 rig capabilities.
@@ -62,9 +68,9 @@ const struct rig_caps ar8000_caps = {
 .rig_model =  RIG_MODEL_AR8000,
 .model_name = "AR8000",
 .mfg_name =  "AOR",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
@@ -90,7 +96,7 @@ const struct rig_caps ar8000_caps = {
 .ctcss_list =  NULL,				/* FIXME: CTCSS list */
 .dcs_list =  NULL,
 .preamp =   { RIG_DBLST_END, },
-.attenuator =   { 20, RIG_DBLST_END, },	/* TBC */
+.attenuator =   { 10, RIG_DBLST_END, },
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
@@ -146,7 +152,8 @@ const struct rig_caps ar8000_caps = {
 		RIG_FLT_END,
 	},
 
-.priv =  NULL,
+.priv = (void*)&ar8000_priv_caps,
+
 .rig_init =  NULL,
 .rig_cleanup =  NULL,
 .rig_open =  NULL,
