@@ -150,10 +150,10 @@ gs232a_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     retval = gs232a_transaction(rot, "C2" EOM, posbuf, sizeof(posbuf));
     if (retval != RIG_OK || strlen(posbuf) < 10) {
-        return retval;
+        return retval < 0 ? retval : -RIG_EPROTO;
     }
 
-    /* parse */
+    /* parse "+0aaa+0eee" */
     if (sscanf(posbuf+2, "%d", &angle) != 1) {
         rig_debug(RIG_DEBUG_ERR, "%s: wrong reply '%s'\n", __FUNCTION__, posbuf);
         return -RIG_EPROTO;
