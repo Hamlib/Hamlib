@@ -98,7 +98,7 @@ const struct rig_caps tt538_caps = {
 .rig_model =  RIG_MODEL_TT538,
 .model_name = "TT-538 Jupiter",
 .mfg_name =  "Ten-Tec",
-.version =  "0.3",
+.version =  "0.4",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -199,8 +199,12 @@ const struct rig_caps tt538_caps = {
 static int tt538_rxFilter[] = {
   8000, 6000, 5700, 5400, 5100, 4800, 4500, 4200, 3900, 3600, 3300,
   3000, 2850, 2700, 2550, 2400, 2250, 2100, 1950, 1800, 1650, 1500,
-  1350, 1200, 1050, 900, 750, 675, 600, 525, 450, 375, 330, 300
+  1350, 1200, 1050,  900,  750,  675,  600,  525,  450,  375,  330,
+   300,  260,  225,  180,  165,  150
 };
+
+#define JUPITER_TT538_RXFILTERS         ( sizeof(tt538_rxFilter) / sizeof(tt538_rxFilter[0]) )
+
 
 /*
  * Function definitions below
@@ -482,6 +486,11 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	case 31: *width = 375; break;
 	case 32: *width = 330; break;
 	case 33: *width = 300; break;
+	case 34: *width = 260; break;
+	case 35: *width = 225; break;
+	case 36: *width = 180; break;
+	case 37: *width = 165; break;
+	case 38: *width = 150; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unexpected bandwidth '%c'\n",
 			__FUNCTION__, respbuf[1]);
@@ -494,12 +503,15 @@ int tt538_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 /* Find rx filter index of bandwidth the same or larger as requested. */
 static int tt538_filter_number(int width)
 {
-	int	i;
+    int	i;
 
-	for (i = 34; i >= 0; i--)
-		if (width <= tt538_rxFilter[i])
-			return i;
-	return 0; /* Widest filter, 8 kHz. */
+    for (i = JUPITER_TT538_RXFILTERS - 1; i >= 0; i--) {
+        if (width <= tt538_rxFilter[i]) {
+            return i;
+        }
+    }
+
+    return 0; /* Widest filter, 8 kHz. */
 }
 
 
