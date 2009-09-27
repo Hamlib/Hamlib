@@ -1,6 +1,6 @@
 /*
- *  Hamlib Tuner backend - Video4Linux description
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Hamlib Tuner backend - Video4Linux (v1) description
+ *  Copyright (c) 2004-2009 by Stephane Fillod
  *
  *	$Id: v4l.c,v 1.2 2004-09-25 14:33:52 fillods Exp $
  *
@@ -66,7 +66,7 @@ static int v4l_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static const char *v4l_get_info(RIG *rig);
 
 /*
- * v4l rig capabilities.
+ * v4l (v1) rig capabilities.
  *
  *
  */
@@ -74,19 +74,13 @@ const struct rig_caps v4l_caps = {
 .rig_model =  RIG_MODEL_V4L,
 .model_name = "SW/FM radio",
 .mfg_name =  "Video4Linux",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_PCRECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_DEVICE,
-.serial_rate_min =  1200,
-.serial_rate_max =  9600,
-.serial_data_bits =  8,
-.serial_stop_bits =  1,
-.serial_parity =  RIG_PARITY_NONE,
-.serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  2000,
@@ -221,7 +215,7 @@ int v4l_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
 	f = rint(freq * fact);	/* rounding to nearest int */
 
-	ret = ioctl(rig->state.rigport.fd, VIDIOCSFREQ, &freq);
+	ret = ioctl(rig->state.rigport.fd, VIDIOCSFREQ, &f);
 	if (ret < 0) {
 		rig_debug(RIG_DEBUG_ERR, "ioctl VIDIOCSFREQ: %s\n",
 				strerror(errno));
