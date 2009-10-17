@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - description of IC-7800 and variations
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2009 by Stephane Fillod
  *
  *	$Id: ic7800.c,v 1.5 2008-10-26 13:45:21 y32kn Exp $
  *
@@ -67,6 +67,9 @@
 	} }
 
 
+static int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
 /*
  * IC-7800 rig capabilities.
  *
@@ -83,7 +86,7 @@ const struct rig_caps ic7800_caps = {
 .rig_model =  RIG_MODEL_IC7800,
 .model_name = "IC-7800", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -193,8 +196,8 @@ const struct rig_caps ic7800_caps = {
 .set_rit =  icom_set_rit,
 
 .decode_event =  icom_decode_event,
-.set_level =  icom_set_level,
-.get_level =  icom_get_level,
+.set_level =  ic7800_set_level,
+.get_level =  ic7800_get_level,
 .set_func =  icom_set_func,
 .get_func =  icom_get_func,
 .set_parm =  icom_set_parm,
@@ -223,4 +226,48 @@ const struct rig_caps ic7800_caps = {
 .get_split_vfo =  icom_get_split_vfo,
 
 };
+
+
+/*
+ * IC-7800 has 0x11 command using index instead of backend's real dB value
+ *
+ * c.f. http://www.plicht.de/ekki/civ/civ-p42.html
+ */
+int ic7800_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
+{
+    int i;
+
+    if (level == RIG_LEVEL_ATT && val.i != 0) {
+        /* Convert dB to index */
+        for (i=0; i < 7; i++) {
+            if (val.i == rig->state.attenuator[i]) {
+                val.i = i+1;
+                break;
+            }
+        }
+        /* TODO: Should fail when not found? */
+    }
+
+    return icom_set_level(rig, vfo, level, val);
+}
+
+/*
+ * IC-7800 has 0x11 command using index instead of backend's real dB value
+ */
+int ic7800_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
+{
+    int ret;
+
+    ret = icom_get_level(rig, vfo, level, val);
+    if (ret != RIG_OK)
+        return ret;
+
+    /* Convert index to dB
+     * Rem: ATT index 0 means attenuator Off
+     */
+    if (level == RIG_LEVEL_ATT && val->i > 0 && val->i <= 7)
+        val->i = rig->state.attenuator[val->i - 1];
+
+    return RIG_OK;
+}
 
