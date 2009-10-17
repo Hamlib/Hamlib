@@ -188,7 +188,8 @@
 #define RIG_MODEL_ICR20 RIG_MAKE_MODEL(RIG_ICOM, 58)
 #define RIG_MODEL_IC7000 RIG_MAKE_MODEL(RIG_ICOM, 60)
 #define RIG_MODEL_IC7200 RIG_MAKE_MODEL(RIG_ICOM, 61)
-/* next one is 62 */
+#define RIG_MODEL_IC7700 RIG_MAKE_MODEL(RIG_ICOM, 62)
+/* next one is 63 */
 
 	/*
 	 * Optoelectronics (CI-V)
@@ -456,6 +457,7 @@
 #define RIG_MODEL_ELEKTOR507 RIG_MAKE_MODEL(RIG_KIT, 7)	/* Elektor SDR USB */
 #define RIG_MODEL_MINIVNA RIG_MAKE_MODEL(RIG_KIT, 8)
 #define RIG_MODEL_SI570AVRUSB RIG_MAKE_MODEL(RIG_KIT, 9) /* SoftRock Si570 */
+#define RIG_MODEL_PMSDR RIG_MAKE_MODEL(RIG_KIT, 10)
 
 	/*
 	 * SW/FM/TV tuner cards supported by Video4Linux,*BSD, ..
