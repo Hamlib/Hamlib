@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - description of IC-756 and variations
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
  *	$Id: ic756.c,v 1.20 2008-10-31 00:17:34 aa6e Exp $
  *
@@ -88,7 +88,7 @@
 static const struct icom_priv_caps ic756_priv_caps = { 
 		0x50,	/* default address */
 		0,		/* 731 mode */
-		ic756pro_ts_sc_list
+		ic756_ts_sc_list
 };
 
 const struct rig_caps ic756_caps = {
@@ -231,7 +231,7 @@ const struct rig_caps ic756_caps = {
 static const struct icom_priv_caps ic756pro_priv_caps = { 
 		0x5c,	/* default address */
 		0,		/* 731 mode */
-		ic756_ts_sc_list
+		ic756pro_ts_sc_list
 };
 
 const struct rig_caps ic756pro_caps = {
@@ -378,7 +378,7 @@ const struct rig_caps ic756pro_caps = {
 static const struct icom_priv_caps ic756pro2_priv_caps = { 
 		0x64,	/* default address */
 		0,		/* 731 mode */
-		ic756_ts_sc_list
+		ic756pro_ts_sc_list
 };
 
 /*
@@ -746,7 +746,7 @@ static int ic756pro2_get_ext_parm(RIG *rig, token_t token, value_t *val)
 static const struct icom_priv_caps ic756pro3_priv_caps = { 
 		0x6e,	/* default address */
 		0,		/* 731 mode */
-		ic756_ts_sc_list
+		ic756pro_ts_sc_list
 };
 
 
@@ -755,14 +755,39 @@ static const struct icom_priv_caps ic756pro3_priv_caps = {
 #define IC756PROIII_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM)
 #define IC756PROIII_AM_TX_MODES (RIG_MODE_AM)
 
+#define IC756PROIII_VFO_ALL (RIG_VFO_MAIN|RIG_VFO_SUB)
+
+#define IC756PROIII_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT|RIG_PARM_APO|RIG_PARM_TIME|RIG_PARM_BEEP)
+
+
+/*
+ * TODO: check whether all func and levels are stored in memory
+ *
+ * No memory split support.
+ * .rptr_offs = 1,  to be done for FM special mode
+ *
+ * Channel description should be possible through: 0x1a 0x00
+ * c.f. http://www.plicht.de/ekki/civ/civ-p4305-756pro.html
+ */
+#define IC756PROIII_MEM_CAP {    \
+        .ant = 1,  \
+        .tuning_step = 1,  \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .ctcss_tone = 1, \
+        .ctcss_sql = 1, \
+        .funcs = IC756PRO_FUNC_ALL, \
+        .levels = RIG_LEVEL_SET(IC756PRO_LEVEL_ALL), \
+}
 
 const struct rig_caps ic756pro3_caps = {
 .rig_model =  RIG_MODEL_IC756PROIII,
 .model_name = "IC-756PROIII", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -781,8 +806,8 @@ const struct rig_caps ic756pro3_caps = {
 .has_set_func =  IC756PRO_FUNC_ALL, 
 .has_get_level =  IC756PRO_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC756PRO_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
+.has_get_parm =  IC756PROIII_PARMS,
+.has_set_parm =  RIG_PARM_SET(IC756PROIII_PARMS),
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 },
@@ -790,58 +815,65 @@ const struct rig_caps ic756pro3_caps = {
 .extparms =  ic756pro2_ext_parms,
 .ctcss_list =  common_ctcss_list,
 .dcs_list =  NULL,
-.preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC */
-.attenuator =   { 6, 12, 18, 20, RIG_DBLST_END, },
+.preamp =   { 10, 20, RIG_DBLST_END, },	/* FIXME: TBC values */
+.attenuator =   { 6, 12, 18, RIG_DBLST_END, },
 .max_rit =  Hz(9999),
 .max_xit =  Hz(9999),
 .max_ifshift =  Hz(0),
 .targetable_vfo =  0,
-.vfo_ops =  IC756_VFO_OPS,
+.vfo_ops =  IC756_VFO_OPS|RIG_OP_TUNE,
 .scan_ops =  IC756_SCAN_OPS,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
-.chan_desc_sz =  0,
+.chan_desc_sz =  10, /* TODO */
 
 .chan_list =  {
-	   {   1,  99, RIG_MTYPE_MEM  },
-	   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+	   {   1,  99, RIG_MTYPE_MEM,  IC756PROIII_MEM_CAP },
+	   { 100, 101, RIG_MTYPE_EDGE, IC756PROIII_MEM_CAP },    /* two by two */
 	   RIG_CHAN_END,
 	},
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
+.rx_range_list1 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756PROIII_VFO_ALL,IC756_ANTS},
 	RIG_FRNG_END, },
 .tx_range_list1 =   {
-	FRQ_RNG_HF(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_HF(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756PROIII_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_6m(1,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756PROIII_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_HF(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756PROIII_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_6m(1,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756PROIII_VFO_ALL,IC756_ANTS),   /* AM class */
     	RIG_FRNG_END, },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756_VFO_ALL},
+.rx_range_list2 =   { {kHz(30),MHz(60),IC756PROIII_ALL_RX_MODES,-1,-1,IC756PROIII_VFO_ALL,IC756_ANTS},
 	RIG_FRNG_END, },
 .tx_range_list2 =  {
-	FRQ_RNG_HF(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_6m(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756_VFO_ALL,IC756_ANTS),
-	FRQ_RNG_HF(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
-	FRQ_RNG_6m(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_HF(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756PROIII_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_6m(2,IC756PROIII_OTHER_TX_MODES, W(5),W(100),IC756PROIII_VFO_ALL,IC756_ANTS),
+	FRQ_RNG_HF(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756PROIII_VFO_ALL,IC756_ANTS),   /* AM class */
+	FRQ_RNG_6m(2,IC756PROIII_AM_TX_MODES, W(5),W(40),IC756PROIII_VFO_ALL,IC756_ANTS),   /* AM class */
     	RIG_FRNG_END, },
 
 .tuning_steps = 	{
 	 {IC756PROIII_1HZ_TS_MODES,1},
+	 {IC756PROIII_1HZ_TS_MODES,100},
 	 {IC756PROIII_ALL_RX_MODES,kHz(1)},
 	 {IC756PROIII_ALL_RX_MODES,kHz(5)},
 	 {IC756PROIII_ALL_RX_MODES,kHz(9)},
 	 {IC756PROIII_ALL_RX_MODES,kHz(10)},
+	 {IC756PROIII_ALL_RX_MODES,kHz(12.5)},
+	 {IC756PROIII_ALL_RX_MODES,kHz(20)},
+	 {IC756PROIII_ALL_RX_MODES,kHz(25)},
 	 RIG_TS_END,
 	},
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
-	{RIG_MODE_SSB|RIG_MODE_RTTY, kHz(2.4)},
-	{RIG_MODE_CW, Hz(500)},
+	{RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
+	{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
+	{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(3.6)}, /* wide */
+	{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, Hz(50)}, /* narrow */
 	{RIG_MODE_AM, kHz(6)},
 	{RIG_MODE_AM, kHz(2.4)},
 	{RIG_MODE_FM, kHz(15)},
 	{RIG_MODE_FM, kHz(8)},
+	{RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, RIG_FLT_ANY}, /* almost any filter */
 	RIG_FLT_END,
 	},
 .str_cal = IC756PRO_STR_CAL,
@@ -865,6 +897,8 @@ const struct rig_caps ic756pro3_caps = {
 .get_ant =  icom_get_ant,
 
 .decode_event =  icom_decode_event,
+.set_parm =  icom_set_parm,
+.get_parm =  icom_get_parm,
 .set_level =  icom_set_level,
 .get_level =  icom_get_level,
 .set_func =  icom_set_func,
@@ -876,10 +910,6 @@ const struct rig_caps ic756pro3_caps = {
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
-.set_rptr_shift =  icom_set_rptr_shift,
-.get_rptr_shift =  icom_get_rptr_shift,
-.set_rptr_offs =  icom_set_rptr_offs,
-.get_rptr_offs =  icom_get_rptr_offs,
 .set_ctcss_tone =  icom_set_ctcss_tone,
 .get_ctcss_tone =  icom_get_ctcss_tone,
 .set_ctcss_sql =  icom_set_ctcss_sql,
