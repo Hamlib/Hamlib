@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - description of IC-718 caps
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Caps submitted by Chuck Gilkes WD0FCL/4
  *
  *	$Id: ic718.c,v 1.8 2004-09-26 08:35:03 fillods Exp $
@@ -30,26 +30,40 @@
 #include "hamlib/rig.h"
 #include "icom.h"
 #include "idx_builtin.h"
+#include "bandplan.h"
 
 
-#define IC718_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY)
+#define IC718_ALL_RX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define IC718_1MHZ_TS_MODES (RIG_MODE_AM)
-#define IC718_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY)
+#define IC718_1HZ_TS_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 
 /* tx doesn't have WFM.
  * 100W in all modes but AM (40W)
  */ 
-#define IC718_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY)
+#define IC718_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR)
 #define IC718_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC718_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)
+#define IC718_FUNC_ALL (RIG_FUNC_NR|RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN|RIG_FUNC_ANF)
 
-#define IC718_LEVEL_ALL (RIG_LEVEL_MICGAIN|RIG_LEVEL_NR|RIG_LEVEL_CWPITCH|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RAWSTR)
+#define IC718_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_MICGAIN|RIG_LEVEL_NR|RIG_LEVEL_CWPITCH|RIG_LEVEL_KEYSPD|RIG_LEVEL_RFPOWER|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_RAWSTR|RIG_LEVEL_SQL)
 
 #define IC718_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define IC718_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
+
 #define IC718_SCAN_OPS (RIG_SCAN_MEM)
+
+/*
+ * TODO: check whether func and levels are stored in memory
+ */
+#define IC718_MEM_CAP {    \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .tx_freq = 1,   \
+        .tx_mode = 1,   \
+        .tx_width = 1,  \
+}
 
 #define IC718_STR_CAL UNKNOWN_IC_STR_CAL
 
@@ -65,11 +79,11 @@ const struct rig_caps ic718_caps = {
 .rig_model =  RIG_MODEL_IC718,
 .model_name = "IC-718", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =   RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_NONE,
+.ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
@@ -87,19 +101,19 @@ const struct rig_caps ic718_caps = {
 .has_get_level =  IC718_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(IC718_LEVEL_ALL),
 .has_get_parm =  RIG_PARM_NONE,
-.has_set_parm =  RIG_PARM_NONE,	/* FIXME: parms */
+.has_set_parm =  RIG_PARM_NONE,
 .level_gran = {
 	[LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 255 } },
 	},
 .parm_gran =  {},
 .str_cal = IC718_STR_CAL,
-.ctcss_list =  common_ctcss_list,
+.ctcss_list =  NULL,
 .dcs_list =  NULL,
 .preamp =   { 10, RIG_DBLST_END, },
 .attenuator =   { 20, RIG_DBLST_END, },
-.max_rit =  Hz(1200),
+.max_rit =  Hz(0),
 .max_xit =  Hz(0),
-.max_ifshift =  Hz(1200),
+.max_ifshift =  Hz(0),
 .targetable_vfo =  0,
 .vfo_ops =  IC718_VFO_OPS,
 .scan_ops =  IC718_SCAN_OPS,
@@ -108,36 +122,26 @@ const struct rig_caps ic718_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  {
-		   {   1,  99, RIG_MTYPE_MEM  },
-		   { 100, 101, RIG_MTYPE_EDGE },    /* two by two */
+		   {   1,  99, RIG_MTYPE_MEM,  IC718_MEM_CAP },
+		   { 100, 101, RIG_MTYPE_EDGE, IC718_MEM_CAP },    /* two by two */
 		     RIG_CHAN_END,
 		},
 
-.rx_range_list1 =   { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
-.tx_range_list1 =   { RIG_FRNG_END, },
-
-.rx_range_list2 =   { {kHz(30),MHz(200)-1,IC718_ALL_RX_MODES,-1,-1,IC718_VFO_ALL},	/* this trx also has UHF */
- 		 {MHz(400),MHz(470),IC718_ALL_RX_MODES,-1,-1,IC718_VFO_ALL},
+.rx_range_list1 =   { {kHz(30),MHz(30)-1,IC718_ALL_RX_MODES,-1,-1,IC718_VFO_ALL},
 		 RIG_FRNG_END, },
-.tx_range_list2 =  { {kHz(1800),MHz(2)-1,IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},	/* 100W class */
-    		{kHz(1800),MHz(2)-1,IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},	/* 40W class */
-    		{kHz(3500),MHz(4)-1,IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-    		{kHz(3500),MHz(4)-1,IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-		{MHz(7),kHz(7300),IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-   		{MHz(7),kHz(7300),IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-    		{kHz(10100),kHz(10150),IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-    		{kHz(10100),kHz(10150),IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-    		{MHz(14),kHz(14350),IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-    		{MHz(14),kHz(14350),IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-   		{kHz(18068),kHz(18168),IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-   		{kHz(18068),kHz(18168),IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-    		{MHz(21),kHz(21450),IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-    		{MHz(21),kHz(21450),IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-    		{kHz(24890),kHz(24990),IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-    		{kHz(24890),kHz(24990),IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-    		{MHz(28),kHz(29700),IC718_OTHER_TX_MODES,5000,100000,IC718_VFO_ALL},
-    		{MHz(28),kHz(29700),IC718_AM_TX_MODES,2000,40000,IC718_VFO_ALL},
-		RIG_FRNG_END, },
+.tx_range_list1 =   {
+    FRQ_RNG_HF(1, IC718_OTHER_TX_MODES, W(5),W(100),IC718_VFO_ALL,RIG_ANT_1),
+    FRQ_RNG_HF(1, IC718_AM_TX_MODES,    W(2),W(40), IC718_VFO_ALL,RIG_ANT_1), /* AM class */
+    RIG_FRNG_END,
+},
+
+.rx_range_list2 =   { {kHz(30),MHz(30)-1,IC718_ALL_RX_MODES,-1,-1,IC718_VFO_ALL},
+		 RIG_FRNG_END, },
+.tx_range_list2 =  {
+    FRQ_RNG_HF(2, IC718_OTHER_TX_MODES, W(5),W(100),IC718_VFO_ALL,RIG_ANT_1),
+    FRQ_RNG_HF(2, IC718_AM_TX_MODES,    W(2),W(40), IC718_VFO_ALL,RIG_ANT_1), /* AM class */
+    RIG_FRNG_END,
+},
 
 .tuning_steps = 	{
 	 {IC718_1HZ_TS_MODES,1},
@@ -156,7 +160,7 @@ const struct rig_caps ic718_caps = {
 		{RIG_MODE_CW|RIG_MODE_RTTY, Hz(500)},			/* FL-52A */
 		{RIG_MODE_CW|RIG_MODE_RTTY, Hz(250)},			/* FL-53A */
 		{RIG_MODE_SSB, kHz(2.8)},				/* FL-96  */
-		{RIG_MODE_SSB, kHz(1.8)},				/* FL-222 */
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(1.8)},	/* FL-222 */
 		{RIG_MODE_AM, kHz(6)},					/* mid w/ bultin FL-94 */
 		{RIG_MODE_AM, kHz(2.4)},				/* narrow w/ bultin FL-272 */
 		RIG_FLT_END,		
@@ -191,10 +195,6 @@ const struct rig_caps ic718_caps = {
 .get_dcd =  icom_get_dcd,
 .set_ts =  icom_set_ts,
 .get_ts =  icom_get_ts,
-.set_rptr_shift =  icom_set_rptr_shift,
-.get_rptr_shift =  icom_get_rptr_shift,
-.set_rptr_offs =  icom_set_rptr_offs,
-.get_rptr_offs =  icom_get_rptr_offs,
 .set_split_freq =  icom_set_split_freq,
 .get_split_freq =  icom_get_split_freq,
 .set_split_mode =  icom_set_split_mode,
