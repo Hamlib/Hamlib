@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
  *	$Id: icom.c,v 1.107 2008-11-13 20:29:43 y32kn Exp $
  *
@@ -203,6 +203,7 @@ const struct ts_sc_list ic910_ts_sc_list[] = {
 };
 
 /* rtty filter list for some DSP rigs ie PRO */ 
+#define RTTY_FIL_NB 5
 const pbwidth_t rtty_fil[] = {
 	Hz(250),
 	Hz(300),
@@ -295,6 +296,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_ICID1, 0x01 },
 	{ RIG_MODEL_IC7000, 0x70 },
 	{ RIG_MODEL_IC7200, 0x76 },
+	{ RIG_MODEL_IC7700, 0x74 },
 	{ RIG_MODEL_NONE, 0 },
 };
 
@@ -476,7 +478,8 @@ int icom_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit)
 
 
 /* icom_get_dsp_flt 
-	returns the dsp filter width in hz or 0 if the command is not implemented or error.  This allows the default parameters to be assigned from the get_mode routine if the command is not implemented.
+	returns the dsp filter width in hz or 0 if the command is not implemented or error.
+    This allows the default parameters to be assigned from the get_mode routine if the command is not implemented.
 	Assumes rig != null and the current mode is in mode.
 	
 	Has been tested for IC-746pro,  Should work on the all dsp rigs ie pro models. 
@@ -490,29 +493,84 @@ pbwidth_t icom_get_dsp_flt(RIG *rig, rmode_t mode) {
 	value_t rfwidth;
 
 	if (rig_has_get_func(rig, RIG_FUNC_RF) && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR))) {
-		if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
-		retval = rig_get_ext_parm (rig, TOK_RTTY_FLTR, &rfwidth);
-		if (retval != RIG_OK) return 0;	/* use default */
-		else  return rtty_fil[rfwidth.i];
+        if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
+		    retval = rig_get_ext_parm (rig, TOK_RTTY_FLTR, &rfwidth);
+        if (retval != RIG_OK || rfwidth.i >= RTTY_FIL_NB)
+            return 0;	/* use default */
+		else
+            return rtty_fil[rfwidth.i];
 		}
 	}
 	retval = icom_transaction (rig, C_CTL_MEM, S_MEM_FILT_WDTH, 0, 0,
 			resbuf, &res_len);
 	if (retval != RIG_OK) {
 		rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
-		"len=%d\n", __FUNCTION__,resbuf[0],res_len);
-			return 0;	/* use default */
+                "len=%d\n", __FUNCTION__,resbuf[0],res_len);
+        return 0;	/* use default */
 	}
 	if (res_len == 3 && resbuf[0] == C_CTL_MEM) {
 		int i;
 		i = (int) from_bcd(resbuf + 2, 2);
 
-		if (mode & RIG_MODE_AM)  return (i  + 1)* 200; /* Ic_7800 */
-		else if ( mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY | 	RIG_MODE_RTTYR)) return i < 10 ? ++i * 50 : (i -4) * 100;
+		if (mode & RIG_MODE_AM)
+            return (i  + 1)* 200; /* Ic_7800 */
+		else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY | RIG_MODE_RTTYR))
+            return i < 10 ? (i+1) * 50 : (i -4) * 100;
 	}
+
 	return 0;
 }
 
+int icom_set_dsp_flt(RIG *rig, rmode_t mode, pbwidth_t width) {
+
+	int retval, rfstatus, i;
+	unsigned char ackbuf[MAXFRAMELEN];
+	unsigned char flt_ext;
+	value_t rfwidth;
+	int ack_len=sizeof(ackbuf), flt_idx;
+
+    if (width == RIG_PASSBAND_NORMAL)
+        width = rig_passband_normal(rig, mode);
+
+	if (rig_has_get_func(rig, RIG_FUNC_RF) && (mode & (RIG_MODE_RTTY | RIG_MODE_RTTYR))) {
+		if(!rig_get_func(rig, RIG_VFO_CURR, RIG_FUNC_RF, &rfstatus) && (rfstatus)) {
+            for (i=0; i<RTTY_FIL_NB; i++) {
+                if (rtty_fil[i] == width) {
+                    rfwidth.i = i;
+                    return rig_set_ext_parm (rig, TOK_RTTY_FLTR, rfwidth);
+                }
+            }
+            /* not found */
+            return -RIG_EINVAL;
+        }
+	}
+
+   	if (mode & RIG_MODE_AM)
+        flt_idx = (width/200)-1; /* TBC: Ic_7800? */
+    else if (mode & (RIG_MODE_CW | RIG_MODE_USB | RIG_MODE_LSB | RIG_MODE_RTTY | RIG_MODE_RTTYR)) {
+        if (width == 0)
+            width = 1;
+        flt_idx = width <= 500 ? ((width+49)/50)-1 : ((width+99)/100)+4;
+    } else
+        return RIG_OK;
+
+    to_bcd(&flt_ext, flt_idx, 2);
+
+	retval = icom_transaction (rig, C_CTL_MEM, S_MEM_FILT_WDTH, &flt_ext, 1,
+			ackbuf, &ack_len);
+	if (retval != RIG_OK) {
+		rig_debug(RIG_DEBUG_ERR,"%s: protocol error (%#.2x), "
+                "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+        return retval;
+	}
+	if (ack_len != 1 || ackbuf[0] != ACK) {
+		rig_debug(RIG_DEBUG_ERR,"%s: command not supported ? (%#.2x), "
+                "len=%d\n", __FUNCTION__,ackbuf[0],ack_len);
+        return retval;
+    }
+
+	return RIG_OK;
+}
 
 /*
  * icom_set_mode
@@ -559,6 +617,16 @@ int icom_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 					"len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
 	}
+
+#if 0
+    /* Tentative DSP filter setting ($1A$03), but not supported by every rig,
+     * and some models like IC910/Omni VI Plus have a different meaning for
+     * this subcommand
+     */
+	if ( (rig->caps->rig_model != RIG_MODEL_IC910) &&
+	    (rig->caps->rig_model != RIG_MODEL_OMNIVIP) )
+        icom_set_dsp_flt(rig, mode, width);
+#endif
 
 	return RIG_OK;
 }
@@ -1185,7 +1253,6 @@ int icom_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd)
 {
 	unsigned char dcdbuf[MAXFRAMELEN];
 	int dcd_len, retval;
-	int icom_val;
 
 	retval = icom_transaction (rig, C_RD_SQSM, S_SQL, NULL, 0,
 					dcdbuf, &dcd_len);
@@ -1569,6 +1636,9 @@ int icom_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 /*
  * icom_get_split_vfo
  * Assumes rig!=NULL, rig->state.priv!=NULL, split!=NULL
+ *
+ * Does not appear to be supported by any mode?
+ * \sa icom_mem_get_split_vfo()
  */
 int icom_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 {
@@ -2487,13 +2557,22 @@ int icom_set_ant(RIG * rig, vfo_t vfo, ant_t ant)
 {
 	unsigned char antarg;
 	unsigned char ackbuf[MAXFRAMELEN];
-	int ack_len=sizeof(ackbuf), retval, i_ant;
+	int ack_len=sizeof(ackbuf), retval, i_ant=0;
 	int ant_len;
 
 	/*
-	 * FIXME: IC-756*
+	 * TODO: IC-756* and [RX ANT]
 	 */
-	i_ant = ant == RIG_ANT_1 ? 0: 1;
+    switch (ant)
+    {
+        case RIG_ANT_1: i_ant = 0; break;
+        case RIG_ANT_2: i_ant = 1; break;
+        case RIG_ANT_3: i_ant = 2; break;
+        case RIG_ANT_4: i_ant = 3; break;
+        default: 
+			rig_debug(RIG_DEBUG_ERR,"Unsupported ant %#x", ant);
+			return -RIG_EINVAL;
+    }
 
 	antarg = 0;
 	ant_len = (rig->caps->rig_model == RIG_MODEL_ICR75) ? 0 : 1;
@@ -2526,13 +2605,16 @@ int icom_get_ant(RIG *rig, vfo_t vfo, ant_t *ant)
 	if (retval != RIG_OK)
 		return retval;
 
-	if (ack_len != 2 || ackbuf[0] != C_CTL_ANT) {
+	if ((ack_len != 2 && ack_len != 3) || ackbuf[0] != C_CTL_ANT ||
+            ackbuf[1] > 3) {
 		rig_debug(RIG_DEBUG_ERR,"icom_get_ant: ack NG (%#.2x), "
 					"len=%d\n", ackbuf[0],ack_len);
 		return -RIG_ERJCTED;
 	}
 	
-	*ant = ackbuf[1] == 0 ? RIG_ANT_1 : RIG_ANT_2;
+    /* Note: with IC756/IC-756Pro/IC-7800, ackbuf[2] deals with [RX ANT] */
+
+	*ant = RIG_ANT_N(ackbuf[1]);
 
 	return RIG_OK;
 }
@@ -2581,6 +2663,10 @@ int icom_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		case RIG_OP_MCL:
 			mv_cn = C_CLR_MEM;
 			mv_sc = -1;
+			break;
+		case RIG_OP_TUNE:
+			mv_cn = C_CTL_PTT;
+			mv_sc = S_ANT_TUN;
 			break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"Unsupported mem/vfo op %#x", op);
