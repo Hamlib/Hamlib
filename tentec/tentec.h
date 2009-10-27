@@ -56,7 +56,6 @@ struct tentec_priv_data {
 int tentec_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
 
 int tentec_init(RIG *rig);
-int tentec_init(RIG *rig);
 int tentec_cleanup(RIG *rig);
 int tentec_trx_open(RIG *rig);
 int tentec_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
