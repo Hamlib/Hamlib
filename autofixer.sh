@@ -42,5 +42,5 @@ if [ $vers \< "1.99.99" ]; then
 	echo Libtool v2 configured.
 fi
 echo
-echo ** You may now run "sh ./autogen.sh" **
+echo "** You may now run sh ./autogen.sh **"
 
