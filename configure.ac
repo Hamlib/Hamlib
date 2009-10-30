@@ -187,6 +187,11 @@ darwin* | rhapsody*)
   # TODO: check the compiler actually does support these options
   CFLAGS="${CFLAGS} -no-cpp-precomp"
   CXXFLAGS="${CXXFLAGS} -no-cpp-precomp"
+  # Tell the OS X linker to allocate enough space inside the
+  # libhamlib.X.dylib shared object for install_name_tool(1) to
+  # work. This is useful when including hamlib in an app bundle.
+  OSXLDFLAGS="-Wl,-headerpad_max_install_names"
+  AC_SUBST([OSXLDFLAGS])
   ;;
 mingw* | pw32* | cygwin*)
   WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
