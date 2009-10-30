@@ -1,6 +1,9 @@
 /*
  *  Hamlib DttSP backend - main file
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2009 by Stephane Fillod
+ *
+ *  Some code derived from DttSP
+ *  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 by Frank Brickle, AB2KT and Bob McGwier, N4HY
  *
  *	$Id: dttsp.c,v 1.2 2008-05-07 22:18:25 fillods Exp $
  *
@@ -33,6 +36,7 @@
 #include <math.h>
 
 #include "hamlib/rig.h"
+#include "iofunc.h"
 #include "misc.h"
 #include "token.h"
 #include "register.h"
@@ -40,8 +44,11 @@
 #include "flexradio.h"
 
 /*
- * TODO:
+ * This backend is a two layer rig control: DttSP core over a mundane tuner
  *
+ * 2 interfaces of DttSP are supported: IPC & UDP
+ *
+ * TODO: Transmit setup
  */
 
 #define DEFAULT_DTTSP_CMD_PATH "/dev/shm/SDRcommands"
@@ -51,6 +58,13 @@
 #define MAXRX 4
 #define RXMETERPTS 5
 #define TXMETERPTS 9
+#define MAXMETERPTS 9
+
+#define DTTSP_PORT_CLIENT_COMMAND 19001
+#define DTTSP_PORT_CLIENT_SPECTRUM 19002
+#define DTTSP_PORT_CLIENT_METER 19003
+#define DTTSP_PORT_CLIENT_BUFSIZE 65536
+
 
 struct dttsp_priv_data {
 	/* tuner providing IF */
@@ -58,17 +72,39 @@ struct dttsp_priv_data {
 	RIG *tuner;
 	shortfreq_t IF_center_freq;
 
-	/* DttSP meter handle */
-	int meter_fd;
-
 	int sample_rate;
 	int rx_delta_f;
+
+    hamlib_port_t meter_port;
+
+#if 0
+    union {
+        /* IPC specific */
+        struct {
+	        /* DttSP meter handle */
+	        int meter_fd;
+        };
+        /* UDP specific RIG_PORT_NETWORK_UDP */
+        struct {
+            unsigned short port;
+            struct sockaddr_in clnt;
+            int clen, flags, sock;
+            char buff[DTTSP_PORT_CLIENT_BUFSIZE];
+            int size, used;
+        };
+#endif
 };
 
-static int dttsp_init(RIG *rig);
-static int dttsp_cleanup(RIG *rig);
-static int dttsp_open(RIG *rig);
-static int dttsp_close(RIG *rig);
+static int dttsp_ipc_init(RIG *rig);
+static int dttsp_ipc_cleanup(RIG *rig);
+static int dttsp_ipc_open(RIG *rig);
+static int dttsp_ipc_close(RIG *rig);
+
+static int dttsp_udp_init(RIG *rig);
+static int dttsp_udp_cleanup(RIG *rig);
+static int dttsp_udp_open(RIG *rig);
+static int dttsp_udp_close(RIG *rig);
+
 static int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int dttsp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
@@ -140,7 +176,7 @@ static const struct hamlib_vs_dttsp {
 
 const struct rig_caps dttsp_rig_caps = {
   .rig_model =      RIG_MODEL_DTTSP,
-  .model_name =     "DttSP",
+  .model_name =     "DttSP IPC",
   .mfg_name =       "DTTS Microwave Society",
   .version =        "0.1",
   .copyright =      "GPL",
@@ -166,14 +202,15 @@ const struct rig_caps dttsp_rig_caps = {
   .transceive =     RIG_TRN_OFF,
   .attenuator =     { RIG_DBLST_END, },
   .preamp = 	 { RIG_DBLST_END, },
+  /* In fact, RX and TX ranges are dependant on the tuner */
   .rx_range_list1 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
 		    .low_power=-1,.high_power=-1,DTTSP_VFO},
 		    RIG_FRNG_END, },
-  .tx_range_list1 =  { RIG_FRNG_END, },
+  .tx_range_list1 =  { RIG_FRNG_END, }, /* TODO */
   .rx_range_list2 =  { {.start=kHz(150),.end=MHz(1500),.modes=DTTSP_MODES,
 		    .low_power=-1,.high_power=-1,DTTSP_VFO},
 		    RIG_FRNG_END, },
-  .tx_range_list2 =  { RIG_FRNG_END, },
+  .tx_range_list2 =  { RIG_FRNG_END, }, /* TODO */
   .tuning_steps =  { {DTTSP_MODES,1}, {DTTSP_MODES,RIG_TS_ANY}, RIG_TS_END, },
   .filters =      {
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR, kHz(2.4)},
@@ -187,10 +224,10 @@ const struct rig_caps dttsp_rig_caps = {
 
   .priv =  NULL,
 
-  .rig_init =     dttsp_init,
-  .rig_cleanup =  dttsp_cleanup,
-  .rig_open =     dttsp_open,
-  .rig_close =    dttsp_close,
+  .rig_init =     dttsp_ipc_init,
+  .rig_cleanup =  dttsp_ipc_cleanup,
+  .rig_open =     dttsp_ipc_open,
+  .rig_close =    dttsp_ipc_close,
 
   .cfgparams =	  dttsp_cfg_params,
   .set_conf =     dttsp_set_conf,
@@ -213,38 +250,61 @@ const struct rig_caps dttsp_rig_caps = {
 };
 
 
-
-int dttsp_init(RIG *rig)
+static int send_command(RIG *rig, const char *cmdstr, size_t buflen)
 {
-  struct dttsp_priv_data *priv;
-  const char *cmdpath;
-  char *p;
+    int ret;
 
-  priv = (struct dttsp_priv_data*)malloc(sizeof(struct dttsp_priv_data));
-  if (!priv)
-	  return -RIG_ENOMEM;
-  rig->state.priv = (void*)priv;
+    if (rig->state.rigport.type.rig == RIG_PORT_NETWORK) {
+    } else {
+        /* IPC */
+        ret = write_block (&rig->state.rigport, cmdstr, buflen);
+    }
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__ );
+    return ret;
+}
 
-  priv->tuner = NULL;
-  priv->tuner_model = RIG_MODEL_DUMMY;
-  priv->IF_center_freq = 0;
+static int fetch_meter (RIG *rig, int *label, float *data, int npts)
+{
+    struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
+    int ret, buf_len;
+    char buf[sizeof(float)*MAXMETERPTS*MAXRX];
 
+    if (priv->meter_port.type.rig == RIG_PORT_NETWORK) {
+#if 0
+        if (!select(cp->sock + 1, &fds, 0, 0, &tv))
+                         return -1;
+        if (recvfrom(cp->sock, cp->buff, cp->size, cp->flags,
+                                          (struct sockaddr *) &cp->clnt, &cp->clen) <= 0)
+                           return -2;
+#endif
+        buf_len = sizeof(int) + npts * sizeof(float);
 
-  p = getenv ( "SDR_DEFRATE" );
-  if (p)
-	  priv->sample_rate = atoi(p);
-  else
-	  priv->sample_rate = DEFAULT_SAMPLE_RATE;
+        ret = read_block(&priv->meter_port, buf, buf_len);
+        if (ret != buf_len)
+            ret = -RIG_EIO;
 
-  cmdpath = getenv ( "SDR_PARMPATH" );
-  if (!cmdpath)
-    cmdpath = DEFAULT_DTTSP_CMD_PATH;
+        /* copy payload back to client space */
+        memcpy((char *) label, buf, sizeof(int));
+        memcpy((char *) data,  buf + sizeof(int), npts * sizeof(float));
 
-  strncpy(rig->state.rigport.pathname, cmdpath, FILPATHLEN);
+    } else {
+        /* IPC */
+        buf_len = sizeof(int);
+        ret = read_block(&priv->meter_port, (char*)label, buf_len);
+        if (ret != buf_len)
+            ret = -RIG_EIO;
+        if (ret < 0)
+            return ret;
 
-  return RIG_OK;
+        buf_len = sizeof(float) * npts;
+        ret = read_block(&priv->meter_port, (char*)data, buf_len);
+        if (ret != buf_len)
+            ret = -RIG_EIO;
+        if (ret < 0)
+            return ret;
+    }
+
+    return ret;
 }
 
 
@@ -300,12 +360,46 @@ int dttsp_get_conf(RIG *rig, token_t token, char *val)
 	return RIG_OK;
 }
 
-int dttsp_open(RIG *rig)
+int dttsp_ipc_init(RIG *rig)
+{
+  struct dttsp_priv_data *priv;
+  const char *cmdpath;
+  char *p;
+
+  priv = (struct dttsp_priv_data*)malloc(sizeof(struct dttsp_priv_data));
+  if (!priv)
+	  return -RIG_ENOMEM;
+  rig->state.priv = (void*)priv;
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__ );
+
+  priv->tuner = NULL;
+  priv->tuner_model = RIG_MODEL_DUMMY;
+  priv->IF_center_freq = 0;
+
+
+  p = getenv ( "SDR_DEFRATE" );
+  if (p)
+	  priv->sample_rate = atoi(p);
+  else
+	  priv->sample_rate = DEFAULT_SAMPLE_RATE;
+
+  cmdpath = getenv ( "SDR_PARMPATH" );
+  if (!cmdpath)
+    cmdpath = DEFAULT_DTTSP_CMD_PATH;
+
+  strncpy(rig->state.rigport.pathname, cmdpath, FILPATHLEN);
+
+  return RIG_OK;
+}
+
+
+int dttsp_ipc_open(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
   int ret;
   char *p;
-  char meterpath[FILPATHLEN];
+  char *meterpath;
 
 
   rig_debug(RIG_DEBUG_TRACE,"%s called\n", __FUNCTION__);
@@ -333,6 +427,7 @@ int dttsp_open(RIG *rig)
   /* open DttSP meter pipe */
   p = getenv ( "SDR_METERPATH" );
   if (!p) {
+    meterpath = priv->meter_port.pathname;
   	strncpy(meterpath, rig->state.rigport.pathname, FILPATHLEN);
   	p = strrchr(meterpath, '/');
   	strcpy(p+1, "SDRmeter");
@@ -340,9 +435,12 @@ int dttsp_open(RIG *rig)
   }
   if (!p) {
 	/* disabled */
-	priv->meter_fd = -1;
+	priv->meter_port.fd = -1;
   } else {
-  	priv->meter_fd = open(p, O_RDWR);
+    priv->meter_port.type.rig = RIG_PORT_DEVICE;
+  	ret = port_open(&priv->meter_port);
+    if (ret < 0)
+        return ret;
   }
 
 
@@ -370,20 +468,19 @@ int dttsp_open(RIG *rig)
 }
 
 
-int dttsp_close(RIG *rig)
+int dttsp_ipc_close(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
-  close(priv->meter_fd);
+  port_close(&priv->meter_port, priv->meter_port.type.rig);
   rig_close(priv->tuner);
-  /* TODO: close meter */
 
   return RIG_OK;
 }
 
-int dttsp_cleanup(RIG *rig)
+int dttsp_ipc_cleanup(RIG *rig)
 {
   struct dttsp_priv_data *priv = (struct dttsp_priv_data*)rig->state.priv;
 
@@ -400,6 +497,7 @@ int dttsp_cleanup(RIG *rig)
 
   return RIG_OK;
 }
+
 
 /*
  * rig_set_freq is a good candidate for the GNUradio GUI setFrequency callback?
@@ -449,11 +547,7 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 
   /* setRxFrequenc */
   buf_len = sprintf (buf, "setOsc %d\n", priv->rx_delta_f );
-  ret = write (rig->state.rigport.fd, buf, buf_len );
-  if (ret == buf_len)
-	  ret = RIG_OK;
-  else
-	  ret = -RIG_EIO;
+  ret = send_command (rig, buf, buf_len);
 
   return ret;
 }
@@ -531,18 +625,10 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   /* DttSP set mode */
 
   buf_len = sprintf (buf, "setMode %d\n", rmode2dttsp(mode) );
-  ret = write (rig->state.rigport.fd, buf, buf_len );
-  if (ret == buf_len)
-	  ret = RIG_OK;
-  else
-	  ret = -RIG_EIO;
+  ret = send_command (rig, buf, buf_len);
 
   buf_len = sprintf (buf, "setFilter %d %d\n", filter_l, filter_h );
-  ret = write (rig->state.rigport.fd, buf, buf_len );
-  if (ret == buf_len)
-	  ret = RIG_OK;
-  else
-	  ret = -RIG_EIO;
+  ret = send_command (rig, buf, buf_len);
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n", 
   		__FUNCTION__, buf);
@@ -575,11 +661,7 @@ int dttsp_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
   switch (level) {
   case RIG_LEVEL_AGC:
 	buf_len = sprintf (buf, "setRXAGC %d\n", agc_level2dttsp(val.i));
-	ret = write (rig->state.rigport.fd, buf, buf_len );
-	if (ret == buf_len)
-		ret = RIG_OK;
-	else
-		ret = -RIG_EIO;
+	ret = send_command (rig, buf, buf_len);
 	break;
   default:
 	rig_debug(RIG_DEBUG_TRACE, "%s: level %s, try tuner\n",
@@ -606,21 +688,15 @@ int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_RAWSTR:
 	case RIG_LEVEL_STRENGTH:
 		buf_len = sprintf (buf, "reqRXMeter %d\n", getpid());
-		ret = write (rig->state.rigport.fd, buf, buf_len );
-		if (ret != buf_len)
-			ret = -RIG_EIO;
+		ret = send_command (rig, buf, buf_len);
+		if (ret < 0)
+            return ret;
 
-		buf_len = sizeof(int);
-		ret = read(priv->meter_fd, buf, buf_len);
-		if (ret != buf_len)
-			ret = -RIG_EIO;
+		ret = fetch_meter (rig, (int*)buf, (float*)rxm, MAXRX * RXMETERPTS);
+		if (ret < 0)
+            return ret;
 
-		buf_len = sizeof(float) * MAXRX * RXMETERPTS;
-		ret = read(priv->meter_fd, rxm, buf_len);
-		if (ret != buf_len)
-			ret = -RIG_EIO;
-
-		val->i = rxm[0][0];
+		val->i = (int)rxm[0][0];
 		if (level == RIG_LEVEL_STRENGTH)
 			val->i = (int)rig_raw2val(val->i,&rig->state.str_cal);
 
@@ -666,11 +742,7 @@ int dttsp_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
   }
 
   buf_len = sprintf (buf, "%s %d\n", cmd, status);
-  ret = write (rig->state.rigport.fd, buf, buf_len );
-  if (ret == buf_len)
-	  ret = RIG_OK;
-  else
-	  ret = -RIG_EIO;
+  ret = send_command (rig, buf, buf_len);
 
   return ret;
 }
