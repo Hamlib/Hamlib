@@ -31,6 +31,7 @@
 #include "icom_defs.h"
 #include "frame.h"
 #include "idx_builtin.h"
+#include "bandplan.h"
 
 
 /*
@@ -424,7 +425,7 @@ const struct rig_caps ic706mkiig_caps = {
 .rig_model =  RIG_MODEL_IC706MKIIG,
 .model_name = "IC-706MkIIG", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_MOBILE,
@@ -472,8 +473,19 @@ const struct rig_caps ic706mkiig_caps = {
 				   RIG_CHAN_END,
 		},
 
-.rx_range_list1 =   { RIG_FRNG_END, },	/* FIXME: enter region 1 setting */
-.tx_range_list1 =   { RIG_FRNG_END, },
+.rx_range_list1 =   { {kHz(30),MHz(200)-1,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},	/* this trx also has UHF */
+ 	{MHz(400),MHz(470),IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},
+	RIG_FRNG_END, },
+.tx_range_list1 =   {
+    FRQ_RNG_HF(1, IC706_OTHER_TX_MODES, W(5),W(100),IC706_VFO_ALL,RIG_ANT_1),
+    FRQ_RNG_HF(1, IC706_AM_TX_MODES,    W(2),W(40), IC706_VFO_ALL,RIG_ANT_1), /* AM class */
+    FRQ_RNG_6m(1, IC706_OTHER_TX_MODES, W(5),W(100),IC706_VFO_ALL,RIG_ANT_1),
+    FRQ_RNG_6m(1, IC706_AM_TX_MODES,    W(2),W(40), IC706_VFO_ALL,RIG_ANT_1), /* AM class */
+    FRQ_RNG_2m(1, IC706_OTHER_TX_MODES, W(5),W(50),IC706_VFO_ALL,RIG_ANT_1),
+    FRQ_RNG_2m(1, IC706_AM_TX_MODES,    W(2),W(20), IC706_VFO_ALL,RIG_ANT_1), /* AM class */
+    FRQ_RNG_70cm(1, IC706_OTHER_TX_MODES, W(5),W(20),IC706_VFO_ALL,RIG_ANT_1),
+    FRQ_RNG_70cm(1, IC706_AM_TX_MODES,    W(2),W(8), IC706_VFO_ALL,RIG_ANT_1), /* AM class */
+    RIG_FRNG_END, },
 
 .rx_range_list2 =   { {kHz(30),MHz(200)-1,IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},	/* this trx also has UHF */
  	{MHz(400),MHz(470),IC706_ALL_RX_MODES,-1,-1,IC706_VFO_ALL},
