@@ -248,11 +248,9 @@ BINDING_LIB_TARGETS=""
 
 dnl Check if cxx-binding not wanted, default is to build it
 
-if test x"${CXX}" = x; then
-	cf_with_cxx=no
-else
-	cf_with_cxx=yes
-fi
+# TODO: check whether CXX is functional
+AC_CHECK_PROG(cf_with_cxx, "${CXX}", [yes], [no])
+
 AC_MSG_CHECKING(whether to build C++ binding and demo)
 AC_ARG_WITH(cxx-binding,
         [  --without-cxx-binding   do not build C++ binding and demo],
@@ -379,6 +377,7 @@ if test "${cf_with_cxx}" = "yes" ; then
 		[AC_DEFINE(HAVE_USRP,[1],[Define if usrp is available])])
   fi
 fi
+AM_CONDITIONAL(ENABLE_CXX, test x"${cf_with_cxx}" = "xyes")
 
 
 PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, , 
