@@ -255,6 +255,7 @@ static int send_command(RIG *rig, const char *cmdstr, size_t buflen)
     int ret;
 
     if (rig->state.rigport.type.rig == RIG_PORT_NETWORK) {
+        ret = -RIG_ENIMPL;
     } else {
         /* IPC */
         ret = write_block (&rig->state.rigport, cmdstr, buflen);
