@@ -71,9 +71,9 @@ const struct rig_caps rx320_caps = {
 .rig_model =  RIG_MODEL_RX320,
 .model_name = "RX-320",
 .mfg_name =  "Ten-Tec",
-.version =  "0.5",
+.version =  "0.6",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_PCRECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -95,7 +95,7 @@ const struct rig_caps rx320_caps = {
  */
 .has_get_func =  RIG_FUNC_NONE,
 .has_set_func =  RIG_FUNC_NONE,
-.has_get_level =  RIG_LEVEL_RAWSTR,
+.has_get_level =  RX320_LEVELS,
 .has_set_level =  RIG_LEVEL_SET(RX320_LEVELS),
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
@@ -122,7 +122,10 @@ const struct rig_caps rx320_caps = {
 			RIG_CHAN_END,
 		},
 
-.rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
+.rx_range_list1 =  {
+	{kHz(100),MHz(30),RX320_MODES,-1,-1,RX320_VFO},
+	RIG_FRNG_END,
+  },
 .tx_range_list1 =  { RIG_FRNG_END, },
 .rx_range_list2 =  {
 	{kHz(100),MHz(30),RX320_MODES,-1,-1,RX320_VFO},
