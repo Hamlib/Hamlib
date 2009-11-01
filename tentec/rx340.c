@@ -79,7 +79,7 @@ static const char* rx340_get_info(RIG *rig);
  * RX340 receiver capabilities.
  *
  * Protocol is documented at 
- *		http://www.rfsquared.com/
+ *		http://radio.tentec.com/downloads/receivers/RX340
  *
  * TODO: from/to memory, scan, get_level, ..
  * supposes non-multidrop
@@ -88,7 +88,7 @@ const struct rig_caps rx340_caps = {
 .rig_model =  RIG_MODEL_RX340,
 .model_name = "RX-340",
 .mfg_name =  "Ten-Tec",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
