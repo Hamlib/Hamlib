@@ -81,6 +81,8 @@
 %ignore ROT_BACKEND_KIT;
 %ignore ROT_HEATHKIT;
 %ignore ROT_BACKEND_HEATHKIT;
+%ignore ROT_SPID;
+%ignore ROT_BACKEND_SPID;
 
 %ignore PRIfreq;
 %ignore SCNfreq;
