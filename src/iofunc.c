@@ -143,7 +143,7 @@ int HAMLIB_API port_open(hamlib_port_t *p)
  */
 int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
 {
-    int ret;
+    int ret = RIG_OK;
 
 	if (p->fd != -1) {
 		switch (port_type) {
