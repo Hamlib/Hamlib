@@ -74,12 +74,9 @@ static int tt585_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 
 /*
- * tt585 transceiver capabilities.
+ * tt585 transceiver capabilities,
+ * with the optional model 258 RS232 Interface board.
  *
- * Protocol is documented at 
- *		http://www.rfsquared.com/
- *
- * Only set_freq is supposed to work.
  * This is a skelton.
  */
 const struct rig_caps tt585_caps = {
