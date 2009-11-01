@@ -447,6 +447,11 @@ static int calcDividers(RIG *rig, double f, struct solution* solution)
 
 		return 1;
 	} else {
+		solution->HS_DIV = 0;
+		solution->N1 = 0;
+		solution->f0 = 0;
+		solution->RFREQ = 0;
+	    rig_debug(RIG_DEBUG_TRACE, "%s: No solution\n", __func__);
 		return 0;
 	}
 }
