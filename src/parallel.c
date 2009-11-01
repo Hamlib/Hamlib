@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - parallel communication low-level support
- *  Copyright (c) 2000-2005 by Stephane Fillod
+ *  Copyright (c) 2000-2009 by Stephane Fillod
  *
  *	$Id: parallel.c,v 1.6 2006-10-15 00:27:51 aa6e Exp $
  *
@@ -76,14 +76,14 @@
 
 /* 
  * These control port bits are active low.
- * We toggle them so that this weirdness doesn't get get propagated
+ * We toggle them so that this weirdness doesn't get propagated
  * through our interface.
  */
 #define CP_ACTIVE_LOW_BITS	0x0B
 
 /*
  * These status port bits are active low.
- * We toggle them so that this weirdness doesn't get get propagated
+ * We toggle them so that this weirdness doesn't get propagated
  * through our interface.
  */
 #define SP_ACTIVE_LOW_BITS	0x80
@@ -107,6 +107,7 @@ int par_open(hamlib_port_t *port)
 		return -RIG_EINVAL;
 
 #ifdef HAVE_LINUX_PPDEV_H
+    /* TODO: open with O_NONBLOCK ? */
 	fd = open(port->pathname, O_RDWR);
 	if (fd < 0) {
 		rig_debug(RIG_DEBUG_ERR, "Opening device \"%s\": %s\n", port->pathname, strerror(errno));
@@ -223,6 +224,8 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
 	int status;
 	unsigned char ctrl = control ^ CP_ACTIVE_LOW_BITS;
 	status = ioctl(port->fd, PPWCONTROL, &ctrl);
+    if (status < 0)
+        rig_debug(RIG_DEBUG_ERR,"ioctl(PPWCONTROL) failed: %s\n", strerror(errno));
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
 	int status;
@@ -266,6 +269,8 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 	int status;
 	unsigned char ctrl;
 	status = ioctl(port->fd, PPRCONTROL, &ctrl);
+    if (status < 0)
+        rig_debug(RIG_DEBUG_ERR,"ioctl(PPRCONTROL) failed: %s\n", strerror(errno));
 	*control = ctrl ^ CP_ACTIVE_LOW_BITS;
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
@@ -362,6 +367,13 @@ int HAMLIB_API par_unlock(hamlib_port_t *port)
 	return -RIG_ENIMPL;
 }
 
+#ifndef PARPORT_CONTROL_STROBE
+#define PARPORT_CONTROL_STROBE 0x1
+#endif
+#ifndef PARPORT_CONTROL_INIT
+#define PARPORT_CONTROL_INIT 0x4
+#endif
+
 /**
  * \brief Set or unset Push to talk bit on Parallel Port
  * \param p
@@ -373,17 +385,28 @@ int par_ptt_set(hamlib_port_t *p, ptt_t pttx)
 	switch(p->type.ptt) {
 	case RIG_PTT_PARALLEL:
 		{
-		unsigned char reg;
+		unsigned char ctl;
 		int status;
 
-		status = par_read_data(p, &reg);
+		par_lock (p);
+		status = par_read_control(p, &ctl);
 		if (status != RIG_OK)
 			return status;
+
+		/* Enable CW & PTT - /STROBE bit (pin 1) */
+		ctl &= ~PARPORT_CONTROL_STROBE;
+
+		/* TODO: kill parm.parallel.pin? */
+
+		/* PTT keying - /INIT bit (pin 16) (inverted) */
 		if (pttx == RIG_PTT_ON)
-			reg |=   1 << p->parm.parallel.pin;
+			ctl |= PARPORT_CONTROL_INIT;
 		else
-			reg &= ~(1 << p->parm.parallel.pin);
-		return par_write_data(p, reg);
+			ctl &= ~PARPORT_CONTROL_INIT;
+
+		status = par_write_control(p, ctl);
+		par_unlock (p);
+		return status;
 		}
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported PTT type %d\n", 
@@ -404,12 +427,16 @@ int par_ptt_get(hamlib_port_t *p, ptt_t *pttx)
 	switch(p->type.ptt) {
 	case RIG_PTT_PARALLEL:
 		{
-		unsigned char reg;
+		unsigned char ctl;
 		int status;
 
-		status = par_read_data(p, &reg);
-		*pttx = reg & (1<<p->parm.parallel.pin) ? 
-					RIG_PTT_ON:RIG_PTT_OFF;
+		par_lock (p);
+		status = par_read_control(p, &ctl);
+		par_unlock (p);
+
+		*pttx = (ctl & PARPORT_CONTROL_INIT) &&
+		            !(ctl & PARPORT_CONTROL_STROBE) ? 
+					RIG_PTT_ON : RIG_PTT_OFF;
 		return status;
 		}
 	default:

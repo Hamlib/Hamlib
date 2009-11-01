@@ -476,6 +476,8 @@ int HAMLIB_API rig_open(RIG *rig)
 		if (rs->pttport.fd < 0)
 			rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
 						rs->pttport.pathname);
+        else
+			par_ptt_set(&rs->pttport, RIG_PTT_OFF);
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "Unsupported PTT type %d\n",
@@ -594,6 +596,7 @@ int HAMLIB_API rig_close(RIG *rig)
         port_close(&rs->pttport, RIG_PORT_SERIAL);
 		break;
 	case RIG_PTT_PARALLEL:
+        par_ptt_set(&rs->pttport, RIG_PTT_OFF);
         port_close(&rs->pttport, RIG_PORT_PARALLEL);
 		break;
 	default:
