@@ -52,6 +52,9 @@ M: Mark J. Fine
 [icom: ic7000]
 M: Kent Hill, AD7AI
 
+[icom: ic7200]
+M: James Watson, HZ1JW
+
 [icom: ic718]
 M: Chuck Gilkes, WD0FCL/4
 
@@ -110,6 +113,10 @@ M: Stephane Fillod, F8CFE
 C: Rob Frohne, KL7NA
 
 
+[kit: Si570 AVR-USB]
+C: Fabrice, F4AVI
+
+
 [pcr: pcr100,pcr1000]
 M: Alessandro Zummo, IZ1PRB
 C: Darren Hatcher, G0WCW
@@ -133,6 +140,9 @@ M: Martin Ewing AA6E
 
 [tentec: Argonaut V]
 C: Dave Freese, W1HKJ
+
+[tentec: tt585]
+C: Bert, KG4BEC
 
 
 [uniden: 245xlt]
