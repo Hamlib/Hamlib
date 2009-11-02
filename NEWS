@@ -5,6 +5,20 @@ Copyright (C) 2000-2009  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.2.10
+	2009-11-02
+	* New models: IC-7200, PCR-1500, PCR-2500, RX-340, R&S ESMC, BC898T,
+                Si570 AVR-USB, Paragon (skeleton)
+	* New rotator backend: SPID, GS-232 (not A or B)
+	* Fixes and features: TH-F7E, K2, FT-920, Yaesu NewCAT, IC-7000, IC-7800,
+        IC-910, IC-718, IC-756PROIII, Tentec Orion, Jupiter, RX320, AOR-8000,
+        PCR-1000, Video4Linux, all the kenwood backends, GS-232A
+    * ABI version in backend symbols
+    * expose PTT/DCD setup through rig_set_conf()
+    * Parallel port PTT now following cwdaemon (STROBE+INIT) interface
+	* bindings
+    * ltdl update
+
 Version 1.2.9
 	2009-02-25
 	* New models: FT2000, FT9000, TT-588 Omni VII, FT-840, NRD525, Winradio G305, TRC-80
