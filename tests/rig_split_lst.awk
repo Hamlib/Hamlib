@@ -1,6 +1,6 @@
 #!/usr/bin/awk -f
 
-# (c) 2007 Stephane Fillod
+# (c) 2007-2009 Stephane Fillod
 
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -47,6 +47,8 @@ BEGIN {
 	bkendlst[24]="rft"
 	bkendlst[25]="kit"
 	bkendlst[26]="tuner"
+	bkendlst[27]="rs"
+	bkendlst[28]="unknown"
 	if (lst_dir == "")
 		lst_dir="."
 	else
