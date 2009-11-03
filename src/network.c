@@ -90,12 +90,14 @@ static int getaddrinfo(const char *node, const char *service,
 {
 	struct addrinfo *p;
 
-	p = malloc(sizeof(struct addrinfo));
-	if (!p)
-		return ENOMEM;
 	/* limitation: this replacement function only for IPv4 */
 	if (hints && hints->ai_family != AF_INET)
 		return EINVAL;
+
+	p = malloc(sizeof(struct addrinfo));
+	if (!p)
+		return ENOMEM;
+
 	memset(p, 0, sizeof(struct addrinfo));
 	p->ai_family = hints->ai_family;
 	p->ai_socktype = hints->ai_socktype;

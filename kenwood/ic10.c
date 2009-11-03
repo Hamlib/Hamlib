@@ -441,7 +441,7 @@ int ic10_get_mem(RIG *rig, vfo_t vfo, int *ch)
  */
 int ic10_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
-	char membuf[4], ackbuf[16];
+	char membuf[8], ackbuf[16];
 	int mem_len, ack_len, retval;
 
 	mem_len = sprintf(membuf, "MC %02d;", ch);

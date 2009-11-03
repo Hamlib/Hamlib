@@ -191,6 +191,7 @@ int tt585_init(RIG *rig)
 
 	memset(priv, 0, sizeof(struct tt585_priv_data));
 
+	rig->state.priv = priv;
 	return RIG_OK;
 }
 
