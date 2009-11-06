@@ -254,9 +254,9 @@ const struct rig_caps ft767gx_caps = {
   .rig_model =        RIG_MODEL_FT767, 
   .model_name =       "FT-767GX", 
   .mfg_name =         "Yaesu", 
-  .version =           "0.1",
+  .version =           "0.2",
   .copyright =         "LGPL",
-  .status =            RIG_STATUS_ALPHA, 
+  .status =            RIG_STATUS_BETA, 
   .rig_type =          RIG_TYPE_TRANSCEIVER, 
   .ptt_type =          RIG_PTT_RIG,
   .dcd_type =          RIG_DCD_NONE,
@@ -551,6 +551,8 @@ int ft767_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
+
+  *freq *= 10.0; /* rig reads in 10 Hz increments*/
 
   return RIG_OK;
 }
