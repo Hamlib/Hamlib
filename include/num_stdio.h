@@ -43,11 +43,20 @@
 	   __ret; \
 	 })
 
-#define num_sprintf(a...) \
+#define num_sprintf(s, a...) \
 	({ int __ret; char *__savedlocale; \
 	   __savedlocale = setlocale(LC_NUMERIC, NULL); \
 	   setlocale(LC_NUMERIC, "C"); \
-	   __ret = sprintf(a); \
+	   __ret = sprintf(s, a); \
+	   setlocale(LC_NUMERIC, __savedlocale); \
+	   __ret; \
+	 })
+
+#define num_snprintf(s, n, a...) \
+	({ int __ret; char *__savedlocale; \
+	   __savedlocale = setlocale(LC_NUMERIC, NULL); \
+	   setlocale(LC_NUMERIC, "C"); \
+	   __ret = snprintf(s, n, a); \
 	   setlocale(LC_NUMERIC, __savedlocale); \
 	   __ret; \
 	 })
