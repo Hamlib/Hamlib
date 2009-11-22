@@ -59,6 +59,8 @@ struct dummy_priv_data {
 		channel_t mem[NB_CHAN];
 
 		struct ext_list *ext_parms;
+
+        char *magic_conf;
 };
 
 
@@ -82,6 +84,12 @@ static const struct confparams dummy_ext_parms[] = {
 	{ RIG_CONF_END, NULL, }
 };
 
+static const struct confparams dummy_cfg_params[] = {
+	{ TOK_CFG_MAGICCONF, "mcfg", "Magic conf", "Magic parameter, as an example",
+		"DX", RIG_CONF_STRING, { }
+	},
+	{ RIG_CONF_END, NULL, }
+};
 
 /********************************************************************/
 
@@ -193,6 +201,8 @@ static int dummy_init(RIG *rig)
   priv->curr = &priv->vfo_a;
   priv->curr_vfo = priv->last_vfo = RIG_VFO_A;
 
+  priv->magic_conf = strdup("DX");
+
   return RIG_OK;
 }
 
@@ -209,6 +219,7 @@ static int dummy_cleanup(RIG *rig)
   free(priv->vfo_a.ext_levels);
   free(priv->vfo_b.ext_levels);
   free(priv->ext_parms);
+  free(priv->magic_conf);
 
   if (rig->state.priv)
   	free(rig->state.priv);
@@ -230,6 +241,41 @@ static int dummy_close(RIG *rig)
   rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
 
   return RIG_OK;
+}
+
+static int dummy_set_conf(RIG *rig, token_t token, const char *val)
+{
+	struct dummy_priv_data *priv;
+
+	priv = (struct dummy_priv_data*)rig->state.priv;
+
+	switch(token) {
+		case TOK_CFG_MAGICCONF:
+            if (val) {
+                free(priv->magic_conf);
+                priv->magic_conf = strdup(val);
+            }
+			break;
+		default:
+			return -RIG_EINVAL;
+	}
+	return RIG_OK;
+}
+
+static int dummy_get_conf(RIG *rig, token_t token, char *val)
+{
+	struct dummy_priv_data *priv;
+
+	priv = (struct dummy_priv_data*)rig->state.priv;
+
+	switch(token) {
+		case TOK_CFG_MAGICCONF:
+			strcpy(val, priv->magic_conf);
+			break;
+		default:
+			return -RIG_EINVAL;
+	}
+	return RIG_OK;
 }
 
 static int dummy_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
@@ -1345,11 +1391,15 @@ const struct rig_caps dummy_caps = {
 
   .extlevels =    dummy_ext_levels,
   .extparms =     dummy_ext_parms,
+  .cfgparams =    dummy_cfg_params,
 
   .rig_init =     dummy_init,
   .rig_cleanup =  dummy_cleanup,
   .rig_open =     dummy_open,
   .rig_close =    dummy_close,
+
+  .set_conf =     dummy_set_conf,
+  .get_conf =     dummy_get_conf,
 
   .set_freq =     dummy_set_freq,
   .get_freq =     dummy_get_freq,

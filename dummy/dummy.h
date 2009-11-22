@@ -26,6 +26,10 @@
 #include "hamlib/rig.h"
 #include "token.h"
 
+/* backend conf */
+#define TOK_CFG_MAGICCONF  TOKEN_BACKEND(1)
+
+
 /* ext_level's and ext_parm's tokens */
 #define TOK_EL_MAGICLEVEL  TOKEN_BACKEND(1)
 #define TOK_EL_MAGICFUNC   TOKEN_BACKEND(2)
