@@ -2095,11 +2095,11 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
             if (!newcat_valid_command(rig, "GT"))
                 return -RIG_ENAVAIL;
             switch (val.i) {
-                case RIG_AGC_OFF: strcpy(priv->cmd_str, "GT00;"); break;
-                case RIG_AGC_FAST: strcpy(priv->cmd_str, "GT01;"); break;
-                case RIG_AGC_MEDIUM: strcpy(priv->cmd_str, "GT02;"); break;
-                case RIG_AGC_SLOW: strcpy(priv->cmd_str, "GT03;"); break;
-                case RIG_AGC_AUTO: strcpy(priv->cmd_str, "GT04;"); break;
+                case RIG_AGC_OFF:    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "GT00;"); break;
+                case RIG_AGC_FAST:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), "GT01;"); break;
+                case RIG_AGC_MEDIUM: snprintf(priv->cmd_str, sizeof(priv->cmd_str), "GT02;"); break;
+                case RIG_AGC_SLOW:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), "GT03;"); break;
+                case RIG_AGC_AUTO:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), "GT04;"); break;
                 default: return -RIG_EINVAL;
             }
             priv->cmd_str[2] = main_sub_vfo;	
@@ -2143,17 +2143,17 @@ int newcat_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
             if (!newcat_valid_command(rig, "MS"))
                 return -RIG_ENAVAIL;
             switch (val.i) {
-                case RIG_METER_ALC: strcpy(priv->cmd_str, "MS1;"); break;
+                case RIG_METER_ALC: snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS1;"); break;
                 case RIG_METER_PO:
                                     if (newcat_is_rig(rig, RIG_MODEL_FT950))
                                         return RIG_OK;
                                     else
-                                        strcpy(priv->cmd_str, "MS2;");
+                                        snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS2;");
                                     break;
-                case RIG_METER_SWR:  strcpy(priv->cmd_str, "MS3;"); break;
-                case RIG_METER_COMP: strcpy(priv->cmd_str, "MS0;"); break;
-                case RIG_METER_IC:   strcpy(priv->cmd_str, "MS4;"); break;
-                case RIG_METER_VDD:  strcpy(priv->cmd_str, "MS5;"); break;
+                case RIG_METER_SWR:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS3;"); break;
+                case RIG_METER_COMP: snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS0;"); break;
+                case RIG_METER_IC:   snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS4;"); break;
+                case RIG_METER_VDD:  snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MS5;"); break;
                 default: return -RIG_EINVAL;
             }
             break;
@@ -3321,7 +3321,7 @@ const char *newcat_get_info(RIG * rig)
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
-    static char idbuf[8];
+    static char idbuf[12]; /* extra large static string array */
     
     priv = (struct newcat_priv_data *)rig->state.priv;
     state = &rig->state;
@@ -3364,7 +3364,7 @@ const char *newcat_get_info(RIG * rig)
     }
 
     priv->ret_data[6] = '\0';
-    strcpy(idbuf, priv->ret_data);
+    snprintf(idbuf, sizeof(idbuf), "%s", priv->ret_data);
 
     return idbuf;
 }
@@ -3935,7 +3935,7 @@ int newcat_set_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
     struct newcat_priv_data *priv;
     struct rig_state *state;
     int err;
-    char width_str[3];
+    char width_str[6];        /* extra larger buffer */
     char main_sub_vfo = '0';
     char narrow = '0';
     
