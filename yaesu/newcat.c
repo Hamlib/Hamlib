@@ -236,8 +236,6 @@ static int newcat_get_rigid(RIG * rig);
 static int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode);
 static int newcat_set_cmd(RIG * rig, newcat_cmd_data_t * cmd);
 static int newcat_get_cmd(RIG * rig, newcat_cmd_data_t * cmd);
-static int newcat_set_any_mem(RIG * rig, vfo_t vfo, int ch);
-static int newcat_set_any_channel(RIG * rig, const channel_t * chan);
 static int newcat_vfomem_toggle(RIG * rig);
 
 /*
@@ -2927,11 +2925,85 @@ int newcat_set_bank(RIG * rig, vfo_t vfo, int bank)
 
 int newcat_set_mem(RIG * rig, vfo_t vfo, int ch)
 {
-    int err;
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err, i;
+    ncboolean restore_vfo;
+    chan_t *chan_list;
+    channel_t valid_chan;
+    channel_cap_t *mem_caps = NULL;
+    
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
 
-    err = newcat_set_any_mem(rig, vfo, ch);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return err;
+    if (!newcat_valid_command(rig, "MC"))
+        return -RIG_ENAVAIL;
+
+    chan_list = rig->caps->chan_list;
+
+    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+        if (ch >= chan_list[i].start &&
+                ch <= chan_list[i].end) {
+            mem_caps = &chan_list[i].mem_caps;
+            break;
+        }
+    }
+
+    /* Test for valid usable channel, skip if empty */
+    memset(&valid_chan, 0, sizeof(channel_t));
+    valid_chan.channel_num = ch;
+    err = newcat_get_channel(rig, &valid_chan);
+    if (valid_chan.freq <= 1.0)
+      mem_caps = NULL; 
+
+    rig_debug(RIG_DEBUG_TRACE, "ValChan Freq = %d, pMemCaps = %d\n", valid_chan.freq, mem_caps);
+
+    /* Out of Range, or empty */
+    if (!mem_caps)
+        return -RIG_ENAVAIL;
+
+    /* set to usable vfo if needed */
+    err = newcat_set_vfo_from_alias(rig, &vfo);
+    if (err < 0)
+        return err;
+
+    /* Restore to VFO mode or leave in Memory Mode */
+    switch (vfo) {
+        case RIG_VFO_A:
+            /* Jump back from memory channel */
+            restore_vfo = TRUE;
+            break;
+        case RIG_VFO_MEM:
+            /* Jump from channel to channel in memmory mode */
+            restore_vfo = FALSE;
+            break;
+        case RIG_VFO_B:
+        default:
+            /* Only works with VFO A */
+            return -RIG_ENTARGET;
+    }
+
+    /* Set Memory Channel Number ************** */
+    rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %d\n", ch, vfo);
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC%03d%c", ch, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+      return err;
+
+    /* Restore VFO even if setting to blank memory channel */
+    if (restore_vfo) {
+        err = newcat_vfomem_toggle(rig);
+        if (err != RIG_OK)
+            return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -3159,11 +3231,138 @@ int newcat_decode_event(RIG * rig)
 
 int newcat_set_channel(RIG * rig, const channel_t * chan)
 {
-    int err;
+    struct newcat_priv_data *priv;
+    struct rig_state *state;
+    int err, i;
+    int rxit;
+    char c_rit, c_xit, c_mode, c_vfo, c_tone, c_rptr_shift;
+    tone_t tone;
+    ncboolean restore_vfo;
+    chan_t *chan_list;
+    channel_cap_t *mem_caps = NULL;
+    
+    priv = (struct newcat_priv_data *)rig->state.priv;
+    state = &rig->state;
 
-    err = newcat_set_any_channel(rig, chan);
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    return err;
+
+    if (!newcat_valid_command(rig, "MW"))
+        return -RIG_ENAVAIL;
+
+    chan_list = rig->caps->chan_list;
+
+    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
+        if (chan->channel_num >= chan_list[i].start &&
+                chan->channel_num <= chan_list[i].end &&
+                // writable memory types... NOT 60-METERS or READ-ONLY channels
+                (chan_list[i].type == RIG_MTYPE_MEM ||
+                 chan_list[i].type == RIG_MTYPE_EDGE) ) {
+            mem_caps = &chan_list[i].mem_caps;
+            break;
+        }
+    }
+
+    /* Out of Range */
+    if (!mem_caps)
+        return -RIG_ENAVAIL;
+
+    /* Set Restore to VFO or leave in memory mode */
+    switch (priv->current_vfo) {
+        case RIG_VFO_A:
+            /* Jump back from memory channel */
+            restore_vfo = TRUE;
+            break;
+        case RIG_VFO_MEM:
+            /* Jump from channel to channel in memmory mode */
+            restore_vfo = FALSE; 
+            break;
+        case RIG_VFO_B:
+        default:
+            /* Only works with VFO A */
+            return -RIG_ENTARGET;
+    }
+
+    /* Write Memory Channel ************************* */
+    /*  Clarifier TX, RX */
+    if (chan->rit) {
+        rxit = chan->rit;
+        c_rit = '1';
+        c_xit = '0';
+    } else if (chan->xit) {
+        rxit= chan->xit;
+        c_rit = '0';
+        c_xit = '1';
+    } else { 
+        rxit  =  0;
+        c_rit = '0';
+        c_xit = '0';
+    }
+
+    /* MODE */
+    switch(chan->mode) {
+        case RIG_MODE_LSB:    c_mode = '1'; break;
+        case RIG_MODE_USB:    c_mode = '2'; break;
+        case RIG_MODE_CW:     c_mode = '3'; break;
+        case RIG_MODE_FM:     c_mode = '4'; break;
+        case RIG_MODE_AM:     c_mode = '5'; break;
+        case RIG_MODE_RTTY:   c_mode = '6'; break;
+        case RIG_MODE_CWR:    c_mode = '7'; break;
+        case RIG_MODE_PKTLSB: c_mode = '8'; break;
+        case RIG_MODE_RTTYR:  c_mode = '9'; break;
+        case RIG_MODE_PKTFM:  c_mode = 'A'; break;
+        case RIG_MODE_PKTUSB: c_mode = 'C'; break;
+        default: c_mode = '1'; break;
+    }
+
+    /* VFO Fixed */
+    c_vfo = '0';
+
+    /* CTCSS Tone / Sql */
+    if (chan->ctcss_tone) {
+        c_tone = '2';
+        tone = chan->ctcss_tone;
+    } else if (chan->ctcss_sql) {
+        c_tone = '1';
+        tone = chan->ctcss_sql;
+    } else {
+        c_tone = '0'; 
+        tone = 0;
+    }
+    for (i = 0; rig->caps->ctcss_list[i] != 0; i++)
+        if (tone == rig->caps->ctcss_list[i]) {
+            tone = i;
+            if (tone > 49)
+                tone = 0;
+            break;
+        }
+
+    /* Repeater Shift */
+    switch (chan->rptr_shift) {
+        case RIG_RPT_SHIFT_NONE:  c_rptr_shift = '0'; break;
+        case RIG_RPT_SHIFT_PLUS:  c_rptr_shift = '1'; break;
+        case RIG_RPT_SHIFT_MINUS: c_rptr_shift = '2'; break;
+        default: c_rptr_shift = '0';
+    }
+
+    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MW%03d%08d%+.4d%c%c%c%c%c%02d%c%c",
+            chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
+            c_tone, tone, c_rptr_shift, cat_term);
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
+
+    /* Set Memory Channel */
+    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
+    if (err != RIG_OK)
+        return err;
+
+    /* Restore VFO ********************************** */
+    if (restore_vfo) {
+        err = newcat_vfomem_toggle(rig);
+        return err;
+    }
+
+    return RIG_OK;
 }
 
 
@@ -3227,7 +3426,7 @@ int newcat_get_channel(RIG * rig, channel_t * chan)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get_channel, Invalid channel...\n");
+        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get_channel, Invalid empty channel (freq == 0.0)...\n");
         /* Invalid channel, has not been set up, make sure freq is 0 to indicate empty channel */
         chan->freq = 0.0; 
         return RIG_OK;
@@ -3368,9 +3567,6 @@ const char *newcat_get_info(RIG * rig)
 
     return idbuf;
 }
-
-// const char *clone_combo_set;	/*!< String describing key combination to enter load cloning mode */
-// const char *clone_combo_get;	/*!< String describing key combination to enter save cloning mode */
 
 
 /*
@@ -3815,7 +4011,7 @@ int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo) {
  *	I kept setting it to 11.  I wrote some test software and 
  *	found out that 0.12 * 100 = 11 with my setup.
  *  Compilier is gcc 4.2.4, CPU is AMD X2
- *  This works but Find a better way.
+ *  This works somewhat but Find a better way.
  *  The newcat_get_level() seems to work correctly.
  *  Terry KJ4EED
  *
@@ -4433,228 +4629,6 @@ int newcat_get_cmd(RIG * rig, newcat_cmd_data_t * cmd)
     if (strcmp(cmd->ret_data, cat_unknown_cmd) == 0) {
         rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get cmd = %s\n", cmd->cmd_str);
         return RIG_OK;
-    }
-
-    return RIG_OK;
-}
-
-
-int newcat_set_any_mem(RIG * rig, vfo_t vfo, int ch)
-{
-    struct newcat_priv_data *priv;
-    struct rig_state *state;
-    int err, i;
-    ncboolean restore_vfo;
-    chan_t *chan_list;
-    channel_t valid_chan;
-    channel_cap_t *mem_caps = NULL;
-    
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!newcat_valid_command(rig, "MC"))
-        return -RIG_ENAVAIL;
-
-    chan_list = rig->caps->chan_list;
-
-    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-        if (ch >= chan_list[i].start &&
-                ch <= chan_list[i].end) {
-            mem_caps = &chan_list[i].mem_caps;
-            break;
-        }
-    }
-
-    /* Test for valid usable channel, skip if empty */
-    memset(&valid_chan, 0, sizeof(channel_t));
-    valid_chan.channel_num = ch;
-    err = newcat_get_channel(rig, &valid_chan);
-    if (valid_chan.freq <= 1.0)
-      mem_caps = NULL; 
-
-    rig_debug(RIG_DEBUG_TRACE, "ValChan Freq = %d, pMemCaps = %d\n", valid_chan.freq, mem_caps);
-
-    /* Out of Range, or empty */
-    if (!mem_caps)
-        return -RIG_ENAVAIL;
-
-    /* set to usable vfo if needed */
-    err = newcat_set_vfo_from_alias(rig, &vfo);
-    if (err < 0)
-        return err;
-
-    /* Restore to VFO mode or leave in Memory Mode */
-    switch (vfo) {
-        case RIG_VFO_A:
-            /* Jump back from memory channel */
-            restore_vfo = TRUE;
-            break;
-        case RIG_VFO_MEM:
-            /* Jump from channel to channel in memmory mode */
-            restore_vfo = FALSE;
-            break;
-        case RIG_VFO_B:
-        default:
-            /* Only works with VFO A */
-            return -RIG_ENTARGET;
-    }
-
-
-    /* Set Memory Channel Number ************** */
-    rig_debug(RIG_DEBUG_TRACE, "channel_num = %d, vfo = %d\n", ch, vfo);
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MC%03d%c", ch, cat_term);
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-      return err;
-
-    /* Restore VFO even if setting to blank memory channel */
-    if (restore_vfo) {
-        err = newcat_vfomem_toggle(rig);
-        if (err != RIG_OK)
-            return err;
-    }
-
-    return RIG_OK;
-}
-
-
-int newcat_set_any_channel(RIG * rig, const channel_t * chan)
-{
-    struct newcat_priv_data *priv;
-    struct rig_state *state;
-    int err, i;
-    int rxit;
-    char c_rit, c_xit, c_mode, c_vfo, c_tone, c_rptr_shift;
-    tone_t tone;
-    ncboolean restore_vfo;
-    chan_t *chan_list;
-    channel_cap_t *mem_caps = NULL;
-    
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-
-    if (!newcat_valid_command(rig, "MW"))
-        return -RIG_ENAVAIL;
-
-    chan_list = rig->caps->chan_list;
-
-    for (i=0; i<CHANLSTSIZ && !RIG_IS_CHAN_END(chan_list[i]); i++) {
-        if (chan->channel_num >= chan_list[i].start &&
-                chan->channel_num <= chan_list[i].end &&
-                // writable memory types... NOT 60M or READ only channels
-                (chan_list[i].type == RIG_MTYPE_MEM ||
-                 chan_list[i].type == RIG_MTYPE_EDGE) ) {
-            mem_caps = &chan_list[i].mem_caps;
-            break;
-        }
-    }
-
-    /* Out of Range */
-    if (!mem_caps)
-        return -RIG_ENAVAIL;
-
-    /* Set Restore to VFO or leave in memory mode */
-    switch (priv->current_vfo) {
-        case RIG_VFO_A:
-            /* Jump back from memory channel */
-            restore_vfo = TRUE;
-            break;
-        case RIG_VFO_MEM:
-            /* Jump from channel to channel in memmory mode */
-            restore_vfo = FALSE; 
-            break;
-        case RIG_VFO_B:
-        default:
-            /* Only works with VFO A */
-            return -RIG_ENTARGET;
-    }
-
-    /* Write Memory Channel ************************* */
-    /*  Clarifier TX, RX */
-    if (chan->rit) {
-        rxit = chan->rit;
-        c_rit = '1';
-        c_xit = '0';
-    } else if (chan->xit) {
-        rxit= chan->xit;
-        c_rit = '0';
-        c_xit = '1';
-    } else { 
-        rxit  =  0;
-        c_rit = '0';
-        c_xit = '0';
-    }
-
-    /* MODE */
-    switch(chan->mode) {
-        case RIG_MODE_LSB:    c_mode = '1'; break;
-        case RIG_MODE_USB:    c_mode = '2'; break;
-        case RIG_MODE_CW:     c_mode = '3'; break;
-        case RIG_MODE_FM:     c_mode = '4'; break;
-        case RIG_MODE_AM:     c_mode = '5'; break;
-        case RIG_MODE_RTTY:   c_mode = '6'; break;
-        case RIG_MODE_CWR:    c_mode = '7'; break;
-        case RIG_MODE_PKTLSB: c_mode = '8'; break;
-        case RIG_MODE_RTTYR:  c_mode = '9'; break;
-        case RIG_MODE_PKTFM:  c_mode = 'A'; break;
-        case RIG_MODE_PKTUSB: c_mode = 'C'; break;
-        default: c_mode = '1'; break;
-    }
-
-    /* VFO Fixed */
-    c_vfo = '0';
-
-    /* CTCSS Tone / Sql */
-    if (chan->ctcss_tone) {
-        c_tone = '2';
-        tone = chan->ctcss_tone;
-    } else if (chan->ctcss_sql) {
-        c_tone = '1';
-        tone = chan->ctcss_sql;
-    } else {
-        c_tone = '0'; 
-        tone = 0;
-    }
-    for (i = 0; rig->caps->ctcss_list[i] != 0; i++)
-        if (tone == rig->caps->ctcss_list[i]) {
-            tone = i;
-            if (tone > 49)
-                tone = 0;
-            break;
-        }
-
-    /* Repeater Shift */
-    switch (chan->rptr_shift) {
-        case RIG_RPT_SHIFT_NONE:  c_rptr_shift = '0'; break;
-        case RIG_RPT_SHIFT_PLUS:  c_rptr_shift = '1'; break;
-        case RIG_RPT_SHIFT_MINUS: c_rptr_shift = '2'; break;
-        default: c_rptr_shift = '0';
-    }
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "MW%03d%08d%+.4d%c%c%c%c%c%02d%c%c",
-            chan->channel_num, (int)chan->freq, rxit, c_rit, c_xit, c_mode, c_vfo,
-            c_tone, tone, c_rptr_shift, cat_term);
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: cmd_str = %s\n", __func__, priv->cmd_str);
-
-    /* Set Memory Channel */
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
-
-    /* Restore VFO ********************************** */
-    if (restore_vfo) {
-        err = newcat_vfomem_toggle(rig);
-        return err;
     }
 
     return RIG_OK;
