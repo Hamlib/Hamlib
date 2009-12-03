@@ -57,7 +57,7 @@ const struct rig_caps pcr1000_caps = {
 	.dcd_type		= RIG_DCD_RIG,
 	.port_type		= RIG_PORT_SERIAL,
 
-	.serial_rate_min	= 300,
+	.serial_rate_min	= 9600, /* slower speeds gave troubles */
 	.serial_rate_max	= 38400,
 	.serial_data_bits	= 8,
 	.serial_stop_bits	= 1,

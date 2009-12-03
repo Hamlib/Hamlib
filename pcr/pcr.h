@@ -30,7 +30,7 @@
 #define TOK_EL_ANL  TOKEN_BACKEND(1)
 
 
-#define BACKEND_VER		"0.6"
+#define BACKEND_VER		"0.7"
 
 #define PCR_MAX_CMD_LEN		32
 

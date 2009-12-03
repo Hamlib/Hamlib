@@ -301,6 +301,9 @@ pcr_transaction(RIG * rig, const char *cmd)
 		return -RIG_EPROTO;
 	}
 
+	/* flush any leftover */
+	serial_flush(&rs->rigport);
+
 	rig_debug(RIG_DEBUG_TRACE,
 		  "%s: got %c%c%c%c\n", __func__, buf[0], buf[1], buf[2], buf[3]);
 
