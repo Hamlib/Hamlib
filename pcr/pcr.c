@@ -20,6 +20,14 @@
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+/*
+ * Tested on
+ *
+ * (402) PCR100  fw 1.2, proto 1.0 (usb-to-serial) by IZ1PRB
+ * (401) PCR1000 fw 1.0, proto 1.0 (serial) by KM3T
+ * (403) PCR1500 fw 2.0, proto 2.0 (usb) by KM3T
+ *
+ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -133,12 +141,13 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
 	int read = 0, tries = 4;
 
 	struct rig_state *rs = &rig->state;
-        struct pcr_priv_data *priv = (struct pcr_priv_data *) rs->priv;
+	struct pcr_priv_caps *caps = pcr_caps(rig);
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rs->priv;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
 	/* already in sync? */
-	if (priv->sync)
+	if (priv->sync && !caps->always_sync)
 		return read_block(&rs->rigport, rxbuffer, count);
 
 	/* read first char */
@@ -154,7 +163,7 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
 			return -RIG_EPROTO;
 
 		/* validate */
-		if (!is_valid_answer(*p))
+		if (*p != 0x0a && !is_valid_answer(*p))
 			continue;
 
 		/* sync ok, read remaining chars */
@@ -263,10 +272,9 @@ pcr_send(RIG * rig, const char *cmd)
 	/* XXX check max len */
 	memcpy(priv->cmd_buf, cmd, len);
 
-	/* append cr lf */
-	/* XXX not required in auto update mode? */
+	/* append cr */
+	/* XXX not required in auto update mode? (should not harm) */
 	priv->cmd_buf[len+0] = 0x0a;
-	priv->cmd_buf[len+1] = 0x0a;
 
 	rs->hold_decode = 1;
 
@@ -277,14 +285,13 @@ pcr_send(RIG * rig, const char *cmd)
 	return err;
 }
 
-#define PCR_REPLY_SIZE 6
 
 static int
 pcr_transaction(RIG * rig, const char *cmd)
 {
 	int err;
-	char buf[PCR_REPLY_SIZE];
 	struct rig_state *rs = &rig->state;
+	struct pcr_priv_caps *caps = pcr_caps(rig);
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rs->priv;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: cmd = %s\n",
@@ -299,22 +306,19 @@ pcr_transaction(RIG * rig, const char *cmd)
 	if (priv->auto_update)
 		return RIG_OK;
 
-	err = pcr_read_block(rig, buf, PCR_REPLY_SIZE);
+	err = pcr_read_block(rig, priv->reply_buf, caps->reply_size);
 	if (err < 0) {
 		rig_debug(RIG_DEBUG_ERR,
 			  "%s: read error, %s\n", __func__, strerror(errno));
 		return err;
 	}
 
-	if (err != PCR_REPLY_SIZE) {
+	if (err != caps->reply_size) {
 		priv->sync = 0;
 		return -RIG_EPROTO;
 	}
 
-	rig_debug(RIG_DEBUG_TRACE,
-		  "%s: got %c%c%c%c\n", __func__, buf[0], buf[1], buf[2], buf[3]);
-
-	return pcr_parse_answer(rig, buf, err);
+	return pcr_parse_answer(rig, &priv->reply_buf[caps->reply_offset], err);
 }
 
 static int
@@ -466,7 +470,13 @@ pcr_open(RIG * rig)
 	pcr_send(rig, "H101");
 	usleep(100*250);
 
-	err = pcr_transaction(rig, "H101");
+	pcr_send(rig, "H101");
+	usleep(100*250);
+
+	serial_flush(&rs->rigport);
+
+	/* return RIG_ERJCTED if power is off */
+	err = pcr_transaction(rig, "H1?");
 	if (err != RIG_OK)
 		return err;
 

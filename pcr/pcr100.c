@@ -46,6 +46,12 @@ static const struct confparams pcr_ext_levels[] = {
 	{ RIG_CONF_END, NULL, }
 };
 
+static const struct pcr_priv_caps pcr100_priv = {
+	.reply_size	= 6,
+	.reply_offset	= 0,
+	.always_sync	= 0,
+};
+
 /*
  * IC PCR100 rigs capabilities.
  */
@@ -67,7 +73,7 @@ const struct rig_caps pcr100_caps = {
 	.serial_data_bits	= 8,
 	.serial_stop_bits	= 1,
 	.serial_parity		= RIG_PARITY_NONE,
-	.serial_handshake	= RIG_HANDSHAKE_NONE,
+	.serial_handshake	= RIG_HANDSHAKE_HARDWARE,
 
 	.write_delay		= 12,
 	.post_write_delay	= 2,
@@ -137,7 +143,7 @@ const struct rig_caps pcr100_caps = {
 		    RIG_FLT_END,
 	},
 
-	.priv = NULL,
+	.priv = (void *) &pcr100_priv,
 
 	/* XXX verify */
 	.str_cal = { 7, {

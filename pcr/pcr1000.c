@@ -41,6 +41,12 @@
 			RIG_LEVEL_AGC | RIG_LEVEL_STRENGTH | RIG_LEVEL_RAWSTR | \
 			RIG_LEVEL_NR )
 
+static const struct pcr_priv_caps pcr1000_priv = {
+	.reply_size	= 6,
+	.reply_offset	= 1,
+	.always_sync	= 0,
+};
+
 /*
  * IC PCR1000 rigs capabilities.
  */
@@ -50,7 +56,7 @@ const struct rig_caps pcr1000_caps = {
 	.mfg_name		= "Icom",
 	.version		= BACKEND_VER,
 	.copyright		= "LGPL",
-	.status			= RIG_STATUS_ALPHA,
+	.status			= RIG_STATUS_BETA,
 
 	.rig_type		= RIG_TYPE_PCRECEIVER,
 	.ptt_type		= RIG_PTT_NONE,
@@ -62,7 +68,7 @@ const struct rig_caps pcr1000_caps = {
 	.serial_data_bits	= 8,
 	.serial_stop_bits	= 1,
 	.serial_parity		= RIG_PARITY_NONE,
-	.serial_handshake	= RIG_HANDSHAKE_NONE,
+	.serial_handshake	= RIG_HANDSHAKE_HARDWARE,
 
 	.write_delay		= 12,
 	.post_write_delay	= 2,
@@ -126,7 +132,7 @@ const struct rig_caps pcr1000_caps = {
 		    RIG_FLT_END,
 	},
 
-	.priv = NULL,
+	.priv = (void *) &pcr1000_priv,
 
 	/* XXX fake */
 	.str_cal = { 3, { { 0, -60 }, { 127, 0 }, { 255, 60 } } },
@@ -155,6 +161,6 @@ const struct rig_caps pcr1000_caps = {
 	.set_trn	= pcr_set_trn,
 	.decode_event	= pcr_decode_event,
 
-    .set_powerstat  = pcr_set_powerstat,
-    .get_powerstat  = pcr_get_powerstat,
+	.set_powerstat  = pcr_set_powerstat,
+	.get_powerstat  = pcr_get_powerstat,
 };

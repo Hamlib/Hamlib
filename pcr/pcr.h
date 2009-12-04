@@ -29,12 +29,11 @@
 /* ext_level's tokens */
 #define TOK_EL_ANL  TOKEN_BACKEND(1)
 
-
 #define BACKEND_VER		"0.7"
-
 #define PCR_MAX_CMD_LEN		32
 
-struct pcr_priv_data {
+struct pcr_priv_data
+{
 	freq_t last_freq;
 	rmode_t last_mode;
 
@@ -52,6 +51,7 @@ struct pcr_priv_data {
 
 	char info[100];
 	char cmd_buf[PCR_MAX_CMD_LEN];
+	char reply_buf[PCR_MAX_CMD_LEN];
 
 	int protocol;
 	int firmware;
@@ -62,6 +62,15 @@ struct pcr_priv_data {
 
 	powerstat_t power;
 };
+
+struct pcr_priv_caps
+{
+	unsigned int reply_size;
+	unsigned int reply_offset;
+	unsigned int always_sync;
+};
+
+#define pcr_caps(rig) ((struct pcr_priv_caps *)(rig)->caps->priv)
 
 extern const tone_t pcr_ctcss_list[];
 
