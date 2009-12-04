@@ -150,6 +150,7 @@
 #define ROT_BACKEND_GS232A "gs232a"
 #define ROT_MODEL_GS232A ROT_MAKE_MODEL(ROT_GS232A, 1)
 #define ROT_MODEL_GS232 ROT_MAKE_MODEL(ROT_GS232A, 2) /* Not A or B */
+#define ROT_MODEL_GS232B ROT_MAKE_MODEL(ROT_GS232A, 3)
 
 /*! \def ROT_MODEL_PCROTOR
  *  \brief A macro that returns the model number of the PcRotor/WA6UFQ backend.
