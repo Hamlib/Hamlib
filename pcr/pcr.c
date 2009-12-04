@@ -123,6 +123,9 @@ static int pcr_check_ok(RIG * rig);
 
 #define PCR_COUNTRIES (sizeof(pcr_countries) / sizeof(struct pcr_country))
 
+#define is_valid_answer(x) \
+	((x) == 'I' || (x) == 'G' || (x) == 'N' || (x) == 'H')
+
 static int
 pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
 {
@@ -140,24 +143,26 @@ pcr_read_block(RIG *rig, char *rxbuffer, size_t count)
 
 	/* read first char */
 	do {
-		char *c = &rxbuffer[0];
+		char *p = &rxbuffer[0];
 
-		err = read_block(&rs->rigport, &rxbuffer[0], 1);
+		/* read first char */
+		err = read_block(&rs->rigport, p, 1);
 		if (err < 0)
 			return err;
 
 		if (err != 1)
 			return -RIG_EPROTO;
 
-		/* validate char */
-		if (!(*c == 'I' || *c == 'G' || *c == 'N' || *c == 'H'))
+		/* validate */
+		if (!is_valid_answer(*p))
 			continue;
 
 		/* sync ok, read remaining chars */
 		read++;
 		count--;
+		p++;
 
-		err = read_block(&rs->rigport, &rxbuffer[1], count);
+		err = read_block(&rs->rigport, p, count);
 		if (err < 0) {
 			rig_debug(RIG_DEBUG_ERR, "%s: read failed - %s\n",
 				__func__, strerror(errno));
@@ -188,7 +193,7 @@ pcr_parse_answer(RIG *rig, char *buf, int len)
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: len = %d\n", __func__, len);
 
-	if (len != 4) {
+	if (len < 4) {
 		priv->sync = 0;
 		return -RIG_EPROTO;
 	}
@@ -201,6 +206,9 @@ pcr_parse_answer(RIG *rig, char *buf, int len)
 
 	if (strncmp("H101", buf, 4) == 0)
 		return RIG_OK;
+
+	if (strncmp("H100", buf, 4) == 0)
+		return -RIG_ERJCTED;
 
 	if (buf[0] == 'I' && buf[1] == '1') {
 		switch (buf[1]) {
@@ -257,31 +265,33 @@ pcr_send(RIG * rig, const char *cmd)
 
 	/* append cr lf */
 	/* XXX not required in auto update mode? */
-	priv->cmd_buf[len+0] = 0x0d;
+	priv->cmd_buf[len+0] = 0x0a;
 	priv->cmd_buf[len+1] = 0x0a;
 
 	rs->hold_decode = 1;
 
-	serial_flush(&rs->rigport);
-
-	err = write_block(&rs->rigport, priv->cmd_buf, len + 2);
+	err = write_block(&rs->rigport, priv->cmd_buf, len + 1);
 
 	rs->hold_decode = 0;
 
 	return err;
 }
 
+#define PCR_REPLY_SIZE 6
 
 static int
 pcr_transaction(RIG * rig, const char *cmd)
 {
 	int err;
-	char buf[4];
+	char buf[PCR_REPLY_SIZE];
 	struct rig_state *rs = &rig->state;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rs->priv;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: cmd = %s\n",
 		__func__, cmd);
+
+	if (!priv->auto_update)
+		serial_flush(&rs->rigport);
 
 	pcr_send(rig, cmd);
 
@@ -289,20 +299,17 @@ pcr_transaction(RIG * rig, const char *cmd)
 	if (priv->auto_update)
 		return RIG_OK;
 
-	err = pcr_read_block(rig, buf, 4);
+	err = pcr_read_block(rig, buf, PCR_REPLY_SIZE);
 	if (err < 0) {
 		rig_debug(RIG_DEBUG_ERR,
 			  "%s: read error, %s\n", __func__, strerror(errno));
 		return err;
 	}
 
-	if (err != 4) {
+	if (err != PCR_REPLY_SIZE) {
 		priv->sync = 0;
 		return -RIG_EPROTO;
 	}
-
-	/* flush any leftover */
-	serial_flush(&rs->rigport);
 
 	rig_debug(RIG_DEBUG_TRACE,
 		  "%s: got %c%c%c%c\n", __func__, buf[0], buf[1], buf[2], buf[3]);
@@ -456,7 +463,9 @@ pcr_open(RIG * rig)
 	serial_flush(&rs->rigport);
 
 	/* try powering on twice, sometimes the pcr answers H100 (off) */
-	pcr_transaction(rig, "H101");
+	pcr_send(rig, "H101");
+	usleep(100*250);
+
 	err = pcr_transaction(rig, "H101");
 	if (err != RIG_OK)
 		return err;
@@ -1406,6 +1415,7 @@ int pcr_decode_event(RIG *rig)
 	int err;
 	char buf[4];
 
+	/* XXX check this */
 	err = pcr_read_block(rig, buf, 4);
 	if (err == 4)
 		return pcr_parse_answer(rig, buf, 4);

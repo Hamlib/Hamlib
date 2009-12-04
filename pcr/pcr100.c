@@ -70,8 +70,8 @@ const struct rig_caps pcr100_caps = {
 	.serial_handshake	= RIG_HANDSHAKE_NONE,
 
 	.write_delay		= 12,
-	.post_write_delay	= 0,
-	.timeout		= 300,
+	.post_write_delay	= 2,
+	.timeout		= 400,
 	.retry			= 3,
 
 	.has_get_func		= RIG_FUNC_NONE,
