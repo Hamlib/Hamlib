@@ -1064,15 +1064,15 @@ declare_proto_rig(power2mW)
 	unsigned int mwp;
 
 	fprintf(fout, "Power [0.0 .. 1.0]: ");
-	scanf("%f", &power);
+	status = scanf("%f", &power);
 	fprintf(fout, "Frequency: ");
-	scanf("%"SCNfreq, &freq);
+	status = scanf("%"SCNfreq, &freq);
 	fprintf(fout, "Mode: ");
-	scanf("%d", &mode);
+	status = scanf("%d", &mode);
 	status = rig_power2mW(rig, &mwp, power, freq, (rmode_t) mode);
 	fprintf(fout, "rig_power2mW()-Power: %d mW\n", mwp);
-    status = rig_mW2power(rig, &power, mwp, freq, (rmode_t) mode);
-    fprintf(fout, "rig_mW2power()-Power ratio [0.0 .. 1.0]: %f\n", power);
+	status = rig_mW2power(rig, &power, mwp, freq, (rmode_t) mode);
+	fprintf(fout, "rig_mW2power()-Power ratio [0.0 .. 1.0]: %f\n", power);
 
 	return status;
 }
@@ -1458,77 +1458,77 @@ declare_proto_rig(set_channel)
 
     if (mem_caps->bank_num) {
         printf("Bank Num: ");
-        scanf("%d", &chan.bank_num);
+        status = scanf("%d", &chan.bank_num);
     }
     if (mem_caps->vfo) {
         printf("vfo (VFOA,MEM,etc...): ");
-        scanf("%s", s);
+        status = scanf("%s", s);
         chan.vfo = rig_parse_vfo(s);
     }
     if (mem_caps->ant) {
         printf("ant: ");
-        scanf("%d", &chan.ant);
+        status = scanf("%d", &chan.ant);
     }
     if (mem_caps->freq) {
         printf("Frequency: ");
-        scanf("%"SCNfreq, &chan.freq);
+        status = scanf("%"SCNfreq, &chan.freq);
     }
     if (mem_caps->mode) {
         printf("mode (FM,LSB,etc...): ");
-        scanf("%s", s);
+        status = scanf("%s", s);
         chan.mode = rig_parse_mode(s);
     }
     if (mem_caps->width) {
         printf("width: ");
-        scanf("%ld", &chan.width);
+        status = scanf("%ld", &chan.width);
     }
     if (mem_caps->tx_freq) {
         printf("tx freq (VFOA,MEM,etc...): ");
-        scanf("%"SCNfreq, &chan.tx_freq);
+        status = scanf("%"SCNfreq, &chan.tx_freq);
     }
     if (mem_caps->tx_mode) {
         printf("tx mode (FM,LSB,etc...): ");
-        scanf("%s", s);
+        status = scanf("%s", s);
         chan.tx_mode = rig_parse_mode(s);
     }
     if (mem_caps->tx_width) {
         printf("tx width: ");
-        scanf("%ld", &chan.tx_width);
+        status = scanf("%ld", &chan.tx_width);
     }
     if (mem_caps->split) {
         printf("split (0,1): ");
-        scanf("%d", &status);
+        status = scanf("%d", &status);
         chan.split = status;
     }
     if (mem_caps->tx_vfo) {
         printf("tx vfo (VFOA,MEM,etc...): ");
-        scanf("%s", s);
+        status = scanf("%s", s);
         chan.tx_vfo = rig_parse_vfo(s);
     }
     if (mem_caps->rptr_shift) {
         printf("rptr shift (+-0): "); 
-        scanf("%s", s);
+        status = scanf("%s", s);
         chan.rptr_shift = rig_parse_rptr_shift(s);
     }
     if (mem_caps->rptr_offs) {
         printf("rptr offset: ");
-        scanf("%ld", &chan.rptr_offs);
+        status = scanf("%ld", &chan.rptr_offs);
     }
     if (mem_caps->tuning_step) {
         printf("tuning step: ");
-        scanf("%ld", &chan.tuning_step);
+        status = scanf("%ld", &chan.tuning_step);
     }
     if (mem_caps->rit) {
         printf("rit (Hz,0=off): ");
-        scanf("%ld", &chan.rit);
+        status = scanf("%ld", &chan.rit);
     }
     if (mem_caps->xit) {
         printf("xit (Hz,0=off): ");
-        scanf("%ld", &chan.xit);
+        status = scanf("%ld", &chan.xit);
     }
     if (mem_caps->funcs) {
         printf("funcs: ");
-        scanf("%lx", &chan.funcs);
+        status = scanf("%lx", &chan.funcs);
     }
 #if 0
     /* for all levels, ask */
@@ -1537,31 +1537,31 @@ declare_proto_rig(set_channel)
 #endif
     if (mem_caps->ctcss_tone) {
         printf("ctcss tone freq in tenth of Hz (0=off): ");
-        scanf("%d", &chan.ctcss_tone);
+        status = scanf("%d", &chan.ctcss_tone);
     }
     if (mem_caps->ctcss_sql) {
         printf("ctcss sql freq in tenth of Hz (0=off): ");
-        scanf("%d", &chan.ctcss_sql);
+        status = scanf("%d", &chan.ctcss_sql);
     }
     if (mem_caps->dcs_code) {
         printf("dcs code: ");
-        scanf("%d", &chan.dcs_code);
+        status = scanf("%d", &chan.dcs_code);
     }
     if (mem_caps->dcs_sql) {
         printf("dcs sql: ");
-        scanf("%d", &chan.dcs_sql);
+        status = scanf("%d", &chan.dcs_sql);
     }
     if (mem_caps->scan_group) {
         printf("scan group: ");
-        scanf("%d", &chan.scan_group);
+        status = scanf("%d", &chan.scan_group);
     }
     if (mem_caps->flags) {
         printf("flags: ");
-        scanf("%d", &chan.flags);
+        status = scanf("%d", &chan.flags);
     }
     if (mem_caps->channel_desc) {
         printf("channel desc: ");
-        scanf("%s", s);
+        status = scanf("%s", s);
         strcpy(chan.channel_desc, s);
     }
 #if 0
