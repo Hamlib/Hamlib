@@ -42,14 +42,17 @@
 int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	                                unsigned char *md, signed char *pd)
 {
-        int err;
+	int err;
 
 	err = rig2icom_mode(rig, mode, width, md, pd);
-	
-	if (err == -1)
+
+	if (err != RIG_OK)
 	    return err;
 
-	(*pd)--; 	
+    if (*pd == -1)
+		*pd = PD_MEDIUM_2;
+    else
+		(*pd)--;
 
 	return RIG_OK;
 }
