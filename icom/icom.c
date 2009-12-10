@@ -2715,7 +2715,14 @@ int icom_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 			retval = icom_set_vfo(rig, RIG_VFO_MEM);
 			if (retval != RIG_OK)
 				return retval;
-			scan_sc = S_SCAN_START;
+			/* Looks like all the IC-R* have this command,
+			 * but some old models don't have it.
+			 * Should be put in icom_priv_caps ?
+			 */
+			if (rig->caps->rig_type == RIG_TYPE_RECEIVER)
+			    scan_sc = S_SCAN_MEM2;
+			else
+			    scan_sc = S_SCAN_START;
 			break;
 		case RIG_SCAN_SLCT:
 			retval = icom_set_vfo(rig, RIG_VFO_MEM);
