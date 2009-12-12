@@ -205,6 +205,7 @@ extern const struct rig_caps ic756pro_caps;
 extern const struct rig_caps ic756pro2_caps;
 extern const struct rig_caps ic756pro3_caps;
 extern const struct rig_caps ic751_caps;
+extern const struct rig_caps ic7600_caps;
 extern const struct rig_caps ic761_caps;
 extern const struct rig_caps ic765_caps;
 extern const struct rig_caps ic775_caps;
