@@ -1,5 +1,5 @@
 AORSRCLIST = ar8200.c ar8000.c ar5000.c ar3000.c ar7030.c ar3030.c \
-	     ar2700.c ar8600.c
+	     ar2700.c ar8600.c ar7030p.c
 
 lib_LTLIBRARIES = hamlib-aor.la
 hamlib_aor_la_SOURCES = $(AORSRCLIST) aor.c
