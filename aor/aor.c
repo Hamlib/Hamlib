@@ -1178,6 +1178,7 @@ DECLARE_INITRIG_BACKEND(aor)
 	rig_register(&ar7030_caps);
 	rig_register(&ar3030_caps);
 	rig_register(&ar5000a_caps);
+	rig_register(&ar7030p_caps);
 
 	return RIG_OK;
 }
