@@ -74,5 +74,6 @@ extern const struct rig_caps ar3000a_caps;
 extern const struct rig_caps ar7030_caps;
 extern const struct rig_caps ar3030_caps;
 extern const struct rig_caps ar5000a_caps;
+extern const struct rig_caps ar7030p_caps;
 
 #endif /* _AOR_H */
