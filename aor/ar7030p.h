@@ -136,18 +136,36 @@ Ax   BUT <1>  Operate button x
 
 8x   LOC      Set lock level x
 */
+#if 1
 
-#define NOP(x) ( 0x00 | ( 0x0f & (x) ) )
-#define SRH(x) ( 0x30 | ( 0x0f & (x) ) )
-#define PGE(x) ( 0x50 | ( 0x0f & (x) ) )
-#define ADR(x) ( 0x40 | ( 0x0f & (x) ) )
-#define ADH(x) ( 0x10 | ( 0x0f & (x) ) )
-#define WRD(x) ( 0x60 | ( 0x0f & (x) ) )
-#define MSK(x) ( 0x90 | ( 0x0f & (x) ) )
-#define EXE(x) ( 0x20 | ( 0x0f & (x) ) )
-#define BUT(x) ( 0xa0 | ( 0x0f & (x) ) )
-#define RDD(x) ( 0x70 | ( 0x0f & (x) ) )
-#define LOC(x) ( 0x80 | ( 0x0f & (x) ) )
+#define NOP(x) (unsigned char) ( 0x00 | ( 0x0f & (x) ) )
+#define SRH(x) (unsigned char) ( 0x30 | ( 0x0f & (x) ) )
+#define PGE(x) (unsigned char) ( 0x50 | ( 0x0f & (x) ) )
+#define ADR(x) (unsigned char) ( 0x40 | ( 0x0f & (x) ) )
+#define ADH(x) (unsigned char) ( 0x10 | ( 0x0f & (x) ) )
+#define WRD(x) (unsigned char) ( 0x60 | ( 0x0f & (x) ) )
+#define MSK(x) (unsigned char) ( 0x90 | ( 0x0f & (x) ) )
+#define EXE(x) (unsigned char) ( 0x20 | ( 0x0f & (x) ) )
+#define BUT(x) (unsigned char) ( 0xa0 | ( 0x0f & (x) ) )
+#define RDD(x) (unsigned char) ( 0x70 | ( 0x0f & (x) ) )
+#define LOC(x) (unsigned char) ( 0x80 | ( 0x0f & (x) ) )
+
+#endif // 0
+
+enum OPCODE_e
+{
+  op_NOP = 0x00,
+  op_SRH = 0x30,
+  op_PGE = 0x50,
+  op_ADR = 0x40,
+  op_ADH = 0x10,
+  op_WRD = 0x60,
+  op_MSK = 0x90,
+  op_EXE = 0x20,
+  op_BUT = 0xa0,
+  op_RDD = 0x70,
+  op_LOC = 0x80
+};
 
 /*
 Note that the H-register is zeroed after use, and that the high order 4-bits 
@@ -190,6 +208,7 @@ Page  15       Receiver Ident           (ROM)    8 bytes.
 */
 enum PAGE_e
 {
+  NONE = -1,
   WORKING = 0,
   BBRAM = 1,
   EEPROM1 = 2,
@@ -421,38 +440,38 @@ enum FILTER_e
 
 enum BBRAM_mem_e
 {
-  rt_con = 0,
-  rt_sec = 2,
-  rt_min = 3,
-  rt_hrs = 4,
-  rt_dat = 5,
-  rt_mth = 6,
-  tm_con = 8,
-  tm_sec = 10,
-  tm_min = 11,
-  tm_hrs = 12,
-  ph_cal = 13,
-  pd_slp = 14,
-  pd_dly = 15,
-  pd_sst = 16,
-  pd_ssp = 17,
-  pd_stp = 18,
-  pd_sql = 20,
-  pd_ifg = 21,
-  pd_flg = 22,
-  pd_frq = 23,
-  pd_mod = 26,
-  pd_vol = 27,
-  md_flt = 28,
-  md_pbs = 29,
-  md_bfo = 30,
-  st_aud = 49,
-  st_flg = 53,
-  fl_sel = 132,
-  fl_bw = 133,
-  fl_uso = 134,
-  fl_lso = 135,
-  mem_sq = 156
+  RT_CON = 0,
+  RT_SEC = 2,
+  RT_MIN = 3,
+  RT_HRS = 4,
+  RT_DAT = 5,
+  RT_MTH = 6,
+  TM_CON = 8,
+  TM_SEC = 10,
+  TM_MIN = 11,
+  TM_HRS = 12,
+  PH_CAL = 13,
+  PD_SLP = 14,
+  PD_DLY = 15,
+  PD_SST = 16,
+  PD_SSP = 17,
+  PD_STP = 18,
+  PD_SQL = 20,
+  PD_IFG = 21,
+  PD_FLG = 22,
+  PD_FRQ = 23,
+  PD_MOD = 26,
+  PD_VOL = 27,
+  MD_FLT = 28,
+  MD_PBS = 29,
+  MD_BFO = 30,
+  ST_AUD = 49,
+  ST_FLG = 53,
+  FL_SEL = 132,
+  FL_BW  = 133,
+  FL_USO = 134,
+  FL_LSO = 135,
+  MEM_SQ = 156
 };
 
 /*
@@ -489,13 +508,13 @@ enum BBRAM_mem_e
 
 enum EEPROM1_mem_e
 {
-  mem_fr = 0,
-  mem_md = 3,
-  mem_pb = 400,
-  sm_cal = 500,
-  if_cal = 508,
-  if_def = 510,
-  option = 511
+  MEM_FR = 0,
+  MEM_MD = 3,
+  MEM_PB = 400,
+  SM_CAL = 500,
+  IF_CAL = 508,
+  IF_DEF = 510,
+  OPTION = 511
 };
 
 /*
@@ -532,18 +551,18 @@ enum EEPROM1_mem_e
 
 enum EEPROM2_mem_e
 {
-  mex_fr = 0,
-  mex_md = 3,
-  mtm_mn = 1200,
-  mtm_hr = 1201,
-  mtm_dt = 1202,
-  mtm_mt = 1203,
-  mtm_ch = 1204,
-  mtm_rn = 1206,
-  mtm_ac = 1207,
-  mex_sq = 1280,
-  mex_pb = 1281,
-  mex_id = 1282
+  MEX_FR = 0,
+  MEX_MD = 3,
+  MEM_MN = 1200,
+  MTM_HR = 1201,
+  MTM_DT = 1202,
+  MTM_MT = 1203,
+  MTM_CH = 1204,
+  MTM_RN = 1206,
+  MTM_AC = 1207,
+  MEX_SQ = 1280,
+  MEX_PB = 1281,
+  MEX_ID = 1282
 };
 
 /*
@@ -567,10 +586,10 @@ enum EEPROM2_mem_e
 
 enum EEPROM3_mem_e
 {
-  mey_sq = 0,
-  mey_pb = 1,
-  mey_id = 2,
-  mex_hx = 3584
+  MEY_SQ = 0,
+  MEY_PB = 1,
+  MEY_ID = 2,
+  MEX_HX = 3584
 };
 
 /*
@@ -788,123 +807,123 @@ enum MODE_e
 
 enum AGC_decay_e
 {
-  decay_slow = 0,
-  decay_med  = 2,
-  decay_fast = 3
+  DECAY_SLOW = 0,
+  DECAY_MED  = 2,
+  DECAY_FAST = 3
 };
 
 enum LO_range_e
 {
-  lo_17_30 = 0,
-  lo_4_10  = 1,
-  lo_10_17 = 2,
-  lo_0_4   = 3
+  LO_17_30 = 0,
+  LO_4_10  = 1,
+  LO_10_17 = 2,
+  LO_0_4   = 3
 };
 
 enum AGC_spd_e
 {
-  agc_fast = 0,
-  agc_med  = 1,
-  agc_slow = 2,
-  agc_off  = 3
+  AGC_FAST = 0,
+  AGC_MED  = 1,
+  AGC_SLOW = 2,
+  AGC_OFF  = 3
 };
 
 enum WORKING_mem_e
 {
-  snphs = 16,
-  slptim = 17,
-  scnst = 18,
-  scnsp = 19,
-  scndly = 20,
-  chnstp = 21,
-  sqlsav = 23,
-  ifgain = 24,
-  frequ = 26,
-  modew = 29,
-  af_vol = 30,
-  af_vll = 31,
-  af_vlr = 32,
-  af_bas = 33,
-  af_trb = 34,
-  af_axl = 35,
-  af_axr = 36,
-  af_axs = 37,
-  af_opt = 38,
-  af_src = 39,
-  rxcon = 40,
-  bits = 43,
-  pdflgs = 46,
-  stflgs = 47,
-  rfgain = 48,
-  rfagc = 49,
-  agcspd = 50,
-  sqlval = 51,
-  filter = 52,
-  pbsval = 53,
-  bfoval = 54,
-  fltofs = 55,
-  fltbw = 56,
-  ircode = 57,
-  spnpos = 59,
-  volpos = 60,
-  tunpos = 61,
-  lstbut = 62,
-  smval = 63,
-  mestmr = 65,
-  rfgtmr = 66,
-  updtmr = 67,
-  agctmr = 68,
-  snctmr = 69,
-  scntmr = 70,
-  irdly = 71,
-  runtmr = 72,
-  snfrq = 73,
-  frange = 74,
-  menu1 = 75,
-  menu2 = 76,
-  memno = 77,
-  setno = 78,
-  mempg = 85,
-  nbthr = 86,
-  hshfr = 87,
-  nchtmr = 88,
-  wbuff = 90,
-  keymd = 115,
-  keybuf = 116,
-  frofs = 136,
-  carofs = 140,
-  smofs = 144,
-  smscl = 145,
-  ifcal = 152,
-  ifdef = 154,
-  vfo_b = 155,
-  scndly_b = 155,
-  chnstp_b = 156,
-  sqlsav_b = 158,
-  ifgain_b = 159,
-  frequ_b = 161,
-  modew_b = 164,
-  af_vol_b = 165,
-  af_vll_b = 166,
-  af_vlr_b = 167,
-  af_bas_b = 168,
-  af_trb_b = 169,
-  rfgain_b = 170,
-  rfagc_b = 171,
-  agcspd_b = 172,
-  sqlval_b = 173,
-  filter_b = 174,
-  pbsval_b = 175,
-  bfoval_b = 176,
-  savmnu = 218,
-  srchm = 219,
-  idtmr = 222,
-  nchfr = 223
+  SNPHS    = 16,
+  SLPTIM   = 17,
+  SCNST    = 18,
+  SCNSP    = 19,
+  SCNDLY   = 20,
+  CHNSTP   = 21,
+  SQLSAV   = 23,
+  IFGAIN   = 24,
+  FREQU    = 26,
+  MODE     = 29,
+  AF_VOL   = 30,
+  AF_VLL   = 31,
+  AF_VLR   = 32,
+  AF_BAS   = 33,
+  AF_TRB   = 34,
+  AF_AXL   = 35,
+  AF_AXR   = 36,
+  AF_AXS   = 37,
+  AF_OPT   = 38,
+  AF_SRC   = 39,
+  RXCON    = 40,
+  BITS     = 43,
+  PDFLGS   = 46,
+  STFLGS   = 47,
+  RFGAIN   = 48,
+  RFAGC    = 49,
+  AGCSPD   = 50,
+  SQLVAL   = 51,
+  FILTER   = 52,
+  PBSVAL   = 53,
+  BFOVAL   = 54,
+  FLTOFS   = 55,
+  FLTBW    = 56,
+  IRCODE   = 57,
+  SPNPOS   = 59,
+  VOLPOS   = 60,
+  TUNPOS   = 61,
+  LSTBUT   = 62,
+  SMVAL    = 63,
+  MESTMR   = 65,
+  RFGTMR   = 66,
+  UPDTMR   = 67,
+  AGCTMR   = 68,
+  SNCTMR   = 69,
+  SCNTMR   = 70,
+  IRDLY    = 71,
+  RUNTMR   = 72,
+  SNFRQ    = 73,
+  FRANGE   = 74,
+  MENU1    = 75,
+  MENU2    = 76,
+  MEMNO    = 77,
+  SETNO    = 78,
+  MEMPG    = 85,
+  NBTHR    = 86,
+  HSHFR    = 87,
+  NCHTMR   = 88,
+  WBUFF    = 90,
+  KEYMD    = 115,
+  KEYBUF   = 116,
+  FROFS    = 136,
+  CAROFS   = 140,
+  SMOFS    = 144,
+  SMSCL    = 145,
+  IFCAL    = 152,
+  IFDEF    = 154,
+  VFO_B    = 155,
+  SCNDLY_B = 155,
+  CHNSTP_B = 156,
+  SQLSAV_B = 158,
+  IFGAIN_B = 159,
+  FREQU_B  = 161,
+  MODE_B   = 164,
+  AF_VOL_B = 165,
+  AF_VLL_B = 166,
+  AF_VLR_B = 167,
+  AF_BAS_B = 168,
+  AF_TRB_B = 169,
+  RFGAIN_B = 170,
+  RFAGC_B  = 171,
+  AGCSPD_B = 172,
+  SQLVAL_B = 173,
+  FILTER_B = 174,
+  PBSVAL_B = 175,
+  BFOVAL_B = 176,
+  SAVMNU   = 218,
+  SRCHM    = 219,
+  IDTMR    = 222,
+  NCHFR    = 223
 };
 
 enum ROM_mem_e
 {
-  identr = 0
+  IDENT = 0
 };
 
 #define HZ_PER_STEP  ( 44545000.0 / 16777216.0 )  /* 2.655 Hz/Step */
