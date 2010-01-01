@@ -1,5 +1,7 @@
 
 /*
+ $Id: $
+
 AR-7030 Computer remote control protocol.
 
 Information for firmware releases 1.1A, 1.2A, 1.4A and 1.4B
