@@ -1,9 +1,9 @@
 
 /*
- *  Hamlib AOR backend - AR7030 description
+ *  Hamlib AOR backend - AR7030 Plus description
  *  Copyright (c) 2000-2006 by Stephane Fillod & Fritz Melchert
  *
- *	$Id: ar7030.c,v 1.7 2006-10-07 21:10:11 csete Exp $
+ *	$Id: $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
