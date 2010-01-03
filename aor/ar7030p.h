@@ -8,7 +8,7 @@ Information for firmware releases 1.1A, 1.2A, 1.4A and 1.4B
 
 1) Remote control overview.
 
-The AR-7303 receiver allows remote control of all of its functions by means 
+The AR-7030 receiver allows remote control of all of its functions by means 
 of a direct memory access system. A controlling computer can read and modify 
 the internal memory maps of the receiver to set required parameters and then 
 call for the receiver's control program to process the new settings. Commands 
@@ -219,12 +219,6 @@ enum PAGE_e
   ROM = 15
 };
 
-const unsigned int PAGE_SIZE[] = {
-  256, 256, 512, 4096, 4096,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  8
-};
-
 /*
 The ident is divided into model number (5 bytes), software revision (2 bytes) 
 and type letter (1 byte).
@@ -258,7 +252,8 @@ enum LOCK_LVL_e
     LOCK_0 = 0,
     LOCK_1 = 1,
     LOCK_2 = 2,
-    LOCK_3 = 3
+    LOCK_3 = 3,
+    LOCK_NONE = 4
 };
 
 /*
@@ -798,6 +793,7 @@ processor. - Keep out (by order).
 
 enum MODE_e
 {
+  MODE_NONE = 0,
   AM   = 1,
   SAM  = 2,
   FM   = 3,
@@ -824,6 +820,7 @@ enum LO_range_e
 
 enum AGC_spd_e
 {
+  AGC_NONE = -1,
   AGC_FAST = 0,
   AGC_MED  = 1,
   AGC_SLOW = 2,
@@ -1302,3 +1299,141 @@ read.freq:
     rx.freq# = fr.val#/376.635223 ' Convert steps to kHz
     return
 */
+
+/*
+ * (from http://www.aoruk.com/archive/pdf/ir.pdf)
+ *
+ * AOR AR7030 receiver infrared protocol listing
+ *
+ * There have been two types of IR7030 infrared hand controller employed 
+ * by the AR7030. Late in 2005 a VERSION 2 handset (IR7030-2) was adopted 
+ * in production. The protocol is slightly different, so a matching CPU 
+ * must be employed (firmware 1xA or 1xB uses the original IR7030, 
+ * firmware 2xA or 2xB uses the later IR7030-2).
+ *
+ * IR7030                           IR7030-2
+ * NEC protocol 16 bit              NEC protocol 16 bit
+ *
+ * Address 026 HEX                  Address 04D HEX
+ * I.R key          Hex value       I.R key          Hex value
+ * 1                0C              1                11
+ * 2                11              2                13
+ * 3                12              3                1C
+ * 4                10              4                15
+ * 5                19              5                16
+ * 6                1A              6                14
+ * 7                18              7                19
+ * 8                1D              8                17
+ * 9                1E              9                1B
+ * 0                15              0                1D
+ * . DECIMAL        16              . DECIMAL        12
+ * CLEAR            13              CLEAR            07
+ * BACKSPACE        1C              BACKSPACE        1F
+ * kHz              17              kHz              1A
+ * MHz              1F              MHz              1E
+ * CW/NFM           8               CW/NFM           0F
+ * LSB/USB          0D              LSB/USB          10
+ * AM/SYNC          0E              AM/SYNC          18
+ * + MODIFY         2               + MODIFY         01
+ * - MODIFY         6               - MODIFY         0B
+ * TUNE UP          3               TUNE UP          04
+ * TUNE DOWN        7               TUNE DOWN        05
+ * VOLUME UP        0B              VOLUME UP        02
+ * VOLUME DOWN      0F              VOLUME DOWN      03
+ * PASSBAND MODIFY  0               PASSBAND MODIFY  09
+ * FILTER MODIFY    1               FILTER MODIFY    08
+ * BASS MODIFY      5               BASS MODIFY      0A
+ * TREBLE MODIFY    14              TREBLE MODIFY    0C
+ * VFO SELECT A/B   0A              VFO SELECT A/B   0E
+ * MEMORY STORE     4               MEMORY STORE     0D
+ * MEMORY PREVIEW   9               MEMORY PREVIEW   00
+ * MEMORY RECALL    1B              MEMORY RECALL    06
+ *
+ * www.aoruk.com - 25.07.2006
+ */
+
+/*
+ * These are the translated key codes shown in the last IR code
+ * address 58 in page 0.
+ */
+enum IR_CODE_e
+{
+  IR_ONE = 0x12,
+  IR_TWO = 0x14,
+  IR_THREE = 0x1d,
+  IR_FOUR = 0x16,
+  IR_FIVE = 0x17,
+  IR_SIX = 0x15,
+  IR_SEVEN = 0x1a,
+  IR_EIGHT = 0x18,
+  IR_NINE = 0x1c,
+  IR_ZERO = 0x1e,
+  IR_DOT = 0x13,
+  IR_CLR = 0x08,
+  IR_BS = 0x20,
+  IR_KHZ = 0x1b,
+  IR_MHZ = 0x1f,
+  IR_CWFM = 0x10,
+  IR_LSBUSB = 0x11,
+  IR_AMSYNC = 0x19,
+  IR_PLUS = 0x02,
+  IR_MINUS = 0x0c,
+  IR_TUN_UP = 0x05,
+  IR_TUN_DWN = 0x06,
+  IR_VOL_UP = 0x03,
+  IR_VOL_DWN = 0x04,
+  IR_PBS = 0x0a,
+  IR_TREBLE = 0x0d,
+  IR_BASS = 0x0b,
+  IR_VFO = 0x0f,
+  IR_MEM_STO = 0x0e,
+  IR_MEM_PRE = 0x01,
+  IR_MEM_RCL = 0x07,
+  IR_NONE = -1
+};
+
+/* Utility function prototypes */
+
+#if 0
+int NOP( RIG *rig, unsigned char x );
+int SRH( RIG *rig, unsigned char x );
+int PGE( RIG *rig, enum PAGE_e page );
+int ADR( RIG *rig, unsigned char x );
+int ADH( RIG *rig, unsigned char x );
+int WRD( RIG *rig, unsigned char out );
+int MSK( RIG *rig, unsigned char mask );
+int EXE( RIG *rig, enum ROUTINE_e routine );
+int RDD( RIG *rig, unsigned char len );
+int LOC( RIG *rig, enum LOCK_LVL_e level );
+int BUT( RIG *rig, enum BUTTON_e button );
+#endif // 0
+
+int execRoutine( RIG * rig, enum ROUTINE_e rtn );
+
+int writeByte( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char x );
+int writeShort( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short x );
+int write3Bytes( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x );
+int writeInt( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x );
+
+int readByte( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x );
+int readShort( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short *x );
+int read3Bytes( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x );
+int readInt( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x );
+
+int readSignal( RIG * rig, unsigned char *x );
+int flushBuffer( RIG * rig );
+int lockRx( RIG * rig, enum LOCK_LVL_e level );
+
+int bcd2Int( const unsigned char bcd );
+unsigned char int2BCD( const unsigned int val );
+
+int getCalLevel( RIG * rig, unsigned char rawAgc, int *dbm );
+int getFilterBW( RIG *rig, enum FILTER_e filter );
+freq_t ddsToHz( const unsigned int steps );
+unsigned int hzToDDS( const freq_t freq );
+rmode_t modeToHamlib( const unsigned char mode );
+unsigned char modeToNative( const rmode_t mode );
+enum agc_level_e agcToHamlib( const unsigned char agc );
+unsigned char agcToNative( const enum agc_level_e agc );
+int pageSize( const enum PAGE_e page );
+int sendIRCode( RIG *rig, enum IR_CODE_e code );
