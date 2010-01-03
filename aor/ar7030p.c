@@ -81,15 +81,15 @@
                       RIG_VFO_CURR )
 
 #define AR7030P_STR_CAL { 8, { \
-		{ 10, -113 }, \
-		{ 10, -103 }, \
-		{ 10, -93 }, \
-		{ 10, -83 }, \
-		{ 10, -73 }, \
-		{ 10, -63 }, \
-		{ 20, -43 }, \
-		{ 20, -23 }, \
-	} }
+                               { 10, -113 }, \
+	                       { 10, -103 }, \
+		               { 10,  -93 }, \
+		               { 10,  -83 }, \
+		               { 10,  -73 }, \
+		               { 10,  -63 }, \
+		               { 20,  -43 }, \
+		               { 20,  -23 }, \
+		             } }
 
 // Channel capabilities
 #define AR7030P_MEM_CAP { \
@@ -107,6 +107,7 @@ struct ar7030p_priv_caps
   int mem_len;
   int pbs_info_len;
   int pbs_len;
+  int chan_num;
 };
 
 static const struct ar7030p_priv_caps ar7030p_priv_caps = {
@@ -115,433 +116,11 @@ static const struct ar7030p_priv_caps ar7030p_priv_caps = {
   .mem_len = 17,
   .pbs_info_len = 1,
   .pbs_len = 1,
+  .chan_num = 0,
 };
 
-static enum PAGE_e curPage = NONE; /* Current memory page */
-static unsigned int curAddr = 65535; /* Current page address */
-
-#if 0
-/*
- *     Code Ident Operation
- *     0x   NOP   No Operation
- */
-static int NOP( RIG *rig, unsigned char x )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & x ) | op_NOP );
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-  if ( 0 != rc )
-  {
-    rc = -RIG_EIO;
-  }
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     3x   SRH   Set H-register    x -> H-register (4-bits)
- */
-static int SRH( RIG *rig, unsigned char x )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & x ) | op_SRH );
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-  if ( 0 != rc )
-  {
-    rc = -RIG_EIO;
-  }
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     5x   PGE   Set page          x -> Page register (4-bits)
- */
-static int PGE( RIG *rig, enum PAGE_e page )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & page ) | op_PGE );
-
-  assert( NULL != rig );
-
-  switch ( page )
-  {
-  case WORKING:
-  case BBRAM:
-  case EEPROM1:
-  case EEPROM2:
-  case EEPROM3:
-  case ROM:
-    rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-    if ( 0 != rc )
-    {
-      rc = -RIG_EIO;
-    }
-    break;
-
-  case NONE:
-  default:
-    rig_debug( RIG_DEBUG_VERBOSE, "PGE: invalid page %d\n", page );
-
-    rc = -RIG_EINVAL;
-    break;
-  };
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     4x   ADR   Set address       0Hx -> Address register (12-bits)
- *                                  0 -> H-register
- */
-static int ADR( RIG *rig, unsigned char x )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & x ) | op_ADR );
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-  if ( 0 != rc )
-  {
-    rc = -RIG_EIO;
-  }
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     1x   ADH   Set address high  x -> Address register (high 4-bits)
- */
-static int ADH( RIG *rig, unsigned char x )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & x ) | op_ADH );
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-  if ( 0 != rc )
-  {
-    rc = -RIG_EIO;
-  }
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     6x   WRD   Write data        Hx -> [Page, Address]
- *                                  Address register + 1 -> Address register
- *                                  0 -> H-register, 0 -> Mask register
- */
-static int WRD( RIG *rig, unsigned char out )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & out ) | op_WRD );
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-  if ( 0 != rc )
-  {
-    rc = -RIG_EIO;
-  }
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     9x   MSK   Set mask          Hx -> Mask register <1>
- *                                  0 -> H-register
- */
-static int MSK( RIG *rig, unsigned char mask )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & mask ) | op_MSK );
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-  if ( 0 != rc )
-  {
-    rc = -RIG_EIO;
-  }
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     2x   EXE   Execute routine x
- */
-static int EXE( RIG *rig, enum ROUTINE_e routine )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & routine ) | op_EXE );
-
-  assert( NULL != rig );
-
-  switch ( routine )
-  {
-  case RESET:
-  case SET_FREQ:
-  case SET_MODE:
-  case SET_PASS:
-  case SET_ALL:
-  case SET_AUDIO:
-  case SET_RFIF:
-  case DIR_RX_CTL:
-  case DIR_DDS_CTL:
-  case DISP_MENUS:
-  case DISP_FREQ:
-  case DISP_BUFF:
-  case READ_SIGNAL:
-  case READ_BTNS:
-    rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-    if ( 0 != rc )
-    {
-      rc = -RIG_EIO;
-    }
-    break;
-
-  default:
-    rig_debug( RIG_DEBUG_VERBOSE, "EXE: invalid routine %d\n", routine );
-
-    rc = -RIG_EINVAL;
-    break;
-  };
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     7x   RDD   Read data         [Page, Address] -> Serial output
- *                                  Address register + x -> Address register
- */
-static int RDD( RIG *rig, unsigned char len )
-{
-  int rc = -RIG_OK;
-  unsigned char inChr = 0;
-  unsigned char op = ( ( 0x0f & len ) | op_RDD );
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-  if ( 0 != rc )
-  {
-    rc = -RIG_EIO;
-  }
-  else
-  {
-    rc = read_block( &rig->state.rigport, ( char * ) &inChr, len );
-    if ( 1 != rc )
-    {
-      rc = -RIG_EIO;
-    }
-    else 
-    {
-      rc = (int) inChr;
-    }
-  }
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     8x   LOC   Set lock level x
- */
-static int LOC( RIG *rig, enum LOCK_LVL_e level )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & level ) | op_LOC );
-
-  assert( NULL != rig );
-
-  switch ( level )
-  {
-  case LOCK_0:
-  case LOCK_1:
-  case LOCK_2:
-  case LOCK_3:
-    rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-    if ( 0 != rc )
-    {
-      rc = -RIG_EIO;
-    }
-    break;
-
-  default:
-    rig_debug( RIG_DEBUG_VERBOSE, "LOC: invalid lock level %d\n", level );
-
-    rc = -RIG_EINVAL;
-    break;
-  };
-
-  return ( rc );
-}
-
-/*
- *     Code Ident Operation
- *     Ax   BUT   Operate button x  <1>
- */
-static int BUT( RIG *rig, enum BUTTON_e button )
-{
-  int rc = -RIG_OK;
-
-  unsigned char op = ( ( 0x0f & button ) | op_BUT );
-
-  assert( NULL != rig );
-
-  switch ( button )
-  {
-  case BTN_NONE:
-    break;
-
-  case BTN_UP:
-  case BTN_DOWN:
-  case BTN_FAST:
-  case BTN_FILTER:
-  case BTN_RFIF:
-  case BTN_MEMORY:
-  case BTN_STAR:
-  case BTN_MENU:
-  case BTN_POWER:
-    rc = write_block( &rig->state.rigport, ( char * ) &op, 1 );
-    if ( 0 != rc )
-    {
-      rc = -RIG_EIO;
-    }
-    break;
-
-  default:
-    rig_debug( RIG_DEBUG_VERBOSE, "BUT: invalid button %d\n", button );
-
-    rc = -RIG_EINVAL;
-    break;
-  };
-
-  return ( rc );
-}
-
-#endif // 0
-
-/*
- * \brief Convert one byte BCD value to int
- *
- * \param bcd BCD value (0-99)
- *
- * \return Integer value of BCD parameter (0-99), 0xff on failure
- */
-static unsigned char BCD2Int( const unsigned char bcd )
-{
-  unsigned char rc = (unsigned char) 0xff;
-  unsigned char hi = ((bcd & 0xf0) >> 4);
-  unsigned char lo =  (bcd & 0x0f);
-
-  if ( (unsigned char) 0x0a > hi )
-  {
-    rc = hi * (unsigned char) 10;
-    if ( (unsigned char) 0x0a > lo )
-    {
-      rc += lo;
-    }
-    else
-    {
-      rc = (unsigned char) 0xff;
-    }
-  }
-
-  return( rc );
-}
-
-/*
- * \brief Convert int into 2 digit BCD number
- *
- * \param int Integer value (0-99)
- *
- * \return 2 digit BCD equvalent (0-99), 0xff on failure
- */
-static unsigned char Int2BCD( const unsigned char val )
-{
-  unsigned char rc = (unsigned char) 0xff;
-  unsigned char tens = (val / (unsigned char) 10);
-  unsigned char ones = (val % (unsigned char) 10);
-
-  if ( (unsigned char) 10 > tens )
-  {
-    rc = ( tens << 4 );
-    if ( (unsigned char) 10 > ones )
-    {
-      rc = rc | ones;
-    }
-    else
-    {
-      rc = (unsigned char) 0xff;
-    }
-  }
-
-  return ( rc );
-}
-
-/*
- * \brief Convert raw AGC value to calibrated level in dBm
- *
- * \param rig Pointer to rig struct
- * \param rawAgc raw AGC value (0-255)
- * \param tab Pointer to calibration table struct
- *
- * \return Calibrated level in dBm, large positive value on failure
- */
-static int getCalLevel( RIG * rig, unsigned char rawAgc, cal_table_t *tab )
-{
-  int i;
-  int rc = 100000;
-  int raw = (int) rawAgc;
-
-  assert( NULL != rig );
-  assert( NULL != tab );
-
-  for ( i = 0; i < tab->size; i++ )
-  {
-    if ( 0 > ( tab->table[ i ].raw - raw ) )
-    {
-      rc = tab->table[ i ].val;
-      rc += ( raw / tab->table[ i ].val ) * 10;
-      /* TODO: 20 db steps for higher values */
-      break;
-    }
-    else
-    {
-      raw = raw - tab->table[ i ].raw;
-    }
-  }
-
-  /* TODO - factor in RFAGC setting */
-  return ( rc );
-}
+/* TODO - move this somewhere where it belongs */
+static unsigned int filterTab[ 6 + 1 ] = { 0 };
 
 /*
  * /brief Open I/O to receiver
@@ -552,14 +131,52 @@ static int getCalLevel( RIG * rig, unsigned char rawAgc, cal_table_t *tab )
  */
 static int ar7030p_open( RIG * rig )
 {
+  int rc = -RIG_OK;
+  int i;
+  unsigned char v;
+
   assert( NULL != rig );
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: \n", __func__ );
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
+  {
+    /* Load calibration table */
+    rig->state.str_cal.size = rig->caps->str_cal.size;
+    for ( i = 0; i < rig->state.str_cal.size; i++ )
+    {
+      rc = readByte( rig, EEPROM1, SM_CAL + i, &v );
+      if ( RIG_OK != rc )
+      {
+	break;
+      }
+      rig->state.str_cal.table[ i ].val = rig->caps->str_cal.table[ i ].val;
+      rig->state.str_cal.table[ i ].raw = (int) v;
+    }
 
-  curPage = NONE;
-  curAddr = 65535;
+    if ( RIG_OK == rc )
+    {
+      /* Load filter BW table */
+      for ( i = 1; i <= 6; i++ )
+      {
+	rc = getFilterBW( rig, i );
+	if ( 0 > rc )
+        {
+	  rc = -RIG_EIO;
+	  break;
+	}
+        else
+	{
+	  filterTab[i] = (unsigned int) rc;
+	}
+      }
+    }
 
-  return ( -RIG_OK );
+    rc = lockRx( rig, LOCK_0 );
+
+    rig_debug( RIG_DEBUG_VERBOSE, "%s: \n", __func__ );
+  }
+
+  return ( rc );
 }
 
 /*
@@ -578,349 +195,32 @@ static int ar7030p_close( RIG * rig )
   return ( RIG_OK );
 }
 
-/*
- * /brief Write a byte to the radio
- *
- * /param rig Pointer to rig struct
- * /param c Data to write
- *
- * /return 0 on success, < 0 on failure
- */
-static int writeByte( RIG * rig, unsigned char c )
+static const char *ar7030p_get_info( RIG * rig )
 {
-  int rc = -1;
-  unsigned char v = c;
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, (char *) &v, 1 );
-  if ( 0 == rc )
-  {
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: wrote byte 0x%02x\n", __func__, c );
-    curAddr++;
-  }
- 
-  return( rc );
-}
-
-/*
- * /brief Write data to the radio using the WRD opcode
- *
- * /param rig Pointer to rig struct
- * /param c Data to write
- *
- * /return 0 on success, < 0 on failure
- */
-static int writeData( RIG * rig, unsigned char c )
-{
-  int rc = -1;
-  unsigned char hi = SRH((c & 0xf0) >> 4);
-  unsigned char lo = WRD( c & 0x0f);
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, (char *) &hi, 1 );
-  if ( 0 == rc )
-  {
-    rc = write_block( &rig->state.rigport, (char *) &lo, 1 );
-    if ( 0 == rc )
-    {
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: wrote byte 0x%02x\n", __func__, c );
-      curAddr++;
-    }
-  }
- 
-  return( rc );
-}
-
-/*
- * /brief Read a byte from the radio
- *
- * /param rig Pointer to rig struct
- *
- * /return Data read (0-255) on success, < 0 on failure
- */
-static int readByte( RIG * rig )
-{
-  int rc = -1;
-  unsigned char reply;
-  unsigned char cmd = RDD( 1 ); // Read command
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, (char *) &cmd, 1 );
-  if ( 0 == rc )
-  {
-    rc = read_block( &rig->state.rigport, (char *) &reply, 1 );
-    if ( 1 == rc )
-    {
-      rc = (int) reply;
-      curAddr++;
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: read byte 0x%02x\n", __func__, reply );
-    }
-  }
-
-  return( rc );
-}
-
-/*
- * /brief Read raw AGC value from the radio
- *
- * /param rig Pointer to rig struct
- *
- * /return Raw AGC value (0-255) on success, < 0 on failure
- */
-static int readSignal( RIG * rig )
-{
-  int rc = -1;
-  char reply;
-  unsigned char cmd = EXE( READ_SIGNAL ); // Read raw AGC value
-
-  assert( NULL != rig );
-
-  rc = write_block( &rig->state.rigport, (char *) &cmd, 1 );
-  if ( 0 == rc )
-  {
-    rc = read_block( &rig->state.rigport, (char *) &reply, 1 );
-    if ( 1 == rc )
-    {
-      rc = (int) reply;
-    }
-  }
-
-  return( rc );
-}
-
-/*
- * /brief Flush I/O with radio
- *
- * /param rig Pointer to rig struct
- *
- */
-static void flushBuffer( RIG * rig )
-{
-  (void) writeByte( rig, '/' );
-}
-
-/*
- * /brief Set address for I/O with radio
- *
- * /param rig Pointer to rig struct
- * /param page Memory page number (0-4, 15)
- * /param addr Address offset within page (0-4095, depending on page)
- *
- * Statics curPage and curAddr shadow radio's copies so that 
- * page and address are only set when needed
- */
-static void setAddr( RIG * rig, enum PAGE_e page, unsigned int addr )
-{
-  assert( NULL != rig );
-
-  if ( ( EEPROM3 >= page ) || ( ROM == page ) )
-  {
-    if ( PAGE_SIZE[page] > addr )
-    {
-      if ( curPage != page )
-      {
-        curPage = page;
-        (void) writeByte( rig, PGE( page ) );
-      }
-
-      if ( curAddr != addr )
-      {
-        curAddr = addr;
-
-        (void) writeByte( rig, SRH( ( 0x0f0 & addr ) >> 4 ) );
-        (void) writeByte( rig, ADR( ( 0x00f & addr ) ) );
-
-        if ( 0xff < addr )
-        {
-          (void) writeByte( rig, ADH( ( 0xf00 & addr ) >> 8 ) );
-        }
-      }
-    }
-  }
-}
-
-/*
- * \brief Get bandwidth of given filter
- *
- * \param rig Pointer to rig struct
- * \param filter Filter number (1-6)
- *
- * \return Filter bandwidth in Hz, -1 on failure
- */
-static int getFilterBW( RIG *rig, enum FILTER_e filter )
-{
-  int rc = -1;
-  unsigned char bw;
-
-  (void) setAddr( rig, BBRAM, FL_SEL + ((filter - 1) * 4) );
-  bw = (unsigned char) readByte( rig );
-
-  if ( (unsigned char) -1 != bw )
-  {
-    rc = (int) BCD2Int( bw ) * 100;
-  }
-
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: filter %d BW %d\n", __func__, filter, rc );
-
-  return( rc );
-}
-
-/*
- * /brief Convert DDS steps to frequency in Hz
- *
- * /param steps DDS count
- *
- * /return Frequency in Hz or 0 on failure
- */
-static double ddsToHz( const unsigned int steps )
-{
-  double rc = 0.0;
-
-  rc = ( (double) steps * 44545000.0 / 16777216.0 );
-
-  return( rc );
-}
-
-/*
- * /brief Convert frequency in Hz to DDS steps
- *
- * /param freq Frequency in Hz
- *
- * /return DDS steps (24 bits) or 0 on failure
- */
-static unsigned int hzToDDS( const double freq )
-{
-  unsigned int rc = 0;
-  double err[3] = { 0.0, 0.0, 0.0 };
-
-  rc = (unsigned int) ( freq * 16777216.0 / 44545000.0 );
-
-  /* calculate best DDS count based on bletcherous,
-     irrational tuning step of 2.65508890151977539062 Hz/step
-     (actual ratio is 44545000.0 / 16777216.0) */
-  err[ 0 ] = fabs( freq - ddsToHz( (rc - 1) ) );
-  err[ 1 ] = fabs( freq - ddsToHz( rc ) );
-  err[ 2 ] = fabs( freq - ddsToHz( (rc + 1) ) );
-
-  if ( err[ 0 ] < err[ 1 ] && err[ 0 ] < err[ 2 ] )
-  {
-    rc--;
-  }
-  else if ( err[ 2 ] < err[ 1 ] && err[ 2 ] < err[ 0 ] )
-  {
-    rc++;
-  }
-
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: err[0 - 2] = %f %f %f rc 0x%08x\n",
-	     __func__, err[ 0 ], err[ 1 ], err[ 2 ], rc );
-  
-  return( rc );
-}
-
-/*
- * /brief Set frequency in working memory
- *
- * /param rig Pointer to rig struct
- * /param freq Frequency in Hz
- *
- */
-static void setFreq( RIG * rig, const double freq )
-{
-  unsigned int f = hzToDDS( freq );
-
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: DDS count 0x%08x\n", __func__, f );
-
-  (void) writeData( rig, (unsigned char) ( f >> 16) );
-
-  f = f & 0x00ffff;
-  (void) writeData( rig, (unsigned char) ( f >> 8) );
-
-  f = f & 0x0000ff;
-  (void) writeData( rig, (unsigned char) f );
-}
-
-/*
- * /brief Get frequency from working memory
- *
- * /param rig Pointer to rig struct
- * /param freq Pointer to var to hold frequency value (in Hz)
- *
- */
-static void getFreq( RIG * rig, double *const freq )
-{
-  unsigned int f = 0;
-  int i;
-  int c;
-
-  for ( i = 0; i < 3; i++ )
-  {
-    c = readByte( rig );
-
-    if ( -1 != c )
-    {
-      f = ( f << 8 ) + c;
-    }
-    else
-    {
-      return;
-    }
-  }
-
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: DDS count 0x%08x\n", __func__, f );
-  
-  *freq = ddsToHz( f );
-}
-
-/*
- * /brief Lock receiver for remote operations
- *
- * /param rig Pointer to rig struct
- * /param level Lock level (0-3)
- *
- */
-static void lockRx( RIG * rig, enum LOCK_LVL_e level )
-{
-  if ( 4 > level )
-  {
-    (void) writeByte( rig, LOC( level ) );
-  }
-}
-
-
-/*
- * /brief Unlock receiver from remote operations
- *
- * /param rig Pointer to rig struct
- *
- */
-static void unlockRx( RIG * rig )
-{
-  (void) writeByte( rig, LOC( 0 ) );
-}
-
-/*
- * /brief Get receiver/software identification
- *
- * /param rig Pointer to rig struct
- * /param ident Pointer to char string to hold ID
- *
- */
-static void ar7030p_get_ident( RIG * rig, char *const ident )
-{
+  static char version[10] = "";
   unsigned int i;
-  char *p = ( char * ) ident;
+  char *p = &( version[ 0 ] );
 
-  (void) setAddr( rig, ROM, IDENT );
+  assert( NULL != rig );
 
-  for ( i = 0; i < PAGE_SIZE[ROM]; i++ )
+  for ( i = 0; i < pageSize(ROM); i++ )
   {
-    *p++ = (char) readByte( rig );
+    if ( RIG_OK != readByte( rig, ROM, i, (unsigned char *) p++ ) )
+    {
+      p = NULL;
+      break;
+    }
   }
 
-  *p++ = '\0';
+  if ( NULL != p )
+  {
+    *p++ = '\0';
+    p = &( version[ 0 ] );
+
+    rig_debug( RIG_DEBUG_VERBOSE, "%s: ident - %s\n", __func__, version );
+  }
+
+  return ( p );
 }
 
 /*
@@ -938,42 +238,38 @@ static int ar7030p_set_freq( RIG * rig, vfo_t vfo, freq_t freq )
 
   assert( NULL != rig );
 
-  caps = rig->caps;
-
-  lockRx( rig, 1 );
-
-  if ( ( caps->rx_range_list1[ 0 ].end   > freq ) && 
-       ( caps->rx_range_list1[ 0 ].start < freq ) )
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
   {
-    switch( vfo )
+    caps = rig->caps;
+
+    if ( ( caps->rx_range_list1[ 0 ].end   > freq ) && 
+	 ( caps->rx_range_list1[ 0 ].start < freq ) )
     {
-    case RIG_VFO_CURR:
-    case RIG_VFO_A:
-      (void) setAddr( rig, WORKING, FREQU );
-      (void) setFreq( rig, freq );
-      break;
+      switch( vfo )
+      {
+      case RIG_VFO_CURR:
+      case RIG_VFO_A:
+	rc = write3Bytes( rig, WORKING, FREQU, hzToDDS( freq ) );
+	break;
 
-    case RIG_VFO_B:
-      (void) setAddr( rig, WORKING, FREQU_B );
-      (void) setFreq( rig, freq );
-      break;
+      case RIG_VFO_B:
+	rc = write3Bytes( rig, WORKING, FREQU_B, hzToDDS( freq ) );
+	break;
 
-    default:
+      default:
+	rc = -RIG_EINVAL;
+      };
+    }
+    else
+    {
       rc = -RIG_EINVAL;
-    };
+    }
 
-  }
-  else
-  {
-    rc = -RIG_EINVAL;
-  }
+    rc = execRoutine( rig, SET_ALL );
 
-  if ( 0 != writeByte( rig, EXE( SET_ALL ) ) )
-  {
-    rc = -RIG_EIO;
+    rc = lockRx( rig, LOCK_0 );
   }
-
-  unlockRx( rig );
 
   return( rc );
 }
@@ -989,27 +285,35 @@ static int ar7030p_set_freq( RIG * rig, vfo_t vfo, freq_t freq )
 static int ar7030p_get_freq( RIG * rig, vfo_t vfo, freq_t * freq )
 {
   int rc = RIG_OK;
+  unsigned int x;
 
-  lockRx( rig, 1 );
-
-  switch( vfo )
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
   {
-  case RIG_VFO_CURR:
-  case RIG_VFO_A:
-    (void) setAddr( rig, WORKING, FREQU );
-    getFreq( rig, freq );
-    break;
+    switch( vfo )
+    {
+    case RIG_VFO_CURR:
+    case RIG_VFO_A:
+      rc = read3Bytes( rig, WORKING, FREQU, &x );
+      if ( RIG_OK == rc )
+      {
+	*freq = ddsToHz( x );
+      }
+      break;
 
-  case RIG_VFO_B:
-    (void) setAddr( rig, WORKING, FREQU_B );
-    getFreq( rig, freq );
-    break;
+    case RIG_VFO_B:
+      rc = read3Bytes( rig, WORKING, FREQU_B, &x );
+      {
+	*freq = ddsToHz( x );
+      }
+      break;
 
-  default:
-    rc = -RIG_EINVAL;
-  };
+    default:
+      rc = -RIG_EINVAL;
+    };
 
-  unlockRx( rig );
+    rc = lockRx( rig, LOCK_0 );
+  }
 
   return( rc );
 }
@@ -1029,88 +333,49 @@ static int ar7030p_set_mode( RIG * rig, vfo_t vfo, rmode_t mode,
   int rc = RIG_OK;
   unsigned char ar_mode = (unsigned char) USB;
   unsigned char ar_filter = (unsigned char) FILTER_3;
+  int i;
 
-  /* TODO - deal with selected VFO */
-  switch ( mode )
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
   {
-  case RIG_MODE_AM:
-    ar_mode = (unsigned char) AM;
-    break;
+    /* TODO - deal with selected VFO */
+    ar_mode = modeToNative( mode );
 
-  case RIG_MODE_AMS:
-    ar_mode = (unsigned char) SAM;
-    break;
+    rc = writeByte( rig, WORKING, MODE, ar_mode );
+    if ( RIG_OK == rc )
+    {
+      if ( RIG_PASSBAND_NORMAL == width )
+      {
+	width = rig_passband_normal( rig, mode );
+      }
+      else
+      {
+	/* TODO - get filter BWs at startup */
+        ar_filter = (unsigned char) 6;
+        for ( i = 1; i <= 6; i++ )
+	{
+          if ( width <= filterTab[ i ] )
+	  {
+            if ( filterTab[ i ] < filterTab[ (int) ar_filter ] )
+	    {
+	      ar_filter = (unsigned char) i;
+	    }
+	  }
 
-  case RIG_MODE_FM:
-    ar_mode = (unsigned char) FM;
-    break;
+	  rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d ar_filter %d filterTab[%d] %d\n", 
+                     __func__, width, ar_filter, i, filterTab[i] );
+	}
+      }
 
-  case RIG_MODE_RTTY:
-    ar_mode = (unsigned char) DATA;
-    break;
+      rc = writeByte( rig, WORKING, FILTER, ar_filter );
+      if ( RIG_OK == rc )
+      {
+	rc = execRoutine( rig, SET_ALL );
+      }
+    }
 
-  case RIG_MODE_CW:
-    ar_mode = (unsigned char) CW;
-    break;
-
-  case RIG_MODE_LSB:
-    ar_mode = (unsigned char) LSB;
-    break;
-
-  case RIG_MODE_USB:
-    ar_mode = (unsigned char) USB;
-    break;
-
-  default:
-    rc = -RIG_EINVAL;
+    rc = lockRx( rig, LOCK_0 );
   }
-
-  lockRx( rig, 1 );
-
-  (void) setAddr( rig, WORKING, MODE );
-
-  (void) writeByte( rig, WRD( ar_mode ) );
-
-  if ( width == RIG_PASSBAND_NORMAL )
-  {
-    width = rig_passband_normal( rig, mode );
-  }
-  else
-  {
-    /* TODO - get filter BWs at startup */
-    if ( width <= (pbwidth_t) getFilterBW( rig, FILTER_1 ) )
-    {
-      ar_filter = (unsigned char) FILTER_1;
-    }
-    else if ( width <= (pbwidth_t) getFilterBW( rig, FILTER_2 ) )
-    {
-      ar_filter = (unsigned char) FILTER_2;
-    }
-    else if ( width <= (pbwidth_t) getFilterBW( rig, FILTER_3 ) )
-    {
-      ar_filter = (unsigned char) FILTER_3;
-    }
-    else if ( width <= (pbwidth_t) getFilterBW( rig, FILTER_4 ) )
-    {
-      ar_filter = (unsigned char) FILTER_4;
-    }
-    else if ( width <= (pbwidth_t) getFilterBW( rig, FILTER_5 ) )
-    {
-      ar_filter = (unsigned char) FILTER_5;
-    }
-    else
-    {
-      ar_filter = (unsigned char) FILTER_6;
-    }
-  }
-
-  (void) setAddr( rig, WORKING, FILTER );
-
-  (void) writeByte( rig, WRD( ar_filter ) );
-
-  (void) writeByte( rig, EXE( SET_ALL ) );
-
-  unlockRx( rig );
 
   return( rc );
 }
@@ -1129,55 +394,28 @@ static int ar7030p_get_mode( RIG * rig, vfo_t vfo, rmode_t * mode,
 {
   int rc = RIG_OK;
   unsigned char bcd_bw;
- 
-  /* TODO - deal with selected VFO */
-  (void) setAddr( rig, WORKING, MODE );
+  unsigned char m;
 
-  switch ( readByte( rig ) )
-  {
-  case AM:
-    *mode = RIG_MODE_AM;
-    break;
+  assert( NULL != rig );
+  assert( NULL != mode );
+  assert( NULL != width );
 
-  case SAM:
-    *mode = RIG_MODE_AMS;
-    break;
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
+  { 
+    /* TODO - deal with selected VFO */
+    rc = readByte( rig, WORKING, MODE, &m );
+    if ( RIG_OK == rc )
+    {
+      *mode = modeToHamlib( m );
+      rc = readByte( rig, WORKING, FLTBW, &bcd_bw );
+      if ( RIG_OK == rc )
+      {
+	*width = (pbwidth_t) ((int) bcd2Int( bcd_bw ) * 100);
+      }
+    }
 
-  case FM:
-    *mode = RIG_MODE_FM;
-    break;
-
-  case DATA:
-    *mode = RIG_MODE_RTTY;
-    break;
-
-  case CW:
-    *mode = RIG_MODE_CW;
-    break;
-
-  case LSB:
-    *mode = RIG_MODE_LSB;
-    break;
-
-  case USB:
-    *mode = RIG_MODE_USB;
-    break;
-
-  default:
-    rc = -RIG_EINVAL;
-  }
-
-  (void) setAddr( rig, WORKING, FLTBW );
-
-  bcd_bw = (unsigned char) readByte( rig );
-
-  if ( (unsigned char) -1 != bcd_bw )
-  {
-    *width = (pbwidth_t) ((int) BCD2Int( bcd_bw ) * 100);
-  }
-  else
-  {
-    rc = -RIG_EINVAL;
+    rc = lockRx( rig, LOCK_0 );
   }
 
   return( rc );
@@ -1201,25 +439,104 @@ static void ar7030p_get_memory( RIG * rig, const unsigned int chan,
                         unsigned char *const filt, unsigned char *const pbs,
                         unsigned char *const sql, char *const id )
 {
-  unsigned int c;
+  int rc = RIG_OK;
+  unsigned char v;
+  unsigned int f;
+  unsigned char *p = (unsigned char *) id;
+  int i;
 
-  lockRx( rig, 1 );
+  assert( NULL != rig );
+  assert( NULL != freq );
+  assert( NULL != mode );
+  assert( NULL != filt );
+  assert( NULL != pbs );
+  assert( NULL != sql );
+  assert( NULL != id );
 
-  (void) setAddr( rig, BBRAM, ( MEM_SQ + chan ) );
-  *sql = (unsigned char) readByte( rig );
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
+  {
+    /* Squelch values */
+    if ( 100 > chan )
+    {
+      rc = readByte( rig, BBRAM, (MEM_SQ + chan), &v ); /* mem_sq */
+    }
+    else if ( 176 > chan )
+    {
+      rc = readByte( rig, EEPROM2, (MEX_SQ + (chan * 16) ), &v ); /* mex_sq */
+    }
+    else
+    {
+      rc = readByte( rig, EEPROM3, (MEY_SQ + ((chan - 176) * 16) ), &v ); /* mey_sq */  
+    }
 
-  (void) setAddr( rig, BBRAM, ( chan * 4 ) );
+    if ( RIG_OK == rc )
+    {
+      *sql = v;
+    }
+  
+    /* Frequency, mode and filter values */
+    if ( 100 > chan )
+    {
+      rc = read3Bytes( rig, EEPROM2, (MEM_FR + (chan * 4) ), &f ); /* mem_fr */
+      rc = readByte(   rig, EEPROM2, (MEM_MD + (chan * 4) ), &v ); /* mem_md */
+    }
+    else
+    {
+      rc = read3Bytes( rig, EEPROM3, (MEX_FR + ((chan - 100) * 4) ), &f ); /* mex_fr */
+      rc = readByte(   rig, EEPROM3, (MEX_MD + ((chan - 100) * 4) ), &v ); /* mex_md */
+    }
 
-  (void) getFreq( rig, freq );
-  c = (unsigned int) readByte( rig );
-  *mode = (unsigned char) ( c & 0x0f );
-  *filt = (unsigned char) ( ( c & 0x70 ) >> 4 );
+    if ( RIG_OK == rc )
+    {
+      *freq = ddsToHz( f );
+      *mode = ( v & 0x07 );
+      *filt = ( ( v & 0x70 ) >> 4 );
+      /* lockout = ( ( v & 0x80 ) >> 7 ); */
+    }
 
-  (void) setAddr( rig, BBRAM, MEM_PB + chan );
-  c = (unsigned int) readByte( rig );
-  *pbs = (unsigned char) c;
+    /* PBT values */
+    if ( 100 > chan )
+    {
+      rc = readByte( rig, EEPROM1, (MEM_PB + chan), &v ); /* mem_pb */
+    }
+    else if ( 176 > chan )
+    {
+      rc = readByte( rig, EEPROM2, (MEX_PB + (chan * 16)), &v ); /* mex_pb */
+    }
+    else
+    {
+      rc = readByte( rig, EEPROM3, (MEY_PB + ((chan - 176) * 16)), &v ); /* mey_pb */
+    }
 
-  unlockRx( rig );
+    if ( RIG_OK == rc )
+    {
+      *pbs = v;
+    }
+
+    /* Memory ID values */
+    for ( i = 0; i < 14; i++ )
+    {
+      if ( 176 > chan )
+      {
+	rc = readByte( rig, EEPROM2, (MEX_ID + (chan * 16)), p++ ); /* mex_id */
+      }
+      else
+      {
+	rc = readByte( rig, EEPROM3, (MEY_ID + ((chan - 176) * 16)), p++ ); /* mey_id */
+      }
+
+      if ( RIG_OK != rc )
+      {
+	p = (unsigned char *) id;
+	break;
+      }
+    }
+    *p++ = '\0';
+
+    rc = lockRx( rig, LOCK_0 );
+  }
+
 }
 
 /*
@@ -1238,167 +555,141 @@ static int ar7030p_set_level( RIG * rig, vfo_t vfo, setting_t level,
   int rc = RIG_OK;
   unsigned char v;
 
-  lockRx( rig, LOCK_1 );
-
-  /* TODO - deal with selected VFO */
-  switch ( level )
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
   {
-  case RIG_LEVEL_PREAMP:
-    /* Scale parameter */
-    if ( 10 <= val.i ) 
+    /* TODO - deal with selected VFO */
+    switch ( level )
     {
-      v = (unsigned char) 0;
-    }
-    else
-    {
-      v = (unsigned char) 1;
-    }
+    case RIG_LEVEL_PREAMP:
+      /* Scale parameter */
+      if ( 10 <= val.i ) 
+      {
+	v = (unsigned char) 0;
+      }
+      else
+      {
+	v = (unsigned char) 1;
+      }
 
-    (void) setAddr( rig, WORKING, RFGAIN );
-    (void) writeData( rig, v ); /* rfgain */
+      rc = writeByte( rig, WORKING, RFGAIN, v ); /* rfgain */
 
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n", __func__, val.i, v );
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n", __func__, val.i, v );
 
-    (void) writeByte( rig, EXE( SET_ALL ) );
-    break;
+      rc = execRoutine( rig, SET_ALL );
+      break;
 
-  case RIG_LEVEL_ATT:
-    /* Scale parameter */
-    if ( 10 > val.i ) 
-    {
-      v = (unsigned char) 1;
-    }
+    case RIG_LEVEL_ATT:
+      /* Scale parameter */
+      if ( 10 > val.i ) 
+      {
+	v = (unsigned char) 1;
+      }
       else if ( 20 > val.i )
-    {
-      v = (unsigned char) 2;
-    }
-    else if ( 40 > val.i )
-    {
-      v = (unsigned char) 3;
-    }
-    else if ( 80 > val.i )
-    {
-      v = (unsigned char) 4;
-    }
-    else 
-    {
-      v = (unsigned char) 5;
-    }
+      {
+	v = (unsigned char) 2;
+      }
+      else if ( 40 > val.i )
+      {
+	v = (unsigned char) 3;
+      }
+      else if ( 80 > val.i )
+      {
+	v = (unsigned char) 4;
+      }
+      else 
+      {
+        v = (unsigned char) 5;
+      }
 
-    (void) setAddr( rig, WORKING, RFGAIN );
-    (void) writeData( rig, v ); /* rfgain */
+      rc = writeByte( rig, WORKING, RFGAIN, v ); /* rfgain */
 
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n", __func__, val.i, v );
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n", __func__, val.i, v );
 
-    (void) writeByte( rig, EXE( SET_ALL ) );
-    break;
-
-  case RIG_LEVEL_AF:
-    /* Scale parameter */
-    v = ( unsigned char ) ( ( val.f * ( VOL_MAX - VOL_MIN ) ) + VOL_MIN );
-    v = ( v & 0x3f );
-
-    (void) setAddr( rig, WORKING, AF_VOL );
-
-    (void) writeData( rig, v ); /* af_vol */
-
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: af_vol %f (%d)\n", __func__, val.f, v );
-
-    v = ( ( v >> 1 ) & 0x1f );    /* half value for L/R volume */
-
-    (void) writeData( rig, v ); /* af_vll */
-    (void) writeData( rig, v ); /* af_vlr */
-
-    (void) writeByte( rig, EXE( SET_AUDIO ) );
-    break;
-
-  case RIG_LEVEL_RF:
-    /* Scale parameter, values 0 (99%) to 130 (3%) */
-    v = (unsigned char) (134U - ((unsigned int) (val.f * 135.0)));
-
-    (void) setAddr( rig, WORKING, IFGAIN );
-    (void) writeData( rig, v ); /* ifgain */
-
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: ifgain %f (%d)\n", __func__, val.f, v );
-
-    (void) writeByte( rig, EXE( SET_ALL ) );
-    break;
-
-  case RIG_LEVEL_SQL:
-    /* Scale parameter */
-    v = (unsigned char) (val.f * 255.0);
-
-    (void) setAddr( rig, WORKING, SQLVAL );
-    (void) writeData( rig, v ); /* sqlval */
-
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: sqlval %f (%d)\n", __func__, val.f, v );
-
-    (void) writeByte( rig, EXE( SET_ALL ) );
-    break;
-
-  case RIG_LEVEL_PBT_IN:
-    /* Scale parameter */
-    v = (unsigned char) (val.f / (HZ_PER_STEP * 12.5));
-
-    (void) setAddr( rig, WORKING, PBSVAL );
-    (void) writeData( rig, v ); /* pbsval */
-
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: pbsval %f (%d)\n", __func__, val.f, v );
-
-    (void) writeByte( rig, EXE( SET_ALL ) );
-    break;
-
-  case RIG_LEVEL_CWPITCH:
-    /* Scale parameter */
-    v = (unsigned char) (val.f / (HZ_PER_STEP * 12.5));
-
-    (void) setAddr( rig, WORKING, BFOVAL );
-    (void) writeData( rig, v ); /* bfoval */
-
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: bfoval %f (%d)\n", __func__, val.f, v );
-
-    (void) writeByte( rig, EXE( SET_ALL ) );
-    break;
-
-  case RIG_LEVEL_NOTCHF:
-    rc = -RIG_ENIMPL;
-    break;
-
-  case RIG_LEVEL_AGC:
-    /* Scale parameter */
-    switch ( val.i )
-    {
-    case RIG_AGC_OFF:
-      v = (unsigned char) AGC_OFF;
+      rc = execRoutine( rig, SET_ALL );
       break;
 
-    case RIG_AGC_SLOW:
-      v = (unsigned char) AGC_SLOW;
+    case RIG_LEVEL_AF:
+      /* Scale parameter */
+      v = ( unsigned char ) ( ( val.f * ( VOL_MAX - VOL_MIN ) ) + VOL_MIN );
+      v = ( v & 0x3f );
+
+      rc = writeByte( rig, WORKING, AF_VOL, v ); /* af_vol */
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: af_vol %f (%d)\n", __func__, val.f, v );
+
+      v = ( ( v >> 1 ) & 0x1f );    /* half value for L/R volume */
+
+      rc = writeByte( rig, WORKING, AF_VLL, v ); /* af_vll */
+      rc = writeByte( rig, WORKING, AF_VLR, v ); /* af_vlr */
+
+      rc = execRoutine( rig, SET_AUDIO );
       break;
 
-    case RIG_AGC_FAST:
-      v = (unsigned char) AGC_FAST;
+    case RIG_LEVEL_RF:
+      /* Scale parameter, values 0 (99%) to 130 (3%) */
+      v = (unsigned char) (134U - ((unsigned int) (val.f * 135.0)));
+
+      rc = writeByte( rig, WORKING, IFGAIN, v ); /* ifgain */
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: ifgain %f (%d)\n", __func__, val.f, v );
+
+      rc = execRoutine( rig, SET_ALL );
       break;
 
-    case RIG_AGC_MEDIUM:
+    case RIG_LEVEL_SQL:
+      /* Scale parameter */
+      v = (unsigned char) (val.f * 255.0);
+
+      rc = writeByte( rig, WORKING, SQLVAL, v ); /* sqlval */
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: sqlval %f (%d)\n", __func__, val.f, v );
+
+      rc = execRoutine( rig, SET_ALL );
+      break;
+
+    case RIG_LEVEL_PBT_IN:
+      /* Scale parameter */
+      v = (unsigned char) (val.f / (HZ_PER_STEP * 12.5));
+
+      rc = writeByte( rig, WORKING, PBSVAL, v ); /* pbsval */
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: pbsval %f (%d)\n", __func__, val.f, v );
+
+      rc = execRoutine( rig, SET_ALL );
+      break;
+
+    case RIG_LEVEL_CWPITCH:
+      /* Scale parameter */
+      v = (unsigned char) (val.f / (HZ_PER_STEP * 12.5));
+
+      rc = writeByte( rig, WORKING, BFOVAL, v ); /* bfoval */
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: bfoval %f (%d)\n", __func__, val.f, v );
+
+      rc = execRoutine( rig, SET_ALL );
+      break;
+
+    case RIG_LEVEL_NOTCHF:
+      rc = -RIG_ENIMPL;
+      break;
+
+    case RIG_LEVEL_AGC:
+      /* Scale parameter */
+      v = agcToNative( val.i );
+      rc = writeByte( rig, WORKING, AGCSPD, v ); /* agcspd */
+
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: agcspd %d (%d)\n", __func__, val.i, v );
+
+      rc = execRoutine( rig, SET_ALL );
+      break;
+
     default:
-      v = (unsigned char) AGC_MED;
-      break;
+      rc = -RIG_EINVAL;
     };
 
-    (void) setAddr( rig, WORKING, AGCSPD );
-    (void) writeData( rig, v ); /* agcspd */
-
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: agcspd %d (%d)\n", __func__, val.i, v );
-
-    (void) writeByte( rig, EXE( SET_ALL ) );
-    break;
-
-  default:
-    rc = -RIG_EINVAL;
-  };
-
-  unlockRx( rig );
+    rc = lockRx( rig, LOCK_0 );
+  }
 
   return( rc );
 }
@@ -1418,241 +709,228 @@ static int ar7030p_get_level( RIG * rig, vfo_t vfo, setting_t level,
                              value_t * val )
 {
   int rc = RIG_OK;
-  unsigned int v = 0;
+  unsigned char v;
   unsigned int x = 0;
+  unsigned short s = 0;
+  int i;
 
-  lockRx( rig, LOCK_1 );
-
-  /* TODO - deal with selected VFO */
-  switch ( level )
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc ) 
   {
-  case RIG_LEVEL_PREAMP:
-    (void) setAddr( rig, WORKING, RFGAIN );
-    v = (unsigned int) readByte( rig ); /* af_vol */
-
-    if ( (unsigned int) -1 != v )
+    /* TODO - deal with selected VFO */
+    switch ( level )
     {
-      /* Scale parameter */
-      if ( 0 == v )
+    case RIG_LEVEL_PREAMP:
+      rc = readByte( rig, WORKING, RFGAIN, &v ); /* rfgain */
+      if ( RIG_OK == rc )
       {
-        val->i = 10;
+	/* Scale parameter */
+	if ( 0 == v )
+	{
+	  val->i = 10;
+        }
+        else
+        {
+	  val->i = 0;
+        }
+
+	rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n",
+                   __func__, v, val->i );
       }
-      else
+      break;
+
+    case RIG_LEVEL_ATT:
+      rc = readByte( rig, WORKING, RFGAIN, &v ); /* rfgain */
+      if ( RIG_OK == rc )
       {
-        val->i = 0;
+	/* Scale parameter */
+	switch( v )
+        {
+	case 2:
+	  val->i = 10;
+	  break;
+
+	case 3:
+	  val->i = 20;
+	  break;
+
+	case 4:
+	  val->i = 40;
+	  break;
+
+	default:
+	case 0:
+	case 1:
+	  val->i = 0;    
+	};
+
+	rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n",
+                   __func__, v, val->i );
       }
+      break;
 
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n",
-                  __func__, v, val->i );
-    }
-    break;
-
-  case RIG_LEVEL_ATT:
-    (void) setAddr( rig, WORKING, RFGAIN );
-    v = (unsigned int) readByte( rig ); /* af_vol */
-
-    if ( (unsigned int) -1 != v )
-    {
-      /* Scale parameter */
-      switch( v )
+    case RIG_LEVEL_AF:
+      rc = readByte( rig, WORKING, AF_VOL, &v ); /* af_vol */
+      if ( RIG_OK == rc )
       {
-      case 2:
-        val->i = 10;
-        break;
+	/* Scale parameter */
+	v = ( v & 0x3f );
+	val->f = (( (float) v - VOL_MIN) / ( VOL_MAX - VOL_MIN ) );
 
-      case 3:
-        val->i = 20;
-        break;
-
-      case 4:
-        val->i = 40;
-        break;
-
-      default:
-      case 0:
-      case 1:
-	val->i = 0;    
-      };
-
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: rfgain %d (%d)\n",
-                  __func__, v, val->i );
-    }
-    break;
-
-  case RIG_LEVEL_AF:
-    (void) setAddr( rig, WORKING, AF_VOL );
-    v = (unsigned int) readByte( rig ); /* af_vol */
-
-    if ( (unsigned int) -1 != v )
-    {
-      /* Scale parameter */
-      v = ( v & 0x3f );
-      val->f = (( (float) v - VOL_MIN) / ( VOL_MAX - VOL_MIN ) );
-
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: af_vol %d (%f)\n",
-                  __func__, v, val->f );
-    }
-    break;
-
-  case RIG_LEVEL_RF:
-    (void) setAddr( rig, WORKING, IFGAIN );
-    v = (unsigned int) readByte( rig ); /* ifgain */
-
-    if ( (unsigned int) -1 != v )
-    {
-      /* Scale parameter, values 0 (99%) to 130 (3%) */
-      val->f = ((float) (134 - v) / 135.0 );
-
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: ifgain %d (%f)\n",
-                  __func__, v, val->f );
-    }
-    break;
-
-  case RIG_LEVEL_SQL:
-    (void) setAddr( rig, WORKING, SQLVAL );
-    v = (unsigned int) readByte( rig ); /* sqlval */
-
-    if ( (unsigned int) -1 != v )
-    {
-      /* Scale parameter */
-      val->f = ((float) (v) / 255.0 );
-
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: sqlval %d (%f)\n",
-                  __func__, v, val->f );
-    }
-    break;
-
-  case RIG_LEVEL_PBT_IN:
-    (void) setAddr( rig, WORKING, PBSVAL );
-    v = (unsigned int) readByte( rig ); /* pbsval */
-
-    if ( (unsigned int) -1 != v )
-    {
-      /* Scale parameter */
-      if (127 < v)
-      {
-        v = v | 0xffffff00;
+	rig_debug( RIG_DEBUG_VERBOSE, "%s: af_vol %d (%f)\n",
+                   __func__, v, val->f );
       }
-      val->f = ((float) (v) * HZ_PER_STEP * 12.5 );
+      break;
 
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: pbsval %d (%f)\n",
-                  __func__, v, val->f );
-    }
-    break;
-
-  case RIG_LEVEL_CWPITCH:
-    (void) setAddr( rig, WORKING, BFOVAL );
-    v = (unsigned int) readByte( rig ); /* bfoval */
-
-    if ( (unsigned int) -1 != v )
-    {
-      /* Scale parameter */
-      if (127 < v)
+    case RIG_LEVEL_RF:
+      rc = readByte( rig, WORKING, IFGAIN, &v ); /* ifgain */
+      if ( RIG_OK == rc )
       {
-        v = v | 0xffffff00;
+	/* Scale parameter, values 0 (99%) to 130 (3%) */
+	val->f = ((float) (134 - v) / 135.0 );
+
+        rig_debug( RIG_DEBUG_VERBOSE, "%s: ifgain %d (%f)\n",
+                    __func__, v, val->f );
       }
-      val->f = ((float) (v) * HZ_PER_STEP * 12.5 );
+      break;
 
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: bfoval %d (%f)\n",
-                  __func__, v, val->f );
-    }
-    break;
-
-  case RIG_LEVEL_NOTCHF:
-    (void) setAddr( rig, WORKING, NCHFR );
-    v = (unsigned int) readByte( rig ); /* nchfr */
-
-    if ( (unsigned int) -1 != v )
-    {
-      x = (v << 8);
-      v = readByte( rig ); /* nchfr + 1 */
-      if ( -1 != v )
+    case RIG_LEVEL_SQL:
+      rc = readByte( rig, WORKING, SQLVAL, &v ); /* sqlval */
+      if ( RIG_OK == rc )
       {
-        x += v;
+	/* Scale parameter */
+	val->f = ((float) (v) / 255.0 );
 
-        /* Scale parameter */
-        val->i = (int) ((float) (x) / NOTCH_STEP_HZ);
+	rig_debug( RIG_DEBUG_VERBOSE, "%s: sqlval %d (%f)\n",
+                   __func__, v, val->f );
+      }
+      break;
 
+    case RIG_LEVEL_PBT_IN:
+      rc = readByte( rig, WORKING, PBSVAL, &v ); /* pbsval */
+      if ( RIG_OK == rc )
+      {
+	/* Scale parameter */
+	if (127 < v)
+	{
+	  v = v | 0xffffff00;
+	}
+	val->f = ((float) (v) * HZ_PER_STEP * 12.5 );
+
+	rig_debug( RIG_DEBUG_VERBOSE, "%s: pbsval %d (%f)\n",
+                   __func__, v, val->f );
+      }
+      break;
+
+    case RIG_LEVEL_CWPITCH:
+      rc = readByte( rig, WORKING, BFOVAL, &v ); /* bfoval */
+      if ( RIG_OK == rc )
+      {
+	/* Scale parameter */
+	if (127 < v)
+	{
+	  v = v | 0xffffff00;
+	}
+	val->f = ((float) (v) * HZ_PER_STEP * 12.5 );
+
+	rig_debug( RIG_DEBUG_VERBOSE, "%s: bfoval %d (%f)\n",
+                   __func__, v, val->f );
+      }
+      break;
+
+    case RIG_LEVEL_NOTCHF:
+      rc = readShort( rig, WORKING, NCHFR, &s ); /* nchfr */
+      if ( RIG_OK == rc )
+      {
+	x = (unsigned int) s;
+
+	/* Scale parameter */
+	val->i = (int) ((float) (x) / NOTCH_STEP_HZ);
+      
         rig_debug( RIG_DEBUG_VERBOSE, "%s: nchfr %d (%d)\n",
-                    __func__, x, val->i );
+		   __func__, x, val->i );
       }
-      else
+      break;
+
+    case RIG_LEVEL_AGC:
+      rc = readByte( rig, WORKING, AGCSPD, &v ); /* agcspd */
+      if ( RIG_OK == rc )
       {
-	rc = -RIG_EIO;
+	/* Scale parameter */
+        val->i = agcToHamlib( v );
+
+	rig_debug( RIG_DEBUG_VERBOSE, "%s: agcspd %d (%d)\n",
+                   __func__, v, val->i );
       }
-    }
-    break;
+      break;
 
-  case RIG_LEVEL_AGC:
-    (void) setAddr( rig, WORKING, AGCSPD );
-    v = (unsigned int) readByte( rig ); /* agcspd */
-
-    if ( (unsigned int) -1 != v )
-    {
-      /* Scale parameter */
-      switch ( v )
+    case RIG_LEVEL_RAWSTR:
+      rc = readSignal( rig, &v );
+      if ( RIG_OK == rc )
       {
-      case AGC_FAST:
-	val->i = RIG_AGC_FAST;
-	break;
-
-      case AGC_MED:
-	val->i = RIG_AGC_MEDIUM;
-	break;
-
-      case AGC_SLOW:
-	val->i = RIG_AGC_SLOW;
-	break;
-
-      case AGC_OFF:
-	val->i = RIG_AGC_OFF;
-	break;
-
-      default:
-	rc = -RIG_EINVAL;
+	val->i = (int) v;
       }
+      break;
 
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: agcspd %d (%d)\n",
-                  __func__, v, val->i );
+    case RIG_LEVEL_STRENGTH:
+      rc = readSignal( rig, &v );
+      if ( RIG_OK == rc )
+      {
+        rc = getCalLevel( rig, v, &i );
+        if ( RIG_OK == rc )
+	{
+	  val->i = i;
+        }
+      }
+      break;
+
+    default:
+      rc = -RIG_EINVAL;
     }
-    break;
 
-  case RIG_LEVEL_RAWSTR:
-    lockRx( rig, LOCK_1 );
-    val->i = readSignal( rig );
-    unlockRx( rig );
-    break;
-
-  case RIG_LEVEL_STRENGTH:
-    rc = -RIG_ENIMPL;
-    break;
-
-  default:
-    rc = -RIG_EINVAL;
+    rc = lockRx( rig, LOCK_0 );
   }
-
-  unlockRx( rig );
 
   return( rc );
 }
 
 static int ar7030p_set_vfo( RIG * rig, vfo_t vfo )
 {
+  int rc = -RIG_OK;
+
   assert( NULL != rig );
+
+  switch( vfo ) 
+  {
+  case RIG_VFO_B:
+    rc = sendIRCode( rig, IR_VFO );
+    break;
+
+  case RIG_VFO_A:
+  case RIG_VFO_CURR:
+  default:
+    break;
+  }
 
   return ( -RIG_ENIMPL );
 }
 
 static int ar7030p_get_vfo( RIG * rig, vfo_t * vfo )
 {
+  int rc = -RIG_OK;
+
   assert( NULL != rig );
   assert( NULL != vfo );
 
-  return ( -RIG_ENIMPL );
+  *vfo = RIG_VFO_CURR;
+
+  return ( rc );
 }
 
 static int ar7030p_set_parm( RIG * rig, setting_t parm, value_t val )
 {
+  int rc = -RIG_ENIMPL;
+
   assert( NULL != rig );
 
   switch ( parm )
@@ -1670,11 +948,13 @@ static int ar7030p_set_parm( RIG * rig, setting_t parm, value_t val )
     break;
   };
 
-  return ( -RIG_ENIMPL );
+  return ( rc );
 }
 
 static int ar7030p_get_parm( RIG * rig, setting_t parm, value_t * val )
 {
+  int rc = -RIG_ENIMPL;
+
   assert( NULL != rig );
   assert( NULL != val );
 
@@ -1693,78 +973,125 @@ static int ar7030p_get_parm( RIG * rig, setting_t parm, value_t * val )
     break;
   };
 
-  return ( -RIG_ENIMPL );
+  return ( rc );
 }
 
 static int ar7030p_set_mem( RIG * rig, vfo_t vfo, int ch )
 {
+  int rc = -RIG_ENIMPL;
+
   assert( NULL != rig );
 
-  return ( -RIG_ENIMPL );
+  return ( rc );
 }
 
 static int ar7030p_get_mem( RIG * rig, vfo_t vfo, int *ch )
 {
+  int rc = -RIG_ENIMPL;
+
   assert( NULL != rig );
   assert( NULL != ch );
 
-  return ( -RIG_ENIMPL );
+  return ( rc );
 }
 
 static int ar7030p_vfo_op( RIG * rig, vfo_t vfo, vfo_op_t op )
 {
+  int rc = -RIG_ENIMPL;
+
   assert( NULL != rig );
 
   switch( op )
   {
   case RIG_OP_CPY:
+    rc = -RIG_ENIMPL;
     break;
 
   case RIG_OP_XCHG:
+    rc = -RIG_ENIMPL;
     break;
 
   case RIG_OP_TOGGLE:
+    rc = sendIRCode( rig, IR_VFO );
     break;
 
   default:
     break;
   };
 
-  return ( -RIG_ENIMPL );
+  return ( rc );
 }
 
 static int ar7030p_scan( RIG * rig, vfo_t vfo, scan_t scan, int ch )
 {
+  int rc = -RIG_ENIMPL;
+
   assert( NULL != rig );
 
-  return ( -RIG_ENIMPL );
+  return ( rc );
 }
 
 static int ar7030p_get_dcd( RIG * rig, vfo_t vfo, dcd_t * dcd )
 {
+  int rc = -RIG_OK;
+  unsigned char v;
+
   assert( NULL != rig );
   assert( NULL != dcd );
 
-  return ( -RIG_ENIMPL );
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc ) 
+  {
+    rc = readByte( rig, WORKING, BITS + 2, &v );
+    if ( RIG_OK == rc )
+    {
+      if ( (v & 0x02) )
+      {
+	if ( (v & 0x01) ) /* low bit set if Squelch is NOT active/open */
+	{
+	  *dcd = RIG_DCD_OFF;
+	}
+        else
+        {
+	  *dcd = RIG_DCD_ON;
+	}
+      }
+      else
+      {
+        *dcd = RIG_DCD_ON;
+      }
+    }
+
+    rc = lockRx( rig, LOCK_0 );
+  }
+
+  return ( rc );
 }
 
 static int ar7030p_set_ts( RIG * rig, vfo_t vfo, shortfreq_t ts )
 {
   int rc = RIG_OK;
-  unsigned int v;
+  unsigned short v;
 
   assert( NULL != rig );
 
-  /* Scale parameter */
-  v = (unsigned int) ((double) (ts + 1) / HZ_PER_STEP);
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
+  {
+    /* Scale parameter */
+    v = (unsigned short) ((double) (ts + 1) / HZ_PER_STEP);
 
-  (void) setAddr( rig, WORKING, CHNSTP );
-  (void) writeData( rig, (unsigned char) ((v & 0xff00) >> 8) ); /* chnstp */
-  (void) writeData( rig, (unsigned char)  (v & 0x00ff) ); /* chnstp + 1 */
+    rc = writeShort( rig, WORKING, CHNSTP, v ); /* chnstp */
+    if ( RIG_OK == rc )
+    {
+      rc = execRoutine( rig, SET_ALL );
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: chnstp %d (%d)\n", __func__, ts, v );
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: chnstp %d (%d)\n", __func__, ts, v );
+    }
 
-  (void) writeByte( rig, EXE( SET_ALL ) );
+    rc = lockRx( rig, LOCK_0 );
+  }
+
   return ( rc );
 }
 
@@ -1780,34 +1107,25 @@ static int ar7030p_set_ts( RIG * rig, vfo_t vfo, shortfreq_t ts )
 static int ar7030p_get_ts( RIG * rig, vfo_t vfo, shortfreq_t * ts )
 {
   int rc = RIG_OK;
-  unsigned int v;
+  unsigned short v;
   double x;
 
   assert( NULL != rig );
   assert( NULL != ts );
 
-  setAddr( rig, WORKING, CHNSTP );
-
-  v = (unsigned int) readByte( rig );
-  if ( (unsigned int) -1 != v )
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
   {
-    x = (double) ((v & 0xff) << 8);
-    v = (unsigned int) readByte( rig );
-    if ( (unsigned int) -1 != v )
+    rc = readShort( rig, WORKING, CHNSTP, &v ); /* chnstp */
+    if ( RIG_OK == rc )
     {
-      x += (double) (v & 0xff); 
+      x = (double) v;
       *ts = (shortfreq_t) (x * HZ_PER_STEP);
 
       rig_debug( RIG_DEBUG_VERBOSE, "%s: step= %d\n", __func__, *ts );
     }
-    else
-    {
-      rc = -RIG_EIO;
-    }
-  }
-  else
-  {
-    rc = -RIG_EIO;
+
+    rc = lockRx( rig, LOCK_0 );
   }
 
   return ( rc );
@@ -1823,26 +1141,29 @@ static int ar7030p_get_ts( RIG * rig, vfo_t vfo, shortfreq_t * ts )
  */
 static int ar7030p_set_powerstat( RIG * rig, powerstat_t status )
 {
-  int rc = RIG_OK;
+  int rc = -RIG_ENIMPL;
 
   assert( NULL != rig );
 
-  switch ( status )
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
   {
-  case RIG_POWER_OFF:
-    rc = -RIG_ENIMPL;
-    break;
+    switch ( status )
+    {
+    case RIG_POWER_OFF:
+      break;
 
-  case RIG_POWER_ON: 
-    rc = -RIG_ENIMPL;
-   break;
+    case RIG_POWER_ON: 
+      break;
 
-  default:
-    rc = -RIG_EINVAL;
-    break;
+    default:
+      break;
+    }
+
+    rc = lockRx( rig, LOCK_0 );
   }
 
-  return( rc );
+  return( -RIG_ENIMPL );
 }
 
 /*
@@ -1856,10 +1177,28 @@ static int ar7030p_set_powerstat( RIG * rig, powerstat_t status )
 static int ar7030p_get_powerstat( RIG * rig, powerstat_t * status )
 {
   int rc = RIG_OK;
+  unsigned char v;
 
   assert( NULL != rig );
 
-  rc = -RIG_ENIMPL;
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
+  {
+    rc = readByte( rig, WORKING, PDFLGS, &v );
+    if ( RIG_OK == rc )
+    {
+      if ( 0 == ( v & 0x01 ) )
+      {
+	*status = RIG_POWER_OFF;
+      }
+      else
+      {
+	*status = RIG_POWER_ON;
+      }
+    }
+
+    rc = lockRx( rig, LOCK_0 );
+  }
 
   return( rc );
 }
@@ -1928,18 +1267,33 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
   assert( NULL != rig );
   assert( NULL != chan );
 
+  chan->vfo = RIG_VFO_MEM;
+  chan->ant = RIG_ANT_NONE;
+  chan->freq = 0;
+  chan->mode = RIG_MODE_NONE;
+  chan->width = RIG_PASSBAND_NORMAL;
+  chan->tx_freq = 0;
+  chan->tx_mode = RIG_MODE_NONE;
+  chan->tx_width = RIG_PASSBAND_NORMAL;
+  chan->split = RIG_SPLIT_OFF;
+  chan->tx_vfo = RIG_VFO_NONE;
+  chan->rptr_shift = RIG_RPT_SHIFT_NONE;
+  chan->rptr_offs = 0;
+  chan->tuning_step = 0;
+  chan->rit = 0;
+  chan->xit = 0;
+  chan->funcs = 0;
+  chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF;
+  chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 0;
+  chan->ctcss_tone = 0;
+  chan->ctcss_sql = 0;
+  chan->dcs_code = 0;
+  chan->dcs_sql = 0;
+  chan->scan_group = 0;
+  chan->flags = RIG_CHFLAG_SKIP;
+  strcpy(chan->channel_desc, "");
+
   return ( -RIG_ENIMPL );
-}
-
-static const char *ar7030p_get_info( RIG * rig )
-{
-  static char version[10] = "";
-
-  assert( NULL != rig );
-
-  ar7030p_get_ident( rig, version );
-
-  return ( version );
 }
 
 const struct rig_caps ar7030p_caps = {
@@ -1950,8 +1304,9 @@ const struct rig_caps ar7030p_caps = {
   .copyright = "LGPL",
   .status = RIG_STATUS_NEW,
   .rig_type = RIG_TYPE_RECEIVER,
-  .ptt_type = RIG_PTT_NONE,
+
   .dcd_type = RIG_DCD_RIG,
+
   .port_type = RIG_PORT_SERIAL,
   .serial_rate_min = 1200,
   .serial_rate_max = 1200,
@@ -1970,6 +1325,7 @@ const struct rig_caps ar7030p_caps = {
   .has_set_level = RIG_LEVEL_SET( AR7030P_LEVEL ),
   .has_get_parm = AR7030P_PARM,
   .has_set_parm = RIG_PARM_SET( AR7030P_PARM ),
+
   .level_gran = {
                  [LVL_PREAMP]   = {.min = {.i = 0},    .max = {.i = 10} },
                  [LVL_ATT]      = {.min = {.i = 0},    .max = {.i = 20} },
@@ -1985,15 +1341,16 @@ const struct rig_caps ar7030p_caps = {
                  [LVL_RAWSTR]   = {.min = {.i = 0},    .max = {.i = 255} },
                  [LVL_STRENGTH] = {.min = {.i = 0},    .max = {.i = 255} },
                  },
+
   .extparms = NULL,
   .extlevels = NULL,
+
   .parm_gran = {
                 [PARM_APO]  = {.min = {.i = 1}, .max = {.i = 86400} },
                 [PARM_TIME] = {.min = {.i = 0}, .max = {.i = 86400} },
                 [PARM_BAT]  = {.min = {.f = 0.0}, .max = {.f = 1.0} },
                 },
-  .ctcss_list = NULL,
-  .dcs_list = NULL,
+
   .preamp = {10, RIG_DBLST_END,},
   .attenuator = {10, 20, RIG_DBLST_END,},
   .max_rit = Hz( 0 ),
@@ -2078,50 +1435,14 @@ const struct rig_caps ar7030p_caps = {
   .set_vfo = ar7030p_set_vfo,
   .get_vfo = ar7030p_get_vfo,
 
-  .set_ptt = RIG_FUNC_NONE,
-  .get_ptt = RIG_FUNC_NONE,
-
   .get_dcd = ar7030p_get_dcd,
-
-  .set_rptr_shift = RIG_FUNC_NONE,
-  .get_rptr_shift = RIG_FUNC_NONE,
-  .set_rptr_offs = RIG_FUNC_NONE,
-  .get_rptr_offs = RIG_FUNC_NONE,
-  .set_split_freq = RIG_FUNC_NONE,
-  .get_split_freq = RIG_FUNC_NONE,
-  .set_split_mode = RIG_FUNC_NONE,
-  .get_split_mode = RIG_FUNC_NONE,
-  .set_split_vfo = RIG_FUNC_NONE,
-  .get_split_vfo = RIG_FUNC_NONE,
-  .set_rit = RIG_FUNC_NONE,
-  .get_rit = RIG_FUNC_NONE,
-  .set_xit = RIG_FUNC_NONE,
-  .get_xit = RIG_FUNC_NONE,
 
   .set_ts = ar7030p_set_ts,
   .get_ts = ar7030p_get_ts,
 
-  .set_dcs_code = RIG_FUNC_NONE,
-  .get_dcs_code = RIG_FUNC_NONE,
-  .set_tone = RIG_FUNC_NONE,
-  .get_tone = RIG_FUNC_NONE,
-  .set_ctcss_tone = RIG_FUNC_NONE,
-  .get_ctcss_tone = RIG_FUNC_NONE,
-  .set_dcs_sql = RIG_FUNC_NONE,
-  .get_dcs_sql = RIG_FUNC_NONE,
-  .set_tone_sql = RIG_FUNC_NONE,
-  .get_tone_sql = RIG_FUNC_NONE,
-  .set_ctcss_sql = RIG_FUNC_NONE,
-  .get_ctcss_sql = RIG_FUNC_NONE,
-  .power2mW = RIG_FUNC_NONE,
-  .mW2power = RIG_FUNC_NONE,
-
   .set_powerstat = ar7030p_set_powerstat,
   .get_powerstat = ar7030p_get_powerstat,
   .reset = ar7030p_reset,
-
-  .set_ant = RIG_FUNC_NONE,
-  .get_ant = RIG_FUNC_NONE,
 
   .set_level = ar7030p_set_level,
   .get_level = ar7030p_get_level,
@@ -2136,18 +1457,11 @@ const struct rig_caps ar7030p_caps = {
   .get_ext_parm = RIG_FUNC_NONE,
   .set_conf = RIG_FUNC_NONE,
   .get_conf = RIG_FUNC_NONE,
-  .send_dtmf = RIG_FUNC_NONE,
-  .recv_dtmf = RIG_FUNC_NONE,
-  .send_morse = RIG_FUNC_NONE,
-  .set_bank = RIG_FUNC_NONE,
 
   .set_mem = ar7030p_set_mem,
   .get_mem = ar7030p_get_mem,
   .vfo_op = ar7030p_vfo_op,
   .scan = ar7030p_scan,
-
-  .set_trn = RIG_FUNC_NONE,
-  .get_trn = RIG_FUNC_NONE,
 
   .decode_event = ar7030p_decode_event,
   .set_channel = ar7030p_set_channel,
@@ -2160,5 +1474,3 @@ const struct rig_caps ar7030p_caps = {
   .get_mem_all_cb = RIG_FUNC_NONE,
 
 };
-
-
