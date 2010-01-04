@@ -3,7 +3,7 @@
  *              and the Hamlib Group (hamlib-developer at lists.sourceforge.net)
  *
  * newcat.h - (C) Nate Bargmann 2007 (n0nb at arrl.net)
- *            (C) Terry Embry 2008
+ *            (C) Terry Embry 2008-2010
  *
  * This shared library provides the backend API for communicating
  * via serial interface to any Yaesu radio using the new "CAT"
@@ -114,8 +114,6 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 
 int newcat_set_vfo(RIG *rig, vfo_t vfo);
 int newcat_get_vfo(RIG *rig, vfo_t *vfo);
-
-ncboolean newcat_valid_command(RIG *rig, char *command);
 
 int newcat_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);

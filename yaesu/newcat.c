@@ -4,7 +4,7 @@
  *
  * newcat.c - (C) Nate Bargmann 2007 (n0nb at arrl.net)
  *            (C) Stephane Fillod 2008
- *            (C) Terry Embry 2008-2009
+ *            (C) Terry Embry 2008-2010
  *
  * This shared library provides an API for communicating
  * via serial interface to any newer Yaesu radio using the
@@ -81,7 +81,14 @@ typedef struct _yaesu_newcat_commands {
     ncboolean           ft9000;
 } yaesu_newcat_commands_t;
 
-/*
+/* 
+ * Even thought this table does make a handy reference, it could be depreciated as it is not really needed.
+ * All of the CAT commands used in the newcat interface are available on the FT-950, FT-2000, and FT-9000.
+ * There are 5 CAT commands used in the newcat interface that are not available on the FT-450.
+ * Thesec CAT commands are XT -TX Clarifier ON/OFF, AN - Antenna select, PL - Speech Proc Level,
+ * PR - Speech Proc ON/OFF, and BC - Auto Notch filter ON/OFF.
+ * The FT-450 returns -RIG_ENVAIL for these unavailable CAT commands.
+ *
  * NOTE: The following table must be in alphabetical order by the
  * command.  This is because it is searched using a binary search
  * to determine whether or not a command is valid for a given rig.
@@ -222,8 +229,7 @@ typedef struct newcat_cmd_data {
 static ncboolean newcat_is_rig(RIG * rig, rig_model_t model);
 static int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo);
 static int newcat_set_tx_vfo(RIG * rig, vfo_t tx_vfo);
-static int newcat_get_rx_vfo(RIG * rig, vfo_t * rx_vfo);
-static int newcat_set_rx_vfo(RIG * rig, vfo_t rx_vfo);
+
 static int newcat_set_vfo_from_alias(RIG * rig, vfo_t * vfo);
 static int newcat_scale_float(int scale, float fval);
 static int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width);
@@ -237,6 +243,8 @@ static int newcat_get_vfo_mode(RIG * rig, vfo_t * vfo_mode);
 static int newcat_set_cmd(RIG * rig, newcat_cmd_data_t * cmd);
 static int newcat_get_cmd(RIG * rig, newcat_cmd_data_t * cmd);
 static int newcat_vfomem_toggle(RIG * rig);
+static ncboolean newcat_valid_command(RIG *rig, char *command);
+
 
 /*
  * ************************************
@@ -744,10 +752,8 @@ int newcat_set_vfo(RIG *rig, vfo_t vfo) {
 
     rig_debug(RIG_DEBUG_TRACE, "%s: called, passed vfo = 0x%02x\n", __func__, vfo);
 
-    if (!newcat_valid_command(rig, command)) {
-        err = newcat_set_rx_vfo(rig, vfo);       /* Try set with "FR" */
-        return err;
-    }
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
 
     err = newcat_set_vfo_from_alias(rig, &vfo);   /* passes RIG_VFO_MEM, RIG_VFO_A, RIG_VFO_B */
     if (err < 0)
@@ -834,10 +840,8 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-    if (!newcat_valid_command(rig, command)) {
-        err = newcat_get_rx_vfo(rig, vfo);       /* Try get with "FR" */
-        return err;
-    }
+    if (!newcat_valid_command(rig, command))
+        return -RIG_ENAVAIL;
 
     /* Build the command string */
     snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s;", command);
@@ -3787,184 +3791,6 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
         *tx_vfo = RIG_VFO_MEM;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: tx_vfo = 0x%02x\n", __func__, *tx_vfo);
-
-    return RIG_OK;
-}
-
-
-
-/*
- * Uses "FR" command
- * Calls newcat_set_vfo() for FT450 rig that does not support "FR" 
- * newcat_set_vfo() Calls newcat_set_rx_vfo() for rigs that do not support "VS"
- */
-int newcat_set_rx_vfo(RIG * rig, vfo_t rx_vfo) {
-    struct newcat_priv_data *priv;
-    struct rig_state *state;
-    char p1;
-    int err, mem;
-    vfo_t vfo_mode;
-    char command[] = "FR";
-    
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!newcat_valid_command(rig, command)) {
-        if (newcat_is_rig(rig, RIG_MODEL_FT450)) {    /* No "FR" command */
-            err = newcat_set_vfo(rig, rx_vfo);
-            return err;
-        }   
-        return -RIG_ENAVAIL;
-    }
-
-    err = newcat_set_vfo_from_alias(rig, &rx_vfo);
-    if (err < 0)
-        return err;
-
-    switch (rx_vfo) {
-        case RIG_VFO_A:
-        case RIG_VFO_B:
-            if (rx_vfo == RIG_VFO_B)
-                p1 = '2';       /* Main Band VFO_A,   Sub Band VFO_B on some radios */
-            else 
-                p1 = '0';
-
-            err = newcat_get_vfo_mode(rig, &vfo_mode);
-            if (vfo_mode == RIG_VFO_MEM) {
-                priv->current_mem = NC_MEM_CHANNEL_NONE;
-                priv->current_vfo = RIG_VFO_A;
-                err = newcat_vfomem_toggle(rig);
-                return err;
-            }
-            break;
-        case RIG_VFO_MEM:
-            if (priv->current_mem == NC_MEM_CHANNEL_NONE) {
-                /* Only works correctly for VFO A */
-                if (priv->current_vfo == RIG_VFO_B)
-                    return -RIG_ENTARGET;
-
-                /* get current memory channel */
-                err = newcat_get_mem(rig, rx_vfo, &mem);
-                if (err != RIG_OK)
-                    return err;
-
-                /* turn on memory channel */
-                err = newcat_set_mem(rig, rx_vfo, mem);
-                if (err != RIG_OK)
-                    return err;
-
-                /* Set current_mem now */
-                priv->current_mem = mem;
-            }
-            /* Set current_vfo now  */
-            priv->current_vfo = rx_vfo; 
-            return RIG_OK;
-        default:
-            return -RIG_EINVAL;
-    }
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c%c", command, p1, cat_term);
-
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
-
-    /* Set RX VFO */
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
-
-    priv->current_vfo = rx_vfo;      /* Track Main Band RX VFO */
-
-    return RIG_OK;
-}
-
-
-/* 
- * Uses "FR" command
- * Calls newcat_get_vfo() for FT450 rig that does not support "FR" 
- * newcat_get_vfo() Calls newcat_get_rx_vfo() for rigs that do not support "VS"
- */
-int newcat_get_rx_vfo(RIG * rig, vfo_t * rx_vfo) {
-    struct newcat_priv_data *priv;
-    struct rig_state *state;
-    int err;
-    char c;
-    vfo_t vfo_mode;
-    char command[] = "FR";
-    
-    priv = (struct newcat_priv_data *)rig->state.priv;
-    state = &rig->state;
-
-    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
-
-    if (!newcat_valid_command(rig, command)) {
-        if (newcat_is_rig(rig, RIG_MODEL_FT450)) {    /* No "FR" command */
-            err = newcat_get_vfo(rig, rx_vfo);
-            if (err < 0)
-                return err;
-
-            return RIG_OK;
-        }
-
-        return -RIG_ENAVAIL;
-    }
-
-    snprintf(priv->cmd_str, sizeof(priv->cmd_str), "%s%c", command, cat_term);
-
-    rig_debug(RIG_DEBUG_TRACE, "cmd_str = %s\n", priv->cmd_str);
-
-    /* Get RX VFO */
-    err = write_block(&state->rigport, priv->cmd_str, strlen(priv->cmd_str));
-    if (err != RIG_OK)
-        return err;
-
-    err = read_string(&state->rigport, priv->ret_data, sizeof(priv->ret_data), &cat_term, sizeof(cat_term));
-    if (err < 0)
-        return err;
-
-    /* Check that command termination is correct */
-    if (strchr(&cat_term, priv->ret_data[strlen(priv->ret_data) - 1]) == NULL) {
-        rig_debug(RIG_DEBUG_ERR, "%s: Command is not correctly terminated '%s'\n", __func__, priv->ret_data);
-
-        return -RIG_EPROTO;
-    }
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: read count = %d, ret_data = %s, RX_VFO value = %c\n", __func__, err, priv->ret_data, priv->ret_data[2]);
-
-    /* Check for I don't know this command? */
-    if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get RX_VFO\n");
-        return RIG_OK;
-    }
-
-    c = priv->ret_data[2];
-    switch (c) {
-        case '0':                   /* Main Band VFO_A RX,   Sub Band VFO_B OFF */
-        case '1':                   /* Main Band VFO_A Mute, Sub Band VFO_B OFF */
-            *rx_vfo = RIG_VFO_A;
-            break;
-        case '2' :                  /* Main Band VFO_A RX,   Sub Band VFO_B RX */
-        case '3' :                  /* Main Band VFO_A Mute, Sub Band VFO_B RX */
-            *rx_vfo = RIG_VFO_A;
-            break;
-        case '4' :                  /* FT950 VFO_A OFF, FT950 VFO_B RX   */
-        case '5' :                  /* FT950 VFO_A OFF, FT950 VFO_B Mute */
-            *rx_vfo = RIG_VFO_B;
-            break;
-        default:
-            return -RIG_EPROTO;
-    }
-
-
-    /* Check to see if RIG is in MEM mode */
-    err = newcat_get_vfo_mode(rig, &vfo_mode);
-    if (vfo_mode == RIG_VFO_MEM)
-        *rx_vfo = RIG_VFO_MEM;
-
-    priv->current_vfo = *rx_vfo;     /* set now */
-
-    rig_debug(RIG_DEBUG_TRACE, "%s: rx_vfo = 0x%02x\n", __func__, *rx_vfo);
 
     return RIG_OK;
 }
