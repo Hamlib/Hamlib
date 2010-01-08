@@ -1,3 +1,8 @@
+#ifndef _AR7030P_H
+#define _AR7030P_H 1
+
+#include "hamlib/rig.h"
+#include "token.h"
 
 /*
  $Id: $
@@ -1392,6 +1397,17 @@ enum IR_CODE_e
   IR_NONE = -1
 };
 
+/* backend conf */
+#define TOK_CFG_MAGICCONF  TOKEN_BACKEND(1)
+
+
+/* ext_level's and ext_parm's tokens */
+#define TOK_EL_MAGICLEVEL  TOKEN_BACKEND(1)
+#define TOK_EL_MAGICFUNC   TOKEN_BACKEND(2)
+#define TOK_EL_MAGICOP     TOKEN_BACKEND(3)
+#define TOK_EP_MAGICPARM   TOKEN_BACKEND(4)
+
+
 /* Utility function prototypes */
 
 #if 0
@@ -1437,3 +1453,5 @@ enum agc_level_e agcToHamlib( const unsigned char agc );
 unsigned char agcToNative( const enum agc_level_e agc );
 int pageSize( const enum PAGE_e page );
 int sendIRCode( RIG *rig, enum IR_CODE_e code );
+
+#endif /* _AR7030P_H */
