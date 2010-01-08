@@ -33,8 +33,9 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#include <stdlib.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "ar7030p.h"
 #include "serial.h"
 #include "idx_builtin.h"
@@ -119,8 +120,225 @@ static const struct ar7030p_priv_caps ar7030p_priv_caps = {
   .chan_num = 0,
 };
 
+#define NB_CHAN 400		/* see caps->chan_list */
+
+struct ar7030p_priv_data 
+{
+  vfo_t curr_vfo;
+  vfo_t last_vfo;	/* VFO A or VFO B, when in MEM mode */
+
+  powerstat_t powerstat;
+  int bank;
+  value_t parms[ RIG_SETTING_MAX ];
+
+  channel_t *curr;	/* points to vfo_a, vfo_b or mem[] */
+  
+  channel_t vfo_a;
+  channel_t vfo_b;
+  channel_t mem[ NB_CHAN ];
+
+  struct ext_list *ext_parms;
+};
+
+static const struct confparams ar7030p_ext_levels[] = 
+{
+  { TOK_EL_MAGICLEVEL, "MGL", "Magic level", "Magic level, as an example",
+    NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } } },
+
+  { TOK_EL_MAGICFUNC, "MGF", "Magic func", "Magic function, as an example",
+    NULL, RIG_CONF_CHECKBUTTON },
+
+  { TOK_EL_MAGICOP, "MGO", "Magic Op", "Magic Op, as an example",
+    NULL, RIG_CONF_BUTTON },
+
+  { RIG_CONF_END, NULL, }
+};
+
+static const struct confparams ar7030p_ext_parms[] = 
+{
+  { TOK_EP_MAGICPARM, "MGP", "Magic parm", "Magic parameter, as an example",
+    NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } } },
+
+  { RIG_CONF_END, NULL, }
+};
+
 /* TODO - move this somewhere where it belongs */
 static unsigned int filterTab[ 6 + 1 ] = { 0 };
+
+
+static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
+{
+  assert( NULL != rig );
+  assert( NULL != chan );
+
+  chan->channel_num = 0;
+  chan->vfo = vfo;
+
+  strcpy( chan->channel_desc, rig_strvfo( vfo ) );
+
+  chan->freq = MHz( 10 );
+  chan->mode = RIG_MODE_AM;
+  chan->width = rig_passband_normal( rig, RIG_MODE_AM );
+
+  chan->tuning_step = 110;
+
+  chan->funcs = (setting_t) 0;
+
+  memset( chan->levels, 0, RIG_SETTING_MAX * sizeof( value_t ) );
+}
+
+static struct ext_list *alloc_init_ext( const struct confparams *cfp )
+{
+  struct ext_list *elp;
+  int i, nb_ext;
+
+  assert( NULL != cfp );
+
+  for ( nb_ext = 0; !RIG_IS_EXT_END(cfp[nb_ext]); nb_ext++ )
+  {
+    ;
+  }
+
+  elp = calloc( ( nb_ext + 1 ), sizeof( struct ext_list ) );
+  if ( !elp )
+  {
+    return NULL;
+  }
+
+  for ( i = 0; !RIG_IS_EXT_END(cfp[i]); i++ )
+  {
+    elp[i].token = cfp[i].token;
+    /* value reset already by calloc */
+  }
+
+  /* last token in array is set to 0 by calloc */
+  return elp;
+}
+
+static struct ext_list *find_ext( struct ext_list *elp, token_t token )
+{
+  int i;
+
+  for ( i = 0; elp[ i ].token != 0; i++ )
+  {
+    if ( elp[ i ].token == token )
+    {
+      return &( elp[ i ] );
+    }
+  }
+
+  return NULL;
+}
+
+static int ar7030p_init( RIG *rig )
+{
+  struct ar7030p_priv_data *priv;
+  int rc = RIG_OK;
+  int i;
+
+  assert( NULL != rig );
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __func__);
+
+  priv = (struct ar7030p_priv_data *) 
+    malloc( sizeof( struct ar7030p_priv_data ) );
+
+  if (!priv)
+  {
+    rc = -RIG_ENOMEM;
+  }
+  else
+  {
+    rig->state.priv = (void *) priv;
+
+    rig->state.rigport.type.rig = RIG_PORT_SERIAL;
+
+    priv->powerstat = RIG_POWER_ON;
+    priv->bank = 0;
+
+    memset(priv->parms, 0, RIG_SETTING_MAX * sizeof( value_t ) );
+
+    memset(priv->mem, 0, sizeof( priv->mem ) );
+
+    for ( i = 0; i < NB_CHAN; i++ ) 
+    {
+      priv->mem[ i ].channel_num = i;
+      priv->mem[ i ].vfo = RIG_VFO_MEM;
+
+      priv->mem[ i ].ext_levels = alloc_init_ext( ar7030p_ext_levels );
+
+      if ( !priv->mem[ i ].ext_levels )
+      {
+	rc = -RIG_ENOMEM;
+        break;
+      }
+    }
+
+    if ( RIG_OK == rc )
+    {
+      priv->vfo_a.ext_levels = alloc_init_ext( ar7030p_ext_levels );
+
+      if ( !priv->vfo_a.ext_levels )
+      {
+	return -RIG_ENOMEM;
+      }
+      else
+      {	
+	priv->vfo_b.ext_levels = alloc_init_ext( ar7030p_ext_levels );
+      }
+
+      if ( !priv->vfo_b.ext_levels )
+      {
+	return -RIG_ENOMEM;
+      }
+
+      priv->ext_parms = alloc_init_ext( ar7030p_ext_parms );
+
+      if ( !priv->ext_parms )
+      {
+	return -RIG_ENOMEM;
+      }
+
+      init_chan(rig, RIG_VFO_A, &priv->vfo_a);
+      init_chan(rig, RIG_VFO_B, &priv->vfo_b);
+
+      priv->curr = &priv->vfo_a;
+      priv->curr_vfo = priv->last_vfo = RIG_VFO_A;
+    }
+  }
+
+  return( rc );
+}
+
+static int ar7030p_cleanup( RIG *rig )
+{
+  struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+  int rc = RIG_OK;
+  int i;
+
+  assert( NULL != rig );
+
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called\n", __FUNCTION__);
+
+  for ( i = 0; i < NB_CHAN; i++ ) 
+  {
+    free( priv->mem[ i ].ext_levels );
+  }
+
+  free( priv->vfo_a.ext_levels );
+  free( priv->vfo_b.ext_levels );
+
+  free( priv->ext_parms );
+
+  if (rig->state.priv)
+  {
+    free( rig->state.priv );
+  }
+  
+  rig->state.priv = NULL;
+
+  return( rc );
+}
 
 /*
  * /brief Open I/O to receiver
@@ -978,19 +1196,39 @@ static int ar7030p_get_parm( RIG * rig, setting_t parm, value_t * val )
 
 static int ar7030p_set_mem( RIG * rig, vfo_t vfo, int ch )
 {
-  int rc = -RIG_ENIMPL;
+  int rc = -RIG_OK;
 
   assert( NULL != rig );
+
+  struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+
+  if ( RIG_VFO_MEM == priv->curr_vfo )
+  {
+    priv->curr = &priv->mem[ ch ];
+  }
+  else
+  {
+    priv->curr->channel_num = ch;
+  }
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: ch %d\n", __func__, ch);
 
   return ( rc );
 }
 
 static int ar7030p_get_mem( RIG * rig, vfo_t vfo, int *ch )
 {
-  int rc = -RIG_ENIMPL;
+  int rc = -RIG_OK;
 
   assert( NULL != rig );
   assert( NULL != ch );
+
+  struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
+  channel_t *curr = priv->curr;
+
+  *ch = curr->channel_num;
+
+  rig_debug(RIG_DEBUG_VERBOSE, "%s: ch %d\n", __func__, *ch);
 
   return ( rc );
 }
@@ -1264,36 +1502,114 @@ static int ar7030p_set_channel( RIG * rig, const channel_t * chan )
 
 static int ar7030p_get_channel( RIG * rig, channel_t * chan )
 {
+  int rc = RIG_OK;
+  unsigned char v;
+  unsigned int f;
+  unsigned char *p = NULL;
+  int ch;
+  int i;
+
   assert( NULL != rig );
   assert( NULL != chan );
 
-  chan->vfo = RIG_VFO_MEM;
-  chan->ant = RIG_ANT_NONE;
-  chan->freq = 0;
-  chan->mode = RIG_MODE_NONE;
-  chan->width = RIG_PASSBAND_NORMAL;
-  chan->tx_freq = 0;
-  chan->tx_mode = RIG_MODE_NONE;
-  chan->tx_width = RIG_PASSBAND_NORMAL;
-  chan->split = RIG_SPLIT_OFF;
-  chan->tx_vfo = RIG_VFO_NONE;
-  chan->rptr_shift = RIG_RPT_SHIFT_NONE;
-  chan->rptr_offs = 0;
-  chan->tuning_step = 0;
-  chan->rit = 0;
-  chan->xit = 0;
-  chan->funcs = 0;
-  chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i = RIG_AGC_OFF;
-  chan->levels[rig_setting2idx(RIG_LEVEL_ATT)].i = 0;
-  chan->ctcss_tone = 0;
-  chan->ctcss_sql = 0;
-  chan->dcs_code = 0;
-  chan->dcs_sql = 0;
-  chan->scan_group = 0;
-  chan->flags = RIG_CHFLAG_SKIP;
-  strcpy(chan->channel_desc, "");
+  struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)rig->state.priv;
+  channel_t *curr = priv->curr;
+  ch = curr->channel_num;
 
-  return ( -RIG_ENIMPL );
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: chan %d\n", __func__, curr->channel_num );
+
+  rc = lockRx( rig, LOCK_1 );
+  if ( RIG_OK == rc )
+  {
+    /* Squelch values */
+    if ( 100 > ch )
+    {
+      rc = readByte( rig, BBRAM, (MEM_SQ + ch), &v ); /* mem_sq */
+    }
+    else if ( 176 > ch )
+    {
+      rc = readByte( rig, EEPROM2, (MEX_SQ + (ch * 16) ), &v ); /* mex_sq */
+    }
+    else
+    {
+      rc = readByte( rig, EEPROM3, (MEY_SQ + ((ch - 176) * 16) ), &v ); /* mey_sq */  
+    }
+
+    if ( RIG_OK == rc )
+    {
+      chan->levels[ RIG_LEVEL_SQL ].f = (float) v / 255.0;
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: sql %d\n", __func__, v );
+    }
+  
+    /* Frequency, mode and filter values */
+    if ( 100 > ch )
+    {
+      rc = read3Bytes( rig, EEPROM1, (MEM_FR + (ch * 4) ), &f ); /* mem_fr */
+      rc = readByte(   rig, EEPROM1, (MEM_MD + (ch * 4) ), &v ); /* mem_md */
+    }
+    else
+    {
+      rc = read3Bytes( rig, EEPROM2, (MEX_FR + ((ch - 100) * 4) ), &f ); /* mex_fr */
+      rc = readByte(   rig, EEPROM2, (MEX_MD + ((ch - 100) * 4) ), &v ); /* mex_md */
+    }
+
+    if ( RIG_OK == rc )
+    {
+     chan->freq = ddsToHz( f );
+     chan->mode = modeToHamlib( ( v & 0x07 ) );
+     chan->width = getFilterBW( rig, ( ( v & 0x70 ) >> 4 ) );
+      /* lockout = ( ( v & 0x80 ) >> 7 ); */
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: freq %f\n", __func__, chan->freq );
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: mode %d\n", __func__, chan->mode );
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d\n", __func__, chan->width );
+    }
+
+    /* PBT values */
+    if ( 100 > ch )
+    {
+      rc = readByte( rig, EEPROM1, (MEM_PB + ch), &v ); /* mem_pb */
+    }
+    else if ( 176 > ch )
+    {
+      rc = readByte( rig, EEPROM2, (MEX_PB + (ch * 16)), &v ); /* mex_pb */
+    }
+    else
+    {
+      rc = readByte( rig, EEPROM3, (MEY_PB + ((ch - 176) * 16)), &v ); /* mey_pb */
+    }
+
+    if ( RIG_OK == rc )
+    {
+      chan->levels[ RIG_LEVEL_PBT_IN ].i = (int) v;
+      rig_debug( RIG_DEBUG_VERBOSE, "%s: pbt %d\n", __func__, v );
+    }
+
+    /* Memory ID values */
+    p = (unsigned char *) chan->channel_desc;
+    for ( i = 0; i < 14; i++ )
+    {
+      if ( 176 > ch )
+      {
+	rc = readByte( rig, EEPROM2, (MEX_ID + (ch * 16) + i), p++ ); /* mex_id */
+      }
+      else
+      {
+	rc = readByte( rig, EEPROM3, (MEY_ID + ((ch - 176) * 16) + i), p++ ); /* mey_id */
+      }
+
+      if ( RIG_OK != rc )
+      {
+	p = (unsigned char *) chan->channel_desc;
+	break;
+      }
+    }
+    *p++ = '\0';
+    rig_debug( RIG_DEBUG_VERBOSE, "%s: id %s\n", __func__, chan->channel_desc );
+
+    rc = lockRx( rig, LOCK_0 );
+  }
+
+  return ( rc );
 }
 
 const struct rig_caps ar7030p_caps = {
@@ -1426,6 +1742,8 @@ const struct rig_caps ar7030p_caps = {
   .cfgparams = NULL,
   .priv = ( void * ) &ar7030p_priv_caps,
 
+  .rig_init = ar7030p_init,
+  .rig_cleanup = ar7030p_cleanup,
   .rig_open = ar7030p_open,
   .rig_close = ar7030p_close,
   .set_freq = ar7030p_set_freq,
