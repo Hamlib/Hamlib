@@ -100,20 +100,20 @@ time):
 alinco,aor,icom,
 jrc,kachina,kenwood,
 pcr,tentec,uniden,
-winradio,yaesu:		rig backends
-rpcrig:			special networked rig backend (through RPC)
-rpcrot:        		special networked rotator backend (through RPC)
-easycomm:		rotator backends
-dummy:			virtual dummy rig and rotator, for developer's use.
-c++,tcl,kylix:		C++, tcl, and Kylix bindings
-lib:			library for functions missing on your system
-libltdl:		wrapper for shared module loader
-debian:			debian package scripts
-doc:			documentation base and scripts to extract from src
-include/hamlib:		exported header files go here
-include:		non-distributed header files go there
-src:			Hamlib frontend source directory
-tests:			rigctl/rotctl and various C programs for testing
+winradio,yaesu:     rig backends
+rpcrig:             special networked rig backend (through RPC)
+rpcrot:             special networked rotator backend (through RPC)
+easycomm:           rotator backends
+dummy:              virtual dummy rig and rotator, for developer's use.
+c++,tcl,kylix:      C++, tcl, and Kylix bindings
+lib:                library for functions missing on your system
+libltdl:            wrapper for shared module loader
+debian:             debian package scripts
+doc:                documentation base and scripts to extract from src
+include/hamlib:     exported header files go here
+include:            non-distributed header files go there
+src:                Hamlib frontend source directory
+tests:              rigctl/rotctl and various C programs for testing
 
 
 * testing Hamlib:
@@ -153,13 +153,13 @@ like "Rig command: ". Enter "?" followed by return to have the list
 of available commands. 'Q' or 'q' quits rigctl immediately.
 
 Most wanted functions to be tested are:
-'_'	get misc information on the rig
-'f'	get frequency
-'F'	set frequency, in Hz
-'m'	get mode
-'M'	set mode (AM,FM,CW,USB,etc. and passband width in Hz)
-'v'	get vfo
-'V'	set vfo (VFOA, VFOB, etc.)
+'_'     get misc information on the rig
+'f'     get frequency
+'F'     set frequency, in Hz
+'m'     get mode
+'M'     set mode (AM,FM,CW,USB,etc. and passband width in Hz)
+'v'     get vfo
+'V'     set vfo (VFOA, VFOB, etc.)
 
 f,F     get_freq/set_freq       try various (<1MHz, <30Mhz and >1GHz)
 v,V     get_vfo/set_vfo         VFOA, VFOB
