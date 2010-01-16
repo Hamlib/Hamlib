@@ -92,13 +92,23 @@
 		               { 20,  -23 }, \
 		             } }
 
-// Channel capabilities
+/* Channel capabilities
+   - Frequency
+   - Mode
+   - Width
+   - Scan lockout
+   - PBT
+   - Squelch 
+   - ID
+ */
 #define AR7030P_MEM_CAP { \
 	.freq = 1,	\
 	.mode = 1,	\
 	.width = 1,	\
-	.funcs = RIG_FUNC_FAGC, \
-	.levels = RIG_LEVEL_ATT | RIG_LEVEL_AGC, \
+	.funcs = RIG_FUNC_NONE, \
+	.levels = RIG_LEVEL_SQL | RIG_LEVEL_PBT_IN, \
+        .flags = 1, \
+        .channel_desc = 1 \
 }
 
 struct ar7030p_priv_caps
@@ -330,7 +340,7 @@ static int ar7030p_cleanup( RIG *rig )
 
   free( priv->ext_parms );
 
-  if (rig->state.priv)
+  if ( NULL != rig->state.priv )
   {
     free( rig->state.priv );
   }
@@ -360,6 +370,7 @@ static int ar7030p_open( RIG * rig )
   {
     /* Load calibration table */
     rig->state.str_cal.size = rig->caps->str_cal.size;
+
     for ( i = 0; i < rig->state.str_cal.size; i++ )
     {
       rc = readByte( rig, EEPROM1, SM_CAL + i, &v );
@@ -367,6 +378,7 @@ static int ar7030p_open( RIG * rig )
       {
 	break;
       }
+
       rig->state.str_cal.table[ i ].val = rig->caps->str_cal.table[ i ].val;
       rig->state.str_cal.table[ i ].raw = (int) v;
     }
@@ -1115,32 +1127,54 @@ static int ar7030p_get_level( RIG * rig, vfo_t vfo, setting_t level,
 static int ar7030p_set_vfo( RIG * rig, vfo_t vfo )
 {
   int rc = -RIG_OK;
+  struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
 
   assert( NULL != rig );
 
   switch( vfo ) 
   {
   case RIG_VFO_B:
-    rc = sendIRCode( rig, IR_VFO );
+    if ( RIG_VFO_B != priv->curr_vfo )
+    {
+      rc = sendIRCode( rig, IR_VFO );
+      if ( RIG_OK == rc )
+      {
+        priv->curr_vfo = RIG_VFO_B;
+        priv->last_vfo = RIG_VFO_A;
+      }
+    }
     break;
 
   case RIG_VFO_A:
   case RIG_VFO_CURR:
+    if ( RIG_VFO_A != priv->curr_vfo )
+    {
+      rc = sendIRCode( rig, IR_VFO );
+      if ( RIG_OK == rc )
+      {
+        priv->curr_vfo = RIG_VFO_A;
+        priv->last_vfo = RIG_VFO_B;
+      }
+    }
+    break;
+
   default:
+    rc = -RIG_EINVAL;
     break;
   }
 
-  return ( -RIG_ENIMPL );
+  return ( rc );
 }
 
 static int ar7030p_get_vfo( RIG * rig, vfo_t * vfo )
 {
   int rc = -RIG_OK;
+  struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
 
   assert( NULL != rig );
   assert( NULL != vfo );
 
-  *vfo = RIG_VFO_CURR;
+  *vfo = priv->curr_vfo;
 
   return ( rc );
 }
@@ -1458,7 +1492,7 @@ static int ar7030p_reset( RIG * rig, reset_t reset )
   switch ( reset )
   {
   case RIG_RESET_SOFT:
-    rc = -RIG_ENIMPL;
+    rc = execRoutine( rig, RESET );
     break;
 
   default:
@@ -1516,12 +1550,11 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
   channel_t *curr = priv->curr;
   ch = curr->channel_num;
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: chan %d\n", __func__, curr->channel_num );
-
   rc = lockRx( rig, LOCK_1 );
   if ( RIG_OK == rc )
   {
     /* Squelch values */
+    /* TODO - fix magic numbers */
     if ( 100 > ch )
     {
       rc = readByte( rig, BBRAM, (MEM_SQ + ch), &v ); /* mem_sq */
@@ -1537,8 +1570,7 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
 
     if ( RIG_OK == rc )
     {
-      chan->levels[ RIG_LEVEL_SQL ].f = (float) v / 255.0;
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: sql %d\n", __func__, v );
+      chan->levels[ LVL_SQL ].f = (float) v / 255.0;
     }
   
     /* Frequency, mode and filter values */
@@ -1558,10 +1590,14 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
      chan->freq = ddsToHz( f );
      chan->mode = modeToHamlib( ( v & 0x07 ) );
      chan->width = getFilterBW( rig, ( ( v & 0x70 ) >> 4 ) );
-      /* lockout = ( ( v & 0x80 ) >> 7 ); */
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: freq %f\n", __func__, chan->freq );
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: mode %d\n", __func__, chan->mode );
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: width %d\n", __func__, chan->width );
+     if ( ( v & 0x80 ) >> 7 )
+     {
+       chan->flags = RIG_CHFLAG_SKIP;
+     }
+     else
+     {
+       chan->flags = RIG_CHFLAG_NONE;
+     }
     }
 
     /* PBT values */
@@ -1580,8 +1616,7 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
 
     if ( RIG_OK == rc )
     {
-      chan->levels[ RIG_LEVEL_PBT_IN ].i = (int) v;
-      rig_debug( RIG_DEBUG_VERBOSE, "%s: pbt %d\n", __func__, v );
+      chan->levels[ LVL_PBT_IN ].f = pbsToHz( v );
     }
 
     /* Memory ID values */
@@ -1604,7 +1639,6 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
       }
     }
     *p++ = '\0';
-    rig_debug( RIG_DEBUG_VERBOSE, "%s: id %s\n", __func__, chan->channel_desc );
 
     rc = lockRx( rig, LOCK_0 );
   }
