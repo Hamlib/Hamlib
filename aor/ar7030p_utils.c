@@ -1046,7 +1046,7 @@ freq_t ddsToHz( const unsigned int steps )
 {
   freq_t rc = 0.0;
 
-  rc = ( (double) steps * 44545000.0 / 16777216.0 );
+  rc = ( (freq_t) steps * 44545000.0 / 16777216.0 );
 
   return( rc );
 }
@@ -1084,6 +1084,76 @@ unsigned int hzToDDS( const freq_t freq )
   rig_debug( RIG_DEBUG_VERBOSE, "%s: err[0 - 2] = %f %f %f rc 0x%08x\n",
 	     __func__, err[ 0 ], err[ 1 ], err[ 2 ], rc );
   
+  return( rc );
+}
+
+/*
+ * /brief Convert PBS/BFO steps to frequency in Hz
+ *
+ * /param steps PBS/BFO offset steps
+ *
+ * /return Frequency in Hz or 0 on failure
+ *
+ * Max +ve offset is 127, max -ve offset is 128
+ * Min -ve offset is 255
+ */
+float pbsToHz( const unsigned char steps )
+{
+  freq_t rc = 0.0;
+
+  /* treat steps as a 1's complement signed 8-bit number */
+  if ( 128 > steps )
+  {
+    rc = ( ( (float) steps * 12.5 * 44545000.0 ) / 16777216.0 );
+  }
+  else
+  {
+    rc = ( ( (float) (~steps & 0x7f) * -12.5 * 44545000.0 ) / 16777216.0 );
+  }
+
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: raw %d hz %f\n", __func__, steps, rc );
+
+  return( rc );
+}
+
+/*
+ * /brief Convert PBS/BFO offset frequency in Hz to steps
+ *
+ * /param freq Offset frequency in Hz
+ *
+ * /return steps (8 bits) or 0 on failure
+ */
+unsigned char hzToPBS( const float freq )
+{
+  unsigned char rc;
+  int steps;
+
+  if ( 0 < freq )
+  {
+    steps = ( ( (freq + 0.5) * 16777216.0 ) / ( 44545000.0 * 12.5 ) );
+  }
+  else
+  {
+    steps = ( ( (freq - 0.5) * 16777216.0 ) / ( 44545000.0 * 12.5 ) );
+  }
+
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: steps %d\n", __func__, steps );
+
+  if ( 0 <= steps )
+  {
+    rc = (unsigned char) (steps & 0x7f);
+  }
+  else if ( -128 < steps )
+  {
+    rc = (unsigned char) (steps + 255);
+  }
+  else
+  {
+    rc = (unsigned char) 0;
+  }
+
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: hz %f rc %d\n", __func__, freq, rc );
+
   return( rc );
 }
 
