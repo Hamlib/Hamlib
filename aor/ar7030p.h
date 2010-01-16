@@ -572,10 +572,10 @@ enum EEPROM2_mem_e
 
    Address  Ident    Length      Description
    0 0x000             16 bytes  Frequency memory data :-
-   0 0x000              1 byte   Memory 176 : Squelch / BFO 
+   0 0x000  mey_sq      1 byte   Memory 176 : Squelch / BFO 
                                    (BFO for Data and CW modes)
-   1 0x001              1 byte   PBS value
-   2 0x002             14 bytes  Text Ident
+   1 0x001  mey_pb      1 byte   PBS value
+   2 0x002  mey_id     14 bytes  Text Ident
   16 0x010           3568 bytes  Ditto for memories 177 to 399
 3584 0xE00  mex_hx    400 bytes  Frequency fast find index 
                                    (1 byte for each memory 0 to 399)
@@ -1447,6 +1447,8 @@ int getCalLevel( RIG * rig, unsigned char rawAgc, int *dbm );
 int getFilterBW( RIG *rig, enum FILTER_e filter );
 freq_t ddsToHz( const unsigned int steps );
 unsigned int hzToDDS( const freq_t freq );
+float pbsToHz( const unsigned char steps );
+unsigned char hzToPBS( const float freq );
 rmode_t modeToHamlib( const unsigned char mode );
 unsigned char modeToNative( const rmode_t mode );
 enum agc_level_e agcToHamlib( const unsigned char agc );
