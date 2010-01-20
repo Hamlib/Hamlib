@@ -6,4 +6,4 @@ hamlib_aor_la_SOURCES = $(AORSRCLIST) aor.c
 hamlib_aor_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_aor_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
-noinst_HEADERS = aor.h
+noinst_HEADERS = aor.h ar7030p.h
