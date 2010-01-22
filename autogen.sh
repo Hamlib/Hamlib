@@ -83,10 +83,10 @@ case $CC in
 esac
 
 if $LIBTOOLIZE --version | grep -q "libtoolize (GNU libtool) 1.*" ; then
-        ltz_opt=--automake --ltdl
+        ltz_opt="--automake --ltdl"
 else
         # libtoolize 2.x and upper
-        ltz_opt=-c -i --force
+        ltz_opt="-c -i --force"
 fi
 
 $ACLOCAL $ACLOCAL_FLAGS
