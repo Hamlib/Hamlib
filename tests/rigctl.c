@@ -86,6 +86,7 @@ static struct option long_options[] =
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
 int opt_end= 0;         /* only used by rigctld */
+int opt_block = 0;      /* only used by rigctld */
 int vfo_mode;		/* vfo_mode=0 means target VFO is current VFO */
 
 char send_cmd_term = '\r';	/* send_cmd termination char */

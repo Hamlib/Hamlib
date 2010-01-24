@@ -3,26 +3,26 @@
  *                  (C) Terry Embry 2008-2009
  *
  * This program test/control a radio using Hamlib.
- * It takes commands in interactive mode as well as 
+ * It takes commands in interactive mode as well as
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.16 2009-02-06 17:28:38 fillods Exp $  
+ * $Id: rigctl_parse.c,v 1.16 2009-02-06 17:28:38 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -73,7 +73,7 @@ static pthread_mutex_t rig_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct test_table {
 	unsigned char cmd;
 	const char *name;
-	int (*rig_routine)(RIG*, FILE*, int, const struct test_table*, vfo_t, 
+	int (*rig_routine)(RIG*, FILE*, int, const struct test_table*, vfo_t,
 			const char*, const char*, const char*);
 	int flags;
 	const char *arg1;
@@ -167,20 +167,20 @@ static struct test_table test_list[] = {
 	{ 'm', "get_mode", get_mode, ARG_OUT, "Mode", "Passband" },
 	{ 'I', "set_split_freq", set_split_freq, ARG_IN, "Tx frequency" },
 	{ 'i', "get_split_freq", get_split_freq, ARG_OUT, "Tx frequency" },
-	{ 'X', "set_split_mode", set_split_mode, ARG_IN, "Mode", "Passband" },
-	{ 'x', "get_split_mode", get_split_mode, ARG_OUT, "Mode", "Passband" },
-	{ 'S', "set_split_vfo", set_split_vfo, ARG_IN, "Split mode", "TxVFO" },
-	{ 's', "get_split_vfo", get_split_vfo, ARG_OUT, "Split mode", "TxVFO" },
+	{ 'X', "set_split_mode", set_split_mode, ARG_IN, "Tx mode", "Tx passband" },
+	{ 'x', "get_split_mode", get_split_mode, ARG_OUT, "Tx mode", "Tx passband" },
+	{ 'S', "set_split_vfo", set_split_vfo, ARG_IN, "Split", "Tx VFO" },
+	{ 's', "get_split_vfo", get_split_vfo, ARG_OUT, "Split", "Tx VFO" },
 	{ 'N', "set_ts", set_ts, ARG_IN, "Tuning step" },
 	{ 'n', "get_ts", get_ts, ARG_OUT, "Tuning step" },
-	{ 'L', "set_level", set_level, ARG_IN, "Level", "Value" },
-	{ 'l', "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Value" },
+	{ 'L', "set_level", set_level, ARG_IN, "Level", "Level value" },
+	{ 'l', "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Level value" },
 	{ 'U', "set_func", set_func, ARG_IN, "Func", "Func status" },
 	{ 'u', "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
-	{ 'P', "set_parm", set_parm, ARG_IN|ARG_NOVFO, "Parm", "Value" },
-	{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2|ARG_NOVFO, "Parm", "Value" },
+	{ 'P', "set_parm", set_parm, ARG_IN|ARG_NOVFO, "Parm", "Parm value" },
+	{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2|ARG_NOVFO, "Parm", "Parm value" },
 	{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
-	{ 'g', "scan", scan, ARG_IN, "Scan fct", "Channel" },
+	{ 'g', "scan", scan, ARG_IN, "Scan fct", "Scan channel" },
 	{ 'A', "set_trn", set_trn, ARG_IN|ARG_NOVFO, "Transceive" },
 	{ 'a', "get_trn", get_trn, ARG_OUT|ARG_NOVFO, "Transceive" },
 	{ 'R', "set_rptr_shift", set_rptr_shift, ARG_IN, "Rptr shift" },
@@ -191,10 +191,10 @@ static struct test_table test_list[] = {
 	{ 'c', "get_ctcss_tone", get_ctcss_tone, ARG_OUT, "CTCSS tone" },
 	{ 'D', "set_dcs_code", set_dcs_code, ARG_IN, "DCS code" },
 	{ 'd', "get_dcs_code", get_dcs_code, ARG_OUT, "DCS code" },
-	{ 0x90, "set_ctcss_sql", set_ctcss_sql, ARG_IN, "CTCSS tone" },
-	{ 0x91, "get_ctcss_sql", get_ctcss_sql, ARG_OUT, "CTCSS tone" },
-	{ 0x92, "set_dcs_sql", set_dcs_sql, ARG_IN, "DCS code" },
-	{ 0x93, "get_dcs_sql", get_dcs_sql, ARG_OUT, "DCS code" },
+	{ 0x90, "set_ctcss_sql", set_ctcss_sql, ARG_IN, "CTCSS sql" },
+	{ 0x91, "get_ctcss_sql", get_ctcss_sql, ARG_OUT, "CTCSS sql" },
+	{ 0x92, "set_dcs_sql", set_dcs_sql, ARG_IN, "DCS sql" },
+	{ 0x93, "get_dcs_sql", get_dcs_sql, ARG_OUT, "DCS sql" },
 	{ 'V', "set_vfo", set_vfo, ARG_IN|ARG_NOVFO, "VFO" },
 	{ 'v', "get_vfo", get_vfo, ARG_OUT, "VFO" },
 	{ 'T', "set_ptt", set_ptt, ARG_IN, "PTT" },
@@ -216,14 +216,13 @@ static struct test_table test_list[] = {
 	{ 0x89, "send_dtmf", send_dtmf, ARG_IN, "Digits" },
 	{ 0x8a, "recv_dtmf", recv_dtmf, ARG_OUT, "Digits" },
 	{ '*', "reset", reset, ARG_IN, "Reset" },
-	{ '2', "power2mW", power2mW, ARG_NOVFO },
 	{ 'w', "send_cmd", send_cmd, ARG_IN1|ARG_IN_LINE|ARG_OUT2|ARG_NOVFO, "Cmd", "Reply" },
 	{ 'b', "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
 	{ 0x8b, "get_dcd", get_dcd, ARG_OUT, "DCD" },
+	{ '2', "power2mW", power2mW, ARG_NOVFO },
 	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
 	{ '3', "dump_conf", dump_conf, ARG_NOVFO },
 	{ 0x8f,"dump_state", dump_state, ARG_OUT|ARG_NOVFO },
-	/* next one is 0x89 */
 	{ 0x00, "", NULL },
 
 };
@@ -231,7 +230,7 @@ static struct test_table test_list[] = {
 static struct test_table *find_cmd_entry(int cmd)
 {
 	int i;
-	for (i=0; i<MAXNBOPT && test_list[i].cmd != 0x00; i++)
+	for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0x00; i++)
 		if (test_list[i].cmd == cmd)
 			break;
 
@@ -246,14 +245,14 @@ static struct test_table *find_cmd_entry(int cmd)
 static char parse_arg(const char *arg)
 {
 	int i;
-	for (i=0; i<MAXNBOPT && test_list[i].cmd != 0; i++)
+	for (i = 0; i < MAXNBOPT && test_list[i].cmd != 0; i++)
 		if (!strncmp(arg, test_list[i].name, MAXNAMSIZ))
 			return test_list[i].cmd;
 	return 0;
 }
 
 
-/* 
+/*
  * This scanf works even in presence of signals (timer, SIGIO, ..)
  */
 static int scanfc(FILE *fin, const char *format, void *p)
@@ -276,6 +275,7 @@ static int scanfc(FILE *fin, const char *format, void *p)
 extern int interactive;
 extern int prompt;
 extern int opt_end;
+extern int opt_block;
 extern int vfo_mode;
 extern char send_cmd_term;
 
@@ -312,7 +312,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 						return -1;
 
 				*pcmd = '\0';
-				cmd = parse_arg((char *) cmd_name);
+				cmd = parse_arg((char *)cmd_name);
 				break;
 			}
 
@@ -371,7 +371,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			vfo = rig_parse_vfo(arg1);
 		} else {
 			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n", 
+				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
 				exit(2);
 			}
@@ -379,7 +379,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		}
 	}
 
-	if ((cmd_entry->flags & ARG_IN_LINE) && 
+	if ((cmd_entry->flags & ARG_IN_LINE) &&
 			(cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 		if (interactive) {
 			char *nl;
@@ -390,16 +390,16 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 				fgets(arg1, MAXARGSZ, fin);
 			nl = strchr(arg1, 0xa);
 			if (nl) *nl = '\0';	/* chomp */
-			p1 = arg1[0]==' '?arg1+1:arg1;
+			p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
 		} else {
 			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n", 
+				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
 				exit(2);
 			}
 			p1 = argv[optind++];
 		}
-	} else 
+	} else
 	  if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 		if (interactive) {
 			if (prompt)
@@ -409,14 +409,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			p1 = arg1;
 		} else {
 			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n", 
+				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
 				exit(2);
 			}
 			p1 = argv[optind++];
 		}
 	}
-	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
+	if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg2);
@@ -425,14 +425,14 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			p2 = arg2;
 		} else {
 			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n", 
+				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
 				exit(2);
 			}
 			p2 = argv[optind++];
 		}
 	}
-	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
+	if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg3);
@@ -441,7 +441,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			p3 = arg3;
 		} else {
 			if (!argv[optind]) {
-				fprintf(stderr, "Invalid arg for command '%s'\n", 
+				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
 				exit(2);
 			}
@@ -458,10 +458,23 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
 	if (!prompt)
-		rig_debug(RIG_DEBUG_TRACE, "rigctl: %c '%s' '%s' '%s'\n",
+		rig_debug(RIG_DEBUG_TRACE, "rigctl(d): %c '%s' '%s' '%s'\n",
 				cmd, p1, p2, p3);
 
-	retcode = (*cmd_entry->rig_routine)(my_rig, fout, interactive, 
+    /* Block protocol: output received command name and arguments response */
+    if (interactive && opt_block) {
+        char a1[MAXARGSZ+1];
+        char a2[MAXARGSZ+1];
+        char a3[MAXARGSZ+1];
+
+        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
+        p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
+        p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
+
+        fprintf(fout, "%s:%s%s%s\n", cmd_entry->name, a1, a2, a3);
+    }
+
+	retcode = (*cmd_entry->rig_routine)(my_rig, fout, interactive,
 					cmd_entry, vfo, p1, p2, p3);
 
 #ifdef HAVE_PTHREAD
@@ -469,17 +482,19 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
 	if (retcode != RIG_OK) {
-		if (interactive && !prompt)
+		if (interactive && !prompt && opt_block)
   			fprintf(fout, NETRIGCTL_RET "%d\n", retcode);	/* only for rigctld */
 		else
   			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
 	} else {
 		if (interactive && !prompt) {	/* only for rigctld */
-			if (!(cmd_entry->flags & ARG_OUT) && !opt_end) /* netrigctl RIG_OK */
+			if (!(cmd_entry->flags & ARG_OUT) && !opt_end) 	/* netrigctl RIG_OK */
 				fprintf(fout, NETRIGCTL_RET "0\n");
 			else if ((cmd_entry->flags & ARG_OUT) && opt_end) /* Nate's protocol */
 				fprintf(fout, "END\n");
-		}
+            else if (opt_block)         /* block marker protocol */
+				fprintf(fout, NETRIGCTL_RET "0\n");
+        }
 	}
 
 	fflush(fout);
@@ -500,7 +515,7 @@ void usage_rig(FILE *fout)
 
 	fprintf(fout, "Commands (some may not be available for this rig):\n");
 	for (i=0; test_list[i].cmd != 0; i++) {
-		fprintf(fout, "%c: %-16s(", isprint(test_list[i].cmd) ? 
+		fprintf(fout, "%c: %-16s(", isprint(test_list[i].cmd) ?
 				test_list[i].cmd:'?', test_list[i].name);
 
 		nbspaces = 18;
@@ -527,13 +542,13 @@ int print_conf_list(const struct confparams *cfp, rig_ptr_t data)
 
 	rig_get_conf(rig, cfp->token, buf);
 	printf("%s: \"%s\"\n" "\t"
-			"Default: %s, Value: %s\n", 
-			cfp->name, cfp->tooltip, 
+			"Default: %s, Value: %s\n",
+			cfp->name, cfp->tooltip,
 			cfp->dflt, buf );
 
 	switch (cfp->type) {
 	case RIG_CONF_NUMERIC:
-		printf("\tRange: %.1f..%.1f, step %.1f\n", 
+		printf("\tRange: %.1f..%.1f, step %.1f\n",
 				cfp->u.n.min, cfp->u.n.max, cfp->u.n.step);
 		break;
 	case RIG_CONF_COMBO:
@@ -605,7 +620,7 @@ int set_conf(RIG *my_rig, char *conf_parms)
 
 
 /*
- * static int (f)(RIG *rig, FILE *fout, int interactive, const struct test_table *cmd, 
+ * static int (f)(RIG *rig, FILE *fout, int interactive, const struct test_table *cmd,
  * 		vfo_t vfo, const void *arg1, const void *arg2, const void *arg3)
  */
 
@@ -628,7 +643,7 @@ declare_proto_rig(get_freq)
 	if (status != RIG_OK)
 		return status;
 
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1); /* i.e. "Frequency" */
 	fprintf(fout, "%"PRIll"\n", (long long)freq);
 
@@ -714,10 +729,10 @@ declare_proto_rig(get_mode)
 	status = rig_get_mode(rig, vfo, &mode, &width);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strrmode(mode));
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
 
@@ -738,7 +753,7 @@ declare_proto_rig(get_vfo)
 	status = rig_get_vfo(rig, &vfo);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strvfo(vfo));
 
@@ -763,13 +778,14 @@ declare_proto_rig(get_ptt)
 	status = rig_get_ptt(rig, vfo, &ptt);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", ptt);
 
 	return status;
 }
 
+/* '0x8b' */
 declare_proto_rig(get_dcd)
 {
 	int status;
@@ -778,7 +794,7 @@ declare_proto_rig(get_dcd)
 	status = rig_get_dcd(rig, vfo, &dcd);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", dcd);
 
@@ -803,7 +819,7 @@ declare_proto_rig(get_rptr_shift)
 	status = rig_get_rptr_shift(rig, vfo, &rptr_shift);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strptrshift(rptr_shift));
 
@@ -828,7 +844,7 @@ declare_proto_rig(get_rptr_offs)
 	status = rig_get_rptr_offs(rig, vfo, &rptr_offs);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rptr_offs);
 
@@ -853,7 +869,7 @@ declare_proto_rig(get_ctcss_tone)
 	status = rig_get_ctcss_tone(rig, vfo, &tone);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", tone);
 
@@ -878,13 +894,14 @@ declare_proto_rig(get_dcs_code)
 	status = rig_get_dcs_code(rig, vfo, &code);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", code);
 
 	return status;
 }
 
+/* '0x90' */
 declare_proto_rig(set_ctcss_sql)
 {
 	tone_t tone;
@@ -893,6 +910,7 @@ declare_proto_rig(set_ctcss_sql)
 	return rig_set_ctcss_sql(rig, vfo, tone);
 }
 
+/* '0x91' */
 declare_proto_rig(get_ctcss_sql)
 {
 	int status;
@@ -901,13 +919,14 @@ declare_proto_rig(get_ctcss_sql)
 	status = rig_get_ctcss_sql(rig, vfo, &tone);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", tone);
 
 	return status;
 }
 
+/* '0x92' */
 declare_proto_rig(set_dcs_sql)
 {
 	tone_t code;
@@ -916,6 +935,7 @@ declare_proto_rig(set_dcs_sql)
 	return rig_set_dcs_sql(rig, vfo, code);
 }
 
+/* '0x93' */
 declare_proto_rig(get_dcs_sql)
 {
 	int status;
@@ -924,7 +944,7 @@ declare_proto_rig(get_dcs_sql)
 	status = rig_get_dcs_sql(rig, vfo, &code);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", code);
 
@@ -947,11 +967,11 @@ declare_proto_rig(get_split_freq)
 	int status;
 	freq_t txfreq;
 	vfo_t txvfo = RIG_VFO_TX;
-	
+
 	status = rig_get_split_freq(rig, txvfo, &txfreq);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%"PRIll"\n", (long long)txfreq);
 
@@ -989,10 +1009,10 @@ declare_proto_rig(get_split_mode)
 	status = rig_get_split_mode(rig, txvfo, &mode, &width);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strrmode(mode));
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
 
@@ -1018,10 +1038,10 @@ declare_proto_rig(get_split_vfo)
 	status = rig_get_split_vfo(rig, vfo, &split, &tx_vfo);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", split);
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%s\n", rig_strvfo(tx_vfo));
 
@@ -1046,7 +1066,7 @@ declare_proto_rig(get_ts)
 	status = rig_get_ts(rig, vfo, &ts);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", ts);
 
@@ -1165,7 +1185,7 @@ declare_proto_rig(get_level)
 
 		switch (cfp->type) {
 		case RIG_CONF_BUTTON:
-			/* there's not sense in retrieving value of stateless button */
+			/* there's no sense in retrieving value of stateless button */
 			return -RIG_EINVAL;
 
 		case RIG_CONF_CHECKBUTTON:
@@ -1379,7 +1399,7 @@ declare_proto_rig(get_mem)
 	status = rig_get_mem(rig, vfo, &ch);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", ch);
 
@@ -1506,7 +1526,7 @@ declare_proto_rig(set_channel)
         chan.tx_vfo = rig_parse_vfo(s);
     }
     if (mem_caps->rptr_shift) {
-        printf("rptr shift (+-0): "); 
+        printf("rptr shift (+-0): ");
         status = scanf("%s", s);
         chan.rptr_shift = rig_parse_rptr_shift(s);
     }
@@ -1580,7 +1600,7 @@ declare_proto_rig(get_channel)
 {
 	int status;
 	channel_t chan;
-    
+
     memset(&chan, 0, sizeof(channel_t));
 
 	if (isdigit(arg1[0])) {
@@ -1665,7 +1685,7 @@ declare_proto_rig(get_trn)
 	status = rig_get_trn(rig, &trn);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", trn);
 
@@ -1678,7 +1698,7 @@ declare_proto_rig(get_info)
 	const char *s;
 
 	s = rig_get_info(rig);
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", s ? s : "None");
 
@@ -1693,7 +1713,7 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 	char widthbuf[16];
 	char prntbuf[256];
 
-	fprintf(fout, "Channel: %d, Name: '%s'\n", chan->channel_num, 
+	fprintf(fout, "Channel: %d, Name: '%s'\n", chan->channel_num,
 			chan->channel_desc);
 
 	fprintf(fout, "VFO: %s, Antenna: %d, Split: %s\n", rig_strvfo(chan->vfo),
@@ -1701,12 +1721,12 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 
 	sprintf_freq(freqbuf, chan->freq);
 	sprintf_freq(widthbuf, chan->width);
-	fprintf(fout, "Freq:   %s\tMode:   %s\tWidth:   %s\n", 
+	fprintf(fout, "Freq:   %s\tMode:   %s\tWidth:   %s\n",
 			freqbuf, rig_strrmode(chan->mode), widthbuf);
 
 	sprintf_freq(freqbuf, chan->tx_freq);
 	sprintf_freq(widthbuf, chan->tx_width);
-	fprintf(fout, "txFreq: %s\ttxMode: %s\ttxWidth: %s\n", 
+	fprintf(fout, "txFreq: %s\ttxMode: %s\ttxWidth: %s\n",
 			freqbuf, rig_strrmode(chan->tx_mode), widthbuf);
 
 	sprintf_freq(freqbuf,chan->rptr_offs);
@@ -1727,7 +1747,7 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 
 	sprintf_func(prntbuf, chan->funcs);
 	fprintf(fout, "Functions: %s\n", prntbuf);
-	
+
 	fprintf(fout, "Levels:");
 	for (idx=0; idx<RIG_SETTING_MAX; idx++) {
 		setting_t level = rig_idx2setting(idx);
@@ -1798,13 +1818,13 @@ declare_proto_rig(dump_state)
 	fprintf(fout, "0 0 0 0 0 0 0\n");
 
 	for (i=0; i<TSLSTSIZ && !RIG_IS_TS_END(rs->tuning_steps[i]); i++)
-		fprintf(fout, "0x%x %ld\n", 
+		fprintf(fout, "0x%x %ld\n",
 				rs->tuning_steps[i].modes,
 				rs->tuning_steps[i].ts);
 	fprintf(fout, "0 0\n");
 
 	for (i=0; i<FLTLSTSIZ && !RIG_IS_FLT_END(rs->filters[i]); i++)
-		fprintf(fout, "0x%x %ld\n", 
+		fprintf(fout, "0x%x %ld\n",
 				rs->filters[i].modes,
 				rs->filters[i].width);
 	fprintf(fout, "0 0\n");
@@ -1866,7 +1886,7 @@ declare_proto_rig(get_ant)
 	status = rig_get_ant(rig, vfo, &ant);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", rig_setting2idx(ant));
 
@@ -1928,7 +1948,7 @@ declare_proto_rig(get_powerstat)
 	status = rig_get_powerstat(rig, &stat);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", stat);
 
@@ -2004,12 +2024,12 @@ declare_proto_rig(send_cmd)
 		retval = read_string(&rs->rigport, buf, BUFSZ, eom_buf, strlen(eom_buf));
 		if (retval < 0)
 			break;
-	
+
 		if (retval < BUFSZ)
 			buf[retval] = '\0';
 		else
 			buf[BUFSZ-1] = '\0';
-	
+
 		fprintf(fout, "%s\n", buf);
 
 	} while (retval > 0);

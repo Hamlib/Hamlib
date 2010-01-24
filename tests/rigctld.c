@@ -4,23 +4,23 @@
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
  *
- * $Id: rigctld.c,v 1.11 2009-01-04 14:49:17 fillods Exp $  
+ * $Id: rigctld.c,v 1.11 2009-01-04 14:49:17 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -63,12 +63,12 @@
 #include "rigctl_parse.h"
 
 /*
- * Reminder: when adding long options, 
+ * Reminder: when adding long options,
  * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:lC:t:T:LeuovhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuobevhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -79,13 +79,14 @@ static struct option long_options[] =
 	{"dcd-type", 1, 0, 'D'},
 	{"serial-speed", 1, 0, 's'},
 	{"civaddr",  1, 0, 'c'},
-	{"port",  1, 0, 't'},
 	{"listen-addr",  1, 0, 'T'},
-	{"list",     0, 0, 'l'},
+	{"port",  1, 0, 't'},
 	{"set-conf", 1, 0, 'C'},
+	{"list",     0, 0, 'l'},
 	{"show-conf",0, 0, 'L'},
 	{"dump-caps",  0, 0, 'u'},
 	{"vfo",  0, 0, 'o'},
+	{"block", 0, 0, 'b'},
 	{"end-marker", 0, 0, 'e'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
@@ -104,8 +105,9 @@ void * handle_socket(void * arg);
 void usage(void);
 
 int interactive = 1;    /* no cmd because of daemon */
-int prompt= 0 ;         /* Daemon mode for rigparse return string */
-int opt_end= 0 ;        /* END marker for rigctld */
+int prompt = 0;         /* Daemon mode for rigparse return string */
+int opt_end = 0;        /* END marker for rigctld */
+int opt_block = 0;      /* Block markers for rigctld */
 int vfo_mode;           /* vfo_mode=0 means target VFO is current VFO */
 
 char send_cmd_term = '\r';     /* send_cmd termination char */
@@ -116,7 +118,7 @@ uint32_t src_addr = INADDR_ANY;
 #define MAXCONFLEN 128
 
 int main (int argc, char *argv[])
-{ 
+{
 	RIG *my_rig;		/* handle to rig (instance) */
 	rig_model_t my_model = RIG_MODEL_DUMMY;
 
@@ -278,13 +280,17 @@ int main (int argc, char *argv[])
 			case 'e':
 				opt_end = 1;
 				break;
+			case 'b':
+				opt_block = 1;
+				break;
 			default:
 				usage();	/* unknown option? */
 				exit(1);
 		}
 	}
 
-	rig_set_debug(verbose<2 ? RIG_DEBUG_WARN: verbose);
+//	rig_set_debug(verbose < 2 ? RIG_DEBUG_WARN: verbose);
+	rig_set_debug(verbose);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "rigctld, %s\n", hamlib_version);
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
@@ -293,7 +299,7 @@ int main (int argc, char *argv[])
   	my_rig = rig_init(my_model);
 
 	if (!my_rig) {
-		fprintf(stderr, "Unknown rig num %d, or initialization error.\n", 
+		fprintf(stderr, "Unknown rig num %d, or initialization error.\n",
 						my_model);
 		fprintf(stderr, "Please check with --list option.\n");
 		exit(2);
@@ -308,7 +314,7 @@ int main (int argc, char *argv[])
 	if (rig_file)
 		strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN);
 
-	/* 
+	/*
 	 * ex: RIG_PTT_PARALLEL and /dev/parport0
 	 */
 	if (ptt_type != RIG_PTT_NONE)
@@ -351,18 +357,18 @@ int main (int argc, char *argv[])
 	if (verbose > 0)
 		printf("Opened rig model %d, '%s'\n", my_rig->caps->rig_model,
 				my_rig->caps->model_name);
-	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n", 
+	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
 			my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
 	/*
 	 * Prepare listening socket
 	 */
-	sock_listen = socket(AF_INET, SOCK_STREAM, 0); 
+	sock_listen = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock_listen < 0) {
 		perror("ERROR opening socket");
 		exit(2);
 	}
-	memset((char *) &serv_addr, 0, sizeof(serv_addr));
+	memset((char *)&serv_addr, 0, sizeof(serv_addr));
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(portno);
@@ -370,15 +376,15 @@ int main (int argc, char *argv[])
 
 
 	if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
-				(char *)&reuseaddr,sizeof(reuseaddr)) < 0) {
+				(char *)&reuseaddr, sizeof(reuseaddr)) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "setsockopt: %s\n", strerror(errno));
 		exit (1);
 	}
-	if (bind(sock_listen, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+	if (bind(sock_listen, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "binding: %s\n", strerror(errno));
 		exit (1);
 	}
-	if (listen(sock_listen,4) < 0) {
+	if (listen(sock_listen, 4) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "listening: %s\n", strerror(errno));
 		exit (1);
 	}
@@ -401,7 +407,7 @@ int main (int argc, char *argv[])
 
 		arg->rig = my_rig;
 		arg->clilen = sizeof(arg->cli_addr);
-		arg->sock = accept(sock_listen, (struct sockaddr *) &arg->cli_addr,
+		arg->sock = accept(sock_listen, (struct sockaddr *)&arg->cli_addr,
 				&arg->clilen);
 		if (arg->sock < 0) {
 			rig_debug(RIG_DEBUG_ERR, "accept: %s\n", strerror(errno));
@@ -511,6 +517,7 @@ void usage(void)
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -u, --dump-caps            dump capabilities and exit\n"
 	"  -o, --vfo                  do not default to VFO_CURR, require extra vfo arg\n"
+	"  -b, --block                use block rigctld protocol\n",
 	"  -e, --end-marker           use END marker in rigctld protocol\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
