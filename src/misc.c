@@ -2,7 +2,7 @@
  *  Hamlib Interface - toolbox
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: misc.c,v 1.51 2009-01-11 17:36:24 mrtembry Exp $
+ *	$Id$
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -273,10 +273,10 @@ static struct {
 	{ RIG_MODE_ECSSUSB, "ECSSUSB" },
 	{ RIG_MODE_ECSSLSB, "ECSSLSB" },
 	{ RIG_MODE_FAX, "FAX" },
- 	{ RIG_MODE_SAM, "SAM" },
- 	{ RIG_MODE_SAL, "SAL" },
-    { RIG_MODE_SAH, "SAH" },
-    { RIG_MODE_DSB, "DSB"},
+	{ RIG_MODE_SAM, "SAM" },
+	{ RIG_MODE_SAL, "SAL" },
+	{ RIG_MODE_SAH, "SAH" },
+	{ RIG_MODE_DSB, "DSB"},
 	{ RIG_MODE_NONE, "" },
 };
 
@@ -319,20 +319,20 @@ const char * HAMLIB_API rig_strrmode(rmode_t mode)
 }
 
 static struct { 
-		vfo_t vfo;
-		const char *str;
+	vfo_t vfo;
+	const char *str;
 } vfo_str[] = {
-		{ RIG_VFO_A, "VFOA" },
-		{ RIG_VFO_B, "VFOB" },
-		{ RIG_VFO_C, "VFOC" },
-		{ RIG_VFO_CURR, "currVFO" },
-		{ RIG_VFO_MEM, "MEM" },
-        { RIG_VFO_VFO, "VFO" },
-        { RIG_VFO_TX, "TX" },
-        { RIG_VFO_RX, "RX" },
-		{ RIG_VFO_MAIN, "Main" },
-		{ RIG_VFO_SUB, "Sub" },
-		{ RIG_VFO_NONE, "" },
+	{ RIG_VFO_A, "VFOA" },
+	{ RIG_VFO_B, "VFOB" },
+	{ RIG_VFO_C, "VFOC" },
+	{ RIG_VFO_CURR, "currVFO" },
+	{ RIG_VFO_MEM, "MEM" },
+	{ RIG_VFO_VFO, "VFO" },
+	{ RIG_VFO_TX, "TX" },
+	{ RIG_VFO_RX, "RX" },
+	{ RIG_VFO_MAIN, "Main" },
+	{ RIG_VFO_SUB, "Sub" },
+	{ RIG_VFO_NONE, "" },
 };
 
 /**
@@ -374,8 +374,8 @@ const char * HAMLIB_API rig_strvfo(vfo_t vfo)
 }
 
 static struct { 
-		setting_t func; 
-		const char *str;
+	setting_t func; 
+	const char *str;
 } func_str[] = {
 	{ RIG_FUNC_FAGC, "FAGC" },
 	{ RIG_FUNC_NB, "NB" },
@@ -387,8 +387,8 @@ static struct {
 	{ RIG_FUNC_FBKIN, "FBKIN" },
 	{ RIG_FUNC_ANF, "ANF" },
 	{ RIG_FUNC_NR, "NR" },
-    { RIG_FUNC_AIP, "AIP" },
-    { RIG_FUNC_APF, "APF" },
+	{ RIG_FUNC_AIP, "AIP" },
+	{ RIG_FUNC_APF, "APF" },
 	{ RIG_FUNC_MON, "MON" },
 	{ RIG_FUNC_MN, "MN" },
 	{ RIG_FUNC_RF, "RF" },
@@ -397,8 +397,8 @@ static struct {
 	{ RIG_FUNC_MUTE, "MUTE" },
 	{ RIG_FUNC_VSC, "VSC" },
 	{ RIG_FUNC_REV, "REV" },
-    { RIG_FUNC_SQL, "SQL" },
-    { RIG_FUNC_ABM, "ABM" },
+	{ RIG_FUNC_SQL, "SQL" },
+	{ RIG_FUNC_ABM, "ABM" },
 	{ RIG_FUNC_BC, "BC" },
 	{ RIG_FUNC_MBC, "MBC" },
 	{ RIG_FUNC_AFC, "AFC" },
@@ -450,8 +450,8 @@ const char * HAMLIB_API rig_strfunc(setting_t func)
 }
 
 static struct { 
-		setting_t level;
-		const char *str;
+	setting_t level;
+	const char *str;
 } level_str[] = {
 	{ RIG_LEVEL_PREAMP, "PREAMP" },
 	{ RIG_LEVEL_ATT, "ATT" },
@@ -478,7 +478,7 @@ static struct {
 	{ RIG_LEVEL_ANTIVOX, "ANTIVOX" },
 	{ RIG_LEVEL_SLOPE_LOW, "SLOPE_LOW" },
 	{ RIG_LEVEL_SLOPE_HIGH, "SLOPE_HIGH" },
-    { RIG_LEVEL_BKIN_DLYMS, "BKIN_DLYMS" },
+	{ RIG_LEVEL_BKIN_DLYMS, "BKIN_DLYMS" },
 	{ RIG_LEVEL_RAWSTR, "RAWSTR" },
 	{ RIG_LEVEL_SQLSTAT, "SQLSTAT" },
 	{ RIG_LEVEL_SWR, "SWR" },
@@ -527,16 +527,16 @@ const char * HAMLIB_API rig_strlevel(setting_t level)
 }
 
 static struct { 
-		setting_t parm;
-		const char *str;
+	setting_t parm;
+	const char *str;
 } parm_str[] = {
 	{ RIG_PARM_ANN, "ANN" },
 	{ RIG_PARM_APO, "APO" },
 	{ RIG_PARM_BACKLIGHT, "BACKLIGHT" },
 	{ RIG_PARM_BEEP, "BEEP" },
 	{ RIG_PARM_TIME, "TIME" },
-    { RIG_PARM_BAT, "BAT" },
-    { RIG_PARM_KEYLIGHT, "KEYLIGHT"},
+	{ RIG_PARM_BAT, "BAT" },
+	{ RIG_PARM_KEYLIGHT, "KEYLIGHT"},
 	{ RIG_PARM_NONE, "" },
 };
 
@@ -580,8 +580,8 @@ const char * HAMLIB_API rig_strparm(setting_t parm)
 }
 
 static struct { 
-		vfo_op_t vfo_op;
-		const char *str;
+	vfo_op_t vfo_op;
+	const char *str;
 } vfo_op_str[] = {
 	{ RIG_OP_CPY, "CPY" },
 	{ RIG_OP_XCHG, "XCHG" },
@@ -639,8 +639,8 @@ const char * HAMLIB_API rig_strvfop(vfo_op_t op)
 }
 
 static struct { 
-		scan_t rscan;
-		const char *str;
+	scan_t rscan;
+	const char *str;
 } scan_str[] = {
 	{ RIG_SCAN_STOP, "STOP" },
 	{ RIG_SCAN_MEM, "MEM" },
@@ -723,8 +723,8 @@ rptr_shift_t HAMLIB_API rig_parse_rptr_shift(const char *s)
 }
 
 static struct { 
-		chan_type_t mtype;
-		const char *str;
+	chan_type_t mtype;
+	const char *str;
 } mtype_str[] = {
 	{ RIG_MTYPE_MEM, "MEM" },
 	{ RIG_MTYPE_EDGE, "EDGE" },
