@@ -7,49 +7,61 @@ TODO:   With the switch to SVN SCM discuss the use of tags and branches
 
 Before deciding release:
 -----------------------
-* Anticipate what problems would experience users with the new release,
+* Anticipate what problems would users experience with the new release,
   so you can fix the problems before making the release.
   Basically, this is making sure the package will
   compile on a whole breed of systems (arch,OS,library,gcc,etc. combo),
   that there's no regression, and the API evolution is managed well.
-* Announce CVN/version freeze on hamlib-developer mailing list,
+
+* Announce SVN/version freeze on hamlib-developer mailing list,
   so developers have time to check in their contributions.
+
 * Update libtool:
-	macros/{ltdl,libtool}.m4
-	ltmain.sh
-	libltdl/
-  A postfix of libtool in libltdl/Makefile.in may be needed: empty am__aclocal_m4_deps 
+    macros/{ltdl,libtool}.m4
+    ltmain.sh
+    libltdl/
+  A postfix of libtool in libltdl/Makefile.in may be needed: empty am__aclocal_m4_deps
 
 Releasing Hamlib:
 ----------------
 * Update NEWS, TODO, AUTHORS
-* Update the version in the macro AC_INIT of configure.ac
+
+* Update the version in the macro AC_INIT of configure.ac (remove 'svn')
+
 * Regenerate ChangeLog with:
-	 TZ=UTC svn2cl
+    TZ=UTC svn2cl
+
 * Tag the SVN rep with version 'HAMLIB-x-y-z'
+
 * Build source tarball:
-    svn co https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib	
+    svn co https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib
     sh autogen.sh --enable-maintainer-mode
-	make dist
+
+    # (Would the above command be better invoked as:
+    #   sh autogen.sh --disable-maintainer-mode --prefix=/usr/local CFLAGS="-g -O0"
+    # ?? comments please.)
+
+     make dist
+
 * Build Windows DLL from previous tarball, and .LIB, then create .zip file
   Rem: under Linux, you need the package mingw32 to cross-compile it,
        and free MVC++Toolkit to create .lib file:
-	  ./configure --disable-static \
-			--host=i586-mingw32msvc \
-			--prefix=/tmp/mingw-inst \
-			--without-rpc-backends \
-			--without-perl-binding --without-tcl-binding --without-python-binding \
-			--enable-xmltest ac_cv_path_PKG_CONFIG=no
-	  make install
-	  mkdir -p /tmp/mingw-inst/hamlib-x.y.z/lib/msvc
-	  cp src/libhamlib.def /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/libhamlib-2.def
-	  cd /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/
-	  unix2dos include/hamlib/*.h
-	  unix2dos ./lib/msvc/*.def
-	  wine /media/sda1/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def
-	  vi README.win32.mine
-	  zip -r hamlib-win32-x.y.z.zip hamlib-x.y.z
-	Edit Release, i386, .zip
+         ./configure --disable-static \
+           --host=i586-mingw32msvc \
+           --prefix=/tmp/mingw-inst \
+           --without-rpc-backends \
+           --without-perl-binding --without-tcl-binding --without-python-binding \
+           --enable-xmltest ac_cv_path_PKG_CONFIG=no
+         make install
+         mkdir -p /tmp/mingw-inst/hamlib-x.y.z/lib/msvc
+         cp src/libhamlib.def /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/libhamlib-2.def
+         cd /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/
+         unix2dos include/hamlib/*.h
+         unix2dos ./lib/msvc/*.def
+         wine /media/sda1/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def
+         vi README.win32.mine
+         zip -r hamlib-win32-x.y.z.zip hamlib-x.y.z
+         Edit Release, i386, .zip
 
 * Build Windows DLL with stdcall convention:
   Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
@@ -60,36 +72,32 @@ Releasing Hamlib:
     [Add release] "x-y-z"
     Paste NEWS section and ChangeLog, select file, change file processor type to "Any"/"Source .gz"
     and notify users.
-* Update http://hamlib.org web pages
+
+* Update http://www.hamlib.org Wiki
   - Download section
-	hamlib.org: html.hamlib/{manual,news,download}.html
-			svn commit
-			wsmake
-			scp *.html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/.
-			support.html
   - Documentation (requires doxygen)
-	make -C doc doc
-	ssh shell.sourceforge.net mkdir /home/groups/h/ha/hamlib/htdocs/manuals/x-y-z
-	scp -r doc/html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/manuals/x-y-z/.
-	$EDIT manuals.html
+      make -C doc doc
+      ssh shell.sourceforge.net mkdir /home/groups/h/ha/hamlib/htdocs/manuals/x-y-z
+      scp -r doc/html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/manuals/x-y-z/.
+      Edit Wiki Documentation section
   - Supported Radios/Rotators
-	make -C tests rigmatrix.html
-	scp -r tests/sup-info/* shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/sup-info/.
+      make -C tests rigmatrix.html
+      scp -r tests/sup-info/* shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/sup-info/.
+
 * Notify various sites:
   - Sourceforge/News: https://sourceforge.net/news/submit.php?group_id=8305
   - Freshmeat: http://freshmeat.net/projects/hamlib
   - http://radio.linux.org.au/pkgdetail.phtml?pkgid=243 Linux Hamradio App: rigctl category
-* Send announce to mailing list: [ANN] hamlib-announce, linux-ham
+
+* Send announce to mailing lists: [ANN] hamlib-announce, linux-ham
 
 To advertise:
-- list the rigs supported so far, 
+- list the rigs supported so far,
 - what was major work achieved,
-- where we're heading, 
+- where we're heading,
 - what kind of support we need
-
 
 Get ready for the next round:
 * Bump version number and append 'svn' to it in macro AC_INIT of configure.ac
+
 * Update src/Makefile.am revision of -version-info
-
-

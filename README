@@ -1,98 +1,111 @@
 Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2007
-         (C) The Hamlib Group 2000-2009
+         (C) The Hamlib Group 2000-2010
 
-The purpose of this project is to provide stable, flexible,
-shared libraries that enable quicker development of Amateur
-Radio Equipment Control Applications.
- 
-Many Amateur Radio Transceivers come with serial interfaces
-that allows software to control the radio. This project will
-endeavour to provide shared libraries that greatly simplify
-the application programmer's interaction with radio equipment
-and other controllable devices such as rotators, switches, etc.
+The purpose of this project is to provide stable, flexible, shared libraries
+that enable quicker development of Amateur Radio Equipment Control
+Applications.
+
+Many Amateur Radio Transceivers come with serial interfaces that allows
+software to control the radio. This project will endeavour to provide shared
+libraries that greatly simplify the application programmer's interaction with
+radio equipment and other controllable devices such as rotators, switches, etc.
+
+Supported Radios
+----------------
+
+The Hamlib Wiki page, Supported Radios, contains a snapshot of the supported
+radio at the time of the last Hamlib release.  Go to http://www.hamlib.org
+to reach the Wiki.
+
+Hamlib Design
+-------------
 
 The shared libs will provide functions for both radio control,
 and data retrieval from the radio.
- 
+
 The structure of the libraries will be as follows.
 
-(1)	There will be 1 frontend library "libhamlib" that
-	provides the generic API for user applications.
+(1)  There will be 1 frontend library "libhamlib" that
+     provides the generic API for user applications.
 
-(2)	There will be "n" backend libraries that "wrap" 
-	rig specific communications inside frontend API.
+(2)  There will be "n" backend libraries that "wrap"
+     rig specific communications inside frontend API.
 
-(3)	Frontend lib will load (on demand) the appropriate
-	backend lib as required. 
+(3)  Frontend lib will load (on demand) the appropriate
+     backend lib as required.
 
 Frontend Library
 ----------------
 
 libhamlib.so -  frontend lib that provides generic API
-		for all RIG types. This is what Application
-		programmers will "see".
+                for all RIG types. This is what Application
+                programmers will "see".
 
 Backend Examples are:
 ---------------------
- 
+
 1.hamlib-yaesu.so will provide connectivity to Yaesu
   FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
 
 2. hamlib-xxxx.so will provide connectivity to the Wiz-bang
    moon-melter 101A (yikes..)
 
-Hamlib will also enable developers to develop professional looking GUI's 
-towards a standard control library API, and they would not have to worry 
+Hamlib will also enable developers to develop professional looking GUI's
+towards a standard control library API, and they would not have to worry
 about the underlying connection towards physical hardware.
- 
-Initially serial (RS232) connectivity will be handled, but
-I expect that IP (and other) connectivity will follow afterwards. 
+
+Initially serial (RS232) connectivity will be handled, but we expect that IP
+(and other) connectivity will follow afterwards.  Connection via a USB port
+is accomplished via the Linux kernel support.  USB to serial converters are
+well supported.  Other such devices may be supported as long as they present
+a serial (RS-232) interface to Hamlib.
 
 Recompiling
 -----------
 
-Hamlib is entirely developped using GNU tools, under various Linux systems. 
-That is, if you want to take part in the development of Hamlib, 
-you'll need at least the following tools:
-	* autoconf > 2.50
-	* automake > 1.7
-	* libtool  > 1.5
-	* doxygen
-	* cvs and ssh to connect to http://sourceforge.net/
+Hamlib is entirely developed using GNU tools, under various Linux systems.
+That is, if you want to take part in the development of Hamlib, you'll need 
+at least the following tools:
+    * autoconf > 2.54
+    * automake > 1.7
+    * libtool  > 1.5|2.2.6
+    * doxygen
+    * svn and ssh to connect to http://sourceforge.net/
 
-There are also the README.betatester and README.developer files in this 
-directory if you feel like hacking hamlib.  Otherwise, contributions of rig 
-specifications and protocol documentation are highly encouraged.  Do keep
-in mind that in some cases the manufacturer may not provide complete control
-information or it is only available under a Non-Disclosure Agreement (NDA).
-Any documentation *must* be publically available so we can legally write and
-distribute Free Software supporting a given device.
+There are also the README.betatester and README.developer files in this
+directory if you feel like testing or hacking Hamlib.  Otherwise, contributions
+of rig specifications and protocol documentation are highly encouraged.  Do
+keep in mind that in some cases the manufacturer may not provide complete
+control information or it is only available under a Non-Disclosure Agreement
+(NDA).  Any documentation *must* be publicly available so we can legally write
+and distribute Free Software supporting a given device.
 
-However, if you just want to recompile the library, please refer
-to the INSTALL file. 
+However, if you just want to recompile the library, please refer to the INSTALL
+and README.betatester files.
 
-IMPORTANT: If autoconf or automake are installed on your system, make sure 
-they are matching *at least* the version shown above.  The Hamlib team is 
+IMPORTANT: If autoconf or automake are installed on your system, make sure
+they are matching *at least* the version shown above.  The Hamlib team is
 very interrested to hear from you, how Hamlib builds and works on your system,
-especially on non-Linux system or non-PC systems. We try to make Hamlib as 
+especially on non-Linux system or non-PC systems. We try to make Hamlib as
 portable as possible.
 
 Please report in case of problems at hamlib-developer@lists.sourceforge.net
 Patches are welcome too!
 
-And for those who were brave enough to read until here, but not lucky enough
-to rebuild the lib, there is good news. The RPM and deb packages are
-available at the sourceforge.net site. Enjoy!
+Most distributions have the latest Hamlib release in their testing or alpha
+versions of their distribution.  Check your package manager for the Hamlib
+version included in your distribution.
 
-Take a look at tests/README for more info on simple examples.
+Take a look at tests/README for more info on simple programming examples and
+test programs.
 
 Also, take a look at http://sourceforge.net/projects/hamlib/
-Here you will find a mail list, and the latest releases.
-Feedback, questions, etc. about Hamlib are very welcome 
-at the mail list: <hamlib-developer@lists.sourceforge.net>
+Here you will find a mail list, and the latest releases.  Feedback, questions,
+etc. about Hamlib are very welcome at the mail list:
+<hamlib-developer@lists.sourceforge.net>
 
-Have Fun / Frank S / Stephane F
+Have Fun / Frank S / Stephane F / The Hamlib Group
 
   73's de vk3fcs/km5ws / f8cfe
 
