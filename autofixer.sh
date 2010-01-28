@@ -10,10 +10,6 @@
 V1AUTOGEN='autogen.sh.ltv1'
 V1CONFIG='configure.ac.ltv1'
 
-# Version 2 (and later?) files
-V2AUTOGEN='autogen.sh.ltv2'
-V2CONFIG='configure.ac.ltv2'
-
 # Destinations
 AUTOGEN='autogen.sh'
 CONFIG='configure.ac'
@@ -27,19 +23,14 @@ fi
 vers=$( echo $(libtool --version) | \
     sed '1,1s/ltmain.*tool) //; 1,1s/ .*$//; 2,$d')
 
-# Test first digit of version.  If it's '1', use libtool v1 setup, otherwise
-# use libtool v2.
+# Test first digit of version.  If it's '1', use libtool v1 setup
 
 echo Libtool version $vers detected.
 
-if [ $vers \< "1.99.99" ]; then 
+if [ $vers \< "1.99.99" ]; then
 	cp $V1AUTOGEN $AUTOGEN
 	cp $V1CONFIG  $CONFIG
 	echo Libtool v1 configured.
-   else 
-	cp $V2AUTOGEN $AUTOGEN
-	cp $V2CONFIG  $CONFIG
-	echo Libtool v2 configured.
 fi
 echo
 echo "** You may now run sh ./autogen.sh **"
