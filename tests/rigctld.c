@@ -108,7 +108,7 @@ int interactive = 1;    /* no cmd because of daemon */
 int prompt = 0;         /* Daemon mode for rigparse return string */
 int opt_end = 0;        /* END marker for rigctld */
 int opt_block = 0;      /* Block markers for rigctld */
-int vfo_mode;           /* vfo_mode=0 means target VFO is current VFO */
+int vfo_mode = 0;       /* vfo_mode=0 means target VFO is current VFO */
 
 char send_cmd_term = '\r';     /* send_cmd termination char */
 
@@ -278,10 +278,11 @@ int main (int argc, char *argv[])
 				dump_caps_opt++;
 				break;
 			case 'e':
-				opt_end = 1;
+				opt_end++;
+				fprintf(stderr, "-e|--end-marker option is deprecated.  Please consider -b|--block instead.\n");
 				break;
 			case 'b':
-				opt_block = 1;
+				opt_block++;
 				break;
 			default:
 				usage();	/* unknown option? */
@@ -339,7 +340,7 @@ int main (int argc, char *argv[])
 	}
 
 	/*
-	 * print out conf parameters, and exists immediately
+	 * print out conf parameters, and exits immediately
 	 * We may be interested only in only caps, and rig_open may fail.
 	 */
 	if (dump_caps_opt) {

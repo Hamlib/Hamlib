@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "January 24, 2010" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "February 3, 2010" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -117,10 +117,12 @@ Dump capabilities for the radio defined with -m above and exit.
 .TP
 .B \-o, --vfo
 Set vfo mode, requiring an extra VFO argument in front of each appropriate
-command. Otherwise, VFO_CURR is assumed when this option is not set.
+command (except \fI\\set_vfo\fP!). Otherwise, 'currVFO' is assumed when this
+option is not set and an extra VFO argument is not used.  See \fI\\chk_vfo\fP
+below.
 .TP
 .B \-b, --block
-Use the block rigctld protocol.  \fIEXPERIMENTAL\fP
+Use the block rigctld protocol.  See \fI\\chk_blk\fP below. \fIEXPERIMENTAL\fP
 .TP
 .B \-e, --end-marker
 Use END marker in rigctld protocol.
@@ -160,9 +162,9 @@ escaped with a preceding '\\' so that even though two backslash characters
 appear in the code, only one will be passed to \fBrigctld\fP.  This is a
 possible bug!).
 .PP
-Please note that the backend for the radio to be controlled,
-or the radio itself may not support some commands. In that case,
-the operation will fail with a \fBHamlib\fP error message.
+Please note that the backend for the radio to be controlled, or the radio itself
+may not support some commands. In that case, the operation will fail with a
+\fBHamlib\fP error message.
 .PP
 Here is a summary of the supported commands (In the case of "set" commands the
 quoted string is replaced by the value in the description.  In the case of "get"
@@ -185,7 +187,8 @@ Get 'Mode' 'Passband'.  Returns Mode as a string from \fIset_mode\fP above
 and Passband in Hz.
 .TP
 .B V, set_vfo 'VFO'
-Set 'VFO': VFOA, VFOB, VFOC, currVFO, VFO, MEM, Main, Sub, TX, RX.
+Set 'VFO': VFOA, VFOB, VFOC, currVFO, VFO, MEM, Main, Sub, TX, RX.  In VFO mode
+only a single VFO parameter is required.
 .TP
 .B v, get_vfo
 Get current 'VFO'.  Returns VFO as a string from \fIset_vfo\fP above.
@@ -369,7 +372,8 @@ Get misc information about the rig (no value is passed).
 .B 1, dump_caps
 Not a real rig remote command, it just dumps capabilities, i.e. what the
 backend knows about this model, and what it can do.  TODO: Ensure this is
-in a consistent format so it can be read into a hash, dictionary, etc.
+in a consistent format so it can be read into a hash, dictionary, etc.  Bug
+reports requested.
 .TP
 .B 2, power2mW
 Converts a power value in a range of \fI0.0 ... 1.0\fP to the real transmit
@@ -381,6 +385,20 @@ Send raw command string to rig.
 .br
 For binary protocols enter values as \\0xAA\\0xBB.    Expect a 'Reply' from the
 rig which will likely be a binary block or an ASCII string.
+.TP
+.B chk_blk
+Returns "CHKBLK 1\\n" (single line only) if \fBrigctld\fP was invoked with the
+\fI-b\fP or \fI--block\fP option, "CHKBLK 0\\n" if not.
+.br
+.TP
+.B chk_vfo
+Returns "CHKVFO 1\\n" (single line only) if \fBrigctld\fP was invoked with the
+\fI-o\fP or \fI--vfo\fP option, "CHKVFO 0\\n" if not.
+.br
+When in VFO mode client will need to pass 'VFO' as the first parameter to
+\fI\\set\fP or \fI\\get\fP commands.  'VFO' is one of the strings defined
+for \fI\\set_vfo\fP above.
+.br
 .SH PROTOCOL
 \fBDefault Protocol\fP
 .br
@@ -456,11 +474,13 @@ only of the long command name.  The final line shows that the command was
 processed successfully by the rig backend.
 .PP
 The following commands have been tested with the Block protocol and the included
-`testctld.pl' script:
+\fBtestctld.pl\fP script:
 .br
 \fI\\set_freq\fP    \fI\\get-freq\fP
 .br
 \fI\\set_mode\fP    \fI\\get_mode\fP
+.br
+\fI\\set_vfo\fP     \fI\\get_vfo\fP
 .SH EXAMPLES
 Start \fBrigctld\fP for a Yaesu FT-920 using an USB-to-serial adapter and
 backgrounding:
@@ -468,13 +488,14 @@ backgrounding:
 $ rigctld -m 114 -r /dev/ttyUSB1 &
 .PP
 Start \fBrigctld\fP for a Yaesu FT-920 using a USB to serial adapter while
-setting baud rate and stop bits and backgrounding:
+setting baud rate and stop bits, invoking block protocol, and backgrounding:
 .PP
-$ rigctld -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 &
+$ rigctld -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2 --block &
 .PP
-Connect to the already running \fBrigctld\fP, and set current frequency to 14.266 MHz:
+Connect to the already running \fBrigctld\fP, and set current frequency to
+14.266 MHz with a 1 second read timeout:
 .PP
-$ echo "\\set_freq 14266000" | nc localhost 4532
+$ echo "\\set_freq 14266000" | nc -w 1 localhost 4532
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP, option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
@@ -498,11 +519,11 @@ Report bugs to <hamlib-developer@lists.sourceforge.net>.
 .br
 We are already aware of the bugs in the previous section :-)
 .SH AUTHORS
-Written by Stephane Fillod and the Hamlib Group
+Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2010 Stephane Fillod and the Hamlib Group.
+Copyright \(co 2000-2010 Stephane Fillod, Nate Bargmann, and the Hamlib Group.
 .PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY

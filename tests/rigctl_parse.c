@@ -1,8 +1,9 @@
 /*
  * rigctl_parse.c - (C) Stephane Fillod 2000-2009
  *                  (C) Terry Embry 2008-2009
+ * 					(C) The Hamlib Group 2010
  *
- * This program test/control a radio using Hamlib.
+ * This program tests/controls a radio using Hamlib.
  * It takes commands in interactive mode as well as
  * from command line options.
  *
@@ -149,6 +150,8 @@ declare_proto_rig(set_powerstat);
 declare_proto_rig(get_powerstat);
 declare_proto_rig(send_dtmf);
 declare_proto_rig(recv_dtmf);
+declare_proto_rig(chk_blk);
+declare_proto_rig(chk_vfo);
 
 
 /*
@@ -223,6 +226,8 @@ static struct test_table test_list[] = {
 	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
 	{ '3', "dump_conf", dump_conf, ARG_NOVFO },
 	{ 0x8f,"dump_state", dump_state, ARG_OUT|ARG_NOVFO },
+	{ 0xf0,"chk_blk", chk_blk, ARG_NOVFO },	/* rigctld only--check for block protocol */
+	{ 0xf1,"chk_vfo", chk_vfo, ARG_NOVFO },	/* rigctld only--check for VFO mode */
 	{ 0x00, "", NULL },
 
 };
@@ -461,8 +466,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		rig_debug(RIG_DEBUG_TRACE, "rigctl(d): %c '%s' '%s' '%s'\n",
 				cmd, p1, p2, p3);
 
-    /* Block protocol: output received command name and arguments response */
-    if (interactive && opt_block) {
+    /*
+     * Block protocol: output received command name and arguments response
+     * Don't send response on '\chk_blk' command
+     */
+    if (interactive && opt_block && (cmd != 0xf0 && cmd != 0xf1)) {
         char a1[MAXARGSZ+1];
         char a2[MAXARGSZ+1];
         char a3[MAXARGSZ+1];
@@ -481,18 +489,22 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	pthread_mutex_unlock(&rig_mutex);
 #endif
 
+
 	if (retcode != RIG_OK) {
-		if (interactive && !prompt && opt_block)
+		if ((interactive && !prompt && opt_block) || (interactive && !prompt))
   			fprintf(fout, NETRIGCTL_RET "%d\n", retcode);	/* only for rigctld */
 		else
   			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
 	} else {
+//		rig_debug(RIG_DEBUG_TRACE, "rigctld: %d %s\n", cmd, cmd_entry->name);
+
 		if (interactive && !prompt) {	/* only for rigctld */
-			if (!(cmd_entry->flags & ARG_OUT) && !opt_end) 	/* netrigctl RIG_OK */
+			if (!(cmd_entry->flags & ARG_OUT)
+				&& !opt_end && !opt_block && (cmd != 0xf0 && cmd != 0xf1))	/* netrigctl RIG_OK */
 				fprintf(fout, NETRIGCTL_RET "0\n");
-			else if ((cmd_entry->flags & ARG_OUT) && opt_end) /* Nate's protocol */
+			else if ((cmd_entry->flags & ARG_OUT) && opt_end)		/* Nate's protocol */
 				fprintf(fout, "END\n");
-            else if (opt_block)         /* block marker protocol */
+            else if (opt_block && (cmd != 0xf0 && cmd != 0xf1))	/* block marker protocol */
 				fprintf(fout, NETRIGCTL_RET "0\n");
         }
 	}
@@ -2038,5 +2050,21 @@ declare_proto_rig(send_cmd)
 		retval = RIG_OK;
 
 	return retval;
+}
+
+/* '0xf0'--test if rigctld called with -b|--block option */
+declare_proto_rig(chk_blk)
+{
+	fprintf(fout, "CHKBLK %d\n", opt_block);
+
+	return RIG_OK;
+}
+
+/* '0xf1'--test if rigctld called with -o|--vfo option */
+declare_proto_rig(chk_vfo)
+{
+	fprintf(fout, "CHKVFO %d\n", vfo_mode);
+
+	return RIG_OK;
 }
 
