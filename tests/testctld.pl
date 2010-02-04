@@ -44,17 +44,18 @@ use Pod::Usage;
 my $socket;
 my $host = 'localhost';
 my $port = 4532;
-my @answer;
+# my @answer;
 my $freq = "14250000";
 my $mode = "USB";
 my $bw = "2400";
-my %state = ();     # State of the rig--freq, mode, passband, ptt, etc.
+my $vfo = '';
+my %rig_state = ();     # State of the rig--freq, mode, passband, ptt, etc.
+my %rig_caps = ();      # Rig capabilities from \dump_caps
 
 my $man = 0;
 my $help = 0;
 my $user_in;
 my $ret_val;
-my @cmd_str;
 
 # Error values returned from rigctld by Hamlib name
 my %errstr = (
@@ -76,6 +77,10 @@ my %errstr = (
     RIG_EARG        => "-15",   # NULL RIG handle or any invalid pointer parameter in get arg
     RIG_EVFO        => "-16",   # Invalid VFO
     RIG_EDOM        => "-17",   # Argument out of domain of func
+# testctld specific error values from -100 onward
+    CTLD_OK         => "-100",  # testctld -- No error
+    CTLD_ENIMPL     => "-103",  # testctld -- %rig_caps reports backend function not implemented
+    CTLD_EPROTO     => "-108",  # testctld -- Echoed command mismatch or other error
 );
 
 # Error values returned from rigctld by Hamlib value
@@ -86,9 +91,6 @@ my %errval = reverse %errstr;
 # Main program
 #
 #############################################################################
-
-print "Welcome to tesctld.pl a program to test `rigctld'\n\n";
-print "Type '?' or 'help' for commands help.\n\n";
 
 # Parse command line options
 argv_opts();
@@ -105,54 +107,145 @@ $socket = new IO::Socket::INET (PeerAddr    => $host,
     or die $@;
 
 
+# Check rigctld's response to the \chk_blk command to be sure it was
+# invoked with the -b|--block option
+unless (chk_opt($socket, 'CHKBLK')) {
+    die "`rigctld' must be invoked with '-b' or '--block' option for $0\n";
+}
+
+
+print "Welcome to tesctld.pl a program to test `rigctld'\n";
+print "Type '?' or 'help' for commands help.\n\n";
+
+
+# Populate %rig_caps from \dump_caps
+$ret_val = dump_caps();
+
+# Tell user what radio rigctld is working with
+if ($ret_val eq $errstr{'RIG_OK'}) {
+    print "Hamlib Model: $rig_caps{'Caps dump for model'}\t";
+    print "Common Name: $rig_caps{'Mfg name'} $rig_caps{'Model name'}\n\n\n";
+} else {
+    errmsg ($ret_val);
+}
+
+
+# Check rigctld's response to the \chk_vfo command to see if it was
+# invoked with the -o|--vfo option.  If true, all commands must include VFO as
+# first parameter after the command
+if (chk_opt($socket, 'CHKVFO')) {
+    $vfo = 'currVFO';       # KISS  One could use the VFO key from %rig_state after calling the \get_vfo command...
+}
+
+
 # Interactive loop
 do {
+    my @cmd_str;
 
     print "rigctld command: ";
     chomp($user_in = <>);
 
     # F, \set_freq
     if ($user_in =~ /^F\s\d+\b$/ or $user_in =~ /^\\set_freq\s\d+\b$/) {
-        # Get the frequency value
-        @cmd_str = split(' ', $user_in);
-        $ret_val = set_freq($cmd_str[1]);
+        if ($rig_caps{'Can set frequency'} eq 'Y') {
+            # Get the entered frequency value
+            @cmd_str = split(' ', $user_in);
+            $ret_val = rig_cmd('set_freq', $vfo, $cmd_str[1]);
 
-        unless ($ret_val eq $errstr{"RIG_OK"}) {
-            errmsg ($ret_val);
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
         }
     }
 
     # f, \get_freq
     elsif ($user_in =~ /^f\b$/ or $user_in =~ /^\\get_freq\b$/) {
-        # Query rig and process result
-        $ret_val = get_freq();
+        if ($rig_caps{'Can get mode'} eq 'Y') {
+            # Query rig and process result
+            $ret_val = rig_cmd('get_freq', $vfo);
 
-        if ($ret_val eq $errstr{"RIG_OK"}) {
-            print "Frequency: $state{Frequency}\n\n";
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "Frequency: $rig_state{Frequency}\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
         } else {
-            errmsg ($ret_val);
+            errmsg($errstr{'CTLD_ENIMPL'});
         }
     }
 
     # M, \set_mode
     elsif ($user_in =~ /^M\s[A-Z]+\s\d+\b$/ or $user_in =~ /^\\set_mode\s[A-Z]+\s\d+\b$/) {
-        # Get the mode and passband value
-        @cmd_str = split(' ', $user_in);
-        $ret_val = set_mode($cmd_str[1], $cmd_str[2]);
+        if ($rig_caps{'Can set mode'} eq 'Y') {
+            # Get the entered mode and passband values
+            @cmd_str = split(' ', $user_in);
+            $ret_val = rig_cmd('set_mode', $vfo, $cmd_str[1], $cmd_str[2]);
 
-        unless ($ret_val eq $errstr{"RIG_OK"}) {
-            errmsg ($ret_val);
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+        }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
         }
     }
 
     # m, \get_mode
     elsif ($user_in =~ /^m\b$/ or $user_in =~ /^\\get_mode\b$/) {
-        # Do the same for the mode (reading the mode also returns the bandwidth)
-        $ret_val = get_mode();
+        if ($rig_caps{'Can get mode'} eq 'Y') {
 
-        if ($ret_val eq $errstr{"RIG_OK"}) {
-            print "Mode: $state{Mode}\n";
-            print "Passband: $state{Passband}\n\n";
+            # Do the same for the mode (reading the mode also returns the bandwidth)
+            $ret_val = rig_cmd('get_mode', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "Mode: $rig_state{Mode}\n";
+                print "Passband: $rig_state{Passband}\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # V, \set_vfo
+    elsif ($user_in =~ /^V\s[A-Za-z]+\b$/ or $user_in =~ /^\\set_vfo\s[A-Za-z]+\b$/) {
+        if ($rig_caps{'Can set vfo'} eq 'Y') {
+            @cmd_str = split(' ', $user_in);
+            $ret_val = rig_cmd('set_vfo', $cmd_str[1]); # $vfo not used!
+
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # v, \get_vfo
+    elsif ($user_in =~ /^v\b$/ or $user_in =~ /^\\get_vfo\b$/) {
+        if ($rig_caps{'Can get vfo'} eq 'Y') {
+            $ret_val = rig_cmd('get_vfo', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "VFO: $rig_state{VFO}\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # 1, \dump_caps
+    elsif ($user_in =~ /^1\b$/ or $user_in =~ /^\\dump_caps\b$/) {
+        $ret_val = dump_caps();
+
+        if ($ret_val eq $errstr{'RIG_OK'}) {
+            print "Model: $rig_caps{'Caps dump for model'}\n";
+            print "Manufacturer: $rig_caps{'Mfg name'}\n";
+            print "Name: $rig_caps{'Model name'}\n\n";
         } else {
             errmsg ($ret_val);
         }
@@ -180,7 +273,7 @@ EOF
 
     }
 
-    else {
+    elsif ($user_in !~ /^(exit|quit)\b$/i) {
         print "Unrecognized command.  Type '?' or 'help' for command help.\n"
     }
 
@@ -197,96 +290,86 @@ close($socket);
 #############################################################################
 
 
-sub set_freq {
-    my $cmd;
-    my ($freq) = @_;
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# rig_cmd -- Build command string, check returned data, and populate %rig_state
+#
+# Passed parameters:
+# $cmd      = rigctld command
+# $vfo      = VFO argument (may be null)
+# $p1 - $p3 = \set command parameters
+#
+# Returns error value from rigctld or local error value if echoed command mismatch
+#
+sub rig_cmd {
+    my ($errno, @answer);
+    my $cmd = shift @_;
+    my $vfo = shift @_;
+    my $p1 = shift @_;
+    my $p2 = shift @_;
+    my $p3 = shift @_;
 
+    # Add a space to the beginning of the $vfo and $p? arguments
+    if ($vfo) {
+        $vfo = sprintf("%*s", 1 + length $vfo, $vfo);
+    } else { $vfo = ''; }
+
+    if ($p1) {
+        $p1 = sprintf("%*s", 1 + length $p1, $p1);
+    } else { $p1 = ''; }
+
+    if ($p2) {
+        $p2 = sprintf("%*s", 1 + length $p2, $p2);
+    } else { $p2 = ''; }
+
+    if ($p3) {
+        $p3 = sprintf("%*s", 1 + length $p3, $p3);
+    } else { $p3 = ''; }
+print "\\$cmd$vfo$p1$p2$p3\n\n";
     # N.B. Terminate query commands with a newline, e.g. "\n" character.
-    print $socket "\\set_freq $freq\n";
+    print $socket "\\$cmd$vfo$p1$p2$p3\n";
 
-    # rigctld echoes the command plus value(s) on "set" along with
-    # the Hamlib return value.
+    # rigctld echoes the command plus value(s) on "get" along with
+    # separate lines for the queried value(s) and the Hamlib return value.
     @answer = get_rigctl($socket);
 
-    # At this point the first line of @answer contains the command string echo
-    # and the last line contains the ending block marker and the Hamlib rig
-    # function return value.  No data lines are returned from a \\set_ command.
+    if ((shift @answer) =~ /^$cmd:/) {
+        $errno = get_errno(pop @answer);
 
-    $cmd = shift @answer;
+        if ($errno eq $errstr{'RIG_OK'}) {
+            # At this point the first line of @answer which is the command string echo
+            # and the last line which is the ending block marker and the Hamlib rig
+            # function return value have been removed from the array.  What is left
+            # over will be stored in the %state hash as a key: value pair for each
+            # returned line.
 
-    if ($cmd =~ /^set_freq:/) {
-        return get_errno(pop @answer);
+            if (@answer) { get_state(@answer) } # Empty array on \set commands
+        }
+        return $errno;
+
     } else {
-        # Oops!  Something went very wrong.
-        return $errstr{"RIG_EPROTO"};
+        return $errstr{'CTLD_EPROTO'};
     }
 }
 
 
-sub get_freq {
-    my ($cmd, $errno);
+# Get the rig capabilities from Hamlib and store in the %rig_caps hash.
+sub dump_caps {
+    my ($cmd, $errno, @answer);
 
-    print $socket "\\get_freq\n";
+    print $socket "\\dump_caps\n";
 
-    # Get the rig's frequency block from rigctld
     @answer = get_rigctl($socket);
-
-    # Make sure we got the right response
     $cmd = shift @answer;
 
-    if ($cmd =~ /^get_freq:/) {
+    if ($cmd =~ /^dump_caps:/) {
         $errno = get_errno(pop @answer);
 
-        # At this point the first line of @answer which is the command string echo
-        # and the last line which is the ending block marker and the Hamlib rig
-        # function return value have been removed from the array.  What is left
-        # over will be stored in the %state hash as a key: value pair.
-
-        if ($errno eq $errstr{"RIG_OK"}) {
-            get_state(@answer);
+        if ($errno eq $errstr{'RIG_OK'}) {
+            get_caps(@answer);
         }
         return $errno;
     } else {
-        return $errstr{"RIG_EPROTO"};
-    }
-}
-
-
-sub set_mode {
-    my $cmd;
-    my ($mode, $bw) = @_;
-
-    # Setting the mode takes two values, mode and bandwidth.  All on the same line.
-    print $socket "\\set_mode $mode $bw\n";
-
-    @answer = get_rigctl($socket);
-    $cmd = shift @answer;
-
-    if ($cmd =~ /^set_mode:/) {
-        return get_errno(pop @answer);
-    } else {
-        return $errstr{"RIG_EPROTO"};
-    }
-}
-
-
-sub get_mode {
-    my ($cmd, $errno);
-
-    print $socket "\\get_mode\n";
-
-    @answer = get_rigctl($socket);
-    $cmd = shift @answer;
-
-    if ($cmd =~ /^get_mode:/) {
-        $errno = get_errno(pop @answer);
-
-        if ($errno eq $errstr{"RIG_OK"}) {
-            get_state(@answer);
-        }
-        return $errno;
-    } else {
-        return $errstr{"RIG_EPROTO"};
+        return $errstr{'RIG_EPROTO'};
     }
 }
 
@@ -299,14 +382,44 @@ sub get_mode {
 # Thanks to Uri Guttman on comp.lang.perl.misc for this function.
 # 'RPRT' is the token returned by rigctld to mark the end of the reply block.
 sub get_rigctl {
-    my ($sock) = @_;
+    my $sock = shift @_;
     my @lines;
 
-    while (my $line = <$sock>) {
+    while (<$sock>) {
         # rigctld terminates each line with '\n'
-        chomp $line;
-        push @lines, $line;
-        return @lines if $line =~ /^RPRT/;
+        chomp;
+        push @lines, $_;
+        return @lines if $_ =~ /^RPRT/;
+    }
+}
+
+
+# Builds the %rig_state hash from the lines returned by rigctld which are of the
+# form "Frequency: 14250000", "Mode: USB", "Passband: 2400", etc.
+sub get_state {
+    my ($key, $val);
+
+    foreach (@_) {
+        ($key, $val) = split(/: /, $_);
+        $rig_state{$key} = $val;
+    }
+}
+
+
+# Parse the (large) \dump_caps command response into %rig_caps.
+# TODO: process all lines of output
+sub get_caps {
+    my ($key, $val);
+
+    foreach (@_) {
+        if (($_ =~ /^Caps .*:/) or
+            ($_ =~ /^Model .*:/) or
+            ($_ =~ /^Mfg .*:/) or
+            ($_ =~ /^Can .*:/)
+            ) {
+            ($key, $val) = split(/:\s+/, $_);
+            $rig_caps{$key} = $val;
+        }
     }
 }
 
@@ -321,14 +434,34 @@ sub get_errno {
 }
 
 
-# Builds the %state hash from the lines returned by rigctld which are of the
-# form "Frequency: 14250000"
-sub get_state {
+# check for block response or VFO mode from rigctld
+sub chk_opt {
+    my $sock = shift @_;
+    my @lines;
 
-    foreach my $line (@_) {
-        (my $key, my $val) = split(/: /, $line);
-        $state{$key} = $val;
+    if ($_[0] =~ /^CHKBLK/) {
+        print $sock "\\chk_blk\n";
     }
+    elsif ($_[0] =~ /^CHKVFO/) {
+        print $sock "\\chk_vfo\n";
+    }
+
+    while (<$sock>) {
+        # rigctld terminates each line with '\n'
+        chomp;
+        push @lines, $_;     # Should only be one line, but be sure
+        last if $_ =~ /^$_[0]/;
+    }
+
+    # The CHK* line will have a space separated interger of 0 or 1
+    # for `rigctld' invocation without and with -b|--block or
+    # -o|--vfo options respectively
+    foreach (@lines) {
+        if ($_ =~ /^$_[0]\s(\d)/) {
+            return $1;
+        }
+    }
+
 }
 
 
@@ -347,10 +480,18 @@ sub argv_opts {
 
 }
 
-
+# FIXME:  Better argument handling
 sub errmsg {
 
-    print "Hamlib returned $errval{$_[0]}\n\n";
+    unless (($_[0] eq $errstr{'CTLD_EPROTO'}) or ($_[0] eq $errstr{'CTLD_ENIMPL'})) {
+        print "rigctld returned Hamlib $errval{$_[0]}\n\n";
+    }
+    elsif ($_[0] eq $errstr{'CTLD_EPROTO'}) {
+        print "Echoed command mismatch\n\n";
+    }
+    elsif ($_[0] eq $errstr{'CTLD_ENIMPL'}) {
+        print "Function not yet implemented in Hamlib rig backend\n\n";
+    }
 }
 
 
