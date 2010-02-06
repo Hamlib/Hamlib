@@ -54,6 +54,7 @@ my %rig_caps = ();      # Rig capabilities from \dump_caps
 
 my $man = 0;
 my $help = 0;
+my $debug = 0;
 my $user_in;
 my $ret_val;
 
@@ -140,17 +141,16 @@ if (chk_opt($socket, 'CHKVFO')) {
 
 # Interactive loop
 do {
-    my @cmd_str;
 
     print "rigctld command: ";
     chomp($user_in = <>);
 
     # F, \set_freq
-    if ($user_in =~ /^F\s\d+\b$/ or $user_in =~ /^\\set_freq\s\d+\b$/) {
-        if ($rig_caps{'Can set frequency'} eq 'Y') {
+    if ($user_in =~ /^(F|\\set_freq)\s+(\d+)\b$/) {
+        if ($rig_caps{'Can set Frequency'} eq 'Y') {
             # Get the entered frequency value
-            @cmd_str = split(' ', $user_in);
-            $ret_val = rig_cmd('set_freq', $vfo, $cmd_str[1]);
+            print "Freq = $2\n" if $debug;
+            $ret_val = rig_cmd('set_freq', $vfo, $2);
 
             unless ($ret_val eq $errstr{'RIG_OK'}) {
                 errmsg ($ret_val);
@@ -161,13 +161,13 @@ do {
     }
 
     # f, \get_freq
-    elsif ($user_in =~ /^f\b$/ or $user_in =~ /^\\get_freq\b$/) {
-        if ($rig_caps{'Can get mode'} eq 'Y') {
+    elsif ($user_in =~ /^(f|\\get_freq)\b$/) {
+        if ($rig_caps{'Can get Frequency'} eq 'Y') {
             # Query rig and process result
             $ret_val = rig_cmd('get_freq', $vfo);
 
             if ($ret_val eq $errstr{'RIG_OK'}) {
-                print "Frequency: $rig_state{Frequency}\n\n";
+                print "Frequency: " . $rig_state{Frequency} . "\n\n";
             } else {
                 errmsg ($ret_val);
             }
@@ -177,11 +177,11 @@ do {
     }
 
     # M, \set_mode
-    elsif ($user_in =~ /^M\s[A-Z]+\s\d+\b$/ or $user_in =~ /^\\set_mode\s[A-Z]+\s\d+\b$/) {
-        if ($rig_caps{'Can set mode'} eq 'Y') {
+    elsif ($user_in =~ /^(M|\\set_mode)\s+([A-Z]+)\s+(\d+)\b$/) {
+        if ($rig_caps{'Can set Mode'} eq 'Y') {
             # Get the entered mode and passband values
-            @cmd_str = split(' ', $user_in);
-            $ret_val = rig_cmd('set_mode', $vfo, $cmd_str[1], $cmd_str[2]);
+            print "Mode = $2, Passband = $3\n" if $debug;
+            $ret_val = rig_cmd('set_mode', $vfo, $2, $3);
 
             unless ($ret_val eq $errstr{'RIG_OK'}) {
                 errmsg ($ret_val);
@@ -192,15 +192,15 @@ do {
     }
 
     # m, \get_mode
-    elsif ($user_in =~ /^m\b$/ or $user_in =~ /^\\get_mode\b$/) {
-        if ($rig_caps{'Can get mode'} eq 'Y') {
+    elsif ($user_in =~ /^(m|\\get_mode)\b$/) {
+        if ($rig_caps{'Can get Mode'} eq 'Y') {
 
             # Do the same for the mode (reading the mode also returns the bandwidth)
             $ret_val = rig_cmd('get_mode', $vfo);
 
             if ($ret_val eq $errstr{'RIG_OK'}) {
-                print "Mode: $rig_state{Mode}\n";
-                print "Passband: $rig_state{Passband}\n\n";
+                print "Mode: " . $rig_state{Mode} . "\n";
+                print "Passband: " . $rig_state{Passband} . "\n\n";
             } else {
                 errmsg ($ret_val);
             }
@@ -210,10 +210,10 @@ do {
     }
 
     # V, \set_vfo
-    elsif ($user_in =~ /^V\s[A-Za-z]+\b$/ or $user_in =~ /^\\set_vfo\s[A-Za-z]+\b$/) {
-        if ($rig_caps{'Can set vfo'} eq 'Y') {
-            @cmd_str = split(' ', $user_in);
-            $ret_val = rig_cmd('set_vfo', $cmd_str[1]); # $vfo not used!
+    elsif ($user_in =~ /^(V|\\set_vfo)\s+([A-Za-z]+)\b$/) {
+        if ($rig_caps{'Can set VFO'} eq 'Y') {
+            print "VFO = $2\n" if $debug;
+            $ret_val = rig_cmd('set_vfo', $2); # $vfo not used!
 
             unless ($ret_val eq $errstr{'RIG_OK'}) {
                 errmsg ($ret_val);
@@ -224,12 +224,223 @@ do {
     }
 
     # v, \get_vfo
-    elsif ($user_in =~ /^v\b$/ or $user_in =~ /^\\get_vfo\b$/) {
-        if ($rig_caps{'Can get vfo'} eq 'Y') {
+    elsif ($user_in =~ /^(v|\\get_vfo)\b$/) {
+        if ($rig_caps{'Can get VFO'} eq 'Y') {
             $ret_val = rig_cmd('get_vfo', $vfo);
 
             if ($ret_val eq $errstr{'RIG_OK'}) {
-                print "VFO: $rig_state{VFO}\n\n";
+                print "VFO: " . $rig_state{VFO} . "\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # J, \set_rit
+    elsif ($user_in =~ /^(J|\\set_rit)\s+([+-]?\d+)\b$/) {
+        if ($rig_caps{'Can set RIT'} eq 'Y') {
+            print "RIT freq = $2\n" if $debug;
+            $ret_val = rig_cmd('set_rit', $vfo, $2);
+
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # j, \get_rit
+    elsif ($user_in =~ /^(j|\\get_rit)\b$/) {
+        if ($rig_caps{'Can get RIT'} eq 'Y') {
+            $ret_val = rig_cmd('get_rit', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "RIT: " . $rig_state{RIT} . "\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # Z, \set_xit
+    elsif ($user_in =~ /^(Z|\\set_xit)\s+([+-]?\d+)\b$/) {
+        if ($rig_caps{'Can set XIT'} eq 'Y') {
+            print "XIT freq = $2\n" if $debug;
+            $ret_val = rig_cmd('set_xit', $vfo, $2);
+
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # z, \get_xit
+    elsif ($user_in =~ /^(z|\\get_xit)\b$/) {
+        if ($rig_caps{'Can get XIT'} eq 'Y') {
+            $ret_val = rig_cmd('get_xit', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "XIT: " . $rig_state{XIT} . "\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # T, \set_ptt
+    elsif ($user_in =~ /^(T|\\set_ptt)\s+(\d)\b$/) {
+        if ($rig_caps{'Can set PTT'} eq 'Y') {
+            print "PTT = $2\n" if $debug;
+            $ret_val = rig_cmd('set_ptt', $vfo, $2);
+
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # t, \get_ptt
+    elsif ($user_in =~ /^(t|\\get_ptt)\b$/) {
+        if ($rig_caps{'Can get PTT'} eq 'Y') {
+            $ret_val = rig_cmd('get_ptt', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "PTT: " . $rig_state{PTT} . "\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # S, \set_split_vfo
+    elsif ($user_in =~ /^(S|\\set_split_vfo)\s+(\d)\s+([A-Za-z]+)\b$/) {
+        if ($rig_caps{'Can set Split VFO'} eq 'Y') {
+            print "split = $2, VFO = $3\n" if $debug;
+            $ret_val = rig_cmd('set_split_vfo', $vfo, $2, $3);
+
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # s, \get_split_vfo
+    elsif ($user_in =~ /^(s|\\get_split_vfo)\b$/) {
+        if ($rig_caps{'Can get Split VFO'} eq 'Y') {
+            $ret_val = rig_cmd('get_split_vfo', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "Split: " . $rig_state{Split} . "\n";
+                print "TX VFO: " . $rig_state{'TX VFO'} . "\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # I, \set_split_freq
+    elsif ($user_in =~ /^(I|\\set_split_freq)\s+(\d+)\b$/) {
+        if ($rig_caps{'Can set Split Freq'} eq 'Y') {
+            print "TX VFO freq = $2\n" if $debug;
+            $ret_val = rig_cmd('set_split_freq', $vfo, $2);
+
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # i, \get_split_freq
+    elsif ($user_in =~ /^(i|\\get_split_freq)\b$/) {
+        if ($rig_caps{'Can get Split Freq'} eq 'Y') {
+            $ret_val = rig_cmd('get_split_freq', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "TX Frequency: " . $rig_state{'TX Frequency'} . "\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # X, \set_split_mode
+    elsif ($user_in =~ /^(X|\\set_split_mode)\s+([A-Z]+)\s+(\d+)\b$/) {
+        if ($rig_caps{'Can set Split Mode'} eq 'Y') {
+            # Get the entered mode and passband values
+            print "TX Mode = $2, TX Passband = $3\n" if $debug;
+            $ret_val = rig_cmd('set_split_mode', $vfo, $2, $3);
+
+            unless ($ret_val eq $errstr{'RIG_OK'}) {
+                errmsg ($ret_val);
+        }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # x, \get_split_mode
+    elsif ($user_in =~ /^(x|\\get_split_mode)\b$/) {
+        if ($rig_caps{'Can get Split Mode'} eq 'Y') {
+
+            # Do the same for the mode (reading the mode also returns the bandwidth)
+            $ret_val = rig_cmd('get_split_mode', $vfo);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "TX Mode: " . $rig_state{'TX Mode'} . "\n";
+                print "TX Passband: " . $rig_state{'TX Passband'} . "\n\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # 2, \power2mW
+    elsif ($user_in =~ /^(2|\\power2mW)\s+(\d\.\d+)\s+(\d+)\s+([A-Za-z]+)\b$/) {
+        if ($rig_caps{'Can get power2mW'} eq 'Y') {
+            print "Power = $2, freq = $3, VFO = $4\n" if $debug;
+            $ret_val = rig_cmd('power2mW', $2, $3, $4);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "Power mW: " . $rig_state{'Power mW'} . "\n";
+            } else {
+                errmsg ($ret_val);
+            }
+        } else {
+            errmsg($errstr{'CTLD_ENIMPL'});
+        }
+    }
+
+    # 4, \mW2power
+    elsif ($user_in =~ /^(4|\\mW2power)\s+(\d+)\s+(\d+)\s+([A-Za-z]+)\b$/) {
+        if ($rig_caps{'Can get mW2power'} eq 'Y') {
+            print "mW = $2, freq = $3, VFO = $4\n" if $debug;
+            $ret_val = rig_cmd('mW2power', $2, $3, $4);
+
+            if ($ret_val eq $errstr{'RIG_OK'}) {
+                print "Power [0.0..1.0]: " . $rig_state{'Power [0.0..1.0]'} . "\n";
             } else {
                 errmsg ($ret_val);
             }
@@ -239,20 +450,20 @@ do {
     }
 
     # 1, \dump_caps
-    elsif ($user_in =~ /^1\b$/ or $user_in =~ /^\\dump_caps\b$/) {
+    elsif ($user_in =~ /^(1|\\dump_caps)\b$/) {
         $ret_val = dump_caps();
 
         if ($ret_val eq $errstr{'RIG_OK'}) {
-            print "Model: $rig_caps{'Caps dump for model'}\n";
-            print "Manufacturer: $rig_caps{'Mfg name'}\n";
-            print "Name: $rig_caps{'Model name'}\n\n";
+            print "Model: " . $rig_caps{'Caps dump for model'} . "\n";
+            print "Manufacturer: " . $rig_caps{'Mfg name'} . "\n";
+            print "Name: " . $rig_caps{'Model name'} . "\n\n";
         } else {
             errmsg ($ret_val);
         }
     }
 
     # ?, help
-    elsif ($user_in =~ /^\?$/ or $user_in =~ /^help\b$/i) {
+    elsif ($user_in =~ /^\?|^help\b$/) {
         print <<EOF;
 
 Commands are entered in the same format as described in the rigctld(8)
@@ -313,20 +524,22 @@ sub rig_cmd {
         $vfo = sprintf("%*s", 1 + length $vfo, $vfo);
     } else { $vfo = ''; }
 
-    if ($p1) {
+    if (defined $p1) {
         $p1 = sprintf("%*s", 1 + length $p1, $p1);
     } else { $p1 = ''; }
 
-    if ($p2) {
+    if (defined $p2) {
         $p2 = sprintf("%*s", 1 + length $p2, $p2);
     } else { $p2 = ''; }
 
-    if ($p3) {
+    if (defined $p3) {
         $p3 = sprintf("%*s", 1 + length $p3, $p3);
     } else { $p3 = ''; }
-print "\\$cmd$vfo$p1$p2$p3\n\n";
+
+    print '\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n\n" if $debug;
+
     # N.B. Terminate query commands with a newline, e.g. "\n" character.
-    print $socket "\\$cmd$vfo$p1$p2$p3\n";
+    print $socket '\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n";
 
     # rigctld echoes the command plus value(s) on "get" along with
     # separate lines for the queried value(s) and the Hamlib return value.
@@ -465,21 +678,6 @@ sub chk_opt {
 }
 
 
-# Parse the command line for supported options.  Print help text as needed.
-sub argv_opts {
-
-    # Parse options and print usage if there is a syntax error,
-    # or if usage was explicitly requested.
-    GetOptions('help|?'     => \$help,
-                man         => \$man,
-                "port=i"    => \$port,
-                "host=s"    => \$host
-            ) or pod2usage(2);
-    pod2usage(1) if $help;
-    pod2usage(-verbose => 2) if $man;
-
-}
-
 # FIXME:  Better argument handling
 sub errmsg {
 
@@ -492,6 +690,23 @@ sub errmsg {
     elsif ($_[0] eq $errstr{'CTLD_ENIMPL'}) {
         print "Function not yet implemented in Hamlib rig backend\n\n";
     }
+}
+
+
+# Parse the command line for supported options.  Print help text as needed.
+sub argv_opts {
+
+    # Parse options and print usage if there is a syntax error,
+    # or if usage was explicitly requested.
+    GetOptions('help|?'     => \$help,
+                man         => \$man,
+                "port=i"    => \$port,
+                "host=s"    => \$host,
+                debug       => \$debug
+            ) or pod2usage(2);
+    pod2usage(1) if $help;
+    pod2usage(-verbose => 2) if $man;
+
 }
 
 
@@ -512,6 +727,7 @@ testctld.pl [options]
     --port          TCP Port of target `rigctld' process
     --help          Brief help message
     --man           Full documentation
+    --debug         Enable debugging output
 
 =head1 DESCRIPTION
 
@@ -540,6 +756,10 @@ Prints a brief help message and exits.
 =item B<--man>
 
 Prints this manual page and exits.
+
+=item B<--debug>
+
+Enables debugging output to the console.
 
 =back
 
