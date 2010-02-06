@@ -385,41 +385,41 @@ int dumpcaps (RIG* rig, FILE *fout)
 	 *
 	 * TODO: keep me up-to-date with API call list!
 	 */
-	fprintf(fout, "Has init:\t%c\n", caps->rig_init != NULL ? 'Y' : 'N');
-	fprintf(fout, "Has cleanup:\t%c\n", caps->rig_cleanup != NULL ? 'Y' : 'N');
-	fprintf(fout, "Has open:\t%c\n", caps->rig_open != NULL ? 'Y' : 'N');
-	fprintf(fout, "Has close:\t%c\n", caps->rig_close != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set conf:\t%c\n", caps->set_conf != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get conf:\t%c\n", caps->get_conf != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set frequency:\t%c\n", caps->set_freq != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get frequency:\t%c\n", caps->get_freq != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set mode:\t%c\n", caps->set_mode != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get mode:\t%c\n", caps->get_mode != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set vfo:\t%c\n", caps->set_vfo != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get vfo:\t%c\n", caps->get_vfo != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set ptt:\t%c\n", caps->set_ptt != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get ptt:\t%c\n", caps->get_ptt != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get dcd:\t%c\n", caps->get_dcd != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set repeater duplex:\t%c\n", caps->set_rptr_shift != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get repeater duplex:\t%c\n", caps->get_rptr_shift != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set repeater offset:\t%c\n", caps->set_rptr_offs != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get repeater offset:\t%c\n", caps->get_rptr_offs != NULL ? 'Y' : 'N');
+	fprintf(fout, "Has Init:\t%c\n", caps->rig_init != NULL ? 'Y' : 'N');
+	fprintf(fout, "Has Cleanup:\t%c\n", caps->rig_cleanup != NULL ? 'Y' : 'N');
+	fprintf(fout, "Has Open:\t%c\n", caps->rig_open != NULL ? 'Y' : 'N');
+	fprintf(fout, "Has Close:\t%c\n", caps->rig_close != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Conf:\t%c\n", caps->set_conf != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Conf:\t%c\n", caps->get_conf != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Frequency:\t%c\n", caps->set_freq != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Frequency:\t%c\n", caps->get_freq != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Mode:\t%c\n", caps->set_mode != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Mode:\t%c\n", caps->get_mode != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set VFO:\t%c\n", caps->set_vfo != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get VFO:\t%c\n", caps->get_vfo != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set PTT:\t%c\n", caps->set_ptt != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get PTT:\t%c\n", caps->get_ptt != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get DCD:\t%c\n", caps->get_dcd != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Repeater Duplex:\t%c\n", caps->set_rptr_shift != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Repeater Duplex:\t%c\n", caps->get_rptr_shift != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Repeater Offset:\t%c\n", caps->set_rptr_offs != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Repeater Offset:\t%c\n", caps->get_rptr_offs != NULL ? 'Y' : 'N');
 
 	can_esplit = caps->set_vfo ||
 		(rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op);
-	fprintf(fout, "Can set split freq:\t%c\n", caps->set_split_freq != NULL ? 'Y' :
+	fprintf(fout, "Can set Split Freq:\t%c\n", caps->set_split_freq != NULL ? 'Y' :
 			(can_esplit && caps->set_freq ? 'E' : 'N'));
-	fprintf(fout, "Can get split freq:\t%c\n", caps->get_split_freq != NULL ? 'Y' :
+	fprintf(fout, "Can get Split Freq:\t%c\n", caps->get_split_freq != NULL ? 'Y' :
 			(can_esplit && caps->get_freq ? 'E' : 'N'));
-	fprintf(fout, "Can set split mode:\t%c\n", caps->set_split_mode != NULL ? 'Y' :
+	fprintf(fout, "Can set Split Mode:\t%c\n", caps->set_split_mode != NULL ? 'Y' :
 			(can_esplit && caps->set_mode ? 'E' : 'N'));
-	fprintf(fout, "Can get split mode:\t%c\n", caps->get_split_mode != NULL ? 'Y' :
+	fprintf(fout, "Can get Split Mode:\t%c\n", caps->get_split_mode != NULL ? 'Y' :
 			(can_esplit && caps->get_mode ? 'E' : 'N'));
 
-	fprintf(fout, "Can set split vfo:\t%c\n", caps->set_split_vfo != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get split vfo:\t%c\n", caps->get_split_vfo != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set tuning step:\t%c\n", caps->set_ts != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get tuning step:\t%c\n", caps->get_ts != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Split VFO:\t%c\n", caps->set_split_vfo != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Split VFO:\t%c\n", caps->get_split_vfo != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Tuning Step:\t%c\n", caps->set_ts != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Tuning Step:\t%c\n", caps->get_ts != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set RIT:\t%c\n", caps->set_rit != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get RIT:\t%c\n", caps->get_rit != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set XIT:\t%c\n", caps->set_xit != NULL ? 'Y' : 'N');
@@ -428,40 +428,42 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "Can get CTCSS:\t%c\n", caps->get_ctcss_tone != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set DCS:\t%c\n", caps->set_dcs_code != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get DCS:\t%c\n", caps->get_dcs_code != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set CTCSS squelch:\t%c\n", caps->set_ctcss_sql != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get CTCSS squelch:\t%c\n", caps->get_ctcss_sql != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set DCS squelch:\t%c\n", caps->set_dcs_sql != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get DCS squelch:\t%c\n", caps->get_dcs_sql != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set power stat:\t%c\n", caps->set_powerstat != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get power stat:\t%c\n", caps->get_powerstat != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can reset:\t%c\n", caps->reset != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get ant:\t%c\n", caps->get_ant != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set ant:\t%c\n", caps->set_ant != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set transceive:\t%c\n", caps->set_trn != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get transceive:\t%c\n", caps->get_trn != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set func:\t%c\n", caps->set_func != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get func:\t%c\n", caps->get_func != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set level:\t%c\n", caps->set_level != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get level:\t%c\n", caps->get_level != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set param:\t%c\n", caps->set_parm != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get param:\t%c\n", caps->get_parm != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set CTCSS Squelch:\t%c\n", caps->set_ctcss_sql != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get CTCSS Squelch:\t%c\n", caps->get_ctcss_sql != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set DCS Squelch:\t%c\n", caps->set_dcs_sql != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get DCS Squelch:\t%c\n", caps->get_dcs_sql != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Power Stat:\t%c\n", caps->set_powerstat != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Power Stat:\t%c\n", caps->get_powerstat != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can Reset:\t%c\n", caps->reset != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Ant:\t%c\n", caps->get_ant != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Ant:\t%c\n", caps->set_ant != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Transceive:\t%c\n", caps->set_trn != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Transceive:\t%c\n", caps->get_trn != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Func:\t%c\n", caps->set_func != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Func:\t%c\n", caps->get_func != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Level:\t%c\n", caps->set_level != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Level:\t%c\n", caps->get_level != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Param:\t%c\n", caps->set_parm != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Param:\t%c\n", caps->get_parm != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can send DTMF:\t%c\n", caps->send_dtmf != NULL ? 'Y ': 'N');
 	fprintf(fout, "Can recv DTMF:\t%c\n", caps->recv_dtmf != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can send Morse:\t%c\n", caps->send_morse != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can decode events:\t%c\n", caps->decode_event != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set bank:\t%c\n", caps->set_bank != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set mem:\t%c\n", caps->set_mem != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can get mem:\t%c\n", caps->get_mem != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can decode Events:\t%c\n", caps->decode_event != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Bank:\t%c\n", caps->set_bank != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Mem:\t%c\n", caps->set_mem != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get Mem:\t%c\n", caps->get_mem != NULL ? 'Y' : 'N');
 
 	can_echannel = caps->set_mem && caps->set_vfo;
-	fprintf(fout, "Can set channel:\t%c\n", caps->set_channel != NULL ? 'Y' :
+	fprintf(fout, "Can set Channel:\t%c\n", caps->set_channel != NULL ? 'Y' :
 			(can_echannel ? 'E' : 'N'));
-	fprintf(fout, "Can get channel:\t%c\n", caps->get_channel != NULL ? 'Y' :
+	fprintf(fout, "Can get Channel:\t%c\n", caps->get_channel != NULL ? 'Y' :
 			(can_echannel ? 'E' : 'N'));
 
-	fprintf(fout, "Can ctl mem/vfo:\t%c\n", caps->vfo_op != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can scan:\t%c\n", caps->scan != NULL ? 'Y' :' N');
-	fprintf(fout, "Can get info:\t%c\n", caps->get_info != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can ctl Mem/VFO:\t%c\n", caps->vfo_op != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can Scan:\t%c\n", caps->scan != NULL ? 'Y' :' N');
+	fprintf(fout, "Can get Info:\t%c\n", caps->get_info != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get power2mW:\t%c\n", caps->power2mW != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can get mW2power:\t%c\n", caps->mW2power != NULL ? 'Y' : 'N');
 
 
 	fprintf(fout, "\nOverall backend warnings: %d\n", backend_warnings);

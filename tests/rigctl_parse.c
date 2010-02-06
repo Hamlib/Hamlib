@@ -80,6 +80,7 @@ struct test_table {
 	const char *arg1;
 	const char *arg2;
 	const char *arg3;
+	const char *arg4;
 };
 
 
@@ -122,6 +123,7 @@ declare_proto_rig(get_split_vfo);
 declare_proto_rig(set_ts);
 declare_proto_rig(get_ts);
 declare_proto_rig(power2mW);
+declare_proto_rig(mW2power);
 declare_proto_rig(set_level);
 declare_proto_rig(get_level);
 declare_proto_rig(set_func);
@@ -168,36 +170,36 @@ static struct test_table test_list[] = {
 	{ 'f', "get_freq", get_freq, ARG_OUT, "Frequency" },
 	{ 'M', "set_mode", set_mode, ARG_IN, "Mode", "Passband" },
 	{ 'm', "get_mode", get_mode, ARG_OUT, "Mode", "Passband" },
-	{ 'I', "set_split_freq", set_split_freq, ARG_IN, "Tx frequency" },
-	{ 'i', "get_split_freq", get_split_freq, ARG_OUT, "Tx frequency" },
-	{ 'X', "set_split_mode", set_split_mode, ARG_IN, "Tx mode", "Tx passband" },
-	{ 'x', "get_split_mode", get_split_mode, ARG_OUT, "Tx mode", "Tx passband" },
-	{ 'S', "set_split_vfo", set_split_vfo, ARG_IN, "Split", "Tx VFO" },
-	{ 's', "get_split_vfo", get_split_vfo, ARG_OUT, "Split", "Tx VFO" },
-	{ 'N', "set_ts", set_ts, ARG_IN, "Tuning step" },
-	{ 'n', "get_ts", get_ts, ARG_OUT, "Tuning step" },
-	{ 'L', "set_level", set_level, ARG_IN, "Level", "Level value" },
-	{ 'l', "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Level value" },
-	{ 'U', "set_func", set_func, ARG_IN, "Func", "Func status" },
-	{ 'u', "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func status" },
-	{ 'P', "set_parm", set_parm, ARG_IN|ARG_NOVFO, "Parm", "Parm value" },
-	{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2|ARG_NOVFO, "Parm", "Parm value" },
-	{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO op" },
-	{ 'g', "scan", scan, ARG_IN, "Scan fct", "Scan channel" },
+	{ 'I', "set_split_freq", set_split_freq, ARG_IN, "TX Frequency" },
+	{ 'i', "get_split_freq", get_split_freq, ARG_OUT, "TX Frequency" },
+	{ 'X', "set_split_mode", set_split_mode, ARG_IN, "TX Mode", "TX Passband" },
+	{ 'x', "get_split_mode", get_split_mode, ARG_OUT, "TX Mode", "TX Passband" },
+	{ 'S', "set_split_vfo", set_split_vfo, ARG_IN, "Split", "TX VFO" },
+	{ 's', "get_split_vfo", get_split_vfo, ARG_OUT, "Split", "TX VFO" },
+	{ 'N', "set_ts", set_ts, ARG_IN, "Tuning Step" },
+	{ 'n', "get_ts", get_ts, ARG_OUT, "Tuning Step" },
+	{ 'L', "set_level", set_level, ARG_IN, "Level", "Level Value" },
+	{ 'l', "get_level", get_level, ARG_IN1|ARG_OUT2, "Level", "Level Value" },
+	{ 'U', "set_func", set_func, ARG_IN, "Func", "Func Status" },
+	{ 'u', "get_func", get_func, ARG_IN1|ARG_OUT2, "Func", "Func Status" },
+	{ 'P', "set_parm", set_parm, ARG_IN|ARG_NOVFO, "Parm", "Parm Value" },
+	{ 'p', "get_parm", get_parm, ARG_IN1|ARG_OUT2|ARG_NOVFO, "Parm", "Parm Value" },
+	{ 'G', "vfo_op", vfo_op, ARG_IN, "Mem/VFO Op" },
+	{ 'g', "scan", scan, ARG_IN, "Scan Fct", "Scan Channel" },
 	{ 'A', "set_trn", set_trn, ARG_IN|ARG_NOVFO, "Transceive" },
 	{ 'a', "get_trn", get_trn, ARG_OUT|ARG_NOVFO, "Transceive" },
-	{ 'R', "set_rptr_shift", set_rptr_shift, ARG_IN, "Rptr shift" },
-	{ 'r', "get_rptr_shift", get_rptr_shift, ARG_OUT, "Rptr shift" },
-	{ 'O', "set_rptr_offs", set_rptr_offs, ARG_IN, "Rptr offset" },
-	{ 'o', "get_rptr_offs", get_rptr_offs, ARG_OUT, "Rptr offset" },
-	{ 'C', "set_ctcss_tone", set_ctcss_tone, ARG_IN, "CTCSS tone" },
-	{ 'c', "get_ctcss_tone", get_ctcss_tone, ARG_OUT, "CTCSS tone" },
-	{ 'D', "set_dcs_code", set_dcs_code, ARG_IN, "DCS code" },
-	{ 'd', "get_dcs_code", get_dcs_code, ARG_OUT, "DCS code" },
-	{ 0x90, "set_ctcss_sql", set_ctcss_sql, ARG_IN, "CTCSS sql" },
-	{ 0x91, "get_ctcss_sql", get_ctcss_sql, ARG_OUT, "CTCSS sql" },
-	{ 0x92, "set_dcs_sql", set_dcs_sql, ARG_IN, "DCS sql" },
-	{ 0x93, "get_dcs_sql", get_dcs_sql, ARG_OUT, "DCS sql" },
+	{ 'R', "set_rptr_shift", set_rptr_shift, ARG_IN, "Rptr Shift" },
+	{ 'r', "get_rptr_shift", get_rptr_shift, ARG_OUT, "Rptr Shift" },
+	{ 'O', "set_rptr_offs", set_rptr_offs, ARG_IN, "Rptr Offset" },
+	{ 'o', "get_rptr_offs", get_rptr_offs, ARG_OUT, "Rptr Offset" },
+	{ 'C', "set_ctcss_tone", set_ctcss_tone, ARG_IN, "CTCSS Tone" },
+	{ 'c', "get_ctcss_tone", get_ctcss_tone, ARG_OUT, "CTCSS Tone" },
+	{ 'D', "set_dcs_code", set_dcs_code, ARG_IN, "DCS Code" },
+	{ 'd', "get_dcs_code", get_dcs_code, ARG_OUT, "DCS Code" },
+	{ 0x90, "set_ctcss_sql", set_ctcss_sql, ARG_IN, "CTCSS Sql" },
+	{ 0x91, "get_ctcss_sql", get_ctcss_sql, ARG_OUT, "CTCSS Sql" },
+	{ 0x92, "set_dcs_sql", set_dcs_sql, ARG_IN, "DCS Sql" },
+	{ 0x93, "get_dcs_sql", get_dcs_sql, ARG_OUT, "DCS Sql" },
 	{ 'V', "set_vfo", set_vfo, ARG_IN|ARG_NOVFO, "VFO" },
 	{ 'v', "get_vfo", get_vfo, ARG_OUT, "VFO" },
 	{ 'T', "set_ptt", set_ptt, ARG_IN, "PTT" },
@@ -214,15 +216,16 @@ static struct test_table test_list[] = {
 	{ 'z', "get_xit", get_xit, ARG_OUT, "XIT" },
 	{ 'Y', "set_ant", set_ant, ARG_IN, "Antenna" },
 	{ 'y', "get_ant", get_ant, ARG_OUT, "Antenna" },
-	{ 0x87, "set_powerstat", set_powerstat, ARG_IN|ARG_NOVFO, "Status" },
-	{ 0x88, "get_powerstat", get_powerstat, ARG_OUT|ARG_NOVFO, "Status" },
+	{ 0x87, "set_powerstat", set_powerstat, ARG_IN|ARG_NOVFO, "Power Status" },
+	{ 0x88, "get_powerstat", get_powerstat, ARG_OUT|ARG_NOVFO, "Power Status" },
 	{ 0x89, "send_dtmf", send_dtmf, ARG_IN, "Digits" },
 	{ 0x8a, "recv_dtmf", recv_dtmf, ARG_OUT, "Digits" },
 	{ '*', "reset", reset, ARG_IN, "Reset" },
 	{ 'w', "send_cmd", send_cmd, ARG_IN1|ARG_IN_LINE|ARG_OUT2|ARG_NOVFO, "Cmd", "Reply" },
 	{ 'b', "send_morse", send_morse, ARG_IN|ARG_IN_LINE, "Morse" },
 	{ 0x8b, "get_dcd", get_dcd, ARG_OUT, "DCD" },
-	{ '2', "power2mW", power2mW, ARG_NOVFO },
+	{ '2', "power2mW", power2mW, ARG_IN1|ARG_IN2|ARG_IN3|ARG_OUT1|ARG_NOVFO, "Power [0.0..1.0]", "Frequency", "Mode", "Power mW" },
+	{ '4', "mW2power", mW2power, ARG_IN1|ARG_IN2|ARG_IN3|ARG_OUT1|ARG_NOVFO, "Power mW", "Frequency", "Mode", "Power [0.0..1.0]" },
 	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
 	{ '3', "dump_conf", dump_conf, ARG_NOVFO },
 	{ 0x8f,"dump_state", dump_state, ARG_OUT|ARG_NOVFO },
@@ -680,7 +683,7 @@ declare_proto_rig(get_rit)
 	status = rig_get_rit(rig, vfo, &rit);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rit);
 
@@ -705,7 +708,7 @@ declare_proto_rig(get_xit)
 	status = rig_get_xit(rig, vfo, &xit);
 	if (status != RIG_OK)
 		return status;
-	if (interactive && prompt)
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", xit);
 
@@ -1086,25 +1089,47 @@ declare_proto_rig(get_ts)
 }
 
 /* '2' */
-/* FIXME: For rigctld */
 declare_proto_rig(power2mW)
 {
 	int status;
 	float power;
 	freq_t freq;
-	int mode;
+	rmode_t mode;
 	unsigned int mwp;
 
-	fprintf(fout, "Power [0.0 .. 1.0]: ");
-	status = scanf("%f", &power);
-	fprintf(fout, "Frequency: ");
-	status = scanf("%"SCNfreq, &freq);
-	fprintf(fout, "Mode: ");
-	status = scanf("%d", &mode);
-	status = rig_power2mW(rig, &mwp, power, freq, (rmode_t) mode);
-	fprintf(fout, "rig_power2mW()-Power: %d mW\n", mwp);
-	status = rig_mW2power(rig, &power, mwp, freq, (rmode_t) mode);
-	fprintf(fout, "rig_mW2power()-Power ratio [0.0 .. 1.0]: %f\n", power);
+	sscanf(arg1, "%f", &power);
+	sscanf(arg2, "%"SCNfreq, &freq);
+	mode = rig_parse_mode(arg3);
+
+	status = rig_power2mW(rig, &mwp, power, freq, mode);
+	if (status != RIG_OK)
+		return status;
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+		fprintf(fout, "%s: ", cmd->arg4);
+	fprintf(fout, "%i\n", mwp);
+
+	return status;
+}
+
+/* '4' */
+declare_proto_rig(mW2power)
+{
+	int status;
+	float power;
+	freq_t freq;
+	rmode_t mode;
+	unsigned int mwp;
+
+	sscanf(arg1, "%i", &mwp);
+	sscanf(arg2, "%"SCNfreq, &freq);
+	mode = rig_parse_mode(arg3);
+
+	status = rig_mW2power(rig, &power, mwp, freq, mode);
+	if (status != RIG_OK)
+		return status;
+	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+		fprintf(fout, "%s: ", cmd->arg4);
+	fprintf(fout, "%f\n", power);
 
 	return status;
 }
