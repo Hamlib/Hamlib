@@ -36,8 +36,8 @@
 #endif
 
 #include <stdlib.h>
-#include <string.h>	/* String function definitions */
-#include <unistd.h>	/* UNIX standard function definitions */
+#include <string.h> /* String function definitions */
+#include <unistd.h> /* UNIX standard function definitions */
 
 #include "hamlib/rig.h"
 #include "bandplan.h"
@@ -48,7 +48,7 @@
 
 
 /*
- * Functions considered to be Beta code (2007-11-25):
+ * Functions considered to be Stable (2010-01-29):
  * set_vfo
  * get_vfo
  * set_freq
@@ -65,8 +65,6 @@
  * get_rit
  * set_xit
  * get_xit
- *
- * Functions considered to be Alpha code (2007-11-24):
  * set_ptt
  * get_ptt
  */
@@ -133,6 +131,8 @@ struct ft920_priv_data {
     unsigned char pacing;                       /* pacing value */
     unsigned int read_update_delay;             /* depends on pacing value */
     vfo_t current_vfo;                          /* active VFO from last cmd */
+    vfo_t split_vfo;                            /* TX VFO in split mode */
+    split_t split;                              /* split active or not */
     unsigned char p_cmd[YAESU_CMD_LENGTH];      /* private copy of 1 constructed CAT cmd */
     yaesu_cmd_set_t pcs[FT920_NATIVE_SIZE];     /* private cmd set */
     unsigned char update_data[FT920_VFO_DATA_LENGTH];   /* returned data--max value, some are less */
@@ -148,7 +148,7 @@ const struct rig_caps ft920_caps = {
     .rig_model =        RIG_MODEL_FT920,
     .model_name =       "FT-920",
     .mfg_name =         "Yaesu",
-    .version =          "0.3.5",
+    .version =          "2010-02-05",           /* YYYY-MM-DD */
     .copyright =        "LGPL",
     .status =           RIG_STATUS_STABLE,
     .rig_type =         RIG_TYPE_TRANSCEIVER,
@@ -250,7 +250,7 @@ const struct rig_caps ft920_caps = {
         {RIG_MODE_PKTLSB, kHz(1.8)},/* Alias of MODE_DATA_L */
         {RIG_MODE_PKTLSB, kHz(0.5)},/* Alias of MODE_DATA_LN */
         {RIG_MODE_PKTUSB,kHz(2.4)}, /* Alias for MODE DATA_U */
-	{RIG_MODE_PKTUSB, kHz(0.5)},/* Alias of MODE_DATA_UN */
+        {RIG_MODE_PKTUSB, kHz(0.5)},/* Alias of MODE_DATA_UN */
         {RIG_MODE_PKTFM, kHz(12)},  /* Alias for MODE_DATA _F */
         {RIG_MODE_PKTFM, kHz(6)},   /* Alias for MODE_DATA_FN */
 
@@ -408,7 +408,7 @@ static int ft920_cleanup(RIG *rig) {
 
 /*
  * rig_open*
- * 
+ *
  */
 
 static int ft920_open(RIG *rig) {
@@ -449,7 +449,7 @@ static int ft920_open(RIG *rig) {
 
 /*
  * rig_close*
- * 
+ *
  */
 
 static int ft920_close(RIG *rig) {
@@ -463,7 +463,7 @@ static int ft920_close(RIG *rig) {
 
 
 /*
- * rig_get_freq*
+ * rig_set_freq*
  *
  * Set freq for a given VFO
  *
@@ -668,13 +668,13 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
             break;
         case RIG_MODE_PKTLSB:
             mode_parm = MODE_SET_A_DATA_L;
-            break;	
+            break;
         case RIG_MODE_PKTUSB:
             mode_parm = MODE_SET_A_DATA_U;
             break;
         case RIG_MODE_PKTFM:
             mode_parm = MODE_SET_A_DATA_F;
-            break;	
+            break;
         default:
             return -RIG_EINVAL;         /* sorry, wrong MODE */
         }
@@ -710,7 +710,7 @@ static int ft920_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
             break;
         case RIG_MODE_PKTFM:
             mode_parm = MODE_SET_B_DATA_F;
-            break;	
+            break;
         default:
             return -RIG_EINVAL;
         }
@@ -978,10 +978,12 @@ static int ft920_set_vfo(RIG *rig, vfo_t vfo) {
     switch(vfo) {
     case RIG_VFO_A:
     case RIG_VFO_VFO:
+    case RIG_VFO_MAIN:
         cmd_index = FT920_NATIVE_VFO_A;
         priv->current_vfo = vfo;        /* update active VFO */
         break;
     case RIG_VFO_B:
+    case RIG_VFO_SUB:
         cmd_index = FT920_NATIVE_VFO_B;
         priv->current_vfo = vfo;
         break;
@@ -1105,11 +1107,11 @@ static int ft920_get_vfo(RIG *rig, vfo_t *vfo) {
  * *rig         | input     | pointer to private data
  * vfo          | input     | not used
  * split        | input     | RIG_SPLIT_ON, RIG_SPLIT_OFF
- * tx_vfo       | input     | not used
+ * tx_vfo       | input     | VFO to use for TX (not used)
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
- * Comments:    VFO cannot be set as the set split on command only
+ * Comments:    VFO cannot be set as the set split_on command only
  *              changes the TX to the sub display.  Setting split off
  *              returns the TX to the main display.
  *
@@ -1126,6 +1128,19 @@ static int ft920_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
     rig_debug(RIG_DEBUG_TRACE, "%s: passed split = 0x%02x\n", __func__, split);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed tx_vfo = 0x%02x\n", __func__, tx_vfo);
+
+    switch(tx_vfo) {
+    case RIG_VFO_A:
+    case RIG_VFO_MAIN:
+    case RIG_VFO_VFO:
+        break;
+    case RIG_VFO_B:
+    case RIG_VFO_SUB:
+        break;
+    default:
+        return -RIG_EINVAL;
+    }
 
     switch(split) {
     case RIG_SPLIT_OFF:
@@ -1187,12 +1202,20 @@ static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
     rig_debug(RIG_DEBUG_TRACE, "%s: split status_0 = 0x%02x\n", __func__, status_0);
 
     switch (status_0) {
-    case SF_SPLITA:
-    case SF_SPLITB:
+    case SF_SPLITA:         /* VFOB (sub display) is TX  Got that? */
+        *tx_vfo = RIG_VFO_B;
+        *split = RIG_SPLIT_ON;
+        break;
+    case SF_SPLITB:         /* VFOA is TX */
+        *tx_vfo = RIG_VFO_A;
         *split = RIG_SPLIT_ON;
         break;
     case SF_VFOA:
+        *tx_vfo = RIG_VFO_A;
+        *split = RIG_SPLIT_OFF;
+        break;
     case SF_VFOB:
+        *tx_vfo = RIG_VFO_B;
         *split = RIG_SPLIT_OFF;
         break;
     default:
@@ -1216,14 +1239,14 @@ static int ft920_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
- * Comments:    Right now this is just a pass-through function and depends
- *              on the user app to "know" which VFO to set.
+ * Comments:    Checks to see if 920 is in split mode and if so sets
+ *              the frequency of the TX VFO.  If not in split mode
+ *              does nothing and returns.
  *
- *              Does this need to determine the split direction and set
- *              accordingly?
  */
 
 static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq) {
+    struct ft920_priv_data *priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1231,10 +1254,24 @@ static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq) {
     if (!rig)
         return -RIG_EINVAL;
 
-    err = ft920_set_freq(rig, vfo, tx_freq);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed freq = %"PRIfreq" Hz\n", __func__, tx_freq);
+
+    priv = (struct ft920_priv_data *)rig->state.priv;
+
+    err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
     if (err != RIG_OK)
         return err;
 
+    switch ((int)priv->split) {
+    case TRUE:              /* '920 is in split mode */
+        err = ft920_set_freq(rig, priv->split_vfo, tx_freq);
+        if (err != RIG_OK)
+            return err;
+        break;
+    default:
+        break;
+    }
     return RIG_OK;
 }
 
@@ -1252,15 +1289,16 @@ static int ft920_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq) {
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
- * Comments:    Right now this is just a pass-through function and depends
- *              on the user app to "know" which VFO to set.
+ * Comments:    Checks to see if the 920 is in split mode, if so it
+ *              checks which VFO is set for TX and then gets the
+ *              frequency of that VFO and stores it into *tx_freq.
+ *              If not in split mode returns 0 Hz.
  *
- *              Does this need to determine the split direction and set
- *              accordingly?
  */
 
 static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
 {
+    struct ft920_priv_data *priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1268,10 +1306,22 @@ static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
     if (!rig)
         return -RIG_EINVAL;
 
-    err = ft920_get_freq(rig, vfo, tx_freq);
+    priv = (struct ft920_priv_data *)rig->state.priv;
+
+    err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
     if (err != RIG_OK)
         return err;
 
+    switch ((int)priv->split) {
+    case TRUE:              /* '920 is in split mode */
+        err = ft920_get_freq(rig, priv->split_vfo, tx_freq);
+        if (err != RIG_OK)
+            return err;
+        break;
+    default:
+        *tx_freq = 0;
+        break;
+    }
     return RIG_OK;
 }
 
@@ -1290,15 +1340,15 @@ static int ft920_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
- * Comments:    Right now this is just a pass-through function and depends
- *              on the user app to "know" which VFO to set.
+ * Comments:    Checks to see if 920 is in split mode and if so sets
+ *              the mode and passband of the TX VFO.  If not in split mode
+ *              does nothing and returns.
  *
- *              Does this need to determine the split direction and set
- *              accordingly?
  */
 
 static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
 {
+    struct ft920_priv_data *priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1306,10 +1356,25 @@ static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
     if (!rig)
         return -RIG_EINVAL;
 
-    err = ft920_set_mode(rig, vfo, tx_mode, tx_width);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x\n", __func__, vfo);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed mode = %i\n", __func__, tx_mode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: passed width = %li Hz\n", __func__, tx_width);
+
+    priv = (struct ft920_priv_data *)rig->state.priv;
+
+    err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
     if (err != RIG_OK)
         return err;
 
+    switch ((int)priv->split) {
+    case TRUE:              /* '920 is in split mode */
+        err = ft920_set_mode(rig, priv->split_vfo, tx_mode, tx_width);
+        if (err != RIG_OK)
+            return err;
+        break;
+    default:
+        break;
+    }
     return RIG_OK;
 }
 
@@ -1328,15 +1393,17 @@ static int ft920_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t 
  * ------------------------------------------------------------------
  * Returns RIG_OK on success or an error code on failure
  *
- * Comments:    Right now this is just a pass-through function and depends
- *              on the user app to "know" which VFO to set.
+ * Comments:    Checks to see if the 920 is in split mode, if so it
+ *              checks which VFO is set for TX and then gets the
+ *              mode and passband of that VFO and stores it into *tx_mode
+ *              and tx_width respectively.  If not in split mode returns
+ *              RIG_MODE_NONE and 0 Hz.
  *
- *              Does this need to determine the split direction and set
- *              accordingly?
  */
 
 static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
 {
+    struct ft920_priv_data *priv;
     int err;
 
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -1344,10 +1411,23 @@ static int ft920_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t
     if (!rig)
         return -RIG_EINVAL;
 
-    err = ft920_get_mode(rig, vfo, tx_mode, tx_width);
+    priv = (struct ft920_priv_data *)rig->state.priv;
+
+    err = ft920_get_split_vfo(rig, vfo, &priv->split, &priv->split_vfo);
     if (err != RIG_OK)
         return err;
 
+    switch ((int)priv->split) {
+    case TRUE:              /* '920 is in split mode */
+        err = ft920_get_mode(rig, priv->split_vfo, tx_mode, tx_width);
+        if (err != RIG_OK)
+            return err;
+        break;
+    default:
+        *tx_mode = RIG_MODE_NONE;
+        *tx_width = 0;
+        break;
+    }
     return RIG_OK;
 }
 
@@ -1579,7 +1659,7 @@ static int ft920_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     if (!rig)
         return -RIG_EINVAL;
 
-    err = ft920_get_rit(rig, vfo, xit);	/* abuse get_rit and store in *xit */
+    err = ft920_get_rit(rig, vfo, xit); /* abuse get_rit and store in *xit */
     if (err != RIG_OK)
         return err;
 
@@ -1677,7 +1757,7 @@ static int ft920_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     priv = (struct ft920_priv_data *)rig->state.priv;
 
     /* Get flags for VFO status */
@@ -1809,7 +1889,7 @@ static int ft920_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 
     if (!rig)
         return -RIG_EINVAL;
-  
+
     priv = (struct ft920_priv_data *)rig->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s: passed vfo = 0x%02x, func = 0x%02x\n",
