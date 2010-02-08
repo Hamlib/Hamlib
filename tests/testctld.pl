@@ -110,9 +110,9 @@ $socket = new IO::Socket::INET (PeerAddr    => $host,
 
 # Check rigctld's response to the \chk_blk command to be sure it was
 # invoked with the -b|--block option
-unless (chk_opt($socket, 'CHKBLK')) {
-    die "`rigctld' must be invoked with '-b' or '--block' option for $0\n";
-}
+#unless (chk_opt($socket, 'CHKBLK')) {
+#    die "`rigctld' must be invoked with '-b' or '--block' option for $0\n";
+#}
 
 
 print "Welcome to tesctld.pl a program to test `rigctld'\n";
@@ -478,17 +478,17 @@ F 28400000
 
 See `man rigctld' for complete command descriptions.
 
-Type 'exit' or 'quit' to exit $0.
+Type 'q' or 'exit' to exit $0.
 
 EOF
 
     }
 
-    elsif ($user_in !~ /^(exit|quit)\b$/i) {
+    elsif ($user_in !~ /^(exit|q)\b$/i) {
         print "Unrecognized command.  Type '?' or 'help' for command help.\n"
     }
 
-} while ($user_in !~ /^(exit|quit)\b$/i);
+} while ($user_in !~ /^(exit|q)\b$/i);
 
 
 # Close the connection before we exit.
@@ -536,10 +536,11 @@ sub rig_cmd {
         $p3 = sprintf("%*s", 1 + length $p3, $p3);
     } else { $p3 = ''; }
 
-    print '\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n\n" if $debug;
+    print '+\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n\n" if $debug;
 
     # N.B. Terminate query commands with a newline, e.g. "\n" character.
-    print $socket '\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n";
+    # N.B. Preceding '+' char to request block or extended response protocol
+    print $socket '+\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n";
 
     # rigctld echoes the command plus value(s) on "get" along with
     # separate lines for the queried value(s) and the Hamlib return value.
@@ -569,7 +570,7 @@ sub rig_cmd {
 sub dump_caps {
     my ($cmd, $errno, @answer);
 
-    print $socket "\\dump_caps\n";
+    print $socket "+\\dump_caps\n";
 
     @answer = get_rigctl($socket);
     $cmd = shift @answer;
@@ -652,10 +653,10 @@ sub chk_opt {
     my $sock = shift @_;
     my @lines;
 
-    if ($_[0] =~ /^CHKBLK/) {
-        print $sock "\\chk_blk\n";
-    }
-    elsif ($_[0] =~ /^CHKVFO/) {
+    #if ($_[0] =~ /^CHKBLK/) {
+        #print $sock "\\chk_blk\n";
+    #}
+    if ($_[0] =~ /^CHKVFO/) {
         print $sock "\\chk_vfo\n";
     }
 
