@@ -2,26 +2,26 @@
  * rigctl.c - (C) Stephane Fillod 2000-2009
  *
  * This program test/control a radio using Hamlib.
- * It takes commands in interactive mode as well as 
+ * It takes commands in interactive mode as well as
  * from command line options.
  *
- * $Id: rigctl.c,v 1.70 2009-01-04 14:49:17 fillods Exp $  
+ * $Id: rigctl.c,v 1.70 2009-01-04 14:49:17 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -53,7 +53,7 @@ void usage(void);
 
 
 /*
- * Reminder: when adding long options, 
+ * Reminder: when adding long options,
  * 		keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
@@ -86,7 +86,7 @@ static struct option long_options[] =
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
 int opt_end= 0;         /* only used by rigctld */
-int opt_block = 0;      /* only used by rigctld */
+//int opt_block = 0;      /* only used by rigctld */
 int vfo_mode;		/* vfo_mode=0 means target VFO is current VFO */
 
 char send_cmd_term = '\r';	/* send_cmd termination char */
@@ -251,7 +251,7 @@ int main (int argc, char *argv[])
 			"<hamlib-developer@lists.sourceforge.net>\n\n");
 
 	/*
-	 * at least one command on command line, 
+	 * at least one command on command line,
 	 * disable interactive mode
 	 */
 	if (optind < argc)
@@ -260,7 +260,7 @@ int main (int argc, char *argv[])
   	my_rig = rig_init(my_model);
 
 	if (!my_rig) {
-		fprintf(stderr, "Unknown rig num %d, or initialization error.\n", 
+		fprintf(stderr, "Unknown rig num %d, or initialization error.\n",
 						my_model);
 		fprintf(stderr, "Please check with --list option.\n");
 		exit(2);
@@ -275,7 +275,7 @@ int main (int argc, char *argv[])
 	if (rig_file)
 		strncpy(my_rig->state.rigport.pathname, rig_file, FILPATHLEN);
 
-	/* 
+	/*
 	 * ex: RIG_PTT_PARALLEL and /dev/parport0
 	 */
 	if (ptt_type != RIG_PTT_NONE)
@@ -318,7 +318,7 @@ int main (int argc, char *argv[])
 	if (verbose > 0)
 		printf("Opened rig model %d, '%s'\n", my_rig->caps->rig_model,
 				my_rig->caps->model_name);
-	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n", 
+	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
 			my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
 	do {

@@ -152,7 +152,6 @@ declare_proto_rig(set_powerstat);
 declare_proto_rig(get_powerstat);
 declare_proto_rig(send_dtmf);
 declare_proto_rig(recv_dtmf);
-declare_proto_rig(chk_blk);
 declare_proto_rig(chk_vfo);
 
 
@@ -229,8 +228,7 @@ static struct test_table test_list[] = {
 	{ '1', "dump_caps", dump_caps, ARG_NOVFO },
 	{ '3', "dump_conf", dump_conf, ARG_NOVFO },
 	{ 0x8f,"dump_state", dump_state, ARG_OUT|ARG_NOVFO },
-	{ 0xf0,"chk_blk", chk_blk, ARG_NOVFO },	/* rigctld only--check for block protocol */
-	{ 0xf1,"chk_vfo", chk_vfo, ARG_NOVFO },	/* rigctld only--check for VFO mode */
+	{ 0xf0,"chk_vfo", chk_vfo, ARG_NOVFO },	/* rigctld only--check for VFO mode */
 	{ 0x00, "", NULL },
 
 };
@@ -283,9 +281,9 @@ static int scanfc(FILE *fin, const char *format, void *p)
 extern int interactive;
 extern int prompt;
 extern int opt_end;
-extern int opt_block;
 extern int vfo_mode;
 extern char send_cmd_term;
+int ext_resp = 0;
 
 int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 {
@@ -306,6 +304,16 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		do {
 			if (scanfc(fin, "%c", &cmd) < 0)
 				return -1;
+
+			/* Extended response protocol requested with leading '+' on command
+			 * string--rigctld only! */
+			if (cmd == '+' && !prompt) {
+				ext_resp = 1;
+				if (scanfc(fin, "%c", &cmd) < 0)
+					return -1;
+			} else if (cmd == '+' && prompt) {
+				return 0;
+			}
 
 			/* command by name */
 			if (cmd == '\\') {
@@ -466,23 +474,25 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
 	if (!prompt)
-		rig_debug(RIG_DEBUG_TRACE, "rigctl(d): %c '%s' '%s' '%s'\n",
-				cmd, p1, p2, p3);
+		rig_debug(RIG_DEBUG_TRACE, "rigctl(d): %c '0x%02x' '%s' '%s' '%s'\n",
+				cmd, vfo, p1, p2, p3);
 
     /*
-     * Block protocol: output received command name and arguments response
-     * Don't send response on '\chk_blk' command
+     * Extended Response protocol: output received command name and arguments
+     * response.  Don't send command header on '\chk_vfo' command.
      */
-    if (interactive && opt_block && (cmd != 0xf0 && cmd != 0xf1)) {
-        char a1[MAXARGSZ+1];
-        char a2[MAXARGSZ+1];
-        char a3[MAXARGSZ+1];
+    if (interactive && ext_resp && cmd != 0xf0) {
+        char a1[MAXARGSZ + 1];
+        char a2[MAXARGSZ + 1];
+        char a3[MAXARGSZ + 1];
+        char vfo_str[MAXARGSZ + 1];
 
-        p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
+		vfo_mode == 0 ? vfo_str[0] = '\0' : snprintf(vfo_str, sizeof(vfo_str), " %s", rig_strvfo(vfo));
+		p1 == NULL ? a1[0] = '\0' : snprintf(a1, sizeof(a1), " %s", p1);
         p2 == NULL ? a2[0] = '\0' : snprintf(a2, sizeof(a2), " %s", p2);
         p3 == NULL ? a3[0] = '\0' : snprintf(a3, sizeof(a3), " %s", p3);
 
-        fprintf(fout, "%s:%s%s%s\n", cmd_entry->name, a1, a2, a3);
+        fprintf(fout, "%s:%s%s%s%s\n", cmd_entry->name, vfo_str, a1, a2, a3);
     }
 
 	retcode = (*cmd_entry->rig_routine)(my_rig, fout, interactive,
@@ -494,21 +504,28 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 
 
 	if (retcode != RIG_OK) {
-		if ((interactive && !prompt && opt_block) || (interactive && !prompt))
-  			fprintf(fout, NETRIGCTL_RET "%d\n", retcode);	/* only for rigctld */
+		/* only for rigctld */
+		if ((interactive && !prompt && ext_resp) || (interactive && !prompt)) {
+  			fprintf(fout, NETRIGCTL_RET "%d\n", retcode);
+  			ext_resp = 0;
+  		}
 		else
   			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
 	} else {
-//		rig_debug(RIG_DEBUG_TRACE, "rigctld: %d %s\n", cmd, cmd_entry->name);
-
-		if (interactive && !prompt) {	/* only for rigctld */
+		/* only for rigctld */
+		if (interactive && !prompt) {
+			/* netrigctl RIG_OK */
 			if (!(cmd_entry->flags & ARG_OUT)
-				&& !opt_end && !opt_block && (cmd != 0xf0 && cmd != 0xf1))	/* netrigctl RIG_OK */
+				&& !opt_end && !ext_resp && cmd != 0xf0)
 				fprintf(fout, NETRIGCTL_RET "0\n");
-			else if ((cmd_entry->flags & ARG_OUT) && opt_end)		/* Nate's protocol */
+			/* block marker protocol */
+            else if (ext_resp && cmd != 0xf0) {
+				fprintf(fout, NETRIGCTL_RET "0\n");
+				ext_resp = 0;
+			}
+			/* Nate's protocol (obsolete) */
+			else if ((cmd_entry->flags & ARG_OUT) && opt_end)
 				fprintf(fout, "END\n");
-            else if (opt_block && (cmd != 0xf0 && cmd != 0xf1))	/* block marker protocol */
-				fprintf(fout, NETRIGCTL_RET "0\n");
         }
 	}
 
@@ -658,7 +675,7 @@ declare_proto_rig(get_freq)
 	if (status != RIG_OK)
 		return status;
 
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1); /* i.e. "Frequency" */
 	fprintf(fout, "%"PRIll"\n", (long long)freq);
 
@@ -683,7 +700,7 @@ declare_proto_rig(get_rit)
 	status = rig_get_rit(rig, vfo, &rit);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rit);
 
@@ -708,7 +725,7 @@ declare_proto_rig(get_xit)
 	status = rig_get_xit(rig, vfo, &xit);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", xit);
 
@@ -744,10 +761,10 @@ declare_proto_rig(get_mode)
 	status = rig_get_mode(rig, vfo, &mode, &width);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strrmode(mode));
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
 
@@ -768,7 +785,7 @@ declare_proto_rig(get_vfo)
 	status = rig_get_vfo(rig, &vfo);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strvfo(vfo));
 
@@ -793,7 +810,7 @@ declare_proto_rig(get_ptt)
 	status = rig_get_ptt(rig, vfo, &ptt);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", ptt);
 
@@ -809,7 +826,7 @@ declare_proto_rig(get_dcd)
 	status = rig_get_dcd(rig, vfo, &dcd);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", dcd);
 
@@ -834,7 +851,7 @@ declare_proto_rig(get_rptr_shift)
 	status = rig_get_rptr_shift(rig, vfo, &rptr_shift);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strptrshift(rptr_shift));
 
@@ -859,7 +876,7 @@ declare_proto_rig(get_rptr_offs)
 	status = rig_get_rptr_offs(rig, vfo, &rptr_offs);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", rptr_offs);
 
@@ -884,7 +901,7 @@ declare_proto_rig(get_ctcss_tone)
 	status = rig_get_ctcss_tone(rig, vfo, &tone);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", tone);
 
@@ -909,7 +926,7 @@ declare_proto_rig(get_dcs_code)
 	status = rig_get_dcs_code(rig, vfo, &code);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", code);
 
@@ -934,7 +951,7 @@ declare_proto_rig(get_ctcss_sql)
 	status = rig_get_ctcss_sql(rig, vfo, &tone);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", tone);
 
@@ -959,7 +976,7 @@ declare_proto_rig(get_dcs_sql)
 	status = rig_get_dcs_sql(rig, vfo, &code);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", code);
 
@@ -986,7 +1003,7 @@ declare_proto_rig(get_split_freq)
 	status = rig_get_split_freq(rig, txvfo, &txfreq);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%"PRIll"\n", (long long)txfreq);
 
@@ -1024,10 +1041,10 @@ declare_proto_rig(get_split_mode)
 	status = rig_get_split_mode(rig, txvfo, &mode, &width);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", rig_strrmode(mode));
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%ld\n", width);
 
@@ -1053,10 +1070,10 @@ declare_proto_rig(get_split_vfo)
 	status = rig_get_split_vfo(rig, vfo, &split, &tx_vfo);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", split);
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg2);
 	fprintf(fout, "%s\n", rig_strvfo(tx_vfo));
 
@@ -1081,7 +1098,7 @@ declare_proto_rig(get_ts)
 	status = rig_get_ts(rig, vfo, &ts);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%ld\n", ts);
 
@@ -1104,7 +1121,7 @@ declare_proto_rig(power2mW)
 	status = rig_power2mW(rig, &mwp, power, freq, mode);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg4);
 	fprintf(fout, "%i\n", mwp);
 
@@ -1127,7 +1144,7 @@ declare_proto_rig(mW2power)
 	status = rig_mW2power(rig, &power, mwp, freq, mode);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg4);
 	fprintf(fout, "%f\n", power);
 
@@ -1436,7 +1453,7 @@ declare_proto_rig(get_mem)
 	status = rig_get_mem(rig, vfo, &ch);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", ch);
 
@@ -1722,7 +1739,7 @@ declare_proto_rig(get_trn)
 	status = rig_get_trn(rig, &trn);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", trn);
 
@@ -1735,7 +1752,7 @@ declare_proto_rig(get_info)
 	const char *s;
 
 	s = rig_get_info(rig);
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%s\n", s ? s : "None");
 
@@ -1923,7 +1940,7 @@ declare_proto_rig(get_ant)
 	status = rig_get_ant(rig, vfo, &ant);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", rig_setting2idx(ant));
 
@@ -1985,7 +2002,7 @@ declare_proto_rig(get_powerstat)
 	status = rig_get_powerstat(rig, &stat);
 	if (status != RIG_OK)
 		return status;
-	if ((interactive && prompt) || (interactive && !prompt && opt_block))
+	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
 	fprintf(fout, "%d\n", stat);
 
@@ -2075,14 +2092,6 @@ declare_proto_rig(send_cmd)
 		retval = RIG_OK;
 
 	return retval;
-}
-
-/* '0xf0'--test if rigctld called with -b|--block option */
-declare_proto_rig(chk_blk)
-{
-	fprintf(fout, "CHKBLK %d\n", opt_block);
-
-	return RIG_OK;
 }
 
 /* '0xf1'--test if rigctld called with -o|--vfo option */

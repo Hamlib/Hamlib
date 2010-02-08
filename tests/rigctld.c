@@ -68,7 +68,7 @@
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuobevhV"
+#define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuoevhV"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -86,7 +86,6 @@ static struct option long_options[] =
 	{"show-conf",0, 0, 'L'},
 	{"dump-caps",  0, 0, 'u'},
 	{"vfo",  0, 0, 'o'},
-	{"block", 0, 0, 'b'},
 	{"end-marker", 0, 0, 'e'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
@@ -107,7 +106,6 @@ void usage(void);
 int interactive = 1;    /* no cmd because of daemon */
 int prompt = 0;         /* Daemon mode for rigparse return string */
 int opt_end = 0;        /* END marker for rigctld */
-int opt_block = 0;      /* Block markers for rigctld */
 int vfo_mode = 0;       /* vfo_mode=0 means target VFO is current VFO */
 
 char send_cmd_term = '\r';     /* send_cmd termination char */
@@ -279,10 +277,7 @@ int main (int argc, char *argv[])
 				break;
 			case 'e':
 				opt_end++;
-				fprintf(stderr, "-e|--end-marker option is deprecated.  Please consider -b|--block instead.\n");
-				break;
-			case 'b':
-				opt_block++;
+				fprintf(stderr, "-e|--end-marker option is deprecated!\nPlease consider using the Extended Response protocol instead.\n");
 				break;
 			default:
 				usage();	/* unknown option? */
@@ -518,8 +513,7 @@ void usage(void)
 	"  -l, --list                 list all model numbers and exit\n"
 	"  -u, --dump-caps            dump capabilities and exit\n"
 	"  -o, --vfo                  do not default to VFO_CURR, require extra vfo arg\n"
-	"  -b, --block                use block rigctld protocol\n",
-	"  -e, --end-marker           use END marker in rigctld protocol\n"
+	"  -e, --end-marker           use END marker in rigctld protocol (obsolete)\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n",
