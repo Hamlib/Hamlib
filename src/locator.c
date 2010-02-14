@@ -539,7 +539,7 @@ int HAMLIB_API qrb(double lon1, double lat1, double lon2, double lat2, double *d
 	 * This method is easier than the one in the handbook
 	 */
 
-	
+
 	*distance = ARC_IN_KM * RADIAN * arc;
 
 	/* Short Path */
@@ -576,18 +576,28 @@ double HAMLIB_API distance_long_path(double distance) {
 
 /**
  * \brief Calculate the long path bearing between two points.
- * \param azimuth	The shortpath bearing
+ * \param azimuth	The shortpath bearing--0.0 to 360.0 degrees
  *
  *  Calculate the long path (respective of the short path)
  *  of a given bearing.
  *
- * \return the azimuth in decimal degrees for the opposite path.
+ * \return the azimuth in decimal degrees for the opposite path or
+ *  -RIG_EINVAL upon input error (outside the range of 0.0 to 360.0).
  *
  * \sa qrb()
  */
 
 double HAMLIB_API azimuth_long_path(double azimuth) {
-	return 360.0 - azimuth;
+    if (azimuth == 0.0 || azimuth == 360.0)
+        return 180.0;
+    else if (azimuth > 0.0 && azimuth < 180.0)
+        return 180.0 + azimuth;
+    else if (azimuth == 180.0)
+        return 0.0;
+    else if (azimuth > 180.0 && azimuth < 360.0)
+        return (180.0 - azimuth) * -1.0;
+    else
+        return -RIG_EINVAL;
 }
 
 /*! @} */
