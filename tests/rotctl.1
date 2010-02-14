@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "January 4, 2009" "Hamlib" "Rotator Control Program"
+.TH ROTCTL "1" "February 14, 2010" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -47,9 +47,9 @@ Select rotator model number. See model list (use 'rotctl -l').
 .TP
 .B \-r, --rot-file=device
 Use \fIdevice\fP as the file name of the port the rotator is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically 
-/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
-.br
+Often a serial port, but could be a USB to serial adapter or USB port device.
+Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+.sp
 Default is \fB/dev/rotator\fP (may be a symbolic link to the actual device).
 .TP
 .B \-s, --serial-speed=baud
@@ -67,7 +67,7 @@ See the \fIsend_cmd\fP command for further explanation.
 List all config parameters for the rotor defined with -m above.
 .TP
 .B \-C, --set-conf=parm=val[,parm=val]*
-Set config parameter.  e.g. stop_bits=2
+Set config parameter.  e.g. --set_conf=stop_bits=2
 .br
 Use -L option for a list.
 .TP
@@ -83,9 +83,13 @@ Show summary of these options and exit.
 .B \-V, \-\-version
 Show version of \fBrotctl\fP and exit.
 .PP
-\fBNOTE!\fP Some options may not be implemented by a given backend and will
+\fBN.B.\fP Some options may not be implemented by a given backend and will
 return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
 and \fI\-\-show-conf\fP options.
+.PP
+Please note that the backend for the rotator to be controlled,
+or the rotator itself may not support some commands. In that case,
+the operation will fail with a \fBHamlib\fP error code.
 .SH COMMANDS
 Commands can be entered either as a single char, or as a long command name.
 Basically, the commands do not take a dash in front of them, as
@@ -94,9 +98,10 @@ or provided as argument(s) in command line interface mode.
 .PP
 Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
 an upper case letter will be used for \fIset\fP method whereas the 
-corresponding lower case letter refers to the \fIget\fP method. In
-interactive mode, prepend a backslash to enter a long command name.
-.br
+corresponding lower case letter refers to the \fIget\fP method. Each operation
+also has a long name; in interactive mode, prepend a backslash to enter a long
+command name.
+.sp
 Example: Use "\\get_info" to see the rotor's info.
 .PP
 Please note that the backend for the rotator to be controlled, 
@@ -105,53 +110,132 @@ the operation will fail with a \fBHamlib\fP error message.
 .PP
 A summary of commands is included below.
 .TP
-.B P, set_pos
-Set position: azimuth and elevation.
+.B P, set_pos 'Azimuth' 'Elevation'
+Set position: Azimuth and Elevation as double precision floating point values.
 .TP
 .B p, get_pos
-Get position: azimuth and elevation.
+Get position: 'Azimuth' and 'Elevation' as double precision floating point values.
 .TP
-.B K, park
-Park the antenna.
+.B M, move 'Direction' 'Speed'
+Move the rotator in a specific direction at the given rate.
+.sp
+Values are integers where Direction is defined as 2 = Up, 4 = Down, 8 = Left,
+and 16 = Right.  Speed is an integer between 1 and 100.  Not all backends that
+implement the move command use the Speed value.  At this time only the gs232a
+utilizes the Speed parameter.
 .TP
 .B S, stop
 Stop the rotator.
 .TP
-.B R, reset
-Reset the rotator.
+.B K, park
+Park the antenna.
 .TP
-.B M, move
-Move the rotator in a specific direction.
-.TP
-.B C, set_conf
+.B C, set_conf 'Token' 'Value'
 Set a configuration parameter.  It is safe to give "Token" a value of '0'
 (zero).  "Value" may be a string up to 20 characters.
 .br
 See -L output
 .TP
+.B R, reset 'Reset'
+Reset the rotator.
+.sp
+Integer value of '1' for Reset All.
+.TP
 .B _, get_info
 Get misc information on the rotator.
+.sp
+At the moment returns 'Model Name'.
 .TP
-.B w, send_cmd
+.B w, send_cmd 'Cmd'
 Send raw command string to the rotator.
 .br
 <CR> (or send-cmd-term, see \fI-t\fP option) is appended automatically at the end
 of the command for text protocols.
 For binary protocols, enter values as \\0xAA\\0xBB
-
+.PP
+\fBLocator Commands\fP
+.PP
+These commands offer conversions of Degrees Minutes Seconds to other formats,
+Maidenhead square locator conversions and distance and azimuth conversions.
+.TP
+.B L, lonlat2loc 'Longitude' 'Latitude' 'Loc Len [2-12]'
+Returns the Maidenhead locator for the given 'Longitude' and 'Latitude'.
+.sp
+Both are floating point values.  The precision of the returned square is
+controlled by 'Loc Len' which should be an even numbered integer value between
+2 and 12.
+.sp
+For example, "+L -170.000000 -85.000000 12\\n" returns "Locator: AA55AA00AA00\\n".
+.TP
+.B  l, loc2lonlat 'Locator'
+Returns 'Longitude' and 'Latitude' in decimal degrees at the approximate
+center of the requested grid square (despite the use of double precision
+variables internally, some rounding error occurs).  West longitude is
+expressed as a negative value.  South latitude is expressed as a negative
+value.  Locator can be from 2 to 12 characters in length.
+.sp
+For example, "+l AA55AA00AA00\\n" returns "Longitude: -169.999983\\nLatitude:
+-84.999991\\n".
+.TP
+.B D, dms2dec 'Degrees' 'Minutes' 'Seconds' 'S/W'
+Returns 'Dec Degrees', a signed floating point value.
+.sp
+Degrees and Minutes are
+integer values and Seconds is a floating point value.  S/W is a flag with '1'
+indicating South latitude or West longitude and '0' North or East (the flag is
+needed as computers don't recognize a signed zero even though only the Degrees
+value only is typically signed in DMS notation).
+.TP
+.B d, dec2dms 'Dec Degrees'
+Returns 'Degrees' 'Minutes' 'Seconds' 'S/W'.
+.sp
+Values are as in dms2dec above.
+.TP
+.B E, dmmm2dec 'Degrees' 'Dec Minutes' 'S/W'
+Returns 'Dec Degrees', a signed floating point value.
+.sp
+Degrees is an integer
+value and Minutes is a floating point value.  S/W is a flag with '1'
+indicating South latitude or West longitude and '0' North or East (the flag is
+needed as computers don't recognize a signed zero even though only the Degrees
+value only is typically signed in DMS notation).
+.TP
+.B e, dec2dmmm 'Dec Deg'
+Returns 'Degrees' 'Minutes' 'S/W'.
+.sp
+Values are as in dmmm2dec above.
+.TP
+.B B, qrb 'Lon 1' 'Lat 1' 'Lon 2' 'Lat 2'
+Returns 'Distance' 'Azimuth' where Distance is in km and Azimuth is in degrees.
+.sp
+All Lon/Lat values are signed floating point numbers.
+.TP
+.B A, a_sp2a_lp 'Short Path Deg'
+Returns 'Long Path Deg' or -RIG_EINVAL upon input error..
+.sp
+Both are floating point values within the range 0.00 to 360.00.
+.TP
+.B a, d_sp2d_lp 'Short Path km'
+Returns 'Long Path km'.
+.sp
+Both are floating point values.
 .SH EXAMPLES
 Start \fBrotctl\fP for RotorEZ using COM1:
-
+.sp
 $ rotctl -m 401 -r /dev/ttyS0
-
+.sp
 Start \fBrotctl\fP using \fBrpc.rotd\fP:
-
+.sp
 $ rotctl -m 101
+Connect to a running \fBrotctld\fP with rotor model 2 ("NET rotctl") on the
+local host:
+.sp
+$ rotctl -m2
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
 -vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
-
+.PP
 A given verbose level is useful for providing needed debugging information to
 the email address below.  For example, TRACE output shows all of the values
 sent to and received from the radio which is very useful for radio backend
@@ -172,16 +256,21 @@ Report bugs to <hamlib-developer@lists.sourceforge.net>.
 .br
 We are already aware of the bug in the previous section :-)
 .SH AUTHOR
-Written by Stephane Fillod and the Hamlib Group 
+Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group 
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2009 Stephane Fillod and the Hamlib Group.
+Copyright \(co 2000-2009 Stephane Fillod
 .br
+Copyright \(co 2010 Nate Bargmann
+.br
+Copyright \(co 2000-2009 the Hamlib Group
+.PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
 .BR hamlib (3),
 .BR rpc.rotd (8)
+.BR rotctld (8)
 

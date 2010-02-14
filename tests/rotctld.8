@@ -70,6 +70,8 @@ Select rotator model number. See -l, "list" option below.
 Use \fIdevice\fP as the file name of the port the rotator is connected.
 Often a serial port, but could be a USB to serial adapter or USB port device.
 Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+.sp
+Default is \fB/dev/rotator\fP (may be a symbolic link to the actual device).
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotor
@@ -148,7 +150,6 @@ Set position: Azimuth and Elevation as double precision floating point values.
 Get position: 'Azimuth' and 'Elevation' as double precision floating point
 values.
 .TP
-.TP
 .B M, move 'Direction' 'Speed'
 Move the rotator in a specific direction at the given rate.
 .sp
@@ -159,6 +160,7 @@ utilizes the Speed parameter.
 .TP
 .B S, stop
 Stop the rotator.
+.TP
 .B K, park
 Park the antenna.
 .TP
