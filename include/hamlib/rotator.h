@@ -90,16 +90,18 @@ typedef float azimuth_t;
 typedef int rot_reset_t;
 
 
-/*! \def ROT_FLAG_AZIMUTH
- *  \brief A macro that returns the azimuth flag.
- */
-/*! \def ROT_FLAG_ELEVATION
- *  \brief A macro that returns the elevation flag.
- */
-#define ROT_FLAG_AZIMUTH		(1<<1)
-#define ROT_FLAG_ELEVATION		(1<<2)
+/** \brief Rotator type flags */
+typedef enum {
+	ROT_FLAG_AZIMUTH =		(1<<1),	/*!< Azimuth */
+	ROT_FLAG_ELEVATION =	(1<<2)	/*!< Elevation */
+} rot_type_t;
 
-#define ROT_TYPE_OTHER		    0
+#define ROT_TYPE_MASK (ROT_FLAG_AZIMUTH|ROT_FLAG_ELEVATION)
+
+#define ROT_TYPE_OTHER		0
+#define ROT_TYPE_AZIMUTH	ROT_FLAG_AZIMUTH
+#define ROT_TYPE_ELEVATION	ROT_FLAG_ELEVATION
+#define ROT_TYPE_AZEL		(ROT_FLAG_AZIMUTH|ROT_FLAG_ELEVATION)
 
 
 /*! \def ROT_MOVE_UP
@@ -250,7 +252,7 @@ struct rot_caps {
 };
 
 
-/*! 
+/*!
  * Rotator state
  * \struct rot_state
  * \brief Live data and customized fields.
@@ -267,7 +269,7 @@ struct rot_state {
 	 */
   azimuth_t min_az;            /*!< Lower limit for azimuth (overridable). */
   azimuth_t max_az;            /*!< Upper limit for azimuth (overridable). */
-  elevation_t min_el;          /*!< Lower limit for elevation (overridable). */                    
+  elevation_t min_el;          /*!< Lower limit for elevation (overridable). */
   elevation_t max_el;          /*!< Upper limit for elevation (overridable). */
 
 	/*
@@ -285,7 +287,7 @@ struct rot_state {
 /**
  * Rotator structure
  * \struct rot
- * \brief This is the master data structure, 
+ * \brief This is the master data structure,
  * acting as a handle for the controlled rotator.
  *
  * This is the master data structure, acting as a handle for the controlled
@@ -334,15 +336,15 @@ extern HAMLIB_EXPORT(token_t) rot_token_lookup HAMLIB_PARAMS((ROT *rot, const ch
 
 extern HAMLIB_EXPORT(const struct rot_caps *) rot_get_caps HAMLIB_PARAMS((rot_model_t rot_model));
 
-extern HAMLIB_EXPORT(int) qrb HAMLIB_PARAMS((double lon1, double lat1, 
-						double lon2, double lat2, 
+extern HAMLIB_EXPORT(int) qrb HAMLIB_PARAMS((double lon1, double lat1,
+						double lon2, double lat2,
 						double *distance, double *azimuth));
 extern HAMLIB_EXPORT(double) distance_long_path HAMLIB_PARAMS((double distance));
 extern HAMLIB_EXPORT(double) azimuth_long_path HAMLIB_PARAMS((double azimuth));
 
 extern HAMLIB_EXPORT(int) longlat2locator HAMLIB_PARAMS((double longitude,
 						double latitude, char *locator_res, int pair_count));
-extern HAMLIB_EXPORT(int) locator2longlat HAMLIB_PARAMS((double *longitude, 
+extern HAMLIB_EXPORT(int) locator2longlat HAMLIB_PARAMS((double *longitude,
 						double *latitude, const char *locator));
 
 extern HAMLIB_EXPORT(double) dms2dec HAMLIB_PARAMS((int degrees, int minutes,

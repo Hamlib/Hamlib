@@ -100,7 +100,7 @@ static int dummy_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
   struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)rot->state.priv;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %.2f %.2f\n", __func__, 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %.2f %.2f\n", __func__,
  			az, el);
 
   priv->target_az = az;
@@ -214,6 +214,7 @@ static int dummy_rot_move(ROT *rot, int direction, int speed)
   struct dummy_rot_priv_data *priv = (struct dummy_rot_priv_data *)rot->state.priv;
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+  rig_debug(RIG_DEBUG_TRACE, "%s: Direction = %d, Speed = %d\n", __func__, direction, speed);
 
   switch(direction) {
   case ROT_MOVE_UP:
@@ -255,7 +256,7 @@ const struct rot_caps dummy_rot_caps = {
   .version =        "0.2",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
-  .rot_type =       ROT_TYPE_OTHER,
+  .rot_type =       ROT_TYPE_AZEL,
   .port_type =      RIG_PORT_NONE,
 
   .min_az =  	-180.,

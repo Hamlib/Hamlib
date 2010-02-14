@@ -87,7 +87,7 @@ static const struct confparams rotorez_cfg_params[] = {
 
 /* *************************************
  *
- * Seperate model capabilities
+ * Separate model capabilities
  *
  * *************************************
  */
@@ -132,6 +132,7 @@ const struct rot_caps rotorez_rot_caps = {
   .get_position =       rotorez_rot_get_position,
   .stop =               rotorez_rot_stop,
   .set_conf =           rotorez_rot_set_conf,
+  .get_info =           rotorez_rot_get_info,
 
 };
 
@@ -175,6 +176,8 @@ const struct rot_caps rotorcard_rot_caps = {
   .get_position =       rotorez_rot_get_position,
   .stop =               rotorez_rot_stop,
   .set_conf =           rotorez_rot_set_conf,
+  .get_info =           rotorez_rot_get_info,
+
 
 };
 
@@ -213,6 +216,7 @@ const struct rot_caps dcu_rot_caps = {
   .rot_init =           rotorez_rot_init,
   .rot_cleanup =        rotorez_rot_cleanup,
   .set_position =       rotorez_rot_set_position,
+  .get_info =           rotorez_rot_get_info,
 
 };
 
@@ -236,12 +240,12 @@ static int rotorez_rot_init(ROT *rot) {
   if (!rot)
     return -RIG_EINVAL;
 
-  priv = (struct rotorez_rot_priv_data*)
+  priv = (struct rotorez_rot_priv_data *)
     malloc(sizeof(struct rotorez_rot_priv_data));
 
   if (!priv)
     return -RIG_ENOMEM;
-  rot->state.priv = (void*)priv;
+  rot->state.priv = (void *)priv;
 
   rot->state.rotport.type.rig = RIG_PORT_SERIAL;
 
@@ -465,6 +469,25 @@ static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val) {
         return err;
 
     return RIG_OK;
+}
+
+
+/*
+ * Get Info
+ * returns the model name string
+ */
+static const char *rotorez_rot_get_info(ROT *rot)
+{
+    const struct rot_caps *rc;
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+    if (!rot)
+        return (const char *)-RIG_EINVAL;
+
+    rc = rot->caps;
+
+    return rc->model_name;
 }
 
 

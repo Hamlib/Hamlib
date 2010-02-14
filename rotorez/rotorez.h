@@ -49,7 +49,7 @@ extern const struct rot_caps dcu_rot_caps;
 #define TOK_OVRSHT  TOKEN_BACKEND(3)
 #define TOK_UNSTICK TOKEN_BACKEND(4)
 
-/* 
+/*
  * API local implementation
  *
  */
@@ -63,6 +63,8 @@ static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *e
 static int rotorez_rot_stop(ROT *rot);
 
 static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val);
+
+static const char *rotorez_rot_get_info(ROT *rot);
 
 #endif  /* _ROT_ROTOREZ_H */
 
