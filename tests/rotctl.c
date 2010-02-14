@@ -159,8 +159,6 @@ int main (int argc, char *argv[])
 					exit(1);
 		}
 	}
-	if (verbose < 2)
-		rig_set_debug(RIG_DEBUG_WARN);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "rotctl, %s\n", hamlib_version);
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
