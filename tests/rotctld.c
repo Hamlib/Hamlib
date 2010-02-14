@@ -4,23 +4,23 @@
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
  *
- *	$Id: rotctld.c,v 1.7 2009-01-04 14:49:17 fillods Exp $  
+ *	$Id: rotctld.c,v 1.7 2009-01-04 14:49:17 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- * 
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -71,26 +71,27 @@ void * handle_socket(void * arg);
 void usage();
 
 /*
- * Reminder: when adding long options, 
+ * Reminder: when adding long options,
  * keep up to date SHORT_OPTIONS, usage()'s output and man page. thanks.
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:T:LevhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:T:LuevhVl"
 static struct option long_options[] =
 {
-	{"model",    1, 0, 'm'},
-	{"rot-file", 1, 0, 'r'},
-	{"serial-speed", 1, 0, 's'},
-	{"port",  1, 0, 't'},
-	{"listen-addr",  1, 0, 'T'},
-	{"list",     0, 0, 'l'},
-	{"set-conf", 1, 0, 'C'},
-	{"show-conf",0, 0, 'L'},
-	{"end-marker", 0, 0, 'e'},
-	{"verbose",  0, 0, 'v'},
-	{"help",     0, 0, 'h'},
-	{"version",  0, 0, 'V'},
+	{"model",       1, 0, 'm'},
+	{"rot-file",    1, 0, 'r'},
+	{"serial-speed",1, 0, 's'},
+	{"port",        1, 0, 't'},
+	{"listen-addr", 1, 0, 'T'},
+	{"list",        0, 0, 'l'},
+	{"set-conf",    1, 0, 'C'},
+	{"show-conf",   0, 0, 'L'},
+	{"dump-caps",   0, 0, 'u'},
+	{"end-marker",  0, 0, 'e'},
+	{"verbose",     0, 0, 'v'},
+	{"help",        0, 0, 'h'},
+	{"version",     0, 0, 'V'},
 	{0, 0, 0, 0}
 };
 
@@ -107,7 +108,7 @@ char send_cmd_term = '\r';     /* send_cmd termination char */
 
 
 int main (int argc, char *argv[])
-{ 
+{
 	ROT *my_rot;		/* handle to rot (instance) */
 	rot_model_t my_model = ROT_MODEL_DUMMY;
 
@@ -115,6 +116,7 @@ int main (int argc, char *argv[])
 
 	int verbose = 0;
 	int show_conf = 0;
+	int dump_caps_opt = 0;
 	const char *rot_file=NULL;
 	int serial_rate = 0;
 	char conf_parms[MAXCONFLEN] = "";
@@ -135,78 +137,80 @@ int main (int argc, char *argv[])
 
 		switch(c) {
 			case 'h':
-					usage();
-					exit(0);
+				usage();
+				exit(0);
 			case 'V':
-					version();
-					exit(0);
+				version();
+				exit(0);
 			case 'm':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					my_model = atoi(optarg);
-					break;
-			case 'r':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					rot_file = optarg;
-					break;
-			case 's':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					serial_rate = atoi(optarg);
-					break;
-			case 'C':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					if (*conf_parms != '\0')
-						strcat(conf_parms, ",");
-					strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
-					break;
-                       case 't':
-					if (!optarg) {
-						usage();        /* wrong arg count */
-						exit(1);
-					}
-					portno = atoi(optarg);
-					break;
-			case 'T':
-					if (!optarg) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					if (4 != sscanf(optarg, "%d.%d.%d.%d", &a0,&a1,&a2,&a3)) {
-						usage();	/* wrong arg count */
-						exit(1);
-					}
-					src_addr = (a0<<24)|(a1<<16)|(a2<<8)|a3;
-					break;
-			case 'v':
-					verbose++;
-					break;
-			case 'L':
-					show_conf++;
-					break;
-			case 'l':
-					list_models();
-					exit(0);
-			case 'e':
-					opt_end = 1;
-					break;
-			default:
-					usage();	/* unknown option? */
+				if (!optarg) {
+					usage();	/* wrong arg count */
 					exit(1);
+				}
+				my_model = atoi(optarg);
+				break;
+			case 'r':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				rot_file = optarg;
+				break;
+			case 's':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				serial_rate = atoi(optarg);
+				break;
+			case 'C':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				if (*conf_parms != '\0')
+					strcat(conf_parms, ",");
+				strncat(conf_parms, optarg, MAXCONFLEN-strlen(conf_parms));
+				break;
+			case 't':
+				if (!optarg) {
+					usage();        /* wrong arg count */
+					exit(1);
+				}
+				portno = atoi(optarg);
+				break;
+			case 'T':
+				if (!optarg) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				if (4 != sscanf(optarg, "%d.%d.%d.%d", &a0,&a1,&a2,&a3)) {
+					usage();	/* wrong arg count */
+					exit(1);
+				}
+				src_addr = (a0<<24)|(a1<<16)|(a2<<8)|a3;
+				break;
+			case 'v':
+				verbose++;
+				break;
+			case 'L':
+				show_conf++;
+				break;
+			case 'l':
+				list_models();
+				exit(0);
+			case 'u':
+				dump_caps_opt++;
+				break;
+			case 'e':
+				opt_end = 1;
+				fprintf(stderr, "-e|--end-marker option is deprecated!\nPlease consider using the Extended Response protocol instead.\n");
+				break;
+			default:
+				usage();	/* unknown option? */
+				exit(1);
 		}
 	}
-
-	rig_set_debug(verbose<2 ? RIG_DEBUG_WARN: verbose);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "rotctld, %s\n", hamlib_version);
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "
@@ -215,7 +219,7 @@ int main (int argc, char *argv[])
   	my_rot = rot_init(my_model);
 
 	if (!my_rot) {
-		fprintf(stderr, "Unknown rot num %d, or initialization error.\n", 
+		fprintf(stderr, "Unknown rot num %d, or initialization error.\n",
 						my_model);
 		fprintf(stderr, "Please check with --list option.\n");
 		exit(2);
@@ -241,6 +245,16 @@ int main (int argc, char *argv[])
 		rot_token_foreach(my_rot, print_conf_list, (rig_ptr_t)my_rot);
 	}
 
+	/*
+	 * print out conf parameters, and exits immediately
+	 * We may be interested only in only caps, and rig_open may fail.
+	 */
+	if (dump_caps_opt) {
+		dumpcaps_rot(my_rot, stdout);
+		rig_cleanup(my_rot); /* if you care about memory */
+		exit(0);
+	}
+
 	retcode = rot_open(my_rot);
 	if (retcode != RIG_OK) {
 	  	fprintf(stderr,"rot_open: error = %s \n", rigerror(retcode));
@@ -257,7 +271,7 @@ int main (int argc, char *argv[])
 	/*
 	 * Prepare listening socket
 	 */
-	sock_listen = socket(AF_INET, SOCK_STREAM, 0); 
+	sock_listen = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock_listen < 0)  {
 		perror("ERROR opening socket");
 		exit(1);
@@ -403,7 +417,8 @@ void usage()
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
-	"  -e, --end-marker           use END marker in rotctld protocol\n"
+	"  -u, --dump-caps            dump capabilities and exit\n"
+	"  -e, --end-marker           use END marker in rotctld protocol (obsolete)\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n",

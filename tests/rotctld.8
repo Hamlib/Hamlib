@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "January 14, 2009" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "February 14, 2010" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -16,19 +16,21 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-rotctld \- Hamlib rotator control daemon
+rotctld \- Hamlib TCP rotator control daemon
 .SH SYNOPSIS
 .B rotctld
 [\fIOPTION\fR]...
 .SH DESCRIPTION
-The \fBrotctld\fP program is an EXPERIMENTAL \fBHamlib\fP rotator daemon that 
-handles TCP client requests. This allows multiple user programs to share one 
-rotator. Multiple rotators can be controlled on different TCP ports. The syntax 
-of the commands are the same as \fBrotctl\fP. It is hoped that \fBrotctld\fP 
-will be especially useful for languages such as Perl, Python, and others.
+The \fBrotctld\fP program is an NEW \fBHamlib\fP rotator control daemon ready for
+testing that handles client requests via TCP sockets. This allows multiple user
+programs to share one rotator (this needs testing). Multiple rotators can be
+controlled on different TCP ports by use of multiple \fBrotctld\fP processes. The
+syntax of the commands are the same as \fBrotctl\fP. It is hoped that \fBrotctld\fP
+will be especially useful for client authors using languages such as Perl, Python,
+PHP, and others.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invoke bold face and italics, 
+.\" \fI<whatever>\fP escape sequences to invoke bold face and italics,
 .\" respectively.
 \fBrotctld\fP communicates to a client through a TCP socket using text
 commands shared with \fBrotctl\fP. The protocol is simple, commands are sent
@@ -37,20 +39,28 @@ the requested values, one per line, when successful, otherwise, it responds
 with one line "RPTR x", where x is a negative number indicating the error code.
 Commands that do not return values respond with the line "RPTR x", where x
 is zero when successful, otherwise is a regative number indicating the error code.
-Each line is terminated with a newline '\\n' character.
+Each line is terminated with a newline '\\n' character.  This protocol is primarily
+for use by the \fINET rotctl\fP (rot model 2) backend.
 .PP
-Keep in mind that \fBHamlib\fP is BETA level software. 
+A separate \fBExtended Response\fP protocol extends the above
+behavior by echoing the received command string as a header, any returned values
+as a key: value pair, and the "RPTR x" string as the end of response marker which
+includes the \fBHamlib\fP success or failure value.  See the \fIPROTOCOL\fP
+section for details.  Consider using this protocol for clients that will interact
+with \fBrotctld\fP directly through a TCP socket.
+.PP
+Keep in mind that \fBHamlib\fP is BETA level software.
 While a lot of backend libraries lack complete rotator support, the basic functions
-are usually well supported.  The API may change without publicized notice, 
+are usually well supported.  The API may change without publicized notice,
 while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
 a change.
 .PP
-Please report bugs and provide feedback at the e-mail address given in the 
+Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
 options starting with two dashes ('-').
-
+.PP
 Here is a summary of the supported options:
 .TP
 .B \-m, --model=id
@@ -58,12 +68,18 @@ Select rotator model number. See -l, "list" option below.
 .TP
 .B \-r, --rot-file=device
 Use \fIdevice\fP as the file name of the port the rotator is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically 
-/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+Often a serial port, but could be a USB to serial adapter or USB port device.
+Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
 .TP
 .B \-s, --serial-speed=baud
 Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotor
 backend capabilities (set by -m above) as the default.
+.TP
+.B \-T, --listen-addr=IPADDR
+Use \fIIPADDR\fP as the listening IP address. The default is ANY.
+.TP
+.B \-t, --port=number
+Use \fInumber\fP as the TCP listening port. The default is 4533.
 .TP
 .B \-L, --show-conf
 List all config parameters for the rotator defined with -m above.
@@ -73,17 +89,17 @@ Set config parameter.  e.g. --set-conf=stop_bits=2
 .br
 Use -L option for a list.
 .TP
-.B \-e, --end-marker
-Use END marker in rotctld protocol.
-.TP
-.B \-t, --port=number
-Use \fInumber\fP as the TCP listening port. The default is 4533.
-.TP
-.B \-T, --listen-addr=IPADDR
-Use \fIIPADDR\fP as the listening IP address. The default is ANY.
-.TP
 .B \-l, --list
 List all model numbers defined in \fBHamlib\fP and exit.
+.TP
+.B \-u, --dump-caps
+Dump capabilities for the radio defined with -m above and exit.
+.TP
+.B \-e, --end-marker
+Use END marker in rotctld protocol.
+.br
+N.B.: This option can be considered obsolete.  Please consider using the block
+protocol instead (see \fIPROTOCOL\fP below).
 .TP
 .B \-v, --verbose
 Set verbose mode, cumulative (see DIAGNOSTICS below).
@@ -95,109 +111,302 @@ Show a summary of these options and exit.
 Show the version of \fBrotctld\fP and exit.
 .PP
 \fBN.B.\fP Some options may not be implemented by a given backend and will
-return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+return an error.  This is most likely to occur with the \fI\-\-set-conf\fP
 and \fI\-\-show-conf\fP options.
 .PP
-Please note that the backend for the rotator to be controlled, 
-or the rotator itself may not support some commands. In that case, 
+Please note that the backend for the rotator to be controlled,
+or the rotator itself may not support some commands. In that case,
 the operation will fail with a \fBHamlib\fP error code.
 .SH COMMANDS
-Commands can be sent over the TCP socket either as a single char, or as a 
-long command name plus the value(s) on one '\\n' terminated line. See 
-PROTOCOL.
+Commands can be sent over the TCP socket either as a single char, or as a
+long command name plus the value(s) space separated on one '\\n' terminated
+line. See \fIPROTOCOL\fP.
 .PP
 Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
-an upper case letter will be used for \fIset\fP method whereas the 
+an upper case letter will be used for \fIset\fP methods whereas the
 corresponding lower case letter refers to the \fIget\fP method.  Each operation
-also has a long name, prepend a backslash to send a long command name.
+also has a long name; prepend a backslash to send a long command name.
 .PP
-Please note that the backend for the rotator to be controlled, 
-or the rotator itself may not support some commands. In that case, 
-the operation will fail with a \fBHamlib\fP error message.
+Example (Perl): `print $socket "\\\\dump_caps\\n";' to see what the rotor's
+backend can do (NOTE: In Perl and many other languages a '\\' will need to be
+escaped with a preceding '\\' so that even though two backslash characters
+appear in the code, only one will be passed to \fBrotctld\fP.  This is a
+possible bug!).
 .PP
-Here is a summary of the supported commands:
+Please note that the backend for the rotator to be controlled, or the rotator
+itself may not support some commands. In that case, the operation will fail
+with a \fBHamlib\fP error message.
+.PP
+Here is a summary of the supported commands (In the case of "set" commands the
+quoted string is replaced by the value in the description.  In the case of "get"
+commands the quoted string is the key name of the value returned.):
 .TP
-.B P, set_pos
-Set position: azimuth and elevation.
+.B P, set_pos 'Azimuth' 'Elevation'
+Set position: Azimuth and Elevation as double precision floating point values.
 .TP
 .B p, get_pos
-Get position: azimuth and elevation.
+Get position: 'Azimuth' and 'Elevation' as double precision floating point
+values.
 .TP
-.B K, park
-Park the antenna.
+.TP
+.B M, move 'Direction' 'Speed'
+Move the rotator in a specific direction at the given rate.
+.sp
+Values are integers where Direction is defined as 2 = Up, 4 = Down, 8 = Left,
+and 16 = Right.  Speed is an integer between 1 and 100.  Not all backends that
+implement the move command use the Speed value.  At this time only the gs232a
+utilizes the Speed parameter.
 .TP
 .B S, stop
 Stop the rotator.
+.B K, park
+Park the antenna.
 .TP
-.B R, reset
+.B C, set_conf 'Token' 'Value'
+Set Token to Value.
+.sp
+Backend dependent.  Needs testing.
+.TP
+.B R, reset 'Reset'
 Reset the rotator.
-.TP
-.B M, move
-Move the rotator in a specific direction.
+.sp
+Integer value of '1' for Reset All.
 .TP
 .B _, get_info
 Get misc information about the rotator.
+.sp
+At the moment returns 'Model Name'.
 .TP
-.B w, send_cmd
-Send raw command string to rotator. 
-.br
-For binary protocols enter values as \\0xAA\\0xBB
-
+.B w, send_cmd 'Cmd'
+Send raw command string to rotator.
+.sp
+For binary protocols enter values as \\0xAA\\0xBB.  Expect a 'Reply' from the
+rotator which will likely be a binary block or an ASCII string.
+.PP
+\fBLocator Commands\fP
+.PP
+These commands offer conversions of Degrees Minutes Seconds to other formats,
+Maidenhead square locator conversions and distance and azimuth conversions.
+.TP
+.B L, lonlat2loc 'Longitude' 'Latitude' 'Loc Len [2-12]'
+Returns the Maidenhead locator for the given 'Longitude' and 'Latitude'.
+.sp
+Both are floating point values.  The precision of the returned square is
+controlled by 'Loc Len' which should be an even numbered integer value between
+2 and 12.
+.sp
+For example, "+L -170.000000 -85.000000 12\\n" returns "Locator: AA55AA00AA00\\n".
+.TP
+.B  l, loc2lonlat 'Locator'
+Returns 'Longitude' and 'Latitude' in decimal degrees at the approximate
+center of the requested grid square (despite the use of double precision
+variables internally, some rounding error occurs).  West longitude is
+expressed as a negative value.  South latitude is expressed as a negative
+value.  Locator can be from 2 to 12 characters in length.
+.sp
+For example, "+l AA55AA00AA00\\n" returns "Longitude: -169.999983\\nLatitude:
+-84.999991\\n".
+.TP
+.B D, dms2dec 'Degrees' 'Minutes' 'Seconds' 'S/W'
+Returns 'Dec Degrees', a signed floating point value.
+.sp
+Degrees and Minutes are
+integer values and Seconds is a floating point value.  S/W is a flag with '1'
+indicating South latitude or West longitude and '0' North or East (the flag is
+needed as computers don't recognize a signed zero even though only the Degrees
+value only is typically signed in DMS notation).
+.TP
+.B d, dec2dms 'Dec Degrees'
+Returns 'Degrees' 'Minutes' 'Seconds' 'S/W'.
+.sp
+Values are as in dms2dec above.
+.TP
+.B E, dmmm2dec 'Degrees' 'Dec Minutes' 'S/W'
+Returns 'Dec Degrees', a signed floating point value.
+.sp
+Degrees is an integer
+value and Minutes is a floating point value.  S/W is a flag with '1'
+indicating South latitude or West longitude and '0' North or East (the flag is
+needed as computers don't recognize a signed zero even though only the Degrees
+value only is typically signed in DMS notation).
+.TP
+.B e, dec2dmmm 'Dec Deg'
+Returns 'Degrees' 'Minutes' 'S/W'.
+.sp
+Values are as in dmmm2dec above.
+.TP
+.B B, qrb 'Lon 1' 'Lat 1' 'Lon 2' 'Lat 2'
+Returns 'Distance' 'Azimuth' where Distance is in km and Azimuth is in degrees.
+.sp
+All Lon/Lat values are signed floating point numbers.
+.TP
+.B A, a_sp2a_lp 'Short Path Deg'
+Returns 'Long Path Deg' or -RIG_EINVAL upon input error..
+.sp
+Both are floating point values within the range 0.00 to 360.00.
+.TP
+.B a, d_sp2d_lp 'Short Path km'
+Returns 'Long Path km'.
+.sp
+Both are floating point values.
 .SH PROTOCOL
+\fBDefault Protocol\fP
+.PP
 The \fBrotctld\fP protocol is intentionally simple. Commands are entered on
 a single line with any needed values. In Perl, reliable results are obtained
 by terminating each command string with a newline character, '\\n'.
-.PP
+.sp
 Example \fIset\fP (Perl code):
-
+.sp
 print $socket "P 135 10\\n";
-.br
+.sp
 print $socket "\\\\set_pos 135 10\\n";   # escape leading '\\'
 .PP
-Responses from \fBrotctld\fP are text values and match the same tokens used
-in the \fIset\fP commands. Each value is returned on its own line. To
-signal the end of a response the "END\\n" string is sent when the '-e' option
-is passed.
+A one line response will be sent to \fIset\fP commands, "RPTR \fIx\fP\\n"
+where \fIx\fP is the Hamlib error code with '0' indicating success of the
+command.
 .PP
+Responses from \fBrotctld\fP \fIget\fP commands are text values and match the
+same tokens used in the \fIset\fP commands. Each value is returned on its own
+line.  On error the string "RPTR \fIx\fP\\n" where \fIx\fP is the Hamlib error
+code.
+.sp
 Example \fIget\fP (Perl code):
-
+.sp
 print $socket "p\\n";
-
+.sp
 "135"
 .br
 "10"
 .br
-"END"
 .PP
-Most \fIget\fP functions return one to three values. 
-Future work will focus on making this output compatible with assignment to a
-hash, dictionary, or other key:value variable.
+Most \fIget\fP functions return one to three values. A notable exception is
+the \fI\\dump_caps\fP function which returns many lines of key:value pairs.
+.PP
+This protocol is primarily used by the \fINET rotctl\fP (rotctl model 2) backend
+which allows applications already written for Hamlib to take advantage of
+\fBrotctld\fP without the need of rewriting application code.  An application
+user can select rotor model 2 ("NET rotctl") and then set rot_pathname to
+"localhost:4533" or other network host:port.
+.PP
+\fBExtended Response Protocol\fP
+.PP
+An \fIEXPERIMENTAL\fP Extended Response protocol has been introduced into
+\fBrotctld\fP as of February 10, 2010.  This protocol adds several rules to the
+strings returned by \fBrotctld\fP.
+.PP
+1. The command received by \fBrotctld\fP is echoed with its long command name
+followed by the value(s) (if any) received from the client terminated by the
+specified response separator as the first record of the block.
+.PP
+2. The last record of each block is the string "RPTR \fIx\fP\\n" where \fIx\fP is
+the numeric return value of the Hamlib backend function that was called by the
+command.
+.PP
+3. Any records consisting of data values returned by the rotor backend are
+prepended by a string immediately followed by a colon then a space and then the
+value terminated by the response separator. e.g. "Azimuth: 90.000000\\n" when the
+command was prepended by '+'.
+.PP
+4. All commands received will be acknowledged by \fBrotctld\fP with records from
+rules 1 and 2.  Records from rule 3 are only returned when data values must be
+returned to the client.
+.PP
+An example response to a \fI+P\fP command (note the prepended '+'):
+.br
+set_pos: 90 45
+.br
+RPRT 0
+.PP
+In this case the long command name and values are returned on the first line and
+the second line contains the end of block marker and the numeric rig backend
+return value indicating success.
+.PP
+An example response to a \fI+\\get_pos\fP query:
+.br
+get_pos:
+.br
+Azimuth: 90.000000
+.br
+Elevation: 45.000000
+.br
+RPRT 0
+.PP
+In this case, as no value is passed to \fBrotctld\fP, the first line consists
+only of the long command name.  The final line shows that the command was
+processed successfully by the rotor backend.
+.PP
+Invoking the Extended Response protocol requires prepending a command with a
+punctuation character.  As shown in the examples above, prepending a '+'
+character to the command results in the responses being separated by a newline
+character ('\\n').  Any other punctuation character recognized by the C
+\fIispunct()\fP function except '\\', '?', or '_' will cause that character to
+become the response separator and the entire response will be on one line.
+.PP
+For example, invoking a \fI;\\get_pos\fP query with a leading ';' returns:
+.sp
+get_pos:;Azimuth: 90.000000;Elevation: 45.000000;RPRT 0
+.sp
+Or, using the pipe character '|' returns:
+.sp
+get_pos:|Azimuth: 90.000000|Elevation: 45.000000|RPRT 0
+.sp
+And a \\set_pos command prepended with a '|' returns:
+.sp
+set_pos: 135 22.5|RPRT 0
+.PP
+Such a format will allow reading a response as a single event using a prefered
+response separator.  Other punctuation characters have not been tested!
+.PP
+All commands with the exception of \fI\\set_conf\fP have been tested with the 
+Extended Response protocol and the included \fBtestrotctld.pl\fP script.
+.PP
+.SH EXAMPLES
+Start \fBrotctld\fP for a Ham IV rotor with the RotorEZ installed using a
+USB-to-serial adapter and backgrounding:
+.sp
+$ rotctld -m 401 -r /dev/ttyUSB1 &
+.sp
+Connect to the already running \fBrotctld\fP, and set position to
+135.0 degrees azimuth and 30.0 degrees elevation with a 1 second read timeout:
+.sp
+$ echo "\\set_pos 135.0 30.0" | nc -w 1 localhost 4533
+.sp
+Connect to a running \fBrotctld\fP with \fBrotctl\fP on the local host:
+.sp
+$ rotctl -m2
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
-to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
--vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
+to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
+-vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.
 .PP
 A given verbose level is useful for providing needed debugging information to
 the email address below.  For example, TRACE output shows all of the values
 sent to and received from the rotator which is very useful for rotator backend
-library development and may be requested by the developers.
+library development and may be requested by the developers.  See the
+\fBREADME.betatester\fP and \fBREADME.developer\fP files for more information.
 .SH SECURITY
-No authentication whatsoever; DO NOT leave this TCP port open wide to the Internet.
-Please ask if stronger security is needed.
+No authentication whatsoever; DO NOT leave this TCP port open wide to the
+Internet.  Please ask if stronger security is needed or consider using an
+SSH tunnel.
 .SH BUGS
 The daemon is not detaching and backgrounding itself.
-
+.PP
 Much testing needs to be done.
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@lists.sourceforge.net>.
-.br
+.PP
 We are already aware of the bugs in the previous section :-)
 .SH AUTHORS
-Written by Stephane Fillod and the Hamlib Group
+Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .br
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2009 Stephane Fillod and the Hamlib Group.
+Copyright \(co 2000-2009 Stephane Fillod
+.br
+Copyright \(co 2010 Nate Bargmann
+.br
+Copyright \(co 2000-2009 the Hamlib Group.
 .PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY

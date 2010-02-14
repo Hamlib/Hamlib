@@ -5,15 +5,15 @@ DEJATOOL = testfreq testbcd testloc rigctl
 DISTCLEANFILES = rigctl.log rigctl.sum testbcd.log testbcd.sum
 
 bin_PROGRAMS = rigctl rigmem rigswr rigsmtr rotctl rigctld rotctld
-man_MANS = rigctl.1 rigmem.1 rigswr.1 rigsmtr.1 rotctl.1 rigctld.8 rotctld.8 
+man_MANS = rigctl.1 rigmem.1 rigswr.1 rigsmtr.1 rotctl.1 rigctld.8 rotctld.8
 
 check_PROGRAMS = dumpmem testrig testtrn testbcd testfreq listrigs \
 		 testloc rig_bench @RIGMATRIX@
 
 rigctl_SOURCES = rigctl.c rigctl_parse.c dumpcaps.c sprintflst.c
 rigctld_SOURCES = rigctld.c rigctl_parse.c dumpcaps.c sprintflst.c
-rotctl_SOURCES = rotctl.c rotctl_parse.c
-rotctld_SOURCES = rotctld.c rotctl_parse.c
+rotctl_SOURCES = rotctl.c rotctl_parse.c dumpcaps_rot.c
+rotctld_SOURCES = rotctld.c rotctl_parse.c dumpcaps_rot.c
 rigswr_SOURCES = rigswr.c
 rigsmtr_SOURCES = rigsmtr.c
 rigmem_SOURCES = rigmem.c memsave.c memload.c memcsv.c sprintflst.c
@@ -40,11 +40,11 @@ rigmem_LDFLAGS = @BACKENDLNK@ @LIBXML2_LIBS@
 rotctl_LDFLAGS = @ROT_BACKENDLNK@
 rigctld_LDFLAGS = @BACKENDLNK@ @PTHREAD_LIBS@ @NET_LIBS@
 rotctld_LDFLAGS = @ROT_BACKENDLNK@ @PTHREAD_LIBS@ @NET_LIBS@
- 
+
 # temporary hack
 testbcd_LDFLAGS = -dlpreopen self
 testloc_LDFLAGS = -dlpreopen self
- 
+
 # rigmatrix needs also libgd
 rigmatrix_LDFLAGS = -lgd -lz @BACKENDLNK@
 
@@ -72,5 +72,5 @@ rigmatrix.html: rigmatrix_head.html rigmatrix listrigs
 	for f in `./listrigs | tail -n +2 | cut -f1` ; do ( ./rigctl -m $$f -u > sup-info/support/model$$f.txt || exit 0 ) ; done
 	./rigctl -l |sort -n | $(srcdir)/rig_split_lst.awk -v lst_dir="sup-info"
 
-EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk $(man_MANS) testctld.pl
+EXTRA_DIST = rigmatrix_head.html rig_split_lst.awk $(man_MANS) testctld.pl testrotctld.pl
 
