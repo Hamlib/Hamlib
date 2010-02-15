@@ -44,7 +44,6 @@ use Pod::Usage;
 my $socket;
 my $host = 'localhost';
 my $port = 4533;
-my $vfo = '';
 my %rot_state = ();     # State of the rotor--position, etc.
 my %rot_caps = ();      # Rotor capabilities from \dump_caps
 
@@ -653,26 +652,26 @@ Enables debugging output to the console.
 Commands are the same as described in the rotctld(8) man page.  This is only
 a brief summary.
 
-    F, \set_freq        Set frequency in Hz
-    f, \get_freq        Get frequency in Hz
-    M, \set_mode        Set mode including passband in Hz
-    m, \get_mode        Get mode including passband in Hz
-    V, \set_vfo         Set VFO (VFOA, VFOB, etc.)
-    v, \get_vfo         Get VFO (VFOA, VFOB, etc.)
-    J, \set_rit         Set RIT in +/-Hz, '0' to clear
-    j, \get_rit         Get RIT in +/-Hz, '0' indicates Off
-    Z, \set_xit         Set XIT in +/-Hz, '0' to clear
-    z, \get_rit         Get XIT in +/-Hz, '0' indicates Off
-    T, \set_ptt         Set PTT, '1' On, '0' Off
-    t, \get_ptt         Get PTT, '1' indicates On, '0' indicates Off
-    S, \set_split_vfo   Set rot into "split" VFO mode, '1' On, '0' Off
-    s, \get_split_vfo   Get status of :split" VFO mode, '1' On, '0' Off
-    I, \set_split_freq  Set TX VFO frequency in Hz
-    i, \get_split_freq  Get TX VFO frequency in Hz
-    X, \set_split_mode  Set TX VFO mode including passband in Hz
-    x, \get_split_mode  Get TX VFO mode including passband in Hz
-    2, \power2mW        Translate a power value [0.0..1.0] to milliWatts
-    4, \mW2power        Translate milliWatts to a power value [0.0..1.0]
-    1, \dump_caps       Get the rot capabilities and display select values.
+    P, \set_pos         Set the rotor's Azimuth and Elevation
+    p, \get_pos         Get the rotor's Azimuth and Elevation
+    M. \move            Move Up, Down, Left, Right at Speed
+    S, \stop            Stop rotation
+    K, \park            Set the rotor to the park position
+    R, \reset           Reset the rotor
+    _, \get_info        Get the rotor Model Name
+    1, \dump_caps       Get the rot capabilities and display select values
+
+These commands are for the locator support API.
+
+    L, \lonlat2loc      Convert Longitude and Latitude to Maidenhead square
+    l, \loc2lonlat      Convert Maidenhead square to Longitude and Latitude
+    D, \dms2dec         Convert Degrees, Minutes, Seconds to Decimal Degrees
+    d, \dec2dms         Convert Decimal Degrees to Degrees, Minutes, Seconds
+    E, \dmmm2dec        Convert Degrees, Decimal Minutes to Decimal Degrees
+    e, \dec2dmmm        Convert Decimal Degrees to Degrees, Decimal Minutes
+    B, \qrb             Compute distance and azimuth between Lon 1, Lat 1,
+                        and Lon 2, Lat 2
+    A, \a_sp2a_lp       Compute Long Path Azimuth from Short Path Azimuth
+    a, \d_sp2d_lp       Compute Long Path Distance from Short Path Distance
 
 =cut
