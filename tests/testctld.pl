@@ -2,15 +2,15 @@
 
 # testctld.pl - (C) 2008,2010 Nate Bargmann, n0nb@arrl.net
 # A Perl test script for the rigctld program.
-
+#
 #  $Id$
-
+#
 # It connects to the rigctld TCP port (default 4532) and queries the daemon
 # for some common rig information and sets some values.  It also aims to
 # provide a bit of example code for Perl scripting.
 #
-# This script requires that `rigctld' be invoked with the '-b'|'--block' option.
-# Details of the Block protocol can be found in the rigctld(8) manual page.
+# This program utilizes the Extended Response protocol of rigctld in line
+# response mode.  See the rigctld(8) man page for details.
 
 #############################################################################
 # This program is free software; you can redistribute it and/or
@@ -44,10 +44,6 @@ use Pod::Usage;
 my $socket;
 my $host = 'localhost';
 my $port = 4532;
-# my @answer;
-my $freq = "14250000";
-my $mode = "USB";
-my $bw = "2400";
 my $vfo = '';
 my %rig_state = ();     # State of the rig--freq, mode, passband, ptt, etc.
 my %rig_caps = ();      # Rig capabilities from \dump_caps
@@ -108,14 +104,7 @@ $socket = new IO::Socket::INET (PeerAddr    => $host,
     or die $@;
 
 
-# Check rigctld's response to the \chk_blk command to be sure it was
-# invoked with the -b|--block option
-#unless (chk_opt($socket, 'CHKBLK')) {
-#    die "`rigctld' must be invoked with '-b' or '--block' option for $0\n";
-#}
-
-
-print "Welcome to tesctld.pl a program to test `rigctld'\n";
+print "Welcome to testctld.pl a program to test `rigctld'\n";
 print "Type '?' or 'help' for commands help.\n\n";
 
 
@@ -124,8 +113,8 @@ $ret_val = dump_caps();
 
 # Tell user what radio rigctld is working with
 if ($ret_val eq $errstr{'RIG_OK'}) {
-    print "Hamlib Model: $rig_caps{'Caps dump for model'}\t";
-    print "Common Name: $rig_caps{'Mfg name'} $rig_caps{'Model name'}\n\n\n";
+    print "Hamlib Model: " . $rig_caps{'Caps dump for model'} . "\t";
+    print "Common Name: " . $rig_caps{'Mfg name'} . ' ' . $rig_caps{'Model name'} . "\n\n\n";
 } else {
     errmsg ($ret_val);
 }
@@ -135,7 +124,7 @@ if ($ret_val eq $errstr{'RIG_OK'}) {
 # invoked with the -o|--vfo option.  If true, all commands must include VFO as
 # first parameter after the command
 if (chk_opt($socket, 'CHKVFO')) {
-    $vfo = 'currVFO';       # KISS  One could use the VFO key from %rig_state after calling the \get_vfo command...
+    $vfo = 'currVFO';       # KISS--One could use the VFO key from %rig_state after calling the \get_vfo command...
 }
 
 
@@ -525,21 +514,25 @@ sub rig_cmd {
     } else { $vfo = ''; }
 
     if (defined $p1) {
+        # "Stringify" parameter value then add a space to the beginning of the string
+        $p1 .= '';
         $p1 = sprintf("%*s", 1 + length $p1, $p1);
     } else { $p1 = ''; }
 
     if (defined $p2) {
+        $p2 .= '';
         $p2 = sprintf("%*s", 1 + length $p2, $p2);
     } else { $p2 = ''; }
 
     if (defined $p3) {
+        $p3 .= '';
         $p3 = sprintf("%*s", 1 + length $p3, $p3);
     } else { $p3 = ''; }
 
     print '+\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n\n" if $debug;
 
     # N.B. Terminate query commands with a newline, e.g. "\n" character.
-    # N.B. Preceding '+' char to request block or extended response protocol
+    # N.B. Preceding '+' char to request line separated extended response protocol
     print $socket '+\\' . $cmd . $vfo . $p1 . $p2 . $p3 . "\n";
 
     # rigctld echoes the command plus value(s) on "get" along with
@@ -648,14 +641,11 @@ sub get_errno {
 }
 
 
-# check for block response or VFO mode from rigctld
+# check for VFO mode from rigctld
 sub chk_opt {
     my $sock = shift @_;
     my @lines;
 
-    #if ($_[0] =~ /^CHKBLK/) {
-        #print $sock "\\chk_blk\n";
-    #}
     if ($_[0] =~ /^CHKVFO/) {
         print $sock "\\chk_vfo\n";
     }
@@ -733,7 +723,7 @@ testctld.pl [options]
 =head1 DESCRIPTION
 
 B<testcld.pl> provides a set of functions to interactively test the Hamlib
-`rigctld' TCP/IP network daemon.  It also aims to be an example of programming
+I<rigctld> TCP/IP network daemon.  It also aims to be an example of programming
 code to control a radio via TCP/IP in Hamlib.
 
 =head1 OPTIONS
@@ -742,13 +732,13 @@ code to control a radio via TCP/IP in Hamlib.
 
 =item B<--host>
 
-Hostname or IP address of the target `rigctld' process.  Default is 'localhost'
+Hostname or IP address of the target I<rigctld> process.  Default is I<localhost>
 which should resolve to 127.0.0.1 if I</etc/hosts> is configured correctly.
 
 =item B<--port>
 
-TCP port of the target `rigctld' process.  Default is 4532.  Mutliple instances
-of `rigctld' will require unique port numbers.
+TCP port of the target I<rigctld> process.  Default is 4532.  Mutliple instances
+of I<rigctld> will require unique port numbers.
 
 =item B<--help>
 
@@ -763,5 +753,32 @@ Prints this manual page and exits.
 Enables debugging output to the console.
 
 =back
+
+=head1 COMMANDS
+
+Commands are the same as described in the rigctld(8) man page.  This is only
+a brief summary.
+
+    F, \set_freq        Set frequency in Hz
+    f, \get_freq        Get frequency in Hz
+    M, \set_mode        Set mode including passband in Hz
+    m, \get_mode        Get mode including passband in Hz
+    V, \set_vfo         Set VFO (VFOA, VFOB, etc.)
+    v, \get_vfo         Get VFO (VFOA, VFOB, etc.)
+    J, \set_rit         Set RIT in +/-Hz, '0' to clear
+    j, \get_rit         Get RIT in +/-Hz, '0' indicates Off
+    Z, \set_xit         Set XIT in +/-Hz, '0' to clear
+    z, \get_rit         Get XIT in +/-Hz, '0' indicates Off
+    T, \set_ptt         Set PTT, '1' On, '0' Off
+    t, \get_ptt         Get PTT, '1' indicates On, '0' indicates Off
+    S, \set_split_vfo   Set rig into "split" VFO mode, '1' On, '0' Off
+    s, \get_split_vfo   Get status of :split" VFO mode, '1' On, '0' Off
+    I, \set_split_freq  Set TX VFO frequency in Hz
+    i, \get_split_freq  Get TX VFO frequency in Hz
+    X, \set_split_mode  Set TX VFO mode including passband in Hz
+    x, \get_split_mode  Get TX VFO mode including passband in Hz
+    2, \power2mW        Translate a power value [0.0..1.0] to milliWatts
+    4, \mW2power        Translate milliWatts to a power value [0.0..1.0]
+    1, \dump_caps       Get the rig capabilities and display select values.
 
 =cut

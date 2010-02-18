@@ -61,23 +61,23 @@ void usage(void);
 #define SHORT_OPTIONS "m:r:p:d:P:D:s:c:t:lC:LuovhV"
 static struct option long_options[] =
 {
-	{"model",    1, 0, 'm'},
-	{"rig-file", 1, 0, 'r'},
-	{"ptt-file", 1, 0, 'p'},
-	{"dcd-file", 1, 0, 'd'},
-	{"ptt-type", 1, 0, 'P'},
-	{"dcd-type", 1, 0, 'D'},
-	{"serial-speed", 1, 0, 's'},
-	{"civaddr",  1, 0, 'c'},
-	{"send-cmd-term", 1, 0, 't'},
-	{"list",     0, 0, 'l'},
-	{"set-conf", 1, 0, 'C'},
-	{"show-conf",0, 0, 'L'},
-	{"dump-caps",  0, 0, 'u'},
-	{"vfo",  0, 0, 'o'},
-	{"verbose",  0, 0, 'v'},
-	{"help",     0, 0, 'h'},
-	{"version",  0, 0, 'V'},
+	{"model",           1, 0, 'm'},
+	{"rig-file",        1, 0, 'r'},
+	{"ptt-file",        1, 0, 'p'},
+	{"dcd-file",        1, 0, 'd'},
+	{"ptt-type",        1, 0, 'P'},
+	{"dcd-type",        1, 0, 'D'},
+	{"serial-speed",    1, 0, 's'},
+	{"civaddr",         1, 0, 'c'},
+	{"send-cmd-term",   1, 0, 't'},
+	{"list",            0, 0, 'l'},
+	{"set-conf",        1, 0, 'C'},
+	{"show-conf",       0, 0, 'L'},
+	{"dump-caps",       0, 0, 'u'},
+	{"vfo",             0, 0, 'o'},
+	{"verbose",         0, 0, 'v'},
+	{"help",            0, 0, 'h'},
+	{"version",         0, 0, 'V'},
 	{0, 0, 0, 0}
 };
 
@@ -85,11 +85,10 @@ static struct option long_options[] =
 
 int interactive = 1;    /* if no cmd on command line, switch to interactive */
 int prompt = 1;         /* Print prompt in rigctl */
-int opt_end= 0;         /* only used by rigctld */
-//int opt_block = 0;      /* only used by rigctld */
-int vfo_mode;		/* vfo_mode=0 means target VFO is current VFO */
+int opt_end = 0;        /* only used by rigctld */
+int vfo_mode = 0;       /* vfo_mode = 0 means target VFO is 'currVFO' */
 
-char send_cmd_term = '\r';	/* send_cmd termination char */
+char send_cmd_term = '\r';  /* send_cmd termination char */
 
 int main (int argc, char *argv[])
 {
@@ -244,7 +243,7 @@ int main (int argc, char *argv[])
 		}
 	}
 
-	rig_set_debug(verbose<2 ? RIG_DEBUG_WARN: verbose);
+	rig_set_debug(verbose);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "rigctl, %s\n", hamlib_version);
 	rig_debug(RIG_DEBUG_VERBOSE, "Report bugs to "

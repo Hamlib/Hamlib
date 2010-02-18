@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "February 14, 2010" "Hamlib" "Rotator Control Program"
+.TH ROTCTL "1" "February 17, 2010" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -44,6 +44,9 @@ Here is s summary of the supported options:
 .TP
 .B \-m, --model=id
 Select rotator model number. See model list (use 'rotctl -l').
+.sp
+NB: \fBrotctl\fP (or third party software) will use rig model 1901 
+when using \fBrpc.rotd\fP or rig model 2 for NET rotctl (rotctld).
 .TP
 .B \-r, --rot-file=device
 Use \fIdevice\fP as the file name of the port the rotator is connected.
@@ -68,7 +71,7 @@ List all config parameters for the rotor defined with -m above.
 .TP
 .B \-C, --set-conf=parm=val[,parm=val]*
 Set config parameter.  e.g. --set_conf=stop_bits=2
-.br
+.sp
 Use -L option for a list.
 .TP
 .B \-l, --list
@@ -108,7 +111,9 @@ Please note that the backend for the rotator to be controlled,
 or the rotator itself may not support some commands. In that case, 
 the operation will fail with a \fBHamlib\fP error message.
 .PP
-A summary of commands is included below.
+A summary of commands is included below (In the case of "set" commands the
+quoted string is replaced by the value in the description.  In the case of "get"
+commands the quoted string is the key name of the value returned.):
 .TP
 .B P, set_pos 'Azimuth' 'Elevation'
 Set position: Azimuth and Elevation as double precision floating point values.
@@ -224,13 +229,14 @@ Start \fBrotctl\fP for RotorEZ using COM1:
 .sp
 $ rotctl -m 401 -r /dev/ttyS0
 .sp
-Start \fBrotctl\fP using \fBrpc.rotd\fP:
+Start \fBrotctl\fP using \fBrpc.rotd\fP and querying the position:
 .sp
-$ rotctl -m 101
+$ rotctl -m 101 -r localhost \\get_pos
+.sp
 Connect to a running \fBrotctld\fP with rotor model 2 ("NET rotctl") on the
-local host:
+local host and specifying the TCP port:
 .sp
-$ rotctl -m2
+$ rotctl -m 2 -r localhost:4533
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
@@ -253,11 +259,11 @@ library development and may be requested by the developers.
 This suspiciously empty section...
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@lists.sourceforge.net>.
-.br
+.PP
 We are already aware of the bug in the previous section :-)
 .SH AUTHOR
 Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group 
-.br
+.PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
 Copyright \(co 2000-2009 Stephane Fillod

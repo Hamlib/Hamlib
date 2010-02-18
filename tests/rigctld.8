@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTLD "8" "February 8, 2010" "Hamlib" "Rig Control Daemon"
+.TH RIGCTLD "8" "February 17, 2010" "Hamlib" "Rig Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -39,17 +39,21 @@ the requested values, one per line, when successful, otherwise, it responds
 with one line "RPTR x", where x is a negative number indicating the error code.
 Commands that do not return values respond with the line "RPTR x", where x
 is zero when successful, otherwise is a regative number indicating the error code.
-Each line is terminated with a newline '\\n' character.
+Each line is terminated with a newline '\\n' character.  This protocol is primarily
+for use by the \fINET rigctl\fP (rig model 2)backend.
 .PP
 A separate \fBExtended Response\fP protocol extends the above
 behavior by echoing the received command string as a header, any returned values
 as a key: value pair, and the "RPTR x" string as the end of response marker which
 includes the \fBHamlib\fP success or failure value.  See the \fIPROTOCOL\fP
-section for details.
+section for details.  Consider using this protocol for clients that will interact
+with \fBrigctld\fP directly through a TCP socket.
 .PP
 Keep in mind that \fBHamlib\fP is BETA level software.
 While a lot of backend libraries lack complete rig support, the basic functions
-are usually well supported.
+are usually well supported.  The API may change without publicized notice,
+while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
+a change.
 .PP
 Please report bugs and provide feedback at the e-mail address given in the
 \fIREPORTING BUGS\fP section.  Patches and code enhancements are also welcome.
@@ -64,8 +68,8 @@ Select radio model number. See the -l, --list option below.
 .TP
 .B \-r, --rig-file=device
 Use \fIdevice\fP as the file name of the port the radio is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically
-/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+Often a serial port, but could be a USB to serial adapter or USB port device.
+Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
 .TP
 .B \-p, --ptt-file=device
 Use \fIdevice\fP as the file name of the Push-To-Talk device using a
@@ -90,7 +94,7 @@ backend capabilities (set by -m above) as the default.
 .B \-c, --civaddr=id
 Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for
 Icom rigs.
-.br
+.sp
 \fBN.B.\fP: The \fIid\fP is in decimal notation, unless prefixed by
 \fI0x\fP for a hexadecimal value.
 .TP
@@ -99,20 +103,20 @@ Use \fIIPADDR\fP as the listening IP address. The default is ANY.
 .TP
 .B \-t, --port=number
 Use \fInumber\fP as the TCP listening port. The default is 4532.
-.br
+.sp
 \fBN.B.\fP: As \fBrotctld\fP's default port is 4533, it is advisable to use even
 numbered ports for \fBrigctld\fP, e.g. 4532, 4534, 4536, etc.
 .TP
+.B \-L, --show-conf
+List all config parameters for the radio defined with -m above.
+.TP
 .B \-C, --set-conf=parm=val[,parm=val]*
 Set config parameter.  e.g. --set-conf=stop_bits=2
-.br
+.sp
 Use -L option for a list.
 .TP
 .B \-l, --list
 List all model numbers defined in \fBHamlib\fP and exit.
-.TP
-.B \-L, --show-conf
-List all config parameters for the radio defined with -m above.
 .TP
 .B \-u, --dump-caps
 Dump capabilities for the radio defined with -m above and exit.
@@ -125,8 +129,8 @@ below.
 .TP
 .B \-e, --end-marker
 Use END marker in rigctld protocol.
-.br
-\fBN.B.\fP: This option can be considered obsolete.  Please consider using the Extended
+.sp
+\fBN.B.\fP: This option should be considered obsolete.  Please consider using the Extended
 Response protocol instead (see \fIPROTOCOL\fP below).  This option will be removed
 in a future Hamlib release.
 .TP
@@ -152,9 +156,9 @@ long command name plus the value(s) space separated on one '\\n' terminated
 line. See \fIPROTOCOL\fP.
 .PP
 Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
-an upper case letter will be used for \fIset\fP method whereas the
+an upper case letter will be used for \fIset\fP methods whereas the
 corresponding lower case letter refers to the \fIget\fP method.  Each operation
-also has a long name, prepend a backslash to send a long command name.
+also has a long name; prepend a backslash to send a long command name.
 .PP
 Example (Perl): `print $socket "\\\\dump_caps\\n";' to see what the radio's
 backend can do
@@ -181,28 +185,28 @@ Get 'Frequency', in Hz.
 .B M, set_mode 'Mode' 'Passband'
 Set 'Mode': USB, LSB, CW, CWR, RTTY, RTTYR, AM, FM, WFM, AMS,
 PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
-.br
+.sp
 Set 'Passband' in Hz, or '0' for the Hamlib backend default.
 .TP
 .B m, get_mode
 Get 'Mode' 'Passband'.
-.br
+.sp
 Returns Mode as a string from \fIset_mode\fP above
 and Passband in Hz.
 .TP
 .B V, set_vfo 'VFO'
 Set 'VFO': VFOA, VFOB, VFOC, currVFO, VFO, MEM, Main, Sub, TX, RX.
-.br
+.sp
 In VFO mode only a single VFO parameter is required.
 .TP
 .B v, get_vfo
 Get current 'VFO'.
-.br
+.sp
 Returns VFO as a string from \fIset_vfo\fP above.
 .TP
 .B J, set_rit 'RIT'
 Set 'RIT', in Hz, can be + or -.
-.br
+.sp
 A value of '0' resets RIT and *should* turn RIT off.  If not, file a bug report
 against the Hamlib backend.
 .TP
@@ -211,7 +215,7 @@ Get 'RIT', in Hz.
 .TP
 .B Z, set_xit 'XIT'
 Set 'XIT', in Hz can be + or -.
-.br
+.sp
 A value of '0' resets RIT and *should* turn RIT off.  If not, file a bug report
 against the Hamlib backend.
 .TP
@@ -272,13 +276,13 @@ Get 'TX Frequency', in Hz.
 .B X, set_split_mode 'TX Mode' 'TX Passband'
 Set 'TX Mode': AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS,
 PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
-.br
+.sp
 The 'TX Passband' is the exact passband in Hz, or '0' for the Hamlib
 backend default.
 .TP
 .B x, get_split_mode
 Get 'TX Mode' and 'TX Passband'.
-.br
+.sp
 Returns TX mode as a string from \fIset_split_mode\fP above and TX passband in Hz.
 .TP
 .B S, set_split_vfo 'Split' 'TX VFO'
@@ -295,42 +299,42 @@ Get 'Tuning Step', in Hz.
 .TP
 .B U, set_func 'Func' 'Func Status'
 Set 'Func' 'Func Status'.
-.br
+.sp
 Func is one of: FAGC, NB, COMP, VOX, TONE, TSQL,
 SBKIN, FBKIN, ANF, NR, AIP, APF, MON, MN, RF, ARO, LOCK, MUTE, VSC, REV, SQL,
 ABM, BC, MBC, AFC, SATMODE, SCOPE, RESUME, TBURST, TUNER.
-.br
+.sp
 Func Status argument is a non null value for "activate", "de-activate"
 otherwise, much as TRUE/FALSE definitions in C language.
 .TP
 .B u, get_func
 Get 'Func' 'Func Status'.
-.br
+.sp
 Returns Func as a string from \fIset_func\fP above and Func status as a non null value.
 .TP
 .B L, set_level 'Level' 'Level Value'
 Set 'Level' and 'Level Value'.
-.br
+.sp
 Level is one of: PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH,
 RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX.
 SLOPE_LOW, SLOPE_HIGH, RAWSTR, SQLSTAT, SWR, ALC, STRENGTH.
-.br
+.sp
 The Level Value can be a float or an integer.
 .TP
 .B l, get_level
 Get 'Level' 'Level Value'.
-.br
+.sp
 Returns Level as a string from \fIset_level\fP above and Level value as a float or
 integer.
 .TP
 .B P, set_parm 'Parm' 'Parm Value'
 Set 'Parm' 'Parm Value'
-.br
+.sp
 Parm is one of: ANN, APO, BACKLIGHT, BEEP, TIME, BAT, KEYLIGHT.
 .TP
 .B p, get_parm
 Get 'Parm' 'Parm Value'.
-.br
+.sp
 Returns Parm as a string from \fIset_parm\fP above and Parm Value as a float or
 integer.
 .TP
@@ -345,13 +349,13 @@ Get 'Memory#' channel number.
 .TP
 .B G, vfo_op 'Mem/VFO Op'
 Perform 'Mem/VFO Op'.
-.br
+.sp
 Mem VFO operation is one of: CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP,
 BAND_DOWN, LEFT, RIGHT, TUNE, TOGGLE.
 .TP
 .B g, scan 'Scan Fct' 'Scan Channel'
 Perform 'Scan Fct' 'Scan Channel'.
-.br
+.sp
 Scan function/channel is one of: STOP, MEM, SLCT, PRIO, PROG, DELTA, VFO, PLT.
 .TP
 .B H, set_channel 'Channel'
@@ -374,7 +378,7 @@ Get 'Antenna' number (0, 1, 2, ..).
 .TP
 .B *, reset 'Reset'
 Perform rig 'Reset'.
-.br
+.sp
 0 = None, 1 = Software reset, 2 = VFO reset, 4 = Memory Clear reset, 8 = Master reset.
 Since these values are defined as a bitmask in rig.h, it should be possible to AND
 these values together to do multiple resets at once, if the backend supports it or
@@ -385,7 +389,7 @@ Send 'Morse' symbols.
 .TP
 .B 0x87, set_powerstat 'Power Status'
 Set power On/Off/Standby 'Power Status'.
-.br
+.sp
 0 = Power Off, 1 = Power On, 2 = Power Standby.  Defined as a bitmask in rig.h.
 .TP
 .B 0x88, get_powerstat
@@ -398,106 +402,114 @@ Set DTMF 'Digits'.
 Get DTMF 'Digits'.
 .TP
 .B _, get_info
-Get misc information about the rig (no value is passed).
+Get misc information about the rig (no VFO in 'VFO mode' or value is passed).
 .TP
 .B 1, dump_caps
 Not a real rig remote command, it just dumps capabilities, i.e. what the
 backend knows about this model, and what it can do.  TODO: Ensure this is
 in a consistent format so it can be read into a hash, dictionary, etc.  Bug
 reports requested.
-.br
+.sp
 \fBN.B.\fP: This command will produce many lines of output so be very careful
-if using a fixed length array!  For example, running this command against these
+if using a fixed length array!  For example, running this command against the
 Dummy backend results in over 5kB of text output.
-.br
+.sp
 VFO parameter not used in 'VFO mode'.
 .TP
 .B 2, power2mW 'Power [0.0..1.0]' 'Frequency' 'Mode'
 Returns 'Power mW'
-.br
+.sp
 Converts a Power value in a range of \fI0.0 ... 1.0\fP to the real transmit
 power in milli-Watts (integer).  The \fIfrequency\fP and \fImode\fP also need to
 be provided as output power may vary according to these values.
-.br
+.sp
 VFO parameter not used in 'VFO mode'.
 .TP
 .B 4, mW2power 'Power mW' 'Frequency' 'Mode'
 Returns 'Power [0.0..1.0]'
-.br
+.sp
 Converts the real transmit power in milli-Watts (integer) to a Power value in
 a range of \fI0.0 ... 1.0\fP.  The \fIfrequency\fP and \fImode\fP also need to
 be provided as output power may vary according to these values.
-.br
+.sp
 VFO parameter not used in 'VFO mode'.
 .TP
 .B w, send_cmd 'Cmd'
 Send raw command string to rig.
-.br
+.sp
 For binary protocols enter values as \\0xAA\\0xBB.    Expect a 'Reply' from the
 rig which will likely be a binary block or an ASCII string.
 .TP
 .B chk_vfo
 Returns "CHKVFO 1\\n" (single line only) if \fBrigctld\fP was invoked with the
 \fI-o\fP or \fI--vfo\fP option, "CHKVFO 0\\n" if not.
-.br
+.sp
 When in VFO mode the client will need to pass 'VFO' as the first parameter to
 \fI\\set\fP or \fI\\get\fP commands.  'VFO' is one of the strings defined
 for \fI\\set_vfo\fP above.
-.br
 .SH PROTOCOL
 \fBDefault Protocol\fP
-.br
+.PP
 The \fBrigctld\fP protocol is intentionally simple. Commands are entered on
 a single line with any needed values. In Perl, reliable results are obtained
 by terminating each command string with a newline character, '\\n'.
-.PP
+.sp
 Example \fIset\fP (Perl code):
-
+.sp
 print $socket "F 14250000\\n";
 .br
 print $socket "\\\\set_mode LSB 2400\\n";   # escape leading '\\'
 .PP
-Responses from \fBrigctld\fP are text values and match the same tokens used
-in the \fIset\fP commands. Each value is returned on its own line. To
-signal the end of a response "0\\n" is returned.
+A one line response will be sent as a reply to  \fIset\fP commands,
+"RPTR \fIx\fP\\n" where \fIx\fP is the Hamlib error code with '0'
+indicating success of the command.
 .PP
+Responses from \fBrigctld\fP \fIget\fP commands are text values and match the
+same tokens used in the \fIset\fP commands. Each value is returned on its own
+line.  On error the string "RPTR \fIx\fP\\n" is returned where \fIx\fP is the
+Hamlib error code.
+.sp
 Example \fIget\fP (Perl code):
-
+.sp
 print $socket "f\\n";
-
+.br
 "14250000\\n"
 .PP
 Most \fIget\fP functions return one to three values. A notable exception is
 the \fI\\dump_caps\fP function which returns many lines of key:value pairs.
-Future work will focus on making this output compatible with assignment to a
-hash, dictionary, or other key:value variable.
+.PP
+This protocol is primarily used by the \fINET rigctl\fP (rigctl model 2) backend
+which allows applications already written for Hamlib's C API to take advantage of
+\fBrigctld\fP without the need of rewriting application code.  An application's
+user can select rig model 2 ("NET rigctl") and then set rig_pathname to
+"localhost:4532" or other network host:port.
 .PP
 \fBExtended Response Protocol\fP
-.br
+.PP
 An \fIEXPERIMENTAL\fP Extended Response protocol has been introduced into
-\fBrigctld\fP as of February 8, 2010.  This protocol is invoked by prepending
-a '+' character immediately ahead of the command string with no intervening
-space.  Also, several rules are added to the strings returned by \fBrigctld\fP.
+\fBrigctld\fP as of February 16, 2010.  This protocol adds several rules
+to the strings returned by \fBrigctld\fP and adds a rule for the command
+syntax.
 .PP
 1. The command received by \fBrigctld\fP is echoed with its long command name
-followed by the value(s) received from the client terminated by a newline
-as the first line of the block.  The leading '+' and '\\' characters are not
-included in the echoed command string.
+followed by the value(s) (if any) received from the client terminated by the
+specified response separator as the record line of the response.
 .PP
-2. The last line of each block is the string "RPTR \fIx\fP\\n" wheren \fIx\fP is
+2. The last line of each block is the string "RPTR \fIx\fP\\n" where \fIx\fP is
 the numeric return value of the Hamlib backend function that was called by the
 command.
 .PP
-3. Any lines consisting of data values returned by the rig backend are prepended
+3. Any records consisting of data values returned by the rig backend are prepended
 by a string immediately followed by a colon then a space and then the value
-terminated by a newline. e.g. "Frequency: 14250000\\n"
+terminated by the response separator. e.g. "Frequency: 14250000\\n" when the
+command was prepended by '+'.
 .PP
 4. All commands received will be acknowledged by \fBrigctld\fP with lines from
 rules 1 and 2.  Lines from rule 3 are only returned when data values must be
 returned to the client.
 .PP
-An example response to a \fI\\set_mode\fP command:
-.br
+An example response to a \fI+\\set_mode\fP command (note the prepended '+'):
+.sp
 $ echo "+F USB 2400" | nc -w 1 localhost 4532
 .br
 set_mode: USB 2400
@@ -509,7 +521,7 @@ the second line contains the end of block marker and the numeric rig backend
 return value indicating success.
 .PP
 An example response to a \fI\\get_mode\fP query:
-.br
+.sp
 $ echo "+\\get_mode" | nc -w 1 localhost 4532
 .br
 get_mode:
@@ -523,6 +535,51 @@ RPRT 0
 In this case, as no value is passed to \fBrigctld\fP, the first line consists
 only of the long command name.  The final line shows that the command was
 processed successfully by the rig backend.
+.PP
+Invoking the Extended Response protocol requires prepending a command with a
+punctuation character.  As shown in the examples above, prepending a '+'
+character to the command results in the responses being separated by a newline
+character ('\\n').  Any other punctuation character recognized by the C
+\fIispunct()\fP function except '\\', '?', or '_' will cause that character to
+become the response separator and the entire response will be on one line.
+.PP
+Separator character summary:
+.TP
+.B '+'
+.br
+Each record of the response is appended with a newline ('\\n').
+.TP
+.B ';', '|', or ','
+.br
+Each record of the response is appended by the given character resulting in
+entire response on one line.
+.sp
+Common record separators for text representations of spreadsheet data, etc.
+.TP
+.B '?'
+.br
+Reserved for 'help' in rigctl short command
+.TP
+.B '_'
+.br
+Reserved for \\get_info short command
+.sp
+Other punctuation characters have not been tested!  Use at your own risk.
+.PP
+For example, invoking a \fI;\\get_mode\fP query with a leading ';' returns:
+.sp
+get_mode:;Mode: USB;Passband: 2400;RPRT 0
+.sp
+Or, using the pipe character '|' returns:
+.sp
+get_mode:|Mode: USB|Passband: 2400|RPRT 0
+.sp
+And a \\set_pos command prepended with a '|' returns:
+.sp
+set_mode: USB 2400|RPRT 0
+.PP
+Such a format will allow reading a response as a single event using a prefered
+response separator.  Other punctuation characters have not been tested!
 .PP
 The following commands have been tested with the Extended Response protocol and the
 included \fBtestctld.pl\fP script:
@@ -543,7 +600,7 @@ included \fBtestctld.pl\fP script:
 .br
 \fI\\dump_caps\fP
 .SH EXAMPLES
-Start \fBrigctld\fP for a Yaesu FT-920 using an USB-to-serial adapter and
+Start \fBrigctld\fP for a Yaesu FT-920 using a USB-to-serial adapter and
 backgrounding:
 .PP
 $ rigctld -m 114 -r /dev/ttyUSB1 &
@@ -577,18 +634,22 @@ is advisable to not start \fBrigctld\fP as \fIroot\fP or another system user
 account in order to limit any vulnerability.
 .SH BUGS
 The daemon is not detaching and backgrounding itself.
-.br
+.PP
 Much testing needs to be done.
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@lists.sourceforge.net>.
-.br
+.PP
 We are already aware of the bugs in the previous section :-)
 .SH AUTHORS
 Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
-.br
+.PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2010 Stephane Fillod, Nate Bargmann, and the Hamlib Group.
+Copyright \(co 2000-2009 Stephane Fillod
+.br
+Copyright \(co 2010 Nate Bargmann
+.br
+Copyright \(co 2000-2009 the Hamlib Group.
 .PP
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY

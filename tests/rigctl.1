@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "January 4, 2009" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "February 17, 2010" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -44,14 +44,16 @@ Here is a summary of the supported options:
 .TP
 .B \-m, --model=id
 Select radio model number. See model list (use 'rigctl -l').
-.br
+.sp
 NB: \fBrigctl\fP (or third party software) will use rig model 1901 
-when using \fBrpc.rigd\fP.
+when using \fBrpc.rigd\fP or rig model 2 for NET rigctl (rigctld).
 .TP
 .B \-r, --rig-file=device
 Use \fIdevice\fP as the file name of the port the radio is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically 
 /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+.sp
+Default is \fB/dev/rig\fP (may be a symbolic link to the actual device).
 .TP
 .B \-p, --ptt-file=device
 Use \fIdevice\fP as the file name of the Push-To-Talk device using a
@@ -65,7 +67,7 @@ device file as described above.
 Use \fItype\fP of Push-To-Talk device.
 Supported types are RIG, DTR, RTS, PARALLEL, NONE, overriding PTT type
 defined in the rig's backend.
-
+.sp
 Some side effects of this command are that when type is set to DTR, read
 PTT state comes from Hamlib frontend, not read from the radio.  When set
 to NONE, PTT state cannot be read or set even if rig backend supports 
@@ -82,7 +84,7 @@ backend capabilities as the default.
 .B \-c, --civaddr=id
 Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for 
 Icom rigs.
-.br
+.sp
 NB: the \fIid\fP is in decimal notation, unless prefixed by 
 \fI0x\fP, in which case it is hexadecimal.
 .TP
@@ -98,7 +100,7 @@ List all config parameters for the radio defined with -m above.
 .TP
 .B \-C, --set-conf=parm=val[,parm=val]*
 Set config parameter.  e.g. stop_bits=2
-.br
+.sp
 Use -L option for a list.
 .TP
 .B \-l, --list
@@ -135,243 +137,307 @@ or provided as argument(s) in command line interface mode.
 .PP
 Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
 an upper case letter will be used for \fIset\fP method whereas the 
-corresponding lower case letter refers to the \fIget\fP method.
-In interactive mode, prepend a backslash to enter a long command name.
-.br
+corresponding lower case letter refers to the \fIget\fP method.  Each operation
+also has a long name; in interactive mode, prepend a backslash to enter a long
+command name.
+.sp
 Example: Use "\\dump_caps" to see what this radio can do.
 .PP
 Please note that the backend for the radio to be controlled, 
 or the radio itself may not support some commands. In that case, 
 the operation will fail with a \fBHamlib\fP error message.
 .PP
-Here is a summary of the supported commands:
+Here is a summary of the supported commands (In the case of "set" commands the
+quoted string is replaced by the value in the description.  In the case of "get"
+commands the quoted string is the key name of the value returned.):
 .TP
-.B F, set_freq
-Set frequency, in Hz.
+.B F, set_freq 'Frequency'
+Set 'Frequency', in Hz.
 .TP
 .B f, get_freq
-Get frequency, in Hz.
+Get 'Frequency', in Hz.
 .TP
-.B M, set_mode
-Set mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
+.B M, set_mode 'Mode' 'Passband'
+Set 'Mode': USB, LSB, CW, CWR, RTTY, RTTYR, AM, FM, WFM, AMS,
 PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
-
-The passband is the exact passband in Hz, or 0 for the default.
+.sp
+Set 'Passband' in Hz, or '0' for the Hamlib backend default.
 .TP
 .B m, get_mode
-Get mode/passband.
+Get 'Mode' 'Passband'.
+.sp
+Returns Mode as a string from \fIset_mode\fP above
+and Passband in Hz.
 .TP
-.B V, set_vfo
-Set VFO: VFOA, VFOB, VFOC, currVFO, VFO, MEM, Main, Sub, TX, RX.
+.B V, set_vfo 'VFO'
+Set 'VFO': VFOA, VFOB, VFOC, currVFO, VFO, MEM, Main, Sub, TX, RX.
+.sp
+In VFO mode only a single VFO parameter is required.
 .TP
 .B v, get_vfo
-Get current VFO.
+Get current 'VFO'.
+.sp
+Returns VFO as a string from \fIset_vfo\fP above.
 .TP
-.B J, set_rit
-Set RIT, in Hz.
+.B J, set_rit 'RIT'
+Set 'RIT', in Hz, can be + or -.
+.sp
+A value of '0' resets RIT and *should* turn RIT off.  If not, file a bug report
+against the Hamlib backend.
 .TP
 .B j, get_rit
-Get RIT, in Hz.
+Get 'RIT', in Hz.
 .TP
-.B Z, set_xit
-Set XIT, in Hz.
+.B Z, set_xit 'XIT'
+Set 'XIT', in Hz can be + or -.
+.sp
+A value of '0' resets RIT and *should* turn RIT off.  If not, file a bug report
+against the Hamlib backend.
 .TP
 .B z, get_xit
-Get XIT, in Hz.
+Get 'XIT', in Hz.
 .TP
-.B T, set_ptt
-Set PTT, 0 or 1.
+.B T, set_ptt 'PTT'
+Set 'PTT', 0 (RX) or 1 (TX).
 .TP
 .B t, get_ptt
-Get PTT status.
+Get 'PTT' status.
 .TP
-.B get_dcd
-Get DCD status.
+.B 0x8b, get_dcd
+Get 'DCD' (squelch) status, 0 (Closed) or 1 (Open)
 .TP
-.B R, set_rptr_shift
-Set repeater shift: "+", "-" or something else for none.
+.B R, set_rptr_shift 'Rptr Shift'
+Set 'Rptr Shift': "+", "-" or something else for none.
 .TP
 .B r, get_rptr_shift
-Get repeater shift.
+Get 'Rptr Shift'.  Returns "+", "-" or "None".
 .TP
-.B O, set_rptr_offs
-Set repeater offset, in Hz.
+.B O, set_rptr_offs 'Rptr Offset'
+Set 'Rptr Offset', in Hz.
 .TP
 .B o, get_rptr_offs
-Get repeater offset.
+Get 'Rptr Offset', in Hz.
 .TP
-.B C, set_ctcss_tone
-Set CTCSS tone, in tenth of Hz.
+.B C, set_ctcss_tone 'CTCSS Tone'
+Set 'CTCSS Tone', in tenths of Hz.
 .TP
 .B c, get_ctcss_tone
-Get CTCSS tone, in tenth of Hz.
+Get 'CTCSS Tone', in tenths of Hz.
 .TP
-.B D, set_dcs_code
-Set DCS code.
+.B D, set_dcs_code 'DCS Code'
+Set 'DCS Code'.
 .TP
 .B d, get_dcs_code
-Get DCS code.
+Get 'DCS Code'.
 .TP
-.B set_ctcss_sql
-Set CTCSS squelch tone, in tenth of Hz.
+.B 0x90, set_ctcss_sql 'CTCSS Sql'
+Set 'CTCSS Sql' tone, in tenths of Hz.
 .TP
-.B get_ctcss_sql
-Get CTCSS squelch tone, in tenth of Hz.
+.B 0x91, get_ctcss_sql
+Get 'CTCSS Sql' tone, in tenths of Hz.
 .TP
-.B set_dcs_sql
-Set DCS squelch code.
+.B 0x92, set_dcs_sql 'DCS Sql'
+Set 'DCS Sql' code.
 .TP
-.B get_dcs_sql
-Get DCS squelch code.
+.B 0x93, get_dcs_sql
+Get 'DCS Sql' code.
 .TP
-.B I, set_split_freq
-Set TX frequency, in Hz.
+.B I, set_split_freq 'Tx Frequency'
+Set 'TX Frequency', in Hz.
 .TP
 .B i, get_split_freq
-Get TX frequency.
+Get 'TX Frequency', in Hz.
 .TP
-.B X, set_split_mode
-Set transmit mode/passband: AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS, 
+.B X, set_split_mode 'TX Mode' 'TX Passband'
+Set 'TX Mode': AM, FM, CW, CWR, USB, LSB, RTTY, RTTYR, WFM, AMS,
 PKTLSB, PKTUSB, PKTFM, ECSSUSB, ECSSLSB, FAX, SAM, SAL, SAH, DSB.
-
-The passband is the exact passband in Hz, or 0 for the default.
+.sp
+The 'TX Passband' is the exact passband in Hz, or '0' for the Hamlib
+backend default.
 .TP
 .B x, get_split_mode
-Get transmit mode/passband.
+Get 'TX Mode' and 'TX Passband'.
+.sp
+Returns TX mode as a string from \fIset_split_mode\fP above and TX passband in Hz.
 .TP
-.B S, set_split_vfo
-Set split mode, 0 or 1, and transmit VFO.
+.B S, set_split_vfo 'Split' 'TX VFO'
+Set 'Split' mode, '0' or '1', and 'TX VFO' from \fIset_vfo\fP above.
 .TP
 .B s, get_split_vfo
-Get split mode and transmit VFO.
+Get 'Split' mode, '0' or '1', and 'TX VFO'.
 .TP
-.B N, set_ts
-Set tuning step, in Hz.
+.B N, set_ts 'Tuning Step'
+Set 'Tuning Step', in Hz.
 .TP
 .B n, get_ts
-Get tuning step.
+Get 'Tuning Step', in Hz.
 .TP
-.B U, set_func
-Set func/status:
-FAGC, NB, COMP, VOX, TONE, TSQL, SBKIN, FBKIN, ANF, NR, AIP, APF, MON, MN,
-RF, ARO, LOCK, MUTE, VSC, REV, SQL, ABM, BC, MBC, AFC, SATMODE, SCOPE, 
-RESUME, TBURST, TUNER.
+.B U, set_func 'Func' 'Func Status'
+Set 'Func' 'Func Status'.
+.sp
+Func is one of: FAGC, NB, COMP, VOX, TONE, TSQL,
+SBKIN, FBKIN, ANF, NR, AIP, APF, MON, MN, RF, ARO, LOCK, MUTE, VSC, REV, SQL,
+ABM, BC, MBC, AFC, SATMODE, SCOPE, RESUME, TBURST, TUNER.
+.sp
+Func Status argument is a non null value for "activate", "de-activate"
+otherwise, much as TRUE/FALSE definitions in C language.
 .TP
 .B u, get_func
-Get func status.
+Get 'Func' 'Func Status'.
+.sp
+Returns Func as a string from \fIset_func\fP above and Func status as a non null value.
 .TP
-.B L, set_level
-Set level/value:
-PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH, RFPOWER,
-MICGAIN, KEYSPD, NOTCHF, COMP, AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX. 
+.B L, set_level 'Level' 'Level Value'
+Set 'Level' and 'Level Value'.
+.sp
+Level is one of: PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH,
+RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX.
 SLOPE_LOW, SLOPE_HIGH, RAWSTR, SQLSTAT, SWR, ALC, STRENGTH.
+.sp
+The Level Value can be a float or an integer.
 .TP
 .B l, get_level
-Get level value.
+Get 'Level' 'Level Value'.
+.sp
+Returns Level as a string from \fIset_level\fP above and Level value as a float or
+integer.
 .TP
-.B P, set_parm
-Set parm/value:
-ANN, APO, BACKLIGHT, BEEP, TIME, BAT, KEYLIGHT.
+.B P, set_parm 'Parm' 'Parm Value'
+Set 'Parm' 'Parm Value'
+.sp
+Parm is one of: ANN, APO, BACKLIGHT, BEEP, TIME, BAT, KEYLIGHT.
 .TP
 .B p, get_parm
-Get parm value.
+Get 'Parm' 'Parm Value'.
+.sp
+Returns Parm as a string from \fIset_parm\fP above and Parm Value as a float or
+integer.
 .TP
-.B B, set_bank
-Set bank.
+.B B, set_bank 'Bank'
+Set 'Bank'.  Sets the current memory bank number.
 .TP
-.B E, set_mem
-Set memory channel number.
+.B E, set_mem 'Memory#'
+Set 'Memory#' channel number.
 .TP
 .B e, get_mem
-Get memory channel number.
+Get 'Memory#' channel number.
 .TP
-.B G, vfo_op
-Perform VFO operation:
-CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP, BAND_DOWN, LEFT, RIGHT,
-TUNE, TOGGLE.
+.B G, vfo_op 'Mem/VFO Op'
+Perform 'Mem/VFO Op'.
+.sp
+Mem VFO operation is one of: CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP,
+BAND_DOWN, LEFT, RIGHT, TUNE, TOGGLE.
 .TP
-.B g, scan_op
-Perform scan operation/channel: STOP, MEM, SLCT, PRIO, PROG, DELTA, VFO, PLT.
+.B g, scan 'Scan Fct' 'Scan Channel'
+Perform 'Scan Fct' 'Scan Channel'.
+.sp
+Scan function/channel is one of: STOP, MEM, SLCT, PRIO, PROG, DELTA, VFO, PLT.
 .TP
-.B H, set_channel
-Set memory channel data. Partially implemented.
+.B H, set_channel 'Channel'
+Set memory 'Channel' data. Not implemented yet.
 .TP
 .B h, get_channel
-Get memory channel data.
+Get memory 'Channel' data. Not implemented yet.
 .TP
-.B A, set_trn
-Set transceive mode (reporting event): OFF, RIG, POLL.
+.B A, set_trn 'Transceive'
+Set 'Transceive' mode (reporting event): OFF, RIG, POLL.
 .TP
 .B a, get_trn
-Get transceive mode (reporting event).
+Get 'Transceive' mode (reporting event) as in \fIset_trn\fP above.
 .TP
-.B Y, set_ant
-Set antenna number (0, 1, 2, ..).
+.B Y, set_ant 'Antenna'
+Set 'Antenna' number (0, 1, 2, ..).
 .TP
 .B y, get_ant
-Get antenna number (0, 1, 2, ..).
+Get 'Antenna' number (0, 1, 2, ..).
 .TP
-.B *, reset
-Reset.
+.B *, reset 'Reset'
+Perform rig 'Reset'.
+.sp
+0 = None, 1 = Software reset, 2 = VFO reset, 4 = Memory Clear reset, 8 = Master reset.
+Since these values are defined as a bitmask in rig.h, it should be possible to AND
+these values together to do multiple resets at once, if the backend supports it or
+supports a reset action via rig control at all.
 .TP
-.B b, send_morse
-Send morse symbols.
+.B b, send_morse 'Morse'
+Send 'Morse' symbols.
 .TP
-.B 0x87, set_powerstat
-Set power status.
+.B 0x87, set_powerstat 'Power Status'
+Set power On/Off/Standby 'Power Status'.
+.sp
+0 = Power Off, 1 = Power On, 2 = Power Standby.  Defined as a bitmask in rig.h.
 .TP
 .B 0x88, get_powerstat
-Get power status.
+Get power On/Off/Standby 'Power Status' as in \fIset_powerstat\fP above.
 .TP
-.B 0x89, send_dtmf
-Set DTMF digits.
+.B 0x89, send_dtmf 'Digits'
+Set DTMF 'Digits'.
 .TP
 .B 0x8a, recv_dtmf
-Get DTMF digits.
+Get DTMF 'Digits'.
 .TP
 .B _, get_info
-Get misc information about the rig.
+Get misc information about the rig (no VFO in 'VFO mode' or value is passed).
 .TP
 .B 1, dump_caps
-Not a real rig remote command, it just dumps capabilities, i.e. what the 
+Not a real rig remote command, it just dumps capabilities, i.e. what the
 backend knows about this model, and what it can do.  TODO: Ensure this is
-in a consistent format so it can be read into a hash, dictionary, etc.
+in a consistent format so it can be read into a hash, dictionary, etc.  Bug
+reports requested.
+.sp
+\fBN.B.\fP: This command will produce many lines of output so be very careful
+if using a fixed length array!  For example, running this command against the
+Dummy backend results in over 5kB of text output.
+.sp
+VFO parameter not used in 'VFO mode'.
 .TP
-.B 3, dump_conf
-Not a real rig remote command, it just dumps a list of all config parameters
-defined for the radio.
+.B 2, power2mW 'Power [0.0..1.0]' 'Frequency' 'Mode'
+Returns 'Power mW'
+.sp
+Converts a Power value in a range of \fI0.0 ... 1.0\fP to the real transmit
+power in milli-Watts (integer).  The \fIfrequency\fP and \fImode\fP also need to
+be provided as output power may vary according to these values.
+.sp
+VFO parameter not used in 'VFO mode'.
 .TP
-.B 2, power2mW
-Converts a power value in a range of \fI0.0 ... 1.0\fP to the real transmit 
-power in milli-Watts.  The \fIfrequency\fP and \fImode\fP also need to be 
-provided as output power may vary according to these values.
+.B 4, mW2power 'Power mW' 'Frequency' 'Mode'
+Returns 'Power [0.0..1.0]'
+.sp
+Converts the real transmit power in milli-Watts (integer) to a Power value in
+a range of \fI0.0 ... 1.0\fP.  The \fIfrequency\fP and \fImode\fP also need to
+be provided as output power may vary according to these values.
+.sp
+VFO parameter not used in 'VFO mode'.
 .TP
-.B w, send_cmd
-Send raw command string to the rig.
-.br
-<CR> (or send-cmd-term, see \fI-t\fP option) is appended automatically at the end
-of the command for text protocols.
-For binary protocols, enter values as \\0xAA\\0xBB
-
+.B w, send_cmd 'Cmd'
+Send raw command string to rig.
+.sp
+For binary protocols enter values as \\0xAA\\0xBB.    Expect a 'Reply' from the
+rig which will likely be a binary block or an ASCII string.
 .SH EXAMPLES
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter in 
 interactive mode:
-
+.sp
 $ rigctl -m 114 -r /dev/ttyUSB1
-
+.sp
 Start \fBrigctl\fP for a Yaesu FT-920 using COM1 while generating TRACE output
 to \fBstderr\fP:
-
+.sp
 $ rigctl -m 114 -r /dev/ttyS0 -vvvvv
-
+.sp
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter while
 setting baud rate and stop bits:
-
+.sp
 $ rigctl -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2
-
+.sp
 Start \fBrigctl\fP using \fBrpc.rigd\fP and setting the frequency and mode:
-
+.sp
 $ rigctl -m 1901 -r localhost F 7253500 M LSB 0
+.sp
+Connect to a running \fBrigctld\fP with rig model 2 ("NET rigctl") on the
+local host and specifying the TCP port:
+.sp
+$ rotctl -m 2 -r localhost:4532
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP option allows different levels of diagnostics
 to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
@@ -395,20 +461,23 @@ set_chan has no entry method as of yet, hence left unimplemented.
 This almost empty section...
 .SH REPORTING BUGS
 Report bugs to <hamlib-developer@lists.sourceforge.net>.
-.br
+.PP
 We are already aware of the bugs in the previous section :-)
 .SH AUTHORS
-Written by Stephane Fillod and the Hamlib Group 
-.br
+Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group 
+.PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
-Copyright \(co 2000-2009 Stephane Fillod, Frank Singleton, and the Hamlib
-Group.
+Copyright \(co 2000-2009 Stephane Fillod
 .br
+Copyright \(co 2010 Nate Bargmann
+.br
+Copyright \(co 2000-2009 the Hamlib Group.
+.sp
 This is free software; see the source for copying conditions.
 There is NO warranty; not even for MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE.
 .SH SEE ALSO
 .BR hamlib (3),
 .BR rpc.rigd (8)
-
+.BR rigctld(8)

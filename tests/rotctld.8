@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "February 14, 2010" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "February 17, 2010" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -82,13 +82,16 @@ Use \fIIPADDR\fP as the listening IP address. The default is ANY.
 .TP
 .B \-t, --port=number
 Use \fInumber\fP as the TCP listening port. The default is 4533.
+.sp
+\fBN.B.\fP: As \fBrigctld\fP's default port is 4532, it is advisable to use odd
+numbered ports for \fBrotctld\fP, e.g. 4533, 4535, 4537, etc.
 .TP
 .B \-L, --show-conf
 List all config parameters for the rotator defined with -m above.
 .TP
 .B \-C, --set-conf=parm=val[,parm=val]*
 Set config parameter.  e.g. --set-conf=stop_bits=2
-.br
+.sp
 Use -L option for a list.
 .TP
 .B \-l, --list
@@ -99,9 +102,10 @@ Dump capabilities for the radio defined with -m above and exit.
 .TP
 .B \-e, --end-marker
 Use END marker in rotctld protocol.
-.br
-N.B.: This option can be considered obsolete.  Please consider using the block
-protocol instead (see \fIPROTOCOL\fP below).
+.sp
+N.B.: This option should be considered obsolete.  Please consider using the Extended
+Response protocol instead (see \fIPROTOCOL\fP below).  This option will be removed
+in a future Hamlib release.
 .TP
 .B \-v, --verbose
 Set verbose mode, cumulative (see DIAGNOSTICS below).
@@ -133,7 +137,7 @@ Example (Perl): `print $socket "\\\\dump_caps\\n";' to see what the rotor's
 backend can do (NOTE: In Perl and many other languages a '\\' will need to be
 escaped with a preceding '\\' so that even though two backslash characters
 appear in the code, only one will be passed to \fBrotctld\fP.  This is a
-possible bug!).
+possible bug, beware!).
 .PP
 Please note that the backend for the rotator to be controlled, or the rotator
 itself may not support some commands. In that case, the operation will fail
@@ -264,30 +268,29 @@ print $socket "P 135 10\\n";
 .sp
 print $socket "\\\\set_pos 135 10\\n";   # escape leading '\\'
 .PP
-A one line response will be sent to \fIset\fP commands, "RPTR \fIx\fP\\n"
-where \fIx\fP is the Hamlib error code with '0' indicating success of the
-command.
+A one line response will be sent as a reply to \fIset\fP commands,
+"RPTR \fIx\fP\\n" where \fIx\fP is the Hamlib error code with '0'
+indicating success of the command.
 .PP
 Responses from \fBrotctld\fP \fIget\fP commands are text values and match the
 same tokens used in the \fIset\fP commands. Each value is returned on its own
-line.  On error the string "RPTR \fIx\fP\\n" where \fIx\fP is the Hamlib error
-code.
+line.  On error the string "RPTR \fIx\fP\\n" is returned where \fIx\fP is the
+Hamlib error code.
 .sp
 Example \fIget\fP (Perl code):
 .sp
 print $socket "p\\n";
-.sp
+.br
 "135"
 .br
 "10"
-.br
 .PP
 Most \fIget\fP functions return one to three values. A notable exception is
 the \fI\\dump_caps\fP function which returns many lines of key:value pairs.
 .PP
 This protocol is primarily used by the \fINET rotctl\fP (rotctl model 2) backend
-which allows applications already written for Hamlib to take advantage of
-\fBrotctld\fP without the need of rewriting application code.  An application
+which allows applications already written for Hamlib's C API to take advantage of
+\fBrotctld\fP without the need of rewriting application code.  An application's
 user can select rotor model 2 ("NET rotctl") and then set rot_pathname to
 "localhost:4533" or other network host:port.
 .PP
@@ -295,11 +298,11 @@ user can select rotor model 2 ("NET rotctl") and then set rot_pathname to
 .PP
 An \fIEXPERIMENTAL\fP Extended Response protocol has been introduced into
 \fBrotctld\fP as of February 10, 2010.  This protocol adds several rules to the
-strings returned by \fBrotctld\fP.
+strings returned by \fBrotctld\fP and adds a rule for the command syntax.
 .PP
 1. The command received by \fBrotctld\fP is echoed with its long command name
 followed by the value(s) (if any) received from the client terminated by the
-specified response separator as the first record of the block.
+specified response separator as the first record of the response.
 .PP
 2. The last record of each block is the string "RPTR \fIx\fP\\n" where \fIx\fP is
 the numeric return value of the Hamlib backend function that was called by the
@@ -315,6 +318,8 @@ rules 1 and 2.  Records from rule 3 are only returned when data values must be
 returned to the client.
 .PP
 An example response to a \fI+P\fP command (note the prepended '+'):
+.sp
+$ echo "+P 90 45" | nc -w 1 localhost 4533
 .br
 set_pos: 90 45
 .br
@@ -325,6 +330,8 @@ the second line contains the end of block marker and the numeric rig backend
 return value indicating success.
 .PP
 An example response to a \fI+\\get_pos\fP query:
+.sp
+$ echo "+\\get_pos" | nc -w 1 localhost 4533
 .br
 get_pos:
 .br
@@ -344,6 +351,29 @@ character to the command results in the responses being separated by a newline
 character ('\\n').  Any other punctuation character recognized by the C
 \fIispunct()\fP function except '\\', '?', or '_' will cause that character to
 become the response separator and the entire response will be on one line.
+.PP
+Separator character summary:
+.TP
+.B '+'
+.br
+Each record of the response is appended with a newline ('\\n').
+.TP
+.B ';', '|', or ','
+.br
+Each record of the response is appended by the given character resulting in
+entire response on one line.
+.sp
+Common record separators for text representations of spreadsheet data, etc.
+.TP
+.B '?'
+.br
+Reserved for 'help' in rotctl short command
+.TP
+.B '_'
+.br
+Reserved for \\get_info short command
+.sp
+Other punctuation characters have not been tested!  Use at your own risk.
 .PP
 For example, invoking a \fI;\\get_pos\fP query with a leading ';' returns:
 .sp
@@ -391,6 +421,10 @@ library development and may be requested by the developers.  See the
 No authentication whatsoever; DO NOT leave this TCP port open wide to the
 Internet.  Please ask if stronger security is needed or consider using an
 SSH tunnel.
+.PP
+As \fBrotctld\fP does not need any greater permissions than \fBrotctl\fP, it
+is advisable to not start \fBrotctld\fP as \fIroot\fP or another system user
+account in order to limit any vulnerability.
 .SH BUGS
 The daemon is not detaching and backgrounding itself.
 .PP
@@ -401,7 +435,7 @@ Report bugs to <hamlib-developer@lists.sourceforge.net>.
 We are already aware of the bugs in the previous section :-)
 .SH AUTHORS
 Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
-.br
+.PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
 Copyright \(co 2000-2009 Stephane Fillod

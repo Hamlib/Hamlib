@@ -71,25 +71,25 @@
 #define SHORT_OPTIONS "m:r:p:d:P:D:s:c:T:t:C:lLuoevhV"
 static struct option long_options[] =
 {
-	{"model",    1, 0, 'm'},
-	{"rig-file", 1, 0, 'r'},
-	{"ptt-file", 1, 0, 'p'},
-	{"dcd-file", 1, 0, 'd'},
-	{"ptt-type", 1, 0, 'P'},
-	{"dcd-type", 1, 0, 'D'},
-	{"serial-speed", 1, 0, 's'},
-	{"civaddr",  1, 0, 'c'},
-	{"listen-addr",  1, 0, 'T'},
-	{"port",  1, 0, 't'},
-	{"set-conf", 1, 0, 'C'},
-	{"list",     0, 0, 'l'},
-	{"show-conf",0, 0, 'L'},
-	{"dump-caps",  0, 0, 'u'},
-	{"vfo",  0, 0, 'o'},
-	{"end-marker", 0, 0, 'e'},
-	{"verbose",  0, 0, 'v'},
-	{"help",     0, 0, 'h'},
-	{"version",  0, 0, 'V'},
+	{"model",       1, 0, 'm'},
+	{"rig-file",    1, 0, 'r'},
+	{"ptt-file",    1, 0, 'p'},
+	{"dcd-file",    1, 0, 'd'},
+	{"ptt-type",    1, 0, 'P'},
+	{"dcd-type",    1, 0, 'D'},
+	{"serial-speed",1, 0, 's'},
+	{"civaddr",     1, 0, 'c'},
+	{"listen-addr", 1, 0, 'T'},
+	{"port",        1, 0, 't'},
+	{"set-conf",    1, 0, 'C'},
+	{"list",        0, 0, 'l'},
+	{"show-conf",   0, 0, 'L'},
+	{"dump-caps",   0, 0, 'u'},
+	{"vfo",         0, 0, 'o'},
+	{"end-marker",  0, 0, 'e'},
+	{"verbose",     0, 0, 'v'},
+	{"help",        0, 0, 'h'},
+	{"version",     0, 0, 'V'},
 	{0, 0, 0, 0}
 };
 
@@ -108,7 +108,7 @@ int prompt = 0;         /* Daemon mode for rigparse return string */
 int opt_end = 0;        /* END marker for rigctld */
 int vfo_mode = 0;       /* vfo_mode=0 means target VFO is current VFO */
 
-char send_cmd_term = '\r';     /* send_cmd termination char */
+char send_cmd_term = '\r';  /* send_cmd termination char */
 
 int portno = 4532;
 uint32_t src_addr = INADDR_ANY;
@@ -285,7 +285,6 @@ int main (int argc, char *argv[])
 		}
 	}
 
-//	rig_set_debug(verbose < 2 ? RIG_DEBUG_WARN: verbose);
 	rig_set_debug(verbose);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "rigctld, %s\n", hamlib_version);
