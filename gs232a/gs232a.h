@@ -1,6 +1,6 @@
 /*
- *  Hamlib Rotator backend - GS-232A interface protocol
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Hamlib Rotator backend - GS-232 interface protocol
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *
  *	$Id: gs232a.h,v 1.1 2008-05-23 14:14:17 fillods Exp $
  *
@@ -24,5 +24,6 @@
 #define _ROT_GS232A_H 1
 
 extern const struct rot_caps gs232a_rot_caps;
+extern const struct rot_caps gs232b_rot_caps;
 
 #endif /* _ROT_GS232A_H */
