@@ -72,12 +72,17 @@
  * \brief Hamlib release number
  * The version number has the format x.y.z
  */
-const char hamlib_version[] = "Hamlib version " PACKAGE_VERSION;
+/*
+ * Careful: The hamlib 1.2 ABI implicitly specifies a size of 21 bytes for
+ * the hamlib_version string.  Changing the size provokes a warning from the
+ * dynamic loader.
+ */
+const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
 
 /**
  * \brief Hamlib copyright notice
  */
-const char hamlib_copyright[] =
+const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
   "Copyright (C) 2000-2009 Stephane Fillod\n"
   "Copyright (C) 2000-2003 Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
