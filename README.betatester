@@ -61,7 +61,7 @@ See `configure --help' for more information.
 
 Please read the beginning of README.developer file, especially Section 1 which
 details the SVN checkout, the required tools and versions (very important or
-make won't even work!), and how to use the autofixer.sh or autogen.sh scripts.
+make won't even work!), and how to use the autogen.sh script.
 
 
 * SVN Daily Snapshot Build:

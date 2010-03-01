@@ -57,9 +57,8 @@ DIE=0
 
 ($LIBTOOLIZE --version) < /dev/null > /dev/null 2>&1 || {
         echo
-        echo "You must have automake installed to compile $PROJECT."
-        echo "Get ftp://sourceware.cygnus.com/pub/automake/automake-1.5.tar.gz"
-        echo "(or a newer version if it is available)"
+        echo "You must have libtool installed to compile $PROJECT."
+        echo "Download the appropriate package for your distribution."
         DIE=1
 }
 
@@ -72,6 +71,28 @@ test $TEST_TYPE $FILE || {
         exit 1
 }
 
+# Check system's libtool version versus our bundled libtool version
+# Upgrade our bundled libtool only if stale
+do_libtoolize=""
+our_lt_version=`grep '^VERSION=' ltmain.sh | sed 's/VERSION="\([^ ]*\).*$/\1/'`
+sys_lt_version=`libtoolize --version | ( read x x x vvv && echo $vvv )`
+if test -z "$our_lt_version" ; then
+        echo "W: ltmain.sh not found (libtool no longer bundled?); skipping libtoolize."
+elif test "$sys_lt_version" = "$our_lt_version"; then
+	echo "I: system libtool $sys_lt_version == bundled libtool $our_lt_version; skipping libtoolize."
+else
+	newer=`echo "$sys_lt_version\n$our_lt_version" | sort | tail -1`
+	if test "$newer" = "$our_lt_version"; then
+	    echo "I: system libtool $sys_lt_version <= bundled libtool $our_lt_version; skipping libtoolize."
+	else
+	    do_libtoolize="yes"
+	    ltz_opt="-c -i --force"
+	    echo "I: system libtool $sys_lt_version >  bundled libtool $our_lt_version."
+	    echo "I: Updating bundled libtool to version $sys_lt_version with:"
+	    echo "I:   $LIBTOOLIZE $ltz_opt"
+	fi
+fi
+
 if test -z "$*"; then
         echo "I am going to run ./configure with no arguments - if you wish "
         echo "to pass any to it, please specify them on the $0 command line."
@@ -82,19 +103,14 @@ case $CC in
 *xlc | *xlc\ * | *lcc | *lcc\ *) am_opt=--include-deps;;
 esac
 
-if $LIBTOOLIZE --version | grep -q "libtoolize (GNU libtool) 1.*" ; then
-        ltz_opt="--automake --ltdl"
-else
-        # libtoolize 2.x and upper
-        ltz_opt="-c -i --force"
-fi
-
 $ACLOCAL $ACLOCAL_FLAGS
 
 # optionally feature autoheader
 ($AUTOHEADER --version)  < /dev/null > /dev/null 2>&1 && $AUTOHEADER
 
-$LIBTOOLIZE $ltz_opt
+if test "$do_libtoolize" = "yes" ; then
+    $LIBTOOLIZE $ltz_opt
+fi
 $AUTOMAKE -a $am_opt
 $AUTOCONF
 cd $ORIGDIR

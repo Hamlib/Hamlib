@@ -176,9 +176,16 @@ AC_LIBOBJ(dummy)
 ## ------------------------ ##
 ## libtool  Initialisation. ##
 ## ------------------------ ##
-LT_CONFIG_LTDL_DIR([libltdl])
 LT_INIT([dlopen], [win32-dll])
+########## EITHER select the system's libltdl (do not distribute libltdl/):
+#INCLTDL=""
+#LIBLTDL="-lltdl"
+########## OR select (build, use, and distribute) the embedded libltdl/:
+LT_CONFIG_LTDL_DIR([libltdl])
 LTDL_INIT([convenience])
+########## END
+AC_SUBST(INCLTDL)
+AC_SUBST(LIBLTDL)
 
 
 case "$host_os" in
