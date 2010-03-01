@@ -210,7 +210,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 				return -1;
 
 			/* Extended response protocol requested with leading '+' on command
-			 * string -- rotctld only! */
+			 * string--rotctld only!
+			 */
 			if (cmd == '+' && !prompt) {
 				ext_resp = 1;
 				if (scanfc(fin, "%c", &cmd) < 0)
@@ -219,13 +220,12 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 				return 0;
 			}
 
-            if (cmd != '\\' && cmd != '_' && ispunct(cmd) && !prompt) {
-                ext_resp = 1;
-                resp_sep = cmd;
+			if (cmd != '\\' && cmd != '_' && cmd != '#' && ispunct(cmd) && !prompt) {
+				ext_resp = 1;
+				resp_sep = cmd;
 				if (scanfc(fin, "%c", &cmd) < 0)
 					return -1;
-                continue;
-            } else if (cmd != '\\' && cmd != '?' && cmd != '_' && ispunct(cmd) && prompt) {
+			} else if (cmd != '\\' && cmd != '?' && cmd != '_' && cmd != '#' && ispunct(cmd) && prompt) {
 				return 0;
 			}
 
@@ -260,7 +260,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		last_was_ret = 0;
 
 		/* comment line */
-		if (cmd == '#' || cmd == ';') {
+		if (cmd == '#') {
 			while( cmd != '\n' && cmd != '\r')
 				if (scanfc(fin, "%c", &cmd) < 0)
 					return -1;
@@ -418,29 +418,30 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (retcode != RIG_OK) {
 		/* only for rotctld */
 		if (interactive && !prompt) {
-  			fprintf(fout, NETROTCTL_RET "%d\n", retcode);
-  			ext_resp = 0;
-            resp_sep = '\n';
-  		}
+			fprintf(fout, NETROTCTL_RET "%d\n", retcode);
+			ext_resp = 0;
+			resp_sep = '\n';
+		}
 		else
-  			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
+			fprintf(fout, "%s: error = %s\n", cmd_entry->name, rigerror(retcode));
 	} else {
 		/* only for rotctld */
 		if (interactive && !prompt) {
 			/* netrotctl RIG_OK */
-			if (!(cmd_entry->flags & ARG_OUT)
-				&& !opt_end && !ext_resp && cmd != 0xf0)
+			if (!(cmd_entry->flags & ARG_OUT) && !opt_end && !ext_resp)
 				fprintf(fout, NETROTCTL_RET "0\n");
-			/* block marker protocol */
-            else if (ext_resp && cmd != 0xf0) {
+
+			/* Extended Response protocol */
+			else if (ext_resp && cmd != 0xf0) {
 				fprintf(fout, NETROTCTL_RET "0\n");
 				ext_resp = 0;
-                resp_sep = '\n';
+				resp_sep = '\n';
 			}
+
 			/* Nate's protocol (obsolete) */
 			else if ((cmd_entry->flags & ARG_OUT) && opt_end)
 				fprintf(fout, "END\n");
-        }
+		}
 	}
 
 	fflush(fout);

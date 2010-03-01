@@ -316,12 +316,12 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 				return 0;
 			}
 
-			if (cmd != '\\' && cmd != '_' && ispunct(cmd) && !prompt) {
+			if (cmd != '\\' && cmd != '_'  && cmd != '#' && ispunct(cmd) && !prompt) {
 				ext_resp = 1;
 				resp_sep = cmd;
 				if (scanfc(fin, "%c", &cmd) < 0)
 					return -1;
-			} else if (cmd != '\\' && cmd != '?' && cmd != '_' && ispunct(cmd) && prompt) {
+			} else if (cmd != '\\' && cmd != '?' && cmd != '_' && cmd != '#' && ispunct(cmd) && prompt) {
 				return 0;
 			}
 
@@ -357,7 +357,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		last_was_ret = 0;
 
 		/* comment line */
-		if (cmd == '#' || cmd == ';') {
+		if (cmd == '#') {
 			while( cmd != '\n' && cmd != '\r')
 				if (scanfc(fin, "%c", &cmd) < 0)
 					return -1;
