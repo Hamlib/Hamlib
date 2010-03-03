@@ -1,5 +1,5 @@
 /*
- * dumpcaps.c - Copyright (C) 2000-2009 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2010 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
@@ -445,7 +445,7 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "Can get Level:\t%c\n", caps->get_level != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set Param:\t%c\n", caps->set_parm != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get Param:\t%c\n", caps->get_parm != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can send DTMF:\t%c\n", caps->send_dtmf != NULL ? 'Y ': 'N');
+	fprintf(fout, "Can send DTMF:\t%c\n", caps->send_dtmf != NULL ? 'Y': 'N');
 	fprintf(fout, "Can recv DTMF:\t%c\n", caps->recv_dtmf != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can send Morse:\t%c\n", caps->send_morse != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can decode Events:\t%c\n", caps->decode_event != NULL ? 'Y' : 'N');
@@ -460,7 +460,7 @@ int dumpcaps (RIG* rig, FILE *fout)
 			(can_echannel ? 'E' : 'N'));
 
 	fprintf(fout, "Can ctl Mem/VFO:\t%c\n", caps->vfo_op != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can Scan:\t%c\n", caps->scan != NULL ? 'Y' :' N');
+	fprintf(fout, "Can Scan:\t%c\n", caps->scan != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get Info:\t%c\n", caps->get_info != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get power2mW:\t%c\n", caps->power2mW != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get mW2power:\t%c\n", caps->mW2power != NULL ? 'Y' : 'N');
