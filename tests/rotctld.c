@@ -1,5 +1,5 @@
 /*
- * rotctld.c - (C) Stephane Fillod 2000-2009
+ * rotctld.c - (C) Stephane Fillod 2000-2010
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands from network connection.
@@ -253,7 +253,7 @@ int main (int argc, char *argv[])
 	 */
 	if (dump_caps_opt) {
 		dumpcaps_rot(my_rot, stdout);
-		rig_cleanup(my_rot); /* if you care about memory */
+		rot_cleanup(my_rot); /* if you care about memory */
 		exit(0);
 	}
 
