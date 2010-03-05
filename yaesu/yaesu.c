@@ -1,7 +1,7 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  *
- * yaesu.c - (C) Stephane Fillod 2001-2009
+ * yaesu.c - (C) Stephane Fillod 2001-2010
  *
  * This shared library provides an API for communicating
  * via serial interface to a Yaesu rig
@@ -167,7 +167,7 @@ DECLARE_PROBERIG_BACKEND(yaesu)
 		return RIG_MODEL_NONE;
 	}
 	id1 = idbuf[3];
-	id1 = idbuf[4];
+	id2 = idbuf[4];
 
 
 	for (i=0; yaesu_id_list[i].model != RIG_MODEL_NONE; i++) {
