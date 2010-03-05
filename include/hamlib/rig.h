@@ -358,6 +358,8 @@ typedef int vfo_t;
 #define RIG_TARGETABLE_FREQ (1<<0)
 #define RIG_TARGETABLE_MODE (1<<1)
 #define RIG_TARGETABLE_PURE (1<<2)
+#define RIG_TARGETABLE_TONE (1<<3)
+#define RIG_TARGETABLE_FUNC (1<<4)
 #define RIG_TARGETABLE_ALL  0x7fffffff
 
 

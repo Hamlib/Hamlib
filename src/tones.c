@@ -7,11 +7,11 @@
  * \file src/tones.c
  * \brief CTCSS and DCS interface and tables
  * \author Stephane Fillod
- * \date 2000-2009
+ * \date 2000-2010
  */
 /*
  *  Hamlib Interface - CTCSS and DCS interface and tables
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *	$Id: tones.c,v 1.11 2009-02-20 12:26:13 fillods Exp $
  *
@@ -110,7 +110,7 @@ int HAMLIB_API rig_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->set_ctcss_tone == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) || 
 				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_ctcss_tone(rig, vfo, tone);
 
@@ -159,7 +159,7 @@ int HAMLIB_API rig_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 	if (caps->get_ctcss_tone == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) || 
 				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_ctcss_tone(rig, vfo, tone);
 
@@ -204,7 +204,7 @@ int HAMLIB_API rig_set_dcs_code(RIG *rig, vfo_t vfo, tone_t code)
 	if (caps->set_dcs_code == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) || 
 				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_dcs_code(rig, vfo, code);
 
@@ -248,7 +248,7 @@ int HAMLIB_API rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
 	if (caps->get_dcs_code == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) || 
 				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_dcs_code(rig, vfo, code);
 
@@ -298,7 +298,7 @@ int HAMLIB_API rig_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->set_ctcss_sql == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) || 
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) || 
 				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_ctcss_sql(rig, vfo, tone);
 
@@ -347,7 +347,7 @@ int HAMLIB_API rig_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 	if (caps->get_ctcss_sql == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_ctcss_sql(rig, vfo, tone);
 
@@ -392,7 +392,7 @@ int HAMLIB_API rig_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
 	if (caps->set_dcs_sql == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_dcs_sql(rig, vfo, code);
 
@@ -436,7 +436,7 @@ int HAMLIB_API rig_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
 	if (caps->get_dcs_sql == NULL)
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_TONE) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_dcs_sql(rig, vfo, code);
 

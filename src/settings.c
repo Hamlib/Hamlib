@@ -7,14 +7,14 @@
  * \file settings.c
  * \brief func/level/parm interface
  * \author Stephane Fillod
- * \date 2000-2009
+ * \date 2000-2010
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  */
 
 /*
  *  Hamlib Interface - func/level/parm
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *	$Id: settings.c,v 1.14 2009-02-20 12:26:13 fillods Exp $
  *
@@ -409,7 +409,7 @@ int HAMLIB_API rig_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	if (caps->set_func == NULL || !rig_has_set_func(rig,func))
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_FUNC) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->set_func(rig, vfo, func, status);
 
@@ -458,7 +458,7 @@ int HAMLIB_API rig_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	if (caps->get_func == NULL || !rig_has_get_func(rig,func))
 		return -RIG_ENAVAIL;
 
-	if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
+	if ((caps->targetable_vfo&RIG_TARGETABLE_FUNC) ||
 			vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
 		return caps->get_func(rig, vfo, func, status);
 
