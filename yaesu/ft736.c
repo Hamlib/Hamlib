@@ -1,5 +1,5 @@
 /*
- * ft736.c - (C) Stephane Fillod 2004
+ * ft736.c - (C) Stephane Fillod 2004-2010
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-736R using the "CAT" interface
@@ -35,7 +35,7 @@
 #include "serial.h"
 #include "misc.h"
 #include "yaesu.h"
-
+#include "tones.h"
 
 
 
@@ -64,14 +64,25 @@ static int ft736_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 static int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 static int ft736_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift);
 static int ft736_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
+static int ft736_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft736_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone);
+static int ft736_set_ctcss_sql (RIG *rig, vfo_t vfo, tone_t tone);
+
+
+static const tone_t ft736_ctcss_list[] = {
+   670,  719,  770,  825,  885,  948, 1000, 1035, 1072, 1109,
+  1148, 1188, 1230, 1273, 1318, 1365, 1413, 1462, 1514, 1567,
+  1622, 1679, 1738, 1799, 1862, 1928, 1035, 2107, 2181, 2257,
+  2336, 2418, 2503,
+  0
+};
+#define FT736_CTCSS_NB 33
 
 /*
  * ft736 rigs capabilities.
  * Also this struct is READONLY!
  *
  * TODO:
- *	- repeater func & offset
- *      - CTCSS & DCS
  *	- AQS
  */
 
@@ -79,7 +90,7 @@ const struct rig_caps ft736_caps = {
   .rig_model =          RIG_MODEL_FT736R,
   .model_name =         "FT-736R",
   .mfg_name =           "Yaesu",
-  .version =            "0.2",
+  .version =            "0.3",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_UNTESTED,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -97,12 +108,13 @@ const struct rig_caps ft736_caps = {
   .timeout =            2000,
   .retry =              0,
   .has_get_func =       RIG_FUNC_NONE,
-  .has_set_func =       RIG_FUNC_NONE,
+  .has_set_func =       RIG_FUNC_TONE|RIG_FUNC_TSQL,
   .has_get_level =      RIG_LEVEL_RAWSTR,
   .has_set_level =      RIG_LEVEL_NONE,
   .has_get_parm =       RIG_PARM_NONE,
   .has_set_parm =       RIG_PARM_NONE,
-  .vfo_ops =		RIG_OP_NONE,
+  .vfo_ops =            RIG_OP_NONE,
+  .ctcss_list =         ft736_ctcss_list,
   .preamp =             { RIG_DBLST_END, },
   .attenuator =         { RIG_DBLST_END, },
   .max_rit =            Hz(0),
@@ -182,6 +194,10 @@ const struct rig_caps ft736_caps = {
 
   .set_rptr_shift = 	ft736_set_rptr_shift,
   .set_rptr_offs = 	ft736_set_rptr_offs,
+
+  .set_func =      	ft736_set_func,
+  .set_ctcss_tone = ft736_set_ctcss_tone,
+  .set_ctcss_sql =  ft736_set_ctcss_sql,
 };
 
 
@@ -429,5 +445,46 @@ int ft736_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
 
   /* Offset set */
   return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+}
+
+int ft736_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x8a};
+
+    switch (func) {
+        case RIG_FUNC_TONE:
+            cmd[4] = status ? 0x4a : 0x8a;
+            break;
+        case RIG_FUNC_TSQL:
+            cmd[4] = status ? 0x0a : 0x8a;
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+}
+
+int ft736_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone)
+{
+    unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xfa};
+    int i;
+
+    for (i=0; i<FT736_CTCSS_NB; i++) {
+        if (ft736_ctcss_list[i] == tone)
+            break;
+    }
+    if (i == FT736_CTCSS_NB)
+        return -RIG_EINVAL;
+
+    cmd[0] = 0x3e - i;
+
+    return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+}
+
+int ft736_set_ctcss_sql (RIG *rig, vfo_t vfo, tone_t tone)
+{
+    /* same opcode as tone */
+    return ft736_set_ctcss_tone(rig, vfo, tone);
 }
 
