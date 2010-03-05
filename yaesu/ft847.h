@@ -1,9 +1,9 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
- *          (C) Stephane Fillod 2000-2009
+ *          (C) Stephane Fillod 2000-2010
  *
  * ft847.h - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
- *           (C) Stephane Fillod 2000-2009
+ *           (C) Stephane Fillod 2000-2010
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-847 using the "CAT" interface.
@@ -191,5 +191,12 @@ static int ft847_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft847_get_dcd(RIG *rig, vfo_t vfo, dcd_t *dcd);
 
 static int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val);
+
+static int ft847_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int ft847_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone);
+static int ft847_set_ctcss_sql (RIG *rig, vfo_t vfo, tone_t tone);
+static int ft847_set_dcs_sql (RIG *rig, vfo_t vfo, tone_t code);
+static int ft847_set_rptr_shift (RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift);
+static int ft847_set_rptr_offs (RIG *rig, vfo_t vfo, shortfreq_t rptr_offs);
 
 #endif /* _FT847_H */

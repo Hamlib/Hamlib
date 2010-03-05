@@ -1,9 +1,9 @@
 /*
  * hamlib - (C) Frank Singleton 2000,2001 (vk3fcs@ix.netcom.com)
- *          (C) Stephane Fillod 2000-2009
+ *          (C) Stephane Fillod 2000-2010
  *
  * ft847.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
- *           (C) Stephane Fillod 2000-2009
+ *           (C) Stephane Fillod 2000-2010
  *
  * This shared library provides an API for communicating
  * via serial interface to an FT-847 using the "CAT" interface.
@@ -59,6 +59,7 @@
 #include "ft847.h"
 #include "misc.h"
 #include "bandplan.h"
+#include "tones.h"
 
 /* prototypes */
 
@@ -172,7 +173,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT847_OTHER_TX_MODES (RIG_MODE_AM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 #define FT847_AM_TX_MODES (RIG_MODE_AM)
 
-#define FT847_FUNC_ALL RIG_FUNC_NONE /* none available through CAT */
+#define FT847_FUNC_ALL (RIG_FUNC_TONE|RIG_FUNC_TSQL)
 
 #define FT847_LEVEL_ALL (RIG_LEVEL_RAWSTR|RIG_LEVEL_STRENGTH|RIG_LEVEL_ALC)
 
@@ -189,6 +190,19 @@ static const yaesu_cmd_set_t ncmd[] = {
 	} }
 
 /*
+ * 39 CTCSS sub-audible tones
+ * c.f. ft847_set_ctcss_tone()
+ */
+static const tone_t ft847_ctcss_list[] = {
+  670,  693,  719,  744,  770,  797,  825,  854,  885,  915, 
+  948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,
+ 1318, 1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799,
+ 1862, 1928, 2035, 2107, 2181, 2257, 2336, 2418, 2503,
+ 0
+};
+
+
+/*
  * ft847 rigs capabilities.
  * Notice that some rigs share the same functions.
  * Also this struct is READONLY!
@@ -198,7 +212,7 @@ const struct rig_caps ft847_caps = {
 .rig_model =  RIG_MODEL_FT847,
 .model_name = "FT-847", 
 .mfg_name =  "Yaesu", 
-.version =  "0.4",
+.version =  "0.5",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -217,21 +231,21 @@ const struct rig_caps ft847_caps = {
 .retry =  0,
 
 .has_get_func =  RIG_FUNC_NONE,
-.has_set_func =  RIG_FUNC_NONE, /* none available through CAT */
+.has_set_func =  FT847_FUNC_ALL,
 .has_get_level =  FT847_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_NONE,
 .has_get_parm =  RIG_PARM_NONE,
 .has_set_parm =  RIG_PARM_NONE,
 .level_gran =  {}, 		/* granularity */
 .parm_gran =  {},
-.ctcss_list =  NULL,	/* FIXME */
-.dcs_list =  NULL,	/* FIXME */
+.ctcss_list =  ft847_ctcss_list,
+.dcs_list =  common_dcs_list,
 .preamp =   { RIG_DBLST_END, },	/* no preamp/att in CAT */
 .attenuator =   { RIG_DBLST_END, },
 .max_rit =  Hz(0),
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
-.targetable_vfo =  RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE,
+.targetable_vfo =  RIG_TARGETABLE_FREQ|RIG_TARGETABLE_MODE|RIG_TARGETABLE_TONE|RIG_TARGETABLE_FUNC,
 .transceive =  RIG_TRN_OFF,
 .bank_qty =   0,
 .chan_desc_sz =  0,
@@ -327,6 +341,14 @@ const struct rig_caps ft847_caps = {
 .get_ptt =  ft847_get_ptt,		/* get ptt */
 .get_dcd =  ft847_get_dcd,		/* get dcd */
 .get_level = ft847_get_level,           /* get level */
+
+.set_func       = ft847_set_func,
+.set_ctcss_tone = ft847_set_ctcss_tone,
+.set_ctcss_sql  = ft847_set_ctcss_sql,
+.set_dcs_sql    = ft847_set_dcs_sql,
+.set_rptr_shift = ft847_set_rptr_shift,
+.set_rptr_offs  = ft847_set_rptr_offs,
+
 };
 
 /*
@@ -419,7 +441,6 @@ int ft847_close(RIG *rig) {
 static int ft847_send_priv_cmd(RIG *rig, int cmd_index) {
 
   struct rig_state *rig_s;
-  struct ft847_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
  
   if (!rig)
@@ -430,7 +451,6 @@ static int ft847_send_priv_cmd(RIG *rig, int cmd_index) {
     return -RIG_EINVAL;
   }
 
-  p = (struct ft847_priv_data*)rig->state.priv;
   rig_s = &rig->state;
   
   cmd = (unsigned char *) ncmd[cmd_index].nseq; /* get native sequence */
@@ -482,14 +502,11 @@ static int opcode_vfo(RIG *rig, unsigned char * cmd, int cmd_index, vfo_t vfo)
 
 int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct rig_state *rig_s;
-  struct ft847_priv_data *p;
   unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
   int ret;
 
   if (!rig)
     return -RIG_EINVAL;
-
-  p = (struct ft847_priv_data*)rig->state.priv;
 
   rig_s = &rig->state;
 
@@ -521,13 +538,10 @@ int ft847_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
 static int get_freq_and_mode(RIG *rig, vfo_t vfo, freq_t *freq, rmode_t *mode,
 				pbwidth_t *width) {
   struct rig_state *rs = &rig->state;
-  struct ft847_priv_data *p;
   unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
   unsigned char data[8];
   int n;
-
-  p = (struct ft847_priv_data*)rs->priv;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft847: %s vfo =%s \n",
 		  __func__, rig_strvfo(vfo));
@@ -613,14 +627,9 @@ int ft847_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 int ft847_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width) {
   unsigned char cmd_index;	/* index of sequence to send */
   struct rig_state *rs = &rig->state;
-  struct ft847_priv_data *p;
   unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
   int ret;
 
-
-  p = (struct ft847_priv_data*)rs->priv;
-
-  
   /* 
    * translate mode from generic to ft847 specific
    */
@@ -960,5 +969,136 @@ int ft847_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t * val)
 
   return RIG_OK;
 
+}
+
+int ft847_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
+  int ret;
+  ft847_native_cmd_t fcmd;
+
+  if (!rig)
+    return -RIG_EINVAL;
+
+  switch (func) {
+     case RIG_FUNC_TONE:
+        fcmd = status ? FT_847_NATIVE_CAT_SET_CTCSS_ENC_ON_MAIN :
+           FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_MAIN;
+        break;
+
+     case RIG_FUNC_TSQL:
+        fcmd = status ? FT_847_NATIVE_CAT_SET_CTCSS_ENC_DEC_ON_MAIN :
+           FT_847_NATIVE_CAT_SET_CTCSS_DCS_OFF_MAIN;
+        break;
+
+     default:
+        return -RIG_EINVAL;
+  }
+
+  ret = opcode_vfo(rig, p_cmd, fcmd, vfo);
+  if (ret != RIG_OK)
+	  return ret;
+
+  return write_block(&rig->state.rigport, (char*)p_cmd, YAESU_CMD_LENGTH);
+}
+
+
+int ft847_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone)
+{
+  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
+  int i, ret;
+
+  /*
+   * 39 CTCSS CAT codes corresponding to ft847_ctcss_list
+   */
+  static const unsigned char ft847_ctcss_cat[] = {
+  0x3F, 0x39, 0x1F, 0x3E, 0x0F, 0x3D, 0x1E, 0x3C, 0x0E, 0x3B, 
+  0x1D, 0x3A, 0x0D, 0x1C, 0x0C, 0x1B, 0x0B, 0x1A, 0x0A, 0x19, 
+  0x09, 0x18, 0x08, 0x17, 0x07, 0x16, 0x06, 0x15, 0x05, 0x14, 
+  0x04, 0x13, 0x03, 0x12, 0x02, 0x11, 0x01, 0x10, 0x00, 
+  };
+
+  ret = opcode_vfo(rig, p_cmd, FT_847_NATIVE_CAT_SET_CTCSS_FREQ_MAIN, vfo);
+  if (ret != RIG_OK)
+	  return ret;
+
+#define FT847_CTCSS_NB 39
+
+  for (i = 0; i<FT847_CTCSS_NB; i++)
+  {
+     if (ft847_ctcss_list[i] == tone)
+        break;
+  }
+  if (i == FT847_CTCSS_NB)
+     return -RIG_EINVAL;
+
+  /* get associated CAT code */
+  p_cmd[0] = ft847_ctcss_cat[i];
+
+  return write_block(&rig->state.rigport, (char*)p_cmd, YAESU_CMD_LENGTH);
+}
+
+int ft847_set_ctcss_sql (RIG *rig, vfo_t vfo, tone_t tone)
+{
+   /* same opcode as tone */
+   return ft847_set_ctcss_tone(rig, vfo, tone);
+}
+
+int ft847_set_dcs_sql (RIG *rig, vfo_t vfo, tone_t code)
+{
+  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
+  int ret;
+
+  ret = opcode_vfo(rig, p_cmd, FT_847_NATIVE_CAT_SET_DCS_CODE_MAIN, vfo);
+  if (ret != RIG_OK)
+	  return ret;
+
+  /* TODO: FT_847_NATIVE_CAT_SET_DCS_ON_MAIN here or with new RIG_FUNC_DCS? */
+
+  /* DCS Code # (i.e. 07, 54=DCS Code 754) */
+  to_bcd_be(p_cmd, code,4);	/* store bcd format in in p_cmd */
+
+  return write_block(&rig->state.rigport, (char*)p_cmd, YAESU_CMD_LENGTH);
+
+}
+
+int ft847_set_rptr_shift (RIG *rig, vfo_t vfo, rptr_shift_t rptr_shift)
+{
+  unsigned char cmd_index;	/* index of sequence to send */
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  switch(rptr_shift) {
+  case RIG_RPT_SHIFT_NONE:
+    cmd_index = FT_847_NATIVE_CAT_SET_RPT_SHIFT_SIMPLEX;
+    break;
+  case RIG_RPT_SHIFT_MINUS:
+    cmd_index = FT_847_NATIVE_CAT_SET_RPT_SHIFT_MINUS;
+    break;
+  case RIG_RPT_SHIFT_PLUS:
+    cmd_index = FT_847_NATIVE_CAT_SET_RPT_SHIFT_PLUS;
+    break;
+
+  default:
+    return -RIG_EINVAL;		/* sorry, wrong shift */
+  }
+
+  return ft847_send_priv_cmd(rig,cmd_index);
+}
+
+int ft847_set_rptr_offs (RIG *rig, vfo_t vfo, shortfreq_t rptr_offs)
+{
+  unsigned char p_cmd[YAESU_CMD_LENGTH]; /* sequence to send */
+
+  if (vfo != RIG_VFO_CURR)
+    return -RIG_ENTARGET;
+
+  memcpy(p_cmd,&ncmd[FT_847_NATIVE_CAT_SET_RPT_OFFSET].nseq,YAESU_CMD_LENGTH);  
+
+
+  to_bcd_be(p_cmd,rptr_offs/10,8);	/* store bcd format in in p_cmd */
+
+  return write_block(&rig->state.rigport, (char*)p_cmd, YAESU_CMD_LENGTH);
 }
 
