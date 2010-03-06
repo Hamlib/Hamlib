@@ -1,6 +1,6 @@
 /*
  *  Hamlib Racal backend - main header
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
  *	$Id: racal.h,v 1.1 2004-09-12 21:28:26 fillods Exp $
  *
@@ -52,6 +52,7 @@ int racal_reset(RIG *rig, reset_t reset);
 const char* racal_get_info(RIG *rig);
 
 extern const struct rig_caps ra6790_caps;
+extern const struct rig_caps ra3702_caps;
 
 
 #endif	/* _RACAL_H */

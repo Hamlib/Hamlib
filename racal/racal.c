@@ -1,6 +1,6 @@
 /*
  *  Hamlib Racal backend - main file
- *  Copyright (c) 2004-2009 by Stephane Fillod
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
  *	$Id: racal.c,v 1.2 2009-02-23 21:53:51 fillods Exp $
  *
@@ -468,6 +468,7 @@ DECLARE_INITRIG_BACKEND(racal)
 	rig_debug(RIG_DEBUG_VERBOSE, "racal: _init called\n");
 
 	rig_register(&ra6790_caps);
+	rig_register(&ra3702_caps);
 
 	return RIG_OK;
 }
