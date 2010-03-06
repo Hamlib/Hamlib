@@ -1,6 +1,6 @@
 /*
  *  Hamlib Drake backend - R-8A description
- *  Copyright (c) 2001-2004 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *
  *	$Id: r8a.c,v 1.7 2005-04-10 21:57:13 fillods Exp $
  *
@@ -71,7 +71,7 @@
 	.mode = 1,	\
 	.width = 1,	\
 	.ant = 1,	\
-	.funcs = 1,	\
+	.funcs = R8A_FUNC,	\
 	.levels = RIG_LEVEL_AGC|RIG_LEVEL_ATT|RIG_LEVEL_PREAMP,	\
 	.channel_desc = 1,	\
 } 
@@ -87,7 +87,7 @@ const struct rig_caps r8a_caps = {
 .rig_model =  RIG_MODEL_DKR8A,
 .model_name = "R-8A",
 .mfg_name =  "Drake",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_RECEIVER,

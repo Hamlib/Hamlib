@@ -1,6 +1,6 @@
 /*
  *  Hamlib Dummy backend - main file
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *  Copyright (c) 2010 by Nate Bargmann
  *
  *  $Id: dummy.c,v 1.44 2009-02-06 17:27:54 fillods Exp $
@@ -1337,7 +1337,8 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
 #define DUMMY_SCAN	0x7ffffffL
 
 #define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | \
-                     RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM)
+                     RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM | \
+                     RIG_MODE_CWR | RIG_MODE_RTTYR)
 
 #define DUMMY_MEM_CAP {    \
 	.bank_num = 1,	\
@@ -1355,8 +1356,8 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
 	.tuning_step = 1,	\
 	.rit = 1,	\
 	.xit = 1,	\
-	.funcs = 1,	\
-	.levels = 1,	\
+	.funcs = DUMMY_FUNC,	\
+	.levels = RIG_LEVEL_SET(DUMMY_LEVEL),	\
 	.ctcss_tone = 1,	\
 	.ctcss_sql = 1,	\
 	.dcs_code = 1,	\
