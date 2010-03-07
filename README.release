@@ -31,10 +31,15 @@ Releasing Hamlib:
 * Regenerate ChangeLog with:
     TZ=UTC svn2cl
 
+* svn commit -m "release X.Y.Z" ChangeLog configure.ac NEWS
+  Note the revision number (N).
 * Tag the SVN rep with version 'HAMLIB-x-y-z'
+    svn copy -r N https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk \
+        https://hamlib.svn.sourceforge.net/svnroot/hamlib/tags/HAMLIB-x-y-z \
+        -m "release x.y.z"
 
 * Build source tarball:
-    svn co https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib
+    svn co -r N https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib	
     sh autogen.sh --enable-maintainer-mode
 
     # (Would the above command be better invoked as:
@@ -53,21 +58,33 @@ Releasing Hamlib:
            --without-perl-binding --without-tcl-binding --without-python-binding \
            --enable-xmltest ac_cv_path_PKG_CONFIG=no
          make install
-         mkdir -p /tmp/mingw-inst/hamlib-x.y.z/lib/msvc
-         cp src/libhamlib.def /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/libhamlib-2.def
-         cd /tmp/mingw-inst/hamlib-x.y.z/lib/msvc/
-         unix2dos include/hamlib/*.h
-         unix2dos ./lib/msvc/*.def
+         new_ver="x.y.z"
+         mkdir -p /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc
+         cp src/libhamlib.def /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc/libhamlib-2.def
+         cd /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc/
+         unix2dos *.def
          wine /media/sda1/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def
+         cd ../..
+         unix2dos include/hamlib/*.h
+         cp lib/gcc/libhamlib.dll.a /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc
          vi README.win32.mine
-         zip -r hamlib-win32-x.y.z.zip hamlib-x.y.z
+         zip -r hamlib-win32-${new_ver}.zip hamlib-${new_ver}
+
          Edit Release, i386, .zip
 
 * Build Windows DLL with stdcall convention:
   Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
+  Subsitute cdecl by stdcall in README.txt.
 
 * Release the file(s)
-  - rsync -avP -e ssh hamlib-x.y.z.tar.gz yourloginhere@frs.sourceforge.net:uploads/
+  - https://sourceforge.net/project/admin/explorer.php?group_id=8305
+  - Select subdirectory hamlib, left click on the grey gear, "New folder", x.y.z
+  - Select subdirectory hamlib/x.y.z
+  - Left click on the grey gear of the folder, "Upload here"
+  - Letf click on file name, on right side, set platform as default for download. Save.
+
+
+  - rsync -avP -e ssh hamlib-${new_ver}.tar.gz yourloginhere@frs.sourceforge.net:uploads/
   - then go to https://sourceforge.net/project/admin/editpackages.php?group_id=8305
     [Add release] "x-y-z"
     Paste NEWS section and ChangeLog, select file, change file processor type to "Any"/"Source .gz"
@@ -75,13 +92,17 @@ Releasing Hamlib:
 
 * Update http://www.hamlib.org Wiki
   - Download section
+      https://sourceforge.net/apps/mediawiki/hamlib/index.php?title=Download
+
   - Documentation (requires doxygen)
       make -C doc doc
       ssh shell.sourceforge.net mkdir /home/groups/h/ha/hamlib/htdocs/manuals/x-y-z
       scp -r doc/html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/manuals/x-y-z/.
       Edit Wiki Documentation section
+
   - Supported Radios/Rotators
       make -C tests rigmatrix.html
+      ssh -t USER,hamlib@shell.sourceforge.net create
       scp -r tests/sup-info/* shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/sup-info/.
 
 * Notify various sites:
