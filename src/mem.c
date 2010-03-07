@@ -6,7 +6,7 @@
  * \file src/mem.c
  * \brief Memory and channel interface
  * \author Stephane Fillod
- * \date 2000-2009
+ * \date 2000-2010
  *
  * Hamlib interface is a frontend implementing wrapper functions.
  * 
@@ -14,7 +14,7 @@
 
 /*
  *  Hamlib Interface - mem/channel calls
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *	$Id: mem.c,v 1.16 2009-02-20 12:26:13 fillods Exp $
  *

@@ -7,14 +7,14 @@
  * \file src/locator.c
  * \brief locator and bearing conversion interface
  * \author Stephane Fillod and the Hamlib Group
- * \date 2000-2009
+ * \date 2000-2010
  *
  *  Hamlib Interface - locator, bearing, and conversion calls
  */
 
 /*
  *  Hamlib Interface - locator and bearing conversion calls
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *  Copyright (c) 2003 by Nate Bargmann
  *  Copyright (c) 2003 by Dave Hines
  *
