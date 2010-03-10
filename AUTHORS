@@ -229,7 +229,9 @@ C: VB & testing by Darren Hatcher, G0WCW
 C: VB.NET wrapper by Michael Benz
 
 [packaging: debian]
-M: Joop Stakenborg, PG4I
+M: Kamal Mostafa, KA6MAL
+M: Jaime Robles, EA4TV
+C: Joop Stakenborg, PG4I
 
 [packaging: RPM]
 M: Alexandru Csete, OZ9AEC
@@ -277,3 +279,5 @@ Terry Embry, KJ4EED, <mrtembry (at) users.sourceforge.net>
 Alessandro Zummo, IZ1PRB <alessandro.zummo (at) towertech.it>
 Norvald H. Ryeng, LA6YKA <norvald (at) ryeng.name>
 Larry Gadallah, VE6VQ <lgadallah (at) gmail.com>
+Kamal Mostafa, KA6MAL, <kamal (at) whence.com>
+Jaime Robles, EA4TV, <jaime (at) debian.org>
