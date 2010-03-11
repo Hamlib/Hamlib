@@ -81,7 +81,7 @@ if test -z "$our_lt_version" ; then
 elif test "$sys_lt_version" = "$our_lt_version"; then
 	echo "I: system libtool $sys_lt_version == bundled libtool $our_lt_version; skipping libtoolize."
 else
-	newer=`echo "$sys_lt_version\n$our_lt_version" | sort | tail -1`
+	newer=`echo -e "$sys_lt_version\n$our_lt_version" | sort | tail -1`
 	if test "$newer" = "$our_lt_version"; then
 	    echo "I: system libtool $sys_lt_version <= bundled libtool $our_lt_version; skipping libtoolize."
 	else
