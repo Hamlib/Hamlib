@@ -105,7 +105,7 @@ endif
 
 python_ltlib = _Hamlib.la
 
-pythondir = $(prefix)/lib/python
+pythondir = @pythondir@
 
 nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
 _Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version
@@ -131,8 +131,8 @@ distclean-py:
 uninstall-py: 
 
 ##########################################
-
-lib_LTLIBRARIES = $(tcl_ltlib) $(python_ltlib)
+_Hamlib_la_LTLIBRARIES = $(python_ltlib)
+lib_LTLIBRARIES = $(tcl_ltlib)
 # lib_LTLIBRARIES = @BINDING_LIB_TARGETS@
 
 all-local: @BINDING_ALL@
