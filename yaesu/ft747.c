@@ -1,6 +1,6 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
- *          (C) Stephane Fillod 2000-2009
+ *          (C) Stephane Fillod 2000-2010
  *
  * ft747.c - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
  * This shared library provides an API for communicating
@@ -120,7 +120,7 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT747_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
 
 
-
+#define FT747_VFOS (RIG_VFO_A|RIG_VFO_B) 
 
 /*
  * future - private data
@@ -146,7 +146,7 @@ const struct rig_caps ft747_caps = {
   .rig_model =        RIG_MODEL_FT747, 
   .model_name =       "FT-747GX", 
   .mfg_name =         "Yaesu", 
-  .version =           "0.3", 
+  .version =           "0.4",
   .copyright =         "LGPL",
   .status =            RIG_STATUS_ALPHA, 
   .rig_type =          RIG_TYPE_MOBILE, 
@@ -187,36 +187,36 @@ const struct rig_caps ft747_caps = {
   .tx_range_list1 =    { RIG_FRNG_END, },
 
   .rx_range_list2 =    { { .start = kHz(100), .end = 29999900, 
-			.modes = FT747_ALL_RX_MODES,.low_power = -1,.high_power = -1}, 
+			.modes = FT747_ALL_RX_MODES,.low_power = -1,.high_power = -1, .vfo = FT747_VFOS}, 
 		      RIG_FRNG_END, }, /* rx range */
 
-  .tx_range_list2 =    { {kHz(1500),1999900,FT747_OTHER_TX_MODES,.low_power = 5000,.high_power = 100000},	/* 100W class */ 
+  .tx_range_list2 =    { {kHz(1500),1999900,FT747_OTHER_TX_MODES,.low_power = 5000,.high_power = 100000, .vfo = FT747_VFOS},	/* 100W class */ 
 
-    {.start = kHz(1500),.end = 1999900,FT747_AM_TX_MODES,.low_power = 2000,.high_power = 25000},	/* 25W class */
+    {.start = kHz(1500),.end = 1999900,FT747_AM_TX_MODES,.low_power = 2000,.high_power = 25000, .vfo = FT747_VFOS},	/* 25W class */
     
-    {.start = kHz(3500),3999900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = kHz(3500),3999900,FT747_AM_TX_MODES,2000,25000},
+    {.start = kHz(3500),3999900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = kHz(3500),3999900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
-    {.start = kHz(7000),7499900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = kHz(7000),7499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = kHz(7000),7499900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = kHz(7000),7499900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
-    {.start = MHz(10),10499900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(10),10499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(10),10499900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = MHz(10),10499900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
-    {.start = MHz(14),14499900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(14),14499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(14),14499900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = MHz(14),14499900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
-    {.start = MHz(18),18499900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(18),18499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(18),18499900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = MHz(18),18499900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
-    {.start = MHz(21),21499900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(21),21499900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(21),21499900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = MHz(21),21499900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
-    {.start = kHz(24500),24999900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = kHz(24500),24999900,FT747_AM_TX_MODES,2000,25000},
+    {.start = kHz(24500),24999900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = kHz(24500),24999900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
-    {.start = MHz(28),29999900,FT747_OTHER_TX_MODES,5000,100000},
-    {.start = MHz(28),29999900,FT747_AM_TX_MODES,2000,25000},
+    {.start = MHz(28),29999900,FT747_OTHER_TX_MODES,5000,100000,FT747_VFOS},
+    {.start = MHz(28),29999900,FT747_AM_TX_MODES,2000,25000,FT747_VFOS},
     
     RIG_FRNG_END, },
 
@@ -260,8 +260,9 @@ const struct rig_caps ft747_caps = {
   .set_mode =   ft747_set_mode,		/* set mode */
   .get_mode =   ft747_get_mode,		/* get mode */
   .set_vfo =    ft747_set_vfo,		/* set vfo */
-
   .get_vfo =    ft747_get_vfo,		/* get vfo */
+  .set_split_vfo = ft747_set_split,	/* set split */
+  .get_split_vfo = ft747_get_split,	/* get split */
   .set_ptt =    ft747_set_ptt,		/* set ptt */
   .get_ptt =    ft747_get_ptt,		/* get ptt */
 
@@ -328,18 +329,32 @@ int ft747_cleanup(RIG *rig) {
 
 int ft747_open(RIG *rig) {
   struct rig_state *rig_s;
+  struct ft747_priv_data *p;
+  int ret;
  
-  if (!rig)
-    return -RIG_EINVAL;
-
+ 
   rig_s = &rig->state;
+  p = (struct ft747_priv_data*)rig_s->priv;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: write_delay = %i msec \n", 
 				  rig_s->rigport.write_delay);
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:rig_open: post_write_delay = %i msec \n", 
 				  rig_s->rigport.post_write_delay);
 
-  
+   /* 
+   * Copy native cmd PACING  to private cmd storage area 
+   */
+
+  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_PACING].nseq,YAESU_CMD_LENGTH);  
+  p->p_cmd[3] = p->pacing;		/* get pacing value, and store in private cmd */
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: read pacing = %i \n",p->pacing);
+
+   /* send PACING cmd to rig, once for all */
+
+  ret = write_block(&rig_s->rigport, (char*)p->p_cmd, YAESU_CMD_LENGTH);
+  if (ret < 0)
+	  return ret;
+ 
    /* TODO */
 
   return RIG_OK;
@@ -547,10 +562,13 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
     break;
 
   default:
-    return -RIG_EINVAL;		/* sorry, wrong mode */
+    return -RIG_EPROTO;		/* sorry, unknown mode */
     break; 
   }
-  
+
+   /* TODO: narrow width */
+  *width = rig_passband_normal(rig, *mode);
+ 
   return RIG_OK;
 }
 
@@ -652,6 +670,37 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
 
 }
 
+int ft747_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
+  unsigned char cmd_index;	/* index of sequence to send */
+
+  cmd_index = split == RIG_SPLIT_ON ? FT_747_NATIVE_SPLIT_ON : FT_747_NATIVE_SPLIT_OFF;
+  
+  return ft747_send_priv_cmd(rig,cmd_index);
+
+}
+
+int ft747_get_split(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo) {
+  struct ft747_priv_data *p;
+  unsigned char status;		/* ft747 status flag */
+  int ret;
+
+  p = (struct ft747_priv_data*)rig->state.priv;
+
+  ret = ft747_get_update_data(rig);	/* get whole shebang from rig */
+  if (ret < 0)
+	  return ret;
+  
+  status = p->update_data[FT747_SUMO_DISPLAYED_STATUS];
+
+  if (((status & SF_VFOAB) && (status & SF_RXTX)) ||
+          (!(status & SF_VFOAB) && !(status & SF_RXTX)))
+      *tx_vfo = RIG_VFO_B;
+  else
+      *tx_vfo = RIG_VFO_A;
+
+  return RIG_OK; 
+}
+
 
 int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   unsigned char cmd_index;	/* index of sequence to send */
@@ -724,12 +773,15 @@ int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
  * using pacing value and buffer indicated in *priv struct.
  *
  * need to use this when doing ft747_get_* stuff
+ *
+ * TODO: implement caching timer
  */
 
 static int ft747_get_update_data(RIG *rig) {
   struct rig_state *rig_s;
   struct ft747_priv_data *p;
-  unsigned char *cmd;		/* points to sequence to send */
+  char last_byte;
+  int port_timeout;
   int n;			/* for read_  */
 
   if (!rig)
@@ -737,21 +789,6 @@ static int ft747_get_update_data(RIG *rig) {
   
   p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
-
-  /* 
-   * Copy native cmd PACING  to private cmd storage area 
-   */
-
-  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_PACING].nseq,YAESU_CMD_LENGTH);  
-  p->p_cmd[3] = p->pacing;		/* get pacing value, and store in private cmd */
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: read pacing = %i \n",p->pacing);
-
-   /* send PACING cmd to rig  */
-
-  cmd = p->p_cmd;
-  n = write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
-  if (n < 0)
-	  return n;
 
   /* send UPDATE comand to fetch data*/
 
@@ -765,8 +802,13 @@ static int ft747_get_update_data(RIG *rig) {
   if (n < 0)
 	  return n;
 
-  return RIG_OK;
+  port_timeout = rig_s->rigport.timeout;
+  rig_s->rigport.timeout = 100; /* ms */
+  /* read sometimes-missing last byte (345th), but don't fail */
+  read_block(&rig_s->rigport, &last_byte, 1); 
+  rig_s->rigport.timeout = port_timeout;
 
+  return RIG_OK;
 }
 
 

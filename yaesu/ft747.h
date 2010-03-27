@@ -1,5 +1,6 @@
 /*
  * hamlib - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
+ *          (C) Stephane Fillod 2000-2010
  *
  * ft747.h - (C) Frank Singleton 2000 (vk3fcs@@ix.netcom.com)
  * This shared library provides an API for communicating
@@ -30,11 +31,11 @@
 #ifndef _FT747_H
 #define _FT747_H 1
 
-#define FT747_STATUS_UPDATE_DATA_LENGTH      345
+#define FT747_STATUS_UPDATE_DATA_LENGTH      344
 
 #define FT747_PACING_INTERVAL                5 
 #define FT747_PACING_DEFAULT_VALUE           0 
-#define FT747_WRITE_DELAY                    50
+#define FT747_WRITE_DELAY                    5 /* manual say 50 ms, but it doesn't work though */
 
 
 /* Sequential fast writes confuse my FT747 without this delay */
@@ -44,7 +45,7 @@
 
 /* Rough safe value for default timeout */
 
-#define FT747_DEFAULT_READ_TIMEOUT  345 * ( 3 + (FT747_PACING_INTERVAL * FT747_PACING_DEFAULT_VALUE))
+#define FT747_DEFAULT_READ_TIMEOUT  (345 * ( 3 + (FT747_PACING_INTERVAL * FT747_PACING_DEFAULT_VALUE)))
 
 
 /*
@@ -195,6 +196,8 @@ static int ft747_get_vfo(RIG *rig, vfo_t *vfo); /* get vfo */
 static int ft747_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 
+static int ft747_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft747_get_split(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
 
 /*
