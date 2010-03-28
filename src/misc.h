@@ -62,7 +62,6 @@ extern HAMLIB_EXPORT(unsigned long long) from_bcd_be(const unsigned char bcd_dat
 
 extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
 
-
 /* check if it's any of CR or LF */
 #define isreturn(c) ((c) == 10 || (c) == 13)
 
@@ -71,6 +70,13 @@ extern HAMLIB_EXPORT(int) sprintf_freq(char *str, freq_t);
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+extern HAMLIB_EXPORT(int) rig_check_cache_timeout(const struct timeval *tv, int timeout);
+extern HAMLIB_EXPORT(void) rig_force_cache_timeout(struct timeval *tv);
+
 
 #ifdef PRId64 
 /** \brief printf(3) format to be used for long long (64bits) type */

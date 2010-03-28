@@ -1,8 +1,6 @@
 /*
  *  Hamlib Interface - toolbox
- *  Copyright (c) 2000-2005 by Stephane Fillod
- *
- *	$Id$
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,6 +41,9 @@
 #include <errno.h>   /* Error number definitions */
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
 #endif
 #include <unistd.h>
 
@@ -775,5 +776,67 @@ const char * HAMLIB_API rig_strmtype(chan_type_t mtype)
 	return "";
 }
 
+
+static long timediff(const struct timeval *tv1, const struct timeval *tv2)
+{
+	struct timeval tv;
+
+	tv.tv_usec = tv1->tv_usec - tv2->tv_usec;
+	tv.tv_sec  = tv1->tv_sec  - tv2->tv_sec;
+
+	return ((tv.tv_sec * 1000L) + (tv.tv_usec / 1000L));
+}
+
+/**
+ * \brief Helper for checking cache timeout
+ * \param tv       pointer to timeval, date of cache
+ * \param timeout  duration of cache validity, in millisec
+ * \return 1 when timed out, 0 when cache shall be used
+ */
+int HAMLIB_API rig_check_cache_timeout(const struct timeval *tv, int timeout)
+{
+    struct timeval curr;
+    long t;
+
+    if (tv->tv_sec == 0 && tv->tv_usec == 0) {
+        rig_debug(RIG_DEBUG_VERBOSE, "forced cache timeout\n");
+        return 1;
+    }
+
+    gettimeofday(&curr, NULL);
+
+    t = timediff(&curr, tv);
+    if (t < timeout) {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: using cache (%ld ms)\n",
+                __func__, t);
+        return 0;
+    } else {
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: cache timed out (%ld ms)\n",
+                __func__, t);
+        return 1;
+    }
+}
+
+/**
+ * \brief Helper for forcing cache timeout next call
+ *
+ * This function is typically to be called in backend_set_* functions,
+ * so that a sequence:
+ *
+\code
+    rig_get_freq();
+    rig_set_freq();
+    rig_get_freq();
+\endcode
+ *
+ * doesn't return a bogus (cached) value in the last rig_get_freq().
+ *
+ * \param tv       pointer to timeval to be reset
+ */
+void HAMLIB_API rig_force_cache_timeout(struct timeval *tv)
+{
+    tv->tv_sec = 0;
+    tv->tv_usec = 0;
+}
 
 /** @} */

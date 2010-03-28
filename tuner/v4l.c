@@ -1,8 +1,7 @@
 /*
  *  Hamlib Tuner backend - Video4Linux (v1) description
- *  Copyright (c) 2004-2009 by Stephane Fillod
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
- *	$Id: v4l.c,v 1.2 2004-09-25 14:33:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -26,14 +25,14 @@
 #include <math.h>
 #include <errno.h>
 
+#include "hamlib/rig.h"
+#include "tuner.h"	/* include config.h */
+
+#include "misc.h"
+
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
-
-#include "hamlib/rig.h"
-#include "misc.h"
-
-#include "tuner.h"	/* include config.h */
 
 #ifdef V4L_IOCTL
 
