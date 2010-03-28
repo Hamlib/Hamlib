@@ -8,9 +8,6 @@
  * box (FIF-232C) or similar
  *
  *
- * $Id: ft747.c,v 1.23 2009-02-20 12:27:53 fillods Exp $  
- *
- *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
  *  License as published by the Free Software Foundation; either
@@ -31,11 +28,8 @@
 /*
  * TODO -   FS
  *
- * 1. Rentrant code, remove static stuff from all functions [started]
- * 2. rationalise code, more helper functions [started]
- * 3. Allow cached reads
- * 4. Fix crappy 25Hz resolution handling of FT747 aaarrgh !
- * 5. Put variant of ftxxx_send_cmd in yaesu.c
+ * 1. rationalise code, more helper functions [started]
+ * 2. get_channel, set_func/get_func
  *
  */
 
@@ -65,7 +59,7 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci);
 /* Incomplete sequences (0) must be completed with extra parameters */
 /* eg: mem number, or freq etc.. */
 
-static const yaesu_cmd_set_t ncmd[] = { 
+static const yaesu_cmd_set_t ft747_ncmd[] = { 
   { 1, { 0x00, 0x00, 0x00, 0x00, 0x01 } }, /* split = off */
   { 1, { 0x00, 0x00, 0x00, 0x01, 0x01 } }, /* split = on */
   { 0, { 0x00, 0x00, 0x00, 0x00, 0x02 } }, /* recall memory*/
@@ -117,23 +111,46 @@ static const yaesu_cmd_set_t ncmd[] = {
 #define FT747_OTHER_TX_MODES (RIG_MODE_CW| RIG_MODE_USB| RIG_MODE_LSB )	/* 100 W class */
 #define FT747_AM_TX_MODES (RIG_MODE_AM ) /* set 25W max */
 
-#define FT747_FUNC_ALL (RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN)	/* fix */
+/*
+ * no opcode for RIG_FUNC_FAGC|RIG_FUNC_NB|RIG_FUNC_COMP|RIG_FUNC_VOX|RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_SBKIN|RIG_FUNC_FBKIN
+ * TODO: LOCK
+ */
+#define FT747_FUNC_ALL (RIG_FUNC_LOCK)
 
 
 #define FT747_VFOS (RIG_VFO_A|RIG_VFO_B) 
 
 /*
- * future - private data
+ * FT747 channel caps.
+ * Last 2 channels don't have split memory
+ */
+#define FT747_SPLIT_MEM_CAP {    \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .split = 1, \
+        .tx_freq = 1,   \
+        .tx_mode = 1,   \
+        .tx_width = 1,  \
+        .funcs = RIG_FUNC_LOCK,  \
+}
+
+#define FT747_NOSPLIT_MEM_CAP {    \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .funcs = RIG_FUNC_LOCK,  \
+}
+
+/*
+ * Private data
  *
  */
 
 struct ft747_priv_data {
-  unsigned char pacing;		/* pacing value */
-  unsigned int read_update_delay;	 /* depends on pacing value */
-  unsigned char current_vfo;	/* active VFO from last cmd , can be either RIG_VFO_A or RIG_VFO_B only */
   unsigned char p_cmd[YAESU_CMD_LENGTH]; /* private copy of 1 constructed CAT cmd */
-  yaesu_cmd_set_t pcs[FT_747_NATIVE_SIZE];		/* private cmd set */
   unsigned char update_data[FT747_STATUS_UPDATE_DATA_LENGTH]; /* returned data */
+  struct timeval status_tv;
 };
 
 
@@ -148,7 +165,7 @@ const struct rig_caps ft747_caps = {
   .mfg_name =         "Yaesu", 
   .version =           "0.4",
   .copyright =         "LGPL",
-  .status =            RIG_STATUS_ALPHA, 
+  .status =            RIG_STATUS_BETA,
   .rig_type =          RIG_TYPE_MOBILE, 
   .ptt_type =          RIG_PTT_RIG,
   .dcd_type =          RIG_DCD_NONE,
@@ -173,14 +190,17 @@ const struct rig_caps ft747_caps = {
   .dcs_list =          NULL,
   .preamp =            { RIG_DBLST_END, },
   .attenuator =        { RIG_DBLST_END, },
-  .max_rit =           Hz(9999),
+  .max_rit =           Hz(0), /* 9999 */
   .max_xit =           Hz(0),
   .max_ifshift =       Hz(0),
   .targetable_vfo =    0,
   .transceive =        RIG_TRN_OFF,
   .bank_qty =          0,
   .chan_desc_sz =      0,
-  .chan_list =         { RIG_CHAN_END, },	/* FIXME: memory channel list:20 */
+  .chan_list =         {
+      {   0,  17, RIG_MTYPE_MEM, FT747_SPLIT_MEM_CAP },
+      {  18,  19, RIG_MTYPE_MEM, FT747_NOSPLIT_MEM_CAP },
+      RIG_CHAN_END, },
 
   .rx_range_list1 =    { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 
@@ -241,8 +261,8 @@ const struct rig_caps ft747_caps = {
 	       {RIG_MODE_CW, kHz(0.5)},	/* CW filter with narrow selection */
 	       {RIG_MODE_AM, kHz(6)},	/* normal AM filter */
 	       {RIG_MODE_AM, kHz(2.4)},	/* AM filter with narrow selection */
+	       {RIG_MODE_FM, kHz(19)},	/* FM wide filter, with optional FM unit. */
 	       {RIG_MODE_FM, kHz(8)},	/* FM with optional FM unit */
-	       {RIG_MODE_FM, kHz(19)},	/* Wide FM, with optional FM unit. */
 	          
 	       RIG_FLT_END,
   },
@@ -265,7 +285,8 @@ const struct rig_caps ft747_caps = {
   .get_split_vfo = ft747_get_split,	/* get split */
   .set_ptt =    ft747_set_ptt,		/* set ptt */
   .get_ptt =    ft747_get_ptt,		/* get ptt */
-
+  .set_mem =    ft747_set_mem,		/* set mem */
+  .get_mem =    ft747_get_mem,		/* get mem */
 };
 
 
@@ -278,26 +299,14 @@ const struct rig_caps ft747_caps = {
 int ft747_init(RIG *rig) {
   struct ft747_priv_data *p;
   
-  if (!rig)
-    return -RIG_EINVAL;
-  
   p = (struct ft747_priv_data*)malloc(sizeof(struct ft747_priv_data));
   if (!p)			/* whoops! memory shortage! */    
     return -RIG_ENOMEM;
   
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_init called \n");
 
-  /* 
-   * Copy native cmd set to private cmd storage area 
-   */
+  memset(p, 0, sizeof(struct ft747_priv_data));
 
-  memcpy(p->pcs,ncmd,sizeof(ncmd));
-
-  /* TODO: read pacing from preferences */
-
-  p->pacing = FT747_PACING_DEFAULT_VALUE; /* set pacing to minimum for now */
-  p->read_update_delay = FT747_DEFAULT_READ_TIMEOUT; /* set update timeout to safe value */
-  p->current_vfo =  RIG_VFO_A;	/* default to VFO_A ? */
   rig->state.priv = (void*)p;
   
   return RIG_OK;
@@ -310,8 +319,6 @@ int ft747_init(RIG *rig) {
  */
 
 int ft747_cleanup(RIG *rig) {
-  if (!rig)
-    return -RIG_EINVAL;
   
   rig_debug(RIG_DEBUG_VERBOSE, "ft747: _cleanup called\n");
 
@@ -345,9 +352,9 @@ int ft747_open(RIG *rig) {
    * Copy native cmd PACING  to private cmd storage area 
    */
 
-  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_PACING].nseq,YAESU_CMD_LENGTH);  
-  p->p_cmd[3] = p->pacing;		/* get pacing value, and store in private cmd */
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747: read pacing = %i \n",p->pacing);
+  memcpy(&p->p_cmd,&ft747_ncmd[FT_747_NATIVE_PACING].nseq,YAESU_CMD_LENGTH);  
+  p->p_cmd[3] = FT747_PACING_DEFAULT_VALUE;		/* get pacing value, and store in private cmd */
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747: read pacing = %i \n",FT747_PACING_DEFAULT_VALUE);
 
    /* send PACING cmd to rig, once for all */
 
@@ -355,7 +362,7 @@ int ft747_open(RIG *rig) {
   if (ret < 0)
 	  return ret;
  
-   /* TODO */
+  rig_force_cache_timeout(&p->status_tv);
 
   return RIG_OK;
 }
@@ -367,9 +374,6 @@ int ft747_open(RIG *rig) {
  */
 
 int ft747_close(RIG *rig) {
-
-  if (!rig)
-    return -RIG_EINVAL;
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_close called \n");
 
@@ -388,10 +392,6 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
   struct ft747_priv_data *p;
   unsigned char *cmd;		/* points to sequence to send */
 
-  if (!rig)
-    return -RIG_EINVAL;
-
-
   p = (struct ft747_priv_data*)rig->state.priv;
 
   rig_s = &rig->state;
@@ -402,12 +402,14 @@ int ft747_set_freq(RIG *rig, vfo_t vfo, freq_t freq) {
    * Copy native cmd freq_set to private cmd storage area 
    */
 
-  memcpy(&p->p_cmd,&ncmd[FT_747_NATIVE_FREQ_SET].nseq,YAESU_CMD_LENGTH);  
+  memcpy(&p->p_cmd,&ft747_ncmd[FT_747_NATIVE_FREQ_SET].nseq,YAESU_CMD_LENGTH);  
 
-  to_bcd(p->p_cmd,freq/10,8);	/* store bcd format in in p_cmd */
-				/* TODO -- fix 10Hz resolution -- FS */
+  /* store bcd format in p_cmd (LSB), round to nearest 25th Hz */
+  to_bcd(p->p_cmd, (freq+12)/10, 8);
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: requested freq after conversion = %"PRIll" Hz \n", from_bcd(p->p_cmd,8)* 10 );
+
+  rig_force_cache_timeout(&p->status_tv);
 
   cmd = p->p_cmd; /* get native sequence */
   return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -425,19 +427,16 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_get_freq called \n");
 
-  if (!rig)
-    return -RIG_EINVAL;
-  
   p = (struct ft747_priv_data*)rig->state.priv;
 
   ret = ft747_get_update_data(rig);	/* get whole shebang from rig */
   if (ret < 0)
 	  return ret;
 
-  if (vfo == RIG_VFO_CURR )
-    vfo = p->current_vfo;	/* from previous vfo cmd */
-
   switch(vfo) {
+  case RIG_VFO_CURR:
+    f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]),8); /* grab freq and convert */
+    break;
   case RIG_VFO_A:
     f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]),8); /* grab freq and convert */
     break;
@@ -496,10 +495,10 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
     cmd_index = FT_747_NATIVE_MODE_SET_LSB;
     break;
   case RIG_MODE_FM:
-    if (width > width_normal)
-    	cmd_index = FT_747_NATIVE_MODE_SET_FMW;
-    else
+    if (width < width_normal)
     	cmd_index = FT_747_NATIVE_MODE_SET_FMN;
+    else
+    	cmd_index = FT_747_NATIVE_MODE_SET_FMW;
     break;
   default:
     return -RIG_EINVAL;		/* sorry, wrong MODE */
@@ -507,12 +506,13 @@ int ft747_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width ) {
 
   rig_debug(RIG_DEBUG_VERBOSE,"ft747: cmd_index = %i \n", cmd_index);
 
+  rig_force_cache_timeout(&((struct ft747_priv_data*)rig->state.priv)->status_tv);
+
   /*
    * phew! now send cmd to rig
    */ 
 
   return ft747_send_priv_cmd(rig,cmd_index);
-  
 }
 
 
@@ -521,9 +521,6 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
   unsigned char mymode;		/* ft747 mode */
   int ret;
 
-  if (!rig)
-    return -RIG_EINVAL;
-  
   p = (struct ft747_priv_data*)rig->state.priv;
 
   ret = ft747_get_update_data(rig);	/* get whole shebang from rig */
@@ -539,26 +536,21 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
    * translate mode from ft747 to generic.
    */
 
-  switch(mymode) {
+  switch(mymode & 0x1f) {
   case MODE_FM:
     (*mode) = RIG_MODE_FM;
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = FM \n");
     break;
   case MODE_AM:
     (*mode) = RIG_MODE_AM;
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = AM \n");
     break;
   case MODE_CW:
     (*mode) = RIG_MODE_CW;
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = CW \n");
     break;
   case MODE_USB:
     (*mode) = RIG_MODE_USB;
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = USB \n");
     break;
   case MODE_LSB:
     (*mode) = RIG_MODE_LSB;
-    rig_debug(RIG_DEBUG_VERBOSE,"ft747: mode = LSB \n");
     break;
 
   default:
@@ -566,8 +558,10 @@ int ft747_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width) {
     break; 
   }
 
-   /* TODO: narrow width */
-  *width = rig_passband_normal(rig, *mode);
+  if (mymode & MODE_NAR)
+    *width = rig_passband_narrow(rig, *mode);
+  else
+    *width = rig_passband_normal(rig, *mode);
  
   return RIG_OK;
 }
@@ -586,52 +580,27 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
   unsigned char cmd_index;	/* index of sequence to send */
 
 
-  if (!rig)
-    return -RIG_EINVAL;
-  
   p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
   
-  
-  /* 
-   * TODO : check for errors -- FS
-   */
-
+  if (RIG_VFO_CURR == vfo)
+      return RIG_OK;
 
   switch(vfo) {
   case RIG_VFO_A:
     cmd_index = FT_747_NATIVE_VFO_A;
-    p->current_vfo = vfo;		/* update active VFO */
     break;
   case RIG_VFO_B:
     cmd_index = FT_747_NATIVE_VFO_B;
-    p->current_vfo = vfo;		/* update active VFO */
-    break;
-  case RIG_VFO_CURR:
-    switch(p->current_vfo) {	/* what is my active VFO ? */
-    case RIG_VFO_A:
-      cmd_index = FT_747_NATIVE_VFO_A;
-      break;
-    case RIG_VFO_B:
-      cmd_index = FT_747_NATIVE_VFO_B;
-      break;
-    default:
-      rig_debug(RIG_DEBUG_VERBOSE,"ft747: Unknown default VFO \n");
-      return -RIG_EINVAL;		/* sorry, wrong current VFO */
-    }
-
     break;
 
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
   
-  /*
-   * phew! now send cmd to rig
-   */ 
+  rig_force_cache_timeout(&p->status_tv);
 
   return ft747_send_priv_cmd(rig,cmd_index);
-
 }
 
 
@@ -640,9 +609,6 @@ int ft747_get_vfo(RIG *rig, vfo_t *vfo) {
   unsigned char status;		/* ft747 status flag */
   int ret;
 
-  if (!rig)
-    return -RIG_EINVAL;
-  
   p = (struct ft747_priv_data*)rig->state.priv;
 
   ret = ft747_get_update_data(rig);	/* get whole shebang from rig */
@@ -675,6 +641,8 @@ int ft747_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo) {
 
   cmd_index = split == RIG_SPLIT_ON ? FT_747_NATIVE_SPLIT_ON : FT_747_NATIVE_SPLIT_OFF;
   
+  rig_force_cache_timeout(&((struct ft747_priv_data*)rig->state.priv)->status_tv);
+
   return ft747_send_priv_cmd(rig,cmd_index);
 
 }
@@ -705,15 +673,6 @@ int ft747_get_split(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo) {
 int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   unsigned char cmd_index;	/* index of sequence to send */
 
-  if (!rig)
-    return -RIG_EINVAL;
-
-  /* frontend sets VFO now , if targetable_vfo = 0 */
-  
-#if 0
-  ft747_set_vfo(rig,vfo);	/* select VFO first */
-#endif
-
   switch(ptt) {
   case RIG_PTT_OFF:
     cmd_index = FT_747_NATIVE_PTT_OFF;
@@ -724,6 +683,8 @@ int ft747_set_ptt(RIG *rig,vfo_t vfo, ptt_t ptt) {
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
+
+  rig_force_cache_timeout(&((struct ft747_priv_data*)rig->state.priv)->status_tv);
 
   /*
    * phew! now send cmd to rig
@@ -737,9 +698,6 @@ int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   unsigned char status;		/* ft747 mode */
   int ret;
 
-  if (!rig)
-    return -RIG_EINVAL;
-  
   p = (struct ft747_priv_data*)rig->state.priv;
 
   ret = ft747_get_update_data(rig);	/* get whole shebang from rig */
@@ -767,46 +725,88 @@ int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
 
 }
 
+int ft747_set_mem(RIG *rig, vfo_t vfo, int ch) {
+  struct ft747_priv_data *p;
+
+  p = (struct ft747_priv_data*)rig->state.priv;
+
+  if (ch < 0 || ch > 0x13)
+      return -RIG_EINVAL;
+
+  /* 
+   * Copy native cmd freq_set to private cmd storage area 
+   */
+  memcpy(&p->p_cmd,&ft747_ncmd[FT_747_NATIVE_RECALL_MEM].nseq,YAESU_CMD_LENGTH);  
+
+  p->p_cmd[3] = ch;
+
+  rig_force_cache_timeout(&p->status_tv);
+
+  return write_block(&rig->state.rigport, (char *) p->p_cmd, YAESU_CMD_LENGTH);
+}
+
+int ft747_get_mem(RIG *rig, vfo_t vfo, int *ch) {
+  struct ft747_priv_data *p;
+  unsigned char mem_nb;
+  int ret;
+
+  p = (struct ft747_priv_data*)rig->state.priv;
+
+  ret = ft747_get_update_data(rig);	/* get whole shebang from rig */
+  if (ret < 0)
+	  return ret;
+  
+  mem_nb = p->update_data[FT747_SUMO_DISPLAYED_MEM];
+  if (mem_nb > 0x13)
+      return -RIG_EPROTO;
+  
+  *ch = mem_nb;
+
+  return RIG_OK;
+}
+
 
 /*
  * private helper function. Retrieves update data from rig.
- * using pacing value and buffer indicated in *priv struct.
+ * using buffer indicated in *priv struct.
  *
  * need to use this when doing ft747_get_* stuff
- *
- * TODO: implement caching timer
  */
 
 static int ft747_get_update_data(RIG *rig) {
-  struct rig_state *rig_s;
+  hamlib_port_t *rigport;
   struct ft747_priv_data *p;
   char last_byte;
   int port_timeout;
-  int n;			/* for read_  */
+  int ret;
 
-  if (!rig)
-    return -RIG_EINVAL;
-  
   p = (struct ft747_priv_data*)rig->state.priv;
-  rig_s = &rig->state;
+  rigport = &rig->state.rigport;
+
+  if (!rig_check_cache_timeout(&p->status_tv, FT747_CACHE_TIMEOUT))
+      return RIG_OK;
+
+  serial_flush(rigport);
 
   /* send UPDATE comand to fetch data*/
 
-  n = ft747_send_priv_cmd(rig,FT_747_NATIVE_UPDATE);
-  if (n < 0)
-	  return n;
+  ret = ft747_send_priv_cmd(rig,FT_747_NATIVE_UPDATE);
+  if (ret < 0)
+	  return ret;
 
-  /*    n = read_sleep(rig_s->fd,p->update_data, FT747_STATUS_UPDATE_DATA_LENGTH, FT747_DEFAULT_READ_TIMEOUT);  */
-  n = read_block(&rig_s->rigport, (char *) p->update_data, 
+  ret = read_block(rigport, (char *) p->update_data, 
 				  FT747_STATUS_UPDATE_DATA_LENGTH); 
-  if (n < 0)
-	  return n;
+  if (ret < 0)
+	  return ret;
 
-  port_timeout = rig_s->rigport.timeout;
-  rig_s->rigport.timeout = 100; /* ms */
+  /* update cache date */
+  gettimeofday(&p->status_tv, NULL);
+
+  port_timeout = rigport->timeout;
+  rigport->timeout = 100; /* ms */
   /* read sometimes-missing last byte (345th), but don't fail */
-  read_block(&rig_s->rigport, &last_byte, 1); 
-  rig_s->rigport.timeout = port_timeout;
+  read_block(rigport, &last_byte, 1); 
+  rigport->timeout = port_timeout;
 
   return RIG_OK;
 }
@@ -815,7 +815,6 @@ static int ft747_get_update_data(RIG *rig) {
 /*
  * private helper function to send a private command
  * sequence . Must only be complete sequences.
- * TODO: place variant of this in yaesu.c
  */
 
 static int ft747_send_priv_cmd(RIG *rig, unsigned char ci) {
@@ -825,21 +824,18 @@ static int ft747_send_priv_cmd(RIG *rig, unsigned char ci) {
   unsigned char *cmd;		/* points to sequence to send */
   unsigned char cmd_index;	/* index of sequence to send */
  
-  if (!rig)
-    return -RIG_EINVAL;
-
 
   p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
   
   cmd_index = ci;		/* get command */
 
-  if (! p->pcs[cmd_index].ncomp) {
+  if (! ft747_ncmd[cmd_index].ncomp) {
     rig_debug(RIG_DEBUG_VERBOSE,"ft747: Attempt to send incomplete sequence \n");
     return -RIG_EINVAL;
   }
 
-  cmd = (unsigned char *) p->pcs[cmd_index].nseq; /* get native sequence */
+  cmd = (unsigned char *) ft747_ncmd[cmd_index].nseq; /* get native sequence */
   return write_block(&rig_s->rigport, (char *) cmd, YAESU_CMD_LENGTH);
 
 }

@@ -31,9 +31,12 @@
 #ifndef _FT747_H
 #define _FT747_H 1
 
+/*
+ * According to manual, the UPDATE data length should be 345
+ * but some rigs are short by one byte.
+ */
 #define FT747_STATUS_UPDATE_DATA_LENGTH      344
 
-#define FT747_PACING_INTERVAL                5 
 #define FT747_PACING_DEFAULT_VALUE           0 
 #define FT747_WRITE_DELAY                    5 /* manual say 50 ms, but it doesn't work though */
 
@@ -41,11 +44,6 @@
 /* Sequential fast writes confuse my FT747 without this delay */
 
 #define FT747_POST_WRITE_DELAY               5
-
-
-/* Rough safe value for default timeout */
-
-#define FT747_DEFAULT_READ_TIMEOUT  (345 * ( 3 + (FT747_PACING_INTERVAL * FT747_PACING_DEFAULT_VALUE)))
 
 
 /*
@@ -167,6 +165,7 @@ typedef enum ft747_native_cmd_e ft747_native_cmd_t;
  *
  */
 
+#define FT747_SUMO_DISPLAYED_MEM              0x17
 #define FT747_SUMO_DISPLAYED_MODE             0x18    
 #define FT747_SUMO_DISPLAYED_STATUS           0x00    
 #define FT747_SUMO_DISPLAYED_FREQ             0x01    
@@ -199,47 +198,19 @@ static int ft747_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
 static int ft747_set_split(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int ft747_get_split(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
 
+static int ft747_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int ft747_get_mem(RIG *rig, vfo_t vfo, int *ch);
 
 /*
- * Below is leftovers of old interface. TODO
+ * The time the status block is cached (in millisec).
+ * This optimises the common case of doing eg. rig_get_freq() and
+ * rig_get_mode() in a row.
  *
+ * The timeout is set to at least the time to transfer the block (790ms)
+ * plus post write delay, plus some margin, but less than 1 second,
+ * which may be typical polling period.
  */
-
-#if 0
-/*
- * Allow TX commands to be disabled
- *
- */
-
-#undef TX_ENABLED
-
-
-
-/*
- * Mode Bitmap. Bits 5 and 6 unused
- * When reading modes
- */
-
-#define MODE_FM     0x01
-#define MODE_AM     0x02
-#define MODE_CW     0x04
-#define MODE_FMN    0x81
-#define MODE_AMN    0x82
-#define MODE_CWN    0x84
-#define MODE_USB    0x08
-#define MODE_LSB    0x10
-#define MODE_NAR    0x80	/* narrow bit set only */
-
-/*
- * Map band data value to band.
- *
- * Band "n" is from band_data[n] to band_data[n+1]
- */
-
-const float band_data[11] = { 0.0, 0.1, 2.5, 4.0, 7.5, 10.5, 14.5, 18.5, 21.5, 25.0, 30.0 };
-
-
-#endif
+#define FT747_CACHE_TIMEOUT     900
 
 
 #endif /* _FT747_H */
