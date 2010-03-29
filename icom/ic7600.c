@@ -1,6 +1,6 @@
 /*
- *  Hamlib CI-V backend - description of IC-7600 and variations
- *  Copyright (c) 2009 by Stephane Fillod
+ *  Hamlib CI-V backend - description of IC-7600
+ *  Copyright (c) 2010 by Stephane Fillod
  *
  *	$Id: ic7600.c,v 1.5 2008-10-26 13:45:21 y32kn Exp $
  *
@@ -58,13 +58,26 @@
 #define IC7600_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 /*
- * FIXME: real measures!
+ * Measurement by Roeland, PA3MET
  */
-#define IC7600_STR_CAL { 3, \
+#define IC7600_STR_CAL { 16, \
 	{ \
-		{   0,-54 }, \
-		{ 120,  0 }, \
-		{ 241, 60 } \
+        {   0, -54 }, /* S0 */ \
+        {  11, -48 }, \
+        {  21, -42 }, \
+        {  34, -36 }, \
+        {  50, -30 }, \
+        {  59, -24 }, \
+        {  75, -18 }, \
+        {  93, -12 }, \
+        { 103,  -6 }, \
+        { 124,   0 }, /* S9 */ \
+        { 145,  10 }, \
+        { 160,  20 }, \
+        { 183,  30 }, \
+        { 204,  40 }, \
+        { 222,  50 }, \
+        { 246,  60 } /* S9+60dB */  \
 	} }
 
 
@@ -86,7 +99,7 @@ const struct rig_caps ic7600_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
