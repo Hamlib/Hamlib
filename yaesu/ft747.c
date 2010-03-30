@@ -425,7 +425,7 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
   freq_t f;
   int ret;
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_get_freq called \n");
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:ft747_get_freq called\n");
 
   p = (struct ft747_priv_data*)rig->state.priv;
 
@@ -435,19 +435,21 @@ int ft747_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
   switch(vfo) {
   case RIG_VFO_CURR:
-    f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]),8); /* grab freq and convert */
+    /* grab freq and convert */
+    f = from_bcd_be(&(p->update_data[FT747_SUMO_DISPLAYED_FREQ]),10);
     break;
   case RIG_VFO_A:
-    f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]),8); /* grab freq and convert */
+    f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_A_FREQ]),10);
     break;
   case RIG_VFO_B:
-    f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]),8); /* grab freq and convert */
+    f = from_bcd_be(&(p->update_data[FT747_SUMO_VFO_B_FREQ]),10);
   break;
   default:
     return -RIG_EINVAL;		/* sorry, wrong VFO */
   }
 
-  rig_debug(RIG_DEBUG_VERBOSE,"ft747:  freq = %"PRIfreq" Hz  for VFO = %u \n", f, vfo);
+  rig_debug(RIG_DEBUG_VERBOSE,"ft747:  freq = %"PRIfreq" Hz  for VFO = %s\n",
+          f, rig_strvfo(vfo));
 
   (*freq) = f;			/* return diplayed frequency */
 
@@ -583,10 +585,12 @@ int ft747_set_vfo(RIG *rig, vfo_t vfo) {
   p = (struct ft747_priv_data*)rig->state.priv;
   rig_s = &rig->state;
   
-  if (RIG_VFO_CURR == vfo)
-      return RIG_OK;
-
   switch(vfo) {
+
+  case RIG_VFO_VFO:
+  case RIG_VFO_CURR:
+    return RIG_OK;
+
   case RIG_VFO_A:
     cmd_index = FT_747_NATIVE_VFO_A;
     break;
