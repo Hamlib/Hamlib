@@ -87,7 +87,10 @@ const tone_t full_dcs_list[] = { FULL_DCS_LIST };
  *  \note  the \a tone integer is NOT in Hz, but in tenth of Hz! This way,
  *  if you want to set a subaudible tone of 88.5 Hz for example,
  *  then pass 885 to this function.
- *  Also, to disable Tone encoding, set \a tone to 0 (FIXME: not clear in API).
+ *
+ *  NB: CTCSS encoding has to be explicitly enabled or disabled through
+ *  a call to rig_set_func() with arg RIG_FUNC_TONE, unless it is
+ *  unavailable and the \a tone arg has to be set to 0.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
@@ -275,7 +278,10 @@ int HAMLIB_API rig_get_dcs_code(RIG *rig, vfo_t vfo, tone_t *code)
  *  \note \a tone is NOT in Hz, but in tenth of Hz! This way,
  *  if you want to set subaudible squelch tone of 88.5 Hz for example,
  *  then pass 885 to this function.
- *  Also, to disable Tone squelch, set \a tone to 0 (FIXME: not clear in API).
+ *
+ *  NB: the tone squelch has to be explicitly enabled or disabled through
+ *  a call to rig_set_func() with arg RIG_FUNC_TSQL, unless it is
+ *  unavailable and the \a tone arg has to be set to 0.
  *
  * \return RIG_OK if the operation has been sucessful, otherwise 
  * a negative value if an error occured (in which case, cause is 
