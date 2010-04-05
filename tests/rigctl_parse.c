@@ -1,5 +1,5 @@
 /*
- * rigctl_parse.c - (C) Stephane Fillod 2000-2009
+ * rigctl_parse.c - (C) Stephane Fillod 2000-2010
  *					(C) Terry Embry 2008-2009
  * 					(C) The Hamlib Group 2010
  *
@@ -74,7 +74,7 @@ static pthread_mutex_t rig_mutex = PTHREAD_MUTEX_INITIALIZER;
 struct test_table {
 	unsigned char cmd;
 	const char *name;
-	int (*rig_routine)(RIG*, FILE*, int, const struct test_table*, vfo_t,
+	int (*rig_routine)(RIG*, FILE*, FILE*, int, const struct test_table*, vfo_t,
 			const char*, const char*, const char*);
 	int flags;
 	const char *arg1;
@@ -84,7 +84,9 @@ struct test_table {
 };
 
 
-#define declare_proto_rig(f) static int (f)(RIG *rig, FILE *fout, int interactive, \
+#define CHKSCN1ARG(a) if ((a) != 1) return -RIG_EINVAL; else do {} while(0)
+
+#define declare_proto_rig(f) static int (f)(RIG *rig, FILE *fout, FILE *fin, int interactive, \
 			const struct test_table *cmd, vfo_t vfo, const char *arg1, \
 			const char *arg2, const char *arg3)
 
@@ -302,7 +304,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			fprintf(fout, "\nRig command: ");
 
 		do {
-			if (scanfc(fin, "%c", &cmd) < 0)
+			if (scanfc(fin, "%c", &cmd) < 1)
 				return -1;
 
 			/* Extended response protocol requested with leading '+' on command
@@ -310,7 +312,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			 */
 			if (cmd == '+' && !prompt) {
 				ext_resp = 1;
-				if (scanfc(fin, "%c", &cmd) < 0)
+				if (scanfc(fin, "%c", &cmd) < 1)
 					return -1;
 			} else if (cmd == '+' && prompt) {
 				return 0;
@@ -319,7 +321,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (cmd != '\\' && cmd != '_'  && cmd != '#' && ispunct(cmd) && !prompt) {
 				ext_resp = 1;
 				resp_sep = cmd;
-				if (scanfc(fin, "%c", &cmd) < 0)
+				if (scanfc(fin, "%c", &cmd) < 1)
 					return -1;
 			} else if (cmd != '\\' && cmd != '?' && cmd != '_' && cmd != '#' && ispunct(cmd) && prompt) {
 				return 0;
@@ -330,11 +332,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 				unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
 				int c_len = MAXNAMSIZ;
 
-				if (scanfc(fin, "%c", pcmd) < 0)
+				if (scanfc(fin, "%c", pcmd) < 1)
 					return -1;
 
 				while(c_len-- && (isalnum(*pcmd) || *pcmd == '_' ))
-					if (scanfc(fin, "%c", ++pcmd) < 0)
+					if (scanfc(fin, "%c", ++pcmd) < 1)
 						return -1;
 
 				*pcmd = '\0';
@@ -359,7 +361,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		/* comment line */
 		if (cmd == '#') {
 			while( cmd != '\n' && cmd != '\r')
-				if (scanfc(fin, "%c", &cmd) < 0)
+				if (scanfc(fin, "%c", &cmd) < 1)
 					return -1;
 			return 0;
 		}
@@ -392,7 +394,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "VFO: ");
-			if (scanfc(fin, "%s", arg1) < 0)
+			if (scanfc(fin, "%s", arg1) < 1)
 				return -1;
 			vfo = rig_parse_vfo(arg1);
 		} else {
@@ -411,9 +413,11 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			char *nl;
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg1);
-			fgets(arg1, MAXARGSZ, fin);
+			if (fgets(arg1, MAXARGSZ, fin) == NULL)
+                return -1;
 			if (arg1[0] == 0xa)
-				fgets(arg1, MAXARGSZ, fin);
+				if (fgets(arg1, MAXARGSZ, fin) == NULL)
+                    return -1;
 			nl = strchr(arg1, 0xa);
 			if (nl) *nl = '\0';	/* chomp */
 			p1 = arg1[0] == ' ' ? arg1 + 1 : arg1;
@@ -430,7 +434,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg1);
-			if (scanfc(fin, "%s", arg1) < 0)
+			if (scanfc(fin, "%s", arg1) < 1)
 				return -1;
 			p1 = arg1;
 		} else {
@@ -446,7 +450,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg2);
-			if (scanfc(fin, "%s", arg2) < 0)
+			if (scanfc(fin, "%s", arg2) < 1)
 				return -1;
 			p2 = arg2;
 		} else {
@@ -462,7 +466,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg3);
-			if (scanfc(fin, "%s", arg3) < 0)
+			if (scanfc(fin, "%s", arg3) < 1)
 				return -1;
 			p3 = arg3;
 		} else {
@@ -505,8 +509,8 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		fprintf(fout, "%s:%s%s%s%s%c", cmd_entry->name, vfo_str, a1, a2, a3, resp_sep);
 	}
 
-	retcode = (*cmd_entry->rig_routine)(my_rig, fout, interactive,
-					cmd_entry, vfo, p1, p2, p3);
+	retcode = (*cmd_entry->rig_routine)(my_rig, fout, fin, interactive,
+					cmd_entry, vfo, p1, p2 ? p2 : "", p3 ? p3 : "");
 
 #ifdef HAVE_PTHREAD
 	pthread_mutex_unlock(&rig_mutex);
@@ -675,7 +679,7 @@ declare_proto_rig(set_freq)
 {
 	freq_t freq;
 
-	sscanf(arg1, "%"SCNfreq, &freq);
+	CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &freq));
 	return rig_set_freq(rig, vfo, freq);
 }
 
@@ -701,7 +705,7 @@ declare_proto_rig(set_rit)
 {
 	shortfreq_t rit;
 
-	sscanf(arg1, "%ld", &rit);
+	CHKSCN1ARG(sscanf(arg1, "%ld", &rit));
 	return rig_set_rit(rig, vfo, rit);
 }
 
@@ -726,7 +730,7 @@ declare_proto_rig(set_xit)
 {
 	shortfreq_t xit;
 
-	sscanf(arg1, "%ld", &xit);
+	CHKSCN1ARG(sscanf(arg1, "%ld", &xit));
 	return rig_set_xit(rig, vfo, xit);
 }
 
@@ -760,7 +764,7 @@ declare_proto_rig(set_mode)
 	}
 
 	mode = rig_parse_mode(arg1);
-	sscanf(arg2, "%ld", &width);
+	CHKSCN1ARG(sscanf(arg2, "%ld", &width));
 	return rig_set_mode(rig, vfo, mode, width);
 }
 
@@ -808,9 +812,9 @@ declare_proto_rig(get_vfo)
 /* 'T' */
 declare_proto_rig(set_ptt)
 {
-		int   ptt;
+	int   ptt;
 
-	sscanf(arg1, "%d", &ptt);
+	CHKSCN1ARG(sscanf(arg1, "%d", &ptt));
 	return rig_set_ptt(rig, vfo, (ptt_t) ptt);
 }
 
@@ -876,7 +880,7 @@ declare_proto_rig(set_rptr_offs)
 {
 	unsigned long rptr_offs;
 
-	sscanf(arg1, "%ld", &rptr_offs);
+	CHKSCN1ARG(sscanf(arg1, "%ld", &rptr_offs));
 	return rig_set_rptr_offs(rig, vfo, rptr_offs);
 }
 
@@ -901,7 +905,7 @@ declare_proto_rig(set_ctcss_tone)
 {
 	tone_t tone;
 
-	sscanf(arg1, "%d", &tone);
+	CHKSCN1ARG(sscanf(arg1, "%d", &tone));
 	return rig_set_ctcss_tone(rig, vfo, tone);
 }
 
@@ -926,7 +930,7 @@ declare_proto_rig(set_dcs_code)
 {
 	tone_t code;
 
-	sscanf(arg1, "%d", &code);
+	CHKSCN1ARG(sscanf(arg1, "%d", &code));
 	return rig_set_dcs_code(rig, vfo, code);
 }
 
@@ -951,7 +955,7 @@ declare_proto_rig(set_ctcss_sql)
 {
 	tone_t tone;
 
-	sscanf(arg1, "%d", &tone);
+	CHKSCN1ARG(sscanf(arg1, "%d", &tone));
 	return rig_set_ctcss_sql(rig, vfo, tone);
 }
 
@@ -976,7 +980,7 @@ declare_proto_rig(set_dcs_sql)
 {
 	tone_t code;
 
-	sscanf(arg1, "%d", &code);
+	CHKSCN1ARG(sscanf(arg1, "%d", &code));
 	return rig_set_dcs_sql(rig, vfo, code);
 }
 
@@ -1002,7 +1006,7 @@ declare_proto_rig(set_split_freq)
 	freq_t txfreq;
 	vfo_t txvfo = RIG_VFO_TX;
 
-	sscanf(arg1, "%"SCNfreq, &txfreq);
+	CHKSCN1ARG(sscanf(arg1, "%"SCNfreq, &txfreq));
 	return rig_set_split_freq(rig, txvfo, txfreq);
 }
 
@@ -1038,7 +1042,7 @@ declare_proto_rig(set_split_mode)
 	}
 
 	mode = rig_parse_mode(arg1);
-	sscanf(arg2, "%d", &width);
+	CHKSCN1ARG(sscanf(arg2, "%d", &width));
 	return rig_set_split_mode(rig, txvfo, mode, (pbwidth_t) width);
 }
 
@@ -1068,7 +1072,7 @@ declare_proto_rig(set_split_vfo)
 {
 	int split;
 
-	sscanf(arg1, "%d", &split);
+	CHKSCN1ARG(sscanf(arg1, "%d", &split));
 	return rig_set_split_vfo(rig, vfo, (split_t) split, rig_parse_vfo(arg2));
 }
 
@@ -1097,7 +1101,7 @@ declare_proto_rig(set_ts)
 {
 	unsigned long ts;
 
-	sscanf(arg1, "%ld", &ts);
+	CHKSCN1ARG(sscanf(arg1, "%ld", &ts));
 	return rig_set_ts(rig, vfo, ts);
 }
 
@@ -1126,8 +1130,8 @@ declare_proto_rig(power2mW)
 	rmode_t mode;
 	unsigned int mwp;
 
-	sscanf(arg1, "%f", &power);
-	sscanf(arg2, "%"SCNfreq, &freq);
+	CHKSCN1ARG(sscanf(arg1, "%f", &power));
+	CHKSCN1ARG(sscanf(arg2, "%"SCNfreq, &freq));
 	mode = rig_parse_mode(arg3);
 
 	status = rig_power2mW(rig, &mwp, power, freq, mode);
@@ -1149,8 +1153,8 @@ declare_proto_rig(mW2power)
 	rmode_t mode;
 	unsigned int mwp;
 
-	sscanf(arg1, "%i", &mwp);
-	sscanf(arg2, "%"SCNfreq, &freq);
+	CHKSCN1ARG(sscanf(arg1, "%i", &mwp));
+	CHKSCN1ARG(sscanf(arg2, "%"SCNfreq, &freq));
 	mode = rig_parse_mode(arg3);
 
 	status = rig_mW2power(rig, &power, mwp, freq, mode);
@@ -1198,10 +1202,10 @@ declare_proto_rig(set_level)
 			break;
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
-			sscanf(arg2, "%d", &val.i);
+			CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
 			break;
 		case RIG_CONF_NUMERIC:
-			sscanf(arg2, "%f", &val.f);
+			CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
 			break;
 		case RIG_CONF_STRING:
 			val.cs = arg2;
@@ -1213,9 +1217,9 @@ declare_proto_rig(set_level)
 	}
 
 	if (RIG_LEVEL_IS_FLOAT(level))
-		sscanf(arg2, "%f", &val.f);
+		CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
 	else
-		sscanf(arg2, "%d", &val.i);
+		CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
 
 	return rig_set_level(rig, vfo, level, val);
 }
@@ -1297,7 +1301,7 @@ declare_proto_rig(set_func)
 	}
 
 	func = rig_parse_func(arg1);
-	sscanf(arg2, "%d", &func_stat);
+	CHKSCN1ARG(sscanf(arg2, "%d", &func_stat));
 	return rig_set_func(rig, vfo, func, func_stat);
 }
 
@@ -1354,10 +1358,10 @@ declare_proto_rig(set_parm)
 			break;
 		case RIG_CONF_CHECKBUTTON:
 		case RIG_CONF_COMBO:
-			sscanf(arg2, "%d", &val.i);
+			CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
 			break;
 		case RIG_CONF_NUMERIC:
-			sscanf(arg2, "%f", &val.f);
+			CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
 			break;
 		case RIG_CONF_STRING:
 			val.cs = arg2;
@@ -1369,9 +1373,9 @@ declare_proto_rig(set_parm)
 	}
 
 	if (RIG_PARM_IS_FLOAT(parm))
-		sscanf(arg2, "%f", &val.f);
+		CHKSCN1ARG(sscanf(arg2, "%f", &val.f));
 	else
-		sscanf(arg2, "%d", &val.i);
+		CHKSCN1ARG(sscanf(arg2, "%d", &val.i));
 
 	return rig_set_parm(rig, parm, val);
 }
@@ -1443,7 +1447,7 @@ declare_proto_rig(set_bank)
 {
 	int bank;
 
-	sscanf(arg1, "%d", &bank);
+	CHKSCN1ARG(sscanf(arg1, "%d", &bank));
 	return rig_set_bank(rig, vfo, bank);
 }
 
@@ -1452,7 +1456,7 @@ declare_proto_rig(set_mem)
 {
 	int ch;
 
-	sscanf(arg1, "%d", &ch);
+	CHKSCN1ARG(sscanf(arg1, "%d", &ch));
 	return rig_set_mem(rig, vfo, ch);
 }
 
@@ -1502,7 +1506,7 @@ declare_proto_rig(scan)
 	}
 
 	op = rig_parse_scan(arg1);
-	sscanf(arg2, "%d", &ch);
+	CHKSCN1ARG(sscanf(arg2, "%d", &ch));
 	return rig_scan(rig, vfo, op, ch);
 }
 
@@ -1521,8 +1525,7 @@ declare_proto_rig(set_channel)
 
 	if (isdigit(arg1[0])) {
 		chan.vfo = RIG_VFO_MEM;
-		if (sscanf(arg1, "%d", &chan.channel_num) != 1)
-			return -RIG_EINVAL;
+		CHKSCN1ARG(sscanf(arg1, "%d", &chan.channel_num));
 		/*
 		 * find mem_caps in caps, we'll need it later
 		 */
@@ -1543,78 +1546,95 @@ declare_proto_rig(set_channel)
 	rig_debug(RIG_DEBUG_TRACE, "set_channel: mem_caps->bank_num = %d, mem_caps->freq = %d\n", mem_caps->bank_num, mem_caps->freq);
 
 	if (mem_caps->bank_num) {
-		printf("Bank Num: ");
-		status = scanf("%d", &chan.bank_num);
+	    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+		    fprintf(fout, "Bank Num: ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.bank_num));
 	}
 	if (mem_caps->vfo) {
-		printf("vfo (VFOA,MEM,etc...): ");
-		status = scanf("%s", s);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "vfo (VFOA,MEM,etc...): ");
+		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.vfo = rig_parse_vfo(s);
 	}
 	if (mem_caps->ant) {
-		printf("ant: ");
-		status = scanf("%d", &chan.ant);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "ant: ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.ant));
 	}
 	if (mem_caps->freq) {
-		printf("Frequency: ");
-		status = scanf("%"SCNfreq, &chan.freq);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "Frequency: ");
+		CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.freq));
 	}
 	if (mem_caps->mode) {
-		printf("mode (FM,LSB,etc...): ");
-		status = scanf("%s", s);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "mode (FM,LSB,etc...): ");
+		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.mode = rig_parse_mode(s);
 	}
 	if (mem_caps->width) {
-		printf("width: ");
-		status = scanf("%ld", &chan.width);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "width: ");
+		CHKSCN1ARG(scanfc(fin, "%ld", &chan.width));
 	}
 	if (mem_caps->tx_freq) {
-		printf("tx freq (VFOA,MEM,etc...): ");
-		status = scanf("%"SCNfreq, &chan.tx_freq);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "tx freq (VFOA,MEM,etc...): ");
+		CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.tx_freq));
 	}
 	if (mem_caps->tx_mode) {
-		printf("tx mode (FM,LSB,etc...): ");
-		status = scanf("%s", s);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "tx mode (FM,LSB,etc...): ");
+		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.tx_mode = rig_parse_mode(s);
 	}
 	if (mem_caps->tx_width) {
-		printf("tx width: ");
-		status = scanf("%ld", &chan.tx_width);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "tx width: ");
+		CHKSCN1ARG(scanfc(fin, "%ld", &chan.tx_width));
 	}
 	if (mem_caps->split) {
-		printf("split (0,1): ");
-		status = scanf("%d", &status);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "split (0,1): ");
+		CHKSCN1ARG(scanfc(fin, "%d", &status));
 		chan.split = status;
 	}
 	if (mem_caps->tx_vfo) {
-		printf("tx vfo (VFOA,MEM,etc...): ");
-		status = scanf("%s", s);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "tx vfo (VFOA,MEM,etc...): ");
+		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.tx_vfo = rig_parse_vfo(s);
 	}
 	if (mem_caps->rptr_shift) {
-		printf("rptr shift (+-0): ");
-		status = scanf("%s", s);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "rptr shift (+-0): ");
+		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.rptr_shift = rig_parse_rptr_shift(s);
 	}
 	if (mem_caps->rptr_offs) {
-		printf("rptr offset: ");
-		status = scanf("%ld", &chan.rptr_offs);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "rptr offset: ");
+		CHKSCN1ARG(scanfc(fin, "%ld", &chan.rptr_offs));
 	}
 	if (mem_caps->tuning_step) {
-		printf("tuning step: ");
-		status = scanf("%ld", &chan.tuning_step);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "tuning step: ");
+		CHKSCN1ARG(scanfc(fin, "%ld", &chan.tuning_step));
 	}
 	if (mem_caps->rit) {
-		printf("rit (Hz,0=off): ");
-		status = scanf("%ld", &chan.rit);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "rit (Hz,0=off): ");
+		CHKSCN1ARG(scanfc(fin, "%ld", &chan.rit));
 	}
 	if (mem_caps->xit) {
-		printf("xit (Hz,0=off): ");
-		status = scanf("%ld", &chan.xit);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "xit (Hz,0=off): ");
+		CHKSCN1ARG(scanfc(fin, "%ld", &chan.xit));
 	}
 	if (mem_caps->funcs) {
-		printf("funcs: ");
-		status = scanf("%lx", &chan.funcs);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "funcs: ");
+		CHKSCN1ARG(scanfc(fin, "%lx", &chan.funcs));
 	}
 #if 0
 	/* for all levels, ask */
@@ -1622,32 +1642,39 @@ declare_proto_rig(set_channel)
 		sscanf(arg1, "%d", &chan.levels);
 #endif
 	if (mem_caps->ctcss_tone) {
-		printf("ctcss tone freq in tenth of Hz (0=off): ");
-		status = scanf("%d", &chan.ctcss_tone);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "ctcss tone freq in tenth of Hz (0=off): ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.ctcss_tone));
 	}
 	if (mem_caps->ctcss_sql) {
-		printf("ctcss sql freq in tenth of Hz (0=off): ");
-		status = scanf("%d", &chan.ctcss_sql);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "ctcss sql freq in tenth of Hz (0=off): ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.ctcss_sql));
 	}
 	if (mem_caps->dcs_code) {
-		printf("dcs code: ");
-		status = scanf("%d", &chan.dcs_code);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "dcs code: ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.dcs_code));
 	}
 	if (mem_caps->dcs_sql) {
-		printf("dcs sql: ");
-		status = scanf("%d", &chan.dcs_sql);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "dcs sql: ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.dcs_sql));
 	}
 	if (mem_caps->scan_group) {
-		printf("scan group: ");
-		status = scanf("%d", &chan.scan_group);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "scan group: ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.scan_group));
 	}
 	if (mem_caps->flags) {
-		printf("flags: ");
-		status = scanf("%d", &chan.flags);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "flags: ");
+		CHKSCN1ARG(scanfc(fin, "%d", &chan.flags));
 	}
 	if (mem_caps->channel_desc) {
-		printf("channel desc: ");
-		status = scanf("%s", s);
+		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
+            fprintf(fout, "channel desc: ");
+		CHKSCN1ARG(scanfc(fin, "%s", s));
 		strcpy(chan.channel_desc, s);
 	}
 #if 0
@@ -1671,8 +1698,7 @@ declare_proto_rig(get_channel)
 
 	if (isdigit(arg1[0])) {
 		chan.vfo = RIG_VFO_MEM;
-		if (sscanf(arg1, "%d", &chan.channel_num) != 1)
-			return -RIG_EINVAL;
+		CHKSCN1ARG(sscanf(arg1, "%d", &chan.channel_num));
 	} else {
 		chan.vfo = rig_parse_vfo(arg1);
 		chan.channel_num = 0;
@@ -1939,7 +1965,7 @@ declare_proto_rig(set_ant)
 {
 	ant_t ant;
 
-	sscanf(arg1, "%d", &ant);
+	CHKSCN1ARG(sscanf(arg1, "%d", &ant));
 	return rig_set_ant(rig, vfo, rig_idx2setting(ant));
 }
 
@@ -1964,7 +1990,7 @@ declare_proto_rig(reset)
 {
 	int reset;
 
-	sscanf(arg1, "%d", &reset);
+	CHKSCN1ARG(sscanf(arg1, "%d", &reset));
 	return rig_reset(rig, (reset_t) reset);
 }
 
@@ -2001,7 +2027,7 @@ declare_proto_rig(set_powerstat)
 {
 	int stat;
 
-	sscanf(arg1, "%d", &stat);
+	CHKSCN1ARG(sscanf(arg1, "%d", &stat));
 	return rig_set_powerstat(rig, (powerstat_t) stat);
 }
 

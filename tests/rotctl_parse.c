@@ -1,5 +1,5 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2009
+ * rotctl.c - (C) Stephane Fillod 2000-2010
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as
@@ -80,6 +80,8 @@ struct test_table {
 	const char *arg5;
 	const char *arg6;
 };
+
+#define CHKSCN1ARG(a) if ((a) != 1) return -RIG_EINVAL; else do {} while(0)
 
 #define declare_proto_rot(f) static int (f)(ROT *rot, FILE *fout, int interactive, \
 			const struct test_table *cmd, const char *arg1, const char *arg2, \
@@ -206,7 +208,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			fprintf(fout, "\nRotator command: ");
 
 		do {
-			if (scanfc(fin, "%c", &cmd) < 0)
+			if (scanfc(fin, "%c", &cmd) < 1)
 				return -1;
 
 			/* Extended response protocol requested with leading '+' on command
@@ -214,7 +216,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			 */
 			if (cmd == '+' && !prompt) {
 				ext_resp = 1;
-				if (scanfc(fin, "%c", &cmd) < 0)
+				if (scanfc(fin, "%c", &cmd) < 1)
 					return -1;
 			} else if (cmd == '+' && prompt) {
 				return 0;
@@ -223,7 +225,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (cmd != '\\' && cmd != '_' && cmd != '#' && ispunct(cmd) && !prompt) {
 				ext_resp = 1;
 				resp_sep = cmd;
-				if (scanfc(fin, "%c", &cmd) < 0)
+				if (scanfc(fin, "%c", &cmd) < 1)
 					return -1;
 			} else if (cmd != '\\' && cmd != '?' && cmd != '_' && cmd != '#' && ispunct(cmd) && prompt) {
 				return 0;
@@ -234,11 +236,11 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 				unsigned char cmd_name[MAXNAMSIZ], *pcmd = cmd_name;
 				int c_len = MAXNAMSIZ;
 
-				if (scanfc(fin, "%c", pcmd) < 0)
+				if (scanfc(fin, "%c", pcmd) < 1)
 					return -1;
 
 				while(c_len-- && (isalnum(*pcmd) || *pcmd == '_' ))
-					if (scanfc(fin, "%c", ++pcmd) < 0)
+					if (scanfc(fin, "%c", ++pcmd) < 1)
 						return -1;
 
 				*pcmd = '\0';
@@ -262,7 +264,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		/* comment line */
 		if (cmd == '#') {
 			while( cmd != '\n' && cmd != '\r')
-				if (scanfc(fin, "%c", &cmd) < 0)
+				if (scanfc(fin, "%c", &cmd) < 1)
 					return -1;
 			return 0;
 		}
@@ -298,9 +300,11 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			char *nl;
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg1);
-			fgets(arg1, MAXARGSZ, fin);
+			if (fgets(arg1, MAXARGSZ, fin) == NULL)
+                return -1;
 			if (arg1[0] == 0xa)
-				fgets(arg1, MAXARGSZ, fin);
+				if (fgets(arg1, MAXARGSZ, fin) == NULL)
+                    return -1;
 			nl = strchr(arg1, 0xa);
 			if (nl) *nl = '\0';	/* chomp */
 			p1 = arg1[0]==' '?arg1+1:arg1;
@@ -316,7 +320,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg1);
-			if (scanfc(fin, "%s", arg1) < 0)
+			if (scanfc(fin, "%s", arg1) < 1)
 				return -1;
 			p1 = arg1;
 		} else {
@@ -332,7 +336,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg2);
-			if (scanfc(fin, "%s", arg2) < 0)
+			if (scanfc(fin, "%s", arg2) < 1)
 				return -1;
 			p2 = arg2;
 		} else {
@@ -348,7 +352,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg3);
-			if (scanfc(fin, "%s", arg3) < 0)
+			if (scanfc(fin, "%s", arg3) < 1)
 				return -1;
 			p3 = arg3;
 		} else {
@@ -365,7 +369,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			if (prompt)
 				fprintf(fout, "%s: ", cmd_entry->arg4);
-			if (scanfc(fin, "%s", arg4) < 0)
+			if (scanfc(fin, "%s", arg4) < 1)
 				return -1;
 			p4 = arg4;
 		} else {
@@ -409,7 +413,8 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
     }
 
 	retcode = (*cmd_entry->rot_routine)(my_rot, fout, interactive,
-					cmd_entry, p1, p2, p3, p4, p5, p6);
+					cmd_entry, p1, p2 ? p2 : "", p3 ? p3 : "",
+                    p4 ? p4 : "", p5 ? p5 : "", p6 ? p6 : "");
 
 #ifdef HAVE_PTHREAD
 	pthread_mutex_unlock(&rot_mutex);
@@ -567,8 +572,8 @@ declare_proto_rot(set_position)
 	azimuth_t az;
 	elevation_t el;
 
-	sscanf(arg1, "%f", &az);
-	sscanf(arg2, "%f", &el);
+	CHKSCN1ARG(sscanf(arg1, "%f", &az));
+	CHKSCN1ARG(sscanf(arg2, "%f", &el));
 	return rot_set_position(rot, az, el);
 }
 
@@ -609,7 +614,7 @@ declare_proto_rot(reset)
 {
 	rot_reset_t reset;
 
-	sscanf(arg1, "%d", &reset);
+	CHKSCN1ARG(sscanf(arg1, "%d", &reset));
 	return rot_reset(rot, reset);
 }
 
@@ -632,8 +637,8 @@ declare_proto_rot(move)
 	int direction;
 	int speed;
 
-	sscanf(arg1, "%d", &direction);
-	sscanf(arg2, "%d", &speed);
+	CHKSCN1ARG(sscanf(arg1, "%d", &direction));
+	CHKSCN1ARG(sscanf(arg2, "%d", &speed));
 	return rot_move(rot, direction, speed);
 }
 
@@ -643,8 +648,8 @@ declare_proto_rot(inter_set_conf)
 	token_t token;
 	char val[21] = "";      /* 20 chars enough? */
 
-	sscanf(arg1, "%ld", &token);
-	sscanf(arg2, "%s", val);
+	CHKSCN1ARG(sscanf(arg1, "%ld", &token));
+	CHKSCN1ARG(sscanf(arg2, "%s", val));
 	return rot_set_conf(rot, token, val);
 }
 
@@ -787,9 +792,9 @@ declare_proto_rot(lonlat2loc)
 	double lat, lon;
 	int err, pair;
 
-	sscanf(arg1, "%lf", &lon);
-	sscanf(arg2, "%lf", &lat);
-	sscanf(arg3, "%d", &pair);
+	CHKSCN1ARG(sscanf(arg1, "%lf", &lon));
+	CHKSCN1ARG(sscanf(arg2, "%lf", &lat));
+	CHKSCN1ARG(sscanf(arg3, "%d", &pair));
 
 	pair /= 2;
 
@@ -812,7 +817,7 @@ declare_proto_rot(loc2lonlat)
 	double lat, lon;
 	int status;
 
-	sscanf(arg1, "%s", (char *)&loc);
+	CHKSCN1ARG(sscanf(arg1, "%s", (char *)&loc));
 
 	status = locator2longlat(&lon, &lat, (const char *)loc);
 
@@ -835,10 +840,10 @@ declare_proto_rot(d_m_s2dec)
 	int deg, min, sw;
 	double sec, dec_deg;
 
-	sscanf(arg1, "%d", &deg);
-	sscanf(arg2, "%d", &min);
-	sscanf(arg3, "%lf", &sec);
-	sscanf(arg4, "%d", &sw);
+	CHKSCN1ARG(sscanf(arg1, "%d", &deg));
+	CHKSCN1ARG(sscanf(arg2, "%d", &min));
+	CHKSCN1ARG(sscanf(arg3, "%lf", &sec));
+	CHKSCN1ARG(sscanf(arg4, "%d", &sw));
 
 	dec_deg = dms2dec(deg, min, sec, sw);
 
@@ -855,7 +860,7 @@ declare_proto_rot(dec2d_m_s)
 	int deg, min, sw, err;
 	double sec, dec_deg;
 
-	sscanf(arg1, "%lf", &dec_deg);
+	CHKSCN1ARG(sscanf(arg1, "%lf", &dec_deg));
 
 	err = dec2dms(dec_deg, &deg, &min, &sec, &sw);
 
@@ -884,9 +889,9 @@ declare_proto_rot(d_mm2dec)
 	int deg, sw;
 	double dec_deg, min;
 
-	sscanf(arg1, "%d", &deg);
-	sscanf(arg2, "%lf", &min);
-	sscanf(arg3, "%d", &sw);
+	CHKSCN1ARG(sscanf(arg1, "%d", &deg));
+	CHKSCN1ARG(sscanf(arg2, "%lf", &min));
+	CHKSCN1ARG(sscanf(arg3, "%d", &sw));
 
 	dec_deg = dmmm2dec(deg, min, sw);
 
@@ -903,7 +908,7 @@ declare_proto_rot(dec2d_mm)
 	int deg, sw, err;
 	double min, dec_deg;
 
-	sscanf(arg1, "%lf", &dec_deg);
+	CHKSCN1ARG(sscanf(arg1, "%lf", &dec_deg));
 
 	err = dec2dmmm(dec_deg, &deg, &min, &sw);
 
@@ -929,10 +934,10 @@ declare_proto_rot(coord2qrb)
 	double lon1, lat1, lon2, lat2, dist, az;
 	int err;
 
-	sscanf(arg1, "%lf", &lon1);
-	sscanf(arg2, "%lf", &lat1);
-	sscanf(arg3, "%lf", &lon2);
-	sscanf(arg4, "%lf", &lat2);
+	CHKSCN1ARG(sscanf(arg1, "%lf", &lon1));
+	CHKSCN1ARG(sscanf(arg2, "%lf", &lat1));
+	CHKSCN1ARG(sscanf(arg3, "%lf", &lon2));
+	CHKSCN1ARG(sscanf(arg4, "%lf", &lat2));
 
 	err = qrb(lon1, lat1, lon2, lat2, &dist, &az);
 
@@ -954,7 +959,7 @@ declare_proto_rot(az_sp2az_lp)
 {
 	double az_sp, az_lp;
 
-	sscanf(arg1, "%lf", &az_sp);
+	CHKSCN1ARG(sscanf(arg1, "%lf", &az_sp));
 
 	az_lp = azimuth_long_path(az_sp);
 
@@ -973,7 +978,7 @@ declare_proto_rot(dist_sp2dist_lp)
 {
 	double dist_sp, dist_lp;
 
-	sscanf(arg1, "%lf", &dist_sp);
+	CHKSCN1ARG(sscanf(arg1, "%lf", &dist_sp));
 
 	dist_lp = distance_long_path(dist_sp);
 
