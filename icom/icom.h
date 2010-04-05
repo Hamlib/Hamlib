@@ -233,6 +233,7 @@ extern const struct rig_caps ic471_caps;
 extern const struct rig_caps ic475_caps;
 
 extern const struct rig_caps omnivip_caps;
+extern const struct rig_caps delta2_caps;
 
 extern const struct rig_caps os456_caps;
 extern const struct rig_caps os535_caps;

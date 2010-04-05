@@ -3113,6 +3113,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&os456_caps);
 
 	rig_register(&omnivip_caps);
+	rig_register(&delta2_caps);
 
 	rig_register(&id1_caps);
 
