@@ -38,6 +38,9 @@ def StartUp ():
 
     (mode, width) = my_rig.get_mode()
     print "mode:",Hamlib.rig_strrmode(mode),", bandwidth:",width
+    my_rig.set_mode(Hamlib.RIG_MODE_CW)
+    (mode, width) = my_rig.get_mode()
+    print "mode:",Hamlib.rig_strrmode(mode),", bandwidth:",width
 
     print "ITU_region: ",my_rig.state.itu_region
     print "Backend copyright: ",my_rig.caps.copyright

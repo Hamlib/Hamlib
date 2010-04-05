@@ -11,6 +11,7 @@ int main(int argc, char* argv[])
 	Rig myRig = Rig(RIG_MODEL_DUMMY);
 
 	try {
+		myRig.setConf("rig_pathname", "/dev/ttyS1");
 		myRig.open();
 		myRig.setFreq(MHz(144));
 		std::cout << myRig.getLevelI(RIG_LEVEL_STRENGTH) << "dB" << std::endl;
