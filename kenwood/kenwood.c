@@ -606,7 +606,7 @@ int kenwood_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char vfo_letter;
 	vfo_t tvfo;
 
-	tvfo = vfo==RIG_VFO_CURR ? rig->state.current_vfo : vfo;
+	tvfo = (vfo==RIG_VFO_CURR || vfo==RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
 
 	switch (tvfo) {
 	case RIG_VFO_A: vfo_letter = 'A'; break;
@@ -652,7 +652,7 @@ int kenwood_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned char vfo_letter;
 	vfo_t tvfo;
 
-	tvfo = vfo == RIG_VFO_CURR ? rig->state.current_vfo : vfo;
+	tvfo = (vfo == RIG_VFO_CURR || vfo==RIG_VFO_VFO) ? rig->state.current_vfo : vfo;
 
 	/* memory frequency cannot be read with an Fx command, use IF */
 	if (tvfo == RIG_VFO_MEM) {
