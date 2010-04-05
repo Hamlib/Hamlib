@@ -13,3 +13,9 @@ Here is the list of the brave fellows:
 * Chuck Hemker N2POR, v1.1.3, 09/2002, src/event.c
 	when using rig_set_trn() and receiving a SIGIO, 
 	and having a second non serial rig open.
+
+* Roeland Th. Jansen PA3MET, v1.2.10, 03/2010, tests/rigctl_parse.c
+    $ rigctl
+    Rig command: M
+    Mode: ?
+

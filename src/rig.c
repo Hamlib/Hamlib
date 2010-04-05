@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *	$Id: rig.c,v 1.103 2009-02-20 14:14:31 fillods Exp $
@@ -31,7 +31,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2009
+ * \date 2000-2010
  *
  * Hamlib provides a user-callable API, a set of "front-end" routines that
  * call rig-specific "back-end" routines which actually communicate with
@@ -83,7 +83,7 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
-  "Copyright (C) 2000-2009 Stephane Fillod\n"
+  "Copyright (C) 2000-2010 Stephane Fillod\n"
   "Copyright (C) 2000-2003 Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
@@ -344,11 +344,14 @@ RIG * HAMLIB_API rig_init(rig_model_t rig_model)
 	}
 
 	rs->vfo_list = 0;
+	rs->mode_list = 0;
 	for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->rx_range_list[i]); i++) {
 			rs->vfo_list |= rs->rx_range_list[i].vfo;
+			rs->mode_list |= rs->rx_range_list[i].modes;
 	}
 	for (i=0; i<FRQRANGESIZ && !RIG_IS_FRNG_END(rs->tx_range_list[i]); i++) {
 			rs->vfo_list |= rs->tx_range_list[i].vfo;
+			rs->mode_list |= rs->tx_range_list[i].modes;
 	}
 
 	memcpy(rs->preamp, caps->preamp, sizeof(int)*MAXDBLSTSIZ);

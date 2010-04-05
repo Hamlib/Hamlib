@@ -752,14 +752,13 @@ declare_proto_rig(set_mode)
 	rmode_t mode;
 	pbwidth_t width;
 
-#if 0
 	if (!strcmp(arg1, "?")) {
 		char s[SPRINTF_MAX_SIZE];
-		sprintf_mode(s, rig->state.modes);
+		sprintf_mode(s, rig->state.mode_list);
 		fprintf(fout, "%s\n", s);
 		return RIG_OK;
 	}
-#endif
+
 	mode = rig_parse_mode(arg1);
 	sscanf(arg2, "%ld", &width);
 	return rig_set_mode(rig, vfo, mode, width);
@@ -1031,14 +1030,13 @@ declare_proto_rig(set_split_mode)
 	int	 width;
 	vfo_t txvfo = RIG_VFO_TX;
 
-#if 0
 	if (!strcmp(arg1, "?")) {
 		char s[SPRINTF_MAX_SIZE];
-		sprintf_mode(s, rig->state.modes);
+		sprintf_mode(s, rig->state.mode_list);
 		fprintf(fout, "%s\n", s);
 		return RIG_OK;
 	}
-#endif
+
 	mode = rig_parse_mode(arg1);
 	sscanf(arg2, "%d", &width);
 	return rig_set_split_mode(rig, txvfo, mode, (pbwidth_t) width);

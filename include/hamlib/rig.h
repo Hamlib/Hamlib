@@ -1431,6 +1431,7 @@ struct rig_state {
   rmode_t current_mode;	/*!< Mode currently set */
   pbwidth_t current_width;	/*!< Passband width currently set */
   vfo_t tx_vfo;		/*!< Tx VFO currently set */
+  int mode_list;		/*!< Complete list of modes for this rig */
 
 };
 
