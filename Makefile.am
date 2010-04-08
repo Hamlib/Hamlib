@@ -10,7 +10,7 @@ EXTRA_DIST = PLAN TODO LICENSE hamlib.m4 hamlib.pc.in README.developer \
 	README.betatester README.win32 hamlib.spec
 
 # BINDINGS_LIST subdirs are no longer built
-SUBDIRS = macros include lib src $(subdirs) @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
+SUBDIRS = macros include lib $(subdirs) src @BACKEND_LIST@ @ROT_BACKEND_LIST@ \
 			@BINDINGS@ tests doc
 
 # tcl, perl, and kylix subdirs are no longer distributed
