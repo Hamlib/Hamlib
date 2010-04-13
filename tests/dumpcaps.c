@@ -285,10 +285,20 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "\n");
 
 
+	if (rig->state.mode_list != 0)
+		sprintf_mode(prntbuf, rig->state.mode_list);
+	else {
+		strcpy(prntbuf,"None. This backend might be bogus!\n");
+        backend_warnings++;
+    }
+	fprintf(fout, "Mode list: %s\n", prntbuf);
+
 	if (rig->state.vfo_list != 0)
 		sprintf_vfo(prntbuf, rig->state.vfo_list);
-	else
+	else {
 		strcpy(prntbuf,"None. This backend might be bogus!\n");
+        backend_warnings++;
+    }
 	fprintf(fout, "VFO list: %s\n", prntbuf);
 
 	sprintf_vfop(prntbuf, caps->vfo_ops);
