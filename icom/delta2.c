@@ -28,7 +28,7 @@
 
 /* Known problems:
  *
- * To Do:
+ * To Do: get the datasheet, and testing on real hardware!!
  */
 
 #ifdef HAVE_CONFIG_H
@@ -41,7 +41,7 @@
 #include "icom.h"
 #include "icom_defs.h"
 #include "frame.h"
-#include <misc.h>
+#include "misc.h"
 
 #define DELTAII_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
 
@@ -55,8 +55,8 @@
 
 static const struct icom_priv_caps delta2_priv_caps = { 
 		0x01,	/* default address */
-		0,		/* 731 mode */
-		NULL    /* TODO: ts_sc_list */
+		1,		/* 731 mode */
+		ic737_ts_sc_list  /* TODO: ts_sc_list */
 };
 
 const struct rig_caps delta2_caps = {
@@ -67,7 +67,7 @@ const struct rig_caps delta2_caps = {
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
-.ptt_type =  RIG_PTT_RIG,           // Allow program controlled PTT
+.ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  1200,
