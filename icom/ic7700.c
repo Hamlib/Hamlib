@@ -226,7 +226,7 @@ const struct rig_caps ic7700_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 };
 

@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-756 and variations
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ic756.c,v 1.20 2008-10-31 00:17:34 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -218,7 +217,7 @@ const struct rig_caps ic756_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 };
 
@@ -366,7 +365,7 @@ const struct rig_caps ic756pro_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 };
 
@@ -571,7 +570,7 @@ const struct rig_caps ic756pro2_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 .set_ext_parm =  ic756pro2_set_ext_parm,
 .get_ext_parm =  ic756pro2_get_ext_parm,
@@ -919,7 +918,7 @@ const struct rig_caps ic756pro3_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 .set_ext_parm =  ic756pro2_set_ext_parm,
 .get_ext_parm =  ic756pro2_get_ext_parm,

@@ -1,9 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-718 caps
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *  Caps submitted by Chuck Gilkes WD0FCL/4
  *
- *	$Id: ic718.c,v 1.8 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -198,7 +197,7 @@ const struct rig_caps ic718_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 };
 

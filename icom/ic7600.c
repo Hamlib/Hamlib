@@ -2,7 +2,6 @@
  *  Hamlib CI-V backend - description of IC-7600
  *  Copyright (c) 2010 by Stephane Fillod
  *
- *	$Id: ic7600.c,v 1.5 2008-10-26 13:45:21 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -241,7 +240,7 @@ const struct rig_caps ic7600_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 };
 
