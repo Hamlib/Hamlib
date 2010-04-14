@@ -900,17 +900,29 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		lvl_cn = C_CTL_LVL;
 		lvl_sc = S_LVL_BALANCE;
 		break;
-        case RIG_LEVEL_VOXGAIN:     /* IC-910H */
-            lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_VOXGAIN;
+        case RIG_LEVEL_VOXGAIN:
+            if (rig->caps->rig_model == RIG_MODEL_IC910) {
+                /* IC-910H */
+                lvl_cn = C_CTL_MEM;
+                lvl_sc = S_MEM_VOXGAIN;
+            } else {
+                lvl_cn = C_CTL_LVL;
+                lvl_sc = S_LVL_VOXGAIN;
+            }
             break;
         case RIG_LEVEL_VOXDELAY:    /* IC-910H */
             lvl_cn = C_CTL_MEM;
             lvl_sc = S_MEM_VOXDELAY;
             break;
-        case RIG_LEVEL_ANTIVOX:     /* IC-910H */
-            lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_ANTIVOX;
+        case RIG_LEVEL_ANTIVOX:
+            if (rig->caps->rig_model == RIG_MODEL_IC910) {
+                /* IC-910H */
+                lvl_cn = C_CTL_MEM;
+                lvl_sc = S_MEM_ANTIVOX;
+            } else {
+                lvl_cn = C_CTL_LVL;
+                lvl_sc = S_LVL_ANTIVOX;
+            }
             break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported set_level %d", level);
@@ -1043,16 +1055,28 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		lvl_sc = S_LVL_BALANCE;
 		break;
         case RIG_LEVEL_VOXGAIN:     /* IC-910H */
-            lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_VOXGAIN;
+            if (rig->caps->rig_model == RIG_MODEL_IC910) {
+                /* IC-910H */
+                lvl_cn = C_CTL_MEM;
+                lvl_sc = S_MEM_VOXGAIN;
+            } else {
+                lvl_cn = C_CTL_LVL;
+                lvl_sc = S_LVL_VOXGAIN;
+            }
             break;
         case RIG_LEVEL_VOXDELAY:    /* IC-910H */
             lvl_cn = C_CTL_MEM;
             lvl_sc = S_MEM_VOXDELAY;
             break;
-        case RIG_LEVEL_ANTIVOX:     /* IC-910H */
-            lvl_cn = C_CTL_MEM;
-            lvl_sc = S_MEM_ANTIVOX;
+        case RIG_LEVEL_ANTIVOX:
+            if (rig->caps->rig_model == RIG_MODEL_IC910) {
+                /* IC-910H */
+                lvl_cn = C_CTL_MEM;
+                lvl_sc = S_MEM_ANTIVOX;
+            } else {
+                lvl_cn = C_CTL_LVL;
+                lvl_sc = S_LVL_ANTIVOX;
+            }
             break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"Unsupported get_level %d", level);
@@ -1909,6 +1933,10 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		fct_cn = C_CTL_FUNC;
 		fct_sc = S_FUNC_VSC;
 		break;
+	case RIG_FUNC_LOCK:
+		fct_cn = C_CTL_FUNC;
+		fct_sc = S_FUNC_DIAL_LK;
+		break;
         case RIG_FUNC_AFC:      /* IC-910H */
             fct_cn = C_CTL_FUNC;
             fct_sc = S_FUNC_AFC;
@@ -2017,6 +2045,10 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
             fct_cn = C_CTL_FUNC;
             fct_sc = S_FUNC_VSC;
             break;
+	case RIG_FUNC_LOCK:
+		fct_cn = C_CTL_FUNC;
+		fct_sc = S_FUNC_DIAL_LK;
+		break;
          case RIG_FUNC_AFC:      /* IC-910H */
             fct_cn = C_CTL_FUNC;
             fct_sc = S_FUNC_AFC;

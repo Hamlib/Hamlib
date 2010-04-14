@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - defines for the ICOM "CI-V" interface.
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *		$Id: icom_defs.h,v 1.21 2008-11-09 14:26:04 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -229,6 +228,12 @@
 #define S_LVL_COMP		0x0e		/* Compressor level setting */
 #define S_LVL_BKINDL		0x0f		/* BKin delay setting */
 #define S_LVL_BALANCE		0x10		/* Balance setting (Dual watch) */
+#define S_LVL_NB			0x12		/* NB setting */
+#define S_LVL_DRIVE			0x14		/* DRIVE gain setting */
+#define S_LVL_MON			0x15		/* Monitor gain setting */
+#define S_LVL_VOXGAIN		0x16		/* VOX gain setting */
+#define S_LVL_ANTIVOX		0x17		/* Anti VOX gain setting */
+#define S_LVL_BRIGHT		0x19		/* BRIGHT level setting */
 
 /*
  * Read squelch condition/S-meter level/other meter levels (C_RD_SQSM) subcommands
