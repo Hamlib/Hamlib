@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-7800 and variations
- *  Copyright (c) 2009 by Stephane Fillod
+ *  Copyright (c) 2009-2010 by Stephane Fillod
  *
- *	$Id: ic7800.c,v 1.5 2008-10-26 13:45:21 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -49,7 +48,7 @@
 
 #define IC7800_LEVELS (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_COMP|RIG_LEVEL_BKINDL|RIG_LEVEL_BALANCE|RIG_LEVEL_NR|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT|RIG_LEVEL_CWPITCH|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_KEYSPD|RIG_LEVEL_NOTCHF|RIG_LEVEL_SQL|RIG_LEVEL_RAWSTR|RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_APF|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY|RIG_LEVEL_SWR|RIG_LEVEL_ALC)
 
-#define IC7800_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
+#define IC7800_VFOS (RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 #define IC7800_PARMS (RIG_PARM_ANN|RIG_PARM_BACKLIGHT)
 
 #define IC7800_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
@@ -60,10 +59,11 @@
 /*
  * FIXME: real measures!
  */
-#define IC7800_STR_CAL { 2, \
+#define IC7800_STR_CAL { 3, \
 	{ \
-		{   0, -60 }, \
-		{ 255, 60 } \
+		{   0, -54 }, /* S0 */ \
+		{ 120,   0 }, /* S9 */ \
+		{ 241,  60 }  /* S9+60 */ \
 	} }
 
 
@@ -86,7 +86,7 @@ const struct rig_caps ic7800_caps = {
 .rig_model =  RIG_MODEL_IC7800,
 .model_name = "IC-7800", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
@@ -133,7 +133,7 @@ const struct rig_caps ic7800_caps = {
 	   RIG_CHAN_END,
 	},
 
-.rx_range_list1 =   { {kHz(30),MHz(60),IC7800_ALL_RX_MODES,-1,-1,IC7800_VFOS},
+.rx_range_list1 =   { {kHz(30),MHz(60),IC7800_ALL_RX_MODES,-1,-1,IC7800_VFOS,IC7800_ANTS},
 	RIG_FRNG_END, },
 .tx_range_list1 =   {
 	FRQ_RNG_HF(1,IC7800_OTHER_TX_MODES, W(5),W(200),IC7800_VFOS,IC7800_ANTS),
@@ -142,13 +142,19 @@ const struct rig_caps ic7800_caps = {
 	FRQ_RNG_6m(1,IC7800_AM_TX_MODES, W(5),W(50),IC7800_VFOS,IC7800_ANTS),   /* AM class */
     	RIG_FRNG_END, },
 
-.rx_range_list2 =   { {kHz(30),MHz(60),IC7800_ALL_RX_MODES,-1,-1,IC7800_VFOS},
+.rx_range_list2 =   { {kHz(30),MHz(60),IC7800_ALL_RX_MODES,-1,-1,IC7800_VFOS,IC7800_ANTS},
 	RIG_FRNG_END, },
 .tx_range_list2 =  {
 	FRQ_RNG_HF(2,IC7800_OTHER_TX_MODES, W(5),W(200),IC7800_VFOS,IC7800_ANTS),
 	FRQ_RNG_6m(2,IC7800_OTHER_TX_MODES, W(5),W(200),IC7800_VFOS,IC7800_ANTS),
 	FRQ_RNG_HF(2,IC7800_AM_TX_MODES, W(5),W(50),IC7800_VFOS,IC7800_ANTS),   /* AM class */
 	FRQ_RNG_6m(2,IC7800_AM_TX_MODES, W(5),W(50),IC7800_VFOS,IC7800_ANTS),   /* AM class */
+    /* USA only, TBC: end of range and modes */
+    {MHz(5.33050),MHz(5.33350),IC7800_OTHER_TX_MODES,W(2),W(100),IC7800_VFOS,IC7800_ANTS}, /* USA only */
+    {MHz(5.34650),MHz(5.34950),IC7800_OTHER_TX_MODES,W(2),W(100),IC7800_VFOS,IC7800_ANTS}, /* USA only */
+    {MHz(5.36650),MHz(5.36950),IC7800_OTHER_TX_MODES,W(2),W(100),IC7800_VFOS,IC7800_ANTS}, /* USA only */
+    {MHz(5.37150),MHz(5.37450),IC7800_OTHER_TX_MODES,W(2),W(100),IC7800_VFOS,IC7800_ANTS}, /* USA only */
+    {MHz(5.40350),MHz(5.40650),IC7800_OTHER_TX_MODES,W(2),W(100),IC7800_VFOS,IC7800_ANTS}, /* USA only */
     	RIG_FRNG_END, },
 
 .tuning_steps = 	{
@@ -223,7 +229,7 @@ const struct rig_caps ic7800_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 
 };
 
