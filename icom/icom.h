@@ -21,15 +21,15 @@
 #ifndef _ICOM_H
 #define _ICOM_H 1
 
-#include <hamlib/rig.h>
-#include <cal.h>
-#include <tones.h>
+#include "hamlib/rig.h"
+#include "cal.h"
+#include "tones.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 
-#define BACKEND_VER "0.5"
+#define BACKEND_VER "0.6"
 
 /*
  * defines used by comp_cal_str in rig.c
