@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-746 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ic746.c,v 1.12 2008-10-26 13:45:21 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -308,7 +307,7 @@ const struct rig_caps ic746_caps = {
 .set_split_mode =  icom_set_split_mode,
 .get_split_mode =  icom_get_split_mode,
 .set_split_vfo =  icom_set_split_vfo,
-.get_split_vfo =  icom_get_split_vfo,
+.get_split_vfo =  icom_mem_get_split_vfo,
 .set_ptt =  icom_set_ptt,
 .get_ptt =  icom_get_ptt,
 
