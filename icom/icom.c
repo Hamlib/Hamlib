@@ -791,9 +791,6 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	lvl_len = 2;
 	to_bcd_be(lvlbuf, (long long)icom_val, lvl_len*2);
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
 	switch (level) {
 	case RIG_LEVEL_PREAMP:
 		lvl_cn = C_CTL_FUNC;
@@ -887,10 +884,16 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	case RIG_LEVEL_AGC:
 		lvl_cn = C_CTL_FUNC;
 		lvl_sc = S_FUNC_AGC;
-		if (rig->caps->rig_model == RIG_MODEL_ICR75) {
-			lvl_len = 1;
-			lvlbuf[0] = val.i;
-		}
+		lvl_len = 1;
+        switch (val.i) {
+            case RIG_AGC_SLOW:   lvlbuf[0] = D_AGC_SLOW; break;
+            case RIG_AGC_MEDIUM: lvlbuf[0] = D_AGC_MID; break;
+            case RIG_AGC_FAST:   lvlbuf[0] = D_AGC_FAST; break;
+            case RIG_AGC_SUPERFAST: lvlbuf[0] = D_AGC_SUPERFAST; break;
+            default:
+                rig_debug(RIG_DEBUG_ERR,"Unsupported LEVEL_AGC %d", val.i);
+                return -RIG_EINVAL;
+        }
 		break;
 	case RIG_LEVEL_BKINDL:
 		lvl_cn = C_CTL_LVL;
@@ -946,6 +949,12 @@ int icom_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 /*
  * icom_get_level
  * Assumes rig!=NULL, rig->state.priv!=NULL, val!=NULL
+ *
+ * TODO (missing RIG_LEVEL):
+ * - S_RFML: Read real RFpower-meter level
+ * - S_CMP: Read COMP-meter level
+ * - S_VD : Read Vd-meter level
+ * - S_ID : Read Id-meter level
  */
 int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
@@ -962,14 +971,20 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	priv = (struct icom_priv_data*)rs->priv;
 
 	lvl2_len = 0;
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
-	switch (level) {
+
+    switch (level) {
 	case RIG_LEVEL_STRENGTH:
 	case RIG_LEVEL_RAWSTR:
 		lvl_cn = C_RD_SQSM;
 		lvl_sc = S_SML;
+		break;
+	case RIG_LEVEL_ALC:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_ALC;
+		break;
+	case RIG_LEVEL_SWR:
+		lvl_cn = C_RD_SQSM;
+		lvl_sc = S_SWR;
 		break;
 	case RIG_LEVEL_PREAMP:
 		lvl_cn = C_CTL_FUNC;
@@ -1114,7 +1129,27 @@ int icom_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	switch (level) {
 	case RIG_LEVEL_RAWSTR:
+		/* raw value */
 		val->i = icom_val;
+		break;
+	case RIG_LEVEL_AGC:
+        switch (icom_val) {
+            case D_AGC_SLOW: val->i = RIG_AGC_SLOW; break;
+            case D_AGC_MID:  val->i = RIG_AGC_MEDIUM; break;
+            case D_AGC_FAST: val->i = RIG_AGC_FAST; break;
+            case D_AGC_SUPERFAST: val->i = RIG_AGC_SUPERFAST; break;
+            default:
+                rig_debug(RIG_DEBUG_ERR,"Unexpected AGC 0x%02x", icom_val);
+                return -RIG_EPROTO;
+        }
+		break;
+	case RIG_LEVEL_ALC:
+        /* 120 max on IC-7600 */
+		val->f = (float)icom_val/120;
+		break;
+	case RIG_LEVEL_SWR:
+        /* {0->1, 48->1.5, 80->2} on IC-7600 */
+		val->f = 1. + (float)icom_val/80;
 		break;
 	case RIG_LEVEL_PREAMP:
 		if (icom_val == 0) {
@@ -1746,7 +1781,8 @@ int icom_mem_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo)
 	/* this hacks works only when in memory mode
 	 * I have no clue how to detect split in regular VFO mode
 	 */
-	if (rig->state.current_vfo != RIG_VFO_MEM)
+	if (rig->state.current_vfo != RIG_VFO_MEM ||
+            !rig_has_vfo_op(rig, RIG_OP_XCHG))
 		return -RIG_ENAVAIL;
 
 	retval = icom_vfo_op(rig, vfo, RIG_OP_XCHG);
@@ -1856,9 +1892,6 @@ int icom_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	fctbuf[0] = status? 0x01:0x00;
 	fct_len = rig->caps->rig_model == RIG_MODEL_ICR8500 ? 0 : 1;
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
 	switch (func) {
 	case RIG_FUNC_FAGC:
 		fct_cn = C_CTL_FUNC;
@@ -1984,9 +2017,6 @@ int icom_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	int ack_len=sizeof(ackbuf), retval;
 	int fct_cn, fct_sc;		/* Command Number, Subcommand */
 
-	/* Optimize:
-	 *   sort the switch cases with the most frequent first
-	 */
 	switch (func) {
 	case RIG_FUNC_FAGC:
 		fct_cn = C_CTL_FUNC;

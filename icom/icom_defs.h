@@ -196,6 +196,14 @@
 #define D_PAMP2		0x02
 
 /*
+ * Set AGC (S_FUNC_AGC) data
+ */
+#define D_AGC_FAST	0x00
+#define D_AGC_MID	0x01
+#define D_AGC_SLOW	0x02
+#define D_AGC_SUPERFAST	0x03 /* IC746 pro */
+
+/*
  * Set antenna (C_SET_ANT) subcommands
  */
 #define S_ANT_RD	-1		/* Without subcommand, reads out setting */
@@ -225,14 +233,17 @@
 #define S_LVL_MICGAIN		0x0b		/* MIC gain setting */
 #define S_LVL_KEYSPD		0x0c		/* Key Speed setting */
 #define S_LVL_NOTCHF		0x0d		/* Notch freq. setting */
-#define S_LVL_COMP		0x0e		/* Compressor level setting */
+#define S_LVL_COMP			0x0e		/* Compressor level setting */
 #define S_LVL_BKINDL		0x0f		/* BKin delay setting */
 #define S_LVL_BALANCE		0x10		/* Balance setting (Dual watch) */
+#define S_LVL_AGC			0x11		/* AGC (7800) */
 #define S_LVL_NB			0x12		/* NB setting */
+#define S_LVL_DIGI			0x13		/* DIGI-SEL (7800) */
 #define S_LVL_DRIVE			0x14		/* DRIVE gain setting */
 #define S_LVL_MON			0x15		/* Monitor gain setting */
 #define S_LVL_VOXGAIN		0x16		/* VOX gain setting */
 #define S_LVL_ANTIVOX		0x17		/* Anti VOX gain setting */
+#define S_LVL_CONTRAST		0x18		/* CONTRAST level setting */
 #define S_LVL_BRIGHT		0x19		/* BRIGHT level setting */
 
 /*
@@ -244,6 +255,8 @@
 #define S_SWR	0x12		/* Read SWR-meter level */
 #define S_ALC	0x13		/* Read ALC-meter level */
 #define S_CMP	0x14		/* Read COMP-meter level */
+#define S_VD	0x15		/* Read Vd-meter level */
+#define S_ID	0x16		/* Read Id-meter level */
 
 /*
  * Function settings (C_CTL_FUNC) subcommands  Set and Read
@@ -271,6 +284,8 @@
 #define S_FUNC_AFC  	0x4A        /* Auto Frequency Control (AFC) setting */
 #define S_FUNC_DTCS	0x4B		/*DTCS tone code squelch setting*/
 #define S_FUNC_VSC	0x4C		/* voice squelch control useful for scanning*/
+#define S_FUNC_MANAGC	0x4D		/* manual AGC */
+#define S_FUNC_DIGISEL	0x4E		/* DIGI-SEL */
 #define S_FUNC_TW_PK	0x4F		/* RTTY Twin Peak filter 0= off 1 = on */
 #define S_FUNC_DIAL_LK	0x50		/* Dial lock */
 
@@ -352,7 +367,7 @@
 #define C_OMNI6_XMT      0x16
 
 /*
- * C_CTL_MODE	Misc CI-V Mode settings
+ * S_MEM_MODE_SLCT	Misc CI-V Mode settings
  */
 #define S_PRM_BEEP		0x02
 #define S_PRM_CWPITCH	0x10
