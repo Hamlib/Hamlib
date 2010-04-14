@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "February 17, 2010" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "April 14, 2010" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -291,8 +291,9 @@ Returns Func as a string from \fIset_func\fP above and Func status as a non null
 Set 'Level' and 'Level Value'.
 .sp
 Level is one of: PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH,
-RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC, BKINDL, BAL, METER, VOXGAIN, ANTIVOX.
-SLOPE_LOW, SLOPE_HIGH, RAWSTR, SQLSTAT, SWR, ALC, STRENGTH.
+RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC (0:OFF, 1:SUPERFAST, 2:FAST, 3:SLOW, 4:USER,
+5:MEDIUM, 6:AUTO), BKINDL, BAL, METER, VOXGAIN, ANTIVOX.
+SLOPE_LOW, SLOPE_HIGH, RAWSTR, SWR, ALC, STRENGTH.
 .sp
 The Level Value can be a float or an integer.
 .TP
