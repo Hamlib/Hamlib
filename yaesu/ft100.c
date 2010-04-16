@@ -1,14 +1,12 @@
 /*
  * hamlib - (C) Frank Singleton 2000-2003
- *          (C) Stephane Fillod 2000-2009
+ *          (C) Stephane Fillod 2000-2010
  *
  * ft100.c - (C) Chris Karpinsky 2001 (aa1vl@arrl.net)
  * This shared library provides an API for communicating
  * via serial interface to an FT-100 using the "CAT" interface.
  * The starting point for this code was Frank's ft847 implementation.
  *
- *
- *    $Id: ft100.c,v 1.26 2009-02-20 12:28:26 fillods Exp $  
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -496,7 +494,7 @@ int ft100_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
    
    rig_debug(RIG_DEBUG_VERBOSE,"ft100: d1=%"PRIfreq" d2=%"PRIfreq"\n",d1,d2);
    
-   rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq= %8"PRIll" \n",(long long)d2);
+   rig_debug(RIG_DEBUG_VERBOSE,"ft100: get_freq= %8"PRIll" \n",(int64_t)d2);
    
    *freq = d2;
    

@@ -1,8 +1,7 @@
 /*
  *  Hamlib Alinco backend - main file
- *  Copyright (c) 2001-2005 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *
- *	$Id: alinco.c,v 1.28 2006-10-07 16:55:04 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -219,7 +218,7 @@ int alinco_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 				return -RIG_EINVAL;
 
 		/* at least 6 digits */
-		freq_len = sprintf(freqbuf, AL CMD_RXFREQ "%06"PRIll EOM, (long long)freq);
+		freq_len = sprintf(freqbuf, AL CMD_RXFREQ "%06"PRIll EOM, (int64_t)freq);
 
 		return alinco_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }
@@ -414,7 +413,7 @@ int alinco_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq)
 				return -RIG_EINVAL;
 
 		/* at least 6 digits */
-		freq_len = sprintf(freqbuf, AL CMD_TXFREQ "%06"PRIll EOM, (long long)tx_freq);
+		freq_len = sprintf(freqbuf, AL CMD_TXFREQ "%06"PRIll EOM, (int64_t)tx_freq);
 
 		retval = alinco_transaction (rig, freqbuf, freq_len, NULL, NULL);
 

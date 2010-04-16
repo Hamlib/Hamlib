@@ -2,9 +2,8 @@
  *  Hamlib Kenwood backend - IC-10 interface for:
  *  			TS-940, TS-811, TS-711, TS-440, and R-5000
  *
- *  Copyright (c) 2000-2008 by Stephane Fillod and others
+ *  Copyright (c) 2000-2010 by Stephane Fillod and others
  *
- *	$Id: ic10.c,v 1.9 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -313,7 +312,7 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		return -RIG_EINVAL;
 	}
 	
-	freq_len = sprintf(freqbuf,"F%c%011"PRIll";", vfo_letter, (long long)freq);
+	freq_len = sprintf(freqbuf,"F%c%011"PRIll";", vfo_letter, (int64_t)freq);
 	retval = ic10_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
 
 	return retval;
@@ -520,9 +519,9 @@ int ic10_set_channel(RIG *rig, const channel_t *chan)
 {
 	char membuf[32],ackbuf[32];
 	int retval,ack_len,len,md;
-	long long freq;
+	int64_t freq;
 
-	freq = chan->freq;
+	freq = (int64_t) chan->freq;
 	switch (chan->mode) {
 	case RIG_MODE_CW  :	md = MD_CW; break;
 	case RIG_MODE_USB :	md = MD_USB; break;

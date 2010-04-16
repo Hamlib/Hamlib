@@ -1,9 +1,9 @@
 /*
  *  Hamlib PCR backend - main file
- *  Copyright (c) 2001-2005 by Stephane Fillod and Darren Hatcher
+ *  Copyright (c) 2001-2005 by Darren Hatcher
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *  Copyright (C) 2007-09 by Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: pcr.c,v 1.26 2009-02-06 17:31:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -560,7 +560,7 @@ pcr_set_freq(RIG * rig, vfo_t vfo, freq_t freq)
 	priv = (struct pcr_priv_data *) rig->state.priv;
 
 	freq_len = sprintf((char *) buf, "K0%010" PRIll "0%c0%c00",
-			   (long long) freq,
+			   (int64_t) freq,
 			   priv->last_mode, priv->last_filter);
 
 	buf[freq_len] = '\0';
@@ -674,7 +674,7 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 		  __func__, width, pcrfilter);
 
 	buf_len = sprintf((char *) buf, "K0%010" PRIll "0%c0%c00",
-			(long long) priv->last_freq, pcrmode, pcrfilter);
+			(int64_t) priv->last_freq, pcrmode, pcrfilter);
 
 	err = pcr_transaction(rig, (char *) buf);
 	if (err != RIG_OK)

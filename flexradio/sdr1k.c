@@ -1,8 +1,7 @@
 /*
  *  Hamlib backend - SDR-1000
- *  Copyright (c) 2003-2007 by Stephane Fillod
+ *  Copyright (c) 2003-2010 by Stephane Fillod
  *
- *	$Id: sdr1k.c,v 1.11 2008-10-26 13:35:41 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -264,7 +263,7 @@ static int set_band(RIG *rig, freq_t freq)
 
 	ret = write_latch (rig, L_BAND, 1 << band, 0x3f);
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s %"PRIll" band %d\n", __FUNCTION__, (long long)freq, band);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s %"PRIll" band %d\n", __FUNCTION__, (int64_t)freq, band);
 
 	return ret;
 }
@@ -298,7 +297,7 @@ int sdr1k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	else
 		frqval = freq;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s curr %"PRIll" frqval %"PRIll"\n", __FUNCTION__, (long long)freq, (long long)frqval);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s curr %"PRIll" frqval %"PRIll"\n", __FUNCTION__, (int64_t)freq, (int64_t)frqval);
 
 	if (priv->dds_freq == frqval) {
 		return RIG_OK;
@@ -335,7 +334,7 @@ int sdr1k_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	struct sdr1k_priv_data *priv = (struct sdr1k_priv_data *)rig->state.priv;
 
 	*freq = priv->dds_freq;
-	rig_debug(RIG_DEBUG_TRACE,"%s: %"PRIll"\n", __FUNCTION__, (long long)priv->dds_freq);
+	rig_debug(RIG_DEBUG_TRACE,"%s: %"PRIll"\n", __FUNCTION__, (int64_t)priv->dds_freq);
 
 	return RIG_OK;
 }

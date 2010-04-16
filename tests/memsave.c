@@ -1,6 +1,6 @@
 /*
  * memsave.c - Copyright (C) 2003-2005 Thierry Leconte
- *             Copyright (C) 2008 Stephane Fillod
+ *             Copyright (C) 2008-2010 Stephane Fillod
  *
  *
  *	$Id: memsave.c,v 1.11 2008-04-27 09:56:06 fillods Exp $  
@@ -138,7 +138,7 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 		xmlNewProp(node, (unsigned char *) "ant", (unsigned char *) attrbuf);
 	}
 	if (mem_caps->freq && chan.freq != RIG_FREQ_NONE) {
-		sprintf(attrbuf,"%"PRIll,(long long)chan.freq);
+		sprintf(attrbuf,"%"PRIll,(int64_t)chan.freq);
 		xmlNewProp(node, (unsigned char *) "freq", (unsigned char *) attrbuf);
 	}
 	if (mem_caps->mode && chan.mode != RIG_MODE_NONE) {
@@ -149,7 +149,7 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 		xmlNewProp(node, (unsigned char *) "width", (unsigned char *) attrbuf);
 	}
 	if (mem_caps->tx_freq && chan.tx_freq != RIG_FREQ_NONE) {
-		sprintf(attrbuf,"%"PRIll,(long long)chan.tx_freq);
+		sprintf(attrbuf,"%"PRIll,(int64_t)chan.tx_freq);
 		xmlNewProp(node, (unsigned char *) "tx_freq", (unsigned char *) attrbuf);
 	}
 	if (mem_caps->tx_mode && chan.tx_mode != RIG_MODE_NONE) {
@@ -194,7 +194,7 @@ int dump_xml_chan(RIG *rig, channel_t **chan_pp, int chan_num, const chan_t *cha
 		xmlNewProp(node, (unsigned char *) "xit", (unsigned char *) attrbuf);
 	}
 	if (mem_caps->funcs) {
-		sprintf(attrbuf,"%llx",(long long)chan.funcs);
+		sprintf(attrbuf,"%lx",chan.funcs);
 		xmlNewProp(node, (unsigned char *) "funcs", (unsigned char *) attrbuf);
 	}
 	if (mem_caps->ctcss_tone && chan.ctcss_tone !=0) {

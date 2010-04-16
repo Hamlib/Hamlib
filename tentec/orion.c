@@ -1,8 +1,8 @@
 /*
  *  Hamlib TenTenc backend - TT-565 description
- *  Copyright (c) 2004-2008 by Stephane Fillod & Martin Ewing
+ *  Copyright (c) 2004-2008 by Martin Ewing
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
- *	$Id: orion.c,v 1.31 2009-02-14 21:33:22 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -321,7 +321,7 @@ int tt565_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 /*  Use ASCII mode to set frequencies */
 	cmd_len = sprintf (cmdbuf, "*%cF%"PRIll EOM, 
 			which_vfo(rig, vfo),
-			(long long)freq);
+			(int64_t)freq);
 #else
     /* Use binary mode */
     /* Set frequency using Orion's binary mode (short) sequence. 

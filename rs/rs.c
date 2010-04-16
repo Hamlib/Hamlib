@@ -1,8 +1,7 @@
 /*
  *  Hamlib R&S backend - main file
- *  Copyright (c) 2009 by Stéphane Fillod
+ *  Copyright (c) 2009-2010 by Stéphane Fillod
  *
- *	$Id: rs.c,v 1.2 2009/08/07 18:48:34 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -90,7 +89,7 @@ int rs_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	char freqbuf[32];
 	int freq_len, retval;
 
-	freq_len = sprintf(freqbuf, BOM "FREQ %"PRIll EOM, (long long)freq);
+	freq_len = sprintf(freqbuf, BOM "FREQ %"PRIll EOM, (int64_t)freq);
 	retval = rs_transaction(rig, freqbuf, freq_len, NULL, NULL);
 
 	return retval;

@@ -7,8 +7,6 @@
  * It takes commands in interactive mode as well as
  * from command line options.
  *
- * $Id: rigctl_parse.c,v 1.16 2009-02-06 17:28:38 fillods Exp $
- *
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -489,7 +487,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 
 	if (!prompt)
 		rig_debug(RIG_DEBUG_TRACE, "rigctl(d): %c '0x%02x' '%s' '%s' '%s'\n",
-				cmd, vfo, p1, p2, p3);
+				cmd, rig_strvfo(vfo), p1?p1:"", p2?p2:"", p3?p3:"");
 
 	/*
 	 * Extended Response protocol: output received command name and arguments
@@ -695,7 +693,7 @@ declare_proto_rig(get_freq)
 
 	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1); /* i.e. "Frequency" */
-	fprintf(fout, "%"PRIll"%c", (long long)freq, resp_sep);
+	fprintf(fout, "%"PRIll"%c", (int64_t)freq, resp_sep);
 
 	return status;
 }
@@ -1022,7 +1020,7 @@ declare_proto_rig(get_split_freq)
 		return status;
 	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
-	fprintf(fout, "%"PRIll"%c", (long long)txfreq, resp_sep);
+	fprintf(fout, "%"PRIll"%c", (int64_t)txfreq, resp_sep);
 
 	return status;
 }
@@ -1714,7 +1712,7 @@ declare_proto_rig(get_channel)
 
 static int myfreq_event(RIG *rig, vfo_t vfo, freq_t freq, rig_ptr_t arg)
 {
-	printf("Event: freq changed to %"PRIll"Hz on %s\n", (long long)freq, rig_strvfo(vfo));
+	printf("Event: freq changed to %"PRIll"Hz on %s\n", (int64_t)freq, rig_strvfo(vfo));
 	return 0;
 }
 

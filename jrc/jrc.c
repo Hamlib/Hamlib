@@ -1,8 +1,7 @@
 /*
  *  Hamlib JRC backend - main file
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *
- *	$Id: jrc.c,v 1.30 2009-02-18 22:51:47 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -235,7 +234,7 @@ int jrc_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	if (freq >= (freq_t)pow(10, priv->max_freq_len))
 	  return -RIG_EINVAL;
 
-	freq_len = sprintf(freqbuf, "F%0*"PRIll EOM, priv->max_freq_len, (long long)freq);
+	freq_len = sprintf(freqbuf, "F%0*"PRIll EOM, priv->max_freq_len, (int64_t)freq);
 
 	return jrc_transaction (rig, freqbuf, freq_len, NULL, NULL);
 }
@@ -1169,7 +1168,7 @@ int jrc_set_chan(RIG *rig, const channel_t *chan)
 	if (retval != RIG_OK)
 	  return retval;
 	
-	sprintf(cmdbuf+7,"%0*"PRIll, priv->max_freq_len, (long long)chan->freq);
+	sprintf(cmdbuf+7,"%0*"PRIll, priv->max_freq_len, (int64_t)chan->freq);
 	
 	if (priv->mem_len==17) {
 		switch (chan->levels[rig_setting2idx(RIG_LEVEL_AGC)].i) {

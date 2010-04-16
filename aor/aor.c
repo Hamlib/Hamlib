@@ -1,8 +1,7 @@
 /*
  *  Hamlib AOR backend - main file
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: aor.c,v 1.43 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -133,7 +132,7 @@ int aor_close(RIG *rig)
 static int format_freq(char *buf, freq_t freq)
 {
 	int lowhz;
-	long long f = (long long)freq;
+	int64_t f = (int64_t)freq;
 
 	/*
 	 * actually, frequency must be like nnnnnnnnm0, 
