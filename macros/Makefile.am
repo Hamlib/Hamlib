@@ -10,7 +10,7 @@ MACROS = \
 	libtool.m4 \
 	ltdl.m4 \
 	perl.m4 \
-	python.m4 \
+	ac_python_devel.m4 \
 	tcl.m4
 
 

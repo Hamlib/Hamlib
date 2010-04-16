@@ -271,21 +271,15 @@ fi
 
 dnl Check if perl-binding not wanted, default is to not build it
 
-SC_PATH_PERLINC
-if test x"${no_perl}" = x; then
-	cf_with_perl=yes
-else
-	cf_with_perl=no
-fi
-
 AC_MSG_CHECKING(whether to build perl binding and demo)
 AC_ARG_WITH(perl-binding,
         [  --with-perl-binding   build perl binding and demo],
         [cf_with_perl_binding=$withval],
-        [cf_with_perl_binding=$cf_with_perl])
+        [cf_with_perl_binding=no])
 AC_MSG_RESULT($cf_with_perl_binding)
 
 if test "${cf_with_perl_binding}" = "yes" ; then
+  SC_PATH_PERLINC
   BINDING_LIST="${BINDING_LIST} perl"
   BINDING_ALL="${BINDING_ALL} all-perl"
   BINDING_CHECK="${BINDING_CHECK} check-perl"
@@ -335,15 +329,16 @@ AC_SUBST(TCL_SHLIB_SUFFIX)
 
 dnl Check for python availability, so we can enable HamlibPy
 
-PYTHON_DEVEL
 AC_MSG_CHECKING(whether to build python binding and demo)
 AC_ARG_WITH(python-binding,
         [  --with-python-binding	build python binding and demo],
         [cf_with_python_binding=$withval],
-        [cf_with_python_binding=$cf_with_python_devel])
+        [cf_with_python_binding=no])
 AC_MSG_RESULT($cf_with_python_binding)
 
 if test "${cf_with_python_binding}" = "yes" ; then
+  AM_PATH_PYTHON([2.1],, [:])
+  AC_PYTHON_DEVEL
   BINDING_LIST="${BINDING_LIST} python"
   BINDING_ALL="${BINDING_ALL} all-py"
   BINDING_CHECK="${BINDING_CHECK} check-py"
