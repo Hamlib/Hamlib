@@ -2,7 +2,6 @@
  * Hamlib Rotator backend - SPID Rot2Prog
  * Copyright (c) 2009 by Norvald H. Ryeng, LA6YKA
  *
- * $Id$
  *
  * This library is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Library General Public License as
@@ -121,8 +120,7 @@ static int spid_set_conf(ROT *rot, token_t token, const char *val)
 
 static int spid_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    struct rot_state *rs;
-    rs = &rot->state;
+    struct rot_state *rs = &rot->state;
     struct spid_priv_data *priv = (struct spid_priv_data*)rs->priv;
     int retval;
     int retry_read = 0;
@@ -175,8 +173,7 @@ static int spid_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 
 static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 {
-    struct rot_state *rs;
-    rs = &rot->state;
+    struct rot_state *rs = &rot->state;
     int retval;
     int retry_read = 0;
     char posbuf[12];
@@ -215,9 +212,8 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
 static int spid_rot_stop(ROT *rot)
 {
-    struct rot_state *rs;
+    struct rot_state *rs = &rot->state;
     int retval;
-    rs = &rot->state;
     int retry_read = 0;
     char posbuf[12];
 

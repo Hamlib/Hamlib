@@ -1,11 +1,10 @@
 /*
  *  Hamlib KIT backend - SoftRock / Si570 AVR USB tuner description
- *  Copyright (c) 2009 by Stephane Fillod
+ *  Copyright (c) 2009-2010 by Stephane Fillod
  *
  *  Derived from usbsoftrock-0.5:
  *  Copyright (C) 2009 Andrew Nilsson (andrew.nilsson@gmail.com)
  *
- *	$Id: si570avrusb.c fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -26,7 +25,10 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

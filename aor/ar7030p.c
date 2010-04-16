@@ -1,9 +1,8 @@
 
 /*
  *  Hamlib AOR backend - AR7030 Plus description
- *  Copyright (c) 2000-2006 by Stephane Fillod & Fritz Melchert
+ *  Copyright (c) 2000-2010 by Stephane Fillod & Fritz Melchert
  *
- *	$Id: $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -78,8 +77,7 @@
                           RIG_OP_TOGGLE )
 
 #define AR7030P_VFO ( RIG_VFO_A | \
-                      RIG_VFO_B | \
-                      RIG_VFO_CURR )
+                      RIG_VFO_B)
 
 #define AR7030P_STR_CAL { 8, { \
                                { 10, -113 }, \
@@ -359,7 +357,7 @@ static int ar7030p_cleanup( RIG *rig )
  */
 static int ar7030p_open( RIG * rig )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   int i;
   unsigned char v;
 
@@ -1126,7 +1124,7 @@ static int ar7030p_get_level( RIG * rig, vfo_t vfo, setting_t level,
 
 static int ar7030p_set_vfo( RIG * rig, vfo_t vfo )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
 
   assert( NULL != rig );
@@ -1168,7 +1166,7 @@ static int ar7030p_set_vfo( RIG * rig, vfo_t vfo )
 
 static int ar7030p_get_vfo( RIG * rig, vfo_t * vfo )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
 
   assert( NULL != rig );
@@ -1230,9 +1228,7 @@ static int ar7030p_get_parm( RIG * rig, setting_t parm, value_t * val )
 
 static int ar7030p_set_mem( RIG * rig, vfo_t vfo, int ch )
 {
-  int rc = -RIG_OK;
-
-  assert( NULL != rig );
+  int rc = RIG_OK;
 
   struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
 
@@ -1252,13 +1248,12 @@ static int ar7030p_set_mem( RIG * rig, vfo_t vfo, int ch )
 
 static int ar7030p_get_mem( RIG * rig, vfo_t vfo, int *ch )
 {
-  int rc = -RIG_OK;
-
-  assert( NULL != rig );
-  assert( NULL != ch );
+  int rc = RIG_OK;
 
   struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *) rig->state.priv;
   channel_t *curr = priv->curr;
+
+  assert( NULL != ch );
 
   *ch = curr->channel_num;
 
@@ -1305,7 +1300,7 @@ static int ar7030p_scan( RIG * rig, vfo_t vfo, scan_t scan, int ch )
 
 static int ar7030p_get_dcd( RIG * rig, vfo_t vfo, dcd_t * dcd )
 {
-  int rc = -RIG_OK;
+  int rc = RIG_OK;
   unsigned char v;
 
   assert( NULL != rig );
@@ -1542,12 +1537,11 @@ static int ar7030p_get_channel( RIG * rig, channel_t * chan )
   unsigned char *p = NULL;
   int ch;
   int i;
-
-  assert( NULL != rig );
-  assert( NULL != chan );
-
   struct ar7030p_priv_data *priv = (struct ar7030p_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
+
+  assert( NULL != chan );
+
   ch = curr->channel_num;
 
   rc = lockRx( rig, LOCK_1 );
@@ -1652,7 +1646,7 @@ const struct rig_caps ar7030p_caps = {
   .mfg_name = "AOR",
   .version = "0.1",
   .copyright = "LGPL",
-  .status = RIG_STATUS_NEW,
+  .status = RIG_STATUS_BETA,
   .rig_type = RIG_TYPE_RECEIVER,
 
   .dcd_type = RIG_DCD_RIG,
@@ -1713,7 +1707,6 @@ const struct rig_caps ar7030p_caps = {
   .transceive = RIG_TRN_OFF,
   .bank_qty = 0,
   .chan_desc_sz = 14,
-  .priv = (void *)NULL,
 
   .chan_list = {{0, 399, RIG_MTYPE_MEM, AR7030P_MEM_CAP}, RIG_CHAN_END,},
 
