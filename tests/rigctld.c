@@ -1,10 +1,8 @@
 /*
- * rigctld.c - (C) Stephane Fillod 2000-2009
+ * rigctld.c - (C) Stephane Fillod 2000-2010
  *
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
- *
- * $Id: rigctld.c,v 1.11 2009-01-04 14:49:17 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -48,6 +46,9 @@
 #include <sys/socket.h>
 #elif HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
 #endif
 
 #ifdef HAVE_PTHREAD
@@ -110,8 +111,8 @@ int vfo_mode = 0;       /* vfo_mode=0 means target VFO is current VFO */
 
 char send_cmd_term = '\r';  /* send_cmd termination char */
 
-int portno = 4532;
-uint32_t src_addr = INADDR_ANY;
+const char *portno = "4532";
+const char *src_addr = NULL; /* INADDR_ANY */
 
 #define MAXCONFLEN 128
 
@@ -132,10 +133,9 @@ int main (int argc, char *argv[])
 	char *civaddr = NULL;	/* NULL means no need to set conf */
 	char conf_parms[MAXCONFLEN] = "";
 
+	struct addrinfo hints, *result;
 	int sock_listen;
-	struct sockaddr_in serv_addr;
 	int reuseaddr = 1;
-	int a0,a1,a2,a3;
 
 	while(1) {
 		int c;
@@ -247,18 +247,14 @@ int main (int argc, char *argv[])
 					usage();	/* wrong arg count */
 					exit(1);
 				}
-				portno = atoi(optarg);
+				portno = optarg;
 				break;
 			case 'T':
 				if (!optarg) {
 					usage();	/* wrong arg count */
 					exit(1);
 				}
-				if (4 != sscanf(optarg, "%d.%d.%d.%d", &a0,&a1,&a2,&a3)) {
-					usage();	/* wrong arg count */
-					exit(1);
-				}
-				src_addr = (a0<<24)|(a1<<16)|(a2<<8)|a3;
+				src_addr = optarg;
 				break;
 			case 'o':
 				vfo_mode++;
@@ -358,27 +354,37 @@ int main (int argc, char *argv[])
 	/*
 	 * Prepare listening socket
 	 */
-	sock_listen = socket(AF_INET, SOCK_STREAM, 0);
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+	hints.ai_socktype = SOCK_STREAM;/* TCP socket */
+	hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+	hints.ai_protocol = 0;          /* Any protocol */
+
+	retcode = getaddrinfo(src_addr, portno, &hints, &result);
+	if (retcode != 0) {
+	    fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(retcode));
+	    exit(2);
+	}
+
+	sock_listen = socket(result->ai_family, result->ai_socktype,
+			result->ai_protocol);
 	if (sock_listen < 0) {
 		perror("ERROR opening socket");
 		exit(2);
 	}
-	memset((char *)&serv_addr, 0, sizeof(serv_addr));
-
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(portno);
-	serv_addr.sin_addr.s_addr = htonl(src_addr);
-
 
 	if (setsockopt(sock_listen, SOL_SOCKET, SO_REUSEADDR,
 				(char *)&reuseaddr, sizeof(reuseaddr)) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "setsockopt: %s\n", strerror(errno));
 		exit (1);
 	}
-	if (bind(sock_listen, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+	if (bind(sock_listen, result->ai_addr, result->ai_addrlen) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "binding: %s\n", strerror(errno));
 		exit (1);
 	}
+
+	freeaddrinfo(result);           /* No longer needed */
+
 	if (listen(sock_listen, 4) < 0) {
 		rig_debug(RIG_DEBUG_ERR, "listening: %s\n", strerror(errno));
 		exit (1);
@@ -505,7 +511,7 @@ void usage(void)
 	"  -D, --dcd-type=TYPE        set type of the DCD device to operate on\n"
 	"  -s, --serial-speed=BAUD    set serial speed of the serial port\n"
 	"  -c, --civaddr=ID           set CI-V address, decimal (for Icom rigs only)\n"
-	"  -t, --port=NUM             set TCP listening port, default %d\n"
+	"  -t, --port=NUM             set TCP listening port, default %s\n"
 	"  -T, --listen-addr=IPADDR   set listening IP address, default ANY\n"
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"

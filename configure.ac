@@ -146,15 +146,7 @@ AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main,
 AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(ws2_32, main, 
 				[NET_LIBS="$NET_LIBS -lws2_32"], [], []))
 LIBS="$LIBS $NET_LIBS"
-AC_CHECK_FUNCS(getaddrinfo gai_strerror)
-AC_CHECK_TYPES([struct addrinfo],[],[],[
-		#ifdef HAVE_NETDB_H
-		#include <netdb.h>
-		#endif
-		#ifdef HAVE_WS2TCPIP_H
-		#include <ws2tcpip.h>
-		#endif
-		])
+HL_GETADDRINFO
 
 LIBS=$hl_oldLibs
 AC_SUBST(NET_LIBS)
