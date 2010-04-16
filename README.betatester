@@ -8,9 +8,9 @@ Hamlib is developed by a team of radio enthusiasts around the world, for fun,
 much in the spirit of ham radio. (Note that it is not restricted for ham
 usage only). There are a great deal of protocols and rigs around the world
 developers may not own. However, protocols may be available, so backends
-can be implemented, but cannot always be tested by developers. That's where 
-beta-testers are so precious. On top of that, I've been told that there's 
-no such sure thing like bug free code. 
+can be implemented, but cannot always be tested by developers. That's where
+beta-testers are so precious. On top of that, I've been told that there's
+no such sure thing like bug free code.
 
 Feedback and improvement requests are also valuable.
 
@@ -20,7 +20,7 @@ Feedback and improvement requests are also valuable.
 First of all, you can start testing official releases. They are easier to
 test because they come in precompiled and packaged (.rpm, .deb, etc.) but they
 have the drawback of being older than the SVN repository. Reports from these
-versions are still very appreciated.  Please send them to the 
+versions are still very appreciated.  Please send them to the
 hamlib-developer@lists.sourceforge.net mailing list.
 
 However, the development of Hamlib is still very active, so it's better to
@@ -29,16 +29,16 @@ make, developers can commit a fix, so you can try out the change soon after,
 without waiting for the next official version.
 
 To proceed, you will have first to obtain either a daily snapshot or a check out
-of the latest sources from the SVN repository, then rebuild the Hamlib package 
+of the latest sources from the SVN repository, then rebuild the Hamlib package
 and finally test it with your rig. Don't worry, it's much simpler than it looks,
 despite the size of the package.
 
 Pre-requisite:
  - some kind of internet access
- - POSIXish compiler toolchain (gcc, GNU Autotools, Perl, etc., 
+ - POSIXish compiler toolchain (gcc, GNU Autotools, Perl, etc.,
    see README.developer)
 
- 
+
 So here we go:
 
 * Daily SVN trunk snapshots:
@@ -49,11 +49,11 @@ i.e. a check out made 06 Mar 2009, ready for building using the familiar
 "three step" (see below).  Each morning by about 1130z a new snapshot is
 generated and uploaded and the prior day's version is removed.
 
-The advantage of the SVN snapshot is that you won't need as many tools 
-installed to build Hamlib as the work of Autoconf, Automake, and Libtool 
-have already been done.  Most of the other packages listed in README.developer 
-will be needed unless you tell the `configure' script to not build certain 
-parts of Hamlib like documentation or scripting language bindings.  
+The advantage of the SVN snapshot is that you won't need as many tools
+installed to build Hamlib as the work of Autoconf, Automake, and Libtool
+have already been done.  Most of the other packages listed in README.developer
+will be needed unless you tell the `configure' script to not build certain
+parts of Hamlib like documentation or scripting language bindings.
 See `configure --help' for more information.
 
 
@@ -67,7 +67,7 @@ make won't even work!), and how to use the autogen.sh script.
 * SVN Daily Snapshot Build:
 
 Reading the INSTALL file in top directory will explain in more detail how
-to do the following commands. 
+to do the following commands.
 
     ./configure --disable-static --prefix=/usr/local
     make
@@ -76,11 +76,16 @@ to do the following commands.
 The prefix argument is optional.  Convention is that local packages be placed
 in /usr/local away from distribution installed packages and this is the default
 location for the snapshots.  The --disable-static option speeds up compilation
-if you don't plan to use static libraries.  Other useful options are
---without-perl-binding and --without-python-binding if scripting language
-support is not needed (has no effect on rigctld or rotctld).
+if you don't plan to use static libraries (static libraries are usually not
+needed).
 
-If you don't want the build files cluttering the source directories, do the 
+Other useful options are '--with-perl-binding' or '--with-python-binding' or
+'--enable-tcl-binding' if you are interested in Swig binding support for those
+scripting languages (This is a change as of 1.2.11svn revision 2882 where Swig
+generated bindings are no longer built by default).  If unsure it is safe to
+ignore these options.
+
+If you don't want the build files cluttering the source directories, do the
 following in the same parent directory of hamlib:
 
     mkdir build && cd build
@@ -119,12 +124,12 @@ tests:              rigctl/rotctl and various C programs for testing
 * testing Hamlib:
 
 Don't attempt to test Hamlib from the source directory unless you're a developer
-and you understand the side effects of *not* installing freshly generated 
+and you understand the side effects of *not* installing freshly generated
 objects (basically having to mess with LD_LIBRARY_PATH and .libs).
 
-So here we go. First of all, identify your rig model id.  Make sure 
+So here we go. First of all, identify your rig model id.  Make sure
 /usr/local/bin (or the path you set --prefix to above) is in your $PATH, as
-rigctl has to be reachable by your shell. 
+rigctl has to be reachable by your shell.
 
 Run `rigctl -l' to get a list of rigs supported by Hamlib.
 
@@ -145,11 +150,11 @@ Let's say you own an Icom IC-756:
     rigctl -vvvvv -r /dev/ttyS0 -m 326
 
 The -vvvvv is very important since this will increase verbosity, and give
-precious traces to developers if something goes wrong. At this level, 
+precious traces to developers if something goes wrong. At this level,
 the protocol data exchanged will also be dumped to the screen.
 
 Unless some problem shows up, you should be presented with a menu
-like "Rig command: ". Enter "?" followed by return to have the list 
+like "Rig command: ". Enter "?" followed by return to have the list
 of available commands. 'Q' or 'q' quits rigctl immediately.
 
 Most wanted functions to be tested are:
@@ -175,9 +180,9 @@ When reporting to the hamlib-developer mailing list, please include traces and
 also comments to tell developers if the action performed correctly on the rig.
 
 Tip: traces can be hard to cut and paste sometimes. In that case,
-    there's a handy tool for you:  script(1) (the (1) is not a part of the 
+    there's a handy tool for you:  script(1) (the (1) is not a part of the
     command, rather it is a Unix convention telling which section of the manual
-    it is found, in this case section 1, user commands.  e.g. `man 1 script'). 
+    it is found, in this case section 1, user commands.  e.g. `man 1 script').
     It will make a typescript of everything printed on your terminal and save it
     to the file you give it.
 
@@ -215,13 +220,13 @@ measurement.  It's easy, it takes only 10mn. Here's how to proceed:
  5. Repeat from step 2 with S9 and S9+60dB. Actually the more plots,
     the better, otherwise Hamlib does interpolation.
  6. Send the table to the hamlib-developer mailing list and it will be added
-    in the next release of Hamlib. 
+    in the next release of Hamlib.
 
 NB: It is well known the S-Meter of any given radio is far from being accurate.
 For owners with a fully equipped lab, you may want to make the above-mentioned
 measurements with a good signal generator and a set of calibrated attenuators.
 Greg W8WWV has an insightful page about S-Meter calibration:
-    
+
 http://www.seed-solutions.com/gregordy/Amateur%20Radio/Experimentation/SMeterBlues.htm
 
 

@@ -10,40 +10,40 @@ See README for frontend/backend outline.
 
 The shared libs provide functions for both radio control,
 and data retrieval from the radio.
- 
+
 The structure of the libraries is as follows.
 
 (1)	There is one frontend library "libhamlib" that
 	provides the generic API for user applications.
 
-(2)	There are "n" backend libraries that "wrap" 
+(2)	There are "n" backend libraries that "wrap"
 	rig specific communications inside frontend API.
 
 (3)	Frontend lib loads (on demand) the appropriate
-	backend lib as required. 
+	backend lib as required.
 
 Frontend Library
 ----------------
 
 libhamlib.so -  frontend lib that provides generic API
-		for all RIG types. This is what Application
-		programmers will "see".
+                for all RIG types. This is what Application
+                programmers will "see".
 
 Backend Examples are:
 ---------------------
- 
+
 1.hamlib-yaesu.so will provide connectivity to Yaesu
   FT 747GX Transceiver, FT 847 "Earth Station", etc. via a standard API.
 
 2. hamlib-xxxx.so will provide connectivity to the Wiz-bang
    moon-melter 101A (yikes..)
 
-Hamlib also enables developers to develop professional looking 
-GUI's towards a standard control library API, and they would not have 
+Hamlib also enables developers to develop professional looking
+GUI's towards a standard control library API, and they would not have
 to worry about the underlying connection towards physical hardware.
- 
+
 Initially serial (RS232) connectivity will be handled, but
-I expect that IP, USB, and other connectivity will follow afterwards. 
+I expect that IP, USB, and other connectivity will follow afterwards.
 
 
 General Guidelines.
@@ -184,7 +184,7 @@ In that case, autoconf may be called "autoconf2.50", autoheader
 "autoheader2.50", and automake "automake-1.7", aclocal "aclocal-1.7" or a
 newer version.
 
-IMPORTANT: If autoconf or automake are installed on your system, 
+IMPORTANT: If autoconf or automake are installed on your system,
 make sure they are matching *at least* the version shown above.
 Some people experience troubles with automake 1.5, if you're one of those,
 it's recommended to upgrade to automake 1.7, which is a lot more stable.
@@ -211,7 +211,7 @@ default names).
     make
     make install
 
-If you don't want the build files cluttering the source directories, do the 
+If you don't want the build files cluttering the source directories, do the
 following in the same parent directory of hamlib:
 
     mkdir build && cd build
@@ -234,15 +234,19 @@ built packages be installed in /usr/local away from distribution installed
 packages.  The '--disable-static' and 'CFLAGS="-g -O0"' speeds up compilation
 if you don't plan to use static libraries and can bear less optimized binaries
 while the '-g' option adds debugging info which can be changed to -ggdb to
-generate debugging info for gdb.  Additionally, you may want to add the
-'--without-perl-binding' and '--without-python-binding' if you are not
-interested in those scripting languages.
+generate debugging info for gdb.
+
+Additionally, you may want to add the '--with-perl-binding' or
+'--with-python-binding' or '--enable-tcl-binding' if you are interested in Swig
+binding support for those scripting languages (This is a change as of
+1.2.11svn revision 2882 where Swig generated bindings are no longer built by
+default).
 
 NOTE: The autogen.sh script has only to be run the first time after a fresh
 checkout or when a Makefile.am or other build file is modified or added.
 
-The difference between building as a beta tester and a developer is in the 
-'--enable-maintainer-mode' option passed to configure from .  This option will add 
+The difference between building as a beta tester and a developer is in the
+'--enable-maintainer-mode' option passed to configure from .  This option will add
 new Makefile targets and dependencies and not force a rebuild of the Makefiles
 when make is executed.  This is why we recommend that beta testers use the
 daily SVN snapshot from http://n0nb.users.sourceforge.net
@@ -284,16 +288,16 @@ So far, Hamlib has been tested successfully under the following systems:
     Try to share code between rigs of the same family, if applicable.
 
     2.1. mkdir mybackend
-         Create a new subdir, of the name of the protocol backend. 
+         Create a new subdir, of the name of the protocol backend.
          NB: the directory MUST be the same as the backend name.
 
     2.2. Add <mybackend> to the DIST_SUBDIRS variable in the topdir Makefile.am
 
-    2.3. Add the backend name to the BACKEND_LIST variable (add to 
+    2.3. Add the backend name to the BACKEND_LIST variable (add to
          ROT_BACKEND_LIST for a new rotor backend) in configure.ac.ltv1
          and configure.ac.ltv2 (configure.ac is deprecated at the moment).
 
-    2.4. Add "mybackend/Makefile" in the AC_CONFIG_FILES macro at the bottom 
+    2.4. Add "mybackend/Makefile" in the AC_CONFIG_FILES macro at the bottom
          of configure.ac.ltv1 and configure.ac.ltv2 (configure.ac is deprecated
          at the moment)
 
@@ -316,11 +320,11 @@ So far, Hamlib has been tested successfully under the following systems:
 
          Note: The `-m' switch passes a short message to the SVN repository
          upon a commit.  If a longer message is desired, do not use the
-         `-m' option.  The editor specified in the EDITOR or VISUAL 
+         `-m' option.  The editor specified in the EDITOR or VISUAL
          environment variables will be started where a more detailed message
          may be composed.
 
-         
+
 3. How to add a new model to an existing backend
 
     3.1. make sure there's already a (unique) ID for the model to be added
@@ -328,11 +332,11 @@ So far, Hamlib has been tested successfully under the following systems:
 
     3.2. locate the existing backend
     3.3. Clone the most similar model in the backend
-    3.4. Add the new C file to the _SOURCES variable 
+    3.4. Add the new C file to the _SOURCES variable
          of the backend's Makefile.am
 
     3.5. Add "extern const struct rig_caps <mymodel>_caps;" to mybackend.h
-    3.6. In initrigs_<mybackend> of mybackend.c, 
+    3.6. In initrigs_<mybackend> of mybackend.c,
          add "rig_register(&<mymodel>_caps);"
 
     3.7. Run `make' if you have dependencies, or the following to regenerate
@@ -347,7 +351,7 @@ So far, Hamlib has been tested successfully under the following systems:
          $ svn commit -m "added <mymodel> to <mybackend>" Makefile.am mybackend.c mybackend.h mymodel.c
 
          Note:  See Note in section 2.6 above.
-         
+
 
 4. Read README.betatester to test the new backend/model.
    Report to mailing list.
@@ -371,11 +375,11 @@ this. The error checking is removed for simplicity.
 "Build it and they will come ..."
 
 Seriously, I am hoping the API's will provide a solid framework for some
-cool GUI development. I would like to see some GTK or Qt apps that use the 
-hamlib API's so they can be used by end users as a nice part of the Ham 
+cool GUI development. I would like to see some GTK or Qt apps that use the
+hamlib API's so they can be used by end users as a nice part of the Ham
 shack.
 
-Starting points (not exhaustive): 
+Starting points (not exhaustive):
     gmfsk, gpredict, grig, klog, kontakt, ktrack, xlog, xtlf
 
 
@@ -425,13 +429,13 @@ Portability issues to watch:
 8.3 Submitting patches
 
 Patches should be in unified format (diff -u), against SVN head or
-latest release. This format makes it easily readable. 
+latest release. This format makes it easily readable.
 The patches are to be sent to the hamlib-developer
 mailing list. If the file is too big, you can send it as a compressed
 attachement.
-   
+
 8.3.1 Changelog
-   
+
 Caveat: The svn2cl program is used before each release to generate
 the Changelog file so any changes made directly to it WILL BE LOST!
 Simply summarize your changes when the files are committed to SVN or,
@@ -440,18 +444,18 @@ uploader can include it in the commit message.
 
 8.4 SVN commit access
 
-Generally, volunteers can get access to SourceForge Hamlib SVN upon 
+Generally, volunteers can get access to SourceForge Hamlib SVN upon
 asking one of the project administrators.  Sometimes we'll ask you!
-   
-However, before your start commiting, the project admins would like 
-first to have a look at your "style", just to make sure you have grok 
+
+However, before your start commiting, the project admins would like
+first to have a look at your "style", just to make sure you have grok
 the Hamlib approach (c.f. previous section on submitting a patch).
-Then you'll be able to commit by yourself to the backend you have 
+Then you'll be able to commit by yourself to the backend you have
 maintainance of. Please follow the rules hereunder:
 
     * Always keep the SVN trunk repository in a compilable state.
     * Follow the coding guidelines
-    * Touching the frontend (files in src/ and include/hamlib) always 
+    * Touching the frontend (files in src/ and include/hamlib) always
       requires discussion beforehand on the hamlib-developer list.
     * Announce on the hamlib-developer list if you're about to do serious
       maintainance work
