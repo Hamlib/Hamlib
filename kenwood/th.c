@@ -617,7 +617,7 @@ th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 		return th_tburst(rig, vfo, status);
 
 		default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x", __func__, func);
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x\n", __func__, func);
 		return -RIG_EINVAL;
 	}
 
