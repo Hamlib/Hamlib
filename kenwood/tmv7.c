@@ -72,7 +72,6 @@
 static struct kenwood_priv_caps  tmv7_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
-#define EOM "\r" /* XXX */
 
 
 /* tmv7 procs */
@@ -334,17 +333,17 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 	switch (vfo) {
         case RIG_VFO_A:
         case RIG_VFO_VFO:
-            sprintf(vfobuf, "VMC 0,0" EOM);
+            sprintf(vfobuf, "VMC 0,0");
             break;
         case RIG_VFO_B:
-            sprintf(vfobuf, "VMC 1,0" EOM);
+            sprintf(vfobuf, "VMC 1,0");
             break;
         case RIG_VFO_MEM:
-            sprintf(vfobuf, "BC" EOM);
+            sprintf(vfobuf, "BC");
     	    ack_len=ACKBUF_LEN;
 	    retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
 	    if (retval != RIG_OK) return retval;
-            sprintf(vfobuf, "VMC %c,2" EOM,ackbuf[3]);
+            sprintf(vfobuf, "VMC %c,2",ackbuf[3]);
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
@@ -362,10 +361,10 @@ int tmv7_set_vfo (RIG *rig, vfo_t vfo)
 	switch (vfo) {
         case RIG_VFO_A:
         case RIG_VFO_VFO:
-            sprintf(vfobuf, "BC 0,0" EOM);
+            sprintf(vfobuf, "BC 0,0");
             break;
         case RIG_VFO_B:
-            sprintf(vfobuf, "BC 1,1" EOM);
+            sprintf(vfobuf, "BC 1,1");
             break;
         case RIG_VFO_MEM:
             return RIG_OK;
@@ -402,7 +401,7 @@ int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	/* try to guess from frequency */
-    retval = kenwood_transaction(rig, "FQ"EOM, 3, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "FQ", 3, ackbuf, &ack_len);
         if (retval != RIG_OK)
         return retval;
 
@@ -472,7 +471,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
     } else
 	return -RIG_EINVAL;
 
-    sprintf(membuf,"%s"EOM,req);
+    sprintf(membuf,"%s",req);
     ack_len=ACKBUF_LEN;
     retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
@@ -516,7 +515,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
     chan->tx_freq=RIG_FREQ_NONE;
     if(chan->channel_num<223 && shift==0) {
 	req[5]='1';
-        sprintf(membuf,"%s"EOM,req);
+        sprintf(membuf,"%s",req);
         ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval == RIG_OK) {
@@ -529,9 +528,9 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
 
     if(chan->channel_num<200) {
 	    if(chan->channel_num<100)
-	    	sprintf(membuf,"MNA 0,%03d"EOM,chan->channel_num);
+	    	sprintf(membuf,"MNA 0,%03d",chan->channel_num);
 	    else
-	    	sprintf(membuf,"MNA 1,%03d"EOM,chan->channel_num-100);
+	    	sprintf(membuf,"MNA 1,%03d",chan->channel_num-100);
         ack_len=ACKBUF_LEN;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
@@ -622,11 +621,11 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 	return -RIG_EINVAL;
 
     if(chan->channel_num<221)
-    	sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,0,0"EOM,
+    	sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,0,0",
                     req,(long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq);
     else
-    	sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,"EOM,
+    	sprintf(membuf, "%s,%011ld,%01d,%01d,0,%01d,%01d,0,%02d,000,%02d,",
                     req, (long)freq, step, shift, tone,
                     ctcss, tonefq, ctcssfq);
 
@@ -637,7 +636,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 
     if(chan->tx_freq!=RIG_FREQ_NONE) {
 	req[5]='1';
-    	sprintf(membuf, "%s,%011"PRIll",%01d"EOM, req,(long long)chan->tx_freq, step);
+    	sprintf(membuf, "%s,%011"PRIll",%01d", req,(long long)chan->tx_freq, step);
         ack_len=0;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
@@ -646,9 +645,9 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
 
     if(chan->channel_num<200) {
 	    if(chan->channel_num<100)
-	    	sprintf(membuf,"MNA 0,%03d,%s"EOM,chan->channel_num,chan->channel_desc);
+	    	sprintf(membuf,"MNA 0,%03d,%s",chan->channel_num,chan->channel_desc);
 	    else
-	    	sprintf(membuf,"MNA 1,%03d,%s"EOM,chan->channel_num-100,chan->channel_desc);
+	    	sprintf(membuf,"MNA 1,%03d,%s",chan->channel_num-100,chan->channel_desc);
     	ack_len=0;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
