@@ -284,7 +284,7 @@ th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	vch = '0';
 
-	retval = kenwood_safe_transaction (rig, "MD", buf, sizeof(buf), 5);
+	retval = kenwood_safe_transaction(rig, "MD", buf, sizeof(buf), 5);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -711,7 +711,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 	case RIG_LEVEL_RAWSTR:
 		sprintf(buf, "SM %c", vch);
-		retval = kenwood_transaction (rig, buf, strlen(buf), ackbuf, &ack_len);
+		retval = kenwood_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -743,7 +743,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	case RIG_LEVEL_AF:
 		sprintf(buf, "AG %c", vch);
-		retval = kenwood_transaction (rig, buf, strlen(buf), ackbuf, &ack_len);
+		retval = kenwood_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -760,7 +760,7 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 	case RIG_LEVEL_RFPOWER:
 		sprintf(buf, "PC %c",vch); 
-		retval = kenwood_transaction (rig, buf, strlen(buf), ackbuf, &ack_len);
+		retval = kenwood_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
 
@@ -921,7 +921,7 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 	caps = rig->caps;
 
-	retval = kenwood_transaction (rig, "CTN", 4, buf, &ack_len);
+	retval = kenwood_transaction(rig, "CTN", 4, buf, &ack_len);
 	if (retval != RIG_OK)
 		return retval;
 
@@ -955,7 +955,7 @@ th_get_info(RIG *rig)
 
 	memset(firmbuf, 0, sizeof(firmbuf));
 
-	retval = kenwood_transaction (rig, "ID", 3, firmbuf, &firm_len);
+	retval = kenwood_transaction(rig, "ID", 3, firmbuf, &firm_len);
 	if (retval != RIG_OK)
 		return NULL;
 
