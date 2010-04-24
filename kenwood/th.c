@@ -688,9 +688,10 @@ th_set_parm(RIG *rig, setting_t parm, value_t val)
 int
 th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 {
-	char vch, buf[20], ackbuf[20];
+	char vch, buf[10], ackbuf[20];
 	int retval, v, l;
-	size_t ack_len=ACKBUF_LEN;
+
+	size_t ack_len = sizeof(ackbuf);
 	vfo_t tvfo;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -711,6 +712,8 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	switch (level) {
 	case RIG_LEVEL_RAWSTR:
 		sprintf(buf, "SM %c", vch);
+
+		// XXX use kenwood_safe_transaction
 		retval = kenwood_transaction(rig, buf, strlen(buf), ackbuf, &ack_len);
 		if (retval != RIG_OK)
 			return retval;
