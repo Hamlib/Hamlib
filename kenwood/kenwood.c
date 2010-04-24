@@ -172,16 +172,27 @@ transaction_write:
     serial_flush(&rs->rigport);
 
     if (cmdstr) {
+
+	char *cmd;
 	int len = strlen(cmdstr);
 
-	retval = write_block(&rs->rigport, cmdstr, strlen(cmdstr));
-	if (retval != RIG_OK)
+	cmd = malloc(len + 2);
+	if (cmd == NULL) {
+		retval = -RIG_ENOMEM;
 		goto transaction_quit;
+	}
+
+	memcpy(cmd, cmdstr, len);
 
 	/* XXX the if is temporary, until all invocations are fixed */
-	/* XXX eventually a buffer could be used and write_block called once */
-	if (cmdstr[len - 1] != ';' && cmdstr[len - 1] != '\r')
-		retval = write_block(&rs->rigport, &caps->cmdtrm, 1);
+	if (cmdstr[len - 1] != ';' && cmdstr[len - 1] != '\r') {
+		cmd[len] = '\r';
+		len++;
+	}
+
+	retval = write_block(&rs->rigport, cmd, len);
+
+	free(cmd);
 
 	if (retval != RIG_OK)
 		goto transaction_quit;

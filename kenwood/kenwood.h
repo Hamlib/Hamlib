@@ -23,6 +23,7 @@
 #ifndef _KENWOOD_H
 #define _KENWOOD_H 1
 
+#include <string.h>
 #include "token.h"
 
 #define BACKEND_VER	"0.7"
@@ -164,7 +165,7 @@ extern const struct rig_caps r5000_caps;
 
 extern const struct rig_caps ts480_caps;
 
-/* use when not interested in the answer, bit want to check its len */
+/* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
 {
 	char buf[10];
@@ -176,6 +177,13 @@ static int inline kenwood_simple_cmd(RIG *rig, const char *cmd)
 {
 	char buf[10];
 	return kenwood_safe_transaction(rig, cmd, buf, 10, 0);
+}
+
+/* answer is the same as the command */
+static int inline kenwood_cmd(RIG *rig, const char *cmd)
+{
+	char buf[10];
+	return kenwood_safe_transaction(rig, cmd, buf, 10, strlen(cmd) + 1);
 }
 
 #endif /* _KENWOOD_H */
