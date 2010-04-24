@@ -60,7 +60,6 @@
 static struct kenwood_priv_caps  thg71_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
 };
-#define EOM "\r" /* XXX */
 
 
 /* thg71 procs */
@@ -311,7 +310,7 @@ int thg71_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	/* try to guess from frequency */
-    retval = kenwood_transaction(rig, "FQ"EOM, 3, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "FQ", 3, ackbuf, &ack_len);
         if (retval != RIG_OK)
         return retval;
 
@@ -340,10 +339,10 @@ int thg71_set_vfo (RIG *rig, vfo_t vfo)
         switch (vfo) {
         case RIG_VFO_A:
         case RIG_VFO_VFO:
-            sprintf(vfobuf, "VMC 0,0"EOM);
+            sprintf(vfobuf, "VMC 0,0");
             break;
         case RIG_VFO_MEM:
-            sprintf(vfobuf, "VMC 0,2"EOM);
+            sprintf(vfobuf, "VMC 0,2");
             break;
         default:
             rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
@@ -366,11 +365,11 @@ int thg71_get_vfo (RIG *rig, vfo_t *vfo)
     size_t ack_len=ACKBUF_LEN;
     int vch;
 
-    retval = kenwood_transaction(rig, "VMC 0"EOM , 6, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "VMC 0" , 6, ackbuf, &ack_len);
         if (retval != RIG_OK)
         return retval;
 
-    sscanf(ackbuf,"VMC 0,%d"EOM,&vch);
+    sscanf(ackbuf,"VMC 0,%d",&vch);
     switch(vch) {
 	case 0:
 		*vfo=RIG_VFO_A;
@@ -398,7 +397,7 @@ int thg71_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
     ack_len = 0;
     if(status==1) {
-    retval = kenwood_transaction(rig, "TT"EOM, 3, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "TT", 3, ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
 
@@ -425,7 +424,7 @@ int thg71_open(RIG *rig)
 
 	/* fill state.rx/tx range_list */
     ack_len=ACKBUF_LEN;
-    retval = kenwood_transaction(rig, "FL"EOM, 3, ackbuf, &ack_len);
+    retval = kenwood_transaction(rig, "FL", 3, ackbuf, &ack_len);
         if (retval != RIG_OK)
         	return retval;
 
