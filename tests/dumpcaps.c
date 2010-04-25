@@ -3,9 +3,6 @@
  * This programs dumps the capabilities of a backend rig.
  *
  *
- *    $Id: dumpcaps.c,v 1.52 2009-01-28 22:49:58 fillods Exp $
- *
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -129,7 +126,7 @@ int dumpcaps (RIG* rig, FILE *fout)
 			fprintf(fout, "Rig capable\n");
 			break;
 	case RIG_DCD_PARALLEL:
-			fprintf(fout, "Parallel port (DATA1? STROBE?)\n");
+			fprintf(fout, "Parallel port (/STROBE)\n");
 			break;
 	case RIG_DCD_SERIAL_CTS:
 			fprintf(fout, "Serial port (CTS/RTS)\n");
@@ -152,6 +149,14 @@ int dumpcaps (RIG* rig, FILE *fout)
 	switch (caps->port_type) {
 	case RIG_PORT_SERIAL:
 			fprintf(fout, "RS-232\n");
+			fprintf(fout, "Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
+					caps->serial_rate_max, caps->serial_data_bits,
+					caps->serial_parity == RIG_PARITY_NONE ? 'N':
+					(caps->serial_parity == RIG_PARITY_ODD ? 'O' : 'E'),
+					caps->serial_stop_bits,
+					caps->serial_handshake == RIG_HANDSHAKE_NONE ? "" :
+					(caps->serial_handshake == RIG_HANDSHAKE_XONXOFF ? "XONXOFF" : "CTS/RTS")
+					);
 			break;
 	case RIG_PORT_PARALLEL:
 			fprintf(fout, "Parallel\n");
@@ -172,15 +177,6 @@ int dumpcaps (RIG* rig, FILE *fout)
 			fprintf(fout, "Unknown\n");
 			backend_warnings++;
 	}
-
-	fprintf(fout, "Serial speed: %d..%d bauds, %d%c%d %s\n", caps->serial_rate_min,
-					caps->serial_rate_max, caps->serial_data_bits,
-					caps->serial_parity == RIG_PARITY_NONE ? 'N':
-					(caps->serial_parity == RIG_PARITY_ODD ? 'O' : 'E'),
-					caps->serial_stop_bits,
-					caps->serial_handshake == RIG_HANDSHAKE_NONE ? "" :
-					(caps->serial_handshake == RIG_HANDSHAKE_XONXOFF ? "XONXOFF" : "CTS/RTS")
-					);
 
 	fprintf(fout, "Write delay: %dms, timeout %dms, %d retry\n",
 					caps->write_delay, caps->timeout, caps->retry);
