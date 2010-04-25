@@ -1,11 +1,9 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2010
+ * rotctl_parse.c - (C) Stephane Fillod 2000-2010
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as
  * from command line options.
- *
- *	$Id: rotctl_parse.c,v 1.5 2009-01-04 14:49:17 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -392,7 +390,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
 	if (!prompt)
 		rig_debug(RIG_DEBUG_TRACE, "rotctl(d): %c '%s' '%s' '%s' '%s'\n",
-				cmd, p1, p2, p3, p4);
+				cmd, p1?p1:"", p2?p2:"", p3?p3:"", p4?p4:"");
 
     /*
      * Extended Response protocol: output received command name and arguments
@@ -637,7 +635,20 @@ declare_proto_rot(move)
 	int direction;
 	int speed;
 
-	CHKSCN1ARG(sscanf(arg1, "%d", &direction));
+    if (!strcmp(arg1, "LEFT") || !strcmp(arg1, "CCW"))
+        direction = ROT_MOVE_LEFT;
+    else
+    if (!strcmp(arg1, "RIGHT") || !strcmp(arg1, "CW"))
+        direction = ROT_MOVE_RIGHT;
+    else
+    if (!strcmp(arg1, "UP"))
+        direction = ROT_MOVE_UP;
+    else
+    if (!strcmp(arg1, "DOWN"))
+        direction = ROT_MOVE_DOWN;
+    else
+	    CHKSCN1ARG(sscanf(arg1, "%d", &direction));
+
 	CHKSCN1ARG(sscanf(arg2, "%d", &speed));
 	return rot_move(rot, direction, speed);
 }
@@ -646,11 +657,11 @@ declare_proto_rot(move)
 declare_proto_rot(inter_set_conf)
 {
 	token_t token;
-	char val[21] = "";      /* 20 chars enough? */
 
 	CHKSCN1ARG(sscanf(arg1, "%ld", &token));
-	CHKSCN1ARG(sscanf(arg2, "%s", val));
-	return rot_set_conf(rot, token, val);
+    if (!arg2 || arg2[0] == '\0')
+        return -RIG_EINVAL;
+	return rot_set_conf(rot, token, arg2);
 }
 
 

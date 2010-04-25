@@ -1,11 +1,9 @@
 /*
- * rotctl.c - (C) Stephane Fillod 2000-2009
+ * rotctl.c - (C) Stephane Fillod 2000-2010
  *
  * This program test/control a rotator using Hamlib.
  * It takes commands in interactive mode as well as
  * from command line options.
- *
- *	$Id: rotctl.c,v 1.14 2009-02-17 08:03:22 fillods Exp $
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -52,7 +50,7 @@ void usage();
  * NB: do NOT use -W since it's reserved by POSIX.
  * TODO: add an option to read from a file
  */
-#define SHORT_OPTIONS "m:r:s:C:t:LvhVl"
+#define SHORT_OPTIONS "m:r:s:C:t:LvhVlu"
 static struct option long_options[] =
 {
 	{"model",    1, 0, 'm'},
@@ -62,6 +60,7 @@ static struct option long_options[] =
 	{"list",     0, 0, 'l'},
 	{"set-conf", 1, 0, 'C'},
 	{"show-conf",0, 0, 'L'},
+	{"dump-caps",0, 0, 'u'},
 	{"verbose",  0, 0, 'v'},
 	{"help",     0, 0, 'h'},
 	{"version",  0, 0, 'V'},
@@ -85,6 +84,7 @@ int main (int argc, char *argv[])
 
 	int verbose = 0;
 	int show_conf = 0;
+	int dump_caps_opt = 0;
 	const char *rot_file=NULL;
 	int serial_rate = 0;
 	char conf_parms[MAXCONFLEN] = "";
@@ -154,6 +154,9 @@ int main (int argc, char *argv[])
 			case 'l':
 					list_models();
 					exit(0);
+			case 'u':
+					dump_caps_opt++;
+					break;
 			default:
 					usage();	/* unknown option? */
 					exit(1);
@@ -202,6 +205,16 @@ int main (int argc, char *argv[])
 		rot_token_foreach(my_rot, print_conf_list, (rig_ptr_t)my_rot);
 	}
 
+    /*
+     * print out capabilities, and exists immediately
+     * We may be interested only in caps, and rig_open may fail.
+     */
+    if (dump_caps_opt) {
+        dumpcaps_rot(my_rot, stdout);
+        rot_cleanup(my_rot); /* if you care about memory */
+        exit(0);
+    }
+
 	retcode = rot_open(my_rot);
 	if (retcode != RIG_OK) {
 	  	fprintf(stderr,"rot_open: error = %s \n", rigerror(retcode));
@@ -240,6 +253,7 @@ void usage()
 	"  -C, --set-conf=PARM=VAL    set config parameters\n"
 	"  -L, --show-conf            list all config parameters\n"
 	"  -l, --list                 list all model numbers and exit\n"
+    "  -u, --dump-caps            dump capabilities and exit\n"
 	"  -v, --verbose              set verbose mode, cumulative\n"
 	"  -h, --help                 display this help and exit\n"
 	"  -V, --version              output version information and exit\n\n"

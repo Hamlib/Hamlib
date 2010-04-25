@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "February 17, 2010" "Hamlib" "Rotator Control Program"
+.TH ROTCTL "1" "April 25, 2010" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -73,6 +73,9 @@ List all config parameters for the rotor defined with -m above.
 Set config parameter.  e.g. --set_conf=stop_bits=2
 .sp
 Use -L option for a list.
+.TP
+.B \-u, --dump-caps
+Dump capabilities for the rotor defined with -m above and exit.
 .TP
 .B \-l, --list
 List all model numbers defined in \fBHamlib\fP and exit.
