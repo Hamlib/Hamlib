@@ -1,8 +1,7 @@
 /*
  *  Hamlib Interface - rotator configuration interface
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: rot_conf.c,v 1.8 2009-01-25 15:39:19 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -47,8 +46,7 @@
 
 
 /*
- * Place holder for now. Here will be defined all the configuration
- * options available in the rot->state struct.
+ * Configuration options available in the rot->state struct.
  */
 static const struct confparams rotfrontend_cfg_params[] = {
 	{ TOK_PATHNAME, "rot_pathname", "Rig path name", 
@@ -70,6 +68,27 @@ static const struct confparams rotfrontend_cfg_params[] = {
 			"0", RIG_CONF_NUMERIC, { .n = { 0, 10, 1 } }
 	},
 
+	{ TOK_MIN_AZ, "min_az", "Minimum azimuth",
+			"Minimum rotator azimuth in degrees",
+			"-180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
+	},
+	{ TOK_MAX_AZ, "max_az", "Maximum azimuth",
+			"Maximum rotator azimuth in degrees",
+			"180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
+	},
+	{ TOK_MIN_EL, "min_el", "Minimum elevation",
+			"Minimum rotator elevation in degrees",
+			"0", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
+	},
+	{ TOK_MAX_EL, "max_el", "Maximum elevation",
+			"Maximum rotator elevation in degrees",
+			"90", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
+	},
+
+	{ RIG_CONF_END, NULL, }
+};
+
+static const struct confparams rotfrontend_serial_cfg_params[] = {
 	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
 			"Serial port baud rate",
 			"0", RIG_CONF_NUMERIC, { .n = { 300, 115200, 1 } }
@@ -89,23 +108,6 @@ static const struct confparams rotfrontend_cfg_params[] = {
 	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
 			"Serial port handshake",
 			"None", RIG_CONF_COMBO, { .c = {{ "None", "XONXOFF", "Hardware", NULL }} }
-	},
-
-	{ TOK_MIN_AZ, "min_az", "Minimum azimuth",
-			"Minimum rotator azimuth in degrees",
-			"-180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
-	},
-	{ TOK_MAX_AZ, "max_az", "Maximum azimuth",
-			"Maximum rotator azimuth in degrees",
-			"180", RIG_CONF_NUMERIC, { .n = { -360, 360, .001 } }
-	},
-	{ TOK_MIN_EL, "min_el", "Minimum elevation",
-			"Minimum rotator elevation in degrees",
-			"0", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
-	},
-	{ TOK_MAX_EL, "max_el", "Maximum elevation",
-			"Maximum rotator elevation in degrees",
-			"90", RIG_CONF_NUMERIC, { .n = { -90, 180, .001 } }
 	},
 
 	{ RIG_CONF_END, NULL, }
@@ -321,12 +323,20 @@ int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams 
 	if (!rot || !rot->caps || !cfunc)
 		return -RIG_EINVAL;
 
-	for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
-		if ((*cfunc)(cfp, data) == 0)
-			return RIG_OK;
 	for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
 		if ((*cfunc)(cfp, data) == 0)
 			return RIG_OK;
+
+	if (rot->caps->port_type == RIG_PORT_SERIAL) {
+		for (cfp = rotfrontend_serial_cfg_params; cfp->name; cfp++)
+			if ((*cfunc)(cfp, data) == 0)
+				return RIG_OK;
+	}
+
+	for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
+		if ((*cfunc)(cfp, data) == 0)
+			return RIG_OK;
+
 	return RIG_OK;
 }
 
@@ -343,15 +353,25 @@ int HAMLIB_API rot_token_foreach(ROT *rot, int (*cfunc)(const struct confparams 
 const struct confparams * HAMLIB_API rot_confparam_lookup(ROT *rot, const char *name)
 {
 	const struct confparams *cfp;
+	token_t token;
 
 	if (!rot || !rot->caps)
 		return NULL;
+
+	/* 0 returned for invalid format */
+	token = strtol(name, NULL, 0);
+
 	for (cfp = rot->caps->cfgparams; cfp && cfp->name; cfp++)
-		if (!strcmp(cfp->name, name))
+		if (!strcmp(cfp->name, name) || token == cfp->token)
 			return cfp;
 	for (cfp = rotfrontend_cfg_params; cfp->name; cfp++)
-		if (!strcmp(cfp->name, name))
+		if (!strcmp(cfp->name, name) || token == cfp->token)
 			return cfp;
+	if (rot->caps->port_type == RIG_PORT_SERIAL) {
+		for (cfp = rotfrontend_serial_cfg_params; cfp->name; cfp++)
+			if (!strcmp(cfp->name, name) || token == cfp->token)
+				return cfp;
+	}
 	return NULL;
 }
 
@@ -370,6 +390,72 @@ token_t HAMLIB_API rot_token_lookup(ROT *rot, const char *name)
 		return RIG_CONF_END;
 
 	return cfp->token;
+}
+
+/**
+ * \brief set a rotator configuration parameter
+ * \param rot	The rot handle
+ * \param token	The parameter
+ * \param val	The value to set the parameter to
+ *
+ *  Sets a configuration parameter. 
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rot_get_conf()
+ */
+int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
+{
+	if (!rot || !rot->caps)
+		return -RIG_EINVAL;
+
+	if (rig_need_debug(RIG_DEBUG_VERBOSE)) {
+		const struct confparams *cfp;
+		char tokenstr[12];
+		sprintf(tokenstr, "%ld", token);
+		cfp = rot_confparam_lookup(rot, tokenstr);
+		if (!cfp)
+			return -RIG_EINVAL;
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: %s='%s'\n", __func__, cfp->name, val);
+	}
+
+	if (IS_TOKEN_FRONTEND(token))
+		return frontrot_set_conf(rot, token, val);
+
+	if (rot->caps->set_conf == NULL)
+		return -RIG_ENAVAIL;
+
+	return rot->caps->set_conf(rot, token, val);
+}
+
+/**
+ * \brief get the value of a configuration parameter
+ * \param rot	The rot handle
+ * \param token	The parameter
+ * \param val	The location where to store the value of config \a token
+ *
+ *  Retrieves the value of a configuration paramter associated with \a token.
+ *
+ * \return RIG_OK if the operation has been sucessful, otherwise 
+ * a negative value if an error occured (in which case, cause is 
+ * set appropriately).
+ *
+ * \sa rot_set_conf()
+ */
+int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val)
+{
+	if (!rot || !rot->caps || !val)
+		return -RIG_EINVAL;
+
+	if (IS_TOKEN_FRONTEND(token))
+		return frontrot_get_conf(rot, token, val);
+
+	if (rot->caps->get_conf == NULL)
+		return -RIG_ENAVAIL;
+
+	return rot->caps->get_conf(rot, token, val);
 }
 
 /** @} */

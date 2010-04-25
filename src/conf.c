@@ -7,13 +7,12 @@
  * \file src/conf.c
  * \brief Rig configuration interface
  * \author Stephane Fillod
- * \date 2000-2009
+ * \date 2000-2010
  */
 /*
  *  Hamlib Interface - configuration interface
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: conf.c,v 1.18 2009-01-25 14:25:46 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,8 +44,7 @@
 #include "token.h"
 
 /*
- * Place holder for now. Here will be defined all the configuration
- * options available in the rig->state struct.
+ * Configuration options available in the rig->state struct.
  */
 static const struct confparams frontend_cfg_params[] = {
 	{ TOK_PATHNAME, "rig_pathname", "Rig path name", 
@@ -72,37 +70,9 @@ static const struct confparams frontend_cfg_params[] = {
 			"0", RIG_CONF_NUMERIC, { .n = { 1, 3, 1 } }
 	},
 
-	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
-			"Serial port baud rate",
-			"0", RIG_CONF_NUMERIC, { .n = { 300, 115200, 1 } }
-	},
-	{ TOK_DATA_BITS, "data_bits", "Serial data bits", 
-			"Serial port data bits",
-			"8", RIG_CONF_NUMERIC, { .n = { 5, 8, 1 } }
-	},
-	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits", 
-			"Serial port stop bits",
-			"1", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } }
-	},
-	{ TOK_PARITY, "serial_parity", "Serial parity", 
-			"Serial port parity",
-			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", NULL }} }
-	},
-	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
-			"Serial port handshake",
-			"None", RIG_CONF_COMBO, { .c = {{ "None", "XONXOFF", "Hardware", NULL }} }
-	},
 	{ TOK_VFO_COMP, "vfo_comp", "VFO compensation", 
 			"VFO compensation in ppm",
 			"0", RIG_CONF_NUMERIC, { .n = { 0.0, 1000.0, .001 } }
-	},
-	{ TOK_RTS_STATE, "rts_state", "RTS state", 
-			"Serial port set state of RTS signal for external powering",
-			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
-	},
-	{ TOK_DTR_STATE, "dtr_state", "DTR state", 
-			"Serial port set state of DTR signal for external powering",
-			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
 	},
 	{ TOK_POLL_INTERVAL, "poll_interval", "Polling interval", 
 			"Polling interval in millisecond for transceive emulation",
@@ -123,6 +93,41 @@ static const struct confparams frontend_cfg_params[] = {
 	{ TOK_DCD_PATHNAME, "dcd_pathname", "DCD path name", 
 			"Path name to the device file of the Data Carrier Detect (or squelch)",
 			"/dev/rig", RIG_CONF_STRING, 
+	},
+
+	{ RIG_CONF_END, NULL, }
+};
+
+
+static const struct confparams frontend_serial_cfg_params[] = {
+	{ TOK_SERIAL_SPEED, "serial_speed", "Serial speed", 
+			"Serial port baud rate",
+			"0", RIG_CONF_NUMERIC, { .n = { 300, 115200, 1 } }
+	},
+	{ TOK_DATA_BITS, "data_bits", "Serial data bits", 
+			"Serial port data bits",
+			"8", RIG_CONF_NUMERIC, { .n = { 5, 8, 1 } }
+	},
+	{ TOK_STOP_BITS, "stop_bits", "Serial stop bits", 
+			"Serial port stop bits",
+			"1", RIG_CONF_NUMERIC, { .n = { 0, 3, 1 } }
+	},
+	{ TOK_PARITY, "serial_parity", "Serial parity", 
+			"Serial port parity",
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", NULL }} }
+	},
+	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
+			"Serial port handshake",
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "XONXOFF", "Hardware", NULL }} }
+	},
+
+	{ TOK_RTS_STATE, "rts_state", "RTS state", 
+			"Serial port set state of RTS signal for external powering",
+			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
+	},
+	{ TOK_DTR_STATE, "dtr_state", "DTR state", 
+			"Serial port set state of DTR signal for external powering",
+			"Unset", RIG_CONF_COMBO, { .c = {{ "Unset", "ON", "OFF", NULL }} }
 	},
 
 	{ RIG_CONF_END, NULL, }
@@ -455,11 +460,17 @@ int HAMLIB_API rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams 
 	if (!rig || !rig->caps || !cfunc)
 		return -RIG_EINVAL;
 
-	for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
+	for (cfp = frontend_cfg_params; cfp->name; cfp++)
 		if ((*cfunc)(cfp, data) == 0)
 			return RIG_OK;
 
-	for (cfp = frontend_cfg_params; cfp->name; cfp++)
+	if (rig->caps->port_type == RIG_PORT_SERIAL) {
+		for (cfp = frontend_serial_cfg_params; cfp->name; cfp++)
+			if ((*cfunc)(cfp, data) == 0)
+				return RIG_OK;
+	}
+
+	for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
 		if ((*cfunc)(cfp, data) == 0)
 			return RIG_OK;
 
@@ -479,17 +490,27 @@ int HAMLIB_API rig_token_foreach(RIG *rig, int (*cfunc)(const struct confparams 
 const struct confparams * HAMLIB_API rig_confparam_lookup(RIG *rig, const char *name)
 {
 	const struct confparams *cfp;
+    token_t token;
 
 	if (!rig || !rig->caps)
 		return NULL;
 
+	/* 0 returned for invalid format */
+	token = strtol(name, NULL, 0);
+
 	for (cfp = rig->caps->cfgparams; cfp && cfp->name; cfp++)
-		if (!strcmp(cfp->name, name))
+		if (!strcmp(cfp->name, name) || token == cfp->token)
 			return cfp;
 
 	for (cfp = frontend_cfg_params; cfp->name; cfp++)
-		if (!strcmp(cfp->name, name))
+		if (!strcmp(cfp->name, name) || token == cfp->token)
 			return cfp;
+
+	if (rig->caps->port_type == RIG_PORT_SERIAL) {
+		for (cfp = frontend_serial_cfg_params; cfp->name; cfp++)
+			if (!strcmp(cfp->name, name) || token == cfp->token)
+				return cfp;
+	}
 
 	return NULL;
 }
@@ -532,6 +553,16 @@ int HAMLIB_API rig_set_conf(RIG *rig, token_t token, const char *val)
 {
 	if (!rig || !rig->caps)
 		return -RIG_EINVAL;
+
+    if (rig_need_debug(RIG_DEBUG_VERBOSE)) {
+	    const struct confparams *cfp;
+        char tokenstr[12];
+        sprintf(tokenstr, "%ld", token);
+        cfp = rig_confparam_lookup(rig, tokenstr);
+        if (!cfp)
+            return -RIG_EINVAL;
+        rig_debug(RIG_DEBUG_VERBOSE, "%s: %s='%s'\n", __func__, cfp->name, val);
+    }
 
 	if (IS_TOKEN_FRONTEND(token))
 		return frontend_set_conf(rig, token, val);

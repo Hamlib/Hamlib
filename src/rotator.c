@@ -3,7 +3,6 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
- *	$Id: rotator.c,v 1.27 2009-02-20 12:26:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -463,63 +462,6 @@ int HAMLIB_API rot_cleanup(ROT *rot)
 	free(rot);
 
 	return RIG_OK;
-}
-
-
-/**
- * \brief set a rotator configuration parameter
- * \param rot	The rot handle
- * \param token	The parameter
- * \param val	The value to set the parameter to
- *
- *  Sets a configuration parameter. 
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rot_get_conf()
- */
-int HAMLIB_API rot_set_conf(ROT *rot, token_t token, const char *val)
-{
-	if (!rot || !rot->caps)
-		return -RIG_EINVAL;
-
-	if (IS_TOKEN_FRONTEND(token))
-		return frontrot_set_conf(rot, token, val);
-
-	if (rot->caps->set_conf == NULL)
-		return -RIG_ENAVAIL;
-
-	return rot->caps->set_conf(rot, token, val);
-}
-
-/**
- * \brief get the value of a configuration parameter
- * \param rot	The rot handle
- * \param token	The parameter
- * \param val	The location where to store the value of config \a token
- *
- *  Retrieves the value of a configuration paramter associated with \a token.
- *
- * \return RIG_OK if the operation has been sucessful, otherwise 
- * a negative value if an error occured (in which case, cause is 
- * set appropriately).
- *
- * \sa rot_set_conf()
- */
-int HAMLIB_API rot_get_conf(ROT *rot, token_t token, char *val)
-{
-	if (!rot || !rot->caps || !val)
-		return -RIG_EINVAL;
-
-	if (IS_TOKEN_FRONTEND(token))
-		return frontrot_get_conf(rot, token, val);
-
-	if (rot->caps->get_conf == NULL)
-		return -RIG_ENAVAIL;
-
-	return rot->caps->get_conf(rot, token, val);
 }
 
 /**
