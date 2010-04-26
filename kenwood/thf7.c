@@ -36,16 +36,16 @@
 #define THF7_HIGH_MODES (RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_WFM)
 #define THF7_ALL_MODES (THF7_HIGH_MODES|RIG_MODE_SSB|RIG_MODE_CW)
 
-#define THF7_FUNC_ALL (RIG_FUNC_TONE|RIG_FUNC_TSQL|RIG_FUNC_TBURST| \
-		RIG_FUNC_ARO|RIG_FUNC_LOCK|RIG_FUNC_BC)
+#define THF7_FUNC_ALL (RIG_FUNC_ARO|RIG_FUNC_LOCK|RIG_FUNC_BC)
 
 
 /*
  * How increadible, there's no RIG_LEVEL_STRENGTH!
  */
-#define THF7_LEVEL_ALL (RIG_LEVEL_SQL|RIG_LEVEL_RFPOWER|RIG_LEVEL_ATT|RIG_LEVEL_BALANCE)
+#define THF7_LEVEL_ALL (RIG_LEVEL_SQL|RIG_LEVEL_RFPOWER|RIG_LEVEL_ATT|\
+        RIG_LEVEL_BALANCE|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY)
 
-#define THF7_PARMS (RIG_PARM_APO|RIG_PARM_BEEP|RIG_PARM_BACKLIGHT|RIG_PARM_KEYLIGHT)
+#define THF7_PARMS (RIG_PARM_APO|RIG_PARM_BEEP|RIG_PARM_BACKLIGHT)
 
 #define THF7_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
@@ -73,7 +73,6 @@ static const tone_t thf7_ctcss_list[] = {
   1862, 1928, 2035, 2065, 2107, 2181, 2257, 2291, 2336, 2418,
   2503, 2541,
   0
-
 };
 
 static rmode_t thf7_mode_table[KENWOOD_MODE_TABLE_MAX] = {
@@ -103,7 +102,11 @@ static int thf7_get_vfo (RIG *rig, vfo_t *vfo);
 /*
  * TH-F7E rig capabilities.
  *
- * Manual: http://www.k6may.com/KenwoodTHF6Tip1.shtml
+ * Manual, thanks to K6MAY: http://www.k6may.com/KenwoodTHF6Tip1.shtml
+ *
+ * TODO:
+ * - set/get_ctcss_tone/sql through set/get_channel() and VR/VW
+ * - emulate RIG_FUNC_TONE|RIG_FUNC_TSQL by setting ctcss_tone/sql to 0/non zero?
  */
 const struct rig_caps thf7e_caps = {
 .rig_model =  RIG_MODEL_THF7E,
@@ -128,7 +131,7 @@ const struct rig_caps thf7e_caps = {
 .retry =  3,
 
 .has_get_func =  THF7_FUNC_ALL,
-.has_set_func =  THF7_FUNC_ALL,
+.has_set_func =  THF7_FUNC_ALL|RIG_FUNC_TBURST,
 .has_get_level =  THF7_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(THF7_LEVEL_ALL),
 .has_get_parm =  THF7_PARMS,
@@ -181,9 +184,23 @@ const struct rig_caps thf7e_caps = {
 	RIG_FRNG_END
   },
 
-	/* region 2 is TH-F6A */
-.rx_range_list2 =  { RIG_FRNG_END, },
-.tx_range_list2 =  { RIG_FRNG_END, },
+	/* region 2 is model TH-F6A in fact */
+.rx_range_list2 = {
+	/* RIG_ANT_2 is internal bar antenna */
+	{MHz(144),MHz(148),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
+	{MHz(220),MHz(225),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
+	{kHz(430),MHz(440),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
+	{kHz(100),MHz(470),THF7_ALL_MODES,-1,-1,RIG_VFO_B, RIG_ANT_1|RIG_ANT_2},
+	{MHz(470),GHz(1.3),THF7_HIGH_MODES,-1,-1,RIG_VFO_B,RIG_ANT_1},
+	RIG_FRNG_END
+  },
+.tx_range_list2 = {
+	/* power actually depends on DC power supply */
+	{MHz(144),MHz(148),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
+	{MHz(220),MHz(225),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
+	{MHz(430),MHz(440),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
+	RIG_FRNG_END
+  },
 
 .tuning_steps =  {
 	/* This table is ordered according to protocol, from '0' to 'b' */
@@ -226,17 +243,11 @@ const struct rig_caps thf7e_caps = {
 	.get_mode	= th_get_mode,
 	.set_vfo	= th_set_vfo,
 	.get_vfo	= thf7_get_vfo,
-	.set_ctcss_tone	= th_set_ctcss_tone,
-	.get_ctcss_tone	= th_get_ctcss_tone,
 	.set_ptt	= th_set_ptt,
 	.get_dcd	= th_get_dcd,
 	.vfo_op		= kenwood_vfo_op,
 	.set_mem	= th_set_mem,
 	.get_mem	= th_get_mem,
-
-	.set_trn	= th_set_trn,		/* TBC */
-	.get_trn	= th_get_trn,		/* TBC */
-	.decode_event	= th_decode_event,	/* TBC */
 
 	.set_func	= th_set_func,
 	.get_func	= th_get_func,

@@ -1,9 +1,8 @@
 /*
  *  Hamlib Kenwood backend - TH handheld primitives
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *  Copyright (C) 2010 by Alessandro Zummo
  *
- *	$Id: th.c,v 1.39 2009-02-13 19:29:16 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -184,7 +183,7 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	/* Step needs to be at least 10kHz on higher band */
 	step = freq >= MHz(470) ? 4 : 1;
 
-	sprintf(buf, "FQ %011"PRIll",%X", (long long) freq, step);
+	sprintf(buf, "FQ %011"PRIll",%X", (int64_t) freq, step);
 
 	return kenwood_cmd(rig, buf);
 }
@@ -528,13 +527,13 @@ th_get_kenwood_func(RIG *rig, const char *cmd, int *status)
 /*
  * th_get_func
  * Assumes rig!=NULL, status!=NULL
+ *
+ * Assumes vfo == RIG_VFO_CURR, any other value is handled by the frontend.
  */
 int
 th_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
-
-	/* FIXME: What about the VFO? */
 
 	switch (func) {
 		case RIG_FUNC_MON:
@@ -551,8 +550,11 @@ th_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 			return th_get_kenwood_func(rig, "AIP", status);
 		case RIG_FUNC_LOCK:
 			return th_get_kenwood_func(rig, "LK", status);
+		case RIG_FUNC_BC:
+			return th_get_kenwood_func(rig, "BC", status);
 		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x", __func__, func);
+			rig_debug(RIG_DEBUG_ERR, "%s: Unsupported function %#x\n",
+					__func__, func);
 			return -RIG_EINVAL;
 	}
 }
@@ -568,13 +570,15 @@ static int th_tburst(RIG *rig, vfo_t vfo, int status)
  */
 static int th_set_kenwood_func(RIG *rig, const char *cmd, int status)
 {
-	char buf[16];
+#define BUFSZ 16
+	char buf[BUFSZ];
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: cmd = %s, status = %d\n",
 			__func__, cmd, status);
 
-	strncpy(buf, cmd, 16);
-	strncat(buf, status ? " 1" : " 0", 15);
+	strncpy(buf, cmd, BUFSZ-2);
+	buf[BUFSZ-1] = '\0';
+	strncat(buf, status ? " 1" : " 0", BUFSZ-1);
 
 	return kenwood_cmd(rig, buf);
 }
@@ -583,13 +587,13 @@ static int th_set_kenwood_func(RIG *rig, const char *cmd, int status)
 /*
  * th_get_func
  * Assumes rig!=NULL, status!=NULL
+ *
+ * Assumes vfo == RIG_VFO_CURR, any other value is handled by the frontend.
  */
 int
 th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
-
-	/* FIXME: What about the VFO? */
 
 	switch (func) {
 	case RIG_FUNC_MON:
@@ -613,6 +617,9 @@ th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	case RIG_FUNC_LOCK:
 		return th_set_kenwood_func(rig, "LK", status);
 
+	case RIG_FUNC_BC:
+		return th_set_kenwood_func(rig, "NSFT", status);
+
 	case RIG_FUNC_TBURST:
 		return th_tburst(rig, vfo, status);
 
@@ -631,11 +638,28 @@ th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 int
 th_get_parm(RIG *rig, setting_t parm, value_t *val)
 {
+	char buf[16];
 	int ret, status;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, parm);
 
 	switch (parm) {
+	case RIG_PARM_BEEP:
+		ret = th_get_kenwood_func(rig, "BEP", &status);
+		if (ret != RIG_OK)
+			return ret;
+
+		val->i = status ? 1 : 0;
+		return RIG_OK;
+
+	case RIG_PARM_APO:
+		ret = kenwood_safe_transaction(rig, "APO", buf, sizeof(buf), 6);
+		if (ret != RIG_OK)
+			return ret;
+
+		val->i = (buf[4]-'0')*30;
+		return RIG_OK;
+
 	case RIG_PARM_BACKLIGHT:
 		ret = th_get_kenwood_func(rig, "LMP", &status);
 		if (ret != RIG_OK)
@@ -645,7 +669,7 @@ th_get_parm(RIG *rig, setting_t parm, value_t *val)
 		return RIG_OK;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x", __func__, parm);
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x\n", __func__, parm);
 		return -RIG_EINVAL;
 	}
 
@@ -673,7 +697,7 @@ th_set_parm(RIG *rig, setting_t parm, value_t val)
 			return kenwood_cmd(rig, "APO 0");
 
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x", __func__, parm);
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported parm %#x\n", __func__, parm);
 		return -RIG_EINVAL;
 	}
 
@@ -803,8 +827,22 @@ th_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			val->i = rig->state.attenuator[ackbuf[4]-'1'];
 		break;
 
+	case RIG_LEVEL_VOXGAIN:
+		retval = kenwood_safe_transaction(rig, "VXG", ackbuf, 10, 6);
+		if (retval != RIG_OK)
+			return retval;
+
+		if (ackbuf[4] < '0' || ackbuf[4] > '9')
+			return -RIG_EPROTO;
+
+		val->f = (ackbuf[4] == '0') / 9;
+		break;
+
+	case RIG_LEVEL_VOXDELAY: /* "VXD" */
+		return -RIG_ENIMPL;
+
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
 		return -RIG_EINVAL;
 	}
 	return RIG_OK;
@@ -863,8 +901,16 @@ int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		sprintf(buf, "BAL %c", '4' - (int) (val.f * ('4'-'0')));
 		return kenwood_cmd(rig, buf);
 
+	case RIG_LEVEL_VOXGAIN:
+		sprintf(buf, "VXG %d", (int) (val.f * 9));
+		return kenwood_cmd(rig, buf);
+
+	case RIG_LEVEL_VOXDELAY: /* "VXD" */
+		return -RIG_ENIMPL;
+
+
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d", __func__, level);
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported Level %d\n", __func__, level);
 		return -RIG_EINVAL;
 	}
 }
@@ -1165,8 +1211,10 @@ int th_get_channel(RIG *rig, channel_t *chan)
 		chan_caps = rig_lookup_mem_caps(rig, chan->channel_num);
 		if (!chan_caps)
 			return -RIG_ECONF;
-	} else
+	} else {
+        /* TODO: stuff channel_num (out of current freq) and chan_caps */
 		return -RIG_ENIMPL;
+    }
 
 	channel_num = chan->channel_num;
 	vfo = chan->vfo;
@@ -1179,8 +1227,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
 	else
 		mr_extra = "0, ";
 
-	if (chan_caps)
-		channel_num -= chan_caps->start;
+	channel_num -= chan_caps->start;
 
 	switch (chan_caps->type) {
 	case RIG_MTYPE_MEM:
@@ -1359,7 +1406,7 @@ int th_get_channel(RIG *rig, channel_t *chan)
 		if (ack_len > rig->caps->chan_desc_sz)
 			ack_len = rig->caps->chan_desc_sz;
 
-		strncpy(chan->channel_desc,ackbuf+strlen(membuf),ack_len);
+		strncpy(chan->channel_desc,ackbuf+strlen(membuf)+1,ack_len);
 		chan->channel_desc[ack_len] = '\0';
 	}
 
@@ -1529,17 +1576,17 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
 		/* Step can be hexa */
 		retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,%d,%02d,%02d,%03d,%09"PRIll",%d%s",
-			req, (long long)chan->freq, step, shift, rev, tone,
-						ctcss, dcs, tonefq, ctcssfq, dcscode,
-			(long long)abs(chan->rptr_offs), mode, lockoutstr
+			req, (int64_t)chan->freq, step, shift, rev, tone,
+			ctcss, dcs, tonefq, ctcssfq, dcscode,
+			(int64_t)abs(chan->rptr_offs), mode, lockoutstr
 			);
 	} else {
 
 		/* Without DCS,mode */
 		retval = sprintf(membuf, "%s,%011"PRIll",%X,%d,%d,%d,%d,,%02d,,%02d,%09"PRIll"%s",
-			req, (long long)chan->freq, step, shift, rev, tone,
-						ctcss, tonefq, ctcssfq, 
-			(long long)abs(chan->rptr_offs), lockoutstr
+			req, (int64_t)chan->freq, step, shift, rev, tone,
+			ctcss, tonefq, ctcssfq, 
+			(int64_t)abs(chan->rptr_offs), lockoutstr
 			);
 	}
 
@@ -1556,7 +1603,7 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 
 		req[3+strlen(mr_extra)]='1';
 
-		sprintf(membuf, "%s,%011"PRIll",%X", req,(long long)chan->tx_freq, step);
+		sprintf(membuf, "%s,%011"PRIll",%X", req,(int64_t)chan->tx_freq, step);
 		ack_len=ACKBUF_LEN;
 
 		retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);

@@ -1,8 +1,7 @@
 /*
  *  Hamlib Kenwood backend - TM-V7 description
- *  Copyright (c) 2004-2008 by Stephane Fillod
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
- *	$Id: tmv7.c,v 1.20 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -551,7 +550,7 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
     int chn, step, shift, tone, ctcss, tonefq, ctcssfq;
 
     chn=chan->channel_num;
-    freq=(long long)chan->freq;
+    freq=(long)chan->freq;
 
     for(step=0; rig->state.tuning_steps[step].ts!=0;step++)
 	if(chan->tuning_step==rig->state.tuning_steps[step].ts) break;
@@ -635,8 +634,8 @@ int tmv7_set_channel(RIG *rig, const channel_t *chan)
         	return retval;
 
     if(chan->tx_freq!=RIG_FREQ_NONE) {
-	req[5]='1';
-    	sprintf(membuf, "%s,%011"PRIll",%01d", req,(long long)chan->tx_freq, step);
+    	req[5]='1';
+    	sprintf(membuf, "%s,%011"PRIll",%01d", req, (int64_t)chan->tx_freq, step);
         ack_len=0;
     	retval = kenwood_transaction(rig, membuf, strlen(membuf), ackbuf, &ack_len);
         if (retval != RIG_OK)
