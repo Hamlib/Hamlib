@@ -293,8 +293,8 @@ AC_ARG_ENABLE([tcl-binding],
 	[build_tcl=$enableval],
 	[build_tcl=no])
 AC_MSG_RESULT($build_tcl)
-SC_PATH_TCLCONFIG
 if test x"${build_tcl}" = "xyes"; then
+	SC_PATH_TCLCONFIG
 	SC_LOAD_TCLCONFIG
 	tcl_save_CPPFLAGS=$CPPFLAGS
 	CPPFLAGS="$CPPFLAGS $TCL_INCLUDE_SPEC"
