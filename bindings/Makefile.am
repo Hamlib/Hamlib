@@ -103,9 +103,14 @@ endif
 ##########################################
 # Python binding
 
+if ENABLE_PYTHON
+
+MOSTLYCLEANFILES+= hamlibpy_wrap.c Hamlib.py *.pyc
+BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
+
 python_ltlib = _Hamlib.la
 
-pythondir = @pythondir@
+#pythondir = @pythondir@
 
 nodist__Hamlib_la_SOURCES = hamlibpy_wrap.c
 _Hamlib_la_LDFLAGS = -no-undefined -module -avoid-version
@@ -130,8 +135,11 @@ clean-py:
 distclean-py:
 uninstall-py: 
 
-##########################################
 _Hamlib_la_LTLIBRARIES = $(python_ltlib)
+
+endif
+
+##########################################
 lib_LTLIBRARIES = $(tcl_ltlib)
 # lib_LTLIBRARIES = @BINDING_LIB_TARGETS@
 
@@ -148,12 +156,11 @@ uninstall-local: @BINDING_UNINSTALL@
 EXTRA_DIST = $(SWGFILES) \
 			Makefile.PL perltest.pl tcltest.tcl pytest.py
 
-BUILT_SOURCES += hamlibperl_wrap.c hamlibpy_wrap.c Hamlib.py
+BUILT_SOURCES += hamlibperl_wrap.c
 
 ## DISTCLEANFILES = Hamlib-pl.mk Hamlib-pl.mk.old
 DISTCLEANFILES = Hamlib-pl.mk.old
 
-MOSTLYCLEANFILES+= hamlibperl_wrap.c Hamlib.pm Hamlib.bs \
-		hamlibpy_wrap.c Hamlib.py *.pyc
+MOSTLYCLEANFILES += hamlibperl_wrap.c Hamlib.pm Hamlib.bs
 
 noinst_SCRIPTS = perltest.pl tcltest.tcl pytest.py hamlibvb.bas

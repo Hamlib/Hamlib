@@ -340,6 +340,7 @@ if test "${cf_with_python_binding}" = "yes" ; then
   BINDING_UNINSTALL="${BINDING_UNINSTALL} uninstall-py"
   BINDING_LIB_TARGETS="${BINDING_LIB_TARGETS} \$(python_ltlib)"
 fi
+AM_CONDITIONAL(ENABLE_PYTHON, test x"${cf_with_python_binding}" = "xyes")
 
 
 dnl Backend list
