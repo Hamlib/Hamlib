@@ -1,8 +1,7 @@
 /*
  *  Hamlib R&S backend - main header
- *  Copyright (c) 2009 by Stephane Fillod
+ *  Copyright (c) 2009-2010 by Stephane Fillod
  *
- *	$Id: rs.h,v 1.1 2009/08/07 22:15:49 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,8 +33,10 @@ int rs_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 int rs_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status);
 int rs_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int rs_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+int rs_reset(RIG *rig, reset_t reset);
 const char * rs_get_info(RIG *rig);
 
 extern const struct rig_caps esmc_caps;
+extern const struct rig_caps eb200_caps;
 
 #endif /* _RS_H */

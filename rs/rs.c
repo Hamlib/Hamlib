@@ -33,6 +33,7 @@
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
+#include "num_stdio.h"
 
 #include "rs.h"
 
@@ -185,6 +186,7 @@ int rs_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
     switch (func) {
         case RIG_FUNC_AFC: sfunc = "FREQ:AFC"; break;
         case RIG_FUNC_SQL: sfunc = "OUTP:SQU"; break;
+        case RIG_FUNC_LOCK: sfunc = "DISP:ENAB"; break;
         default:
              return -RIG_EINVAL;
     }
@@ -201,8 +203,9 @@ int rs_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	int buf_len, retval;
 
     switch (func) {
-        case RIG_FUNC_AFC: sfunc = "FREQ:AFC?"; break;
-        case RIG_FUNC_SQL: sfunc = "OUTP:SQU?"; break;
+        case RIG_FUNC_AFC: sfunc = BOM "FREQ:AFC?" EOM; break;
+        case RIG_FUNC_SQL: sfunc = BOM "OUTP:SQU?" EOM; break;
+        case RIG_FUNC_LOCK: sfunc = BOM "DISP:ENAB?" EOM; break;
         default:
              return -RIG_EINVAL;
     }
@@ -211,7 +214,7 @@ int rs_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
     if (retval < 0)
         return retval;
 
-    *status = (memcmp(buf, "ON", 2) == 0) ? 1 : 0;
+    *status = (!memcmp(buf, "ON", 2) || !memcmp(buf, "1", 1)) ? 1 : 0;
 
 	return retval;
 }
@@ -226,6 +229,12 @@ int rs_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
             len = sprintf(buf, BOM "INP:ATT:STAT %s" EOM, val.i ? "ON" : "OFF");
             break;
         case RIG_LEVEL_SQL:
+            /* dBuV */
+            len = sprintf(buf, BOM "OUTP:SQU:THR %d" EOM, (int) (20 + val.f*20));
+            break;
+        case RIG_LEVEL_AF:
+            len = num_sprintf(buf, BOM "SYST:AUD:VOL %.1f" EOM, val.f);
+            break;
         case RIG_LEVEL_AGC:
         case RIG_LEVEL_RF:
              return -RIG_ENIMPL;
@@ -246,7 +255,7 @@ int rs_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
     switch (level) {
         case RIG_LEVEL_STRENGTH: slevel = BOM "SENS:DATA? \"VOLT:AC\"" EOM; break;
         case RIG_LEVEL_ATT: slevel = BOM "INP:ATT:STAT?" EOM; break;
-            break;
+        case RIG_LEVEL_AF: slevel = BOM "SYST:AUD:VOL?" EOM; break;
         case RIG_LEVEL_SQL:
         case RIG_LEVEL_AGC:
         case RIG_LEVEL_RF:
@@ -268,7 +277,11 @@ int rs_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
             val->i -= 34;
             break;
         case RIG_LEVEL_ATT:
-            val->i = (memcmp(buf, "ON", 2) == 0) ? rig->state.attenuator[0] : 0;
+            val->i = (!memcmp(buf, "ON", 2) || !memcmp(buf, "1", 1)) ? rig->state.attenuator[0] : 0;
+            break;
+        case RIG_LEVEL_AF:
+            if (num_sscanf(buf, "%f", &val->f) != 1)
+                return -RIG_EPROTO;
             break;
         default:
              return -RIG_EINVAL;
@@ -291,6 +304,18 @@ const char * rs_get_info(RIG *rig)
 	return infobuf;
 }
 
+int rs_reset(RIG *rig, reset_t reset)
+{
+	int retval;
+
+#define RST_CMD BOM "*RST" EOM
+
+	retval = rs_transaction(rig, RST_CMD, strlen(RST_CMD), NULL, NULL);
+
+	return retval;
+}
+
+
 /*
  * initrigs_rs is called by rig_backend_load
  */
@@ -299,6 +324,7 @@ DECLARE_INITRIG_BACKEND(rs)
 	rig_debug(RIG_DEBUG_VERBOSE, "rs: _init called\n");
 
 	rig_register(&esmc_caps);
+	rig_register(&eb200_caps);
 
 	return RIG_OK;
 }

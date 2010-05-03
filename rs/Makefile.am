@@ -1,4 +1,4 @@
-RSSRC = esmc.c
+RSSRC = esmc.c eb200.c
 
 lib_LTLIBRARIES = hamlib-rs.la
 hamlib_rs_la_SOURCES = $(RSSRC) rs.c

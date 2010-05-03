@@ -476,6 +476,7 @@
 #define RIG_RS 27
 #define RIG_BACKEND_RS "rs"
 #define RIG_MODEL_ESMC RIG_MAKE_MODEL(RIG_RS, 1)
+#define RIG_MODEL_EB200 RIG_MAKE_MODEL(RIG_RS, 2)
 
 
 	/*
