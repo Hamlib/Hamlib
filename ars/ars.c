@@ -333,7 +333,7 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
         if (curr_az < (az-AZ_RANGE))
             az_move = ROT_MOVE_RIGHT;
         else if (curr_az > (az+AZ_RANGE))
-            az_move = ROT_MOVE_RIGHT;
+            az_move = ROT_MOVE_LEFT;
         else
             az_move = 0;
 
@@ -387,6 +387,23 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     unsigned char status;
 
     par_lock (pport);
+
+    /* flush last sampled value, with a "short" read */
+    CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
+    usleep (PP_IO_PERIOD);
+
+    CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CS));
+    usleep (PP_IO_PERIOD);
+
+    CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
+    usleep (PP_IO_PERIOD);
+
+    CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
+    usleep (PP_IO_PERIOD);
+
+    CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CS));
+    /* end of "short" read */
+
 
     for (num_sample=0; num_sample < NUM_SAMPLES; num_sample++) {
 
