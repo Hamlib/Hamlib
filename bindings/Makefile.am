@@ -105,9 +105,6 @@ endif
 
 if ENABLE_PYTHON
 
-MOSTLYCLEANFILES+= hamlibpy_wrap.c Hamlib.py *.pyc
-BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
-
 python_ltlib = _Hamlib.la
 
 #pythondir = @pythondir@
@@ -118,11 +115,6 @@ _Hamlib_la_LIBADD = $(top_builddir)/src/libhamlib.la
 
 _Hamlib_ladir = $(pythondir)
 
-Hamlib.py: hamlibpy_wrap.c
-hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
-	$(SWIG) -python @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
-		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
-
 all-py: $(python_ltlib)
 
 check-py: all-py
@@ -130,14 +122,22 @@ check-py: all-py
 
 python_PYTHON = Hamlib.py
 
+_Hamlib_la_LTLIBRARIES = $(python_ltlib)
+
+endif
+
+MOSTLYCLEANFILES+= hamlibpy_wrap.c Hamlib.py *.pyc
+BUILT_SOURCES += hamlibpy_wrap.c Hamlib.py
+
+Hamlib.py: hamlibpy_wrap.c
+hamlibpy_wrap.c: hamlib.swg $(SWGDEP)
+	$(SWIG) -python @INCLUDES@ -I$(top_srcdir)/bindings -o $@ \
+		`test -f hamlib.swg || echo '$(srcdir)/'`hamlib.swg
+
 install-py:
 clean-py:
 distclean-py:
 uninstall-py: 
-
-_Hamlib_la_LTLIBRARIES = $(python_ltlib)
-
-endif
 
 ##########################################
 lib_LTLIBRARIES = $(tcl_ltlib)
