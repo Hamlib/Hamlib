@@ -275,6 +275,13 @@ static int scanfc(FILE *fin, const char *format, void *p)
 	} while(1);
 }
 
+#define fprintf_flush(f, a...) \
+            ({ int __ret; \
+               __ret = fprintf((f), a); \
+			   fflush((f)); \
+               __ret; \
+            })
+
 #define MAXARGSZ 127
 
 extern int interactive;
@@ -299,7 +306,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 
 	if (interactive) {
 		if (prompt)
-			fprintf(fout, "\nRig command: ");
+			fprintf_flush(fout, "\nRig command: ");
 
 		do {
 			if (scanfc(fin, "%c", &cmd) < 1)
@@ -346,7 +353,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 				if (last_was_ret) {
 					if (prompt) {
 						fprintf(fout, "? for help, q to quit.\n");
-						fprintf(fout, "\nRig command: ");
+						fprintf_flush(fout, "\nRig command: ");
 					}
 					return 0;
 				}
@@ -391,7 +398,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (!(cmd_entry->flags & ARG_NOVFO) && vfo_mode) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "VFO: ");
+				fprintf_flush(fout, "VFO: ");
 			if (scanfc(fin, "%s", arg1) < 1)
 				return -1;
 			vfo = rig_parse_vfo(arg1);
@@ -410,7 +417,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			char *nl;
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg1);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg1);
 			if (fgets(arg1, MAXARGSZ, fin) == NULL)
                 return -1;
 			if (arg1[0] == 0xa)
@@ -431,7 +438,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	  if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg1);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg1);
 			if (scanfc(fin, "%s", arg1) < 1)
 				return -1;
 			p1 = arg1;
@@ -447,7 +454,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg2);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg2);
 			if (scanfc(fin, "%s", arg2) < 1)
 				return -1;
 			p2 = arg2;
@@ -463,7 +470,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (p1 && p1[0] != '?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg3);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg3);
 			if (scanfc(fin, "%s", arg3) < 1)
 				return -1;
 			p3 = arg3;

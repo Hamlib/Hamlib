@@ -179,6 +179,14 @@ static int scanfc(FILE *fin, const char *format, void *p)
 	} while(1);
 }
 
+#define fprintf_flush(f, a...) \
+            ({ int __ret; \
+               __ret = fprintf((f), a); \
+                          fflush((f)); \
+               __ret; \
+            })
+
+
 #define MAXARGSZ 127
 
 extern int interactive;
@@ -203,7 +211,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
 	if (interactive) {
 		if (prompt)
-			fprintf(fout, "\nRotator command: ");
+			fprintf_flush(fout, "\nRotator command: ");
 
 		do {
 			if (scanfc(fin, "%c", &cmd) < 1)
@@ -249,7 +257,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (cmd == 0x0a || cmd == 0x0d) {
 				if (last_was_ret) {
 					if (prompt) {
-						fprintf(fout, "? for help, q to quit.\n");
+						fprintf_flush(fout, "? for help, q to quit.\n");
 					}
 					return 0;
 				}
@@ -286,7 +294,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
 	cmd_entry = find_cmd_entry(cmd);
 	if (!cmd_entry) {
-		fprintf(stderr, "Command '%c' not found!\n", cmd);
+		fprintf_flush(stderr, "Command '%c' not found!\n", cmd);
 		return 0;
 	}
 
@@ -297,7 +305,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 		if (interactive) {
 			char *nl;
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg1);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg1);
 			if (fgets(arg1, MAXARGSZ, fin) == NULL)
                 return -1;
 			if (arg1[0] == 0xa)
@@ -317,7 +325,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	} else 	if ((cmd_entry->flags & ARG_IN1) && cmd_entry->arg1) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg1);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg1);
 			if (scanfc(fin, "%s", arg1) < 1)
 				return -1;
 			p1 = arg1;
@@ -333,7 +341,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN2) && cmd_entry->arg2) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg2);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg2);
 			if (scanfc(fin, "%s", arg2) < 1)
 				return -1;
 			p2 = arg2;
@@ -349,7 +357,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN3) && cmd_entry->arg3) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg3);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg3);
 			if (scanfc(fin, "%s", arg3) < 1)
 				return -1;
 			p3 = arg3;
@@ -366,7 +374,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 	if (p1 && p1[0]!='?' && (cmd_entry->flags & ARG_IN4) && cmd_entry->arg4) {
 		if (interactive) {
 			if (prompt)
-				fprintf(fout, "%s: ", cmd_entry->arg4);
+				fprintf_flush(fout, "%s: ", cmd_entry->arg4);
 			if (scanfc(fin, "%s", arg4) < 1)
 				return -1;
 			p4 = arg4;
