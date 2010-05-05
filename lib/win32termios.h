@@ -61,11 +61,13 @@ typedef unsigned int    tcflag_t;
    interfaces.
 */
 
+#ifndef _TIMESPEC_DEFINED
 struct timespec
 {
 	time_t	tv_sec;
 	long	tv_nsec;
 };
+#endif
 
 #define NCCS 32
 struct termios
@@ -137,7 +139,7 @@ int win32_serial_select(int, struct fd_set *, struct fd_set *, struct fd_set *, 
 void termios_interrupt_event_loop( int , int );
 void termios_setflags( int , int[] );
 struct termios_list *find_port( int );
-int usleep(unsigned long usec);
+int usleep(unsigned int usec);
 int fcntl(int fd, int command, ...);
 const char *get_dos_port(const char *);
 void set_errno(int);

@@ -31,7 +31,7 @@ AC_CHECK_HEADERS([winioctl.h winbase.h], [], [], [
 	#endif
 ])
 
-AC_CHECK_FUNCS([getopt getopt_long usleep gettimeofday])
+AC_CHECK_FUNCS([getopt getopt_long usleep sleep gettimeofday])
 AC_CHECK_TYPES([struct timezone, ssize_t],[],[],[
      #if HAVE_SYS_TYPES_H
      # include <sys/types.h>
