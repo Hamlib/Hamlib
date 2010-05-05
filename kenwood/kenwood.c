@@ -186,7 +186,7 @@ transaction_write:
 
 	/* XXX the if is temporary, until all invocations are fixed */
 	if (cmdstr[len - 1] != ';' && cmdstr[len - 1] != '\r') {
-		cmd[len] = '\r';
+		cmd[len] = caps->cmdtrm;
 		len++;
 	}
 
