@@ -55,8 +55,9 @@
 #define CTL_PIN16   PARPORT_CONTROL_INIT
 #define CTL_PIN17   PARPORT_CONTROL_SELECT
 
-#define ARS_BRAKE_DELAY 100000 /* usecs */
-#define PP_IO_PERIOD 4000 /* usecs */
+#define ARS_BRAKE_DELAY  (100*1000) /* usecs */
+#define ARS_SETTLE_DELAY (500*1000) /* usecs */
+#define PP_IO_PERIOD (4*1000) /* usecs */
 #define NUM_SAMPLES 3
 
 /* Check return value, with appropriate unlocking upon error.
@@ -142,7 +143,8 @@ ars_init(ROT *rot)
     priv->pp_data = 0;
 
     priv->dac_res = 8; /* 8 bits vs. 10 bits DAC */
-    priv->brake_off = 0;
+    priv->brake_off = 0; /* i.e. brake is ON */
+    priv->curr_move = 0;
 
     rot->state.priv = (void*)priv;
 
@@ -190,9 +192,10 @@ ars_stop(ROT *rot)
     rig_debug(RIG_DEBUG_TRACE, "%s called, brake was %s\n", __func__,
             priv->brake_off ? "OFF" : "ON");
 
-    priv->brake_off = 0;
-
     par_lock (pport);
+
+    priv->brake_off = 0;
+    priv->curr_move = 0;
 
     // Relay AUX -> Off
     CHKPPRET(ars_clear_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN08));
@@ -211,11 +214,46 @@ ars_move(ROT *rot, int direction, int speed)
 {
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
     hamlib_port_t *pport = &rot->state.rotport;
+    int need_settle_delay = 0;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __func__, direction);
+    rig_debug(RIG_DEBUG_TRACE, "%s called%s%s%s%s%s\n", __func__,
+            direction & ROT_MOVE_LEFT  ? " LEFT" : "",
+            direction & ROT_MOVE_RIGHT ? " RIGHT" : "",
+            direction & ROT_MOVE_UP    ? " UP" : "",
+            direction & ROT_MOVE_DOWN  ? " DOWN" : "",
+            direction == 0             ? " STOP" : "");
 
     par_lock (pport);
 
+    /* Allow the rotator to settle down when changing direction */
+    if (((priv->curr_move & ROT_MOVE_LEFT) && (direction & ROT_MOVE_RIGHT)) ||
+        ((priv->curr_move & ROT_MOVE_RIGHT) && (direction & ROT_MOVE_LEFT))) {
+
+        // Relay AUX -> Off
+        CHKPPRET(ars_clear_data_pin(rot, DTA_PIN02 | DTA_PIN04 | DTA_PIN08));
+        CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN17 | CTL_PIN16));
+        need_settle_delay = 1;
+        priv->brake_off = 0;
+    }
+    if (ars_has_el(rot) &&
+            (((priv->curr_move & ROT_MOVE_UP) && (direction & ROT_MOVE_DOWN)) ||
+            ((priv->curr_move & ROT_MOVE_DOWN) && (direction & ROT_MOVE_UP)))) {
+
+        // Elevation Relays -> Off
+        CHKPPRET(ars_clear_data_pin(rot, DTA_PIN03 | DTA_PIN07));
+        need_settle_delay = 1;
+    }
+
+    if (need_settle_delay) {
+        rig_debug(RIG_DEBUG_TRACE, "%s need settling delay\n", __func__);
+
+        usleep(ARS_SETTLE_DELAY);
+    }
+
+    priv->curr_move = direction;
+
+
+    /* Brake handling, only for AZ */
     if (!priv->brake_off && (direction & (ROT_MOVE_LEFT|ROT_MOVE_RIGHT))) {
         /* release the brake */
         if (ars_has_el(rot)) {
@@ -304,16 +342,16 @@ static int angle_in_range(float angle, float angle_base, float range)
 }
 
 /*
- * TODO: watchdog: when rotor is not moving any more
  * TODO: make set_position asynchronous, with wait loop in background (pthread)
  */
 int
 ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
-    azimuth_t curr_az;
-    elevation_t curr_el;
+    azimuth_t curr_az, prev_az;
+    elevation_t curr_el, prev_el;
     int retval;
     int az_move, el_move;
+    struct timeval last_pos_az_tv, last_pos_el_tv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
 
@@ -323,8 +361,16 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
     if (retval != RIG_OK)
         return retval;
 
-    /* TODO: take into account DAC res (8 bits -> 1.4 deg at 360 deg) */
-#define AZ_RANGE 2.
+    /* watchdog init */
+    prev_az = curr_az;
+    prev_el = curr_el;
+    gettimeofday(&last_pos_az_tv, NULL);
+    last_pos_el_tv = last_pos_az_tv;
+
+    /* TODO: take into account DAC res (8 bits -> 1.4 deg at 360 deg)
+     * Rem: at 360 deg/mn, that's 6 deg/sec. 
+     */
+#define AZ_RANGE 3.
 #define EL_RANGE 2.
     while (!angle_in_range(curr_az, az, AZ_RANGE) ||
            (ars_has_el(rot) && !angle_in_range(curr_el, el, EL_RANGE))
@@ -349,19 +395,40 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
         }
 
         retval = ars_move(rot, az_move|el_move, 0);
-        if (retval != RIG_OK)
+        if (retval != RIG_OK) {
+            ars_stop(rot);
             return retval;
-
-#if 0
-        /* wait some?
-         * At 360 deg/mn, that's 6 deg/sec.
-         */
-        usleep(100000);
-#endif
+        }
 
         retval = ars_get_position(rot, &curr_az, &curr_el);
-        if (retval != RIG_OK)
+        if (retval != RIG_OK) {
+            ars_stop(rot);
             return retval;
+        }
+
+        /* Watchdog detecting when rotor is blocked unexpectedly */
+#define AZ_WATCHDOG 5000 /* ms */
+#define EL_WATCHDOG 5000 /* ms */
+        if (az_move != 0 && angle_in_range(curr_az, prev_az, AZ_RANGE)) {
+            if (rig_check_cache_timeout(&last_pos_az_tv, AZ_WATCHDOG)) {
+                ars_stop(rot);
+                return -RIG_ETIMEOUT;
+            }
+        } else {
+            prev_az = curr_az;
+            gettimeofday(&last_pos_az_tv, NULL);
+        }
+
+        if (el_move != 0 && ars_has_el(rot) &&
+                angle_in_range(curr_el, prev_el, EL_RANGE)) {
+            if (rig_check_cache_timeout(&last_pos_az_tv, EL_WATCHDOG)) {
+                ars_stop(rot);
+                return -RIG_ETIMEOUT;
+            }
+        } else {
+            prev_el = curr_el;
+            gettimeofday(&last_pos_el_tv, NULL);
+        }
     }
 
     return ars_stop(rot);
@@ -388,22 +455,26 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
 
     par_lock (pport);
 
-    /* flush last sampled value, with a "short" read */
+    /* flush last sampled value, with a dummy read */
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
     usleep (PP_IO_PERIOD);
 
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CS));
     usleep (PP_IO_PERIOD);
 
-    CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
-    usleep (PP_IO_PERIOD);
+    for (i = 0; i < priv->dac_res; i++) {
+        CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
+        usleep (PP_IO_PERIOD);
+
+        CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
+        usleep (PP_IO_PERIOD);
+    }
 
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CLK));
     usleep (PP_IO_PERIOD);
 
     CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CS));
-    /* end of "short" read */
-
+    /* end of dummy read */
 
     for (num_sample=0; num_sample < NUM_SAMPLES; num_sample++) {
 
@@ -472,7 +543,7 @@ const struct rot_caps rci_se8_rot_caps = {
   .mfg_name =       "EA4TX",
   .version =        "0.1",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_AZEL,
   .port_type =      RIG_PORT_PARALLEL,
   .write_delay =    0,

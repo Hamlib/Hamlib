@@ -25,6 +25,7 @@
 struct ars_priv_data {
     unsigned dac_res;
     int brake_off;
+    int curr_move;
     unsigned char pp_control;
     unsigned char pp_data;
 };
