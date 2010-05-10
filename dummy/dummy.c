@@ -64,7 +64,7 @@ struct dummy_priv_data {
         char *magic_conf;
 };
 
-
+/* levels pertain to each VFO */
 static const struct confparams dummy_ext_levels[] = {
 	{ TOK_EL_MAGICLEVEL, "MGL", "Magic level", "Magic level, as an example",
 		NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
@@ -78,6 +78,7 @@ static const struct confparams dummy_ext_levels[] = {
 	{ RIG_CONF_END, NULL, }
 };
 
+/* parms pertain to the whole rig */
 static const struct confparams dummy_ext_parms[] = {
 	{ TOK_EP_MAGICPARM, "MGP", "Magic parm", "Magic parameter, as an example",
 		NULL, RIG_CONF_NUMERIC, { .n = { 0, 1, .001 } }
@@ -85,6 +86,7 @@ static const struct confparams dummy_ext_parms[] = {
 	{ RIG_CONF_END, NULL, }
 };
 
+/* cfgparams are configuration item generally used by the backend's open() method */
 static const struct confparams dummy_cfg_params[] = {
 	{ TOK_CFG_MAGICCONF, "mcfg", "Magic conf", "Magic parameter, as an example",
 		"DX", RIG_CONF_STRING, { }
@@ -121,6 +123,23 @@ static void init_chan(RIG *rig, vfo_t vfo, channel_t *chan)
 
   chan->funcs = (setting_t)0;
   memset(chan->levels, 0, RIG_SETTING_MAX*sizeof(value_t));
+}
+
+static void copy_chan(channel_t *dest, const channel_t *src)
+{
+    struct ext_list *saved_ext_levels;
+    int i;
+
+    /* TODO: ext_levels[] of different sizes */
+
+    for (i=0; !RIG_IS_EXT_END(src->ext_levels[i]) &&
+            !RIG_IS_EXT_END(dest->ext_levels[i]); i++) {
+        dest->ext_levels[i] = src->ext_levels[i];
+    }
+
+    saved_ext_levels = dest->ext_levels;
+    memcpy(dest, src, sizeof(channel_t));
+    dest->ext_levels = saved_ext_levels;
 }
 
 static struct ext_list * alloc_init_ext(const struct confparams *cfp)
@@ -711,12 +730,10 @@ static int dummy_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %d\n",__FUNCTION__,
 				  rig_strfunc(func), status);
-  if (func < RIG_SETTING_MAX) {
-		if (status)
-			curr->funcs |=  func;
-  		else
-			curr->funcs &= ~func;
-  }
+  if (status)
+	curr->funcs |=  func;
+  else
+	curr->funcs &= ~func;
 
   return RIG_OK;
 }
@@ -727,8 +744,7 @@ static int dummy_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
   struct dummy_priv_data *priv = (struct dummy_priv_data *)rig->state.priv;
   channel_t *curr = priv->curr;
 
-  if (func < RIG_SETTING_MAX)
-		*status = curr->funcs & func ? 1 : 0;
+  *status = curr->funcs & func ? 1 : 0;
 
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__,
 				  rig_strfunc(func));
@@ -745,8 +761,10 @@ static int dummy_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
   char lstr[32];
 
   idx = rig_setting2idx(level);
-  if (idx < RIG_SETTING_MAX)
-  	curr->levels[idx] = val;
+  if (idx >= RIG_SETTING_MAX)
+      return -RIG_EINVAL;
+
+  curr->levels[idx] = val;
 
   if (RIG_LEVEL_IS_FLOAT(level))
 		  sprintf(lstr, "%f", val.f);
@@ -767,14 +785,26 @@ static int dummy_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
   idx = rig_setting2idx(level);
 
+  if (idx >= RIG_SETTING_MAX)
+      return -RIG_EINVAL;
+
   /* make S-Meter jiggle */
-  if (level == RIG_LEVEL_STRENGTH || level == RIG_LEVEL_RAWSTR)
-  	curr->levels[idx].i = -30 + time(NULL)%32 + rand()%4
+  if (level == RIG_LEVEL_STRENGTH || level == RIG_LEVEL_RAWSTR) {
+
+  	int qrm = -56;
+    if (curr->freq < MHz(7))
+        qrm = -20;
+    else if (curr->freq < MHz(21))
+        qrm = -30;
+    else if (curr->freq < MHz(50))
+        qrm = -50;
+
+  	curr->levels[idx].i = qrm + time(NULL)%32 + rand()%4
 		- curr->levels[LVL_ATT].i
 		+ curr->levels[LVL_PREAMP].i;
+  }
 
-  if (idx < RIG_SETTING_MAX)
-  	*val = curr->levels[idx];
+  *val = curr->levels[idx];
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__,
 				  rig_strlevel(level));
 
@@ -898,6 +928,8 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
   char pstr[32];
 
   idx = rig_setting2idx(parm);
+  if (idx >= RIG_SETTING_MAX)
+      return -RIG_EINVAL;
 
   if (RIG_PARM_IS_FLOAT(parm))
 		  sprintf(pstr, "%f", val.f);
@@ -905,8 +937,7 @@ static int dummy_set_parm(RIG *rig, setting_t parm, value_t val)
 		  sprintf(pstr, "%d", val.i);
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", __FUNCTION__,
 				  rig_strparm(parm), pstr);
-  if (idx < RIG_SETTING_MAX)
-  	priv->parms[idx] = val;
+  priv->parms[idx] = val;
 
   return RIG_OK;
 }
@@ -918,9 +949,10 @@ static int dummy_get_parm(RIG *rig, setting_t parm, value_t *val)
   int idx;
 
   idx = rig_setting2idx(parm);
+  if (idx >= RIG_SETTING_MAX)
+      return -RIG_EINVAL;
 
-  if (idx < RIG_SETTING_MAX)
-  	*val = priv->parms[idx];
+  *val = priv->parms[idx];
   rig_debug(RIG_DEBUG_VERBOSE,"%s called %s\n",__FUNCTION__,
 				  rig_strparm(parm));
 
@@ -1054,6 +1086,9 @@ static int dummy_set_mem(RIG *rig, vfo_t vfo, int ch)
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
+  if (ch < 0 || ch >= NB_CHAN)
+	return -RIG_EINVAL;
+
   if (priv->curr_vfo == RIG_VFO_MEM)
 		  priv->curr = &priv->mem[ch];
   else
@@ -1078,7 +1113,7 @@ static int dummy_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
 {
   rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %d\n",__FUNCTION__,
 				  rig_strscan(scan), ch);
-
+  /* TODO: change freq, etc. */
   return RIG_OK;
 }
 
@@ -1103,14 +1138,14 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 	  case RIG_OP_FROM_VFO:	/* VFO->MEM */
 			  if (priv->curr_vfo == RIG_VFO_MEM) {
 				int ch = curr->channel_num;
-			  	memcpy(curr, priv->last_vfo == RIG_VFO_A ?
-							  &priv->vfo_a : &priv->vfo_b, sizeof(channel_t));
+			  	copy_chan(curr, priv->last_vfo == RIG_VFO_A ?
+							  &priv->vfo_a : &priv->vfo_b);
 				curr->channel_num = ch;
 				curr->channel_desc[0] = '\0';
 				curr->vfo = RIG_VFO_MEM;
 			  } else {
 				channel_t *mem_chan = &priv->mem[curr->channel_num];
-			  	memcpy(mem_chan, curr, sizeof(channel_t));
+			  	copy_chan(mem_chan, curr);
 				mem_chan->channel_num = curr->channel_num;
 				mem_chan->channel_desc[0] = '\0';
 				mem_chan->vfo = RIG_VFO_MEM;
@@ -1120,21 +1155,20 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 			  if (priv->curr_vfo == RIG_VFO_MEM) {
 			    channel_t *vfo_chan = (priv->last_vfo == RIG_VFO_A) ?
 											&priv->vfo_a : &priv->vfo_b;
-			  	memcpy(vfo_chan, curr, sizeof(channel_t));
+			  	copy_chan(vfo_chan, curr);
 				chan_vfo(vfo_chan, priv->last_vfo);
 			  } else {
-			  	memcpy(&priv->mem[curr->channel_num],
-								curr, sizeof(channel_t));
+			  	copy_chan(&priv->mem[curr->channel_num], curr);
 				chan_vfo(curr, priv->curr_vfo);
 			  }
 			  break;
 	  case RIG_OP_CPY:	 /* VFO A = VFO B   or   VFO B = VFO A */
 			  if (priv->curr_vfo == RIG_VFO_A) {
-			  	memcpy(&priv->vfo_b, &priv->vfo_a, sizeof(channel_t));
+			  	copy_chan(&priv->vfo_b, &priv->vfo_a);
 				chan_vfo(&priv->vfo_b, RIG_VFO_B);
 				break;
 			  } else if (priv->curr_vfo == RIG_VFO_B) {
-			  	memcpy(&priv->vfo_a, &priv->vfo_b, sizeof(channel_t));
+			  	copy_chan(&priv->vfo_a, &priv->vfo_b);
 				chan_vfo(&priv->vfo_a, RIG_VFO_A);
 				break;
 			  }
@@ -1143,26 +1177,61 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 	  case RIG_OP_XCHG: /* Exchange VFO A/B */
 			  {
 				channel_t chan;
-			  	memcpy(&chan, &priv->vfo_b, sizeof(channel_t));
-			  	memcpy(&priv->vfo_b, &priv->vfo_a, sizeof(channel_t));
-			  	memcpy(&priv->vfo_a, &chan, sizeof(channel_t));
+				chan.ext_levels = alloc_init_ext(dummy_ext_levels);
+				if (!chan.ext_levels)
+					return -RIG_ENOMEM;
+			  	copy_chan(&chan, &priv->vfo_b);
+			  	copy_chan(&priv->vfo_b, &priv->vfo_a);
+			  	copy_chan(&priv->vfo_a, &chan);
 				chan_vfo(&priv->vfo_a, RIG_VFO_A);
 				chan_vfo(&priv->vfo_b, RIG_VFO_B);
+				free(chan.ext_levels);
 				break;
 			  }
 	  case RIG_OP_MCL:	/* Memory clear */
 			  if (priv->curr_vfo == RIG_VFO_MEM) {
-					int ch = curr->channel_num;
+					struct ext_list *saved_ext_levels = curr->ext_levels;
+					int saved_ch = curr->channel_num;
+					int i;
+
+					for (i=0; !RIG_IS_EXT_END(curr->ext_levels[i]); i++) {
+						curr->ext_levels[i].val.i = 0;
+					}
 				  	memset(curr, 0, sizeof(channel_t));
-					curr->channel_num = ch;
+					curr->ext_levels = saved_ext_levels;
+					curr->channel_num = saved_ch;
 					curr->vfo = RIG_VFO_MEM;
 			  } else {
+					struct ext_list *saved_ext_levels = curr->ext_levels;
 					channel_t *mem_chan = &priv->mem[curr->channel_num];
+					int i;
+
+					for (i=0; !RIG_IS_EXT_END(mem_chan->ext_levels[i]); i++) {
+						mem_chan->ext_levels[i].val.i = 0;
+					}
 				  	memset(mem_chan, 0, sizeof(channel_t));
+					mem_chan->ext_levels = saved_ext_levels;
 					mem_chan->channel_num = curr->channel_num;
 					mem_chan->vfo = RIG_VFO_MEM;
 			  }
 			  break;
+	  case RIG_OP_TOGGLE:
+			  if (priv->curr_vfo == RIG_VFO_A)
+				return dummy_set_vfo(rig, RIG_VFO_B);
+              else if (priv->curr_vfo == RIG_VFO_B)
+				return dummy_set_vfo(rig, RIG_VFO_A);
+              else
+				return -RIG_EVFO;
+
+	  case RIG_OP_RIGHT:
+	  case RIG_OP_LEFT:
+	  case RIG_OP_TUNE:
+			  /* NOP */
+			  break;
+	  case RIG_OP_BAND_UP:
+	  case RIG_OP_BAND_DOWN:
+		return -RIG_ENIMPL;
+
 	case RIG_OP_UP:
 		ret = dummy_get_freq(rig, vfo, &freq);
 		if (!ret) break;
@@ -1170,7 +1239,7 @@ static int dummy_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
 		if (!ret) break;
 		ret = dummy_set_freq(rig, vfo, freq+ts);	/* up */
 		break;
-        case RIG_OP_DOWN:
+	case RIG_OP_DOWN:
 		ret = dummy_get_freq(rig, vfo, &freq);
 		if (!ret) break;
 		ret = dummy_get_ts(rig, vfo, &ts);
@@ -1191,19 +1260,27 @@ static int dummy_set_channel(RIG *rig, const channel_t *chan)
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
-  /* TODO: check chan->channel_num is in a valid range */
+  if (!chan->ext_levels)
+      return -RIG_EINVAL;
+
+  if (chan->channel_num < 0 || chan->channel_num >= NB_CHAN)
+      return -RIG_EINVAL;
+
+  /* TODO:
+   * - check ext_levels is the right length
+   */
   switch (chan->vfo) {
 	  case RIG_VFO_MEM:
-	  	memcpy(&priv->mem[chan->channel_num], chan, sizeof(channel_t));
+	  	copy_chan(&priv->mem[chan->channel_num], chan);
 		break;
 	  case RIG_VFO_A:
-	  	memcpy(&priv->vfo_a, chan, sizeof(channel_t));
+	  	copy_chan(&priv->vfo_a, chan);
 		break;
 	  case RIG_VFO_B:
-	  	memcpy(&priv->vfo_b, chan, sizeof(channel_t));
+	  	copy_chan(&priv->vfo_b, chan);
 		break;
 	  case RIG_VFO_CURR:
-	  	memcpy(priv->curr, chan, sizeof(channel_t));
+	  	copy_chan(priv->curr, chan);
 		break;
 	  default:
 		return -RIG_EINVAL;
@@ -1219,19 +1296,27 @@ static int dummy_get_channel(RIG *rig, channel_t *chan)
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
-  /* TODO: check chan->channel_num is in a valid range */
+  if (!chan->ext_levels)
+      return -RIG_EINVAL;
+
+  if (chan->channel_num < 0 || chan->channel_num >= NB_CHAN)
+      return -RIG_EINVAL;
+
+  /* TODO:
+   * - check ext_levels is the right length
+   */
   switch (chan->vfo) {
 	  case RIG_VFO_MEM:
-	  	memcpy(chan, &priv->mem[chan->channel_num], sizeof(channel_t));
+	  	copy_chan(chan, &priv->mem[chan->channel_num]);
 		break;
 	  case RIG_VFO_A:
-	  	memcpy(chan, &priv->vfo_a, sizeof(channel_t));
+	  	copy_chan(chan, &priv->vfo_a);
 		break;
 	  case RIG_VFO_B:
-	  	memcpy(chan, &priv->vfo_b, sizeof(channel_t));
+	  	copy_chan(chan, &priv->vfo_b);
 		break;
 	  case RIG_VFO_CURR:
-	  	memcpy(chan, priv->curr, sizeof(channel_t));
+	  	copy_chan(chan, priv->curr);
 		break;
 	  default:
 		return -RIG_EINVAL;
@@ -1336,6 +1421,8 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
 #define DUMMY_VFO_OP  0x7ffffffL
 #define DUMMY_SCAN	0x7ffffffL
 
+#define DUMMY_VFOS (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
+
 #define DUMMY_MODES (RIG_MODE_AM | RIG_MODE_CW | RIG_MODE_RTTY | \
                      RIG_MODE_SSB | RIG_MODE_FM | RIG_MODE_WFM | \
                      RIG_MODE_CWR | RIG_MODE_RTTYR)
@@ -1372,7 +1459,7 @@ const struct rig_caps dummy_caps = {
   .rig_model =      RIG_MODEL_DUMMY,
   .model_name =     "Dummy",
   .mfg_name =       "Hamlib",
-  .version =        "0.4",
+  .version =        "0.5",
   .copyright =      "LGPL",
   .status =         RIG_STATUS_BETA,
   .rig_type =       RIG_TYPE_OTHER,
@@ -1392,7 +1479,7 @@ const struct rig_caps dummy_caps = {
   .chan_list = 	 {
 			{   0,  18, RIG_MTYPE_MEM, DUMMY_MEM_CAP },
 			{  19,  19, RIG_MTYPE_CALL },
-			{  20,  21, RIG_MTYPE_EDGE },
+			{  20,  NB_CHAN-1, RIG_MTYPE_EDGE },
 			RIG_CHAN_END,
 		 },
   .scan_ops = 	 DUMMY_SCAN,
@@ -1400,8 +1487,12 @@ const struct rig_caps dummy_caps = {
   .transceive =     RIG_TRN_OFF,
   .attenuator =     { 10, 20, 30, RIG_DBLST_END, },
   .preamp = 		 { 10, RIG_DBLST_END, },
+  .rx_range_list1 =  { {.start=kHz(150),.end=MHz(1500),.modes=DUMMY_MODES,
+                        .low_power=-1,.high_power=-1,DUMMY_VFOS, RIG_ANT_1|RIG_ANT_2},
+                        RIG_FRNG_END, },
+  .tx_range_list1 =  { RIG_FRNG_END, },
   .rx_range_list2 =  { {.start=kHz(150),.end=MHz(1500),.modes=DUMMY_MODES,
-                        .low_power=-1,.high_power=-1,RIG_VFO_A|RIG_VFO_B, RIG_ANT_1|RIG_ANT_2},
+                        .low_power=-1,.high_power=-1,DUMMY_VFOS, RIG_ANT_1|RIG_ANT_2},
                         RIG_FRNG_END, },
   .tx_range_list2 =  { RIG_FRNG_END, },
   .tuning_steps =  { {DUMMY_MODES,1}, {DUMMY_MODES,RIG_TS_ANY}, RIG_TS_END, },
