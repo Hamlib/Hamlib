@@ -26,7 +26,9 @@ AC_CHECK_TYPES([struct addrinfo],[],[],[
      #if HAVE_NETDB_H
      # include <netdb.h>
      #endif
-     #ifdef HAVE_WS2TCPIP_H
+     #ifdef HAVE_SYS_SOCKET_H
+     # include <sys/socket.h>
+     #elif HAVE_WS2TCPIP_H
      # include <ws2tcpip.h>
      #endif
   ])
