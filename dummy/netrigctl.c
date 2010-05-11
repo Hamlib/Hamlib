@@ -1,8 +1,7 @@
 /*
  *  Hamlib Netrigctl backend - main file
- *  Copyright (c) 2001-2008 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *
- *	$Id: netrigctl.c,v 1.3 2008-11-02 17:32:37 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -35,12 +34,14 @@
 #include "hamlib/rig.h"
 #include "iofunc.h"
 #include "misc.h"
+#include "num_stdio.h"
 
 #include "dummy.h"
 
 #define CMD_MAX 32
 #define BUF_MAX 96
 
+#define CHKSCN1ARG(a) if ((a) != 1) return -RIG_EPROTO; else do {} while(0)
 
 /*
  * Helper function with protocol return code parsing
@@ -107,7 +108,7 @@ static int netrigctl_open(RIG *rig)
 	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
+	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
 		&rs->rx_range_list[i].start,
 		&rs->rx_range_list[i].end,
 		&rs->rx_range_list[i].modes,
@@ -126,7 +127,7 @@ static int netrigctl_open(RIG *rig)
 	if (ret <= 0)
 		return (ret < 0) ? ret : -RIG_EPROTO;
 
-	ret = sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
+	ret = num_sscanf(buf, "%"SCNfreq"%"SCNfreq"%x%d%d%x%x",
 		&rs->tx_range_list[i].start,
 		&rs->tx_range_list[i].end,
 		&rs->tx_range_list[i].modes,
@@ -315,7 +316,7 @@ static int netrigctl_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  sscanf(buf, "%"SCNfreq, freq);
+  CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, freq));
 
   return RIG_OK;
 }
@@ -724,7 +725,7 @@ static int netrigctl_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
   if (ret <= 0)
 	return (ret < 0) ? ret : -RIG_EPROTO;
 
-  sscanf(buf, "%"SCNfreq, tx_freq);
+  CHKSCN1ARG(num_sscanf(buf, "%"SCNfreq, tx_freq));
 
   return RIG_OK;
 }
