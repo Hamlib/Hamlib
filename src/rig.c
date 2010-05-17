@@ -474,6 +474,9 @@ int HAMLIB_API rig_open(RIG *rig)
 		break;
 	case RIG_PTT_SERIAL_RTS:
 	case RIG_PTT_SERIAL_DTR:
+		if (rs->pttport.pathname[0] == '\0' &&
+				rs->rigport.type.rig == RIG_PORT_SERIAL)
+			strcpy(rs->pttport.pathname, rs->rigport.pathname);
 		rs->pttport.fd = ser_open(&rs->pttport);
 		if (rs->pttport.fd < 0)
 			rig_debug(RIG_DEBUG_ERR, "Cannot open PTT device \"%s\"\n",
@@ -499,6 +502,9 @@ int HAMLIB_API rig_open(RIG *rig)
 	case RIG_DCD_SERIAL_DSR:
 	case RIG_DCD_SERIAL_CTS:
 	case RIG_DCD_SERIAL_CAR:
+		if (rs->dcdport.pathname[0] == '\0' &&
+				rs->rigport.type.rig == RIG_PORT_SERIAL)
+			strcpy(rs->dcdport.pathname, rs->rigport.pathname);
 		rs->dcdport.fd = ser_open(&rs->dcdport);
 		if (rs->dcdport.fd < 0)
 			rig_debug(RIG_DEBUG_ERR, "Cannot open DCD device \"%s\"\n",
