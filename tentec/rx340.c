@@ -2,7 +2,6 @@
  *  Hamlib TenTenc backend - RX-340 description
  *  Copyright (c) 2003-2009 by Stephane Fillod
  *
- *	$Id: rx340.c,v 1.1 2004-05-03 22:33:13 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,7 +87,7 @@ const struct rig_caps rx340_caps = {
 .rig_model =  RIG_MODEL_RX340,
 .model_name = "RX-340",
 .mfg_name =  "Ten-Tec",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_RECEIVER,
@@ -396,7 +395,7 @@ int rx340_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			return -RIG_EPROTO;
 	}
 
-    if (num_sscanf(buf+2, "%lf", &f) != 1)
+    if (num_sscanf(buf+3, "%lf", &f) != 1)
         return -RIG_EPROTO;
     
 	*width = f*1e3;
