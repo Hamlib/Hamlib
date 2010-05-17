@@ -4,7 +4,7 @@
 YAESUSRC =  ft100.c ft747.c ft817.c ft847.c ft890.c ft900.c ft920.c \
 		ft1000mp.c ft857.c ft897.c ft990.c frg8800.c \
 		ft757gx.c ft736.c frg100.c frg9600.c ft1000d.c \
-		vr5000.c ft767gx.c ft840.c
+		vr5000.c ft767gx.c ft840.c ft980.c
 
 ## Yaesu radios that use the new Kenwood style CAT commands		
 NEWCATSRC = newcat.c ft450.c ft950.c ft2000.c ft9000.c
