@@ -95,7 +95,10 @@ typedef struct _ft980_memory_t {
  */
 struct ft980_priv_data {
     _ft980_memory_t update_data;          /* returned data */
+    struct timeval status_tv;             /* update_data caching */
 };
+
+#define UPDATE_DATA_OFS(p, o) (((unsigned char*)((p)+1))-(o))
 
 static const char cmd_OK[YAESU_CMD_LENGTH]     = { 0x00, 0x00, 0x00, 0x00, 0x0B};
 static const char cmd_ON_OFF[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -135,6 +138,8 @@ static int ft980_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs);
                     .mode = 1,       \
                     .width = 1,      \
 }
+
+#define FT980_CACHE_TIMEOUT 500 /* ms */
 
 /*
  * ft980 rigs capabilities.
@@ -548,7 +553,7 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data, i
     int retval;
     char echo_back[YAESU_CMD_LENGTH];
 
-    /* serial_flush(&rig->state.rigport); */
+    serial_flush(&rig->state.rigport);
 
     retval = write_block(&rig->state.rigport, (const char *)cmd, YAESU_CMD_LENGTH);
     if (retval < 0)
@@ -569,7 +574,7 @@ int ft980_transaction(RIG *rig, const unsigned char *cmd, unsigned char *data, i
     if (retval < 0)
         return retval;
 
-    if (retval != YAESU_CMD_LENGTH)
+    if (retval != expected_len)
         return -RIG_EPROTO;
 
     return RIG_OK;
@@ -581,9 +586,15 @@ int ft980_get_status_data(RIG *rig)
   struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
   int retval;
 
+  if (!rig_check_cache_timeout(&priv->status_tv, FT980_CACHE_TIMEOUT))
+      return RIG_OK;
+
   retval = ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data, 148);
   if (retval != RIG_OK)
       return retval;
+
+  /* update cache date */
+  gettimeofday(&priv->status_tv, NULL);
 
   dump_memory(&priv->update_data);
 
@@ -608,6 +619,8 @@ int ft980_open(RIG *rig)
       return -RIG_ENOMEM;
 
   priv = (struct ft980_priv_data *)rig->state.priv;
+
+  memset(priv, 0, sizeof(struct ft980_priv_data));
 
   /* send Ext Cntl ON: Activate CAT */
   do {
@@ -663,7 +676,7 @@ int ft980_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   to_bcd(cmd,freq/10,8);
 
   /* Frequency set */
-  return ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data, 5);
+  return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,5), 5);
 }
 
 int ft980_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
@@ -723,7 +736,7 @@ int ft980_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   cmd[3] = md;
 
   /* Mode set */
-  return ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data, 22);
+  return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,22), 22);
 }
 
 /*
@@ -829,13 +842,12 @@ int ft980_set_mem(RIG *rig, vfo_t vfo, int ch)
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x0A };
   struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
 
-  if (ch >= 16)
+  if (ch >= 16 || ch < 1)
       return -RIG_EINVAL;
 
   cmd[3] = ch-1;
 
-  /* Frequency set */
-  return ft980_transaction(rig, cmd, (unsigned char *)&priv->update_data, 22);
+  return ft980_transaction(rig, cmd, UPDATE_DATA_OFS(&priv->update_data,22), 22);
 }
 
 int ft980_get_mem(RIG *rig, vfo_t vfo, int *ch)
@@ -843,7 +855,6 @@ int ft980_get_mem(RIG *rig, vfo_t vfo, int *ch)
   struct ft980_priv_data *priv = (struct ft980_priv_data *)rig->state.priv;
   int retval;
 
-  /* Frequency get */
   retval = ft980_get_status_data(rig);
   if (retval != RIG_OK)
       return retval;
