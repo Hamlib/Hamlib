@@ -1,0 +1,319 @@
+/*
+ *  Hamlib Rotator backend - M2 RC2800
+ *
+ *   This library is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU Library General Public License as
+ *   published by the Free Software Foundation; either version 2 of
+ *   the License, or (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU Library General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Library General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <math.h>
+#include <ctype.h>
+
+#include "hamlib/rotator.h"
+#include "serial.h"
+#include "misc.h"
+#include "register.h"
+
+#include "rc2800.h"
+
+#define CR "\r"
+
+#define BUFSZ 64
+
+/*
+  The continuous output of some of the RC2800
+  models can be a nuisance.  Even if we flush
+  the input stream before sending the command,
+  there may be partial sentence in the stream
+  ahead of the data we want.
+
+*/
+
+
+/*
+  rc2800_parse
+
+  Parse output from the rotator controller
+
+  We want to recognize the following sentences:
+  A ERR=<n><cr>
+  E ERR=<n><cr>
+  A P=<ff.f> S=<n> <s><cr>
+  E P=<ff.f> S=<n> <s><cr>
+  A=<ff.f> S=<n> <s><cr>
+  E=<ff.f> S=<n> <s><cr>
+*/
+
+static int rc2800_parse (char *s, char *device, float *value)
+{
+  int i, msgtype=0, errcode=0;
+
+  rig_debug(RIG_DEBUG_TRACE, "device return->%s", s);
+  
+  int len = strlen(s);
+  if (len == 0)
+    return RIG_EPROTO;
+  
+  if (len > 7)
+  {
+    if (*s == 'A' || *s == 'E') 
+    {
+      *device = *s;
+    
+      if (!strncmp(s+2, "ERR=", 4))
+      {
+        msgtype=1;
+        i = sscanf(s+6, "%d", &errcode);
+      }
+      else if (!strncmp(s+2, "P=", 2))
+      {
+        msgtype=2;
+        i = sscanf(s+5, "%f", value);
+      }
+      else if (s[1] == '=')
+      {
+        msgtype=2;
+        i = sscanf(s+2, "%f", value);
+      }
+    }
+  }
+
+  if (msgtype == 2)
+  {
+    rig_debug(RIG_DEBUG_TRACE, "device=%c value=%3.1f\n", *device, *value);
+    return RIG_OK;
+  } 
+  else if (msgtype == 1)
+  {
+    rig_debug(RIG_DEBUG_TRACE, "driver error code %d\n", errcode);
+    *device = ' ';
+    return RIG_OK;
+  } 
+   
+  return RIG_EPROTO;
+}
+
+
+#if 0
+int testmain ()
+{
+  rc2800_parse("A P=  98.1 S=9 MV");
+  rc2800_parse("A P= 100.0 S=9 MV");
+  rc2800_parse("E=43.7 S=9 M");
+  rc2800_parse("E=42.8 S=9 S");
+  rc2800_parse("E ERR=05");
+  return 0;
+}
+#endif
+
+
+
+
+/**
+ * rc2800_transaction
+ *
+ * cmdstr - Command to be sent to the rig.
+ * data - Buffer for reply string.  Can be NULL, indicating that no reply is
+ *        is needed, but answer will still be read.
+ * data_len - in: Size of buffer. It is the caller's responsibily to provide
+ *            a large enough buffer for all possible replies for a command.
+ *
+ * returns:
+ *   RIG_OK  -  if no error occured.
+ *   RIG_EIO  -  if an I/O error occured while sending/receiving data.
+ *   RIG_ETIMEOUT  -  if timeout expires without any characters received.
+ */
+static int
+rc2800_transaction (ROT *rot, const char *cmdstr,
+                    char *data, size_t data_len)
+{
+    struct rot_state *rs;
+    int retval;
+    int retry_read = 0;
+    char replybuf[BUFSZ];
+
+    rs = &rot->state;
+
+transaction_write:
+
+    serial_flush(&rs->rotport);
+
+    if (cmdstr) {
+        retval = write_block(&rs->rotport, cmdstr, strlen(cmdstr));
+        if (retval != RIG_OK)
+            goto transaction_quit;
+    }
+
+    /* Always read the reply to know whether the cmd went OK */
+    if (!data)
+        data = replybuf;
+    if (!data_len)
+        data_len = BUFSZ;
+
+    memset(data,0,data_len);
+    retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
+    if (retval < 0) {
+        if (retry_read++ < rot->state.rotport.retry)
+            goto transaction_write;
+        goto transaction_quit;
+    }
+
+    retval = RIG_OK;
+transaction_quit:
+    return retval;
+}
+
+
+static int
+rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
+{
+  char cmdstr[64];
+  int retval1, retval2;
+  
+  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+  
+  sprintf(cmdstr, "A\r%3.1f\r", az);
+  retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
+
+  sprintf(cmdstr, "E\r%3.1f\r", el);
+  retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
+
+  if (retval1 == retval2)
+    return retval1;
+  return (retval1 != RIG_OK ? retval1 : retval2);
+}
+
+static int
+rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
+{
+  char posbuf[32];
+  int retval;
+  char device;
+  float value;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+
+  retval = rc2800_transaction(rot, "A" CR, posbuf, sizeof(posbuf));
+  if (retval != RIG_OK || strlen(posbuf) < 5) {
+    return retval < 0 ? retval : -RIG_EPROTO;
+  }
+
+  if (rc2800_parse(posbuf, &device, &value) == RIG_OK) {
+    if (device == 'A')
+      *az = (azimuth_t) value;
+    else
+      return RIG_EPROTO;
+  }
+
+  retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
+
+  if (retval != RIG_OK || strlen(posbuf) < 5) {
+    return retval < 0 ? retval : -RIG_EPROTO;
+  }
+
+  if (rc2800_parse(posbuf, &device, &value) == RIG_OK) {
+    if (device == 'E')
+      *el = (elevation_t) value;
+    else
+      return RIG_EPROTO;
+  }
+
+  rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
+            __FUNCTION__, *az, *el);
+
+  return RIG_OK;
+}
+
+static int
+rc2800_rot_stop(ROT *rot)
+{
+  int retval;
+
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+
+  /* TODO: check each return value (do we care?) */
+
+  /* Stop AZ*/
+  retval = rc2800_transaction(rot, "A" CR, NULL, 0); /* select AZ */
+  retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
+  
+  /* Stop EL*/
+  retval = rc2800_transaction(rot, "E" CR, NULL, 0); /* select EL */
+  retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
+  
+  return retval;
+}
+
+
+
+
+
+
+/* ************************************************************************* */
+/*
+ * M2 RC2800 rotator capabilities.
+ */
+
+const struct rot_caps rc2800_rot_caps = {
+  .rot_model =      ROT_MODEL_RC2800,
+  .model_name =     "RC2800",
+  .mfg_name =       "M2",
+  .version =        "0.1",
+  .copyright = 	    "LGPL",
+  .status =         RIG_STATUS_ALPHA,
+  .rot_type =       ROT_TYPE_AZEL,
+  .port_type =      RIG_PORT_SERIAL,
+  .serial_rate_min  = 9600,
+  .serial_rate_max  = 9600,
+  .serial_data_bits = 8,
+  .serial_stop_bits = 1,
+  .serial_parity    = RIG_PARITY_NONE,
+  .serial_handshake = RIG_HANDSHAKE_NONE,
+  .write_delay      = 0,
+  .post_write_delay = 0,
+  .timeout          = 400,
+  .retry            = 3,
+
+  .min_az = 	0.0,
+  .max_az =  	450.0,
+  .min_el = 	0.0,
+  .max_el =  	180.0,
+
+  .get_position = rc2800_rot_get_position,
+  .set_position = rc2800_rot_set_position,
+  .stop         = rc2800_rot_stop,
+};
+
+/* ************************************************************************* */
+
+DECLARE_INITROT_BACKEND(m2)
+{
+  rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
+
+  rot_register(&rc2800_rot_caps);
+
+  return RIG_OK;
+}
+
+/* ************************************************************************* */
+/* end of file */
+

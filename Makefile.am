@@ -18,7 +18,7 @@ DIST_SUBDIRS = macros include lib $(subdirs) src c++ bindings tests doc \
 	icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc \
 	rpcrig winradio easycomm fodtrack rpcrot drake rotorez \
 	flexradio sartek lowe rft rs tapr kit skanti wj racal tuner \
-	gs232a heathkit spid ars
+	gs232a heathkit spid ars m2
 
 rpm: Makefile
 	make dist
