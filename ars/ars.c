@@ -57,7 +57,7 @@
 
 #define ARS_BRAKE_DELAY  (100*1000) /* usecs */
 #define ARS_SETTLE_DELAY (500*1000) /* usecs */
-#define PP_IO_PERIOD (4*1000) /* usecs */
+#define PP_IO_PERIOD (25) /* usecs */
 #define NUM_SAMPLES 3
 
 /* Check return value, with appropriate unlocking upon error.
@@ -399,6 +399,9 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
             ars_stop(rot);
             return retval;
         }
+
+        /* wait a little */
+        usleep(10*1000);
 
         retval = ars_get_position(rot, &curr_az, &curr_el);
         if (retval != RIG_OK) {
