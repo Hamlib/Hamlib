@@ -31,6 +31,10 @@
 #include <sys/ioctl.h>
 #endif
 
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#endif
+
 #include "hamlib/rotator.h"
 #include "parallel.h"
 #include "misc.h"
@@ -60,6 +64,12 @@
 #define PP_IO_PERIOD (25) /* usecs */
 #define NUM_SAMPLES 3
 
+/* TODO: take into account ADC res (8 bits -> 1.4 deg at 360 deg)
+ * Rem: at 360 deg/mn, that's 6 deg/sec. 
+ */
+#define AZ_RANGE 3.
+#define EL_RANGE 2.
+
 /* Check return value, with appropriate unlocking upon error.
  * Assumes "rot" variable is current ROT pointer.
  */
@@ -73,8 +83,13 @@ static int ars_open(ROT *rot);
 static int ars_close(ROT *rot);
 static int ars_stop(ROT *rot);
 static int ars_move(ROT *rot, int direction, int speed);
+static int ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el);
 static int ars_set_position(ROT *rot, azimuth_t az, elevation_t el);
 static int ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el);
+
+#ifdef HAVE_PTHREAD
+static void *handle_set_position(void*);
+#endif
 
 /* ************************************************************************* */
 
@@ -142,7 +157,7 @@ ars_init(ROT *rot)
     priv->pp_control = 0;
     priv->pp_data = 0;
 
-    priv->dac_res = 8; /* 8 bits vs. 10 bits DAC */
+    priv->adc_res = 8; /* 8 bits vs. 10 bits ADC */
     priv->brake_off = 0; /* i.e. brake is ON */
     priv->curr_move = 0;
 
@@ -171,12 +186,41 @@ ars_open(ROT *rot)
     /* make it idle, and known state */
     ars_stop(rot);
 
+#ifdef HAVE_PTHREAD
+    {
+        struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+        pthread_attr_t attr;
+        int retcode;
+
+        /* make handle_set_position() quiet at startup */
+        retcode = ars_get_position(rot, &priv->target_az, &priv->target_el);
+        if (retcode != RIG_OK)
+            return retcode;
+
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+        /* create behind-the-scene thread doing the ars_set_position_sync() */
+        retcode = pthread_create(&priv->thread, &attr, handle_set_position, rot);
+        if (retcode != RIG_OK) {
+            rig_debug(RIG_DEBUG_ERR, "%s: pthread_create: %s\n", __func__, strerror(retcode));
+            return -RIG_ENOMEM;
+        }
+    }
+#endif
+
     return RIG_OK;
 }
 
 int
 ars_close(ROT *rot)
 {
+#ifdef HAVE_PTHREAD
+    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+
+    pthread_cancel(priv->thread);
+#endif
+
     /* leave it in safe state */
     ars_stop(rot);
 
@@ -335,17 +379,61 @@ ars_move(ROT *rot, int direction, int speed)
     return RIG_OK;
 }
 
-
 static int angle_in_range(float angle, float angle_base, float range)
 {
     return (angle >= angle_base-range && angle <= angle_base+range);
 }
 
 /*
- * TODO: make set_position asynchronous, with wait loop in background (pthread)
+ * Thread handler
+ */
+#ifdef HAVE_PTHREAD
+static void *handle_set_position(void *arg)
+{
+    ROT *rot = (ROT*) arg;
+    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+    azimuth_t curr_az;
+    elevation_t curr_el;
+    int retcode;
+
+    while (1) {
+
+        retcode = ars_get_position(rot, &curr_az, &curr_el);
+        if (retcode != RIG_OK) {
+            rig_debug(RIG_DEBUG_WARN, "%s: ars_get_position() failed: %s\n",
+                    __func__, rigerror(retcode));
+            usleep(1000*1000);
+            continue;
+        }
+
+        if (angle_in_range(curr_az, priv->target_az, AZ_RANGE) &&
+            (!ars_has_el(rot) || angle_in_range(curr_el, priv->target_el, EL_RANGE)))
+        {
+            /* polling period */
+            usleep(100*1000);
+            continue;
+        }
+
+        retcode = ars_set_position_sync(rot, priv->target_az, priv->target_el);
+        if (retcode != RIG_OK) {
+            rig_debug(RIG_DEBUG_WARN, "%s: ars_set_position_sync() failed: %s\n",
+                    __func__, rigerror(retcode));
+            usleep(1000*1000);
+            continue;
+        }
+    }
+
+    return NULL;
+}
+#endif
+
+/*
+ * ars_set_position_sync() is synchronous.
+ * See handle_set_position_async() for asynchronous thread handler,
+ * with wait loop in background
  */
 int
-ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
+ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el)
 {
     azimuth_t curr_az, prev_az;
     elevation_t curr_el, prev_el;
@@ -353,7 +441,7 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
     int az_move, el_move;
     struct timeval last_pos_az_tv, last_pos_el_tv;
 
-    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %.1f %.1f\n", __func__, az, el);
 
     ars_stop(rot);
 
@@ -367,11 +455,6 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
     gettimeofday(&last_pos_az_tv, NULL);
     last_pos_el_tv = last_pos_az_tv;
 
-    /* TODO: take into account DAC res (8 bits -> 1.4 deg at 360 deg)
-     * Rem: at 360 deg/mn, that's 6 deg/sec. 
-     */
-#define AZ_RANGE 3.
-#define EL_RANGE 2.
     while (!angle_in_range(curr_az, az, AZ_RANGE) ||
            (ars_has_el(rot) && !angle_in_range(curr_el, el, EL_RANGE))
           ) {
@@ -437,6 +520,21 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
     return ars_stop(rot);
 }
 
+int
+ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
+{
+#ifdef HAVE_PTHREAD
+    struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
+
+    /* will be picked by handle_set_position() next polling tick */
+    priv->target_az = az;
+    priv->target_el = el;
+
+    return RIG_OK;
+#else
+    return ars_set_position_sync(rot, az, el);
+#endif
+}
 
 static int comparunsigned(const void *a, const void *b)
 {
@@ -465,7 +563,7 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     CHKPPRET(ars_clear_ctrl_pin(rot, CTL_PIN_CS));
     usleep (PP_IO_PERIOD);
 
-    for (i = 0; i < priv->dac_res; i++) {
+    for (i = 0; i < priv->adc_res; i++) {
         CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
         usleep (PP_IO_PERIOD);
 
@@ -493,7 +591,7 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         az_samples[num_sample] = 0;
         el_samples[num_sample] = 0;
 
-        for (i = 0; i < priv->dac_res; i++) {
+        for (i = 0; i < priv->adc_res; i++) {
             CHKPPRET(ars_set_ctrl_pin(rot, CTL_PIN_CLK));
             usleep (PP_IO_PERIOD);
 
@@ -526,8 +624,8 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     az_value = az_samples[NUM_SAMPLES/2];
     el_value = el_samples[NUM_SAMPLES/2];
 
-    *az = rs->min_az + ((float)az_value * (rs->max_az - rs->min_az)) / ((1 << priv->dac_res)-1);
-    *el = rs->min_el + ((float)el_value * (rs->max_el - rs->min_el)) / ((1 << priv->dac_res)-1);
+    *az = rs->min_az + ((float)az_value * (rs->max_az - rs->min_az)) / ((1 << priv->adc_res)-1);
+    *el = rs->min_el + ((float)el_value * (rs->max_el - rs->min_el)) / ((1 << priv->adc_res)-1);
 
     rig_debug(RIG_DEBUG_TRACE, "%s: az=%.1f el=%.1f\n", __func__, *az, *el);
 

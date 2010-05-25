@@ -22,12 +22,19 @@
 #ifndef _ROT_ARS_H
 #define _ROT_ARS_H 1
 
+#include "hamlib/rig.h"
+
 struct ars_priv_data {
-    unsigned dac_res;
+    unsigned adc_res;
     int brake_off;
     int curr_move;
     unsigned char pp_control;
     unsigned char pp_data;
+#ifdef HAVE_PTHREAD
+    pthread_t thread;
+    azimuth_t target_az;
+    elevation_t target_el;
+#endif
 };
 
 extern const struct rot_caps rci_se8_rot_caps;
