@@ -1,8 +1,7 @@
 /*
  *  Hamlib Interface - parallel communication low-level support
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: parallel.c,v 1.6 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -88,6 +87,30 @@
  */
 #define SP_ACTIVE_LOW_BITS	0x80
 
+/*
+   Pinout table of parallel port from http://en.wikipedia.org/wiki/Parallel_port#Pinouts
+
+   Pin No (DB25)  Signal name     Direction  Register-bit Inverted
+        1         *Strobe         In/Out     Control-0    Yes
+        2         Data0           Out        Data-0       No
+        3         Data1           Out        Data-1       No
+        4         Data2           Out        Data-2       No
+        5         Data3           Out        Data-3       No
+        6         Data4           Out        Data-4       No
+        7         Data5           Out        Data-5       No
+        8         Data6           Out        Data-6       No
+        9         Data7           Out        Data-7       No
+        10        *Ack            In         Status-6     No
+        11        Busy            In         Status-7     Yes
+        12        Paper-Out       In         Status-5     No
+        13        Select          In         Status-4     No
+        14        Linefeed        In/Out     Control-1    Yes
+        15        *Error          In         Status-3     No
+        16        *Reset          In/Out     Control-2    No
+        17        *Select-Printer In/Out     Control-3    Yes
+
+        * means low true, e.g., *Strobe.
+ */
 
 /**
  * \brief Open Parallel Port
@@ -179,9 +202,12 @@ int HAMLIB_API par_write_data(hamlib_port_t *port, unsigned char data)
 	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_DATA, &data, sizeof(data), 
 			NULL, 0, (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+		return -RIG_EIO;
 	}
-#endif
+	return RIG_OK;
+#else
 	return -RIG_ENIMPL;
+#endif
 }
 
 /**
@@ -200,17 +226,20 @@ int HAMLIB_API par_read_data(hamlib_port_t *port, unsigned char *data)
 	status = ioctl(port->fd, PPIGDATA, &data);
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
-	char ret;
+	unsigned char ret;
 	unsigned int dummy;
 
 	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret, 
           		sizeof(ret), (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+		return -RIG_EIO;
 	}
 
-  	return ret ^ S1284_INVERTED;
-#endif
+  	*data = ret ^ S1284_INVERTED;
+	return RIG_OK;
+#else
 	return -RIG_ENIMPL;
+#endif
 }
 
 /**
@@ -252,10 +281,12 @@ int HAMLIB_API par_write_control(hamlib_port_t *port, unsigned char control)
   if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, &ctr, 
           sizeof(ctr), &dummyc, sizeof(dummyc), (LPDWORD)&dummy, NULL))) {
       rig_debug(RIG_DEBUG_ERR,"frob_control: DeviceIoControl failed!\n");
+      return -RIG_EIO;
   }
   return RIG_OK;
-#endif
+#else
 	return -RIG_ENIMPL;
+#endif
 }
 
 /**
@@ -280,17 +311,20 @@ int HAMLIB_API par_read_control(hamlib_port_t *port, unsigned char *control)
 	*control = ctrl ^ CP_ACTIVE_LOW_BITS;
 	return status == 0 ? RIG_OK : -RIG_EIO;
 #elif defined(WIN32)
-	char ret;
+	unsigned char ret;
 	unsigned int dummy;
 
 	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_CONTROL, NULL, 0, &ret, 
 			sizeof(ret), (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+		return -RIG_EIO;
 	}
 
 	*control = ret ^ S1284_INVERTED;
-#endif
+	return RIG_OK;
+#else
 	return -RIG_ENIMPL;
+#endif
 }
 
 /**
@@ -320,11 +354,14 @@ int HAMLIB_API par_read_status(hamlib_port_t *port, unsigned char *status)
 	if (!(DeviceIoControl((HANDLE)(port->fd), NT_IOCTL_STATUS, NULL, 0, &ret, 
 			sizeof(ret), (LPDWORD)&dummy, NULL))) {
 		rig_debug(RIG_DEBUG_ERR, "%s: DeviceIoControl failed!\n", __FUNCTION__);
+		return -RIG_EIO;
 	}
 
 	*status = ret ^ S1284_INVERTED;
-#endif
+	return RIG_OK;
+#else
 	return -RIG_ENIMPL;
+#endif
 }
 
 /**
@@ -341,10 +378,12 @@ int HAMLIB_API par_lock(hamlib_port_t *port)
 	}
 	return RIG_OK;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
+	return RIG_OK;
 #elif defined(WIN32)
 	return RIG_OK;
-#endif
+#else
 	return -RIG_ENIMPL;
+#endif
 }
 
 /**
@@ -361,10 +400,12 @@ int HAMLIB_API par_unlock(hamlib_port_t *port)
 	}
 	return RIG_OK;
 #elif defined(HAVE_DEV_PPBUS_PPI_H)
+	return RIG_OK;
 #elif defined(WIN32)
 	return RIG_OK;
-#endif
+#else
 	return -RIG_ENIMPL;
+#endif
 }
 
 #ifndef PARPORT_CONTROL_STROBE
