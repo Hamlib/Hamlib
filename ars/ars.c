@@ -192,11 +192,6 @@ ars_open(ROT *rot)
         pthread_attr_t attr;
         int retcode;
 
-        /* make handle_set_position() quiet at startup */
-        retcode = ars_get_position(rot, &priv->target_az, &priv->target_el);
-        if (retcode != RIG_OK)
-            return retcode;
-
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
@@ -235,6 +230,10 @@ ars_stop(ROT *rot)
 
     rig_debug(RIG_DEBUG_TRACE, "%s called, brake was %s\n", __func__,
             priv->brake_off ? "OFF" : "ON");
+
+#ifdef HAVE_PTHREAD
+    priv->set_pos_active = 0;
+#endif
 
     par_lock (pport);
 
@@ -392,29 +391,19 @@ static void *handle_set_position(void *arg)
 {
     ROT *rot = (ROT*) arg;
     struct ars_priv_data *priv = (struct ars_priv_data *)rot->state.priv;
-    azimuth_t curr_az;
-    elevation_t curr_el;
     int retcode;
 
     while (1) {
 
-        retcode = ars_get_position(rot, &curr_az, &curr_el);
-        if (retcode != RIG_OK) {
-            rig_debug(RIG_DEBUG_WARN, "%s: ars_get_position() failed: %s\n",
-                    __func__, rigerror(retcode));
-            usleep(1000*1000);
-            continue;
-        }
-
-        if (angle_in_range(curr_az, priv->target_az, AZ_RANGE) &&
-            (!ars_has_el(rot) || angle_in_range(curr_el, priv->target_el, EL_RANGE)))
+        if (!priv->set_pos_active)
         {
-            /* polling period */
+            /* TODO: replace polling period by cond var */
             usleep(100*1000);
             continue;
         }
 
         retcode = ars_set_position_sync(rot, priv->target_az, priv->target_el);
+        priv->set_pos_active = 0;
         if (retcode != RIG_OK) {
             rig_debug(RIG_DEBUG_WARN, "%s: ars_set_position_sync() failed: %s\n",
                     __func__, rigerror(retcode));
@@ -529,6 +518,7 @@ ars_set_position(ROT *rot, azimuth_t az, elevation_t el)
     /* will be picked by handle_set_position() next polling tick */
     priv->target_az = az;
     priv->target_el = el;
+    priv->set_pos_active = 1;
 
     return RIG_OK;
 #else

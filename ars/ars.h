@@ -32,6 +32,7 @@ struct ars_priv_data {
     unsigned char pp_data;
 #ifdef HAVE_PTHREAD
     pthread_t thread;
+    int set_pos_active;
     azimuth_t target_az;
     elevation_t target_el;
 #endif
