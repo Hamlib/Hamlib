@@ -37,7 +37,7 @@
 
 #define CR "\r"
 
-#define BUFSZ 64
+#define BUFSZ 128
 
 /*
   The continuous output of some of the RC2800
@@ -71,7 +71,7 @@ static int rc2800_parse (char *s, char *device, float *value)
   
   int len = strlen(s);
   if (len == 0)
-    return RIG_EPROTO;
+    return -RIG_EPROTO;
   
   if (len > 7)
   {
@@ -109,7 +109,7 @@ static int rc2800_parse (char *s, char *device, float *value)
     return RIG_OK;
   } 
    
-  return RIG_EPROTO;
+  return -RIG_EPROTO;
 }
 
 
@@ -169,6 +169,16 @@ transaction_write:
     if (!data_len)
         data_len = BUFSZ;
 
+    /* first reply is an echo */
+    memset(data,0,data_len);
+    retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
+    if (retval < 0) {
+        if (retry_read++ < rot->state.rotport.retry)
+            goto transaction_write;
+        goto transaction_quit;
+    }
+
+    /* then comes the answer */
     memset(data,0,data_len);
     retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
     if (retval < 0) {
@@ -191,10 +201,10 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
   
   rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
   
-  sprintf(cmdstr, "A\r%3.1f\r", az);
+  sprintf(cmdstr, "A%3.1f\r", az);
   retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
-  sprintf(cmdstr, "E\r%3.1f\r", el);
+  sprintf(cmdstr, "E%3.1f\r", el);
   retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
   if (retval1 == retval2)
@@ -221,7 +231,7 @@ rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     if (device == 'A')
       *az = (azimuth_t) value;
     else
-      return RIG_EPROTO;
+      return -RIG_EPROTO;
   }
 
   retval = rc2800_transaction(rot, "E" CR, posbuf, sizeof(posbuf));
@@ -234,7 +244,7 @@ rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     if (device == 'E')
       *el = (elevation_t) value;
     else
-      return RIG_EPROTO;
+      return -RIG_EPROTO;
   }
 
   rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
@@ -271,6 +281,8 @@ rc2800_rot_stop(ROT *rot)
 /* ************************************************************************* */
 /*
  * M2 RC2800 rotator capabilities.
+ *
+ * Protocol documentation: http://www.confluentdesigns.com/files/PdfFiles/devguide_24.pdf
  */
 
 const struct rot_caps rc2800_rot_caps = {
