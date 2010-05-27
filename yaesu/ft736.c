@@ -4,7 +4,6 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-736R using the "CAT" interface
  *
- *	$Id: ft736.c,v 1.3 2006-10-07 15:51:38 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,13 +40,17 @@
 
 #define FT736_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|RIG_MODE_FM)
 
-#define FT736_VFOS (RIG_VFO_A)	/* TODO: Sat mode ? */
+#define FT736_VFOS (RIG_VFO_A)
 
 /* TODO: get real measure numbers */
 #define FT736_STR_CAL { 2, { \
 		{ 0x30, -60 }, /* S0 -6dB */ \
 		{ 0xad,  60 }  /* +60 */ \
 		} }
+
+struct ft736_priv_data {
+    split_t split;
+};
 
 /* Private helper function prototypes */
 
@@ -92,7 +95,7 @@ const struct rig_caps ft736_caps = {
   .mfg_name =           "Yaesu",
   .version =            "0.3",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_UNTESTED,
+  .status =             RIG_STATUS_BETA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_RIG,
@@ -208,12 +211,25 @@ const struct rig_caps ft736_caps = {
 int ft736_open(RIG *rig)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x00};
+  struct ft736_priv_data *priv;
+  int ret;
  
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
 
-  /* send Ext Cntl ON: Activate CAT */
-  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  priv = (struct ft736_priv_data*)malloc(sizeof(struct ft736_priv_data));
+  if (!priv)
+      return -RIG_ENOMEM;
 
+  priv->split = RIG_SPLIT_OFF;
+
+  rig->state.priv = priv;
+
+  /* send Ext Cntl ON: Activate CAT */
+  ret = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  if (ret != RIG_OK)
+      free(priv);
+
+  return ret;
 }
 
 int ft736_close(RIG *rig)
@@ -221,6 +237,8 @@ int ft736_close(RIG *rig)
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x80, 0x80, 0x80, 0x80, 0x80};
  
   rig_debug(RIG_DEBUG_TRACE, "%s called\n",__FUNCTION__);
+
+  free(rig->state.priv);
 
   /* send Ext Cntl OFF: Deactivate CAT */
   return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
@@ -231,6 +249,10 @@ int ft736_close(RIG *rig)
 int ft736_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x01};
+  struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+
+  if (priv->split == RIG_SPLIT_ON)
+      cmd[4] = 0x1e;
 
    /* store bcd format in cmd (MSB) */
   to_bcd_be(cmd,freq/10,8);
@@ -256,7 +278,10 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x07};
   unsigned char md;
+  struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
 
+  if (priv->split == RIG_SPLIT_ON)
+      cmd[4] = 0x17;
 
   /* 
    * translate mode from generic to ft736 specific
@@ -288,6 +313,8 @@ int ft736_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
 {
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x8e};
+  struct ft736_priv_data *priv = (struct ft736_priv_data *)rig->state.priv;
+  int ret;
 
   /*
    * this can be misleading as Yaesu call it "Full duplex" 
@@ -295,12 +322,15 @@ int ft736_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo)
    */ 
   cmd[4] = split == RIG_SPLIT_ON ? 0x0e : 0x8e;
 
-  return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  ret = write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
+  if (ret == RIG_OK)
+      priv->split = split;
+  return ret;
 }
 
 int ft736_set_split_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x1e};
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x2e};
 
    /* store bcd format in cmd (MSB) */
   to_bcd_be(cmd,freq/10,8);
@@ -417,11 +447,14 @@ int ft736_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 
 int ft736_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
 {
-  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x88};
+  unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0x89};
 
   switch (shift) {
   case RIG_RPT_SHIFT_NONE:
-    cmd[4] = 0x88;
+    /* There's a typo in the manual.
+     * No shift is in fact 0x89, and 0x88 is PTT off!
+     */
+    cmd[4] = 0x89;
     break;
   case RIG_RPT_SHIFT_MINUS:
     cmd[4] = 0x09;
