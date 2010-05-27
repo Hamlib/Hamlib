@@ -157,7 +157,9 @@ ars_init(ROT *rot)
     priv->pp_control = 0;
     priv->pp_data = 0;
 
-    priv->adc_res = 8; /* 8 bits vs. 10 bits ADC */
+    /* Always use 10 bit resolution, which supports also 8 bits
+     * at the cost of 2 potentialy wrong lsb */
+    priv->adc_res = 10; /* 8 bits vs. 10 bits ADC */
     priv->brake_off = 0; /* i.e. brake is ON */
     priv->curr_move = 0;
 
@@ -496,7 +498,7 @@ ars_set_position_sync(ROT *rot, azimuth_t az, elevation_t el)
 
         if (el_move != 0 && ars_has_el(rot) &&
                 angle_in_range(curr_el, prev_el, EL_RANGE)) {
-            if (rig_check_cache_timeout(&last_pos_az_tv, EL_WATCHDOG)) {
+            if (rig_check_cache_timeout(&last_pos_el_tv, EL_WATCHDOG)) {
                 ars_stop(rot);
                 return -RIG_ETIMEOUT;
             }
