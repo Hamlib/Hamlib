@@ -32,10 +32,12 @@
 #include "serial.h"
 #include "misc.h"
 #include "register.h"
+#include "num_stdio.h"
 
 #include "rc2800.h"
 
 #define CR "\r"
+#define LF "\x0a"
 
 #define BUFSZ 128
 
@@ -87,12 +89,12 @@ static int rc2800_parse (char *s, char *device, float *value)
       else if (!strncmp(s+2, "P=", 2))
       {
         msgtype=2;
-        i = sscanf(s+5, "%f", value);
+        i = num_sscanf(s+5, "%f", value);
       }
       else if (s[1] == '=')
       {
         msgtype=2;
-        i = sscanf(s+2, "%f", value);
+        i = num_sscanf(s+2, "%f", value);
       }
     }
   }
@@ -171,7 +173,7 @@ transaction_write:
 
     /* first reply is an echo */
     memset(data,0,data_len);
-    retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
+    retval = read_string(&rs->rotport, data, data_len, LF, strlen(LF));
     if (retval < 0) {
         if (retry_read++ < rot->state.rotport.retry)
             goto transaction_write;
@@ -180,7 +182,7 @@ transaction_write:
 
     /* then comes the answer */
     memset(data,0,data_len);
-    retval = read_string(&rs->rotport, data, data_len, CR, strlen(CR));
+    retval = read_string(&rs->rotport, data, data_len, LF, strlen(LF));
     if (retval < 0) {
         if (retry_read++ < rot->state.rotport.retry)
             goto transaction_write;
@@ -201,10 +203,10 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
   
   rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
   
-  sprintf(cmdstr, "A%3.1f\r", az);
+  num_sprintf(cmdstr, "A%3.1f"CR, az);
   retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
-  sprintf(cmdstr, "E%3.1f\r", el);
+  num_sprintf(cmdstr, "E%3.1f"CR, el);
   retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
   if (retval1 == retval2)
@@ -291,7 +293,7 @@ const struct rot_caps rc2800_rot_caps = {
   .mfg_name =       "M2",
   .version =        "0.1",
   .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_ALPHA,
+  .status =         RIG_STATUS_BETA,
   .rot_type =       ROT_TYPE_AZEL,
   .port_type =      RIG_PORT_SERIAL,
   .serial_rate_min  = 9600,
@@ -301,12 +303,12 @@ const struct rot_caps rc2800_rot_caps = {
   .serial_parity    = RIG_PARITY_NONE,
   .serial_handshake = RIG_HANDSHAKE_NONE,
   .write_delay      = 0,
-  .post_write_delay = 0,
+  .post_write_delay = 10,
   .timeout          = 400,
   .retry            = 3,
 
   .min_az = 	0.0,
-  .max_az =  	450.0,
+  .max_az =  	360.0,
   .min_el = 	0.0,
   .max_el =  	180.0,
 
