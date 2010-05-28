@@ -42,10 +42,13 @@
 
 #define FT736_VFOS (RIG_VFO_A)
 
-/* TODO: get real measure numbers */
-#define FT736_STR_CAL { 2, { \
-		{ 0x30, -60 }, /* S0 -6dB */ \
-		{ 0xad,  60 }  /* +60 */ \
+/* Measurement by Ron W6FM using a signal generator.
+ * Raw values supposed to be between 0x30 and 0xad according to manual.
+ */
+#define FT736_STR_CAL { 3, { \
+		{ 0x1d, -54 }, /* S0 */ \
+		{ 0x54,   0 }, /* S9 */ \
+		{ 0x9d,  60 }  /* +60 */ \
 		} }
 
 struct ft736_priv_data {
@@ -71,19 +74,20 @@ static int ft736_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
 static int ft736_set_ctcss_tone (RIG *rig, vfo_t vfo, tone_t tone);
 static int ft736_set_ctcss_sql (RIG *rig, vfo_t vfo, tone_t tone);
 
-
+/* Some tones are present twice, the second value is
+ * higher Q (80), according to manual.
+ */
 static const tone_t ft736_ctcss_list[] = {
    670,  719,  770,  825,  885,  948, 1000, 1035, 1072, 1109,
   1148, 1188, 1230, 1273, 1318, 1365, 1413, 1462, 1514, 1567,
-  1622, 1679, 1738, 1799, 1862, 1928, 1035, 2107, 2181, 2257,
-  2336, 2418, 2503,
-  0
+  1622, 1679, 1738, 1799, 1862, 1928, 2035, 2107, 2181, 2257,
+  2336, 2418, 2503,  670,  719,  744,  770,  797,  825,  854,
+   885,  915, 0
 };
-#define FT736_CTCSS_NB 33
+#define FT736_CTCSS_NB 42
 
 /*
  * ft736 rigs capabilities.
- * Also this struct is READONLY!
  *
  * TODO:
  *	- AQS
@@ -95,7 +99,7 @@ const struct rig_caps ft736_caps = {
   .mfg_name =           "Yaesu",
   .version =            "0.3",
   .copyright =          "LGPL",
-  .status =             RIG_STATUS_BETA,
+  .status =             RIG_STATUS_STABLE,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
   .ptt_type =           RIG_PTT_RIG,
   .dcd_type =           RIG_DCD_RIG,
@@ -173,7 +177,7 @@ const struct rig_caps ft736_caps = {
     /* mode/filter list, remember: order matters! */
   .filters =            {
     {RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_CWR,  kHz(2.2)},
-    {RIG_MODE_CW,   Hz(600)},
+    {RIG_MODE_CW|RIG_MODE_CWR,   Hz(600)},
     {RIG_MODE_FM,   kHz(12)},
     {RIG_MODE_FM,   kHz(8)},
 
@@ -452,7 +456,7 @@ int ft736_set_rptr_shift(RIG *rig, vfo_t vfo, rptr_shift_t shift)
   switch (shift) {
   case RIG_RPT_SHIFT_NONE:
     /* There's a typo in the manual.
-     * No shift is in fact 0x89, and 0x88 is PTT off!
+     * "Split Dir. simplex" is in fact 0x89, and 0x88 is PTT off!
      */
     cmd[4] = 0x89;
     break;
@@ -474,7 +478,7 @@ int ft736_set_rptr_offs(RIG *rig, vfo_t vfo, shortfreq_t offs)
   unsigned char cmd[YAESU_CMD_LENGTH] = { 0x00, 0x00, 0x00, 0x00, 0xf9};
 
    /* store bcd format in cmd (MSB) */
-  to_bcd_be(cmd,offs,8);
+  to_bcd_be(cmd,offs/10,8);
 
   /* Offset set */
   return write_block(&rig->state.rigport, (char *) cmd, YAESU_CMD_LENGTH);
