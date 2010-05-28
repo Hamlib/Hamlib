@@ -1,11 +1,9 @@
 /*
- * rigctl_parse.h - (C) Stephane Fillod 2000-2008
+ * rigctl_parse.h - (C) Stephane Fillod 2000-2010
  *
  * This program test/control a radio using Hamlib.
  * It takes commands in interactive mode as well as 
  * from command line options.
- *
- * $Id: rigctl_parse.h,v 1.3 2008-05-23 14:26:09 fillods Exp $  
  *
  *
  * This program is free software; you can redistribute it and/or
@@ -43,7 +41,7 @@ int dumpconf (RIG *, FILE *);
 void usage_rig(FILE *);
 void version();
 void list_models();
-void dump_chan(FILE *, RIG*, channel_t*);
+int dump_chan(FILE *, RIG*, channel_t*);
 int print_conf_list(const struct confparams *cfp, rig_ptr_t data);
 int set_conf(RIG *my_rig, char *conf_parms);
 

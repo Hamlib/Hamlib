@@ -1076,9 +1076,13 @@ declare_proto_rig(get_split_mode)
 declare_proto_rig(set_split_vfo)
 {
 	int split;
+	vfo_t tx_vfo;
 
 	CHKSCN1ARG(sscanf(arg1, "%d", &split));
-	return rig_set_split_vfo(rig, vfo, (split_t) split, rig_parse_vfo(arg2));
+	tx_vfo = rig_parse_vfo(arg2);
+	if (tx_vfo == RIG_VFO_NONE)
+		return -RIG_EINVAL;
+	return rig_set_split_vfo(rig, vfo, (split_t) split, tx_vfo);
 }
 
 /* 's' */
@@ -1524,8 +1528,6 @@ declare_proto_rig(set_channel)
 	int status;
 	char s[16];
 
-	rig_debug(RIG_DEBUG_TRACE, "set_channel: arg1[0] = %d\n", arg1[0]);
-
 	memset(&chan, 0, sizeof(channel_t));
 
 	if (isdigit(arg1[0])) {
@@ -1543,149 +1545,150 @@ declare_proto_rig(set_channel)
 		chan.channel_num = 0;
 
 		/* TODO: mem_caps for VFO! */
+		/*       either from mem, or reverse computed from caps */
 	}
 
 	if (!mem_caps)
 		return -RIG_ECONF;
 
-	rig_debug(RIG_DEBUG_TRACE, "set_channel: mem_caps->bank_num = %d, mem_caps->freq = %d\n", mem_caps->bank_num, mem_caps->freq);
-
 	if (mem_caps->bank_num) {
 	    if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-		    fprintf(fout, "Bank Num: ");
+		    fprintf_flush(fout, "Bank Num: ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.bank_num));
 	}
+#if 0
 	if (mem_caps->vfo) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "vfo (VFOA,MEM,etc...): ");
+            fprintf_flush(fout, "vfo (VFOA,MEM,etc...): ");
 		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.vfo = rig_parse_vfo(s);
 	}
+#endif
 	if (mem_caps->ant) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "ant: ");
+            fprintf_flush(fout, "ant: ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.ant));
 	}
 	if (mem_caps->freq) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "Frequency: ");
+            fprintf_flush(fout, "Frequency: ");
 		CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.freq));
 	}
 	if (mem_caps->mode) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "mode (FM,LSB,etc...): ");
+            fprintf_flush(fout, "mode (FM,LSB,etc...): ");
 		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.mode = rig_parse_mode(s);
 	}
 	if (mem_caps->width) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "width: ");
+            fprintf_flush(fout, "width: ");
 		CHKSCN1ARG(scanfc(fin, "%ld", &chan.width));
 	}
 	if (mem_caps->tx_freq) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "tx freq (VFOA,MEM,etc...): ");
+            fprintf_flush(fout, "tx freq: ");
 		CHKSCN1ARG(scanfc(fin, "%"SCNfreq, &chan.tx_freq));
 	}
 	if (mem_caps->tx_mode) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "tx mode (FM,LSB,etc...): ");
+            fprintf_flush(fout, "tx mode (FM,LSB,etc...): ");
 		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.tx_mode = rig_parse_mode(s);
 	}
 	if (mem_caps->tx_width) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "tx width: ");
+            fprintf_flush(fout, "tx width: ");
 		CHKSCN1ARG(scanfc(fin, "%ld", &chan.tx_width));
 	}
 	if (mem_caps->split) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "split (0,1): ");
+            fprintf_flush(fout, "split (0,1): ");
 		CHKSCN1ARG(scanfc(fin, "%d", &status));
 		chan.split = status;
 	}
 	if (mem_caps->tx_vfo) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "tx vfo (VFOA,MEM,etc...): ");
+            fprintf_flush(fout, "tx vfo (VFOA,MEM,etc...): ");
 		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.tx_vfo = rig_parse_vfo(s);
 	}
 	if (mem_caps->rptr_shift) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "rptr shift (+-0): ");
+            fprintf_flush(fout, "rptr shift (+-0): ");
 		CHKSCN1ARG(scanfc(fin, "%s", s));
 		chan.rptr_shift = rig_parse_rptr_shift(s);
 	}
 	if (mem_caps->rptr_offs) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "rptr offset: ");
+            fprintf_flush(fout, "rptr offset: ");
 		CHKSCN1ARG(scanfc(fin, "%ld", &chan.rptr_offs));
 	}
 	if (mem_caps->tuning_step) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "tuning step: ");
+            fprintf_flush(fout, "tuning step: ");
 		CHKSCN1ARG(scanfc(fin, "%ld", &chan.tuning_step));
 	}
 	if (mem_caps->rit) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "rit (Hz,0=off): ");
+            fprintf_flush(fout, "rit (Hz,0=off): ");
 		CHKSCN1ARG(scanfc(fin, "%ld", &chan.rit));
 	}
 	if (mem_caps->xit) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "xit (Hz,0=off): ");
+            fprintf_flush(fout, "xit (Hz,0=off): ");
 		CHKSCN1ARG(scanfc(fin, "%ld", &chan.xit));
 	}
 	if (mem_caps->funcs) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "funcs: ");
+            fprintf_flush(fout, "funcs: ");
 		CHKSCN1ARG(scanfc(fin, "%lx", &chan.funcs));
 	}
 #if 0
-	/* for all levels, ask */
+	/* for all levels (except READONLY), ask */
 	if (mem_caps->levels)
 		sscanf(arg1, "%d", &chan.levels);
 #endif
 	if (mem_caps->ctcss_tone) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "ctcss tone freq in tenth of Hz (0=off): ");
+            fprintf_flush(fout, "ctcss tone freq in tenth of Hz (0=off): ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.ctcss_tone));
 	}
 	if (mem_caps->ctcss_sql) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "ctcss sql freq in tenth of Hz (0=off): ");
+            fprintf_flush(fout, "ctcss sql freq in tenth of Hz (0=off): ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.ctcss_sql));
 	}
 	if (mem_caps->dcs_code) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "dcs code: ");
+            fprintf_flush(fout, "dcs code: ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.dcs_code));
 	}
 	if (mem_caps->dcs_sql) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "dcs sql: ");
+            fprintf_flush(fout, "dcs sql: ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.dcs_sql));
 	}
 	if (mem_caps->scan_group) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "scan group: ");
+            fprintf_flush(fout, "scan group: ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.scan_group));
 	}
 	if (mem_caps->flags) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "flags: ");
+            fprintf_flush(fout, "flags: ");
 		CHKSCN1ARG(scanfc(fin, "%d", &chan.flags));
 	}
 	if (mem_caps->channel_desc) {
 		if ((interactive && prompt) || (interactive && !prompt && ext_resp))
-            fprintf(fout, "channel desc: ");
+            fprintf_flush(fout, "channel desc: ");
 		CHKSCN1ARG(scanfc(fin, "%s", s));
 		strcpy(chan.channel_desc, s);
 	}
 #if 0
-	/* TODO: same as levels */
+	/* TODO: same as levels, allocate/free the array */
 	if (mem_caps->ext_levels)
-		sscanf(arg1, "%d", &chan.ext_levels);
+		sscanf(arg1, "%d", &chan.ext_levels[i].val.i);
 #endif
 
 	status = rig_set_channel(rig, &chan);
@@ -1712,7 +1715,11 @@ declare_proto_rig(get_channel)
 	status = rig_get_channel(rig, &chan);
 	if (status != RIG_OK)
 		return status;
-	dump_chan(fout, rig, &chan);
+
+	status = dump_chan(fout, rig, &chan);
+
+	if (chan.ext_levels)
+		free(chan.ext_levels);
 
 	return status;
 }
@@ -1802,8 +1809,7 @@ declare_proto_rig(get_info)
 	return RIG_OK;
 }
 
-
-void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
+int dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 {
 	int idx, firstloop=1;
 	char freqbuf[16];
@@ -1854,7 +1860,7 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 				(!rig_has_set_level(rig, level) && !rig_has_get_level(rig, level)))
 			continue;
 		level_s = rig_strlevel(level);
-		if (!level_s)
+		if (!level_s || level_s[0] == '\0')
 				continue;	/* duh! */
 		if (firstloop)
 			firstloop = 0;
@@ -1865,7 +1871,40 @@ void dump_chan(FILE *fout, RIG *rig, channel_t *chan)
 		else
 			fprintf(fout, " %s: %d", level_s, chan->levels[idx].i);
 	}
+
+   /* ext_levels */
+	for (idx=0; chan->ext_levels && !RIG_IS_EXT_END(chan->ext_levels[idx]); idx++) {
+      const struct confparams *cfp;
+      char lstr[32];
+
+      cfp = rig_ext_lookup_tok(rig, chan->ext_levels[idx].token);
+      if (!cfp)
+         return -RIG_EINVAL;
+
+      switch (cfp->type) {
+      case RIG_CONF_STRING:
+         strcpy(lstr, chan->ext_levels[idx].val.s);
+         break;
+      case RIG_CONF_COMBO:
+         sprintf(lstr, "%d", chan->ext_levels[idx].val.i);
+         break;
+      case RIG_CONF_NUMERIC:
+         sprintf(lstr, "%f", chan->ext_levels[idx].val.f);
+         break;
+      case RIG_CONF_CHECKBUTTON:
+         sprintf(lstr, "%s", chan->ext_levels[idx].val.i ? "ON" : "OFF");
+         break;
+      case RIG_CONF_BUTTON:
+         continue;
+      default:
+         return -RIG_EINTERNAL;
+      }
+      fprintf(fout, ",\t %s: %s", cfp->name, lstr);
+   }
+
 	fprintf(fout, "\n");
+
+   return RIG_OK;
 }
 
 /* '1' */
