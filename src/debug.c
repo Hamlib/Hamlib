@@ -1,8 +1,7 @@
 /*
  *  Hamlib Interface - debug
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: debug.c,v 1.4 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -17,7 +16,6 @@
  *   You should have received a copy of the GNU Library General Public
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
  */
 
 /**
@@ -68,33 +66,33 @@ void dump_hex(const unsigned char ptr[], size_t size)
   if (!rig_need_debug(RIG_DEBUG_TRACE))
 		  return;
 
+  /* ASCII column */
   buf[DUMP_HEX_WIDTH] = '\0';
 
   for(i=0; i<size; i++) {
     if (i % DUMP_HEX_WIDTH == 0)
-      rig_debug(RIG_DEBUG_TRACE,"%.4x\t",i);
+      rig_debug(RIG_DEBUG_TRACE,"%.4x   ",i);
 
     rig_debug(RIG_DEBUG_TRACE," %.2x", ptr[i]);
 
+    /* printable ASCII? */
 	if (ptr[i] >= ' ' && ptr[i] < 0x7f)
 		buf[i%DUMP_HEX_WIDTH] = ptr[i];
 	else
 		buf[i%DUMP_HEX_WIDTH] = '.';
 
     if (i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH-1)
-      rig_debug(RIG_DEBUG_TRACE,"\t%s\n",buf);
+      rig_debug(RIG_DEBUG_TRACE,"    %s\n",buf);
   }
 
-  /* Add some spaces in order to align right ASCII dump column */
-  if ((i / DUMP_HEX_WIDTH) > 0) {
+  if (i % DUMP_HEX_WIDTH != 0) {
+    /* Add some spaces in order to align right ASCII dump column */
     int j;
     for (j = i % DUMP_HEX_WIDTH; j < DUMP_HEX_WIDTH; j++)
       rig_debug(RIG_DEBUG_TRACE,"   ");
-  }
 
-  if (i % DUMP_HEX_WIDTH != DUMP_HEX_WIDTH-1) {
   	buf[i % DUMP_HEX_WIDTH] = '\0';
-    rig_debug(RIG_DEBUG_TRACE,"\t%s\n",buf);
+    rig_debug(RIG_DEBUG_TRACE,"    %s\n",buf);
   }
 
 } 
