@@ -206,6 +206,9 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
   num_sprintf(cmdstr, "A%3.1f"CR, az);
   retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
+  /* do not overwhelm the MCU? */
+  usleep(200*1000);
+
   num_sprintf(cmdstr, "E%3.1f"CR, el);
   retval2 = rc2800_transaction(rot, cmdstr, NULL, 0);
 
@@ -268,6 +271,9 @@ rc2800_rot_stop(ROT *rot)
   retval = rc2800_transaction(rot, "A" CR, NULL, 0); /* select AZ */
   retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
   
+  /* do not overwhelm the MCU? */
+  usleep(200*1000);
+
   /* Stop EL*/
   retval = rc2800_transaction(rot, "E" CR, NULL, 0); /* select EL */
   retval = rc2800_transaction(rot, "S" CR, NULL, 0); /* STOP */
@@ -303,8 +309,8 @@ const struct rot_caps rc2800_rot_caps = {
   .serial_parity    = RIG_PARITY_NONE,
   .serial_handshake = RIG_HANDSHAKE_NONE,
   .write_delay      = 0,
-  .post_write_delay = 10,
-  .timeout          = 400,
+  .post_write_delay = 0,
+  .timeout          = 1000,
   .retry            = 3,
 
   .min_az = 	0.0,
