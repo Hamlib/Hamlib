@@ -1,8 +1,7 @@
 /*
  *  Hamlib KIT backend - Elektor SDR USB (5/07) receiver description
- *  Copyright (c) 2007-2008 by Stephane Fillod
+ *  Copyright (c) 2007-2010 by Stephane Fillod
  *
- *	$Id: elektor507.c,v 1.4 2008-04-26 09:00:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -499,9 +498,9 @@ const struct rig_caps elektor507_caps = {
 .rig_model =  RIG_MODEL_ELEKTOR507,
 .model_name = "Elektor SDR-USB",
 .mfg_name =  "Elektor",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_BETA,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TUNER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -544,12 +543,12 @@ const struct rig_caps elektor507_caps = {
 .chan_list =  { RIG_CHAN_END, },
 
 .rx_range_list1 =  {
-    {kHz(30),MHz(30)-kHz(1),ELEKTOR507_MODES,-1,-1,ELEKTOR507_VFO},
+    {kHz(30),MHz(30)-kHz(1),ELEKTOR507_MODES,-1,-1,ELEKTOR507_VFO, ELEKTOR507_ANT},
 	RIG_FRNG_END,
   },
 .tx_range_list1 =  { RIG_FRNG_END, },
 .rx_range_list2 =  {
-    {kHz(30),MHz(30)-kHz(1),ELEKTOR507_MODES,-1,-1,ELEKTOR507_VFO},
+    {kHz(30),MHz(30)-kHz(1),ELEKTOR507_MODES,-1,-1,ELEKTOR507_VFO, ELEKTOR507_ANT},
 	RIG_FRNG_END,
   },
 .tx_range_list2 =  { RIG_FRNG_END, },
