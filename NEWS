@@ -1,23 +1,35 @@
 Hamlib -- History of visible changes.
 
 Copyright (C) 2000-2003  Frank Singleton
-Copyright (C) 2000-2009  Stephane Fillod, and others
+Copyright (C) 2000-2010  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
+
+Version 1.2.11
+	2010-05-31
+	* New models: RA-3702, IC-738, IC-7600, IC-7700, AR 7030+,
+        FT-980, TT-536 Delta-II, R&S EB200
+	* New rotator backend: GS-232B, GS-232 (not A or B), ARS RCI, M2 RC2800
+	* Fixes and features: TH-F7E, FT-847, FT-736, FT-920, FT767GX, FT-747, 
+        FT-950, FT-450, Yaesu NewCAT, PCR*, IC-706MkIIG, IC-7800, R-8A, Paragon
+	* rigctld/rotctld
+	* ltdl security update
+    * IPv6 ready
+    * bindings not built by default
 
 Version 1.2.10
 	2009-11-02
 	* New models: IC-7200, PCR-1500, PCR-2500, RX-340, R&S ESMC, BC898T,
-                Si570 AVR-USB, Paragon (skeleton)
-	* New rotator backend: SPID, GS-232 (not A or B)
+		Si570 AVR-USB, Paragon (skeleton)
+	* New rotator backend: SPID
 	* Fixes and features: TH-F7E, K2, FT-920, Yaesu NewCAT, IC-7000, IC-7800,
-        IC-910, IC-718, IC-756PROIII, Tentec Orion, Jupiter, RX320, AOR-8000,
-        PCR-1000, Video4Linux, all the kenwood backends, GS-232A
-    * ABI version in backend symbols
-    * expose PTT/DCD setup through rig_set_conf()
-    * Parallel port PTT now following cwdaemon (STROBE+INIT) interface
+		IC-910, IC-718, IC-756PROIII, Tentec Orion, Jupiter, RX320, AOR-8000,
+		PCR-1000, Video4Linux, all the kenwood backends, GS-232A
+	* ABI version in backend symbols
+	* expose PTT/DCD setup through rig_set_conf()
+	* Parallel port PTT now following cwdaemon (STROBE+INIT) interface
 	* bindings
-    * ltdl update
+	* ltdl update
 
 Version 1.2.9
 	2009-02-25
