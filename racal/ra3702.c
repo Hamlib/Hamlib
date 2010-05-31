@@ -56,7 +56,7 @@ const struct rig_caps ra3702_caps = {
 .mfg_name =  "Racal",
 .version =  "0.1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -70,7 +70,7 @@ const struct rig_caps ra3702_caps = {
 .write_delay =  0,
 .post_write_delay =  0,
 .timeout =  RA37XX_TIMEOUT,
-.retry =  0,
+.retry =  2,
 
 .has_get_func =  RA3702_FUNC,
 .has_set_func =  RA3702_FUNC,

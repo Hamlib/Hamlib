@@ -70,11 +70,9 @@ const struct confparams ra37xx_cfg_params[] = {
 
 
 /*
- * ra37xx_transaction
- * We assume that rig!=NULL, rig->state!= NULL
- *
+ * retries are handled by ra37xx_transaction()
  */
-static int ra37xx_transaction(RIG *rig, const char *cmd, char *data, int *data_len)
+static int ra37xx_one_transaction(RIG *rig, const char *cmd, char *data, int *data_len)
 {
 	struct ra37xx_priv_data *priv = (struct ra37xx_priv_data*)rig->state.priv;
 	struct rig_state *rs = &rig->state;
@@ -83,6 +81,9 @@ static int ra37xx_transaction(RIG *rig, const char *cmd, char *data, int *data_l
 	int cmd_len;
 	int retval;
     int pkt_header_len;
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
 
     /* Packet Framing:
        - no Link Control Character
@@ -109,31 +110,66 @@ static int ra37xx_transaction(RIG *rig, const char *cmd, char *data, int *data_l
 		return retval;
 	}
 
-	retval = read_string(&rs->rigport, respbuf, BUFSZ, EOM, strlen(EOM));
-	if (retval < 0)
-		return retval;
+    do {
+        retval = read_string(&rs->rigport, respbuf, BUFSZ, EOM, strlen(EOM));
+        if (retval < 0)
+            return retval;
 
-    if (retval < pkt_header_len+1 || respbuf[0] != '\x0a')
-        return -RIG_EPROTO;
+        /* drop short/invalid packets */
+        if (retval <= pkt_header_len+1 || respbuf[0] != '\x0a') {
+            if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+                continue;
+            else
+                return -RIG_EPROTO;
+        }
 
-    if (retval >= pkt_header_len+3 && !memcmp(respbuf+pkt_header_len, "ERR", 3))
-        return -RIG_ERJCTED;
+        /* drop other receiver id, and "pause" (empty) packets */
+        if ((priv->receiver_id != -1 && (respbuf[1]-'0') != priv->receiver_id) ||
+                retval == pkt_header_len+1) {
+            if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+                continue;
+            else
+                return -RIG_ETIMEOUT;
+        }
 
-    if (retval >= pkt_header_len+5 && !memcmp(respbuf+pkt_header_len, "FAULT", 5))
-        return -RIG_ERJCTED;
+        if (retval >= pkt_header_len+3 && !memcmp(respbuf+pkt_header_len, "ERR", 3))
+            return -RIG_ERJCTED;
 
-    if (cmd[0] == 'Q' && (retval+pkt_header_len+1 < strlen(cmd) ||
-            cmd[1] != respbuf[pkt_header_len])) {
-		rig_debug(RIG_DEBUG_WARN, "%s: unexpected revertive frame\n",
-				__func__);
-        return -RIG_EPROTO;
-    }
+        if (retval >= pkt_header_len+5 && !memcmp(respbuf+pkt_header_len, "FAULT", 5))
+            return -RIG_ERJCTED;
+
+        if (cmd[0] == 'Q' && (retval+pkt_header_len+1 < strlen(cmd) ||
+                cmd[1] != respbuf[pkt_header_len])) {
+
+            rig_debug(RIG_DEBUG_WARN, "%s: unexpected revertive frame\n",
+                    __func__);
+            if (!rig_check_cache_timeout(&tv, rs->rigport.timeout))
+                continue;
+            else
+                return -RIG_ETIMEOUT;
+        }
+    } while (retval < 0);
 
     /* Strip starting LF and ending CR */
     memcpy(data, respbuf+pkt_header_len, retval-pkt_header_len-1);
 
 	*data_len = retval;
 	return RIG_OK;
+}
+
+static int ra37xx_transaction(RIG *rig, const char *cmd, char *data, int *data_len)
+{
+    int retval, retry;
+
+    retry = rig->state.rigport.retry;
+
+    do {
+        retval = ra37xx_one_transaction(rig, cmd, data, data_len);
+        if (retval == RIG_OK)
+            break;
+    } while (retry-- > 0);
+
+    return retval;
 }
 
 
@@ -307,8 +343,8 @@ int ra37xx_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 int ra37xx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	char resbuf[BUFSZ];
-	int retval, len, ra_mode;
+	char buf[BUFSZ], resbuf[BUFSZ];
+	int retval, len, ra_mode, widthtype, widthnum;
 
 	retval = ra37xx_transaction (rig, "QM", resbuf, &len);
 	if (retval != RIG_OK)
@@ -316,17 +352,17 @@ int ra37xx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     sscanf(resbuf+1, "%d", &ra_mode);
 	switch (ra_mode) {
-	case MD_CW:  *mode = RIG_MODE_CW; break;
+	case MD_CW:  widthtype = 1; *mode = RIG_MODE_CW; break;
 	case MD_ISB_LSB:
-	case MD_LSB: *mode = RIG_MODE_LSB; break;
+	case MD_LSB: widthtype = 2; *mode = RIG_MODE_LSB; break;
 	case MD_ISB_USB:
-	case MD_USB: *mode = RIG_MODE_USB; break;
+	case MD_USB: widthtype = 1; *mode = RIG_MODE_USB; break;
 	case MD_FSK_NAR:
 	case MD_FSK_MED:
 	case MD_FSK_WID:
-	case MD_FSK: *mode = RIG_MODE_RTTY; break;
-	case MD_FM:  *mode = RIG_MODE_FM; break;
-	case MD_AM:  *mode = RIG_MODE_AM; break;
+	case MD_FSK: widthtype = 3; *mode = RIG_MODE_RTTY; break;
+	case MD_FM:  widthtype = 3; *mode = RIG_MODE_FM; break;
+	case MD_AM:  widthtype = 3; *mode = RIG_MODE_AM; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "%s: unsupported mode %d\n",
 				__FUNCTION__, mode);
@@ -334,6 +370,13 @@ int ra37xx_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	}
 
 	retval = ra37xx_transaction (rig, "QB", resbuf, &len);
+	if (retval != RIG_OK)
+		return retval;
+
+    /* FIXME */
+    widthnum = 0;
+	sprintf(buf, "QBCON%d,%d", widthtype, widthnum);
+	retval = ra37xx_transaction (rig, buf, resbuf, &len);
 	if (retval != RIG_OK)
 		return retval;
 
