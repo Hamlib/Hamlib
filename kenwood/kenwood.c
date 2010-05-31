@@ -231,16 +231,22 @@ transaction_write:
 	case 'O':
 		/* Too many characters sent without a carriage return */
 	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Overflow for '%s'\n", __func__, cmdstr);
+		if (retry_read++ < rig->state.rigport.retry)
+			goto transaction_write;
 	 	retval = -RIG_EPROTO;
 	 	goto transaction_quit;
 	case 'E':
 		/* Communication error */
 	 	rig_debug(RIG_DEBUG_VERBOSE, "%s: Communication error for '%s'\n", __func__, cmdstr);
+		if (retry_read++ < rig->state.rigport.retry)
+			goto transaction_write;
 	 	retval = -RIG_EIO;
 	 	goto transaction_quit;
 	case '?':
     		/* Command not understood by rig */
 	 	rig_debug(RIG_DEBUG_ERR, "%s: Unknown command '%s'\n", __func__, cmdstr);
+		if (retry_read++ < rig->state.rigport.retry)
+			goto transaction_write;
 	 	retval = -RIG_ERJCTED;
 	 	goto transaction_quit;
 	}
