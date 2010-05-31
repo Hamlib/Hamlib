@@ -42,8 +42,9 @@ struct tt585_priv_data {
 };
 
 
-#define TT585_MODES (RIG_MODE_FM|RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM)
-#define TT585_RXMODES (TT585_MODES)
+/* RIG_MODE_FM is optional */
+#define TT585_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
+#define TT585_RXMODES (TT585_MODES|RIG_MODE_AM)
 
 #define TT585_FUNCS (RIG_FUNC_NONE)
 
@@ -63,7 +64,7 @@ struct tt585_priv_data {
 #define TT585_CACHE_TIMEOUT 500 /* ms */
 
 /*
- * Mem caps to be checked..
+ * Mem caps to be checked, maybe more like split..
  */
 #define TT585_MEM_CAP {        \
         .freq = 1,      \
@@ -168,8 +169,7 @@ const struct rig_caps tt585_caps = {
         /* mode/filter list, remember: order matters! */
 .filters =  {
 		{RIG_MODE_AM, kHz(6)},
-		{RIG_MODE_CW, kHz(1.8)},
-		{RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.4)},
+		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, kHz(2.4)},
 		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, kHz(1.8)},
 		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, 500},
 		{RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_AM, 250},
