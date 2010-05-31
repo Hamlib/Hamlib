@@ -69,7 +69,7 @@ static int rc2800_parse (char *s, char *device, float *value)
 {
   int i, msgtype=0, errcode=0;
 
-  rig_debug(RIG_DEBUG_TRACE, "device return->%s", s);
+  rig_debug(RIG_DEBUG_TRACE, "%s: device return->%s", __func__, s);
   
   int len = strlen(s);
   if (len == 0)
@@ -101,12 +101,12 @@ static int rc2800_parse (char *s, char *device, float *value)
 
   if (msgtype == 2)
   {
-    rig_debug(RIG_DEBUG_TRACE, "device=%c value=%3.1f\n", *device, *value);
+    rig_debug(RIG_DEBUG_TRACE, "%s: device=%c value=%3.1f\n", __func__, *device, *value);
     return RIG_OK;
   } 
   else if (msgtype == 1)
   {
-    rig_debug(RIG_DEBUG_TRACE, "driver error code %d\n", errcode);
+    rig_debug(RIG_DEBUG_TRACE, "%s: driver error code %d\n", __func__, errcode);
     *device = ' ';
     return RIG_OK;
   } 
@@ -201,7 +201,7 @@ rc2800_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
   char cmdstr[64];
   int retval1, retval2;
   
-  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+  rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
   
   num_sprintf(cmdstr, "A%3.1f"CR, az);
   retval1 = rc2800_transaction(rot, cmdstr, NULL, 0);
@@ -225,7 +225,7 @@ rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
   char device;
   float value;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
   retval = rc2800_transaction(rot, "A" CR, posbuf, sizeof(posbuf));
   if (retval != RIG_OK || strlen(posbuf) < 5) {
@@ -253,7 +253,7 @@ rc2800_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
   }
 
   rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
-            __FUNCTION__, *az, *el);
+            __func__, *az, *el);
 
   return RIG_OK;
 }
@@ -263,7 +263,7 @@ rc2800_rot_stop(ROT *rot)
 {
   int retval;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
+  rig_debug(RIG_DEBUG_TRACE, "%s called\n", __func__);
 
   /* TODO: check each return value (do we care?) */
 
