@@ -1296,11 +1296,14 @@ static int dummy_get_channel(RIG *rig, channel_t *chan)
 
   rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
-  if (!chan->ext_levels)
-      return -RIG_EINVAL;
-
   if (chan->channel_num < 0 || chan->channel_num >= NB_CHAN)
       return -RIG_EINVAL;
+
+  if (!chan->ext_levels) {
+     chan->ext_levels = alloc_init_ext(dummy_ext_levels);
+     if (!chan->ext_levels)
+         return -RIG_ENOMEM;
+  }
 
   /* TODO:
    * - check ext_levels is the right length
@@ -1408,15 +1411,9 @@ static int dummy_mW2power(RIG * rig, float *power, unsigned int mwpower,
  * Dummy rig capabilities.
  */
 
-#if 0
-#define DUMMY_FUNC  0x7fffffffffffffLL	/* has it all */
-#define DUMMY_LEVEL 0x7ffffffffffffffLL
-#define DUMMY_PARM  0x7ffffffffffffffLL
-#else
-#define DUMMY_FUNC  ((setting_t)-1)	/* has it all */
-#define DUMMY_LEVEL ((setting_t)-1)
+#define DUMMY_FUNC  (((setting_t)-1)&~(0xc1000000U))	/* has it all */
+#define DUMMY_LEVEL (((setting_t)-1)&~(1<<27))
 #define DUMMY_PARM  ((setting_t)-1)
-#endif
 
 #define DUMMY_VFO_OP  0x7ffffffL
 #define DUMMY_SCAN	0x7ffffffL
