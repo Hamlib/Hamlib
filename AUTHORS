@@ -163,8 +163,12 @@ M: Serge Pashenkov
 [yeasu: ft100]
 M: Alex V Flinsch, KC2IVL
 
+[yaesu: ft736]
+C: Ron Patterson, W6FM
+
 [yaesu: ft747]
 M:
+C: Chris Bryant, G3WIE
 C: Frank Singleton, VK3FCS
 
 [yaesu: ft767gx]
@@ -179,6 +183,9 @@ C: Frank Singleton, VK3FCS
 
 [yaesu: ft920, ft890, ft900]
 M: Nate Bargmann, N0NB
+
+[yaesu: ft980]
+M: Wolfgang Buesser, DK1BW
 
 [yaesu: ft990]
 M: Berndt Josef Wulf, VK5ABN
@@ -207,6 +214,13 @@ M: Nate Bargmann, N0NB
 [spid]
 M: Norvald H. Ryeng, LA6YKA
 
+[m2]
+M: Magne Mæhre, LA1BFA
+C: Ron Patterson, W6FM
+
+[ars]
+M: Stephane Fillod, F8CFE
+C: Chris Bryant, G3WIE
 
 [Frontend]
 M: Stephane Fillod, F8CFE
@@ -281,3 +295,5 @@ Norvald H. Ryeng, LA6YKA <norvald (at) ryeng.name>
 Larry Gadallah, VE6VQ <lgadallah (at) gmail.com>
 Kamal Mostafa, KA6MAL, <kamal (at) whence.com>
 Jaime Robles, EA4TV, <jaime (at) debian.org>
+Wolfgang Buesser, DK1BW, <wolfgang.buesser (at) web.de>
+Magne Mæhre, LA1BFA, <magne (at) samfundet.no>
