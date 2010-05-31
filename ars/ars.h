@@ -38,6 +38,7 @@ struct ars_priv_data {
 #endif
 };
 
-extern const struct rot_caps rci_se8_rot_caps;
+extern const struct rot_caps rci_az_rot_caps;
+extern const struct rot_caps rci_azel_rot_caps;
 
 #endif /* _ROT_ARS_H */

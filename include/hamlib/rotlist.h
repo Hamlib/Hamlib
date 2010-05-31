@@ -195,7 +195,8 @@
  */
 #define ROT_ARS 11
 #define ROT_BACKEND_ARS "ars"
-#define ROT_MODEL_RCI_SE8 ROT_MAKE_MODEL(ROT_ARS, 1)
+#define ROT_MODEL_RCI_AZEL ROT_MAKE_MODEL(ROT_ARS, 1)
+#define ROT_MODEL_RCI_AZ ROT_MAKE_MODEL(ROT_ARS, 2)
 
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.

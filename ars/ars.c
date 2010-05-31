@@ -630,14 +630,17 @@ ars_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
  * ARS rotator capabilities.
  */
 
-const struct rot_caps rci_se8_rot_caps = {
-  .rot_model =      ROT_MODEL_RCI_SE8,
-  .model_name =     "ARS RCI-SE8",
+/*
+ * RCI/RCI-SE, with Elevation daugtherboard/unit.
+ */
+const struct rot_caps rci_azel_rot_caps = {
+  .rot_model =      ROT_MODEL_RCI_AZEL,
+  .model_name =     "ARS RCI AZ&EL",
   .mfg_name =       "EA4TX",
   .version =        "0.1",
   .copyright = 	    "LGPL",
   .status =         RIG_STATUS_BETA,
-  .rot_type =       ROT_TYPE_AZEL,
+  .rot_type =       ROT_TYPE_AZEL,  /* AZ&EL units */
   .port_type =      RIG_PORT_PARALLEL,
   .write_delay =    0,
   .post_write_delay =  10,
@@ -657,7 +660,39 @@ const struct rot_caps rci_se8_rot_caps = {
   .get_position = ars_get_position,
   .stop         = ars_stop,
   .move         = ars_move,
+};
 
+/*
+ * RCI/RCI-SE, without Elevation daugtherboard/unit.
+ * Azimuth only
+ */
+const struct rot_caps rci_az_rot_caps = {
+  .rot_model =      ROT_MODEL_RCI_AZ,
+  .model_name =     "ARS RCI AZ",
+  .mfg_name =       "EA4TX",
+  .version =        "0.1",
+  .copyright = 	    "LGPL",
+  .status =         RIG_STATUS_BETA,
+  .rot_type =       ROT_TYPE_AZIMUTH,    /* AZ-only unit */
+  .port_type =      RIG_PORT_PARALLEL,
+  .write_delay =    0,
+  .post_write_delay =  10,
+  .timeout =  0,
+  .retry =  3,
+
+  .min_az = 	0,
+  .max_az =  	360,
+  .min_el = 	0,
+  .max_el =  	180,    /* TBC */
+
+  .rot_init     = ars_init,
+  .rot_cleanup  = ars_cleanup,
+  .rot_open     = ars_open,
+  .rot_close    = ars_close,
+  .set_position = ars_set_position,
+  .get_position = ars_get_position,
+  .stop         = ars_stop,
+  .move         = ars_move,
 };
 
 
@@ -667,7 +702,8 @@ DECLARE_INITROT_BACKEND(ars)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
-	rot_register(&rci_se8_rot_caps);
+	rot_register(&rci_az_rot_caps);
+	rot_register(&rci_azel_rot_caps);
 
 	return RIG_OK;
 }
