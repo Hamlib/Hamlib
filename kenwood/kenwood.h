@@ -26,7 +26,7 @@
 #include <string.h>
 #include "token.h"
 
-#define BACKEND_VER	"0.7"
+#define BACKEND_VER	"0.8"
 
 #define EOM_KEN ';'
 #define EOM_TH '\r'
