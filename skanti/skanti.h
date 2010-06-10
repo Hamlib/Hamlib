@@ -1,8 +1,7 @@
 /*
  *  Hamlib Skanti backend - main header
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
- *	$Id: skanti.h,v 1.1 2004-08-18 18:51:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,5 +33,6 @@ int skanti_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 int skanti_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 extern const struct rig_caps trp8000_caps;
+extern const struct rig_caps trp8255_caps;
 
 #endif /* _SKANTI_H */

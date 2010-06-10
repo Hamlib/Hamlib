@@ -292,6 +292,7 @@ DECLARE_INITRIG_BACKEND(skanti)
 	rig_debug(RIG_DEBUG_VERBOSE, "skanti: _init called\n");
 
 	rig_register(&trp8000_caps);
+	rig_register(&trp8255_caps);
 
 	return RIG_OK;
 }
