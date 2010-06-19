@@ -34,6 +34,7 @@
 #include "iofunc.h"
 #include "serial.h"
 #include "misc.h"
+#include "num_stdio.h"
 
 struct tt585_priv_data {
     unsigned char status_data[30];
@@ -85,6 +86,8 @@ static int tt585_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 static int tt585_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int tt585_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 static int tt585_set_parm(RIG *rig, setting_t parm, value_t val);
+static int tt585_set_mem(RIG *rig, vfo_t vfo, int ch);
+static int tt585_get_mem(RIG *rig, vfo_t vfo, int *ch);
 
 static int tt585_get_status_data(RIG *rig);
 
@@ -96,9 +99,9 @@ const struct rig_caps tt585_caps = {
 .rig_model =  RIG_MODEL_TT585,
 .model_name = "TT-585 Paragon",
 .mfg_name =  "Ten-Tec",
-.version =  "0.2",
+.version =  "0.3",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_NONE,
@@ -109,8 +112,8 @@ const struct rig_caps tt585_caps = {
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_NONE,
-.write_delay =  20,
-.post_write_delay =  100, /* TODO: FOR T=1 TO 200 on a 4.77 MHz PC */
+.write_delay =  100, /* instead of 20 ms */
+.post_write_delay =  200, /* FOR T=1 TO 200 on a 4.77 MHz PC */
 .timeout =  1000,
 .retry =  0,
 
@@ -191,6 +194,8 @@ const struct rig_caps tt585_caps = {
 .set_mode =  tt585_set_mode,
 .get_mode =  tt585_get_mode,
 .set_parm =  tt585_set_parm,
+.set_mem =   tt585_set_mem,
+.get_mem =   tt585_get_mem,
 
 };
 
@@ -336,7 +341,7 @@ int tt585_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
     char buf[FREQBUFSZ], *p;
     int ret;
 
-    ret = snprintf(buf, FREQBUFSZ-1, "%.5f@", (double)freq/MHz(1));
+    ret = num_snprintf(buf, FREQBUFSZ-1, "%.5f@", (double)freq/MHz(1));
     buf[FREQBUFSZ-1] = '\0';
 
     /* replace decimal point with W */
