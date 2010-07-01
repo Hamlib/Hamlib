@@ -1,8 +1,7 @@
 /*
  *  Hamlib Tentec backend - main header
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *
- *	$Id: tentec.h,v 1.12 2009-01-11 12:42:24 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -17,7 +16,6 @@
  *   You should have received a copy of the GNU Library General Public
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
  */
 
 /**
@@ -75,6 +73,7 @@ extern const struct rig_caps tt585_caps;
 extern const struct rig_caps tt588_caps;
 extern const struct rig_caps tt550_caps;
 extern const struct rig_caps tt565_caps;
+extern const struct rig_caps rx331_caps;
 
 
 #endif /* _TENTEC_H */
