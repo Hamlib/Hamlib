@@ -1,8 +1,7 @@
 /*
  *  Hamlib PCR backend - main header
- *  Copyright (c) 2001-2009 by Stephane Fillod
+ *  Copyright (c) 2001-2010 by Stephane Fillod
  *
- *	$Id: pcr.h,v 1.15 2009-02-06 17:31:33 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -28,26 +27,36 @@
 
 /* ext_level's tokens */
 #define TOK_EL_ANL  TOKEN_BACKEND(1)
+#define TOK_EL_DIVERSITY  TOKEN_BACKEND(2)
 
-#define BACKEND_VER		"0.7"
+#define BACKEND_VER		"0.8"
 #define PCR_MAX_CMD_LEN		32
 
 struct pcr_priv_data
 {
-	freq_t last_freq;
-	rmode_t last_mode;
+	struct pcr_rcvr {
 
-	int last_filter;
-	int last_shift;
-	int last_att;
-	int last_agc;
-	tone_t last_ctcss_sql;
+	    freq_t last_freq;
+	    rmode_t last_mode;
 
-	float	volume;
-	float	squelch;
+	    int last_filter;
+	    int last_shift;
+	    int last_att;
+	    int last_agc;
+	    tone_t last_ctcss_sql;
+	    tone_t last_dcs_sql;
+
+	    float	volume;
+	    float	squelch;
+
+	    int raw_level;
+	    int squelch_status;
+
+	} main_rcvr, sub_rcvr;
+
+	vfo_t current_vfo;
 
 	int auto_update;
-	int raw_level;
 
 	char info[100];
 	char cmd_buf[PCR_MAX_CMD_LEN];
@@ -73,11 +82,14 @@ struct pcr_priv_caps
 #define pcr_caps(rig) ((struct pcr_priv_caps *)(rig)->caps->priv)
 
 extern const tone_t pcr_ctcss_list[];
+extern const tone_t pcr_dcs_list[];
 
 int pcr_init(RIG *rig);
 int pcr_cleanup(RIG *rig);
 int pcr_open(RIG *rig);
 int pcr_close(RIG *rig);
+int pcr_set_vfo(RIG * rig, vfo_t vfo);
+int pcr_get_vfo(RIG * rig, vfo_t *vfo);
 int pcr_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int pcr_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 int pcr_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
@@ -96,10 +108,13 @@ int pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 
 int pcr_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
 int pcr_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+int pcr_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+int pcr_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t tone);
 int pcr_set_trn(RIG * rig, int trn);
 int pcr_decode_event(RIG *rig);
 int pcr_set_powerstat(RIG * rig, powerstat_t status);
 int pcr_get_powerstat(RIG * rig, powerstat_t *status);
+int pcr_get_dcd(RIG * rig, vfo_t vfo, dcd_t *dcd);
 
 /* ------------------------------------------------------------------ */
 
@@ -109,5 +124,6 @@ int pcr_get_powerstat(RIG * rig, powerstat_t *status);
 extern const struct rig_caps pcr1000_caps;
 extern const struct rig_caps pcr100_caps;
 extern const struct rig_caps pcr1500_caps;
+extern const struct rig_caps pcr2500_caps;
 
 #endif /* _PCR_H */

@@ -57,6 +57,9 @@
 #define MD_CW	'3'
 #define MD_FM	'5'
 #define MD_WFM	'6'
+#define MD_DSTAR	'7' /* PCR-2500 Only */
+#define MD_P25	'8' /* PCR-2500 Only */
+
 
 /* define 2.8kHz, 6kHz, 15kHz, 50kHz, and 230kHz */
 #define FLT_2_8kHz	'0'
@@ -83,6 +86,23 @@ const tone_t pcr_ctcss_list[] = {
 	0,
 };
 
+/*
+ * DTCS SQL code list
+ * Don't even touch a single bit! indexes will be used in the protocol!
+ * 104 codes
+ */
+const tone_t pcr_dcs_list[] = {
+	      23,  25,  26,  31,  32,  36,  43,  47,       51,  53,
+	 54,  65,  71,  72,  73,  74, 114, 115, 116, 122, 125, 131,
+	132, 134, 143, 145, 152, 155, 156, 162, 165, 172, 174, 205,
+	212, 223, 225, 226, 243, 244, 245, 246, 251, 252, 255, 261,
+	263, 265, 266, 271, 274, 306, 311, 315, 325, 331, 332, 343,
+	346, 351, 356, 364, 365, 371, 411, 412, 413, 423, 431, 432,
+	445, 446, 452, 454, 455, 462, 464, 465, 466, 503, 506, 516,
+	523, 526, 532, 546, 565, 606, 612, 624, 627, 631, 632, 654,
+	662, 664, 703, 712, 723, 731, 732, 734, 743, 754,
+	0,
+};
 
 struct pcr_country
 {
@@ -110,23 +130,26 @@ struct pcr_country pcr_countries[] = {
 };
 
 
-static int pcr_set_volume(RIG *rig, float level);
-static int pcr_set_squelch(RIG *rig, float level);
-static int pcr_set_if_shift(RIG *rig, int level);
-static int pcr_set_agc(RIG *rig, int status);			// J45xx
-static int pcr_set_afc(RIG *rig, int status);			// LD820xx
-static int pcr_set_nb(RIG *rig, int status);			// J46xx
-static int pcr_set_attenuator(RIG *rig, int status);		// J47xx
-static int pcr_set_anl(RIG *rig, int status);			// J4Dxx
+static int pcr_set_volume(RIG *rig, vfo_t vfo, float level);
+static int pcr_set_squelch(RIG *rig, vfo_t vfo, float level);
+static int pcr_set_if_shift(RIG *rig, vfo_t vfo, int level);
+static int pcr_set_agc(RIG *rig, vfo_t vfo, int status);			// J45xx
+static int pcr_set_afc(RIG *rig, vfo_t vfo, int status);			// LD820xx
+static int pcr_set_nb(RIG *rig, vfo_t vfo, int status);			// J46xx
+static int pcr_set_attenuator(RIG *rig, vfo_t vfo, int status);		// J47xx
+static int pcr_set_anl(RIG *rig, vfo_t vfo, int status);			// J4Dxx
+static int pcr_set_diversity(RIG * rig, vfo_t vfo, int status);	// J00xx on PCR-2500
 
-static int pcr_set_bfo_shift(RIG *rig, int level);          // J4Axx
-static int pcr_set_vsc(RIG *rig, int level);                // J50xx
-static int pcr_set_dsp(RIG *rig, int level);                // J80xx
-static int pcr_set_dsp_state(RIG *rig, int level);          // J8100=off J8101=on
-static int pcr_set_dsp_noise_reducer(RIG *rig, int level);  // J82xx
-static int pcr_set_dsp_auto_notch(RIG *rig, int level);     // J83xx
+static int pcr_set_bfo_shift(RIG *rig, vfo_t vfo, int level);          // J4Axx
+static int pcr_set_vsc(RIG *rig, vfo_t vfo, int level);                // J50xx
+static int pcr_set_dsp(RIG *rig, vfo_t vfo, int level);                // J80xx
+static int pcr_set_dsp_state(RIG *rig, vfo_t vfo, int level);          // J8100=off J8101=on
+static int pcr_set_dsp_noise_reducer(RIG *rig, vfo_t vfo, int level);  // J82xx
+static int pcr_set_dsp_auto_notch(RIG *rig, vfo_t vfo, int level);     // J83xx
 
 static int pcr_check_ok(RIG * rig);
+
+static int is_sub_rcvr(RIG * rig, vfo_t vfo);
 
 
 #define PCR_COUNTRIES (sizeof(pcr_countries) / sizeof(struct pcr_country))
@@ -219,14 +242,43 @@ pcr_parse_answer(RIG *rig, char *buf, int len)
 	if (strncmp("H100", buf, 4) == 0)
 		return -RIG_ERJCTED;
 
-	if (buf[0] == 'I' && buf[1] == '1') {
+	if (buf[0] == 'I') {
 		switch (buf[1]) {
+            /* Main receiver */
+		case '0':
+			sscanf(buf, "I0%02X", &priv->main_rcvr.squelch_status);
+			return RIG_OK;
+
 		case '1':
-			sscanf(buf, "I1%02X", &priv->raw_level);
+			sscanf(buf, "I1%02X", &priv->main_rcvr.raw_level);
+			return RIG_OK;
+
+		case '2':
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: Signal centering %c%c\n",
+				__func__, buf[2], buf[3]);
 			return RIG_OK;
 
 		case '3':
 			rig_debug(RIG_DEBUG_WARN, "%s: DTMF %c\n",
+				__func__, buf[3]);
+			return RIG_OK;
+
+            /* Sub receiver (on PCR-2500..) - TBC */
+		case '4':
+			sscanf(buf, "I4%02X", &priv->sub_rcvr.squelch_status);
+			return RIG_OK;
+
+		case '5':
+			sscanf(buf, "I5%02X", &priv->sub_rcvr.raw_level);
+			return RIG_OK;
+
+		case '6':
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: Signal centering %c%c (Sub)\n",
+				__func__, buf[2], buf[3]);
+			return RIG_OK;
+
+		case '7':
+			rig_debug(RIG_DEBUG_WARN, "%s: DTMF %c (Sub)\n",
 				__func__, buf[3]);
 			return RIG_OK;
 		}
@@ -397,15 +449,19 @@ pcr_init(RIG * rig)
 	 */
 	priv->country		= -1;
 	priv->sync		= 0;
-	priv->last_att		= 0;
-	priv->last_agc		= 0;
-	priv->last_ctcss_sql	= 0;
-	priv->last_freq		= MHz(145);
-	priv->last_mode		= MD_FM;
-	priv->last_filter	= FLT_15kHz;
 	priv->power		= RIG_POWER_OFF;
-	priv->volume		= 0.25;
-	priv->squelch		= 0.00;
+
+	priv->main_rcvr.last_att		= 0;
+	priv->main_rcvr.last_agc		= 0;
+	priv->main_rcvr.last_ctcss_sql	= 0;
+	priv->main_rcvr.last_freq		= MHz(145);
+	priv->main_rcvr.last_mode		= MD_FM;
+	priv->main_rcvr.last_filter	= FLT_15kHz;
+	priv->main_rcvr.volume		= 0.25;
+	priv->main_rcvr.squelch		= 0.00;
+
+	priv->sub_rcvr = priv->main_rcvr;
+	priv->current_vfo = RIG_VFO_MAIN;
 	
 	rig->state.priv		= (rig_ptr_t) priv;
 	rig->state.transceive	= RIG_TRN_OFF;
@@ -488,11 +544,11 @@ pcr_open(RIG * rig)
 		return err;
 
 	/* set squelch and volume */
-	err = pcr_set_squelch(rig, priv->squelch);
+	err = pcr_set_squelch(rig, RIG_VFO_MAIN, priv->main_rcvr.squelch);
 	if (err != RIG_OK)
 		return err;
 
-	err = pcr_set_volume(rig, priv->volume);
+	err = pcr_set_volume(rig, RIG_VFO_MAIN, priv->main_rcvr.volume);
 	if (err != RIG_OK)
 		return err;
 
@@ -500,7 +556,25 @@ pcr_open(RIG * rig)
 	pcr_get_info(rig);
 
 	/* tune to last freq */
-	pcr_set_freq(rig, 0, priv->last_freq);
+	err = pcr_set_freq(rig, RIG_VFO_MAIN, priv->main_rcvr.last_freq);
+	if (err != RIG_OK)
+		return err;
+
+	if ((rig->state.vfo_list & RIG_VFO_SUB) == RIG_VFO_SUB) {
+	    err = pcr_set_squelch(rig, RIG_VFO_SUB, priv->sub_rcvr.squelch);
+	    if (err != RIG_OK)
+	        return err;
+
+	    err = pcr_set_volume(rig, RIG_VFO_SUB, priv->sub_rcvr.volume);
+	    if (err != RIG_OK)
+	        return err;
+
+	    err = pcr_set_freq(rig, RIG_VFO_SUB, priv->sub_rcvr.last_freq);
+	    if (err != RIG_OK)
+	        return err;
+
+	    pcr_set_vfo(rig, RIG_VFO_MAIN);
+	}
 
 	/* switch to different speed if requested */
 	if (wanted_serial_rate != startup_serial_rate && wanted_serial_rate >= 300)
@@ -522,6 +596,43 @@ pcr_close(RIG * rig)
 	 */
 	priv->power = RIG_POWER_OFF;
 	return pcr_send(rig, "H100");
+}
+
+/*
+ * pcr_set_vfo
+ *
+ * Only useful on PCR-2500 which is a double receiver.
+ * Simply remember what the current VFO is for RIG_VFO_CURR.
+ */
+int
+pcr_set_vfo(RIG * rig, vfo_t vfo)
+{
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo = %s\n",
+		  __func__, rig_strvfo(vfo));
+
+    switch (vfo) {
+        case RIG_VFO_MAIN:
+        case RIG_VFO_SUB:
+            break;
+
+        default:
+            return -RIG_EINVAL;
+    }
+
+    priv->current_vfo = vfo;
+
+    return RIG_OK;
+}
+
+int
+pcr_get_vfo(RIG * rig, vfo_t *vfo)
+{
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+
+    *vfo = priv->current_vfo;
+    return RIG_OK;
 }
 
 /*
@@ -551,17 +662,20 @@ int
 pcr_set_freq(RIG * rig, vfo_t vfo, freq_t freq)
 {
 	struct pcr_priv_data *priv;
+	struct pcr_rcvr *rcvr;
 	unsigned char buf[20];
 	int freq_len, err;
 
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo = %d, freq = %.0f\n",
-		  __func__, vfo, freq);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: vfo = %s, freq = %.0f\n",
+		  __func__, rig_strvfo(vfo), freq);
 
 	priv = (struct pcr_priv_data *) rig->state.priv;
+	rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
-	freq_len = sprintf((char *) buf, "K0%010" PRIll "0%c0%c00",
+	freq_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
+			   is_sub_rcvr(rig, vfo) ? '1':'0',
 			   (int64_t) freq,
-			   priv->last_mode, priv->last_filter);
+			   rcvr->last_mode, rcvr->last_filter);
 
 	buf[freq_len] = '\0';
 
@@ -569,7 +683,7 @@ pcr_set_freq(RIG * rig, vfo_t vfo, freq_t freq)
 	if (err != RIG_OK)
 		return err;
 
-	priv->last_freq = freq;
+	rcvr->last_freq = freq;
 
 	return RIG_OK;
 }
@@ -583,8 +697,9 @@ int
 pcr_get_freq(RIG * rig, vfo_t vfo, freq_t * freq)
 {
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
-	*freq = priv->last_freq;
+	*freq = rcvr->last_freq;
 
 	return RIG_OK;
 }
@@ -598,6 +713,7 @@ int
 pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	unsigned char buf[20];
 	int buf_len, err;
@@ -673,8 +789,9 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: filter set to %d (%c)\n",
 		  __func__, width, pcrfilter);
 
-	buf_len = sprintf((char *) buf, "K0%010" PRIll "0%c0%c00",
-			(int64_t) priv->last_freq, pcrmode, pcrfilter);
+	buf_len = sprintf((char *) buf, "K%c%010" PRIll "0%c0%c00",
+			is_sub_rcvr(rig, vfo) ? '1':'0',
+			(int64_t) rcvr->last_freq, pcrmode, pcrfilter);
 
 	err = pcr_transaction(rig, (char *) buf);
 	if (err != RIG_OK)
@@ -683,8 +800,8 @@ pcr_set_mode(RIG * rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: saving values\n",
 		  __func__);
 
-	priv->last_mode = pcrmode;
-	priv->last_filter = pcrfilter;
+	rcvr->last_mode = pcrmode;
+	rcvr->last_filter = pcrfilter;
 
 	return RIG_OK;
 }
@@ -697,13 +814,15 @@ int
 pcr_get_mode(RIG * rig, vfo_t vfo, rmode_t * mode, pbwidth_t * width)
 {
 	struct pcr_priv_data *priv;
+	struct pcr_rcvr *rcvr;
 
 	priv = (struct pcr_priv_data *) rig->state.priv;
+	rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s, last_mode = %c, last_filter = %c\n",  __func__,
-		priv->last_mode, priv->last_filter);
+		rcvr->last_mode, rcvr->last_filter);
 
-	switch (priv->last_mode) {
+	switch (rcvr->last_mode) {
 	case MD_CW:
 		*mode = RIG_MODE_CW;
 		break;
@@ -725,11 +844,11 @@ pcr_get_mode(RIG * rig, vfo_t vfo, rmode_t * mode, pbwidth_t * width)
 	default:
 		rig_debug(RIG_DEBUG_ERR,
 			  "pcr_get_mode: unsupported mode %d\n",
-			  priv->last_mode);
+			  rcvr->last_mode);
 		return -RIG_EINVAL;
 	}
 
-	switch (priv->last_filter) {
+	switch (rcvr->last_filter) {
 	case FLT_2_8kHz:
 		*width = kHz(2.8);
 		break;
@@ -747,7 +866,7 @@ pcr_get_mode(RIG * rig, vfo_t vfo, rmode_t * mode, pbwidth_t * width)
 		break;
 	default:
 		rig_debug(RIG_DEBUG_ERR, "pcr_get_mode: unsupported "
-			  "width %d\n", priv->last_filter);
+			  "width %d\n", rcvr->last_filter);
 		return -RIG_EINVAL;
 	}
 
@@ -848,20 +967,17 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		 *
 		 * Experiment shows it seems to have an effect, but unsure by how many db
 		 */
-		return pcr_set_attenuator(rig, val.i);
+		return pcr_set_attenuator(rig, vfo, val.i);
 
 	case RIG_LEVEL_IF:
-		return pcr_set_if_shift(rig, val.i);
+		return pcr_set_if_shift(rig, vfo, val.i);
 
 	case RIG_LEVEL_CWPITCH: /* BFO */
-		return pcr_set_bfo_shift(rig, val.i);
+		return pcr_set_bfo_shift(rig, vfo, val.i);
 
 	case RIG_LEVEL_AGC:
-		/* this is implemented as a level even though it is a binary function
-		 * as far as PCR is concerned. There is no AGC on/off for a "set func",
-		 * so done here is a set level
-		 */
-		return pcr_set_agc(rig, val.i);
+		/* Only AGC on/off supported by PCR's */
+		return pcr_set_agc(rig, vfo, val.i==RIG_AGC_OFF ? 0 : 1);
 
 	/* floats */
 
@@ -869,14 +985,14 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		/* "val" can be 0.0 to 1.0 float which is 0 to 255 levels
 		 * 0.3 seems to be ok in terms of loudness
 		 */
-		return pcr_set_volume(rig, val.f);
+		return pcr_set_volume(rig, vfo, val.f);
 
 	case RIG_LEVEL_SQL:
 		/* "val" can be 0.0 to 1.0 float
 		 *      .... rig supports 0 to FF - look at function for
 		 *      squelch "bands"
 		 */
-		return pcr_set_squelch(rig, val.f);
+		return pcr_set_squelch(rig, vfo, val.f);
 
 	case RIG_LEVEL_NR:
 		/* This selectss the DSP unit - this isn't a level per se,
@@ -885,7 +1001,7 @@ pcr_set_level(RIG * rig, vfo_t vfo, setting_t level, value_t val)
 		 *
 		 * Later on we can set if the DSP features are on or off in set_func
 		 */
-		return pcr_set_dsp(rig, (int) val.f);
+		return pcr_set_dsp(rig, vfo, (int) val.f);
 	}
 
 	return err;
@@ -903,51 +1019,52 @@ pcr_get_level(RIG * rig, vfo_t vfo, setting_t level, value_t * val)
 {
 	int err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 //	rig_debug(RIG_DEBUG_TRACE, "%s: level = %d\n", __func__, level);
 
 	switch (level) {
 	case RIG_LEVEL_SQL:
-		val->f = priv->squelch;
+		val->f = rcvr->squelch;
 		return RIG_OK;
 
 	case RIG_LEVEL_AF:
-		val->f = priv->volume;
+		val->f = rcvr->volume;
 		return RIG_OK;
 
 	case RIG_LEVEL_STRENGTH:
 		if (priv->auto_update == 0) {
-			err = pcr_transaction(rig, "I1?");
+			err = pcr_transaction(rig, is_sub_rcvr(rig, vfo) ? "I5?" : "I1?");
 			if (err != RIG_OK)
 				return err;
 		}
 
-		val->i = rig_raw2val(priv->raw_level, &rig->caps->str_cal);
+		val->i = rig_raw2val(rcvr->raw_level, &rig->state.str_cal);
 /*		rig_debug(RIG_DEBUG_TRACE, "%s, raw = %d, converted = %d\n",
-				 __func__, priv->raw_level, val->i);
+				 __func__, rcvr->raw_level, val->i);
 */
 		return RIG_OK;
 
 	case RIG_LEVEL_RAWSTR:
 		if (priv->auto_update == 0) {
-			err = pcr_transaction(rig, "I1?");
+			err = pcr_transaction(rig, is_sub_rcvr(rig, vfo) ? "I5?" : "I1?");
 			if (err != RIG_OK)
 				return err;
 		}
 
-		val->i = priv->raw_level;
+		val->i = rcvr->raw_level;
 		return RIG_OK;
 
 	case RIG_LEVEL_IF:
-		val->i = priv->last_shift;
+		val->i = rcvr->last_shift;
 		return RIG_OK;
 
 	case RIG_LEVEL_ATT:
-		val->i = priv->last_att;
+		val->i = rcvr->last_att;
 		return RIG_OK;
 
 	case RIG_LEVEL_AGC:
-		val->i = priv->last_agc;
+		val->i = rcvr->last_agc;
 		return RIG_OK;
 	}
 
@@ -966,6 +1083,7 @@ int
 pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 {
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %ld, func = %d\n", __func__,
 		  status, func);
@@ -977,48 +1095,48 @@ pcr_set_func(RIG * rig, vfo_t vfo, setting_t func, int status)
 		 * using the set level function RIG_LEVEL_NR
 		 */
 		if (status == 1)
-			return pcr_set_dsp_state(rig, 1);
+			return pcr_set_dsp_state(rig, vfo, 1);
 		else
-			return pcr_set_dsp_state(rig, 0);
+			return pcr_set_dsp_state(rig, vfo, 0);
 		break;
 
 	case RIG_FUNC_ANF: /* DSP auto notch filter */
 		if (status == 1)
-			return pcr_set_dsp_auto_notch(rig, 1);
+			return pcr_set_dsp_auto_notch(rig, vfo, 1);
 		else
-			return pcr_set_dsp_auto_notch(rig, 0);
+			return pcr_set_dsp_auto_notch(rig, vfo, 0);
 		break;
 
 	case RIG_FUNC_NB: /* noise blanker */
 		if (status == 0)
-			return pcr_set_nb(rig, 0);
+			return pcr_set_nb(rig, vfo, 0);
 		else
-			return pcr_set_nb(rig, 1);
+			return pcr_set_nb(rig, vfo, 1);
 
 		break;
 
 	case RIG_FUNC_AFC: /* Tracking Filter */
 		if (status == 0)
-			return pcr_set_afc(rig, 0);
+			return pcr_set_afc(rig, vfo, 0);
 		else
-			return pcr_set_afc(rig, 1);
+			return pcr_set_afc(rig, vfo, 1);
 
 		break;
 
 	case RIG_FUNC_TSQL:
-		if (priv->last_mode != MD_FM)
+		if (rcvr->last_mode != MD_FM)
 			return -RIG_ERJCTED;
 
 		if (status == 0)
 			return pcr_set_ctcss_sql(rig, vfo, 0);
 		else
-			return pcr_set_ctcss_sql(rig, vfo, priv->last_ctcss_sql);
+			return pcr_set_ctcss_sql(rig, vfo, rcvr->last_ctcss_sql);
 
 	case RIG_FUNC_VSC: /* Voice Scan Control */
 		if (status == 0)
-			return pcr_set_vsc(rig, 0);
+			return pcr_set_vsc(rig, vfo, 0);
 		else
-			return pcr_set_vsc(rig, 1);
+			return pcr_set_vsc(rig, vfo, 1);
 
 		break;
 
@@ -1046,16 +1164,20 @@ pcr_get_func(RIG * rig, vfo_t vfo, setting_t func, int *status)
 int
 pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 {
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: tok = %s\n", __func__, token);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: tok = %d\n", __func__, token);
 
 	switch (token) {
 
 	case TOK_EL_ANL: /* automatic noise limiter */
 
-		return pcr_set_anl(rig, (0 == val.i) ? 0 : 1);
+		return pcr_set_anl(rig, vfo, (0 == val.i) ? 0 : 1);
+
+	case TOK_EL_DIVERSITY: /* antenna diversity */
+
+		return pcr_set_diversity(rig, vfo, (0 == val.i) ? 0 : 2);
 
 	default:
-		rig_debug(RIG_DEBUG_VERBOSE, "%s: default\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown token: %d\n", __func__, token);
 		return -RIG_EINVAL;
 	}
 
@@ -1066,13 +1188,13 @@ pcr_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
 /* --------------------------------------------------------------------------------------- */
 /* The next functions are all "helper types". These are called by the base functions above */
 /* --------------------------------------------------------------------------------------- */
+
 /*
  * Asks if the rig is ok = G0? response is G000 if ok or G001 if not
  *
  * Is only useful in fast transfer mode (when the CR/LF is stripped off all commands) ...
  * but also works on standard mode.
  */
-
 static int
 pcr_check_ok(RIG * rig)
 {
@@ -1081,7 +1203,16 @@ pcr_check_ok(RIG * rig)
 }
 
 static int
-pcr_set_level_cmd(RIG * rig, char *base, int level)
+is_sub_rcvr(RIG * rig, vfo_t vfo)
+{
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+
+	return vfo == RIG_VFO_SUB ||
+	        (vfo == RIG_VFO_CURR && priv->current_vfo == RIG_VFO_SUB);
+}
+
+static int
+pcr_set_level_cmd(RIG * rig, const char *base, int level)
 {
 	char buf[12];
 
@@ -1098,7 +1229,8 @@ pcr_set_level_cmd(RIG * rig, char *base, int level)
 		return -RIG_EINVAL;
 	}
 
-	sprintf(buf, "%s%02X", base, level);
+	snprintf(buf, 12, "%s%02X", base, level);
+	buf[11] = '\0';
 	return pcr_transaction(rig, buf);
 }
 
@@ -1108,16 +1240,17 @@ pcr_set_level_cmd(RIG * rig, char *base, int level)
  */
 
 static int
-pcr_set_volume(RIG * rig, float level)
+pcr_set_volume(RIG * rig, vfo_t vfo, float level)
 {
 	int err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: level = %f\n", __func__, level);
 
-	err = pcr_set_level_cmd(rig, "J40", level * 0xff);
+	err = pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J60":"J40", level * 0xff);
 	if (err == RIG_OK)
-		priv->volume = level;
+		rcvr->volume = level;
 
 	return err;
 }
@@ -1141,16 +1274,17 @@ pcr_set_volume(RIG * rig, float level)
  */
 
 static int
-pcr_set_squelch(RIG * rig, float level)
+pcr_set_squelch(RIG * rig, vfo_t vfo, float level)
 {
 	int err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: level = %f\n", __func__, level);
 
-	err = pcr_set_level_cmd(rig, "J41", level * 0xff);
+	err = pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J61":"J41", level * 0xff);
 	if (err == RIG_OK)
-		priv->squelch = level;
+		rcvr->squelch = level;
 
 	return err;
 }
@@ -1171,16 +1305,17 @@ pcr_set_squelch(RIG * rig, float level)
  *
  */
 int
-pcr_set_if_shift(RIG * rig, int level)
+pcr_set_if_shift(RIG * rig, vfo_t vfo, int level)
 {
 	int err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, level);
 
-	err = pcr_set_level_cmd(rig, "J43", (level / 10) + 0x80);
+	err = pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J63":"J43", (level / 10) + 0x80);
 	if (err == RIG_OK)
-		priv->last_shift = level;
+		rcvr->last_shift = level;
 
 	return err;
 }
@@ -1196,22 +1331,23 @@ pcr_set_if_shift(RIG * rig, int level)
  *
  */
 int
-pcr_set_agc(RIG * rig, int status)
+pcr_set_agc(RIG * rig, vfo_t vfo, int status)
 {
 	int err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d\n", __func__, status);
 
-	err = pcr_set_level_cmd(rig, "J45", status ? 1 : 0);
+	err = pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J65":"J45", status ? 1 : 0);
 	if (err == RIG_OK)
-		priv->last_agc = status ? 1 : 0;
+		rcvr->last_agc = status ? 1 : 0;
 
 	return err;
 }
 
 /*
- * pcr_set_afc(RIG *rig, int level);
+ * pcr_set_afc(RIG *rig, vfo_t vfo, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Sets the Tracking Filter on or off based on the status argument.
@@ -1221,14 +1357,14 @@ pcr_set_agc(RIG * rig, int status)
  *
  */
 int
-pcr_set_afc(RIG * rig, int status)
+pcr_set_afc(RIG * rig, vfo_t vfo, int status)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d\n", __func__, status);
 	return pcr_set_level_cmd(rig, "LD820", status ? 0 : 1);
 }
 
 /*
- * pcr_set_nb(RIG *rig, int level);
+ * pcr_set_nb(RIG *rig, vfo_t vfo, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Sets the noise blanker on or off based on the level specified in the level integer.
@@ -1238,22 +1374,39 @@ pcr_set_afc(RIG * rig, int status)
  *
  */
 int
-pcr_set_nb(RIG * rig, int status)
+pcr_set_nb(RIG * rig, vfo_t vfo, int status)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d\n", __func__, status);
-	return pcr_set_level_cmd(rig, "J46", status ? 1 : 0);
+	return pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J66":"J46", status ? 1 : 0);
 }
 
 /* Automatic Noise Limiter - J4Dxx - 00 off, 01 on */
 int
-pcr_set_anl(RIG * rig, int status)
+pcr_set_anl(RIG * rig, vfo_t vfo, int status)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d\n", __func__, status);
 	return pcr_set_level_cmd(rig, "J4D", status ? 1 : 0);
 }
 
+
+/* Antenna Diversity/Tuners - J00xx - 
+ *      02=Dual Diversity ON, 1 display using 2 tuners
+ *      01=Single Diversity OFF, 1 display using 1 tuner
+ *      00=OFF Diversity OFF, 2 displays using 2 tuners
+ */
+int
+pcr_set_diversity(RIG * rig, vfo_t vfo, int status)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d\n", __func__, status);
+
+	if (status < 0 || status > 2)
+	    return -RIG_EINVAL;
+
+	return pcr_set_level_cmd(rig, "J00", status);
+}
+
 /*
- * pcr_set_attenuator(RIG *rig, int level);
+ * pcr_set_attenuator(RIG *rig, vfo_t vfo, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Sets the attenuator on or off based on the level specified in the level integer.
@@ -1265,16 +1418,17 @@ pcr_set_anl(RIG * rig, int status)
  */
 
 int
-pcr_set_attenuator(RIG * rig, int status)
+pcr_set_attenuator(RIG * rig, vfo_t vfo, int status)
 {
 	int err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: status = %d\n", __func__, status);
 
-	err = pcr_set_level_cmd(rig, "J47", status ? 1 : 0);
+	err = pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J67":"J47", status ? 1 : 0);
 	if (err == RIG_OK)
-		priv->last_att = status;
+		rcvr->last_att = status;
 
 	return err;
 }
@@ -1294,28 +1448,30 @@ pcr_set_attenuator(RIG * rig, int status)
  * XXX command undocumented?
  */
 int
-pcr_set_bfo_shift(RIG * rig, int level)
+pcr_set_bfo_shift(RIG * rig, vfo_t vfo, int level)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, level);
-	return pcr_set_level_cmd(rig, "J4A", 0x80 + level/10);
+	return pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J6A":"J4A", 0x80 + level/10);
 }
 
 /*
- * pcr_set_dsp(RIG *rig, int level);
+ * pcr_set_dsp(RIG *rig, vfo_t vfo, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Sets the DSP to UT106 (01) or off (non 01)
  *
  */
 int
-pcr_set_dsp(RIG * rig, int level)
+pcr_set_dsp(RIG * rig, vfo_t vfo, int level)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, level);
+	if (is_sub_rcvr(rig, vfo))
+	        return -RIG_ENAVAIL;
 	return pcr_set_level_cmd(rig, "J80", level);
 }
 
 /*
- * pcr_set_dsp_state(RIG *rig, int level);
+ * pcr_set_dsp_state(RIG *rig, vfo_t vfo, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Sets the DSP on or off (> 0 = on, 0 = off)
@@ -1323,14 +1479,16 @@ pcr_set_dsp(RIG * rig, int level)
  */
 
 int
-pcr_set_dsp_state(RIG * rig, int level)
+pcr_set_dsp_state(RIG * rig, vfo_t vfo, int level)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, level);
+	if (is_sub_rcvr(rig, vfo))
+	        return -RIG_ENAVAIL;
 	return pcr_set_level_cmd(rig, "J81", level);
 }
 
 /*
- * pcr_set_dsp_noise_reducer(RIG *rig, int level);
+ * pcr_set_dsp_noise_reducer(RIG *rig, vfo_t vfo, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Sets the DSP noise reducer on or off (0x01 = on, 0x00 = off)
@@ -1338,39 +1496,44 @@ pcr_set_dsp_state(RIG * rig, int level)
  */
 
 int
-pcr_set_dsp_noise_reducer(RIG * rig, int level)
+pcr_set_dsp_noise_reducer(RIG * rig, vfo_t vfo, int level)
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, level);
+	if (is_sub_rcvr(rig, vfo))
+	        return -RIG_ENAVAIL;
 	return pcr_set_level_cmd(rig, "J82", level);
 }
 
 /*
- * pcr_set_dsp_auto_notch(RIG *rig, int level);
+ * pcr_set_dsp_auto_notch(RIG *rig, vfo_t vfo, int level);
  * Assumes rig!=NULL, rig->state.priv!=NULL
  *
  * Sets the auto notch on or off (1 = on, 0 = off)
  */
 
 int
-pcr_set_dsp_auto_notch(RIG * rig, int status) // J83xx
+pcr_set_dsp_auto_notch(RIG * rig, vfo_t vfo, int status) // J83xx
 {
 	rig_debug(RIG_DEBUG_TRACE, "%s: level is %d\n", __func__, status);
+	if (is_sub_rcvr(rig, vfo))
+	        return -RIG_ENAVAIL;
 	return pcr_set_level_cmd(rig, "J83", status ? 1 : 0);
 }
 
 
 int
-pcr_set_vsc(RIG * rig, int status) // J50xx
+pcr_set_vsc(RIG * rig, vfo_t vfo, int status) // J50xx
 {
 	/* Not sure what VSC for so skipping the function here ... */
-	return pcr_set_level_cmd(rig, "J50", status ? 1 : 0);
+	return pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J70":"J50", status ? 1 : 0);
 }
 
 int pcr_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
-	*tone = priv->last_ctcss_sql;
+	*tone = rcvr->last_ctcss_sql;
 	return RIG_OK;
 }
 
@@ -1378,11 +1541,12 @@ int pcr_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 {
 	int i, err;
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
 
 	rig_debug(RIG_DEBUG_VERBOSE, "%s: tone = %d\n", __func__, tone);
 
 	if (tone == 0)
-		return pcr_transaction(rig, "J5100");
+		return pcr_transaction(rig, is_sub_rcvr(rig, vfo) ? "J7100":"J5100");
 
 	for (i = 0; rig->caps->ctcss_list[i] != 0; i++) {
 		if (rig->caps->ctcss_list[i] == tone)
@@ -1395,9 +1559,47 @@ int pcr_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
 	if (rig->caps->ctcss_list[i] != tone)
 		return -RIG_EINVAL;
 
-	err = pcr_set_level_cmd(rig, "J51", i + 1);
+	err = pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J71":"J51", i + 1);
 	if (err == RIG_OK)
-		priv->last_ctcss_sql = tone;
+		rcvr->last_ctcss_sql = tone;
+
+	return RIG_OK;
+}
+
+int pcr_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+
+	*tone = rcvr->last_dcs_sql;
+	return RIG_OK;
+}
+
+int pcr_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t tone)
+{
+	int i, err;
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: tone = %d\n", __func__, tone);
+
+	if (tone == 0)
+		return pcr_transaction(rig, is_sub_rcvr(rig, vfo) ? "J720000":"J520000");
+
+	for (i = 0; rig->caps->dcs_list[i] != 0; i++) {
+		if (rig->caps->dcs_list[i] == tone)
+                        break;
+	}
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: index = %d, tone = %d\n",
+			__func__, i, rig->caps->dcs_list[i]);
+
+	if (rig->caps->dcs_list[i] != tone)
+		return -RIG_EINVAL;
+
+	err = pcr_set_level_cmd(rig, is_sub_rcvr(rig, vfo) ? "J7200":"J5200", i + 1);
+	if (err == RIG_OK)
+		rcvr->last_dcs_sql = tone;
 
 	return RIG_OK;
 }
@@ -1435,6 +1637,11 @@ int pcr_decode_event(RIG *rig)
 
 int pcr_set_powerstat(RIG * rig, powerstat_t status)
 {
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+
+	if (status == priv->power)
+	    return RIG_OK;
+
 	if (status == RIG_POWER_ON)
 		return pcr_open(rig);
 	else if (status == RIG_POWER_OFF)
@@ -1446,15 +1653,43 @@ int pcr_set_powerstat(RIG * rig, powerstat_t status)
 int pcr_get_powerstat(RIG * rig, powerstat_t *status)
 {
 	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	int err;
 
-	/* XXX There's a command to check the status, it's worthwhile
-	 * to use it?
-	 */
+	/* return RIG_ERJCTED if power is off */
+	err = pcr_transaction(rig, "H1?");
+	if (err != RIG_OK && err != -RIG_ERJCTED)
+		return err;
+
+	priv->power = err == RIG_OK ? RIG_POWER_ON : RIG_POWER_OFF;
+
 	*status = priv->power;
 
 	return RIG_OK;
 }
-     
+
+int pcr_get_dcd(RIG * rig, vfo_t vfo, dcd_t *dcd)
+{
+	struct pcr_priv_data *priv = (struct pcr_priv_data *) rig->state.priv;
+	struct pcr_rcvr *rcvr = is_sub_rcvr(rig, vfo) ? &priv->sub_rcvr : &priv->main_rcvr;
+	int err;
+
+	if (priv->auto_update == 0) {
+	    err = pcr_transaction(rig, is_sub_rcvr(rig, vfo) ? "I4?" : "I0?");
+	    if (err != RIG_OK)
+	        return err;
+	}
+
+	/* 04 = Closed, 07 = Open
+	 *
+	 * Bit 0: busy
+	 * Bit 1: AF open (CTCSS open)
+	 * Bit 2: VSC open
+	 * Bit 3: RX error (not ready to receive)
+	 */
+	*dcd = rcvr->squelch_status & 0x02 ? RIG_DCD_ON : RIG_DCD_OFF;
+
+	return RIG_OK;
+}
 
 /* *********************************************************************************************
  * int pcr_set_comm_mode(RIG *rig, int mode_type);  // Set radio to fast/diagnostic mode  G3xx
@@ -1468,6 +1703,7 @@ DECLARE_INITRIG_BACKEND(pcr)
 	rig_register(&pcr100_caps);
 	rig_register(&pcr1000_caps);
 	rig_register(&pcr1500_caps);
+	rig_register(&pcr2500_caps);
 
 	return RIG_OK;
 }
