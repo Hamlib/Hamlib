@@ -174,7 +174,7 @@ const struct rig_caps ts690s_caps = {
 .set_xit =  kenwood_set_xit,
 .get_xit =  kenwood_get_xit,
 .set_mode =  kenwood_set_mode,
-.get_mode =  kenwood_get_mode,
+.get_mode =  kenwood_get_mode_if, 
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo_if,
 .get_ptt =  kenwood_get_ptt,
@@ -184,12 +184,19 @@ const struct rig_caps ts690s_caps = {
 .get_func =  kenwood_get_func,
 .set_level =  kenwood_set_level,
 .get_level =  kenwood_get_level,
+.set_ext_parm = kenwood_set_ext_parm,
+.get_ext_parm = kenwood_get_ext_parm,
 .vfo_op =  kenwood_vfo_op,
 .set_mem =  kenwood_set_mem,
 .get_mem =  kenwood_get_mem_if,
 .set_trn =  kenwood_set_trn,
 .get_trn =  kenwood_get_trn,
+.set_powerstat = kenwood_set_powerstat,
+.get_powerstat = kenwood_get_powerstat,
+.reset = kenwood_reset,
 .scan =  kenwood_scan,
+.get_channel = kenwood_get_channel,
+.set_channel = kenwood_set_channel,
 
 };
 
