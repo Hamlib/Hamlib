@@ -683,12 +683,52 @@ int elektor507_open(RIG *rig)
 }
 
 
-#ifdef ORIG_ALGORITHM
+#define FREQ_ALGORITHM 3	/* use AC6SL version 3-Aug-2010 */
 
-static void find_P_Q(struct elektor507_priv_data *priv, freq_t freq)
+#if FREQ_ALGORITHM == 1		/* this used to be ORIG_ALGORITHM */
+static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 {
+	int Freq;
 	double Min, VCO;
 	int p, q, q_max;
+
+	Freq = freq / kHz(1);
+
+	if (Freq > 19 && Freq < 60)
+	{
+		priv->Div1N = (2500 + Freq/2) / Freq + 128;
+		priv->P = 1000;
+		priv->Q = 40;
+		return;
+	}
+	else
+	if (Freq > 59 && Freq < 801)
+	{
+		priv->Div1N = 125;
+		priv->P = Freq * 2;
+		priv->Q = 40;
+		return;
+	}
+	else
+	if (Freq > 800 && Freq < 2001)
+	{
+		priv->Div1N = 50;
+		priv->P = Freq;
+		priv->Q = 50;
+		return;
+	}
+	else
+	if (Freq > 2000 && Freq < 4001)
+		priv->Div1N = 25;
+	else
+	if (Freq > 4000 && Freq < 10001)
+		priv->Div1N = 10;
+	else
+	if (Freq > 10000 && Freq < 20001)
+		priv->Div1N = 5;
+	else
+	if (Freq > 20000 && Freq < 30001)
+		priv->Div1N = 4;
 
 	Min = priv->osc_freq;
 	freq /= kHz(1);
@@ -723,8 +763,9 @@ static void find_P_Q(struct elektor507_priv_data *priv, freq_t freq)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n", 
 			__FUNCTION__, VCO);
 }
-#else	/* ORIG_ALGORITHM */
+#endif	/* ORIG_ALGORITHM */
 
+#if FREQ_ALGORITHM == 2		/* this used to be default alternative to ORIG_ALGORITHM */
 static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 {
 	double Min, VCO, freq4;
@@ -790,8 +831,55 @@ static void find_P_Q_DIV1N(struct elektor507_priv_data *priv, freq_t freq)
 		rig_debug(RIG_DEBUG_VERBOSE, "%s: Unstable parameters for VCO=%.1f\n", 
 			__FUNCTION__, VCO);
 }
+#endif	/* default alternative to ORIG_ALGORITHM */
 
-#endif	/* ORIG_ALGORITHM */
+#if FREQ_ALGORITHM == 3		/* AC6SL version 5-Aug-2010 */
+/* search valid (P,Q,N) for closest match to requested frequency */
+static void find_P_Q_DIV1N(
+	struct elektor507_priv_data *priv,
+	freq_t freq)
+	{
+#define VCO_MIN 100000000
+#define VCO_MAX 400000000
+	int Ptotal, Pmin, Pmax;
+	int Qtotal, Qmax = 40;
+	int Div1N;
+	double REFdivQ, PmulREFdivQ;
+	double Ref = priv->osc_freq * 1000.0;
+	double freq4 = freq * 4;
+	double newdelta, delta = fabs((priv->P * (Ref / priv->Q) / priv->Div1N) - freq4);
+
+	/* For stable operation: Ref/Qtotal must not fall below 250kHz */
+	/* Qmax = (int) ( Ref / 250000); */
+	for (Qtotal = 2; Qtotal <= Qmax; Qtotal++)
+		{
+		REFdivQ = ( Ref / Qtotal);
+
+		/* For stable operation: Ptotal*(Ref/Qtotal) must be ... */
+		Pmin = (int) ( VCO_MIN / REFdivQ); /* ... >= 100mHz */
+		Pmax = (int) ( VCO_MAX / REFdivQ); /* ... <= 400mHz */
+		for (Ptotal = Pmin; Ptotal <= Pmax; Ptotal++)
+			{
+			PmulREFdivQ = Ptotal * REFdivQ;
+
+			Div1N = (int) ((PmulREFdivQ + freq4 / 2) / freq4);
+			if (Div1N < 2)
+				Div1N = 2;
+			if (Div1N > 127)
+				Div1N = 127;
+
+			newdelta = fabs((PmulREFdivQ / Div1N) - freq4);
+			if (newdelta < delta)
+				{ /* save best (P,Q,N) */
+				delta = newdelta;
+				priv->P = Ptotal;
+				priv->Q = Qtotal;
+				priv->Div1N = Div1N;
+				}
+			}
+		}
+	}
+#endif /* AC6SL version 5-Aug-2010 */
 
 int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
@@ -799,9 +887,6 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	freq_t final_freq;
 	int ret=0;
 	int Mux;
-#ifdef ORIG_ALGORITHM
-	int Freq;
-#endif
 
 	if (priv->ant == ANT_AUTO) {
 		/* Automatically select appropriate filter */
@@ -816,65 +901,11 @@ int elektor507_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		priv->FT_port |= Mux << 2;
 	}
 
-	/*
-	 * Compute PLL parameters
-	 */
-
-#ifdef ORIG_ALGORITHM
-	Freq = freq / kHz(1);
-
-	if (Freq > 19 && Freq < 60)
-	{
-		priv->Div1N = (2500 + Freq/2) / Freq + 128;
-		priv->P = 1000;
-		priv->Q = 40;
-	}
-	else
-	if (Freq > 59 && Freq < 801)
-	{
-		priv->Div1N = 125;
-		priv->P = Freq * 2;
-		priv->Q = 40;
-	}
-	else
-	if (Freq > 800 && Freq < 2001)
-	{
-		priv->Div1N = 50;
-		priv->P = Freq;
-		priv->Q = 50;
-	}
-	else
-	if (Freq > 2000 && Freq < 4001)
-	{
-		priv->Div1N = 25;
-		find_P_Q(priv, freq);
-	}
-	else
-	if (Freq > 4000 && Freq < 10001)
-	{
-		priv->Div1N = 10;
-		find_P_Q(priv, freq);
-	}
-	else
-	if (Freq > 10000 && Freq < 20001)
-	{
-		priv->Div1N = 5;
-		find_P_Q(priv, freq);
-	}
-	else
-	if (Freq > 20000 && Freq < 30001)
-	{
-		priv->Div1N = 4;
-		find_P_Q(priv, freq);
-	}
-#else
-	find_P_Q_DIV1N(priv, freq);
-#endif
-
+	find_P_Q_DIV1N(priv, freq); /* Compute PLL parameters */
 
 	elektor507_get_freq(rig, vfo, &final_freq);
-	rig_debug(RIG_DEBUG_VERBOSE, "%s: Freq=%.0f kHz, delta=%d Hz, Div1N=%d, P=%d, Q=%d\n", 
-			__FUNCTION__, freq/kHz(1), (int)(final_freq-freq), priv->Div1N, priv->P, priv->Q);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: Freq=%.0f kHz, delta=%d Hz, Div1N=%d, P=%d, Q=%d, FREQ_ALGORITHM=%d\n", 
+			__FUNCTION__, freq/kHz(1), (int)(final_freq-freq), priv->Div1N, priv->P, priv->Q, FREQ_ALGORITHM);
 
 	if ((double)priv->osc_freq/priv->Q < 250)
 		rig_debug(RIG_DEBUG_WARN, 
