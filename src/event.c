@@ -1,9 +1,8 @@
 /*
  *  Hamlib Interface - event handling
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
- *	$Id: event.c,v 1.25 2006-10-15 00:27:51 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -163,7 +162,7 @@ int add_trn_poll_rig(RIG *rig)
 	status = sigaction(SIGALRM, &act, NULL);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"%s sigaction failed: %s\n",
-				__FUNCTION__,
+				__func__,
 				strerror(errno));
 
 	return RIG_OK;
@@ -276,6 +275,8 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
 	if (rig->state.hold_decode)
 		return -1;
 
+	rig->state.hold_decode = 2;
+
 	if (rig->caps->get_vfo && rig->callbacks.vfo_event) {
 		vfo_t vfo = RIG_VFO_CURR;
 
@@ -312,6 +313,8 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
 	 		rs->current_width = width;
 		}
 	}
+
+	rig->state.hold_decode = 0;
 
 	return 1;	/* process each opened rig */
 }
@@ -547,28 +550,43 @@ int HAMLIB_API rig_set_pltune_callback(RIG *rig, pltune_cb_t cb, rig_ptr_t arg)
 int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 {
 	const struct rig_caps *caps;
-	int retcode;
+	int retcode = RIG_OK;
+#ifdef HAVE_SETITIMER
+	struct itimerval value;
+#endif
 
 	if (CHECK_RIG_ARG(rig))
 		return -RIG_EINVAL;
 
 	caps = rig->caps;
 
-	if (trn == RIG_TRN_RIG) {
+	/* detect whether tranceive is active already */
+	if (trn != RIG_TRN_OFF && rig->state.transceive != RIG_TRN_OFF) {
+		if (trn == rig->state.transceive) {
+			return RIG_OK;
+		} else {
+			/* when going POLL<->RIG, transtition to OFF */
+			retcode = rig_set_trn(rig, RIG_TRN_OFF);
+			if (retcode != RIG_OK)
+				return retcode;
+		}
+	}
+
+	switch (trn) {
+	case RIG_TRN_RIG:
 		if (caps->transceive != RIG_TRN_RIG)
 			return -RIG_ENAVAIL;
 
-		if (rig->state.transceive == RIG_TRN_OFF) {
-			retcode = add_trn_rig(rig);
-			if (retcode == RIG_OK && caps->set_trn) {
-				retcode = caps->set_trn(rig, RIG_TRN_RIG);
-			}
-		} else {
-			return -RIG_ECONF;
+		retcode = add_trn_rig(rig);
+		/* some protocols (e.g. CI-V's) offer no way
+		 * to turn on/off the transceive mode */
+		if (retcode == RIG_OK && caps->set_trn) {
+			retcode = caps->set_trn(rig, RIG_TRN_RIG);
 		}
-	} else if (trn == RIG_TRN_POLL) {
+		break;
+
+	case RIG_TRN_POLL:
 #ifdef HAVE_SETITIMER
-		struct itimerval value;
 
 		add_trn_poll_rig(rig);
 
@@ -580,7 +598,7 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 		retcode = setitimer(ITIMER_REAL, &value, NULL);
 		if (retcode == -1) {
 			rig_debug(RIG_DEBUG_ERR, "%s: setitimer: %s\n",
-					__FUNCTION__,
+					__func__,
 					strerror(errno));
 			remove_trn_rig(rig);
 			return -RIG_EINTERNAL;
@@ -588,10 +606,11 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 #else
 		return -RIG_ENAVAIL;
 #endif
-	} else if (trn == RIG_TRN_OFF) {
+		break;
+
+	case RIG_TRN_OFF:
 		if (rig->state.transceive == RIG_TRN_POLL) {
 #ifdef HAVE_SETITIMER
-			struct itimerval value;
 
 			retcode = remove_trn_rig(rig);
 
@@ -603,25 +622,28 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 			retcode = setitimer(ITIMER_REAL, &value, NULL);
 			if (retcode == -1) {
 				rig_debug(RIG_DEBUG_ERR, "%s: setitimer: %s\n",
-					__FUNCTION__,
+					__func__,
 					strerror(errno));
 				return -RIG_EINTERNAL;
 			}
 #else
-		return -RIG_ENAVAIL;
+			return -RIG_ENAVAIL;
 #endif
-		} else {
+		} else if (rig->state.transceive == RIG_TRN_RIG) {
 			retcode = remove_trn_rig(rig);
 			if (caps->set_trn && caps->transceive == RIG_TRN_RIG) {
 				retcode = caps->set_trn(rig, RIG_TRN_OFF);
 			}
 		}
-	} else {
+		break;
+
+	default:
 		return -RIG_EINVAL;
 	}
 
 	if (retcode == RIG_OK)
 		rig->state.transceive = trn;
+
 	return retcode;
 }
 
