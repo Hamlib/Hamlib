@@ -1,8 +1,7 @@
 /*
  *  Hamlib AOR backend - main header
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: aor.h,v 1.24 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -25,7 +24,7 @@
 
 #include <hamlib/rig.h>
 
-#define BACKEND_VER "0.5"
+#define BACKEND_VER "0.6"
 
 
 int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width);

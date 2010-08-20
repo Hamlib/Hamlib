@@ -97,6 +97,12 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 	if (retval < 0)
 		return retval;
 
+	/* chop LF head when present */
+	if (retval >= 1 && data[0] == '\x0a') {
+		retval--;
+		memmove(data, data+1, retval);
+	}
+
 	*data_len = retval;
 		
 	if (*data_len < BUFSZ)
@@ -104,7 +110,7 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 	else
 		data[BUFSZ-1] = '\0';
 
-	if (data[0] == '?') {
+	if (retval >= 1 && data[0] == '?') {
 		/* command failed? resync with radio */
 		write_block(&rs->rigport, EOM, 1);
 
@@ -575,7 +581,15 @@ int aor_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_RAWSTR:
 		if (ack_len < 4 || ackbuf[0] != 'L' || ackbuf[1] != 'M')
 			return -RIG_EPROTO;
-		sscanf(ackbuf+(ackbuf[2]=='%'?3:2), "%x", &val->i);
+
+		if (rig->caps->rig_model == RIG_MODEL_AR8000) {
+			sscanf(ackbuf+2, "%x", &val->i);
+			val->i &= ~0x80; /* mask squelch status */
+		} else if (rig->caps->rig_model == RIG_MODEL_AR8200 ||
+				rig->caps->rig_model == RIG_MODEL_AR8600)
+			sscanf(ackbuf+3, "%d", &val->i);
+		else
+			sscanf(ackbuf+3, "%x", &val->i);
 		break;
 
 	case RIG_LEVEL_ATT:

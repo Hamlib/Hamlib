@@ -1,8 +1,7 @@
 /*
  *  Hamlib AOR backend - AR8200 description
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ar8200.c,v 1.22 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -44,10 +43,21 @@
 #define AR8200_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 /* TODO: measure and report real values */
-#define AR8200_STR_CAL { 2, \
+/* series-2 (black cabinet), from AR8200 Bulletin page */
+#define AR8200_STR_CAL { 12, \
 	{ \
-		{  0x00, -60 }, \
-		{  0xff, 60 } \
+		{    0,-54 }, \
+		{   27,-32 }, \
+		{   42,-27 }, \
+		{   55,-22 }, \
+		{   68,-17 }, \
+		{   86, -7 }, \
+		{   97,  3 }, \
+		{  103, 13 }, \
+		{  106, 23 }, \
+		{  109, 33 }, \
+		{  112, 43 }, \
+		{  139, 53 }, \
 	} }
 
 #define AR8200_MEM_CAP {	\
@@ -81,7 +91,7 @@ const struct rig_caps ar8200_caps = {
 .rig_model =  RIG_MODEL_AR8200,
 .model_name = "AR8200",
 .mfg_name =  "AOR",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_SCANNER,

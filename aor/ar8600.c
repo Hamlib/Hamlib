@@ -1,8 +1,7 @@
 /*
  *  Hamlib AOR backend - AR8600 description
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ar8600.c,v 1.3 2008-04-11 17:10:45 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -43,11 +42,24 @@
 
 #define AR8600_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
-/* TODO: measure and report real values */
-#define AR8600_STR_CAL { 2, \
+/* Measurement by Mark, WAØTOP,
+ * using a HP8640B signal generator on an AR8600 Mark 2 (sn. 551454).
+ * The mode was AM. The ATT was off.
+ */
+#define AR8600_STR_CAL { 12, \
 	{ \
-		{  0x00, -60 }, \
-		{  0xff, 60 } \
+		{   0, -54 }, /* 1st point is extrapolated */ \
+		{  13, -27 }, /* S-pixels: none */ \
+		{  29, -17 }, \
+		{  41, - 7 }, \
+		{  49,   3 }, /* S-pixels: 21 */ \
+		{  54,  13 }, \
+		{  59,  23 }, \
+		{  62,  33 }, /* S-pixels: 30 */ \
+		{  64,  43 }, \
+		{  65,  53 }, \
+		{  68,  63 }, \
+		{  69,  73 } /* S-pixels: 36 */ \
 	} }
 
 #define AR8600_MEM_CAP {	\
@@ -81,7 +93,7 @@ const struct rig_caps ar8600_caps = {
 .rig_model =  RIG_MODEL_AR8600,
 .model_name = "AR8600",
 .mfg_name =  "AOR",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_SCANNER,
