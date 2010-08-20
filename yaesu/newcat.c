@@ -496,8 +496,8 @@ int newcat_get_freq(RIG *rig, vfo_t vfo, freq_t *freq) {
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get FREQ\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get FREQ\n", __func__);
+        return -RIG_EPROTO;
     }
 
     /* convert the read frequency string into freq_t and store in *freq */
@@ -647,8 +647,8 @@ int newcat_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get MODE\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get MODE\n", __func__);
+        return -RIG_EPROTO;
     }
 
     /*
@@ -871,10 +871,10 @@ int newcat_get_vfo(RIG *rig, vfo_t *vfo) {
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get VFO\n");
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get VFO\n", __func__);
         *vfo = RIG_VFO_A;
         priv->current_vfo = RIG_VFO_A;
-        return RIG_OK;
+        return -RIG_EPROTO;
     }
 
     /*
@@ -974,8 +974,8 @@ int newcat_get_ptt(RIG * rig, vfo_t vfo, ptt_t * ptt)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get PTT\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get PTT\n", __func__);
+        return -RIG_EPROTO;
     }
 
     c = priv->ret_data[2];
@@ -1096,8 +1096,8 @@ int newcat_get_rptr_shift(RIG * rig, vfo_t vfo, rptr_shift_t * rptr_shift)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get RPTR_SHIFT\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get RPTR_SHIFT\n", __func__);
+        return -RIG_EPROTO;
     }
 
     c = priv->ret_data[3];
@@ -1310,8 +1310,8 @@ int newcat_get_rit(RIG * rig, vfo_t vfo, shortfreq_t * rit)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get RIT\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get RIT\n", __func__);
+        return -RIG_EPROTO;
     }
 
     retval = priv->ret_data + 13;
@@ -1397,8 +1397,8 @@ int newcat_get_xit(RIG * rig, vfo_t vfo, shortfreq_t * xit)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get XIT\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get XIT\n", __func__);
+        return -RIG_EPROTO;
     }
 
     retval = priv->ret_data + 13;
@@ -1618,8 +1618,8 @@ int newcat_get_ctcss_tone(RIG * rig, vfo_t vfo, tone_t * tone)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get CTCSS_TONE\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get CTCSS_TONE\n", __func__);
+        return -RIG_EPROTO;
     }
 
     ret_data_len = strlen(priv->ret_data);
@@ -1892,8 +1892,8 @@ int newcat_get_powerstat(RIG * rig, powerstat_t * status)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get PS\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get PS\n", __func__);
+        return -RIG_EPROTO;
     }
 
     ps = priv->ret_data[2];
@@ -2023,8 +2023,8 @@ int newcat_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get ANT\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get ANT\n", __func__);
+        return -RIG_EPROTO;
     }
 
     c = priv->ret_data[3];
@@ -3052,9 +3052,9 @@ int newcat_get_mem(RIG * rig, vfo_t vfo, int *ch)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get MEM\n");
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get MEM\n", __func__);
         /* Invalid channel should never see this from radio  */
-        return RIG_OK;
+        return -RIG_EPROTO;
     }
 
     *ch = atoi(priv->ret_data + 2);
@@ -3211,8 +3211,8 @@ int newcat_get_trn(RIG * rig, int *trn)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get TRN\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get TRN\n", __func__);
+        return -RIG_EPROTO;
     }
 
     c = priv->ret_data[2];
@@ -3769,8 +3769,8 @@ int newcat_get_tx_vfo(RIG * rig, vfo_t * tx_vfo) {
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get TX_VFO\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get TX_VFO\n", __func__);
+        return -RIG_EPROTO;
     }
 
     c = priv->ret_data[2];
@@ -3938,8 +3938,8 @@ int newcat_get_narrow(RIG * rig, vfo_t vfo, ncboolean * narrow)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get NARROW\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get NARROW\n", __func__);
+        return -RIG_EPROTO;
     }
 
     c = priv->ret_data[3];
@@ -4138,8 +4138,8 @@ int newcat_get_rx_bandwidth(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t *width)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get RX_BANDWIDTH\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get RX_BANDWIDTH\n", __func__);
+        return -RIG_EPROTO;
     }
 
     ret_data_len = strlen(priv->ret_data);
@@ -4309,8 +4309,8 @@ int newcat_get_faststep(RIG * rig, ncboolean * fast_step)
 
     /* Check for I don't know this command? */
     if (strcmp(priv->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get FASTSTEP\n");
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get FASTSTEP\n", __func__);
+        return -RIG_EPROTO;
     }
 
     c = priv->ret_data[2];
@@ -4453,8 +4453,8 @@ int newcat_get_cmd(RIG * rig, newcat_cmd_data_t * cmd)
 
     /* Check for I don't know this command? */
     if (strcmp(cmd->ret_data, cat_unknown_cmd) == 0) {
-        rig_debug(RIG_DEBUG_TRACE, "Unrecognized command, get cmd = %s\n", cmd->cmd_str);
-        return RIG_OK;
+        rig_debug(RIG_DEBUG_TRACE, "%s: Unrecognized command, get cmd = %s\n", __func__, cmd->cmd_str);
+        return -RIG_EPROTO;
     }
 
     return RIG_OK;
