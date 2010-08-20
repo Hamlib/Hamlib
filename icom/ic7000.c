@@ -1,9 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-7000 and variations
  *  Adapted from IC-7800 code 2006 by Kent Hill 
- *  Copyright (c) 2004-2009 by Stephane Fillod
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
- *	$Id: ic7000.c,v 1.2 2008-10-26 13:45:21 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -58,14 +57,28 @@
 #define IC7000_ANTS (RIG_ANT_1|RIG_ANT_2) /* ant-1 is Hf-6m, ant-2 is 2m-70cm */
 
 /*
- * FIXME: This is a guess real measures please! 
+ * Measurement by Mark, WA0TOP
+ *
+ * s/n 0503103.
+ * Preamp off, ATT off, mode AM, f=10 MHz
  */
-#define IC7000_STR_CAL { 2, \
+#define IC7000_STR_CAL { 14, \
 	{ \
-		{   0, -60 }, \
-		{ 255, 60 } \
+		{   0, -54 }, /* first one is made up */ \
+		{   5, -29 }, \
+		{  15, -27 }, \
+		{  43, -22 }, \
+		{  68, -17 }, \
+		{  92, -12 }, \
+		{ 120,  -6 }, \
+		{ 141,   2 }, \
+		{ 162,  13 }, \
+		{ 182,  25 }, \
+		{ 202,  38 }, \
+		{ 222,  47 }, \
+		{ 241,  57 }, \
+		{ 255,  63 } \
 	} }
-
 
 /*
  *
@@ -104,7 +117,7 @@ const struct rig_caps ic7000_caps = {
 .rig_model =  RIG_MODEL_IC7000,
 .model_name = "IC-7000", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
