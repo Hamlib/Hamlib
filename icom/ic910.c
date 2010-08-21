@@ -1,9 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-910 (VHF/UHF All-Mode Tranceiver)
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *      $Id: ic910.c,v 1.16 2008-11-13 20:29:43 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -181,7 +180,7 @@ static int ic910_set_freq(RIG* rig, vfo_t vfo, freq_t freq)
  * This function does the special bandwidth coding for IC-910
  * (1 - normal, 2 - narrow)
  */
-int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+static int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	                                unsigned char *md, signed char *pd)
 {
     	int err;
@@ -199,7 +198,7 @@ int ic910_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 #define IC910_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
-#define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB)
+#define IC910_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MAIN|RIG_VFO_SUB|RIG_VFO_MEM)
 
 #define IC910_SCAN_OPS (RIG_SCAN_MEM)
 

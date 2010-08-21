@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of the TenTenc OMNI VI
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: omni.c,v 1.9 2008-03-31 14:22:58 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +41,7 @@
 #include "frame.h"
 #include <misc.h>
 
-#define OMNIVIP_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define OMNIVIP_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define OMNIVIP_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 
@@ -51,14 +50,14 @@
 #define OMNIVIP_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 #define OMNIVIP_STR_CAL { 0, { } }
 
-int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+static int omni6_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+static int omni6_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+static int omni6_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
 
 static const struct icom_priv_caps omnivip_priv_caps = { 
 		0x04,	/* default address */
 		0,		/* 731 mode */
-		NULL
+		NULL    /* TODO */
 };
 
 const struct rig_caps omnivip_caps = {

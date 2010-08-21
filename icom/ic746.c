@@ -65,7 +65,7 @@
 #define IC746_GET_PARM (RIG_PARM_BACKLIGHT|RIG_PARM_BEEP)
 #define IC746_SET_PARM (RIG_PARM_BACKLIGHT|RIG_PARM_BEEP|RIG_PARM_ANN)
 
-#define IC746_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define IC746_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 #define IC746_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 #define IC746_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL|RIG_OP_TUNE)
@@ -172,7 +172,7 @@ const struct rig_caps ic746_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_NONE,
@@ -378,7 +378,7 @@ const struct rig_caps ic746pro_caps = {
 .mfg_name =  "Icom", 
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,

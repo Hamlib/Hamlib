@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-765 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ic765.c,v 1.5 2008-01-05 12:37:59 csete Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -41,7 +40,7 @@
 #define IC765_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM|RIG_MODE_RTTY)
 #define IC765_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC765_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define IC765_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define IC765_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY|RIG_OP_MCL)
 

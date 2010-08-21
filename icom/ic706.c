@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-706 and variations
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ic706.c,v 1.39 2009-02-20 14:20:23 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -39,7 +38,7 @@
  *  and IC-706MKIIG
  *  (0 - wide, 1 - normal, 2 - narrow)
  */
-int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
+static int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 	                                unsigned char *md, signed char *pd)
 {
 	int err;
@@ -72,7 +71,7 @@ int ic706_r2i_mode(RIG *rig, rmode_t mode, pbwidth_t width,
 
 #define IC706IIG_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR)
 
-#define IC706_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define IC706_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define IC706_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC706_SCAN_OPS (RIG_SCAN_MEM)
@@ -141,7 +140,7 @@ const struct rig_caps ic706_caps = {
 .rig_model =  RIG_MODEL_IC706,
 .model_name = "IC-706", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_MOBILE,
@@ -273,7 +272,7 @@ const struct rig_caps ic706mkii_caps = {
 .rig_model =  RIG_MODEL_IC706MKII,
 .model_name = "IC-706MkII", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER, 
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_UNTESTED,
 .rig_type =  RIG_TYPE_MOBILE,
@@ -428,7 +427,7 @@ const struct rig_caps ic706mkiig_caps = {
 .rig_model =  RIG_MODEL_IC706MKIIG,
 .model_name = "IC-706MkIIG", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER ".1",
+.version =  BACKEND_VER ".2",
 .copyright =  "LGPL",
 .status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_MOBILE,

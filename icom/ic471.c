@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-471 and variations
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ic471.c,v 1.3 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -32,7 +31,7 @@
 
 #define IC471_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 
-#define IC471_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define IC471_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define IC471_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 

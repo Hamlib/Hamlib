@@ -1,9 +1,8 @@
 /*
  *  Hamlib CI-V backend - description of IC-820H (VHF/UHF All-Mode Tranceiver)
  *  Contributed by Francois Retief <fgretief@sun.ac.za>
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *      $Id: ic820h.c,v 1.1 2008-02-13 22:04:52 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -33,7 +32,7 @@
 
 #define IC820H_MODES (RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_FM)
 
-#define IC820H_VFO_ALL (RIG_VFO_A|RIG_VFO_C)
+#define IC820H_VFO_ALL (RIG_VFO_A|RIG_VFO_C|RIG_VFO_MEM)
 /* FIXME: What about MAIN/SUB mode? And satellite mode? */
 
 #define IC820H_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_CPY|RIG_OP_MCL)

@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-R71
- *  Copyright (c) 2000-2003 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: icr71.c,v 1.2 2005-04-03 19:53:51 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -36,7 +35,7 @@
 
 #define ICR71_LEVEL_ALL (RIG_LEVEL_NONE)
 
-#define ICR71_VFO_ALL (RIG_VFO_A)
+#define ICR71_VFO_ALL (RIG_VFO_A|RIG_VFO_MEM)
 
 #define ICR71_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 #define ICR71_SCAN_OPS (RIG_SCAN_NONE)

@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-R72
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: icr72.c,v 1.2 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,7 +36,7 @@
 
 #define ICR72_VFO_OPS (RIG_OP_TO_VFO|RIG_OP_FROM_VFO|RIG_OP_MCL)
 
-#define ICR72_VFO_ALL (RIG_VFO_A)
+#define ICR72_VFO_ALL (RIG_VFO_A|RIG_VFO_MEM)
 
 #define ICR71_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ICR72_SCAN_OPS (RIG_SCAN_MEM|RIG_SCAN_VFO|RIG_SCAN_SLCT|RIG_SCAN_PRIO)
@@ -60,7 +59,7 @@ const struct rig_caps icr72_caps = {
 .dcd_type =  RIG_DCD_RIG,
 .port_type =  RIG_PORT_SERIAL,
 .serial_rate_min =  300,
-.serial_rate_max =  19200,
+.serial_rate_max =  9600,
 .serial_data_bits =  8,
 .serial_stop_bits =  1,
 .serial_parity =  RIG_PARITY_NONE,

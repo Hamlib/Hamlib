@@ -43,7 +43,7 @@
 #include "frame.h"
 #include "misc.h"
 
-#define DELTAII_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define DELTAII_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define DELTAII_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_FM)
 

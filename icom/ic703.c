@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-703
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ic703.c,v 1.4 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -40,7 +39,7 @@
 
 #define IC703_LEVEL_ALL (RIG_LEVEL_PREAMP|RIG_LEVEL_ATT|RIG_LEVEL_AGC|RIG_LEVEL_RAWSTR|RIG_LEVEL_ALC|RIG_LEVEL_SWR|RIG_LEVEL_METER|RIG_LEVEL_COMP|RIG_LEVEL_RF|RIG_LEVEL_RFPOWER|RIG_LEVEL_MICGAIN|RIG_LEVEL_RF|RIG_LEVEL_AF|RIG_LEVEL_SQL|RIG_LEVEL_NR|RIG_LEVEL_IF|RIG_LEVEL_PBT_IN|RIG_LEVEL_PBT_OUT)
 
-#define IC703_VFO_ALL (RIG_VFO_A|RIG_VFO_B)
+#define IC703_VFO_ALL (RIG_VFO_A|RIG_VFO_B|RIG_VFO_MEM)
 
 #define IC703_VFO_OPS (RIG_OP_CPY|RIG_OP_XCHG|RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define IC703_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM)

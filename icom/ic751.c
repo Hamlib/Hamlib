@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of IC-751 and variations
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ic751.c,v 1.3 2006-02-26 18:48:07 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -42,7 +41,7 @@
 #define IC751_OTHER_TX_MODES (RIG_MODE_CW|RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_FM)
 #define IC751_AM_TX_MODES (RIG_MODE_AM)
 
-#define IC751_VFO_ALL (RIG_VFO_VFO|RIG_VFO_MEM)
+#define IC751_VFO_ALL (RIG_VFO_A|RIG_VFO_MEM)
 
 #define IC751_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO)
 

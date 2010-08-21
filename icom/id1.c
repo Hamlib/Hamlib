@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - description of ID-1 and variations
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: id1.c,v 1.3 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -38,7 +37,7 @@
 
 #define ID1_PARM_ALL (RIG_PARM_BEEP|RIG_PARM_BACKLIGHT /* |RIG_PARM_FAN */)
 
-#define ID1_VFO_ALL (RIG_VFO_A)
+#define ID1_VFO_ALL (RIG_VFO_A|RIG_VFO_MEM)
 
 #define ID1_VFO_OPS (RIG_OP_FROM_VFO|RIG_OP_TO_VFO|RIG_OP_MCL)
 #define ID1_SCAN_OPS (RIG_SCAN_VFO|RIG_SCAN_MEM)
