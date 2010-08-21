@@ -82,9 +82,9 @@ const struct rig_caps ic7700_caps = {
 .rig_model =  RIG_MODEL_IC7700,
 .model_name = "IC-7700", 
 .mfg_name =  "Icom", 
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_STABLE,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -168,8 +168,9 @@ const struct rig_caps ic7700_caps = {
 	/* mode/filter list, remember: order matters! */
 .filters = 	{
 	{RIG_MODE_SSB|RIG_MODE_RTTY|RIG_MODE_RTTYR, kHz(2.4)},
-	{RIG_MODE_CW|RIG_MODE_CWR, Hz(500)},
-	{RIG_MODE_CW|RIG_MODE_CWR, Hz(350)},
+	{RIG_MODE_CW|RIG_MODE_CWR, Hz(400)},
+	{RIG_MODE_CW|RIG_MODE_CWR, Hz(1000)},
+	{RIG_MODE_CW|RIG_MODE_CWR, Hz(50)},
 	{RIG_MODE_AM, kHz(6)},
 	{RIG_MODE_AM, kHz(2.4)},
 	{RIG_MODE_FM, kHz(12)},
