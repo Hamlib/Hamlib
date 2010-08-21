@@ -66,6 +66,9 @@
 #define CHECK_RIG_ARG(r) (!(r) || !(r)->caps || !(r)->state.comm_state)
 
 
+#ifdef HAVE_SIGACTION
+static struct sigaction hamlib_trn_oldact, hamlib_trn_poll_oldact;
+
 #ifdef HAVE_SIGINFO_T
 static RETSIGTYPE sa_sigioaction(int signum, siginfo_t *si, void *data);
 static RETSIGTYPE sa_sigalrmaction(int signum, siginfo_t *si, void *data);
@@ -73,9 +76,10 @@ static RETSIGTYPE sa_sigalrmaction(int signum, siginfo_t *si, void *data);
 static RETSIGTYPE sa_sigiohandler(int signum);
 static RETSIGTYPE sa_sigalrmhandler(int signum);
 #endif
+#endif
 
 /* This one should be in an include file */
-int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t),rig_ptr_t data);
+extern int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t),rig_ptr_t data);
 
 /*
  * add_trn_rig
@@ -84,13 +88,15 @@ int foreach_opened_rig(int (*cfunc)(RIG *, rig_ptr_t),rig_ptr_t data);
  */
 int add_trn_rig(RIG *rig)
 {
-#ifndef WIN32
+#ifdef HAVE_SIGACTION
 	struct sigaction act;
 	int status;
 
 		/*
 		 * FIXME: multiple open will register several time SIGIO hndlr
 		 */
+	memset(&act, 0, sizeof(act));
+
 #ifdef HAVE_SIGINFO_T
 	act.sa_sigaction = sa_sigioaction;
 #else
@@ -100,33 +106,33 @@ int add_trn_rig(RIG *rig)
 	sigemptyset(&act.sa_mask);
 
 #if defined(HAVE_SIGINFO_T) && defined(SA_SIGINFO)
-	act.sa_flags = SA_SIGINFO;
+	act.sa_flags = SA_SIGINFO|SA_RESTART;
 #else
-	act.sa_flags = 0;
+	act.sa_flags = SA_RESTART;
 #endif
 
-	status = sigaction(SIGIO, &act, NULL);
+	status = sigaction(SIGIO, &act, &hamlib_trn_oldact);
 	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"rig_open sigaction failed: %s\n",
-						strerror(errno));
+		rig_debug(RIG_DEBUG_ERR,"%s: sigaction failed: %s\n",
+						__func__, strerror(errno));
 
 	status = fcntl(rig->state.rigport.fd, F_SETOWN, getpid());
 	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETOWN failed: %s\n",
-						strerror(errno));
+		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETOWN failed: %s\n",
+						__func__, strerror(errno));
 
 #if defined(HAVE_SIGINFO_T) && defined(O_ASYNC)
 #ifdef F_SETSIG
 	status = fcntl(rig->state.rigport.fd, F_SETSIG, SIGIO);
 	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETSIG failed: %s\n",
-						strerror(errno));
+		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETSIG failed: %s\n",
+						__func__, strerror(errno));
 #endif
 
 	status = fcntl(rig->state.rigport.fd, F_SETFL, O_ASYNC);
 	if (status < 0)
-		rig_debug(RIG_DEBUG_ERR,"rig_open fcntl SETASYNC failed: %s\n",
-						strerror(errno));
+		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETASYNC failed: %s\n",
+						__func__, strerror(errno));
 #else
 	return -RIG_ENIMPL;
 #endif
@@ -135,31 +141,67 @@ int add_trn_rig(RIG *rig)
 
 #else
 	return -RIG_ENIMPL;
-#endif	/* !WIN32 */
+#endif	/* !HAVE_SIGACTION */
 }
+
+/*
+ * remove_trn_rig
+ * not exported in Hamlib API.
+ * Assumes rig->caps->transceive == RIG_TRN_RIG
+ */
+int remove_trn_rig(RIG *rig)
+{
+#ifdef HAVE_SIGACTION
+	int status;
+
+    /* assert(rig->caps->transceive == RIG_TRN_RIG); */
+
+#if defined(HAVE_SIGINFO_T) && defined(O_ASYNC)
+	status = fcntl(rig->state.rigport.fd, F_SETFL, 0);
+	if (status < 0)
+		rig_debug(RIG_DEBUG_ERR,"%s: fcntl SETASYNC failed: %s\n",
+						__func__, strerror(errno));
+#endif
+
+	status = sigaction(SIGIO, &hamlib_trn_oldact, NULL);
+	if (status < 0)
+		rig_debug(RIG_DEBUG_ERR,"%s: sigaction failed: %s\n",
+						__func__, strerror(errno));
+
+	return RIG_OK;
+#else
+	return -RIG_ENIMPL;
+#endif	/* !HAVE_SIGACTION */
+}
+
+
+#ifdef HAVE_SIGACTION
 
 /*
  * add_trn_poll_rig
  * not exported in Hamlib API.
  */
-int add_trn_poll_rig(RIG *rig)
+static int add_trn_poll_rig(RIG *rig)
 {
-#ifndef WIN32
+#ifdef HAVE_SIGACTION
 	struct sigaction act;
 	int status;
 
 		/*
-		 * FIXME: multiple open will register several time SIGIO hndlr
+		 * FIXME: multiple open will register several time SIGALRM hndlr
 		 */
+	memset(&act, 0, sizeof(act));
+
 #ifdef HAVE_SIGINFO_T
 	act.sa_sigaction = sa_sigalrmaction;
 #else
 	act.sa_handler = sa_sigalrmhandler;
 #endif
+	act.sa_flags = SA_RESTART;
 
 	sigemptyset(&act.sa_mask);
 
-	status = sigaction(SIGALRM, &act, NULL);
+	status = sigaction(SIGALRM, &act, &hamlib_trn_poll_oldact);
 	if (status < 0)
 		rig_debug(RIG_DEBUG_ERR,"%s sigaction failed: %s\n",
 				__func__,
@@ -169,33 +211,29 @@ int add_trn_poll_rig(RIG *rig)
 
 #else
 	return -RIG_ENIMPL;
-#endif	/* !WIN32 */
+#endif	/* !HAVE_SIGINFO */
 }
 
 /*
  * remove_trn_poll_rig
  * not exported in Hamlib API.
  */
-int remove_trn_poll_rig(RIG *rig)
+static int remove_trn_poll_rig(RIG *rig)
 {
+#ifdef HAVE_SIGINFO
+	int status;
+
+	status = sigaction(SIGALRM, &hamlib_trn_poll_oldact, NULL);
+	if (status < 0)
+		rig_debug(RIG_DEBUG_ERR,"%s sigaction failed: %s\n",
+				__func__,
+				strerror(errno));
+
+	return RIG_OK;
+
+#else
 	return -RIG_ENIMPL;
-}
-
-
-/*
- * remove_trn_rig
- * not exported in Hamlib API.
- * Assumes rig->caps->transceive == RIG_TRN_RIG
- */
-int remove_trn_rig(RIG *rig)
-{
-	if (rig->caps->transceive == RIG_TRN_RIG)
-		return -RIG_ENIMPL;
-
-	if (rig->state.transceive == RIG_TRN_POLL)
-		return remove_trn_poll_rig(rig);
-
-	return -RIG_EINVAL;
+#endif	/* !HAVE_SIGINFO */
 }
 
 
@@ -294,7 +332,8 @@ static int search_rig_and_poll(RIG *rig, rig_ptr_t data)
 		retval = rig->caps->get_freq(rig, RIG_VFO_CURR, &freq);
 		if (retval == RIG_OK) {
  			if (freq != rs->current_freq) {
-				rig->callbacks.freq_event(rig, RIG_VFO_CURR, freq, rig->callbacks.freq_arg);
+				rig->callbacks.freq_event(rig, RIG_VFO_CURR,
+						freq, rig->callbacks.freq_arg);
 			}
 	 		rs->current_freq = freq;
 		}
@@ -366,12 +405,14 @@ static RETSIGTYPE sa_sigalrmaction(int signum, siginfo_t *si, rig_ptr_t data)
 
 static RETSIGTYPE sa_sigalrmhandler(int signum)
 {
-	rig_debug(RIG_DEBUG_TRACE, "sa_sigalrmaction entered\n");
+	rig_debug(RIG_DEBUG_TRACE, "sa_sigalrmhandler entered\n");
 
 	foreach_opened_rig(search_rig_and_poll, NULL);
 }
 
-#endif
+#endif /* !HAVE_SIGINFO_T */
+
+#endif /* HAVE_SIGINFO */
 
 #endif	/* !DOC_HIDDEN */
 
@@ -600,7 +641,7 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 			rig_debug(RIG_DEBUG_ERR, "%s: setitimer: %s\n",
 					__func__,
 					strerror(errno));
-			remove_trn_rig(rig);
+			remove_trn_poll_rig(rig);
 			return -RIG_EINTERNAL;
 		}
 #else
@@ -612,7 +653,7 @@ int HAMLIB_API rig_set_trn(RIG *rig, int trn)
 		if (rig->state.transceive == RIG_TRN_POLL) {
 #ifdef HAVE_SETITIMER
 
-			retcode = remove_trn_rig(rig);
+			retcode = remove_trn_poll_rig(rig);
 
 			value.it_value.tv_sec = 0;
 			value.it_value.tv_usec = 0;

@@ -587,7 +587,7 @@ int HAMLIB_API rig_close(RIG *rig)
 		return -RIG_EINVAL;
 
 	if (rs->transceive != RIG_TRN_OFF) {
-		remove_trn_rig(rig);
+		rig_set_trn(rig, RIG_TRN_OFF);
 	}
 
 	/*

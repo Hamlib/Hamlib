@@ -158,7 +158,7 @@ AC_CHECK_LIB(syslog,syslog)             # OS/2 needs this
 dnl Checks for library functions.
 AC_CHECK_FUNCS([atexit snprintf select memmove memset])
 AC_CHECK_FUNCS([strcasecmp strchr strdup strerror strrchr strstr strtol])
-AC_CHECK_FUNCS([cfmakeraw setitimer ioctl])
+AC_CHECK_FUNCS([cfmakeraw setitimer ioctl sigaction])
 AC_FUNC_ALLOCA
 #AC_FUNC_MALLOC
 AC_FUNC_VPRINTF
