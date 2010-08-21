@@ -47,6 +47,13 @@
 
 #define TRP8255_VFO (RIG_VFO_A)
 
+#define TRP8255_MEM_CAP {    \
+    .freq = 1,  \
+    .mode = 1,  \
+    .width = 1, \
+    .tx_freq = 1,   \
+    }
+
 /*
  * Private data
  */
@@ -63,6 +70,9 @@ static int cu_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 static int cu_set_split_freq(RIG *rig, vfo_t vfo, freq_t tx_freq);
 static int cu_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
 static int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int cu_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+static int cu_set_parm(RIG * rig, setting_t parm, value_t val);
+static int cu_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts);
 static int cu_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
 static int cu_set_mem(RIG *rig, vfo_t vfo, int ch);
 static int cu_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
@@ -112,7 +122,10 @@ const struct rig_caps trp8255_caps = {
 .bank_qty =   0,
 .chan_desc_sz =  0,
 
-.chan_list =  { RIG_CHAN_END, }, // 76 ?
+.chan_list =  {
+    {   0,  76, RIG_MTYPE_MEM, TRP8255_MEM_CAP },
+    RIG_CHAN_END,
+},
 
 .rx_range_list1 =  { RIG_FRNG_END, },    /* FIXME: enter region 1 setting */
 .tx_range_list1 =  { RIG_FRNG_END, },
@@ -151,6 +164,9 @@ const struct rig_caps trp8255_caps = {
 .set_mem =  cu_set_mem,
 .vfo_op =   cu_vfo_op,
 .set_level =  cu_set_level,
+.set_func  =  cu_set_func,
+.set_parm  =  cu_set_parm,
+.set_ts    =  cu_set_ts,
 
 };
 
@@ -162,6 +178,7 @@ const struct rig_caps trp8255_caps = {
 #define NACK 0x15
 #define CR "\x0d"
 
+/* TODO: retry */
 static int cu_transaction(RIG *rig, const char *cmd, int cmd_len)
 {
     int i, ret;
@@ -177,6 +194,7 @@ static int cu_transaction(RIG *rig, const char *cmd, int cmd_len)
         switch(retchar) {
             case ACK: continue;
             case NACK:
+                      return -RIG_ERJCTED;
             default: return -RIG_EPROTO;
         }
     }
@@ -338,9 +356,60 @@ int cu_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
     return cu_transaction(rig, cmdbuf, cmd_len);
 }
 
-    /* cu_set_func: TODO: MUTE, */
-    /* cu_set_parm: TODO: TIME, BACKLIGHT */
-    /* cu_set_ts: */
+int cu_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
+{
+    char cmdbuf[16];
+    int cmd_len;
+
+    cmd_len = 1;
+
+    switch (func) {
+        case RIG_FUNC_MUTE:
+            cmdbuf[0] = status ? 'l' : 'k';
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    return cu_transaction(rig, cmdbuf, cmd_len);
+}
+
+int cu_set_ts(RIG * rig, vfo_t vfo, shortfreq_t ts)
+{
+    char cmdbuf[16];
+    int cmd_len;
+
+    cmd_len = sprintf(cmdbuf, "w%c"CR, 
+            ts >= s_kHz(1) ? '2' :
+            ts >= s_Hz(100) ? '1' : '0');
+
+    return cu_transaction(rig, cmdbuf, cmd_len);
+}
+
+int cu_set_parm(RIG * rig, setting_t parm, value_t val)
+{
+    char cmdbuf[16];
+    int cmd_len;
+
+    cmd_len = 1;
+
+    switch (parm) {
+        case RIG_PARM_TIME:
+            /* zap seconds */
+            val.i /= 60;
+            cmd_len = sprintf(cmdbuf, "f%02u%02u"CR,
+                    val.i/60, val.i%60);
+            break;
+        case RIG_PARM_BACKLIGHT:
+            cmd_len = sprintf(cmdbuf, "z%1u"CR, (unsigned)(val.f*5));
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    return cu_transaction(rig, cmdbuf, cmd_len);
+}
+
 
 int cu_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
@@ -355,6 +424,7 @@ static int cu_set_mem(RIG *rig, vfo_t vfo, int ch)
 {
     struct cu_priv_data *priv = (struct cu_priv_data *)rig->state.priv;
 
+    /* memorize channel for RIG_OP_TO_VFO & RIG_OP_FROM_VFO */
     priv->ch = ch;
 
     return RIG_OK;
