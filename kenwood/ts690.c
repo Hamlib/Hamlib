@@ -1,8 +1,7 @@
 /*
  *  Hamlib Kenwood backend - TS690 description
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: ts690.c,v 1.7 2009-02-03 22:42:44 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -68,7 +67,6 @@ static struct kenwood_priv_caps  ts690_priv_caps  = {
  * 	http://www.qsl.net/sm7vhs/radio/kenwood/ts690/specs.htm
  *
  * TODO: protocol to be checked with manual!
- * 	- get_channel/set_channel: MR/MW
  * 	- how to set_split in vfo mode?
  * 	- ...
  */
@@ -78,7 +76,7 @@ const struct rig_caps ts690s_caps = {
 .mfg_name =  "Kenwood",
 .version =  BACKEND_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_ALPHA,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TRANSCEIVER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -177,6 +175,8 @@ const struct rig_caps ts690s_caps = {
 .get_mode =  kenwood_get_mode_if, 
 .set_vfo =  kenwood_set_vfo,
 .get_vfo =  kenwood_get_vfo_if,
+.set_split_vfo =  kenwood_set_split_vfo,
+.get_split_vfo =  kenwood_get_split_vfo_if,
 .get_ptt =  kenwood_get_ptt,
 .set_ptt =  kenwood_set_ptt,
 .get_dcd =  kenwood_get_dcd,
