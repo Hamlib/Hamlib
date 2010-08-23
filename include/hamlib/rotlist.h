@@ -123,11 +123,18 @@
  *  The Rotor-EZ backend can be used with rotators that support the
  *  DCU command set by Hy-Gain (currently the DCU-1).
  */
+/*! \def ROT_MODEL_ERC
+ *  \brief A macro that returns the model number of the ERC backend.
+ *
+ *  The Rotor-EZ backend can be used with rotators that support the
+ *  DCU command set by DF9GR (currently the ERC).
+ */
 #define ROT_ROTOREZ 4
 #define ROT_BACKEND_ROTOREZ "rotorez"
 #define ROT_MODEL_ROTOREZ ROT_MAKE_MODEL(ROT_ROTOREZ, 1)
 #define ROT_MODEL_ROTORCARD ROT_MAKE_MODEL(ROT_ROTOREZ, 2)
 #define ROT_MODEL_DCU ROT_MAKE_MODEL(ROT_ROTOREZ, 3)
+#define ROT_MODEL_ERC ROT_MAKE_MODEL(ROT_ROTOREZ, 4)
 
 /*! \def ROT_MODEL_SARTEK1
  *  \brief A macro that returns the model number of the SARtek-1 backend.

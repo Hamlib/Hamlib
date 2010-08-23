@@ -38,6 +38,7 @@
 extern const struct rot_caps rotorez_rot_caps;
 extern const struct rot_caps rotorcard_rot_caps;
 extern const struct rot_caps dcu_rot_caps;
+extern const struct rot_caps erc_rot_caps;
 
 /*
  * Tokens used by rotorez_rot_set_conf and the 'C' command in rotctl
@@ -59,8 +60,10 @@ static int rotorez_rot_cleanup(ROT *rot);
 
 static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
 static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
+static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
 
 static int rotorez_rot_stop(ROT *rot);
+static int dcu1_rot_stop(ROT *rot);
 
 static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val);
 
