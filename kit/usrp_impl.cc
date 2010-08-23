@@ -1,8 +1,7 @@
 /*
  *  Hamlib KIT backend - Universal Software Radio Peripheral
- *  Copyright (c) 2005 by Stephane Fillod
+ *  Copyright (c) 2010 by Stephane Fillod
  *
- *	$Id: usrp_impl.cc,v 1.1 2005-11-01 23:12:11 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as
@@ -82,7 +81,7 @@ int usrp_open(RIG *rig)
 	int which_board = 0;
 	int decim = 125;
 	
-	priv->urx = usrp_standard_rx::make (which_board, decim, 1, -1, usrp_standard_rx::FPGA_MODE_NORMAL);
+	priv->urx = usrp_standard_rx::make (which_board, decim, 1, -1, usrp_standard_rx::FPGA_MODE_NORMAL).get();
 	if (priv->urx == 0)
 		return -RIG_EIO;
 
