@@ -55,8 +55,7 @@ Releasing Hamlib:
            --host=i586-mingw32msvc \
            --prefix=/tmp/mingw-inst \
            --without-rpc-backends \
-           --without-perl-binding --without-tcl-binding --without-python-binding \
-           --enable-xmltest ac_cv_path_PKG_CONFIG=no
+           --enable-xmltest PKG_CONFIG_LIBDIR= ac_cv_path_PKG_CONFIG=no
          make install
          new_ver="x.y.z"
          mkdir -p /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc
@@ -66,9 +65,8 @@ Releasing Hamlib:
          wine /media/sda1/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def
          cd ../..
          unix2dos include/hamlib/*.h
-         cp lib/gcc/libhamlib.dll.a /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc
-         vi README.win32.mine
-         zip -r hamlib-win32-${new_ver}.zip hamlib-${new_ver}
+         cp lib/libhamlib.dll.a /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc
+         zip -r hamlib-win32-${new_ver}.zip hamlib-win32-${new_ver}
 
          Edit Release, i386, .zip
 
@@ -82,13 +80,6 @@ Releasing Hamlib:
   - Select subdirectory hamlib/x.y.z
   - Left click on the grey gear of the folder, "Upload here"
   - Letf click on file name, on right side, set platform as default for download. Save.
-
-
-  - rsync -avP -e ssh hamlib-${new_ver}.tar.gz yourloginhere@frs.sourceforge.net:uploads/
-  - then go to https://sourceforge.net/project/admin/editpackages.php?group_id=8305
-    [Add release] "x-y-z"
-    Paste NEWS section and ChangeLog, select file, change file processor type to "Any"/"Source .gz"
-    and notify users.
 
 * Update http://www.hamlib.org Wiki
   - Download section
