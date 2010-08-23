@@ -1,5 +1,5 @@
 /*
- * hamlib - (C) Stephane Fillod 2002-2005 (fillods at users.sourceforge.net)
+ * hamlib - (C) Stephane Fillod 2002-2010 (fillods at users.sourceforge.net)
  *           (C) Terry Embry 2009
  *
  * ft990.c - (C) Berndt Josef Wulf (wulf at ping.net.au)
@@ -7,8 +7,6 @@
  * This shared library provides an API for communicating
  * via serial interface to an FT-990 using the "CAT" interface
  *
- *
- * $Id: ft990.c,v 1.19 2009-01-12 12:11:06 mrtembry Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -140,7 +138,7 @@ const struct rig_caps ft990_caps = {
   .rig_model =          RIG_MODEL_FT990,
   .model_name =         "FT-990",
   .mfg_name =           "Yaesu",
-  .version =            "0.1",
+  .version =            "0.2",
   .copyright =          "LGPL",
   .status =             RIG_STATUS_ALPHA,
   .rig_type =           RIG_TYPE_TRANSCEIVER,
@@ -1326,6 +1324,7 @@ int ft990_get_xit(RIG *rig, vfo_t vfo, shortfreq_t *xit)
     case RIG_VFO_B:
       ci = FT990_NATIVE_UPDATE_VFO_DATA;
       p = (ft990_op_data_t *) &priv->update_data.vfob;
+      break;
     case RIG_VFO_MEM:
     case RIG_VFO_MAIN:
       ci = FT990_NATIVE_UPDATE_OP_DATA;
