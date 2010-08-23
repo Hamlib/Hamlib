@@ -479,11 +479,10 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *eleva
 
 	/*
 	 * ERC returns a four octet string consisting of three octets followed
-	 * by ';' containing the rotor's position in degrees.  The
-	 * semi-colon is ignored when passing the string to atof().
+	 * by ';' containing the rotor's position in degrees.
 	 */
-	az[4] = 0x00;				/* NULL terminated string */
-	p = az;						/* advance past leading ';' */
+	az[3] = 0x00;			/* NULL terminated string--truncate trailing ';' */
+	p = az;
 	tmp = (azimuth_t)atof(p);
 	rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
 				__func__, p, tmp);
