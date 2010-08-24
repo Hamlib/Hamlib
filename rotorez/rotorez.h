@@ -1,15 +1,12 @@
 /*
  * Hamlib backend library for the DCU rotor command set.
  *
- * rotorez.h - (C) Nate Bargmann 2003, 2009 (n0nb at arrl.net)
+ * rotorez.h - (C) Nate Bargmann 2003,2009,2010 (n0nb at arrl.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to a Hy-Gain or Yaesu rotor using
  * the Idiom Press Rotor-EZ or RotorCard interface.  It also
  * supports the Hy-Gain DCU-1.
- *
- *
- *    $Id: rotorez.h,v 1.8 2009-01-25 16:14:39 fillods Exp $
  *
  *
  *  This library is free software; you can redistribute it and/or

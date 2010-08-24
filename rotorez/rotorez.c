@@ -1,7 +1,7 @@
 /*
  * Hamlib backend library for the DCU rotor command set.
  *
- * rotorez.c - (C) Nate Bargmann 2003, 2009 (n0nb at arrl.net)
+ * rotorez.c - (C) Nate Bargmann 2003,2009,2010 (n0nb at arrl.net)
  *
  * This shared library provides an API for communicating
  * via serial interface to a Hy-Gain or Yaesu rotor using
@@ -99,7 +99,7 @@ const struct rot_caps rotorez_rot_caps = {
 	.rot_model =		ROT_MODEL_ROTOREZ,
 	.model_name =		"Rotor-EZ",
 	.mfg_name =			"Idiom Press",
-	.version =			"0.5",
+	.version =			"2010-02-14",
 	.copyright =		"LGPL",
 	.status =			RIG_STATUS_BETA,
 	.rot_type =			ROT_TYPE_OTHER,
@@ -143,7 +143,7 @@ const struct rot_caps rotorcard_rot_caps = {
 	.rot_model =		ROT_MODEL_ROTORCARD,
 	.model_name =		"RotorCard",
 	.mfg_name =			"Idiom Press",
-	.version =			"0.5",
+	.version =			"2010-02-14",
 	.copyright =		"LGPL",
 	.status =			RIG_STATUS_UNTESTED,
 	.rot_type =			ROT_TYPE_OTHER,
@@ -186,7 +186,7 @@ const struct rot_caps dcu_rot_caps = {
 	.rot_model =		ROT_MODEL_DCU,
 	.model_name =		"DCU-1/DCU-1X",
 	.mfg_name =			"Hy-Gain",
-	.version =			"0.5",
+	.version =			"2010-08-23",
 	.copyright =		"LGPL",
 	.status =			RIG_STATUS_UNTESTED,
 	.rot_type =			ROT_TYPE_OTHER,
@@ -229,9 +229,9 @@ const struct rot_caps erc_rot_caps = {
 	.rot_model =		ROT_MODEL_ERC,
 	.model_name =		"ERC",
 	.mfg_name =			"DF9GR",
-	.version =			"0.1",
+	.version =			"2010-08-23b",		/* second revision on 23 Aug 2010 */
 	.copyright =		"LGPL",
-	.status =			RIG_STATUS_UNTESTED,
+	.status =			RIG_STATUS_ALPHA,
 	.rot_type =			ROT_TYPE_OTHER,
 	.port_type =		RIG_PORT_SERIAL,
 	.serial_rate_min =	4800,
