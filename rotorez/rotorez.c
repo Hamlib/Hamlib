@@ -463,8 +463,10 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *eleva
 		if (err != AZ_READ_LEN)
 		  return -RIG_ETRUNC;
 
-		/* The azimuth string returned by the ERC should be 'xxx;'
-		 * beginning at offset 0.
+		/* 
+		 * The azimuth string returned by the ERC should be 'xxx;'
+		 * beginning at offset 0.  A new version may implement the
+		 * Idiom PRess format, hence the test for ';xxx'.
 		 */
 
 		/* Check if remaining chars are digits if az[3] == ';' */
@@ -474,15 +476,31 @@ static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *eleva
 					continue;
 				else
 					err = -RIG_EINVAL;
-		}
+		} else if (az[0] == ';') {
+			/* Check if remaining chars are digits if az[0] == ';' */
+			for (p = az + 1;p < az + 4; p++)
+				if (isdigit(*p))
+					continue;
+				else
+					err = -RIG_EINVAL;
+		}	
 	} while (err == -RIG_EINVAL);
 
 	/*
-	 * ERC returns a four octet string consisting of three octets followed
-	 * by ';' containing the rotor's position in degrees.
+	 * Old ERC returns a four octet string consisting of three octets 
+	 * followed by ';' ('xxx;') containing the rotor's position in degrees.
+	 * A new version will implement Idiom Press format of ';xxx'.
+	 *
+	 * We test for either case and pass a string of only digits to atof()
 	 */
-	az[3] = 0x00;			/* NULL terminated string--truncate trailing ';' */
+	az[4] = 0x00;			/* NULL terminated string */
 	p = az;
+	
+	if (*p == ';')
+		p++;
+	else 
+		az[3] = 0x00;		/* truncate trailing ';' */
+	
 	tmp = (azimuth_t)atof(p);
 	rig_debug(RIG_DEBUG_TRACE, "%s: \"%s\" after conversion = %.1f\n",
 				__func__, p, tmp);
