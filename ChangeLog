@@ -1,3 +1,197 @@
+2010-08-29 20:27  n0nb
+
+	* rotorez/rotorez.c: Add support in erc_rot_get_position() for
+	  Idiom Press format of
+	  returned azimuth string that will be added in a new firmware
+	  version.
+
+2010-08-24 09:15  n0nb
+
+	* rotorez/rotorez.c, rotorez/rotorez.h: Changing ERC status to
+	  ALPHA due to successful test by Dan, OK1HRA
+	  reported by Lada, OK1ZIA.
+	  
+	  Updated backend versions to date format.
+	  
+	  Updated copyright date to 2010.
+
+2010-08-23 21:53  fillods
+
+	* NEWS: 1.2.12 RSN
+
+2010-08-23 21:48  fillods
+
+	* kenwood/ts690.c, kit/elektor507.c: bump backend version
+
+2010-08-23 21:45  fillods
+
+	* yaesu/ft2000.c: change backend status
+
+2010-08-23 21:44  fillods
+
+	* README.release: misc cleanup
+
+2010-08-23 21:38  fillods
+
+	* icom/ic725.c: IC-725 reported as stable by Wilbert, PE7T.
+
+2010-08-23 21:37  fillods
+
+	* kit/usrp_impl.cc: Patch from fc13, to let build with newer usrp
+	  releases
+
+2010-08-23 21:24  fillods
+
+	* yaesu/ft920.c, yaesu/ft990.c: Found by cppcheck:
+	  ft920: fix get_mode(MODE_DATA_UN)
+	  ft990: fix get_xit(RIG_VFO_B)
+
+2010-08-23 20:35  n0nb
+
+	* rotorez/rotorez.c: Refactor erc_rot_get_position to truncate ';'
+	  in returned string
+	  before passing array pointer to atof().
+
+2010-08-23 20:09  n0nb
+
+	* include/hamlib/rotlist.h, rotorez/rotorez.c, rotorez/rotorez.h:
+	  Add DF9GR's ERC model to rotorez backend. Implemented custom
+	  get_position for ERC,
+	  custom dcu1_rot_stop() for DCU-1/ERC, and overloaded
+	  rotorez_rot_stop() as .reset
+	  for DCU-1/ERC.
+
+2010-08-21 12:48  fillods
+
+	* icom/delta2.c, icom/ic271.c, icom/ic275.c, icom/ic471.c,
+	  icom/ic475.c, icom/ic703.c, icom/ic706.c, icom/ic707.c,
+	  icom/ic725.c, icom/ic726.c, icom/ic728.c, icom/ic735.c,
+	  icom/ic736.c, icom/ic737.c, icom/ic738.c, icom/ic746.c,
+	  icom/ic751.c, icom/ic756.c, icom/ic761.c, icom/ic765.c,
+	  icom/ic775.c, icom/ic781.c, icom/ic820h.c, icom/ic821h.c,
+	  icom/ic910.c, icom/ic970.c, icom/icom.h, icom/icr71.c,
+	  icom/icr72.c, icom/id1.c, icom/omni.c: add RIG_VFO_MEM in caps
+
+2010-08-21 12:12  fillods
+
+	* skanti/trp8255.c: add set_func/set_parm/set_ts, some more caps
+
+2010-08-21 12:10  fillods
+
+	* kenwood/ts690.c: update rig status + split
+
+2010-08-21 11:37  fillods
+
+	* configure.ac, src/event.c, src/rig.c: - better portability check
+	  with HAVE_SIGACTION
+	  - fix segfault when doing rig_set_trn(POLL->OFF->POLL)
+	  - implement remove_trn_rig()/remove_trn_poll_rig() for
+	  rig_set_trn(TRN_OFF)
+
+2010-08-21 10:13  fillods
+
+	* icom/ic7700.c: fix CW filters, thanks to Wilbert, PE7T
+
+2010-08-20 21:58  fillods
+
+	* yaesu/newcat.c, yaesu/newcat.h: return -RIG_EPROTO when command
+	  not understood by rig
+
+2010-08-20 21:56  fillods
+
+	* src/event.c: - Better state transitions in rig_set_trn()
+	  - (weakly) prevent recursion in search_rig_and_poll()
+
+2010-08-20 20:51  fillods
+
+	* icom/ic7000.c: S-Meter calibration data from Mark, WA0TOP.
+
+2010-08-20 08:18  fillods
+
+	* aor/aor.c, aor/aor.h, aor/ar8200.c, aor/ar8600.c: *
+	  aor_transaction: handle rigs configured to return extra LF
+	  * fix RIG_LEVEL_RAWSTR for AR8600, and possibly AR8000
+	  * S-meter caliration data for AR8600 from Mark P. Grimes, WAØTOP
+	  * S-meter caliration data for AR8200 from AR8200 Bulletin
+
+2010-08-17 18:28  kamalmostafa
+
+	* AUTHORS, kit/elektor507.c: Elektor 507 frequency selection
+	  resolution improvements, contributed
+	  by John Nogatch AC6SL.
+
+2010-08-13 09:56  n0nb
+
+	* kenwood/ts690.c: Patch from Keith Cox, N9VEL, adding additional
+	  functions for the
+	  TS-690S.
+
+2010-07-31 23:22  fillods
+
+	* pcr/Makefile.am, pcr/pcr.c, pcr/pcr.h, pcr/pcr2500.c: - add
+	  PCR-2500
+	  - sub receiver support for PCR-2500
+	  - implement get_dcd, set/get_dcs_sql, set_ext_evel(DIVersity)
+
+2010-07-01 20:28  fillods
+
+	* AUTHORS, include/hamlib/riglist.h, tentec/Makefile.am,
+	  tentec/rx331.c, tentec/rx331.h, tentec/tentec.c, tentec/tentec.h:
+	  Add TenTec RX-331, contributed by Berndt, VK5ABN
+
+2010-06-29 20:59  fillods
+
+	* tests/rigctld.8: fix in the example, thanks to Pino ZP4KFX
+
+2010-06-19 07:08  fillods
+
+	* tentec/paragon.c: - serial timing and testing by Bert Put, KG4BEC
+	  - declare (forgotten) set_mem/get_mem in caps
+	  - safer set_freq with num_stdio.h
+
+2010-06-10 08:20  fillods
+
+	* include/hamlib/riglist.h, skanti/Makefile.am, skanti/skanti.c,
+	  skanti/skanti.h, skanti/trp8255.c: add Skanti TRP 8255 S R
+
+2010-06-09 20:00  kamalmostafa
+
+	* macros/ac_python_devel.m4: Fix build --with-python-binding
+	  breakage introduced by Python 2.6:
+	  Do not reference LOCALMODLIBS, else it will add libraries to our
+	  link line
+	  (e.g -lssl) which are not necessarily installed.
+
+2010-05-31 21:49  fillods
+
+	* configure.ac, src/Makefile.am: get ready for next round
+
+2010-05-31 21:45  fillods
+
+	* ChangeLog, NEWS, configure.ac: release 1.2.11
+
+2010-05-31 21:41  fillods
+
+	* dummy/netrigctl.c, kenwood/kenwood.h, yaesu/ft1000mp.c:
+	  status/version update
+
+2010-05-31 21:17  fillods
+
+	* AUTHORS: New entries before 1.2.11 release
+
+2010-05-31 21:15  fillods
+
+	* ars/ars.c, ars/ars.h, include/hamlib/rotlist.h: renamed ARS-RCI
+	  AZ&EL, and introduce new backend ARS-RCI azimuth-only
+
+2010-05-31 21:00  fillods
+
+	* m2/rc2800.c: misc traces
+
+2010-05-31 20:53  fillods
+
+	* kit/elektor507.c: antenna list
+
 2010-05-31 08:42  fillods
 
 	* dummy/dummy.c: ext_levels in get_channel(), and fix func list

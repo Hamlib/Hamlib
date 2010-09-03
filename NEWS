@@ -6,7 +6,7 @@ Copyright (C) 2000-2010  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 1.2.12
-	2010-XX-XX
+	2010-09-03
 	* New models: PCR-2500, RX331, TRP 8255 S R
 	* New rotator backends: DF9GR's ERC
 	* Fixes and features: Paragon, TS-690S, FT-920, FT-990, FT-2000,
