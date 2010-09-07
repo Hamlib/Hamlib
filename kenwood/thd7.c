@@ -1,8 +1,7 @@
 /*
  *  Hamlib Kenwood backend - TH-D7 description
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: thd7.c,v 1.18 2009-01-28 23:30:52 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -64,8 +63,14 @@
  */
 #define THD7_VFO (RIG_VFO_A|RIG_VFO_B)
 
+static rmode_t td7_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+    [0] = RIG_MODE_FM,
+    [1] = RIG_MODE_AM,
+};
+
 static struct kenwood_priv_caps  thd7_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
+    .mode_table = td7_mode_table,
 };
 
 

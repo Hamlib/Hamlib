@@ -68,8 +68,14 @@
 
 #define ACKBUF_LEN 128
 
+static rmode_t tmv7_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+    [0] = RIG_MODE_FM,
+    [1] = RIG_MODE_AM,
+};
+
 static struct kenwood_priv_caps  tmv7_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
+    .mode_table = tmv7_mode_table,
 };
 
 

@@ -1,8 +1,7 @@
 /*
  *  Hamlib Kenwood backend - TM-D700 description
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: tmd700.c,v 1.10 2009-01-28 23:30:54 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -59,15 +58,22 @@
  */
 #define TMD700_VFO (RIG_VFO_A|RIG_VFO_B)
 
+static rmode_t tmd700_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+    [0] = RIG_MODE_FM,
+    [1] = RIG_MODE_AM,
+};
+
 static struct kenwood_priv_caps  tmd700_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
+    .mode_table = tmd700_mode_table,
 };
 
 
 /*
  * TM-D700 rig capabilities.
  *
- * specs from http://www.geocities.jp/hkwatarin/TM-D700/English/spec.htm
+ * specs: http://www.geocities.jp/hkwatarin/TM-D700/English/spec.htm
+ * protocol: http://www.qsl.net/k/k7jar//pages/D700Cmds.html
  */
 const struct rig_caps tmd700_caps = {
 .rig_model =  RIG_MODEL_TMD700,
@@ -75,7 +81,7 @@ const struct rig_caps tmd700_caps = {
 .mfg_name =  "Kenwood",
 .version =  TH_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_MOBILE|RIG_FLAG_APRS|RIG_FLAG_TNC,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,

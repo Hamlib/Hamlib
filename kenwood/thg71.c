@@ -1,8 +1,7 @@
 /*
  *  Hamlib Kenwood backend - TH-G71 description
- *  Copyright (c) 2003-2008 by Stephane Fillod
+ *  Copyright (c) 2003-2010 by Stephane Fillod
  *
- *	$Id: thg71.c,v 1.25 2009-02-03 23:22:58 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -57,8 +56,14 @@
 
 #define ACKBUF_LEN 128
 
+static rmode_t thg71_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+    [0] = RIG_MODE_FM,
+    [1] = RIG_MODE_AM,
+};
+
 static struct kenwood_priv_caps  thg71_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
+    .mode_table = thg71_mode_table,
 };
 
 
