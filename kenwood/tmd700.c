@@ -28,6 +28,7 @@
 #include <hamlib/rig.h>
 #include "kenwood.h"
 #include "th.h"
+#include "tones.h"
 
 
 #define TMD700_MODES	  (RIG_MODE_FM|RIG_MODE_AM)
@@ -39,6 +40,7 @@
                        RIG_FUNC_MON|    \
                        RIG_FUNC_SQL|    \
                        RIG_FUNC_TONE|   \
+                       RIG_FUNC_TBURST| \
                        RIG_FUNC_REV|    \
                        RIG_FUNC_LOCK|   \
                        RIG_FUNC_ARO)
@@ -49,7 +51,8 @@
                         RIG_LEVEL_RF|\
                         RIG_LEVEL_MICGAIN)
 
-#define TMD700_PARMS	(RIG_PARM_BACKLIGHT)
+#define TMD700_PARMS	(RIG_PARM_BACKLIGHT|\
+                        RIG_PARM_APO)
 
 #define TMD700_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
 
@@ -67,6 +70,8 @@ static struct kenwood_priv_caps  tmd700_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
     .mode_table = tmd700_mode_table,
 };
+
+static int tmd700_set_vfo (RIG *rig, vfo_t vfo);
 
 
 /*
@@ -110,7 +115,7 @@ const struct rig_caps tmd700_caps = {
 },
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
-.dcs_list =  NULL,
+.dcs_list =  common_dcs_list,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { RIG_DBLST_END, },
 .max_rit =  Hz(0),
@@ -157,7 +162,6 @@ const struct rig_caps tmd700_caps = {
 	RIG_FRNG_END,
   }, /* tx range */
 
-/* TBC */
 .tuning_steps =  {
 	 {TMD700_MODES,kHz(5)},
 	 {TMD700_MODES,kHz(6.25)},
@@ -185,7 +189,7 @@ const struct rig_caps tmd700_caps = {
 .get_freq =  th_get_freq,
 .set_mode =  th_set_mode,
 .get_mode =  th_get_mode,
-.set_vfo =  th_set_vfo,
+.set_vfo =  tmd700_set_vfo,
 .get_vfo =  th_get_vfo,
 .set_ctcss_tone =  th_set_ctcss_tone,
 .get_ctcss_tone =  th_get_ctcss_tone,
@@ -196,14 +200,75 @@ const struct rig_caps tmd700_caps = {
 .set_trn =  th_set_trn,
 .get_trn =  th_get_trn,
 
+.set_func =  th_set_func,
 .get_func =  th_get_func,
+.set_level =  th_set_level,
 .get_level =  th_get_level,
+.set_parm =  th_set_parm,
 .get_parm =  th_get_parm,
 .get_info =  th_get_info,
 .get_dcd =  th_get_dcd,
+.set_ptt =  th_set_ptt,
+.vfo_op =  th_vfo_op,
 
 .decode_event =  th_decode_event,
 };
 
+/* --------------------------------------------------------------------- */
+int tmd700_set_vfo (RIG *rig, vfo_t vfo)
+{
+    char vfobuf[16], ackbuf[16];
+    int retval;
+    size_t ack_len;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __func__,vfo);
+
+	switch (vfo) {
+        case RIG_VFO_A:
+        case RIG_VFO_VFO:
+            sprintf(vfobuf, "VMC 0,0");
+            break;
+        case RIG_VFO_B:
+            sprintf(vfobuf, "VMC 1,0");
+            break;
+        case RIG_VFO_MEM:
+            sprintf(vfobuf, "BC");
+    	    ack_len=16;
+	    retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
+	    if (retval != RIG_OK) return retval;
+            sprintf(vfobuf, "VMC %c,2",ackbuf[3]);
+            break;
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+            return -RIG_EVFO;
+	}
+
+    ack_len=0;
+    retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
+	if (retval != RIG_OK) {
+            rig_debug(RIG_DEBUG_ERR, "%s: bad return \n", __func__);
+        return retval;
+    }
+
+	switch (vfo) {
+        case RIG_VFO_A:
+        case RIG_VFO_VFO:
+            sprintf(vfobuf, "BC 0,0");
+            break;
+        case RIG_VFO_B:
+            sprintf(vfobuf, "BC 1,1");
+            break;
+        case RIG_VFO_MEM:
+            return RIG_OK;
+	default:
+		return RIG_OK;
+	}
+
+    retval = kenwood_cmd(rig, vfobuf);
+	if (retval != RIG_OK)
+        return retval;
+
+    return RIG_OK;
+}
 
 /* end of file */

@@ -158,7 +158,7 @@ th_decode_event (RIG *rig)
 	return RIG_OK;
 }
 
-int
+static int
 kenwood_wrong_vfo(const char *func, vfo_t vfo)
 {
 	rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO: %d\n", func, vfo);
@@ -180,8 +180,8 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
 		return kenwood_wrong_vfo(__func__, vfo);
 
-	/* Step needs to be at least 10kHz on higher band */
-	step = freq >= MHz(470) ? 4 : 1;
+	/* Step needs to be at least 10kHz on higher band, otherwise 5 kHz */
+	step = freq >= MHz(470) ? 4 : 0;
 
 	sprintf(buf, "FQ %011"PRIll",%X", (int64_t) freq, step);
 
@@ -272,7 +272,7 @@ th_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 int
 th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 {
-	char vch, buf[ACKBUF_LEN];
+	char buf[ACKBUF_LEN];
 	int retval;
 	const struct kenwood_priv_caps *priv=(const struct kenwood_priv_caps *)rig->caps->priv;
 
@@ -280,8 +280,6 @@ th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 	if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
 		return kenwood_wrong_vfo(__func__, vfo);
-
-	vch = '0';
 
 	retval = kenwood_safe_transaction(rig, "MD", buf, sizeof(buf), 5);
 	if (retval != RIG_OK)
@@ -1442,9 +1440,8 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 	channel_num = chan->channel_num;
 
 	for (step=0; rig->state.tuning_steps[step].ts!=0;step++)
-
-	if (chan->tuning_step==rig->state.tuning_steps[step].ts)
-		break;
+		if (chan->tuning_step<=rig->state.tuning_steps[step].ts)
+			break;
 
 	switch (chan->rptr_shift) {
 	case RIG_RPT_SHIFT_NONE :
