@@ -318,6 +318,8 @@ th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 /*
  * th_set_vfo
+ * Apply to non-split models: TH-F7, TH-D7
+ *
  * Assumes rig!=NULL
  */
 int
@@ -458,6 +460,150 @@ th_get_vfo(RIG *rig, vfo_t *vfo)
 	return RIG_OK;
 }
 
+/*
+ * tm_set_vfo_bc2
+ * Apply to split-capable models (with BC command taking 2 args): TM-V7, TM-D700
+ *
+ * Assumes rig!=NULL
+ */
+int tm_set_vfo_bc2 (RIG *rig, vfo_t vfo)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+    char vfobuf[16], ackbuf[16];
+    int vfonum, txvfonum, vfomode=0;
+    int retval;
+    size_t ack_len;
+
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
+
+	switch (vfo) {
+        case RIG_VFO_A:
+        case RIG_VFO_VFO:
+            vfonum = 0;
+            /* put back split mode when toggling */
+            txvfonum = (priv->split == RIG_SPLIT_ON && 
+                rig->state.tx_vfo == RIG_VFO_B) ? 1 : vfonum;
+            break;
+        case RIG_VFO_B:
+            vfonum = 1;
+            /* put back split mode when toggling */
+            txvfonum = (priv->split == RIG_SPLIT_ON && 
+                rig->state.tx_vfo == RIG_VFO_A) ? 0 : vfonum;
+            break;
+        case RIG_VFO_MEM:
+            /* get current band */
+            sprintf(vfobuf, "BC");
+            ack_len=16;
+            retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
+            if (retval != RIG_OK)
+                return retval;
+            txvfonum = vfonum = ackbuf[3]-'0';
+            vfomode = 2;
+            break;
+
+        default:
+            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
+            return -RIG_EVFO;
+	}
+
+	sprintf(vfobuf, "VMC %d,%d", vfonum, vfomode);
+	retval = kenwood_cmd(rig, vfobuf);
+	if (retval != RIG_OK)
+        return retval;
+
+    if (vfo == RIG_VFO_MEM)
+        return RIG_OK;
+
+    sprintf(vfobuf, "BC %d,%d", vfonum, txvfonum);
+    retval = kenwood_cmd(rig, vfobuf);
+	if (retval != RIG_OK)
+        return retval;
+
+    return RIG_OK;
+}
+
+
+int th_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+    char vfobuf[16];
+    int vfonum, txvfonum;
+    int retval;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called %s\n", __func__, rig_strvfo(vfo));
+
+    if (vfo == RIG_VFO_CURR) {
+        retval = rig_get_vfo(rig, &vfo);
+        if (retval != RIG_OK)
+            return retval;
+    }
+
+	switch (vfo) {
+        case RIG_VFO_A:
+        case RIG_VFO_VFO:
+            vfonum = 0;
+            if (split == RIG_SPLIT_ON && txvfo != RIG_VFO_B)
+                return -RIG_EINVAL;
+            txvfonum = split == RIG_SPLIT_ON ? 1 : vfonum;
+            break;
+        case RIG_VFO_B:
+            vfonum = 1;
+            if (split == RIG_SPLIT_ON && txvfo != RIG_VFO_A)
+                return -RIG_EINVAL;
+            txvfonum = split == RIG_SPLIT_ON ? 0 : vfonum;
+            break;
+        default:
+            return -RIG_EINVAL;
+    }
+
+    /* Set VFO mode. To be done for TX vfo also? */
+	sprintf(vfobuf, "VMC %d,0", vfonum);
+	retval = kenwood_cmd(rig, vfobuf);
+	if (retval != RIG_OK)
+        return retval;
+
+    sprintf(vfobuf, "BC %d,%d", vfonum, txvfonum);
+    retval = kenwood_cmd(rig, vfobuf);
+	if (retval != RIG_OK)
+        return retval;
+
+    /* Remember whether split is on, for th_set_vfo */
+    priv->split = split;
+
+    return RIG_OK;
+}
+
+int th_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
+{
+    struct kenwood_priv_data *priv = rig->state.priv;
+	char buf[10];
+    int retval;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+	/* Get VFO band */
+
+	retval = kenwood_safe_transaction(rig, "BC", buf, 10, 5);
+	if (retval != RIG_OK)
+		return retval;
+
+	switch (buf[5]) {
+	   	case '0': *txvfo = RIG_VFO_A; break;
+		case '1': *txvfo = RIG_VFO_B; break;
+		default:
+			rig_debug(RIG_DEBUG_ERR, "%s: Unexpected txVFO value '%c'\n", __func__, buf[5]);
+			return -RIG_EPROTO;
+	}
+
+    *split = (buf[3] == buf[5]) ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
+
+    /* Remember whether split is on, for th_set_vfo */
+    priv->split = *split;
+
+	return RIG_OK;
+}
+
 
 /*
  * th_set_trn
@@ -534,6 +680,8 @@ th_get_func(RIG *rig, vfo_t vfo, setting_t func, int *status)
 	rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
 
 	switch (func) {
+		case RIG_FUNC_MUTE:
+			return th_get_kenwood_func(rig, "MUTE", status);
 		case RIG_FUNC_MON:
 			return th_get_kenwood_func(rig, "MON", status);
 		case RIG_FUNC_TONE:
@@ -594,6 +742,9 @@ th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, func);
 
 	switch (func) {
+	case RIG_FUNC_MUTE:
+		return th_set_kenwood_func(rig, "MUTE", status);
+
 	case RIG_FUNC_MON:
 		return th_set_kenwood_func(rig, "MON", status);
 
@@ -629,6 +780,15 @@ th_set_func(RIG *rig, vfo_t vfo, setting_t func, int status)
 	return RIG_OK;
 }
 
+int
+th_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch)
+{
+	rig_debug(RIG_DEBUG_TRACE, "%s: called (0x%04x)\n", __func__, scan);
+
+	return th_set_kenwood_func(rig, "SC", scan == RIG_SCAN_STOP ? 0 : 1);
+}
+
+
 /*
  * th_get_parm
  * Assumes rig!=NULL, status!=NULL
@@ -659,11 +819,20 @@ th_get_parm(RIG *rig, setting_t parm, value_t *val)
 		return RIG_OK;
 
 	case RIG_PARM_BACKLIGHT:
+		if (rig->caps->rig_model == RIG_MODEL_TMD700) {
+
+		ret = kenwood_safe_transaction(rig, "DIM", buf, sizeof(buf), 5);
+		if (ret != RIG_OK)
+			return ret;
+
+		val->f = buf[4] == '0' ? 0 : (float)(5-(buf[4]-'0'))/4.;
+		} else {
 		ret = th_get_kenwood_func(rig, "LMP", &status);
 		if (ret != RIG_OK)
 			return ret;
 
 		val->f = status ? 1.0 : 0;
+		}
 		return RIG_OK;
 
 	default:
@@ -681,13 +850,17 @@ th_set_parm(RIG *rig, setting_t parm, value_t val)
 
 	switch (parm) {
 	case RIG_PARM_BACKLIGHT:
+		if (rig->caps->rig_model == RIG_MODEL_TMD700) {
+		return th_set_kenwood_func(rig, "DIM", (val.f > 0) ? 1 : 0); /* FIXME */
+		} else {
 		return th_set_kenwood_func(rig, "LMP", (val.f > 0) ? 1 : 0);
+		}
 
 	case RIG_PARM_BEEP:
 		return th_set_kenwood_func(rig, "BEP", val.i);
 
 	case RIG_PARM_APO:
-		if (val.i >= 30)
+		if (val.i > 30)
 			return kenwood_cmd(rig, "APO 2");
 		else if (val.i > 0)
 			return kenwood_cmd(rig, "APO 1");
@@ -941,7 +1114,81 @@ th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 	if (caps->ctcss_list[i] != tone)
 		return -RIG_EINVAL;
 
-	i += (i == 0) ? 1 : 2;  /* Correct for TH-7DA index anomally */
+	i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomally */
+	sprintf(tonebuf, "TN %02d", i);
+	ack_len = ACKBUF_LEN;
+	retval = kenwood_transaction(rig, tonebuf, strlen(tonebuf), ackbuf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	return RIG_OK;
+}
+
+/*
+ * th_get_ctcss_tone
+ * Assumes rig!=NULL, rig->caps!=NULL
+ */
+int
+th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
+{
+	struct rig_caps *caps;
+	char buf[ACKBUF_LEN];
+	int retval;
+	size_t ack_len=ACKBUF_LEN;
+	unsigned int tone_idx;
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+	caps = rig->caps;
+
+	retval = kenwood_transaction(rig, "TN", 4, buf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	retval = sscanf(buf, "TN %d", (int*)&tone_idx);
+	if (retval != 1) {
+		rig_debug(RIG_DEBUG_ERR,
+			"%s: Unexpected reply '%s'\n", __func__, buf);
+		return -RIG_EPROTO;
+	}
+
+	/* verify tone index for TH-7DA rig */
+	if (tone_idx <= 0 || tone_idx == 2 || tone_idx > 39) {
+		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected CTCSS tone no (%04d)\n",
+				__func__, tone_idx);
+		return -RIG_EPROTO;
+	}
+
+	tone_idx -= (tone_idx == 1) ? 1 : 2; /* Correct for TH-D7A index anomaly */
+	*tone = caps->ctcss_list[tone_idx];
+	return RIG_OK;
+}
+
+/*
+ * th_set_ctcss_sql
+ * Assumes rig!=NULL, rig->caps->ctcss_list != NULL
+ */
+int
+th_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone)
+{
+	const struct rig_caps *caps;
+	char tonebuf[16],ackbuf[ACKBUF_LEN];
+	int i, retval;
+	size_t ack_len;
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+	caps = rig->caps;
+
+	for (i = 0; caps->ctcss_list[i] != 0 && i < RIG_TONEMAX; i++) {
+		if (caps->ctcss_list[i] == tone)
+			break;
+	}
+
+	if (caps->ctcss_list[i] != tone)
+		return -RIG_EINVAL;
+
+	i += (i == 0) ? 1 : 2;  /* Correct for TH-D7A index anomally */
 	sprintf(tonebuf, "CTN %02d", i);
 	ack_len = ACKBUF_LEN;
 	retval = kenwood_transaction(rig, tonebuf, strlen(tonebuf), ackbuf, &ack_len);
@@ -952,11 +1199,11 @@ th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone)
 }
 
 /*
- * thd7_get_ctcss_tone
+ * thd7_get_ctcss_sql
  * Assumes rig!=NULL, rig->caps!=NULL
  */
 int
-th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
+th_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone)
 {
 	struct rig_caps *caps;
 	char buf[ACKBUF_LEN];
@@ -988,6 +1235,106 @@ th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone)
 
 	tone_idx -= (tone_idx == 1) ? 1 : 2; /* Correct for TH-7DA index anomaly */
 	*tone = caps->ctcss_list[tone_idx];
+	return RIG_OK;
+}
+
+#ifndef RIG_CODEMAX
+#define RIG_CODEMAX 104
+#endif
+
+/*
+ * th_set_dcs_sql
+ * Assumes rig!=NULL, rig->caps->dcs_list != NULL
+ */
+int
+th_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code)
+{
+	const struct rig_caps *caps;
+	char codebuf[16];
+	int i, retval;
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+	caps = rig->caps;
+
+	if (code == 0) {
+		return kenwood_simple_cmd(rig, "DCS 0");
+	}
+
+	for (i = 0; caps->dcs_list[i] != 0 && i < RIG_CODEMAX; i++) {
+		if (caps->dcs_list[i] == code)
+			break;
+	}
+
+	if (caps->dcs_list[i] != code)
+		return -RIG_EINVAL;
+
+	retval = kenwood_simple_cmd(rig, "DCS 1");
+	if (retval != RIG_OK)
+		return retval;
+
+	sprintf(codebuf, "DCSN %04d", (i+1)*10);
+	retval = kenwood_simple_cmd(rig, codebuf);
+	if (retval != RIG_OK)
+		return retval;
+
+	return RIG_OK;
+}
+
+/*
+ * th_get_dcs_sql
+ * Assumes rig!=NULL, rig->caps!=NULL
+ */
+int
+th_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code)
+{
+	struct rig_caps *caps;
+	char buf[ACKBUF_LEN];
+	int retval;
+	size_t ack_len=ACKBUF_LEN;
+	unsigned int code_idx;
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
+
+	caps = rig->caps;
+
+	retval = kenwood_transaction(rig, "DCS", 3, buf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	retval = sscanf(buf, "DCSN %u", (int*)&code_idx);
+	if (retval != 1) {
+		rig_debug(RIG_DEBUG_ERR,
+			"%s: Unexpected reply '%s'\n", __func__, buf);
+		return -RIG_EPROTO;
+	}
+
+	if (code_idx == 0) {
+		*code = 0; /* disabled */
+		return RIG_OK;
+    }
+
+	ack_len=ACKBUF_LEN;
+	retval = kenwood_transaction(rig, "DCSN", 4, buf, &ack_len);
+	if (retval != RIG_OK)
+		return retval;
+
+	retval = sscanf(buf, "DCSN %u", (int*)&code_idx);
+	if (retval != 1) {
+		rig_debug(RIG_DEBUG_ERR,
+			"%s: Unexpected reply '%s'\n", __func__, buf);
+		return -RIG_EPROTO;
+	}
+
+	/* verify code index for TM-D700 rig */
+	if (code_idx <= 10 || code_idx > 1040) {
+		rig_debug(RIG_DEBUG_ERR, "%s: Unexpected DCS no (%04u)\n",
+				__func__, code_idx);
+		return -RIG_EPROTO;
+	}
+
+	code_idx = (code_idx/10)-1;
+	*code = caps->dcs_list[code_idx];
 	return RIG_OK;
 }
 
@@ -1680,6 +2027,7 @@ int th_get_ant(RIG * rig, vfo_t vfo, ant_t * ant)
 }
 
 /* TH-F7: 1 VFO, 2 Menu, 3 Full */
+/* TM-D700: 1 Master! */
 int th_reset(RIG *rig, reset_t reset)
 {
 	switch(reset) {

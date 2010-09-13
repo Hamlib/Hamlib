@@ -24,8 +24,9 @@
 #endif
 
 #include <stdlib.h>
+#include <math.h>
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 #include "kenwood.h"
 #include "th.h"
 #include "tones.h"
@@ -38,6 +39,7 @@
 #define TMD700_FUNC_ALL (RIG_FUNC_TSQL|   \
                        RIG_FUNC_AIP|    \
                        RIG_FUNC_MON|    \
+                       RIG_FUNC_MUTE|   \
                        RIG_FUNC_SQL|    \
                        RIG_FUNC_TONE|   \
                        RIG_FUNC_TBURST| \
@@ -52,9 +54,21 @@
                         RIG_LEVEL_MICGAIN)
 
 #define TMD700_PARMS	(RIG_PARM_BACKLIGHT|\
+                        RIG_PARM_BEEP|\
                         RIG_PARM_APO)
 
 #define TMD700_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+
+#define TMD700_CHANNEL_CAPS   \
+            TH_CHANNEL_CAPS,\
+            .flags=1,   \
+            .dcs_code=1,    \
+            .dcs_sql=1, 
+
+#define TMD700_CHANNEL_CAPS_WO_LO \
+            TH_CHANNEL_CAPS,\
+            .dcs_code=1,    \
+            .dcs_sql=1, 
 
 /*
  * TODO: Band A & B
@@ -71,7 +85,6 @@ static struct kenwood_priv_caps  tmd700_priv_caps  = {
     .mode_table = tmd700_mode_table,
 };
 
-static int tmd700_set_vfo (RIG *rig, vfo_t vfo);
 static int tmd700_set_freq (RIG *rig, vfo_t vfo, freq_t freq);
 
 
@@ -100,7 +113,7 @@ const struct rig_caps tmd700_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  TMD700_FUNC_ALL,
@@ -110,9 +123,10 @@ const struct rig_caps tmd700_caps = {
 .has_get_parm =  TMD700_PARMS,
 .has_set_parm =  TMD700_PARMS,    /* FIXME: parms */
 .level_gran = {
-        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 5 } },
-        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 5 } },
-        [LVL_RFPOWER] = { .min = { .i = 3 }, .max = { .i = 0 } },
+        [LVL_RAWSTR] = { .min = { .i = 0 }, .max = { .i = 7 } },
+        [LVL_SQL] = { .min = { .i = 0 }, .max = { .i = 0x1f }, .step = { .f = 1./0x1f } },
+        [LVL_RFPOWER] = { .min = { .i = 2 }, .max = { .i = 0 }, .step = { .f = 1./3. }  },
+        [LVL_AF] = { .min = { .i = 0 }, .max = { .i = 0x3f }, .step = { .f = 1./0x3f } },
 },
 .parm_gran =  {},
 .ctcss_list =  kenwood38_ctcss_list,
@@ -123,17 +137,18 @@ const struct rig_caps tmd700_caps = {
 .max_xit =  Hz(0),
 .max_ifshift =  Hz(0),
 .vfo_ops =  TMD700_VFO_OP,
-.targetable_vfo =  RIG_TARGETABLE_FREQ,
+.scan_ops = RIG_SCAN_VFO,
+.targetable_vfo =  RIG_TARGETABLE_NONE,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
-.chan_desc_sz =  0,
+.chan_desc_sz =  8,
 
-.chan_list =  {
-                {  1,  199, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* normal MEM */
-                {  200,219, RIG_MTYPE_EDGE , {TH_CHANNEL_CAPS}}, /* U/L MEM */
-                {  221,222, RIG_MTYPE_CALL, {TH_CHANNEL_CAPS}},  /* Call 0/1 */
-                RIG_CHAN_END,
-                   },
+.chan_list = {
+    {  1,  199, RIG_MTYPE_MEM ,  {TMD700_CHANNEL_CAPS}},  /* normal MEM */
+    {  200,219, RIG_MTYPE_EDGE , {TMD700_CHANNEL_CAPS}}, /* U/L MEM */
+    {  221,222, RIG_MTYPE_CALL,  {TMD700_CHANNEL_CAPS_WO_LO}},  /* Call 0/1 */
+    RIG_CHAN_END,
+       },
 /*
  * TODO: Japan & TM-D700S, and Taiwan models
  */
@@ -190,10 +205,16 @@ const struct rig_caps tmd700_caps = {
 .get_freq =  th_get_freq,
 .set_mode =  th_set_mode,
 .get_mode =  th_get_mode,
-.set_vfo =  tmd700_set_vfo,
+.set_vfo =  tm_set_vfo_bc2,
 .get_vfo =  th_get_vfo,
+.set_split_vfo =  th_set_split_vfo,
+.get_split_vfo =  th_get_split_vfo,
 .set_ctcss_tone =  th_set_ctcss_tone,
 .get_ctcss_tone =  th_get_ctcss_tone,
+.set_ctcss_sql =  th_set_ctcss_sql,
+.get_ctcss_sql =  th_get_ctcss_sql,
+.set_dcs_sql =  th_set_dcs_sql,
+.get_dcs_sql =  th_get_dcs_sql,
 .set_mem =  th_set_mem,
 .get_mem =  th_get_mem,
 .set_channel =  th_set_channel,
@@ -211,75 +232,22 @@ const struct rig_caps tmd700_caps = {
 .get_dcd =  th_get_dcd,
 .set_ptt =  th_set_ptt,
 .vfo_op =  th_vfo_op,
+.scan   =  th_scan,
 
 .decode_event =  th_decode_event,
 };
 
-/* --------------------------------------------------------------------- */
-int tmd700_set_vfo (RIG *rig, vfo_t vfo)
+static int tmd700_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-    char vfobuf[16], ackbuf[16];
-    int retval;
-    size_t ack_len;
+  /* make it so that the radio tunes to something close */
+  /* the radio does not round internally so rounding it */
+  /* to a raster before it passes to the radio is required */
+  /* this may not be the completely correct raster as the */
+  /* supports 6.25kHz channelization */
 
-    rig_debug(RIG_DEBUG_TRACE, "%s: called %d\n", __func__,vfo);
+  freq_t freq2 = round(freq/5000)*5000;
 
-	switch (vfo) {
-        case RIG_VFO_A:
-        case RIG_VFO_VFO:
-            sprintf(vfobuf, "VMC 0,0");
-            break;
-        case RIG_VFO_B:
-            sprintf(vfobuf, "VMC 1,0");
-            break;
-        case RIG_VFO_MEM:
-            sprintf(vfobuf, "BC");
-    	    ack_len=16;
-	    retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
-	    if (retval != RIG_OK) return retval;
-            sprintf(vfobuf, "VMC %c,2",ackbuf[3]);
-            break;
-        default:
-            rig_debug(RIG_DEBUG_ERR, "%s: Unsupported VFO %d\n", __func__, vfo);
-            return -RIG_EVFO;
-	}
-
-    ack_len=0;
-    retval = kenwood_transaction(rig, vfobuf, strlen(vfobuf), ackbuf, &ack_len);
-	if (retval != RIG_OK) {
-            rig_debug(RIG_DEBUG_ERR, "%s: bad return \n", __func__);
-        return retval;
-    }
-
-	switch (vfo) {
-        case RIG_VFO_A:
-        case RIG_VFO_VFO:
-            sprintf(vfobuf, "BC 0,0");
-            break;
-        case RIG_VFO_B:
-            sprintf(vfobuf, "BC 1,1");
-            break;
-        case RIG_VFO_MEM:
-            return RIG_OK;
-	default:
-		return RIG_OK;
-	}
-
-    retval = kenwood_cmd(rig, vfobuf);
-	if (retval != RIG_OK)
-        return retval;
-
-    return RIG_OK;
-}
-
-static int tmd700_set_freq(RIG *rig, vfo_t vfo, freq_t freq){
-  /*make it so that the radio tunes to something close*/
-  /*the radio does not round internally so rounding it*/
-  /*to a raster before it passes to the radio is required*/
-  /*this may not be the completely correct raster as the*/
-  /*supports 6.25kHz channelization*/
-  freq_t freq2=round(freq/5000)*5000;
-  return th_set_freq(rig,vfo,freq2);
+  return th_set_freq(rig, vfo, freq2);
 }
 
 /* end of file */

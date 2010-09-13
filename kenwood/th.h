@@ -26,6 +26,8 @@
 #define TH_VER "0.5"
 
 extern int th_transaction (RIG *rig, const char *cmdstr, char *data, size_t datasize);
+extern int th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch);
+
 extern int th_decode_event (RIG *rig);
 extern int th_set_freq (RIG *rig, vfo_t vfo, freq_t freq);
 extern int th_get_freq (RIG *rig, vfo_t vfo, freq_t *freq);
@@ -33,7 +35,9 @@ extern int th_set_mode (RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 extern int th_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 extern int th_set_vfo(RIG *rig, vfo_t vfo);
 extern int th_get_vfo(RIG *rig, vfo_t *vfo);
-extern int th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch);
+extern int tm_set_vfo_bc2 (RIG *rig, vfo_t vfo);
+extern int th_set_split_vfo (RIG *rig, vfo_t vfo, split_t split, vfo_t txvfo);
+extern int th_get_split_vfo (RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo);
 extern int th_set_trn(RIG *rig, int trn);
 extern int th_get_trn (RIG *rig, int *trn);
 extern int th_set_powerstat (RIG *rig, powerstat_t status);
@@ -46,6 +50,10 @@ extern int th_get_level (RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 extern int th_set_level (RIG *rig, vfo_t vfo, setting_t level, value_t val);
 extern int th_set_ctcss_tone(RIG *rig, vfo_t vfo, tone_t tone);
 extern int th_get_ctcss_tone(RIG *rig, vfo_t vfo, tone_t *tone);
+extern int th_set_ctcss_sql(RIG *rig, vfo_t vfo, tone_t tone);
+extern int th_get_ctcss_sql(RIG *rig, vfo_t vfo, tone_t *tone);
+extern int th_set_dcs_sql(RIG *rig, vfo_t vfo, tone_t code);
+extern int th_get_dcs_sql(RIG *rig, vfo_t vfo, tone_t *code);
 extern const char *th_get_info(RIG *rig);
 extern int th_set_mem(RIG *rig, vfo_t vfo, int ch);
 extern int th_get_mem(RIG *rig, vfo_t vfo, int *ch);
@@ -57,6 +65,7 @@ extern int th_set_channel(RIG *rig, const channel_t *chan);
 extern int th_set_ant (RIG * rig, vfo_t vfo, ant_t ant);
 extern int th_get_ant (RIG * rig, vfo_t vfo, ant_t * ant);
 extern int th_reset(RIG *rig, reset_t reset);
+extern int th_scan(RIG *rig, vfo_t vfo, scan_t scan, int ch);
 
 
 #define TH_CHANNEL_CAPS \
