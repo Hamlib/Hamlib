@@ -32,6 +32,7 @@
 #include "kenwood.h"
 #include "th.h"
 #include "misc.h"
+#include "num_stdio.h"
 
 #if 1
 #define RIG_ASSERT(x)	if (!(x)) { rig_debug(RIG_DEBUG_ERR, "Assertion failed on line %i\n",__LINE__); abort(); }
@@ -236,7 +237,7 @@ int tmv7_decode_event (RIG *rig)
         freq_t freq, offset;
         int step, shift, rev, tone, ctcss, tonefq, ctcssfq;
 
-        retval = sscanf(asyncbuf, "BUF 0,%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq,
+        retval = num_sscanf(asyncbuf, "BUF 0,%"SCNfreq",%d,%d,%d,%d,%d,,%d,,%d,%"SCNfreq,
                                   &freq, &step, &shift, &rev, &tone,
                                   &ctcss, &tonefq, &ctcssfq, &offset);
         if (retval != 11) {
@@ -410,7 +411,7 @@ int tmv7_get_mode (RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
         if (retval != RIG_OK)
         return retval;
 
-    sscanf(ackbuf,"FQ %"SCNfreq",%d",&freq,&step);
+    num_sscanf(ackbuf,"FQ %"SCNfreq",%d",&freq,&step);
 
     if(freq <MHz(137) )  {
 		*mode=RIG_MODE_AM;
@@ -484,7 +485,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
 
     strcpy(scf,req);
     strcat(scf,",%"SCNfreq",%d,%d,%d,%d,0,%d,%d,000,%d,,0");
-    retval = sscanf(ackbuf, scf,
+    retval = num_sscanf(ackbuf, scf,
                     &freq, &step, &shift, &rev, &tone,
                     &ctcss, &tonefq, &ctcssfq);
 
@@ -526,7 +527,7 @@ int tmv7_get_channel(RIG *rig, channel_t *chan)
         if (retval == RIG_OK) {
     		strcpy(scf,req);
     		strcat(scf,",%"SCNfreq",%d");
-    		retval = sscanf(ackbuf, scf, &freq, &step);
+    		retval = num_sscanf(ackbuf, scf, &freq, &step);
 		chan->tx_freq=freq;
 	}
     }
