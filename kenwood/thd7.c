@@ -76,6 +76,8 @@ static struct kenwood_priv_caps  thd7_priv_caps  = {
 
 /*
  * th-d7a rig capabilities.
+ *
+ * http://www.qsl.net/ta1dx/kenwood/thd7kom.htm
  */
 const struct rig_caps thd7a_caps = {
 .rig_model =  RIG_MODEL_THD7A,
@@ -122,7 +124,7 @@ const struct rig_caps thd7a_caps = {
 .targetable_vfo =  RIG_TARGETABLE_FREQ,
 .transceive =  RIG_TRN_RIG,
 .bank_qty =   0,
-.chan_desc_sz =  0,
+.chan_desc_sz =  6,
 
 .chan_list =  {
                 {  1,  199, RIG_MTYPE_MEM , {TH_CHANNEL_CAPS}},  /* normal MEM */
@@ -174,6 +176,8 @@ const struct rig_caps thd7a_caps = {
 .get_vfo =  th_get_vfo,
 .set_ctcss_tone =  th_set_ctcss_tone,
 .get_ctcss_tone =  th_get_ctcss_tone,
+.set_ctcss_sql =  th_set_ctcss_sql,
+.get_ctcss_sql =  th_get_ctcss_sql,
 .set_mem =  th_set_mem,
 .get_mem =  th_get_mem,
 .set_channel =  th_set_channel,
