@@ -394,17 +394,34 @@ int
 th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 {
 	char cmdbuf[10], buf[10], vfoc;
+	size_t buf_size=10;
 	int retval;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
 	/* Get VFO band */
-
-	retval = kenwood_safe_transaction(rig, "BC", buf, 10, 5);
+	
+	retval = kenwood_transaction(rig, "BC", 2, buf, &buf_size);
 	if (retval != RIG_OK)
 		return retval;
+	switch (buf_size) {
+	case 5: /*original case BC 0*/
+	  vfoc = buf[3];
+	  break;
+	case 7: /*intended for D700 BC 0,0*/ 
+	  if ((buf[0]=='B') &&(buf[1]=='C') && (buf[2]==' ') && (buf[4]=',')){
+	    vfoc = buf[3];
+	  } else {
+	    rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer format '%s'\n", __func__, buf);
+	    return -RIG_EPROTO;
+	  }
+	  break;
+	default:
+	  rig_debug(RIG_DEBUG_ERR, "%s: Unexpected answer length '%c'\n", __func__, buf_size);
+	  return -RIG_EPROTO;
+	  break;
+	}
 
-	vfoc = buf[3];
 
 	switch (vfoc) {
 
