@@ -1,11 +1,10 @@
 /*
  *  Hamlib Interface - serial communication low-level support
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *  Parts of the PTT handling are derived from soundmodem, an excellent
  *  ham packet softmodem written by Thomas Sailer, HB9JNX.
  *
- *	$Id: serial.c,v 1.45 2006-10-15 00:27:52 aa6e Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -105,8 +104,8 @@ int HAMLIB_API serial_open(hamlib_port_t *rp) {
     
     /* Could not open the port. */
     
-    rig_debug(RIG_DEBUG_ERR, "serial_open: Unable to open %s - %s\n", 
-						rp->pathname, strerror(errno));
+    rig_debug(RIG_DEBUG_ERR, "%s: Unable to open %s - %s\n", 
+						__func__, rp->pathname, strerror(errno));
     return -RIG_EIO;
   }
  
@@ -201,8 +200,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
 	speed = B115200;	/* awsome! */
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported rate specified: %d\n", 
-					rp->parm.serial.rate);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported rate specified: %d\n", 
+					__func__, rp->parm.serial.rate);
 	CLOSE(fd);
     return -RIG_ECONF;
   }
@@ -215,6 +214,11 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
    */
   
   options.c_cflag |= (CLOCAL | CREAD);
+
+  /*
+   * close doesn't change modem signals
+   */
+  options.c_cflag &= ~HUPCL;
 
 /*
  * Set data to requested values.
@@ -231,8 +235,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     options.c_cflag |= CS8;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR,"open_serial: unsupported serial_data_bits "
-					"specified: %d\n", rp->parm.serial.data_bits);
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported serial_data_bits "
+					"specified: %d\n", __func__, rp->parm.serial.data_bits);
 	CLOSE(fd);
     return -RIG_ECONF;
     break;
@@ -252,8 +256,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     break;
 
   default:
-    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_stop_bits "
-					"specified: %d\n",
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported serial_stop_bits "
+					"specified: %d\n", __func__,
 					rp->parm.serial.stop_bits);
 	CLOSE(fd);
     return -RIG_ECONF;
@@ -278,8 +282,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     options.c_cflag |= PARODD;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported serial_parity "
-					"specified: %d\n",
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported serial_parity "
+					"specified: %d\n", __func__,
 					rp->parm.serial.parity);
 	CLOSE(fd);
     return -RIG_ECONF;
@@ -306,8 +310,8 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     options.c_iflag &= ~IXON;
     break;
   default:
-    rig_debug(RIG_DEBUG_ERR, "open_serial: unsupported flow_control "
-					"specified: %d\n",
+    rig_debug(RIG_DEBUG_ERR, "%s: unsupported flow_control "
+					"specified: %d\n", __func__,
 					rp->parm.serial.handshake);
 	CLOSE(fd);
     return -RIG_ECONF;
@@ -344,22 +348,22 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
   
 #if defined(HAVE_TERMIOS_H)
   if (tcsetattr(fd, TCSANOW, &options) == -1) {
-		rig_debug(RIG_DEBUG_ERR, "open_serial: tcsetattr failed: %s\n", 
-					strerror(errno));
+		rig_debug(RIG_DEBUG_ERR, "%s: tcsetattr failed: %s\n", 
+					__func__, strerror(errno));
 		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #elif defined(HAVE_TERMIO_H)
   if (IOCTL(fd, TCSETA, &options) == -1) {
-		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TCSETA) failed: %s\n", 
-					strerror(errno));
+		rig_debug(RIG_DEBUG_ERR, "%s: ioctl(TCSETA) failed: %s\n", 
+					__func__, strerror(errno));
 		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
 #else	/* sgtty */
   if (IOCTL(fd, TIOCSETP, &sg) == -1) {
-		rig_debug(RIG_DEBUG_ERR, "open_serial: ioctl(TIOCSETP) failed: %s\n", 
-					strerror(errno));
+		rig_debug(RIG_DEBUG_ERR, "%s: ioctl(TIOCSETP) failed: %s\n", 
+					__func__, strerror(errno));
 		CLOSE(fd);
 		return -RIG_ECONF;		/* arg, so close! */
   }
