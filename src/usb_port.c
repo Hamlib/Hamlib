@@ -1,8 +1,7 @@
 /*
  *  Hamlib Interface - USB communication low-level support
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: usb_port.c,v 1.5 2007-10-07 20:12:36 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -17,7 +16,6 @@
  *   You should have received a copy of the GNU Library General Public
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
  */
 
 /**
@@ -36,7 +34,7 @@
 #include "config.h"
 #endif
 
-#include <hamlib/rig.h>
+#include "hamlib/rig.h"
 
 /*
  * Compile only if libusb is available
@@ -104,7 +102,7 @@ static struct usb_dev_handle *find_and_open_device(const hamlib_port_t *port)
   char    string[256];
   int     len;
 
-  rig_debug(RIG_DEBUG_TRACE, "%s: looking for device %04x:%04x...", __FUNCTION__,
+  rig_debug(RIG_DEBUG_TRACE, "%s: looking for device %04x:%04x...", __func__,
 		  port->parm.usb.vid, port->parm.usb.pid);
 
   for (bus = usb_get_busses(); bus != NULL; bus = bus->next) {
@@ -171,17 +169,13 @@ int usb_port_open(hamlib_port_t *port)
 {
 	struct usb_dev_handle *udh;
 
-
-	if (!port->pathname)
-		return -RIG_EINVAL;
-
     usb_init ();	/* usb library init */
     if (usb_find_busses () < 0)
         rig_debug(RIG_DEBUG_ERR, "%s: usb_find_busses failed %s\n",
-			__FUNCTION__, usb_strerror());
+			__func__, usb_strerror());
     if (usb_find_devices() < 0)
         rig_debug(RIG_DEBUG_ERR, "%s: usb_find_devices failed %s\n",
-			__FUNCTION__, usb_strerror());
+			__func__, usb_strerror());
 
     udh = find_and_open_device(port);
     if (udh == 0)
@@ -189,41 +183,37 @@ int usb_port_open(hamlib_port_t *port)
 
 #ifdef LIBUSB_HAS_GET_DRIVER_NP
       /* Try to detach ftdi_sio kernel module
-       * Returns ENODATA if driver is not loaded
+       * Returns ENODATA if driver is not loaded.
+       * Don't check return value, let it fail later.
        */
-	if (usb_detach_kernel_driver_np(udh, port->parm.usb.iface) != 0 && errno != ENODATA) {
-		if (errno == EPERM)
-			rig_debug(RIG_DEBUG_ERR, "%s: inappropriate permissions\n", __FUNCTION__);
-		usb_close(udh);
-		return -RIG_EIO;
-	}
+    usb_detach_kernel_driver_np(udh, port->parm.usb.iface);
 #endif
 
 #if 0
   if (usb_set_configuration (udh, port->parm.usb.conf) < 0){
 	rig_debug(RIG_DEBUG_ERR, "%s: usb_set_configuration: failed conf %d: %s\n",
-			__FUNCTION__,port->parm.usb.conf, usb_strerror());
+			__func__,port->parm.usb.conf, usb_strerror());
     usb_close (udh);
-    return 0;
+    return -RIG_EIO;
   }
 #endif
 
-   rig_debug(RIG_DEBUG_VERBOSE, "%s: %d\n", __FUNCTION__, port->parm.usb.iface);
+   rig_debug(RIG_DEBUG_VERBOSE, "%s: claiming %d\n", __func__, port->parm.usb.iface);
 
   if (usb_claim_interface (udh, port->parm.usb.iface) < 0){
 	rig_debug(RIG_DEBUG_ERR, "%s:usb_claim_interface: failed interface %d: %s\n", 
-		    __FUNCTION__,port->parm.usb.iface, usb_strerror());
+		    __func__,port->parm.usb.iface, usb_strerror());
     usb_close (udh);
-    return 0;
+    return -RIG_EIO;
   }
 
 #if 0
   if (usb_set_altinterface (udh, port->parm.usb.alt) < 0){
-    fprintf (stderr, "%s:usb_set_alt_interface: failed: %s\n", __FUNCTION__,
+    fprintf (stderr, "%s:usb_set_alt_interface: failed: %s\n", __func__,
 		   usb_strerror());
     usb_release_interface (udh, port->parm.usb.iface);
     usb_close (udh);
-    return 0;
+    return -RIG_EIO;
   }
 #endif
 
