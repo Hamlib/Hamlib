@@ -85,7 +85,6 @@ static struct kenwood_priv_caps  tmd700_priv_caps  = {
     .mode_table = tmd700_mode_table,
 };
 
-static int tmd700_set_freq (RIG *rig, vfo_t vfo, freq_t freq);
 
 
 /*
@@ -201,7 +200,7 @@ const struct rig_caps tmd700_caps = {
 
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
-.set_freq =  tmd700_set_freq,
+.set_freq =  th_set_freq,
 .get_freq =  th_get_freq,
 .set_mode =  th_set_mode,
 .get_mode =  th_get_mode,
@@ -237,17 +236,5 @@ const struct rig_caps tmd700_caps = {
 .decode_event =  th_decode_event,
 };
 
-static int tmd700_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
-{
-  /* make it so that the radio tunes to something close */
-  /* the radio does not round internally so rounding it */
-  /* to a raster before it passes to the radio is required */
-  /* this may not be the completely correct raster as the */
-  /* supports 6.25kHz channelization */
-
-  freq_t freq2 = round(freq/5000)*5000;
-
-  return th_set_freq(rig, vfo, freq2);
-}
 
 /* end of file */
