@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 
@@ -174,16 +175,27 @@ th_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
 	char buf[20];
 	int step;
+	freq_t freq5,freq625,freq_sent;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
 
 	if (vfo != RIG_VFO_CURR && vfo != rig->state.current_vfo)
 		return kenwood_wrong_vfo(__func__, vfo);
 
+	freq5=round(freq/5000)*5000;
+	freq625=round(freq/6250)*6250;
+	if (abs(freq5-freq)<abs(freq625-freq)) {
+	  step=0;
+	  freq_sent=freq5;
+	}
+	else {
+	  step=1;
+	  freq_sent=freq625;
+	}
 	/* Step needs to be at least 10kHz on higher band, otherwise 5 kHz */
-	step = freq >= MHz(470) ? 4 : 0;
-
-	sprintf(buf, "FQ %011"PRIll",%X", (int64_t) freq, step);
+	step = freq_sent >= MHz(470) ? 4 : step;
+	freq_sent = freq_sent >= MHz(470) ? (round(freq_sent/10000)*10000) : freq_sent;
+	sprintf(buf, "FQ %011"PRIll",%X", (int64_t) freq_sent, step);
 
 	return kenwood_cmd(rig, buf);
 }
