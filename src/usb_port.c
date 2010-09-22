@@ -189,7 +189,7 @@ int usb_port_open(hamlib_port_t *port)
     usb_detach_kernel_driver_np(udh, port->parm.usb.iface);
 #endif
 
-#if 0
+#ifdef _WIN32
   if (usb_set_configuration (udh, port->parm.usb.conf) < 0){
 	rig_debug(RIG_DEBUG_ERR, "%s: usb_set_configuration: failed conf %d: %s\n",
 			__func__,port->parm.usb.conf, usb_strerror());
