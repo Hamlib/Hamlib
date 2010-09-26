@@ -28,7 +28,7 @@ GRIO_SOURCES = 		\
 	microtune_4702.cc	\
 	microtune_eval_board.cc
 
-lib_LTLIBRARIES = hamlib-microtune.la
+pkglib_LTLIBRARIES = hamlib-microtune.la
 hamlib_microtune_la_SOURCES =  $(MTSRCLIST) $(GRIO_SOURCES) microtune.cc
 hamlib_microtune_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_microtune_la_LIBADD = $(top_builddir)/src/libhamlib.la -lstdc++

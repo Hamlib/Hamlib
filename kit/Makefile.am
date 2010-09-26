@@ -10,7 +10,7 @@ endif
 
 KITROTSRCLIST = pcrotor.c
 
-lib_LTLIBRARIES = hamlib-kit.la
+pkglib_LTLIBRARIES = hamlib-kit.la
 hamlib_kit_la_SOURCES = $(KITSRCLIST) $(KITROTSRCLIST) kit.c
 hamlib_kit_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_kit_la_LIBADD = $(top_builddir)/lib/libmisc.la \

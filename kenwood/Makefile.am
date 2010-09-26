@@ -7,7 +7,7 @@ IC10SRCLIST = ts440.c ts940.c ts711.c ts811.c r5000.c
 
 THSRCLIST = thd7.c thf7.c thg71.c tmd700.c tmv7.c
 
-lib_LTLIBRARIES = hamlib-kenwood.la
+pkglib_LTLIBRARIES = hamlib-kenwood.la
 hamlib_kenwood_la_SOURCES = $(TSSRCLIST) $(THSRCLIST) $(IC10SRCLIST) \
 			    	kenwood.c th.c ic10.c
 

@@ -9,7 +9,7 @@ YAESUSRC =  ft100.c ft747.c ft817.c ft847.c ft890.c ft900.c ft920.c \
 ## Yaesu radios that use the new Kenwood style CAT commands		
 NEWCATSRC = newcat.c ft450.c ft950.c ft2000.c ft9000.c
 
-lib_LTLIBRARIES = hamlib-yaesu.la
+pkglib_LTLIBRARIES = hamlib-yaesu.la
 hamlib_yaesu_la_SOURCES = $(YAESUSRC) $(NEWCATSRC) yaesu.c
 hamlib_yaesu_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_yaesu_la_LIBADD = $(top_builddir)/lib/libmisc.la \

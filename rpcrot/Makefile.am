@@ -14,7 +14,7 @@ DISTCLEANFILES = $(BUILT_SOURCES)
 AM_CFLAGS = $(CFLAGS) -DPORTMAP
 
 # The RPC backend
-lib_LTLIBRARIES = hamlib-rpcrot.la
+pkglib_LTLIBRARIES = hamlib-rpcrot.la
 hamlib_rpcrot_la_SOURCES = rpcrot_backend.c rpcrot_backend.h
 nodist_hamlib_rpcrot_la_SOURCES = rpcrot_clnt.c rpcrot_xdr_lt.c rpcrot.h
 hamlib_rpcrot_la_LDFLAGS = -no-undefined -module -avoid-version

@@ -8,7 +8,7 @@ ICOMSRCLIST = ic706.c icr8500.c ic735.c ic775.c ic756.c  \
 		ic707.c ic728.c ic751.c ic761.c \
 		ic78.c ic7800.c ic7000.c ic7200.c ic7600.c ic7700.c
 
-lib_LTLIBRARIES = hamlib-icom.la
+pkglib_LTLIBRARIES = hamlib-icom.la
 hamlib_icom_la_SOURCES = $(ICOMSRCLIST) icom.c frame.c optoscan.c
 hamlib_icom_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_icom_la_LIBADD = $(top_builddir)/lib/libmisc.la \

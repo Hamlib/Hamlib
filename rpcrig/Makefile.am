@@ -14,7 +14,7 @@ DISTCLEANFILES = $(BUILT_SOURCES)
 AM_CFLAGS = $(CFLAGS) -DPORTMAP
 
 # The RPC backend
-lib_LTLIBRARIES = hamlib-rpcrig.la
+pkglib_LTLIBRARIES = hamlib-rpcrig.la
 hamlib_rpcrig_la_SOURCES = rpcrig_backend.c rpcrig_backend.h
 nodist_hamlib_rpcrig_la_SOURCES = rpcrig_clnt.c rpcrig_xdr_lt.c rpcrig.h
 hamlib_rpcrig_la_LDFLAGS = -no-undefined -module -avoid-version
