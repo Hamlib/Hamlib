@@ -1,11 +1,17 @@
 AM_CFLAGS = @LIBUSB_CFLAGS@
-AM_CXXFLAGS = @USRP_CFLAGS@
 
 # FIXME: compile usrp only if CXX available
 KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c elektor507.c \
 	     dds60.c miniVNA.c si570avrusb.c
-if ENABLE_CXX
-KITSRCLIST += usrp_impl.cc
+
+if HAVE_USRP
+    AM_CXXFLAGS = @USRP_CFLAGS@
+    KITSRCLIST += usrp_impl.cc
+else
+    # automake gets confused and invokes the C++ linker via libtool regardless
+    # of whether or not HAVE_USRP enables the .cc source.  This override forces
+    # automake to invoke the C linker as no C++ is involved:
+    hamlib_kit_la_LINK = $(LINK) $(hamlib_kit_la_LDFLAGS)
 endif
 
 KITROTSRCLIST = pcrotor.c

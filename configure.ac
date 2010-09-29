@@ -373,6 +373,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   fi
 fi
 AM_CONDITIONAL(ENABLE_CXX, test x"${cf_with_cxx}" = "xyes")
+AM_CONDITIONAL(HAVE_USRP, test x"${cf_with_usrp}" = "xyes")
 
 
 PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, , 
