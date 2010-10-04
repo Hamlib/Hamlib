@@ -164,6 +164,7 @@ extern const struct rig_caps ts811_caps;
 extern const struct rig_caps r5000_caps;
 
 extern const struct rig_caps ts480_caps;
+extern const struct rig_caps thf6a_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
