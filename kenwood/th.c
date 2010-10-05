@@ -389,7 +389,8 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 		break;
 
 		case RIG_VFO_MEM:
-		if (rig->caps->rig_model == RIG_MODEL_THF7E)
+		if (rig->caps->rig_model == RIG_MODEL_THF7E ||
+				rig->caps->rig_model == RIG_MODEL_THF6A)
 			sprintf(buf, "VMC 0,1");
 		else
 			sprintf(buf, "VMC 0,2");
@@ -1596,7 +1597,8 @@ int th_get_channel(RIG *rig, channel_t *chan)
 	chan->channel_num = channel_num;
 	chan->vfo = vfo;
 
-	if (rig->caps->rig_model == RIG_MODEL_THF7E)
+	if (rig->caps->rig_model == RIG_MODEL_THF7E ||
+				rig->caps->rig_model == RIG_MODEL_THF6A)
 		mr_extra = "";
 	else
 		mr_extra = "0, ";
@@ -1877,7 +1879,8 @@ int th_set_channel(RIG *rig, const channel_t *chan)
 	else
 		return -RIG_ENIMPL;
 
-	if (rig->caps->rig_model == RIG_MODEL_THF7E)
+	if (rig->caps->rig_model == RIG_MODEL_THF7E ||
+				rig->caps->rig_model == RIG_MODEL_THF6A)
 		mr_extra = "";
 	else
 		mr_extra = "0, ";
