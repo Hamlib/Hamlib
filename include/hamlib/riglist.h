@@ -3,7 +3,6 @@
  *  Copyright (c) 2000-2003 by Frank Singleton
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: riglist.h,v 1.76 2009-01-29 22:54:40 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -94,6 +93,7 @@
 #define RIG_MODEL_FT2000 RIG_MAKE_MODEL(RIG_YAESU, 29)
 #define RIG_MODEL_FT9000 RIG_MAKE_MODEL(RIG_YAESU, 30)
 #define RIG_MODEL_FT980 RIG_MAKE_MODEL(RIG_YAESU, 31)
+#define RIG_MODEL_FTDX5000 RIG_MAKE_MODEL(RIG_YAESU, 32)
 
 	/*
 	 * Kenwood
