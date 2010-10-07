@@ -74,6 +74,8 @@ static const char *si570avrusb_get_info(RIG *rig);
 
 #define TOK_OSCFREQ	TOKEN_BACKEND(1)
 #define TOK_MULTIPLIER	TOKEN_BACKEND(3)
+#define TOK_I2C_ADDR	TOKEN_BACKEND(4)
+#define TOK_BPF     	TOKEN_BACKEND(5)
 
 static const struct confparams si570avrusb_cfg_params[] = {
 	{ TOK_OSCFREQ, "osc_freq", "Oscillator freq", "Oscillator frequency in Hz",
@@ -81,6 +83,12 @@ static const struct confparams si570avrusb_cfg_params[] = {
 	},
 	{ TOK_MULTIPLIER, "multiplier", "Freq Multiplier", "Frequency multiplier",
 		"4", RIG_CONF_NUMERIC, { .n = { 0.000001, 100 } }
+	},
+	{ TOK_I2C_ADDR, "i2c_addr", "I2C Address", "Si570 I2C Address",
+		"55", RIG_CONF_NUMERIC, { .n = { 0, 512 } }
+	},
+	{ TOK_BPF, "bpf", "BPF", "Enable Band Pass Filter",
+		"0", RIG_CONF_CHECKBUTTON, { }
 	},
 	{ RIG_CONF_END, NULL, }
 };
@@ -95,6 +103,9 @@ struct si570avrusb_priv_data {
 
 	double osc_freq;	/* MHz */
 	double multiplier;	/* default to 4 for QSD/QSE */
+
+	int i2c_addr;
+	int bpf;    /* enable BPF? */
 };
 
 #define SI570AVRUSB_MODES (RIG_MODE_USB)	/* USB is for SDR */
@@ -124,7 +135,7 @@ const struct rig_caps si570avrusb_caps = {
 .rig_model =  RIG_MODEL_SI570AVRUSB,
 .model_name = "Si570 AVR-USB",
 .mfg_name =  "SoftRock",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "GPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
@@ -209,6 +220,10 @@ int si570avrusb_init(RIG *rig)
     /* QSD/QSE */
 	priv->multiplier = 4;
 
+	priv->i2c_addr = SI570_I2C_ADDR;
+	/* disable BPF, because it may share PTT I/O line */
+	priv->bpf = 0;
+
 	rp->parm.usb.vid = USBDEV_SHARED_VID;
 	rp->parm.usb.pid = USBDEV_SHARED_PID;
 	rp->parm.usb.conf = 1;
@@ -240,19 +255,33 @@ int si570avrusb_set_conf(RIG *rig, token_t token, const char *val)
 	struct si570avrusb_priv_data *priv;
 	freq_t freq;
 	double multiplier;
+	int i2c_addr;
 
 	priv = (struct si570avrusb_priv_data*)rig->state.priv;
 
 	switch(token) {
 		case TOK_OSCFREQ:
-			sscanf(val, "%"SCNfreq, &freq);
+			if (sscanf(val, "%"SCNfreq, &freq) != 1)
+				return -RIG_EINVAL;
 			priv->osc_freq = (double)freq/1e6;
 			break;
 		case TOK_MULTIPLIER:
-			sscanf(val, "%lf", &multiplier);
+			if (sscanf(val, "%lf", &multiplier) != 1)
+				return -RIG_EINVAL;
 			if (multiplier == 0.)
 				return -RIG_EINVAL;
 			priv->multiplier = multiplier;
+			break;
+		case TOK_I2C_ADDR:
+			if (sscanf(val, "%x", &i2c_addr) != 1)
+				return -RIG_EINVAL;
+			if (i2c_addr < 0 || i2c_addr >= (1<<9))
+				return -RIG_EINVAL;
+			priv->i2c_addr = i2c_addr;
+			break;
+		case TOK_BPF:
+			if (sscanf(val, "%d", &priv->bpf) != 1)
+				return -RIG_EINVAL;
 			break;
 		default:
 			return -RIG_EINVAL;
@@ -272,6 +301,12 @@ int si570avrusb_get_conf(RIG *rig, token_t token, char *val)
 			break;
 		case TOK_MULTIPLIER:
 			sprintf(val, "%f", priv->multiplier);
+			break;
+		case TOK_I2C_ADDR:
+			sprintf(val, "%x", priv->i2c_addr);
+			break;
+		case TOK_BPF:
+			sprintf(val, "%d", priv->bpf);
 			break;
 		default:
 			return -RIG_EINVAL;
@@ -357,9 +392,11 @@ int si570avrusb_open(RIG *rig)
 
 		priv->osc_freq = (double)iFreq / (1UL<<24);
 
-        ret = setBPF(rig, 1);
-        if (ret != RIG_OK)
-            return ret;
+		if (priv->bpf) {
+			ret = setBPF(rig, 1);
+			if (ret != RIG_OK)
+				return ret;
+		}
 	}
 
 	rig_debug(RIG_DEBUG_VERBOSE,"%s: using Xtall at %.3f MHz\n",
@@ -474,7 +511,7 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	int ret;
 	unsigned char buffer[6];
 	int request = REQUEST_SET_FREQ;
-	int value = 0x700 + SI570_I2C_ADDR;
+	int value = 0x700 + priv->i2c_addr;
 	int index = 0;
 	double f;
 	struct solution theSolution;
@@ -534,7 +571,7 @@ int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 
 	unsigned char buffer[4];
 	int request = REQUEST_SET_FREQ_BY_VALUE;
-	int value = 0x700 + SI570_I2C_ADDR;
+	int value = 0x700 + priv->i2c_addr;
 	int index = 0;
 	double f;
        
@@ -602,7 +639,7 @@ int si570avrusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 		return si570avrusb_get_freq_by_value(rig, vfo, freq);
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
-			REQUEST_READ_REGISTERS, SI570_I2C_ADDR, 0,
+			REQUEST_READ_REGISTERS, priv->i2c_addr, 0,
 			(char *)buffer, sizeof(buffer), rig->state.rigport.timeout);
 
 	if (ret <= 0) {
