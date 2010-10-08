@@ -7,6 +7,7 @@ KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c elektor507.c \
 if HAVE_USRP
     AM_CXXFLAGS = @USRP_CFLAGS@
     KITSRCLIST += usrp_impl.cc
+    hamlib_kit_la_LINK = $(CXXLINK) $(hamlib_kit_la_LDFLAGS)
 else
     # automake gets confused and invokes the C++ linker via libtool regardless
     # of whether or not HAVE_USRP enables the .cc source.  This override forces
