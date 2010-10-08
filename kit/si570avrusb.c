@@ -226,8 +226,10 @@ int si570avrusb_init(RIG *rig)
 
 	rp->parm.usb.vid = USBDEV_SHARED_VID;
 	rp->parm.usb.pid = USBDEV_SHARED_PID;
+
+	/* no usb_set_configuration() and usb_claim_interface() */
+	rp->parm.usb.iface = -1;
 	rp->parm.usb.conf = 1;
-	rp->parm.usb.iface = 0;
 	rp->parm.usb.alt = 0;	/* necessary ? */
 
 	rp->parm.usb.vendor_name = VENDOR_NAME;
