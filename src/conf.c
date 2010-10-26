@@ -114,7 +114,7 @@ static const struct confparams frontend_serial_cfg_params[] = {
 	},
 	{ TOK_PARITY, "serial_parity", "Serial parity", 
 			"Serial port parity",
-			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", NULL }} }
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", "Mark", "Space", NULL }} }
 	},
 	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
 			"Serial port handshake",
@@ -208,6 +208,10 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
                         rs->rigport.parm.serial.parity = RIG_PARITY_ODD;
                 else if (!strcmp(val, "Even"))
                         rs->rigport.parm.serial.parity = RIG_PARITY_EVEN;
+                else if (!strcmp(val, "Mark"))
+                        rs->rigport.parm.serial.parity = RIG_PARITY_MARK;
+                else if (!strcmp(val, "Space"))
+                        rs->rigport.parm.serial.parity = RIG_PARITY_SPACE;
                 else 
                         return -RIG_EINVAL;
                 break;
@@ -385,6 +389,8 @@ static int frontend_get_conf(RIG *rig, token_t token, char *val)
 		case RIG_PARITY_NONE: s = "None"; break;
 		case RIG_PARITY_ODD: s = "Odd"; break;
 		case RIG_PARITY_EVEN: s = "Even"; break;
+		case RIG_PARITY_MARK: s = "Mark"; break;
+		case RIG_PARITY_SPACE: s = "Space"; break;
 		default: return -RIG_EINVAL;
 		}
 		strcpy(val, s);

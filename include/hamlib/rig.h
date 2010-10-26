@@ -180,7 +180,9 @@ typedef enum rig_port_e {
 enum serial_parity_e {
   RIG_PARITY_NONE = 0,		/*!< No parity */
   RIG_PARITY_ODD,		/*!< Odd */
-  RIG_PARITY_EVEN		/*!< Even */
+  RIG_PARITY_EVEN,		/*!< Even */
+  RIG_PARITY_MARK,		/*!< Mark */
+  RIG_PARITY_SPACE		/*!< Space */
 };
 
 /**
@@ -624,7 +626,7 @@ enum rig_level_e {
 	RIG_LEVEL_RF =		(1<<4),	/*!< \c RF -- RF gain (not TX power), arg float [0.0 ... 1.0] */
 	RIG_LEVEL_SQL =		(1<<5),	/*!< \c SQL -- Squelch, arg float [0.0 ... 1.0] */
 	RIG_LEVEL_IF =		(1<<6),	/*!< \c IF -- IF, arg int (Hz) */
-	RIG_LEVEL_APF =		(1<<7),	/*!< \c APF -- APF, arg float [0.0 ... 1.0] */
+	RIG_LEVEL_APF =		(1<<7),	/*!< \c APF -- Audio Peak Filter, arg float [0.0 ... 1.0] */
 	RIG_LEVEL_NR =		(1<<8),	/*!< \c NR -- Noise Reduction, arg float [0.0 ... 1.0] */
 	RIG_LEVEL_PBT_IN =	(1<<9),	/*!< \c PBT_IN -- Twin PBT (inside), arg float [0.0 ... 1.0] */
 	RIG_LEVEL_PBT_OUT =	(1<<10),/*!< \c PBT_OUT -- Twin PBT (outside), arg float [0.0 ... 1.0] */

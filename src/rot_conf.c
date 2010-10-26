@@ -103,7 +103,7 @@ static const struct confparams rotfrontend_serial_cfg_params[] = {
 	},
 	{ TOK_PARITY, "serial_parity", "Serial parity", 
 			"Serial port parity",
-			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", NULL }} }
+			"None", RIG_CONF_COMBO, { .c = {{ "None", "Odd", "Even", "Mark", "Space", NULL }} }
 	},
 	{ TOK_HANDSHAKE, "serial_handshake", "Serial handshake", 
 			"Serial port handshake",
@@ -186,6 +186,10 @@ int frontrot_set_conf(ROT *rot, token_t token, const char *val)
 			rs->rotport.parm.serial.parity = RIG_PARITY_ODD;
 		else if (!strcmp(val, "Even"))
 			rs->rotport.parm.serial.parity = RIG_PARITY_EVEN;
+		else if (!strcmp(val, "Mark"))
+			rs->rotport.parm.serial.parity = RIG_PARITY_MARK;
+		else if (!strcmp(val, "Space"))
+			rs->rotport.parm.serial.parity = RIG_PARITY_SPACE;
 		else 
 			return -RIG_EINVAL;
 		break;
@@ -275,6 +279,8 @@ int frontrot_get_conf(ROT *rot, token_t token, char *val)
 		case RIG_PARITY_NONE: s = "None"; break;
 		case RIG_PARITY_ODD: s = "Odd"; break;
 		case RIG_PARITY_EVEN: s = "Even"; break;
+		case RIG_PARITY_MARK: s = "Mark"; break;
+		case RIG_PARITY_SPACE: s = "Space"; break;
 		default: return -RIG_EINVAL;
 		}
 		strcpy(val, s);

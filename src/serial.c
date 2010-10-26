@@ -281,6 +281,17 @@ int HAMLIB_API serial_setup(hamlib_port_t *rp)
     options.c_cflag |= PARENB;
     options.c_cflag |= PARODD;
     break;
+    /* CMSPAR is not POSIX */
+#ifdef CMSPAR
+  case RIG_PARITY_MARK:
+    options.c_cflag |= PARENB | CMSPAR;
+    options.c_cflag |= PARODD;
+    break;
+  case RIG_PARITY_SPACE:
+    options.c_cflag |= PARENB | CMSPAR;
+    options.c_cflag &= ~PARODD;
+    break;
+#endif
   default:
     rig_debug(RIG_DEBUG_ERR, "%s: unsupported serial_parity "
 					"specified: %d\n", __func__,

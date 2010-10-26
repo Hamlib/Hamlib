@@ -168,7 +168,9 @@ int print_caps_parameters(const struct rig_caps *caps, void *data)
 					caps->serial_rate_min, caps->serial_rate_max,
 					caps->serial_data_bits,
 					caps->serial_parity==RIG_PARITY_NONE?'N':
-					(caps->serial_parity==RIG_PARITY_ODD?'O':'E'),
+                    caps->serial_parity==RIG_PARITY_ODD?'O':
+					caps->serial_parity==RIG_PARITY_EVEN?'E':
+					caps->serial_parity==RIG_PARITY_MARK?'M':'S',
 					caps->serial_stop_bits,
 					caps->serial_handshake==RIG_HANDSHAKE_NONE?"none":
 					(caps->serial_handshake==RIG_HANDSHAKE_XONXOFF?"XONXOFF":"CTS/RTS")
