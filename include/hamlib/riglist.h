@@ -482,6 +482,14 @@
 #define RIG_MODEL_ESMC RIG_MAKE_MODEL(RIG_RS, 1)
 #define RIG_MODEL_EB200 RIG_MAKE_MODEL(RIG_RS, 2)
 
+	/*
+	 * Phillips/Simoco PRM80
+	 */
+#define RIG_PRM80 28
+#define RIG_BACKEND_PRM80 "prm80"
+#define RIG_MODEL_PRM8060 RIG_MAKE_MODEL(RIG_PRM80, 1)
+#define RIG_MODEL_PRM8070 RIG_MAKE_MODEL(RIG_PRM80, 2)
+
 
 	/*
 	 * TODO:
@@ -528,6 +536,7 @@ typedef int rig_model_t;
 		{ RIG_KIT, RIG_BACKEND_KIT }, \
 		{ RIG_TUNER, RIG_BACKEND_TUNER }, \
 		{ RIG_RS, RIG_BACKEND_RS }, \
+		{ RIG_PRM80, RIG_BACKEND_PRM80 }, \
 		{ 0, NULL }, /* end */  \
 }
 

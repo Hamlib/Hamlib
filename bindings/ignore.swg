@@ -36,6 +36,8 @@
 %ignore RIG_BACKEND_EK;
 %ignore RIG_SKANTI;
 %ignore RIG_BACKEND_SKANTI;
+%ignore RIG_PRM80;
+%ignore RIG_BACKEND_PRM80;
 %ignore RIG_WINRADIO;
 %ignore RIG_BACKEND_WINRADIO;
 %ignore RIG_TENTEC;
