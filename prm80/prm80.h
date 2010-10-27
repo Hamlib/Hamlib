@@ -27,8 +27,8 @@
 #define PRM80_MEM_CAP {    \
         .freq = 1,  \
         .mode = 1,  \
-        .tx_freq = 1,   \
         .rptr_shift = 1, \
+        .rptr_offs = 1, \
         .flags = 1, /* lockout*/ \
         .levels = RIG_LEVEL_SQL|RIG_LEVEL_AF,   \
         }
@@ -36,7 +36,6 @@
 int prm80_reset(RIG *rig, reset_t reset);
 int prm80_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 int prm80_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-int prm80_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq);
 int prm80_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
 int prm80_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 int prm80_set_mem (RIG *rig, vfo_t vfo, int ch);

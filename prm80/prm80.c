@@ -72,7 +72,7 @@
  */
 static int prm80_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
-	int retval;
+	int retval, i;
 	struct rig_state *rs;
 
 	rs = &rig->state;
@@ -82,7 +82,6 @@ static int prm80_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 	retval = write_block(&rs->rigport, cmd, cmd_len);
 	if (retval != RIG_OK)
 		return retval;
-
 
 	/* no data expected, check for OK returned */
 	if (!data || !data_len) {
@@ -112,14 +111,19 @@ static int prm80_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 		retval = 0;
 	if (retval < 0)
 		return retval;
+
+    /* Clear possible MSB, because of 7S1 */
+    for (i=0; i<retval; i++)
+        data[i] &= 0x7f;
+
 	*data_len = retval;
 
-	/* strip CR/LF from string
+	/* chomp CR/LF from string
 	 */
-    if (*data_len >= 2)
+    if (*data_len >= 2 && data[*data_len-1] == '\x0a')
 	    *data_len -= 2;
 
-	data[*data_len] = 0;
+	data[*data_len] = '\0';
 
 	return RIG_OK;
 }
@@ -179,28 +183,6 @@ int prm80_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 
     return RIG_OK;
 }
-
-/*
- * prm80_get_split_freq
- * Assumes rig!=NULL
- */
-int prm80_get_split_freq(RIG *rig, vfo_t vfo, freq_t *tx_freq)
-{
-	int ret;
-	channel_t chan;
-
-    memset(&chan, 0, sizeof(chan));
-    chan.vfo = RIG_VFO_CURR;
-
-    ret = prm80_get_channel(rig, &chan);
-    if (ret != RIG_OK)
-        return ret;
-
-    *tx_freq = chan.tx_freq;
-
-    return RIG_OK;
-}
-
 
 /*
  * prm80_set_mem
@@ -276,7 +258,7 @@ int prm80_get_channel(RIG * rig, channel_t * chan)
     ret = prm80_transaction (rig, "E", 1, statebuf, &statebuf_len);
     if (ret != RIG_OK)
         return ret;
-    if (ret < 20)
+    if (statebuf_len < 20)
         return -RIG_EPROTO;
 
     /* Example: 1240080AFF0033F02D40 */
@@ -294,12 +276,13 @@ int prm80_get_channel(RIG * rig, channel_t * chan)
        chanstate & 0x04 ? RIG_RPT_SHIFT_PLUS : RIG_RPT_SHIFT_NONE;
     chan->flags = chanstate & 0x08 ? RIG_CHFLAG_SKIP : 0;
 
-    chan->levels[LVL_SQL].f = ((float)(hhtoi(statebuf+6)&0x0f))/15.;
-    chan->levels[LVL_AF].f  = ((float)(hhtoi(statebuf+8)&0x0f))/15.;
-    /* same as chanstate bit 1 ? */
+    chan->levels[LVL_SQL].f = ((float)(hhtoi(statebuf+6)>>4))/15.;
+    chan->levels[LVL_AF].f  = ((float)(hhtoi(statebuf+8)>>4))/15.;
+    /* same as chanstate bit 1 */
     chan->flags = hhtoi(statebuf+10) == 0 ? 0 : RIG_CHFLAG_SKIP;
     chan->freq = ((hhtoi(statebuf+12)<<8) + hhtoi(statebuf+14)) * 12500;
     chan->tx_freq = ((hhtoi(statebuf+16)<<8) + hhtoi(statebuf+18)) * 12500;
+    chan->rptr_offs = chan->tx_freq - chan->freq;
 
     return RIG_OK;
 }
@@ -328,7 +311,7 @@ int prm80_set_channel(RIG * rig, const channel_t * chan)
             chan->flags & RIG_CHFLAG_SKIP ? 0x08 : 0, /* TODO: tx shift */
             (unsigned)(chan->levels[LVL_SQL].f*15),
             (unsigned)(chan->levels[LVL_AF].f*15),
-            0, /* TODO: Lock */
+            chan->flags & RIG_CHFLAG_SKIP ? 0x01 : 0x00, /* Lock */
             (unsigned)(chan->freq / 12500.),
             (unsigned)(chan->tx_freq / 12500.)
             );

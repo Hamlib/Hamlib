@@ -69,11 +69,11 @@ const struct rig_caps prm8060_caps = {
 .timeout =  2000,
 .retry =  3,
 
-.has_get_func =  RIG_FUNC_NONE,
+.has_get_func =  PRM8060_FUNC,
 .has_set_func =  PRM8060_FUNC,
-.has_get_level =  RIG_LEVEL_NONE,
+.has_get_level =  PRM8060_LEVEL_ALL,
 .has_set_level =  RIG_LEVEL_SET(PRM8060_LEVEL_ALL),
-.has_get_parm =  RIG_PARM_NONE,
+.has_get_parm =  PRM8060_PARM_ALL,
 .has_set_parm =  RIG_PARM_SET(PRM8060_PARM_ALL),
 .vfo_ops =  PRM8060_VFO_OPS,
 .preamp =   { RIG_DBLST_END },
@@ -120,13 +120,14 @@ const struct rig_caps prm8060_caps = {
 
 .set_freq =   prm80_set_freq,
 .get_freq =   prm80_get_freq,
-.get_split_freq =   prm80_get_split_freq,
 .set_channel =  prm80_set_channel,
 .get_channel =  prm80_get_channel,
 .set_mem =  prm80_set_mem,
 .get_mem =  prm80_get_mem,
 .set_level =  prm80_set_level,
 .get_level =  prm80_get_level,
+.reset =  prm80_reset,
+.get_info =  prm80_get_info,
 
 };
 
