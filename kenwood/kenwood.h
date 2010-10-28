@@ -2,8 +2,6 @@
  *  Hamlib Kenwood backend - main header
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: kenwood.h,v 1.54 2009-02-10 22:48:25 fillods Exp $
- *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
  *   published by the Free Software Foundation; either version 2 of
@@ -164,6 +162,7 @@ extern const struct rig_caps ts811_caps;
 extern const struct rig_caps r5000_caps;
 
 extern const struct rig_caps ts480_caps;
+extern const struct rig_caps ts590_caps;
 extern const struct rig_caps thf6a_caps;
 
 /* use when not interested in the answer, but want to check its len */

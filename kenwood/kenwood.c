@@ -3,7 +3,6 @@
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
- *	$Id: kenwood.c,v 1.118 2009-02-13 19:34:21 azummo Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -76,6 +75,7 @@ static const struct kenwood_id kenwood_id_list[] = {
 	{ RIG_MODEL_TS570S, 18 },
 	{ RIG_MODEL_TS2000, 19 },
 	{ RIG_MODEL_TS480, 20 },
+	{ RIG_MODEL_TS590S, 21 },    /* TBC */
 	{ RIG_MODEL_NONE, UNKNOWN_ID },	/* end marker */
 };
 
@@ -96,6 +96,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] = {
 	{ RIG_MODEL_TS570S,	"018" },
 	{ RIG_MODEL_TS2000,	"019" },
 	{ RIG_MODEL_TS480,	"020" },
+	{ RIG_MODEL_TS590S,	"021" },    /* TBC */
 	{ RIG_MODEL_THD7A,	"TH-D7" },
 	{ RIG_MODEL_THD7AG,	"TH-D7G" },
 	{ RIG_MODEL_TMD700,	"TM-D700" },
@@ -2145,6 +2146,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 	rig_register(&thg71_caps);
 	rig_register(&tmv7_caps);
 	
+	rig_register(&ts590_caps);
 	rig_register(&ts480_caps);
 	rig_register(&thf6a_caps);                                               
 	return RIG_OK;
