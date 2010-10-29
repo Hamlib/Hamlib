@@ -30,7 +30,7 @@
 #define EOM_TH '\r'
 
 #define KENWOOD_MODE_TABLE_MAX	10
-#define KENWOOD_MAX_BUF_LEN	50 /* max answer len, arbitrary */
+#define KENWOOD_MAX_BUF_LEN		50 /* max answer len, arbitrary */
 
 #define TOK_VOICE	TOKEN_BACKEND(1)
 #define TOK_FINE	TOKEN_BACKEND(2)
