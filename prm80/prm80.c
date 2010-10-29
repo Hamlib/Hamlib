@@ -43,7 +43,7 @@
 
 #define PROMPT ">"
 
-#define BUFSZ 32
+#define BUFSZ 64
 
 /*
 [0] = Reset.
@@ -83,20 +83,19 @@ static int prm80_transaction(RIG *rig, const char *cmd, int cmd_len, char *data,
 	if (retval != RIG_OK)
 		return retval;
 
-	/* no data expected, check for OK returned */
+	/* no data wanted, but flush it anyway */
 	if (!data || !data_len) {
-#if 0
 	    char retbuf[BUFSZ+1];
 
-		/*
-	 	 * Does transceiver sends back ">" ?
-	 	 */
-		retval = read_string(&rs->rigport, retbuf, BUFSZ, PROMPT, strlen(PROMPT));
+		retval = read_string(&rs->rigport, retbuf, BUFSZ, LF, strlen(LF));
 		if (retval < 0)
 			return retval;
 
 		retbuf[retval] = '\0';
-
+#if 0
+		/*
+	 	 * Does transceiver sends back ">" ?
+	 	 */
 		if (strstr(retbuf, PROMPT)) 
 			return RIG_OK;
 		else

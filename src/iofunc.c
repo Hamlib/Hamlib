@@ -181,9 +181,20 @@ int HAMLIB_API port_close(hamlib_port_t *p, rig_port_t port_type)
  */
 static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
 {
-  if (p->type.rig == RIG_PORT_SERIAL)
-	return win32_serial_read(p->fd, buf, count);
-  else if (p->type.rig == RIG_PORT_NETWORK)
+  int i;
+  ssize_t ret;
+
+  if (p->type.rig == RIG_PORT_SERIAL) {
+	ret = win32_serial_read(p->fd, buf, count);
+    if (p->parm.serial.data_bits == 7) {
+        unsigned char *pbuf = buf;
+        /* clear MSB */
+        for (i=0; i<ret; i++) {
+            pbuf[i] &= ~0x80;
+        }
+    }
+    return ret;
+  } else if (p->type.rig == RIG_PORT_NETWORK)
 	return recv(p->fd, buf, count, 0);
   else
 	return read(p->fd, buf, count);
@@ -223,7 +234,26 @@ static int port_select(hamlib_port_t *p, int n, fd_set *readfds, fd_set *writefd
 #else
 
 /* POSIX */
-#define port_read(p,b,c) read((p)->fd,(b),(c))
+
+static ssize_t port_read(hamlib_port_t *p, void *buf, size_t count)
+{
+  int i;
+  ssize_t ret;
+
+  if (p->type.rig == RIG_PORT_SERIAL && p->parm.serial.data_bits == 7) {
+    unsigned char *pbuf = buf;
+
+	ret = read(p->fd, buf, count);
+    /* clear MSB */
+    for (i=0; i<ret; i++) {
+        pbuf[i] &= ~0x80;
+    }
+    return ret;
+  } else {
+      return read(p->fd, buf, count);
+  }
+}
+
 #define port_write(p,b,c) write((p)->fd,(b),(c))
 #define port_select(p,n,r,w,e,t) select((n),(r),(w),(e),(t))
 
