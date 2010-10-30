@@ -55,5 +55,6 @@ enum k3_data_submodes_e {
 int elecraft_open(RIG *rig);
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int k3_set_vfo(RIG *rig, vfo_t vfo);
 
 #endif /* _ELECRAFT_H */

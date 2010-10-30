@@ -236,6 +236,32 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 }
 
 
+/* The K3 changes "VFOs" by swapping the contents of
+ * the upper display with the lower display.  This function
+ * accomplishes this by sending the emulation command, SWT11;
+ * to the K3 to emulate a tap of the A/B button.
+ */
+ 
+int k3_set_vfo(RIG *rig, vfo_t vfo)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	int err;
+
+	switch (vfo) {
+		case RIG_VFO_B:
+			err = kenwood_simple_cmd(rig, "SWT11");
+			if (err != RIG_OK)
+				return err;
+			break;
+		default:
+			break;
+	}
+	return RIG_OK;
+}
 
 
 

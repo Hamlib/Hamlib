@@ -1,0 +1,76 @@
+Elecraft K3 notes and Hamlib errata by Nate Bargmann, N0NB.
+
+While the K3 uses a large set of commands compatible with the standard Kenwood
+commands, a number are extended and others have side effects that are peculiar
+to the K3.  As such, a separate set of elecraft.[c|h] files have been written
+to support the K3 in the best possible way.  As always, comments and bug reports
+should be submitted to hamlib-developer@lists.sourceforge.net
+
+
+k3_set_vfo()
+============
+
+The K3's use of VFO A and VFO B differs from other rigs in that VFO A is 
+*always* the main or upper display and VFO B is *always* the sub or lower
+display.  The A/B panel button simply swaps the contents of the two displays.
+The K3 manual states that VFO A is always the receive frequency and VFO B is
+the transmit frequency in split mode.  This is complicated somewhat when the
+second receiver is installed and VFO B serves as its display frequency *and*
+the transmit frequency in split mode.  Got that?  Good!
+
+As a result of the above, I found that using the kenwood_set_vfo function had
+the side effect of clearing the rig out of split mode when the VFO was set to
+RIG_VFO_B.  The Kenwood command 'FT1;' is used to make VFO B the transmitting
+VFO while this command will cause the K3 to enter split mode.  Likewise, the
+Kenwood command 'FR1;' is used to set VFO B as the receiving VFO while the K3
+exits split mode when it receives *any* set value for 'FR'.  My solution is
+to simply issue the 'SWT11;' command which emulates tapping the A/B button on
+the K3's front panel to swap the displays when the k3_set_vfo function is called
+with RIG_VFO_B.  Any other vfo value leaves the display alone.  Feedback on
+improving this function is welcome.
+
+
+k3_get_mode() k3_get_mode()
+===========================
+
+As an extension to the common Kenwood mode definitions, the K3 implements the
+custom 'DT' command which can query and set its data sub-modes.  These are as 
+follows:
+
+DT0		DATA A
+DT1		AFSK A
+DT2		FSK D
+DT3		PSK D
+
+The main difference is that DT0 and DT1 are for soundcard audio modes from a 
+computer such as PSK31, MFSK, Olivia, etc. with DT1 being "optimized for RTTY".
+Conversely, DT2 and DT3 utilize "direct FSK in" on the accessory jack as well
+as enable the K3's internal encoding/decoding of RTTY and PSK31 modes (outside
+the realm of Hamlib).
+
+As implemented the k3_get_mode function will query the data sub-mode when the
+kenwood_get_mode function returns RIG_MODE_RTTY or RIG_MODE_RTTYR.  As of k3
+backend version 20101027 the following will be returned:
+
+		MD6					MD9
+DT0		RIG_MODE_PKTUSB		RIG_MODE_PKTLSB
+DT1		RIG_MODE_RTTY		RIG_MODE_RTTYR
+DT2		N/A					N/A
+DT3		N/A					N/A
+
+Perhaps it would be preferable to return the RTTY modes when DT2 is detected.
+Feedback is requested.
+
+Mode setting is little different as the MD and DT values will be set as above
+for the Hamlib RIG_MODE values.  Feedback is requested on whether RTTY/RTTYR
+should map to AFSK A (DT1) or FSK D (DT2).
+
+The K3 can set any bandwidth in any mode using its custom 'BW' command.  Band-
+width values are sent to the K3 in 10 Hz increments and the K3 will round down
+to the nearest 100 Hz values from 10 to 40 Hz.  It will round down to the 
+nearest 50 Hz values from 50 to 90 Hz.  As an example, sending 'BW0236' (2360 in
+rigctl) will set the bandwidth to 2350 Hz (rounded down by the K3).
+
+The k3_get_mode function will query and return the actual bandwidth in use in
+Hertz.
+
