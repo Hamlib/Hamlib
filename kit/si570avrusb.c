@@ -48,16 +48,17 @@
 #include "si570avrusb.h"
 
 static int si570avrusb_init(RIG *rig);
-static int si570avrusb_cleanup(RIG *rig);
-static int si570avrusb_open(RIG *rig);
-static int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int si570avrusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-static int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq);
-static int si570avrusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq);
-static int si570avrusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt);
-static int si570avrusb_set_conf(RIG *rig, token_t token, const char *val);
-static int si570avrusb_get_conf(RIG *rig, token_t token, char *val);
-static const char *si570avrusb_get_info(RIG *rig);
+static int si570picusb_init(RIG *rig);
+static int si570xxxusb_cleanup(RIG *rig);
+static int si570xxxusb_open(RIG *rig);
+static int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+static int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq);
+static int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq);
+static int si570xxxusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt);
+static int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val);
+static int si570xxxusb_get_conf(RIG *rig, token_t token, char *val);
+static const char *si570xxxusb_get_info(RIG *rig);
 
 
 
@@ -68,7 +69,8 @@ static const char *si570avrusb_get_info(RIG *rig);
  */
 
 #define VENDOR_NAME			"www.obdev.at"
-#define PRODUCT_NAME		"DG8SAQ-I2C"
+#define AVR_PRODUCT_NAME		"DG8SAQ-I2C"
+#define PIC_PRODUCT_NAME		"KTH-SDR-KIT"
 
 
 
@@ -77,7 +79,7 @@ static const char *si570avrusb_get_info(RIG *rig);
 #define TOK_I2C_ADDR	TOKEN_BACKEND(4)
 #define TOK_BPF     	TOKEN_BACKEND(5)
 
-static const struct confparams si570avrusb_cfg_params[] = {
+static const struct confparams si570xxxusb_cfg_params[] = {
 	{ TOK_OSCFREQ, "osc_freq", "Oscillator freq", "Oscillator frequency in Hz",
 			"114285000", RIG_CONF_NUMERIC, { .n = { 1, MHz(300), 1 } }
 	},
@@ -97,7 +99,7 @@ static const struct confparams si570avrusb_cfg_params[] = {
 /*
  * Common data struct
  */
-struct si570avrusb_priv_data {
+struct si570xxxusb_priv_data {
 
 	unsigned short version;		/* >=0x0f00 is PE0FKO's */
 
@@ -188,29 +190,111 @@ const struct rig_caps si570avrusb_caps = {
 .filters =  {
 		RIG_FLT_END,
 	},
-.cfgparams =  si570avrusb_cfg_params,
+.cfgparams =  si570xxxusb_cfg_params,
 
 .rig_init =     si570avrusb_init,
-.rig_cleanup =  si570avrusb_cleanup,
-.rig_open =     si570avrusb_open,
-.set_conf =  si570avrusb_set_conf,
-.get_conf =  si570avrusb_get_conf,
+.rig_cleanup =  si570xxxusb_cleanup,
+.rig_open =     si570xxxusb_open,
+.set_conf =  si570xxxusb_set_conf,
+.get_conf =  si570xxxusb_get_conf,
 
-.set_freq    =  si570avrusb_set_freq,
-.get_freq    =  si570avrusb_get_freq,
-.set_ptt    =  si570avrusb_set_ptt,
-.get_info    =  si570avrusb_get_info,
+.set_freq    =  si570xxxusb_set_freq,
+.get_freq    =  si570xxxusb_get_freq,
+.set_ptt    =  si570xxxusb_set_ptt,
+.get_info    =  si570xxxusb_get_info,
+
+};
+
+
+/*
+ * KTH-SDR-KIT Si570 PIC-USB description
+ *
+ * Same USB interface as AVR-USB, except different product string
+ * and different multiplier.
+ *
+ *   http://home.kpn.nl/rw.engberts/sdr_kth.htm
+ */
+const struct rig_caps si570picusb_caps = {
+.rig_model =  RIG_MODEL_SI570PICUSB,
+.model_name = "Si570 PIC-USB",
+.mfg_name =  "KTH-SDR kit",
+.version =  "0.2",
+.copyright =  "GPL",
+.status =  RIG_STATUS_BETA,
+.rig_type =  RIG_TYPE_TUNER,
+.ptt_type =  RIG_PTT_NONE,
+.dcd_type =  RIG_DCD_NONE,
+.port_type =  RIG_PORT_USB,
+.write_delay =  0,
+.post_write_delay =  0,
+.timeout =  500,
+.retry = 0,
+
+.has_get_func =  SI570AVRUSB_FUNC,
+.has_set_func =  SI570AVRUSB_FUNC,
+.has_get_level =  SI570AVRUSB_LEVEL_ALL,
+.has_set_level =  RIG_LEVEL_SET(SI570AVRUSB_LEVEL_ALL),
+.has_get_parm =  SI570AVRUSB_PARM_ALL,
+.has_set_parm =  RIG_PARM_SET(SI570AVRUSB_PARM_ALL),
+.level_gran =  {},
+.parm_gran =  {},
+.ctcss_list =  NULL,
+.dcs_list =  NULL,
+.preamp =   { RIG_DBLST_END },
+.attenuator =   { RIG_DBLST_END }, /* TODO */
+.max_rit =  Hz(0),
+.max_xit =  Hz(0),
+.max_ifshift =  Hz(0),
+.targetable_vfo =  0,
+.transceive =  RIG_TRN_OFF,
+.bank_qty =   0,
+.chan_desc_sz =  0,
+
+.chan_list =  { RIG_CHAN_END, },
+
+.rx_range_list1 =  {
+    {kHz(800),MHz(550),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+	RIG_FRNG_END,
+  },
+.tx_range_list1 =  { RIG_FRNG_END, },
+.rx_range_list2 =  {
+    {kHz(800),MHz(550),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+	RIG_FRNG_END,
+  },
+.tx_range_list2 =  { RIG_FRNG_END, },
+.tuning_steps =  {
+	 {SI570AVRUSB_MODES,Hz(1)},
+	 RIG_TS_END,
+	},
+        /* mode/filter list, remember: order matters! */
+.filters =  {
+		RIG_FLT_END,
+	},
+.cfgparams =  si570xxxusb_cfg_params,
+
+.rig_init =     si570picusb_init,
+.rig_cleanup =  si570xxxusb_cleanup,
+.rig_open =     si570xxxusb_open,
+.set_conf =  si570xxxusb_set_conf,
+.get_conf =  si570xxxusb_get_conf,
+
+.set_freq    =  si570xxxusb_set_freq,
+.get_freq    =  si570xxxusb_get_freq,
+.get_info    =  si570xxxusb_get_info,
 
 };
 
 
 
+/*
+ * AVR-USB model
+ */
 int si570avrusb_init(RIG *rig)
 {
 	hamlib_port_t *rp = &rig->state.rigport;
-	struct si570avrusb_priv_data *priv;
+	struct si570xxxusb_priv_data *priv;
 
-	priv = (struct si570avrusb_priv_data*)calloc(sizeof(struct si570avrusb_priv_data), 1);
+	priv = (struct si570xxxusb_priv_data*)calloc(sizeof(struct si570xxxusb_priv_data), 1);
 	if (!priv) {
 		/* whoops! memory shortage! */
 		return -RIG_ENOMEM;
@@ -233,14 +317,53 @@ int si570avrusb_init(RIG *rig)
 	rp->parm.usb.alt = 0;	/* necessary ? */
 
 	rp->parm.usb.vendor_name = VENDOR_NAME;
-	rp->parm.usb.product = PRODUCT_NAME;
+	rp->parm.usb.product = AVR_PRODUCT_NAME;
 
 	rig->state.priv = (void*)priv;
 
 	return RIG_OK;
 }
 
-int si570avrusb_cleanup(RIG *rig)
+/*
+ * PIC-USB model
+ */
+int si570picusb_init(RIG *rig)
+{
+	hamlib_port_t *rp = &rig->state.rigport;
+	struct si570xxxusb_priv_data *priv;
+
+	priv = (struct si570xxxusb_priv_data*)calloc(sizeof(struct si570xxxusb_priv_data), 1);
+	if (!priv) {
+		/* whoops! memory shortage! */
+		return -RIG_ENOMEM;
+	}
+
+	priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
+    /* QSD/QSE */
+	priv->multiplier = 2;
+
+	priv->i2c_addr = SI570_I2C_ADDR;
+    /* enable BPF, because this is kit is receiver only */
+	priv->bpf = 1;
+
+	rp->parm.usb.vid = USBDEV_SHARED_VID;
+	rp->parm.usb.pid = USBDEV_SHARED_PID;
+
+	/* no usb_set_configuration() and usb_claim_interface() */
+	rp->parm.usb.iface = -1;
+	rp->parm.usb.conf = 1;
+	rp->parm.usb.alt = 0;	/* necessary ? */
+
+	rp->parm.usb.vendor_name = VENDOR_NAME;
+	rp->parm.usb.product = PIC_PRODUCT_NAME;
+
+	rig->state.priv = (void*)priv;
+
+	return RIG_OK;
+}
+
+
+int si570xxxusb_cleanup(RIG *rig)
 {
 	if (!rig)
 		return -RIG_EINVAL;
@@ -252,14 +375,14 @@ int si570avrusb_cleanup(RIG *rig)
 	return RIG_OK;
 }
 
-int si570avrusb_set_conf(RIG *rig, token_t token, const char *val)
+int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val)
 {
-	struct si570avrusb_priv_data *priv;
+	struct si570xxxusb_priv_data *priv;
 	freq_t freq;
 	double multiplier;
 	int i2c_addr;
 
-	priv = (struct si570avrusb_priv_data*)rig->state.priv;
+	priv = (struct si570xxxusb_priv_data*)rig->state.priv;
 
 	switch(token) {
 		case TOK_OSCFREQ:
@@ -291,11 +414,11 @@ int si570avrusb_set_conf(RIG *rig, token_t token, const char *val)
 	return RIG_OK;
 }
 
-int si570avrusb_get_conf(RIG *rig, token_t token, char *val)
+int si570xxxusb_get_conf(RIG *rig, token_t token, char *val)
 {
-	struct si570avrusb_priv_data *priv;
+	struct si570xxxusb_priv_data *priv;
 
-	priv = (struct si570avrusb_priv_data*)rig->state.priv;
+	priv = (struct si570xxxusb_priv_data*)rig->state.priv;
 
 	switch(token) {
 		case TOK_OSCFREQ:
@@ -353,9 +476,9 @@ static int setBPF(RIG *rig, int enable)
     return RIG_OK;
 }
 
-int si570avrusb_open(RIG *rig)
+int si570xxxusb_open(RIG *rig)
 {
-	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
+	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int ret;
 	unsigned short version;
@@ -407,7 +530,7 @@ int si570avrusb_open(RIG *rig)
 	return RIG_OK;
 }
 
-const char * si570avrusb_get_info(RIG *rig)
+const char * si570xxxusb_get_info(RIG *rig)
 {
 	static char buf[64];
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
@@ -437,7 +560,7 @@ static const int HS_DIV_MAP[] = {4,5,6,7,-1,9,-1,11};
 
 static int calcDividers(RIG *rig, double f, struct solution* solution)
 {
-	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
+	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	struct solution sols[8]; 
 	int i;
 	int imin;
@@ -506,9 +629,9 @@ static void setLongWord(uint32_t value, unsigned char * bytes)
 } 
 
 
-int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
+int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
+	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int ret;
 	unsigned char buffer[6];
@@ -523,7 +646,7 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char intBuffer[4];
 
 	if (priv->version >= 0x0f00)
-		return si570avrusb_set_freq_by_value(rig, vfo, freq);
+		return si570xxxusb_set_freq_by_value(rig, vfo, freq);
 
 	f = (freq * priv->multiplier)/1e6;
 
@@ -565,9 +688,9 @@ int si570avrusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	return RIG_OK;
 }
 
-int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
+int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 {
-	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
+	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int ret;
 
@@ -603,7 +726,7 @@ int si570avrusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 
 static double calculateFrequency(RIG *rig, const unsigned char * buffer)
 {
-	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
+	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 
 	int RFREQ_int = ((buffer[2] & 0xf0) >> 4) + ((buffer[1] & 0x3f) * 16);
 	int RFREQ_frac = (256 * 256 * 256 * (buffer[2] & 0xf)) + (256 * 256 * buffer[3]) + (256 * buffer[4]) + (buffer[5]);
@@ -630,15 +753,15 @@ static double calculateFrequency(RIG *rig, const unsigned char * buffer)
 	return fout;
 }
 
-int si570avrusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
+int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
+	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	unsigned char buffer[6];
 	int ret;
 
 	if (priv->version >= 0x0f00)
-		return si570avrusb_get_freq_by_value(rig, vfo, freq);
+		return si570xxxusb_get_freq_by_value(rig, vfo, freq);
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
 			REQUEST_READ_REGISTERS, priv->i2c_addr, 0,
@@ -656,9 +779,9 @@ int si570avrusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	return RIG_OK;
 }
 
-int si570avrusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
+int si570xxxusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 {
-	struct si570avrusb_priv_data *priv = (struct si570avrusb_priv_data *)rig->state.priv;
+	struct si570xxxusb_priv_data *priv = (struct si570xxxusb_priv_data *)rig->state.priv;
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int ret;
 	uint32_t iFreq;
@@ -680,7 +803,7 @@ int si570avrusb_get_freq_by_value(RIG *rig, vfo_t vfo, freq_t *freq)
 }
 
 
-int si570avrusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
+int si570xxxusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt)
 {
 	struct usb_dev_handle *udh = rig->state.rigport.handle;
 	int ret;

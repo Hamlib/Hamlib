@@ -1,8 +1,7 @@
 /*
  *  Hamlib KIT backend - main file
- *  Copyright (c) 2004-2009 by Stephane Fillod
+ *  Copyright (c) 2004-2010 by Stephane Fillod
  *
- *	$Id: kit.c,v 1.8 2008-10-31 07:45:17 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,6 +47,7 @@ DECLARE_INITRIG_BACKEND(kit)
 
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H))
 	rig_register(&si570avrusb_caps);
+	rig_register(&si570picusb_caps);
 #endif
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H)) || defined(_WIN32)
     /* rigs with alternate DLL support on Win32 */
