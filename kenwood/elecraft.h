@@ -42,7 +42,7 @@ struct elecraft_ext_id_string {
 	const char *id;
 };
 
-/* Data sub-modes are provide from the K3 via the DT command */
+/* Data sub-modes are provided from the K3 via the DT command */
 enum k3_data_submodes_e {
 	K3_MODE_DATA_A = 0,		/* DT0; */
 	K3_MODE_AFSK_A,			/* DT1; */
@@ -53,8 +53,5 @@ enum k3_data_submodes_e {
 
 /* Elecraft extension function declarations */
 int elecraft_open(RIG *rig);
-int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-int k3_set_vfo(RIG *rig, vfo_t vfo);
 
 #endif /* _ELECRAFT_H */

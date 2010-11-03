@@ -3,8 +3,25 @@ Elecraft K3 notes and Hamlib errata by Nate Bargmann, N0NB.
 While the K3 uses a large set of commands compatible with the standard Kenwood
 commands, a number are extended and others have side effects that are peculiar
 to the K3.  As such, a separate set of elecraft.[c|h] files have been written
-to support the K3 in the best possible way.  As always, comments and bug reports
-should be submitted to hamlib-developer@lists.sourceforge.net
+to support the K2 and K3 in the best possible way using shared code when 
+possible.  K3 specific code can be found in k3.c
+
+As always, comments and bug reports should be submitted to 
+hamlib-developer@lists.sourceforge.net
+
+
+elecraft_open()
+===============
+
+The kenwood_open() function fails for the Elecraft radios as the function checks
+the backend to be certain the ID from the radio matches the backend that called
+the function.  As the ID command of the Elecraft radios returns "017" which
+corresponds to the TS-570, the backend test fails.  Rather than muck up a 
+working function, I chose to implement an independent elecraft_open which not
+only checks for the existence of a connected radio that returns an ID of "017",
+it also checks for K2 or K3 extensions and sets a pair of private variables
+that may be used later for advanced functions.  This way the backend should be 
+able to reliably test for either a K2 or K3 (needs more testing with the K2).
 
 
 k3_set_vfo()

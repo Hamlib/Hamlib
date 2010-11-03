@@ -47,6 +47,17 @@ static struct kenwood_priv_caps  k2_priv_caps  = {
 		.cmdtrm =  EOM_KEN,
 };
 
+
+/* Actual read extension levels from radio.
+ * 
+ * The Value stored in this variable maps to elecraft_ext_id_string_list.level
+ * and is only written to by the elecraft_get_extension_level() private
+ * function during elecraft_open() and thereafter shall be treated as 
+ * READ ONLY!
+ */
+extern int k2_ext_lvl;	/* Initial K2 extension level */
+
+
 /*
  * KIO2 rig capabilities.
  * This kit can recognize a large subset of TS-570 commands.
