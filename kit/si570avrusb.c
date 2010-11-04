@@ -501,7 +501,7 @@ int si570xxxusb_open(RIG *rig)
 	}
 
 	priv->version = version;
-	if (version  >= 0x0F00)
+	if (version  >= 0x0F00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB)
 	{
 		unsigned int iFreq;
 
@@ -645,7 +645,7 @@ int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned char fracBuffer[4];
 	unsigned char intBuffer[4];
 
-	if (priv->version >= 0x0f00)
+	if (priv->version >= 0x0f00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB)
 		return si570xxxusb_set_freq_by_value(rig, vfo, freq);
 
 	f = (freq * priv->multiplier)/1e6;
@@ -760,7 +760,7 @@ int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	unsigned char buffer[6];
 	int ret;
 
-	if (priv->version >= 0x0f00)
+	if (priv->version >= 0x0f00 || rig->caps->rig_model == RIG_MODEL_SI570PICUSB)
 		return si570xxxusb_get_freq_by_value(rig, vfo, freq);
 
 	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
