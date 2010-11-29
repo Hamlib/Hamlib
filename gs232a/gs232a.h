@@ -25,5 +25,6 @@
 extern const struct rot_caps gs232_rot_caps;
 extern const struct rot_caps gs232a_rot_caps;
 extern const struct rot_caps gs232b_rot_caps;
+extern const struct rot_caps f1tetracker_rot_caps;
 
 #endif /* _ROT_GS232A_H */
