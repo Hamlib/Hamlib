@@ -269,45 +269,6 @@ const struct rot_caps gs232a_rot_caps = {
 
 
 /* ************************************************************************* */
-/*
- * F1TE Tracker, GS232 withtout position feedback
- */
-
-const struct rot_caps f1tetracker_rot_caps = {
-  .rot_model =      ROT_MODEL_F1TETRACKER,
-  .model_name =     "GS232A/F1TE Tracker",
-  .mfg_name =       "F1TE",
-  .version =        "0.2",
-  .copyright = 	    "LGPL",
-  .status =         RIG_STATUS_BETA,
-  .rot_type =       ROT_TYPE_OTHER,
-  .port_type =      RIG_PORT_SERIAL,
-  .serial_rate_min =   150,
-  .serial_rate_max =   9600,
-  .serial_data_bits =  8,
-  .serial_stop_bits =  1,
-  .serial_parity =  RIG_PARITY_NONE,
-  .serial_handshake =  RIG_HANDSHAKE_NONE,
-  .write_delay =  0,
-  .post_write_delay =  0,
-  .timeout =  400,
-  .retry =  0,
-
-  .min_az = 	0.0,
-  .max_az =  	360.0,
-  .min_el = 	0.0,
-  .max_el =  	180.0,
-
-  .get_position =  NULL,    /* no position feedback available */
-  .set_position =  gs232a_rot_set_position,
-#if 0
-  .stop = 	       gs232a_rot_stop,
-  .move =          gs232a_rot_move,
-#endif
-};
-
-
-/* ************************************************************************* */
 
 DECLARE_INITROT_BACKEND(gs232a)
 {
