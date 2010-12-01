@@ -318,7 +318,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p1 = argv[optind++];
 		}
@@ -333,7 +333,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p1 = argv[optind++];
 		}
@@ -349,7 +349,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p2 = argv[optind++];
 		}
@@ -365,7 +365,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p3 = argv[optind++];
 		}
@@ -382,7 +382,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p4 = argv[optind++];
 		}
@@ -457,7 +457,7 @@ int rotctl_parse(ROT *my_rot, FILE *fin, FILE *fout, char *argv[], int argc)
 
 	fflush(fout);
 
-	return 0;
+	return retcode != RIG_OK ? 2 : 0;
 }
 
 

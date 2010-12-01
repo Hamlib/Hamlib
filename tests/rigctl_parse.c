@@ -406,7 +406,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			vfo = rig_parse_vfo(argv[optind++]);
 		}
@@ -430,7 +430,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p1 = argv[optind++];
 		}
@@ -446,7 +446,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p1 = argv[optind++];
 		}
@@ -462,7 +462,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p2 = argv[optind++];
 		}
@@ -478,7 +478,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 			if (!argv[optind]) {
 				fprintf(stderr, "Invalid arg for command '%s'\n",
 							cmd_entry->name);
-				exit(2);
+				exit(1);
 			}
 			p3 = argv[optind++];
 		}
@@ -493,7 +493,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 #endif
 
 	if (!prompt)
-		rig_debug(RIG_DEBUG_TRACE, "rigctl(d): %c '0x%02x' '%s' '%s' '%s'\n",
+		rig_debug(RIG_DEBUG_TRACE, "rigctl(d): %c '%s' '%s' '%s' '%s'\n",
 				cmd, rig_strvfo(vfo), p1?p1:"", p2?p2:"", p3?p3:"");
 
 	/*
@@ -554,7 +554,7 @@ int rigctl_parse(RIG *my_rig, FILE *fin, FILE *fout, char *argv[], int argc)
 
 	fflush(fout);
 
-	return 0;
+	return retcode != RIG_OK ? 2 : 0;
 }
 
 
@@ -1198,12 +1198,15 @@ declare_proto_rig(set_level)
 	}
 
 	level = rig_parse_level(arg1);
+	if (RIG_LEVEL_NONE == level)
+		return -RIG_EINVAL;
+
 	if (!rig_has_set_level(rig, level)) {
 		const struct confparams *cfp;
 
 		cfp = rig_ext_lookup(rig, arg1);
 		if (!cfp)
-			return -RIG_EINVAL;	/* no such parameter */
+			return -RIG_ENAVAIL;	/* no such parameter */
 
 		switch (cfp->type) {
 		case RIG_CONF_BUTTON:
@@ -1248,6 +1251,9 @@ declare_proto_rig(get_level)
 	}
 
 	level = rig_parse_level(arg1);
+	if (RIG_LEVEL_NONE == level)
+		return -RIG_EINVAL;
+
 	if (!rig_has_get_level(rig, level)) {
 		const struct confparams *cfp;
 
@@ -1310,6 +1316,9 @@ declare_proto_rig(set_func)
 	}
 
 	func = rig_parse_func(arg1);
+	if (RIG_FUNC_NONE == func)
+		return -RIG_EINVAL;
+
 	CHKSCN1ARG(sscanf(arg2, "%d", &func_stat));
 	return rig_set_func(rig, vfo, func, func_stat);
 }
@@ -1329,6 +1338,9 @@ declare_proto_rig(get_func)
 	}
 
 	func = rig_parse_func(arg1);
+	if (RIG_FUNC_NONE == func)
+		return -RIG_EINVAL;
+
 	status = rig_get_func(rig, vfo, func, &func_stat);
 	if (status != RIG_OK)
 		return status;
@@ -1353,6 +1365,8 @@ declare_proto_rig(set_parm)
 	}
 
 	parm = rig_parse_parm(arg1);
+	if (RIG_PARM_NONE == parm)
+		return -RIG_EINVAL;
 
 	if (!rig_has_set_parm(rig, parm)) {
 		const struct confparams *cfp;
@@ -1404,6 +1418,9 @@ declare_proto_rig(get_parm)
 	}
 
 	parm = rig_parse_parm(arg1);
+	if (RIG_PARM_NONE == parm)
+		return -RIG_EINVAL;
+
 	if (!rig_has_get_parm(rig, parm)) {
 		const struct confparams *cfp;
 
@@ -1498,6 +1515,9 @@ declare_proto_rig(vfo_op)
 	}
 
 	op = rig_parse_vfo_op(arg1);
+	if (RIG_OP_NONE == op)
+		return -RIG_EINVAL;
+
 	return rig_vfo_op(rig, vfo, op);
 }
 

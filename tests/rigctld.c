@@ -479,7 +479,7 @@ void * handle_socket(void *arg)
 		if (ferror(fsockin) || ferror(fsockout))
 			retcode = 1;
 	}
-	while (retcode == 0);
+	while (retcode == 0 || retcode == 2);
 
 	rig_debug(RIG_DEBUG_VERBOSE, "Connection closed from %s:%d\n",
 				inet_ntoa(handle_data_arg->cli_addr.sin_addr),

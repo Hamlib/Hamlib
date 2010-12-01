@@ -81,6 +81,7 @@ int main (int argc, char *argv[])
 	rot_model_t my_model = ROT_MODEL_DUMMY;
 
 	int retcode;		/* generic return code from functions */
+	int exitcode;
 
 	int verbose = 0;
 	int show_conf = 0;
@@ -228,15 +229,19 @@ int main (int argc, char *argv[])
 	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
 			my_rot->caps->version, rig_strstatus(my_rot->caps->status));
 
+	exitcode = 0;
+
 	do {
 		retcode = rotctl_parse(my_rot, stdin, stdout, argv, argc);
+		if (retcode == 2)
+			exitcode = 2;
 	}
-	while (retcode == 0);
+	while (retcode == 0 || retcode == 2);
 
 	rot_close(my_rot); /* close port */
 	rot_cleanup(my_rot); /* if you care about memory */
 
-	return 0;
+	return exitcode;
 }
 
 void usage()

@@ -96,6 +96,7 @@ int main (int argc, char *argv[])
 	rig_model_t my_model = RIG_MODEL_DUMMY;
 
 	int retcode;		/* generic return code from functions */
+	int exitcode;
 
 	int verbose = 0;
 	int show_conf = 0;
@@ -320,15 +321,19 @@ int main (int argc, char *argv[])
 	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
 			my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
+	exitcode = 0;
+
 	do {
 		retcode = rigctl_parse(my_rig, stdin, stdout, argv, argc);
+		if (retcode == 2)
+			exitcode = 2;
 	}
-	while (retcode == 0);
+	while (retcode == 0 || retcode == 2);
 
 	rig_close(my_rig); /* close port */
 	rig_cleanup(my_rig); /* if you care about memory */
 
-	return 0;
+	return exitcode;
 }
 
 
