@@ -1198,9 +1198,6 @@ declare_proto_rig(set_level)
 	}
 
 	level = rig_parse_level(arg1);
-	if (RIG_LEVEL_NONE == level)
-		return -RIG_EINVAL;
-
 	if (!rig_has_set_level(rig, level)) {
 		const struct confparams *cfp;
 
@@ -1251,9 +1248,6 @@ declare_proto_rig(get_level)
 	}
 
 	level = rig_parse_level(arg1);
-	if (RIG_LEVEL_NONE == level)
-		return -RIG_EINVAL;
-
 	if (!rig_has_get_level(rig, level)) {
 		const struct confparams *cfp;
 
@@ -1365,9 +1359,6 @@ declare_proto_rig(set_parm)
 	}
 
 	parm = rig_parse_parm(arg1);
-	if (RIG_PARM_NONE == parm)
-		return -RIG_EINVAL;
-
 	if (!rig_has_set_parm(rig, parm)) {
 		const struct confparams *cfp;
 
@@ -1418,9 +1409,6 @@ declare_proto_rig(get_parm)
 	}
 
 	parm = rig_parse_parm(arg1);
-	if (RIG_PARM_NONE == parm)
-		return -RIG_EINVAL;
-
 	if (!rig_has_get_parm(rig, parm)) {
 		const struct confparams *cfp;
 
