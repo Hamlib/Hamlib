@@ -120,9 +120,13 @@
 
 /* Timing values in mS */
 
-#define FT2000_PACING_INTERVAL                5
-#define FT2000_PACING_DEFAULT_VALUE           0
-#define FT2000_WRITE_DELAY                    50
+// #define FT2000_PACING_INTERVAL                5
+// #define FT2000_PACING_DEFAULT_VALUE           0
+
+/* Delay between bytes sent to FT-2000
+ * Should not exceed value set in CAT TOT menu (rig default is 10 mSec)
+ */
+#define FT2000_WRITE_DELAY                    0
 
 
 /* Delay sequential fast writes */
