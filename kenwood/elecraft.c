@@ -77,21 +77,34 @@ int elecraft_open(RIG *rig)
 	if (err != RIG_OK)
 		return err;
 
-	err = elecraft_get_extension_level(rig, "K2", &k2_ext_lvl);
-	if (err != RIG_OK)
-		return err;
+	switch(rig->caps->rig_model) {
+		case RIG_MODEL_K2:
+			err = elecraft_get_extension_level(rig, "K2", &k2_ext_lvl);
+			if (err != RIG_OK)
+				return err;
 
-	/* This command will likely fail on a K2.  Needs testing
-	 * to determine proper rig response
-	 */
-	err = elecraft_get_extension_level(rig, "K3", &k3_ext_lvl);
-	if (err != RIG_OK)
-		rig_debug(RIG_DEBUG_WARN, "%s: K3 probe failed\n", __func__);
+			rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__, 
+				k2_ext_lvl, elecraft_ext_id_string_list[k2_ext_lvl].id);
+			break;
+		case RIG_MODEL_K3:
+			err = elecraft_get_extension_level(rig, "K2", &k2_ext_lvl);
+			if (err != RIG_OK)
+				return err;
 
-	rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__, 
-		k2_ext_lvl, elecraft_ext_id_string_list[k2_ext_lvl].id);
-	rig_debug(RIG_DEBUG_ERR, "%s: K3 level is %d, %s\n", __func__, 
-		k3_ext_lvl, elecraft_ext_id_string_list[k3_ext_lvl].id);
+			rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__, 
+				k2_ext_lvl, elecraft_ext_id_string_list[k2_ext_lvl].id);
+
+			err = elecraft_get_extension_level(rig, "K3", &k3_ext_lvl);
+			if (err != RIG_OK)
+				return err;
+
+			rig_debug(RIG_DEBUG_ERR, "%s: K3 level is %d, %s\n", __func__, 
+				k3_ext_lvl, elecraft_ext_id_string_list[k3_ext_lvl].id);
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR, "%s: unrecognized rig model %d\n", __func__, rig->caps->rig_model);
+			return -RIG_EINVAL;
+	}
 
 	return RIG_OK;
 }
