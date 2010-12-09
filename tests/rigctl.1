@@ -26,15 +26,15 @@ Control radio transceivers and receivers.
 interactive mode if none are provided on the command line.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invoke bold face and italics, 
+.\" \fI<whatever>\fP escape sequences to invoke bold face and italics,
 .\" respectively.
-Keep in mind that \fBHamlib\fP is BETA level software. 
+Keep in mind that \fBHamlib\fP is BETA level software.
 While a lot of backend libraries lack complete rig support, the basic functions
-are usually well supported.  The API may change without publicized notice, 
+are usually well supported.  The API may change without publicized notice,
 while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
 a change.
 .PP
-Please report bugs and provide feedback at the e-mail address given in the 
+Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
@@ -45,12 +45,12 @@ Here is a summary of the supported options:
 .B \-m, --model=id
 Select radio model number. See model list (use 'rigctl -l').
 .sp
-NB: \fBrigctl\fP (or third party software) will use rig model 1901 
+NB: \fBrigctl\fP (or third party software) will use rig model 1901
 when using \fBrpc.rigd\fP or rig model 2 for NET rigctl (rigctld).
 .TP
 .B \-r, --rig-file=device
 Use \fIdevice\fP as the file name of the port the radio is connected.
-Often a serial port, but could be a USB to serial adapter.  Typically 
+Often a serial port, but could be a USB to serial adapter.  Typically
 /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
 .sp
 Default is \fB/dev/rig\fP (may be a symbolic link to the actual device).
@@ -70,11 +70,11 @@ defined in the rig's backend.
 .sp
 Some side effects of this command are that when type is set to DTR, read
 PTT state comes from Hamlib frontend, not read from the radio.  When set
-to NONE, PTT state cannot be read or set even if rig backend supports 
+to NONE, PTT state cannot be read or set even if rig backend supports
 reading/setting PTT status from the rig.
 .TP
 .B \-D, --dcd-type=type
-Use \fItype\fP of Data Carrier Detect device. 
+Use \fItype\fP of Data Carrier Detect device.
 Supported types are RIG, DSR, CTS, CD, PARALLEL, NONE.
 .TP
 .B \-s, --serial-speed=baud
@@ -82,18 +82,21 @@ Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rig
 backend capabilities as the default.
 .TP
 .B \-c, --civaddr=id
-Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for 
+Use \fIid\fP as the CI-V address to communicate with the rig. Only useful for
 Icom rigs.
 .sp
-NB: the \fIid\fP is in decimal notation, unless prefixed by 
+NB: the \fIid\fP is in decimal notation, unless prefixed by
 \fI0x\fP, in which case it is hexadecimal.
 .TP
 .B \-t, --send-cmd-term=char
-Change the termination \fIchar\fP for text protocol when using the \fIsend_cmd\fP command.
-The default value is <CR>. Non ASCII printable characters can be specified as an
-ASCII number, in hexadecimal format, prepended with 0x. You may pass an empty string
-for no termination char. The string -1 tells rigctl to switch to binary protocol.
-See the \fIsend_cmd\fP command for further explanation.
+Change the termination \fIchar\fP for text protocol when using the \fIsend_cmd\fP
+command.  The default value is <CR> (0x0d). Non ASCII printable characters can be
+specified as an ASCII number, in hexadecimal format, prepended with 0x. You may
+pass an empty string for no termination char. The string '-1' tells rigctl to
+switch to binary protocol. See the \fIsend_cmd\fP command for further explanation.
+.sp
+For example, to specify a command terminator for Kenwood style text commands
+pass "-t ';'" to rigctl.  See EXAMPLES below.
 .TP
 .B \-L, --show-conf
 List all config parameters for the radio defined with -m above.
@@ -110,7 +113,7 @@ List all model numbers defined in \fBHamlib\fP and exit.
 Dump capabilities for the radio defined with -m above and exit.
 .TP
 .B \-o, --vfo
-Set vfo mode, requiring an extra VFO argument in front of each appropriate 
+Set vfo mode, requiring an extra VFO argument in front of each appropriate
 command. Otherwise, VFO_CURR is assumed when this option is not set.
 .TP
 .B \-v, --verbose
@@ -123,11 +126,11 @@ Show summary of these options and exit.
 Show version of \fBrigctl\fP and exit.
 .PP
 \fBN.B.\fP Some options may not be implemented by a given backend and will
-return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+return an error.  This is most likely to occur with the \fI\-\-set-conf\fP
 and \fI\-\-show-conf\fP options.
 .PP
-Please note that the backend for the radio to be controlled, 
-or the radio itself may not support some commands. In that case, 
+Please note that the backend for the radio to be controlled,
+or the radio itself may not support some commands. In that case,
 the operation will fail with a \fBHamlib\fP error code.
 .SH COMMANDS
 Commands can be entered either as a single char, or as a long command name.
@@ -136,15 +139,15 @@ line, as the options do. They may be typed in when in interactive mode
 or provided as argument(s) in command line interface mode.
 .PP
 Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
-an upper case letter will be used for \fIset\fP method whereas the 
+an upper case letter will be used for \fIset\fP method whereas the
 corresponding lower case letter refers to the \fIget\fP method.  Each operation
 also has a long name; in interactive mode, prepend a backslash to enter a long
 command name.
 .sp
 Example: Use "\\dump_caps" to see what this radio can do.
 .PP
-Please note that the backend for the radio to be controlled, 
-or the radio itself may not support some commands. In that case, 
+Please note that the backend for the radio to be controlled,
+or the radio itself may not support some commands. In that case,
 the operation will fail with a \fBHamlib\fP error message.
 .PP
 Here is a summary of the supported commands (In the case of "set" commands the
@@ -411,12 +414,18 @@ be provided as output power may vary according to these values.
 VFO parameter not used in 'VFO mode'.
 .TP
 .B w, send_cmd 'Cmd'
-Send raw command string to rig.
+Send raw command string to rig.  This is useful for testing and troubleshooting
+rig commands and responses when developing a backend.
 .sp
 For binary protocols enter values as \\0xAA\\0xBB.    Expect a 'Reply' from the
-rig which will likely be a binary block or an ASCII string.
+rig which will likely be a binary block or an ASCII string depending on the rig's
+protocol (see your radio's computer control documentation).
+.sp
+The command terminator, set by the \fIsend-cmd-term\fP option above, will terminate
+each command string sent to the radio.  This character should not be a part of
+the input string.
 .SH EXAMPLES
-Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter in 
+Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter in
 interactive mode:
 .sp
 $ rigctl -m 114 -r /dev/ttyUSB1
@@ -431,6 +440,11 @@ setting baud rate and stop bits:
 .sp
 $ rigctl -m 114 -r /dev/ttyUSB1 -s 4800 -C stop_bits=2
 .sp
+Start \fBrigctl\fP for an Elecraft K3 using a USB to serial adapter while
+specifying a command terminator for the 'w' command:
+.sp
+$ rigctl -m 229 -r /dev/ttyUSB0 -t';'
+.sp
 Start \fBrigctl\fP using \fBrpc.rigd\fP and setting the frequency and mode:
 .sp
 $ rigctl -m 1901 -r localhost F 7253500 M LSB 0
@@ -438,11 +452,11 @@ $ rigctl -m 1901 -r localhost F 7253500 M LSB 0
 Connect to a running \fBrigctld\fP with rig model 2 ("NET rigctl") on the
 local host and specifying the TCP port:
 .sp
-$ rotctl -m 2 -r localhost:4532
+$ rigctl -m 2 -r localhost:4532
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--verbose\fP option allows different levels of diagnostics
-to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
--vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
+to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
+-vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.
 
 A given verbose level is useful for providing needed debugging information to
 the email address below.  For example, TRACE output shows all of the values
@@ -465,7 +479,7 @@ Report bugs to <hamlib-developer@lists.sourceforge.net>.
 .PP
 We are already aware of the bugs in the previous section :-)
 .SH AUTHORS
-Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group 
+Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
