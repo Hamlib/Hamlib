@@ -49,8 +49,10 @@
 
 static int si570avrusb_init(RIG *rig);
 static int si570picusb_init(RIG *rig);
+static int si570fifisdrusb_init(RIG *rig);
 static int si570xxxusb_cleanup(RIG *rig);
 static int si570xxxusb_open(RIG *rig);
+static int si570fifisdrusb_open(RIG *rig);
 static int si570xxxusb_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int si570xxxusb_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq);
@@ -59,6 +61,7 @@ static int si570xxxusb_set_ptt(RIG * rig, vfo_t vfo, ptt_t ptt);
 static int si570xxxusb_set_conf(RIG *rig, token_t token, const char *val);
 static int si570xxxusb_get_conf(RIG *rig, token_t token, char *val);
 static const char *si570xxxusb_get_info(RIG *rig);
+static const char *si570fifisdrusb_get_info(RIG *rig);
 
 
 
@@ -72,6 +75,8 @@ static const char *si570xxxusb_get_info(RIG *rig);
 #define AVR_PRODUCT_NAME		"DG8SAQ-I2C"
 #define PIC_PRODUCT_NAME		"KTH-SDR-KIT"
 
+#define FIFISDR_VENDOR_NAME		"www.ov-lennestadt.de"
+#define FIFISDR_PRODUCT_NAME		"FiFi-SDR"
 
 
 #define TOK_OSCFREQ	TOKEN_BACKEND(1)
@@ -287,6 +292,91 @@ const struct rig_caps si570picusb_caps = {
 
 
 /*
+ * FiFi-SDR receiver description.
+ *
+ * Based on AVR USB description, but uses different vendor and product strings.
+ * - No PTT (just a tuner)
+ * - No config params for the time being
+ * - Wider tuning range
+ * - Get/Set frequency by value only
+ */
+const struct rig_caps si570fifisdrusb_caps = {
+	.rig_model = RIG_MODEL_SI570FIFISDRUSB,
+	.model_name = "FiFi-SDR",
+	.mfg_name = "FiFi",
+	.version = "0.2",
+	.copyright = "GPL",
+	.status = RIG_STATUS_BETA,
+
+	.rig_type = RIG_TYPE_TUNER,
+	.ptt_type = RIG_PTT_NONE,
+	.dcd_type = RIG_DCD_NONE,
+	.port_type = RIG_PORT_USB,
+
+	.write_delay = 0,
+	.post_write_delay = 0,
+	.timeout = 500,
+	.retry = 0,
+
+	.has_get_func = SI570AVRUSB_FUNC,
+	.has_set_func = SI570AVRUSB_FUNC,
+	.has_get_level = SI570AVRUSB_LEVEL_ALL,
+	.has_set_level = RIG_LEVEL_SET(SI570AVRUSB_LEVEL_ALL),
+	.has_get_parm = SI570AVRUSB_PARM_ALL,
+	.has_set_parm = RIG_PARM_SET(SI570AVRUSB_PARM_ALL),
+
+	.level_gran = {},
+	.parm_gran = {},
+
+	.preamp = { RIG_DBLST_END },
+	.attenuator = { RIG_DBLST_END },
+	.max_rit = Hz(0),
+	.max_xit = Hz(0),
+	.max_ifshift = Hz(0),
+
+	.targetable_vfo = 0,
+	.transceive = RIG_TRN_OFF,
+	.bank_qty = 0,
+	.chan_desc_sz = 0,
+
+	.chan_list = { RIG_CHAN_END, },
+
+	.rx_range_list1 = {
+		/* probably higher upper range, depending on type (CMOS, LVDS, ..) */
+		{kHz(39.1),MHz(175.0),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+		RIG_FRNG_END,
+	},
+	.tx_range_list1 =  { RIG_FRNG_END, },
+	.rx_range_list2 =  {
+		{kHz(39.1),MHz(175.0),SI570AVRUSB_MODES,-1,-1,SI570AVRUSB_VFO},
+		RIG_FRNG_END,
+	},
+	.tx_range_list2 =  { RIG_FRNG_END, },
+	.tuning_steps =  {
+		{SI570AVRUSB_MODES,Hz(1)},
+		RIG_TS_END,
+	},
+
+	/* mode/filter list, remember: order matters! */
+	.filters = {
+		RIG_FLT_END,
+	},
+	.cfgparams = NULL,
+
+	.rig_init = si570fifisdrusb_init,
+	.rig_cleanup = si570xxxusb_cleanup,
+	.rig_open = si570fifisdrusb_open,
+	.set_conf = NULL,
+	.get_conf = NULL,
+
+	.set_freq =  si570xxxusb_set_freq_by_value,
+	.get_freq =  si570xxxusb_get_freq_by_value,
+	.get_info =  si570fifisdrusb_get_info,
+};
+
+
+
+/*
  * AVR-USB model
  */
 int si570avrusb_init(RIG *rig)
@@ -356,6 +446,43 @@ int si570picusb_init(RIG *rig)
 
 	rp->parm.usb.vendor_name = VENDOR_NAME;
 	rp->parm.usb.product = PIC_PRODUCT_NAME;
+
+	rig->state.priv = (void*)priv;
+
+	return RIG_OK;
+}
+
+
+/*
+ * FiFi-SDR model
+ */
+int si570fifisdrusb_init(RIG *rig)
+{
+	hamlib_port_t *rp = &rig->state.rigport;
+	struct si570xxxusb_priv_data *priv;
+
+	priv = (struct si570xxxusb_priv_data*)calloc(sizeof(struct si570xxxusb_priv_data), 1);
+	if (!priv) {
+		/* whoops! memory shortage! */
+		return -RIG_ENOMEM;
+	}
+
+	priv->version = 0x0F00;				/* Assume PE0FKO firmware compatibility. */
+	priv->osc_freq = SI570_NOMINAL_XTALL_FREQ;
+	priv->multiplier = 4;
+	priv->i2c_addr = SI570_I2C_ADDR;	/* Not used. FiFi-SDR auto detects I2C address. */
+	priv->bpf = 0;
+
+	rp->parm.usb.vid = USBDEV_SHARED_VID;
+	rp->parm.usb.pid = USBDEV_SHARED_PID;
+
+	/* no usb_set_configuration() and usb_claim_interface() */
+	rp->parm.usb.iface = -1;
+	rp->parm.usb.conf = 1;
+	rp->parm.usb.alt = 0;	/* necessary ? */
+
+	rp->parm.usb.vendor_name = FIFISDR_VENDOR_NAME;
+	rp->parm.usb.product = FIFISDR_PRODUCT_NAME;
 
 	rig->state.priv = (void*)priv;
 
@@ -530,6 +657,15 @@ int si570xxxusb_open(RIG *rig)
 	return RIG_OK;
 }
 
+
+int si570fifisdrusb_open(RIG *rig)
+{
+	rig_debug(RIG_DEBUG_TRACE,"%s called\n", __func__);
+
+	return RIG_OK;
+}
+
+
 const char * si570xxxusb_get_info(RIG *rig)
 {
 	static char buf[64];
@@ -551,6 +687,32 @@ const char * si570xxxusb_get_info(RIG *rig)
 
 	sprintf(buf, "USB dev %04d, version: %d.%d", q->descriptor.bcdDevice,
 			(version & 0xFF00) >> 8, version & 0xFF);
+
+	return buf;
+}
+
+
+const char * si570fifisdrusb_get_info(RIG *rig)
+{
+	static char buf[64];
+	struct usb_dev_handle *udh = rig->state.rigport.handle;
+    int ret;
+	uint32_t svn_version;
+	int version;
+
+	ret = usb_control_msg(udh, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
+			0xAB, 0, 0,
+			(char *) &svn_version, sizeof(svn_version), rig->state.rigport.timeout);
+
+	if (ret != sizeof(svn_version)) {
+		rig_debug (RIG_DEBUG_ERR, "%s: usb_control_msg failed: %s (update FiFi-SDR firmware?)\n",
+					__func__,
+					usb_strerror ());
+		return NULL;
+	}
+
+	version = svn_version;
+	sprintf(buf, "Firmware SVN version: %d", version);
 
 	return buf;
 }
@@ -699,7 +861,7 @@ int si570xxxusb_set_freq_by_value(RIG *rig, vfo_t vfo, freq_t freq)
 	int value = 0x700 + priv->i2c_addr;
 	int index = 0;
 	double f;
-       
+
 	f = (freq * priv->multiplier)/1e6;
 
 	setLongWord(round(f * 2097152.0), buffer);

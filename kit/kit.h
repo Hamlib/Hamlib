@@ -28,6 +28,7 @@ extern const struct rig_caps elektor304_caps;
 extern const struct rig_caps elektor507_caps;
 extern const struct rig_caps si570avrusb_caps;
 extern const struct rig_caps si570picusb_caps;
+extern const struct rig_caps si570fifisdrusb_caps;
 extern const struct rig_caps drt1_caps;
 extern const struct rig_caps dwt_caps;
 extern const struct rig_caps usrp0_caps;
