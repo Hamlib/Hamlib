@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - low level communication routines
- *  Copyright (c) 2000-2006 by Stephane Fillod
+ *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: frame.c,v 1.35 2008-11-09 15:17:49 y32kn Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -48,10 +47,8 @@
  *
  * NB: the frame array must be big enough to hold the frame.
  * 		The smallest frame is 6 bytes, the biggest is at least 13 bytes.
- *
- * TODO: inline the function?
  */
-int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const unsigned char *data, int data_len)
+int make_cmd_frame(char frame[], char re_id, char ctrl_id, char cmd, int subcmd, const unsigned char *data, int data_len)
 {	
 	int i = 0;
 
@@ -61,7 +58,7 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const unsigne
 	frame[i++] = PR;	/* Preamble code */
 	frame[i++] = PR;
 	frame[i++] = re_id;
-	frame[i++] = CTRLID;
+	frame[i++] = ctrl_id;
 	frame[i++] = cmd;
 	if (subcmd != -1) {
 #ifdef MULTIB_SUBCMD
@@ -99,16 +96,21 @@ int make_cmd_frame(char frame[], char re_id, char cmd, int subcmd, const unsigne
 int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *payload, int payload_len, unsigned char *data, int *data_len)
 {
 	struct icom_priv_data *priv;
+	const struct icom_priv_caps *priv_caps;
 	struct rig_state *rs;
 	unsigned char buf[MAXFRAMELEN];
 	unsigned char sendbuf[MAXFRAMELEN];
 	int frm_len, retval;
+	int ctrl_id;
 
 	rs = &rig->state;
 	priv = (struct icom_priv_data*)rs->priv;
+	priv_caps = (struct icom_priv_caps*)rig->caps->priv;
 
-	frm_len = make_cmd_frame((char *) sendbuf, priv->re_civ_addr, cmd, subcmd, 
-                                 payload, payload_len);
+	ctrl_id = priv_caps->serial_full_duplex == 0 ? CTRLID : 0x80;
+
+	frm_len = make_cmd_frame((char *) sendbuf, priv->re_civ_addr, ctrl_id, cmd,
+				subcmd, payload, payload_len);
 
 	/* 
 	 * should check return code and that write wrote cmd_len chars! 
@@ -123,61 +125,64 @@ int icom_one_transaction (RIG *rig, int cmd, int subcmd, const unsigned char *pa
 			return retval;
 	}
 
-	/*
-	 * read what we just sent, because TX and RX are looped,
-	 * and discard it...
-	 * - if what we read is not what we sent, then it means
-	 * 			a collision on the CI-V bus occured!
-	 * 		- if we get a timeout, then retry to send the frame,
-	 * 			up to rs->retry times.
-	 */
+	if (priv_caps->serial_full_duplex == 0) {
 
-	retval = read_icom_frame(&rs->rigport, buf);
-	if (retval == -RIG_ETIMEOUT || retval == 0)
-	  {
-	    /* Nothing recieved, CI-V interface is not echoing */
-	    Unhold_Decode(rig);
-	    return -RIG_BUSERROR;
-	  }
-	if (retval < 0)
-	  {
-	    /* Other error, return it */
-	    Unhold_Decode(rig);
-	    return retval;
-	  }
-
-	switch (buf[retval-1])
-	  {
-	  case COL:
-	    /* Collision */
-	    Unhold_Decode(rig);
-	    return -RIG_BUSBUSY;
-	  case FI:
-	    /* Ok, normal frame */
-	    break;
-	  default:
-	    /* Timeout after reading at least one character */
-	    /* Problem on ci-v bus? */
-	    Unhold_Decode(rig);
-	    return -RIG_BUSERROR;
-	  }
-
-	if (retval != frm_len) 
-	  {
-	    /* Not the same length??? */
-	    /* Problem on ci-v bus? */
-	    /* Someone else got a packet in? */
-	    Unhold_Decode(rig);
-	    return -RIG_EPROTO;
-	  }
-	if (memcmp(buf,sendbuf,frm_len))
-	  {
-	    /* Frames are different? */
-	    /* Problem on ci-v bus? */
-	    /* Someone else got a packet in? */
-	    Unhold_Decode(rig);
-	    return -RIG_EPROTO;
-	  }
+		/*
+		 * read what we just sent, because TX and RX are looped,
+		 * and discard it...
+		 * - if what we read is not what we sent, then it means
+		 * 			a collision on the CI-V bus occured!
+		 * 		- if we get a timeout, then retry to send the frame,
+		 * 			up to rs->retry times.
+		 */
+	
+		retval = read_icom_frame(&rs->rigport, buf);
+		if (retval == -RIG_ETIMEOUT || retval == 0)
+		  {
+		    /* Nothing recieved, CI-V interface is not echoing */
+		    Unhold_Decode(rig);
+		    return -RIG_BUSERROR;
+		  }
+		if (retval < 0)
+		  {
+		    /* Other error, return it */
+		    Unhold_Decode(rig);
+		    return retval;
+		  }
+	
+		switch (buf[retval-1])
+		  {
+		  case COL:
+		    /* Collision */
+		    Unhold_Decode(rig);
+		    return -RIG_BUSBUSY;
+		  case FI:
+		    /* Ok, normal frame */
+		    break;
+		  default:
+		    /* Timeout after reading at least one character */
+		    /* Problem on ci-v bus? */
+		    Unhold_Decode(rig);
+		    return -RIG_BUSERROR;
+		  }
+	
+		if (retval != frm_len) 
+		  {
+		    /* Not the same length??? */
+		    /* Problem on ci-v bus? */
+		    /* Someone else got a packet in? */
+		    Unhold_Decode(rig);
+		    return -RIG_EPROTO;
+		  }
+		if (memcmp(buf,sendbuf,frm_len))
+		  {
+		    /* Frames are different? */
+		    /* Problem on ci-v bus? */
+		    /* Someone else got a packet in? */
+		    Unhold_Decode(rig);
+		    return -RIG_EPROTO;
+		  }
+	}
 
 	/*
 	 * expect an answer?

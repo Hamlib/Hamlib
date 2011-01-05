@@ -2999,8 +2999,8 @@ DECLARE_PROBERIG_BACKEND(icom)
 	 */
 	for (civ_addr=0x01; civ_addr<=0x7f; civ_addr++) {
 
-		frm_len = make_cmd_frame((char *) buf, civ_addr, C_RD_TRXID, S_RD_TRXID,
-                                         NULL, 0);
+		frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
+				C_RD_TRXID, S_RD_TRXID, NULL, 0);
 
 		serial_flush(port);
 		write_block(port, (char *) buf, frm_len);
@@ -3058,8 +3058,8 @@ DECLARE_PROBERIG_BACKEND(icom)
 	 */
 	for (civ_addr=0x80; civ_addr<=0x8f; civ_addr++) {
 
-		frm_len = make_cmd_frame((char *) buf, civ_addr, C_CTL_MISC, S_OPTO_RDID,
-                                         NULL, 0);
+		frm_len = make_cmd_frame((char *) buf, civ_addr, CTRLID,
+				C_CTL_MISC, S_OPTO_RDID, NULL, 0);
 
 		serial_flush(port);
 		write_block(port, (char *) buf, frm_len);
@@ -3177,6 +3177,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&omnivip_caps);
 	rig_register(&delta2_caps);
 
+	rig_register(&ic92d_caps);
 	rig_register(&id1_caps);
 
 	return RIG_OK;

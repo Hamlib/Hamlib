@@ -108,6 +108,7 @@ struct icom_priv_caps {
 						       to convert response 
 						       tokens to bandwidth and 
 						       mode */
+	int serial_full_duplex; /*!< Whether RXD&TXD are not tied together */
 };
 
 
@@ -238,6 +239,7 @@ extern const struct rig_caps delta2_caps;
 extern const struct rig_caps os456_caps;
 extern const struct rig_caps os535_caps;
 
+extern const struct rig_caps ic92d_caps;
 extern const struct rig_caps id1_caps;
 
 #endif /* _ICOM_H */
