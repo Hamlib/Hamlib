@@ -90,8 +90,12 @@ M: Joop Stakenborg, PG4I
 C: Alessandro Zummo, IZ1PRB
 
 [kenwood: K2]
+M: Nate Bargmann, N0NB
 M: Brian Mury, VE7NGR
 C: Leigh Klotz, WA5ZNU
+
+[kenwood: K3]
+M: Nate Bargmann, N0NB
 
 [kenwood: TS-480SAT]
 M: Juergen Rinas, DC3BW
@@ -306,6 +310,6 @@ Robert Steinhäußer, DL1NC, <dl1nc (at) users.sourceforge.net>
 James Watson, HZ1JW, <jawatson (at) users.sourceforge.net>
 Juergen Rinas, DC3BW, <jrinas  (at) users.sourceforge.net>
 Kamal Mostafa, KA6MAL, <kamal (at) whence.com>
-Roger, <roger-linux@users.sourceforge.net>
-Tristan Mills, <t_mills@users.sourceforge.net>
-Terry Dawson, VK2KTJ, <terry@users.sourceforge.net>
+Roger, <roger-linux (at) users.sourceforge.net>
+Tristan Mills, <t_mills (at) users.sourceforge.net>
+Terry Dawson, VK2KTJ, <terry (at) users.sourceforge.net>
