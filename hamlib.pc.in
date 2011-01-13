@@ -4,7 +4,7 @@ libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 
 Name: hamlib
-Description: Library to control radio and rotator equipments
+Description: Library to control radio and rotator equipment.
 Requires: 
 Version: @VERSION@
 Libs: -L${libdir} -lhamlib @MATH_LIBS@
