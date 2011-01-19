@@ -1,5 +1,5 @@
 /*
- *  Hamlib Elecraft backend--support extensions to Kenwood commands
+ *  Hamlib Elecraft backend--support Elecraft extensions to Kenwood commands
  *  Copyright (C) 2010 by Nate Bargmann, n0nb@n0nb.us
  *
  *   This library is free software; you can redistribute it and/or
@@ -16,6 +16,9 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
  *
+ *  See the file 'COPYING.LIB' in the main Hamlib distribution directory for 
+ *  the complete text of the GNU Lesser Public License version 2.
+ * 
  */
 
 #include <string.h>
@@ -26,18 +29,7 @@
 #include "kenwood.h"
 
 
-/* Actual read extension levels from radio.
- * 
- * Values stored in these variables map to elecraft_ext_id_string_list.level
- * and are only written to by the elecraft_get_extension_level() private
- * function during elecraft_open() and thereafter shall be treated as 
- * READ ONLY!
- */
-int k2_ext_lvl;	/* Initial K2 extension level */
-int k3_ext_lvl;	/* Initial K3 extension level */
-
-
-static const struct elecraft_ext_id_string elecraft_ext_id_string_list[] = {
+static const struct elec_ext_id_str elec_ext_id_str_lst[] = {
 	{ K20, "K20" },
 	{ K21, "K21" },
 	{ K22, "K22" },
@@ -46,6 +38,7 @@ static const struct elecraft_ext_id_string elecraft_ext_id_string_list[] = {
 	{ K31, "K31" },
 	{ EXT_LEVEL_NONE, NULL },		/* end marker */
 };
+
 
 /* Private function declarations */
 int verify_kenwood_id(RIG *rig, char *id);
@@ -71,7 +64,16 @@ int elecraft_open(RIG *rig)
 
 	int err;
 	char id[KENWOOD_MAX_BUF_LEN];
-	
+
+	/* Actual read extension levels from radio.
+	 * 
+	 * The value stored in the k?_ext_lvl variables map to
+	 * elec_ext_id_str_lst.level and is only written to by the
+	 * elecraft_get_extension_level() private function during elecraft_open() 
+	 * and thereafter shall be treated as READ ONLY!
+	 */
+	struct kenwood_priv_data *priv = rig->state.priv;
+
 	/* Use check for "ID017;" to verify rig is reachable */
 	err = verify_kenwood_id(rig, id);
 	if (err != RIG_OK)
@@ -79,30 +81,32 @@ int elecraft_open(RIG *rig)
 
 	switch(rig->caps->rig_model) {
 		case RIG_MODEL_K2:
-			err = elecraft_get_extension_level(rig, "K2", &k2_ext_lvl);
+			err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
 			if (err != RIG_OK)
 				return err;
 
 			rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__, 
-				k2_ext_lvl, elecraft_ext_id_string_list[k2_ext_lvl].id);
+				priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
+
 			break;
 		case RIG_MODEL_K3:
-			err = elecraft_get_extension_level(rig, "K2", &k2_ext_lvl);
+			err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
 			if (err != RIG_OK)
 				return err;
 
 			rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__, 
-				k2_ext_lvl, elecraft_ext_id_string_list[k2_ext_lvl].id);
+				priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
 
-			err = elecraft_get_extension_level(rig, "K3", &k3_ext_lvl);
+			err = elecraft_get_extension_level(rig, "K3", &priv->k3_ext_lvl);
 			if (err != RIG_OK)
 				return err;
 
 			rig_debug(RIG_DEBUG_ERR, "%s: K3 level is %d, %s\n", __func__, 
-				k3_ext_lvl, elecraft_ext_id_string_list[k3_ext_lvl].id);
+				priv->k3_ext_lvl, elec_ext_id_str_lst[priv->k3_ext_lvl].id);
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: unrecognized rig model %d\n", __func__, rig->caps->rig_model);
+			rig_debug(RIG_DEBUG_ERR, "%s: unrecognized rig model %d\n", 
+				__func__, rig->caps->rig_model);
 			return -RIG_EINVAL;
 	}
 
@@ -175,16 +179,17 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 	/* Get extension level string */
 	bufptr = &buf[0];
 
-	for (i = 0; elecraft_ext_id_string_list[i].level != EXT_LEVEL_NONE; i++) {
-		if (strcmp(elecraft_ext_id_string_list[i].id, bufptr) != 0)
+	for (i = 0; elec_ext_id_str_lst[i].level != EXT_LEVEL_NONE; i++) {
+		if (strcmp(elec_ext_id_str_lst[i].id, bufptr) != 0)
 			continue;
 
-		if (strcmp(elecraft_ext_id_string_list[i].id, bufptr) == 0) {
-			*ext_level = elecraft_ext_id_string_list[i].level;
+		if (strcmp(elec_ext_id_str_lst[i].id, bufptr) == 0) {
+			*ext_level = elec_ext_id_str_lst[i].level;
 			rig_debug(RIG_DEBUG_TRACE, "%s: Extension level is %d, %s\n",
-			__func__, *ext_level, elecraft_ext_id_string_list[i].id);
+			__func__, *ext_level, elec_ext_id_str_lst[i].id);
 		}
 	}
 
 	return RIG_OK;
 }
+

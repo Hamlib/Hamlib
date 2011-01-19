@@ -28,7 +28,7 @@
 
 #define EXT_LEVEL_NONE -1
 
-enum elecraft_ext_id_e {
+enum elec_ext_id_e {
 	K20 = 0,	/* K2 Normal mode */
 	K21,		/* K2 Normal/rtty_off */
 	K22,		/* K2 Extended mode */
@@ -37,8 +37,8 @@ enum elecraft_ext_id_e {
 	K31			/* K3 Extended mode */
 };
 
-struct elecraft_ext_id_string {
-	enum elecraft_ext_id_e level;
+struct elec_ext_id_str {
+	enum elec_ext_id_e level;
 	const char *id;
 };
 

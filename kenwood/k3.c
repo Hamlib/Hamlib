@@ -17,6 +17,9 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
  *
+ *  See the file 'COPYING.LIB' in the main Hamlib distribution directory for 
+ *  the complete text of the GNU Lesser Public License version 2.
+ * 
  */
 
 #ifdef HAVE_CONFIG_H
@@ -46,19 +49,13 @@
 #define K3_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 
-static struct kenwood_priv_caps  k3_priv_caps  = {
-		.cmdtrm =  EOM_KEN,
-};
-
-
-/* Actual read extension levels from radio.
- * 
- * The Value stored in this variable maps to elecraft_ext_id_string_list.level
- * and is only written to by the elecraft_get_extension_level() private
- * function during elecraft_open() and thereafter shall be treated as 
- * READ ONLY!
+/* kenwood_transaction() will add this to command strings
+ * sent to the rig and remove it from strings returned from
+ * the rig, so no need to append ';' manually to command strings.
  */
-extern int k3_ext_lvl;	/* Initial K3 extension level */
+static struct kenwood_priv_caps k3_priv_caps  = {
+	.cmdtrm =  EOM_KEN,
+};
 
 
 /* K3 specific function declarations */
@@ -77,47 +74,47 @@ int k3_set_vfo(RIG *rig, vfo_t vfo);
  * look for K3 Programmer's Reference PDF
  */
 const struct rig_caps k3_caps = {
-	.rig_model =  RIG_MODEL_K3,
-	.model_name = "K3",
-	.mfg_name =  "Elecraft",
-	.version =  "20101030",
-	.copyright =  "LGPL",
-	.status =  RIG_STATUS_BETA,
-	.rig_type =  RIG_TYPE_TRANSCEIVER,
-	.ptt_type =  RIG_PTT_RIG,
-	.dcd_type =  RIG_DCD_RIG,
-	.port_type =  RIG_PORT_SERIAL,
-	.serial_rate_min =  4800,
-	.serial_rate_max =  38400,
-	.serial_data_bits =  8,
-	.serial_stop_bits =  2,
-	.serial_parity =  RIG_PARITY_NONE,
-	.serial_handshake =  RIG_HANDSHAKE_NONE,
-	.write_delay =  0,
-	.post_write_delay =  0,
-	.timeout =  600, /* FA and FB make take up to 500 ms on band change */
-	.retry =  3,
+	.rig_model =		RIG_MODEL_K3,
+	.model_name =		"K3",
+	.mfg_name =			"Elecraft",
+	.version =			"20101030",
+	.copyright =		"LGPL",
+	.status =			RIG_STATUS_BETA,
+	.rig_type =			RIG_TYPE_TRANSCEIVER,
+	.ptt_type =			RIG_PTT_RIG,
+	.dcd_type =			RIG_DCD_RIG,
+	.port_type =		RIG_PORT_SERIAL,
+	.serial_rate_min =	4800,
+	.serial_rate_max =	38400,
+	.serial_data_bits =	8,
+	.serial_stop_bits =	2,
+	.serial_parity =	RIG_PARITY_NONE,
+	.serial_handshake =	RIG_HANDSHAKE_NONE,
+	.write_delay =		0,		/* Timing between bytes */
+	.post_write_delay =	100,	/* Timing between command strings */
+	.timeout =			600,	/* FA and FB make take up to 500 ms on band change */
+	.retry =			3,
 
-	.has_get_func =  K3_FUNC_ALL,
-	.has_set_func =  K3_FUNC_ALL,
-	.has_get_level =  K3_LEVEL_ALL,
-	.has_set_level =  RIG_LEVEL_SET(K3_LEVEL_ALL),
-	.has_get_parm =  RIG_PARM_NONE,
-	.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-	.level_gran =  {},                 /* FIXME: granularity */
-	.parm_gran =  {},
-	.preamp =   { 14, RIG_DBLST_END, },
-	.attenuator =   { 10, RIG_DBLST_END, },
-	.max_rit =  Hz(9990),
-	.max_xit =  Hz(9990),
-	.max_ifshift =  Hz(0),
-	.vfo_ops =  K3_VFO_OP,
-	.targetable_vfo =  RIG_TARGETABLE_FREQ,
-	.transceive =  RIG_TRN_RIG,
-	.bank_qty =   0,
-	.chan_desc_sz =  0,
+	.has_get_func =		K3_FUNC_ALL,
+	.has_set_func =		K3_FUNC_ALL,
+	.has_get_level =	K3_LEVEL_ALL,
+	.has_set_level =	RIG_LEVEL_SET(K3_LEVEL_ALL),
+	.has_get_parm =		RIG_PARM_NONE,
+	.has_set_parm =		RIG_PARM_NONE,	/* FIXME: parms */
+	.level_gran =		{},				/* FIXME: granularity */
+	.parm_gran =		{},
+	.preamp =			{ 14, RIG_DBLST_END, },
+	.attenuator =		{ 10, RIG_DBLST_END, },
+	.max_rit =			Hz(9990),
+	.max_xit =			Hz(9990),
+	.max_ifshift =		Hz(0),
+	.vfo_ops =			K3_VFO_OP,
+	.targetable_vfo =	RIG_TARGETABLE_FREQ,
+	.transceive =		RIG_TRN_RIG,
+	.bank_qty =			0,
+	.chan_desc_sz =		0,
 
-	.chan_list =  { RIG_CHAN_END },
+	.chan_list =		{ RIG_CHAN_END },
 
 	.rx_range_list1 =  {
 		{kHz(500), MHz(30), K3_MODES, -1, -1, K3_VFO, K3_ANTS},

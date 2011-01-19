@@ -1,22 +1,24 @@
 /*
  *  Hamlib Kenwood backend - Elecraft K2 description
  *  Copyright (c) 2002-2009 by Stephane Fillod
+ *  Copyright (c) 2010 by Nate Bargmann, n0nb@arrl.net
  *
- *	$Id: k2.c,v 1.6 2009-01-28 23:30:46 azummo Exp $
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2 of the License, or (at your option) any later version.
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
+ *
+ *  See the file 'COPYING.LIB' in the main Hamlib distribution directory for
+ *  the complete text of the GNU Lesser Public License version 2.
  *
  */
 
@@ -25,6 +27,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <hamlib/rig.h>
 #include "kenwood.h"
@@ -43,71 +46,103 @@
 
 #define K2_ANTS (RIG_ANT_1|RIG_ANT_2)
 
-static struct kenwood_priv_caps  k2_priv_caps  = {
-		.cmdtrm =  EOM_KEN,
+
+/* kenwood_transaction() will add this to command strings
+ * sent to the rig and remove it from strings returned from
+ * the rig, so no need to append ';' manually to command strings.
+ */
+static struct kenwood_priv_caps k2_priv_caps  = {
+	.cmdtrm =  EOM_KEN,
 };
 
 
-/* Actual read extension levels from radio.
- * 
- * The Value stored in this variable maps to elecraft_ext_id_string_list.level
- * and is only written to by the elecraft_get_extension_level() private
- * function during elecraft_open() and thereafter shall be treated as 
- * READ ONLY!
+/* K2 Filter list, four per mode */
+struct k2_filt_s {
+	shortfreq_t width;	/* Filter width in Hz */
+	char fslot;			/* Crystal filter slot number--1-4 */
+	char afslot;		/* AF filter slot number--0-2 */
+};
+
+/* Number of filter slot arrays to allocate (TNX Diane, VA3DB) */
+#define K2_FILT_NUM 4
+
+/* K2 Filter List
+ *
+ * This struct will be populated as modes are queried or in response
+ * to a request to set a given mode.  This way a cache can be maintained
+ * of the installed filters and an appropriate filter can be selected
+ * for a requested bandwidth.  Each mode has up to four filter slots available.
  */
-extern int k2_ext_lvl;	/* Initial K2 extension level */
+struct k2_filt_lst_s {
+	struct k2_filt_s filt_list[K2_FILT_NUM];
+};
+
+struct k2_filt_lst_s k2_fwmd_ssb;
+struct k2_filt_lst_s k2_fwmd_cw;
+struct k2_filt_lst_s k2_fwmd_rtty;
+
+/* K2 specific rig_caps API function declarations */
+int k2_open(RIG *rig);
+int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
+/* Private function declarations */
+int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv);
+int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw);
+int k2_pop_fw_lst(RIG *rig, const char *cmd);
 
 
 /*
  * KIO2 rig capabilities.
  * This kit can recognize a large subset of TS-570 commands.
  *
- * part of infos comes from http://www.elecraft.com
+ * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K2
+ * look for KIO2 Programmer's Reference PDF
  */
 const struct rig_caps k2_caps = {
-	.rig_model =  RIG_MODEL_K2,
-	.model_name = "K2",
-	.mfg_name =  "Elecraft",
-	.version =  BACKEND_VER,
-	.copyright =  "LGPL",
-	.status =  RIG_STATUS_BETA,
-	.rig_type =  RIG_TYPE_TRANSCEIVER,
-	.ptt_type =  RIG_PTT_RIG,
-	.dcd_type =  RIG_DCD_RIG,
-	.port_type =  RIG_PORT_SERIAL,
-	.serial_rate_min =  4800,
-	.serial_rate_max =  4800,
-	.serial_data_bits =  8,
-	.serial_stop_bits =  2,
-	.serial_parity =  RIG_PARITY_NONE,
-	.serial_handshake =  RIG_HANDSHAKE_NONE,
-	.write_delay =  0,
-	.post_write_delay =  0,
-	.timeout =  600,
-	.retry =  3,
+	.rig_model =		RIG_MODEL_K2,
+	.model_name =		"K2",
+	.mfg_name =			"Elecraft",
+	.version =			"20110118",
+	.copyright =		"LGPL",
+	.status =			RIG_STATUS_BETA,
+	.rig_type =			RIG_TYPE_TRANSCEIVER,
+	.ptt_type =			RIG_PTT_RIG,
+	.dcd_type =			RIG_DCD_RIG,
+	.port_type =		RIG_PORT_SERIAL,
+	.serial_rate_min =	4800,
+	.serial_rate_max =	4800,
+	.serial_data_bits =	8,
+	.serial_stop_bits =	2,
+	.serial_parity =	RIG_PARITY_NONE,
+	.serial_handshake =	RIG_HANDSHAKE_NONE,
+	.write_delay =		0,		/* Timing between bytes */
+	.post_write_delay =	100,	/* Timing between command strings */
+	.timeout =			600,	/* FA and FB make take up to 500 ms on band change */
+	.retry =			3,
 
-	.has_get_func =  K2_FUNC_ALL,
-	.has_set_func =  K2_FUNC_ALL,
-	.has_get_level =  K2_LEVEL_ALL,
-	.has_set_level =  RIG_LEVEL_SET(K2_LEVEL_ALL),
-	.has_get_parm =  RIG_PARM_NONE,
-	.has_set_parm =  RIG_PARM_NONE,    /* FIXME: parms */
-	.level_gran =  {},                 /* FIXME: granularity */
-	.parm_gran =  {},
-	.preamp =   { 14, RIG_DBLST_END, },
-	.attenuator =   { 10, RIG_DBLST_END, },
-	.max_rit =  Hz(9990),
-	.max_xit =  Hz(9990),
-	.max_ifshift =  Hz(0),
-	.vfo_ops =  K2_VFO_OP,
-	.targetable_vfo =  RIG_TARGETABLE_FREQ,
-	.transceive =  RIG_TRN_RIG,
-	.bank_qty =   0,
-	.chan_desc_sz =  0,
+	.has_get_func =		K2_FUNC_ALL,
+	.has_set_func =		K2_FUNC_ALL,
+	.has_get_level =	K2_LEVEL_ALL,
+	.has_set_level =	RIG_LEVEL_SET(K2_LEVEL_ALL),
+	.has_get_parm =		RIG_PARM_NONE,
+	.has_set_parm =		RIG_PARM_NONE,	/* FIXME: parms */
+	.level_gran =		{},				/* FIXME: granularity */
+	.parm_gran =		{},
+	.preamp =			{ 14, RIG_DBLST_END, },
+	.attenuator =		{ 10, RIG_DBLST_END, },
+	.max_rit =			Hz(9990),
+	.max_xit =			Hz(9990),
+	.max_ifshift =		Hz(0),
+	.vfo_ops =			K2_VFO_OP,
+	.targetable_vfo =	RIG_TARGETABLE_FREQ,
+	.transceive =		RIG_TRN_RIG,
+	.bank_qty =			0,
+	.chan_desc_sz =		0,
 
-	.chan_list =  { RIG_CHAN_END },
+	.chan_list =		{ RIG_CHAN_END },
 
-	.rx_range_list1 =  { 
+	.rx_range_list1 =  {
 		{kHz(500),MHz(30),K2_MODES,-1,-1,K2_VFO,K2_ANTS},
 		RIG_FRNG_END,
 	}, /* rx range */
@@ -144,7 +179,7 @@ const struct rig_caps k2_caps = {
 		{K2_MODES,10},
 		RIG_TS_END,
 		},
-    
+
 	/* mode/filter list, remember: order matters! */
 	.filters =  {
 		{RIG_MODE_SSB, kHz(2.5)},
@@ -156,11 +191,11 @@ const struct rig_caps k2_caps = {
 
 	.rig_init =		kenwood_init,
 	.rig_cleanup =	kenwood_cleanup,
-	.rig_open =		elecraft_open,
+	.rig_open =		k2_open,
 	.set_freq =		kenwood_set_freq,
 	.get_freq =		kenwood_get_freq,
-	.set_mode =		kenwood_set_mode,
-	.get_mode =		kenwood_get_mode,
+	.set_mode =		k2_set_mode,
+	.get_mode =		k2_get_mode,
 	.set_vfo =		kenwood_set_vfo,
 	.get_vfo =		kenwood_get_vfo_if,
 	.set_split_vfo =	kenwood_set_split_vfo,
@@ -178,8 +213,8 @@ const struct rig_caps k2_caps = {
 	.get_level = 	kenwood_get_level,
 	.vfo_op =		kenwood_vfo_op,
 	.set_trn =		kenwood_set_trn,
-	.get_trn =		kenwood_get_trn,
 	.get_powerstat =	kenwood_get_powerstat,
+	.get_trn =		kenwood_get_trn,
 	.set_ant =		kenwood_set_ant,
 	.get_ant =		kenwood_get_ant,
 	.send_morse =	kenwood_send_morse,
@@ -188,6 +223,345 @@ const struct rig_caps k2_caps = {
 
 
 /*
- * Function definitions in elecraft.c
+ * K2 extension function definitions follow
  */
+
+/* k2_open()
+ *
+ */
+int k2_open(RIG *rig)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	int err;
+
+	struct kenwood_priv_data *priv = rig->state.priv;
+
+	err = elecraft_open(rig);
+	if (err != RIG_OK)
+		return err;
+
+	err = k2_probe_mdfw(rig, priv);
+	if (err != RIG_OK)
+		return err;
+
+	return RIG_OK;
+}
+
+
+/* k2_set_mode()
+ *
+ * Based on the passed in bandwidth, looks up the nearest bandwidth filter
+ * wider than the passed value and sets the radio accordingly.
+ */
+
+int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	int err;
+	char f;
+	char fcmd[16];
+	struct k2_filt_lst_s *flt;
+	shortfreq_t freq = 0;
+
+	/* Select the filter array per mode. */
+	switch(mode) {
+		case RIG_MODE_LSB:
+		case RIG_MODE_USB:
+			flt = &k2_fwmd_ssb;
+			break;
+		case RIG_MODE_CW:
+		case RIG_MODE_CWR:
+			flt = &k2_fwmd_cw;
+			break;
+		case RIG_MODE_RTTY:
+		case RIG_MODE_RTTYR:
+			flt = &k2_fwmd_rtty;
+			break;
+		default:
+			return -RIG_EINVAL;
+	}
+
+	/* Step through the filter list looking for the best match
+	 * for the passed in width.  The choice is to select the filter
+	 * that is wide enough for the width without being too narrow
+	 * if possible.
+	 */
+	if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width) 
+		&& (width > flt->filt_list[1].width))) {
+		width = flt->filt_list[0].width;
+		f = '1';
+	} else if ((flt->filt_list[1].width >= width) && (width > flt->filt_list[2].width)) {
+		width = flt->filt_list[1].width;
+		f = '2';
+	} else if ((flt->filt_list[2].width >= width) && (width > flt->filt_list[3].width)) {
+		width = flt->filt_list[2].width;
+		f = '3';
+	} else if ((flt->filt_list[3].width >= width) && (width >= freq)) {
+		width = flt->filt_list[3].width;
+		f = '4';
+	} else
+		return -RIG_EINVAL;
+
+	/* Construct the filter command and set the radio mode and width*/
+	snprintf(fcmd, 8, "FW0000%c", f);
+	
+	/* kenwood_set_mode() ignores width value for K2/K3/TS-570 */
+	err = kenwood_set_mode(rig, vfo, mode, width);
+	if (err != RIG_OK)
+		return err;
+
+	/* Set the filter slot */
+	err = kenwood_simple_cmd(rig, fcmd);
+	if (err != RIG_OK)
+		return err;
+
+	return RIG_OK;
+}
+
+
+/* k2_get_mode()
+ *
+ * Uses the FW command in K22 mode to query the filter bandwidth reported
+ * by the radio and returns it to the caller.
+ */
+
+int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !mode || !width)
+		return -RIG_EINVAL;
+
+	int err;
+	char buf[KENWOOD_MAX_BUF_LEN];
+	char tmp[16];
+	char *bufptr;
+	pbwidth_t temp_w;
+
+	err = kenwood_get_mode(rig, vfo, mode, &temp_w);
+	if (err != RIG_OK)
+		return err;
+
+	err = kenwood_simple_cmd(rig, "K22");
+	if (err != RIG_OK)
+		return err;
+
+	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+	if (err != RIG_OK)
+		return err;
+
+	err = kenwood_simple_cmd(rig, "K20");
+	if (err != RIG_OK)
+		return err;
+
+	/* Convert received filter string value's first four digits to width */
+	bufptr = buf;
+
+	strncpy(tmp, bufptr + 2, 4);
+	tmp[4] = '\0';
+	*width = atoi(tmp);
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: Mode: %d, Width: %04li\n", __func__, *mode, *width);
+
+	return RIG_OK;
+}
+
+
+/* K2 private helper functions follow */
+
+/* Probes for mode and filter settings, based on information
+ * by Chris Bryant, G3WIE.
+ */
+int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !priv)
+		return -RIG_EINVAL;
+
+	int err, i, c;
+	char buf[KENWOOD_MAX_BUF_LEN];
+	char mode[16];
+	char fw[16];
+	char cmd[16];
+
+	/* The K2 extension level has been stored by elecraft_open().  Now set rig
+	 * to K22 for detailed query of mode and filter width values...
+	 */
+	err = kenwood_simple_cmd(rig, "K22");
+	if (err != RIG_OK)
+		return err;
+
+	/* Check for mode and store it for later. */
+	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
+	if (err != RIG_OK)
+		return err;
+
+	strcpy(mode, buf);
+
+	/* Check for filter width and store it for later. */
+	err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+	if (err != RIG_OK)
+		return err;
+
+	strcpy(fw, buf);
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: Mode value: %s, Filter Width value: %s\n",
+		__func__, mode, fw);
+
+	/* Now begin the process of querying the available modes and filters. */
+
+	/* First try to put the K2 into RTTY mode and check if it's available. */
+	err = kenwood_simple_cmd(rig, "MD6");
+	if (err != RIG_OK)
+		return err;
+
+	/* Check for mode and test to see if K2 reports RTTY. */
+	err = kenwood_safe_transaction(rig, "MD", buf, KENWOOD_MAX_BUF_LEN, 4);
+	if (err != RIG_OK)
+		return err;
+
+	if (strcmp("MD6", buf) == 0)
+		priv->k2_md_rtty = 1;		/* set flag for RTTY mode installed */
+	else
+		priv->k2_md_rtty = 0;		/* RTTY module not installed */
+	rig_debug(RIG_DEBUG_TRACE, "%s: RTTY flag is: %d\n", __func__, priv->k2_md_rtty);
+
+	i = (priv->k2_md_rtty == 1) ? 2 : 1;
+
+	/* Now loop through the modes checking for installed filters. */
+	for (c = 0; i > -1; i--, c++) {
+		if (c == 0)
+			strcpy(cmd, "MD1");		/* SSB */
+		else if (c == 1)
+			strcpy(cmd, "MD3");		/* CW */
+		else if (c == 2)
+			strcpy(cmd, "MD6");		/* RTTY */
+		else {						/* Oops! */
+			err = k2_mdfw_rest(rig, mode, fw);
+			if (err != RIG_OK)
+				return err;
+			return -RIG_EINVAL;
+		}
+
+		/* Now populate the Filter arrays */
+		err = k2_pop_fw_lst(rig, cmd);
+		if (err != RIG_OK)
+			return err;
+	}
+
+	/* Restore mode, filter, extension level */
+	if (strlen(fw) == 8)
+		fw[7] = '\0';		/* Truncate AFSlot to set filter slot */
+	err = k2_mdfw_rest(rig, mode, fw);
+	if (err != RIG_OK)
+		return err;
+
+	return RIG_OK;
+}
+
+
+/* Restore mode, filter, and ext_lvl to original values */
+int k2_mdfw_rest(RIG *rig, const char *mode, const char *fw)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !mode || !fw)
+		return -RIG_EINVAL;
+
+	int err;
+
+	if (strlen(mode) != 3 || strlen(fw) != 7)
+		return -RIG_EINVAL;
+
+	err = kenwood_simple_cmd(rig, mode);
+	if (err != RIG_OK)
+		return err;
+
+	err = kenwood_simple_cmd(rig, fw);
+	if (err != RIG_OK)
+		return err;
+
+	err = kenwood_simple_cmd(rig, "K20");
+	if (err != RIG_OK)
+		return err;
+
+	return RIG_OK;
+}
+
+
+/* Populate k2_filt_lst_s structure for each mode */
+int k2_pop_fw_lst(RIG *rig, const char *cmd)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !cmd)
+		return -RIG_EINVAL;
+
+	int err, f;
+	char fcmd[16];
+	char buf[KENWOOD_MAX_BUF_LEN];
+	char *bufptr;
+	char tmp[16];
+	struct k2_filt_lst_s *flt;
+
+	/* Store filter data in the correct structure depending on mode */
+	if (strcmp(cmd, "MD1") == 0)
+		flt = &k2_fwmd_ssb;
+	else if (strcmp(cmd, "MD3") == 0)
+		flt = &k2_fwmd_cw;
+	else if (strcmp(cmd, "MD6") == 0)
+		flt = &k2_fwmd_rtty;
+	else
+		return -RIG_EINVAL;
+
+	/* Set the mode */
+	err = kenwood_simple_cmd(rig, cmd);
+	if (err != RIG_OK)
+		return err;
+
+	for (f = 1; f < 5; f++) {
+		snprintf(fcmd, 8, "FW0000%d", f);
+
+		err = kenwood_simple_cmd(rig, fcmd);
+		if (err != RIG_OK)
+			return err;
+
+		err = kenwood_safe_transaction(rig, "FW", buf, KENWOOD_MAX_BUF_LEN, 9);
+		if (err != RIG_OK)
+			return err;
+
+		/* buf should contain a string "FWxxxxfa;" which corresponds to:
+		 * xxxx = filter width in Hz
+		 * f = crystal filter slot number--1-4
+		 * a = audio filter slot number--0-2
+		 */
+		bufptr = buf;
+
+		strncpy(tmp, bufptr + 2, 4);
+		tmp[4] = '\0';
+		flt->filt_list[f-1].width = atoi(tmp);
+
+		strncpy(tmp, bufptr + 6, 1);
+		tmp[1] = '\0';
+		flt->filt_list[f-1].fslot = atoi(tmp);
+
+		strncpy(tmp, bufptr + 7, 1);
+		tmp[1] = '\0';
+		flt->filt_list[f-1].afslot = atoi(tmp);
+
+		rig_debug(RIG_DEBUG_TRACE, "%s: Width: %04li, FSlot: %i, AFSlot %i\n",
+			__func__, flt->filt_list[f-1].width, flt->filt_list[f-1].fslot, flt->filt_list[f-1].afslot);
+	}
+
+	return RIG_OK;
+}
 

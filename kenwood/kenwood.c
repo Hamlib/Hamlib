@@ -373,8 +373,6 @@ int kenwood_init(RIG *rig)
 	struct kenwood_priv_data *priv;
 	struct kenwood_priv_caps *caps = kenwood_caps(rig);
 
-//	rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
-
 	priv = malloc(sizeof(struct kenwood_priv_data));
 	if (priv == NULL)
 		return -RIG_ENOMEM;
@@ -405,9 +403,6 @@ int kenwood_cleanup(RIG *rig)
 	if (!rig)
 		return -RIG_EINVAL;
 
-//	if (rig == NULL)
-//		return -RIG_EINVAL;
-
 	free(rig->state.priv);
 	rig->state.priv = NULL;
 
@@ -424,8 +419,6 @@ int kenwood_open(RIG *rig)
 	int err, i;
 	char *idptr;
 	char id[KENWOOD_MAX_BUF_LEN];
-
-//	rig_debug(RIG_DEBUG_TRACE, "%s\n", __func__);
 
 	/* get id in buffer, will be null terminated */
 	err = kenwood_get_id(rig, id);
