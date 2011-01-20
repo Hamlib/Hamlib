@@ -1,12 +1,14 @@
 Basic Installation
 ==================
 
-    For more information specific to this package, please read the README
-file. This source code distribution  is autoconfiguring and you should be 
-able to compile it and install it without manual interventions such as 
-editing Makefiles, configuration files, and so on. These are generic 
-instructions for people who are not familiar with installing autoconfiguring
-software (along with some Hamlib-specific information).
+For more information specific to Hamlib, please read the README as well as 
+README.betatester and the first part of README.developer to see which 
+additional development packages are needed. This source code distribution  
+is autoconfiguring and you should be able to compile it and install it 
+without manual interventions such as editing Makefiles, configuration files, 
+and so on. These are generic instructions for people who are not familiar 
+with installing autoconfiguring software (along with some Hamlib-specific 
+information).
 
 The simplest way to compile this package is to enter the source code
 main directory and do the following:
@@ -23,13 +25,17 @@ main directory and do the following:
         
         $ ./configure --prefix=/home/username
 
-     N.B. If you know that you won't be using scripting languages (Perl,
-     Python, or TCL) and that you won't need static libaries (most
-     applications dynamically link Hamlib by default) invoke `configure'
-     as follows:
+     As of SVN rev-2882, the scripting language bindings are disabled by 
+     default so they will need to be specifically enabled for language 
+     binding support (this has no effect on rigctld/rotctld).  You may get a 
+     make error (which means it will quit before compilation is complete) if 
+     the --with-[perl|python|tcl]-binding option(s) are used and the Swig 
+     package is not installed.
+
+     N.B. If you know that you won't need static libaries (most applications
+     dynamically link Hamlib by default) invoke `configure' as follows:
      
-        $ ./configure --without-perl-binding --without-python-binding \
-        --without-tcl-binding --disable-static
+        $ ./configure --disable-static
 
      This will result in a much smaller Hamlib installation (and faster
      compilation :-) ).  See also the "Hamlib specific Features" section 
@@ -45,9 +51,9 @@ main directory and do the following:
      Running `make' takes a while.  Since Hamlib is a package, now is the 
      time to go get a cup of coffee.
      
-  3. Some packages are bundled with self-tests for source-code 
-     verification. If this package includes such tests, you can 
-     optionally run them after compilation by typing 
+  3. Some packages are bundled with self-tests for source-code verification. 
+     If this package includes such tests, you can optionally run them after 
+     compilation by typing 
 
         $ make check
 
@@ -56,6 +62,12 @@ main directory and do the following:
 
   4. Type `make install' to install the programs and any data files and
      documentation. Type `make uninstall' to undo the installation.
+     
+     N.B.  Be aware that Super User (root) privileges will be required to 
+     install to /usr/local or any other system location outside of your home
+     directory.  Many distributions include the `sudo' command which will
+     permit you to install Hamlib after entering your password.  Otherwise
+     you will need to log in as 'root'.
 
      During installation, the following files go to the following directories:
         Executables          -> /prefix/bin
@@ -126,8 +138,8 @@ main directory and do the following:
      from the Hamlib source directory.  This will work unless `make distclean'
      has been run.
 
-Compiler configuration
-======================
+Compiler configuration (Advanced usage)
+=======================================
 
    The `configure' shell script is responsible for choosing and configuring
 the compiler(s). 
@@ -156,7 +168,7 @@ On the tcsh shell, use the `setenv' command instead:
   % setenv CFLAGS "-g"
   ...etc...
 
-For other shell, please consult your shell's documentation.
+For other shells, please consult your shell's documentation.
 
 Similarly, you can increase the optimization level by assigning these
 variables to "-g -O3". 
