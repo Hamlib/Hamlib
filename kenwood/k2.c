@@ -318,8 +318,16 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	if (err != RIG_OK)
 		return err;
 
+	err = kenwood_simple_cmd(rig, "K22");
+	if (err != RIG_OK)
+		return err;
+
 	/* Set the filter slot */
 	err = kenwood_simple_cmd(rig, fcmd);
+	if (err != RIG_OK)
+		return err;
+
+	err = kenwood_simple_cmd(rig, "K20");
 	if (err != RIG_OK)
 		return err;
 
