@@ -237,7 +237,6 @@ int k2_open(RIG *rig)
 		return -RIG_EINVAL;
 
 	int err;
-
 	struct kenwood_priv_data *priv = rig->state.priv;
 
 	err = elecraft_open(rig);
@@ -269,6 +268,7 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	char f;
 	char fcmd[16];
 	struct k2_filt_lst_s *flt;
+	struct kenwood_priv_data *priv = rig->state.priv;
 	shortfreq_t freq = 0;
 
 	/* Select the filter array per mode. */
@@ -283,7 +283,10 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 			break;
 		case RIG_MODE_RTTY:
 		case RIG_MODE_RTTYR:
-			flt = &k2_fwmd_rtty;
+			if (priv->k2_md_rtty == 0)
+				return -RIG_EINVAL;		/* RTTY module not installed */
+			else
+				flt = &k2_fwmd_rtty;
 			break;
 		default:
 			return -RIG_EINVAL;
