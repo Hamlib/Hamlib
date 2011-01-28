@@ -1182,6 +1182,7 @@ DECLARE_INITRIG_BACKEND(aor)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "aor: _init called\n");
 
+	rig_register(&sr2200_caps);
 	rig_register(&ar2700_caps);
 	rig_register(&ar8200_caps);
 	rig_register(&ar8000_caps);
