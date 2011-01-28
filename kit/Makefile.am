@@ -2,7 +2,7 @@ AM_CFLAGS = @LIBUSB_CFLAGS@
 
 # FIXME: compile usrp only if CXX available
 KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c elektor507.c \
-	     dds60.c miniVNA.c si570avrusb.c
+	     dds60.c miniVNA.c si570avrusb.c funcube.c
 
 if HAVE_USRP
     AM_CXXFLAGS = @USRP_CFLAGS@
@@ -26,5 +26,5 @@ hamlib_kit_la_LIBADD = $(top_builddir)/lib/libmisc.la \
 		       @MATH_LIBS@ \
 		       $(top_builddir)/src/libhamlib.la
 
-noinst_HEADERS = kit.h usrp_impl.h si570avrusb.h
+noinst_HEADERS = kit.h usrp_impl.h si570avrusb.h funcube.h
 

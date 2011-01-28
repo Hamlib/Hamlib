@@ -35,6 +35,7 @@ extern const struct rig_caps usrp0_caps;
 extern const struct rig_caps usrp_caps;
 extern const struct rig_caps dds60_caps;
 extern const struct rig_caps miniVNA_caps;
+extern const struct rig_caps funcube_caps;
 
 extern const struct rot_caps pcrotor_caps;
 

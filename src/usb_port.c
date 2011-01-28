@@ -182,11 +182,21 @@ int usb_port_open(hamlib_port_t *port)
         return -RIG_EIO;
 
 #ifdef LIBUSB_HAS_GET_DRIVER_NP
-      /* Try to detach ftdi_sio kernel module
-       * Returns ENODATA if driver is not loaded.
-       * Don't check return value, let it fail later.
-       */
-    usb_detach_kernel_driver_np(udh, port->parm.usb.iface);
+    /* Try to detach ftdi_sio kernel module
+	 * This should be performed only for devices using
+	 * USB-serial converters (like FTDI chips), for other
+	 * devices this may cause problems, so do not do it.
+	 */
+	char dname[32] = {0};
+	int retval = usb_get_driver_np(udh, port->parm.usb.iface, dname, 31);
+	if (!retval)
+	{
+		/* Try to detach ftdi_sio kernel module
+		 * Returns ENODATA if driver is not loaded.
+		 * Don't check return value, let it fail later.
+		 */
+		usb_detach_kernel_driver_np(udh, port->parm.usb.iface);
+	}
 #endif
 
     if (port->parm.usb.iface >= 0) {
@@ -234,6 +244,8 @@ int usb_port_open(hamlib_port_t *port)
 int usb_port_close(hamlib_port_t *port)
 {
 	struct usb_dev_handle *udh = port->handle;
+
+	usb_release_interface (udh, port->parm.usb.iface);
 
 	/* we're assuming that closing an interface automatically releases it. */
 	return usb_close (udh) == 0 ? RIG_OK : -RIG_EIO;
