@@ -120,9 +120,9 @@ The PH and PV values in the response packet reflect the settings of
 the rotator controller. The Rot2Prog supports the following
 resolutions (always the same for azimuth and elevation):
 
-    1    pulse/deg: PH=0x01, PV=0x01
-    0.5  pulse/deg: PH=0x02, PV=0x02
-    0.25 pulse/deg: PH=0x04, PV=0x04
+    1    deg/pulse: PH=0x01, PV=0x01
+    0.5  deg/pulse: PH=0x02, PV=0x02
+    0.25 deg/pulse: PH=0x04, PV=0x04
 
 
 
@@ -234,7 +234,7 @@ E.g., when pointing a Rot1Prog to azimuth 123:
     | 57| 34 | 38 | 33 | 30 | 00 | 00 | 00 | 00 | 00 | 00 | 2F| 20  | (hex)
     -----------------------------------------------------------------
 
-    Note that H4 is not used.
+    Note that H4 is not used and always set to 0x30.
 
 E.g., when pointing a Rot2Prog to azimuth 123.5, elevation 77.0 when the
 rotator sends one pulse per 0.5 degree (PH=PV=2):
