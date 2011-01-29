@@ -1,6 +1,6 @@
 /*
- * Hamlib Rotator backend - SPID Rot2Prog
- * Copyright (c) 2009 by Norvald H. Ryeng, LA6YKA
+ * Hamlib Rotator backend - SPID Rot1Prog & Rot2Prog
+ * Copyright (c) 2009-2011 by Norvald H. Ryeng, LA6YKA
  *
  *
  * This library is free software; you can redistribute it and/or modify
@@ -39,29 +39,31 @@
 #define TOK_AZRES 1
 #define TOK_ELRES 2
 
-struct spid_priv_data {
+struct spid_rot2prog_priv_data {
     int az_resolution;
     int el_resolution;
 };
 
 static int spid_rot_init(ROT *rot)
 {
-    struct spid_priv_data *priv;
+    struct spid_rot2prog_priv_data *priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called\n", __FUNCTION__);
 
     if (!rot || !rot->caps)
         return -RIG_EINVAL;
 
-    priv = (struct spid_priv_data*)malloc(sizeof(struct spid_priv_data));
-    if (!priv) {
-        return -RIG_ENOMEM;
+    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG) {
+        priv = (struct spid_rot2prog_priv_data*)malloc(sizeof(struct spid_rot2prog_priv_data));
+        if (!priv) {
+            return -RIG_ENOMEM;
+        }
+
+        rot->state.priv = (void*)priv;
+
+        priv->az_resolution = 0;
+        priv->el_resolution = 0;
     }
-
-    rot->state.priv = (void*)priv;
-
-    priv->az_resolution = 0;
-    priv->el_resolution = 0;
 
     return RIG_OK;
 }
@@ -73,7 +75,7 @@ static int spid_rot_cleanup(ROT *rot)
     if (!rot)
         return -RIG_EINVAL;
 
-    if (rot->state.priv)
+    if (rot->state.priv && rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
         free(rot->state.priv);
     rot->state.priv = NULL;
 
@@ -82,9 +84,12 @@ static int spid_rot_cleanup(ROT *rot)
 
 static int spid_get_conf(ROT *rot, token_t token, char *val)
 {
-    struct spid_priv_data *priv = (struct spid_priv_data*)rot->state.priv;
+    struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data*)rot->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called %d\n", __FUNCTION__, token);
+
+    if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG)
+	return -RIG_EINVAL;
 
     switch(token) {
         case TOK_AZRES:
@@ -101,9 +106,12 @@ static int spid_get_conf(ROT *rot, token_t token, char *val)
 
 static int spid_set_conf(ROT *rot, token_t token, const char *val)
 {
-    struct spid_priv_data *priv = (struct spid_priv_data*)rot->state.priv;
+    struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data*)rot->state.priv;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called %d %s\n", __FUNCTION__, token, val);
+
+    if (rot->caps->rot_model != ROT_MODEL_SPID_ROT2PROG)
+        return -RIG_EINVAL;
 
     switch(token) {
         case TOK_AZRES:
@@ -118,10 +126,43 @@ static int spid_set_conf(ROT *rot, token_t token, const char *val)
     return RIG_OK;
 }
 
-static int spid_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
+static int spid_rot1prog_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
 {
     struct rot_state *rs = &rot->state;
-    struct spid_priv_data *priv = (struct spid_priv_data*)rs->priv;
+    int retval;
+    char cmdstr[13];
+    unsigned int u_az;
+
+    rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __FUNCTION__, az, el);
+
+    u_az = 360 + az;
+
+    cmdstr[0] = 0x57;                       /* S   */
+    cmdstr[1] = 0x30 + u_az/100;            /* H1  */
+    cmdstr[2] = 0x30 + (u_az % 100) / 10;   /* H2  */
+    cmdstr[3] = 0x30 + (u_az % 10);         /* H3  */
+    cmdstr[4] = 0x30;                       /* H4  */
+    cmdstr[5] = 0x00;                       /* PH  */
+    cmdstr[6] = 0x00;                       /* V1  */
+    cmdstr[7] = 0x00;                       /* V2  */
+    cmdstr[8] = 0x00;                       /* V3  */
+    cmdstr[9] = 0x00;                       /* V4  */
+    cmdstr[10] = 0x00;                      /* PV  */
+    cmdstr[11] = 0x2F;                      /* K   */
+    cmdstr[12] = 0x20;                      /* END */
+
+    retval = write_block(&rs->rotport, cmdstr, 13);
+    if (retval != RIG_OK) {
+        return retval;
+    }
+
+    return RIG_OK;
+}
+
+static int spid_rot2prog_rot_set_position(ROT *rot, azimuth_t az, elevation_t el)
+{
+    struct rot_state *rs = &rot->state;
+    struct spid_rot2prog_priv_data *priv = (struct spid_rot2prog_priv_data*)rs->priv;
     int retval;
     int retry_read = 0;
     char cmdstr[13];
@@ -187,7 +228,12 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
         }
 
         memset(posbuf, 0, 12);
-        retval = read_block(&rs->rotport, posbuf, 12);
+        if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
+            retval = read_block(&rs->rotport, posbuf, 5);
+        else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
+            retval = read_block(&rs->rotport, posbuf, 12);
+        else
+            retval = -RIG_EINVAL;
     } while (retval < 0 && retry_read++ < rot->state.rotport.retry);
     if (retval < 0)
         return retval;
@@ -195,14 +241,18 @@ static int spid_rot_get_position(ROT *rot, azimuth_t *az, elevation_t *el)
     *az  = posbuf[1] * 100;
     *az += posbuf[2] * 10;
     *az += posbuf[3];
-    *az += posbuf[4] / 10.0;
+    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
+        *az += posbuf[4] / 10.0;
     *az -= 360;
 
-    *el  = posbuf[6] * 100;
-    *el += posbuf[7] * 10;
-    *el += posbuf[8];
-    *el += posbuf[9] / 10.0;
-    *el -= 360;
+    *el = 0.0;
+    if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG) {
+        *el  = posbuf[6] * 100;
+        *el += posbuf[7] * 10;
+        *el += posbuf[8];
+        *el += posbuf[9] / 10.0;
+        *el -= 360;
+    }
 
     rig_debug(RIG_DEBUG_TRACE, "%s: (az, el) = (%.1f, %.1f)\n",
 		   __FUNCTION__, *az, *el);
@@ -226,7 +276,10 @@ static int spid_rot_stop(ROT *rot)
         }
 
         memset(posbuf, 0, 12);
-        retval = read_block(&rs->rotport, posbuf, 12);
+        if (rot->caps->rot_model == ROT_MODEL_SPID_ROT1PROG)
+            retval = read_block(&rs->rotport, posbuf, 5);
+        else if (rot->caps->rot_model == ROT_MODEL_SPID_ROT2PROG)
+            retval = read_block(&rs->rotport, posbuf, 12);
     } while (retval < 0 && retry_read++ < rot->state.rotport.retry);
     if (retval < 0)
         return retval;
@@ -244,14 +297,50 @@ const struct confparams spid_cfg_params[] = {
     { RIG_CONF_END, NULL, }
 };
 
-const struct rot_caps spid_rot_caps = {
-    .rot_model =         ROT_MODEL_SPID,
-    .model_name =        "Rot2Prog",
+const struct rot_caps spid_rot1prog_rot_caps = {
+    .rot_model =         ROT_MODEL_SPID_ROT1PROG,
+    .model_name =        "Rot1Prog",
     .mfg_name =          "SPID",
-    .version =           "0.2",
+    .version =           "1.0",
     .copyright =         "LGPL",
     .status =            RIG_STATUS_STABLE,
-    .rot_type =          ROT_TYPE_OTHER,
+    .rot_type =          ROT_TYPE_AZIMUTH,
+    .port_type =         RIG_PORT_SERIAL,
+    .serial_rate_min =   1200,
+    .serial_rate_max =   1200,
+    .serial_data_bits =  8,
+    .serial_stop_bits =  1,
+    .serial_parity =     RIG_PARITY_NONE,
+    .serial_handshake =  RIG_HANDSHAKE_NONE,
+    .write_delay =       0,
+    .post_write_delay =  0,
+    .timeout =           400,
+    .retry =             3,
+
+    .min_az =            -180.0,
+    .max_az =            540.0,
+    .min_el =            0.0,
+    .max_el =            0.0,
+
+    .cfgparams =         spid_cfg_params,
+    .get_conf =          spid_get_conf,
+    .set_conf =          spid_set_conf,
+
+    .rot_init =          spid_rot_init,
+    .rot_cleanup =       spid_rot_cleanup,
+    .get_position =      spid_rot_get_position,
+    .set_position =      spid_rot1prog_rot_set_position,
+    .stop =              spid_rot_stop,
+};
+
+const struct rot_caps spid_rot2prog_rot_caps = {
+    .rot_model =         ROT_MODEL_SPID_ROT2PROG,
+    .model_name =        "Rot2Prog",
+    .mfg_name =          "SPID",
+    .version =           "1.0",
+    .copyright =         "LGPL",
+    .status =            RIG_STATUS_STABLE,
+    .rot_type =          ROT_TYPE_AZEL,
     .port_type =         RIG_PORT_SERIAL,
     .serial_rate_min =   600,
     .serial_rate_max =   600,
@@ -276,7 +365,7 @@ const struct rot_caps spid_rot_caps = {
     .rot_init =          spid_rot_init,
     .rot_cleanup =       spid_rot_cleanup,
     .get_position =      spid_rot_get_position,
-    .set_position =      spid_rot_set_position,
+    .set_position =      spid_rot2prog_rot_set_position,
     .stop =              spid_rot_stop,
 };
 
@@ -284,7 +373,8 @@ DECLARE_INITROT_BACKEND(spid)
 {
     rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __FUNCTION__);
 
-    rot_register(&spid_rot_caps);
+    rot_register(&spid_rot1prog_rot_caps);
+    rot_register(&spid_rot2prog_rot_caps);
 
     return RIG_OK;
 }

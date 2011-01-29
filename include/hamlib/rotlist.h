@@ -183,7 +183,9 @@
  */
 #define ROT_SPID 9
 #define ROT_BACKEND_SPID "spid"
-#define ROT_MODEL_SPID ROT_MAKE_MODEL(ROT_SPID, 1)
+#define ROT_MODEL_SPID_ROT1PROG ROT_MAKE_MODEL(ROT_SPID, 1)
+#define ROT_MODEL_SPID_ROT2PROG ROT_MAKE_MODEL(ROT_SPID, 2)
+
 
 /*! \def ROT_MODEL_M2
  *  \brief A macro that returns the model number of the M2 backend.

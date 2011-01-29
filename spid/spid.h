@@ -23,6 +23,7 @@
 #ifndef _ROT_SPID_H
 #define _ROT_SPID_H 1
 
-extern const struct rot_caps spid_rot_caps;
+extern const struct rot_caps spid_rot1prog_rot_caps;
+extern const struct rot_caps spid_rot2prog_rot_caps;
 
 #endif /* _ROT_SPID_H */
