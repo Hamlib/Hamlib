@@ -32,6 +32,7 @@
 #include "kenwood.h"
 #include "bandplan.h"
 #include "elecraft.h"
+#include "token.h"
 
 #define K3_MODES (RIG_MODE_CW|RIG_MODE_CWR|RIG_MODE_SSB|\
 		RIG_MODE_RTTY|RIG_MODE_RTTYR|RIG_MODE_FM|RIG_MODE_AM|RIG_MODE_PKTUSB|\
@@ -49,6 +50,24 @@
 #define K3_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 
+/* Private tokens used for ext_lvl and ext_parm functions in K3 backend.  
+ * Extra parameters and levels which are rig specific should be coded in
+ * the individual rig files and token #s > 100.
+ */
+#define TOK_IF_FREQ TOKEN_BACKEND(101)    /* K3 FI command */
+
+/* Private K3 extra levels/params definitions
+ * 
+ * See enum rig_conf_e and struct confparams in rig.h
+ */
+static const struct confparams k3_ext_levels[] = {
+	{ TOK_IF_FREQ, "IFCTR", "IF center frequency", "IF center freq",
+		NULL, RIG_CONF_NUMERIC, { .n = { 0, 9990, 10 } }
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
+
 /* kenwood_transaction() will add this to command strings
  * sent to the rig and remove it from strings returned from
  * the rig, so no need to append ';' manually to command strings.
@@ -62,6 +81,7 @@ static struct kenwood_priv_caps k3_priv_caps  = {
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k3_set_vfo(RIG *rig, vfo_t vfo);
+int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 
 
 /*
@@ -103,6 +123,7 @@ const struct rig_caps k3_caps = {
 	.has_set_parm =		RIG_PARM_NONE,	/* FIXME: parms */
 	.level_gran =		{},				/* FIXME: granularity */
 	.parm_gran =		{},
+	.extlevels = 		k3_ext_levels,
 	.preamp =			{ 14, RIG_DBLST_END, },
 	.attenuator =		{ 10, RIG_DBLST_END, },
 	.max_rit =			Hz(9990),
@@ -191,6 +212,7 @@ const struct rig_caps k3_caps = {
 	.get_func =		kenwood_get_func,
 	.set_level =	kenwood_set_level,
 	.get_level =	kenwood_get_level,
+	.get_ext_level =	k3_get_ext_level,
 	.vfo_op =		kenwood_vfo_op,
 	.set_trn =		kenwood_set_trn,
 	.get_trn =		kenwood_get_trn,
@@ -338,7 +360,7 @@ int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	 * width string value must be padded with leading '0' to equal four 
 	 * characters.
 	 */
-	sprintf(cmd_s, "BW%04d", width / 10);
+	sprintf(cmd_s, "BW%04ld", width / 10);
 	err = kenwood_simple_cmd(rig, cmd_s);
 	if (err != RIG_OK)
 		return err;
@@ -373,3 +395,52 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 	}
 	return RIG_OK;
 }
+
+
+/* Support the FI command for reading the IF center frequency,
+ * useful for panadapters and such that need to know the IF center.
+ * 
+ * token	Defined in elecraft.h or this file
+ * val		Type depends on token type from confparams structure:
+ * 			NUMERIC: val.f
+ * 			COMBO: val.i, starting from 0 Index to a string table.
+ * 			STRING: val.cs for set, val.s for get
+ * 			CHECKBUTTON: val.i 0/1
+ */
+int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !val)
+		return -RIG_EINVAL;
+
+	char buf[KENWOOD_MAX_BUF_LEN];
+	int err;
+	struct kenwood_priv_data *priv = (struct kenwood_priv_data *)rig->state.priv;
+	const struct confparams *cfp;
+
+	cfp = rig_ext_lookup_tok(rig, token);
+
+	switch(token) {
+		case TOK_IF_FREQ:
+			err = kenwood_safe_transaction(rig, "FI", buf, KENWOOD_MAX_BUF_LEN, 7);
+			if (err != RIG_OK)
+				return err;
+			if (cfp->type == RIG_CONF_NUMERIC) {
+				rig_debug(RIG_DEBUG_TRACE, "%s: IF freq is: %s\n", __func__, buf);
+				val->f = 8210000.0 + (float)atoi(&buf[2]);
+			} else {
+				rig_debug(RIG_DEBUG_ERR, "%s: protocol error, invalid token type\n",
+					__func__);
+				return -RIG_EPROTO;
+			}
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_ext_level %d\n", 
+				__func__, token);
+			return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+

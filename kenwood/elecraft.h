@@ -21,6 +21,8 @@
 #ifndef _ELECRAFT_H
 #define _ELECRAFT_H 1
 
+#include "token.h"
+
 
 /* The Elecraft Programmer's Reference details the extension level that
  * a K2 or K3 may have in effect which modify certain commands.
@@ -53,5 +55,14 @@ enum k3_data_submodes_e {
 
 /* Elecraft extension function declarations */
 int elecraft_open(RIG *rig);
+
+
+/* Tokens for Extra Levels and Parameters common to multiple rigs.  
+ * Use token # >= 1 or <= 100.  Defined here so they will be available in 
+ * Elecraft name space.
+ */
+/* Place common tokens here */
+ 
+
 
 #endif /* _ELECRAFT_H */
