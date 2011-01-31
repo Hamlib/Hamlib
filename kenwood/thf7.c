@@ -172,7 +172,7 @@ const struct rig_caps thf7e_caps = {
 .rx_range_list1 = {
 	/* RIG_ANT_2 is internal bar antenna */
 	{MHz(144),MHz(146),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
-	{kHz(430),MHz(440),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
+	{MHz(430),MHz(440),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
 	{kHz(100),MHz(470),THF7_ALL_MODES,-1,-1,RIG_VFO_B, RIG_ANT_1|RIG_ANT_2},
 	{MHz(470),GHz(1.3),THF7_HIGH_MODES,-1,-1,RIG_VFO_B,RIG_ANT_1},
 	RIG_FRNG_END
@@ -188,8 +188,8 @@ const struct rig_caps thf7e_caps = {
 .rx_range_list2 = {
 	/* RIG_ANT_2 is internal bar antenna */
 	{MHz(144),MHz(148),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
-	{MHz(220),MHz(225),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
-	{kHz(430),MHz(440),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
+	{MHz(222),MHz(225),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
+	{MHz(430),MHz(450),THF7_MODES_TX,-1,-1,RIG_VFO_A,RIG_ANT_1},
 	{kHz(100),MHz(470),THF7_ALL_MODES,-1,-1,RIG_VFO_B, RIG_ANT_1|RIG_ANT_2},
 	{MHz(470),GHz(1.3),THF7_HIGH_MODES,-1,-1,RIG_VFO_B,RIG_ANT_1},
 	RIG_FRNG_END
@@ -197,8 +197,8 @@ const struct rig_caps thf7e_caps = {
 .tx_range_list2 = {
 	/* power actually depends on DC power supply */
 	{MHz(144),MHz(148),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
-	{MHz(220),MHz(225),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
-	{MHz(430),MHz(440),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
+	{MHz(222),MHz(225),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
+	{MHz(430),MHz(450),THF7_MODES_TX,W(0.05),W(5),RIG_VFO_A,RIG_ANT_1},
 	RIG_FRNG_END
   },
 
