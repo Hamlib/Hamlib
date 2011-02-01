@@ -42,8 +42,8 @@ Hamlib also enables developers to develop professional looking
 GUI's towards a standard control library API, and they would not have
 to worry about the underlying connection towards physical hardware.
 
-Initially serial (RS232) connectivity will be handled, but
-I expect that IP, USB, and other connectivity will follow afterwards.
+Serial (RS232) connectivity is built in as are IP (also via a socket
+utility) and USB.  Other connectivity will follow afterwards.
 
 
 General Guidelines.
@@ -133,7 +133,7 @@ svn co https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib
 
 N.B.:  If the "trunk" subdirectory is ommited then the entire SVN
 reposity will be downloaded!  This includes all branches and tags that
-have ever been created in the hostory of Hamlib.  That is quite large,
+have ever been created in the history of Hamlib.  That is quite large,
 abut 22 MiB as of this writing (March 2009).
 
 The check out has only to be done the first time.
@@ -154,16 +154,16 @@ A SVN manual is online at http://svnbook.red-bean.com/
 
 1.1.5 Experimental Git repository
 
-An experimental Git repository has been set up.  As of this moment it is 
-only tracking SVN trunk/* as its master branch.  Commits are made first to 
-SVN (git svn dcommit) and then pushed to this repository to tie the SVN ID 
+An experimental Git repository has been set up.  As of this moment it is
+only tracking SVN trunk/* as its master branch.  Commits are made first to
+SVN (git svn dcommit) and then pushed to this repository to tie the SVN ID
 to the Git commits.  The hosting address for cloning is:
 
 git://hamlib.git.sourceforge.net/gitroot/hamlib/hamlib
 
-Nate, N0NB, will accept patches emailed from Git (they may be posted to the 
-hamlib-developer mailing list).  Patches should apply to the current SVN 
-trunk/* tree.  Keep in mind that with the SVN repository being the primary 
+Nate, N0NB, will accept patches emailed from Git (they may be posted to the
+hamlib-developer mailing list).  Patches should apply to the current SVN
+trunk/* tree.  Keep in mind that with the SVN repository being the primary
 repository that things like your local branching information will be lost.
 
 
@@ -177,8 +177,8 @@ That is, if you want to take part in the development of Hamlib,
 you'll need the following tools. Make sure you have at least the required
 version or you won't even be able to build from the SVN checkout.
 
-N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials' 
-package will install a number of tools and minimize the number of packages 
+N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
+package will install a number of tools and minimize the number of packages
 that need to be installed manually.
 
 * Gnu C or any C99 compliant compiler       # gcc --version
@@ -203,13 +203,17 @@ Optional, but highly recommended:
 * libusb devel                      # libusb-config --version (not 1.0.0!)
 * RPC devel (libc-dev)              # rpcgen --version
 
+N.B  The libusb package is required for building most of the 'kit' backend.
+The older version is needed, not 1.0.0 or higher.  Debian and derivatives
+package libusb 0.1.12 which is what is needed.
+
 Documentation:
 * Doxygen
 * DocBook                           # Deprecated in favor of Doxygen
 
-N.B.:  Some systems can have several versions of the autotools installed. In 
-that case, autoconf may be called "autoconf2.50", autoheader 
-"autoheader2.50", and automake "automake-1.7", aclocal "aclocal-1.7" or a 
+N.B.:  Some systems can have several versions of the autotools installed. In
+that case, autoconf may be called "autoconf2.50", autoheader
+"autoheader2.50", and automake "automake-1.7", aclocal "aclocal-1.7" or a
 newer version.
 
 IMPORTANT: If autoconf or automake are installed on your system,
@@ -247,58 +251,72 @@ following in the same parent directory of hamlib:
     make
     make install
 
-This will keep the binary output files seperate from the source tree and aid 
+This will keep the binary output files seperate from the source tree and aid
 in development by reducing clutter in the source tree.
 
-Once you've run `autogen.sh', make sure you've got some recent config.guess 
-and config.sub (needed to guess your system type).  Anything of at least 
+Once you've run `autogen.sh', make sure you've got some recent config.guess
+and config.sub (needed to guess your system type).  Anything of at least
 year 2004 should be fine, unless you run some exotic hardware/software system:
 
     ./config.guess --version
     ./config.sub --version
 
-The '--prefix' option to `autogen.sh' is optional.  Convention is that 
-locally built packages be installed in /usr/local away from distribution 
-installed packages.  The '--disable-static' and 'CFLAGS="-g -O0"' speeds up 
-compilation if you don't plan to use static libraries and can bear less 
-optimized binaries while the '-g' option adds debugging info which can be 
+The '--prefix' option to `autogen.sh' is optional.  Convention is that
+locally built packages be installed in /usr/local away from distribution
+installed packages.  The '--disable-static' and 'CFLAGS="-g -O0"' speeds up
+compilation if you don't plan to use static libraries and can bear less
+optimized binaries while the '-g' option adds debugging info which can be
 changed to -ggdb to generate debugging info for gdb.
 
-Additionally, you may want to add the '--with-perl-binding' or 
-'--with-python-binding' or '--enable-tcl-binding' if you are interested in 
-Swig binding support for those scripting languages (This is a change as of 
-1.2.11svn revision 2882 where Swig generated bindings are no longer built by 
+Additionally, you may want to add the '--with-perl-binding' or
+'--with-python-binding' or '--enable-tcl-binding' if you are interested in
+Swig binding support for those scripting languages (This is a change as of
+1.2.11svn revision 2882 where Swig generated bindings are no longer built by
 default).
 
 NOTE: The autogen.sh script has only to be run the first time after a fresh
 checkout or when a Makefile.am or other build file is modified or added.
 
-The difference between building as a beta tester and a developer is in the 
-'--enable-maintainer-mode' option passed to configure from autogen.sh.  This 
-option will add new Makefile targets and dependencies and not force a 
-rebuild of the Makefiles when make is executed.  This is why we recommend 
+The difference between building as a beta tester and a developer is in the
+'--enable-maintainer-mode' option passed to configure from autogen.sh.  This
+option will add new Makefile targets and dependencies and not force a
+rebuild of the Makefiles when make is executed.  This is why we recommend
 that beta testers use the daily SVN snapshot from:
- 
+
 http://n0nb.users.sourceforge.net
 
 For a Tcl build, add this if needed:
 
     --with-tcl=/usr/lib/tcl8.2
 
-Note: C-shell users may have to run autogen.sh and make through a bourne 
+Note: C-shell users may have to run autogen.sh and make through a bourne
 shell instead, or pass "SHELL=bash" as a parameter to make.
+
+NOTE!  If Hamlib has not been previously installed as a locally built
+package you will need to make sure that `ldconfig' is configured correctly
+and run periodically after `make install'.  Most modern distributions have
+an /etc/ld.so.conf.d/ directory where local configuration can be made.
+Later versions of Debian and derivatives have a file named 'libc.conf' in
+this directory.  The contents of libc.conf are:
+
+# libc default configuration
+/usr/local/lib
+
+If your system does not have such a file, one will need to be created and
+then `ldconfig' will need to be run as the root user so that applications
+using the Hamlib libraries can find them.
 
 
 1.4. Feedback
 
-The Hamlib team is very interested to hear from you, how Hamlib builds and 
-works on your system, especially on non-Linux or non-PC systems. We are 
-trying to make Hamlib as portable as possible. Please report problems to our 
+The Hamlib team is very interested to hear from you, how Hamlib builds and
+works on your system, especially on non-Linux or non-PC systems. We are
+trying to make Hamlib as portable as possible. Please report problems to our
 developer mailing list, hamlib-developer@lists.sourceforge.net
 
-Patches are welcome too!  Just send them to the mailing list.  Unified diff 
-(diff -u) is the prefered format and patches should apply to the current SVN 
-trunk, if possible.  If you're patching against an older released version of 
+Patches are welcome too!  Just send them to the mailing list.  Unified diff
+(diff -u) is the prefered format and patches should apply to the current SVN
+trunk, if possible.  If you're patching against an older released version of
 Hamlib, we can take those as well.
 
 So far, Hamlib has been tested successfully under the following systems:
@@ -351,10 +369,10 @@ So far, Hamlib has been tested successfully under the following systems:
          $ svn add Makefile.am mybackend.c mybackend.h
          $ svn commit -m "Initial release" Makefile.am mybackend.c mybackend.h
 
-         Note: The `-m' switch passes a short message to the SVN repository 
-         upon a commit.  If a longer message is desired, do not use the `-m' 
-         option.  The editor specified in the EDITOR or VISUAL environment 
-         variables will be started where a more detailed message may be 
+         Note: The `-m' switch passes a short message to the SVN repository
+         upon a commit.  If a longer message is desired, do not use the `-m'
+         option.  The editor specified in the EDITOR or VISUAL environment
+         variables will be started where a more detailed message may be
          composed.
 
 
@@ -407,8 +425,8 @@ this. The error checking is removed for simplicity.
 
 "Build it and they will come ..."
 
-Seriously, I am hoping the API's will provide a solid framework for some 
-cool GUI development. I would like to see some GTK or Qt apps that use the 
+Seriously, I am hoping the API's will provide a solid framework for some
+cool GUI development. I would like to see some GTK or Qt apps that use the
 hamlib API's so they can be used by end users as a nice part of the Ham shack.
 
 Starting points (not exhaustive):
@@ -419,8 +437,8 @@ Starting points (not exhaustive):
 
 8.1 License
 
-Contributed code to the Hamlib frontend must be released under the LGPL. 
-Contributed code to Hamlib backends must follow backend current license. 
+Contributed code to the Hamlib frontend must be released under the LGPL.
+Contributed code to Hamlib backends must follow backend current license.
 Needless to say, the LGPL is the license of choice.
 
 End user applications like rigctl, rotctl and RPC daemons should be released
@@ -428,12 +446,12 @@ under the GPL, so any contributed code must follow the rule.
 
 8.2 Coding guidelines and style
 
-Try to keep current style of existing code. Improvements are welcome though. 
-Contributed code should always keep the source base in a compilable state, 
+Try to keep current style of existing code. Improvements are welcome though.
+Contributed code should always keep the source base in a compilable state,
 and not regress unless stated otherwise.
 
-There's no need to tag the source in a patch with your name in comments 
-behind each modification, we already know the culprit :-)
+There's no need to tag the source in a patch with your name in comments
+behind each modification, we already know the culprit from commit logs. :-)
 
 Patches should take portability issues into account.
 Keep in mind Hamlib has to run under:
@@ -460,28 +478,28 @@ Portability issues to watch:
 
 8.3 Submitting patches
 
-Patches should be in unified format (diff -u), against SVN trunk/ or latest 
-release. This format makes it easily readable. The patches are to be sent to 
-the hamlib-developer mailing list. If the file is too big, you can send it 
+Patches should be in unified format (diff -u), against SVN trunk/ or latest
+release. This format makes it easily readable. The patches are to be sent to
+the hamlib-developer mailing list. If the file is too big, you can send it
 as a compressed attachment.
 
 8.3.1 Changelog
 
-Caveat: The svn2cl program is used before each release to generate the 
-Changelog file so any changes made directly to it WILL BE LOST! Simply 
-summarize your changes when the files are committed to SVN or, if providing 
-patches to the mailing list, provide a summary so the uploader can include 
+Caveat: The svn2cl program is used before each release to generate the
+Changelog file so any changes made directly to it WILL BE LOST! Simply
+summarize your changes when the files are committed to SVN or, if providing
+patches to the mailing list, provide a summary so the uploader can include
 it in the commit message which will show in the Changelog.
 
 8.4 SVN commit access
 
-Generally, volunteers can get access to SourceForge Hamlib SVN upon asking 
+Generally, volunteers can get access to SourceForge Hamlib SVN upon asking
 one of the project administrators.  Sometimes we'll ask you!
 
-However, before your start commiting, the project admins would like first to 
-have a look at your "style", just to make sure you grok the Hamlib approach 
-(c.f. previous section on submitting a patch). Then you'll be able to commit 
-by yourself to the backend you have maintainance of. Please follow the rules 
+However, before your start commiting, the project admins would like first to
+have a look at your "style", just to make sure you grok the Hamlib approach
+(c.f. previous section on submitting a patch). Then you'll be able to commit
+by yourself to the backend you have maintainance of. Please follow the rules
 hereunder:
 
     * Always keep the SVN trunk repository in a compilable state.

@@ -1,59 +1,59 @@
 Basic Installation
 ==================
 
-For more information specific to Hamlib, please read the README as well as 
-README.betatester and the first part of README.developer to see which 
-additional development packages are needed. This source code distribution  
-is autoconfiguring and you should be able to compile it and install it 
-without manual interventions such as editing Makefiles, configuration files, 
-and so on. These are generic instructions for people who are not familiar 
-with installing autoconfiguring software (along with some Hamlib-specific 
+For more information specific to Hamlib, please read the README as well as
+README.betatester and the first part of README.developer to see which
+additional development packages are needed. This source code distribution is
+autoconfiguring and you should be able to compile it and install it without
+manual interventions such as editing Makefiles, configuration files, and so
+on. These are generic instructions for people who are not familiar with
+installing autoconfiguring software (along with some Hamlib-specific
 information).
 
 The simplest way to compile this package is to enter the source code
 main directory and do the following:
-   
+
   1. Configure the source code by typing:
-        
+
         $ ./configure
 
      If you're planning to install the package into your home directory
      or to a location other than `/usr/local' then add the flag
-     `--prefix=PATH' to `configure'. For example, if your home directory  
-     is `/home/username' you can configure the package to install itself 
+     `--prefix=PATH' to `configure'. For example, if your home directory
+     is `/home/username' you can configure the package to install itself
      there by invoking:
-        
+
         $ ./configure --prefix=/home/username
 
-     As of SVN rev-2882, the scripting language bindings are disabled by 
-     default so they will need to be specifically enabled for language 
-     binding support (this has no effect on rigctld/rotctld).  You may get a 
-     make error (which means it will quit before compilation is complete) if 
-     the --with-[perl|python|tcl]-binding option(s) are used and the Swig 
+     As of SVN rev-2882, the scripting language bindings are disabled by
+     default so they will need to be specifically enabled for language
+     binding support (this has no effect on rigctld/rotctld).  You may get a
+     make error (which means it will quit before compilation is complete) if
+     the --with-[perl|python|tcl]-binding option(s) are used and the Swig
      package is not installed.
 
      N.B. If you know that you won't need static libaries (most applications
      dynamically link Hamlib by default) invoke `configure' as follows:
-     
+
         $ ./configure --disable-static
 
      This will result in a much smaller Hamlib installation (and faster
-     compilation :-) ).  See also the "Hamlib specific Features" section 
-     below for other `configure' options.  
-     
+     compilation :-) ).  See also the "Hamlib specific Features" section
+     below for other `configure' options.
+
      While running, `configure' prints some messages telling you which
-     features it is checking for. 
+     features it is checking for.
 
   2. Compile the package by typing:
-        
+
         $ make
-     
-     Running `make' takes a while.  Since Hamlib is a package, now is the 
+
+     Running `make' takes a while.  Since Hamlib is a package, now is the
      time to go get a cup of coffee.
-     
-  3. Some packages are bundled with self-tests for source-code verification. 
-     If this package includes such tests, you can optionally run them after 
-     compilation by typing 
+
+  3. Some packages are bundled with self-tests for source-code verification.
+     If this package includes such tests, you can optionally run them after
+     compilation by typing
 
         $ make check
 
@@ -62,8 +62,8 @@ main directory and do the following:
 
   4. Type `make install' to install the programs and any data files and
      documentation. Type `make uninstall' to undo the installation.
-     
-     N.B.  Be aware that Super User (root) privileges will be required to 
+
+     N.B.  Be aware that Super User (root) privileges will be required to
      install to /usr/local or any other system location outside of your home
      directory.  Many distributions include the `sudo' command which will
      permit you to install Hamlib after entering your password.  Otherwise
@@ -81,9 +81,9 @@ main directory and do the following:
      in the `--prefix' flag.
 
      If any of these directories do not presently exist, they will be
-     created on demand. 
+     created on demand.
 
-     If you are installing in your home directory make sure that 
+     If you are installing in your home directory make sure that
      `/home/username/bin' is in your path. If you're using the bash shell
      add these lines at the end of your .bashrc file:
 
@@ -97,28 +97,28 @@ main directory and do the following:
      By prepending your home directory to the rest of the PATH you can
      override systemwide installed software with your own custom installation.
 
-  5. After installation you may need to update the ld.so.cache as the 
+  5. After installation you may need to update the ld.so.cache as the
      installation files are placed in /usr/local/lib by default.  On most
      systems this is easily accomplished by running the `ldconfig' command
      as the superuser (root).  The following line may need to be added to
      /etc/ld.so.conf:
-     
+
         /usr/local/lib
-     
+
      On Debian systems since at least 4.0 (Etch) and its derivatives (Ubuntu,
      etc.), a file will need to be created in the /etc/ld.so.conf.d directory.
-     It doesn't seem to matter what you name it so long as it ends in .conf 
+     It doesn't seem to matter what you name it so long as it ends in .conf
      and local.conf is a good choice.  Place the following line in it:
-     
+
         /usr/local/lib
-        
-     Now `ldconfig' can be run.  
-     
+
+     Now `ldconfig' can be run.
+
      While the programs built along with Hamlib will probably work fine
      without running `ldconfig', experience has shown that precompiled
      binaries like Fldigi will not be able to find libhamlib.so.2 without
      updating the ld.so.cache.
-     
+
   6. You can remove the program binaries and object files from the
      source code directory by typing `make clean'.  To also remove the
      files that `configure' created (so you can compile the package for
@@ -132,8 +132,8 @@ main directory and do the following:
 
      The HTML output files are provided for binary releases on the hamlib.org
      web site.
-     
-  8. Finally, if you wish to remove Hamlib, run `make uninstall' as 
+
+  8. Finally, if you wish to remove Hamlib, run `make uninstall' as
      superuser (root), unless Hamlib was installed into your home directory,
      from the Hamlib source directory.  This will work unless `make distclean'
      has been run.
@@ -142,7 +142,7 @@ Compiler configuration (Advanced usage)
 =======================================
 
    The `configure' shell script is responsible for choosing and configuring
-the compiler(s). 
+the compiler(s).
 
 The following options allow you to specify whether you
 want to enable or disable various debugging mechanisms:
@@ -171,7 +171,7 @@ On the tcsh shell, use the `setenv' command instead:
 For other shells, please consult your shell's documentation.
 
 Similarly, you can increase the optimization level by assigning these
-variables to "-g -O3". 
+variables to "-g -O3".
 
 Depending on what languages the package uses, some of these options may
 or may not be available. To see what is available, type:
@@ -179,7 +179,7 @@ or may not be available. To see what is available, type:
 
 About the configure script
 ==========================
- 
+
    The `configure' shell script attempts to guess correct values for
 various system-dependent variables used during compilation.  It uses
 those values to create a `Makefile' in each directory of the package.
@@ -196,9 +196,11 @@ diffs or instructions to the address given in the `README' so they can
 be considered for the next release.  If at some point `config.cache'
 contains results you don't want to keep, you may remove or edit it.
 
-   The file `configure.in' is used to create `configure' by a program
-called `autoconf'.  You only need `configure.in' if you want to change
-it or regenerate `configure' using a newer version of `autoconf'.
+   The file `configure.ac' is used to create `configure' by a program
+called `autoconf'.  You only need `configure.ac' if you want to change
+it or regenerate `configure' using a newer version of `autoconf'.  This
+project uses a custom `autoconf.sh' for running autoconf in a developer's
+checkout of Hamlib from a source repository.
 
 Advanced installation options.
 ==============================
@@ -243,8 +245,8 @@ Win32
 
 	./configure --host=i586-mingw32msvc
 
-- Mingw compiler under Cygwin 
-	CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" ./configure --host=i686-pc-mingw32 
+- Mingw compiler under Cygwin
+	CC="gcc -mno-cygwin" CXX="g++ -mno-cygwin" ./configure --host=i686-pc-mingw32
 
 - Cygwin
 	Native Cygwin requires no special options besides regular ones.
@@ -259,10 +261,11 @@ to the configure script (may happen under MacOSX).
 
    Any problem encountered with the perl, tcl, python or swig tool can be
 disabled by passing `--without-tcl-binding', `--without-perl-binding',
-and/or '--without-python-binding'.
+and/or '--without-python-binding'.  Note that these bindings are disabled
+by default.
 
    Some platfroms may have trouble compiling the RPC support (e.g. Mac OS X).
-in such a case, the rpcrig and rpcrot backends may be disabled 
+in such a case, the rpcrig and rpcrot backends may be disabled
 with the `--without-rpc-backends' option.
 
    Building static libraries can be disabled by use of the `--disable-static'
