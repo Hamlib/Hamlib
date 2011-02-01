@@ -131,6 +131,24 @@ const tone_t kenwood38_ctcss_list[] = {
 	0,
 };
 
+
+/* Token definitions for .cfgparams in rig_caps 
+ * 
+ * See enum rig_conf_e and struct confparams in rig.h
+ */
+const struct confparams kenwood_cfg_params[] = {
+	{ TOK_FINE, "fine", "Fine", "Fine step mode",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ TOK_VOICE, "voice", "Voice", "Voice recall",
+		NULL, RIG_CONF_BUTTON, { } },
+	{ TOK_XIT, "xit", "XIT", "XIT",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ TOK_RIT, "rit", "RIT", "RIT",
+		NULL, RIG_CONF_CHECKBUTTON, { } },
+	{ RIG_CONF_END, NULL, }
+};
+
+
 /**
  * kenwood_transaction
  * Assumes rig!=NULL rig->state!=NULL rig->caps!=NULL

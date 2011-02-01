@@ -91,3 +91,20 @@ rigctl) will set the bandwidth to 2350 Hz (rounded down by the K3).
 The k3_get_mode function will query and return the actual bandwidth in use in
 Hertz.
 
+
+k3_get_ext_level()
+==================
+
+This function is used to query the K3 for the IF center frequency.  Use the 'l'
+command with the token name 'ifctr' for 'Level' to read in rigctl[d].  Value 
+returned is 8210000.0 + queried value from rig (see K3 Programmers Reference, 
+FI command).  Returned type is a floating point value.
+
+
+kenwood_get/set_ext_parms()
+===========================
+
+These functions are used to get and set RIT/XIT on and off.  The special token
+names of 'rit' and 'xit' are used with the P/p commands of rigctl[d] for the
+'parm'.  Set/returned value is 0 or 1 for off or on.
+

@@ -52,7 +52,7 @@
 
 /* Private tokens used for ext_lvl and ext_parm functions in K3 backend.  
  * Extra parameters and levels which are rig specific should be coded in
- * the individual rig files and token #s > 100.
+ * the individual rig files and token #s >= 101.
  */
 #define TOK_IF_FREQ TOKEN_BACKEND(101)    /* K3 FI command */
 
@@ -61,7 +61,7 @@
  * See enum rig_conf_e and struct confparams in rig.h
  */
 static const struct confparams k3_ext_levels[] = {
-	{ TOK_IF_FREQ, "IFCTR", "IF center frequency", "IF center freq",
+	{ TOK_IF_FREQ, "ifctr", "IF center frequency", "IF center freq",
 		NULL, RIG_CONF_NUMERIC, { .n = { 0, 9990, 10 } }
 	},
 	{ RIG_CONF_END, NULL, }
@@ -124,6 +124,7 @@ const struct rig_caps k3_caps = {
 	.level_gran =		{},				/* FIXME: granularity */
 	.parm_gran =		{},
 	.extlevels = 		k3_ext_levels,
+	.extparms =			kenwood_cfg_params,
 	.preamp =			{ 14, RIG_DBLST_END, },
 	.attenuator =		{ 10, RIG_DBLST_END, },
 	.max_rit =			Hz(9990),
@@ -210,6 +211,8 @@ const struct rig_caps k3_caps = {
 	.get_dcd =		kenwood_get_dcd,
 	.set_func =		kenwood_set_func,
 	.get_func =		kenwood_get_func,
+	.set_ext_parm =		kenwood_set_ext_parm,
+	.get_ext_parm =		kenwood_get_ext_parm,
 	.set_level =	kenwood_set_level,
 	.get_level =	kenwood_get_level,
 	.get_ext_level =	k3_get_ext_level,
@@ -416,7 +419,6 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 
 	char buf[KENWOOD_MAX_BUF_LEN];
 	int err;
-	struct kenwood_priv_data *priv = (struct kenwood_priv_data *)rig->state.priv;
 	const struct confparams *cfp;
 
 	cfp = rig_ext_lookup_tok(rig, token);

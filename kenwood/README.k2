@@ -20,4 +20,15 @@ it also checks for K2 or K3 extensions and sets a pair of private variables
 that may be used later for advanced functions.  This way the backend should be 
 able to reliably test for either a K2 or K3 (needs more testing with the K2).
 
+This function also probes the K2 for the RTTY option and then installed filters
+and bandwidths.  This information is stored in a structure and used later.  The
+probe adds about 10 seconds to the rig_open.
+
+
+kenwood_get/set_ext_parms()
+===========================
+
+These functions are used to get and set RIT/XIT on and off.  The special token
+names of 'rit' and 'xit' are used with the P/p commands of rigctl[d] for the
+'parm'.  Set/returned value is 0 or 1 for off or on.
 

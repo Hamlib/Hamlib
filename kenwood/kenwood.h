@@ -32,10 +32,19 @@
 #define KENWOOD_MODE_TABLE_MAX	10
 #define KENWOOD_MAX_BUF_LEN		50 /* max answer len, arbitrary */
 
+
+/* Tokens for Parameters common to multiple rigs.
+ * Use token # >= 1 or <= 100.  Defined here so they will be
+ * available in Kenwood name space.
+ */
 #define TOK_VOICE	TOKEN_BACKEND(1)
 #define TOK_FINE	TOKEN_BACKEND(2)
 #define TOK_XIT		TOKEN_BACKEND(3)
 #define TOK_RIT		TOKEN_BACKEND(4)
+
+/* Token structure assigned to .cfgparams in rig_caps */
+extern const struct confparams kenwood_cfg_params[];
+
 
 /*
  * modes in use by the "MD" command

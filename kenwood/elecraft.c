@@ -23,7 +23,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include "token.h"
 
 #include "elecraft.h"
 #include "kenwood.h"
