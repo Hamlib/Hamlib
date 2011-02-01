@@ -50,24 +50,6 @@
 #define K3_ANTS (RIG_ANT_1|RIG_ANT_2)
 
 
-/* Private tokens used for ext_lvl and ext_parm functions in K3 backend.  
- * Extra parameters and levels which are rig specific should be coded in
- * the individual rig files and token #s >= 101.
- */
-#define TOK_IF_FREQ TOKEN_BACKEND(101)    /* K3 FI command */
-
-/* Private K3 extra levels/params definitions
- * 
- * See enum rig_conf_e and struct confparams in rig.h
- */
-static const struct confparams k3_ext_levels[] = {
-	{ TOK_IF_FREQ, "ifctr", "IF center frequency", "IF center freq",
-		NULL, RIG_CONF_NUMERIC, { .n = { 0, 9990, 10 } }
-	},
-	{ RIG_CONF_END, NULL, }
-};
-
-
 /* kenwood_transaction() will add this to command strings
  * sent to the rig and remove it from strings returned from
  * the rig, so no need to append ';' manually to command strings.
@@ -123,7 +105,7 @@ const struct rig_caps k3_caps = {
 	.has_set_parm =		RIG_PARM_NONE,	/* FIXME: parms */
 	.level_gran =		{},				/* FIXME: granularity */
 	.parm_gran =		{},
-	.extlevels = 		k3_ext_levels,
+	.extlevels = 		elecraft_ext_levels,
 	.extparms =			kenwood_cfg_params,
 	.preamp =			{ 14, RIG_DBLST_END, },
 	.attenuator =		{ 10, RIG_DBLST_END, },
@@ -402,6 +384,7 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 
 /* Support the FI command for reading the IF center frequency,
  * useful for panadapters and such that need to know the IF center.
+ * TQ command is a quick transmit status query--K2/K3 only.
  * 
  * token	Defined in elecraft.h or this file
  * val		Type depends on token type from confparams structure:
@@ -429,8 +412,19 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 			if (err != RIG_OK)
 				return err;
 			if (cfp->type == RIG_CONF_NUMERIC) {
-				rig_debug(RIG_DEBUG_TRACE, "%s: IF freq is: %s\n", __func__, buf);
 				val->f = 8210000.0 + (float)atoi(&buf[2]);
+			} else {
+				rig_debug(RIG_DEBUG_ERR, "%s: protocol error, invalid token type\n",
+					__func__);
+				return -RIG_EPROTO;
+			}
+			break;
+		case TOK_TX_STAT:
+			err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 4);
+			if (err != RIG_OK)
+				return err;
+			if (cfp->type == RIG_CONF_CHECKBUTTON) {
+				val->i = atoi(&buf[2]);
 			} else {
 				rig_debug(RIG_DEBUG_ERR, "%s: protocol error, invalid token type\n",
 					__func__);

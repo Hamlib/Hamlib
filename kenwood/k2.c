@@ -85,6 +85,7 @@ struct k2_filt_lst_s k2_fwmd_rtty;
 int k2_open(RIG *rig);
 int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 
 /* Private function declarations */
 int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv);
@@ -129,6 +130,7 @@ const struct rig_caps k2_caps = {
 	.has_set_parm =		RIG_PARM_NONE,	/* FIXME: parms */
 	.level_gran =		{},				/* FIXME: granularity */
 	.parm_gran =		{},
+	.extlevels = 		elecraft_ext_levels,
 	.preamp =			{ 14, RIG_DBLST_END, },
 	.attenuator =		{ 10, RIG_DBLST_END, },
 	.max_rit =			Hz(9990),
@@ -213,6 +215,7 @@ const struct rig_caps k2_caps = {
 	.get_ext_parm =		kenwood_get_ext_parm,
 	.set_level =	kenwood_set_level,
 	.get_level = 	kenwood_get_level,
+	.get_ext_level =	k2_get_ext_level,
 	.vfo_op =		kenwood_vfo_op,
 	.set_trn =		kenwood_set_trn,
 	.get_powerstat =	kenwood_get_powerstat,
@@ -383,6 +386,51 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	*width = atoi(tmp);
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: Mode: %d, Width: %04li\n", __func__, *mode, *width);
+
+	return RIG_OK;
+}
+
+
+/* TQ command is a quick transmit status query--K2/K3 only.
+ * 
+ * token	Defined in elecraft.h or this file
+ * val		Type depends on token type from confparams structure:
+ * 			NUMERIC: val.f
+ * 			COMBO: val.i, starting from 0 Index to a string table.
+ * 			STRING: val.cs for set, val.s for get
+ * 			CHECKBUTTON: val.i 0/1
+ */
+int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig || !val)
+		return -RIG_EINVAL;
+
+	char buf[KENWOOD_MAX_BUF_LEN];
+	int err;
+	const struct confparams *cfp;
+
+	cfp = rig_ext_lookup_tok(rig, token);
+
+	switch(token) {
+		case TOK_TX_STAT:
+			err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 4);
+			if (err != RIG_OK)
+				return err;
+			if (cfp->type == RIG_CONF_CHECKBUTTON) {
+				val->i = atoi(&buf[2]);
+			} else {
+				rig_debug(RIG_DEBUG_ERR, "%s: protocol error, invalid token type\n",
+					__func__);
+				return -RIG_EPROTO;
+			}
+			break;
+		default:
+			rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_ext_level %d\n", 
+				__func__, token);
+			return -RIG_EINVAL;
+	}
 
 	return RIG_OK;
 }

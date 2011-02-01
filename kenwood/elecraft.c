@@ -39,6 +39,22 @@ static const struct elec_ext_id_str elec_ext_id_str_lst[] = {
 };
 
 
+/* Private Elecraft extra levels definitions
+ * 
+ * Token definitions for .cfgparams in rig_caps 
+ * See enum rig_conf_e and struct confparams in rig.h
+ */
+const struct confparams elecraft_ext_levels[] = {
+	{ TOK_IF_FREQ, "ifctr", "IF center frequency", "IF center freq",
+		NULL, RIG_CONF_NUMERIC, { .n = { 0, 9990, 10 } }
+	},
+	{ TOK_TX_STAT, "txst", "TX status", "TX status",
+		NULL, RIG_CONF_CHECKBUTTON, { { } },
+	},
+	{ RIG_CONF_END, NULL, }
+};
+
+
 /* Private function declarations */
 int verify_kenwood_id(RIG *rig, char *id);
 int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level);

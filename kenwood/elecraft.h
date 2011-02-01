@@ -52,6 +52,17 @@ enum k3_data_submodes_e {
 };
 
 
+/* Private tokens used for ext_lvl function in Elecraft backends.  
+ * Extra levels which are rig specific should be coded in
+ * the individual rig files and token #s >= 101.
+ */
+#define TOK_IF_FREQ TOKEN_BACKEND(101)    /* K3 FI command */
+#define TOK_TX_STAT TOKEN_BACKEND(102)    /* K3 TQ command */
+
+/* Token structure assigned to .cfgparams in rig_caps */
+extern const struct confparams elecraft_ext_levels[];
+
+
 /* Elecraft extension function declarations */
 int elecraft_open(RIG *rig);
 
