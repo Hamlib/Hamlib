@@ -131,6 +131,7 @@ const struct rig_caps k2_caps = {
 	.level_gran =		{},				/* FIXME: granularity */
 	.parm_gran =		{},
 	.extlevels = 		elecraft_ext_levels,
+	.extparms =			kenwood_cfg_params,
 	.preamp =			{ 14, RIG_DBLST_END, },
 	.attenuator =		{ 10, RIG_DBLST_END, },
 	.max_rit =			Hz(9990),
