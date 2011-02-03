@@ -1,19 +1,20 @@
-/*! \mainpage Hamlib Distribution Information
+/*! \mainpage Hamlib API Reference
 
 \section auth Authors
 
-St&eacute;phane Fillod  and Frank Singleton
-\n Documentation revisions by Martin Ewing, AA6E
+St&eacute;phane Fillod, F8CFE, and Frank Singleton, VK3FCS and the Hamlib Group
+\n Documentation revisions by Martin Ewing, AA6E, Nate Bargmann, N0NB
 
 \section s1 Preface
 
-This document describes the Hamlib library Application Programming Interface (API) for this distribution. 
+This document describes the Hamlib library Application Programming Interface 
+(API) for this distribution. 
 
-We attempt to document the complete API of the core modules of Hamlib, i.e., the API seen
-by end-user application developers.  You may navigate the documentation through the tabs
-at the top of this page.
+We attempt to document the complete API of the core modules of Hamlib, i.e., 
+the API seen by end-user application developers.  You may navigate the 
+documentation through the tabs at the top of this page.
 
-Please report any problems to hamlib-developers@lists.sourceforge.net.
+Please report any problems to hamlib-developer@lists.sourceforge.net.
 
 \section txtfil Distributed information files
 
@@ -36,8 +37,10 @@ Other files: \subpage INSTALL;
 
 \section lnks Internet links
 
-\li http://hamlib.org - project web site, including list of supported rigs.
-\li http://hamlib.sourceforge.net --  Sourceforge project info.
+\li http://www.hamlib.org -- project Wiki, including list of supported rigs.
+\li http://sourceforge.net/projects/hamlib/ --  SourceForge.net project page.
+\li http://hamlib.git.sourceforge.net/git/gitweb-index.cgi -- Git repository via Web
+\li http://hamlib.svn.sourceforge.net/viewvc/hamlib/ -- SVN repository via Web
 
 \section slic Documentation License
 
@@ -98,6 +101,4 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *  \defgroup rotator Rotator API
  *  \defgroup utilities Utility Routines API
  *  \defgroup rig_internal Rig Internal API
- *  \defgroup tentec_orion Tentec Orion Backend
- *  \defgroup tentec Tentec Common Backend
  */

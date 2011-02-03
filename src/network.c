@@ -2,8 +2,6 @@
  *  Hamlib Interface - network communication low-level support
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
- *	$Id: network.c,v 1.6 2008-11-05 23:02:00 fillods Exp $
- *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
  *   published by the Free Software Foundation; either version 2 of
@@ -76,9 +74,10 @@ static int wsstarted;
  * \brief Open network port using rig.state data
  *
  * Open Open network port using rig.state data.
- * NB: the signal PIPE will be ignored for the whole application.
+ * NB: The signal PIPE will be ignored for the whole application.
  *
- * \param rp port data structure (must spec port id eg hostname:port)
+ * \param rp Port data structure (must spec port id eg hostname:port)
+ * \param default_port Default network socket port
  * \return RIG_OK or < 0 if error
  */
 int network_open(hamlib_port_t *rp, int default_port)

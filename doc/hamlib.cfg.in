@@ -1,4 +1,4 @@
-## $Id: hamlib.cfg.in,v 1.6 2006-10-30 20:20:29 aa6e Exp $
+## hamlib.cfg.in--converted into hamlib.cfg by configure
 
 PROJECT_NAME    = "Hamlib"
 PROJECT_NUMBER  = @VERSION@
@@ -10,18 +10,14 @@ OUTPUT_LANGUAGE = English
 GENERATE_HTML   = YES
 GENERATE_LATEX  = NO
 GENERATE_RTF    = NO
-GENERATE_MAN    = YES
+GENERATE_MAN    = NO    # User can set to YES for local man pages
 MAN_EXTENSION	= .3
 
 # Input
 CASE_SENSE_NAMES = NO
 FULL_PATH_NAMES = NO
 INPUT	= @top_srcdir@/doc/index.doxygen \
-          @top_srcdir@/src/ @top_srcdir@/include/hamlib/ \
-          @top_srcdir@/tentec/orion.c @top_srcdir@/tentec/tentec.h \
-          @top_srcdir@/tentec/orion.h
-
-#../c++/rigclass.cc
+          @top_srcdir@/src/ @top_srcdir@/include/hamlib/
 
 INCLUDE_PATH	= @top_srcdir@/include
 
@@ -35,7 +31,7 @@ HTML_FOOTER = @top_srcdir@/doc/footer.html
 
 EXTRACT_ALL    = NO
 EXTRACT_STATIC = NO
-HIDE_UNDOC_MEMBERS = YES
+HIDE_UNDOC_MEMBERS = NO
 SHOW_INCLUDE_FILES = YES
 INHERIT_DOCS   = YES
 ENABLED_SECTIONS = ""

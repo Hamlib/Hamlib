@@ -56,6 +56,12 @@
  *  be thought of as a hardware simulator and is very usefull for testing
  *  client applications.
  */
+/*! \def ROT_MODEL_NETROTCTL
+ *  \brief A macro that returns the model number for the Network backend.
+ *
+ *  This backend allows use of the rotctld daemon through the normal
+ *  Hamlib API.
+ */
 #define ROT_DUMMY 0
 #define ROT_BACKEND_DUMMY "dummy"
 #define ROT_MODEL_DUMMY ROT_MAKE_MODEL(ROT_DUMMY, 1)
@@ -152,6 +158,24 @@
  *  The GS-232A backend can be used with rotators that support the
  *  GS-232A protocol.
  */
+/*! \def ROT_MODEL_GS232
+ *  \brief A macro that returns the model number of the GS-232 backend.
+ *
+ *  The GS-232 backend can be used with rotators that support the
+ *  GS-232 protocol.
+ */
+/*! \def ROT_MODEL_GS232B
+ *  \brief A macro that returns the model number of the GS-232B backend.
+ *
+ *  The GS-232B backend can be used with rotators that support the
+ *  GS-232B protocol.
+ */
+/*! \def ROT_MODEL_F1TETRACKER
+ *  \brief A macro that returns the model number of the F1TETRACKER backend.
+ *
+ *  The F1TETRACKER backend can be used with rotators that support the
+ *  F1TETRACKER protocol.
+ */
 #define ROT_GS232A 6
 #define ROT_BACKEND_GS232A "gs232a"
 #define ROT_MODEL_GS232A ROT_MAKE_MODEL(ROT_GS232A, 1)
@@ -175,8 +199,14 @@
 #define ROT_BACKEND_HEATHKIT "heathkit"
 #define ROT_MODEL_HD1780 ROT_MAKE_MODEL(ROT_HEATHKIT, 1)
 
-/*! \def ROT_MODEL_SPID
- *  \brief A macro that returns the model number of the SPID backend.
+/*! \def ROT_MODEL_SPID_ROT2PROG
+ *  \brief A macro that returns the model number of the ROT2PROG backend.
+ *
+ *  The SPID backend can be used with rotators that support the SPID
+ *  protocol.
+ */
+/*! \def ROT_MODEL_SPID_ROT1PROG
+ *  \brief A macro that returns the model number of the ROT1PROG backend.
  *
  *  The SPID backend can be used with rotators that support the SPID
  *  protocol.
@@ -186,8 +216,8 @@
 #define ROT_MODEL_SPID_ROT2PROG ROT_MAKE_MODEL(ROT_SPID, 1)
 #define ROT_MODEL_SPID_ROT1PROG ROT_MAKE_MODEL(ROT_SPID, 2)
 
-/*! \def ROT_MODEL_M2
- *  \brief A macro that returns the model number of the M2 backend.
+/*! \def ROT_MODEL_RC2800
+ *  \brief A macro that returns the model number of the RC2800 backend.
  *
  *  The M2 backend can be used with rotators that support the RC2800
  *  protocol and alike.
@@ -196,8 +226,14 @@
 #define ROT_BACKEND_M2 "m2"
 #define ROT_MODEL_RC2800 ROT_MAKE_MODEL(ROT_M2, 1)
 
-/*! \def ROT_MODEL_ARS
- *  \brief A macro that returns the model number of the ARS backend.
+/*! \def ROT_MODEL_RCI_AZEL
+ *  \brief A macro that returns the model number of the RCI_AZEL backend.
+ *
+ *  The ARS backend can be used with rotators that support the ARS
+ *  protocol.
+ */
+/*! \def ROT_MODEL_RCI_AZ
+ *  \brief A macro that returns the model number of the RCI_AZ backend.
  *
  *  The ARS backend can be used with rotators that support the ARS
  *  protocol.
