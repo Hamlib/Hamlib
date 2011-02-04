@@ -179,8 +179,11 @@ const struct rig_caps fifisdr_caps = {
 	/* mode/filter list, remember: order matters! */
 	.filters = {
 		{RIG_MODE_SSB, kHz(2.7)},
+		{RIG_MODE_SSB, kHz(3.3)},
+		{RIG_MODE_SSB, kHz(1.8)},
 		{RIG_MODE_AM,  kHz(6.0)},
 		{RIG_MODE_FM,  kHz(12.5)},
+		{RIG_MODE_FM,  kHz(9.0)},
 		RIG_FLT_END,
 	},
 
