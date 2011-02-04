@@ -2,7 +2,7 @@ AM_CFLAGS = @LIBUSB_CFLAGS@
 
 # FIXME: compile usrp only if CXX available
 KITSRCLIST = elektor304.c drt1.c dwt.c usrp.c elektor507.c \
-	     dds60.c miniVNA.c si570avrusb.c funcube.c
+	     dds60.c miniVNA.c si570avrusb.c funcube.c fifisdr.c
 
 if HAVE_USRP
     AM_CXXFLAGS = @USRP_CFLAGS@
