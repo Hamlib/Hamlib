@@ -48,7 +48,6 @@ DECLARE_INITRIG_BACKEND(kit)
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H))
 	rig_register(&si570avrusb_caps);
 	rig_register(&si570picusb_caps);
-	rig_register(&si570fifisdrusb_caps);
 	rig_register(&funcube_caps);
 #endif
 #if (defined(HAVE_LIBUSB) && defined(HAVE_USB_H)) || defined(_WIN32)
