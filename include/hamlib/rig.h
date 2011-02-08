@@ -1,9 +1,8 @@
 /*
  *  Hamlib Interface - API header
  *  Copyright (c) 2000-2003 by Frank Singleton
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
- *	$Id: rig.h,v 1.141 2009-02-20 14:14:30 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -790,8 +789,6 @@ typedef enum {
 	RIG_MODE_SAL =          (1<<17),/*!< \c SAL -- Synchronous AM lower sideband */
 	RIG_MODE_SAH =          (1<<18),/*!< \c SAH -- Synchronous AM upper (higher) sideband */
 	RIG_MODE_DSB =			(1<<19), /*!< \c DSB -- Double sideband suppressed carrier */
-	RIG_MODE_SFM =			(1<<20), /*!< \c SFM -- Synchronous FM */
-	RIG_MODE_WAM =			(1<<21), /*!< \c WAM -- Wide band AM */
     RIG_MODE_TESTS_MAX               /*!< \c MUST ALWAYS BE LAST, Max Count for dumpcaps.c */
 } rmode_t;
 

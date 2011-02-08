@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - toolbox
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -278,8 +278,6 @@ static struct {
 	{ RIG_MODE_SAL, "SAL" },
 	{ RIG_MODE_SAH, "SAH" },
 	{ RIG_MODE_DSB, "DSB"},
-	{ RIG_MODE_SFM, "SFM"},
-	{ RIG_MODE_WAM, "WAM"},
 	{ RIG_MODE_NONE, "" },
 };
 

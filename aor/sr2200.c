@@ -1,7 +1,7 @@
 /*
  *  Hamlib AOR backend - SR2200 description
  *
- *  Copyright (c) 2000-2008 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *  Author: Stefano Speretta, Innovative Solutions In Space BV
  *
@@ -90,18 +90,18 @@
 
 static int sr2200_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 
-int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width);
+static int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwidth_t *width);
 
 static int sr2200_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
 
-int sr2200_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int sr2200_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+static int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 
-int sr2200_get_vfo(RIG *rig, vfo_t *vfo);
-int sr2200_set_vfo(RIG *rig, vfo_t vfo);
+static int sr2200_get_vfo(RIG *rig, vfo_t *vfo);
+static int sr2200_set_vfo(RIG *rig, vfo_t vfo);
 
-int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
-int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+static int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val);
+static int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
 
 static const struct aor_priv_caps sr2200_priv_caps = {
     .bank_base1 = '0',
@@ -174,7 +174,10 @@ const struct rig_caps sr2200_caps = {
 
     .tx_range_list1 =  { RIG_FRNG_END, },
 
-    .rx_range_list2 =  { RIG_FRNG_END, }, /* rx range */
+    .rx_range_list2 =  {
+	{MHz(25),MHz(3000),SR2200_MODES,-1,-1,SR2200_VFO},
+	RIG_FRNG_END,
+	},
 
     .tx_range_list2 =  { RIG_FRNG_END, },	/* no tx range, this is a scanner! */
 
@@ -201,11 +204,11 @@ const struct rig_caps sr2200_caps = {
     },
         /* mode/filter list, .remember =  order matters! */
     .filters =  {
-	{RIG_MODE_WAM, kHz(15)},
-	{RIG_MODE_SFM, kHz(6)},
 	{RIG_MODE_AM, kHz(6)},
+	{RIG_MODE_AM, kHz(15)},
 	{RIG_MODE_FM, kHz(15)},    /* narrow */
-	{RIG_MODE_WFM, kHz(3000)}, /*  wide  */
+	{RIG_MODE_FM, kHz(6)},
+	{RIG_MODE_WFM, kHz(300)}, /*  wide  */
 	RIG_FLT_END,
     },
 
@@ -361,13 +364,19 @@ int sr2200_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 {
 	char mdbuf[BUFSZ];
 	int mdbuf_len, aormode, retval;
+	pbwidth_t normal_width;
+
+	normal_width = rig_passband_normal(rig, mode);
+
+	if (width == 0)
+		width = normal_width;
 
 	switch (mode) {
-	case RIG_MODE_AM:      	aormode = '2'; break;
-	case RIG_MODE_FM:	    aormode = '0'; break;
-	case RIG_MODE_WFM:	    aormode = '1'; break;
-	case RIG_MODE_SFM:      aormode = '3'; break;
-	case RIG_MODE_WAM:		aormode = '4'; break;
+	case RIG_MODE_AM:      	aormode = width > normal_width ?
+							SR2200_WAM : SR2200_AM; break;
+	case RIG_MODE_FM:	    aormode = width < normal_width ?
+							SR2200_SFM : SR2200_FM; break;
+	case RIG_MODE_WFM:	    aormode = SR2200_WFM; break;
 	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode %d\n",
 					__FUNCTION__,mode);
@@ -410,8 +419,8 @@ int parse_s2200_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, p
     switch (aormode) {
 	case SR2200_FM:		*mode = RIG_MODE_FM; break;
 	case SR2200_AM:		*mode = RIG_MODE_AM; break;
-	case SR2200_SFM:	*mode = RIG_MODE_SFM; break;
-	case SR2200_WAM:	*mode = RIG_MODE_WAM; break;
+	case SR2200_SFM:	*mode = RIG_MODE_FM; break;
+	case SR2200_WAM:	*mode = RIG_MODE_AM; break;
 	case SR2200_WFM:	*mode = RIG_MODE_WFM; break;
 	default:
 	    rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
