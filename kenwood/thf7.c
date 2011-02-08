@@ -40,7 +40,7 @@
 
 
 /*
- * How increadible, there's no RIG_LEVEL_STRENGTH!
+ * How incredible, there's no RIG_LEVEL_STRENGTH!
  */
 #define THF7_LEVEL_ALL (RIG_LEVEL_SQL|RIG_LEVEL_RFPOWER|RIG_LEVEL_ATT|\
         RIG_LEVEL_BALANCE|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY)
@@ -97,7 +97,8 @@ static struct kenwood_priv_caps  thf7_priv_caps  = {
 
 static int thf7e_init(RIG *rig);
 static int thf7e_open(RIG *rig);
-static int thf7_get_vfo (RIG *rig, vfo_t *vfo);
+static int thf7e_get_vfo (RIG *rig, vfo_t *vfo);
+static int thf7e_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /*
  * TH-F7E rig capabilities.
@@ -242,10 +243,10 @@ const struct rig_caps thf7e_caps = {
 	.set_mode	= th_set_mode,
 	.get_mode	= th_get_mode,
 	.set_vfo	= th_set_vfo,
-	.get_vfo	= thf7_get_vfo,
+	.get_vfo	= thf7e_get_vfo,
 	.set_ptt	= th_set_ptt,
 	.get_dcd	= th_get_dcd,
-	.vfo_op		= kenwood_vfo_op,
+	.vfo_op		= thf7e_vfo_op,
 	.set_mem	= th_set_mem,
 	.get_mem	= th_get_mem,
 
@@ -291,7 +292,7 @@ int thf7e_open(RIG *rig)
  * Assumes rig!=NULL
  */
 int
-thf7_get_vfo(RIG *rig, vfo_t *vfo)
+thf7e_get_vfo(RIG *rig, vfo_t *vfo)
 {
 	char vfoch;
 	int retval;
@@ -318,3 +319,35 @@ thf7_get_vfo(RIG *rig, vfo_t *vfo)
 
 	return RIG_OK;
 }
+
+/*
+ * thf7e_vfo_op
+ */
+int thf7e_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	switch(op) {
+	case RIG_OP_UP:
+		return kenwood_simple_cmd(rig, "UP");
+
+	case RIG_OP_DOWN:
+		return kenwood_simple_cmd(rig, "DW");
+/*	Not implemented!
+	case RIG_OP_BAND_UP:
+		return kenwood_simple_cmd(rig, "BU");
+
+	case RIG_OP_BAND_DOWN:
+		return kenwood_simple_cmd(rig, "BD");
+*/
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported op %#x\n",
+					__func__, op);
+		return -RIG_EINVAL;
+	}
+}
+
+
