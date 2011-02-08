@@ -168,6 +168,7 @@ static struct usb_dev_handle *find_and_open_device(const hamlib_port_t *port)
 int usb_port_open(hamlib_port_t *port)
 {
 	struct usb_dev_handle *udh;
+    char *p, *q;
 
     usb_init ();	/* usb library init */
     if (usb_find_busses () < 0)
@@ -176,6 +177,31 @@ int usb_port_open(hamlib_port_t *port)
     if (usb_find_devices() < 0)
         rig_debug(RIG_DEBUG_ERR, "%s: usb_find_devices failed %s\n",
 			__func__, usb_strerror());
+
+    p = port->pathname;
+    q = strchr(p, ':');
+    if (q) {
+        if (q != p+1)
+            port->parm.usb.vid = strtol(q, NULL, 16);
+        p = q+1;
+        q = strchr(p, ':');
+        if (q) {
+            if (q != p+1)
+                port->parm.usb.pid = strtol(q, NULL, 16);
+            p = q+1;
+            q = strchr(p, ':');
+            if (q) {
+                if (q != p+1)
+                    port->parm.usb.vendor_name = q;
+                p = q+1;
+                q = strchr(p, ':');
+                if (q) {
+                    if (q != p+1)
+                        port->parm.usb.product = q;
+                }
+            }
+        }
+    }
 
     udh = find_and_open_device(port);
     if (udh == 0)
