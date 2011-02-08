@@ -4,11 +4,9 @@
  *  Copyright (c) 2010 by Scott Martin
  *
  *  10-03-2010
- *  	Ported from Stephane Fillod's thf7.c
- *	Changed TH-F7E perameters to reflect TH-F6A
- *  	Changed RIG_ITU_REGION from 1 to 2		
- *	
- *	$Id: thf7.c,v 1.17 2009-02-03 23:22:58 azummo Exp $
+ *    Ported from Stephane Fillod's thf7.c
+ *    Changed TH-F7E perameters to reflect TH-F6A
+ *    Changed RIG_ITU_REGION from 1 to 2
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -46,7 +44,7 @@
 
 
 /*
- * How increadible, there's no RIG_LEVEL_STRENGTH!
+ * How incredible, there's no RIG_LEVEL_STRENGTH!
  */
 #define THF6_LEVEL_ALL (RIG_LEVEL_SQL|RIG_LEVEL_RFPOWER|RIG_LEVEL_ATT|\
         RIG_LEVEL_BALANCE|RIG_LEVEL_VOXGAIN|RIG_LEVEL_VOXDELAY)
@@ -64,15 +62,15 @@
 	TH_CHANNEL_CAPS,\
 	.flags=1,	\
 	.dcs_code=1,	\
-	.dcs_sql=1,	
+	.dcs_sql=1,
 
 #define THF6_CHANNEL_CAPS_WO_LO	\
 	TH_CHANNEL_CAPS,\
 	.dcs_code=1,	\
-	.dcs_sql=1,	
+	.dcs_sql=1,
 
 /* CTCSS 01..42 */
-static const tone_t THF6_ctcss_list[] = {
+static const tone_t thf6_ctcss_list[] = {
    670,  693,  719,  744,  770,  797,  825,  854,  885,  915,
    948,  974, 1000, 1035, 1072, 1109, 1148, 1188, 1230, 1273,
   1318, 1365, 1413, 1462, 1514, 1567, 1622, 1679, 1738, 1799,
@@ -81,7 +79,7 @@ static const tone_t THF6_ctcss_list[] = {
   0
 };
 
-static rmode_t THF6_mode_table[KENWOOD_MODE_TABLE_MAX] = {
+static rmode_t thf6_mode_table[KENWOOD_MODE_TABLE_MAX] = {
 	[0] = RIG_MODE_FM,
 	[1] = RIG_MODE_WFM,
 	[2] = RIG_MODE_AM,
@@ -96,14 +94,15 @@ static rmode_t THF6_mode_table[KENWOOD_MODE_TABLE_MAX] = {
  */
 #define THF6_VFO (RIG_VFO_A|RIG_VFO_B)
 
-static struct kenwood_priv_caps  THF6_priv_caps  = {
+static struct kenwood_priv_caps  thf6_priv_caps  = {
     .cmdtrm =  EOM_TH,   /* Command termination character */
-    .mode_table = THF6_mode_table,
+    .mode_table = thf6_mode_table,
 };
 
 static int thf6a_init(RIG *rig);
 static int thf6a_open(RIG *rig);
 static int thf6a_get_vfo (RIG *rig, vfo_t *vfo);
+static int thf6a_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
 
 /*
  * TH-F6A rig capabilities.
@@ -147,7 +146,7 @@ const struct rig_caps thf6a_caps = {
         [LVL_RFPOWER] = { .min = { .i = 2 }, .max = { .i = 0 } },
 },
 .parm_gran =  {},
-.ctcss_list =  THF6_ctcss_list,
+.ctcss_list =  thf6_ctcss_list,
 .dcs_list =  common_dcs_list,
 .preamp =   { RIG_DBLST_END, },
 .attenuator =   { 20, RIG_DBLST_END, },
@@ -161,7 +160,7 @@ const struct rig_caps thf6a_caps = {
 .chan_desc_sz =  8,
 
 
-.chan_list =  { 
+.chan_list =  {
 		{  0,  399, RIG_MTYPE_MEM , {THF6_CHANNEL_CAPS}},  /* normal MEM */
 		{  400,409, RIG_MTYPE_EDGE, {THF6_CHANNEL_CAPS}},  /* L0-L9 lower scan limit */
 		{  410,419, RIG_MTYPE_EDGE, {THF6_CHANNEL_CAPS}},  /* U0-U9 upper scan limit */
@@ -237,7 +236,7 @@ const struct rig_caps thf6a_caps = {
 		RIG_FLT_END,
 	},
 
-	.priv		=  (void *)&THF6_priv_caps,
+	.priv		=  (void *)&thf6_priv_caps,
 
 	.rig_init	= thf6a_init,
 	.rig_cleanup	= kenwood_cleanup,
@@ -251,7 +250,7 @@ const struct rig_caps thf6a_caps = {
 	.get_vfo	= thf6a_get_vfo,
 	.set_ptt	= th_set_ptt,
 	.get_dcd	= th_get_dcd,
-	.vfo_op		= kenwood_vfo_op,
+	.vfo_op		= thf6a_vfo_op,
 	.set_mem	= th_set_mem,
 	.get_mem	= th_get_mem,
 
@@ -324,3 +323,35 @@ thf6a_get_vfo(RIG *rig, vfo_t *vfo)
 
 	return RIG_OK;
 }
+
+/*
+ * thf6a_vfo_op
+ */
+int thf6a_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+	switch(op) {
+	case RIG_OP_UP:
+		return kenwood_simple_cmd(rig, "UP");
+
+	case RIG_OP_DOWN:
+		return kenwood_simple_cmd(rig, "DW");
+/*	Not implemented!
+	case RIG_OP_BAND_UP:
+		return kenwood_simple_cmd(rig, "BU");
+
+	case RIG_OP_BAND_DOWN:
+		return kenwood_simple_cmd(rig, "BD");
+*/
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: unsupported op %#x\n",
+					__func__, op);
+		return -RIG_EINVAL;
+	}
+}
+
+
