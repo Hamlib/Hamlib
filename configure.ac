@@ -10,6 +10,7 @@ AC_PREREQ(2.59)
 dnl Please do not use '-' in the version number, 'make rpm' will fail
 AC_INIT([hamlib],[1.2.13svn],[hamlib-developer@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
+AC_CONFIG_MACRO_DIR([macros])
 
 ## ------------------------ ##
 ## Automake Initialisation. ##
@@ -168,14 +169,13 @@ AC_LIBOBJ(dummy)
 ## ------------------------ ##
 ## libtool  Initialisation. ##
 ## ------------------------ ##
-LT_INIT([dlopen], [win32-dll])
-########## EITHER select the system's libltdl (do not distribute libltdl/):
-#INCLTDL=""
-#LIBLTDL="-lltdl"
-########## OR select (build, use, and distribute) the embedded libltdl/:
-LT_CONFIG_LTDL_DIR([libltdl])
-LTDL_INIT([convenience])
-########## END
+## N.b. LT_INIT([dlopen], [win32-dll])  does not work for older libtool
+AC_LIBTOOL_DLOPEN
+AC_LIBTOOL_WIN32_DLL
+AC_PROG_LIBTOOL
+AM_PROG_LIBTOOL
+INCLTDL=""
+LIBLTDL="-lltdl"
 AC_SUBST(INCLTDL)
 AC_SUBST(LIBLTDL)
 

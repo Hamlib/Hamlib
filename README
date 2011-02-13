@@ -70,7 +70,7 @@ That is, if you want to take part in the development of Hamlib, you'll need
 at least the following tools:
     * autoconf > 2.54
     * automake > 1.7
-    * libtool  > 1.5|2.2.6
+    * libtool  >= 2.2.6b
     * doxygen
     * svn and ssh to connect to http://sourceforge.net/
 

@@ -71,28 +71,6 @@ test $TEST_TYPE $FILE || {
         exit 1
 }
 
-# Check system's libtool version versus our bundled libtool version
-# Upgrade our bundled libtool only if stale
-do_libtoolize=""
-our_lt_version=`grep '^VERSION=' ltmain.sh | sed 's/VERSION="\([^ ]*\).*$/\1/'`
-sys_lt_version=`libtoolize --version | ( read x x x vvv && echo $vvv )`
-if test -z "$our_lt_version" ; then
-        echo "W: ltmain.sh not found (libtool no longer bundled?); skipping libtoolize."
-elif test "$sys_lt_version" = "$our_lt_version"; then
-	echo "I: system libtool $sys_lt_version == bundled libtool $our_lt_version; skipping libtoolize."
-else
-	newer=`echo -e "$sys_lt_version\n$our_lt_version" | sort | tail -1`
-	if test "$newer" = "$our_lt_version"; then
-	    echo "I: system libtool $sys_lt_version <= bundled libtool $our_lt_version; skipping libtoolize."
-	else
-	    do_libtoolize="yes"
-	    ltz_opt="-c -i --force"
-	    echo "I: system libtool $sys_lt_version >  bundled libtool $our_lt_version."
-	    echo "I: Updating bundled libtool to version $sys_lt_version with:"
-	    echo "I:   $LIBTOOLIZE $ltz_opt"
-	fi
-fi
-
 if test -z "$*"; then
         echo "I am going to run ./configure with no arguments - if you wish "
         echo "to pass any to it, please specify them on the $0 command line."
@@ -108,9 +86,7 @@ $ACLOCAL $ACLOCAL_FLAGS
 # optionally feature autoheader
 ($AUTOHEADER --version)  < /dev/null > /dev/null 2>&1 && $AUTOHEADER
 
-if test "$do_libtoolize" = "yes" ; then
-    $LIBTOOLIZE $ltz_opt
-fi
+$LIBTOOLIZE $ltz_opt
 $AUTOMAKE -a $am_opt
 $AUTOCONF
 cd $ORIGDIR

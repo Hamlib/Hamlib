@@ -8,8 +8,6 @@ MACROS = \
 	gr_pwin32.m4 \
 	gr_swig.m4 \
 	hl_getaddrinfo.m4 \
-	libtool.m4 \
-	ltdl.m4 \
 	perl.m4 \
 	ac_python_devel.m4 \
 	tcl.m4

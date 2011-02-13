@@ -72,9 +72,7 @@ N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
 package will install a number of tools and minimize the number of packages
 that need to be installed manually.
 
-N.B. Hamlib no longer supports versions of libtool earlier than 2.2.6b in
-compliance with CVE-2009-3736.  If an older version is found, Hamlib will
-use the bundled libtool 2.2.6b instead.
+N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
 
 Optional, but highly recommended for a complete build:
 * GNU C++                           # g++ --version

@@ -17,10 +17,8 @@ Before deciding release:
   so developers have time to check in their contributions.
 
 * Update libtool:
-    macros/{ltdl,libtool}.m4
-    ltmain.sh
-    libltdl/
-  A postfix of libtool in libltdl/Makefile.in may be needed: empty am__aclocal_m4_deps
+    clean the tree
+    sh ./autogen.sh
 
 Releasing Hamlib:
 ----------------
