@@ -179,8 +179,13 @@ LTDL_INIT([convenience])
 AC_SUBST(INCLTDL)
 AC_SUBST(LIBLTDL)
 
-
 case "$host_os" in
+freebsd*)
+	INCLUDES="-I/usr/local/include ${INCLUDES}"
+	AM_LDFLAGS="${AM_LDFLAGS} -L/usr/local/lib"
+	AC_SUBST([AM_LDFLAGS])
+	;;
+
 darwin* | rhapsody*)
   # Trick from http://fink.sourceforge.net/doc/porting/
   # TODO: check the compiler actually does support these options
