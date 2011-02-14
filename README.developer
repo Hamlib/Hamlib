@@ -49,76 +49,69 @@ utility) and USB.  Other connectivity will follow afterwards.
 General Guidelines.
 -------------------
 
-0. The top level directory looks like this as of 19 Jan 2011
+0. The top level directory looks like this as of 13 Feb 2011
 (Note, it has grown considerably).
 
-~/test/hamlib $ tree -d -I .svn
-
+$ tree -d -I .svn
 .
-|-- alinco
-|-- aor
-|-- ars
-|-- bindings
-|-- c++
-|-- doc
-|   `-- sgml
-|-- drake
-|-- dummy
-|-- easycomm
-|-- flexradio
-|-- fodtrack
-|-- gnuradio
-|-- gs232a
-|-- heathkit
-|-- icom
-|-- include
-|   `-- hamlib
-|-- jrc
-|-- kachina
-|-- kenwood
-|-- kit
-|-- kylix
-|   `-- tests
-|-- lib
-|-- libltdl
-|   |-- config
-|   |-- libltdl
-|   |-- loaders
-|   `-- m4
-|-- lowe
-|-- m2
-|-- macros
-|-- microtune
-|-- miniVNA
-|-- pcr
-|-- perl
-|-- prm80
-|-- racal
-|-- rft
-|-- rotorez
-|-- rpcrig
-|-- rpcrot
-|-- rs
-|-- sartek
-|-- skanti
-|-- spid
-|-- src
-|-- tapr
-|-- tentec
-|-- tests
-|   |-- config
-|   |-- rigctl.test
-|   |-- testbcd.test
-|   |-- testfreq.test
-|   `-- testloc.test
-|-- tuner
-|-- uniden
-|-- winradio
-|   `-- linradio
-|-- wj
-`-- yaesu
+├── alinco
+├── aor
+├── ars
+├── bindings
+├── c++
+├── doc
+├── drake
+├── dummy
+├── easycomm
+├── flexradio
+├── fodtrack
+├── gnuradio
+├── gs232a
+├── heathkit
+├── icom
+├── include
+│   └── hamlib
+├── jrc
+├── kachina
+├── kenwood
+├── kit
+├── kylix
+│   └── tests
+├── lib
+├── lowe
+├── m2
+├── macros
+├── microtune
+├── miniVNA
+├── pcr
+├── perl
+├── prm80
+├── racal
+├── rft
+├── rotorez
+├── rpcrig
+├── rpcrot
+├── rs
+├── sartek
+├── skanti
+├── spid
+├── src
+├── tapr
+├── tentec
+├── tests
+│   ├── config
+│   ├── rigctl.test
+│   ├── testbcd.test
+│   ├── testfreq.test
+│   └── testloc.test
+├── tuner
+├── uniden
+├── winradio
+│   └── linradio
+├── wj
+└── yaesu
 
-62 directories
+56 directories
 
 
 1. Building
@@ -188,7 +181,9 @@ that need to be installed manually.
 * libtool       2.2.6b                      # libtool --version
 * svn for connection to hamlib.svn.sourceforge.net
 
-N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
+N.B. Hamlib no longer supports versions of libtool earlier than 2.2.6b in
+compliance with CVE-2009-3736.  If an older version is found, Hamlib will use
+the bundled libtool 2.2.6b instead.
 
 Optional, but highly recommended:
 * GNU C++                           # g++ --version
@@ -315,7 +310,8 @@ developer mailing list, hamlib-developer@lists.sourceforge.net
 Patches are welcome too!  Just send them to the mailing list.  Unified diff
 (diff -u) is the prefered format and patches should apply to the current SVN
 trunk, if possible.  If you're patching against an older released version of
-Hamlib, we can take those as well.
+Hamlib, we can take those as well but please document the base the diff is
+against.
 
 So far, Hamlib has been tested successfully under the following systems:
 (if your system is not present, please report to the mailing list)
@@ -428,7 +424,7 @@ cool GUI development. I would like to see some GTK or Qt apps that use the
 hamlib API's so they can be used by end users as a nice part of the Ham shack.
 
 Starting points (not exhaustive):
-    gmfsk, gpredict, grig, klog, kontakt, ktrack, xlog, xtlf
+    Fldigi, CQRlog, gmfsk, gpredict, grig, klog, kontakt, ktrack, xlog
 
 
 8. Contributing code
@@ -445,6 +441,31 @@ under the GPL, so any contributed code must follow the rule.
 8.2 Coding guidelines and style
 
 Try to keep current style of existing code. Improvements are welcome though.
+When in doubt, follow the Linux kernel coding style guide:
+
+http://www.kernel.org/doc/Documentation/CodingStyle
+
+Hamlib is a code base from many contributors and a variety of styles have
+been employed.  If you work on a source file, go ahead and apply good
+judgement and clean it up per the kernel style guide.  Lining things up
+nicely with 8 space tabs (use tabs, not spaces) is an excellent start.
+Next, put spaces in assignments to aid readability.  Align closing braces
+with the opening block's keyword.  In function definitions put the opening
+brace on its own line under the definition's parameter line.
+
+Hamlib source code is no place for an entry into the obsfucated C contest!
+Many of us are hobbyists and write this for fun.  Easy to read and
+understand logic is preferred over a clever solution.  If your solution must
+be written in a clever fashion, please document it well in your comments.
+
+Any header files included from the hamlib/ directory should be enclosed
+in <>:
+#include <hamlib/rig.h>         # Per GNU GCC documentation
+
+Other included header files (backend and rig specific headers) should be
+enclosed in "":
+#include "yaesu.h"
+
 Contributed code should always keep the source base in a compilable state,
 and not regress unless stated otherwise.
 
