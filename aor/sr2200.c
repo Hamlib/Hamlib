@@ -37,8 +37,8 @@
 
 #define SR2200_FUNC_ALL ()
 
-#define SR2200_LEVEL_GET (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_RAWSTR | RIG_LEVEL_AF | RIG_LEVEL_RF )
-#define SR2200_LEVEL_SET (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_AF | RIG_LEVEL_RF)
+#define SR2200_LEVEL_GET (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_STRENGTH | RIG_LEVEL_AF | RIG_LEVEL_PREAMP )
+#define SR2200_LEVEL_SET (RIG_LEVEL_ATT | RIG_LEVEL_AGC | RIG_LEVEL_AF | RIG_LEVEL_PREAMP)
 
 #define SR2200_PARM (RIG_PARM_NONE)
 
@@ -48,6 +48,8 @@
 #define SR2200_VFO (RIG_VFO_A | RIG_VFO_B | RIG_VFO_C | RIG_VFO_N(3) | RIG_VFO_N(4) \
 					| RIG_VFO_N(5) | RIG_VFO_N(6) | RIG_VFO_N(7) | RIG_VFO_N(8) \
 					| RIG_VFO_N(9))
+
+#define SR2200_PREAMP 10
 
 /*   The data available on http://www.aoruk.com did not match very well on HF */
 #define SR2200_STR_CAL { 16, { \
@@ -150,7 +152,7 @@ const struct rig_caps sr2200_caps = {
     .parm_gran =  {},
     .ctcss_list =  NULL,				/* FIXME: CTCSS list */
     .dcs_list =  NULL,
-    .preamp =   { RIG_DBLST_END, },
+    .preamp =   { SR2200_PREAMP, RIG_DBLST_END, },
     .attenuator =   { 10, 20, RIG_DBLST_END, },
     .max_rit =  Hz(0),
     .max_xit =  Hz(0),
@@ -532,7 +534,7 @@ int sr2200_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 			lvl_len = sprintf(lvlbuf, "AG%03d" EOM,(int)val.f);
 	break;
 
-	case RIG_LEVEL_RF:
+	case RIG_LEVEL_PREAMP:
 		if (val.f > 0)
 			lvl_len = sprintf(lvlbuf, "AM1" EOM);
 		else
@@ -585,8 +587,8 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	rs = &rig->state;
 
 	switch (level) {
-	case RIG_LEVEL_RAWSTR:
-		lvl_len = sprintf(lvlbuf, "LM" EOM);
+	case RIG_LEVEL_STRENGTH:
+		lvl_len = sprintf(lvlbuf, "LB" EOM);
 		break;
 	case RIG_LEVEL_ATT:
 		lvl_len = sprintf(lvlbuf, "AT" EOM);
@@ -597,7 +599,7 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 	case RIG_LEVEL_AF:
 		lvl_len = sprintf(lvlbuf, "AG" EOM);
 		break;
-	case RIG_LEVEL_RF:
+	case RIG_LEVEL_PREAMP:
 		lvl_len = sprintf(lvlbuf, "AM" EOM);
 		break;
 	default:
@@ -611,10 +613,12 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 			return retval;
 
 	switch (level) {
-	case RIG_LEVEL_RAWSTR:
-		if (ack_len < 17 || ackbuf[13] != 'L' || ackbuf[14] != 'M')
+	case RIG_LEVEL_STRENGTH:
+		if (ack_len < 7 || ackbuf[0] != 'L' || ackbuf[1] != 'B')
 			return -RIG_EPROTO;
-		sscanf(ackbuf+15, "%d", &val->i);
+		sscanf(ackbuf+3, "%d", &val->i);
+		// calibrate the S-meter -> values should be referred to S9 (-73 dBm)
+		val->i += 73;
 		break;
 
 	case RIG_LEVEL_ATT:
@@ -640,7 +644,6 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'C')
 			return -RIG_EPROTO;
 
-
 		switch(ackbuf[2]) {
 			case '1': val->i = RIG_AGC_FAST; break;
 			case '3': val->i = RIG_AGC_MEDIUM; break;
@@ -657,10 +660,19 @@ int sr2200_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
 		sscanf(ackbuf+2, "%f", &val->f);
 		break;
 
-	case RIG_LEVEL_RF:
+	case RIG_LEVEL_PREAMP:
 			if (ack_len < 3 || ackbuf[0] != 'A' || ackbuf[1] != 'M')
 			return -RIG_EPROTO;
-		sscanf(ackbuf+2, "%f", &val->f);
+		float tmp;
+		sscanf(ackbuf+2, "%f", &tmp);
+		if (tmp != 0.0)
+		{
+			val->i = SR2200_PREAMP;
+		}
+		else
+		{
+			val->i = 0;
+		}
 		break;
 
 	default:
