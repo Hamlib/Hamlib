@@ -73,5 +73,6 @@ extern const struct rig_caps frg100_caps;
 extern const struct rig_caps frg8800_caps;
 extern const struct rig_caps frg9600_caps;
 extern const struct rig_caps vr5000_caps;
+extern const struct rig_caps vx1700_caps;
 
 #endif /* _YAESU_H */

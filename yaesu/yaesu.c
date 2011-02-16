@@ -61,6 +61,7 @@ static const struct yaesu_id yaesu_id_list[] = {
 	{ RIG_MODEL_FT1000MP, 0x03, 0x93 },
 	{ RIG_MODEL_FT1000MPMKV, 0x03, 0x93 }, /* or 0x10, 0x00 ? */
 	{ RIG_MODEL_FT1000MPMKVFLD, 0x03, 0x93 },
+	{ RIG_MODEL_VX1700, 0x06, 0x04 },
 	{ RIG_MODEL_NONE, UNKNOWN_ID, UNKNOWN_ID },	/* end marker */
 };
 
@@ -102,6 +103,7 @@ DECLARE_INITRIG_BACKEND(yaesu)
   rig_register(&frg8800_caps);
   rig_register(&frg9600_caps);
   rig_register(&vr5000_caps);
+  rig_register(&vx1700_caps);
 
   return RIG_OK;
 }
