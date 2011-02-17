@@ -145,8 +145,10 @@ static struct usb_dev_handle *find_and_open_device(const hamlib_port_t *port)
               }
               rig_debug(RIG_DEBUG_TRACE, " product >%s<", string);
               if (strcmp(string, port->parm.usb.product) != 0){
-                usb_close(udh);
-                continue;
+				if (strstr(string, port->parm.usb.product) != 0){
+					usb_close(udh);
+					continue;
+				}
               }
           }
 
