@@ -28,7 +28,7 @@
 #define VID									0x04D8
 #define PID									0xFB56
 #define VENDOR_NAME							"Hanlincrest Ltd.         "
-#define PRODUCT_NAME						"FunCube Dongle V0.0  "
+#define PRODUCT_NAME						"FunCube Dongle"
 
 #define FUNCUBE_INTERFACE					0x02
 #define FUNCUBE_CONFIGURATION				0x00
@@ -39,5 +39,12 @@
 
 // Commands
 #define REQUEST_SET_FREQ					0x64
+#define REQUEST_SET_FREQ_HZ					0x65
+#define REQUEST_GET_FREQ_HZ					0x66
+#define REQUEST_SET_LNA_GAIN				0x6E
+#define REQUEST_GET_LNA_GAIN				0x96
+#define REQUEST_GET_RSSI					0x68
+
+#define FUNCUBE_SUCCESS						0x01
 
 #endif	/* _FUNCUBE_H */
