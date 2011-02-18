@@ -16,9 +16,9 @@
  *   License along with this library; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA
  *
- *  See the file 'COPYING.LIB' in the main Hamlib distribution directory for 
+ *  See the file 'COPYING.LIB' in the main Hamlib distribution directory for
  *  the complete text of the GNU Lesser Public License version 2.
- * 
+ *
  */
 
 #include <string.h>
@@ -35,13 +35,13 @@ static const struct elec_ext_id_str elec_ext_id_str_lst[] = {
 	{ K23, "K23" },
 	{ K30, "K30" },
 	{ K31, "K31" },
-	{ EXT_LEVEL_NONE, NULL },		/* end marker */
+	{ EXT_LEVEL_NONE, NULL },	/* end marker */
 };
 
 
 /* Private Elecraft extra levels definitions
- * 
- * Token definitions for .cfgparams in rig_caps 
+ *
+ * Token definitions for .cfgparams in rig_caps
  * See enum rig_conf_e and struct confparams in rig.h
  */
 const struct confparams elecraft_ext_levels[] = {
@@ -63,13 +63,13 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level);
 /* Shared backend function definitions */
 
 /* elecraft_open()
- * 
+ *
  * First checks for ID of '017' then tests for an Elecraft radio/backend using
  * the K2; command.  Here we also test for a K3 and if that fails, assume a K2.
  * Finally, save the value for later reading.
- * 
+ *
  */
- 
+
 int elecraft_open(RIG *rig)
 {
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
@@ -81,10 +81,10 @@ int elecraft_open(RIG *rig)
 	char id[KENWOOD_MAX_BUF_LEN];
 
 	/* Actual read extension levels from radio.
-	 * 
+	 *
 	 * The value stored in the k?_ext_lvl variables map to
 	 * elec_ext_id_str_lst.level and is only written to by the
-	 * elecraft_get_extension_level() private function during elecraft_open() 
+	 * elecraft_get_extension_level() private function during elecraft_open()
 	 * and thereafter shall be treated as READ ONLY!
 	 */
 	struct kenwood_priv_data *priv = rig->state.priv;
@@ -95,34 +95,34 @@ int elecraft_open(RIG *rig)
 		return err;
 
 	switch(rig->caps->rig_model) {
-		case RIG_MODEL_K2:
-			err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
-			if (err != RIG_OK)
-				return err;
+	case RIG_MODEL_K2:
+		err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
+		if (err != RIG_OK)
+			return err;
 
-			rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__, 
-				priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
+		rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__,
+			priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
 
-			break;
-		case RIG_MODEL_K3:
-			err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
-			if (err != RIG_OK)
-				return err;
+		break;
+	case RIG_MODEL_K3:
+		err = elecraft_get_extension_level(rig, "K2", &priv->k2_ext_lvl);
+		if (err != RIG_OK)
+			return err;
 
-			rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__, 
-				priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
+		rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__,
+			priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
 
-			err = elecraft_get_extension_level(rig, "K3", &priv->k3_ext_lvl);
-			if (err != RIG_OK)
-				return err;
+		err = elecraft_get_extension_level(rig, "K3", &priv->k3_ext_lvl);
+		if (err != RIG_OK)
+			return err;
 
-			rig_debug(RIG_DEBUG_ERR, "%s: K3 level is %d, %s\n", __func__, 
-				priv->k3_ext_lvl, elec_ext_id_str_lst[priv->k3_ext_lvl].id);
-			break;
-		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: unrecognized rig model %d\n", 
-				__func__, rig->caps->rig_model);
-			return -RIG_EINVAL;
+		rig_debug(RIG_DEBUG_ERR, "%s: K3 level is %d, %s\n", __func__,
+			priv->k3_ext_lvl, elec_ext_id_str_lst[priv->k3_ext_lvl].id);
+		break;
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: unrecognized rig model %d\n",
+			__func__, rig->caps->rig_model);
+		return -RIG_EINVAL;
 	}
 
 	return RIG_OK;

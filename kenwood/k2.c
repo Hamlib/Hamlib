@@ -39,7 +39,7 @@
 #define K2_FUNC_ALL (RIG_FUNC_NB|RIG_FUNC_LOCK)
 
 #define K2_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
-		RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD)
+	RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD)
 
 #define K2_VFO (RIG_VFO_A|RIG_VFO_B)
 #define K2_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
@@ -59,7 +59,7 @@ static struct kenwood_priv_caps k2_priv_caps  = {
 /* K2 Filter list, four per mode */
 struct k2_filt_s {
 	shortfreq_t width;	/* Filter width in Hz */
-	char fslot;			/* Crystal filter slot number--1-4 */
+	char fslot;		/* Crystal filter slot number--1-4 */
 	char afslot;		/* AF filter slot number--0-2 */
 };
 
@@ -103,13 +103,13 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd);
 const struct rig_caps k2_caps = {
 	.rig_model =		RIG_MODEL_K2,
 	.model_name =		"K2",
-	.mfg_name =			"Elecraft",
-	.version =			"20110118",
+	.mfg_name =		"Elecraft",
+	.version =		"20110118",
 	.copyright =		"LGPL",
-	.status =			RIG_STATUS_BETA,
-	.rig_type =			RIG_TYPE_TRANSCEIVER,
-	.ptt_type =			RIG_PTT_RIG,
-	.dcd_type =			RIG_DCD_RIG,
+	.status =		RIG_STATUS_BETA,
+	.rig_type =		RIG_TYPE_TRANSCEIVER,
+	.ptt_type =		RIG_PTT_RIG,
+	.dcd_type =		RIG_DCD_RIG,
 	.port_type =		RIG_PORT_SERIAL,
 	.serial_rate_min =	4800,
 	.serial_rate_max =	4800,
@@ -117,10 +117,10 @@ const struct rig_caps k2_caps = {
 	.serial_stop_bits =	2,
 	.serial_parity =	RIG_PARITY_NONE,
 	.serial_handshake =	RIG_HANDSHAKE_NONE,
-	.write_delay =		0,		/* Timing between bytes */
+	.write_delay =		0,	/* Timing between bytes */
 	.post_write_delay =	100,	/* Timing between command strings */
-	.timeout =			600,	/* FA and FB make take up to 500 ms on band change */
-	.retry =			3,
+	.timeout =		600,	/* FA and FB make take up to 500 ms on band change */
+	.retry =		3,
 
 	.has_get_func =		K2_FUNC_ALL,
 	.has_set_func =		K2_FUNC_ALL,
@@ -128,19 +128,19 @@ const struct rig_caps k2_caps = {
 	.has_set_level =	RIG_LEVEL_SET(K2_LEVEL_ALL),
 	.has_get_parm =		RIG_PARM_NONE,
 	.has_set_parm =		RIG_PARM_NONE,	/* FIXME: parms */
-	.level_gran =		{},				/* FIXME: granularity */
+	.level_gran =		{},		/* FIXME: granularity */
 	.parm_gran =		{},
 	.extlevels = 		elecraft_ext_levels,
-	.extparms =			kenwood_cfg_params,
-	.preamp =			{ 14, RIG_DBLST_END, },
+	.extparms =		kenwood_cfg_params,
+	.preamp =		{ 14, RIG_DBLST_END, },
 	.attenuator =		{ 10, RIG_DBLST_END, },
-	.max_rit =			Hz(9990),
-	.max_xit =			Hz(9990),
+	.max_rit =		Hz(9990),
+	.max_xit =		Hz(9990),
 	.max_ifshift =		Hz(0),
-	.vfo_ops =			K2_VFO_OP,
+	.vfo_ops =		K2_VFO_OP,
 	.targetable_vfo =	RIG_TARGETABLE_FREQ,
 	.transceive =		RIG_TRN_RIG,
-	.bank_qty =			0,
+	.bank_qty =		0,
 	.chan_desc_sz =		0,
 
 	.chan_list =		{ RIG_CHAN_END },
@@ -193,7 +193,7 @@ const struct rig_caps k2_caps = {
 	.priv =  (void *)&k2_priv_caps,
 
 	.rig_init =		kenwood_init,
-	.rig_cleanup =	kenwood_cleanup,
+	.rig_cleanup =		kenwood_cleanup,
 	.rig_open =		k2_open,
 	.set_freq =		kenwood_set_freq,
 	.get_freq =		kenwood_get_freq,
@@ -214,8 +214,8 @@ const struct rig_caps k2_caps = {
 	.get_func =		kenwood_get_func,
 	.set_ext_parm =		kenwood_set_ext_parm,
 	.get_ext_parm =		kenwood_get_ext_parm,
-	.set_level =	kenwood_set_level,
-	.get_level = 	kenwood_get_level,
+	.set_level =		kenwood_set_level,
+	.get_level = 		kenwood_get_level,
 	.get_ext_level =	k2_get_ext_level,
 	.vfo_op =		kenwood_vfo_op,
 	.set_trn =		kenwood_set_trn,
@@ -223,7 +223,7 @@ const struct rig_caps k2_caps = {
 	.get_trn =		kenwood_get_trn,
 	.set_ant =		kenwood_set_ant,
 	.get_ant =		kenwood_get_ant,
-	.send_morse =	kenwood_send_morse,
+	.send_morse =		kenwood_send_morse,
 
 };
 
@@ -279,23 +279,23 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 
 	/* Select the filter array per mode. */
 	switch(mode) {
-		case RIG_MODE_LSB:
-		case RIG_MODE_USB:
-			flt = &k2_fwmd_ssb;
-			break;
-		case RIG_MODE_CW:
-		case RIG_MODE_CWR:
-			flt = &k2_fwmd_cw;
-			break;
-		case RIG_MODE_RTTY:
-		case RIG_MODE_RTTYR:
-			if (priv->k2_md_rtty == 0)
-				return -RIG_EINVAL;		/* RTTY module not installed */
-			else
-				flt = &k2_fwmd_rtty;
-			break;
-		default:
-			return -RIG_EINVAL;
+	case RIG_MODE_LSB:
+	case RIG_MODE_USB:
+		flt = &k2_fwmd_ssb;
+		break;
+	case RIG_MODE_CW:
+	case RIG_MODE_CWR:
+		flt = &k2_fwmd_cw;
+		break;
+	case RIG_MODE_RTTY:
+	case RIG_MODE_RTTYR:
+		if (priv->k2_md_rtty == 0)
+			return -RIG_EINVAL;		/* RTTY module not installed */
+		else
+			flt = &k2_fwmd_rtty;
+		break;
+	default:
+		return -RIG_EINVAL;
 	}
 
 	/* Step through the filter list looking for the best match
@@ -303,7 +303,7 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	 * that is wide enough for the width without being too narrow
 	 * if possible.
 	 */
-	if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width) 
+	if (width > flt->filt_list[0].width || ((flt->filt_list[0].width >= width)
 		&& (width > flt->filt_list[1].width))) {
 		width = flt->filt_list[0].width;
 		f = '1';
@@ -316,12 +316,13 @@ int k2_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	} else if ((flt->filt_list[3].width >= width) && (width >= freq)) {
 		width = flt->filt_list[3].width;
 		f = '4';
-	} else
+	} else {
 		return -RIG_EINVAL;
+	}
 
 	/* Construct the filter command and set the radio mode and width*/
 	snprintf(fcmd, 8, "FW0000%c", f);
-	
+
 	/* kenwood_set_mode() ignores width value for K2/K3/TS-570 */
 	err = kenwood_set_mode(rig, vfo, mode, width);
 	if (err != RIG_OK)
@@ -393,13 +394,13 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 
 
 /* TQ command is a quick transmit status query--K2/K3 only.
- * 
+ *
  * token	Defined in elecraft.h or this file
  * val		Type depends on token type from confparams structure:
- * 			NUMERIC: val.f
- * 			COMBO: val.i, starting from 0 Index to a string table.
- * 			STRING: val.cs for set, val.s for get
- * 			CHECKBUTTON: val.i 0/1
+ * 		NUMERIC: val.f
+ * 		COMBO: val.i, starting from 0 Index to a string table.
+ * 		STRING: val.cs for set, val.s for get
+ * 		CHECKBUTTON: val.i 0/1
  */
 int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 {
@@ -415,22 +416,22 @@ int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 	cfp = rig_ext_lookup_tok(rig, token);
 
 	switch(token) {
-		case TOK_TX_STAT:
-			err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 4);
-			if (err != RIG_OK)
-				return err;
-			if (cfp->type == RIG_CONF_CHECKBUTTON) {
-				val->i = atoi(&buf[2]);
-			} else {
-				rig_debug(RIG_DEBUG_ERR, "%s: protocol error, invalid token type\n",
-					__func__);
-				return -RIG_EPROTO;
-			}
-			break;
-		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_ext_level %d\n", 
-				__func__, token);
-			return -RIG_EINVAL;
+	case TOK_TX_STAT:
+		err = kenwood_safe_transaction(rig, "TQ", buf, KENWOOD_MAX_BUF_LEN, 4);
+		if (err != RIG_OK)
+			return err;
+		if (cfp->type == RIG_CONF_CHECKBUTTON) {
+			val->i = atoi(&buf[2]);
+		} else {
+			rig_debug(RIG_DEBUG_ERR, "%s: protocol error, invalid token type\n",
+				__func__);
+			return -RIG_EPROTO;
+		}
+		break;
+	default:
+		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_ext_level %d\n",
+			__func__, token);
+		return -RIG_EINVAL;
 	}
 
 	return RIG_OK;
@@ -507,7 +508,7 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 			strcpy(cmd, "MD3");		/* CW */
 		else if (c == 2)
 			strcpy(cmd, "MD6");		/* RTTY */
-		else {						/* Oops! */
+		else {					/* Oops! */
 			err = k2_mdfw_rest(rig, mode, fw);
 			if (err != RIG_OK)
 				return err;

@@ -21,7 +21,7 @@
 #ifndef _ELECRAFT_H
 #define _ELECRAFT_H 1
 
-#include "hamlib/rig.h"
+#include <hamlib/rig.h>
 
 /* The Elecraft Programmer's Reference details the extension level that
  * a K2 or K3 may have in effect which modify certain commands.
@@ -35,7 +35,7 @@ enum elec_ext_id_e {
 	K22,		/* K2 Extended mode */
 	K23,		/* K2 Extended mode/rtty_off */
 	K30,		/* K3 Normal mode */
-	K31			/* K3 Extended mode */
+	K31		/* K3 Extended mode */
 };
 
 struct elec_ext_id_str {
@@ -45,19 +45,19 @@ struct elec_ext_id_str {
 
 /* Data sub-modes are provided from the K3 via the DT command */
 enum k3_data_submodes_e {
-	K3_MODE_DATA_A = 0,		/* DT0; */
-	K3_MODE_AFSK_A,			/* DT1; */
-	K3_MODE_FSK_D,			/* DT2; */
-	K3_MODE_PSK_D			/* DT3; */
+	K3_MODE_DATA_A = 0,	/* DT0; */
+	K3_MODE_AFSK_A,		/* DT1; */
+	K3_MODE_FSK_D,		/* DT2; */
+	K3_MODE_PSK_D		/* DT3; */
 };
 
 
-/* Private tokens used for ext_lvl function in Elecraft backends.  
+/* Private tokens used for ext_lvl function in Elecraft backends.
  * Extra levels which are rig specific should be coded in
  * the individual rig files and token #s >= 101.
  */
-#define TOK_IF_FREQ TOKEN_BACKEND(101)    /* K3 FI command */
-#define TOK_TX_STAT TOKEN_BACKEND(102)    /* K3 TQ command */
+#define TOK_IF_FREQ TOKEN_BACKEND(101)	/* K3 FI command */
+#define TOK_TX_STAT TOKEN_BACKEND(102)	/* K3 TQ command */
 
 /* Token structure assigned to .cfgparams in rig_caps */
 extern const struct confparams elecraft_ext_levels[];
