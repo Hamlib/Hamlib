@@ -66,6 +66,8 @@ int k3_set_vfo(RIG *rig, vfo_t vfo);
 int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int k3_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
+int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width);
+int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width);
 
 
 /* Private helper functions */
@@ -73,7 +75,7 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit);
 
 
 /*
- * KIO3 rig capabilities.
+ * K3 rig capabilities.
  * This kit can recognize a large subset of TS-570/K2 commands and has many
  * extensions of its own.  Extension backend functions to standard Kenwood
  * command are defined in elecraft.c (shared with K2) and in this file.
@@ -188,6 +190,8 @@ const struct rig_caps k3_caps = {
 	.get_mode =		k3_get_mode,
 	.set_vfo =		k3_set_vfo,
 	.get_vfo =		kenwood_get_vfo_if,
+	.set_split_mode =	k3_set_split_mode,
+	.get_split_mode =	k3_get_split_mode,
 	.set_split_vfo =	kenwood_set_split_vfo,
 	.get_split_vfo =	kenwood_get_split_vfo_if,
 	.set_rit =		k3_set_rit,
@@ -469,11 +473,11 @@ int k3_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 		return -RIG_EINVAL;
 
 	if (rit == 0)
-		snprintf(&func, 4, "RT0");
+		snprintf(func, 4, "RT0");
 	else
-		snprintf(&func, 4, "RT1");
+		snprintf(func, 4, "RT1");
 
-	err = set_rit_xit(rig, &func, rit);
+	err = set_rit_xit(rig, func, rit);
 	if (err != RIG_OK)
 		return err;
 
@@ -497,16 +501,41 @@ int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit)
 		return -RIG_EINVAL;
 
 	if (rit == 0)
-		snprintf(&func, 4, "XT0");
+		snprintf(func, 4, "XT0");
 	else
-		snprintf(&func, 4, "XT1");
+		snprintf(func, 4, "XT1");
 
-	err = set_rit_xit(rig, &func, rit);
+	err = set_rit_xit(rig, func, rit);
 	if (err != RIG_OK)
 		return err;
 
 	return RIG_OK;
 }
+
+
+/* The K3 *always* uses VFOB for TX.  Do we continually switch VFOs and
+ * possibly irritate the user?  Better just to return -RIG_ENAVAIL
+ * until this is resolved.
+ */
+int k3_set_split_mode(RIG *rig, vfo_t vfo, rmode_t tx_mode, pbwidth_t tx_width)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	return -RIG_ENAVAIL;
+}
+
+
+/* The K3 *always* uses VFOB for TX.  Do we continually switch VFOs and
+ * possibly irritate the user?  Better just to return -RIG_ENAVAIL
+ * until this is resolved.
+ */
+int k3_get_split_mode(RIG *rig, vfo_t vfo, rmode_t *tx_mode, pbwidth_t *tx_width)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	return -RIG_ENAVAIL;
+}
+
 
 
 /* Private K3 helper functions */
@@ -528,7 +557,6 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit)
 		return -RIG_EINVAL;
 
 	if (rit == 0) {
-//		snprintf(&cmd, 4, "%s0", func);
 		/* K3 RIT Off command */
 		err = kenwood_simple_cmd(rig, func);
 		if (err != RIG_OK)
@@ -544,14 +572,13 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit)
 	/* Set offset and turn on RIT */
 	if (rit <= 9999 && rit >= -9999) {
 		offs = (rit < 0) ? '-' : '+';
-		snprintf(&cmd, 8, "RO%c%04d", offs, abs((int)rit));
+		snprintf(cmd, 8, "RO%c%04d", offs, abs((int)rit));
 
 		err = kenwood_simple_cmd(rig, cmd);
 		if (err != RIG_OK)
 			return err;
 
 		/* K3 RIT ON command */
-//		snprintf(&cmd, 4, "%s1", func);
 		err = kenwood_simple_cmd(rig, func);
 		if (err != RIG_OK)
 			return err;
