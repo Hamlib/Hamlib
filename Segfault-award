@@ -19,3 +19,6 @@ Here is the list of the brave fellows:
     Rig command: M
     Mode: ?
 
+* Charles Suprin AA1VS, v1.2.12, 02/2011, all user programs/daemons
+    $ rigctl -C MGP
+
