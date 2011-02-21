@@ -555,7 +555,9 @@ int set_conf(ROT *my_rot, char *conf_parms)
 	while (p && *p != '\0') {
 			/* FIXME: left hand value of = cannot be null */
 		q = strchr(p, '=');
-		if (q) *q++ = '\0';
+		if ( !q )
+			return RIG_EINVAL;
+		*q++ = '\0';
 		n = strchr(q, ',');
 		if (n) *n++ = '\0';
 
