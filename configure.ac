@@ -203,6 +203,11 @@ mingw* | pw32* | cygwin*)
   ;;
 esac
 
+dnl Check whether we can actually find ltdl.h
+AC_CHECK_HEADER([ltdl.h], [AC_MSG_RESULT([yes])],
+   [ AC_MSG_ERROR([ltdl.h not found.  Please install the libltdl development
+files package which provides /usr/include/ltdl.h (perhaps 'libltdl-dev').]) ])
+
 dnl Check if C99 struct initializers are supported
 AC_MSG_CHECKING(whether C99 struct/array initializers are supported)
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[struct{char a;int b;}s[8]={[3]={.b=5}};]])],[AC_MSG_RESULT(yes)],[AC_MSG_ERROR( ""
