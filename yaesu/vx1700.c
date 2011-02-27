@@ -370,6 +370,7 @@ static inline int vx1700_read_op_data_raw(RIG *rig, unsigned char reply[]){
                                  reply, VX1700_OP_DATA_LENGTH);
 }
 
+#if 0 /* unused; re-enabled as needed. */
 static int vx1700_read_vfo_data(RIG *rig, unsigned char *hwmode,
                                 freq_t *rx_freq, freq_t *tx_freq){
     int			ret;
@@ -381,6 +382,7 @@ static int vx1700_read_vfo_data(RIG *rig, unsigned char *hwmode,
     if (tx_freq != NULL) *tx_freq = vx1700_read_freq_from_buf(reply + 10);
     return RIG_OK;
 }
+#endif /* unused */
 
 static int vx1700_read_op_data(RIG *rig, unsigned char *hwmode,
                                freq_t *rx_freq, freq_t *tx_freq){

@@ -144,7 +144,9 @@ static int pcr_set_bfo_shift(RIG *rig, vfo_t vfo, int level);          // J4Axx
 static int pcr_set_vsc(RIG *rig, vfo_t vfo, int level);                // J50xx
 static int pcr_set_dsp(RIG *rig, vfo_t vfo, int level);                // J80xx
 static int pcr_set_dsp_state(RIG *rig, vfo_t vfo, int level);          // J8100=off J8101=on
+#if 0 /* unused; re-enabled as needed. */
 static int pcr_set_dsp_noise_reducer(RIG *rig, vfo_t vfo, int level);  // J82xx
+#endif /* unused */
 static int pcr_set_dsp_auto_notch(RIG *rig, vfo_t vfo, int level);     // J83xx
 
 static int pcr_check_ok(RIG * rig);
@@ -1495,6 +1497,7 @@ pcr_set_dsp_state(RIG * rig, vfo_t vfo, int level)
  *  the level of NR set by values 0x01 to 0x10 (1 to 16 inclusive)
  */
 
+#if 0 /* unused; re-enabled as needed. */
 int
 pcr_set_dsp_noise_reducer(RIG * rig, vfo_t vfo, int level)
 {
@@ -1503,6 +1506,7 @@ pcr_set_dsp_noise_reducer(RIG * rig, vfo_t vfo, int level)
 	        return -RIG_ENAVAIL;
 	return pcr_set_level_cmd(rig, "J82", level);
 }
+#endif /* unused */
 
 /*
  * pcr_set_dsp_auto_notch(RIG *rig, vfo_t vfo, int level);

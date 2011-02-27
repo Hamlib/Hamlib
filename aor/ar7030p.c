@@ -223,6 +223,7 @@ static struct ext_list *alloc_init_ext( const struct confparams *cfp )
   return elp;
 }
 
+#if 0 /* unused; re-enabled as needed. */
 static struct ext_list *find_ext( struct ext_list *elp, token_t token )
 {
   int i;
@@ -237,6 +238,7 @@ static struct ext_list *find_ext( struct ext_list *elp, token_t token )
 
   return NULL;
 }
+#endif /* unused */
 
 static int ar7030p_init( RIG *rig )
 {
@@ -662,6 +664,7 @@ static int ar7030p_get_mode( RIG * rig, vfo_t vfo, rmode_t * mode,
  * /param id Pointer to channel ident string (14 chars)
  *
  */
+#if 0 /* unused; re-enabled as needed. */
 static void ar7030p_get_memory( RIG * rig, const unsigned int chan,
                         double *const freq, unsigned char *const mode,
                         unsigned char *const filt, unsigned char *const pbs,
@@ -766,6 +769,7 @@ static void ar7030p_get_memory( RIG * rig, const unsigned int chan,
   }
 
 }
+#endif /* unused */
 
 /*
  * /brief Set receiver levels

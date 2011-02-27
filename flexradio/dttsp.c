@@ -100,11 +100,6 @@ static int dttsp_ipc_cleanup(RIG *rig);
 static int dttsp_ipc_open(RIG *rig);
 static int dttsp_ipc_close(RIG *rig);
 
-static int dttsp_udp_init(RIG *rig);
-static int dttsp_udp_cleanup(RIG *rig);
-static int dttsp_udp_open(RIG *rig);
-static int dttsp_udp_close(RIG *rig);
-
 static int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
 static int dttsp_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
 static int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
