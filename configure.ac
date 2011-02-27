@@ -206,7 +206,8 @@ esac
 dnl Check whether we can actually find ltdl.h
 AC_CHECK_HEADER([ltdl.h], [AC_MSG_RESULT([yes])],
    [ AC_MSG_ERROR([ltdl.h not found.  Please install the libltdl development
-files package which provides /usr/include/ltdl.h (perhaps 'libltdl-dev').]) ])
+files package which provides /usr/include/ltdl.h
+(perhaps called 'libltdl-dev' or 'libltdl-devel').]) ])
 
 dnl Check if C99 struct initializers are supported
 AC_MSG_CHECKING(whether C99 struct/array initializers are supported)
