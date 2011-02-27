@@ -21,6 +21,11 @@
 % *
 % */
 
+% #if (__GNUC__ == 4 && 3 <= __GNUC_MINOR__) || 4 < __GNUC__
+% /* rpcgen produces code containing unused variables.  hush that... */
+% # pragma GCC diagnostic ignored "-Wunused-variable"
+% #endif
+
 /* This gets stuffed into the source files. */
 #if RPC_HDR
 %#ifdef HAVE_CONFIG_H
