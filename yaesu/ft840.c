@@ -89,6 +89,48 @@
  *
  */
 
+/* Enable these as needed: */
+#undef USE_FT840_GET_PTT
+#undef USE_FT840_SET_RIT
+
+/* 
+ * API local implementation
+ *
+ */
+
+static int ft840_init(RIG *rig);
+static int ft840_cleanup(RIG *rig);
+static int ft840_open(RIG *rig);
+static int ft840_close(RIG *rig);
+
+static int ft840_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
+static int ft840_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
+
+static int ft840_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
+static int ft840_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
+
+static int ft840_set_vfo(RIG *rig, vfo_t vfo);
+static int ft840_get_vfo(RIG *rig, vfo_t *vfo);
+
+static int ft840_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
+#ifdef USE_FT840_GET_PTT
+static int ft840_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
+#endif /* USE_FT840_GET_PTT */
+
+static int ft840_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
+static int ft840_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
+
+#ifdef USE_FT840_SET_RIT
+static int ft840_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
+#endif /* USE_FT840_SET_RIT */
+static int ft840_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
+
+static int ft840_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
+
+static int ft840_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
+
+static int ft840_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
+
 
 /* Private helper function prototypes */
 
@@ -102,7 +144,9 @@ static int ft840_send_dynamic_cmd(RIG *rig, unsigned char ci,
 
 static int ft840_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq);
 
+#ifdef USE_FT840_SET_RIT
 static int ft840_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit);
+#endif /* USE_FT840_SET_RIT */
 
 
 /*
@@ -269,14 +313,14 @@ const struct rig_caps ft840_caps = {
   .set_vfo =            ft840_set_vfo,
   .get_vfo =            ft840_get_vfo,
   .set_ptt =            ft840_set_ptt,
-#if 0
+#ifdef USE_FT840_GET_PTT
   .get_ptt =            ft840_get_ptt,
-#endif
+#endif /* USE_FT840_GET_PTT */
   .set_split_vfo =          ft840_set_split_vfo,
   .get_split_vfo =          ft840_get_split_vfo,
-#if 0
+#ifdef USE_FT840_SET_RIT
   .set_rit =            ft840_set_rit,
-#endif
+#endif /* USE_FT840_SET_RIT */
   .get_rit =            ft840_get_rit,
   .set_func =           ft840_set_func,
   .get_level =          ft840_get_level,
@@ -945,6 +989,7 @@ static int ft840_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt) {
  *
  */
 
+#ifdef USE_FT840_GET_PTT
 static int ft840_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
   struct ft840_priv_data *priv;
   unsigned char status_2;           /* ft840 status flag 2 */
@@ -983,6 +1028,7 @@ static int ft840_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt) {
 
   return RIG_OK;
 }
+#endif /* USE_FT840_GET_PTT */
 
 
 /*
@@ -1088,6 +1134,7 @@ static int ft840_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vf
  *
  */
 
+#ifdef USE_FT840_SET_RIT
 static int ft840_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
   struct ft840_priv_data *priv;
 //  unsigned char offset;
@@ -1146,6 +1193,7 @@ static int ft840_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit) {
 
   return RIG_OK;
 }
+#endif /* USE_FT840_SET_RIT */
 
 
 /*
@@ -1591,6 +1639,7 @@ static int ft840_send_dial_freq(RIG *rig, unsigned char ci, freq_t freq) {
  * Assumes:     rit doesn't exceed tuning limits of rig
  */
 
+#ifdef USE_FT840_SET_RIT
 static int ft840_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
   struct rig_state *rig_s;
   struct ft840_priv_data *priv;
@@ -1644,5 +1693,6 @@ static int ft840_send_rit_freq(RIG *rig, unsigned char ci, shortfreq_t rit) {
 
   return RIG_OK;
 }
+#endif /* USE_FT840_SET_RIT */
 
 

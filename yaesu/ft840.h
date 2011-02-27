@@ -318,39 +318,4 @@ typedef enum ft840_native_cmd_e ft840_native_cmd_t;
 #define P3  1
 #define P4  0
 
-
-/* 
- * API local implementation
- *
- */
-
-static int ft840_init(RIG *rig);
-static int ft840_cleanup(RIG *rig);
-static int ft840_open(RIG *rig);
-static int ft840_close(RIG *rig);
-
-static int ft840_set_freq(RIG *rig, vfo_t vfo, freq_t freq);
-static int ft840_get_freq(RIG *rig, vfo_t vfo, freq_t *freq);
-
-static int ft840_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
-static int ft840_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
-
-static int ft840_set_vfo(RIG *rig, vfo_t vfo);
-static int ft840_get_vfo(RIG *rig, vfo_t *vfo);
-
-static int ft840_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt);
-static int ft840_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt);
-
-static int ft840_set_split_vfo(RIG *rig, vfo_t vfo, split_t split, vfo_t tx_vfo);
-static int ft840_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *tx_vfo);
-
-static int ft840_set_rit(RIG *rig, vfo_t vfo, shortfreq_t rit);
-static int ft840_get_rit(RIG *rig, vfo_t vfo, shortfreq_t *rit);
-
-static int ft840_set_func(RIG *rig, vfo_t vfo, setting_t func, int status);
-
-static int ft840_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val);
-
-static int ft840_vfo_op(RIG *rig, vfo_t vfo, vfo_op_t op);
-
 #endif /* _FT840_H */
