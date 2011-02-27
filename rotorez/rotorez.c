@@ -50,6 +50,27 @@
 
 
 /*
+ * API local implementation
+ *
+ */
+
+static int rotorez_rot_init(ROT *rot);
+static int rotorez_rot_cleanup(ROT *rot);
+
+static int rotorez_rot_set_position(ROT *rot, azimuth_t azimuth, elevation_t elevation);
+static int rotorez_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
+static int erc_rot_get_position(ROT *rot, azimuth_t *azimuth, elevation_t *elevation);
+
+static int rotorez_rot_reset(ROT *rot, rot_reset_t reset);
+static int rotorez_rot_stop(ROT *rot);
+static int dcu1_rot_stop(ROT *rot);
+
+static int rotorez_rot_set_conf(ROT *rot, token_t token, const char *val);
+
+static const char *rotorez_rot_get_info(ROT *rot);
+
+
+/*
  * Private data structure
  */
 struct rotorez_rot_priv_data {
@@ -213,7 +234,7 @@ const struct rot_caps dcu_rot_caps = {
 	.rot_cleanup =		rotorez_rot_cleanup,
 	.set_position =		rotorez_rot_set_position,
 	.stop =				dcu1_rot_stop,
-	.reset =			rotorez_rot_stop,		/* Not a typo! */
+	.reset =			rotorez_rot_reset,
 	.get_info =			rotorez_rot_get_info,
 
 };
@@ -258,7 +279,7 @@ const struct rot_caps erc_rot_caps = {
 	.set_position =		rotorez_rot_set_position,
 	.get_position =		erc_rot_get_position,
 	.stop =				dcu1_rot_stop,
-	.reset =			rotorez_rot_stop,		/* Not a typo! */
+	.reset =			rotorez_rot_reset,
 //	.stop =				rotorez_rot_stop,
 //	.set_conf =			rotorez_rot_set_conf,
 	.get_info =			rotorez_rot_get_info,
@@ -542,6 +563,11 @@ static int rotorez_rot_stop(ROT *rot) {
 	return RIG_OK;
 }
 
+static int rotorez_rot_reset(ROT *rot, rot_reset_t reset) {
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	return rotorez_rot_stop(rot);
+}
 
 /*
  * Stop rotation on DCU-1
