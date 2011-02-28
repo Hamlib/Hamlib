@@ -66,6 +66,7 @@ library:
 * Gnu C or any C99 compliant compiler       # gcc --version
 * Gnu make  (or any modern one, BSD okay)   # make --version
 * libtool       2.2.6b                      # libtool --version
+* libltdl-dev   2.2.6b
 * svn for connection to hamlib.svn.sourceforge.net
 
 N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
@@ -91,7 +92,6 @@ package libusb 0.1.12 which is what is needed.
 
 Documentation:
 * Doxygen
-* DocBook                           # Deprecated in favor of Doxygen
 
 
 * SVN checkout:

@@ -179,6 +179,7 @@ that need to be installed manually.
 * autoconf      2.54                        # autoconf --version
 * automake      1.7                         # automake --version
 * libtool       2.2.6b                      # libtool --version
+* libltdl-dev   2.2.6b
 * svn for connection to hamlib.svn.sourceforge.net
 
 N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
@@ -200,7 +201,6 @@ package libusb 0.1.12 which is what is needed.
 
 Documentation:
 * Doxygen
-* DocBook                           # Deprecated in favor of Doxygen
 
 N.B.:  Some systems can have several versions of the autotools installed. In
 that case, autoconf may be called "autoconf2.50", autoheader
