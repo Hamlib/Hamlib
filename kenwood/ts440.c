@@ -46,7 +46,7 @@
 
 static struct kenwood_priv_caps  ts440_priv_caps  = {
 	.cmdtrm =  EOM_KEN,
-	.if_len =  29,
+	.if_len =  38,
 };
 
 /*
@@ -76,8 +76,8 @@ const struct rig_caps ts440_caps = {
 .serial_stop_bits =  2,
 .serial_parity =  RIG_PARITY_NONE,
 .serial_handshake =  RIG_HANDSHAKE_HARDWARE,
-.write_delay =  0,
-.post_write_delay =  0,
+.write_delay =  20,
+.post_write_delay =  30,
 .timeout =  200,
 .retry =  3,
 

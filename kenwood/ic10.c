@@ -30,6 +30,7 @@
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <math.h>
+#include <ctype.h>   /* character class tests */
 
 #include "hamlib/rig.h"
 #include "serial.h"
@@ -38,6 +39,34 @@
 
 #include "kenwood.h"
 #include "ic10.h"
+
+
+/****
+ * ic10_cmd_trim
+ * gobbles up additional spaces at the end of a line
+ *
+****/
+int ic10_cmd_trim (char *data, int data_len) {
+
+	int i;
+	rig_debug(RIG_DEBUG_TRACE, "%s: incoming data_len is '%d'\n",
+				__func__, data_len);
+
+       /* suck up additional spaces at end of the data buffer */
+        for (i=data_len; !isdigit(data[i-1]); i--) {
+               data_len = data_len-1;
+        	rig_debug(RIG_DEBUG_TRACE,"%s: data['%d'] is '%c'\n",
+                                __func__, i-1, data[i-1]);
+        	rig_debug(RIG_DEBUG_TRACE,"%s: For i='%d' data_len is now '%d'\n",
+                                __func__, i, data_len);
+        }
+
+	rig_debug(RIG_DEBUG_TRACE, "%s: finished loop.. i='%d' data_len='%d' data[i-1]='%c'\n",
+		__func__, i, data_len, data[i-1]);
+
+     return data_len;
+}
+
 
 /**
  * ic10_transaction
@@ -134,7 +163,7 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
 	struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
 	char vfobuf[50];
 	unsigned char c;
-	int retval;
+	int retval, iflen;
 
 
 	/* query RX VFO */
@@ -142,11 +171,13 @@ int ic10_get_vfo(RIG *rig, vfo_t *vfo)
 	if (retval != RIG_OK)
 		return retval;
 
+	/* trim extra spaces */
+        iflen = ic10_cmd_trim(vfobuf, priv->if_len);
 
 	/* IFggmmmkkkhhh snnnzrx yytdfcp */
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
 
-	c = vfobuf[priv->if_len - 3];
+	c = vfobuf[iflen - 3];
 	switch (c) {
 	case '0': *vfo = RIG_VFO_A; break;
 	case '1': *vfo = RIG_VFO_B; break;
@@ -174,16 +205,19 @@ int ic10_get_split_vfo(RIG *rig, vfo_t vfo, split_t *split, vfo_t *txvfo)
 {
 	struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
 	char infobuf[50];
-	int retval;
+	int retval, iflen;
 
 	retval = get_ic10_if (rig, infobuf);
 	if (retval != RIG_OK)
 		return retval;
 
+	/* trim extra spaces */
+        iflen = ic10_cmd_trim(infobuf, priv->if_len);
+
 	/* IFggmmmkkkhhh snnnzrx yytdfcp */
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
 
-	*split = infobuf[priv->if_len-1] == '0' ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
+	*split = infobuf[iflen-1] == '0' ? RIG_SPLIT_OFF : RIG_SPLIT_ON;
 
 	return RIG_OK;
 }
@@ -198,17 +232,20 @@ int ic10_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
 	char modebuf[50];
 	unsigned char c;
-	int retval;
+	int retval, iflen;
 
 	/* query RX VFO */
 	retval = get_ic10_if (rig, modebuf);
 	if (retval != RIG_OK)
 		return retval;
 
+	/* trim extra spaces */
+	iflen = ic10_cmd_trim(modebuf, priv->if_len);
+
 	/* IFggmmmkkkhhh snnnzrx yytdfcp */
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
 
-	c = modebuf[priv->if_len-4];
+	c = modebuf[iflen-4];
 	switch (c) {
 	case MD_CW  :	*mode = RIG_MODE_CW; break;
 	case MD_USB :	*mode = RIG_MODE_USB; break;
@@ -302,16 +339,16 @@ int ic10_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		tvfo=rig->state.current_vfo;
    	else
 		tvfo=vfo;
-                                                                                         
+
 	switch (tvfo) {
 	case RIG_VFO_A: vfo_letter = 'A'; break;
 	case RIG_VFO_B: vfo_letter = 'B'; break;
-	default: 
+	default:
 		rig_debug(RIG_DEBUG_ERR,"%s: unsupported VFO %d\n",
 				__func__,vfo);
 		return -RIG_EINVAL;
 	}
-	
+
 	freq_len = sprintf(freqbuf,"F%c%011"PRIll";", vfo_letter, (int64_t)freq);
 	retval = ic10_transaction (rig, freqbuf, freq_len, ackbuf, &ack_len);
 
@@ -370,16 +407,19 @@ int ic10_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 {
 	struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
 	char infobuf[50];
-	int retval;
+	int retval, iflen;
 
 	retval = get_ic10_if (rig, infobuf);
 	if (retval != RIG_OK)
 		return retval;
 
+	/* trim extra spaces */
+        iflen = ic10_cmd_trim(infobuf, priv->if_len);
+
 	/* IFggmmmkkkhhh snnnzrx yytdfcp */
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
 
-	*ptt = infobuf[priv->if_len-5] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
+	*ptt = infobuf[iflen-5] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
 
 	return RIG_OK;
 }
@@ -403,7 +443,7 @@ int ic10_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 				__func__,ptt);
 		return -RIG_EINVAL;
 	}
-				
+
 	ptt_len = sprintf(pttbuf,"%cX;", ptt_letter);
 	retval = ic10_transaction (rig, pttbuf, ptt_len, ackbuf, &ack_len);
 
@@ -419,15 +459,18 @@ int ic10_get_mem(RIG *rig, vfo_t vfo, int *ch)
 {
 	struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
 	char membuf[50];
-	int retval;
+	int retval, iflen;
 
 	retval = get_ic10_if (rig, membuf);
 	if (retval != RIG_OK)
 		return retval;
 
+	/* trim extra spaces */
+        iflen = ic10_cmd_trim(membuf, priv->if_len);
+
 	/* IFggmmmkkkhhh snnnzrx yytdfcp */
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
-	membuf[priv->if_len-5] = '\0';
+	membuf[iflen-5] = '\0';
 	*ch = atoi(membuf+priv->if_len-7);
 
 	return RIG_OK;
@@ -444,7 +487,7 @@ int ic10_set_mem(RIG *rig, vfo_t vfo, int ch)
 	int mem_len, ack_len, retval;
 
 	mem_len = sprintf(membuf, "MC %02d;", ch);
-	
+
 	retval = ic10_transaction (rig, membuf, mem_len, ackbuf, &ack_len);
 
 	return retval;
@@ -658,7 +701,7 @@ int ic10_set_parm(RIG *rig, setting_t parm, value_t val)
 				__func__,parm);
 		return -RIG_EINVAL;
 	}
-		
+
 	return RIG_OK;
 }
 
@@ -678,7 +721,7 @@ int ic10_get_parm(RIG *rig, setting_t parm, value_t *val)
 		retval = ic10_transaction (rig, "CK1;", 4, lvlbuf, &lvl_len);
 		if (retval != RIG_OK)
 			return retval;
-	  
+
 		/* "CK1hhmmss;"*/
 		if (lvl_len != 10) {
 			rig_debug(RIG_DEBUG_ERR,"%s: wrong answer len=%d\n",
@@ -828,7 +871,7 @@ const char* ic10_get_info(RIG *rig)
 {
 	char firmbuf[50];
 	int firm_len, retval;
-								 
+
 	firm_len = 6;
 	retval = ic10_transaction (rig, "ID;", 3, firmbuf, &firm_len);
 	if (retval != RIG_OK)
@@ -856,7 +899,7 @@ int ic10_decode_event (RIG *rig)
 {
 	struct kenwood_priv_caps *priv = (struct kenwood_priv_caps *)rig->caps->priv;
 	char asyncbuf[128],c;
-	int retval,async_len=128;
+	int retval,async_len=128, iflen;
 	vfo_t vfo;
 	freq_t freq;
 	rmode_t mode;
@@ -880,10 +923,13 @@ int ic10_decode_event (RIG *rig)
 	        return -RIG_ENIMPL;
 	}
 
+	/* trim extra spaces */
+        iflen = ic10_cmd_trim(asyncbuf, priv->if_len);
+
 	/* IFggmmmkkkhhh snnnzrx yytdfcp */
 	/* IFggmmmkkkhhhxxxxxrrrrrssxcctmfcp */
 
-	c = asyncbuf[priv->if_len-3];
+	c = asyncbuf[iflen-3];
 	switch (c) {
 	case '0': vfo = RIG_VFO_A; break;
 	case '1': vfo = RIG_VFO_B; break;
@@ -894,7 +940,7 @@ int ic10_decode_event (RIG *rig)
 		return -RIG_EPROTO;
 	}
 
-	c = asyncbuf[priv->if_len-4];
+	c = asyncbuf[iflen-4];
 	switch (c) {
 	case MD_CW  :	mode = RIG_MODE_CW; break;
 	case MD_USB :	mode = RIG_MODE_USB; break;
@@ -909,11 +955,11 @@ int ic10_decode_event (RIG *rig)
 		return -RIG_EINVAL;
 	}
 
-	ptt = asyncbuf[priv->if_len-5] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
+	ptt = asyncbuf[iflen-5] == '0' ? RIG_PTT_OFF : RIG_PTT_ON;
 
 	asyncbuf[13] = '\0';
 	sscanf(asyncbuf+2, "%011"SCNfreq, &freq);
-	
+
 	/* Callback execution */
 	if (rig->callbacks.vfo_event) {
     	rig->callbacks.vfo_event(rig, vfo, rig->callbacks.vfo_arg);

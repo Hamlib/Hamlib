@@ -25,6 +25,7 @@
 
 #define IC10_VER	"0.6"
 
+int ic10_cmd_trim (char *data, int data_len);
 int ic10_transaction (RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len);
 int ic10_set_vfo(RIG *rig, vfo_t vfo);
 int ic10_get_vfo(RIG *rig, vfo_t *vfo);
