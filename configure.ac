@@ -8,7 +8,7 @@ AC_PREREQ(2.59)
 ## Autoconf initialisation. ##
 ## ------------------------ ##
 dnl Please do not use '-' in the version number, 'make rpm' will fail
-AC_INIT([hamlib],[1.2.13svn],[hamlib-developer@lists.sourceforge.net])
+AC_INIT([hamlib],[1.2.13],[hamlib-developer@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
 
@@ -141,10 +141,10 @@ if test "$hl_checkBoth" = 1; then
 	LIBS="$LIBS -lsocket -lnsl"
 	AC_CHECK_FUNC(accept, hl_checkNsl=0, [LIBS=$hl2_oldLibs])
 fi
-AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main, 
+AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(nsl, main,
 				[NET_LIBS="$NET_LIBS -lnsl"], [], []))
 # Winsock2
-AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(ws2_32, main, 
+AC_CHECK_FUNC(gethostbyname, , AC_CHECK_LIB(ws2_32, main,
 				[NET_LIBS="$NET_LIBS -lws2_32"], [], []))
 LIBS="$LIBS $NET_LIBS"
 HL_GETADDRINFO
@@ -227,7 +227,7 @@ dnl Check if libgd-dev is installed, so we can enable rigmatrix
 AC_ARG_WITH(rigmatrix,
         [  --with-rigmatrix	Generate rigmatrix tool (requires libgd)],
   		[AC_CHECK_HEADERS([gd.h],
-			[AC_CHECK_LIB([gd],[gdImageCreate], [enable_rigmatrix=yes], 
+			[AC_CHECK_LIB([gd],[gdImageCreate], [enable_rigmatrix=yes],
 										[enable_rigmatrix=no],[-lz])
 			])
 		],
@@ -379,7 +379,7 @@ if test "${cf_with_cxx}" = "yes" ; then
   AC_MSG_RESULT($cf_with_usrp)
 
   if test "${cf_with_usrp}" = "yes" ; then
-  	PKG_CHECK_MODULES(USRP, usrp >= 0.8, 
+  	PKG_CHECK_MODULES(USRP, usrp >= 0.8,
 		[AC_DEFINE(HAVE_USRP,[1],[Define if usrp is available])])
   fi
 fi
@@ -387,7 +387,7 @@ AM_CONDITIONAL(ENABLE_CXX, test x"${cf_with_cxx}" = "xyes")
 AM_CONDITIONAL(HAVE_USRP, test x"${cf_with_usrp}" = "xyes")
 
 
-PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, , 
+PKG_CHECK_MODULES(LIBUSB, libusb >= 0.1, ,
 		  [AC_MSG_WARN([libusb pkg-config not found, USB backends will be disabled])])
 CFLAGS="${CFLAGS} ${LIBUSB_CFLAGS}"
 CXXFLAGS="${CXXFLAGS} ${LIBUSB_CFLAGS}"
@@ -416,7 +416,7 @@ done
 
 AC_CHECK_PROG(cf_with_rpcgen, rpcgen, [yes], [no])
 AC_MSG_CHECKING(whether to build rpc backends)
-# RPCRig must be the last one added to BACKEND_LIST 
+# RPCRig must be the last one added to BACKEND_LIST
 # because it links against other backends (build order)
 if test "${ac_cv_header_rpc_rpc_h}" = "yes" -a "${cf_with_rpcgen}" = "yes"; then
 	cf_with_rpc=yes
