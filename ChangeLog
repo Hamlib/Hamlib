@@ -1,3 +1,784 @@
+2011-03-12 14:30  n0nb
+
+	* configure.ac: Set version to 1.2.13 for pending release
+
+2011-03-07 23:36  n0nb
+
+	* kenwood/ic10.c, kenwood/ic10.h, kenwood/ts440.c: Correct ts440
+	  for an iflen of 38 chars
+	  
+	  Bill reports his TS-440 returns 38 chars instead of the default
+	  29.
+	  This patch defines iflen of 38 for the ts440 backend and
+	  implements
+	  necssary support in the ic10 backend.
+
+2011-02-28 00:02  n0nb
+
+	* README.betatester, README.developer: Document needed libltdl-dev
+	  package dependency
+	  
+	  Remove mention of Docbook as those sources have been deleted from
+	  the
+	  repository.
+
+2011-02-27 23:26  kamalmostafa
+
+	* rotorez/rotorez.c, rotorez/rotorez.h: source warnings cleanup:
+	  rotorez_rot_reset wrapper for stop
+	  
+	  ... and moved "API local implementation" static declarations from
+	  .h into .c
+
+2011-02-27 22:43  kamalmostafa
+
+	* yaesu/ft840.c, yaesu/ft840.h: source warnings cleanup: #ifdef out
+	  unused FT-840 routines
+	  
+	  ... and moved "API local implementation" static declarations from
+	  .h into .c.
+
+2011-02-27 22:42  kamalmostafa
+
+	* aor/ar7030p.c, flexradio/dttsp.c, pcr/pcr.c, yaesu/vx1700.c:
+	  source warnings cleanup: #if-0 out a few unused routines
+
+2011-02-27 21:19  kamalmostafa
+
+	* rpcrig/rpcrig.x, rpcrot/rpcrot.x: source warnings cleanup:
+	  rpcgen-generated code
+	  
+	  Quell 124 unused variable warnings from the rpcgen-generated code
+	  in rpcrig and rpcrot
+
+2011-02-27 15:27  kamalmostafa
+
+	* configure.ac: configure: refine advice for missing ltdl.h
+
+2011-02-26 18:50  kamalmostafa
+
+	* configure.ac: configure: add check and advice for missing ltdl.h
+	  
+	  Stop the build at configure time if we can't find ltdl.h in the
+	  standard
+	  include paths, and advise installation of libltdl development
+	  package.
+
+2011-02-21 22:15  fillods
+
+	* Segfault-award: Congrats Charles
+
+2011-02-21 19:32  kamalmostafa
+
+	* rpcrig/rpcrigd.c, tests/rigctl_parse.c, tests/rigmem.c,
+	  tests/rigsmtr.c, tests/rigswr.c, tests/rotctl_parse.c: Fix
+	  segfault on improper -C syntax
+	  
+	  Avoid null pointer segfault when -C param is specified with no
+	  '=' e.g.
+	  "rigctl -C foo".
+	  
+	  Thanks to Charles Suprin <hamaa1vs@gmail.com> for the report.
+
+2011-02-19 02:58  n0nb
+
+	* kenwood/k3.c, kenwood/kenwood.h: k3_set/get_split_mode dummy
+	  functions
+	  
+	  The K3 will swap VFOs with the frontend's implementation of
+	  get_split_mode when the backend's definition in rig_caps is NULL.
+	  These
+	  functions simply return -RIG_ENAVAIL when called to preserve the
+	  K3's
+	  operating state.
+
+2011-02-18 02:04  n0nb
+
+	* kenwood/k3.c: K3 specific set_rit, set_xit
+	  
+	  Added support for the K3's ability to set RIT/XIT offset
+	  frequency
+	  directly.
+	  Coding style changes.
+
+2011-02-18 02:03  n0nb
+
+	* kenwood/elecraft.c, kenwood/elecraft.h, kenwood/k2.c: Coding
+	  style edits
+
+2011-02-17 12:22  n0nb
+
+	* src/usb_port.c: Added partial match in USB product name
+	  
+	  In case the usb device name is not found among the available
+	  devices, a
+	  partial string comparison is performed.
+	  
+	  Author: Stefano Speretta, Innovative Solutions In Space BV
+	  <s.speretta@isispace.nl>
+	  Signed-off-by: Stefano Speretta <s.speretta@isispace.nl>
+
+2011-02-17 12:22  n0nb
+
+	* kit/funcube.c, kit/funcube.h: Added attenuator, preamplifier and
+	  RSSI to FUNcube
+	  
+	  The Attenuator/Preamp has been added: not all the LNA values have
+	  been
+	  added because Hamlib can only have maximum 8 values and FUNcube
+	  has
+	  more.
+	  
+	  The RSSI readout is performed on the IF and it is not calibrated.
+	  To
+	  calibrate it, it would be necessary to read all the gains in the
+	  complete chain to compute the real RSSI.
+	  
+	  The driver now also supports firmware versions 1.x.
+	  
+	  Author: Stefano Speretta, Innovative Solutions In Space BV
+	  <s.speretta@isispace.nl>
+	  
+	  Signed-off-by: Stefano Speretta <s.speretta@isispace.nl>
+
+2011-02-16 23:49  n0nb
+
+	* include/hamlib/riglist.h, yaesu/Makefile.am, yaesu/vx1700.c,
+	  yaesu/vx1700.h, yaesu/yaesu.c, yaesu/yaesu.h: Add Vertex Standard
+	  VX-1700 transceiver support
+	  
+	  From Mikhail Kshevetskiy <mikhail.kshevetskiy@gmail.com>
+	  
+	  vx-1700 notes:
+	  ==============
+	  * the only possible way to switch from VFO_A to VFO_MEM is a
+	  switching to configured memory channel.
+	  * vfo_op(UP/DOWN) in memory mode switch channel UP/DOWN
+	  correspondingly
+	  * set_mem() in VFO mode do not change memory channel, but only
+	  remember passed value. Thus we may set non-configured memory
+	  channel number for future use in vfo_op(OP_FROM_VFO).
+	  * get_mem() in VFO mode returns last used memory channel value.
+	  It may return non-configured memory channel number passed to
+	  set_mem() previously.
+	  
+	  WARNING: VX-1700 CAT Manual have bugs, see comments in code.
+
+2011-02-16 12:32  n0nb
+
+	* aor/sr2200.c: Bug-fix to AOR SR-2200
+	  
+	  Fixed S-Meter read-out: not readings are calibrated in S units
+	  Fixed pre-amp control: now it works under GRig
+	  
+	  Signed-off-by: Stefano Speretta <s.speretta@isispace.nl>
+
+2011-02-14 18:06  kamalmostafa
+
+	* README.developer: README.developer: restore libtool prerequisite
+	  text
+
+2011-02-14 03:10  n0nb
+
+	* README.developer: Additional coding and style guidelines.
+
+2011-02-14 03:04  n0nb
+
+	* doc/README.ft890, doc/README.ft920, doc/README.rotorez,
+	  rotorez/README.rotorez, yaesu/README.ft890, yaesu/README.ft920:
+	  Move files into their relevant directories
+	  
+	  doc/ directory is now only for Doxygen generated documentation.
+
+2011-02-14 03:03  n0nb
+
+	* doc/sgml/backend.sgml, doc/sgml/genindex.sgml,
+	  doc/sgml/hamlib-doc.dsl, doc/sgml/hamlib-doc.sgml,
+	  doc/sgml/internals.sgml, doc/sgml/intro.sgml,
+	  doc/sgml/preface.sgml, doc/sgml/reference.sgml,
+	  doc/sgml/using.sgml: Remove obsolete SGML files.
+
+2011-02-13 19:01  kamalmostafa
+
+	* README, README.betatester, README.developer, README.release,
+	  autogen.sh, configure.ac, hamlib.spec.in, libltdl,
+	  macros/Makefile.am: Remove bundled libltdl (libtool)
+	  
+	  Hamlib shall now depend on the system to provide libtool.
+
+2011-02-13 18:49  kamalmostafa
+
+	* configure.ac: fix configure.ac paths for FreeBSD
+	  
+	  From: Ayan George <ayan@ayan.net>
+	  
+	  Allow build to find components (e.g. libtool) installed in
+	  /usr/local
+	  on FreeBSD.
+
+2011-02-08 22:21  fillods
+
+	* aor/sr2200.c, include/hamlib/rig.h, src/misc.c: - revert creation
+	  of RIG_MODE_WAM and RIG_MODE_SFM
+	  - sr2200:
+	  - fix filter width of WFM
+	  - prevent symbol littering
+
+2011-02-08 13:00  n0nb
+
+	* kenwood/thf7.c: THF7E fixes from Ron Hinds, KF7NNZ
+	  
+	  Implement the RIG_OP_DOWN command, from Ron Hinds
+	  <kf7nnz@rmhi.net>
+
+2011-02-08 13:00  n0nb
+
+	* kenwood/thf6a.c: THF6A fixes from Ron Hinds, KF7NNZ
+	  
+	  Implement the RIG_OP_DOWN command, from Ron Hinds
+	  <kf7nnz@rmhi.net>
+
+2011-02-08 09:02  fillods
+
+	* src/usb_port.c: Allow USB device's VID/PID/Vendor/Product to be
+	  explicitly specified
+
+2011-02-06 18:42  kamalmostafa
+
+	* macros/ac_python_devel.m4: python: fix --with-python-binding
+	  configure macro
+	  
+	  Fix macro syntax error which I introduced in svn r2943.
+
+2011-02-04 23:20  n0nb
+
+	* kit/fifisdr.c: FiFi-SDR backend: add more filter options
+	  
+	  Patch from Rolf Meeser <rolfm_9dq@yahoo.de>
+
+2011-02-04 23:20  n0nb
+
+	* kit/fifisdr.c: FiFi-SDR backend improvements
+	  
+	  Patch from Rolf Meeser <rolfm_9dq@yahoo.de>
+
+2011-02-04 23:20  n0nb
+
+	* kit/Makefile.am, kit/fifisdr.c, kit/kit.c, kit/kit.h: Add backend
+	  for FiFi-SDR
+	  
+	  Patch from Rolf Meeser <rolfm_9dq@yahoo.de>
+
+2011-02-04 23:19  n0nb
+
+	* include/hamlib/riglist.h, kit/kit.c, kit/kit.h,
+	  kit/si570avrusb.c: Prepare FiFi-SDR backend refactoring
+	  
+	  Patch from Rolf Meeser <rolfm_9dq@yahoo.de>
+
+2011-02-03 02:52  n0nb
+
+	* doc/footer.html, doc/hamlib.cfg.in, doc/hamlib.css,
+	  doc/index.doxygen, include/hamlib/rotlist.h, src/network.c:
+	  Doxygen tweaks
+	  
+	  New CSS file, added Doxygen logo to footer, tweaked hamlib.cfg.in
+	  for
+	  Doxygen configuration. Minor edits to index.doxygen.
+	  
+	  Minor Doxygen edits to rotlist.h and network.c
+
+2011-02-01 16:31  n0nb
+
+	* INSTALL, README, README.betatester, README.developer: Update
+	  documentation.
+	  
+	  Added required/optional development package info in
+	  README.betatester
+	  and added info on ldconfig and its configuration.
+
+2011-02-01 03:32  n0nb
+
+	* kenwood/k2.c: Add missing .extparms assignment
+
+2011-02-01 03:18  n0nb
+
+	* kenwood/elecraft.c, kenwood/elecraft.h, kenwood/k2.c,
+	  kenwood/k3.c: Add support for TX Query on K2 and K3
+	  
+	  The K2 and K3 support a TQ command to query the transmit status.
+	  As
+	  only four bytes are returned it is much faster than the longer IF
+	  command response. Access is via rig_get_ext_level--rigctl 'l'
+	  command
+	  with a Level mnemonic of 'txst'. Returns '0' on RX and '1' on TX.
+
+2011-02-01 00:48  n0nb
+
+	* kenwood/README.k2, kenwood/README.k3, kenwood/elecraft.c,
+	  kenwood/elecraft.h, kenwood/k2.c, kenwood/k3.c,
+	  kenwood/kenwood.c, kenwood/kenwood.h: Add extension parameter
+	  handling for K2/K3 RIT/XIT
+	  
+	  Implemented kenwood_cfg_params structure to allow RIT/XIT tokens
+	  to be
+	  available to all Kenwood backend rigs (Fine Step and Voice
+	  announce are
+	  also defined). K2/K3 rigs can only set/get RIT/XIT.
+	  
+	  Updated README.k2/k3 for RIT/XIT functions and prior updates.
+
+2011-01-31 12:30  n0nb
+
+	* kenwood/thf6a.c, kenwood/thf7.c: Frequency range corrections from
+	  Ron Hinds KF7NNZ
+	  
+	  THF6A and THF7 frequency range corrections for Region 1 and
+	  Region 2.
+	  Patch info from Ron Hinds <kf7nnz@rmhi.net>.
+
+2011-01-31 04:03  n0nb
+
+	* kenwood/elecraft.h, kenwood/k3.c: K3 get extra level for IF
+	  center frequency
+	  
+	  Implemented rig_get_ext_level() for the K3 FI command which
+	  returns the
+	  last four digits of the IF center frequency. This value changes
+	  as the
+	  operator adjusts the shift control, changes mode, or adjusts the
+	  bandwidth
+	  control. The function returns the actual frequency of 8210000 Hz
+	  plus
+	  the value returned by the FI command.
+	  
+	  To get this frequency value the token IFCTR must be passed to
+	  rig_get_ext_level(). This token is specific to the K3 backend.
+
+2011-01-29 19:58  n0nb
+
+	* include/hamlib/rotlist.h, spid/spid.txt: Updated SPID patch from
+	  Norvald H. Ryeng
+	  
+	  Rot2Prog is now 901, Rot1Prog 902 per feedback from Magne Mæhre
+	  LA1BFA.
+	  Minor update of spid.txt to correct a typo and clarify a point in
+	  the documentation.
+
+2011-01-29 14:31  n0nb
+
+	* include/hamlib/rotlist.h, spid/spid.c, spid/spid.h,
+	  spid/spid.txt: SPID driver extension from Norvald H. Ryeng
+	  
+	  This patch extends the SPID driver with support for the Rot1Prog
+	  az
+	  rotator controller. It also updates protocol documentation. The
+	  driver
+	  has been tested with Rot1Prog and with Rot2Prog for regression.
+	  
+	  Submitted by Norvald H. Ryeng <ryeng@users.sourceforge.net).
+	  Tracker
+	  info: SPID Rot1Prog rotator driver - ID: 3167384
+
+2011-01-28 00:40  n0nb
+
+	* include/hamlib/riglist.h, kit/Makefile.am, kit/funcube.c,
+	  kit/funcube.h, kit/kit.c, kit/kit.h, src/usb_port.c: FUNcube
+	  interface added by Stefano Speretta
+	  
+	  Added FUNcube interface to Hamlib. This is a basic FUNcube
+	  interface:
+	  at the moment only frequency set/readout is supported. From
+	  Stefano
+	  Speretta <s.speretta@isispace.nl>.
+
+2011-01-28 00:32  n0nb
+
+	* aor/Makefile.am, aor/aor.c, aor/aor.h, aor/sr2200.c,
+	  include/hamlib/rig.h, include/hamlib/riglist.h, src/misc.c: AOR
+	  SR2200 backend added by Stefano Speretta
+	  
+	  New backend, SR2200, heavily derived from AR8200 backend. From
+	  Stefano
+	  Speretta <s.speretta@isispace.nl>.
+
+2011-01-21 18:38  n0nb
+
+	* kenwood/k2.c: Test k2_md_rtty flag
+	  
+	  Test k2_md_rtty flag when k2_set_mode() is passed RIG_MODE_RTTY
+	  or
+	  RIG_MODE_RTTYR to avoid erroneously attempting to set RTTY when
+	  k2_md_rtty is unset.
+
+2011-01-21 12:22  n0nb
+
+	* kenwood/k2.c: Add missing command to set K2 to K22 in set_mode
+	  
+	  An oversight had omitted the necessary call to set the K2 to K22
+	  extended mode before setting the filter. The function now sets
+	  K22
+	  properly, sets the filter width, and then K20 before returning.
+
+2011-01-20 03:23  n0nb
+
+	* INSTALL, README.betatester, README.developer: Info on daily
+	  snapshot tarball and Debian packages
+
+2011-01-19 02:39  n0nb
+
+	* kenwood/elecraft.c, kenwood/elecraft.h, kenwood/k2.c,
+	  kenwood/k3.c, kenwood/kenwood.c, kenwood/kenwood.h: Implement
+	  filter scanning and get/set mode on K2
+	  
+	  K2 backend will now scan for installed RTTY mode and filters per
+	  mode upon rig_open(). Implemented get/set mode in K2. The
+	  get_mode()
+	  function checks the filter bandwith and returns that for the
+	  width
+	  value and the set_() function will select and set an appropriate
+	  filter based on the width passed in.
+
+2011-01-13 12:08  n0nb
+
+	* README, README.betatester, README.developer, hamlib.pc.in: Update
+	  copyright year in README files.
+	  
+	  Correct typo in hamlib.pc.in Description line.
+
+2011-01-11 00:30  n0nb
+
+	* AUTHORS: Correct some copy and paste errors.
+
+2011-01-11 00:13  n0nb
+
+	* AUTHORS: Update several developers who were not listed.
+
+2011-01-05 21:59  fillods
+
+	* icom/Makefile.am, icom/frame.c, icom/frame.h, icom/ic92d.c,
+	  icom/icom.c, icom/icom.h: Skeleton for IC-E92D model.
+	  
+	  Let icom generic transaction routines to work with true full
+	  duplex
+	  and alternate controler ID.
+
+2010-12-27 15:20  n0nb
+
+	* include/hamlib/riglist.h, kit/kit.c, kit/kit.h,
+	  kit/si570avrusb.c: Patch from SF user rolfm adding support for
+	  the FiFi-SDR, an Si570
+	  based receiver. More info at http://o28.sischa.net/fifisdr/trac
+	  (in
+	  German only). Posted via tracker ID: 3144418
+
+2010-12-24 23:06  n0nb
+
+	* README.developer: Update required and optional package names and
+	  presence tests.
+
+2010-12-09 01:27  n0nb
+
+	* tests/rigctl.1: Improve description of -t command option and w
+	  command and provided
+	  command line invocation example.
+
+2010-12-06 23:53  n0nb
+
+	* kenwood/elecraft.c: Modify test for K2 and K3 in elecraft_open()
+
+2010-12-05 23:46  n0nb
+
+	* yaesu/ft2000.c, yaesu/ft2000.h, yaesu/ft450.c, yaesu/ft450.h,
+	  yaesu/ft5000.c, yaesu/ft5000.h, yaesu/ft9000.c, yaesu/ft9000.h,
+	  yaesu/ft950.h: Correct long standing bugs where hardware
+	  handshake was not the default
+	  for the latest Yaesu backends (ft9000 and later that use "New
+	  CAT"
+	  commands) and set the default "write_delay" parameter to '0' as
+	  these
+	  radios deault to assuming a command has been received after 10
+	  mSec of
+	  no data on the wire. The default write_delay had been 50 mSec
+	  (for no
+	  good reason except I copied and pasted from older backends) which
+	  was
+	  too long as these models implement a CAT TOT (Time Out Timer) of
+	  10 mSec.
+
+2010-12-02 22:23  fillods
+
+	* tests/rigctl_parse.c: fix previous commit, which was preventing
+	  the parsing of ext_levels/ext_parms
+
+2010-12-02 19:24  fillods
+
+	* kenwood/Makefile.am: add missing elecraft.h
+
+2010-12-01 21:41  fillods
+
+	* tests/rigctl.c, tests/rigctl_parse.c, tests/rigctld.c,
+	  tests/rotctl.c, tests/rotctl_parse.c, tests/rotctld.c: Implement
+	  exit status according to manual page:
+	  1 if there was an invalid command line option or argument;
+	  2 if an error was returned by Hamlib.
+
+2010-11-29 21:56  fillods
+
+	* gs232a/gs232.c, gs232a/gs232a.c: F1TE tracker's protocol looks
+	  more like GS232 than GS232A
+
+2010-11-29 21:42  fillods
+
+	* gs232a/gs232a.c, gs232a/gs232a.h, include/hamlib/rotlist.h: add
+	  F1TE Tracker
+
+2010-11-04 21:05  fillods
+
+	* kit/si570avrusb.c: set/get freq by value for Si570-PIC-USB
+
+2010-11-03 20:52  fillods
+
+	* include/hamlib/riglist.h, kit/kit.c, kit/kit.h,
+	  kit/si570avrusb.c: add KTH-SDR Si570 kit
+
+2010-11-03 03:08  n0nb
+
+	* kenwood/README.k2, kenwood/README.k3, kenwood/elecraft.c,
+	  kenwood/elecraft.h, kenwood/k2.c, kenwood/k3.c: Moved K3 specific
+	  functions to k3.c
+	  Keep shared functions in elecraft.c
+
+2010-10-30 14:25  n0nb
+
+	* kenwood/README.k3, kenwood/elecraft.c, kenwood/elecraft.h,
+	  kenwood/k3.c: Implement k3_set_vfo()
+	  Document K3 backend particulars om README.k3
+
+2010-10-29 21:20  n0nb
+
+	* kenwood/Makefile.am, kenwood/elecraft.c, kenwood/elecraft.h,
+	  kenwood/k2.c, kenwood/k3.c, kenwood/kenwood.c, kenwood/kenwood.h:
+	  Support for Elecraft extensions to base Kenwood functions
+	  (particularly
+	  for the K3).
+	  Added debugging print functions to all Kenwood backend functions
+	  for
+	  easier debugging.
+
+2010-10-29 07:50  fillods
+
+	* prm80/prm80.c, src/iofunc.c: - Clear MSB of data read on 7-bit
+	  serial port,
+	  as it looks necessary with 7S1
+	  - Do read unwanted response in prm80_transaction().
+
+2010-10-28 07:28  fillods
+
+	* include/hamlib/riglist.h, kenwood/Makefile.am, kenwood/kenwood.c,
+	  kenwood/kenwood.h, kenwood/ts590.c: add TS-590S
+
+2010-10-27 20:31  fillods
+
+	* prm80/prm80.c, prm80/prm80.h, prm80/prm8060.c: - fix MSB of 7S1
+	  - fix prm80_get_channel false proto error
+	  - fix AF/SQL level reading
+	  - PRM8060: fix available levels, remove prm80_get_split_freq
+
+2010-10-27 07:05  fillods
+
+	* prm80/Makefile.in: remove auto-generated file
+
+2010-10-26 20:47  fillods
+
+	* Makefile.am, README.developer, bindings/ignore.swg, configure.ac,
+	  include/hamlib/riglist.h, prm80, prm80/Makefile.am,
+	  prm80/Makefile.in, prm80/prm80.c, prm80/prm80.h, prm80/prm8060.c:
+	  added TRM8060
+
+2010-10-26 19:31  fillods
+
+	* include/hamlib/rig.h, src/conf.c, src/rot_conf.c, src/serial.c,
+	  tests/dumpcaps.c, tests/dumpcaps_rot.c, tests/rigmatrix.c: Add
+	  Mark/Space serial parity
+
+2010-10-08 21:19  fillods
+
+	* kit/Makefile.am: Fix build when HAVE_USRP. Workaround for
+	  automake limitation?
+
+2010-10-08 20:43  fillods
+
+	* kit/si570avrusb.c, src/usb_port.c: Add support for USB device
+	  without usb_set_configuration() and
+	  without usb_claim_interface(). Looks like needed on Windows 7.
+
+2010-10-07 21:51  fillods
+
+	* kit/si570avrusb.c: Disable BPF because of probable PTT shared
+	  pin, but it can still be enabled through set_conf.
+	  Add conf item for I2C address
+
+2010-10-06 07:25  fillods
+
+	* include/hamlib/riglist.h, yaesu/Makefile.am, yaesu/ft5000.c,
+	  yaesu/ft5000.h, yaesu/newcat.c, yaesu/yaesu.c, yaesu/yaesu.h:
+	  clone FT-DX5000 after FT-2000
+
+2010-10-05 17:57  fillods
+
+	* kenwood/th.c: New Kenwood THF-6A backend
+
+2010-10-04 02:49  n0nb
+
+	* kenwood/Makefile.am, kenwood/kenwood.c, kenwood/kenwood.h,
+	  kenwood/thf6a.c: New Kenwood THF-6A backend from Scott Martin,
+	  KC9QEN.
+
+2010-09-29 17:58  kamalmostafa
+
+	* configure.ac, kit/Makefile.am: Force automake to invoke the C
+	  (not C++) linker in kit/ when no C++ is in use.
+
+2010-09-26 02:23  kamalmostafa
+
+	* alinco/Makefile.am, aor/Makefile.am, ars/Makefile.am,
+	  drake/Makefile.am, dummy/Makefile.am, easycomm/Makefile.am,
+	  flexradio/Makefile.am, fodtrack/Makefile.am,
+	  gnuradio/Makefile.am, gs232a/Makefile.am, heathkit/Makefile.am,
+	  icom/Makefile.am, jrc/Makefile.am, kachina/Makefile.am,
+	  kenwood/Makefile.am, kit/Makefile.am, lowe/Makefile.am,
+	  m2/Makefile.am, microtune/Makefile.am, miniVNA/Makefile.am,
+	  pcr/Makefile.am, racal/Makefile.am, rft/Makefile.am,
+	  rotorez/Makefile.am, rpcrig/Makefile.am, rpcrot/Makefile.am,
+	  rs/Makefile.am, sartek/Makefile.am, skanti/Makefile.am,
+	  spid/Makefile.am, src/Makefile.am, tapr/Makefile.am,
+	  tentec/Makefile.am, tuner/Makefile.am, uniden/Makefile.am,
+	  winradio/Makefile.am, wj/Makefile.am, yaesu/Makefile.am: Move
+	  backend libraries into /usr/lib/hamlib directory.
+
+2010-09-22 19:54  fillods
+
+	* src/usb_port.c: usb_set_configuration() is mandatory for the
+	  setup on Windows
+
+2010-09-19 12:32  aa1vs
+
+	* kenwood/tmd700.c: Use new th_set_freq for TM-D700
+
+2010-09-19 12:31  aa1vs
+
+	* kenwood/th.c: Changed th_set_freq to round and select step size
+	  to use.
+	  Allows 6.25kHz and 5kHz channelization.
+
+2010-09-17 15:02  fillods
+
+	* src/usb_port.c: * do not check return value of
+	  usb_detach_kernel_driver_np(),
+	  it's done as best effort, and access failure would be catched
+	  later.
+	  * make failure of usb_claim_interface() fatal in usb_port_open()
+
+2010-09-17 14:46  fillods
+
+	* src/rig.c, src/serial.c: Workaround SF#3055689
+	  
+	  * make sure the PTT is not set when configured as RTS/DTR at
+	  open()/close() time.
+	  It appears the Linux kernel force their value as explained
+	  here[1] during open.
+	  Also obvious when reading the source code[2], esp. in
+	  uart_startup()
+	  and uart_update_termios() where uart_set_mctrl(port, TIOCM_DTR |
+	  TIOCM_RTS)
+	  is called.
+	  
+	  [1]
+	  http://books.google.fr/books?id=75eeBNcjcuIC&lpg=PA152&ots=Qvgi6VDLvm&pg=PA152#v=onepage&q&f=false
+	  [2]
+	  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/serial/serial_core.c;hb=HEAD
+	  
+	  * don't let the OS change modem signals at close() time
+
+2010-09-16 23:50  aa1vs
+
+	* kenwood/th.c: extend th_get_vfo_char to support D700
+
+2010-09-14 01:24  n0nb
+
+	* yaesu/ft950.c: Suggested change by Dave, W1HKJ, to enable serial
+	  hardware handshaking
+	  by default.
+
+2010-09-13 21:27  fillods
+
+	* kenwood/thd7.c: - add readl th_[sg]et_ctcss_sql()
+	  - enable channel description
+
+2010-09-13 21:25  fillods
+
+	* kenwood/th.c, kenwood/th.h, kenwood/tmd700.c: - add FUNC_MUTE,
+	  PARM_BEEP, th_scan(), th_[sg]et_dcs_sql()
+	  - fix th_[sg]et_ctcss_tone(), let them handle the tone instead
+	  of the CTCSS, covered by th_[gs]et_ctcss_sql()
+	  - new tm_set_vfo_bc2() capable of split handling along with
+	  th_[sg]et_split_vfo()
+	  - customize TM-D700 channel caps and channel desc size
+	  - set TM-D700's timeout to 1 second
+	  - fix TM-D700's targetable_vfo
+
+2010-09-13 21:12  fillods
+
+	* kenwood/tmv7.c: Wrap sscanf in order to workaround some locales
+	  where the decimal
+	  separator (float format, ...) is not a dot.
+
+2010-09-13 07:46  fillods
+
+	* kenwood/tmd700.c: The D700 does not internally round the input
+	  frequency to the nearest
+	  available frequency. Instead it returns an error code. This is an
+	  issue for use with gpredict. It is also inconsistent with other
+	  backends, particularly the FT-857. (The rounding may occur in the
+	  radio
+	  of the 857 but to the developer it appears transparent.)
+	  
+	  This patch defines a simple wrapper around the th_set_freq call
+	  that
+	  rounds the frequency to the nearest 5kHz.
+	  
+	  Patch from Charles Suprin, AA1VS.
+
+2010-09-13 07:38  fillods
+
+	* kenwood/kenwood.h: Increase buffer length in simplified
+	  transaction helper functions,
+	  and check max length in kenwood_cmd(). This fixes an overrun with
+	  long commands like in th_set_freq().
+	  Patch from Charles, AA1VS, +edit.
+
+2010-09-08 08:28  fillods
+
+	* kenwood/th.c, kenwood/tmd700.c: TM-D700: fix set_vfo, plus some
+	  more caps
+	  th_set_freq: finer freq setting
+	  th_set_chan: allow inexact tuning_step
+
+2010-09-07 21:11  fillods
+
+	* kenwood/th.h, kenwood/thd7.c, kenwood/thg71.c, kenwood/tmd700.c,
+	  kenwood/tmv7.c: fix old regression about mode handling on TH-D7,
+	  TH-G71, TM-V7, TM-D700
+
+2010-09-03 21:28  fillods
+
+	* configure.ac, src/Makefile.am: get ready for next round
+
+2010-09-03 21:21  fillods
+
+	* ChangeLog, NEWS, configure.ac: release 1.2.12
+
 2010-08-29 20:27  n0nb
 
 	* rotorez/rotorez.c: Add support in erc_rot_get_position() for
