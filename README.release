@@ -37,7 +37,7 @@ Releasing Hamlib:
         -m "release x.y.z"
 
 * Build source tarball:
-    svn co -r N https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib	
+    svn co -r N https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib
     sh autogen.sh --enable-maintainer-mode
 
     # (Would the above command be better invoked as:
@@ -73,11 +73,13 @@ Releasing Hamlib:
   Subsitute cdecl by stdcall in README.txt.
 
 * Release the file(s)
-  - https://sourceforge.net/project/admin/explorer.php?group_id=8305
-  - Select subdirectory hamlib, left click on the grey gear, "New folder", x.y.z
-  - Select subdirectory hamlib/x.y.z
-  - Left click on the grey gear of the folder, "Upload here"
-  - Letf click on file name, on right side, set platform as default for download. Save.
+  - https://sourceforge.net/projects/hamlib/files/
+  - Select Hamlib
+  - Click Add Folder, name it X.Y.Z
+  - Select X.Y.Z
+  - Click Add File button
+  - Click Choose File button
+  - Click Upload
 
 * Update http://www.hamlib.org Wiki
   - Download section
@@ -85,14 +87,14 @@ Releasing Hamlib:
 
   - Documentation (requires doxygen)
       make -C doc doc
-      ssh shell.sourceforge.net mkdir /home/groups/h/ha/hamlib/htdocs/manuals/x-y-z
-      scp -r doc/html shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/manuals/x-y-z/.
+      ssh shell.sourceforge.net mkdir /home/project-web/h/ha/hamlib/htdocs/manuals/x-y-z
+      scp -r doc/html shell.sourceforge.net:/home/project-web/h/ha/hamlib/htdocs/manuals/x-y-z/.
       Edit Wiki Documentation section
 
   - Supported Radios/Rotators
       make -C tests rigmatrix.html
       ssh -t USER,hamlib@shell.sourceforge.net create
-      scp -r tests/sup-info/* shell.sourceforge.net:/home/groups/h/ha/hamlib/htdocs/sup-info/.
+      scp -r tests/sup-info/* USER,hamlib@shell.sourceforge.net:/home/project-web/hamlib/htdocs/sup-info/.
 
 * Notify various sites:
   - Sourceforge/News: https://sourceforge.net/news/submit.php?group_id=8305
