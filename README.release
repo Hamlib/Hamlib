@@ -16,7 +16,7 @@ Before deciding release:
 * Announce SVN/version freeze on hamlib-developer mailing list,
   so developers have time to check in their contributions.
 
-* Update libtool:
+* Update the configuration:
     clean the tree
     sh ./autogen.sh
 
@@ -48,12 +48,17 @@ Releasing Hamlib:
 
 * Build Windows DLL from previous tarball, and .LIB, then create .zip file
   Rem: under Linux, you need the package mingw32 to cross-compile it,
+       and an internal copy of libltdl (configured and built),
        and free MVC++Toolkit to create .lib file:
+         # Import internal ./libltdl and build it for mingw32
+         libtoolize --ltdl
+         ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
+         # Configure and build hamlib for mingw32
          ./configure --disable-static \
            --host=i586-mingw32msvc \
            --prefix=/tmp/mingw-inst \
            --without-rpc-backends \
-           --enable-xmltest PKG_CONFIG_LIBDIR= ac_cv_path_PKG_CONFIG=no
+           PKG_CONFIG_LIBDIR= ac_cv_path_PKG_CONFIG=no
          make install
          new_ver="x.y.z"
          mkdir -p /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc

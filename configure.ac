@@ -200,6 +200,17 @@ darwin* | rhapsody*)
 mingw* | pw32* | cygwin*)
   WINLDFLAGS="-Wl,--output-def,libhamlib.def -Wl,--add-stdcall-alias"
   AC_SUBST([WINLDFLAGS])
+  # Prerequisite for Mingw build (import and build internal ./libltdl):
+  #   $ libtoolize --ltdl
+  #   $ ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
+  # Use internal ./libltdl during configure:
+  CFLAGS="${CFLAGS} -I./libltdl"
+  # use internal $(top_builddir)/libltdl during build:
+  INCLTDL="-I\$(top_builddir)/libltdl"
+  #   - use internal $(top_builddir)/libltdl during build and library 'ltdlc':
+  LIBLTDL="-L\$(top_builddir)/libltdl -lltdlc"
+  AC_SUBST(INCLTDL)
+  AC_SUBST(LIBLTDL)
   ;;
 esac
 
