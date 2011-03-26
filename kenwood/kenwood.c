@@ -1,6 +1,6 @@
 /*
  *  Hamlib Kenwood backend - main file
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *  Copyright (C) 2009 Alessandro Zummo <a.zummo@towertech.it>
  *
  *
@@ -2458,5 +2458,8 @@ DECLARE_INITRIG_BACKEND(kenwood)
 	rig_register(&ts590_caps);
 	rig_register(&ts480_caps);
 	rig_register(&thf6a_caps);
+
+	rig_register(&transfox_caps);
+
 	return RIG_OK;
 }

@@ -9,7 +9,7 @@ THSRCLIST = thd7.c thf7.c thg71.c tmd700.c tmv7.c thf6a.c
 
 pkglib_LTLIBRARIES = hamlib-kenwood.la
 hamlib_kenwood_la_SOURCES = $(TSSRCLIST) $(THSRCLIST) $(IC10SRCLIST) \
-			    	kenwood.c th.c ic10.c elecraft.c
+			    	kenwood.c th.c ic10.c elecraft.c transfox.c
 
 hamlib_kenwood_la_LDFLAGS = -no-undefined -module -avoid-version
 hamlib_kenwood_la_LIBADD = $(top_builddir)/src/libhamlib.la @MATH_LIBS@

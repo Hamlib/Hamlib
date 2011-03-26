@@ -1,6 +1,6 @@
 /*
  *  Hamlib Kenwood backend - main header
- *  Copyright (c) 2000-2009 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -176,6 +176,8 @@ extern const struct rig_caps r5000_caps;
 extern const struct rig_caps ts480_caps;
 extern const struct rig_caps ts590_caps;
 extern const struct rig_caps thf6a_caps;
+
+extern const struct rig_caps transfox_caps;
 
 /* use when not interested in the answer, but want to check its len */
 static int inline kenwood_simple_transaction(RIG *rig, const char *cmd, size_t expected)
