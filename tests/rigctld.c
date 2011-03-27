@@ -1,5 +1,5 @@
 /*
- * rigctld.c - (C) Stephane Fillod 2000-2010
+ * rigctld.c - (C) Stephane Fillod 2000-2011
  *
  * This program test/control a radio using Hamlib.
  * It takes commands from network connection.
@@ -46,6 +46,7 @@
 #include <sys/socket.h>
 #elif HAVE_WS2TCPIP_H
 #include <ws2tcpip.h>
+#include <fcntl.h>
 #endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
@@ -351,6 +352,27 @@ int main (int argc, char *argv[])
 	rig_debug(RIG_DEBUG_VERBOSE, "Backend version: %s, Status: %s\n",
 			my_rig->caps->version, rig_strstatus(my_rig->caps->status));
 
+#ifdef __MINGW32__
+# ifndef SO_OPENTYPE
+#  define SO_OPENTYPE     0x7008
+# endif
+# ifndef SO_SYNCHRONOUS_NONALERT
+#  define SO_SYNCHRONOUS_NONALERT 0x20
+# endif
+# ifndef INVALID_SOCKET
+#  define INVALID_SOCKET -1
+# endif
+
+    WSADATA wsadata;
+    if (WSAStartup(MAKEWORD(1,1), &wsadata) == SOCKET_ERROR) {
+	  	fprintf(stderr,"WSAStartup socket error\n");
+		exit(1);
+	}
+
+	int sockopt = SO_SYNCHRONOUS_NONALERT;
+	setsockopt(INVALID_SOCKET, SOL_SOCKET, SO_OPENTYPE, (char *)&sockopt, sizeof(sockopt));
+#endif
+
 	/*
 	 * Prepare listening socket
 	 */
@@ -437,6 +459,10 @@ int main (int argc, char *argv[])
 	rig_close(my_rig); /* close port */
 	rig_cleanup(my_rig); /* if you care about memory */
 
+#ifdef __MINGW32__
+	WSACleanup();
+#endif
+
 	return 0;
 }
 
@@ -451,27 +477,32 @@ void * handle_socket(void *arg)
 	FILE *fsockout;
 	int retcode;
 
-	fsockin = fdopen(handle_data_arg->sock, "rb");
-	if (!fsockin) {
-		rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
-		close(handle_data_arg->sock);
-		free(arg);
-#ifdef HAVE_PTHREAD
-		pthread_exit(NULL);
-#endif
-		return NULL;
+#ifdef __MINGW32__
+	int sock_osfhandle = _open_osfhandle(handle_data_arg->sock, _O_RDONLY);
+	if (sock_osfhandle == -1) {
+		rig_debug(RIG_DEBUG_ERR, "_open_osfhandle error: %s\n", strerror(errno));
+		goto handle_exit;
 	}
 
+	fsockin = _fdopen(sock_osfhandle,  "rb");
+#else
+	fsockin = fdopen(handle_data_arg->sock, "rb");
+#endif
+	if (!fsockin) {
+		rig_debug(RIG_DEBUG_ERR, "fdopen in: %s\n", strerror(errno));
+		goto handle_exit;
+	}
+
+#ifdef __MINGW32__
+	fsockout = _fdopen(sock_osfhandle, "wb");
+#else
 	fsockout = fdopen(handle_data_arg->sock, "wb");
+#endif
 	if (!fsockout) {
 		rig_debug(RIG_DEBUG_ERR, "fdopen out: %s\n", strerror(errno));
 		fclose(fsockin);
-		close(handle_data_arg->sock);
-		free(arg);
-#ifdef HAVE_PTHREAD
-		pthread_exit(NULL);
-#endif
-		return NULL;
+
+		goto handle_exit;
 	}
 
 	do {
@@ -487,7 +518,13 @@ void * handle_socket(void *arg)
 
 	fclose(fsockin);
 	fclose(fsockout);
+
+handle_exit:
+#ifdef __MINGW32__
+	closesocket(handle_data_arg->sock);
+#else
 	close(handle_data_arg->sock);
+#endif
 	free(arg);
 
 #ifdef HAVE_PTHREAD
