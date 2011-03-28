@@ -1,7 +1,7 @@
 /*
  *  Hamlib Interface - list of known rigs
  *  Copyright (c) 2000-2003 by Frank Singleton
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or modify
@@ -196,7 +196,8 @@
 #define RIG_MODEL_IC7700 RIG_MAKE_MODEL(RIG_ICOM, 62)
 #define RIG_MODEL_IC7600 RIG_MAKE_MODEL(RIG_ICOM, 63)
 #define RIG_MODEL_IC92D RIG_MAKE_MODEL(RIG_ICOM, 65)
-/* next one is 66 */
+#define RIG_MODEL_ICR9500 RIG_MAKE_MODEL(RIG_ICOM, 66)
+/* next one is 67 */
 
 	/*
 	 * Optoelectronics (CI-V)

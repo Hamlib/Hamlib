@@ -113,6 +113,24 @@ const struct ts_sc_list r9000_ts_sc_list[] = {
 	{ 0, 0 },
 };
 
+const struct ts_sc_list r9500_ts_sc_list[] = {
+	{ 1, 0x00 },
+	{ 10, 0x01 },
+	{ 100, 0x02 },
+	{ kHz(1), 0x03 },
+	{ kHz(2.5), 0x04 },
+	{ kHz(5), 0x05 },
+	{ 6250, 0x06 },
+	{ kHz(9), 0x07 },
+	{ kHz(10), 0x08 },
+	{ 12500, 0x09 },
+	{ kHz(20), 0x10 },
+	{ kHz(25), 0x11 },
+	{ kHz(100), 0x12 },
+	{ MHz(1), 0x13 },
+	{ 0, 0 },
+};
+
 const struct ts_sc_list ic718_ts_sc_list[] = {
 	{ 10, 0x00 },
 	{ kHz(1), 0x01 },
@@ -289,6 +307,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_ICR7100, 0x34 },
 	{ RIG_MODEL_ICR8500, 0x4a },
 	{ RIG_MODEL_ICR9000, 0x2a },
+	{ RIG_MODEL_ICR9500, 0x72 },
 	{ RIG_MODEL_MINISCOUT, 0x94 },
 	{ RIG_MODEL_IC718, 0x5e },
 	{ RIG_MODEL_OS535, 0x80 },
@@ -3165,6 +3184,7 @@ DECLARE_INITRIG_BACKEND(icom)
         rig_register(&icr7100_caps);
 	rig_register(&icr8500_caps);
 	rig_register(&icr9000_caps);
+	rig_register(&icr9500_caps);
 
 	rig_register(&ic271_caps);
 	rig_register(&ic275_caps);
