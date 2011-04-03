@@ -3,7 +3,7 @@ Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) The Hamlib Group 2000-2011
 
 Take a look at http://sourceforge.net/projects/hamlib/
-Here you will find a mail list, and the latest SVN releases.
+Here you will find a mail list, and the latest Git releases.
 
 See README for frontend/backend outline.
 
@@ -42,8 +42,8 @@ Hamlib also enables developers to develop professional looking
 GUI's towards a standard control library API, and they would not have
 to worry about the underlying connection towards physical hardware.
 
-Serial (RS232) connectivity is built in as are IP (also via a socket
-utility) and USB.  Other connectivity will follow afterwards.
+Serial (RS232) connectivity is built in as are RPC, IP (also via a socket
+utility), and USB.  Other connectivity will follow afterwards.
 
 
 General Guidelines.
@@ -52,7 +52,7 @@ General Guidelines.
 0. The top level directory looks like this as of 13 Feb 2011
 (Note, it has grown considerably).
 
-$ tree -d -I .svn
+$ tree -d -I .git
 .
 ├── alinco
 ├── aor
@@ -120,44 +120,99 @@ If you just want to recompile the library, please refer
 to the INSTALL file.  This document introduces hacking the code of Hamlib.
 
 
-1.1 Obtaining sources: SVN trunk checkout
+1.1 Obtaining sources: git clone
 
-svn co https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib
+  git clone git://hamlib.git.sourceforge.net/gitroot/hamlib/hamlib
 
-N.B.:  If the "trunk" subdirectory is ommited then the entire SVN
-reposity will be downloaded!  This includes all branches and tags that
-have ever been created in the history of Hamlib.  That is quite large,
-abut 22 MiB as of this writing (March 2009).
+The clone has to only be done the first time.
 
-The check out has only to be done the first time.
+After the initial clone, whenever you want to update your local
+repository, issue the following command in the root directory of hamlib.
 
-After the initial retrieval, whenever you want to update your local
-version, issue the following command in the root directory of hamlib.
+  git pull
 
-  svn update
-
-
-1.1.1 Obtaining more info on SVN
-
-Check out the sourceforge page at https://sourceforge.net/svn/?group_id=8305
-for more information about how to use the SVN repository of Hamlib.
-
-A SVN manual is online at http://svnbook.red-bean.com/
+This will download and merge any changes from the canonical Hamlib Git
+repository (what Git calls origin by default).  This command actually
+combines two Git commands, fetch and merge into one that will first check
+for conflicting changes between your local repository and the remote
+(origin) repository and will not apply any changes if conflicts are found.
 
 
-1.1.5 Experimental Git repository
+1.1.1 Obtaining more info on Git
 
-An experimental Git repository has been set up.  As of this moment it is
-only tracking SVN trunk/* as its master branch.  Commits are made first to
-SVN (git svn dcommit) and then pushed to this repository to tie the SVN ID
-to the Git commits.  The hosting address for cloning is:
+Check out the Source Forge page at
+https://sourceforge.net/scm/?type=git&group_id=8305 for more information
+about how to use the Git repository of Hamlib.
 
-git://hamlib.git.sourceforge.net/gitroot/hamlib/hamlib
+Much documentation on Git exists.  A good starting point is:
 
-Nate, N0NB, will accept patches emailed from Git (they may be posted to the
-hamlib-developer mailing list).  Patches should apply to the current SVN
-trunk/* tree.  Keep in mind that with the SVN repository being the primary
-repository that things like your local branching information will be lost.
+http://git-scm.com/documentation
+
+From this page are links to toturials, books (Pro Git proved useful for me),
+and references (http://gitref.org/ is another good resource).
+
+Another site:
+
+http://www-cs-students.stanford.edu/~blynn/gitmagic/
+
+
+1.1.2 Providing patches with Git
+
+Git provides tools to generate patches and submit them to the Hamlib developers
+via email.  Use of these tools is prefered as Git allows credit to be given
+to the author and submitter of the patches.  Please submit the patches to
+the hamlib-developer mailing list.  See section 8.3.
+
+
+1.1.3 Git and branches
+
+One of the most powerful features of Git is its ability to make working with
+branches easy.  It also allows the developers to "cherry pick" patches from
+the master development branch into stable release branches.  In this manner
+we can accomodate patches submitted against a stable release and merge them
+into master as well.  Such parallel development is a new feature for our
+project and there will be a learning curve!
+
+After cloning the repository as above, the repository is synchronized with
+the "master" branch.  This can be confirmed by 'git branch'.  A new branch
+can be created by providing a name, 'git branch n0nb_k3_level' which will
+now exist as a branch in your local repository.  This is a good way to work
+on new features as Git keeps changes to files in each branch separate.
+
+As you can see:
+
+$ git branch
+  Hamlib-1.2.13
+  Hamlib-1.2.13.1
+* master
+  n0nb_k3_level
+  test-mingw32-build
+
+there are a number of branches in my local repository.  Most, such as
+"Hamlib-1.2.13", exist in the canonical repository as well.  They can be
+seen by 'git branch -r' and you can switch to any of them using the 'git
+checkout BRANCH_NAME' command.
+
+Finally, once your changes are ready for inclusion in Hamlib, commit your
+changes to the branch you are working in, checkout the master branch, and
+use 'git merge' to synchronize your changes into the master branch.  Lastly,
+push your changes to the canonical repository or email them to
+hamlib-developer@lists.sourceforge.net for inclusion into Hamlib.
+
+
+1.1.4 Summary
+
+This is a very brief introduction to Git for Hamlib developers.  Day-to-day
+Git usage involves a handful of commands--clone, status, commit, pull,
+branch, checkout, merge, and push are probably the most common.  Other
+useful commands are log and diff to see changes (especially when color
+output is enabled in your Git configuration).  See the references above
+to learn about setting up Git to your preference.
+
+If you like a GUI tool several exist.  Gitk and Gitg are similar with the
+former being written with the Tk toolkit and the latter in GTK+.  Another is
+Giggle with its own interface.  All allow looking at the complete history of
+the repository and changes made to any file.
 
 
 1.2. Requirements
@@ -168,11 +223,12 @@ has access to a POSIXish system to port Hamlib. Contact us for help.
 
 That is, if you want to take part in the development of Hamlib,
 you'll need the following tools. Make sure you have at least the required
-version or you won't even be able to build from the SVN checkout.
+version or you won't even be able to build from the Git clone.
 
 N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
 package will install a number of tools and minimize the number of packages
-that need to be installed manually.
+that need to be installed manually (Debian package names are listed, other
+distributions may differ).
 
 * Gnu C or any C99 compliant compiler       # gcc --version
 * Gnu make  (or any modern one, BSD okay)   # make --version
@@ -180,7 +236,7 @@ that need to be installed manually.
 * automake      1.7                         # automake --version
 * libtool       2.2.6b                      # libtool --version
 * libltdl-dev   2.2.6b
-* svn for connection to hamlib.svn.sourceforge.net
+* Git for connection to hamlib.git.sourceforge.net
 
 N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
 
@@ -215,14 +271,9 @@ it's recommended to upgrade to automake 1.7, which is a lot more stable.
 
 1.3. configure and build stage
 
-It is important to note that the SVN repository holds no autogenerated
+It is important to note that the Git repository holds no autogenerated
 files, i.e. configure, config.guess, Makefile, etc.  Hence after a fresh
 checkout, you'll have to generate those files.
-
-NOTE: Hamlib previously included a script 'autofixer.sh'.  It has been
-removed, as hamlib no longer supports the use of libtool 1.x versions in
-compliance with CVE-2009-3736.  The autogen.sh script will upgrade the
-bundled libtool source only if a newer version is installed on the system.
 
 To proceed, first edit the autogen.sh script, and set appropriately the
 AUTOCONF, AUTOHEADER, AUTOHEADER, and ACLOCAL variables with the required
@@ -272,7 +323,7 @@ The difference between building as a beta tester and a developer is in the
 '--enable-maintainer-mode' option passed to configure from autogen.sh.  This
 option will add new Makefile targets and dependencies and not force a
 rebuild of the Makefiles when make is executed.  This is why we recommend
-that beta testers use the daily SVN snapshot from:
+that beta testers use the daily Git master branch snapshot from:
 
 http://n0nb.users.sourceforge.net
 
@@ -305,11 +356,12 @@ works on your system, especially on non-Linux or non-PC systems. We are
 trying to make Hamlib as portable as possible. Please report problems to our
 developer mailing list, hamlib-developer@lists.sourceforge.net
 
-Patches are welcome too!  Just send them to the mailing list.  Unified diff
-(diff -u) is the prefered format and patches should apply to the current SVN
-trunk, if possible.  If you're patching against an older released version of
-Hamlib, we can take those as well but please document the base the diff is
-against.
+Patches are welcome too!  Just send them to the mailing list.  Git formatted
+patches are preferred.  Unified diff format (diff -u) is also welcome.
+Patches should apply to the current Git master branch or a testing branch,
+if possible.  If you're patching against an older released version of
+Hamlib, we can take those as well but please document the release the diff
+is generated against.
 
 So far, Hamlib has been tested successfully under the following systems:
 (if your system is not present, please report to the mailing list)
@@ -353,20 +405,37 @@ So far, Hamlib has been tested successfully under the following systems:
 
          make in topdir to rebuild all
 
-    2.6. Commit your work (developer access to Hamlib SVN required):
+    2.6. Commit your work to your local repository. (developer access to
+         Hamlib Git required for pushing to the canonical Hamlib repository
+         (origin))  Provide patches to the mailing list:
          (Please let N0NB know if the commands below are incorrect)
-         $ svn add mybackend
+
+         $ git status   # Show uncommitted/staged/unstaged files
+         $ git add mybackend
          $ cd mybackend
          (The following command might not be necessary)
-         $ svn add Makefile.am mybackend.c mybackend.h
-         $ svn commit -m "Initial release" Makefile.am mybackend.c mybackend.h
+         $ git add Makefile.am mybackend.c mybackend.h
 
-         Note: The `-m' switch passes a short message to the SVN repository
+         While specifying each file individually as above allows for fine-
+         grained control, git offers a wildcard shortcut to add all new files:
+         $ git add .
+         Be careful!  If you have other files that were created as part of the
+         build process, this command will add them too unless they match a
+         pattern in .gitignore.  Always check with 'git status' first!
+
+         $ git commit -m "Initial release" Makefile.am mybackend.c mybackend.h
+
+         Note: The `-m' switch passes a short message to the Git repository
          upon a commit.  If a longer message is desired, do not use the `-m'
          option.  The editor specified in the EDITOR or VISUAL environment
          variables will be started where a more detailed message may be
          composed.
 
+    2.7  If you have developer access to the Git repository hosted at Source
+         Forge, you can do the following:
+         $ git push origin
+
+         Your changes will now be available to others.
 
 3. How to add a new model to an existing backend
 
@@ -436,6 +505,7 @@ Needless to say, the LGPL is the license of choice.
 End user applications like rigctl, rotctl and RPC daemons should be released
 under the GPL, so any contributed code must follow the rule.
 
+
 8.2 Coding guidelines and style
 
 Try to keep current style of existing code. Improvements are welcome though.
@@ -493,33 +563,40 @@ Portability issues to watch:
     * printf/scanf of 64bit int: use PRIll and SCNll
     * printf/scanf of freq_t: use PRIfreq and SCNfreq
 
+
 8.3 Submitting patches
 
-Patches should be in unified format (diff -u), against SVN trunk/ or latest
-release. This format makes it easily readable. The patches are to be sent to
-the hamlib-developer mailing list. If the file is too big, you can send it
-as a compressed attachment.
+Git provides tools to generate patches and submit them to the Hamlib
+developers via email.  Use of these tools is preferred as Git allows credit
+to be given to the author and submitter of the patches.  Alternately,
+patches can be submitted in unified format (diff -u), against the Git master
+branch or a given release (please note well which one!). Both formats make
+patches easily readable. The patches are to be sent to the hamlib-developer
+mailing list ( hamlib-developer@lists.sourceforge.net). If the file is too
+big, you can send it as a compressed attachment.
+
 
 8.3.1 Changelog
 
-Caveat: The svn2cl program is used before each release to generate the
-Changelog file so any changes made directly to it WILL BE LOST! Simply
-summarize your changes when the files are committed to SVN or, if providing
-patches to the mailing list, provide a summary so the uploader can include
-it in the commit message which will show in the Changelog.
+Simply summarize your changes when the files are committed to Git or, if
+providing patches to the mailing list, provide a summary so the uploader can
+include it in the commit message which will show in the commit log (Git
+formatted emails will inlcude this already).
 
-8.4 SVN commit access
 
-Generally, volunteers can get access to SourceForge Hamlib SVN upon asking
-one of the project administrators.  Sometimes we'll ask you!
+8.4 Git commit access
 
-However, before your start commiting, the project admins would like first to
-have a look at your "style", just to make sure you grok the Hamlib approach
-(c.f. previous section on submitting a patch). Then you'll be able to commit
-by yourself to the backend you have maintainance of. Please follow the rules
-hereunder:
+Generally, volunteers can get commit access to the SourceForge Hamlib Git
+repository upon asking one of the project administrators.  Sometimes we'll
+ask you!
 
-    * Always keep the SVN trunk repository in a compilable state.
+However, before your start committing, the project admins would like first
+to have a look at your "style", just to make sure you grok the Hamlib
+approach (c.f. previous section on submitting a patch). Then you'll be able
+to commit by yourself to the backend you have maintainance of. Please follow
+the rules hereunder:
+
+    * Always keep the Git repository (all branches) in a compilable state.
     * Follow the coding guidelines
     * Touching the frontend (files in src/ and include/hamlib) always
       requires discussion beforehand on the hamlib-developer list.

@@ -2,7 +2,8 @@ Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) Stephane Fillod 2000-2011
          (C) The Hamlib Group 2000-2011
 
-* Why does Hamlib need beta-testers?
+Why does Hamlib need beta-testers?
+==================================
 
 Hamlib is developed by a team of radio enthusiasts around the world, for
 fun, much in the spirit of ham radio. (Note that it is not restricted for
@@ -15,21 +16,22 @@ that there's no such sure thing like bug free code.
 Feedback and improvement requests are also valuable.
 
 
-* Okay, you volunteer as beta-tester, how to proceed?
+Okay, you volunteer as beta-tester, how to proceed?
+===================================================
 
 First of all, you can start testing official releases. They are easier to
 test because they come in precompiled and packaged (.rpm, .deb, etc.) but
-they have the drawback of being older than the SVN repository. Reports from
+they have the drawback of being older than the Git repository. Reports from
 these versions are still very appreciated.  Please send them to the
 hamlib-developer@lists.sourceforge.net mailing list.
 
 However, the development of Hamlib is still very active, so it's better to
-test from the latest SVN version of the code.  And, depending on feedback
+test from the latest Git version of the code.  And, depending on feedback
 you make, developers can commit a fix, so you can try out the change soon
 after, without waiting for the next official version.
 
 To proceed, you will have first to obtain either a daily snapshot or a check
-out of the latest sources from the SVN repository, then rebuild the Hamlib
+out of the latest sources from the Git repository, then rebuild the Hamlib
 package and finally test it with your rig. Don't worry, it's much simpler
 than it looks, despite the size of the package.
 
@@ -41,33 +43,37 @@ Pre-requisite:
 
 So here we go:
 
-* Daily SVN trunk snapshots:
+Daily Git master branch snapshots:
+==================================
 
-Download the latest SVN trunk snapshot from:
+Download the latest Git master branch snapshot from:
 
 http://n0nb.users.sourceforge.net
 
 You'll find a tarball with a name like
-hamlib-1.2.13svn-rev-3021-20110119.tar.gz, i.e. a check out made 19 Jan 2011
-at SVN revision 3021, ready for building using the familiar "three step"
-(see below).  Each morning by about 1130z a new snapshot is generated and
-uploaded and the prior day's version is removed.
+hamlib-1.2.14~git-01db7a3-20110402.tar.gz, i.e. a check out made 02 Apr 2011
+With a Git SHA1 of 01db7a3 (The SHA1 is a signature of each commit.  Each is
+unique and as our project is small, the first seven characters for the full
+20 character SHA1 are likely unique.  The shorthand SHA1 is automatically
+generated and may become longer in the future.), ready for building using
+the familiar "three step" (see below).  Each morning by about 1130z a new
+snapshot is generated and uploaded and the prior day's version is removed.
 
-The advantage of the SVN snapshot is that you won't need as many tools
+The advantage of the Git snapshot is that you won't need as many tools
 installed to build Hamlib as the work of Autoconf, Automake, and Libtool
 have already been done.  Most of the other packages listed below will be
-needed.  If you tell the `configure' script to build certain parts of Hamlib
+needed.  If you tell the 'configure' script to build certain parts of Hamlib
 like documentation or scripting language bindings the relavent optional
-packages will be needed.  See `configure --help' for more information.
+packages will be needed.  See 'configure --help' for more information.
 
 Here is a list of development packages needed for a complete build of the
-library:
+library (Debian package names are listed, other distributions may differ):
 
 * Gnu C or any C99 compliant compiler       # gcc --version
 * Gnu make  (or any modern one, BSD okay)   # make --version
 * libtool       2.2.6b                      # libtool --version
 * libltdl-dev   2.2.6b
-* svn for connection to hamlib.svn.sourceforge.net
+* Git for connection to hamlib.svn.sourceforge.net
 
 N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
 package will install a number of tools and minimize the number of packages
@@ -94,14 +100,8 @@ Documentation:
 * Doxygen
 
 
-* SVN checkout:
-
-Please read the beginning of README.developer file, especially Section 1 which
-details the SVN checkout, the required tools and versions (very important or
-make won't even work!), and how to use the autogen.sh script.
-
-
-* SVN Daily Snapshot Build:
+Git master branch daily snapshot build:
+=======================================
 
 Reading the INSTALL file in top directory will explain in more detail how
 to do the following commands.
@@ -133,8 +133,8 @@ following in the same parent directory of hamlib:
 This will keep the binary output files seperate from the source tree.
 
 NOTE!  If Hamlib has not been previously installed as a locally built
-package you will need to make sure that `ldconfig' is configured correctly
-and run periodically after `make install'.  Most modern distributions have
+package you will need to make sure that 'ldconfig' is configured correctly
+and run periodically after 'make install'.  Most modern distributions have
 an /etc/ld.so.conf.d/ directory where local configuration can be made.
 Later versions of Debian and derivatives have a file named 'libc.conf' in
 this directory.  The contents of libc.conf are:
@@ -143,11 +143,20 @@ this directory.  The contents of libc.conf are:
 /usr/local/lib
 
 If your system does not have such a file, one will need to be created and
-then `ldconfig' will need to be run as the root user so that applications
+then 'ldconfig' will need to be run as the root user so that applications
 using the Hamlib libraries can find them.
 
 
-* Structure:
+Git checkout:
+=============
+
+Please read the beginning of README.developer file, especially Section 1 which
+details the Git checkout, the required tools and versions (very important or
+make won't even work!), and how to use the autogen.sh script.
+
+
+Structure:
+==========
 
 For the brave who want to peruse the contents, here are what all the
 subdirectories are for (these are just a sample as more are added from time to
@@ -174,19 +183,20 @@ src:                Hamlib frontend source directory
 tests:              rigctl/rotctl and various C programs for testing
 
 
-* testing Hamlib:
+Testing Hamlib:
+===============
 
 Don't attempt to test Hamlib from the source directory unless you're a
 developer and you understand the side effects of *not* installing freshly
 generated objects (basically having to mess with LD_LIBRARY_PATH and
-.libs).  Do an `sudo make install' to install the libraries in the system
-area.  (You did run `ldconfig', right?)
+.libs).  Do an 'sudo make install' to install the libraries in the system
+area.  (You did run 'sudo ldconfig' after 'sudo make install', right?)
 
 So here we go. First of all, identify your rig model id.  Make sure
 /usr/local/bin (or the path you set --prefix to above) is in your $PATH, as
-rigctl has to be reachable by your shell.
+your shell has to be able to locate rigctl.
 
-Run `rigctl -l' to get a list of rigs supported by Hamlib.
+Run 'rigctl -l' to get a list of rigs supported by Hamlib.
 
 If you cannot find your radio in the list, please report to the
 hamlib-developer mailing list. The protocol manual and rig specifications
@@ -198,6 +208,7 @@ Have a quick look at its manual page:
     man rigctl
 or:
     man -M /usr/local/man rigctl
+
 or simply:
     rigctl --help
 
@@ -239,7 +250,7 @@ the rig.
 Tip: Traces can be hard to cut and paste sometimes. In that case, there's a
 handy tool for you:  script(1) (the (1) is not a part of the command, rather
 it is a Unix convention telling which section of the manual it is found, in
-this case section 1, user commands.  e.g. `man 1 script'). It will make a
+this case section 1, user commands.  e.g. 'man 1 script'). It will make a
 typescript of everything printed on your terminal and save it to the file
 you give it.
 
@@ -293,7 +304,7 @@ Okay folks, test as much as you can, in the weirdest situations if
 possible. There is a special prize for those who find 'Segmentation fault'
 and other nasty bugs.
 
-Needless to say, patches are also very welcome :-)
+Needless to say, patches are also very welcome (see README.developer).  :-)
 
 
 Stephane - F8CFE and The Hamlib Group
