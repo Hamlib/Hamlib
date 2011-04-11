@@ -1,6 +1,6 @@
 /*
  *  Hamlib KIT backend - FUNcube Dongle USB tuner description
- *  Copyright (c) 2009-2010 by Stephane Fillod
+ *  Copyright (c) 2009-2011 by Stephane Fillod
  *
  *  Derived from usbsoftrock-0.5:
  *  Copyright (C) 2009 Andrew Nilsson (andrew.nilsson@gmail.com)
@@ -31,7 +31,7 @@
 #define PRODUCT_NAME						"FunCube Dongle"
 
 #define FUNCUBE_INTERFACE					0x02
-#define FUNCUBE_CONFIGURATION				0x00
+#define FUNCUBE_CONFIGURATION				-1  /* no setup */
 #define FUNCUBE_ALTERNATIVE_SETTING			0x00
 
 #define INPUT_ENDPOINT						0x82

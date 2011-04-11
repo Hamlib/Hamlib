@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - USB communication low-level support
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *
  *   This library is free software; you can redistribute it and/or modify
@@ -230,7 +230,8 @@ int usb_port_open(hamlib_port_t *port)
     if (port->parm.usb.iface >= 0) {
 
 #ifdef _WIN32
-      if (usb_set_configuration (udh, port->parm.usb.conf) < 0){
+      if (port->parm.usb.conf >= 0 &&
+              usb_set_configuration (udh, port->parm.usb.conf) < 0){
         rig_debug(RIG_DEBUG_ERR, "%s: usb_set_configuration: failed conf %d: %s\n",
                 __func__,port->parm.usb.conf, usb_strerror());
         usb_close (udh);

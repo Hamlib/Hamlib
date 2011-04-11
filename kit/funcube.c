@@ -1,6 +1,6 @@
 /*
  *  Hamlib KIT backend - FUNcube Dongle USB tuner description
- *  Copyright (c) 2009-2010 by Stephane Fillod
+ *  Copyright (c) 2009-2011 by Stephane Fillod
  *
  *  Derived from usbsoftrock-0.5:
  *  Copyright (C) 2009 Andrew Nilsson (andrew.nilsson@gmail.com)
@@ -69,7 +69,7 @@ int set_freq_v1(usb_dev_handle *udh, unsigned int f, int timeout);
  */
 struct funcube_priv_data {
 
-	int freq;	/* Hz */
+	freq_t freq;	/* Hz */
 };
 
 /*
@@ -84,7 +84,7 @@ const struct rig_caps funcube_caps = {
 .rig_model =  RIG_MODEL_FUNCUBEDONGLE,
 .model_name = "FUNcube Dongle",
 .mfg_name =  "AMSAT-UK",
-.version =  "0.1",
+.version =  "0.2",
 .copyright =  "GPL",
 .status =  RIG_STATUS_BETA,
 .rig_type =  RIG_TYPE_TUNER,
