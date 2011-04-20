@@ -1,0 +1,55 @@
++----------------------------------------+
+|   Hamlib FUNcube dongle Win32 readme   |
+|   Written by Wouter Weggelaar PA3WEG   |
+|ISIS - Innovative Solutions In Space BV |
++----------------------------------------+
+
+Note:  The following only applies for users running Win32 systems.
+
+First of all, congratulations on obtaining a FUNcube dongle, the SDR
+receiver ground segment for the FUNcube satellite! More info on this
+exciting AMSAT-UK project can be found on http://funcube.org.uk/ more about
+the dongle on http://www.funcubedongle.com/
+
+The FUNcube dongle driver uses the USB kit backend in hamlib to interface to
+the dongle via the USB HID interface. For this to work in hamlib, we need
+LibUSB support (tested with 1.2.3.0 and 1.2.4.0) and LibUSB support compiled
+into hamlib. This should be the case for all official hamlib releases
+(hamlib-win32-1.2.13-2 tested).
+
+You will need to download and install libusb-win32 from
+http://sourceforge.net/projects/libusb-win32/ extract the zip archive to a
+convenient location, change into this directory and run inf-wizard.exe
+located in the bin directory.
+
+Select the proper device in this wizard (Vendor ID 0x04D8, Product ID
+0xFB56, interface 2) Click NEXT and accept the defaults, or change the
+vendor name and product ID as you wish to see it appear in device manager.
+I've changed this ID to reflect the vendor (hanlincrest ltd) and product
+name (funcube dongle).
+
+You can now suggest a location to store the driver (I suggest creating a
+directory for this as the wizard creates more than one file).  Finally,
+install the driver as suggested by the wizard.
+
+You should be all set up now. Running hamlib from the command line using
+rigctl -m 2513 -vvvv should provide something like below:
+
+------------------------------------------
+>rigctl.exe -m 2513 -v
+Opened rig model 2513, 'FUNcube Dongle'
+
+Rig command:
+------------------------------------------
+If you made it to here, you are all set up and ready to go.
+
+**** PLEASE NOTE: by installing the LibUSB INF driver, other tools accessing
+the dongle cannot find it anymore as they are looking for the windows HID
+driver. Just uninstall the hamlib driver if you want to use those tools
+again! HAMLIB or LibUSB DID NOT BREAK YOUR SYSTEM! ****
+
+You could use hardware profiles to easily switch drivers.
+
+Happy SDR-ing!
+
+Wouter PA3WEG
