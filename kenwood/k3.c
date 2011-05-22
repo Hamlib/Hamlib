@@ -82,12 +82,15 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit);
  *
  * Part of info comes from http://www.elecraft.com/K2_Manual_Download_Page.htm#K3
  * look for K3 Programmer's Reference PDF
+ *
+ * Wayne Burdick, N6KR, advises that the forthcoming KX3 (prototype shown at
+ * Dayton Hamvention 2011) will have an identical command set to the K3.
  */
 const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
-	.model_name =		"K3",
+	.model_name =		"K3/KX3",
 	.mfg_name =		"Elecraft",
-	.version =		"20101030",
+	.version =		"20110522",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
