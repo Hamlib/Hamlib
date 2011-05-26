@@ -100,6 +100,7 @@ static const struct kenwood_id_string kenwood_id_string_list[] = {
 	{ RIG_MODEL_THD7A,	"TH-D7" },
 	{ RIG_MODEL_THD7AG,	"TH-D7G" },
 	{ RIG_MODEL_TMD700,	"TM-D700" },
+	{ RIG_MODEL_THD72A,	"TH-D72" },
 	{ RIG_MODEL_TMV7,	"TM-V7" },
 	{ RIG_MODEL_THF6A,	"TH-F6" },
 	{ RIG_MODEL_THF7E,	"TH-F7" },
@@ -2450,6 +2451,7 @@ DECLARE_INITRIG_BACKEND(kenwood)
 
 	rig_register(&tmd700_caps);
 	rig_register(&thd7a_caps);
+	rig_register(&thd72a_caps);
 	rig_register(&thf7e_caps);
 	rig_register(&thg71_caps);
 	rig_register(&tmv7_caps);

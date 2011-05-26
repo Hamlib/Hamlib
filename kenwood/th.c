@@ -337,7 +337,7 @@ th_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 int
 th_set_vfo(RIG *rig, vfo_t vfo)
 {
-	char buf[8];
+	const char *cmd;
 	int retval;
 
 	rig_debug(RIG_DEBUG_TRACE, "%s: called\n", __func__);
@@ -357,50 +357,53 @@ th_set_vfo(RIG *rig, vfo_t vfo)
 			case RIG_VFO_A:
 			case RIG_VFO_VFO:
 			case RIG_VFO_MAIN:
-			sprintf(buf, "BC 0");
-			break;
+			    cmd = "BC 0";
+			    break;
 
-		case RIG_VFO_B:
+		    case RIG_VFO_B:
 			case RIG_VFO_SUB:
-			sprintf(buf, "BC 1");
-			break;
+			    cmd = "BC 1";
+			    break;
 
 		default:
 			return kenwood_wrong_vfo(__func__, vfo);
 		}
 
-		retval = kenwood_simple_transaction(rig, buf, 5);
+		retval = kenwood_simple_transaction(rig, cmd, 5);
 		if (retval != RIG_OK)
 				return retval;
 	}
 
+    /* No "VMC" cmd on THD72A */
+    if (rig->caps->rig_model == RIG_MODEL_THD72A)
+        return RIG_OK;
 
 	/* set vfo */
 	switch (vfo) {
 		case RIG_VFO_A:
 		case RIG_VFO_VFO:
 		case RIG_VFO_MAIN:
-		sprintf(buf, "VMC 0,0");
-		break;
+		    cmd = "VMC 0,0";
+		    break;
 
 		case RIG_VFO_B:
 		case RIG_VFO_SUB:
-		sprintf(buf, "VMC 1,0");
-		break;
+		    cmd = "VMC 1,0";
+		    break;
 
 		case RIG_VFO_MEM:
 		if (rig->caps->rig_model == RIG_MODEL_THF7E ||
 				rig->caps->rig_model == RIG_MODEL_THF6A)
-			sprintf(buf, "VMC 0,1");
+			cmd = "VMC 0,1";
 		else
-			sprintf(buf, "VMC 0,2");
+			cmd = "VMC 0,2";
 		break;
 
 		default:
 		return kenwood_wrong_vfo(__func__, vfo);
 	}
 
-	return kenwood_cmd(rig, buf);
+	return kenwood_cmd(rig, cmd);
 }
 
 int
@@ -445,6 +448,13 @@ th_get_vfo_char(RIG *rig, vfo_t *vfo, char *vfoch)
 		return -RIG_EVFO;
 
 	}
+
+    /* No "VMC" on THD72A */
+    if (rig->caps->rig_model == RIG_MODEL_THD72A) {
+        *vfoch = '0'; /* FIXME: fake */
+
+        return RIG_OK;
+    }
 
 	/* Get mode of the VFO band */
 
