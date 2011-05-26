@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - list of known rotators
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *  Copyright (c) 2000-2002 by Frank Singleton
  *
  *
@@ -243,6 +243,17 @@
 #define ROT_MODEL_RCI_AZEL ROT_MAKE_MODEL(ROT_ARS, 1)
 #define ROT_MODEL_RCI_AZ ROT_MAKE_MODEL(ROT_ARS, 2)
 
+/*! \def ROT_MODEL_IF100
+ *  \brief A macro that returns the model number of the IF-100 backend.
+ *
+ *  The AMSAT backend can be used with rotators that support,
+ *  among other, the IF-100 interface.
+ */
+#define ROT_AMSAT 12
+#define ROT_BACKEND_AMSAT "amsat"
+#define ROT_MODEL_IF100 ROT_MAKE_MODEL(ROT_AMSAT, 1)
+
+
 /*! \typedef typedef int rot_model_t
     \brief Convenience type definition for rotator model.
 */
@@ -268,6 +279,7 @@ typedef int rot_model_t;
         { ROT_SPID, ROT_BACKEND_SPID }, \
         { ROT_M2, ROT_BACKEND_M2 }, \
         { ROT_ARS, ROT_BACKEND_ARS }, \
+        { ROT_AMSAT, ROT_BACKEND_AMSAT }, \
         { 0, NULL }, /* end */  \
 }
 

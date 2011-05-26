@@ -256,7 +256,7 @@ AC_SUBST(RIGMATRIX)
 
 
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft rs kit skanti prm80 tapr flexradio wj racal tuner"
-ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2"
+ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2 amsat"
 BINDINGS=""
 BINDING_ALL=""
 BINDING_CHECK=""
@@ -535,6 +535,7 @@ doc/hamlib.cfg
 rotorez/Makefile
 flexradio/Makefile
 m2/Makefile
+amsat/Makefile
 hamlib.pc
 hamlib.spec]
 )
