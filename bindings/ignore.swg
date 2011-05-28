@@ -89,6 +89,8 @@
 %ignore ROT_BACKEND_M2;
 %ignore ROT_ARS;
 %ignore ROT_BACKEND_ARS;
+%ignore ROT_AMSAT;
+%ignore ROT_BACKEND_AMSAT;
 
 %ignore PRIfreq;
 %ignore SCNfreq;

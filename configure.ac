@@ -17,6 +17,7 @@ AC_CONFIG_MACRO_DIR([macros])
 ## ------------------------ ##
 AM_INIT_AUTOMAKE(AC_PACKAGE_TARNAME, AC_PACKAGE_VERSION, -)
 AC_CONFIG_HEADERS([include/config.h])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
 
 ## ------------------------------- ##
@@ -255,7 +256,7 @@ AC_SUBST(RIGMATRIX)
 
 
 BACKEND_LIST="icom kenwood aor yaesu dummy pcr alinco uniden tentec kachina jrc drake lowe rft rs kit skanti prm80 tapr flexradio wj racal tuner"
-ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2"
+ROT_BACKEND_LIST="dummy easycomm fodtrack gs232a heathkit kit rotorez sartek spid ars m2 amsat"
 BINDINGS=""
 BINDING_ALL=""
 BINDING_CHECK=""
@@ -534,6 +535,7 @@ doc/hamlib.cfg
 rotorez/Makefile
 flexradio/Makefile
 m2/Makefile
+amsat/Makefile
 hamlib.pc
 hamlib.spec]
 )

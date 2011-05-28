@@ -107,8 +107,11 @@ C: Thomas Beierlein, DL1JBE
 [kenwood: R-5000]
 M: Mark J. Fine
 
+[kenwood: tmd700]
+M: Charles Suprin, AA1VS
+
 [kenwood: thg71,tmv7,tmd700]
-M: Thierry Leconte, F4DWV
+C: Thierry Leconte, F4DWV
 
 [kenwood: thg71,tmv7]
 M: Andrew McNamara
@@ -214,6 +217,10 @@ C: Francois Retief
 [fodtrack]
 M: Luc Langehegermann, LX2GT
 
+[amsat/if-100]
+M: Stephane Fillod, F8CFE
+C: Patrick Strasser, OE6PSE
+
 [heathkit:HD 1780 Intellirotor]
 M: Rob Frohne, KL7NA
 
@@ -306,6 +313,7 @@ Kamal Mostafa, KA6MAL, <kamal (at) whence.com>
 Jaime Robles, EA4TV, <jaime (at) debian.org>
 Wolfgang Buesser, DK1BW, <wolfgang.buesser (at) web.de>
 Magne Mæhre, LA1BFA, <magne (at) samfundet.no>
+Charles Suprin, AA1VS, <hamaa1vs (at) gmail.com>
 Robert Steinhäußer, DL1NC, <dl1nc (at) users.sourceforge.net>
 James Watson, HZ1JW, <jawatson (at) users.sourceforge.net>
 Juergen Rinas, DC3BW, <jrinas  (at) users.sourceforge.net>

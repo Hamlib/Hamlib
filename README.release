@@ -47,31 +47,12 @@ Releasing Hamlib:
      make dist
 
 * Build Windows DLL from previous tarball, and .LIB, then create .zip file
-  Rem: under Linux, you need the package mingw32 to cross-compile it,
+  Rem: under Linux, you need the package mingw32(+zip) to cross-compile it,
        and an internal copy of libltdl (configured and built),
        and free MVC++Toolkit to create .lib file:
-         # Import internal ./libltdl and build it for mingw32
-         libtoolize --ltdl
-         ( cd libltdl; ./configure --host=i586-mingw32msvc && make )
-         # Configure and build hamlib for mingw32
-         ./configure --disable-static \
-           --host=i586-mingw32msvc \
-           --prefix=/tmp/mingw-inst \
-           --without-rpc-backends \
-           PKG_CONFIG_LIBDIR= ac_cv_path_PKG_CONFIG=no
-         make install
-         new_ver="x.y.z"
-         mkdir -p /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc
-         cp src/libhamlib.def /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc/libhamlib-2.def
-         cd /tmp/mingw-inst/hamlib-${new_ver}/lib/msvc/
-         unix2dos *.def
-         wine /media/sda1/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def
-         cd ../..
-         unix2dos include/hamlib/*.h
-         cp lib/libhamlib.dll.a /tmp/mingw-inst/hamlib-${new_ver}/lib/gcc
-         zip -r hamlib-win32-${new_ver}.zip hamlib-win32-${new_ver}
+         make distwin32
 
-         Edit Release, i386, .zip
+         Upload & edit Properties: select Windows
 
 * Build Windows DLL with stdcall convention:
   Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
@@ -85,6 +66,7 @@ Releasing Hamlib:
   - Click Add File button
   - Click Choose File button
   - Click Upload
+  - Click on (i) icon, select appropriate OS for "Default Download"
 
 * Update http://www.hamlib.org Wiki
   - Download section
