@@ -213,7 +213,7 @@ const struct rig_caps k3_caps = {
 	.get_trn =		kenwood_get_trn,
 	.set_powerstat =	kenwood_set_powerstat,
 	.get_powerstat =	kenwood_get_powerstat,
-	.set_ant =		kenwood_set_ant,
+	.set_ant =		kenwood_set_ant_no_ack,
 	.get_ant =		kenwood_get_ant,
 	.send_morse =		kenwood_send_morse,
 
