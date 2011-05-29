@@ -5,6 +5,14 @@ Copyright (C) 2000-2011  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.2.13.1
+	* 2011-05-29
+	* Conversion to Git SCM and updated README documentation for Git SCM
+	* Mingw32 build fixes
+	* FUNcube dongle USB fixes for Win32
+	* Added kit/README.funcubedongle
+	* Bug fix--K3 antenna selection function
+
 Version 1.2.13
 	2011-03-12
 	* New models: VX-1700, FUNcube, FiFi-SDR, KTH-SDR Si570, FT-5000,
