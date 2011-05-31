@@ -34,7 +34,7 @@
 #include "parallel.h"
 #include "misc.h"
 #include "register.h"
-
+#include "math.h"
 
 static int
 if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
@@ -44,16 +44,17 @@ if100_set_position(ROT *rot, azimuth_t az, elevation_t el)
     int az_i;
     int el_i;
     int dataout, i;
+    float az_scale, el_scale;
 
     rig_debug(RIG_DEBUG_TRACE, "%s called: %f %f\n", __func__, az, el);
-
-    if (rot->state.max_az - rot->state.min_az >= 450)
-        az_i = az * 0.70833;
-    else
-        az_i = (az + 45) * 0.56667;
-
-    el_i = el * 1.4166;
-
+    
+    az_scale = 255./(rot->state.max_az - rot->state.min_az);
+    el_scale = 255./180;
+    
+    az_i = (int)round((az - rot->state.min_az) * az_scale);
+    el_i = (int)round(el * el_scale);
+    
+    rig_debug(RIG_DEBUG_TRACE, "%s output az: %d el: %d\n", __func__, az_i, el_i);
     dataout = ((el_i & 0xff) << 8) + (az_i & 0xff);
 
 #define DAT0  0x01
