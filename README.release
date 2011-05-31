@@ -2,19 +2,22 @@
 This file is a release HOWTO, more or less a reminder before releasing
 a new version of Hamlib.
 
-TODO:   With the switch to SVN SCM discuss the use of tags and branches
-        for releases.
+TODO:   With the switch to Git SCM discuss the use of branches
+        for releases and point releases.
 
 Before deciding release:
 -----------------------
 * Anticipate what problems would users experience with the new release,
   so you can fix the problems before making the release.
-  Basically, this is making sure the package will
-  compile on a whole breed of systems (arch,OS,library,gcc,etc. combo),
+  Basically, this is making sure the package will compile on a whole
+  breed of systems (arch, OS, library, gcc, etc. combo),
   that there's no regression, and the API evolution is managed well.
 
-* Announce SVN/version freeze on hamlib-developer mailing list,
+* Announce version freeze on hamlib-developer mailing list,
   so developers have time to check in their contributions.
+  In order to provide for a timely release schedule with the popular
+  Ubuntu distribution, announcing a freeze around January 1 and July 1
+  of each year will provide about a month of testing before release.
 
 * Update the configuration:
     clean the tree
@@ -22,47 +25,135 @@ Before deciding release:
 
 Releasing Hamlib:
 ----------------
+In the master branch of your local repository (the key to working with Git
+is that all work is committed to the local repository and then pushed to the
+remote repository, "origin"):
+
+* Assure the local repository is sync'ed with origin/master:
+    git fetch
+    git status
+
+  At this point Git may produce a message such as:
+
+  $ git status
+  # On branch master
+  # Your branch is behind 'origin/master' by 2 commits, and can be fast-forwarded.
+  #
+  nothing to commit (working directory clean)
+
+  As there appear to be no conflicts, the following command will sync your
+  local repository to origin/master:
+
+  $ git reset --hard origin/master
+  HEAD is now at 522229d chmod +x autogen.sh
+
+    Thanks, Kamal Mostafa, KA6MAL
+
 * Update NEWS, TODO, AUTHORS
 
-* Update the version in the macro AC_INIT of configure.ac (remove 'svn')
+* Commit the changes to master:
+  git status        # Assure that only the previous files are modified
+  git commit -a     # Commit all modified files locally
 
-* Regenerate ChangeLog with:
-    TZ=UTC svn2cl
+* Create a new branch for the release:
+  git branch Hamlib-1.2.14
 
-* svn commit -m "release X.Y.Z" ChangeLog configure.ac NEWS
-  Note the revision number (N).
-* Tag the SVN rep with version 'HAMLIB-x-y-z'
-    svn copy -r N https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk \
-        https://hamlib.svn.sourceforge.net/svnroot/hamlib/tags/HAMLIB-x-y-z \
-        -m "release x.y.z"
+* Push the changes (check for validity):
+  git push origin       # pushes previous commit to sf.net repository
+  git push origin Hamlib-1.2.14         # push the branch
 
-* Build source tarball:
-    svn co -r N https://hamlib.svn.sourceforge.net/svnroot/hamlib/trunk hamlib
-    sh autogen.sh --enable-maintainer-mode
+* Update the version in the macro AC_INIT of configure.ac (advance to next
+  version, e.g. 1.2.15~git) and the libhamlib_la_LDFLAGS value in
+  src/Makefile.am and c++/Makefile.am to match. e.g.:
+  libhamlib_la_LDFLAGS = $(WINLDFLAGS) $(OSXLDFLAGS) -no-undefined -version-info @ABI_VERSION@:15:0
 
-    # (Would the above command be better invoked as:
-    #   sh autogen.sh --disable-maintainer-mode --prefix=/usr/local CFLAGS="-g -O0"
-    # ?? comments please.)
+  Note that -version-info is a libtool flag and reflects ABI compatibility.
+  In @ABI_VERSION@:15:0, ABI_VERSION is set in configure.ac, 15 is the
+  revision, and :0 should remain 0.  When the API is changed, ABI_VERSION
+  will be advanced, and revision (e.g. :15) will be reset to 0.
 
-     make dist
+  Format is ABI version:revision:age.  Setting age to other than 0 causes
+  strange DLL naming in Win32 cross-compile builds.
+
+* Commit the changes to configure.ac and src/Makefile.am and push them to
+  the remote repository.
+
+At this point the master branch is ahead of the new release branch, however,
+the version in the branch's version needs to have the "~git" changed to "~rc1"
+which will be advanced for the next release candidate or stripped for final
+release:
+
+* Checkout the release branch:
+  git checkout Hamlib-1.2.14
+
+* Edit config.ac, commit it and push it.  The branch is now ready for
+  rc testing/release.
+
+* Build source tarball from a clean clone (anonymous clone is fine):
+    git clone -b Hamlib-1.2.14 git://hamlib.git.sourceforge.net/gitroot/hamlib/hamlib
+    cd hamlib
+    sh autogen.sh --prefix=/usr/local
+    make dist
+
+
+Win32 binary build release
+--------------------------
+
+In these steps the release or daily snapshot tarball is unpacked in ~/temp
+for the Win32 build and all operations are done from there unless otherwise
+noted.
+
+Under Linux you need the mingw32 package to cross-compile it, an internal
+copy of libltdl (configured and built as below), zip to create the archive,
+the tofrodos or dos2unix package installed to convert to DOS text format,
+and Wine plus the free MVC++Toolkit available from:
+
+http://uploading.com/files/HNH73WB3/VCToolkitSetup%28v1.01%29%282004.07.06%29.zip.html
+
+to create the Win32 .LIB file (unzip and then install it with Wine in the
+usual way).
+
+NB: Debian Squeeze and later users will need an updated mingw32-runtime
+package and can manually install the Ubuntu version from:
+
+http://packages.ubuntu.com/maverick/devel/mingw32-runtime
+
+Finally, the Win32 version of libusb must be available for the USB backends to
+be built.  Download the latest libusb-win32-bin-1.2.4.0.zip from:
+
+https://sourceforge.net/projects/libusb-win32/files/libusb-win32-releases/1.2.4.0/
+
+and unzip the archive in ~/temp/libusb-win32-bin-1.2.4.0 and then copy the
+following into libusb-win32-bin-1.2.4.0/lib/pkgconfig/libusb.pc
+
+---------------CUT-----------------------------
+prefix=/home/USER/temp/libusb-win32-bin-1.2.4.0
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib/gcc
+bindir=${exec_prefix}/bin
+includedir=${prefix}/include
+
+Name: libusb
+Description: USB access library
+Version: 1.2.4.0
+Libs: -L${libdir} -L${bindir} -lusb
+Cflags: -I${includedir}
+---------------CUT-----------------------------
+
 
 * Build Windows DLL from previous tarball, and .LIB, then create .zip file
-  Rem: under Linux, you need the package mingw32(+zip) to cross-compile it,
-       and an internal copy of libltdl (configured and built),
-       and free MVC++Toolkit to create .lib file:
-         make distwin32
-
-         Upload & edit Properties: select Windows
+    make distwin32
 
 * Build Windows DLL with stdcall convention:
   Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
   Subsitute cdecl by stdcall in README.txt.
 
+
 * Release the file(s)
   - https://sourceforge.net/projects/hamlib/files/
   - Select Hamlib
-  - Click Add Folder, name it X.Y.Z
-  - Select X.Y.Z
+  - Click Add Folder, name it X.Y.Z[.a]
+  - Select X.Y.Z[.a]
   - Click Add File button
   - Click Choose File button
   - Click Upload
@@ -96,7 +187,3 @@ To advertise:
 - where we're heading,
 - what kind of support we need
 
-Get ready for the next round:
-* Bump version number and append 'svn' to it in macro AC_INIT of configure.ac
-
-* Update src/Makefile.am revision of -version-info
