@@ -1,5 +1,5 @@
 /*
- * dumpcaps.c - Copyright (C) 2000-2010 Stephane Fillod
+ * dumpcaps.c - Copyright (C) 2000-2011 Stephane Fillod
  * This programs dumps the capabilities of a backend rig.
  *
  *
@@ -252,7 +252,8 @@ int dumpcaps (RIG* rig, FILE *fout)
 	}
 
 	if ((caps->has_get_level & RIG_LEVEL_RAWSTR) &&
-				caps->str_cal.size == 0) {
+				caps->str_cal.size == 0 &&
+                !(caps->has_get_level & RIG_LEVEL_STRENGTH)) {
 			fprintf(fout, "Warning--backend has get RAWSTR, but not calibration data\n");
 			backend_warnings++;
 	}
@@ -413,8 +414,8 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "Can set Repeater Offset:\t%c\n", caps->set_rptr_offs != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get Repeater Offset:\t%c\n", caps->get_rptr_offs != NULL ? 'Y' : 'N');
 
-	can_esplit = caps->set_vfo ||
-		(rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op);
+	can_esplit = caps->set_split_vfo && (caps->set_vfo ||
+		(rig_has_vfo_op(rig, RIG_OP_TOGGLE) && caps->vfo_op));
 	fprintf(fout, "Can set Split Freq:\t%c\n", caps->set_split_freq != NULL ? 'Y' :
 			(can_esplit && caps->set_freq ? 'E' : 'N'));
 	fprintf(fout, "Can get Split Freq:\t%c\n", caps->get_split_freq != NULL ? 'Y' :
@@ -445,7 +446,8 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "Can Reset:\t%c\n", caps->reset != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get Ant:\t%c\n", caps->get_ant != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set Ant:\t%c\n", caps->set_ant != NULL ? 'Y' : 'N');
-	fprintf(fout, "Can set Transceive:\t%c\n", caps->set_trn != NULL ? 'Y' : 'N');
+	fprintf(fout, "Can set Transceive:\t%c\n", caps->set_trn != NULL ? 'Y' : 
+			caps->transceive == RIG_TRN_RIG ? 'E' : 'N');
 	fprintf(fout, "Can get Transceive:\t%c\n", caps->get_trn != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can set Func:\t%c\n", caps->set_func != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get Func:\t%c\n", caps->get_func != NULL ? 'Y' : 'N');
@@ -461,7 +463,10 @@ int dumpcaps (RIG* rig, FILE *fout)
 	fprintf(fout, "Can set Mem:\t%c\n", caps->set_mem != NULL ? 'Y' : 'N');
 	fprintf(fout, "Can get Mem:\t%c\n", caps->get_mem != NULL ? 'Y' : 'N');
 
-	can_echannel = caps->set_mem && caps->set_vfo;
+	can_echannel = caps->set_mem && (
+        (caps->set_vfo && ((rig->state.vfo_list & RIG_VFO_MEM) == RIG_VFO_MEM)) ||
+        (caps->vfo_op && rig_has_vfo_op(rig, RIG_OP_TO_VFO|RIG_OP_FROM_VFO)));
+
 	fprintf(fout, "Can set Channel:\t%c\n", caps->set_channel != NULL ? 'Y' :
 			(can_echannel ? 'E' : 'N'));
 	fprintf(fout, "Can get Channel:\t%c\n", caps->get_channel != NULL ? 'Y' :
