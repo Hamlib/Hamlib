@@ -90,7 +90,7 @@ const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
 	.model_name =		"K3/KX3",
 	.mfg_name =		"Elecraft",
-	.version =		"20110522",
+	.version =		"20110603",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -253,7 +253,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (temp_m == RIG_MODE_RTTY) {
 		err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
 		if (err != RIG_OK) {
-			rig_debug(RIG_DEBUG_ERR, "%s: Cannot read K3 DT value\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
 						__func__);
 			return err;
 		}
@@ -265,14 +265,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			*mode = RIG_MODE_RTTY;
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: unsupported data sub-mode %c\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
 						__func__, buf[2]);
 			return -RIG_EINVAL;
 		}
 	} else if (temp_m == RIG_MODE_RTTYR) {
 		err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
 		if (err != RIG_OK) {
-			rig_debug(RIG_DEBUG_ERR, "%s: Cannot read K3 DT value\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
 						__func__);
 			return err;
 		}
@@ -284,7 +284,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			*mode = RIG_MODE_RTTYR;
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: unsupported data sub-mode %c\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
 						__func__, buf[2]);
 			return -RIG_EINVAL;
 		}
@@ -297,7 +297,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	 */
 	err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 7);
 	if (err != RIG_OK) {
-		rig_debug(RIG_DEBUG_ERR, "%s: Cannot read K3 BW value\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 BW value\n", __func__);
 		return err;
 	}
 	*width = atoi(&buf[2]) * 10;
@@ -451,7 +451,7 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 		}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_ext_level %d\n",
+		rig_debug(RIG_DEBUG_WARN, "%s: Unsupported get_ext_level %d\n",
 			__func__, token);
 		return -RIG_EINVAL;
 	}

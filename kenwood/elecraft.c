@@ -1,6 +1,7 @@
 /*
  *  Hamlib Elecraft backend--support Elecraft extensions to Kenwood commands
- *  Copyright (C) 2010 by Nate Bargmann, n0nb@n0nb.us
+ *  Copyright (C) 2010,2011 by Nate Bargmann, n0nb@n0nb.us
+ *  Copyright (C) 2011 by Alexander Sack, Alexander Sack, pisymbol@gmail.com
  *
  *   This library is free software; you can redistribute it and/or
  *   modify it under the terms of the GNU Lesser General Public
@@ -100,7 +101,7 @@ int elecraft_open(RIG *rig)
 		if (err != RIG_OK)
 			return err;
 
-		rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__,
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: K2 level is %d, %s\n", __func__,
 			priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
 
 		break;
@@ -109,14 +110,14 @@ int elecraft_open(RIG *rig)
 		if (err != RIG_OK)
 			return err;
 
-		rig_debug(RIG_DEBUG_ERR, "%s: K2 level is %d, %s\n", __func__,
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: K2 level is %d, %s\n", __func__,
 			priv->k2_ext_lvl, elec_ext_id_str_lst[priv->k2_ext_lvl].id);
 
 		err = elecraft_get_extension_level(rig, "K3", &priv->k3_ext_lvl);
 		if (err != RIG_OK)
 			return err;
 
-		rig_debug(RIG_DEBUG_ERR, "%s: K3 level is %d, %s\n", __func__,
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: K3 level is %d, %s\n", __func__,
 			priv->k3_ext_lvl, elec_ext_id_str_lst[priv->k3_ext_lvl].id);
 
 		err = elecraft_get_firmware_revision_level(rig, "RVM", priv->k3_fw_rev);
@@ -125,7 +126,7 @@ int elecraft_open(RIG *rig)
 
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: unrecognized rig model %d\n",
+		rig_debug(RIG_DEBUG_WARN, "%s: unrecognized rig model %d\n",
 			__func__, rig->caps->rig_model);
 		return -RIG_EINVAL;
 	}
@@ -152,13 +153,13 @@ int verify_kenwood_id(RIG *rig, char *id)
 	/* Check for an Elecraft K2|K3 which returns "017" */
 	err = kenwood_get_id(rig, id);
 	if (err != RIG_OK) {
-		rig_debug(RIG_DEBUG_TRACE, "%s: cannot get identification\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: cannot get identification\n", __func__);
 		return err;
 	}
 
 	/* ID is 'ID017;' */
 	if (strlen(id) < 5) {
-		rig_debug(RIG_DEBUG_TRACE, "%s: unknown ID type (%s)\n", __func__, id);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: unknown ID type (%s)\n", __func__, id);
 		return -RIG_EPROTO;
 	}
 
@@ -168,10 +169,10 @@ int verify_kenwood_id(RIG *rig, char *id)
 		idptr++;
 
 	if (strcmp("017", idptr) != 0) {
-		rig_debug(RIG_DEBUG_TRACE, "%s: Rig (%s) is not a K2 or K3\n", __func__, id);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig (%s) is not a K2 or K3\n", __func__, id);
 		return -RIG_EPROTO;
 	} else
-		rig_debug(RIG_DEBUG_TRACE, "%s: Rig ID is %s\n", __func__, id);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Rig ID is %s\n", __func__, id);
 
 	return RIG_OK;
 }
@@ -192,7 +193,7 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 
 	err = kenwood_safe_transaction(rig, cmd, buf, KENWOOD_MAX_BUF_LEN, 4);
 	if (err != RIG_OK) {
-		rig_debug(RIG_DEBUG_ERR, "%s: Cannot get K2|K3 ID\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get K2|K3 ID\n", __func__);
 		return err;
 	}
 
@@ -205,7 +206,7 @@ int elecraft_get_extension_level(RIG *rig, const char *cmd, int *ext_level)
 
 		if (strcmp(elec_ext_id_str_lst[i].id, bufptr) == 0) {
 			*ext_level = elec_ext_id_str_lst[i].level;
-			rig_debug(RIG_DEBUG_TRACE, "%s: %s extension level is %d, %s\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: %s extension level is %d, %s\n",
 			__func__, cmd, *ext_level, elec_ext_id_str_lst[i].id);
 		}
 	}
@@ -229,7 +230,7 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd, char *fw_rev
 
 	err = kenwood_transaction(rig, cmd, sizeof(cmd), buf, &size);
 	if (err != RIG_OK) {
-		rig_debug(RIG_DEBUG_ERR, "%s: Cannot get firmeware revision level\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot get firmeware revision level\n", __func__);
 		return err;
 	}
 
@@ -245,7 +246,7 @@ int elecraft_get_firmware_revision_level(RIG *rig, const char *cmd, char *fw_rev
 	/* Copy out */
 	strncpy(fw_rev, bufptr, sizeof(bufptr));
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Elecraft firmware revision is %s\n", __func__, fw_rev);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: Elecraft firmware revision is %s\n", __func__, fw_rev);
 
 	return RIG_OK;
 }
