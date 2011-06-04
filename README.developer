@@ -3,9 +3,10 @@ Hamlib - (C) Frank Singleton 2000 (vk3fcs@ix.netcom.com)
          (C) The Hamlib Group 2000-2011
 
 Take a look at http://sourceforge.net/projects/hamlib/
-Here you will find a mail list, and the latest Git releases.
+Here you will find a mail list, and the latest releases.
 
 See README for frontend/backend outline.
+See README.betatester for background on testing Hamlib.
 
 
 The shared libs provide functions for both radio control,
@@ -116,8 +117,8 @@ $ tree -d -I .git
 
 1. Building
 
-If you just want to recompile the library, please refer
-to the INSTALL file.  This document introduces hacking the code of Hamlib.
+If you just want to recompile the library, please refer to the INSTALL
+file.  This document introduces hacking the code of Hamlib.
 
 
 1.1 Obtaining sources: git clone
@@ -503,7 +504,7 @@ Contributed code to Hamlib backends must follow backend current license.
 Needless to say, the LGPL is the license of choice.
 
 End user applications like rigctl, rotctl and RPC daemons should be released
-under the GPL, so any contributed code must follow the rule.
+under the GPL, so any contributed code must follow the license.
 
 
 8.2 Coding guidelines and style
@@ -515,7 +516,7 @@ http://www.kernel.org/doc/Documentation/CodingStyle
 
 Hamlib is a code base from many contributors and a variety of styles have
 been employed.  If you work on a source file, go ahead and apply good
-judgement and clean it up per the kernel style guide.  Lining things up
+judgment and clean it up per the kernel style guide.  Lining things up
 nicely with 8 space tabs (use tabs, not spaces) is an excellent start.
 Next, put spaces in assignments to aid readability.  Align closing braces
 with the opening block's keyword.  In function definitions put the opening
@@ -538,7 +539,8 @@ Contributed code should always keep the source base in a compilable state,
 and not regress unless stated otherwise.
 
 There's no need to tag the source in a patch with your name in comments
-behind each modification, we already know the culprit from commit logs. :-)
+behind each modification, we already know the culprit from commit logs
+(see "git blame"). :-)
 
 Patches should take portability issues into account.
 Keep in mind Hamlib has to run under:
@@ -562,6 +564,63 @@ Portability issues to watch:
     * 64 bit int: avoid them in API
     * printf/scanf of 64bit int: use PRIll and SCNll
     * printf/scanf of freq_t: use PRIfreq and SCNfreq
+
+
+8.2.1 Use of rig_debug() function
+
+Hamlib provides a debugging aid in the form of the rig_debug() function,  It
+is essentially a wrapper around printf() and takes many of the same flags
+and conversion specifiers as the C library's various printf() functions.  It
+adds an additional parameter for specifying the desired debug level for the
+output string.  Six levels of debugging are defined in include/hamlib/rig.h
+and they are:
+
+  NONE          No bug reporting
+  BUG           Serious bug
+  ERR           Error case (e.g. protocol, memory allocation)
+  WARN          Warning
+  VERBOSE       Verbose
+  TRACE         Tracing
+
+They correspond to the use of the -v switch (from no -v switch to -vvvvv)
+to rigctl's command line.  Hamlib applications can also set the debug level
+via the Hamlib API.  From an application's perspective, setting a specific
+level includes all messages at that level and all at any lower level.
+
+In the library, passing RIG_DEBUG_ERR to rig_debug() limits display of that
+message to a level setting of ERR or BUG.  Use of a given level can show the
+value of a critical variable without the need of a TRACE level message which
+can get lost in the stream of output produced by low-level Hamlib functions.
+
+Here are my (N0NB's) suggested use of rig_debug() levels in backends.
+
+* Many backend functions should have an initial call to rig_debug() as follows:
+
+    rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+  The use of RIG_DEBUG_VERBOSE allows tracking the chain of function calls
+  through the backend while still keeping rigctl's output mostly
+  uncluttered by use of the -vvvv switch.
+
+* Developers will want to call rig_debug() to display values of critical
+  variable(s) in a backend function.  For this RIG_DEBUG_VERBOSE should be
+  a good choice as the output won't be lost in the stream of RIG_DEBUG_TRACE
+  level output by various low-level Hamlib functions (rigctl -vvvv).  It will
+  also match the display of the values of critical variable(s) with the
+  function calls as above.
+
+* Use RIG_DEBUG_TRACE when it makes sense to see the variable(s) in the
+  context of a lot of low-level debugging output (rigctl -vvvvv).
+
+* Lower levels (BUG, ERR, and WARN) should be used where it makes sense that
+ information be printed when the user selects less verbosity.  Use sparingly.
+
+Many backends do not conform to this suggestion at the moment.  The use of
+the RIG_DEBUG_LEVEL values has been somewhat haphazard (at least by this
+scribe) so fixing these when working in a given backend is encouraged.
+
+If an application sets the debugging level to RIG_DEBUG_NONE, then
+rig_debug() functions will produce no output.
 
 
 8.3 Submitting patches
@@ -593,7 +652,7 @@ ask you!
 However, before your start committing, the project admins would like first
 to have a look at your "style", just to make sure you grok the Hamlib
 approach (c.f. previous section on submitting a patch). Then you'll be able
-to commit by yourself to the backend you have maintainance of. Please follow
+to commit by yourself to the backend you chose to maintain. Please follow
 the rules hereunder:
 
     * Always keep the Git repository (all branches) in a compilable state.
