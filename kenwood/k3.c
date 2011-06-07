@@ -63,6 +63,7 @@ static struct kenwood_priv_caps k3_priv_caps  = {
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k3_set_vfo(RIG *rig, vfo_t vfo);
+int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int k3_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
@@ -210,6 +211,7 @@ const struct rig_caps k3_caps = {
 	.get_ext_parm =		kenwood_get_ext_parm,
 	.set_level =		kenwood_set_level,
 	.get_level =		kenwood_get_level,
+	.set_ext_level =	k3_set_ext_level,
 	.get_ext_level =	k3_get_ext_level,
 	.vfo_op =		kenwood_vfo_op,
 	.set_trn =		kenwood_set_trn,
@@ -401,6 +403,50 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 }
 
 
+/* Support the RC command for clearing RIT/XIT,
+ *
+ * token	Defined in elecraft.h or this file
+ * val		Type depends on token type from confparams structure:
+ * 		NUMERIC: val.f
+ * 		COMBO: val.i, starting from 0 Index to a string table.
+ * 		STRING: val.cs for set, val.s for get
+ * 		CHECKBUTTON: val.i 0/1
+ *
+ * See Private Elecraft extra levels definitions in elecraft.c and
+ * private token #define in elecraft.h
+ */
+int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+//	char buf[KENWOOD_MAX_BUF_LEN];
+	int err;
+//	const struct confparams *cfp;
+
+//	cfp = rig_ext_lookup_tok(rig, token);
+
+	switch(token) {
+	case TOK_RIT_CLR:
+		/* Clear offset */
+		err = kenwood_simple_cmd(rig, "RC");
+		if (err != RIG_OK)
+			return err;
+
+		/* val is ignored for RC command */
+		break;
+	default:
+		rig_debug(RIG_DEBUG_WARN, "%s: Unsupported set_ext_level %d\n",
+			__func__, token);
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
+
 /* Support the FI command for reading the IF center frequency,
  * useful for panadapters and such that need to know the IF center.
  * TQ command is a quick transmit status query--K2/K3 only.
@@ -560,19 +606,20 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit)
 		return -RIG_EINVAL;
 
 	if (rit == 0) {
-		/* K3 RIT Off command */
+		/* Clear offset first */
+		err = kenwood_simple_cmd(rig, "RC");
+		if (err != RIG_OK)
+			return err;
+
+		/* K3 RIT|XIT Off command */
 		err = kenwood_simple_cmd(rig, func);
 		if (err != RIG_OK)
 			return err;
 
-		/* Clear offset */
-		err = kenwood_simple_cmd(rig, "RC");
-		if (err != RIG_OK)
-			return err;
 		return RIG_OK;
 	}
 
-	/* Set offset and turn on RIT */
+	/* Set offset and turn on RIT|XIT */
 	if (rit <= 9999 && rit >= -9999) {
 		offs = (rit < 0) ? '-' : '+';
 		snprintf(cmd, 8, "RO%c%04d", offs, abs((int)rit));

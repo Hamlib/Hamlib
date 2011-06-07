@@ -52,6 +52,9 @@ const struct confparams elecraft_ext_levels[] = {
 	{ TOK_TX_STAT, "txst", "TX status", "TX status",
 		NULL, RIG_CONF_CHECKBUTTON, { { } },
 	},
+	{ TOK_RIT_CLR, "ritclr", "RIT clear", "RIT clear",
+		NULL, RIG_CONF_BUTTON, { { } },
+	},
 	{ RIG_CONF_END, NULL, }
 };
 
