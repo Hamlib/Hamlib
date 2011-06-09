@@ -8,7 +8,7 @@ AC_PREREQ(2.59)
 ## Autoconf initialisation. ##
 ## ------------------------ ##
 dnl Please do not use '-' in the version number, 'make rpm' will fail
-AC_INIT([hamlib],[1.2.14~git],[hamlib-developer@lists.sourceforge.net])
+AC_INIT([hamlib],[1.3.0~alpha],[hamlib-developer@lists.sourceforge.net])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
 
@@ -23,7 +23,7 @@ AM_MAINTAINER_MODE
 ## ------------------------------- ##
 ## Hamlib  specific configuration. ##
 ## ------------------------------- ##
-ABI_VERSION=2
+ABI_VERSION=3
 
 dnl Pick up the Hamlib macros.
 AM_ACLOCAL_INCLUDE([macros])
