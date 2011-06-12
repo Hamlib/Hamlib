@@ -63,6 +63,7 @@ static struct kenwood_priv_caps k3_priv_caps  = {
 int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width);
 int k3_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width);
 int k3_set_vfo(RIG *rig, vfo_t vfo);
+int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val);
 int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val);
 int k3_set_rit(RIG * rig, vfo_t vfo, shortfreq_t rit);
 int k3_set_xit(RIG * rig, vfo_t vfo, shortfreq_t rit);
@@ -90,7 +91,7 @@ const struct rig_caps k3_caps = {
 	.rig_model =		RIG_MODEL_K3,
 	.model_name =		"K3/KX3",
 	.mfg_name =		"Elecraft",
-	.version =		"20110522",
+	.version =		"20110603",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -210,6 +211,7 @@ const struct rig_caps k3_caps = {
 	.get_ext_parm =		kenwood_get_ext_parm,
 	.set_level =		kenwood_set_level,
 	.get_level =		kenwood_get_level,
+	.set_ext_level =	k3_set_ext_level,
 	.get_ext_level =	k3_get_ext_level,
 	.vfo_op =		kenwood_vfo_op,
 	.set_trn =		kenwood_set_trn,
@@ -253,7 +255,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	if (temp_m == RIG_MODE_RTTY) {
 		err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
 		if (err != RIG_OK) {
-			rig_debug(RIG_DEBUG_ERR, "%s: Cannot read K3 DT value\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
 						__func__);
 			return err;
 		}
@@ -265,14 +267,14 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			*mode = RIG_MODE_RTTY;
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: unsupported data sub-mode %c\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
 						__func__, buf[2]);
 			return -RIG_EINVAL;
 		}
 	} else if (temp_m == RIG_MODE_RTTYR) {
 		err = kenwood_safe_transaction(rig, "DT", buf, KENWOOD_MAX_BUF_LEN, 4);
 		if (err != RIG_OK) {
-			rig_debug(RIG_DEBUG_ERR, "%s: Cannot read K3 DT value\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 DT value\n",
 						__func__);
 			return err;
 		}
@@ -284,7 +286,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 			*mode = RIG_MODE_RTTYR;
 			break;
 		default:
-			rig_debug(RIG_DEBUG_ERR, "%s: unsupported data sub-mode %c\n",
+			rig_debug(RIG_DEBUG_VERBOSE, "%s: unsupported data sub-mode %c\n",
 						__func__, buf[2]);
 			return -RIG_EINVAL;
 		}
@@ -297,7 +299,7 @@ int k3_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	 */
 	err = kenwood_safe_transaction(rig, "BW", buf, KENWOOD_MAX_BUF_LEN, 7);
 	if (err != RIG_OK) {
-		rig_debug(RIG_DEBUG_ERR, "%s: Cannot read K3 BW value\n", __func__);
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Cannot read K3 BW value\n", __func__);
 		return err;
 	}
 	*width = atoi(&buf[2]) * 10;
@@ -401,6 +403,50 @@ int k3_set_vfo(RIG *rig, vfo_t vfo)
 }
 
 
+/* Support the RC command for clearing RIT/XIT,
+ *
+ * token	Defined in elecraft.h or this file
+ * val		Type depends on token type from confparams structure:
+ * 		NUMERIC: val.f
+ * 		COMBO: val.i, starting from 0 Index to a string table.
+ * 		STRING: val.cs for set, val.s for get
+ * 		CHECKBUTTON: val.i 0/1
+ *
+ * See Private Elecraft extra levels definitions in elecraft.c and
+ * private token #define in elecraft.h
+ */
+int k3_set_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t val)
+{
+	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
+
+	if (!rig)
+		return -RIG_EINVAL;
+
+//	char buf[KENWOOD_MAX_BUF_LEN];
+	int err;
+//	const struct confparams *cfp;
+
+//	cfp = rig_ext_lookup_tok(rig, token);
+
+	switch(token) {
+	case TOK_RIT_CLR:
+		/* Clear offset */
+		err = kenwood_simple_cmd(rig, "RC");
+		if (err != RIG_OK)
+			return err;
+
+		/* val is ignored for RC command */
+		break;
+	default:
+		rig_debug(RIG_DEBUG_WARN, "%s: Unsupported set_ext_level %d\n",
+			__func__, token);
+		return -RIG_EINVAL;
+	}
+
+	return RIG_OK;
+}
+
+
 /* Support the FI command for reading the IF center frequency,
  * useful for panadapters and such that need to know the IF center.
  * TQ command is a quick transmit status query--K2/K3 only.
@@ -451,7 +497,7 @@ int k3_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 		}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_ext_level %d\n",
+		rig_debug(RIG_DEBUG_WARN, "%s: Unsupported get_ext_level %d\n",
 			__func__, token);
 		return -RIG_EINVAL;
 	}
@@ -560,19 +606,20 @@ int set_rit_xit(RIG * rig, char *func, shortfreq_t rit)
 		return -RIG_EINVAL;
 
 	if (rit == 0) {
-		/* K3 RIT Off command */
+		/* Clear offset first */
+		err = kenwood_simple_cmd(rig, "RC");
+		if (err != RIG_OK)
+			return err;
+
+		/* K3 RIT|XIT Off command */
 		err = kenwood_simple_cmd(rig, func);
 		if (err != RIG_OK)
 			return err;
 
-		/* Clear offset */
-		err = kenwood_simple_cmd(rig, "RC");
-		if (err != RIG_OK)
-			return err;
 		return RIG_OK;
 	}
 
-	/* Set offset and turn on RIT */
+	/* Set offset and turn on RIT|XIT */
 	if (rit <= 9999 && rit >= -9999) {
 		offs = (rit < 0) ? '-' : '+';
 		snprintf(cmd, 8, "RO%c%04d", offs, abs((int)rit));

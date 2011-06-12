@@ -3,10 +3,10 @@ Elecraft K3 notes and Hamlib errata by Nate Bargmann, N0NB.
 While the K3 uses a large set of commands compatible with the standard Kenwood
 commands, a number are extended and others have side effects that are peculiar
 to the K3.  As such, a separate set of elecraft.[c|h] files have been written
-to support the K2 and K3 in the best possible way using shared code when 
+to support the K2 and K3 in the best possible way using shared code when
 possible.  K3 specific code can be found in k3.c
 
-As always, comments and bug reports should be submitted to 
+As always, comments and bug reports should be submitted to
 hamlib-developer@lists.sourceforge.net
 
 
@@ -16,18 +16,18 @@ elecraft_open()
 The kenwood_open() function fails for the Elecraft radios as the function checks
 the backend to be certain the ID from the radio matches the backend that called
 the function.  As the ID command of the Elecraft radios returns "017" which
-corresponds to the TS-570, the backend test fails.  Rather than muck up a 
+corresponds to the TS-570, the backend test fails.  Rather than muck up a
 working function, I chose to implement an independent elecraft_open which not
 only checks for the existence of a connected radio that returns an ID of "017",
 it also checks for K2 or K3 extensions and sets a pair of private variables
-that may be used later for advanced functions.  This way the backend should be 
+that may be used later for advanced functions.  This way the backend should be
 able to reliably test for either a K2 or K3 (needs more testing with the K2).
 
 
 k3_set_vfo()
 ============
 
-The K3's use of VFO A and VFO B differs from other rigs in that VFO A is 
+The K3's use of VFO A and VFO B differs from other rigs in that VFO A is
 *always* the main or upper display and VFO B is *always* the sub or lower
 display.  The A/B panel button simply swaps the contents of the two displays.
 The K3 manual states that VFO A is always the receive frequency and VFO B is
@@ -51,7 +51,7 @@ k3_get_mode() k3_get_mode()
 ===========================
 
 As an extension to the common Kenwood mode definitions, the K3 implements the
-custom 'DT' command which can query and set its data sub-modes.  These are as 
+custom 'DT' command which can query and set its data sub-modes.  These are as
 follows:
 
 DT0		DATA A
@@ -59,7 +59,7 @@ DT1		AFSK A
 DT2		FSK D
 DT3		PSK D
 
-The main difference is that DT0 and DT1 are for soundcard audio modes from a 
+The main difference is that DT0 and DT1 are for soundcard audio modes from a
 computer such as PSK31, MFSK, Olivia, etc. with DT1 being "optimized for RTTY".
 Conversely, DT2 and DT3 utilize "direct FSK in" on the accessory jack as well
 as enable the K3's internal encoding/decoding of RTTY and PSK31 modes (outside
@@ -84,7 +84,7 @@ should map to AFSK A (DT1) or FSK D (DT2).
 
 The K3 can set any bandwidth in any mode using its custom 'BW' command.  Band-
 width values are sent to the K3 in 10 Hz increments and the K3 will round down
-to the nearest 100 Hz values from 10 to 40 Hz.  It will round down to the 
+to the nearest 100 Hz values from 10 to 40 Hz.  It will round down to the
 nearest 50 Hz values from 50 to 90 Hz.  As an example, sending 'BW0236' (2360 in
 rigctl) will set the bandwidth to 2350 Hz (rounded down by the K3).
 
@@ -92,13 +92,32 @@ The k3_get_mode function will query and return the actual bandwidth in use in
 Hertz.
 
 
+k3_set_ext_level()
+==================
+
+This function is used to set the K3 for some extra level functions (rigctl
+command examples shown).
+
+To clear the RIT and XIT offset, use the 'L' command with the token name
+'ritclr'  for 'Level' to set in rigctl[d]. The prompted value is not used
+and can be safely set to 0.  Use this level to clear the RIT and XIT offsets
+when it is not desired to turn RIT|XIT off.
+
+
 k3_get_ext_level()
 ==================
 
-This function is used to query the K3 for the IF center frequency.  Use the 'l'
-command with the token name 'ifctr' for 'Level' to read in rigctl[d].  Value 
-returned is 8210000.0 + queried value from rig (see K3 Programmers Reference, 
-FI command).  Returned type is a floating point value.
+This function is used to query the K3 for some extra information (rigctl
+command examples shown).
+
+To query the IF center frequency, use the 'l' command with the token name
+'ifctr' for 'Level' to read in rigctl[d].  Value returned is 8210000.0 +
+queried value from rig (see K3 Programmers Reference, FI command).  Returned
+type is a floating point value.
+
+To query the TX status, use the 'l' command with the token name 'txst' for
+'Level' to read in rigctl[d].  Value returned is 1 for K3 in transmit mode
+and 0 for receive mode.  Returned type is an integer.
 
 
 kenwood_get/set_ext_parms()
