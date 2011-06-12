@@ -1,8 +1,7 @@
 /*
  *  Hamlib Tuner backend - main file
- *  Copyright (C) 2004 Stephane Fillodpab@users.sourceforge.net
+ *  Copyright (C) 2004-2011 Stephane Fillod
  *
- *	$Id: tuner.c,v 1.1 2004-09-12 21:30:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -34,8 +33,8 @@ DECLARE_INITRIG_BACKEND(tuner)
 
 #ifdef V4L_IOCTL
 	rig_register(&v4l_caps);
+	rig_register(&v4l2_caps);
 #endif
-
 
 	return RIG_OK;
 }

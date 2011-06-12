@@ -1,8 +1,7 @@
 /*
  *  Hamlib Tuners backend - main header
- *  Copyright (c) 2004 by Stephane Fillod
+ *  Copyright (c) 2004-2011 by Stephane Fillod
  *
- *	$Id: tuner.h,v 1.1 2004-09-12 21:30:21 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -37,5 +36,6 @@
 #include "hamlib/rig.h"
 
 extern const struct rig_caps v4l_caps;
+extern const struct rig_caps v4l2_caps;
 
 #endif /* _TUNER_H */
