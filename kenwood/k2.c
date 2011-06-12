@@ -104,7 +104,7 @@ const struct rig_caps k2_caps = {
 	.rig_model =		RIG_MODEL_K2,
 	.model_name =		"K2",
 	.mfg_name =		"Elecraft",
-	.version =		"20110218",
+	.version =		"20110603",
 	.copyright =		"LGPL",
 	.status =		RIG_STATUS_BETA,
 	.rig_type =		RIG_TYPE_TRANSCEIVER,
@@ -387,7 +387,7 @@ int k2_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 	tmp[4] = '\0';
 	*width = atoi(tmp);
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Mode: %d, Width: %04li\n", __func__, *mode, *width);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: Mode: %d, Width: %04li\n", __func__, *mode, *width);
 
 	return RIG_OK;
 }
@@ -429,7 +429,7 @@ int k2_get_ext_level(RIG *rig, vfo_t vfo, token_t token, value_t *val)
 		}
 		break;
 	default:
-		rig_debug(RIG_DEBUG_ERR, "%s: Unsupported get_ext_level %d\n",
+		rig_debug(RIG_DEBUG_WARN, "%s: Unsupported get_ext_level %d\n",
 			__func__, token);
 		return -RIG_EINVAL;
 	}
@@ -477,7 +477,7 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 
 	strcpy(fw, buf);
 
-	rig_debug(RIG_DEBUG_TRACE, "%s: Mode value: %s, Filter Width value: %s\n",
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: Mode value: %s, Filter Width value: %s\n",
 		__func__, mode, fw);
 
 	/* Now begin the process of querying the available modes and filters. */
@@ -496,7 +496,7 @@ int k2_probe_mdfw(RIG *rig, struct kenwood_priv_data *priv)
 		priv->k2_md_rtty = 1;		/* set flag for RTTY mode installed */
 	else
 		priv->k2_md_rtty = 0;		/* RTTY module not installed */
-	rig_debug(RIG_DEBUG_TRACE, "%s: RTTY flag is: %d\n", __func__, priv->k2_md_rtty);
+	rig_debug(RIG_DEBUG_VERBOSE, "%s: RTTY flag is: %d\n", __func__, priv->k2_md_rtty);
 
 	i = (priv->k2_md_rtty == 1) ? 2 : 1;
 
@@ -621,7 +621,7 @@ int k2_pop_fw_lst(RIG *rig, const char *cmd)
 		tmp[1] = '\0';
 		flt->filt_list[f-1].afslot = atoi(tmp);
 
-		rig_debug(RIG_DEBUG_TRACE, "%s: Width: %04li, FSlot: %i, AFSlot %i\n",
+		rig_debug(RIG_DEBUG_VERBOSE, "%s: Width: %04li, FSlot: %i, AFSlot %i\n",
 			__func__, flt->filt_list[f-1].width, flt->filt_list[f-1].fslot, flt->filt_list[f-1].afslot);
 	}
 

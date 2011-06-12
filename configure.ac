@@ -7,8 +7,11 @@ AC_PREREQ(2.59)
 ## ------------------------ ##
 ## Autoconf initialisation. ##
 ## ------------------------ ##
-dnl Please do not use '-' in the version number, 'make rpm' will fail
-AC_INIT([hamlib],[1.2.14~git],[hamlib-developer@lists.sourceforge.net])
+dnl Please do not use '-' in the version number, 'make rpm' will fail,
+dnl however, the use of '~' should be fine as apt (others?) will treat
+dnl it as an earlier version than the actual release.  TNX KA6MAL
+dnl PACKAGE_NAME + " " + PACKAGE_VERSION must not exceed 20 chars!
+AC_INIT([Hamlib],[1.2.14~git],[hamlib-developer@lists.sourceforge.net],[hamlib],[http://www.hamlib.org])
 AC_CONFIG_SRCDIR([include/hamlib/rig.h])
 AC_CONFIG_MACRO_DIR([macros])
 

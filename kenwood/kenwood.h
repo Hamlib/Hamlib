@@ -71,6 +71,7 @@ struct kenwood_priv_data {
     int k2_ext_lvl;		/* Initial K2 extension level */
     int k3_ext_lvl;		/* Initial K3 extension level */
     int k2_md_rtty;		/* K2 RTTY mode available flag, 1 = RTTY, 0 = N/A */
+    char k3_fw_rev[KENWOOD_MAX_BUF_LEN]; /* K3 firmware revision level */
 };
 
 #define kenwood_caps(rig) ((struct kenwood_priv_caps *)(rig)->caps->priv)
