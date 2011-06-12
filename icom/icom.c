@@ -1,6 +1,6 @@
 /*
  *  Hamlib CI-V backend - main file
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -274,6 +274,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC731, 0x02 },	/* need confirmation */
 	{ RIG_MODEL_IC735, 0x04 },
 	{ RIG_MODEL_IC736, 0x40 },
+	{ RIG_MODEL_IC7410, 0x80 },
 	{ RIG_MODEL_IC746, 0x56 },
 	{ RIG_MODEL_IC746PRO, 0x66 },
 	{ RIG_MODEL_IC737, 0x3c },
@@ -294,6 +295,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_IC821, 0x4c },
 	{ RIG_MODEL_IC821H, 0x4c },
 	{ RIG_MODEL_IC910, 0x60 },
+	{ RIG_MODEL_IC9100, 0x7c },
 	{ RIG_MODEL_IC970, 0x2e },
 	{ RIG_MODEL_IC1271, 0x24 },
 	{ RIG_MODEL_IC1275, 0x18 },
@@ -310,7 +312,7 @@ static const struct icom_addr icom_addr_list[] = {
 	{ RIG_MODEL_ICR9500, 0x72 },
 	{ RIG_MODEL_MINISCOUT, 0x94 },
 	{ RIG_MODEL_IC718, 0x5e },
-	{ RIG_MODEL_OS535, 0x80 },
+	{ RIG_MODEL_OS535, 0x80 }, /* same address as IC-7410 */
 	{ RIG_MODEL_ICID1, 0x01 },
 	{ RIG_MODEL_IC7000, 0x70 },
 	{ RIG_MODEL_IC7200, 0x76 },
@@ -3150,6 +3152,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic736_caps);
 	rig_register(&ic737_caps);
 	rig_register(&ic738_caps);
+	rig_register(&ic7410_caps);
 	rig_register(&ic746_caps);
 	rig_register(&ic746pro_caps);
 	rig_register(&ic751_caps);
@@ -3173,6 +3176,7 @@ DECLARE_INITRIG_BACKEND(icom)
 	rig_register(&ic820h_caps);
 	rig_register(&ic821h_caps);
 	rig_register(&ic910_caps);
+	rig_register(&ic9100_caps);
 	rig_register(&ic970_caps);
 
         rig_register(&icr10_caps);

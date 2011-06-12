@@ -5,6 +5,12 @@ Copyright (C) 2000-2011  Stephane Fillod, and others
 
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
+Version 1.2.14
+	2011-XX-XX
+	* New models: SigFox Transfox, TH-D72A, IC-7410, IC-9100
+	* New rotator backends: IF-100
+	* Fixes and features: K3
+
 Version 1.2.13.1
 	* 2011-05-29
 	* Conversion to Git SCM and updated README documentation for Git SCM
@@ -15,12 +21,12 @@ Version 1.2.13.1
 
 Version 1.2.13
 	2011-03-12
-	* New models: VX-1700, FUNcube, FiFi-SDR, KTH-SDR Si570, FT-5000,
-		TS-590S
+	* New models: VX-1700, FUNcube Dongle, FiFi-SDR, KTH-SDR Si570,
+		FT-DX5000, TS-590S, TH-F6A, PRM8060, SR-2200
 	* Rotor fixes and features: SPID
 	* New Rotor backend: F1TE Tracker
-	* Fixes and features: TS-440S, K2, K3, SR-2200, THF6A, THF7E, NewCAT
-		rigs serial port defaults, TM-D700,
+	* Fixes and features: TS-440S, K2, K3, THF6A, THF7E, NewCAT
+		rigs serial port defaults, TM-D700, FT-950, Si570 AVR-USB
 	* Removed libtool tree from source tree
 	* Removed old DocBook files
 	* Allow USB device's VID/PID/Vendor/Product to be explicitly specified
