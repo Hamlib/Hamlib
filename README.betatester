@@ -31,14 +31,15 @@ you make, developers can commit a fix, so you can try out the change soon
 after, without waiting for the next official version.
 
 To proceed, you will have first to obtain either a daily snapshot or a check
-out of the latest sources from the Git repository, then rebuild the Hamlib
+out the latest sources from the Git repository, then rebuild the Hamlib
 package and finally test it with your rig. Don't worry, it's much simpler
 than it looks, despite the size of the package.
 
 Pre-requisite:
  - some kind of internet access
- - POSIXish compiler toolchain (gcc, GNU Autotools, Perl, etc.,
-   see README.developer)
+ - POSIXish compiler toolchain (gcc, make, C library development headers,
+   etc., see README.developer for a complete list and building from a Git
+   checkout)
 
 
 So here we go:
@@ -54,32 +55,28 @@ You'll find a tarball with a name like
 hamlib-1.2.14~git-01db7a3-20110402.tar.gz, i.e. a check out made 02 Apr 2011
 With a Git SHA1 of 01db7a3 (The SHA1 is a signature of each commit.  Each is
 unique and as our project is small, the first seven characters for the full
-20 character SHA1 are likely unique.  The shorthand SHA1 is automatically
+40 character SHA1 are likely unique.  The shorthand SHA1 is automatically
 generated and may become longer in the future.), ready for building using
 the familiar "three step" (see below).  Each morning by about 1130z a new
 snapshot is generated and uploaded and the prior day's version is removed.
 
 The advantage of the Git snapshot is that you won't need as many tools
-installed to build Hamlib as the work of Autoconf, Automake, and Libtool
-have already been done.  Most of the other packages listed below will be
-needed.  If you tell the 'configure' script to build certain parts of Hamlib
-like documentation or scripting language bindings the relavent optional
-packages will be needed.  See 'configure --help' for more information.
+installed to build Hamlib as the work of the GNU Build System has already
+been done.  Most of the other packages listed below will be needed.  If you
+tell the 'configure' script to build certain parts of Hamlib like
+documentation or scripting language bindings the relavent optional packages
+will be needed.  See 'configure --help' for more information.
 
 Here is a list of development packages needed for a complete build of the
 library (Debian package names are listed, other distributions may differ):
 
 * Gnu C or any C99 compliant compiler       # gcc --version
 * Gnu make  (or any modern one, BSD okay)   # make --version
-* libtool       2.2.6b                      # libtool --version
-* libltdl-dev   2.2.6b
 * Git for connection to hamlib.svn.sourceforge.net
 
 N.B. The Debian and derivatives (Ubuntu and friends) 'build-essentials'
 package will install a number of tools and minimize the number of packages
 that need to be installed manually.
-
-N.B. Hamlib requires libtool >= 2.2.6b in compliance with CVE-2009-3736.
 
 Optional, but highly recommended for a complete build:
 * GNU C++                           # g++ --version
@@ -106,31 +103,21 @@ Git master branch daily snapshot build:
 Reading the INSTALL file in top directory will explain in more detail how
 to do the following commands.
 
-    ./configure --disable-static --prefix=/usr/local
-    make
-    make install
+        ./configure --disable-static --prefix=/usr/local
+        make
+        make install
 
-The prefix argument is optional.  Convention is that local packages be placed
-in /usr/local away from distribution installed packages and this is the default
-location for the snapshots.  The --disable-static option speeds up compilation
-if you don't plan to use static libraries (static libraries are usually not
-needed).
+The prefix argument is optional.  Convention is that local packages be
+placed in /usr/local away from distribution installed packages  This is the
+default location for the snapshots so it may be disregarded unless you wish
+to install Hamlib elsewhere.  The --disable-static option speeds up
+compilation if you don't plan to use static libraries (static libraries are
+usually not needed).
 
 Other useful options are '--with-perl-binding' or '--with-python-binding' or
-'--enable-tcl-binding' if you are interested in Swig binding support for those
-scripting languages (This is a change as of 1.2.11svn revision 2882 where Swig
-generated bindings are no longer built by default).  If unsure it is safe to
-ignore these options.
-
-If you don't want the build files cluttering the source directories, do the
-following in the same parent directory of hamlib:
-
-    mkdir build && cd build
-    ../hamlib/configure  --disable-static --prefix=/usr/local
-    make
-    make install
-
-This will keep the binary output files seperate from the source tree.
+'--enable-tcl-binding' if you are interested in Swig binding support for
+those scripting languages  If you are unsure it is safe to ignore these
+options.
 
 NOTE!  If Hamlib has not been previously installed as a locally built
 package you will need to make sure that 'ldconfig' is configured correctly
@@ -145,6 +132,28 @@ this directory.  The contents of libc.conf are:
 If your system does not have such a file, one will need to be created and
 then 'ldconfig' will need to be run as the root user so that applications
 using the Hamlib libraries can find them.
+
+To delete the binary files from the source directory after compiling:
+
+        make clean
+
+To also remove the Makefiles and other build files, along with the binary
+files as above:
+
+        make distclean
+
+The configure script will need to be run again as above.
+
+The above commands will clean things up so Hamlib can be compiled with other
+configure script options.
+
+To remove Hamlib from your system:
+
+        sudo make uninstall
+
+Note that due to a limitation in a Perl support script that if the Perl
+binding is built and installed that not all of the files under
+/usr/local/lib/perl/PERL_VERSION will not be removed.
 
 
 Git checkout:
@@ -217,8 +226,10 @@ Let's say you own an Icom IC-756:
     rigctl -vvvvv -r /dev/ttyS0 -m 326
 
 The -vvvvv is very important since this will increase verbosity, and give
-precious traces to developers if something goes wrong. At this level,
-the protocol data exchanged will also be dumped to the screen.
+precious traces to developers if something goes wrong. At this level, the
+protocol data exchanged will also be dumped to the screen.  Some backends
+produce a useful amount of data regarding function calls and critical
+variables with the -vvvv option without all the protocol data.
 
 Unless some problem shows up, you should be presented with a menu
 like "Rig command: ". Enter "?" followed by return to have the list

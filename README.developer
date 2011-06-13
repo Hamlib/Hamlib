@@ -186,8 +186,7 @@ $ git branch
   Hamlib-1.2.13
   Hamlib-1.2.13.1
 * master
-  n0nb_k3_level
-  test-mingw32-build
+  n0nb_k3
 
 there are a number of branches in my local repository.  Most, such as
 "Hamlib-1.2.13", exist in the canonical repository as well.  They can be
@@ -197,7 +196,9 @@ checkout BRANCH_NAME' command.
 Finally, once your changes are ready for inclusion in Hamlib, commit your
 changes to the branch you are working in, checkout the master branch, and
 use 'git merge' to synchronize your changes into the master branch.  Lastly,
-push your changes to the canonical repository or email them to
+push your changes to the canonical repository (developer write access and
+checkout using the SSH protocol required.  See
+https://sourceforge.net/scm/?type=git&group_id=8305) or email them to
 hamlib-developer@lists.sourceforge.net for inclusion into Hamlib.
 
 
@@ -219,7 +220,7 @@ the repository and changes made to any file.
 1.2. Requirements
 
 Hamlib is entirely developed using GNU tools, under various Linux systems.
-Note that it is not restricted to Linux systems. We welcome anyone who
+Note that Hamlib is not restricted to Linux systems. We welcome anyone who
 has access to a POSIXish system to port Hamlib. Contact us for help.
 
 That is, if you want to take part in the development of Hamlib,
@@ -233,7 +234,7 @@ distributions may differ).
 
 * Gnu C or any C99 compliant compiler       # gcc --version
 * Gnu make  (or any modern one, BSD okay)   # make --version
-* autoconf      2.54                        # autoconf --version
+* autoconf      2.59                        # autoconf --version
 * automake      1.7                         # automake --version
 * libtool       2.2.6b                      # libtool --version
 * libltdl-dev   2.2.6b
@@ -313,9 +314,7 @@ changed to -ggdb to generate debugging info for gdb.
 
 Additionally, you may want to add the '--with-perl-binding' or
 '--with-python-binding' or '--enable-tcl-binding' if you are interested in
-Swig binding support for those scripting languages (This is a change as of
-1.2.11svn revision 2882 where Swig generated bindings are no longer built by
-default).
+Swig binding support for those scripting languages.
 
 NOTE: The autogen.sh script has only to be run the first time after a fresh
 checkout or when a Makefile.am or other build file is modified or added.
@@ -540,7 +539,7 @@ and not regress unless stated otherwise.
 
 There's no need to tag the source in a patch with your name in comments
 behind each modification, we already know the culprit from commit logs
-(see "git blame"). :-)
+(also see "git blame"). :-)
 
 Patches should take portability issues into account.
 Keep in mind Hamlib has to run under:
@@ -620,7 +619,8 @@ the RIG_DEBUG_LEVEL values has been somewhat haphazard (at least by this
 scribe) so fixing these when working in a given backend is encouraged.
 
 If an application sets the debugging level to RIG_DEBUG_NONE, then
-rig_debug() functions will produce no output.
+rig_debug() functions will produce no output.  Therefore rig_debug() cannot
+be counted on to output a message in all runtime cases.
 
 
 8.3 Submitting patches
