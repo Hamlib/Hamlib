@@ -1,5 +1,5 @@
 /*
- * rigctl_parse.c - (C) Stephane Fillod 2000-2010
+ * rigctl_parse.c - (C) Stephane Fillod 2000-2011
  *					(C) Terry Embry 2008-2009
  * 					(C) The Hamlib Group 2010
  *
@@ -153,6 +153,7 @@ declare_proto_rig(get_powerstat);
 declare_proto_rig(send_dtmf);
 declare_proto_rig(recv_dtmf);
 declare_proto_rig(chk_vfo);
+declare_proto_rig(halt);
 
 
 /*
@@ -229,6 +230,7 @@ static struct test_table test_list[] = {
 	{ '3', "dump_conf",         dump_conf,      ARG_NOVFO },
 	{ 0x8f,"dump_state",        dump_state,     ARG_OUT|ARG_NOVFO },
 	{ 0xf0,"chk_vfo",           chk_vfo,        ARG_NOVFO },	/* rigctld only--check for VFO mode */
+	{ 0xf1,"halt",              halt,           ARG_NOVFO },	/* rigctld only--halt the daemon */
 	{ 0x00, "", NULL },
 };
 
@@ -662,7 +664,7 @@ int set_conf(RIG *my_rig, char *conf_parms)
 			/* FIXME: left hand value of = cannot be null */
 		q = strchr(p, '=');
 		if ( !q )
-			return RIG_EINVAL;
+			return -RIG_EINVAL;
 		*q++ = '\0';
 		n = strchr(q, ',');
 		if (n) *n++ = '\0';
@@ -821,6 +823,7 @@ declare_proto_rig(set_ptt)
 {
 	int   ptt;
 
+	/* TODO MICDATA */
 	CHKSCN1ARG(sscanf(arg1, "%d", &ptt));
 	return rig_set_ptt(rig, vfo, (ptt_t) ptt);
 }
@@ -836,6 +839,7 @@ declare_proto_rig(get_ptt)
 		return status;
 	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
+	/* TODO MICDATA */
 	fprintf(fout, "%d%c", ptt, resp_sep);
 
 	return status;
@@ -2186,10 +2190,19 @@ declare_proto_rig(send_cmd)
 	return retval;
 }
 
-/* '0xf1'--test if rigctld called with -o|--vfo option */
+/* '0xf0'--test if rigctld called with -o|--vfo option */
 declare_proto_rig(chk_vfo)
 {
 	fprintf(fout, "CHKVFO %d\n", vfo_mode);
+
+	return RIG_OK;
+}
+
+/* '0xf1'--halt rigctld daemon */
+declare_proto_rig(halt)
+{
+    /* a bit rough, TODO: clean daemon shutdown */
+    exit(0);
 
 	return RIG_OK;
 }
