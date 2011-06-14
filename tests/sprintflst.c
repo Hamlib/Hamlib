@@ -126,6 +126,34 @@ int sprintf_level(char *str, setting_t level)
 		return len;
 }
 
+int sprintf_level_ext(char *str, const struct confparams *extlevels)
+{
+		int len=0;
+
+		*str = '\0';
+		if (!extlevels)
+				return 0;
+
+		for (; extlevels->token != RIG_CONF_END; extlevels++) {
+				if (!extlevels->name)
+					continue; /* no name */
+				switch (extlevels->type) {
+				case RIG_CONF_CHECKBUTTON:
+				case RIG_CONF_COMBO:
+				case RIG_CONF_NUMERIC:
+				case RIG_CONF_STRING:
+					strcat(str, extlevels->name);
+					strcat(str, " ");
+					len += strlen(extlevels->name) + 1;
+					break;
+				case RIG_CONF_BUTTON:
+					/* ignore case RIG_CONF_BUTTON */
+					break;
+				}
+		}
+		return len;
+}
+
 int sprintf_level_gran(char *str, setting_t level, const gran_t gran[])
 {
 		int i, len=0;

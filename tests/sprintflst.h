@@ -33,6 +33,7 @@ extern int sprintf_mode(char *str, rmode_t);
 extern int sprintf_vfo(char *str, vfo_t);
 extern int sprintf_func(char *str, setting_t);
 extern int sprintf_level(char *str, setting_t);
+extern int sprintf_level_ext(char *str, const struct confparams *);
 extern int sprintf_level_gran(char *str, setting_t, const gran_t gran[]);
 extern int sprintf_parm(char *str, setting_t);
 extern int sprintf_parm_gran(char *str, setting_t, const gran_t gran[]);

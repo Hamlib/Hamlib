@@ -1199,7 +1199,12 @@ declare_proto_rig(set_level)
 	if (!strcmp(arg1, "?")) {
 		char s[SPRINTF_MAX_SIZE];
 		sprintf_level(s, rig->state.has_set_level);
-		fprintf(fout, "%s\n", s);
+		fputs(s, fout);
+		if (rig->caps->set_ext_level) {
+			sprintf_level_ext(s, rig->caps->extlevels);
+			fputs(s, fout);
+		}
+		fputc('\n', fout);
 		return RIG_OK;
 	}
 
@@ -1249,7 +1254,12 @@ declare_proto_rig(get_level)
 	if (!strcmp(arg1, "?")) {
 		char s[SPRINTF_MAX_SIZE];
 		sprintf_level(s, rig->state.has_get_level);
-		fprintf(fout, "%s\n", s);
+		fputs(s, fout);
+		if (rig->caps->get_ext_level) {
+			sprintf_level_ext(s, rig->caps->extlevels);
+			fputs(s, fout);
+		}
+		fputc('\n', fout);
 		return RIG_OK;
 	}
 
