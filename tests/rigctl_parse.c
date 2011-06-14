@@ -1774,6 +1774,10 @@ declare_proto_rig(set_trn)
 {
 	int trn;
 
+	if (!strcmp(arg1, "?")) {
+		fprintf(fout, "OFF RIG POLL\n");
+		return RIG_OK;
+	}
 	if (!strcmp(arg1, "OFF"))
 		trn = RIG_TRN_OFF;
 	else if (!strcmp(arg1, "RIG") || !strcmp(arg1, "ON"))
@@ -1799,13 +1803,18 @@ declare_proto_rig(get_trn)
 {
 	int status;
 	int trn;
+	static const char* trn_txt[] = {
+		"OFF",
+		"RIG",
+		"POLL"};
 
 	status = rig_get_trn(rig, &trn);
 	if (status != RIG_OK)
 		return status;
 	if ((interactive && prompt) || (interactive && !prompt && ext_resp))
 		fprintf(fout, "%s: ", cmd->arg1);
-	fprintf(fout, "%d%c", trn, resp_sep);
+	if (trn>=0 && trn<=2)
+		fprintf(fout, "%s%c", trn_txt[trn], resp_sep);
 
 	return status;
 }
