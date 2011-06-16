@@ -2,6 +2,7 @@
 # .gitignore
 .deps/
 .libs/
+*~
 *.o
 *.lo
 *.la
