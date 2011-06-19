@@ -34,11 +34,11 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <stdio.h>   /* Standard input/output definitions */
-#include <string.h>  /* String function definitions */
-#include <unistd.h>  /* UNIX standard function definitions */
-#include <fcntl.h>   /* File control definitions */
-#include <errno.h>   /* Error number definitions */
+#include <stdio.h>	/* Standard input/output definitions */
+#include <string.h>	/* String function definitions */
+#include <unistd.h>	/* UNIX standard function definitions */
+#include <fcntl.h>	/* File control definitions */
+#include <errno.h>	/* Error number definitions */
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -60,42 +60,40 @@ static rig_ptr_t rig_vprintf_arg;
  */
 void dump_hex(const unsigned char ptr[], size_t size)
 {
-  int i;
-  char buf[DUMP_HEX_WIDTH+1];
+	/* example
+	 * 0000  4b 30 30 31 34 35 30 30 30 30 30 30 30 35 30 32  K001450000000502
+	 * 0010  30 30 0d 0a                                      00..
+	 */
+	char line[4 + 4 + 3 * DUMP_HEX_WIDTH + 4 + DUMP_HEX_WIDTH + 1];
+	unsigned char c;
+	int i;
 
-  if (!rig_need_debug(RIG_DEBUG_TRACE))
-		  return;
+	if (!rig_need_debug(RIG_DEBUG_TRACE))
+		return;
 
-  /* ASCII column */
-  buf[DUMP_HEX_WIDTH] = '\0';
+	line[sizeof(line) - 1] = '\0';
 
-  for(i=0; i<size; i++) {
-    if (i % DUMP_HEX_WIDTH == 0)
-      rig_debug(RIG_DEBUG_TRACE,"%.4x   ",i);
+	for (i = 0; i < size; ++i) {
+		if (i % DUMP_HEX_WIDTH == 0) {
+			/* new line */
+			sprintf(line + 0, "%04x", i);
+			memset(line + 4, ' ', sizeof(line) - 4 - 1);
+		}
 
-    rig_debug(RIG_DEBUG_TRACE," %.2x", ptr[i]);
+		c = ptr[i];
 
-    /* printable ASCII? */
-	if (ptr[i] >= ' ' && ptr[i] < 0x7f)
-		buf[i%DUMP_HEX_WIDTH] = ptr[i];
-	else
-		buf[i%DUMP_HEX_WIDTH] = '.';
+		/* hex print */
+		sprintf(line + 8 + 3 * (i % DUMP_HEX_WIDTH), "%02x", c);
+		line[8 + 3 * (i % DUMP_HEX_WIDTH) + 2] = ' '; /* no \0 */
 
-    if (i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH-1)
-      rig_debug(RIG_DEBUG_TRACE,"    %s\n",buf);
-  }
+		/* ascii print */
+		line[8 + 3 * DUMP_HEX_WIDTH + 4 + (i % DUMP_HEX_WIDTH)] = (c >= ' ' && c < 0x7f) ? c : '.';
 
-  if (i % DUMP_HEX_WIDTH != 0) {
-    /* Add some spaces in order to align right ASCII dump column */
-    int j;
-    for (j = i % DUMP_HEX_WIDTH; j < DUMP_HEX_WIDTH; j++)
-      rig_debug(RIG_DEBUG_TRACE,"   ");
-
-  	buf[i % DUMP_HEX_WIDTH] = '\0';
-    rig_debug(RIG_DEBUG_TRACE,"    %s\n",buf);
-  }
-
-} 
+		/* actually print the line */
+		if (i + 1 == size || (i && i % DUMP_HEX_WIDTH == DUMP_HEX_WIDTH - 1))
+			rig_debug(RIG_DEBUG_TRACE, "%s\n", line);
+	}
+}
 
 
 /**
@@ -147,16 +145,16 @@ void HAMLIB_API rig_debug(enum rig_debug_level_e debug_level, const char *fmt, .
 
 /**
  * \brief set callback to handle debug messages
- * \param cb    The callback to install
- * \param arg   A Pointer to some private data to pass later on to the callback
+ * \param cb	The callback to install
+ * \param arg	A Pointer to some private data to pass later on to the callback
  *
  *  Install a callback for \a rig_debug messages.
 \code
 int
-rig_message_cb   (enum rig_debug_level_e debug_level,
-		  rig_ptr_t user_data,
-		  const char *fmt,
-		  va_list ap)
+rig_message_cb	(enum rig_debug_level_e debug_level,
+		rig_ptr_t user_data,
+		const char *fmt,
+		va_list ap)
 {
 	char buf[1024];
 
