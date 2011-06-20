@@ -20,8 +20,8 @@ Before deciding release:
   of each year will provide about a month of testing before release.
 
 * Update the configuration:
-    clean the tree
-    sh ./autogen.sh
+    clean the tree:
+        make dist clean; git clean -dxf
 
 Releasing Hamlib:
 ----------------
@@ -89,62 +89,23 @@ release:
 * Edit config.ac, commit it and push it.  The branch is now ready for
   rc testing/release.
 
-* Build source tarball from a clean clone (anonymous clone is fine):
-    git clone -b Hamlib-1.2.14 git://hamlib.git.sourceforge.net/gitroot/hamlib/hamlib
-    cd hamlib
-    sh autogen.sh --prefix=/usr/local
+* Build source tarball from a cleaned tree (as above):
+    ./autogen.sh --prefix=/usr/local
     make dist
+
+    The resulting tarball--hamlib-1.x.y[.z].tar.gz--should be tested as much
+    as possible to assure compilation integrity. etc.
 
 
 Win32 binary build release
 --------------------------
 
-In these steps the release or daily snapshot tarball is unpacked in ~/temp
-for the Win32 build and all operations are done from there unless otherwise
-noted.
+A new helper script is available in the scripts/ directory, build-win32.sh.
+See README.build-win32 for information on prerequisites, etc.
 
-Under Linux you need the mingw32 package to cross-compile it, an internal
-copy of libltdl (configured and built as below), zip to create the archive,
-the tofrodos or dos2unix package installed to convert to DOS text format,
-and Wine plus the free MVC++Toolkit available from:
+* Build Windows DLL with cdecl convention using build-win32.sh
 
-http://uploading.com/files/HNH73WB3/VCToolkitSetup%28v1.01%29%282004.07.06%29.zip.html
-
-to create the Win32 .LIB file (unzip and then install it with Wine in the
-usual way).
-
-NB: Debian Squeeze and later users will need an updated mingw32-runtime
-package and can manually install the Ubuntu version from:
-
-http://packages.ubuntu.com/maverick/devel/mingw32-runtime
-
-Finally, the Win32 version of libusb must be available for the USB backends to
-be built.  Download the latest libusb-win32-bin-1.2.4.0.zip from:
-
-https://sourceforge.net/projects/libusb-win32/files/libusb-win32-releases/1.2.4.0/
-
-and unzip the archive in ~/temp/libusb-win32-bin-1.2.4.0 and then copy the
-following into libusb-win32-bin-1.2.4.0/lib/pkgconfig/libusb.pc
-
----------------CUT-----------------------------
-prefix=/home/USER/temp/libusb-win32-bin-1.2.4.0
-exec_prefix=${prefix}
-libdir=${exec_prefix}/lib/gcc
-bindir=${exec_prefix}/bin
-includedir=${prefix}/include
-
-Name: libusb
-Description: USB access library
-Version: 1.2.4.0
-Libs: -L${libdir} -L${bindir} -lusb
-Cflags: -I${includedir}
----------------CUT-----------------------------
-
-
-* Build Windows DLL from previous tarball, and .LIB, then create .zip file
-    make distwin32
-
-* Build Windows DLL with stdcall convention:
+* Build Windows DLL with stdcall convention (script in progress):
   Ditto but with HAMLIB_API set to __stdcall in include/hamlib/rig_dll.h before re-compiling.
   Subsitute cdecl by stdcall in README.txt.
 
@@ -179,7 +140,8 @@ Cflags: -I${includedir}
   - Freshmeat: http://freshmeat.net/projects/hamlib
   - http://radio.linux.org.au/pkgdetail.phtml?pkgid=243 Linux Hamradio App: rigctl category
 
-* Send announce to mailing lists: [ANN] hamlib-announce, linux-ham
+* Send announce to mailing lists: [ANN] hamlib-developer, linux-ham,
+  debian-hams, fldigi-alpha, ham-linux
 
 To advertise:
 - list the rigs supported so far,
