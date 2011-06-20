@@ -24,8 +24,11 @@ ltmain.sh
 missing
 py-compile
 autom4te.cache/
+bindings/Hamlib.py
 bindings/hamlibvb.bas
+bindings/hamlibpy_wrap.c
 doc/hamlib.cfg
+hamlib-*.tar.gz
 include/config.h
 include/config.h.in
 include/stamp-h1
