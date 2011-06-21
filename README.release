@@ -90,7 +90,7 @@ release:
   rc testing/release.
 
 * Build source tarball from a cleaned tree (as above):
-    ./autogen.sh --prefix=/usr/local
+    ./autogen.sh
     make dist
 
     The resulting tarball--hamlib-1.x.y[.z].tar.gz--should be tested as much

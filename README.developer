@@ -283,7 +283,7 @@ versions seen in the previous section (most systems will be fine with the
 default names, only do this if a problem arises).
 
     cd hamlib
-    sh ./autogen.sh --disable-static --prefix=/usr/local CFLAGS="-g -O0"
+    sh ./autogen.sh --disable-static CFLAGS="-g -O0"
     make
     make install
 
@@ -291,7 +291,7 @@ If you don't want the build files cluttering the source directories, do the
 following in the same parent directory of hamlib:
 
     mkdir build && cd build
-    sh ../hamlib/autogen.sh  --disable-static --prefix=/usr/local CFLAGS="-g -O0"
+    sh ../hamlib/autogen.sh  --disable-static CFLAGS="-g -O0"
     make
     make install
 
@@ -305,12 +305,13 @@ year 2004 should be fine, unless you run some exotic hardware/software system:
     ./config.guess --version
     ./config.sub --version
 
-The '--prefix' option to `autogen.sh' is optional.  Convention is that
-locally built packages be installed in /usr/local away from distribution
-installed packages.  The '--disable-static' and 'CFLAGS="-g -O0"' speeds up
-compilation if you don't plan to use static libraries and can bear less
-optimized binaries while the '-g' option adds debugging info which can be
-changed to -ggdb to generate debugging info for gdb.
+The '--prefix' option to `autogen.sh' is optional and not shown as it
+defaults to /usr/local.  Convention is that locally built packages be
+installed in /usr/local away from distribution installed packages.  The
+'--disable-static' and 'CFLAGS="-g -O0"' speeds up compilation if you don't
+plan to use static libraries and can bear less optimized binaries while the
+'-g' option adds debugging info which can be changed to -ggdb to generate
+debugging info for gdb.
 
 Additionally, you may want to add the '--with-perl-binding' or
 '--with-python-binding' or '--enable-tcl-binding' if you are interested in
