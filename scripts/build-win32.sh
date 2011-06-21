@@ -90,9 +90,8 @@ To continue, be sure you have read the README.betatester file, especially
 the "Testing Hamlib" section.  The primary means of testing is by way of the
 rigctl utility for radios and rotctl utility for rotators.  Each is a command
 line program that is interactive or can act on a single command and exit.
-Documentation for each can be found in a PDF at:
 
-  https://sourceforge.net/apps/mediawiki/hamlib/index.php?title=Documentation
+Documentation for each utility can be found as a PDF in the pdf/ directory.
 
 In short, the command syntax is of the form:
 
@@ -103,7 +102,8 @@ In short, the command syntax is of the form:
   -v -> Verbosity level.  For testing four or five v characters are required.
         Five v's set a debug level of TRACE which generates a lot of screen
         output showing communication to the radio and values of important
-        variables.  These traces are important for Hamlib development.
+        variables.  These traces are vital information for Hamlib rig backend
+        development.
 
 To run rigctl or rotctl open a cmd window (Start|Run|enter 'cmd' in the dialog).
 If text scrolls off the screen, you can scroll back with the mouse.  To copy
@@ -122,7 +122,14 @@ Information for Win32 Programmers
 There's a .LIB import library for MS-VC++ in lib/msvc.  Simply #include
 <hamlib/rig.h> (add directory to include path), include the .LIB in your
 project and you're done. Note: MS-VC++ cannot compile all the Hamlib code,
-but the API rig.h has been made MSVC friendly :-)
+but the API defined by rig.h has been made MSVC friendly :-)
+
+As the source code for the library DLLs is licensed under the LGPL, your
+program is not considered a "derivative work" when using the published
+Hamlib API and normal linking to the front-end library, and may be of a
+license of your choosing.  The published Hamlib API may be found at:
+
+http://sourceforge.net/apps/mediawiki/hamlib/index.php?title=Documentation
 
 
 Thank You!
@@ -155,7 +162,7 @@ cd libltdl; ./configure --host=i586-mingw32msvc && make; cd ..
 
 make install
 
-mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include
+mkdir -p ${ZIP_DIR}/bin ${ZIP_DIR}/lib/msvc ${ZIP_DIR}/lib/gcc ${ZIP_DIR}/include ${ZIP_DIR}/pdf
 cp -a src/libhamlib.def ${ZIP_DIR}/lib/msvc/libhamlib-2.def; todos ${ZIP_DIR}/lib/msvc/libhamlib-2.def
 cp -a ${INST_DIR}/include/hamlib ${ZIP_DIR}/include/.; todos ${ZIP_DIR}/include/hamlib/*.h
 
@@ -164,6 +171,15 @@ rm ${ZIP_DIR}/include/hamlib/{rig,rot}class.h
 
 for f in AUTHORS ChangeLog COPYING COPYING.LIB LICENSE README README.betatester README.win32-bin THANKS ; do \
 	cp -a ${f} ${ZIP_DIR}/${f}.txt ; todos ${ZIP_DIR}/${f}.txt ; done
+
+# Generate PDF documents from nroff formatted man files
+cd tests
+
+for f in rigctl.1 rigctld.8 rigmem.1 rigsmtr.1 rigswr.1 rotctl.1 rotctld.8 ; do \
+	groff -mandoc >${f}.ps ${f} ; ps2pdf ${f}.ps ; rm ${f}.ps ; \
+    cp -a ${f}.pdf ${ZIP_DIR}/pdf/. ; done
+
+cd ${BUILD_DIR}/$1
 
 # Copy build files into specific locations for Zip file
 cp -a ${INST_DIR}/bin/{rigctld.exe,rigctl.exe,rigmem.exe,rigsmtr.exe,rigswr.exe,rotctld.exe,rotctl.exe} ${ZIP_DIR}/bin/.
@@ -178,5 +194,3 @@ cp -a ${LIBUSB_WIN32_BIN_PATH}/bin/x86/libusb0_x86.dll ${ZIP_DIR}/bin/libusb0.dl
 # Need VC++ free toolkit installed (default Wine directory installation shown)
 ( cd ${ZIP_DIR}/lib/msvc/ && wine ~/.wine/drive_c/Program\ Files/Microsoft\ Visual\ C++\ Toolkit\ 2003/bin/link.exe /lib /machine:i386 /def:libhamlib-2.def )
 zip -r hamlib-win32-${RELEASE}.zip `basename ${ZIP_DIR}`
-
-
