@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTL "1" "April 25, 2010" "Hamlib" "Rotator Control Program"
+.TH ROTCTL "1" "June 21, 2011" "Hamlib" "Rotator Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -26,15 +26,15 @@ Control antenna rotators.
 interactive mode if none are provided on the command line.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
 .\" respectively.
-Keep in mind that \fBHamlib\fP is BETA level software. 
+Keep in mind that \fBHamlib\fP is BETA level software.
 While a lot of backend libraries lack complete rig support, the basic functions
-are usually well supported.  The API may change without publicized notice, 
+are usually well supported.  The API may change without publicized notice,
 while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
 a change.
 .PP
-Please report bugs and provide feedback at the e-mail address given in the 
+Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
 .SH OPTIONS
 This program follows the usual GNU command line syntax, with long
@@ -45,26 +45,28 @@ Here is s summary of the supported options:
 .B \-m, --model=id
 Select rotator model number. See model list (use 'rotctl -l').
 .sp
-NB: \fBrotctl\fP (or third party software) will use rig model 1901 
+NB: \fBrotctl\fP (or third party software) will use rig model 1901
 when using \fBrpc.rotd\fP or rig model 2 for NET rotctl (rotctld).
 .TP
 .B \-r, --rot-file=device
 Use \fIdevice\fP as the file name of the port the rotator is connected.
 Often a serial port, but could be a USB to serial adapter or USB port device.
-Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2,
+etc. on Win32.
 .sp
 Default is \fB/dev/rotator\fP (may be a symbolic link to the actual device).
 .TP
 .B \-s, --serial-speed=baud
-Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotator 
+Set serial speed to \fIbaud\fP rate. Uses maximum serial speed from rotator
 backend capabilites as default.
 .TP
 .B \-t, --send-cmd-term=char
-Change the termination \fIchar\fP for text protocol when using the \fIsend_cmd\fP command.
-The default value is <CR>. Non ASCII printable characters can be specified as an
-ASCII number, in hexadecimal format, prepended with 0x. You may pass an empty string
-for no termination char. The string -1 tells rotctl to switch to binary protocol.
-See the \fIsend_cmd\fP command for further explanation.
+Change the termination \fIchar\fP for text protocol when using the
+\fIsend_cmd\fP command. The default value is <CR>. Non ASCII printable
+characters can be specified as an ASCII number, in hexadecimal format,
+prepended with 0x. You may pass an empty string for no termination char. The
+string -1 tells rotctl to switch to binary protocol.  See the \fIsend_cmd\fP
+command for further explanation.
 .TP
 .B \-L, --show-conf
 List all config parameters for the rotor defined with -m above.
@@ -90,7 +92,7 @@ Show summary of these options and exit.
 Show version of \fBrotctl\fP and exit.
 .PP
 \fBN.B.\fP Some options may not be implemented by a given backend and will
-return an error.  This is most likely to occur with the \fI\-\-set-conf\fP 
+return an error.  This is most likely to occur with the \fI\-\-set-conf\fP
 and \fI\-\-show-conf\fP options.
 .PP
 Please note that the backend for the rotator to be controlled,
@@ -102,27 +104,28 @@ Basically, the commands do not take a dash in front of them, as
 the options do. They may be typed in when in interactive mode
 or provided as argument(s) in command line interface mode.
 .PP
-Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
-an upper case letter will be used for \fIset\fP method whereas the 
+Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP
+method, an upper case letter will be used for \fIset\fP method whereas the
 corresponding lower case letter refers to the \fIget\fP method. Each operation
 also has a long name; in interactive mode, prepend a backslash to enter a long
 command name.
 .sp
 Example: Use "\\get_info" to see the rotor's info.
 .PP
-Please note that the backend for the rotator to be controlled, 
-or the rotator itself may not support some commands. In that case, 
+Please note that the backend for the rotator to be controlled,
+or the rotator itself may not support some commands. In that case,
 the operation will fail with a \fBHamlib\fP error message.
 .PP
 A summary of commands is included below (In the case of "set" commands the
-quoted string is replaced by the value in the description.  In the case of "get"
-commands the quoted string is the key name of the value returned.):
+quoted string is replaced by the value in the description.  In the case of
+"get" commands the quoted string is the key name of the value returned.):
 .TP
 .B P, set_pos 'Azimuth' 'Elevation'
 Set position: Azimuth and Elevation as double precision floating point values.
 .TP
 .B p, get_pos
-Get position: 'Azimuth' and 'Elevation' as double precision floating point values.
+Get position: 'Azimuth' and 'Elevation' as double precision floating point
+values.
 .TP
 .B M, move 'Direction' 'Speed'
 Move the rotator in a specific direction at the given rate.
@@ -157,9 +160,9 @@ At the moment returns 'Model Name'.
 .B w, send_cmd 'Cmd'
 Send raw command string to the rotator.
 .br
-<CR> (or send-cmd-term, see \fI-t\fP option) is appended automatically at the end
-of the command for text protocols.
-For binary protocols, enter values as \\0xAA\\0xBB
+<CR> (or send-cmd-term, see \fI-t\fP option) is appended automatically at the
+end of the command for text protocols.  For binary protocols, enter values
+as \\0xAA\\0xBB
 .PP
 \fBLocator Commands\fP
 .PP
@@ -173,7 +176,8 @@ Both are floating point values.  The precision of the returned square is
 controlled by 'Loc Len' which should be an even numbered integer value between
 2 and 12.
 .sp
-For example, "+L -170.000000 -85.000000 12\\n" returns "Locator: AA55AA00AA00\\n".
+For example, "+L -170.000000 -85.000000 12\\n" returns
+"Locator: AA55AA00AA00\\n".
 .TP
 .B  l, loc2lonlat 'Locator'
 Returns 'Longitude' and 'Latitude' in decimal degrees at the approximate
@@ -188,11 +192,10 @@ For example, "+l AA55AA00AA00\\n" returns "Longitude: -169.999983\\nLatitude:
 .B D, dms2dec 'Degrees' 'Minutes' 'Seconds' 'S/W'
 Returns 'Dec Degrees', a signed floating point value.
 .sp
-Degrees and Minutes are
-integer values and Seconds is a floating point value.  S/W is a flag with '1'
-indicating South latitude or West longitude and '0' North or East (the flag is
-needed as computers don't recognize a signed zero even though only the Degrees
-value only is typically signed in DMS notation).
+Degrees and Minutes are integer values and Seconds is a floating point value.
+S/W is a flag with '1' indicating South latitude or West longitude and '0'
+North or East (the flag is needed as computers don't recognize a signed zero
+even though only the Degrees value only is typically signed in DMS notation).
 .TP
 .B d, dec2dms 'Dec Degrees'
 Returns 'Degrees' 'Minutes' 'Seconds' 'S/W'.
@@ -202,11 +205,10 @@ Values are as in dms2dec above.
 .B E, dmmm2dec 'Degrees' 'Dec Minutes' 'S/W'
 Returns 'Dec Degrees', a signed floating point value.
 .sp
-Degrees is an integer
-value and Minutes is a floating point value.  S/W is a flag with '1'
-indicating South latitude or West longitude and '0' North or East (the flag is
-needed as computers don't recognize a signed zero even though only the Degrees
-value only is typically signed in DMS notation).
+Degrees is an integer value and Minutes is a floating point value.  S/W is a
+flag with '1' indicating South latitude or West longitude and '0' North or
+East (the flag is needed as computers don't recognize a signed zero even
+though only the Degrees value only is typically signed in DMS notation).
 .TP
 .B e, dec2dmmm 'Dec Deg'
 Returns 'Degrees' 'Minutes' 'S/W'.
@@ -228,9 +230,13 @@ Returns 'Long Path km'.
 .sp
 Both are floating point values.
 .SH EXAMPLES
-Start \fBrotctl\fP for RotorEZ using COM1:
+Start \fBrotctl\fP for RotorEZ using the first serial port on Linux:
 .sp
 $ rotctl -m 401 -r /dev/ttyS0
+.sp
+Start \fBrotctl\fP for RotorEZ using COM2 on Win32:
+.sp
+$ rotctl -m 401 -r COM2
 .sp
 Start \fBrotctl\fP using \fBrpc.rotd\fP and querying the position:
 .sp
@@ -242,8 +248,8 @@ local host and specifying the TCP port:
 $ rotctl -m 2 -r localhost:4533
 .SH DIAGNOSTICS
 The \fB-v\fP, \fB--version\fP option allows different levels of diagnostics
-to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR, 
--vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.  
+to be output to \fBstderr\fP and correspond to -v for BUG, -vv for ERR,
+-vvv for WARN, -vvvv for VERBOSE, or -vvvvv for TRACE.
 .PP
 A given verbose level is useful for providing needed debugging information to
 the email address below.  For example, TRACE output shows all of the values
@@ -265,13 +271,13 @@ Report bugs to <hamlib-developer@lists.sourceforge.net>.
 .PP
 We are already aware of the bug in the previous section :-)
 .SH AUTHOR
-Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group 
+Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .PP
 <http://www.hamlib.org>.
 .SH COPYRIGHT
 Copyright \(co 2000-2010 Stephane Fillod
 .br
-Copyright \(co 2010 Nate Bargmann
+Copyright \(co 2011 Nate Bargmann
 .br
 Copyright \(co 2000-2010 the Hamlib Group
 .PP

@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH ROTCTLD "8" "March 1, 2010" "Hamlib" "Rotator Control Daemon"
+.TH ROTCTLD "8" "June 21, 2011" "Hamlib" "Rotator Control Daemon"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -21,13 +21,13 @@ rotctld \- Hamlib TCP rotator control daemon
 .B rotctld
 [\fIOPTION\fR]...
 .SH DESCRIPTION
-The \fBrotctld\fP program is an NEW \fBHamlib\fP rotator control daemon ready for
-testing that handles client requests via TCP sockets. This allows multiple user
-programs to share one rotator (this needs testing). Multiple rotators can be
-controlled on different TCP ports by use of multiple \fBrotctld\fP processes. The
-syntax of the commands are the same as \fBrotctl\fP. It is hoped that \fBrotctld\fP
-will be especially useful for client authors using languages such as Perl, Python,
-PHP, and others.
+The \fBrotctld\fP program is an NEW \fBHamlib\fP rotator control daemon ready
+for testing that handles client requests via TCP sockets. This allows multiple
+user programs to share one rotator (this needs testing). Multiple rotators can
+be controlled on different TCP ports by use of multiple \fBrotctld\fP processes.
+The syntax of the commands are the same as \fBrotctl\fP. It is hoped that
+\fBrotctld\fP will be especially useful for client authors using languages such
+as Perl, Python, PHP, and others.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invoke bold face and italics,
@@ -38,22 +38,22 @@ to \fBrotctld\fP on one line and \fBrotctld\fP responds to "get" commands with
 the requested values, one per line, when successful, otherwise, it responds
 with one line "RPTR x", where x is a negative number indicating the error code.
 Commands that do not return values respond with the line "RPTR x", where x
-is zero when successful, otherwise is a regative number indicating the error code.
-Each line is terminated with a newline '\\n' character.  This protocol is primarily
-for use by the \fINET rotctl\fP (rot model 2) backend.
+is zero when successful, otherwise is a regative number indicating the error
+code.  Each line is terminated with a newline '\\n' character.  This protocol
+is primarily for use by the \fINET rotctl\fP (rot model 2) backend.
 .PP
 A separate \fBExtended Response\fP protocol extends the above
 behavior by echoing the received command string as a header, any returned values
-as a key: value pair, and the "RPTR x" string as the end of response marker which
-includes the \fBHamlib\fP success or failure value.  See the \fIPROTOCOL\fP
-section for details.  Consider using this protocol for clients that will interact
-with \fBrotctld\fP directly through a TCP socket.
+as a key: value pair, and the "RPTR x" string as the end of response marker
+which includes the \fBHamlib\fP success or failure value.  See the
+\fIPROTOCOL\fP section for details.  Consider using this protocol for clients
+that will interact with \fBrotctld\fP directly through a TCP socket.
 .PP
 Keep in mind that \fBHamlib\fP is BETA level software.
-While a lot of backend libraries lack complete rotator support, the basic functions
-are usually well supported.  The API may change without publicized notice,
-while an advancement of the minor version (e.g. 1.1.x to 1.2.x) indicates such
-a change.
+While a lot of backend libraries lack complete rotator support, the basic
+functions are usually well supported.  The API may change without publicized
+notice, while an advancement of the minor version (e.g. 1.1.x to 1.2.x)
+indicates such a change.
 .PP
 Please report bugs and provide feedback at the e-mail address given in the
 REPORTING BUGS section.  Patches and code enhancements are also welcome.
@@ -69,7 +69,8 @@ Select rotator model number. See -l, "list" option below.
 .B \-r, --rot-file=device
 Use \fIdevice\fP as the file name of the port the rotator is connected.
 Often a serial port, but could be a USB to serial adapter or USB port device.
-Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+Typically /dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2,
+etc. on Win32.
 .sp
 Default is \fB/dev/rotator\fP (may be a symbolic link to the actual device).
 .TP
@@ -103,9 +104,9 @@ Dump capabilities for the radio defined with -m above and exit.
 .B \-e, --end-marker
 Use END marker in rotctld protocol.
 .sp
-N.B.: This option should be considered obsolete.  Please consider using the Extended
-Response protocol instead (see \fIPROTOCOL\fP below).  This option will be removed
-in a future Hamlib release.
+N.B.: This option should be considered obsolete.  Please consider using the
+Extended Response protocol instead (see \fIPROTOCOL\fP below).  This option
+will be removed in a future Hamlib release.
 .TP
 .B \-v, --verbose
 Set verbose mode, cumulative (see DIAGNOSTICS below).
@@ -128,8 +129,8 @@ Commands can be sent over the TCP socket either as a single char, or as a
 long command name plus the value(s) space separated on one '\\n' terminated
 line. See \fIPROTOCOL\fP.
 .PP
-Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
-an upper case letter will be used for \fIset\fP methods whereas the
+Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP
+method, an upper case letter will be used for \fIset\fP methods whereas the
 corresponding lower case letter refers to the \fIget\fP method.  Each operation
 also has a long name; prepend a backslash to send a long command name.
 .PP
@@ -201,7 +202,8 @@ Both are floating point values.  The precision of the returned square is
 controlled by 'Loc Len' which should be an even numbered integer value between
 2 and 12.
 .sp
-For example, "+L -170.000000 -85.000000 12\\n" returns "Locator: AA55AA00AA00\\n".
+For example, "+L -170.000000 -85.000000 12\\n" returns
+"Locator: AA55AA00AA00\\n".
 .TP
 .B  l, loc2lonlat 'Locator'
 Returns 'Longitude' and 'Latitude' in decimal degrees at the approximate
@@ -289,10 +291,10 @@ Most \fIget\fP functions return one to three values. A notable exception is
 the \fI\\dump_caps\fP function which returns many lines of key:value pairs.
 .PP
 This protocol is primarily used by the \fINET rotctl\fP (rotctl model 2) backend
-which allows applications already written for Hamlib's C API to take advantage of
-\fBrotctld\fP without the need of rewriting application code.  An application's
-user can select rotor model 2 ("NET rotctl") and then set rot_pathname to
-"localhost:4533" or other network host:port.
+which allows applications already written for Hamlib's C API to take advantage
+of \fBrotctld\fP without the need of rewriting application code.  An
+application's user can select rotor model 2 ("NET rotctl") and then set
+rot_pathname to "localhost:4533" or other network host:port.
 .PP
 \fBExtended Response Protocol\fP
 .PP
@@ -304,14 +306,14 @@ strings returned by \fBrotctld\fP and adds a rule for the command syntax.
 followed by the value(s) (if any) received from the client terminated by the
 specified response separator as the first record of the response.
 .PP
-2. The last record of each block is the string "RPTR \fIx\fP\\n" where \fIx\fP is
-the numeric return value of the Hamlib backend function that was called by the
-command.
+2. The last record of each block is the string "RPTR \fIx\fP\\n" where \fIx\fP
+is the numeric return value of the Hamlib backend function that was called by
+the command.
 .PP
 3. Any records consisting of data values returned by the rotor backend are
 prepended by a string immediately followed by a colon then a space and then the
-value terminated by the response separator. e.g. "Azimuth: 90.000000\\n" when the
-command was prepended by '+'.
+value terminated by the response separator. e.g. "Azimuth: 90.000000\\n" when
+the command was prepended by '+'.
 .PP
 4. All commands received will be acknowledged by \fBrotctld\fP with records from
 rules 1 and 2.  Records from rule 3 are only returned when data values must be
@@ -394,7 +396,7 @@ set_pos: 135 22.5|RPRT 0
 Such a format will allow reading a response as a single event using a prefered
 response separator.  Other punctuation characters have not been tested!
 .PP
-All commands with the exception of \fI\\set_conf\fP have been tested with the 
+All commands with the exception of \fI\\set_conf\fP have been tested with the
 Extended Response protocol and the included \fBtestrotctld.pl\fP script.
 .PP
 .SH EXAMPLES
@@ -402,6 +404,10 @@ Start \fBrotctld\fP for a Ham IV rotor with the RotorEZ installed using a
 USB-to-serial adapter and backgrounding:
 .sp
 $ rotctld -m 401 -r /dev/ttyUSB1 &
+.sp
+Start \fBrotctld\fP for RotorEZ using COM2 on Win32:
+.sp
+$ rotctl -m 401 -r COM2
 .sp
 Connect to the already running \fBrotctld\fP, and set position to
 135.0 degrees azimuth and 30.0 degrees elevation with a 1 second read timeout:
@@ -444,7 +450,7 @@ Written by Stephane Fillod, Nate Bargmann, and the Hamlib Group
 .SH COPYRIGHT
 Copyright \(co 2000-2009 Stephane Fillod
 .br
-Copyright \(co 2010 Nate Bargmann
+Copyright \(co 2011 Nate Bargmann
 .br
 Copyright \(co 2000-2009 the Hamlib Group.
 .PP

@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH RIGCTL "1" "April 14, 2010" "Hamlib" "Radio Control Program"
+.TH RIGCTL "1" "June 21, 2011" "Hamlib" "Radio Control Program"
 .\" Please adjust this date whenever revising the manpage.
 .\"
 .\" Some roff macros, for reference:
@@ -51,7 +51,8 @@ when using \fBrpc.rigd\fP or rig model 2 for NET rigctl (rigctld).
 .B \-r, --rig-file=device
 Use \fIdevice\fP as the file name of the port the radio is connected.
 Often a serial port, but could be a USB to serial adapter.  Typically
-/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc.
+/dev/ttyS0, /dev/ttyS1, /dev/ttyUSB0, etc. on Linux or COM1, COM2, etc.
+on Win32.
 .sp
 Default is \fB/dev/rig\fP (may be a symbolic link to the actual device).
 .TP
@@ -89,11 +90,12 @@ NB: the \fIid\fP is in decimal notation, unless prefixed by
 \fI0x\fP, in which case it is hexadecimal.
 .TP
 .B \-t, --send-cmd-term=char
-Change the termination \fIchar\fP for text protocol when using the \fIsend_cmd\fP
-command.  The default value is <CR> (0x0d). Non ASCII printable characters can be
-specified as an ASCII number, in hexadecimal format, prepended with 0x. You may
-pass an empty string for no termination char. The string '-1' tells rigctl to
-switch to binary protocol. See the \fIsend_cmd\fP command for further explanation.
+Change the termination \fIchar\fP for text protocol when using the
+\fIsend_cmd\fP command.  The default value is <CR> (0x0d). Non ASCII printable
+characters can be specified as an ASCII number, in hexadecimal format,
+prepended with 0x. You may pass an empty string for no termination char. The
+string '-1' tells rigctl to switch to binary protocol. See the \fIsend_cmd\fP
+command for further explanation.
 .sp
 For example, to specify a command terminator for Kenwood style text commands
 pass "-t ';'" to rigctl.  See EXAMPLES below.
@@ -138,17 +140,17 @@ Basically, the commands do not take a dash in front of them on the command
 line, as the options do. They may be typed in when in interactive mode
 or provided as argument(s) in command line interface mode.
 .PP
-Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP method,
-an upper case letter will be used for \fIset\fP method whereas the
+Since most of the \fBHamlib\fP operations have a \fIset\fP and a \fIget\fP
+method, an upper case letter will be used for \fIset\fP method whereas the
 corresponding lower case letter refers to the \fIget\fP method.  Each operation
 also has a long name; in interactive mode, prepend a backslash to enter a long
 command name.
 .sp
 Example: Use "\\dump_caps" to see what this radio can do.
 .PP
-Please note that the backend for the radio to be controlled,
-or the radio itself may not support some commands. In that case,
-the operation will fail with a \fBHamlib\fP error message.
+Please note that the backend for the radio to be controlled, or the radio
+itself may not support some commands. In that case, the operation will fail
+with a \fBHamlib\fP error message.
 .PP
 Here is a summary of the supported commands (In the case of "set" commands the
 quoted string is replaced by the value in the description.  In the case of "get"
@@ -261,7 +263,8 @@ backend default.
 .B x, get_split_mode
 Get 'TX Mode' and 'TX Passband'.
 .sp
-Returns TX mode as a string from \fIset_split_mode\fP above and TX passband in Hz.
+Returns TX mode as a string from \fIset_split_mode\fP above and TX passband in
+Hz.
 .TP
 .B S, set_split_vfo 'Split' 'TX VFO'
 Set 'Split' mode, '0' or '1', and 'TX VFO' from \fIset_vfo\fP above.
@@ -288,23 +291,24 @@ otherwise, much as TRUE/FALSE definitions in C language.
 .B u, get_func
 Get 'Func' 'Func Status'.
 .sp
-Returns Func as a string from \fIset_func\fP above and Func status as a non null value.
+Returns Func as a string from \fIset_func\fP above and Func status as a non
+null value.
 .TP
 .B L, set_level 'Level' 'Level Value'
 Set 'Level' and 'Level Value'.
 .sp
-Level is one of: PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT, CWPITCH,
-RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC (0:OFF, 1:SUPERFAST, 2:FAST, 3:SLOW, 4:USER,
-5:MEDIUM, 6:AUTO), BKINDL, BAL, METER, VOXGAIN, ANTIVOX.
-SLOPE_LOW, SLOPE_HIGH, RAWSTR, SWR, ALC, STRENGTH.
+Level is one of: PREAMP, ATT, VOX, AF, RF, SQL, IF, APF, NR, PBT_IN, PBT_OUT,
+CWPITCH, RFPOWER, MICGAIN, KEYSPD, NOTCHF, COMP, AGC (0:OFF, 1:SUPERFAST,
+2:FAST, 3:SLOW, 4:USER, 5:MEDIUM, 6:AUTO), BKINDL, BAL, METER, VOXGAIN,
+ANTIVOX, SLOPE_LOW, SLOPE_HIGH, RAWSTR, SWR, ALC, STRENGTH.
 .sp
 The Level Value can be a float or an integer.
 .TP
 .B l, get_level
 Get 'Level' 'Level Value'.
 .sp
-Returns Level as a string from \fIset_level\fP above and Level value as a float or
-integer.
+Returns Level as a string from \fIset_level\fP above and Level value as a float
+or integer.
 .TP
 .B P, set_parm 'Parm' 'Parm Value'
 Set 'Parm' 'Parm Value'
@@ -329,8 +333,8 @@ Get 'Memory#' channel number.
 .B G, vfo_op 'Mem/VFO Op'
 Perform 'Mem/VFO Op'.
 .sp
-Mem VFO operation is one of: CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN, BAND_UP,
-BAND_DOWN, LEFT, RIGHT, TUNE, TOGGLE.
+Mem VFO operation is one of: CPY, XCHG, FROM_VFO, TO_VFO, MCL, UP, DOWN,
+BAND_UP, BAND_DOWN, LEFT, RIGHT, TUNE, TOGGLE.
 .TP
 .B g, scan 'Scan Fct' 'Scan Channel'
 Perform 'Scan Fct' 'Scan Channel'.
@@ -358,10 +362,10 @@ Get 'Antenna' number (0, 1, 2, ..).
 .B *, reset 'Reset'
 Perform rig 'Reset'.
 .sp
-0 = None, 1 = Software reset, 2 = VFO reset, 4 = Memory Clear reset, 8 = Master reset.
-Since these values are defined as a bitmask in rig.h, it should be possible to AND
-these values together to do multiple resets at once, if the backend supports it or
-supports a reset action via rig control at all.
+0 = None, 1 = Software reset, 2 = VFO reset, 4 = Memory Clear reset, 8 = Master
+reset.  Since these values are defined as a bitmask in rig.h, it should be
+possible to AND these values together to do multiple resets at once, if the
+backend supports it or supports a reset action via rig control at all.
 .TP
 .B b, send_morse 'Morse'
 Send 'Morse' symbols.
@@ -385,9 +389,10 @@ Get misc information about the rig (no VFO in 'VFO mode' or value is passed).
 .TP
 .B 1, dump_caps
 Not a real rig remote command, it just dumps capabilities, i.e. what the
-backend knows about this model, and what it can do.  TODO: Ensure this is
-in a consistent format so it can be read into a hash, dictionary, etc.  Bug
-reports requested.
+backend knows about this model, and what it can do.
+.sp
+TODO: Ensure this is in a consistent format so it can be read into a hash,
+dictionary, etc.  Bug reports requested.
 .sp
 \fBN.B.\fP: This command will produce many lines of output so be very careful
 if using a fixed length array!  For example, running this command against the
@@ -418,22 +423,22 @@ Send raw command string to rig.  This is useful for testing and troubleshooting
 rig commands and responses when developing a backend.
 .sp
 For binary protocols enter values as \\0xAA\\0xBB.    Expect a 'Reply' from the
-rig which will likely be a binary block or an ASCII string depending on the rig's
-protocol (see your radio's computer control documentation).
+rig which will likely be a binary block or an ASCII string depending on the
+rig's protocol (see your radio's computer control documentation).
 .sp
-The command terminator, set by the \fIsend-cmd-term\fP option above, will terminate
-each command string sent to the radio.  This character should not be a part of
-the input string.
+The command terminator, set by the \fIsend-cmd-term\fP option above, will
+terminate each command string sent to the radio.  This character should not be
+a part of the input string.
 .SH EXAMPLES
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter in
 interactive mode:
 .sp
 $ rigctl -m 114 -r /dev/ttyUSB1
 .sp
-Start \fBrigctl\fP for a Yaesu FT-920 using COM1 while generating TRACE output
-to \fBstderr\fP:
+Start \fBrigctl\fP for a Yaesu FT-920 using COM1 on Win32 while generating
+TRACE output to \fBstderr\fP:
 .sp
-$ rigctl -m 114 -r /dev/ttyS0 -vvvvv
+$ rigctl -m 114 -r COM1 -vvvvv
 .sp
 Start \fBrigctl\fP for a Yaesu FT-920 using a USB to serial adapter while
 setting baud rate and stop bits:
