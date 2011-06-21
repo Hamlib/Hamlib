@@ -539,6 +539,7 @@ rotorez/Makefile
 flexradio/Makefile
 m2/Makefile
 amsat/Makefile
+scripts/Makefile
 hamlib.pc
 hamlib.spec]
 )
