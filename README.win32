@@ -1,3 +1,17 @@
+Win32 builds
+------------
+
+MinGW
+=====
+
+For DLLs compatible with MSVC++ cross-compiled from Linux with MinGW, see
+the build-win32.sh script in the scripts/ directory and its companion README
+file.
+
+
+Cygwin
+======
+
 From: "Mark J. Fine" <mark.fine@fineware-swl.com>
 Subject: [Hamlib-developer] Building under Cygwin for Windows (Mingw32)
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum=hamlib-developer>
@@ -5,7 +19,7 @@ Date: Sun, 20 Jun 2004 15:25:24 -0400
 
 <revised by mjf Tue, 17 Aug, 2004>
 
-Found this to be helpful for building hamlib under Cygwin/Mingw32 for 
+Found this to be helpful for building hamlib under Cygwin/Mingw32 for
 linking with Windows apps:
 
 
@@ -32,7 +46,7 @@ install it:
 Note: Don't run "make install" if you've already made a native Cygwin or
 Linux version of hamlib. It will interfere with the pkgconfig used for
 linking the hamlib library with a native Cygwin or Linux application.
-In fact if you are building two versions, it's best to have one tree for 
+In fact if you are building two versions, it's best to have one tree for
 native Cygwin and another tree for cross-compiling with MingW32. This way
 you can avoid overwriting or corrupting any needed object files or libraries.
 
@@ -54,8 +68,8 @@ Windows command window from the directory where you put all that stuff:
  > lib /def:libhamlib.def /machine:IX86 /name:libhamlib-1-2-2cvs-2
 
 This will create libhamlib.lib and libhamlib.exp. This example is for
-hamlib v1.2.2cvs-2. You will have to use the correct version of the 
-library in the "/name:" switch, above. 
+hamlib v1.2.2cvs-2. You will have to use the correct version of the
+library in the "/name:" switch, above.
 
 REM: Using the (free) Microsoft Visual C++ Toolkit 2003, replace
 the "lib" command by "link /lib".
@@ -64,7 +78,7 @@ libhamlib.lib and the .h includes from include/hamlib can now be used
 within any MSVC build (i.e., dream), but all the dlls must be put in the
 same directory or in PATH as the resulting .exe otherwise it won't find it.
 
--- 
+--
 
 Mark J. Fine
 Remington, Virginia, USA
