@@ -155,10 +155,13 @@ static struct usb_dev_handle *find_and_open_device(const hamlib_port_t *port)
 					rig_debug(RIG_DEBUG_VERBOSE, " product >%s<", string);
 
 					if (strcmp(string, port->parm.usb.product) != 0) {
-						/* strstr() returns a pointer to the beginning of
-						 * port->parm.usb.product on match, and NULL otherwise
+						/* Now testing with strncasecmp() for case insensitive
+						 * match.  Updating firmware on FUNcube Dongle to v18f resulted
+						 * in product string changing from "FunCube Dongle" to
+						 * "FUNcube Dongle".  As new dongles are shipped with
+						 * older firmware, both product strings are valid.  Sigh...
 						 */
-						if (strstr(string, port->parm.usb.product) == NULL) {
+						if (strncasecmp(string, port->parm.usb.product, sizeof(port->parm.usb.product - 1)) != 0) {
 							rig_debug(RIG_DEBUG_WARN, "%s: Warning: Product string mismatch!\n", __func__);
 							usb_close(udh);
 							continue;
