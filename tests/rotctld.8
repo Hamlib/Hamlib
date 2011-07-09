@@ -36,15 +36,15 @@ as Perl, Python, PHP, and others.
 commands shared with \fBrotctl\fP. The protocol is simple, commands are sent
 to \fBrotctld\fP on one line and \fBrotctld\fP responds to "get" commands with
 the requested values, one per line, when successful, otherwise, it responds
-with one line "RPTR x", where x is a negative number indicating the error code.
-Commands that do not return values respond with the line "RPTR x", where x
+with one line "RPRT x", where x is a negative number indicating the error code.
+Commands that do not return values respond with the line "RPRT x", where x
 is zero when successful, otherwise is a regative number indicating the error
 code.  Each line is terminated with a newline '\\n' character.  This protocol
 is primarily for use by the \fINET rotctl\fP (rot model 2) backend.
 .PP
 A separate \fBExtended Response\fP protocol extends the above
 behavior by echoing the received command string as a header, any returned values
-as a key: value pair, and the "RPTR x" string as the end of response marker
+as a key: value pair, and the "RPRT x" string as the end of response marker
 which includes the \fBHamlib\fP success or failure value.  See the
 \fIPROTOCOL\fP section for details.  Consider using this protocol for clients
 that will interact with \fBrotctld\fP directly through a TCP socket.
@@ -271,12 +271,12 @@ print $socket "P 135 10\\n";
 print $socket "\\\\set_pos 135 10\\n";   # escape leading '\\'
 .PP
 A one line response will be sent as a reply to \fIset\fP commands,
-"RPTR \fIx\fP\\n" where \fIx\fP is the Hamlib error code with '0'
+"RPRT \fIx\fP\\n" where \fIx\fP is the Hamlib error code with '0'
 indicating success of the command.
 .PP
 Responses from \fBrotctld\fP \fIget\fP commands are text values and match the
 same tokens used in the \fIset\fP commands. Each value is returned on its own
-line.  On error the string "RPTR \fIx\fP\\n" is returned where \fIx\fP is the
+line.  On error the string "RPRT \fIx\fP\\n" is returned where \fIx\fP is the
 Hamlib error code.
 .sp
 Example \fIget\fP (Perl code):
@@ -306,7 +306,7 @@ strings returned by \fBrotctld\fP and adds a rule for the command syntax.
 followed by the value(s) (if any) received from the client terminated by the
 specified response separator as the first record of the response.
 .PP
-2. The last record of each block is the string "RPTR \fIx\fP\\n" where \fIx\fP
+2. The last record of each block is the string "RPRT \fIx\fP\\n" where \fIx\fP
 is the numeric return value of the Hamlib backend function that was called by
 the command.
 .PP
