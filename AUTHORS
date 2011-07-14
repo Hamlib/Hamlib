@@ -96,6 +96,7 @@ C: Leigh Klotz, WA5ZNU
 
 [kenwood: K3]
 M: Nate Bargmann, N0NB
+C: Alexander Sack
 
 [kenwood: TS-480SAT]
 M: Juergen Rinas, DC3BW
@@ -238,6 +239,9 @@ C: Ron Patterson, W6FM
 M: Stephane Fillod, F8CFE
 C: Chris Bryant, G3WIE
 
+[ts7400]
+M: Øystein Hårberg, LA7LKA
+
 [Frontend]
 M: Stephane Fillod, F8CFE
 
@@ -245,6 +249,12 @@ M: Stephane Fillod, F8CFE
 M: Dave Hines, M1CXW
 C: Stephane Fillod, F8CFE
 C: Nate Bargmann, N0NB
+
+
+[test utilities]
+M: Stephane Fillod, F8CFE
+C: Nate Bargmann, N0NB
+C: Nirgal Vourgère
 
 
 [platform: FreeBSD]
@@ -268,9 +278,10 @@ M: Alexandru Csete, OZ9AEC
 M: Joop Stakenborg, PG4I
 
 
-[Web site: http://hamlib.sf.net]
+[Web site: http://www.hamlib.org]
 M: Joop Stakenborg, PG4I
 M: Stephane Fillod, F8CFE
+M: Nate Bargmann, N0NB
 
 
 E-mail addresses:
@@ -321,3 +332,7 @@ Kamal Mostafa, KA6MAL, <kamal (at) whence.com>
 Roger, <roger-linux (at) users.sourceforge.net>
 Tristan Mills, <t_mills (at) users.sourceforge.net>
 Terry Dawson, VK2KTJ, <terry (at) users.sourceforge.net>
+Øystein Hårberg, LA7LKA, <oystein.haarberg (at) netrunner.nu>
+Alexander Sack <pisymbol (at) gmail.com>
+Nirgal Vourgère <contact_hamlib (at) nirgal.com>
+

@@ -60,7 +60,7 @@ remote repository, "origin"):
 
 * Push the changes (check for validity):
   git push origin       # pushes previous commit to sf.net repository
-  git push origin Hamlib-1.2.14         # push the branch
+  git push -u origin Hamlib-1.2.14         # push the branch and set "upstream"
 
 * Update the version in the macro AC_INIT of configure.ac (advance to next
   version, e.g. 1.2.15~git) and the libhamlib_la_LDFLAGS value in
