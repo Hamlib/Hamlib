@@ -6,10 +6,16 @@ Copyright (C) 2000-2011  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 1.2.14
-	2011-XX-XX
-	* New models: SigFox Transfox, TH-D72A, IC-7410, IC-9100
-	* New rotator backends: IF-100
-	* Fixes and features: K3
+	2011-08-01
+	* New models: SigFox Transfox, TH-D72A, IC-7410, IC-9100, IC-R9500, KX3,
+		V4L2 API support (untested),
+	* New rotator backends: IF-100, TS-7400
+	* Fixes and features: K3/KX3, Build Win32 from script, rigctld/rotctld
+		ported to Mingw32, Win32 build fixes, remove obsolete bundled
+		libtool files, rigctl improvements, FUNcube string test (works
+		with V0.0 and V1.0), Yaesu newcat.c fixed to use
+		rig->state.current_vfo to store vfo value, add a command to
+		halt rigctld,
 
 Version 1.2.13.1
 	* 2011-05-29
