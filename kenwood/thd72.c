@@ -25,17 +25,14 @@
 #endif
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "hamlib/rig.h"
 #include "kenwood.h"
 #include "th.h"
 #include "num_stdio.h"
-
-#if 1
-#define RIG_ASSERT(x)	if (!(x)) { rig_debug(RIG_DEBUG_ERR, "Assertion failed on line %i\n",__LINE__); abort(); }
-#else
-#define RIG_ASSERT(x)
-#endif
+#include "iofunc.h"
+#include "serial.h"
 
 
 #define THD72_MODES	  (RIG_MODE_FM|RIG_MODE_AM)
@@ -58,7 +55,7 @@
 
 #define THD72_PARMS	(RIG_PARM_BACKLIGHT)
 
-#define THD72_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
+#define THD72_VFO_OP (RIG_OP_NONE)
 
 /*
  * TODO: Band A & B
@@ -76,6 +73,8 @@ static struct kenwood_priv_caps  thd72_priv_caps  = {
 };
 
 static int thd72_open(RIG *rig);
+static int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg);
+
 
 /*
  * th-d72a rig capabilities.
@@ -86,7 +85,7 @@ const struct rig_caps thd72a_caps = {
 .mfg_name =  "Kenwood",
 .version =  TH_VER,
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_HANDHELD|RIG_FLAG_APRS|RIG_FLAG_TNC|RIG_FLAG_DXCLUSTER,
 .ptt_type =  RIG_PTT_RIG,
 .dcd_type =  RIG_DCD_RIG,
@@ -170,31 +169,13 @@ const struct rig_caps thd72a_caps = {
 .rig_init = kenwood_init,
 .rig_cleanup = kenwood_cleanup,
 .rig_open = thd72_open,
-.set_freq =  th_set_freq,
-.get_freq =  th_get_freq,
-.set_mode =  th_set_mode,
-.get_mode =  th_get_mode,
 .set_vfo =  th_set_vfo,
 .get_vfo =  th_get_vfo,
-.set_ctcss_tone =  th_set_ctcss_tone,
-.get_ctcss_tone =  th_get_ctcss_tone,
-.set_ctcss_sql =  th_set_ctcss_sql,
-.get_ctcss_sql =  th_get_ctcss_sql,
-.set_mem =  th_set_mem,
-.get_mem =  th_get_mem,
-.set_channel =  th_set_channel,
-.get_channel =  th_get_channel,
-.set_trn =  th_set_trn,
-.get_trn =  th_get_trn,
 
-.get_func =  th_get_func,
-.get_level =  th_get_level,
-.get_parm =  th_get_parm,
+.get_chan_all_cb = thd72_get_chan_all_cb,
+
 .get_info =  th_get_info,
 
-.get_dcd =  kenwood_get_dcd,
-
-.decode_event =  th_decode_event,
 };
 
 
@@ -205,6 +186,155 @@ int thd72_open(RIG *rig)
     kenwood_simple_cmd(rig, "");
 
     ret = kenwood_simple_cmd(rig, "TC1");
+    if (ret != RIG_OK)
+        return ret;
+
+    return RIG_OK;
+}
+
+#define CMD_SZ 5
+#define BLOCK_SZ 256
+#define BLOCK_COUNT 256
+
+static int thd72_get_block (RIG *rig, int block_num, char *block)
+{
+    hamlib_port_t *rp = &rig->state.rigport;
+    char cmd[CMD_SZ] = "R\0\0\0\0";
+    char resp[CMD_SZ];
+    int ret;
+
+    /* fetching block i */
+    cmd[2] = block_num & 0xff;
+
+    ret = write_block(rp, cmd, CMD_SZ);
+    if (ret != RIG_OK)
+        return ret;
+
+    /* read response first */
+    ret = read_block(rp, resp, CMD_SZ);
+    if (ret != RIG_OK)
+        return ret;
+
+    if (resp[0] != 'W' || memcmp(cmd+1, resp+1, CMD_SZ-1))
+        return -RIG_EPROTO;
+
+    /* read block */
+    ret = read_block(rp, block, BLOCK_SZ);
+    if (ret != BLOCK_SZ)
+        return ret;
+
+    ret = write_block(rp, "\006", 1);
+    if (ret != RIG_OK)
+        return ret;
+
+    ret = read_block(rp, resp, 1);
+    if (ret != 1)
+        return ret;
+
+    if (resp[0] != 0x06)
+        return -RIG_EPROTO;
+
+    return RIG_OK;
+}
+
+int thd72_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
+{
+    int i, j, ret;
+    hamlib_port_t *rp = &rig->state.rigport;
+	channel_t *chan;
+	chan_t *chan_list = rig->state.chan_list;
+	int chan_next = chan_list[0].start;
+    char block[BLOCK_SZ];
+    char resp[CMD_SZ];
+
+    ret = kenwood_simple_cmd(rig, "0M PROGRAM");
+    if (ret != RIG_OK)
+        return ret;
+
+    rp->parm.serial.rate = 57600;
+
+    serial_setup(rp);
+
+    /* let the pcr settle and flush any remaining data*/
+    usleep(100*1000);
+    serial_flush(rp);
+
+    /* setRTS or Hardware flow control? */
+    ret = ser_set_rts(rp, 1);
+    if (ret != RIG_OK)
+        return ret;
+
+	/*
+	 * setting chan to NULL means the application
+	 * has to provide a struct where to store data
+	 * future data for channel channel_num
+	 */
+	chan = NULL;
+	ret = chan_cb(rig, &chan, chan_next, chan_list, arg);
+	if (ret != RIG_OK)
+		return ret;
+	if (chan == NULL)
+		return -RIG_ENOMEM;
+
+
+    for (i=0; i<BLOCK_COUNT; i++) {
+
+        ret = thd72_get_block (rig, i, block);
+        if (ret != RIG_OK)
+            return ret;
+
+        /*
+         * Most probably, there's 64 bytes per channel (256*256 / 1000+)
+         */
+#define CHAN_PER_BLOCK 4
+
+		for (j=0; j<CHAN_PER_BLOCK; j++) {
+
+            char *block_chan = block + j*(BLOCK_SZ/CHAN_PER_BLOCK);
+
+            memset(chan, 0, sizeof(channel_t));
+			chan->vfo = RIG_VFO_MEM;
+			chan->channel_num = i*CHAN_PER_BLOCK + j;
+
+            /* What are the extra 64 channels ? */
+            if (chan->channel_num >= 1000)
+                break;
+
+            /* non-empty channel ? */
+            if (block_chan[0] != 0xff) {
+
+                memcpy(chan->channel_desc, block_chan, 8);
+                /* TODO: chop off trailing chars */
+                chan->channel_desc[8] = '\0';
+
+                /* TODO: parse block and fill in chan */
+            }
+	
+			/* notify the end? */
+			chan_next = chan_next < chan_list[i].end ? chan_next+1 : chan_next;
+	
+			/*
+			 * provide application with channel data,
+			 * and ask for a new channel structure
+			 */
+			chan_cb(rig, &chan, chan_next, chan_list, arg);
+        }
+    }
+
+    ret = write_block(rp, "E", 1);
+    if (ret != RIG_OK)
+        return ret;
+
+    ret = read_block(rp, resp, 1);
+    if (ret != 1)
+        return ret;
+
+    if (resp[0] != 0x06) {
+        return -RIG_EPROTO;
+    }
+
+    /* setRTS?? getCTS needed? */
+    ret = ser_set_rts(rp, 1);
     if (ret != RIG_OK)
         return ret;
 
