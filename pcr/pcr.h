@@ -37,7 +37,7 @@ struct pcr_priv_data
 	struct pcr_rcvr {
 
 	    freq_t last_freq;
-	    rmode_t last_mode;
+	    int last_mode;
 
 	    int last_filter;
 	    int last_shift;
