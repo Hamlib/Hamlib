@@ -1,6 +1,6 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
  *
@@ -29,7 +29,7 @@
  * \file src/rotator.c
  * \brief Rotator interface
  * \author Stephane Fillod
- * \date 2000-2010
+ * \date 2000-2011
  *
  * Hamlib interface is a frontend implementing rotator wrapper functions.
  */
