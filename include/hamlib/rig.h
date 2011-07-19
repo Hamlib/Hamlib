@@ -398,8 +398,10 @@ typedef enum {
  * \brief PTT status
  */
 typedef enum {
-  RIG_PTT_OFF = 0,		/*!< PTT activated */
-  RIG_PTT_ON			/*!< PTT desactivated */
+  RIG_PTT_OFF = 0,		/*!< PTT desactivated */
+  RIG_PTT_ON,			/*!< PTT activated */
+  RIG_PTT_ON_MIC,		/*!< PTT Mic only, fallbacks on RIG_PTT_ON if unavailable */
+  RIG_PTT_ON_DATA		/*!< PTT Data (Mic-muted), fallbacks on RIG_PTT_ON if unavailable */
 } ptt_t;
 
 /**
@@ -411,7 +413,8 @@ typedef enum {
   RIG_PTT_RIG,			/*!< Legacy PTT */
   RIG_PTT_SERIAL_DTR,		/*!< PTT control through serial DTR signal */
   RIG_PTT_SERIAL_RTS,		/*!< PTT control through serial RTS signal */
-  RIG_PTT_PARALLEL		/*!< PTT control through parallel port */
+  RIG_PTT_PARALLEL,		/*!< PTT control through parallel port */
+  RIG_PTT_RIG_MICDATA		/*!< Legacy PTT, supports RIG_PTT_ON_MIC/RIG_PTT_ON_DATA */
 } ptt_type_t;
 
 /**

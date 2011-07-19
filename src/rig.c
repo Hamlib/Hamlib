@@ -1,9 +1,8 @@
 /*
  *  Hamlib Interface - main file
- *  Copyright (c) 2000-2010 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *  Copyright (c) 2000-2003 by Frank Singleton
  *
- *	$Id: rig.c,v 1.103 2009-02-20 14:14:31 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -31,7 +30,7 @@
  * \brief Ham Radio Control Libraries interface
  * \author Stephane Fillod
  * \author Frank Singleton
- * \date 2000-2010
+ * \date 2000-2011
  *
  * Hamlib provides a user-callable API, a set of "front-end" routines that
  * call rig-specific "back-end" routines which actually communicate with
@@ -83,7 +82,7 @@ const char hamlib_version[21] = "Hamlib " PACKAGE_VERSION;
  * \brief Hamlib copyright notice
  */
 const char hamlib_copyright[231] = /* hamlib 1.2 ABI specifies 231 bytes */
-  "Copyright (C) 2000-2010 Stephane Fillod\n"
+  "Copyright (C) 2000-2011 Stephane Fillod\n"
   "Copyright (C) 2000-2003 Frank Singleton\n"
   "This is free software; see the source for copying conditions.  There is NO\n"
   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.";
@@ -471,6 +470,7 @@ int HAMLIB_API rig_open(RIG *rig)
 	switch(rs->pttport.type.ptt) {
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
+	case RIG_PTT_RIG_MICDATA:
 		break;
 	case RIG_PTT_SERIAL_RTS:
 	case RIG_PTT_SERIAL_DTR:
@@ -611,6 +611,7 @@ int HAMLIB_API rig_close(RIG *rig)
 	switch(rs->pttport.type.ptt) {
 	case RIG_PTT_NONE:
 	case RIG_PTT_RIG:
+	case RIG_PTT_RIG_MICDATA:
 		break;
 	case RIG_PTT_SERIAL_RTS:
 		ser_set_rts(&rs->pttport, RIG_PTT_OFF);
@@ -1136,12 +1137,16 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 
 	switch (rig->state.pttport.type.ptt) {
 	case RIG_PTT_RIG:
+		if (ptt == RIG_PTT_ON_MIC || ptt == RIG_PTT_ON_DATA)
+			ptt = RIG_PTT_ON;
+		/* fall through */
+	case RIG_PTT_RIG_MICDATA:
 		if (caps->set_ptt == NULL)
-		return -RIG_ENIMPL;
+		    return -RIG_ENIMPL;
 
 		if ((caps->targetable_vfo&RIG_TARGETABLE_PURE) ||
 				vfo == RIG_VFO_CURR || vfo == rig->state.current_vfo)
-		return caps->set_ptt(rig, vfo, ptt);
+		    return caps->set_ptt(rig, vfo, ptt);
 
 		if (!caps->set_vfo)
 		return -RIG_ENTARGET;
@@ -1157,10 +1162,10 @@ int HAMLIB_API rig_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 		break;
 
 	case RIG_PTT_SERIAL_DTR:
-		return ser_set_dtr(&rig->state.pttport, ptt==RIG_PTT_ON);
+		return ser_set_dtr(&rig->state.pttport, ptt!=RIG_PTT_OFF);
 
 	case RIG_PTT_SERIAL_RTS:
-		return ser_set_rts(&rig->state.pttport, ptt==RIG_PTT_ON);
+		return ser_set_rts(&rig->state.pttport, ptt!=RIG_PTT_OFF);
 
 	case RIG_PTT_PARALLEL:
 		return par_ptt_set(&rig->state.pttport, ptt);
@@ -1201,6 +1206,7 @@ int HAMLIB_API rig_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 
 	switch (rig->state.pttport.type.ptt) {
 	case RIG_PTT_RIG:
+	case RIG_PTT_RIG_MICDATA:
 		if (caps->get_ptt == NULL)
 			return -RIG_ENIMPL;
 

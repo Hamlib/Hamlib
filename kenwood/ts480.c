@@ -41,21 +41,6 @@
 
 
 /*
- * kenwood_ts480_set_ptt
- * Assumes rig!=NULL
- *
- * set PTT with audio from data connector (NOT microphone!!!)
- */
-static int
-kenwood_ts480_set_ptt (RIG * rig, vfo_t vfo, ptt_t ptt)
-{
-  if (RIG_PTT_ON == ptt)
-    return kenwood_simple_cmd(rig, "TX1");
-
-  return kenwood_simple_cmd(rig, "RX");
-}
-
-/*
  * kenwood_ts480_get_info
  * Assumes rig!=NULL
  */
@@ -278,7 +263,7 @@ const struct rig_caps ts480_caps = {
   .copyright = "LGPL",
   .status = RIG_STATUS_UNTESTED,
   .rig_type = RIG_TYPE_TRANSCEIVER,
-  .ptt_type = RIG_PTT_RIG,
+  .ptt_type = RIG_PTT_RIG_MICDATA,
   .dcd_type = RIG_DCD_RIG,
   .port_type = RIG_PORT_SERIAL,
   .serial_rate_min = 4800,
@@ -396,7 +381,7 @@ const struct rig_caps ts480_caps = {
   .set_vfo = kenwood_set_vfo,
   .get_vfo = kenwood_get_vfo_if,
   .get_ptt = kenwood_get_ptt,
-  .set_ptt = kenwood_ts480_set_ptt,
+  .set_ptt = kenwood_set_ptt,
   .get_dcd = kenwood_get_dcd,
   .set_powerstat = kenwood_set_powerstat,
   .get_powerstat = kenwood_get_powerstat,
