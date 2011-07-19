@@ -282,6 +282,8 @@ static int frontend_set_conf(RIG *rig, token_t token, const char *val)
         case TOK_PTT_TYPE:
                 if (!strcmp(val, "RIG"))
                         rs->pttport.type.ptt = RIG_PTT_RIG;
+                else if (!strcmp(val, "RIGMICDATA"))
+                        rs->pttport.type.ptt = RIG_PTT_RIG_MICDATA;
                 else if (!strcmp(val, "DTR"))
                         rs->pttport.type.ptt = RIG_PTT_SERIAL_DTR;
                 else if (!strcmp(val, "RTS"))

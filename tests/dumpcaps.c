@@ -103,6 +103,9 @@ int dumpcaps (RIG* rig, FILE *fout)
 	case RIG_PTT_RIG:
 			fprintf(fout, "Rig capable\n");
 			break;
+	case RIG_PTT_RIG_MICDATA:
+			fprintf(fout, "Rig capable (Mic/Data)\n");
+			break;
 	case RIG_PTT_PARALLEL:
 			fprintf(fout, "Parallel port (DATA0)\n");
 			break;

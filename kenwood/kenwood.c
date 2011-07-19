@@ -1750,18 +1750,23 @@ int kenwood_get_ptt(RIG *rig, vfo_t vfo, ptt_t *ptt)
 	return RIG_OK;
 }
 
-
-/*
- * kenwood_set_ptt
- */
 int kenwood_set_ptt(RIG *rig, vfo_t vfo, ptt_t ptt)
 {
+	const char *ptt_cmd;
+
 	rig_debug(RIG_DEBUG_VERBOSE, "%s called\n", __func__);
 
 	if (!rig)
 		return -RIG_EINVAL;
 
-	return kenwood_simple_cmd(rig, (ptt == RIG_PTT_ON) ? "TX" : "RX");
+	switch (ptt) {
+		case RIG_PTT_ON:      ptt_cmd = "TX"; break;
+		case RIG_PTT_ON_MIC:  ptt_cmd = "TX0"; break;
+		case RIG_PTT_ON_DATA: ptt_cmd = "TX1"; break;
+		case RIG_PTT_OFF: ptt_cmd = "RX"; break;
+		default: return -RIG_EINVAL;
+	}
+	return kenwood_simple_cmd(rig, ptt_cmd);
 }
 
 int kenwood_set_ptt_safe(RIG *rig, vfo_t vfo, ptt_t ptt)
