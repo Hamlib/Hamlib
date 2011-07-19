@@ -111,7 +111,7 @@ double tt565_timenow()	/* returns current time in secs+microsecs */
  * Otherwise, you'll get a nice seg fault. You've been warned!
  */
 
-int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
+static int tt565_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, int *data_len)
 {
         int retval, data_len_init, itry;
         struct rig_state *rs;
