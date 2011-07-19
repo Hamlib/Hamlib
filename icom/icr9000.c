@@ -1,8 +1,7 @@
 /*
  *  Hamlib CI-V backend - IC-R9000 descriptions
- *  Copyright (c) 2000-2004 by Stephane Fillod
+ *  Copyright (c) 2000-2011 by Stephane Fillod
  *
- *	$Id: icr9000.c,v 1.3 2004-09-26 08:35:03 fillods Exp $
  *
  *   This library is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as
@@ -45,10 +44,17 @@
 #define ICR9000_PARMS (RIG_PARM_ANN)
 #define ICR9000_SCAN_OPS (RIG_SCAN_MEM)	/* TBC */
 
-#define ICR9000_ANTS (RIG_ANT_1|RIG_ANT_2)
+#define ICR9000_ANTS (RIG_ANT_1|RIG_ANT_2) /* selectable by CI-V ? */
+
+#define ICR9000_MEM_CAP {    \
+        .freq = 1,  \
+        .mode = 1,  \
+        .width = 1, \
+        .levels = RIG_LEVEL_ATT, \
+} 
 
 
-/* FIXME: S-Meter measurements */
+/* TODO: S-Meter measurements */
 #define ICR9000_STR_CAL	UNKNOWN_IC_STR_CAL
 
 static const struct icom_priv_caps icr9000_priv_caps = {
@@ -56,6 +62,9 @@ static const struct icom_priv_caps icr9000_priv_caps = {
 	0,      /* 731 mode */
 	r9000_ts_sc_list
 };
+
+static int icr9000_open(RIG *rig);
+
 /*
  * ICR9000A rig capabilities.
  */
@@ -63,9 +72,9 @@ const struct rig_caps icr9000_caps = {
 .rig_model =  RIG_MODEL_ICR9000,
 .model_name = "IC-R9000",
 .mfg_name =  "Icom",
-.version =  BACKEND_VER,
+.version =  BACKEND_VER ".1",
 .copyright =  "LGPL",
-.status =  RIG_STATUS_UNTESTED,
+.status =  RIG_STATUS_ALPHA,
 .rig_type =  RIG_TYPE_RECEIVER,
 .ptt_type =  RIG_PTT_NONE,
 .dcd_type =  RIG_DCD_RIG,
@@ -78,7 +87,7 @@ const struct rig_caps icr9000_caps = {
 .serial_handshake =  RIG_HANDSHAKE_NONE,
 .write_delay =  0,
 .post_write_delay =  0,
-.timeout =  200,
+.timeout =  1000,
 .retry =  3,
 
 .has_get_func =  ICR9000_FUNCS,
@@ -106,9 +115,9 @@ const struct rig_caps icr9000_caps = {
 .chan_desc_sz =  0,
 
 .chan_list =  { 
-	{     1,   99, RIG_MTYPE_MEM },		/* TBC */
-	{ 0x1000, 0x1009, RIG_MTYPE_EDGE },	/* 2 by 2 */
-	{ 0x1010, 0x1019, RIG_MTYPE_EDGE },	/* 2 by 2 */
+	{    0,  999, RIG_MTYPE_MEM,  ICR9000_MEM_CAP },	/* TBC */
+	{ 1000, 1009, RIG_MTYPE_EDGE, IC_MIN_MEM_CAP },	/* 2 by 2 */
+	{ 1010, 1019, RIG_MTYPE_EDGE, IC_MIN_MEM_CAP },	/* 2 by 2 */
 	RIG_CHAN_END, },
 
 .rx_range_list1 =  {
@@ -151,7 +160,7 @@ const struct rig_caps icr9000_caps = {
 .priv =  (void*)&icr9000_priv_caps,
 .rig_init =   icom_init,
 .rig_cleanup =   icom_cleanup,
-.rig_open =  NULL,
+.rig_open =  icr9000_open,
 .rig_close =  NULL,
 
 .set_freq =  icom_set_freq,
@@ -185,4 +194,8 @@ const struct rig_caps icr9000_caps = {
  * Function definitions below
  */
 
+int icr9000_open(RIG *rig)
+{
+    return icom_scan(rig, RIG_VFO_CURR, RIG_SCAN_STOP, 0);
+}
 
