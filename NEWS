@@ -15,7 +15,10 @@ Version 1.2.14
 		libtool files, rigctl improvements, FUNcube string test (works
 		with V0.0 and V1.0), Yaesu newcat.c fixed to use
 		rig->state.current_vfo to store vfo value, add a command to
-		halt rigctld,
+		halt rigctld, select PTT source in Kenwood backends (TS-590S),
+		make sure scan is stopped at IC-9000 opening, thd72 get channel
+		data (alpha).  See ChangeLog for a link to the online log.
+		Correct typos and SF.net URIs.
 
 Version 1.2.13.1
 	* 2011-05-29
