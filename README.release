@@ -126,13 +126,15 @@ See README.build-win32 for information on prerequisites, etc.
 
   - Documentation (requires doxygen)
       make -C doc doc
-      ssh shell.sourceforge.net mkdir /home/project-web/h/ha/hamlib/htdocs/manuals/x-y-z
-      scp -r doc/html shell.sourceforge.net:/home/project-web/h/ha/hamlib/htdocs/manuals/x-y-z/.
+      ssh -t USER,hamlib@shell.sourceforge.net create
+      mkdir /home/project-web/hamlib/htdocs/manuals/x-y-z
+      scp -r doc/html/* USER,hamlib@shell.sourceforge.net:/home/project-web/hamlib/htdocs/manuals/x-y-z/.
       Edit Wiki Documentation section
 
   - Supported Radios/Rotators
       make -C tests rigmatrix.html
       ssh -t USER,hamlib@shell.sourceforge.net create
+      cd tests/sup-info
       scp -r tests/sup-info/* USER,hamlib@shell.sourceforge.net:/home/project-web/hamlib/htdocs/sup-info/.
 
 * Notify various sites:

@@ -16,8 +16,8 @@ Version 1.2.14
 		with V0.0 and V1.0), Yaesu newcat.c fixed to use
 		rig->state.current_vfo to store vfo value, add a command to
 		halt rigctld, select PTT source in Kenwood backends (TS-590S),
-		make sure scan is stopped at IC-9000 opening, thd73 get channel
-		data (alpha).  See ChangeLog for a a link to the online log.
+		make sure scan is stopped at IC-9000 opening, thd72 get channel
+		data (alpha).  See ChangeLog for a link to the online log.
 
 Version 1.2.13.1
 	* 2011-05-29
