@@ -6,7 +6,7 @@ Copyright (C) 2000-2011  Stephane Fillod, and others
 Please send Hamlib bug reports to hamlib-developer@lists.sourceforge.net
 
 Version 1.2.14
-	2011-08-01
+	2011-07-31
 	* New models: SigFox Transfox, TH-D72A, IC-7410, IC-9100, IC-R9500, KX3,
 		V4L2 API support (untested),
 	* New rotator backends: IF-100, TS-7400
@@ -15,7 +15,9 @@ Version 1.2.14
 		libtool files, rigctl improvements, FUNcube string test (works
 		with V0.0 and V1.0), Yaesu newcat.c fixed to use
 		rig->state.current_vfo to store vfo value, add a command to
-		halt rigctld,
+		halt rigctld, select PTT source in Kenwood backends (TS-590S),
+		make sure scan is stopped at IC-9000 opening, thd73 get channel
+		data (alpha).  See ChangeLog for a a link to the online log.
 
 Version 1.2.13.1
 	* 2011-05-29
