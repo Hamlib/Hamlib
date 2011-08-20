@@ -5,21 +5,20 @@
  *  Some code derived from DttSP
  *  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009 by Frank Brickle, AB2KT and Bob McGwier, N4HY
  *
- *	$Id: dttsp.c,v 1.2 2008-05-07 22:18:25 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -453,7 +452,7 @@ int dttsp_ipc_open(RIG *rig)
   rig->state.has_get_parm  |= priv->tuner->state.has_get_parm;
 #endif
 
-  
+
   /* Because model dummy has funky init value */
   if (priv->tuner_model == RIG_MODEL_DUMMY)
   	dttsp_set_freq(rig, RIG_VFO_CURR, priv->IF_center_freq);
@@ -512,7 +511,7 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
   max_delta = priv->sample_rate/2 - kHz(2);
 
   sprintf_freq(fstr, freq);
-  rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n", 
+  rig_debug(RIG_DEBUG_TRACE,"%s called: %s %s\n",
  			__FUNCTION__, rig_strvfo(vfo), fstr);
 
   ret = rig_get_freq(priv->tuner, RIG_VFO_CURR, &tuner_freq);
@@ -535,10 +534,10 @@ int dttsp_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		return ret;
   }
 
-  priv->rx_delta_f = freq - tuner_freq; 
+  priv->rx_delta_f = freq - tuner_freq;
 
   sprintf_freq(fstr, tuner_freq);
-  rig_debug(RIG_DEBUG_TRACE,"%s: tuner=%s, rx_delta=%d Hz\n", 
+  rig_debug(RIG_DEBUG_TRACE,"%s: tuner=%s, rx_delta=%d Hz\n",
  			__FUNCTION__, fstr, priv->rx_delta_f);
 
   /* setRxFrequenc */
@@ -591,7 +590,7 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   if (width == RIG_PASSBAND_NORMAL)
 	  width = rig_passband_normal(rig, mode);
   sprintf_freq(buf, width);
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n", 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s %s\n",
   		__FUNCTION__, rig_strrmode(mode), buf);
 
   switch (mode) {
@@ -626,7 +625,7 @@ int dttsp_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
   buf_len = sprintf (buf, "setFilter %d %d\n", filter_l, filter_h );
   ret = send_command (rig, buf, buf_len);
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n", 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s: %s\n",
   		__FUNCTION__, buf);
 
   return ret;
@@ -677,7 +676,7 @@ int dttsp_get_level(RIG *rig, vfo_t vfo, setting_t level, value_t *val)
   char buf[32];
   float rxm[MAXRX][RXMETERPTS];
 
-  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__, 
+  rig_debug(RIG_DEBUG_VERBOSE,"%s called: %s\n",__FUNCTION__,
 				  rig_strlevel(level));
 
   switch (level) {
