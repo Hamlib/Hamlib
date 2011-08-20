@@ -69,5 +69,31 @@ extern const struct confparams elecraft_ext_levels[];
 /* Elecraft extension function declarations */
 int elecraft_open(RIG *rig);
 
+/* S-meter calibration tables */
+
+/* K3 defines 16 values--0-15.
+ * Table is RASTR value from SM command and dB relative to S9 == 0
+ * (see rig_get_level() in src/settings.c
+ */
+#define K3_STR_CAL { 16, \
+	{ \
+		{ 0, -54 }, \
+		{ 1, -42 }, \
+		{ 2, -36 }, \
+		{ 3, -24 }, \
+		{ 4, -12 }, \
+		{ 5, -6 }, \
+		{ 6, 0 }, \
+		{ 7, 10 }, \
+		{ 8, 15 }, \
+		{ 9, 20 }, \
+		{ 10, 30 }, \
+		{ 11, 35 }, \
+		{ 12, 40 }, \
+		{ 13, 50 }, \
+		{ 14, 55 }, \
+		{ 15, 60 }, \
+	} }
+
 
 #endif /* _ELECRAFT_H */
