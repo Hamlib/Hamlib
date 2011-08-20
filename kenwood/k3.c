@@ -42,7 +42,7 @@
 
 #define K3_LEVEL_ALL (RIG_LEVEL_ATT|RIG_LEVEL_PREAMP|RIG_LEVEL_AGC|RIG_LEVEL_SQL|\
 	RIG_LEVEL_STRENGTH|RIG_LEVEL_RFPOWER|RIG_LEVEL_KEYSPD|\
-	RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN)
+	RIG_LEVEL_AF|RIG_LEVEL_RF|RIG_LEVEL_MICGAIN|RIG_LEVEL_RAWSTR)
 
 #define K3_VFO (RIG_VFO_A|RIG_VFO_B)
 #define K3_VFO_OP (RIG_OP_UP|RIG_OP_DOWN)
@@ -183,6 +183,7 @@ const struct rig_caps k3_caps = {
 		{RIG_MODE_FM, kHz(13)}, /* TBC */
 		RIG_FLT_END,
 	},
+	.str_cal = K3_STR_CAL,
 	.priv =  (void *)&k3_priv_caps,
 
 	.rig_init =		kenwood_init,
