@@ -3,19 +3,19 @@
  *  Copyright (c) 2000-2010 by Stephane Fillod
  *
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -104,7 +104,7 @@ static int aor_transaction(RIG *rig, const char *cmd, int cmd_len, char *data, i
 	}
 
 	*data_len = retval;
-		
+
 	if (*data_len < BUFSZ)
 		data[*data_len] = '\0';
 	else
@@ -141,7 +141,7 @@ static int format_freq(char *buf, freq_t freq)
 	int64_t f = (int64_t)freq;
 
 	/*
-	 * actually, frequency must be like nnnnnnnnm0, 
+	 * actually, frequency must be like nnnnnnnnm0,
 	 * where m must be 0 or 5 (for 50Hz).
 	 */
 	lowhz = f % 100;
@@ -150,7 +150,7 @@ static int format_freq(char *buf, freq_t freq)
 		lowhz = 0;
 	else if (lowhz < 75)
 		lowhz = 50;
-	else 
+	else
 		lowhz = 100;
 	f = f*100 + lowhz;
 
@@ -298,7 +298,7 @@ int format8k_mode(RIG *rig, char *buf, rmode_t mode, pbwidth_t width)
 	int aormode;
 
 	switch (mode) {
-	case RIG_MODE_AM:       
+	case RIG_MODE_AM:
         if (rig->caps->rig_model == RIG_MODEL_AR8000)
         {
             aormode = AR8K_AM;
@@ -391,7 +391,7 @@ int aor_set_mode(RIG *rig, vfo_t vfo, rmode_t mode, pbwidth_t width)
 	    default:
 		retval = aor_transaction (rig, mdbuf, mdbuf_len, NULL, NULL);
 	}
-	
+
 	return retval;
 }
 
@@ -404,22 +404,22 @@ int parse8k_aor_mode(RIG *rig, char aormode, char aorwidth, rmode_t *mode, pbwid
 	*width = RIG_PASSBAND_NORMAL;
 	switch (aormode) {
 		case AR8K_AM:		*mode = RIG_MODE_AM; break;
-		case AR8K_NAM:	
+		case AR8K_NAM:
 			*mode = RIG_MODE_AM;
-			*width = rig_passband_narrow(rig, *mode); 
+			*width = rig_passband_narrow(rig, *mode);
 			break;
-		case AR8K_WAM:	
+		case AR8K_WAM:
 			*mode = RIG_MODE_AM;
-			*width = rig_passband_wide(rig, *mode); 
+			*width = rig_passband_wide(rig, *mode);
 			break;
 		case AR8K_CW:		*mode = RIG_MODE_CW; break;
 		case AR8K_USB:	*mode = RIG_MODE_USB; break;
 		case AR8K_LSB:	*mode = RIG_MODE_LSB; break;
 		case AR8K_WFM:	*mode = RIG_MODE_WFM; break;
 		case AR8K_NFM:	*mode = RIG_MODE_FM; break;
-		case AR8K_SFM:	
+		case AR8K_SFM:
 			*mode = RIG_MODE_FM;
-			*width = rig_passband_narrow(rig, *mode); 
+			*width = rig_passband_narrow(rig, *mode);
 			break;
 		default:
 			rig_debug(RIG_DEBUG_ERR,"%s: unsupported mode '%c'\n",
@@ -450,7 +450,7 @@ int aor_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return retval;
 
 	/*
-	 * search MD, because on the AR5000, AU is also returned 
+	 * search MD, because on the AR5000, AU is also returned
 	 * by MD request
 	 */
 	mdp = strstr(ackbuf, "MD");
@@ -485,7 +485,7 @@ int aor_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 	int ts_len;
 
 	/*
-	 * actually, tuning step must be like nnnnm0, 
+	 * actually, tuning step must be like nnnnm0,
 	 * where m must be 0 or 5 (for 50Hz).
 	 */
 	ts_len = sprintf(tsbuf,"ST%06ld" EOM, ts);
@@ -767,9 +767,9 @@ int aor_set_mem(RIG *rig, vfo_t vfo, int ch)
 		mem_num -= 50;
 	} else {
 		bank_base = priv->bank_base1;
-	} 
+	}
 
-	mem_len = sprintf(membuf,"MR%c%02d" EOM, 
+	mem_len = sprintf(membuf,"MR%c%02d" EOM,
 			bank_base + ch/100, mem_num);
 
 	return aor_transaction (rig, membuf, mem_len, NULL, NULL);
@@ -817,7 +817,7 @@ int aor_set_bank(RIG *rig, vfo_t vfo, int bank)
 	char membuf[BUFSZ];
 	int mem_len;
 
-	mem_len = sprintf(membuf,"MR%c" EOM, (bank%10) + (bank<10 ? 
+	mem_len = sprintf(membuf,"MR%c" EOM, (bank%10) + (bank<10 ?
 				priv->bank_base1:priv->bank_base2));
 
 	return aor_transaction (rig, membuf, mem_len, NULL, NULL);
@@ -830,7 +830,7 @@ int aor_set_channel(RIG *rig, const channel_t *chan)
 	char aorcmd[BUFSZ];
 	int cmd_len;
 
-	cmd_len = sprintf(aorcmd, "MX%c%02d ", 
+	cmd_len = sprintf(aorcmd, "MX%c%02d ",
 			chan->bank_num, chan->channel_num%100);
 
 	cmd_len += format_freq(aorcmd+cmd_len, chan->freq);
@@ -838,12 +838,12 @@ int aor_set_channel(RIG *rig, const channel_t *chan)
 	/*
 	 * FIXME: automode
 	 */
-	cmd_len += sprintf(aorcmd+cmd_len, " AU%d ST%06d ", 
+	cmd_len += sprintf(aorcmd+cmd_len, " AU%d ST%06d ",
 			0, (int)chan->tuning_step);
 
 	cmd_len += priv->format_mode(rig, aorcmd+cmd_len, chan->mode, chan->width);
 
-	cmd_len += sprintf(aorcmd+cmd_len, " AT%d TM%12s"EOM, 
+	cmd_len += sprintf(aorcmd+cmd_len, " AT%d TM%12s"EOM,
 			chan->levels[LVL_ATT].i ? 1:0, chan->channel_desc);
 
 	return aor_transaction (rig, aorcmd, cmd_len, NULL, NULL);
@@ -856,7 +856,7 @@ static int parse_chan_line(RIG *rig, channel_t *chan, char *basep, const channel
 	char *tagp;
         int ts;
 
-	/* 
+	/*
 	 * search for attribute tags in the line.
 	 * Using strstr enable support for various models
 	 * which may or may not have tag support.
@@ -1029,8 +1029,8 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 		}
 		if (!mem_caps)
 			return -RIG_EINVAL;
-	
-	
+
+
 		/*
 		 * FIXME: we're assuming the banks are split 50/50.
 		 * 	MW should be called the first time instead,
@@ -1042,18 +1042,18 @@ int aor_get_channel(RIG *rig, channel_t *chan)
 			mem_num -= 50;
 		} else {
 			bank_base = priv->bank_base1;
-		} 
-	
-		cmd_len = sprintf(aorcmd, "MR%c%02d" EOM, 
+		}
+
+		cmd_len = sprintf(aorcmd, "MR%c%02d" EOM,
 				bank_base + channel_num/100, mem_num);
 		retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
-	
+
 		/* is the channel empty? */
 		if (retval == -RIG_EPROTO && chanbuf[0] == '?') {
 			chan->freq = RIG_FREQ_NONE;
 			return -RIG_ENAVAIL;
 		}
-	
+
 		if (retval != RIG_OK)
 			return retval;
 	}
@@ -1098,31 +1098,31 @@ int aor_get_chan_all_cb (RIG * rig, chan_cb_t chan_cb, rig_ptr_t arg)
 	if (chan == NULL)
 		return -RIG_ENOMEM;
 
-	cmd_len = sprintf(aorcmd, "MA%c" EOM, 
+	cmd_len = sprintf(aorcmd, "MA%c" EOM,
 			priv->bank_base1);
-	
+
 	for (i=0; i < chan_count/LINES_PER_MA; i++) {
 
 		retval = aor_transaction (rig, aorcmd, cmd_len, chanbuf, &chan_len);
 		if (retval != RIG_OK)
 			return retval;
-	
+
 		for (j=0; j<LINES_PER_MA; j++) {
 
 			chan->vfo = RIG_VFO_MEM;
 			chan->channel_num = i*LINES_PER_MA + j;
 
 			retval = parse_chan_line(rig, chan, chanbuf, &chan_list[0].mem_caps);
-	
+
 			if (retval == -RIG_ENAVAIL)
 				retval = RIG_OK;
 
 			if (retval != RIG_OK)
 				return retval;
-	
+
 			/* notify the end? */
 			chan_next = chan_next < chan_list[i].end ? chan_next+1 : chan_next;
-	
+
 			/*
 			 * provide application with channel data,
 			 * and ask for a new channel structure
@@ -1168,7 +1168,7 @@ const char *aor_get_info(RIG *rig)
 		return NULL;
 
 	frmbuf[frm_len] = '\0';
-	sprintf(infobuf, "Remote ID %c%c, Firmware version %s", 
+	sprintf(infobuf, "Remote ID %c%c, Firmware version %s",
 			idbuf[0], idbuf[1], frmbuf);
 
 	return infobuf;

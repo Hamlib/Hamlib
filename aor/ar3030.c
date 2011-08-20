@@ -2,21 +2,20 @@
  *  Hamlib AOR backend - AR3030 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar3030.c,v 1.10 2006-10-07 21:10:11 csete Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -56,7 +55,7 @@ struct ar3030_priv_data {
 	int curr_vfo;
 };
 
-/* 
+/*
  * TODO:
  *	set_channel(emulated?),rig_vfo_op
  *	rig_reset(RIG_RESET_MCALL)
@@ -139,7 +138,7 @@ const struct rig_caps ar3030_caps = {
 .vfo_ops =  AR3030_VFO_OPS,
 .str_cal = AR3030_STR_CAL,
 
-.chan_list =  { 
+.chan_list =  {
 	{   0,  99, RIG_MTYPE_MEM, AR3030_MEM_CAP },
 	RIG_CHAN_END, },
 
@@ -164,8 +163,8 @@ const struct rig_caps ar3030_caps = {
 	},
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
-		{RIG_MODE_AM, kHz(6)}, 
-		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_AM, kHz(2.4)}, 
+		{RIG_MODE_AM, kHz(6)},
+		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_AM, kHz(2.4)},
 		{RIG_MODE_CW, 500},
 		{RIG_MODE_FM, kHz(15)},
 		RIG_FLT_END,
@@ -341,7 +340,7 @@ int ar3030_get_freq(RIG *rig, vfo_t vfo, freq_t *freq)
 	char freqbuf[BUFSZ];
 
 	/*
-	 * D Rn Gn Bn Tn Fnnnnnnnn C 
+	 * D Rn Gn Bn Tn Fnnnnnnnn C
     * Note: spaces are transmitted.
 	 */
 	retval = ar3030_transaction (rig, "D" EOM, 3, freqbuf, &freq_len);
@@ -422,7 +421,7 @@ int ar3030_get_mode(RIG *rig, vfo_t vfo, rmode_t *mode, pbwidth_t *width)
 		return -RIG_EPROTO;
 	}
 
-	*width = buf[9] == '1' ? rig_passband_narrow(rig, *mode) : 
+	*width = buf[9] == '1' ? rig_passband_narrow(rig, *mode) :
 					rig_passband_normal(rig, *mode);
 
 	return RIG_OK;
@@ -493,7 +492,7 @@ int ar3030_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		cmd = val.i == RIG_AGC_FAST ? "1G" EOM : "0G" EOM;
 		break;
 	case RIG_LEVEL_ATT:
-		cmd = val.i == 0 ? "0R" EOM : 
+		cmd = val.i == 0 ? "0R" EOM :
 			(val.i == 1 ? "1R" EOM : "2R" EOM);
 		break;
 	default:
@@ -608,7 +607,7 @@ int ar3030_get_channel(RIG *rig, channel_t *chan)
 	}
 
 	chan->width = infobuf[10] == '1' ?
-				rig_passband_narrow(rig, chan->mode) : 
+				rig_passband_narrow(rig, chan->mode) :
 				rig_passband_normal(rig, chan->mode);
 
 

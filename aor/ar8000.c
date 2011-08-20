@@ -2,21 +2,20 @@
  *  Hamlib AOR backend - AR8000 description
  *  Copyright (c) 2000-2009 by Stephane Fillod
  *
- *	$Id: ar8000.c,v 1.7 2008-04-11 17:10:45 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -138,7 +137,7 @@ const struct rig_caps ar8000_caps = {
 	 {AR8000_MODES,kHz(200)},
 	 {AR8000_MODES,kHz(250)},
 	 {AR8000_MODES,kHz(500)},
-#if 0 
+#if 0
 	 {AR8000_MODES,0},	/* any tuning step */
 #endif
 	 RIG_TS_END,
@@ -146,8 +145,8 @@ const struct rig_caps ar8000_caps = {
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
         /* mode/filter list, .remember =  order matters! */
-		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2)}, 
-		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)}, 
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2)},
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)},
 		{RIG_MODE_WFM, kHz(180)}, /* 50kHz at -3dB, 380kHz at -20dB */
 		RIG_FLT_END,
 	},

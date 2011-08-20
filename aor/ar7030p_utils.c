@@ -1,22 +1,22 @@
 
 /*
  *  Hamlib AOR backend - AR7030 Plus utility functions
+ *  Copyright (c) 2009-2010 by Larry Gadallah (VE6VQ)
  *
- *	$Id: $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -283,7 +283,7 @@ int RDD( RIG *rig, unsigned char len )
     {
       rc = -RIG_EIO;
     }
-    else 
+    else
     {
       rc = (int) inChr;
     }
@@ -407,7 +407,7 @@ int execRoutine( RIG * rig, enum ROUTINE_e rtn )
  *
  * \return RIG_OK on success, error code on failure
  *
- * Statics curPage and curAddr shadow radio's copies so that 
+ * Statics curPage and curAddr shadow radio's copies so that
  * page and address are only set when needed
  */
 static int setAddr( RIG * rig, enum PAGE_e page, unsigned int addr )
@@ -547,7 +547,7 @@ int writeShort( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short x 
 {
   int rc = -RIG_EIO;
   unsigned char v = (unsigned char) ( ( x & 0xff00 ) >> 8 );
-  
+
   rc = writeByte( rig, page, addr, v );
   if ( RIG_OK == rc )
   {
@@ -573,7 +573,7 @@ int write3Bytes( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x )
 {
   int rc = -RIG_EIO;
   unsigned char v = (unsigned char) ( ( x & 0xff0000 ) >> 16 );
-  
+
   rc = writeByte( rig, page, addr, v );
   if ( RIG_OK == rc )
   {
@@ -604,7 +604,7 @@ int writeInt( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int x )
 {
   int rc = -RIG_EIO;
   unsigned char v = (unsigned char) ( ( x & 0xff000000 ) >> 24 );
-  
+
   rc = writeByte( rig, page, addr, v );
   if ( RIG_OK == rc )
   {
@@ -643,7 +643,7 @@ int readByte( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned char *x )
 
   assert( NULL != rig );
   assert( NULL != x );
-  
+
   rc = setAddr( rig, page, addr );
   if ( RIG_OK == rc )
   {
@@ -681,7 +681,7 @@ int readShort( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned short *x 
 
   assert( NULL != rig );
   assert( NULL != x );
-  
+
   rc = readByte( rig, page, addr, &v );
   if ( RIG_OK == rc )
   {
@@ -716,7 +716,7 @@ int read3Bytes( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x )
 
   assert( NULL != rig );
   assert( NULL != x );
-  
+
   rc = readByte( rig, page, addr, &v );
   if ( RIG_OK == rc )
   {
@@ -756,7 +756,7 @@ int readInt( RIG *rig, enum PAGE_e page, unsigned int addr, unsigned int *x )
 
   assert( NULL != rig );
   assert( NULL != x );
-  
+
   rc = readByte( rig, page, addr, &v );
   if ( RIG_OK == rc )
   {
@@ -939,10 +939,10 @@ unsigned char int2BCD( const unsigned int val )
  *
  * \return RIG_OK on success, error code on failure
  *
- * To calculate the signal level, table values should be subtracted from 
- * the AGC voltage in turn until a negative value would result. This gives 
- * the rough level from the table position. The accuracy can be improved by 
- * proportioning the remainder into the next table step. See the following 
+ * To calculate the signal level, table values should be subtracted from
+ * the AGC voltage in turn until a negative value would result. This gives
+ * the rough level from the table position. The accuracy can be improved by
+ * proportioning the remainder into the next table step. See the following
  * example :-
  *
  * A read signal strength operation returns a value of 100
@@ -954,10 +954,10 @@ unsigned char int2BCD( const unsigned int val )
  * Fine adjustment value = (remainder) / (cal byte 5) * (level step)
  *                       = 4 / 12 * 10 = 3dB
  * Signal level = -83dBm + 3dB = -80dB
- * 
- * The receiver can operate the RF attenuator automatically if the signal 
- * level is likely to overload the RF stages. Reading the RFAGC byte (page 0, 
- * location 49) gives the attenuation in 10dB steps. This value should be 
+ *
+ * The receiver can operate the RF attenuator automatically if the signal
+ * level is likely to overload the RF stages. Reading the RFAGC byte (page 0,
+ * location 49) gives the attenuation in 10dB steps. This value should be
  * read and added to the value calculated above.
  */
 int getCalLevel( RIG * rig, unsigned char rawAgc, int *dbm )
@@ -978,7 +978,7 @@ int getCalLevel( RIG * rig, unsigned char rawAgc, int *dbm )
       /* calculate step size */
       if ( 0 < i )
       {
-        step = rig->state.str_cal.table[ i ].val - 
+        step = rig->state.str_cal.table[ i ].val -
 	       rig->state.str_cal.table[ i - 1 ].val;
       }
 
@@ -1083,7 +1083,7 @@ unsigned int hzToDDS( const freq_t freq )
 
   rig_debug( RIG_DEBUG_VERBOSE, "%s: err[0 - 2] = %f %f %f rc 0x%08x\n",
 	     __func__, err[ 0 ], err[ 1 ], err[ 2 ], rc );
-  
+
   return( rc );
 }
 
@@ -1202,7 +1202,7 @@ rmode_t modeToHamlib( const unsigned char mode )
     break;
   };
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: Native %d, Hamlib %d\n", 
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: Native %d, Hamlib %d\n",
              __func__, mode, rc );
 
   return( rc );
@@ -1253,7 +1253,7 @@ unsigned char modeToNative( const rmode_t mode )
     break;
   };
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: Hamlib %d, native %d\n", 
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: Hamlib %d, native %d\n",
              __func__, mode, rc );
 
   return( rc );
@@ -1292,7 +1292,7 @@ enum agc_level_e agcToHamlib( const unsigned char agc )
     break;
   };
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: Native %d, Hamlib %d\n", 
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: Native %d, Hamlib %d\n",
              __func__, agc, rc );
 
   return( rc );
@@ -1335,7 +1335,7 @@ unsigned char agcToNative( const enum agc_level_e agc )
     break;
   };
 
-  rig_debug( RIG_DEBUG_VERBOSE, "%s: Hamlib %d, native %d\n", 
+  rig_debug( RIG_DEBUG_VERBOSE, "%s: Hamlib %d, native %d\n",
              __func__, agc, rc );
 
   return( rc );

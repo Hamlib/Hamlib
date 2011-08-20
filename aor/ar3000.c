@@ -2,21 +2,20 @@
  *  Hamlib AOR backend - AR3000 description
  *  Copyright (c) 2000-2005 by Stephane Fillod
  *
- *	$Id: ar3000.c,v 1.10 2006-10-07 21:10:11 csete Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -129,7 +128,7 @@ const struct rig_caps ar3000a_caps = {
 .tuning_steps =  {
 	 {AR3000A_MODES,50},
 	 {AR3000A_MODES,kHz(999.95)},
-#if 0 
+#if 0
 	 {AR3000A_MODES,0},	/* any tuning step */
 #endif
 	 RIG_TS_END,
@@ -137,8 +136,8 @@ const struct rig_caps ar3000a_caps = {
         /* mode/filter list, .remember =  order matters! */
 .filters =  {
         /* mode/filter list, .remember =  order matters! */
-		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)}, 
-		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)}, 
+		{RIG_MODE_SSB|RIG_MODE_CW, kHz(2.4)},
+		{RIG_MODE_FM|RIG_MODE_AM, kHz(12)},
 		{RIG_MODE_WFM, kHz(180)},
 		RIG_FLT_END,
 	},
@@ -227,7 +226,7 @@ int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 	unsigned lowhz;
 
 	/*
-	 * actually, frequency must be like nnnn.nnnnm, 
+	 * actually, frequency must be like nnnn.nnnnm,
 	 * where m must be 0 or 5 (for 50Hz).
 	 */
 	lowhz = ((unsigned)freq) % 100;
@@ -236,7 +235,7 @@ int ar3k_set_freq(RIG *rig, vfo_t vfo, freq_t freq)
 		lowhz = 0;
 	else if (lowhz < 75)
 		lowhz = 50;
-	else 
+	else
 		lowhz = 100;
 	freq = freq*100 + lowhz;
 
@@ -355,7 +354,7 @@ int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 	int lowhz;
 
 	/*
-	 * actually, frequency must be like nnn.nm, 
+	 * actually, frequency must be like nnn.nm,
 	 * where m must be 0 or 5 (for 50Hz).
 	 */
 	lowhz = ts % 100;
@@ -364,7 +363,7 @@ int ar3k_set_ts(RIG *rig, vfo_t vfo, shortfreq_t ts)
 		lowhz = 0;
 	else if (lowhz < 75)
 		lowhz = 50;
-	else 
+	else
 		lowhz = 100;
 	ts = ts*100 + lowhz;
 

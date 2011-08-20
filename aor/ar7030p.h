@@ -1,3 +1,25 @@
+/*
+ *  Hamlib AOR backend - AR7030 Plus description
+ *  Copyright (c) 2000-2010 by Stephane Fillod & Fritz Melchert
+ *  Copyright (c) 2009-2010 by Larry Gadallah (VE6VQ)
+ *
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+
 #ifndef _AR7030P_H
 #define _AR7030P_H 1
 
@@ -5,7 +27,6 @@
 #include "token.h"
 
 /*
- $Id: $
 
 AR-7030 Computer remote control protocol.
 
@@ -13,33 +34,33 @@ Information for firmware releases 1.1A, 1.2A, 1.4A and 1.4B
 
 1) Remote control overview.
 
-The AR-7030 receiver allows remote control of all of its functions by means 
-of a direct memory access system. A controlling computer can read and modify 
-the internal memory maps of the receiver to set required parameters and then 
-call for the receiver's control program to process the new settings. Commands 
-to the receiver are byte structured in binary format, so it is not possible 
+The AR-7030 receiver allows remote control of all of its functions by means
+of a direct memory access system. A controlling computer can read and modify
+the internal memory maps of the receiver to set required parameters and then
+call for the receiver's control program to process the new settings. Commands
+to the receiver are byte structured in binary format, so it is not possible
 to control from a terminal.
 
 All multi-byte numbers within the receiver are binary, stored MSB first.
 
 2) Receiver frequency configuration.
 
-Receive frequency is set by two oscillators - local and carrier. In AM and FM 
-modes the carrier oscillator is not used, and the final IF frequency is 455 
-kHz. In Sync mode the carrier oscillator is offset by +20.29kHz before mixing 
+Receive frequency is set by two oscillators - local and carrier. In AM and FM
+modes the carrier oscillator is not used, and the final IF frequency is 455
+kHz. In Sync mode the carrier oscillator is offset by +20.29kHz before mixing
 with the IF.
 
-The IF frequencies have a fixed inter-conversion frequency of 44.545MHz and, 
+The IF frequencies have a fixed inter-conversion frequency of 44.545MHz and,
 because of the high-side local oscillator, both IF's are inverted.
 
-The receiver controller processes the following variables to establish the 
+The receiver controller processes the following variables to establish the
 tuned frequency :-
 
 [local offset]   Frequency shift applied to local oscillator.
-[carrier offset] 455.00kHz for LSB, USB, Data and CW modes / 
+[carrier offset] 455.00kHz for LSB, USB, Data and CW modes /
                  434.71kHz for Sync mode.
 
-[filter offset]  IF Filter frequency at the (vestigial) carrier position as an 
+[filter offset]  IF Filter frequency at the (vestigial) carrier position as an
                  offset from 455kHz.
 
 [PBS]  User set filter shift.
@@ -54,18 +75,18 @@ The relationship between these variables and the tuning is as follows :-
 
 3) Serial data protocol.
 
-All data transfers are at 1200 baud, No parity, 8 bits, 1 stop bit 
-(1200 N 8 1). There is no hardware or software flow control other than that 
-inherent in the command structure. The receiver can accept data at any time at 
-full rate provided the IR remote controller is not used or is disabled. 
-A maximum of one byte can be transmitted for each byte received, so data flow 
+All data transfers are at 1200 baud, No parity, 8 bits, 1 stop bit
+(1200 N 8 1). There is no hardware or software flow control other than that
+inherent in the command structure. The receiver can accept data at any time at
+full rate provided the IR remote controller is not used or is disabled.
+A maximum of one byte can be transmitted for each byte received, so data flow
 into a controlling computer is appropriately limited.
 
-Each byte sent to the receiver is a complete command - it is best thought of 
-as two hexadecimal digits - the first digit is the operation code, the second 
-digit is 4-bits of data relating to the operation. Because the receiver 
-operates with 8-bit bytes, intermediate 4-bit values are stored in registers 
-in the receiver for recombination and processing. For example to write into the 
+Each byte sent to the receiver is a complete command - it is best thought of
+as two hexadecimal digits - the first digit is the operation code, the second
+digit is 4-bits of data relating to the operation. Because the receiver
+operates with 8-bit bytes, intermediate 4-bit values are stored in registers
+in the receiver for recombination and processing. For example to write into the
 receiver's memory, the following steps would be followed:-
 
 a) Send address high order 4-bits into H-register
@@ -78,33 +99,33 @@ g) Repeat (e) and (f) for each subsequent byte to be written.
 
 4) Memory organisation.
 
-Different memory areas in the receiver are referenced by selecting Pages - 
+Different memory areas in the receiver are referenced by selecting Pages -
 up to 16 pages are supported.
 
 The memory is broadly divided into 3 sections :-
 
-a) Working memory - where all current operating variables are stored and 
-registers and stack are located. This memory is volatile and data is lost 
+a) Working memory - where all current operating variables are stored and
+registers and stack are located. This memory is volatile and data is lost
 when power to the receiver is removed.
 
-b) Battery sustained memory - where duplicate parameters are stored for 
-retention when power is removed. This memory area is also used for storage 
-of filter parameters, setup memories and squelch and BFO settings for the 
+b) Battery sustained memory - where duplicate parameters are stored for
+retention when power is removed. This memory area is also used for storage
+of filter parameters, setup memories and squelch and BFO settings for the
 frequency memories and contains the real time clock registers.
 
-c) EEPROM - where frequency, mode, filter and PBS information for the 
-frequency memories is stored. Additionally S-meter and IF calibration values 
-are stored here. This memory can be read or written to download and upload 
-the receiver's frequency memories, but repetitive writing should be avoided 
+c) EEPROM - where frequency, mode, filter and PBS information for the
+frequency memories is stored. Additionally S-meter and IF calibration values
+are stored here. This memory can be read or written to download and upload
+the receiver's frequency memories, but repetitive writing should be avoided
 because the memory devices will only support a finite number of write cycles.
 
 5) Variations between A and B types and firmware revisions.
-Type A firmware supports only basic receiver functions, type B extends 
-operations and includes support for the Notch / Noise Blanker option. 
+Type A firmware supports only basic receiver functions, type B extends
+operations and includes support for the Notch / Noise Blanker option.
 The whole of the type A memory map is retained in type B, but more
 memory and operations are added for the extended functions of type B.
 
-In the following information, circled note numbers are included to indicate 
+In the following information, circled note numbers are included to indicate
 where items are specific to one type or revision of the firmware:-
 
     <1> Applicable to type B firmware only.
@@ -112,7 +133,7 @@ where items are specific to one type or revision of the firmware:-
     <3> Function is changed or added to in type B
 
 6) Operation codes.
-The high order 4-bits of each byte sent to the receiver is the operation code, 
+The high order 4-bits of each byte sent to the receiver is the operation code,
 the low order 4-bits is data (shown here as x) :-
 
 Code Ident    Operation
@@ -129,7 +150,7 @@ Code Ident    Operation
 
 6x   WRD      Write data               Hx => [Page, Address]
                      Address register + 1 => Address register
-                                        0 => H-register, 
+                                        0 => H-register,
                                         0 => Mask register
 
 9x   MSK <1>  Set mask                 Hx => Mask register
@@ -175,32 +196,32 @@ enum OPCODE_e
 };
 
 /*
-Note that the H-register is zeroed after use, and that the high order 4-bits 
-of the Address register must be set (if non-zero) after the low order 8-bits. 
-The Address register is automatically incremented by one after a write data 
-operation and by x after a read data operation. When writing to any of the 
-EEPROM memory pages a time of 10ms per byte has to be allowed. For this reason 
-it is recommended that instructions SRH and WRD are always used together 
-(even if the SRH is not needed) since this will ensure that the EEPROM has 
+Note that the H-register is zeroed after use, and that the high order 4-bits
+of the Address register must be set (if non-zero) after the low order 8-bits.
+The Address register is automatically incremented by one after a write data
+operation and by x after a read data operation. When writing to any of the
+EEPROM memory pages a time of 10ms per byte has to be allowed. For this reason
+it is recommended that instructions SRH and WRD are always used together
+(even if the SRH is not needed) since this will ensure that the EEPROM has
 sufficient time to complete its write cycle.
 
-Additionally to allow time for local receiver memory updates and SNC detector 
-sampling in addition to the EEPROM write cycle, it is recommended to lock the 
-receiver to level 2 or 3, or add a NOP instruction after each write. This is 
+Additionally to allow time for local receiver memory updates and SNC detector
+sampling in addition to the EEPROM write cycle, it is recommended to lock the
+receiver to level 2 or 3, or add a NOP instruction after each write. This is
 not required for firmware revision 1.4 but locking is still recommended.
 
-The mask operation helps with locations in memory that are shared by two 
-parameters and aids setting and clearing bits. The mask operates only in 
+The mask operation helps with locations in memory that are shared by two
+parameters and aids setting and clearing bits. The mask operates only in
 Page 0.
 
-If bits in the mask are set, then a following write operation will leave the 
-corresponding bits unchanged. The mask register is cleared after a write so 
-that subsequent writes are processed normally. Because it defaults to zero at 
+If bits in the mask are set, then a following write operation will leave the
+corresponding bits unchanged. The mask register is cleared after a write so
+that subsequent writes are processed normally. Because it defaults to zero at
 reset, the mask is inoperative unless specifically set.
 
-The operate button instruction uses the same button codes as are returned 
-from routine 15 (see section 8), with an additional code of zero which 
-operates the power button, but will not  switch the receiver off. Also code 
+The operate button instruction uses the same button codes as are returned
+from routine 15 (see section 8), with an additional code of zero which
+operates the power button, but will not  switch the receiver off. Also code
 0 will switch the receiver on (from standby state).
 
 7) Memory pages.
@@ -225,7 +246,7 @@ enum PAGE_e
 };
 
 /*
-The ident is divided into model number (5 bytes), software revision (2 bytes) 
+The ident is divided into model number (5 bytes), software revision (2 bytes)
 and type letter (1 byte).
 
 e.g. 7030_14A => Model AR-7030, revision 1.4, type letter A.
@@ -240,19 +261,19 @@ Level 1 IR remote control disabled.
   Front panel spin-wheels logged but not actioned.
   Display update (frequency & S-meter) continues.
 
-Level 2 As level 1, but display update suspended. 
+Level 2 As level 1, but display update suspended.
 
-In revisions before 1.4 squelch operation is inhibited, which results in 
-no audio output after a mode change. In revision 1.4 squelch operation 
+In revisions before 1.4 squelch operation is inhibited, which results in
+no audio output after a mode change. In revision 1.4 squelch operation
 continues and mode changing is as expected.
 
 Level 3 Remote operation exclusively.
 
-Lock level 1 is recommended during any multi-byte reads or writes of the 
-receiver's memory to prevent data contention between internal and remote 
+Lock level 1 is recommended during any multi-byte reads or writes of the
+receiver's memory to prevent data contention between internal and remote
 memory access. See also EEPROM notes in section (6)
 */
-enum LOCK_LVL_e 
+enum LOCK_LVL_e
 {
     LOCK_0 = 0,
     LOCK_1 = 1,
@@ -266,20 +287,20 @@ enum LOCK_LVL_e
 
 Routine  0     Reset Setup receiver as at switch-on.
 
-Routine  1     Set frequency Program local oscillator from frequ area and 
+Routine  1     Set frequency Program local oscillator from frequ area and
                setup RF filters and oscillator range.
 
-Routine  2     Set mode Setup from mode byte in memory and display mode, 
+Routine  2     Set mode Setup from mode byte in memory and display mode,
                select preferred filter and PBS, BFO values etc.
 
-Routine  3     Set passband Setup all IF parameters from filter, pbsval and 
+Routine  3     Set passband Setup all IF parameters from filter, pbsval and
                bfoval bytes.
 
 Routine  4     Set all Set all receiver parameters from current memory values.
 
 Routine  5 <2> Set audio Setup audio controller from memory register values.
 
-Routine  6 <2> Set RF-IF Setup RF Gain, IF Gain and AGC speed. Also sets Notch 
+Routine  6 <2> Set RF-IF Setup RF Gain, IF Gain and AGC speed. Also sets Notch
                Filter and Noise Blanker if these options are fitted.
 
 Routine  7     Not assigned
@@ -288,28 +309,28 @@ Routine  8     Not assigned
 
 Routine  9     Direct Rx control Program control register from rxcon area.
 
-Routine 10     Direct DDS control Program local oscillator and carrier 
-               oscillator DDS systems from wbuff area. 
-               The 32-bits at wbuff control the carrier frequency, 
-               value is 385674.4682 / kHz. The 32 bits at wbuff+4 control 
+Routine 10     Direct DDS control Program local oscillator and carrier
+               oscillator DDS systems from wbuff area.
+               The 32-bits at wbuff control the carrier frequency,
+               value is 385674.4682 / kHz. The 32 bits at wbuff+4 control
                the local osc frequency, value is 753270.4456 / MHz.
 
 Routine 11     Display menus Display menus from menu1 and menu2 bytes.
 
 Routine 12     Display frequency Display frequency from frequ area.
 
-Routine 13     Display buffer Display ASCII data in wbuff area. First byte is 
-               display address, starting at 128 for the top line and 192 
+Routine 13     Display buffer Display ASCII data in wbuff area. First byte is
+               display address, starting at 128 for the top line and 192
                for the bottom line. An address value of 1 clears the display.
                Data string (max length 24 characters) ends with a zero byte.
 
-Routine 14     Read signal strength Transmits byte representing received 
-               signal strength (read from AGC voltage). Output is 8-bit 
+Routine 14     Read signal strength Transmits byte representing received
+               signal strength (read from AGC voltage). Output is 8-bit
                binary in range 0 to 255.
 
-Routine 15     Read buttons Transmits byte indicating state of front panel 
-               buttons. Output is 8-bit binary with an offset of +48 
-               (i.e. ASCII numbers). Buttons held continuously will only be 
+Routine 15     Read buttons Transmits byte indicating state of front panel
+               buttons. Output is 8-bit binary with an offset of +48
+               (i.e. ASCII numbers). Buttons held continuously will only be
                registered once.
 */
 
@@ -354,9 +375,9 @@ enum BUTTON_e
   BTN_POWER  = 9
 };
 
-/*               
-Note that the work buffer wbuff area in memory is used continuously by the 
-receiver unless lock levels 2 or 3 are invoked. Lock levels of 1 or more 
+/*
+Note that the work buffer wbuff area in memory is used continuously by the
+receiver unless lock levels 2 or 3 are invoked. Lock levels of 1 or more
 should be used when reading any front panel controls to prevent erratic
 results.
 
@@ -385,17 +406,17 @@ results.
   21 0x015  pd_ifg      1 byte   IF gain
   22 0x016  pd_flg      1 byte   Flags (from pdflgs)
   23 0x017  pd_frq      3 bytes  Frequency
-  26 0x01A  pd_mod <3>  1 byte   Mode (bits 0-3) and 
+  26 0x01A  pd_mod <3>  1 byte   Mode (bits 0-3) and
                                    NB threshold (bits 4-7)
-  27 0x01B  pd_vol <3>  1 byte   Volume (bits 0-5) and 
+  27 0x01B  pd_vol <3>  1 byte   Volume (bits 0-5) and
                                    rx memory hundreds (bits 6&7)
   28 0x01C             26 bytes  Receiver setup save area :-
-  28 0x01C  md_flt      1 byte   AM mode : Filter (bits 0-3) and 
+  28 0x01C  md_flt      1 byte   AM mode : Filter (bits 0-3) and
                                    AGC speed (bits 4-7)
   29 0x01D  md_pbs      1 byte   AM mode : PBS value
   30 0x01E  md_bfo      1 byte   AM mode : BFO value
   31 0x01F              3 bytes  Ditto for Sync mode
-  34 0x022              3 bytes  Ditto for NFM mode - 
+  34 0x022              3 bytes  Ditto for NFM mode -
                                    except Squelch instead of BFO
   37 0x025              3 bytes  Ditto for Data mode
   40 0x028              3 bytes  Ditto for CW mode
@@ -405,7 +426,7 @@ results.
                                    bit 5 Notch auto track enable
                                    bit 6 Ident search enable
                                    bit 7 Ident preview enable
-  50 0x032              1 byte   Audio treble setting (bits 0-3) and 
+  50 0x032              1 byte   Audio treble setting (bits 0-3) and
                                    RF Gain (bits 4-7)
   51 0x033              1 byte   Aux output level - left channel
   52 0x034              1 byte   Aux output level - right channel
@@ -423,9 +444,9 @@ results.
  144 0x090              4 bytes  Ditto for filter 4
  148 0x094              4 bytes  Ditto for filter 5
  152 0x098              4 bytes  Ditto for filter 6
- 156 0x09C  mem_sq    100 bytes  Squelch / BFO values for 
+ 156 0x09C  mem_sq    100 bytes  Squelch / BFO values for
                                    frequency memories 0 to 99
-                                   (BFO for Data and CW modes, 
+                                   (BFO for Data and CW modes,
                                     Squelch for others)
 */
 #define MAX_MEM_SQL_PAGE0 (99)
@@ -496,9 +517,9 @@ enum BBRAM_mem_e
  505 0x1F9              1 byte     RSS steps up to S9+10 level
  506 0x1FA              1 byte     RSS steps up to S9+30 level
  507 0x1FB              1 byte     RSS steps up to S9+50 level
- 508 0x1FC  if_cal      2 bytes  RSS offsets for -20dB 
+ 508 0x1FC  if_cal      2 bytes  RSS offsets for -20dB
                                    and -8dB filter alignment
- 510 0x1FE  if_def      1 byte   Default filter numbers for 
+ 510 0x1FE  if_def      1 byte   Default filter numbers for
                                    narrow and wide (2 BCD digits)
  511 0x1FF  option <1>  1 byte   Option information :-
                                    bit 0 Noise blanker
@@ -539,7 +560,7 @@ enum EEPROM1_mem_e
 1207 0x4B7  mtm_ac      1 byte   active (0 = not active)
 1208 0x4B8             72 bytes  Ditto for timer memories 1 to 9
 1280 0x500             16 bytes  Frequency memory data :-
-1280 0x500  mex_sq      1 byte   Memory 0 : Squelch / BFO (not used for 
+1280 0x500  mex_sq      1 byte   Memory 0 : Squelch / BFO (not used for
                                    mems 0 to 99)
                                    (BFO for Data and CW modes)
 1281 0x501  mex_pb      1 byte   PBS value (not used for mems 0 to 99)
@@ -572,16 +593,16 @@ enum EEPROM2_mem_e
 
    Address  Ident    Length      Description
    0 0x000             16 bytes  Frequency memory data :-
-   0 0x000  mey_sq      1 byte   Memory 176 : Squelch / BFO 
+   0 0x000  mey_sq      1 byte   Memory 176 : Squelch / BFO
                                    (BFO for Data and CW modes)
    1 0x001  mey_pb      1 byte   PBS value
    2 0x002  mey_id     14 bytes  Text Ident
   16 0x010           3568 bytes  Ditto for memories 177 to 399
-3584 0xE00  mex_hx    400 bytes  Frequency fast find index 
+3584 0xE00  mex_hx    400 bytes  Frequency fast find index
                                    (1 byte for each memory 0 to 399)
-                                   Index value is bits 9 to 16 of 24-bit 
-                                   frequency stored in each memory. Empty 
-                                   memories (frequency zero) should have 
+                                   Index value is bits 9 to 16 of 24-bit
+                                   frequency stored in each memory. Empty
+                                   memories (frequency zero) should have
                                    a random index byte.
 3984 0xF90            112 bytes  spare
 */
@@ -597,7 +618,7 @@ enum EEPROM3_mem_e
 /*
 14) Working memory (Memory page 0)
 
-Areas not specifically addressed are used as workspace by the internal 
+Areas not specifically addressed are used as workspace by the internal
 processor. - Keep out (by order).
 
    Address  Ident    Length      Description
@@ -606,11 +627,11 @@ processor. - Keep out (by order).
   18 0x012  scnst       1 byte   Scan start channel
   19 0x013  scnsp       1 byte   Scan stop channel
   20 0x014  scndly      1 byte   Scan delay time value x 0.125 seconds
-  21 0x015  chnstp      2 bytes  16-bit channel step size, 
+  21 0x015  chnstp      2 bytes  16-bit channel step size,
                                    value is 376.6352 / kHz
   23 0x017  sqlsav      1 byte   Squelch save value (non-fm mode)
   24 0x018  ifgain      1 byte   IF gain value (zero is max gain)
-  26 0x01A  frequ       3 bytes  24-bit tuned frequency, 
+  26 0x01A  frequ       3 bytes  24-bit tuned frequency,
                                    value is 376635.2228 / MHz.
   29 0x01D  mode        1 byte   Current mode :- 1 = AM   4 = Data
                                                  2 = Sync 5 = CW
@@ -618,22 +639,22 @@ processor. - Keep out (by order).
                                                  7 = USB
   30 0x01E             10 bytes  Audio control registers :-
   30 0x01E  af_vol      1 byte   Main channel volume (6-bits, values 15 to 63)
-  31 0x01F  af_vll      1 byte   Left channel balance 
+  31 0x01F  af_vll      1 byte   Left channel balance
                                    (5-bits, half of volume value above)
   32 0x020  af_vlr      1 byte   Right channel balance (as above)
-  33 0x021  af_bas <1>  1 byte   Main channel bass 
+  33 0x021  af_bas <1>  1 byte   Main channel bass
                                    (bits 0-4, values 6 to 25, 15 is flat)
      bit 5  nchtrk               Notch auto track enable
      bit 6  idauto               Ident auto search enable
      bit 7  idprev               Ident auto preview enable
-  34 0x022  af_trb <3>  1 byte   Main channel treble 
+  34 0x022  af_trb <3>  1 byte   Main channel treble
                                    (bits 0-3, values 2 to 10, 6 is flat)
      bit 4  nb_opt               Noise blanker menus enabled
      bit 5  nt_opt               Notch Filter menus enabled
      bit 6  step10               10 dB RF attenuator fitted
-  35 0x023  af_axl      1 byte   Left aux channel level 
+  35 0x023  af_axl      1 byte   Left aux channel level
                                    (bits 0-5, values 27 to 63)
-  36 0x024  af_axr <3>  1 byte   Right aux channel level 
+  36 0x024  af_axr <3>  1 byte   Right aux channel level
                                    (bits 0-5, values 27 to 63)
      bit 7  nchsr                Notch search running
   37 0x025  af_axs <3>  1 byte   Aux channel source (bits 0-3)
@@ -735,15 +756,15 @@ processor. - Keep out (by order).
   72 0x048  runtmr      1 byte   Sleep mode timer
   73 0x049  snfrq       1 byte   Sync detector frequency offset cal value
   74 0x04A  frange      1 byte   Input / LO range
-  75 0x04B  menu1 <3>   1 byte   Current left menu (type A and B menu 
+  75 0x04B  menu1 <3>   1 byte   Current left menu (type A and B menu
                                                     numbers are different)
-  76 0x04C  menu2 <3>   1 byte   Current right menu (type A and B menu 
+  76 0x04C  menu2 <3>   1 byte   Current right menu (type A and B menu
                                                      numbers are different)
   77 0x04D  memno       1 byte   Current memory number
   78 0x04E  setno       1 byte   Setup / config selection - load / save
   85 0x055  mempg <1>   1 byte   Memory page (hundreds - value 0 to 3)
   86 0x056  nbthr <1>   1 byte   Noise blanker threshold (values 0 to 15)
-  87 0x057  hshfr <1>   1 byte   Current tuned frequ index value 
+  87 0x057  hshfr <1>   1 byte   Current tuned frequ index value
                                    (during ident search)
   88 0x058  nchtmr <1>  1 byte   Notch filter auto tune / search timer
   90 0x059  wbuff      26 bytes  Work buffer
@@ -753,9 +774,9 @@ processor. - Keep out (by order).
  140 0x08C  carofs      4 bytes  32-bit carrier osc offset
  144 0x090  smofs       1 byte   S-meter starting offset
  145 0x091  smscl       7 bytes  S-meter segment values
- 152 0x098  ifcal       2 bytes  RSS offsets for -20 dB and 
+ 152 0x098  ifcal       2 bytes  RSS offsets for -20 dB and
                                    -5 dB filter alignment
- 154 0x09A  ifdef       1 byte   Default filter numbers for narrow and wide 
+ 154 0x09A  ifdef       1 byte   Default filter numbers for narrow and wide
                                    (2 digits)
  155 0x09B  vfo_b      22 bytes  VFO B storage area :-
  155 0x09B              1 byte     B : Scan delay time
@@ -780,7 +801,7 @@ processor. - Keep out (by order).
  218 0x0DA  savmnu <1>  1 byte   Saved menu 1 number during ident display
  219 0x0DB  srchm <1>   2 bytes  Ident search memory (page and number)
  222 0x0DD  idtmr <1>   1 byte   Auto ident search start timer
- 223 0x0DE  nchfr <1>   2 bytes  16-bit notch filter frequency, 
+ 223 0x0DE  nchfr <1>   2 bytes  16-bit notch filter frequency,
                                    value is 6553.6 / kHz
 */
 
@@ -938,38 +959,38 @@ enum ROM_mem_e
 /*
 RS232 signal meter reading - additional comments
 
-Several commercial organisations are using the AR7030 for signal monitoring 
-purposes and wish to accurately log signal meter level.  The information is 
-given in the RS232 PROTOCOL LISTING but the subject is fairly complex.  A 
-summary of the required process is given here, the text has been generated by 
-John Thorpe in response to a commercial request for more detailed guidance 
+Several commercial organisations are using the AR7030 for signal monitoring
+purposes and wish to accurately log signal meter level.  The information is
+given in the RS232 PROTOCOL LISTING but the subject is fairly complex.  A
+summary of the required process is given here, the text has been generated by
+John Thorpe in response to a commercial request for more detailed guidance
 (November 2001).
 
-Reading the input signal strength from the AR7030 is not too difficult, but 
+Reading the input signal strength from the AR7030 is not too difficult, but
 some maths is needed to convert the level into dBm.
 
-Each set is calibrated after manufacture and a set of S-meter calibration 
-values stored in EEPROM in the receiver. This means that the signal strength 
+Each set is calibrated after manufacture and a set of S-meter calibration
+values stored in EEPROM in the receiver. This means that the signal strength
 readings should be quite good and consistent. I think that you should get less
-than 2dB change with frequency and maybe 3dB with temperature. Initial 
+than 2dB change with frequency and maybe 3dB with temperature. Initial
 calibration error should be less than +/- 2dB.
 
-I think the sets that you use have been modified for DRM use have some 
-changes in the IF stage. This will require that the sets are re-calibrated if 
-you are to get accurate results. The SM7030 service kit has a calibration 
+I think the sets that you use have been modified for DRM use have some
+changes in the IF stage. This will require that the sets are re-calibrated if
+you are to get accurate results. The SM7030 service kit has a calibration
 program (for PC) and is available from AOR.
 
-The signal strength is read from the AGC voltage within the 7030 so AGC 
-should be switched on and RF Gain set to maximum. To read AGC voltage send 
-opcode 02EH (execute routine 14) and the receiver will return a single byte 
+The signal strength is read from the AGC voltage within the 7030 so AGC
+should be switched on and RF Gain set to maximum. To read AGC voltage send
+opcode 02EH (execute routine 14) and the receiver will return a single byte
 value between 0 and 255 which is the measured AGC voltage.
 
-The calibration table is stored in EEPROM, so the control software should 
-read this when connection to the receiver is established and store the data 
+The calibration table is stored in EEPROM, so the control software should
+read this when connection to the receiver is established and store the data
 in an array for computing.
 
-Calibration data is 8 bytes long and is stored in Page2 at locations 
-500 (0x01F4) to 507 (0x01FB). Use the PaGE opcode (0x52) then SRH, ADR, ADH 
+Calibration data is 8 bytes long and is stored in Page2 at locations
+500 (0x01F4) to 507 (0x01FB). Use the PaGE opcode (0x52) then SRH, ADR, ADH
 to setup the address, then 8 RDD opcodes to read the data, as below :-
 
 Opcode   Hex    Operation
@@ -985,8 +1006,8 @@ RDD +1   0x71   Read byte 8 of cal data
 
 PGE  0   0x50   Return to page 0 for subsequent control operations
 
-The first byte of calibration data holds the value of the AGC voltage for a 
-signal level of -113dBm (S1). Successive bytes hold the incremental values 
+The first byte of calibration data holds the value of the AGC voltage for a
+signal level of -113dBm (S1). Successive bytes hold the incremental values
 for 10dB increases in signal level :-
 
 Cal data   Typical Value   RF signal level
@@ -1005,9 +1026,9 @@ byte 8     20              -23dBm (note 20dB step)
 #define STEP_SIZE_HIGH (20)
 
 /*
-To calculate the signal level, table values should be subtracted from the AGC 
-voltage in turn until a negative value would result. This gives the rough 
-level from the table position. The accuracy can be improved by proportioning 
+To calculate the signal level, table values should be subtracted from the AGC
+voltage in turn until a negative value would result. This gives the rough
+level from the table position. The accuracy can be improved by proportioning
 the remainder into the next table step. See the following example :-
 
 A read signal strength operation returns a value of 100
@@ -1020,100 +1041,100 @@ Fine adjustment value = (remainder) / (cal byte 5) * (level step)
                       = 4 / 12 * 10 = 3dB
 Signal level = -83dBm + 3dB = -80dB
 
-The receiver can operate the RF attenuator automatically if the signal level 
-is likely to overload the RF stages. Reading the RFAGC byte (page 0, location 
-49) gives the attenuation in 10dB steps. This value should be read and added 
+The receiver can operate the RF attenuator automatically if the signal level
+is likely to overload the RF stages. Reading the RFAGC byte (page 0, location
+49) gives the attenuation in 10dB steps. This value should be read and added
 to the value calculated above.
 
-Further discussion has taken place on the subject of PC control with the 
+Further discussion has taken place on the subject of PC control with the
 designer, the comments may be of assistance to other operators...
 
-As far as I can tell all of the commands and operations work exactly as 
-documented so when the client talks of "the set frequency command doesn't 
-work" they are obviously doing something wrong. 
+As far as I can tell all of the commands and operations work exactly as
+documented so when the client talks of "the set frequency command doesn't
+work" they are obviously doing something wrong.
 
-Similarly, I am unable to duplicate the effects that they notice with 
-changing audio settings after changing modes. There are some issues with the 
-parameters that they are changing which I will address later, but first they 
-must sort out the basic communication so that the receiver control is as 
-expected. Further issues cannot really be sorted until this is working 
-properly. 
+Similarly, I am unable to duplicate the effects that they notice with
+changing audio settings after changing modes. There are some issues with the
+parameters that they are changing which I will address later, but first they
+must sort out the basic communication so that the receiver control is as
+expected. Further issues cannot really be sorted until this is working
+properly.
 
 Programming issues...
 
-Since I have no Knowledge of what programming system the client is using 
-these are only general comments. The receiver control is in 8-bit binary code 
-so any communication must maintain all 8 bits (and not truncate bit 7 as some 
-printer outputs do). 
+Since I have no Knowledge of what programming system the client is using
+these are only general comments. The receiver control is in 8-bit binary code
+so any communication must maintain all 8 bits (and not truncate bit 7 as some
+printer outputs do).
 
-It is also essential that no extra characters are added to the output stream 
-so check that the software is not adding carriage returns, line feeds, nulls 
-or end-of-file markers to the output. If this might be a problem, monitor the 
-computer to receiver communication with a serial line monitor or another 
-computer running a simple RS-232 reading program. 
+It is also essential that no extra characters are added to the output stream
+so check that the software is not adding carriage returns, line feeds, nulls
+or end-of-file markers to the output. If this might be a problem, monitor the
+computer to receiver communication with a serial line monitor or another
+computer running a simple RS-232 reading program.
 
-There is some sample BASIC code in the "AR-7030 Computer remote control 
-protocol" document which gives subroutines that cover the commonly used 
-receiver settings. Use this as a starting point for your own routines. The 
-published routines have been thoroughly tested and work without problems. 
+There is some sample BASIC code in the "AR-7030 Computer remote control
+protocol" document which gives subroutines that cover the commonly used
+receiver settings. Use this as a starting point for your own routines. The
+published routines have been thoroughly tested and work without problems.
 
 http://www.aoruk.com/pdf/comp.pdf
 http://www.aoruk.com/7030bulletin.htm#7030_rs232_s-meter
 
-With all "buffered" RS-232 connections it is possible for the computer and 
-receiver to get out of step when using two-way communication. For this reason 
-I included some "flush input buffer" routines in the sample code. Using these 
-ensures that missed characters or extra characters inserted due to noise or 
-disconnection do not disrupt communication between the computer and receiver, 
+With all "buffered" RS-232 connections it is possible for the computer and
+receiver to get out of step when using two-way communication. For this reason
+I included some "flush input buffer" routines in the sample code. Using these
+ensures that missed characters or extra characters inserted due to noise or
+disconnection do not disrupt communication between the computer and receiver,
 and a recovery after communications failure can be automatic.
 
-Because the receiver's remote control is by direct access to memory and 
-processor it is a very flexible system but is also able to disrupt receiver 
-operation if incorrectly used. Only a few bytes of information stored in the 
-receiver's memory affect S-meter calibration and AOR (UK) hold records of 
-this data for each receiver made so that in the event of corruption it can be 
-re-programmed. 
+Because the receiver's remote control is by direct access to memory and
+processor it is a very flexible system but is also able to disrupt receiver
+operation if incorrectly used. Only a few bytes of information stored in the
+receiver's memory affect S-meter calibration and AOR (UK) hold records of
+this data for each receiver made so that in the event of corruption it can be
+re-programmed.
 
 See the note that follows regarding AGC calibration.
 
-All other working memory contents can be set to sensible values by a "Set 
-defaults" operation from the front panel. Most, but not all, of the working 
-memory is re-established by executing a remote "Reset" command (0x20) which 
+All other working memory contents can be set to sensible values by a "Set
+defaults" operation from the front panel. Most, but not all, of the working
+memory is re-established by executing a remote "Reset" command (0x20) which
 can be done as a last resort after control failure.
 
 Specific parameter settings...
 
-The client describes the correct operations for setting mode and frequency 
-but if, as he states, the set frequency command (021h) does not work then 
-this needs to be investigated. This may lead to discovering the cause of 
-other problems suffered by the client. 
+The client describes the correct operations for setting mode and frequency
+but if, as he states, the set frequency command (021h) does not work then
+this needs to be investigated. This may lead to discovering the cause of
+other problems suffered by the client.
 
-Note that changing the frequency in this way re-tunes the receiver but does 
-not update the display on the front panel. A "Display frequency" command is 
+Note that changing the frequency in this way re-tunes the receiver but does
+not update the display on the front panel. A "Display frequency" command is
 included for this purpose.
 
-To set the receiver main volume, three locations need to be written - 
-Page 0, addr 0x1e, 0x1f & 0x20. Details are in the protocol document, note the 
-minimum value (for zero volume) is 15. The aux channel level change is as 
-described by the client and after writing new values into the RAM will need 
-either a "Set audio" command or a "Set all" command to make the change. I can 
-find no reason for, nor duplicate, the effect of changing mode altering the 
-aux level so this effect also needs investigating - maybe the clients "write 
+To set the receiver main volume, three locations need to be written -
+Page 0, addr 0x1e, 0x1f & 0x20. Details are in the protocol document, note the
+minimum value (for zero volume) is 15. The aux channel level change is as
+described by the client and after writing new values into the RAM will need
+either a "Set audio" command or a "Set all" command to make the change. I can
+find no reason for, nor duplicate, the effect of changing mode altering the
+aux level so this effect also needs investigating - maybe the clients "write
 to memory" is writing too many locations ?
 
-To initialise several receiver parameters I would recommend locking the 
-receiver, writing all of the required memory data, sending a "Set all" 
-command and then unlocking if required. There is no need to send individual 
-"Set" commands after each parameter. 
+To initialise several receiver parameters I would recommend locking the
+receiver, writing all of the required memory data, sending a "Set all"
+command and then unlocking if required. There is no need to send individual
+"Set" commands after each parameter.
 
 Unless very special requirements are needed (mainly test, setup and alignment
-) the 3 rxcon locations should not be written. When a "Set all" command is 
-sent these will be programmed by the receiver firmware to appropriate values 
-for the mode, frequency and filters selected. 
+) the 3 rxcon locations should not be written. When a "Set all" command is
+sent these will be programmed by the receiver firmware to appropriate values
+for the mode, frequency and filters selected.
 
-Only the parameters that need changing need to be written, all other values 
-will be maintained. The locations that the client needs to program for the 
-parameters he lists are as follows:- 
+Only the parameters that need changing need to be written, all other values
+will be maintained. The locations that the client needs to program for the
+parameters he lists are as follows:-
 
     (all Page 0)
     frequency  frequ   0x1a 0x1b 0x1c
@@ -1127,9 +1148,9 @@ parameters he lists are as follows:-
     RF gain    rfgain  0x30 (value=0x01 for no pre-amp)
     message    wbuff   0x59 (max 26 bytes)
 
-If the required parameter values are unknown, I recommend setting the 
-receiver as required through the front panel controls and then reading the 
-value of the memory locations affected using the "read data" operation. 
+If the required parameter values are unknown, I recommend setting the
+receiver as required through the front panel controls and then reading the
+value of the memory locations affected using the "read data" operation.
 
 15) Sample routines (in MS QBASIC)
 
@@ -1279,7 +1300,7 @@ read.ident:
 REM Subroutine to send frequency (Called only from other routines)
 send.freq:
     fr.val# = int(rx.freq#*376.635223+0.5)   ' Convert kHz to steps
-                                             ' Exact multiplicand is 
+                                             ' Exact multiplicand is
                                              ' (2^24)/44545
     print #1,chr$(&H30+int(fr.val#/1048576));
     fr.val# = fr.val# mod 1048576            ' Write frequency as 6 hex digits
@@ -1310,10 +1331,10 @@ read.freq:
  *
  * AOR AR7030 receiver infrared protocol listing
  *
- * There have been two types of IR7030 infrared hand controller employed 
- * by the AR7030. Late in 2005 a VERSION 2 handset (IR7030-2) was adopted 
- * in production. The protocol is slightly different, so a matching CPU 
- * must be employed (firmware 1xA or 1xB uses the original IR7030, 
+ * There have been two types of IR7030 infrared hand controller employed
+ * by the AR7030. Late in 2005 a VERSION 2 handset (IR7030-2) was adopted
+ * in production. The protocol is slightly different, so a matching CPU
+ * must be employed (firmware 1xA or 1xB uses the original IR7030,
  * firmware 2xA or 2xB uses the later IR7030-2).
  *
  * IR7030                           IR7030-2
