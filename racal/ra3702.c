@@ -2,19 +2,19 @@
  *  Hamlib Racal backend - RA3702 description
  *  Copyright (c) 2010 by Stephane Fillod
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -119,7 +119,7 @@ const struct rig_caps ra3702_caps = {
 		/* at -3dB */
 		{RIG_MODE_SSB|RIG_MODE_CW|RIG_MODE_RTTY, kHz(2.7)},
 		{RA3702_MODES, kHz(12)},
-		{RA3702_MODES, kHz(6)},	
+		{RA3702_MODES, kHz(6)},
 		{RA3702_MODES, Hz(300)},
 		{RA3702_MODES, kHz(1)},
 		{RA3702_MODES, kHz(2.7)},

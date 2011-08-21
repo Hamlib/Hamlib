@@ -2,21 +2,20 @@
  *  Hamlib Racal backend - main file
  *  Copyright (c) 2004-2010 by Stephane Fillod
  *
- *	$Id: racal.c,v 1.2 2009-02-23 21:53:51 fillods Exp $
  *
- *   This library is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU Library General Public License as
- *   published by the Free Software Foundation; either version 2 of
- *   the License, or (at your option) any later version.
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 2.1 of the License, or (at your option) any later version.
  *
- *   This program is distributed in the hope that it will be useful,
+ *   This library is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Library General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
  *
- *   You should have received a copy of the GNU Library General Public
+ *   You should have received a copy of the GNU Lesser General Public
  *   License along with this library; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
@@ -317,7 +316,7 @@ int racal_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 	struct racal_priv_data *priv = (struct racal_priv_data*)rig->state.priv;
 	char cmdbuf[BUFSZ];
 	int agc;
-	
+
 	switch (level) {
 	case RIG_LEVEL_RF:
 		/* Manually set threshold */
@@ -344,7 +343,7 @@ int racal_set_level(RIG *rig, vfo_t vfo, setting_t level, value_t val)
 		break;
 
 	default:
-		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %d\n", 
+		rig_debug(RIG_DEBUG_ERR,"%s: unsupported %d\n",
 				__FUNCTION__, level);
 		return -RIG_EINVAL;
 	}
@@ -452,7 +451,7 @@ const char* racal_get_info(RIG *rig)
 	if (retval < 0)
 		strcpy(filterbuf,"IO error");
 
-	sprintf(infobuf, "BITE errors: %s, Filters: %s\n", 
+	sprintf(infobuf, "BITE errors: %s, Filters: %s\n",
 			bitebuf+1, filterbuf);
 
 	return infobuf;
